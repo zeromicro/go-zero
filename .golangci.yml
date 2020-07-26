@@ -1,0 +1,43 @@
+run:
+  #  concurrency: 6
+  timeout: 5m
+  skip-dirs:
+    - core
+    - diq
+    - doc
+    - dq
+    - example
+    - kmq
+    - kq
+    - ngin
+    - rq
+    - rpcx
+    #    - service
+    - stash
+    - tools
+
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - structcheck
+    - typecheck
+    - unused
+    - varcheck
+#    - dupl
+
+
+linters-settings:
+
+issues:
+  exclude-rules:
+    - linters:
+        - staticcheck
+      text: 'SA1019: (baseresponse.BoolResponse|oldresponse.FormatBadRequestResponse|oldresponse.FormatResponse)|SA5008: unknown JSON option ("optional"|"default=|"range=|"options=)'

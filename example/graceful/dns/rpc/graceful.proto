@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package graceful;
+
+message Request {
+    string from = 1;
+}
+
+message Response {
+    string host = 2;
+}
+
+service GraceService {
+    rpc grace(Request) returns(Response);
+}

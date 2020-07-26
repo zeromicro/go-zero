@@ -1,0 +1,19 @@
+{
+    "Name": "portal.rpc",
+    "ListenOn": "localhost:3456",
+    "Etcd": {
+        "Hosts": [
+            "localhost:2379"
+        ],
+        "Key": "portal"
+    },
+    "UserRpc": {
+        "Etcd": {
+            "Hosts": [
+                "localhost:2379"
+            ],
+            "Key": "user"
+        }
+    },
+    "Timeout": 500
+}

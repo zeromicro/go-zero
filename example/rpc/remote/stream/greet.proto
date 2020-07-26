@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package stream;
+
+message StreamReq {
+    string name = 1;
+}
+
+message StreamResp {
+    string greet = 1;
+}
+
+service StreamGreeter {
+    rpc greet(stream StreamReq) returns (stream StreamResp);
+}

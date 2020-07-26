@@ -1,0 +1,12 @@
+{
+    "Name": "kmq",
+    "Brokers": [
+        "172.16.56.64:19092",
+        "172.16.56.65:19092",
+        "172.16.56.66:19092"
+    ],
+    "Group": "adhoc",
+    "Topic": "kevin",
+    "Offset": "first",
+    "NumProducers": 1
+}

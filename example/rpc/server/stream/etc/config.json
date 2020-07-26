@@ -1,0 +1,17 @@
+{
+    "Name":"test",
+    "MetricsUrl": "http://localhost:2222/add",
+    "ListenOn": "localhost:3456",
+    "Etcd": {
+        "Hosts": [
+            "localhost:2379"
+        ],
+        "Key": "rpcx"
+    },
+    "Redis": {
+        "Host": "localhost:6379",
+        "Type": "node",
+        "Key": "apps"
+    },
+    "Auth": false
+}

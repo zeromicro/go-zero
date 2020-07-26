@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package portal;
+
+message PortalRequest {
+    string name = 1;
+}
+
+message PortalResponse {
+    string response = 1;
+}
+
+service Portal {
+    rpc Portal(PortalRequest) returns (PortalResponse);
+}

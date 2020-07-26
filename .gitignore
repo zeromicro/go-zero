@@ -1,0 +1,46 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+!**/Dockerfile
+
+# Unignore all dirs
+!*/
+!api
+
+.idea
+**/.DS_Store
+**/logs
+!vendor/github.com/songtianyi/rrframework/logs
+**/*.pem
+**/*.prof
+**/*.p12
+!Makefile
+
+# gitlab ci
+.cache
+
+# chatbot
+**/production.json
+**/*.corpus.json
+**/*.txt
+**/*.gob
+
+# example
+example/**/*.csv
+
+# hera
+service/hera/cli/readdata/intergrationtest/data
+service/hera/devkit/ch331/data
+service/hera/devkit/ch331/ck
+service/hera/cli/replaybeat/etc
+# goctl
+tools/goctl/api/autogen
+
+vendor/*
+/service/hera/cli/dboperation/etc/hera.json
+
+# vim auto backup file
+*~
+!OWNERS

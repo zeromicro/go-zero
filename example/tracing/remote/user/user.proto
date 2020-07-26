@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package user;
+
+message UserRequest {
+    string name = 1;
+}
+
+message UserResponse {
+    string response = 1;
+}
+
+service User {
+    rpc GetGrade(UserRequest) returns (UserResponse);
+}
+
+

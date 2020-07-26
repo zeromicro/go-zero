@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package unary;
+
+message Request {
+    string name = 1;
+}
+
+message Response {
+    string greet = 1;
+}
+
+service Greeter {
+    rpc greet(Request) returns (Response);
+}
+
+
