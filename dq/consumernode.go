@@ -6,7 +6,7 @@ import (
 	"zero/core/logx"
 	"zero/core/syncx"
 
-	"github.com/beanstalkd/beanstalk"
+	"github.com/beanstalkd/go-beanstalk"
 )
 
 type (

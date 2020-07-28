@@ -3,7 +3,7 @@ package dq
 import (
 	"sync"
 
-	"github.com/beanstalkd/beanstalk"
+	"github.com/beanstalkd/go-beanstalk"
 )
 
 type connection struct {

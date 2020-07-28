@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/beanstalkd/beanstalk"
+	"github.com/beanstalkd/go-beanstalk"
 )
 
 var ErrTimeBeforeNow = errors.New("can't schedule task to past time")
