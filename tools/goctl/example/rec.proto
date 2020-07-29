@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package recommendservice;
+
+message RecArticle {
+    int64 id = 1;
+}
+
+message RecommendRequest {
+    // the id of the request user.
+    int64 uid = 1;
+    // how many top ranked article for this user.
+    int32 topk = 2;
+    // current hour
+    int32 hour = 3;
+    // current minute
+    int32 minute = 4;
+    // the article list.
+    repeated RecArticle articles = 5;
+}
+
+message RecommendResponse {
+    repeated int64 articles = 1;
+}
+
+service RecommendService {
+    // the method to get the topk performers for this user.
+    rpc recommend1(RecommendRequest) returns (RecommendResponse);
+    rpc recommend2(RecommendRequest) returns (RecommendResponse);
+}

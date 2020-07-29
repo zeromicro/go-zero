@@ -1,0 +1,78 @@
+package apigen
+
+import (
+	"errors"
+	"fmt"
+	"path/filepath"
+	"strings"
+	"text/template"
+
+	"zero/tools/goctl/util"
+
+	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
+)
+
+const apiTemplate = `info(
+	title: // TODO: add title
+	desc: // TODO: add description
+	author: {{.gitUser}}
+	email: {{.gitEmail}}
+)
+
+type request struct{
+	// TODO: add members here and delete this comment
+}
+
+type response struct{
+	// TODO: add members here and delete this comment
+}
+
+@server(
+    port: // TODO: add port here and delete this comment
+)
+service {{.serviceName}} {
+	@server(
+		handler: // TODO: set handler name and delete this comment
+	)
+	// TODO: edit the below line
+	// get /users/id/:userId(request) returns(response)
+
+	@server(
+		handler: // TODO: set handler name and delete this comment
+	)
+	// TODO: edit the below line
+	// post /users/create(request)
+}
+`
+
+func ApiCommand(c *cli.Context) error {
+	apiFile := c.String("o")
+	if len(apiFile) == 0 {
+		return errors.New("missing -o")
+	}
+
+	fp, err := util.CreateIfNotExist(apiFile)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	baseName := util.FileNameWithoutExt(filepath.Base(apiFile))
+	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
+		baseName = baseName[:len(baseName)-4]
+	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
+		baseName = baseName[:len(baseName)-3]
+	}
+	t := template.Must(template.New("etcTemplate").Parse(apiTemplate))
+	if err := t.Execute(fp, map[string]string{
+		"gitUser":     getGitName(),
+		"gitEmail":    getGitEmail(),
+		"serviceName": baseName + "-api",
+	}); err != nil {
+		return err
+	}
+
+	fmt.Println(aurora.Green("Done."))
+	return nil
+}
