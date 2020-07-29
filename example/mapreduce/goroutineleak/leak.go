@@ -10,7 +10,7 @@ import (
 
 	"zero/core/lang"
 	"zero/core/logx"
-	"zero/core/mapreduce"
+	"zero/core/mr"
 	"zero/core/proc"
 )
 
@@ -47,17 +47,17 @@ func main() {
 		case <-done:
 			return
 		default:
-			mapreduce.MapReduce(func(source chan<- interface{}) {
+			mr.MapReduce(func(source chan<- interface{}) {
 				for i := 0; i < 100; i++ {
 					source <- i
 				}
-			}, func(item interface{}, writer mapreduce.Writer, cancel func(error)) {
+			}, func(item interface{}, writer mr.Writer, cancel func(error)) {
 				if item.(int) == 40 {
 					cancel(errors.New("any"))
 					return
 				}
 				writer.Write(item)
-			}, func(pipe <-chan interface{}, writer mapreduce.Writer, cancel func(error)) {
+			}, func(pipe <-chan interface{}, writer mr.Writer, cancel func(error)) {
 				list := make([]int, 0)
 				for p := range pipe {
 					list = append(list, p.(int))

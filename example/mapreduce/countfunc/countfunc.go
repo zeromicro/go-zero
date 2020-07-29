@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/mapreduce"
+	"zero/core/mr"
 
 	"github.com/google/gops/agent"
 )
@@ -52,7 +52,7 @@ func enumerateLines(filename string) chan string {
 	return output
 }
 
-func mapper(filename interface{}, writer mapreduce.Writer, cancel func(error)) {
+func mapper(filename interface{}, writer mr.Writer, cancel func(error)) {
 	if len(*stopOnFile) > 0 && path.Base(filename.(string)) == *stopOnFile {
 		fmt.Printf("Stop on file: %s\n", *stopOnFile)
 		cancel(errors.New("stop on file"))
@@ -80,7 +80,7 @@ func mapper(filename interface{}, writer mapreduce.Writer, cancel func(error)) {
 	writer.Write(result)
 }
 
-func reducer(input <-chan interface{}, writer mapreduce.Writer, cancel func(error)) {
+func reducer(input <-chan interface{}, writer mr.Writer, cancel func(error)) {
 	var result int
 
 	for count := range input {
@@ -110,7 +110,7 @@ func main() {
 	fmt.Println("Processing, please wait...")
 
 	start := time.Now()
-	result, err := mapreduce.MapReduce(func(source chan<- interface{}) {
+	result, err := mr.MapReduce(func(source chan<- interface{}) {
 		filepath.Walk(*dir, func(fpath string, f os.FileInfo, err error) error {
 			if !f.IsDir() && path.Ext(fpath) == ".go" {
 				source <- fpath

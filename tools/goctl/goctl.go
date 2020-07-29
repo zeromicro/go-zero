@@ -15,7 +15,7 @@ import (
 	"zero/core/hash"
 	"zero/core/lang"
 	"zero/core/logx"
-	"zero/core/mapreduce"
+	"zero/core/mr"
 	"zero/core/stringx"
 	"zero/tools/goctl/api/apigen"
 	"zero/tools/goctl/api/dartgen"
@@ -345,7 +345,7 @@ func main() {
 	logx.Disable()
 
 	done := make(chan lang.PlaceholderType)
-	mapreduce.FinishVoid(func() {
+	mr.FinishVoid(func() {
 		if os.Getenv(autoUpdate) != "off" && !stringx.Contains(os.Args, "-iu") {
 			update()
 		}

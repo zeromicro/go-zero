@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/mapreduce"
+	"zero/core/mr"
 )
 
 func main() {
-	mapreduce.MapReduceVoid(func(source chan<- interface{}) {
+	mr.MapReduceVoid(func(source chan<- interface{}) {
 		for i := 0; i < 10; i++ {
 			source <- i
 		}
-	}, func(item interface{}, writer mapreduce.Writer, cancel func(error)) {
+	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
 		i := item.(int)
 		if i == 0 {
 			time.Sleep(10 * time.Second)

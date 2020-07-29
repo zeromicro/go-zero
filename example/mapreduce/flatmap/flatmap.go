@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"zero/core/mapreduce"
+	"zero/core/mr"
 )
 
 var (
@@ -18,13 +18,13 @@ var (
 
 func main() {
 	var allFriends []string
-	for v := range mapreduce.Map(func(source chan<- interface{}) {
+	for v := range mr.Map(func(source chan<- interface{}) {
 		for _, each := range persons {
 			source <- each
 		}
-	}, func(item interface{}, writer mapreduce.Writer) {
+	}, func(item interface{}, writer mr.Writer) {
 		writer.Write(friends[item.(string)])
-	}, mapreduce.WithWorkers(100)) {
+	}, mr.WithWorkers(100)) {
 		allFriends = append(allFriends, v.([]string)...)
 	}
 	fmt.Println(allFriends)

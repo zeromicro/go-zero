@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/mapreduce"
+	"zero/core/mr"
 	"zero/core/timex"
 )
 
 func main() {
 	start := timex.Now()
 
-	mapreduce.FinishVoid(func() {
+	mr.FinishVoid(func() {
 		time.Sleep(time.Second)
 	}, func() {
 		time.Sleep(time.Second * 5)
@@ -20,7 +20,7 @@ func main() {
 	}, func() {
 		time.Sleep(time.Second * 6)
 	}, func() {
-		if err := mapreduce.Finish(func() error {
+		if err := mr.Finish(func() error {
 			time.Sleep(time.Second)
 			return nil
 		}, func() error {
