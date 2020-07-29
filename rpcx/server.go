@@ -9,21 +9,20 @@ import (
 	"zero/core/load"
 	"zero/core/logx"
 	"zero/core/netx"
-	"zero/core/rpc"
-	"zero/core/rpc/serverinterceptors"
 	"zero/core/stat"
-	"zero/rpcx/auth"
-	"zero/rpcx/interceptors"
+	"zero/rpcx/internal"
+	"zero/rpcx/internal/auth"
+	"zero/rpcx/internal/serverinterceptors"
 )
 
 const envPodIp = "POD_IP"
 
 type RpcServer struct {
-	server   rpc.Server
-	register rpc.RegisterFn
+	server   internal.Server
+	register internal.RegisterFn
 }
 
-func MustNewServer(c RpcServerConf, register rpc.RegisterFn) *RpcServer {
+func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
 	if err != nil {
 		log.Fatal(err)
@@ -32,22 +31,22 @@ func MustNewServer(c RpcServerConf, register rpc.RegisterFn) *RpcServer {
 	return server
 }
 
-func NewServer(c RpcServerConf, register rpc.RegisterFn) (*RpcServer, error) {
+func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error) {
 	var err error
 	if err = c.Validate(); err != nil {
 		return nil, err
 	}
 
-	var server rpc.Server
+	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
 	if c.HasEtcd() {
 		listenOn := figureOutListenOn(c.ListenOn)
-		server, err = rpc.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, listenOn, rpc.WithMetrics(metrics))
+		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, listenOn, internal.WithMetrics(metrics))
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = rpc.NewRpcServer(c.ListenOn, rpc.WithMetrics(metrics))
+		server = internal.NewRpcServer(c.ListenOn, internal.WithMetrics(metrics))
 	}
 
 	server.SetName(c.Name)
@@ -99,7 +98,7 @@ func figureOutListenOn(listenOn string) string {
 	}
 }
 
-func setupInterceptors(server rpc.Server, c RpcServerConf, metrics *stat.Metrics) error {
+func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
 	if c.CpuThreshold > 0 {
 		shedder := load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
 		server.AddUnaryInterceptors(serverinterceptors.UnarySheddingInterceptor(shedder, metrics))
@@ -118,8 +117,8 @@ func setupInterceptors(server rpc.Server, c RpcServerConf, metrics *stat.Metrics
 			return err
 		}
 
-		server.AddStreamInterceptors(interceptors.StreamAuthorizeInterceptor(authenticator))
-		server.AddUnaryInterceptors(interceptors.UnaryAuthorizeInterceptor(authenticator))
+		server.AddStreamInterceptors(internal.StreamAuthorizeInterceptor(authenticator))
+		server.AddUnaryInterceptors(internal.UnaryAuthorizeInterceptor(authenticator))
 	}
 
 	return nil

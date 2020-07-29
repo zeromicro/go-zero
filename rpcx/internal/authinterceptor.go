@@ -1,9 +1,9 @@
-package interceptors
+package internal
 
 import (
 	"context"
 
-	"zero/rpcx/auth"
+	"zero/rpcx/internal/auth"
 
 	"google.golang.org/grpc"
 )

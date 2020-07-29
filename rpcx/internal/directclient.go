@@ -1,4 +1,4 @@
-package rpc
+package internal
 
 import (
 	"google.golang.org/grpc"

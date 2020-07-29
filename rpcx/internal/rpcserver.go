@@ -1,11 +1,11 @@
-package rpc
+package internal
 
 import (
 	"net"
 
 	"zero/core/proc"
-	"zero/core/rpc/serverinterceptors"
 	"zero/core/stat"
+	"zero/rpcx/internal/serverinterceptors"
 
 	"google.golang.org/grpc"
 )

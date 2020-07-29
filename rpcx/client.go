@@ -4,18 +4,18 @@ import (
 	"log"
 	"time"
 
-	"zero/core/discov"
-	"zero/core/rpc"
-	"zero/rpcx/auth"
-
 	"google.golang.org/grpc"
+
+	"zero/core/discov"
+	"zero/rpcx/internal"
+	"zero/rpcx/internal/auth"
 )
 
 type RpcClient struct {
-	client rpc.Client
+	client internal.Client
 }
 
-func MustNewClient(c RpcClientConf, options ...rpc.ClientOption) *RpcClient {
+func MustNewClient(c RpcClientConf, options ...internal.ClientOption) *RpcClient {
 	cli, err := NewClient(c, options...)
 	if err != nil {
 		log.Fatal(err)
@@ -24,25 +24,25 @@ func MustNewClient(c RpcClientConf, options ...rpc.ClientOption) *RpcClient {
 	return cli
 }
 
-func NewClient(c RpcClientConf, options ...rpc.ClientOption) (*RpcClient, error) {
-	var opts []rpc.ClientOption
+func NewClient(c RpcClientConf, options ...internal.ClientOption) (*RpcClient, error) {
+	var opts []internal.ClientOption
 	if c.HasCredential() {
-		opts = append(opts, rpc.WithDialOption(grpc.WithPerRPCCredentials(&auth.Credential{
+		opts = append(opts, internal.WithDialOption(grpc.WithPerRPCCredentials(&auth.Credential{
 			App:   c.App,
 			Token: c.Token,
 		})))
 	}
 	if c.Timeout > 0 {
-		opts = append(opts, rpc.WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
+		opts = append(opts, internal.WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
 	opts = append(opts, options...)
 
-	var client rpc.Client
+	var client internal.Client
 	var err error
 	if len(c.Server) > 0 {
-		client, err = rpc.NewDirectClient(c.Server, opts...)
+		client, err = internal.NewDirectClient(c.Server, opts...)
 	} else if err = c.Etcd.Validate(); err == nil {
-		client, err = rpc.NewRoundRobinRpcClient(c.Etcd.Hosts, c.Etcd.Key, opts...)
+		client, err = internal.NewRoundRobinRpcClient(c.Etcd.Hosts, c.Etcd.Key, opts...)
 	}
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func NewClient(c RpcClientConf, options ...rpc.ClientOption) (*RpcClient, error)
 }
 
 func NewClientNoAuth(c discov.EtcdConf) (*RpcClient, error) {
-	client, err := rpc.NewRoundRobinRpcClient(c.Hosts, c.Key)
+	client, err := internal.NewRoundRobinRpcClient(c.Hosts, c.Key)
 	if err != nil {
 		return nil, err
 	}

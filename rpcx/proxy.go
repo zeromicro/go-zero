@@ -4,22 +4,22 @@ import (
 	"context"
 	"sync"
 
-	"zero/core/rpc"
-	"zero/core/syncx"
-	"zero/rpcx/auth"
-
 	"google.golang.org/grpc"
+
+	"zero/core/syncx"
+	"zero/rpcx/internal"
+	"zero/rpcx/internal/auth"
 )
 
 type RpcProxy struct {
 	backend     string
 	clients     map[string]*RpcClient
-	options     []rpc.ClientOption
+	options     []internal.ClientOption
 	sharedCalls syncx.SharedCalls
 	lock        sync.Mutex
 }
 
-func NewRpcProxy(backend string, opts ...rpc.ClientOption) *RpcProxy {
+func NewRpcProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
 		clients:     make(map[string]*RpcClient),

@@ -1,11 +1,11 @@
-package rpc
+package internal
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"zero/core/rpc/clientinterceptors"
+	"zero/rpcx/internal/clientinterceptors"
 
 	"google.golang.org/grpc"
 )
