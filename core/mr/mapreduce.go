@@ -16,7 +16,7 @@ const (
 	minWorkers     = 1
 )
 
-var ErrCancelWithNil = errors.New("mr cancelled with nil")
+var ErrCancelWithNil = errors.New("mapreduce cancelled with nil")
 
 type (
 	GenerateFunc    func(source chan<- interface{})
