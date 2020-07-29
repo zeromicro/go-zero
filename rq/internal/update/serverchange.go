@@ -9,7 +9,7 @@ import (
 
 	"zero/core/hash"
 	"zero/core/jsonx"
-	"zero/rq/constant"
+	"zero/rq/internal"
 )
 
 var ErrInvalidServerChange = errors.New("not a server change message")
@@ -82,7 +82,7 @@ func (sc ServerChange) GetCode() string {
 }
 
 func IsServerChange(message string) bool {
-	return len(message) > 0 && message[0] == constant.ServerSensitivePrefix
+	return len(message) > 0 && message[0] == internal.ServerSensitivePrefix
 }
 
 func (sc ServerChange) Marshal() (string, error) {
@@ -91,7 +91,7 @@ func (sc ServerChange) Marshal() (string, error) {
 		return "", err
 	}
 
-	return string(append([]byte{constant.ServerSensitivePrefix}, body...)), nil
+	return string(append([]byte{internal.ServerSensitivePrefix}, body...)), nil
 }
 
 func UnmarshalServerChange(body string) (ServerChange, error) {

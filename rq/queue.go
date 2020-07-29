@@ -11,13 +11,12 @@ import (
 	"zero/core/discov"
 	"zero/core/logx"
 	"zero/core/queue"
-	"zero/core/redisqueue"
 	"zero/core/service"
 	"zero/core/stores/redis"
 	"zero/core/stringx"
 	"zero/core/threading"
-	"zero/rq/constant"
-	"zero/rq/update"
+	"zero/rq/internal"
+	"zero/rq/internal/update"
 )
 
 const keyLen = 6
@@ -107,8 +106,8 @@ func (q *MessageQueue) Stop() {
 
 func (q *MessageQueue) buildQueue() *queue.Queue {
 	inboundStore := redis.NewRedis(q.c.Redis.Host, q.c.Redis.Type, q.c.Redis.Pass)
-	producerFactory := redisqueue.NewProducerFactory(inboundStore, q.c.Redis.Key,
-		redisqueue.TimeSensitive(q.c.DropBefore))
+	producerFactory := internal.NewProducerFactory(inboundStore, q.c.Redis.Key,
+		internal.TimeSensitive(q.c.DropBefore))
 	mq := queue.NewQueue(producerFactory, q.consumerFactory)
 
 	if len(q.c.Name) > 0 {
@@ -140,7 +139,7 @@ func (q *MessageQueue) maybeAppendRenewer(group *service.ServiceGroup, mq *queue
 	if len(q.c.Etcd.Hosts) > 0 || len(q.c.Etcd.Key) > 0 {
 		etcdValue := MarshalQueue(q.c.Redis)
 		if q.c.DropBefore > 0 {
-			etcdValue = strings.Join([]string{etcdValue, constant.TimedQueueType}, constant.Delimeter)
+			etcdValue = strings.Join([]string{etcdValue, internal.TimedQueueType}, internal.Delimeter)
 		}
 		keepAliver := discov.NewRenewer(q.c.Etcd.Hosts, q.c.Etcd.Key, etcdValue, q.options.renewId)
 		mq.AddListener(pauseResumeHandler{
@@ -156,7 +155,7 @@ func MarshalQueue(rds redis.RedisKeyConf) string {
 		rds.Type,
 		rds.Pass,
 		rds.Key,
-	}, constant.Delimeter)
+	}, internal.Delimeter)
 }
 
 func WithHandle(handle ConsumeHandle) queue.ConsumerFactory {
@@ -251,7 +250,7 @@ func (c *serverSensitiveConsumer) Consume(msg string) error {
 
 		oldHash := change.CreatePrevHash()
 		newHash := change.CreateCurrentHash()
-		hashChange := NewHashChange(oldHash, newHash)
+		hashChange := internal.NewHashChange(oldHash, newHash)
 		c.mq.redisQueue.Broadcast(hashChange)
 
 		return nil

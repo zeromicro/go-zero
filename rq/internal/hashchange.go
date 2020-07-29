@@ -1,4 +1,4 @@
-package rq
+package internal
 
 import (
 	"math/rand"

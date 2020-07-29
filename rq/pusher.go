@@ -14,11 +14,10 @@ import (
 	"zero/core/lang"
 	"zero/core/logx"
 	"zero/core/queue"
-	"zero/core/redisqueue"
 	"zero/core/stores/redis"
 	"zero/core/threading"
-	"zero/rq/constant"
-	"zero/rq/update"
+	"zero/rq/internal"
+	"zero/rq/internal/update"
 )
 
 const (
@@ -155,7 +154,7 @@ func (pusher *Pusher) failover(server string) error {
 				return
 			}
 
-			if option == constant.TimedQueueType {
+			if option == internal.TimedQueueType {
 				message, err = unwrapTimedMessage(message)
 				if err != nil {
 					logx.Errorf("invalid timedMessage: %s, error: %s", message, err.Error())
@@ -179,11 +178,11 @@ func UnmarshalPusher(server string) (queue.QueuePusher, error) {
 		return nil, err
 	}
 
-	if option == constant.TimedQueueType {
-		return redisqueue.NewPusher(store, key, redisqueue.WithTime()), nil
+	if option == internal.TimedQueueType {
+		return internal.NewPusher(store, key, internal.WithTime()), nil
 	}
 
-	return redisqueue.NewPusher(store, key), nil
+	return internal.NewPusher(store, key), nil
 }
 
 func WithBatchConsistentStrategy(keysFn KeysFn, assembleFn AssembleFn, opts ...discov.BalanceOption) PusherOption {
@@ -375,15 +374,15 @@ func getName(key string) string {
 func newPusher(server string) (queue.QueuePusher, error) {
 	if rds, key, option, err := newRedisWithKey(server); err != nil {
 		return nil, err
-	} else if option == constant.TimedQueueType {
-		return redisqueue.NewPusher(rds, key, redisqueue.WithTime()), nil
+	} else if option == internal.TimedQueueType {
+		return internal.NewPusher(rds, key, internal.WithTime()), nil
 	} else {
-		return redisqueue.NewPusher(rds, key), nil
+		return internal.NewPusher(rds, key), nil
 	}
 }
 
 func newRedisWithKey(server string) (rds *redis.Redis, key, option string, err error) {
-	fields := strings.Split(server, constant.Delimeter)
+	fields := strings.Split(server, internal.Delimeter)
 	if len(fields) < etcdRedisFields {
 		err = fmt.Errorf("wrong redis queue: %s, should be ip:port/type/password/key/[option]", server)
 		return
@@ -437,7 +436,7 @@ func broadcast(servers []string, message string) error {
 }
 
 func unwrapTimedMessage(message string) (string, error) {
-	var tm redisqueue.TimedMessage
+	var tm internal.TimedMessage
 	if err := jsonx.UnmarshalFromString(message, &tm); err != nil {
 		return "", err
 	}

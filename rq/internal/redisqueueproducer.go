@@ -1,4 +1,4 @@
-package redisqueue
+package internal
 
 import (
 	"fmt"
