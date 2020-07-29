@@ -4,11 +4,11 @@ import (
 	"context"
 	"sync"
 
-	"google.golang.org/grpc"
-
 	"zero/core/syncx"
 	"zero/rpcx/internal"
 	"zero/rpcx/internal/auth"
+
+	"google.golang.org/grpc"
 )
 
 type RpcProxy struct {

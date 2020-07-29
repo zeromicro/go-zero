@@ -4,11 +4,11 @@ import (
 	"log"
 	"time"
 
-	"google.golang.org/grpc"
-
 	"zero/core/discov"
 	"zero/rpcx/internal"
 	"zero/rpcx/internal/auth"
+
+	"google.golang.org/grpc"
 )
 
 type RpcClient struct {
