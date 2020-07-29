@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"zero/core/conf"
-	"zero/core/httpx"
 	"zero/ngin"
+	"zero/ngin/httpx"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"

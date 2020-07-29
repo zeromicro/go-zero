@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"zero/core/executors"
-	"zero/core/httpx"
 	"zero/core/logx"
 	"zero/example/graceful/etcd/api/svc"
 	"zero/example/graceful/etcd/api/types"
 	"zero/example/graceful/etcd/rpc/graceful"
+	"zero/ngin/httpx"
 )
 
 func gracefulHandler(ctx *svc.ServiceContext) http.HandlerFunc {

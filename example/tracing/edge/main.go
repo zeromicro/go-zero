@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"zero/core/conf"
-	"zero/core/httpx"
 	"zero/core/logx"
 	"zero/core/service"
 	"zero/example/tracing/remote/portal"
 	"zero/ngin"
+	"zero/ngin/httpx"
 	"zero/rpcx"
 )
 

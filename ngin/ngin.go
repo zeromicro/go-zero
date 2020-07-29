@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"zero/core/httphandler"
-	"zero/core/httprouter"
 	"zero/core/logx"
+	"zero/ngin/handler"
+	"zero/ngin/internal/router"
 )
 
 type (
@@ -124,7 +124,7 @@ func WithPriority() RouteOption {
 	}
 }
 
-func WithRouter(router httprouter.Router) RunOption {
+func WithRouter(router router.Router) RunOption {
 	return func(engine *Engine) {
 		engine.opts.start = func(srv *server) error {
 			return srv.StartWithRouter(router)
@@ -141,13 +141,13 @@ func WithSignature(signature SignatureConf) RouteOption {
 	}
 }
 
-func WithUnauthorizedCallback(callback httphandler.UnauthorizedCallback) RunOption {
+func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
 	return func(engine *Engine) {
 		engine.srv.SetUnauthorizedCallback(callback)
 	}
 }
 
-func WithUnsignedCallback(callback httphandler.UnsignedCallback) RunOption {
+func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 	return func(engine *Engine) {
 		engine.srv.SetUnsignedCallback(callback)
 	}

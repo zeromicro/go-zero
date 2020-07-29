@@ -5,10 +5,10 @@ import (
 	"io"
 	"net/http"
 
-	"zero/core/httpx"
 	"zero/core/logx"
 	"zero/core/service"
 	"zero/ngin"
+	"zero/ngin/httpx"
 )
 
 var keyPem = flag.String("prikey", "private.pem", "the private key file")

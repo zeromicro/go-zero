@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"zero/core/codec"
-	"zero/core/httphandler"
-	"zero/core/httprouter"
-	"zero/core/httpserver"
 	"zero/core/load"
 	"zero/core/stat"
+	"zero/ngin/handler"
+	"zero/ngin/internal"
+	"zero/ngin/internal/router"
 
 	"github.com/justinas/alice"
 )
@@ -27,8 +27,8 @@ type (
 	server struct {
 		conf                 NgConf
 		routes               []featuredRoutes
-		unauthorizedCallback httphandler.UnauthorizedCallback
-		unsignedCallback     httphandler.UnsignedCallback
+		unauthorizedCallback handler.UnauthorizedCallback
+		unsignedCallback     handler.UnsignedCallback
 		middlewares          []Middleware
 		shedder              load.Shedder
 		priorityShedder      load.Shedder
@@ -52,43 +52,43 @@ func (s *server) AddRoutes(r featuredRoutes) {
 	s.routes = append(s.routes, r)
 }
 
-func (s *server) SetUnauthorizedCallback(callback httphandler.UnauthorizedCallback) {
+func (s *server) SetUnauthorizedCallback(callback handler.UnauthorizedCallback) {
 	s.unauthorizedCallback = callback
 }
 
-func (s *server) SetUnsignedCallback(callback httphandler.UnsignedCallback) {
+func (s *server) SetUnsignedCallback(callback handler.UnsignedCallback) {
 	s.unsignedCallback = callback
 }
 
 func (s *server) Start() error {
-	return s.StartWithRouter(httprouter.NewPatRouter())
+	return s.StartWithRouter(router.NewPatRouter())
 }
 
-func (s *server) StartWithRouter(router httprouter.Router) error {
+func (s *server) StartWithRouter(router router.Router) error {
 	if err := s.bindRoutes(router); err != nil {
 		return err
 	}
 
-	return httpserver.StartHttp(s.conf.Host, s.conf.Port, router)
+	return internal.StartHttp(s.conf.Host, s.conf.Port, router)
 }
 
 func (s *server) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
 	verifier func(alice.Chain) alice.Chain) alice.Chain {
 	if fr.jwt.enabled {
 		if len(fr.jwt.prevSecret) == 0 {
-			chain = chain.Append(httphandler.Authorize(fr.jwt.secret,
-				httphandler.WithUnauthorizedCallback(s.unauthorizedCallback)))
+			chain = chain.Append(handler.Authorize(fr.jwt.secret,
+				handler.WithUnauthorizedCallback(s.unauthorizedCallback)))
 		} else {
-			chain = chain.Append(httphandler.Authorize(fr.jwt.secret,
-				httphandler.WithPrevSecret(fr.jwt.prevSecret),
-				httphandler.WithUnauthorizedCallback(s.unauthorizedCallback)))
+			chain = chain.Append(handler.Authorize(fr.jwt.secret,
+				handler.WithPrevSecret(fr.jwt.prevSecret),
+				handler.WithUnauthorizedCallback(s.unauthorizedCallback)))
 		}
 	}
 
 	return verifier(chain)
 }
 
-func (s *server) bindFeaturedRoutes(router httprouter.Router, fr featuredRoutes, metrics *stat.Metrics) error {
+func (s *server) bindFeaturedRoutes(router router.Router, fr featuredRoutes, metrics *stat.Metrics) error {
 	verifier, err := s.signatureVerifier(fr.signature)
 	if err != nil {
 		return err
@@ -103,20 +103,20 @@ func (s *server) bindFeaturedRoutes(router httprouter.Router, fr featuredRoutes,
 	return nil
 }
 
-func (s *server) bindRoute(fr featuredRoutes, router httprouter.Router, metrics *stat.Metrics,
+func (s *server) bindRoute(fr featuredRoutes, router router.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	chain := alice.New(
-		httphandler.TracingHandler,
+		handler.TracingHandler,
 		s.getLogHandler(),
-		httphandler.MaxConns(s.conf.MaxConns),
-		httphandler.BreakerHandler(route.Method, route.Path, metrics),
-		httphandler.SheddingHandler(s.getShedder(fr.priority), metrics),
-		httphandler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
-		httphandler.RecoverHandler,
-		httphandler.MetricHandler(metrics),
-		httphandler.PromMetricHandler(route.Path),
-		httphandler.MaxBytesHandler(s.conf.MaxBytes),
-		httphandler.GunzipHandler,
+		handler.MaxConns(s.conf.MaxConns),
+		handler.BreakerHandler(route.Method, route.Path, metrics),
+		handler.SheddingHandler(s.getShedder(fr.priority), metrics),
+		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
+		handler.RecoverHandler,
+		handler.MetricHandler(metrics),
+		handler.PromMetricHandler(route.Path),
+		handler.MaxBytesHandler(s.conf.MaxBytes),
+		handler.GunzipHandler,
 	)
 	chain = s.appendAuthHandler(fr, chain, verifier)
 
@@ -128,7 +128,7 @@ func (s *server) bindRoute(fr featuredRoutes, router httprouter.Router, metrics 
 	return router.Handle(route.Method, route.Path, handle)
 }
 
-func (s *server) bindRoutes(router httprouter.Router) error {
+func (s *server) bindRoutes(router router.Router) error {
 	metrics := s.createMetrics()
 
 	for _, fr := range s.routes {
@@ -154,9 +154,9 @@ func (s *server) createMetrics() *stat.Metrics {
 
 func (s *server) getLogHandler() func(http.Handler) http.Handler {
 	if s.conf.Verbose {
-		return httphandler.DetailedLogHandler
+		return handler.DetailedLogHandler
 	} else {
-		return httphandler.LogHandler
+		return handler.LogHandler
 	}
 }
 
@@ -198,10 +198,10 @@ func (s *server) signatureVerifier(signature signatureSetting) (func(chain alice
 
 	return func(chain alice.Chain) alice.Chain {
 		if s.unsignedCallback != nil {
-			return chain.Append(httphandler.ContentSecurityHandler(
+			return chain.Append(handler.ContentSecurityHandler(
 				decrypters, signature.Expiry, signature.Strict, s.unsignedCallback))
 		} else {
-			return chain.Append(httphandler.ContentSecurityHandler(
+			return chain.Append(handler.ContentSecurityHandler(
 				decrypters, signature.Expiry, signature.Strict))
 		}
 	}, nil
