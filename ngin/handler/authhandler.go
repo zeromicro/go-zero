@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httputil"
 
@@ -12,13 +13,19 @@ import (
 )
 
 const (
-	jwtAudience  = "aud"
-	jwtExpire    = "exp"
-	jwtId        = "jti"
-	jwtIssueAt   = "iat"
-	jwtIssuer    = "iss"
-	jwtNotBefore = "nbf"
-	jwtSubject   = "sub"
+	jwtAudience    = "aud"
+	jwtExpire      = "exp"
+	jwtId          = "jti"
+	jwtIssueAt     = "iat"
+	jwtIssuer      = "iss"
+	jwtNotBefore   = "nbf"
+	jwtSubject     = "sub"
+	noDetailReason = "no detail reason"
+)
+
+var (
+	errInvalidToken = errors.New("invalid auth token")
+	errNoClaims     = errors.New("no auth params")
 )
 
 type (
@@ -47,13 +54,13 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 			}
 
 			if !token.Valid {
-				unauthorized(w, r, err, authOpts.Callback)
+				unauthorized(w, r, errInvalidToken, authOpts.Callback)
 				return
 			}
 
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if !ok {
-				unauthorized(w, r, err, authOpts.Callback)
+				unauthorized(w, r, errNoClaims, authOpts.Callback)
 				return
 			}
 
@@ -93,10 +100,15 @@ func detailAuthLog(r *http.Request, reason string) {
 func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback UnauthorizedCallback) {
 	writer := newGuardedResponseWriter(w)
 
-	detailAuthLog(r, err.Error())
+	if err != nil {
+		detailAuthLog(r, err.Error())
+	} else {
+		detailAuthLog(r, noDetailReason)
+	}
 	if callback != nil {
 		callback(writer, r, err)
 	}
+
 	writer.WriteHeader(http.StatusUnauthorized)
 }
 

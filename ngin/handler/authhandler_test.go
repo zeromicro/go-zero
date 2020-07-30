@@ -75,6 +75,14 @@ func TestAuthHandlerWithPrevSecret(t *testing.T) {
 	assert.Equal(t, "content", resp.Body.String())
 }
 
+func TestAuthHandler_NilError(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	resp := httptest.NewRecorder()
+	assert.NotPanics(t, func() {
+		unauthorized(resp, req, nil, nil)
+	})
+}
+
 func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
