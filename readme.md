@@ -4,7 +4,7 @@
 >
 > 部门：晓黑板研发部
 >
-> git地址：
+> git地址：https://git.100tal.com/xiaoheiban_server_go/go-zero
 
 ## 1. go-zero框架背景
 
