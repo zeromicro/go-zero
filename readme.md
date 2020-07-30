@@ -55,7 +55,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
-![弹性设计](/Users/kevin/Develop/go/opensource/go-zero/doc/images/resilience.jpg)
+![弹性设计](doc/images/resilience.jpg)
 
 ## 4. go-zero框架收益
 
