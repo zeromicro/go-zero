@@ -2,8 +2,10 @@ package discov
 
 import (
 	"sync"
+	"sync/atomic"
 
 	"zero/core/discov/internal"
+	"zero/core/syncx"
 )
 
 type (
@@ -18,18 +20,20 @@ type (
 	}
 )
 
-func NewSubscriber(endpoints []string, key string, opts ...SubOption) *Subscriber {
+func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
 	var subOpts subOptions
 	for _, opt := range opts {
 		opt(&subOpts)
 	}
 
-	subscriber := &Subscriber{
+	sub := &Subscriber{
 		items: newContainer(subOpts.exclusive),
 	}
-	internal.GetRegistry().Monitor(endpoints, key, subscriber.items)
+	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items); err != nil {
+		return nil, err
+	}
 
-	return subscriber
+	return sub, nil
 }
 
 func (s *Subscriber) Values() []string {
@@ -48,6 +52,8 @@ type container struct {
 	exclusive bool
 	values    map[string][]string
 	mapping   map[string]string
+	snapshot  atomic.Value
+	dirty     *syncx.AtomicBool
 	lock      sync.Mutex
 }
 
@@ -56,6 +62,7 @@ func newContainer(exclusive bool) *container {
 		exclusive: exclusive,
 		values:    make(map[string][]string),
 		mapping:   make(map[string]string),
+		dirty:     syncx.ForAtomicBool(true),
 	}
 }
 
@@ -72,6 +79,7 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
+	c.dirty.Set(true)
 	keys := c.values[value]
 	previous := append([]string(nil), keys...)
 	early := len(keys) > 0
@@ -114,14 +122,21 @@ func (c *container) doRemoveKey(key string) {
 }
 
 func (c *container) getValues() []string {
+	if !c.dirty.True() {
+		return c.snapshot.Load().([]string)
+	}
+
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	var vs []string
+	var vals []string
 	for each := range c.values {
-		vs = append(vs, each)
+		vals = append(vals, each)
 	}
-	return vs
+	c.snapshot.Store(vals)
+	c.dirty.Set(false)
+
+	return vals
 }
 
 // removeKey removes the kv, returns true if there are still other keys associate with the value
@@ -129,23 +144,6 @@ func (c *container) removeKey(key string) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
+	c.dirty.Set(true)
 	c.doRemoveKey(key)
-}
-
-func (c *container) removeVal(val string) (empty bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-
-	for k := range c.values {
-		if k == val {
-			delete(c.values, k)
-		}
-	}
-	for k, v := range c.mapping {
-		if v == val {
-			delete(c.mapping, k)
-		}
-	}
-
-	return len(c.values) == 0
 }
