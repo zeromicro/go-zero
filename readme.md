@@ -74,5 +74,10 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 #### 相关文章：
 
 > go-zero简介：https://ttc.zhiyinlou.com/#/articleDetail?id=1769
-> 
+>
 > goctl使用说明：https://ttc.zhiyinlou.com/#/articleDetail?id=1760
+>
+> 晓黑板Go微服务框架分享Slices：![pdf](doc/go-framework.pdf)
+>
+> 晓黑板Go微服务框架分享视频：http://honor.zhiyinlou.com/trainingsystem/courselist/phpandgolang/5f1abdca46e0fb0008ef5dfc
+
