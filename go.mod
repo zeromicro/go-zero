@@ -23,14 +23,10 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-	github.com/google/btree v1.0.0 // indirect
 	github.com/google/gops v0.3.7
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de4 // indirect
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3 // indirect
-	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/justinas/alice v1.2.0
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -53,10 +49,8 @@ require (
 	github.com/urfave/cli v1.22.4
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb // indirect
-	go.etcd.io/etcd v3.3.17+incompatible
+	go.etcd.io/etcd v0.0.0-20200402134248-51bdeb39e698
 	go.uber.org/automaxprocs v1.3.0
-	go.uber.org/multierr v1.4.0 // indirect
-	go.uber.org/zap v1.12.0 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/sys v0.0.0-20200728102440-3e129f6d46b1 // indirect
@@ -64,12 +58,10 @@ require (
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
 	golang.org/x/tools v0.0.0-20200410132612-ae9902aceb98 // indirect
 	google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f // indirect
-	google.golang.org/grpc v1.27.0
+	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/yaml.v2 v2.2.8
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
-
-replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
