@@ -72,12 +72,9 @@ func TestContainer(t *testing.T) {
 				{
 					act: actionDel,
 					key: "first",
-					val: "a",
 				},
 			},
-			expect: []string{
-				"b",
-			},
+			expect: []string{"b"},
 		},
 		{
 			name: "add two, delete two",
@@ -95,38 +92,101 @@ func TestContainer(t *testing.T) {
 				{
 					act: actionDel,
 					key: "first",
-					val: "a",
 				},
 				{
 					act: actionDel,
 					key: "second",
-					val: "b",
 				},
 			},
 			expect: []string{},
 		},
+		{
+			name: "add three, dup values, delete two",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionAdd,
+					key: "third",
+					val: "a",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+				{
+					act: actionDel,
+					key: "second",
+				},
+			},
+			expect: []string{"a"},
+		},
+		{
+			name: "add three, dup values, delete two, delete not added",
+			do: []action{
+				{
+					act: actionAdd,
+					key: "first",
+					val: "a",
+				},
+				{
+					act: actionAdd,
+					key: "second",
+					val: "b",
+				},
+				{
+					act: actionAdd,
+					key: "third",
+					val: "a",
+				},
+				{
+					act: actionDel,
+					key: "first",
+				},
+				{
+					act: actionDel,
+					key: "second",
+				},
+				{
+					act: actionDel,
+					key: "forth",
+				},
+			},
+			expect: []string{"a"},
+		},
 	}
 
+	exclusives := []bool{true, false}
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			c := newContainer(false)
-			for _, order := range test.do {
-				if order.act == actionAdd {
-					c.OnAdd(internal.KV{
-						Key: order.key,
-						Val: order.val,
-					})
-				} else {
-					c.OnDelete(internal.KV{
-						Key: order.key,
-						Val: order.val,
-					})
+		for _, exclusive := range exclusives {
+			t.Run(test.name, func(t *testing.T) {
+				c := newContainer(exclusive)
+				for _, order := range test.do {
+					if order.act == actionAdd {
+						c.OnAdd(internal.KV{
+							Key: order.key,
+							Val: order.val,
+						})
+					} else {
+						c.OnDelete(internal.KV{
+							Key: order.key,
+							Val: order.val,
+						})
+					}
 				}
-			}
-			assert.True(t, c.dirty.True())
-			assert.ElementsMatch(t, test.expect, c.getValues())
-			assert.False(t, c.dirty.True())
-			assert.ElementsMatch(t, test.expect, c.getValues())
-		})
+				assert.True(t, c.dirty.True())
+				assert.ElementsMatch(t, test.expect, c.getValues())
+				assert.False(t, c.dirty.True())
+				assert.ElementsMatch(t, test.expect, c.getValues())
+			})
+		}
 	}
 }
