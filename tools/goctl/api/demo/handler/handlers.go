@@ -3,11 +3,11 @@ package handler
 import (
 	"net/http"
 
-	"zero/rest"
+	"zero/ngin"
 )
 
-func RegisterHandlers(engine *rest.Server) {
-	engine.AddRoutes([]rest.Route{
+func RegisterHandlers(engine *ngin.Engine) {
+	engine.AddRoutes([]ngin.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "/",

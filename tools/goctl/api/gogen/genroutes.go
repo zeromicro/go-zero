@@ -2,7 +2,6 @@ package gogen
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"path"
 	"sort"
@@ -26,7 +25,7 @@ import (
 	{{.importPackages}}
 )
 
-func RegisterHandlers(engine *rest.Engine, serverCtx *svc.ServiceContext) {
+func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 	{{.routesAdditions}}
 }
 `
@@ -80,11 +79,11 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 		}
 		jwt := ""
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf(", rest.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
+			jwt = fmt.Sprintf(", ngin.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
 		}
 		signature := ""
 		if g.signatureEnabled {
-			signature = fmt.Sprintf(", rest.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
+			signature = fmt.Sprintf(", ngin.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
 		}
 		if err := gt.Execute(&builder, map[string]string{
 			"routes":    strings.TrimSpace(gbuilder.String()),
@@ -174,17 +173,6 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				path:    r.Path,
 				handler: handler,
 			})
-		}
-
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
-			groupedRoutes.authName = value
-			groupedRoutes.jwtEnabled = true
-		}
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "signature"); ok {
-			if groupedRoutes.authName != "" && groupedRoutes.authName != value {
-				return nil, errors.New("auth signature should config same")
-			}
-			groupedRoutes.signatureEnabled = true
 		}
 		routes = append(routes, groupedRoutes)
 	}

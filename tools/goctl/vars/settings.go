@@ -1,3 +1,3 @@
 package vars
 
-const ProjectName = "xiao"
+const ProjectName = "zero"

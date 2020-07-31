@@ -7,6 +7,15 @@ import (
 	"zero/core/logx"
 )
 
+func Error(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusBadRequest)
+}
+
+func Ok(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+}
+
 func OkJson(w http.ResponseWriter, v interface{}) {
 	WriteJson(w, http.StatusOK, v)
 }

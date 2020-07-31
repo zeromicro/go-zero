@@ -12,14 +12,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
 	"zero/core/lang"
 	apiformat "zero/tools/goctl/api/format"
 	"zero/tools/goctl/api/parser"
 	apiutil "zero/tools/goctl/api/util"
 	"zero/tools/goctl/util"
-
-	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
 )
 
 const tmpFile = "%s-%d"
