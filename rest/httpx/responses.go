@@ -12,7 +12,6 @@ func Error(w http.ResponseWriter, err error) {
 }
 
 func Ok(w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 }
 

@@ -77,11 +77,11 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 		},`,
 				r.method, r.path, r.handler)
 		}
-		jwt := ""
+		var jwt string
 		if g.jwtEnabled {
 			jwt = fmt.Sprintf(", ngin.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
 		}
-		signature := ""
+		var signature string
 		if g.signatureEnabled {
 			signature = fmt.Sprintf(", ngin.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
 		}

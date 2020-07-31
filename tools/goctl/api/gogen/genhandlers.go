@@ -71,7 +71,7 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 	if len(route.RequestType.Name) == 0 {
 		req = ""
 	}
-	var logicResponse = ""
+	var logicResponse string
 	var writeResponse = "nil, nil"
 	var respWriter = `httpx.WriteJson(w, http.StatusOK, resp)`
 	if len(route.ResponseType.Name) > 0 {
