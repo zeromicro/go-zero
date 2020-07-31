@@ -6,7 +6,7 @@ import (
 
 	"zero/core/logx"
 	"zero/rest/handler"
-	"zero/rest/internal/router"
+	"zero/rest/httpx"
 )
 
 type (
@@ -124,7 +124,7 @@ func WithPriority() RouteOption {
 	}
 }
 
-func WithRouter(router router.Router) RunOption {
+func WithRouter(router httpx.Router) RunOption {
 	return func(server *Server) {
 		server.opts.start = func(srv *engine) error {
 			return srv.StartWithRouter(router)

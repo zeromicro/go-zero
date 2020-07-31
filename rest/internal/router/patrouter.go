@@ -1,11 +1,13 @@
 package router
 
 import (
+	"errors"
 	"net/http"
 	"path"
 	"strings"
 
 	"zero/core/search"
+	"zero/rest/httpx"
 	"zero/rest/internal/context"
 )
 
@@ -14,12 +16,17 @@ const (
 	allowMethodSeparator = ", "
 )
 
+var (
+	ErrInvalidMethod = errors.New("not a valid http method")
+	ErrInvalidPath   = errors.New("path must begin with '/'")
+)
+
 type PatRouter struct {
 	trees    map[string]*search.Tree
 	notFound http.Handler
 }
 
-func NewPatRouter() Router {
+func NewPatRouter() httpx.Router {
 	return &PatRouter{
 		trees: make(map[string]*search.Tree),
 	}

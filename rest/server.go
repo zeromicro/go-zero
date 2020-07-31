@@ -10,6 +10,7 @@ import (
 	"zero/core/load"
 	"zero/core/stat"
 	"zero/rest/handler"
+	"zero/rest/httpx"
 	"zero/rest/internal"
 	"zero/rest/internal/router"
 
@@ -60,7 +61,7 @@ func (s *engine) Start() error {
 	return s.StartWithRouter(router.NewPatRouter())
 }
 
-func (s *engine) StartWithRouter(router router.Router) error {
+func (s *engine) StartWithRouter(router httpx.Router) error {
 	if err := s.bindRoutes(router); err != nil {
 		return err
 	}
@@ -84,7 +85,7 @@ func (s *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
 	return verifier(chain)
 }
 
-func (s *engine) bindFeaturedRoutes(router router.Router, fr featuredRoutes, metrics *stat.Metrics) error {
+func (s *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, metrics *stat.Metrics) error {
 	verifier, err := s.signatureVerifier(fr.signature)
 	if err != nil {
 		return err
@@ -99,7 +100,7 @@ func (s *engine) bindFeaturedRoutes(router router.Router, fr featuredRoutes, met
 	return nil
 }
 
-func (s *engine) bindRoute(fr featuredRoutes, router router.Router, metrics *stat.Metrics,
+func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	chain := alice.New(
 		handler.TracingHandler,
@@ -124,7 +125,7 @@ func (s *engine) bindRoute(fr featuredRoutes, router router.Router, metrics *sta
 	return router.Handle(route.Method, route.Path, handle)
 }
 
-func (s *engine) bindRoutes(router router.Router) error {
+func (s *engine) bindRoutes(router httpx.Router) error {
 	metrics := s.createMetrics()
 
 	for _, fr := range s.routes {
