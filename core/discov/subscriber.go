@@ -36,6 +36,10 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	return sub, nil
 }
 
+func (s *Subscriber) AddListener(listener func()) {
+	s.items.addListener(listener)
+}
+
 func (s *Subscriber) Values() []string {
 	return s.items.getValues()
 }
@@ -54,6 +58,7 @@ type container struct {
 	mapping   map[string]string
 	snapshot  atomic.Value
 	dirty     *syncx.AtomicBool
+	listeners []func()
 	lock      sync.Mutex
 }
 
@@ -68,10 +73,12 @@ func newContainer(exclusive bool) *container {
 
 func (c *container) OnAdd(kv internal.KV) {
 	c.addKv(kv.Key, kv.Val)
+	c.notifyChange()
 }
 
 func (c *container) OnDelete(kv internal.KV) {
 	c.removeKey(kv.Key)
+	c.notifyChange()
 }
 
 // addKv adds the kv, returns if there are already other keys associate with the value
@@ -96,6 +103,12 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 	} else {
 		return nil, false
 	}
+}
+
+func (c *container) addListener(listener func()) {
+	c.lock.Lock()
+	c.listeners = append(c.listeners, listener)
+	c.lock.Unlock()
 }
 
 func (c *container) doRemoveKey(key string) {
@@ -137,6 +150,16 @@ func (c *container) getValues() []string {
 	c.dirty.Set(false)
 
 	return vals
+}
+
+func (c *container) notifyChange() {
+	c.lock.Lock()
+	listeners := append(([]func())(nil), c.listeners...)
+	c.lock.Unlock()
+
+	for _, listener := range listeners {
+		listener()
+	}
 }
 
 // removeKey removes the kv, returns true if there are still other keys associate with the value

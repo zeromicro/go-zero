@@ -168,8 +168,13 @@ func TestContainer(t *testing.T) {
 	for _, test := range tests {
 		for _, exclusive := range exclusives {
 			t.Run(test.name, func(t *testing.T) {
+				var changed bool
 				c := newContainer(exclusive)
+				c.addListener(func() {
+					changed = true
+				})
 				assert.Nil(t, c.getValues())
+				assert.False(t, changed)
 
 				for _, order := range test.do {
 					if order.act == actionAdd {
@@ -185,6 +190,7 @@ func TestContainer(t *testing.T) {
 					}
 				}
 
+				assert.True(t, changed)
 				assert.True(t, c.dirty.True())
 				assert.ElementsMatch(t, test.expect, c.getValues())
 				assert.False(t, c.dirty.True())
