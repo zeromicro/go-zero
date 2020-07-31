@@ -10,7 +10,9 @@ analysis:
   stage: analysis
   image: golang
   script:
-  - go version && go env
-  - go test -short $(go list ./...) | grep -v "no test"
+    - go version && go env
+    - go test -short $(go list ./...) | grep -v "no test"
   only:
-  - merge_requests
+   - merge_requests
+  tags:
+    - common

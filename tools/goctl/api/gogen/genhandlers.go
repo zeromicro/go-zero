@@ -19,6 +19,7 @@ const (
 import (
 	"net/http"
 
+	"zero/rest/httpx"
 	{{.importPackages}}
 )
 
@@ -34,14 +35,17 @@ func {{.handlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 `
 	parseRequestTemplate = `var req {{.requestType}}
 		if err := httpx.Parse(r, &req); err != nil {
-			logx.Error(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			httpx.Error(w, err)
 			return
 		}
 `
 	hasRespTemplate = `
 		{{.logicResponse}} l.{{.callee}}({{.req}})
-		// TODO write data to response
+		if err != nil {
+			httpx.Error(w, err)
+		} else {
+			{{.respWriter}}
+		}
 	`
 )
 
@@ -67,14 +71,16 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 	if len(route.RequestType.Name) == 0 {
 		req = ""
 	}
-	var logicResponse = ""
+	var logicResponse string
 	var writeResponse = "nil, nil"
+	var respWriter = `httpx.WriteJson(w, http.StatusOK, resp)`
 	if len(route.ResponseType.Name) > 0 {
 		logicResponse = "resp, err :="
 		writeResponse = "resp, err"
 	} else {
 		logicResponse = "err :="
 		writeResponse = "nil, err"
+		respWriter = `httpx.Ok(w)`
 	}
 	var logicBodyBuilder strings.Builder
 	t := template.Must(template.New("hasRespTemplate").Parse(hasRespTemplate))
@@ -83,6 +89,7 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 		"req":           req,
 		"logicResponse": logicResponse,
 		"writeResponse": writeResponse,
+		"respWriter":    respWriter,
 	}); err != nil {
 		return err
 	}
@@ -155,12 +162,6 @@ func genHandlers(dir string, api *spec.ApiSpec) error {
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
-	if len(route.RequestType.Name) > 0 || len(route.ResponseType.Name) > 0 {
-		imports = append(imports, "\"zero/core/httpx\"")
-	}
-	if len(route.RequestType.Name) > 0 {
-		imports = append(imports, "\"zero/core/logx\"")
-	}
 	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
 	if len(route.RequestType.Name) > 0 || len(route.ResponseType.Name) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
