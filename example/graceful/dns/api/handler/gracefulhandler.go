@@ -12,7 +12,7 @@ import (
 	"zero/example/graceful/dns/api/svc"
 	"zero/example/graceful/dns/api/types"
 	"zero/example/graceful/dns/rpc/graceful"
-	"zero/ngin/httpx"
+	"zero/rest/httpx"
 )
 
 func gracefulHandler(ctx *svc.ServiceContext) http.HandlerFunc {

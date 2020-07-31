@@ -9,8 +9,8 @@ import (
 	"zero/core/logx"
 	"zero/core/service"
 	"zero/example/tracing/remote/portal"
-	"zero/ngin"
-	"zero/ngin/httpx"
+	"zero/rest"
+	"zero/rest/httpx"
 	"zero/rpcx"
 )
 
@@ -42,7 +42,7 @@ func main() {
 	var c rpcx.RpcClientConf
 	conf.MustLoad(*configFile, &c)
 	client = rpcx.MustNewClient(c)
-	engine := ngin.MustNewEngine(ngin.NgConf{
+	engine := rest.MustNewEngine(rest.RtConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
@@ -52,7 +52,7 @@ func main() {
 	})
 	defer engine.Stop()
 
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodGet,
 		Path:    "/",
 		Handler: handle,

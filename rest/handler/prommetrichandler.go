@@ -7,7 +7,7 @@ import (
 
 	"zero/core/metric"
 	"zero/core/timex"
-	"zero/ngin/internal/security"
+	"zero/rest/internal/security"
 )
 
 const serverNamespace = "http_server"

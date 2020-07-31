@@ -26,12 +26,12 @@ import (
 	{{.importPackages}}
 )
 
-func RegisterHandlers(engine *ngin.Engine, serverCtx *svc.ServiceContext) {
+func RegisterHandlers(engine *rest.Engine, serverCtx *svc.ServiceContext) {
 	{{.routesAdditions}}
 }
 `
 	routesAdditionTemplate = `
-	engine.AddRoutes([]ngin.Route{
+	engine.AddRoutes([]rest.Route{
 		{{.routes}}
 	}{{.jwt}}{{.signature}})
 `
@@ -80,11 +80,11 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 		}
 		jwt := ""
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf(", ngin.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
+			jwt = fmt.Sprintf(", rest.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
 		}
 		signature := ""
 		if g.signatureEnabled {
-			signature = fmt.Sprintf(", ngin.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
+			signature = fmt.Sprintf(", rest.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
 		}
 		if err := gt.Execute(&builder, map[string]string{
 			"routes":    strings.TrimSpace(gbuilder.String()),
@@ -130,7 +130,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	var importSet = collection.NewSet()
-	importSet.AddStr(`"zero/ngin"`)
+	importSet.AddStr(`"zero/rest"`)
 	importSet.AddStr(fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {

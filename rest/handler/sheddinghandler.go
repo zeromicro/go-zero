@@ -7,8 +7,8 @@ import (
 	"zero/core/load"
 	"zero/core/logx"
 	"zero/core/stat"
-	"zero/ngin/internal"
-	"zero/ngin/internal/security"
+	"zero/rest/internal"
+	"zero/rest/internal/security"
 )
 
 const serviceType = "api"

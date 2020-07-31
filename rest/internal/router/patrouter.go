@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"zero/core/search"
-	"zero/ngin/internal/context"
+	"zero/rest/internal/context"
 )
 
 const (

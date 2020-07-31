@@ -13,12 +13,12 @@ const (
 	configTemplate = `package config
 
 import (
-	"zero/ngin"
+	"zero/rest"
 	{{.authImport}}
 )
 
 type Config struct {
-	ngin.NgConf
+	rest.RtConf
 }
 `
 )

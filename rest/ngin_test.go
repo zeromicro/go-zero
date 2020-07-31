@@ -1,4 +1,4 @@
-package ngin
+package rest
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/ngin/httpx"
-	router2 "zero/ngin/internal/router"
+	"zero/rest/httpx"
+	router2 "zero/rest/internal/router"
 
 	"github.com/stretchr/testify/assert"
 )

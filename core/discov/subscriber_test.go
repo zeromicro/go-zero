@@ -184,6 +184,7 @@ func TestContainer(t *testing.T) {
 						})
 					}
 				}
+
 				assert.True(t, c.dirty.True())
 				assert.ElementsMatch(t, test.expect, c.getValues())
 				assert.False(t, c.dirty.True())

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"zero/ngin/internal"
+	"zero/rest/internal"
 
 	"github.com/stretchr/testify/assert"
 )

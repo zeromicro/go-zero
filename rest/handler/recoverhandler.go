@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"zero/ngin/internal"
+	"zero/rest/internal"
 )
 
 func RecoverHandler(next http.Handler) http.Handler {

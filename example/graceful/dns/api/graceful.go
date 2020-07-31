@@ -7,7 +7,7 @@ import (
 	"zero/example/graceful/dns/api/config"
 	"zero/example/graceful/dns/api/handler"
 	"zero/example/graceful/dns/api/svc"
-	"zero/ngin"
+	"zero/rest"
 	"zero/rpcx"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		Client: client,
 	}
 
-	engine := ngin.MustNewEngine(c.NgConf)
+	engine := rest.MustNewEngine(c.RtConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine, ctx)

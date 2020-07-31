@@ -5,7 +5,7 @@ import (
 
 	"zero/core/logx"
 	"zero/core/syncx"
-	"zero/ngin/internal"
+	"zero/rest/internal"
 )
 
 func MaxConns(n int) func(http.Handler) http.Handler {

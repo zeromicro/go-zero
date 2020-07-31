@@ -4,7 +4,7 @@ import (
 	"flag"
 
 	"zero/core/conf"
-	"zero/ngin"
+	"zero/rest"
 	"zero/tools/goctl/api/demo/config"
 	"zero/tools/goctl/api/demo/handler"
 )
@@ -17,7 +17,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	engine := ngin.MustNewEngine(c.NgConf)
+	engine := rest.MustNewEngine(c.RtConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine)

@@ -1,4 +1,4 @@
-package ngin
+package rest
 
 import (
 	"errors"
@@ -9,9 +9,9 @@ import (
 	"zero/core/codec"
 	"zero/core/load"
 	"zero/core/stat"
-	"zero/ngin/handler"
-	"zero/ngin/internal"
-	"zero/ngin/internal/router"
+	"zero/rest/handler"
+	"zero/rest/internal"
+	"zero/rest/internal/router"
 
 	"github.com/justinas/alice"
 )
@@ -25,7 +25,7 @@ type (
 	Middleware func(next http.HandlerFunc) http.HandlerFunc
 
 	server struct {
-		conf                 NgConf
+		conf                 RtConf
 		routes               []featuredRoutes
 		unauthorizedCallback handler.UnauthorizedCallback
 		unsignedCallback     handler.UnsignedCallback
@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func newServer(c NgConf) *server {
+func newServer(c RtConf) *server {
 	srv := &server{
 		conf: c,
 	}

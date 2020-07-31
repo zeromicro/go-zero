@@ -15,7 +15,7 @@ import (
 	"zero/core/codec"
 	"zero/core/iox"
 	"zero/core/logx"
-	"zero/ngin/httpx"
+	"zero/rest/httpx"
 )
 
 const (

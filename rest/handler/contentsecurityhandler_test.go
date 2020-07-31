@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"zero/core/codec"
-	"zero/ngin/httpx"
+	"zero/rest/httpx"
 
 	"github.com/stretchr/testify/assert"
 )

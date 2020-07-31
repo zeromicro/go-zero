@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"zero/ngin/internal/router"
+	"zero/rest/internal/router"
 
 	"github.com/stretchr/testify/assert"
 )

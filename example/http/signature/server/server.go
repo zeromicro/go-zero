@@ -7,8 +7,8 @@ import (
 
 	"zero/core/logx"
 	"zero/core/service"
-	"zero/ngin"
-	"zero/ngin/httpx"
+	"zero/rest"
+	"zero/rest/httpx"
 )
 
 var keyPem = flag.String("prikey", "private.pem", "the private key file")
@@ -31,16 +31,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	engine := ngin.MustNewEngine(ngin.NgConf{
+	engine := rest.MustNewEngine(rest.RtConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Path: "logs",
 			},
 		},
 		Port: 3333,
-		Signature: ngin.SignatureConf{
+		Signature: rest.SignatureConf{
 			Strict: true,
-			PrivateKeys: []ngin.PrivateKeyConf{
+			PrivateKeys: []rest.PrivateKeyConf{
 				{
 					Fingerprint: "bvw8YlnSqb+PoMf3MBbLdQ==",
 					KeyFile:     *keyPem,
@@ -50,7 +50,7 @@ func main() {
 	})
 	defer engine.Stop()
 
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodPost,
 		Path:    "/a/b",
 		Handler: handle,

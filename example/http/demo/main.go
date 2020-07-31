@@ -6,8 +6,8 @@ import (
 
 	"zero/core/logx"
 	"zero/core/service"
-	"zero/ngin"
-	"zero/ngin/httpx"
+	"zero/rest"
+	"zero/rest/httpx"
 )
 
 var (
@@ -47,7 +47,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	engine := ngin.MustNewEngine(ngin.NgConf{
+	engine := rest.MustNewEngine(rest.RtConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
@@ -61,7 +61,7 @@ func main() {
 
 	engine.Use(first)
 	engine.Use(second)
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodGet,
 		Path:    "/",
 		Handler: handle,

@@ -10,7 +10,7 @@ import (
 	"zero/core/logx"
 	"zero/core/service"
 	"zero/core/stat"
-	"zero/ngin"
+	"zero/rest"
 )
 
 const duration = time.Millisecond
@@ -25,7 +25,7 @@ func main() {
 	}()
 
 	logx.Disable()
-	engine := ngin.MustNewEngine(ngin.NgConf{
+	engine := rest.MustNewEngine(rest.RtConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
@@ -36,7 +36,7 @@ func main() {
 		CpuThreshold: 800,
 	})
 	defer engine.Stop()
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method: http.MethodGet,
 		Path:   "/",
 		Handler: func(w http.ResponseWriter, r *http.Request) {

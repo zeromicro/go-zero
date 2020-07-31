@@ -30,7 +30,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 
-	engine := ngin.MustNewEngine(c.NgConf)
+	engine := rest.MustNewEngine(c.RtConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine, ctx)
@@ -75,7 +75,7 @@ func genMain(dir string, api *spec.ApiSpec) error {
 func genMainImports(parentPkg string) string {
 	imports := []string{
 		`"zero/core/conf"`,
-		`"zero/ngin"`,
+		`"zero/rest"`,
 	}
 	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, handlerDir)))

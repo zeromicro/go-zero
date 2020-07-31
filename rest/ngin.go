@@ -1,12 +1,12 @@
-package ngin
+package rest
 
 import (
 	"log"
 	"net/http"
 
 	"zero/core/logx"
-	"zero/ngin/handler"
-	"zero/ngin/internal/router"
+	"zero/rest/handler"
+	"zero/rest/internal/router"
 )
 
 type (
@@ -22,7 +22,7 @@ type (
 	}
 )
 
-func MustNewEngine(c NgConf, opts ...RunOption) *Engine {
+func MustNewEngine(c RtConf, opts ...RunOption) *Engine {
 	engine, err := NewEngine(c, opts...)
 	if err != nil {
 		log.Fatal(err)
@@ -31,7 +31,7 @@ func MustNewEngine(c NgConf, opts ...RunOption) *Engine {
 	return engine
 }
 
-func NewEngine(c NgConf, opts ...RunOption) (*Engine, error) {
+func NewEngine(c RtConf, opts ...RunOption) (*Engine, error) {
 	if err := c.SetUp(); err != nil {
 		return nil, err
 	}

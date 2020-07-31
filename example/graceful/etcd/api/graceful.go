@@ -7,7 +7,7 @@ import (
 	"zero/example/graceful/etcd/api/config"
 	"zero/example/graceful/etcd/api/handler"
 	"zero/example/graceful/etcd/api/svc"
-	"zero/ngin"
+	"zero/rest"
 	"zero/rpcx"
 )
 
@@ -24,7 +24,7 @@ func main() {
 		Client: client,
 	}
 
-	engine := ngin.MustNewEngine(c.NgConf)
+	engine := rest.MustNewEngine(c.RtConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine, ctx)

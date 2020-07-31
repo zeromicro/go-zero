@@ -13,7 +13,7 @@ import (
 	"zero/core/logx"
 	"zero/core/timex"
 	"zero/core/utils"
-	"zero/ngin/internal"
+	"zero/rest/internal"
 )
 
 const slowThreshold = time.Millisecond * 500

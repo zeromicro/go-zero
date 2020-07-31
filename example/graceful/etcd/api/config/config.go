@@ -1,11 +1,11 @@
 package config
 
 import (
-	"zero/ngin"
+	"zero/rest"
 	"zero/rpcx"
 )
 
 type Config struct {
-	ngin.NgConf
+	rest.RtConf
 	Rpc rpcx.RpcClientConf
 }

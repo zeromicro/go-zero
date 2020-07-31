@@ -6,8 +6,8 @@ import (
 
 	"zero/core/codec"
 	"zero/core/logx"
-	"zero/ngin/httpx"
-	"zero/ngin/internal/security"
+	"zero/rest/httpx"
+	"zero/rest/internal/security"
 )
 
 const contentSecurity = "X-Content-Security"

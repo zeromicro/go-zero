@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"zero/core/mapping"
-	"zero/ngin/internal/context"
+	"zero/rest/internal/context"
 )
 
 const (

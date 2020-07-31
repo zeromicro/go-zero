@@ -9,13 +9,13 @@ import (
 	"zero/core/service"
 	"zero/core/stat"
 	"zero/core/syncx"
-	"zero/ngin"
+	"zero/rest"
 )
 
 func main() {
 	logx.Disable()
 	stat.SetReporter(nil)
-	server := ngin.MustNewEngine(ngin.NgConf{
+	server := rest.MustNewEngine(rest.RtConf{
 		ServiceConf: service.ServiceConf{
 			Name: "breaker",
 			Log: logx.LogConf{
@@ -28,7 +28,7 @@ func main() {
 		Timeout:  3000,
 	})
 	latch := syncx.NewLimit(10)
-	server.AddRoute(ngin.Route{
+	server.AddRoute(rest.Route{
 		Method: http.MethodGet,
 		Path:   "/heavy",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +47,7 @@ func main() {
 			}
 		},
 	})
-	server.AddRoute(ngin.Route{
+	server.AddRoute(rest.Route{
 		Method: http.MethodGet,
 		Path:   "/good",
 		Handler: func(w http.ResponseWriter, r *http.Request) {

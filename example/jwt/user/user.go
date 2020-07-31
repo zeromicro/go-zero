@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"zero/core/conf"
-	"zero/ngin"
-	"zero/ngin/httpx"
+	"zero/rest"
+	"zero/rest/httpx"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
@@ -20,7 +20,7 @@ const jwtUserField = "user"
 
 type (
 	Config struct {
-		ngin.NgConf
+		rest.RtConf
 		AccessSecret  string
 		AccessExpire  int64 `json:",default=1209600"` // 2 weeks
 		RefreshSecret string
@@ -79,27 +79,27 @@ func main() {
 	var c Config
 	conf.MustLoad("user.json", &c)
 
-	engine, err := ngin.NewEngine(c.NgConf)
+	engine, err := rest.NewEngine(c.RtConf)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer engine.Stop()
 
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodPost,
 		Path:    "/login",
 		Handler: LoginHandler(c),
 	})
-	engine.AddRoute(ngin.Route{
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodGet,
 		Path:    "/resource",
 		Handler: ProtectedHandler,
-	}, ngin.WithJwt(c.AccessSecret))
-	engine.AddRoute(ngin.Route{
+	}, rest.WithJwt(c.AccessSecret))
+	engine.AddRoute(rest.Route{
 		Method:  http.MethodPost,
 		Path:    "/refresh",
 		Handler: RefreshHandler(c),
-	}, ngin.WithJwt(c.RefreshSecret))
+	}, rest.WithJwt(c.RefreshSecret))
 
 	fmt.Println("Now listening...")
 	engine.Start()

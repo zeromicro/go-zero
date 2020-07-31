@@ -1,7 +1,7 @@
 package config
 
-import "zero/ngin"
+import "zero/rest"
 
 type Config struct {
-	ngin.NgConf
+	rest.RtConf
 }

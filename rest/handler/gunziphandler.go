@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"zero/ngin/httpx"
+	"zero/rest/httpx"
 )
 
 const gzipEncoding = "gzip"

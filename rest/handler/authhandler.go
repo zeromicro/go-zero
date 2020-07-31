@@ -7,7 +7,7 @@ import (
 	"net/http/httputil"
 
 	"zero/core/logx"
-	"zero/ngin/internal"
+	"zero/rest/internal"
 
 	"github.com/dgrijalva/jwt-go"
 )

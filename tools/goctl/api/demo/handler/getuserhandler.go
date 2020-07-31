@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"zero/ngin/httpx"
+	"zero/rest/httpx"
 )
 
 type (

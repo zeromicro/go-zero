@@ -9,7 +9,7 @@ run:
     - example
     - kmq
     - kq
-    - ngin
+    - rest
     - rq
     - rpcx
     #    - service

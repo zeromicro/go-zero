@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"zero/example/graceful/dns/api/svc"
-	"zero/ngin"
+	"zero/rest"
 )
 
-func RegisterHandlers(engine *ngin.Engine, ctx *svc.ServiceContext) {
-	engine.AddRoutes([]ngin.Route{
+func RegisterHandlers(engine *rest.Engine, ctx *svc.ServiceContext) {
+	engine.AddRoutes([]rest.Route{
 		{
 			Method:  http.MethodGet,
 			Path:    "/api/graceful",
