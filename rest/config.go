@@ -21,10 +21,10 @@ type (
 	// why not name it as Conf, because we need to consider usage like:
 	// type Config struct {
 	//     rpcx.RpcConf
-	//     rest.RtConf
+	//     rest.RestConf
 	// }
 	// if with the name Conf, there will be two Conf inside Config.
-	RtConf struct {
+	RestConf struct {
 		service.ServiceConf
 		Host     string `json:",default=0.0.0.0"`
 		Port     int

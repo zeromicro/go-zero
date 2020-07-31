@@ -37,7 +37,7 @@ func handlePost(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	engine := rest.MustNewEngine(rest.RtConf{
+	engine := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",

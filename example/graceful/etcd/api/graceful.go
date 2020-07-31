@@ -24,7 +24,7 @@ func main() {
 		Client: client,
 	}
 
-	engine := rest.MustNewEngine(c.RtConf)
+	engine := rest.MustNewServer(c.RestConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine, ctx)

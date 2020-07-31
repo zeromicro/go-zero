@@ -11,19 +11,19 @@ import (
 
 type (
 	runOptions struct {
-		start func(*server) error
+		start func(*engine) error
 	}
 
-	RunOption func(*Engine)
+	RunOption func(*Server)
 
-	Engine struct {
-		srv  *server
+	Server struct {
+		ngin *engine
 		opts runOptions
 	}
 )
 
-func MustNewEngine(c RtConf, opts ...RunOption) *Engine {
-	engine, err := NewEngine(c, opts...)
+func MustNewServer(c RestConf, opts ...RunOption) *Server {
+	engine, err := NewServer(c, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,51 +31,51 @@ func MustNewEngine(c RtConf, opts ...RunOption) *Engine {
 	return engine
 }
 
-func NewEngine(c RtConf, opts ...RunOption) (*Engine, error) {
+func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	if err := c.SetUp(); err != nil {
 		return nil, err
 	}
 
-	engine := &Engine{
-		srv: newServer(c),
+	server := &Server{
+		ngin: newEngine(c),
 		opts: runOptions{
-			start: func(srv *server) error {
+			start: func(srv *engine) error {
 				return srv.Start()
 			},
 		},
 	}
 
 	for _, opt := range opts {
-		opt(engine)
+		opt(server)
 	}
 
-	return engine, nil
+	return server, nil
 }
 
-func (e *Engine) AddRoutes(rs []Route, opts ...RouteOption) {
+func (e *Server) AddRoutes(rs []Route, opts ...RouteOption) {
 	r := featuredRoutes{
 		routes: rs,
 	}
 	for _, opt := range opts {
 		opt(&r)
 	}
-	e.srv.AddRoutes(r)
+	e.ngin.AddRoutes(r)
 }
 
-func (e *Engine) AddRoute(r Route, opts ...RouteOption) {
+func (e *Server) AddRoute(r Route, opts ...RouteOption) {
 	e.AddRoutes([]Route{r}, opts...)
 }
 
-func (e *Engine) Start() {
-	handleError(e.opts.start(e.srv))
+func (e *Server) Start() {
+	handleError(e.opts.start(e.ngin))
 }
 
-func (e *Engine) Stop() {
+func (e *Server) Stop() {
 	logx.Close()
 }
 
-func (e *Engine) Use(middleware Middleware) {
-	e.srv.use(middleware)
+func (e *Server) Use(middleware Middleware) {
+	e.ngin.use(middleware)
 }
 
 func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
@@ -125,8 +125,8 @@ func WithPriority() RouteOption {
 }
 
 func WithRouter(router router.Router) RunOption {
-	return func(engine *Engine) {
-		engine.opts.start = func(srv *server) error {
+	return func(server *Server) {
+		server.opts.start = func(srv *engine) error {
 			return srv.StartWithRouter(router)
 		}
 	}
@@ -142,14 +142,14 @@ func WithSignature(signature SignatureConf) RouteOption {
 }
 
 func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
-	return func(engine *Engine) {
-		engine.srv.SetUnauthorizedCallback(callback)
+	return func(engine *Server) {
+		engine.ngin.SetUnauthorizedCallback(callback)
 	}
 }
 
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
-	return func(engine *Engine) {
-		engine.srv.SetUnsignedCallback(callback)
+	return func(engine *Server) {
+		engine.ngin.SetUnsignedCallback(callback)
 	}
 }
 

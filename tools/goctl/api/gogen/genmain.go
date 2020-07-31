@@ -30,7 +30,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 
-	engine := rest.MustNewEngine(c.RtConf)
+	engine := rest.MustNewEngine(c.RestConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine, ctx)

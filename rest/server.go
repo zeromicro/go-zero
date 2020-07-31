@@ -21,22 +21,18 @@ const topCpuUsage = 1000
 
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
-type (
-	Middleware func(next http.HandlerFunc) http.HandlerFunc
+type engine struct {
+	conf                 RestConf
+	routes               []featuredRoutes
+	unauthorizedCallback handler.UnauthorizedCallback
+	unsignedCallback     handler.UnsignedCallback
+	middlewares          []Middleware
+	shedder              load.Shedder
+	priorityShedder      load.Shedder
+}
 
-	server struct {
-		conf                 RtConf
-		routes               []featuredRoutes
-		unauthorizedCallback handler.UnauthorizedCallback
-		unsignedCallback     handler.UnsignedCallback
-		middlewares          []Middleware
-		shedder              load.Shedder
-		priorityShedder      load.Shedder
-	}
-)
-
-func newServer(c RtConf) *server {
-	srv := &server{
+func newEngine(c RestConf) *engine {
+	srv := &engine{
 		conf: c,
 	}
 	if c.CpuThreshold > 0 {
@@ -48,23 +44,23 @@ func newServer(c RtConf) *server {
 	return srv
 }
 
-func (s *server) AddRoutes(r featuredRoutes) {
+func (s *engine) AddRoutes(r featuredRoutes) {
 	s.routes = append(s.routes, r)
 }
 
-func (s *server) SetUnauthorizedCallback(callback handler.UnauthorizedCallback) {
+func (s *engine) SetUnauthorizedCallback(callback handler.UnauthorizedCallback) {
 	s.unauthorizedCallback = callback
 }
 
-func (s *server) SetUnsignedCallback(callback handler.UnsignedCallback) {
+func (s *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
 	s.unsignedCallback = callback
 }
 
-func (s *server) Start() error {
+func (s *engine) Start() error {
 	return s.StartWithRouter(router.NewPatRouter())
 }
 
-func (s *server) StartWithRouter(router router.Router) error {
+func (s *engine) StartWithRouter(router router.Router) error {
 	if err := s.bindRoutes(router); err != nil {
 		return err
 	}
@@ -72,7 +68,7 @@ func (s *server) StartWithRouter(router router.Router) error {
 	return internal.StartHttp(s.conf.Host, s.conf.Port, router)
 }
 
-func (s *server) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
+func (s *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
 	verifier func(alice.Chain) alice.Chain) alice.Chain {
 	if fr.jwt.enabled {
 		if len(fr.jwt.prevSecret) == 0 {
@@ -88,7 +84,7 @@ func (s *server) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
 	return verifier(chain)
 }
 
-func (s *server) bindFeaturedRoutes(router router.Router, fr featuredRoutes, metrics *stat.Metrics) error {
+func (s *engine) bindFeaturedRoutes(router router.Router, fr featuredRoutes, metrics *stat.Metrics) error {
 	verifier, err := s.signatureVerifier(fr.signature)
 	if err != nil {
 		return err
@@ -103,7 +99,7 @@ func (s *server) bindFeaturedRoutes(router router.Router, fr featuredRoutes, met
 	return nil
 }
 
-func (s *server) bindRoute(fr featuredRoutes, router router.Router, metrics *stat.Metrics,
+func (s *engine) bindRoute(fr featuredRoutes, router router.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	chain := alice.New(
 		handler.TracingHandler,
@@ -128,7 +124,7 @@ func (s *server) bindRoute(fr featuredRoutes, router router.Router, metrics *sta
 	return router.Handle(route.Method, route.Path, handle)
 }
 
-func (s *server) bindRoutes(router router.Router) error {
+func (s *engine) bindRoutes(router router.Router) error {
 	metrics := s.createMetrics()
 
 	for _, fr := range s.routes {
@@ -140,7 +136,7 @@ func (s *server) bindRoutes(router router.Router) error {
 	return nil
 }
 
-func (s *server) createMetrics() *stat.Metrics {
+func (s *engine) createMetrics() *stat.Metrics {
 	var metrics *stat.Metrics
 
 	if len(s.conf.Name) > 0 {
@@ -152,7 +148,7 @@ func (s *server) createMetrics() *stat.Metrics {
 	return metrics
 }
 
-func (s *server) getLogHandler() func(http.Handler) http.Handler {
+func (s *engine) getLogHandler() func(http.Handler) http.Handler {
 	if s.conf.Verbose {
 		return handler.DetailedLogHandler
 	} else {
@@ -160,14 +156,14 @@ func (s *server) getLogHandler() func(http.Handler) http.Handler {
 	}
 }
 
-func (s *server) getShedder(priority bool) load.Shedder {
+func (s *engine) getShedder(priority bool) load.Shedder {
 	if priority && s.priorityShedder != nil {
 		return s.priorityShedder
 	}
 	return s.shedder
 }
 
-func (s *server) signatureVerifier(signature signatureSetting) (func(chain alice.Chain) alice.Chain, error) {
+func (s *engine) signatureVerifier(signature signatureSetting) (func(chain alice.Chain) alice.Chain, error) {
 	if !signature.enabled {
 		return func(chain alice.Chain) alice.Chain {
 			return chain
@@ -207,7 +203,7 @@ func (s *server) signatureVerifier(signature signatureSetting) (func(chain alice
 	}, nil
 }
 
-func (s *server) use(middleware Middleware) {
+func (s *engine) use(middleware Middleware) {
 	s.middlewares = append(s.middlewares, middleware)
 }
 

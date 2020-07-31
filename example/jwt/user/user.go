@@ -20,7 +20,7 @@ const jwtUserField = "user"
 
 type (
 	Config struct {
-		rest.RtConf
+		rest.RestConf
 		AccessSecret  string
 		AccessExpire  int64 `json:",default=1209600"` // 2 weeks
 		RefreshSecret string
@@ -79,7 +79,7 @@ func main() {
 	var c Config
 	conf.MustLoad("user.json", &c)
 
-	engine, err := rest.NewEngine(c.RtConf)
+	engine, err := rest.NewServer(c.RestConf)
 	if err != nil {
 		log.Fatal(err)
 	}

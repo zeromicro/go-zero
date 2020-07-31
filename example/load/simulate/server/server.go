@@ -25,7 +25,7 @@ func main() {
 	}()
 
 	logx.Disable()
-	engine := rest.MustNewEngine(rest.RtConf{
+	engine := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",

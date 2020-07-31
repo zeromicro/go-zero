@@ -8,7 +8,7 @@ import (
 	"zero/rest"
 )
 
-func RegisterHandlers(engine *rest.Engine, ctx *svc.ServiceContext) {
+func RegisterHandlers(engine *rest.Server, ctx *svc.ServiceContext) {
 	engine.AddRoutes([]rest.Route{
 		{
 			Method:  http.MethodGet,

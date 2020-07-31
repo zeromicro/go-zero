@@ -15,7 +15,7 @@ import (
 func main() {
 	logx.Disable()
 	stat.SetReporter(nil)
-	server := rest.MustNewEngine(rest.RtConf{
+	server := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Name: "breaker",
 			Log: logx.LogConf{

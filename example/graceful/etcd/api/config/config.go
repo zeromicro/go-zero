@@ -6,6 +6,6 @@ import (
 )
 
 type Config struct {
-	rest.RtConf
+	rest.RestConf
 	Rpc rpcx.RpcClientConf
 }

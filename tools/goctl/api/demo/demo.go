@@ -17,7 +17,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	engine := rest.MustNewEngine(c.RtConf)
+	engine := rest.MustNewServer(c.RestConf)
 	defer engine.Stop()
 
 	handler.RegisterHandlers(engine)
