@@ -169,6 +169,8 @@ func TestContainer(t *testing.T) {
 		for _, exclusive := range exclusives {
 			t.Run(test.name, func(t *testing.T) {
 				c := newContainer(exclusive)
+				assert.Nil(t, c.getValues())
+
 				for _, order := range test.do {
 					if order.act == actionAdd {
 						c.OnAdd(internal.KV{
