@@ -6,15 +6,19 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-type discovResolver struct {
-	scheme string
-	etcd   discov.EtcdConf
-	cc     resolver.ClientConn
+const discovScheme = "discov"
+
+type discovBuilder struct {
+	etcd discov.EtcdConf
 }
 
-func (r *discovResolver) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
+func (b *discovBuilder) Scheme() string {
+	return discovScheme
+}
+
+func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
-	sub, err := discov.NewSubscriber(r.etcd.Hosts, r.etcd.Key)
+	sub, err := discov.NewSubscriber(b.etcd.Hosts, b.etcd.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -27,12 +31,18 @@ func (r *discovResolver) Build(target resolver.Target, cc resolver.ClientConn, o
 				Addr: val,
 			})
 		}
-		r.cc.UpdateState(resolver.State{
+		cc.UpdateState(resolver.State{
 			Addresses: addrs,
 		})
 	})
 
-	return r, nil
+	return &discovResolver{
+		cc: cc,
+	}, nil
+}
+
+type discovResolver struct {
+	cc resolver.ClientConn
 }
 
 func (r *discovResolver) Close() {
@@ -41,13 +51,8 @@ func (r *discovResolver) Close() {
 func (r *discovResolver) ResolveNow(options resolver.ResolveNowOptions) {
 }
 
-func (r *discovResolver) Scheme() string {
-	return r.scheme
-}
-
-func RegisterResolver(scheme string, etcd discov.EtcdConf) {
-	resolver.Register(&discovResolver{
-		scheme: scheme,
-		etcd:   etcd,
+func RegisterResolver(etcd discov.EtcdConf) {
+	resolver.Register(&discovBuilder{
+		etcd: etcd,
 	})
 }

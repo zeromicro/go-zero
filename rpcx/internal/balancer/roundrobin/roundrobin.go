@@ -1,7 +1,8 @@
-package balancer
+package roundrobin
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -11,16 +12,16 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-const Name = "roundrobin"
+const Name = "zero_rr"
 
 func init() {
-	balancer.Register(newBuilder())
+	balancer.Register(newRoundRobinBuilder())
 }
 
 type roundRobinPickerBuilder struct {
 }
 
-func newBuilder() balancer.Builder {
+func newRoundRobinBuilder() balancer.Builder {
 	return base.NewBalancerBuilder(Name, new(roundRobinPickerBuilder))
 }
 
@@ -48,6 +49,7 @@ type roundRobinPicker struct {
 
 func (p *roundRobinPicker) Pick(ctx context.Context, info balancer.PickInfo) (
 	conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
+	fmt.Println(p.conns)
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
