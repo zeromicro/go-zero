@@ -42,7 +42,7 @@ func NewClient(c RpcClientConf, options ...internal.ClientOption) (*RpcClient, e
 	if len(c.Server) > 0 {
 		client, err = internal.NewDirectClient(c.Server, opts...)
 	} else if err = c.Etcd.Validate(); err == nil {
-		client, err = internal.NewRoundRobinRpcClient(c.Etcd.Hosts, c.Etcd.Key, opts...)
+		client, err = internal.NewDiscovClient(c.Etcd.Hosts, c.Etcd.Key, opts...)
 	}
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func NewClient(c RpcClientConf, options ...internal.ClientOption) (*RpcClient, e
 }
 
 func NewClientNoAuth(c discov.EtcdConf) (*RpcClient, error) {
-	client, err := internal.NewRoundRobinRpcClient(c.Hosts, c.Key)
+	client, err := internal.NewDiscovClient(c.Hosts, c.Key)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +64,6 @@ func NewClientNoAuth(c discov.EtcdConf) (*RpcClient, error) {
 	}, nil
 }
 
-func (rc *RpcClient) Next() (*grpc.ClientConn, bool) {
-	return rc.client.Next()
+func (rc *RpcClient) Conn() *grpc.ClientConn {
+	return rc.client.Conn()
 }

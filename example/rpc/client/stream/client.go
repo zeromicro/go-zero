@@ -26,11 +26,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	conn, ok := client.Next()
-	if !ok {
-		log.Fatal("no server")
-	}
-
+	conn := client.Conn()
 	greet := stream.NewStreamGreeterClient(conn)
 	stm, err := greet.Greet(context.Background())
 	if err != nil {

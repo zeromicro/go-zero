@@ -2,7 +2,6 @@ package roundrobin
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 	"sync"
 	"time"
@@ -12,20 +11,23 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-const Name = "zero_rr"
+const Name = "rr"
 
 func init() {
-	balancer.Register(newRoundRobinBuilder())
+	balancer.Register(newBuilder())
 }
 
-type roundRobinPickerBuilder struct {
-}
+type roundRobinPickerBuilder struct{}
 
-func newRoundRobinBuilder() balancer.Builder {
+func newBuilder() balancer.Builder {
 	return base.NewBalancerBuilder(Name, new(roundRobinPickerBuilder))
 }
 
 func (b *roundRobinPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
+	if len(readySCs) == 0 {
+		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
+	}
+
 	rand.Seed(time.Now().UnixNano())
 	picker := &roundRobinPicker{
 		index: rand.Int(),
@@ -49,7 +51,6 @@ type roundRobinPicker struct {
 
 func (p *roundRobinPicker) Pick(ctx context.Context, info balancer.PickInfo) (
 	conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
-	fmt.Println(p.conns)
 	p.lock.Lock()
 	defer p.lock.Unlock()
 

@@ -21,7 +21,7 @@ type (
 	ClientOption func(options *ClientOptions)
 
 	Client interface {
-		Next() (*grpc.ClientConn, bool)
+		Conn() *grpc.ClientConn
 	}
 )
 

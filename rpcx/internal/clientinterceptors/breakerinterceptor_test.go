@@ -5,6 +5,7 @@ import (
 
 	"zero/core/breaker"
 	"zero/core/stat"
+	rcodes "zero/rpcx/internal/codes"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
@@ -32,7 +33,7 @@ func TestBreakerInterceptorNotFound(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		assert.Equal(t, err, breaker.DoWithAcceptable("call", func() error {
 			return err
-		}, acceptable))
+		}, rcodes.Acceptable))
 	}
 }
 
@@ -42,7 +43,7 @@ func TestBreakerInterceptorDeadlineExceeded(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		e := breaker.DoWithAcceptable("call", func() error {
 			return err
-		}, acceptable)
+		}, rcodes.Acceptable)
 		errs[e]++
 	}
 	assert.Equal(t, 2, len(errs))

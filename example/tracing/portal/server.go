@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 
 	"zero/core/conf"
@@ -33,11 +32,7 @@ func NewPortalServer(client *rpcx.RpcClient) *PortalServer {
 }
 
 func (gs *PortalServer) Portal(ctx context.Context, req *portal.PortalRequest) (*portal.PortalResponse, error) {
-	conn, ok := gs.userRpc.Next()
-	if !ok {
-		return nil, errors.New("internal error")
-	}
-
+	conn := gs.userRpc.Conn()
 	greet := user.NewUserClient(conn)
 	resp, err := greet.GetGrade(ctx, &user.UserRequest{
 		Name: req.Name,

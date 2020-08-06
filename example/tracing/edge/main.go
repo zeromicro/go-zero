@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 	"net/http"
 
 	"zero/core/conf"
@@ -20,11 +19,7 @@ var (
 )
 
 func handle(w http.ResponseWriter, r *http.Request) {
-	conn, ok := client.Next()
-	if !ok {
-		log.Fatal("no server")
-	}
-
+	conn := client.Conn()
 	greet := portal.NewPortalClient(conn)
 	resp, err := greet.Portal(r.Context(), &portal.PortalRequest{
 		Name: "kevin",

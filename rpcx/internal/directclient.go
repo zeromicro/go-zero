@@ -3,7 +3,6 @@ package internal
 import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
-	"google.golang.org/grpc/connectivity"
 )
 
 type DirectClient struct {
@@ -22,11 +21,6 @@ func NewDirectClient(server string, opts ...ClientOption) (*DirectClient, error)
 	}, nil
 }
 
-func (c *DirectClient) Next() (*grpc.ClientConn, bool) {
-	state := c.conn.GetState()
-	if state == connectivity.Ready {
-		return c.conn, true
-	} else {
-		return nil, false
-	}
+func (c *DirectClient) Conn() *grpc.ClientConn {
+	return c.conn
 }

@@ -1,17 +1,13 @@
 {
 	"Name": "rpc.unary",
-    "MetricsUrl": "http://localhost:2222/add",
+	"Log": {
+		"Mode": "volume"
+	},
     "ListenOn": "localhost:3457",
-    "Auth": false,
     "Etcd": {
         "Hosts": [
             "localhost:2379"
         ],
         "Key": "rpcx"
-    },
-    "Redis": {
-        "Host": "localhost:6379",
-        "Type": "node",
-        "Key": "apps"
     }
 }

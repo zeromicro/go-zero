@@ -28,12 +28,7 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			conn, ok := client.Next()
-			if !ok {
-				time.Sleep(time.Second)
-				break
-			}
-
+			conn := client.Conn()
 			greet := unary.NewGreeterClient(conn)
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 			resp, err := greet.Greet(ctx, &unary.Request{

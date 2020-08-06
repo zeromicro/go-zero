@@ -1,32 +1,42 @@
 package resolver
 
 import (
+	"fmt"
+	"strings"
+
 	"zero/core/discov"
 
 	"google.golang.org/grpc/resolver"
 )
 
-const discovScheme = "discov"
+const (
+	DiscovScheme = "discov"
+	EndpointSep  = ","
+)
 
-type discovBuilder struct {
-	etcd discov.EtcdConf
-}
+var builder discovBuilder
+
+type discovBuilder struct{}
 
 func (b *discovBuilder) Scheme() string {
-	return discovScheme
+	return DiscovScheme
 }
 
 func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
-	sub, err := discov.NewSubscriber(b.etcd.Hosts, b.etcd.Key)
+	if target.Scheme != DiscovScheme {
+		return nil, fmt.Errorf("bad scheme: %s", target.Scheme)
+	}
+
+	hosts := strings.Split(target.Authority, EndpointSep)
+	sub, err := discov.NewSubscriber(hosts, target.Endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	sub.AddListener(func() {
-		vals := sub.Values()
+	update := func() {
 		var addrs []resolver.Address
-		for _, val := range vals {
+		for _, val := range sub.Values() {
 			addrs = append(addrs, resolver.Address{
 				Addr: val,
 			})
@@ -34,7 +44,9 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 		cc.UpdateState(resolver.State{
 			Addresses: addrs,
 		})
-	})
+	}
+	sub.AddListener(update)
+	update()
 
 	return &discovResolver{
 		cc: cc,
@@ -51,8 +63,6 @@ func (r *discovResolver) Close() {
 func (r *discovResolver) ResolveNow(options resolver.ResolveNowOptions) {
 }
 
-func RegisterResolver(etcd discov.EtcdConf) {
-	resolver.Register(&discovBuilder{
-		etcd: etcd,
-	})
+func RegisterResolver() {
+	resolver.Register(&builder)
 }

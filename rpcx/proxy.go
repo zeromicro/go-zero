@@ -57,10 +57,5 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 		return nil, err
 	}
 
-	conn, ok := val.(*RpcClient).Next()
-	if !ok {
-		return nil, grpc.ErrServerStopped
-	}
-
-	return conn, nil
+	return val.(*RpcClient).Conn(), nil
 }
