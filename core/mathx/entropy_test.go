@@ -13,5 +13,5 @@ func TestCalcEntropy(t *testing.T) {
 	for i := 0; i < total; i++ {
 		m[i] = count
 	}
-	assert.True(t, CalcEntropy(m, total*count) > .99)
+	assert.True(t, CalcEntropy(m) > .99)
 }

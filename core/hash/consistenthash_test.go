@@ -47,7 +47,7 @@ func TestConsistentHash(t *testing.T) {
 	for k, v := range keys {
 		mi[k] = v
 	}
-	entropy := mathx.CalcEntropy(mi, requestSize)
+	entropy := mathx.CalcEntropy(mi)
 	assert.True(t, entropy > .95)
 }
 

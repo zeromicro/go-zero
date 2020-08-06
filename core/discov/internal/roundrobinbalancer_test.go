@@ -237,7 +237,7 @@ func TestRoundRobin_initialize(t *testing.T) {
 	for k, v := range m {
 		mi[k] = v
 	}
-	entropy := mathx.CalcEntropy(mi, total)
+	entropy := mathx.CalcEntropy(mi)
 	assert.True(t, entropy > .95)
 }
 
@@ -265,7 +265,7 @@ func TestRoundRobin_next(t *testing.T) {
 		m[val]++
 	}
 
-	entropy := mathx.CalcEntropy(m, total)
+	entropy := mathx.CalcEntropy(m)
 	assert.Equal(t, size, len(m))
 	assert.True(t, entropy > .95)
 

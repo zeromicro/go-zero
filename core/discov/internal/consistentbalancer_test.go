@@ -119,7 +119,7 @@ func TestConsistent_next(t *testing.T) {
 		m[val]++
 	}
 
-	entropy := mathx.CalcEntropy(m, total)
+	entropy := mathx.CalcEntropy(m)
 	assert.Equal(t, size, len(m))
 	assert.True(t, entropy > .95)
 

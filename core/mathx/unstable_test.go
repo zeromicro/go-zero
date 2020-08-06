@@ -65,7 +65,7 @@ func TestUnstable_Distribution(t *testing.T) {
 	for k, v := range m {
 		mi[k] = v
 	}
-	entropy := CalcEntropy(mi, total)
+	entropy := CalcEntropy(mi)
 	assert.True(t, len(m) > 1)
 	assert.True(t, entropy > 0.95)
 }

@@ -12,6 +12,7 @@ import (
 const (
 	DiscovScheme = "discov"
 	EndpointSep  = ","
+	subsetSize   = 36
 )
 
 var builder discovBuilder
@@ -36,7 +37,7 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 
 	update := func() {
 		var addrs []resolver.Address
-		for _, val := range sub.Values() {
+		for _, val := range subset(sub.Values(), subsetSize) {
 			addrs = append(addrs, resolver.Address{
 				Addr: val,
 			})
