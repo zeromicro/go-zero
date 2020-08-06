@@ -5,14 +5,13 @@ import (
 	"sync"
 	"testing"
 
-	"go.etcd.io/etcd/mvcc/mvccpb"
-
 	"zero/core/contextx"
 	"zero/core/stringx"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"go.etcd.io/etcd/clientv3"
+	"go.etcd.io/etcd/mvcc/mvccpb"
 )
 
 var mockLock sync.Mutex
