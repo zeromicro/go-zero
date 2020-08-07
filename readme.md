@@ -1,10 +1,4 @@
-# go-zero开源项目介绍
-
-> 项目负责人：万俊峰、徐涛、蒋欢、王迪
->
-> 部门：晓黑板研发部
->
-> git地址：https://git.100tal.com/xiaoheiban_server_go/go-zero
+# go-zero项目介绍
 
 ## 1. go-zero框架背景
 
@@ -66,18 +60,5 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 ## 5. go-zero近期开发计划
 
-* ~~升级grpc到最新版~~ **已完成**
-* ~~加入Power of Two Choices Peak Exponentially Weighted Moving Average负载均衡算法~~ **已完成**
 * 自动生成API mock server，便于客户端开发
 * 自动生成服务端功能测试
-
-#### 相关内容：
-
-> go-zero简介：https://ttc.zhiyinlou.com/#/articleDetail?id=1769
->
-> goctl使用说明：https://ttc.zhiyinlou.com/#/articleDetail?id=1760
->
-> 晓黑板Go微服务框架分享Slices：[点击查看](doc/go-framework.pdf)
->
-> 晓黑板Go微服务框架分享视频：http://honor.zhiyinlou.com/trainingsystem/courselist/phpandgolang/5f1abdca46e0fb0008ef5dfc
-
