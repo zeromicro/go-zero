@@ -2,9 +2,14 @@ package mathx
 
 import "math"
 
-func CalcEntropy(m map[interface{}]int) float64 {
-	var entropy float64
+const epsilon = 1e-6
 
+func CalcEntropy(m map[interface{}]int) float64 {
+	if len(m) == 0 || len(m) == 1 {
+		return 1
+	}
+
+	var entropy float64
 	var total int
 	for _, v := range m {
 		total += v
@@ -12,6 +17,9 @@ func CalcEntropy(m map[interface{}]int) float64 {
 
 	for _, v := range m {
 		proba := float64(v) / float64(total)
+		if proba < epsilon {
+			proba = epsilon
+		}
 		entropy -= proba * math.Log2(proba)
 	}
 

@@ -169,7 +169,6 @@ func (p *p2cPicker) logStats() {
 	defer p.lock.Unlock()
 
 	for _, conn := range p.conns {
-		fmt.Println(conn.lag, conn.inflight)
 		stats = append(stats, fmt.Sprintf("conn: %s, load: %d, reqs: %d",
 			conn.addr.Addr, conn.load(), atomic.SwapInt64(&conn.requests, 0)))
 	}
