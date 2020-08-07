@@ -3,17 +3,10 @@ run:
   timeout: 5m
   skip-dirs:
     - core
-    - diq
     - doc
-    - dq
     - example
-    - kmq
-    - kq
     - rest
-    - rq
     - rpcx
-    #    - service
-    - stash
     - tools
 
 
