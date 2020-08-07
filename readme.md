@@ -66,8 +66,8 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 ## 5. go-zero近期开发计划
 
-* 升级grpc到最新版
-* 加入Power of Two Choices Peak Exponentially Weighted Moving Average负载均衡算法
+* ~~升级grpc到最新版~~ **已完成**
+* ~~加入Power of Two Choices Peak Exponentially Weighted Moving Average负载均衡算法~~ **已完成**
 * 自动生成API mock server，便于客户端开发
 * 自动生成服务端功能测试
 
