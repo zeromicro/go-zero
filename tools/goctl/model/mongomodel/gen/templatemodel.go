@@ -2,7 +2,7 @@ package gen
 
 const (
 	quotationMark = "`"
-	//templates that do not use caching
+	// templates that do not use caching
 	noCacheTemplate = `package model
 
 import (

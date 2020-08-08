@@ -14,14 +14,13 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/logx"
-	"zero/core/stat"
-	"zero/core/stores/cache"
-	"zero/core/stores/redis"
-	"zero/core/stores/sqlx"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/stores/cache"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 
 func init() {

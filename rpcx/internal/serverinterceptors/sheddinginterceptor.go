@@ -4,9 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"zero/core/load"
-	"zero/core/stat"
-
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/stat"
 	"google.golang.org/grpc"
 )
 

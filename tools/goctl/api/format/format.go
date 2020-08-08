@@ -11,11 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"zero/tools/goctl/api/util"
-
-	"zero/core/errorx"
-	"zero/tools/goctl/api/parser"
-
+	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/urfave/cli"
 )
 

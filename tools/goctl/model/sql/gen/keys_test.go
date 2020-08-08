@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func TestKeys(t *testing.T) {

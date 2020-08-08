@@ -4,7 +4,7 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func GenerateMakefile(goFile, namespace string) error {

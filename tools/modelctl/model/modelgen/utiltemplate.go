@@ -6,9 +6,9 @@ const (
 import (
     "errors"
 	
-    {{if .WithCache}}"zero/core/stores/redis"
-    "zero/core/stores/sqlc"
-    "zero/core/stores/sqlx"{{end}}
+    {{if .WithCache}}"github.com/tal-tech/go-zero/core/stores/redis"
+    "github.com/tal-tech/go-zero/core/stores/sqlc"
+    "github.com/tal-tech/go-zero/core/stores/sqlx"{{end}}
 )
 {{if .WithCache}}
 type CachedModel struct {

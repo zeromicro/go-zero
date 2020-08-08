@@ -1,6 +1,6 @@
 package stringx
 
-import "zero/core/lang"
+import "github.com/tal-tech/go-zero/core/lang"
 
 type (
 	Trie interface {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 var insertTemplate = `

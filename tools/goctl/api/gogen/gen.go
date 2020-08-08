@@ -12,13 +12,12 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/lang"
-	apiformat "zero/tools/goctl/api/format"
-	"zero/tools/goctl/api/parser"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/lang"
+	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

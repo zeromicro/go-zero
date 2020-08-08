@@ -5,9 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/core/stat"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func TestMetricHandler(t *testing.T) {

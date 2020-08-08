@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/core/discov"
-
+	"github.com/tal-tech/go-zero/core/discov"
 	"google.golang.org/grpc/resolver"
 )
 

@@ -4,12 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/stores/internal"
-	"zero/core/stores/redis"
-	"zero/core/stringx"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 var s1, _ = miniredis.Run()

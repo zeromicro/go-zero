@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/discov"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/tal-tech/go-zero/core/lang"
 )
 
 func main() {

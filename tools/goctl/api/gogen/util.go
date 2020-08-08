@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"zero/core/collection"
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
 func getParentPackage(dir string) (string, error) {

@@ -10,8 +10,8 @@ import (
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 	"github.com/urfave/cli"
-	"zero/tools/goctl/vars"
 )
 
 const configTemplate = `package main

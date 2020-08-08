@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"zero/tools/goctl/vars"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 func MkdirIfNotExist(dir string) error {

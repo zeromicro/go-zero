@@ -13,8 +13,7 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func CreateIfNotExist(file string) (*os.File, error) {

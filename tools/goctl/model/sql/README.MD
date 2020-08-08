@@ -45,9 +45,9 @@ imports代码生成对应model中包的引入管理，仅使用于晓黑板项�
         "strings"
         "time"
 
-        "zero/core/stores/sqlc"
-        "zero/core/stores/sqlx"
-        "zero/core/stringx"
+        "github.com/tal-tech/go-zero/core/stores/sqlc"
+        "github.com/tal-tech/go-zero/core/stores/sqlx"
+        "github.com/tal-tech/go-zero/core/stringx"
         "xiao/service/shared/builderx"
     )
     ```
@@ -60,8 +60,8 @@ imports代码生成对应model中包的引入管理，仅使用于晓黑板项�
         "strings"
         "time"
 
-        "zero/core/stores/sqlx"
-        "zero/core/stringx"
+        "github.com/tal-tech/go-zero/core/stores/sqlx"
+        "github.com/tal-tech/go-zero/core/stringx"
         "xiao/service/shared/builderx"
     )
     ```

@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"zero/core/logx"
-	"zero/tools/modelctl/model/configtemplategen"
-	"zero/tools/modelctl/model/modelgen"
-
+	"github.com/tal-tech/go-zero/core/logx"
+	configgen "github.com/tal-tech/go-zero/tools/modelctl/model/configtemplategen"
+	"github.com/tal-tech/go-zero/tools/modelctl/model/modelgen"
 	"github.com/urfave/cli"
 )
 

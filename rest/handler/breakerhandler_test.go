@@ -6,10 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/core/logx"
-	"zero/core/stat"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func init() {

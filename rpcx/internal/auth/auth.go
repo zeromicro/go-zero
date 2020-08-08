@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	"zero/core/collection"
-	"zero/core/stores/redis"
-
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"

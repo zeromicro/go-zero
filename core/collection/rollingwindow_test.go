@@ -5,9 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/stringx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 const duration = time.Millisecond * 50

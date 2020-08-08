@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"zero/core/codec"
+	"github.com/tal-tech/go-zero/core/codec"
 )
 
 const (

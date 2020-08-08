@@ -3,10 +3,9 @@ package mongo
 import (
 	"time"
 
-	"zero/core/executors"
-	"zero/core/logx"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const (

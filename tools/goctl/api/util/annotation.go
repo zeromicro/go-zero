@@ -1,6 +1,6 @@
 package util
 
-import "zero/tools/goctl/api/spec"
+import "github.com/tal-tech/go-zero/tools/goctl/api/spec"
 
 func GetAnnotationValue(annos []spec.Annotation, key, field string) (string, bool) {
 	for _, anno := range annos {

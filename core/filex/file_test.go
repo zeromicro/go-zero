@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"zero/core/fs"
+	"github.com/tal-tech/go-zero/core/fs"
 
 	"github.com/stretchr/testify/assert"
 )

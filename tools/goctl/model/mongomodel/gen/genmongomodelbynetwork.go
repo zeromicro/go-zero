@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/model/mongomodel/utils"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel/utils"
 )
 
 func GenMongoModelByNetwork(input string, needCache bool) (string, error) {

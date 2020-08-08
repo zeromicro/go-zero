@@ -7,8 +7,8 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/modelctl/model"
-	"zero/tools/modelctl/util"
+	"github.com/tal-tech/go-zero/tools/modelctl/model"
+	"github.com/tal-tech/go-zero/tools/modelctl/util"
 )
 
 type (
@@ -59,10 +59,10 @@ import (
     "strings"
     "time"
 
-    "zero/core/stores/redis"
-    "zero/core/stores/sqlx"
-    "zero/service/shared/builderx"
-    "zero/service/shared/cache"
+    "github.com/tal-tech/go-zero/core/stores/redis"
+    "github.com/tal-tech/go-zero/core/stores/sqlx"
+    "github.com/tal-tech/go-zero/service/shared/builderx"
+    "github.com/tal-tech/go-zero/service/shared/cache"
 
 )
 var (

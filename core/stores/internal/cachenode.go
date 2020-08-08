@@ -8,11 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/logx"
-	"zero/core/mathx"
-	"zero/core/stat"
-	"zero/core/stores/redis"
-	"zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/mathx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 const (

@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/conf"
-	"zero/example/rpc/remote/unary"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
+	"github.com/tal-tech/go-zero/rpcx"
 )
 
 var configFile = flag.String("f", "config.json", "the config file")

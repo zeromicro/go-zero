@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/core/stringx"
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 var (

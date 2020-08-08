@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func Error(w http.ResponseWriter, err error) {

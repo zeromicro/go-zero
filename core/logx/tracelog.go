@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"zero/core/trace/tracespec"
+	"github.com/tal-tech/go-zero/core/trace/tracespec"
 )
 
 type tracingEntry struct {

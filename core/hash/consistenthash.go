@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"sync"
 
-	"zero/core/lang"
-	"zero/core/mapping"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/mapping"
 )
 
 const (

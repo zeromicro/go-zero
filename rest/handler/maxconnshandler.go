@@ -3,9 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"zero/core/logx"
-	"zero/core/syncx"
-	"zero/rest/internal"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/rest/internal"
 )
 
 func MaxConns(n int) func(http.Handler) http.Handler {

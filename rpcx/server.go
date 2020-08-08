@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"zero/core/load"
-	"zero/core/logx"
-	"zero/core/netx"
-	"zero/core/stat"
-	"zero/rpcx/internal"
-	"zero/rpcx/internal/auth"
-	"zero/rpcx/internal/serverinterceptors"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/netx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rpcx/internal"
+	"github.com/tal-tech/go-zero/rpcx/internal/auth"
+	"github.com/tal-tech/go-zero/rpcx/internal/serverinterceptors"
 )
 
 const envPodIp = "POD_IP"

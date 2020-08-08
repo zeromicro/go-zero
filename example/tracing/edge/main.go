@@ -4,13 +4,13 @@ import (
 	"flag"
 	"net/http"
 
-	"zero/core/conf"
-	"zero/core/logx"
-	"zero/core/service"
-	"zero/example/tracing/remote/portal"
-	"zero/rest"
-	"zero/rest/httpx"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/service"
+	"github.com/tal-tech/go-zero/example/tracing/remote/portal"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rpcx"
 )
 
 var (

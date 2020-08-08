@@ -4,7 +4,7 @@ import (
 	"io"
 	"sync"
 
-	"zero/core/errorx"
+	"github.com/tal-tech/go-zero/core/errorx"
 )
 
 type ResourceManager struct {

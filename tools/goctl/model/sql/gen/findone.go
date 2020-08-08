@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 )
 
 func genFindOne(table *InnerTable) (string, error) {

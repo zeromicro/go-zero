@@ -3,7 +3,7 @@ package sqlx
 import (
 	"database/sql"
 
-	"zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 var ErrNotFound = sql.ErrNoRows

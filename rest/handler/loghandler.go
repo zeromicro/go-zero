@@ -9,11 +9,11 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"zero/core/iox"
-	"zero/core/logx"
-	"zero/core/timex"
-	"zero/core/utils"
-	"zero/rest/internal"
+	"github.com/tal-tech/go-zero/core/iox"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/tal-tech/go-zero/core/utils"
+	"github.com/tal-tech/go-zero/rest/internal"
 )
 
 const slowThreshold = time.Millisecond * 500

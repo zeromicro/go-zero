@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
-	"zero/tools/goctl/vars"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const mainTemplate = `package main

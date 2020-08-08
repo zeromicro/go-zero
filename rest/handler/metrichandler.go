@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"zero/core/stat"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 func MetricHandler(metrics *stat.Metrics) func(http.Handler) http.Handler {

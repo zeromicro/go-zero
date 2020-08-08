@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"zero/core/stat"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func main() {

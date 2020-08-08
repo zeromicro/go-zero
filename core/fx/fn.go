@@ -4,9 +4,9 @@ import (
 	"sort"
 	"sync"
 
-	"zero/core/collection"
-	"zero/core/lang"
-	"zero/core/threading"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/threading"
 )
 
 const (

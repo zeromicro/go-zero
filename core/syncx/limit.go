@@ -3,7 +3,7 @@ package syncx
 import (
 	"errors"
 
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/lang"
 )
 
 var ErrReturn = errors.New("discarding limited token, resource pool is full, someone returned multiple times")

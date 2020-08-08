@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"zero/core/conf"
-	"zero/rest"
-	"zero/rest/httpx"
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/rest/httpx"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"

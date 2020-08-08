@@ -5,11 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	"zero/core/contextx"
-	"zero/core/stringx"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/contextx"
+	"github.com/tal-tech/go-zero/core/stringx"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 )

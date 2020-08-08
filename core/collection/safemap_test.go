@@ -3,9 +3,8 @@ package collection
 import (
 	"testing"
 
-	"zero/core/stringx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 func TestSafeMap(t *testing.T) {

@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/proc"
-	"zero/core/syncx"
-	"zero/core/threading"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/proc"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const idleRound = 10

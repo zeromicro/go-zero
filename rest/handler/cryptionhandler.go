@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"zero/core/codec"
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/codec"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const maxBytes = 1 << 20 // 1 MiB

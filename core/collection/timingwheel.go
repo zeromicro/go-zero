@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/lang"
-	"zero/core/threading"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const drainWorkers = 8

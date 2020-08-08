@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 const (

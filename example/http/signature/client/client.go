@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"zero/core/codec"
+	"github.com/tal-tech/go-zero/core/codec"
 )
 
 const pubKey = `-----BEGIN PUBLIC KEY-----

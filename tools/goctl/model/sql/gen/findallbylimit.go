@@ -5,7 +5,7 @@ import (
 	"strings"
 	"text/template"
 
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 )
 
 func genFindLimitByField(table *InnerTable) (string, error) {

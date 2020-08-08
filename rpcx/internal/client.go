@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"zero/rpcx/internal/clientinterceptors"
-
+	"github.com/tal-tech/go-zero/rpcx/internal/clientinterceptors"
 	"google.golang.org/grpc"
 )
 

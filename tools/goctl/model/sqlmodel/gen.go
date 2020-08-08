@@ -3,7 +3,7 @@ package sqlmodel
 import (
 	"go/format"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 type (

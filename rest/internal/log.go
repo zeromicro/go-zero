@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sync"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const LogContext = "request_logs"

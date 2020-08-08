@@ -6,15 +6,14 @@ import (
 	"net/http"
 	"time"
 
-	"zero/core/codec"
-	"zero/core/load"
-	"zero/core/stat"
-	"zero/rest/handler"
-	"zero/rest/httpx"
-	"zero/rest/internal"
-	"zero/rest/internal/router"
-
 	"github.com/justinas/alice"
+	"github.com/tal-tech/go-zero/core/codec"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest/handler"
+	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/tal-tech/go-zero/rest/internal/router"
 )
 
 // use 1000m to represent 100%

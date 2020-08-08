@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"errors"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 var ErrPaddingSize = errors.New("padding size error")

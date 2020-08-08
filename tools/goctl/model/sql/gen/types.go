@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 )
 
 func genTypes(table *InnerTable) (string, error) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"zero/core/lang"
-	"zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 )
 
 func main() {

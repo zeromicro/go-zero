@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	util2 "zero/tools/modelctl/util"
+	util2 "github.com/tal-tech/go-zero/tools/modelctl/util"
 )
 
 var (

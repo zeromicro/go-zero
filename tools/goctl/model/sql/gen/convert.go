@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"zero/tools/goctl/model/sql/util"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
 )
 
 func TableConvert(outerTable OuterTable) (*InnerTable, error) {

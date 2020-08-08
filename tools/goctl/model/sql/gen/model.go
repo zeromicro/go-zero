@@ -6,8 +6,8 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/core/logx"
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/core/logx"
+	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 )
 
 func GenModel(table *InnerTable) (string, error) {

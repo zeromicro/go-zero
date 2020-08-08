@@ -7,15 +7,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/rest/httpx"
-	router2 "zero/rest/internal/router"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/internal/router"
 )
 
 func TestWithMiddleware(t *testing.T) {
 	m := make(map[string]string)
-	router := router2.NewPatRouter()
+	router := router.NewPatRouter()
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Nickname string `form:"nickname"`

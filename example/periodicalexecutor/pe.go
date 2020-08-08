@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"zero/core/executors"
+	"github.com/tal-tech/go-zero/core/executors"
 )
 
 func main() {

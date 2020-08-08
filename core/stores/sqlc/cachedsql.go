@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"time"
 
-	"zero/core/stores/cache"
-	"zero/core/stores/internal"
-	"zero/core/stores/redis"
-	"zero/core/stores/sqlx"
-	"zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/stores/cache"
+	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 // see doc/sql-cache.md

@@ -7,9 +7,8 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

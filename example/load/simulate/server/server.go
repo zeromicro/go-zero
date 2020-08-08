@@ -6,11 +6,11 @@ import (
 	"runtime"
 	"time"
 
-	"zero/core/fx"
-	"zero/core/logx"
-	"zero/core/service"
-	"zero/core/stat"
-	"zero/rest"
+	"github.com/tal-tech/go-zero/core/fx"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/service"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest"
 )
 
 const duration = time.Millisecond

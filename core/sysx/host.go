@@ -3,7 +3,7 @@ package sysx
 import (
 	"os"
 
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/lang"
 )
 
 var hostname string

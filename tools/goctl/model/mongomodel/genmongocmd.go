@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"zero/core/lang"
-	"zero/tools/goctl/model/mongomodel/gen"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel/gen"
 	"github.com/urfave/cli"
 )
 

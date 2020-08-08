@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"sync"
 
-	"zero/core/load"
-	"zero/core/logx"
-	"zero/core/stat"
-	"zero/rest/internal"
-	"zero/rest/internal/security"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/tal-tech/go-zero/rest/internal/security"
 )
 
 const serviceType = "api"

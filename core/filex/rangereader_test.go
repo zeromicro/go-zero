@@ -5,8 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"zero/core/fs"
+	"github.com/tal-tech/go-zero/core/fs"
 )
 
 func TestRangeReader(t *testing.T) {

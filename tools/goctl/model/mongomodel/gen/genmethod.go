@@ -3,7 +3,7 @@ package gen
 import (
 	"strings"
 
-	"zero/tools/goctl/model/mongomodel/utils"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel/utils"
 )
 
 func genMethodTemplate(funcDesc FunctionDesc, needCache bool) (template string) {

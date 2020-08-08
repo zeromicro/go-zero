@@ -7,9 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/timex"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const threshold = 10

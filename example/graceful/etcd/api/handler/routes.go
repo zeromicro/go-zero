@@ -4,8 +4,8 @@ package handler
 import (
 	"net/http"
 
-	"zero/example/graceful/etcd/api/svc"
-	"zero/rest"
+	"github.com/tal-tech/go-zero/example/graceful/etcd/api/svc"
+	"github.com/tal-tech/go-zero/rest"
 )
 
 func RegisterHandlers(engine *rest.Server, ctx *svc.ServiceContext) {

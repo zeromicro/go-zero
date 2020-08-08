@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/rpcx/internal/balancer/p2c"
-	"zero/rpcx/internal/resolver"
-
+	"github.com/tal-tech/go-zero/rpcx/internal/balancer/p2c"
+	"github.com/tal-tech/go-zero/rpcx/internal/resolver"
 	"google.golang.org/grpc"
 )
 

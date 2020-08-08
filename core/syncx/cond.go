@@ -3,8 +3,8 @@ package syncx
 import (
 	"time"
 
-	"zero/core/lang"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 type Cond struct {

@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"strings"
 
-	"zero/core/breaker"
-	"zero/core/logx"
-	"zero/core/stat"
-	"zero/rest/internal"
-	"zero/rest/internal/security"
+	"github.com/tal-tech/go-zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/tal-tech/go-zero/rest/internal/security"
 )
 
 const breakerSeparator = "://"

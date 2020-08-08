@@ -5,9 +5,9 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
-	"zero/tools/goctl/model/mongomodel/utils"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel/utils"
 )
 
 const (
@@ -149,8 +149,8 @@ func getImports(imports []string, needCache bool) string {
 	importStr := strings.Join(imports, "\n\t")
 	importStr += "\"errors\"\n\t"
 	importStr += "\"time\"\n\t"
-	importStr += "\n\t\"zero/core/stores/cache\"\n\t"
-	importStr += "\"zero/core/stores/mongoc\"\n\t"
+	importStr += "\n\t\"github.com/tal-tech/go-zero/core/stores/cache\"\n\t"
+	importStr += "\"github.com/tal-tech/go-zero/core/stores/mongoc\"\n\t"
 	importStr += "\n\t\"github.com/globalsign/mgo/bson\""
 	return importStr
 }

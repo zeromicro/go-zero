@@ -3,7 +3,7 @@ package sqlgen
 import (
 	"errors"
 
-	"zero/tools/goctl/model/sql/gen"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 )
 
 var (

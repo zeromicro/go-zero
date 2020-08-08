@@ -8,8 +8,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/breaker"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/lang"
 
 	"gopkg.in/cheggaaa/pb.v1"
 )

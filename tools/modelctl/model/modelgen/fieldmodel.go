@@ -1,8 +1,6 @@
 package modelgen
 
-import (
-	"zero/core/stores/sqlx"
-)
+import "github.com/tal-tech/go-zero/core/stores/sqlx"
 
 type (
 	FieldModel struct {

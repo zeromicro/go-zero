@@ -16,10 +16,10 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"zero/core/iox"
-	"zero/core/lang"
-	"zero/core/sysx"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/iox"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/sysx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (

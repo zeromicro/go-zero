@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/core/lang"
-
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/urfave/cli"
 )
 

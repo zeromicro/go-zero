@@ -1,8 +1,8 @@
 package threading
 
 import (
-	"zero/core/lang"
-	"zero/core/rescue"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/rescue"
 )
 
 type TaskRunner struct {
