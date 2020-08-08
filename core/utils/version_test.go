@@ -28,3 +28,33 @@ func TestCompareVersions(t *testing.T) {
 		})
 	}
 }
+
+func TestCustomCompareVersions(t *testing.T) {
+	cases := []struct {
+		ver1     string
+		ver2     string
+		operator string
+		out      bool
+	}{
+		{"1", "1.0.1", ">", false},
+		{"1", "0.9.9", ">", true},
+		{"1", "1-0.1", "<", true},
+		{"1.0.1", "1-0.1", "<", false},
+		{"1.0.1", "1.0.1", "==", true},
+		{"1.0.1", "1.0.2", "==", false},
+		{"1.1-1", "1.0.2", "==", false},
+		{"1.0.1", "1.0.2", ">=", false},
+		{"1.0.2", "1.0.2", ">=", true},
+		{"1.0.3", "1.0.2", ">=", true},
+		{"1.0.4", "1.0.2", "<=", false},
+		{"1.0.4", "1.0.6", "<=", true},
+		{"1.0.4", "1.0.4", "<=", true},
+	}
+
+	for _, each := range cases {
+		t.Run(each.ver1, func(t *testing.T) {
+			actual := CustomCompareVersions(each.ver1, each.ver2, each.operator)
+			assert.Equal(t, each.out, actual)
+		})
+	}
+}
