@@ -2,22 +2,9 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
-	"os/user"
-	"path"
-	"path/filepath"
-	"time"
 
-	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mr"
-	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -30,15 +17,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
-)
-
-const (
-	autoUpdate     = "GOCTL_AUTO_UPDATE"
-	configFile     = ".goctl"
-	configTemplate = `url = http://47.97.184.41:7777/`
-	toolName       = "goctl"
 )
 
 var (
@@ -239,130 +218,15 @@ var (
 	}
 )
 
-func genConfigFile(file string) error {
-	return ioutil.WriteFile(file, []byte(configTemplate), 0600)
-}
-
-func getAbsFile() (string, error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-
-	dir, err := filepath.Abs(filepath.Dir(exe))
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(dir, filepath.Base(os.Args[0])), nil
-}
-
-func getFilePerm(file string) (os.FileMode, error) {
-	info, err := os.Stat(file)
-	if err != nil {
-		return 0, err
-	}
-
-	return info.Mode(), nil
-}
-
-func update() {
-	usr, err := user.Current()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	absConfigFile := path.Join(usr.HomeDir, configFile)
-	if !util.FileExists(absConfigFile) {
-		if err := genConfigFile(absConfigFile); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-
-	props, err := conf.LoadProperties(absConfigFile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	u, err := url.Parse(props.GetString("url"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	u.Path = path.Join(u.Path, toolName)
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	file, err := getAbsFile()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	content, err := ioutil.ReadFile(file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	req.Header.Set("Content-Md5", hash.Md5Hex(content))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer resp.Body.Close()
-
-	mode, err := getFilePerm(file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	content, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		if err := ioutil.WriteFile(file, content, mode); err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
 func main() {
 	logx.Disable()
 
-	done := make(chan lang.PlaceholderType)
-	mr.FinishVoid(func() {
-		if os.Getenv(autoUpdate) != "off" && !stringx.Contains(os.Args, "-iu") {
-			update()
-		}
-		close(done)
-	}, func() {
-		app := cli.NewApp()
-		app.Usage = "a cli tool to generate code"
-		app.Version = BuildTime
-		app.Commands = commands
-		// cli already print error messages
-		if err := app.Run(os.Args); err != nil {
-			fmt.Println("error:", err)
-		}
-	}, func() {
-		select {
-		case <-done:
-		case <-time.After(time.Second):
-			fmt.Println(aurora.Yellow("Updating goctl, please wait..."))
-		}
-	})
+	app := cli.NewApp()
+	app.Usage = "a cli tool to generate code"
+	app.Version = BuildTime
+	app.Commands = commands
+	// cli already print error messages
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println("error:", err)
+	}
 }
