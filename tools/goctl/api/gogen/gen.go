@@ -47,7 +47,7 @@ func GoCommand(c *cli.Context) error {
 
 	lang.Must(util.MkdirIfNotExist(dir))
 	lang.Must(genEtc(dir, api))
-	lang.Must(genConfig(dir, api))
+	lang.Must(genConfig(dir))
 	lang.Must(genMain(dir, api))
 	lang.Must(genServiceContext(dir, api))
 	lang.Must(genTypes(dir, api))
