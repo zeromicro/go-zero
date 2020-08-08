@@ -150,7 +150,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    go run greet.go -f etc/greet-api.json
    ```
 
-   默认侦听在8888端口，可以通过curl请求：
+   默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
 
    ```shell
    ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin

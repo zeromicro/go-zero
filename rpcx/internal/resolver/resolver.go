@@ -12,7 +12,7 @@ import (
 const (
 	DiscovScheme = "discov"
 	EndpointSep  = ","
-	subsetSize   = 36
+	subsetSize   = 32
 )
 
 var builder discovBuilder
