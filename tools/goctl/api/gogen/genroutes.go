@@ -12,6 +12,7 @@ import (
 	"zero/tools/goctl/api/spec"
 	apiutil "zero/tools/goctl/api/util"
 	"zero/tools/goctl/util"
+	"zero/tools/goctl/vars"
 )
 
 const (
@@ -129,7 +130,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	var importSet = collection.NewSet()
-	importSet.AddStr(`"zero/rest"`)
+	importSet.AddStr(fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl))
 	importSet.AddStr(fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {

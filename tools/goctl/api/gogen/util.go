@@ -4,13 +4,14 @@ import (
 	"fmt"
 	goformat "go/format"
 	"io"
+	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"zero/core/collection"
 	"zero/tools/goctl/api/spec"
 	"zero/tools/goctl/api/util"
-	"zero/tools/goctl/vars"
 )
 
 func getParentPackage(dir string) (string, error) {
@@ -18,12 +19,13 @@ func getParentPackage(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	pos := strings.Index(absDir, vars.ProjectName)
+	gopath := os.Getenv("GOPATH")
+	parent := path.Join(gopath, "src")
+	pos := strings.Index(absDir, parent)
 	if pos < 0 {
-		return "", fmt.Errorf("%s not in project directory", dir)
+		return "", fmt.Errorf("%s not in GOPATH %s directory", absDir, gopath)
 	}
-
-	return absDir[pos:], nil
+	return absDir[len(parent)+1:], nil
 }
 
 func writeIndent(writer io.Writer, indent int) {

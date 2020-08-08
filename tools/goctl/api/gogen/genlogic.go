@@ -9,6 +9,7 @@ import (
 
 	"zero/tools/goctl/api/spec"
 	"zero/tools/goctl/api/util"
+	"zero/tools/goctl/vars"
 )
 
 const logicTemplate = `package logic
@@ -121,7 +122,7 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, `"context"`)
 	imports = append(imports, "\n")
-	imports = append(imports, `"zero/core/logx"`)
+	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
 	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
 	}

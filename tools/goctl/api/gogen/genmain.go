@@ -10,6 +10,7 @@ import (
 
 	"zero/tools/goctl/api/spec"
 	"zero/tools/goctl/api/util"
+	"zero/tools/goctl/vars"
 )
 
 const mainTemplate = `package main
@@ -74,8 +75,8 @@ func genMain(dir string, api *spec.ApiSpec) error {
 
 func genMainImports(parentPkg string) string {
 	imports := []string{
-		`"zero/core/conf"`,
-		`"zero/rest"`,
+		fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl),
+		fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl),
 	}
 	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, handlerDir)))
