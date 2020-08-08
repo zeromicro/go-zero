@@ -124,21 +124,21 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    .
    ├── greet
    │   ├── etc
-   │   │   └── greet-api.json
-   │   ├── greet.go
+   │   │   └── greet-api.json        // 配置文件
+   │   ├── greet.go                  // main文件
    │   └── internal
    │       ├── config
-   │       │   └── config.go
+   │       │   └── config.go         // 配置定义
    │       ├── handler
-   │       │   ├── greethandler.go
-   │       │   └── routes.go
+   │       │   ├── greethandler.go   // get/put/post/delete等路由定义文件
+   │       │   └── routes.go         // 路由列表
    │       ├── logic
-   │       │   └── greetlogic.go
+   │       │   └── greetlogic.go     // 请求逻辑处理文件
    │       ├── svc
-   │       │   └── servicecontext.go
+   │       │   └── servicecontext.go // 请求上下文，可以传入mysql, redis等依赖
    │       └── types
-   │           └── types.go
-   └── greet.api
+   │           └── types.go          // 请求、返回等类型定义
+   └── greet.api                     // api描述文件
    
    8 directories, 9 files
    ```
@@ -149,6 +149,16 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    cd greet
    go run greet.go -f etc/greet-api.json
    ```
+
+   默认侦听在8888端口，可以通过curl请求：
+
+   ```shell
+   ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin
+   {"code":0}
+   code: 200
+   ```
+
+   编写业务代码：
 
    * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
