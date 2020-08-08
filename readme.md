@@ -163,5 +163,10 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
 
-   可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码。
+4. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
 
+   ```shell
+   goctl api java -api greet.api -dir greet
+   goctl api dart -api greet.api -dir greet
+   ...
+   ```
