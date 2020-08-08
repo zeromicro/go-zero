@@ -18,3 +18,15 @@ func TestOnce(t *testing.T) {
 
 	assert.Equal(t, 1, v)
 }
+
+func BenchmarkOnce(b *testing.B) {
+	var v int
+	add := Once(func() {
+		v++
+	})
+	b.ResetTimer()
+	for i:=0;i<b.N;i++{
+		add()
+	}
+	assert.Equal(b, 1, v)
+}
