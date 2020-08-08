@@ -10,13 +10,13 @@
 #### goctl参数说明
 
   `goctl api [go/java/ts] [-api user/user.api] [-dir ./src]`
-  
+
   > api 后面接生成的语言，现支持go/java/typescript
-  
+
   > -api 自定义api所在路径
-  
+
   > -dir 自定义生成目录
-  
+
 #### 保持goctl总是最新版
 
   第一次运行会在~/.goctl里增加下面两行：
@@ -51,7 +51,7 @@ type teacher struct {
 
 type (
 	address struct {
-		city string `json:"city"` // 城市
+		city string `json:"city"`
 	}
 
 	innerType struct {
@@ -60,8 +60,8 @@ type (
 
 	createRequest struct {
 		innerType
-		name    string    `form:"name"`         // niha
-		age     int       `form:"age,optional"` // nihaod
+		name    string    `form:"name"`
+		age     int       `form:"age,optional"`
 		address []address `json:"address,optional"`
 	}
 
@@ -174,7 +174,7 @@ service user-api {
 
   ```
   生成的代码可以直接跑，有几个地方需要改：
-  
+
   * 在`servicecontext.go`里面增加需要传递给logic的一些资源，比如mysql, redis，rpc等
   * 在定义的get/post/put/delete等请求的handler和logic里增加处理业务逻辑的代码
 
@@ -183,9 +183,9 @@ service user-api {
 
 #### 根据定义好的api文件生成typescript代码
 	`goctl api ts -api user/user.api -dir ./src -webapi ***`
-
-	ts需要指定webapi所在目录
 	
+	ts需要指定webapi所在目录
+
 #### 根据定义好的api文件生成Dart代码
 	`goctl api dart -api user/user.api -dir ./src`
 
@@ -209,22 +209,22 @@ type User struct {
      c是改字段的注释  
      o是改字段需要生产的操作函数 可以取得get,find,set 分别表示生成返回单个对象的查询方法，返回多个对象的查询方法，设置该字段方法  
      生成的目标文件会覆盖该简单go文件  
-     
+
 ## goctl rpc生成
 
   命令 `goctl rpc proto -proto ${proto} -service ${serviceName} -project ${projectName} -dir ${directory} -shared ${shared}`  
   如： `goctl rpc proto -proto test.proto  -service test -project xjy  -dir .`  
-  
+
   参数说明：
-  
+
   - ${proto}: proto文件
   - ${serviceName}: rpc服务名称
   - ${projectName}: 所属项目，如xjy,xhb,crm,hera，具体查看help，主要为了根据不同项目服务往redis注册key，可选
   - ${directory}: 输出目录
   - ${shared}: shared文件生成目录，可选，默认为${pwd}/shared
-   
+
   生成目录结构示例：
-  
+
   ``` go
 	.
     ├── shared [示例目录，可自己指定，强制覆盖更新]

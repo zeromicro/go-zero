@@ -62,3 +62,96 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 * 自动生成API mock server，便于客户端开发
 * 自动生成服务端功能测试
+
+## 6. Installation
+
+1. 在项目目录下通过如下命令安装：
+
+   ```shell
+   go get -u github.com/tal-tech/go-zero
+   ```
+
+2. 代码里导入go-zero
+
+   ```go
+   import "github.com/tal-tech/go-zero"
+   ```
+
+## 7. Quick Start
+
+1. 编译goctl工具
+
+   ```shell
+   go build tools/goctl/goctl.go
+   ```
+
+   把goctl放到$PATH的目录下，确保goctl可执行
+
+2. 定义API文件，比如greet.api，可以在vs code里安装`goctl`插件，支持api语法
+
+   ```go
+   type Request struct {
+     Name string `path:"name"`
+   }
+   
+   type Response struct {
+     Message string `json:"message"`
+   }
+   
+   service greet-api {
+     @server(
+       handler: GreetHandler
+     )
+     get /greet/from/:name(Request) returns (Response);
+   }
+   ```
+
+   也可以通过goctl生成api模本文件，命令如下：
+
+   ```shell
+   goctl api -o greet.api
+   ```
+
+3. 生成go服务端代码
+
+   ```shell
+   goctl api go -api greet.api -dir greet
+   ```
+
+   生成的文件结构如下：
+
+   ```
+   .
+   ├── greet
+   │   ├── etc
+   │   │   └── greet-api.json
+   │   ├── greet.go
+   │   └── internal
+   │       ├── config
+   │       │   └── config.go
+   │       ├── handler
+   │       │   ├── greethandler.go
+   │       │   └── routes.go
+   │       ├── logic
+   │       │   └── greetlogic.go
+   │       ├── svc
+   │       │   └── servicecontext.go
+   │       └── types
+   │           └── types.go
+   └── greet.api
+   
+   8 directories, 9 files
+   ```
+
+   生成的代码可以直接运行：
+
+   ```shell
+   cd greet
+   go run greet.go -f etc/greet-api.json
+   ```
+
+   * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+   * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+
+   可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码。
+
