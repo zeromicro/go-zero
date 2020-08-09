@@ -1,5 +1,7 @@
 # go-zero项目介绍
 
+![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)
+
 ## 1. go-zero框架背景
 
 18年初，晓黑板后端在经过频繁的宕机后，决定从`Java+MongoDB`的单体架构迁移到微服务架构，经过仔细思考和对比，我们决定：
