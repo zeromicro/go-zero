@@ -15,7 +15,7 @@ func TestCustomCompareVersions(t *testing.T) {
 	}{
 		{"1", "1.0.1", ">", false},
 		{"1", "0.9.9", ">", true},
-		{"1", "1-0.1", "<", true},
+		{"1", "1.0-1", "<", true},
 		{"1.0.1", "1-0.1", "<", false},
 		{"1.0.1", "1.0.1", "==", true},
 		{"1.0.1", "1.0.2", "==", false},
@@ -30,7 +30,7 @@ func TestCustomCompareVersions(t *testing.T) {
 
 	for _, each := range cases {
 		t.Run(each.ver1, func(t *testing.T) {
-			actual := CompareVersions(each.ver1, each.ver2, each.operator)
+			actual := CompareVersions(each.ver1, each.operator, each.ver2)
 			assert.Equal(t, each.out, actual)
 		})
 	}
