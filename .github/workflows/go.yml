@@ -31,4 +31,4 @@ jobs:
         fi
 
     - name: Test
-      run: go test -v -race .
+      run: go test -v -race ./...
