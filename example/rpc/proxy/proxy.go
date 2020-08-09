@@ -8,7 +8,6 @@ import (
 	"github.com/tal-tech/go-zero/core/service"
 	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
 	"github.com/tal-tech/go-zero/rpcx"
-
 	"google.golang.org/grpc"
 )
 

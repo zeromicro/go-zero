@@ -15,7 +15,6 @@ import (
 	"github.com/tal-tech/go-zero/core/filex"
 	"github.com/tal-tech/go-zero/core/fx"
 	"github.com/tal-tech/go-zero/core/logx"
-
 	"gopkg.in/cheggaaa/pb.v1"
 )
 

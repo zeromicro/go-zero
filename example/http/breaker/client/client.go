@@ -10,7 +10,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/threading"
-
 	"gopkg.in/cheggaaa/pb.v1"
 )
 

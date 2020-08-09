@@ -10,7 +10,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/breaker"
 	"github.com/tal-tech/go-zero/core/lang"
-
 	"gopkg.in/cheggaaa/pb.v1"
 )
 

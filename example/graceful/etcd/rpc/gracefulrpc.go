@@ -10,7 +10,6 @@ import (
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/graceful/etcd/rpc/graceful"
 	"github.com/tal-tech/go-zero/rpcx"
-
 	"google.golang.org/grpc"
 )
 

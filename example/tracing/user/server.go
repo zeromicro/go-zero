@@ -11,7 +11,6 @@ import (
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/tracing/remote/user"
 	"github.com/tal-tech/go-zero/rpcx"
-
 	"google.golang.org/grpc"
 )
 

@@ -14,9 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/mr"
-
 	"github.com/google/gops/agent"
+	"github.com/tal-tech/go-zero/core/mr"
 )
 
 var (
