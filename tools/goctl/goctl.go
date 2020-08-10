@@ -16,7 +16,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
-	"github.com/tal-tech/go-zero/tools/goctl/model/mongomodel"
 	"github.com/urfave/cli"
 )
 
@@ -179,23 +178,6 @@ var (
 				cli.StringFlag{
 					Name:  "dir, d",
 					Usage: "the target dir",
-				},
-			},
-			Subcommands: []cli.Command{
-				{
-					Name:  "mongo",
-					Usage: "generate mongoModel files for provided somemongo.go in go file",
-					Flags: []cli.Flag{
-						cli.StringFlag{
-							Name:  "src, s",
-							Usage: "the src file",
-						},
-						cli.StringFlag{
-							Name:  "cache",
-							Usage: "need cache code([yes/no] default value is no)",
-						},
-					},
-					Action: mongomodel.ModelCommond,
 				},
 			},
 		},
