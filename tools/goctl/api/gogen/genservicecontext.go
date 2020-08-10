@@ -3,11 +3,11 @@ package gogen
 import (
 	"bytes"
 	"fmt"
-	"path"
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const (
@@ -47,7 +47,7 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
-	var configImport = "\"" + path.Join(parentPkg, configDir) + "\""
+	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
 	t := template.Must(template.New("contextTemplate").Parse(contextTemplate))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{

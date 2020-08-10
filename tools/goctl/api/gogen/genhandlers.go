@@ -163,11 +163,12 @@ func genHandlers(dir string, api *spec.ApiSpec) error {
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceUrl))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	if len(route.RequestType.Name) > 0 || len(route.ResponseType.Name) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
+		imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, getLogicFolderPath(group, route))))
+	imports = append(imports, fmt.Sprintf("\"%s\"",
+		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
 	sort.Strings(imports)
 
 	return strings.Join(imports, "\n\t")

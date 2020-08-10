@@ -3,13 +3,13 @@ package gogen
 import (
 	"bytes"
 	"fmt"
-	"path"
 	"sort"
 	"strings"
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -77,9 +77,9 @@ func genMainImports(parentPkg string) string {
 		fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl),
 		fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl),
 	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, configDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, handlerDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, configDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, handlerDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
 	sort.Strings(imports)
 	return strings.Join(imports, "\n\t")
 }
