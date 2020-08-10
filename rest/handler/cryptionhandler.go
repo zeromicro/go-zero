@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +13,8 @@ import (
 )
 
 const maxBytes = 1 << 20 // 1 MiB
+
+var errContentLengthExceeded = errors.New("content length exceeded")
 
 func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -35,16 +38,14 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 }
 
 func decryptBody(key []byte, r *http.Request) error {
-	var content []byte
-	var err error
-	cLen := r.ContentLength
-
-	if cLen > maxBytes {
-		return errors.New("request ContentLength too long")
+	if r.ContentLength > maxBytes {
+		return errContentLengthExceeded
 	}
-	
-	if cLen > 0 {
-		content = make([]byte, cLen, cLen)
+
+	var content []byte
+	var err error	
+	if r.ContentLength > 0 {
+		content = make([]byte, r.ContentLength, r.ContentLength)
 		_, err = io.ReadFull(r.Body, content)
 	} else {
 		content, err = ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))

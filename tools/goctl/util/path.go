@@ -10,6 +10,12 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
+const pkgSep = "/"
+
+func JoinPackages(pkgs ...string) string {
+	return strings.Join(pkgs, pkgSep)
+}
+
 func MkdirIfNotExist(dir string) error {
 	if len(dir) == 0 {
 		return nil
