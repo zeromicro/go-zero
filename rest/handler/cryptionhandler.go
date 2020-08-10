@@ -38,6 +38,11 @@ func decryptBody(key []byte, r *http.Request) error {
 	var content []byte
 	var err error
 	cLen := r.ContentLength
+
+	if cLen > maxBytes {
+		return errors.New("request ContentLength too long")
+	}
+	
 	if cLen > 0 {
 		content = make([]byte, cLen, cLen)
 		_, err = io.ReadFull(r.Body, content)
