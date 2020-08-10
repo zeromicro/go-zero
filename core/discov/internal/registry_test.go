@@ -8,12 +8,17 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/contextx"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stringx"
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 )
 
 var mockLock sync.Mutex
+
+func init() {
+	logx.Disable()
+}
 
 func setMockClient(cli EtcdClient) func() {
 	mockLock.Lock()
@@ -228,17 +233,4 @@ func TestValueOnlyContext(t *testing.T) {
 	ctx := contextx.ValueOnlyFrom(context.Background())
 	ctx.Done()
 	assert.Nil(t, ctx.Err())
-}
-
-type mockedSharedCalls struct {
-	fn func() (interface{}, error)
-}
-
-func (c mockedSharedCalls) Do(_ string, fn func() (interface{}, error)) (interface{}, error) {
-	return c.fn()
-}
-
-func (c mockedSharedCalls) DoEx(_ string, fn func() (interface{}, error)) (interface{}, bool, error) {
-	val, err := c.fn()
-	return val, true, err
 }
