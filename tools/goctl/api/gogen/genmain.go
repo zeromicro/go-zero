@@ -30,12 +30,11 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
 
-	engine := rest.MustNewServer(c.RestConf)
-	defer engine.Stop()
-
-	handler.RegisterHandlers(engine, ctx)
-	engine.Start()
+	handler.RegisterHandlers(server, ctx)
+	server.Start()
 }
 `
 
