@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCustomCompareVersions(t *testing.T) {
+func TestCompareVersions(t *testing.T) {
 	cases := []struct {
 		ver1     string
 		ver2     string
