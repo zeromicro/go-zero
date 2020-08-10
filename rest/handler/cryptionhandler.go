@@ -35,7 +35,15 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 }
 
 func decryptBody(key []byte, r *http.Request) error {
-	content, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
+	var content []byte
+	var err error
+	cLen := r.ContentLength
+	if cLen > 0 {
+		content = make([]byte, cLen, cLen)
+		_, err = io.ReadFull(r.Body, content)
+	} else {
+		content, err = ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
+	}
 	if err != nil {
 		return err
 	}
