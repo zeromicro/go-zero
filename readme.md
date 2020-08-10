@@ -176,8 +176,3 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 ### 微信交流群
 
 添加我的微信：kevwan，请注明go-zero，我拉进go-zero社区群🤝
-
-### Star趋势图
-
-[![Star趋势图](https://starchart.cc/tal-tech/go-zero.svg)](https://starchart.cc/tal-tech/go-zero)
-
