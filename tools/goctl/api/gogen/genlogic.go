@@ -9,6 +9,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -34,7 +35,6 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 	{{.returnString}}
 }
-
 `
 
 func genLogic(dir string, api *spec.ApiSpec) error {
@@ -124,8 +124,8 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	imports = append(imports, "\n")
 	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
 	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
+		imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
 	return strings.Join(imports, "\n\t")
 }

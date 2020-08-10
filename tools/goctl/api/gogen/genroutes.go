@@ -131,7 +131,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	var importSet = collection.NewSet()
 	importSet.AddStr(fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl))
-	importSet.AddStr(fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
 			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", folderProperty)
@@ -141,7 +141,8 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", folder, path.Join(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", folder,
+				util.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
