@@ -42,7 +42,14 @@ func decryptBody(key []byte, r *http.Request) error {
 		return errContentLengthExceeded
 	}
 
-	content, err := ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
+	var content []byte
+	var err error
+	if r.ContentLength > 0 {
+		content = make([]byte, r.ContentLength, r.ContentLength)
+		_, err = io.ReadFull(r.Body, content)
+	} else {
+		content, err = ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
+	}
 	if err != nil {
 		return err
 	}
