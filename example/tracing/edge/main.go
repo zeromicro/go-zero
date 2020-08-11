@@ -15,7 +15,7 @@ import (
 
 var (
 	configFile = flag.String("f", "config.json", "the config file")
-	client     *rpcx.RpcClient
+	client     rpcx.Client
 )
 
 func handle(w http.ResponseWriter, r *http.Request) {

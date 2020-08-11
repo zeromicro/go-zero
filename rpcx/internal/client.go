@@ -18,10 +18,6 @@ type (
 	}
 
 	ClientOption func(options *ClientOptions)
-
-	Client interface {
-		Conn() *grpc.ClientConn
-	}
 )
 
 func WithDialOption(opt grpc.DialOption) ClientOption {

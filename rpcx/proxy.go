@@ -12,7 +12,7 @@ import (
 
 type RpcProxy struct {
 	backend     string
-	clients     map[string]*RpcClient
+	clients     map[string]Client
 	options     []internal.ClientOption
 	sharedCalls syncx.SharedCalls
 	lock        sync.Mutex
@@ -21,7 +21,7 @@ type RpcProxy struct {
 func NewRpcProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
-		clients:     make(map[string]*RpcClient),
+		clients:     make(map[string]Client),
 		options:     opts,
 		sharedCalls: syncx.NewSharedCalls(),
 	}
