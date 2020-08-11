@@ -37,7 +37,7 @@ func (mw *mockWriter) Reset() {
 }
 
 func (mw *mockWriter) Contains(text string) bool {
-	return strings.Index(mw.builder.String(), text) > -1
+	return strings.Contains(mw.builder.String(), text)
 }
 
 func TestFileLineFileMode(t *testing.T) {

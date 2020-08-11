@@ -39,7 +39,7 @@ func Parse(r *http.Request, v interface{}) error {
 
 // Parses the form request.
 func ParseForm(r *http.Request, v interface{}) error {
-	if strings.Index(r.Header.Get(ContentType), multipartFormData) != -1 {
+	if strings.Contains(r.Header.Get(ContentType), multipartFormData) {
 		if err := r.ParseMultipartForm(maxMemory); err != nil {
 			return err
 		}
@@ -107,5 +107,5 @@ func ParsePath(r *http.Request, v interface{}) error {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Index(r.Header.Get(ContentType), ApplicationJson) != -1
+	return r.ContentLength > 0 && strings.Contains(r.Header.Get(ContentType), ApplicationJson)
 }
