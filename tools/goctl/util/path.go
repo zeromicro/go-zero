@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
@@ -43,17 +42,4 @@ func PathFromGoSrc() (string, error) {
 
 	// skip slash
 	return dir[len(parent)+1:], nil
-}
-
-func GetParentPackage(dir string) (string, error) {
-	absDir, err := filepath.Abs(dir)
-	if err != nil {
-		return "", err
-	}
-	pos := strings.Index(absDir, vars.ProjectName)
-	if pos < 0 {
-		return "", fmt.Errorf("error dir:[%s],please make sure that your project is in the %s directory", vars.ProjectName, dir)
-	}
-
-	return absDir[pos:], nil
 }

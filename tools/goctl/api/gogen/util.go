@@ -22,8 +22,8 @@ func getParentPackage(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	absDir = strings.ReplaceAll(absDir, `\`, `/`)
 
+	absDir = strings.ReplaceAll(absDir, `\`, `/`)
 	var rootPath string
 	var tempPath = absDir
 	var hasGoMod = false
