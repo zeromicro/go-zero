@@ -156,7 +156,7 @@ func paramsForRoute(route spec.Route, prefixForType func(string) string) string 
 	hasBody := hasRequestBody(route)
 	rt, err := goTypeToTs(route.RequestType.Name, prefixForType)
 	if err != nil {
-		println(err.Error())
+		fmt.Println(err.Error())
 		return ""
 	}
 	if hasParams && hasBody {

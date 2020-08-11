@@ -44,8 +44,7 @@ func getParentPackage(dir string) (string, error) {
 		parent := path.Join(gopath, "src")
 		pos := strings.Index(absDir, parent)
 		if pos < 0 {
-			message := fmt.Sprintf("%s not in gomod project path, or not in GOPATH of %s directory", absDir, gopath)
-			println(message)
+			fmt.Printf("%s not in gomod project path, or not in GOPATH of %s directory\n", absDir, gopath)
 			tempPath = filepath.Dir(absDir)
 			rootPath = absDir[len(tempPath)+1:]
 		} else {
