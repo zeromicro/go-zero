@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/executors"
@@ -8,7 +9,7 @@ import (
 
 func main() {
 	exeutor := executors.NewBulkExecutor(func(items []interface{}) {
-		println(len(items))
+		fmt.Println(len(items))
 	}, executors.WithBulkTasks(10))
 	for {
 		exeutor.Add(1)
