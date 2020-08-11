@@ -20,11 +20,11 @@ type (
 	}
 
 	PortalServer struct {
-		userRpc *rpcx.RpcClient
+		userRpc rpcx.Client
 	}
 )
 
-func NewPortalServer(client *rpcx.RpcClient) *PortalServer {
+func NewPortalServer(client rpcx.Client) *PortalServer {
 	return &PortalServer{
 		userRpc: client,
 	}
