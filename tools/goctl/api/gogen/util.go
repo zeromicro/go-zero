@@ -28,6 +28,9 @@ func getParentPackage(dir string) (string, error) {
 	var tempPath = absDir
 	var hasGoMod = false
 	for {
+		if tempPath == filepath.Dir(tempPath) {
+			break
+		}
 		tempPath = filepath.Dir(tempPath)
 		if goctlutil.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
 			tempPath = filepath.Dir(tempPath)
