@@ -21,13 +21,18 @@ func genFields(fields []parser.Field) (string, error) {
 }
 
 func genField(field parser.Field) (string, error) {
+	tag, err := genTag(field.Name.Source())
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("types").
 		Parse(template.Field).
-		Execute(map[string]string{
-			"name":    field.Name.Snake2Camel(),
-			"type":    field.DataType,
-			"tag":     field.Name.Source(),
-			"comment": field.Comment,
+		Execute(map[string]interface{}{
+			"name":       field.Name.Snake2Camel(),
+			"type":       field.DataType,
+			"tag":        tag,
+			"hasComment": field.Comment != "",
+			"comment":    field.Comment,
 		})
 	if err != nil {
 		return "", err

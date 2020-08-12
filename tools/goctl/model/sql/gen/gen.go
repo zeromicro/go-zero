@@ -104,7 +104,10 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	if err != nil {
 		return "", err
 	}
-	importsCode := genImports()
+	importsCode, err := genImports(withCache)
+	if err != nil {
+		return "", err
+	}
 	var table Table
 	table.Table = in
 	table.CacheKey = m

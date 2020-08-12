@@ -14,7 +14,7 @@ func genFineOneByField(table Table, withCache bool) (string, error) {
 	var list []string
 	camelTableName := table.Name.Snake2Camel()
 	for _, field := range table.Fields {
-		if field.IsPrimaryKey {
+		if field.IsPrimaryKey || !field.IsKey {
 			continue
 		}
 		camelFieldName := field.Name.Snake2Camel()
@@ -25,7 +25,7 @@ func genFineOneByField(table Table, withCache bool) (string, error) {
 			"withCache":                 withCache,
 			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
 			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
-			"primaryKeyLeft":            table.CacheKey[table.Name.Source()].Left,
+			"primaryKeyLeft":            table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject":     stringx.From(camelTableName).LowerStart(),
 			"lowerStartCamelField":      stringx.From(camelFieldName).LowerStart(),
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.Snake2Camel(),

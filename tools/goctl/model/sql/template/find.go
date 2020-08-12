@@ -55,5 +55,15 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 	default:
 		return nil, err
 	}
-}
+}{{else}}var resp {{.upperStartCamelObject}}
+	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.originalField}} limit 1` + "`" + `
+	err := m.QueryRowNoCache(&resp, query, {{.lowerStartCamelField}})
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}{{end}}
 `

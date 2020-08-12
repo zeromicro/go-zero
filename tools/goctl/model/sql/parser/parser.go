@@ -8,6 +8,14 @@ import (
 	"github.com/xwb1989/sqlparser"
 )
 
+const (
+	none = iota
+	primary
+	unique
+	normal
+	spatial
+)
+
 type (
 	Table struct {
 		Name       stringx.String
@@ -26,6 +34,7 @@ type (
 		IsPrimaryKey bool
 		Comment      string
 	}
+	KeyType int
 )
 
 func Parse(ddl string) (*Table, error) {
@@ -50,6 +59,7 @@ func Parse(ddl string) (*Table, error) {
 	columns := tableSpec.Columns
 	indexes := tableSpec.Indexes
 
+	keyMap := make(map[string]KeyType)
 	for _, index := range indexes {
 		info := index.Info
 		if info == nil {
@@ -59,13 +69,33 @@ func Parse(ddl string) (*Table, error) {
 			if len(index.Columns) > 1 {
 				return nil, errPrimaryKey
 			}
-			break
+			keyMap[index.Columns[0].Column.String()] = primary
+			continue
+		}
+		// can optimize
+		if len(index.Columns) > 1 {
+			continue
+		}
+		column := index.Columns[0]
+		columnName := column.Column.String()
+		camelColumnName := stringx.From(columnName).Snake2Camel()
+		// by default, createTime|updateTime findOne is not used.
+		if camelColumnName == "CreateTime" || camelColumnName == "UpdateTime" {
+			continue
+		}
+		if info.Unique {
+			keyMap[columnName] = unique
+		} else if info.Spatial {
+			keyMap[columnName] = spatial
+		} else {
+			keyMap[columnName] = normal
 		}
 	}
 	var (
 		fields     []Field
 		primaryKey Primary
 	)
+
 	for _, column := range columns {
 		if column == nil {
 			continue
@@ -83,17 +113,18 @@ func Parse(ddl string) (*Table, error) {
 		field.DataBaseType = column.Type.Type
 		field.DataType = dataType
 		field.Comment = comment
-		// see line 1194 https://github.com/xwb1989/sqlparser/blob/master/ast.go
-		field.IsKey = column.Type.KeyOpt != 0
-		field.IsPrimaryKey = column.Type.KeyOpt == 1
-		fields = append(fields, field)
-		// see line 1195 https://github.com/xwb1989/sqlparser/blob/master/ast.go
-		if column.Type.KeyOpt == 1 {
-			primaryKey.Field = field
-			if column.Type.Autoincrement {
-				primaryKey.AutoIncrement = true
+		key, ok := keyMap[column.Name.String()]
+		if ok {
+			field.IsKey = true
+			field.IsPrimaryKey = key == primary
+			if field.IsPrimaryKey {
+				primaryKey.Field = field
+				if column.Type.Autoincrement {
+					primaryKey.AutoIncrement = true
+				}
 			}
 		}
+		fields = append(fields, field)
 	}
 	return &Table{
 		Name:       stringx.From(tableName),

@@ -87,7 +87,7 @@ func (s String) LowerStart() string {
 	if !unicode.IsUpper(r) && !unicode.IsLower(r) {
 		return s.source
 	}
-	return string(r) + s.source[1:]
+	return string(unicode.ToLower(r)) + s.source[1:]
 }
 
 // it will not ignore spaces
