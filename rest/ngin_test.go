@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/router"
+	"github.com/tal-tech/go-zero/rest/router"
 )
 
 func TestWithMiddleware(t *testing.T) {

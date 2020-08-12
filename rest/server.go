@@ -13,7 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/rest/handler"
 	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
-	"github.com/tal-tech/go-zero/rest/internal/router"
+	"github.com/tal-tech/go-zero/rest/router"
 )
 
 // use 1000m to represent 100%
