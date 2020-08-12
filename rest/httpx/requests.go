@@ -34,11 +34,7 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	if r.ContentLength > 0 {
-		return ParseJsonBody(r, v)
-	}
-
-	return nil
+	return ParseJsonBody(r, v)
 }
 
 // Parses the form request.
@@ -87,12 +83,6 @@ func ParseHeader(headerValue string) map[string]string {
 
 // Parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
-	switch r.Method {
-	case http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut:
-	default:
-		return ErrBodylessRequest
-	}
-
 	var reader io.Reader
 	if withJsonBody(r) {
 		reader = io.LimitReader(r.Body, maxBodyLen)
