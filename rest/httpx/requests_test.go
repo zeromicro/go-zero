@@ -134,26 +134,6 @@ func BenchmarkParseRaw(b *testing.B) {
 	}
 }
 
-func TestParseJsonBodyless(t *testing.T) {
-	methods := []string{
-		http.MethodConnect,
-		http.MethodGet,
-		http.MethodHead,
-		http.MethodOptions,
-		http.MethodTrace,
-	}
-
-	for _, method := range methods {
-		t.Run(method, func(t *testing.T) {
-			r, err := http.NewRequest(http.MethodGet, "http://hello.com", nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-			assert.Equal(t, ErrBodylessRequest, ParseJsonBody(r, nil))
-		})
-	}
-}
-
 func BenchmarkParseAuto(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
 	if err != nil {
