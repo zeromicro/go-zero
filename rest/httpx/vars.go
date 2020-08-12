@@ -1,5 +1,7 @@
 package httpx
 
+import "errors"
+
 const (
 	ApplicationJson = "application/json"
 	ContentEncoding = "Content-Encoding"
@@ -17,3 +19,5 @@ const (
 	CodeSignatureWrongTime
 	CodeSignatureInvalidToken
 )
+
+var ErrBodylessRequest = errors.New("not a POST|PUT|PATCH request")
