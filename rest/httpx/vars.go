@@ -20,4 +20,4 @@ const (
 	CodeSignatureInvalidToken
 )
 
-var ErrBodylessRequest = errors.New("not a POST|PUT|PATCH request")
+var ErrBodylessRequest = errors.New("not a POST|PUT|PATCH|DELETE request")

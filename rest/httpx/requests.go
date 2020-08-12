@@ -34,7 +34,11 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	return ParseJsonBody(r, v)
+	if r.ContentLength > 0 {
+		return ParseJsonBody(r, v)
+	}
+
+	return nil
 }
 
 // Parses the form request.
