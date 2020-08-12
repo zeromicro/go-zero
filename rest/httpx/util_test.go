@@ -1,4 +1,4 @@
-package internal
+package httpx
 
 import (
 	"net/http"
@@ -16,4 +16,3 @@ func TestGetRemoteAddr(t *testing.T) {
 	r.Header.Set(xForwardFor, host)
 	assert.Equal(t, host, GetRemoteAddr(r))
 }
-
