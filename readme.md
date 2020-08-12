@@ -144,27 +144,26 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    
    8 directories, 9 files
    ```
-   如果使用的是gomod依赖管理，需要在greet项目目录下面执行 `go mod init greet` 初始化gomod。   
    生成的代码可以直接运行：
-
-   ```shell
+   
+```shell
    cd greet
    go run greet.go -f etc/greet-api.json
    ```
-
-   默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
-
-   ```shell
+   
+默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
+   
+```shell
    ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin
    {"code":0}
    code: 200
    ```
-
-   编写业务代码：
-
-   * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+   
+编写业务代码：
+   
+* 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
-
+   
 4. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
 
    ```shell
