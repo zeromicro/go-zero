@@ -1,4 +1,4 @@
-package sqltemplate
+package template
 
 var Error = `package model
 

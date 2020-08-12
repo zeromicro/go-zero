@@ -1,13 +1,13 @@
-package sqltemplate
+package template
 
 var Types = `
 type (
-	{{.upperObject}}Model struct {
+	{{.upperStartCamelObject}}Model struct {
 		sqlc.CachedConn
 		table string
 	}
 
-	{{.upperObject}} struct {
+	{{.upperStartCamelObject}} struct {
 		{{.fields}}
 	}
 )

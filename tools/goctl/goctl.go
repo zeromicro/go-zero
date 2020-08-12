@@ -16,6 +16,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	"github.com/urfave/cli"
 )
 
@@ -172,14 +173,19 @@ var (
 			Usage: "generate sql model",
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "config, c",
-					Usage: "the file that contains main function",
+					Name:  "src, s",
+					Usage: "the file path of sql",
 				},
 				cli.StringFlag{
 					Name:  "dir, d",
 					Usage: "the target dir",
 				},
+				cli.BoolFlag{
+					Name:  "cache, c",
+					Usage: "generate code with cache",
+				},
 			},
+			Action: command.Mysql,
 		},
 		{
 			Name:  "config",

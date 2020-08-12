@@ -41,6 +41,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 // indirect
 	github.com/urfave/cli v1.22.4
+	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 	github.com/yuin/gopher-lua v0.0.0-20191220021717-ab39c6098bdb // indirect
 	go.etcd.io/etcd v0.0.0-20200402134248-51bdeb39e698
 	go.uber.org/automaxprocs v1.3.0

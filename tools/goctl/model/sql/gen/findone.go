@@ -1,30 +1,27 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
-	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genFindOne(table *InnerTable) (string, error) {
-	t, err := template.New("findOne").Parse(sqltemplate.FindOne)
+func genFindOne(table Table, withCache bool) (string, error) {
+	camel := table.Name.Snake2Camel()
+	output, err := templatex.With("findOne").
+		Parse(template.FindOne).
+		Execute(map[string]interface{}{
+			"withCache":                 withCache,
+			"upperStartCamelObject":     camel,
+			"lowerStartCamelObject":     stringx.From(camel).LowerStart(),
+			"originalPrimaryKey":        table.PrimaryKey.Name.Source(),
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.Snake2Camel()).LowerStart(),
+			"dataType":                  table.PrimaryKey.DataType,
+			"cacheKey":                  table.CacheKey[table.PrimaryKey.Name.Source()].KeyExpression,
+			"cacheKeyVariable":          table.CacheKey[table.PrimaryKey.Name.Source()].Variable,
+		})
 	if err != nil {
 		return "", err
 	}
-	fineOneBuffer := new(bytes.Buffer)
-	err = t.Execute(fineOneBuffer, map[string]interface{}{
-		"withCache":        table.PrimaryField.Cache,
-		"upperObject":      table.UpperCamelCase,
-		"lowerObject":      table.LowerCamelCase,
-		"snakePrimaryKey":  table.PrimaryField.SnakeCase,
-		"lowerPrimaryKey":  table.PrimaryField.LowerCamelCase,
-		"dataType":         table.PrimaryField.DataType,
-		"cacheKey":         table.CacheKey[table.PrimaryField.SnakeCase].Key,
-		"cacheKeyVariable": table.CacheKey[table.PrimaryField.SnakeCase].KeyVariable,
-	})
-	if err != nil {
-		return "", err
-	}
-	return fineOneBuffer.String(), nil
+	return output.String(), nil
 }
