@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -55,6 +56,7 @@ func GoCommand(c *cli.Context) error {
 	lang.Must(genLogic(dir, api))
 	// it does not work
 	format(dir)
+	createGoModFileIfNeed(dir)
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
@@ -98,7 +100,7 @@ func format(dir string) {
 	cmd := exec.Command("go", "fmt", "./"+dir+"...")
 	_, err := cmd.CombinedOutput()
 	if err != nil {
-		print(err.Error())
+		fmt.Println(err.Error())
 	}
 }
 
@@ -130,4 +132,44 @@ func sweep() error {
 
 		return nil
 	})
+}
+
+func createGoModFileIfNeed(dir string) {
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	var tempPath = absDir
+	var hasGoMod = false
+	for {
+		if tempPath == filepath.Dir(tempPath) {
+			break
+		}
+		tempPath = filepath.Dir(tempPath)
+		if util.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
+			tempPath = filepath.Dir(tempPath)
+			hasGoMod = true
+			break
+		}
+	}
+	if !hasGoMod {
+		gopath := os.Getenv("GOPATH")
+		parent := path.Join(gopath, "src")
+		pos := strings.Index(absDir, parent)
+		if pos < 0 {
+			moduleName := absDir[len(filepath.Dir(absDir))+1:]
+			cmd := exec.Command("go", "mod", "init", moduleName)
+			cmd.Dir = dir
+			var stdout, stderr bytes.Buffer
+			cmd.Stdout = &stdout
+			cmd.Stderr = &stderr
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+			fmt.Printf(outStr + "\n" + errStr)
+		}
+	}
 }
