@@ -144,7 +144,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    
    8 directories, 9 files
    ```
-
+   如果使用的是gomod依赖管理，需要在greet项目目录下面执行 `go mod init greet` 初始化gomod。   
    生成的代码可以直接运行：
 
    ```shell
