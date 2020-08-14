@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
@@ -32,19 +33,21 @@ type (
 		container TaskContainer
 		waitGroup sync.WaitGroup
 		// avoid race condition on waitGroup when calling wg.Add/Done/Wait(...)
-		wgBarrier syncx.Barrier
-		guarded   bool
-		newTicker func(duration time.Duration) timex.Ticker
-		lock      sync.Mutex
+		wgBarrier   syncx.Barrier
+		confirmChan chan lang.PlaceholderType
+		guarded     bool
+		newTicker   func(duration time.Duration) timex.Ticker
+		lock        sync.Mutex
 	}
 )
 
 func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *PeriodicalExecutor {
 	executor := &PeriodicalExecutor{
 		// buffer 1 to let the caller go quickly
-		commander: make(chan interface{}, 1),
-		interval:  interval,
-		container: container,
+		commander:   make(chan interface{}, 1),
+		interval:    interval,
+		container:   container,
+		confirmChan: make(chan lang.PlaceholderType),
 		newTicker: func(d time.Duration) timex.Ticker {
 			return timex.NewTicker(interval)
 		},
@@ -59,10 +62,12 @@ func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *Per
 func (pe *PeriodicalExecutor) Add(task interface{}) {
 	if vals, ok := pe.addAndCheck(task); ok {
 		pe.commander <- vals
+		<-pe.confirmChan
 	}
 }
 
 func (pe *PeriodicalExecutor) Flush() bool {
+	pe.enterExecution()
 	return pe.executeTasks(func() interface{} {
 		pe.lock.Lock()
 		defer pe.lock.Unlock()
@@ -114,6 +119,8 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 			select {
 			case vals := <-pe.commander:
 				commanded = true
+				pe.enterExecution()
+				pe.confirmChan <- lang.Placeholder
 				pe.executeTasks(vals)
 				last = timex.Now()
 			case <-ticker.Chan():
@@ -135,11 +142,18 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 	})
 }
 
-func (pe *PeriodicalExecutor) executeTasks(tasks interface{}) bool {
+func (pe *PeriodicalExecutor) doneExecution() {
+	pe.waitGroup.Done()
+}
+
+func (pe *PeriodicalExecutor) enterExecution() {
 	pe.wgBarrier.Guard(func() {
 		pe.waitGroup.Add(1)
 	})
-	defer pe.waitGroup.Done()
+}
+
+func (pe *PeriodicalExecutor) executeTasks(tasks interface{}) bool {
+	defer pe.doneExecution()
 
 	ok := pe.hasTasks(tasks)
 	if ok {
