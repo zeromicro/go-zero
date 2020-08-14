@@ -106,6 +106,20 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	lock.Unlock()
 }
 
+func TestPeriodicalExecutor_Wait(t *testing.T) {
+	var lock sync.Mutex
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+		lock.Lock()
+		defer lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+	}, WithBulkTasks(1), WithBulkInterval(time.Second))
+	for i := 0; i < 10; i++ {
+		executer.Add(1)
+	}
+	executer.Flush()
+	executer.Wait()
+}
+
 // go test -benchtime 10s -bench .
 func BenchmarkExecutor(b *testing.B) {
 	b.ReportAllocs()
