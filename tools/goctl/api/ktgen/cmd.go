@@ -2,6 +2,7 @@ package ktgen
 
 import (
 	"errors"
+
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/urfave/cli"
@@ -25,12 +26,12 @@ func KtCommand(c *cli.Context) error {
 	if e != nil {
 		return e
 	}
-	api,e:=p.Parse()
-	if e!=nil {
-	    return e
+	api, e := p.Parse()
+	if e != nil {
+		return e
 	}
 
-	lang.Must(genBase(dir,pkg,api))
-	lang.Must(genApi(dir,pkg, api))
+	lang.Must(genBase(dir, pkg, api))
+	lang.Must(genApi(dir, pkg, api))
 	return nil
 }

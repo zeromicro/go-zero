@@ -1,17 +1,20 @@
 package ktgen
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"log"
 	"strings"
 	"text/template"
+
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
-var funcsMap=template.FuncMap{
-	"lowCamelCase":lowCamelCase,
-	"pathToFuncName":pathToFuncName,
-	"parseType":parseType,
-	"add":add,
+
+var funcsMap = template.FuncMap{
+	"lowCamelCase":   lowCamelCase,
+	"pathToFuncName": pathToFuncName,
+	"parseType":      parseType,
+	"add":            add,
 }
+
 func lowCamelCase(s string) string {
 	if len(s) < 1 {
 		return ""
@@ -25,27 +28,28 @@ func pathToFuncName(path string) string {
 		path = "/" + path
 	}
 
-	path = strings.Replace(path, "/", "_", -1)
-	path = strings.Replace(path, "-", "_", -1)
+	path = strings.ReplaceAll(path, "/", "_")
+	path = strings.ReplaceAll(path, "-", "_")
 
 	camel := util.ToCamelCase(path)
 	return util.ToLower(camel[:1]) + camel[1:]
 }
+
 func parseType(t string) string {
-	t=strings.Replace(t,"*","",-1)
-	if strings.HasPrefix(t,"[]"){
-		return "List<"+parseType(t[2:])+ ">"
+	t = strings.Replace(t, "*", "", -1)
+	if strings.HasPrefix(t, "[]") {
+		return "List<" + parseType(t[2:]) + ">"
 	}
 
-	if strings.HasPrefix(t,"map"){
-		tys,e:=util.DecomposeType(t)
-		if e!=nil{
-		    log.Fatal(e)
+	if strings.HasPrefix(t, "map") {
+		tys, e := util.DecomposeType(t)
+		if e != nil {
+			log.Fatal(e)
 		}
-		if len(tys)!=2{
+		if len(tys) != 2 {
 			log.Fatal("Map type number !=2")
 		}
-		return "Map<String,"+parseType(tys[1])+">"
+		return "Map<String," + parseType(tys[1]) + ">"
 	}
 
 	switch t {
@@ -62,6 +66,6 @@ func parseType(t string) string {
 	}
 }
 
-func add(a,i int)int{
-	return a+i
+func add(a, i int) int {
+	return a + i
 }
