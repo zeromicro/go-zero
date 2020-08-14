@@ -149,18 +149,18 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 ```shell
    cd greet
    go run greet.go -f etc/greet-api.json
-   ```
-   
+```
+
 默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
-   
+
 ```shell
    ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin
    {"code":0}
    code: 200
-   ```
-   
+```
+
 编写业务代码：
-   
+
 * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
    
@@ -171,6 +171,10 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
    goctl api dart -api greet.api -dir greet
    ...
    ```
+
+## 8. 文档
+
+​	* [goctl使用帮助](doc/goctl.md)
 
 ### 微信交流群
 
