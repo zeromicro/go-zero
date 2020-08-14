@@ -174,7 +174,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 ## 8. 文档
 
-​	* [goctl使用帮助](doc/goctl.md)
+* [goctl使用帮助](doc/goctl.md)
 
 ### 微信交流群
 
