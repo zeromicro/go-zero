@@ -7,7 +7,6 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -116,7 +115,6 @@ object Api{
 func genBase(dir, pkg string, api *spec.ApiSpec) error {
 	e := os.MkdirAll(dir, 0755)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 	path := filepath.Join(dir, "BaseApi.kt")
@@ -126,19 +124,16 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 
 	file, e := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 	defer file.Close()
 
 	t, e := template.New("n").Parse(apiBaseTemplate)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 	e = t.Execute(file, pkg)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 	return nil
@@ -150,13 +145,11 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 
 	e := os.MkdirAll(dir, 0755)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 
 	file, e := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 	defer file.Close()
