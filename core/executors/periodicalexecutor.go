@@ -139,9 +139,7 @@ func (pe *PeriodicalExecutor) executeTasks(tasks interface{}) bool {
 	pe.wgBarrier.Guard(func() {
 		pe.waitGroup.Add(1)
 	})
-	defer pe.wgBarrier.Guard(func() {
-		pe.waitGroup.Done()
-	})
+	defer pe.waitGroup.Done()
 
 	ok := pe.hasTasks(tasks)
 	if ok {
