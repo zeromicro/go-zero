@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
 	"os"
 
+	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
