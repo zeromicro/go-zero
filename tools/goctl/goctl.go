@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
 	"os"
 
 	"github.com/tal-tech/go-zero/core/logx"
@@ -149,6 +150,25 @@ var (
 						},
 					},
 					Action: dartgen.DartCommand,
+				},
+				{
+					Name:  "kt",
+					Usage: "generate kotlin code for provided api file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:  "pkg",
+							Usage: "define package name for kotlin file",
+						},
+					},
+					Action: ktgen.KtCommand,
 				},
 			},
 		},
