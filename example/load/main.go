@@ -13,7 +13,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/core/executors"
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"gopkg.in/cheggaaa/pb.v1"
 )
@@ -47,7 +47,7 @@ func main() {
 	lessWriter = executors.NewLessExecutor(interval * total / 100)
 
 	fp, err := os.Create("result.csv")
-	lang.Must(err)
+	logx.Must(err)
 	defer fp.Close()
 	fmt.Fprintln(fp, "second,maxFlight,flying,agressiveAvgFlying,lazyAvgFlying,bothAvgFlying")
 

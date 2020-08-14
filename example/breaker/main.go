@@ -10,6 +10,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/breaker"
 	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
@@ -99,7 +100,7 @@ func main() {
 
 	gb := breaker.NewBreaker()
 	fp, err := os.Create("result.csv")
-	lang.Must(err)
+	logx.Must(err)
 	defer fp.Close()
 	fmt.Fprintln(fp, "seconds,state,googleCalls,netflixCalls")
 

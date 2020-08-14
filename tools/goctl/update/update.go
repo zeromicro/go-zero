@@ -8,7 +8,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/update/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -56,5 +55,5 @@ func main() {
 
 	fs := http.FileServer(http.Dir(c.FileDir))
 	http.Handle(c.FilePath, http.StripPrefix(c.FilePath, forChksumHandler(path.Join(c.FileDir, filename), fs)))
-	lang.Must(http.ListenAndServe(c.ListenOn, nil))
+	logx.Must(http.ListenAndServe(c.ListenOn, nil))
 }

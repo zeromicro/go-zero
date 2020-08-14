@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -33,7 +32,7 @@ type delayTask struct {
 func init() {
 	var err error
 	timingWheel, err = collection.NewTimingWheel(time.Second, timingWheelSlots, clean)
-	lang.Must(err)
+	logx.Must(err)
 
 	proc.AddShutdownListener(func() {
 		timingWheel.Drain(clean)

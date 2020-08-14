@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
@@ -45,15 +45,15 @@ func GoCommand(c *cli.Context) error {
 		return err
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genEtc(dir, api))
-	lang.Must(genConfig(dir))
-	lang.Must(genMain(dir, api))
-	lang.Must(genServiceContext(dir, api))
-	lang.Must(genTypes(dir, api))
-	lang.Must(genHandlers(dir, api))
-	lang.Must(genRoutes(dir, api))
-	lang.Must(genLogic(dir, api))
+	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(genEtc(dir, api))
+	logx.Must(genConfig(dir))
+	logx.Must(genMain(dir, api))
+	logx.Must(genServiceContext(dir, api))
+	logx.Must(genTypes(dir, api))
+	logx.Must(genHandlers(dir, api))
+	logx.Must(genRoutes(dir, api))
+	logx.Must(genLogic(dir, api))
 	// it does not work
 	format(dir)
 	createGoModFileIfNeed(dir)

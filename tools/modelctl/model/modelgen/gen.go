@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/urfave/cli"
 )
 
@@ -14,7 +14,7 @@ func FileModelCommand(c *cli.Context) error {
 	if len(configFile) == 0 {
 		return errors.New("missing config value")
 	}
-	lang.Must(genModelWithConfigFile(configFile))
+	logx.Must(genModelWithConfigFile(configFile))
 	return nil
 }
 
@@ -36,6 +36,6 @@ func CmdModelCommand(c *cli.Context) error {
 	user := addressArr[0]
 	host := addressArr[1]
 	address = fmt.Sprintf("%v@tcp(%v)/information_schema", user, host)
-	lang.Must(genModelWithDataSource(address, schema, force, redis, nil))
+	logx.Must(genModelWithDataSource(address, schema, force, redis, nil))
 	return nil
 }

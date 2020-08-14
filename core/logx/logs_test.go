@@ -131,6 +131,10 @@ func TestSetLevelWithDuration(t *testing.T) {
 	assert.Equal(t, 0, writer.builder.Len())
 }
 
+func TestMustNil(t *testing.T) {
+	Must(nil)
+}
+
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var buf []byte
