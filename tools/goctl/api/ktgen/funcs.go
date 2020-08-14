@@ -13,6 +13,7 @@ var funcsMap = template.FuncMap{
 	"pathToFuncName": pathToFuncName,
 	"parseType":      parseType,
 	"add":            add,
+	"upperCase":      upperCase,
 }
 
 func lowCamelCase(s string) string {
@@ -68,4 +69,8 @@ func parseType(t string) string {
 
 func add(a, i int) int {
 	return a + i
+}
+
+func upperCase(s string) string {
+	return strings.ToUpper(s)
 }

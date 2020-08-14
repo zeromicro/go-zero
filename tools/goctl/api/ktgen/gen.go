@@ -1,6 +1,7 @@
 package ktgen
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -24,18 +25,18 @@ import java.net.URL
 
 const val SERVER = "http://localhost:8080"
 
-suspend fun apiPost(
+suspend fun apiRequest(
+    method:String,
     uri: String,
-    body: Any,
+    body: Any="",
     onOk: ((String) -> Unit)? = null,
     onFail: ((String) -> Unit)? = null,
     eventually: (() -> Unit)? = null
 ) = withContext(Dispatchers.IO) {
     val url = URL(SERVER + uri)
     with(url.openConnection() as HttpURLConnection) {
-        requestMethod = "POST"
+        requestMethod = method
         headerFields["Content-Type"] = listOf("Application/json")
-
         val data = when (body) {
             is String -> {
                 body
@@ -46,33 +47,6 @@ suspend fun apiPost(
         }
         val wr = OutputStreamWriter(outputStream)
         wr.write(data)
-        wr.flush()
-
-        //response
-        BufferedReader(InputStreamReader(inputStream)).use {
-            val response = it.readText()
-            if (responseCode == 200) {
-                onOk?.invoke(response)
-            } else {
-                onFail?.invoke(response)
-            }
-        }
-    }
-    eventually?.invoke()
-}
-
-suspend fun apiGet(
-    uri: String,
-    onOk: ((String) -> Unit)? = null,
-    onFail: ((String) -> Unit)? = null,
-    eventually: (() -> Unit)? = null
-) = withContext(Dispatchers.IO) {
-    val url = URL(SERVER + uri)
-    with(url.openConnection() as HttpURLConnection) {
-        requestMethod = "POST"
-        headerFields["Content-Type"] = listOf("Application/json")
-
-        val wr = OutputStreamWriter(outputStream)
         wr.flush()
 
         //response
@@ -98,14 +72,14 @@ object Api{
 		val {{with $item}}{{lowCamelCase .Name}}: {{parseType .Type}}{{end}}{{if ne $i (add $length -1)}},{{end}}{{end}}
 	){{end}}
 	{{with .Service}}
-	{{range .Routes}}suspend fun {{pathToFuncName .Path}}({{if ne .Method "get"}}
-		req:{{with .RequestType}}{{.Name}},{{end}}{{end}}
+	{{range .Routes}}suspend fun {{pathToFuncName .Path}}({{with .RequestType}}{{if ne .Name ""}}
+		req:{{.Name}},{{end}}{{end}}
 		onOk: (({{with .ResponseType}}{{.Name}}{{end}}) -> Unit)? = null,
         onFail: ((String) -> Unit)? = null,
         eventually: (() -> Unit)? = null
     ){
-        api{{if eq .Method "get"}}Get{{else}}Post{{end}}("{{.Path}}",{{if ne .Method "get"}}req,{{end}} onOk = {
-            onOk?.invoke(Gson().fromJson(it,{{with .ResponseType}}{{.Name}}{{end}}::class.java))
+        apiRequest("{{upperCase .Method}}","{{.Path}}",{{with .RequestType}}{{if ne .Name ""}}body=req,{{end}}{{end}} onOk = { {{with .ResponseType}}
+            onOk?.invoke({{if ne .Name ""}}Gson().fromJson(it,{{.Name}}::class.java){{end}}){{end}}
         }, onFail = onFail, eventually =eventually)
     }
 	{{end}}{{end}}
@@ -119,6 +93,7 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 	}
 	path := filepath.Join(dir, "BaseApi.kt")
 	if _, e := os.Stat(path); e == nil {
+		fmt.Println("BaseApi.kt already exists, skipped it.")
 		return nil
 	}
 
