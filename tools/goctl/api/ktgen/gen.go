@@ -1,13 +1,14 @@
 package ktgen
 
 import (
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"log"
 	"os"
 	"path/filepath"
 	"text/template"
+
 	"github.com/iancoleman/strcase"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
 const (
@@ -145,28 +146,28 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 
 func genApi(dir, pkg string, api *spec.ApiSpec) error {
 	path := filepath.Join(dir, strcase.ToCamel(api.Info.Title+"Api")+".kt")
-	api.Info.Title= pkg
+	api.Info.Title = pkg
 
-	e:=os.MkdirAll(dir,0755)
-	if e!=nil {
-	    logx.Error(e)
-	    return e
+	e := os.MkdirAll(dir, 0755)
+	if e != nil {
+		logx.Error(e)
+		return e
 	}
 
-	file,e:=os.OpenFile(path,os.O_WRONLY|os.O_TRUNC|os.O_CREATE,0644)
-	if e!=nil {
-	    logx.Error(e)
-	    return e
+	file, e := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if e != nil {
+		logx.Error(e)
+		return e
 	}
 	defer file.Close()
 
-	t,e:=template.New("api").Funcs(funcsMap).Parse(apiTemplate)
-	if e!=nil{
-	    log.Fatal(e)
+	t, e := template.New("api").Funcs(funcsMap).Parse(apiTemplate)
+	if e != nil {
+		log.Fatal(e)
 	}
-	e=t.Execute(file,api)
-	if e!=nil{
-	    log.Fatal(e)
+	e = t.Execute(file, api)
+	if e != nil {
+		log.Fatal(e)
 	}
 	return nil
 }
