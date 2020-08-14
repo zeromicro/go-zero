@@ -21,7 +21,7 @@ import (
 
 const (
 	Name            = "p2c_ewma"
-	decayTime       = int64(time.Millisecond * 600)
+	decayTime       = int64(time.Second * 10) // default value from finagle
 	forcePick       = int64(time.Second)
 	initSuccess     = 1000
 	throttleSuccess = initSuccess / 2
