@@ -26,9 +26,9 @@ import java.net.URL
 const val SERVER = "http://localhost:8080"
 
 suspend fun apiRequest(
-    method:String,
+    method: String,
     uri: String,
-    body: Any="",
+    body: Any = "",
     onOk: ((String) -> Unit)? = null,
     onFail: ((String) -> Unit)? = null,
     eventually: (() -> Unit)? = null
@@ -36,27 +36,33 @@ suspend fun apiRequest(
     val url = URL(SERVER + uri)
     with(url.openConnection() as HttpURLConnection) {
         requestMethod = method
-        headerFields["Content-Type"] = listOf("Application/json")
-        val data = when (body) {
-            is String -> {
-                body
+        doInput = true
+        if (method == "POST" || method == "PUT") {
+            setRequestProperty("Content-Type", "application/json")
+            doOutput = true
+            val data = when (body) {
+                is String -> {
+                    body
+                }
+                else -> {
+                    Gson().toJson(body)
+                }
             }
-            else -> {
-                Gson().toJson(body)
-            }
+            val wr = OutputStreamWriter(outputStream)
+            wr.write(data)
+            wr.flush()
         }
-        val wr = OutputStreamWriter(outputStream)
-        wr.write(data)
-        wr.flush()
-
+        if (responseCode >= 400) {
+            BufferedReader(InputStreamReader(errorStream)).use {
+                val response = it.readText()
+                onFail?.invoke(response)
+            }
+            return@with
+        }
         //response
         BufferedReader(InputStreamReader(inputStream)).use {
             val response = it.readText()
-            if (responseCode == 200) {
-                onOk?.invoke(response)
-            } else {
-                onFail?.invoke(response)
-            }
+            onOk?.invoke(response)
         }
     }
     eventually?.invoke()
