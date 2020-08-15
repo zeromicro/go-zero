@@ -19,11 +19,9 @@ var (
 	userCamelRowsExpectAutoSet   = strings.Join(stringx.Remove(userCamelFieldNames, "create_time", "update_time"), ",")
 	userCamelRowsWithPlaceHolder = strings.Join(stringx.Remove(userCamelFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
 
-	cacheuserCamelIdPrefix     = "cache#userCamel#id#"
-	cacheuserCamelNamePrefix   = "cache#userCamel#name#"
-	cacheuserCamelMobilePrefix = "cache#userCamel#mobile#"
-
-	ErrNotFound = sqlx.ErrNotFound
+	cacheUserCamelIdPrefix     = "cache#UserCamel#id#"
+	cacheUserCamelNamePrefix   = "cache#UserCamel#name#"
+	cacheUserCamelMobilePrefix = "cache#UserCamel#mobile#"
 )
 
 type (
@@ -58,7 +56,7 @@ func (m *UserCamelModel) Insert(data UserCamel) error {
 }
 
 func (m *UserCamelModel) FindOne(id int64) (*UserCamel, error) {
-	userCamelIdKey := fmt.Sprintf("cache#userCamel#id#%v", id)
+	userCamelIdKey := fmt.Sprintf("%s%v", cacheUserCamelIdPrefix, id)
 	var resp UserCamel
 	err := m.QueryRow(&resp, userCamelIdKey, func(conn sqlx.SqlConn, v interface{}) error {
 		query := `select ` + userCamelRows + ` from ` + m.table + ` where id = ? limit 1`
@@ -75,10 +73,10 @@ func (m *UserCamelModel) FindOne(id int64) (*UserCamel, error) {
 }
 
 func (m *UserCamelModel) FindOneByName(name string) (*UserCamel, error) {
-	userCamelNameKey := fmt.Sprintf("cache#userCamel#name#%v", name)
+	userCamelNameKey := fmt.Sprintf("%s%v", cacheUserCamelNamePrefix, name)
 	var resp UserCamel
 	err := m.QueryRowIndex(&resp, userCamelNameKey, func(primary interface{}) string {
-		return fmt.Sprintf("%s%v", cacheuserCamelIdPrefix, primary)
+		return fmt.Sprintf("%s%v", cacheUserCamelIdPrefix, primary)
 	}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
 		query := `select ` + userCamelRows + ` from ` + m.table + ` where name = ? limit 1`
 		if err := conn.QueryRow(&resp, query, name); err != nil {
@@ -100,10 +98,10 @@ func (m *UserCamelModel) FindOneByName(name string) (*UserCamel, error) {
 }
 
 func (m *UserCamelModel) FindOneByMobile(mobile string) (*UserCamel, error) {
-	userCamelMobileKey := fmt.Sprintf("cache#userCamel#mobile#%v", mobile)
+	userCamelMobileKey := fmt.Sprintf("%s%v", cacheUserCamelMobilePrefix, mobile)
 	var resp UserCamel
 	err := m.QueryRowIndex(&resp, userCamelMobileKey, func(primary interface{}) string {
-		return fmt.Sprintf("%s%v", cacheuserCamelIdPrefix, primary)
+		return fmt.Sprintf("%s%v", cacheUserCamelIdPrefix, primary)
 	}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
 		query := `select ` + userCamelRows + ` from ` + m.table + ` where mobile = ? limit 1`
 		if err := conn.QueryRow(&resp, query, mobile); err != nil {
@@ -125,7 +123,7 @@ func (m *UserCamelModel) FindOneByMobile(mobile string) (*UserCamel, error) {
 }
 
 func (m *UserCamelModel) Update(data UserCamel) error {
-	userCamelIdKey := fmt.Sprintf("cache#userCamel#id#%v", data.Id)
+	userCamelIdKey := fmt.Sprintf("%s%v", cacheUserCamelIdPrefix, data.Id)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := `update ` + m.table + ` set ` + userCamelRowsWithPlaceHolder + ` where id = ?`
 		return conn.Exec(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.Id)
@@ -138,9 +136,9 @@ func (m *UserCamelModel) Delete(id int64) error {
 	if err != nil {
 		return err
 	}
-	userCamelIdKey := fmt.Sprintf("cache#userCamel#id#%v", id)
-	userCamelNameKey := fmt.Sprintf("cache#userCamel#name#%v", data.Name)
-	userCamelMobileKey := fmt.Sprintf("cache#userCamel#mobile#%v", data.Mobile)
+	userCamelIdKey := fmt.Sprintf("%s%v", cacheUserCamelIdPrefix, id)
+	userCamelNameKey := fmt.Sprintf("%s%v", cacheUserCamelNamePrefix, data.Name)
+	userCamelMobileKey := fmt.Sprintf("%s%v", cacheUserCamelMobilePrefix, data.Mobile)
 	_, err = m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := `delete from ` + m.table + ` where id = ?`
 		return conn.Exec(query, id)

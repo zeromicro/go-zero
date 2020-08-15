@@ -65,5 +65,6 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{end}}
+	}
+}{{end}}
 `

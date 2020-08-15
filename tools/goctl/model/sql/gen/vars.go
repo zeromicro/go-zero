@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genVars(table Table) (string, error) {
+func genVars(table Table, withCache bool) (string, error) {
 	keys := make([]string, 0)
 	for _, v := range table.CacheKey {
 		keys = append(keys, v.VarExpression)
@@ -23,6 +23,7 @@ func genVars(table Table) (string, error) {
 			"cacheKeys":             strings.Join(keys, "\r\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,
 			"originalPrimaryKey":    table.PrimaryKey.Name.Source(),
+			"withCache":             withCache,
 		})
 	if err != nil {
 		return "", err

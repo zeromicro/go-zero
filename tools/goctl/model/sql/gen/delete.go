@@ -15,8 +15,7 @@ func genDelete(table Table, withCache bool) (string, error) {
 	for fieldName, key := range table.CacheKey {
 		if fieldName == table.PrimaryKey.Name.Source() {
 			keySet.AddStr(key.KeyExpression)
-		}
-		if fieldName != table.PrimaryKey.Name.Source() {
+		} else {
 			keySet.AddStr(key.DataKeyExpression)
 		}
 		keyVariableSet.AddStr(key.Variable)

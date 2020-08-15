@@ -2,9 +2,9 @@ package template
 
 var Imports = `
 import (
-	"database/sql"{{if .withCache}}
-	"fmt"
-	{{end}}"strings"
+	{{if .withCache}}"database/sql"
+  "fmt"{{end}}
+	"strings"
 	"time"
 
   "github.com/tal-tech/go-zero/core/stores/cache"

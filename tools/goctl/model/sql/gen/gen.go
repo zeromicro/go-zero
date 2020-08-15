@@ -8,8 +8,9 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
-	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
@@ -24,17 +25,40 @@ type (
 		source string
 		src    string
 		dir    string
+		console.Console
 	}
+	Option func(generator *defaultGenerator)
 )
 
-func NewDefaultGenerator(src, dir string) *defaultGenerator {
+func NewDefaultGenerator(src, dir string, opt ...Option) *defaultGenerator {
 	if src == "" {
 		src = pwd
 	}
 	if dir == "" {
 		dir = pwd
 	}
-	return &defaultGenerator{src: src, dir: dir}
+	generator := &defaultGenerator{src: src, dir: dir}
+	var optionList []Option
+	optionList = append(optionList, newDefaultOption())
+	optionList = append(optionList, opt...)
+	for _, fn := range optionList {
+		fn(generator)
+	}
+	return generator
+}
+
+func WithConsoleOption(idea bool) Option {
+	return func(generator *defaultGenerator) {
+		if idea {
+			generator.Console = console.NewIdeaConsole()
+		}
+	}
+}
+
+func newDefaultOption() Option {
+	return func(generator *defaultGenerator) {
+		generator.Console = console.NewColorConsole()
+	}
 }
 
 func (g *defaultGenerator) Start(withCache bool) error {
@@ -61,12 +85,28 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 
 	for tableName, code := range modelList {
-		filename := filepath.Join(dirAbs, fmt.Sprintf("%smodel.go", stringx.From(tableName).Lower()))
+		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).Snake2Camel()))
+		filename := filepath.Join(dirAbs, name)
+		if util.FileExists(filename) {
+			g.Warning("%s already exists", name)
+			continue
+		}
 		err = ioutil.WriteFile(filename, []byte(code), os.ModePerm)
 		if err != nil {
 			return err
 		}
 	}
+	// generate error file
+	filename := filepath.Join(dirAbs, "error.go")
+	if util.FileExists(filename) {
+		g.Warning("error.go already exists")
+	} else {
+		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
+		if err != nil {
+			return err
+		}
+	}
+	g.Success("Done.")
 	return nil
 }
 
@@ -97,7 +137,7 @@ type (
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
 	t := templatex.With("model").
-		Parse(sqltemplate.Model).
+		Parse(template.Model).
 		GoFmt(true)
 
 	m, err := genCacheKeys(in)
@@ -112,7 +152,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.Table = in
 	table.CacheKey = m
 
-	varsCode, err := genVars(table)
+	varsCode, err := genVars(table, withCache)
 	if err != nil {
 		return "", err
 	}

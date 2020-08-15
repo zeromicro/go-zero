@@ -7,8 +7,6 @@ var (
 	{{.lowerStartCamelObject}}RowsExpectAutoSet   = strings.Join(stringx.Remove({{.lowerStartCamelObject}}FieldNames, {{if .autoIncrement}}"{{.originalPrimaryKey}}",{{end}} "create_time", "update_time"), ",")
 	{{.lowerStartCamelObject}}RowsWithPlaceHolder = strings.Join(stringx.Remove({{.lowerStartCamelObject}}FieldNames, "{{.originalPrimaryKey}}", "create_time", "update_time"), "=?,") + "=?"
 
-	{{.cacheKeys}}
-
-	ErrNotFound   = sqlx.ErrNotFound
+	{{if .withCache}}{{.cacheKeys}}{{end}}
 )
 `
