@@ -28,3 +28,8 @@ jobs:
 
     - name: Test
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+    - name: Codecov
+      uses: codecov/codecov-action@v1.0.6
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
