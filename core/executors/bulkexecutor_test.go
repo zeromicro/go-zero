@@ -12,14 +12,14 @@ func TestBulkExecutor(t *testing.T) {
 	var values []int
 	var lock sync.Mutex
 
-	exeutor := NewBulkExecutor(func(items []interface{}) {
+	executor := NewBulkExecutor(func(items []interface{}) {
 		lock.Lock()
 		values = append(values, len(items))
 		lock.Unlock()
 	}, WithBulkTasks(10), WithBulkInterval(time.Minute))
 
 	for i := 0; i < 50; i++ {
-		exeutor.Add(1)
+		executor.Add(1)
 		time.Sleep(time.Millisecond)
 	}
 
@@ -40,13 +40,13 @@ func TestBulkExecutorFlushInterval(t *testing.T) {
 	var wait sync.WaitGroup
 
 	wait.Add(1)
-	exeutor := NewBulkExecutor(func(items []interface{}) {
+	executor := NewBulkExecutor(func(items []interface{}) {
 		assert.Equal(t, size, len(items))
 		wait.Done()
 	}, WithBulkTasks(caches), WithBulkInterval(time.Millisecond*100))
 
 	for i := 0; i < size; i++ {
-		exeutor.Add(1)
+		executor.Add(1)
 	}
 
 	wait.Wait()

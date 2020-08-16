@@ -34,7 +34,7 @@ func TestContextCancel(t *testing.T) {
 	assert.NotEqual(t, context.Canceled, c2.Err())
 }
 
-func TestConextDeadline(t *testing.T) {
+func TestContextDeadline(t *testing.T) {
 	c, _ := context.WithDeadline(context.Background(), time.Now().Add(10*time.Millisecond))
 	o := ValueOnlyFrom(c)
 	select {
