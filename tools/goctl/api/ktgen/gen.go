@@ -2,7 +2,6 @@ package ktgen
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -136,12 +135,8 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 	defer file.Close()
 
 	t, e := template.New("api").Funcs(funcsMap).Parse(apiTemplate)
-	if e != nil {
-		log.Fatal(e)
+	if e!=nil {
+	    return e
 	}
-	e = t.Execute(file, api)
-	if e != nil {
-		log.Fatal(e)
-	}
-	return nil
+	return t.Execute(file, api)
 }
