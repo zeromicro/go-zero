@@ -11,7 +11,7 @@ func (m *{{.upperStartCamelObject}}Model) Delete({{.lowerStartCamelPrimaryKey}} 
 		query := ` + "`" + `delete from ` + "` +" + ` m.table + ` + " `" + ` where {{.originalPrimaryKey}} = ?` + "`" + `
 		return conn.Exec(query, {{.lowerStartCamelPrimaryKey}})
 	}, {{.keyValues}}){{else}}query := ` + "`" + `delete from ` + "` +" + ` m.table + ` + " `" + ` where {{.originalPrimaryKey}} = ?` + "`" + `
-		_,err:=m.ExecNoCache(query, {{.lowerStartCamelPrimaryKey}}){{end}}
+		_,err:=m.conn.Exec(query, {{.lowerStartCamelPrimaryKey}}){{end}}
 	return err
 }
 `

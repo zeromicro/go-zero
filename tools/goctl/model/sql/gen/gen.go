@@ -17,7 +17,7 @@ import (
 
 const (
 	pwd             = "."
-	createTableFlag = `(?m)CREATE\s+TABLE`
+	createTableFlag = `(?m)^(?i)CREATE\s+TABLE` // ignore case
 )
 
 type (
@@ -47,11 +47,9 @@ func NewDefaultGenerator(src, dir string, opt ...Option) *defaultGenerator {
 	return generator
 }
 
-func WithConsoleOption(idea bool) Option {
+func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
-		if idea {
-			generator.Console = console.NewIdeaConsole()
-		}
+		generator.Console = c
 	}
 }
 
@@ -88,7 +86,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).Snake2Camel()))
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
-			g.Warning("%s already exists", name)
+			g.Warning("%s already exists,ignored.", name)
 			continue
 		}
 		err = ioutil.WriteFile(filename, []byte(code), os.ModePerm)
@@ -98,9 +96,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "error.go")
-	if util.FileExists(filename) {
-		g.Warning("error.go already exists")
-	} else {
+	if !util.FileExists(filename) {
 		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
 		if err != nil {
 			return err
@@ -144,10 +140,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	if err != nil {
 		return "", err
 	}
-	importsCode, err := genImports(withCache)
-	if err != nil {
-		return "", err
-	}
+	importsCode := genImports(withCache)
 	var table Table
 	table.Table = in
 	table.CacheKey = m
@@ -156,15 +149,15 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	if err != nil {
 		return "", err
 	}
-	typesCode, err := genTypes(table)
+	typesCode, err := genTypes(table, withCache)
 	if err != nil {
 		return "", err
 	}
-	newCode, err := genNew(table)
+	newCode, err := genNew(table, withCache)
 	if err != nil {
 		return "", err
 	}
-	insertCode, err := genInsert(table)
+	insertCode, err := genInsert(table, withCache)
 	if err != nil {
 		return "", err
 	}

@@ -7,7 +7,7 @@ func (m *{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelObject}}
 		query := ` + "`" + `update ` + "` +" + `m.table +` + "` " + `set ` + "` +" + `{{.lowerStartCamelObject}}RowsWithPlaceHolder` + " + `" + ` where {{.originalPrimaryKey}} = ?` + "`" + `
 		return conn.Exec(query, {{.expressionValues}})
 	}, {{.primaryKeyVariable}}){{else}}query := ` + "`" + `update ` + "` +" + `m.table +` + "` " + `set ` + "` +" + `{{.lowerStartCamelObject}}RowsWithPlaceHolder` + " + `" + ` where {{.originalPrimaryKey}} = ?` + "`" + `
-    _,err:=m.ExecNoCache(query, {{.expressionValues}}){{end}}
+    _,err:=m.conn.Exec(query, {{.expressionValues}}){{end}}
 	return err
 }
 `

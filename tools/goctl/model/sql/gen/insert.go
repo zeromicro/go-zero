@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genInsert(table Table) (string, error) {
+func genInsert(table Table, withCache bool) (string, error) {
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
 	for _, filed := range table.Fields {
@@ -26,6 +26,7 @@ func genInsert(table Table) (string, error) {
 	output, err := templatex.With("insert").
 		Parse(template.Insert).
 		Execute(map[string]interface{}{
+			"withCache":             withCache,
 			"upperStartCamelObject": camel,
 			"lowerStartCamelObject": stringx.From(camel).LowerStart(),
 			"expression":            strings.Join(expressions, ", "),

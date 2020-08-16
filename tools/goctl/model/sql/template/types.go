@@ -3,7 +3,7 @@ package template
 var Types = `
 type (
 	{{.upperStartCamelObject}}Model struct {
-		sqlc.CachedConn
+		{{if .withCache}}sqlc.CachedConn{{else}}conn sqlx.SqlConn{{end}}
 		table string
 	}
 

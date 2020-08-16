@@ -170,11 +170,11 @@ var (
 		},
 		{
 			Name:  "model",
-			Usage: "generate sql model",
+			Usage: "generate model code",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "src, s",
-					Usage: "the file path of sql",
+					Usage: "the file path of the ddl source file",
 				},
 				cli.StringFlag{
 					Name:  "dir, d",
@@ -182,7 +182,11 @@ var (
 				},
 				cli.BoolFlag{
 					Name:  "cache, c",
-					Usage: "generate code with cache",
+					Usage: "generate code with cache [optional]",
+				},
+				cli.BoolFlag{
+					Name:  "idea",
+					Usage: "for idea plugin [optional]",
 				},
 			},
 			Action: command.Mysql,

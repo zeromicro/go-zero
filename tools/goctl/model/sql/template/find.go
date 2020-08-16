@@ -18,7 +18,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}}
 		return nil, err
 	}{{else}}query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.originalPrimaryKey}} = ? limit 1` + "`" + `
 	var resp {{.upperStartCamelObject}}
-	err := m.QueryRowNoCache(&resp, query, {{.lowerStartCamelPrimaryKey}})
+	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelPrimaryKey}})
 	switch err {
 	case nil:
 		return &resp, nil
@@ -57,7 +57,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 	}
 }{{else}}var resp {{.upperStartCamelObject}}
 	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.originalField}} limit 1` + "`" + `
-	err := m.QueryRowNoCache(&resp, query, {{.lowerStartCamelField}})
+	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelField}})
 	switch err {
 	case nil:
 		return &resp, nil
