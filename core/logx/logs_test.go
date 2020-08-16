@@ -37,7 +37,7 @@ func (mw *mockWriter) Reset() {
 }
 
 func (mw *mockWriter) Contains(text string) bool {
-	return strings.Index(mw.builder.String(), text) > -1
+	return strings.Contains(mw.builder.String(), text)
 }
 
 func TestFileLineFileMode(t *testing.T) {
@@ -129,6 +129,10 @@ func TestSetLevelWithDuration(t *testing.T) {
 	atomic.StoreUint32(&initialized, 1)
 	WithDuration(time.Second).Info(message)
 	assert.Equal(t, 0, writer.builder.Len())
+}
+
+func TestMustNil(t *testing.T) {
+	Must(nil)
 }
 
 func BenchmarkCopyByteSliceAppend(b *testing.B) {

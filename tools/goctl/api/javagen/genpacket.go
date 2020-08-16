@@ -175,7 +175,7 @@ func formatFile(tmplBytes *bytes.Buffer, file *os.File) {
 		builder.WriteString(scanner.Text() + "\n")
 	}
 	if err := scanner.Err(); err != nil {
-		println(err)
+		fmt.Println(err)
 	}
 }
 
@@ -268,10 +268,12 @@ func genType(writer io.Writer, tp spec.Type) error {
 			return err
 		}
 	}
+
 	writeBreakline(writer)
 	writeIndent(writer, 1)
 	genGetSet(writer, tp, 2)
 	writeIndent(writer, 1)
 	fmt.Fprintln(writer, "}")
+
 	return nil
 }

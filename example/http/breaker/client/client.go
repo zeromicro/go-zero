@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/threading"
 	"gopkg.in/cheggaaa/pb.v1"
 )
@@ -119,14 +120,14 @@ func main() {
 	flag.Parse()
 
 	fp, err := os.Create("result.csv")
-	lang.Must(err)
+	logx.Must(err)
 	defer fp.Close()
 	fmt.Fprintln(fp, "seconds,goodOk,goodFail,goodReject,goodErrs,goodUnknowns,goodDropRatio,"+
 		"heavyOk,heavyFail,heavyReject,heavyErrs,heavyUnknowns,heavyDropRatio")
 
 	var gm, hm metric
 	dur, err := time.ParseDuration(*duration)
-	lang.Must(err)
+	logx.Must(err)
 	done := make(chan lang.PlaceholderType)
 	group := threading.NewRoutineGroup()
 	group.RunSafe(func() {

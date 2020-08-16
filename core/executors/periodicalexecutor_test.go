@@ -106,6 +106,40 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	lock.Unlock()
 }
 
+func TestPeriodicalExecutor_Wait(t *testing.T) {
+	var lock sync.Mutex
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+		lock.Lock()
+		defer lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+	}, WithBulkTasks(1), WithBulkInterval(time.Second))
+	for i := 0; i < 10; i++ {
+		executer.Add(1)
+	}
+	executer.Flush()
+	executer.Wait()
+}
+
+func TestPeriodicalExecutor_WaitFast(t *testing.T) {
+	const total = 3
+	var cnt int
+	var lock sync.Mutex
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+		defer func() {
+			cnt++
+		}()
+		lock.Lock()
+		defer lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+	}, WithBulkTasks(1), WithBulkInterval(10*time.Millisecond))
+	for i := 0; i < total; i++ {
+		executer.Add(2)
+	}
+	executer.Flush()
+	executer.Wait()
+	assert.Equal(t, total, cnt)
+}
+
 // go test -benchtime 10s -bench .
 func BenchmarkExecutor(b *testing.B) {
 	b.ReportAllocs()

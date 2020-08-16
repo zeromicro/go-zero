@@ -1,4 +1,4 @@
-package internal
+package token
 
 import (
 	"net/http"

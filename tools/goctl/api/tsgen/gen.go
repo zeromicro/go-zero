@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
@@ -34,9 +34,9 @@ func TsCommand(c *cli.Context) error {
 		return err
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genHandler(dir, webApi, caller, api, unwrapApi))
-	lang.Must(genComponents(dir, api))
+	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(genHandler(dir, webApi, caller, api, unwrapApi))
+	logx.Must(genComponents(dir, api))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

@@ -3,8 +3,8 @@
 ## goctl用途
 * 定义api请求
 * 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 晓程序)，dart(flutter)
-* 生成MySQL CURD (https://goctl.xiaoheiban.cn)
-*  生成MongoDB CURD (https://goctl.xiaoheiban.cn)
+* 生成MySQL CURD+Cache
+*  生成MongoDB CURD+Cache
 
 ## goctl使用说明
 #### goctl参数说明
@@ -179,23 +179,31 @@ service user-api {
   * 在定义的get/post/put/delete等请求的handler和logic里增加处理业务逻辑的代码
 
 #### 根据定义好的api文件生成java代码
-	`goctl api java -api user/user.api -dir ./src`
+```shell
+goctl api java -api user/user.api -dir ./src
+```
 
 #### 根据定义好的api文件生成typescript代码
-	`goctl api ts -api user/user.api -dir ./src -webapi ***`
-	
-	ts需要指定webapi所在目录
+```shell
+goctl api ts -api user/user.api -dir ./src -webapi ***
+
+ts需要指定webapi所在目录
+```
 
 #### 根据定义好的api文件生成Dart代码
-	`goctl api dart -api user/user.api -dir ./src`
+```shell
+goctl api dart -api user/user.api -dir ./src
+```
 
 ## 根据定义好的简单go文件生成mongo代码文件(仅限golang使用)  
-    `goctl model mongo -src {{yourDir}}/xiao/service/xhb/user/model/usermodel.go -cache yes`
-    
-    -src需要提供简单的usermodel.go文件，里面只需要提供一个结构体即可
-    -cache 控制是否需要缓存 yes=需要 no=不需要
-    src 示例代码如下
-  ```
+```shell
+goctl model mongo -src {{yourDir}}/xiao/service/xhb/user/model/usermodel.go -cache yes
+
+-src需要提供简单的usermodel.go文件，里面只需要提供一个结构体即可
+-cache 控制是否需要缓存 yes=需要 no=不需要
+src 示例代码如下
+```
+  ```go
 package model
     
 type User struct {
@@ -262,4 +270,3 @@ type User struct {
     └── test.proto
   ```
   - 注意 ：目前rpc目录生成的proto文件暂不支持import外部proto文件   
-* 如有不理解的地方，随时问Kim/Kevin

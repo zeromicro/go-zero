@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const (
@@ -24,17 +24,17 @@ var (
 
 func init() {
 	cpus, err := perCpuUsage()
-	lang.Must(err)
+	logx.Must(err)
 	cores = uint64(len(cpus))
 
 	sets, err := cpuSets()
-	lang.Must(err)
+	logx.Must(err)
 	quota = float64(len(sets))
 	cq, err := cpuQuota()
 	if err == nil {
 		if cq != -1 {
 			period, err := cpuPeriod()
-			lang.Must(err)
+			logx.Must(err)
 
 			limit := float64(cq) / float64(period)
 			if limit < quota {
@@ -44,10 +44,10 @@ func init() {
 	}
 
 	preSystem, err = systemCpuUsage()
-	lang.Must(err)
+	logx.Must(err)
 
 	preTotal, err = totalCpuUsage()
-	lang.Must(err)
+	logx.Must(err)
 }
 
 func RefreshCpu() uint64 {

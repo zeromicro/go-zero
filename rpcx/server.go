@@ -117,8 +117,8 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 			return err
 		}
 
-		server.AddStreamInterceptors(internal.StreamAuthorizeInterceptor(authenticator))
-		server.AddUnaryInterceptors(internal.UnaryAuthorizeInterceptor(authenticator))
+		server.AddStreamInterceptors(serverinterceptors.StreamAuthorizeInterceptor(authenticator))
+		server.AddUnaryInterceptors(serverinterceptors.UnaryAuthorizeInterceptor(authenticator))
 	}
 
 	return nil

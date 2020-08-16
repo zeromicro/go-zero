@@ -1,4 +1,4 @@
-package internal
+package httpx
 
 import "net/http"
 

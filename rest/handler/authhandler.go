@@ -8,7 +8,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/tal-tech/go-zero/rest/token"
 )
 
 const (
@@ -43,7 +43,7 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 		opt(&authOpts)
 	}
 
-	parser := internal.NewTokenParser()
+	parser := token.NewTokenParser()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token, err := parser.ParseToken(r, secret, authOpts.PrevSecret)

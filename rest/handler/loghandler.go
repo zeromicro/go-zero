@@ -13,6 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/timex"
 	"github.com/tal-tech/go-zero/core/utils"
+	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
@@ -112,10 +113,10 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	var buf bytes.Buffer
 	duration := timer.Duration()
 	buf.WriteString(fmt.Sprintf("%d - %s - %s - %s - %s",
-		code, r.RequestURI, internal.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
+		code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
 	if duration > slowThreshold {
 		logx.Slowf("[HTTP] %d - %s - %s - %s - slowcall(%s)",
-			code, r.RequestURI, internal.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
+			code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
 	}
 
 	ok := isOkResponse(code)
