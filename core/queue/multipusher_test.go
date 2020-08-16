@@ -21,7 +21,7 @@ func TestMultiQueuePusher(t *testing.T) {
 		mockedPushers = append(mockedPushers, p)
 	}
 
-	pusher := NewMultiQueuePusher(pushers)
+	pusher := NewMultiPusher(pushers)
 	assert.True(t, len(pusher.Name()) > 0)
 
 	for i := 0; i < 1000; i++ {

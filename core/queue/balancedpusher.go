@@ -9,24 +9,24 @@ import (
 
 var ErrNoAvailablePusher = errors.New("no available pusher")
 
-type BalancedQueuePusher struct {
+type BalancedPusher struct {
 	name    string
 	pushers []Pusher
 	index   uint64
 }
 
-func NewBalancedQueuePusher(pushers []Pusher) Pusher {
-	return &BalancedQueuePusher{
+func NewBalancedPusher(pushers []Pusher) Pusher {
+	return &BalancedPusher{
 		name:    generateName(pushers),
 		pushers: pushers,
 	}
 }
 
-func (pusher *BalancedQueuePusher) Name() string {
+func (pusher *BalancedPusher) Name() string {
 	return pusher.name
 }
 
-func (pusher *BalancedQueuePusher) Push(message string) error {
+func (pusher *BalancedPusher) Push(message string) error {
 	size := len(pusher.pushers)
 
 	for i := 0; i < size; i++ {

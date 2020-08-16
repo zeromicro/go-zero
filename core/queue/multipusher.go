@@ -2,23 +2,23 @@ package queue
 
 import "github.com/tal-tech/go-zero/core/errorx"
 
-type MultiQueuePusher struct {
+type MultiPusher struct {
 	name    string
 	pushers []Pusher
 }
 
-func NewMultiQueuePusher(pushers []Pusher) Pusher {
-	return &MultiQueuePusher{
+func NewMultiPusher(pushers []Pusher) Pusher {
+	return &MultiPusher{
 		name:    generateName(pushers),
 		pushers: pushers,
 	}
 }
 
-func (pusher *MultiQueuePusher) Name() string {
+func (pusher *MultiPusher) Name() string {
 	return pusher.name
 }
 
-func (pusher *MultiQueuePusher) Push(message string) error {
+func (pusher *MultiPusher) Push(message string) error {
 	var batchError errorx.BatchError
 
 	for _, each := range pusher.pushers {

@@ -20,7 +20,7 @@ func TestBalancedQueuePusher(t *testing.T) {
 		mockedPushers = append(mockedPushers, p)
 	}
 
-	pusher := NewBalancedQueuePusher(pushers)
+	pusher := NewBalancedPusher(pushers)
 	assert.True(t, len(pusher.Name()) > 0)
 
 	for i := 0; i < numPushers*1000; i++ {
@@ -37,7 +37,7 @@ func TestBalancedQueuePusher(t *testing.T) {
 }
 
 func TestBalancedQueuePusher_NoAvailable(t *testing.T) {
-	pusher := NewBalancedQueuePusher(nil)
+	pusher := NewBalancedPusher(nil)
 	assert.True(t, len(pusher.Name()) == 0)
 	assert.Equal(t, ErrNoAvailablePusher, pusher.Push("item"))
 }
