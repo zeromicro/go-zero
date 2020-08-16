@@ -49,7 +49,7 @@ func From(generate GenerateFunc) Stream {
 	return Range(source)
 }
 
-// Just converts the given arbitary items to a Stream.
+// Just converts the given arbitrary items to a Stream.
 func Just(items ...interface{}) Stream {
 	source := make(chan interface{}, len(items))
 	for _, item := range items {
@@ -195,7 +195,7 @@ func (p Stream) Merge() Stream {
 	return Range(source)
 }
 
-// Parallel applies the given ParallenFunc to each item concurrently with given number of workers.
+// Parallel applies the given ParallelFunc to each item concurrently with given number of workers.
 func (p Stream) Parallel(fn ParallelFunc, opts ...Option) {
 	p.Walk(func(item interface{}, pipe chan<- interface{}) {
 		fn(item)

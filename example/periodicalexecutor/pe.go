@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	exeutor := executors.NewBulkExecutor(func(items []interface{}) {
+	executor := executors.NewBulkExecutor(func(items []interface{}) {
 		fmt.Println(len(items))
 	}, executors.WithBulkTasks(10))
 	for {
-		exeutor.Add(1)
+		executor.Add(1)
 		time.Sleep(time.Millisecond * 90)
 	}
 }
