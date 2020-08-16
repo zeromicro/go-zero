@@ -67,11 +67,11 @@ suspend fun apiRequest(
     eventually?.invoke()
 }
 `
-	apiTemplate = `package {{with .Info}}{{.Title}}{{end}}
+	apiTemplate = `package {{with .Info}}{{.Desc}}{{end}}
 
 import com.google.gson.Gson
 
-object Api{
+object {{with .Info}}{{.Title}}{{end}}{
 	{{range .Types}}
 	data class {{.Name}}({{$length := (len .Members)}}{{range $i,$item := .Members}}
 		val {{with $item}}{{lowCamelCase .Name}}: {{parseType .Type}}{{end}}{{if ne $i (add $length -1)}},{{end}}{{end}}
@@ -120,8 +120,10 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 }
 
 func genApi(dir, pkg string, api *spec.ApiSpec) error {
-	path := filepath.Join(dir, strcase.ToCamel(api.Info.Title+"Api")+".kt")
-	api.Info.Title = pkg
+	name := strcase.ToCamel(api.Info.Title + "Api")
+	path := filepath.Join(dir, name+".kt")
+	api.Info.Title = name
+	api.Info.Desc = pkg
 
 	e := os.MkdirAll(dir, 0755)
 	if e != nil {
@@ -135,8 +137,8 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 	defer file.Close()
 
 	t, e := template.New("api").Funcs(funcsMap).Parse(apiTemplate)
-	if e!=nil {
-	    return e
+	if e != nil {
+		return e
 	}
 	return t.Execute(file, api)
 }
