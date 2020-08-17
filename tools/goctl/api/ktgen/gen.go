@@ -34,6 +34,7 @@ suspend fun apiRequest(
 ) = withContext(Dispatchers.IO) {
     val url = URL(SERVER + uri)
     with(url.openConnection() as HttpURLConnection) {
+        connectTimeout = 3000
         requestMethod = method
         doInput = true
         if (method == "POST" || method == "PUT") {
@@ -51,17 +52,22 @@ suspend fun apiRequest(
             wr.write(data)
             wr.flush()
         }
-        if (responseCode >= 400) {
-            BufferedReader(InputStreamReader(errorStream)).use {
-                val response = it.readText()
-                onFail?.invoke(response)
+
+         try {
+            if (responseCode >= 400) {
+                BufferedReader(InputStreamReader(errorStream)).use {
+                    val response = it.readText()
+                    onFail?.invoke(response)
+                }
+                return@with
             }
-            return@with
-        }
-        //response
-        BufferedReader(InputStreamReader(inputStream)).use {
-            val response = it.readText()
-            onOk?.invoke(response)
+            //response
+            BufferedReader(InputStreamReader(inputStream)).use {
+                val response = it.readText()
+                onOk?.invoke(response)
+            }
+        } catch (e: Exception) {
+            e.message?.let { onFail?.invoke(it) }
         }
     }
     eventually?.invoke()
