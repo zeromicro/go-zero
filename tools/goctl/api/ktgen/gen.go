@@ -37,7 +37,7 @@ suspend fun apiRequest(
         connectTimeout = 3000
         requestMethod = method
         doInput = true
-        if (method == "POST" || method == "PUT") {
+        if (method == "POST" || method == "PUT" || method == "PATCH") {
             setRequestProperty("Content-Type", "application/json")
             doOutput = true
             val data = when (body) {
