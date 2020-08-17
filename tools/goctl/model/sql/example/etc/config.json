@@ -2,7 +2,7 @@
   "ServiceName": "model.test",
   "Mode": "console",
   "Mysql": {
-    "DataSource": "root:AQS910422@(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai",
+    "DataSource": "{user}:{password}@(127.0.0.1:3306)/{database}?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai",
     "Table": {
       "User": "user",
       "Course": "user_course"
