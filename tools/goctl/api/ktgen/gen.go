@@ -83,7 +83,7 @@ object {{with .Info}}{{.Title}}{{end}}{
 		val {{with $item}}{{lowCamelCase .Name}}: {{parseType .Type}}{{end}}{{if ne $i (add $length -1)}},{{end}}{{end}}
 	){{end}}
 	{{with .Service}}
-	{{range .Routes}}suspend fun {{pathToFuncName .Path}}({{with .RequestType}}{{if ne .Name ""}}
+	{{range .Routes}}suspend fun {{routeToFuncName .Method .Path}}({{with .RequestType}}{{if ne .Name ""}}
 		req:{{.Name}},{{end}}{{end}}
 		onOk: (({{with .ResponseType}}{{.Name}}{{end}}) -> Unit)? = null,
         onFail: ((String) -> Unit)? = null,
