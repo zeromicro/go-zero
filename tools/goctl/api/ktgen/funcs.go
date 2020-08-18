@@ -5,15 +5,16 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/iancoleman/strcase"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
 var funcsMap = template.FuncMap{
-	"lowCamelCase":   lowCamelCase,
-	"pathToFuncName": pathToFuncName,
-	"parseType":      parseType,
-	"add":            add,
-	"upperCase":      upperCase,
+	"lowCamelCase":    lowCamelCase,
+	"routeToFuncName": routeToFuncName,
+	"parseType":       parseType,
+	"add":             add,
+	"upperCase":       upperCase,
 }
 
 func lowCamelCase(s string) string {
@@ -24,16 +25,16 @@ func lowCamelCase(s string) string {
 	return util.ToLower(s[:1]) + s[1:]
 }
 
-func pathToFuncName(path string) string {
+func routeToFuncName(method, path string) string {
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
 	}
 
 	path = strings.ReplaceAll(path, "/", "_")
 	path = strings.ReplaceAll(path, "-", "_")
+	path = strings.ReplaceAll(path, ":", "With_")
 
-	camel := util.ToCamelCase(path)
-	return util.ToLower(camel[:1]) + camel[1:]
+	return strings.ToLower(method)+strcase.ToCamel(path)
 }
 
 func parseType(t string) string {

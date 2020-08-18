@@ -43,6 +43,7 @@ var mapping = map[string]string{
 	"head":   "http.MethodHead",
 	"post":   "http.MethodPost",
 	"put":    "http.MethodPut",
+	"patch":  "http.MethodPatch",
 }
 
 type (
