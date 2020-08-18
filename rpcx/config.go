@@ -21,19 +21,19 @@ type (
 	}
 
 	RpcClientConf struct {
-		Etcd    discov.EtcdConf `json:",optional"`
-		Server  string          `json:",optional=!Etcd"`
-		App     string          `json:",optional"`
-		Token   string          `json:",optional"`
-		Timeout int64           `json:",optional"`
+		Etcd      discov.EtcdConf `json:",optional"`
+		Endpoints []string        `json:",optional=!Etcd"`
+		App       string          `json:",optional"`
+		Token     string          `json:",optional"`
+		Timeout   int64           `json:",optional"`
 	}
 )
 
-func NewDirectClientConf(server, app, token string) RpcClientConf {
+func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	return RpcClientConf{
-		Server: server,
-		App:    app,
-		Token:  token,
+		Endpoints: endpoints,
+		App:       app,
+		Token:     token,
 	}
 }
 

@@ -38,11 +38,11 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 			return client, nil
 		}
 
-		client, err := NewClient(RpcClientConf{
-			Server: p.backend,
-			App:    cred.App,
-			Token:  cred.Token,
-		}, p.options...)
+		opts := append(p.options, WithDialOption(grpc.WithPerRPCCredentials(&auth.Credential{
+			App:   cred.App,
+			Token: cred.Token,
+		})))
+		client, err := NewClientWithTarget(p.backend, opts...)
 		if err != nil {
 			return nil, err
 		}

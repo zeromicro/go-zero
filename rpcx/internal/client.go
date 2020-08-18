@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/tal-tech/go-zero/rpcx/internal/balancer/p2c"
 	"github.com/tal-tech/go-zero/rpcx/internal/clientinterceptors"
+	"github.com/tal-tech/go-zero/rpcx/internal/resolver"
 	"google.golang.org/grpc"
 )
 
 const dialTimeout = time.Second * 3
+
+func init() {
+	resolver.RegisterResolver()
+}
 
 type (
 	ClientOptions struct {
@@ -18,7 +24,25 @@ type (
 	}
 
 	ClientOption func(options *ClientOptions)
+
+	client struct {
+		conn *grpc.ClientConn
+	}
 )
+
+func NewClient(target string, opts ...ClientOption) (*client, error) {
+	opts = append(opts, WithDialOption(grpc.WithBalancerName(p2c.Name)))
+	conn, err := dial(target, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &client{conn: conn}, nil
+}
+
+func (c *client) Conn() *grpc.ClientConn {
+	return c.conn
+}
 
 func WithDialOption(opt grpc.DialOption) ClientOption {
 	return func(options *ClientOptions) {
