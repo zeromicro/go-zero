@@ -1,11 +1,11 @@
 package ktgen
 
 import (
-	"github.com/iancoleman/strcase"
 	"log"
 	"strings"
 	"text/template"
 
+	"github.com/iancoleman/strcase"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
