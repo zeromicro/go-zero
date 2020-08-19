@@ -73,7 +73,7 @@ true
 
 ## 5. Benchmark
 
-| Sentences | Keywords | Regex    | Go-Zero  |
-|-----------|----------|----------|----------|
-| 10000     | 10000    | 16min10s | 27.2ms   |
+| Sentences | Keywords | Regex    | go-zero |
+| --------- | -------- | -------- | ------- |
+| 10000     | 10000    | 16min10s | 27.2ms  |
 
