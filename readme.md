@@ -182,7 +182,8 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 ## 9. 文档
 
 * [goctl使用帮助](doc/goctl.md)
+* [关键字替换和敏感词过滤工具](doc/keywords.md)
 
-### 微信交流群
+## 10. 微信交流群
 
 添加我的微信：kevwan，请注明go-zero，我拉进go-zero社区群🤝
