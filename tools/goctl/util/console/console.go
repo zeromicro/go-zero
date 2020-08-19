@@ -19,6 +19,13 @@ type (
 	}
 )
 
+func NewConsole(idea bool) Console {
+	if idea {
+		return NewIdeaConsole()
+	}
+	return NewColorConsole()
+}
+
 func NewColorConsole() *colorConsole {
 	return &colorConsole{}
 }

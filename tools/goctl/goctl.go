@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -18,7 +20,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	"github.com/urfave/cli"
 )
 
 var (
@@ -209,7 +210,36 @@ var (
 					Usage: "for idea plugin [optional]",
 				},
 			},
-			Action: command.Mysql,
+			Action: command.MysqlDDL,
+			Subcommands: []cli.Command{
+				{
+					Name:  "datasource",
+					Usage: `generate model from datasource"`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "url",
+							Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
+						},
+						cli.StringFlag{
+							Name:  "table, t",
+							Usage: `source table,tables separated by commas,like "user,course"`,
+						},
+						cli.BoolFlag{
+							Name:  "cache, c",
+							Usage: "generate code with cache [optional]",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: "the target dir",
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "for idea plugin [optional]",
+						},
+					},
+					Action: command.MyDataSource,
+				},
+			},
 		},
 		{
 			Name:  "config",
