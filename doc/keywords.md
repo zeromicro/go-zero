@@ -4,7 +4,7 @@
 
 利用高效的Trie树建立关键词树，如下图所示，然后依次查找字符串中的相连字符是否形成树的一条路径
 
-<img src="images/trie.png" alt="trie" style="zoom:33%;" />
+![trie]<img src="images/trie.png" width="350" />
 
 发现掘金上[这篇文章](https://juejin.im/post/6844903750490914829)写的比较详细，可以一读，具体原理在此不详述。
 
