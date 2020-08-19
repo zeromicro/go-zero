@@ -217,6 +217,7 @@ func TestContentSecurityHandler(t *testing.T) {
 					signature:   test.signature,
 				}
 				req, err := buildRequest(setting)
+				assert.Nil(t, err)
 				resp := httptest.NewRecorder()
 				handler.ServeHTTP(resp, req)
 				assert.Equal(t, test.statusCode, resp.Code)
@@ -249,6 +250,7 @@ func TestContentSecurityHandler_UnsignedCallback(t *testing.T) {
 		signature: "badone",
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -285,6 +287,7 @@ func TestContentSecurityHandler_UnsignedCallback_WrongTime(t *testing.T) {
 		fingerprint: fingerprint,
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)

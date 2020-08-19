@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	freq     = flag.Int("freq", 100, "frequence")
+	freq     = flag.Int("freq", 100, "frequency")
 	duration = flag.String("duration", "10s", "duration")
 )
 
@@ -84,8 +84,8 @@ func (m *metric) reset() counting {
 	return result
 }
 
-func runRequests(url string, frequence int, metrics *metric, done <-chan lang.PlaceholderType) {
-	ticker := time.NewTicker(time.Second / time.Duration(frequence))
+func runRequests(url string, frequency int, metrics *metric, done <-chan lang.PlaceholderType) {
+	ticker := time.NewTicker(time.Second / time.Duration(frequency))
 	defer ticker.Stop()
 
 	for {

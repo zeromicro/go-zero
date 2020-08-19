@@ -13,6 +13,10 @@ import (
 func writeProperty(writer io.Writer, member spec.Member, indent int, prefixForType func(string) string) error {
 	writeIndent(writer, indent)
 	ty, err := goTypeToTs(member.Type, prefixForType)
+	if err != nil {
+		return err
+	}
+
 	optionalTag := ""
 	if member.IsOptional() || member.IsOmitempty() {
 		optionalTag = "?"
@@ -21,13 +25,14 @@ func writeProperty(writer io.Writer, member spec.Member, indent int, prefixForTy
 	if err != nil {
 		return err
 	}
+
 	comment := member.GetComment()
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")
 		comment = " // " + strings.TrimSpace(comment)
 	}
 	if len(member.Docs) > 0 {
-		_, err = fmt.Fprintf(writer, "%s\n", strings.Join(member.Docs, ""))
+		fmt.Fprintf(writer, "%s\n", strings.Join(member.Docs, ""))
 		writeIndent(writer, 1)
 	}
 	_, err = fmt.Fprintf(writer, "%s%s: %s%s\n", name, optionalTag, ty, comment)

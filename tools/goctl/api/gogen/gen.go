@@ -148,7 +148,6 @@ func createGoModFileIfNeed(dir string) {
 		}
 		tempPath = filepath.Dir(tempPath)
 		if util.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
-			tempPath = filepath.Dir(tempPath)
 			hasGoMod = true
 			break
 		}

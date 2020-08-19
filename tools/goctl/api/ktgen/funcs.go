@@ -34,7 +34,7 @@ func routeToFuncName(method, path string) string {
 	path = strings.ReplaceAll(path, "-", "_")
 	path = strings.ReplaceAll(path, ":", "With_")
 
-	return strings.ToLower(method)+strcase.ToCamel(path)
+	return strings.ToLower(method) + strcase.ToCamel(path)
 }
 
 func parseType(t string) string {

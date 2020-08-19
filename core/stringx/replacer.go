@@ -63,11 +63,6 @@ func (r *replacer) Replace(text string) string {
 			i = j - 1
 			builder.WriteString(r.mapping[string(chars[start:end])])
 		} else {
-			if j < size {
-				end = j + 1
-			} else {
-				end = size
-			}
 			builder.WriteRune(chars[i])
 		}
 		start = -1

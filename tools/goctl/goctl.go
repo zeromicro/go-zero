@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -12,6 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/format"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/javagen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
