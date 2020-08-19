@@ -99,8 +99,6 @@ func (s rootState) processToken(token string, annos []spec.Annotation) (state, e
 	switch token {
 	case infoDirective:
 		return newInfoState(s.baseState), nil
-	//case typeDirective:
-	//return newTypeState(s.baseState, annos), nil
 	case serviceDirective:
 		return newServiceState(s.baseState, annos), nil
 	default:

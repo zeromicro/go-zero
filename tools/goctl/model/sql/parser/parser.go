@@ -42,14 +42,17 @@ func Parse(ddl string) (*Table, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	ddlStmt, ok := stmt.(*sqlparser.DDL)
 	if !ok {
 		return nil, unSupportDDL
 	}
+
 	action := ddlStmt.Action
 	if action != sqlparser.CreateStr {
 		return nil, fmt.Errorf("expected [CREATE] action,but found: %s", action)
 	}
+
 	tableName := ddlStmt.NewName.Name.String()
 	tableSpec := ddlStmt.TableSpec
 	if tableSpec == nil {
@@ -58,7 +61,6 @@ func Parse(ddl string) (*Table, error) {
 
 	columns := tableSpec.Columns
 	indexes := tableSpec.Indexes
-
 	keyMap := make(map[string]KeyType)
 	for _, index := range indexes {
 		info := index.Info
@@ -69,6 +71,7 @@ func Parse(ddl string) (*Table, error) {
 			if len(index.Columns) > 1 {
 				return nil, errPrimaryKey
 			}
+
 			keyMap[index.Columns[0].Column.String()] = primary
 			continue
 		}
@@ -91,11 +94,9 @@ func Parse(ddl string) (*Table, error) {
 			keyMap[columnName] = normal
 		}
 	}
-	var (
-		fields     []Field
-		primaryKey Primary
-	)
 
+	var fields []Field
+	var primaryKey Primary
 	for _, column := range columns {
 		if column == nil {
 			continue
@@ -108,6 +109,7 @@ func Parse(ddl string) (*Table, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		var field Field
 		field.Name = stringx.From(column.Name.String())
 		field.DataBaseType = column.Type.Type
@@ -126,10 +128,10 @@ func Parse(ddl string) (*Table, error) {
 		}
 		fields = append(fields, field)
 	}
+
 	return &Table{
 		Name:       stringx.From(tableName),
 		PrimaryKey: primaryKey,
 		Fields:     fields,
 	}, nil
-
 }

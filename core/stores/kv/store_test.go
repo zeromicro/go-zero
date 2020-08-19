@@ -381,7 +381,7 @@ func TestRedis_SortedSet(t *testing.T) {
 		rank, err := client.Zrank("key", "value2")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), rank)
-		rank, err = client.Zrank("key", "value4")
+		_, err = client.Zrank("key", "value4")
 		assert.Equal(t, redis.Nil, err)
 		num, err := client.Zrem("key", "value2", "value3")
 		assert.Nil(t, err)
