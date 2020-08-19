@@ -109,25 +109,25 @@ func TestTrie(t *testing.T) {
 func TestTrieSingleWord(t *testing.T) {
 	trie := NewTrie([]string{
 		"闹",
-	})
+	}, WithMask('#'))
 	output, keywords, ok := trie.Filter("今晚真热闹")
 	assert.ElementsMatch(t, []string{"闹"}, keywords)
 	assert.True(t, ok)
-	assert.Equal(t, "今晚真热*", output)
+	assert.Equal(t, "今晚真热#", output)
 }
 
 func TestTrieOverlap(t *testing.T) {
 	trie := NewTrie([]string{
 		"一二三四五",
 		"二三四五六七八",
-	})
+	}, WithMask('#'))
 	output, keywords, ok := trie.Filter("零一二三四五六七八九十")
 	assert.ElementsMatch(t, []string{
 		"一二三四五",
 		"二三四五六七八",
 	}, keywords)
 	assert.True(t, ok)
-	assert.Equal(t, "零********九十", output)
+	assert.Equal(t, "零########九十", output)
 }
 
 func TestTrieNested(t *testing.T) {
@@ -135,7 +135,7 @@ func TestTrieNested(t *testing.T) {
 		"一二三",
 		"一二三四五",
 		"一二三四五六七八",
-	})
+	}, WithMask('#'))
 	output, keywords, ok := trie.Filter("零一二三四五六七八九十")
 	assert.ElementsMatch(t, []string{
 		"一二三",
@@ -143,7 +143,7 @@ func TestTrieNested(t *testing.T) {
 		"一二三四五六七八",
 	}, keywords)
 	assert.True(t, ok)
-	assert.Equal(t, "零********九十", output)
+	assert.Equal(t, "零########九十", output)
 }
 
 func BenchmarkTrie(b *testing.B) {
