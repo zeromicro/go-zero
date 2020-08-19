@@ -83,7 +83,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 
 	for tableName, code := range modelList {
-		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).Snake2Camel()))
+		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).ToCamel()))
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
 			g.Warning("%s already exists,ignored.", name)

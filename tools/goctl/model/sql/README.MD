@@ -8,7 +8,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 $ goctl model -src ./sql/user.sql -dir ./model -c true
 ```
 
-详情用法请参考[example](https://github.com/tal-tech/go-zero/tools/goctl/model/sql/example)
+详情用法请参考[example](https://github.com/tal-tech/go-zero/tree/master/tools/goctl/model/sql/example)
 
 执行上述命令后即可快速生成CURD代码。
 
@@ -18,7 +18,6 @@ model
 │   └── usermodel.go
 ```
 
-> 注意：这里的目录结构中有usercoursemodel.go目录，在example中我为了体现带cache与不带cache代码的区别，因此将sql文件分别使用了独立的sql文件(user.sql&course.sql)，在实际项目开发中你可以将ddl建表语句放在一个sql文件中，`goctl model`会自动解析并分割，最终按照每个ddl建表语句为单位生成独立的go文件。
 
 * 生成代码示例
   

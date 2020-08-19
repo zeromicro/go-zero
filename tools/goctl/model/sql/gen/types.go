@@ -15,7 +15,7 @@ func genTypes(table Table, withCache bool) (string, error) {
 		Parse(template.Types).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
-			"upperStartCamelObject": table.Name.Snake2Camel(),
+			"upperStartCamelObject": table.Name.ToCamel(),
 			"fields":                fieldsString,
 		})
 	if err != nil {

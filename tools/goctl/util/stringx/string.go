@@ -6,10 +6,6 @@ import (
 	"unicode"
 )
 
-const (
-	emptyString = ""
-)
-
 type (
 	String struct {
 		source string
@@ -31,15 +27,9 @@ func (s String) IsEmptyOrSpace() bool {
 }
 
 func (s String) Lower() string {
-	if s.IsEmptyOrSpace() {
-		return s.source
-	}
 	return strings.ToLower(s.source)
 }
 func (s String) Upper() string {
-	if s.IsEmptyOrSpace() {
-		return s.source
-	}
 	return strings.ToUpper(s.source)
 }
 func (s String) Title() string {
@@ -50,10 +40,7 @@ func (s String) Title() string {
 }
 
 // snake->camel(upper start)
-func (s String) Snake2Camel() string {
-	if s.IsEmptyOrSpace() {
-		return s.source
-	}
+func (s String) ToCamel() string {
 	list := s.splitBy(func(r rune) bool {
 		return r == '_'
 	}, true)
@@ -65,10 +52,7 @@ func (s String) Snake2Camel() string {
 }
 
 // camel->snake
-func (s String) Camel2Snake() string {
-	if s.IsEmptyOrSpace() {
-		return s.source
-	}
+func (s String) ToSnake() string {
 	list := s.splitBy(func(r rune) bool {
 		return unicode.IsUpper(r)
 	}, false)
@@ -80,7 +64,7 @@ func (s String) Camel2Snake() string {
 }
 
 // return original string if rune is not letter at index 0
-func (s String) LowerStart() string {
+func (s String) UnTitle() string {
 	if s.IsEmptyOrSpace() {
 		return s.source
 	}

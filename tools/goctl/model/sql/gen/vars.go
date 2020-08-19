@@ -13,12 +13,12 @@ func genVars(table Table, withCache bool) (string, error) {
 	for _, v := range table.CacheKey {
 		keys = append(keys, v.VarExpression)
 	}
-	camel := table.Name.Snake2Camel()
+	camel := table.Name.ToCamel()
 	output, err := templatex.With("var").
 		Parse(template.Vars).
 		GoFmt(true).
 		Execute(map[string]interface{}{
-			"lowerStartCamelObject": stringx.From(camel).LowerStart(),
+			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
 			"upperStartCamelObject": camel,
 			"cacheKeys":             strings.Join(keys, "\r\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,
