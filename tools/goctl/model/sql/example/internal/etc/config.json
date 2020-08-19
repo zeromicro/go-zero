@@ -1,11 +1,10 @@
 {
-  "ServiceName": "model.test",
+  "ServiceName": "user.api",
   "Mode": "console",
   "Mysql": {
     "DataSource": "{user}:{password}@(127.0.0.1:3306)/{database}?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai",
     "Table": {
-      "User": "user",
-      "Course": "user_course"
+      "User": "user"
     }
   },
   "CacheRedis": [
@@ -14,10 +13,5 @@
       "Type": "node",
       "Pass": ""
     }
-  ],
-  "Redis": {
-    "Host": "127.0.0.1:6379",
-    "Type": "node",
-    "Pass": ""
-  }
+  ]
 }

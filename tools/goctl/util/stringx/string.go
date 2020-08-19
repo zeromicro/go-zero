@@ -19,6 +19,7 @@ type (
 func From(data string) String {
 	return String{source: data}
 }
+
 func (s String) IsEmptyOrSpace() bool {
 	if len(s.source) == 0 {
 		return true
@@ -116,30 +117,10 @@ func (s String) splitBy(fn func(r rune) bool, remove bool) []string {
 	return list
 }
 
-func (s String) Replace(old, new string) string {
-	return strings.ReplaceAll(s.source, old, new)
-}
-
 func (s String) ReplaceAll(old, new string) string {
 	return strings.ReplaceAll(s.source, old, new)
 }
 
 func (s String) Source() string {
 	return s.source
-}
-
-func Title(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-
-	return strings.ToUpper(s[:1]) + s[1:]
-}
-
-func Untitle(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-
-	return strings.ToLower(s[:1]) + s[1:]
 }
