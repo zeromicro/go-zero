@@ -25,7 +25,7 @@ PPT是吹牛最好的语言！
 
 示例代码见`example/stringx/replace/replace.go`
 
-## 3. 敏感词过滤
+## 3. 查找敏感词
 
 ```go
 filter := stringx.NewTrie([]string{
@@ -34,7 +34,27 @@ filter := stringx.NewTrie([]string{
   "AV",
   "日本AV女优",
   "AV演员色情",
-}, stringx.WithMask('?'))
+})
+keywords := filter.FindKeywords("日本AV演员兼电视、电影演员。苍井空AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演")
+fmt.Println(keywords)
+```
+
+可以得到：
+
+```
+[苍井空 日本AV女优 AV演员色情 AV AV演员]
+```
+
+## 4. 敏感词过滤
+
+```go
+filter := stringx.NewTrie([]string{
+  "AV演员",
+  "苍井空",
+  "AV",
+  "日本AV女优",
+  "AV演员色情",
+}, stringx.WithMask('?')) // 默认替换为*
 safe, keywords, found := filter.Filter("日本AV演员兼电视、电影演员。苍井空AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演")
 fmt.Println(safe)
 fmt.Println(keywords)
@@ -51,7 +71,7 @@ true
 
 示例代码见`example/stringx/filter/filter.go`
 
-## 4. Benchmark
+## 5. Benchmark
 
 | Sentences | Keywords | Regex    | Go-Zero  |
 |-----------|----------|----------|----------|
