@@ -1,4 +1,4 @@
-package sqltemplate
+package template
 
 var Model = `package model
 {{.imports}}

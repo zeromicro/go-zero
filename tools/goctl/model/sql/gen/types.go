@@ -1,30 +1,25 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
-	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genTypes(table *InnerTable) (string, error) {
+func genTypes(table Table, withCache bool) (string, error) {
 	fields := table.Fields
-	t, err := template.New("types").Parse(sqltemplate.Types)
-	if err != nil {
-		return "", nil
-	}
-	var typeBuffer = new(bytes.Buffer)
 	fieldsString, err := genFields(fields)
 	if err != nil {
 		return "", err
 	}
-	err = t.Execute(typeBuffer, map[string]interface{}{
-		"upperObject":   table.UpperCamelCase,
-		"containsCache": table.ContainsCache,
-		"fields":        fieldsString,
-	})
+	output, err := templatex.With("types").
+		Parse(template.Types).
+		Execute(map[string]interface{}{
+			"withCache":             withCache,
+			"upperStartCamelObject": table.Name.Snake2Camel(),
+			"fields":                fieldsString,
+		})
 	if err != nil {
 		return "", err
 	}
-	return typeBuffer.String(), nil
+	return output.String(), nil
 }

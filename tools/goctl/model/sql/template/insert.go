@@ -1,9 +1,8 @@
-package sqltemplate
+package template
 
 var Insert = `
-func (m *{{.upperObject}}Model) Insert(data {{.upperObject}}) error {
-	query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "`(` + " + `{{.lowerObject}}RowsExpectAutoSet` + " + `) value ({{.expression}})` " + `
-	_, err := m.ExecNoCache(query, {{.expressionValues}})
-	return err
+func (m *{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}) (sql.Result, error) {
+	query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "`(` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) value ({{.expression}})` " + `
+	return m.{{if .withCache}}ExecNoCache{{else}}conn.Exec{{end}}(query, {{.expressionValues}})
 }
 `

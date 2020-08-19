@@ -1,67 +1,41 @@
 package gen
 
 import (
-	"bytes"
+	"fmt"
 	"strings"
-	"text/template"
 
-	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genFineOneByField(table *InnerTable) (string, error) {
-	t, err := template.New("findOneByField").Parse(sqltemplate.FindOneByField)
-	if err != nil {
-		return "", err
-	}
-	list := make([]string, 0)
+func genFineOneByField(table Table, withCache bool) (string, error) {
+	t := templatex.With("findOneByField").Parse(template.FindOneByField)
+	var list []string
+	camelTableName := table.Name.Snake2Camel()
 	for _, field := range table.Fields {
-		if field.IsPrimaryKey {
+		if field.IsPrimaryKey || !field.IsKey {
 			continue
 		}
-		if field.QueryType != QueryOne {
-			continue
-		}
-		fineOneByFieldBuffer := new(bytes.Buffer)
-		upperFields := make([]string, 0)
-		in := make([]string, 0)
-		expressionFields := make([]string, 0)
-		expressionValuesFields := make([]string, 0)
-		upperFields = append(upperFields, field.UpperCamelCase)
-		in = append(in, field.LowerCamelCase+" "+field.DataType)
-		expressionFields = append(expressionFields, field.SnakeCase+" = ?")
-		expressionValuesFields = append(expressionValuesFields, field.LowerCamelCase)
-		for _, withField := range field.WithFields {
-			upperFields = append(upperFields, withField.UpperCamelCase)
-			in = append(in, withField.LowerCamelCase+" "+withField.DataType)
-			expressionFields = append(expressionFields, withField.SnakeCase+" = ?")
-			expressionValuesFields = append(expressionValuesFields, withField.LowerCamelCase)
-		}
-		err = t.Execute(fineOneByFieldBuffer, map[string]interface{}{
-			"in":                    strings.Join(in, ","),
-			"upperObject":           table.UpperCamelCase,
-			"upperFields":           strings.Join(upperFields, "And"),
-			"onlyOneFiled":          len(field.WithFields) == 0,
-			"withCache":             field.Cache,
-			"containsCache":         table.ContainsCache,
-			"lowerObject":           table.LowerCamelCase,
-			"lowerField":            field.LowerCamelCase,
-			"snakeField":            field.SnakeCase,
-			"lowerPrimaryKey":       table.PrimaryField.LowerCamelCase,
-			"UpperPrimaryKey":       table.PrimaryField.UpperCamelCase,
-			"primaryKeyDefine":      table.CacheKey[table.PrimaryField.SnakeCase].Define,
-			"primarySnakeField":     table.PrimaryField.SnakeCase,
-			"primaryDataType":       table.PrimaryField.DataType,
-			"primaryDataTypeString": table.PrimaryField.DataType == "string",
-			"upperObjectKey":        table.PrimaryField.UpperCamelCase,
-			"cacheKey":              table.CacheKey[field.SnakeCase].Key,
-			"cacheKeyVariable":      table.CacheKey[field.SnakeCase].KeyVariable,
-			"expression":            strings.Join(expressionFields, " AND "),
-			"expressionValues":      strings.Join(expressionValuesFields, ", "),
+		camelFieldName := field.Name.Snake2Camel()
+		output, err := t.Execute(map[string]interface{}{
+			"upperStartCamelObject":     camelTableName,
+			"upperField":                camelFieldName,
+			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).LowerStart(), field.DataType),
+			"withCache":                 withCache,
+			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
+			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
+			"primaryKeyLeft":            table.CacheKey[table.PrimaryKey.Name.Source()].Left,
+			"lowerStartCamelObject":     stringx.From(camelTableName).LowerStart(),
+			"lowerStartCamelField":      stringx.From(camelFieldName).LowerStart(),
+			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.Snake2Camel(),
+			"originalField":             field.Name.Source(),
+			"originalPrimaryField":      table.PrimaryKey.Name.Source(),
 		})
 		if err != nil {
 			return "", err
 		}
-		list = append(list, fineOneByFieldBuffer.String())
+		list = append(list, output.String())
 	}
-	return strings.Join(list, ""), nil
+	return strings.Join(list, "\n"), nil
 }

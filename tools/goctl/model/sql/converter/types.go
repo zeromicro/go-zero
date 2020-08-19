@@ -1,19 +1,25 @@
-package model
+package converter
+
+import (
+	"fmt"
+	"strings"
+)
 
 var (
-	CommonMysqlDataTypeMap = map[string]string{
-		"tinyint":    "int",
-		"smallint":   "int",
+	commonMysqlDataTypeMap = map[string]string{
+		// For consistency, all integer types are converted to int64
+		"tinyint":    "int64",
+		"smallint":   "int64",
 		"mediumint":  "int64",
 		"int":        "int64",
 		"integer":    "int64",
 		"bigint":     "int64",
-		"float":      "float32",
+		"float":      "float64",
 		"double":     "float64",
 		"decimal":    "float64",
 		"date":       "time.Time",
 		"time":       "string",
-		"year":       "int",
+		"year":       "int64",
 		"datetime":   "time.Time",
 		"timestamp":  "time.Time",
 		"char":       "string",
@@ -29,6 +35,12 @@ var (
 	}
 )
 
-const (
-	ModeDirPerm = 0755
-)
+func ConvertDataType(dataBaseType string) (goDataType string, err error) {
+	tp, ok := commonMysqlDataTypeMap[strings.ToLower(dataBaseType)]
+	if !ok {
+		err = fmt.Errorf("unexpected database type: %s", dataBaseType)
+		return
+	}
+	goDataType = tp
+	return
+}

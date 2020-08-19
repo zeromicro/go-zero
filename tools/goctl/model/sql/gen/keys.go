@@ -1,105 +1,50 @@
 package gen
 
 import (
-	"bytes"
-	"strings"
-	"text/template"
-)
+	"fmt"
 
-var (
-	cacheKeyExpressionTemplate = `cache{{.upperCamelTable}}{{.upperCamelField}}Prefix = "cache#{{.lowerCamelTable}}#{{.lowerCamelField}}#"`
-	keyTemplate                = `{{.lowerCamelField}}Key := fmt.Sprintf("%s%v", {{.define}}, {{.lowerCamelField}})`
-	keyRespTemplate            = `{{.lowerCamelField}}Key := fmt.Sprintf("%s%v", {{.define}}, resp.{{.upperCamelField}})`
-	keyDataTemplate            = `{{.lowerCamelField}}Key := fmt.Sprintf("%s%v", {{.define}}, data.{{.upperCamelField}})`
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 type (
+	// tableName:user
+	// {{prefix}}=cache
+	// key:id
 	Key struct {
-		Define      string // cacheKey define,如：cacheUserUserIdPrefix
-		Value       string // cacheKey value expression,如：cache#user#userId#
-		Expression  string // cacheKey expression，如:cacheUserUserIdPrefix="cache#user#userId#"
-		KeyVariable string // cacheKey 声明变量，如：userIdKey
-		Key         string // 缓存key的代码,如 userIdKey:=fmt.Sprintf("%s%v", cacheUserUserIdPrefix, userId)
-		DataKey     string // 缓存key的代码,如 userIdKey:=fmt.Sprintf("%s%v", cacheUserUserIdPrefix, data.userId)
-		RespKey     string // 缓存key的代码,如 userIdKey:=fmt.Sprintf("%s%v", cacheUserUserIdPrefix, resp.userId)
+		VarExpression     string // cacheUserIdPrefix="cache#user#id#"
+		Left              string // cacheUserIdPrefix
+		Right             string // cache#user#id#
+		Variable          string // userIdKey
+		KeyExpression     string // userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
+		DataKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
+		RespKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
 	}
 )
 
-// key-数据库原始字段名,value-缓存key对象
-func genCacheKeys(table *InnerTable) (map[string]Key, error) {
+// key-数据库原始字段名,value-缓存key相关数据
+func genCacheKeys(table parser.Table) (map[string]Key, error) {
 	fields := table.Fields
-	var m = make(map[string]Key)
-	if !table.ContainsCache {
-		return m, nil
-	}
+	m := make(map[string]Key)
+	camelTableName := table.Name.Snake2Camel()
+	lowerStartCamelTableName := stringx.From(camelTableName).LowerStart()
 	for _, field := range fields {
-		if !field.Cache && !field.IsPrimaryKey {
+		if !field.IsKey {
 			continue
 		}
-		t, err := template.New("keyExpression").Parse(cacheKeyExpressionTemplate)
-		if err != nil {
-			return nil, err
-		}
-		var expressionBuffer = new(bytes.Buffer)
-		err = t.Execute(expressionBuffer, map[string]string{
-			"upperCamelTable": table.UpperCamelCase,
-			"lowerCamelTable": table.LowerCamelCase,
-			"upperCamelField": field.UpperCamelCase,
-			"lowerCamelField": field.LowerCamelCase,
-		})
-		if err != nil {
-			return nil, err
-		}
-		expression := expressionBuffer.String()
-		expressionAr := strings.Split(expression, "=")
-		define := strings.TrimSpace(expressionAr[0])
-		value := strings.TrimSpace(expressionAr[1])
-		t, err = template.New("key").Parse(keyTemplate)
-		if err != nil {
-			return nil, err
-		}
-		var keyBuffer = new(bytes.Buffer)
-		err = t.Execute(keyBuffer, map[string]string{
-			"lowerCamelField": field.LowerCamelCase,
-			"define":          define,
-		})
-		if err != nil {
-			return nil, err
-		}
-		t, err = template.New("keyData").Parse(keyDataTemplate)
-		if err != nil {
-			return nil, err
-		}
-		var keyDataBuffer = new(bytes.Buffer)
-		err = t.Execute(keyDataBuffer, map[string]string{
-			"lowerCamelField": field.LowerCamelCase,
-			"upperCamelField": field.UpperCamelCase,
-			"define":          define,
-		})
-		if err != nil {
-			return nil, err
-		}
-		t, err = template.New("keyResp").Parse(keyRespTemplate)
-		if err != nil {
-			return nil, err
-		}
-		var keyRespBuffer = new(bytes.Buffer)
-		err = t.Execute(keyRespBuffer, map[string]string{
-			"lowerCamelField": field.LowerCamelCase,
-			"upperCamelField": field.UpperCamelCase,
-			"define":          define,
-		})
-		if err != nil {
-			return nil, err
-		}
-		m[field.SnakeCase] = Key{
-			Define:      define,
-			Value:       value,
-			Expression:  expression,
-			KeyVariable: field.LowerCamelCase + "Key",
-			Key:         keyBuffer.String(),
-			DataKey:     keyDataBuffer.String(),
-			RespKey:     keyRespBuffer.String(),
+		camelFieldName := field.Name.Snake2Camel()
+		lowerStartCamelFieldName := stringx.From(camelFieldName).LowerStart()
+		left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
+		right := fmt.Sprintf("cache#%s#%s#", camelTableName, lowerStartCamelFieldName)
+		variable := fmt.Sprintf("%s%sKey", lowerStartCamelTableName, camelFieldName)
+		m[field.Name.Source()] = Key{
+			VarExpression:     fmt.Sprintf(`%s = "%s"`, left, right),
+			Left:              left,
+			Right:             right,
+			Variable:          variable,
+			KeyExpression:     fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,%s)`, variable, "%s", "%v", left, lowerStartCamelFieldName),
+			DataKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s",%s, data.%s)`, variable, "%s", "%v", left, camelFieldName),
+			RespKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,resp.%s)`, variable, "%s", "%v", left, camelFieldName),
 		}
 	}
 	return m, nil

@@ -1,37 +1,39 @@
 package gen
 
 import (
-	"bytes"
 	"strings"
-	"text/template"
 
-	sqltemplate "github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
-func genInsert(table *InnerTable) (string, error) {
-	t, err := template.New("insert").Parse(sqltemplate.Insert)
-	if err != nil {
-		return "", nil
-	}
-	insertBuffer := new(bytes.Buffer)
+func genInsert(table Table, withCache bool) (string, error) {
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
 	for _, filed := range table.Fields {
-		if filed.SnakeCase == "create_time" || filed.SnakeCase == "update_time" || filed.IsPrimaryKey {
+		camel := filed.Name.Snake2Camel()
+		if camel == "CreateTime" || camel == "UpdateTime" {
+			continue
+		}
+		if filed.IsPrimaryKey && table.PrimaryKey.AutoIncrement {
 			continue
 		}
 		expressions = append(expressions, "?")
-		expressionValues = append(expressionValues, "data."+filed.UpperCamelCase)
+		expressionValues = append(expressionValues, "data."+camel)
 	}
-	err = t.Execute(insertBuffer, map[string]interface{}{
-		"upperObject":      table.UpperCamelCase,
-		"lowerObject":      table.LowerCamelCase,
-		"expression":       strings.Join(expressions, ", "),
-		"expressionValues": strings.Join(expressionValues, ", "),
-		"containsCache":    table.ContainsCache,
-	})
+	camel := table.Name.Snake2Camel()
+	output, err := templatex.With("insert").
+		Parse(template.Insert).
+		Execute(map[string]interface{}{
+			"withCache":             withCache,
+			"upperStartCamelObject": camel,
+			"lowerStartCamelObject": stringx.From(camel).LowerStart(),
+			"expression":            strings.Join(expressions, ", "),
+			"expressionValues":      strings.Join(expressionValues, ", "),
+		})
 	if err != nil {
 		return "", err
 	}
-	return insertBuffer.String(), nil
+	return output.String(), nil
 }

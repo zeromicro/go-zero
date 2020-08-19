@@ -1,430 +1,253 @@
-<div style="text-align: center;"><h1>Sql生成工具说明文档</h1></div>
+# Goctl Model
 
-<h2>前言</h2>
-在当前Sql代码生成工具是基于sqlc生成的逻辑。
+goctl model 为go-zero下的工具模块中的组件之一，目前支持识别mysql ddl进行model层代码生成，通过命令行或者idea插件（即将支持）可以有选择地生成带redis cache或者不带redis cache的代码逻辑。
 
-<h2>关键字</h2>
+# 快速开始
 
-+ 查询类型(前暂不支持同一字段多种类型混合生成，如按照campus_id查询单结果又查询All或者Limit)
-  - 单结果查询
-    - FindOne(主键特有)
-    - FindOneByXxx
-  - 多结果查询
-    - FindAllByXxx
-    - FindLimitByXxx
-- withCache
-- withoutCache
+```
+$ goctl model -src ./sql/user.sql -dir ./model -c true
+```
 
-<h2>准备工作</h2>
+详情用法请参考[example](https://github.com/tal-tech/go-zero/tools/goctl/model/sql/example)
 
-- table
+执行上述命令后即可快速生成CURD代码。
 
-    ```
-    CREATE TABLE `user_info` (
-    `id` bigint(20) NOT NULL COMMENT '主键',
-    `campus_id` bigint(20) DEFAULT NULL COMMENT '整校id',
-    `name` varchar(255) DEFAULT NULL COMMENT '用户姓名',
-    `id_number` varchar(255) DEFAULT NULL COMMENT '身份证',
-    `age` int(10) DEFAULT NULL COMMENT '年龄',
-    `gender` tinyint(1) DEFAULT NULL COMMENT '性别，0-男，1-女，2-不限',
-    `mobile` varchar(20) DEFAULT NULL COMMENT '手机号',
-    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-    ```
+```
+model
+│   ├── error.go
+│   └── usermodel.go
+```
 
-<h2>imports生成</h2>
-imports代码生成对应model中包的引入管理，仅使用于晓黑板项目中（非相对路径动态生成），目前受`withCache`参数的影响，除此之外其实为固定代码。
+> 注意：这里的目录结构中有usercoursemodel.go目录，在example中我为了体现带cache与不带cache代码的区别，因此将sql文件分别使用了独立的sql文件(user.sql&course.sql)，在实际项目开发中你可以将ddl建表语句放在一个sql文件中，`goctl model`会自动解析并分割，最终按照每个ddl建表语句为单位生成独立的go文件。
 
-- withCache
+* 生成代码示例
   
-    ```
+  ``` go
+    package model
+    
     import (
-        "database/sql""fmt"
-        "strings"
-        "time"
-
-        "github.com/tal-tech/go-zero/core/stores/sqlc"
-        "github.com/tal-tech/go-zero/core/stores/sqlx"
-        "github.com/tal-tech/go-zero/core/stringx"
-        "xiao/service/shared/builderx"
+    	"database/sql"
+    	"fmt"
+    	"strings"
+    	"time"
+    
+    	"github.com/tal-tech/go-zero/core/stores/cache"
+    	"github.com/tal-tech/go-zero/core/stores/sqlc"
+    	"github.com/tal-tech/go-zero/core/stores/sqlx"
+    	"github.com/tal-tech/go-zero/core/stringx"
+    	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
     )
-    ```
+    
+    var (
+    	userFieldNames          = builderx.FieldNames(&User{})
+    	userRows                = strings.Join(userFieldNames, ",")
+    	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), ",")
+    	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
+    
+    	cacheUserMobilePrefix = "cache#User#mobile#"
+    	cacheUserIdPrefix     = "cache#User#id#"
+    	cacheUserNamePrefix   = "cache#User#name#"
+    )
+    
+    type (
+    	UserModel struct {
+    		sqlc.CachedConn
+    		table string
+    	}
+    
+    	User struct {
+    		Id         int64     `db:"id"`
+    		Name       string    `db:"name"`     // 用户名称
+    		Password   string    `db:"password"` // 用户密码
+    		Mobile     string    `db:"mobile"`   // 手机号
+    		Gender     string    `db:"gender"`   // 男｜女｜未公开
+    		Nickname   string    `db:"nickname"` // 用户昵称
+    		CreateTime time.Time `db:"create_time"`
+    		UpdateTime time.Time `db:"update_time"`
+    	}
+    )
+    
+    func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf, table string) *UserModel {
+    	return &UserModel{
+    		CachedConn: sqlc.NewConn(conn, c),
+    		table:      table,
+    	}
+    }
+    
+    func (m *UserModel) Insert(data User) (sql.Result, error) {
+    	query := `insert into ` + m.table + `(` + userRowsExpectAutoSet + `) value (?, ?, ?, ?, ?)`
+    	return m.ExecNoCache(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname)
+    }
+    
+    func (m *UserModel) FindOne(id int64) (*User, error) {
+    	userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)
+    	var resp User
+    	err := m.QueryRow(&resp, userIdKey, func(conn sqlx.SqlConn, v interface{}) error {
+    		query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
+    		return conn.QueryRow(v, query, id)
+    	})
+    	switch err {
+    	case nil:
+    		return &resp, nil
+    	case sqlc.ErrNotFound:
+    		return nil, ErrNotFound
+    	default:
+    		return nil, err
+    	}
+    }
+    
+    func (m *UserModel) FindOneByName(name string) (*User, error) {
+    	userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, name)
+    	var resp User
+    	err := m.QueryRowIndex(&resp, userNameKey, func(primary interface{}) string {
+    		return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
+    	}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+    		query := `select ` + userRows + ` from ` + m.table + ` where name = ? limit 1`
+    		if err := conn.QueryRow(&resp, query, name); err != nil {
+    			return nil, err
+    		}
+    		return resp.Id, nil
+    	}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+    		query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
+    		return conn.QueryRow(v, query, primary)
+    	})
+    	switch err {
+    	case nil:
+    		return &resp, nil
+    	case sqlc.ErrNotFound:
+    		return nil, ErrNotFound
+    	default:
+    		return nil, err
+    	}
+    }
+    
+    func (m *UserModel) FindOneByMobile(mobile string) (*User, error) {
+    	userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, mobile)
+    	var resp User
+    	err := m.QueryRowIndex(&resp, userMobileKey, func(primary interface{}) string {
+    		return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
+    	}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+    		query := `select ` + userRows + ` from ` + m.table + ` where mobile = ? limit 1`
+    		if err := conn.QueryRow(&resp, query, mobile); err != nil {
+    			return nil, err
+    		}
+    		return resp.Id, nil
+    	}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+    		query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
+    		return conn.QueryRow(v, query, primary)
+    	})
+    	switch err {
+    	case nil:
+    		return &resp, nil
+    	case sqlc.ErrNotFound:
+    		return nil, ErrNotFound
+    	default:
+    		return nil, err
+    	}
+    }
+    
+    func (m *UserModel) Update(data User) error {
+    	userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)
+    	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+    		query := `update ` + m.table + ` set ` + userRowsWithPlaceHolder + ` where id = ?`
+    		return conn.Exec(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.Id)
+    	}, userIdKey)
+    	return err
+    }
+    
+    func (m *UserModel) Delete(id int64) error {
+    	data, err := m.FindOne(id)
+    	if err != nil {
+    		return err
+    	}
+    	userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)
+    	userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, data.Name)
+    	userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, data.Mobile)
+    	_, err = m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+    		query := `delete from ` + m.table + ` where id = ?`
+    		return conn.Exec(query, id)
+    	}, userIdKey, userNameKey, userMobileKey)
+    	return err
+    }
+  ```
 
-- withoutCache
+# 用法
+
+```
+$ goctl model -h
+```
+
+```
+NAME:
+   goctl model - generate model code
+
+USAGE:
+   goctl model [command options] [arguments...]
+
+OPTIONS:
+   --src value, -s value  the file path of the ddl source file
+   --dir value, -d value  the target dir
+   --cache, -c            generate code with cache [optional]
+   --idea                 for idea plugin [optional]
+
+```
+
+# 生成规则
+
+* 默认规则
   
-    ```
-    import (
-        "database/sql""fmt"
-        "strings"
-        "time"
-
-        "github.com/tal-tech/go-zero/core/stores/sqlx"
-        "github.com/tal-tech/go-zero/core/stringx"
-        "xiao/service/shared/builderx"
-    )
-    ```
-
-<h2>vars生成</h2>
-
-vars部分对应model中var声明的包含的代码块,由`table`名和`withCache`来决定其中的代码生成内容，`withCache`决定是否要生成缓存key变量的声明。
-
-- withCache
+  我们默认用户在建表时会创建createTime、updateTime字段(忽略大小写、下划线命名风格)且默认值均为`CURRENT_TIMESTAMP`，而updateTime支持`ON UPDATE CURRENT_TIMESTAMP`，对于这两个字段生成`insert`、`update`时会被移除，不在赋值范畴内，当然，如果你不需要这两个字段那也无大碍。
+* 带缓存模式
 
     ```
-    var (
-        UserInfoFieldNames          = builderx.FieldNames(&UserInfo{})
-        UserInfoRows                = strings.Join(UserInfoFieldNames, ",")
-        UserInfoRowsExpectAutoSet   = strings.Join(stringx.Remove(UserInfoFieldNames, "id", "create_time", "update_time"), ",")
-        UserInfoRowsWithPlaceHolder = strings.Join(stringx.Remove(UserInfoFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
-    
-        cacheUserInfoIdPrefix = "cache#userInfo#id#"
-        cacheUserInfoCampusIdPrefix = "cache#userInfo#campusId#"
-        cacheUserInfoNamePrefix = "cache#userInfo#name#"
-        cacheUserInfoMobilePrefix = "cache#userInfo#mobile#"
-    )
+    $ goctl model -src {filename} -dir {dir} -cache true
     ```
+  
+  目前仅支持redis缓存，如果选择带缓存模式，即生成的`FindOne(ByXxx)`&`Delete`代码会生成带缓存逻辑的代码，目前仅支持单索引字段（除全文索引外），对于联合索引我们默认认为不需要带缓存，且不属于通用型代码，因此没有放在代码生成行列，如example中user表中的`id`、`name`、`mobile`字段均属于单字段索引。
 
-- withoutCache
+* 不带缓存模式
+  
+  ```
+    $ goctl model -src {filename} -dir {dir} 
+  ```
+  or
+  ```
+    $ goctl model -src {filename} -dir {dir} -cache false
+  ```
+  生成代码仅基本的CURD结构。
 
-    ```
-    var (
-        UserInfoFieldNames          = builderx.FieldNames(&UserInfo{})
-        UserInfoRows                = strings.Join(UserInfoFieldNames, ",")
-        UserInfoRowsExpectAutoSet   = strings.Join(stringx.Remove(UserInfoFieldNames, "id", "create_time", "update_time"), ",")
-        UserInfoRowsWithPlaceHolder = strings.Join(stringx.Remove(UserInfoFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
-    )
-    ```
+# 缓存
 
-<h2>types生成</h2>
+  对于缓存这一块我选择用一问一答的形式进行罗列。我想这样能够更清晰的描述model中缓存的功能。
 
-ypes部分对应model中type声明的包含的代码块,由`table`名和`withCache`来决定其中的代码生成内容，`withCache`决定引入sqlc还是sqlx。
+* 缓存会缓存哪些信息？
 
-- withCache
-    ```
-    type (
-        UserInfoModel struct {
-            conn  sqlc.CachedConn
-            table string
-        }
+  对于主键字段缓存，会缓存整个结构体信息，而对于单索引字段（除全文索引）则缓存主键字段值。
 
-        UserInfo struct {
-            Id int64 `db:"id"` // 主键id
-            CampusId int64 `db:"campus_id"` // 整校id
-            Name string `db:"name"` // 用户姓名
-            IdNumber string `db:"id_number"` // 身份证
-            Age int64 `db:"age"` // 年龄
-            Gender int64 `db:"gender"` // 性别，0-男，1-女，2-不限
-            Mobile string `db:"mobile"` // 手机号
-            CreateTime time.Time `db:"create_time"` // 创建时间
-            UpdateTime time.Time `db:"update_time"` // 更新时间
-        }
-    )    
-    ```
+* 数据有更新（`update`）操作会清空缓存吗？
+  
+  会，但仅清空主键缓存的信息，why？这里就不做详细赘述了。
 
-- withoutCache
-    ```
-    type (
-        UserInfoModel struct {
-            conn  sqlx.SqlConn
-            table string
-        }
+* 为什么不按照单索引字段生成`updateByXxx`和`deleteByXxx`的代码？
+  
+  理论上是没任何问题，但是我们认为，对于model层的数据操作均是以整个结构体为单位，包括查询，我不建议只查询某部分字段（不反对），否则我们的缓存就没有意义了。
 
-        UserInfo struct {
-            Id int64 `db:"id"` // 主键id
-            CampusId int64 `db:"campus_id"` // 整校id
-            Name string `db:"name"` // 用户姓名
-            IdNumber string `db:"id_number"` // 身份证
-            Age int64 `db:"age"` // 年龄
-            Gender int64 `db:"gender"` // 性别，0-男，1-女，2-不限
-            Mobile string `db:"mobile"` // 手机号
-            CreateTime time.Time `db:"create_time"` // 创建时间
-            UpdateTime time.Time `db:"update_time"` // 更新时间
-        }
-    )
-    ```
-<h2>New生成</h2>
-new生成对应model中struct的New函数，受`withCache`影响决定是否要引入cacheRedis
+* 为什么不支持`findPageLimit`、`findAll`这么模式代码生层？
+  
+  目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
-- withCache
-    ```
-    func NewUserInfoModel(conn sqlx.SqlConn, c cache.CacheConf, table string) *UserInfoModel {
-        return &UserInfoModel{
-            CachedConn: sqlc.NewConn(conn, c),
-            table:      table,
-        }
-    }
-    ```
-- withoutCache
-    ```
-    func NewUserInfoModel(conn sqlx.SqlConn, table string) *UserInfoModel {
-	    return &UserInfoModel{conn: conn, table: table}
-    }
-    ```
+# QA
+
+* goctl model支持根据数据库连接后选择表生成代码吗？
+  
+  目前暂时不支持，在后面会向这个方向扩展。
+
+* goctl model除了命令行模式，支持插件模式吗？
+
+  很快支持idea插件。
 
 
-<h2>FindOne查询生成</h2>
-FindOne查询代码生成仅对主键有效。如`user_info`中生成的FindOne如下：
+  
 
-- withCache
 
-    ```
-    func (m *UserInfoModel) FindOne(id int64) (*UserInfo, error) {
-        idKey := fmt.Sprintf("%s%v", cacheUserInfoIdPrefix, id)
-        var resp UserInfo
-        err := m.QueryRow(&resp, idKey, func(conn sqlx.SqlConn, v interface{}) error {
-            query := `select ` + userInfoRows + ` from ` + m.table  + `where id = ? limit 1`
-            return conn.QueryRow(v, query, id)
-        })
-        switch err {
-        case nil:
-            return &resp, nil
-        case sqlc.ErrNotFound:
-            return nil, ErrNotFound
-        default:
-            return nil, err
-        }
-    }
-    ```
-
-- withoutCache
-
-    ```
-    func (m *UserInfoModel) FindOne(id int64) (*UserInfo, error) {
-        
-        query := `select ` + userInfoRows + ` from ` + m.table  + `where id = ? limit 1`
-        var resp UserInfo
-        err := m.conn.QueryRow(&resp, query, id)
-        switch err {
-        case nil:
-            return &resp, nil
-        case sqlx.ErrNotFound:
-            return nil, ErrNotFound
-        default:
-            return nil, err
-        
-    }
-    ```
-
-<h2>FindOneByXxx查询生成</h2>
-
-FindOneByXxx查询生成可以按照单个字段查询、多个字段以AND关系且表达式符号为`=`的查询（下称：组合查询）,对除主键之外的字段有效，对于单个字段可以用`withCache`来控制是否需要缓存，这里的缓存只缓存主键，并不缓存整个struct，注意：这里有一个隐藏的规则，如果单个字段查询需要cache，那么主键一定有cache；多个字段组成的`组合查询`一律没有缓存处理,<strong><i>且组合查询不能相互嵌套</i></strong>，否则会报`circle query with other fields`错误，下面我们按场景来依次查看对应代码生成后的示例。
-
->注：目前暂不支持除equals之外的条件查询。
-
-+ 单字段查询  
-    以name查询为例
-    - withCache
-        ```
-        func (m *UserInfoModel) FindOneByName(name string) (*UserInfo, error) {
-            nameKey := fmt.Sprintf("%s%v", cacheUserInfoNamePrefix, name)
-            var id string
-            err := m.GetCache(key, &id)
-            if err != nil {
-                return nil, err
-            }
-            if id != "" {
-                return m.FindOne(id)
-            }
-            var resp UserInfo
-            query := `select ` + userInfoRows + ` from ` + m.table  + `where name = ? limit 1`
-            err = m.QueryRowNoCache(&resp, query, name)
-            switch err {
-            case nil:
-                err = m.SetCache(nameKey, resp.Id)
-                if err != nil {
-                    logx.Error(err)
-                }
-                return &resp, nil
-            case sqlc.ErrNotFound:
-                return nil, ErrNotFound
-            default:
-                return nil, err
-            }
-        }    
-        ```
-    - withoutCache
-
-        ```
-        func (m *UserInfoModel) FindOneByName(name string) (*UserInfo, error) {
-            var resp UserInfo
-            query := `select ` + userInfoRows + ` from ` + m.table  + `where name = ? limit 1`
-            err = m.conn.QueryRow(&resp, query, name)
-            switch err {
-            case nil:
-                return &resp, nil
-            case sqlx.ErrNotFound:
-                return nil, ErrNotFound
-            default:
-                return nil, err
-            }
-        }
-        ```
-
-- 组合查询  
-    以`campus_id`和`id_number`查询为例。
-    
-        ```
-        func (m *UserInfoModel) FindOneByCampusIdAndIdNumber(campusId int64,idNumber string) (*UserInfo, error) {
-            var resp UserInfo
-            query := `select ` + userInfoRows + ` from ` + m.table  + `where campus_id = ? AND id_number = ? limit 1`
-            err = m.QueryRowNoCache(&resp, query, campusId, idNumber)
-            // err = m.conn.QueryRows(&resp, query, campusId, idNumber)
-            switch err {
-            case nil:
-                return &resp, nil
-            case sqlx.ErrNotFound:
-                return nil, ErrNotFound
-            default:
-                return nil, err
-            }
-        }
-        ```
-<h2>FindAllByXxx生成</h2>
-FindAllByXxx查询和FindOneByXxx功能相似，只是FindOneByXxx限制了limit等于1，而FindAllByXxx是查询所有,以两个例子来说明
-
-- 查询单个字段`name`等于某值的所有数据
-    ```
-    func (m *UserInfoModel) FindAllByName(name string) ([]*UserInfo, error) {
-        var resp []*UserInfo
-        query := `select ` + userInfoRows + ` from ` + m.table  + `where name = ?`
-        err := m.QueryRowsNoCache(&resp, query, name)
-        // err := m.conn.QueryRows(&resp, query, name)
-        if err != nil {
-            return nil, err
-        }
-        return resp, nil
-    }    
-    ```
-- 查询多个组合字段`campus_id`等于某值且`gender`等于某值的所有数据
-    ```
-    func (m *UserInfoModel) FindAllByCampusIdAndGender(campusId int64,gender int64) ([]*UserInfo, error) {
-        var resp []*UserInfo
-        query := `select ` + userInfoRows + ` from ` + m.table  + `where campus_id = ? AND gender = ?`
-        err := m.QueryRowsNoCache(&resp, query, campusId, gender)
-        // err := m.conn.QueryRows(&resp, query, campusId, gender)
-        if err != nil {
-            return nil, err
-        }
-        return resp, nil
-    }    
-    ```
-
-<h2>FindLimitByXxx生成</h2>
-FindLimitByXxx查询和FindAllByXxx功能相似，只是FindAllByXxx限制了limit，除此之外还会生成查询对应Count总数的代码，而FindAllByXxx是查询所有数据,以几个例子来说明
-
-- 查询`gender`等于某值的分页数据，按照`create_time`降序
-    ```
-    func (m *UserInfoModel) FindLimitByGender(gender int64, page, limit int) ([]*UserInfo, error) {
-        var resp []*UserInfo
-        query := `select ` + userInfoRows + `from ` + m.table  + `where gender = ? order by create_time DESC limit ?,?`
-        err := m.QueryRowsNoCache(&resp, query, gender, (page-1)*limit, limit)
-        // err := m.conn.QueryRows(&resp, query, gender, (page-1)*limit, limit)
-        if err != nil {
-            return nil, err
-        }
-        return resp, nil
-    }
-
-    func (m *UserInfoModel) FindAllCountByGender(gender int64) (int64, error) {
-        var count int64
-        query := `select count(1)  from ` + m.table  + `where gender = ? `
-        err := m.QueryRowsNoCache(&count, query, gender)
-        // err := m.conn.QueryRow(&count, query, gender)
-        if err != nil {
-            return 0, err
-        }
-        return count, nil
-    }       
-    ```
-- 查询`gender`等于某值的分页数据，按照`create_time`降序、`update_time`生序排序
-    ```
-    func (m *UserInfoModel) FindLimitByGender(gender int64, page, limit int) ([]*UserInfo, error) {
-        var resp []*UserInfo
-        query := `select ` + userInfoRows + `from ` + m.table  + `where gender = ? order by create_time DESC,update_time ASC limit ?,?`
-        err := m.QueryRowsNoCache(&resp, query, gender, (page-1)*limit, limit)
-       // err := m.conn.QueryRows(&resp, query, gender, (page-1)*limit, limit)
-        if err != nil {
-            return nil, err
-        }
-        return resp, nil
-    }
-
-    func (m *UserInfoModel) FindAllCountByGender(gender int64) (int64, error) {
-        var count int64
-        query := `select count(1)  from ` + m.table  + `where gender = ? `
-        err := m.QueryRowNoCache(&count, query, gender)
-        // err := m.conn.QueryRow(&count, query, gender)
-        if err != nil {
-            return 0, err
-        }
-        return count, nil
-    }          
-    ```
-- 查询`gender`等于某值且`campus_id`为某值按照`create_time`降序的分页数据
-    ```
-    func (m *UserInfoModel) FindLimitByGenderAndCampusId(gender int64,campusId int64, page, limit int) ([]*UserInfo, error) {
-        var resp []*UserInfo
-        query := `select ` + userInfoRows + `from ` + m.table  + `where gender = ? AND campus_id = ? order by create_time DESC limit ?,?`
-        err := m.QueryRowsNoCache(&resp, query, gender, campusId, (page-1)*limit, limit)
-        // err := m.conn.QueryRows(&resp, query, gender, campusId, (page-1)*limit, limit)
-        if err != nil {
-            return nil, err
-        }
-        return resp, nil
-    }
-
-    func (m *UserInfoModel) FindAllCountByGenderAndCampusId(gender int64,campusId int64) (int64, error) {
-        var count int64
-        query := `select count(1)  from ` + m.table  + `where gender = ? AND campus_id = ? `
-        err := m.QueryRowsNoCache(&count, query, gender, campusId)
-        // err := m.conn.QueryRow(&count, query, gender, campusId)
-        if err != nil {
-            return 0, err
-        }
-        return count, nil
-    }      
-    ```
-
-<h2>Delete生成</h2>
-Delete代码根据`withCache`的不同可以生成带缓存逻辑代码和不带缓存逻辑代码，<strong><i>Delete代码生成仅按照主键删除</i></strong>。从FindOneByXxx方法描述得知，非主键`withCache`了那么主键会强制被cache，因此在delete时也会删除主键cache。
-
-- withCache  
-  根据`mobile`查询用户信息
-
-    ```
-    func (m *UserInfoModel) Delete(userId int64) error {
-        userIdKey := fmt.Sprintf("%s%v", cacheUserInfoUserIdPrefix, userId)
-        mobileKey := fmt.Sprintf("%s%v", cacheUserInfoMobilePrefix, mobile)
-        _, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-            query := `delete from ` + m.table +  + `where user_id = ?`
-            return conn.Exec(query, userId)
-        }, userIdKey, mobileKey)
-        return err
-        }
-    ```
-- withoutCache
-    ```
-    func (m *UserInfoModel) Delete(userId int64) error {
-	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := `delete from ` + m.table +  + `where user_id = ?`
-		return conn.Exec(query, userId)
-	}, )
-	return err
-}
-    ```
-<h2>Insert生成</h2>
-
-<h2>Update生成</h2>
-
-<h2>待完善（TODO）</h2>
-
-- 同一字段多种查询方式代码生成(优先级较高)
-- 条件查询
-- 范围查询
-- ...
-
-<h2>反馈与建议</h2>
-
-- 无
+  

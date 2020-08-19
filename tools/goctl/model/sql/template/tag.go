@@ -1,3 +1,3 @@
-package sqltemplate
+package template
 
 var Tag = "`db:\"{{.field}}\"`"
