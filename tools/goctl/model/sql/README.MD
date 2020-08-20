@@ -4,19 +4,26 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 
 # 快速开始
 
-```
-$ goctl model -src ./sql/user.sql -dir ./model -c true
-```
+* 通过ddl生成
+    ```shell script
+    $ goctl model mysql ddl -src="./sql/user.sql" -dir="./sql/model" -c=true
+    ```
 
-详情用法请参考[example](https://github.com/tal-tech/go-zero/tree/master/tools/goctl/model/sql/example)
+    执行上述命令后即可快速生成CURD代码。
 
-执行上述命令后即可快速生成CURD代码。
+    ```
+    model
+    │   ├── error.go
+    │   └── usermodel.go
+    ```
+* 通过datasource生成
 
-```
-model
-│   ├── error.go
-│   └── usermodel.go
-```
+    ```shell script
+    $ goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="table1,table2"  -dir="./model"
+    ```
+    
+
+> 详情用法请参考[example](https://github.com/tal-tech/go-zero/tree/master/tools/goctl/model/sql/example)
 
 
 * 生成代码示例
@@ -173,22 +180,22 @@ model
 # 用法
 
 ```
-$ goctl model -h
+$ goctl model mysql -h
 ```
 
 ```
 NAME:
-   goctl model - generate model code
+   goctl model mysql - generate mysql model"
 
 USAGE:
-   goctl model [command options] [arguments...]
+   goctl model mysql command [command options] [arguments...]
+
+COMMANDS:
+   ddl         generate mysql model from ddl"
+   datasource  generate model from datasource"
 
 OPTIONS:
-   --src value, -s value  the file path of the ddl source file
-   --dir value, -d value  the target dir
-   --cache, -c            generate code with cache [optional]
-   --idea                 for idea plugin [optional]
-
+   --help, -h  show help
 ```
 
 # 生成规则
@@ -197,22 +204,43 @@ OPTIONS:
   
   我们默认用户在建表时会创建createTime、updateTime字段(忽略大小写、下划线命名风格)且默认值均为`CURRENT_TIMESTAMP`，而updateTime支持`ON UPDATE CURRENT_TIMESTAMP`，对于这两个字段生成`insert`、`update`时会被移除，不在赋值范畴内，当然，如果你不需要这两个字段那也无大碍。
 * 带缓存模式
-
-    ```
-    $ goctl model -src {filename} -dir {dir} -cache true
-    ```
+    * ddl
+    
+        ```shell script
+        $ goctl model mysql -src={filename} -dir={dir} -cache=true
+        ```
+    * datasource
+    
+        ```shell script
+        $ goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=true
+        ```
   
   目前仅支持redis缓存，如果选择带缓存模式，即生成的`FindOne(ByXxx)`&`Delete`代码会生成带缓存逻辑的代码，目前仅支持单索引字段（除全文索引外），对于联合索引我们默认认为不需要带缓存，且不属于通用型代码，因此没有放在代码生成行列，如example中user表中的`id`、`name`、`mobile`字段均属于单字段索引。
 
 * 不带缓存模式
   
-  ```
-    $ goctl model -src {filename} -dir {dir} 
-  ```
+  * ddl
+  
+      ```shell script
+        $ goctl model -src={filename} -dir={dir} 
+      ```
+  * datasource
+  
+      ```shell script
+          $ goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir}
+      ```
   or
-  ```
-    $ goctl model -src {filename} -dir {dir} -cache false
-  ```
+  * ddl
+      
+      ```shell script
+        $ goctl model -src={filename} -dir={dir} -cache=false
+      ```
+  * datasource
+  
+      ```shell script
+        $ goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=false
+      ```
+  
   生成代码仅基本的CURD结构。
 
 # 缓存
@@ -236,10 +264,6 @@ OPTIONS:
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
 # QA
-
-* goctl model支持根据数据库连接后选择表生成代码吗？
-  
-  目前暂时不支持，在后面会向这个方向扩展。
 
 * goctl model除了命令行模式，支持插件模式吗？
 
