@@ -11,7 +11,9 @@ type directBuilder struct{}
 func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	var addrs []resolver.Address
-	endpoints := strings.Split(target.Endpoint, EndpointSep)
+	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool {
+		return r == EndpointSep
+	})
 
 	for _, val := range subset(endpoints, subsetSize) {
 		addrs = append(addrs, resolver.Address{

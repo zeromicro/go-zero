@@ -5,7 +5,7 @@ import "google.golang.org/grpc/resolver"
 const (
 	DirectScheme = "direct"
 	DiscovScheme = "discov"
-	EndpointSep  = ","
+	EndpointSep  = ','
 	subsetSize   = 32
 )
 

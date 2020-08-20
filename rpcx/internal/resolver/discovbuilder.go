@@ -11,7 +11,9 @@ type discovBuilder struct{}
 
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
-	hosts := strings.Split(target.Authority, EndpointSep)
+	hosts := strings.FieldsFunc(target.Authority, func(r rune) bool {
+		return r == EndpointSep
+	})
 	sub, err := discov.NewSubscriber(hosts, target.Endpoint)
 	if err != nil {
 		return nil, err

@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
@@ -39,6 +41,10 @@ func TestP2cPicker_Pick(t *testing.T) {
 			candidates: 1,
 		},
 		{
+			name:       "two",
+			candidates: 2,
+		},
+		{
 			name:       "multiple",
 			candidates: 100,
 		},
@@ -46,6 +52,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			const total = 10000
 			builder := new(p2cPickerBuilder)
 			ready := make(map[resolver.Address]balancer.SubConn)
 			for i := 0; i < test.candidates; i++ {
@@ -55,7 +62,9 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			picker := builder.Build(ready)
-			for i := 0; i < 10000; i++ {
+			var wg sync.WaitGroup
+			wg.Add(total)
+			for i := 0; i < total; i++ {
 				_, done, err := picker.Pick(context.Background(), balancer.PickInfo{
 					FullMethodName: "/",
 					Ctx:            context.Background(),
@@ -64,11 +73,16 @@ func TestP2cPicker_Pick(t *testing.T) {
 				if i%100 == 0 {
 					err = status.Error(codes.DeadlineExceeded, "deadline")
 				}
-				done(balancer.DoneInfo{
-					Err: err,
-				})
+				go func() {
+					time.Sleep(time.Millisecond)
+					done(balancer.DoneInfo{
+						Err: err,
+					})
+					wg.Done()
+				}()
 			}
 
+			wg.Wait()
 			dist := make(map[interface{}]int)
 			conns := picker.(*p2cPicker).conns
 			for _, conn := range conns {
