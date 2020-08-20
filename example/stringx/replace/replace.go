@@ -8,8 +8,9 @@ import (
 
 func main() {
 	replacer := stringx.NewReplacer(map[string]string{
-		"PHP": "PPT",
-		"世界上": "吹牛",
+		"日本":    "法国",
+		"日本的首都": "东京",
+		"东京":    "日本的首都",
 	})
-	fmt.Println(replacer.Replace("PHP是世界上最好的语言！"))
+	fmt.Println(replacer.Replace("日本的首都是东京"))
 }

@@ -10,22 +10,27 @@
 
 ## 2. 关键词替换
 
+支持关键词重叠，自动选用最长的关键词，代码示例如下：
+
 ```go
 replacer := stringx.NewReplacer(map[string]string{
-  "PHP": "PPT",
-  "世界上": "吹牛",
+  "日本":    "法国",
+  "日本的首都": "东京",
+  "东京":    "日本的首都",
 })
-fmt.Println(replacer.Replace("PHP是世界上最好的语言！"))
+fmt.Println(replacer.Replace("日本的首都是东京"))
 ```
 
 可以得到：
 ```
-PPT是吹牛最好的语言！
+东京是日本的首都
 ```
 
 示例代码见`example/stringx/replace/replace.go`
 
 ## 3. 查找敏感词
+
+代码示例如下：
 
 ```go
 filter := stringx.NewTrie([]string{
@@ -46,6 +51,8 @@ fmt.Println(keywords)
 ```
 
 ## 4. 敏感词过滤
+
+代码示例如下：
 
 ```go
 filter := stringx.NewTrie([]string{
