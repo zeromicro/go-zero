@@ -7,15 +7,15 @@ import (
 )
 
 func genFindOne(table Table, withCache bool) (string, error) {
-	camel := table.Name.Snake2Camel()
+	camel := table.Name.ToCamel()
 	output, err := templatex.With("findOne").
 		Parse(template.FindOne).
 		Execute(map[string]interface{}{
 			"withCache":                 withCache,
 			"upperStartCamelObject":     camel,
-			"lowerStartCamelObject":     stringx.From(camel).LowerStart(),
+			"lowerStartCamelObject":     stringx.From(camel).UnTitle(),
 			"originalPrimaryKey":        table.PrimaryKey.Name.Source(),
-			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.Snake2Camel()).LowerStart(),
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).UnTitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"cacheKey":                  table.CacheKey[table.PrimaryKey.Name.Source()].KeyExpression,
 			"cacheKeyVariable":          table.CacheKey[table.PrimaryKey.Name.Source()].Variable,

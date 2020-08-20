@@ -81,7 +81,7 @@ func Parse(ddl string) (*Table, error) {
 		}
 		column := index.Columns[0]
 		columnName := column.Column.String()
-		camelColumnName := stringx.From(columnName).Snake2Camel()
+		camelColumnName := stringx.From(columnName).ToCamel()
 		// by default, createTime|updateTime findOne is not used.
 		if camelColumnName == "CreateTime" || camelColumnName == "UpdateTime" {
 			continue

@@ -27,14 +27,14 @@ func genDelete(table Table, withCache bool) (string, error) {
 			break
 		}
 	}
-	camel := table.Name.Snake2Camel()
+	camel := table.Name.ToCamel()
 	output, err := templatex.With("delete").
 		Parse(template.Delete).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
 			"withCache":                 withCache,
 			"containsIndexCache":        containsIndexCache,
-			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.Snake2Camel()).LowerStart(),
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).UnTitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
 			"originalPrimaryKey":        table.PrimaryKey.Name.Source(),

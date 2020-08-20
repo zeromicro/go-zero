@@ -12,7 +12,7 @@ func genInsert(table Table, withCache bool) (string, error) {
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
 	for _, filed := range table.Fields {
-		camel := filed.Name.Snake2Camel()
+		camel := filed.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
@@ -22,13 +22,13 @@ func genInsert(table Table, withCache bool) (string, error) {
 		expressions = append(expressions, "?")
 		expressionValues = append(expressionValues, "data."+camel)
 	}
-	camel := table.Name.Snake2Camel()
+	camel := table.Name.ToCamel()
 	output, err := templatex.With("insert").
 		Parse(template.Insert).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": camel,
-			"lowerStartCamelObject": stringx.From(camel).LowerStart(),
+			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
 			"expression":            strings.Join(expressions, ", "),
 			"expressionValues":      strings.Join(expressionValues, ", "),
 		})

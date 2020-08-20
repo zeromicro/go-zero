@@ -26,14 +26,14 @@ type (
 func genCacheKeys(table parser.Table) (map[string]Key, error) {
 	fields := table.Fields
 	m := make(map[string]Key)
-	camelTableName := table.Name.Snake2Camel()
-	lowerStartCamelTableName := stringx.From(camelTableName).LowerStart()
+	camelTableName := table.Name.ToCamel()
+	lowerStartCamelTableName := stringx.From(camelTableName).UnTitle()
 	for _, field := range fields {
 		if !field.IsKey {
 			continue
 		}
-		camelFieldName := field.Name.Snake2Camel()
-		lowerStartCamelFieldName := stringx.From(camelFieldName).LowerStart()
+		camelFieldName := field.Name.ToCamel()
+		lowerStartCamelFieldName := stringx.From(camelFieldName).UnTitle()
 		left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
 		right := fmt.Sprintf("cache#%s#%s#", camelTableName, lowerStartCamelFieldName)
 		variable := fmt.Sprintf("%s%sKey", lowerStartCamelTableName, camelFieldName)

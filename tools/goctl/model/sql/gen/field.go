@@ -28,7 +28,7 @@ func genField(field parser.Field) (string, error) {
 	output, err := templatex.With("types").
 		Parse(template.Field).
 		Execute(map[string]interface{}{
-			"name":       field.Name.Snake2Camel(),
+			"name":       field.Name.ToCamel(),
 			"type":       field.DataType,
 			"tag":        tag,
 			"hasComment": field.Comment != "",

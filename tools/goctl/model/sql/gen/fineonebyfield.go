@@ -12,23 +12,23 @@ import (
 func genFineOneByField(table Table, withCache bool) (string, error) {
 	t := templatex.With("findOneByField").Parse(template.FindOneByField)
 	var list []string
-	camelTableName := table.Name.Snake2Camel()
+	camelTableName := table.Name.ToCamel()
 	for _, field := range table.Fields {
 		if field.IsPrimaryKey || !field.IsKey {
 			continue
 		}
-		camelFieldName := field.Name.Snake2Camel()
+		camelFieldName := field.Name.ToCamel()
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
 			"upperField":                camelFieldName,
-			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).LowerStart(), field.DataType),
+			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).UnTitle(), field.DataType),
 			"withCache":                 withCache,
 			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
 			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
 			"primaryKeyLeft":            table.CacheKey[table.PrimaryKey.Name.Source()].Left,
-			"lowerStartCamelObject":     stringx.From(camelTableName).LowerStart(),
-			"lowerStartCamelField":      stringx.From(camelFieldName).LowerStart(),
-			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.Snake2Camel(),
+			"lowerStartCamelObject":     stringx.From(camelTableName).UnTitle(),
+			"lowerStartCamelField":      stringx.From(camelFieldName).UnTitle(),
+			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             field.Name.Source(),
 			"originalPrimaryField":      table.PrimaryKey.Name.Source(),
 		})

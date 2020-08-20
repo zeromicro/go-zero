@@ -195,6 +195,13 @@ ts需要指定webapi所在目录
 goctl api dart -api user/user.api -dir ./src
 ```
 
+## 根据mysql ddl或者datasource生成model文件
+
+```shell script
+$ goctl model mysql -src={filename} -dir={dir} -cache={true|false}
+```
+详情参考[model文档](https://github.com/tal-tech/go-zero/blob/master/tools/goctl/model/sql/README.MD)
+
 ## 根据定义好的简单go文件生成mongo代码文件(仅限golang使用)  
 ```shell
 goctl model mongo -src {{yourDir}}/xiao/service/xhb/user/model/usermodel.go -cache yes
@@ -218,7 +225,7 @@ type User struct {
      o是改字段需要生产的操作函数 可以取得get,find,set 分别表示生成返回单个对象的查询方法，返回多个对象的查询方法，设置该字段方法  
      生成的目标文件会覆盖该简单go文件  
 
-## goctl rpc生成
+## goctl rpc生成（业务剥离中，暂未开放）
 
   命令 `goctl rpc proto -proto ${proto} -service ${serviceName} -project ${projectName} -dir ${directory} -shared ${shared}`  
   如： `goctl rpc proto -proto test.proto  -service test -project xjy  -dir .`  

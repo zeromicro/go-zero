@@ -10,7 +10,7 @@ func genNew(table Table, withCache bool) (string, error) {
 		Parse(template.New).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
-			"upperStartCamelObject": table.Name.Snake2Camel(),
+			"upperStartCamelObject": table.Name.ToCamel(),
 		})
 	if err != nil {
 		return "", err

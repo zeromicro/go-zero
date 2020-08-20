@@ -23,21 +23,17 @@ const (
 type (
 	defaultGenerator struct {
 		source string
-		src    string
 		dir    string
 		console.Console
 	}
 	Option func(generator *defaultGenerator)
 )
 
-func NewDefaultGenerator(src, dir string, opt ...Option) *defaultGenerator {
-	if src == "" {
-		src = pwd
-	}
+func NewDefaultGenerator(source, dir string, opt ...Option) *defaultGenerator {
 	if dir == "" {
 		dir = pwd
 	}
-	generator := &defaultGenerator{src: src, dir: dir}
+	generator := &defaultGenerator{source: source, dir: dir}
 	var optionList []Option
 	optionList = append(optionList, newDefaultOption())
 	optionList = append(optionList, opt...)
@@ -60,10 +56,6 @@ func newDefaultOption() Option {
 }
 
 func (g *defaultGenerator) Start(withCache bool) error {
-	fileSrc, err := filepath.Abs(g.src)
-	if err != nil {
-		return err
-	}
 	dirAbs, err := filepath.Abs(g.dir)
 	if err != nil {
 		return err
@@ -72,21 +64,16 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	if err != nil {
 		return err
 	}
-	data, err := ioutil.ReadFile(fileSrc)
-	if err != nil {
-		return err
-	}
-	g.source = string(data)
 	modelList, err := g.genFromDDL(withCache)
 	if err != nil {
 		return err
 	}
 
 	for tableName, code := range modelList {
-		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).Snake2Camel()))
+		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).ToCamel()))
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
-			g.Warning("%s already exists,ignored.", name)
+			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
 		err = ioutil.WriteFile(filename, []byte(code), os.ModePerm)

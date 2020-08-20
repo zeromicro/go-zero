@@ -11,7 +11,7 @@ import (
 func genUpdate(table Table, withCache bool) (string, error) {
 	expressionValues := make([]string, 0)
 	for _, filed := range table.Fields {
-		camel := filed.Name.Snake2Camel()
+		camel := filed.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
@@ -20,8 +20,8 @@ func genUpdate(table Table, withCache bool) (string, error) {
 		}
 		expressionValues = append(expressionValues, "data."+camel)
 	}
-	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.Snake2Camel())
-	camelTableName := table.Name.Snake2Camel()
+	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
+	camelTableName := table.Name.ToCamel()
 	output, err := templatex.With("update").
 		Parse(template.Update).
 		Execute(map[string]interface{}{
@@ -29,7 +29,7 @@ func genUpdate(table Table, withCache bool) (string, error) {
 			"upperStartCamelObject": camelTableName,
 			"primaryCacheKey":       table.CacheKey[table.PrimaryKey.Name.Source()].DataKeyExpression,
 			"primaryKeyVariable":    table.CacheKey[table.PrimaryKey.Name.Source()].Variable,
-			"lowerStartCamelObject": stringx.From(camelTableName).LowerStart(),
+			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
 			"originalPrimaryKey":    table.PrimaryKey.Name.Source(),
 			"expressionValues":      strings.Join(expressionValues, ", "),
 		})
