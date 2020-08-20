@@ -5,6 +5,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 # 快速开始
 
 * 通过ddl生成
+
     ```shell script
     $ goctl model mysql ddl -src="./sql/user.sql" -dir="./sql/model" -c=true
     ```
