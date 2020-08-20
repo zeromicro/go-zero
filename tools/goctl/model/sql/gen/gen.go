@@ -73,7 +73,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).ToCamel()))
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
-			g.Warning("%s already exists,ignored.", name)
+			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
 		err = ioutil.WriteFile(filename, []byte(code), os.ModePerm)

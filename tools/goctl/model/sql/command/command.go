@@ -55,11 +55,11 @@ func MyDataSource(ctx *cli.Context) error {
 	table := strings.TrimSpace(ctx.String(flagTable))
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
-		log.Error("%v", "expected data source of mysql,but is empty")
+		log.Error("%v", "expected data source of mysql, but is empty")
 		return nil
 	}
 	if len(table) == 0 {
-		log.Error("%v", "expected table(s),but nothing found")
+		log.Error("%v", "expected table(s), but nothing found")
 		return nil
 	}
 	logx.Disable()
