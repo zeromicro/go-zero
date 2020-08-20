@@ -71,17 +71,11 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 ## 6. Installation
 
-1. 在项目目录下通过如下命令安装：
+在项目目录下通过如下命令安装：
 
-   ```shell
-   go get -u github.com/tal-tech/go-zero
-   ```
-
-2. 代码里导入go-zero
-
-   ```go
-   import "github.com/tal-tech/go-zero"
-   ```
+```shell
+go get -u github.com/tal-tech/go-zero
+```
 
 ## 7. Quick Start
 
@@ -97,7 +91,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
    ```go
    type Request struct {
-     Name string `path:"name"`
+     Name string `path:"name,options=you|me"` // 框架自动验证请求参数是否合法
    }
    
    type Response struct {
