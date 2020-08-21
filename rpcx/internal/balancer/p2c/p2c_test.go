@@ -3,10 +3,10 @@ package p2c
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strconv"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
@@ -35,18 +35,22 @@ func TestP2cPicker_Pick(t *testing.T) {
 	tests := []struct {
 		name       string
 		candidates int
+		threshold  float64
 	}{
 		{
 			name:       "single",
 			candidates: 1,
+			threshold:  0.9,
 		},
 		{
 			name:       "two",
 			candidates: 2,
+			threshold:  0.5,
 		},
 		{
 			name:       "multiple",
 			candidates: 100,
+			threshold:  0.95,
 		},
 	}
 
@@ -55,7 +59,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			const total = 100000
+			const total = 10000
 			builder := new(p2cPickerBuilder)
 			ready := make(map[resolver.Address]balancer.SubConn)
 			for i := 0; i < test.candidates; i++ {
@@ -77,7 +81,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 					err = status.Error(codes.DeadlineExceeded, "deadline")
 				}
 				go func() {
-					time.Sleep(time.Millisecond)
+					runtime.Gosched()
 					done(balancer.DoneInfo{
 						Err: err,
 					})
@@ -93,7 +97,8 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			entropy := mathx.CalcEntropy(dist)
-			assert.True(t, entropy > .95, fmt.Sprintf("entropy is %f, less than .95", entropy))
+			assert.True(t, entropy > test.threshold, fmt.Sprintf("entropy is %f, less than %f",
+				entropy, test.threshold))
 		})
 	}
 }
