@@ -213,7 +213,10 @@ func TestTimingWheel_SetTimer(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -291,7 +294,10 @@ func TestTimingWheel_SetAndMoveThenStart(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -376,7 +382,10 @@ func TestTimingWheel_SetAndMoveTwice(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -454,7 +463,10 @@ func TestTimingWheel_ElapsedAndSet(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -542,7 +554,10 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {

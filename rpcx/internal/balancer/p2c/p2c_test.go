@@ -54,6 +54,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
+
 			const total = 100000
 			builder := new(p2cPickerBuilder)
 			ready := make(map[resolver.Address]balancer.SubConn)
