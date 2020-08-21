@@ -12,6 +12,8 @@ go-zero是一个集成了各种工程实践的web和rpc框架。通过弹性设�
 
 go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
 
+<img src="doc/images/architecture.png" alt="架构图" width="1500" />
+
 ## 1. go-zero框架背景
 
 18年初，晓黑板后端在经过频繁的宕机后，决定从`Java+MongoDB`的单体架构迁移到微服务架构，经过仔细思考和对比，我们决定：
