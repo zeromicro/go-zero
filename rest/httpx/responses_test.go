@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -15,6 +16,24 @@ type message struct {
 
 func init() {
 	logx.Disable()
+}
+
+func TestError(t *testing.T) {
+	const body = "foo"
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Error(&w, errors.New(body))
+	assert.Equal(t, http.StatusBadRequest, w.code)
+	assert.Equal(t, body, strings.TrimSpace(w.builder.String()))
+}
+
+func TestOk(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Ok(&w)
+	assert.Equal(t, http.StatusOK, w.code)
 }
 
 func TestOkJson(t *testing.T) {

@@ -209,6 +209,6 @@ func (s *engine) use(middleware Middleware) {
 
 func convertMiddleware(ware Middleware) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(ware(next.ServeHTTP))
+		return ware(next.ServeHTTP)
 	}
 }
