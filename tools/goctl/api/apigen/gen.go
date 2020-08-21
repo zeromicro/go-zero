@@ -19,29 +19,24 @@ const apiTemplate = `info(
 	email: {{.gitEmail}}
 )
 
-type request struct{
+type request struct {
 	// TODO: add members here and delete this comment
 }
 
-type response struct{
+type response struct {
 	// TODO: add members here and delete this comment
 }
 
-@server(
-    port: // TODO: add port here and delete this comment
-)
 service {{.serviceName}} {
 	@server(
 		handler: // TODO: set handler name and delete this comment
 	)
-	// TODO: edit the below line
-	// get /users/id/:userId(request) returns(response)
+	get /users/id/:userId(request) returns(response)
 
 	@server(
 		handler: // TODO: set handler name and delete this comment
 	)
-	// TODO: edit the below line
-	// post /users/create(request)
+	post /users/create(request)
 }
 `
 
