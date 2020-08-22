@@ -23,9 +23,9 @@ func TestStreamCrashInterceptor(t *testing.T) {
 
 func TestUnaryCrashInterceptor(t *testing.T) {
 	interceptor := UnaryCrashInterceptor()
-	_, err := interceptor(context.Background(), nil, nil, func(
-		ctx context.Context, req interface{}) (interface{}, error) {
-		panic("mock panic")
-	})
+	_, err := interceptor(context.Background(), nil, nil,
+		func(ctx context.Context, req interface{}) (interface{}, error) {
+			panic("mock panic")
+		})
 	assert.NotNil(t, err)
 }
