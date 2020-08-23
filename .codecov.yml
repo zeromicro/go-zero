@@ -1,3 +1,4 @@
 ignore:
-  - "example/*"
-  - "tools/*"
+  - "doc"
+  - "example"
+  - "tools"
