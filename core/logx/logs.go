@@ -213,6 +213,7 @@ func Infof(format string, v ...interface{}) {
 func Must(err error) {
 	if err != nil {
 		msg := formatWithCaller(err.Error(), 3)
+		log.Print(msg)
 		output(severeLog, levelFatal, msg)
 		os.Exit(1)
 	}
