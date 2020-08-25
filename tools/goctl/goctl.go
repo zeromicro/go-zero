@@ -207,11 +207,15 @@ var (
 							Usage: `the target path of the code,default path is "${pwd}". [option]`,
 						},
 						cli.StringFlag{
+							Name:  "service, srv",
+							Usage: `the name of rpc service,by default, if the generated target directory meets the xx/cmd/rpc structure, then xx is the corresponding service name. [option]`,
+						},
+						cli.StringFlag{
 							Name:  "shared",
 							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]"`,
 						},
 						cli.BoolFlag{
-							Name:  "plugin",
+							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [option]",
 						},
 					},

@@ -2,18 +2,12 @@ package util
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
-	"go/format"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
-	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func CreateIfNotExist(file string) (*os.File, error) {
@@ -52,45 +46,4 @@ func FileExists(file string) bool {
 
 func FileNameWithoutExt(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
-}
-
-func CreateTemplateAndExecute(filename, text string, arg map[string]interface{}, forceUpdate bool, disableFormatCodeArgs ...bool) error {
-	if FileExists(filename) && !forceUpdate {
-		return nil
-	}
-	var buffer = new(bytes.Buffer)
-	templateName := fmt.Sprintf("%d", time.Now().UnixNano())
-	t, err := template.New(templateName).Parse(text)
-	if err != nil {
-		return err
-	}
-	err = t.Execute(buffer, arg)
-	if err != nil {
-		return err
-	}
-	var disableFormatCode bool
-	for _, f := range disableFormatCodeArgs {
-		disableFormatCode = f
-	}
-	var bts = buffer.Bytes()
-	s := buffer.String()
-	logx.Info(s)
-	if !disableFormatCode {
-		bts, err = format.Source(buffer.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-	return ioutil.WriteFile(filename, bts, os.ModePerm)
-}
-
-func FormatCodeAndWrite(filename string, code []byte) error {
-	if FileExists(filename) {
-		return nil
-	}
-	bts, err := format.Source(code)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filename, bts, os.ModePerm)
 }

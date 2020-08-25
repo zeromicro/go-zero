@@ -32,7 +32,10 @@ func (t *defaultTemplate) GoFmt(format bool) *defaultTemplate {
 	return t
 }
 
-func (t *defaultTemplate) SaveTo(data interface{}, path string) error {
+func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool) error {
+	if fileExists(path) && !forceUpdate {
+		return nil
+	}
 	output, err := t.execute(data)
 	if err != nil {
 		return err
@@ -64,4 +67,9 @@ func (t *defaultTemplate) execute(data interface{}) (*bytes.Buffer, error) {
 	buf.Reset()
 	buf.Write(formatOutput)
 	return buf, nil
+}
+
+func fileExists(file string) bool {
+	_, err := os.Stat(file)
+	return err == nil
 }
