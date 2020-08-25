@@ -8,11 +8,11 @@ import (
 )
 
 func BuildDirectTarget(endpoints []string) string {
-	return fmt.Sprintf("%s:///%s", resolver.DirectScheme, strings.Join(
-		endpoints, fmt.Sprintf("%c", resolver.EndpointSep)))
+	return fmt.Sprintf("%s:///%s", resolver.DirectScheme,
+		strings.Join(endpoints, resolver.EndpointSep))
 }
 
 func BuildDiscovTarget(endpoints []string, key string) string {
-	return fmt.Sprintf("%s://%s/%s", resolver.DiscovScheme, strings.Join(
-		endpoints, fmt.Sprintf("%c", resolver.EndpointSep)), key)
+	return fmt.Sprintf("%s://%s/%s", resolver.DiscovScheme,
+		strings.Join(endpoints, resolver.EndpointSep), key)
 }

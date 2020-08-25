@@ -12,7 +12,7 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	resolver.Resolver, error) {
 	var addrs []resolver.Address
 	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool {
-		return r == EndpointSep
+		return r == EndpointSepChar
 	})
 
 	for _, val := range subset(endpoints, subsetSize) {
