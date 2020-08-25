@@ -81,7 +81,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 		}
 		var jwt string
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf(", ngin.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
+			jwt = fmt.Sprintf(", rest.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
 		}
 		var signature string
 		if g.signatureEnabled {
