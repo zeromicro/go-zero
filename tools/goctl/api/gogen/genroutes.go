@@ -177,6 +177,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				handler: handler,
 			})
 		}
+
+		if authName, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
+			groupedRoutes.jwtEnabled = true
+			groupedRoutes.authName = authName
+		}
 		routes = append(routes, groupedRoutes)
 	}
 
