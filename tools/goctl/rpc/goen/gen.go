@@ -10,6 +10,7 @@ const (
 	dirConfig          = "config"
 	dirEtc             = "etc"
 	dirSvc             = "svc"
+	dirShared          = "shared"
 	dirHandler         = "handler"
 	dirLogic           = "logic"
 	dirPb              = "pb"

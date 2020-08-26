@@ -2,6 +2,7 @@ package gogen
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,6 @@ package {{.filePackage}}
 
 import (
 	"context"
-	"error"
 
 	{{.package}}
 	"github.com/tal-tech/go-zero/core/jsonx"
@@ -51,7 +51,7 @@ func NewDefault{{.serviceName}}Model(cli rpcx.Client) {{.serviceName}}Model {
 package {{.filePackage}}
 
 import (
-	"error"
+	"errors"
 )
 
 var (
@@ -98,7 +98,7 @@ func (m *default{{.rpcServiceName}}Model) {{.method}}(ctx context.Context,in *{{
 )
 
 func (g *defaultRpcGenerator) genShared() error {
-	sharePackage := filepath.Base(g.Ctx.TargetDir)
+	sharePackage := filepath.Base(g.Ctx.SharedDir)
 	file := g.ast
 	typeCode, err := file.GenTypesCode()
 	if err != nil {
@@ -106,7 +106,7 @@ func (g *defaultRpcGenerator) genShared() error {
 	}
 	pbPkg := file.Package
 	remotePackage := fmt.Sprintf(`%v "%v"`, pbPkg, g.mustGetPackage(dirPb))
-	filename := filepath.Join(g.Ctx.TargetDir, "types.go")
+	filename := filepath.Join(g.Ctx.SharedDir, "types.go")
 	head := util.GetHead(g.Ctx.ProtoSource)
 	err = templatex.With("types").GoFmt(true).Parse(sharedTemplateTypes).SaveTo(map[string]interface{}{
 		"head":                  head,
@@ -117,7 +117,7 @@ func (g *defaultRpcGenerator) genShared() error {
 		"types":                 typeCode,
 	}, filename, true)
 	for _, service := range file.Service {
-		filename := filepath.Join(g.Ctx.TargetDir, fmt.Sprintf("%smodel.go", service.Name.Lower()))
+		filename := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("%smodel.go", service.Name.Lower()))
 		functions, err := g.getFuncs(service)
 		if err != nil {
 			return err
@@ -126,6 +126,8 @@ func (g *defaultRpcGenerator) genShared() error {
 		if err != nil {
 			return err
 		}
+		mockFile := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("mock%smodel.go", service.Name.Lower()))
+		os.Remove(mockFile)
 		err = templatex.With("shared").GoFmt(true).Parse(sharedTemplateText).SaveTo(map[string]interface{}{
 			"name":        service.Name.Lower(),
 			"head":        head,
@@ -145,7 +147,7 @@ func (g *defaultRpcGenerator) genShared() error {
 	if err != nil {
 		g.Ctx.Warning("warning:mockgen is not found")
 	} else {
-		execx.RunShOrBat(fmt.Sprintf("cd %s \ngo generate", g.Ctx.TargetDir))
+		execx.RunShOrBat(fmt.Sprintf("cd %s \ngo generate", g.Ctx.SharedDir))
 	}
 	return nil
 }
@@ -165,7 +167,7 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 		}
 		buffer, err := templatex.With("sharedFn").Parse(sharedFunctionTemplate).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
-			"method":         method.Name,
+			"method":         method.Name.Title(),
 			"package":        pkgName,
 			"pbRequest":      method.InType,
 			"pbResponse":     method.OutType,
@@ -196,7 +198,7 @@ func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]s
 		buffer, err := templatex.With("interfaceFn").Parse(sharedInterfaceFunctionTemplate).Execute(map[string]interface{}{
 			"hasComment":  len(method.Document) > 0,
 			"comment":     comment,
-			"method":      method.Name,
+			"method":      method.Name.Title(),
 			"pbRequest":   method.InType,
 			"pbResponse":  method.OutType,
 			"hasResponse": found,
