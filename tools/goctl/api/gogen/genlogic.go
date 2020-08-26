@@ -29,7 +29,6 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
 		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
 	}
-	// TODO need set model here from svc
 }
 
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
@@ -98,7 +97,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 		"request":      requestString,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
@@ -120,8 +119,7 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`)
-	imports = append(imports, "\n")
+	imports = append(imports, `"context"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
 	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, typesDir)))
