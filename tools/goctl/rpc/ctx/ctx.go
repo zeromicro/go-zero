@@ -19,39 +19,45 @@ const (
 	flagIdea    = "idea"
 )
 
+var (
+	tips = `warning: this operation will overwrite the protoc-gen-plugin in gopath
+protoc-gen-go: switch to %s`
+)
+
 type (
 	RpcContext struct {
+		ProjectPath  string
 		ProjectName  stringx.String
 		ServiceName  stringx.String
 		CurrentPath  string
+		Module       string
 		ProtoFileSrc string
 		ProtoSource  string
 		TargetDir    string
 		SharedDir    string
+		GoPath       string
 		console.Console
 	}
 )
 
-func MustCreateRpcContext(ctx *cli.Context) *RpcContext {
-	protoSrc := ctx.String(flagSrc)
-	targetDir := ctx.String(flagDir)
-	sharedDir := ctx.String(flagShared)
-	serviceName := ctx.String(flagService)
-	idea := ctx.Bool(flagIdea)
+func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, idea bool) *RpcContext {
 	log := console.NewConsole(idea)
+	goMod, err := prepare()
+	log.Must(err)
+	log.Info(tips, goMod.Protobuf())
+
 	if stringx.From(protoSrc).IsEmptyOrSpace() {
 		log.Fatalln("expected proto source, but nothing found")
 	}
-	if stringx.From(targetDir).IsEmptyOrSpace() {
-		targetDir = "."
-	}
-	if stringx.From(sharedDir).IsEmptyOrSpace() {
-		targetDir = filepath.Join(".", "shared")
-	}
-	current, err := filepath.Abs(".")
-	log.Must(err)
 	srcFp, err := filepath.Abs(protoSrc)
 	log.Must(err)
+	current := filepath.Dir(srcFp)
+	if stringx.From(targetDir).IsEmptyOrSpace() {
+		targetDir = current
+	}
+	if stringx.From(sharedDir).IsEmptyOrSpace() {
+		sharedDir = filepath.Join(current, "shared")
+	}
 	targetDirFp, err := filepath.Abs(targetDir)
 	log.Must(err)
 	sharedFp, err := filepath.Abs(sharedDir)
@@ -66,18 +72,30 @@ func MustCreateRpcContext(ctx *cli.Context) *RpcContext {
 		log.Fatalln("service name is not found")
 	}
 	return &RpcContext{
+		ProjectPath:  info.Path,
 		ProjectName:  stringx.From(info.Name),
 		ServiceName:  serviceNameString,
 		CurrentPath:  current,
+		Module:       goMod.module,
 		ProtoFileSrc: srcFp,
 		ProtoSource:  filepath.Base(srcFp),
 		TargetDir:    targetDirFp,
 		SharedDir:    sharedFp,
+		GoPath:       info.GoPath,
+		Console:      log,
 	}
+}
+func MustCreateRpcContextFromCli(ctx *cli.Context) *RpcContext {
+	protoSrc := ctx.String(flagSrc)
+	targetDir := ctx.String(flagDir)
+	sharedDir := ctx.String(flagShared)
+	serviceName := ctx.String(flagService)
+	idea := ctx.Bool(flagIdea)
+	return MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName, idea)
 }
 
 func getServiceFromRpcStructure(targetDir string) string {
 	targetDir = filepath.Clean(targetDir)
 	suffix := filepath.Join("cmd", "rpc")
-	return strings.TrimSuffix(targetDir, suffix)
+	return filepath.Base(strings.TrimSuffix(targetDir, suffix))
 }

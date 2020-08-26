@@ -435,7 +435,7 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 		}
 		doc = strings.Join(f.Document, "\n")
 		buffer, err := templatex.With(sx.Rand()).Parse(fieldTemplate).Execute(map[string]interface{}{
-			"name":       f.Name,
+			"name":       f.Name.Title(),
 			"type":       f.TypeName,
 			"tag":        f.JsonTag,
 			"hasDoc":     len(f.Document) > 0,
@@ -450,7 +450,7 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 	}
 	buffer, err := templatex.With("struct").Parse(structTemplate).Execute(map[string]interface{}{
 		"type":   containsTypeStatement,
-		"name":   s.Name,
+		"name":   s.Name.Title(),
 		"fields": strings.Join(fields, "\n"),
 	})
 	if err != nil {
