@@ -18,7 +18,7 @@ type RpcProxy struct {
 	lock        sync.Mutex
 }
 
-func NewRpcProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
+func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
 		clients:     make(map[string]Client),
@@ -56,5 +56,5 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 		return nil, err
 	}
 
-	return val.(*RpcClient).Conn(), nil
+	return val.(Client).Conn(), nil
 }
