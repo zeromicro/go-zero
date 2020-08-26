@@ -70,7 +70,7 @@ func (g *defaultRpcGenerator) genMain() error {
 		"srv":         srv,
 		"registers":   registers,
 		"imports":     strings.Join(imports, "\r\n"),
-	}, fileName, false)
+	}, fileName, true)
 }
 
 func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (string, string) {
@@ -78,8 +78,8 @@ func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (
 	list2 := make([]string, 0)
 	for _, item := range list {
 		name := item.Name.UnTitle()
-		list1 = append(list1, fmt.Sprintf("%sSrv := handler.New%sServer(ctx)", name, item.Name.Source()))
-		list2 = append(list2, fmt.Sprintf("%s.Register%sServer(grpcServer, %sSrv)", pkg, item.Name.Source(), name))
+		list1 = append(list1, fmt.Sprintf("%sSrv := handler.New%sServer(ctx)", name, item.Name.Title()))
+		list2 = append(list2, fmt.Sprintf("%s.Register%sServer(grpcServer, %sSrv)", pkg, item.Name.Title(), name))
 	}
 	return strings.Join(list1, "\n"), strings.Join(list2, "\n")
 }

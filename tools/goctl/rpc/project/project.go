@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("not found")
+	ErrNotFound  = errors.New("project is not found")
 	emptyProject = Project{}
 )
 
@@ -21,8 +21,10 @@ type (
 		Name           string
 		IsGoModProject bool
 		GoPath         string
-		GoMod          string
-		LibraryPath    string
+		// go.mod
+		GoModFilePath string
+		// the path of dependence library
+		LibraryPath string
 	}
 )
 
@@ -47,7 +49,7 @@ func Info() (Project, error) {
 			continue
 		}
 		key := item[:signFlagIndex]
-		value := item[signFlagIndex+1:]
+		value := strings.ReplaceAll(item[signFlagIndex+1:], `"`, "")
 		switch key {
 		case "GOMOD":
 			goMod = value
@@ -65,7 +67,8 @@ func Info() (Project, error) {
 			Path:           filepath.Dir(goMod),
 			Name:           filepath.Base(path),
 			IsGoModProject: true,
-			GoMod:          goMod,
+			GoModFilePath:  goMod,
+			GoPath:         goPath,
 			LibraryPath:    goModCache,
 		}, nil
 	}
