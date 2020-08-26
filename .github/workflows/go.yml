@@ -27,7 +27,7 @@ jobs:
         go get -v -t -d ./...
 
     - name: Test
-      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./... | grep -v "[no test files]"
 
     - name: Codecov
       uses: codecov/codecov-action@v1.0.6
