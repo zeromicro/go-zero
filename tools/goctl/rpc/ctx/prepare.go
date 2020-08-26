@@ -1,4 +1,4 @@
-package protoc
+package ctx
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,15 +18,18 @@ import (
 
 var (
 	protoGenGo        = "protoc-gen-go"
-	errNotFound       = errors.New("not found")
+	errNotFound       = errors.New("protoc-gen-go is not found")
 	errPluginNotFound = errors.New("protobuf is not found in go mod,please make sure you have import the protobuf")
 )
 
-type PluginPath struct {
-	source string
+type GoMod struct {
+	// protobuf path: such as github.com/golang/protobuf@1.2.3
+	protobuf string
+	// module: such as github.com/tal-tech/go-zero
+	module string
 }
 
-func Prepare() (*PluginPath, error) {
+func prepare() (*GoMod, error) {
 	_, err := exec.LookPath("go")
 	if err != nil {
 		return nil, err
@@ -39,9 +43,9 @@ func Prepare() (*PluginPath, error) {
 		return nil, err
 	}
 
-	// find in go mod
+	// find in go mod,if go version >= 1.5
 	if info.IsGoModProject {
-		data, err := ioutil.ReadFile(info.GoMod)
+		data, err := ioutil.ReadFile(info.GoModFilePath)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +56,11 @@ func Prepare() (*PluginPath, error) {
 			if util.FileExists(protobufDir) {
 				plugin := filepath.Join(protobufDir, protoGenGo)
 				if util.FileExists(plugin) {
-					return from(plugin), nil
+					module, err := matchModule(data)
+					if err != nil {
+						return nil, err
+					}
+					return &GoMod{protobuf: plugin, module: module}, nil
 				}
 			}
 			return nil, errPluginNotFound
@@ -67,7 +75,7 @@ func Prepare() (*PluginPath, error) {
 	if util.FileExists(protobufDir) {
 		plugin := filepath.Join(protobufDir, protoGenGo)
 		if util.FileExists(plugin) {
-			return from(plugin), nil
+			return &GoMod{protobuf: plugin, module: info.Name}, nil
 		}
 	}
 	// else: go get latest protobuf
@@ -81,7 +89,7 @@ func Prepare() (*PluginPath, error) {
 		if util.FileExists(protobufDir) {
 			plugin := filepath.Join(protobufDir, protoGenGo)
 			if util.FileExists(plugin) {
-				return from(plugin), nil
+				return &GoMod{protobuf: plugin, module: info.Name}, nil
 			}
 		}
 		return nil, errPluginNotFound
@@ -104,17 +112,22 @@ func matchProtocGenGo(data []byte) (string, error) {
 	return fmt.Sprintf("%s@%s", groups[1], groups[2]), nil
 }
 
-func from(path string) *PluginPath {
-	return &PluginPath{
-		source: path,
+func matchModule(data []byte) (string, error) {
+	text := string(data)
+	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9/\-.]+$`)
+	matches := re.FindAllString(text, -1)
+	if len(matches) == 1 {
+		target := matches[0]
+		index := strings.Index(target, "module")
+		return strings.TrimSpace(target[index+6:]), nil
 	}
+	return "", nil
+}
+func (p *GoMod) Protobuf() string {
+	return p.protobuf
 }
 
-func (p *PluginPath) Source() string {
-	return p.source
-}
-
-func (p *PluginPath) Install() error {
+func (p *GoMod) Install() error {
 	_, err := execx.Run("go", fmt.Sprintf("install %v", p))
 	return err
 }

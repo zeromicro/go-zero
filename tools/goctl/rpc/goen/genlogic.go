@@ -64,7 +64,7 @@ func (g *defaultRpcGenerator) genLogic() error {
 			svcImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirSvc))
 			imports.AddStr(pbImport, svcImport)
 			err = templatex.With("logic").GoFmt(true).Parse(logicTemplate).SaveTo(map[string]interface{}{
-				"logicName": fmt.Sprintf("%sLogic", method.Name),
+				"logicName": fmt.Sprintf("%sLogic", method.Name.Title()),
 				"functions": functions,
 				"imports":   strings.Join(imports.KeysStr(), "\r\n"),
 			}, filename, false)
@@ -79,8 +79,8 @@ func (g *defaultRpcGenerator) genLogic() error {
 func genLogicFunction(packageName string, method *parser.Func) (string, error) {
 	var functions = make([]string, 0)
 	buffer, err := templatex.With("fun").Parse(logicFunctionTemplate).Execute(map[string]interface{}{
-		"logicName":  fmt.Sprintf("%sLogic", method.Name),
-		"method":     method.Name,
+		"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
+		"method":     method.Name.Title(),
 		"package":    packageName,
 		"request":    method.InType,
 		"response":   method.OutType,

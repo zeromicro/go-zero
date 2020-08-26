@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package remoteuser;
+
+message Request {
+  string username = 1;
+  string password = 2;
+}
+
+message Response {
+  string name = 1;
+  string gender = 2;
+}
+
+service user{
+  rpc Login(Request)returns(Response);
+}
