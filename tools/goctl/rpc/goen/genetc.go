@@ -24,7 +24,6 @@ func (g *defaultRpcGenerator) genEtc() error {
 		return nil
 	}
 	return templatex.With("etc").
-		GoFmt(true).
 		Parse(etcTemplate).
 		SaveTo(map[string]interface{}{
 			"serviceName": g.Ctx.ServiceName.Lower(),

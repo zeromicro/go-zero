@@ -60,8 +60,8 @@ func (g *defaultRpcGenerator) genRemoteHandler() error {
 	newFuncs := make([]string, 0)
 	head := util.GetHead(g.Ctx.ProtoSource)
 	for _, service := range file.Service {
-		types = append(types, fmt.Sprintf(typeFmt, service.Name))
-		newFuncs = append(newFuncs, fmt.Sprintf(newFuncFmt, service.Name, service.Name, service.Name))
+		types = append(types, fmt.Sprintf(typeFmt, service.Name.Title()))
+		newFuncs = append(newFuncs, fmt.Sprintf(newFuncFmt, service.Name.Title(), service.Name.Title(), service.Name.Title()))
 	}
 	err := templatex.With("server").GoFmt(true).Parse(remoteTemplate).SaveTo(map[string]interface{}{
 		"head":     head,
@@ -91,10 +91,10 @@ func (g *defaultRpcGenerator) genFunctions() error {
 			// override
 			err := templatex.With("func").GoFmt(true).Parse(functionTemplate).SaveTo(map[string]interface{}{
 				"head":       head,
-				"server":     service.Name,
+				"server":     service.Name.Title(),
 				"imports":    strings.Join(handlerImports, "\r\n"),
-				"logicName":  fmt.Sprintf("%sLogic", method.Name),
-				"method":     method.Name,
+				"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
+				"method":     method.Name.Title(),
 				"package":    pkg,
 				"request":    method.InType,
 				"response":   method.OutType,
