@@ -97,7 +97,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 		"request":      requestString,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
