@@ -17,10 +17,11 @@ import (
 const configTemplate = `package main
 
 import (
-	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"os"
 	"{{.import}}"
+
+	"github.com/ghodss/yaml"
 )
 
 func main() {
