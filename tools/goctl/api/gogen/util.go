@@ -15,8 +15,6 @@ import (
 	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const goModeIdentifier = "go.mod"
-
 func getParentPackage(dir string) (string, error) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
@@ -24,27 +22,7 @@ func getParentPackage(dir string) (string, error) {
 	}
 
 	absDir = strings.ReplaceAll(absDir, `\`, `/`)
-	var rootPath string
-	var tempPath = absDir
-	var hasGoMod = false
-	for {
-		if goctlutil.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
-			tempPath = filepath.Dir(tempPath)
-			rootPath = absDir[len(tempPath)+1:]
-			hasGoMod = true
-			break
-		}
-
-		if tempPath == filepath.Dir(tempPath) {
-			break
-		}
-
-		tempPath = filepath.Dir(tempPath)
-		if tempPath == string(filepath.Separator) {
-			break
-		}
-	}
-
+	var rootPath, hasGoMod = goctlutil.FindGoModPath(dir)
 	if hasGoMod {
 		return rootPath, nil
 	}
@@ -54,7 +32,7 @@ func getParentPackage(dir string) (string, error) {
 	pos := strings.Index(absDir, parent)
 	if pos < 0 {
 		fmt.Printf("%s not in go.mod project path, or not in GOPATH of %s directory\n", absDir, gopath)
-		tempPath = filepath.Dir(absDir)
+		var tempPath = filepath.Dir(absDir)
 		rootPath = absDir[len(tempPath)+1:]
 	} else {
 		rootPath = absDir[len(parent)+1:]
