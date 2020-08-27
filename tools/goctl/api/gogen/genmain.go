@@ -3,7 +3,6 @@ package gogen
 import (
 	"bytes"
 	"fmt"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -73,13 +72,11 @@ func genMain(dir string, api *spec.ApiSpec) error {
 }
 
 func genMainImports(parentPkg string) string {
-	imports := []string{
-		fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl),
-		fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl),
-	}
+	var imports []string
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, handlerDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
-	sort.Strings(imports)
+	imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl))
+	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl))
 	return strings.Join(imports, "\n\t")
 }
