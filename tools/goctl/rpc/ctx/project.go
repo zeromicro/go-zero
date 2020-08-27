@@ -86,21 +86,14 @@ func prepare(log console.Console) (*Project, error) {
 		return nil, err
 	}
 	goPath = strings.TrimSpace(ret)
+	src := filepath.Join(goPath, "src")
 	if goModCache == "" {
-		goModCache = goPath
-		pwd, err := os.Getwd()
-		if err != nil {
-			return nil, err
-		}
-		path = strings.TrimPrefix(pwd, filepath.Join(goModCache, "src"))
-		r := strings.TrimPrefix(pwd, path)
-		name = filepath.Dir(r)
+		goModCache = src
 
-	} else {
-		path = filepath.Dir(goMod)
-		name = filepath.Base(path)
 	}
 	if len(goMod) > 0 {
+		path = filepath.Dir(goMod)
+		name = filepath.Base(path)
 		data, err := ioutil.ReadFile(goMod)
 		if err != nil {
 			return nil, err
@@ -113,14 +106,28 @@ func prepare(log console.Console) (*Project, error) {
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		pwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		if !strings.HasPrefix(pwd, src) {
+			return nil, fmt.Errorf("%s: project is not in go mod and go path", pwd)
+		}
+		r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
+		name = filepath.Dir(r)
+		if name == "." {
+			name = r
+		}
+		path = filepath.Join(src, name)
+		module = name
 	}
+
 	protobuf := filepath.Join(goModCache, protobufModule)
 	if !util.FileExists(protobuf) {
 		return nil, fmt.Errorf("expected protobuf module in path: %s,please ensure you has already [go get github.com/golang/protobuf]", protobuf)
 	}
-	if len(module) == 0 {
-		module = name
-	}
+
 	protoCGenGo := filepath.Join(goPath, "bin", constProtoCGenGo)
 	if !util.FileExists(protoCGenGo) {
 		sh := "go install " + filepath.Join(protobuf, constProtoCGenGo)
