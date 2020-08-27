@@ -33,16 +33,48 @@ func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 	}
 }
 
-func (g *defaultRpcGenerator) Generate() error {
-	ctx := g.Ctx
-	ctx.Must(g.createDir())
-	ctx.Must(g.genEtc())
-	ctx.Must(g.genPb())
-	ctx.Must(g.genConfig())
-	ctx.Must(g.genSvc())
-	ctx.Must(g.genLogic())
-	ctx.Must(g.genRemoteHandler())
-	ctx.Must(g.genMain())
-	ctx.Must(g.genShared())
+func (g *defaultRpcGenerator) Generate() (err error) {
+	g.Ctx.Info("code generating...")
+	defer func() {
+		if err == nil {
+			g.Ctx.Success("Done.")
+		}
+	}()
+	err = g.createDir()
+	if err != nil {
+		return
+	}
+	err = g.genEtc()
+	if err != nil {
+		return
+	}
+	err = g.genPb()
+	if err != nil {
+		return
+	}
+	err = g.genConfig()
+	if err != nil {
+		return
+	}
+	err = g.genSvc()
+	if err != nil {
+		return
+	}
+	err = g.genLogic()
+	if err != nil {
+		return
+	}
+	err = g.genRemoteHandler()
+	if err != nil {
+		return
+	}
+	err = g.genMain()
+	if err != nil {
+		return
+	}
+	err = g.genShared()
+	if err != nil {
+		return
+	}
 	return nil
 }
