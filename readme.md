@@ -185,6 +185,7 @@ go get -u github.com/tal-tech/go-zero
 
 ## 8. 文档 (逐步完善中)
 
+* [从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
 * [goctl使用帮助](doc/goctl.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 

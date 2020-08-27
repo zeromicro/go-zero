@@ -82,7 +82,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		}
 	}
 	// generate error file
-	filename := filepath.Join(dirAbs, "error.go")
+	filename := filepath.Join(dirAbs, "vars.go")
 	if !util.FileExists(filename) {
 		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
 		if err != nil {

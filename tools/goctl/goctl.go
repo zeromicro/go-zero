@@ -194,11 +194,11 @@ var (
 			Subcommands: []cli.Command{
 				{
 					Name:  "mysql",
-					Usage: `generate mysql model"`,
+					Usage: `generate mysql model`,
 					Subcommands: []cli.Command{
 						{
 							Name:  "ddl",
-							Usage: `generate mysql model from ddl"`,
+							Usage: `generate mysql model from ddl`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
@@ -221,15 +221,15 @@ var (
 						},
 						{
 							Name:  "datasource",
-							Usage: `generate model from datasource"`,
+							Usage: `generate model from datasource`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course"`,
+									Usage: `source table,tables separated by commas,like "user,course`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
