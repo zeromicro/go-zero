@@ -87,11 +87,10 @@ func prepare(log console.Console) (*Project, error) {
 	}
 	goPath = strings.TrimSpace(ret)
 	src := filepath.Join(goPath, "src")
-	if goModCache == "" {
-		goModCache = src
-
-	}
 	if len(goMod) > 0 {
+		if goModCache == "" {
+			goModCache = filepath.Join(goPath, "pkg", "mod")
+		}
 		path = filepath.Dir(goMod)
 		name = filepath.Base(path)
 		data, err := ioutil.ReadFile(goMod)
@@ -107,6 +106,9 @@ func prepare(log console.Console) (*Project, error) {
 			return nil, err
 		}
 	} else {
+		if goModCache == "" {
+			goModCache = src
+		}
 		pwd, err := os.Getwd()
 		if err != nil {
 			return nil, err
