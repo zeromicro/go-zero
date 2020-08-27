@@ -195,6 +195,21 @@ var (
 			Usage: "generate rpc code",
 			Subcommands: []cli.Command{
 				{
+					Name:  "template",
+					Usage: `generate proto template"`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "out, o",
+							Usage: "the target path of proto",
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcTemplate,
+				},
+				{
 					Name:  "proto",
 					Usage: `generate rpc from proto"`,
 					Flags: []cli.Flag{

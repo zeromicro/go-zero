@@ -44,7 +44,7 @@ func (g *defaultRpcGenerator) genPb() error {
 	pbPath := g.dirM[dirPb]
 
 	protoFileName := filepath.Base(g.Ctx.ProtoFileSrc)
-	err = protocGenGo(g.Ctx.GoPath, g.Ctx.ProtoFileSrc, pbPath)
+	err = g.protocGenGo(pbPath)
 	if err != nil {
 		return err
 	}
@@ -66,11 +66,9 @@ func (g *defaultRpcGenerator) genPb() error {
 	return nil
 }
 
-func protocGenGo(gopath, proto, target string) error {
-	src := filepath.Dir(proto)
-	path := filepath.Join(gopath, "bin", "protoc-gen-go")
-	fmt.Println(path)
-	sh := fmt.Sprintf(`export PATH=$PATH:%s
-protoc -I=%s --go_out=plugins=grpc:%s %s`, path, src, target, proto)
+func (g *defaultRpcGenerator) protocGenGo(target string) error {
+	src := filepath.Dir(g.Ctx.ProtoFileSrc)
+	sh := fmt.Sprintf(`export PATH=%s:$PATH
+protoc -I=%s --go_out=plugins=grpc:%s %s`, filepath.Join(g.Ctx.GoPath, "bin"), src, target, g.Ctx.ProtoFileSrc)
 	return execx.RunShOrBat(sh)
 }

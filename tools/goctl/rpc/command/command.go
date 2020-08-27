@@ -13,3 +13,11 @@ func Rpc(c *cli.Context) error {
 	rpcCtx.Must(generator.Generate())
 	return nil
 }
+
+func RpcTemplate(c *cli.Context) error {
+	out := c.String("out")
+	idea := c.Bool("idea")
+	generator := gogen.NewRpcTemplate(out, idea)
+	generator.MustGenerate()
+	return nil
+}
