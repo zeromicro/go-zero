@@ -76,8 +76,9 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	returnString := ""
 	requestString := ""
 	if len(route.ResponseType.Name) > 0 {
-		responseString = "(*types." + strings.Title(route.ResponseType.Name) + ", error)"
-		returnString = "return nil, nil"
+		resp := strings.Title(route.ResponseType.Name)
+		responseString = "(*types." + resp + ", error)"
+		returnString = fmt.Sprintf("return &types.%s{}, nil", resp)
 	} else {
 		responseString = "error"
 		returnString = "return nil"
