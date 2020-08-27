@@ -22,19 +22,30 @@ var (
 	cores     uint64
 )
 
+// if /proc not present, ignore the cpu calcuation, like wsl linux
 func init() {
 	cpus, err := perCpuUsage()
-	logx.Must(err)
-	cores = uint64(len(cpus))
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 
+	cores = uint64(len(cpus))
 	sets, err := cpuSets()
-	logx.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
+
 	quota = float64(len(sets))
 	cq, err := cpuQuota()
 	if err == nil {
 		if cq != -1 {
 			period, err := cpuPeriod()
-			logx.Must(err)
+			if err != nil {
+				logx.Error(err)
+				return
+			}
 
 			limit := float64(cq) / float64(period)
 			if limit < quota {
@@ -44,10 +55,16 @@ func init() {
 	}
 
 	preSystem, err = systemCpuUsage()
-	logx.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 
 	preTotal, err = totalCpuUsage()
-	logx.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 }
 
 func RefreshCpu() uint64 {
