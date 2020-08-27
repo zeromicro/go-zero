@@ -8,7 +8,7 @@
 
 ## 1. 短链微服务架构图
 
-![架构图](images/shorturl-arch.png)
+<img src="images/shorturl-arch.png" alt="架构图" width="800" />
 
 ## 2. 创建工作目录并初始化go.mod
 
