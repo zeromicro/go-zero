@@ -117,11 +117,24 @@
   ```
 
 * 可以修改`internal/svc/servicecontext.go`来传递服务依赖（如果需要）
+
 * 实现逻辑可以修改`internal/logic`下的对应文件
 
-## 4. 编写shorten/expand rpc服务（未完）
+* 可以通过`goctl`生成各种客户端语言的api调用代码
 
-## 5. 定义数据库表结构，并生成CRUD+cache代码
+## 4. 编写shorten rpc服务（未完）
+
+* 编写`shorten.proto`文件
+* 用`goctl`生成rpc代码
+
+## 5. 编写expand rpc服务（未完）
+
+* 编写`expand.proto`文件
+* 用`goctl`生成rpc代码
+
+## 6. 修改API Gateway代码调用shorten/expand rpc服务（未完）
+
+## 7. 定义数据库表结构，并生成CRUD+cache代码
 
 * shorturl下创建rpc/model目录：`mkdir -p rpc/model`
 * 在roc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
@@ -178,5 +191,10 @@
   └── shorturl.sql
   ```
 
-## 6. Benchmark（未完）
+## 8. 修改shorten/expand rpc代码调用crud+cache代码
 
+## 9. 完整调用演示
+
+## 10. Benchmark（未完）
+
+## 11. 总结（未完）
