@@ -223,7 +223,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "service, srv",
-							Usage: `the name of rpc service,by default, if the generated target directory meets the xx/cmd/rpc structure, then xx is the corresponding service name. [option]`,
+							Usage: `the name of rpc service. [option]`,
 						},
 						cli.StringFlag{
 							Name:  "shared",
