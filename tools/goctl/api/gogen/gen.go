@@ -143,15 +143,17 @@ func createGoModFileIfNeed(dir string) {
 	var tempPath = absDir
 	var hasGoMod = false
 	for {
-		if tempPath == filepath.Dir(tempPath) {
-			break
-		}
-		tempPath = filepath.Dir(tempPath)
 		if util.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
 			hasGoMod = true
 			break
 		}
+
+		tempPath = filepath.Dir(tempPath)
+		if tempPath == filepath.Dir(tempPath) {
+			break
+		}
 	}
+
 	if !hasGoMod {
 		gopath := os.Getenv("GOPATH")
 		parent := path.Join(gopath, "src")
