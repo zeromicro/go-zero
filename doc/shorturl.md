@@ -121,7 +121,7 @@
 
 ## 4. 编写shorten/expand rpc服务（未完）
 
-## 5. 定义数据库表结构
+## 5. 定义数据库表结构，并生成CRUD+cache代码
 
 * shorturl下创建rpc/model目录：`mkdir -p rpc/model`
 * 在roc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
@@ -137,13 +137,13 @@
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ```
 
-## 6. 自动生成CRUD+cache代码
-
 * 在`rpc/model`目录下执行如下命令生成CRUD+cache代码，`-c`表示使用`redis cache`
 
   ```shell
   goctl model mysql ddl -c -src shorturl.sql -dir .
   ```
+  
+  也可以用`datasource`命令代替`ddl`来指定数据库链接直接从schema生成
   
   生成后的文件结构如下：
   
@@ -178,5 +178,5 @@
   └── shorturl.sql
   ```
 
-## 未完待续
+## 6. Benchmark（未完）
 
