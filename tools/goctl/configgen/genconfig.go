@@ -10,26 +10,27 @@ import (
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
 const configTemplate = `package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"{{.import}}"
+
+	"github.com/ghodss/yaml"
 )
 
 func main() {
 	var c config.Config
-	template, err := json.MarshalIndent(c, "", "    ")
+	template, err := yaml.Marshal(c)
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile("config.json", template, os.ModePerm)
+	err = ioutil.WriteFile("config.yaml", template, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -41,9 +42,9 @@ func GenConfigCommand(c *cli.Context) error {
 	if err != nil {
 		return errors.New("abs failed: " + c.String("path"))
 	}
-	xi := strings.Index(path, vars.ProjectName)
-	if xi <= 0 {
-		return errors.New("path should the absolute path of config go file")
+	goModPath, hasFound := util.FindGoModPath(path)
+	if !hasFound {
+		return errors.New("go mod not initial")
 	}
 	path = strings.TrimSuffix(path, "/config.go")
 	location := path + "/tmp"
@@ -62,16 +63,28 @@ func GenConfigCommand(c *cli.Context) error {
 
 	t := template.Must(template.New("template").Parse(configTemplate))
 	if err := t.Execute(fp, map[string]string{
-		"import": path[xi:],
+		"import": filepath.Dir(goModPath),
 	}); err != nil {
 		return err
 	}
 
-	cmd := exec.Command("go", "run", goPath)
-	_, err = cmd.Output()
+	gen := exec.Command("go", "run", "config.go")
+	gen.Dir = filepath.Dir(goPath)
+	gen.Stderr = os.Stderr
+	gen.Stdout = os.Stdout
+	err = gen.Run()
 	if err != nil {
-		return err
+		panic(err)
 	}
+	path, err = os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	err = os.Rename(filepath.Dir(goPath)+"/config.yaml", path+"/config.yaml")
+	if err != nil {
+		panic(err)
+	}
+
 	fmt.Println(aurora.Green("Done."))
 	return nil
 }

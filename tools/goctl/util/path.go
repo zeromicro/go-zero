@@ -4,12 +4,16 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-const pkgSep = "/"
+const (
+	pkgSep           = "/"
+	goModeIdentifier = "go.mod"
+)
 
 func JoinPackages(pkgs ...string) string {
 	return strings.Join(pkgs, pkgSep)
@@ -42,4 +46,37 @@ func PathFromGoSrc() (string, error) {
 
 	// skip slash
 	return dir[len(parent)+1:], nil
+}
+
+func FindGoModPath(dir string) (string, bool) {
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return "", false
+	}
+
+	absDir = strings.ReplaceAll(absDir, `\`, `/`)
+	var rootPath string
+	var tempPath = absDir
+	var hasGoMod = false
+	for {
+		if FileExists(filepath.Join(tempPath, goModeIdentifier)) {
+			tempPath = filepath.Dir(tempPath)
+			rootPath = absDir[len(tempPath)+1:]
+			hasGoMod = true
+			break
+		}
+
+		if tempPath == filepath.Dir(tempPath) {
+			break
+		}
+
+		tempPath = filepath.Dir(tempPath)
+		if tempPath == string(filepath.Separator) {
+			break
+		}
+	}
+	if hasGoMod {
+		return rootPath, true
+	}
+	return "", false
 }
