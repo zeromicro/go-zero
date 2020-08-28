@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 var etcTemplate = `{
@@ -27,7 +26,7 @@ func (g *defaultRpcGenerator) genEtc() error {
 	if util.FileExists(fileName) {
 		return nil
 	}
-	return templatex.With("etc").
+	return util.With("etc").
 		Parse(etcTemplate).
 		SaveTo(map[string]interface{}{
 			"serviceName": g.Ctx.ServiceName.Lower(),

@@ -7,7 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 var (
@@ -63,7 +63,7 @@ func (g *defaultRpcGenerator) genLogic() error {
 			pbImport := fmt.Sprintf(`%v "%v"`, protoPkg, g.mustGetPackage(dirPb))
 			svcImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirSvc))
 			imports.AddStr(pbImport, svcImport)
-			err = templatex.With("logic").GoFmt(true).Parse(logicTemplate).SaveTo(map[string]interface{}{
+			err = util.With("logic").GoFmt(true).Parse(logicTemplate).SaveTo(map[string]interface{}{
 				"logicName": fmt.Sprintf("%sLogic", method.Name.Title()),
 				"functions": functions,
 				"imports":   strings.Join(imports.KeysStr(), "\r\n"),
@@ -78,7 +78,7 @@ func (g *defaultRpcGenerator) genLogic() error {
 
 func genLogicFunction(packageName string, method *parser.Func) (string, error) {
 	var functions = make([]string, 0)
-	buffer, err := templatex.With("fun").Parse(logicFunctionTemplate).Execute(map[string]interface{}{
+	buffer, err := util.With("fun").Parse(logicFunctionTemplate).Execute(map[string]interface{}{
 		"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
 		"method":     method.Name.Title(),
 		"package":    packageName,
