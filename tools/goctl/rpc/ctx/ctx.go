@@ -1,11 +1,14 @@
 package ctx
 
 import (
+	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/urfave/cli"
 
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
@@ -65,6 +68,7 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	if serviceNameString.IsEmptyOrSpace() {
 		log.Fatalln("service name is not found")
 	}
+	fmt.Println(targetDirFp)
 	return &RpcContext{
 		ProjectPath:  info.Path,
 		ProjectName:  stringx.From(info.Name),
@@ -80,6 +84,14 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	}
 }
 func MustCreateRpcContextFromCli(ctx *cli.Context) *RpcContext {
+	os := runtime.GOOS
+	switch os {
+	case "darwin":
+	case "windows":
+		logx.Must(fmt.Errorf("windows will support soon"))
+	default:
+		logx.Must(fmt.Errorf("unexpected os: %s", os))
+	}
 	protoSrc := ctx.String(flagSrc)
 	targetDir := ctx.String(flagDir)
 	sharedDir := ctx.String(flagShared)

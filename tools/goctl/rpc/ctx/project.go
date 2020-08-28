@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
@@ -130,8 +131,18 @@ func prepare(log console.Console) (*Project, error) {
 		return nil, fmt.Errorf("expected protobuf module in path: %s,please ensure you has already [go get github.com/golang/protobuf]", protobuf)
 	}
 
-	protoCGenGo := filepath.Join(goPath, "bin", constProtoCGenGo)
-	if !util.FileExists(protoCGenGo) {
+	var protoCGenGoFilename string
+	os := runtime.GOOS
+	switch os {
+	case "darwin":
+		protoCGenGoFilename = filepath.Join(goPath, "bin", "protoc-gen-go")
+	case "windows":
+		protoCGenGoFilename = filepath.Join(goPath, "bin", "protoc-gen-go.exe")
+	default:
+		return nil, fmt.Errorf("unexpeted os: %s", os)
+	}
+
+	if !util.FileExists(protoCGenGoFilename) {
 		sh := "go install " + filepath.Join(protobuf, constProtoCGenGo)
 		log.Warning(sh)
 		err = execx.RunShOrBat(sh)
@@ -139,7 +150,7 @@ func prepare(log console.Console) (*Project, error) {
 			return nil, err
 		}
 	}
-	if !util.FileExists(protoCGenGo) {
+	if !util.FileExists(protoCGenGoFilename) {
 		return nil, fmt.Errorf("protoc-gen-go is not found")
 	}
 	return &Project{
