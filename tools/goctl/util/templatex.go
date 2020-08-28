@@ -1,4 +1,4 @@
-package templatex
+package util
 
 import (
 	"bytes"
@@ -32,7 +32,10 @@ func (t *defaultTemplate) GoFmt(format bool) *defaultTemplate {
 	return t
 }
 
-func (t *defaultTemplate) SaveTo(data interface{}, path string) error {
+func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool) error {
+	if FileExists(path) && !forceUpdate {
+		return nil
+	}
 	output, err := t.execute(data)
 	if err != nil {
 		return err

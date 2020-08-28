@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -17,8 +19,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	"github.com/urfave/cli"
+	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
 )
 
 var (
@@ -189,6 +191,54 @@ var (
 			Action: docker.DockerCommand,
 		},
 		{
+			Name:  "rpc",
+			Usage: "generate rpc code",
+			Subcommands: []cli.Command{
+				{
+					Name:  "template",
+					Usage: `generate proto template"`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "out, o",
+							Usage: "the target path of proto",
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcTemplate,
+				},
+				{
+					Name:  "proto",
+					Usage: `generate rpc from proto"`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "src, s",
+							Usage: "the file path of the proto source file",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						},
+						cli.StringFlag{
+							Name:  "service, srv",
+							Usage: `the name of rpc service. [option]`,
+						},
+						cli.StringFlag{
+							Name:  "shared",
+							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]"`,
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.Rpc,
+				},
+			},
+		},
+		{
 			Name:  "model",
 			Usage: "generate model code",
 			Subcommands: []cli.Command{
@@ -217,7 +267,7 @@ var (
 									Usage: "for idea plugin [optional]",
 								},
 							},
-							Action: command.MysqlDDL,
+							Action: model.MysqlDDL,
 						},
 						{
 							Name:  "datasource",
@@ -244,7 +294,7 @@ var (
 									Usage: "for idea plugin [optional]",
 								},
 							},
-							Action: command.MyDataSource,
+							Action: model.MyDataSource,
 						},
 					},
 				},
