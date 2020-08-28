@@ -10,7 +10,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 var (
@@ -109,7 +108,7 @@ func (g *defaultRpcGenerator) genShared() error {
 	remotePackage := fmt.Sprintf(`%v "%v"`, pbPkg, g.mustGetPackage(dirPb))
 	filename := filepath.Join(g.Ctx.SharedDir, "types.go")
 	head := util.GetHead(g.Ctx.ProtoSource)
-	err = templatex.With("types").GoFmt(true).Parse(sharedTemplateTypes).SaveTo(map[string]interface{}{
+	err = util.With("types").GoFmt(true).Parse(sharedTemplateTypes).SaveTo(map[string]interface{}{
 		"head":                  head,
 		"filePackage":           sharePackage,
 		"pbPkg":                 pbPkg,
@@ -130,7 +129,7 @@ func (g *defaultRpcGenerator) genShared() error {
 		}
 		mockFile := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("mock%smodel.go", service.Name.Lower()))
 		os.Remove(mockFile)
-		err = templatex.With("shared").GoFmt(true).Parse(sharedTemplateText).SaveTo(map[string]interface{}{
+		err = util.With("shared").GoFmt(true).Parse(sharedTemplateText).SaveTo(map[string]interface{}{
 			"name":        service.Name.Lower(),
 			"head":        head,
 			"filePackage": sharePackage,
@@ -150,7 +149,7 @@ func (g *defaultRpcGenerator) genShared() error {
 	if err != nil {
 		g.Ctx.Warning("warning:mockgen is not found")
 	} else {
-		execx.RunShOrBat(fmt.Sprintf("cd %s \ngo generate", g.Ctx.SharedDir))
+		execx.Run(fmt.Sprintf("cd %s \ngo generate", g.Ctx.SharedDir))
 	}
 	return nil
 }
@@ -168,7 +167,7 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 		if len(method.Document) > 0 {
 			comment = method.Document[0]
 		}
-		buffer, err := templatex.With("sharedFn").Parse(sharedFunctionTemplate).Execute(map[string]interface{}{
+		buffer, err := util.With("sharedFn").Parse(sharedFunctionTemplate).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
 			"method":         method.Name.Title(),
 			"package":        pkgName,
@@ -199,7 +198,7 @@ func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]s
 		if len(method.Document) > 0 {
 			comment = method.Document[0]
 		}
-		buffer, err := templatex.With("interfaceFn").Parse(sharedInterfaceFunctionTemplate).Execute(map[string]interface{}{
+		buffer, err := util.With("interfaceFn").Parse(sharedInterfaceFunctionTemplate).Execute(map[string]interface{}{
 			"hasComment":  len(method.Document) > 0,
 			"comment":     comment,
 			"method":      method.Name.Title(),
