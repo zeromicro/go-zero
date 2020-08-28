@@ -68,8 +68,3 @@ func (t *defaultTemplate) execute(data interface{}) (*bytes.Buffer, error) {
 	buf.Write(formatOutput)
 	return buf, nil
 }
-
-func fileExists(file string) bool {
-	_, err := os.Stat(file)
-	return err == nil
-}
