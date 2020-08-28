@@ -39,8 +39,6 @@ func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 
 func (r *rpcTemplate) MustGenerate() {
 	err := templatex.With("t").Parse(rpcTemplateText).SaveTo(nil, r.out, false)
-	if err != nil {
-		r.Must(err)
-	}
+	r.Must(err)
 	r.Success("Done.")
 }
