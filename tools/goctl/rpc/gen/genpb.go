@@ -1,4 +1,4 @@
-package gogen
+package gen
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dsymonds/gotoc/parser"
+
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	astParser "github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
@@ -72,8 +73,7 @@ func (g *defaultRpcGenerator) genPb() error {
 
 func (g *defaultRpcGenerator) protocGenGo(target string) error {
 	src := filepath.Dir(g.Ctx.ProtoFileSrc)
-	sh := fmt.Sprintf(`export PATH=%s:$PATH
-protoc -I=%s --go_out=plugins=grpc:%s %s`, filepath.Join(g.Ctx.GoPath, "bin"), src, target, g.Ctx.ProtoFileSrc)
+	sh := fmt.Sprintf(`protoc -I=%s --go_out=plugins=grpc:%s %s`, src, target, g.Ctx.ProtoFileSrc)
 	stdout, err := execx.Run(sh)
 	if err != nil {
 		return err
