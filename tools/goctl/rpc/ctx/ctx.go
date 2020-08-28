@@ -33,7 +33,6 @@ type (
 		ProtoSource  string
 		TargetDir    string
 		SharedDir    string
-		GoPath       string
 		console.Console
 	}
 )
@@ -83,7 +82,6 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 		ProtoSource:  filepath.Base(srcFp),
 		TargetDir:    targetDirFp,
 		SharedDir:    sharedFp,
-		GoPath:       info.GoPath,
 		Console:      log,
 	}
 }

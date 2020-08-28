@@ -56,7 +56,6 @@ user
     │   │   └── config.go
     │   ├── handler
     │   │   ├── loginhandler.go
-    │   │   └── userhandler.go
     │   ├── logic
     │   │   └── loginlogic.go
     │   └── svc
@@ -73,25 +72,8 @@ user
 ```
 # 准备工作
 * 安装了go环境
-* 安装了protoc，并且已经设置环境变量
-
-# protoc-gen-go
-
-在使用goctl生成rpc服务代码时，我们默认会根据开发人员正在开发的工程依赖的`github.com/golang/protobuf`自动将插件重新`go install`到`${GOPATH}/bin`中，
-寻找方法：
-
-### go mod 工程  
-  对于`$ go version`不低于1.5版本的的工程，会优先寻找`$ go env GOMODCACHE`目录，如果没有则去`${GOPATH}`中查找（见下文）,而低于1.5版本的则会优先从`${GOPATH}/pkg/mod`目录下查找，否则也从`% GOPATH`中查找（见下文）
-
-### go path工程
-  对于没有使用go mod的工程，则默认当作在`${GOPATH}`中处理（暂不支持用户自定义的GOPATH），而这种情况下则会默认从`${GOPATH}/src`中查找
-
-> 注意： 
- * 对于以上两种工程如果没有在对应目录查找到`protoc-gen-go`则会提示相应错误，尽管`protoc-gen-go`可能在其他已经设置环境变量的目录中，这个将在后面版本进行优化。
- * 对于go mod工程，如果工程没有依赖`github.com/golang/protobuf`则需要提前引入。
-
-### 好处
-* 保证grpc代码生成规范的一致性
+* 安装了protoc&protoc-gen-go，并且已经设置环境变量
+* mockgen(可选)
 
 # 用法
 ```shell script
