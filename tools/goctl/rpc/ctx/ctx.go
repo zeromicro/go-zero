@@ -42,11 +42,13 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	log := console.NewConsole(idea)
 	info, err := prepare(log)
 	log.Must(err)
+
 	if stringx.From(protoSrc).IsEmptyOrSpace() {
 		log.Fatalln("expected proto source, but nothing found")
 	}
 	srcFp, err := filepath.Abs(protoSrc)
 	log.Must(err)
+
 	if !util.FileExists(srcFp) {
 		log.Fatalln("%s is not exists", srcFp)
 	}
@@ -59,8 +61,10 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	}
 	targetDirFp, err := filepath.Abs(targetDir)
 	log.Must(err)
+
 	sharedFp, err := filepath.Abs(sharedDir)
 	log.Must(err)
+
 	if stringx.From(serviceName).IsEmptyOrSpace() {
 		serviceName = getServiceFromRpcStructure(targetDirFp)
 	}
@@ -68,7 +72,7 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	if serviceNameString.IsEmptyOrSpace() {
 		log.Fatalln("service name is not found")
 	}
-	fmt.Println(targetDirFp)
+
 	return &RpcContext{
 		ProjectPath:  info.Path,
 		ProjectName:  stringx.From(info.Name),

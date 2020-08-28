@@ -91,7 +91,10 @@ func NewAstParser(golang []byte, filterStruct map[string]lang.PlaceholderType, l
 func (a *astParser) Parse() (*PbAst, error) {
 	fSet := a.fileSet
 	f, err := parser.ParseFile(fSet, "", a.golang, parser.ParseComments)
-	a.Must(err)
+	if err != nil {
+		return nil, err
+	}
+
 	commentMap := ast.NewCommentMap(fSet, f, f.Comments)
 	f.Comments = commentMap.Filter(f).Comments()
 	var pbAst PbAst
@@ -119,6 +122,7 @@ func (a *astParser) mustScope(scope *ast.Scope) (map[string]*Struct, []*RpcServi
 	if scope == nil {
 		return nil, nil
 	}
+
 	objects := scope.Objects
 	structs := make(map[string]*Struct)
 	serviceList := make([]*RpcService, 0)
@@ -134,10 +138,12 @@ func (a *astParser) mustScope(scope *ast.Scope) (map[string]*Struct, []*RpcServi
 		tp := typeSpec.Type
 
 		switch v := tp.(type) {
+
 		case *ast.StructType:
 			st, err := a.parseObject(name, v)
 			a.Must(err)
 			structs[st.Name.Lower()] = st
+
 		case *ast.InterfaceType:
 			if !strings.HasSuffix(name, suffixServer) {
 				continue
@@ -150,7 +156,7 @@ func (a *astParser) mustScope(scope *ast.Scope) (map[string]*Struct, []*RpcServi
 		}
 	}
 	targetStruct := make(map[string]*Struct)
-	for st, _ := range a.filterStruct {
+	for st := range a.filterStruct {
 		lower := strings.ToLower(st)
 		targetStruct[lower] = structs[lower]
 	}
@@ -163,6 +169,7 @@ func (a *astParser) mustServerFunctions(v *ast.InterfaceType) []*Func {
 	if methodObject == nil {
 		return nil
 	}
+
 	for _, method := range methodObject.List {
 		var item Func
 		name := a.mustGetIndentName(method.Names[0])
@@ -182,6 +189,7 @@ func (a *astParser) mustServerFunctions(v *ast.InterfaceType) []*Func {
 		if params != nil {
 			inList, err := a.parseFields(params.List, true)
 			a.Must(err)
+
 			for _, data := range inList {
 				if strings.HasPrefix(data.TypeName, referenceContext) {
 					continue
@@ -196,6 +204,7 @@ func (a *astParser) mustServerFunctions(v *ast.InterfaceType) []*Func {
 		if results != nil {
 			outList, err := a.parseFields(results.List, true)
 			a.Must(err)
+
 			for _, data := range outList {
 				if strings.HasPrefix(data.TypeName, referenceContext) {
 					continue
@@ -220,16 +229,19 @@ func (a *astParser) parseObject(structName string, tp *ast.StructType) (*Struct,
 	if tp == nil {
 		return &st, nil
 	}
+
 	fields := tp.Fields
 	if fields == nil {
 		objectM[structName] = &st
 		return &st, nil
 	}
+
 	fieldList := fields.List
 	members, err := a.parseFields(fieldList, false)
 	if err != nil {
 		return nil, err
 	}
+
 	for _, m := range members {
 		var field Field
 		field.Name = m.Name
@@ -265,6 +277,7 @@ func (a *astParser) parseFields(fields []*ast.Field, onlyType bool) ([]*Field, e
 		if err != nil {
 			return nil, err
 		}
+
 		item.TypeName = typeName
 		if onlyType {
 			ret = append(ret, &item)
@@ -307,14 +320,17 @@ func (a *astParser) parseType(expr ast.Expr) (string, error) {
 	if expr == nil {
 		return "", errorParseError
 	}
+
 	switch v := expr.(type) {
 	case *ast.StarExpr:
 		stringExpr, err := a.parseType(v.X)
 		if err != nil {
 			return "", err
 		}
+
 		e := fmt.Sprintf("*%s", stringExpr)
 		return e, nil
+
 	case *ast.Ident:
 		return a.mustGetIndentName(v), nil
 	case *ast.MapType:
@@ -322,10 +338,12 @@ func (a *astParser) parseType(expr ast.Expr) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		valueStringExpr, err := a.parseType(v.Value)
 		if err != nil {
 			return "", err
 		}
+
 		e := fmt.Sprintf("map[%s]%s", keyStringExpr, valueStringExpr)
 		return e, nil
 	case *ast.ArrayType:
@@ -333,6 +351,7 @@ func (a *astParser) parseType(expr ast.Expr) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		e := fmt.Sprintf("[]%s", stringExpr)
 		return e, nil
 	case *ast.InterfaceType:
@@ -409,6 +428,7 @@ func (a *PbAst) GenTypesCode() (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		if structCode == "" {
 			continue
 		}
@@ -420,6 +440,7 @@ func (a *PbAst) GenTypesCode() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return buffer.String(), nil
 }
 
@@ -446,6 +467,7 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		fields = append(fields, buffer.String())
 	}
 	buffer, err := templatex.With("struct").Parse(structTemplate).Execute(map[string]interface{}{
@@ -456,5 +478,6 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return buffer.String(), nil
 }

@@ -56,10 +56,12 @@ func prepare(log console.Console) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	_, err = exec.LookPath(constProtoC)
 	if err != nil {
 		return nil, err
 	}
+
 	var (
 		goModOn                   bool
 		goMod, goModCache, module string
@@ -71,21 +73,25 @@ func prepare(log console.Console) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	goModOn = strings.TrimSpace(ret) == "on"
 	ret, err = execx.Run(constGoMod)
 	if err != nil {
 		return nil, err
 	}
+
 	goMod = strings.TrimSpace(ret)
 	ret, err = execx.Run(constGoModCache)
 	if err != nil {
 		return nil, err
 	}
+
 	goModCache = strings.TrimSpace(ret)
 	ret, err = execx.Run(constGoPath)
 	if err != nil {
 		return nil, err
 	}
+
 	goPath = strings.TrimSpace(ret)
 	src := filepath.Join(goPath, "src")
 	if len(goMod) > 0 {
@@ -98,10 +104,12 @@ func prepare(log console.Console) (*Project, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		module, err = matchModule(data)
 		if err != nil {
 			return nil, err
 		}
+
 		protobufModule, err = matchProtoBuf(data)
 		if err != nil {
 			return nil, err
@@ -114,6 +122,7 @@ func prepare(log console.Console) (*Project, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		if !strings.HasPrefix(pwd, src) {
 			return nil, fmt.Errorf("%s: project is not in go mod and go path", pwd)
 		}
