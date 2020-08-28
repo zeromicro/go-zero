@@ -10,8 +10,12 @@
 
 <img src="images/shorturl-arch.png" alt="架构图" width="800" />
 
-## 2. 创建工作目录并初始化go.mod
+## 2. 准备工作
 
+* 准备goctl工具，在任意目录下进行，目的是为了编译goctl工具
+  1. `git clone https://github.com/tal-tech/go-zero`
+  2. 在`tools/goctl`目录下编译goctl工具`go build goctl.go`
+  3. 将生成的goctl放到`$PATH`下，确保goctl命令可运行
 * 创建工作目录`shorturl`
 * 在`shorturl`目录下执行`go mod init shorturl`初始化`go.mod`
 
