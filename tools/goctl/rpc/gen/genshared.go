@@ -12,10 +12,10 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var (
+const (
 	sharedTemplateText = `{{.head}}
 
-//go:generate mockgen -destination ./mock{{.name}}model.go -package {{.filePackage}} -source $GOFILE
+//go:generate mockgen -destination ./{{.name}}model_mock.go -package {{.filePackage}} -source $GOFILE
 
 package {{.filePackage}}
 
@@ -23,6 +23,7 @@ import (
 	"context"
 
 	{{.package}}
+
 	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/rpcx"
 )
@@ -31,13 +32,13 @@ type (
 	{{.serviceName}}Model interface {
 		{{.interface}}
 	}
+
 	default{{.serviceName}}Model struct {
 		cli rpcx.Client
 	}
 )
 
-
-func NewDefault{{.serviceName}}Model(cli rpcx.Client) {{.serviceName}}Model {
+func New{{.serviceName}}Model(cli rpcx.Client) {{.serviceName}}Model {
 	return &default{{.serviceName}}Model{
 		cli: cli,
 	}
@@ -49,51 +50,52 @@ func NewDefault{{.serviceName}}Model(cli rpcx.Client) {{.serviceName}}Model {
 
 package {{.filePackage}}
 
-import (
-	"errors"
-)
+import "errors"
 
-var (
-	errJsonConvert = errors.New("json convert error")
-)
+var errJsonConvert = errors.New("json convert error")
 
 {{.types}}
-
 `
 	sharedInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
 {{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}}`
 	sharedFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
 func (m *default{{.rpcServiceName}}Model) {{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}} {
-	conn:= m.cli.Conn()
-	client := {{.package}}.New{{.rpcServiceName}}Client(conn)
+	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
 	var request {{.package}}.{{.pbRequest}}
 	bts, err := jsonx.Marshal(in)
 	if err != nil {
-		return {{if .hasResponse}}nil,{{end}}errJsonConvert
+		return {{if .hasResponse}}nil, {{end}}errJsonConvert
 	}
+
 	err = jsonx.Unmarshal(bts, &request)
 	if err != nil {
-		return {{if .hasResponse}}nil,{{end}}errJsonConvert
+		return {{if .hasResponse}}nil, {{end}}errJsonConvert
 	}
-	{{if .hasResponse}}resp,err:={{else}}_,err={{end}}client.{{.method}}(ctx, &request)
-	{{if .hasResponse}}if err!=nil{
-		return nil,err
+
+	{{if .hasResponse}}resp, err := {{else}}_, err = {{end}}client.{{.method}}(ctx, &request)
+	{{if .hasResponse}}if err != nil{
+		return nil, err
 	}
+
 	var ret {{.pbResponse}}
-	bts,err=jsonx.Marshal(resp)
-	if err!=nil{
-		return nil,errJsonConvert
+	bts, err = jsonx.Marshal(resp)
+	if err != nil{
+		return nil, errJsonConvert
 	}
-	err=jsonx.Unmarshal(bts,&ret)
-	if err!=nil{
-		return nil,errJsonConvert
+
+	err = jsonx.Unmarshal(bts, &ret)
+	if err != nil{
+		return nil, errJsonConvert
 	}
-	return &ret, nil{{else}}if err!=nil {
+
+	return &ret, nil{{else}}if err != nil {
 		return err
 	}
+
 	return nil{{end}}
-}`
+}
+`
 )
 
 func (g *defaultRpcGenerator) genShared() error {
@@ -127,7 +129,7 @@ func (g *defaultRpcGenerator) genShared() error {
 		if err != nil {
 			return err
 		}
-		mockFile := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("mock%smodel.go", service.Name.Lower()))
+		mockFile := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("%smodel_mock.go", service.Name.Lower()))
 		os.Remove(mockFile)
 		err = util.With("shared").GoFmt(true).Parse(sharedTemplateText).SaveTo(map[string]interface{}{
 			"name":        service.Name.Lower(),

@@ -8,18 +8,14 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var (
+const (
 	remoteTemplate = `{{.head}}
 
 package handler
 
-import (
-	{{.imports}}
-)
+import {{.imports}}
 
-type (
-	{{.types}}
-)
+type {{.types}}
 
 {{.newFuncs}}
 `
@@ -33,9 +29,11 @@ import (
 	{{.imports}}
 )
 
+type {{.server}}Server struct{}
+
 {{if .hasComment}}{{.comment}}{{end}}
 func (s *{{.server}}Server) {{.method}} (ctx context.Context, in *{{.package}}.{{.request}}) (*{{.package}}.{{.response}}, error) {
-	l:=logic.New{{.logicName}}(ctx,s.svcCtx)
+	l := logic.New{{.logicName}}(ctx,s.svcCtx)
 	return l.{{.method}}(in)
 }
 `

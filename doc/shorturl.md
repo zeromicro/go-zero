@@ -102,7 +102,7 @@
 * 测试API Gateway服务
 
   ```shell
-  curl -i "http://localhost:8888/shorten?url=a"
+  curl -i "http://localhost:8888/shorten?url=http://www.xiaoheiban.cn"
   ```
 
   返回如下：
@@ -116,6 +116,8 @@
   {"shortUrl":""}
   ```
 
+  可以看到我们API Gateway其实啥也没干，就返回了个空值，接下来我们会在rpc服务里实现业务逻辑
+
 * 可以修改`internal/svc/servicecontext.go`来传递服务依赖（如果需要）
 
 * 实现逻辑可以修改`internal/logic`下的对应文件
@@ -125,11 +127,65 @@
 ## 4. 编写shorten rpc服务（未完）
 
 * 编写`shorten.proto`文件
+
+  可以通过命令生成proto文件模板
+
+  ```shell
+  goctl rpc template -o shorten.proto
+  ```
+
+  修改后文件内容如下：
+
+  ```protobuf
+  syntax = "proto3";
+  
+  package shorten;
+  
+  message shortenReq {
+      string url = 1;
+  }
+  
+  message shortenResp {
+      string key = 1;
+  }
+  
+  service shortener {
+      rpc shorten(shortenReq) returns(shortenResp);
+  }
+  ```
+
 * 用`goctl`生成rpc代码
 
 ## 5. 编写expand rpc服务（未完）
 
 * 编写`expand.proto`文件
+
+  可以通过命令生成proto文件模板
+
+  ```shell
+  goctl rpc template -o expand.proto
+  ```
+
+  修改后文件内容如下：
+
+  ```protobuf
+  syntax = "proto3";
+  
+  package expand;
+  
+  message expandReq {
+      string key = 1;
+  }
+  
+  message expandResp {
+      string url = 1;
+  }
+  
+  service expander {
+      rpc expand(expandReq) returns(expandResp);
+  }
+  ```
+
 * 用`goctl`生成rpc代码
 
 ## 6. 修改API Gateway代码调用shorten/expand rpc服务（未完）
@@ -148,6 +204,16 @@
     PRIMARY KEY(`id`),
     UNIQUE KEY `key_index`(`key`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  ```
+
+* 创建DB和table
+
+  ```sql
+  create database gozero;
+  ```
+
+  ```sql
+  source shorturl.sql;
   ```
 
 * 在`rpc/model`目录下执行如下命令生成CRUD+cache代码，`-c`表示使用`redis cache`
@@ -198,3 +264,9 @@
 ## 10. Benchmark（未完）
 
 ## 11. 总结（未完）
+
+可以看到go-zero不只是一个框架，更是一个建立在框架+工具基础上的，简化和规范了整个微服务构建的技术体系。
+
+我们一直强调**工具大于约定和文档**。
+
+另外，我们在保持简单的同时也尽可能把微服务治理的复杂度封装到了框架内部，极大的降低了开发人员的心智负担，使得业务开发得以快速推进。

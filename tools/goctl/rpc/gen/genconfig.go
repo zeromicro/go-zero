@@ -8,15 +8,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var configTemplate = `package config
+const configTemplate = `package config
 
 import "github.com/tal-tech/go-zero/rpcx"
 
-type (
-	Config struct {
-		rpcx.RpcServerConf
-	}
-)
+type Config struct {
+	rpcx.RpcServerConf
+}
 `
 
 func (g *defaultRpcGenerator) genConfig() error {

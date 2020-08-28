@@ -10,29 +10,26 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var (
+const (
 	logicTemplate = `package logic
 
 import (
 	"context"
 
 	{{.imports}}
+
 	"github.com/tal-tech/go-zero/core/logx"
 )
 
-type (
-	{{.logicName}} struct {
-		ctx context.Context
-		logx.Logger
-		// todo: add your logic here and delete this line
-	}
-)
+type {{.logicName}} struct {
+	ctx context.Context
+	logx.Logger
+}
 
 func New{{.logicName}}(ctx context.Context,svcCtx *svc.ServiceContext) *{{.logicName}} {
 	return &{{.logicName}}{
 		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
-		// todo: add your logic here and delete this line
 	}
 }
 {{.functions}}
@@ -40,6 +37,7 @@ func New{{.logicName}}(ctx context.Context,svcCtx *svc.ServiceContext) *{{.logic
 	logicFunctionTemplate = `{{if .hasComment}}{{.comment}}{{end}}
 func (l *{{.logicName}}) {{.method}} (in *{{.package}}.{{.request}}) (*{{.package}}.{{.response}}, error) {
 	var resp {{.package}}.{{.response}}
+
 	// todo: add your logic here and delete this line
 	
 	return &resp,nil

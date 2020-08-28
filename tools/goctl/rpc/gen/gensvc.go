@@ -7,16 +7,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var svcTemplate = `package svc
+const svcTemplate = `package svc
 
 import {{.imports}}
 
-type (
-	ServiceContext struct {
-		c config.Config
-		// todo: add your logic here and delete this line
-	}
-)
+type ServiceContext struct {
+	c config.Config
+}
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{

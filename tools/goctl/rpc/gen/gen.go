@@ -34,7 +34,7 @@ func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 }
 
 func (g *defaultRpcGenerator) Generate() (err error) {
-	g.Ctx.Info("code generating...")
+	g.Ctx.Info("generating code...")
 	defer func() {
 		if err == nil {
 			g.Ctx.Success("Done.")

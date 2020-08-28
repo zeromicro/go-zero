@@ -5,9 +5,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
-var rpcTemplateText = `syntax = "proto3";
+const rpcTemplateText = `syntax = "proto3";
 
-package remoteuser;
+package remote;
 
 message Request {
   string username = 1;
@@ -19,16 +19,15 @@ message Response {
   string gender = 2;
 }
 
-service User{
-  rpc Login(Request)returns(Response);
-}`
+service User {
+  rpc Login(Request) returns(Response);
+}
+`
 
-type (
-	rpcTemplate struct {
-		out string
-		console.Console
-	}
-)
+type rpcTemplate struct {
+	out string
+	console.Console
+}
 
 func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 	return &rpcTemplate{

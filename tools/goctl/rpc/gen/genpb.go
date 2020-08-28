@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/dsymonds/gotoc/parser"
-
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	astParser "github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
@@ -80,6 +79,9 @@ protoc -I=%s --go_out=plugins=grpc:%s %s`, filepath.Join(g.Ctx.GoPath, "bin"), s
 		return err
 	}
 
-	g.Ctx.Info(stdout)
+	if len(stdout) > 0 {
+		g.Ctx.Info(stdout)
+	}
+
 	return nil
 }

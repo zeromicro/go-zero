@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-var mainTemplate = `{{.head}}
+const mainTemplate = `{{.head}}
 
 package main
 
@@ -18,15 +18,14 @@ import (
 	"fmt"
 	"log"
 
-	"google.golang.org/grpc"
+	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/rpcx"
-
-	{{.imports}}
+	"google.golang.org/grpc"
 )
 
-var configFile = flag.String("f", "etc/{{.serviceName}}.json", "the config file")
+var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
 
 func main() {
 	flag.Parse()
@@ -42,10 +41,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
 }
-
 `
 
 func (g *defaultRpcGenerator) genMain() error {
