@@ -104,6 +104,7 @@ func (g *defaultRpcGenerator) genShared() error {
 	if err != nil {
 		return err
 	}
+
 	pbPkg := file.Package
 	remotePackage := fmt.Sprintf(`%v "%v"`, pbPkg, g.mustGetPackage(dirPb))
 	filename := filepath.Join(g.Ctx.SharedDir, "types.go")
@@ -116,6 +117,7 @@ func (g *defaultRpcGenerator) genShared() error {
 		"lowerStartServiceName": g.Ctx.ServiceName.UnTitle(),
 		"types":                 typeCode,
 	}, filename, true)
+
 	for _, service := range file.Service {
 		filename := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("%smodel.go", service.Name.Lower()))
 		functions, err := g.getFuncs(service)
@@ -142,6 +144,7 @@ func (g *defaultRpcGenerator) genShared() error {
 			return err
 		}
 	}
+
 	// if mockgen is already installed, it will generate code of gomock for shared files
 	_, err = exec.LookPath("mockgen")
 	if err != nil {
@@ -178,6 +181,7 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 		if err != nil {
 			return nil, err
 		}
+
 		functions = append(functions, buffer.String())
 	}
 	return functions, nil
@@ -206,6 +210,7 @@ func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]s
 		if err != nil {
 			return nil, err
 		}
+
 		functions = append(functions, buffer.String())
 	}
 	return functions, nil
