@@ -61,7 +61,6 @@ var errJsonConvert = errors.New("json convert error")
 	sharedFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
 func (m *default{{.rpcServiceName}}Model) {{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}} {
-	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
 	var request {{.package}}.{{.pbRequest}}
 	bts, err := jsonx.Marshal(in)
 	if err != nil {
@@ -73,6 +72,7 @@ func (m *default{{.rpcServiceName}}Model) {{.method}}(ctx context.Context,in *{{
 		return {{if .hasResponse}}nil, {{end}}errJsonConvert
 	}
 
+	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
 	{{if .hasResponse}}resp, err := {{else}}_, err = {{end}}client.{{.method}}(ctx, &request)
 	{{if .hasResponse}}if err != nil{
 		return nil, err

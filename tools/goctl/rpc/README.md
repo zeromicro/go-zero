@@ -82,7 +82,7 @@ $ goctl rpc proto -h
 
 ```shell script
 NAME:
-   goctl rpc proto - generate rpc from proto"
+   goctl rpc proto - generate rpc from proto
 
 USAGE:
    goctl rpc proto [command options] [arguments...]

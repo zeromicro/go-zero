@@ -124,9 +124,9 @@
 
 * 可以通过`goctl`生成各种客户端语言的api调用代码
 
-## 4. 编写shorten rpc服务（未完）
+## 4. 编写shorten rpc服务
 
-* 编写`shorten.proto`文件
+* 在`rpc/shorten`目录下编写`shorten.proto`文件
 
   可以通过命令生成proto文件模板
 
@@ -154,11 +154,49 @@
   }
   ```
 
-* 用`goctl`生成rpc代码
+* 用`goctl`生成rpc代码，在`rpc/shorten`目录下执行命令
 
-## 5. 编写expand rpc服务（未完）
+  ```shell
+  goctl rpc proto -src shorten.proto
+  ```
 
-* 编写`expand.proto`文件
+  文件结构如下：
+
+  ```
+  rpc/shorten
+  ├── etc
+│   └── shorten.yaml               // 配置文件
+  ├── internal
+│   ├── config
+  │   │   └── config.go              // 配置定义
+  │   ├── handler
+  │   │   └── shortenerhandler.go    // api handler, 不需要修改
+  │   ├── logic
+│   │   └── shortenlogic.go        // api业务逻辑在这里实现
+  │   └── svc
+  │       └── servicecontext.go      // 定义ServiceContext，传递依赖
+  ├── pb
+  │   └── shorten.pb.go
+  ├── shared
+  │   ├── shortenermodel.go          // 提供了外部调用方法，无需修改
+  │   ├── shortenermodel_mock.go     // mock方法，测试用
+  │   └── types.go                   // request/response结构体定义
+  ├── shorten.go                     // rpc服务main函数
+  └── shorten.proto
+  ```
+  
+  直接可以运行，如下：
+  
+  ```shell
+  $ go run shorten.go -f etc/shorten.yaml
+  Starting rpc server at 127.0.0.1:8080...
+  ```
+  
+  `etc/shorten.yaml`文件里可以修改侦听端口等配置
+
+## 5. 编写expand rpc服务
+
+* 在`rpc/expand`目录下编写`expand.proto`文件
 
   可以通过命令生成proto文件模板
 
@@ -186,7 +224,47 @@
   }
   ```
 
-* 用`goctl`生成rpc代码
+* 用`goctl`生成rpc代码，在`rpc/expand`目录下执行命令
+
+  ```shell
+  goctl rpc proto -src expand.proto
+  ```
+
+  文件结构如下：
+
+  ```
+  rpc/expand
+  ├── etc
+│   └── expand.yaml                // 配置文件
+  ├── internal
+│   ├── config
+  │   │   └── config.go              // 配置定义
+  │   ├── handler
+  │   │   └── expanderhandler.go     // api handler, 不需要修改
+  │   ├── logic
+│   │   └── expandlogic.go         // api业务逻辑在这里实现
+  │   └── svc
+  │       └── servicecontext.go      // 定义ServiceContext，传递依赖
+  ├── pb
+  │   └── expand.pb.go
+  ├── shared
+  │   ├── expandermodel.go           // 提供了外部调用方法，无需修改
+  │   ├── expandermodel_mock.go      // mock方法，测试用
+  │   └── types.go                   // request/response结构体定义
+  ├── expand.go                      // rpc服务main函数
+  └── expand.proto
+  ```
+  
+  修改`etc/expand.yaml`里面的`ListenOn`的端口为`8081`，因为`8080`已经被`shorten`服务占用了
+  
+  修改后运行，如下：
+  
+  ```shell
+  $ go run expand.go -f etc/expand.yaml
+  Starting rpc server at 127.0.0.1:8081...
+  ```
+  
+  `etc/expand.yaml`文件里可以修改侦听端口等配置
 
 ## 6. 修改API Gateway代码调用shorten/expand rpc服务（未完）
 
@@ -227,34 +305,10 @@
   生成后的文件结构如下：
   
   ```
-  .
-  ├── api
-  │   ├── etc
-  │   │   └── shorturl-api.yaml
-  │   ├── internal
-  │   │   ├── config
-  │   │   │   └── config.go
-  │   │   ├── handler
-  │   │   │   ├── expandhandler.go
-  │   │   │   ├── routes.go
-  │   │   │   └── shortenhandler.go
-  │   │   ├── logic
-  │   │   │   ├── expandlogic.go
-  │   │   │   └── shortenlogic.go
-  │   │   ├── svc
-  │   │   │   └── servicecontext.go
-  │   │   └── types
-  │   │       └── types.go
-  │   └── shorturl.go
-  ├── go.mod
-  ├── go.sum
-  ├── rpc
-  │   └── model
-  │       ├── shorturl.sql
-  │       ├── shorturlmodel.go      // CRUD+cache代码
-  │       └── vars.go               // 定义常量和变量
-  ├── shorturl.api
-  └── shorturl.sql
+  rpc/model
+  ├── shorturl.sql
+  ├── shorturlmodel.go              // CRUD+cache代码
+  └── vars.go                       // 定义常量和变量
   ```
 
 ## 8. 修改shorten/expand rpc代码调用crud+cache代码
