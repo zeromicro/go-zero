@@ -44,37 +44,46 @@ func (g *defaultRpcGenerator) Generate() (err error) {
 	if err != nil {
 		return
 	}
+
 	err = g.genEtc()
 	if err != nil {
 		return
 	}
+
 	err = g.genPb()
 	if err != nil {
 		return
 	}
+
 	err = g.genConfig()
 	if err != nil {
 		return
 	}
+
 	err = g.genSvc()
 	if err != nil {
 		return
 	}
+
 	err = g.genLogic()
 	if err != nil {
 		return
 	}
+
 	err = g.genRemoteHandler()
 	if err != nil {
 		return
 	}
+
 	err = g.genMain()
 	if err != nil {
 		return
 	}
+
 	err = g.genShared()
 	if err != nil {
 		return
 	}
+
 	return nil
 }
