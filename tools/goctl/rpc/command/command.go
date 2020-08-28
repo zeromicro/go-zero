@@ -9,7 +9,7 @@ import (
 
 func Rpc(c *cli.Context) error {
 	rpcCtx := ctx.MustCreateRpcContextFromCli(c)
-	generator := gogen.NewDefaultRpcGenerator(rpcCtx)
+	generator := gen.NewDefaultRpcGenerator(rpcCtx)
 	rpcCtx.Must(generator.Generate())
 	return nil
 }
@@ -17,7 +17,7 @@ func Rpc(c *cli.Context) error {
 func RpcTemplate(c *cli.Context) error {
 	out := c.String("out")
 	idea := c.Bool("idea")
-	generator := gogen.NewRpcTemplate(out, idea)
+	generator := gen.NewRpcTemplate(out, idea)
 	generator.MustGenerate()
 	return nil
 }

@@ -1,4 +1,4 @@
-package gogen
+package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"

@@ -1,4 +1,4 @@
-package gogen
+package gen
 
 import (
 	"io/ioutil"
