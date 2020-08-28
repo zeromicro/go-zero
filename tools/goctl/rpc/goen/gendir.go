@@ -18,14 +18,14 @@ import (
 func (g *defaultRpcGenerator) createDir() error {
 	ctx := g.Ctx
 	m := make(map[string]string)
-	m[dirTarget] = ctx.CurrentPath
-	m[dirEtc] = filepath.Join(ctx.CurrentPath, dirEtc)
-	m[dirInternal] = filepath.Join(ctx.CurrentPath, dirInternal)
-	m[dirConfig] = filepath.Join(ctx.CurrentPath, dirInternal, dirConfig)
-	m[dirHandler] = filepath.Join(ctx.CurrentPath, dirInternal, dirHandler)
-	m[dirLogic] = filepath.Join(ctx.CurrentPath, dirInternal, dirLogic)
-	m[dirPb] = filepath.Join(ctx.CurrentPath, dirPb)
-	m[dirSvc] = filepath.Join(ctx.CurrentPath, dirInternal, dirSvc)
+	m[dirTarget] = ctx.TargetDir
+	m[dirEtc] = filepath.Join(ctx.TargetDir, dirEtc)
+	m[dirInternal] = filepath.Join(ctx.TargetDir, dirInternal)
+	m[dirConfig] = filepath.Join(ctx.TargetDir, dirInternal, dirConfig)
+	m[dirHandler] = filepath.Join(ctx.TargetDir, dirInternal, dirHandler)
+	m[dirLogic] = filepath.Join(ctx.TargetDir, dirInternal, dirLogic)
+	m[dirPb] = filepath.Join(ctx.TargetDir, dirPb)
+	m[dirSvc] = filepath.Join(ctx.TargetDir, dirInternal, dirSvc)
 	m[dirShared] = g.Ctx.SharedDir
 	for _, d := range m {
 		err := util.MkdirIfNotExist(d)
