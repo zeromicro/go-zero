@@ -67,7 +67,7 @@ func (g *defaultRpcGenerator) genMain() error {
 		"serviceName": g.Ctx.ServiceName.Lower(),
 		"srv":         srv,
 		"registers":   registers,
-		"imports":     strings.Join(imports, "\r\n"),
+		"imports":     strings.Join(imports, "\n"),
 	}, fileName, true)
 }
 

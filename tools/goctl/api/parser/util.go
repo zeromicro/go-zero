@@ -9,16 +9,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-const (
-	// struct匹配
-	typeRegex = `(?m)(?m)(^ *type\s+[a-zA-Z][a-zA-Z0-9_-]+\s+(((struct)\s*?\{[\w\W]*?[^\{]\})|([a-zA-Z][a-zA-Z0-9_-]+)))|(^ *type\s*?\([\w\W]+\}\s*\))`
-)
+// struct匹配
+const typeRegex = `(?m)(?m)(^ *type\s+[a-zA-Z][a-zA-Z0-9_-]+\s+(((struct)\s*?\{[\w\W]*?[^\{]\})|([a-zA-Z][a-zA-Z0-9_-]+)))|(^ *type\s*?\([\w\W]+\}\s*\))`
 
 var (
 	emptyStrcut = errors.New("struct body not found")
+	emptyType   spec.Type
 )
-
-var emptyType spec.Type
 
 func GetType(api *spec.ApiSpec, t string) spec.Type {
 	for _, tp := range api.Types {

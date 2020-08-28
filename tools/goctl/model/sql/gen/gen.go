@@ -171,7 +171,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		"types":   typesCode,
 		"new":     newCode,
 		"insert":  insertCode,
-		"find":    strings.Join(findCode, "\r\n"),
+		"find":    strings.Join(findCode, "\n"),
 		"update":  updateCode,
 		"delete":  deleteCode,
 	})

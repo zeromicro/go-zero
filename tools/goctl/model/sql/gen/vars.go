@@ -20,7 +20,7 @@ func genVars(table Table, withCache bool) (string, error) {
 		Execute(map[string]interface{}{
 			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
 			"upperStartCamelObject": camel,
-			"cacheKeys":             strings.Join(keys, "\r\n"),
+			"cacheKeys":             strings.Join(keys, "\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,
 			"originalPrimaryKey":    table.PrimaryKey.Name.Source(),
 			"withCache":             withCache,

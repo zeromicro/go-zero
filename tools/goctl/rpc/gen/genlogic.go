@@ -64,7 +64,7 @@ func (g *defaultRpcGenerator) genLogic() error {
 			err = util.With("logic").GoFmt(true).Parse(logicTemplate).SaveTo(map[string]interface{}{
 				"logicName": fmt.Sprintf("%sLogic", method.Name.Title()),
 				"functions": functions,
-				"imports":   strings.Join(imports.KeysStr(), "\r\n"),
+				"imports":   strings.Join(imports.KeysStr(), "\n"),
 			}, filename, false)
 			if err != nil {
 				return err
@@ -83,7 +83,7 @@ func genLogicFunction(packageName string, method *parser.Func) (string, error) {
 		"request":    method.InType,
 		"response":   method.OutType,
 		"hasComment": len(method.Document) > 0,
-		"comment":    strings.Join(method.Document, "\r\n"),
+		"comment":    strings.Join(method.Document, "\n"),
 	})
 	if err != nil {
 		return "", err

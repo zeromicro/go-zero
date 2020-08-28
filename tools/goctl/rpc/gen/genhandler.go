@@ -9,15 +9,29 @@ import (
 )
 
 const (
-	remoteTemplate = `{{.head}}
+	handlerTemplate = `{{.head}}
 
 package handler
 
-import {{.imports}}
+import (
+	"context"
+
+	{{.imports}}
+)
 
 type {{.types}}
 
-{{.newFuncs}}
+func New{{.server}}Server(svcCtx *svc.ServiceContext) *{{.server}}Server {
+	return &{{.server}}Server{
+		svcCtx: svcCtx,
+	}
+}
+
+{{if .hasComment}}{{.comment}}{{end}}
+func (s *{{.server}}Server) {{.method}} (ctx context.Context, in *{{.package}}.{{.request}}) (*{{.package}}.{{.response}}, error) {
+	l := logic.New{{.logicName}}(ctx,s.svcCtx)
+	return l.{{.method}}(in)
+}
 `
 	functionTemplate = `{{.head}}
 
@@ -28,8 +42,6 @@ import (
 
 	{{.imports}}
 )
-
-type {{.server}}Server struct{}
 
 {{if .hasComment}}{{.comment}}{{end}}
 func (s *{{.server}}Server) {{.method}} (ctx context.Context, in *{{.package}}.{{.request}}) (*{{.package}}.{{.response}}, error) {
@@ -47,29 +59,35 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in *{{.package}}.{
 }`
 )
 
-func (g *defaultRpcGenerator) genRemoteHandler() error {
+func (g *defaultRpcGenerator) genHandler() error {
 	handlerPath := g.dirM[dirHandler]
-	serverGo := fmt.Sprintf("%vhandler.go", g.Ctx.ServiceName.Lower())
-	fileName := filepath.Join(handlerPath, serverGo)
+	filename := fmt.Sprintf("%vhandler.go", g.Ctx.ServiceName.Lower())
+	handlerFile := filepath.Join(handlerPath, filename)
 	file := g.ast
+	pkg := file.Package
+	pbImport := fmt.Sprintf(`%v "%v"`, pkg, g.mustGetPackage(dirPb))
+	logicImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirLogic))
 	svcImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirSvc))
+	imports := []string{
+		pbImport,
+		logicImport,
+		svcImport,
+	}
 	types := make([]string, 0)
 	newFuncs := make([]string, 0)
 	head := util.GetHead(g.Ctx.ProtoSource)
 	for _, service := range file.Service {
 		types = append(types, fmt.Sprintf(typeFmt, service.Name.Title()))
-		newFuncs = append(newFuncs, fmt.Sprintf(newFuncFmt, service.Name.Title(), service.Name.Title(), service.Name.Title()))
+		newFuncs = append(newFuncs, fmt.Sprintf(newFuncFmt, service.Name.Title(),
+			service.Name.Title(), service.Name.Title()))
 	}
-	err := util.With("server").GoFmt(true).Parse(remoteTemplate).SaveTo(map[string]interface{}{
+
+	return util.With("server").GoFmt(true).Parse(handlerTemplate).SaveTo(map[string]interface{}{
 		"head":     head,
 		"types":    strings.Join(types, "\n"),
 		"newFuncs": strings.Join(newFuncs, "\n"),
-		"imports":  svcImport,
-	}, fileName, true)
-	if err != nil {
-		return err
-	}
-	return g.genFunctions()
+		"imports":  strings.Join(imports, "\n\t"),
+	}, handlerFile, true)
 }
 
 func (g *defaultRpcGenerator) genFunctions() error {
@@ -89,19 +107,20 @@ func (g *defaultRpcGenerator) genFunctions() error {
 			err := util.With("func").GoFmt(true).Parse(functionTemplate).SaveTo(map[string]interface{}{
 				"head":       head,
 				"server":     service.Name.Title(),
-				"imports":    strings.Join(handlerImports, "\r\n"),
+				"imports":    strings.Join(handlerImports, "\n"),
 				"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
 				"method":     method.Name.Title(),
 				"package":    pkg,
 				"request":    method.InType,
 				"response":   method.OutType,
 				"hasComment": len(method.Document),
-				"comment":    strings.Join(method.Document, "\r\n"),
+				"comment":    strings.Join(method.Document, "\n"),
 			}, filename, true)
 			if err != nil {
 				return err
 			}
 		}
 	}
+
 	return nil
 }

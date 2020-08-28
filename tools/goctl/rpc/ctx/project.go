@@ -1,7 +1,6 @@
 package ctx
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -15,8 +14,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
-
-var errProtobufNotFound = errors.New("github.com/golang/protobuf is not found,please ensure you has already [go get github.com/golang/protobuf]")
 
 const (
 	constGo          = "go"

@@ -70,7 +70,7 @@ func (g *defaultRpcGenerator) Generate() (err error) {
 		return
 	}
 
-	err = g.genRemoteHandler()
+	err = g.genHandler()
 	if err != nil {
 		return
 	}
