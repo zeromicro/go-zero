@@ -11,9 +11,9 @@ import (
 
 	"github.com/tal-tech/go-zero/core/lang"
 	sx "github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 const (
@@ -434,7 +434,7 @@ func (a *PbAst) GenTypesCode() (string, error) {
 		}
 		types = append(types, structCode)
 	}
-	buffer, err := templatex.With("type").Parse(typeTemplate).Execute(map[string]interface{}{
+	buffer, err := util.With("type").Parse(typeTemplate).Execute(map[string]interface{}{
 		"types": strings.Join(types, "\n"),
 	})
 	if err != nil {
@@ -455,7 +455,7 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 			comment = f.Comment[0]
 		}
 		doc = strings.Join(f.Document, "\n")
-		buffer, err := templatex.With(sx.Rand()).Parse(fieldTemplate).Execute(map[string]interface{}{
+		buffer, err := util.With(sx.Rand()).Parse(fieldTemplate).Execute(map[string]interface{}{
 			"name":       f.Name.Title(),
 			"type":       f.TypeName,
 			"tag":        f.JsonTag,
@@ -470,7 +470,7 @@ func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
 
 		fields = append(fields, buffer.String())
 	}
-	buffer, err := templatex.With("struct").Parse(structTemplate).Execute(map[string]interface{}{
+	buffer, err := util.With("struct").Parse(structTemplate).Execute(map[string]interface{}{
 		"type":   containsTypeStatement,
 		"name":   s.Name.Title(),
 		"fields": strings.Join(fields, "\n"),

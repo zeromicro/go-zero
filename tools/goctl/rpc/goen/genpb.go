@@ -7,12 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	astParser "github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-
 	"github.com/dsymonds/gotoc/parser"
 
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	astParser "github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -76,5 +75,11 @@ func (g *defaultRpcGenerator) protocGenGo(target string) error {
 	src := filepath.Dir(g.Ctx.ProtoFileSrc)
 	sh := fmt.Sprintf(`export PATH=%s:$PATH
 protoc -I=%s --go_out=plugins=grpc:%s %s`, filepath.Join(g.Ctx.GoPath, "bin"), src, target, g.Ctx.ProtoFileSrc)
-	return execx.RunShOrBat(sh)
+	stdout, err := execx.Run(sh)
+	if err != nil {
+		return err
+	}
+
+	g.Ctx.Info(stdout)
+	return nil
 }

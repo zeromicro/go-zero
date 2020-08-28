@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 func genInsert(table Table, withCache bool) (string, error) {
@@ -23,7 +23,7 @@ func genInsert(table Table, withCache bool) (string, error) {
 		expressionValues = append(expressionValues, "data."+camel)
 	}
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("insert").
+	output, err := util.With("insert").
 		Parse(template.Insert).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,

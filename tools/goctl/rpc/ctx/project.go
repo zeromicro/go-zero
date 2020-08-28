@@ -154,10 +154,12 @@ func prepare(log console.Console) (*Project, error) {
 	if !util.FileExists(protoCGenGoFilename) {
 		sh := "go install " + filepath.Join(protobuf, constProtoCGenGo)
 		log.Warning(sh)
-		err = execx.RunShOrBat(sh)
+		stdout, err := execx.Run(sh)
 		if err != nil {
 			return nil, err
 		}
+
+		log.Info(stdout)
 	}
 	if !util.FileExists(protoCGenGoFilename) {
 		return nil, fmt.Errorf("protoc-gen-go is not found")
