@@ -1,8 +1,8 @@
 package gogen
 
 import (
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 var rpcTemplateText = `syntax = "proto3";
@@ -38,7 +38,7 @@ func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 }
 
 func (r *rpcTemplate) MustGenerate() {
-	err := templatex.With("t").Parse(rpcTemplateText).SaveTo(nil, r.out, false)
+	err := util.With("t").Parse(rpcTemplateText).SaveTo(nil, r.out, false)
 	r.Must(err)
 	r.Success("Done.")
 }
