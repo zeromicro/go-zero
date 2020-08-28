@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 var configTemplate = `package config
@@ -20,5 +22,8 @@ type (
 func (g *defaultRpcGenerator) genConfig() error {
 	configPath := g.dirM[dirConfig]
 	fileName := filepath.Join(configPath, fileConfig)
+	if util.FileExists(fileName) {
+		return nil
+	}
 	return ioutil.WriteFile(fileName, []byte(configTemplate), os.ModePerm)
 }
