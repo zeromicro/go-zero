@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 var (
@@ -63,7 +62,7 @@ func (g *defaultRpcGenerator) genRemoteHandler() error {
 		types = append(types, fmt.Sprintf(typeFmt, service.Name.Title()))
 		newFuncs = append(newFuncs, fmt.Sprintf(newFuncFmt, service.Name.Title(), service.Name.Title(), service.Name.Title()))
 	}
-	err := templatex.With("server").GoFmt(true).Parse(remoteTemplate).SaveTo(map[string]interface{}{
+	err := util.With("server").GoFmt(true).Parse(remoteTemplate).SaveTo(map[string]interface{}{
 		"head":     head,
 		"types":    strings.Join(types, "\n"),
 		"newFuncs": strings.Join(newFuncs, "\n"),
@@ -89,7 +88,7 @@ func (g *defaultRpcGenerator) genFunctions() error {
 			handlerName := fmt.Sprintf("%shandler.go", method.Name.Lower())
 			filename := filepath.Join(handlerPath, handlerName)
 			// override
-			err := templatex.With("func").GoFmt(true).Parse(functionTemplate).SaveTo(map[string]interface{}{
+			err := util.With("func").GoFmt(true).Parse(functionTemplate).SaveTo(map[string]interface{}{
 				"head":       head,
 				"server":     service.Name.Title(),
 				"imports":    strings.Join(handlerImports, "\r\n"),
