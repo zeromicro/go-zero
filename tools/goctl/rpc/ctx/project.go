@@ -1,7 +1,6 @@
 package ctx
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -14,10 +13,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-)
-
-var (
-	errProtobufNotFound = errors.New("github.com/golang/protobuf is not found,please ensure you has already [go get github.com/golang/protobuf]")
 )
 
 const (
@@ -51,7 +46,7 @@ type (
 )
 
 func prepare(log console.Console) (*Project, error) {
-	log.Info("check go env ...")
+	log.Info("checking go env...")
 	_, err := exec.LookPath(constGo)
 	if err != nil {
 		return nil, err
@@ -106,11 +101,6 @@ func prepare(log console.Console) (*Project, error) {
 		}
 
 		module, err = matchModule(data)
-		if err != nil {
-			return nil, err
-		}
-
-		protobufModule, err = matchProtoBuf(data)
 		if err != nil {
 			return nil, err
 		}
@@ -180,21 +170,6 @@ func prepare(log console.Console) (*Project, error) {
 	}, nil
 }
 
-// github.com/golang/protobuf@{version}
-func matchProtoBuf(data []byte) (string, error) {
-	text := string(data)
-	re := regexp.MustCompile(`(?m)(github.com/golang/protobuf)\s+(v[0-9.]+)`)
-	matches := re.FindAllStringSubmatch(text, -1)
-	if len(matches) == 0 {
-		return "", errProtobufNotFound
-	}
-	groups := matches[0]
-	if len(groups) < 3 {
-		return "", errProtobufNotFound
-	}
-	return fmt.Sprintf("%s@%s", groups[1], groups[2]), nil
-}
-
 func matchModule(data []byte) (string, error) {
 	text := string(data)
 	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9/\-.]+$`)
@@ -204,5 +179,6 @@ func matchModule(data []byte) (string, error) {
 		index := strings.Index(target, "module")
 		return strings.TrimSpace(target[index+6:]), nil
 	}
+
 	return "", nil
 }

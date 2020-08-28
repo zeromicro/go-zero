@@ -4,7 +4,7 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/ctx"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/goen"
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/gen"
 )
 
 func Rpc(c *cli.Context) error {

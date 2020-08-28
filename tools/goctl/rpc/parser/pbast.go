@@ -435,7 +435,7 @@ func (a *PbAst) GenTypesCode() (string, error) {
 		types = append(types, structCode)
 	}
 	buffer, err := util.With("type").Parse(typeTemplate).Execute(map[string]interface{}{
-		"types": strings.Join(types, "\n"),
+		"types": strings.Join(types, "\n\n"),
 	})
 	if err != nil {
 		return "", err

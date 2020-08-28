@@ -13,9 +13,7 @@ const (
 	configFile     = "config.go"
 	configTemplate = `package config
 
-import (
-	{{.authImport}}
-)
+import {{.authImport}}
 
 type Config struct {
 	rest.RestConf

@@ -81,7 +81,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		}
 	}
 	// generate error file
-	filename := filepath.Join(dirAbs, "error.go")
+	filename := filepath.Join(dirAbs, "vars.go")
 	if !util.FileExists(filename) {
 		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
 		if err != nil {
@@ -171,7 +171,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		"types":   typesCode,
 		"new":     newCode,
 		"insert":  insertCode,
-		"find":    strings.Join(findCode, "\r\n"),
+		"find":    strings.Join(findCode, "\n"),
 		"update":  updateCode,
 		"delete":  deleteCode,
 	})

@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/urfave/cli"
-
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -21,6 +19,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	"github.com/urfave/cli"
 )
 
 var (
@@ -196,7 +195,7 @@ var (
 			Subcommands: []cli.Command{
 				{
 					Name:  "template",
-					Usage: `generate proto template"`,
+					Usage: `generate proto template`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "out, o",
@@ -211,7 +210,7 @@ var (
 				},
 				{
 					Name:  "proto",
-					Usage: `generate rpc from proto"`,
+					Usage: `generate rpc from proto`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "src, s",
@@ -227,7 +226,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "shared",
-							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]"`,
+							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
@@ -244,11 +243,11 @@ var (
 			Subcommands: []cli.Command{
 				{
 					Name:  "mysql",
-					Usage: `generate mysql model"`,
+					Usage: `generate mysql model`,
 					Subcommands: []cli.Command{
 						{
 							Name:  "ddl",
-							Usage: `generate mysql model from ddl"`,
+							Usage: `generate mysql model from ddl`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
@@ -271,15 +270,15 @@ var (
 						},
 						{
 							Name:  "datasource",
-							Usage: `generate model from datasource"`,
+							Usage: `generate model from datasource`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course"`,
+									Usage: `source table,tables separated by commas,like "user,course`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
