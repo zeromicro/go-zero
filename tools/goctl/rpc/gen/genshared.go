@@ -2,12 +2,12 @@ package gen
 
 import (
 	"fmt"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )

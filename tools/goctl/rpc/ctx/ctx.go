@@ -6,12 +6,11 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/urfave/cli"
-
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/urfave/cli"
 )
 
 const (

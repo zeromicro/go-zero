@@ -1,10 +1,9 @@
 package command
 
 import (
-	"github.com/urfave/cli"
-
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/ctx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/gen"
+	"github.com/urfave/cli"
 )
 
 func Rpc(c *cli.Context) error {
