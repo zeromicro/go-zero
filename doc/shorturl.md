@@ -405,11 +405,9 @@
   ```sql
   CREATE TABLE `shorturl`
   (
-    `id` bigint(10) NOT NULL AUTO_INCREMENT,
-    `key` varchar(255) NOT NULL DEFAULT '' COMMENT 'shorten key',
-    `url` varchar(255) DEFAULT '' COMMENT 'original url',
-    PRIMARY KEY(`id`),
-    UNIQUE KEY `key_index`(`key`)
+    `shorten` varchar(255) NOT NULL COMMENT 'shorten key',
+    `url` varchar(255) NOT NULL COMMENT 'original url',
+    PRIMARY KEY(`shorten`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   ```
 
