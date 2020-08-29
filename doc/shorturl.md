@@ -10,6 +10,9 @@
 
 <img src="images/shorturl-arch.png" alt="架构图" width="800" />
 
+* 这里把shorten和expand分开为两个微服务，并不是说一个远程调用就需要拆分为一个微服务，只是为了最简演示多个微服务而已
+* 后面的redis和mysql也是共用的，但是在真正项目里要尽可能每个微服务使用自己的数据库，数据边界要清晰
+
 ## 2. 准备工作
 
 * 安装etcd, mysql, redis
