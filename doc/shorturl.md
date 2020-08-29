@@ -305,6 +305,26 @@
   }
   ```
 
+* 修改`internal/svc/servicecontext.go`，如下：
+
+  ```go
+  type ServiceContext struct {
+  	Config    config.Config
+  	Shortener rpcx.Client                                 // 手动代码
+  	Expander  rpcx.Client                                 // 手动代码
+  }
+  
+  func NewServiceContext(config config.Config) *ServiceContext {
+  	return &ServiceContext{
+  		Config:    config,
+  		Shortener: rpcx.MustNewClient(config.Shortener),    // 手动代码
+  		Expander:  rpcx.MustNewClient(config.Expander),     // 手动代码
+  	}
+  }
+  ```
+  
+  通过ServiceContext在不同业务逻辑之间传递依赖
+  
 * 修改`internal/logic/expandlogic.go`，如下：
 
   ```go
@@ -375,32 +395,12 @@
 
    增加了对`shortener`服务的依赖，并通过调用`shortener`的`Shorten`方法实现url到短链的变换
 
-* 修改`internal/svc/servicecontext.go`，如下：
-
-  ```go
-  type ServiceContext struct {
-  	Config    config.Config
-  	Shortener rpcx.Client                                 // 手动代码
-  	Expander  rpcx.Client                                 // 手动代码
-  }
-  
-  func NewServiceContext(config config.Config) *ServiceContext {
-  	return &ServiceContext{
-  		Config:    config,
-  		Shortener: rpcx.MustNewClient(config.Shortener),    // 手动代码
-  		Expander:  rpcx.MustNewClient(config.Expander),     // 手动代码
-  	}
-  }
-  ```
-
-  通过ServiceContext在不同业务逻辑之间传递依赖
-
   至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
 
 ## 7. 定义数据库表结构，并生成CRUD+cache代码
 
 * shorturl下创建rpc/model目录：`mkdir -p rpc/model`
-* 在roc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
+* 在rpc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
 
   ```sql
   CREATE TABLE `shorturl`
@@ -595,7 +595,7 @@
 * shorten api调用
 
   ```shell
-  ~ curl -i "http://localhost:8888/shorten?url=http://www.xiaoheiban.cn"
+  curl -i "http://localhost:8888/shorten?url=http://www.xiaoheiban.cn"
   ```
 
   返回如下：
