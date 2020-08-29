@@ -5,7 +5,6 @@ var (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/sqlc"

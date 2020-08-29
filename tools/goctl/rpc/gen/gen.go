@@ -10,8 +10,7 @@ const (
 	dirConfig          = "config"
 	dirEtc             = "etc"
 	dirSvc             = "svc"
-	dirShared          = "shared"
-	dirHandler         = "handler"
+	dirServer          = "server"
 	dirLogic           = "logic"
 	dirPb              = "pb"
 	dirInternal        = "internal"
@@ -19,13 +18,11 @@ const (
 	fileServiceContext = "servicecontext.go"
 )
 
-type (
-	defaultRpcGenerator struct {
-		dirM map[string]string
-		Ctx  *ctx.RpcContext
-		ast  *parser.PbAst
-	}
-)
+type defaultRpcGenerator struct {
+	dirM map[string]string
+	Ctx  *ctx.RpcContext
+	ast  *parser.PbAst
+}
 
 func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 	return &defaultRpcGenerator{
@@ -80,7 +77,7 @@ func (g *defaultRpcGenerator) Generate() (err error) {
 		return
 	}
 
-	err = g.genShared()
+	err = g.genCall()
 	if err != nil {
 		return
 	}

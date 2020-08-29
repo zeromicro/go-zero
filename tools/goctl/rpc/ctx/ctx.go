@@ -16,27 +16,23 @@ import (
 const (
 	flagSrc     = "src"
 	flagDir     = "dir"
-	flagShared  = "shared"
 	flagService = "service"
 	flagIdea    = "idea"
 )
 
-type (
-	RpcContext struct {
-		ProjectPath  string
-		ProjectName  stringx.String
-		ServiceName  stringx.String
-		CurrentPath  string
-		Module       string
-		ProtoFileSrc string
-		ProtoSource  string
-		TargetDir    string
-		SharedDir    string
-		console.Console
-	}
-)
+type RpcContext struct {
+	ProjectPath  string
+	ProjectName  stringx.String
+	ServiceName  stringx.String
+	CurrentPath  string
+	Module       string
+	ProtoFileSrc string
+	ProtoSource  string
+	TargetDir    string
+	console.Console
+}
 
-func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, idea bool) *RpcContext {
+func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *RpcContext {
 	log := console.NewConsole(idea)
 	info, err := prepare(log)
 	log.Must(err)
@@ -54,13 +50,7 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 	if stringx.From(targetDir).IsEmptyOrSpace() {
 		targetDir = current
 	}
-	if stringx.From(sharedDir).IsEmptyOrSpace() {
-		sharedDir = filepath.Join(current, "shared")
-	}
 	targetDirFp, err := filepath.Abs(targetDir)
-	log.Must(err)
-
-	sharedFp, err := filepath.Abs(sharedDir)
 	log.Must(err)
 
 	if stringx.From(serviceName).IsEmptyOrSpace() {
@@ -80,7 +70,6 @@ func MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName string, id
 		ProtoFileSrc: srcFp,
 		ProtoSource:  filepath.Base(srcFp),
 		TargetDir:    targetDirFp,
-		SharedDir:    sharedFp,
 		Console:      log,
 	}
 }
@@ -93,10 +82,9 @@ func MustCreateRpcContextFromCli(ctx *cli.Context) *RpcContext {
 	}
 	protoSrc := ctx.String(flagSrc)
 	targetDir := ctx.String(flagDir)
-	sharedDir := ctx.String(flagShared)
 	serviceName := ctx.String(flagService)
 	idea := ctx.Bool(flagIdea)
-	return MustCreateRpcContext(protoSrc, targetDir, sharedDir, serviceName, idea)
+	return MustCreateRpcContext(protoSrc, targetDir, serviceName, idea)
 }
 
 func getServiceFromRpcStructure(targetDir string) string {

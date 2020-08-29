@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	handlerTemplate = `{{.head}}
+	serverTemplate = `{{.head}}
 
-package handler
+package server
 
 import (
 	"context"
@@ -43,7 +43,7 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in *{{.package}}.{
 )
 
 func (g *defaultRpcGenerator) genHandler() error {
-	handlerPath := g.dirM[dirHandler]
+	serverPath := g.dirM[dirServer]
 	file := g.ast
 	pkg := file.Package
 	pbImport := fmt.Sprintf(`%v "%v"`, pkg, g.mustGetPackage(dirPb))
@@ -56,19 +56,19 @@ func (g *defaultRpcGenerator) genHandler() error {
 	}
 	head := util.GetHead(g.Ctx.ProtoSource)
 	for _, service := range file.Service {
-		filename := fmt.Sprintf("%vhandler.go", service.Name.Lower())
-		handlerFile := filepath.Join(handlerPath, filename)
+		filename := fmt.Sprintf("%vserver.go", service.Name.Lower())
+		serverFile := filepath.Join(serverPath, filename)
 		funcList, err := g.genFunctions(service)
 		if err != nil {
 			return err
 		}
-		err = util.With("server").GoFmt(true).Parse(handlerTemplate).SaveTo(map[string]interface{}{
+		err = util.With("server").GoFmt(true).Parse(serverTemplate).SaveTo(map[string]interface{}{
 			"head":    head,
 			"types":   fmt.Sprintf(typeFmt, service.Name.Title()),
 			"server":  service.Name.Title(),
 			"imports": strings.Join(imports, "\n\t"),
 			"funcs":   strings.Join(funcList, "\n"),
-		}, handlerFile, true)
+		}, serverFile, true)
 		if err != nil {
 			return err
 		}

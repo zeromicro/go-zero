@@ -56,7 +56,7 @@ func (g *defaultRpcGenerator) genMain() error {
 	imports := make([]string, 0)
 	pbImport := fmt.Sprintf(`%v "%v"`, pkg, g.mustGetPackage(dirPb))
 	svcImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirSvc))
-	remoteImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirHandler))
+	remoteImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirServer))
 	configImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirConfig))
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
 	srv, registers := g.genServer(pkg, file.Service)
@@ -76,7 +76,7 @@ func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (
 	list2 := make([]string, 0)
 	for _, item := range list {
 		name := item.Name.UnTitle()
-		list1 = append(list1, fmt.Sprintf("%sSrv := handler.New%sServer(ctx)", name, item.Name.Title()))
+		list1 = append(list1, fmt.Sprintf("%sSrv := server.New%sServer(ctx)", name, item.Name.Title()))
 		list2 = append(list2, fmt.Sprintf("%s.Register%sServer(grpcServer, %sSrv)", pkg, item.Name.Title(), name))
 	}
 	return strings.Join(list1, "\n"), strings.Join(list2, "\n")

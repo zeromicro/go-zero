@@ -23,11 +23,10 @@ func (g *defaultRpcGenerator) createDir() error {
 	m[dirEtc] = filepath.Join(ctx.TargetDir, dirEtc)
 	m[dirInternal] = filepath.Join(ctx.TargetDir, dirInternal)
 	m[dirConfig] = filepath.Join(ctx.TargetDir, dirInternal, dirConfig)
-	m[dirHandler] = filepath.Join(ctx.TargetDir, dirInternal, dirHandler)
+	m[dirServer] = filepath.Join(ctx.TargetDir, dirInternal, dirServer)
 	m[dirLogic] = filepath.Join(ctx.TargetDir, dirInternal, dirLogic)
 	m[dirPb] = filepath.Join(ctx.TargetDir, dirPb)
 	m[dirSvc] = filepath.Join(ctx.TargetDir, dirInternal, dirSvc)
-	m[dirShared] = g.Ctx.SharedDir
 	for _, d := range m {
 		err := util.MkdirIfNotExist(d)
 		if err != nil {

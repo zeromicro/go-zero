@@ -89,6 +89,8 @@ go get -u github.com/tal-tech/go-zero
 
 ## 6. Quick Start
 
+0. 完整示例请查看[从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
+
 1. 编译goctl工具
 
    ```shell

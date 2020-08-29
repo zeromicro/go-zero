@@ -2,7 +2,7 @@ package template
 
 var Delete = `
 func (m *{{.upperStartCamelObject}}Model) Delete({{.lowerStartCamelPrimaryKey}} {{.dataType}}) error {
-	{{if .withCache}}{{if .containsIndexCache}}data,err:=m.FindOne({{.lowerStartCamelPrimaryKey}})
+	{{if .withCache}}{{if .containsIndexCache}}_, err:=m.FindOne({{.lowerStartCamelPrimaryKey}})
 	if err!=nil{
 		return err
 	}{{end}}

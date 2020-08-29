@@ -20,10 +20,9 @@ type ServiceContext struct {
 	Config {{.config}}
 }
 
-func NewServiceContext(config {{.config}}) *ServiceContext {
-	return &ServiceContext{Config: config}
+func NewServiceContext(c {{.config}}) *ServiceContext {
+	return &ServiceContext{Config: c}
 }
-
 `
 )
 
