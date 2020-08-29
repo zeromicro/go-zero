@@ -2,12 +2,12 @@ package gen
 
 import (
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
@@ -119,6 +119,8 @@ func (g *defaultRpcGenerator) genShared() error {
 		"types":                 typeCode,
 	}, filename, true)
 
+	_, err = exec.LookPath("mockgen")
+	mockGenInstalled := err == nil
 	for _, service := range file.Service {
 		filename := filepath.Join(g.Ctx.SharedDir, fmt.Sprintf("%smodel.go", service.Name.Lower()))
 		functions, err := g.getFuncs(service)
@@ -144,15 +146,13 @@ func (g *defaultRpcGenerator) genShared() error {
 		if err != nil {
 			return err
 		}
+		// if mockgen is already installed, it will generate code of gomock for shared files
+		_, err = exec.LookPath("mockgen")
+		if mockGenInstalled {
+			execx.Run(fmt.Sprintf("go generate %s", filename))
+		}
 	}
 
-	// if mockgen is already installed, it will generate code of gomock for shared files
-	_, err = exec.LookPath("mockgen")
-	if err != nil {
-		g.Ctx.Warning("warning:mockgen is not found")
-	} else {
-		execx.Run(fmt.Sprintf("cd %s \ngo generate", g.Ctx.SharedDir))
-	}
 	return nil
 }
 

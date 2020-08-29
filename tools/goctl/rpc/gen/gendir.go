@@ -2,6 +2,7 @@ package gen
 
 import (
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -41,5 +42,13 @@ func (g *defaultRpcGenerator) mustGetPackage(dir string) string {
 	target := g.dirM[dir]
 	projectPath := g.Ctx.ProjectPath
 	relativePath := strings.TrimPrefix(target, projectPath)
+	os := runtime.GOOS
+	switch os {
+	case "windows":
+		relativePath = filepath.ToSlash(relativePath)
+	case "darwin":
+	default:
+		g.Ctx.Fatalln("unexpected os: %s", os)
+	}
 	return g.Ctx.Module + relativePath
 }
