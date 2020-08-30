@@ -89,13 +89,11 @@ go get -u github.com/tal-tech/go-zero
 
 ## 6. Quick Start
 
-0. 完整示例请查看[从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
+0. 完整示例请查看
 
-1. 编译goctl工具
+   [从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
 
-   ```shell
-   go build tools/goctl/goctl.go
-   ```
+1. 从[这里](https://github.com/tal-tech/go-zero/releases)下载goctl工具
 
    把goctl放到$PATH的目录下，确保goctl可执行
 
@@ -135,7 +133,7 @@ go get -u github.com/tal-tech/go-zero
    ```
    ├── greet
    │   ├── etc
-   │   │   └── greet-api.json        // 配置文件
+   │   │   └── greet-api.yaml        // 配置文件
    │   ├── greet.go                  // main文件
    │   └── internal
    │       ├── config
@@ -152,18 +150,24 @@ go get -u github.com/tal-tech/go-zero
    └── greet.api                     // api描述文件
    ```
    生成的代码可以直接运行：
-   
+
 ```shell
    cd greet
-   go run greet.go -f etc/greet-api.json
+   go run greet.go -f etc/greet-api.yaml
 ```
 
 默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
 
 ```shell
-   ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin
-   {"code":0}
-   code: 200
+curl -i http://localhost:8888/greet/from/you
+```
+
+返回如下：
+
+```http
+HTTP/1.1 200 OK
+Date: Sun, 30 Aug 2020 15:32:35 GMT
+Content-Length: 0
 ```
 
 编写业务代码：
