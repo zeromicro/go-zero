@@ -45,7 +45,7 @@ func (g *defaultRpcGenerator) mustGetPackage(dir string) string {
 	switch os {
 	case "windows":
 		relativePath = filepath.ToSlash(relativePath)
-	case "darwin":
+	case "darwin", "linux":
 	default:
 		g.Ctx.Fatalln("unexpected os: %s", os)
 	}

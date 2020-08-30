@@ -12,13 +12,14 @@ func Run(arg string) (string, error) {
 	goos := runtime.GOOS
 	var cmd *exec.Cmd
 	switch goos {
-	case "darwin":
+	case "darwin", "linux":
 		cmd = exec.Command("sh", "-c", arg)
 	case "windows":
 		cmd = exec.Command("cmd.exe", "/c", arg)
 	default:
 		return "", fmt.Errorf("unexpected os: %v", goos)
 	}
+
 	dtsout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 	cmd.Stdout = dtsout
@@ -30,5 +31,6 @@ func Run(arg string) (string, error) {
 		}
 		return "", err
 	}
+
 	return dtsout.String(), nil
 }

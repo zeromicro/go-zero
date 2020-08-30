@@ -76,7 +76,7 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 func MustCreateRpcContextFromCli(ctx *cli.Context) *RpcContext {
 	os := runtime.GOOS
 	switch os {
-	case "darwin", "windows":
+	case "darwin", "linux", "windows":
 	default:
 		logx.Must(fmt.Errorf("unexpected os: %s", os))
 	}
