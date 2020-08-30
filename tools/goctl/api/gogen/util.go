@@ -22,7 +22,7 @@ func getParentPackage(dir string) (string, error) {
 	}
 
 	absDir = strings.ReplaceAll(absDir, `\`, `/`)
-	var rootPath, hasGoMod = goctlutil.FindGoModPath(dir)
+	rootPath, hasGoMod := goctlutil.FindGoModPath(dir)
 	if hasGoMod {
 		return rootPath, nil
 	}
@@ -32,7 +32,7 @@ func getParentPackage(dir string) (string, error) {
 	pos := strings.Index(absDir, parent)
 	if pos < 0 {
 		fmt.Printf("%s not in go.mod project path, or not in GOPATH of %s directory\n", absDir, gopath)
-		var tempPath = filepath.Dir(absDir)
+		tempPath := filepath.Dir(absDir)
 		rootPath = absDir[len(tempPath)+1:]
 	} else {
 		rootPath = absDir[len(parent)+1:]
@@ -61,7 +61,7 @@ func writeProperty(writer io.Writer, name, tp, tag, comment string, indent int) 
 }
 
 func getAuths(api *spec.ApiSpec) []string {
-	var authNames = collection.NewSet()
+	authNames := collection.NewSet()
 	for _, g := range api.Service.Groups {
 		if value, ok := util.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
 			authNames.Add(value)
@@ -78,5 +78,6 @@ func formatCode(code string) string {
 	if err != nil {
 		return code
 	}
+
 	return string(ret)
 }

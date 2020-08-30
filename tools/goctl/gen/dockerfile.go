@@ -9,7 +9,7 @@ import (
 )
 
 func GenerateDockerfile(goFile string, args ...string) error {
-	relPath, err := util.PathFromGoSrc()
+	projPath, err := getFilePath(goFile)
 	if err != nil {
 		return err
 	}
@@ -28,7 +28,7 @@ func GenerateDockerfile(goFile string, args ...string) error {
 	t := template.Must(template.New("dockerfile").Parse(dockerTemplate))
 	return t.Execute(out, map[string]string{
 		"projectName": vars.ProjectName,
-		"goRelPath":   relPath,
+		"goRelPath":   projPath,
 		"goFile":      goFile,
 		"exeFile":     util.FileNameWithoutExt(goFile),
 		"argument":    builder.String(),
