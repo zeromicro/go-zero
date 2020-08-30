@@ -1,7 +1,6 @@
 package gen
 
-const (
-	dockerTemplate = `FROM golang:alpine AS builder
+const dockerTemplate = `FROM golang:alpine AS builder
 
 LABEL stage=gobuilder
 
@@ -26,19 +25,3 @@ COPY --from=builder /app/{{.exeFile}} /app/{{.exeFile}}
 
 CMD ["./{{.exeFile}}"{{.argument}}]
 `
-
-	makefileTemplate = `version := v$(shell /bin/date "+%y%m%d%H%M%S")
-
-build:
-	docker pull alpine
-	docker pull golang:alpine
-	cd $(GOPATH)/src/xiao && docker build -t registry.cn-hangzhou.aliyuncs.com/xapp/{{.exeFile}}:$(version) . -f {{.relPath}}/Dockerfile
-	docker image prune --filter label=stage=gobuilder -f
-
-push: build
-	docker push registry.cn-hangzhou.aliyuncs.com/xapp/{{.exeFile}}:$(version)
-
-deploy: push
-	kubectl -n {{.namespace}} set image deployment/{{.exeFile}}-deployment {{.exeFile}}=registry-vpc.cn-hangzhou.aliyuncs.com/xapp/{{.exeFile}}:$(version)
-`
-)
