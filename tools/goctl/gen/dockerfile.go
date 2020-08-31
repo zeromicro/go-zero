@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -9,9 +10,14 @@ import (
 )
 
 func GenerateDockerfile(goFile string, args ...string) error {
-	projPath, err := getFilePath(goFile)
+	projPath, err := getFilePath(filepath.Dir(goFile))
 	if err != nil {
 		return err
+	}
+
+	pos := strings.IndexByte(projPath, '/')
+	if pos >= 0 {
+		projPath = projPath[pos+1:]
 	}
 
 	out, err := util.CreateIfNotExist("Dockerfile")
