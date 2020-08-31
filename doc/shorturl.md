@@ -492,7 +492,7 @@
 
 因为写入依赖于mysql的写入速度，就相当于压mysql了，所以压测只测试了expand接口，相当于从mysql里读取并利用缓存，shorten.lua里随机从db里获取了100个热key来生成压测请求
 
-![Benchmark](/Users/kevin/Develop/go/opensource/documents/images/shorturl-benchmark.png)
+![Benchmark](images/shorturl-benchmark.png)
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
 

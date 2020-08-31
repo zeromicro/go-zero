@@ -91,11 +91,15 @@ go get -u github.com/tal-tech/go-zero
 
 0. 完整示例请查看
 
-   [从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
+   [快速构建高并发微服务](doc/shorturl.md)
 
-1. 从[这里](https://github.com/tal-tech/go-zero/releases)下载goctl工具
+1. 安装goctl工具
 
-   把goctl放到$PATH的目录下，确保goctl可执行
+   ```shell
+   export GO111MODULE=on export GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+   ```
+
+   确保goctl可执行
 
 2. 定义API文件，比如greet.api，可以在vs code里安装`goctl`插件，支持api语法
 
@@ -191,7 +195,7 @@ Content-Length: 0
 
 ## 8. 文档 (逐步完善中)
 
-* [从0到1快速构建一个高并发的微服务系统](doc/shorturl.md)
+* [快速构建高并发微服务](doc/shorturl.md)
 * [goctl使用帮助](doc/goctl.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 
