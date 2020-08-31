@@ -52,7 +52,7 @@
 
 ## 4. 编写API Gateway代码
 
-* 通过goctl生成`shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
+* 通过goctl生成`api/shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
 
   ```go
   type (
@@ -98,7 +98,7 @@
 * 使用goctl生成API Gateway代码
 
   ```shell
-  goctl api go -api shorturl.api -dir api
+  goctl api go -api shorturl.api -dir .
   ```
 
   生成的文件结构如下：
@@ -122,16 +122,16 @@
   │   │   │   └── servicecontext.go     // 定义ServiceContext
   │   │   └── types
   │   │       └── types.go              // 定义请求、返回结构体
+  │   ├── shorturl.api
   │   └── shorturl.go                   // main入口定义
   ├── go.mod
-  ├── go.sum
-  └── shorturl.api
+  └── go.sum
   ```
 
 * 启动API Gateway服务，默认侦听在8888端口
 
   ```shell
-  go run api/shorturl.go -f api/etc/shorturl-api.yaml
+  go run shorturl.go -f etc/shorturl-api.yaml
   ```
 
 * 测试API Gateway服务
