@@ -1,53 +1,77 @@
-# 使用go-zero从0到1快速构建高并发的短链服务
+# 快速构建高并发微服务
 
-## 0. 什么是短链服务？
+## 0. 为什么说做好微服务很难？
+
+要想做好微服务，我们需要理解和掌握的知识点非常多，从几个维度上来说：
+
+* 基本功能层面
+  1. 并发控制&限流，避免服务被突发流量击垮
+  2. 服务注册与服务发现，确保能够动态侦测增减的节点
+  3. 负载均衡，需要根据节点承受能力分发流量
+  4. 超时控制，避免对已超时请求做无用功
+  5. 熔断设计，快速失败，保障故障节点的恢复能力
+
+* 高阶功能层面
+  1. 请求认证，确保每个用户只能访问自己的数据
+  2. 链路追踪，用于理解整个系统和快速定位特定请求的问题
+  3. 日志，用于数据收集和问题定位
+  4. 可观测性，没有度量就没有优化
+
+对于其中每一点，我们都需要用很长的篇幅来讲述其原理和实现，那么对我们后端开发者来说，要想把这些知识点都掌握并落实到业务系统里，难度是非常大的，不过我们可以依赖已经被大流量验证过的框架体系。[go-zero微服务框架](https://github.com/tal-tech/go-zero)就是为此而生。
+
+另外，我们始终秉承**工具大于约定和文档**的理念。我们希望尽可能减少开发人员的心智负担，把精力都投入到产生业务价值的代码上，减少重复代码的编写，所以我们开发了`goctl`工具。
+
+下面我通过短链微服务来演示通过[go-zero](https://github.com/tal-tech/go-zero)快速的创建微服务的流程，走完一遍，你就会发现：原来编写微服务如此简单！
+
+## 1. 什么是短链服务？
 
 短链服务就是将长的URL网址，通过程序计算等方式，转换为简短的网址字符串。
 
 写此短链服务是为了从整体上演示go-zero构建完整微服务的过程，算法和实现细节尽可能简化了，所以这不是一个高阶的短链服务。
 
-## 1. 短链微服务架构图
+## 2. 短链微服务架构图
 
 <img src="images/shorturl-arch.png" alt="架构图" width="800" />
 
-* 这里把shorten和expand分开为两个微服务，并不是说一个远程调用就需要拆分为一个微服务，只是为了最简演示多个微服务而已
-* 后面的redis和mysql也是共用的，但是在真正项目里要尽可能每个微服务使用自己的数据库，数据边界要清晰
+* 这里只用了`Transform RPC`一个微服务，并不是说API Gateway只能调用一个微服务，只是为了最简演示API Gateway如何调用RPC微服务而已
+* 在真正项目里要尽可能每个微服务使用自己的数据库，数据边界要清晰
 
-## 2. 准备工作
+## 3. 准备工作
 
 * 安装etcd, mysql, redis
-* 准备goctl工具
-* 直接从`https://github.com/tal-tech/go-zero/releases`下载最新版，后续会加上自动更新
-  * 也可以从源码编译，在任意目录下进行，目的是为了编译goctl工具
-  
-	1. `git clone https://github.com/tal-tech/go-zero`
-  	2. 在`tools/goctl`目录下编译goctl工具`go build goctl.go`
-  	3. 将生成的goctl放到`$PATH`下，确保goctl命令可运行
+
+* 安装goctl工具
+
+  ```shell
+  export GO111MODULE=on export GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+  ```
+
 * 创建工作目录`shorturl`
+
 * 在`shorturl`目录下执行`go mod init shorturl`初始化`go.mod`
 
-## 3. 编写API Gateway代码
+## 4. 编写API Gateway代码
 
 * 通过goctl生成`shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
 
   ```go
+  type (
+  	expandReq struct {
+  		shorten string `form:"shorten"`
+  	}
+  
+  	expandResp struct {
+  		url string `json:"url"`
+  	}
+  )
+  
   type (
   	shortenReq struct {
   		url string `form:"url"`
   	}
   
   	shortenResp struct {
-  		shortUrl string `json:"shortUrl"`
-  	}
-  )
-  
-  type (
-  	expandReq struct {
-  		key string `form:"key"`
-  	}
-  
-  	expandResp struct {
-  		url string `json:"url"`
+  		shorten string `json:"shorten"`
   	}
   )
   
@@ -137,14 +161,14 @@
 
 * 到这里，你已经可以通过goctl生成客户端代码给客户端同学并行开发了，支持多种语言，详见文档
 
-## 4. 编写shorten rpc服务
+## 5. 编写transform rpc服务
 
-* 在`rpc/shorten`目录下编写`shorten.proto`文件
+* 在`rpc/transform`目录下编写`transform.proto`文件
 
   可以通过命令生成proto文件模板
 
   ```shell
-  goctl rpc template -o shorten.proto
+  goctl rpc template -o transform.proto
   ```
 
   修改后文件内容如下：
@@ -152,159 +176,91 @@
   ```protobuf
   syntax = "proto3";
   
-  package shorten;
-  
-  message shortenReq {
-      string url = 1;
-  }
-  
-  message shortenResp {
-      string key = 1;
-  }
-  
-  service shortener {
-      rpc shorten(shortenReq) returns(shortenResp);
-  }
-  ```
-
-* 用`goctl`生成rpc代码，在`rpc/shorten`目录下执行命令
-
-  ```shell
-  goctl rpc proto -src shorten.proto
-  ```
-
-  文件结构如下：
-
-  ```
-  rpc/shorten
-  ├── etc
-  │   └── shorten.yaml               // 配置文件
-  ├── internal
-  │   ├── config
-  │   │   └── config.go              // 配置定义
-  │   ├── logic
-  │   │   └── shortenlogic.go        // rpc业务逻辑在这里实现
-  │   ├── server
-  │   │   └── shortenerserver.go     // 调用入口, 不需要修改
-  │   └── svc
-  │       └── servicecontext.go      // 定义ServiceContext，传递依赖
-  ├── pb
-  │   └── shorten.pb.go
-  ├── shorten.go                     // rpc服务main函数
-  ├── shorten.proto
-  └── shortener
-      ├── shortener.go               // 提供了外部调用方法，无需修改
-      ├── shortener_mock.go          // mock方法，测试用
-      └── types.go                   // request/response结构体定义
-  ```
-  
-  直接可以运行，如下：
-  
-  ```shell
-  $ go run shorten.go -f etc/shorten.yaml
-  Starting rpc server at 127.0.0.1:8080...
-  ```
-  
-  `etc/shorten.yaml`文件里可以修改侦听端口等配置
-
-## 5. 编写expand rpc服务
-
-* 在`rpc/expand`目录下编写`expand.proto`文件
-
-  可以通过命令生成proto文件模板
-
-  ```shell
-  goctl rpc template -o expand.proto
-  ```
-
-  修改后文件内容如下：
-
-  ```protobuf
-  syntax = "proto3";
-  
-  package expand;
+  package transform;
   
   message expandReq {
-      string key = 1;
+      string shorten = 1;
   }
   
   message expandResp {
       string url = 1;
   }
   
-  service expander {
+  message shortenReq {
+      string url = 1;
+  }
+  
+  message shortenResp {
+      string shorten = 1;
+  }
+  
+  service transformer {
       rpc expand(expandReq) returns(expandResp);
+      rpc shorten(shortenReq) returns(shortenResp);
   }
   ```
 
-* 用`goctl`生成rpc代码，在`rpc/expand`目录下执行命令
+* 用`goctl`生成rpc代码，在`rpc/transform`目录下执行命令
 
   ```shell
-  goctl rpc proto -src expand.proto
+  goctl rpc proto -src transform.proto
   ```
 
   文件结构如下：
 
   ```
-  rpc/expand
+  rpc/transform
   ├── etc
-  │   └── expand.yaml                // 配置文件
-  ├── expand.go                      // rpc服务main函数
-  ├── expand.proto
-  ├── expander
-  │   ├── expander.go                // 提供了外部调用方法，无需修改
-  │   ├── expander_mock.go           // mock方法，测试用
-  │   └── types.go                   // request/response结构体定义
+  │   └── transform.yaml              // 配置文件
   ├── internal
   │   ├── config
-  │   │   └── config.go              // 配置定义
+  │   │   └── config.go               // 配置定义
   │   ├── logic
-  │   │   └── expandlogic.go         // rpc业务逻辑在这里实现
+  │   │   ├── expandlogic.go          // expand业务逻辑在这里实现
+  │   │   └── shortenlogic.go         // shorten业务逻辑在这里实现
   │   ├── server
-  │   │   └── expanderserver.go      // 调用入口, 不需要修改
+  │   │   └── transformerserver.go    // 调用入口, 不需要修改
   │   └── svc
-  │       └── servicecontext.go      // 定义ServiceContext，传递依赖
-  └── pb
-      └── expand.pb.go
+  │       └── servicecontext.go       // 定义ServiceContext，传递依赖
+  ├── pb
+  │   └── transform.pb.go
+  ├── transform.go                    // rpc服务main函数
+  ├── transform.proto
+  └── transformer
+      ├── transformer.go              // 提供了外部调用方法，无需修改
+      ├── transformer_mock.go         // mock方法，测试用
+      └── types.go                    // request/response结构体定义
   ```
-  
-  修改`etc/expand.yaml`里面的`ListenOn`的端口为`8081`，因为`8080`已经被`shorten`服务占用了
-  
-  修改后运行，如下：
-  
+
+  直接可以运行，如下：
+
   ```shell
-  $ go run expand.go -f etc/expand.yaml
-  Starting rpc server at 127.0.0.1:8081...
+  $ go run transform.go -f etc/transform.yaml
+  Starting rpc server at 127.0.0.1:8080...
   ```
-  
-  `etc/expand.yaml`文件里可以修改侦听端口等配置
 
-## 6. 修改API Gateway代码调用shorten/expand rpc服务
+  `etc/transform.yaml`文件里可以修改侦听端口等配置
 
-* 修改配置文件`shorter-api.yaml`，增加如下内容
+## 6. 修改API Gateway代码调用transform rpc服务
+
+* 修改配置文件`shorturl-api.yaml`，增加如下内容
 
   ```yaml
-  Shortener:
+  Transform:
     Etcd:
       Hosts:
         - localhost:2379
-      Key: shorten.rpc
-  Expander:
-    Etcd:
-      Hosts:
-        - localhost:2379
-      Key: expand.rpc
+      Key: transform.rpc
   ```
 
-  通过etcd自动去发现可用的shorten/expand服务
+  通过etcd自动去发现可用的transform服务
 
-* 修改`internal/config/config.go`如下，增加shorten/expand服务依赖
+* 修改`internal/config/config.go`如下，增加transform服务依赖
 
   ```go
   type Config struct {
   	rest.RestConf
-  	Shortener rpcx.RpcClientConf     // 手动代码
-  	Expander  rpcx.RpcClientConf     // 手动代码
+  	Transform rpcx.RpcClientConf     // 手动代码
   }
   ```
 
@@ -313,42 +269,27 @@
   ```go
   type ServiceContext struct {
   	Config    config.Config
-  	Shortener rpcx.Client                                 // 手动代码
-  	Expander  rpcx.Client                                 // 手动代码
+  	Transformer rpcx.Client                               // 手动代码
   }
   
-  func NewServiceContext(config config.Config) *ServiceContext {
+  func NewServiceContext(c config.Config) *ServiceContext {
   	return &ServiceContext{
-  		Config:    config,
-  		Shortener: rpcx.MustNewClient(config.Shortener),    // 手动代码
-  		Expander:  rpcx.MustNewClient(config.Expander),     // 手动代码
+  		Config:    c,
+  		Transformer: rpcx.MustNewClient(c.Transform),  // 手动代码
   	}
   }
   ```
-  
+
   通过ServiceContext在不同业务逻辑之间传递依赖
-  
-* 修改`internal/logic/expandlogic.go`，如下：
+
+* 修改`internal/logic/expandlogic.go`里的`Expand`方法，如下：
 
   ```go
-  type ExpandLogic struct {
-  	ctx context.Context
-  	logx.Logger
-  	expander rpcx.Client            // 手动代码
-  }
-  
-  func NewExpandLogic(ctx context.Context, svcCtx *svc.ServiceContext) ExpandLogic {
-  	return ExpandLogic{
-  		ctx:    ctx,
-  		Logger: logx.WithContext(ctx),
-  		expander: svcCtx.Expander,    // 手动代码
-  	}
-  }
-  
   func (l *ExpandLogic) Expand(req types.ExpandReq) (*types.ExpandResp, error) {
     // 手动代码开始
-  	resp, err := expander.NewExpander(l.expander).Expand(l.ctx, &expander.ExpandReq{
-  		Key: req.Key,
+    trans := transformer.NewTransformer(l.svcCtx.Transformer)
+  	resp, err := trans.Expand(l.ctx, &transformer.ExpandReq{
+  		Shorten: req.Shorten,
   	})
   	if err != nil {
   		return nil, err
@@ -361,28 +302,15 @@
   }
   ```
 
-  增加了对`expander`服务的依赖，并通过调用`expander`的`Expand`方法实现短链恢复到url
+  通过调用`transformer`的`Expand`方法实现短链恢复到url
 
 * 修改`internal/logic/shortenlogic.go`，如下：
 
   ```go
-  type ShortenLogic struct {
-  	ctx context.Context
-  	logx.Logger
-  	shortener rpcx.Client             // 手动代码
-  }
-  
-  func NewShortenLogic(ctx context.Context, svcCtx *svc.ServiceContext) ShortenLogic {
-  	return ShortenLogic{
-  		ctx:    ctx,
-  		Logger: logx.WithContext(ctx),
-  		shortener: svcCtx.Shortener,    // 手动代码
-  	}
-  }
-  
   func (l *ShortenLogic) Shorten(req types.ShortenReq) (*types.ShortenResp, error) {
     // 手动代码开始
-  	resp, err := shortener.NewShortener(l.shortener).Shorten(l.ctx, &shortener.ShortenReq{
+  	trans := transformer.NewTransformer(l.svcCtx.Transformer)
+  	resp, err := trans.Shorten(l.ctx, &transformer.ShortenReq{
   		Url: req.Url,
   	})
   	if err != nil {
@@ -390,19 +318,20 @@
   	}
   
   	return &types.ShortenResp{
-  		ShortUrl: resp.Key,
+  		Shorten: resp.Shorten,
   	}, nil
     // 手动代码结束
   }
   ```
 
-   增加了对`shortener`服务的依赖，并通过调用`shortener`的`Shorten`方法实现url到短链的变换
+  通过调用`transformer`的`Shorten`方法实现url到短链的变换
 
   至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
 
 ## 7. 定义数据库表结构，并生成CRUD+cache代码
 
-* shorturl下创建rpc/model目录：`mkdir -p rpc/model`
+* shorturl下创建`rpc/transform/model`目录：`mkdir -p rpc/model`
+
 * 在rpc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
 
   ```sql
@@ -429,11 +358,11 @@
   ```shell
   goctl model mysql ddl -c -src shorturl.sql -dir .
   ```
-  
+
   也可以用`datasource`命令代替`ddl`来指定数据库链接直接从schema生成
-  
+
   生成后的文件结构如下：
-  
+
   ```
   rpc/model
   ├── shorturl.sql
@@ -443,7 +372,7 @@
 
 ## 8. 修改shorten/expand rpc代码调用crud+cache代码
 
-* 修改`rpc/expand/etc/expand.yaml`，增加如下内容：
+* 修改`rpc/transform/etc/transform.yaml`，增加如下内容：
 
   ```yaml
   DataSource: root:@tcp(localhost:3306)/gozero
@@ -454,7 +383,7 @@
 
   可以使用多个redis作为cache，支持redis单点或者redis集群
 
-* 修改`rpc/expand/internal/config.go`，如下：
+* 修改`rpc/transform/internal/config.go`，如下：
 
   ```go
   type Config struct {
@@ -467,116 +396,46 @@
 
   增加了mysql和redis cache配置
 
-* 修改`rpc/expand/internal/svc/servicecontext.go`，如下：
+* 修改`rpc/transform/internal/svc/servicecontext.go`，如下：
 
   ```go
   type ServiceContext struct {
   	c     config.Config
-  	Model *model.ShorturlModel   // 手动代码
+    Model *model.ShorturlModel   // 手动代码
   }
   
   func NewServiceContext(c config.Config) *ServiceContext {
   	return &ServiceContext{
-  		c:     c,
+  		c:             c,
   		Model: model.NewShorturlModel(sqlx.NewMysql(c.DataSource), c.Cache, c.Table), // 手动代码
   	}
   }
   ```
 
-* 修改`rpc/expand/internal/logic/expandlogic.go`，如下：
+* 修改`rpc/transform/internal/logic/expandlogic.go`，如下：
 
   ```go
-  type ExpandLogic struct {
-  	ctx context.Context
-  	logx.Logger
-  	model *model.ShorturlModel          // 手动代码
-  }
-  
-  func NewExpandLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ExpandLogic {
-  	return &ExpandLogic{
-  		ctx:    ctx,
-  		Logger: logx.WithContext(ctx),
-  		model:  svcCtx.Model,             // 手动代码
-  	}
-  }
-  
   func (l *ExpandLogic) Expand(in *expand.ExpandReq) (*expand.ExpandResp, error) {
-    // 手动代码开始
-  	res, err := l.model.FindOne(in.Key)
+  	// 手动代码开始
+  	res, err := l.svcCtx.Model.FindOne(in.Shorten)
   	if err != nil {
   		return nil, err
   	}
   
-  	return &expand.ExpandResp{
+  	return &transform.ExpandResp{
   		Url: res.Url,
   	}, nil
-    // 手动代码结束
-  }
-  ```
-
-* 修改`rpc/shorten/etc/shorten.yaml`，增加如下内容：
-
-  ```yaml
-  DataSource: root:@tcp(localhost:3306)/gozero
-  Table: shorturl
-  Cache:
-    - Host: localhost:6379
-  ```
-
-  可以使用多个redis作为cache，支持redis单点或者redis集群
-
-* 修改`rpc/shorten/internal/config.go`，如下：
-
-  ```go
-  type Config struct {
-  	rpcx.RpcServerConf
-  	DataSource string            // 手动代码
-  	Table      string            // 手动代码
-  	Cache      cache.CacheConf   // 手动代码
-  }
-  ```
-
-  增加了mysql和redis cache配置
-
-* 修改`rpc/shorten/internal/svc/servicecontext.go`，如下：
-
-  ```go
-  type ServiceContext struct {
-  	c     config.Config
-  	Model *model.ShorturlModel   // 手动代码
-  }
-  
-  func NewServiceContext(c config.Config) *ServiceContext {
-  	return &ServiceContext{
-  		c:     c,
-  		Model: model.NewShorturlModel(sqlx.NewMysql(c.DataSource), c.Cache, c.Table), // 手动代码
-  	}
+  	// 手动代码结束
   }
   ```
 
 * 修改`rpc/shorten/internal/logic/shortenlogic.go`，如下：
 
   ```go
-  const keyLen = 6
-  
-  type ShortenLogic struct {
-  	ctx context.Context
-  	logx.Logger
-  	model *model.ShorturlModel          // 手动代码
-  }
-  
-  func NewShortenLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ShortenLogic {
-  	return &ShortenLogic{
-  		ctx:    ctx,
-  		Logger: logx.WithContext(ctx),
-  		model:  svcCtx.Model,             // 手动代码
-  	}
-  }
-  
   func (l *ShortenLogic) Shorten(in *shorten.ShortenReq) (*shorten.ShortenResp, error) {
     // 手动代码开始，生成短链接
-  	key := hash.Md5Hex([]byte(in.Url))[:keyLen]
-  	_, err := l.model.Insert(model.Shorturl{
+  	key := hash.Md5Hex([]byte(in.Url))[:6]
+  	_, err := l.svcCtx.Model.Insert(model.Shorturl{
   		Shorten: key,
   		Url:     in.Url,
   	})
@@ -584,8 +443,8 @@
   		return nil, err
   	}
   
-  	return &shorten.ShortenResp{
-  		Key: key,
+  	return &transform.ShortenResp{
+  		Shorten: key,
   	}, nil
     // 手动代码结束
   }
@@ -609,13 +468,13 @@
   Date: Sat, 29 Aug 2020 10:49:49 GMT
   Content-Length: 21
   
-  {"shortUrl":"f35b2a"}
+  {"shorten":"f35b2a"}
   ```
 
 * expand api调用
 
   ```shell
-  curl -i "http://localhost:8888/expand?key=f35b2a"
+  curl -i "http://localhost:8888/expand?shorten=f35b2a"
   ```
 
   返回如下：
@@ -633,7 +492,7 @@
 
 因为写入依赖于mysql的写入速度，就相当于压mysql了，所以压测只测试了expand接口，相当于从mysql里读取并利用缓存，shorten.lua里随机从db里获取了100个热key来生成压测请求
 
-![Benchmark](images/shorturl-benchmark.png)
+![Benchmark](/Users/kevin/Develop/go/opensource/documents/images/shorturl-benchmark.png)
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
 

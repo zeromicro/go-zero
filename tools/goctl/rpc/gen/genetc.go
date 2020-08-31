@@ -8,8 +8,6 @@ import (
 )
 
 const etcTemplate = `Name: {{.serviceName}}.rpc
-Log:
-  Mode: console
 ListenOn: 127.0.0.1:8080
 Etcd:
   Hosts:
