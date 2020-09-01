@@ -42,15 +42,15 @@
 
 * API Gateway
 
-  ![gateway](images/shorturl-api.png)
+  <img src="images/shorturl-api.png" alt="api" width="800" />
 
 * RPC
 
-  ![rpc](images/shorturl-rpc.png)
+  <img src="images/shorturl-rpc.png" alt="架构图" width="800" />
 
 * model
 
-  ![model](images/shorturl-model.png)
+  <img src="images/shorturl-model.png" alt="model" width="800" />
 
 下面我们来一起完整走一遍快速构建微服务的流程，Let’s `Go`!🏃‍♂️
 
@@ -525,3 +525,4 @@ go-zero不只是一个框架，更是一个建立在框架+工具基础上的，
 通过go-zero+goctl生成的代码，包含了微服务治理的各种组件，包括：并发控制、自适应熔断、自适应降载、自动缓存控制等，可以轻松部署以承载巨大访问量。
 
 有任何好的提升工程效率的想法，随时欢迎交流！👏
+
