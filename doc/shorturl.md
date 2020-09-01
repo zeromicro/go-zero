@@ -330,9 +330,9 @@
 
 ## 7. 定义数据库表结构，并生成CRUD+cache代码
 
-* shorturl下创建`rpc/transform/model`目录：`mkdir -p rpc/model`
+* shorturl下创建`rpc/transform/model`目录：`mkdir -p rpc/transform/model`
 
-* 在rpc/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
+* 在rpc/transform/model目录下编写创建shorturl表的sql文件`shorturl.sql`，如下：
 
   ```sql
   CREATE TABLE `shorturl`
@@ -353,7 +353,7 @@
   source shorturl.sql;
   ```
 
-* 在`rpc/model`目录下执行如下命令生成CRUD+cache代码，`-c`表示使用`redis cache`
+* 在`rpc/transform/model`目录下执行如下命令生成CRUD+cache代码，`-c`表示使用`redis cache`
 
   ```shell
   goctl model mysql ddl -c -src shorturl.sql -dir .
@@ -364,7 +364,7 @@
   生成后的文件结构如下：
 
   ```
-  rpc/model
+  rpc/transform/model
   ├── shorturl.sql
   ├── shorturlmodel.go              // CRUD+cache代码
   └── vars.go                       // 定义常量和变量
