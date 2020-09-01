@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
@@ -119,7 +120,9 @@ memberLoop:
 				return err
 			}
 
-			//line = strings.TrimSpace(line) fix blank space eg get /shorten( shortenReq ) returns( shortenResp )  get /shorten(shortenReq) returns(shortenResp)
+			//line = strings.TrimSpace(line)
+			//fix blank space eg get /shorten( shortenReq ) returns( shortenResp )  get /shorten(shortenReq) returns(shortenResp)
+			line = stringx.ExtraTrimSpace(line)
 			line = strings.TrimSpace(strings.Replace(strings.Replace(line, "( ", "(", -1), " )", ")", -1))
 
 			if err := s.parser.parseLine(line, s.api, annos); err != nil {

@@ -2,6 +2,7 @@ package stringx
 
 import (
 	"bytes"
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -107,4 +108,17 @@ func (s String) ReplaceAll(old, new string) string {
 
 func (s String) Source() string {
 	return s.source
+}
+
+var reg, _ = regexp.Compile("\\s{2,}")
+
+func ExtraTrimSpace(s string) string {
+	s2 := make([]byte, len(s))
+	copy(s2, s)
+	index := reg.FindStringIndex(string(s2))
+	for len(index) > 0 {
+		s2 = append(s2[:index[0]+1], s2[index[1]:]...)
+		index = reg.FindStringIndex(string(s2))
+	}
+	return string(s2)
 }
