@@ -119,7 +119,9 @@ memberLoop:
 				return err
 			}
 
-			line = strings.TrimSpace(line)
+			//line = strings.TrimSpace(line) fix blank space eg get /shorten( shortenReq ) returns( shortenResp )  get /shorten(shortenReq) returns(shortenResp)
+			line = strings.TrimSpace(strings.Replace(strings.Replace(line, "( ", "(", -1), " )", ")", -1))
+
 			if err := s.parser.parseLine(line, s.api, annos); err != nil {
 				return err
 			}
