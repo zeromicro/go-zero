@@ -36,21 +36,39 @@
 * 这里只用了`Transform RPC`一个微服务，并不是说API Gateway只能调用一个微服务，只是为了最简演示API Gateway如何调用RPC微服务而已
 * 在真正项目里要尽可能每个微服务使用自己的数据库，数据边界要清晰
 
-## 3. 准备工作
+## 3. goctl各层代码生成一览
+
+所有绿色背景的功能模块是自动生成的，按需激活，红色模块是需要自己写的，也就是增加下依赖，编写业务特有逻辑，各层示意图分别如下：
+
+* API Gateway
+
+  ![gateway](images/shorturl-api.png)
+
+* RPC
+
+  ![rpc](images/shorturl-rpc.png)
+
+* model
+
+  ![model](images/shorturl-model.png)
+
+下面我们来一起完整走一遍快速构建微服务的流程，Let’s `Go`!🏃‍♂️
+
+## 4. 准备工作
 
 * 安装etcd, mysql, redis
 
 * 安装goctl工具
 
   ```shell
-  export GO111MODULE=on export GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+  GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
   ```
 
 * 创建工作目录`shorturl`
 
 * 在`shorturl`目录下执行`go mod init shorturl`初始化`go.mod`
 
-## 4. 编写API Gateway代码
+## 5. 编写API Gateway代码
 
 * 通过goctl生成`api/shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
 
@@ -161,7 +179,7 @@
 
 * 到这里，你已经可以通过goctl生成客户端代码给客户端同学并行开发了，支持多种语言，详见文档
 
-## 5. 编写transform rpc服务
+## 6. 编写transform rpc服务
 
 * 在`rpc/transform`目录下编写`transform.proto`文件
 
@@ -241,7 +259,7 @@
 
   `etc/transform.yaml`文件里可以修改侦听端口等配置
 
-## 6. 修改API Gateway代码调用transform rpc服务
+## 7. 修改API Gateway代码调用transform rpc服务
 
 * 修改配置文件`shorturl-api.yaml`，增加如下内容
 
@@ -328,7 +346,7 @@
 
   至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
 
-## 7. 定义数据库表结构，并生成CRUD+cache代码
+## 8. 定义数据库表结构，并生成CRUD+cache代码
 
 * shorturl下创建`rpc/transform/model`目录：`mkdir -p rpc/transform/model`
 
@@ -370,7 +388,7 @@
   └── vars.go                       // 定义常量和变量
   ```
 
-## 8. 修改shorten/expand rpc代码调用crud+cache代码
+## 9. 修改shorten/expand rpc代码调用crud+cache代码
 
 * 修改`rpc/transform/etc/transform.yaml`，增加如下内容：
 
@@ -452,7 +470,7 @@
 
   至此代码修改完成，凡事手动修改的代码我加了标注
 
-## 9. 完整调用演示
+## 10. 完整调用演示
 
 * shorten api调用
 
@@ -488,7 +506,7 @@
   {"url":"http://www.xiaoheiban.cn"}
   ```
 
-## 10. Benchmark
+## 11. Benchmark
 
 因为写入依赖于mysql的写入速度，就相当于压mysql了，所以压测只测试了expand接口，相当于从mysql里读取并利用缓存，shorten.lua里随机从db里获取了100个热key来生成压测请求
 
@@ -496,7 +514,7 @@
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
 
-## 11. 总结
+## 12. 总结
 
 我们一直强调**工具大于约定和文档**。
 
@@ -505,3 +523,5 @@ go-zero不只是一个框架，更是一个建立在框架+工具基础上的，
 我们在保持简单的同时也尽可能把微服务治理的复杂度封装到了框架内部，极大的降低了开发人员的心智负担，使得业务开发得以快速推进。
 
 通过go-zero+goctl生成的代码，包含了微服务治理的各种组件，包括：并发控制、自适应熔断、自适应降载、自动缓存控制等，可以轻松部署以承载巨大访问量。
+
+有任何好的提升工程效率的想法，随时欢迎交流！👏
