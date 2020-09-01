@@ -1,0 +1,153 @@
+%YAML 1.1
+--- !Scene &1
+name: sdf text
+entities:
+  - {localId: 5}
+  - {localId: 15}
+  - {localId: 9}
+visible: true
+config:
+  __class: Map
+--- !Entity &5
+name: text entity
+scene: {localId: 1}
+selfvisible: true
+tag: 0
+components:
+  - {localId: 6}
+  - {localId: 7}
+  - {localId: 8}
+layer: 1
+--- !Transform &6
+name: text  transform
+enabled: true
+localPosition: {x: 0.2, y: 0.04, z: 0}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+--- !SDFText &7
+name: ""
+str: "咯"
+fontPath: ""
+textColor: {x: 1.0, y: 1.0, z: 0.0, w: 1.0}
+enabled: false
+--- !MeshRenderer &8
+name: mesh renderer
+enabled: true
+props:
+  __class: MaterialPropertyBlock
+  name: ""
+sortingOrder: 20000
+autoSortingOrder: false
+castShadow: true
+--- !Entity &15
+name: text entity
+scene: {localId: 1}
+selfvisible: true
+tag: 0
+components:
+  - {localId: 16}
+  - {localId: 17}
+  - {localId: 18}
+layer: 1
+--- !Transform &16
+name: text  transform
+enabled: true
+localPosition: {x: -0.0, y: -0.04, z: 0}
+localScale: {x: 0.5, y: 0.5, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+--- !SDFText &17
+name: ""
+str: "夏日游园会"
+backgroundEnabled: false
+fontPath: ""
+fontSize: 100
+textColor: {x: 1, y: 0.89, z: 0.5, w: 1.0}
+effectTextParam:
+  __class: EffectTextParam
+  randomGridSize: {x: 3, y: 1}
+  textColor: {r: 0, g: 0, b: 0, a: 1.0}
+  effectLayers:
+    - __class: EffectLayer
+      offset: {x: 0, y: 0}
+      smoothing: 0
+      textureLevel: 0
+      texture: {localId: 1, path: lieheng.png}
+      mat: {localId: 1, path: effect.material}
+      grad:
+        __class: GradientChange
+        scale: 0
+        angle: 106
+        linear: false
+        color1:
+          __class: ColorChange
+          color: {r: 0, g: 1, b: 0, a: 1.0}
+          hsbOffset: {x: 0, y: 0, z: 0}
+          percent: 0
+          change:  true
+      outline1Grad:
+        __class: GradientChange
+        scale: 0.04
+        angle: 0
+        percent1_2: 0.5
+        linear: false
+        color1:
+          __class: ColorChange
+          color: {r: 1, g: 1, b: 1, a: 1.0}
+          hsbOffset: {x: 0, y: 0, z: 0}
+          percent: 0
+          change:  false
+      outline2Grad:
+        __class: GradientChange
+        scale: 0.1
+        angle: 0
+        percent1_2: 0.7
+        linear: false
+        color1:
+          __class: ColorChange
+          color: {r: 0, g: 1, b: 0, a: 1.0}
+          hsbOffset: {x: 0, y: 0, z: 0}
+          percent: 0
+          change: true
+enabled: true
+--- !MeshRenderer &18
+name: mesh renderer
+enabled: true
+props:
+  __class: MaterialPropertyBlock
+  name: ""
+sortingOrder: 10000
+autoSortingOrder: false
+castShadow: true
+--- !Entity &9
+name: quadCamera_entity
+scene: {localId: 1}
+selfvisible: true
+tag: 0
+components:
+  - {localId: 10}
+  - {localId: 11}
+layer: 0
+--- !Transform &10
+name: quadCamera_transform
+enabled: true
+localPosition: {x: 0, y: 0, z: 10}
+localScale: {x: 1, y: 1, z: 1}
+localOrientation: {w: 1, x: 0, y: 0, z: 0}
+--- !Camera &11
+name: quadCamera_camera
+enabled: true
+layerVisibleMask: {__class: DynamicBitset, numBits: 2, values: [2]}
+renderOrder: 1
+type:
+  __class: CameraType
+  value: ORTHO
+clearColor: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+clearType:
+  __class: CameraClearType
+  value: COLOR_DEPTH
+viewport: {x: 0, y: 0, w: 1, h: 1}
+fovy: 60
+orthoScale: 1
+zNear: 0.1000000014901161
+zFar: 1000
+renderTexture: {localId: 1, path: rt/outputTex.rt}
