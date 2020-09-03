@@ -16,6 +16,10 @@ const (
 	spatial
 )
 
+const (
+	timeImport = "time.Time"
+)
+
 type (
 	Table struct {
 		Name       stringx.String
@@ -134,4 +138,13 @@ func Parse(ddl string) (*Table, error) {
 		PrimaryKey: primaryKey,
 		Fields:     fields,
 	}, nil
+}
+
+func (t *Table) ContainsTime() bool {
+	for _, item := range t.Fields {
+		if item.DataType == timeImport {
+			return true
+		}
+	}
+	return false
 }

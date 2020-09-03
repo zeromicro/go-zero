@@ -5,6 +5,7 @@ var (
 	"database/sql"
 	"fmt"
 	"strings"
+	{{if .time}}"time"{{end}}
 
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/sqlc"
@@ -16,7 +17,7 @@ var (
 	ImportsNoCache = `import (
 	"database/sql"
 	"strings"
-	"time"
+	{{if .time}}"time"{{end}}
 
 	"github.com/tal-tech/go-zero/core/stores/sqlc"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
