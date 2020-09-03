@@ -96,7 +96,7 @@ go get -u github.com/tal-tech/go-zero
 1. 安装goctl工具
 
    ```shell
-   export GO111MODULE=on export GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
    ```
 
    确保goctl可执行
