@@ -77,25 +77,25 @@
 
   ```go
   type (
-  	addReq struct {
-  		book  string `form:"book"`
-  		price int    `form:"price"`
-  	}
+      addReq struct {
+          book  string `form:"book"`
+          price int64  `form:"price"`
+      }
   
-  	addResp struct {
-  		ok bool `json:"ok"`
-  	}
+      addResp struct {
+          ok bool `json:"ok"`
+      }
   )
   
   type (
-  	checkReq struct {
-  		book string `form:"book"`
-  	}
+      checkReq struct {
+          book string `form:"book"`
+      }
   
-  	checkResp struct {
-  		found bool `json:"found"`
-  		price int  `json:"price"`
-  	}
+      checkResp struct {
+          found bool  `json:"found"`
+          price int64 `json:"price"`
+      }
   )
   
   service bookstore-api {
@@ -270,8 +270,8 @@
 
   ```go
   type Config struct {
-  	rest.RestConf
-  	Add rpcx.RpcClientConf     // 手动代码
+      rest.RestConf
+      Add rpcx.RpcClientConf     // 手动代码
   }
   ```
 
@@ -279,15 +279,15 @@
 
   ```go
   type ServiceContext struct {
-  	Config config.Config
-  	Adder  rpcx.Client                    // 手动代码
+      Config config.Config
+      Adder  adder.Adder                                    // 手动代码
   }
   
   func NewServiceContext(c config.Config) *ServiceContext {
-  	return &ServiceContext{
-  		Config: c,
-  		Adder:  rpcx.MustNewClient(c.Add),  // 手动代码
-  	}
+      return &ServiceContext{
+          Config: c,
+          Adder:  adder.NewAdder(rpcx.MustNewClient(c.Add)),  // 手动代码
+      }
   }
   ```
 
@@ -297,19 +297,19 @@
 
   ```go
   func (l *AddLogic) Add(req types.AddReq) (*types.AddResp, error) {
-    // 手动代码开始
-  	resp, err := adder.NewAdder(l.svcCtx.Adder).Add(l.ctx, &adder.AddReq{
-  		Book:  req.Book,
-  		Price: req.Price,
-  	})
-  	if err != nil {
-  		return nil, err
-  	}
+      // 手动代码开始
+      resp, err := l.svcCtx.Adder.Add(l.ctx, &adder.AddReq{
+          Book:  req.Book,
+          Price: req.Price,
+      })
+      if err != nil {
+          return nil, err
+      }
   
-  	return &types.AddResp{
-  		Ok: resp.Ok,
-  	}, nil
-    // 手动代码结束
+      return &types.AddResp{
+          Ok: resp.Ok,
+      }, nil
+      // 手动代码结束
   }
   ```
 
@@ -404,9 +404,9 @@
 
   ```go
   type Config struct {
-  	rest.RestConf
-  	Add   rpcx.RpcClientConf     // 手动代码
-    Check rpcx.RpcClientConf     // 手动代码
+      rest.RestConf
+      Add   rpcx.RpcClientConf     // 手动代码
+      Check rpcx.RpcClientConf     // 手动代码
   }
   ```
 
@@ -414,17 +414,17 @@
 
   ```go
   type ServiceContext struct {
-  	Config  config.Config
-  	Adder   rpcx.Client                   // 手动代码
-    Checker rpcx.Client                   // 手动代码
+      Config  config.Config
+      Adder   adder.Adder          // 手动代码
+      Checker checker.Checker      // 手动代码
   }
   
   func NewServiceContext(c config.Config) *ServiceContext {
-  	return &ServiceContext{
-  		Config:  c,
-  		Adder:   rpcx.MustNewClient(c.Add),    // 手动代码
-      Checker: rpcx.MustNewClient(c.Check),  // 手动代码
-  	}
+      return &ServiceContext{
+          Config:  c,
+          Adder:   adder.NewAdder(rpcx.MustNewClient(c.Add)),         // 手动代码
+          Checker: checker.NewChecker(rpcx.MustNewClient(c.Check)),   // 手动代码
+      }
   }
   ```
 
@@ -434,19 +434,19 @@
 
   ```go
   func (l *CheckLogic) Check(req types.CheckReq) (*types.CheckResp, error) {
-    // 手动代码开始
-  	resp, err := checker.NewChecker(l.svcCtx.Checker).Check(l.ctx, &checker.CheckReq{
-  		Book:  req.Book,
-  	})
-  	if err != nil {
-  		return nil, err
-  	}
+      // 手动代码开始
+      resp, err := l.svcCtx.Checker.Check(l.ctx, &checker.CheckReq{
+          Book:  req.Book,
+      })
+      if err != nil {
+          return nil, err
+      }
   
-  	return &types.CheckResp{
-      Found: resp.Found,
-      Price: resp.Price,
-  	}, nil
-    // 手动代码结束
+      return &types.CheckResp{
+          Found: resp.Found,
+          Price: resp.Price,
+      }, nil
+      // 手动代码结束
   }
   ```
 
@@ -511,10 +511,10 @@
 
   ```go
   type Config struct {
-  	rpcx.RpcServerConf
-  	DataSource string             // 手动代码
-  	Table      string             // 手动代码
-  	Cache      cache.CacheConf    // 手动代码
+      rpcx.RpcServerConf
+      DataSource string             // 手动代码
+      Table      string             // 手动代码
+      Cache      cache.CacheConf    // 手动代码
   }
   ```
 
@@ -524,15 +524,15 @@
 
   ```go
   type ServiceContext struct {
-  	c     config.Config
-    Model *model.BookModel   // 手动代码
+      c     config.Config
+      Model *model.BookModel   // 手动代码
   }
   
   func NewServiceContext(c config.Config) *ServiceContext {
-  	return &ServiceContext{
-  		c:             c,
-  		Model: model.NewBookModel(sqlx.NewMysql(c.DataSource), c.Cache, c.Table), // 手动代码
-  	}
+      return &ServiceContext{
+          c:             c,
+          Model: model.NewBookModel(sqlx.NewMysql(c.DataSource), c.Cache, c.Table), // 手动代码
+      }
   }
   ```
 
@@ -540,19 +540,19 @@
 
   ```go
   func (l *AddLogic) Add(in *add.AddReq) (*add.AddResp, error) {
-    // 手动代码开始
-  	_, err := l.svcCtx.Model.Insert(model.Book{
-  		Book:  in.Book,
-  		Price: in.Price,
-  	})
-  	if err != nil {
-  		return nil, err
-  	}
+      // 手动代码开始
+      _, err := l.svcCtx.Model.Insert(model.Book{
+          Book:  in.Book,
+          Price: in.Price,
+      })
+      if err != nil {
+          return nil, err
+      }
   
-  	return &add.AddResp{
-  		Ok: true,
-  	}, nil
-    // 手动代码结束
+      return &add.AddResp{
+          Ok: true,
+      }, nil
+      // 手动代码结束
   }
   ```
 
@@ -560,17 +560,17 @@
 
   ```go
   func (l *CheckLogic) Check(in *check.CheckReq) (*check.CheckResp, error) {
-    // 手动代码开始
-  	resp, err := l.svcCtx.Model.FindOne(in.Book)
-  	if err != nil {
-  		return nil, err
-  	}
+      // 手动代码开始
+      resp, err := l.svcCtx.Model.FindOne(in.Book)
+      if err != nil {
+          return nil, err
+      }
   
-  	return &check.CheckResp{
-  		Found: true,
-  		Price: resp.Price,
-  	}, nil
-    // 手动代码结束
+      return &check.CheckResp{
+          Found: true,
+          Price: resp.Price,
+      }, nil
+      // 手动代码结束
   }
   ```
   
