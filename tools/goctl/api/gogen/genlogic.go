@@ -57,6 +57,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if !ok {
 		return fmt.Errorf("missing handler annotation for %q", route.Path)
 	}
+
 	handler = strings.TrimSuffix(handler, "handler")
 	handler = strings.TrimSuffix(handler, "Handler")
 	filename := strings.ToLower(handler)
@@ -65,6 +66,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if err != nil {
 		return err
 	}
+
 	if !created {
 		return nil
 	}
@@ -74,11 +76,11 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if err != nil {
 		return err
 	}
-	imports := genLogicImports(route, parentPkg)
 
-	responseString := ""
-	returnString := ""
-	requestString := ""
+	imports := genLogicImports(route, parentPkg)
+	var responseString string
+	var returnString string
+	var requestString string
 	if len(route.ResponseType.Name) > 0 {
 		resp := strings.Title(route.ResponseType.Name)
 		responseString = "(*types." + resp + ", error)"
@@ -104,6 +106,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if err != nil {
 		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err

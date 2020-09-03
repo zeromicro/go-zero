@@ -16,9 +16,7 @@ const (
 	spatial
 )
 
-const (
-	timeImport = "time.Time"
-)
+const timeImport = "time.Time"
 
 type (
 	Table struct {
@@ -26,10 +24,12 @@ type (
 		PrimaryKey Primary
 		Fields     []Field
 	}
+
 	Primary struct {
 		Field
 		AutoIncrement bool
 	}
+
 	Field struct {
 		Name         stringx.String
 		DataBaseType string
@@ -38,6 +38,7 @@ type (
 		IsPrimaryKey bool
 		Comment      string
 	}
+
 	KeyType int
 )
 
