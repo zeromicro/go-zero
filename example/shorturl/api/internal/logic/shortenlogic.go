@@ -10,12 +10,14 @@ import (
 )
 
 type ShortenLogic struct {
-	ctx context.Context
+	svcCtx *svc.ServiceContext
+	ctx    context.Context
 	logx.Logger
 }
 
 func NewShortenLogic(ctx context.Context, svcCtx *svc.ServiceContext) ShortenLogic {
 	return ShortenLogic{
+		svcCtx: svcCtx,
 		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
 	}
