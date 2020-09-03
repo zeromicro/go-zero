@@ -39,15 +39,15 @@
 
 * API Gateway
 
-  <img src="images/shorturl-api.png" alt="api" width="800" />
+  <img src="images/bookstore-api.png" alt="api" width="800" />
 
 * RPC
 
-  <img src="images/shorturl-rpc.png" alt="架构图" width="800" />
+  <img src="images/bookstore-rpc.png" alt="架构图" width="800" />
 
 * model
 
-  <img src="images/shorturl-model.png" alt="model" width="800" />
+  <img src="images/bookstore-model.png" alt="model" width="800" />
 
 下面我们来一起完整走一遍快速构建微服务的流程，Let’s `Go`!🏃‍♂️
 
@@ -58,7 +58,7 @@
 * 安装goctl工具
 
   ```shell
-  GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+  GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
 * 创建工作目录`bookstore`
@@ -131,19 +131,19 @@
   ├── bookstore.api                  // api定义
   ├── bookstore.go                   // main入口定义
   ├── etc
-  │   └── bookstore-api.yaml         // 配置文件
+  │   └── bookstore-api.yaml         // 配置文件
   └── internal
       ├── config
-      │   └── config.go              // 定义配置
+      │   └── config.go              // 定义配置
       ├── handler
-      │   ├── addhandler.go          // 实现addHandler
-      │   ├── checkhandler.go        // 实现checkHandler
-      │   └── routes.go              // 定义路由处理
+      │   ├── addhandler.go          // 实现addHandler
+      │   ├── checkhandler.go        // 实现checkHandler
+      │   └── routes.go              // 定义路由处理
       ├── logic
-      │   ├── addlogic.go            // 实现AddLogic
-      │   └── checklogic.go          // 实现CheckLogic
+      │   ├── addlogic.go            // 实现AddLogic
+      │   └── checklogic.go          // 实现CheckLogic
       ├── svc
-      │   └── servicecontext.go      // 定义ServiceContext
+      │   └── servicecontext.go      // 定义ServiceContext
       └── types
           └── types.go               // 定义请求、返回结构体
   ```
@@ -225,97 +225,35 @@
   ├── add.go                      // rpc服务main函数
   ├── add.proto                   // rpc接口定义
   ├── adder
-  │   ├── adder.go                // 提供了外部调用方法，无需修改
-  │   ├── adder_mock.go           // mock方法，测试用
-  │   └── types.go                // request/response结构体定义
+  │   ├── adder.go                // 提供了外部调用方法，无需修改
+  │   ├── adder_mock.go           // mock方法，测试用
+  │   └── types.go                // request/response结构体定义
   ├── etc
-  │   └── add.yaml                // 配置文件
+  │   └── add.yaml                // 配置文件
   ├── internal
-  │   ├── config
-  │   │   └── config.go           // 配置定义
-  │   ├── logic
-  │   │   └── addlogic.go         // add业务逻辑在这里实现
-  │   ├── server
-  │   │   └── adderserver.go      // 调用入口, 不需要修改
-  │   └── svc
-  │       └── servicecontext.go   // 定义ServiceContext，传递依赖
+  │   ├── config
+  │   │   └── config.go           // 配置定义
+  │   ├── logic
+  │   │   └── addlogic.go         // add业务逻辑在这里实现
+  │   ├── server
+  │   │   └── adderserver.go      // 调用入口, 不需要修改
+  │   └── svc
+  │       └── servicecontext.go   // 定义ServiceContext，传递依赖
   └── pb
       └── add.pb.go
   ```
   
+
 直接可以运行，如下：
-  
+
 ```shell
   $ go run add.go -f etc/add.yaml
   Starting rpc server at 127.0.0.1:8080...
-  ```
-  
+```
+
 `etc/add.yaml`文件里可以修改侦听端口等配置
 
-## 7. 修改API Gateway代码调用add rpc服务
-
-* 修改配置文件`bookstore-api.yaml`，增加如下内容
-
-  ```yaml
-  Add:
-    Etcd:
-      Hosts:
-        - localhost:2379
-      Key: add.rpc
-  ```
-
-  通过etcd自动去发现可用的add服务
-
-* 修改`internal/config/config.go`如下，增加add服务依赖
-
-  ```go
-  type Config struct {
-      rest.RestConf
-      Add rpcx.RpcClientConf     // 手动代码
-  }
-  ```
-
-* 修改`internal/svc/servicecontext.go`，如下：
-
-  ```go
-  type ServiceContext struct {
-      Config config.Config
-      Adder  adder.Adder                                    // 手动代码
-  }
-  
-  func NewServiceContext(c config.Config) *ServiceContext {
-      return &ServiceContext{
-          Config: c,
-          Adder:  adder.NewAdder(rpcx.MustNewClient(c.Add)),  // 手动代码
-      }
-  }
-  ```
-
-  通过ServiceContext在不同业务逻辑之间传递依赖
-
-* 修改`internal/logic/addlogic.go`里的`Add`方法，如下：
-
-  ```go
-  func (l *AddLogic) Add(req types.AddReq) (*types.AddResp, error) {
-      // 手动代码开始
-      resp, err := l.svcCtx.Adder.Add(l.ctx, &adder.AddReq{
-          Book:  req.Book,
-          Price: req.Price,
-      })
-      if err != nil {
-          return nil, err
-      }
-  
-      return &types.AddResp{
-          Ok: resp.Ok,
-      }, nil
-      // 手动代码结束
-  }
-  ```
-
-  通过调用`adder`的`Add`方法实现添加图书到bookstore系统
-
-## 8. 编写check rpc服务
+## 7. 编写check rpc服务
 
 * 在`rpc/check`目录下编写`check.proto`文件
 
@@ -359,20 +297,20 @@
   ├── check.go                    // rpc服务main函数
   ├── check.proto                 // rpc接口定义
   ├── checker
-  │   ├── checker.go              // 提供了外部调用方法，无需修改
-  │   ├── checker_mock.go         // mock方法，测试用
-  │   └── types.go                // request/response结构体定义
+  │   ├── checker.go              // 提供了外部调用方法，无需修改
+  │   ├── checker_mock.go         // mock方法，测试用
+  │   └── types.go                // request/response结构体定义
   ├── etc
-  │   └── check.yaml              // 配置文件
+  │   └── check.yaml              // 配置文件
   ├── internal
-  │   ├── config
-  │   │   └── config.go           // 配置定义
-  │   ├── logic
-  │   │   └── checklogic.go       // check业务逻辑在这里实现
-  │   ├── server
-  │   │   └── checkerserver.go    // 调用入口, 不需要修改
-  │   └── svc
-  │       └── servicecontext.go   // 定义ServiceContext，传递依赖
+  │   ├── config
+  │   │   └── config.go           // 配置定义
+  │   ├── logic
+  │   │   └── checklogic.go       // check业务逻辑在这里实现
+  │   ├── server
+  │   │   └── checkerserver.go    // 调用入口, 不需要修改
+  │   └── svc
+  │       └── servicecontext.go   // 定义ServiceContext，传递依赖
   └── pb
       └── check.pb.go
   ```
@@ -386,11 +324,16 @@
   Starting rpc server at 127.0.0.1:8081...
   ```
 
-## 9. 修改API Gateway代码调用check rpc服务
+## 8. 修改API Gateway代码调用add/check rpc服务
 
 * 修改配置文件`bookstore-api.yaml`，增加如下内容
 
   ```yaml
+  Add:
+    Etcd:
+      Hosts:
+        - localhost:2379
+      Key: add.rpc
   Check:
     Etcd:
       Hosts:
@@ -398,9 +341,9 @@
       Key: check.rpc
   ```
 
-  通过etcd自动去发现可用的check服务
+  通过etcd自动去发现可用的add/check服务
 
-* 修改`internal/config/config.go`如下，增加add服务依赖
+* 修改`internal/config/config.go`如下，增加add/check服务依赖
 
   ```go
   type Config struct {
@@ -430,6 +373,28 @@
 
   通过ServiceContext在不同业务逻辑之间传递依赖
 
+* 修改`internal/logic/addlogic.go`里的`Add`方法，如下：
+
+  ```go
+  func (l *AddLogic) Add(req types.AddReq) (*types.AddResp, error) {
+      // 手动代码开始
+      resp, err := l.svcCtx.Adder.Add(l.ctx, &adder.AddReq{
+          Book:  req.Book,
+          Price: req.Price,
+      })
+      if err != nil {
+          return nil, err
+      }
+  
+      return &types.AddResp{
+          Ok: resp.Ok,
+      }, nil
+      // 手动代码结束
+  }
+  ```
+
+  通过调用`adder`的`Add`方法实现添加图书到bookstore系统
+
 * 修改`internal/logic/checklogic.go`里的`Check`方法，如下：
 
   ```go
@@ -450,13 +415,13 @@
   }
   ```
 
-  通过调用`checker`的`Check`方法实现从bookstore系统中查询图书的价格。
+  通过调用`checker`的`Check`方法实现从bookstore系统中查询图书的价格
 
-## 10. 定义数据库表结构，并生成CRUD+cache代码
+## 9. 定义数据库表结构，并生成CRUD+cache代码
 
 * bookstore下创建`rpc/model`目录：`mkdir -p rpc/model`
 
-* 在rpc/model目录下编写创建bookstore表的sql文件`bookstore.sql`，如下：
+* 在rpc/model目录下编写创建book表的sql文件`book.sql`，如下：
 
   ```sql
   CREATE TABLE `book`
@@ -474,13 +439,13 @@
   ```
 
   ```sql
-  source bookstore.sql;
+  source book.sql;
   ```
 
 * 在`rpc/model`目录下执行如下命令生成CRUD+cache代码，`-c`表示使用`redis cache`
 
   ```shell
-  goctl model mysql ddl -c -src bookstore.sql -dir .
+  goctl model mysql ddl -c -src book.sql -dir .
   ```
 
   也可以用`datasource`命令代替`ddl`来指定数据库链接直接从schema生成
@@ -494,7 +459,7 @@
   └── vars.go               // 定义常量和变量
   ```
 
-## 11. 修改add/check rpc代码调用crud+cache代码
+## 10. 修改add/check rpc代码调用crud+cache代码
 
 * 修改`rpc/add/etc/add.yaml`和`rpc/check/etc/check.yaml`，增加如下内容：
 
@@ -576,7 +541,7 @@
   
   至此代码修改完成，凡事手动修改的代码我加了标注
 
-## 12. 完整调用演示
+## 11. 完整调用演示
 
 * add api调用
 
@@ -612,7 +577,7 @@
   {"found":true,"price":10}
   ```
 
-## 13. Benchmark
+## 12. Benchmark
 
 因为写入依赖于mysql的写入速度，就相当于压mysql了，所以压测只测试了check接口，相当于从mysql里读取并利用缓存，为了方便，直接压这一本书，因为有缓存，多本书也是一样的，对压测结果没有影响。
 
@@ -633,7 +598,7 @@ Log:
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
 
-## 14. 总结
+## 13. 总结
 
 我们一直强调**工具大于约定和文档**。
 
@@ -644,8 +609,4 @@ go-zero不只是一个框架，更是一个建立在框架+工具基础上的，
 通过go-zero+goctl生成的代码，包含了微服务治理的各种组件，包括：并发控制、自适应熔断、自适应降载、自动缓存控制等，可以轻松部署以承载巨大访问量。
 
 有任何好的提升工程效率的想法，随时欢迎交流！👏
-
-## 15. 项目地址
-
-[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 

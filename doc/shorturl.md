@@ -61,7 +61,7 @@
 * 安装goctl工具
 
   ```shell
-  GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get github.com/tal-tech/go-zero/tools/goctl
+  GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
 * 创建工作目录`shorturl`
