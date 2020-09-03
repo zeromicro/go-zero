@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-// struct匹配
+// struct match
 const typeRegex = `(?m)(?m)(^ *type\s+[a-zA-Z][a-zA-Z0-9_-]+\s+(((struct)\s*?\{[\w\W]*?[^\{]\})|([a-zA-Z][a-zA-Z0-9_-]+)))|(^ *type\s*?\([\w\W]+\}\s*\))`
 
 var (

@@ -20,16 +20,16 @@ import (
 )
 
 type {{.logic}} struct {
+	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
 	return {{.logic}}{
+		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
 	}
 }
 

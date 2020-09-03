@@ -10,16 +10,16 @@ import (
 )
 
 type ExpandLogic struct {
+	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	logx.Logger
 }
 
 func NewExpandLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ExpandLogic {
 	return &ExpandLogic{
+		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
 	}
 }
 
