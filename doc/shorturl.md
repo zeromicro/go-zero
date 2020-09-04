@@ -431,7 +431,7 @@
 * 修改`rpc/transform/internal/logic/expandlogic.go`，如下：
 
   ```go
-  func (l *ExpandLogic) Expand(in *expand.ExpandReq) (*expand.ExpandResp, error) {
+  func (l *ExpandLogic) Expand(in *transform.ExpandReq) (*transform.ExpandResp, error) {
   	// 手动代码开始
   	res, err := l.svcCtx.Model.FindOne(in.Shorten)
   	if err != nil {
@@ -448,7 +448,7 @@
 * 修改`rpc/shorten/internal/logic/shortenlogic.go`，如下：
 
   ```go
-  func (l *ShortenLogic) Shorten(in *shorten.ShortenReq) (*shorten.ShortenResp, error) {
+  func (l *ShortenLogic) Shorten(in *transform.ShortenReq) (*transform.ShortenResp, error) {
     // 手动代码开始，生成短链接
   	key := hash.Md5Hex([]byte(in.Url))[:6]
   	_, err := l.svcCtx.Model.Insert(model.Shorturl{
