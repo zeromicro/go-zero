@@ -287,13 +287,13 @@
   ```go
   type ServiceContext struct {
   	Config    config.Config
-  	Transformer rpcx.Client                               // 手动代码
+  	Transformer transformer.Transformer                                          // 手动代码
   }
   
   func NewServiceContext(c config.Config) *ServiceContext {
   	return &ServiceContext{
   		Config:    c,
-  		Transformer: rpcx.MustNewClient(c.Transform),  // 手动代码
+      Transformer: transformer.NewTransformer(rpcx.MustNewClient(c.Transform)),  // 手动代码
   	}
   }
   ```
@@ -305,8 +305,7 @@
   ```go
   func (l *ExpandLogic) Expand(req types.ExpandReq) (*types.ExpandResp, error) {
     // 手动代码开始
-    trans := transformer.NewTransformer(l.svcCtx.Transformer)
-  	resp, err := trans.Expand(l.ctx, &transformer.ExpandReq{
+  	resp, err := l.svcCtx.Transformer.Expand(l.ctx, &transformer.ExpandReq{
   		Shorten: req.Shorten,
   	})
   	if err != nil {
@@ -319,16 +318,15 @@
     // 手动代码结束
   }
   ```
-
-  通过调用`transformer`的`Expand`方法实现短链恢复到url
-
+  
+通过调用`transformer`的`Expand`方法实现短链恢复到url
+  
 * 修改`internal/logic/shortenlogic.go`，如下：
 
   ```go
   func (l *ShortenLogic) Shorten(req types.ShortenReq) (*types.ShortenResp, error) {
     // 手动代码开始
-  	trans := transformer.NewTransformer(l.svcCtx.Transformer)
-  	resp, err := trans.Shorten(l.ctx, &transformer.ShortenReq{
+  	resp, err := l.svcCtx.Transformer.Shorten(l.ctx, &transformer.ShortenReq{
   		Url: req.Url,
   	})
   	if err != nil {
@@ -341,10 +339,10 @@
     // 手动代码结束
   }
   ```
-
-  通过调用`transformer`的`Shorten`方法实现url到短链的变换
-
-  至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
+  
+通过调用`transformer`的`Shorten`方法实现url到短链的变换
+  
+至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
 
 ## 8. 定义数据库表结构，并生成CRUD+cache代码
 
@@ -513,6 +511,10 @@
 ![Benchmark](images/shorturl-benchmark.png)
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
+
+## 12. 完整代码
+
+[https://github.com/tal-tech/go-zero/tree/master/example/shorturl](https://github.com/tal-tech/go-zero/tree/master/example/shorturl)
 
 ## 12. 总结
 

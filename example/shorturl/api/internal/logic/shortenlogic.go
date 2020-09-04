@@ -5,6 +5,7 @@ import (
 
 	"shorturl/api/internal/svc"
 	"shorturl/api/internal/types"
+	"shorturl/rpc/transform/transformer"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
@@ -24,5 +25,14 @@ func NewShortenLogic(ctx context.Context, svcCtx *svc.ServiceContext) ShortenLog
 }
 
 func (l *ShortenLogic) Shorten(req types.ShortenReq) (*types.ShortenResp, error) {
-	return &types.ShortenResp{}, nil
+	resp, err := l.svcCtx.Transformer.Shorten(l.ctx, &transformer.ShortenReq{
+		Url: req.Url,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.ShortenResp{
+		Shorten: resp.Shorten,
+	}, nil
 }

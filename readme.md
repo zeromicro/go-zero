@@ -91,7 +91,9 @@ go get -u github.com/tal-tech/go-zero
 
 0. 完整示例请查看
 
-   [快速构建高并发微服务](doc/shorturl.md)
+    [快速构建高并发微服务](doc/shorturl.md)
+
+    [快速构建高并发微服务-多RPC服务版](doc/bookstore.md)
 
 1. 安装goctl工具
 

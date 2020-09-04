@@ -598,7 +598,11 @@ Log:
 
 可以看出在我的MacBook Pro上能达到3万+的qps。
 
-## 13. 总结
+## 13. 完整代码
+
+[https://github.com/tal-tech/go-zero/tree/master/example/bookstore](https://github.com/tal-tech/go-zero/tree/master/example/bookstore)
+
+## 14. 总结
 
 我们一直强调**工具大于约定和文档**。
 
