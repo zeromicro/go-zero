@@ -201,4 +201,4 @@ Content-Length: 0
 
 ## 9. 微信交流群
 
-添加我的微信：kevwan，请注明go-zero，我拉进go-zero社区群🤝
+<img src="doc/images/wechat.jpg" alt="wechat" width="300" />
