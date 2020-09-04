@@ -93,7 +93,7 @@ go get -u github.com/tal-tech/go-zero
 
     [快速构建高并发微服务](doc/shorturl.md)
 
-    [快速构建高并发微服务-多RPC服务版](doc/bookstore.md)
+    [快速构建高并发微服务-多RPC版](doc/bookstore.md)
 
 1. 安装goctl工具
 
@@ -198,6 +198,7 @@ Content-Length: 0
 ## 8. 文档 (逐步完善中)
 
 * [快速构建高并发微服务](doc/shorturl.md)
+* [快速构建高并发微服务-多RPC版](doc/bookstore.md)
 * [goctl使用帮助](doc/goctl.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 
