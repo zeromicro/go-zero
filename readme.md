@@ -10,7 +10,7 @@ English | [简体中文](readme_zh-CN.md)
 
 ## 0. what is go-zero?
 
-go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stabibility of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
