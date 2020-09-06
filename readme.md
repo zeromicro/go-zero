@@ -95,7 +95,7 @@ go get -u github.com/tal-tech/go-zero
 
      [Rapid development of microservice systems](doc/shorturl-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](doc/bookstore.md)
+     [Rapid development of microservice systems - multiple RPCs](doc/bookstore-en.md)
 
 1. install goctl
 
@@ -203,4 +203,4 @@ go get -u github.com/tal-tech/go-zero
 ## 8. Documents (adding)
 
 * [Rapid development of microservice systems](doc/shorturl-en.md)
-* [Rapid development of microservice systems - multiple RPCs](doc/bookstore.md)
+* [Rapid development of microservice systems - multiple RPCs](doc/bookstore-en.md)
