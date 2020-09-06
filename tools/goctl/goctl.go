@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tal-tech/go-zero/tools/goctl/api/jsgen"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -171,6 +173,21 @@ var (
 						},
 					},
 					Action: ktgen.KtCommand,
+				},
+				{
+					Name:  "js",
+					Usage: "generate javascript code for provided api file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+					},
+					Action: jsgen.JsCommand,
 				},
 			},
 		},

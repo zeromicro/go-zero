@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
-var funcsMap = template.FuncMap{
+var FuncsMap = template.FuncMap{
 	"lowCamelCase":    lowCamelCase,
 	"routeToFuncName": routeToFuncName,
 	"parseType":       parseType,
