@@ -93,7 +93,7 @@ go get -u github.com/tal-tech/go-zero
 
 0. full examples can be checked out from below:
 
-     [Rapid development of microservice systems](doc/shorturl.md)
+     [Rapid development of microservice systems](doc/shorturl-en.md)
 
      [Rapid development of microservice systems - multiple RPCs](doc/bookstore.md)
 
@@ -202,5 +202,5 @@ go get -u github.com/tal-tech/go-zero
 
 ## 8. Documents (adding)
 
-* [Rapid development of microservice systems](doc/shorturl.md)
+* [Rapid development of microservice systems](doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](doc/bookstore.md)
