@@ -48,7 +48,7 @@ All modules with green background are generated, and will be enabled when necess
 
 * RPC
 
-  <img src="images/rpc-gen.png" alt="架构图" width="800" />
+  <img src="images/rpc-gen.png" alt="rpc" width="800" />
 
 * model
 
@@ -116,8 +116,8 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
   the usage of `type` keyword is the same as that in go, service is used to define get/post/head/delete api requests, described below:
 
-  * `service shorturl-api { defines he service name
-  * `@server`defines the properties that used in server side
+  * `service shorturl-api {` defines the service name
+  * `@server` defines the properties that used in server side
   * `handler` defines the handler name
   * `get /shorten(shortenReq) returns(shortenResp)` defines this is a GET request, the request parameters, and the response parameters
 
@@ -434,7 +434,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
   }
   ```
 
-* 修改`rpc/transform/internal/logic/expandlogic.go`，如下：
+* modify `rpc/transform/internal/logic/expandlogic.go`, like below:
 
   ```go
   func (l *ExpandLogic) Expand(in *transform.ExpandReq) (*transform.ExpandResp, error) {
