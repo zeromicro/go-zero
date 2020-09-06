@@ -14,7 +14,7 @@ import (
 
 const (
 	baseTemplate = `
-var server='http://example.com'
+var server='http://localhost:8888'
 function apiRequest(method,uri,body,onOk,onFail,eventually){
     var xhr=new XMLHttpRequest();
     xhr.onreadystatechange=function(e){
@@ -37,14 +37,16 @@ function apiRequest(method,uri,body,onOk,onFail,eventually){
             }
         }
     }
-    xhr.setRequestHeader('Content-Type','application/json')
     xhr.open(method,server+uri)
+    xhr.setRequestHeader('Content-Type','application/json')
     if(body){
         if (typeof body == 'string'){
             xhr.send(body)
         }else{
             xhr.send(JSON.stringify(body))
         }
+    }else{
+        xhr.send()
     }
 }`
 	apiTemplate = `{{with .Service}}{{range .Routes}}
