@@ -1,3 +1,5 @@
+[English](shorturl-en.md) | 简体中文
+
 # 快速构建高并发微服务
 
 ## 0. 为什么说做好微服务很难？
@@ -319,8 +321,9 @@
   }
   ```
   
+
 通过调用`transformer`的`Expand`方法实现短链恢复到url
-  
+
 * 修改`internal/logic/shortenlogic.go`，如下：
 
   ```go
@@ -340,8 +343,9 @@
   }
   ```
   
+
 通过调用`transformer`的`Shorten`方法实现url到短链的变换
-  
+
 至此，API Gateway修改完成，虽然贴的代码多，但是期中修改的是很少的一部分，为了方便理解上下文，我贴了完整代码，接下来处理CRUD+cache
 
 ## 8. 定义数据库表结构，并生成CRUD+cache代码
