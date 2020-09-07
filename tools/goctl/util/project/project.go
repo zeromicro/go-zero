@@ -28,6 +28,7 @@ type (
 
 	GoMod struct {
 		Module string
+		Path   string
 	}
 )
 
@@ -110,6 +111,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 		Path: path,
 		GoMod: GoMod{
 			Module: module,
+			Path:   goMod,
 		},
 	}, nil
 }
