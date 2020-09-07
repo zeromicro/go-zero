@@ -1,7 +1,6 @@
-package ctx
+package project
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -10,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
 const (
@@ -33,20 +31,22 @@ type (
 	}
 )
 
-func prepare(log console.Console) (*Project, error) {
-	log.Info("checking go env...")
+func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	_, err := exec.LookPath(constGo)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = exec.LookPath(constProtoC)
-	if err != nil {
-		return nil, err
-	}
-	_, err = exec.LookPath(constProtoCGenGo)
-	if err != nil {
-		return nil, err
+	if checkGrpcEnv {
+		_, err = exec.LookPath(constProtoC)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = exec.LookPath(constProtoCGenGo)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var (
@@ -87,14 +87,16 @@ func prepare(log console.Console) (*Project, error) {
 		}
 
 		if !strings.HasPrefix(pwd, src) {
-			return nil, fmt.Errorf("%s: project is not in go mod and go path", pwd)
+			name = filepath.Clean(filepath.Base(projectDir))
+			path = projectDir
+		} else {
+			r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
+			name = filepath.Dir(r)
+			if name == "." {
+				name = r
+			}
+			path = filepath.Join(src, name)
 		}
-		r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
-		name = filepath.Dir(r)
-		if name == "." {
-			name = r
-		}
-		path = filepath.Join(src, name)
 		module = name
 	}
 

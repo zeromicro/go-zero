@@ -9,6 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/tal-tech/go-zero/tools/goctl/util/project"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/urfave/cli"
 )
@@ -34,7 +35,7 @@ type RpcContext struct {
 
 func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *RpcContext {
 	log := console.NewConsole(idea)
-	info, err := prepare(log)
+	info, err := project.Prepare(targetDir, true)
 	log.Must(err)
 
 	if stringx.From(protoSrc).IsEmptyOrSpace() {
