@@ -87,7 +87,12 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 		}
 
 		if !strings.HasPrefix(pwd, src) {
-			name = filepath.Clean(filepath.Base(projectDir))
+			absPath, err := filepath.Abs(projectDir)
+			if err != nil {
+				return nil, err
+			}
+
+			name = filepath.Clean(filepath.Base(absPath))
 			path = projectDir
 		} else {
 			r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
