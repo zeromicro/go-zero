@@ -204,6 +204,7 @@ Content-Length: 0
 * [快速构建高并发微服务](doc/shorturl.md)
 * [快速构建高并发微服务-多RPC版](doc/bookstore.md)
 * [goctl使用帮助](doc/goctl.md)
+* [通过MapReduce降低服务响应时间](doc/mapreduce.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 
 ## 9. 微信交流群
