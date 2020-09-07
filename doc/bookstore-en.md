@@ -9,7 +9,7 @@ To build a well working microservice, we need lots of knowledges from different 
 * basic functionalities
   1. concurrency control and rate limit, to avoid being brought down by unexpected inbound
   2. service discovery, make sure new or terminated nodes are detected asap
-  3. load balancing, balace the traffic base on the throughput of nodes
+  3. load balancing, balance the traffic base on the throughput of nodes
   4. timeout control, avoid the nodes continue to process the timed out requests
   5. circuit breaker, load shedding, fail fast, protects the failure nodes to recover asap
 

@@ -9,7 +9,7 @@ To build a well working microservice, we need lots of knowledges from different 
 * basic functionalities
   1. concurrency control and rate limit, to avoid being brought down by unexpected inbound
   2. service discovery, make sure new or terminated nodes are detected asap
-  3. load balancing, balace the traffic base on the throughput of nodes
+  3. load balancing, balance the traffic base on the throughput of nodes
   4. timeout control, avoid the nodes continue to process the timed out requests
   5. circuit breaker, load shedding, fail fast, protects the failure nodes to recover asap
 
@@ -68,7 +68,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
 * create the working dir `shorturl`
 
-* in `shorturl` dir, execute `go mod init shorturl` to initialize `go.mod``
+* in `shorturl` dir, execute `go mod init shorturl` to initialize `go.mod`
 
 ## 5. Write code for API Gateway
 
@@ -192,13 +192,13 @@ And now, let’s walk through the complete flow of quickly create a microservice
 * under directory `rpc/transform` create `transform.proto` file
 
   ```shell
-goctl rpc template -o transform.proto
+  goctl rpc template -o transform.proto
   ```
   
   edit the file and make the code looks like:
 
   ```protobuf
-syntax = "proto3";
+  syntax = "proto3";
   
   package transform;
   
@@ -522,7 +522,7 @@ as shown above, in my MacBook Pro, the QPS is like 30K+.
 
 [https://github.com/tal-tech/go-zero/tree/master/example/shorturl](https://github.com/tal-tech/go-zero/tree/master/example/shorturl)
 
-## 12. Conclusion
+## 13. Conclusion
 
 We always adhere to **prefer tools over conventions and documents**.
 
