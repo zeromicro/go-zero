@@ -1,9 +1,12 @@
 package search
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 const (
-	colon = ':'
+	colon = ":"
 	slash = '/'
 )
 
@@ -18,16 +21,11 @@ var (
 )
 
 type (
-	innerResult struct {
-		key   string
-		value string
-		named bool
-		found bool
-	}
-
 	node struct {
-		item     interface{}
-		children [2]map[string]*node
+		item interface{}
+
+		exactNode map[string]*node
+		colonNode map[string]*node
 	}
 
 	Tree struct {
@@ -42,7 +40,7 @@ type (
 
 func NewTree() *Tree {
 	return &Tree{
-		root: newNode(nil),
+		root: newNode(),
 	}
 }
 
@@ -54,8 +52,8 @@ func (t *Tree) Add(route string, item interface{}) error {
 	if item == nil {
 		return ErrEmptyItem
 	}
-
-	return add(t.root, route[1:], item)
+	route = strings.Trim(route, "/")
+	return add(t.root, route, item)
 }
 
 func (t *Tree) Search(route string) (Result, bool) {
@@ -64,105 +62,36 @@ func (t *Tree) Search(route string) (Result, bool) {
 	}
 
 	var result Result
-	ok := t.next(t.root, route[1:], &result)
+	route = strings.Trim(route, "/")
+	ok := next(t.root, strings.Split(route, "/"), &result)
 	return result, ok
 }
 
-func (t *Tree) next(n *node, route string, result *Result) bool {
-	if len(route) == 0 && n.item != nil {
+func next(n *node, paths []string, result *Result) bool {
+	if len(paths) == 0 {
+		if n.item == nil {
+			return false
+		}
 		result.Item = n.item
 		return true
 	}
-
-	for i := range route {
-		if route[i] == slash {
-			token := route[:i]
-			for _, children := range n.children {
-				for k, v := range children {
-					if r := match(k, token); r.found {
-						if t.next(v, route[i+1:], result) {
-							if r.named {
-								addParam(result, r.key, r.value)
-							}
-
-							return true
-						}
-					}
-				}
-			}
-
-			return false
+	p := paths[0]
+	if p == "" {
+		return next(n, paths[1:], result)
+	}
+	if child, ok := n.exactNode[p]; ok {
+		if ok := next(child, paths[1:], result); ok {
+			return true
 		}
 	}
 
-	for _, children := range n.children {
-		for k, v := range children {
-			if r := match(k, route); r.found && v.item != nil {
-				result.Item = v.item
-				if r.named {
-					addParam(result, r.key, r.value)
-				}
-
-				return true
-			}
+	for k, n := range n.colonNode {
+		if ok := next(n, paths[1:], result); ok {
+			addParam(result, k[1:], p)
+			return true
 		}
 	}
-
 	return false
-}
-
-func (nd *node) getChildren(route string) map[string]*node {
-	if len(route) > 0 && route[0] == colon {
-		return nd.children[1]
-	} else {
-		return nd.children[0]
-	}
-}
-
-func add(nd *node, route string, item interface{}) error {
-	if len(route) == 0 {
-		if nd.item != nil {
-			return ErrDupItem
-		}
-
-		nd.item = item
-		return nil
-	}
-
-	if route[0] == slash {
-		return ErrDupSlash
-	}
-
-	for i := range route {
-		if route[i] == slash {
-			token := route[:i]
-			children := nd.getChildren(token)
-			if child, ok := children[token]; ok {
-				if child != nil {
-					return add(child, route[i+1:], item)
-				} else {
-					return ErrInvalidState
-				}
-			} else {
-				child := newNode(nil)
-				children[token] = child
-				return add(child, route[i+1:], item)
-			}
-		}
-	}
-
-	children := nd.getChildren(route)
-	if child, ok := children[route]; ok {
-		if child.item != nil {
-			return ErrDupItem
-		}
-
-		child.item = item
-	} else {
-		children[route] = newNode(item)
-	}
-
-	return nil
 }
 
 func addParam(result *Result, k, v string) {
@@ -173,27 +102,47 @@ func addParam(result *Result, k, v string) {
 	result.Params[k] = v
 }
 
-func match(pat, token string) innerResult {
-	if pat[0] == colon {
-		return innerResult{
-			key:   pat[1:],
-			value: token,
-			named: true,
-			found: true,
-		}
-	}
-
-	return innerResult{
-		found: pat == token,
+func newNode() *node {
+	return &node{
+		item:      nil,
+		exactNode: make(map[string]*node),
+		colonNode: make(map[string]*node),
 	}
 }
 
-func newNode(item interface{}) *node {
-	return &node{
-		item: item,
-		children: [2]map[string]*node{
-			make(map[string]*node),
-			make(map[string]*node),
-		},
+func add(root *node, route string, item interface{}) error {
+	if len(route) == 0 {
+		if root.item != nil {
+			return ErrDupItem
+		}
+		root.item = item
+		return nil
 	}
+	paths := strings.Split(route, "/")
+
+	nd := root
+	for _, char := range paths {
+		if char == "" {
+			return ErrDupItem
+		}
+		var nextM map[string]*node
+		if strings.HasPrefix(char, colon) {
+			nextM = nd.colonNode
+		} else {
+			nextM = nd.exactNode
+		}
+		if child, ok := nextM[char]; ok {
+			nd = child
+		} else {
+			child = newNode()
+			nextM[char] = child
+			nd = child
+		}
+	}
+	if nd.item != nil {
+		return ErrDupItem
+	}
+
+	nd.item = item
+	return nil
 }
