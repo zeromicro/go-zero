@@ -81,7 +81,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 		}
 		var jwt string
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf(", rest.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
+			jwt = fmt.Sprintf(", ngin.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
 		}
 		var signature string
 		if g.signatureEnabled {
@@ -177,11 +177,6 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				path:    r.Path,
 				handler: handler,
 			})
-		}
-
-		if authName, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
-			groupedRoutes.jwtEnabled = true
-			groupedRoutes.authName = authName
 		}
 		routes = append(routes, groupedRoutes)
 	}
