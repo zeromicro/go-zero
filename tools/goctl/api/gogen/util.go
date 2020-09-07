@@ -4,11 +4,13 @@ import (
 	"fmt"
 	goformat "go/format"
 	"io"
+	"path/filepath"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/project"
 )
 
@@ -16,6 +18,16 @@ func getParentPackage(dir string) (string, error) {
 	p, err := project.Prepare(dir, false)
 	if err != nil {
 		return "", err
+	}
+	if len(p.GoMod.Path) > 0 {
+		goModePath := filepath.Clean(filepath.Dir(p.GoMod.Path))
+		absPath, err := filepath.Abs(dir)
+		if err != nil {
+			return "", err
+		}
+		parent := filepath.Clean(goctlutil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
+		parent = strings.ReplaceAll(parent, "\\", "/")
+		return parent, nil
 	}
 
 	return p.GoMod.Module, nil
