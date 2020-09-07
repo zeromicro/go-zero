@@ -98,6 +98,7 @@ func ApiFormat(path string, printToConsole bool) error {
 		_, err := fmt.Print(result)
 		return err
 	}
+	result = strings.TrimSpace(result)
 	return ioutil.WriteFile(path, []byte(result), os.ModePerm)
 }
 

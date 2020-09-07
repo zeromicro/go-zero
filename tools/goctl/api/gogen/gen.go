@@ -140,35 +140,27 @@ func createGoModFileIfNeed(dir string) {
 		panic(err)
 	}
 
-	var tempPath = absDir
-	var hasGoMod = false
-	for {
-		if tempPath == filepath.Dir(tempPath) {
-			break
-		}
-		tempPath = filepath.Dir(tempPath)
-		if util.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
-			hasGoMod = true
-			break
-		}
+	_, hasGoMod := util.FindGoModPath(dir)
+	if hasGoMod {
+		return
 	}
-	if !hasGoMod {
-		gopath := os.Getenv("GOPATH")
-		parent := path.Join(gopath, "src")
-		pos := strings.Index(absDir, parent)
-		if pos < 0 {
-			moduleName := absDir[len(filepath.Dir(absDir))+1:]
-			cmd := exec.Command("go", "mod", "init", moduleName)
-			cmd.Dir = dir
-			var stdout, stderr bytes.Buffer
-			cmd.Stdout = &stdout
-			cmd.Stderr = &stderr
-			err := cmd.Run()
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
-			fmt.Printf(outStr + "\n" + errStr)
-		}
+
+	gopath := os.Getenv("GOPATH")
+	parent := path.Join(gopath, "src")
+	pos := strings.Index(absDir, parent)
+	if pos >= 0 {
+		return
 	}
+
+	moduleName := absDir[len(filepath.Dir(absDir))+1:]
+	cmd := exec.Command("go", "mod", "init", moduleName)
+	cmd.Dir = dir
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err = cmd.Run(); err != nil {
+		fmt.Println(err.Error())
+	}
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf(outStr + "\n" + errStr)
 }

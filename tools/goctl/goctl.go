@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/tal-tech/go-zero/tools/goctl/api/jsgen"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -17,7 +19,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
 	"github.com/urfave/cli"
 )
 
@@ -171,6 +174,21 @@ var (
 					},
 					Action: ktgen.KtCommand,
 				},
+				{
+					Name:  "js",
+					Usage: "generate javascript code for provided api file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+					},
+					Action: jsgen.JsCommand,
+				},
 			},
 		},
 		{
@@ -189,16 +207,64 @@ var (
 			Action: docker.DockerCommand,
 		},
 		{
+			Name:  "rpc",
+			Usage: "generate rpc code",
+			Subcommands: []cli.Command{
+				{
+					Name:  "template",
+					Usage: `generate proto template`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "out, o",
+							Usage: "the target path of proto",
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcTemplate,
+				},
+				{
+					Name:  "proto",
+					Usage: `generate rpc from proto`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "src, s",
+							Usage: "the file path of the proto source file",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						},
+						cli.StringFlag{
+							Name:  "service, srv",
+							Usage: `the name of rpc service. [option]`,
+						},
+						cli.StringFlag{
+							Name:  "shared",
+							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]`,
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.Rpc,
+				},
+			},
+		},
+		{
 			Name:  "model",
 			Usage: "generate model code",
 			Subcommands: []cli.Command{
 				{
 					Name:  "mysql",
-					Usage: `generate mysql model"`,
+					Usage: `generate mysql model`,
 					Subcommands: []cli.Command{
 						{
 							Name:  "ddl",
-							Usage: `generate mysql model from ddl"`,
+							Usage: `generate mysql model from ddl`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
@@ -217,19 +283,19 @@ var (
 									Usage: "for idea plugin [optional]",
 								},
 							},
-							Action: command.MysqlDDL,
+							Action: model.MysqlDDL,
 						},
 						{
 							Name:  "datasource",
-							Usage: `generate model from datasource"`,
+							Usage: `generate model from datasource`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course"`,
+									Usage: `source table,tables separated by commas,like "user,course`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -244,7 +310,7 @@ var (
 									Usage: "for idea plugin [optional]",
 								},
 							},
-							Action: command.MyDataSource,
+							Action: model.MyDataSource,
 						},
 					},
 				},

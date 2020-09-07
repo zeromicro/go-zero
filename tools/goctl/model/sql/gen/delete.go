@@ -5,8 +5,8 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 func genDelete(table Table, withCache bool) (string, error) {
@@ -22,13 +22,13 @@ func genDelete(table Table, withCache bool) (string, error) {
 	}
 	var containsIndexCache = false
 	for _, item := range table.Fields {
-		if item.IsKey {
+		if item.IsKey && !item.IsPrimaryKey {
 			containsIndexCache = true
 			break
 		}
 	}
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("delete").
+	output, err := util.With("delete").
 		Parse(template.Delete).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,

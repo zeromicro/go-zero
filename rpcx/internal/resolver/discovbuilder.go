@@ -12,7 +12,7 @@ type discovBuilder struct{}
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	hosts := strings.FieldsFunc(target.Authority, func(r rune) bool {
-		return r == EndpointSep
+		return r == EndpointSepChar
 	})
 	sub, err := discov.NewSubscriber(hosts, target.Endpoint)
 	if err != nil {

@@ -15,8 +15,6 @@ import (
 	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const goModeIdentifier = "go.mod"
-
 func getParentPackage(dir string) (string, error) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
@@ -24,36 +22,22 @@ func getParentPackage(dir string) (string, error) {
 	}
 
 	absDir = strings.ReplaceAll(absDir, `\`, `/`)
-	var rootPath string
-	var tempPath = absDir
-	var hasGoMod = false
-	for {
-		if tempPath == filepath.Dir(tempPath) {
-			break
-		}
-		tempPath = filepath.Dir(tempPath)
-		if goctlutil.FileExists(filepath.Join(tempPath, goModeIdentifier)) {
-			tempPath = filepath.Dir(tempPath)
-			rootPath = absDir[len(tempPath)+1:]
-			hasGoMod = true
-			break
-		}
-		if tempPath == string(filepath.Separator) {
-			break
-		}
+	rootPath, hasGoMod := goctlutil.FindGoModPath(dir)
+	if hasGoMod {
+		return rootPath, nil
 	}
-	if !hasGoMod {
-		gopath := os.Getenv("GOPATH")
-		parent := path.Join(gopath, "src")
-		pos := strings.Index(absDir, parent)
-		if pos < 0 {
-			fmt.Printf("%s not in gomod project path, or not in GOPATH of %s directory\n", absDir, gopath)
-			tempPath = filepath.Dir(absDir)
-			rootPath = absDir[len(tempPath)+1:]
-		} else {
-			rootPath = absDir[len(parent)+1:]
-		}
+
+	gopath := os.Getenv("GOPATH")
+	parent := path.Join(gopath, "src")
+	pos := strings.Index(absDir, parent)
+	if pos < 0 {
+		fmt.Printf("%s not in go.mod project path, or not in GOPATH of %s directory\n", absDir, gopath)
+		tempPath := filepath.Dir(absDir)
+		rootPath = absDir[len(tempPath)+1:]
+	} else {
+		rootPath = absDir[len(parent)+1:]
 	}
+
 	return rootPath, nil
 }
 
@@ -77,7 +61,7 @@ func writeProperty(writer io.Writer, name, tp, tag, comment string, indent int) 
 }
 
 func getAuths(api *spec.ApiSpec) []string {
-	var authNames = collection.NewSet()
+	authNames := collection.NewSet()
 	for _, g := range api.Service.Groups {
 		if value, ok := util.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
 			authNames.Add(value)
@@ -94,5 +78,6 @@ func formatCode(code string) string {
 	if err != nil {
 		return code
 	}
+
 	return string(ret)
 }

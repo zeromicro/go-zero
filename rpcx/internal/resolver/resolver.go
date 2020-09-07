@@ -1,17 +1,22 @@
 package resolver
 
-import "google.golang.org/grpc/resolver"
+import (
+	"fmt"
+
+	"google.golang.org/grpc/resolver"
+)
 
 const (
-	DirectScheme = "direct"
-	DiscovScheme = "discov"
-	EndpointSep  = ','
-	subsetSize   = 32
+	DirectScheme    = "direct"
+	DiscovScheme    = "discov"
+	EndpointSepChar = ','
+	subsetSize      = 32
 )
 
 var (
-	dirBuilder directBuilder
-	disBuilder discovBuilder
+	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
+	dirBuilder  directBuilder
+	disBuilder  discovBuilder
 )
 
 func RegisterResolver() {

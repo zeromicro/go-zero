@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 func genVars(table Table, withCache bool) (string, error) {
@@ -14,13 +14,13 @@ func genVars(table Table, withCache bool) (string, error) {
 		keys = append(keys, v.VarExpression)
 	}
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("var").
+	output, err := util.With("var").
 		Parse(template.Vars).
 		GoFmt(true).
 		Execute(map[string]interface{}{
 			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
 			"upperStartCamelObject": camel,
-			"cacheKeys":             strings.Join(keys, "\r\n"),
+			"cacheKeys":             strings.Join(keys, "\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,
 			"originalPrimaryKey":    table.PrimaryKey.Name.Source(),
 			"withCache":             withCache,

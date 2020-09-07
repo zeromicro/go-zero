@@ -20,19 +20,22 @@ import (
 )
 
 type {{.logic}} struct {
-	ctx context.Context
 	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
 	return {{.logic}}{
-		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
 	}
-	// TODO need set model here from svc
 }
 
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
+	// todo: add your logic here and delete this line
+
 	{{.returnString}}
 }
 `
@@ -54,6 +57,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if !ok {
 		return fmt.Errorf("missing handler annotation for %q", route.Path)
 	}
+
 	handler = strings.TrimSuffix(handler, "handler")
 	handler = strings.TrimSuffix(handler, "Handler")
 	filename := strings.ToLower(handler)
@@ -62,6 +66,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if err != nil {
 		return err
 	}
+
 	if !created {
 		return nil
 	}
@@ -71,14 +76,15 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	if err != nil {
 		return err
 	}
-	imports := genLogicImports(route, parentPkg)
 
-	responseString := ""
-	returnString := ""
-	requestString := ""
+	imports := genLogicImports(route, parentPkg)
+	var responseString string
+	var returnString string
+	var requestString string
 	if len(route.ResponseType.Name) > 0 {
-		responseString = "(*types." + strings.Title(route.ResponseType.Name) + ", error)"
-		returnString = "return nil, nil"
+		resp := strings.Title(route.ResponseType.Name)
+		responseString = "(*types." + resp + ", error)"
+		returnString = fmt.Sprintf("return &types.%s{}, nil", resp)
 	} else {
 		responseString = "error"
 		returnString = "return nil"
@@ -98,8 +104,9 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 		"request":      requestString,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err
@@ -120,12 +127,11 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`)
-	imports = append(imports, "\n")
-	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
-	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, typesDir)))
-	}
+	imports = append(imports, `"context"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
+	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, typesDir)))
+	}
+	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
 	return strings.Join(imports, "\n\t")
 }

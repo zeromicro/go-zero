@@ -12,7 +12,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/templatex"
 )
 
 const (
@@ -82,7 +81,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		}
 	}
 	// generate error file
-	filename := filepath.Join(dirAbs, "error.go")
+	filename := filepath.Join(dirAbs, "vars.go")
 	if !util.FileExists(filename) {
 		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
 		if err != nil {
@@ -119,7 +118,7 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
-	t := templatex.With("model").
+	t := util.With("model").
 		Parse(template.Model).
 		GoFmt(true)
 
@@ -127,7 +126,12 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	if err != nil {
 		return "", err
 	}
-	importsCode := genImports(withCache)
+
+	importsCode, err := genImports(withCache, in.ContainsTime())
+	if err != nil {
+		return "", err
+	}
+
 	var table Table
 	table.Table = in
 	table.CacheKey = m
@@ -136,48 +140,57 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	if err != nil {
 		return "", err
 	}
+
 	typesCode, err := genTypes(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	newCode, err := genNew(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	insertCode, err := genInsert(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	var findCode = make([]string, 0)
 	findOneCode, err := genFindOne(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	findOneByFieldCode, err := genFineOneByField(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	findCode = append(findCode, findOneCode, findOneByFieldCode)
 	updateCode, err := genUpdate(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	deleteCode, err := genDelete(table, withCache)
 	if err != nil {
 		return "", err
 	}
+
 	output, err := t.Execute(map[string]interface{}{
 		"imports": importsCode,
 		"vars":    varsCode,
 		"types":   typesCode,
 		"new":     newCode,
 		"insert":  insertCode,
-		"find":    strings.Join(findCode, "\r\n"),
+		"find":    strings.Join(findCode, "\n"),
 		"update":  updateCode,
 		"delete":  deleteCode,
 	})
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }

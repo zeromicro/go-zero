@@ -1,7 +1,7 @@
 package clickhouse
 
 import (
-	_ "github.com/kshvakov/clickhouse"
+	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 

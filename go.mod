@@ -1,13 +1,15 @@
 module github.com/tal-tech/go-zero
 
-go 1.14
+go 1.13
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.4.3
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/alicebob/gopher-json v0.0.0-20180125190556-5a6b3ba71ee6 // indirect
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/dchest/siphash v1.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dsymonds/gotoc v0.0.0-20160928043926-5aebcfc91819
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/frankban/quicktest v1.7.2 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
@@ -28,7 +30,6 @@ require (
 	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
-	github.com/kshvakov/clickhouse v1.3.11
 	github.com/lib/pq v1.3.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-colorable v0.1.6 // indirect

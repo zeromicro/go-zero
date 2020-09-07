@@ -142,7 +142,7 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 	}
 	defer file.Close()
 
-	t, e := template.New("api").Funcs(funcsMap).Parse(apiTemplate)
+	t, e := template.New("api").Funcs(FuncsMap).Parse(apiTemplate)
 	if e != nil {
 		return e
 	}
