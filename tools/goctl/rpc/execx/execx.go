@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 func Run(arg string) (string, error) {
@@ -32,5 +34,9 @@ func Run(arg string) (string, error) {
 		return "", err
 	}
 
-	return dtsout.String(), nil
+	dtsOutRes := strings.TrimSpace(dtsout.String())
+	if dtsOutRes == os.DevNull {
+		dtsOutRes = ""
+	}
+	return dtsOutRes, nil
 }
