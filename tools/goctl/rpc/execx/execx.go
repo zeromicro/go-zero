@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-func Run(arg string) (string, error) {
+func Run(arg string, dir string) (string, error) {
 	goos := runtime.GOOS
 	var cmd *exec.Cmd
 	switch goos {
@@ -19,7 +19,9 @@ func Run(arg string) (string, error) {
 	default:
 		return "", fmt.Errorf("unexpected os: %v", goos)
 	}
-
+	if len(dir) > 0 {
+		cmd.Dir = dir
+	}
 	dtsout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 	cmd.Stdout = dtsout

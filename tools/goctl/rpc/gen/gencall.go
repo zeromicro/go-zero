@@ -169,7 +169,7 @@ func (g *defaultRpcGenerator) genCall() error {
 	// if mockgen is already installed, it will generate code of gomock for shared files
 	_, err = exec.LookPath("mockgen")
 	if mockGenInstalled {
-		execx.Run(fmt.Sprintf("go generate %s", filename))
+		execx.Run(fmt.Sprintf("go generate %s", filename), "")
 	}
 
 	return nil
