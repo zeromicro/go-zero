@@ -2,7 +2,6 @@ package project
 
 import (
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -21,14 +20,15 @@ const (
 
 type (
 	Project struct {
-		Path  string
-		Name  string
-		GoMod GoMod
+		Path    string // Project path name
+		Name    string // Project name
+		Package string // The service related package
+		GoMod   GoMod
 	}
 
 	GoMod struct {
-		Module string
-		Path   string
+		Module string // The gomod module name
+		Path   string // The gomod related path
 	}
 )
 
@@ -54,15 +54,16 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 		goMod, module string
 		goPath        string
 		name, path    string
+		pkg           string
 	)
 
-	ret, err := execx.Run(constGoMod)
+	ret, err := execx.Run(constGoMod, projectDir)
 	if err != nil {
 		return nil, err
 	}
 	goMod = strings.TrimSpace(ret)
 
-	ret, err = execx.Run(constGoPath)
+	ret, err = execx.Run(constGoPath, "")
 	if err != nil {
 		return nil, err
 	}
@@ -82,10 +83,11 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 			return nil, err
 		}
 	} else {
-		pwd, err := os.Getwd()
+		pwd, err := execx.Run("pwd", projectDir)
 		if err != nil {
 			return nil, err
 		}
+		pwd = filepath.Clean(strings.TrimSpace(pwd))
 
 		if !strings.HasPrefix(pwd, src) {
 			absPath, err := filepath.Abs(projectDir)
@@ -95,6 +97,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 
 			name = filepath.Clean(filepath.Base(absPath))
 			path = projectDir
+			pkg = name
 		} else {
 			r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
 			name = filepath.Dir(r)
@@ -102,13 +105,15 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 				name = r
 			}
 			path = filepath.Join(src, name)
+			pkg = r
 		}
 		module = name
 	}
 
 	return &Project{
-		Name: name,
-		Path: path,
+		Name:    name,
+		Path:    path,
+		Package: pkg,
 		GoMod: GoMod{
 			Module: module,
 			Path:   goMod,

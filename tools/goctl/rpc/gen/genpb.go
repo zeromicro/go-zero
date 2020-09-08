@@ -74,7 +74,7 @@ func (g *defaultRpcGenerator) genPb() error {
 func (g *defaultRpcGenerator) protocGenGo(target string) error {
 	src := filepath.Dir(g.Ctx.ProtoFileSrc)
 	sh := fmt.Sprintf(`protoc -I=%s --go_out=plugins=grpc:%s %s`, src, target, g.Ctx.ProtoFileSrc)
-	stdout, err := execx.Run(sh)
+	stdout, err := execx.Run(sh, "")
 	if err != nil {
 		return err
 	}

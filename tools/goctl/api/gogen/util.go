@@ -19,6 +19,7 @@ func getParentPackage(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if len(p.GoMod.Path) > 0 {
 		goModePath := filepath.Clean(filepath.Dir(p.GoMod.Path))
 		absPath, err := filepath.Abs(dir)
@@ -30,7 +31,7 @@ func getParentPackage(dir string) (string, error) {
 		return parent, nil
 	}
 
-	return p.GoMod.Module, nil
+	return p.Package, nil
 }
 
 func writeIndent(writer io.Writer, indent int) {
