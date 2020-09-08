@@ -3,7 +3,7 @@
 ## goctl用途
 * 定义api请求
 * 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 晓程序)，dart(flutter)
-* 生成MySQL CURD 详情见[goctl model模块](https://github.com/tal-tech/go-zero/tools/goctl/model)
+* 生成MySQL CURD 详情见[goctl model模块](model/sql)
 ## goctl使用说明
 #### goctl参数说明
 
