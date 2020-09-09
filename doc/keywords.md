@@ -22,7 +22,8 @@ fmt.Println(replacer.Replace("日本的首都是东京"))
 ```
 
 可以得到：
-```
+
+```Plain Text
 东京是日本的首都
 ```
 
@@ -46,7 +47,7 @@ fmt.Println(keywords)
 
 可以得到：
 
-```
+```Plain Text
 [苍井空 日本AV女优 AV演员色情 AV AV演员]
 ```
 
@@ -70,7 +71,7 @@ fmt.Println(found)
 
 可以得到：
 
-```
+```Plain Text
 日本????兼电视、电影演员。?????女优是xx出道, ??????们最精彩的表演是??????表演
 [苍井空 日本AV女优 AV演员色情 AV AV演员]
 true
@@ -83,4 +84,3 @@ true
 | Sentences | Keywords | Regex    | go-zero |
 | --------- | -------- | -------- | ------- |
 | 10000     | 10000    | 16min10s | 27.2ms  |
-

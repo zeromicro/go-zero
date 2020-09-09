@@ -1,6 +1,6 @@
-[English](readme-en.md) | 简体中文
-
 # go-zero
+
+[English](readme-en.md) | 简体中文
 
 [![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
 [![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
@@ -113,11 +113,11 @@ go get -u github.com/tal-tech/go-zero
    type Request struct {
      Name string `path:"name,options=you|me"` // 框架自动验证请求参数是否合法
    }
-   
+
    type Response struct {
      Message string `json:"message"`
    }
-   
+
    service greet-api {
      @server(
        handler: GreetHandler
@@ -140,7 +140,7 @@ go get -u github.com/tal-tech/go-zero
 
    生成的文件结构如下：
 
-   ```
+   ```Plain Text
    ├── greet
    │   ├── etc
    │   │   └── greet-api.yaml        // 配置文件
@@ -159,32 +159,33 @@ go get -u github.com/tal-tech/go-zero
    │           └── types.go          // 请求、返回等类型定义
    └── greet.api                     // api描述文件
    ```
+
    生成的代码可以直接运行：
 
-```shell
-   cd greet
-   go run greet.go -f etc/greet-api.yaml
-```
+    ```shell
+      cd greet
+      go run greet.go -f etc/greet-api.yaml
+    ```
 
-默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
+    默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
 
-```shell
-curl -i http://localhost:8888/greet/from/you
-```
+    ```shell
+    curl -i http://localhost:8888/greet/from/you
+    ```
 
-返回如下：
+    返回如下：
 
-```http
-HTTP/1.1 200 OK
-Date: Sun, 30 Aug 2020 15:32:35 GMT
-Content-Length: 0
-```
+    ```http
+    HTTP/1.1 200 OK
+    Date: Sun, 30 Aug 2020 15:32:35 GMT
+    Content-Length: 0
+    ```
 
-编写业务代码：
+    编写业务代码：
 
-* 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
-   * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
-   
+    * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+
 4. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
 
    ```shell

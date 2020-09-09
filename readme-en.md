@@ -1,6 +1,6 @@
-English | [简体中文](readme.md)
-
 # go-zero
+
+English | [简体中文](readme.md)
 
 [![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
 [![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
@@ -8,7 +8,7 @@ English | [简体中文](readme.md)
 [![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 0. what is go-zero?
+## 0. what is go-zero
 
 go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
@@ -99,7 +99,7 @@ go get -u github.com/tal-tech/go-zero
 
 1. install goctl
 
-   `goctl`can be read as `go control`. `goctl means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
+   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
 
    ```shell
    GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
@@ -113,11 +113,11 @@ go get -u github.com/tal-tech/go-zero
    type Request struct {
      Name string `path:"name,options=you|me"` // parameters are auto validated
    }
-   
+
    type Response struct {
      Message string `json:"message"`
    }
-   
+
    service greet-api {
      @server(
        handler: GreetHandler
@@ -140,7 +140,7 @@ go get -u github.com/tal-tech/go-zero
 
    the generated files look like:
 
-   ```
+   ```Plain Text
    ├── greet
    │   ├── etc
    │   │   └── greet-api.yaml        // configuration file
@@ -159,6 +159,7 @@ go get -u github.com/tal-tech/go-zero
    │           └── types.go          // request/response defined here
    └── greet.api                     // api description file
    ```
+
    the generated code can be run directly:
 
    ```shell
@@ -184,8 +185,9 @@ go get -u github.com/tal-tech/go-zero
 
 4. Write the business logic code
 
-* the dependencies can be passed into the logic within servicecontext.go, like mysql, reds etc.
-* add the logic code in logic package according to .api file
+    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds etc.
+    * add the logic code in logic package according to .api file
+
 5. Generate code like Java, TypeScript, Dart, JavaScript etc. just from the api file
 
    ```shell
