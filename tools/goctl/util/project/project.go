@@ -2,6 +2,7 @@ package project
 
 import (
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -62,6 +63,9 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 		return nil, err
 	}
 	goMod = strings.TrimSpace(ret)
+	if goMod == os.DevNull {
+		goMod = ""
+	}
 
 	ret, err = execx.Run(constGoPath, "")
 	if err != nil {
