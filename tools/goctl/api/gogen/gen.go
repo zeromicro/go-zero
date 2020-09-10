@@ -36,6 +36,10 @@ func GoCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
+	return DoGenProject(apiFile, dir)
+}
+
+func DoGenProject(apiFile, dir string) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err

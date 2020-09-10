@@ -1,12 +1,11 @@
 package new
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/urfave/cli"
 )
 
@@ -40,8 +39,8 @@ func NewService(c *cli.Context) error {
 	}
 
 	filename := name + ".api"
-	goPath := filepath.Join(location, filename)
-	fp, err := os.Create(goPath)
+	apiFilePath := filepath.Join(location, filename)
+	fp, err := os.Create(apiFilePath)
 	if err != nil {
 		return err
 	}
@@ -54,6 +53,6 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	_, err = execx.Run(fmt.Sprintf("goctl api go -api %s -dir .", filename), location)
+	err = gogen.DoGenProject(apiFilePath, location)
 	return err
 }
