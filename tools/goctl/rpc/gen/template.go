@@ -1,26 +1,28 @@
 package gen
 
 import (
+	"path/filepath"
+	"strings"
+
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 const rpcTemplateText = `syntax = "proto3";
 
-package remote;
+package {{.package}};
 
 message Request {
-  string username = 1;
-  string password = 2;
+  string ping = 1;
 }
 
 message Response {
-  string name = 1;
-  string gender = 2;
+  string pong = 1;
 }
 
-service User {
-  rpc Login(Request) returns(Response);
+service {{.serviceName}} {
+  rpc Ping(Request) returns(Response);
 }
 `
 
@@ -36,8 +38,15 @@ func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 	}
 }
 
-func (r *rpcTemplate) MustGenerate() {
-	err := util.With("t").Parse(rpcTemplateText).SaveTo(nil, r.out, false)
+func (r *rpcTemplate) MustGenerate(showState bool) {
+	protoFilename := filepath.Base(r.out)
+	serviceName := stringx.From(strings.TrimSuffix(protoFilename, filepath.Ext(protoFilename)))
+	err := util.With("t").Parse(rpcTemplateText).SaveTo(map[string]string{
+		"package":     serviceName.UnTitle(),
+		"serviceName": serviceName.Title(),
+	}, r.out, false)
 	r.Must(err)
-	r.Success("Done.")
+	if showState {
+		r.Success("Done.")
+	}
 }

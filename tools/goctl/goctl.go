@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -19,7 +21,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
-	"github.com/urfave/cli"
 )
 
 var (
@@ -194,6 +195,17 @@ var (
 			Usage: "generate rpc code",
 			Subcommands: []cli.Command{
 				{
+					Name:  "new",
+					Usage: `generate rpc demo service`,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcNew,
+				},
+				{
 					Name:  "template",
 					Usage: `generate proto template`,
 					Flags: []cli.Flag{
@@ -223,10 +235,6 @@ var (
 						cli.StringFlag{
 							Name:  "service, srv",
 							Usage: `the name of rpc service. [option]`,
-						},
-						cli.StringFlag{
-							Name:  "shared",
-							Usage: `the dir of the shared file,default path is "${pwd}/shared. [option]`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
