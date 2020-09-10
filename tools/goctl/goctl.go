@@ -12,6 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/javagen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
@@ -36,6 +37,11 @@ var (
 			},
 			Action: apigen.ApiCommand,
 			Subcommands: []cli.Command{
+				{
+					Name:   "new",
+					Usage:  "fast create api service",
+					Action: new.NewService,
+				},
 				{
 					Name:  "format",
 					Usage: "format api files",
