@@ -62,6 +62,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	goMod = strings.TrimSpace(ret)
 	if goMod == os.DevNull {
 		goMod = ""
