@@ -1,7 +1,6 @@
 package new
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,13 +28,10 @@ service {{.name}}-api {
 `
 
 func NewService(c *cli.Context) error {
-	var args = os.Args
-	if len(args) <= 2 {
-		return errors.New("invalid args, eg: goctl api new [greet]")
-	}
+	args := c.Args()
 	name := "greet"
-	if args[len(args)-1] != "new" {
-		name = args[len(args)-1]
+	if len(args) > 0 {
+		name = args.First()
 	}
 	location := name
 	err := os.MkdirAll(location, os.ModePerm)
