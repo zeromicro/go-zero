@@ -14,7 +14,7 @@ func genFineOneByField(table Table, withCache bool) (string, error) {
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, field := range table.Fields {
-		if field.IsPrimaryKey || !field.IsKey {
+		if field.IsPrimaryKey || !field.IsUniqueKey {
 			continue
 		}
 		camelFieldName := field.Name.ToCamel()
