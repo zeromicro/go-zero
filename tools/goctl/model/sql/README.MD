@@ -24,8 +24,6 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="table1,table2"  -dir="./model"
     ```
 
-> 详情用法请参考[example](https://github.com/tal-tech/go-zero/tree/master/tools/goctl/model/sql/example)
-
 * 生成代码示例
   
   ``` go

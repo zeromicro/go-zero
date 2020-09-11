@@ -9,7 +9,12 @@
 
 ## goctl使用说明
 
-### goctl参数说明
+### 快速生成服务
+
+* api: goctl api new xxxx
+* rpc: goctl rpc new xxxx 
+
+#### goctl参数说明
 
   `goctl api [go/java/ts] [-api user/user.api] [-dir ./src]`
 
@@ -29,7 +34,7 @@
 
 #### API 语法说明
 
-```Plain Text
+``` golang
 info(
     title: doc title
     desc: >
@@ -125,6 +130,7 @@ service user-api {
     )
     head /api/ping()
 }
+
 ```
 
 1. info部分：描述了api基本信息，比如Auth，api是哪个用途。

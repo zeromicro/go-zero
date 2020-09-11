@@ -29,22 +29,21 @@ func genCacheKeys(table parser.Table) (map[string]Key, error) {
 	camelTableName := table.Name.ToCamel()
 	lowerStartCamelTableName := stringx.From(camelTableName).UnTitle()
 	for _, field := range fields {
-		if !field.IsKey {
-			continue
-		}
-		camelFieldName := field.Name.ToCamel()
-		lowerStartCamelFieldName := stringx.From(camelFieldName).UnTitle()
-		left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
-		right := fmt.Sprintf("cache#%s#%s#", camelTableName, lowerStartCamelFieldName)
-		variable := fmt.Sprintf("%s%sKey", lowerStartCamelTableName, camelFieldName)
-		m[field.Name.Source()] = Key{
-			VarExpression:     fmt.Sprintf(`%s = "%s"`, left, right),
-			Left:              left,
-			Right:             right,
-			Variable:          variable,
-			KeyExpression:     fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,%s)`, variable, "%s", "%v", left, lowerStartCamelFieldName),
-			DataKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s",%s, data.%s)`, variable, "%s", "%v", left, camelFieldName),
-			RespKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,resp.%s)`, variable, "%s", "%v", left, camelFieldName),
+		if field.IsUniqueKey || field.IsPrimaryKey {
+			camelFieldName := field.Name.ToCamel()
+			lowerStartCamelFieldName := stringx.From(camelFieldName).UnTitle()
+			left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
+			right := fmt.Sprintf("cache#%s#%s#", camelTableName, lowerStartCamelFieldName)
+			variable := fmt.Sprintf("%s%sKey", lowerStartCamelTableName, camelFieldName)
+			m[field.Name.Source()] = Key{
+				VarExpression:     fmt.Sprintf(`%s = "%s"`, left, right),
+				Left:              left,
+				Right:             right,
+				Variable:          variable,
+				KeyExpression:     fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,%s)`, variable, "%s", "%v", left, lowerStartCamelFieldName),
+				DataKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s",%s, data.%s)`, variable, "%s", "%v", left, camelFieldName),
+				RespKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,resp.%s)`, variable, "%s", "%v", left, camelFieldName),
+			}
 		}
 	}
 	return m, nil

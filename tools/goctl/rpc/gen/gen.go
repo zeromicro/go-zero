@@ -42,6 +42,11 @@ func (g *defaultRpcGenerator) Generate() (err error) {
 		return
 	}
 
+	err = g.initGoMod()
+	if err != nil {
+		return
+	}
+
 	err = g.genEtc()
 	if err != nil {
 		return
@@ -82,5 +87,5 @@ func (g *defaultRpcGenerator) Generate() (err error) {
 		return
 	}
 
-	return nil
+	return
 }

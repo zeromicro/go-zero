@@ -36,6 +36,7 @@ type (
 		DataType     string
 		IsKey        bool
 		IsPrimaryKey bool
+		IsUniqueKey  bool
 		Comment      string
 	}
 
@@ -124,6 +125,7 @@ func Parse(ddl string) (*Table, error) {
 		if ok {
 			field.IsKey = true
 			field.IsPrimaryKey = key == primary
+			field.IsUniqueKey = key == unique
 			if field.IsPrimaryKey {
 				primaryKey.Field = field
 				if column.Type.Autoincrement {
