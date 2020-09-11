@@ -7,6 +7,11 @@
 *  生成MongoDB CURD+Cache
 
 ## goctl使用说明
+
+#### 快速生成服务
+* api: goctl api new xxxx
+* rpc: goctl rpc new xxxx 
+
 #### goctl参数说明
 
   `goctl api [go/java/ts] [-api user/user.api] [-dir ./src]`
