@@ -1,8 +1,8 @@
-English | [简体中文](bookstore.md)
-
 # Rapid development of microservices - multiple RPCs
 
-## 0. Why building microservices are so difficult?
+English | [简体中文](bookstore.md)
+
+## 0. Why building microservices are so difficult
 
 To build a well working microservice, we need lots of knowledges from different aspects.
 
@@ -25,7 +25,7 @@ As well, we always adhere to the idea that **prefer tools over conventions and d
 
 Let’s take the shorturl microservice as a quick example to demonstrate how to quickly create microservices by using [go-zero](https://github.com/tal-tech/go-zero). After finishing this tutorial, you’ll find that it’s so easy to write microservices!
 
-## 1. What is a bookstore service?
+## 1. What is a bookstore service
 
 For simplicity, the bookstore service only contains two functionalities, adding books and quering prices.
 
@@ -71,7 +71,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
 * use goctl to generate `api/bookstore.api`
 
-  ```
+  ```Plain Text
   goctl api -o bookstore.api
   ```
 
@@ -128,7 +128,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   api
   ├── bookstore.api                  // api definition
   ├── bookstore.go                   // main entrance
@@ -188,13 +188,13 @@ And now, let’s walk through the complete flow of quickly create a microservice
 * under directory `rpc/add` create `add.proto` file
 
   ```shell
-goctl rpc template -o add.proto
+  goctl rpc template -o add.proto
   ```
   
   edit the file and make the code looks like:
 
   ```protobuf
-syntax = "proto3";
+  syntax = "proto3";
   
   package add;
   
@@ -220,7 +220,7 @@ syntax = "proto3";
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   rpc/add
   ├── add.go                      // rpc main entrance
   ├── add.proto                   // rpc definition
@@ -242,7 +242,6 @@ syntax = "proto3";
   └── pb
       └── add.pb.go
   ```
-  
 
 just run it, looks like:
 
@@ -258,13 +257,13 @@ you can change the listening port in file `etc/add.yaml`.
 * under directory `rpc/check` create `check.proto` file
 
   ```shell
-goctl rpc template -o check.proto
+  goctl rpc template -o check.proto
   ```
   
   edit the file and make the code looks like:
 
   ```protobuf
-syntax = "proto3";
+  syntax = "proto3";
   
   package check;
   
@@ -290,7 +289,7 @@ syntax = "proto3";
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   rpc/check
   ├── check.go                    // rpc main entrance
   ├── check.proto                 // rpc definition
@@ -315,7 +314,7 @@ syntax = "proto3";
 
   you can change the listening port in `etc/check.yaml`.
 
-  we need to change the port in `etc/check.yaml` to `8081`, because `8080 ` is used by `add` service.
+  we need to change the port in `etc/check.yaml` to `8081`, because `8080` is used by `add` service.
 
   just run it, looks like:
   
@@ -444,7 +443,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
   source book.sql;
   ```
 
-* under the directory `rpc/model execute the following command to genrate CRUD+cache code, `-c` means using `redis cache`
+* under the directory `rpc/model` execute the following command to genrate CRUD+cache code, `-c` means using `redis cache`
 
   ```shell
   goctl model mysql ddl -c -src book.sql -dir .
@@ -454,7 +453,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   rpc/model
   ├── bookstore.sql
   ├── bookstoremodel.go     // CRUD+cache code

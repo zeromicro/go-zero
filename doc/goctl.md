@@ -1,31 +1,40 @@
-# goctl使用说明
+# goctl使用
 
 ## goctl用途
+
 * 定义api请求
 * 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 晓程序)，dart(flutter)
 * 生成MySQL CURD+Cache
-*  生成MongoDB CURD+Cache
+* 生成MongoDB CURD+Cache
 
 ## goctl使用说明
 
-#### 快速生成服务
+### 快速生成服务
+
 * api: goctl api new xxxx
-* rpc: goctl rpc new xxxx 
+* rpc: goctl rpc new xxxx
 
 #### goctl参数说明
 
   `goctl api [go/java/ts] [-api user/user.api] [-dir ./src]`
 
   > api 后面接生成的语言，现支持go/java/typescript
-
+  >
   > -api 自定义api所在路径
-
+  >
   > -dir 自定义生成目录
+
+#### 保持goctl总是最新版
+
+  第一次运行会在~/.goctl里增加下面两行：
+
+  ```Plain Text
+  url = http://47.97.184.41:7777/
+  ```
 
 #### API 语法说明
 
 ``` golang
-
 info(
     title: doc title
     desc: >
@@ -132,6 +141,7 @@ service user-api {
    请求getRequest里面的属性赋值，getResponse为返回的结构体，这两个类型都定义在2描述的类型中。
 
 #### api vscode插件
+
 开发者可以在vscode中搜索goctl的api插件，它提供了api语法高亮，语法检测和格式化相关功能。
 
  1. 支持语法高亮和类型导航。
@@ -143,7 +153,7 @@ service user-api {
   命令如下：  
   `goctl api go -api user/user.api -dir user`
 
-  ```
+  ```Plain Text
 
 	.
     ├── internal
@@ -173,17 +183,20 @@ service user-api {
     └── user.go
 
   ```
+
   生成的代码可以直接跑，有几个地方需要改：
 
-  * 在`servicecontext.go`里面增加需要传递给logic的一些资源，比如mysql, redis，rpc等
-  * 在定义的get/post/put/delete等请求的handler和logic里增加处理业务逻辑的代码
+* 在`servicecontext.go`里面增加需要传递给logic的一些资源，比如mysql, redis，rpc等
+* 在定义的get/post/put/delete等请求的handler和logic里增加处理业务逻辑的代码
 
 #### 根据定义好的api文件生成java代码
+
 ```shell
 goctl api java -api user/user.api -dir ./src
 ```
 
 #### 根据定义好的api文件生成typescript代码
+
 ```shell
 goctl api ts -api user/user.api -dir ./src -webapi ***
 
@@ -191,6 +204,7 @@ ts需要指定webapi所在目录
 ```
 
 #### 根据定义好的api文件生成Dart代码
+
 ```shell
 goctl api dart -api user/user.api -dir ./src
 ```
@@ -198,32 +212,37 @@ goctl api dart -api user/user.api -dir ./src
 ## 根据mysql ddl或者datasource生成model文件
 
 ```shell script
-$ goctl model mysql -src={filename} -dir={dir} -cache={true|false}
+goctl model mysql -src={filename} -dir={dir} -cache={true|false}
 ```
+
 详情参考[model文档](https://github.com/tal-tech/go-zero/blob/master/tools/goctl/model/sql/README.MD)
 
 ## 根据定义好的简单go文件生成mongo代码文件(仅限golang使用)  
+
 ```shell
 goctl model mongo -src {{yourDir}}/xiao/service/xhb/user/model/usermodel.go -cache yes
-
--src需要提供简单的usermodel.go文件，里面只需要提供一个结构体即可
--cache 控制是否需要缓存 yes=需要 no=不需要
-src 示例代码如下
 ```
+
+* src需要提供简单的usermodel.go文件，里面只需要提供一个结构体即可
+* cache 控制是否需要缓存 yes=需要 no=不需要
+
+src 示例代码如下
+
   ```go
-package model
-    
-type User struct {
-	Name string `o:"find,get,set" c:"姓名"`
-	Age int `o:"find,get,set" c:"年纪"`
-	School string `c:"学校"`
-}
+    package model
+
+    type User struct {
+      Name string `o:"find,get,set" c:"姓名"`
+      Age int `o:"find,get,set" c:"年纪"`
+      School string `c:"学校"`
+    }
   ```
-     结构体中不需要提供Id,CreateTime,UpdateTime三个字段，会自动生成   
-     结构体中每个tag有两个可选标签 c 和 o  
-     c是改字段的注释  
-     o是改字段需要生产的操作函数 可以取得get,find,set 分别表示生成返回单个对象的查询方法，返回多个对象的查询方法，设置该字段方法  
-     生成的目标文件会覆盖该简单go文件  
+
+结构体中不需要提供Id,CreateTime,UpdateTime三个字段，会自动生成
+结构体中每个tag有两个可选标签 c 和 o  
+c 是改字段的注释  
+o 是改字段需要生产的操作函数 可以取得get,find,set 分别表示生成返回单个对象的查询方法，返回多个对象的查询方法，设置该字段方法  
+生成的目标文件会覆盖该简单go文件  
 
 ## goctl rpc生成（业务剥离中，暂未开放）
 
@@ -232,15 +251,15 @@ type User struct {
 
   参数说明：
 
-  - ${proto}: proto文件
-  - ${serviceName}: rpc服务名称
-  - ${projectName}: 所属项目，如xjy,xhb,crm,hera，具体查看help，主要为了根据不同项目服务往redis注册key，可选
-  - ${directory}: 输出目录
-  - ${shared}: shared文件生成目录，可选，默认为${pwd}/shared
+* ${proto}: proto文件
+* ${serviceName}: rpc服务名称
+* ${projectName}: 所属项目，如xjy,xhb,crm,hera，具体查看help，主要为了根据不同项目服务往redis注册key，可选
+* ${directory}: 输出目录
+* ${shared}: shared文件生成目录，可选，默认为${pwd}/shared
 
-  生成目录结构示例：
+生成目录结构示例：
 
-  ``` go
+  ```Plain Text
 	.
     ├── shared [示例目录，可自己指定，强制覆盖更新]
     │   └── contentservicemodel.go
@@ -276,4 +295,5 @@ type User struct {
     │   └── test.go [强制覆盖更新]
     └── test.proto
   ```
-  - 注意 ：目前rpc目录生成的proto文件暂不支持import外部proto文件   
+
+注意 ：目前rpc目录生成的proto文件暂不支持import外部proto文件
