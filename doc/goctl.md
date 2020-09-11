@@ -12,7 +12,7 @@
 ### 快速生成服务
 
 * api: goctl api new xxxx
-* rpc: goctl rpc new xxxx 
+* rpc: goctl rpc new xxxx
 
 #### goctl参数说明
 

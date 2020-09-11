@@ -29,6 +29,7 @@ v, err := c.Take("key", func() (interface{}, error) {
 ```
 
 cache 实现的建的功能包括
+
 * 缓存自动失效，可以指定过期时间
 * 缓存大小限制，可以指定缓存个数
 * 缓存增删改
@@ -38,6 +39,7 @@ cache 实现的建的功能包括
 
 实现原理：
 Cache 自动失效，是采用 TimingWheel(https://github.com/tal-tech/go-zero/blob/master/core/collection/timingwheel.go) 进行管理的
+
 ``` go
 timingWheel, err := NewTimingWheel(time.Second, slots, func(k, v interface{}) {
 		key, ok := k.(string)
@@ -50,6 +52,7 @@ timingWheel, err := NewTimingWheel(time.Second, slots, func(k, v interface{}) {
 ```
 
 Cache 大小限制，是采用 LRU 淘汰策略，在新增缓存的时候会去检查是否已经超出过限制，具体代码在 keyLru 中实现
+
 ``` go
 func (klru *keyLru) add(key string) {
 	if elem, ok := klru.elements[key]; ok {
@@ -71,6 +74,7 @@ func (klru *keyLru) add(key string) {
 Cache 的命中率统计，是在代码中实现 cacheStat,在缓存命中丢失的时候自动统计，并且会定时打印使用的命中率, qps 等状态.
 
 打印的具体效果如下
+
 ```go
 cache(proc) - qpm: 2, hit_ratio: 50.0%, elements: 0, hit: 1, miss: 1
 ```
