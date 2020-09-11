@@ -22,17 +22,10 @@
 
   > -dir 自定义生成目录
 
-#### 保持goctl总是最新版
-
-  第一次运行会在~/.goctl里增加下面两行：
-
-  ```
-  url = http://47.97.184.41:7777/
-  ```
-
 #### API 语法说明
 
-```
+``` golang
+
 info(
     title: doc title
     desc: >
@@ -128,7 +121,9 @@ service user-api {
     )
     head /api/ping()
 }
+
 ```
+
 1. info部分：描述了api基本信息，比如Auth，api是哪个用途。
 2. type部分：type类型声明和golang语法兼容。
 3. service部分：service代表一组服务，一个服务可以由多组名称相同的service组成，可以针对每一组service配置jwt和auth认证，另外通过folder属性可以指定service生成所在子目录。

@@ -131,6 +131,7 @@ Content-Length: 0
 
 编写业务代码：
 
+* api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
 * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
    * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
    
