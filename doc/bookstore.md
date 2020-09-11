@@ -1,8 +1,8 @@
-[English](bookstore-en.md) | 简体中文
-
 # 快速构建微服务-多RPC版
 
-## 0. 为什么说做好微服务很难？
+[English](bookstore-en.md) | 简体中文
+
+## 0. 为什么说做好微服务很难
 
 要想做好微服务，我们需要理解和掌握的知识点非常多，从几个维度上来说：
 
@@ -71,7 +71,7 @@
 
 * 在`bookstore/api`目录下通过goctl生成`api/bookstore.api`：
 
-  ```
+  ```bash
   goctl api -o bookstore.api
   ```
 
@@ -128,7 +128,7 @@
 
   生成的文件结构如下：
 
-  ```
+  ```Plain Text
   api
   ├── bookstore.api                  // api定义
   ├── bookstore.go                   // main入口定义
@@ -222,7 +222,7 @@
 
   文件结构如下：
 
-  ```
+  ```Plain Text
   rpc/add
   ├── add.go                      // rpc服务main函数
   ├── add.proto                   // rpc接口定义
@@ -244,7 +244,6 @@
   └── pb
       └── add.pb.go
   ```
-  
 
 直接可以运行，如下：
 
@@ -294,7 +293,7 @@
 
   文件结构如下：
 
-  ```
+  ```Plain Text
   rpc/check
   ├── check.go                    // rpc服务main函数
   ├── check.proto                 // rpc接口定义
@@ -454,7 +453,7 @@
 
   生成后的文件结构如下：
 
-  ```
+  ```Plain Text
   rpc/model
   ├── bookstore.sql
   ├── bookstoremodel.go     // CRUD+cache代码
@@ -615,4 +614,3 @@ go-zero不只是一个框架，更是一个建立在框架+工具基础上的，
 通过go-zero+goctl生成的代码，包含了微服务治理的各种组件，包括：并发控制、自适应熔断、自适应降载、自动缓存控制等，可以轻松部署以承载巨大访问量。
 
 有任何好的提升工程效率的想法，随时欢迎交流！👏
-

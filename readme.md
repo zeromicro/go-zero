@@ -1,6 +1,6 @@
-[English](readme-en.md) | 简体中文
-
 # go-zero
+
+[English](readme-en.md) | 简体中文
 
 [![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
 [![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
@@ -108,40 +108,42 @@ go get -u github.com/tal-tech/go-zero
    确保goctl可执行
 
 2. 快速生成api服务
-   
-```shell
-   goctl api new greet
-   cd greet
-   go run greet.go -f etc/greet-api.yaml
-```
-
-默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
-
-```shell
-curl -i http://localhost:8888/greet/from/you
-```
-
-返回如下：
-
-```http
-HTTP/1.1 200 OK
-Date: Sun, 30 Aug 2020 15:32:35 GMT
-Content-Length: 0
-```
-
-编写业务代码：
-
-* api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
-* 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
-   * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
-   
-3. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
 
    ```shell
-   goctl api java -api greet.api -dir greet
-   goctl api dart -api greet.api -dir greet
-   ...
+      goctl api new greet
+      cd greet
+      go run greet.go -f etc/greet-api.yaml
    ```
+
+      默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
+
+   ```shell
+      curl -i http://localhost:8888/greet/from/you
+   ```
+
+      返回如下：
+
+   ```http
+      HTTP/1.1 200 OK
+      Date: Sun, 30 Aug 2020 15:32:35 GMT
+      Content-Length: 0
+      ```
+
+      编写业务代码：
+
+      * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+      * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+      * api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
+      * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+      * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+
+3. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
+
+      ```shell
+      goctl api java -api greet.api -dir greet
+      goctl api dart -api greet.api -dir greet
+      ...
+      ```
 
 ## 7. Benchmark
 
