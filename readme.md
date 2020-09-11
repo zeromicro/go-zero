@@ -206,6 +206,7 @@ Content-Length: 0
 * [goctl使用帮助](doc/goctl.md)
 * [通过MapReduce降低服务响应时间](doc/mapreduce.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
+* [进程内缓存使用方法](doc/collection.md)
 
 ## 9. 微信交流群
 
