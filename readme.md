@@ -127,7 +127,7 @@ go get -u github.com/tal-tech/go-zero
       HTTP/1.1 200 OK
       Date: Sun, 30 Aug 2020 15:32:35 GMT
       Content-Length: 0
-      ```
+   ```
 
       编写业务代码：
 
@@ -159,6 +159,7 @@ go get -u github.com/tal-tech/go-zero
 * [通过MapReduce降低服务响应时间](doc/mapreduce.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 * [进程内缓存使用方法](doc/collection.md)
+* [基于prometheus的微服务指标监控](doc/metric.md)
 
 ## 9. 微信交流群
 
