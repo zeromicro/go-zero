@@ -124,6 +124,7 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 			}
 		}()
 		reducer(collector, writer, cancel)
+		drain(collector)
 	}()
 	go mapperDispatcher(mapper, source, collector, done.Done(), cancel, options.workers)
 
@@ -140,6 +141,7 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 func MapReduceVoid(generator GenerateFunc, mapper MapperFunc, reducer VoidReducerFunc, opts ...Option) error {
 	_, err := MapReduce(generator, mapper, func(input <-chan interface{}, writer Writer, cancel func(error)) {
 		reducer(input, cancel)
+		drain(input)
 		// We need to write a placeholder to let MapReduce to continue on reducer done,
 		// otherwise, all goroutines are waiting. The placeholder will be discarded by MapReduce.
 		writer.Write(lang.Placeholder)
