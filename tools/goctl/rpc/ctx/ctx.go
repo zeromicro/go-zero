@@ -30,13 +30,12 @@ type RpcContext struct {
 	ProtoFileSrc string
 	ProtoSource  string
 	TargetDir    string
+	IsInGoEnv    bool
 	console.Console
 }
 
 func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *RpcContext {
 	log := console.NewConsole(idea)
-	info, err := project.Prepare(targetDir, true)
-	log.Must(err)
 
 	if stringx.From(protoSrc).IsEmptyOrSpace() {
 		log.Fatalln("expected proto source, but nothing found")
@@ -62,6 +61,9 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 		log.Fatalln("service name is not found")
 	}
 
+	info, err := project.Prepare(targetDir, true)
+	log.Must(err)
+
 	return &RpcContext{
 		ProjectPath:  info.Path,
 		ProjectName:  stringx.From(info.Name),
@@ -71,6 +73,7 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 		ProtoFileSrc: srcFp,
 		ProtoSource:  filepath.Base(srcFp),
 		TargetDir:    targetDirFp,
+		IsInGoEnv:    info.IsInGoEnv,
 		Console:      log,
 	}
 }

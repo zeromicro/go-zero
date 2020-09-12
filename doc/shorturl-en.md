@@ -1,8 +1,8 @@
-English | [简体中文](shorturl.md)
-
 # Rapid development of microservices
 
-## 0. Why building microservices are so difficult?
+English | [简体中文](shorturl.md)
+
+## 0. Why building microservices are so difficult
 
 To build a well working microservice, we need lots of knowledges from different aspects.
 
@@ -25,7 +25,7 @@ As well, we always adhere to the idea that **prefer tools over conventions and d
 
 Let’s take the shorturl microservice as a quick example to demonstrate how to quickly create microservices by using [go-zero](https://github.com/tal-tech/go-zero). After finishing this tutorial, you’ll find that it’s so easy to write microservices!
 
-## 1. What is a shorturl service?
+## 1. What is a shorturl service
 
 A shorturl service is that it converts a long url into a short one, by well designed algorithms.
 
@@ -129,7 +129,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   .
   ├── api
   │   ├── etc
@@ -232,7 +232,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   rpc/transform
   ├── etc
   │   └── transform.yaml              // configuration file
@@ -375,7 +375,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
   source shorturl.sql;
   ```
 
-* under the directory `rpc/transform/model execute the following command to genrate CRUD+cache code, `-c` means using `redis cache`
+* under the directory `rpc/transform/model` execute the following command to genrate CRUD+cache code, `-c` means using `redis cache`
 
   ```shell
   goctl model mysql ddl -c -src shorturl.sql -dir .
@@ -385,7 +385,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
 
   the generated file structure looks like:
 
-  ```
+  ```Plain Text
   rpc/transform/model
   ├── shorturl.sql
   ├── shorturlmodel.go              // CRUD+cache code
@@ -533,4 +533,3 @@ We not only keep the framework simple, but also encapsulate the complexity into 
 For the generated code by goctl, lots of microservice components are included, like concurrency control, adaptive circuit breaker, adaptive load shedding, auto cache control etc. And it’s easy to deal with the busy sites.
 
 If you have any ideas that can help us to improve the productivity, tell me any time! 👏
-

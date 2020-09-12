@@ -22,7 +22,7 @@ func genDelete(table Table, withCache bool) (string, error) {
 	}
 	var containsIndexCache = false
 	for _, item := range table.Fields {
-		if item.IsKey && !item.IsPrimaryKey {
+		if item.IsUniqueKey {
 			containsIndexCache = true
 			break
 		}

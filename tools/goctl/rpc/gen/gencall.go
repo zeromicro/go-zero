@@ -113,10 +113,7 @@ func (g *defaultRpcGenerator) genCall() error {
 	}
 
 	service := file.Service[0]
-	callPath, err := filepath.Abs(service.Name.Lower())
-	if err != nil {
-		return err
-	}
+	callPath := filepath.Join(g.dirM[dirTarget], service.Name.Lower())
 
 	if err = util.MkdirIfNotExist(callPath); err != nil {
 		return err
@@ -152,7 +149,7 @@ func (g *defaultRpcGenerator) genCall() error {
 	}
 
 	mockFile := filepath.Join(callPath, fmt.Sprintf("%s_mock.go", service.Name.Lower()))
-	os.Remove(mockFile)
+	_ = os.Remove(mockFile)
 	err = util.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
 		"name":        service.Name.Lower(),
 		"head":        head,
@@ -167,9 +164,9 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 	// if mockgen is already installed, it will generate code of gomock for shared files
-	_, err = exec.LookPath("mockgen")
-	if mockGenInstalled {
-		execx.Run(fmt.Sprintf("go generate %s", filename), "")
+	// Deprecated: it will be removed
+	if mockGenInstalled && g.Ctx.IsInGoEnv {
+		_, _ = execx.Run(fmt.Sprintf("go generate %s", filename), "")
 	}
 
 	return nil

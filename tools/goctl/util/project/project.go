@@ -2,6 +2,7 @@ package project
 
 import (
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
@@ -23,7 +24,9 @@ type (
 		Path    string // Project path name
 		Name    string // Project name
 		Package string // The service related package
-		GoMod   GoMod
+		// true-> project in go path or project init with go mod,or else->false
+		IsInGoEnv bool
+		GoMod     GoMod
 	}
 
 	GoMod struct {
@@ -61,7 +64,11 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	goMod = strings.TrimSpace(ret)
+	if goMod == os.DevNull {
+		goMod = ""
+	}
 
 	ret, err = execx.Run(constGoPath, "")
 	if err != nil {
@@ -70,6 +77,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 
 	goPath = strings.TrimSpace(ret)
 	src := filepath.Join(goPath, "src")
+	var isInGoEnv = true
 	if len(goMod) > 0 {
 		path = filepath.Dir(goMod)
 		name = filepath.Base(path)
@@ -98,6 +106,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 			name = filepath.Clean(filepath.Base(absPath))
 			path = projectDir
 			pkg = name
+			isInGoEnv = false
 		} else {
 			r := strings.TrimPrefix(pwd, src+string(filepath.Separator))
 			name = filepath.Dir(r)
@@ -111,9 +120,10 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	}
 
 	return &Project{
-		Name:    name,
-		Path:    path,
-		Package: pkg,
+		Name:      name,
+		Path:      path,
+		Package:   pkg,
+		IsInGoEnv: isInGoEnv,
 		GoMod: GoMod{
 			Module: module,
 			Path:   goMod,
