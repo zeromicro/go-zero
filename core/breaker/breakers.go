@@ -60,17 +60,15 @@ func do(name string, execute func(b Breaker) error) error {
 	lock.RUnlock()
 	if ok {
 		return execute(b)
-	} else {
-		lock.Lock()
-		b, ok = breakers[name]
-		if ok {
-			lock.Unlock()
-			return execute(b)
-		} else {
-			b = NewBreaker(WithName(name))
-			breakers[name] = b
-			lock.Unlock()
-			return execute(b)
-		}
 	}
+
+	lock.Lock()
+	b, ok = breakers[name]
+	if !ok {
+		b = NewBreaker(WithName(name))
+		breakers[name] = b
+	}
+	lock.Unlock()
+
+	return execute(b)
 }

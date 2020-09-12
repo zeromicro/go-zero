@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"zero/core/discov"
+	"github.com/tal-tech/go-zero/core/discov"
 )
 
 var value = flag.String("v", "value", "the value")

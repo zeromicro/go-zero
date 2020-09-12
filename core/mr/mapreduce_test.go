@@ -9,10 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/stringx"
-	"zero/core/syncx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 var errDummy = errors.New("dummy")
@@ -377,6 +376,22 @@ func TestMapReduceVoidCancelWithRemains(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Equal(t, "anything", err.Error())
 	assert.True(t, done.True())
+}
+
+func TestMapReduceWithoutReducerWrite(t *testing.T) {
+	uids := []int{1, 2, 3}
+	res, err := MapReduce(func(source chan<- interface{}) {
+		for _, uid := range uids {
+			source <- uid
+		}
+	}, func(item interface{}, writer Writer, cancel func(error)) {
+		writer.Write(item)
+	}, func(pipe <-chan interface{}, writer Writer, cancel func(error)) {
+		drain(pipe)
+		// not calling writer.Write(...), should not panic
+	})
+	assert.Equal(t, ErrReduceNoOutput, err)
+	assert.Nil(t, res)
 }
 
 func BenchmarkMapReduce(b *testing.B) {

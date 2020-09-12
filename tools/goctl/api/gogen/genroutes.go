@@ -8,10 +8,11 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/core/collection"
-	"zero/tools/goctl/api/spec"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
@@ -42,6 +43,7 @@ var mapping = map[string]string{
 	"head":   "http.MethodHead",
 	"post":   "http.MethodPost",
 	"put":    "http.MethodPut",
+	"patch":  "http.MethodPatch",
 }
 
 type (
@@ -129,8 +131,7 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	var importSet = collection.NewSet()
-	importSet.AddStr(`"zero/rest"`)
-	importSet.AddStr(fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
 			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", folderProperty)
@@ -140,12 +141,15 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", folder, path.Join(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", folder,
+				util.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
 	sort.Strings(imports)
-	return strings.Join(imports, "\n\t")
+	projectSection := strings.Join(imports, "\n\t")
+	depSection := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl)
+	return fmt.Sprintf("%s\n\n\t%s", projectSection, depSection)
 }
 
 func getRoutes(api *spec.ApiSpec) ([]group, error) {

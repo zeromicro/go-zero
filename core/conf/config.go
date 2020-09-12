@@ -6,7 +6,7 @@ import (
 	"log"
 	"path"
 
-	"zero/core/mapping"
+	"github.com/tal-tech/go-zero/core/mapping"
 )
 
 var loaders = map[string]func([]byte, interface{}) error{

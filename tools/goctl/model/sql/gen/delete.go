@@ -1,51 +1,47 @@
 package gen
 
 import (
-	"bytes"
 	"strings"
-	"text/template"
 
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genDelete(table *InnerTable) (string, error) {
-	t, err := template.New("delete").Parse(sqltemplate.Delete)
-	if err != nil {
-		return "", nil
-	}
-	deleteBuffer := new(bytes.Buffer)
-	keys := make([]string, 0)
-	keyValues := make([]string, 0)
-	for snake, key := range table.CacheKey {
-		if snake == table.PrimaryField.SnakeCase {
-			keys = append(keys, key.Key)
+func genDelete(table Table, withCache bool) (string, error) {
+	keySet := collection.NewSet()
+	keyVariableSet := collection.NewSet()
+	for fieldName, key := range table.CacheKey {
+		if fieldName == table.PrimaryKey.Name.Source() {
+			keySet.AddStr(key.KeyExpression)
 		} else {
-			keys = append(keys, key.DataKey)
+			keySet.AddStr(key.DataKeyExpression)
 		}
-		keyValues = append(keyValues, key.KeyVariable)
+		keyVariableSet.AddStr(key.Variable)
 	}
-	var isOnlyPrimaryKeyCache = true
+	var containsIndexCache = false
 	for _, item := range table.Fields {
-		if item.IsPrimaryKey {
-			continue
-		}
-		if item.Cache {
-			isOnlyPrimaryKeyCache = false
+		if item.IsUniqueKey {
+			containsIndexCache = true
 			break
 		}
 	}
-	err = t.Execute(deleteBuffer, map[string]interface{}{
-		"upperObject":     table.UpperCamelCase,
-		"containsCache":   table.ContainsCache,
-		"isNotPrimaryKey": !isOnlyPrimaryKeyCache,
-		"lowerPrimaryKey": table.PrimaryField.LowerCamelCase,
-		"dataType":        table.PrimaryField.DataType,
-		"keys":            strings.Join(keys, "\r\n"),
-		"snakePrimaryKey": table.PrimaryField.SnakeCase,
-		"keyValues":       strings.Join(keyValues, ", "),
-	})
+	camel := table.Name.ToCamel()
+	output, err := util.With("delete").
+		Parse(template.Delete).
+		Execute(map[string]interface{}{
+			"upperStartCamelObject":     camel,
+			"withCache":                 withCache,
+			"containsIndexCache":        containsIndexCache,
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).UnTitle(),
+			"dataType":                  table.PrimaryKey.DataType,
+			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
+			"originalPrimaryKey":        table.PrimaryKey.Name.Source(),
+			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
+		})
 	if err != nil {
 		return "", err
 	}
-	return deleteBuffer.String(), nil
+	return output.String(), nil
 }

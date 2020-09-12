@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 
-	"zero/core/conf"
-	"zero/example/graceful/dns/api/config"
-	"zero/example/graceful/dns/api/handler"
-	"zero/example/graceful/dns/api/svc"
-	"zero/rest"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/example/graceful/dns/api/config"
+	"github.com/tal-tech/go-zero/example/graceful/dns/api/handler"
+	"github.com/tal-tech/go-zero/example/graceful/dns/api/svc"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/rpcx"
 )
 
 var configFile = flag.String("f", "etc/graceful-api.json", "the config file")

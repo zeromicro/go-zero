@@ -1,4 +1,29 @@
-# go-zero项目介绍
+# go-zero
+
+[English](readme-en.md) | 简体中文
+
+[![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
+[![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tal-tech/go-zero)](https://goreportcard.com/report/github.com/tal-tech/go-zero)
+[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## 0. go-zero介绍
+
+go-zero是一个集成了各种工程实践的web和rpc框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
+
+go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
+
+使用go-zero的好处：
+
+* 轻松获得支撑千万日活服务的稳定性
+* 内建级联超时控制、限流、自适应熔断、自适应降载等微服务治理能力，无需配置和额外代码
+* 微服务治理中间件可无缝集成到其它现有框架使用
+* 极简的API描述，一键生成各端代码
+* 自动校验客户端请求参数合法性
+* 大量微服务治理和并发工具包
+
+<img src="doc/images/architecture.png" alt="架构图" width="1500" />
 
 ## 1. go-zero框架背景
 
@@ -51,14 +76,90 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 ![弹性设计](doc/images/resilience.jpg)
 
-## 4. go-zero框架收益
-
-* 保障大并发服务端的稳定性，经受了充分的实战检验
-* 极简的API定义
-* 一键生成Go, iOS, Android, Dart, TypeScript, JavaScript代码，并可直接运行
-* 服务端自动校验参数合法性
-
-## 5. go-zero近期开发计划
+## 4. go-zero近期开发计划
 
 * 自动生成API mock server，便于客户端开发
 * 自动生成服务端功能测试
+
+## 5. Installation
+
+在项目目录下通过如下命令安装：
+
+```shell
+go get -u github.com/tal-tech/go-zero
+```
+
+## 6. Quick Start
+
+0. 完整示例请查看
+
+    [快速构建高并发微服务](doc/shorturl.md)
+
+    [快速构建高并发微服务-多RPC版](doc/bookstore.md)
+
+1. 安装goctl工具
+
+   `goctl`读作`go control`，不要读成`go C-T-L`。`goctl`的意思是不要被代码控制，而是要去控制它。其中的`go`不是指`golang`。在设计`goctl`之初，我就希望通过`她`来解放我们的双手👈
+
+   ```shell
+   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
+   ```
+
+   确保goctl可执行
+
+2. 快速生成api服务
+
+   ```shell
+      goctl api new greet
+      cd greet
+      go run greet.go -f etc/greet-api.yaml
+   ```
+
+      默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
+
+   ```shell
+      curl -i http://localhost:8888/greet/from/you
+   ```
+
+      返回如下：
+
+   ```http
+      HTTP/1.1 200 OK
+      Date: Sun, 30 Aug 2020 15:32:35 GMT
+      Content-Length: 0
+      ```
+
+      编写业务代码：
+
+      * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+      * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+      * api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
+      * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
+      * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+
+3. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
+
+      ```shell
+      goctl api java -api greet.api -dir greet
+      goctl api dart -api greet.api -dir greet
+      ...
+      ```
+
+## 7. Benchmark
+
+![benchmark](doc/images/benchmark.png)
+
+[测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
+
+## 8. 文档 (逐步完善中)
+
+* [快速构建高并发微服务](doc/shorturl.md)
+* [快速构建高并发微服务-多RPC版](doc/bookstore.md)
+* [goctl使用帮助](doc/goctl.md)
+* [通过MapReduce降低服务响应时间](doc/mapreduce.md)
+* [关键字替换和敏感词过滤工具](doc/keywords.md)
+* [进程内缓存使用方法](doc/collection.md)
+
+## 9. 微信交流群
+
+<img src="doc/images/wechat.jpg" alt="wechat" width="300" />

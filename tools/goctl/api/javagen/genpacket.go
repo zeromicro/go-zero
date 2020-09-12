@@ -9,10 +9,10 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/core/stringx"
-	"zero/tools/goctl/api/spec"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
@@ -175,7 +175,7 @@ func formatFile(tmplBytes *bytes.Buffer, file *os.File) {
 		builder.WriteString(scanner.Text() + "\n")
 	}
 	if err := scanner.Err(); err != nil {
-		println(err)
+		fmt.Println(err)
 	}
 }
 
@@ -268,10 +268,12 @@ func genType(writer io.Writer, tp spec.Type) error {
 			return err
 		}
 	}
+
 	writeBreakline(writer)
 	writeIndent(writer, 1)
 	genGetSet(writer, tp, 2)
 	writeIndent(writer, 1)
 	fmt.Fprintln(writer, "}")
+
 	return nil
 }

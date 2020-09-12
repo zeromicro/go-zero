@@ -1,8 +1,8 @@
 package discov
 
 import (
-	"zero/core/discov/internal"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/discov/internal"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 type (
@@ -26,7 +26,7 @@ func NewFacade(endpoints []string) Facade {
 
 func (f Facade) Client() internal.EtcdClient {
 	conn, err := f.registry.GetConn(f.endpoints)
-	lang.Must(err)
+	logx.Must(err)
 	return conn
 }
 

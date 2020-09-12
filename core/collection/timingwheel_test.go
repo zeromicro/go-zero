@@ -7,12 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/lang"
-	"zero/core/stringx"
-	"zero/core/syncx"
-	"zero/core/timex"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -214,7 +213,10 @@ func TestTimingWheel_SetTimer(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -292,7 +294,10 @@ func TestTimingWheel_SetAndMoveThenStart(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -377,7 +382,10 @@ func TestTimingWheel_SetAndMoveTwice(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -455,7 +463,10 @@ func TestTimingWheel_ElapsedAndSet(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -543,7 +554,10 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {

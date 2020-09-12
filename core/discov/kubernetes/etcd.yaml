@@ -40,7 +40,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+      image: quay.io/coreos/etcd:latest
       name: etcd0
       ports:
         - containerPort: 2379
@@ -49,8 +49,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -113,7 +111,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+      image: quay.io/coreos/etcd:latest
       name: etcd1
       ports:
         - containerPort: 2379
@@ -122,8 +120,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -186,7 +182,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+      image: quay.io/coreos/etcd:latest
       name: etcd2
       ports:
         - containerPort: 2379
@@ -195,8 +191,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -259,7 +253,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+      image: quay.io/coreos/etcd:latest
       name: etcd3
       ports:
         - containerPort: 2379
@@ -268,8 +262,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -332,7 +324,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+      image: quay.io/coreos/etcd:latest
       name: etcd4
       ports:
         - containerPort: 2379
@@ -341,8 +333,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

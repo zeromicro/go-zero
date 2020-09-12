@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
 type (

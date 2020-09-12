@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
-	"zero/core/stores/mongo"
-
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"github.com/tal-tech/go-zero/core/stores/mongo"
 )
 
 type Roster struct {

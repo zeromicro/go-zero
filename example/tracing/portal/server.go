@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 
-	"zero/core/conf"
-	"zero/example/tracing/remote/portal"
-	"zero/example/tracing/remote/user"
-	"zero/rpcx"
-
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/example/tracing/remote/portal"
+	"github.com/tal-tech/go-zero/example/tracing/remote/user"
+	"github.com/tal-tech/go-zero/rpcx"
 	"google.golang.org/grpc"
 )
 
@@ -21,11 +20,11 @@ type (
 	}
 
 	PortalServer struct {
-		userRpc *rpcx.RpcClient
+		userRpc rpcx.Client
 	}
 )
 
-func NewPortalServer(client *rpcx.RpcClient) *PortalServer {
+func NewPortalServer(client rpcx.Client) *PortalServer {
 	return &PortalServer{
 		userRpc: client,
 	}

@@ -25,4 +25,3 @@
    `watch -n 5 kubectl top pod -n adhoc`
 
    可以看到`kubectl`报告的`CPU`使用率，两者进行对比，即可知道是否准确
-

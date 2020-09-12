@@ -2,68 +2,34 @@ package resolver
 
 import (
 	"fmt"
-	"strings"
-
-	"zero/core/discov"
 
 	"google.golang.org/grpc/resolver"
 )
 
 const (
-	DiscovScheme = "discov"
-	EndpointSep  = ","
-	subsetSize   = 36
+	DirectScheme    = "direct"
+	DiscovScheme    = "discov"
+	EndpointSepChar = ','
+	subsetSize      = 32
 )
 
-var builder discovBuilder
+var (
+	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
+	dirBuilder  directBuilder
+	disBuilder  discovBuilder
+)
 
-type discovBuilder struct{}
-
-func (b *discovBuilder) Scheme() string {
-	return DiscovScheme
+func RegisterResolver() {
+	resolver.Register(&dirBuilder)
+	resolver.Register(&disBuilder)
 }
 
-func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
-	resolver.Resolver, error) {
-	if target.Scheme != DiscovScheme {
-		return nil, fmt.Errorf("bad scheme: %s", target.Scheme)
-	}
-
-	hosts := strings.Split(target.Authority, EndpointSep)
-	sub, err := discov.NewSubscriber(hosts, target.Endpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	update := func() {
-		var addrs []resolver.Address
-		for _, val := range subset(sub.Values(), subsetSize) {
-			addrs = append(addrs, resolver.Address{
-				Addr: val,
-			})
-		}
-		cc.UpdateState(resolver.State{
-			Addresses: addrs,
-		})
-	}
-	sub.AddListener(update)
-	update()
-
-	return &discovResolver{
-		cc: cc,
-	}, nil
-}
-
-type discovResolver struct {
+type nopResolver struct {
 	cc resolver.ClientConn
 }
 
-func (r *discovResolver) Close() {
+func (r *nopResolver) Close() {
 }
 
-func (r *discovResolver) ResolveNow(options resolver.ResolveNowOptions) {
-}
-
-func RegisterResolver() {
-	resolver.Register(&builder)
+func (r *nopResolver) ResolveNow(options resolver.ResolveNowOptions) {
 }

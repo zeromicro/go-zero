@@ -3,10 +3,10 @@ package service
 import (
 	"log"
 
-	"zero/core/load"
-	"zero/core/logx"
-	"zero/core/prometheus"
-	"zero/core/stat"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/prometheus"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 const (

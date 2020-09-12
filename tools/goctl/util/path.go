@@ -7,8 +7,17 @@ import (
 	"path/filepath"
 	"strings"
 
-	"zero/tools/goctl/vars"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
+
+const (
+	pkgSep           = "/"
+	goModeIdentifier = "go.mod"
+)
+
+func JoinPackages(pkgs ...string) string {
+	return strings.Join(pkgs, pkgSep)
+}
 
 func MkdirIfNotExist(dir string) error {
 	if len(dir) == 0 {
@@ -39,15 +48,35 @@ func PathFromGoSrc() (string, error) {
 	return dir[len(parent)+1:], nil
 }
 
-func GetParentPackage(dir string) (string, error) {
+func FindGoModPath(dir string) (string, bool) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
-		return "", err
-	}
-	pos := strings.Index(absDir, vars.ProjectName)
-	if pos < 0 {
-		return "", fmt.Errorf("error dir:[%s],please make sure that your project is in the %s directory", vars.ProjectName, dir)
+		return "", false
 	}
 
-	return absDir[pos:], nil
+	absDir = strings.ReplaceAll(absDir, `\`, `/`)
+	var rootPath string
+	var tempPath = absDir
+	var hasGoMod = false
+	for {
+		if FileExists(filepath.Join(tempPath, goModeIdentifier)) {
+			tempPath = filepath.Dir(tempPath)
+			rootPath = strings.TrimPrefix(absDir[len(tempPath):], "/")
+			hasGoMod = true
+			break
+		}
+
+		if tempPath == filepath.Dir(tempPath) {
+			break
+		}
+
+		tempPath = filepath.Dir(tempPath)
+		if tempPath == string(filepath.Separator) {
+			break
+		}
+	}
+	if hasGoMod {
+		return rootPath, true
+	}
+	return "", false
 }

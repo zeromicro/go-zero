@@ -1,9 +1,8 @@
 package postgres
 
 import (
-	"zero/core/stores/sqlx"
-
 	_ "github.com/lib/pq"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 
 const postgreDriverName = "postgres"

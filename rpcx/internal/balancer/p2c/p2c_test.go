@@ -3,13 +3,14 @@ package p2c
 import (
 	"context"
 	"fmt"
+	"runtime"
 	"strconv"
+	"sync"
 	"testing"
 
-	"zero/core/logx"
-	"zero/core/mathx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/mathx"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/resolver"
@@ -34,19 +35,31 @@ func TestP2cPicker_Pick(t *testing.T) {
 	tests := []struct {
 		name       string
 		candidates int
+		threshold  float64
 	}{
 		{
 			name:       "single",
 			candidates: 1,
+			threshold:  0.9,
+		},
+		{
+			name:       "two",
+			candidates: 2,
+			threshold:  0.5,
 		},
 		{
 			name:       "multiple",
 			candidates: 100,
+			threshold:  0.95,
 		},
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			const total = 10000
 			builder := new(p2cPickerBuilder)
 			ready := make(map[resolver.Address]balancer.SubConn)
 			for i := 0; i < test.candidates; i++ {
@@ -56,7 +69,9 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			picker := builder.Build(ready)
-			for i := 0; i < 10000; i++ {
+			var wg sync.WaitGroup
+			wg.Add(total)
+			for i := 0; i < total; i++ {
 				_, done, err := picker.Pick(context.Background(), balancer.PickInfo{
 					FullMethodName: "/",
 					Ctx:            context.Background(),
@@ -65,11 +80,16 @@ func TestP2cPicker_Pick(t *testing.T) {
 				if i%100 == 0 {
 					err = status.Error(codes.DeadlineExceeded, "deadline")
 				}
-				done(balancer.DoneInfo{
-					Err: err,
-				})
+				go func() {
+					runtime.Gosched()
+					done(balancer.DoneInfo{
+						Err: err,
+					})
+					wg.Done()
+				}()
 			}
 
+			wg.Wait()
 			dist := make(map[interface{}]int)
 			conns := picker.(*p2cPicker).conns
 			for _, conn := range conns {
@@ -77,7 +97,8 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			entropy := mathx.CalcEntropy(dist)
-			assert.True(t, entropy > .95, fmt.Sprintf("entropy is %f, less than .95", entropy))
+			assert.True(t, entropy > test.threshold, fmt.Sprintf("entropy is %f, less than %f",
+				entropy, test.threshold))
 		})
 	}
 }

@@ -1,6 +1,6 @@
 package internal
 
-import "zero/core/stores/redis"
+import "github.com/tal-tech/go-zero/core/stores/redis"
 
 type (
 	ClusterConf []NodeConf

@@ -4,9 +4,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"zero/core/logx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func init() {

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"zero/core/discov"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func main() {
 	sub, err := discov.NewSubscriber([]string{"etcd.discovery:2379"}, "028F2C35852D", discov.Exclusive())
-	lang.Must(err)
+	logx.Must(err)
 
 	ticker := time.NewTicker(time.Second * 3)
 	defer ticker.Stop()

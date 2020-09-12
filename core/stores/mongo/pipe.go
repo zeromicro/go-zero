@@ -3,9 +3,8 @@ package mongo
 import (
 	"time"
 
-	"zero/core/breaker"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (

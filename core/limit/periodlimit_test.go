@@ -3,10 +3,9 @@ package limit
 import (
 	"testing"
 
-	"zero/core/stores/redis"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 func TestPeriodLimit_Take(t *testing.T) {

@@ -10,11 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/logx"
-	"zero/core/syncx"
-	"zero/core/timex"
-	"zero/rpcx/internal/codes"
-
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/tal-tech/go-zero/rpcx/internal/codes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
@@ -22,7 +21,7 @@ import (
 
 const (
 	Name            = "p2c_ewma"
-	decayTime       = int64(time.Millisecond * 600)
+	decayTime       = int64(time.Second * 10) // default value from finagle
 	forcePick       = int64(time.Second)
 	initSuccess     = 1000
 	throttleSuccess = initSuccess / 2

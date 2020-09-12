@@ -4,25 +4,24 @@ import (
 	"context"
 	"sync"
 
-	"zero/core/syncx"
-	"zero/rpcx/internal"
-	"zero/rpcx/internal/auth"
-
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/rpcx/internal"
+	"github.com/tal-tech/go-zero/rpcx/internal/auth"
 	"google.golang.org/grpc"
 )
 
 type RpcProxy struct {
 	backend     string
-	clients     map[string]*RpcClient
+	clients     map[string]Client
 	options     []internal.ClientOption
 	sharedCalls syncx.SharedCalls
 	lock        sync.Mutex
 }
 
-func NewRpcProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
+func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
-		clients:     make(map[string]*RpcClient),
+		clients:     make(map[string]Client),
 		options:     opts,
 		sharedCalls: syncx.NewSharedCalls(),
 	}
@@ -39,11 +38,11 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 			return client, nil
 		}
 
-		client, err := NewClient(RpcClientConf{
-			Server: p.backend,
-			App:    cred.App,
-			Token:  cred.Token,
-		}, p.options...)
+		opts := append(p.options, WithDialOption(grpc.WithPerRPCCredentials(&auth.Credential{
+			App:   cred.App,
+			Token: cred.Token,
+		})))
+		client, err := NewClientWithTarget(p.backend, opts...)
 		if err != nil {
 			return nil, err
 		}
@@ -57,5 +56,5 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 		return nil, err
 	}
 
-	return val.(*RpcClient).Conn(), nil
+	return val.(Client).Conn(), nil
 }

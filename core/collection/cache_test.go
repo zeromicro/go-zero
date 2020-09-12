@@ -72,9 +72,9 @@ func TestCacheWithLruEvicts(t *testing.T) {
 	cache.Set("third", "third element")
 	cache.Set("fourth", "fourth element")
 
-	value, ok := cache.Get("first")
+	_, ok := cache.Get("first")
 	assert.False(t, ok)
-	value, ok = cache.Get("second")
+	value, ok := cache.Get("second")
 	assert.True(t, ok)
 	assert.Equal(t, "second element", value)
 	value, ok = cache.Get("third")
@@ -94,9 +94,9 @@ func TestCacheWithLruEvicted(t *testing.T) {
 	cache.Set("third", "third element")
 	cache.Set("fourth", "fourth element")
 
-	value, ok := cache.Get("first")
+	_, ok := cache.Get("first")
 	assert.False(t, ok)
-	value, ok = cache.Get("second")
+	value, ok := cache.Get("second")
 	assert.True(t, ok)
 	assert.Equal(t, "second element", value)
 	cache.Set("fifth", "fifth element")

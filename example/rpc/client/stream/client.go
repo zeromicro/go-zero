@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	"zero/core/discov"
-	"zero/example/rpc/remote/stream"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/tal-tech/go-zero/example/rpc/remote/stream"
+	"github.com/tal-tech/go-zero/rpcx"
 )
 
 const name = "kevin"

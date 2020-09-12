@@ -9,9 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/core/codec"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/codec"
 )
 
 const (

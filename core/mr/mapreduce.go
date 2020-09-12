@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"zero/core/errorx"
-	"zero/core/lang"
-	"zero/core/syncx"
-	"zero/core/threading"
+	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/threading"
 )
 
 const (
@@ -16,7 +16,10 @@ const (
 	minWorkers     = 1
 )
 
-var ErrCancelWithNil = errors.New("mapreduce cancelled with nil")
+var (
+	ErrCancelWithNil  = errors.New("mapreduce cancelled with nil")
+	ErrReduceNoOutput = errors.New("reduce not writing value")
+)
 
 type (
 	GenerateFunc    func(source chan<- interface{})
@@ -93,7 +96,14 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 	collector := make(chan interface{}, options.workers)
 	done := syncx.NewDoneChan()
 	writer := newGuardedWriter(output, done.Done())
+	var closeOnce sync.Once
 	var retErr errorx.AtomicError
+	finish := func() {
+		closeOnce.Do(func() {
+			done.Close()
+			close(output)
+		})
+	}
 	cancel := once(func(err error) {
 		if err != nil {
 			retErr.Set(err)
@@ -102,17 +112,19 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 		}
 
 		drain(source)
-		done.Close()
-		close(output)
+		finish()
 	})
 
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				cancel(fmt.Errorf("%v", r))
+			} else {
+				finish()
 			}
 		}()
 		reducer(collector, writer, cancel)
+		drain(collector)
 	}()
 	go mapperDispatcher(mapper, source, collector, done.Done(), cancel, options.workers)
 
@@ -122,13 +134,14 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 	} else if ok {
 		return value, nil
 	} else {
-		return nil, nil
+		return nil, ErrReduceNoOutput
 	}
 }
 
 func MapReduceVoid(generator GenerateFunc, mapper MapperFunc, reducer VoidReducerFunc, opts ...Option) error {
 	_, err := MapReduce(generator, mapper, func(input <-chan interface{}, writer Writer, cancel func(error)) {
 		reducer(input, cancel)
+		drain(input)
 		// We need to write a placeholder to let MapReduce to continue on reducer done,
 		// otherwise, all goroutines are waiting. The placeholder will be discarded by MapReduce.
 		writer.Write(lang.Placeholder)

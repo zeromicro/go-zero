@@ -1,6 +1,6 @@
 package parser
 
-import "zero/tools/goctl/api/spec"
+import "github.com/tal-tech/go-zero/tools/goctl/api/spec"
 
 type state interface {
 	process(api *spec.ApiSpec) (state, error)

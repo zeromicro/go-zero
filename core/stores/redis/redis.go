@@ -6,10 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"zero/core/breaker"
-	"zero/core/mapping"
-
 	red "github.com/go-redis/redis"
+	"github.com/tal-tech/go-zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/mapping"
 )
 
 const (

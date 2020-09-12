@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"path"
-	"sort"
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
@@ -19,13 +19,11 @@ const (
 import (
 	"net/http"
 
-	"zero/rest/httpx"
 	{{.importPackages}}
 )
 
 func {{.handlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		l := logic.{{.logic}}(r.Context(), ctx)
 		{{.handlerBody}}
 	}
 }
@@ -40,6 +38,7 @@ func {{.handlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 		}
 `
 	hasRespTemplate = `
+		l := logic.{{.logic}}(r.Context(), ctx)
 		{{.logicResponse}} l.{{.callee}}({{.req}})
 		if err != nil {
 			httpx.Error(w, err)
@@ -72,7 +71,7 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 		req = ""
 	}
 	var logicResponse string
-	var writeResponse = "nil, nil"
+	var writeResponse string
 	var respWriter = `httpx.WriteJson(w, http.StatusOK, resp)`
 	if len(route.ResponseType.Name) > 0 {
 		logicResponse = "resp, err :="
@@ -85,6 +84,7 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 	var logicBodyBuilder strings.Builder
 	t := template.Must(template.New("hasRespTemplate").Parse(hasRespTemplate))
 	if err := t.Execute(&logicBodyBuilder, map[string]string{
+		"logic":         "New" + strings.TrimSuffix(strings.Title(handler), "Handler") + "Logic",
 		"callee":        strings.Title(strings.TrimSuffix(handler, "Handler")),
 		"req":           req,
 		"logicResponse": logicResponse,
@@ -135,7 +135,6 @@ func doGenToFile(dir, handler string, group spec.Group, route spec.Route, bodyBu
 	t := template.Must(template.New("handlerTemplate").Parse(handlerTemplate))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
-		"logic":          "New" + strings.TrimSuffix(strings.Title(handler), "Handler") + "Logic",
 		"importPackages": genHandlerImports(group, route, parentPkg),
 		"handlerName":    handler,
 		"handlerBody":    strings.TrimSpace(bodyBuilder.String()),
@@ -162,12 +161,13 @@ func genHandlers(dir string, api *spec.ApiSpec) error {
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"",
+		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
+	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	if len(route.RequestType.Name) > 0 || len(route.ResponseType.Name) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, getLogicFolderPath(group, route))))
-	sort.Strings(imports)
+	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceUrl))
 
 	return strings.Join(imports, "\n\t")
 }

@@ -2,44 +2,25 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
-	"os/user"
-	"path"
-	"path/filepath"
-	"time"
 
-	"zero/core/conf"
-	"zero/core/hash"
-	"zero/core/lang"
-	"zero/core/logx"
-	"zero/core/mr"
-	"zero/core/stringx"
-	"zero/tools/goctl/api/apigen"
-	"zero/tools/goctl/api/dartgen"
-	"zero/tools/goctl/api/docgen"
-	"zero/tools/goctl/api/format"
-	"zero/tools/goctl/api/gogen"
-	"zero/tools/goctl/api/javagen"
-	"zero/tools/goctl/api/tsgen"
-	"zero/tools/goctl/api/validate"
-	"zero/tools/goctl/configgen"
-	"zero/tools/goctl/docker"
-	"zero/tools/goctl/feature"
-	"zero/tools/goctl/model/mongomodel"
-	"zero/tools/goctl/util"
-
-	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/format"
+	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/javagen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/ktgen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/new"
+	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
+	"github.com/tal-tech/go-zero/tools/goctl/configgen"
+	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/feature"
+	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
 	"github.com/urfave/cli"
-)
-
-const (
-	autoUpdate     = "GOCTL_AUTO_UPDATE"
-	configFile     = ".goctl"
-	configTemplate = `url = http://47.97.184.41:7777/`
-	toolName       = "goctl"
 )
 
 var (
@@ -56,6 +37,11 @@ var (
 			},
 			Action: apigen.ApiCommand,
 			Subcommands: []cli.Command{
+				{
+					Name:   "new",
+					Usage:  "fast create api service",
+					Action: new.NewService,
+				},
 				{
 					Name:  "format",
 					Usage: "format api files",
@@ -173,6 +159,25 @@ var (
 					},
 					Action: dartgen.DartCommand,
 				},
+				{
+					Name:  "kt",
+					Usage: "generate kotlin code for provided api file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:  "pkg",
+							Usage: "define package name for kotlin file",
+						},
+					},
+					Action: ktgen.KtCommand,
+				},
 			},
 		},
 		{
@@ -191,33 +196,119 @@ var (
 			Action: docker.DockerCommand,
 		},
 		{
-			Name:  "model",
-			Usage: "generate sql model",
-			Flags: []cli.Flag{
-				cli.StringFlag{
-					Name:  "config, c",
-					Usage: "the file that contains main function",
-				},
-				cli.StringFlag{
-					Name:  "dir, d",
-					Usage: "the target dir",
-				},
-			},
+			Name:  "rpc",
+			Usage: "generate rpc code",
 			Subcommands: []cli.Command{
 				{
-					Name:  "mongo",
-					Usage: "generate mongoModel files for provided somemongo.go in go file",
+					Name:  "new",
+					Usage: `generate rpc demo service`,
+					Flags: []cli.Flag{
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcNew,
+				},
+				{
+					Name:  "template",
+					Usage: `generate proto template`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "out, o",
+							Usage: "the target path of proto",
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
+						},
+					},
+					Action: rpc.RpcTemplate,
+				},
+				{
+					Name:  "proto",
+					Usage: `generate rpc from proto`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "src, s",
-							Usage: "the src file",
+							Usage: "the file path of the proto source file",
 						},
 						cli.StringFlag{
-							Name:  "cache",
-							Usage: "need cache code([yes/no] default value is no)",
+							Name:  "dir, d",
+							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						},
+						cli.StringFlag{
+							Name:  "service, srv",
+							Usage: `the name of rpc service. [option]`,
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [option]",
 						},
 					},
-					Action: mongomodel.ModelCommond,
+					Action: rpc.Rpc,
+				},
+			},
+		},
+		{
+			Name:  "model",
+			Usage: "generate model code",
+			Subcommands: []cli.Command{
+				{
+					Name:  "mysql",
+					Usage: `generate mysql model`,
+					Subcommands: []cli.Command{
+						{
+							Name:  "ddl",
+							Usage: `generate mysql model from ddl`,
+							Flags: []cli.Flag{
+								cli.StringFlag{
+									Name:  "src, s",
+									Usage: "the file path of the ddl source file",
+								},
+								cli.StringFlag{
+									Name:  "dir, d",
+									Usage: "the target dir",
+								},
+								cli.BoolFlag{
+									Name:  "cache, c",
+									Usage: "generate code with cache [optional]",
+								},
+								cli.BoolFlag{
+									Name:  "idea",
+									Usage: "for idea plugin [optional]",
+								},
+							},
+							Action: model.MysqlDDL,
+						},
+						{
+							Name:  "datasource",
+							Usage: `generate model from datasource`,
+							Flags: []cli.Flag{
+								cli.StringFlag{
+									Name:  "url",
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
+								},
+								cli.StringFlag{
+									Name:  "table, t",
+									Usage: `source table,tables separated by commas,like "user,course`,
+								},
+								cli.BoolFlag{
+									Name:  "cache, c",
+									Usage: "generate code with cache [optional]",
+								},
+								cli.StringFlag{
+									Name:  "dir, d",
+									Usage: "the target dir",
+								},
+								cli.BoolFlag{
+									Name:  "idea",
+									Usage: "for idea plugin [optional]",
+								},
+							},
+							Action: model.MyDataSource,
+						},
+					},
 				},
 			},
 		},
@@ -240,130 +331,15 @@ var (
 	}
 )
 
-func genConfigFile(file string) error {
-	return ioutil.WriteFile(file, []byte(configTemplate), 0600)
-}
-
-func getAbsFile() (string, error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-
-	dir, err := filepath.Abs(filepath.Dir(exe))
-	if err != nil {
-		return "", err
-	}
-
-	return path.Join(dir, filepath.Base(os.Args[0])), nil
-}
-
-func getFilePerm(file string) (os.FileMode, error) {
-	info, err := os.Stat(file)
-	if err != nil {
-		return 0, err
-	}
-
-	return info.Mode(), nil
-}
-
-func update() {
-	usr, err := user.Current()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	absConfigFile := path.Join(usr.HomeDir, configFile)
-	if !util.FileExists(absConfigFile) {
-		if err := genConfigFile(absConfigFile); err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-
-	props, err := conf.LoadProperties(absConfigFile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	u, err := url.Parse(props.GetString("url"))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	u.Path = path.Join(u.Path, toolName)
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	file, err := getAbsFile()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	content, err := ioutil.ReadFile(file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	req.Header.Set("Content-Md5", hash.Md5Hex(content))
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer resp.Body.Close()
-
-	mode, err := getFilePerm(file)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	content, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	switch resp.StatusCode {
-	case http.StatusOK:
-		if err := ioutil.WriteFile(file, content, mode); err != nil {
-			fmt.Println(err)
-		}
-	}
-}
-
 func main() {
 	logx.Disable()
 
-	done := make(chan lang.PlaceholderType)
-	mr.FinishVoid(func() {
-		if os.Getenv(autoUpdate) != "off" && !stringx.Contains(os.Args, "-iu") {
-			update()
-		}
-		close(done)
-	}, func() {
-		app := cli.NewApp()
-		app.Usage = "a cli tool to generate code"
-		app.Version = BuildTime
-		app.Commands = commands
-		// cli already print error messages
-		if err := app.Run(os.Args); err != nil {
-			fmt.Println("error:", err)
-		}
-	}, func() {
-		select {
-		case <-done:
-		case <-time.After(time.Second):
-			fmt.Println(aurora.Yellow("Updating goctl, please wait..."))
-		}
-	})
+	app := cli.NewApp()
+	app.Usage = "a cli tool to generate code"
+	app.Version = BuildTime
+	app.Commands = commands
+	// cli already print error messages
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println("error:", err)
+	}
 }

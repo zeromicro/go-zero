@@ -1,5 +1,5 @@
 package kv
 
-import "zero/core/stores/internal"
+import "github.com/tal-tech/go-zero/core/stores/internal"
 
 type KvConf = internal.ClusterConf

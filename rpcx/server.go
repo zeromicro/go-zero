@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"zero/core/load"
-	"zero/core/logx"
-	"zero/core/netx"
-	"zero/core/stat"
-	"zero/rpcx/internal"
-	"zero/rpcx/internal/auth"
-	"zero/rpcx/internal/serverinterceptors"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/netx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rpcx/internal"
+	"github.com/tal-tech/go-zero/rpcx/internal/auth"
+	"github.com/tal-tech/go-zero/rpcx/internal/serverinterceptors"
 )
 
 const envPodIp = "POD_IP"
@@ -117,8 +117,8 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 			return err
 		}
 
-		server.AddStreamInterceptors(internal.StreamAuthorizeInterceptor(authenticator))
-		server.AddUnaryInterceptors(internal.UnaryAuthorizeInterceptor(authenticator))
+		server.AddStreamInterceptors(serverinterceptors.StreamAuthorizeInterceptor(authenticator))
+		server.AddUnaryInterceptors(serverinterceptors.UnaryAuthorizeInterceptor(authenticator))
 	}
 
 	return nil

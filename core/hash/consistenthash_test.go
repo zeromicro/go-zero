@@ -6,8 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"zero/core/mathx"
+	"github.com/tal-tech/go-zero/core/mathx"
 )
 
 const (

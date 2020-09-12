@@ -2,20 +2,18 @@ package gogen
 
 import (
 	"bytes"
+	"fmt"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
 	configFile     = "config.go"
 	configTemplate = `package config
 
-import (
-	"zero/rest"
-	{{.authImport}}
-)
+import {{.authImport}}
 
 type Config struct {
 	rest.RestConf
@@ -23,7 +21,7 @@ type Config struct {
 `
 )
 
-func genConfig(dir string, api *spec.ApiSpec) error {
+func genConfig(dir string) error {
 	fp, created, err := util.MaybeCreateFile(dir, configDir, configFile)
 	if err != nil {
 		return err
@@ -33,7 +31,7 @@ func genConfig(dir string, api *spec.ApiSpec) error {
 	}
 	defer fp.Close()
 
-	var authImportStr = ""
+	var authImportStr = fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl)
 	t := template.Must(template.New("configTemplate").Parse(configTemplate))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{

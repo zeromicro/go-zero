@@ -4,9 +4,8 @@ import (
 	"strconv"
 	"testing"
 
-	"zero/core/mathx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/mathx"
 )
 
 func TestSubset(t *testing.T) {
@@ -37,6 +36,12 @@ func TestSubset(t *testing.T) {
 			m := make(map[interface{}]int)
 			for i := 0; i < 1000; i++ {
 				set := subset(append([]string(nil), vals...), test.sub)
+				if test.sub < test.set {
+					assert.Equal(t, test.sub, len(set))
+				} else {
+					assert.Equal(t, test.set, len(set))
+				}
+
 				for _, val := range set {
 					m[val]++
 				}
@@ -45,21 +50,4 @@ func TestSubset(t *testing.T) {
 			assert.True(t, mathx.CalcEntropy(m) > 0.95)
 		})
 	}
-}
-
-func TestSubsetLess(t *testing.T) {
-	var vals []string
-	for i := 0; i < 100; i++ {
-		vals = append(vals, strconv.Itoa(i))
-	}
-
-	m := make(map[interface{}]int)
-	for i := 0; i < 1000; i++ {
-		set := subset(append([]string(nil), vals...), 200)
-		for _, val := range set {
-			m[val]++
-		}
-	}
-
-	assert.True(t, mathx.CalcEntropy(m) > 0.95)
 }

@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"sync"
 
-	"zero/core/load"
-	"zero/core/logx"
-	"zero/core/stat"
-	"zero/rest/internal"
-	"zero/rest/internal/security"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/internal/security"
 )
 
 const serviceType = "api"
@@ -35,7 +35,7 @@ func SheddingHandler(shedder load.Shedder, metrics *stat.Metrics) func(http.Hand
 				metrics.AddDrop()
 				sheddingStat.IncrementDrop()
 				logx.Errorf("[http] dropped, %s - %s - %s",
-					r.RequestURI, internal.GetRemoteAddr(r), r.UserAgent())
+					r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent())
 				w.WriteHeader(http.StatusServiceUnavailable)
 				return
 			}

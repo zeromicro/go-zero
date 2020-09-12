@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/executors"
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 var (

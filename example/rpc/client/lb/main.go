@@ -2,21 +2,41 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
+	"log"
 	"time"
 
-	"zero/core/discov"
-	"zero/example/rpc/remote/unary"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
+	"github.com/tal-tech/go-zero/rpcx"
 )
 
+var lb = flag.String("t", "direct", "the load balancer type")
+
 func main() {
-	cli := rpcx.MustNewClient(rpcx.RpcClientConf{
-		Etcd: discov.EtcdConf{
-			Hosts: []string{"localhost:2379"},
-			Key:   "rpcx",
-		},
-	})
+	flag.Parse()
+
+	var cli rpcx.Client
+	switch *lb {
+	case "direct":
+		cli = rpcx.MustNewClient(rpcx.RpcClientConf{
+			Endpoints: []string{
+				"localhost:3456",
+				"localhost:3457",
+			},
+		})
+	case "discov":
+		cli = rpcx.MustNewClient(rpcx.RpcClientConf{
+			Etcd: discov.EtcdConf{
+				Hosts: []string{"localhost:2379"},
+				Key:   "rpcx",
+			},
+		})
+	default:
+		log.Fatal("bad load balancing type")
+	}
+
 	greet := unary.NewGreeterClient(cli.Conn())
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()

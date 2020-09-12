@@ -4,10 +4,9 @@ import (
 	"io"
 	"time"
 
-	"zero/core/logx"
-	"zero/core/syncx"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 const (

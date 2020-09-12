@@ -5,9 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"zero/core/metric"
-	"zero/core/timex"
-
+	"github.com/tal-tech/go-zero/core/metric"
+	"github.com/tal-tech/go-zero/core/timex"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 )
@@ -34,12 +33,12 @@ var (
 )
 
 func UnaryPromMetricInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
+		interface{}, error) {
 		startTime := timex.Now()
 		resp, err := handler(ctx, req)
 		metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), info.FullMethod)
 		metricServerReqCodeTotal.Inc(info.FullMethod, strconv.Itoa(int(status.Code(err))))
 		return resp, err
 	}
-
 }
