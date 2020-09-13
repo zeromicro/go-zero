@@ -39,11 +39,9 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	if !util.FileExists(abs) {
-		err = util.MkdirIfNotExist(abs)
-		if err != nil {
-			return err
-		}
+	err = util.MkdirIfNotExist(abs)
+	if err != nil {
+		return err
 	}
 
 	name = filepath.Base(filepath.Clean(abs))
