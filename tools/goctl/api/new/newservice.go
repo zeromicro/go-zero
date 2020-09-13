@@ -29,12 +29,12 @@ service {{.name}}-api {
 
 func NewService(c *cli.Context) error {
 	args := c.Args()
-	name := "greet"
+	dirName := "greet"
 	if len(args) > 0 {
-		name = args.First()
+		dirName = args.First()
 	}
 
-	abs, err := filepath.Abs(name)
+	abs, err := filepath.Abs(dirName)
 	if err != nil {
 		return err
 	}
@@ -44,8 +44,8 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	name = filepath.Base(filepath.Clean(abs))
-	filename := name + ".api"
+	dirName = filepath.Base(filepath.Clean(abs))
+	filename := dirName + ".api"
 	apiFilePath := filepath.Join(abs, filename)
 	fp, err := os.Create(apiFilePath)
 	if err != nil {
@@ -55,7 +55,7 @@ func NewService(c *cli.Context) error {
 	defer fp.Close()
 	t := template.Must(template.New("template").Parse(apiTemplate))
 	if err := t.Execute(fp, map[string]string{
-		"name": name,
+		"name": dirName,
 	}); err != nil {
 		return err
 	}
