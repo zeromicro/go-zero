@@ -6,6 +6,7 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -32,14 +33,22 @@ func NewService(c *cli.Context) error {
 	if len(args) > 0 {
 		name = args.First()
 	}
-	location := name
-	err := os.MkdirAll(location, os.ModePerm)
+
+	abs, err := filepath.Abs(name)
 	if err != nil {
 		return err
 	}
 
+	if !util.FileExists(abs) {
+		err = util.MkdirIfNotExist(abs)
+		if err != nil {
+			return err
+		}
+	}
+
+	name = filepath.Base(filepath.Clean(abs))
 	filename := name + ".api"
-	apiFilePath := filepath.Join(location, filename)
+	apiFilePath := filepath.Join(abs, filename)
 	fp, err := os.Create(apiFilePath)
 	if err != nil {
 		return err
@@ -53,6 +62,6 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, location)
+	err = gogen.DoGenProject(apiFilePath, abs)
 	return err
 }

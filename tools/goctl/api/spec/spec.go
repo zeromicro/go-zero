@@ -73,6 +73,7 @@ type (
 		StringExpr string
 		Name       string
 	}
+
 	PointerType struct {
 		StringExpr string
 		// it can be asserted as BasicType: int、bool、
