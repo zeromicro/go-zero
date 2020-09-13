@@ -42,15 +42,17 @@ func BuildTypes(types []spec.Type) (string, error) {
 	return builder.String(), nil
 }
 
-func genTypes(dir string, api *spec.ApiSpec) error {
+func genTypes(dir string, api *spec.ApiSpec, force bool) error {
 	val, err := BuildTypes(api.Types)
 	if err != nil {
 		return err
 	}
 
 	filename := path.Join(dir, typesDir, typesFile)
-	if err := util.RemoveOrQuit(filename); err != nil {
-		return err
+	if !force {
+		if err := util.RemoveOrQuit(filename); err != nil {
+			return err
+		}
 	}
 
 	fp, created, err := apiutil.MaybeCreateFile(dir, typesDir, typesFile)
