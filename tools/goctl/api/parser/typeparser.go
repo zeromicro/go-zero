@@ -170,9 +170,9 @@ func parseTag(basicLit *ast.BasicLit) string {
 }
 
 // returns
-// resp1:type can convert to *spec.PointerType|*spec.BasicType|*spec.MapType|*spec.ArrayType|*spec.InterfaceType
-// resp2:type's string expression,like int、string、[]int64、map[string]User、*User
-// resp3:error
+// resp1: type can convert to *spec.PointerType|*spec.BasicType|*spec.MapType|*spec.ArrayType|*spec.InterfaceType
+// resp2: type's string expression,like int、string、[]int64、map[string]User、*User
+// resp3: error
 func parseType(expr ast.Expr) (interface{}, string, error) {
 	if expr == nil {
 		return nil, "", ErrUnSupportType
@@ -214,14 +214,17 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 		if err != nil {
 			return nil, "", err
 		}
+
 		value, valueStringExpr, err := parseType(v.Value)
 		if err != nil {
 			return nil, "", err
 		}
+
 		keyType, ok := key.(*spec.BasicType)
 		if !ok {
-			return nil, "", fmt.Errorf("[%+v] - unsupport type of map key", v.Key)
+			return nil, "", fmt.Errorf("[%+v] - unsupported type of map key", v.Key)
 		}
+
 		e := fmt.Sprintf("map[%s]%s", keyStringExpr, valueStringExpr)
 		return &spec.MapType{
 			Key:        keyType.Name,
@@ -233,16 +236,17 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 		if err != nil {
 			return nil, "", err
 		}
+
 		e := fmt.Sprintf("[]%s", stringExpr)
 		return &spec.ArrayType{ArrayType: arrayType, StringExpr: e}, e, nil
 	case *ast.InterfaceType:
 		return &spec.InterfaceType{StringExpr: interfaceExpr}, interfaceExpr, nil
 	case *ast.ChanType:
-		return nil, "", errors.New("[chan] - unsupport type")
+		return nil, "", errors.New("[chan] - unsupported type")
 	case *ast.FuncType:
-		return nil, "", errors.New("[func] - unsupport type")
+		return nil, "", errors.New("[func] - unsupported type")
 	case *ast.StructType: // todo can optimize
-		return nil, "", errors.New("[struct] - unsupport inline struct type")
+		return nil, "", errors.New("[struct] - unsupported inline struct type")
 	case *ast.SelectorExpr:
 		x := v.X
 		sel := v.Sel
@@ -252,6 +256,7 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 			if name != "time" && sel.Name != "Time" {
 				return nil, "", fmt.Errorf("[outter package] - package:%s, unsupport type", name)
 			}
+
 			tm := fmt.Sprintf("time.Time")
 			return &spec.TimeType{
 				StringExpr: tm,
