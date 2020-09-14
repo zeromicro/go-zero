@@ -60,6 +60,6 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs)
+	err = gogen.DoGenProject(apiFilePath, abs, true)
 	return err
 }

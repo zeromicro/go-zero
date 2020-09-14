@@ -60,7 +60,7 @@ type (
 	}
 )
 
-func genRoutes(dir string, api *spec.ApiSpec) error {
+func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -102,8 +102,10 @@ func genRoutes(dir string, api *spec.ApiSpec) error {
 	}
 
 	filename := path.Join(dir, handlerDir, routesFilename)
-	if err := util.RemoveOrQuit(filename); err != nil {
-		return err
+	if !force {
+		if err := util.RemoveOrQuit(filename); err != nil {
+			return err
+		}
 	}
 
 	fp, created, err := apiutil.MaybeCreateFile(dir, handlerDir, routesFilename)
