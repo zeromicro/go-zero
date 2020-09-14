@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const apiTemplate = `info (
+const apiTemplate = `info(
 	title: // TODO: add title
 	desc: // TODO: add description
 	author: {{.gitUser}}
@@ -31,12 +31,12 @@ service {{.serviceName}} {
 	@server(
 		handler: // TODO: set handler name and delete this comment
 	)
-	get /users/id/:userId (request) returns (response)
+	get /users/id/:userId(request) returns(response)
 
 	@server(
 		handler: // TODO: set handler name and delete this comment
 	)
-	post /users/create (request)
+	post /users/create(request)
 }
 `
 
