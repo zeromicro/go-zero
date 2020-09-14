@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -57,13 +58,14 @@ type serviceEntityParser struct {
 }
 
 func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []spec.Annotation) error {
-	line = strings.TrimSpace(line)
+	var defaultErr = fmt.Errorf("wrong line %q, %q", line, routeSyntax)
 
+	line = strings.TrimSpace(line)
 	var buffer = new(bytes.Buffer)
 	buffer.WriteString(line)
 	reader := bufio.NewReader(buffer)
 	var builder strings.Builder
-	var fields []string
+	var fields = make([]string, 0)
 	for {
 		ch, _, err := reader.ReadRune()
 		if err != nil {
@@ -87,17 +89,22 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 	}
 
 	if len(fields) < 3 {
-		return fmt.Errorf("wrong line %q, %q", line, routeSyntax)
+		return defaultErr
 	}
 
 	method := fields[0]
 	path := fields[1]
 	req := fields[2]
 	var returns string
-	if len(fields) > 4 {
-		returns = fields[4]
-		if fields[3] != returnsTag {
-			return fmt.Errorf("wrong line %q, %q", line, routeSyntax)
+
+	if stringx.Contains(fields, returnsTag) {
+		if fields[len(fields)-1] != returnsTag {
+			returns = fields[len(fields)-1]
+		} else {
+			return defaultErr
+		}
+		if fields[2] == returnsTag {
+			req = ""
 		}
 	}
 
