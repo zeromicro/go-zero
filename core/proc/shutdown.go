@@ -32,7 +32,7 @@ func AddWrapUpListener(fn func()) (waitForCalled func()) {
 	return wrapUpListeners.addListener(fn)
 }
 
-func SetTimeoutToForceQuit(duration time.Duration) {
+func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
 
