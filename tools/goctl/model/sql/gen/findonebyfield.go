@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genFineOneByField(table Table, withCache bool) (string, error) {
+func genFindOneByField(table Table, withCache bool) (string, error) {
 	t := util.With("findOneByField").Parse(template.FindOneByField)
 	var list []string
 	camelTableName := table.Name.ToCamel()

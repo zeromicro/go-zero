@@ -162,7 +162,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	findOneByFieldCode, err := genFineOneByField(table, withCache)
+	findOneByFieldCode, err := genFindOneByField(table, withCache)
 	if err != nil {
 		return "", err
 	}
