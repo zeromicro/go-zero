@@ -16,11 +16,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 
 	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rpcx"
 	"google.golang.org/grpc"
 )
@@ -38,9 +38,7 @@ func main() {
 	s, err := rpcx.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.registers}}
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	logx.Must(err)
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
