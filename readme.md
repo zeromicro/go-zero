@@ -158,6 +158,7 @@ go get -u github.com/tal-tech/go-zero
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 * [进程内缓存使用方法](doc/collection.md)
 * [基于prometheus的微服务指标监控](doc/metric.md)
+* [文本序列化和反序列化](doc/mapping.md)
 
 ## 9. 微信交流群
 
