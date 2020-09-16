@@ -4,15 +4,16 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+
 	"bookstore/rpc/add/internal/config"
 	"bookstore/rpc/add/internal/server"
 	"bookstore/rpc/add/internal/svc"
 	add "bookstore/rpc/add/pb"
-	"flag"
-	"fmt"
-	"log"
 
 	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rpcx"
 	"google.golang.org/grpc"
 )
@@ -30,9 +31,7 @@ func main() {
 	s, err := rpcx.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		add.RegisterAdderServer(grpcServer, adderSrv)
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	logx.Must(err)
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
