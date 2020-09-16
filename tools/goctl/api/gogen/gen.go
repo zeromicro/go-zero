@@ -14,12 +14,13 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/urfave/cli"
 )
 
 const tmpFile = "%s-%d"
@@ -29,6 +30,7 @@ var tmpDir = path.Join(os.TempDir(), "goctl")
 func GoCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
+	force := c.Bool("force")
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -36,10 +38,10 @@ func GoCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	return DoGenProject(apiFile, dir)
+	return DoGenProject(apiFile, dir, force)
 }
 
-func DoGenProject(apiFile, dir string) error {
+func DoGenProject(apiFile, dir string, force bool) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err
@@ -54,9 +56,9 @@ func DoGenProject(apiFile, dir string) error {
 	logx.Must(genConfig(dir))
 	logx.Must(genMain(dir, api))
 	logx.Must(genServiceContext(dir, api))
-	logx.Must(genTypes(dir, api))
+	logx.Must(genTypes(dir, api, force))
 	logx.Must(genHandlers(dir, api))
-	logx.Must(genRoutes(dir, api))
+	logx.Must(genRoutes(dir, api, force))
 	logx.Must(genLogic(dir, api))
 	// it does not work
 	format(dir)

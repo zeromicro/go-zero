@@ -1,9 +1,13 @@
 package parser
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -54,32 +58,55 @@ type serviceEntityParser struct {
 }
 
 func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []spec.Annotation) error {
-	fields := strings.Fields(line)
-	if len(fields) < 2 {
-		return fmt.Errorf("wrong line %q", line)
+	var defaultErr = fmt.Errorf("wrong line %q, %q", line, routeSyntax)
+
+	line = strings.TrimSpace(line)
+	var buffer = new(bytes.Buffer)
+	buffer.WriteString(line)
+	reader := bufio.NewReader(buffer)
+	var builder strings.Builder
+	var fields = make([]string, 0)
+	for {
+		ch, _, err := reader.ReadRune()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+
+		switch {
+		case isSpace(ch), ch == leftParenthesis, ch == rightParenthesis, ch == semicolon:
+			if builder.Len() == 0 {
+				continue
+			}
+			token := builder.String()
+			builder.Reset()
+			fields = append(fields, token)
+		default:
+			builder.WriteRune(ch)
+		}
+	}
+
+	if len(fields) < 3 {
+		return defaultErr
 	}
 
 	method := fields[0]
-	pathAndRequest := fields[1]
-	pos := strings.Index(pathAndRequest, "(")
-	if pos < 0 {
-		return fmt.Errorf("wrong line %q", line)
-	}
-	path := strings.TrimSpace(pathAndRequest[:pos])
-	pathAndRequest = pathAndRequest[pos+1:]
-	pos = strings.Index(pathAndRequest, ")")
-	if pos < 0 {
-		return fmt.Errorf("wrong line %q", line)
-	}
-	req := pathAndRequest[:pos]
+	path := fields[1]
+	req := fields[2]
 	var returns string
-	if len(fields) > 2 {
-		returns = fields[2]
+
+	if stringx.Contains(fields, returnsTag) {
+		if fields[len(fields)-1] != returnsTag {
+			returns = fields[len(fields)-1]
+		} else {
+			return defaultErr
+		}
+		if fields[2] == returnsTag {
+			req = ""
+		}
 	}
-	returns = strings.ReplaceAll(returns, "returns", "")
-	returns = strings.ReplaceAll(returns, "(", "")
-	returns = strings.ReplaceAll(returns, ")", "")
-	returns = strings.TrimSpace(returns)
 
 	p.acceptRoute(spec.Route{
 		Annotations:  annos,

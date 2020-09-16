@@ -164,7 +164,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	imports = append(imports, fmt.Sprintf("\"%s\"",
 		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
 	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
-	if len(route.RequestType.Name) > 0 || len(route.ResponseType.Name) > 0 {
+	if len(route.RequestType.Name) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
 	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceUrl))

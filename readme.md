@@ -127,12 +127,10 @@ go get -u github.com/tal-tech/go-zero
       HTTP/1.1 200 OK
       Date: Sun, 30 Aug 2020 15:32:35 GMT
       Content-Length: 0
-      ```
+   ```
 
       编写业务代码：
 
-      * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
-      * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
       * api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
       * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
       * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
@@ -159,6 +157,8 @@ go get -u github.com/tal-tech/go-zero
 * [通过MapReduce降低服务响应时间](doc/mapreduce.md)
 * [关键字替换和敏感词过滤工具](doc/keywords.md)
 * [进程内缓存使用方法](doc/collection.md)
+* [基于prometheus的微服务指标监控](doc/metric.md)
+* [文本序列化和反序列化](doc/mapping.md)
 
 ## 9. 微信交流群
 
