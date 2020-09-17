@@ -18,6 +18,11 @@ var (
 	client     rpcx.Client
 )
 
+type Config struct {
+	rest.RestConf
+	Portal rpcx.RpcClientConf
+}
+
 func handle(w http.ResponseWriter, r *http.Request) {
 	conn := client.Conn()
 	greet := portal.NewPortalClient(conn)
@@ -34,16 +39,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	var c rpcx.RpcClientConf
+	var c Config
 	conf.MustLoad(*configFile, &c)
-	client = rpcx.MustNewClient(c)
+	client = rpcx.MustNewClient(c.Portal)
 	engine := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
 			},
 		},
-		Port: 3333,
+		Port: c.Port,
 	})
 	defer engine.Stop()
 
