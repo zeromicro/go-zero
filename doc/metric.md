@@ -51,6 +51,22 @@ Prometheus:
 ]
 ```
 
+- 如是docker安装的prometheus服务，创建targets.json
+
+```go
+[
+    {
+        "targets": ["host.docker.internal:9091"],
+        "labels": {
+            "job": "shorturl-api",
+            "app": "shorturl-api",
+            "env": "test",
+            "instance": "host.docker.internal:8888"
+        }
+    }
+]
+```
+
 - 启动prometheus服务，默认侦听在9090端口
 
 ```go
