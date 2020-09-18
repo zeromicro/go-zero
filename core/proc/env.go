@@ -30,14 +30,9 @@ func Env(name string) string {
 
 func EnvInt(name string) (int, bool) {
 	val := Env(name)
-	if len(val) == 0 {
-		return 0, false
-	}
-
 	n, err := strconv.Atoi(val)
 	if err != nil {
 		return 0, false
 	}
-
 	return n, true
 }
