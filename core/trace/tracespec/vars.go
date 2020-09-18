@@ -1,3 +1,4 @@
 package tracespec
 
-const TracingKey = "X-Trace"
+//TracingKey is tracing key for ctx
+var TracingKey struct{}
