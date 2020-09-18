@@ -57,6 +57,12 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
 * install etcd, mysql, redis
 
+* install protoc-gen-go
+
+  ```shell
+  go get -u github.com/golang/protobuf/protoc-gen-go
+  ```
+
 * install goctl
 
   ```shell

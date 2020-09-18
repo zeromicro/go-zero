@@ -57,6 +57,12 @@
 
 * 安装etcd, mysql, redis
 
+* 安装`protoc-gen-go`
+
+  ```shell
+  go get -u github.com/golang/protobuf/protoc-gen-go
+  ```
+
 * 安装goctl工具
 
   ```shell
