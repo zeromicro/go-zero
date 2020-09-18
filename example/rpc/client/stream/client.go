@@ -33,8 +33,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	done := make(chan struct{})
 	go func() {
-		for {
+		defer func() {
+			done <- struct{}{}
+		}()
+		for i := 0; i < 3; i++ {
 			resp, err := stm.Recv()
 			if err != nil {
 				log.Fatal(err)
@@ -52,4 +56,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	<-done
 }
