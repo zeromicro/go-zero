@@ -1,3 +1,13 @@
 {
-    "Server": "localhost:3456"
+  "Name": "edge-api",
+  "Host": "0.0.0.0",
+  "Port": 3456,
+  "Portal": {
+    "Etcd": {
+      "Hosts": [
+        "localhost:2379"
+      ],
+      "Key": "portal"
+    }
+  }
 }
