@@ -284,7 +284,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
   ```go
   type Config struct {
   	rest.RestConf
-  	Transform rpcx.RpcClientConf     // manual code
+  	Transform zrpc.RpcClientConf     // manual code
   }
   ```
 
@@ -299,7 +299,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
   func NewServiceContext(c config.Config) *ServiceContext {
   	return &ServiceContext{
   		Config:    c,
-      Transformer: transformer.NewTransformer(rpcx.MustNewClient(c.Transform)), // manual code
+      Transformer: transformer.NewTransformer(zrpc.MustNewClient(c.Transform)), // manual code
   	}
   }
   ```
@@ -409,7 +409,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
 
   ```go
   type Config struct {
-  	rpcx.RpcServerConf
+  	zrpc.RpcServerConf
   	DataSource string             // manual code
   	Table      string             // manual code
   	Cache      cache.CacheConf    // manual code

@@ -10,17 +10,17 @@ import (
 	"github.com/tal-tech/go-zero/example/tracing/remote/portal"
 	"github.com/tal-tech/go-zero/rest"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var (
 	configFile = flag.String("f", "config.json", "the config file")
-	client     rpcx.Client
+	client     zrpc.Client
 )
 
 type Config struct {
 	rest.RestConf
-	Portal rpcx.RpcClientConf
+	Portal zrpc.RpcClientConf
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +41,7 @@ func main() {
 
 	var c Config
 	conf.MustLoad(*configFile, &c)
-	client = rpcx.MustNewClient(c.Portal)
+	client = zrpc.MustNewClient(c.Portal)
 	engine := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{

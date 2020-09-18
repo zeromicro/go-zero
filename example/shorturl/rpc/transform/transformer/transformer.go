@@ -11,7 +11,7 @@ import (
 	transform "shorturl/rpc/transform/pb"
 
 	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
@@ -21,11 +21,11 @@ type (
 	}
 
 	defaultTransformer struct {
-		cli rpcx.Client
+		cli zrpc.Client
 	}
 )
 
-func NewTransformer(cli rpcx.Client) Transformer {
+func NewTransformer(cli zrpc.Client) Transformer {
 	return &defaultTransformer{
 		cli: cli,
 	}

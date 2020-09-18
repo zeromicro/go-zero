@@ -221,11 +221,11 @@ OPTIONS:
     *rrBalanced does not implement Picker (wrong type for Pick method)
 		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
     want Pick(balancer.PickInfo) (balancer.PickResult, error)
-    #github.com/tal-tech/go-zero/rpcx/internal/balancer/p2c
-    ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/rpcx/internal/balancer/p2c/p2c.go:41:32: not enough arguments in call to base.NewBalancerBuilder
+    #github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c
+    ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:41:32: not enough arguments in call to base.NewBalancerBuilder
 	have (string, *p2cPickerBuilder)
   want (string, base.PickerBuilder, base.Config)
-  ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/rpcx/internal/balancer/p2c/p2c.go:58:9: cannot use &p2cPicker literal (type *p2cPicker) as type balancer.Picker in return argument:
+  ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:58:9: cannot use &p2cPicker literal (type *p2cPicker) as type balancer.Picker in return argument:
 	*p2cPicker does not implement balancer.Picker (wrong type for Pick method)
 		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
 		want Pick(balancer.PickInfo) (balancer.PickResult, error)

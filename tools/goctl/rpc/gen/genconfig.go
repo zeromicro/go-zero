@@ -10,10 +10,10 @@ import (
 
 const configTemplate = `package config
 
-import "github.com/tal-tech/go-zero/rpcx"
+import "github.com/tal-tech/go-zero/zrpc"
 
 type Config struct {
-	rpcx.RpcServerConf
+	zrpc.RpcServerConf
 }
 `
 

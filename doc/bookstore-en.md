@@ -347,8 +347,8 @@ you can change the listening port in file `etc/add.yaml`.
   ```go
   type Config struct {
       rest.RestConf
-      Add   rpcx.RpcClientConf     // manual code
-      Check rpcx.RpcClientConf     // manual code
+      Add   zrpc.RpcClientConf     // manual code
+      Check zrpc.RpcClientConf     // manual code
   }
   ```
 
@@ -364,8 +364,8 @@ you can change the listening port in file `etc/add.yaml`.
   func NewServiceContext(c config.Config) *ServiceContext {
       return &ServiceContext{
           Config:  c,
-          Adder:   adder.NewAdder(rpcx.MustNewClient(c.Add)),         // manual code
-          Checker: checker.NewChecker(rpcx.MustNewClient(c.Check)),   // manual code
+          Adder:   adder.NewAdder(zrpc.MustNewClient(c.Add)),         // manual code
+          Checker: checker.NewChecker(zrpc.MustNewClient(c.Check)),   // manual code
       }
   }
   ```
@@ -477,7 +477,7 @@ Till now, we’ve done the modification of API Gateway. All the manually added c
 
   ```go
   type Config struct {
-      rpcx.RpcServerConf
+      zrpc.RpcServerConf
       DataSource string             // manual code
       Table      string             // manual code
       Cache      cache.CacheConf    // manual code

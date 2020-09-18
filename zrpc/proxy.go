@@ -1,12 +1,12 @@
-package rpcx
+package zrpc
 
 import (
 	"context"
 	"sync"
 
 	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/rpcx/internal"
-	"github.com/tal-tech/go-zero/rpcx/internal/auth"
+	"github.com/tal-tech/go-zero/zrpc/internal"
+	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 )
 
