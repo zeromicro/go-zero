@@ -33,12 +33,12 @@ func (r *RefResource) Use() error {
 }
 
 func (r *RefResource) Clean() {
-	r.lock.Lock()
-	defer r.lock.Unlock()
-
 	if r.cleaned {
 		return
 	}
+
+	r.lock.Lock()
+	defer r.lock.Unlock()
 
 	r.ref--
 	if r.ref == 0 {
