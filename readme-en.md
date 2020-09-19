@@ -19,7 +19,7 @@ Advantages of go-zero:
 * improve the stability of the services with tens of millions of daily active users
 * builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
 * builtin middlewares also can be integrated into your frameworks
-* simple API syntax, one command to generate couple different languages
+* simple API syntax, one command to generate couples of different languages
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
@@ -58,7 +58,7 @@ After almost half a year, we finished the transfer from monolithic system to mic
 
 go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
 
-* powerful tool included, less code to write
+* powerful tools included, less code to write
 * simple interfaces
 * fully compatible with net/http
 * middlewares are supported, easy to extend
@@ -78,7 +78,7 @@ As below, go-zero protects the system with couple layers and mechanisms:
 
 ## 4. Future development plans of go-zero
 
-* auto generate API mock server, make the client debugging eaisier
+* auto generate API mock server, make the client debugging easier
 * auto generate the simple integration test for the server side just from the .api files
 
 ## 5. Installation
