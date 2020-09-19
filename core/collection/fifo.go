@@ -45,12 +45,12 @@ func (q *Queue) Put(element interface{}) {
 }
 
 func (q *Queue) Take() (interface{}, bool) {
-	q.lock.Lock()
-	defer q.lock.Unlock()
-
 	if q.count == 0 {
 		return nil, false
 	}
+
+	q.lock.Lock()
+	defer q.lock.Unlock()
 
 	element := q.elements[q.head]
 	q.head = (q.head + 1) % len(q.elements)
