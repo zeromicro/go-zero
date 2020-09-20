@@ -1,7 +1,7 @@
 package tracespec
 
-//ContextKey a type for context key
-type ContextKey struct{}
+// contextKey a type for context key
+type contextKey string
 
-//TracingKey is tracing key for ctx
-var TracingKey ContextKey
+// TracingKey is tracing key for context
+var TracingKey = contextKey("X-Trace")
