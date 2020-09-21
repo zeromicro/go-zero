@@ -10,9 +10,9 @@ import (
 
 type tracingEntry struct {
 	logEntry
-	Trace string          `json:"trace,omitempty"`
-	Span  string          `json:"span,omitempty"`
-	ctx   context.Context `json:"-"`
+	Trace string `json:"trace,omitempty"`
+	Span  string `json:"span,omitempty"`
+	ctx   context.Context
 }
 
 func (l tracingEntry) Error(v ...interface{}) {
