@@ -9,14 +9,14 @@
 
 ### 1.  客户端获取JWT Token
 
-我们定义一个协议供客户端调用获取JWT token，我们找一个目录执行goctl api new jwt，将生成的jwt.api改成如下：
+我们定义一个协议供客户端调用获取JWT token，我们找一个目录执行goctl api -o jwt.api，将生成的jwt.api改成如下：
 
 ````go
 type JwtTokenRequest struct {
 }
 
 type JwtTokenResponse struct {
-	AccessToken string `json:"access_token"`
+  AccessToken string `json:"access_token"`
   AccessExpire int64 `json:"access_expire"`
   RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
 }
@@ -29,14 +29,14 @@ service jwt-api {
 }
 ````
 
-再次在生产服务目录中执行：api go -api jwt.api -dir .
+再次在生产服务目录中执行：`goctl api go -api jwt.api -dir .`
 
-打开jwtlogic.go文件，修改 `func (l *JwtLogic) Jwt(req types.Request) (*types.Response, error) {` 方法如下：
+打开jwtlogic.go文件，修改 `func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {` 方法如下：
 
 ```go
 const AccessSecret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
-func (l *JwtLogic) Jwt(req types.Request) (*types.Response, error) {
+func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {
 	var accessExpire int64 = 60 * 60 * 24 * 7
 
 	now := time.Now().Unix()
@@ -45,7 +45,7 @@ func (l *JwtLogic) Jwt(req types.Request) (*types.Response, error) {
 		return nil, err
 	}
 
-	return &types.Response{AccessToken: accessToken, AccessExpire: now + accessExpire, RefreshAfter: now + accessExpire/2}, nil
+	return &types.JwtTokenResponse{AccessToken: accessToken, AccessExpire: now + accessExpire, RefreshAfter: now + accessExpire/2}, nil
 }
 
 func (l *JwtLogic) GenToken(iat int64, secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
@@ -81,9 +81,9 @@ type JwtTokenRequest struct {
 }
 
 type JwtTokenResponse struct {
-	AccessToken  string `json:"access_token"`
-	AccessExpire int64  `json:"access_expire"`
-	RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
+  AccessToken  string `json:"access_token"`
+  AccessExpire int64  `json:"access_expire"`
+  RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
 }
 
 type GetUserRequest struct {
