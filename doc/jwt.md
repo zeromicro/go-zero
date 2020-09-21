@@ -94,7 +94,7 @@ type JwtTokenResponse struct {
   RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
 }
 
-type GetUserRequest struct {
+type GetUserRequest struct { 
   UserId string `json:"userId"`
 }
 
@@ -107,14 +107,19 @@ service jwt-api {
     handler: JwtHandler
   )
   post /user/token(JwtTokenRequest) returns (JwtTokenResponse)
+}
 
+@server(
+  jwt: JwtAuth
+)
+service jwt-api {
   @server(
     handler: GetUserHandler
   )
   post /user/info(GetUserRequest) returns (GetUserResponse)
 }
 ```
-
+通过`jwt: JwtAuth`标记的service激活jwt认证。
 再次执行 `goctl api go -api jwt.api -dir .` 生成代码。
 
 2. 修改 routes.go，给协议添加JWT认证  `rest.WithJwt(logic.AccessSecret)`
@@ -128,13 +133,14 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 			Handler: jwtHandler(serverCtx),
 		},
 	})
+
 	engine.AddRoutes([]rest.Route{
 		{
 			Method:  http.MethodPost,
 			Path:    "/user/info",
 			Handler: getUserHandler(serverCtx),
 		},
-	}, rest.WithJwt(logic.AccessSecret))
+	}, rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret))
 }
 ```
 
