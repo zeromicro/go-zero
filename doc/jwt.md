@@ -18,7 +18,7 @@ type JwtTokenRequest struct {
 type JwtTokenResponse struct {
   AccessToken string `json:"access_token"`
   AccessExpire int64 `json:"access_expire"`
-  RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
+  RefreshAfter int64 `json:"refresh_after"` // 建议客户端刷新token的绝对时间
 }
 
 service jwt-api {
@@ -122,7 +122,7 @@ service jwt-api {
 通过`jwt: JwtAuth`标记的service激活jwt认证。
 再次执行 `goctl api go -api jwt.api -dir .` 生成代码。
 
-2. 修改 routes.go，给协议添加JWT认证  `rest.WithJwt(logic.AccessSecret)`
+2. 修改 routes.go，给协议添加JWT认证  `rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret)`
 
 ```go
 func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
