@@ -53,7 +53,7 @@ func DoGenProject(apiFile, dir string, force bool) error {
 
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genEtc(dir, api))
-	logx.Must(genConfig(dir))
+	logx.Must(genConfig(dir, api))
 	logx.Must(genMain(dir, api))
 	logx.Must(genServiceContext(dir, api))
 	logx.Must(genTypes(dir, api, force))
