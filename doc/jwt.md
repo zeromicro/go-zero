@@ -47,7 +47,8 @@ service jwt-api {
 }
 ````
 
-在服务jwt目录中执行：`goctl api go -api jwt.api -dir .`
+再次在生成服务目录中执行：`goctl api go -api jwt.api -dir .`
+
 打开jwtlogic.go文件，修改 `func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {` 方法如下：
 
 ```go
@@ -100,8 +101,7 @@ JwtAuth:
 ### 2 服务器验证JWT token
 
 1. 在api文件中通过`jwt: JwtAuth`标记的service表示激活了jwt认证。
-2. 可以阅读rest/handler/authhandler.go文件了解服务器jwt实现。
-3. 修改getuserlogic.go如下：
+2. 修改getuserlogic.go如下：
 
 ```go
 func (l *GetUserLogic) GetUser(req types.GetUserRequest) (*types.GetUserResponse, error) {
