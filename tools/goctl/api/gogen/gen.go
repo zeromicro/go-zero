@@ -65,6 +65,7 @@ func DoGenProject(apiFile, dir string, force bool) error {
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
 	}
+
 	if err = apiformat.ApiFormat(apiFile, false); err != nil {
 		return err
 	}
