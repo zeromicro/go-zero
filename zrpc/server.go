@@ -1,4 +1,4 @@
-package rpcx
+package zrpc
 
 import (
 	"log"
@@ -10,9 +10,9 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/netx"
 	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/rpcx/internal"
-	"github.com/tal-tech/go-zero/rpcx/internal/auth"
-	"github.com/tal-tech/go-zero/rpcx/internal/serverinterceptors"
+	"github.com/tal-tech/go-zero/zrpc/internal"
+	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
 )
 
 const envPodIp = "POD_IP"

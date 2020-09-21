@@ -5,7 +5,7 @@ import (
 	"bookstore/rpc/add/adder"
 	"bookstore/rpc/check/checker"
 
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type ServiceContext struct {
@@ -17,7 +17,7 @@ type ServiceContext struct {
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
 		Config:  c,
-		Adder:   adder.NewAdder(rpcx.MustNewClient(c.Add)),
-		Checker: checker.NewChecker(rpcx.MustNewClient(c.Check)),
+		Adder:   adder.NewAdder(zrpc.MustNewClient(c.Add)),
+		Checker: checker.NewChecker(zrpc.MustNewClient(c.Check)),
 	}
 }

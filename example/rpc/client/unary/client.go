@@ -8,7 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var configFile = flag.String("f", "config.json", "the config file")
@@ -16,9 +16,9 @@ var configFile = flag.String("f", "config.json", "the config file")
 func main() {
 	flag.Parse()
 
-	var c rpcx.RpcClientConf
+	var c zrpc.RpcClientConf
 	conf.MustLoad(*configFile, &c)
-	client := rpcx.MustNewClient(c)
+	client := zrpc.MustNewClient(c)
 	ticker := time.NewTicker(time.Millisecond * 500)
 	defer ticker.Stop()
 	for {

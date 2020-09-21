@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/example/graceful/dns/api/handler"
 	"github.com/tal-tech/go-zero/example/graceful/dns/api/svc"
 	"github.com/tal-tech/go-zero/rest"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var configFile = flag.String("f", "etc/graceful-api.json", "the config file")
@@ -19,7 +19,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	client := rpcx.MustNewClient(c.Rpc)
+	client := zrpc.MustNewClient(c.Rpc)
 	ctx := &svc.ServiceContext{
 		Client: client,
 	}

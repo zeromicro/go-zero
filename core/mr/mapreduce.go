@@ -127,8 +127,8 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 		drain(collector)
 	}()
 
-	go executeMappers(func(item interface{}, writer Writer) {
-		mapper(item, writer, cancel)
+	go executeMappers(func(item interface{}, w Writer) {
+		mapper(item, w, cancel)
 	}, source, collector, done.Done(), options.workers)
 
 	value, ok := <-output

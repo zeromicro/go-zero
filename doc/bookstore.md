@@ -57,6 +57,12 @@
 
 * 安装etcd, mysql, redis
 
+* 安装`protoc-gen-go`
+
+  ```shell
+  go get -u github.com/golang/protobuf/protoc-gen-go
+  ```
+
 * 安装goctl工具
 
   ```shell
@@ -349,8 +355,8 @@
   ```go
   type Config struct {
       rest.RestConf
-      Add   rpcx.RpcClientConf     // 手动代码
-      Check rpcx.RpcClientConf     // 手动代码
+      Add   zrpc.RpcClientConf     // 手动代码
+      Check zrpc.RpcClientConf     // 手动代码
   }
   ```
 
@@ -366,8 +372,8 @@
   func NewServiceContext(c config.Config) *ServiceContext {
       return &ServiceContext{
           Config:  c,
-          Adder:   adder.NewAdder(rpcx.MustNewClient(c.Add)),         // 手动代码
-          Checker: checker.NewChecker(rpcx.MustNewClient(c.Check)),   // 手动代码
+          Adder:   adder.NewAdder(zrpc.MustNewClient(c.Add)),         // 手动代码
+          Checker: checker.NewChecker(zrpc.MustNewClient(c.Check)),   // 手动代码
       }
   }
   ```
@@ -477,7 +483,7 @@
 
   ```go
   type Config struct {
-      rpcx.RpcServerConf
+      zrpc.RpcServerConf
       DataSource string             // 手动代码
       Table      string             // 手动代码
       Cache      cache.CacheConf    // 手动代码

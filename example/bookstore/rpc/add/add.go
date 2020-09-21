@@ -14,7 +14,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -28,7 +28,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	adderSrv := server.NewAdderServer(ctx)
 
-	s, err := rpcx.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		add.RegisterAdderServer(grpcServer, adderSrv)
 	})
 	logx.Must(err)

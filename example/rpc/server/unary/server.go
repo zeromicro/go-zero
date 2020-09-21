@@ -10,7 +10,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -44,10 +44,10 @@ func (gs *GreetServer) Greet(ctx context.Context, req *unary.Request) (*unary.Re
 func main() {
 	flag.Parse()
 
-	var c rpcx.RpcServerConf
+	var c zrpc.RpcServerConf
 	conf.MustLoad(*configFile, &c)
 
-	server := rpcx.MustNewServer(c, func(grpcServer *grpc.Server) {
+	server := zrpc.MustNewServer(c, func(grpcServer *grpc.Server) {
 		unary.RegisterGreeterServer(grpcServer, NewGreetServer())
 	})
 	server.Start()

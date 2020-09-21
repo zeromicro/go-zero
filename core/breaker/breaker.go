@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -195,23 +195,23 @@ type errorWindow struct {
 
 func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
-	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(timeFormat), reason)
+	ew.reasons[ew.index] = fmt.Sprintf("%s %s", timex.Time().Format(timeFormat), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
 	ew.count = mathx.MinInt(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()
 }
 
 func (ew *errorWindow) String() string {
-	var builder strings.Builder
+	var reasons []string
 
 	ew.lock.Lock()
-	for i := ew.index + ew.count - 1; i >= ew.index; i-- {
-		builder.WriteString(ew.reasons[i%numHistoryReasons])
-		builder.WriteByte('\n')
+	// reverse order
+	for i := ew.index - 1; i >= ew.index-ew.count; i-- {
+		reasons = append(reasons, ew.reasons[(i+numHistoryReasons)%numHistoryReasons])
 	}
 	ew.lock.Unlock()
 
-	return builder.String()
+	return strings.Join(reasons, "\n")
 }
 
 type promiseWithReason struct {

@@ -19,7 +19,7 @@ Advantages of go-zero:
 * improve the stability of the services with tens of millions of daily active users
 * builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
 * builtin middlewares also can be integrated into your frameworks
-* simple API syntax, one command to generate couple different languages
+* simple API syntax, one command to generate couple of different languages
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
@@ -78,7 +78,7 @@ As below, go-zero protects the system with couple layers and mechanisms:
 
 ## 4. Future development plans of go-zero
 
-* auto generate API mock server, make the client debugging eaisier
+* auto generate API mock server, make the client debugging easier
 * auto generate the simple integration test for the server side just from the .api files
 
 ## 5. Installation

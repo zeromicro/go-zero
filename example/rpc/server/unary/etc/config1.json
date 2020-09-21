@@ -8,6 +8,6 @@
         "Hosts": [
             "localhost:2379"
         ],
-        "Key": "rpcx"
+        "Key": "zrpc"
     }
 }

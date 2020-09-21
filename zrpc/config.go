@@ -1,4 +1,4 @@
-package rpcx
+package zrpc
 
 import (
 	"github.com/tal-tech/go-zero/core/discov"
