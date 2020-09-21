@@ -25,7 +25,7 @@ service jwt-api {
   @server(
     handler: JwtHandler
   )
-  post /user/token(JwtTokenRequest) returns (JwtTokenResponse);
+  post /user/token(JwtTokenRequest) returns (JwtTokenResponse)
 }
 ````
 
