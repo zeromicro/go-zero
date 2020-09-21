@@ -60,8 +60,6 @@ func DoGenProject(apiFile, dir string, force bool) error {
 	logx.Must(genHandlers(dir, api))
 	logx.Must(genRoutes(dir, api, force))
 	logx.Must(genLogic(dir, api))
-	// it does not work
-	format(dir)
 	createGoModFileIfNeed(dir)
 
 	if err := backupAndSweep(apiFile); err != nil {
@@ -100,14 +98,6 @@ func backupAndSweep(apiFile string) error {
 	wg.Wait()
 
 	return err
-}
-
-func format(dir string) {
-	cmd := exec.Command("go", "fmt", "./"+dir+"...")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
 }
 
 func sweep() error {
