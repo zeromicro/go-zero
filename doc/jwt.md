@@ -9,7 +9,7 @@
 
 ### 1.  客户端获取JWT Token
 
-我们定义一个协议供客户端调用获取JWT token，我们找一个目录执行goctl api -o jwt.api，将生成的jwt.api改成如下：
+我们定义一个协议供客户端调用获取JWT token，我们新建一个目录jwt然后在目录中执行 `goctl api -o jwt.api`，将生成的jwt.api改成如下：
 
 ````go
 type JwtTokenRequest struct {
