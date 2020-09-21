@@ -47,8 +47,7 @@ service jwt-api {
 }
 ````
 
-再次在生成服务目录中执行：`goctl api go -api jwt.api -dir .`
-
+在服务jwt目录中执行：`goctl api go -api jwt.api -dir .`
 打开jwtlogic.go文件，修改 `func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {` 方法如下：
 
 ```go
