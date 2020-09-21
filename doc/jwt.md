@@ -16,9 +16,17 @@ type JwtTokenRequest struct {
 }
 
 type JwtTokenResponse struct {
-  AccessToken string `json:"access_token"`
-  AccessExpire int64 `json:"access_expire"`
-  RefreshAfter int64 `json:"refresh_after"` // 建议客户端刷新token的绝对时间
+  AccessToken  string `json:"access_token"`
+  AccessExpire int64  `json:"access_expire"`
+  RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
+}
+
+type GetUserRequest struct { 
+  UserId string `json:"userId"`
+}
+
+type GetUserResponse struct {
+  Name string `json:"name"`
 }
 
 service jwt-api {
@@ -26,6 +34,16 @@ service jwt-api {
     handler: JwtHandler
   )
   post /user/token(JwtTokenRequest) returns (JwtTokenResponse)
+}
+
+@server(
+  jwt: JwtAuth
+)
+service jwt-api {
+  @server(
+    handler: GetUserHandler
+  )
+  post /user/info(GetUserRequest) returns (GetUserResponse)
 }
 ````
 
@@ -82,69 +100,8 @@ JwtAuth:
 
 ### 2 服务器验证JWT token
 
-1. 添加一个测试JWT的路由，修改api文件如下：
-
-```go
-type JwtTokenRequest struct {
-}
-
-type JwtTokenResponse struct {
-  AccessToken  string `json:"access_token"`
-  AccessExpire int64  `json:"access_expire"`
-  RefreshAfter int64  `json:"refresh_after"` // 建议客户端刷新token的绝对时间
-}
-
-type GetUserRequest struct { 
-  UserId string `json:"userId"`
-}
-
-type GetUserResponse struct {
-  Name string `json:"name"`
-}
-
-service jwt-api {
-  @server(
-    handler: JwtHandler
-  )
-  post /user/token(JwtTokenRequest) returns (JwtTokenResponse)
-}
-
-@server(
-  jwt: JwtAuth
-)
-service jwt-api {
-  @server(
-    handler: GetUserHandler
-  )
-  post /user/info(GetUserRequest) returns (GetUserResponse)
-}
-```
-通过`jwt: JwtAuth`标记的service激活jwt认证。
-再次执行 `goctl api go -api jwt.api -dir .` 生成代码。
-
-2. 修改 routes.go，给协议添加JWT认证  `rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret)`
-
-```go
-func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
-	engine.AddRoutes([]rest.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/user/token",
-			Handler: jwtHandler(serverCtx),
-		},
-	})
-
-	engine.AddRoutes([]rest.Route{
-		{
-			Method:  http.MethodPost,
-			Path:    "/user/info",
-			Handler: getUserHandler(serverCtx),
-		},
-	}, rest.WithJwt(serverCtx.Config.JwtAuth.AccessSecret))
-}
-```
-
-3. 修改getuserlogic.go如下：
+1. 在api文件中通过`jwt: JwtAuth`标记的service表示激活了jwt认证。
+2. 修改getuserlogic.go如下：
 
 ```go
 func (l *GetUserLogic) GetUser(req types.GetUserRequest) (*types.GetUserResponse, error) {
