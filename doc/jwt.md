@@ -34,13 +34,12 @@ service jwt-api {
 打开jwtlogic.go文件，修改 `func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {` 方法如下：
 
 ```go
-const AccessSecret = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, error) {
-	var accessExpire int64 = 60 * 60 * 24 * 7
+	var accessExpire = l.svcCtx.Config.JwtAuth.AccessExpire
 
 	now := time.Now().Unix()
-	accessToken, err := l.GenToken(now, AccessSecret, nil, accessExpire)
+	accessToken, err := l.GenToken(now, l.svcCtx.Config.JwtAuth.AccessSecret, nil, accessExpire)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +62,16 @@ func (l *JwtLogic) GenToken(iat int64, secretKey string, payloads map[string]int
 }
 ```
 
-启动服务器，然后测试下获取到的token
+在启动服务之前，我们需要修改etc/jwt-api.yaml文件如下：
+```yaml
+Name: jwt-api
+Host: 0.0.0.0
+Port: 8888
+JwtAuth:
+  AccessSecret: xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  AccessExpire: 604800
+```
+启动服务器，然后测试下获取到的token。
 
 ```sh
 ➜  jwt curl --location --request POST '127.0.0.1:8888/user/token'
@@ -103,7 +111,7 @@ service jwt-api {
   @server(
     handler: GetUserHandler
   )
-  post /user/getUser(GetUserRequest) returns (GetUserResponse)
+  post /user/info(GetUserRequest) returns (GetUserResponse)
 }
 ```
 
@@ -165,4 +173,5 @@ http: 200
 
 
 
-综上所述：基于go-zero的JWT认证完成，在真实生产环境部署时候，AccessSecret, AccessExpire, RefreshAfter可以通过配置文件配置，RefreshAfter 是告诉客户端什么时候该刷新JWT token了，一般都需要设置过期时间前几天。
+综上所述：基于go-zero的JWT认证完成，在真实生产环境部署时候，AccessSecret, AccessExpire, RefreshAfter根据业务场景通过配置文件配置，RefreshAfter 是告诉客户端什么时候该刷新JWT token了，一般都需要设置过期时间前几天。
+
