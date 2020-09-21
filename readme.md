@@ -160,6 +160,7 @@ go get -u github.com/tal-tech/go-zero
 * [防止缓存击穿之进程内共享调用](doc/sharedcalls.md)
 * [基于prometheus的微服务指标监控](doc/metric.md)
 * [文本序列化和反序列化](doc/mapping.md)
+* [快速构建jwt鉴权认证](doc/jwt.md)
 
 ## 9. 微信交流群
 
