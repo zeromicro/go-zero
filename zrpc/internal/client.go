@@ -66,11 +66,11 @@ func buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
-			clientinterceptors.BreakerInterceptor,
+			clientinterceptors.TracingInterceptor,
 			clientinterceptors.DurationInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PromMetricInterceptor,
 			clientinterceptors.TimeoutInterceptor(clientOptions.Timeout),
-			clientinterceptors.TracingInterceptor,
 		),
 	}
 

@@ -109,8 +109,6 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 			time.Duration(c.Timeout) * time.Millisecond))
 	}
 
-	server.AddUnaryInterceptors(serverinterceptors.UnaryTracingInterceptor(c.Name))
-
 	if c.Auth {
 		authenticator, err := auth.NewAuthenticator(c.Redis.NewRedis(), c.Redis.Key, c.StrictControl)
 		if err != nil {

@@ -1,4 +1,4 @@
-### 基于go-zero实现JWT认证
+# 基于go-zero实现JWT认证
 
 关于JWT是什么，大家可以看看[官网](https://jwt.io/)，一句话介绍下：是可以实现服务器无状态的鉴权认证方案，也是目前最流行的跨域认证解决方案。
 
@@ -7,7 +7,7 @@
 * 客户端获取JWT token。
 * 服务器对客户端带来的JWT token认证。
 
-### 1.  客户端获取JWT Token
+## 1.  客户端获取JWT Token
 
 我们定义一个协议供客户端调用获取JWT token，我们新建一个目录jwt然后在目录中执行 `goctl api -o jwt.api`，将生成的jwt.api改成如下：
 
@@ -61,7 +61,11 @@ func (l *JwtLogic) Jwt(req types.JwtTokenRequest) (*types.JwtTokenResponse, erro
 		return nil, err
 	}
 
-	return &types.JwtTokenResponse{AccessToken: accessToken, AccessExpire: now + accessExpire, RefreshAfter: now + accessExpire/2}, nil
+	return &types.JwtTokenResponse{
+    AccessToken:  accessToken,
+    AccessExpire: now + accessExpire,
+    RefreshAfter: now + accessExpire/2,
+  }, nil
 }
 
 func (l *JwtLogic) GenToken(iat int64, secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
@@ -91,13 +95,11 @@ JwtAuth:
 启动服务器，然后测试下获取到的token。
 
 ```sh
-➜  jwt curl --location --request POST '127.0.0.1:8888/user/token'
+➜ curl --location --request POST '127.0.0.1:8888/user/token'
 {"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDEyNjE0MjksImlhdCI6MTYwMDY1NjYyOX0.6u_hpE_4m5gcI90taJLZtvfekwUmjrbNJ-5saaDGeQc","access_expire":1601261429,"refresh_after":1600959029}
 ```
 
-
-
-### 2 服务器验证JWT token
+## 2. 服务器验证JWT token
 
 1. 在api文件中通过`jwt: JwtAuth`标记的service表示激活了jwt认证。
 2. 可以阅读rest/handler/authhandler.go文件了解服务器jwt实现。
@@ -112,7 +114,7 @@ func (l *GetUserLogic) GetUser(req types.GetUserRequest) (*types.GetUserResponse
 * 我们先不带JWT Authorization header请求头测试下，返回http status code是401，符合预期。
 
 ```sh
-➜  jwt curl -w  "\nhttp: %{http_code} \n" --location --request POST '127.0.0.1:8888/user/info' \
+➜ curl -w  "\nhttp: %{http_code} \n" --location --request POST '127.0.0.1:8888/user/info' \
 --header 'Content-Type: application/json' \
 --data-raw '{
     "userId": "a"
@@ -124,7 +126,7 @@ http: 401
 * 加上Authorization header请求头测试。
 
 ```sh
-➜  jwt curl -w  "\nhttp: %{http_code} \n" --location --request POST '127.0.0.1:8888/user/info' \
+➜ curl -w  "\nhttp: %{http_code} \n" --location --request POST '127.0.0.1:8888/user/info' \
 --header 'Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDEyNjE0MjksImlhdCI6MTYwMDY1NjYyOX0.6u_hpE_4m5gcI90taJLZtvfekwUmjrbNJ-5saaDGeQc' \
 --header 'Content-Type: application/json' \
 --data-raw '{
@@ -133,8 +135,6 @@ http: 401
 {"name":"kim"}
 http: 200
 ```
-
-
 
 综上所述：基于go-zero的JWT认证完成，在真实生产环境部署时候，AccessSecret, AccessExpire, RefreshAfter根据业务场景通过配置文件配置，RefreshAfter 是告诉客户端什么时候该刷新JWT token了，一般都需要设置过期时间前几天。
 
