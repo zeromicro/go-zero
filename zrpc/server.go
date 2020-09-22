@@ -1,4 +1,4 @@
-package rpcx
+package zrpc
 
 import (
 	"log"
@@ -10,9 +10,9 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/netx"
 	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/rpcx/internal"
-	"github.com/tal-tech/go-zero/rpcx/internal/auth"
-	"github.com/tal-tech/go-zero/rpcx/internal/serverinterceptors"
+	"github.com/tal-tech/go-zero/zrpc/internal"
+	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
 )
 
 const envPodIp = "POD_IP"
@@ -108,8 +108,6 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 		server.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
 			time.Duration(c.Timeout) * time.Millisecond))
 	}
-
-	server.AddUnaryInterceptors(serverinterceptors.UnaryTracingInterceptor(c.Name))
 
 	if c.Auth {
 		authenticator, err := auth.NewAuthenticator(c.Redis.NewRedis(), c.Redis.Key, c.StrictControl)

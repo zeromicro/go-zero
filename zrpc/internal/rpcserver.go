@@ -5,7 +5,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/rpcx/internal/serverinterceptors"
+	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
 )
 
@@ -17,6 +17,7 @@ type (
 	}
 
 	rpcServer struct {
+		name string
 		*baseRpcServer
 	}
 )
@@ -40,6 +41,7 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 }
 
 func (s *rpcServer) SetName(name string) {
+	s.name = name
 	s.baseRpcServer.SetName(name)
 }
 
@@ -50,6 +52,7 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	}
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
+		serverinterceptors.UnaryTracingInterceptor(s.name),
 		serverinterceptors.UnaryCrashInterceptor(),
 		serverinterceptors.UnaryStatInterceptor(s.metrics),
 		serverinterceptors.UnaryPromMetricInterceptor(),

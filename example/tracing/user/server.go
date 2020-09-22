@@ -10,7 +10,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/tracing/remote/user"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -44,10 +44,10 @@ func (gs *UserServer) GetGrade(ctx context.Context, req *user.UserRequest) (*use
 func main() {
 	flag.Parse()
 
-	var c rpcx.RpcServerConf
+	var c zrpc.RpcServerConf
 	conf.MustLoad(*configFile, &c)
 
-	server := rpcx.MustNewServer(c, func(grpcServer *grpc.Server) {
+	server := zrpc.MustNewServer(c, func(grpcServer *grpc.Server) {
 		user.RegisterUserServer(grpcServer, NewUserServer())
 	})
 	server.Start()

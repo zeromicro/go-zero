@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tal-tech/go-zero/rpcx/internal/balancer/p2c"
-	"github.com/tal-tech/go-zero/rpcx/internal/clientinterceptors"
-	"github.com/tal-tech/go-zero/rpcx/internal/resolver"
+	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
+	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/tal-tech/go-zero/zrpc/internal/resolver"
 	"google.golang.org/grpc"
 )
 
@@ -66,11 +66,11 @@ func buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
-			clientinterceptors.BreakerInterceptor,
+			clientinterceptors.TracingInterceptor,
 			clientinterceptors.DurationInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PromMetricInterceptor,
 			clientinterceptors.TimeoutInterceptor(clientOptions.Timeout),
-			clientinterceptors.TracingInterceptor,
 		),
 	}
 

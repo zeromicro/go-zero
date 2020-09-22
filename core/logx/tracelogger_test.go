@@ -19,7 +19,7 @@ var mock tracespec.Trace = new(mockTrace)
 func TestTraceLog(t *testing.T) {
 	var buf strings.Builder
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
-	WithContext(ctx).(tracingEntry).write(&buf, levelInfo, testlog)
+	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
 	assert.True(t, strings.Contains(buf.String(), mockTraceId))
 	assert.True(t, strings.Contains(buf.String(), mockSpanId))
 }

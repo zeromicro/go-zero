@@ -7,7 +7,7 @@ import (
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/rpcx/internal/auth"
+	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

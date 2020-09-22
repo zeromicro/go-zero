@@ -6,7 +6,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/example/rpc/remote/stream"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -39,10 +39,10 @@ func (gs StreamGreetServer) Greet(s stream.StreamGreeter_GreetServer) error {
 }
 
 func main() {
-	var c rpcx.RpcServerConf
+	var c zrpc.RpcServerConf
 	conf.MustLoad("etc/config.json", &c)
 
-	server := rpcx.MustNewServer(c, func(grpcServer *grpc.Server) {
+	server := zrpc.MustNewServer(c, func(grpcServer *grpc.Server) {
 		stream.RegisterStreamGreeterServer(grpcServer, StreamGreetServer(0))
 	})
 	server.Start()

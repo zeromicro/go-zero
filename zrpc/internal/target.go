@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/rpcx/internal/resolver"
+	"github.com/tal-tech/go-zero/zrpc/internal/resolver"
 )
 
 func BuildDirectTarget(endpoints []string) string {

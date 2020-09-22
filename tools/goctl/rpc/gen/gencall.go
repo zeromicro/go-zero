@@ -25,7 +25,7 @@ import (
 	{{.package}}
 
 	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
@@ -34,11 +34,11 @@ type (
 	}
 
 	default{{.serviceName}} struct {
-		cli rpcx.Client
+		cli zrpc.Client
 	}
 )
 
-func New{{.serviceName}}(cli rpcx.Client) {{.serviceName}} {
+func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
 	return &default{{.serviceName}}{
 		cli: cli,
 	}

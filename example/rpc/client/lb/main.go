@@ -9,7 +9,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var lb = flag.String("t", "direct", "the load balancer type")
@@ -17,20 +17,20 @@ var lb = flag.String("t", "direct", "the load balancer type")
 func main() {
 	flag.Parse()
 
-	var cli rpcx.Client
+	var cli zrpc.Client
 	switch *lb {
 	case "direct":
-		cli = rpcx.MustNewClient(rpcx.RpcClientConf{
+		cli = zrpc.MustNewClient(zrpc.RpcClientConf{
 			Endpoints: []string{
 				"localhost:3456",
 				"localhost:3457",
 			},
 		})
 	case "discov":
-		cli = rpcx.MustNewClient(rpcx.RpcClientConf{
+		cli = zrpc.MustNewClient(zrpc.RpcClientConf{
 			Etcd: discov.EtcdConf{
 				Hosts: []string{"localhost:2379"},
-				Key:   "rpcx",
+				Key:   "zrpc",
 			},
 		})
 	default:

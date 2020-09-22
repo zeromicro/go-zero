@@ -8,7 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 const timeFormat = "15:04:05"
@@ -16,10 +16,10 @@ const timeFormat = "15:04:05"
 func main() {
 	flag.Parse()
 
-	client := rpcx.MustNewClient(rpcx.RpcClientConf{
+	client := zrpc.MustNewClient(zrpc.RpcClientConf{
 		Etcd: discov.EtcdConf{
 			Hosts: []string{"localhost:2379"},
-			Key:   "rpcx",
+			Key:   "zrpc",
 		},
 	})
 
