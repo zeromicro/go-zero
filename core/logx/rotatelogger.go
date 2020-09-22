@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/fs"
-	"zero/core/lang"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/fs"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (

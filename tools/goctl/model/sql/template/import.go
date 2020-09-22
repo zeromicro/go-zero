@@ -1,15 +1,28 @@
-package sqltemplate
+package template
 
-var Imports = `
-import (
-	{{if .containsCache}}"database/sql"
-	"fmt"{{end}}
+var (
+	Imports = `import (
+	"database/sql"
+	"fmt"
 	"strings"
-	"time"
+	{{if .time}}"time"{{end}}
 
-    "zero/core/stores/cache"
-	"zero/core/stores/sqlc"
-	"zero/core/stores/sqlx"
-	"zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/stores/cache"
+	"github.com/tal-tech/go-zero/core/stores/sqlc"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
 )
 `
+	ImportsNoCache = `import (
+	"database/sql"
+	"strings"
+	{{if .time}}"time"{{end}}
+
+	"github.com/tal-tech/go-zero/core/stores/sqlc"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+)
+`
+)

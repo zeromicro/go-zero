@@ -2,9 +2,8 @@
 package mongo
 
 import (
-	"zero/core/breaker"
-
 	"github.com/globalsign/mgo/bson"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (

@@ -4,9 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"zero/core/lang"
-	"zero/tools/goctl/api/parser"
-
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/urfave/cli"
 )
 
@@ -33,8 +32,8 @@ func DartCommand(c *cli.Context) error {
 		dir = dir + "/"
 	}
 	api.Info.Title = strings.Replace(apiFile, ".api", "", -1)
-	lang.Must(genData(dir+"data/", api))
-	lang.Must(genApi(dir+"api/", api))
-	lang.Must(genVars(dir + "vars/"))
+	logx.Must(genData(dir+"data/", api))
+	logx.Must(genApi(dir+"api/", api))
+	logx.Must(genVars(dir + "vars/"))
 	return nil
 }

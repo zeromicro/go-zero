@@ -11,15 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/stat"
-	"zero/core/stores/internal"
-	"zero/core/stores/mongo"
-	"zero/core/stores/redis"
-
 	"github.com/alicebob/miniredis"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/mongo"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 func init() {

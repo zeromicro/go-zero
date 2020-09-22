@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func genVars(dir string) error {

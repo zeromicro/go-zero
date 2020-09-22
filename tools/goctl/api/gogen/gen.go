@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -12,14 +13,14 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/lang"
-	apiformat "zero/tools/goctl/api/format"
-	"zero/tools/goctl/api/parser"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
+
+	"github.com/tal-tech/go-zero/core/logx"
+	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const tmpFile = "%s-%d"
@@ -29,6 +30,7 @@ var tmpDir = path.Join(os.TempDir(), "goctl")
 func GoCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
+	force := c.Bool("force")
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -36,6 +38,10 @@ func GoCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
+	return DoGenProject(apiFile, dir, force)
+}
+
+func DoGenProject(apiFile, dir string, force bool) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err
@@ -45,17 +51,16 @@ func GoCommand(c *cli.Context) error {
 		return err
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genEtc(dir, api))
-	lang.Must(genConfig(dir, api))
-	lang.Must(genMain(dir, api))
-	lang.Must(genServiceContext(dir, api))
-	lang.Must(genTypes(dir, api))
-	lang.Must(genHandlers(dir, api))
-	lang.Must(genRoutes(dir, api))
-	lang.Must(genLogic(dir, api))
-	// it does not work
-	format(dir)
+	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(genEtc(dir, api))
+	logx.Must(genConfig(dir, api))
+	logx.Must(genMain(dir, api))
+	logx.Must(genServiceContext(dir, api))
+	logx.Must(genTypes(dir, api, force))
+	logx.Must(genHandlers(dir, api))
+	logx.Must(genRoutes(dir, api, force))
+	logx.Must(genLogic(dir, api))
+	createGoModFileIfNeed(dir)
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
@@ -95,14 +100,6 @@ func backupAndSweep(apiFile string) error {
 	return err
 }
 
-func format(dir string) {
-	cmd := exec.Command("go", "fmt", "./"+dir+"...")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		print(err.Error())
-	}
-}
-
 func sweep() error {
 	keepTime := time.Now().AddDate(0, 0, -7)
 	return filepath.Walk(tmpDir, func(fpath string, info os.FileInfo, err error) error {
@@ -131,4 +128,35 @@ func sweep() error {
 
 		return nil
 	})
+}
+
+func createGoModFileIfNeed(dir string) {
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		panic(err)
+	}
+
+	_, hasGoMod := util.FindGoModPath(dir)
+	if hasGoMod {
+		return
+	}
+
+	gopath := os.Getenv("GOPATH")
+	parent := path.Join(gopath, "src")
+	pos := strings.Index(absDir, parent)
+	if pos >= 0 {
+		return
+	}
+
+	moduleName := absDir[len(filepath.Dir(absDir))+1:]
+	cmd := exec.Command("go", "mod", "init", moduleName)
+	cmd.Dir = dir
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	if err = cmd.Run(); err != nil {
+		fmt.Println(err.Error())
+	}
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	fmt.Printf(outStr + "\n" + errStr)
 }

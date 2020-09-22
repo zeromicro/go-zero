@@ -8,13 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/errorx"
-	"zero/core/hash"
-	"zero/core/stores/redis"
-	"zero/core/syncx"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/core/hash"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 type mockedNode struct {

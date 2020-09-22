@@ -109,6 +109,18 @@ func TestParseRequired(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestParseOptions(t *testing.T) {
+	v := struct {
+		Position int8 `form:"pos,options=1|2"`
+	}{}
+
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?pos=4", nil)
+	assert.Nil(t, err)
+
+	err = Parse(r, &v)
+	assert.NotNil(t, err)
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
 	if err != nil {

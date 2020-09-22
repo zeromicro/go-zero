@@ -3,10 +3,9 @@ package bloom
 import (
 	"testing"
 
-	"zero/core/stores/redis"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {

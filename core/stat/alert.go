@@ -10,11 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/executors"
-	"zero/core/proc"
-	"zero/core/sysx"
-	"zero/core/timex"
-	"zero/core/utils"
+	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/tal-tech/go-zero/core/proc"
+	"github.com/tal-tech/go-zero/core/sysx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -24,7 +23,7 @@ const (
 )
 
 var (
-	reporter     = utils.Report
+	reporter     func(string)
 	lock         sync.RWMutex
 	lessExecutor = executors.NewLessExecutor(time.Minute * 5)
 	dropped      int32

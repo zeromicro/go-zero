@@ -7,23 +7,31 @@ import (
 	"path/filepath"
 	"strings"
 
-	"zero/core/collection"
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
-	"zero/tools/goctl/vars"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/project"
 )
 
 func getParentPackage(dir string) (string, error) {
-	absDir, err := filepath.Abs(dir)
+	p, err := project.Prepare(dir, false)
 	if err != nil {
 		return "", err
 	}
-	pos := strings.Index(absDir, vars.ProjectName)
-	if pos < 0 {
-		return "", fmt.Errorf("%s not in project directory", dir)
+
+	if len(p.GoMod.Path) > 0 {
+		goModePath := filepath.Clean(filepath.Dir(p.GoMod.Path))
+		absPath, err := filepath.Abs(dir)
+		if err != nil {
+			return "", err
+		}
+		parent := filepath.Clean(goctlutil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
+		parent = strings.ReplaceAll(parent, "\\", "/")
+		return parent, nil
 	}
 
-	return absDir[pos:], nil
+	return p.Package, nil
 }
 
 func writeIndent(writer io.Writer, indent int) {
@@ -46,7 +54,7 @@ func writeProperty(writer io.Writer, name, tp, tag, comment string, indent int) 
 }
 
 func getAuths(api *spec.ApiSpec) []string {
-	var authNames = collection.NewSet()
+	authNames := collection.NewSet()
 	for _, g := range api.Service.Groups {
 		if value, ok := util.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
 			authNames.Add(value)
@@ -63,5 +71,6 @@ func formatCode(code string) string {
 	if err != nil {
 		return code
 	}
+
 	return string(ret)
 }

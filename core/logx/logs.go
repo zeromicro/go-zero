@@ -15,11 +15,11 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
-	"zero/core/iox"
-	"zero/core/lang"
-	"zero/core/sysx"
-	"zero/core/timex"
+	"github.com/tal-tech/go-zero/core/iox"
+	"github.com/tal-tech/go-zero/core/sysx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -46,6 +46,7 @@ const (
 	levelInfo   = "info"
 	levelError  = "error"
 	levelSevere = "severe"
+	levelFatal  = "fatal"
 	levelSlow   = "slow"
 	levelStat   = "stat"
 
@@ -96,11 +97,12 @@ type (
 		Infof(string, ...interface{})
 		Slow(...interface{})
 		Slowf(string, ...interface{})
+		WithDuration(time.Duration) Logger
 	}
 )
 
 func MustSetup(c LogConf) {
-	lang.Must(SetUp(c))
+	Must(SetUp(c))
 }
 
 // SetUp sets up the logx. If already set up, just return nil.
@@ -208,6 +210,15 @@ func Info(v ...interface{}) {
 
 func Infof(format string, v ...interface{}) {
 	infoSync(fmt.Sprintf(format, v...))
+}
+
+func Must(err error) {
+	if err != nil {
+		msg := formatWithCaller(err.Error(), 3)
+		log.Print(msg)
+		output(severeLog, levelFatal, msg)
+		os.Exit(1)
+	}
 }
 
 func SetLevel(level uint32) {

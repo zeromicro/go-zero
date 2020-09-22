@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"sync"
 
-	"zero/core/logx"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
-const LogContext = "request_logs"
+var LogContext = contextKey("request_logs")
 
 type LogCollector struct {
 	Messages []string
@@ -79,5 +80,11 @@ func formatf(r *http.Request, format string, v ...interface{}) string {
 }
 
 func formatWithReq(r *http.Request, v string) string {
-	return fmt.Sprintf("(%s - %s) %s", r.RequestURI, GetRemoteAddr(r), v)
+	return fmt.Sprintf("(%s - %s) %s", r.RequestURI, httpx.GetRemoteAddr(r), v)
+}
+
+type contextKey string
+
+func (c contextKey) String() string {
+	return "rest/internal context key " + string(c)
 }

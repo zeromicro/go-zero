@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 
-	"zero/core/logx"
-	"zero/core/service"
-	"zero/example/rpc/remote/unary"
-	"zero/rpcx"
-
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/service"
+	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -18,7 +17,7 @@ var (
 )
 
 type GreetServer struct {
-	*rpcx.RpcProxy
+	*zrpc.RpcProxy
 }
 
 func (s *GreetServer) Greet(ctx context.Context, req *unary.Request) (*unary.Response, error) {
@@ -34,7 +33,7 @@ func (s *GreetServer) Greet(ctx context.Context, req *unary.Request) (*unary.Res
 func main() {
 	flag.Parse()
 
-	proxy := rpcx.MustNewServer(rpcx.RpcServerConf{
+	proxy := zrpc.MustNewServer(zrpc.RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
@@ -43,7 +42,7 @@ func main() {
 		ListenOn: *listen,
 	}, func(grpcServer *grpc.Server) {
 		unary.RegisterGreeterServer(grpcServer, &GreetServer{
-			RpcProxy: rpcx.NewRpcProxy(*server),
+			RpcProxy: zrpc.NewProxy(*server),
 		})
 	})
 	proxy.Start()

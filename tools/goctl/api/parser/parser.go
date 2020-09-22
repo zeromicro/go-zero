@@ -7,7 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 
-	"zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
 type Parser struct {

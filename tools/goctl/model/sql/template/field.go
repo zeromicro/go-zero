@@ -1,3 +1,3 @@
-package sqltemplate
+package template
 
-var Field = `{{.name}} {{.type}} {{.tag}} {{.comment}}`
+var Field = `{{.name}} {{.type}} {{.tag}} {{if .hasComment}}// {{.comment}}{{end}}`

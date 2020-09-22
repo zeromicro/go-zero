@@ -1,11 +1,11 @@
 package config
 
 import (
-	"zero/rest"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type Config struct {
 	rest.RestConf
-	Rpc rpcx.RpcClientConf
+	Rpc zrpc.RpcClientConf
 }

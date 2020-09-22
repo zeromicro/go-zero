@@ -3,7 +3,7 @@ package cache
 import (
 	"time"
 
-	"zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/internal"
 )
 
 type Option = internal.Option

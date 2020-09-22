@@ -10,9 +10,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/jsonx"
-	"zero/core/lang"
-	"zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/jsonx"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 const (
@@ -345,7 +345,7 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 			options := opts.options()
 			if len(options) > 0 {
 				if !stringx.Contains(options, mapValue.(string)) {
-					return fmt.Errorf(`error: value "%s" for field "%s" is not defined in opts "%v"`,
+					return fmt.Errorf(`error: value "%s" for field "%s" is not defined in options "%v"`,
 						mapValue, key, options)
 				}
 			}

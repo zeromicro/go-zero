@@ -1,8 +1,6 @@
 package executors
 
-import (
-	"time"
-)
+import "time"
 
 const defaultBulkTasks = 1000
 

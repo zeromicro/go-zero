@@ -17,10 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/codec"
-	"zero/rest/httpx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/codec"
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
 const timeDiff = time.Hour * 2 * 24
@@ -218,6 +217,7 @@ func TestContentSecurityHandler(t *testing.T) {
 					signature:   test.signature,
 				}
 				req, err := buildRequest(setting)
+				assert.Nil(t, err)
 				resp := httptest.NewRecorder()
 				handler.ServeHTTP(resp, req)
 				assert.Equal(t, test.statusCode, resp.Code)
@@ -250,6 +250,7 @@ func TestContentSecurityHandler_UnsignedCallback(t *testing.T) {
 		signature: "badone",
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -286,6 +287,7 @@ func TestContentSecurityHandler_UnsignedCallback_WrongTime(t *testing.T) {
 		fingerprint: fingerprint,
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)

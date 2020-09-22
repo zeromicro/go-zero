@@ -7,9 +7,9 @@ import (
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const (
@@ -156,7 +156,7 @@ func paramsForRoute(route spec.Route, prefixForType func(string) string) string 
 	hasBody := hasRequestBody(route)
 	rt, err := goTypeToTs(route.RequestType.Name, prefixForType)
 	if err != nil {
-		println(err.Error())
+		fmt.Println(err.Error())
 		return ""
 	}
 	if hasParams && hasBody {

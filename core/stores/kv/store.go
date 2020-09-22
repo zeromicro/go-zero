@@ -4,10 +4,10 @@ import (
 	"errors"
 	"log"
 
-	"zero/core/errorx"
-	"zero/core/hash"
-	"zero/core/stores/internal"
-	"zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/core/hash"
+	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 var ErrNoRedisNode = errors.New("no redis node")

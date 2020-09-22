@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"zero/core/cmdline"
-	"zero/core/collection"
-	"zero/core/proc"
+	"github.com/tal-tech/go-zero/core/cmdline"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/core/proc"
 )
 
 const numItems = 1000000

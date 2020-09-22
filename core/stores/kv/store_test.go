@@ -4,12 +4,11 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/stores/internal"
-	"zero/core/stores/redis"
-	"zero/core/stringx"
-
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 var s1, _ = miniredis.Run()
@@ -213,10 +212,12 @@ func TestRedis_Persist(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, ok)
 		err = client.Expire("key", 5)
+		assert.Nil(t, err)
 		ok, err = client.Persist("key")
 		assert.Nil(t, err)
 		assert.True(t, ok)
 		err = client.Expireat("key", time.Now().Unix()+5)
+		assert.Nil(t, err)
 		ok, err = client.Persist("key")
 		assert.Nil(t, err)
 		assert.True(t, ok)
@@ -380,7 +381,7 @@ func TestRedis_SortedSet(t *testing.T) {
 		rank, err := client.Zrank("key", "value2")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), rank)
-		rank, err = client.Zrank("key", "value4")
+		_, err = client.Zrank("key", "value4")
 		assert.Equal(t, redis.Nil, err)
 		num, err := client.Zrem("key", "value2", "value3")
 		assert.Nil(t, err)

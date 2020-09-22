@@ -8,14 +8,14 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/lang"
-	"zero/core/threading"
-
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/threading"
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
 var (
-	freq     = flag.Int("freq", 100, "frequence")
+	freq     = flag.Int("freq", 100, "frequency")
 	duration = flag.String("duration", "10s", "duration")
 )
 
@@ -84,8 +84,8 @@ func (m *metric) reset() counting {
 	return result
 }
 
-func runRequests(url string, frequence int, metrics *metric, done <-chan lang.PlaceholderType) {
-	ticker := time.NewTicker(time.Second / time.Duration(frequence))
+func runRequests(url string, frequency int, metrics *metric, done <-chan lang.PlaceholderType) {
+	ticker := time.NewTicker(time.Second / time.Duration(frequency))
 	defer ticker.Stop()
 
 	for {
@@ -120,14 +120,14 @@ func main() {
 	flag.Parse()
 
 	fp, err := os.Create("result.csv")
-	lang.Must(err)
+	logx.Must(err)
 	defer fp.Close()
 	fmt.Fprintln(fp, "seconds,goodOk,goodFail,goodReject,goodErrs,goodUnknowns,goodDropRatio,"+
 		"heavyOk,heavyFail,heavyReject,heavyErrs,heavyUnknowns,heavyDropRatio")
 
 	var gm, hm metric
 	dur, err := time.ParseDuration(*duration)
-	lang.Must(err)
+	logx.Must(err)
 	done := make(chan lang.PlaceholderType)
 	group := threading.NewRoutineGroup()
 	group.RunSafe(func() {

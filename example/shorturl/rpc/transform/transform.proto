@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package transform;
+
+message expandReq {
+    string shorten = 1;
+}
+
+message expandResp {
+    string url = 1;
+}
+
+message shortenReq {
+    string url = 1;
+}
+
+message shortenResp {
+    string shorten = 1;
+}
+
+service transformer {
+    rpc expand(expandReq) returns(expandResp);
+    rpc shorten(shortenReq) returns(shortenResp);
+}

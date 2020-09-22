@@ -3,9 +3,8 @@ package discov
 import (
 	"testing"
 
-	"zero/core/discov/internal"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/discov/internal"
 )
 
 const (

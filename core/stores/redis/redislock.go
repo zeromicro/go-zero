@@ -6,9 +6,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/logx"
-
 	red "github.com/go-redis/redis"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const (

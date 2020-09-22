@@ -3,24 +3,25 @@ package gogen
 import (
 	"bytes"
 	"fmt"
-	"path"
-	"sort"
 	"strings"
 	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const mainTemplate = `package main
 
 import (
 	"flag"
+	"fmt"
 
 	{{.importPackages}}
 )
 
-var configFile = flag.String("f", "etc/{{.serviceName}}.json", "the config file")
+var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
 
 func main() {
 	flag.Parse()
@@ -29,12 +30,13 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
 
-	engine := rest.MustNewServer(c.RestConf)
-	defer engine.Stop()
+	handler.RegisterHandlers(server, ctx)
 
-	handler.RegisterHandlers(engine, ctx)
-	engine.Start()
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
 }
 `
 
@@ -73,13 +75,11 @@ func genMain(dir string, api *spec.ApiSpec) error {
 }
 
 func genMainImports(parentPkg string) string {
-	imports := []string{
-		`"zero/core/conf"`,
-		`"zero/rest"`,
-	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, configDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, handlerDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
-	sort.Strings(imports)
+	var imports []string
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, configDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, handlerDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl))
+	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl))
 	return strings.Join(imports, "\n\t")
 }

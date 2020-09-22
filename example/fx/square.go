@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"zero/core/fx"
+	"github.com/tal-tech/go-zero/core/fx"
 )
 
 func main() {

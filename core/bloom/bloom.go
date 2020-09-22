@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strconv"
 
-	"zero/core/hash"
-	"zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/hash"
+	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 const (
@@ -13,15 +13,13 @@ const (
 	// maps as k in the error rate table
 	maps      = 14
 	setScript = `
-local key = KEYS[1]
 for _, offset in ipairs(ARGV) do
-	redis.call("setbit", key, offset, 1)
+	redis.call("setbit", KEYS[1], offset, 1)
 end
 `
 	testScript = `
-local key = KEYS[1]
 for _, offset in ipairs(ARGV) do
-	if tonumber(redis.call("getbit", key, offset)) == 0 then
+	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then
 		return false
 	end
 end

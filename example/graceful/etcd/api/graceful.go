@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 
-	"zero/core/conf"
-	"zero/example/graceful/etcd/api/config"
-	"zero/example/graceful/etcd/api/handler"
-	"zero/example/graceful/etcd/api/svc"
-	"zero/rest"
-	"zero/rpcx"
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/example/graceful/etcd/api/config"
+	"github.com/tal-tech/go-zero/example/graceful/etcd/api/handler"
+	"github.com/tal-tech/go-zero/example/graceful/etcd/api/svc"
+	"github.com/tal-tech/go-zero/rest"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var configFile = flag.String("f", "etc/graceful-api.json", "the config file")
@@ -19,7 +19,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 
-	client := rpcx.MustNewClient(c.Rpc)
+	client := zrpc.MustNewClient(c.Rpc)
 	ctx := &svc.ServiceContext{
 		Client: client,
 	}

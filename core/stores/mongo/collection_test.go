@@ -6,8 +6,7 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/stretchr/testify/assert"
-
-	"zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 func TestKeepPromise_accept(t *testing.T) {

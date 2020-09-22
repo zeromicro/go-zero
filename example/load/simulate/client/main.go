@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/fx"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/fx"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 var (
@@ -27,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	fp, err := os.Create("result.csv")
-	lang.Must(err)
+	logx.Must(err)
 	defer fp.Close()
 	fmt.Fprintln(fp, "seconds,total,pass,fail,drop")
 

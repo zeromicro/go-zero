@@ -1,7 +1,7 @@
 package svc
 
-import "zero/rpcx"
+import "github.com/tal-tech/go-zero/zrpc"
 
 type ServiceContext struct {
-	Client *rpcx.RpcClient
+	Client zrpc.Client
 }

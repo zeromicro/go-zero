@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/core/lang"
-	"zero/tools/goctl/api/parser"
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -37,9 +36,9 @@ func JavaCommand(c *cli.Context) error {
 		packetName = packetName[:len(packetName)-4]
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genPacket(dir, packetName, api))
-	lang.Must(genComponents(dir, packetName, api))
+	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(genPacket(dir, packetName, api))
+	logx.Must(genComponents(dir, packetName, api))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

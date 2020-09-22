@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"zero/core/lang"
-	"zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 )
 
 func main() {
@@ -14,8 +14,8 @@ func main() {
 	}
 
 	p, err := parser.NewParser(os.Args[1])
-	lang.Must(err)
+	logx.Must(err)
 	api, err := p.Parse()
-	lang.Must(err)
+	logx.Must(err)
 	fmt.Println(api)
 }

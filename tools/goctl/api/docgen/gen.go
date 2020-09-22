@@ -7,8 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"zero/tools/goctl/api/parser"
-
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/urfave/cli"
 )
 

@@ -4,11 +4,10 @@ import (
 	"context"
 	"flag"
 
-	"zero/core/conf"
-	"zero/example/tracing/remote/portal"
-	"zero/example/tracing/remote/user"
-	"zero/rpcx"
-
+	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/example/tracing/remote/portal"
+	"github.com/tal-tech/go-zero/example/tracing/remote/user"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -16,16 +15,16 @@ var configFile = flag.String("f", "etc/config.json", "the config file")
 
 type (
 	Config struct {
-		rpcx.RpcServerConf
-		UserRpc rpcx.RpcClientConf
+		zrpc.RpcServerConf
+		UserRpc zrpc.RpcClientConf
 	}
 
 	PortalServer struct {
-		userRpc *rpcx.RpcClient
+		userRpc zrpc.Client
 	}
 )
 
-func NewPortalServer(client *rpcx.RpcClient) *PortalServer {
+func NewPortalServer(client zrpc.Client) *PortalServer {
 	return &PortalServer{
 		userRpc: client,
 	}
@@ -54,8 +53,8 @@ func main() {
 	var c Config
 	conf.MustLoad(*configFile, &c)
 
-	client := rpcx.MustNewClient(c.UserRpc)
-	server := rpcx.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	client := zrpc.MustNewClient(c.UserRpc)
+	server := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		portal.RegisterPortalServer(grpcServer, NewPortalServer(client))
 	})
 	server.Start()
