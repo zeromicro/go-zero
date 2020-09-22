@@ -57,24 +57,24 @@ var errJsonConvert = errors.New("json convert error")
 {{.types}}
 `
 	callInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
-{{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}}`
+{{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) (*{{.pbResponse}},error)`
 	callFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
-func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}} {
+func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRequest}}) (*{{.pbResponse}}, error) {
 	var request {{.package}}.{{.pbRequest}}
 	bts, err := jsonx.Marshal(in)
 	if err != nil {
-		return {{if .hasResponse}}nil, {{end}}errJsonConvert
+		return nil, errJsonConvert
 	}
 
 	err = jsonx.Unmarshal(bts, &request)
 	if err != nil {
-		return {{if .hasResponse}}nil, {{end}}errJsonConvert
+		return nil, errJsonConvert
 	}
 
 	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
-	{{if .hasResponse}}resp, err := {{else}}_, err = {{end}}client.{{.method}}(ctx, &request)
-	{{if .hasResponse}}if err != nil{
+	resp, err :=  client.{{.method}}(ctx, &request)
+	if err != nil{
 		return nil, err
 	}
 
@@ -89,11 +89,7 @@ func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRe
 		return nil, errJsonConvert
 	}
 
-	return &ret, nil{{else}}if err != nil {
-		return err
-	}
-
-	return nil{{end}}
+	return &ret, nil
 }
 `
 )
@@ -177,10 +173,6 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 	pkgName := file.Package
 	functions := make([]string, 0)
 	for _, method := range service.Funcs {
-		data, found := file.Strcuts[strings.ToLower(method.OutType)]
-		if found {
-			found = len(data.Field) > 0
-		}
 		var comment string
 		if len(method.Document) > 0 {
 			comment = method.Document[0]
@@ -191,7 +183,6 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 			"package":        pkgName,
 			"pbRequest":      method.InType,
 			"pbResponse":     method.OutType,
-			"hasResponse":    found,
 			"hasComment":     len(method.Document) > 0,
 			"comment":        comment,
 		})
@@ -205,26 +196,20 @@ func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, er
 }
 
 func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]string, error) {
-	file := g.ast
 	functions := make([]string, 0)
 
 	for _, method := range service.Funcs {
-		data, found := file.Strcuts[strings.ToLower(method.OutType)]
-		if found {
-			found = len(data.Field) > 0
-		}
 		var comment string
 		if len(method.Document) > 0 {
 			comment = method.Document[0]
 		}
 		buffer, err := util.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
 			map[string]interface{}{
-				"hasComment":  len(method.Document) > 0,
-				"comment":     comment,
-				"method":      method.Name.Title(),
-				"pbRequest":   method.InType,
-				"pbResponse":  method.OutType,
-				"hasResponse": found,
+				"hasComment": len(method.Document) > 0,
+				"comment":    comment,
+				"method":     method.Name.Title(),
+				"pbRequest":  method.InType,
+				"pbResponse": method.OutType,
 			})
 		if err != nil {
 			return nil, err

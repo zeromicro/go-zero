@@ -445,9 +445,6 @@ func (a *PbAst) GenTypesCode() (string, error) {
 }
 
 func (s *Struct) genCode(containsTypeStatement bool) (string, error) {
-	if len(s.Field) == 0 {
-		return "", nil
-	}
 	fields := make([]string, 0)
 	for _, f := range s.Field {
 		var comment, doc string
