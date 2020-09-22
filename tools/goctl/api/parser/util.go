@@ -3,19 +3,19 @@ package parser
 import (
 	"bufio"
 	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-// struct match
-const typeRegex = `(?m)(?m)(^ *type\s+[a-zA-Z][a-zA-Z0-9_-]+\s+(((struct)\s*?\{[\w\W]*?[^\{]\})|([a-zA-Z][a-zA-Z0-9_-]+)))|(^ *type\s*?\([\w\W]+\}\s*\))`
+var emptyType spec.Type
 
-var (
-	emptyStrcut = errors.New("struct body not found")
-	emptyType   spec.Type
-)
+type ApiStruct struct {
+	Info       string
+	StructBody string
+	Service    string
+	Imports    string
+}
 
 func GetType(api *spec.ApiSpec, t string) spec.Type {
 	for _, tp := range api.Types {
@@ -69,32 +69,56 @@ func unread(r *bufio.Reader) error {
 	return r.UnreadRune()
 }
 
-func MatchStruct(api string) (info, structBody, service string, err error) {
-	r := regexp.MustCompile(typeRegex)
-	indexes := r.FindAllStringIndex(api, -1)
-	if len(indexes) == 0 {
-		return "", "", "", emptyStrcut
-	}
-	startIndexes := indexes[0]
-	endIndexes := indexes[len(indexes)-1]
+func MatchStruct(api string) (*ApiStruct, error) {
+	var result ApiStruct
+	scanner := bufio.NewScanner(strings.NewReader(api))
+	var parseInfo = false
+	var parseImport = false
+	var parseType = false
+	var parseSevice = false
+	var segment string
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 
-	info = api[:startIndexes[0]]
-	structBody = api[startIndexes[0]:endIndexes[len(endIndexes)-1]]
-	service = api[endIndexes[len(endIndexes)-1]:]
-
-	firstIIndex := strings.Index(info, "i")
-	if firstIIndex > 0 {
-		info = info[firstIIndex:]
-	}
-
-	lastServiceRightBraceIndex := strings.LastIndex(service, "}") + 1
-	var firstServiceIndex int
-	for index, char := range service {
-		if !isSpace(char) && !isNewline(char) {
-			firstServiceIndex = index
-			break
+		if line == "@doc(" {
+			parseInfo = true
 		}
+		if line == ")" && parseInfo {
+			parseInfo = false
+			result.Info = segment + ")"
+			segment = ""
+			continue
+		}
+
+		if strings.HasPrefix(line, "import") {
+			parseImport = true
+		}
+		if parseImport && (strings.HasPrefix(line, "type") || strings.HasPrefix(line, "@server") ||
+			strings.HasPrefix(line, "service")) {
+			parseImport = false
+			result.Imports = segment
+			segment = line + "\n"
+			continue
+		}
+
+		if strings.HasPrefix(line, "type") {
+			parseType = true
+		}
+		if strings.HasPrefix(line, "@server") || strings.HasPrefix(line, "service") {
+			if parseType {
+				parseType = false
+				result.StructBody = segment
+				segment = line + "\n"
+				continue
+			}
+			parseSevice = true
+		}
+		segment += scanner.Text() + "\n"
 	}
-	service = service[firstServiceIndex:lastServiceRightBraceIndex]
-	return
+
+	if !parseSevice {
+		return nil, errors.New("no service defined")
+	}
+	result.Service = segment
+	return &result, nil
 }

@@ -65,16 +65,16 @@ func ApiFormat(path string, printToConsole bool) error {
 		return m
 	})
 
-	info, st, service, err := parser.MatchStruct(r)
+	apiStruct, err := parser.MatchStruct(r)
 	if err != nil {
 		return err
 	}
-	info = strings.TrimSpace(info)
-	if len(service) == 0 || len(st) == 0 {
+	info := strings.TrimSpace(apiStruct.Info)
+	if len(apiStruct.Service) == 0 {
 		return nil
 	}
 
-	fs, err := format.Source([]byte(strings.TrimSpace(st)))
+	fs, err := format.Source([]byte(strings.TrimSpace(apiStruct.StructBody)))
 	if err != nil {
 		str := err.Error()
 		lineNumber := strings.Index(str, ":")
@@ -93,12 +93,24 @@ func ApiFormat(path string, printToConsole bool) error {
 		return err
 	}
 
-	result := strings.Join([]string{info, string(fs), service}, "\n\n")
+	var result string
+	if len(strings.TrimSpace(info)) > 0 {
+		result += strings.TrimSpace(info) + "\n\n"
+	}
+	if len(strings.TrimSpace(apiStruct.Imports)) > 0 {
+		result += strings.TrimSpace(apiStruct.Imports) + "\n\n"
+	}
+	if len(strings.TrimSpace(string(fs))) > 0 {
+		result += strings.TrimSpace(string(fs)) + "\n\n"
+	}
+	if len(strings.TrimSpace(apiStruct.Service)) > 0 {
+		result += strings.TrimSpace(apiStruct.Service) + "\n\n"
+	}
+
 	if printToConsole {
 		_, err := fmt.Print(result)
 		return err
 	}
-	result = strings.TrimSpace(result)
 	return ioutil.WriteFile(path, []byte(result), os.ModePerm)
 }
 
