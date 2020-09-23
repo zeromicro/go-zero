@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
@@ -11,7 +13,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-const dialTimeout = time.Second * 3
+const (
+	dialTimeout = time.Second * 3
+	separator   = '/'
+)
 
 func init() {
 	resolver.RegisterResolver()
@@ -83,7 +88,16 @@ func dial(server string, opts ...ClientOption) (*grpc.ClientConn, error) {
 	defer cancel()
 	conn, err := grpc.DialContext(timeCtx, server, options...)
 	if err != nil {
-		return nil, fmt.Errorf("rpc dial: %s, error: %s", server, err.Error())
+		service := server
+		if errors.Is(err, context.DeadlineExceeded) {
+			pos := strings.LastIndexByte(server, separator)
+			// len(server) - 1 is the index of last char
+			if 0 < pos && pos < len(server)-1 {
+				service = server[pos+1:]
+			}
+		}
+		return nil, fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is alread started",
+			server, err.Error(), service)
 	}
 
 	return conn, nil
