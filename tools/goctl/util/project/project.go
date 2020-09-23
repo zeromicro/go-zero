@@ -133,7 +133,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 
 func matchModule(data []byte) (string, error) {
 	text := string(data)
-	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9/\-.]+$`)
+	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9_/\-.]+$`)
 	matches := re.FindAllString(text, -1)
 	if len(matches) == 1 {
 		target := matches[0]
