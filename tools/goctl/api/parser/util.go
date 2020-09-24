@@ -75,12 +75,12 @@ func MatchStruct(api string) (*ApiStruct, error) {
 	var parseInfo = false
 	var parseImport = false
 	var parseType = false
-	var parseSevice = false
+	var parseService = false
 	var segment string
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 
-		if line == "@doc(" {
+		if line == "info(" {
 			parseInfo = true
 		}
 		if line == ")" && parseInfo {
@@ -111,12 +111,12 @@ func MatchStruct(api string) (*ApiStruct, error) {
 				segment = line + "\n"
 				continue
 			}
-			parseSevice = true
+			parseService = true
 		}
 		segment += scanner.Text() + "\n"
 	}
 
-	if !parseSevice {
+	if !parseService {
 		return nil, errors.New("no service defined")
 	}
 	result.Service = segment
