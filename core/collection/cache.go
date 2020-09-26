@@ -82,12 +82,7 @@ func (c *Cache) Del(key string) {
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.lock.Lock()
-	value, ok := c.data[key]
-	if ok {
-		c.lruCache.add(key)
-	}
-	c.lock.Unlock()
+	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
 	} else {
@@ -113,12 +108,25 @@ func (c *Cache) Set(key string, value interface{}) {
 }
 
 func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}, error) {
-	val, fresh, err := c.barrier.DoEx(key, func() (interface{}, error) {
+	if val, ok := c.doGet(key); ok {
+		c.stats.IncrementHit()
+		return val, nil
+	}
+
+	var fresh bool
+	val, err := c.barrier.Do(key, func() (interface{}, error) {
+		// because O(1) on map search in memory, and fetch is an IO query
+		// so we do double check, cache might be taken by another call
+		if val, ok := c.doGet(key); ok {
+			return val, nil
+		}
+
 		v, e := fetch()
 		if e != nil {
 			return nil, e
 		}
 
+		fresh = true
 		c.Set(key, v)
 		return v, nil
 	})
@@ -135,6 +143,18 @@ func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}
 	}
 
 	return val, nil
+}
+
+func (c *Cache) doGet(key string) (interface{}, bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	value, ok := c.data[key]
+	if ok {
+		c.lruCache.add(key)
+	}
+
+	return value, ok
 }
 
 func (c *Cache) onEvict(key string) {
