@@ -13,6 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
+	"google.golang.org/grpc"
 )
 
 const envPodIp = "POD_IP"
@@ -63,6 +64,18 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	return rpcServer, nil
+}
+
+func (rs *RpcServer) AddOptions(options ...grpc.ServerOption) {
+	rs.AddOptions(options...)
+}
+
+func (rs *RpcServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
+	rs.AddStreamInterceptors(interceptors...)
+}
+
+func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
+	rs.AddUnaryInterceptors(interceptors...)
 }
 
 func (rs *RpcServer) Start() {
