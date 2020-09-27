@@ -3,11 +3,9 @@ package gen
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
@@ -131,8 +129,6 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 
-	_, err = exec.LookPath("mockgen")
-	mockGenInstalled := err == nil
 	filename = filepath.Join(callPath, fmt.Sprintf("%s.go", service.Name.Lower()))
 	functions, err := g.getFuncs(service)
 	if err != nil {
@@ -156,16 +152,7 @@ func (g *defaultRpcGenerator) genCall() error {
 		"functions":   strings.Join(functions, "\n"),
 		"interface":   strings.Join(iFunctions, "\n"),
 	}, filename, true)
-	if err != nil {
-		return err
-	}
-	// if mockgen is already installed, it will generate code of gomock for shared files
-	// Deprecated: it will be removed
-	if mockGenInstalled && g.Ctx.IsInGoEnv {
-		_, _ = execx.Run(fmt.Sprintf("go generate %s", filename), "")
-	}
-
-	return nil
+	return err
 }
 
 func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, error) {

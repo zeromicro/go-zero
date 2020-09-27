@@ -31,6 +31,7 @@ func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 }
 
 func (g *defaultRpcGenerator) Generate() (err error) {
+	g.Ctx.Info("查看rpc生成文档请移步至「https://github.com/tal-tech/go-zero/blob/master/doc/goctl-rpc.md」")
 	g.Ctx.Info("generating code...")
 	defer func() {
 		if err == nil {
