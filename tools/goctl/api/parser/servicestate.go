@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -96,21 +97,13 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 	req := fields[2]
 	var resp string
 
-	var returnIndex = -1
-	for index, item := range fields {
-		if item == returnsTag {
-			returnIndex = index
-			break
-		}
-	}
-	if returnIndex > 0 {
-		if returnIndex < len(fields)-2 {
+	if stringx.Contains(fields, returnsTag) {
+		if fields[len(fields)-1] != returnsTag {
+			resp = fields[len(fields)-1]
+		} else {
 			return defaultErr
 		}
-		if returnIndex != len(fields)-1 {
-			resp = fields[len(fields)-1]
-		}
-		if returnIndex == 2 {
+		if fields[2] == returnsTag {
 			req = ""
 		}
 	}
