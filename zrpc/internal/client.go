@@ -74,7 +74,7 @@ func buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.TracingInterceptor,
 			clientinterceptors.DurationInterceptor,
 			clientinterceptors.BreakerInterceptor,
-			clientinterceptors.PrometheousInterceptor,
+			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.TimeoutInterceptor(clientOptions.Timeout),
 		),
 	}

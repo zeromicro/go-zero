@@ -31,7 +31,7 @@ var (
 	})
 )
 
-func PrometheousHandler(path string) func(http.Handler) http.Handler {
+func PromethousHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := timex.Now()

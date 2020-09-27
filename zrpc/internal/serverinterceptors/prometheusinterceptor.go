@@ -32,7 +32,7 @@ var (
 	})
 )
 
-func UnaryPrometheousInterceptor() grpc.UnaryServerInterceptor {
+func UnaryPrometheusInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 		interface{}, error) {
 		startTime := timex.Now()

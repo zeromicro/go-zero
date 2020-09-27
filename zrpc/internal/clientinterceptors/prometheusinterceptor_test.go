@@ -26,7 +26,7 @@ func TestPromMetricInterceptor(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cc := new(grpc.ClientConn)
-			err := PrometheousInterceptor(context.Background(), "/foo", nil, nil, cc,
+			err := PrometheusInterceptor(context.Background(), "/foo", nil, nil, cc,
 				func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 					opts ...grpc.CallOption) error {
 					return test.err

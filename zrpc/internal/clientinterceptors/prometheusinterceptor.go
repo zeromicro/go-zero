@@ -32,7 +32,7 @@ var (
 	})
 )
 
-func PrometheousInterceptor(ctx context.Context, method string, req, reply interface{},
+func PrometheusInterceptor(ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	startTime := timex.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)

@@ -9,7 +9,7 @@ import (
 )
 
 func TestPromMetricHandler(t *testing.T) {
-	promMetricHandler := PrometheousHandler("/user/login")
+	promMetricHandler := PromethousHandler("/user/login")
 	handler := promMetricHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
