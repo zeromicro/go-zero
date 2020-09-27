@@ -94,7 +94,7 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 	method := fields[0]
 	path := fields[1]
 	req := fields[2]
-	var returns string
+	var resp string
 
 	var returnIndex = -1
 	for index, item := range fields {
@@ -108,7 +108,7 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 			return defaultErr
 		}
 		if returnIndex != len(fields)-1 {
-			returns = fields[len(fields)-1]
+			resp = fields[len(fields)-1]
 		}
 		if returnIndex == 2 {
 			req = ""
@@ -120,7 +120,7 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 		Method:       method,
 		Path:         path,
 		RequestType:  GetType(api, req),
-		ResponseType: GetType(api, returns),
+		ResponseType: GetType(api, resp),
 	})
 
 	return nil
