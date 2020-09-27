@@ -95,11 +95,11 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 	method := fields[0]
 	path := fields[1]
 	req := fields[2]
-	var returns string
+	var resp string
 
 	if stringx.Contains(fields, returnsTag) {
 		if fields[len(fields)-1] != returnsTag {
-			returns = fields[len(fields)-1]
+			resp = fields[len(fields)-1]
 		} else {
 			return defaultErr
 		}
@@ -113,7 +113,7 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 		Method:       method,
 		Path:         path,
 		RequestType:  GetType(api, req),
-		ResponseType: GetType(api, returns),
+		ResponseType: GetType(api, resp),
 	})
 
 	return nil

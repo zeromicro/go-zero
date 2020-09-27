@@ -91,19 +91,13 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 			return nil, err
 		}
 	} else {
-		pwd, err := execx.Run("pwd", projectDir)
+		pwd, err := filepath.Abs(projectDir)
 		if err != nil {
 			return nil, err
 		}
-		pwd = filepath.Clean(strings.TrimSpace(pwd))
 
 		if !strings.HasPrefix(pwd, src) {
-			absPath, err := filepath.Abs(projectDir)
-			if err != nil {
-				return nil, err
-			}
-
-			name = filepath.Clean(filepath.Base(absPath))
+			name = filepath.Clean(filepath.Base(pwd))
 			path = projectDir
 			pkg = name
 			isInGoEnv = false
