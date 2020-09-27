@@ -95,7 +95,6 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 		if err != nil {
 			return nil, err
 		}
-		pwd = filepath.Clean(strings.TrimSpace(pwd))
 
 		if !strings.HasPrefix(pwd, src) {
 			name = filepath.Clean(filepath.Base(pwd))
