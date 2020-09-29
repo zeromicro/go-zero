@@ -109,7 +109,7 @@ func main() {
   // 返回调用结果
     return c.val, c.err
   }
-```
+  ```
   
 - sharedGroup的DoEx方法
 
@@ -160,7 +160,7 @@ func main() {
     c.val, c.err = fn()
     return c
   }
-```
+  ```
 
 ## 最后
 
