@@ -24,7 +24,8 @@ func TestWithTimeout(t *testing.T) {
 }
 
 func TestBuildDialOptions(t *testing.T) {
+	var c client
 	agent := grpc.WithUserAgent("chrome")
-	opts := buildDialOptions(WithDialOption(agent))
+	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }

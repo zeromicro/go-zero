@@ -17,6 +17,7 @@ var (
 
 type (
 	Client interface {
+		AddInterceptor(interceptor grpc.UnaryClientInterceptor)
 		Conn() *grpc.ClientConn
 	}
 
@@ -76,6 +77,10 @@ func NewClientNoAuth(c discov.EtcdConf) (Client, error) {
 
 func NewClientWithTarget(target string, opts ...internal.ClientOption) (Client, error) {
 	return internal.NewClient(target, opts...)
+}
+
+func (rc *RpcClient) AddInterceptor(interceptor grpc.UnaryClientInterceptor) {
+	rc.client.AddInterceptor(interceptor)
 }
 
 func (rc *RpcClient) Conn() *grpc.ClientConn {
