@@ -88,15 +88,17 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 		}
 	}
 
-	if len(fields) < 3 {
+	if len(fields) < 2 {
 		return defaultErr
 	}
-
 	method := fields[0]
 	path := fields[1]
-	req := fields[2]
+	var req string
 	var resp string
 
+	if len(fields) > 2 {
+		req = fields[2]
+	}
 	if stringx.Contains(fields, returnsTag) {
 		if fields[len(fields)-1] != returnsTag {
 			resp = fields[len(fields)-1]
