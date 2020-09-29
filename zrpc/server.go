@@ -67,15 +67,15 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 }
 
 func (rs *RpcServer) AddOptions(options ...grpc.ServerOption) {
-	rs.AddOptions(options...)
+	rs.server.AddOptions(options...)
 }
 
 func (rs *RpcServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
-	rs.AddStreamInterceptors(interceptors...)
+	rs.server.AddStreamInterceptors(interceptors...)
 }
 
 func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
-	rs.AddUnaryInterceptors(interceptors...)
+	rs.server.AddUnaryInterceptors(interceptors...)
 }
 
 func (rs *RpcServer) Start() {

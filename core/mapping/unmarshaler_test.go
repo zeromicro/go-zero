@@ -2387,6 +2387,13 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 	assert.Equal(t, "1", c.Anything["id"])
 }
 
+func TestUnmarshalValuer(t *testing.T) {
+	unmarshaler := NewUnmarshaler(jsonTagKey)
+	var foo string
+	err := unmarshaler.UnmarshalValuer(nil, foo)
+	assert.NotNil(t, err)
+}
+
 func BenchmarkUnmarshalString(b *testing.B) {
 	type inner struct {
 		Value string `key:"value"`
