@@ -78,7 +78,13 @@
 
 ## 5. 编写API Gateway代码
 
-* 通过goctl生成`api/shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
+* 在`shorturl/api`目录下通过goctl生成`api/shorturl.api`：
+
+  ```shell
+  goctl api -o shorturl.api
+  ```
+
+* 编辑`api/shorturl.api`，为了简洁，去除了文件开头的`info`，代码如下：
 
   ```go
   type (
