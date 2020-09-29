@@ -113,9 +113,9 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 }
 
 func getLogicFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := util.GetAnnotationValue(route.Annotations, "server", folderProperty)
+	folder, ok := util.GetAnnotationValue(route.Annotations, "server", groupProperty)
 	if !ok {
-		folder, ok = util.GetAnnotationValue(group.Annotations, "server", folderProperty)
+		folder, ok = util.GetAnnotationValue(group.Annotations, "server", groupProperty)
 		if !ok {
 			return logicDir
 		}

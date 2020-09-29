@@ -183,9 +183,9 @@ func getHandlerBaseName(handler string) string {
 }
 
 func getHandlerFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", folderProperty)
+	folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
 	if !ok {
-		folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", folderProperty)
+		folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
 		if !ok {
 			return handlerDir
 		}

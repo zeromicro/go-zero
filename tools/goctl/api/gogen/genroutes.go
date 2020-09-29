@@ -136,9 +136,9 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", folderProperty)
+			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
 			if !ok {
-				folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", folderProperty)
+				folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
 				if !ok {
 					continue
 				}
@@ -165,11 +165,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				return nil, fmt.Errorf("missing handler annotation for route %q", r.Path)
 			}
 			handler = getHandlerBaseName(handler) + "Handler(serverCtx)"
-			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", folderProperty)
+			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
 			if ok {
 				handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			} else {
-				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", folderProperty)
+				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
 				if ok {
 					handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
 				}

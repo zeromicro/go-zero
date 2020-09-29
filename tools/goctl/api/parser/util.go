@@ -90,21 +90,20 @@ func MatchStruct(api string) (*ApiStruct, error) {
 			continue
 		}
 
-		if strings.HasPrefix(line, "import") {
+		if isImportBeginLine(line) {
 			parseImport = true
 		}
-		if parseImport && (strings.HasPrefix(line, "type") || strings.HasPrefix(line, "@server") ||
-			strings.HasPrefix(line, "service")) {
+		if parseImport && (isTypeBeginLine(line) || isServiceBeginLine(line)) {
 			parseImport = false
 			result.Imports = segment
 			segment = line + "\n"
 			continue
 		}
 
-		if strings.HasPrefix(line, "type") {
+		if isTypeBeginLine(line) {
 			parseType = true
 		}
-		if strings.HasPrefix(line, "@server") || strings.HasPrefix(line, "service") {
+		if isServiceBeginLine(line) {
 			if parseType {
 				parseType = false
 				result.StructBody = segment
@@ -121,4 +120,16 @@ func MatchStruct(api string) (*ApiStruct, error) {
 	}
 	result.Service = segment
 	return &result, nil
+}
+
+func isImportBeginLine(line string) bool {
+	return strings.HasPrefix(line, "import") && strings.HasSuffix(line, ".api")
+}
+
+func isTypeBeginLine(line string) bool {
+	return strings.HasPrefix(line, "type")
+}
+
+func isServiceBeginLine(line string) bool {
+	return strings.HasPrefix(line, "@server(") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
 }
