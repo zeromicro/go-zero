@@ -5,14 +5,13 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/internal"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 type Model struct {
 	*mongo.Model
-	cache              internal.Cache
+	cache              cache.Cache
 	generateCollection func(*mgo.Session) *cachedCollection
 }
 
@@ -35,14 +34,14 @@ func MustNewModel(url, collection string, c cache.CacheConf, opts ...cache.Optio
 }
 
 func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
-	c := internal.NewCacheNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	c := cache.NewCacheNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
 	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
 }
 
 func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
-	c := internal.NewCache(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	c := cache.NewCache(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
 	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
@@ -224,7 +223,7 @@ func (mm *Model) pipe(fn func(c *cachedCollection) mongo.Pipe) (mongo.Pipe, erro
 	return fn(mm.GetCollection(session)), nil
 }
 
-func createModel(url, collection string, c internal.Cache,
+func createModel(url, collection string, c cache.Cache,
 	create func(mongo.Collection) *cachedCollection) (*Model, error) {
 	model, err := mongo.NewModel(url, collection)
 	if err != nil {

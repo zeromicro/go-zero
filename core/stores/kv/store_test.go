@@ -6,7 +6,7 @@ import (
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 	"github.com/tal-tech/go-zero/core/stringx"
 )
@@ -478,7 +478,7 @@ func runOnCluster(t *testing.T, fn func(cluster Store)) {
 	s1.FlushAll()
 	s2.FlushAll()
 
-	store := NewStore([]internal.NodeConf{
+	store := NewStore([]cache.NodeConf{
 		{
 			RedisConf: redis.RedisConf{
 				Host: s1.Addr(),

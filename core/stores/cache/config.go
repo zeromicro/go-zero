@@ -1,4 +1,4 @@
-package internal
+package cache
 
 import "github.com/tal-tech/go-zero/core/stores/redis"
 

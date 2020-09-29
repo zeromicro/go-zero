@@ -16,6 +16,8 @@ var (
 )
 
 type (
+	ClientOption = internal.ClientOption
+
 	Client interface {
 		AddInterceptor(interceptor grpc.UnaryClientInterceptor)
 		Conn() *grpc.ClientConn
@@ -26,7 +28,7 @@ type (
 	}
 )
 
-func MustNewClient(c RpcClientConf, options ...internal.ClientOption) Client {
+func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
 	if err != nil {
 		log.Fatal(err)
@@ -35,8 +37,8 @@ func MustNewClient(c RpcClientConf, options ...internal.ClientOption) Client {
 	return cli
 }
 
-func NewClient(c RpcClientConf, options ...internal.ClientOption) (Client, error) {
-	var opts []internal.ClientOption
+func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
+	var opts []ClientOption
 	if c.HasCredential() {
 		opts = append(opts, WithDialOption(grpc.WithPerRPCCredentials(&auth.Credential{
 			App:   c.App,
@@ -75,7 +77,7 @@ func NewClientNoAuth(c discov.EtcdConf) (Client, error) {
 	}, nil
 }
 
-func NewClientWithTarget(target string, opts ...internal.ClientOption) (Client, error) {
+func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 	return internal.NewClient(target, opts...)
 }
 
