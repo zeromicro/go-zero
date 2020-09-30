@@ -47,6 +47,7 @@ func GetBreaker(name string) Breaker {
 		breakers[name] = b
 	}
 	lock.Unlock()
+
 	return b
 }
 

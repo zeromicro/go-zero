@@ -32,8 +32,7 @@ func TestConfigJson(t *testing.T) {
 				A string `json:"a"`
 				B int    `json:"b"`
 			}
-			err = LoadConfig(tmpfile, &val)
-			assert.Nil(t, err)
+			MustLoad(tmpfile, &val)
 			assert.Equal(t, "foo", val.A)
 			assert.Equal(t, 1, val.B)
 		})

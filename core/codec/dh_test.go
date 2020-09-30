@@ -73,6 +73,9 @@ func TestDiffieHellmanMiddleManAttack(t *testing.T) {
 }
 
 func TestKeyBytes(t *testing.T) {
+	var empty DhKey
+	assert.Equal(t, 0, len(empty.Bytes()))
+
 	key, err := GenerateKey()
 	assert.Nil(t, err)
 	assert.True(t, len(key.Bytes()) > 0)

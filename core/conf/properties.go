@@ -30,12 +30,12 @@ type mapBasedProperties struct {
 	lock       sync.RWMutex
 }
 
-// Loads the properties into a properties configuration instance. May return the
-// configuration itself along with an error that indicates if there was a problem loading the configuration.
+// Loads the properties into a properties configuration instance.
+// Returns an error that indicates if there was a problem loading the configuration.
 func LoadProperties(filename string) (Properties, error) {
 	lines, err := iox.ReadTextLines(filename, iox.WithoutBlank(), iox.OmitWithPrefix("#"))
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	raw := make(map[string]string)
