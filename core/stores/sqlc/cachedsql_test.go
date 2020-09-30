@@ -446,6 +446,45 @@ func TestCachedConnTransact(t *testing.T) {
 	assert.True(t, conn.transactValue)
 }
 
+func TestQueryRowNoCache(t *testing.T) {
+	s, err := miniredis.Run()
+	if err != nil {
+		t.Error(err)
+	}
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	var user string
+	var ran bool
+	r := redis.NewRedis(s.Addr(), redis.NodeType)
+	conn := dummySqlConn{queryRow: func(v interface{}, q string, args ...interface{}) error {
+		user = value
+		ran = true
+		return nil
+	}}
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
+	err = c.QueryRowNoCache(&user, key)
+	assert.Nil(t, err)
+	assert.Equal(t, value, user)
+	assert.True(t, ran)
+}
+
+func TestFloatKeyer(t *testing.T) {
+	primaries := []interface{}{
+		float32(1),
+		float64(1),
+	}
+
+	for _, primary := range primaries {
+		val := floatKeyer(func(i interface{}) string {
+			return fmt.Sprint(i)
+		})(primary)
+		assert.Equal(t, "1", val)
+	}
+}
+
 func resetStats() {
 	atomic.StoreUint64(&stats.Total, 0)
 	atomic.StoreUint64(&stats.Hit, 0)
@@ -454,6 +493,7 @@ func resetStats() {
 }
 
 type dummySqlConn struct {
+	queryRow func(interface{}, string, ...interface{}) error
 }
 
 func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error) {
@@ -465,6 +505,9 @@ func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
 }
 
 func (d dummySqlConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+	if d.queryRow != nil {
+		return d.queryRow(v, query, args...)
+	}
 	return nil
 }
 

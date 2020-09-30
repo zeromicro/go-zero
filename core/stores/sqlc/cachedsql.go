@@ -82,6 +82,7 @@ func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary
 	indexQuery IndexQueryFn, primaryQuery PrimaryQueryFn) error {
 	var primaryKey interface{}
 	var found bool
+	keyer = floatKeyer(keyer)
 	if err := cc.cache.TakeWithExpire(&primaryKey, key, func(val interface{}, expire time.Duration) (err error) {
 		primaryKey, err = indexQuery(cc.db, v)
 		if err != nil {
@@ -118,4 +119,17 @@ func (cc CachedConn) SetCache(key string, v interface{}) error {
 
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 	return cc.db.Transact(fn)
+}
+
+func floatKeyer(fn func(interface{}) string) func(interface{}) string {
+	return func(primary interface{}) string {
+		switch v := primary.(type) {
+		case float32:
+			return fn(int64(v))
+		case float64:
+			return fn(int64(v))
+		default:
+			return fn(primary)
+		}
+	}
 }
