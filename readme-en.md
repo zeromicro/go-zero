@@ -102,7 +102,8 @@ go get -u github.com/tal-tech/go-zero
    `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
 
    ```shell
-   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
+   GO111MODULE=on 
+   go get -u github.com/tal-tech/go-zero/tools/goctl
    ```
 
    make sure goctl is executable.
