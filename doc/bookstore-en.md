@@ -191,7 +191,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
 ## 6. Write code for add rpc service
 
-- under directory `bookstore` create dir `bookstore/rpc`
+- under directory `bookstore` create dir `rpc`
 
 * under directory `rpc/add` create `add.proto` file
 

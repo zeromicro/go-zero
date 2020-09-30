@@ -195,7 +195,7 @@
 
 ## 6. 编写transform rpc服务
 
-- 在 `shorturl` 目录下创建 `shorturl/rpc` 目录
+- 在 `shorturl` 目录下创建 `rpc` 目录
 
 * 在`rpc/transform`目录下编写`transform.proto`文件
 

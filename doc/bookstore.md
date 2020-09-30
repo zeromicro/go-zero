@@ -191,7 +191,7 @@
 
 ## 6. 编写add rpc服务
 
-- 在 `bookstore` 下创建 `bookstore/rpc` 目录
+- 在 `bookstore` 下创建 `rpc` 目录
 
 * 在`rpc/add`目录下编写`add.proto`文件
 

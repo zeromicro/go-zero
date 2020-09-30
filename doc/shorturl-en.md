@@ -195,7 +195,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
 
 ## 6. Write code for transform rpc service
 
-- under directory `shorturl` create dir `shorturl/rpc`
+- under directory `shorturl` create dir `rpc`
 
 * under directory `rpc/transform` create `transform.proto` file
 
