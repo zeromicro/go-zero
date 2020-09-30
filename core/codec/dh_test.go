@@ -71,3 +71,9 @@ func TestDiffieHellmanMiddleManAttack(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, string(src), string(decryptedSrc))
 }
+
+func TestKeyBytes(t *testing.T) {
+	key, err := GenerateKey()
+	assert.Nil(t, err)
+	assert.True(t, len(key.Bytes()) > 0)
+}
