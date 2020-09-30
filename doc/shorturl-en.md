@@ -72,7 +72,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
-* create the working dir `shorturl`
+* create the working dir `shorturl` and `shorturl/api`
 
 * in `shorturl` dir, execute `go mod init shorturl` to initialize `go.mod`
 
@@ -194,6 +194,8 @@ And now, let’s walk through the complete flow of quickly create a microservice
 * till now, the client engineer can work with the api, don’t need to wait for the implementation of server side
 
 ## 6. Write code for transform rpc service
+
+- under directory `shorturl` create dir `rpc`
 
 * under directory `rpc/transform` create `transform.proto` file
 

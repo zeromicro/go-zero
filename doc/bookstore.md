@@ -69,7 +69,7 @@
   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
-* 创建工作目录`bookstore`
+* 创建工作目录 `bookstore` 和 `bookstore/api`
 
 * 在`bookstore`目录下执行`go mod init bookstore`初始化`go.mod`
 
@@ -190,6 +190,8 @@
 * 到这里，你已经可以通过goctl生成客户端代码给客户端同学并行开发了，支持多种语言，详见文档
 
 ## 6. 编写add rpc服务
+
+- 在 `bookstore` 下创建 `rpc` 目录
 
 * 在`rpc/add`目录下编写`add.proto`文件
 

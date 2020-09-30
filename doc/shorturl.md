@@ -72,7 +72,7 @@
   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
-* 创建工作目录`shorturl`
+* 创建工作目录 `shorturl` 和 `shorturl/api`
 
 * 在`shorturl`目录下执行`go mod init shorturl`初始化`go.mod`
 
@@ -194,6 +194,8 @@
 * 到这里，你已经可以通过goctl生成客户端代码给客户端同学并行开发了，支持多种语言，详见文档
 
 ## 6. 编写transform rpc服务
+
+- 在 `shorturl` 目录下创建 `rpc` 目录
 
 * 在`rpc/transform`目录下编写`transform.proto`文件
 
