@@ -3,7 +3,7 @@
 ## goctl用途
 
 * 定义api请求
-* 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 晓程序)，dart(flutter)
+* 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 小程序)，dart(flutter)
 * 生成MySQL CURD+Cache
 * 生成MongoDB CURD+Cache
 
