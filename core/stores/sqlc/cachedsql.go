@@ -82,6 +82,10 @@ func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary
 	indexQuery IndexQueryFn, primaryQuery PrimaryQueryFn) error {
 	var primaryKey interface{}
 	var found bool
+
+	// if don't use convert numeric primary key into int64,
+	// then it will be represented as scientific notion, like 2e6
+	// which will make the cache doesn't match with the previous insert one
 	keyer = floatKeyer(keyer)
 	if err := cc.cache.TakeWithExpire(&primaryKey, key, func(val interface{}, expire time.Duration) (err error) {
 		primaryKey, err = indexQuery(cc.db, v)

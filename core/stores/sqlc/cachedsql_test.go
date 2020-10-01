@@ -135,6 +135,100 @@ func TestCachedConn_QueryRowIndex_HasCache(t *testing.T) {
 	assert.Equal(t, `"xin"`, val)
 }
 
+func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
+	const (
+		primaryInt8   int8   = 100
+		primaryInt16  int16  = 10000
+		primaryInt32  int32  = 10000000
+		primaryInt64  int64  = 10000000
+		primaryUint8  uint8  = 100
+		primaryUint16 uint16 = 10000
+		primaryUint32 uint32 = 10000000
+		primaryUint64 uint64 = 10000000
+	)
+	tests := []struct {
+		name         string
+		primary      interface{}
+		primaryCache string
+	}{
+		{
+			name:         "int8 primary",
+			primary:      primaryInt8,
+			primaryCache: fmt.Sprint(primaryInt8),
+		},
+		{
+			name:         "int16 primary",
+			primary:      primaryInt16,
+			primaryCache: fmt.Sprint(primaryInt16),
+		},
+		{
+			name:         "int32 primary",
+			primary:      primaryInt32,
+			primaryCache: fmt.Sprint(primaryInt32),
+		},
+		{
+			name:         "int64 primary",
+			primary:      primaryInt64,
+			primaryCache: fmt.Sprint(primaryInt64),
+		},
+		{
+			name:         "uint8 primary",
+			primary:      primaryUint8,
+			primaryCache: fmt.Sprint(primaryUint8),
+		},
+		{
+			name:         "uint16 primary",
+			primary:      primaryUint16,
+			primaryCache: fmt.Sprint(primaryUint16),
+		},
+		{
+			name:         "uint32 primary",
+			primary:      primaryUint32,
+			primaryCache: fmt.Sprint(primaryUint32),
+		},
+		{
+			name:         "uint64 primary",
+			primary:      primaryUint64,
+			primaryCache: fmt.Sprint(primaryUint64),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resetStats()
+			s, err := miniredis.Run()
+			if err != nil {
+				t.Error(err)
+			}
+
+			r := redis.NewRedis(s.Addr(), redis.NodeType)
+			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
+				cache.WithNotFoundExpiry(time.Second))
+
+			var str string
+			r.Set("index", test.primaryCache)
+			err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+				return fmt.Sprintf("%v/1234", s)
+			}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+				assert.Fail(t, "should not go here")
+				return test.primary, nil
+			}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+				*v.(*string) = "xin"
+				assert.Equal(t, primary, primary)
+				return nil
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, "xin", str)
+			val, err := r.Get("index")
+			assert.Nil(t, err)
+			assert.Equal(t, test.primaryCache, val)
+			val, err = r.Get(test.primaryCache + "/1234")
+			assert.Nil(t, err)
+			assert.Equal(t, `"xin"`, val)
+		})
+	}
+}
+
 func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 	caches := map[string]string{
 		"index":        "primary",
