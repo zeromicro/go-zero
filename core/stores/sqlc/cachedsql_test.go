@@ -193,13 +193,16 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 		},
 	}
 
+	s, err := miniredis.Run()
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Close()
+
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resetStats()
-			s, err := miniredis.Run()
-			if err != nil {
-				t.Error(err)
-			}
+			s.FlushAll()
 
 			r := redis.NewRedis(s.Addr(), redis.NodeType)
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
@@ -242,6 +245,8 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+			s.FlushAll()
+			defer s.Close()
 
 			r := redis.NewRedis(s.Addr(), redis.NodeType)
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
