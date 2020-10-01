@@ -12,6 +12,8 @@ import (
 
 func TestRedis_Exists(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
+		_, err := NewRedis(client.Addr, "").Exists("a")
+		assert.NotNil(t, err)
 		ok, err := client.Exists("a")
 		assert.Nil(t, err)
 		assert.False(t, ok)
@@ -24,7 +26,9 @@ func TestRedis_Exists(t *testing.T) {
 
 func TestRedis_Eval(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		_, err := client.Eval(`redis.call("EXISTS", KEYS[1])`, []string{"notexist"})
+		_, err := NewRedis(client.Addr, "").Eval(`redis.call("EXISTS", KEYS[1])`, []string{"notexist"})
+		assert.NotNil(t, err)
+		_, err = client.Eval(`redis.call("EXISTS", KEYS[1])`, []string{"notexist"})
 		assert.Equal(t, Nil, err)
 		err = client.Set("key1", "value1")
 		assert.Nil(t, err)
@@ -40,6 +44,8 @@ func TestRedis_Hgetall(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
+		_, err := NewRedis(client.Addr, "").Hgetall("a")
+		assert.NotNil(t, err)
 		vals, err := client.Hgetall("a")
 		assert.Nil(t, err)
 		assert.EqualValues(t, map[string]string{
@@ -51,6 +57,7 @@ func TestRedis_Hgetall(t *testing.T) {
 
 func TestRedis_Hvals(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
+		assert.NotNil(t, NewRedis(client.Addr, "").Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
 		_, err := NewRedis(client.Addr, "").Hvals("a")
@@ -65,6 +72,8 @@ func TestRedis_Hsetnx(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
+		_, err := NewRedis(client.Addr, "").Hsetnx("a", "bb", "ccc")
+		assert.NotNil(t, err)
 		ok, err := client.Hsetnx("a", "bb", "ccc")
 		assert.Nil(t, err)
 		assert.False(t, ok)
@@ -81,6 +90,8 @@ func TestRedis_HdelHlen(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
+		_, err := NewRedis(client.Addr, "").Hlen("a")
+		assert.NotNil(t, err)
 		num, err := client.Hlen("a")
 		assert.Nil(t, err)
 		assert.Equal(t, 2, num)
@@ -95,6 +106,8 @@ func TestRedis_HdelHlen(t *testing.T) {
 
 func TestRedis_HIncrBy(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
+		_, err := NewRedis(client.Addr, "").Hincrby("key", "field", 2)
+		assert.NotNil(t, err)
 		val, err := client.Hincrby("key", "field", 2)
 		assert.Nil(t, err)
 		assert.Equal(t, 2, val)
@@ -108,6 +121,8 @@ func TestRedis_Hkeys(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
+		_, err := NewRedis(client.Addr, "").Hkeys("a")
+		assert.NotNil(t, err)
 		vals, err := client.Hkeys("a")
 		assert.Nil(t, err)
 		assert.ElementsMatch(t, []string{"aa", "bb"}, vals)
@@ -118,6 +133,8 @@ func TestRedis_Hmget(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
 		assert.Nil(t, client.Hset("a", "bb", "bbb"))
+		_, err := NewRedis(client.Addr, "").Hmget("a", "aa", "bb")
+		assert.NotNil(t, err)
 		vals, err := client.Hmget("a", "aa", "bb")
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"aaa", "bbb"}, vals)
@@ -268,6 +285,8 @@ func TestRedis_GetBit(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := client.SetBit("key", 2, 1)
 		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").GetBit("key", 2)
+		assert.NotNil(t, err)
 		val, err := client.GetBit("key", 2)
 		assert.Nil(t, err)
 		assert.Equal(t, 1, val)
@@ -286,11 +305,15 @@ func TestRedis_Persist(t *testing.T) {
 		ok, err = client.Persist("key")
 		assert.Nil(t, err)
 		assert.False(t, ok)
+		err = NewRedis(client.Addr, "").Expire("key", 5)
+		assert.NotNil(t, err)
 		err = client.Expire("key", 5)
 		assert.Nil(t, err)
 		ok, err = client.Persist("key")
 		assert.Nil(t, err)
 		assert.True(t, ok)
+		err = NewRedis(client.Addr, "").Expireat("key", time.Now().Unix()+5)
+		assert.NotNil(t, err)
 		err = client.Expireat("key", time.Now().Unix()+5)
 		assert.Nil(t, err)
 		ok, err = client.Persist("key")
@@ -346,6 +369,8 @@ func TestRedis_Sscan(t *testing.T) {
 		}
 
 		assert.Equal(t, sum, 1550)
+		_, err = NewRedis(client.Addr, "").Del(key)
+		assert.NotNil(t, err)
 		_, err = client.Del(key)
 		assert.Nil(t, err)
 	})
@@ -431,6 +456,8 @@ func TestRedis_SetGetDel(t *testing.T) {
 		assert.NotNil(t, err)
 		err = client.Set("hello", "world")
 		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").Get("hello")
+		assert.NotNil(t, err)
 		val, err := client.Get("hello")
 		assert.Nil(t, err)
 		assert.Equal(t, "world", val)
@@ -484,12 +511,18 @@ func TestRedis_SetGetDelHashField(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := client.Hset("key", "field", "value")
 		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").Hget("key", "field")
+		assert.NotNil(t, err)
 		val, err := client.Hget("key", "field")
 		assert.Nil(t, err)
 		assert.Equal(t, "value", val)
+		_, err = NewRedis(client.Addr, "").Hexists("key", "field")
+		assert.NotNil(t, err)
 		ok, err := client.Hexists("key", "field")
 		assert.Nil(t, err)
 		assert.True(t, ok)
+		_, err = NewRedis(client.Addr, "").Hdel("key", "field")
+		assert.NotNil(t, err)
 		ret, err := client.Hdel("key", "field")
 		assert.Nil(t, err)
 		assert.True(t, ret)
