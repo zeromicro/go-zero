@@ -33,10 +33,10 @@ func captureOutput(f func()) string {
 	writer := new(mockWriter)
 	infoLog = writer
 
-	prevLevel := logLevel
-	logLevel = InfoLevel
+	prevLevel := atomic.LoadUint32(&logLevel)
+	SetLevel(InfoLevel)
 	f()
-	logLevel = prevLevel
+	SetLevel(prevLevel)
 
 	return writer.builder.String()
 }
