@@ -85,6 +85,46 @@ func TestStructedLogSlow(t *testing.T) {
 	})
 }
 
+func TestStructedLogSlowf(t *testing.T) {
+	doTestStructedLog(t, levelSlow, func(writer io.WriteCloser) {
+		slowLog = writer
+	}, func(v ...interface{}) {
+		Slowf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogStat(t *testing.T) {
+	doTestStructedLog(t, levelStat, func(writer io.WriteCloser) {
+		statLog = writer
+	}, func(v ...interface{}) {
+		Stat(v...)
+	})
+}
+
+func TestStructedLogStatf(t *testing.T) {
+	doTestStructedLog(t, levelStat, func(writer io.WriteCloser) {
+		statLog = writer
+	}, func(v ...interface{}) {
+		Statf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogSevere(t *testing.T) {
+	doTestStructedLog(t, levelSevere, func(writer io.WriteCloser) {
+		severeLog = writer
+	}, func(v ...interface{}) {
+		Severe(v...)
+	})
+}
+
+func TestStructedLogSeveref(t *testing.T) {
+	doTestStructedLog(t, levelSevere, func(writer io.WriteCloser) {
+		severeLog = writer
+	}, func(v ...interface{}) {
+		Severef(fmt.Sprint(v...))
+	})
+}
+
 func TestStructedLogWithDuration(t *testing.T) {
 	const message = "hello there"
 	writer := new(mockWriter)
@@ -133,6 +173,15 @@ func TestSetLevelWithDuration(t *testing.T) {
 
 func TestMustNil(t *testing.T) {
 	Must(nil)
+}
+
+func TestDisable(t *testing.T) {
+	Disable()
+	WithKeepDays(1)
+	WithGzip()
+	assert.Nil(t, Close())
+	writeConsole = false
+	assert.Nil(t, Close())
 }
 
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
@@ -232,7 +281,7 @@ func doTestStructedLog(t *testing.T, level string, setup func(writer io.WriteClo
 		t.Error(err)
 	}
 	assert.Equal(t, level, entry.Level)
-	assert.Equal(t, message, entry.Content)
+	assert.True(t, strings.Contains(entry.Content, message))
 }
 
 func testSetLevelTwiceWithMode(t *testing.T, mode string) {
