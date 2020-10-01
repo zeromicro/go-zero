@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"shorturl/api/internal/config"
 	"shorturl/api/internal/handler"
@@ -18,6 +19,8 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+
+	fmt.Println("xxxxxxxxxxxxx ", c)
 
 	ctx := svc.NewServiceContext(c)
 	server := rest.MustNewServer(c.RestConf)

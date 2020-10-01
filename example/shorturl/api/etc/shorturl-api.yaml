@@ -4,5 +4,5 @@ Port: 8888
 Transform:
   Etcd:
     Hosts:
-      - localhost:2379
+      - 106.15.229.186:2379
     Key: transform.rpc

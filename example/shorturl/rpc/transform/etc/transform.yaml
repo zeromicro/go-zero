@@ -4,7 +4,7 @@ Log:
 ListenOn: 127.0.0.1:8081
 Etcd:
   Hosts:
-  - 127.0.0.1:2379
+  - 106.15.229.186:2379
   Key: transform.rpc
 DataSource: root:@tcp(localhost:3306)/gozero
 Table: shorturl
