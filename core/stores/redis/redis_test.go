@@ -440,12 +440,27 @@ func TestRedis_SortedSet(t *testing.T) {
 		val, err = client.Zscore("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(5), val)
-		ok, err = client.Zadd("key", 6, "value2")
+		val, err = client.Zadds("key", Pair{
+			Key:   "value2",
+			Score: 6,
+		}, Pair{
+			Key:   "value3",
+			Score: 7,
+		})
 		assert.Nil(t, err)
-		assert.True(t, ok)
-		ok, err = client.Zadd("key", 7, "value3")
+		assert.Equal(t, int64(2), val)
+		pairs, err := client.ZRevRangeWithScores("key", 1, 3)
 		assert.Nil(t, err)
-		assert.True(t, ok)
+		assert.EqualValues(t, []Pair{
+			{
+				Key:   "value2",
+				Score: 6,
+			},
+			{
+				Key:   "value1",
+				Score: 5,
+			},
+		}, pairs)
 		rank, err := client.Zrank("key", "value2")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), rank)
@@ -487,7 +502,7 @@ func TestRedis_SortedSet(t *testing.T) {
 		vals, err = client.Zrevrange("key", 0, -1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value4", "value1"}, vals)
-		pairs, err := client.ZrangeWithScores("key", 0, -1)
+		pairs, err = client.ZrangeWithScores("key", 0, -1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
@@ -565,6 +580,13 @@ func TestRedis_Pipelined(t *testing.T) {
 	})
 }
 
+func TestRedisString(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		assert.Equal(t, client.Addr, client.String())
+	})
+}
+
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
@@ -576,7 +598,9 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 			t.Error(err)
 		}
 
-		client.Close()
+		if client != nil {
+			client.Close()
+		}
 	}()
 
 	fn(NewRedis(s.Addr(), NodeType))
