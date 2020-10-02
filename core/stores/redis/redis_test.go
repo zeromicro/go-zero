@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis"
+	red "github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -204,6 +205,8 @@ func TestRedis_HyperLogLog(t *testing.T) {
 		_, err := r.Pfadd("key1")
 		assert.NotNil(t, err)
 		_, err = r.Pfcount("*")
+		assert.NotNil(t, err)
+		err = r.Pfmerge("*")
 		assert.NotNil(t, err)
 	})
 }
@@ -748,6 +751,66 @@ func TestRedisString(t *testing.T) {
 	})
 }
 
+func TestRedisScriptLoad(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		_, err := NewRedis(client.Addr, "").scriptLoad("foo")
+		assert.NotNil(t, err)
+		_, err = client.scriptLoad("foo")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisToPairs(t *testing.T) {
+	pairs := toPairs([]red.Z{
+		{
+			Member: 1,
+			Score:  1,
+		},
+		{
+			Member: 2,
+			Score:  2,
+		},
+	})
+	assert.EqualValues(t, []Pair{
+		{
+			Key:   "1",
+			Score: 1,
+		},
+		{
+			Key:   "2",
+			Score: 2,
+		},
+	}, pairs)
+}
+
+func TestRedisToStrings(t *testing.T) {
+	vals := toStrings([]interface{}{1, 2})
+	assert.EqualValues(t, []string{"1", "2"}, vals)
+}
+
+func TestRedisBlpop(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		var node mockedNode
+		_, err := client.Blpop(nil, "foo")
+		assert.NotNil(t, err)
+		_, err = client.Blpop(node, "foo")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisBlpopEx(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		var node mockedNode
+		_, _, err := client.BlpopEx(nil, "foo")
+		assert.NotNil(t, err)
+		_, _, err = client.BlpopEx(node, "foo")
+		assert.NotNil(t, err)
+	})
+}
+
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
@@ -765,4 +828,12 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	}()
 
 	fn(NewRedis(s.Addr(), NodeType))
+}
+
+type mockedNode struct {
+	RedisNode
+}
+
+func (n mockedNode) BLPop(timeout time.Duration, keys ...string) *red.StringSliceCmd {
+	return red.NewStringSliceCmd("foo", "bar")
 }
