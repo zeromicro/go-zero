@@ -11,9 +11,11 @@ type (
 	Console interface {
 		Success(format string, a ...interface{})
 		Info(format string, a ...interface{})
+		Debug(format string, a ...interface{})
 		Warning(format string, a ...interface{})
 		Error(format string, a ...interface{})
 		Fatalln(format string, a ...interface{})
+		MarkDone()
 		Must(err error)
 	}
 	colorConsole struct {
@@ -39,6 +41,11 @@ func (c *colorConsole) Info(format string, a ...interface{}) {
 	fmt.Println(msg)
 }
 
+func (c *colorConsole) Debug(format string, a ...interface{}) {
+	msg := fmt.Sprintf(format, a...)
+	fmt.Println(aurora.Blue(msg))
+}
+
 func (c *colorConsole) Success(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
 	fmt.Println(aurora.Green(msg))
@@ -59,6 +66,11 @@ func (c *colorConsole) Fatalln(format string, a ...interface{}) {
 	os.Exit(1)
 }
 
+func (c *colorConsole) MarkDone() {
+	fmt.Println()
+	c.Success("Done.")
+}
+
 func (c *colorConsole) Must(err error) {
 	if err != nil {
 		c.Fatalln("%+v", err)
@@ -72,6 +84,11 @@ func NewIdeaConsole() *ideaConsole {
 func (i *ideaConsole) Info(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
 	fmt.Println(msg)
+}
+
+func (i *ideaConsole) Debug(format string, a ...interface{}) {
+	msg := fmt.Sprintf(format, a...)
+	fmt.Println(aurora.Blue(msg))
 }
 
 func (i *ideaConsole) Success(format string, a ...interface{}) {
@@ -92,6 +109,11 @@ func (i *ideaConsole) Error(format string, a ...interface{}) {
 func (i *ideaConsole) Fatalln(format string, a ...interface{}) {
 	i.Error(format, a...)
 	os.Exit(1)
+}
+
+func (i *ideaConsole) MarkDone() {
+	fmt.Println()
+	i.Success("Done.")
 }
 
 func (i *ideaConsole) Must(err error) {
