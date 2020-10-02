@@ -10,6 +10,10 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
+const (
+	NL = "\n"
+)
+
 func CreateIfNotExist(file string) (*os.File, error) {
 	_, err := os.Stat(file)
 	if !os.IsNotExist(err) {

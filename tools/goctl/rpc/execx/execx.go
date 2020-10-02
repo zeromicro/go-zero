@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
+
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 func Run(arg string, dir string) (string, error) {
 	goos := runtime.GOOS
 	var cmd *exec.Cmd
 	switch goos {
-	case "darwin", "linux":
+	case vars.OsMac, vars.OsLinux:
 		cmd = exec.Command("sh", "-c", arg)
-	case "windows":
+	case vars.OsWindows:
 		cmd = exec.Command("cmd.exe", "/c", arg)
 	default:
 		return "", fmt.Errorf("unexpected os: %v", goos)
