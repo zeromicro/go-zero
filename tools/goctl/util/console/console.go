@@ -67,7 +67,6 @@ func (c *colorConsole) Fatalln(format string, a ...interface{}) {
 }
 
 func (c *colorConsole) MarkDone() {
-	fmt.Println()
 	c.Success("Done.")
 }
 
@@ -112,7 +111,6 @@ func (i *ideaConsole) Fatalln(format string, a ...interface{}) {
 }
 
 func (i *ideaConsole) MarkDone() {
-	fmt.Println()
 	i.Success("Done.")
 }
 
