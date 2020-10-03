@@ -2,3 +2,8 @@ ignore:
   - "doc"
   - "example"
   - "tools"
+
+coverage:
+  precision: 2
+  round: up
+  range: "50...75"
