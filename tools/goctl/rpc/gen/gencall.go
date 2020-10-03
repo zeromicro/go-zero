@@ -163,10 +163,8 @@ func (g *defaultRpcGenerator) genFunction(service *parser.RpcService) ([]string,
 	pkgName := file.Package
 	functions := make([]string, 0)
 	imports := collection.NewSet()
+	imports.AddStr(fmt.Sprintf(`%v "%v"`, pkgName, g.mustGetPackage(dirPb)))
 	for _, method := range service.Funcs {
-		if method.ParameterIn.Package == pkgName {
-			imports.AddStr(fmt.Sprintf(`%v "%v"`, pkgName, g.mustGetPackage(dirPb)))
-		}
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
 		buffer, err := util.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
