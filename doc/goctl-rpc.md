@@ -199,7 +199,7 @@ OPTIONS:
 
   any类型固定import为`google/protobuf/any.proto`,且从${GOPATH}/src中查找，proto的import支持main proto的相对路径的import，且与proto文件对应的pb.go文件必须在proto目录中能被找到。不支持工程外的其他proto文件import。
 
-> ⚠️注意： 不知proto嵌套import，即：被import的proto文件不支持import。
+> ⚠️注意： 不支持proto嵌套import，即：被import的proto文件不支持import。
 
 ### import书写格式
 import书写格式
