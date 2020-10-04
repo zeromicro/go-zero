@@ -22,6 +22,18 @@ func TestUnmarshalRowBool(t *testing.T) {
 	})
 }
 
+func TestUnmarshalRowBoolNotSettable(t *testing.T) {
+	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("1")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		var value bool
+		assert.NotNil(t, query(db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select value from users where user=?", "anyone"))
+	})
+}
+
 func TestUnmarshalRowInt(t *testing.T) {
 	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("2")
@@ -225,6 +237,40 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, "liao", value.Name)
 		assert.Equal(t, 5, value.Age)
+	})
+}
+
+func TestUnmarshalRowStructWithTagsWrongColumns(t *testing.T) {
+	var value = new(struct {
+		Age  *int   `db:"age"`
+		Name string `db:"name"`
+	})
+
+	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name"}).FromCSVString("liao")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.NotNil(t, query(db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
+	})
+}
+
+func TestUnmarshalRowStructWithTagsPtr(t *testing.T) {
+	var value = new(struct {
+		Age  *int   `db:"age"`
+		Name string `db:"name"`
+	})
+
+	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.Nil(t, query(db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
+		assert.Equal(t, "liao", value.Name)
+		assert.Equal(t, 5, *value.Age)
 	})
 }
 
