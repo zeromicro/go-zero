@@ -27,7 +27,6 @@ func getGoogleBreaker() *googleBreaker {
 	return &googleBreaker{
 		stat:  st,
 		k:     5,
-		state: StateClosed,
 		proba: mathx.NewProba(),
 	}
 }
