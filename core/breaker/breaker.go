@@ -14,11 +14,6 @@ import (
 )
 
 const (
-	StateClosed State = iota
-	StateOpen
-)
-
-const (
 	numHistoryReasons = 5
 	timeFormat        = "15:04:05"
 )
@@ -27,7 +22,6 @@ const (
 var ErrServiceUnavailable = errors.New("circuit breaker is open")
 
 type (
-	State      = int32
 	Acceptable func(err error) bool
 
 	Breaker interface {
