@@ -8,20 +8,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/lang"
 )
 
 func TestEnterToContinue(t *testing.T) {
-	r, w, err := os.Pipe()
+	restore, err := iox.RedirectInOut()
 	assert.Nil(t, err)
-	ow := os.Stdout
-	os.Stdout = w
-	or := os.Stdin
-	os.Stdin = r
-	defer func() {
-		os.Stdin = or
-		os.Stdout = ow
-	}()
+	defer restore()
 
 	var wg sync.WaitGroup
 	wg.Add(2)
