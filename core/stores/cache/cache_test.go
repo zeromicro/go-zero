@@ -111,6 +111,45 @@ func TestCache_SetDel(t *testing.T) {
 		assert.Nil(t, c.GetCache(fmt.Sprintf("key/%d", i), &v))
 		assert.Equal(t, i, v)
 	}
+	assert.Nil(t, c.DelCache())
+	for i := 0; i < total; i++ {
+		assert.Nil(t, c.DelCache(fmt.Sprintf("key/%d", i)))
+	}
+	for i := 0; i < total; i++ {
+		var v int
+		assert.Equal(t, errPlaceholder, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.Equal(t, 0, v)
+	}
+}
+
+func TestCache_OneNode(t *testing.T) {
+	const total = 1000
+	r := miniredis.NewMiniRedis()
+	assert.Nil(t, r.Start())
+	defer r.Close()
+	conf := ClusterConf{
+		{
+			RedisConf: redis.RedisConf{
+				Host: r.Addr(),
+				Type: redis.NodeType,
+			},
+			Weight: 100,
+		},
+	}
+	c := NewCache(conf, syncx.NewSharedCalls(), NewCacheStat("mock"), errPlaceholder)
+	for i := 0; i < total; i++ {
+		if i%2 == 0 {
+			assert.Nil(t, c.SetCache(fmt.Sprintf("key/%d", i), i))
+		} else {
+			assert.Nil(t, c.SetCacheWithExpire(fmt.Sprintf("key/%d", i), i, 0))
+		}
+	}
+	for i := 0; i < total; i++ {
+		var v int
+		assert.Nil(t, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.Equal(t, i, v)
+	}
+	assert.Nil(t, c.DelCache())
 	for i := 0; i < total; i++ {
 		assert.Nil(t, c.DelCache(fmt.Sprintf("key/%d", i)))
 	}
