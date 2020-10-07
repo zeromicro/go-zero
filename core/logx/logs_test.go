@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -175,6 +176,43 @@ func TestMustNil(t *testing.T) {
 	Must(nil)
 }
 
+func TestSetup(t *testing.T) {
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "console",
+	})
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "file",
+		Path:        os.TempDir(),
+	})
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "volume",
+		Path:        os.TempDir(),
+	})
+	assert.NotNil(t, setupWithVolume(LogConf{}))
+	assert.NotNil(t, setupWithFiles(LogConf{}))
+	assert.Nil(t, setupWithFiles(LogConf{
+		ServiceName: "any",
+		Path:        os.TempDir(),
+		Compress:    true,
+		KeepDays:    1,
+	}))
+	setupLogLevel(LogConf{
+		Level: levelInfo,
+	})
+	setupLogLevel(LogConf{
+		Level: levelError,
+	})
+	setupLogLevel(LogConf{
+		Level: levelSevere,
+	})
+	_, err := createOutput("")
+	assert.NotNil(t, err)
+	Disable()
+}
+
 func TestDisable(t *testing.T) {
 	Disable()
 	WithKeepDays(1)
@@ -182,6 +220,20 @@ func TestDisable(t *testing.T) {
 	assert.Nil(t, Close())
 	writeConsole = false
 	assert.Nil(t, Close())
+}
+
+func TestWithGzip(t *testing.T) {
+	fn := WithGzip()
+	var opt logOptions
+	fn(&opt)
+	assert.True(t, opt.gzipEnabled)
+}
+
+func TestWithKeepDays(t *testing.T) {
+	fn := WithKeepDays(1)
+	var opt logOptions
+	fn(&opt)
+	assert.Equal(t, 1, opt.keepDays)
 }
 
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
@@ -300,5 +352,11 @@ func testSetLevelTwiceWithMode(t *testing.T, mode string) {
 	infoLog = writer
 	atomic.StoreUint32(&initialized, 1)
 	Info(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	Infof(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	ErrorStack(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	ErrorStackf(message)
 	assert.Equal(t, 0, writer.builder.Len())
 }
