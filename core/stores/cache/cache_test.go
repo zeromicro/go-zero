@@ -227,6 +227,25 @@ func TestCache_Balance(t *testing.T) {
 	assert.Equal(t, total/10, count)
 }
 
+func TestCacheNoNode(t *testing.T) {
+	dispatcher := hash.NewConsistentHash()
+	c := cacheCluster{
+		dispatcher:  dispatcher,
+		errNotFound: errPlaceholder,
+	}
+	assert.NotNil(t, c.DelCache("foo"))
+	assert.NotNil(t, c.DelCache("foo", "bar", "any"))
+	assert.NotNil(t, c.GetCache("foo", nil))
+	assert.NotNil(t, c.SetCache("foo", nil))
+	assert.NotNil(t, c.SetCacheWithExpire("foo", nil, time.Second))
+	assert.NotNil(t, c.Take(nil, "foo", func(v interface{}) error {
+		return nil
+	}))
+	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(v interface{}, duration time.Duration) error {
+		return nil
+	}))
+}
+
 func calcEntropy(m map[int]int, total int) float64 {
 	var entropy float64
 
