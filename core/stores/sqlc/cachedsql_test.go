@@ -79,9 +79,29 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	}
 
 	r := redis.NewRedis(s.Addr(), redis.NodeType)
-	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
+	c := NewConn(dummySqlConn{}, cache.CacheConf{
+		{
+			RedisConf: redis.RedisConf{
+				Host: s.Addr(),
+				Type: redis.NodeType,
+			},
+			Weight: 100,
+		},
+	}, cache.WithExpiry(time.Second*10))
 
 	var str string
+	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+		return fmt.Sprintf("%s/1234", s)
+	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+		*v.(*string) = "zero"
+		return "primary", errors.New("foo")
+	}, func(conn sqlx.SqlConn, v, pri interface{}) error {
+		assert.Equal(t, "primary", pri)
+		*v.(*string) = "xin"
+		return nil
+	})
+	assert.NotNil(t, err)
+
 	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
 		return fmt.Sprintf("%s/1234", s)
 	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
@@ -500,6 +520,10 @@ func TestCachedConnExecDropCache(t *testing.T) {
 	assert.True(t, conn.execValue)
 	_, err = s.Get(key)
 	assert.Exactly(t, miniredis.ErrKeyNotFound, err)
+	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
+		return nil, errors.New("foo")
+	}, key)
+	assert.NotNil(t, err)
 }
 
 func TestCachedConnExecDropCacheFailed(t *testing.T) {
