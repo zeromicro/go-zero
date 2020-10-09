@@ -19,7 +19,7 @@ const (
 var mock tracespec.Trace = new(mockTrace)
 
 func TestTraceLog(t *testing.T) {
-	var buf strings.Builder
+	var buf mockWriter
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
 	assert.True(t, strings.Contains(buf.String(), mockTraceId))
@@ -27,7 +27,7 @@ func TestTraceLog(t *testing.T) {
 }
 
 func TestTraceError(t *testing.T) {
-	var buf strings.Builder
+	var buf mockWriter
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
@@ -42,7 +42,7 @@ func TestTraceError(t *testing.T) {
 }
 
 func TestTraceInfo(t *testing.T) {
-	var buf strings.Builder
+	var buf mockWriter
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
@@ -57,7 +57,7 @@ func TestTraceInfo(t *testing.T) {
 }
 
 func TestTraceSlow(t *testing.T) {
-	var buf strings.Builder
+	var buf mockWriter
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
@@ -72,7 +72,7 @@ func TestTraceSlow(t *testing.T) {
 }
 
 func TestTraceWithoutContext(t *testing.T) {
-	var buf strings.Builder
+	var buf mockWriter
 	l := WithContext(context.Background()).(*traceLogger)
 	SetLevel(InfoLevel)
 	infoLog = newLogWriter(log.New(&buf, "", flags))

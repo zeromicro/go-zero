@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -22,10 +23,13 @@ var (
 )
 
 type mockWriter struct {
+	lock    sync.Mutex
 	builder strings.Builder
 }
 
 func (mw *mockWriter) Write(data []byte) (int, error) {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
 	return mw.builder.Write(data)
 }
 
@@ -33,12 +37,22 @@ func (mw *mockWriter) Close() error {
 	return nil
 }
 
+func (mw *mockWriter) Contains(text string) bool {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	return strings.Contains(mw.builder.String(), text)
+}
+
 func (mw *mockWriter) Reset() {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
 	mw.builder.Reset()
 }
 
-func (mw *mockWriter) Contains(text string) bool {
-	return strings.Contains(mw.builder.String(), text)
+func (mw *mockWriter) String() string {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	return mw.builder.String()
 }
 
 func TestFileLineFileMode(t *testing.T) {
