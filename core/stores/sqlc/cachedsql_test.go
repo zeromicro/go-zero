@@ -594,20 +594,6 @@ func TestQueryRowNoCache(t *testing.T) {
 	assert.True(t, ran)
 }
 
-func TestFloatKeyer(t *testing.T) {
-	primaries := []interface{}{
-		float32(1),
-		float64(1),
-	}
-
-	for _, primary := range primaries {
-		val := floatKeyer(func(i interface{}) string {
-			return fmt.Sprint(i)
-		})(primary)
-		assert.Equal(t, "1", val)
-	}
-}
-
 func resetStats() {
 	atomic.StoreUint64(&stats.Total, 0)
 	atomic.StoreUint64(&stats.Hit, 0)

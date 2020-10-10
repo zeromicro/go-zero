@@ -2,7 +2,9 @@ package cache
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -175,4 +177,32 @@ func TestCacheNode_String(t *testing.T) {
 		errNotFound:    errors.New("any"),
 	}
 	assert.Equal(t, s.Addr(), cn.String())
+}
+
+func TestCacheValueWithBigInt(t *testing.T) {
+	s, err := miniredis.Run()
+	if err != nil {
+		t.Error(err)
+	}
+	defer s.Close()
+
+	cn := cacheNode{
+		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		barrier:        syncx.NewSharedCalls(),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewCacheStat("any"),
+		errNotFound:    errors.New("any"),
+	}
+
+	const (
+		key         = "key"
+		value int64 = 323427211229009810
+	)
+
+	assert.Nil(t, cn.SetCache(key, value))
+	var val interface{}
+	assert.Nil(t, cn.GetCache(key, &val))
+	assert.Equal(t, strconv.FormatInt(value, 10), fmt.Sprintf("%v", val))
 }

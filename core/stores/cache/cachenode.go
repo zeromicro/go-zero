@@ -1,13 +1,13 @@
 package cache
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
+	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -79,7 +79,7 @@ func (c cacheNode) SetCache(key string, v interface{}) error {
 }
 
 func (c cacheNode) SetCacheWithExpire(key string, v interface{}, expire time.Duration) error {
-	data, err := json.Marshal(v)
+	data, err := jsonx.Marshal(v)
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 			}
 		}
 
-		return json.Marshal(v)
+		return jsonx.Marshal(v)
 	})
 	if err != nil {
 		return err
@@ -181,11 +181,11 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 		c.stat.IncrementHit()
 	}
 
-	return json.Unmarshal(val.([]byte), v)
+	return jsonx.Unmarshal(val.([]byte), v)
 }
 
 func (c cacheNode) processCache(key string, data string, v interface{}) error {
-	err := json.Unmarshal([]byte(data), v)
+	err := jsonx.Unmarshal([]byte(data), v)
 	if err == nil {
 		return nil
 	}
