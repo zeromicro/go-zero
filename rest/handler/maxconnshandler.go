@@ -28,7 +28,7 @@ func MaxConns(n int) func(http.Handler) http.Handler {
 
 				next.ServeHTTP(w, r)
 			} else {
-				internal.Errorf(r, "Concurrent connections over %d, rejected with code %d",
+				internal.Errorf(r, "concurrent connections over %d, rejected with code %d",
 					n, http.StatusServiceUnavailable)
 				w.WriteHeader(http.StatusServiceUnavailable)
 			}
