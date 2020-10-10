@@ -192,7 +192,7 @@ func parseProto(src string, messageM map[string]lang.PlaceholderType, enumM map[
 		}
 
 		if len(p.Name) == 0 {
-			err = errors.New("package was not found")
+			err = errors.New("package not found")
 		}
 
 		resp.Package = p.Name

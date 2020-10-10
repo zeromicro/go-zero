@@ -4,7 +4,6 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/ctx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
@@ -33,7 +32,6 @@ func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 }
 
 func (g *defaultRpcGenerator) Generate() (err error) {
-	g.Ctx.Info(vars.GoZeroText)
 	g.Ctx.Info(aurora.Blue("-> goctl-rpc文档地址: ").String() + "「https://github.com/tal-tech/go-zero/blob/master/doc/goctl-rpc.md」")
 	g.Ctx.Warning("-> generating rpc code ...")
 	defer func() {

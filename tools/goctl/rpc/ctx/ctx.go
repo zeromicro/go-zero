@@ -59,7 +59,7 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 	}
 	serviceNameString := stringx.From(serviceName)
 	if serviceNameString.IsEmptyOrSpace() {
-		log.Fatalln("service name was not found")
+		log.Fatalln("service name not found")
 	}
 
 	info, err := project.Prepare(targetDir, true)
