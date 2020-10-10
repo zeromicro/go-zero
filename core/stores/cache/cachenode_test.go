@@ -11,6 +11,7 @@ import (
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -181,10 +182,18 @@ func TestCacheNode_String(t *testing.T) {
 
 func TestCacheValueWithBigInt(t *testing.T) {
 	s, err := miniredis.Run()
-	if err != nil {
-		t.Error(err)
-	}
-	defer s.Close()
+	assert.Nil(t, err)
+	defer func() {
+		ch := make(chan lang.PlaceholderType)
+		go func() {
+			s.Close()
+			close(ch)
+		}()
+		select {
+		case <-ch:
+		case <-time.After(time.Second):
+		}
+	}()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
