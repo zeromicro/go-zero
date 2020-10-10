@@ -2,6 +2,7 @@ package project
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -39,18 +40,18 @@ type (
 func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	_, err := exec.LookPath(constGo)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("please install go first,reference documents:「https://golang.org/doc/install」")
 	}
 
 	if checkGrpcEnv {
 		_, err = exec.LookPath(constProtoC)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("please install protoc first,reference documents:「https://github.com/golang/protobuf」")
 		}
 
 		_, err = exec.LookPath(constProtoCGenGo)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("please install plugin protoc-gen-go first,reference documents:「https://github.com/golang/protobuf」")
 		}
 	}
 

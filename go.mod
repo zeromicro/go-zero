@@ -9,7 +9,7 @@ require (
 	github.com/alicebob/miniredis v2.5.0+incompatible
 	github.com/dchest/siphash v1.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dsymonds/gotoc v0.0.0-20160928043926-5aebcfc91819
+	github.com/emicklei/proto v1.9.0
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/frankban/quicktest v1.7.2 // indirect
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
@@ -56,7 +56,7 @@ require (
 	golang.org/x/tools v0.0.0-20200410132612-ae9902aceb98 // indirect
 	google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f // indirect
 	google.golang.org/grpc v1.29.1
-	google.golang.org/protobuf v1.25.0 // indirect
+	google.golang.org/protobuf v1.25.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.0.15
 	gopkg.in/yaml.v2 v2.2.8
