@@ -1,8 +1,0 @@
-syntax = "proto3";
-
-package stream;
-import "base.proto";
-
-message Base{
-  base.EmptyResponse resp = 1;
-}
