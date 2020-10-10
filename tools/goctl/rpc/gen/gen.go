@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/ctx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 )
@@ -31,10 +32,11 @@ func NewDefaultRpcGenerator(ctx *ctx.RpcContext) *defaultRpcGenerator {
 }
 
 func (g *defaultRpcGenerator) Generate() (err error) {
-	g.Ctx.Info("generating code...")
+	g.Ctx.Info(aurora.Blue("-> goctl rpc reference documents: ").String() + "「https://github.com/tal-tech/go-zero/blob/master/doc/goctl-rpc.md」")
+	g.Ctx.Warning("-> generating rpc code ...")
 	defer func() {
 		if err == nil {
-			g.Ctx.Success("Done.")
+			g.Ctx.MarkDone()
 		}
 	}()
 	err = g.createDir()
