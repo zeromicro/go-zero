@@ -162,7 +162,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	findOneByFieldCode, err := genFindOneByField(table, withCache)
+	findOneByFieldCode, extraMethod, err := genFindOneByField(table, withCache)
 	if err != nil {
 		return "", err
 	}
@@ -179,14 +179,15 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	output, err := t.Execute(map[string]interface{}{
-		"imports": importsCode,
-		"vars":    varsCode,
-		"types":   typesCode,
-		"new":     newCode,
-		"insert":  insertCode,
-		"find":    strings.Join(findCode, "\n"),
-		"update":  updateCode,
-		"delete":  deleteCode,
+		"imports":     importsCode,
+		"vars":        varsCode,
+		"types":       typesCode,
+		"new":         newCode,
+		"insert":      insertCode,
+		"find":        strings.Join(findCode, "\n"),
+		"update":      updateCode,
+		"delete":      deleteCode,
+		"extraMethod": extraMethod,
 	})
 	if err != nil {
 		return "", err
