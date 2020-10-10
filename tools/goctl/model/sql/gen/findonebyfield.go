@@ -36,7 +36,7 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 		}
 		list = append(list, output.String())
 	}
-	if withCache {
+	if withCache && table.ContainsUniqueKey {
 		out, err := util.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
