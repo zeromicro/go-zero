@@ -39,18 +39,18 @@ type (
 func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	_, err := exec.LookPath(constGo)
 	if err != nil {
-		return nil, fmt.Errorf("请先安装go环境，安装地址：「https://golang.org/doc/install」")
+		return nil, fmt.Errorf("please install go first,reference documents:「https://golang.org/doc/install」")
 	}
 
 	if checkGrpcEnv {
 		_, err = exec.LookPath(constProtoC)
 		if err != nil {
-			return nil, fmt.Errorf("请先安装protoc，安装地址：「https://github.com/golang/protobuf」")
+			return nil, fmt.Errorf("please install protoc first,reference documents:「https://github.com/golang/protobuf」")
 		}
 
 		_, err = exec.LookPath(constProtoCGenGo)
 		if err != nil {
-			return nil, fmt.Errorf("请先安装protoc-gen-go插件，文档地址：「https://github.com/golang/protobuf」")
+			return nil, fmt.Errorf("please install plugin protoc-gen-go first,reference documents:「https://github.com/golang/protobuf」")
 		}
 	}
 

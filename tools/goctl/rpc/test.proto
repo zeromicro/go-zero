@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package test;
+// @github.com/tal-tech/go-zero/tools/goctl/rpc
+import "base.proto";
+
+message request {
+  string name = 1;
+}
+
+message response {
+  string greet = 1;
+}
+
+service Greeter {
+  rpc greet(request) returns (response);
+  rpc idRequest(base.IdRequest)returns(base.EmptyResponse);
+}
