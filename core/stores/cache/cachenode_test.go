@@ -11,7 +11,6 @@ import (
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -27,9 +26,9 @@ func init() {
 }
 
 func TestCacheNode_DelCache(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -50,9 +49,9 @@ func TestCacheNode_DelCache(t *testing.T) {
 }
 
 func TestCacheNode_InvalidCache(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -71,9 +70,9 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 }
 
 func TestCacheNode_Take(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -98,9 +97,9 @@ func TestCacheNode_Take(t *testing.T) {
 }
 
 func TestCacheNode_TakeNotFound(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -137,9 +136,9 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 }
 
 func TestCacheNode_TakeWithExpire(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -164,9 +163,9 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 }
 
 func TestCacheNode_String(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -181,19 +180,9 @@ func TestCacheNode_String(t *testing.T) {
 }
 
 func TestCacheValueWithBigInt(t *testing.T) {
-	s, err := miniredis.Run()
+	s, clean, err := createMiniRedis()
 	assert.Nil(t, err)
-	defer func() {
-		ch := make(chan lang.PlaceholderType)
-		go func() {
-			s.Close()
-			close(ch)
-		}()
-		select {
-		case <-ch:
-		case <-time.After(time.Second):
-		}
-	}()
+	defer clean()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),

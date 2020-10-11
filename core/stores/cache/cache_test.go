@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/core/hash"
@@ -76,12 +75,12 @@ func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v int
 
 func TestCache_SetDel(t *testing.T) {
 	const total = 1000
-	r1 := miniredis.NewMiniRedis()
-	assert.Nil(t, r1.Start())
-	defer r1.Close()
-	r2 := miniredis.NewMiniRedis()
-	assert.Nil(t, r2.Start())
-	defer r2.Close()
+	r1, clean1, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean1()
+	r2, clean2, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean2()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
@@ -124,9 +123,9 @@ func TestCache_SetDel(t *testing.T) {
 
 func TestCache_OneNode(t *testing.T) {
 	const total = 1000
-	r := miniredis.NewMiniRedis()
-	assert.Nil(t, r.Start())
-	defer r.Close()
+	r, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
