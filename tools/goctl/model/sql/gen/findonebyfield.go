@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genFindOneByField(table Table, withCache bool) (string, error) {
+func genFindOneByField(table Table, withCache bool) (string, string, error) {
 	t := util.With("findOneByField").Parse(template.FindOneByField)
 	var list []string
 	camelTableName := table.Name.ToCamel()
@@ -30,12 +30,23 @@ func genFindOneByField(table Table, withCache bool) (string, error) {
 			"lowerStartCamelField":      stringx.From(camelFieldName).UnTitle(),
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             field.Name.Source(),
-			"originalPrimaryField":      table.PrimaryKey.Name.Source(),
 		})
 		if err != nil {
-			return "", err
+			return "", "", err
 		}
 		list = append(list, output.String())
 	}
-	return strings.Join(list, "\n"), nil
+	if withCache {
+		out, err := util.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
+			"upperStartCamelObject": camelTableName,
+			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
+			"originalPrimaryField":  table.PrimaryKey.Name.Source(),
+		})
+		if err != nil {
+			return "", "", err
+		}
+		return strings.Join(list, "\n"), out.String(), nil
+	}
+	return strings.Join(list, "\n"), "", nil
+
 }

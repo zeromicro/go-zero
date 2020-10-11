@@ -1,6 +1,7 @@
 package project
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -136,5 +137,5 @@ func matchModule(data []byte) (string, error) {
 		return strings.TrimSpace(target[index+6:]), nil
 	}
 
-	return "", nil
+	return "", errors.New("module not matched")
 }
