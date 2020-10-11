@@ -162,7 +162,7 @@ go get -u github.com/tal-tech/go-zero
   * [文本序列化和反序列化](doc/mapping.md)
   * [快速构建jwt鉴权认证](doc/jwt.md)
 
-## 9. 交流群
+## 9. 微信交流群
 
 加群之前有劳给一个star，一个小小的star是作者们回答海量问题的动力。
 
@@ -174,10 +174,4 @@ go get -u github.com/tal-tech/go-zero
 
 扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！
 
-* #### 微信交流群
-
 <img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
-
-* #### QQ交流群
-
-<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/qq.jpg" alt="qq" width="300" />
