@@ -25,7 +25,6 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 			"withCache":                 withCache,
 			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
 			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
-			"primaryKeyLeft":            table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject":     stringx.From(camelTableName).UnTitle(),
 			"lowerStartCamelField":      stringx.From(camelFieldName).UnTitle(),
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
@@ -39,6 +38,7 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 	if withCache {
 		out, err := util.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
+			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
 			"originalPrimaryField":  table.PrimaryKey.Name.Source(),
 		})

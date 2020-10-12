@@ -65,7 +65,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 `
 var FindOneByFieldExtraMethod = `
 func (m *{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
-	return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
+	return fmt.Sprintf("%s%v", {{.primaryKeyLeft}}, primary)
 }
 
 func (m *{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
