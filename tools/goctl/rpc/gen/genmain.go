@@ -35,10 +35,9 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	{{.srv}}
 
-	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.registers}}
 	})
-	logx.Must(err)
 	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
