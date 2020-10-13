@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/internal"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 	"github.com/tal-tech/go-zero/core/syncx"
@@ -19,7 +18,7 @@ var (
 
 	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
 	exclusiveCalls = syncx.NewSharedCalls()
-	stats          = internal.NewCacheStat("sqlc")
+	stats          = cache.NewCacheStat("sqlc")
 )
 
 type (
@@ -30,21 +29,21 @@ type (
 
 	CachedConn struct {
 		db    sqlx.SqlConn
-		cache internal.Cache
+		cache cache.Cache
 	}
 )
 
 func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
 	return CachedConn{
 		db:    db,
-		cache: internal.NewCacheNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+		cache: cache.NewCacheNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
 	}
 }
 
 func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
 	return CachedConn{
 		db:    db,
-		cache: internal.NewCache(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+		cache: cache.NewCache(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
 	}
 }
 
@@ -83,6 +82,7 @@ func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary
 	indexQuery IndexQueryFn, primaryQuery PrimaryQueryFn) error {
 	var primaryKey interface{}
 	var found bool
+
 	if err := cc.cache.TakeWithExpire(&primaryKey, key, func(val interface{}, expire time.Duration) (err error) {
 		primaryKey, err = indexQuery(cc.db, v)
 		if err != nil {

@@ -19,7 +19,7 @@ type Roster struct {
 }
 
 func main() {
-	model := mongo.MustNewModel("localhost:27017", "blackboard", "roster")
+	model := mongo.MustNewModel("localhost:27017/blackboard", "roster")
 	for i := 0; i < 1000; i++ {
 		session, err := model.TakeSession()
 		if err != nil {

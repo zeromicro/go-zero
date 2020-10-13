@@ -7,6 +7,9 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 * 简单易用
 * 快速提升开发效率
 * 出错率低
+* 支持基于main proto作为相对路径的import
+* 支持map、enum类型
+* 支持any类型
 
 ## 快速开始
 
@@ -117,7 +120,6 @@ rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题�
 
 * 安装了go环境
 * 安装了protoc&protoc-gen-go，并且已经设置环境变量
-* mockgen(可选,将移除)
 * 更多问题请见 <a href="#注意事项">注意事项</a>
 
 ## 用法
@@ -139,7 +141,6 @@ OPTIONS:
    --src value, -s value         the file path of the proto source file
    --dir value, -d value         the target path of the code,default path is "${pwd}". [option]
    --service value, --srv value  the name of rpc service. [option]
-   --shared[已废弃] value                the dir of the shared file,default path is "${pwd}/shared. [option]"
    --idea                        whether the command execution environment is from idea plugin. [option]
 
 ```
@@ -158,11 +159,11 @@ OPTIONS:
     ```
 
     则服务名称亦为user，而非proto所在文件夹名称了，这里推荐使用这种结构，可以方便在同一个服务名下建立不同类型的服务(api、rpc、mq等)，便于代码管理与维护。
-* --shared[⚠️已废弃] 非必填，默认为$dir(xxx.proto)/shared，rpc client逻辑代码存放目录。
   
   > 注意：这里的shared文件夹名称将会是代码中的package名称。
 
 * --idea 非必填，是否为idea插件中执行，保留字段，终端执行可以忽略
+
 
 ### 开发人员需要做什么
 
@@ -172,9 +173,6 @@ OPTIONS:
 * 服务中业务逻辑编写(internal/logic/xxlogic.go)
 * 服务中资源上下文的编写(internal/svc/servicecontext.go)
 
-## 扩展
-
-对于需要进行rpc mock的开发人员，在安装了`mockgen`工具的前提下可以在rpc的shared文件中生成好对应的mock文件。
 
 ### 注意事项
 
@@ -194,6 +192,70 @@ OPTIONS:
 ```
 
 的标识，请注意不要将也写业务性代码写在里面。
+
+## any和import支持
+* 支持any类型声明
+* 支持import其他proto文件
+
+  any类型固定import为`google/protobuf/any.proto`,且从${GOPATH}/src中查找，proto的import支持main proto的相对路径的import，且与proto文件对应的pb.go文件必须在proto目录中能被找到。不支持工程外的其他proto文件import。
+
+> ⚠️注意： 不支持proto嵌套import，即：被import的proto文件不支持import。
+
+### import书写格式
+import书写格式
+```golang
+// @{package_of_pb} 
+import {proto_omport}
+```
+@{package_of_pb}：pb文件的真实import目录。
+{proto_omport}：proto import
+
+
+如：demo中的
+
+```golang
+// @greet/base
+import "base/base.proto";
+```
+
+工程目录结构如下
+```
+greet
+│   ├── base
+│   │   ├── base.pb.go
+│   │   └── base.proto
+│   ├── demo.proto
+│   ├── go.mod
+│   └── go.sum
+```
+
+demo 
+```golang
+syntax = "proto3";
+import "google/protobuf/any.proto";
+// @greet/base
+import "base/base.proto";
+package stream;
+
+
+enum Gender{
+  UNKNOWN = 0;
+  MAN = 1;
+  WOMAN = 2;
+}
+
+message StreamResp{
+  string name = 2;
+  Gender gender = 3;
+  google.protobuf.Any details = 5;
+  base.StreamReq req = 6;
+}
+service StreamGreeter {
+  rpc greet(base.StreamReq) returns (StreamResp);
+}
+```
+
+
 
 ## 常见问题解决(go mod工程)
 

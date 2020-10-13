@@ -106,10 +106,10 @@ func main() {
 
     // 没有拿到结果，则调用makeCall方法去获取资源，注意此处仍然是锁住的，可以保证只有一个goroutine可以调用makecall
     c := g.makeCall(key, fn)
-  // 返回调用结果
+    // 返回调用结果
     return c.val, c.err
   }
-```
+  ```
   
 - sharedGroup的DoEx方法
 
@@ -160,7 +160,7 @@ func main() {
     c.val, c.err = fn()
     return c
   }
-```
+  ```
 
 ## 最后
 

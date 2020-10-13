@@ -6,8 +6,9 @@
 package checker
 
 import (
-	check "bookstore/rpc/check/pb"
 	"context"
+
+	check "bookstore/rpc/check/pb"
 
 	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/zrpc"

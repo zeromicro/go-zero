@@ -27,6 +27,13 @@ func TestParseForm(t *testing.T) {
 	assert.Equal(t, 3.4, v.Percent)
 }
 
+func TestParseHeader(t *testing.T) {
+	m := ParseHeader("key=value;")
+	assert.EqualValues(t, map[string]string{
+		"key": "value",
+	}, m)
+}
+
 func TestParseFormOutOfRange(t *testing.T) {
 	var v struct {
 		Age int `form:"age,range=[10:20)"`

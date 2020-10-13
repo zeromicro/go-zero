@@ -20,20 +20,14 @@ func genDelete(table Table, withCache bool) (string, error) {
 		}
 		keyVariableSet.AddStr(key.Variable)
 	}
-	var containsIndexCache = false
-	for _, item := range table.Fields {
-		if item.IsUniqueKey {
-			containsIndexCache = true
-			break
-		}
-	}
+
 	camel := table.Name.ToCamel()
 	output, err := util.With("delete").
 		Parse(template.Delete).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
 			"withCache":                 withCache,
-			"containsIndexCache":        containsIndexCache,
+			"containsIndexCache":        table.ContainsUniqueKey,
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).UnTitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),

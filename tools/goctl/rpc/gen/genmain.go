@@ -35,10 +35,10 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	{{.srv}}
 
-	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.registers}}
 	})
-	logx.Must(err)
+	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
@@ -65,7 +65,7 @@ func (g *defaultRpcGenerator) genMain() error {
 		"serviceName": g.Ctx.ServiceName.Lower(),
 		"srv":         srv,
 		"registers":   registers,
-		"imports":     strings.Join(imports, "\n"),
+		"imports":     strings.Join(imports, util.NL),
 	}, fileName, true)
 }
 
@@ -77,5 +77,5 @@ func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (
 		list1 = append(list1, fmt.Sprintf("%sSrv := server.New%sServer(ctx)", name, item.Name.Title()))
 		list2 = append(list2, fmt.Sprintf("%s.Register%sServer(grpcServer, %sSrv)", pkg, item.Name.Title(), name))
 	}
-	return strings.Join(list1, "\n"), strings.Join(list2, "\n")
+	return strings.Join(list1, util.NL), strings.Join(list2, util.NL)
 }

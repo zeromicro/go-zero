@@ -11,6 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/project"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 	"github.com/urfave/cli"
 )
 
@@ -58,7 +59,7 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 	}
 	serviceNameString := stringx.From(serviceName)
 	if serviceNameString.IsEmptyOrSpace() {
-		log.Fatalln("service name is not found")
+		log.Fatalln("service name not found")
 	}
 
 	info, err := project.Prepare(targetDir, true)
@@ -80,7 +81,7 @@ func MustCreateRpcContext(protoSrc, targetDir, serviceName string, idea bool) *R
 func MustCreateRpcContextFromCli(ctx *cli.Context) *RpcContext {
 	os := runtime.GOOS
 	switch os {
-	case "darwin", "linux", "windows":
+	case vars.OsMac, vars.OsLinux, vars.OsWindows:
 	default:
 		logx.Must(fmt.Errorf("unexpected os: %s", os))
 	}

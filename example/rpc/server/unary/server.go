@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 	"time"
@@ -50,5 +51,13 @@ func main() {
 	server := zrpc.MustNewServer(c, func(grpcServer *grpc.Server) {
 		unary.RegisterGreeterServer(grpcServer, NewGreetServer())
 	})
+	interceptor := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+		st := time.Now()
+		resp, err = handler(ctx, req)
+		log.Printf("method: %s time: %v\n", info.FullMethod, time.Since(st))
+		return resp, err
+	}
+
+	server.AddUnaryInterceptors(interceptor)
 	server.Start()
 }

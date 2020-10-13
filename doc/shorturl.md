@@ -72,13 +72,19 @@
   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
-* 创建工作目录`shorturl`
+* 创建工作目录 `shorturl` 和 `shorturl/api`
 
 * 在`shorturl`目录下执行`go mod init shorturl`初始化`go.mod`
 
 ## 5. 编写API Gateway代码
 
-* 通过goctl生成`api/shorturl.api`并编辑，为了简洁，去除了文件开头的`info`，代码如下：
+* 在`shorturl/api`目录下通过goctl生成`api/shorturl.api`：
+
+  ```shell
+  goctl api -o shorturl.api
+  ```
+
+* 编辑`api/shorturl.api`，为了简洁，去除了文件开头的`info`，代码如下：
 
   ```go
   type (
@@ -188,6 +194,8 @@
 * 到这里，你已经可以通过goctl生成客户端代码给客户端同学并行开发了，支持多种语言，详见文档
 
 ## 6. 编写transform rpc服务
+
+- 在 `shorturl` 目录下创建 `rpc` 目录
 
 * 在`rpc/transform`目录下编写`transform.proto`文件
 
@@ -474,7 +482,7 @@
   }
   ```
 
-  至此代码修改完成，凡事手动修改的代码我加了标注
+  至此代码修改完成，凡是手动修改的代码我加了标注
 
 ## 10. 完整调用演示
 

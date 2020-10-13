@@ -113,7 +113,8 @@ func (g *defaultGenerator) genFromDDL(withCache bool) (map[string]string, error)
 type (
 	Table struct {
 		parser.Table
-		CacheKey map[string]Key
+		CacheKey          map[string]Key
+		ContainsUniqueKey bool
 	}
 )
 
@@ -135,6 +136,14 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	var table Table
 	table.Table = in
 	table.CacheKey = m
+	var containsUniqueCache = false
+	for _, item := range table.Fields {
+		if item.IsUniqueKey {
+			containsUniqueCache = true
+			break
+		}
+	}
+	table.ContainsUniqueKey = containsUniqueCache
 
 	varsCode, err := genVars(table, withCache)
 	if err != nil {
@@ -162,7 +171,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	findOneByFieldCode, err := genFindOneByField(table, withCache)
+	findOneByFieldCode, extraMethod, err := genFindOneByField(table, withCache)
 	if err != nil {
 		return "", err
 	}
@@ -179,14 +188,15 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	output, err := t.Execute(map[string]interface{}{
-		"imports": importsCode,
-		"vars":    varsCode,
-		"types":   typesCode,
-		"new":     newCode,
-		"insert":  insertCode,
-		"find":    strings.Join(findCode, "\n"),
-		"update":  updateCode,
-		"delete":  deleteCode,
+		"imports":     importsCode,
+		"vars":        varsCode,
+		"types":       typesCode,
+		"new":         newCode,
+		"insert":      insertCode,
+		"find":        strings.Join(findCode, "\n"),
+		"update":      updateCode,
+		"delete":      deleteCode,
+		"extraMethod": extraMethod,
 	})
 	if err != nil {
 		return "", err

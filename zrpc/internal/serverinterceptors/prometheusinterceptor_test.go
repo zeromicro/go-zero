@@ -9,7 +9,7 @@ import (
 )
 
 func TestUnaryPromMetricInterceptor(t *testing.T) {
-	interceptor := UnaryPromMetricInterceptor()
+	interceptor := UnaryPrometheusInterceptor()
 	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {

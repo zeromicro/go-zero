@@ -192,14 +192,16 @@ func (l *RotateLogger) init() error {
 }
 
 func (l *RotateLogger) maybeCompressFile(file string) {
-	if l.compress {
-		defer func() {
-			if r := recover(); r != nil {
-				ErrorStack(r)
-			}
-		}()
-		compressLogFile(file)
+	if !l.compress {
+		return
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			ErrorStack(r)
+		}
+	}()
+	compressLogFile(file)
 }
 
 func (l *RotateLogger) maybeDeleteOutdatedFiles() {

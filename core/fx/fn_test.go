@@ -49,6 +49,36 @@ func TestBufferNegative(t *testing.T) {
 	assert.Equal(t, 10, result)
 }
 
+func TestCount(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []interface{}
+	}{
+		{
+			name: "no elements with nil",
+		},
+		{
+			name:     "no elements",
+			elements: []interface{}{},
+		},
+		{
+			name:     "1 element",
+			elements: []interface{}{1},
+		},
+		{
+			name:     "multiple elements",
+			elements: []interface{}{1, 2, 3},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			val := Just(test.elements...).Count()
+			assert.Equal(t, len(test.elements), val)
+		})
+	}
+}
+
 func TestDone(t *testing.T) {
 	var count int32
 	Just(1, 2, 3).Walk(func(item interface{}, pipe chan<- interface{}) {

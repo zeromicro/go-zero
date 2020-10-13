@@ -69,7 +69,7 @@ And now, let’s walk through the complete flow of quickly create a microservice
   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
   ```
 
-* create the working dir bookstore
+* create the working dir `bookstore` and `bookstore/api`
 
 * in `bookstore` dir, execute `go mod init bookstore` to initialize `go.mod``
 
@@ -190,6 +190,8 @@ And now, let’s walk through the complete flow of quickly create a microservice
 * till now, the client engineer can work with the api, don’t need to wait for the implementation of server side
 
 ## 6. Write code for add rpc service
+
+- under directory `bookstore` create dir `rpc`
 
 * under directory `rpc/add` create `add.proto` file
 
