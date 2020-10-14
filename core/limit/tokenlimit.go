@@ -3,7 +3,6 @@ package limit
 import (
 	"fmt"
 	"strconv"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -56,7 +55,6 @@ type TokenLimiter struct {
 	store          *redis.Redis
 	tokenKey       string
 	timestampKey   string
-	rescueLock     sync.Mutex
 	redisAlive     uint32
 	rescueLimiter  *xrate.Limiter
 	monitorStarted bool
@@ -131,26 +129,21 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 }
 
 func (lim *TokenLimiter) startMonitor() {
-	lim.rescueLock.Lock()
-	defer lim.rescueLock.Unlock()
-
 	if lim.monitorStarted {
 		return
 	}
 
-	lim.monitorStarted = true
-	atomic.StoreUint32(&lim.redisAlive, 0)
-
-	go lim.waitForRedis()
+	if atomic.CompareAndSwapUint32(&lim.redisAlive, 1, 0) {
+		lim.monitorStarted = true
+		go lim.waitForRedis()
+	}
 }
 
 func (lim *TokenLimiter) waitForRedis() {
 	ticker := time.NewTicker(pingInterval)
 	defer func() {
 		ticker.Stop()
-		lim.rescueLock.Lock()
 		lim.monitorStarted = false
-		lim.rescueLock.Unlock()
 	}()
 
 	for {
