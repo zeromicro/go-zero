@@ -6,6 +6,10 @@ type Ring struct {
 }
 
 func NewRing(n int) *Ring {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+
 	return &Ring{
 		elements: make([]interface{}, n),
 	}

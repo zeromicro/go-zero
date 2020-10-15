@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -122,8 +123,8 @@ func (g *defaultRpcGenerator) genCall() error {
 	}
 
 	filename := filepath.Join(callPath, typesFilename)
-	head := util.GetHead(g.Ctx.ProtoSource)
-	err = util.With("types").GoFmt(true).Parse(callTemplateTypes).SaveTo(map[string]interface{}{
+	head := templatex.GetHead(g.Ctx.ProtoSource)
+	err = templatex.With("types").GoFmt(true).Parse(callTemplateTypes).SaveTo(map[string]interface{}{
 		"head":                  head,
 		"const":                 constLit,
 		"filePackage":           service.Name.Lower(),
@@ -146,7 +147,7 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 
-	err = util.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
+	err = templatex.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
 		"name":        service.Name.Lower(),
 		"head":        head,
 		"filePackage": service.Name.Lower(),
@@ -166,7 +167,7 @@ func (g *defaultRpcGenerator) genFunction(service *parser.RpcService) ([]string,
 	imports.AddStr(fmt.Sprintf(`%v "%v"`, pkgName, g.mustGetPackage(dirPb)))
 	for _, method := range service.Funcs {
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
-		buffer, err := util.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
+		buffer, err := templatex.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
 			"method":         method.Name.Title(),
 			"package":        pkgName,
@@ -189,7 +190,7 @@ func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]s
 	functions := make([]string, 0)
 
 	for _, method := range service.Funcs {
-		buffer, err := util.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
+		buffer, err := templatex.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
 			map[string]interface{}{
 				"hasComment": method.HaveDoc(),
 				"comment":    method.GetDoc(),

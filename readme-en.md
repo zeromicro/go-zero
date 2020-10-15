@@ -23,7 +23,7 @@ Advantages of go-zero:
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
-<img src="doc/images/architecture-en.png" alt="Architecture" width="1500" />
+<img src="https://github.com/tal-tech/zero-doc/blob/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
 ## 1. Backgrounds of go-zero
 
@@ -74,7 +74,7 @@ go-zero is a web and rpc framework that integrates lots of engineering practices
 
 As below, go-zero protects the system with couple layers and mechanisms:
 
-![Resilience](doc/images/resilience-en.png)
+![Resilience](https://github.com/tal-tech/zero-doc/blob/main/doc/images/resilience-en.png)
 
 ## 4. Future development plans of go-zero
 
@@ -93,9 +93,9 @@ go get -u github.com/tal-tech/go-zero
 
 0. full examples can be checked out from below:
 
-     [Rapid development of microservice systems](doc/shorturl-en.md)
+     [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](doc/bookstore-en.md)
+     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore-en.md)
 
 1. install goctl
 
@@ -198,11 +198,11 @@ go get -u github.com/tal-tech/go-zero
 
 ## 7. Benchmark
 
-![benchmark](doc/images/benchmark.png)
+![benchmark](https://github.com/tal-tech/zero-doc/blob/main/doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
 ## 8. Documents (adding)
 
-* [Rapid development of microservice systems](doc/shorturl-en.md)
-* [Rapid development of microservice systems - multiple RPCs](doc/bookstore-en.md)
+* [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
+* [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore-en.md)

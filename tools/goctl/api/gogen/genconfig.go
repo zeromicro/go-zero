@@ -8,6 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -47,7 +48,12 @@ func genConfig(dir string, api *spec.ApiSpec) error {
 	}
 
 	var authImportStr = fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl)
-	t := template.Must(template.New("configTemplate").Parse(configTemplate))
+	text, err := templatex.LoadTemplate(category, configTemplateFile, configTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("configTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"authImport": authImportStr,

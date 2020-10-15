@@ -11,6 +11,13 @@ import (
 
 const duration = time.Millisecond * 50
 
+func TestNewRollingWindow(t *testing.T) {
+	assert.NotNil(t, NewRollingWindow(10, time.Second))
+	assert.Panics(t, func() {
+		NewRollingWindow(0, time.Second)
+	})
+}
+
 func TestRollingWindowAdd(t *testing.T) {
 	const size = 3
 	r := NewRollingWindow(size, duration)
