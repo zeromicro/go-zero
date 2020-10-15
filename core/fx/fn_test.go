@@ -207,7 +207,7 @@ func TestSplit(t *testing.T) {
 		for i, group := range groups {
 			assert.Equal(t, len(test.result[i]), len(group))
 			for j, value := range group {
-				assert.Equal(t, test.result[i][j], value)
+				assert.True(t, test.result[i][j] == value)
 			}
 		}
 	}
