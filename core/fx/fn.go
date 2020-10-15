@@ -159,6 +159,9 @@ func (p Stream) Group(fn KeyFunc) Stream {
 }
 
 func (p Stream) Head(n int64) Stream {
+	if n < 1 {
+		panic("n must be greater than 0")
+	}
 	source := make(chan interface{})
 
 	go func() {
