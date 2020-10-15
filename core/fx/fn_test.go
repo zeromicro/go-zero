@@ -294,6 +294,14 @@ func TestTail(t *testing.T) {
 	assert.Equal(t, 7, result)
 }
 
+func TestTailZero(t *testing.T) {
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			return nil, nil
+		})
+	})
+}
+
 func TestWalk(t *testing.T) {
 	var result int
 	Just(1, 2, 3, 4, 5).Walk(func(item interface{}, pipe chan<- interface{}) {

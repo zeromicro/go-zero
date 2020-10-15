@@ -162,6 +162,7 @@ func (p Stream) Head(n int64) Stream {
 	if n < 1 {
 		panic("n must be greater than 0")
 	}
+
 	source := make(chan interface{})
 
 	go func() {
@@ -247,6 +248,10 @@ func (p Stream) Sort(less LessFunc) Stream {
 }
 
 func (p Stream) Tail(n int64) Stream {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+
 	source := make(chan interface{})
 
 	go func() {
