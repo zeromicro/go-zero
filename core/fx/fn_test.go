@@ -171,12 +171,8 @@ func TestHead(t *testing.T) {
 
 func TestHeadZero(t *testing.T) {
 	assert.Panics(t, func() {
-		var result int
 		Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
-			for item := range pipe {
-				result += item.(int)
-			}
-			return result, nil
+			return nil, nil
 		})
 	})
 }
