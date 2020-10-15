@@ -102,6 +102,13 @@ var (
 						},
 					},
 					Action: gogen.GoCommand,
+					Subcommands: []cli.Command{
+						{
+							Name:   "template",
+							Usage:  "initialize the api templates",
+							Action: gogen.GenTemplates,
+						},
+					},
 				},
 				{
 					Name:  "java",

@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -46,8 +47,14 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+
+	text, err := templatex.LoadTemplate(category, contextTemplateFile, contextTemplate)
+	if err != nil {
+		return err
+	}
+
 	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
-	t := template.Must(template.New("contextTemplate").Parse(contextTemplate))
+	t := template.Must(template.New("contextTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"configImport": configImport,

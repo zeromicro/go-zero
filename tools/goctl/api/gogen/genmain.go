@@ -8,6 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
@@ -60,7 +61,12 @@ func genMain(dir string, api *spec.ApiSpec) error {
 		return err
 	}
 
-	t := template.Must(template.New("mainTemplate").Parse(mainTemplate))
+	text, err := templatex.LoadTemplate(category, mainTemplateFile, mainTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("mainTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"importPackages": genMainImports(parentPkg),
