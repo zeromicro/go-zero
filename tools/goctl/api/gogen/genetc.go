@@ -8,6 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 )
 
 const (
@@ -39,7 +40,12 @@ func genEtc(dir string, api *spec.ApiSpec) error {
 		port = strconv.Itoa(defaultPort)
 	}
 
-	t := template.Must(template.New("etcTemplate").Parse(etcTemplate))
+	text, err := templatex.LoadTemplate(category, etcTemplateFile, etcTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("etcTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"serviceName": service.Name,

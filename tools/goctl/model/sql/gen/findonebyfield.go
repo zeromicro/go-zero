@@ -5,12 +5,12 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 func genFindOneByField(table Table, withCache bool) (string, string, error) {
-	t := util.With("findOneByField").Parse(template.FindOneByField)
+	t := templatex.With("findOneByField").Parse(template.FindOneByField)
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, field := range table.Fields {
@@ -36,7 +36,7 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 		list = append(list, output.String())
 	}
 	if withCache {
-		out, err := util.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
+		out, err := templatex.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),

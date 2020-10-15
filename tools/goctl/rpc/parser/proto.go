@@ -10,6 +10,7 @@ import (
 	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
@@ -262,7 +263,7 @@ func (e *Enum) GenEnumCode() (string, error) {
 		}
 		element = append(element, code)
 	}
-	buffer, err := util.With("enum").Parse(enumTemplate).Execute(map[string]interface{}{
+	buffer, err := templatex.With("enum").Parse(enumTemplate).Execute(map[string]interface{}{
 		"element": strings.Join(element, util.NL),
 	})
 	if err != nil {
@@ -272,7 +273,7 @@ func (e *Enum) GenEnumCode() (string, error) {
 }
 
 func (e *Enum) GenEnumTypeCode() (string, error) {
-	buffer, err := util.With("enumAlias").Parse(enumTypeTemplate).Execute(map[string]interface{}{
+	buffer, err := templatex.With("enumAlias").Parse(enumTypeTemplate).Execute(map[string]interface{}{
 		"name": e.Name.Source(),
 	})
 	if err != nil {
@@ -282,7 +283,7 @@ func (e *Enum) GenEnumTypeCode() (string, error) {
 }
 
 func (e *EnumField) GenEnumFieldCode(parentName string) (string, error) {
-	buffer, err := util.With("enumField").Parse(enumFiledTemplate).Execute(map[string]interface{}{
+	buffer, err := templatex.With("enumField").Parse(enumFiledTemplate).Execute(map[string]interface{}{
 		"key":   e.Key,
 		"name":  parentName,
 		"value": e.Value,
