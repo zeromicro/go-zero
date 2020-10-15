@@ -167,6 +167,9 @@ func TestHead(t *testing.T) {
 		return result, nil
 	})
 	assert.Equal(t, 3, result)
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Head(0)
+	})
 }
 
 func TestHeadMore(t *testing.T) {
