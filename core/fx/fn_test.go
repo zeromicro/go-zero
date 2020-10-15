@@ -167,8 +167,17 @@ func TestHead(t *testing.T) {
 		return result, nil
 	})
 	assert.Equal(t, 3, result)
+}
+
+func TestHeadZero(t *testing.T) {
 	assert.Panics(t, func() {
-		Just(1, 2, 3, 4).Head(0)
+		var result int
+		Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			for item := range pipe {
+				result += item.(int)
+			}
+			return result, nil
+		})
 	})
 }
 
