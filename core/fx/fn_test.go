@@ -158,6 +158,69 @@ func TestGroup(t *testing.T) {
 	}
 }
 
+func TestSplit(t *testing.T) {
+	tests := []struct {
+		in     []int
+		size   int
+		result [][]int
+	}{
+		{
+			in:   []int{1, 2, 3, 4, 5, 6},
+			size: 2,
+			result: [][]int{
+				{1, 2},
+				{3, 4},
+				{5, 6},
+			},
+		},
+		{
+			in:   []int{1, 2, 3, 4, 5, 6},
+			size: 3,
+			result: [][]int{
+				{1, 2, 3},
+				{4, 5, 6},
+			},
+		},
+		{
+			in:   []int{1, 2, 3, 4, 5, 6},
+			size: 9,
+			result: [][]int{
+				{1, 2, 3, 4, 5, 6},
+			},
+		},
+	}
+	for _, test := range tests {
+		groups := make([][]int, 0)
+		From(func(source chan<- interface{}) {
+			for _, v := range test.in {
+				source <- v
+			}
+		}).Split(test.size).ForEach(func(item interface{}) {
+			v := item.([]interface{})
+			var group []int
+			for _, each := range v {
+				group = append(group, each.(int))
+			}
+			groups = append(groups, group)
+		})
+		assert.Equal(t, len(test.result), len(groups))
+		for i, group := range groups {
+			assert.Equal(t, len(test.result[i]), len(group))
+			for j, value := range group {
+				assert.Equal(t, test.result[i][j], value)
+			}
+		}
+	}
+}
+
+func TestSplitZero(t *testing.T) {
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Split(0).ForEach(func(item interface{}) {
+			// do nothing
+		})
+	})
+}
+
 func TestHead(t *testing.T) {
 	var result int
 	Just(1, 2, 3, 4).Head(2).Reduce(func(pipe <-chan interface{}) (interface{}, error) {

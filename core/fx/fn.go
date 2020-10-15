@@ -158,6 +158,38 @@ func (p Stream) Group(fn KeyFunc) Stream {
 	return Range(source)
 }
 
+func (p Stream) Split(size int) Stream {
+	if size < 1 {
+		panic("size must be greater than 0")
+	}
+	groups := make([][]interface{}, 0)
+	i := 0
+	var group []interface{}
+	for item := range p.source {
+		if i%size == 0 {
+			group = make([]interface{}, 0)
+		}
+		i++
+		group = append(group, item)
+		if i%size == 0 {
+			groups = append(groups, group)
+		}
+	}
+	if len(group) < size {
+		groups = append(groups, group)
+	}
+
+	source := make(chan interface{})
+	go func() {
+		for _, group := range groups {
+			source <- group
+		}
+		close(source)
+	}()
+
+	return Range(source)
+}
+
 func (p Stream) Head(n int64) Stream {
 	if n < 1 {
 		panic("n must be greater than 0")
