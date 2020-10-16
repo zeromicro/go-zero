@@ -23,6 +23,7 @@ const (
 var (
 	errTypeMismatch     = errors.New("type mismatch")
 	errValueNotSettable = errors.New("value is not settable")
+	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
 	cacheKeys           atomic.Value
 	cacheKeysLock       sync.Mutex
@@ -80,6 +81,10 @@ func (u *Unmarshaler) unmarshalWithFullName(m Valuer, v interface{}, fullName st
 	}
 
 	rte := reflect.TypeOf(v).Elem()
+	if rte.Kind() != reflect.Struct {
+		return errValueNotStruct
+	}
+
 	rve := rv.Elem()
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {

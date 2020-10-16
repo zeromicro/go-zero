@@ -18,8 +18,6 @@ const (
 	ServiceTypeRmq  ServiceType = "rmq"
 	ServiceTypeSync ServiceType = "sync"
 	envDev                      = "dev"
-	envPre                      = "pre"
-	envPro                      = "pro"
 )
 
 type (

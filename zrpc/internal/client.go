@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
@@ -11,7 +13,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-const dialTimeout = time.Second * 3
+const (
+	dialTimeout = time.Second * 3
+	separator   = '/'
+)
 
 func init() {
 	resolver.RegisterResolver()
@@ -26,37 +31,30 @@ type (
 	ClientOption func(options *ClientOptions)
 
 	client struct {
-		conn *grpc.ClientConn
+		conn         *grpc.ClientConn
+		interceptors []grpc.UnaryClientInterceptor
 	}
 )
 
 func NewClient(target string, opts ...ClientOption) (*client, error) {
+	var cli client
 	opts = append(opts, WithDialOption(grpc.WithBalancerName(p2c.Name)))
-	conn, err := dial(target, opts...)
-	if err != nil {
+	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
 	}
 
-	return &client{conn: conn}, nil
+	return &cli, nil
+}
+
+func (c *client) AddInterceptor(interceptor grpc.UnaryClientInterceptor) {
+	c.interceptors = append(c.interceptors, interceptor)
 }
 
 func (c *client) Conn() *grpc.ClientConn {
 	return c.conn
 }
 
-func WithDialOption(opt grpc.DialOption) ClientOption {
-	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, opt)
-	}
-}
-
-func WithTimeout(timeout time.Duration) ClientOption {
-	return func(options *ClientOptions) {
-		options.Timeout = timeout
-	}
-}
-
-func buildDialOptions(opts ...ClientOption) []grpc.DialOption {
+func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	var clientOptions ClientOptions
 	for _, opt := range opts {
 		opt(&clientOptions)
@@ -69,22 +67,47 @@ func buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.TracingInterceptor,
 			clientinterceptors.DurationInterceptor,
 			clientinterceptors.BreakerInterceptor,
-			clientinterceptors.PromMetricInterceptor,
+			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.TimeoutInterceptor(clientOptions.Timeout),
 		),
+	}
+	for _, interceptor := range c.interceptors {
+		options = append(options, WithUnaryClientInterceptors(interceptor))
 	}
 
 	return append(options, clientOptions.DialOptions...)
 }
 
-func dial(server string, opts ...ClientOption) (*grpc.ClientConn, error) {
-	options := buildDialOptions(opts...)
+func (c *client) dial(server string, opts ...ClientOption) error {
+	options := c.buildDialOptions(opts...)
 	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
 	defer cancel()
 	conn, err := grpc.DialContext(timeCtx, server, options...)
 	if err != nil {
-		return nil, fmt.Errorf("rpc dial: %s, error: %s", server, err.Error())
+		service := server
+		if errors.Is(err, context.DeadlineExceeded) {
+			pos := strings.LastIndexByte(server, separator)
+			// len(server) - 1 is the index of last char
+			if 0 < pos && pos < len(server)-1 {
+				service = server[pos+1:]
+			}
+		}
+		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is alread started",
+			server, err.Error(), service)
 	}
 
-	return conn, nil
+	c.conn = conn
+	return nil
+}
+
+func WithDialOption(opt grpc.DialOption) ClientOption {
+	return func(options *ClientOptions) {
+		options.DialOptions = append(options.DialOptions, opt)
+	}
+}
+
+func WithTimeout(timeout time.Duration) ClientOption {
+	return func(options *ClientOptions) {
+		options.Timeout = timeout
+	}
 }

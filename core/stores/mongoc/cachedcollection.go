@@ -2,7 +2,7 @@ package mongoc
 
 import (
 	"github.com/globalsign/mgo"
-	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/syncx"
 )
@@ -12,7 +12,7 @@ var (
 
 	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
 	sharedCalls = syncx.NewSharedCalls()
-	stats       = internal.NewCacheStat("mongoc")
+	stats       = cache.NewCacheStat("mongoc")
 )
 
 type (
@@ -20,11 +20,11 @@ type (
 
 	cachedCollection struct {
 		collection mongo.Collection
-		cache      internal.Cache
+		cache      cache.Cache
 	}
 )
 
-func newCollection(collection mongo.Collection, c internal.Cache) *cachedCollection {
+func newCollection(collection mongo.Collection, c cache.Cache) *cachedCollection {
 	return &cachedCollection{
 		collection: collection,
 		cache:      c,

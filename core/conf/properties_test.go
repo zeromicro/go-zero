@@ -41,3 +41,8 @@ func TestSetInt(t *testing.T) {
 	props.SetInt(key, value)
 	assert.Equal(t, value, props.GetInt(key))
 }
+
+func TestLoadBadFile(t *testing.T) {
+	_, err := LoadProperties("nosuchfile")
+	assert.NotNil(t, err)
+}

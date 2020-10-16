@@ -6,7 +6,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
@@ -81,7 +81,7 @@ type (
 )
 
 func NewStore(c KvConf) Store {
-	if len(c) == 0 || internal.TotalWeights(c) <= 0 {
+	if len(c) == 0 || cache.TotalWeights(c) <= 0 {
 		log.Fatal("no cache nodes")
 	}
 

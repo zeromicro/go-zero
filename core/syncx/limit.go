@@ -6,18 +6,22 @@ import (
 	"github.com/tal-tech/go-zero/core/lang"
 )
 
-var ErrReturn = errors.New("discarding limited token, resource pool is full, someone returned multiple times")
+// ErrLimitReturn indicates that the more than borrowed elements were returned.
+var ErrLimitReturn = errors.New("discarding limited token, resource pool is full, someone returned multiple times")
 
+// Limit controls the concurrent requests.
 type Limit struct {
 	pool chan lang.PlaceholderType
 }
 
+// NewLimit creates a Limit that can borrow n elements from it concurrently.
 func NewLimit(n int) Limit {
 	return Limit{
 		pool: make(chan lang.PlaceholderType, n),
 	}
 }
 
+// Borrow borrows an element from Limit in blocking mode.
 func (l Limit) Borrow() {
 	l.pool <- lang.Placeholder
 }
@@ -28,10 +32,12 @@ func (l Limit) Return() error {
 	case <-l.pool:
 		return nil
 	default:
-		return ErrReturn
+		return ErrLimitReturn
 	}
 }
 
+// TryBorrow tries to borrow an element from Limit, in non-blocking mode.
+// If success, true returned, false for otherwise.
 func (l Limit) TryBorrow() bool {
 	select {
 	case l.pool <- lang.Placeholder:

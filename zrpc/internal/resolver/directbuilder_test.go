@@ -23,6 +23,7 @@ func TestDirectBuilder_Build(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(strconv.Itoa(test), func(t *testing.T) {
 			var servers []string
 			for i := 0; i < test; i++ {

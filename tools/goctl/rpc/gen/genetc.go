@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -22,7 +23,7 @@ func (g *defaultRpcGenerator) genEtc() error {
 		return nil
 	}
 
-	return util.With("etc").Parse(etcTemplate).SaveTo(map[string]interface{}{
+	return templatex.With("etc").Parse(etcTemplate).SaveTo(map[string]interface{}{
 		"serviceName": g.Ctx.ServiceName.Lower(),
 	}, fileName, false)
 }

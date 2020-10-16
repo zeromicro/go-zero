@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	none = iota
+	_ = iota
 	primary
 	unique
 	normal

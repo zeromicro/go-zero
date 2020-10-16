@@ -40,6 +40,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
+        - --auto-compaction-retention=1
       image: quay.io/coreos/etcd:latest
       name: etcd0
       ports:
@@ -111,6 +112,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
+        - --auto-compaction-retention=1
       image: quay.io/coreos/etcd:latest
       name: etcd1
       ports:
@@ -182,6 +184,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
+        - --auto-compaction-retention=1
       image: quay.io/coreos/etcd:latest
       name: etcd2
       ports:
@@ -253,6 +256,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
+        - --auto-compaction-retention=1
       image: quay.io/coreos/etcd:latest
       name: etcd3
       ports:
@@ -324,6 +328,7 @@ spec:
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
+        - --auto-compaction-retention=1
       image: quay.io/coreos/etcd:latest
       name: etcd4
       ports:

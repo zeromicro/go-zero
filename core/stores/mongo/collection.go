@@ -7,6 +7,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/tal-tech/go-zero/core/breaker"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stores/mongo/internal"
 	"github.com/tal-tech/go-zero/core/timex"
 )
 
@@ -29,8 +30,9 @@ type (
 	}
 
 	decoratedCollection struct {
-		*mgo.Collection
-		brk breaker.Breaker
+		name       string
+		collection internal.MgoCollection
+		brk        breaker.Breaker
 	}
 
 	keepablePromise struct {
@@ -41,7 +43,8 @@ type (
 
 func newCollection(collection *mgo.Collection) Collection {
 	return &decoratedCollection{
-		Collection: collection,
+		name:       collection.FullName,
+		collection: collection,
 		brk:        breaker.NewBreaker(),
 	}
 }
@@ -54,7 +57,7 @@ func (c *decoratedCollection) Find(query interface{}) Query {
 
 	startTime := timex.Now()
 	return promisedQuery{
-		Query: c.Collection.Find(query),
+		Query: c.collection.Find(query),
 		promise: keepablePromise{
 			promise: promise,
 			log: func(err error) {
@@ -73,7 +76,7 @@ func (c *decoratedCollection) FindId(id interface{}) Query {
 
 	startTime := timex.Now()
 	return promisedQuery{
-		Query: c.Collection.FindId(id),
+		Query: c.collection.FindId(id),
 		promise: keepablePromise{
 			promise: promise,
 			log: func(err error) {
@@ -92,7 +95,7 @@ func (c *decoratedCollection) Insert(docs ...interface{}) (err error) {
 			c.logDuration("insert", duration, err, docs...)
 		}()
 
-		return c.Collection.Insert(docs...)
+		return c.collection.Insert(docs...)
 	}, acceptable)
 }
 
@@ -104,7 +107,7 @@ func (c *decoratedCollection) Pipe(pipeline interface{}) Pipe {
 
 	startTime := timex.Now()
 	return promisedPipe{
-		Pipe: c.Collection.Pipe(pipeline),
+		Pipe: c.collection.Pipe(pipeline),
 		promise: keepablePromise{
 			promise: promise,
 			log: func(err error) {
@@ -123,7 +126,7 @@ func (c *decoratedCollection) Remove(selector interface{}) (err error) {
 			c.logDuration("remove", duration, err, selector)
 		}()
 
-		return c.Collection.Remove(selector)
+		return c.collection.Remove(selector)
 	}, acceptable)
 }
 
@@ -135,7 +138,7 @@ func (c *decoratedCollection) RemoveAll(selector interface{}) (info *mgo.ChangeI
 			c.logDuration("removeAll", duration, err, selector)
 		}()
 
-		info, err = c.Collection.RemoveAll(selector)
+		info, err = c.collection.RemoveAll(selector)
 		return err
 	}, acceptable)
 
@@ -150,7 +153,7 @@ func (c *decoratedCollection) RemoveId(id interface{}) (err error) {
 			c.logDuration("removeId", duration, err, id)
 		}()
 
-		return c.Collection.RemoveId(id)
+		return c.collection.RemoveId(id)
 	}, acceptable)
 }
 
@@ -162,7 +165,7 @@ func (c *decoratedCollection) Update(selector, update interface{}) (err error) {
 			c.logDuration("update", duration, err, selector, update)
 		}()
 
-		return c.Collection.Update(selector, update)
+		return c.collection.Update(selector, update)
 	}, acceptable)
 }
 
@@ -174,7 +177,7 @@ func (c *decoratedCollection) UpdateId(id, update interface{}) (err error) {
 			c.logDuration("updateId", duration, err, id, update)
 		}()
 
-		return c.Collection.UpdateId(id, update)
+		return c.collection.UpdateId(id, update)
 	}, acceptable)
 }
 
@@ -186,7 +189,7 @@ func (c *decoratedCollection) Upsert(selector, update interface{}) (info *mgo.Ch
 			c.logDuration("upsert", duration, err, selector, update)
 		}()
 
-		info, err = c.Collection.Upsert(selector, update)
+		info, err = c.collection.Upsert(selector, update)
 		return err
 	}, acceptable)
 
@@ -200,17 +203,17 @@ func (c *decoratedCollection) logDuration(method string, duration time.Duration,
 	} else if err != nil {
 		if duration > slowThreshold {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
-				c.FullName, method, err.Error(), string(content))
+				c.name, method, err.Error(), string(content))
 		} else {
 			logx.WithDuration(duration).Infof("mongo(%s) - %s - fail(%s) - %s",
-				c.FullName, method, err.Error(), string(content))
+				c.name, method, err.Error(), string(content))
 		}
 	} else {
 		if duration > slowThreshold {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
-				c.FullName, method, string(content))
+				c.name, method, string(content))
 		} else {
-			logx.WithDuration(duration).Infof("mongo(%s) - %s - ok - %s", c.FullName, method, string(content))
+			logx.WithDuration(duration).Infof("mongo(%s) - %s - ok - %s", c.name, method, string(content))
 		}
 	}
 }

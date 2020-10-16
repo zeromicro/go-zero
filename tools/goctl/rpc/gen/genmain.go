@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -20,7 +21,6 @@ import (
 	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
@@ -35,10 +35,10 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	{{.srv}}
 
-	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.registers}}
 	})
-	logx.Must(err)
+	defer s.Stop()
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
@@ -58,14 +58,14 @@ func (g *defaultRpcGenerator) genMain() error {
 	configImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirConfig))
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
 	srv, registers := g.genServer(pkg, file.Service)
-	head := util.GetHead(g.Ctx.ProtoSource)
-	return util.With("main").GoFmt(true).Parse(mainTemplate).SaveTo(map[string]interface{}{
+	head := templatex.GetHead(g.Ctx.ProtoSource)
+	return templatex.With("main").GoFmt(true).Parse(mainTemplate).SaveTo(map[string]interface{}{
 		"head":        head,
 		"package":     pkg,
 		"serviceName": g.Ctx.ServiceName.Lower(),
 		"srv":         srv,
 		"registers":   registers,
-		"imports":     strings.Join(imports, "\n"),
+		"imports":     strings.Join(imports, util.NL),
 	}, fileName, true)
 }
 
@@ -77,5 +77,5 @@ func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (
 		list1 = append(list1, fmt.Sprintf("%sSrv := server.New%sServer(ctx)", name, item.Name.Title()))
 		list2 = append(list2, fmt.Sprintf("%s.Register%sServer(grpcServer, %sSrv)", pkg, item.Name.Title(), name))
 	}
-	return strings.Join(list1, "\n"), strings.Join(list2, "\n")
+	return strings.Join(list1, util.NL), strings.Join(list2, util.NL)
 }

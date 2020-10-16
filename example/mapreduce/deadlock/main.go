@@ -26,10 +26,6 @@ func main() {
 		}
 		writer.Write(user)
 	}, func(pipe <-chan interface{}, writer mr.Writer, cancel func(error)) {
-		var users []*User
-		for p := range pipe {
-			users = append(users, p.(*User))
-		}
 		// missing writer.Write(...), should not panic
 	})
 	if err != nil {

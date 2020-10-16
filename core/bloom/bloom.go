@@ -37,7 +37,6 @@ type (
 
 	BloomFilter struct {
 		bits   uint
-		maps   uint
 		bitSet BitSetProvider
 	}
 )
