@@ -15,7 +15,7 @@ const testlog = "Stay hungry, stay foolish."
 func TestCollectSysLog(t *testing.T) {
 	CollectSysLog()
 	content := getContent(captureOutput(func() {
-		log.Printf(testlog)
+		log.Print(testlog)
 	}))
 	assert.True(t, strings.Contains(content, testlog))
 }

@@ -48,20 +48,17 @@ func (cs *CacheStat) statLoop() {
 	ticker := time.NewTicker(statInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			total := atomic.SwapUint64(&cs.Total, 0)
-			if total == 0 {
-				continue
-			}
-
-			hit := atomic.SwapUint64(&cs.Hit, 0)
-			percent := 100 * float32(hit) / float32(total)
-			miss := atomic.SwapUint64(&cs.Miss, 0)
-			dbf := atomic.SwapUint64(&cs.DbFails, 0)
-			logx.Statf("dbcache(%s) - qpm: %d, hit_ratio: %.1f%%, hit: %d, miss: %d, db_fails: %d",
-				cs.name, total, percent, hit, miss, dbf)
+	for range ticker.C {
+		total := atomic.SwapUint64(&cs.Total, 0)
+		if total == 0 {
+			continue
 		}
+
+		hit := atomic.SwapUint64(&cs.Hit, 0)
+		percent := 100 * float32(hit) / float32(total)
+		miss := atomic.SwapUint64(&cs.Miss, 0)
+		dbf := atomic.SwapUint64(&cs.DbFails, 0)
+		logx.Statf("dbcache(%s) - qpm: %d, hit_ratio: %.1f%%, hit: %d, miss: %d, db_fails: %d",
+			cs.name, total, percent, hit, miss, dbf)
 	}
 }

@@ -18,7 +18,7 @@ func TestHttpPropagator_Extract(t *testing.T) {
 	assert.Equal(t, "trace", carrier.Get(traceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
-	carrier, err = Extract(HttpFormat, req)
+	_, err = Extract(HttpFormat, req)
 	assert.Equal(t, ErrInvalidCarrier, err)
 }
 
@@ -31,7 +31,7 @@ func TestHttpPropagator_Inject(t *testing.T) {
 	assert.Equal(t, "trace", carrier.Get(traceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
-	carrier, err = Inject(HttpFormat, req)
+	_, err = Inject(HttpFormat, req)
 	assert.Equal(t, ErrInvalidCarrier, err)
 }
 
@@ -45,9 +45,9 @@ func TestGrpcPropagator_Extract(t *testing.T) {
 	assert.Equal(t, "trace", carrier.Get(traceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
-	carrier, err = Extract(GrpcFormat, 1)
+	_, err = Extract(GrpcFormat, 1)
 	assert.Equal(t, ErrInvalidCarrier, err)
-	carrier, err = Extract(nil, 1)
+	_, err = Extract(nil, 1)
 	assert.Equal(t, ErrInvalidCarrier, err)
 }
 
@@ -61,8 +61,8 @@ func TestGrpcPropagator_Inject(t *testing.T) {
 	assert.Equal(t, "trace", carrier.Get(traceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
-	carrier, err = Inject(GrpcFormat, 1)
+	_, err = Inject(GrpcFormat, 1)
 	assert.Equal(t, ErrInvalidCarrier, err)
-	carrier, err = Inject(nil, 1)
+	_, err = Inject(nil, 1)
 	assert.Equal(t, ErrInvalidCarrier, err)
 }

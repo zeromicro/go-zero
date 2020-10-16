@@ -153,13 +153,10 @@ func (lim *TokenLimiter) waitForRedis() {
 		lim.rescueLock.Unlock()
 	}()
 
-	for {
-		select {
-		case <-ticker.C:
-			if lim.store.Ping() {
-				atomic.StoreUint32(&lim.redisAlive, 1)
-				return
-			}
+	for range ticker.C {
+		if lim.store.Ping() {
+			atomic.StoreUint32(&lim.redisAlive, 1)
+			return
 		}
 	}
 }

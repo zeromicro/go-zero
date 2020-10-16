@@ -86,9 +86,7 @@ func TestBuldExecutorFlushSlowTasks(t *testing.T) {
 		time.Sleep(time.Millisecond * 100)
 		lock.Lock()
 		defer lock.Unlock()
-		for _, i := range tasks {
-			result = append(result, i)
-		}
+		result = append(result, tasks...)
 	}, WithBulkTasks(1000))
 	for i := 0; i < total; i++ {
 		assert.Nil(t, exec.Add(i))
