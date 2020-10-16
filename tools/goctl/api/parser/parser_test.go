@@ -104,6 +104,21 @@ service A-api
 }
 `
 
+const anonymousAnnotation = `
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + `
+}
+
+service A-api {
+  @handler GreetHandler
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -161,6 +176,25 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
-	_, err = NewParser(filename)
+	parser, err := NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
 	assert.NotNil(t, err)
+}
+
+func TestAnonymousAnnotation(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(anonymousAnnotation), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := NewParser(filename)
+	assert.Nil(t, err)
+
+	api, err := parser.Parse()
+	assert.Nil(t, err)
+
+	assert.Equal(t, len(api.Service.Routes), 1)
+	assert.Equal(t, api.Service.Routes[0].Annotations[0].Value, "GreetHandler")
 }

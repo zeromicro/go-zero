@@ -16,6 +16,7 @@ import (
 type Parser struct {
 	r       *bufio.Reader
 	typeDef string
+	api     *ApiStruct
 }
 
 func NewParser(filename string) (*Parser, error) {
@@ -29,7 +30,7 @@ func NewParser(filename string) (*Parser, error) {
 		return nil, err
 	}
 
-	apiStruct, err := MatchStruct(string(api))
+	apiStruct, err := ParseApi(string(api))
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +56,7 @@ func NewParser(filename string) (*Parser, error) {
 	return &Parser{
 		r:       bufio.NewReader(buffer),
 		typeDef: apiStruct.StructBody,
+		api:     apiStruct,
 	}, nil
 }
 
@@ -66,7 +68,7 @@ func (p *Parser) Parse() (api *spec.ApiSpec, err error) {
 		return nil, err
 	}
 	api.Types = types
-	var lineNumber = 1
+	var lineNumber = p.api.serviceBeginLine
 	st := newRootState(p.r, &lineNumber)
 	for {
 		st, err = st.process(api)

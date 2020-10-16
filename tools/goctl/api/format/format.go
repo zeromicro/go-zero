@@ -65,7 +65,7 @@ func ApiFormat(path string, printToConsole bool) error {
 		return m
 	})
 
-	apiStruct, err := parser.MatchStruct(r)
+	apiStruct, err := parser.ParseApi(r)
 	if err != nil {
 		return err
 	}
