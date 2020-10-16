@@ -277,18 +277,15 @@ func (cs *cacheStat) statLoop() {
 	ticker := time.NewTicker(statInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			hit := atomic.SwapUint64(&cs.hit, 0)
-			miss := atomic.SwapUint64(&cs.miss, 0)
-			total := hit + miss
-			if total == 0 {
-				continue
-			}
-			percent := 100 * float32(hit) / float32(total)
-			logx.Statf("cache(%s) - qpm: %d, hit_ratio: %.1f%%, elements: %d, hit: %d, miss: %d",
-				cs.name, total, percent, cs.sizeCallback(), hit, miss)
+	for range ticker.C {
+		hit := atomic.SwapUint64(&cs.hit, 0)
+		miss := atomic.SwapUint64(&cs.miss, 0)
+		total := hit + miss
+		if total == 0 {
+			continue
 		}
+		percent := 100 * float32(hit) / float32(total)
+		logx.Statf("cache(%s) - qpm: %d, hit_ratio: %.1f%%, elements: %d, hit: %d, miss: %d",
+			cs.name, total, percent, cs.sizeCallback(), hit, miss)
 	}
 }

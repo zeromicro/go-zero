@@ -229,8 +229,10 @@ func TestSetup(t *testing.T) {
 
 func TestDisable(t *testing.T) {
 	Disable()
-	WithKeepDays(1)
-	WithGzip()
+
+	var opt logOptions
+	WithKeepDays(1)(&opt)
+	WithGzip()(&opt)
 	assert.Nil(t, Close())
 	writeConsole = false
 	assert.Nil(t, Close())
