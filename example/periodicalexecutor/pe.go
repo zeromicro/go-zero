@@ -12,7 +12,11 @@ func main() {
 		fmt.Println(len(items))
 	}, executors.WithBulkTasks(10))
 	for {
-		executor.Add(1)
+		if err := executor.Add(1); err != nil {
+			fmt.Println(err)
+			return
+		}
+
 		time.Sleep(time.Millisecond * 90)
 	}
 }

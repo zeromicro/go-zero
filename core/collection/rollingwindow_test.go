@@ -88,7 +88,7 @@ func TestRollingWindowReduce(t *testing.T) {
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
 			r := test.win
-			for x := 0; x < size; x = x + 1 {
+			for x := 0; x < size; x++ {
 				for i := 0; i <= x; i++ {
 					r.Add(float64(i))
 				}

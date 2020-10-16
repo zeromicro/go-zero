@@ -29,7 +29,6 @@ type (
 		name           string
 		lock           sync.Mutex
 		data           map[string]interface{}
-		evicts         *list.List
 		expire         time.Duration
 		timingWheel    *TimingWheel
 		lruCache       lru
