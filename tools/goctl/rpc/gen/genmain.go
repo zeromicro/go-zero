@@ -21,7 +21,6 @@ import (
 	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
