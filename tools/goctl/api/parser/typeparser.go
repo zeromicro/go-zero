@@ -31,13 +31,12 @@ type StructParser struct {
 }
 
 func (sp *StructParser) Parse() ([]spec.Type, error) {
-	var src string
 	if !strings.HasPrefix(sp.Src, pkgPrefix) {
-		src = fmt.Sprintf(golangF, sp.Src)
+		sp.Src = fmt.Sprintf(golangF, sp.Src)
 	}
-	sp.Src = src
+
 	fSet := token.NewFileSet()
-	f, err := parser.ParseFile(fSet, "", src, parser.ParseComments)
+	f, err := parser.ParseFile(fSet, "", sp.Src, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
