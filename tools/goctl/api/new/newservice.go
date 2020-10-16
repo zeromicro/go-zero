@@ -20,9 +20,7 @@ type Response struct {
 }
 
 service {{.name}}-api {
-  @server(
-    handler: GreetHandler
-  )
+  @handler GreetHandler
   get /greet/from/:name(Request) returns (Response);
 }
 `
