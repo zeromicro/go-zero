@@ -60,7 +60,8 @@ func NewParser(filename string) (*Parser, error) {
 
 func (p *Parser) Parse() (api *spec.ApiSpec, err error) {
 	api = new(spec.ApiSpec)
-	types, err := parseStructAst(p.typeDef)
+	var sp = StructParser{Src: p.typeDef}
+	types, err := sp.Parse()
 	if err != nil {
 		return nil, err
 	}
