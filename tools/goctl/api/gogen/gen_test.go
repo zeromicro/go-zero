@@ -194,7 +194,10 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
-	_, err = NewParser(filename)
+	parser, err := NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
 	assert.NotNil(t, err)
 }
 
