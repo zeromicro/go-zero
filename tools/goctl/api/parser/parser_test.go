@@ -198,7 +198,7 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestSimpleAnnotation(t *testing.T) {
+func TestAnonymousAnnotation(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(simpleAnnotation), os.ModePerm)
 	assert.Nil(t, err)
