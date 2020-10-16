@@ -104,7 +104,7 @@ service A-api
 }
 `
 
-const anonymousAnnotation = `
+const simpleAnnotation = `
 type Request struct {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
@@ -176,16 +176,13 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
-	parser, err := NewParser(filename)
-	assert.Nil(t, err)
-
-	_, err = parser.Parse()
+	_, err = NewParser(filename)
 	assert.NotNil(t, err)
 }
 
-func TestAnonymousAnnotation(t *testing.T) {
+func TestSimpleAnnotation(t *testing.T) {
 	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(anonymousAnnotation), os.ModePerm)
+	err := ioutil.WriteFile(filename, []byte(simpleAnnotation), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
