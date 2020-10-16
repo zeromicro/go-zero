@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"errors"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+var errDummy = errors.New("dummy")
 
 func TestCacheSet(t *testing.T) {
 	cache, err := NewCache(time.Second*2, WithName("any"))
@@ -60,6 +63,54 @@ func TestCacheTake(t *testing.T) {
 	wg.Wait()
 
 	assert.Equal(t, 1, cache.size())
+	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
+}
+
+func TestCacheTakeExists(t *testing.T) {
+	cache, err := NewCache(time.Second * 2)
+	assert.Nil(t, err)
+
+	var count int32
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			cache.Set("first", "first element")
+			cache.Take("first", func() (interface{}, error) {
+				atomic.AddInt32(&count, 1)
+				time.Sleep(time.Millisecond * 100)
+				return "first element", nil
+			})
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, 1, cache.size())
+	assert.Equal(t, int32(0), atomic.LoadInt32(&count))
+}
+
+func TestCacheTakeError(t *testing.T) {
+	cache, err := NewCache(time.Second * 2)
+	assert.Nil(t, err)
+
+	var count int32
+	var wg sync.WaitGroup
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func() {
+			_, err := cache.Take("first", func() (interface{}, error) {
+				atomic.AddInt32(&count, 1)
+				time.Sleep(time.Millisecond * 100)
+				return "", errDummy
+			})
+			assert.Equal(t, errDummy, err)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, 0, cache.size())
 	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
 }
 

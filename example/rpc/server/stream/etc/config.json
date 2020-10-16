@@ -6,7 +6,7 @@
         "Hosts": [
             "localhost:2379"
         ],
-        "Key": "rpcx"
+        "Key": "zrpc"
     },
     "Redis": {
         "Host": "localhost:6379",

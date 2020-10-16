@@ -22,6 +22,10 @@ type (
 )
 
 func NewRollingWindow(size int, interval time.Duration, opts ...RollingWindowOption) *RollingWindow {
+	if size < 1 {
+		panic("size must be greater than 0")
+	}
+
 	w := &RollingWindow{
 		size:     size,
 		win:      newWindow(size),

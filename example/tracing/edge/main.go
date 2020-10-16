@@ -10,13 +10,18 @@ import (
 	"github.com/tal-tech/go-zero/example/tracing/remote/portal"
 	"github.com/tal-tech/go-zero/rest"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 var (
 	configFile = flag.String("f", "config.json", "the config file")
-	client     rpcx.Client
+	client     zrpc.Client
 )
+
+type Config struct {
+	rest.RestConf
+	Portal zrpc.RpcClientConf
+}
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	conn := client.Conn()
@@ -34,16 +39,16 @@ func handle(w http.ResponseWriter, r *http.Request) {
 func main() {
 	flag.Parse()
 
-	var c rpcx.RpcClientConf
+	var c Config
 	conf.MustLoad(*configFile, &c)
-	client = rpcx.MustNewClient(c)
+	client = zrpc.MustNewClient(c.Portal)
 	engine := rest.MustNewServer(rest.RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				Mode: "console",
 			},
 		},
-		Port: 3333,
+		Port: c.Port,
 	})
 	defer engine.Stop()
 

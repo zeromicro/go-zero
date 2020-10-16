@@ -11,6 +11,13 @@ import (
 
 const duration = time.Millisecond * 50
 
+func TestNewRollingWindow(t *testing.T) {
+	assert.NotNil(t, NewRollingWindow(10, time.Second))
+	assert.Panics(t, func() {
+		NewRollingWindow(0, time.Second)
+	})
+}
+
 func TestRollingWindowAdd(t *testing.T) {
 	const size = 3
 	r := NewRollingWindow(size, duration)
@@ -81,7 +88,7 @@ func TestRollingWindowReduce(t *testing.T) {
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
 			r := test.win
-			for x := 0; x < size; x = x + 1 {
+			for x := 0; x < size; x++ {
 				for i := 0; i <= x; i++ {
 					r.Add(float64(i))
 				}

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 //  target
@@ -43,9 +44,9 @@ func (g *defaultRpcGenerator) mustGetPackage(dir string) string {
 	relativePath := strings.TrimPrefix(target, projectPath)
 	os := runtime.GOOS
 	switch os {
-	case "windows":
+	case vars.OsWindows:
 		relativePath = filepath.ToSlash(relativePath)
-	case "darwin", "linux":
+	case vars.OsMac, vars.OsLinux:
 	default:
 		g.Ctx.Fatalln("unexpected os: %s", os)
 	}

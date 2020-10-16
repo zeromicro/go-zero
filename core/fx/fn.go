@@ -84,6 +84,14 @@ func (p Stream) Buffer(n int) Stream {
 	return Range(source)
 }
 
+// Count counts the number of elements in the result.
+func (p Stream) Count() (count int) {
+	for range p.source {
+		count++
+	}
+	return
+}
+
 // Distinct removes the duplicated items base on the given KeyFunc.
 func (p Stream) Distinct(fn KeyFunc) Stream {
 	source := make(chan interface{})
@@ -151,6 +159,10 @@ func (p Stream) Group(fn KeyFunc) Stream {
 }
 
 func (p Stream) Head(n int64) Stream {
+	if n < 1 {
+		panic("n must be greater than 0")
+	}
+
 	source := make(chan interface{})
 
 	go func() {
@@ -236,6 +248,10 @@ func (p Stream) Sort(less LessFunc) Stream {
 }
 
 func (p Stream) Tail(n int64) Stream {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+
 	source := make(chan interface{})
 
 	go func() {

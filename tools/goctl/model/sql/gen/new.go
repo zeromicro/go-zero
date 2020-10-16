@@ -2,11 +2,11 @@ package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 )
 
 func genNew(table Table, withCache bool) (string, error) {
-	output, err := util.With("new").
+	output, err := templatex.With("new").
 		Parse(template.New).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,

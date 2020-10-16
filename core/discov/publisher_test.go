@@ -111,6 +111,10 @@ func TestPublisher_keepAliveAsyncQuit(t *testing.T) {
 	defer ctrl.Finish()
 	const id clientv3.LeaseID = 1
 	cli := internal.NewMockEtcdClient(ctrl)
+	cli.EXPECT().ActiveConnection()
+	cli.EXPECT().Close()
+	defer cli.Close()
+	cli.ActiveConnection()
 	restore := setMockClient(cli)
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()

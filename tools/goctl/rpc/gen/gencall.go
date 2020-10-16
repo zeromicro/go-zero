@@ -2,17 +2,17 @@ package gen
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const (
+	typesFilename    = "types.go"
 	callTemplateText = `{{.head}}
 
 //go:generate mockgen -destination ./{{.name}}_mock.go -package {{.filePackage}} -source $GOFILE
@@ -25,7 +25,7 @@ import (
 	{{.package}}
 
 	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
@@ -34,11 +34,11 @@ type (
 	}
 
 	default{{.serviceName}} struct {
-		cli rpcx.Client
+		cli zrpc.Client
 	}
 )
 
-func New{{.serviceName}}(cli rpcx.Client) {{.serviceName}} {
+func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
 	return &default{{.serviceName}}{
 		cli: cli,
 	}
@@ -54,27 +54,30 @@ import "errors"
 
 var errJsonConvert = errors.New("json convert error")
 
+{{.const}}
+
 {{.types}}
 `
 	callInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
-{{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}}`
+{{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) (*{{.pbResponse}},error)`
+
 	callFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
-func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRequest}}) {{if .hasResponse}}(*{{.pbResponse}},{{end}} error{{if .hasResponse}}){{end}} {
-	var request {{.package}}.{{.pbRequest}}
+func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRequestName}}) (*{{.pbResponse}}, error) {
+	var request {{.pbRequest}}
 	bts, err := jsonx.Marshal(in)
 	if err != nil {
-		return {{if .hasResponse}}nil, {{end}}errJsonConvert
+		return nil, errJsonConvert
 	}
 
 	err = jsonx.Unmarshal(bts, &request)
 	if err != nil {
-		return {{if .hasResponse}}nil, {{end}}errJsonConvert
+		return nil, errJsonConvert
 	}
 
 	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
-	{{if .hasResponse}}resp, err := {{else}}_, err = {{end}}client.{{.method}}(ctx, &request)
-	{{if .hasResponse}}if err != nil{
+	resp, err :=  client.{{.method}}(ctx, &request)
+	if err != nil{
 		return nil, err
 	}
 
@@ -89,11 +92,7 @@ func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRe
 		return nil, errJsonConvert
 	}
 
-	return &ret, nil{{else}}if err != nil {
-		return err
-	}
-
-	return nil{{end}}
+	return &ret, nil
 }
 `
 )
@@ -112,21 +111,23 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 
+	constLit, err := file.GenEnumCode()
+	if err != nil {
+		return err
+	}
+
 	service := file.Service[0]
 	callPath := filepath.Join(g.dirM[dirTarget], service.Name.Lower())
-
 	if err = util.MkdirIfNotExist(callPath); err != nil {
 		return err
 	}
 
-	pbPkg := file.Package
-	remotePackage := fmt.Sprintf(`%v "%v"`, pbPkg, g.mustGetPackage(dirPb))
-	filename := filepath.Join(callPath, "types.go")
-	head := util.GetHead(g.Ctx.ProtoSource)
-	err = util.With("types").GoFmt(true).Parse(callTemplateTypes).SaveTo(map[string]interface{}{
+	filename := filepath.Join(callPath, typesFilename)
+	head := templatex.GetHead(g.Ctx.ProtoSource)
+	err = templatex.With("types").GoFmt(true).Parse(callTemplateTypes).SaveTo(map[string]interface{}{
 		"head":                  head,
+		"const":                 constLit,
 		"filePackage":           service.Name.Lower(),
-		"pbPkg":                 pbPkg,
 		"serviceName":           g.Ctx.ServiceName.Title(),
 		"lowerStartServiceName": g.Ctx.ServiceName.UnTitle(),
 		"types":                 typeCode,
@@ -135,10 +136,8 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 
-	_, err = exec.LookPath("mockgen")
-	mockGenInstalled := err == nil
 	filename = filepath.Join(callPath, fmt.Sprintf("%s.go", service.Name.Lower()))
-	functions, err := g.getFuncs(service)
+	functions, importList, err := g.genFunction(service)
 	if err != nil {
 		return err
 	}
@@ -148,83 +147,56 @@ func (g *defaultRpcGenerator) genCall() error {
 		return err
 	}
 
-	mockFile := filepath.Join(callPath, fmt.Sprintf("%s_mock.go", service.Name.Lower()))
-	_ = os.Remove(mockFile)
-	err = util.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
+	err = templatex.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
 		"name":        service.Name.Lower(),
 		"head":        head,
 		"filePackage": service.Name.Lower(),
-		"pbPkg":       pbPkg,
-		"package":     remotePackage,
+		"package":     strings.Join(importList, util.NL),
 		"serviceName": service.Name.Title(),
-		"functions":   strings.Join(functions, "\n"),
-		"interface":   strings.Join(iFunctions, "\n"),
+		"functions":   strings.Join(functions, util.NL),
+		"interface":   strings.Join(iFunctions, util.NL),
 	}, filename, true)
-	if err != nil {
-		return err
-	}
-	// if mockgen is already installed, it will generate code of gomock for shared files
-	// Deprecated: it will be removed
-	if mockGenInstalled && g.Ctx.IsInGoEnv {
-		_, _ = execx.Run(fmt.Sprintf("go generate %s", filename), "")
-	}
-
-	return nil
+	return err
 }
 
-func (g *defaultRpcGenerator) getFuncs(service *parser.RpcService) ([]string, error) {
+func (g *defaultRpcGenerator) genFunction(service *parser.RpcService) ([]string, []string, error) {
 	file := g.ast
 	pkgName := file.Package
 	functions := make([]string, 0)
+	imports := collection.NewSet()
+	imports.AddStr(fmt.Sprintf(`%v "%v"`, pkgName, g.mustGetPackage(dirPb)))
 	for _, method := range service.Funcs {
-		data, found := file.Strcuts[strings.ToLower(method.OutType)]
-		if found {
-			found = len(data.Field) > 0
-		}
-		var comment string
-		if len(method.Document) > 0 {
-			comment = method.Document[0]
-		}
-		buffer, err := util.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
+		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
+		buffer, err := templatex.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
 			"method":         method.Name.Title(),
 			"package":        pkgName,
-			"pbRequest":      method.InType,
-			"pbResponse":     method.OutType,
-			"hasResponse":    found,
-			"hasComment":     len(method.Document) > 0,
-			"comment":        comment,
+			"pbRequestName":  method.ParameterIn.Name,
+			"pbRequest":      method.ParameterIn.Expression,
+			"pbResponse":     method.ParameterOut.Name,
+			"hasComment":     method.HaveDoc(),
+			"comment":        method.GetDoc(),
 		})
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		functions = append(functions, buffer.String())
 	}
-	return functions, nil
+	return functions, imports.KeysStr(), nil
 }
 
 func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]string, error) {
-	file := g.ast
 	functions := make([]string, 0)
 
 	for _, method := range service.Funcs {
-		data, found := file.Strcuts[strings.ToLower(method.OutType)]
-		if found {
-			found = len(data.Field) > 0
-		}
-		var comment string
-		if len(method.Document) > 0 {
-			comment = method.Document[0]
-		}
-		buffer, err := util.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
+		buffer, err := templatex.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
 			map[string]interface{}{
-				"hasComment":  len(method.Document) > 0,
-				"comment":     comment,
-				"method":      method.Name.Title(),
-				"pbRequest":   method.InType,
-				"pbResponse":  method.OutType,
-				"hasResponse": found,
+				"hasComment": method.HaveDoc(),
+				"comment":    method.GetDoc(),
+				"method":     method.Name.Title(),
+				"pbRequest":  method.ParameterIn.Name,
+				"pbResponse": method.ParameterOut.Name,
 			})
 		if err != nil {
 			return nil, err

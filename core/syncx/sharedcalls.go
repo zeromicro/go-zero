@@ -33,35 +33,42 @@ func NewSharedCalls() SharedCalls {
 }
 
 func (g *sharedGroup) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
-	g.lock.Lock()
-	if c, ok := g.calls[key]; ok {
-		g.lock.Unlock()
-		c.wg.Wait()
+	c, done := g.createCall(key, fn)
+	if done {
 		return c.val, c.err
 	}
 
-	c := g.makeCall(key, fn)
+	g.makeCall(c, key, fn)
 	return c.val, c.err
 }
 
 func (g *sharedGroup) DoEx(key string, fn func() (interface{}, error)) (val interface{}, fresh bool, err error) {
+	c, done := g.createCall(key, fn)
+	if done {
+		return c.val, false, c.err
+	}
+
+	g.makeCall(c, key, fn)
+	return c.val, true, c.err
+}
+
+func (g *sharedGroup) createCall(key string, fn func() (interface{}, error)) (c *call, done bool) {
 	g.lock.Lock()
 	if c, ok := g.calls[key]; ok {
 		g.lock.Unlock()
 		c.wg.Wait()
-		return c.val, false, c.err
+		return c, true
 	}
 
-	c := g.makeCall(key, fn)
-	return c.val, true, c.err
-}
-
-func (g *sharedGroup) makeCall(key string, fn func() (interface{}, error)) *call {
-	c := new(call)
+	c = new(call)
 	c.wg.Add(1)
 	g.calls[key] = c
 	g.lock.Unlock()
 
+	return c, false
+}
+
+func (g *sharedGroup) makeCall(c *call, key string, fn func() (interface{}, error)) {
 	defer func() {
 		// delete key first, done later. can't reverse the order, because if reverse,
 		// another Do call might wg.Wait() without get notified with wg.Done()
@@ -72,5 +79,4 @@ func (g *sharedGroup) makeCall(key string, fn func() (interface{}, error)) *call
 	}()
 
 	c.val, c.err = fn()
-	return c
 }

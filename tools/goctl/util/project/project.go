@@ -1,6 +1,8 @@
 package project
 
 import (
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -38,18 +40,18 @@ type (
 func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	_, err := exec.LookPath(constGo)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("please install go first,reference documents:「https://golang.org/doc/install」")
 	}
 
 	if checkGrpcEnv {
 		_, err = exec.LookPath(constProtoC)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("please install protoc first,reference documents:「https://github.com/golang/protobuf」")
 		}
 
 		_, err = exec.LookPath(constProtoCGenGo)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("please install plugin protoc-gen-go first,reference documents:「https://github.com/golang/protobuf」")
 		}
 	}
 
@@ -91,19 +93,13 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 			return nil, err
 		}
 	} else {
-		pwd, err := execx.Run("pwd", projectDir)
+		pwd, err := filepath.Abs(projectDir)
 		if err != nil {
 			return nil, err
 		}
-		pwd = filepath.Clean(strings.TrimSpace(pwd))
 
 		if !strings.HasPrefix(pwd, src) {
-			absPath, err := filepath.Abs(projectDir)
-			if err != nil {
-				return nil, err
-			}
-
-			name = filepath.Clean(filepath.Base(absPath))
+			name = filepath.Clean(filepath.Base(pwd))
 			path = projectDir
 			pkg = name
 			isInGoEnv = false
@@ -133,7 +129,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 
 func matchModule(data []byte) (string, error) {
 	text := string(data)
-	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9/\-.]+$`)
+	re := regexp.MustCompile(`(?m)^\s*module\s+[a-z0-9_/\-.]+$`)
 	matches := re.FindAllString(text, -1)
 	if len(matches) == 1 {
 		target := matches[0]
@@ -141,5 +137,5 @@ func matchModule(data []byte) (string, error) {
 		return strings.TrimSpace(target[index+6:]), nil
 	}
 
-	return "", nil
+	return "", errors.New("module not matched")
 }

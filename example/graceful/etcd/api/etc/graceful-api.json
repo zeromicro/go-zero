@@ -6,7 +6,7 @@
     "Rpc": {
         "Etcd": {
             "Hosts": ["etcd.discov:2379"],
-            "Key": "rpcx"
+            "Key": "zrpc"
         }
     }
 }

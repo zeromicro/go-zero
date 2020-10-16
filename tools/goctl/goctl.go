@@ -96,8 +96,19 @@ var (
 							Name:  "api",
 							Usage: "the api file",
 						},
+						cli.BoolFlag{
+							Name:  "force",
+							Usage: "force override the exist files",
+						},
 					},
 					Action: gogen.GoCommand,
+					Subcommands: []cli.Command{
+						{
+							Name:   "template",
+							Usage:  "initialize the api templates",
+							Action: gogen.GenTemplates,
+						},
+					},
 				},
 				{
 					Name:  "java",

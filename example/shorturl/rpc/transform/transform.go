@@ -14,7 +14,7 @@ import (
 	transform "shorturl/rpc/transform/pb"
 
 	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -28,7 +28,7 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	transformerSrv := server.NewTransformerServer(ctx)
 
-	s, err := rpcx.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		transform.RegisterTransformerServer(grpcServer, transformerSrv)
 	})
 	if err != nil {

@@ -5,19 +5,18 @@ import (
 
 	"github.com/globalsign/mgo"
 	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/internal"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 type Model struct {
 	*mongo.Model
-	cache              internal.Cache
+	cache              cache.Cache
 	generateCollection func(*mgo.Session) *cachedCollection
 }
 
-func MustNewNodeModel(url, database, collection string, rds *redis.Redis, opts ...cache.Option) *Model {
-	model, err := NewNodeModel(url, database, collection, rds, opts...)
+func MustNewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) *Model {
+	model, err := NewNodeModel(url, collection, rds, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,8 +24,8 @@ func MustNewNodeModel(url, database, collection string, rds *redis.Redis, opts .
 	return model
 }
 
-func MustNewModel(url, database, collection string, c cache.CacheConf, opts ...cache.Option) *Model {
-	model, err := NewModel(url, database, collection, c, opts...)
+func MustNewModel(url, collection string, c cache.CacheConf, opts ...cache.Option) *Model {
+	model, err := NewModel(url, collection, c, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,16 +33,16 @@ func MustNewModel(url, database, collection string, c cache.CacheConf, opts ...c
 	return model
 }
 
-func NewNodeModel(url, database, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
-	c := internal.NewCacheNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
-	return createModel(url, database, collection, c, func(collection mongo.Collection) *cachedCollection {
+func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
+	c := cache.NewCacheNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
 }
 
-func NewModel(url, database, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
-	c := internal.NewCache(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
-	return createModel(url, database, collection, c, func(collection mongo.Collection) *cachedCollection {
+func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
+	c := cache.NewCache(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
 }
@@ -224,9 +223,9 @@ func (mm *Model) pipe(fn func(c *cachedCollection) mongo.Pipe) (mongo.Pipe, erro
 	return fn(mm.GetCollection(session)), nil
 }
 
-func createModel(url, database, collection string, c internal.Cache,
+func createModel(url, collection string, c cache.Cache,
 	create func(mongo.Collection) *cachedCollection) (*Model, error) {
-	model, err := mongo.NewModel(url, database, collection)
+	model, err := mongo.NewModel(url, collection)
 	if err != nil {
 		return nil, err
 	}

@@ -41,10 +41,13 @@ func GetBreaker(name string) Breaker {
 	}
 
 	lock.Lock()
-	defer lock.Unlock()
+	b, ok = breakers[name]
+	if !ok {
+		b = NewBreaker(WithName(name))
+		breakers[name] = b
+	}
+	lock.Unlock()
 
-	b = NewBreaker()
-	breakers[name] = b
 	return b
 }
 
@@ -55,20 +58,5 @@ func NoBreakFor(name string) {
 }
 
 func do(name string, execute func(b Breaker) error) error {
-	lock.RLock()
-	b, ok := breakers[name]
-	lock.RUnlock()
-	if ok {
-		return execute(b)
-	}
-
-	lock.Lock()
-	b, ok = breakers[name]
-	if !ok {
-		b = NewBreaker(WithName(name))
-		breakers[name] = b
-	}
-	lock.Unlock()
-
-	return execute(b)
+	return execute(GetBreaker(name))
 }

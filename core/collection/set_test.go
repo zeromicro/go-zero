@@ -5,7 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
 )
+
+func init() {
+	logx.Disable()
+}
 
 func BenchmarkRawSet(b *testing.B) {
 	m := make(map[interface{}]struct{})
@@ -146,4 +151,52 @@ func TestCount(t *testing.T) {
 
 	// then
 	assert.Equal(t, set.Count(), 3)
+}
+
+func TestKeysIntMismatch(t *testing.T) {
+	set := NewSet()
+	set.add(int64(1))
+	set.add(2)
+	vals := set.KeysInt()
+	assert.EqualValues(t, []int{2}, vals)
+}
+
+func TestKeysInt64Mismatch(t *testing.T) {
+	set := NewSet()
+	set.add(1)
+	set.add(int64(2))
+	vals := set.KeysInt64()
+	assert.EqualValues(t, []int64{2}, vals)
+}
+
+func TestKeysUintMismatch(t *testing.T) {
+	set := NewSet()
+	set.add(1)
+	set.add(uint(2))
+	vals := set.KeysUint()
+	assert.EqualValues(t, []uint{2}, vals)
+}
+
+func TestKeysUint64Mismatch(t *testing.T) {
+	set := NewSet()
+	set.add(1)
+	set.add(uint64(2))
+	vals := set.KeysUint64()
+	assert.EqualValues(t, []uint64{2}, vals)
+}
+
+func TestKeysStrMismatch(t *testing.T) {
+	set := NewSet()
+	set.add(1)
+	set.add("2")
+	vals := set.KeysStr()
+	assert.EqualValues(t, []string{"2"}, vals)
+}
+
+func TestSetType(t *testing.T) {
+	set := NewUnmanagedSet()
+	set.add(1)
+	set.add("2")
+	vals := set.Keys()
+	assert.ElementsMatch(t, []interface{}{1, "2"}, vals)
 }

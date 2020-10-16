@@ -23,7 +23,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 自动校验客户端请求参数合法性
 * 大量微服务治理和并发工具包
 
-<img src="doc/images/architecture.png" alt="架构图" width="1500" />
+<img src="https://github.com/tal-tech/zero-doc/blob/main/doc/images/architecture.png" alt="架构图" width="1500" />
 
 ## 1. go-zero框架背景
 
@@ -74,14 +74,9 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
-![弹性设计](doc/images/resilience.jpg)
+![弹性设计](https://github.com/tal-tech/zero-doc/blob/main/doc/images/resilience.jpg)
 
-## 4. go-zero近期开发计划
-
-* 自动生成API mock server，便于客户端开发
-* 自动生成服务端功能测试
-
-## 5. Installation
+## 4. Installation
 
 在项目目录下通过如下命令安装：
 
@@ -89,13 +84,13 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 go get -u github.com/tal-tech/go-zero
 ```
 
-## 6. Quick Start
+## 5. Quick Start
 
 0. 完整示例请查看
 
-    [快速构建高并发微服务](doc/shorturl.md)
+    [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
 
-    [快速构建高并发微服务-多RPC版](doc/bookstore.md)
+    [快速构建高并发微服务-多RPC版](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore.md)
 
 1. 安装goctl工具
 
@@ -131,7 +126,7 @@ go get -u github.com/tal-tech/go-zero
 
       编写业务代码：
 
-      * api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/go-zero/blob/master/doc/goctl.md)
+      * api文件定义了服务对外暴露的路由，可参考[api规范](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
       * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
       * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
 
@@ -143,22 +138,40 @@ go get -u github.com/tal-tech/go-zero
       ...
       ```
 
-## 7. Benchmark
+## 6. Benchmark
 
-![benchmark](doc/images/benchmark.png)
+![benchmark](https://github.com/tal-tech/zero-doc/blob/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. 文档 (逐步完善中)
+## 7. 文档
 
-* [快速构建高并发微服务](doc/shorturl.md)
-* [快速构建高并发微服务-多RPC版](doc/bookstore.md)
-* [goctl使用帮助](doc/goctl.md)
-* [通过MapReduce降低服务响应时间](doc/mapreduce.md)
-* [关键字替换和敏感词过滤工具](doc/keywords.md)
-* [进程内缓存使用方法](doc/collection.md)
-* [基于prometheus的微服务指标监控](doc/metric.md)
+* API文档 (逐步完善中)
+
+  [https://www.yuque.com/tal-tech/go-zero](https://www.yuque.com/tal-tech/go-zero)
+
+* awesome系列
+  * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
+  * [快速构建高并发微服务-多RPC版](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore.md)
+  * [goctl使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
+  * [通过MapReduce降低服务响应时间](https://github.com/tal-tech/zero-doc/blob/main/doc/mapreduce.md)
+  * [关键字替换和敏感词过滤工具](https://github.com/tal-tech/zero-doc/blob/main/doc/keywords.md)
+  * [进程内缓存使用方法](https://github.com/tal-tech/zero-doc/blob/main/doc/collection.md)
+  * [防止缓存击穿之进程内共享调用](https://github.com/tal-tech/zero-doc/blob/main/doc/sharedcalls.md)
+  * [基于prometheus的微服务指标监控](https://github.com/tal-tech/zero-doc/blob/main/doc/metric.md)
+  * [文本序列化和反序列化](https://github.com/tal-tech/zero-doc/blob/main/doc/mapping.md)
+  * [快速构建jwt鉴权认证](https://github.com/tal-tech/zero-doc/blob/main/doc/jwt.md)
 
 ## 9. 微信交流群
 
-<img src="doc/images/wechat.jpg" alt="wechat" width="300" />
+加群之前有劳给一个star，一个小小的star是作者们回答海量问题的动力。
+
+如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
+
+您可以在群内提出使用中需要改进的地方，我们会考虑合理性并尽快修改。
+
+如果您发现bug请及时提issue，我们会尽快确认并修改。
+
+扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！
+
+<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />

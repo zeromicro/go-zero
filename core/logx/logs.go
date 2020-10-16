@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/sysx"
@@ -96,6 +97,7 @@ type (
 		Infof(string, ...interface{})
 		Slow(...interface{})
 		Slowf(string, ...interface{})
+		WithDuration(time.Duration) Logger
 	}
 )
 

@@ -2,7 +2,7 @@ package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 )
 
 func genTypes(table Table, withCache bool) (string, error) {
@@ -11,7 +11,7 @@ func genTypes(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output, err := util.With("types").
+	output, err := templatex.With("types").
 		Parse(template.Types).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,

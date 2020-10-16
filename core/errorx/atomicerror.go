@@ -1,21 +1,18 @@
 package errorx
 
-import "sync"
+import "sync/atomic"
 
 type AtomicError struct {
-	err  error
-	lock sync.Mutex
+	err atomic.Value // error
 }
 
 func (ae *AtomicError) Set(err error) {
-	ae.lock.Lock()
-	ae.err = err
-	ae.lock.Unlock()
+	ae.err.Store(err)
 }
 
 func (ae *AtomicError) Load() error {
-	ae.lock.Lock()
-	err := ae.err
-	ae.lock.Unlock()
-	return err
+	if v := ae.err.Load(); v != nil {
+		return v.(error)
+	}
+	return nil
 }
