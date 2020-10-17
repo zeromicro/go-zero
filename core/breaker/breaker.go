@@ -41,7 +41,7 @@ type (
 		Do(req func() error) error
 
 		// DoWithAcceptable runs the given request if the netflixBreaker accepts it.
-		// Do returns an error instantly if the netflixBreaker rejects the request.
+		// DoWithAcceptable returns an error instantly if the netflixBreaker rejects the request.
 		// If a panic occurs in the request, the netflixBreaker handles it as an error
 		// and causes the same panic again.
 		// acceptable checks if it's a successful call, even if the err is not nil.
@@ -54,7 +54,7 @@ type (
 		DoWithFallback(req func() error, fallback func(err error) error) error
 
 		// DoWithFallbackAcceptable runs the given request if the netflixBreaker accepts it.
-		// DoWithFallback runs the fallback if the netflixBreaker rejects the request.
+		// DoWithFallbackAcceptable runs the fallback if the netflixBreaker rejects the request.
 		// If a panic occurs in the request, the netflixBreaker handles it as an error
 		// and causes the same panic again.
 		// acceptable checks if it's a successful call, even if the err is not nil.
