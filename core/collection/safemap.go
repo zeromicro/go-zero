@@ -34,21 +34,27 @@ func (m *SafeMap) Del(key interface{}) {
 		delete(m.dirtyNew, key)
 		m.deletionNew++
 	}
-	if m.deletionOld >= maxDeletion && len(m.dirtyOld) < copyThreshold {
-		for k, v := range m.dirtyOld {
-			m.dirtyNew[k] = v
+	if m.deletionOld >= maxDeletion {
+		if len(m.dirtyOld) <= copyThreshold {
+			for k, v := range m.dirtyOld {
+				m.dirtyNew[k] = v
+			}
+			m.dirtyOld = m.dirtyNew
+			m.deletionOld = m.deletionNew
+			m.dirtyNew = make(map[interface{}]interface{})
+			m.deletionNew = 0
+		} else {
+			num := 0
+			for k, v := range m.dirtyOld {
+				num++
+				if num > copyThreshold {
+					break
+				}
+				m.dirtyNew[k] = v
+				delete(m.dirtyOld, k)
+				m.deletionOld++
+			}
 		}
-		m.dirtyOld = m.dirtyNew
-		m.deletionOld = m.deletionNew
-		m.dirtyNew = make(map[interface{}]interface{})
-		m.deletionNew = 0
-	}
-	if m.deletionNew >= maxDeletion && len(m.dirtyNew) < copyThreshold {
-		for k, v := range m.dirtyNew {
-			m.dirtyOld[k] = v
-		}
-		m.dirtyNew = make(map[interface{}]interface{})
-		m.deletionNew = 0
 	}
 	m.lock.Unlock()
 }
