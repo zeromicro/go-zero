@@ -44,7 +44,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 
 对于微服务框架的设计，我们期望保障微服务稳定性的同时，也要特别注重研发效率。所以设计之初，我们就有如下一些准则：
 
-* 保持简单
+* 保持简单，第一原则
 * 弹性设计，面向故障编程
 * 工具大于约定和文档
 * 高可用
@@ -53,7 +53,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 对业务开发友好，封装复杂度
 * 约束做一件事只有一种方式
 
-我们经历不到半年时间，彻底完成了从`Java+MongoDB`到`Golang+MySQL`为主的微服务体系迁移，并于18年8月底完全上线，稳定保障了晓黑板后续增长，确保了整个服务的高可用。
+我们经历不到半年时间，彻底完成了从`Java+MongoDB`到`Golang+MySQL`为主的微服务体系迁移，并于18年8月底完全上线，稳定保障了业务后续迅速增长，确保了整个服务的高可用。
 
 ## 3. go-zero项目实现和特点
 
@@ -71,7 +71,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 * 超时级联控制
 * 自动缓存控制
 * 链路跟踪、统计报警等
-* 高并发支撑，稳定保障了晓黑板疫情期间每天的流量洪峰
+* 高并发支撑，稳定保障了疫情期间每天的流量洪峰
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
@@ -82,7 +82,7 @@ go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下�
 在项目目录下通过如下命令安装：
 
 ```shell
-go get -u github.com/tal-tech/go-zero
+GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero
 ```
 
 ## 5. Quick Start
@@ -106,23 +106,23 @@ go get -u github.com/tal-tech/go-zero
 2. 快速生成api服务
 
    ```shell
-      goctl api new greet
-      cd greet
-      go run greet.go -f etc/greet-api.yaml
+   goctl api new greet
+   cd greet
+   go run greet.go -f etc/greet-api.yaml
    ```
 
       默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
 
    ```shell
-      curl -i http://localhost:8888/greet/from/you
+   curl -i http://localhost:8888/greet/from/you
    ```
 
       返回如下：
 
    ```http
-      HTTP/1.1 200 OK
-      Date: Sun, 30 Aug 2020 15:32:35 GMT
-      Content-Length: 0
+   HTTP/1.1 200 OK
+   Date: Sun, 30 Aug 2020 15:32:35 GMT
+   Content-Length: 0
    ```
 
       编写业务代码：

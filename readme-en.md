@@ -163,8 +163,8 @@ go get -u github.com/tal-tech/go-zero
    the generated code can be run directly:
 
    ```shell
-     cd greet
-     go run greet.go -f etc/greet-api.yaml
+   cd greet
+   go run greet.go -f etc/greet-api.yaml
    ```
 
    by default, it’s listening on port 8888, while it can be changed in configuration file.
