@@ -99,7 +99,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n[]rest.Route{\n %s \n}...,\n),",
 				middlewareStr, strings.TrimSpace(gbuilder.String()))
 		} else {
-			routes = fmt.Sprintf("[]rest.Route{\n %s \n}", strings.TrimSpace(gbuilder.String()))
+			routes = fmt.Sprintf("[]rest.Route{\n %s \n},", strings.TrimSpace(gbuilder.String()))
 		}
 
 		if err := gt.Execute(&builder, map[string]string{
