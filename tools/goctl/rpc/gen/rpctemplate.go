@@ -40,7 +40,7 @@ func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 }
 
 func (r *rpcTemplate) MustGenerate(showState bool) {
-	r.Info(aurora.Blue("-> goctl rpc reference documents: ").String() + "「https://github.com/tal-tech/go-zero/blob/master/doc/goctl-rpc.md」")
+	r.Info(aurora.Blue("-> goctl rpc reference documents: ").String() + "「https://github.com/tal-tech/go-zero/blob/main/doc/goctl-rpc.md」")
 	r.Warning("-> generating template...")
 	protoFilename := filepath.Base(r.out)
 	serviceName := stringx.From(strings.TrimSuffix(protoFilename, filepath.Ext(protoFilename)))
