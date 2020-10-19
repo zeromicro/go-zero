@@ -69,7 +69,7 @@ func TestWithMiddleware(t *testing.T) {
 	}, m)
 }
 
-func TestMultiMiddlewares(t *testing.T) {
+func TestMultiMiddleware(t *testing.T) {
 	m := make(map[string]string)
 	router := router.NewPatRouter()
 	handler := func(w http.ResponseWriter, r *http.Request) {
