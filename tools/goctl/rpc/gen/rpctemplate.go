@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
@@ -39,8 +40,8 @@ func NewRpcTemplate(out string, idea bool) *rpcTemplate {
 }
 
 func (r *rpcTemplate) MustGenerate(showState bool) {
-	r.Info("查看rpc生成请移步至「https://github.com/tal-tech/zero-doc/blob/main/doc/goctl-rpc.md」")
-	r.Info("generating template...")
+	r.Info(aurora.Blue("-> goctl rpc reference documents: ").String() + "「https://github.com/tal-tech/go-zero/blob/master/doc/goctl-rpc.md」")
+	r.Warning("-> generating template...")
 	protoFilename := filepath.Base(r.out)
 	serviceName := stringx.From(strings.TrimSuffix(protoFilename, filepath.Ext(protoFilename)))
 	text, err := templatex.LoadTemplate(category, rpcTemplateFile, rpcTemplateText)

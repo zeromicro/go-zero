@@ -13,7 +13,7 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 
 ## 快速开始
 
-### 方式一：快速生成greet服务
+### 快速生成greet服务
 
   通过命令 `goctl rpc new ${servieName}`生成
 
@@ -52,7 +52,7 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 
 rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题解决</a>
 
-### 方式二：通过指定proto生成rpc服务
+### 通过指定proto生成rpc服务
 
 * 生成proto模板
 
@@ -115,6 +115,16 @@ rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题�
       ├── user.go
       └── user.proto
   ```
+### 自定义rpc模板
+
+* 保存template到${HOME}/.goctl/rpc
+
+  ```
+  goctl rpc template init
+  ```
+* 修改${HOME}/.goctl/rpc中的模板内容
+* 重新生成rpc代码
+
 
 ## 准备工作
 
