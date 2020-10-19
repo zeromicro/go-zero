@@ -17,9 +17,9 @@ import (
 	"github.com/urfave/cli"
 
 	"github.com/tal-tech/go-zero/core/logx"
-	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
+	apiFormat "github.com/tal-tech/go-zero/tools/goctl/api/format"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	apiUtil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -41,7 +41,7 @@ func GoCommand(c *cli.Context) error {
 	return DoGenProject(apiFile, dir, force)
 }
 
-func DoGenProject(apiFile, dir string, force bool) error {
+func DoGenProject(apiFile, dir string, isForce bool) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err
@@ -56,9 +56,9 @@ func DoGenProject(apiFile, dir string, force bool) error {
 	logx.Must(genConfig(dir, api))
 	logx.Must(genMain(dir, api))
 	logx.Must(genServiceContext(dir, api))
-	logx.Must(genTypes(dir, api, force))
+	logx.Must(genTypes(dir, api, isForce))
 	logx.Must(genHandlers(dir, api))
-	logx.Must(genRoutes(dir, api, force))
+	logx.Must(genRoutes(dir, api, isForce))
 	logx.Must(genLogic(dir, api))
 	createGoModFileIfNeed(dir)
 
@@ -66,7 +66,7 @@ func DoGenProject(apiFile, dir string, force bool) error {
 		return err
 	}
 
-	if err = apiformat.ApiFormat(apiFile, false); err != nil {
+	if err = apiFormat.ApiFormat(apiFile, false); err != nil {
 		return err
 	}
 
@@ -83,7 +83,7 @@ func backupAndSweep(apiFile string) error {
 
 	go func() {
 		_, fileName := filepath.Split(apiFile)
-		_, e := apiutil.Copy(apiFile, fmt.Sprintf(path.Join(tmpDir, tmpFile), fileName, time.Now().Unix()))
+		_, e := apiUtil.Copy(apiFile, fmt.Sprintf(path.Join(tmpDir, tmpFile), fileName, time.Now().Unix()))
 		if e != nil {
 			err = e
 		}

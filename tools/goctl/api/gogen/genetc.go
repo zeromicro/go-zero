@@ -28,7 +28,12 @@ func genEtc(dir string, api *spec.ApiSpec) error {
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated etc file, filename is: %v err is: %v .",fp.Name(), err)
+		}
+	}()
 
 	service := api.Service
 	host, ok := util.GetAnnotationValue(service.Annotations, "server", "host")

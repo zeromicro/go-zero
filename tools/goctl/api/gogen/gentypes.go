@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	apiUtil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -35,7 +35,7 @@ func BuildTypes(types []spec.Type) (string, error) {
 			builder.WriteString("\n\n")
 		}
 		if err := writeType(&builder, tp, types); err != nil {
-			return "", apiutil.WrapErr(err, "Type "+tp.Name+" generate error")
+			return "", apiUtil.WrapErr(err, "Type "+tp.Name+" generate error")
 		}
 	}
 
@@ -55,14 +55,19 @@ func genTypes(dir string, api *spec.ApiSpec, force bool) error {
 		}
 	}
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, typesDir, typesFile)
+	fp, created, err := apiUtil.MaybeCreateFile(dir, typesDir, typesFile)
 	if err != nil {
 		return err
 	}
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated types file, filename is: %v err is: %v .",fp.Name(), err)
+		}
+	}()
 
 	t := template.Must(template.New("typesTemplate").Parse(typesTemplate))
 	buffer := new(bytes.Buffer)
@@ -79,7 +84,7 @@ func genTypes(dir string, api *spec.ApiSpec, force bool) error {
 }
 
 func convertTypeCase(types []spec.Type, t string) (string, error) {
-	ts, err := apiutil.DecomposeType(t)
+	ts, err := apiUtil.DecomposeType(t)
 	if err != nil {
 		return "", err
 	}
@@ -92,7 +97,7 @@ func convertTypeCase(types []spec.Type, t string) (string, error) {
 			}
 
 			if len(typ.Annotations) > 0 {
-				if value, ok := apiutil.GetAnnotationValue(typ.Annotations, "serverReplacer", tp); ok {
+				if value, ok := apiUtil.GetAnnotationValue(typ.Annotations, "serverReplacer", tp); ok {
 					t = strings.ReplaceAll(t, tp, value)
 				}
 			}

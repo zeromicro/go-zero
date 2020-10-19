@@ -6,9 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	
 	"github.com/urfave/cli"
+	
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 )
 
 var docDir = "doc"
@@ -47,7 +48,10 @@ func DocCommand(c *cli.Context) error {
 			continue
 		}
 		dir := dst[:index]
-		genDoc(api, dir, strings.Replace(dst[index+1:], ".api", ".md", 1))
+		if err := genDoc(api, dir, strings.Replace(dst[index+1:], ".api", ".md", 1)); err != nil {
+			fmt.Printf("Failed to generate document: err is ")
+			return err
+		}
 	}
 	return nil
 }

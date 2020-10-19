@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/templatex"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	goCtlUtil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -39,7 +39,12 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated service context file, filename is: %v err is: %v .",fp.Name(), err)
+		}
+	}()
 
 	var authNames = getAuths(api)
 	var auths []string
@@ -62,7 +67,7 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
 	}
 
-	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
+	var configImport = "\"" + goCtlUtil.JoinPackages(parentPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
 		configImport += fmt.Sprintf("\n\"%s/rest\"", vars.ProjectOpenSourceUrl)
 	}

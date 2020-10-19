@@ -2,7 +2,7 @@ package gogen
 
 import (
 	"fmt"
-	goformat "go/format"
+	goFormat "go/format"
 	"io"
 	"path/filepath"
 	"strings"
@@ -10,7 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	goCtlUtil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/project"
 )
 
@@ -26,7 +26,7 @@ func getParentPackage(dir string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		parent := filepath.Clean(goctlutil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
+		parent := filepath.Clean(goCtlUtil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
 		parent = strings.ReplaceAll(parent, "\\", "/")
 		return parent, nil
 	}
@@ -79,7 +79,7 @@ func getMiddleware(api *spec.ApiSpec) []string {
 }
 
 func formatCode(code string) string {
-	ret, err := goformat.Source([]byte(code))
+	ret, err := goFormat.Source([]byte(code))
 	if err != nil {
 		return code
 	}

@@ -10,7 +10,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	apiUtil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
@@ -123,14 +123,19 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 		}
 	}
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, handlerDir, routesFilename)
+	fp, created, err := apiUtil.MaybeCreateFile(dir, handlerDir, routesFilename)
 	if err != nil {
 		return err
 	}
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated route file, filename is: %v err is: %v .",fp.Name(), err)
+		}
+	}()
 
 	t := template.Must(template.New("routesTemplate").Parse(routesTemplate))
 	buffer := new(bytes.Buffer)
@@ -151,9 +156,9 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
+			folder, ok := apiUtil.GetAnnotationValue(route.Annotations, "server", groupProperty)
 			if !ok {
-				folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
+				folder, ok = apiUtil.GetAnnotationValue(group.Annotations, "server", groupProperty)
 				if !ok {
 					continue
 				}
@@ -175,16 +180,16 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 	for _, g := range api.Service.Groups {
 		var groupedRoutes group
 		for _, r := range g.Routes {
-			handler, ok := apiutil.GetAnnotationValue(r.Annotations, "server", "handler")
+			handler, ok := apiUtil.GetAnnotationValue(r.Annotations, "server", "handler")
 			if !ok {
 				return nil, fmt.Errorf("missing handler annotation for route %q", r.Path)
 			}
 			handler = getHandlerBaseName(handler) + "Handler(serverCtx)"
-			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
+			folder, ok := apiUtil.GetAnnotationValue(r.Annotations, "server", groupProperty)
 			if ok {
 				handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			} else {
-				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
+				folder, ok = apiUtil.GetAnnotationValue(g.Annotations, "server", groupProperty)
 				if ok {
 					handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
 				}
@@ -196,11 +201,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			})
 		}
 
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
+		if value, ok := apiUtil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
 			groupedRoutes.authName = value
 			groupedRoutes.jwtEnabled = true
 		}
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
+		if value, ok := apiUtil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
 			for _, item := range strings.Split(value, ",") {
 				groupedRoutes.middleware = append(groupedRoutes.middleware, item)
 			}

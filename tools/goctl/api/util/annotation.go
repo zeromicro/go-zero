@@ -6,13 +6,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-func GetAnnotationValue(annos []spec.Annotation, key, field string) (string, bool) {
-	for _, anno := range annos {
-		if anno.Name == field && len(anno.Value) > 0 {
-			return anno.Value, true
+func GetAnnotationValue(annotations []spec.Annotation, key, field string) (string, bool) {
+	for _, annotation := range annotations {
+		if annotation.Name == field && len(annotation.Value) > 0 {
+			return annotation.Value, true
 		}
-		if anno.Name == key {
-			value, ok := anno.Properties[field]
+		if annotation.Name == key {
+			value, ok := annotation.Properties[field]
 			return strings.TrimSpace(value), ok
 		}
 	}

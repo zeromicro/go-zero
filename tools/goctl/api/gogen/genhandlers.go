@@ -8,7 +8,7 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	apiUtil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
@@ -51,7 +51,7 @@ type Handler struct {
 }
 
 func genHandler(dir string, group spec.Group, route spec.Route) error {
-	handler, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
+	handler, ok := apiUtil.GetAnnotationValue(route.Annotations, "server", "handler")
 	if !ok {
 		return fmt.Errorf("missing handler annotation for %q", route.Path)
 	}
@@ -85,14 +85,19 @@ func doGenToFile(dir, handler string, group spec.Group, route spec.Route, handle
 	} else {
 		filename = filename + "handler.go"
 	}
-	fp, created, err := apiutil.MaybeCreateFile(dir, getHandlerFolderPath(group, route), filename)
+	fp, created, err := apiUtil.MaybeCreateFile(dir, getHandlerFolderPath(group, route), filename)
 	if err != nil {
 		return err
 	}
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated handler file, filename is %v err is: %v .", filename, err)
+		}
+	}()
 
 	text, err := templatex.LoadTemplate(category, handlerTemplateFile, handlerTemplate)
 	if err != nil {
@@ -146,9 +151,9 @@ func getHandlerBaseName(handler string) string {
 }
 
 func getHandlerFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
+	folder, ok := apiUtil.GetAnnotationValue(route.Annotations, "server", groupProperty)
 	if !ok {
-		folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
+		folder, ok = apiUtil.GetAnnotationValue(group.Annotations, "server", groupProperty)
 		if !ok {
 			return handlerDir
 		}

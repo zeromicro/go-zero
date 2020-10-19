@@ -39,7 +39,12 @@ func genConfig(dir string, api *spec.ApiSpec) error {
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated configuration file, filename is %v err is: %v .",fp.Name(), err)
+		}
+	}()
 
 	var authNames = getAuths(api)
 	var auths []string

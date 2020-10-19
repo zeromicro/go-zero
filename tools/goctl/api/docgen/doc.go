@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"strconv"
 	"strings"
-
+	
 	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
@@ -37,20 +37,25 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 	if err != nil {
 		return err
 	}
-	defer fp.Close()
-
+	
+	defer func() {
+		if err := fp.Close(); err != nil {
+			fmt.Printf("Internal error when closing gernerated document file, filename is %v err is: %v .",fp.Name(), err)
+		}
+	}()
+	
 	var builder strings.Builder
 	for index, route := range api.Service.Routes {
 		routeComment, _ := util.GetAnnotationValue(route.Annotations, "doc", "summary")
 		if len(routeComment) == 0 {
 			routeComment = "N/A"
 		}
-
+		
 		responseContent, err := responseBody(api, route)
 		if err != nil {
 			return err
 		}
-
+		
 		t := template.Must(template.New("markdownTemplate").Parse(markdownTemplate))
 		var tmplBytes bytes.Buffer
 		err = t.Execute(&tmplBytes, map[string]string{
@@ -65,7 +70,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 		if err != nil {
 			return err
 		}
-
+		
 		builder.Write(tmplBytes.Bytes())
 	}
 	_, err = fp.WriteString(strings.Replace(builder.String(), "&#34;", `"`, -1))

@@ -1,8 +1,9 @@
 package gogen
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/urfave/cli"
+	
+	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 )
 
 const (

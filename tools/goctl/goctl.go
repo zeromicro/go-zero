@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
-
+	
+	"github.com/urfave/cli"
+	
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
@@ -20,7 +22,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
-	"github.com/urfave/cli"
 )
 
 var (
