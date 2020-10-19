@@ -22,8 +22,12 @@ func genDelete(table Table, withCache bool) (string, error) {
 	}
 
 	camel := table.Name.ToCamel()
+	text, err := templatex.LoadTemplate(category, deleteTemplateFile, template.Delete)
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("delete").
-		Parse(template.Delete).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
 			"withCache":                 withCache,

@@ -22,7 +22,9 @@ import (
 	{{.imports}}
 )
 
-type {{.types}}
+type {{.server}}Server struct {
+	svcCtx *svc.ServiceContext
+}
 
 func New{{.server}}Server(svcCtx *svc.ServiceContext) *{{.server}}Server {
 	return &{{.server}}Server{
@@ -39,9 +41,6 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in {{.request}}) (
 	return l.{{.method}}(in)
 }
 `
-	typeFmt = `%sServer struct {
-		svcCtx *svc.ServiceContext
-	}`
 )
 
 func (g *defaultRpcGenerator) genHandler() error {
@@ -61,9 +60,12 @@ func (g *defaultRpcGenerator) genHandler() error {
 			return err
 		}
 		imports.AddStr(importList...)
-		err = templatex.With("server").GoFmt(true).Parse(serverTemplate).SaveTo(map[string]interface{}{
+		text, err := templatex.LoadTemplate(category, serverTemplateFile, serverTemplate)
+		if err != nil {
+			return err
+		}
+		err = templatex.With("server").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 			"head":    head,
-			"types":   fmt.Sprintf(typeFmt, service.Name.Title()),
 			"server":  service.Name.Title(),
 			"imports": strings.Join(imports.KeysStr(), util.NL),
 			"funcs":   strings.Join(funcList, util.NL),
@@ -86,7 +88,11 @@ func (g *defaultRpcGenerator) genFunctions(service *parser.RpcService) ([]string
 		}
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
 		imports.AddStr(g.ast.Imports[method.ParameterOut.Package])
-		buffer, err := templatex.With("func").Parse(functionTemplate).Execute(map[string]interface{}{
+		text, err := templatex.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)
+		if err != nil {
+			return nil, nil, err
+		}
+		buffer, err := templatex.With("func").Parse(text).Execute(map[string]interface{}{
 			"server":     service.Name.Title(),
 			"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
 			"method":     method.Name.Title(),

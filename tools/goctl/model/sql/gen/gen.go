@@ -120,8 +120,12 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+	text, err := templatex.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return "", err
+	}
 	t := templatex.With("model").
-		Parse(template.Model).
+		Parse(text).
 		GoFmt(true)
 
 	m, err := genCacheKeys(in)

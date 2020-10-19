@@ -55,7 +55,6 @@ func LoadTemplate(category, file, builtin string) (string, error) {
 
 func createTemplate(file, content string) error {
 	if util.FileExists(file) {
-		println(1)
 		return nil
 	}
 

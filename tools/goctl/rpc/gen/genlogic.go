@@ -62,7 +62,11 @@ func (g *defaultRpcGenerator) genLogic() error {
 			svcImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirSvc))
 			imports.AddStr(svcImport)
 			imports.AddStr(importList...)
-			err = templatex.With("logic").GoFmt(true).Parse(logicTemplate).SaveTo(map[string]interface{}{
+			text, err := templatex.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
+			if err != nil {
+				return err
+			}
+			err = templatex.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 				"logicName": fmt.Sprintf("%sLogic", method.Name.Title()),
 				"functions": functions,
 				"imports":   strings.Join(imports.KeysStr(), util.NL),
@@ -83,7 +87,11 @@ func (g *defaultRpcGenerator) genLogicFunction(packageName string, method *parse
 	}
 	imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
 	imports.AddStr(g.ast.Imports[method.ParameterOut.Package])
-	buffer, err := templatex.With("fun").Parse(logicFunctionTemplate).Execute(map[string]interface{}{
+	text, err := templatex.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
+	if err != nil {
+		return "", nil, err
+	}
+	buffer, err := templatex.With("fun").Parse(text).Execute(map[string]interface{}{
 		"logicName":    fmt.Sprintf("%sLogic", method.Name.Title()),
 		"method":       method.Name.Title(),
 		"request":      method.ParameterIn.StarExpression,

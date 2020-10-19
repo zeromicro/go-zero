@@ -6,8 +6,12 @@ import (
 )
 
 func genNew(table Table, withCache bool) (string, error) {
+	text, err := templatex.LoadTemplate(category, modelNewTemplateFile, template.New)
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("new").
-		Parse(template.New).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),

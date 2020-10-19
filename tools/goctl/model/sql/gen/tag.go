@@ -9,8 +9,12 @@ func genTag(in string) (string, error) {
 	if in == "" {
 		return in, nil
 	}
+	text, err := templatex.LoadTemplate(category, tagTemplateFile, template.Tag)
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("tag").
-		Parse(template.Tag).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"field": in,
 		})

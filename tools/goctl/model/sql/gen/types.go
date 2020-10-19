@@ -11,8 +11,12 @@ func genTypes(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	text, err := templatex.LoadTemplate(category, typesTemplateFile, template.Types)
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("types").
-		Parse(template.Types).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),

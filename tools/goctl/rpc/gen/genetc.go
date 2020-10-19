@@ -22,8 +22,11 @@ func (g *defaultRpcGenerator) genEtc() error {
 	if util.FileExists(fileName) {
 		return nil
 	}
-
-	return templatex.With("etc").Parse(etcTemplate).SaveTo(map[string]interface{}{
+	text, err := templatex.LoadTemplate(category, etcTemplateFileFile, etcTemplate)
+	if err != nil {
+		return err
+	}
+	return templatex.With("etc").Parse(text).SaveTo(map[string]interface{}{
 		"serviceName": g.Ctx.ServiceName.Lower(),
 	}, fileName, false)
 }

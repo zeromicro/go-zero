@@ -7,7 +7,11 @@ import (
 
 func genImports(withCache, timeImport bool) (string, error) {
 	if withCache {
-		buffer, err := templatex.With("import").Parse(template.Imports).Execute(map[string]interface{}{
+		text, err := templatex.LoadTemplate(category, importsTemplateFile, template.Imports)
+		if err != nil {
+			return "", err
+		}
+		buffer, err := templatex.With("import").Parse(text).Execute(map[string]interface{}{
 			"time": timeImport,
 		})
 		if err != nil {
@@ -15,7 +19,11 @@ func genImports(withCache, timeImport bool) (string, error) {
 		}
 		return buffer.String(), nil
 	} else {
-		buffer, err := templatex.With("import").Parse(template.ImportsNoCache).Execute(map[string]interface{}{
+		text, err := templatex.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
+		if err != nil {
+			return "", err
+		}
+		buffer, err := templatex.With("import").Parse(text).Execute(map[string]interface{}{
 			"time": timeImport,
 		})
 		if err != nil {

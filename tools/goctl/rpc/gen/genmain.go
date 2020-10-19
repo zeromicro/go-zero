@@ -59,7 +59,11 @@ func (g *defaultRpcGenerator) genMain() error {
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
 	srv, registers := g.genServer(pkg, file.Service)
 	head := templatex.GetHead(g.Ctx.ProtoSource)
-	return templatex.With("main").GoFmt(true).Parse(mainTemplate).SaveTo(map[string]interface{}{
+	text, err := templatex.LoadTemplate(category, mainTemplateFile, mainTemplate)
+	if err != nil {
+		return err
+	}
+	return templatex.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"head":        head,
 		"package":     pkg,
 		"serviceName": g.Ctx.ServiceName.Lower(),

@@ -14,8 +14,12 @@ func genVars(table Table, withCache bool) (string, error) {
 		keys = append(keys, v.VarExpression)
 	}
 	camel := table.Name.ToCamel()
+	text, err := templatex.LoadTemplate(category, varTemplateFile, template.Vars)
+	if err != nil {
+		return "", err
+	}
 	output, err := templatex.With("var").
-		Parse(template.Vars).
+		Parse(text).
 		GoFmt(true).
 		Execute(map[string]interface{}{
 			"lowerStartCamelObject": stringx.From(camel).UnTitle(),

@@ -19,7 +19,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	rpcgen "github.com/tal-tech/go-zero/tools/goctl/rpc/gen"
 	"github.com/urfave/cli"
 )
 
@@ -223,7 +225,7 @@ var (
 				},
 				{
 					Name:  "template",
-					Usage: `generate proto template`,
+					Usage: `template generate or initialize`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "out, o",
@@ -235,6 +237,13 @@ var (
 						},
 					},
 					Action: rpc.RpcTemplate,
+					Subcommands: []cli.Command{
+						{
+							Name:   "init",
+							Usage:  "initialize the rpc templates",
+							Action: rpcgen.GenTemplates,
+						},
+					},
 				},
 				{
 					Name:  "proto",
@@ -265,6 +274,11 @@ var (
 			Name:  "model",
 			Usage: "generate model code",
 			Subcommands: []cli.Command{
+				{
+					Name:   "template",
+					Usage:  "initialize the model templates",
+					Action: modelgen.GenTemplates,
+				},
 				{
 					Name:  "mysql",
 					Usage: `generate mysql model`,
