@@ -1,12 +1,10 @@
-package templatex
+package util
 
 import (
 	"bytes"
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
-
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const regularPerm = 0666
@@ -34,7 +32,7 @@ func (t *defaultTemplate) GoFmt(format bool) *defaultTemplate {
 }
 
 func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool) error {
-	if util.FileExists(path) && !forceUpdate {
+	if FileExists(path) && !forceUpdate {
 		return nil
 	}
 

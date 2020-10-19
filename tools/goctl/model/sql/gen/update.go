@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -22,7 +22,7 @@ func genUpdate(table Table, withCache bool) (string, error) {
 	}
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
-	output, err := templatex.With("update").
+	output, err := util.With("update").
 		Parse(template.Update).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,

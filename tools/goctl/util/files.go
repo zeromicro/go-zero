@@ -1,24 +1,29 @@
-package templatex
+package util
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const goctlDir = ".goctl"
 
+func GetTemplateDir(category string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(home, goctlDir, category), nil
+}
+
 func InitTemplates(category string, templates map[string]string) error {
-	dir, err := getTemplateDir(category)
+	dir, err := GetTemplateDir(category)
 	if err != nil {
 		return err
 	}
 
-	if err := util.MkdirIfNotExist(dir); err != nil {
+	if err := MkdirIfNotExist(dir); err != nil {
 		return err
 	}
 
@@ -28,20 +33,17 @@ func InitTemplates(category string, templates map[string]string) error {
 		}
 	}
 
-	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(dir),
-		aurora.Red("edit on your risk!"))
-
 	return nil
 }
 
 func LoadTemplate(category, file, builtin string) (string, error) {
-	dir, err := getTemplateDir(category)
+	dir, err := GetTemplateDir(category)
 	if err != nil {
 		return "", err
 	}
 
 	file = filepath.Join(dir, file)
-	if !util.FileExists(file) {
+	if !FileExists(file) {
 		return builtin, nil
 	}
 
@@ -54,7 +56,7 @@ func LoadTemplate(category, file, builtin string) (string, error) {
 }
 
 func createTemplate(file, content string) error {
-	if util.FileExists(file) {
+	if FileExists(file) {
 		println(1)
 		return nil
 	}
@@ -67,13 +69,4 @@ func createTemplate(file, content string) error {
 
 	_, err = f.WriteString(content)
 	return err
-}
-
-func getTemplateDir(category string) (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(home, goctlDir, category), nil
 }

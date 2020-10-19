@@ -9,7 +9,6 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
@@ -120,7 +119,7 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
-	t := templatex.With("model").
+	t := util.With("model").
 		Parse(template.Model).
 		GoFmt(true)
 

@@ -2,13 +2,13 @@ package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 func genFindOne(table Table, withCache bool) (string, error) {
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("findOne").
+	output, err := util.With("findOne").
 		Parse(template.FindOne).
 		Execute(map[string]interface{}{
 			"withCache":                 withCache,

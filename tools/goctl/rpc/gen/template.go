@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
@@ -43,7 +43,7 @@ func (r *rpcTemplate) MustGenerate(showState bool) {
 	r.Info("generating template...")
 	protoFilename := filepath.Base(r.out)
 	serviceName := stringx.From(strings.TrimSuffix(protoFilename, filepath.Ext(protoFilename)))
-	err := templatex.With("t").Parse(rpcTemplateText).SaveTo(map[string]string{
+	err := util.With("t").Parse(rpcTemplateText).SaveTo(map[string]string{
 		"package":     serviceName.UnTitle(),
 		"serviceName": serviceName.Title(),
 	}, r.out, false)

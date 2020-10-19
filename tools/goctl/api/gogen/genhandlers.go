@@ -9,7 +9,6 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
@@ -94,7 +93,7 @@ func doGenToFile(dir, handler string, group spec.Group, route spec.Route, handle
 	}
 	defer fp.Close()
 
-	text, err := templatex.LoadTemplate(category, handlerTemplateFile, handlerTemplate)
+	text, err := util.LoadTemplate(category, handlerTemplateFile, handlerTemplate)
 	if err != nil {
 		return err
 	}

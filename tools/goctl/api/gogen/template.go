@@ -1,7 +1,7 @@
 package gogen
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -25,5 +25,5 @@ var templates = map[string]string{
 }
 
 func GenTemplates(_ *cli.Context) error {
-	return templatex.InitTemplates(category, templates)
+	return util.InitTemplates(category, templates)
 }

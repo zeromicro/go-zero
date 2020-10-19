@@ -102,13 +102,6 @@ var (
 						},
 					},
 					Action: gogen.GoCommand,
-					Subcommands: []cli.Command{
-						{
-							Name:   "template",
-							Usage:  "initialize the api templates",
-							Action: gogen.GenTemplates,
-						},
-					},
 				},
 				{
 					Name:  "java",
@@ -338,6 +331,11 @@ var (
 			Name:   "feature",
 			Usage:  "the features of the latest version",
 			Action: feature.Feature,
+		},
+		{
+			Name:   "template",
+			Usage:  "initialize the api templates",
+			Action: gogen.GenTemplates,
 		},
 	}
 )

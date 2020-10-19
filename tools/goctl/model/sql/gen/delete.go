@@ -5,7 +5,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -22,7 +22,7 @@ func genDelete(table Table, withCache bool) (string, error) {
 	}
 
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("delete").
+	output, err := util.With("delete").
 		Parse(template.Delete).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,

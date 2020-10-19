@@ -7,7 +7,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -52,7 +51,7 @@ func (g *defaultRpcGenerator) genHandler() error {
 	imports := collection.NewSet()
 	imports.AddStr(logicImport, svcImport)
 
-	head := templatex.GetHead(g.Ctx.ProtoSource)
+	head := util.GetHead(g.Ctx.ProtoSource)
 	for _, service := range file.Service {
 		filename := fmt.Sprintf("%vserver.go", service.Name.Lower())
 		serverFile := filepath.Join(serverPath, filename)
@@ -61,7 +60,7 @@ func (g *defaultRpcGenerator) genHandler() error {
 			return err
 		}
 		imports.AddStr(importList...)
-		err = templatex.With("server").GoFmt(true).Parse(serverTemplate).SaveTo(map[string]interface{}{
+		err = util.With("server").GoFmt(true).Parse(serverTemplate).SaveTo(map[string]interface{}{
 			"head":    head,
 			"types":   fmt.Sprintf(typeFmt, service.Name.Title()),
 			"server":  service.Name.Title(),
@@ -86,7 +85,7 @@ func (g *defaultRpcGenerator) genFunctions(service *parser.RpcService) ([]string
 		}
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
 		imports.AddStr(g.ast.Imports[method.ParameterOut.Package])
-		buffer, err := templatex.With("func").Parse(functionTemplate).Execute(map[string]interface{}{
+		buffer, err := util.With("func").Parse(functionTemplate).Execute(map[string]interface{}{
 			"server":     service.Name.Title(),
 			"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
 			"method":     method.Name.Title(),
