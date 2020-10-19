@@ -713,6 +713,8 @@ func TestRedis_SortedSet(t *testing.T) {
 		pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
 		assert.Nil(t, err)
 		assert.Equal(t, 0, len(pairs))
+		_, err = NewRedis(client.Addr, "").Zrevrank("key", "value")
+		assert.NotNil(t, err)
 	})
 }
 

@@ -636,15 +636,6 @@ func (cs clusterStore) ZrevrangebyscoreWithScoresAndLimit(key string, start, sto
 	return node.ZrevrangebyscoreWithScoresAndLimit(key, start, stop, page, size)
 }
 
-func (cs clusterStore) Zscore(key string, value string) (int64, error) {
-	node, err := cs.getRedis(key)
-	if err != nil {
-		return 0, err
-	}
-
-	return node.Zscore(key, value)
-}
-
 func (cs clusterStore) Zrevrank(key, field string) (int64, error) {
 	node, err := cs.getRedis(key)
 	if err != nil {
@@ -652,6 +643,15 @@ func (cs clusterStore) Zrevrank(key, field string) (int64, error) {
 	}
 
 	return node.Zrevrank(key, field)
+}
+
+func (cs clusterStore) Zscore(key string, value string) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Zscore(key, value)
 }
 
 func (cs clusterStore) getRedis(key string) (*redis.Redis, error) {
