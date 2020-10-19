@@ -31,9 +31,9 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 }
 `
 	routesAdditionTemplate = `
-	engine.AddRoutes([]rest.Route{
+	engine.AddRoutes(
 		{{.routes}}
-	}{{.jwt}}{{.signature}})
+	{{.jwt}}{{.signature}})
 `
 )
 
@@ -52,6 +52,7 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
+		middleware       []string
 	}
 	route struct {
 		method  string
@@ -87,8 +88,22 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 		if g.signatureEnabled {
 			signature = fmt.Sprintf(", rest.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
 		}
+
+		var routes string
+		if len(g.middleware) > 0 {
+			var params = g.middleware
+			for i := range params {
+				params[i] = "serverCtx." + params[i]
+			}
+			var middlewareStr = strings.Join(params, ", ")
+			routes = fmt.Sprintf("rest.WithMultiMiddleware([]rest.Middleware{ %s }, []rest.Route{\n %s \n}),",
+				middlewareStr, strings.TrimSpace(gbuilder.String()))
+		} else {
+			routes = fmt.Sprintf("[]rest.Route{\n %s \n},", strings.TrimSpace(gbuilder.String()))
+		}
+
 		if err := gt.Execute(&builder, map[string]string{
-			"routes":    strings.TrimSpace(gbuilder.String()),
+			"routes":    routes,
 			"jwt":       jwt,
 			"signature": signature,
 		}); err != nil {
@@ -184,6 +199,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
 			groupedRoutes.authName = value
 			groupedRoutes.jwtEnabled = true
+		}
+		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
+			for _, item := range strings.Split(value, ",") {
+				groupedRoutes.middleware = append(groupedRoutes.middleware, item)
+			}
 		}
 		routes = append(routes, groupedRoutes)
 	}

@@ -66,6 +66,18 @@ func getAuths(api *spec.ApiSpec) []string {
 	return authNames.KeysStr()
 }
 
+func getMiddleware(api *spec.ApiSpec) []string {
+	result := collection.NewSet()
+	for _, g := range api.Service.Groups {
+		if value, ok := util.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
+			for _, item := range strings.Split(value, ",") {
+				result.Add(strings.TrimSpace(item))
+			}
+		}
+	}
+	return result.KeysStr()
+}
+
 func formatCode(code string) string {
 	ret, err := goformat.Source([]byte(code))
 	if err != nil {
