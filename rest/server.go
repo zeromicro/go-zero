@@ -103,6 +103,14 @@ func WithJwtTransition(secret, prevSecret string) RouteOption {
 	}
 }
 
+func WithMultiMiddleware(ms []Middleware, rs ...Route) []Route {
+	var result = rs
+	for _, middleware := range ms {
+		result = WithMiddleware(middleware, result...)
+	}
+	return result
+}
+
 func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 	routes := make([]Route, len(rs))
 
