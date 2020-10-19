@@ -96,7 +96,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 				params[i] = "serverCtx." + params[i]
 			}
 			var middlewareStr = strings.Join(params, ", ")
-			routes = fmt.Sprintf("rest.WithMultiMiddleware([]rest.Middleware{ %s }, []rest.Route{\n %s \n}),",
+			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n[]rest.Route{\n %s \n}...,\n),",
 				middlewareStr, strings.TrimSpace(gbuilder.String()))
 		} else {
 			routes = fmt.Sprintf("[]rest.Route{\n %s \n},", strings.TrimSpace(gbuilder.String()))
