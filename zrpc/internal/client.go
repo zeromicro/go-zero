@@ -38,7 +38,7 @@ type (
 
 func NewClient(target string, opts ...ClientOption) (*client, error) {
 	var cli client
-	opts = append(opts, WithDialOption(grpc.WithBalancerName(p2c.Name)))
+	opts = append([]ClientOption{WithDialOption(grpc.WithBalancerName(p2c.Name))}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
 	}
