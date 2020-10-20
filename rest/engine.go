@@ -57,7 +57,7 @@ func (s *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
 }
 
 func (s *engine) Start() error {
-	return s.StartWithRouter(router.NewPatRouter())
+	return s.StartWithRouter(router.NewRouter())
 }
 
 func (s *engine) StartWithRouter(router httpx.Router) error {

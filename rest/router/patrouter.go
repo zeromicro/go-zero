@@ -21,18 +21,18 @@ var (
 	ErrInvalidPath   = errors.New("path must begin with '/'")
 )
 
-type PatRouter struct {
+type patRouter struct {
 	trees    map[string]*search.Tree
 	notFound http.Handler
 }
 
-func NewPatRouter() httpx.Router {
-	return &PatRouter{
+func NewRouter() httpx.Router {
+	return &patRouter{
 		trees: make(map[string]*search.Tree),
 	}
 }
 
-func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error {
+func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error {
 	if !validMethod(method) {
 		return ErrInvalidMethod
 	}
@@ -51,7 +51,7 @@ func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error 
 	}
 }
 
-func (pr *PatRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqPath := path.Clean(r.URL.Path)
 	if tree, ok := pr.trees[r.Method]; ok {
 		if result, ok := tree.Search(reqPath); ok {
@@ -71,11 +71,11 @@ func (pr *PatRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (pr *PatRouter) SetNotFoundHandler(handler http.Handler) {
+func (pr *patRouter) SetNotFoundHandler(handler http.Handler) {
 	pr.notFound = handler
 }
 
-func (pr *PatRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
+func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	if pr.notFound != nil {
 		pr.notFound.ServeHTTP(w, r)
 	} else {
@@ -83,7 +83,7 @@ func (pr *PatRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (pr *PatRouter) methodNotAllowed(method, path string) (string, bool) {
+func (pr *patRouter) methodNotAllowed(method, path string) (string, bool) {
 	var allows []string
 
 	for treeMethod, tree := range pr.trees {

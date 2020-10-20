@@ -14,7 +14,7 @@ import (
 
 func TestWithMiddleware(t *testing.T) {
 	m := make(map[string]string)
-	router := router.NewPatRouter()
+	router := router.NewRouter()
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Nickname string `form:"nickname"`
@@ -71,7 +71,7 @@ func TestWithMiddleware(t *testing.T) {
 
 func TestMultiMiddleware(t *testing.T) {
 	m := make(map[string]string)
-	router := router.NewPatRouter()
+	router := router.NewRouter()
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var v struct {
 			Nickname string `form:"nickname"`
