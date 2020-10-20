@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	WithDialOption = internal.WithDialOption
-	WithTimeout    = internal.WithTimeout
+	WithDialOption             = internal.WithDialOption
+	WithTimeout                = internal.WithTimeout
+	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
 
 type (
