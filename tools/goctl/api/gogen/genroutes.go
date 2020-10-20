@@ -32,8 +32,8 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	engine.AddRoutes(
-		{{.routes}}
-	{{.jwt}}{{.signature}})
+		{{.routes}} {{.jwt}}{{.signature}}
+	)
 `
 )
 
@@ -71,6 +71,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 	gt := template.Must(template.New("groupTemplate").Parse(routesAdditionTemplate))
 	for _, g := range groups {
 		var gbuilder strings.Builder
+		gbuilder.WriteString("[]rest.Route{")
 		for _, r := range g.routes {
 			fmt.Fprintf(&gbuilder, `
 		{
@@ -80,26 +81,29 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 		},`,
 				r.method, r.path, r.handler)
 		}
+
 		var jwt string
 		if g.jwtEnabled {
-			jwt = fmt.Sprintf(", rest.WithJwt(serverCtx.Config.%s.AccessSecret)", g.authName)
+			jwt = fmt.Sprintf("\n rest.WithJwt(serverCtx.Config.%s.AccessSecret),", g.authName)
 		}
 		var signature string
 		if g.signatureEnabled {
-			signature = fmt.Sprintf(", rest.WithSignature(serverCtx.Config.%s.Signature)", g.authName)
+			signature = fmt.Sprintf("\n rest.WithSignature(serverCtx.Config.%s.Signature),", g.authName)
 		}
 
 		var routes string
 		if len(g.middleware) > 0 {
+			gbuilder.WriteString("\n}...,")
 			var params = g.middleware
 			for i := range params {
 				params[i] = "serverCtx." + params[i]
 			}
 			var middlewareStr = strings.Join(params, ", ")
-			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n[]rest.Route{\n %s \n}...,\n),",
+			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n %s \n),",
 				middlewareStr, strings.TrimSpace(gbuilder.String()))
 		} else {
-			routes = fmt.Sprintf("[]rest.Route{\n %s \n},", strings.TrimSpace(gbuilder.String()))
+			gbuilder.WriteString("\n},")
+			routes = strings.TrimSpace(gbuilder.String())
 		}
 
 		if err := gt.Execute(&builder, map[string]string{
