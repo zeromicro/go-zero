@@ -71,15 +71,17 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 	gt := template.Must(template.New("groupTemplate").Parse(routesAdditionTemplate))
 	for _, g := range groups {
 		var gbuilder strings.Builder
+		gbuilder.WriteString("[]rest.Route{")
 		for _, r := range g.routes {
 			fmt.Fprintf(&gbuilder, `
-		Route{
+		{
 			Method:  %s,
 			Path:    "%s",
 			Handler: %s,
 		},`,
 				r.method, r.path, r.handler)
 		}
+
 		var jwt string
 		if g.jwtEnabled {
 			jwt = fmt.Sprintf("\n rest.WithJwt(serverCtx.Config.%s.AccessSecret),", g.authName)
@@ -91,6 +93,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 
 		var routes string
 		if len(g.middleware) > 0 {
+			gbuilder.WriteString("\n}...,")
 			var params = g.middleware
 			for i := range params {
 				params[i] = "serverCtx." + params[i]
@@ -99,6 +102,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n %s \n),",
 				middlewareStr, strings.TrimSpace(gbuilder.String()))
 		} else {
+			gbuilder.WriteString("\n},")
 			routes = strings.TrimSpace(gbuilder.String())
 		}
 
