@@ -15,6 +15,7 @@ var (
 )
 `
 	ImportsNoCache = `import (
+	"database/sql"
 	"strings"
 	{{if .time}}"time"{{end}}
 

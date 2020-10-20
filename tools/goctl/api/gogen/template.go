@@ -1,6 +1,8 @@
 package gogen
 
 import (
+	"fmt"
+
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -26,4 +28,19 @@ var templates = map[string]string{
 
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, templates)
+}
+
+func RevertTemplate(name string) error {
+	content, ok := templates[name]
+	if !ok {
+		return fmt.Errorf("%s: no such file name", name)
+	}
+	return util.CreateTemplate(category, name, content)
+}
+
+func Clean() error {
+	return util.Clean(category)
+}
+func GetCategory() string {
+	return category
 }
