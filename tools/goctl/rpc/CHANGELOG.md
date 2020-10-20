@@ -1,5 +1,9 @@
 # Change log
 
+## 2020-10-19
+
+* 增加template
+
 ## 2020-09-10
 
 * rpc greet服务一键生成

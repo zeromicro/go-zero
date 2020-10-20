@@ -25,7 +25,12 @@ func NewServiceContext(c config.Config) *ServiceContext {
 func (g *defaultRpcGenerator) genSvc() error {
 	svcPath := g.dirM[dirSvc]
 	fileName := filepath.Join(svcPath, fileServiceContext)
-	return util.With("svc").GoFmt(true).Parse(svcTemplate).SaveTo(map[string]interface{}{
+	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
+	if err != nil {
+		return err
+	}
+
+	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"imports": fmt.Sprintf(`"%v"`, g.mustGetPackage(dirConfig)),
 	}, fileName, false)
 }

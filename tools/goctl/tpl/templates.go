@@ -6,6 +6,8 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
+	rpcgen "github.com/tal-tech/go-zero/tools/goctl/rpc/gen"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -15,7 +17,22 @@ const templateParentPath = "/"
 func GenTemplates(ctx *cli.Context) error {
 	if err := errorx.Chain(
 		func() error {
-			return gogen.GenTemplates(ctx)
+			err := gogen.GenTemplates(ctx)
+			if err != nil {
+				return err
+			}
+
+			err = modelgen.GenTemplates(ctx)
+			if err != nil {
+				return err
+			}
+
+			err = rpcgen.GenTemplates(ctx)
+			if err != nil {
+				return err
+			}
+
+			return nil
 		},
 	); err != nil {
 		return err
