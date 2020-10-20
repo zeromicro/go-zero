@@ -6,11 +6,12 @@
 package checker
 
 import (
-	check "bookstore/rpc/check/pb"
 	"context"
 
+	check "bookstore/rpc/check/pb"
+
 	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
@@ -19,11 +20,11 @@ type (
 	}
 
 	defaultChecker struct {
-		cli rpcx.Client
+		cli zrpc.Client
 	}
 )
 
-func NewChecker(cli rpcx.Client) Checker {
+func NewChecker(cli zrpc.Client) Checker {
 	return &defaultChecker{
 		cli: cli,
 	}

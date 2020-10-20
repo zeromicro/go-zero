@@ -5,17 +5,12 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/core/stringx"
-)
-
-const (
-	StateClosed State = iota
-	StateOpen
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -27,11 +22,10 @@ const (
 var ErrServiceUnavailable = errors.New("circuit breaker is open")
 
 type (
-	State      = int32
 	Acceptable func(err error) bool
 
 	Breaker interface {
-		// Name returns the name of the netflixBreaker.
+		// Name returns the name of the Breaker.
 		Name() string
 
 		// Allow checks if the request is allowed.
@@ -40,34 +34,34 @@ type (
 		// If not allow, ErrServiceUnavailable will be returned.
 		Allow() (Promise, error)
 
-		// Do runs the given request if the netflixBreaker accepts it.
-		// Do returns an error instantly if the netflixBreaker rejects the request.
-		// If a panic occurs in the request, the netflixBreaker handles it as an error
+		// Do runs the given request if the Breaker accepts it.
+		// Do returns an error instantly if the Breaker rejects the request.
+		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		Do(req func() error) error
 
-		// DoWithAcceptable runs the given request if the netflixBreaker accepts it.
-		// Do returns an error instantly if the netflixBreaker rejects the request.
-		// If a panic occurs in the request, the netflixBreaker handles it as an error
+		// DoWithAcceptable runs the given request if the Breaker accepts it.
+		// DoWithAcceptable returns an error instantly if the Breaker rejects the request.
+		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		// acceptable checks if it's a successful call, even if the err is not nil.
 		DoWithAcceptable(req func() error, acceptable Acceptable) error
 
-		// DoWithFallback runs the given request if the netflixBreaker accepts it.
-		// DoWithFallback runs the fallback if the netflixBreaker rejects the request.
-		// If a panic occurs in the request, the netflixBreaker handles it as an error
+		// DoWithFallback runs the given request if the Breaker accepts it.
+		// DoWithFallback runs the fallback if the Breaker rejects the request.
+		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		DoWithFallback(req func() error, fallback func(err error) error) error
 
-		// DoWithFallbackAcceptable runs the given request if the netflixBreaker accepts it.
-		// DoWithFallback runs the fallback if the netflixBreaker rejects the request.
-		// If a panic occurs in the request, the netflixBreaker handles it as an error
+		// DoWithFallbackAcceptable runs the given request if the Breaker accepts it.
+		// DoWithFallbackAcceptable runs the fallback if the Breaker rejects the request.
+		// If a panic occurs in the request, the Breaker handles it as an error
 		// and causes the same panic again.
 		// acceptable checks if it's a successful call, even if the err is not nil.
 		DoWithFallbackAcceptable(req func() error, fallback func(err error) error, acceptable Acceptable) error
 	}
 
-	BreakerOption func(breaker *circuitBreaker)
+	Option func(breaker *circuitBreaker)
 
 	Promise interface {
 		Accept()
@@ -95,7 +89,7 @@ type (
 	}
 )
 
-func NewBreaker(opts ...BreakerOption) Breaker {
+func NewBreaker(opts ...Option) Breaker {
 	var b circuitBreaker
 	for _, opt := range opts {
 		opt(&b)
@@ -133,7 +127,7 @@ func (cb *circuitBreaker) Name() string {
 	return cb.name
 }
 
-func WithName(name string) BreakerOption {
+func WithName(name string) Option {
 	return func(b *circuitBreaker) {
 		b.name = name
 	}
@@ -195,23 +189,23 @@ type errorWindow struct {
 
 func (ew *errorWindow) add(reason string) {
 	ew.lock.Lock()
-	ew.reasons[ew.index] = fmt.Sprintf("%s %s", time.Now().Format(timeFormat), reason)
+	ew.reasons[ew.index] = fmt.Sprintf("%s %s", timex.Time().Format(timeFormat), reason)
 	ew.index = (ew.index + 1) % numHistoryReasons
 	ew.count = mathx.MinInt(ew.count+1, numHistoryReasons)
 	ew.lock.Unlock()
 }
 
 func (ew *errorWindow) String() string {
-	var builder strings.Builder
+	var reasons []string
 
 	ew.lock.Lock()
-	for i := ew.index + ew.count - 1; i >= ew.index; i-- {
-		builder.WriteString(ew.reasons[i%numHistoryReasons])
-		builder.WriteByte('\n')
+	// reverse order
+	for i := ew.index - 1; i >= ew.index-ew.count; i-- {
+		reasons = append(reasons, ew.reasons[(i+numHistoryReasons)%numHistoryReasons])
 	}
 	ew.lock.Unlock()
 
-	return builder.String()
+	return strings.Join(reasons, "\n")
 }
 
 type promiseWithReason struct {

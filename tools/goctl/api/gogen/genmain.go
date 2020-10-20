@@ -60,7 +60,12 @@ func genMain(dir string, api *spec.ApiSpec) error {
 		return err
 	}
 
-	t := template.Must(template.New("mainTemplate").Parse(mainTemplate))
+	text, err := ctlutil.LoadTemplate(category, mainTemplateFile, mainTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("mainTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"importPackages": genMainImports(parentPkg),

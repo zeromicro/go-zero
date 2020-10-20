@@ -6,7 +6,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
@@ -73,6 +73,7 @@ type (
 		ZrevrangebyscoreWithScores(key string, start, stop int64) ([]redis.Pair, error)
 		ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64, page, size int) ([]redis.Pair, error)
 		Zscore(key string, value string) (int64, error)
+		Zrevrank(key, field string) (int64, error)
 	}
 
 	clusterStore struct {
@@ -81,7 +82,7 @@ type (
 )
 
 func NewStore(c KvConf) Store {
-	if len(c) == 0 || internal.TotalWeights(c) <= 0 {
+	if len(c) == 0 || cache.TotalWeights(c) <= 0 {
 		log.Fatal("no cache nodes")
 	}
 
@@ -633,6 +634,15 @@ func (cs clusterStore) ZrevrangebyscoreWithScoresAndLimit(key string, start, sto
 	}
 
 	return node.ZrevrangebyscoreWithScoresAndLimit(key, start, stop, page, size)
+}
+
+func (cs clusterStore) Zrevrank(key, field string) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Zrevrank(key, field)
 }
 
 func (cs clusterStore) Zscore(key string, value string) (int64, error) {

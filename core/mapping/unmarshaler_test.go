@@ -14,6 +14,13 @@ import (
 // so we only can test to 62 bits.
 const maxUintBitsToTest = 62
 
+func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
+	var s map[string]interface{}
+	content := []byte(`{"name":"xiaoming"}`)
+	err := UnmarshalJsonBytes(content, &s)
+	assert.Equal(t, errValueNotStruct, err)
+}
+
 func TestUnmarshalWithoutTagName(t *testing.T) {
 	type inner struct {
 		Optional bool `key:",optional"`
@@ -2378,6 +2385,13 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 
 	assert.Nil(t, NewUnmarshaler("json").Unmarshal(m, &c))
 	assert.Equal(t, "1", c.Anything["id"])
+}
+
+func TestUnmarshalValuer(t *testing.T) {
+	unmarshaler := NewUnmarshaler(jsonTagKey)
+	var foo string
+	err := unmarshaler.UnmarshalValuer(nil, foo)
+	assert.NotNil(t, err)
 }
 
 func BenchmarkUnmarshalString(b *testing.B) {

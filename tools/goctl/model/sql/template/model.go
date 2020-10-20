@@ -9,4 +9,5 @@ var Model = `package model
 {{.find}}
 {{.update}}
 {{.delete}}
+{{.extraMethod}}
 `

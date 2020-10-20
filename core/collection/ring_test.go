@@ -6,6 +6,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewRing(t *testing.T) {
+	assert.Panics(t, func() {
+		NewRing(0)
+	})
+}
+
 func TestRingLess(t *testing.T) {
 	ring := NewRing(5)
 	for i := 0; i < 3; i++ {

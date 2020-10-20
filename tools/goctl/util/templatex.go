@@ -4,18 +4,17 @@ import (
 	"bytes"
 	goformat "go/format"
 	"io/ioutil"
-	"os"
 	"text/template"
 )
 
-type (
-	defaultTemplate struct {
-		name     string
-		text     string
-		goFmt    bool
-		savePath string
-	}
-)
+const regularPerm = 0666
+
+type defaultTemplate struct {
+	name     string
+	text     string
+	goFmt    bool
+	savePath string
+}
 
 func With(name string) *defaultTemplate {
 	return &defaultTemplate{
@@ -36,34 +35,35 @@ func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 	if FileExists(path) && !forceUpdate {
 		return nil
 	}
-	output, err := t.execute(data)
+
+	output, err := t.Execute(data)
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, output.Bytes(), os.ModePerm)
+
+	return ioutil.WriteFile(path, output.Bytes(), regularPerm)
 }
 
 func (t *defaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
-	return t.execute(data)
-}
-
-func (t *defaultTemplate) execute(data interface{}) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
 		return nil, err
 	}
+
 	buf := new(bytes.Buffer)
-	err = tem.Execute(buf, data)
-	if err != nil {
+	if err = tem.Execute(buf, data); err != nil {
 		return nil, err
 	}
+
 	if !t.goFmt {
 		return buf, nil
 	}
+
 	formatOutput, err := goformat.Source(buf.Bytes())
 	if err != nil {
 		return nil, err
 	}
+
 	buf.Reset()
 	buf.Write(formatOutput)
 	return buf, nil

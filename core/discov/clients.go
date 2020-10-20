@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	indexOfKey = iota
+	_ = iota
 	indexOfId
 )
 

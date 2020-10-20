@@ -49,6 +49,36 @@ func TestBufferNegative(t *testing.T) {
 	assert.Equal(t, 10, result)
 }
 
+func TestCount(t *testing.T) {
+	tests := []struct {
+		name     string
+		elements []interface{}
+	}{
+		{
+			name: "no elements with nil",
+		},
+		{
+			name:     "no elements",
+			elements: []interface{}{},
+		},
+		{
+			name:     "1 element",
+			elements: []interface{}{1},
+		},
+		{
+			name:     "multiple elements",
+			elements: []interface{}{1, 2, 3},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			val := Just(test.elements...).Count()
+			assert.Equal(t, len(test.elements), val)
+		})
+	}
+}
+
 func TestDone(t *testing.T) {
 	var count int32
 	Just(1, 2, 3).Walk(func(item interface{}, pipe chan<- interface{}) {
@@ -137,6 +167,14 @@ func TestHead(t *testing.T) {
 		return result, nil
 	})
 	assert.Equal(t, 3, result)
+}
+
+func TestHeadZero(t *testing.T) {
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			return nil, nil
+		})
+	})
 }
 
 func TestHeadMore(t *testing.T) {
@@ -245,6 +283,22 @@ func TestSort(t *testing.T) {
 	})
 }
 
+func TestSplit(t *testing.T) {
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(0).Done()
+	})
+	var chunks [][]interface{}
+	Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item interface{}) {
+		chunk := item.([]interface{})
+		chunks = append(chunks, chunk)
+	})
+	assert.EqualValues(t, [][]interface{}{
+		{1, 2, 3, 4},
+		{5, 6, 7, 8},
+		{9, 10},
+	}, chunks)
+}
+
 func TestTail(t *testing.T) {
 	var result int
 	Just(1, 2, 3, 4).Tail(2).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
@@ -254,6 +308,14 @@ func TestTail(t *testing.T) {
 		return result, nil
 	})
 	assert.Equal(t, 7, result)
+}
+
+func TestTailZero(t *testing.T) {
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			return nil, nil
+		})
+	})
 }
 
 func TestWalk(t *testing.T) {

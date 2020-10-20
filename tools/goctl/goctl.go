@@ -332,6 +332,11 @@ var (
 			Usage:  "the features of the latest version",
 			Action: feature.Feature,
 		},
+		{
+			Name:   "template",
+			Usage:  "initialize the api templates",
+			Action: gogen.GenTemplates,
+		},
 	}
 )
 

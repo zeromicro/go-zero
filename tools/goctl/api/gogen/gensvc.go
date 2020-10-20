@@ -8,16 +8,20 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
 	contextFilename = "servicecontext.go"
 	contextTemplate = `package svc
 
-import {{.configImport}}
+import (
+	{{.configImport}}
+)
 
 type ServiceContext struct {
 	Config {{.config}}
+	{{.middleware}}
 }
 
 func NewServiceContext(c {{.config}}) *ServiceContext {
@@ -46,12 +50,28 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+
+	text, err := ctlutil.LoadTemplate(category, contextTemplateFile, contextTemplate)
+	if err != nil {
+		return err
+	}
+
+	var middlewareStr string
+	for _, item := range getMiddleware(api) {
+		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
+	}
+
 	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
-	t := template.Must(template.New("contextTemplate").Parse(contextTemplate))
+	if len(middlewareStr) > 0 {
+		configImport += fmt.Sprintf("\n\"%s/rest\"", vars.ProjectOpenSourceUrl)
+	}
+
+	t := template.Must(template.New("contextTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"configImport": configImport,
 		"config":       "config.Config",
+		"middleware":   middlewareStr,
 	})
 	if err != nil {
 		return nil

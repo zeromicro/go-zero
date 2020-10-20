@@ -53,9 +53,7 @@ func (s String) ToCamel() string {
 
 // camel->snake
 func (s String) ToSnake() string {
-	list := s.splitBy(func(r rune) bool {
-		return unicode.IsUpper(r)
-	}, false)
+	list := s.splitBy(unicode.IsUpper, false)
 	var target []string
 	for _, item := range list {
 		target = append(target, From(item).Lower())

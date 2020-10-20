@@ -4,6 +4,7 @@ type (
 	Annotation struct {
 		Name       string
 		Properties map[string]string
+		Value      string
 	}
 
 	ApiSpec struct {

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/sysx"
@@ -42,6 +43,7 @@ const (
 	consoleMode = "console"
 	volumeMode  = "volume"
 
+	levelAlert  = "alert"
 	levelInfo   = "info"
 	levelError  = "error"
 	levelSevere = "severe"
@@ -96,6 +98,7 @@ type (
 		Infof(string, ...interface{})
 		Slow(...interface{})
 		Slowf(string, ...interface{})
+		WithDuration(time.Duration) Logger
 	}
 )
 
@@ -117,6 +120,10 @@ func SetUp(c LogConf) error {
 	default:
 		return setupWithFiles(c)
 	}
+}
+
+func Alert(v string) {
+	output(errorLog, levelAlert, v)
 }
 
 func Close() error {

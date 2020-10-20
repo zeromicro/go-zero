@@ -22,8 +22,8 @@ type (
 	}
 )
 
-func MustNewModel(url, database, collection string, opts ...Option) *Model {
-	model, err := NewModel(url, database, collection, opts...)
+func MustNewModel(url, collection string, opts ...Option) *Model {
+	model, err := NewModel(url, collection, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -31,15 +31,16 @@ func MustNewModel(url, database, collection string, opts ...Option) *Model {
 	return model
 }
 
-func NewModel(url, database, collection string, opts ...Option) (*Model, error) {
+func NewModel(url, collection string, opts ...Option) (*Model, error) {
 	session, err := getConcurrentSession(url)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Model{
-		session:    session,
-		db:         session.DB(database),
+		session: session,
+		// If name is empty, the database name provided in the dialed URL is used instead
+		db:         session.DB(""),
 		collection: collection,
 		opts:       opts,
 	}, nil

@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+const unzipLimit = 100 * 1024 * 1024 // 100MB
+
 func Gzip(bs []byte) []byte {
 	var b bytes.Buffer
 
@@ -24,8 +26,7 @@ func Gunzip(bs []byte) ([]byte, error) {
 	defer r.Close()
 
 	var c bytes.Buffer
-	_, err = io.Copy(&c, r)
-	if err != nil {
+	if _, err = io.Copy(&c, io.LimitReader(r, unzipLimit)); err != nil {
 		return nil, err
 	}
 

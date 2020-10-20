@@ -128,41 +128,38 @@ func main() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			expect, err := loadAll(registry.Client().(*clientv3.Client))
-			if err != nil {
-				fmt.Println("[ETCD-test] can't load current keys")
-				continue
-			}
-
-			check := func() bool {
-				var match bool
-				barrier.Guard(func() {
-					match = compare(expect, vals)
-				})
-				if match {
-					logx.Info("match")
-				}
-				return match
-			}
-			if check() {
-				continue
-			}
-
-			time.AfterFunc(time.Second*5, func() {
-				if check() {
-					return
-				}
-
-				var builder strings.Builder
-				builder.WriteString(fmt.Sprintf("expect:\n%s\n", serializeMap(expect, "\t")))
-				barrier.Guard(func() {
-					builder.WriteString(fmt.Sprintf("actual:\n%s\n", serializeMap(vals, "\t")))
-				})
-				fmt.Println(builder.String())
-			})
+	for range ticker.C {
+		expect, err := loadAll(registry.Client().(*clientv3.Client))
+		if err != nil {
+			fmt.Println("[ETCD-test] can't load current keys")
+			continue
 		}
+
+		check := func() bool {
+			var match bool
+			barrier.Guard(func() {
+				match = compare(expect, vals)
+			})
+			if match {
+				logx.Info("match")
+			}
+			return match
+		}
+		if check() {
+			continue
+		}
+
+		time.AfterFunc(time.Second*5, func() {
+			if check() {
+				return
+			}
+
+			var builder strings.Builder
+			builder.WriteString(fmt.Sprintf("expect:\n%s\n", serializeMap(expect, "\t")))
+			barrier.Guard(func() {
+				builder.WriteString(fmt.Sprintf("actual:\n%s\n", serializeMap(vals, "\t")))
+			})
+			fmt.Println(builder.String())
+		})
 	}
 }

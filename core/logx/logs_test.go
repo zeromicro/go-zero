@@ -6,8 +6,10 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -21,10 +23,13 @@ var (
 )
 
 type mockWriter struct {
+	lock    sync.Mutex
 	builder strings.Builder
 }
 
 func (mw *mockWriter) Write(data []byte) (int, error) {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
 	return mw.builder.Write(data)
 }
 
@@ -32,12 +37,22 @@ func (mw *mockWriter) Close() error {
 	return nil
 }
 
+func (mw *mockWriter) Contains(text string) bool {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	return strings.Contains(mw.builder.String(), text)
+}
+
 func (mw *mockWriter) Reset() {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
 	mw.builder.Reset()
 }
 
-func (mw *mockWriter) Contains(text string) bool {
-	return strings.Contains(mw.builder.String(), text)
+func (mw *mockWriter) String() string {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	return mw.builder.String()
 }
 
 func TestFileLineFileMode(t *testing.T) {
@@ -69,6 +84,14 @@ func TestFileLineConsoleMode(t *testing.T) {
 	assert.True(t, writer.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestStructedLogAlert(t *testing.T) {
+	doTestStructedLog(t, levelAlert, func(writer io.WriteCloser) {
+		errorLog = writer
+	}, func(v ...interface{}) {
+		Alert(fmt.Sprint(v...))
+	})
+}
+
 func TestStructedLogInfo(t *testing.T) {
 	doTestStructedLog(t, levelInfo, func(writer io.WriteCloser) {
 		infoLog = writer
@@ -82,6 +105,46 @@ func TestStructedLogSlow(t *testing.T) {
 		slowLog = writer
 	}, func(v ...interface{}) {
 		Slow(v...)
+	})
+}
+
+func TestStructedLogSlowf(t *testing.T) {
+	doTestStructedLog(t, levelSlow, func(writer io.WriteCloser) {
+		slowLog = writer
+	}, func(v ...interface{}) {
+		Slowf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogStat(t *testing.T) {
+	doTestStructedLog(t, levelStat, func(writer io.WriteCloser) {
+		statLog = writer
+	}, func(v ...interface{}) {
+		Stat(v...)
+	})
+}
+
+func TestStructedLogStatf(t *testing.T) {
+	doTestStructedLog(t, levelStat, func(writer io.WriteCloser) {
+		statLog = writer
+	}, func(v ...interface{}) {
+		Statf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogSevere(t *testing.T) {
+	doTestStructedLog(t, levelSevere, func(writer io.WriteCloser) {
+		severeLog = writer
+	}, func(v ...interface{}) {
+		Severe(v...)
+	})
+}
+
+func TestStructedLogSeveref(t *testing.T) {
+	doTestStructedLog(t, levelSevere, func(writer io.WriteCloser) {
+		severeLog = writer
+	}, func(v ...interface{}) {
+		Severef(fmt.Sprint(v...))
 	})
 }
 
@@ -133,6 +196,68 @@ func TestSetLevelWithDuration(t *testing.T) {
 
 func TestMustNil(t *testing.T) {
 	Must(nil)
+}
+
+func TestSetup(t *testing.T) {
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "console",
+	})
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "file",
+		Path:        os.TempDir(),
+	})
+	MustSetup(LogConf{
+		ServiceName: "any",
+		Mode:        "volume",
+		Path:        os.TempDir(),
+	})
+	assert.NotNil(t, setupWithVolume(LogConf{}))
+	assert.NotNil(t, setupWithFiles(LogConf{}))
+	assert.Nil(t, setupWithFiles(LogConf{
+		ServiceName: "any",
+		Path:        os.TempDir(),
+		Compress:    true,
+		KeepDays:    1,
+	}))
+	setupLogLevel(LogConf{
+		Level: levelInfo,
+	})
+	setupLogLevel(LogConf{
+		Level: levelError,
+	})
+	setupLogLevel(LogConf{
+		Level: levelSevere,
+	})
+	_, err := createOutput("")
+	assert.NotNil(t, err)
+	Disable()
+}
+
+func TestDisable(t *testing.T) {
+	Disable()
+
+	var opt logOptions
+	WithKeepDays(1)(&opt)
+	WithGzip()(&opt)
+	assert.Nil(t, Close())
+	writeConsole = false
+	assert.Nil(t, Close())
+}
+
+func TestWithGzip(t *testing.T) {
+	fn := WithGzip()
+	var opt logOptions
+	fn(&opt)
+	assert.True(t, opt.gzipEnabled)
+}
+
+func TestWithKeepDays(t *testing.T) {
+	fn := WithKeepDays(1)
+	var opt logOptions
+	fn(&opt)
+	assert.Equal(t, 1, opt.keepDays)
 }
 
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
@@ -232,7 +357,7 @@ func doTestStructedLog(t *testing.T, level string, setup func(writer io.WriteClo
 		t.Error(err)
 	}
 	assert.Equal(t, level, entry.Level)
-	assert.Equal(t, message, entry.Content)
+	assert.True(t, strings.Contains(entry.Content, message))
 }
 
 func testSetLevelTwiceWithMode(t *testing.T, mode string) {
@@ -251,5 +376,11 @@ func testSetLevelTwiceWithMode(t *testing.T, mode string) {
 	infoLog = writer
 	atomic.StoreUint32(&initialized, 1)
 	Info(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	Infof(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	ErrorStack(message)
+	assert.Equal(t, 0, writer.builder.Len())
+	ErrorStackf(message)
 	assert.Equal(t, 0, writer.builder.Len())
 }

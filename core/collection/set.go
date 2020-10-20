@@ -15,6 +15,7 @@ const (
 	stringType
 )
 
+// Set is not thread-safe, for concurrent use, make sure to use it with synchronization.
 type Set struct {
 	data map[interface{}]lang.PlaceholderType
 	tp   int
@@ -182,10 +183,7 @@ func (s *Set) add(i interface{}) {
 }
 
 func (s *Set) setType(i interface{}) {
-	if s.tp != untyped {
-		return
-	}
-
+	// s.tp can only be untyped here
 	switch i.(type) {
 	case int:
 		s.tp = intType

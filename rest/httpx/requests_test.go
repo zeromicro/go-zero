@@ -27,6 +27,13 @@ func TestParseForm(t *testing.T) {
 	assert.Equal(t, 3.4, v.Percent)
 }
 
+func TestParseHeader(t *testing.T) {
+	m := ParseHeader("key=value;")
+	assert.EqualValues(t, map[string]string{
+		"key": "value",
+	}, m)
+}
+
 func TestParseFormOutOfRange(t *testing.T) {
 	var v struct {
 		Age int `form:"age,range=[10:20)"`
@@ -103,6 +110,18 @@ func TestParseRequired(t *testing.T) {
 	}{}
 
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello", nil)
+	assert.Nil(t, err)
+
+	err = Parse(r, &v)
+	assert.NotNil(t, err)
+}
+
+func TestParseOptions(t *testing.T) {
+	v := struct {
+		Position int8 `form:"pos,options=1|2"`
+	}{}
+
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?pos=4", nil)
 	assert.Nil(t, err)
 
 	err = Parse(r, &v)

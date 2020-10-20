@@ -1,10 +1,12 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+
 	"bookstore/api/internal/config"
 	"bookstore/api/internal/handler"
 	"bookstore/api/internal/svc"
-	"flag"
 
 	"github.com/tal-tech/go-zero/core/conf"
 	"github.com/tal-tech/go-zero/rest"
@@ -23,5 +25,7 @@ func main() {
 	defer server.Stop()
 
 	handler.RegisterHandlers(server, ctx)
+
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()
 }

@@ -5,20 +5,21 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/example/rpc/remote/stream"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/zrpc"
 )
 
 const name = "kevin"
 
-var key = flag.String("key", "rpcx", "the key on etcd")
+var key = flag.String("key", "zrpc", "the key on etcd")
 
 func main() {
 	flag.Parse()
 
-	client, err := rpcx.NewClientNoAuth(discov.EtcdConf{
+	client, err := zrpc.NewClientNoAuth(discov.EtcdConf{
 		Hosts: []string{"localhost:2379"},
 		Key:   *key,
 	})
@@ -33,6 +34,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var wg sync.WaitGroup
 	go func() {
 		for {
 			resp, err := stm.Recv()
@@ -41,10 +43,12 @@ func main() {
 			}
 
 			fmt.Println("=>", resp.Greet)
+			wg.Done()
 		}
 	}()
 
 	for i := 0; i < 3; i++ {
+		wg.Add(1)
 		fmt.Println("<=", name)
 		if err = stm.Send(&stream.StreamReq{
 			Name: name,
@@ -52,4 +56,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	wg.Wait()
 }

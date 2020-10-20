@@ -1,21 +1,45 @@
 package cache
 
-import (
-	"time"
+import "time"
 
-	"github.com/tal-tech/go-zero/core/stores/internal"
+const (
+	defaultExpiry         = time.Hour * 24 * 7
+	defaultNotFoundExpiry = time.Minute
 )
 
-type Option = internal.Option
+type (
+	Options struct {
+		Expiry         time.Duration
+		NotFoundExpiry time.Duration
+	}
+
+	Option func(o *Options)
+)
+
+func newOptions(opts ...Option) Options {
+	var o Options
+	for _, opt := range opts {
+		opt(&o)
+	}
+
+	if o.Expiry <= 0 {
+		o.Expiry = defaultExpiry
+	}
+	if o.NotFoundExpiry <= 0 {
+		o.NotFoundExpiry = defaultNotFoundExpiry
+	}
+
+	return o
+}
 
 func WithExpiry(expiry time.Duration) Option {
-	return func(o *internal.Options) {
+	return func(o *Options) {
 		o.Expiry = expiry
 	}
 }
 
 func WithNotFoundExpiry(expiry time.Duration) Option {
-	return func(o *internal.Options) {
+	return func(o *Options) {
 		o.NotFoundExpiry = expiry
 	}
 }

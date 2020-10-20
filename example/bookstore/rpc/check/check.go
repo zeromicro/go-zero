@@ -4,16 +4,17 @@
 package main
 
 import (
+	"flag"
+	"fmt"
+
 	"bookstore/rpc/check/internal/config"
 	"bookstore/rpc/check/internal/server"
 	"bookstore/rpc/check/internal/svc"
 	check "bookstore/rpc/check/pb"
-	"flag"
-	"fmt"
-	"log"
 
 	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/rpcx"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 
@@ -27,12 +28,10 @@ func main() {
 	ctx := svc.NewServiceContext(c)
 	checkerSrv := server.NewCheckerServer(ctx)
 
-	s, err := rpcx.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
+	s, err := zrpc.NewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		check.RegisterCheckerServer(grpcServer, checkerSrv)
 	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	logx.Must(err)
 
 	fmt.Printf("Starting rpc server at %s...\n", c.ListenOn)
 	s.Start()
