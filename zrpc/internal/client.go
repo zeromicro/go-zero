@@ -31,8 +31,7 @@ type (
 	ClientOption func(options *ClientOptions)
 
 	client struct {
-		conn         *grpc.ClientConn
-		interceptors []grpc.UnaryClientInterceptor
+		conn *grpc.ClientConn
 	}
 )
 
@@ -46,18 +45,14 @@ func NewClient(target string, opts ...ClientOption) (*client, error) {
 	return &cli, nil
 }
 
-func (c *client) AddInterceptor(interceptor grpc.UnaryClientInterceptor) {
-	c.interceptors = append(c.interceptors, interceptor)
-}
-
 func (c *client) Conn() *grpc.ClientConn {
 	return c.conn
 }
 
 func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
-	var clientOptions ClientOptions
+	var cliOpts ClientOptions
 	for _, opt := range opts {
-		opt(&clientOptions)
+		opt(&cliOpts)
 	}
 
 	options := []grpc.DialOption{
@@ -68,14 +63,11 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.DurationInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PrometheusInterceptor,
-			clientinterceptors.TimeoutInterceptor(clientOptions.Timeout),
+			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
 		),
 	}
-	for _, interceptor := range c.interceptors {
-		options = append(options, WithUnaryClientInterceptors(interceptor))
-	}
 
-	return append(options, clientOptions.DialOptions...)
+	return append(options, cliOpts.DialOptions...)
 }
 
 func (c *client) dial(server string, opts ...ClientOption) error {
@@ -109,5 +101,11 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
 		options.Timeout = timeout
+	}
+}
+
+func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
+	return func(options *ClientOptions) {
+		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))
 	}
 }

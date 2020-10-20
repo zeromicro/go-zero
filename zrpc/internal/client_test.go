@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -21,6 +22,16 @@ func TestWithTimeout(t *testing.T) {
 	opt := WithTimeout(time.Second)
 	opt(&options)
 	assert.Equal(t, time.Second, options.Timeout)
+}
+
+func TestWithUnaryClientInterceptor(t *testing.T) {
+	var options ClientOptions
+	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		return nil
+	})
+	opt(&options)
+	assert.Equal(t, 1, len(options.DialOptions))
 }
 
 func TestBuildDialOptions(t *testing.T) {
