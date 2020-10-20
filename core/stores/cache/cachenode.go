@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
@@ -65,6 +66,60 @@ func (c cacheNode) DelCache(keys ...string) error {
 
 	return nil
 }
+
+
+func (c cacheNode) Count(key string) (int64, error){
+	result, err := c.rds.Get(key)
+	if err !=nil {
+		return 0, err
+	}
+
+	if len(result) == 0 {
+		return 0, nil
+	}
+
+	return strconv.ParseInt(result, 10, 64)
+}
+
+func (c cacheNode) Counts(keys ...string) ([]int64, error) {
+	var ret []int64
+	results, err := c.rds.Mget(keys...)
+	if err != nil {
+		return ret, err
+	}
+
+	sz := len(results)
+	ret = make([]int64, sz)
+	for index, item := range results {
+		val, err := strconv.ParseInt(item, 10, 64)
+		if err == nil {
+			ret[index] = val
+		} else {
+			ret[index] = 0
+		}
+	}
+
+	return ret, nil
+}
+
+func (c cacheNode) Inc(key string, count *int64) error {
+	result, err := c.rds.Incr(key)
+	if err != nil {
+		return err
+	}
+	*count = result
+	return nil
+}
+
+func (c cacheNode) IncBy(key string, increment int64, count *int64) error {
+	result, err := c.rds.Incrby(key, increment)
+	if err != nil {
+		return err
+	}
+	*count = result
+	return nil
+}
+
 
 func (c cacheNode) GetCache(key string, v interface{}) error {
 	if err := c.doGetCache(key, v); err == errPlaceholder {

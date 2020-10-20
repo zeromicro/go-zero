@@ -255,3 +255,70 @@ func calcEntropy(m map[int]int, total int) float64 {
 
 	return entropy / math.Log2(float64(len(m)))
 }
+
+func TestCache_Counts(t *testing.T) {
+	r1, clean1, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean1()
+	r2, clean2, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean2()
+	conf := ClusterConf{
+		{
+			RedisConf: redis.RedisConf{
+				Host: r1.Addr(),
+				Type: redis.NodeType,
+			},
+			Weight: 100,
+		},
+		{
+			RedisConf: redis.RedisConf{
+				Host: r2.Addr(),
+				Type: redis.NodeType,
+			},
+			Weight: 100,
+		},
+	}
+	c := NewCache(conf, syncx.NewSharedCalls(), NewCacheStat("mock"), errPlaceholder)
+
+	testKeys := []string{
+		"TestCacheNode_Inc",
+		"TestCacheNode_IncBy",
+		"TestCacheNode_Count",
+		"TestCacheNode_Counts",
+	}
+
+	// before
+	counts, e := c.Counts(testKeys...)
+	assert.Nil(t, e)
+	assert.NotNil(t, counts)
+	assert.Equal(t, len(testKeys), len(counts))
+	for _, r := range counts {
+		assert.Equal(t, r, int64(0))
+	}
+
+	// add increment
+	var result int64
+	for _, key := range testKeys {
+		err = c.Inc(key, &result)
+		assert.Nil(t, err)
+		assert.Equal(t, result, int64(1))
+	}
+
+	// add increment
+	for index, key := range testKeys {
+		err = c.IncBy(key, int64(index), &result)
+		assert.Nil(t, err)
+		assert.Equal(t, result, int64(1+index))
+	}
+
+	// after
+	counts, e = c.Counts(testKeys...)
+	assert.Nil(t, e)
+	assert.NotNil(t, counts)
+	assert.Equal(t, len(testKeys), len(counts))
+
+	for index, r := range counts {
+		assert.Equal(t, r, int64(1+index))
+	}
+}

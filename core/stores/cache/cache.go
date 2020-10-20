@@ -12,6 +12,11 @@ import (
 
 type (
 	Cache interface {
+		Inc(key string, count *int64) error
+		IncBy(key string, increment int64, count *int64) error
+		Count(key string) (int64, error)
+		Counts(keys ...string) ([]int64, error)
+
 		DelCache(keys ...string) error
 		GetCache(key string, v interface{}) error
 		SetCache(key string, v interface{}) error
@@ -126,4 +131,59 @@ func (cc cacheCluster) TakeWithExpire(v interface{}, key string,
 	}
 
 	return c.(Cache).TakeWithExpire(v, key, query)
+}
+
+
+
+func (cc cacheCluster) Inc(key string, count *int64) error {
+	c, ok := cc.dispatcher.Get(key)
+	if !ok {
+		return cc.errNotFound
+	}
+
+	return c.(Cache).Inc(key, count)
+}
+
+func (cc cacheCluster) IncBy(key string, increment int64, count *int64) error {
+	c, ok := cc.dispatcher.Get(key)
+	if !ok {
+		return cc.errNotFound
+	}
+
+	return c.(Cache).IncBy(key, increment, count)
+}
+
+func (cc cacheCluster) Count(key string) (int64, error) {
+	c, ok := cc.dispatcher.Get(key)
+	if !ok {
+		return 0, cc.errNotFound
+	}
+
+	return c.(Cache).Count(key)
+}
+
+func (cc cacheCluster) Counts(keys ...string) ([]int64, error) {
+	switch len(keys) {
+	case 0:
+		return nil, cc.errNotFound
+	default:
+		var be errorx.BatchError
+		ret := make([]int64,  len(keys))
+		for index, key := range keys {
+			c, ok := cc.dispatcher.Get(key)
+			if !ok {
+				ret[index] = 0
+				be.Add(fmt.Errorf("key %q not found", key))
+				continue
+			}
+			count, err := c.(Cache).Count(key)
+			if err != nil {
+				ret[index] = 0
+				be.Add(err)
+			} else {
+				ret[index] = count
+			}
+		}
+		return ret, be.Err()
+	}
 }

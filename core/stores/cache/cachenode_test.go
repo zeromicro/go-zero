@@ -204,3 +204,139 @@ func TestCacheValueWithBigInt(t *testing.T) {
 	assert.Nil(t, cn.GetCache(key, &val))
 	assert.Equal(t, strconv.FormatInt(value, 10), fmt.Sprintf("%v", val))
 }
+
+func TestCacheNode_Inc(t *testing.T) {
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	testKey := "TestCacheNode_Inc"
+
+	cn := cacheNode{
+		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewCacheStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+
+	// test count
+	c, e := cn.Count(testKey)
+	assert.Nil(t, e)
+	assert.Equal(t, c, int64(0))
+
+	assert.Nil(t, cn.Inc(testKey, &c))
+	assert.Equal(t, c, int64(1))
+}
+
+func TestCacheNode_IncBy(t *testing.T) {
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	testKey := "TestCacheNode_IncBy"
+
+	cn := cacheNode{
+		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewCacheStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+
+	c, e := cn.Count(testKey)
+	assert.Nil(t, e)
+	assert.Equal(t, c, int64(0))
+
+	assert.Nil(t, cn.IncBy(testKey, 10, &c))
+	assert.Equal(t, c, int64(10))
+}
+
+func TestCacheNode_Count(t *testing.T) {
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	testKey := "TestCacheNode_Count"
+
+	cn := cacheNode{
+		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewCacheStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+
+	// before
+	c, e := cn.Count(testKey)
+	assert.Nil(t, e)
+	assert.Equal(t, c, int64(0))
+
+	// add increment
+	assert.Nil(t, cn.Inc(testKey, &c))
+	assert.Equal(t, c, int64(1))
+
+	// after
+	c, e = cn.Count(testKey)
+	assert.Nil(t, e)
+	assert.Equal(t, c, int64(1))
+}
+
+func TestCacheNode_Counts(t *testing.T) {
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	testKeys := []string{
+		"TestCacheNode_Inc",
+		"TestCacheNode_IncBy",
+		"TestCacheNode_Count",
+		"TestCacheNode_Counts",
+	}
+
+	cn := cacheNode{
+		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewCacheStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+
+	// before
+	counts, e := cn.Counts(testKeys...)
+	assert.Nil(t, e)
+	assert.NotNil(t, counts)
+	assert.Equal(t, len(testKeys), len(counts))
+	for _, r := range counts {
+		assert.Equal(t, r, int64(0))
+	}
+
+	// add increment
+	var c int64
+	for _, key := range testKeys {
+		err = cn.Inc(key, &c)
+		assert.Nil(t, err)
+		assert.Equal(t, c, int64(1))
+	}
+
+	// add increment
+	for index, key := range testKeys {
+		err = cn.IncBy(key, int64(index), &c)
+		assert.Nil(t, err)
+		assert.Equal(t, c, int64(1+index))
+	}
+
+	// after
+	counts, e = cn.Counts(testKeys...)
+	assert.Nil(t, e)
+	assert.NotNil(t, counts)
+	assert.Equal(t, len(testKeys), len(counts))
+
+	for index, r := range counts {
+		assert.Equal(t, r, int64(1+index))
+	}
+}
