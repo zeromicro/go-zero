@@ -56,6 +56,14 @@ func Clean() error {
 	return util.Clean(category)
 }
 
+func Update(category string) error {
+	err := Clean()
+	if err != nil {
+		return err
+	}
+	return util.InitTemplates(category, templates)
+}
+
 func GetCategory() string {
 	return category
 }

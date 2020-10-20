@@ -47,9 +47,10 @@ type (
 	}
 
 	Proto struct {
-		Package     string
-		Import      []*Import
-		PbSrc       string
+		Package string
+		Import  []*Import
+		PbSrc   string
+		// deprecated: containsAny will be removed in the feature
 		ContainsAny bool
 		Message     map[string]lang.PlaceholderType
 		Enum        map[string]*Enum

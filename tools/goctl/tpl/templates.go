@@ -41,7 +41,7 @@ func GenTemplates(ctx *cli.Context) error {
 }
 
 func CleanTemplates(_ *cli.Context) error {
-	return errorx.Chain(
+	err := errorx.Chain(
 		func() error {
 			return gogen.Clean()
 		},
@@ -52,25 +52,42 @@ func CleanTemplates(_ *cli.Context) error {
 			return rpcgen.Clean()
 		},
 	)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%s\n", aurora.Green("template are clean!"))
+	return nil
 }
 
-func UpdateTemplates(ctx *cli.Context) error {
+func UpdateTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
+	defer func() {
+		if err == nil {
+			fmt.Println(aurora.Green(fmt.Sprintf("%s template are update!", category)).String())
+		}
+	}()
 	switch category {
 	case gogen.GetCategory():
-		return gogen.GenTemplates(ctx)
+		return gogen.Update(category)
 	case rpcgen.GetCategory():
-		return rpcgen.GenTemplates(ctx)
+		return rpcgen.Update(category)
 	case modelgen.GetCategory():
-		return modelgen.GenTemplates(ctx)
+		return modelgen.Update(category)
 	default:
-		return fmt.Errorf("unexpected category: %s", category)
+		err = fmt.Errorf("unexpected category: %s", category)
+		return
 	}
 }
 
-func RevertTemplates(ctx *cli.Context) error {
+func RevertTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
 	filename := ctx.String("name")
+	defer func() {
+		if err == nil {
+			fmt.Println(aurora.Green(fmt.Sprintf("%s template are reverted!", filename)).String())
+		}
+	}()
 	switch category {
 	case gogen.GetCategory():
 		return gogen.RevertTemplate(filename)
@@ -79,6 +96,7 @@ func RevertTemplates(ctx *cli.Context) error {
 	case modelgen.GetCategory():
 		return modelgen.RevertTemplate(filename)
 	default:
-		return fmt.Errorf("unexpected category: %s", category)
+		err = fmt.Errorf("unexpected category: %s", category)
+		return
 	}
 }

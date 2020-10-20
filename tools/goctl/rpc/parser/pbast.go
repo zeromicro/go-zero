@@ -97,6 +97,7 @@ type (
 	}
 	// parsing for rpc
 	PbAst struct {
+		// deprecated: containsAny will be removed in the feature
 		ContainsAny bool
 		Imports     map[string]string
 		Structure   map[string]*Struct

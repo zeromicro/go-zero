@@ -38,6 +38,14 @@ func RevertTemplate(name string) error {
 	return util.CreateTemplate(category, name, content)
 }
 
+func Update(category string) error {
+	err := Clean()
+	if err != nil {
+		return err
+	}
+	return util.InitTemplates(category, templates)
+}
+
 func Clean() error {
 	return util.Clean(category)
 }
