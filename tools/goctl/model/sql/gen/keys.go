@@ -12,7 +12,7 @@ type (
 	// {{prefix}}=cache
 	// key:id
 	Key struct {
-		VarExpression     string // cacheUserIdPrefix="cache#user#id#"
+		VarExpression     string // cacheUserIdPrefix = "cache#User#id#"
 		Left              string // cacheUserIdPrefix
 		Right             string // cache#user#id#
 		Variable          string // userIdKey
