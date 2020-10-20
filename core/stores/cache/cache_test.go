@@ -73,6 +73,69 @@ func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v int
 	})
 }
 
+func (mc *mockedNode) Inc(key string, count *int64) error {
+	var newVal []byte
+	val, ok := mc.vals[key]
+	if ok {
+		c, err := strconv.ParseInt(string(val), 10 ,64)
+		if err != nil {
+			return err
+		}
+		*count = c + 1
+		newVal = []byte(strconv.FormatInt(*count, 10))
+	} else {
+		newVal	= []byte("1")
+	}
+	mc.vals[key] = newVal
+	return nil
+}
+
+func (mc *mockedNode) IncBy(key string, increment int64, count *int64) error {
+	var newVal []byte
+	val, ok := mc.vals[key]
+	if ok {
+		c, err := strconv.ParseInt(string(val), 10 ,64)
+		if err != nil {
+			return err
+		}
+		*count = c + increment
+		newVal = []byte(strconv.FormatInt(*count, 10))
+	} else {
+		newVal	= []byte("1")
+	}
+	mc.vals[key] = newVal
+	return nil
+}
+
+func (mc *mockedNode) Count(key string) (int64, error) {
+	val, ok := mc.vals[key]
+	if ok {
+		return strconv.ParseInt(string(val), 10, 64)
+	}
+	return 0, mc.errNotFound
+}
+
+func (mc *mockedNode) Counts(keys ...string) ([]int64, error) {
+	sz := len(keys)
+	if sz == 0 {
+		return []int64{}, nil
+	}
+
+	ret := make([]int64, sz)
+	for index, key := range keys {
+		val, ok := mc.vals[key]
+		if ok {
+			c, err := strconv.ParseInt(string(val), 10, 64)
+			if err == nil {
+				ret[index] = c
+				continue
+			}
+		}
+		ret[index] = 0
+	}
+	return ret, nil
+}
+
 func TestCache_SetDel(t *testing.T) {
 	const total = 1000
 	r1, clean1, err := createMiniRedis()
