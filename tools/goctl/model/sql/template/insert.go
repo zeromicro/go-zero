@@ -9,7 +9,7 @@ func (m *{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}
 	}, {{.keyValues}}){{else}}query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "` (` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) values ({{.expression}})` " + `
     ret,err:=m.ExecNoCache(query, {{.expressionValues}})
 	{{end}}{{else}}query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "` (` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) values ({{.expression}})` " + `
-    _,err:=m.conn.Exec(query, {{.expressionValues}}){{end}}
+    ret,err:=m.conn.Exec(query, {{.expressionValues}}){{end}}
 	return ret,err
 }
 `
