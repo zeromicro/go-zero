@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/search"
-	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal/context"
 )
 
@@ -22,14 +21,21 @@ var (
 )
 
 type PatRouter struct {
-	trees    map[string]*search.Tree
-	notFound http.Handler
+	trees      map[string]*search.Tree
+	notFound   http.Handler
+	prehandler func(w http.ResponseWriter, r *http.Request) bool
 }
 
-func NewPatRouter() httpx.Router {
+func NewPatRouter() *PatRouter {
 	return &PatRouter{
 		trees: make(map[string]*search.Tree),
 	}
+}
+
+// Use adds [prehandler] for PatRouter. [prehandler] executes before routing, returns true if you want to hijack this request.
+func (pr *PatRouter) Use(prehandler func(w http.ResponseWriter, r *http.Request) bool) *PatRouter {
+	pr.prehandler = prehandler
+	return pr
 }
 
 func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error {
@@ -52,6 +58,12 @@ func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error 
 }
 
 func (pr *PatRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if pr.prehandler != nil {
+		if pr.prehandler(w, r) {
+			// hijacked
+			return
+		}
+	}
 	reqPath := path.Clean(r.URL.Path)
 	if tree, ok := pr.trees[r.Method]; ok {
 		if result, ok := tree.Search(reqPath); ok {
