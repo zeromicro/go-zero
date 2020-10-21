@@ -27,7 +27,7 @@ func GenTemplates(ctx *cli.Context) error {
 	}
 
 	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(dir),
-		aurora.Red("edit on your risk!"))
+		aurora.Red("edit on your disk!"))
 
 	return nil
 }
