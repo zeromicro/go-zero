@@ -18,7 +18,8 @@ var errUnknownServiceType = errors.New("unknown service type")
 
 type (
 	ServiceType string
-	K8sRequest  struct {
+
+	KubeRequest struct {
 		Env                        string
 		ServiceName                string
 		ServiceType                ServiceType
@@ -37,7 +38,7 @@ type (
 	}
 )
 
-func Gen(req K8sRequest) (string, error) {
+func Gen(req KubeRequest) (string, error) {
 	switch req.ServiceType {
 	case ServiceTypeApi, ServiceTypeRpc:
 		return genApiRpc(req)
@@ -48,7 +49,7 @@ func Gen(req K8sRequest) (string, error) {
 	}
 }
 
-func genApiRpc(req K8sRequest) (string, error) {
+func genApiRpc(req KubeRequest) (string, error) {
 	t, err := template.New("api_rpc").Parse(apiRpcTmeplate)
 	if err != nil {
 		return "", err
@@ -77,7 +78,7 @@ func genApiRpc(req K8sRequest) (string, error) {
 	return buffer.String(), nil
 }
 
-func genJob(req K8sRequest) (string, error) {
+func genJob(req KubeRequest) (string, error) {
 	t, err := template.New("job").Parse(jobTmeplate)
 	if err != nil {
 		return "", err
