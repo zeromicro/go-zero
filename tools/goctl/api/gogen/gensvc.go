@@ -25,8 +25,20 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(c {{.config}}) *ServiceContext {
-	return &ServiceContext{Config: c}
+	return &ServiceContext{
+		Config: c, 
+		{{.middlewareAssignment}}
+	}
 }
+
+{{.middlewareImplement}}
+`
+	middlewareImplementCode = `func %s(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// TODO generate middleware implement function, delete after code implementation 
+	}
+}
+
 `
 )
 
@@ -57,21 +69,28 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	}
 
 	var middlewareStr string
+	var middlewareAssignment string
+	var middlewareImplement string
 	for _, item := range getMiddleware(api) {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
+		middlewareAssignment += fmt.Sprintf("%s: %s,\n", item, item)
+		middlewareImplement += fmt.Sprintf(middlewareImplementCode, item)
 	}
 
 	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
-		configImport += fmt.Sprintf("\n\"%s/rest\"", vars.ProjectOpenSourceUrl)
+		configImport += "\n\t\"net/http\""
+		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceUrl)
 	}
 
 	t := template.Must(template.New("contextTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
-		"configImport": configImport,
-		"config":       "config.Config",
-		"middleware":   middlewareStr,
+		"configImport":         configImport,
+		"config":               "config.Config",
+		"middleware":           middlewareStr,
+		"middlewareAssignment": middlewareAssignment,
+		"middlewareImplement":  middlewareImplement,
 	})
 	if err != nil {
 		return nil
