@@ -173,6 +173,6 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 如果您发现bug请及时提issue，我们会尽快确认并修改。
 
-扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！
+<!-- 扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！-->
 
 <img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />

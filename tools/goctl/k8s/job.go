@@ -1,6 +1,5 @@
 package k8s
 
-// 无环境区分
 var jobTmeplate = `apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
@@ -43,4 +42,5 @@ spec:
           volumes:
           - name: timezone
             hostPath:
-              path: /usr/share/zoneinfo/Asia/Shanghai`
+              path: /usr/share/zoneinfo/Asia/Shanghai
+`

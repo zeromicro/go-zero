@@ -7,18 +7,14 @@ import (
 	"text/template"
 )
 
-var (
-	errUnknownServiceType = errors.New("unknown service type")
+const (
+	ServiceTypeApi ServiceType = "api"
+	ServiceTypeRpc ServiceType = "rpc"
+	ServiceTypeJob ServiceType = "job"
+	envDev                     = "dev"
 )
 
-const (
-	ServiceTypeApi  ServiceType = "api"
-	ServiceTypeRpc  ServiceType = "rpc"
-	ServiceTypeJob  ServiceType = "job"
-	ServiceTypeRmq  ServiceType = "rmq"
-	ServiceTypeSync ServiceType = "sync"
-	envDev                      = "dev"
-)
+var errUnknownServiceType = errors.New("unknown service type")
 
 type (
 	ServiceType string
@@ -47,8 +43,6 @@ func Gen(req K8sRequest) (string, error) {
 		return genApiRpc(req)
 	case ServiceTypeJob:
 		return genJob(req)
-	case ServiceTypeRmq, ServiceTypeSync:
-		return genRmqSync(req)
 	default:
 		return "", errUnknownServiceType
 	}
@@ -76,32 +70,6 @@ func genApiRpc(req K8sRequest) (string, error) {
 		"envIsDev":             req.Env == envDev,
 		"minReplicas":          req.HpaMinReplicas,
 		"maxReplicas":          req.HpaMaxReplicas,
-	})
-	if err != nil {
-		return "", nil
-	}
-	return buffer.String(), nil
-}
-
-func genRmqSync(req K8sRequest) (string, error) {
-	t, err := template.New("rmq_sync").Parse(rmqSyncTmeplate)
-	if err != nil {
-		return "", err
-	}
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]interface{}{
-		"name":                 fmt.Sprintf("%s-%s", req.ServiceName, req.ServiceType),
-		"namespace":            req.Namespace,
-		"replicas":             req.Replicas,
-		"revisionHistoryLimit": req.RevisionHistoryLimit,
-		"limitCpu":             req.LimitCpu,
-		"limitMem":             req.LimitMem,
-		"requestCpu":           req.RequestCpu,
-		"requestMem":           req.RequestMem,
-		"serviceName":          req.ServiceName,
-		"env":                  req.Env,
-		"envIsPreOrPro":        req.Env != envDev,
-		"envIsDev":             req.Env == envDev,
 	})
 	if err != nil {
 		return "", nil
