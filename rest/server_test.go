@@ -12,6 +12,11 @@ import (
 	"github.com/tal-tech/go-zero/rest/router"
 )
 
+func TestNewServer(t *testing.T) {
+	_, err := NewServer(RestConf{}, WithNotFoundHandler(nil), WithNotAllowedHandler(nil))
+	assert.NotNil(t, err)
+}
+
 func TestWithMiddleware(t *testing.T) {
 	m := make(map[string]string)
 	router := router.NewRouter()
@@ -69,7 +74,7 @@ func TestWithMiddleware(t *testing.T) {
 	}, m)
 }
 
-func TestMultiMiddleware(t *testing.T) {
+func TestMultiMiddlewares(t *testing.T) {
 	m := make(map[string]string)
 	router := router.NewRouter()
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -139,4 +144,10 @@ func TestMultiMiddleware(t *testing.T) {
 		"wan":      "2020",
 		"whatever": "200000200000",
 	}, m)
+}
+
+func TestWithPriority(t *testing.T) {
+	var fr featuredRoutes
+	WithPriority()(&fr)
+	assert.True(t, fr.priority)
 }

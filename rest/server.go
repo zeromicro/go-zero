@@ -1,12 +1,14 @@
 package rest
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rest/handler"
 	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/router"
 )
 
 type (
@@ -32,6 +34,10 @@ func MustNewServer(c RestConf, opts ...RunOption) *Server {
 }
 
 func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
+	if len(opts) > 1 {
+		return nil, errors.New("only one RunOption is allowed")
+	}
+
 	if err := c.SetUp(); err != nil {
 		return nil, err
 	}
@@ -123,6 +129,18 @@ func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 	}
 
 	return routes
+}
+
+func WithNotFoundHandler(handler http.Handler) RunOption {
+	rt := router.NewRouter()
+	rt.SetNotFoundHandler(handler)
+	return WithRouter(rt)
+}
+
+func WithNotAllowedHandler(handler http.Handler) RunOption {
+	rt := router.NewRouter()
+	rt.SetNotAllowedHandler(handler)
+	return WithRouter(rt)
 }
 
 func WithPriority() RouteOption {

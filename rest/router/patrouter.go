@@ -22,8 +22,9 @@ var (
 )
 
 type patRouter struct {
-	trees    map[string]*search.Tree
-	notFound http.Handler
+	trees      map[string]*search.Tree
+	notFound   http.Handler
+	notAllowed http.Handler
 }
 
 func NewRouter() httpx.Router {
@@ -63,16 +64,26 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if allow, ok := pr.methodNotAllowed(r.Method, reqPath); ok {
+	allow, ok := pr.methodNotAllowed(r.Method, reqPath)
+	if !ok {
+		pr.handleNotFound(w, r)
+		return
+	}
+
+	if pr.notAllowed != nil {
+		pr.notAllowed.ServeHTTP(w, r)
+	} else {
 		w.Header().Set(allowHeader, allow)
 		w.WriteHeader(http.StatusMethodNotAllowed)
-	} else {
-		pr.handleNotFound(w, r)
 	}
 }
 
 func (pr *patRouter) SetNotFoundHandler(handler http.Handler) {
 	pr.notFound = handler
+}
+
+func (pr *patRouter) SetNotAllowedHandler(handler http.Handler) {
+	pr.notAllowed = handler
 }
 
 func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
