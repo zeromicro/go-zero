@@ -34,8 +34,13 @@ func genInsert(table Table, withCache bool) (string, error) {
 		expressionValues = append(expressionValues, "data."+camel)
 	}
 	camel := table.Name.ToCamel()
+	text, err := util.LoadTemplate(category, insertTemplateFile, template.Insert)
+	if err != nil {
+		return "", err
+	}
+
 	output, err := util.With("insert").
-		Parse(template.Insert).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"containsIndexCache":    table.ContainsUniqueKey,
@@ -49,5 +54,6 @@ func genInsert(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }

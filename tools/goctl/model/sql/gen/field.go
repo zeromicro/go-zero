@@ -25,8 +25,14 @@ func genField(field parser.Field) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	text, err := util.LoadTemplate(category, fieldTemplateFile, template.Field)
+	if err != nil {
+		return "", err
+	}
+
 	output, err := util.With("types").
-		Parse(template.Field).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"name":       field.Name.ToCamel(),
 			"type":       field.DataType,

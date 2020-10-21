@@ -59,8 +59,14 @@ func (g *defaultRpcGenerator) genHandler() error {
 		if err != nil {
 			return err
 		}
+
 		imports.AddStr(importList...)
-		err = util.With("server").GoFmt(true).Parse(serverTemplate).SaveTo(map[string]interface{}{
+		text, err := util.LoadTemplate(category, serverTemplateFile, serverTemplate)
+		if err != nil {
+			return err
+		}
+
+		err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 			"head":    head,
 			"types":   fmt.Sprintf(typeFmt, service.Name.Title()),
 			"server":  service.Name.Title(),
@@ -85,7 +91,12 @@ func (g *defaultRpcGenerator) genFunctions(service *parser.RpcService) ([]string
 		}
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
 		imports.AddStr(g.ast.Imports[method.ParameterOut.Package])
-		buffer, err := util.With("func").Parse(functionTemplate).Execute(map[string]interface{}{
+		text, err := util.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		buffer, err := util.With("func").Parse(text).Execute(map[string]interface{}{
 			"server":     service.Name.Title(),
 			"logicName":  fmt.Sprintf("%sLogic", method.Name.Title()),
 			"method":     method.Name.Title(),
@@ -98,6 +109,7 @@ func (g *defaultRpcGenerator) genFunctions(service *parser.RpcService) ([]string
 		if err != nil {
 			return nil, nil, err
 		}
+
 		functionList = append(functionList, buffer.String())
 	}
 	return functionList, imports.KeysStr(), nil

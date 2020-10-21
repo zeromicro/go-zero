@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
@@ -17,15 +18,15 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
-	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
 
 var (
-	BuildTime = "not set"
-	commands  = []cli.Command{
+	BuildVersion = "20201021"
+	commands     = []cli.Command{
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -328,14 +329,46 @@ var (
 			Action: configgen.GenConfigCommand,
 		},
 		{
-			Name:   "feature",
-			Usage:  "the features of the latest version",
-			Action: feature.Feature,
-		},
-		{
-			Name:   "template",
-			Usage:  "initialize the api templates",
-			Action: gogen.GenTemplates,
+			Name:  "template",
+			Usage: "template operation",
+			Subcommands: []cli.Command{
+				{
+					Name:   "init",
+					Usage:  "initialize the all templates(force update)",
+					Action: tpl.GenTemplates,
+				},
+				{
+					Name:   "clean",
+					Usage:  "clean the all cache templates",
+					Action: tpl.CleanTemplates,
+				},
+				{
+					Name:  "update",
+					Usage: "update template of the target category to the latest",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "category,c",
+							Usage: "the category of template, enum [api,rpc,model]",
+						},
+					},
+					Action: tpl.UpdateTemplates,
+				},
+				{
+					Name:  "revert",
+					Usage: "revert the target template to the latest",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "category,c",
+							Usage: "the category of template, enum [api,rpc,model]",
+						},
+						cli.StringFlag{
+							Name:  "name,n",
+							Usage: "the target file name of template",
+						},
+					},
+					Action: tpl.RevertTemplates,
+				},
+			},
 		},
 	}
 )
@@ -345,7 +378,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = BuildTime
+	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {

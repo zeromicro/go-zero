@@ -10,7 +10,12 @@ import (
 )
 
 func genFindOneByField(table Table, withCache bool) (string, string, error) {
-	t := util.With("findOneByField").Parse(template.FindOneByField)
+	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
+	if err != nil {
+		return "", "", err
+	}
+
+	t := util.With("findOneByField").Parse(text)
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, field := range table.Fields {
@@ -33,10 +38,16 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 		if err != nil {
 			return "", "", err
 		}
+
 		list = append(list, output.String())
 	}
 	if withCache {
-		out, err := util.With("findOneByFieldExtraMethod").Parse(template.FindOneByFieldExtraMethod).Execute(map[string]interface{}{
+		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		if err != nil {
+			return "", "", err
+		}
+
+		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
@@ -45,6 +56,7 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 		if err != nil {
 			return "", "", err
 		}
+
 		return strings.Join(list, "\n"), out.String(), nil
 	}
 	return strings.Join(list, "\n"), "", nil

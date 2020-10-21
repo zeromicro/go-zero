@@ -8,8 +8,13 @@ import (
 
 func genFindOne(table Table, withCache bool) (string, error) {
 	camel := table.Name.ToCamel()
+	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
+	if err != nil {
+		return "", err
+	}
+
 	output, err := util.With("findOne").
-		Parse(template.FindOne).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":                 withCache,
 			"upperStartCamelObject":     camel,

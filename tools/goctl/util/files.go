@@ -28,12 +28,28 @@ func InitTemplates(category string, templates map[string]string) error {
 	}
 
 	for k, v := range templates {
-		if err := createTemplate(filepath.Join(dir, k), v); err != nil {
+		if err := createTemplate(filepath.Join(dir, k), v, false); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func CreateTemplate(category, name, content string) error {
+	dir, err := GetTemplateDir(category)
+	if err != nil {
+		return err
+	}
+	return createTemplate(filepath.Join(dir, name), content, true)
+}
+
+func Clean(category string) error {
+	dir, err := GetTemplateDir(category)
+	if err != nil {
+		return err
+	}
+	return os.RemoveAll(dir)
 }
 
 func LoadTemplate(category, file, builtin string) (string, error) {
@@ -55,9 +71,8 @@ func LoadTemplate(category, file, builtin string) (string, error) {
 	return string(content), nil
 }
 
-func createTemplate(file, content string) error {
-	if FileExists(file) {
-		println(1)
+func createTemplate(file, content string, force bool) error {
+	if FileExists(file) && !force {
 		return nil
 	}
 

@@ -18,6 +18,7 @@ const (
 
 func (g *defaultRpcGenerator) genPb() error {
 	pbPath := g.dirM[dirPb]
+	// deprecated: containsAny will be removed in the feature
 	imports, containsAny, err := parser.ParseImport(g.Ctx.ProtoFileSrc)
 	if err != nil {
 		return err

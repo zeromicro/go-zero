@@ -22,8 +22,13 @@ func genUpdate(table Table, withCache bool) (string, error) {
 	}
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
+	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
+	if err != nil {
+		return "", err
+	}
+
 	output, err := util.With("update").
-		Parse(template.Update).
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": camelTableName,
@@ -36,5 +41,6 @@ func genUpdate(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", nil
 	}
+
 	return output.String(), nil
 }
