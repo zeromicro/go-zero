@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
+	"runtime"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	BuildVersion = fmt.Sprintf("%v", time.Now().Format("20060102"))
+	BuildVersion = "20201021"
 	commands     = []cli.Command{
 		{
 			Name:  "api",
@@ -378,7 +378,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = BuildVersion
+	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
