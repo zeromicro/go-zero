@@ -49,6 +49,7 @@ func Update(category string) error {
 func Clean() error {
 	return util.Clean(category)
 }
+
 func GetCategory() string {
 	return category
 }

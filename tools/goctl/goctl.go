@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
@@ -24,8 +25,8 @@ import (
 )
 
 var (
-	BuildTime = "not set"
-	commands  = []cli.Command{
+	BuildVersion = fmt.Sprintf("%v", time.Now().Format("20060102"))
+	commands     = []cli.Command{
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -377,7 +378,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = BuildTime
+	app.Version = BuildVersion
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
