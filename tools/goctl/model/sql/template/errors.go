@@ -1,6 +1,6 @@
 package template
 
-var Error = `package model
+var Error = `package {{.pkg}}
 
 import "github.com/tal-tech/go-zero/core/stores/sqlx"
 

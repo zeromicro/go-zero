@@ -24,6 +24,7 @@ const (
 	typesTemplateFile                     = "types.tpl"
 	updateTemplateFile                    = "update.tpl"
 	varTemplateFile                       = "var.tpl"
+	errTemplateFile                       = "err.tpl"
 )
 
 var templates = map[string]string{
@@ -41,6 +42,7 @@ var templates = map[string]string{
 	typesTemplateFile:                     template.Types,
 	updateTemplateFile:                    template.Update,
 	varTemplateFile:                       template.Vars,
+	errTemplateFile:                       template.Error,
 }
 
 func GenTemplates(_ *cli.Context) error {

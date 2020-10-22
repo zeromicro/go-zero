@@ -23,6 +23,7 @@ func genVars(table Table, withCache bool) (string, error) {
 		Parse(text).
 		GoFmt(true).
 		Execute(map[string]interface{}{
+			"table":                 table.Name.Source(),
 			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
 			"upperStartCamelObject": camel,
 			"cacheKeys":             strings.Join(keys, "\n"),
