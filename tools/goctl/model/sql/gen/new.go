@@ -2,12 +2,17 @@ package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func genNew(table Table, withCache bool) (string, error) {
-	output, err := templatex.With("new").
-		Parse(template.New).
+	text, err := util.LoadTemplate(category, modelNewTemplateFile, template.New)
+	if err != nil {
+		return "", err
+	}
+
+	output, err := util.With("new").
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),
@@ -15,5 +20,6 @@ func genNew(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }

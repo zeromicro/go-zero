@@ -16,7 +16,7 @@ func TestRelativeTime(t *testing.T) {
 }
 
 func TestRelativeTime_Time(t *testing.T) {
-	diff := Time().Sub(time.Now())
+	diff := time.Until(Time())
 	if diff > 0 {
 		assert.True(t, diff < time.Second)
 	} else {

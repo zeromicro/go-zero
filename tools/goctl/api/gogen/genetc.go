@@ -8,7 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 const (
@@ -40,7 +40,7 @@ func genEtc(dir string, api *spec.ApiSpec) error {
 		port = strconv.Itoa(defaultPort)
 	}
 
-	text, err := templatex.LoadTemplate(category, etcTemplateFile, etcTemplate)
+	text, err := ctlutil.LoadTemplate(category, etcTemplateFile, etcTemplate)
 	if err != nil {
 		return err
 	}

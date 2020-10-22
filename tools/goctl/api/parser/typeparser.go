@@ -14,7 +14,6 @@ import (
 
 var (
 	ErrStructNotFound      = errors.New("struct not found")
-	ErrUnSupportType       = errors.New("unsupport type")
 	ErrUnSupportInlineType = errors.New("unsupport inline type")
 	interfaceExpr          = `interface{}`
 	objectM                = make(map[string]*spec.Type)
@@ -27,12 +26,17 @@ const (
 	pkgPrefix = "package"
 )
 
-func parseStructAst(golang string) ([]spec.Type, error) {
-	if !strings.HasPrefix(golang, pkgPrefix) {
-		golang = fmt.Sprintf(golangF, golang)
+type StructParser struct {
+	Src string
+}
+
+func (sp *StructParser) Parse() ([]spec.Type, error) {
+	if !strings.HasPrefix(sp.Src, pkgPrefix) {
+		sp.Src = fmt.Sprintf(golangF, sp.Src)
 	}
+
 	fSet := token.NewFileSet()
-	f, err := parser.ParseFile(fSet, "", golang, parser.ParseComments)
+	f, err := parser.ParseFile(fSet, "", sp.Src, parser.ParseComments)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +49,7 @@ func parseStructAst(golang string) ([]spec.Type, error) {
 	objects := scope.Objects
 	structs := make([]*spec.Type, 0)
 	for structName, obj := range objects {
-		st, err := parseObject(structName, obj)
+		st, err := sp.parseObject(structName, obj)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +65,7 @@ func parseStructAst(golang string) ([]spec.Type, error) {
 	return resp, nil
 }
 
-func parseObject(structName string, obj *ast.Object) (*spec.Type, error) {
+func (sp *StructParser) parseObject(structName string, obj *ast.Object) (*spec.Type, error) {
 	if data, ok := objectM[structName]; ok {
 		return data, nil
 	}
@@ -91,7 +95,7 @@ func parseObject(structName string, obj *ast.Object) (*spec.Type, error) {
 		return &st, nil
 	}
 	fieldList := fields.List
-	members, err := parseFields(fieldList)
+	members, err := sp.parseFields(fieldList)
 	if err != nil {
 		return nil, err
 	}
@@ -100,13 +104,13 @@ func parseObject(structName string, obj *ast.Object) (*spec.Type, error) {
 	return &st, nil
 }
 
-func parseFields(fields []*ast.Field) ([]spec.Member, error) {
+func (sp *StructParser) parseFields(fields []*ast.Field) ([]spec.Member, error) {
 	members := make([]spec.Member, 0)
 	for _, field := range fields {
 		docs := parseCommentOrDoc(field.Doc)
 		comments := parseCommentOrDoc(field.Comment)
 		name := parseName(field.Names)
-		tp, stringExpr, err := parseType(field.Type)
+		tp, stringExpr, err := sp.parseType(field.Type)
 		if err != nil {
 			return nil, err
 		}
@@ -114,7 +118,7 @@ func parseFields(fields []*ast.Field) ([]spec.Member, error) {
 		isInline := name == ""
 		if isInline {
 			var err error
-			name, err = getInlineName(tp)
+			name, err = sp.getInlineName(tp)
 			if err != nil {
 				return nil, err
 			}
@@ -133,12 +137,12 @@ func parseFields(fields []*ast.Field) ([]spec.Member, error) {
 	return members, nil
 }
 
-func getInlineName(tp interface{}) (string, error) {
+func (sp *StructParser) getInlineName(tp interface{}) (string, error) {
 	switch v := tp.(type) {
 	case *spec.Type:
 		return v.Name, nil
 	case *spec.PointerType:
-		return getInlineName(v.Star)
+		return sp.getInlineName(v.Star)
 	case *spec.StructType:
 		return v.StringExpr, nil
 	default:
@@ -146,7 +150,7 @@ func getInlineName(tp interface{}) (string, error) {
 	}
 }
 
-func getInlineTypePrefix(tp interface{}) (string, error) {
+func (sp *StructParser) getInlineTypePrefix(tp interface{}) (string, error) {
 	if tp == nil {
 		return "", nil
 	}
@@ -173,13 +177,14 @@ func parseTag(basicLit *ast.BasicLit) string {
 // resp1: type can convert to *spec.PointerType|*spec.BasicType|*spec.MapType|*spec.ArrayType|*spec.InterfaceType
 // resp2: type's string expression,like int、string、[]int64、map[string]User、*User
 // resp3: error
-func parseType(expr ast.Expr) (interface{}, string, error) {
+func (sp *StructParser) parseType(expr ast.Expr) (interface{}, string, error) {
 	if expr == nil {
-		return nil, "", ErrUnSupportType
+		return nil, "", errors.New("parse error " + sp.Src)
 	}
+	exprStr := sp.Src[expr.Pos():expr.End()]
 	switch v := expr.(type) {
 	case *ast.StarExpr:
-		star, stringExpr, err := parseType(v.X)
+		star, stringExpr, err := sp.parseType(v.X)
 		if err != nil {
 			return nil, "", err
 		}
@@ -191,14 +196,14 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 		} else if v.Obj != nil {
 			obj := v.Obj
 			if obj.Name != v.Name { // 防止引用自己而无限递归
-				specType, err := parseObject(v.Name, v.Obj)
+				specType, err := sp.parseObject(v.Name, v.Obj)
 				if err != nil {
 					return nil, "", err
 				} else {
 					return specType, v.Obj.Name, nil
 				}
 			} else {
-				inlineType, err := getInlineTypePrefix(obj.Decl)
+				inlineType, err := sp.getInlineTypePrefix(obj.Decl)
 				if err != nil {
 					return nil, "", err
 				}
@@ -207,22 +212,22 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 				}, v.Name, nil
 			}
 		} else {
-			return nil, "", fmt.Errorf(" [%s] - member is not exist", v.Name)
+			return nil, "", fmt.Errorf(" [%s] - member is not exist, expr is %s", v.Name, exprStr)
 		}
 	case *ast.MapType:
-		key, keyStringExpr, err := parseType(v.Key)
+		key, keyStringExpr, err := sp.parseType(v.Key)
 		if err != nil {
 			return nil, "", err
 		}
 
-		value, valueStringExpr, err := parseType(v.Value)
+		value, valueStringExpr, err := sp.parseType(v.Value)
 		if err != nil {
 			return nil, "", err
 		}
 
 		keyType, ok := key.(*spec.BasicType)
 		if !ok {
-			return nil, "", fmt.Errorf("[%+v] - unsupported type of map key", v.Key)
+			return nil, "", fmt.Errorf("[%+v] - unsupported type of map key, expr is  %s", v.Key, exprStr)
 		}
 
 		e := fmt.Sprintf("map[%s]%s", keyStringExpr, valueStringExpr)
@@ -232,7 +237,7 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 			StringExpr: e,
 		}, e, nil
 	case *ast.ArrayType:
-		arrayType, stringExpr, err := parseType(v.Elt)
+		arrayType, stringExpr, err := sp.parseType(v.Elt)
 		if err != nil {
 			return nil, "", err
 		}
@@ -242,11 +247,11 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 	case *ast.InterfaceType:
 		return &spec.InterfaceType{StringExpr: interfaceExpr}, interfaceExpr, nil
 	case *ast.ChanType:
-		return nil, "", errors.New("[chan] - unsupported type")
+		return nil, "", errors.New("[chan] - unsupported type, expr is " + exprStr)
 	case *ast.FuncType:
-		return nil, "", errors.New("[func] - unsupported type")
+		return nil, "", errors.New("[func] - unsupported type, expr is " + exprStr)
 	case *ast.StructType: // todo can optimize
-		return nil, "", errors.New("[struct] - unsupported inline struct type")
+		return nil, "", errors.New("[struct] - unsupported inline struct type, expr is " + exprStr)
 	case *ast.SelectorExpr:
 		x := v.X
 		sel := v.Sel
@@ -254,7 +259,7 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 		if ok {
 			name := xIdent.Name
 			if name != "time" && sel.Name != "Time" {
-				return nil, "", fmt.Errorf("[outter package] - package:%s, unsupport type", name)
+				return nil, "", fmt.Errorf("[outter package] - package: %s, unsupport type", exprStr)
 			}
 
 			tm := fmt.Sprintf("time.Time")
@@ -262,9 +267,9 @@ func parseType(expr ast.Expr) (interface{}, string, error) {
 				StringExpr: tm,
 			}, tm, nil
 		}
-		return nil, "", ErrUnSupportType
+		return nil, "", errors.New("parse error " + exprStr)
 	default:
-		return nil, "", ErrUnSupportType
+		return nil, "", errors.New("parse error " + exprStr)
 	}
 }
 

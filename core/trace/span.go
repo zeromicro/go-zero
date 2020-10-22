@@ -17,7 +17,6 @@ const (
 	clientFlag  = "client"
 	serverFlag  = "server"
 	spanSepRune = '.'
-	timeFormat  = "2006-01-02 15:04:05.000"
 )
 
 var spanSep = string([]byte{spanSepRune})
@@ -37,9 +36,7 @@ func newServerSpan(carrier Carrier, serviceName, operationName string) tracespec
 			return carrier.Get(traceIdKey)
 		}
 		return ""
-	}, func() string {
-		return stringx.RandId()
-	})
+	}, stringx.RandId)
 	spanId := stringx.TakeWithPriority(func() string {
 		if carrier != nil {
 			return carrier.Get(spanIdKey)

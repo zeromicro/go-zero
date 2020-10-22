@@ -56,7 +56,7 @@ func main() {
 		Port:     *port,
 		Timeout:  *timeout,
 		MaxConns: 500,
-	})
+	}, rest.WithNotAllowedHandler(rest.CorsHandler()))
 	defer engine.Stop()
 
 	engine.Use(first)

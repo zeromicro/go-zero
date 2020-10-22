@@ -27,7 +27,7 @@ Advantages of go-zero:
 
 ## 1. Backgrounds of go-zero
 
-At the beginning of 2018, we heavily suffered from frequent downtime. We decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
+At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
 
 * Golang based
   * great performance
@@ -163,8 +163,8 @@ go get -u github.com/tal-tech/go-zero
    the generated code can be run directly:
 
    ```shell
-     cd greet
-     go run greet.go -f etc/greet-api.yaml
+   cd greet
+   go run greet.go -f etc/greet-api.yaml
    ```
 
    by default, it’s listening on port 8888, while it can be changed in configuration file.

@@ -11,15 +11,15 @@ import (
 )
 
 var (
-	WithDialOption = internal.WithDialOption
-	WithTimeout    = internal.WithTimeout
+	WithDialOption             = internal.WithDialOption
+	WithTimeout                = internal.WithTimeout
+	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
 
 type (
 	ClientOption = internal.ClientOption
 
 	Client interface {
-		AddInterceptor(interceptor grpc.UnaryClientInterceptor)
 		Conn() *grpc.ClientConn
 	}
 
@@ -66,8 +66,8 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	}, nil
 }
 
-func NewClientNoAuth(c discov.EtcdConf) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key))
+func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
+	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +79,6 @@ func NewClientNoAuth(c discov.EtcdConf) (Client, error) {
 
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 	return internal.NewClient(target, opts...)
-}
-
-func (rc *RpcClient) AddInterceptor(interceptor grpc.UnaryClientInterceptor) {
-	rc.client.AddInterceptor(interceptor)
 }
 
 func (rc *RpcClient) Conn() *grpc.ClientConn {

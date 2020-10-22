@@ -1273,6 +1273,20 @@ func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64
 	return
 }
 
+func (s *Redis) Zrevrank(key string, field string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.ZRevRank(key, field).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) String() string {
 	return s.Addr
 }

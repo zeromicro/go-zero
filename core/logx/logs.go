@@ -43,6 +43,7 @@ const (
 	consoleMode = "console"
 	volumeMode  = "volume"
 
+	levelAlert  = "alert"
 	levelInfo   = "info"
 	levelError  = "error"
 	levelSevere = "severe"
@@ -119,6 +120,10 @@ func SetUp(c LogConf) error {
 	default:
 		return setupWithFiles(c)
 	}
+}
+
+func Alert(v string) {
+	output(errorLog, levelAlert, v)
 }
 
 func Close() error {

@@ -84,6 +84,18 @@ memberLoop:
 					if builder.Len() == 0 {
 						return errors.New("invalid annotation format")
 					}
+					if len(annoName) > 0 {
+						value := builder.String()
+						if value != string(leftParenthesis) {
+							builder.Reset()
+							annos = append(annos, spec.Annotation{
+								Name:  annoName,
+								Value: value,
+							})
+							annoName = ""
+							break annotationLoop
+						}
+					}
 				case next == leftParenthesis:
 					if builder.Len() == 0 {
 						return errors.New("invalid annotation format")
@@ -101,6 +113,7 @@ memberLoop:
 						Name:       annoName,
 						Properties: attrs,
 					})
+					annoName = ""
 					break annotationLoop
 				default:
 					builder.WriteRune(next)

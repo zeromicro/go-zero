@@ -84,6 +84,14 @@ func TestFileLineConsoleMode(t *testing.T) {
 	assert.True(t, writer.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestStructedLogAlert(t *testing.T) {
+	doTestStructedLog(t, levelAlert, func(writer io.WriteCloser) {
+		errorLog = writer
+	}, func(v ...interface{}) {
+		Alert(fmt.Sprint(v...))
+	})
+}
+
 func TestStructedLogInfo(t *testing.T) {
 	doTestStructedLog(t, levelInfo, func(writer io.WriteCloser) {
 		infoLog = writer
@@ -229,8 +237,10 @@ func TestSetup(t *testing.T) {
 
 func TestDisable(t *testing.T) {
 	Disable()
-	WithKeepDays(1)
-	WithGzip()
+
+	var opt logOptions
+	WithKeepDays(1)(&opt)
+	WithGzip()(&opt)
 	assert.Nil(t, Close())
 	writeConsole = false
 	assert.Nil(t, Close())

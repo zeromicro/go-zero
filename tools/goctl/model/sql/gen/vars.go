@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -14,8 +14,13 @@ func genVars(table Table, withCache bool) (string, error) {
 		keys = append(keys, v.VarExpression)
 	}
 	camel := table.Name.ToCamel()
-	output, err := templatex.With("var").
-		Parse(template.Vars).
+	text, err := util.LoadTemplate(category, varTemplateFile, template.Vars)
+	if err != nil {
+		return "", err
+	}
+
+	output, err := util.With("var").
+		Parse(text).
 		GoFmt(true).
 		Execute(map[string]interface{}{
 			"lowerStartCamelObject": stringx.From(camel).UnTitle(),

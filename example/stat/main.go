@@ -24,11 +24,8 @@ func main() {
 	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			percent := stat.CpuUsage()
-			fmt.Println("cpu:", percent)
-		}
+	for range ticker.C {
+		percent := stat.CpuUsage()
+		fmt.Println("cpu:", percent)
 	}
 }

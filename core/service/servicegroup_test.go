@@ -27,7 +27,7 @@ func newMockedService(multiplier int) *mockedService {
 
 func (s *mockedService) Start() {
 	mutex.Lock()
-	number = number * s.multiplier
+	number *= s.multiplier
 	mutex.Unlock()
 	done <- struct{}{}
 	<-s.quit

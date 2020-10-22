@@ -7,7 +7,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -123,8 +122,12 @@ func (g *defaultRpcGenerator) genCall() error {
 	}
 
 	filename := filepath.Join(callPath, typesFilename)
-	head := templatex.GetHead(g.Ctx.ProtoSource)
-	err = templatex.With("types").GoFmt(true).Parse(callTemplateTypes).SaveTo(map[string]interface{}{
+	head := util.GetHead(g.Ctx.ProtoSource)
+	text, err := util.LoadTemplate(category, callTypesTemplateFile, callTemplateTypes)
+	if err != nil {
+		return err
+	}
+	err = util.With("types").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"head":                  head,
 		"const":                 constLit,
 		"filePackage":           service.Name.Lower(),
@@ -146,8 +149,11 @@ func (g *defaultRpcGenerator) genCall() error {
 	if err != nil {
 		return err
 	}
-
-	err = templatex.With("shared").GoFmt(true).Parse(callTemplateText).SaveTo(map[string]interface{}{
+	text, err = util.LoadTemplate(category, callTemplateFile, callTemplateText)
+	if err != nil {
+		return err
+	}
+	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":        service.Name.Lower(),
 		"head":        head,
 		"filePackage": service.Name.Lower(),
@@ -167,7 +173,11 @@ func (g *defaultRpcGenerator) genFunction(service *parser.RpcService) ([]string,
 	imports.AddStr(fmt.Sprintf(`%v "%v"`, pkgName, g.mustGetPackage(dirPb)))
 	for _, method := range service.Funcs {
 		imports.AddStr(g.ast.Imports[method.ParameterIn.Package])
-		buffer, err := templatex.With("sharedFn").Parse(callFunctionTemplate).Execute(map[string]interface{}{
+		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
+		if err != nil {
+			return nil, nil, err
+		}
+		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
 			"rpcServiceName": service.Name.Title(),
 			"method":         method.Name.Title(),
 			"package":        pkgName,
@@ -190,7 +200,12 @@ func (g *defaultRpcGenerator) getInterfaceFuncs(service *parser.RpcService) ([]s
 	functions := make([]string, 0)
 
 	for _, method := range service.Funcs {
-		buffer, err := templatex.With("interfaceFn").Parse(callInterfaceFunctionTemplate).Execute(
+		text, err := util.LoadTemplate(category, callInterfaceFunctionTemplateFile, callInterfaceFunctionTemplate)
+		if err != nil {
+			return nil, err
+		}
+
+		buffer, err := util.With("interfaceFn").Parse(text).Execute(
 			map[string]interface{}{
 				"hasComment": method.HaveDoc(),
 				"comment":    method.GetDoc(),

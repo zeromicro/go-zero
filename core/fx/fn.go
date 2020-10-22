@@ -68,6 +68,7 @@ func Range(source <-chan interface{}) Stream {
 }
 
 // Buffer buffers the items into a queue with size n.
+// It can balance the producer and the consumer if their processing throughput don't match.
 func (p Stream) Buffer(n int) Stream {
 	if n < 0 {
 		n = 0
@@ -245,6 +246,32 @@ func (p Stream) Sort(less LessFunc) Stream {
 	})
 
 	return Just(items...)
+}
+
+// Split splits the elements into chunk with size up to n,
+// might be less than n on tailing elements.
+func (p Stream) Split(n int) Stream {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+
+	source := make(chan interface{})
+	go func() {
+		var chunk []interface{}
+		for item := range p.source {
+			chunk = append(chunk, item)
+			if len(chunk) == n {
+				source <- chunk
+				chunk = nil
+			}
+		}
+		if chunk != nil {
+			source <- chunk
+		}
+		close(source)
+	}()
+
+	return Range(source)
 }
 
 func (p Stream) Tail(n int64) Stream {

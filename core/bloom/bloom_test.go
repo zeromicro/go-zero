@@ -2,18 +2,18 @@ package bloom
 
 import (
 	"testing"
+	"time"
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error("Miniredis could not start")
-	}
-	defer s.Close()
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
 
 	store := redis.NewRedis(s.Addr(), redis.NodeType)
 	bitSet := newRedisBitSet(store, "test_key", 1024)
@@ -46,11 +46,9 @@ func TestRedisBitSet_New_Set_Test(t *testing.T) {
 }
 
 func TestRedisBitSet_Add(t *testing.T) {
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error("Miniredis could not start")
-	}
-	defer s.Close()
+	s, clean, err := createMiniRedis()
+	assert.Nil(t, err)
+	defer clean()
 
 	store := redis.NewRedis(s.Addr(), redis.NodeType)
 	filter := New(store, "test_key", 64)
@@ -59,4 +57,23 @@ func TestRedisBitSet_Add(t *testing.T) {
 	ok, err := filter.Exists([]byte("hello"))
 	assert.Nil(t, err)
 	assert.True(t, ok)
+}
+
+func createMiniRedis() (r *miniredis.Miniredis, clean func(), err error) {
+	r, err = miniredis.Run()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return r, func() {
+		ch := make(chan lang.PlaceholderType)
+		go func() {
+			r.Close()
+			close(ch)
+		}()
+		select {
+		case <-ch:
+		case <-time.After(time.Second):
+		}
+	}, nil
 }

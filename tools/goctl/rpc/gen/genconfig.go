@@ -23,5 +23,11 @@ func (g *defaultRpcGenerator) genConfig() error {
 	if util.FileExists(fileName) {
 		return nil
 	}
-	return ioutil.WriteFile(fileName, []byte(configTemplate), os.ModePerm)
+
+	text, err := util.LoadTemplate(category, configTemplateFileFile, configTemplate)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(fileName, []byte(text), os.ModePerm)
 }

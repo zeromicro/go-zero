@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
@@ -21,7 +20,6 @@ import (
 	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
@@ -59,8 +57,13 @@ func (g *defaultRpcGenerator) genMain() error {
 	configImport := fmt.Sprintf(`"%v"`, g.mustGetPackage(dirConfig))
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
 	srv, registers := g.genServer(pkg, file.Service)
-	head := templatex.GetHead(g.Ctx.ProtoSource)
-	return templatex.With("main").GoFmt(true).Parse(mainTemplate).SaveTo(map[string]interface{}{
+	head := util.GetHead(g.Ctx.ProtoSource)
+	text, err := util.LoadTemplate(category, mainTemplateFile, mainTemplate)
+	if err != nil {
+		return err
+	}
+
+	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"head":        head,
 		"package":     pkg,
 		"serviceName": g.Ctx.ServiceName.Lower(),

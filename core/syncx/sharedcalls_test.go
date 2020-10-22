@@ -95,7 +95,8 @@ func TestExclusiveCallDoDiffDupSuppress(t *testing.T) {
 	close(broadcast)
 	wg.Wait()
 
-	if got := atomic.LoadInt32(&calls); got != 5 {	// five letters
+	if got := atomic.LoadInt32(&calls); got != 5 {
+		// five letters
 		t.Errorf("number of calls = %d; want 5", got)
 	}
 }
