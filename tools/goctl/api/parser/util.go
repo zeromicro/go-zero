@@ -133,7 +133,7 @@ func isTypeBeginLine(line string) bool {
 }
 
 func isServiceBeginLine(line string) bool {
-	return strings.HasPrefix(line, "@server(") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
+	return strings.HasPrefix(line, "@server") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
 }
 
 func lineBeginOfService(api string) int {
