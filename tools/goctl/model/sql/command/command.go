@@ -33,7 +33,7 @@ func MysqlDDL(ctx *cli.Context) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
-		return errors.New("expected path or path globbing patterns,but nothing found")
+		return errors.New("expected path or path globbing patterns, but nothing found")
 	}
 
 	files, err := util.MatchFiles(src)
