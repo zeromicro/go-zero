@@ -1,7 +1,6 @@
 package template
 
 var Vars = `
-const table = "{{.table}}"
 var (
 	{{.lowerStartCamelObject}}FieldNames          = builderx.FieldNames(&{{.upperStartCamelObject}}{})
 	{{.lowerStartCamelObject}}Rows                = strings.Join({{.lowerStartCamelObject}}FieldNames, ",")
