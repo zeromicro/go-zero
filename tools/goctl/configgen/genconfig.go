@@ -47,7 +47,7 @@ func GenConfigCommand(c *cli.Context) error {
 		return errors.New("go mod not initial")
 	}
 	path = strings.TrimSuffix(path, "/config.go")
-	location := path + "/tmp"
+	location := filepath.Join(path, "tmp")
 	err = os.MkdirAll(location, os.ModePerm)
 	if err != nil {
 		return err
