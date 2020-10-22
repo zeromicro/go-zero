@@ -24,6 +24,7 @@ type (
 		source string
 		dir    string
 		console.Console
+		pkg string
 	}
 	Option func(generator *defaultGenerator)
 )
@@ -59,6 +60,8 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	if err != nil {
 		return err
 	}
+	g.dir = dirAbs
+	g.pkg = filepath.Base(dirAbs)
 	err = util.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
@@ -82,12 +85,18 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "vars.go")
-	if !util.FileExists(filename) {
-		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
-		if err != nil {
-			return err
-		}
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Error)
+	if err != nil {
+		return err
 	}
+
+	err = util.With("vars").Parse(text).SaveTo(map[string]interface{}{
+		"pkg": g.pkg,
+	}, filename, false)
+	if err != nil {
+		return err
+	}
+
 	g.Success("Done.")
 	return nil
 }
@@ -119,8 +128,12 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return "", err
+	}
 	t := util.With("model").
-		Parse(template.Model).
+		Parse(text).
 		GoFmt(true)
 
 	m, err := genCacheKeys(in)
@@ -188,6 +201,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	output, err := t.Execute(map[string]interface{}{
+		"pkg":         g.pkg,
 		"imports":     importsCode,
 		"vars":        varsCode,
 		"types":       typesCode,

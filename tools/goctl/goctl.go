@@ -269,7 +269,7 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
-									Usage: "the file path of the ddl source file",
+									Usage: "the path or path globbing patterns of the ddl",
 								},
 								cli.StringFlag{
 									Name:  "dir, d",
@@ -296,7 +296,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course`,
+									Usage: `the table or table globbing patterns in the database`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
