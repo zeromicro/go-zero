@@ -72,7 +72,7 @@ func genHandler(dir string, group spec.Group, route spec.Route) error {
 		LogicType:      strings.TrimSuffix(strings.Title(handler), "Handler") + "Logic",
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseType.Name) > 0,
-		HasRequest:     len(route.ResponseType.Name) > 0,
+		HasRequest:     len(route.RequestType.Name) > 0,
 	})
 }
 
