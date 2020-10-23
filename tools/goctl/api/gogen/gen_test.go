@@ -178,6 +178,13 @@ service A-api {
 }
 `
 
+const apiHasNoRequest = `
+service A-api {
+  @handler GreetHandler
+  post /greet/ping ()
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -299,6 +306,21 @@ func TestApiHasJwt(t *testing.T) {
 func TestApiHasJwtAndMiddleware(t *testing.T) {
 	filename := "jwt.api"
 	err := ioutil.WriteFile(filename, []byte(apiJwtWithMiddleware), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestApiHasNoRequestBody(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
