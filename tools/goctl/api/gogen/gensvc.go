@@ -3,6 +3,7 @@ package gogen
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
@@ -28,14 +29,6 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 	return &ServiceContext{
 		Config: c, 
 		{{.middlewareAssignment}}
-	}
-}
-
-{{.middlewareImplement}}
-`
-	middlewareImplementCode = `func %s(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// TODO generate middleware implement function, delete after code implementation 
 	}
 }
 
@@ -70,16 +63,21 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 
 	var middlewareStr string
 	var middlewareAssignment string
-	var middlewareImplement string
-	for _, item := range getMiddleware(api) {
+	var middlewares = getMiddleware(api)
+	err = genMiddleware(dir, middlewares)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range middlewares {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
-		middlewareAssignment += fmt.Sprintf("%s: %s,\n", item, item)
-		middlewareImplement += fmt.Sprintf(middlewareImplementCode, item)
+		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
+		middlewareAssignment += fmt.Sprintf("%s: %s,\n", item, fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
 	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
-		configImport += "\n\t\"net/http\""
+		configImport += "\n\t\"" + ctlutil.JoinPackages(parentPkg, middlewareDir) + "\""
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceUrl)
 	}
 
@@ -90,7 +88,6 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 		"config":               "config.Config",
 		"middleware":           middlewareStr,
 		"middlewareAssignment": middlewareAssignment,
-		"middlewareImplement":  middlewareImplement,
 	})
 	if err != nil {
 		return nil
