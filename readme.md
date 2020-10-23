@@ -180,4 +180,6 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 <!-- 扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！-->
 
+开源中国年度评选，给go-zero投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
+
 <img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
