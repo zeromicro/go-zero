@@ -177,6 +177,12 @@ service A-api {
   get /greet/from/:name(Request) returns (Response)
 }
 `
+const apiHasNoRequest = `	
+service A-api {	
+  @handler GreetHandler	
+  post /greet/ping ()	
+}	
+`
 
 func TestParser(t *testing.T) {
 	filename := "greet.api"
@@ -324,6 +330,21 @@ func validate(t *testing.T, api string) {
 		}
 		return nil
 	})
+}
+
+func TestApiHasNoRequestBody(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
 }
 
 func validateCode(code string) error {
