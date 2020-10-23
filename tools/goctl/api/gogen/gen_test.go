@@ -178,11 +178,11 @@ service A-api {
 }
 `
 
-const apiHasNoRequest = `	
-service A-api {	
+const apiHasNoRequest = `
+service A-api {
   @handler GreetHandler	
-  post /greet/ping ()	
-}	
+  post /greet/ping ()
+}
 `
 
 func TestParser(t *testing.T) {
