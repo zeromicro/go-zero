@@ -180,7 +180,7 @@ service A-api {
 
 const apiHasNoRequest = `
 service A-api {
-  @handler GreetHandler	
+  @handler GreetHandler
   post /greet/ping ()
 }
 `
