@@ -317,21 +317,6 @@ func TestApiHasJwtAndMiddleware(t *testing.T) {
 	validate(t, filename)
 }
 
-func validate(t *testing.T, api string) {
-	dir := "_go"
-	err := DoGenProject(api, dir, true)
-	defer os.RemoveAll(dir)
-	assert.Nil(t, err)
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if strings.HasSuffix(path, ".go") {
-			code, err := ioutil.ReadFile(path)
-			assert.Nil(t, err)
-			assert.Nil(t, validateCode(string(code)))
-		}
-		return nil
-	})
-}
-
 func TestApiHasNoRequestBody(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
@@ -345,6 +330,21 @@ func TestApiHasNoRequestBody(t *testing.T) {
 	assert.Nil(t, err)
 
 	validate(t, filename)
+}
+
+func validate(t *testing.T, api string) {
+	dir := "_go"
+	err := DoGenProject(api, dir, true)
+	defer os.RemoveAll(dir)
+	assert.Nil(t, err)
+	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(path, ".go") {
+			code, err := ioutil.ReadFile(path)
+			assert.Nil(t, err)
+			assert.Nil(t, validateCode(string(code)))
+		}
+		return nil
+	})
 }
 
 func validateCode(code string) error {
