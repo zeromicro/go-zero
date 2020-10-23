@@ -25,11 +25,13 @@ func StartHttps(host string, port int, certFile, keyFile string, handler http.Ha
 }
 
 func StartServer(srv *http.Server) error {
-	proc.AddWrapUpListener(func() {
+	shutdownCalled := proc.AddWrapUpListener(func() {
 		srv.Shutdown(context.Background())
 	})
 
-	return srv.ListenAndServe()
+	err := srv.ListenAndServe()
+	shutdownCalled()
+	return err
 }
 
 func buildHttpServer(addr string, handler http.Handler) *http.Server {
