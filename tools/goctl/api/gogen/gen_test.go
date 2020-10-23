@@ -177,6 +177,7 @@ service A-api {
   get /greet/from/:name(Request) returns (Response)
 }
 `
+
 const apiHasNoRequest = `	
 service A-api {	
   @handler GreetHandler	
