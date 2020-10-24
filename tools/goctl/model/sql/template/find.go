@@ -51,7 +51,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 		return nil, err
 	}
 }{{else}}var resp {{.upperStartCamelObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.originalField}} limit 1` + "`" + `
+	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.originalField}} = ? limit 1` + "`" + `
 	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelField}})
 	switch err {
 	case nil:
