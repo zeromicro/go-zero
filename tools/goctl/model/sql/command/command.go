@@ -63,20 +63,28 @@ func MyDataSource(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	pattern := strings.TrimSpace(ctx.String(flagTable))
+	err, done := FromDataSource(idea, pattern, url, dir, cache)
+	if done {
+		return err
+	}
+	return nil
+}
+
+func FromDataSource(idea bool, pattern, url string, dir string, cache bool) (error, bool) {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
-		return nil
+		return nil, true
 	}
 
 	if len(pattern) == 0 {
 		log.Error("%v", "expected table or table globbing patterns, but nothing found")
-		return nil
+		return nil, true
 	}
 
 	cfg, err := mysql.ParseDSN(url)
 	if err != nil {
-		return err
+		return err, true
 	}
 
 	logx.Disable()
@@ -88,14 +96,14 @@ func MyDataSource(ctx *cli.Context) error {
 
 	tables, err := im.GetAllTables(cfg.DBName)
 	if err != nil {
-		return err
+		return err, true
 	}
 
 	var matchTables []string
 	for _, item := range tables {
 		match, err := filepath.Match(pattern, item)
 		if err != nil {
-			return err
+			return err, true
 		}
 
 		if !match {
@@ -105,13 +113,13 @@ func MyDataSource(ctx *cli.Context) error {
 		matchTables = append(matchTables, item)
 	}
 	if len(matchTables) == 0 {
-		return errors.New("no tables matched")
+		return errors.New("no tables matched"), true
 	}
 
 	ddl, err := m.ShowDDL(matchTables...)
 	if err != nil {
 		log.Error("%v", err)
-		return nil
+		return nil, true
 	}
 
 	generator := gen.NewDefaultGenerator(strings.Join(ddl, "\n"), dir, gen.WithConsoleOption(log))
@@ -119,6 +127,5 @@ func MyDataSource(ctx *cli.Context) error {
 	if err != nil {
 		log.Error("%v", err)
 	}
-
-	return nil
+	return nil, false
 }
