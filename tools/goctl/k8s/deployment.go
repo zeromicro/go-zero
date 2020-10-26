@@ -1,6 +1,6 @@
 package k8s
 
-var apiRpcTmeplate = `apiVersion: apps/v1beta2
+var apiRpcTmeplate = `apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{.name}}
