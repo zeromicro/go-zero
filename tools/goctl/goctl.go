@@ -277,7 +277,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the naming style, lower|camel|underline,default is lower",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -312,7 +312,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the naming style, lower|camel|underline,default is lower",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "idea",
