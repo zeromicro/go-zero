@@ -276,7 +276,7 @@ var (
 									Usage: "the target dir",
 								},
 								cli.StringFlag{
-									Name:  "style, s",
+									Name:  "style",
 									Usage: "the naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
@@ -311,7 +311,7 @@ var (
 									Usage: "the target dir",
 								},
 								cli.StringFlag{
-									Name:  "style, s",
+									Name:  "style",
 									Usage: "the naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{

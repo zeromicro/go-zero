@@ -2,6 +2,7 @@ package command
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -21,6 +22,7 @@ const (
 	flagDir   = "dir"
 	flagCache = "cache"
 	flagIdea  = "idea"
+	flagStyle = "style"
 	flagUrl   = "url"
 	flagTable = "table"
 )
@@ -30,10 +32,19 @@ func MysqlDDL(ctx *cli.Context) error {
 	dir := ctx.String(flagDir)
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
+	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
 		return errors.New("expected path or path globbing patterns, but nothing found")
+	}
+
+	switch namingStyle {
+	case gen.NamingLower, gen.NamingCamel, gen.NamingUnderline:
+	case "":
+		namingStyle = gen.NamingLower
+	default:
+		return fmt.Errorf("unexpected naming style: %s", namingStyle)
 	}
 
 	files, err := util.MatchFiles(src)
@@ -49,7 +60,7 @@ func MysqlDDL(ctx *cli.Context) error {
 		}
 		source = append(source, string(data))
 	}
-	generator := gen.NewDefaultGenerator(strings.Join(source, "\n"), dir, gen.WithConsoleOption(log))
+	generator := gen.NewDefaultGenerator(strings.Join(source, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
 	err = generator.Start(cache)
 	if err != nil {
 		log.Error("%v", err)
@@ -62,6 +73,7 @@ func MyDataSource(ctx *cli.Context) error {
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
+	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
 	pattern := strings.TrimSpace(ctx.String(flagTable))
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
@@ -72,6 +84,14 @@ func MyDataSource(ctx *cli.Context) error {
 	if len(pattern) == 0 {
 		log.Error("%v", "expected table or table globbing patterns, but nothing found")
 		return nil
+	}
+
+	switch namingStyle {
+	case gen.NamingLower, gen.NamingCamel, gen.NamingUnderline:
+	case "":
+		namingStyle = gen.NamingLower
+	default:
+		return fmt.Errorf("unexpected naming style: %s", namingStyle)
 	}
 
 	cfg, err := mysql.ParseDSN(url)
@@ -114,7 +134,7 @@ func MyDataSource(ctx *cli.Context) error {
 		return nil
 	}
 
-	generator := gen.NewDefaultGenerator(strings.Join(ddl, "\n"), dir, gen.WithConsoleOption(log))
+	generator := gen.NewDefaultGenerator(strings.Join(ddl, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
 	err = generator.Start(cache)
 	if err != nil {
 		log.Error("%v", err)
