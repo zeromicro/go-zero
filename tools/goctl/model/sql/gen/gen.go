@@ -96,7 +96,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "vars.go")
-	text, err := util.LoadTemplate(category, modelTemplateFile, template.Error)
+	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
 	if err != nil {
 		return err
 	}
