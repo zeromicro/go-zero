@@ -14,7 +14,10 @@ var (
 func TestCacheModel(t *testing.T) {
 	logx.Disable()
 	_ = Clean()
-	g := NewDefaultGenerator(source, "./testmodel")
+	g := NewDefaultGenerator(source, "./testmodel/cache")
 	err := g.Start(true)
+	assert.Nil(t, err)
+	g = NewDefaultGenerator(source, "./testmodel/nocache")
+	err = g.Start(false)
 	assert.Nil(t, err)
 }
