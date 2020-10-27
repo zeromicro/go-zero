@@ -4,11 +4,11 @@ var Insert = `
 func (m *{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}) (sql.Result,error) {
 	{{if .withCache}}{{if .containsIndexCache}}{{.keys}}
     ret, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "` (` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) values ({{.expression}})` " + `
+		query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
 		return conn.Exec(query, {{.expressionValues}})
-	}, {{.keyValues}}){{else}}query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "` (` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) values ({{.expression}})` " + `
+	}, {{.keyValues}}){{else}}query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
     ret,err:=m.ExecNoCache(query, {{.expressionValues}})
-	{{end}}{{else}}query := ` + "`" + `insert into ` + "`" + ` + m.table + ` + "` (` + " + `{{.lowerStartCamelObject}}RowsExpectAutoSet` + " + `) values ({{.expression}})` " + `
+	{{end}}{{else}}query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
     ret,err:=m.conn.Exec(query, {{.expressionValues}}){{end}}
 	return ret,err
 }

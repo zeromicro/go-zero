@@ -275,6 +275,10 @@ var (
 									Name:  "dir, d",
 									Usage: "the target dir",
 								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
+								},
 								cli.BoolFlag{
 									Name:  "cache, c",
 									Usage: "generate code with cache [optional]",
@@ -305,6 +309,10 @@ var (
 								cli.StringFlag{
 									Name:  "dir, d",
 									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "idea",

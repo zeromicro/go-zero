@@ -70,7 +70,7 @@ func (g *defaultRpcGenerator) genMain() error {
 		"srv":         srv,
 		"registers":   registers,
 		"imports":     strings.Join(imports, util.NL),
-	}, fileName, true)
+	}, fileName, false)
 }
 
 func (g *defaultRpcGenerator) genServer(pkg string, list []*parser.RpcService) (string, string) {
