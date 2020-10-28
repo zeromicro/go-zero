@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"go/scanner"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -22,39 +23,79 @@ var (
 )
 
 func GoFormatApi(c *cli.Context) error {
-	dir := c.String("dir")
-	if len(dir) == 0 {
-		return errors.New("missing -dir")
-	}
-
-	printToConsole := c.Bool("p")
+	useStdin := c.Bool("stdin")
 
 	var be errorx.BatchError
-	err := filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
-		if strings.HasSuffix(path, ".api") {
-			err := ApiFormat(path, printToConsole)
-			if err != nil {
-				be.Add(util.WrapErr(err, fi.Name()))
-			}
+	if useStdin {
+		if err := ApiFormatByStdin(); err != nil {
+			be.Add(err)
 		}
-		return nil
-	})
-	be.Add(err)
+	} else {
+		dir := c.String("dir")
+		if len(dir) == 0 {
+			return errors.New("missing -dir")
+		}
+
+		_, err := os.Lstat(dir)
+		if err != nil {
+			return errors.New(dir + ": No such file or directory")
+		}
+
+		err = filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
+			if strings.HasSuffix(path, ".api") {
+				if err := ApiFormatByPath(path); err != nil {
+					be.Add(util.WrapErr(err, fi.Name()))
+				}
+			}
+			return nil
+		})
+		be.Add(err)
+	}
 	if be.NotNil() {
-		errs := be.Err().Error()
-		fmt.Println(errs)
+		scanner.PrintError(os.Stderr, be.Err())
 		os.Exit(1)
 	}
 	return be.Err()
 }
 
-func ApiFormat(path string, printToConsole bool) error {
-	data, err := ioutil.ReadFile(path)
+func ApiFormatByStdin() error {
+	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
 
-	r := reg.ReplaceAllStringFunc(string(data), func(m string) string {
+	result, err := apiFormat(string(data))
+	if err != nil {
+		return err
+	}
+
+	_, err = fmt.Print(result)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ApiFormatByPath(apiFilePath string) error {
+	data, err := ioutil.ReadFile(apiFilePath)
+	if err != nil {
+		return err
+	}
+
+	result, err := apiFormat(string(data))
+	if err != nil {
+		return err
+	}
+
+	if err := ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm); err != nil {
+		return err
+	}
+	return nil
+}
+
+func apiFormat(data string) (string, error) {
+
+	r := reg.ReplaceAllStringFunc(data, func(m string) string {
 		parts := reg.FindStringSubmatch(m)
 		if len(parts) < 2 {
 			return m
@@ -67,11 +108,11 @@ func ApiFormat(path string, printToConsole bool) error {
 
 	apiStruct, err := parser.ParseApi(r)
 	if err != nil {
-		return err
+		return "", err
 	}
 	info := strings.TrimSpace(apiStruct.Info)
 	if len(apiStruct.Service) == 0 {
-		return nil
+		return data, nil
 	}
 
 	fs, err := format.Source([]byte(strings.TrimSpace(apiStruct.StructBody)))
@@ -81,16 +122,16 @@ func ApiFormat(path string, printToConsole bool) error {
 		if lineNumber > 0 {
 			ln, err := strconv.ParseInt(str[:lineNumber], 10, 64)
 			if err != nil {
-				return err
+				return "", err
 			}
 			pn := 0
 			if len(info) > 0 {
 				pn = countRune(info, '\n') + 1
 			}
 			number := int(ln) + pn + 1
-			return errors.New(fmt.Sprintf("line: %d, %s", number, str[lineNumber+1:]))
+			return "", errors.New(fmt.Sprintf("line: %d, %s", number, str[lineNumber+1:]))
 		}
-		return err
+		return "", err
 	}
 
 	var result string
@@ -107,11 +148,7 @@ func ApiFormat(path string, printToConsole bool) error {
 		result += strings.TrimSpace(apiStruct.Service) + "\n\n"
 	}
 
-	if printToConsole {
-		_, err := fmt.Print(result)
-		return err
-	}
-	return ioutil.WriteFile(path, []byte(result), os.ModePerm)
+	return result, nil
 }
 
 func countRune(s string, r rune) int {

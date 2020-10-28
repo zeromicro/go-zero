@@ -52,12 +52,13 @@ var (
 							Usage: "the format target dir",
 						},
 						cli.BoolFlag{
-							Name:  "p",
-							Usage: "print result to console",
-						},
-						cli.BoolFlag{
 							Name:     "iu",
 							Usage:    "ignore update",
+							Required: false,
+						},
+						cli.BoolFlag{
+							Name:     "stdin",
+							Usage:    "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
 							Required: false,
 						},
 					},
