@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -67,17 +66,7 @@ func DoGenProject(apiFile, dir string, force bool) error {
 		return err
 	}
 
-	data, err := ioutil.ReadFile(apiFile)
-	if err != nil {
-		return err
-	}
-
-	result, err := apiformat.ApiFormat(string(data))
-	if err != nil {
-		return err
-	}
-
-	if err := ioutil.WriteFile(apiFile, []byte(result), os.ModePerm); err != nil {
+	if err := apiformat.ApiFormatByPath(apiFile); err != nil {
 		return err
 	}
 

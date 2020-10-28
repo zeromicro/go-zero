@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"go/scanner"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -26,7 +27,7 @@ func GoFormatApi(c *cli.Context) error {
 
 	var be errorx.BatchError
 	if useStdin {
-		if err := formatByStdin(); err != nil {
+		if err := ApiFormatByStdin(); err != nil {
 			be.Add(err)
 		}
 	} else {
@@ -37,29 +38,28 @@ func GoFormatApi(c *cli.Context) error {
 		var be errorx.BatchError
 		err := filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
-				if err := formatByPath(path); err != nil {
+				if err := ApiFormatByPath(path); err != nil {
 					be.Add(util.WrapErr(err, fi.Name()))
 				}
 			}
 			return nil
 		})
 		be.Add(err)
-		if be.NotNil() {
-			errs := be.Err().Error()
-			fmt.Println(errs)
-			os.Exit(1)
-		}
+	}
+	if be.NotNil() {
+		scanner.PrintError(os.Stderr, be.Err())
+		os.Exit(1)
 	}
 	return be.Err()
 }
 
-func formatByStdin() error {
+func ApiFormatByStdin() error {
 	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
 
-	result, err := ApiFormat(string(data))
+	result, err := apiFormat(string(data))
 	if err != nil {
 		return err
 	}
@@ -71,13 +71,13 @@ func formatByStdin() error {
 	return nil
 }
 
-func formatByPath(apiFilePath string) error {
+func ApiFormatByPath(apiFilePath string) error {
 	data, err := ioutil.ReadFile(apiFilePath)
 	if err != nil {
 		return err
 	}
 
-	result, err := ApiFormat(string(data))
+	result, err := apiFormat(string(data))
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func formatByPath(apiFilePath string) error {
 	return nil
 }
 
-func ApiFormat(data string) (string, error) {
+func apiFormat(data string) (string, error) {
 
 	r := reg.ReplaceAllStringFunc(data, func(m string) string {
 		parts := reg.FindStringSubmatch(m)
