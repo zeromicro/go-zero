@@ -21,7 +21,7 @@ Port: {{.port}}
 )
 
 func genEtc(dir string, api *spec.ApiSpec) error {
-	fp, created, err := util.MaybeCreateFile(dir, etcDir, fmt.Sprintf("%s.yaml", api.Service.Name))
+	fp, created, err := util.MaybeCreateFile(dir, etcDir, fmt.Sprintf("%s.yaml", api.Info.ApiFileName))
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func genEtc(dir string, api *spec.ApiSpec) error {
 	t := template.Must(template.New("etcTemplate").Parse(text))
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
-		"serviceName": service.Name,
+		"serviceName": api.Info.ApiFileName,
 		"host":        host,
 		"port":        port,
 	})

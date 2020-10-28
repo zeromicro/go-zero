@@ -14,9 +14,10 @@ import (
 )
 
 type Parser struct {
-	r       *bufio.Reader
-	typeDef string
-	api     *ApiStruct
+	r           *bufio.Reader
+	typeDef     string
+	api         *ApiStruct
+	apiFileName string
 }
 
 func NewParser(filename string) (*Parser, error) {
@@ -24,6 +25,8 @@ func NewParser(filename string) (*Parser, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	apiFileName := util.FileBaseNameWithoutExt(filename)
 
 	api, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -54,9 +57,10 @@ func NewParser(filename string) (*Parser, error) {
 	var buffer = new(bytes.Buffer)
 	buffer.WriteString(apiStruct.Service)
 	return &Parser{
-		r:       bufio.NewReader(buffer),
-		typeDef: apiStruct.StructBody,
-		api:     apiStruct,
+		r:           bufio.NewReader(buffer),
+		typeDef:     apiStruct.StructBody,
+		api:         apiStruct,
+		apiFileName: apiFileName,
 	}, nil
 }
 
@@ -68,6 +72,7 @@ func (p *Parser) Parse() (api *spec.ApiSpec, err error) {
 		return nil, err
 	}
 	api.Types = types
+	api.Info.ApiFileName = p.apiFileName
 	var lineNumber = p.api.serviceBeginLine
 	st := newRootState(p.r, &lineNumber)
 	for {

@@ -19,11 +19,12 @@ type (
 	}
 
 	Info struct {
-		Title   string
-		Desc    string
-		Version string
-		Author  string
-		Email   string
+		ApiFileName string
+		Title       string
+		Desc        string
+		Version     string
+		Author      string
+		Email       string
 	}
 
 	Member struct {

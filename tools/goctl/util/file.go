@@ -51,3 +51,10 @@ func FileExists(file string) bool {
 func FileNameWithoutExt(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
 }
+
+// Name returns the last element of path without file extension.
+// Example:
+// main.go          -> main
+func FileBaseNameWithoutExt(path string) string {
+	return FileNameWithoutExt(filepath.Base(path))
+}

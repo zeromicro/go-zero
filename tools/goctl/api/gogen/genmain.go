@@ -41,7 +41,7 @@ func main() {
 `
 
 func genMain(dir string, api *spec.ApiSpec) error {
-	name := strings.ToLower(api.Service.Name)
+	name := strings.ToLower(api.Info.ApiFileName)
 	if strings.HasSuffix(name, "-api") {
 		name = strings.ReplaceAll(name, "-api", "")
 	}
@@ -69,7 +69,7 @@ func genMain(dir string, api *spec.ApiSpec) error {
 	buffer := new(bytes.Buffer)
 	err = t.Execute(buffer, map[string]string{
 		"importPackages": genMainImports(parentPkg),
-		"serviceName":    api.Service.Name,
+		"serviceName":    api.Info.ApiFileName,
 	})
 	if err != nil {
 		return nil
