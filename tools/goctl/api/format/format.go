@@ -35,7 +35,13 @@ func GoFormatApi(c *cli.Context) error {
 		if len(dir) == 0 {
 			return errors.New("missing -dir")
 		}
-		err := filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
+
+		_, err := os.Lstat(dir)
+		if err != nil {
+			return errors.New(dir + ": No such file or directory")
+		}
+
+		err = filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
 				if err := ApiFormatByPath(path); err != nil {
 					be.Add(util.WrapErr(err, fi.Name()))
