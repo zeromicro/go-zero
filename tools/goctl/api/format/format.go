@@ -35,7 +35,6 @@ func GoFormatApi(c *cli.Context) error {
 		if len(dir) == 0 {
 			return errors.New("missing -dir")
 		}
-		var be errorx.BatchError
 		err := filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
 				if err := ApiFormatByPath(path); err != nil {
