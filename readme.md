@@ -184,4 +184,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 开源中国年度评选，给go-zero投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
 
+为了防止广告用户，请加我微信，我再拉进go-zero群。
+
+为了识别技术同行，请star后在加我时注明github当前star数，感谢！
+
+[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
+
 <img src="doc/images/wechat.jpg" alt="wechat" width="300" />
