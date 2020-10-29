@@ -1,4 +1,4 @@
-<img align="right" width="150px" src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/go-zero.png">
+<img align="right" width="150px" src="doc/images/go-zero.png">
 
 # go-zero
 
@@ -25,7 +25,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 自动校验客户端请求参数合法性
 * 大量微服务治理和并发工具包
 
-<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/architecture.png" alt="架构图" width="1500" />
+<img src="doc/images/architecture.png" alt="架构图" width="1500" />
 
 ## 1. go-zero 框架背景
 
@@ -77,7 +77,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
-![弹性设计](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/resilience.jpg)
+![弹性设计](doc/images/resilience.jpg)
 
 ## 4. Installation
 
@@ -148,7 +148,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 6. Benchmark
 
-![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
+![benchmark](doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
@@ -184,4 +184,4 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 开源中国年度评选，给go-zero投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
 
-<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
+<img src="doc/images/wechat.jpg" alt="wechat" width="300" />
