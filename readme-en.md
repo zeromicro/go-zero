@@ -121,19 +121,17 @@ go get -u github.com/tal-tech/go-zero
    }
 
    service greet-api {
-     @server(
-       handler: GreetHandler
-     )
+     @handler GreetHandler
      get /greet/from/:name(Request) returns (Response);
    }
    ```
-
+   
    the .api files also can be generate by goctl, like below:
 
    ```shell
-   goctl api -o greet.api
+goctl api -o greet.api
    ```
-
+   
 3. generate the go server side code
 
    ```shell
