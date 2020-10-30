@@ -190,4 +190,4 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 [https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 
-<img src="doc/images/wechat.jpg" alt="wechat" width="300" />
+<img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
