@@ -178,15 +178,14 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
-开源中国年度评选，给 **go-zero** 投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
-
 为了防止广告用户、识别技术同行，请 ***star*** 后加我时注明 **github** 当前 ***star*** 数，我再拉进 **go-zero** 群，感谢！
 
 加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
+
+<img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
 
 项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 
 码云地址：[https://gitee.com/kevwan/go-zero](https://gitee.com/kevwan/go-zero) (国内用户可访问gitee，每日自动从github同步代码)
 
-<img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
-
+开源中国年度评选，给 **go-zero** 投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)

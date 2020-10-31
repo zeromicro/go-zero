@@ -19,9 +19,7 @@ func TestParseForm(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
 	assert.Nil(t, err)
-
-	err = Parse(r, &v)
-	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "hello", v.Name)
 	assert.Equal(t, 18, v.Age)
 	assert.Equal(t, 3.4, v.Percent)
@@ -97,8 +95,44 @@ Content-Disposition: form-data; name="age"
 	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
 	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
 
-	err := Parse(r, &v)
-	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, "kevin", v.Name)
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParseMultipartFormWrongBoundary(t *testing.T) {
+	var v struct {
+		Name string `form:"name"`
+		Age  int    `form:"age"`
+	}
+
+	body := strings.Replace(`----------------------------22047761238815478001938
+Content-Disposition: form-data; name="name"
+
+kevin
+----------------------------22047761238815478001938
+Content-Disposition: form-data; name="age"
+
+18
+----------------------------22047761238815478001938--`, "\n", "\r\n", -1)
+
+	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
+
+	assert.NotNil(t, Parse(r, &v))
+}
+
+func TestParseJsonBody(t *testing.T) {
+	var v struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	body := `{"name":"kevin", "age": 18}`
+	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r.Header.Set(ContentType, ApplicationJson)
+
+	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "kevin", v.Name)
 	assert.Equal(t, 18, v.Age)
 }
@@ -111,9 +145,7 @@ func TestParseRequired(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello", nil)
 	assert.Nil(t, err)
-
-	err = Parse(r, &v)
-	assert.NotNil(t, err)
+	assert.NotNil(t, Parse(r, &v))
 }
 
 func TestParseOptions(t *testing.T) {
@@ -123,9 +155,7 @@ func TestParseOptions(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?pos=4", nil)
 	assert.Nil(t, err)
-
-	err = Parse(r, &v)
-	assert.NotNil(t, err)
+	assert.NotNil(t, Parse(r, &v))
 }
 
 func BenchmarkParseRaw(b *testing.B) {
