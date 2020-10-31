@@ -172,23 +172,19 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 9. 微信交流群
 
-加群之前有劳给一个 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力。
-
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
 您可以在群内提出使用中需要改进的地方，我们会考虑合理性并尽快修改。
 
-如果您发现 bug 请及时提 issue，我们会尽快确认并修改。
-
-<!-- 扫码后请加群主，便于我邀请您进讨论群，并请退出扫码网关群，谢谢！-->
+如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
 开源中国年度评选，给 **go-zero** 投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
 
-为了防止广告用户，请加我微信，我再拉进 go-zero 群。
+为了防止广告用户、识别技术同行，请 ***star*** 后加我时注明 **github** 当前 ***star*** 数，我再拉进 **go-zero** 群，感谢！
 
-为了识别技术同行，请 ***star*** 后在加我时注明 **github** 当前 ***star*** 数，感谢！
+加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
 
-[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
+项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
 
