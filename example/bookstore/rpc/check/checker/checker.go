@@ -8,13 +8,15 @@ package checker
 import (
 	"context"
 
-	check "bookstore/rpc/check/pb"
+	check "bookstore/rpc/check/internal/pb"
 
-	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
+	CheckReq  = check.CheckReq
+	CheckResp = check.CheckResp
+
 	Checker interface {
 		Check(ctx context.Context, in *CheckReq) (*CheckResp, error)
 	}
@@ -31,33 +33,6 @@ func NewChecker(cli zrpc.Client) Checker {
 }
 
 func (m *defaultChecker) Check(ctx context.Context, in *CheckReq) (*CheckResp, error) {
-	var request check.CheckReq
-	bts, err := jsonx.Marshal(in)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	err = jsonx.Unmarshal(bts, &request)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	client := check.NewCheckerClient(m.cli.Conn())
-	resp, err := client.Check(ctx, &request)
-	if err != nil {
-		return nil, err
-	}
-
-	var ret CheckResp
-	bts, err = jsonx.Marshal(resp)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	err = jsonx.Unmarshal(bts, &ret)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	return &ret, nil
+	checker := check.NewCheckerClient(m.cli.Conn())
+	return checker.Check(ctx, in)
 }
