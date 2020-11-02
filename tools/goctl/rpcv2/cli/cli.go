@@ -12,7 +12,7 @@ import (
 
 func Rpc(c *cli.Context) error {
 	out := c.String("out")
-	IPATH := c.String("proto_path")
+	IPATH := c.StringSlice("proto_path")
 	src := c.Args().First()
 	if len(src) == 0 {
 		return errors.New("the proto source can not be nil")
@@ -50,7 +50,7 @@ func RpcNew(c *cli.Context) error {
 	}
 
 	g := generator.NewDefaultRpcGenerator()
-	return g.Generate(src, filepath.Dir(src), "")
+	return g.Generate(src, filepath.Dir(src), nil)
 }
 
 func RpcTemplate(c *cli.Context) error {

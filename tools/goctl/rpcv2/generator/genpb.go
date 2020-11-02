@@ -9,13 +9,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/parser"
 )
 
-func (g *defaultGenerator) GenPb(ctx DirContext, IPATH string, dir Dir, proto parser.Proto) error {
+func (g *defaultGenerator) GenPb(ctx DirContext, IPATH []string, dir Dir, proto parser.Proto) error {
 	cw := new(bytes.Buffer)
 	base := filepath.Dir(proto.Src)
 	cw.WriteString("protoc ")
 	cw.WriteString(" -I=" + base)
-	if len(IPATH) > 0 {
-		cw.WriteString(" -I=" + IPATH)
+	for _, ip := range IPATH {
+		cw.WriteString(" -I=" + ip)
 	}
 	cw.WriteString(" " + proto.Src)
 	if strings.Contains(proto.GoPackage, string(filepath.Separator)) {

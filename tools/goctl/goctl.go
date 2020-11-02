@@ -259,7 +259,7 @@ var (
 					Name:  "go",
 					Usage: `generate zrpc service from proto`,
 					Flags: []cli.Flag{
-						cli.StringFlag{
+						cli.StringSliceFlag{
 							Name:  "proto_path, I",
 							Usage: `native command of protoc,specify the directory in which to search for imports. [optional]`,
 						},

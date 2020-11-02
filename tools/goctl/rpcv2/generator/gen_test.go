@@ -16,7 +16,7 @@ func TestRpcGenerator_Generate_CaseNilImport(t *testing.T) {
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
 
-	err = g.Generate("./test_stream.proto", abs, "")
+	err = g.Generate("./test_stream.proto", abs, nil)
 	defer func() {
 		_ = os.RemoveAll(abs)
 	}()
@@ -32,7 +32,7 @@ func TestRpcGenerator_Generate_Case_Option(t *testing.T) {
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
 
-	err = g.Generate("./test_option.proto", abs, "")
+	err = g.Generate("./test_option.proto", abs, nil)
 	defer func() {
 		_ = os.RemoveAll(abs)
 	}()
@@ -48,7 +48,7 @@ func TestRpcGenerator_Generate_Case_Word_Option(t *testing.T) {
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
 
-	err = g.Generate("./test_word_option.proto", abs, "")
+	err = g.Generate("./test_word_option.proto", abs, nil)
 	defer func() {
 		_ = os.RemoveAll(abs)
 	}()
@@ -65,7 +65,7 @@ func TestRpcGenerator_Generate_Case_Go_Option(t *testing.T) {
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
 
-	err = g.Generate("./test_go_option.proto", abs, "")
+	err = g.Generate("./test_go_option.proto", abs, nil)
 	defer func() {
 		_ = os.RemoveAll(abs)
 	}()
@@ -81,7 +81,7 @@ func TestRpcGenerator_Generate_CaseImport(t *testing.T) {
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
 
-	err = g.Generate("./test_import.proto", abs, "./base")
+	err = g.Generate("./test_import.proto", abs, []string{"./base"})
 	defer func() {
 		_ = os.RemoveAll(abs)
 	}()

@@ -15,6 +15,6 @@ type (
 		GenServer(ctx DirContext, dir Dir, proto parser.Proto) error
 		GenSvc(ctx DirContext, dir Dir, proto parser.Proto) error
 		// IPATH is the native command of protoc, see $protoc -h
-		GenPb(ctx DirContext, IPATH string, dir Dir, proto parser.Proto) error
+		GenPb(ctx DirContext, IPATH []string, dir Dir, proto parser.Proto) error
 	}
 )

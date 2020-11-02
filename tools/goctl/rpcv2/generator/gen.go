@@ -24,7 +24,7 @@ func NewRpcGenerator(g Generator) *RpcGenerator {
 	}
 }
 
-func (g *RpcGenerator) Generate(src, target, IPATH string) error {
+func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
 	abs, err := filepath.Abs(target)
 	if err != nil {
 		return err
