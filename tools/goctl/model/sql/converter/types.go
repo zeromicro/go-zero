@@ -32,6 +32,7 @@ var (
 		"mediumtext": "string",
 		"longblob":   "string",
 		"longtext":   "string",
+		"json":       "string",
 	}
 )
 
