@@ -26,6 +26,10 @@ func (q *Queue) Empty() bool {
 	return empty
 }
 
+func (q *Queue) Count() int {
+	return q.count
+}
+
 func (q *Queue) Put(element interface{}) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
