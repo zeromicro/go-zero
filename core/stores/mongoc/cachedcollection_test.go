@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/stretchr/testify/assert"
@@ -19,6 +18,7 @@ import (
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redistest"
 )
 
 func init() {
@@ -27,12 +27,10 @@ func init() {
 
 func TestStat(t *testing.T) {
 	resetStats()
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error(err)
-	}
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
-	r := redis.NewRedis(s.Addr(), redis.NodeType)
 	cach := cache.NewCacheNode(r, sharedCalls, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 
@@ -73,12 +71,10 @@ func TestStatCacheFails(t *testing.T) {
 
 func TestStatDbFails(t *testing.T) {
 	resetStats()
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error(err)
-	}
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
-	r := redis.NewRedis(s.Addr(), redis.NodeType)
 	cach := cache.NewCacheNode(r, sharedCalls, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 
@@ -97,12 +93,10 @@ func TestStatDbFails(t *testing.T) {
 
 func TestStatFromMemory(t *testing.T) {
 	resetStats()
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error(err)
-	}
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
-	r := redis.NewRedis(s.Addr(), redis.NodeType)
 	cach := cache.NewCacheNode(r, sharedCalls, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redistest"
 )
 
 func init() {
@@ -44,16 +45,16 @@ func TestTokenLimit_Rescue(t *testing.T) {
 }
 
 func TestTokenLimit_Take(t *testing.T) {
-	s, err := miniredis.Run()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	const (
 		total = 100
 		rate  = 5
 		burst = 10
 	)
-	l := NewTokenLimiter(rate, burst, redis.NewRedis(s.Addr(), redis.NodeType), "tokenlimit")
+	l := NewTokenLimiter(rate, burst, store, "tokenlimit")
 	var allowed int
 	for i := 0; i < total; i++ {
 		time.Sleep(time.Second / time.Duration(total))
@@ -66,16 +67,16 @@ func TestTokenLimit_Take(t *testing.T) {
 }
 
 func TestTokenLimit_TakeBurst(t *testing.T) {
-	s, err := miniredis.Run()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
-	defer s.Close()
+	defer clean()
 
 	const (
 		total = 100
 		rate  = 5
 		burst = 10
 	)
-	l := NewTokenLimiter(rate, burst, redis.NewRedis(s.Addr(), redis.NodeType), "tokenlimit")
+	l := NewTokenLimiter(rate, burst, store, "tokenlimit")
 	var allowed int
 	for i := 0; i < total; i++ {
 		if l.Allow() {

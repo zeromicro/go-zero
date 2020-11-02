@@ -15,6 +15,7 @@ import (
 	"github.com/tal-tech/go-zero/core/mathx"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redistest"
 	"github.com/tal-tech/go-zero/core/syncx"
 )
 
@@ -26,12 +27,12 @@ func init() {
 }
 
 func TestCacheNode_DelCache(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
@@ -49,9 +50,9 @@ func TestCacheNode_DelCache(t *testing.T) {
 }
 
 func TestCacheNode_InvalidCache(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	s, err := miniredis.Run()
 	assert.Nil(t, err)
-	defer clean()
+	defer s.Close()
 
 	cn := cacheNode{
 		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
@@ -70,12 +71,12 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 }
 
 func TestCacheNode_Take(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
@@ -91,18 +92,18 @@ func TestCacheNode_Take(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", str)
 	assert.Nil(t, cn.GetCache("any", &str))
-	val, err := s.Get("any")
+	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `"value"`, val)
 }
 
 func TestCacheNode_TakeNotFound(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
@@ -116,18 +117,18 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	})
 	assert.Equal(t, errTestNotFound, err)
 	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
-	val, err := s.Get("any")
+	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `*`, val)
 
-	s.Set("any", "*")
+	store.Set("any", "*")
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return nil
 	})
 	assert.Equal(t, errTestNotFound, err)
 	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
 
-	s.Del("any")
+	store.Del("any")
 	var errDummy = errors.New("dummy")
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return errDummy
@@ -136,12 +137,12 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 }
 
 func TestCacheNode_TakeWithExpire(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
@@ -157,18 +158,18 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "value", str)
 	assert.Nil(t, cn.GetCache("any", &str))
-	val, err := s.Get("any")
+	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `"value"`, val)
 }
 
 func TestCacheNode_String(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
@@ -176,16 +177,16 @@ func TestCacheNode_String(t *testing.T) {
 		stat:           NewCacheStat("any"),
 		errNotFound:    errors.New("any"),
 	}
-	assert.Equal(t, s.Addr(), cn.String())
+	assert.Equal(t, store.Addr, cn.String())
 }
 
 func TestCacheValueWithBigInt(t *testing.T) {
-	s, clean, err := createMiniRedis()
+	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),

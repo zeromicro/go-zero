@@ -12,6 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/core/hash"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redistest"
 	"github.com/tal-tech/go-zero/core/syncx"
 )
 
@@ -75,23 +76,23 @@ func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v int
 
 func TestCache_SetDel(t *testing.T) {
 	const total = 1000
-	r1, clean1, err := createMiniRedis()
+	r1, clean1, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean1()
-	r2, clean2, err := createMiniRedis()
+	r2, clean2, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean2()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
-				Host: r1.Addr(),
+				Host: r1.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
 		},
 		{
 			RedisConf: redis.RedisConf{
-				Host: r2.Addr(),
+				Host: r2.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
@@ -123,13 +124,13 @@ func TestCache_SetDel(t *testing.T) {
 
 func TestCache_OneNode(t *testing.T) {
 	const total = 1000
-	r, clean, err := createMiniRedis()
+	r, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
-				Host: r.Addr(),
+				Host: r.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
