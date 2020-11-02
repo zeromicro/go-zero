@@ -28,6 +28,7 @@ func getParentPackage(dir string) (string, error) {
 		}
 		parent := filepath.Clean(goctlutil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
 		parent = strings.ReplaceAll(parent, "\\", "/")
+		parent = strings.ReplaceAll(parent, `\`, "/")
 		return parent, nil
 	}
 

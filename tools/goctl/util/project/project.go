@@ -118,7 +118,7 @@ func Prepare(projectDir string, checkGrpcEnv bool) (*Project, error) {
 	return &Project{
 		Name:      name,
 		Path:      path,
-		Package:   pkg,
+		Package:   strings.ReplaceAll(pkg, `\`, "/"),
 		IsInGoEnv: isInGoEnv,
 		GoMod: GoMod{
 			Module: module,
