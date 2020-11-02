@@ -1,0 +1,18 @@
+// test proto
+syntax = "proto3";
+
+package stream;
+
+option go_package="user";
+
+message StreamReq {
+  string name = 1;
+}
+
+message StreamResp {
+  string greet = 1;
+}
+
+service StreamGreeter {
+  rpc greet(StreamReq) returns (StreamResp);
+}

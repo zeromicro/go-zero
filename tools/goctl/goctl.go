@@ -20,6 +20,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	rpcv2 "github.com/tal-tech/go-zero/tools/goctl/rpcv2/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
@@ -211,10 +212,10 @@ var (
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.RpcNew,
+					Action: rpcv2.RpcNew,
 				},
 				{
 					Name:  "template",
@@ -226,22 +227,22 @@ var (
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.RpcTemplate,
+					Action: rpcv2.RpcTemplate,
 				},
 				{
 					Name:  "proto",
-					Usage: `generate rpc from proto`,
+					Usage: `generate rpc from proto [deprecated: use [goctl rpc go] instead],more about rpc generation, please see [goctl rpc go -h]`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "src, s",
-							Usage: "the file path of the proto source file",
+							Usage: "the file path of the proto source file [deprecated]",
 						},
 						cli.StringFlag{
 							Name:  "dir, d",
-							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+							Usage: `the target path of the code,default path is "${pwd}". [optional][deprecated]`,
 						},
 						cli.StringFlag{
 							Name:  "service, srv",
@@ -249,10 +250,29 @@ var (
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional][deprecated]",
 						},
 					},
 					Action: rpc.Rpc,
+				},
+				{
+					Name:  "go",
+					Usage: `generate zrpc service from proto`,
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "proto_path, I",
+							Usage: `native command of protoc,specify the directory in which to search for imports. [optional]`,
+						},
+						cli.StringFlag{
+							Name:  "out, o",
+							Usage: `generate Go source file. [optional]`,
+						},
+						cli.BoolFlag{
+							Name:  "idea",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
+						},
+					},
+					Action: rpcv2.Rpc,
 				},
 			},
 		},

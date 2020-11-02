@@ -1,11 +1,18 @@
+// test proto
 syntax = "proto3";
 
 package test;
 option go_package = "go";
 
-message TestMessage{}
+import "test_base.proto";
+
+message TestMessage{
+  base.CommonReq req = 1;
+}
 message TestReq{}
-message TestReply{}
+message TestReply{
+  base.CommonReply reply = 2;
+}
 
 enum TestEnum {
   unknown = 0;
