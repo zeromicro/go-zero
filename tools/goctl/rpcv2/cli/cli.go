@@ -11,9 +11,9 @@ import (
 )
 
 func Rpc(c *cli.Context) error {
+	src := c.String("src")
 	out := c.String("out")
 	IPATH := c.StringSlice("proto_path")
-	src := c.Args().First()
 	if len(src) == 0 {
 		return errors.New("the proto source can not be nil")
 	}
