@@ -185,6 +185,25 @@ service A-api {
 }
 `
 
+const apiRouteTest = `
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + `
+}
+service A-api {
+  @handler NormalHandler
+  get /greet/from/:name(Request) returns (Response)
+  @handler NoResponseHandler
+  get /greet/from/:sex(Request)
+  @handler NoRequestHandler
+  get /greet/from/request returns (Response)
+  @handler NoRequestNoResponseHandler
+  get /greet/from
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -321,6 +340,21 @@ func TestApiHasJwtAndMiddleware(t *testing.T) {
 func TestApiHasNoRequestBody(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(apiHasNoRequest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestApiRoutes(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(apiRouteTest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
