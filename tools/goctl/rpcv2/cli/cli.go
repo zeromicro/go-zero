@@ -31,6 +31,7 @@ func RpcNew(c *cli.Context) error {
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
+
 	protoName := name + ".proto"
 	filename := filepath.Join(".", name, protoName)
 	src, err := filepath.Abs(filename)

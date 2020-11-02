@@ -76,6 +76,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, dir Dir, proto parser.Proto) 
 	if err != nil {
 		return err
 	}
+
 	var alias []string
 	for _, item := range service.RPC {
 		alias = append(alias, fmt.Sprintf("%s = %s", item.RequestType, fmt.Sprintf("%s.%s", proto.PbPackage, item.RequestType)))

@@ -70,10 +70,7 @@ func (g *defaultGenerator) GenServer(ctx DirContext, dir Dir, proto parser.Proto
 		"imports": strings.Join(imports.KeysStr(), util.NL),
 		"funcs":   strings.Join(funcList, util.NL),
 	}, serverFile, true)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (g *defaultGenerator) genFunctions(goPackage string, service parser.Service) ([]string, error) {
