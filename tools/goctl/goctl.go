@@ -237,7 +237,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "src, s",
-							Usage: "the file path of the proto source file [deprecated]",
+							Usage: "the file path of the proto source file",
 						},
 						cli.StringSliceFlag{
 							Name:  "proto_path, I",

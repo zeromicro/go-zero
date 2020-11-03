@@ -109,7 +109,7 @@ USAGE:
    goctl rpc proto [command options] [arguments...]
 
 OPTIONS:
-   --src value, -s value         the file path of the proto source file [deprecated]
+   --src value, -s value         the file path of the proto source file
    --proto_path value, -I value  native command of protoc,specify the directory in which to search for imports. [optional]
    --dir value, -d value         the target path of the code,default path is "${pwd}". [optional]
    --idea                        whether the command execution environment is from idea plugin. [optional]
