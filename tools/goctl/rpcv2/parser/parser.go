@@ -14,12 +14,6 @@ import (
 )
 
 type (
-	ProtoParser interface {
-		Parse(data []byte) (Proto, error)
-	}
-)
-
-type (
 	defaultProtoParser struct{}
 )
 
