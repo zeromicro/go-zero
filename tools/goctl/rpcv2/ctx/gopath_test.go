@@ -11,7 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestGOPATH(t *testing.T) {
+func TestProjectFromGoPath(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {
@@ -27,13 +27,13 @@ func TestGOPATH(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	ctx, err := GOPATH(dir)
+	ctx, err := projectFromGoPath(dir)
 	assert.Nil(t, err)
 	assert.Equal(t, dir, ctx.Dir)
 	assert.Equal(t, projectName, ctx.Path)
 }
 
-func TestGOPATH_NotInGoSrc(t *testing.T) {
+func TestProjectFromGoPathNotInGoSrc(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {
@@ -49,6 +49,6 @@ func TestGOPATH_NotInGoSrc(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	_, err = GOPATH("testPath")
+	_, err = projectFromGoPath("testPath")
 	assert.NotNil(t, err)
 }

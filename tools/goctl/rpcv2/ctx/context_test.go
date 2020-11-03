@@ -15,7 +15,7 @@ func TestBackground(t *testing.T) {
 	}())
 }
 
-func TestBackground_NilWorkDir(t *testing.T) {
+func TestBackgroundNilWorkDir(t *testing.T) {
 	workDir := ""
 	_, err := Background(workDir)
 	assert.NotNil(t, err)

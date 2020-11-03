@@ -19,7 +19,7 @@ func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	}
 	cw.WriteString(" -I=" + base)
 	cw.WriteString(" " + proto.Name)
-	if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
+	if strings.Contains(proto.GoPackage, "/") {
 		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetInternal().Filename)
 	} else {
 		cw.WriteString(" --go_out=plugins=grpc:" + dir.Filename)

@@ -12,7 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestGOMOD(t *testing.T) {
+func TestProjectFromGoMod(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {
@@ -31,7 +31,7 @@ func TestGOMOD(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	ctx, err := GOMOD(dir)
+	ctx, err := projectFromGoMod(dir)
 	assert.Nil(t, err)
 	assert.Equal(t, projectName, ctx.Path)
 	assert.Equal(t, dir, ctx.Dir)

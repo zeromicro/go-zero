@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultProtoParser_Parse(t *testing.T) {
+func TestDefaultProtoParse(t *testing.T) {
 	p := NewDefaultProtoParser()
 	data, err := p.Parse("./test.proto")
 	assert.Nil(t, err)
@@ -39,7 +39,7 @@ func TestDefaultProtoParser_Parse(t *testing.T) {
 	}())
 }
 
-func TestDefaultProtoParser_Parse_Case_InvalidRequestType(t *testing.T) {
+func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
 	p := NewDefaultProtoParser()
 	_, err := p.Parse("./test_invalid_request.proto")
 	assert.True(t, true, func() bool {
@@ -47,7 +47,7 @@ func TestDefaultProtoParser_Parse_Case_InvalidRequestType(t *testing.T) {
 	}())
 }
 
-func TestDefaultProtoParser_Parse_Case_InvalidResponseType(t *testing.T) {
+func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
 	p := NewDefaultProtoParser()
 	_, err := p.Parse("./test_invalid_response.proto")
 	assert.True(t, true, func() bool {
@@ -55,13 +55,13 @@ func TestDefaultProtoParser_Parse_Case_InvalidResponseType(t *testing.T) {
 	}())
 }
 
-func TestDefaultProtoParser_ParseError(t *testing.T) {
+func TestDefaultProtoParseError(t *testing.T) {
 	p := NewDefaultProtoParser()
 	_, err := p.Parse("./nil.proto")
 	assert.NotNil(t, err)
 }
 
-func TestDefaultProtoParser_Parse_Option(t *testing.T) {
+func TestDefaultProtoParse_Option(t *testing.T) {
 	p := NewDefaultProtoParser()
 	data, err := p.Parse("./test_option.proto")
 	assert.Nil(t, err)
@@ -69,7 +69,7 @@ func TestDefaultProtoParser_Parse_Option(t *testing.T) {
 	assert.Equal(t, "go_zero", data.PbPackage)
 }
 
-func TestDefaultProtoParser_Parse_Option2(t *testing.T) {
+func TestDefaultProtoParse_Option2(t *testing.T) {
 	p := NewDefaultProtoParser()
 	data, err := p.Parse("./test_option2.proto")
 	assert.Nil(t, err)

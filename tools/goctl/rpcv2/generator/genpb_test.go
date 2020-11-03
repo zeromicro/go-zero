@@ -11,7 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestDefaultGenerator_GenPb_CaseNilImport(t *testing.T) {
+func TestGenerateCaseNilImport(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
@@ -44,7 +44,7 @@ func TestDefaultGenerator_GenPb_CaseNilImport(t *testing.T) {
 	}
 }
 
-func TestDefaultGenerator_GenPb_CaseImport(t *testing.T) {
+func TestGenerateCaseImport(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
@@ -78,7 +78,7 @@ func TestDefaultGenerator_GenPb_CaseImport(t *testing.T) {
 	}
 }
 
-func TestDefaultGenerator_GenPb_Case_Path_Option(t *testing.T) {
+func TestGenerateCasePathOption(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
@@ -112,7 +112,7 @@ func TestDefaultGenerator_GenPb_Case_Path_Option(t *testing.T) {
 	}
 }
 
-func TestDefaultGenerator_GenPb_Case_Word_Option(t *testing.T) {
+func TestGenerateCaseWordOption(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)
@@ -148,7 +148,7 @@ func TestDefaultGenerator_GenPb_Case_Word_Option(t *testing.T) {
 }
 
 // test keyword go
-func TestDefaultGenerator_GenPb_Case_Go_Option(t *testing.T) {
+func TestGenerateCaseGoOption(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)

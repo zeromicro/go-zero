@@ -11,7 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestDefaultGenerator_GenLogic(t *testing.T) {
+func TestGenerateLogic(t *testing.T) {
 	project := "stream"
 	abs, err := filepath.Abs("./test")
 	assert.Nil(t, err)

@@ -12,7 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestIsGoMod_GoMod(t *testing.T) {
+func TestIsGoMod(t *testing.T) {
 	// create mod project
 	dft := build.Default
 	gp := dft.GOPATH
@@ -37,7 +37,7 @@ func TestIsGoMod_GoMod(t *testing.T) {
 	assert.Equal(t, true, isGoMod)
 }
 
-func TestIsGoMod_GOPath(t *testing.T) {
+func TestIsGoModNot(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {
@@ -59,7 +59,7 @@ func TestIsGoMod_GOPath(t *testing.T) {
 	assert.Equal(t, false, isGoMod)
 }
 
-func TestIsGoMod_WorkDirIsNil(t *testing.T) {
+func TestIsGoModWorkDirIsNil(t *testing.T) {
 	_, err := IsGoMod("")
 	assert.Equal(t, err.Error(), func() string {
 		return "the work directory is not found"

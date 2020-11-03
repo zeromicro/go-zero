@@ -15,7 +15,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func TestDefaultDirContext_GOPATH(t *testing.T) {
+func TestMkDirInGoPath(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {
@@ -71,7 +71,7 @@ func TestDefaultDirContext_GOPATH(t *testing.T) {
 	}())
 }
 
-func TestDefaultDirContext_GOMOD(t *testing.T) {
+func TestMkDirInGoMod(t *testing.T) {
 	dft := build.Default
 	gp := dft.GOPATH
 	if len(gp) == 0 {

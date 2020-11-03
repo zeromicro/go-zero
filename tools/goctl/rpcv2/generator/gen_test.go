@@ -10,7 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/execx"
 )
 
-func TestRpcGenerator_Generate_CaseNilImport(t *testing.T) {
+func TestRpcGenerateCaseNilImport(t *testing.T) {
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -28,7 +28,7 @@ func TestRpcGenerator_Generate_CaseNilImport(t *testing.T) {
 	}
 }
 
-func TestRpcGenerator_Generate_Case_Option(t *testing.T) {
+func TestRpcGenerateCaseOption(t *testing.T) {
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -46,7 +46,7 @@ func TestRpcGenerator_Generate_Case_Option(t *testing.T) {
 	}
 }
 
-func TestRpcGenerator_Generate_Case_Word_Option(t *testing.T) {
+func TestRpcGenerateCaseWordOption(t *testing.T) {
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -65,7 +65,7 @@ func TestRpcGenerator_Generate_Case_Word_Option(t *testing.T) {
 }
 
 // test keyword go
-func TestRpcGenerator_Generate_Case_Go_Option(t *testing.T) {
+func TestRpcGenerateCaseGoOption(t *testing.T) {
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -83,7 +83,7 @@ func TestRpcGenerator_Generate_Case_Go_Option(t *testing.T) {
 	}
 }
 
-func TestRpcGenerator_Generate_CaseImport(t *testing.T) {
+func TestRpcGenerateCaseImport(t *testing.T) {
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
