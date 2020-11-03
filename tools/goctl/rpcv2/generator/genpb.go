@@ -13,10 +13,10 @@ func (g *defaultGenerator) GenPb(ctx DirContext, IPATH []string, dir Dir, proto 
 	cw := new(bytes.Buffer)
 	base := filepath.Dir(proto.Src)
 	cw.WriteString("protoc ")
-	cw.WriteString(" -I=" + base)
 	for _, ip := range IPATH {
 		cw.WriteString(" -I=" + ip)
 	}
+	cw.WriteString(" -I=" + base)
 	cw.WriteString(" " + proto.Src)
 	if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
 		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetInternal().Filename)
