@@ -6,6 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/ctx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
 type (
@@ -92,5 +93,8 @@ func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
 	}
 
 	err = g.g.GenCall(dirCtx, dirCtx.GetCall(), proto)
+
+	console.NewColorConsole().MarkDone()
+
 	return err
 }
