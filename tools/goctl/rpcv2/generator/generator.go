@@ -11,6 +11,5 @@ type Generator interface {
 	GenLogic(ctx DirContext, proto parser.Proto) error
 	GenServer(ctx DirContext, proto parser.Proto) error
 	GenSvc(ctx DirContext, proto parser.Proto) error
-	// GenPb protoImportPath is the native command of protoc, see $protoc -h
 	GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto) error
 }

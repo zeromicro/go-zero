@@ -10,6 +10,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
+// projectFromGoPath is used to find the main module and project file path
+// the workDir flag specifies which folder we need to detect based on
+// only valid for go mod project
 func projectFromGoPath(workDir string) (*ProjectContext, error) {
 	if len(workDir) == 0 {
 		return nil, errors.New("the work directory is not found")

@@ -54,6 +54,7 @@ func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto) error {
 		if err != nil {
 			return err
 		}
+
 		imports := collection.NewSet()
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))

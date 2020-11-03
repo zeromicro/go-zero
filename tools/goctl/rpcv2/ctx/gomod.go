@@ -17,6 +17,9 @@ type Module struct {
 	GoVersion string
 }
 
+// projectFromGoMod is used to find the go module and project file path
+// the workDir flag specifies which folder we need to detect based on
+// only valid for go mod project
 func projectFromGoMod(workDir string) (*ProjectContext, error) {
 	if len(workDir) == 0 {
 		return nil, errors.New("the work directory is not found")

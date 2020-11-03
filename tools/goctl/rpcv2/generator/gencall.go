@@ -73,6 +73,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
 	if err != nil {
 		return err
 	}
+
 	text, err := util.LoadTemplate(category, callTemplateFile, callTemplateText)
 	if err != nil {
 		return err
@@ -104,6 +105,7 @@ func (g *defaultGenerator) genFunction(goPackage string, service parser.Service)
 		if err != nil {
 			return nil, err
 		}
+
 		comment := parser.GetComment(rpc.Doc())
 		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
 			"rpcServiceName": stringx.From(service.Name).Title(),

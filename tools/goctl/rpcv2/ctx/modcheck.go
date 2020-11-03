@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/execx"
 )
 
+// IsGoMod is used to determine whether workDir is a go module project through command `go list -json -m`
 func IsGoMod(workDir string) (bool, error) {
 	if len(workDir) == 0 {
 		return false, errors.New("the work directory is not found")

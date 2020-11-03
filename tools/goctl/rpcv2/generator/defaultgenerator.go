@@ -22,6 +22,7 @@ func (g *defaultGenerator) Prepare() error {
 	if err != nil {
 		return err
 	}
+
 	_, err = exec.LookPath("protoc")
 	if err != nil {
 		return err
