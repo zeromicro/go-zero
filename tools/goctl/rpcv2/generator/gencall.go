@@ -69,7 +69,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
 		return err
 	}
 
-	iFunctions, err := g.getInterfaceFuncs(proto.PbPackage, service)
+	iFunctions, err := g.getInterfaceFuncs(service)
 	if err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (g *defaultGenerator) genFunction(goPackage string, service parser.Service)
 	return functions, nil
 }
 
-func (g *defaultGenerator) getInterfaceFuncs(goPackage string, service parser.Service) ([]string, error) {
+func (g *defaultGenerator) getInterfaceFuncs(service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {

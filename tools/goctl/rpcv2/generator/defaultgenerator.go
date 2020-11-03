@@ -6,11 +6,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
-type (
-	defaultGenerator struct {
-		log console.Console
-	}
-)
+type defaultGenerator struct {
+	log console.Console
+}
 
 func NewDefaultGenerator() *defaultGenerator {
 	log := console.NewColorConsole()

@@ -9,42 +9,36 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpcv2/execx"
 )
 
-type (
-	// go list -json -m
-	Module struct {
-		Path      string
-		Main      bool
-		Dir       string
-		GoMod     string
-		GoVersion string
-	}
-)
+type Module struct {
+	Path      string
+	Main      bool
+	Dir       string
+	GoMod     string
+	GoVersion string
+}
 
-func GOMOD(workDir string) (ProjectContext, error) {
-	var ret ProjectContext
-
+func projectFromGoMod(workDir string) (*ProjectContext, error) {
 	if len(workDir) == 0 {
-		return ret, errors.New("the work directory is not found")
+		return nil, errors.New("the work directory is not found")
 	}
 	if _, err := os.Stat(workDir); err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	data, err := execx.Run("go list -json -m", workDir)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
-	// go mod
 	var m Module
 	err = jsonx.Unmarshal([]byte(data), &m)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-
+	var ret ProjectContext
 	ret.WorkDir = workDir
 	ret.Name = filepath.Base(m.Dir)
 	ret.Dir = m.Dir
 	ret.Path = m.Path
-	return ret, nil
+	return &ret, nil
 }

@@ -2,7 +2,6 @@ package ctx
 
 import (
 	"errors"
-	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -11,38 +10,35 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func GOPATH(workDir string) (ProjectContext, error) {
-	var ret ProjectContext
-
+func projectFromGoPath(workDir string) (*ProjectContext, error) {
 	if len(workDir) == 0 {
-		return ret, errors.New("the work directory is not found")
+		return nil, errors.New("the work directory is not found")
 	}
 	if _, err := os.Stat(workDir); err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	buildContext := build.Default
-	GOPATH := buildContext.GOPATH
-	GOSRC := filepath.Join(GOPATH, "src")
-	if !util.FileExists(GOSRC) {
-		return ret, fmt.Errorf("the $GOPTAH/src:  %s is not found", GOSRC)
+	goPath := buildContext.GOPATH
+	goSrc := filepath.Join(goPath, "src")
+	if !util.FileExists(goSrc) {
+		return nil, moduleCheckErr
 	}
 
 	wd, err := filepath.Abs(workDir)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
-	if !strings.HasPrefix(wd, GOSRC) {
-		return ret, fmt.Errorf("the work directory must in the $GOPATH/src")
+	if !strings.HasPrefix(wd, goSrc) {
+		return nil, moduleCheckErr
 	}
 
-	projectName := strings.TrimPrefix(wd, GOSRC+string(filepath.Separator))
-
-	return ProjectContext{
+	projectName := strings.TrimPrefix(wd, goSrc+string(filepath.Separator))
+	return &ProjectContext{
 		WorkDir: workDir,
 		Name:    projectName,
 		Path:    projectName,
-		Dir:     filepath.Join(GOSRC, projectName),
+		Dir:     filepath.Join(goSrc, projectName),
 	}, nil
 }

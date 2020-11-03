@@ -1,42 +1,38 @@
 package ctx
 
 import (
-	"fmt"
+	"errors"
 )
+
+var moduleCheckErr = errors.New("the work directory must be found in the go mod or the $GOPATH")
 
 type (
 	ProjectContext struct {
 		WorkDir string
-		// the project name
+		// Name is the root name of project
 		// eg: go-zero、greet
 		Name string
-		// the module path,
-		// eg:github.com/tal-tech/go-zero、greet
+		// Path is the module path,which is module value if it's go mod project,
+		// or else is the root name of project
+		// eg: github.com/tal-tech/go-zero、greet
 		Path string
-		// the path of current project
-		// eg:/Users/keson/goland/go/go-zero、/Users/keson/go/src/greet
+		// Dir is the path of project
+		// eg: /Users/keson/goland/go/go-zero、/Users/keson/go/src/greet
 		Dir string
 	}
 )
 
-// workDir is the directory of the source of generating code,
-// where can be found the project path and the project dir,
-func Background(workDir string) (ret ProjectContext, err error) {
-	defer func() {
-		if err != nil {
-			err = fmt.Errorf("the project must using go mod or in $GOPATH/src")
-		}
-	}()
+// Background checks the project which module belongs to,and returns the path and module.
+// workDir parameter is the directory of the source of generating code,
+// where can be found the project path and the project module,
+func Background(workDir string) (*ProjectContext, error) {
 	isGoMod, err := IsGoMod(workDir)
 	if err != nil {
-		ret = ProjectContext{}
-		return
+		return nil, err
 	}
 
 	if isGoMod {
-		ret, err = GOMOD(workDir)
-		return
+		return projectFromGoMod(workDir)
 	}
-	ret, err = GOPATH(workDir)
-	return
+	return projectFromGoPath(workDir)
 }

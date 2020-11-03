@@ -45,7 +45,7 @@ type (
 	}
 )
 
-func mkdir(ctx ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")

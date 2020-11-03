@@ -9,11 +9,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
-type (
-	RpcGenerator struct {
-		g Generator
-	}
-)
+type RpcGenerator struct {
+	g Generator
+}
 
 func NewDefaultRpcGenerator() *RpcGenerator {
 	return NewRpcGenerator(NewDefaultGenerator())
@@ -25,7 +23,7 @@ func NewRpcGenerator(g Generator) *RpcGenerator {
 	}
 }
 
-func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
+func (g *RpcGenerator) Generate(src, target string, protoImportPath []string) error {
 	abs, err := filepath.Abs(target)
 	if err != nil {
 		return err
@@ -62,7 +60,7 @@ func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, IPATH, proto)
+	err = g.g.GenPb(dirCtx, protoImportPath, proto)
 	if err != nil {
 		return err
 	}

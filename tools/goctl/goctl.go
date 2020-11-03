@@ -241,11 +241,11 @@ var (
 						},
 						cli.StringSliceFlag{
 							Name:  "proto_path, I",
-							Usage: `native command of protoc,specify the directory in which to search for imports. [optional]`,
+							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
 						cli.StringFlag{
 							Name:  "dir, d",
-							Usage: `the target path of the code,default path is "${pwd}". [optional]`,
+							Usage: `the target path of the code`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
