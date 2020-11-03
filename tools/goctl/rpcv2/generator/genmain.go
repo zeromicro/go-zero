@@ -44,7 +44,8 @@ func main() {
 }
 `
 
-func (g *defaultGenerator) GenMain(ctx DirContext, dir Dir, proto parser.Proto) error {
+func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto) error {
+	dir := ctx.GetMain()
 	serviceNameLower := formatFilename(ctx.GetMain().Base)
 	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.go", serviceNameLower))
 	imports := make([]string, 0)

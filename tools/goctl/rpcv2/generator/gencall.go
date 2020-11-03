@@ -58,7 +58,8 @@ func (m *default{{.rpcServiceName}}) {{.method}}(ctx context.Context,in *{{.pbRe
 `
 )
 
-func (g *defaultGenerator) GenCall(ctx DirContext, dir Dir, proto parser.Proto) error {
+func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
+	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
 

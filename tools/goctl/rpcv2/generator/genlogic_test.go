@@ -39,6 +39,6 @@ func TestDefaultGenerator_GenLogic(t *testing.T) {
 		return
 	}
 
-	err = g.GenLogic(dirCtx, dirCtx.GetLogic(), proto)
+	err = g.GenLogic(dirCtx, proto)
 	assert.Nil(t, err)
 }

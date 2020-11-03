@@ -43,7 +43,8 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in {{.request}}) (
 `
 )
 
-func (g *defaultGenerator) GenServer(ctx DirContext, dir Dir, proto parser.Proto) error {
+func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto) error {
+	dir := ctx.GetServer()
 	logicImport := fmt.Sprintf(`"%v"`, ctx.GetLogic().Package)
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)

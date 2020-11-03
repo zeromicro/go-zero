@@ -16,7 +16,8 @@ Etcd:
   Key: {{.serviceName}}.rpc
 `
 
-func (g *defaultGenerator) GenEtc(ctx DirContext, dir Dir, proto parser.Proto) error {
+func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto) error {
+	dir := ctx.GetEtc()
 	serviceNameLower := formatFilename(ctx.GetMain().Base)
 	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", serviceNameLower))
 

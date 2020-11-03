@@ -18,7 +18,8 @@ type Config struct {
 }
 `
 
-func (g *defaultGenerator) GenConfig(_ DirContext, dir Dir, _ parser.Proto) error {
+func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto) error {
+	dir := ctx.GetConfig()
 	fileName := filepath.Join(dir.Filename, formatFilename("config")+".go")
 	if util.FileExists(fileName) {
 		return nil

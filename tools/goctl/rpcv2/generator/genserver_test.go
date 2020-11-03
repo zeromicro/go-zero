@@ -40,6 +40,6 @@ func TestDefaultGenerator_GenServer(t *testing.T) {
 		return
 	}
 
-	err = g.GenServer(dirCtx, dirCtx.GetServer(), proto)
+	err = g.GenServer(dirCtx, proto)
 	assert.Nil(t, err)
 }

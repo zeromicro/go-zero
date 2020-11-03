@@ -57,42 +57,42 @@ func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
 		return err
 	}
 
-	err = g.g.GenEtc(dirCtx, dirCtx.GetEtc(), proto)
+	err = g.g.GenEtc(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, IPATH, dirCtx.GetPb(), proto)
+	err = g.g.GenPb(dirCtx, IPATH, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenConfig(dirCtx, dirCtx.GetConfig(), proto)
+	err = g.g.GenConfig(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenSvc(dirCtx, dirCtx.GetSvc(), proto)
+	err = g.g.GenSvc(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenLogic(dirCtx, dirCtx.GetLogic(), proto)
+	err = g.g.GenLogic(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenServer(dirCtx, dirCtx.GetServer(), proto)
+	err = g.g.GenServer(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenMain(dirCtx, dirCtx.GetMain(), proto)
+	err = g.g.GenMain(dirCtx, proto)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenCall(dirCtx, dirCtx.GetCall(), proto)
+	err = g.g.GenCall(dirCtx, proto)
 
 	console.NewColorConsole().MarkDone()
 

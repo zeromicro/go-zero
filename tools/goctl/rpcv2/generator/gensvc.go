@@ -23,7 +23,8 @@ func NewServiceContext(c config.Config) *ServiceContext {
 }
 `
 
-func (g *defaultGenerator) GenSvc(ctx DirContext, dir Dir, _ parser.Proto) error {
+func (g *defaultGenerator) GenSvc(ctx DirContext, _ parser.Proto) error {
+	dir := ctx.GetSvc()
 	fileName := filepath.Join(dir.Filename, formatFilename("service_context")+".go")
 	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
 	if err != nil {

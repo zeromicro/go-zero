@@ -39,11 +39,11 @@ func TestDefaultGenerator_GenConfig(t *testing.T) {
 	if err != nil {
 		return
 	}
-	err = g.GenConfig(dirCtx, dirCtx.GetConfig(), proto)
+	err = g.GenConfig(dirCtx, proto)
 	assert.Nil(t, err)
 
 	// test file exists
-	err = g.GenConfig(dirCtx, dirCtx.GetConfig(), proto)
+	err = g.GenConfig(dirCtx, proto)
 	assert.Nil(t, err)
 
 }

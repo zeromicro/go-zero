@@ -39,6 +39,6 @@ func TestDefaultGenerator_GenCall(t *testing.T) {
 	if err != nil {
 		return
 	}
-	err = g.GenCall(dirCtx, dirCtx.GetCall(), proto)
+	err = g.GenCall(dirCtx, proto)
 	assert.Nil(t, err)
 }
