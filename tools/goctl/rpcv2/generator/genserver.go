@@ -86,8 +86,8 @@ func (g *defaultGenerator) genFunctions(goPackage string, service parser.Service
 			"server":     stringx.From(service.Name).Title(),
 			"logicName":  fmt.Sprintf("%sLogic", stringx.From(rpc.Name).Title()),
 			"method":     parser.CamelCase(rpc.Name),
-			"request":    fmt.Sprintf("*%s.%s", goPackage, rpc.RequestType),
-			"response":   fmt.Sprintf("*%s.%s", goPackage, rpc.ReturnsType),
+			"request":    fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.RequestType)),
+			"response":   fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
 			"hasComment": len(comment) > 0,
 			"comment":    comment,
 		})

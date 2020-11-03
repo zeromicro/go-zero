@@ -84,9 +84,9 @@ func (g *defaultGenerator) genLogicFunction(goPackage string, rpc *parser.RPC) (
 	buffer, err := util.With("fun").Parse(text).Execute(map[string]interface{}{
 		"logicName":    logicName,
 		"method":       parser.CamelCase(rpc.Name),
-		"request":      fmt.Sprintf("*%s.%s", goPackage, rpc.RequestType),
-		"response":     fmt.Sprintf("*%s.%s", goPackage, rpc.ReturnsType),
-		"responseType": fmt.Sprintf("%s.%s", goPackage, rpc.ReturnsType),
+		"request":      fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.RequestType)),
+		"response":     fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
+		"responseType": fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),
 		"hasComment":   len(comment) > 0,
 		"comment":      comment,
 	})

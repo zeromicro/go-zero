@@ -79,8 +79,8 @@ func (g *defaultGenerator) GenCall(ctx DirContext, dir Dir, proto parser.Proto) 
 
 	var alias []string
 	for _, item := range service.RPC {
-		alias = append(alias, fmt.Sprintf("%s = %s", item.RequestType, fmt.Sprintf("%s.%s", proto.PbPackage, item.RequestType)))
-		alias = append(alias, fmt.Sprintf("%s = %s", item.ReturnsType, fmt.Sprintf("%s.%s", proto.PbPackage, item.ReturnsType)))
+		alias = append(alias, fmt.Sprintf("%s = %s", parser.CamelCase(item.RequestType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.RequestType))))
+		alias = append(alias, fmt.Sprintf("%s = %s", parser.CamelCase(item.ReturnsType), fmt.Sprintf("%s.%s", proto.PbPackage, item.ReturnsType)))
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
@@ -108,8 +108,8 @@ func (g *defaultGenerator) genFunction(goPackage string, service parser.Service)
 			"rpcServiceName": stringx.From(service.Name).Title(),
 			"method":         stringx.From(rpc.Name).Title(),
 			"package":        goPackage,
-			"pbRequest":      rpc.RequestType,
-			"pbResponse":     rpc.ReturnsType,
+			"pbRequest":      parser.CamelCase(rpc.RequestType),
+			"pbResponse":     parser.CamelCase(rpc.ReturnsType),
 			"hasComment":     len(comment) > 0,
 			"comment":        comment,
 		})
@@ -137,8 +137,8 @@ func (g *defaultGenerator) getInterfaceFuncs(goPackage string, service parser.Se
 				"hasComment": len(comment) > 0,
 				"comment":    comment,
 				"method":     stringx.From(rpc.Name).Title(),
-				"pbRequest":  rpc.RequestType,
-				"pbResponse": rpc.ReturnsType,
+				"pbRequest":  parser.CamelCase(rpc.RequestType),
+				"pbResponse": parser.CamelCase(rpc.ReturnsType),
 			})
 		if err != nil {
 			return nil, err
