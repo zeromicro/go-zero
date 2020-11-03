@@ -86,7 +86,7 @@ func (g *RpcGenerator) Generate(src, target string, IPATH []string) error {
 		return err
 	}
 
-	err = g.g.GenMain(dirCtx, dirCtx.GetWorkDir(), proto)
+	err = g.g.GenMain(dirCtx, dirCtx.GetMain(), proto)
 	if err != nil {
 		return err
 	}

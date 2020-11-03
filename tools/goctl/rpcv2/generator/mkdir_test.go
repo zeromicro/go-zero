@@ -67,7 +67,7 @@ func TestDefaultDirContext_GOPATH(t *testing.T) {
 		return filepath.Join(internal, strings.ToLower(proto.Service.Name)) == dirCtx.GetPb().Filename && filepath.Join(projectName, "internal", strings.ToLower(proto.Service.Name)) == dirCtx.GetPb().Package
 	}())
 	assert.True(t, true, func() bool {
-		return dir == dirCtx.GetWorkDir().Filename && projectName == dirCtx.GetWorkDir().Package
+		return dir == dirCtx.GetMain().Filename && projectName == dirCtx.GetMain().Package
 	}())
 }
 
@@ -125,6 +125,6 @@ func TestDefaultDirContext_GOMOD(t *testing.T) {
 		return filepath.Join(internal, strings.ToLower(proto.Service.Name)) == dirCtx.GetPb().Filename && filepath.Join(projectName, "internal", strings.ToLower(proto.Service.Name)) == dirCtx.GetPb().Package
 	}())
 	assert.True(t, true, func() bool {
-		return dir == dirCtx.GetWorkDir().Filename && projectName == dirCtx.GetWorkDir().Package
+		return dir == dirCtx.GetMain().Filename && projectName == dirCtx.GetMain().Package
 	}())
 }

@@ -32,7 +32,7 @@ type (
 		GetServer() Dir
 		GetSvc() Dir
 		GetPb() Dir
-		GetWorkDir() Dir
+		GetMain() Dir
 	}
 
 	Dir struct {
@@ -143,7 +143,7 @@ func (d *defaultDirContext) GetPb() Dir {
 	return d.inner[pb]
 }
 
-func (d *defaultDirContext) GetWorkDir() Dir {
+func (d *defaultDirContext) GetMain() Dir {
 	return d.inner[wd]
 }
 

@@ -17,7 +17,7 @@ func (g *defaultGenerator) GenPb(ctx DirContext, IPATH []string, dir Dir, proto 
 		cw.WriteString(" -I=" + ip)
 	}
 	cw.WriteString(" -I=" + base)
-	cw.WriteString(" " + proto.Src)
+	cw.WriteString(" " + proto.Name)
 	if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
 		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetInternal().Filename)
 	} else {
@@ -25,6 +25,6 @@ func (g *defaultGenerator) GenPb(ctx DirContext, IPATH []string, dir Dir, proto 
 	}
 	command := cw.String()
 	g.log.Debug(command)
-	_, err := execx.Run(command, ctx.GetWorkDir().Filename)
+	_, err := execx.Run(command, "")
 	return err
 }

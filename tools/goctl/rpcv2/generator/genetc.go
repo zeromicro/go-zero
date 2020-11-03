@@ -17,7 +17,7 @@ Etcd:
 `
 
 func (g *defaultGenerator) GenEtc(ctx DirContext, dir Dir, proto parser.Proto) error {
-	serviceNameLower := formatFilename(ctx.GetWorkDir().Base)
+	serviceNameLower := formatFilename(ctx.GetMain().Base)
 	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", serviceNameLower))
 
 	text, err := util.LoadTemplate(category, etcTemplateFileFile, etcTemplate)

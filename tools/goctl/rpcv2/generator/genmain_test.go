@@ -40,6 +40,6 @@ func TestDefaultGenerator_GenMain(t *testing.T) {
 		return
 	}
 
-	err = g.GenMain(dirCtx, dirCtx.GetWorkDir(), proto)
+	err = g.GenMain(dirCtx, dirCtx.GetMain(), proto)
 	assert.Nil(t, err)
 }
