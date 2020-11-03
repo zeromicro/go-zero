@@ -16,8 +16,6 @@ go-zero 是一个集成了各种工程实践的 web 和 rpc 框架。通过弹�
 
 go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
 
-看着觉得不错的，烦请 **Star**
-
 使用 go-zero 的好处：
 
 * 轻松获得支撑千万日活服务的稳定性
@@ -80,6 +78,8 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 如下图，我们从多个层面保障了整体服务的高可用：
 
 ![弹性设计](doc/images/resilience.jpg)
+
+觉得不错的话，别忘 **star** 👏
 
 ## 4. Installation
 

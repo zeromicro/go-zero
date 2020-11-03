@@ -18,7 +18,7 @@ import (
 	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/redistest"
+	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
 )
 
 func init() {

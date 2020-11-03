@@ -6,7 +6,7 @@ import (
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/redistest"
+	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
 )
 
 func TestPeriodLimit_Take(t *testing.T) {
