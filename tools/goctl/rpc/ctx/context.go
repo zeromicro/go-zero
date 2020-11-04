@@ -1,8 +1,6 @@
 package ctx
 
-import (
-	"errors"
-)
+import "errors"
 
 var moduleCheckErr = errors.New("the work directory must be found in the go mod or the $GOPATH")
 

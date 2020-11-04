@@ -1,11 +1,7 @@
 package parser
 
-import (
-	"github.com/emicklei/proto"
-)
+import "github.com/emicklei/proto"
 
-type (
-	Package struct {
-		*proto.Package
-	}
-)
+type Package struct {
+	*proto.Package
+}

@@ -1,12 +1,8 @@
 package parser
 
-import (
-	"github.com/emicklei/proto"
-)
+import "github.com/emicklei/proto"
 
-type (
-	Service struct {
-		*proto.Service
-		RPC []*RPC
-	}
-)
+type Service struct {
+	*proto.Service
+	RPC []*RPC
+}
