@@ -45,5 +45,4 @@ func TestGenerateConfig(t *testing.T) {
 	// test file exists
 	err = g.GenConfig(dirCtx, proto)
 	assert.Nil(t, err)
-
 }
