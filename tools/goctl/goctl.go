@@ -19,7 +19,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	rpcv2 "github.com/tal-tech/go-zero/tools/goctl/rpcv2/cli"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
@@ -214,7 +214,7 @@ var (
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpcv2.RpcNew,
+					Action: rpc.RpcNew,
 				},
 				{
 					Name:  "template",
@@ -229,7 +229,7 @@ var (
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpcv2.RpcTemplate,
+					Action: rpc.RpcTemplate,
 				},
 				{
 					Name:  "proto",
@@ -252,7 +252,7 @@ var (
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpcv2.Rpc,
+					Action: rpc.Rpc,
 				},
 			},
 		},
