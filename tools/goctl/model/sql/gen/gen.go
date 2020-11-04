@@ -19,7 +19,7 @@ const (
 	createTableFlag = `(?m)^(?i)CREATE\s+TABLE` // ignore case
 	NamingLower     = "lower"
 	NamingCamel     = "camel"
-	NamingUnderline = "underline"
+	NamingSnake     = "snake"
 )
 
 type (
@@ -81,7 +81,7 @@ func (g *defaultGenerator) Start(withCache bool) error {
 		switch g.namingStyle {
 		case NamingCamel:
 			name = fmt.Sprintf("%sModel.go", tn.ToCamel())
-		case NamingUnderline:
+		case NamingSnake:
 			name = fmt.Sprintf("%s_model.go", tn.ToSnake())
 		}
 		filename := filepath.Join(dirAbs, name)

@@ -54,7 +54,7 @@ func TestNamingModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
-	g = NewDefaultGenerator(source, snakeDir, NamingUnderline)
+	g = NewDefaultGenerator(source, snakeDir, NamingSnake)
 	err = g.Start(true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
