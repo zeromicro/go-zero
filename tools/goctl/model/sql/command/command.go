@@ -40,7 +40,7 @@ func MysqlDDL(ctx *cli.Context) error {
 	}
 
 	switch namingStyle {
-	case gen.NamingLower, gen.NamingCamel, gen.NamingUnderline:
+	case gen.NamingLower, gen.NamingCamel, gen.NamingSnake:
 	case "":
 		namingStyle = gen.NamingLower
 	default:
@@ -87,7 +87,7 @@ func MyDataSource(ctx *cli.Context) error {
 	}
 
 	switch namingStyle {
-	case gen.NamingLower, gen.NamingCamel, gen.NamingUnderline:
+	case gen.NamingLower, gen.NamingCamel, gen.NamingSnake:
 	case "":
 		namingStyle = gen.NamingLower
 	default:

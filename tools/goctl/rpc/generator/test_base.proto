@@ -1,0 +1,12 @@
+// test proto
+syntax = "proto3";
+
+package base;
+
+message CommonReq {
+  string in = 1;
+}
+
+message CommonReply {
+  string out = 1;
+}

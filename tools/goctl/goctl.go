@@ -19,7 +19,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
@@ -211,7 +211,7 @@ var (
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.RpcNew,
@@ -226,7 +226,7 @@ var (
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.RpcTemplate,
@@ -239,17 +239,17 @@ var (
 							Name:  "src, s",
 							Usage: "the file path of the proto source file",
 						},
-						cli.StringFlag{
-							Name:  "dir, d",
-							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						cli.StringSliceFlag{
+							Name:  "proto_path, I",
+							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
 						cli.StringFlag{
-							Name:  "service, srv",
-							Usage: `the name of rpc service. [option]`,
+							Name:  "dir, d",
+							Usage: `the target path of the code`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.Rpc,
@@ -313,7 +313,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the file naming style, lower|camel|underline,default is lower",
+									Usage: "the file naming style, lower|camel|snake, default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "idea",

@@ -10,29 +10,20 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	goctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/project"
+	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
 func getParentPackage(dir string) (string, error) {
-	p, err := project.Prepare(dir, false)
+	abs, err := filepath.Abs(dir)
 	if err != nil {
 		return "", err
 	}
 
-	if len(p.GoMod.Path) > 0 {
-		goModePath := filepath.Clean(filepath.Dir(p.GoMod.Path))
-		absPath, err := filepath.Abs(dir)
-		if err != nil {
-			return "", err
-		}
-		parent := filepath.Clean(goctlutil.JoinPackages(p.GoMod.Module, absPath[len(goModePath):]))
-		parent = strings.ReplaceAll(parent, "\\", "/")
-		parent = strings.ReplaceAll(parent, `\`, "/")
-		return parent, nil
+	projectCtx, err := ctx.Prepare(abs)
+	if err != nil {
+		return "", err
 	}
-
-	return p.Package, nil
+	return filepath.ToSlash(filepath.Join(projectCtx.Path, strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir))), nil
 }
 
 func writeIndent(writer io.Writer, indent int) {
