@@ -23,7 +23,6 @@ func getParentPackage(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(abs)
 	return filepath.ToSlash(filepath.Join(projectCtx.Path, strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir))), nil
 }
 
