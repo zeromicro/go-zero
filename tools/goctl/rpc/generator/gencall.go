@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
@@ -79,15 +80,15 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
 		return err
 	}
 
-	var alias []string
+	var alias = collection.NewSet()
 	for _, item := range service.RPC {
-		alias = append(alias, fmt.Sprintf("%s = %s", parser.CamelCase(item.RequestType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.RequestType))))
-		alias = append(alias, fmt.Sprintf("%s = %s", parser.CamelCase(item.ReturnsType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.ReturnsType))))
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.RequestType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.RequestType))))
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.ReturnsType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.ReturnsType))))
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":        formatFilename(service.Name),
-		"alias":       strings.Join(alias, util.NL),
+		"alias":       strings.Join(alias.KeysStr(), util.NL),
 		"head":        head,
 		"filePackage": formatFilename(service.Name),
 		"package":     fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
