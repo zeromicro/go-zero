@@ -16,6 +16,7 @@ import (
 
 	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/fx"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/core/stores/cache"
@@ -474,7 +475,10 @@ func TestCachedConnExec(t *testing.T) {
 func TestCachedConnExecDropCache(t *testing.T) {
 	r, err := miniredis.Run()
 	assert.Nil(t, err)
-	defer r.Close()
+	defer fx.DoWithTimeout(func() error {
+		r.Close()
+		return nil
+	}, time.Second)
 
 	const (
 		key   = "user"
