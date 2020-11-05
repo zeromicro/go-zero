@@ -1,9 +1,9 @@
 // test proto
 syntax = "proto3";
 
-package stream;
+package snake_package;
 
-message Stream_Req {
+message StreamReq {
   string name = 1;
 }
 
@@ -11,6 +11,17 @@ message Stream_Resp {
   string greet = 1;
 }
 
+message lowercase{
+  string in = 1;
+  string lower = 2;
+}
+
+message CamelCase{
+  string Camel = 1;
+}
+
 service Stream_Greeter {
-  rpc greet_service(Stream_Req) returns (Stream_Resp);
+  rpc snake_service(StreamReq) returns (Stream_Resp);
+  rpc ServiceCamelCase(CamelCase) returns (CamelCase);
+  rpc servicelowercase(lowercase) returns (lowercase);
 }
