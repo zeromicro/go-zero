@@ -87,7 +87,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, namingSty
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"name":        formatFilename(service.Name,namingStyle),
+		"name":        formatFilename(service.Name, namingStyle),
 		"alias":       strings.Join(alias.KeysStr(), util.NL),
 		"head":        head,
 		"filePackage": dir.Base,
