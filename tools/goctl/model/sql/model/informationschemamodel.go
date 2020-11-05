@@ -31,9 +31,9 @@ func (m *InformationSchemaModel) GetAllTables(database string) ([]string, error)
 	return tables, nil
 }
 
-func (m *InformationSchemaModel) FindByTableName(table string) ([]*Column, error) {
-	querySql := `select COLUMN_NAME,DATA_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT from COLUMNS where TABLE_NAME = ?`
+func (m *InformationSchemaModel) FindByTableName(db, table string) ([]*Column, error) {
+	querySql := `select COLUMN_NAME,DATA_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT from COLUMNS where TABLE_SCHEMA = ? and TABLE_NAME = ?`
 	var reply []*Column
-	err := m.conn.QueryRows(&reply, querySql, table)
+	err := m.conn.QueryRows(&reply, querySql, db, table)
 	return reply, err
 }

@@ -123,7 +123,7 @@ func MyDataSource(ctx *cli.Context) error {
 		if !match {
 			continue
 		}
-		columns, err := im.FindByTableName(item)
+		columns, err := im.FindByTableName(cfg.DBName, item)
 		if err != nil {
 			return err
 		}
@@ -139,7 +139,7 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
-	err = generator.StartFromInformationSchema(matchTables, cache)
+	err = generator.StartFromInformationSchema(cfg.DBName, matchTables, cache)
 	if err != nil {
 		log.Error("%v", err)
 	}

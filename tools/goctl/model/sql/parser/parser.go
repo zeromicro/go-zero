@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -153,7 +152,7 @@ func (t *Table) ContainsTime() bool {
 	return false
 }
 
-func ConvertColumn(table string, in []*model.Column) (*Table, error) {
+func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
 	var reply Table
 	reply.Name = stringx.From(table)
 	keyMap := make(map[string][]*model.Column)
@@ -163,10 +162,10 @@ func ConvertColumn(table string, in []*model.Column) (*Table, error) {
 	}
 	primaryColumns := keyMap["PRI"]
 	if len(primaryColumns) == 0 {
-		return nil, errors.New("primary key can not be nil")
+		return nil, fmt.Errorf("table %s: primary key can not be nil", table)
 	}
 	if len(primaryColumns) > 1 {
-		return nil, errors.New("unexpected union primary key")
+		return nil, fmt.Errorf("table %s: unexpected union primary key", table)
 	}
 	primaryColumn := primaryColumns[0]
 	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType)
@@ -187,25 +186,23 @@ func ConvertColumn(table string, in []*model.Column) (*Table, error) {
 		AutoIncrement: strings.Contains(primaryColumn.Extra, "auto_increment"),
 	}
 	for key, columns := range keyMap {
-		if key == "PRI" {
-			continue
-		}
-		if key == "UNI" {
-			for _, item := range columns {
-				dt, err := converter.ConvertDataType(item.DataType)
-				if err != nil {
-					return nil, err
-				}
-
-				reply.Fields = append(reply.Fields, Field{
-					Name:         stringx.From(item.Name),
-					DataBaseType: item.DataType,
-					DataType:     dt,
-					IsUniqueKey:  true,
-					IsPrimaryKey: primaryColumn.Name == item.Name,
-					Comment:      item.Comment,
-				})
+		for _, item := range columns {
+			dt, err := converter.ConvertDataType(item.DataType)
+			if err != nil {
+				return nil, err
 			}
+
+			f := Field{
+				Name:         stringx.From(item.Name),
+				DataBaseType: item.DataType,
+				DataType:     dt,
+				IsPrimaryKey: primaryColumn.Name == item.Name,
+				Comment:      item.Comment,
+			}
+			if key == "UNI" {
+				f.IsUniqueKey = true
+			}
+			reply.Fields = append(reply.Fields, f)
 		}
 	}
 

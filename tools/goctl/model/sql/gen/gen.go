@@ -79,10 +79,10 @@ func (g *defaultGenerator) StartFromDdl(source string, withCache bool) error {
 	return g.createFile(modelList)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(columns map[string][]*model.Column, withCache bool) error {
+func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[string][]*model.Column, withCache bool) error {
 	m := make(map[string]string)
 	for tableName, column := range columns {
-		table, err := parser.ConvertColumn(tableName, column)
+		table, err := parser.ConvertColumn(db, tableName, column)
 		if err != nil {
 			return err
 		}
