@@ -1,8 +1,13 @@
 package converter
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 var (
@@ -49,4 +54,23 @@ func ConvertDataType(dataBaseType string) (goDataType string, err error) {
 	}
 	goDataType = tp
 	return
+}
+
+func ConvertColumn(table string, in []*model.Column) (*parser.Table, error) {
+	var reply parser.Table
+	reply.Name = stringx.From(table)
+	var primaryColumns []*model.Column
+	for _, column := range in {
+		if column.Key == "PRI" {
+			primaryColumns = append(primaryColumns, column)
+		}
+	}
+	if len(primaryColumns) == 0 {
+		return nil, errors.New("primary key can not be nil")
+	}
+
+	if len(primaryColumns) > 1 {
+		return nil, errors.New("unexpected union primary key")
+	}
+	return &reply, nil
 }
