@@ -60,8 +60,12 @@ func MysqlDDL(ctx *cli.Context) error {
 		}
 		source = append(source, string(data))
 	}
-	generator := gen.NewDefaultGenerator(strings.Join(source, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
-	err = generator.Start(cache)
+	generator, err := gen.NewDefaultGenerator(dir, namingStyle, gen.WithConsoleOption(log))
+	if err != nil {
+		return err
+	}
+
+	err = generator.StartFromDdl(strings.Join(source, "\n"), cache)
 	if err != nil {
 		log.Error("%v", err)
 	}
@@ -100,10 +104,8 @@ func MyDataSource(ctx *cli.Context) error {
 	}
 
 	logx.Disable()
-	conn := sqlx.NewMysql(url)
 	databaseSource := strings.TrimSuffix(url, "/"+cfg.DBName) + "/information_schema"
 	db := sqlx.NewMysql(databaseSource)
-	m := model.NewDDLModel(conn)
 	im := model.NewInformationSchemaModel(db)
 
 	tables, err := im.GetAllTables(cfg.DBName)
@@ -111,7 +113,7 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
-	var matchTables []string
+	matchTables := make(map[string][]*model.Column)
 	for _, item := range tables {
 		match, err := filepath.Match(pattern, item)
 		if err != nil {
@@ -121,21 +123,23 @@ func MyDataSource(ctx *cli.Context) error {
 		if !match {
 			continue
 		}
-
-		matchTables = append(matchTables, item)
+		columns, err := im.FindByTableName(item)
+		if err != nil {
+			return err
+		}
+		matchTables[item] = columns
 	}
+
 	if len(matchTables) == 0 {
 		return errors.New("no tables matched")
 	}
 
-	ddl, err := m.ShowDDL(matchTables...)
+	generator, err := gen.NewDefaultGenerator(dir, namingStyle, gen.WithConsoleOption(log))
 	if err != nil {
-		log.Error("%v", err)
-		return nil
+		return err
 	}
 
-	generator := gen.NewDefaultGenerator(strings.Join(ddl, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
-	err = generator.Start(cache)
+	err = generator.StartFromInformationSchema(matchTables, cache)
 	if err != nil {
 		log.Error("%v", err)
 	}

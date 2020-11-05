@@ -1,9 +1,12 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/xwb1989/sqlparser"
 )
@@ -34,7 +37,6 @@ type (
 		Name         stringx.String
 		DataBaseType string
 		DataType     string
-		IsKey        bool
 		IsPrimaryKey bool
 		IsUniqueKey  bool
 		Comment      string
@@ -123,7 +125,6 @@ func Parse(ddl string) (*Table, error) {
 		field.Comment = comment
 		key, ok := keyMap[column.Name.String()]
 		if ok {
-			field.IsKey = true
 			field.IsPrimaryKey = key == primary
 			field.IsUniqueKey = key == unique
 			if field.IsPrimaryKey {
@@ -150,4 +151,63 @@ func (t *Table) ContainsTime() bool {
 		}
 	}
 	return false
+}
+
+func ConvertColumn(table string, in []*model.Column) (*Table, error) {
+	var reply Table
+	reply.Name = stringx.From(table)
+	keyMap := make(map[string][]*model.Column)
+
+	for _, column := range in {
+		keyMap[column.Key] = append(keyMap[column.Key], column)
+	}
+	primaryColumns := keyMap["PRI"]
+	if len(primaryColumns) == 0 {
+		return nil, errors.New("primary key can not be nil")
+	}
+	if len(primaryColumns) > 1 {
+		return nil, errors.New("unexpected union primary key")
+	}
+	primaryColumn := primaryColumns[0]
+	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType)
+	if err != nil {
+		return nil, err
+	}
+
+	primaryField := Field{
+		Name:         stringx.From(primaryColumn.Name),
+		DataBaseType: primaryColumn.DataType,
+		DataType:     primaryFt,
+		IsUniqueKey:  true,
+		IsPrimaryKey: true,
+		Comment:      primaryColumn.Comment,
+	}
+	reply.PrimaryKey = Primary{
+		Field:         primaryField,
+		AutoIncrement: strings.Contains(primaryColumn.Extra, "auto_increment"),
+	}
+	for key, columns := range keyMap {
+		if key == "PRI" {
+			continue
+		}
+		if key == "UNI" {
+			for _, item := range columns {
+				dt, err := converter.ConvertDataType(item.DataType)
+				if err != nil {
+					return nil, err
+				}
+
+				reply.Fields = append(reply.Fields, Field{
+					Name:         stringx.From(item.Name),
+					DataBaseType: item.DataType,
+					DataType:     dt,
+					IsUniqueKey:  true,
+					IsPrimaryKey: primaryColumn.Name == item.Name,
+					Comment:      item.Comment,
+				})
+			}
+		}
+	}
+
+	return &reply, nil
 }

@@ -8,6 +8,13 @@ type (
 	InformationSchemaModel struct {
 		conn sqlx.SqlConn
 	}
+	Column struct {
+		Name     string `db:"COLUMN_NAME"`
+		DataType string `db:"DATA_TYPE"`
+		Key      string `db:"COLUMN_KEY"`
+		Extra    string `db:"EXTRA"`
+		Comment  string `db:"COLUMN_COMMENT"`
+	}
 )
 
 func NewInformationSchemaModel(conn sqlx.SqlConn) *InformationSchemaModel {
@@ -22,4 +29,11 @@ func (m *InformationSchemaModel) GetAllTables(database string) ([]string, error)
 		return nil, err
 	}
 	return tables, nil
+}
+
+func (m *InformationSchemaModel) FindByTableName(table string) ([]*Column, error) {
+	querySql := `select COLUMN_NAME,DATA_TYPE,COLUMN_KEY,EXTRA,COLUMN_COMMENT from COLUMNS where TABLE_NAME = ?`
+	var reply []*Column
+	err := m.conn.QueryRows(&reply, querySql, table)
+	return reply, err
 }
