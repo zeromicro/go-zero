@@ -12,5 +12,6 @@ message StreamResp {
 }
 
 service StreamGreeter {
-  rpc greet(StreamReq) returns (StreamResp);
+  // greet service
+  rpc greet (StreamReq) returns (StreamResp);
 }

@@ -6,11 +6,11 @@ option go_package = "go";
 
 import "test_base.proto";
 
-message TestMessage{
+message TestMessage {
   base.CommonReq req = 1;
 }
-message TestReq{}
-message TestReply{
+message TestReq {}
+message TestReply {
   base.CommonReply reply = 2;
 }
 
@@ -20,6 +20,6 @@ enum TestEnum {
   female = 2;
 }
 
-service TestService{
-  rpc TestRpc (TestReq)returns(TestReply);
+service TestService {
+  rpc TestRpc (TestReq) returns (TestReply);
 }

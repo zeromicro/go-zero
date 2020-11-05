@@ -67,7 +67,7 @@ func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto) error {
 
 	err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"head":    head,
-		"server":  stringx.From(service.Name).Title(),
+		"server":  stringx.From(service.Name).ToCamel(),
 		"imports": strings.Join(imports.KeysStr(), util.NL),
 		"funcs":   strings.Join(funcList, util.NL),
 	}, serverFile, true)
@@ -84,8 +84,8 @@ func (g *defaultGenerator) genFunctions(goPackage string, service parser.Service
 
 		comment := parser.GetComment(rpc.Doc())
 		buffer, err := util.With("func").Parse(text).Execute(map[string]interface{}{
-			"server":     stringx.From(service.Name).Title(),
-			"logicName":  fmt.Sprintf("%sLogic", stringx.From(rpc.Name).Title()),
+			"server":     stringx.From(service.Name).ToCamel(),
+			"logicName":  fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"method":     parser.CamelCase(rpc.Name),
 			"request":    fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.RequestType)),
 			"response":   fmt.Sprintf("*%s.%s", goPackage, parser.CamelCase(rpc.ReturnsType)),

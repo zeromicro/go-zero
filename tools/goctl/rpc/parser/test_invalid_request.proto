@@ -8,6 +8,6 @@ import "base.proto";
 message Reply{}
 
 
-service TestService{
-  rpc TestRpcTwo (base.Req)returns(Reply);
+service TestService {
+  rpc TestRpcTwo (base.Req) returns (Reply);
 }
