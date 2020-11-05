@@ -35,6 +35,6 @@ func TestGenerateSvc(t *testing.T) {
 	assert.Nil(t, err)
 
 	g := NewDefaultGenerator()
-	err = g.GenSvc(dirCtx, proto)
+	err = g.GenSvc(dirCtx, proto, namingLower)
 	assert.Nil(t, err)
 }

@@ -36,7 +36,7 @@ func TestGenerateCaseNilImport(t *testing.T) {
 	g := NewDefaultGenerator()
 	if err := g.Prepare(); err == nil {
 		targetPb := filepath.Join(dirCtx.GetPb().Filename, "test_stream.pb.go")
-		err = g.GenPb(dirCtx, nil, proto)
+		err = g.GenPb(dirCtx, nil, proto, namingLower)
 		assert.Nil(t, err)
 		assert.True(t, func() bool {
 			return util.FileExists(targetPb)
@@ -68,7 +68,7 @@ func TestGenerateCaseImport(t *testing.T) {
 
 	g := NewDefaultGenerator()
 	if err := g.Prepare(); err == nil {
-		err = g.GenPb(dirCtx, nil, proto)
+		err = g.GenPb(dirCtx, nil, proto, namingLower)
 		assert.Nil(t, err)
 
 		targetPb := filepath.Join(dirCtx.GetPb().Filename, "test_stream.pb.go")
@@ -102,7 +102,7 @@ func TestGenerateCasePathOption(t *testing.T) {
 
 	g := NewDefaultGenerator()
 	if err := g.Prepare(); err == nil {
-		err = g.GenPb(dirCtx, nil, proto)
+		err = g.GenPb(dirCtx, nil, proto, namingLower)
 		assert.Nil(t, err)
 
 		targetPb := filepath.Join(dirCtx.GetPb().Filename, "test_option.pb.go")
@@ -137,7 +137,7 @@ func TestGenerateCaseWordOption(t *testing.T) {
 	g := NewDefaultGenerator()
 	if err := g.Prepare(); err == nil {
 
-		err = g.GenPb(dirCtx, nil, proto)
+		err = g.GenPb(dirCtx, nil, proto, namingLower)
 		assert.Nil(t, err)
 
 		targetPb := filepath.Join(dirCtx.GetPb().Filename, "test_word_option.pb.go")
@@ -173,7 +173,7 @@ func TestGenerateCaseGoOption(t *testing.T) {
 	g := NewDefaultGenerator()
 	if err := g.Prepare(); err == nil {
 
-		err = g.GenPb(dirCtx, nil, proto)
+		err = g.GenPb(dirCtx, nil, proto, namingLower)
 		assert.Nil(t, err)
 
 		targetPb := filepath.Join(dirCtx.GetPb().Filename, "test_go_option.pb.go")

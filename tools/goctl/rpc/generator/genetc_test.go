@@ -40,6 +40,6 @@ func TestGenerateEtc(t *testing.T) {
 		return
 	}
 
-	err = g.GenEtc(dirCtx, proto)
+	err = g.GenEtc(dirCtx, proto, namingLower)
 	assert.Nil(t, err)
 }

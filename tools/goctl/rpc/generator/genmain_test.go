@@ -40,6 +40,6 @@ func TestGenerateMain(t *testing.T) {
 		return
 	}
 
-	err = g.GenMain(dirCtx, proto)
+	err = g.GenMain(dirCtx, proto, namingLower)
 	assert.Nil(t, err)
 }

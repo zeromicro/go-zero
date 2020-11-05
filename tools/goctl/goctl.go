@@ -205,6 +205,10 @@ var (
 					Name:  "new",
 					Usage: `generate rpc demo service`,
 					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming style, lower|camel|snake,default is lower",
+						},
 						cli.BoolFlag{
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
@@ -239,6 +243,10 @@ var (
 							Name:  "dir, d",
 							Usage: `the target path of the code`,
 						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming style, lower|camel|snake,default is lower",
+						},
 						cli.BoolFlag{
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
@@ -270,7 +278,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the file naming style, lower|camel|underline,default is lower",
+									Usage: "the file naming style, lower|camel|snake,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",

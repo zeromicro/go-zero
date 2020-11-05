@@ -10,16 +10,18 @@ import (
 )
 
 type RpcGenerator struct {
-	g Generator
+	g     Generator
+	style NamingStyle
 }
 
-func NewDefaultRpcGenerator() *RpcGenerator {
-	return NewRpcGenerator(NewDefaultGenerator())
+func NewDefaultRpcGenerator(style NamingStyle) *RpcGenerator {
+	return NewRpcGenerator(NewDefaultGenerator(), style)
 }
 
-func NewRpcGenerator(g Generator) *RpcGenerator {
+func NewRpcGenerator(g Generator, style NamingStyle) *RpcGenerator {
 	return &RpcGenerator{
-		g: g,
+		g:     g,
+		style: style,
 	}
 }
 
@@ -55,42 +57,42 @@ func (g *RpcGenerator) Generate(src, target string, protoImportPath []string) er
 		return err
 	}
 
-	err = g.g.GenEtc(dirCtx, proto)
+	err = g.g.GenEtc(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, protoImportPath, proto)
+	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenConfig(dirCtx, proto)
+	err = g.g.GenConfig(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenSvc(dirCtx, proto)
+	err = g.g.GenSvc(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenLogic(dirCtx, proto)
+	err = g.g.GenLogic(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenServer(dirCtx, proto)
+	err = g.g.GenServer(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenMain(dirCtx, proto)
+	err = g.g.GenMain(dirCtx, proto, g.style)
 	if err != nil {
 		return err
 	}
 
-	err = g.g.GenCall(dirCtx, proto)
+	err = g.g.GenCall(dirCtx, proto, g.style)
 
 	console.NewColorConsole().MarkDone()
 

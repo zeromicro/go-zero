@@ -14,7 +14,7 @@ func TestRpcGenerateCaseNilImport(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
-		g := NewRpcGenerator(dispatcher)
+		g := NewRpcGenerator(dispatcher, namingLower)
 		abs, err := filepath.Abs("./test")
 		assert.Nil(t, err)
 
@@ -33,7 +33,7 @@ func TestRpcGenerateCaseOption(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
-		g := NewRpcGenerator(dispatcher)
+		g := NewRpcGenerator(dispatcher, namingLower)
 		abs, err := filepath.Abs("./test")
 		assert.Nil(t, err)
 
@@ -52,7 +52,7 @@ func TestRpcGenerateCaseWordOption(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
-		g := NewRpcGenerator(dispatcher)
+		g := NewRpcGenerator(dispatcher, namingLower)
 		abs, err := filepath.Abs("./test")
 		assert.Nil(t, err)
 
@@ -72,7 +72,7 @@ func TestRpcGenerateCaseGoOption(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
-		g := NewRpcGenerator(dispatcher)
+		g := NewRpcGenerator(dispatcher, namingLower)
 		abs, err := filepath.Abs("./test")
 		assert.Nil(t, err)
 
@@ -91,7 +91,7 @@ func TestRpcGenerateCaseImport(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
-		g := NewRpcGenerator(dispatcher)
+		g := NewRpcGenerator(dispatcher, namingLower)
 		abs, err := filepath.Abs("./test")
 		assert.Nil(t, err)
 

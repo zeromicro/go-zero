@@ -16,6 +16,7 @@ import (
 func Rpc(c *cli.Context) error {
 	src := c.String("src")
 	out := c.String("dir")
+	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
 	if len(src) == 0 {
 		return errors.New("missing -src")
@@ -23,6 +24,12 @@ func Rpc(c *cli.Context) error {
 	if len(out) == 0 {
 		return errors.New("missing -dir")
 	}
+
+	namingStyle, valid := generator.IsNamingValid(style)
+	if !valid {
+		return fmt.Errorf("unexpected naming style %s", style)
+	}
+
 	g := generator.NewDefaultRpcGenerator()
 	return g.Generate(src, out, protoImportPath)
 }
@@ -34,6 +41,11 @@ func RpcNew(c *cli.Context) error {
 	ext := filepath.Ext(name)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
+	}
+	style := c.String("style")
+	namingStyle, valid := generator.IsNamingValid(style)
+	if !valid {
+		return fmt.Errorf("unexpected naming style %s", style)
 	}
 
 	protoName := name + ".proto"

@@ -39,6 +39,6 @@ func TestGenerateLogic(t *testing.T) {
 		return
 	}
 
-	err = g.GenLogic(dirCtx, proto)
+	err = g.GenLogic(dirCtx, proto, namingLower)
 	assert.Nil(t, err)
 }
