@@ -19,7 +19,7 @@ func getParentPackage(dir string) (string, error) {
 		return "", err
 	}
 
-	projectCtx, err := ctx.Background(abs)
+	projectCtx, err := ctx.Prepare(abs)
 	if err != nil {
 		return "", err
 	}

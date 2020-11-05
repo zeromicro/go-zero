@@ -23,7 +23,7 @@ func TestGenerateLogic(t *testing.T) {
 		_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()

@@ -39,7 +39,7 @@ func (g *RpcGenerator) Generate(src, target string, protoImportPath []string) er
 		return err
 	}
 
-	projectCtx, err := ctx.Background(abs)
+	projectCtx, err := ctx.Prepare(abs)
 	if err != nil {
 		return err
 	}

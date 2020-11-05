@@ -32,7 +32,7 @@ func TestMkDirInGoPath(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
@@ -90,7 +90,7 @@ func TestMkDirInGoMod(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()

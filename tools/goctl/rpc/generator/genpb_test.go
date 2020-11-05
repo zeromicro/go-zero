@@ -23,7 +23,7 @@ func TestGenerateCaseNilImport(t *testing.T) {
 		//_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
@@ -56,7 +56,7 @@ func TestGenerateCaseImport(t *testing.T) {
 		_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
@@ -90,7 +90,7 @@ func TestGenerateCasePathOption(t *testing.T) {
 		_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
@@ -124,7 +124,7 @@ func TestGenerateCaseWordOption(t *testing.T) {
 		_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
@@ -160,7 +160,7 @@ func TestGenerateCaseGoOption(t *testing.T) {
 		_ = os.RemoveAll(abs)
 	}()
 
-	projectCtx, err := ctx.Background(dir)
+	projectCtx, err := ctx.Prepare(dir)
 	assert.Nil(t, err)
 
 	p := parser.NewDefaultProtoParser()
