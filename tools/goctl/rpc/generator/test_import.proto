@@ -14,5 +14,5 @@ message Out {
 }
 
 service StreamGreeter {
-  rpc greet(In) returns (Out);
+  rpc greet (In) returns (Out);
 }

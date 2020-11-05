@@ -6,5 +6,5 @@ func GetComment(comment *proto.Comment) string {
 	if comment == nil {
 		return ""
 	}
-	return comment.Message()
+	return "// " + comment.Message()
 }

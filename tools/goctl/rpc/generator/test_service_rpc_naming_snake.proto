@@ -11,12 +11,12 @@ message Stream_Resp {
   string greet = 1;
 }
 
-message lowercase{
+message lowercase {
   string in = 1;
   string lower = 2;
 }
 
-message CamelCase{
+message CamelCase {
   string Camel = 1;
 }
 
