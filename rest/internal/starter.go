@@ -12,7 +12,8 @@ import (
 func StartHttp(host string, port int, handler http.Handler) error {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	server := buildHttpServer(addr, handler)
-	return StartServer(server)
+	gracefulOnShutdown(server)
+	return server.ListenAndServe()
 }
 
 func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler) error {
@@ -20,16 +21,10 @@ func StartHttps(host string, port int, certFile, keyFile string, handler http.Ha
 	if server, err := buildHttpsServer(addr, handler, certFile, keyFile); err != nil {
 		return err
 	} else {
-		return StartServer(server)
+		gracefulOnShutdown(server)
+		// certFile and keyFile are set in buildHttpsServer
+		return server.ListenAndServeTLS("", "")
 	}
-}
-
-func StartServer(srv *http.Server) error {
-	proc.AddWrapUpListener(func() {
-		srv.Shutdown(context.Background())
-	})
-
-	return srv.ListenAndServe()
 }
 
 func buildHttpServer(addr string, handler http.Handler) *http.Server {
@@ -48,4 +43,10 @@ func buildHttpsServer(addr string, handler http.Handler, certFile, keyFile strin
 		Handler:   handler,
 		TLSConfig: &config,
 	}, nil
+}
+
+func gracefulOnShutdown(srv *http.Server) {
+	proc.AddWrapUpListener(func() {
+		srv.Shutdown(context.Background())
+	})
 }
