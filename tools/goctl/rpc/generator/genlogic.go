@@ -63,7 +63,7 @@ func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto) error {
 			return err
 		}
 		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-			"logicName": fmt.Sprintf("%sLogic", stringx.From(rpc.Name).Title()),
+			"logicName": fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions": functions,
 			"imports":   strings.Join(imports.KeysStr(), util.NL),
 		}, filename, false)

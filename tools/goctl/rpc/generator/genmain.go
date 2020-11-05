@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 const mainTemplate = `{{.head}}
@@ -32,7 +33,7 @@ func main() {
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
 	ctx := svc.NewServiceContext(c)
-	srv := server.New{{.service}}Server(ctx)
+	srv := server.New{{.serviceNew}}Server(ctx)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.pkg}}.Register{{.service}}Server(grpcServer, srv)
@@ -65,6 +66,7 @@ func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto) error {
 		"serviceName": serviceNameLower,
 		"imports":     strings.Join(imports, util.NL),
 		"pkg":         proto.PbPackage,
+		"serviceNew":  stringx.From(proto.Service.Name).ToCamel(),
 		"service":     parser.CamelCase(proto.Service.Name),
 	}, fileName, false)
 }

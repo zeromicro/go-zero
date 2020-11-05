@@ -11,6 +11,7 @@ import (
 )
 
 func TestRpcGenerateCaseNilImport(t *testing.T) {
+	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -29,6 +30,7 @@ func TestRpcGenerateCaseNilImport(t *testing.T) {
 }
 
 func TestRpcGenerateCaseOption(t *testing.T) {
+	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -47,6 +49,7 @@ func TestRpcGenerateCaseOption(t *testing.T) {
 }
 
 func TestRpcGenerateCaseWordOption(t *testing.T) {
+	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -66,6 +69,7 @@ func TestRpcGenerateCaseWordOption(t *testing.T) {
 
 // test keyword go
 func TestRpcGenerateCaseGoOption(t *testing.T) {
+	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -84,6 +88,7 @@ func TestRpcGenerateCaseGoOption(t *testing.T) {
 }
 
 func TestRpcGenerateCaseImport(t *testing.T) {
+	_ = Clean()
 	dispatcher := NewDefaultGenerator()
 	if err := dispatcher.Prepare(); err == nil {
 		g := NewRpcGenerator(dispatcher)
@@ -100,5 +105,24 @@ func TestRpcGenerateCaseImport(t *testing.T) {
 		assert.True(t, func() bool {
 			return strings.Contains(err.Error(), "package base is not in GOROOT")
 		}())
+	}
+}
+
+func TestRpcGenerateCaseServiceRpcNamingSnake(t *testing.T) {
+	_ = Clean()
+	dispatcher := NewDefaultGenerator()
+	if err := dispatcher.Prepare(); err == nil {
+		g := NewRpcGenerator(dispatcher)
+		abs, err := filepath.Abs("./test")
+		assert.Nil(t, err)
+
+		err = g.Generate("./test_service_rpc_naming_snake.proto", abs, nil)
+		defer func() {
+			_ = os.RemoveAll(abs)
+		}()
+		assert.Nil(t, err)
+
+		_, err = execx.Run("go test "+abs, abs)
+		assert.Nil(t, err)
 	}
 }

@@ -1,0 +1,16 @@
+// test proto
+syntax = "proto3";
+
+package stream;
+
+message Stream_Req {
+  string name = 1;
+}
+
+message Stream_Resp {
+  string greet = 1;
+}
+
+service Stream_Greeter {
+  rpc greet_service(Stream_Req) returns (Stream_Resp);
+}

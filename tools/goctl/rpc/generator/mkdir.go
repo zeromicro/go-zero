@@ -53,8 +53,12 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 	logicDir := filepath.Join(internalDir, "logic")
 	serverDir := filepath.Join(internalDir, "server")
 	svcDir := filepath.Join(internalDir, "svc")
-	pbDir := filepath.Join(internalDir, proto.GoPackage)
+	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
 	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
+	if strings.ToLower(proto.Service.Name) == strings.ToLower(proto.GoPackage) {
+		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
+	}
+
 	inner[wd] = Dir{
 		Filename: ctx.WorkDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(ctx.WorkDir, ctx.Dir))),
