@@ -3,10 +3,10 @@ package generator
 import (
 	"path/filepath"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/ctx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
 type RpcGenerator struct {
