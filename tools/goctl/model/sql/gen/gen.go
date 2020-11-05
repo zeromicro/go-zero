@@ -171,6 +171,9 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+	if len(in.PrimaryKey.Name.Source()) == 0 {
+		return "", fmt.Errorf("table %s: primary key can not be nil", in.Name.Source())
+	}
 	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
 	if err != nil {
 		return "", err
