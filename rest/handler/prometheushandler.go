@@ -20,8 +20,8 @@ func PrometheusHandler(path string, subsystems ...string) func(http.Handler) htt
 	subsystem := defaultSubsystem
 	if len(subsystems) > 0 {
 		subsystem = subsystems[0]
+		subsystem = strings.ToLower(strings.ReplaceAll(subsystem, "-", "_"))
 	}
-	subsystem = strings.ToLower(strings.ReplaceAll(subsystem, "-", "_"))
 
 	metricServerReqDur := metric.NewHistogramVec(&metric.HistogramVecOpts{
 		Namespace: serverNamespace,
