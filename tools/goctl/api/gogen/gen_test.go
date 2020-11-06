@@ -251,6 +251,32 @@ service A-api {
 }
 `
 
+const importApi = `
+type ImportData struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+`
+
+const hasImportApi = `
+import "importApi.api"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -441,6 +467,34 @@ func TestInlineTypeNotExist(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
+	validate(t, filename)
+}
+
+func TestHasImportApi(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasImportApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	importApiName := "importApi.api"
+	err = ioutil.WriteFile(importApiName, []byte(importApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(importApiName)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	api, err := parser.Parse()
+	assert.Nil(t, err)
+
+	var hasInline bool
+	for _, ty := range api.Types {
+		if ty.Name == "ImportData" {
+			hasInline = true
+			break
+		}
+	}
+	assert.True(t, hasInline)
 	validate(t, filename)
 }
 
