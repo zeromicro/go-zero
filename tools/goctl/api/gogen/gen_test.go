@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
 
 const testApiTemplate = `
@@ -511,6 +512,9 @@ func validate(t *testing.T, api string) {
 		}
 		return nil
 	})
+
+	_, err = execx.Run("go test ./...", dir)
+	assert.Nil(t, err)
 }
 
 func validateCode(code string) error {
