@@ -39,6 +39,7 @@ func NewParser(filename string) (*Parser, error) {
 		if len(ip) > 0 {
 			item := strings.TrimPrefix(item, "import")
 			item = strings.TrimSpace(item)
+			item = strings.ReplaceAll(item, `"`, "")
 			var path = item
 			if !util.FileExists(item) {
 				path = filepath.Join(filepath.Dir(apiAbsPath), item)
