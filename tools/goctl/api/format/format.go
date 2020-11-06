@@ -94,7 +94,6 @@ func ApiFormatByPath(apiFilePath string) error {
 }
 
 func apiFormat(data string) (string, error) {
-
 	r := reg.ReplaceAllStringFunc(data, func(m string) string {
 		parts := reg.FindStringSubmatch(m)
 		if len(parts) < 2 {

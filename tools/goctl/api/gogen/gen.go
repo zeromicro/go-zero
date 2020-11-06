@@ -1,11 +1,9 @@
 package gogen
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -60,7 +58,6 @@ func DoGenProject(apiFile, dir string, force bool) error {
 	logx.Must(genHandlers(dir, api))
 	logx.Must(genRoutes(dir, api, force))
 	logx.Must(genLogic(dir, api))
-	createGoModFileIfNeed(dir)
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
@@ -128,35 +125,4 @@ func sweep() error {
 
 		return nil
 	})
-}
-
-func createGoModFileIfNeed(dir string) {
-	absDir, err := filepath.Abs(dir)
-	if err != nil {
-		panic(err)
-	}
-
-	_, hasGoMod := util.FindGoModPath(dir)
-	if hasGoMod {
-		return
-	}
-
-	gopath := os.Getenv("GOPATH")
-	parent := path.Join(gopath, "src")
-	pos := strings.Index(absDir, parent)
-	if pos >= 0 {
-		return
-	}
-
-	moduleName := absDir[len(filepath.Dir(absDir))+1:]
-	cmd := exec.Command("go", "mod", "init", moduleName)
-	cmd.Dir = dir
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err = cmd.Run(); err != nil {
-		fmt.Println(err.Error())
-	}
-	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
-	fmt.Printf(outStr + "\n" + errStr)
 }

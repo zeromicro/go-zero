@@ -29,6 +29,9 @@ type Response struct {
   Message string ` + "`" + `json:"message"` + "`" + `
 }
 
+@server(
+	group: greet
+)
 service A-api {
   @server(
     handler: GreetHandler
@@ -37,6 +40,7 @@ service A-api {
 
   @server(
     handler: NoResponseHandler
+    
   )
   get /greet/get(Request) returns
 }
@@ -204,6 +208,49 @@ service A-api {
 }
 `
 
+const hasCommentApiTest = `
+type Inline struct {
+
+}
+
+type Request struct {
+  Inline 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` // name in path
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"msg"` + "`" + ` // message
+}
+
+service A-api {
+  @doc(helloworld)
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const hasInlineNoExistTest = `
+
+type Request struct {
+  Inline 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @doc(helloworld)
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -355,6 +402,36 @@ func TestApiHasNoRequestBody(t *testing.T) {
 func TestApiRoutes(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(apiRouteTest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestHasCommentRoutes(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasCommentApiTest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestInlineTypeNotExist(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasInlineNoExistTest), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
