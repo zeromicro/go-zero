@@ -12,7 +12,7 @@ import (
 
 const apiTemplate = `
 type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` // 框架自动验证请求参数是否合法
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
 }
 
 type Response struct {

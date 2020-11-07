@@ -59,9 +59,10 @@ func RpcNew(c *cli.Context) error {
 }
 
 func RpcTemplate(c *cli.Context) error {
-	name := c.Args().First()
-	if len(name) == 0 {
-		name = "greet.proto"
+	protoFile := c.String("o")
+	if len(protoFile) == 0 {
+		return errors.New("missing -o")
 	}
-	return generator.ProtoTmpl(name)
+
+	return generator.ProtoTmpl(protoFile)
 }
