@@ -30,7 +30,7 @@ func Rpc(c *cli.Context) error {
 		return fmt.Errorf("unexpected naming style %s", style)
 	}
 
-	g := generator.NewDefaultRpcGenerator()
+	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, out, protoImportPath)
 }
 
@@ -66,7 +66,7 @@ func RpcNew(c *cli.Context) error {
 		return err
 	}
 
-	g := generator.NewDefaultRpcGenerator()
+	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 
