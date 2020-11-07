@@ -52,7 +52,7 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
-		middleware       []string
+		middlewares      []string
 	}
 	route struct {
 		method  string
@@ -92,9 +92,9 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 		}
 
 		var routes string
-		if len(g.middleware) > 0 {
+		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
-			var params = g.middleware
+			var params = g.middlewares
 			for i := range params {
 				params[i] = "serverCtx." + params[i]
 			}
@@ -143,8 +143,9 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 		"routesAdditions": strings.TrimSpace(builder.String()),
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err
@@ -206,7 +207,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		}
 		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
 			for _, item := range strings.Split(value, ",") {
-				groupedRoutes.middleware = append(groupedRoutes.middleware, item)
+				groupedRoutes.middlewares = append(groupedRoutes.middlewares, item)
 			}
 		}
 		routes = append(routes, groupedRoutes)

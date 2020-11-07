@@ -49,8 +49,9 @@ func genMiddleware(dir string, middlewares []string) error {
 			"name": strings.Title(name),
 		})
 		if err != nil {
-			return nil
+			return err
 		}
+
 		formatCode := formatCode(buffer.String())
 		_, err = fp.WriteString(formatCode)
 		return err

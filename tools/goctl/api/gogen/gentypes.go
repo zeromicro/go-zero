@@ -71,8 +71,9 @@ func genTypes(dir string, api *spec.ApiSpec, force bool) error {
 		"containsTime": api.ContainsTime(),
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err

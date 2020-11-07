@@ -55,6 +55,7 @@ func genEtc(dir string, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err

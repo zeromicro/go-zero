@@ -90,8 +90,9 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 		"middlewareAssignment": middlewareAssignment,
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err
