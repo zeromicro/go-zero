@@ -60,8 +60,9 @@ func genConfig(dir string, api *spec.ApiSpec) error {
 		"auth":       strings.Join(auths, "\n"),
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err
