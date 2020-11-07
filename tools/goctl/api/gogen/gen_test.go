@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
 
 const testApiTemplate = `
@@ -29,6 +30,9 @@ type Response struct {
   Message string ` + "`" + `json:"message"` + "`" + `
 }
 
+@server(
+	group: greet
+)
 service A-api {
   @server(
     handler: GreetHandler
@@ -37,6 +41,7 @@ service A-api {
 
   @server(
     handler: NoResponseHandler
+    
   )
   get /greet/get(Request) returns
 }
@@ -204,6 +209,75 @@ service A-api {
 }
 `
 
+const hasCommentApiTest = `
+type Inline struct {
+
+}
+
+type Request struct {
+  Inline 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` // name in path
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"msg"` + "`" + ` // message
+}
+
+service A-api {
+  @doc(helloworld)
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const hasInlineNoExistTest = `
+
+type Request struct {
+  Inline 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @doc(helloworld)
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const importApi = `
+type ImportData struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+`
+
+const hasImportApi = `
+import "importApi.api"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -367,6 +441,64 @@ func TestApiRoutes(t *testing.T) {
 	validate(t, filename)
 }
 
+func TestHasCommentRoutes(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasCommentApiTest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestInlineTypeNotExist(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasInlineNoExistTest), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = parser.Parse()
+	assert.Nil(t, err)
+
+	validate(t, filename)
+}
+
+func TestHasImportApi(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(hasImportApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	importApiName := "importApi.api"
+	err = ioutil.WriteFile(importApiName, []byte(importApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(importApiName)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	api, err := parser.Parse()
+	assert.Nil(t, err)
+
+	var hasInline bool
+	for _, ty := range api.Types {
+		if ty.Name == "ImportData" {
+			hasInline = true
+			break
+		}
+	}
+	assert.True(t, hasInline)
+	validate(t, filename)
+}
+
 func validate(t *testing.T, api string) {
 	dir := "_go"
 	err := DoGenProject(api, dir, true)
@@ -380,6 +512,9 @@ func validate(t *testing.T, api string) {
 		}
 		return nil
 	})
+
+	_, err = execx.Run("go test ./...", dir)
+	assert.Nil(t, err)
 }
 
 func validateCode(code string) error {

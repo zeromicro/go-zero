@@ -224,10 +224,6 @@ var (
 							Name:  "out, o",
 							Usage: "the target path of proto",
 						},
-						cli.BoolFlag{
-							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [optional]",
-						},
 					},
 					Action: rpc.RpcTemplate,
 				},
