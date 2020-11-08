@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	BuildVersion = "20201021"
+	BuildVersion = "20201108"
 	commands     = []cli.Command{
 		{
 			Name:  "api",
@@ -188,15 +188,11 @@ var (
 		},
 		{
 			Name:  "docker",
-			Usage: "generate Dockerfile and Makefile",
+			Usage: "generate Dockerfile",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "go",
 					Usage: "the file that contains main function",
-				},
-				cli.StringFlag{
-					Name:  "namespace, n",
-					Usage: "which namespace of kubernetes to deploy the service",
 				},
 			},
 			Action: docker.DockerCommand,

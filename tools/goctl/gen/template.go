@@ -8,8 +8,9 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 ENV GOPROXY https://goproxy.cn,direct
 
-WORKDIR $GOPATH/src/{{.projectName}}
+WORKDIR /build/zero
 COPY . .
+COPY {{.goRelPath}}/etc /app/etc
 RUN go build -ldflags="-s -w" -o /app/{{.exeFile}} {{.goRelPath}}/{{.goFile}}
 
 
@@ -22,6 +23,7 @@ ENV TZ Asia/Shanghai
 
 WORKDIR /app
 COPY --from=builder /app/{{.exeFile}} /app/{{.exeFile}}
+COPY --from=builder /app/etc /app/etc
 
 CMD ["./{{.exeFile}}"{{.argument}}]
 `

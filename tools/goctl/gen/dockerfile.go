@@ -6,7 +6,6 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 func GenerateDockerfile(goFile string, args ...string) error {
@@ -33,10 +32,9 @@ func GenerateDockerfile(goFile string, args ...string) error {
 
 	t := template.Must(template.New("dockerfile").Parse(dockerTemplate))
 	return t.Execute(out, map[string]string{
-		"projectName": vars.ProjectName,
-		"goRelPath":   projPath,
-		"goFile":      goFile,
-		"exeFile":     util.FileNameWithoutExt(goFile),
-		"argument":    builder.String(),
+		"goRelPath": projPath,
+		"goFile":    goFile,
+		"exeFile":   util.FileNameWithoutExt(filepath.Base(goFile)),
+		"argument":  builder.String(),
 	})
 }
