@@ -7,8 +7,8 @@ import (
 	"context"
 
 	"bookstore/rpc/add/internal/logic"
+	add "bookstore/rpc/add/internal/pb"
 	"bookstore/rpc/add/internal/svc"
-	add "bookstore/rpc/add/pb"
 )
 
 type AdderServer struct {

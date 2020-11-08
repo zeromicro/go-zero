@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os/exec"
 	"runtime"
+	"strings"
 
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -24,17 +26,17 @@ func Run(arg string, dir string) (string, error) {
 	if len(dir) > 0 {
 		cmd.Dir = dir
 	}
-	dtsout := new(bytes.Buffer)
+	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
-	cmd.Stdout = dtsout
+	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
 		if stderr.Len() > 0 {
-			return "", errors.New(stderr.String())
+			return "", errors.New(strings.TrimSuffix(stderr.String(), util.NL))
 		}
 		return "", err
 	}
 
-	return dtsout.String(), nil
+	return strings.TrimSuffix(stdout.String(), util.NL), nil
 }

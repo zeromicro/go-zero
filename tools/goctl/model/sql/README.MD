@@ -7,7 +7,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 * 通过ddl生成
 
     ```shell script
-    goctl model mysql ddl -src="./sql/user.sql" -dir="./sql/model" -c=true
+    goctl model mysql ddl -src="./*.sql" -dir="./sql/model" -c=true
     ```
 
     执行上述命令后即可快速生成CURD代码。
@@ -21,7 +21,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 * 通过datasource生成
 
     ```shell script
-    goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="table1,table2"  -dir="./model"
+    goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="*"  -dir="./model"
     ```
 
 * 生成代码示例
@@ -205,14 +205,49 @@ OPTIONS:
   * ddl
 
 	```shell script
-	goctl model mysql -src={filename} -dir={dir} -cache=true
+	goctl model mysql -src={patterns} -dir={dir} -cache=true
+	```
+
+	help
+
+	```
+	NAME:
+		goctl model mysql ddl - generate mysql model from ddl
+
+		USAGE:
+		goctl model mysql ddl [command options] [arguments...]
+
+		OPTIONS:
+		--src value, -s value  the path or path globbing patterns of the ddl
+		--dir value, -d value  the target dir
+		--cache, -c            generate code with cache [optional]
+		--idea                 for idea plugin [optional]
 	```
 
   * datasource
 
 	```shell script
-	goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=true
+	goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir} -cache=true
 	```
+
+	help
+
+	```
+		NAME:
+		goctl model mysql datasource - generate model from datasource
+
+		USAGE:
+		goctl model mysql datasource [command options] [arguments...]
+
+		OPTIONS:
+		--url value              the data source of database,like "root:password@tcp(127.0.0.1:3306)/database
+		--table value, -t value  the table or table globbing patterns in the database
+		--cache, -c              generate code with cache [optional]
+		--dir value, -d value    the target dir
+		--idea                   for idea plugin [optional]
+	```
+
+	示例用法请参考[用法](./example/generator.sh)
   
   目前仅支持redis缓存，如果选择带缓存模式，即生成的`FindOne(ByXxx)`&`Delete`代码会生成带缓存逻辑的代码，目前仅支持单索引字段（除全文索引外），对于联合索引我们默认认为不需要带缓存，且不属于通用型代码，因此没有放在代码生成行列，如example中user表中的`id`、`name`、`mobile`字段均属于单字段索引。
 
@@ -221,26 +256,26 @@ OPTIONS:
   * ddl
   
       ```shell script
-        goctl model -src={filename} -dir={dir}
+        goctl model -src={patterns} -dir={dir}
       ```
 
   * datasource
   
       ```shell script
-        goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir}
+        goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir}
       ```
 
   or
   * ddl
 
       ```shell script
-        goctl model -src={filename} -dir={dir} -cache=false
+        goctl model -src={patterns} -dir={dir} -cache=false
       ```
 
   * datasource
   
       ```shell script
-        goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=false
+        goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir} -cache=false
       ```
   
 生成代码仅基本的CURD结构。
@@ -265,8 +300,3 @@ OPTIONS:
   
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
-## QA
-
-* goctl model除了命令行模式，支持插件模式吗？
-
-  很快支持idea插件。

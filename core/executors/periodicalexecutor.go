@@ -82,6 +82,7 @@ func (pe *PeriodicalExecutor) Sync(fn func()) {
 }
 
 func (pe *PeriodicalExecutor) Wait() {
+	pe.Flush()
 	pe.wgBarrier.Guard(func() {
 		pe.waitGroup.Wait()
 	})

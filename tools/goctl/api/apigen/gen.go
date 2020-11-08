@@ -15,8 +15,8 @@ import (
 const apiTemplate = `info(
 	title: // TODO: add title
 	desc: // TODO: add description
-	author: {{.gitUser}}
-	email: {{.gitEmail}}
+	author: "{{.gitUser}}"
+	email: "{{.gitEmail}}"
 )
 
 type request struct {
@@ -28,14 +28,10 @@ type response struct {
 }
 
 service {{.serviceName}} {
-	@server(
-		handler: // TODO: set handler name and delete this comment
-	)
+	@handler // TODO: set handler name and delete this comment
 	get /users/id/:userId(request) returns(response)
 
-	@server(
-		handler: // TODO: set handler name and delete this comment
-	)
+	@handler // TODO: set handler name and delete this comment
 	post /users/create(request)
 }
 `

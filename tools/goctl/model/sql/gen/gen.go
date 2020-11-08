@@ -17,6 +17,9 @@ import (
 const (
 	pwd             = "."
 	createTableFlag = `(?m)^(?i)CREATE\s+TABLE` // ignore case
+	NamingLower     = "lower"
+	NamingCamel     = "camel"
+	NamingSnake     = "snake"
 )
 
 type (
@@ -24,15 +27,17 @@ type (
 		source string
 		dir    string
 		console.Console
+		pkg         string
+		namingStyle string
 	}
 	Option func(generator *defaultGenerator)
 )
 
-func NewDefaultGenerator(source, dir string, opt ...Option) *defaultGenerator {
+func NewDefaultGenerator(source, dir, namingStyle string, opt ...Option) *defaultGenerator {
 	if dir == "" {
 		dir = pwd
 	}
-	generator := &defaultGenerator{source: source, dir: dir}
+	generator := &defaultGenerator{source: source, dir: dir, namingStyle: namingStyle}
 	var optionList []Option
 	optionList = append(optionList, newDefaultOption())
 	optionList = append(optionList, opt...)
@@ -59,6 +64,8 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	if err != nil {
 		return err
 	}
+	g.dir = dirAbs
+	g.pkg = filepath.Base(dirAbs)
 	err = util.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
@@ -69,7 +76,14 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 
 	for tableName, code := range modelList {
-		name := fmt.Sprintf("%smodel.go", strings.ToLower(stringx.From(tableName).ToCamel()))
+		tn := stringx.From(tableName)
+		name := fmt.Sprintf("%smodel.go", strings.ToLower(tn.ToCamel()))
+		switch g.namingStyle {
+		case NamingCamel:
+			name = fmt.Sprintf("%sModel.go", tn.ToCamel())
+		case NamingSnake:
+			name = fmt.Sprintf("%s_model.go", tn.ToSnake())
+		}
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
 			g.Warning("%s already exists, ignored.", name)
@@ -82,12 +96,18 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "vars.go")
-	if !util.FileExists(filename) {
-		err = ioutil.WriteFile(filename, []byte(template.Error), os.ModePerm)
-		if err != nil {
-			return err
-		}
+	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
+	if err != nil {
+		return err
 	}
+
+	err = util.With("vars").Parse(text).SaveTo(map[string]interface{}{
+		"pkg": g.pkg,
+	}, filename, false)
+	if err != nil {
+		return err
+	}
+
 	g.Success("Done.")
 	return nil
 }
@@ -119,8 +139,12 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return "", err
+	}
 	t := util.With("model").
-		Parse(template.Model).
+		Parse(text).
 		GoFmt(true)
 
 	m, err := genCacheKeys(in)
@@ -188,6 +212,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	output, err := t.Execute(map[string]interface{}{
+		"pkg":         g.pkg,
 		"imports":     importsCode,
 		"vars":        varsCode,
 		"types":       typesCode,

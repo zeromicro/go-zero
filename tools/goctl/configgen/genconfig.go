@@ -42,12 +42,14 @@ func GenConfigCommand(c *cli.Context) error {
 	if err != nil {
 		return errors.New("abs failed: " + c.String("path"))
 	}
+
 	goModPath, hasFound := util.FindGoModPath(path)
 	if !hasFound {
 		return errors.New("go mod not initial")
 	}
+
 	path = strings.TrimSuffix(path, "/config.go")
-	location := path + "/tmp"
+	location := filepath.Join(path, "tmp")
 	err = os.MkdirAll(location, os.ModePerm)
 	if err != nil {
 		return err
@@ -76,10 +78,12 @@ func GenConfigCommand(c *cli.Context) error {
 	if err != nil {
 		panic(err)
 	}
+
 	path, err = os.Getwd()
 	if err != nil {
 		panic(err)
 	}
+
 	err = os.Rename(filepath.Dir(goPath)+"/config.yaml", path+"/config.yaml")
 	if err != nil {
 		panic(err)

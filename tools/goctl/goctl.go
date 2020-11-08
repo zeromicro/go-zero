@@ -19,7 +19,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
@@ -52,12 +52,13 @@ var (
 							Usage: "the format target dir",
 						},
 						cli.BoolFlag{
-							Name:  "p",
-							Usage: "print result to console",
-						},
-						cli.BoolFlag{
 							Name:     "iu",
 							Usage:    "ignore update",
+							Required: false,
+						},
+						cli.BoolFlag{
+							Name:     "stdin",
+							Usage:    "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
 							Required: false,
 						},
 					},
@@ -210,7 +211,7 @@ var (
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.RpcNew,
@@ -223,10 +224,6 @@ var (
 							Name:  "out, o",
 							Usage: "the target path of proto",
 						},
-						cli.BoolFlag{
-							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
-						},
 					},
 					Action: rpc.RpcTemplate,
 				},
@@ -238,17 +235,17 @@ var (
 							Name:  "src, s",
 							Usage: "the file path of the proto source file",
 						},
-						cli.StringFlag{
-							Name:  "dir, d",
-							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						cli.StringSliceFlag{
+							Name:  "proto_path, I",
+							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
 						cli.StringFlag{
-							Name:  "service, srv",
-							Usage: `the name of rpc service. [option]`,
+							Name:  "dir, d",
+							Usage: `the target path of the code`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.Rpc,
@@ -269,11 +266,15 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
-									Usage: "the file path of the ddl source file",
+									Usage: "the path or path globbing patterns of the ddl",
 								},
 								cli.StringFlag{
 									Name:  "dir, d",
 									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -296,7 +297,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course`,
+									Usage: `the table or table globbing patterns in the database`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -305,6 +306,10 @@ var (
 								cli.StringFlag{
 									Name:  "dir, d",
 									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|snake, default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "idea",

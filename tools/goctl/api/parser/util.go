@@ -125,7 +125,7 @@ func ParseApi(api string) (*ApiStruct, error) {
 }
 
 func isImportBeginLine(line string) bool {
-	return strings.HasPrefix(line, "import") && strings.HasSuffix(line, ".api")
+	return strings.HasPrefix(line, "import") && (strings.HasSuffix(line, ".api") || strings.HasSuffix(line, `.api"`))
 }
 
 func isTypeBeginLine(line string) bool {
@@ -133,7 +133,7 @@ func isTypeBeginLine(line string) bool {
 }
 
 func isServiceBeginLine(line string) bool {
-	return strings.HasPrefix(line, "@server(") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
+	return strings.HasPrefix(line, "@server") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
 }
 
 func lineBeginOfService(api string) int {

@@ -175,11 +175,11 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 	}
 	if fresh {
 		return nil
-	} else {
-		// got the result from previous ongoing query
-		c.stat.IncrementTotal()
-		c.stat.IncrementHit()
 	}
+
+	// got the result from previous ongoing query
+	c.stat.IncrementTotal()
+	c.stat.IncrementHit()
 
 	return jsonx.Unmarshal(val.([]byte), v)
 }
