@@ -12,19 +12,22 @@ import (
 func StartHttp(host string, port int, handler http.Handler) error {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	server := buildHttpServer(addr, handler)
-	gracefulOnShutdown(server)
-	return server.ListenAndServe()
+	return start(server, func(srv *http.Server) error {
+		return srv.ListenAndServe()
+	})
 }
 
 func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler) error {
 	addr := fmt.Sprintf("%s:%d", host, port)
-	if server, err := buildHttpsServer(addr, handler, certFile, keyFile); err != nil {
+	server, err := buildHttpsServer(addr, handler, certFile, keyFile)
+	if err != nil {
 		return err
-	} else {
-		gracefulOnShutdown(server)
-		// certFile and keyFile are set in buildHttpsServer
-		return server.ListenAndServeTLS("", "")
 	}
+
+	return start(server, func(srv *http.Server) error {
+		// certFile and keyFile are set in buildHttpsServer
+		return srv.ListenAndServeTLS("", "")
+	})
 }
 
 func buildHttpServer(addr string, handler http.Handler) *http.Server {
@@ -45,8 +48,10 @@ func buildHttpsServer(addr string, handler http.Handler, certFile, keyFile strin
 	}, nil
 }
 
-func gracefulOnShutdown(srv *http.Server) {
-	proc.AddWrapUpListener(func() {
-		srv.Shutdown(context.Background())
+func start(server *http.Server, run func(srv *http.Server) error) error {
+	waitForCalled := proc.AddWrapUpListener(func() {
+		server.Shutdown(context.Background())
 	})
+	defer waitForCalled()
+	return run(server)
 }

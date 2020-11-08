@@ -68,13 +68,12 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	register(server)
 	// we need to make sure all others are wrapped up
 	// so we do graceful stop at shutdown phase instead of wrap up phase
-	shutdownCalled := proc.AddShutdownListener(func() {
+	waitForCalled := proc.AddWrapUpListener(func() {
 		server.GracefulStop()
 	})
-	err = server.Serve(lis)
-	shutdownCalled()
+	defer waitForCalled()
 
-	return err
+	return server.Serve(lis)
 }
 
 func WithMetrics(metrics *stat.Metrics) ServerOption {
