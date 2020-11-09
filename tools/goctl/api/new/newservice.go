@@ -31,10 +31,9 @@ service {{.name}}-api {
 // CreateServiceCommand fast create service
 func CreateServiceCommand(c *cli.Context) error {
 	args := c.Args()
-	dirName := args.First()
-
-	if len(dirName) == 0 {
-		dirName = "greet"
+	dirName := "greet"
+	if len(args) > 0 {
+		dirName = args.First()
 	}
 
 	if strings.Contains(dirName, "-") {
