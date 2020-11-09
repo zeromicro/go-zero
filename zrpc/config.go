@@ -2,6 +2,7 @@ package zrpc
 
 import (
 	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/service"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
@@ -18,6 +19,9 @@ type (
 		// never set it to 0, if zero, the underlying will set to 2s automatically
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		// Prometheus metrics monitor address
+		// default 127.0.0.1:9091/metrics
+		Prometheus prometheus.Config
 	}
 
 	RpcClientConf struct {

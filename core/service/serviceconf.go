@@ -5,7 +5,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
 )
 
@@ -21,7 +20,6 @@ type ServiceConf struct {
 	Log        logx.LogConf
 	Mode       string `json:",default=pro,options=dev|test|pre|pro"`
 	MetricsUrl string `json:",optional"`
-	Prometheus prometheus.Config
 }
 
 func (sc ServiceConf) MustSetUp() {
@@ -39,7 +37,6 @@ func (sc ServiceConf) SetUp() error {
 	}
 
 	sc.initMode()
-	prometheus.StartAgent(sc.Prometheus)
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
 	}

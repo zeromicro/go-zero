@@ -55,6 +55,8 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 		opt(server)
 	}
 
+	server.AddRoute(Route{http.MethodGet, "/metrics", monitor()})
+
 	return server, nil
 }
 
