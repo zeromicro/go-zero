@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/gen"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -26,7 +28,7 @@ func DockerCommand(c *cli.Context) error {
 		return err
 	}
 
-	return gen.GenerateDockerfile(goFile, "-f", "etc/"+cfg)
+	return generateDockerfile(goFile, "-f", "etc/"+cfg)
 }
 
 func findConfig(file, dir string) (string, error) {
@@ -56,4 +58,57 @@ func findConfig(file, dir string) (string, error) {
 	}
 
 	return files[0], nil
+}
+
+func generateDockerfile(goFile string, args ...string) error {
+	projPath, err := getFilePath(filepath.Dir(goFile))
+	if err != nil {
+		return err
+	}
+
+	pos := strings.IndexByte(projPath, '/')
+	if pos >= 0 {
+		projPath = projPath[pos+1:]
+	}
+
+	out, err := util.CreateIfNotExist("Dockerfile")
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	text, err := ctlutil.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
+	if err != nil {
+		return err
+	}
+
+	var builder strings.Builder
+	for _, arg := range args {
+		builder.WriteString(`, "` + arg + `"`)
+	}
+
+	t := template.Must(template.New("dockerfile").Parse(text))
+	return t.Execute(out, map[string]string{
+		"goRelPath": projPath,
+		"goFile":    goFile,
+		"exeFile":   util.FileNameWithoutExt(filepath.Base(goFile)),
+		"argument":  builder.String(),
+	})
+}
+
+func getFilePath(file string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	projPath, ok := util.FindGoModPath(filepath.Join(wd, file))
+	if !ok {
+		projPath, err = util.PathFromGoSrc()
+		if err != nil {
+			return "", errors.New("no go.mod found, or not in GOPATH")
+		}
+	}
+
+	return projPath, nil
 }
