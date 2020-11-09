@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/justinas/alice"
+
 	"github.com/tal-tech/go-zero/core/codec"
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -101,19 +102,23 @@ func (s *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, metr
 
 func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
-	chain := alice.New(
+
+	chainList := []alice.Constructor{
 		handler.TracingHandler,
 		s.getLogHandler(),
 		handler.MaxConns(s.conf.MaxConns),
 		handler.BreakerHandler(route.Method, route.Path, metrics),
 		handler.SheddingHandler(s.getShedder(fr.priority), metrics),
-		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
+		handler.TimeoutHandler(time.Duration(s.conf.Timeout) * time.Millisecond),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
-		handler.PromethousHandler(route.Path),
-		handler.MaxBytesHandler(s.conf.MaxBytes),
-		handler.GunzipHandler,
-	)
+	}
+	if s.conf.Prometheus.Host != "" {
+		chainList = append(chainList, handler.PromethousHandler(route.Path))
+	}
+	chainList = append(chainList, handler.MaxBytesHandler(s.conf.MaxBytes), handler.GunzipHandler)
+
+	chain := alice.New(chainList...)
 	chain = s.appendAuthHandler(fr, chain, verifier)
 
 	for _, middleware := range s.middlewares {
