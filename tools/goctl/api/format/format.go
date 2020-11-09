@@ -1,6 +1,7 @@
 package format
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"go/format"
@@ -144,10 +145,28 @@ func apiFormat(data string) (string, error) {
 		result += strings.TrimSpace(string(fs)) + "\n\n"
 	}
 	if len(strings.TrimSpace(apiStruct.Service)) > 0 {
-		result += strings.TrimSpace(apiStruct.Service) + "\n\n"
+		result += formatService(apiStruct.Service) + "\n\n"
 	}
 
-	return result, nil
+	return strings.TrimSpace(result), nil
+}
+
+func formatService(str string) string {
+	var builder strings.Builder
+	scanner := bufio.NewScanner(strings.NewReader(str))
+	var tapCount = 0
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == ")" || line == "}" {
+			tapCount -= 1
+		}
+		util.WriteIndent(&builder, tapCount)
+		builder.WriteString(line + "\n")
+		if strings.HasSuffix(line, "(") || strings.HasSuffix(line, "{") {
+			tapCount += 1
+		}
+	}
+	return strings.TrimSpace(builder.String())
 }
 
 func countRune(s string, r rune) int {

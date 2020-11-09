@@ -1,6 +1,14 @@
-package gen
+package docker
 
-const dockerTemplate = `FROM golang:alpine AS builder
+import (
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/urfave/cli"
+)
+
+const (
+	category           = "docker"
+	dockerTemplateFile = "docker.tpl"
+	dockerTemplate     = `FROM golang:alpine AS builder
 
 LABEL stage=gobuilder
 
@@ -27,3 +35,10 @@ COPY --from=builder /app/etc /app/etc
 
 CMD ["./{{.exeFile}}"{{.argument}}]
 `
+)
+
+func GenTemplates(_ *cli.Context) error {
+	return util.InitTemplates(category, map[string]string{
+		dockerTemplateFile: dockerTemplate,
+	})
+}

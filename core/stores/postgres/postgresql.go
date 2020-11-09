@@ -5,8 +5,8 @@ import (
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 
-const postgreDriverName = "postgres"
+const postgresDriverName = "postgres"
 
-func NewPostgre(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
-	return sqlx.NewSqlConn(postgreDriverName, datasource, opts...)
+func NewPostgres(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
+	return sqlx.NewSqlConn(postgresDriverName, datasource, opts...)
 }

@@ -26,14 +26,8 @@ func getParentPackage(dir string) (string, error) {
 	return filepath.ToSlash(filepath.Join(projectCtx.Path, strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir))), nil
 }
 
-func writeIndent(writer io.Writer, indent int) {
-	for i := 0; i < indent; i++ {
-		fmt.Fprint(writer, "\t")
-	}
-}
-
 func writeProperty(writer io.Writer, name, tp, tag, comment string, indent int) error {
-	writeIndent(writer, indent)
+	util.WriteIndent(writer, indent)
 	var err error
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")
