@@ -44,7 +44,6 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
-	prometheus.StartAgent(c.Prometheus)
 	if c.HasEtcd() {
 		listenOn := figureOutListenOn(c.ListenOn)
 		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, listenOn, internal.WithMetrics(metrics))
@@ -67,6 +66,8 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	if err = c.SetUp(); err != nil {
 		return nil, err
 	}
+	// prometheus metrics monitor
+	prometheus.StartAgent(c.Prometheus)
 
 	return rpcServer, nil
 }
