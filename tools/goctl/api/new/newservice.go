@@ -32,6 +32,7 @@ service {{.name}}-api {
 func CreateServiceCommand(c *cli.Context) error {
 	args := c.Args()
 	dirName := args.First()
+
 	if len(dirName) == 0 {
 		dirName = "greet"
 	}
