@@ -57,7 +57,7 @@ func (s *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
 }
 
 func (s *engine) Start() error {
-	return s.StartWithRouter(router.NewPatRouter())
+	return s.StartWithRouter(router.NewRouter())
 }
 
 func (s *engine) StartWithRouter(router httpx.Router) error {
@@ -65,7 +65,11 @@ func (s *engine) StartWithRouter(router httpx.Router) error {
 		return err
 	}
 
-	return internal.StartHttp(s.conf.Host, s.conf.Port, router)
+	if len(s.conf.CertFile) == 0 && len(s.conf.KeyFile) == 0 {
+		return internal.StartHttp(s.conf.Host, s.conf.Port, router)
+	}
+
+	return internal.StartHttps(s.conf.Host, s.conf.Port, s.conf.CertFile, s.conf.KeyFile, router)
 }
 
 func (s *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,

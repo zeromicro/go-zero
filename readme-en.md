@@ -1,3 +1,5 @@
+<img align="right" width="150px" src="doc/images/go-zero.png">
+
 # go-zero
 
 English | [简体中文](readme.md)
@@ -23,11 +25,11 @@ Advantages of go-zero:
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
-<img src="https://github.com/tal-tech/zero-doc/blob/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
+<img src="doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
 ## 1. Backgrounds of go-zero
 
-At the beginning of 2018, we heavily suffered from frequent downtime. We decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
+At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
 
 * Golang based
   * great performance
@@ -74,7 +76,7 @@ go-zero is a web and rpc framework that integrates lots of engineering practices
 
 As below, go-zero protects the system with couple layers and mechanisms:
 
-![Resilience](https://github.com/tal-tech/zero-doc/blob/main/doc/images/resilience-en.png)
+![Resilience](doc/images/resilience-en.png)
 
 ## 4. Future development plans of go-zero
 
@@ -119,19 +121,17 @@ go get -u github.com/tal-tech/go-zero
    }
 
    service greet-api {
-     @server(
-       handler: GreetHandler
-     )
+     @handler GreetHandler
      get /greet/from/:name(Request) returns (Response);
    }
    ```
-
+   
    the .api files also can be generate by goctl, like below:
 
    ```shell
-   goctl api -o greet.api
+goctl api -o greet.api
    ```
-
+   
 3. generate the go server side code
 
    ```shell
@@ -163,8 +163,10 @@ go get -u github.com/tal-tech/go-zero
    the generated code can be run directly:
 
    ```shell
-     cd greet
-     go run greet.go -f etc/greet-api.yaml
+   cd greet
+   go mod init
+   go mod tidy
+   go run greet.go -f etc/greet-api.yaml
    ```
 
    by default, it’s listening on port 8888, while it can be changed in configuration file.
@@ -198,7 +200,7 @@ go get -u github.com/tal-tech/go-zero
 
 ## 7. Benchmark
 
-![benchmark](https://github.com/tal-tech/zero-doc/blob/main/doc/images/benchmark.png)
+![benchmark](doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 

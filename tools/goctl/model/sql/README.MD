@@ -7,7 +7,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 * 通过ddl生成
 
     ```shell script
-    goctl model mysql ddl -src="./sql/user.sql" -dir="./sql/model" -c=true
+    goctl model mysql ddl -src="./*.sql" -dir="./sql/model" -c=true
     ```
 
     执行上述命令后即可快速生成CURD代码。
@@ -21,12 +21,13 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 * 通过datasource生成
 
     ```shell script
-    goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="table1,table2"  -dir="./model"
+    goctl model mysql datasource -url="user:password@tcp(127.0.0.1:3306)/database" -table="*"  -dir="./model"
     ```
 
 * 生成代码示例
   
-  ``` go
+	```go
+
 	package model
 
 	import (
@@ -48,9 +49,9 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 		userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), ",")
 		userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
 
-		cacheUserMobilePrefix = "cache#User#mobile#"
 		cacheUserIdPrefix     = "cache#User#id#"
 		cacheUserNamePrefix   = "cache#User#name#"
+		cacheUserMobilePrefix = "cache#User#mobile#"
 	)
 
 	type (
@@ -71,23 +72,28 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 		}
 	)
 
-	func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf, table string) *UserModel {
+	func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf) *UserModel {
 		return &UserModel{
 			CachedConn: sqlc.NewConn(conn, c),
-			table:      table,
+			table:      "user",
 		}
 	}
 
 	func (m *UserModel) Insert(data User) (sql.Result, error) {
-		query := `insert into ` + m.table + `(` + userRowsExpectAutoSet + `) value (?, ?, ?, ?, ?)`
-		return m.ExecNoCache(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname)
+		userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, data.Name)
+		userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, data.Mobile)
+		ret, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+			query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
+			return conn.Exec(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname)
+		}, userNameKey, userMobileKey)
+		return ret, err
 	}
 
 	func (m *UserModel) FindOne(id int64) (*User, error) {
 		userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)
 		var resp User
 		err := m.QueryRow(&resp, userIdKey, func(conn sqlx.SqlConn, v interface{}) error {
-			query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
+			query := fmt.Sprintf("select %s from %s where id = ? limit 1", userRows, m.table)
 			return conn.QueryRow(v, query, id)
 		})
 		switch err {
@@ -103,18 +109,13 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 	func (m *UserModel) FindOneByName(name string) (*User, error) {
 		userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, name)
 		var resp User
-		err := m.QueryRowIndex(&resp, userNameKey, func(primary interface{}) string {
-			return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
-		}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
-			query := `select ` + userRows + ` from ` + m.table + ` where name = ? limit 1`
+		err := m.QueryRowIndex(&resp, userNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+			query := fmt.Sprintf("select %s from %s where name = ? limit 1", userRows, m.table)
 			if err := conn.QueryRow(&resp, query, name); err != nil {
 				return nil, err
 			}
 			return resp.Id, nil
-		}, func(conn sqlx.SqlConn, v, primary interface{}) error {
-			query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
-			return conn.QueryRow(v, query, primary)
-		})
+		}, m.queryPrimary)
 		switch err {
 		case nil:
 			return &resp, nil
@@ -128,18 +129,13 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 	func (m *UserModel) FindOneByMobile(mobile string) (*User, error) {
 		userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, mobile)
 		var resp User
-		err := m.QueryRowIndex(&resp, userMobileKey, func(primary interface{}) string {
-			return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
-		}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
-			query := `select ` + userRows + ` from ` + m.table + ` where mobile = ? limit 1`
+		err := m.QueryRowIndex(&resp, userMobileKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+			query := fmt.Sprintf("select %s from %s where mobile = ? limit 1", userRows, m.table)
 			if err := conn.QueryRow(&resp, query, mobile); err != nil {
 				return nil, err
 			}
 			return resp.Id, nil
-		}, func(conn sqlx.SqlConn, v, primary interface{}) error {
-			query := `select ` + userRows + ` from ` + m.table + ` where id = ? limit 1`
-			return conn.QueryRow(v, query, primary)
-		})
+		}, m.queryPrimary)
 		switch err {
 		case nil:
 			return &resp, nil
@@ -153,7 +149,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 	func (m *UserModel) Update(data User) error {
 		userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)
 		_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-			query := `update ` + m.table + ` set ` + userRowsWithPlaceHolder + ` where id = ?`
+			query := fmt.Sprintf("update %s set %s where id = ?", m.table, userRowsWithPlaceHolder)
 			return conn.Exec(query, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.Id)
 		}, userIdKey)
 		return err
@@ -164,16 +160,26 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
 		if err != nil {
 			return err
 		}
+
+		userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, data.Mobile)
 		userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)
 		userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, data.Name)
-		userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, data.Mobile)
 		_, err = m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-			query := `delete from ` + m.table + ` where id = ?`
+			query := fmt.Sprintf("delete from %s where id = ?", m.table)
 			return conn.Exec(query, id)
-		}, userIdKey, userNameKey, userMobileKey)
+		}, userMobileKey, userIdKey, userNameKey)
 		return err
 	}
-  ```
+
+	func (m *UserModel) formatPrimary(primary interface{}) string {
+		return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
+	}
+
+	func (m *UserModel) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
+		query := fmt.Sprintf("select %s from %s where id = ? limit 1", userRows, m.table)
+		return conn.QueryRow(v, query, primary)
+	}
+	```
 
 ## 用法
 
@@ -205,15 +211,56 @@ OPTIONS:
   * ddl
 
 	```shell script
-	goctl model mysql -src={filename} -dir={dir} -cache=true
+	goctl model mysql -src={patterns} -dir={dir} -cache=true
+	```
+
+	help
+
+	```
+	NAME:
+	goctl model mysql ddl - generate mysql model from ddl
+
+	USAGE:
+	goctl model mysql ddl [command options] [arguments...]
+
+	OPTIONS:
+	--src value, -s value  the path or path globbing patterns of the ddl
+	--dir value, -d value  the target dir
+	--style value          the file naming style, lower|camel|underline,default is lower
+	--cache, -c            generate code with cache [optional]
+	--idea                 for idea plugin [optional]
+
 	```
 
   * datasource
 
 	```shell script
-	goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=true
+	goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir} -cache=true
 	```
+
+	help
+
+	```
+	NAME:
+	goctl model mysql datasource - generate model from datasource
+
+	USAGE:
+	goctl model mysql datasource [command options] [arguments...]
+
+	OPTIONS:
+	--url value              the data source of database,like "root:password@tcp(127.0.0.1:3306)/database
+	--table value, -t value  the table or table globbing patterns in the database
+	--cache, -c              generate code with cache [optional]
+	--dir value, -d value    the target dir
+	--style value            the file naming style, lower|camel|snake, default is lower
+	--idea                   for idea plugin [optional]
+
+	```
+
+	示例用法请参考[用法](./example/generator.sh)
   
+	> NOTE: goctl model mysql ddl/datasource 均新增了一个`--style`参数，用于标记文件命名风格。
+
   目前仅支持redis缓存，如果选择带缓存模式，即生成的`FindOne(ByXxx)`&`Delete`代码会生成带缓存逻辑的代码，目前仅支持单索引字段（除全文索引外），对于联合索引我们默认认为不需要带缓存，且不属于通用型代码，因此没有放在代码生成行列，如example中user表中的`id`、`name`、`mobile`字段均属于单字段索引。
 
 * 不带缓存模式
@@ -221,26 +268,26 @@ OPTIONS:
   * ddl
   
       ```shell script
-        goctl model -src={filename} -dir={dir}
+        goctl model -src={patterns} -dir={dir}
       ```
 
   * datasource
   
       ```shell script
-        goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir}
+        goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir}
       ```
 
   or
   * ddl
 
       ```shell script
-        goctl model -src={filename} -dir={dir} -cache=false
+        goctl model -src={patterns} -dir={dir} -cache=false
       ```
 
   * datasource
   
       ```shell script
-        goctl model mysql datasource -url={datasource} -table={tables}  -dir={dir} -cache=false
+        goctl model mysql datasource -url={datasource} -table={patterns}  -dir={dir} -cache=false
       ```
   
 生成代码仅基本的CURD结构。
@@ -265,8 +312,3 @@ OPTIONS:
   
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
-## QA
-
-* goctl model除了命令行模式，支持插件模式吗？
-
-  很快支持idea插件。

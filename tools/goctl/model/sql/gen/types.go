@@ -2,7 +2,7 @@ package gen
 
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func genTypes(table Table, withCache bool) (string, error) {
@@ -11,8 +11,14 @@ func genTypes(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output, err := templatex.With("types").
-		Parse(template.Types).
+
+	text, err := util.LoadTemplate(category, typesTemplateFile, template.Types)
+	if err != nil {
+		return "", err
+	}
+
+	output, err := util.With("types").
+		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),
@@ -21,5 +27,6 @@ func genTypes(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }

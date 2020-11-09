@@ -1,6 +1,6 @@
 package template
 
-var Model = `package model
+var Model = `package {{.pkg}}
 {{.imports}}
 {{.vars}}
 {{.types}}

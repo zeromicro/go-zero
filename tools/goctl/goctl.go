@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
@@ -17,15 +18,15 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
-	"github.com/tal-tech/go-zero/tools/goctl/feature"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
-	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/command"
+	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
+	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
 )
 
 var (
-	BuildTime = "not set"
-	commands  = []cli.Command{
+	BuildVersion = "20201108"
+	commands     = []cli.Command{
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -51,12 +52,13 @@ var (
 							Usage: "the format target dir",
 						},
 						cli.BoolFlag{
-							Name:  "p",
-							Usage: "print result to console",
-						},
-						cli.BoolFlag{
 							Name:     "iu",
 							Usage:    "ignore update",
+							Required: false,
+						},
+						cli.BoolFlag{
+							Name:     "stdin",
+							Usage:    "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
 							Required: false,
 						},
 					},
@@ -102,13 +104,6 @@ var (
 						},
 					},
 					Action: gogen.GoCommand,
-					Subcommands: []cli.Command{
-						{
-							Name:   "template",
-							Usage:  "initialize the api templates",
-							Action: gogen.GenTemplates,
-						},
-					},
 				},
 				{
 					Name:  "java",
@@ -193,15 +188,11 @@ var (
 		},
 		{
 			Name:  "docker",
-			Usage: "generate Dockerfile and Makefile",
+			Usage: "generate Dockerfile",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "go",
 					Usage: "the file that contains main function",
-				},
-				cli.StringFlag{
-					Name:  "namespace, n",
-					Usage: "which namespace of kubernetes to deploy the service",
 				},
 			},
 			Action: docker.DockerCommand,
@@ -216,7 +207,7 @@ var (
 					Flags: []cli.Flag{
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.RpcNew,
@@ -229,10 +220,6 @@ var (
 							Name:  "out, o",
 							Usage: "the target path of proto",
 						},
-						cli.BoolFlag{
-							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
-						},
 					},
 					Action: rpc.RpcTemplate,
 				},
@@ -244,17 +231,17 @@ var (
 							Name:  "src, s",
 							Usage: "the file path of the proto source file",
 						},
-						cli.StringFlag{
-							Name:  "dir, d",
-							Usage: `the target path of the code,default path is "${pwd}". [option]`,
+						cli.StringSliceFlag{
+							Name:  "proto_path, I",
+							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
 						cli.StringFlag{
-							Name:  "service, srv",
-							Usage: `the name of rpc service. [option]`,
+							Name:  "dir, d",
+							Usage: `the target path of the code`,
 						},
 						cli.BoolFlag{
 							Name:  "idea",
-							Usage: "whether the command execution environment is from idea plugin. [option]",
+							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
 					Action: rpc.Rpc,
@@ -275,11 +262,15 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",
-									Usage: "the file path of the ddl source file",
+									Usage: "the path or path globbing patterns of the ddl",
 								},
 								cli.StringFlag{
 									Name:  "dir, d",
 									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|underline,default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -302,7 +293,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "table, t",
-									Usage: `source table,tables separated by commas,like "user,course`,
+									Usage: `the table or table globbing patterns in the database`,
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -311,6 +302,10 @@ var (
 								cli.StringFlag{
 									Name:  "dir, d",
 									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming style, lower|camel|snake, default is lower",
 								},
 								cli.BoolFlag{
 									Name:  "idea",
@@ -335,9 +330,46 @@ var (
 			Action: configgen.GenConfigCommand,
 		},
 		{
-			Name:   "feature",
-			Usage:  "the features of the latest version",
-			Action: feature.Feature,
+			Name:  "template",
+			Usage: "template operation",
+			Subcommands: []cli.Command{
+				{
+					Name:   "init",
+					Usage:  "initialize the all templates(force update)",
+					Action: tpl.GenTemplates,
+				},
+				{
+					Name:   "clean",
+					Usage:  "clean the all cache templates",
+					Action: tpl.CleanTemplates,
+				},
+				{
+					Name:  "update",
+					Usage: "update template of the target category to the latest",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "category,c",
+							Usage: "the category of template, enum [api,rpc,model]",
+						},
+					},
+					Action: tpl.UpdateTemplates,
+				},
+				{
+					Name:  "revert",
+					Usage: "revert the target template to the latest",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "category,c",
+							Usage: "the category of template, enum [api,rpc,model]",
+						},
+						cli.StringFlag{
+							Name:  "name,n",
+							Usage: "the target file name of template",
+						},
+					},
+					Action: tpl.RevertTemplates,
+				},
+			},
 		},
 	}
 )
@@ -347,7 +379,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = BuildTime
+	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {

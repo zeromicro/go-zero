@@ -9,7 +9,6 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
@@ -94,7 +93,7 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 		requestString = "req " + "types." + strings.Title(route.RequestType.Name)
 	}
 
-	text, err := templatex.LoadTemplate(category, logicTemplateFile, logicTemplate)
+	text, err := ctlutil.LoadTemplate(category, logicTemplateFile, logicTemplate)
 	if err != nil {
 		return err
 	}

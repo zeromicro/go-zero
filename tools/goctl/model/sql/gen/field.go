@@ -5,7 +5,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func genFields(fields []parser.Field) (string, error) {
@@ -25,8 +25,14 @@ func genField(field parser.Field) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	output, err := templatex.With("types").
-		Parse(template.Field).
+
+	text, err := util.LoadTemplate(category, fieldTemplateFile, template.Field)
+	if err != nil {
+		return "", err
+	}
+
+	output, err := util.With("types").
+		Parse(text).
 		Execute(map[string]interface{}{
 			"name":       field.Name.ToCamel(),
 			"type":       field.DataType,

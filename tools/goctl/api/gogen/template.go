@@ -1,7 +1,9 @@
 package gogen
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/templatex"
+	"fmt"
+
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -25,5 +27,29 @@ var templates = map[string]string{
 }
 
 func GenTemplates(_ *cli.Context) error {
-	return templatex.InitTemplates(category, templates)
+	return util.InitTemplates(category, templates)
+}
+
+func RevertTemplate(name string) error {
+	content, ok := templates[name]
+	if !ok {
+		return fmt.Errorf("%s: no such file name", name)
+	}
+	return util.CreateTemplate(category, name, content)
+}
+
+func Update(category string) error {
+	err := Clean()
+	if err != nil {
+		return err
+	}
+	return util.InitTemplates(category, templates)
+}
+
+func Clean() error {
+	return util.Clean(category)
+}
+
+func GetCategory() string {
+	return category
 }

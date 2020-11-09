@@ -8,13 +8,15 @@ package adder
 import (
 	"context"
 
-	add "bookstore/rpc/add/pb"
+	add "bookstore/rpc/add/internal/pb"
 
-	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/zrpc"
 )
 
 type (
+	AddReq  = add.AddReq
+	AddResp = add.AddResp
+
 	Adder interface {
 		Add(ctx context.Context, in *AddReq) (*AddResp, error)
 	}
@@ -31,33 +33,6 @@ func NewAdder(cli zrpc.Client) Adder {
 }
 
 func (m *defaultAdder) Add(ctx context.Context, in *AddReq) (*AddResp, error) {
-	var request add.AddReq
-	bts, err := jsonx.Marshal(in)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	err = jsonx.Unmarshal(bts, &request)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	client := add.NewAdderClient(m.cli.Conn())
-	resp, err := client.Add(ctx, &request)
-	if err != nil {
-		return nil, err
-	}
-
-	var ret AddResp
-	bts, err = jsonx.Marshal(resp)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	err = jsonx.Unmarshal(bts, &ret)
-	if err != nil {
-		return nil, errJsonConvert
-	}
-
-	return &ret, nil
+	adder := add.NewAdderClient(m.cli.Conn())
+	return adder.Add(ctx, in)
 }

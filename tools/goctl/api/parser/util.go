@@ -11,10 +11,11 @@ import (
 var emptyType spec.Type
 
 type ApiStruct struct {
-	Info       string
-	StructBody string
-	Service    string
-	Imports    string
+	Info             string
+	StructBody       string
+	Service          string
+	Imports          string
+	serviceBeginLine int
 }
 
 func GetType(api *spec.ApiSpec, t string) spec.Type {
@@ -69,7 +70,7 @@ func unread(r *bufio.Reader) error {
 	return r.UnreadRune()
 }
 
-func MatchStruct(api string) (*ApiStruct, error) {
+func ParseApi(api string) (*ApiStruct, error) {
 	var result ApiStruct
 	scanner := bufio.NewScanner(strings.NewReader(api))
 	var parseInfo = false
@@ -104,13 +105,13 @@ func MatchStruct(api string) (*ApiStruct, error) {
 			parseType = true
 		}
 		if isServiceBeginLine(line) {
+			parseService = true
 			if parseType {
 				parseType = false
 				result.StructBody = segment
 				segment = line + "\n"
 				continue
 			}
-			parseService = true
 		}
 		segment += scanner.Text() + "\n"
 	}
@@ -119,11 +120,12 @@ func MatchStruct(api string) (*ApiStruct, error) {
 		return nil, errors.New("no service defined")
 	}
 	result.Service = segment
+	result.serviceBeginLine = lineBeginOfService(api)
 	return &result, nil
 }
 
 func isImportBeginLine(line string) bool {
-	return strings.HasPrefix(line, "import") && strings.HasSuffix(line, ".api")
+	return strings.HasPrefix(line, "import") && (strings.HasSuffix(line, ".api") || strings.HasSuffix(line, `.api"`))
 }
 
 func isTypeBeginLine(line string) bool {
@@ -131,5 +133,18 @@ func isTypeBeginLine(line string) bool {
 }
 
 func isServiceBeginLine(line string) bool {
-	return strings.HasPrefix(line, "@server(") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
+	return strings.HasPrefix(line, "@server") || (strings.HasPrefix(line, "service") && strings.HasSuffix(line, "{"))
+}
+
+func lineBeginOfService(api string) int {
+	scanner := bufio.NewScanner(strings.NewReader(api))
+	var number = 0
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if isServiceBeginLine(line) {
+			break
+		}
+		number++
+	}
+	return number
 }
