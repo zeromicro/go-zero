@@ -75,3 +75,9 @@ func ComponentName(api *spec.ApiSpec) string {
 	}
 	return name + "Components"
 }
+
+func WriteIndent(writer io.Writer, indent int) {
+	for i := 0; i < indent; i++ {
+		fmt.Fprint(writer, "\t")
+	}
+}
