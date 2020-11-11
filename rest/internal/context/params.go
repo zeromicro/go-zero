@@ -23,5 +23,5 @@ func WithPathVars(r *http.Request, params map[string]string) *http.Request {
 type contextKey string
 
 func (c contextKey) String() string {
-	return "rest/internal/context context key" + string(c)
+	return "rest/internal/context key: " + string(c)
 }

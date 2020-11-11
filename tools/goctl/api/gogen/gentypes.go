@@ -71,8 +71,9 @@ func genTypes(dir string, api *spec.ApiSpec, force bool) error {
 		"containsTime": api.ContainsTime(),
 	})
 	if err != nil {
-		return nil
+		return err
 	}
+
 	formatCode := formatCode(buffer.String())
 	_, err = fp.WriteString(formatCode)
 	return err
@@ -89,12 +90,6 @@ func convertTypeCase(types []spec.Type, t string) (string, error) {
 		for _, typ := range types {
 			if typ.Name == tp {
 				defTypes = append(defTypes, tp)
-			}
-
-			if len(typ.Annotations) > 0 {
-				if value, ok := apiutil.GetAnnotationValue(typ.Annotations, "serverReplacer", tp); ok {
-					t = strings.ReplaceAll(t, tp, value)
-				}
 			}
 		}
 	}

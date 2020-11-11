@@ -103,7 +103,7 @@ func doGenToFile(dir, handler string, group spec.Group, route spec.Route, handle
 	buffer := new(bytes.Buffer)
 	err = template.Must(template.New("handlerTemplate").Parse(text)).Execute(buffer, handleObj)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	formatCode := formatCode(buffer.String())

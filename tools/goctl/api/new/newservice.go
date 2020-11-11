@@ -12,7 +12,7 @@ import (
 
 const apiTemplate = `
 type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` // 框架自动验证请求参数是否合法
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
 }
 
 type Response struct {
@@ -27,9 +27,9 @@ service {{.name}}-api {
 
 func NewService(c *cli.Context) error {
 	args := c.Args()
-	dirName := "greet"
-	if len(args) > 0 {
-		dirName = args.First()
+	dirName := args.First()
+	if len(dirName) == 0 {
+		dirName = "greet"
 	}
 
 	abs, err := filepath.Abs(dirName)

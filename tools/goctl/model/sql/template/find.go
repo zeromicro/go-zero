@@ -6,8 +6,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}}
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
 	err := m.QueryRow(&resp, {{.cacheKeyVariable}}, func(conn sqlx.SqlConn, v interface{}) error {
-		query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` +
-	" + `" + ` where {{.originalPrimaryKey}} = ? limit 1` + "`" + `
+		query :=  fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table)
 		return conn.QueryRow(v, query, {{.lowerStartCamelPrimaryKey}})
 	})
 	switch err {
@@ -17,8 +16,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}}
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{else}}query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" +
-	` where {{.originalPrimaryKey}} = ? limit 1` + "`" + `
+	}{{else}}query := fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table)
 	var resp {{.upperStartCamelObject}}
 	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelPrimaryKey}})
 	switch err {
@@ -38,8 +36,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
 	err := m.QueryRowIndex(&resp, {{.cacheKeyVariable}}, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
-		query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" +
-	` where {{.originalField}} = ? limit 1` + "`" + `
+		query := fmt.Sprintf("select %s from %s where {{.originalField}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table)
 		if err := conn.QueryRow(&resp, query, {{.lowerStartCamelField}}); err != nil {
 			return nil, err
 		}
@@ -54,8 +51,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 		return nil, err
 	}
 }{{else}}var resp {{.upperStartCamelObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" +
-	` where {{.originalField}} = ? limit 1` + "`" + `
+	query := fmt.Sprintf("select %s from %s where {{.originalField}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table )
 	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelField}})
 	switch err {
 	case nil:
@@ -73,8 +69,7 @@ func (m *{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) str
 }
 
 func (m *{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerStartCamelObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" +
-	` where {{.originalPrimaryField}} = ? limit 1` + "`" + `
+	query := fmt.Sprintf("select %s from %s where {{.originalPrimaryField}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table )
 	return conn.QueryRow(v, query, primary)
 }
 `

@@ -3,8 +3,8 @@ package logic
 import (
 	"context"
 
+	check "bookstore/rpc/check/internal/pb"
 	"bookstore/rpc/check/internal/svc"
-	check "bookstore/rpc/check/pb"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )

@@ -7,8 +7,8 @@ import (
 	"context"
 
 	"bookstore/rpc/check/internal/logic"
+	check "bookstore/rpc/check/internal/pb"
 	"bookstore/rpc/check/internal/svc"
-	check "bookstore/rpc/check/pb"
 )
 
 type CheckerServer struct {

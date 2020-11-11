@@ -18,7 +18,7 @@ type (
 		PrivateKeys []PrivateKeyConf
 	}
 
-	// why not name it as Conf, because we need to consider usage like:
+	// Why not name it as Conf, because we need to consider usage like:
 	// type Config struct {
 	//     zrpc.RpcConf
 	//     rest.RestConf
@@ -28,9 +28,11 @@ type (
 		service.ServiceConf
 		Host     string `json:",default=0.0.0.0"`
 		Port     int
-		Verbose  bool  `json:",optional"`
-		MaxConns int   `json:",default=10000"`
-		MaxBytes int64 `json:",default=1048576,range=[0:8388608]"`
+		CertFile string `json:",optional"`
+		KeyFile  string `json:",optional"`
+		Verbose  bool   `json:",optional"`
+		MaxConns int    `json:",default=10000"`
+		MaxBytes int64  `json:",default=1048576,range=[0:8388608]"`
 		// milliseconds
 		Timeout      int64         `json:",default=3000"`
 		CpuThreshold int64         `json:",default=900,range=[0:1000]"`

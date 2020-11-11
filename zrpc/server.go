@@ -16,7 +16,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-const envPodIp = "POD_IP"
+const (
+	allEths  = "0.0.0.0"
+	envPodIp = "POD_IP"
+)
 
 type RpcServer struct {
 	server   internal.Server
@@ -96,7 +99,7 @@ func figureOutListenOn(listenOn string) string {
 	}
 
 	host := fields[0]
-	if len(host) > 0 && host != "0.0.0.0" {
+	if len(host) > 0 && host != allEths {
 		return listenOn
 	}
 

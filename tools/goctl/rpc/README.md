@@ -7,9 +7,8 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 * 简单易用
 * 快速提升开发效率
 * 出错率低
-* 支持基于main proto作为相对路径的import
-* 支持map、enum类型
-* 支持any类型
+* 贴近protoc
+
 
 ## 快速开始
 
@@ -19,44 +18,64 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 
   如生成greet rpc服务：
 
-  ```shell script
+  ```Bash
   goctl rpc new greet
   ```
 
   执行后代码结构如下:
 
   ```golang
-  └── greet
-    ├── etc
-    │   └── greet.yaml
-    ├── go.mod
-    ├── go.sum
-    ├── greet
-    │   ├── greet.go
-    │   ├── greet_mock.go
-    │   └── types.go
-    ├── greet.go
-    ├── greet.proto
-    ├── internal
-    │   ├── config
-    │   │   └── config.go
-    │   ├── logic
-    │   │   └── pinglogic.go
-    │   ├── server
-    │   │   └── greetserver.go
-    │   └── svc
-    │       └── servicecontext.go
-    └── pb
-        └── greet.pb.go
+.
+├── etc             // yaml配置文件
+│   └── greet.yaml
+├── go.mod
+├── greet           // pb.go文件夹①
+│   └── greet.pb.go
+├── greet.go        // main函数
+├── greet.proto     // proto 文件
+├── greetclient     // call logic ②
+│   └── greet.go
+└── internal        
+    ├── config      // yaml配置对应的实体
+    │   └── config.go
+    ├── logic       // 业务代码
+    │   └── pinglogic.go
+    ├── server      // rpc server
+    │   └── greetserver.go
+    └── svc         // 依赖资源
+        └── servicecontext.go
   ```
 
-rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题解决</a>
+> ① pb文件夹名（老版本文件夹固定为pb）称取自于proto文件中option go_package的值最后一层级按照一定格式进行转换，若无此声明，则取自于package的值，大致代码如下：
+
+```go
+  if option.Name == "go_package" {
+    ret.GoPackage = option.Constant.Source
+  }
+  ...
+  if len(ret.GoPackage) == 0 {
+    ret.GoPackage = ret.Package.Name
+  }
+  ret.PbPackage = GoSanitized(filepath.Base(ret.GoPackage))
+  ...
+```
+> GoSanitized方法请参考google.golang.org/protobuf@v1.25.0/internal/strs/strings.go:71
+
+> ② call 层文件夹名称取自于proto中service的名称，如该sercice的名称和pb文件夹名称相等，则会在srervice后面补充client进行区分，使pb和call分隔。
+
+```go
+if strings.ToLower(proto.Service.Name) == strings.ToLower(proto.GoPackage) {
+	callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
+}
+```
+
+rpc一键生成常见问题解决，见 <a href="#常见问题解决">常见问题解决</a>
 
 ### 方式二：通过指定proto生成rpc服务
 
 * 生成proto模板
 
-  ```shell script
+  ```Bash
   goctl rpc template -o=user.proto
   ```
 
@@ -87,33 +106,8 @@ rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题�
 
 * 生成rpc服务代码
 
-  ```shell script
+  ```Bash
   goctl rpc proto -src=user.proto
-  ```
-
-  代码tree
-
-  ```Plain Text
-  user
-      ├── etc
-      │   └── user.json
-      ├── internal
-      │   ├── config
-      │   │   └── config.go
-      │   ├── handler
-      │   │   ├── loginhandler.go
-      │   ├── logic
-      │   │   └── loginlogic.go
-      │   └── svc
-      │       └── servicecontext.go
-      ├── pb
-      │   └── user.pb.go
-      ├── shared
-      │   ├── mockusermodel.go
-      │   ├── types.go
-      │   └── usermodel.go
-      ├── user.go
-      └── user.proto
   ```
 
 ## 准备工作
@@ -126,11 +120,11 @@ rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题�
 
 ### rpc服务生成用法
 
-```shell script
+```Bash
 goctl rpc proto -h
 ```
 
-```shell script
+```Bash
 NAME:
    goctl rpc proto - generate rpc from proto
 
@@ -139,35 +133,22 @@ USAGE:
 
 OPTIONS:
    --src value, -s value         the file path of the proto source file
-   --dir value, -d value         the target path of the code,default path is "${pwd}". [option]
-   --service value, --srv value  the name of rpc service. [option]
-   --idea                        whether the command execution environment is from idea plugin. [option]
-
+   --proto_path value, -I value  native command of protoc, specify the directory in which to search for imports. [optional]
+   --dir value, -d value         the target path of the code
+   --idea                        whether the command execution environment is from idea plugin. [optional]
 ```
 
 ### 参数说明
 
-* --src 必填，proto数据源，目前暂时支持单个proto文件生成，这里不支持（不建议）外部依赖
-* --dir 非必填，默认为proto文件所在目录，生成代码的目标目录
-* --service 服务名称，非必填，默认为proto文件所在目录名称，但是，如果proto所在目录为一下结构：
-
-    ```shell script
-    user
-        ├── cmd
-        │   └── rpc
-        │       └── user.proto
-    ```
-
-    则服务名称亦为user，而非proto所在文件夹名称了，这里推荐使用这种结构，可以方便在同一个服务名下建立不同类型的服务(api、rpc、mq等)，便于代码管理与维护。
-  
-  > 注意：这里的shared文件夹名称将会是代码中的package名称。
-
-* --idea 非必填，是否为idea插件中执行，保留字段，终端执行可以忽略
+* --src 必填，proto数据源，目前暂时支持单个proto文件生成
+* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --dir 可选，默认为proto文件所在目录，生成代码的目标目录
+* --idea 可选，是否为idea插件中执行，终端执行可以忽略
 
 
 ### 开发人员需要做什么
 
-关注业务代码编写，将重复性、与业务无关的工作交给goctl，生成好rpc服务代码后，开饭人员仅需要修改
+关注业务代码编写，将重复性、与业务无关的工作交给goctl，生成好rpc服务代码后，开发人员仅需要修改
 
 * 服务中的配置文件编写(etc/xx.json、internal/config/config.go)
 * 服务中业务逻辑编写(internal/logic/xxlogic.go)
@@ -193,69 +174,54 @@ OPTIONS:
 
 的标识，请注意不要将也写业务性代码写在里面。
 
-## any和import支持
-* 支持any类型声明
-* 支持import其他proto文件
+## proto import
+* 对于rpc中的requestType和returnType必须在main proto文件定义，对于proto中的message可以像protoc一样import其他proto文件。
 
-  any类型固定import为`google/protobuf/any.proto`,且从${GOPATH}/src中查找，proto的import支持main proto的相对路径的import，且与proto文件对应的pb.go文件必须在proto目录中能被找到。不支持工程外的其他proto文件import。
+proto示例:
 
-> ⚠️注意： 不支持proto嵌套import，即：被import的proto文件不支持import。
-
-### import书写格式
-import书写格式
-```golang
-// @{package_of_pb} 
-import {proto_omport}
-```
-@{package_of_pb}：pb文件的真实import目录。
-{proto_omport}：proto import
-
-
-如：demo中的
-
-```golang
-// @greet/base
-import "base/base.proto";
-```
-
-工程目录结构如下
-```
-greet
-│   ├── base
-│   │   ├── base.pb.go
-│   │   └── base.proto
-│   ├── demo.proto
-│   ├── go.mod
-│   └── go.sum
-```
-
-demo 
-```golang
+### 错误import
+```proto
 syntax = "proto3";
-import "google/protobuf/any.proto";
-// @greet/base
-import "base/base.proto";
-package stream;
 
+package greet;
 
-enum Gender{
-  UNKNOWN = 0;
-  MAN = 1;
-  WOMAN = 2;
+import "base/common.proto"
+
+message Request {
+  string ping = 1;
 }
 
-message StreamResp{
-  string name = 2;
-  Gender gender = 3;
-  google.protobuf.Any details = 5;
-  base.StreamReq req = 6;
+message Response {
+  string pong = 1;
 }
-service StreamGreeter {
-  rpc greet(base.StreamReq) returns (StreamResp);
+
+service Greet {
+  rpc Ping(base.In) returns(base.Out);// request和return 不支持import
 }
+
 ```
 
 
+### 正确import
+```proto
+syntax = "proto3";
+
+package greet;
+
+import "base/common.proto"
+
+message Request {
+  base.In in = 1;// 支持import
+}
+
+message Response {
+ base.Out out = 2;// 支持import
+}
+
+service Greet {
+  rpc Ping(Request) returns(Response);
+}
+```
 
 ## 常见问题解决(go mod工程)
 

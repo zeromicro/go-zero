@@ -1,0 +1,25 @@
+// test proto
+syntax = "proto3";
+
+package test;
+option go_package = "go";
+
+import "test_base.proto";
+
+message TestMessage {
+  base.CommonReq req = 1;
+}
+message TestReq {}
+message TestReply {
+  base.CommonReply reply = 2;
+}
+
+enum TestEnum {
+  unknown = 0;
+  male = 1;
+  female = 2;
+}
+
+service TestService {
+  rpc TestRpc (TestReq) returns (TestReply);
+}

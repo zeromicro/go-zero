@@ -2,7 +2,6 @@ package internal
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 
@@ -10,42 +9,27 @@ import (
 )
 
 func StartHttp(host string, port int, handler http.Handler) error {
-	addr := fmt.Sprintf("%s:%d", host, port)
-	server := buildHttpServer(addr, handler)
-	return StartServer(server)
+	return start(host, port, handler, func(srv *http.Server) error {
+		return srv.ListenAndServe()
+	})
 }
 
 func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler) error {
-	addr := fmt.Sprintf("%s:%d", host, port)
-	if server, err := buildHttpsServer(addr, handler, certFile, keyFile); err != nil {
-		return err
-	} else {
-		return StartServer(server)
-	}
-}
-
-func StartServer(srv *http.Server) error {
-	proc.AddWrapUpListener(func() {
-		srv.Shutdown(context.Background())
+	return start(host, port, handler, func(srv *http.Server) error {
+		// certFile and keyFile are set in buildHttpsServer
+		return srv.ListenAndServeTLS(certFile, keyFile)
 	})
-
-	return srv.ListenAndServe()
 }
 
-func buildHttpServer(addr string, handler http.Handler) *http.Server {
-	return &http.Server{Addr: addr, Handler: handler}
-}
-
-func buildHttpsServer(addr string, handler http.Handler, certFile, keyFile string) (*http.Server, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, err
+func start(host string, port int, handler http.Handler, run func(srv *http.Server) error) error {
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", host, port),
+		Handler: handler,
 	}
+	waitForCalled := proc.AddWrapUpListener(func() {
+		server.Shutdown(context.Background())
+	})
+	defer waitForCalled()
 
-	config := tls.Config{Certificates: []tls.Certificate{cert}}
-	return &http.Server{
-		Addr:      addr,
-		Handler:   handler,
-		TLSConfig: &config,
-	}, nil
+	return run(server)
 }

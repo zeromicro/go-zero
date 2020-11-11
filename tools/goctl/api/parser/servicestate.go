@@ -70,6 +70,12 @@ func (p *serviceEntityParser) parseLine(line string, api *spec.ApiSpec, annos []
 		ch, _, err := reader.ReadRune()
 		if err != nil {
 			if err == io.EOF {
+				if builder.Len() > 0 {
+					token := strings.TrimSpace(builder.String())
+					if len(token) > 0 && token != returnsTag {
+						fields = append(fields, token)
+					}
+				}
 				break
 			}
 			return err
