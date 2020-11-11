@@ -1,8 +1,6 @@
 package internal
 
-import (
-	"google.golang.org/grpc"
-)
+import "google.golang.org/grpc"
 
 func WithStreamServerInterceptors(interceptors ...grpc.StreamServerInterceptor) grpc.ServerOption {
 	return grpc.ChainStreamInterceptor(interceptors...)
