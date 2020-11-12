@@ -128,6 +128,9 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "vars.go")
+	if g.namingStyle == NamingCamel {
+		filename = filepath.Join(dirAbs, "Vars.go")
+	}
 	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
 	if err != nil {
 		return err

@@ -22,13 +22,13 @@ func TestCacheModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g, err := NewDefaultGenerator(cacheDir, NamingLower)
+	g, err := NewDefaultGenerator(cacheDir, NamingCamel)
 	assert.Nil(t, err)
 
 	err = g.StartFromDdl(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(cacheDir, "testuserinfomodel.go"))
+		_, err := os.Stat(filepath.Join(cacheDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
 	g, err = NewDefaultGenerator(noCacheDir, NamingLower)

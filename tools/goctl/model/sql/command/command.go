@@ -47,7 +47,7 @@ func MyDataSource(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
 	pattern := strings.TrimSpace(ctx.String(flagTable))
-	return fromDataSource(url, dir, pattern, namingStyle, cache, idea)
+	return fromDataSource(url, pattern, dir, namingStyle, cache, idea)
 }
 
 func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
