@@ -30,7 +30,7 @@ func newEntity(state *baseState, api *spec.ApiSpec, parser entityParser) entity 
 }
 
 func (s *entity) process() error {
-	line, err := s.state.readLine()
+	line, err := s.state.readLineSkipComment()
 	if err != nil {
 		return err
 	}
@@ -59,7 +59,7 @@ func (s *entity) process() error {
 	var annos []spec.Annotation
 memberLoop:
 	for {
-		ch, err := s.state.read()
+		ch, err := s.state.readSkipComment()
 		if err != nil {
 			return err
 		}
@@ -70,7 +70,7 @@ memberLoop:
 		case ch == at:
 		annotationLoop:
 			for {
-				next, err := s.state.read()
+				next, err := s.state.readSkipComment()
 				if err != nil {
 					return err
 				}
@@ -127,7 +127,7 @@ memberLoop:
 			}
 
 			var line string
-			line, err = s.state.readLine()
+			line, err = s.state.readLineSkipComment()
 			if err != nil {
 				return err
 			}

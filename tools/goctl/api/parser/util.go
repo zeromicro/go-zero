@@ -36,6 +36,10 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\t'
 }
 
+func isSlash(r rune) bool {
+	return r == '/'
+}
+
 func isNewline(r rune) bool {
 	return r == '\n' || r == '\r'
 }

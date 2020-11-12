@@ -31,17 +31,20 @@ type Response struct {
 }
 
 @server(
+    // C0
 	group: greet
 )
+// C1
 service A-api {
-  @server(
+  // C2
+  @server( // C3
     handler: GreetHandler
   )
-  get /greet/from/:name(Request) returns (Response)
-
+  get /greet/from/:name(Request) returns (Response)   // hello
+	
+  // C4
   @server(
-    handler: NoResponseHandler
-    
+    handler: NoResponseHandler // C5
   )
   get /greet/get(Request) returns
 }

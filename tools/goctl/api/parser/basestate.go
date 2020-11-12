@@ -34,7 +34,7 @@ func (s *baseState) parseProperties() (map[string]string, error) {
 	var st = startState
 
 	for {
-		ch, err := s.read()
+		ch, err := s.readSkipComment()
 		if err != nil {
 			return nil, err
 		}
@@ -162,6 +162,60 @@ func (s *baseState) read() (rune, error) {
 		*s.lineNumber++
 	}
 	return value, nil
+}
+
+func (s *baseState) readSkipComment() (rune, error) {
+	ch, err := s.read()
+	if err != nil {
+		return 0, err
+	}
+
+	if isSlash(ch) {
+		value, err := s.mayReadToEndOfLine()
+		if err != nil {
+			return 0, err
+		}
+
+		if value > 0 {
+			ch = value
+		}
+	}
+	return ch, nil
+}
+
+func (s *baseState) mayReadToEndOfLine() (rune, error) {
+	ch, err := s.read()
+	if err != nil {
+		return 0, err
+	}
+
+	if isSlash(ch) {
+		for {
+			value, err := s.read()
+			if err != nil {
+				return 0, err
+			}
+
+			if isNewline(value) {
+				return value, nil
+			}
+		}
+	}
+	err = s.unread()
+	return 0, err
+}
+
+func (s *baseState) readLineSkipComment() (string, error) {
+	line, err := s.readLine()
+	if err != nil {
+		return "", err
+	}
+
+	var commentIdx = strings.Index(line, "//")
+	if commentIdx >= 0 {
+		return line[:commentIdx], nil
+	}
+	return line, nil
 }
 
 func (s *baseState) readLine() (string, error) {
