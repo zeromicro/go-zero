@@ -31,8 +31,9 @@ func TestRpcGenerate(t *testing.T) {
 	}
 
 	projectDir := filepath.Join(src, projectName)
+	srcDir := projectDir
 	defer func() {
-		_ = os.RemoveAll(projectDir)
+		_ = os.RemoveAll(srcDir)
 	}()
 	err = g.Generate("./test.proto", projectDir, []string{src})
 	assert.Nil(t, err)
