@@ -188,7 +188,6 @@ func (s *baseState) mayReadToEndOfLine() (rune, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	if isSlash(ch) {
 		for {
 			value, err := s.read()
@@ -203,19 +202,6 @@ func (s *baseState) mayReadToEndOfLine() (rune, error) {
 	}
 	err = s.unread()
 	return 0, err
-}
-
-func (s *baseState) readLineSkipComment() (string, error) {
-	line, err := s.readLine()
-	if err != nil {
-		return "", err
-	}
-
-	var commentIdx = strings.Index(line, "//")
-	if commentIdx >= 0 {
-		return line[:commentIdx], nil
-	}
-	return line, nil
 }
 
 func (s *baseState) readLine() (string, error) {
