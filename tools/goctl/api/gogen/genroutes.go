@@ -160,7 +160,7 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), util.JoinPackages(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
@@ -181,15 +181,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				return nil, fmt.Errorf("missing handler annotation for route %q", r.Path)
 			}
 			handler = getHandlerBaseName(handler) + "Handler(serverCtx)"
-			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
-			if ok {
-				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
-			} else {
-				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
-				if ok {
-					handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
-				}
-			}
+			handler = "handler" + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			groupedRoutes.routes = append(groupedRoutes.routes, route{
 				method:  mapping[r.Method],
 				path:    r.Path,
@@ -210,8 +202,4 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 	}
 
 	return routes, nil
-}
-
-func toPrefix(folder string) string {
-	return strings.ReplaceAll(folder, "/", "")
 }
