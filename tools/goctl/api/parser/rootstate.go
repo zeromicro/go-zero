@@ -23,7 +23,7 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 	var annos []spec.Annotation
 	var builder strings.Builder
 	for {
-		ch, err := s.read()
+		ch, err := s.readSkipComment()
 		if err != nil {
 			return nil, err
 		}
@@ -33,6 +33,7 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 			if builder.Len() == 0 {
 				continue
 			}
+
 			token := builder.String()
 			builder.Reset()
 			return s.processToken(token, annos)
@@ -44,10 +45,11 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 			var annoName string
 		annoLoop:
 			for {
-				next, err := s.read()
+				next, err := s.readSkipComment()
 				if err != nil {
 					return nil, err
 				}
+
 				switch {
 				case isSpace(next):
 					if builder.Len() > 0 {
@@ -58,6 +60,7 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 					if err := s.unread(); err != nil {
 						return nil, err
 					}
+
 					if builder.Len() > 0 {
 						annoName = builder.String()
 						builder.Reset()
@@ -66,6 +69,7 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 					if err != nil {
 						return nil, err
 					}
+
 					annos = append(annos, spec.Annotation{
 						Name:       annoName,
 						Properties: attrs,
@@ -79,9 +83,11 @@ func (s rootState) process(api *spec.ApiSpec) (state, error) {
 			if builder.Len() == 0 {
 				return nil, fmt.Errorf("incorrect %q at the beginning of the line", leftParenthesis)
 			}
+
 			if err := s.unread(); err != nil {
 				return nil, err
 			}
+
 			token := builder.String()
 			builder.Reset()
 			return s.processToken(token, annos)
