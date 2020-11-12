@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/urfave/cli"
 )
@@ -56,12 +55,6 @@ func RpcNew(c *cli.Context) error {
 	}
 
 	err = generator.ProtoTmpl(src)
-	if err != nil {
-		return err
-	}
-
-	workDir := filepath.Dir(src)
-	_, err = execx.Run("go mod init "+name, workDir)
 	if err != nil {
 		return err
 	}
