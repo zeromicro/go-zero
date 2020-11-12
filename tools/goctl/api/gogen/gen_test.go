@@ -40,7 +40,7 @@ service A-api {
   @server( // C3
     handler: GreetHandler
   )
-  get /greet/from/:name(Request) returns (Response)   // hello
+  get /greet/from/:name(Request) returns (Response)
 	
   // C4
   @server(
