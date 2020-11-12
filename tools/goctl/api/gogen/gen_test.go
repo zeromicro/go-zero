@@ -32,7 +32,7 @@ type Response struct {
 
 @server(
     // C0
-	group: greet
+	group: greet/s1
 )
 // C1
 service A-api {
@@ -43,10 +43,8 @@ service A-api {
   get /greet/from/:name(Request) returns (Response)   // hello
 	
   // C4
-  @server(
-    handler: NoResponseHandler // C5
-  )
-  get /greet/get(Request) returns
+  @handler NoResponseHandler  // C5
+  get /greet/get(Request)
 }
 `
 
@@ -504,7 +502,8 @@ func TestHasImportApi(t *testing.T) {
 
 func validate(t *testing.T, api string) {
 	dir := "_go"
-	err := DoGenProject(api, dir, true)
+	os.RemoveAll(dir)
+	err := DoGenProject(api, dir)
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

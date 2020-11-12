@@ -3,6 +3,7 @@ package gogen
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"path"
 	"sort"
 	"strings"
@@ -61,7 +62,7 @@ type (
 	}
 )
 
-func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
+func genRoutes(dir string, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -121,11 +122,7 @@ func genRoutes(dir string, api *spec.ApiSpec, force bool) error {
 	}
 
 	filename := path.Join(dir, handlerDir, routesFilename)
-	if !force {
-		if err := util.RemoveOrQuit(filename); err != nil {
-			return err
-		}
-	}
+	os.Remove(filename)
 
 	fp, created, err := apiutil.MaybeCreateFile(dir, handlerDir, routesFilename)
 	if err != nil {
@@ -163,8 +160,7 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", folder,
-				util.JoinPackages(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), util.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
@@ -187,11 +183,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			handler = getHandlerBaseName(handler) + "Handler(serverCtx)"
 			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
 			if ok {
-				handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
+				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			} else {
 				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
 				if ok {
-					handler = folder + "." + strings.ToUpper(handler[:1]) + handler[1:]
+					handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 				}
 			}
 			groupedRoutes.routes = append(groupedRoutes.routes, route{
@@ -214,4 +210,8 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 	}
 
 	return routes, nil
+}
+
+func toPrefix(folder string) string {
+	return strings.ReplaceAll(folder, "/", "")
 }

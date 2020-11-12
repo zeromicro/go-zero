@@ -76,7 +76,7 @@ memberLoop:
 				}
 				switch {
 				case isSpace(next):
-					if builder.Len() > 0 {
+					if builder.Len() > 0 && annoName == "" {
 						annoName = builder.String()
 						builder.Reset()
 					}
@@ -84,6 +84,7 @@ memberLoop:
 					if builder.Len() == 0 {
 						return errors.New("invalid annotation format")
 					}
+
 					if len(annoName) > 0 {
 						value := builder.String()
 						if value != string(leftParenthesis) {
