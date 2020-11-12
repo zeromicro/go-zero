@@ -17,6 +17,10 @@ import (
 	"github.com/urfave/cli"
 )
 
+var (
+	errNotMatched = errors.New("sql not matched")
+)
+
 const (
 	flagSrc   = "src"
 	flagDir   = "dir"
@@ -33,6 +37,20 @@ func MysqlDDL(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
+	return fromDDl(src, dir, namingStyle, cache, idea)
+}
+
+func MyDataSource(ctx *cli.Context) error {
+	url := strings.TrimSpace(ctx.String(flagUrl))
+	dir := strings.TrimSpace(ctx.String(flagDir))
+	cache := ctx.Bool(flagCache)
+	idea := ctx.Bool(flagIdea)
+	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
+	pattern := strings.TrimSpace(ctx.String(flagTable))
+	return fromDataSource(url, dir, pattern, namingStyle, cache, idea)
+}
+
+func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
@@ -51,6 +69,9 @@ func MysqlDDL(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	if len(files) == 0 {
+		return errNotMatched
+	}
 
 	var source []string
 	for _, file := range files {
@@ -66,19 +87,10 @@ func MysqlDDL(ctx *cli.Context) error {
 	}
 
 	err = generator.StartFromDdl(strings.Join(source, "\n"), cache)
-	if err != nil {
-		log.Error("%v", err)
-	}
-	return nil
+	return err
 }
 
-func MyDataSource(ctx *cli.Context) error {
-	url := strings.TrimSpace(ctx.String(flagUrl))
-	dir := strings.TrimSpace(ctx.String(flagDir))
-	cache := ctx.Bool(flagCache)
-	idea := ctx.Bool(flagIdea)
-	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
-	pattern := strings.TrimSpace(ctx.String(flagTable))
+func fromDataSource(url, pattern, dir, namingStyle string, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
@@ -140,9 +152,5 @@ func MyDataSource(ctx *cli.Context) error {
 	}
 
 	err = generator.StartFromInformationSchema(cfg.DBName, matchTables, cache)
-	if err != nil {
-		log.Error("%v", err)
-	}
-
-	return nil
+	return err
 }

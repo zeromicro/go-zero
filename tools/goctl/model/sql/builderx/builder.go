@@ -68,30 +68,3 @@ func FieldNames(in interface{}) []string {
 	}
 	return out
 }
-func FieldNamesAlias(in interface{}, alias string) []string {
-	out := make([]string, 0)
-	v := reflect.ValueOf(in)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-	// we only accept structs
-	if v.Kind() != reflect.Struct {
-		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
-	}
-	typ := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		// gets us a StructField
-		fi := typ.Field(i)
-		tagName := ""
-		if tagv := fi.Tag.Get(dbTag); tagv != "" {
-			tagName = tagv
-		} else {
-			tagName = fi.Name
-		}
-		if len(alias) > 0 {
-			tagName = alias + "." + tagName
-		}
-		out = append(out, tagName)
-	}
-	return out
-}

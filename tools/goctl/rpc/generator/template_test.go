@@ -2,6 +2,7 @@ package generator
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,87 +11,104 @@ import (
 )
 
 func TestGenTemplates(t *testing.T) {
-	err := util.InitTemplates(category, templates)
+	_ = Clean()
+	err := GenTemplates(nil)
 	assert.Nil(t, err)
-	dir, err := util.GetTemplateDir(category)
-	assert.Nil(t, err)
-	file := filepath.Join(dir, "main.tpl")
-	data, err := ioutil.ReadFile(file)
-	assert.Nil(t, err)
-	assert.Equal(t, string(data), mainTemplate)
 }
 
 func TestRevertTemplate(t *testing.T) {
-	name := "main.tpl"
-	err := util.InitTemplates(category, templates)
+	_ = Clean()
+	err := GenTemplates(nil)
+	assert.Nil(t, err)
+	fp, err := util.GetTemplateDir(category)
+	if err != nil {
+		return
+	}
+	mainTpl := filepath.Join(fp, mainTemplateFile)
+	data, err := ioutil.ReadFile(mainTpl)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, templates[mainTemplateFile], string(data))
+
+	err = RevertTemplate("test")
+	if err != nil {
+		assert.Equal(t, "test: no such file name", err.Error())
+	}
+
+	err = ioutil.WriteFile(mainTpl, []byte("modify"), os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	data, err = ioutil.ReadFile(mainTpl)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, "modify", string(data))
+
+	err = RevertTemplate(mainTemplateFile)
 	assert.Nil(t, err)
 
-	dir, err := util.GetTemplateDir(category)
-	assert.Nil(t, err)
-
-	file := filepath.Join(dir, name)
-	data, err := ioutil.ReadFile(file)
-	assert.Nil(t, err)
-
-	modifyData := string(data) + "modify"
-	err = util.CreateTemplate(category, name, modifyData)
-	assert.Nil(t, err)
-
-	data, err = ioutil.ReadFile(file)
-	assert.Nil(t, err)
-
-	assert.Equal(t, string(data), modifyData)
-
-	assert.Nil(t, RevertTemplate(name))
-
-	data, err = ioutil.ReadFile(file)
-	assert.Nil(t, err)
-	assert.Equal(t, mainTemplate, string(data))
+	data, err = ioutil.ReadFile(mainTpl)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, templates[mainTemplateFile], string(data))
 }
 
 func TestClean(t *testing.T) {
-	name := "main.tpl"
-	err := util.InitTemplates(category, templates)
+	_ = Clean()
+	err := GenTemplates(nil)
+	assert.Nil(t, err)
+	fp, err := util.GetTemplateDir(category)
+	if err != nil {
+		return
+	}
+	mainTpl := filepath.Join(fp, mainTemplateFile)
+	_, err = os.Stat(mainTpl)
 	assert.Nil(t, err)
 
-	assert.Nil(t, Clean())
-
-	dir, err := util.GetTemplateDir(category)
+	err = Clean()
 	assert.Nil(t, err)
 
-	file := filepath.Join(dir, name)
-	_, err = ioutil.ReadFile(file)
+	_, err = os.Stat(mainTpl)
 	assert.NotNil(t, err)
 }
 
 func TestUpdate(t *testing.T) {
-	name := "main.tpl"
-	err := util.InitTemplates(category, templates)
+	_ = Clean()
+	err := GenTemplates(nil)
+	assert.Nil(t, err)
+	fp, err := util.GetTemplateDir(category)
+	if err != nil {
+		return
+	}
+	mainTpl := filepath.Join(fp, mainTemplateFile)
+
+	err = ioutil.WriteFile(mainTpl, []byte("modify"), os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	data, err := ioutil.ReadFile(mainTpl)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, "modify", string(data))
+
+	err = Update(category)
 	assert.Nil(t, err)
 
-	dir, err := util.GetTemplateDir(category)
-	assert.Nil(t, err)
-
-	file := filepath.Join(dir, name)
-	data, err := ioutil.ReadFile(file)
-	assert.Nil(t, err)
-
-	modifyData := string(data) + "modify"
-	err = util.CreateTemplate(category, name, modifyData)
-	assert.Nil(t, err)
-
-	data, err = ioutil.ReadFile(file)
-	assert.Nil(t, err)
-
-	assert.Equal(t, string(data), modifyData)
-
-	assert.Nil(t, Update(category))
-
-	data, err = ioutil.ReadFile(file)
-	assert.Nil(t, err)
-	assert.Equal(t, mainTemplate, string(data))
+	data, err = ioutil.ReadFile(mainTpl)
+	if err != nil {
+		return
+	}
+	assert.Equal(t, templates[mainTemplateFile], string(data))
 }
 
 func TestGetCategory(t *testing.T) {
-	assert.Equal(t, category, GetCategory())
+	_ = Clean()
+	result := GetCategory()
+	assert.Equal(t, category, result)
 }

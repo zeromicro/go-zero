@@ -162,10 +162,10 @@ func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
 	}
 	primaryColumns := keyMap["PRI"]
 	if len(primaryColumns) == 0 {
-		return nil, fmt.Errorf("table %s: primary key can not be nil", table)
+		return nil, fmt.Errorf("database:%s, table %s: primary key can not be nil", db, table)
 	}
 	if len(primaryColumns) > 1 {
-		return nil, fmt.Errorf("table %s: unexpected union primary key", table)
+		return nil, fmt.Errorf("database:%s, table %s: unexpected union primary key", db, table)
 	}
 	primaryColumn := primaryColumns[0]
 	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType)
