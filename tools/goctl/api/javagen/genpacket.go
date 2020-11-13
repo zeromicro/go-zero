@@ -77,7 +77,7 @@ public class {{.packetName}} extends HttpRequestPacket<{{.packetName}}.{{.packet
 `
 
 func genPacket(dir, packetName string, api *spec.ApiSpec) error {
-	for _, route := range api.Service.Routes {
+	for _, route := range api.Service.Routes() {
 		if err := createWith(dir, api, route, packetName); err != nil {
 			return err
 		}

@@ -23,7 +23,7 @@ info(
 )
 
 type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `   // }
 }
 
 type Response struct {
@@ -292,13 +292,13 @@ func TestParser(t *testing.T) {
 	assert.Nil(t, err)
 
 	assert.Equal(t, len(api.Types), 2)
-	assert.Equal(t, len(api.Service.Routes), 2)
+	assert.Equal(t, len(api.Service.Routes()), 2)
 
-	assert.Equal(t, api.Service.Routes[0].Path, "/greet/from/:name")
-	assert.Equal(t, api.Service.Routes[1].Path, "/greet/get")
+	assert.Equal(t, api.Service.Routes()[0].Path, "/greet/from/:name")
+	assert.Equal(t, api.Service.Routes()[1].Path, "/greet/get")
 
-	assert.Equal(t, api.Service.Routes[1].RequestType.Name, "Request")
-	assert.Equal(t, api.Service.Routes[1].ResponseType.Name, "")
+	assert.Equal(t, api.Service.Routes()[1].RequestType.Name, "Request")
+	assert.Equal(t, api.Service.Routes()[1].ResponseType.Name, "")
 
 	validate(t, filename)
 }
@@ -315,7 +315,7 @@ func TestMultiService(t *testing.T) {
 	api, err := parser.Parse()
 	assert.Nil(t, err)
 
-	assert.Equal(t, len(api.Service.Routes), 2)
+	assert.Equal(t, len(api.Service.Routes()), 2)
 	assert.Equal(t, len(api.Service.Groups), 2)
 
 	validate(t, filename)
@@ -342,10 +342,7 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
-	parser, err := parser.NewParser(filename)
-	assert.Nil(t, err)
-
-	_, err = parser.Parse()
+	_, err = parser.NewParser(filename)
 	assert.NotNil(t, err)
 }
 
@@ -361,8 +358,8 @@ func TestAnonymousAnnotation(t *testing.T) {
 	api, err := parser.Parse()
 	assert.Nil(t, err)
 
-	assert.Equal(t, len(api.Service.Routes), 1)
-	assert.Equal(t, api.Service.Routes[0].Annotations[0].Value, "GreetHandler")
+	assert.Equal(t, len(api.Service.Routes()), 1)
+	assert.Equal(t, api.Service.Routes()[0].Annotations[0].Value, "GreetHandler")
 
 	validate(t, filename)
 }

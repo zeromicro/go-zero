@@ -27,6 +27,14 @@ type Attribute struct {
 	value string
 }
 
+func (s Service) Routes() []Route {
+	var result []Route
+	for _, group := range s.Groups {
+		result = append(result, group.Routes...)
+	}
+	return result
+}
+
 func (m Member) IsOptional() bool {
 	var option string
 

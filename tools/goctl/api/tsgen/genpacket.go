@@ -36,7 +36,7 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 	defer fp.Close()
 
 	var localTypes []spec.Type
-	for _, route := range api.Service.Routes {
+	for _, route := range api.Service.Routes() {
 		rts := apiutil.GetLocalTypes(api, route)
 		localTypes = append(localTypes, rts...)
 	}
@@ -121,7 +121,7 @@ func genTypes(localTypes []spec.Type, inlineType func(string) (*spec.Type, error
 
 func genApi(api *spec.ApiSpec, localTypes []spec.Type, caller string, prefixForType func(string) string) (string, error) {
 	var builder strings.Builder
-	for _, route := range api.Service.Routes {
+	for _, route := range api.Service.Routes() {
 		handler, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
 		if !ok {
 			return "", fmt.Errorf("missing handler annotation for route %q", route.Path)

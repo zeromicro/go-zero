@@ -40,9 +40,7 @@ func (s *serviceState) process(api *spec.ApiSpec) (state, error) {
 	}
 
 	api.Service = spec.Service{
-		Name:        name,
-		Annotations: append(api.Service.Annotations, s.annos...),
-		Routes:      append(api.Service.Routes, routes...),
+		Name: name,
 		Groups: append(api.Service.Groups, spec.Group{
 			Annotations: s.annos,
 			Routes:      routes,

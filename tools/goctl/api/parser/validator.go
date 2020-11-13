@@ -40,7 +40,7 @@ func (p *Parser) validateDuplicateProperty(tp spec.Type) (bool, string) {
 
 func (p *Parser) validateDuplicateRouteHandler(api *spec.ApiSpec) (bool, string) {
 	var names []string
-	for _, r := range api.Service.Routes {
+	for _, r := range api.Service.Routes() {
 		handler, ok := util.GetAnnotationValue(r.Annotations, "server", "handler")
 		if !ok {
 			return false, fmt.Sprintf("missing handler annotation for %s", r.Path)
