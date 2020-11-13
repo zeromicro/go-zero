@@ -58,7 +58,7 @@ func NewParser(filename string) (*Parser, error) {
 			}
 
 			if len(importStruct.Imports) > 0 {
-				return nil, errors.New("import api should not import another api file")
+				return nil, errors.New("import api should not import another api file recursive")
 			}
 
 			apiStruct.Type += "\n" + importStruct.Type
