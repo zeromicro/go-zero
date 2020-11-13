@@ -58,7 +58,7 @@ func NewParser(filename string) (*Parser, error) {
 			}
 
 			if len(importStruct.Imports) > 0 {
-				return nil, errors.New("import api should not import another api file recursive")
+				return nil, errors.New("import api should not import another api file")
 			}
 
 			apiStruct.Type += "\n" + importStruct.Type
@@ -67,7 +67,7 @@ func NewParser(filename string) (*Parser, error) {
 	}
 
 	if len(strings.TrimSpace(apiStruct.Service)) == 0 {
-		return nil, errors.New("api has no service defined")
+		return nil, errors.New("api has not service defined")
 	}
 
 	var buffer = new(bytes.Buffer)
