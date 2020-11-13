@@ -67,7 +67,7 @@ func NewParser(filename string) (*Parser, error) {
 	}
 
 	if len(strings.TrimSpace(apiStruct.Service)) == 0 {
-		return nil, errors.New("api has not service defined")
+		return nil, errors.New("api has no service defined")
 	}
 
 	var buffer = new(bytes.Buffer)
