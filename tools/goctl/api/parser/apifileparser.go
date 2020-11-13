@@ -155,7 +155,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 			return nil, err
 		}
 
-		api.Type += "\n" + token + line
+		api.Type += "\n\n" + token + line
 		token = ""
 		line = strings.TrimSpace(line)
 		line = removeComment(line)
