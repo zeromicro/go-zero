@@ -2,20 +2,11 @@ package parser
 
 import (
 	"bufio"
-	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
 var emptyType spec.Type
-
-type ApiStruct struct {
-	Info             string
-	Type             string
-	Service          string
-	Imports          string
-	serviceBeginLine int
-}
 
 func GetType(api *spec.ApiSpec, t string) spec.Type {
 	for _, tp := range api.Types {
@@ -71,85 +62,4 @@ func skipSpaces(r *bufio.Reader) error {
 
 func unread(r *bufio.Reader) error {
 	return r.UnreadRune()
-}
-
-func ParseApi(api string) (*ApiStruct, error) {
-	var result ApiStruct
-	scanner := bufio.NewScanner(strings.NewReader(api))
-	var parseInfo = false
-	var parseImport = false
-	var parseType = false
-	var parseService = false
-	var segment string
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-
-		if line == "info(" {
-			parseInfo = true
-		}
-		if line == ")" && parseInfo {
-			parseInfo = false
-			result.Info = segment + ")"
-			segment = ""
-			continue
-		}
-
-		if isImportBeginLine(line) {
-			parseImport = true
-		}
-		if parseImport && (isTypeBeginLine(line) || isServiceBeginLine(line)) {
-			parseImport = false
-			result.Imports = segment
-			segment = line + "\n"
-			continue
-		}
-
-		if isTypeBeginLine(line) {
-			parseType = true
-		}
-		if isServiceBeginLine(line) {
-			parseService = true
-			if parseType {
-				parseType = false
-				result.Type = segment
-				segment = line + "\n"
-				continue
-			}
-		}
-		segment += scanner.Text() + "\n"
-	}
-
-	if parseService {
-		result.Service = segment
-	} else if parseType {
-		result.Type = segment
-	}
-
-	result.serviceBeginLine = lineBeginOfService(api)
-	return &result, nil
-}
-
-func isImportBeginLine(line string) bool {
-	return strings.HasPrefix(line, "import") && (strings.HasSuffix(line, ".api") || strings.HasSuffix(line, `.api"`))
-}
-
-func isTypeBeginLine(line string) bool {
-	return strings.HasPrefix(line, "type")
-}
-
-func isServiceBeginLine(line string) bool {
-	return strings.HasPrefix(line, "@server") || (strings.HasPrefix(line, "service ") && strings.HasSuffix(line, "{"))
-}
-
-func lineBeginOfService(api string) int {
-	scanner := bufio.NewScanner(strings.NewReader(api))
-	var number = 0
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if isServiceBeginLine(line) {
-			break
-		}
-		number++
-	}
-	return number
 }
