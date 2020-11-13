@@ -81,7 +81,7 @@ func (s *apiRootState) process(api *ApiStruct, token string) (apiFileState, erro
 		}
 
 		switch {
-		case isSpace(ch) || isNewline(ch) || ch == leftParenthesis:
+		case isSpace(ch) || ch == leftParenthesis:
 			token := builder.String()
 			token = strings.TrimSpace(token)
 			if len(token) == 0 {
@@ -156,7 +156,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 			return nil, err
 		}
 
-		api.Type += "\n\n" + token + line
+		api.Type += "\n" + token + line
 		token = ""
 		line = strings.TrimSpace(line)
 		line = removeComment(line)
