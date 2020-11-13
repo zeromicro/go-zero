@@ -23,7 +23,7 @@ info(
 )
 
 type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `   // }
 }
 
 type Response struct {
@@ -342,10 +342,7 @@ func TestInvalidApiFile(t *testing.T) {
 	assert.Nil(t, err)
 	defer os.Remove(filename)
 
-	parser, err := parser.NewParser(filename)
-	assert.Nil(t, err)
-
-	_, err = parser.Parse()
+	_, err = parser.NewParser(filename)
 	assert.NotNil(t, err)
 }
 
