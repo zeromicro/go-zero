@@ -130,7 +130,7 @@ func GetSharedTypes(api *spec.ApiSpec) []spec.Type {
 		}
 		return false
 	}
-	for _, route := range api.Service.Routes {
+	for _, route := range api.Service.Routes() {
 		var rts []spec.Type
 		getTypeRecursive(route.RequestType, types, &rts)
 		getTypeRecursive(route.ResponseType, types, &rts)

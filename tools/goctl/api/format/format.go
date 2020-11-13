@@ -115,7 +115,7 @@ func apiFormat(data string) (string, error) {
 		return data, nil
 	}
 
-	fs, err := format.Source([]byte(strings.TrimSpace(apiStruct.StructBody)))
+	fs, err := format.Source([]byte(strings.TrimSpace(apiStruct.Type)))
 	if err != nil {
 		str := err.Error()
 		lineNumber := strings.Index(str, ":")

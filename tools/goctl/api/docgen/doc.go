@@ -40,7 +40,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 	defer fp.Close()
 
 	var builder strings.Builder
-	for index, route := range api.Service.Routes {
+	for index, route := range api.Service.Routes() {
 		routeComment, _ := util.GetAnnotationValue(route.Annotations, "doc", "summary")
 		if len(routeComment) == 0 {
 			routeComment = "N/A"

@@ -57,10 +57,8 @@ type (
 	}
 
 	Service struct {
-		Name        string
-		Annotations []Annotation
-		Routes      []Route
-		Groups      []Group
+		Name   string
+		Groups []Group
 	}
 
 	Type struct {

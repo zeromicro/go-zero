@@ -2,7 +2,6 @@ package parser
 
 import (
 	"bufio"
-	"errors"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
@@ -12,7 +11,7 @@ var emptyType spec.Type
 
 type ApiStruct struct {
 	Info             string
-	StructBody       string
+	Type             string
 	Service          string
 	Imports          string
 	serviceBeginLine int
@@ -112,7 +111,7 @@ func ParseApi(api string) (*ApiStruct, error) {
 			parseService = true
 			if parseType {
 				parseType = false
-				result.StructBody = segment
+				result.Type = segment
 				segment = line + "\n"
 				continue
 			}
@@ -120,10 +119,12 @@ func ParseApi(api string) (*ApiStruct, error) {
 		segment += scanner.Text() + "\n"
 	}
 
-	if !parseService {
-		return nil, errors.New("no service defined")
+	if parseService {
+		result.Service = segment
+	} else if parseType {
+		result.Type = segment
 	}
-	result.Service = segment
+
 	result.serviceBeginLine = lineBeginOfService(api)
 	return &result, nil
 }
