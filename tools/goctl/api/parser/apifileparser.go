@@ -81,7 +81,7 @@ func (s *apiRootState) process(api *ApiStruct, token string) (apiFileState, erro
 		}
 
 		switch {
-		case isSpace(ch) || ch == leftParenthesis:
+		case isSpace(ch) || isNewline(ch) || ch == leftParenthesis:
 			token := builder.String()
 			token = strings.TrimSpace(token)
 			if len(token) == 0 {
