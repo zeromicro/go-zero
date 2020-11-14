@@ -72,7 +72,6 @@ func (m *BookModel) Update(data Book) error {
 }
 
 func (m *BookModel) Delete(book string) error {
-
 	bookBookKey := fmt.Sprintf("%s%v", cacheBookBookPrefix, book)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := `delete from ` + m.table + ` where book = ?`
