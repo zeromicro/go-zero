@@ -2,7 +2,11 @@ package template
 
 var Types = `
 type (
-	{{.upperStartCamelObject}}Model struct {
+	{{.upperStartCamelObject}}Model interface{
+		{{.method}}
+	}
+
+	default{{.upperStartCamelObject}}Model struct {
 		{{if .withCache}}sqlc.CachedConn{{else}}conn sqlx.SqlConn{{end}}
 		table string
 	}

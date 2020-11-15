@@ -5,7 +5,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func genTypes(table Table, withCache bool) (string, error) {
+func genTypes(table Table, methods string, withCache bool) (string, error) {
 	fields := table.Fields
 	fieldsString, err := genFields(fields)
 	if err != nil {
@@ -21,6 +21,7 @@ func genTypes(table Table, withCache bool) (string, error) {
 		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
+			"method":                methods,
 			"upperStartCamelObject": table.Name.ToCamel(),
 			"fields":                fieldsString,
 		})
