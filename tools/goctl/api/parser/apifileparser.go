@@ -139,6 +139,7 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 	}
 
 	line = token + line
+	line = removeComment(line)
 	if len(strings.Fields(line)) != 2 {
 		return nil, errors.New("import syntax error: " + line)
 	}
@@ -159,6 +160,8 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		token = ""
 		line = strings.TrimSpace(line)
 		line = removeComment(line)
+		line = strings.TrimSpace(line)
+
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
 		}
@@ -191,6 +194,8 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 		api.Service += "\n" + line
 		line = strings.TrimSpace(line)
 		line = removeComment(line)
+		line = strings.TrimSpace(line)
+
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
 		}
