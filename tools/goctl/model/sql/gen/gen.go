@@ -42,6 +42,7 @@ func NewDefaultGenerator(dir, namingStyle string, opt ...Option) (*defaultGenera
 	if err != nil {
 		return nil, err
 	}
+
 	dir = dirAbs
 	pkg := filepath.Base(dirAbs)
 	err = util.MkdirIfNotExist(dir)
@@ -71,11 +72,12 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDdl(source string, withCache bool) error {
+func (g *defaultGenerator) StartFromDDL(source string, withCache bool) error {
 	modelList, err := g.genFromDDL(source, withCache)
 	if err != nil {
 		return err
 	}
+
 	return g.createFile(modelList)
 }
 
@@ -86,10 +88,12 @@ func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[str
 		if err != nil {
 			return err
 		}
+
 		code, err := g.genModel(*table, withCache)
 		if err != nil {
 			return err
 		}
+
 		m[table.Name.Source()] = code
 	}
 	return g.createFile(m)
@@ -100,6 +104,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 	if err != nil {
 		return err
 	}
+
 	g.dir = dirAbs
 	g.pkg = filepath.Base(dirAbs)
 	err = util.MkdirIfNotExist(dirAbs)
@@ -175,12 +180,14 @@ type (
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
 	if len(in.PrimaryKey.Name.Source()) == 0 {
-		return "", fmt.Errorf("table %s: primary key can not be nil", in.Name.Source())
+		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
+
 	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
 	if err != nil {
 		return "", err
 	}
+
 	t := util.With("model").
 		Parse(text).
 		GoFmt(true)

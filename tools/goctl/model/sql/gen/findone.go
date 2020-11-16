@@ -28,5 +28,6 @@ func genFindOne(table Table, withCache bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }

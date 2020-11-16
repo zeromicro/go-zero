@@ -41,10 +41,11 @@ func RpcNew(c *cli.Context) error {
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
+
 	style := c.String("style")
 	namingStyle, valid := generator.IsNamingValid(style)
 	if !valid {
-		return fmt.Errorf("unexpected naming style %s", style)
+		return fmt.Errorf("expected naming style [lower|camel|snake], but found %s", style)
 	}
 
 	protoName := name + ".proto"

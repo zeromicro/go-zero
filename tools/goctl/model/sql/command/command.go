@@ -17,9 +17,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-var (
-	errNotMatched = errors.New("sql not matched")
-)
+var errNotMatched = errors.New("sql not matched")
 
 const (
 	flagSrc   = "src"
@@ -69,6 +67,7 @@ func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
 	if err != nil {
 		return err
 	}
+
 	if len(files) == 0 {
 		return errNotMatched
 	}
@@ -79,6 +78,7 @@ func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
 		if err != nil {
 			return err
 		}
+
 		source = append(source, string(data))
 	}
 	generator, err := gen.NewDefaultGenerator(dir, namingStyle, gen.WithConsoleOption(log))
@@ -86,7 +86,7 @@ func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
 		return err
 	}
 
-	err = generator.StartFromDdl(strings.Join(source, "\n"), cache)
+	err = generator.StartFromDDL(strings.Join(source, "\n"), cache)
 	return err
 }
 

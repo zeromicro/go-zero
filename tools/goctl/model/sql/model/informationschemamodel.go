@@ -28,6 +28,7 @@ func (m *InformationSchemaModel) GetAllTables(database string) ([]string, error)
 	if err != nil {
 		return nil, err
 	}
+
 	return tables, nil
 }
 

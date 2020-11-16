@@ -15,6 +15,7 @@ func genFields(fields []parser.Field) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		list = append(list, result)
 	}
 	return strings.Join(list, "\n"), nil
@@ -43,5 +44,6 @@ func genField(field parser.Field) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }
