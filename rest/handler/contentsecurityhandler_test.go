@@ -113,7 +113,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -122,7 +122,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(-timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -148,7 +148,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			crypt:       true,
 			timestamp:   time.Now().Add(-timeDiff).Unix(),
 			fingerprint: "badone",
-			statusCode:  http.StatusUnauthorized,
+			statusCode:  http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -157,7 +157,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			missHeader: true,
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method: http.MethodHead,
@@ -171,7 +171,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      false,
 			signature:  "badone",
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 	}
 
