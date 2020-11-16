@@ -42,6 +42,12 @@ type (
 		red.Cmdable
 	}
 
+	// GeoLocation is used with GeoAdd to add geospatial location.
+	GeoLocation = red.GeoLocation
+	// GeoRadiusQuery is used with GeoRadius to query geospatial index.
+	GeoRadiusQuery = red.GeoRadiusQuery
+	GeoPos         = red.GeoPos
+
 	Pipeliner = red.Pipeliner
 
 	// Z represents sorted set member.
@@ -171,6 +177,107 @@ func (s *Redis) Expireat(key string, expireTime int64) error {
 
 		return conn.ExpireAt(key, time.Unix(expireTime, 0)).Err()
 	}, acceptable)
+}
+
+func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoAdd(key, geoLocation...).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
+}
+
+func (s *Redis) GeoDist(key string, member1, member2, unit string) (val float64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoDist(key, member1, member2, unit).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
+}
+
+func (s *Redis) GeoHash(key string, members ...string) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoHash(key, members...).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
+}
+
+func (s *Redis) GeoRadius(key string, longitude, latitude float64, query *GeoRadiusQuery) (val []GeoLocation, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoRadius(key, longitude, latitude, query).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
+}
+func (s *Redis) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) (val []GeoLocation, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoRadiusByMember(key, member, query).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
+}
+
+func (s *Redis) GeoPos(key string, members ...string) (val []*GeoPos, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if v, err := conn.GeoPos(key, members...).Result(); err != nil {
+			return err
+		} else {
+			val = v
+			return nil
+		}
+	}, acceptable)
+	return
 }
 
 func (s *Redis) Get(key string) (val string, err error) {
