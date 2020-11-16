@@ -22,10 +22,14 @@ info(
     version: 1.0
 )
 
-type Request struct {
+// TODO: test
+// {
+type Request struct {  // TODO: test
+  // TOOD
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `   // }
-}
+} // TODO: test
 
+// TODO: test
 type Response struct {
   Message string ` + "`" + `json:"message"` + "`" + `
 }
