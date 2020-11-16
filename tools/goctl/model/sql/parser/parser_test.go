@@ -36,7 +36,7 @@ func TestConvertColumn(t *testing.T) {
 		},
 	})
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "primary key can not be nil")
+	assert.Contains(t, err.Error(), "missing primary key")
 
 	_, err = ConvertColumn("user", "user", []*model.Column{
 		{
@@ -55,7 +55,7 @@ func TestConvertColumn(t *testing.T) {
 		},
 	})
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "unexpected union primary key")
+	assert.Contains(t, err.Error(), "only one primary key expected")
 
 	table, err := ConvertColumn("user", "user", []*model.Column{
 		{
