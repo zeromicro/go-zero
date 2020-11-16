@@ -204,6 +204,7 @@ func (tw *TimingWheel) removeTask(key interface{}) {
 
 	timer := val.(*positionEntry)
 	timer.item.removed = true
+	tw.timers.Del(key)
 }
 
 func (tw *TimingWheel) run() {
@@ -248,7 +249,6 @@ func (tw *TimingWheel) scanAndRunTasks(l *list.List) {
 		if task.removed {
 			next := e.Next()
 			l.Remove(e)
-			tw.timers.Del(task.key)
 			e = next
 			continue
 		} else if task.circle > 0 {
@@ -301,6 +301,7 @@ func (tw *TimingWheel) setTask(task *timingEntry) {
 func (tw *TimingWheel) setTimerPosition(pos int, task *timingEntry) {
 	if val, ok := tw.timers.Get(task.key); ok {
 		timer := val.(*positionEntry)
+		timer.item = task
 		timer.pos = pos
 	} else {
 		tw.timers.Set(task.key, &positionEntry{
