@@ -41,7 +41,6 @@ service A-api {
 )
 
 func TestInlineTypeNotExist(t *testing.T) {
-	r, err := apiFormat(notFormattedStr)
-	assert.Nil(t, err)
+	r := apiFormat(notFormattedStr)
 	assert.Equal(t, r, formattedStr)
 }

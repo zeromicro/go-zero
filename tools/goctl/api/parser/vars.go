@@ -16,4 +16,5 @@ const (
 	multilineBeginTag = '>'
 	multilineEndTag   = '<'
 	semicolon         = ';'
+	newline           = "\n"
 )

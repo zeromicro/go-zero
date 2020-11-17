@@ -283,6 +283,26 @@ service A-api {
 }
 `
 
+const noStructTagApi = `
+type Request {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type XXX {
+}
+
+type (
+	Response {
+  		Message string ` + "`" + `json:"message"` + "`" + `
+	}
+)
+
+service A-api {
+  @handler GreetHandler
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -498,6 +518,22 @@ func TestHasImportApi(t *testing.T) {
 		}
 	}
 	assert.True(t, hasInline)
+	validate(t, filename)
+}
+
+func TestNoStructApi(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(noStructTagApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	parser, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	spec, err := parser.Parse()
+	assert.Nil(t, err)
+	assert.Equal(t, len(spec.Types), 3)
+
 	validate(t, filename)
 }
 

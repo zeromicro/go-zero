@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
 const (
@@ -15,6 +18,7 @@ const (
 	tokenType              = "type"
 	tokenService           = "service"
 	tokenServiceAnnotation = "@server"
+	tokenStruct            = "struct"
 )
 
 type (
@@ -72,7 +76,7 @@ func ParseApi(src string) (*ApiStruct, error) {
 	}
 }
 
-func (s *apiRootState) process(api *ApiStruct, token string) (apiFileState, error) {
+func (s *apiRootState) process(api *ApiStruct, _ string) (apiFileState, error) {
 	var builder strings.Builder
 	for {
 		ch, err := s.readSkipComment()
@@ -124,7 +128,7 @@ func (s *apiInfoState) process(api *ApiStruct, token string) (apiFileState, erro
 			return nil, err
 		}
 
-		api.Info += "\n" + token + line
+		api.Info += newline + token + line
 		token = ""
 		if strings.TrimSpace(line) == string(rightParenthesis) {
 			return &apiRootState{s.baseState}, nil
@@ -139,12 +143,12 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 	}
 
 	line = token + line
-	line = removeComment(line)
+	line = util.RemoveComment(line)
 	if len(strings.Fields(line)) != 2 {
 		return nil, errors.New("import syntax error: " + line)
 	}
 
-	api.Imports += "\n" + line
+	api.Imports += newline + line
 	return &apiRootState{s.baseState}, nil
 }
 
@@ -156,11 +160,14 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 			return nil, err
 		}
 
-		api.Type += "\n\n" + token + line
+		line = token + line
+		if blockCount <= 1 {
+			line = mayInsertStructKeyword(line)
+		}
+		api.Type += newline + newline + line
+		line = strings.TrimSpace(line)
+		line = util.RemoveComment(line)
 		token = ""
-		line = strings.TrimSpace(line)
-		line = removeComment(line)
-		line = strings.TrimSpace(line)
 
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
@@ -191,10 +198,9 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 
 		line = token + line
 		token = ""
-		api.Service += "\n" + line
+		api.Service += newline + line
 		line = strings.TrimSpace(line)
-		line = removeComment(line)
-		line = strings.TrimSpace(line)
+		line = util.RemoveComment(line)
 
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
@@ -215,10 +221,30 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 	}
 }
 
-func removeComment(line string) string {
-	var commentIdx = strings.Index(line, "//")
-	if commentIdx >= 0 {
-		return line[:commentIdx]
+func mayInsertStructKeyword(line string) string {
+	line = util.RemoveComment(line)
+	if !strings.HasSuffix(line, leftBrace) {
+		return line
 	}
-	return line
+
+	fields := strings.Fields(line)
+	if stringx.Contains(fields, tokenStruct) || stringx.Contains(fields, tokenStruct+leftBrace) || len(fields) <= 1 {
+		return line
+	}
+
+	var insertIndex int
+	if fields[0] == tokenType {
+		insertIndex = 2
+	} else {
+		insertIndex = 1
+	}
+	if insertIndex >= len(fields) {
+		return line
+	}
+
+	var result []string
+	result = append(result, fields[:insertIndex]...)
+	result = append(result, tokenStruct)
+	result = append(result, fields[insertIndex:]...)
+	return strings.Join(result, " ")
 }
