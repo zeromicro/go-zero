@@ -81,3 +81,11 @@ func WriteIndent(writer io.Writer, indent int) {
 		fmt.Fprint(writer, "\t")
 	}
 }
+
+func RemoveComment(line string) string {
+	var commentIdx = strings.Index(line, "//")
+	if commentIdx >= 0 {
+		return strings.TrimSpace(line[:commentIdx])
+	}
+	return strings.TrimSpace(line)
+}

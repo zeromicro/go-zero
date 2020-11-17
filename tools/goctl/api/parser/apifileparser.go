@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
 const (
@@ -75,7 +76,7 @@ func ParseApi(src string) (*ApiStruct, error) {
 	}
 }
 
-func (s *apiRootState) process(api *ApiStruct, token string) (apiFileState, error) {
+func (s *apiRootState) process(api *ApiStruct, _ string) (apiFileState, error) {
 	var builder strings.Builder
 	for {
 		ch, err := s.readSkipComment()
@@ -142,7 +143,7 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 	}
 
 	line = token + line
-	line = removeComment(line)
+	line = util.RemoveComment(line)
 	if len(strings.Fields(line)) != 2 {
 		return nil, errors.New("import syntax error: " + line)
 	}
@@ -165,7 +166,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		}
 		api.Type += "\n\n" + line
 		line = strings.TrimSpace(line)
-		line = removeComment(line)
+		line = util.RemoveComment(line)
 		token = ""
 
 		if strings.HasSuffix(line, leftBrace) {
@@ -199,7 +200,7 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 		token = ""
 		api.Service += "\n" + line
 		line = strings.TrimSpace(line)
-		line = removeComment(line)
+		line = util.RemoveComment(line)
 
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
@@ -220,16 +221,8 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 	}
 }
 
-func removeComment(line string) string {
-	var commentIdx = strings.Index(line, "//")
-	if commentIdx >= 0 {
-		return strings.TrimSpace(line[:commentIdx])
-	}
-	return strings.TrimSpace(line)
-}
-
 func mayInsertStructKeyword(line string) string {
-	line = removeComment(line)
+	line = util.RemoveComment(line)
 	if !strings.HasSuffix(line, leftBrace) {
 		return line
 	}
