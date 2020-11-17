@@ -248,6 +248,7 @@ func mayInsertStructKeyword(line string) string {
 	if insertIndex >= len(fields) {
 		return line
 	}
+
 	var result []string
 	result = append(result, fields[:insertIndex]...)
 	result = append(result, tokenStruct)
