@@ -128,7 +128,7 @@ func (s *apiInfoState) process(api *ApiStruct, token string) (apiFileState, erro
 			return nil, err
 		}
 
-		api.Info += "\n" + token + line
+		api.Info += newline + token + line
 		token = ""
 		if strings.TrimSpace(line) == string(rightParenthesis) {
 			return &apiRootState{s.baseState}, nil
@@ -148,7 +148,7 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 		return nil, errors.New("import syntax error: " + line)
 	}
 
-	api.Imports += "\n" + line
+	api.Imports += newline + line
 	return &apiRootState{s.baseState}, nil
 }
 
@@ -164,7 +164,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		if blockCount <= 1 {
 			line = mayInsertStructKeyword(line)
 		}
-		api.Type += "\n\n" + line
+		api.Type += newline + newline + line
 		line = strings.TrimSpace(line)
 		line = util.RemoveComment(line)
 		token = ""
@@ -198,7 +198,7 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 
 		line = token + line
 		token = ""
-		api.Service += "\n" + line
+		api.Service += newline + line
 		line = strings.TrimSpace(line)
 		line = util.RemoveComment(line)
 
