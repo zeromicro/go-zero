@@ -189,5 +189,3 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 
 码云地址：[https://gitee.com/kevwan/go-zero](https://gitee.com/kevwan/go-zero) (国内用户可访问gitee，每日自动从github同步代码)
-
-开源中国年度评选，给 **go-zero** 投上一票：[https://www.oschina.net/p/go-zero](https://www.oschina.net/p/go-zero)
