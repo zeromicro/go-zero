@@ -15,9 +15,8 @@ import (
 )
 
 type Parser struct {
-	r       *bufio.Reader
-	typeDef string
-	api     *ApiStruct
+	r   *bufio.Reader
+	api *ApiStruct
 }
 
 func NewParser(filename string) (*Parser, error) {
@@ -73,15 +72,14 @@ func NewParser(filename string) (*Parser, error) {
 	var buffer = new(bytes.Buffer)
 	buffer.WriteString(apiStruct.Service)
 	return &Parser{
-		r:       bufio.NewReader(buffer),
-		typeDef: apiStruct.Type,
-		api:     apiStruct,
+		r:   bufio.NewReader(buffer),
+		api: apiStruct,
 	}, nil
 }
 
 func (p *Parser) Parse() (api *spec.ApiSpec, err error) {
 	api = new(spec.ApiSpec)
-	var sp = StructParser{Src: p.typeDef}
+	var sp = StructParser{Src: p.api.Type}
 	types, err := sp.Parse()
 	if err != nil {
 		return nil, err
