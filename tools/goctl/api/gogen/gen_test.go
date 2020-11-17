@@ -288,8 +288,7 @@ type Request {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
 
-type XXX {
-}
+type XXX {}
 
 type (
 	Response {

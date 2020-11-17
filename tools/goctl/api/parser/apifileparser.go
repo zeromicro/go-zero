@@ -162,17 +162,14 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		}
 
 		line = token + line
-		if blockCount <= 1 {
+		if braceCount == 0 {
 			line = mayInsertStructKeyword(line)
 		}
 		api.Type += newline + newline + line
 		line = strings.TrimSpace(line)
 		line = util.RemoveComment(line)
-		if len(token) > 0 && strings.HasSuffix(line, string(rightBrace)) {
-			return &apiRootState{s.baseState}, nil
-		}
-
 		token = ""
+
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
 			braceCount++
@@ -190,6 +187,14 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 
 		if braceCount >= 2 {
 			return nil, errors.New("nested type not supported: " + line)
+		}
+		if braceCount < 0 {
+			line = strings.TrimSuffix(line, string(rightBrace))
+			line = strings.TrimSpace(line)
+			if strings.HasSuffix(line, leftBrace) {
+				blockCount++
+				braceCount++
+			}
 		}
 
 		if blockCount == 0 {
@@ -233,7 +238,7 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 
 func mayInsertStructKeyword(line string) string {
 	line = util.RemoveComment(line)
-	if !strings.HasSuffix(line, leftBrace) {
+	if !strings.HasSuffix(line, leftBrace) && !strings.HasSuffix(line, string(rightBrace)) {
 		return line
 	}
 
