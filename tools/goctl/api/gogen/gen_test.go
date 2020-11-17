@@ -530,8 +530,9 @@ func TestNoStructApi(t *testing.T) {
 	parser, err := parser.NewParser(filename)
 	assert.Nil(t, err)
 
-	_, err = parser.Parse()
+	spec, err := parser.Parse()
 	assert.Nil(t, err)
+	assert.Equal(t, len(spec.Types), 3)
 
 	validate(t, filename)
 }
