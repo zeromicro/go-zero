@@ -16,6 +16,13 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	leftParenthesis  = "("
+	rightParenthesis = ")"
+	leftBrace        = "{"
+	rightBrace       = "}"
+)
+
 func GoFormatApi(c *cli.Context) error {
 	useStdin := c.Bool("stdin")
 
@@ -94,17 +101,24 @@ func apiFormat(data string) (string, error) {
 	}
 
 	var builder strings.Builder
-	scanner := bufio.NewScanner(strings.NewReader(data))
+	s := bufio.NewScanner(strings.NewReader(data))
 	var tapCount = 0
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	for s.Scan() {
+		line := strings.TrimSpace(s.Text())
 		noCommentLine := util.RemoveComment(line)
-		if noCommentLine == ")" || noCommentLine == "}" {
+		if noCommentLine == rightParenthesis || noCommentLine == rightBrace {
 			tapCount -= 1
+		}
+		if tapCount < 0 {
+			line = strings.TrimSuffix(line, rightBrace)
+			line = strings.TrimSpace(line)
+			if strings.HasSuffix(line, leftBrace) {
+				tapCount += 1
+			}
 		}
 		util.WriteIndent(&builder, tapCount)
 		builder.WriteString(line + "\n")
-		if strings.HasSuffix(noCommentLine, "(") || strings.HasSuffix(noCommentLine, "{") {
+		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
 			tapCount += 1
 		}
 	}
