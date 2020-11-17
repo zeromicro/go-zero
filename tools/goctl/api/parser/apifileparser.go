@@ -154,6 +154,7 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 
 func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, error) {
 	var blockCount = 0
+	var braceCount = 0
 	for {
 		line, err := s.readLine()
 		if err != nil {
@@ -171,15 +172,20 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
+			braceCount++
 		}
 		if strings.HasSuffix(line, string(leftParenthesis)) {
 			blockCount++
 		}
 		if strings.HasSuffix(line, string(rightBrace)) {
 			blockCount--
+			braceCount--
 		}
 		if strings.HasSuffix(line, string(rightParenthesis)) {
 			blockCount--
+		}
+		if braceCount >= 2 {
+			return nil, errors.New("nested type not supported: " + line)
 		}
 
 		if blockCount == 0 {

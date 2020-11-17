@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/urfave/cli"
 )
@@ -57,7 +58,10 @@ func ApiFormatByStdin() error {
 		return err
 	}
 
-	result := apiFormat(string(data))
+	result, err := apiFormat(string(data))
+	if err != nil {
+		return err
+	}
 
 	_, err = fmt.Print(result)
 	if err != nil {
@@ -72,14 +76,23 @@ func ApiFormatByPath(apiFilePath string) error {
 		return err
 	}
 
-	result := apiFormat(string(data))
+	result, err := apiFormat(string(data))
+	if err != nil {
+		return err
+	}
+
 	if err := ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm); err != nil {
 		return err
 	}
 	return nil
 }
 
-func apiFormat(data string) string {
+func apiFormat(data string) (string, error) {
+	_, err := parser.ParseApi(data)
+	if err != nil {
+		return "", err
+	}
+
 	var builder strings.Builder
 	scanner := bufio.NewScanner(strings.NewReader(data))
 	var tapCount = 0
@@ -95,5 +108,5 @@ func apiFormat(data string) string {
 			tapCount += 1
 		}
 	}
-	return strings.TrimSpace(builder.String())
+	return strings.TrimSpace(builder.String()), nil
 }
