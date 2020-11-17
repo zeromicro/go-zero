@@ -243,7 +243,10 @@ func mayInsertStructKeyword(line string) string {
 	}
 
 	fields := strings.Fields(line)
-	if stringx.Contains(fields, tokenStruct) || stringx.Contains(fields, tokenStruct+leftBrace) || len(fields) <= 1 {
+	if stringx.Contains(fields, tokenStruct) ||
+		stringx.Contains(fields, tokenStruct+leftBrace) ||
+		stringx.Contains(fields, tokenStruct+leftBrace+string(rightBrace)) ||
+		len(fields) <= 1 {
 		return line
 	}
 

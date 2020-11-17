@@ -294,6 +294,10 @@ type (
 	Response {
   		Message string ` + "`" + `json:"message"` + "`" + `
 	}
+
+	A {}
+
+	B struct {}
 )
 
 service A-api {
@@ -544,7 +548,7 @@ func TestNoStructApi(t *testing.T) {
 
 	spec, err := parser.Parse()
 	assert.Nil(t, err)
-	assert.Equal(t, len(spec.Types), 3)
+	assert.Equal(t, len(spec.Types), 5)
 
 	validate(t, filename)
 }
