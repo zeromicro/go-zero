@@ -9,16 +9,27 @@ import (
 )
 
 var (
-	errorHandler = defaultErrorHandler
+	errorHandler func(error) (int, interface{})
 	lock         sync.RWMutex
 )
 
 func Error(w http.ResponseWriter, err error) {
 	lock.RLock()
-	code, body := errorHandler(err)
+	handler := errorHandler
 	lock.RUnlock()
 
-	WriteJson(w, code, body)
+	if handler == nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	code, body := errorHandler(err)
+	e, ok := body.(error)
+	if ok {
+		http.Error(w, e.Error(), code)
+	} else {
+		WriteJson(w, code, body)
+	}
 }
 
 func Ok(w http.ResponseWriter) {
@@ -50,8 +61,4 @@ func WriteJson(w http.ResponseWriter, code int, v interface{}) {
 	} else if n < len(bs) {
 		logx.Errorf("actual bytes: %d, written bytes: %d", len(bs), n)
 	}
-}
-
-func defaultErrorHandler(err error) (int, interface{}) {
-	return http.StatusBadRequest, err
 }
