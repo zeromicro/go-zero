@@ -288,18 +288,34 @@ type Request {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
 
-type XXX {
-}
+type XXX {}
 
 type (
 	Response {
   		Message string ` + "`" + `json:"message"` + "`" + `
 	}
+
+	A {}
+
+	B struct {}
 )
 
 service A-api {
   @handler GreetHandler
   get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const nestTypeApi = `
+type Request {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+  XXX struct {
+  }
+}
+
+service A-api {
+  @handler GreetHandler
+  get /greet/from/:name(Request)
 }
 `
 
@@ -532,9 +548,19 @@ func TestNoStructApi(t *testing.T) {
 
 	spec, err := parser.Parse()
 	assert.Nil(t, err)
-	assert.Equal(t, len(spec.Types), 3)
+	assert.Equal(t, len(spec.Types), 5)
 
 	validate(t, filename)
+}
+
+func TestNestTypeApi(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(nestTypeApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	_, err = parser.NewParser(filename)
+	assert.NotNil(t, err)
 }
 
 func validate(t *testing.T, api string) {

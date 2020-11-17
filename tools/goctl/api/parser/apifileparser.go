@@ -154,6 +154,7 @@ func (s *apiImportState) process(api *ApiStruct, token string) (apiFileState, er
 
 func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, error) {
 	var blockCount = 0
+	var braceCount = 0
 	for {
 		line, err := s.readLine()
 		if err != nil {
@@ -161,7 +162,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		}
 
 		line = token + line
-		if blockCount <= 1 {
+		if braceCount == 0 {
 			line = mayInsertStructKeyword(line)
 		}
 		api.Type += newline + newline + line
@@ -171,15 +172,29 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
+			braceCount++
 		}
 		if strings.HasSuffix(line, string(leftParenthesis)) {
 			blockCount++
 		}
 		if strings.HasSuffix(line, string(rightBrace)) {
 			blockCount--
+			braceCount--
 		}
 		if strings.HasSuffix(line, string(rightParenthesis)) {
 			blockCount--
+		}
+
+		if braceCount >= 2 {
+			return nil, errors.New("nested type not supported: " + line)
+		}
+		if braceCount < 0 {
+			line = strings.TrimSuffix(line, string(rightBrace))
+			line = strings.TrimSpace(line)
+			if strings.HasSuffix(line, leftBrace) {
+				blockCount++
+				braceCount++
+			}
 		}
 
 		if blockCount == 0 {
@@ -223,12 +238,15 @@ func (s *apiServiceState) process(api *ApiStruct, token string) (apiFileState, e
 
 func mayInsertStructKeyword(line string) string {
 	line = util.RemoveComment(line)
-	if !strings.HasSuffix(line, leftBrace) {
+	if !strings.HasSuffix(line, leftBrace) && !strings.HasSuffix(line, string(rightBrace)) {
 		return line
 	}
 
 	fields := strings.Fields(line)
-	if stringx.Contains(fields, tokenStruct) || stringx.Contains(fields, tokenStruct+leftBrace) || len(fields) <= 1 {
+	if stringx.Contains(fields, tokenStruct) ||
+		stringx.Contains(fields, tokenStruct+leftBrace) ||
+		stringx.Contains(fields, tokenStruct+leftBrace+string(rightBrace)) ||
+		len(fields) <= 1 {
 		return line
 	}
 
