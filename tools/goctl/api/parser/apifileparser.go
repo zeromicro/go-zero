@@ -168,8 +168,11 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		api.Type += newline + newline + line
 		line = strings.TrimSpace(line)
 		line = util.RemoveComment(line)
-		token = ""
+		if len(token) > 0 && strings.HasSuffix(line, string(rightBrace)) {
+			return &apiRootState{s.baseState}, nil
+		}
 
+		token = ""
 		if strings.HasSuffix(line, leftBrace) {
 			blockCount++
 			braceCount++
@@ -184,6 +187,7 @@ func (s *apiTypeState) process(api *ApiStruct, token string) (apiFileState, erro
 		if strings.HasSuffix(line, string(rightParenthesis)) {
 			blockCount--
 		}
+
 		if braceCount >= 2 {
 			return nil, errors.New("nested type not supported: " + line)
 		}

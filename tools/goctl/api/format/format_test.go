@@ -16,6 +16,9 @@ type Response struct {
   Message string
 }
 
+type empty1 {} 
+type empty2 {} // aaa
+
 service A-api {
 @server(
 handler: GreetHandler
