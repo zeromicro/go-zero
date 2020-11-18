@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 const configTemplate = `package config
@@ -18,9 +19,9 @@ type Config struct {
 }
 `
 
-func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, namingStyle name.NamingStyle) error {
 	dir := ctx.GetConfig()
-	fileName := filepath.Join(dir.Filename, formatFilename("config", namingStyle)+".go")
+	fileName := filepath.Join(dir.Filename, name.FormatFilename("config", namingStyle)+".go")
 	if util.FileExists(fileName) {
 		return nil
 	}

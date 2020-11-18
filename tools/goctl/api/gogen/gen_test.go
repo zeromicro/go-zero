@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 const testApiTemplate = `
@@ -340,7 +341,7 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, api.Service.Routes()[1].RequestType.Name, "Request")
 	assert.Equal(t, api.Service.Routes()[1].ResponseType.Name, "")
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestMultiService(t *testing.T) {
@@ -358,7 +359,7 @@ func TestMultiService(t *testing.T) {
 	assert.Equal(t, len(api.Service.Routes()), 2)
 	assert.Equal(t, len(api.Service.Groups), 2)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiNoInfo(t *testing.T) {
@@ -373,7 +374,7 @@ func TestApiNoInfo(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestInvalidApiFile(t *testing.T) {
@@ -401,7 +402,7 @@ func TestAnonymousAnnotation(t *testing.T) {
 	assert.Equal(t, len(api.Service.Routes()), 1)
 	assert.Equal(t, api.Service.Routes()[0].Annotations[0].Value, "GreetHandler")
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiHasMiddleware(t *testing.T) {
@@ -416,7 +417,7 @@ func TestApiHasMiddleware(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiHasJwt(t *testing.T) {
@@ -431,7 +432,7 @@ func TestApiHasJwt(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiHasJwtAndMiddleware(t *testing.T) {
@@ -446,7 +447,7 @@ func TestApiHasJwtAndMiddleware(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiHasNoRequestBody(t *testing.T) {
@@ -461,7 +462,7 @@ func TestApiHasNoRequestBody(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestApiRoutes(t *testing.T) {
@@ -476,7 +477,7 @@ func TestApiRoutes(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestHasCommentRoutes(t *testing.T) {
@@ -491,7 +492,7 @@ func TestHasCommentRoutes(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestInlineTypeNotExist(t *testing.T) {
@@ -506,7 +507,7 @@ func TestInlineTypeNotExist(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestHasImportApi(t *testing.T) {
@@ -534,7 +535,7 @@ func TestHasImportApi(t *testing.T) {
 		}
 	}
 	assert.True(t, hasInline)
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestNoStructApi(t *testing.T) {
@@ -550,7 +551,7 @@ func TestNoStructApi(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(spec.Types), 5)
 
-	validate(t, filename)
+	validateWithLowerNamingStyle(t, filename)
 }
 
 func TestNestTypeApi(t *testing.T) {
@@ -563,10 +564,25 @@ func TestNestTypeApi(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func validate(t *testing.T, api string) {
+func TestCamelStyle(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+
+	_, err = parser.NewParser(filename)
+	assert.Nil(t, err)
+	validate(t, filename, name.NamingCamel)
+}
+
+func validateWithLowerNamingStyle(t *testing.T, api string) {
+	validate(t, api, name.NamingLower)
+}
+
+func validate(t *testing.T, api, style string) {
 	dir := "_go"
 	os.RemoveAll(dir)
-	err := DoGenProject(api, dir)
+	err := DoGenProject(api, dir, style)
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

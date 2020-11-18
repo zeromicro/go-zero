@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	BuildVersion = "20201108"
+	BuildVersion = "20201116"
 	commands     = []cli.Command{
 		{
 			Name:  "api",
@@ -97,6 +97,11 @@ var (
 						cli.StringFlag{
 							Name:  "api",
 							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming style, lower|camel|snake,default is lower",
 						},
 					},
 					Action: gogen.GoCommand,

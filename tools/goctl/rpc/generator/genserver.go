@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -43,7 +44,7 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in {{.request}}) (
 `
 )
 
-func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto, namingStyle name.NamingStyle) error {
 	dir := ctx.GetServer()
 	logicImport := fmt.Sprintf(`"%v"`, ctx.GetLogic().Package)
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
@@ -54,7 +55,7 @@ func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto, namingS
 
 	head := util.GetHead(proto.Name)
 	service := proto.Service
-	serverFile := filepath.Join(dir.Filename, formatFilename(service.Name+"_server", namingStyle)+".go")
+	serverFile := filepath.Join(dir.Filename, name.FormatFilename(service.Name+"_server", namingStyle)+".go")
 	funcList, err := g.genFunctions(proto.PbPackage, service)
 	if err != nil {
 		return err

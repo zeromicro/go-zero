@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	name2 "github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 func TestRpcGenerate(t *testing.T) {
@@ -21,7 +22,7 @@ func TestRpcGenerate(t *testing.T) {
 		return
 	}
 	projectName := stringx.Rand()
-	g := NewRpcGenerator(dispatcher, namingLower)
+	g := NewRpcGenerator(dispatcher, name2.NamingLower)
 
 	// case go path
 	src := filepath.Join(build.Default.GOPATH, "src")

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 	"github.com/urfave/cli"
 )
 
@@ -24,7 +25,7 @@ func Rpc(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	namingStyle, valid := generator.IsNamingValid(style)
+	namingStyle, valid := name.IsNamingValid(style)
 	if !valid {
 		return fmt.Errorf("unexpected naming style %s", style)
 	}
@@ -36,20 +37,20 @@ func Rpc(c *cli.Context) error {
 // RpcNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RpcNew(c *cli.Context) error {
-	name := c.Args().First()
-	ext := filepath.Ext(name)
+	rpcname := c.Args().First()
+	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 
 	style := c.String("style")
-	namingStyle, valid := generator.IsNamingValid(style)
+	namingStyle, valid := name.IsNamingValid(style)
 	if !valid {
 		return fmt.Errorf("expected naming style [lower|camel|snake], but found %s", style)
 	}
 
-	protoName := name + ".proto"
-	filename := filepath.Join(".", name, protoName)
+	protoName := rpcname + ".proto"
+	filename := filepath.Join(".", rpcname, protoName)
 	src, err := filepath.Abs(filename)
 	if err != nil {
 		return err
