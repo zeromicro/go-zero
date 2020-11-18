@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -40,10 +41,10 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 }
 `
 
-func genLogic(dir string, api *spec.ApiSpec) error {
+func genLogic(dir, namingStyle string, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, g, r)
+			err := genLogicByRoute(dir, namingStyle, g, r)
 			if err != nil {
 				return err
 			}
@@ -52,16 +53,10 @@ func genLogic(dir string, api *spec.ApiSpec) error {
 	return nil
 }
 
-func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
-	handler, ok := util.GetAnnotationValue(route.Annotations, "server", "handler")
-	if !ok {
-		return fmt.Errorf("missing handler annotation for %q", route.Path)
-	}
+func genLogicByRoute(dir, nameStyle string, group spec.Group, route spec.Route) error {
+	logic := getLogicName(route)
+	goFile := name.FormatFilename(logic, nameStyle) + ".go"
 
-	handler = strings.TrimSuffix(handler, "handler")
-	handler = strings.TrimSuffix(handler, "Handler")
-	filename := strings.ToLower(handler)
-	goFile := filename + "logic.go"
 	fp, created, err := util.MaybeCreateFile(dir, getLogicFolderPath(group, route), goFile)
 	if err != nil {
 		return err
@@ -102,8 +97,8 @@ func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
 	buffer := new(bytes.Buffer)
 	err = t.Execute(fp, map[string]string{
 		"imports":      imports,
-		"logic":        strings.Title(handler) + "Logic",
-		"function":     strings.Title(strings.TrimSuffix(handler, "Handler")),
+		"logic":        strings.Title(logic),
+		"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
 		"responseType": responseString,
 		"returnString": returnString,
 		"request":      requestString,

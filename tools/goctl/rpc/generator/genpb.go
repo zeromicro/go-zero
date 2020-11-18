@@ -7,9 +7,10 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
-func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, namingStyle name.NamingStyle) error {
 	dir := ctx.GetPb()
 	cw := new(bytes.Buffer)
 	base := filepath.Dir(proto.Src)

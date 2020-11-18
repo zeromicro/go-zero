@@ -6,6 +6,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 const svcTemplate = `package svc
@@ -23,9 +24,9 @@ func NewServiceContext(c config.Config) *ServiceContext {
 }
 `
 
-func (g *defaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, namingStyle name.NamingStyle) error {
 	dir := ctx.GetSvc()
-	fileName := filepath.Join(dir.Filename, formatFilename("service_context", namingStyle)+".go")
+	fileName := filepath.Join(dir.Filename, name.FormatFilename("service_context", namingStyle)+".go")
 	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
 	if err != nil {
 		return err

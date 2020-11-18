@@ -27,6 +27,8 @@ var tmpDir = path.Join(os.TempDir(), "goctl")
 func GoCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
+	namingStyle := c.String("style")
+
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -34,10 +36,10 @@ func GoCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	return DoGenProject(apiFile, dir)
+	return DoGenProject(apiFile, dir, namingStyle)
 }
 
-func DoGenProject(apiFile, dir string) error {
+func DoGenProject(apiFile, dir, namingStyle string) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err
@@ -53,9 +55,9 @@ func DoGenProject(apiFile, dir string) error {
 	logx.Must(genMain(dir, api))
 	logx.Must(genServiceContext(dir, api))
 	logx.Must(genTypes(dir, api))
-	logx.Must(genHandlers(dir, api))
 	logx.Must(genRoutes(dir, api))
-	logx.Must(genLogic(dir, api))
+	logx.Must(genHandlers(dir, namingStyle, api))
+	logx.Must(genLogic(dir, namingStyle, api))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err

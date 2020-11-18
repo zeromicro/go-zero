@@ -176,11 +176,8 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 	for _, g := range api.Service.Groups {
 		var groupedRoutes group
 		for _, r := range g.Routes {
-			handler, ok := apiutil.GetAnnotationValue(r.Annotations, "server", "handler")
-			if !ok {
-				return nil, fmt.Errorf("missing handler annotation for route %q", r.Path)
-			}
-			handler = getHandlerBaseName(handler) + "Handler(serverCtx)"
+			handler := getHandlerName(r)
+			handler = handler + "(serverCtx)"
 			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
 			if ok {
 				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]

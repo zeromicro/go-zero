@@ -7,18 +7,19 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 type RpcGenerator struct {
 	g     Generator
-	style NamingStyle
+	style name.NamingStyle
 }
 
-func NewDefaultRpcGenerator(style NamingStyle) *RpcGenerator {
+func NewDefaultRpcGenerator(style name.NamingStyle) *RpcGenerator {
 	return NewRpcGenerator(NewDefaultGenerator(), style)
 }
 
-func NewRpcGenerator(g Generator, style NamingStyle) *RpcGenerator {
+func NewRpcGenerator(g Generator, style name.NamingStyle) *RpcGenerator {
 	return &RpcGenerator{
 		g:     g,
 		style: style,

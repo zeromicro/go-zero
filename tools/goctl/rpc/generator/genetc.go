@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -18,9 +19,9 @@ Etcd:
   Key: {{.serviceName}}.rpc
 `
 
-func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, namingStyle name.NamingStyle) error {
 	dir := ctx.GetEtc()
-	serviceNameLower := formatFilename(ctx.GetMain().Base, namingStyle)
+	serviceNameLower := name.FormatFilename(ctx.GetMain().Base, namingStyle)
 	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", serviceNameLower))
 
 	text, err := util.LoadTemplate(category, etcTemplateFileFile, etcTemplate)
