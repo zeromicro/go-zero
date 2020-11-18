@@ -59,12 +59,12 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context,in *{{.pbReque
 `
 )
 
-func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
+func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
 
-	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", formatFilename(service.Name)))
+	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", formatFilename(service.Name, namingStyle)))
 	functions, err := g.genFunction(proto.PbPackage, service)
 	if err != nil {
 		return err
@@ -81,13 +81,12 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto) error {
 	}
 
 	var alias = collection.NewSet()
-	for _, item := range service.RPC {
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.RequestType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.RequestType))))
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.ReturnsType), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.ReturnsType))))
+	for _, item := range proto.Message {
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.Name), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.Name))))
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"name":        formatFilename(service.Name),
+		"name":        formatFilename(service.Name, namingStyle),
 		"alias":       strings.Join(alias.KeysStr(), util.NL),
 		"head":        head,
 		"filePackage": dir.Base,

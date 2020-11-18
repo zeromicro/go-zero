@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -24,8 +25,8 @@ const (
 
 type (
 	defaultGenerator struct {
-		source string
-		dir    string
+		//source string
+		dir string
 		console.Console
 		pkg         string
 		namingStyle string
@@ -33,18 +34,30 @@ type (
 	Option func(generator *defaultGenerator)
 )
 
-func NewDefaultGenerator(source, dir, namingStyle string, opt ...Option) *defaultGenerator {
+func NewDefaultGenerator(dir, namingStyle string, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
 	}
-	generator := &defaultGenerator{source: source, dir: dir, namingStyle: namingStyle}
+	dirAbs, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	dir = dirAbs
+	pkg := filepath.Base(dirAbs)
+	err = util.MkdirIfNotExist(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	generator := &defaultGenerator{dir: dir, namingStyle: namingStyle, pkg: pkg}
 	var optionList []Option
 	optionList = append(optionList, newDefaultOption())
 	optionList = append(optionList, opt...)
 	for _, fn := range optionList {
 		fn(generator)
 	}
-	return generator
+	return generator, nil
 }
 
 func WithConsoleOption(c console.Console) Option {
@@ -59,18 +72,42 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) Start(withCache bool) error {
+func (g *defaultGenerator) StartFromDDL(source string, withCache bool) error {
+	modelList, err := g.genFromDDL(source, withCache)
+	if err != nil {
+		return err
+	}
+
+	return g.createFile(modelList)
+}
+
+func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[string][]*model.Column, withCache bool) error {
+	m := make(map[string]string)
+	for tableName, column := range columns {
+		table, err := parser.ConvertColumn(db, tableName, column)
+		if err != nil {
+			return err
+		}
+
+		code, err := g.genModel(*table, withCache)
+		if err != nil {
+			return err
+		}
+
+		m[table.Name.Source()] = code
+	}
+	return g.createFile(m)
+}
+
+func (g *defaultGenerator) createFile(modelList map[string]string) error {
 	dirAbs, err := filepath.Abs(g.dir)
 	if err != nil {
 		return err
 	}
+
 	g.dir = dirAbs
 	g.pkg = filepath.Base(dirAbs)
 	err = util.MkdirIfNotExist(dirAbs)
-	if err != nil {
-		return err
-	}
-	modelList, err := g.genFromDDL(withCache)
 	if err != nil {
 		return err
 	}
@@ -96,6 +133,9 @@ func (g *defaultGenerator) Start(withCache bool) error {
 	}
 	// generate error file
 	filename := filepath.Join(dirAbs, "vars.go")
+	if g.namingStyle == NamingCamel {
+		filename = filepath.Join(dirAbs, "Vars.go")
+	}
 	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
 	if err != nil {
 		return err
@@ -113,8 +153,8 @@ func (g *defaultGenerator) Start(withCache bool) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(withCache bool) (map[string]string, error) {
-	ddlList := g.split()
+func (g *defaultGenerator) genFromDDL(source string, withCache bool) (map[string]string, error) {
+	ddlList := g.split(source)
 	m := make(map[string]string)
 	for _, ddl := range ddlList {
 		table, err := parser.Parse(ddl)
@@ -139,10 +179,15 @@ type (
 )
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
+	if len(in.PrimaryKey.Name.Source()) == 0 {
+		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
+	}
+
 	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
 	if err != nil {
 		return "", err
 	}
+
 	t := util.With("model").
 		Parse(text).
 		GoFmt(true)

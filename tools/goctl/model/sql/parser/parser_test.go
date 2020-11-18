@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 )
 
 func TestParsePlainText(t *testing.T) {
@@ -22,4 +23,59 @@ func TestParseCreateTable(t *testing.T) {
 	assert.Equal(t, "user_snake", table.Name.Source())
 	assert.Equal(t, "id", table.PrimaryKey.Name.Source())
 	assert.Equal(t, true, table.ContainsTime())
+}
+
+func TestConvertColumn(t *testing.T) {
+	_, err := ConvertColumn("user", "user", []*model.Column{
+		{
+			Name:     "id",
+			DataType: "bigint",
+			Key:      "",
+			Extra:    "",
+			Comment:  "",
+		},
+	})
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "missing primary key")
+
+	_, err = ConvertColumn("user", "user", []*model.Column{
+		{
+			Name:     "id",
+			DataType: "bigint",
+			Key:      "PRI",
+			Extra:    "",
+			Comment:  "",
+		},
+		{
+			Name:     "mobile",
+			DataType: "varchar",
+			Key:      "PRI",
+			Extra:    "",
+			Comment:  "手机号",
+		},
+	})
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "only one primary key expected")
+
+	table, err := ConvertColumn("user", "user", []*model.Column{
+		{
+			Name:     "id",
+			DataType: "bigint",
+			Key:      "PRI",
+			Extra:    "auto_increment",
+			Comment:  "",
+		},
+		{
+			Name:     "mobile",
+			DataType: "varchar",
+			Key:      "UNI",
+			Extra:    "",
+			Comment:  "手机号",
+		},
+	})
+	assert.Nil(t, err)
+	assert.True(t, table.PrimaryKey.AutoIncrement && table.PrimaryKey.IsPrimaryKey)
+	assert.Equal(t, "id", table.PrimaryKey.Name.Source())
+	assert.Equal(t, "mobile", table.Fields[1].Name.Source())
+	assert.True(t, table.Fields[1].IsUniqueKey)
 }

@@ -45,9 +45,9 @@ func main() {
 }
 `
 
-func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto) error {
+func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
 	dir := ctx.GetMain()
-	serviceNameLower := formatFilename(ctx.GetMain().Base)
+	serviceNameLower := formatFilename(ctx.GetMain().Base, namingStyle)
 	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.go", serviceNameLower))
 	imports := make([]string, 0)
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
@@ -63,7 +63,7 @@ func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto) error {
 
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"head":        head,
-		"serviceName": serviceNameLower,
+		"serviceName": strings.ToLower(stringx.From(ctx.GetMain().Base).ToCamel()),
 		"imports":     strings.Join(imports, util.NL),
 		"pkg":         proto.PbPackage,
 		"serviceNew":  stringx.From(proto.Service.Name).ToCamel(),

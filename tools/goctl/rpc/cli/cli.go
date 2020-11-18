@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/urfave/cli"
 )
@@ -16,6 +15,7 @@ import (
 func Rpc(c *cli.Context) error {
 	src := c.String("src")
 	out := c.String("dir")
+	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
 	if len(src) == 0 {
 		return errors.New("missing -src")
@@ -23,7 +23,13 @@ func Rpc(c *cli.Context) error {
 	if len(out) == 0 {
 		return errors.New("missing -dir")
 	}
-	g := generator.NewDefaultRpcGenerator()
+
+	namingStyle, valid := generator.IsNamingValid(style)
+	if !valid {
+		return fmt.Errorf("unexpected naming style %s", style)
+	}
+
+	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, out, protoImportPath)
 }
 
@@ -34,6 +40,12 @@ func RpcNew(c *cli.Context) error {
 	ext := filepath.Ext(name)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
+	}
+
+	style := c.String("style")
+	namingStyle, valid := generator.IsNamingValid(style)
+	if !valid {
+		return fmt.Errorf("expected naming style [lower|camel|snake], but found %s", style)
 	}
 
 	protoName := name + ".proto"
@@ -48,13 +60,7 @@ func RpcNew(c *cli.Context) error {
 		return err
 	}
 
-	workDir := filepath.Dir(src)
-	_, err = execx.Run("go mod init "+name, workDir)
-	if err != nil {
-		return err
-	}
-
-	g := generator.NewDefaultRpcGenerator()
+	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 

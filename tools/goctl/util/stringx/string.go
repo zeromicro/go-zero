@@ -29,9 +29,11 @@ func (s String) IsEmptyOrSpace() bool {
 func (s String) Lower() string {
 	return strings.ToLower(s.source)
 }
+
 func (s String) Upper() string {
 	return strings.ToUpper(s.source)
 }
+
 func (s String) Title() string {
 	if s.IsEmptyOrSpace() {
 		return s.source

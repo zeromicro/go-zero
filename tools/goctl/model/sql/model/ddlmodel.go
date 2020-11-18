@@ -27,6 +27,7 @@ func (m *DDLModel) ShowDDL(table ...string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		ddl = append(ddl, resp.DDL)
 	}
 	return ddl, nil

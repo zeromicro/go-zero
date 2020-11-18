@@ -46,10 +46,10 @@ func (l *{{.logicName}}) {{.method}} (in {{.request}}) ({{.response}}, error) {
 `
 )
 
-func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto) error {
+func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
 	dir := ctx.GetLogic()
 	for _, rpc := range proto.Service.RPC {
-		filename := filepath.Join(dir.Filename, formatFilename(rpc.Name+"_logic")+".go")
+		filename := filepath.Join(dir.Filename, formatFilename(rpc.Name+"_logic", namingStyle)+".go")
 		functions, err := g.genLogicFunction(proto.PbPackage, rpc)
 		if err != nil {
 			return err

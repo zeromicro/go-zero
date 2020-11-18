@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 )
 
-func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto) error {
+func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, namingStyle NamingStyle) error {
 	dir := ctx.GetPb()
 	cw := new(bytes.Buffer)
 	base := filepath.Dir(proto.Src)

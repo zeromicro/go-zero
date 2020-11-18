@@ -43,7 +43,7 @@ func (s *{{.server}}Server) {{.method}} (ctx context.Context, in {{.request}}) (
 `
 )
 
-func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto) error {
+func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
 	dir := ctx.GetServer()
 	logicImport := fmt.Sprintf(`"%v"`, ctx.GetLogic().Package)
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
@@ -54,7 +54,7 @@ func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto) error {
 
 	head := util.GetHead(proto.Name)
 	service := proto.Service
-	serverFile := filepath.Join(dir.Filename, formatFilename(service.Name+"_server")+".go")
+	serverFile := filepath.Join(dir.Filename, formatFilename(service.Name+"_server", namingStyle)+".go")
 	funcList, err := g.genFunctions(proto.PbPackage, service)
 	if err != nil {
 		return err

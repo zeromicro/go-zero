@@ -17,6 +17,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+var errNotMatched = errors.New("sql not matched")
+
 const (
 	flagSrc   = "src"
 	flagDir   = "dir"
@@ -33,6 +35,20 @@ func MysqlDDL(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
+	return fromDDl(src, dir, namingStyle, cache, idea)
+}
+
+func MyDataSource(ctx *cli.Context) error {
+	url := strings.TrimSpace(ctx.String(flagUrl))
+	dir := strings.TrimSpace(ctx.String(flagDir))
+	cache := ctx.Bool(flagCache)
+	idea := ctx.Bool(flagIdea)
+	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
+	pattern := strings.TrimSpace(ctx.String(flagTable))
+	return fromDataSource(url, pattern, dir, namingStyle, cache, idea)
+}
+
+func fromDDl(src, dir, namingStyle string, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
@@ -52,29 +68,29 @@ func MysqlDDL(ctx *cli.Context) error {
 		return err
 	}
 
+	if len(files) == 0 {
+		return errNotMatched
+	}
+
 	var source []string
 	for _, file := range files {
 		data, err := ioutil.ReadFile(file)
 		if err != nil {
 			return err
 		}
+
 		source = append(source, string(data))
 	}
-	generator := gen.NewDefaultGenerator(strings.Join(source, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
-	err = generator.Start(cache)
+	generator, err := gen.NewDefaultGenerator(dir, namingStyle, gen.WithConsoleOption(log))
 	if err != nil {
-		log.Error("%v", err)
+		return err
 	}
-	return nil
+
+	err = generator.StartFromDDL(strings.Join(source, "\n"), cache)
+	return err
 }
 
-func MyDataSource(ctx *cli.Context) error {
-	url := strings.TrimSpace(ctx.String(flagUrl))
-	dir := strings.TrimSpace(ctx.String(flagDir))
-	cache := ctx.Bool(flagCache)
-	idea := ctx.Bool(flagIdea)
-	namingStyle := strings.TrimSpace(ctx.String(flagStyle))
-	pattern := strings.TrimSpace(ctx.String(flagTable))
+func fromDataSource(url, pattern, dir, namingStyle string, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
@@ -100,10 +116,8 @@ func MyDataSource(ctx *cli.Context) error {
 	}
 
 	logx.Disable()
-	conn := sqlx.NewMysql(url)
 	databaseSource := strings.TrimSuffix(url, "/"+cfg.DBName) + "/information_schema"
 	db := sqlx.NewMysql(databaseSource)
-	m := model.NewDDLModel(conn)
 	im := model.NewInformationSchemaModel(db)
 
 	tables, err := im.GetAllTables(cfg.DBName)
@@ -111,7 +125,7 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
-	var matchTables []string
+	matchTables := make(map[string][]*model.Column)
 	for _, item := range tables {
 		match, err := filepath.Match(pattern, item)
 		if err != nil {
@@ -121,24 +135,22 @@ func MyDataSource(ctx *cli.Context) error {
 		if !match {
 			continue
 		}
-
-		matchTables = append(matchTables, item)
+		columns, err := im.FindByTableName(cfg.DBName, item)
+		if err != nil {
+			return err
+		}
+		matchTables[item] = columns
 	}
+
 	if len(matchTables) == 0 {
 		return errors.New("no tables matched")
 	}
 
-	ddl, err := m.ShowDDL(matchTables...)
+	generator, err := gen.NewDefaultGenerator(dir, namingStyle, gen.WithConsoleOption(log))
 	if err != nil {
-		log.Error("%v", err)
-		return nil
+		return err
 	}
 
-	generator := gen.NewDefaultGenerator(strings.Join(ddl, "\n"), dir, namingStyle, gen.WithConsoleOption(log))
-	err = generator.Start(cache)
-	if err != nil {
-		log.Error("%v", err)
-	}
-
-	return nil
+	err = generator.StartFromInformationSchema(cfg.DBName, matchTables, cache)
+	return err
 }

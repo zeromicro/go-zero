@@ -22,15 +22,19 @@ func TestCacheModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g := NewDefaultGenerator(source, cacheDir, NamingLower)
-	err := g.Start(true)
+	g, err := NewDefaultGenerator(cacheDir, NamingCamel)
+	assert.Nil(t, err)
+
+	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(cacheDir, "testuserinfomodel.go"))
+		_, err := os.Stat(filepath.Join(cacheDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
-	g = NewDefaultGenerator(source, noCacheDir, NamingLower)
-	err = g.Start(false)
+	g, err = NewDefaultGenerator(noCacheDir, NamingLower)
+	assert.Nil(t, err)
+
+	err = g.StartFromDDL(source, false)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(noCacheDir, "testuserinfomodel.go"))
@@ -47,15 +51,19 @@ func TestNamingModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g := NewDefaultGenerator(source, camelDir, NamingCamel)
-	err := g.Start(true)
+	g, err := NewDefaultGenerator(camelDir, NamingCamel)
+	assert.Nil(t, err)
+
+	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
-	g = NewDefaultGenerator(source, snakeDir, NamingSnake)
-	err = g.Start(true)
+	g, err = NewDefaultGenerator(snakeDir, NamingSnake)
+	assert.Nil(t, err)
+
+	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_info_model.go"))
