@@ -3,6 +3,7 @@ package new
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
@@ -20,8 +21,8 @@ type Response {
 }
 
 service {{.name}}-api {
-  @handler GreetHandler
-  get /greet/from/:name(Request) returns (Response);
+  @handler {{.handler}}Handler
+  get /from/:name(Request) returns (Response);
 }
 `
 
@@ -53,7 +54,8 @@ func NewService(c *cli.Context) error {
 	defer fp.Close()
 	t := template.Must(template.New("template").Parse(apiTemplate))
 	if err := t.Execute(fp, map[string]string{
-		"name": dirName,
+		"name":    dirName,
+		"handler": strings.Title(dirName),
 	}); err != nil {
 		return err
 	}
