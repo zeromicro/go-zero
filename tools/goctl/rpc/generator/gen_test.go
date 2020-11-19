@@ -9,9 +9,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stringx"
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	name2 "github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
+
+var cfg = &conf.Config{
+	NamingFormat:      "gozero",
+	ApiNamingFormat:   "gozero",
+	RpcNamingFormat:   "gozero",
+	ModelNamingFormat: "gozero",
+}
 
 func TestRpcGenerate(t *testing.T) {
 	_ = Clean()
@@ -22,7 +29,7 @@ func TestRpcGenerate(t *testing.T) {
 		return
 	}
 	projectName := stringx.Rand()
-	g := NewRpcGenerator(dispatcher, name2.NamingLower)
+	g := NewRpcGenerator(dispatcher, cfg)
 
 	// case go path
 	src := filepath.Join(build.Default.GOPATH, "src")

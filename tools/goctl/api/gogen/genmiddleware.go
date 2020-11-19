@@ -6,6 +6,8 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 )
 
 var middlewareImplementCode = `
@@ -30,9 +32,15 @@ func (m *{{.name}})Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 `
 
-func genMiddleware(dir string, middlewares []string) error {
+func genMiddleware(dir string, cfg *config.Config, middlewares []string) error {
 	for _, item := range middlewares {
-		filename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "middleware" + ".go"
+		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
+		formatName, err := format.FileNamingFormat(cfg.ApiNamingFormat, middlewareFilename)
+		if err != nil {
+			return err
+		}
+
+		filename := formatName + ".go"
 		fp, created, err := util.MaybeCreateFile(dir, middlewareDir, filename)
 		if err != nil {
 			return err

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 )
 
 var (
@@ -22,7 +23,10 @@ func TestCacheModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g, err := NewDefaultGenerator(cacheDir, NamingCamel)
+	g, err := NewDefaultGenerator(cacheDir, &config.Config{
+		NamingFormat:      "gozero",
+		ModelNamingFormat: "GoZero",
+	})
 	assert.Nil(t, err)
 
 	err = g.StartFromDDL(source, true)
@@ -31,7 +35,10 @@ func TestCacheModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(cacheDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
-	g, err = NewDefaultGenerator(noCacheDir, NamingLower)
+	g, err = NewDefaultGenerator(noCacheDir, &config.Config{
+		NamingFormat:      "gozero",
+		ModelNamingFormat: "gozero",
+	})
 	assert.Nil(t, err)
 
 	err = g.StartFromDDL(source, false)
@@ -51,7 +58,10 @@ func TestNamingModel(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(dir)
 	}()
-	g, err := NewDefaultGenerator(camelDir, NamingCamel)
+	g, err := NewDefaultGenerator(camelDir, &config.Config{
+		NamingFormat:      "gozero",
+		ModelNamingFormat: "GoZero",
+	})
 	assert.Nil(t, err)
 
 	err = g.StartFromDDL(source, true)
@@ -60,7 +70,10 @@ func TestNamingModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserInfoModel.go"))
 		return err == nil
 	}())
-	g, err = NewDefaultGenerator(snakeDir, NamingSnake)
+	g, err = NewDefaultGenerator(snakeDir, &config.Config{
+		NamingFormat:      "gozero",
+		ModelNamingFormat: "go_zero",
+	})
 	assert.Nil(t, err)
 
 	err = g.StartFromDDL(source, true)

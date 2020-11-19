@@ -9,8 +9,9 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -51,7 +52,7 @@ type Handler struct {
 	HasRequest     bool
 }
 
-func genHandler(dir, nameStyle string, group spec.Group, route spec.Route) error {
+func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	if getHandlerFolderPath(group, route) != handlerDir {
 		handler = strings.Title(handler)
@@ -61,7 +62,7 @@ func genHandler(dir, nameStyle string, group spec.Group, route spec.Route) error
 		return err
 	}
 
-	return doGenToFile(dir, handler, nameStyle, group, route, Handler{
+	return doGenToFile(dir, handler, cfg, group, route, Handler{
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestType.Name),
@@ -72,8 +73,13 @@ func genHandler(dir, nameStyle string, group spec.Group, route spec.Route) error
 	})
 }
 
-func doGenToFile(dir, handler, nameStyle string, group spec.Group, route spec.Route, handleObj Handler) error {
-	filename := name.FormatFilename(handler, nameStyle) + ".go"
+func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group, route spec.Route, handleObj Handler) error {
+	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, handler)
+	if err != nil {
+		return err
+	}
+
+	filename = filename + ".go"
 	fp, created, err := apiutil.MaybeCreateFile(dir, getHandlerFolderPath(group, route), filename)
 	if err != nil {
 		return err
@@ -99,10 +105,10 @@ func doGenToFile(dir, handler, nameStyle string, group spec.Group, route spec.Ro
 	return err
 }
 
-func genHandlers(dir, namingStyle string, api *spec.ApiSpec) error {
+func genHandlers(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, namingStyle, group, route); err != nil {
+			if err := genHandler(dir, cfg, group, route); err != nil {
 				return err
 			}
 		}

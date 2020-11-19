@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/collection"
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -47,10 +48,15 @@ func (l *{{.logicName}}) {{.method}} (in {{.request}}) ({{.response}}, error) {
 `
 )
 
-func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, namingStyle name.NamingStyle) error {
+func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	for _, rpc := range proto.Service.RPC {
-		filename := filepath.Join(dir.Filename, name.FormatFilename(rpc.Name+"_logic", namingStyle)+".go")
+		logicFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, rpc.Name)
+		if err != nil {
+			return err
+		}
+
+		filename := filepath.Join(dir.Filename, logicFilename+".go")
 		functions, err := g.genLogicFunction(proto.PbPackage, rpc)
 		if err != nil {
 			return err

@@ -8,13 +8,21 @@ import (
 
 const goctlDir = ".goctl"
 
-func GetTemplateDir(category string) (string, error) {
+func GetGoctlHome() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
+	return filepath.Join(home, goctlDir), nil
+}
 
-	return filepath.Join(home, goctlDir, category), nil
+func GetTemplateDir(category string) (string, error) {
+	goctlHome, err := GetGoctlHome()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(goctlHome, category), nil
 }
 
 func InitTemplates(category string, templates map[string]string) error {

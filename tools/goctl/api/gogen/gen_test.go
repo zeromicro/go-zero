@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
 )
 
 const testApiTemplate = `
@@ -572,17 +572,21 @@ func TestCamelStyle(t *testing.T) {
 
 	_, err = parser.NewParser(filename)
 	assert.Nil(t, err)
-	validate(t, filename, name.NamingCamel)
+	validate(t, filename)
 }
 
 func validateWithLowerNamingStyle(t *testing.T, api string) {
-	validate(t, api, name.NamingLower)
+	validate(t, api)
 }
 
-func validate(t *testing.T, api, style string) {
+func validate(t *testing.T, api string) {
+	_, err := config.InitOrGetConfig()
+	if err != nil {
+		return
+	}
 	dir := "_go"
 	os.RemoveAll(dir)
-	err := DoGenProject(api, dir, style)
+	err = DoGenProject(api, dir)
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

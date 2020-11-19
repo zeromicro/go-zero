@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	BuildVersion = "20201116"
+	BuildVersion = "20201119-beta"
 	commands     = []cli.Command{
 		{
 			Name:  "api",
@@ -97,11 +97,6 @@ var (
 						cli.StringFlag{
 							Name:  "api",
 							Usage: "the api file",
-						},
-						cli.StringFlag{
-							Name:     "style",
-							Required: false,
-							Usage:    "the file naming style, lower|camel|snake,default is lower",
 						},
 					},
 					Action: gogen.GoCommand,
@@ -208,7 +203,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "style",
-							Usage: "the file naming style, lower|camel|snake,default is lower",
+							Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
 						},
 						cli.BoolFlag{
 							Name:  "idea",
@@ -246,7 +241,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "style",
-							Usage: "the file naming style, lower|camel|snake,default is lower",
+							Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
 						},
 						cli.BoolFlag{
 							Name:  "idea",
@@ -279,7 +274,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the file naming style, lower|camel|snake,default is lower",
+									Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",

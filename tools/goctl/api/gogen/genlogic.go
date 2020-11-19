@@ -9,8 +9,9 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -41,10 +42,10 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 }
 `
 
-func genLogic(dir, namingStyle string, api *spec.ApiSpec) error {
+func genLogic(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, namingStyle, g, r)
+			err := genLogicByRoute(dir, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -53,10 +54,15 @@ func genLogic(dir, namingStyle string, api *spec.ApiSpec) error {
 	return nil
 }
 
-func genLogicByRoute(dir, nameStyle string, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
-	goFile := name.FormatFilename(logic, nameStyle) + ".go"
 
+	goFile, err := format.FileNamingFormat(cfg.ApiNamingFormat, logic)
+	if err != nil {
+		return err
+	}
+
+	goFile = goFile + ".go"
 	fp, created, err := util.MaybeCreateFile(dir, getLogicFolderPath(group, route), goFile)
 	if err != nil {
 		return err

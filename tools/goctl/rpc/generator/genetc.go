@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -19,10 +20,14 @@ Etcd:
   Key: {{.serviceName}}.rpc
 `
 
-func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, namingStyle name.NamingStyle) error {
+func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
-	serviceNameLower := name.FormatFilename(ctx.GetMain().Base, namingStyle)
-	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", serviceNameLower))
+	etcFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, ctx.GetMain().Base)
+	if err != nil {
+		return err
+	}
+
+	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", etcFilename))
 
 	text, err := util.LoadTemplate(category, etcTemplateFileFile, etcTemplate)
 	if err != nil {

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
-	"github.com/tal-tech/go-zero/tools/goctl/util/name"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
 )
 
@@ -16,7 +16,7 @@ import (
 func Rpc(c *cli.Context) error {
 	src := c.String("src")
 	out := c.String("dir")
-	style := c.String("style")
+	warningDeprecatedStyle()
 	protoImportPath := c.StringSlice("proto_path")
 	if len(src) == 0 {
 		return errors.New("missing -src")
@@ -25,12 +25,11 @@ func Rpc(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	namingStyle, valid := name.IsNamingValid(style)
-	if !valid {
-		return fmt.Errorf("unexpected naming style %s", style)
+	g, err := generator.NewDefaultRpcGenerator()
+	if err != nil {
+		return err
 	}
 
-	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, out, protoImportPath)
 }
 
@@ -43,11 +42,7 @@ func RpcNew(c *cli.Context) error {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 
-	style := c.String("style")
-	namingStyle, valid := name.IsNamingValid(style)
-	if !valid {
-		return fmt.Errorf("expected naming style [lower|camel|snake], but found %s", style)
-	}
+	warningDeprecatedStyle()
 
 	protoName := rpcname + ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
@@ -61,7 +56,11 @@ func RpcNew(c *cli.Context) error {
 		return err
 	}
 
-	g := generator.NewDefaultRpcGenerator(namingStyle)
+	g, err := generator.NewDefaultRpcGenerator()
+	if err != nil {
+		return err
+	}
+
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 
@@ -72,4 +71,9 @@ func RpcTemplate(c *cli.Context) error {
 	}
 
 	return generator.ProtoTmpl(protoFile)
+}
+
+func warningDeprecatedStyle() {
+	log := console.NewColorConsole()
+	log.Warning("[warning] flag --style has been deprecated, please use config.yaml instead, for more information please see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]")
 }
