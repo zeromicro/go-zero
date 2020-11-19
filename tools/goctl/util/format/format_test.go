@@ -97,6 +97,7 @@ func TestFileNamingFormat(t *testing.T) {
 	testFileNamingFormatErr(t, "zero", "")
 	testFileNamingFormatErr(t, "goZEro", "welcome_to_go_zero")
 	testFileNamingFormatErr(t, "goZERo", "welcome_to_go_zero")
+	testFileNamingFormatErr(t, "zerogo", "welcome_to_go_zero")
 }
 
 func testFileNamingFormat(t *testing.T, format, in, expected string) {

@@ -46,7 +46,7 @@ func FileNamingFormat(format, content string) (string, error) {
 	upperFormat := strings.ToUpper(format)
 	indexGo := strings.Index(upperFormat, flagGo)
 	indexZero := strings.Index(upperFormat, flagZero)
-	if indexGo < 0 || indexZero < 0 {
+	if indexGo < 0 || indexZero < 0 || indexGo > indexZero {
 		return "", ErrNamingFormat
 	}
 	var (
