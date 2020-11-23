@@ -51,7 +51,7 @@ func (l *{{.logicName}}) {{.method}} (in {{.request}}) ({{.response}}, error) {
 func (g *defaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	for _, rpc := range proto.Service.RPC {
-		logicFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, rpc.Name)
+		logicFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, rpc.Name+"_logic")
 		if err != nil {
 			return err
 		}
