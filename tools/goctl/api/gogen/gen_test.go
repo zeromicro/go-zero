@@ -341,7 +341,7 @@ func TestParser(t *testing.T) {
 	assert.Equal(t, api.Service.Routes()[1].RequestType.Name, "Request")
 	assert.Equal(t, api.Service.Routes()[1].ResponseType.Name, "")
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestMultiService(t *testing.T) {
@@ -359,7 +359,7 @@ func TestMultiService(t *testing.T) {
 	assert.Equal(t, len(api.Service.Routes()), 2)
 	assert.Equal(t, len(api.Service.Groups), 2)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiNoInfo(t *testing.T) {
@@ -374,7 +374,7 @@ func TestApiNoInfo(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestInvalidApiFile(t *testing.T) {
@@ -402,7 +402,7 @@ func TestAnonymousAnnotation(t *testing.T) {
 	assert.Equal(t, len(api.Service.Routes()), 1)
 	assert.Equal(t, api.Service.Routes()[0].Annotations[0].Value, "GreetHandler")
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiHasMiddleware(t *testing.T) {
@@ -417,7 +417,7 @@ func TestApiHasMiddleware(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiHasJwt(t *testing.T) {
@@ -432,7 +432,7 @@ func TestApiHasJwt(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiHasJwtAndMiddleware(t *testing.T) {
@@ -447,7 +447,7 @@ func TestApiHasJwtAndMiddleware(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiHasNoRequestBody(t *testing.T) {
@@ -462,7 +462,7 @@ func TestApiHasNoRequestBody(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestApiRoutes(t *testing.T) {
@@ -477,7 +477,7 @@ func TestApiRoutes(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestHasCommentRoutes(t *testing.T) {
@@ -492,7 +492,7 @@ func TestHasCommentRoutes(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestInlineTypeNotExist(t *testing.T) {
@@ -507,7 +507,7 @@ func TestInlineTypeNotExist(t *testing.T) {
 	_, err = parser.Parse()
 	assert.Nil(t, err)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestHasImportApi(t *testing.T) {
@@ -535,7 +535,7 @@ func TestHasImportApi(t *testing.T) {
 		}
 	}
 	assert.True(t, hasInline)
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestNoStructApi(t *testing.T) {
@@ -551,7 +551,7 @@ func TestNoStructApi(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(spec.Types), 5)
 
-	validateWithLowerNamingStyle(t, filename)
+	validate(t, filename)
 }
 
 func TestNestTypeApi(t *testing.T) {
@@ -573,10 +573,6 @@ func TestCamelStyle(t *testing.T) {
 	_, err = parser.NewParser(filename)
 	assert.Nil(t, err)
 	validate(t, filename)
-}
-
-func validateWithLowerNamingStyle(t *testing.T, api string) {
-	validate(t, api)
 }
 
 func validate(t *testing.T, api string) {
