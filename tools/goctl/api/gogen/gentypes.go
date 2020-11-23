@@ -51,7 +51,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		return err
 	}
 
-	typeFilename, err := format.FileNamingFormat(cfg.ApiNamingFormat, typesFile)
+	typeFilename, err := format.FileNamingFormat(cfg.NamingFormat, typesFile)
 	if err != nil {
 		return err
 	}

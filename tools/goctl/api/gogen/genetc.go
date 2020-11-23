@@ -23,7 +23,7 @@ Port: {{.port}}
 )
 
 func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, api.Service.Name)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)
 	if err != nil {
 		return err
 	}

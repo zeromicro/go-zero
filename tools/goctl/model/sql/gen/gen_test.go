@@ -24,8 +24,7 @@ func TestCacheModel(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 	g, err := NewDefaultGenerator(cacheDir, &config.Config{
-		NamingFormat:      "gozero",
-		ModelNamingFormat: "GoZero",
+		NamingFormat: "GoZero",
 	})
 	assert.Nil(t, err)
 
@@ -36,8 +35,7 @@ func TestCacheModel(t *testing.T) {
 		return err == nil
 	}())
 	g, err = NewDefaultGenerator(noCacheDir, &config.Config{
-		NamingFormat:      "gozero",
-		ModelNamingFormat: "gozero",
+		NamingFormat: "gozero",
 	})
 	assert.Nil(t, err)
 
@@ -59,8 +57,7 @@ func TestNamingModel(t *testing.T) {
 		_ = os.RemoveAll(dir)
 	}()
 	g, err := NewDefaultGenerator(camelDir, &config.Config{
-		NamingFormat:      "gozero",
-		ModelNamingFormat: "GoZero",
+		NamingFormat: "GoZero",
 	})
 	assert.Nil(t, err)
 
@@ -71,8 +68,7 @@ func TestNamingModel(t *testing.T) {
 		return err == nil
 	}())
 	g, err = NewDefaultGenerator(snakeDir, &config.Config{
-		NamingFormat:      "gozero",
-		ModelNamingFormat: "go_zero",
+		NamingFormat: "go_zero",
 	})
 	assert.Nil(t, err)
 

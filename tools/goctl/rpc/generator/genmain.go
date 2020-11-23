@@ -49,7 +49,7 @@ func main() {
 
 func (g *defaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetMain()
-	mainFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, ctx.GetMain().Base)
+	mainFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetMain().Base)
 	if err != nil {
 		return err
 	}

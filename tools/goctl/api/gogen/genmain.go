@@ -47,7 +47,7 @@ func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	if strings.HasSuffix(name, "-api") {
 		name = strings.ReplaceAll(name, "-api", "")
 	}
-	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, name)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
 	if err != nil {
 		return err
 	}

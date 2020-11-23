@@ -15,8 +15,8 @@ type RpcGenerator struct {
 	cfg *conf.Config
 }
 
-func NewDefaultRpcGenerator() (*RpcGenerator, error) {
-	cfg, err := conf.InitOrGetConfig()
+func NewDefaultRpcGenerator(style string) (*RpcGenerator, error) {
+	cfg, err := conf.NewConfig(style)
 	if err != nil {
 		return nil, err
 	}

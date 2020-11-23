@@ -57,7 +57,7 @@ func genLogic(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 
-	goFile, err := format.FileNamingFormat(cfg.ApiNamingFormat, logic)
+	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
 		return err
 	}

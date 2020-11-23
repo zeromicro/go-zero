@@ -123,7 +123,7 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		return err
 	}
 
-	routeFilename, err := format.FileNamingFormat(cfg.ApiNamingFormat, routesFilename)
+	routeFilename, err := format.FileNamingFormat(cfg.NamingFormat, routesFilename)
 	if err != nil {
 		return err
 	}

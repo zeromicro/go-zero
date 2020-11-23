@@ -34,7 +34,7 @@ type Config struct {
 )
 
 func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, configFile)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, configFile)
 	if err != nil {
 		return err
 	}

@@ -66,7 +66,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	service := proto.Service
 	head := util.GetHead(proto.Name)
 
-	callFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, service.Name)
+	callFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name)
 	if err != nil {
 		return err
 	}

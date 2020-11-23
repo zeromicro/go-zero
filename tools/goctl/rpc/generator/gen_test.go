@@ -14,10 +14,7 @@ import (
 )
 
 var cfg = &conf.Config{
-	NamingFormat:      "gozero",
-	ApiNamingFormat:   "gozero",
-	RpcNamingFormat:   "gozero",
-	ModelNamingFormat: "gozero",
+	NamingFormat: "gozero",
 }
 
 func TestRpcGenerate(t *testing.T) {

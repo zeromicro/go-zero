@@ -116,7 +116,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 
 	for tableName, code := range modelList {
 		tn := stringx.From(tableName)
-		modelFilename, err := format.FileNamingFormat(g.cfg.ModelNamingFormat, fmt.Sprintf("%s_model", tn.Source()))
+		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, fmt.Sprintf("%s_model", tn.Source()))
 		if err != nil {
 			return err
 		}
@@ -133,7 +133,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 		}
 	}
 	// generate error file
-	varFilename, err := format.FileNamingFormat(g.cfg.ModelNamingFormat, "vars")
+	varFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, "vars")
 	if err != nil {
 		return err
 	}

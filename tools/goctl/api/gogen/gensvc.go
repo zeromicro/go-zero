@@ -38,7 +38,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 )
 
 func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, contextFilename)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
 	}

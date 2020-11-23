@@ -582,7 +582,7 @@ func validate(t *testing.T, api string) {
 	}
 	dir := "_go"
 	os.RemoveAll(dir)
-	err = DoGenProject(api, dir)
+	err = DoGenProject(api, dir, "gozero")
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

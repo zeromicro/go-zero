@@ -27,7 +27,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
 func (g *defaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetSvc()
-	svcFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, "service_context")
+	svcFilename, err := format.FileNamingFormat(cfg.NamingFormat, "service_context")
 	if err != nil {
 		return err
 	}

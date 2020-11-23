@@ -26,6 +26,7 @@ const (
 	flagIdea  = "idea"
 	flagUrl   = "url"
 	flagTable = "table"
+	flagStyle = "style"
 )
 
 func MysqlDDL(ctx *cli.Context) error {
@@ -33,8 +34,8 @@ func MysqlDDL(ctx *cli.Context) error {
 	dir := ctx.String(flagDir)
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
-	warningDeprecatedStyle()
-	cfg, err := config.InitOrGetConfig()
+	style := ctx.String(flagStyle)
+	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
@@ -47,9 +48,9 @@ func MyDataSource(ctx *cli.Context) error {
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
-	warningDeprecatedStyle()
+	style := ctx.String(flagStyle)
 	pattern := strings.TrimSpace(ctx.String(flagTable))
-	cfg, err := config.InitOrGetConfig()
+	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
@@ -146,9 +147,4 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 
 	err = generator.StartFromInformationSchema(dsn.DBName, matchTables, cache)
 	return err
-}
-
-func warningDeprecatedStyle() {
-	log := console.NewColorConsole()
-	log.Warning("[warning] flag --style has been deprecated, please use config.yaml instead, for more information please see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]")
 }

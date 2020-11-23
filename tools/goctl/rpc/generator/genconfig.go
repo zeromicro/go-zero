@@ -22,7 +22,7 @@ type Config struct {
 
 func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetConfig()
-	configFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, "config")
+	configFilename, err := format.FileNamingFormat(cfg.NamingFormat, "config")
 	if err != nil {
 		return err
 	}

@@ -56,7 +56,7 @@ func (g *defaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 
 	head := util.GetHead(proto.Name)
 	service := proto.Service
-	serverFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, service.Name+"_server")
+	serverFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name+"_server")
 	if err != nil {
 		return err
 	}

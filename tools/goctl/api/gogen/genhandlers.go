@@ -76,7 +76,7 @@ func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Rou
 }
 
 func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group, route spec.Route, handleObj Handler) error {
-	filename, err := format.FileNamingFormat(cfg.ApiNamingFormat, handler)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, handler)
 	if err != nil {
 		return err
 	}

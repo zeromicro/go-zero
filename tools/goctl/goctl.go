@@ -98,6 +98,11 @@ var (
 							Name:  "api",
 							Usage: "the api file",
 						},
+						cli.StringFlag{
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
 					},
 					Action: gogen.GoCommand,
 				},
@@ -240,8 +245,9 @@ var (
 							Usage: `the target path of the code`,
 						},
 						cli.StringFlag{
-							Name:  "style",
-							Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
 						cli.BoolFlag{
 							Name:  "idea",
@@ -273,8 +279,9 @@ var (
 									Usage: "the target dir",
 								},
 								cli.StringFlag{
-									Name:  "style",
-									Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
+									Name:     "style",
+									Required: false,
+									Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -308,8 +315,9 @@ var (
 									Usage: "the target dir",
 								},
 								cli.StringFlag{
-									Name:  "style",
-									Usage: "the file naming style, lower|camel|snake, default is lower",
+									Name:     "style",
+									Required: false,
+									Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 								},
 								cli.BoolFlag{
 									Name:  "idea",

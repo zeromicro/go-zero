@@ -22,7 +22,7 @@ Etcd:
 
 func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
-	etcFilename, err := format.FileNamingFormat(cfg.RpcNamingFormat, ctx.GetMain().Base)
+	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetMain().Base)
 	if err != nil {
 		return err
 	}
