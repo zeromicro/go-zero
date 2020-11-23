@@ -29,7 +29,7 @@ func main() {
 
 	store := redis.NewRedis(*rdx, *rdxType, *rdxPass)
 	fmt.Println(store.Ping())
-	lmt := limit.NewPeriodLimit(seconds+1, 5, store, *rdxKey)
+	lmt := limit.NewPeriodLimit(seconds, 5, store, *rdxKey)
 	timer := time.NewTimer(time.Second * seconds)
 	quit := make(chan struct{})
 	defer timer.Stop()
@@ -41,8 +41,8 @@ func main() {
 	var allowed, denied int32
 	var wait sync.WaitGroup
 	for i := 0; i < *threads; i++ {
-		wait.Add(1)
 		i := i
+		wait.Add(1)
 		go func() {
 			for {
 				select {
