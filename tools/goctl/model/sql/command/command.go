@@ -39,7 +39,6 @@ func MysqlDDL(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
 	return fromDDl(src, dir, cfg, cache, idea)
 }
 
