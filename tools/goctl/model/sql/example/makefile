@@ -7,7 +7,7 @@ fromDDL:
 
 # generate model with cache from data source
 user=root
-password=AQS910422
+password=password
 datasource=127.0.0.1:3306
 database=gozero
 
