@@ -120,7 +120,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     默认侦听在 8888 端口（可以在配置文件里修改），可以通过 curl 请求：
 
     ```shell
-    curl -i http://localhost:8888/greet/from/you
+    curl -i http://localhost:8888/from/you
     ```
 
     返回如下：

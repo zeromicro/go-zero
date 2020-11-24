@@ -174,7 +174,7 @@ goctl api -o greet.api
    you can check it by curl:
 
    ```shell
-   curl -i http://localhost:8888/greet/from/you
+   curl -i http://localhost:8888/from/you
    ```
 
    the response looks like:
