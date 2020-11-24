@@ -11,18 +11,14 @@ import (
 const (
 	flagGo   = "GO"
 	flagZero = "ZERO"
-)
 
-const (
 	unknown style = iota
 	title
 	lower
 	upper
 )
 
-var (
-	ErrNamingFormat = errors.New("unsupported format")
-)
+var ErrNamingFormat = errors.New("unsupported format")
 
 type (
 	styleFormat struct {
