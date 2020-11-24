@@ -76,6 +76,9 @@ func TestConvertColumn(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, table.PrimaryKey.AutoIncrement && table.PrimaryKey.IsPrimaryKey)
 	assert.Equal(t, "id", table.PrimaryKey.Name.Source())
-	assert.Equal(t, "mobile", table.Fields[1].Name.Source())
-	assert.True(t, table.Fields[1].IsUniqueKey)
+	for _, item := range table.Fields {
+		if item.Name.Source() == "mobile" {
+			assert.True(t, item.IsUniqueKey)
+		}
+	}
 }
