@@ -10,7 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
 
@@ -535,6 +534,7 @@ func TestHasImportApi(t *testing.T) {
 		}
 	}
 	assert.True(t, hasInline)
+
 	validate(t, filename)
 }
 
@@ -559,8 +559,8 @@ func TestNestTypeApi(t *testing.T) {
 	err := ioutil.WriteFile(filename, []byte(nestTypeApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
-
 	_, err = parser.NewParser(filename)
+
 	assert.NotNil(t, err)
 }
 
@@ -569,20 +569,20 @@ func TestCamelStyle(t *testing.T) {
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
-
 	_, err = parser.NewParser(filename)
 	assert.Nil(t, err)
-	validate(t, filename)
+
+	validateWithCamel(t, filename, "GoZero")
 }
 
 func validate(t *testing.T, api string) {
-	_, err := config.InitOrGetConfig()
-	if err != nil {
-		return
-	}
+	validateWithCamel(t, api, "gozero")
+}
+
+func validateWithCamel(t *testing.T, api, camel string) {
 	dir := "_go"
 	os.RemoveAll(dir)
-	err = DoGenProject(api, dir, "gozero")
+	err := DoGenProject(api, dir, camel)
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
