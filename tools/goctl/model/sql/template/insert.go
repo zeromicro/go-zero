@@ -1,7 +1,7 @@
 package template
 
 var Insert = `
-func (m *{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}) (sql.Result,error) {
+func (m *default{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}) (sql.Result,error) {
 	{{if .withCache}}{{if .containsIndexCache}}{{.keys}}
     ret, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("insert into %s (%s) values ({{.expression}})", m.table, {{.lowerStartCamelObject}}RowsExpectAutoSet)
@@ -13,3 +13,5 @@ func (m *{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}
 	return ret,err
 }
 `
+
+var InsertMethod = `Insert(data {{.upperStartCamelObject}}) (sql.Result,error)`

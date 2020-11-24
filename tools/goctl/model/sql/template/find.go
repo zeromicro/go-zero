@@ -2,7 +2,7 @@ package template
 
 // 通过id查询
 var FindOne = `
-func (m *{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error) {
+func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
 	err := m.QueryRow(&resp, {{.cacheKeyVariable}}, func(conn sqlx.SqlConn, v interface{}) error {
@@ -32,7 +32,7 @@ func (m *{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}}
 
 // 通过指定字段查询
 var FindOneByField = `
-func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) {
+func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
 	err := m.QueryRowIndex(&resp, {{.cacheKeyVariable}}, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
@@ -64,12 +64,15 @@ func (m *{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{
 }{{end}}
 `
 var FindOneByFieldExtraMethod = `
-func (m *{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
+func (m *default{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
 	return fmt.Sprintf("%s%v", {{.primaryKeyLeft}}, primary)
 }
 
-func (m *{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
+func (m *default{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
 	query := fmt.Sprintf("select %s from %s where {{.originalPrimaryField}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table )
 	return conn.QueryRow(v, query, primary)
 }
 `
+
+var FindOneMethod = `FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)`
+var FindOneByFieldMethod = `FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) `

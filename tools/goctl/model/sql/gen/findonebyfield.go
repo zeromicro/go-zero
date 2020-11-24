@@ -9,10 +9,16 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genFindOneByField(table Table, withCache bool) (string, string, error) {
+type findOneCode struct {
+	findOneMethod          string
+	findOneInterfaceMethod string
+	cacheExtra             string
+}
+
+func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	t := util.With("findOneByField").Parse(text)
@@ -36,15 +42,40 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 			"originalField":             field.Name.Source(),
 		})
 		if err != nil {
-			return "", "", err
+			return nil, err
 		}
 
 		list = append(list, output.String())
 	}
+
+	text, err = util.LoadTemplate(category, findOneByFieldMethodTemplateFile, template.FindOneByFieldMethod)
+	if err != nil {
+		return nil, err
+	}
+
+	t = util.With("findOneByFieldMethod").Parse(text)
+	var listMethod []string
+	for _, field := range table.Fields {
+		if field.IsPrimaryKey || !field.IsUniqueKey {
+			continue
+		}
+		camelFieldName := field.Name.ToCamel()
+		output, err := t.Execute(map[string]interface{}{
+			"upperStartCamelObject": camelTableName,
+			"upperField":            camelFieldName,
+			"in":                    fmt.Sprintf("%s %s", stringx.From(camelFieldName).UnTitle(), field.DataType),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		listMethod = append(listMethod, output.String())
+	}
+
 	if withCache {
 		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
 		if err != nil {
-			return "", "", err
+			return nil, err
 		}
 
 		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]interface{}{
@@ -54,11 +85,18 @@ func genFindOneByField(table Table, withCache bool) (string, string, error) {
 			"originalPrimaryField":  table.PrimaryKey.Name.Source(),
 		})
 		if err != nil {
-			return "", "", err
+			return nil, err
 		}
 
-		return strings.Join(list, "\n"), out.String(), nil
+		return &findOneCode{
+			findOneMethod:          strings.Join(list, util.NL),
+			findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+			cacheExtra:             out.String(),
+		}, nil
 	}
-	return strings.Join(list, "\n"), "", nil
 
+	return &findOneCode{
+		findOneMethod:          strings.Join(list, util.NL),
+		findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+	}, nil
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genUpdate(table Table, withCache bool) (string, error) {
+func genUpdate(table Table, withCache bool) (string, string, error) {
 	expressionValues := make([]string, 0)
 	for _, filed := range table.Fields {
 		camel := filed.Name.ToCamel()
@@ -24,7 +24,7 @@ func genUpdate(table Table, withCache bool) (string, error) {
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	output, err := util.With("update").
@@ -39,8 +39,23 @@ func genUpdate(table Table, withCache bool) (string, error) {
 			"expressionValues":      strings.Join(expressionValues, ", "),
 		})
 	if err != nil {
-		return "", nil
+		return "", "", nil
 	}
 
-	return output.String(), nil
+	// update interface method
+	text, err = util.LoadTemplate(category, updateMethodTemplateFile, template.UpdateMethod)
+	if err != nil {
+		return "", "", err
+	}
+
+	updateMethodOutput, err := util.With("updateMethod").
+		Parse(text).
+		Execute(map[string]interface{}{
+			"upperStartCamelObject": camelTableName,
+		})
+	if err != nil {
+		return "", "", nil
+	}
+
+	return output.String(), updateMethodOutput.String(), nil
 }

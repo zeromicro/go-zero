@@ -1,7 +1,7 @@
 package template
 
 var Update = `
-func (m *{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelObject}}) error {
+func (m *default{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelObject}}) error {
 	{{if .withCache}}{{.primaryCacheKey}}
     _, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = ?", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
@@ -11,3 +11,5 @@ func (m *{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelObject}}
 	return err
 }
 `
+
+var UpdateMethod = `Update(data {{.upperStartCamelObject}}) error`
