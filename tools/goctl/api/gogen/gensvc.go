@@ -71,10 +71,6 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	var middlewareStr string
 	var middlewareAssignment string
 	var middlewares = getMiddleware(api)
-	err = genMiddleware(dir, cfg, middlewares)
-	if err != nil {
-		return err
-	}
 
 	for _, item := range middlewares {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)

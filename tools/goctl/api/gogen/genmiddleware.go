@@ -5,6 +5,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -32,7 +33,8 @@ func (m *{{.name}})Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 `
 
-func genMiddleware(dir string, cfg *config.Config, middlewares []string) error {
+func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+	var middlewares = getMiddleware(api)
 	for _, item := range middlewares {
 		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
 		formatName, err := format.FileNamingFormat(cfg.NamingFormat, middlewareFilename)

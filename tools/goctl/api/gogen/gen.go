@@ -64,6 +64,7 @@ func DoGenProject(apiFile, dir, style string) error {
 	logx.Must(genRoutes(dir, cfg, api))
 	logx.Must(genHandlers(dir, cfg, api))
 	logx.Must(genLogic(dir, cfg, api))
+	logx.Must(genMiddleware(dir, cfg, api))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
