@@ -24,32 +24,26 @@ func Rpc(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	namingStyle, valid := generator.IsNamingValid(style)
-	if !valid {
-		return fmt.Errorf("unexpected naming style %s", style)
+	g, err := generator.NewDefaultRpcGenerator(style)
+	if err != nil {
+		return err
 	}
 
-	g := generator.NewDefaultRpcGenerator(namingStyle)
 	return g.Generate(src, out, protoImportPath)
 }
 
 // RpcNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RpcNew(c *cli.Context) error {
-	name := c.Args().First()
-	ext := filepath.Ext(name)
+	rpcname := c.Args().First()
+	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
-
 	style := c.String("style")
-	namingStyle, valid := generator.IsNamingValid(style)
-	if !valid {
-		return fmt.Errorf("expected naming style [lower|camel|snake], but found %s", style)
-	}
 
-	protoName := name + ".proto"
-	filename := filepath.Join(".", name, protoName)
+	protoName := rpcname + ".proto"
+	filename := filepath.Join(".", rpcname, protoName)
 	src, err := filepath.Abs(filename)
 	if err != nil {
 		return err
@@ -60,7 +54,11 @@ func RpcNew(c *cli.Context) error {
 		return err
 	}
 
-	g := generator.NewDefaultRpcGenerator(namingStyle)
+	g, err := generator.NewDefaultRpcGenerator(style)
+	if err != nil {
+		return err
+	}
+
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 

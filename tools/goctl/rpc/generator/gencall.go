@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/collection"
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -59,12 +61,17 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context,in *{{.pbReque
 `
 )
 
-func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
 
-	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", formatFilename(service.Name, namingStyle)))
+	callFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name)
+	if err != nil {
+		return err
+	}
+
+	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
 	functions, err := g.genFunction(proto.PbPackage, service)
 	if err != nil {
 		return err
@@ -86,7 +93,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, namingSty
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"name":        formatFilename(service.Name, namingStyle),
+		"name":        callFilename,
 		"alias":       strings.Join(alias.KeysStr(), util.NL),
 		"head":        head,
 		"filePackage": dir.Base,

@@ -5,8 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 )
 
 const configTemplate = `package config
@@ -18,9 +20,14 @@ type Config struct {
 }
 `
 
-func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, namingStyle NamingStyle) error {
+func (g *defaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetConfig()
-	fileName := filepath.Join(dir.Filename, formatFilename("config", namingStyle)+".go")
+	configFilename, err := format.FileNamingFormat(cfg.NamingFormat, "config")
+	if err != nil {
+		return err
+	}
+
+	fileName := filepath.Join(dir.Filename, configFilename+".go")
 	if util.FileExists(fileName) {
 		return nil
 	}

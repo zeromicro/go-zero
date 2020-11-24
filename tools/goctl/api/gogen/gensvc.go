@@ -8,12 +8,14 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
-	contextFilename = "servicecontext.go"
+	contextFilename = "service_context"
 	contextTemplate = `package svc
 
 import (
@@ -35,8 +37,13 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 `
 )
 
-func genServiceContext(dir string, api *spec.ApiSpec) error {
-	fp, created, err := util.MaybeCreateFile(dir, contextDir, contextFilename)
+func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
+	if err != nil {
+		return err
+	}
+
+	fp, created, err := util.MaybeCreateFile(dir, contextDir, filename+".go")
 	if err != nil {
 		return err
 	}
@@ -64,10 +71,6 @@ func genServiceContext(dir string, api *spec.ApiSpec) error {
 	var middlewareStr string
 	var middlewareAssignment string
 	var middlewares = getMiddleware(api)
-	err = genMiddleware(dir, middlewares)
-	if err != nil {
-		return err
-	}
 
 	for _, item := range middlewares {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)

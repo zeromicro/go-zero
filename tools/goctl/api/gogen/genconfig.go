@@ -8,12 +8,14 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const (
-	configFile     = "config.go"
+	configFile     = "config"
 	configTemplate = `package config
 
 import {{.authImport}}
@@ -31,8 +33,13 @@ type Config struct {
 `
 )
 
-func genConfig(dir string, api *spec.ApiSpec) error {
-	fp, created, err := util.MaybeCreateFile(dir, configDir, configFile)
+func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, configFile)
+	if err != nil {
+		return err
+	}
+
+	fp, created, err := util.MaybeCreateFile(dir, configDir, filename+".go")
 	if err != nil {
 		return err
 	}

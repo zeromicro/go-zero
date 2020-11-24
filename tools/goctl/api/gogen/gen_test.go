@@ -534,6 +534,7 @@ func TestHasImportApi(t *testing.T) {
 		}
 	}
 	assert.True(t, hasInline)
+
 	validate(t, filename)
 }
 
@@ -558,15 +559,30 @@ func TestNestTypeApi(t *testing.T) {
 	err := ioutil.WriteFile(filename, []byte(nestTypeApi), os.ModePerm)
 	assert.Nil(t, err)
 	defer os.Remove(filename)
-
 	_, err = parser.NewParser(filename)
+
 	assert.NotNil(t, err)
 }
 
+func TestCamelStyle(t *testing.T) {
+	filename := "greet.api"
+	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+	_, err = parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	validateWithCamel(t, filename, "GoZero")
+}
+
 func validate(t *testing.T, api string) {
+	validateWithCamel(t, api, "gozero")
+}
+
+func validateWithCamel(t *testing.T, api, camel string) {
 	dir := "_go"
 	os.RemoveAll(dir)
-	err := DoGenProject(api, dir)
+	err := DoGenProject(api, dir, camel)
 	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {

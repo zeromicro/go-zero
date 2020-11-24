@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -60,6 +61,6 @@ func NewService(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs)
+	err = gogen.DoGenProject(apiFilePath, abs, conf.DefaultFormat)
 	return err
 }

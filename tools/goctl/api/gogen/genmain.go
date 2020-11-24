@@ -8,7 +8,9 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -40,12 +42,17 @@ func main() {
 }
 `
 
-func genMain(dir string, api *spec.ApiSpec) error {
+func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
 	if strings.HasSuffix(name, "-api") {
 		name = strings.ReplaceAll(name, "-api", "")
 	}
-	goFile := name + ".go"
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
+	if err != nil {
+		return err
+	}
+
+	goFile := filename + ".go"
 	fp, created, err := util.MaybeCreateFile(dir, "", goFile)
 	if err != nil {
 		return err
