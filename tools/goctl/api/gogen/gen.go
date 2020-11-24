@@ -16,6 +16,7 @@ import (
 	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -39,7 +40,7 @@ func GoCommand(c *cli.Context) error {
 	return DoGenProject(apiFile, dir, namingStyle)
 }
 
-func DoGenProject(apiFile, dir, namingStyle string) error {
+func DoGenProject(apiFile, dir, style string) error {
 	p, err := parser.NewParser(apiFile)
 	if err != nil {
 		return err
@@ -49,15 +50,20 @@ func DoGenProject(apiFile, dir, namingStyle string) error {
 		return err
 	}
 
+	cfg, err := config.NewConfig(style)
+	if err != nil {
+		return err
+	}
+
 	logx.Must(util.MkdirIfNotExist(dir))
-	logx.Must(genEtc(dir, api))
-	logx.Must(genConfig(dir, api))
-	logx.Must(genMain(dir, api))
-	logx.Must(genServiceContext(dir, api))
-	logx.Must(genTypes(dir, api))
-	logx.Must(genRoutes(dir, api))
-	logx.Must(genHandlers(dir, namingStyle, api))
-	logx.Must(genLogic(dir, namingStyle, api))
+	logx.Must(genEtc(dir, cfg, api))
+	logx.Must(genConfig(dir, cfg, api))
+	logx.Must(genMain(dir, cfg, api))
+	logx.Must(genServiceContext(dir, cfg, api))
+	logx.Must(genTypes(dir, cfg, api))
+	logx.Must(genRoutes(dir, cfg, api))
+	logx.Must(genHandlers(dir, cfg, api))
+	logx.Must(genLogic(dir, cfg, api))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
