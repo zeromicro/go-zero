@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	BuildVersion = "20201119-beta"
+	BuildVersion = "20201125"
 	commands     = []cli.Command{
 		{
 			Name:  "api",
@@ -207,8 +207,9 @@ var (
 					Usage: `generate rpc demo service`,
 					Flags: []cli.Flag{
 						cli.StringFlag{
-							Name:  "style",
-							Usage: "the file naming style, lower|camel|snake,default is lower, [deprecated,use config.yaml instead]",
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
 						cli.BoolFlag{
 							Name:  "idea",
