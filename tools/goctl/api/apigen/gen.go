@@ -28,7 +28,7 @@ type response struct {
 }
 
 service {{.serviceName}} {
-	@handler GetUsers // TODO: set handler name and delete this comment
+	@handler GetUser // TODO: set handler name and delete this comment
 	get /users/id/:userId(request) returns(response)
 
 	@handler CreateUser // TODO: set handler name and delete this comment
