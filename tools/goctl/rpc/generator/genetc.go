@@ -22,7 +22,7 @@ Etcd:
 
 func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
-	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetMain().Base)
+	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
 	if err != nil {
 		return err
 	}
@@ -35,6 +35,6 @@ func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 	}
 
 	return util.With("etc").Parse(text).SaveTo(map[string]interface{}{
-		"serviceName": strings.ToLower(stringx.From(ctx.GetMain().Base).ToCamel()),
+		"serviceName": strings.ToLower(stringx.From(ctx.GetServiceName().Source()).ToCamel()),
 	}, fileName, false)
 }

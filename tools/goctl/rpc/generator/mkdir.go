@@ -33,6 +33,7 @@ type (
 		GetSvc() Dir
 		GetPb() Dir
 		GetMain() Dir
+		GetServiceName() stringx.String
 	}
 
 	Dir struct {
@@ -41,7 +42,8 @@ type (
 		Package  string
 	}
 	defaultDirContext struct {
-		inner map[string]Dir
+		inner       map[string]Dir
+		serviceName stringx.String
 	}
 )
 
@@ -110,8 +112,10 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 			return nil, err
 		}
 	}
+	serviceName := strings.TrimSuffix(proto.Name, filepath.Ext(proto.Name))
 	return &defaultDirContext{
-		inner: inner,
+		inner:       inner,
+		serviceName: stringx.From(strings.ReplaceAll(serviceName, "-", "")),
 	}, nil
 }
 
@@ -149,6 +153,10 @@ func (d *defaultDirContext) GetPb() Dir {
 
 func (d *defaultDirContext) GetMain() Dir {
 	return d.inner[wd]
+}
+
+func (d *defaultDirContext) GetServiceName() stringx.String {
+	return d.serviceName
 }
 
 func (d *Dir) Valid() bool {
