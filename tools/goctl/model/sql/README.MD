@@ -78,8 +78,8 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     		Password   string    `db:"password"` // 用户密码
     		Mobile     string    `db:"mobile"`   // 手机号
     		Gender     string    `db:"gender"`   // 男｜女｜未公开
-    		Nickname   string    `db:"nickname"` // 用户昵称
-    		CreateTime time.Time `db:"create_time"`
+    		Nickname   sql.NullString    `db:"nickname"` // 用户昵称
+    		CreateTime sql.NullTime `db:"create_time"`
     		UpdateTime time.Time `db:"update_time"`
     	}
     )
