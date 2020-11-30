@@ -59,6 +59,11 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if len(result.Params) > 0 {
 				r = context.WithPathVars(r, result.Params)
 			}
+
+			if pr.notAllowed != nil {
+				pr.notAllowed.ServeHTTP(w, r)
+			}
+
 			result.Item.(http.Handler).ServeHTTP(w, r)
 			return
 		}

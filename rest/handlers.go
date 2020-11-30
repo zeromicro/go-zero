@@ -22,6 +22,5 @@ func CorsHandler(origins ...string) http.Handler {
 		}
 		w.Header().Set(allowMethods, methods)
 		w.Header().Set(allowHeaders, headers)
-		w.WriteHeader(http.StatusNoContent)
 	})
 }
