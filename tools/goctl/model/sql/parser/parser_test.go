@@ -79,6 +79,7 @@ func TestConvertColumn(t *testing.T) {
 	for _, item := range table.Fields {
 		if item.Name.Source() == "mobile" {
 			assert.True(t, item.IsUniqueKey)
+			break
 		}
 	}
 }

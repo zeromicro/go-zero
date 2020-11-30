@@ -112,7 +112,17 @@ func Parse(ddl string) (*Table, error) {
 		if column.Type.Comment != nil {
 			comment = string(column.Type.Comment.Val)
 		}
-		dataType, err := converter.ConvertDataType(column.Type.Type)
+		var isDefaultNull = true
+		if column.Type.NotNull {
+			isDefaultNull = false
+		} else {
+			if column.Type.Default == nil {
+				isDefaultNull = false
+			} else if string(column.Type.Default.Val) != "null" {
+				isDefaultNull = false
+			}
+		}
+		dataType, err := converter.ConvertDataType(column.Type.Type, isDefaultNull)
 		if err != nil {
 			return nil, err
 		}
@@ -170,7 +180,8 @@ func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
 	}
 
 	primaryColumn := primaryColumns[0]
-	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType)
+	isDefaultNull := primaryColumn.ColumnDefault == nil && primaryColumn.IsNullAble == "YES"
+	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType, isDefaultNull)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +200,8 @@ func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
 	}
 	for key, columns := range keyMap {
 		for _, item := range columns {
-			dt, err := converter.ConvertDataType(item.DataType)
+			isColumnDefaultNull := item.ColumnDefault == nil && item.IsNullAble == "YES"
+			dt, err := converter.ConvertDataType(item.DataType, isColumnDefaultNull)
 			if err != nil {
 				return nil, err
 			}
