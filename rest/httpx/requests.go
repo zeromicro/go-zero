@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	multipartFormData = "multipart/form-data"
 	formKey           = "form"
 	pathKey           = "path"
 	emptyJson         = "{}"
@@ -39,12 +38,12 @@ func Parse(r *http.Request, v interface{}) error {
 
 // Parses the form request.
 func ParseForm(r *http.Request, v interface{}) error {
-	if strings.Contains(r.Header.Get(ContentType), multipartFormData) {
-		if err := r.ParseMultipartForm(maxMemory); err != nil {
-			return err
-		}
-	} else {
-		if err := r.ParseForm(); err != nil {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		if err != http.ErrNotMultipart {
 			return err
 		}
 	}
