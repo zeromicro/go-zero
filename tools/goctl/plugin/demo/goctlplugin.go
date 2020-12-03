@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v", api)
+	fmt.Printf("%+v\n", api)
 
 	var context ctx.ProjectContext
 	content, err = ioutil.ReadFile(*contextFile)
@@ -40,6 +40,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v", context)
+	fmt.Printf("%+v\n", context)
 	fmt.Println("Enjoy anything you can.")
 }
