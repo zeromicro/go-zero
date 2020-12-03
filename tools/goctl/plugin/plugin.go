@@ -16,10 +16,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
-const defaultPluginName = "_plugin"
+const defaultPluginName = "plugin_"
 
 func Do(args []string, osArgs []string) error {
-
 	var plugin = flag.String("plugin", "", "")
 
 	pluginArgs, err := prepareArgs()
@@ -99,15 +98,23 @@ func getCommand(arg string) (string, bool, error) {
 		return arg, false, nil
 	}
 
+	var defaultErr = errors.New("invalid plugin value " + arg)
 	if strings.HasPrefix(arg, "http") {
-		err := downloadFile(defaultPluginName, arg)
+		items := strings.Split(arg, "/")
+		if len(items) == 0 {
+			return "", false, defaultErr
+		}
+
+		var filename = defaultPluginName + items[len(items)-1]
+		err := downloadFile(filename, arg)
 		if err != nil {
 			return "", false, err
 		}
-		os.Chmod(defaultPluginName, os.ModePerm)
-		return defaultPluginName, true, nil
+
+		os.Chmod(filename, os.ModePerm)
+		return filename, true, nil
 	}
-	return "", false, errors.New("invalid plugin value " + arg)
+	return "", false, defaultErr
 }
 
 func downloadFile(filepath string, url string) error {
