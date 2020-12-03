@@ -4,28 +4,39 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
 var (
-	specStr    = flag.String("spec", "", "the spec file")
-	contextStr = flag.String("context", "", "the context")
+	specFile    = flag.String("spec", "", "the spec file")
+	contextFile = flag.String("context", "", "the context")
 )
 
 func main() {
 	flag.Parse()
 
 	var api spec.ApiSpec
-	err := json.Unmarshal([]byte(*specStr), &api)
+	content, err := ioutil.ReadFile(*specFile)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(content, &api)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("%+v", api)
 
 	var context ctx.ProjectContext
-	err = json.Unmarshal([]byte(*contextStr), &context)
+	content, err = ioutil.ReadFile(*contextFile)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(content, &context)
 	if err != nil {
 		panic(err)
 	}
