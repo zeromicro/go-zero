@@ -22,7 +22,7 @@ func Do(args []string, osArgs []string) error {
 
 	var plugin = flag.String("plugin", "", "")
 
-	pluginArgs, err:= prepareArgs()
+	pluginArgs, err := prepareArgs()
 	if err != nil {
 		return err
 	}
@@ -96,15 +96,16 @@ func prepareArgs() ([]string, error) {
 
 func getCommand(arg string) (string, bool, error) {
 	if util.FileExists(arg) {
-		return arg,false, nil
+		return arg, false, nil
 	}
 
 	if strings.HasPrefix(arg, "http") {
 		err := downloadFile(defaultPluginName, arg)
 		if err != nil {
-			return "",false, err
+			return "", false, err
 		}
-		return defaultPluginName,true, nil
+		os.Chmod(defaultPluginName, os.ModePerm)
+		return defaultPluginName, true, nil
 	}
 	return "", false, errors.New("invalid plugin value " + arg)
 }
