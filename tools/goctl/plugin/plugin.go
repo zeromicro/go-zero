@@ -69,7 +69,7 @@ func prepareArgs() ([]string, error) {
 		pluginArgs = append(pluginArgs, string(data))
 	}
 
-	var dir = flag.String("-dir", "", "")
+	var dir = flag.String("dir", "", "")
 	if len(*dir) > 0 {
 		abs, err := filepath.Abs(*dir)
 		if err != nil {
