@@ -7,7 +7,6 @@ import (
 	"runtime"
 
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -24,11 +23,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
-
-const pluginArg = "-plugin"
 
 var (
 	BuildVersion = "20201125"
@@ -190,6 +186,30 @@ var (
 						},
 					},
 					Action: ktgen.KtCommand,
+				},
+				{
+					Name:  "plugin",
+					Usage: "custom file generator",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "plugin",
+							Usage: "the plugin file",
+						},
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+					},
+					Action: plugin.PluginCommand,
 				},
 			},
 		},
@@ -397,28 +417,13 @@ func main() {
 	logx.Disable()
 
 	flag.Parse()
-	args := os.Args
-	var pluginAgs []string
-	if stringx.Contains(args, pluginArg) {
-		index := util.Index(args, pluginArg)
-		if index > 0 {
-			args = os.Args[:index]
-			pluginAgs = os.Args[index:]
-		}
-	}
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
-	err := app.Run(args)
-
-	if len(pluginAgs) > 1 {
-		if err := plugin.Do(pluginAgs, args); err != nil {
-			fmt.Println("plugin error:", err)
-		}
-	} else {
+	if err := app.Run(os.Args); err != nil {
 		fmt.Println("error:", err)
 	}
 }

@@ -3,7 +3,6 @@ package plugin
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,6 +16,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/urfave/cli"
 )
 
 const (
@@ -25,22 +25,18 @@ const (
 	contextJson = "context.json"
 )
 
-func Do(args []string, osArgs []string) error {
+func PluginCommand(c *cli.Context) error {
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
 
-	fs := flag.NewFlagSet("goctl", flag.ContinueOnError)
-	var plugin = fs.String("plugin", "", "")
-	for index, item := range os.Args {
-		if strings.HasPrefix(item, pluginArg) {
-			fs.Parse(os.Args[index:])
-			break
-		}
+	var plugin = c.String("plugin")
+	if len(plugin) == 0 {
+		return errors.New("missing plugin")
 	}
 
-	pluginArgs, tempFile, err := prepareArgs()
+	pluginArgs, tempFile, err := prepareArgs(c)
 	if err != nil {
 		return err
 	}
@@ -51,11 +47,7 @@ func Do(args []string, osArgs []string) error {
 		}
 	}()
 
-	if len(*plugin) == 0 {
-		return errors.New("missing plugin")
-	}
-
-	bin, download, err := getCommand(args[1])
+	bin, download, err := getCommand(plugin)
 	if err != nil {
 		return err
 	}
@@ -65,31 +57,26 @@ func Do(args []string, osArgs []string) error {
 
 	var commands []string
 	commands = append(commands, bin)
-	commands = append(commands, args[2:]...)
-	commands = append(commands, osArgs[1:]...)
 	commands = append(commands, pluginArgs...)
-	fmt.Printf("%+v", commands)
-	_, err = execx.Run(strings.Join(commands, " "), filepath.Dir(ex))
-	return err
+
+	content, err := execx.Run(strings.Join(commands, " "), filepath.Dir(ex))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(content)
+	return nil
 }
 
-func prepareArgs() ([]string, []string, error) {
+func prepareArgs(c *cli.Context) ([]string, []string, error) {
 	var pluginArgs []string
 	var tempFiles []string
-	fs := flag.NewFlagSet("goctl", flag.ContinueOnError)
-	var apiPath = fs.String("api", "", "")
-	var dir = fs.String("dir", "", "")
-	var args []string
-	for index, item := range os.Args {
-		if item == "-api" || item == "-dir" {
-			args = append(args, item, os.Args[index+1])
-		}
-	}
-	_ = fs.Parse(args)
+	apiPath := c.String("api")
+	dir := c.String("dir")
 
 	var timestamp = fmt.Sprint(time.Now().Unix())
-	if len(*apiPath) > 0 && util.FileExists(*apiPath) {
-		p, err := parser.NewParser(*apiPath)
+	if len(apiPath) > 0 && util.FileExists(apiPath) {
+		p, err := parser.NewParser(apiPath)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -116,8 +103,8 @@ func prepareArgs() ([]string, []string, error) {
 		tempFiles = append(tempFiles, absFile)
 	}
 
-	if len(*dir) > 0 {
-		abs, err := filepath.Abs(*dir)
+	if len(dir) > 0 {
+		abs, err := filepath.Abs(dir)
 		if err != nil {
 			return nil, nil, err
 		}
