@@ -41,5 +41,5 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("%+v", context)
-	fmt.Print("do any thing you can.")
+	fmt.Println("Enjoy anything you can.")
 }
