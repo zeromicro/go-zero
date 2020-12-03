@@ -412,12 +412,13 @@ func main() {
 	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
-	if err := app.Run(args); err != nil {
-		fmt.Println("error:", err)
-	}
+	err := app.Run(args)
+
 	if len(pluginAgs) > 1 {
 		if err := plugin.Do(pluginAgs, args); err != nil {
 			fmt.Println("plugin error:", err)
 		}
+	} else {
+		fmt.Println("error:", err)
 	}
 }
