@@ -1,11 +1,13 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"runtime"
 
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -19,10 +21,14 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
+
+const pluginArg = "-plugin"
 
 var (
 	BuildVersion = "20201125"
@@ -390,12 +396,28 @@ var (
 func main() {
 	logx.Disable()
 
+	flag.Parse()
+	args := os.Args
+	var pluginAgs []string
+	if stringx.Contains(args, pluginArg) {
+		index := util.Index(args, pluginArg)
+		if index > 0 {
+			args = os.Args[:index]
+			pluginAgs = os.Args[index:]
+		}
+	}
+
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(args); err != nil {
 		fmt.Println("error:", err)
+	}
+	if len(pluginAgs) > 1 {
+		if err := plugin.Do(pluginAgs, args); err != nil {
+			fmt.Println("plugin error:", err)
+		}
 	}
 }
