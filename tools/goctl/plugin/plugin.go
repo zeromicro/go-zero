@@ -16,11 +16,10 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
-const defaultPluginName = "plugin_"
+const pluginNamePrefix = "plugin_"
 
 func Do(args []string, osArgs []string) error {
 	var plugin = flag.String("plugin", "", "")
-
 	pluginArgs, err := prepareArgs()
 	if err != nil {
 		return err
@@ -105,7 +104,7 @@ func getCommand(arg string) (string, bool, error) {
 			return "", false, defaultErr
 		}
 
-		var filename = defaultPluginName + items[len(items)-1]
+		var filename = pluginNamePrefix + items[len(items)-1]
 		err := downloadFile(filename, arg)
 		if err != nil {
 			return "", false, err
