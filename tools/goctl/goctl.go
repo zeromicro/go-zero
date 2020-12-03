@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"runtime"
@@ -415,8 +414,6 @@ var (
 
 func main() {
 	logx.Disable()
-
-	flag.Parse()
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
