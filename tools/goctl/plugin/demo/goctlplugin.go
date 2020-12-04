@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 )
 
@@ -14,10 +15,6 @@ func main() {
 	if plugin.Api != nil {
 		fmt.Printf("api: %+v \n", plugin.Api)
 	}
-
-	if plugin.Context != nil {
-		fmt.Printf("context: %+v \n", plugin.Context)
-	}
-
+	fmt.Printf("dir: %s \n", plugin.Dir)
 	fmt.Println("Enjoy anything you want.")
 }

@@ -5,12 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
-	"github.com/urfave/cli"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,19 +12,22 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/urfave/cli"
 )
 
 const (
-	pluginArg   = "-plugin"
-	specJson    = "spec.json"
-	contextJson = "context.json"
-	specTag     = "-spec"
-	contextTag  = "-context"
+	pluginArg = "-plugin"
 )
 
 type Plugin struct {
-	Api     *spec.ApiSpec
-	Context *ctx.ProjectContext
+	Api   *spec.ApiSpec
+	Style string
+	Dir   string
 }
 
 func PluginCommand(c *cli.Context) error {
@@ -70,7 +67,6 @@ func PluginCommand(c *cli.Context) error {
 
 func prepareArgs(c *cli.Context) ([]byte, error) {
 	apiPath := c.String("api")
-	dir := c.String("dir")
 
 	var transferData Plugin
 	if len(apiPath) > 0 && util.FileExists(apiPath) {
@@ -83,26 +79,22 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		transferData.Api = api
 	}
 
-	if len(dir) > 0 {
-		abs, err := filepath.Abs(dir)
-		if err != nil {
-			return nil, err
-		}
-
-		projectCtx, err := ctx.Prepare(abs)
-		if err != nil {
-			return nil, err
-		}
-		transferData.Context = projectCtx
+	dirAbs, err := filepath.Abs(c.String("dir"))
+	if err != nil {
+		return nil, err
 	}
 
+	transferData.Dir = dirAbs
+	transferData.Style = c.String("style")
 	data, err := json.Marshal(transferData)
 	if err != nil {
 		return nil, err
 	}
+
 	return data, nil
 }
 
