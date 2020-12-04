@@ -196,7 +196,7 @@ func NewPlugin(args []string) (*Plugin, error) {
 
 			err = json.Unmarshal(content, &api)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 
 			plugin.Api = &api
