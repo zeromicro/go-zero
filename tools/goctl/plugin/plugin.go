@@ -20,7 +20,9 @@ import (
 	"github.com/urfave/cli"
 )
 
-const pluginArg = "plugin-"
+const (
+	pluginArg = "_plugin"
+)
 
 type Plugin struct {
 	Api   *spec.ApiSpec
@@ -113,8 +115,12 @@ func getCommand(arg string) (string, bool, error) {
 			return "", false, defaultErr
 		}
 
-		var filename = pluginArg + items[len(items)-1]
-		err := downloadFile(filename, arg)
+		filename, err := filepath.Abs(pluginArg + items[len(items)-1])
+		if err != nil {
+			return "", false, err
+		}
+
+		err = downloadFile(filename, arg)
 		if err != nil {
 			return "", false, err
 		}
