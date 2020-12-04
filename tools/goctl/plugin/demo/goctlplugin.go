@@ -21,5 +21,5 @@ func main() {
 		fmt.Printf("context: %+v \n", plugin.Context)
 	}
 
-	fmt.Println("Enjoy anything you can.")
+	fmt.Println("Enjoy anything you want.")
 }
