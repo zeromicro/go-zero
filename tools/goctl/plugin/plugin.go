@@ -21,11 +21,11 @@ import (
 )
 
 const (
-	pluginArg   = "-plugin"
-	specJson    = "spec.json"
-	contextJson = "context.json"
-	specTag     = "-spec"
-	contextTag  = "-context"
+	pluginPrefix = "plugin-"
+	specJson     = "spec.json"
+	contextJson  = "context.json"
+	specTag      = "-spec"
+	contextTag   = "-context"
 )
 
 type Plugin struct {
@@ -154,7 +154,7 @@ func getCommand(arg string) (string, bool, error) {
 			return "", false, defaultErr
 		}
 
-		var filename = pluginArg + items[len(items)-1]
+		var filename = pluginPrefix + items[len(items)-1]
 		err := downloadFile(filename, arg)
 		if err != nil {
 			return "", false, err
