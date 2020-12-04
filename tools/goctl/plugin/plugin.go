@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	pluginArg = "-plugin"
+	pluginArg = "plugin-"
 )
 
 type Plugin struct {
