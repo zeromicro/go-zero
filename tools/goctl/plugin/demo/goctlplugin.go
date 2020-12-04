@@ -1,45 +1,25 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
-)
-
-var (
-	specFile    = flag.String("spec", "", "the spec file")
-	contextFile = flag.String("context", "", "the context")
+	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 )
 
 func main() {
-	flag.Parse()
-
-	var api spec.ApiSpec
-	content, err := ioutil.ReadFile(*specFile)
+	plugin, err := plugin.NewPlugin(os.Args)
 	if err != nil {
 		panic(err)
 	}
 
-	err = json.Unmarshal(content, &api)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("%+v\n", api)
-
-	var context ctx.ProjectContext
-	content, err = ioutil.ReadFile(*contextFile)
-	if err != nil {
-		panic(err)
+	if plugin.Api != nil {
+		fmt.Printf("api: %+v \n", plugin.Api)
 	}
 
-	err = json.Unmarshal(content, &context)
-	if err != nil {
-		panic(err)
+	if plugin.Context != nil {
+		fmt.Printf("context: %+v \n", plugin.Context)
 	}
-	fmt.Printf("%+v\n", context)
+
 	fmt.Println("Enjoy anything you can.")
 }

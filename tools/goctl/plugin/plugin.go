@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
@@ -23,7 +24,14 @@ const (
 	pluginArg   = "-plugin"
 	specJson    = "spec.json"
 	contextJson = "context.json"
+	specTag     = "-spec"
+	contextTag  = "-context"
 )
+
+type Plugin struct {
+	Api     *spec.ApiSpec
+	Context *ctx.ProjectContext
+}
 
 func PluginCommand(c *cli.Context) error {
 	ex, err := os.Executable()
@@ -97,7 +105,7 @@ func prepareArgs(c *cli.Context) ([]string, []string, error) {
 			return nil, nil, err
 		}
 
-		pluginArgs = append(pluginArgs, "-spec")
+		pluginArgs = append(pluginArgs, specTag)
 		absFile, _ := filepath.Abs(filename)
 		pluginArgs = append(pluginArgs, absFile)
 		tempFiles = append(tempFiles, absFile)
@@ -125,7 +133,7 @@ func prepareArgs(c *cli.Context) ([]string, []string, error) {
 			return nil, nil, err
 		}
 
-		pluginArgs = append(pluginArgs, "-context")
+		pluginArgs = append(pluginArgs, contextTag)
 		absFile, _ := filepath.Abs(filename)
 		pluginArgs = append(pluginArgs, absFile)
 		tempFiles = append(tempFiles, absFile)
@@ -173,4 +181,42 @@ func downloadFile(filepath string, url string) error {
 
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+
+func NewPlugin(args []string) (*Plugin, error) {
+	var plugin Plugin
+	for index, item := range args {
+		if item == specTag {
+			specFile := args[index+1]
+			var api spec.ApiSpec
+			content, err := ioutil.ReadFile(specFile)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(content, &api)
+			if err != nil {
+				panic(err)
+			}
+
+			plugin.Api = &api
+		}
+
+		if item == contextTag {
+			contextFile := args[index+1]
+			var context ctx.ProjectContext
+			content, err := ioutil.ReadFile(contextFile)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(content, &context)
+			if err != nil {
+				panic(err)
+			}
+
+			plugin.Context = &context
+		}
+	}
+	return &plugin, nil
 }
