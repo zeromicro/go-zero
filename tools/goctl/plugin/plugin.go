@@ -212,7 +212,7 @@ func NewPlugin(args []string) (*Plugin, error) {
 
 			err = json.Unmarshal(content, &context)
 			if err != nil {
-				panic(err)
+				return nil, err
 			}
 
 			plugin.Context = &context
