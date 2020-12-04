@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 )
 
 func main() {
-	plugin, err := plugin.NewPlugin(os.Args)
+	plugin, err := plugin.NewPlugin()
 	if err != nil {
 		panic(err)
 	}
