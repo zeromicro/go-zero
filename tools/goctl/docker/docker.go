@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
@@ -13,9 +14,18 @@ import (
 )
 
 const (
-	etcDir  = "etc"
-	yamlEtx = ".yaml"
+	etcDir    = "etc"
+	yamlEtx   = ".yaml"
+	cstOffset = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
+
+type Docker struct {
+	Chinese   bool
+	GoRelPath string
+	GoFile    string
+	ExeFile   string
+	Argument  string
+}
 
 func DockerCommand(c *cli.Context) error {
 	goFile := c.String("go")
@@ -87,12 +97,14 @@ func generateDockerfile(goFile string, args ...string) error {
 		builder.WriteString(`, "` + arg + `"`)
 	}
 
+	_, offset := time.Now().Zone()
 	t := template.Must(template.New("dockerfile").Parse(text))
-	return t.Execute(out, map[string]string{
-		"goRelPath": projPath,
-		"goFile":    goFile,
-		"exeFile":   util.FileNameWithoutExt(filepath.Base(goFile)),
-		"argument":  builder.String(),
+	return t.Execute(out, Docker{
+		Chinese:   offset == cstOffset,
+		GoRelPath: projPath,
+		GoFile:    goFile,
+		ExeFile:   util.FileNameWithoutExt(filepath.Base(goFile)),
+		Argument:  builder.String(),
 	})
 }
 

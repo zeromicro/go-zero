@@ -14,13 +14,16 @@ LABEL stage=gobuilder
 
 ENV CGO_ENABLED 0
 ENV GOOS linux
-ENV GOPROXY https://goproxy.cn,direct
+{{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct{{end}}
 
 WORKDIR /build/zero
+
+ADD go.mod .
+ADD go.sum .
+RUN go mod download
 COPY . .
-RUN sh -c "[ -f go.mod ]" || exit
-COPY {{.goRelPath}}/etc /app/etc
-RUN go build -ldflags="-s -w" -o /app/{{.exeFile}} {{.goRelPath}}/{{.goFile}}
+COPY {{.GoRelPath}}/etc /app/etc
+RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 
 FROM alpine
@@ -31,10 +34,10 @@ RUN apk add --no-cache tzdata
 ENV TZ Asia/Shanghai
 
 WORKDIR /app
-COPY --from=builder /app/{{.exeFile}} /app/{{.exeFile}}
+COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}
 COPY --from=builder /app/etc /app/etc
 
-CMD ["./{{.exeFile}}"{{.argument}}]
+CMD ["./{{.ExeFile}}"{{.Argument}}]
 `
 )
 
