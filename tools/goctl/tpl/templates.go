@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	rpcgen "github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -28,6 +29,9 @@ func GenTemplates(ctx *cli.Context) error {
 		},
 		func() error {
 			return docker.GenTemplates(ctx)
+		},
+		func() error {
+			return kube.GenTemplates(ctx)
 		},
 	); err != nil {
 		return err

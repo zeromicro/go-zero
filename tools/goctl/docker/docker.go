@@ -2,6 +2,7 @@ package docker
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,12 +34,29 @@ func DockerCommand(c *cli.Context) error {
 		return errors.New("-go can't be empty")
 	}
 
+	if !util.FileExists(goFile) {
+		return fmt.Errorf("file %q not found", goFile)
+	}
+
+	if _, err := os.Stat(etcDir); os.IsNotExist(err) {
+		return generateDockerfile(goFile)
+	}
+
 	cfg, err := findConfig(goFile, etcDir)
 	if err != nil {
 		return err
 	}
 
-	return generateDockerfile(goFile, "-f", "etc/"+cfg)
+	if err := generateDockerfile(goFile, "-f", "etc/"+cfg); err != nil {
+		return err
+	}
+
+	projDir, ok := util.FindProjectPath(goFile)
+	if ok {
+		fmt.Printf("Run \"docker build ...\" command in dir %q\n", projDir)
+	}
+
+	return nil
 }
 
 func findConfig(file, dir string) (string, error) {

@@ -14,7 +14,7 @@ type ServiceContext struct {
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
-		c:             c,
+		c:     c,
 		Model: model.NewBookModel(sqlx.NewMysql(c.DataSource), c.Cache, c.Table),
 	}
 }
