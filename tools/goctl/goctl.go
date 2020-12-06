@@ -18,6 +18,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
@@ -197,6 +198,94 @@ var (
 				},
 			},
 			Action: docker.DockerCommand,
+		},
+		{
+			Name:  "kube",
+			Usage: "generate kubernetes files",
+			Subcommands: []cli.Command{
+				{
+					Name:  "deploy",
+					Usage: "generate deployment yaml file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:     "name",
+							Usage:    "the name of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "namespace",
+							Usage:    "the namespace of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "image",
+							Usage:    "the docker image of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "secret",
+							Usage:    "the image pull secret",
+							Required: true,
+						},
+						cli.IntFlag{
+							Name:  "requestCpu",
+							Usage: "the request cpu to deploy",
+							Value: 500,
+						},
+						cli.IntFlag{
+							Name:  "requestMem",
+							Usage: "the request memory to deploy",
+							Value: 512,
+						},
+						cli.IntFlag{
+							Name:  "limitCpu",
+							Usage: "the limit cpu to deploy",
+							Value: 1000,
+						},
+						cli.IntFlag{
+							Name:  "limitMem",
+							Usage: "the limit memory to deploy",
+							Value: 1024,
+						},
+						cli.StringFlag{
+							Name:     "o",
+							Usage:    "the output yaml file",
+							Required: true,
+						},
+						cli.IntFlag{
+							Name:  "replicas",
+							Usage: "the number of replicas to deploy",
+							Value: 3,
+						},
+						cli.IntFlag{
+							Name:  "revisions",
+							Usage: "the number of revision history to limit",
+							Value: 5,
+						},
+						cli.IntFlag{
+							Name:     "port",
+							Usage:    "the port of the deployment to listen on pod",
+							Required: true,
+						},
+						cli.IntFlag{
+							Name:  "nodePort",
+							Usage: "the nodePort of the deployment to expose",
+							Value: 0,
+						},
+						cli.IntFlag{
+							Name:  "minReplicas",
+							Usage: "the min replicas to deploy",
+							Value: 3,
+						},
+						cli.IntFlag{
+							Name:  "maxReplicas",
+							Usage: "the max replicas of deploy",
+							Value: 10,
+						},
+					},
+					Action: kube.DeploymentCommand,
+				},
+			},
 		},
 		{
 			Name:  "rpc",

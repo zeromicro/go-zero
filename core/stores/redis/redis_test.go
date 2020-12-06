@@ -556,7 +556,7 @@ func TestRedis_SortedSet(t *testing.T) {
 		val, err = client.Zscore("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(5), val)
-		val, err = NewRedis(client.Addr, "").Zadds("key")
+		_, err = NewRedis(client.Addr, "").Zadds("key")
 		assert.NotNil(t, err)
 		val, err = client.Zadds("key", Pair{
 			Key:   "value2",
@@ -567,9 +567,9 @@ func TestRedis_SortedSet(t *testing.T) {
 		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), val)
-		pairs, err := NewRedis(client.Addr, "").ZRevRangeWithScores("key", 1, 3)
+		_, err = NewRedis(client.Addr, "").ZRevRangeWithScores("key", 1, 3)
 		assert.NotNil(t, err)
-		pairs, err = client.ZRevRangeWithScores("key", 1, 3)
+		pairs, err := client.ZRevRangeWithScores("key", 1, 3)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{

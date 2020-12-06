@@ -43,8 +43,8 @@ func GenConfigCommand(c *cli.Context) error {
 		return errors.New("abs failed: " + c.String("path"))
 	}
 
-	goModPath, hasFound := util.FindGoModPath(path)
-	if !hasFound {
+	goModPath, found := util.FindGoModPath(path)
+	if !found {
 		return errors.New("go mod not initial")
 	}
 
