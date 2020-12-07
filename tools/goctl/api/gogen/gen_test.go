@@ -25,7 +25,7 @@ info(
 // TODO: test
 // {
 type Request struct {  // TODO: test
-  // TOOD
+  // TODO
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `   // }
 } // TODO: test
 
