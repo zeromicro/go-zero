@@ -17,3 +17,12 @@ func Untitle(s string) string {
 
 	return strings.ToLower(s[:1]) + s[1:]
 }
+
+func Index(slice []string, item string) int {
+	for i, _ := range slice {
+		if slice[i] == item {
+			return i
+		}
+	}
+	return -1
+}

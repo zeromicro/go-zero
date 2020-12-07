@@ -20,6 +20,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/urfave/cli"
@@ -185,6 +186,30 @@ var (
 						},
 					},
 					Action: ktgen.KtCommand,
+				},
+				{
+					Name:  "plugin",
+					Usage: "custom file generator",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "plugin",
+							Usage: "the plugin file",
+						},
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:     "style",
+							Required: false,
+							Usage:    "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+					},
+					Action: plugin.PluginCommand,
 				},
 			},
 		},
