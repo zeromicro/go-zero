@@ -78,8 +78,8 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     		Password   string    `db:"password"` // 用户密码
     		Mobile     string    `db:"mobile"`   // 手机号
     		Gender     string    `db:"gender"`   // 男｜女｜未公开
-    		Nickname   string    `db:"nickname"` // 用户昵称
-    		CreateTime time.Time `db:"create_time"`
+    		Nickname   sql.NullString    `db:"nickname"` // 用户昵称
+    		CreateTime sql.NullTime `db:"create_time"`
     		UpdateTime time.Time `db:"update_time"`
     	}
     )
@@ -347,3 +347,33 @@ OPTIONS:
   
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
+# 类型转换规则
+| mysql dataType | golang dataType | golang dataType(if null&&default null) |
+|----------------|-----------------|----------------------------------------|
+| bool           | int64           | sql.NullInt64                          |
+| boolean        | int64           | sql.NullInt64                          |
+| tinyint        | int64           | sql.NullInt64                          |
+| smallint       | int64           | sql.NullInt64                          |
+| mediumint      | int64           | sql.NullInt64                          |
+| int            | int64           | sql.NullInt64                          |
+| integer        | int64           | sql.NullInt64                          |
+| bigint         | int64           | sql.NullInt64                          |
+| float          | float64         | sql.NullFloat64                        |
+| double         | float64         | sql.NullFloat64                        |
+| decimal        | float64         | sql.NullFloat64                        |
+| date           | time.Time       | sql.NullTime                           |
+| datetime       | time.Time       | sql.NullTime                           |
+| timestamp      | time.Time       | sql.NullTime                           |
+| time           | string          | sql.NullString                         |
+| year           | time.Time       | sql.NullInt64                          |
+| char           | string          | sql.NullString                         |
+| varchar        | string          | sql.NullString                         |
+| binary         | string          | sql.NullString                         |
+| varbinary      | string          | sql.NullString                         |
+| tinytext       | string          | sql.NullString                         |
+| text           | string          | sql.NullString                         |
+| mediumtext     | string          | sql.NullString                         |
+| longtext       | string          | sql.NullString                         |
+| enum           | string          | sql.NullString                         |
+| set            | string          | sql.NullString                         |
+| json           | string          | sql.NullString                         |

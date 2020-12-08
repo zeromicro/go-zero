@@ -41,12 +41,34 @@ var (
 	}
 )
 
-func ConvertDataType(dataBaseType string) (goDataType string, err error) {
+func ConvertDataType(dataBaseType string, isDefaultNull bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMap[strings.ToLower(dataBaseType)]
 	if !ok {
-		err = fmt.Errorf("unexpected database type: %s", dataBaseType)
-		return
+		return "", fmt.Errorf("unexpected database type: %s", dataBaseType)
 	}
-	goDataType = tp
-	return
+
+	return mayConvertNullType(tp, isDefaultNull), nil
+}
+
+func mayConvertNullType(goDataType string, isDefaultNull bool) string {
+	if !isDefaultNull {
+		return goDataType
+	}
+
+	switch goDataType {
+	case "int64":
+		return "sql.NullInt64"
+	case "int32":
+		return "sql.NullInt32"
+	case "float64":
+		return "sql.NullFloat64"
+	case "bool":
+		return "sql.NullBool"
+	case "string":
+		return "sql.NullString"
+	case "time.Time":
+		return "sql.NullTime"
+	default:
+		return goDataType
+	}
 }
