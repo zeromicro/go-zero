@@ -7,8 +7,8 @@ import (
 	"flag"
 	"fmt"
 
+	"bookstore/rpc/check/check"
 	"bookstore/rpc/check/internal/config"
-	check "bookstore/rpc/check/internal/pb"
 	"bookstore/rpc/check/internal/server"
 	"bookstore/rpc/check/internal/svc"
 

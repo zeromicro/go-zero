@@ -6,8 +6,8 @@ package server
 import (
 	"context"
 
+	"bookstore/rpc/add/add"
 	"bookstore/rpc/add/internal/logic"
-	add "bookstore/rpc/add/internal/pb"
 	"bookstore/rpc/add/internal/svc"
 )
 

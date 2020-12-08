@@ -8,7 +8,7 @@ package adder
 import (
 	"context"
 
-	add "bookstore/rpc/add/internal/pb"
+	"bookstore/rpc/add/add"
 
 	"github.com/tal-tech/go-zero/zrpc"
 )
@@ -33,6 +33,6 @@ func NewAdder(cli zrpc.Client) Adder {
 }
 
 func (m *defaultAdder) Add(ctx context.Context, in *AddReq) (*AddResp, error) {
-	adder := add.NewAdderClient(m.cli.Conn())
-	return adder.Add(ctx, in)
+	client := add.NewAdderClient(m.cli.Conn())
+	return client.Add(ctx, in)
 }

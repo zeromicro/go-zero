@@ -29,7 +29,8 @@ func (l *CheckLogic) Check(req types.CheckReq) (*types.CheckResp, error) {
 		Book: req.Book,
 	})
 	if err != nil {
-		return nil, err
+		logx.Error(err)
+		return &types.CheckResp{}, err
 	}
 
 	return &types.CheckResp{

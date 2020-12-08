@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	add "bookstore/rpc/add/internal/pb"
+	add "bookstore/rpc/add/adder"
 	"bookstore/rpc/add/internal/svc"
 	"bookstore/rpc/model"
 

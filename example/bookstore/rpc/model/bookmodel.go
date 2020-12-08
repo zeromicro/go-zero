@@ -18,11 +18,18 @@ var (
 	bookRowsExpectAutoSet   = strings.Join(stringx.Remove(bookFieldNames, "create_time", "update_time"), ",")
 	bookRowsWithPlaceHolder = strings.Join(stringx.Remove(bookFieldNames, "book", "create_time", "update_time"), "=?,") + "=?"
 
-	bookPrefix = "cache#Book#book#"
+	cacheBookPrefix = "cache#Book#book#"
 )
 
 type (
-	BookModel struct {
+	BookModel interface {
+		Insert(data Book) (sql.Result, error)
+		FindOne(book string) (*Book, error)
+		Update(data Book) error
+		Delete(book string) error
+	}
+
+	defaultBookModel struct {
 		sqlc.CachedConn
 		table string
 	}
@@ -33,23 +40,25 @@ type (
 	}
 )
 
-func NewBookModel(conn sqlx.SqlConn, c cache.CacheConf, table string) *BookModel {
-	return &BookModel{
+func NewBookModel(conn sqlx.SqlConn, c cache.CacheConf) BookModel {
+	return &defaultBookModel{
 		CachedConn: sqlc.NewConn(conn, c),
-		table:      table,
+		table:      "book",
 	}
 }
 
-func (m *BookModel) Insert(data Book) (sql.Result, error) {
-	query := `insert into ` + m.table + ` (` + bookRowsExpectAutoSet + `) values (?, ?)`
-	return m.ExecNoCache(query, data.Book, data.Price)
+func (m *defaultBookModel) Insert(data Book) (sql.Result, error) {
+	query := fmt.Sprintf("insert into %s (%s) values (?, ?)", m.table, bookRowsExpectAutoSet)
+	ret, err := m.ExecNoCache(query, data.Book, data.Price)
+
+	return ret, err
 }
 
-func (m *BookModel) FindOne(book string) (*Book, error) {
-	bookKey := fmt.Sprintf("%s%v", bookPrefix, book)
+func (m *defaultBookModel) FindOne(book string) (*Book, error) {
+	bookKey := fmt.Sprintf("%s%v", cacheBookPrefix, book)
 	var resp Book
 	err := m.QueryRow(&resp, bookKey, func(conn sqlx.SqlConn, v interface{}) error {
-		query := `select ` + bookRows + ` from ` + m.table + ` where book = ? limit 1`
+		query := fmt.Sprintf("select %s from %s where book = ? limit 1", bookRows, m.table)
 		return conn.QueryRow(v, query, book)
 	})
 	switch err {
@@ -62,20 +71,30 @@ func (m *BookModel) FindOne(book string) (*Book, error) {
 	}
 }
 
-func (m *BookModel) Update(data Book) error {
-	bookKey := fmt.Sprintf("%s%v", bookPrefix, data.Book)
+func (m *defaultBookModel) Update(data Book) error {
+	bookKey := fmt.Sprintf("%s%v", cacheBookPrefix, data.Book)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := `update ` + m.table + ` set ` + bookRowsWithPlaceHolder + ` where book = ?`
+		query := fmt.Sprintf("update %s set %s where book = ?", m.table, bookRowsWithPlaceHolder)
 		return conn.Exec(query, data.Price, data.Book)
 	}, bookKey)
 	return err
 }
 
-func (m *BookModel) Delete(book string) error {
-	bookKey := fmt.Sprintf("%s%v", bookPrefix, book)
+func (m *defaultBookModel) Delete(book string) error {
+
+	bookKey := fmt.Sprintf("%s%v", cacheBookPrefix, book)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := `delete from ` + m.table + ` where book = ?`
+		query := fmt.Sprintf("delete from %s where book = ?", m.table)
 		return conn.Exec(query, book)
 	}, bookKey)
 	return err
+}
+
+func (m *defaultBookModel) formatPrimary(primary interface{}) string {
+	return fmt.Sprintf("%s%v", cacheBookPrefix, primary)
+}
+
+func (m *defaultBookModel) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
+	query := fmt.Sprintf("select %s from %s where book = ? limit 1", bookRows, m.table)
+	return conn.QueryRow(v, query, primary)
 }

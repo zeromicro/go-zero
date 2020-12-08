@@ -8,7 +8,7 @@ package checker
 import (
 	"context"
 
-	check "bookstore/rpc/check/internal/pb"
+	"bookstore/rpc/check/check"
 
 	"github.com/tal-tech/go-zero/zrpc"
 )
@@ -33,6 +33,6 @@ func NewChecker(cli zrpc.Client) Checker {
 }
 
 func (m *defaultChecker) Check(ctx context.Context, in *CheckReq) (*CheckResp, error) {
-	checker := check.NewCheckerClient(m.cli.Conn())
-	return checker.Check(ctx, in)
+	client := check.NewCheckerClient(m.cli.Conn())
+	return client.Check(ctx, in)
 }
