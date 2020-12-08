@@ -40,7 +40,7 @@ func ProtoTmpl(out string) error {
 	}
 
 	err = util.With("t").Parse(text).SaveTo(map[string]string{
-		"package":     serviceName.UnTitle(),
+		"package":     serviceName.Untitle(),
 		"serviceName": serviceName.Title(),
 	}, out, false)
 	return err

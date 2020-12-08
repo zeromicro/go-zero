@@ -32,12 +32,12 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
 			"upperField":                camelFieldName,
-			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).UnTitle(), field.DataType),
+			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).Untitle(), field.DataType),
 			"withCache":                 withCache,
 			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
 			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
-			"lowerStartCamelObject":     stringx.From(camelTableName).UnTitle(),
-			"lowerStartCamelField":      stringx.From(camelFieldName).UnTitle(),
+			"lowerStartCamelObject":     stringx.From(camelTableName).Untitle(),
+			"lowerStartCamelField":      stringx.From(camelFieldName).Untitle(),
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             field.Name.Source(),
 		})
@@ -63,7 +63,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"upperField":            camelFieldName,
-			"in":                    fmt.Sprintf("%s %s", stringx.From(camelFieldName).UnTitle(), field.DataType),
+			"in":                    fmt.Sprintf("%s %s", stringx.From(camelFieldName).Untitle(), field.DataType),
 		})
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
-			"lowerStartCamelObject": stringx.From(camelTableName).UnTitle(),
+			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryField":  table.PrimaryKey.Name.Source(),
 		})
 		if err != nil {

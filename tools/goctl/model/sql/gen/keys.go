@@ -28,11 +28,11 @@ func genCacheKeys(table parser.Table) (map[string]Key, error) {
 	fields := table.Fields
 	m := make(map[string]Key)
 	camelTableName := table.Name.ToCamel()
-	lowerStartCamelTableName := stringx.From(camelTableName).UnTitle()
+	lowerStartCamelTableName := stringx.From(camelTableName).Untitle()
 	for _, field := range fields {
 		if field.IsUniqueKey || field.IsPrimaryKey {
 			camelFieldName := field.Name.ToCamel()
-			lowerStartCamelFieldName := stringx.From(camelFieldName).UnTitle()
+			lowerStartCamelFieldName := stringx.From(camelFieldName).Untitle()
 			left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
 			if strings.ToLower(camelFieldName) == strings.ToLower(camelTableName) {
 				left = fmt.Sprintf("cache%sPrefix", camelTableName)
