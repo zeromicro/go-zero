@@ -7,8 +7,8 @@ import (
 	"flag"
 	"fmt"
 
+	"bookstore/rpc/add/add"
 	"bookstore/rpc/add/internal/config"
-	add "bookstore/rpc/add/internal/pb"
 	"bookstore/rpc/add/internal/server"
 	"bookstore/rpc/add/internal/svc"
 

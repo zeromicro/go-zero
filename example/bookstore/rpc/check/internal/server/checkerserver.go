@@ -6,8 +6,8 @@ package server
 import (
 	"context"
 
+	"bookstore/rpc/check/check"
 	"bookstore/rpc/check/internal/logic"
-	check "bookstore/rpc/check/internal/pb"
 	"bookstore/rpc/check/internal/svc"
 )
 
