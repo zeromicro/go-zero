@@ -23,7 +23,7 @@ func genVars(table Table, withCache bool) (string, error) {
 		Parse(text).
 		GoFmt(true).
 		Execute(map[string]interface{}{
-			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
+			"lowerStartCamelObject": stringx.From(camel).Untitle(),
 			"upperStartCamelObject": camel,
 			"cacheKeys":             strings.Join(keys, "\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,

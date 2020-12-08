@@ -45,7 +45,7 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 			"withCache":             withCache,
 			"containsIndexCache":    table.ContainsUniqueKey,
 			"upperStartCamelObject": camel,
-			"lowerStartCamelObject": stringx.From(camel).UnTitle(),
+			"lowerStartCamelObject": stringx.From(camel).Untitle(),
 			"expression":            strings.Join(expressions, ", "),
 			"expressionValues":      strings.Join(expressionValues, ", "),
 			"keys":                  strings.Join(keySet.KeysStr(), "\n"),
