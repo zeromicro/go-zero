@@ -48,11 +48,11 @@ func PluginCommand(c *cli.Context) error {
 
 	bin, args := getPluginAndArgs(plugin)
 
-	fmt.Printf("bin: %s, args: %s \n", bin, args)
 	bin, download, err := getCommand(bin)
 	if err != nil {
 		return err
 	}
+
 	if download {
 		defer func() {
 			_ = os.Remove(bin)
@@ -173,6 +173,7 @@ func getPluginAndArgs(arg string) (string, string) {
 	if i <= 0 {
 		return arg, ""
 	}
+
 	return trimQuote(arg[:i]), trimQuote(arg[i+1:])
 }
 func trimQuote(in string) string {
