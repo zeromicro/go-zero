@@ -15,6 +15,5 @@ func main() {
 	if plugin.Api != nil {
 		fmt.Printf("api: %+v \n", plugin.Api)
 	}
-	fmt.Printf("dir: %s \n", plugin.Dir)
 	fmt.Println("Enjoy anything you want.")
 }
