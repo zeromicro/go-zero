@@ -1,6 +1,6 @@
 module github.com/tal-tech/go-zero
 
-go 1.13
+go 1.14
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.3
