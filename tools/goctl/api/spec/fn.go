@@ -2,30 +2,15 @@ package spec
 
 import (
 	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const (
-	TagKey    = "tag"
-	NameKey   = "name"
-	OptionKey = "option"
-	BodyTag   = "json"
-)
+const bodyTagKey = "json"
 
-var (
-	TagRe       = regexp.MustCompile(`(?P<tag>\w+):"(?P<name>[^,"]+)[,]?(?P<option>[^"]*)"`)
-	TagSubNames = TagRe.SubexpNames()
-	definedTags = []string{TagKey, NameKey, OptionKey}
-)
-
-type Attribute struct {
-	Key   string
-	value string
-}
+var definedKeys = []string{"json", "form", "path"}
 
 func (s Service) Routes() []Route {
 	var result []Route
@@ -35,81 +20,62 @@ func (s Service) Routes() []Route {
 	return result
 }
 
-func (m Member) IsOptional() bool {
-	var option string
-
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	for i := range matches {
-		name := TagSubNames[i]
-		if name == OptionKey {
-			option = matches[i]
-		}
+func (m Member) Tags() []*Tag {
+	tags, err := Parse(m.Tag)
+	if err != nil {
+		panic(m.Tag + ", " + err.Error())
 	}
 
-	if len(option) == 0 {
+	return tags.Tags()
+}
+
+func (m Member) IsOptional() bool {
+	if !m.IsBodyMember() {
 		return false
 	}
 
-	fields := strings.Split(option, ",")
-	for _, field := range fields {
-		if field == "optional" || strings.HasPrefix(field, "default=") {
-			return true
+	tag := m.Tags()
+	for _, item := range tag {
+		if item.Key == bodyTagKey {
+			if stringx.Contains(item.Options, "optional") {
+				return true
+			}
 		}
 	}
-
 	return false
 }
 
 func (m Member) IsOmitempty() bool {
-	var option string
-
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	for i := range matches {
-		name := TagSubNames[i]
-		if name == OptionKey {
-			option = matches[i]
-		}
-	}
-
-	if len(option) == 0 {
+	if !m.IsBodyMember() {
 		return false
 	}
 
-	fields := strings.Split(option, ",")
-	for _, field := range fields {
-		if field == "omitempty" {
-			return true
+	tag := m.Tags()
+	for _, item := range tag {
+		if item.Key == bodyTagKey {
+			if stringx.Contains(item.Options, "omitempty") {
+				return true
+			}
 		}
 	}
-
 	return false
 }
 
-func (m Member) GetAttributes() []Attribute {
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	var result []Attribute
-	for i := range matches {
-		name := TagSubNames[i]
-		if stringx.Contains(definedTags, name) {
-			result = append(result, Attribute{
-				Key:   name,
-				value: matches[i],
-			})
-		}
-	}
-	return result
-}
-
 func (m Member) GetPropertyName() (string, error) {
-	attrs := m.GetAttributes()
-	for _, attr := range attrs {
-		if attr.Key == NameKey && len(attr.value) > 0 {
-			if attr.value == "-" {
+	tags := m.Tags()
+	if len(tags) == 0 {
+		return "", errors.New("json property name not exist, member: " + m.Name)
+	}
+
+	for _, tag := range tags {
+		if stringx.Contains(definedKeys, tag.Key) {
+			if tag.Name == "-" {
 				return util.Untitle(m.Name), nil
 			}
-			return attr.value, nil
+			return tag.Name, nil
 		}
 	}
+
 	return "", errors.New("json property name not exist, member: " + m.Name)
 }
 
@@ -121,9 +87,10 @@ func (m Member) IsBodyMember() bool {
 	if m.IsInline {
 		return true
 	}
-	attrs := m.GetAttributes()
-	for _, attr := range attrs {
-		if attr.value == BodyTag {
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == bodyTagKey {
 			return true
 		}
 	}
