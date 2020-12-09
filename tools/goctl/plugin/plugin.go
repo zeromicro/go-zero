@@ -46,17 +46,20 @@ func PluginCommand(c *cli.Context) error {
 		return err
 	}
 
-	bin, download, err := getCommand(plugin)
+	bin, args := getPluginAndArgs(plugin)
+
+	bin, download, err := getCommand(bin)
 	if err != nil {
 		return err
 	}
+
 	if download {
 		defer func() {
 			_ = os.Remove(bin)
 		}()
 	}
 
-	content, err := execx.Run(bin, filepath.Dir(ex), bytes.NewBuffer(transferData))
+	content, err := execx.Run(bin+" "+args, filepath.Dir(ex), bytes.NewBuffer(transferData))
 	if err != nil {
 		return err
 	}
@@ -163,4 +166,19 @@ func NewPlugin() (*Plugin, error) {
 		return nil, err
 	}
 	return &plugin, nil
+}
+
+func getPluginAndArgs(arg string) (string, string) {
+	i := strings.Index(arg, "=")
+	if i <= 0 {
+		return arg, ""
+	}
+
+	return trimQuote(arg[:i]), trimQuote(arg[i+1:])
+}
+func trimQuote(in string) string {
+	in = strings.Trim(in, `"`)
+	in = strings.Trim(in, `'`)
+	in = strings.Trim(in, "`")
+	return in
 }

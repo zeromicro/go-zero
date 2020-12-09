@@ -192,7 +192,7 @@ var (
 					Usage: "custom file generator",
 					Flags: []cli.Flag{
 						cli.StringFlag{
-							Name:  "plugin",
+							Name:  "plugin, p",
 							Usage: "the plugin file",
 						},
 						cli.StringFlag{
