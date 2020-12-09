@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 )
@@ -17,7 +15,5 @@ func main() {
 	if plugin.Api != nil {
 		fmt.Printf("api: %+v \n", plugin.Api)
 	}
-	fmt.Printf("args: %s \n", strings.Join(os.Args, " "))
-	fmt.Printf("dir: %s \n", plugin.Dir)
 	fmt.Println("Enjoy anything you want.")
 }
