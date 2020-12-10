@@ -9,6 +9,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
@@ -53,7 +54,8 @@ func DockerCommand(c *cli.Context) error {
 
 	projDir, ok := util.FindProjectPath(goFile)
 	if ok {
-		fmt.Printf("Run \"docker build ...\" command in dir %q\n", projDir)
+		fmt.Printf("Hint: run \"docker build ...\" command in dir %q\n", projDir)
+		fmt.Println(aurora.Green("Done."))
 	}
 
 	return nil

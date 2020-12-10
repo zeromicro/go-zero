@@ -28,9 +28,7 @@ RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 FROM alpine
 
-RUN apk update --no-cache
-RUN apk add --no-cache ca-certificates
-RUN apk add --no-cache tzdata
+RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
 ENV TZ Asia/Shanghai
 
 WORKDIR /app
