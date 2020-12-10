@@ -21,6 +21,7 @@ var mock tracespec.Trace = new(mockTrace)
 
 func TestTraceLog(t *testing.T) {
 	var buf mockWriter
+	atomic.StoreUint32(&initialized, 1)
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
 	assert.True(t, strings.Contains(buf.String(), mockTraceId))
