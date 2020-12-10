@@ -19,10 +19,11 @@ func Untitle(s string) string {
 }
 
 func Index(slice []string, item string) int {
-	for i, _ := range slice {
+	for i := range slice {
 		if slice[i] == item {
 			return i
 		}
 	}
+
 	return -1
 }
