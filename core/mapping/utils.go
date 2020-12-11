@@ -153,58 +153,57 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 	key := strings.TrimSpace(segments[0])
 	options := segments[1:]
 
-	if len(options) > 0 {
-		var fieldOpts fieldOptions
-
-		for _, segment := range options {
-			option := strings.TrimSpace(segment)
-			switch {
-			case option == stringOption:
-				fieldOpts.FromString = true
-			case strings.HasPrefix(option, optionalOption):
-				segs := strings.Split(option, equalToken)
-				switch len(segs) {
-				case 1:
-					fieldOpts.Optional = true
-				case 2:
-					fieldOpts.Optional = true
-					fieldOpts.OptionalDep = segs[1]
-				default:
-					return "", nil, fmt.Errorf("field %s has wrong optional", field.Name)
-				}
-			case option == optionalOption:
-				fieldOpts.Optional = true
-			case strings.HasPrefix(option, optionsOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong options", field.Name)
-				} else {
-					fieldOpts.Options = strings.Split(segs[1], optionSeparator)
-				}
-			case strings.HasPrefix(option, defaultOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong default option", field.Name)
-				} else {
-					fieldOpts.Default = strings.TrimSpace(segs[1])
-				}
-			case strings.HasPrefix(option, rangeOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong range", field.Name)
-				}
-				if nr, err := parseNumberRange(segs[1]); err != nil {
-					return "", nil, err
-				} else {
-					fieldOpts.Range = nr
-				}
-			}
-		}
-
-		return key, &fieldOpts, nil
+	if len(options) == 0 {
+		return key, nil, nil
 	}
 
-	return key, nil, nil
+	var fieldOpts fieldOptions
+	for _, segment := range options {
+		option := strings.TrimSpace(segment)
+		switch {
+		case option == stringOption:
+			fieldOpts.FromString = true
+		case strings.HasPrefix(option, optionalOption):
+			segs := strings.Split(option, equalToken)
+			switch len(segs) {
+			case 1:
+				fieldOpts.Optional = true
+			case 2:
+				fieldOpts.Optional = true
+				fieldOpts.OptionalDep = segs[1]
+			default:
+				return "", nil, fmt.Errorf("field %s has wrong optional", field.Name)
+			}
+		case option == optionalOption:
+			fieldOpts.Optional = true
+		case strings.HasPrefix(option, optionsOption):
+			segs := strings.Split(option, equalToken)
+			if len(segs) != 2 {
+				return "", nil, fmt.Errorf("field %s has wrong options", field.Name)
+			} else {
+				fieldOpts.Options = strings.Split(segs[1], optionSeparator)
+			}
+		case strings.HasPrefix(option, defaultOption):
+			segs := strings.Split(option, equalToken)
+			if len(segs) != 2 {
+				return "", nil, fmt.Errorf("field %s has wrong default option", field.Name)
+			} else {
+				fieldOpts.Default = strings.TrimSpace(segs[1])
+			}
+		case strings.HasPrefix(option, rangeOption):
+			segs := strings.Split(option, equalToken)
+			if len(segs) != 2 {
+				return "", nil, fmt.Errorf("field %s has wrong range", field.Name)
+			}
+			if nr, err := parseNumberRange(segs[1]); err != nil {
+				return "", nil, err
+			} else {
+				fieldOpts.Range = nr
+			}
+		}
+	}
+
+	return key, &fieldOpts, nil
 }
 
 func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
