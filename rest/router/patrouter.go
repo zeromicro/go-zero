@@ -64,7 +64,7 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	allow, ok := pr.methodNotAllowed(r.Method, reqPath)
+	allows, ok := pr.methodsAllowed(r.Method, reqPath)
 	if !ok {
 		pr.handleNotFound(w, r)
 		return
@@ -73,7 +73,7 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if pr.notAllowed != nil {
 		pr.notAllowed.ServeHTTP(w, r)
 	} else {
-		w.Header().Set(allowHeader, allow)
+		w.Header().Set(allowHeader, allows)
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
@@ -94,7 +94,7 @@ func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (pr *patRouter) methodNotAllowed(method, path string) (string, bool) {
+func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 	var allows []string
 
 	for treeMethod, tree := range pr.trees {
