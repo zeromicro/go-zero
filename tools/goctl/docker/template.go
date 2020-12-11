@@ -22,8 +22,8 @@ ADD go.mod .
 ADD go.sum .
 RUN go mod download
 COPY . .
-COPY {{.GoRelPath}}/etc /app/etc
-RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
+{{if .HasArgs}}COPY {{.GoRelPath}}/etc /app/etc
+{{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 
 FROM alpine
@@ -33,8 +33,8 @@ ENV TZ Asia/Shanghai
 
 WORKDIR /app
 COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}
-COPY --from=builder /app/etc /app/etc
-
+{{if .HasArgs}}COPY --from=builder /app/etc /app/etc
+{{end}}
 CMD ["./{{.ExeFile}}"{{.Argument}}]
 `
 )

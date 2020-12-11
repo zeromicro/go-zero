@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	etcDir    = "etc"
-	yamlEtx   = ".yaml"
-	cstOffset = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
+	dockerfileName = "Dockerfile"
+	etcDir         = "etc"
+	yamlEtx        = ".yaml"
+	cstOffset      = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
 
 type Docker struct {
@@ -26,6 +27,7 @@ type Docker struct {
 	GoRelPath string
 	GoFile    string
 	ExeFile   string
+	HasArgs   bool
 	Argument  string
 }
 
@@ -96,12 +98,16 @@ func generateDockerfile(goFile string, args ...string) error {
 		return err
 	}
 
-	pos := strings.IndexByte(projPath, '/')
-	if pos >= 0 {
-		projPath = projPath[pos+1:]
+	if len(projPath) == 0 {
+		projPath = "."
+	} else {
+		pos := strings.IndexByte(projPath, os.PathSeparator)
+		if pos >= 0 {
+			projPath = projPath[pos+1:]
+		}
 	}
 
-	out, err := util.CreateIfNotExist("Dockerfile")
+	out, err := util.CreateIfNotExist(dockerfileName)
 	if err != nil {
 		return err
 	}
@@ -124,6 +130,7 @@ func generateDockerfile(goFile string, args ...string) error {
 		GoRelPath: projPath,
 		GoFile:    goFile,
 		ExeFile:   util.FileNameWithoutExt(filepath.Base(goFile)),
+		HasArgs:   builder.Len() > 0,
 		Argument:  builder.String(),
 	})
 }
