@@ -476,7 +476,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "category,c",
-							Usage: "the category of template, enum [api,rpc,model]",
+							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
 						},
 					},
 					Action: tpl.UpdateTemplates,
@@ -487,7 +487,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "category,c",
-							Usage: "the category of template, enum [api,rpc,model]",
+							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
 						},
 						cli.StringFlag{
 							Name:  "name,n",

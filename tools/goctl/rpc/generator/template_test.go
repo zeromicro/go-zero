@@ -97,8 +97,7 @@ func TestUpdate(t *testing.T) {
 	}
 	assert.Equal(t, "modify", string(data))
 
-	err = Update(category)
-	assert.Nil(t, err)
+	assert.Nil(t, Update())
 
 	data, err = ioutil.ReadFile(mainTpl)
 	if err != nil {
@@ -109,6 +108,6 @@ func TestUpdate(t *testing.T) {
 
 func TestGetCategory(t *testing.T) {
 	_ = Clean()
-	result := GetCategory()
+	result := Category()
 	assert.Equal(t, category, result)
 }
