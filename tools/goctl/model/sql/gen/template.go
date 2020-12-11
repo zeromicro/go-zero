@@ -54,6 +54,14 @@ var templates = map[string]string{
 	errTemplateFile:                       template.Error,
 }
 
+func Category() string {
+	return category
+}
+
+func Clean() error {
+	return util.Clean(category)
+}
+
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, templates)
 }
@@ -66,18 +74,10 @@ func RevertTemplate(name string) error {
 	return util.CreateTemplate(category, name, content)
 }
 
-func Clean() error {
-	return util.Clean(category)
-}
-
-func Update(category string) error {
+func Update() error {
 	err := Clean()
 	if err != nil {
 		return err
 	}
 	return util.InitTemplates(category, templates)
-}
-
-func GetCategory() string {
-	return category
 }

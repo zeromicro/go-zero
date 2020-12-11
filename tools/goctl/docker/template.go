@@ -39,7 +39,32 @@ CMD ["./{{.ExeFile}}"{{.Argument}}]
 `
 )
 
+func Clean() error {
+	return util.Clean(category)
+}
+
 func GenTemplates(_ *cli.Context) error {
+	return initTemplate()
+}
+
+func Category() string {
+	return category
+}
+
+func RevertTemplate(name string) error {
+	return util.CreateTemplate(category, name, dockerTemplate)
+}
+
+func Update() error {
+	err := Clean()
+	if err != nil {
+		return err
+	}
+
+	return initTemplate()
+}
+
+func initTemplate() error {
 	return util.InitTemplates(category, map[string]string{
 		dockerTemplateFile: dockerTemplate,
 	})

@@ -76,12 +76,16 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 		}
 	}()
 	switch category {
-	case gogen.GetCategory():
-		return gogen.Update(category)
-	case rpcgen.GetCategory():
-		return rpcgen.Update(category)
-	case modelgen.GetCategory():
-		return modelgen.Update(category)
+	case docker.Category():
+		return docker.Update()
+	case gogen.Category():
+		return gogen.Update()
+	case kube.Category():
+		return kube.Update()
+	case rpcgen.Category():
+		return rpcgen.Update()
+	case modelgen.Category():
+		return modelgen.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -97,11 +101,15 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 		}
 	}()
 	switch category {
-	case gogen.GetCategory():
+	case docker.Category():
+		return docker.RevertTemplate(filename)
+	case kube.Category():
+		return kube.RevertTemplate(filename)
+	case gogen.Category():
 		return gogen.RevertTemplate(filename)
-	case rpcgen.GetCategory():
+	case rpcgen.Category():
 		return rpcgen.RevertTemplate(filename)
-	case modelgen.GetCategory():
+	case modelgen.Category():
 		return modelgen.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
