@@ -14,8 +14,8 @@ LABEL stage=gobuilder
 
 ENV CGO_ENABLED 0
 ENV GOOS linux
-{{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct{{end}}
-
+{{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct
+{{end}}
 WORKDIR /build/zero
 
 ADD go.mod .
