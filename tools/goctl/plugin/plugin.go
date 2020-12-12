@@ -25,9 +25,10 @@ const (
 )
 
 type Plugin struct {
-	Api   *spec.ApiSpec
-	Style string
-	Dir   string
+	Api         *spec.ApiSpec
+	ApiFilePath string
+	Style       string
+	Dir         string
 }
 
 func PluginCommand(c *cli.Context) error {
@@ -86,6 +87,12 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 		transferData.Api = api
 	}
 
+	absApiFilePath, err := filepath.Abs(apiPath)
+	if err != nil {
+		return nil, err
+	}
+
+	transferData.ApiFilePath = absApiFilePath
 	dirAbs, err := filepath.Abs(c.String("dir"))
 	if err != nil {
 		return nil, err
