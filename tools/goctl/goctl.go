@@ -246,9 +246,8 @@ var (
 							Required: true,
 						},
 						cli.StringFlag{
-							Name:     "secret",
-							Usage:    "the image pull secret",
-							Required: true,
+							Name:  "secret",
+							Usage: "the secret to image pull from registry",
 						},
 						cli.IntFlag{
 							Name:  "requestCpu",

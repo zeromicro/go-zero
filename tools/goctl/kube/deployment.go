@@ -47,9 +47,9 @@ spec:
         volumeMounts:
         - name: timezone
           mountPath: /etc/localtime
-      imagePullSecrets:
+      {{if .Secret}}imagePullSecrets:
       - name: {{.Secret}}
-      volumes:
+      {{end}}volumes:
         - name: timezone
           hostPath:
             path: /usr/share/zoneinfo/Asia/Shanghai

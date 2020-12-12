@@ -29,11 +29,16 @@ type Docker struct {
 	ExeFile   string
 	HasPort   bool
 	Port      int
-	HasArgs   bool
 	Argument  string
 }
 
-func DockerCommand(c *cli.Context) error {
+func DockerCommand(c *cli.Context) (err error) {
+	defer func() {
+		if err == nil {
+			fmt.Println(aurora.Green("Done."))
+		}
+	}()
+
 	goFile := c.String("go")
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
@@ -60,7 +65,6 @@ func DockerCommand(c *cli.Context) error {
 	projDir, ok := util.FindProjectPath(goFile)
 	if ok {
 		fmt.Printf("Hint: run \"docker build ...\" command in dir %q\n", projDir)
-		fmt.Println(aurora.Green("Done."))
 	}
 
 	return nil
@@ -135,7 +139,6 @@ func generateDockerfile(goFile string, port int, args ...string) error {
 		ExeFile:   util.FileNameWithoutExt(filepath.Base(goFile)),
 		HasPort:   port > 0,
 		Port:      port,
-		HasArgs:   builder.Len() > 0,
 		Argument:  builder.String(),
 	})
 }
