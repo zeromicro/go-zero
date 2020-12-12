@@ -22,7 +22,7 @@ ADD go.mod .
 ADD go.sum .
 RUN go mod download
 COPY . .
-{{if .HasArgs}}COPY {{.GoRelPath}}/etc /app/etc
+{{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
 {{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 
@@ -32,8 +32,8 @@ RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
 ENV TZ Asia/Shanghai
 
 WORKDIR /app
-COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}
-{{if .HasArgs}}COPY --from=builder /app/etc /app/etc{{end}}
+COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}{{if .Argument}}
+COPY --from=builder /app/etc /app/etc{{end}}
 {{if .HasPort}}
 EXPOSE {{.Port}}
 {{end}}

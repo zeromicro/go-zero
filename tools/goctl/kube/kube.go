@@ -2,8 +2,10 @@ package kube
 
 import (
 	"errors"
+	"fmt"
 	"text/template"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -53,7 +55,7 @@ func DeploymentCommand(c *cli.Context) error {
 	defer out.Close()
 
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
-	return t.Execute(out, Deployment{
+	err = t.Execute(out, Deployment{
 		Name:        c.String("name"),
 		Namespace:   c.String("namespace"),
 		Image:       c.String("image"),
@@ -70,6 +72,12 @@ func DeploymentCommand(c *cli.Context) error {
 		MinReplicas: c.Int("minReplicas"),
 		MaxReplicas: c.Int("maxReplicas"),
 	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(aurora.Green("Done."))
+	return nil
 }
 
 func Category() string {
