@@ -33,7 +33,9 @@ ENV TZ Asia/Shanghai
 
 WORKDIR /app
 COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}
-{{if .HasArgs}}COPY --from=builder /app/etc /app/etc
+{{if .HasArgs}}COPY --from=builder /app/etc /app/etc{{end}}
+{{if .HasPort}}
+EXPOSE {{.Port}}
 {{end}}
 CMD ["./{{.ExeFile}}"{{.Argument}}]
 `
