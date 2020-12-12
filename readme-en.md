@@ -129,7 +129,7 @@ go get -u github.com/tal-tech/go-zero
    the .api files also can be generate by goctl, like below:
 
    ```shell
-goctl api -o greet.api
+   goctl api -o greet.api
    ```
    
 3. generate the go server side code
