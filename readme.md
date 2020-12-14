@@ -196,3 +196,9 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
 
 码云地址：[https://gitee.com/kevwan/go-zero](https://gitee.com/kevwan/go-zero) (国内用户可访问gitee，每日自动从github同步代码)
+
+## 9. 微信公众号
+
+`go-zero` 相关文章都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注，也可以通过公众号私信我 👏
+
+<img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
