@@ -28,8 +28,7 @@ var userFields = FieldNames(User{})
 func TestFieldNames(t *testing.T) {
 	var u User
 	out := FieldNames(&u)
-	fmt.Println(out)
-	actual := []string{"id", "user_name", "sex", "uuid", "age"}
+	actual := []string{"`id`", "`user_name`", "`sex`", "`uuid`", "`age`"}
 	assert.Equal(t, out, actual)
 }
 
@@ -54,7 +53,7 @@ func TestBuilderSql(t *testing.T) {
 	sql, args, err := builder.Select(fields...).From("user").Where(eq).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE id=?"
+	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id=?"
 	actualArgs := []interface{}{"123123"}
 	assert.Equal(t, sql, actualSql)
 	assert.Equal(t, args, actualArgs)
@@ -68,7 +67,7 @@ func TestBuildSqlDefaultValue(t *testing.T) {
 	sql, args, err := builder.Select(userFields...).From("user").Where(eq).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE age=? AND user_name=?"
+	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE age=? AND user_name=?"
 	actualArgs := []interface{}{0, ""}
 	assert.Equal(t, sql, actualSql)
 	assert.Equal(t, args, actualArgs)
@@ -83,7 +82,7 @@ func TestBuilderSqlIn(t *testing.T) {
 	sql, args, err := builder.Select(userFields...).From("user").Where(in).And(gtU).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE id IN (?,?,?) AND age>?"
+	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id IN (?,?,?) AND age>?"
 	actualArgs := []interface{}{"1", "2", "3", 18}
 	assert.Equal(t, sql, actualSql)
 	assert.Equal(t, args, actualArgs)
@@ -94,7 +93,7 @@ func TestBuildSqlLike(t *testing.T) {
 	sql, args, err := builder.Select(userFields...).From("user").Where(like).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE name LIKE ?"
+	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE name LIKE ?"
 	actualArgs := []interface{}{"%wang%"}
 	assert.Equal(t, sql, actualSql)
 	assert.Equal(t, args, actualArgs)

@@ -39,7 +39,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 			"lowerStartCamelObject":     stringx.From(camelTableName).Untitle(),
 			"lowerStartCamelField":      stringx.From(camelFieldName).Untitle(),
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
-			"originalField":             field.Name.Source(),
+			"originalField":             wrapWithRawString(field.Name.Source()),
 		})
 		if err != nil {
 			return nil, err
@@ -82,7 +82,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
-			"originalPrimaryField":  table.PrimaryKey.Name.Source(),
+			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source()),
 		})
 		if err != nil {
 			return nil, err

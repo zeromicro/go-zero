@@ -36,7 +36,7 @@ func genDelete(table Table, withCache bool) (string, string, error) {
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
-			"originalPrimaryKey":        table.PrimaryKey.Name.Source(),
+			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source()),
 			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
 		})
 	if err != nil {

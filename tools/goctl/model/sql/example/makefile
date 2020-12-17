@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # generate model with cache from ddl
-fromDDL:
-	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/user" -cache
+fromDDLWithCache:
+	goctl template clean;
+	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/cache/user" -cache;
+
+fromDDLWithoutCache:
+	goctl template clean;
+	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/nocache/user";
 
 
 # generate model with cache from data source
@@ -12,4 +17,5 @@ datasource=127.0.0.1:3306
 database=gozero
 
 fromDataSource:
-	goctl model mysql datasource -url="$(user):$(password)@tcp($(datasource))/$(database)" -table="*" -dir ./model/cache -c -style gozero
+	goctl template clean;
+	goctl model mysql datasource -url="$(user):$(password)@tcp($(datasource))/$(database)" -table="*" -dir ./model/cache -c -style gozero;

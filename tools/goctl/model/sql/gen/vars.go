@@ -27,7 +27,7 @@ func genVars(table Table, withCache bool) (string, error) {
 			"upperStartCamelObject": camel,
 			"cacheKeys":             strings.Join(keys, "\n"),
 			"autoIncrement":         table.PrimaryKey.AutoIncrement,
-			"originalPrimaryKey":    table.PrimaryKey.Name.Source(),
+			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
 			"withCache":             withCache,
 		})
 	if err != nil {
