@@ -8,6 +8,7 @@ const (
 	routeSyntax       = "route syntax: [get/post/delete] /path(request) returns[(response)]"
 	returnsTag        = "returns"
 	at                = '@'
+	equalSemi         = '='
 	colon             = ':'
 	leftParenthesis   = '('
 	rightParenthesis  = ')'

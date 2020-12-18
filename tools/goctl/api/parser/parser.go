@@ -14,7 +14,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const defaultSyntax = `syntax: "v1"`
+const defaultSyntax = `syntax = "v1"`
 
 type Parser struct {
 	r   *bufio.Reader

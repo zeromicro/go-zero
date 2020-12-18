@@ -320,7 +320,64 @@ service A-api {
 `
 
 const syntaxApi = `
-syntax:"v2"
+syntax = "v2"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const errTokenSyntaxApi = `
+synta = "v2"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const errSyntaxVersionApi = `
+syntax = "2"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const errSyntaxVersionNumberApi = `
+syntax : "v2"
 
 type Request struct {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
@@ -356,7 +413,7 @@ service A-api {
 `
 
 const syntaxHasImportApi = `
-syntax: "v2"
+syntax = "v2"
 
 import "test3.api"
 
@@ -667,6 +724,36 @@ func TestSyntax(t *testing.T) {
 	_, err = parser.NewParser(filename)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "deplicate api syntax")
+
+	filename = filepath.Join(t.TempDir(), "test5.api")
+	err = ioutil.WriteFile(filename, []byte(errTokenSyntaxApi), os.ModePerm)
+	assert.Nil(t, err)
+
+	_, err = parser.NewParser(filename)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "invalid token")
+
+	filename = filepath.Join(t.TempDir(), "test6.api")
+	err = ioutil.WriteFile(filename, []byte(errSyntaxVersionApi), os.ModePerm)
+	assert.Nil(t, err)
+
+	p, err = parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = p.Parse()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "expected version after")
+
+	filename = filepath.Join(t.TempDir(), "test7.api")
+	err = ioutil.WriteFile(filename, []byte(errSyntaxVersionNumberApi), os.ModePerm)
+	assert.Nil(t, err)
+
+	p, err = parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	_, err = p.Parse()
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "expected '='")
 }
 
 func validate(t *testing.T, api string) {
