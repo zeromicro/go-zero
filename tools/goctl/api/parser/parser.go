@@ -72,7 +72,7 @@ func NewParser(filename string) (*Parser, error) {
 			}
 
 			if apiStruct.Syntax != importStruct.Syntax {
-				return nil, fmt.Errorf("deplicate api syntax: %s,%s", apiStruct.Syntax, importStruct.Syntax)
+				return nil, fmt.Errorf("inconsistent api syntax: %s,%s", apiStruct.Syntax, importStruct.Syntax)
 			}
 
 			apiStruct.Type += "\n" + importStruct.Type
