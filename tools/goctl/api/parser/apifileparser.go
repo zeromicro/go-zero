@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	tokenSyntax            = "syntax"
 	tokenInfo              = "info"
 	tokenImport            = "import"
 	tokenType              = "type"
@@ -23,6 +24,7 @@ const (
 
 type (
 	ApiStruct struct {
+		Syntax           string
 		Info             string
 		Type             string
 		Service          string
@@ -35,6 +37,10 @@ type (
 	}
 
 	apiRootState struct {
+		*baseState
+	}
+
+	apiSyntaxState struct {
 		*baseState
 	}
 
@@ -85,7 +91,7 @@ func (s *apiRootState) process(api *ApiStruct, _ string) (apiFileState, error) {
 		}
 
 		switch {
-		case isSpace(ch) || isNewline(ch) || ch == leftParenthesis:
+		case isSpace(ch) || isNewline(ch) || ch == leftParenthesis || ch == colon:
 			token := builder.String()
 			token = strings.TrimSpace(token)
 			if len(token) == 0 {
@@ -94,6 +100,9 @@ func (s *apiRootState) process(api *ApiStruct, _ string) (apiFileState, error) {
 
 			builder.Reset()
 			switch token {
+			case tokenSyntax:
+				syntax := apiSyntaxState{s.baseState}
+				return syntax.process(api, token+string(ch))
 			case tokenInfo:
 				info := apiInfoState{s.baseState}
 				return info.process(api, token+string(ch))
@@ -119,6 +128,17 @@ func (s *apiRootState) process(api *ApiStruct, _ string) (apiFileState, error) {
 			builder.WriteRune(ch)
 		}
 	}
+}
+
+func (s *apiSyntaxState) process(api *ApiStruct, token string) (apiFileState, error) {
+	line, err := s.readLine()
+	if err != nil {
+		return nil, err
+	}
+
+	api.Syntax += strings.TrimSpace(token + line)
+	token = ""
+	return &apiRootState{s.baseState}, nil
 }
 
 func (s *apiInfoState) process(api *ApiStruct, token string) (apiFileState, error) {

@@ -319,6 +319,63 @@ service A-api {
 }
 `
 
+const syntaxApi = `
+syntax:"v2"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const defaultSyntaxApi = `
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
+const syntaxHasImportApi = `
+syntax: "v2"
+
+import "test3.api"
+
+type Request struct {
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+}
+
+type Response struct {
+  Message string ` + "`" + `json:"message"` + "`" + ` // message
+}
+
+service A-api {
+  @server(
+    handler: GreetHandler
+  )
+  get /greet/from/:name(Request) returns (Response)
+}
+`
+
 func TestParser(t *testing.T) {
 	filename := "greet.api"
 	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
@@ -573,6 +630,43 @@ func TestCamelStyle(t *testing.T) {
 	assert.Nil(t, err)
 
 	validateWithCamel(t, filename, "GoZero")
+}
+
+func TestSyntax(t *testing.T) {
+	filename := filepath.Join(t.TempDir(), "test.api")
+	err := ioutil.WriteFile(filename, []byte(syntaxApi), os.ModePerm)
+	assert.Nil(t, err)
+	p, err := parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	api, err := p.Parse()
+	assert.Nil(t, err)
+
+	assert.Equal(t, "v2", api.Syntax)
+
+	filename = filepath.Join(t.TempDir(), "test2.api")
+	err = ioutil.WriteFile(filename, []byte(defaultSyntaxApi), os.ModePerm)
+	assert.Nil(t, err)
+	p, err = parser.NewParser(filename)
+	assert.Nil(t, err)
+
+	api, err = p.Parse()
+	assert.Nil(t, err)
+
+	assert.Equal(t, "v1", api.Syntax)
+
+	importFilename := filepath.Join("test3.api")
+	err = ioutil.WriteFile(importFilename, []byte(importApi), os.ModePerm)
+	assert.Nil(t, err)
+	defer os.Remove(importFilename)
+
+	filename = filepath.Join(t.TempDir(), "test4.api")
+	err = ioutil.WriteFile(filename, []byte(syntaxHasImportApi), os.ModePerm)
+	assert.Nil(t, err)
+
+	_, err = parser.NewParser(filename)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "deplicate api syntax")
 }
 
 func validate(t *testing.T, api string) {

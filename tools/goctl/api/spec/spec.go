@@ -8,6 +8,7 @@ type (
 	}
 
 	ApiSpec struct {
+		Syntax  string
 		Info    Info
 		Types   []Type
 		Service Service
