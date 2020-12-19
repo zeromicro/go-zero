@@ -1,6 +1,7 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -29,6 +30,15 @@ func MkdirIfNotExist(dir string) error {
 	}
 
 	return nil
+}
+
+func RemoveDirIfExist(dir string) error {
+	if len(dir) == 0 {
+		return errors.New("invalid directory path")
+	}
+
+	// already help to distinguish whether the dir exist in RemoveAll function
+	return os.RemoveAll(dir)
 }
 
 func PathFromGoSrc() (string, error) {

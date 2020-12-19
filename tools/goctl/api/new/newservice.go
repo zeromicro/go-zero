@@ -43,6 +43,12 @@ func NewService(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = util.RemoveDirIfExist(abs)
+			panic(r)
+		}
+	}()
 
 	dirName = filepath.Base(filepath.Clean(abs))
 	filename := dirName + ".api"
