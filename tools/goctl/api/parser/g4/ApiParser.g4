@@ -17,7 +17,7 @@ importSpec:     importLit|importLitGroup;
 importLit:      IMPORT importPath=IMPORT_PATH;
 importLitGroup:     IMPORT '(' (importPath=IMPORT_PATH)* ')';
 
-infoBlock: INFO '(' (key=ID COLON value=STRING_LIT?)* ')';
+infoBlock: INFO '(' kvLit* ')';
 
 typeBlock:      typeLit|typeGroup;
 typeLit:        TYPE typeSpec;
@@ -38,17 +38,18 @@ arrayType:      '['']'lit=dataType;
 pointer:        STAR* (GOTYPE|ID);
 
 serviceBlock:       serverMeta? serviceBody;
-serverMeta:     AT '(' annotation* ')';
+serverMeta:     ATSERVER '(' annotation* ')';
 annotation: key=ID COLON value=annotationKeyValue?;
 annotationKeyValue:        (ID ('/' ID)?)+;
 serviceBody:        SERVICE serviceName '{' routes=serviceRoute* '}';
 serviceName:        ID ('-' ID)?;
 serviceRoute:       routeDoc? (serverMeta|routeHandler) routePath ;
 routeDoc:       doc|lineDoc;
-doc:        AT '(' (key=ID COLON value=STRING_LIT?)* ')';
-lineDoc:        AT STRING_LIT;
-routeHandler:       AT ID;
+doc:        ATDOC '(' kvLit* ')';
+lineDoc:        ATDOC STRING_LIT;
+routeHandler:       ATHANDLER ID;
 routePath:      HTTPMETHOD path request? reply?;
 path:      ('/' ':'? ID (('?'|'&'|'=') ID)?)+;
 request:       '(' ID ')';
 reply:      RETURNS '(' ID ')';
+kvLit:      key=ID COLON value=STRING_LIT?;

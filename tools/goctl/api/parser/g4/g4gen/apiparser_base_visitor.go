@@ -147,3 +147,7 @@ func (v *BaseApiParserVisitor) VisitRequest(ctx *RequestContext) interface{} {
 func (v *BaseApiParserVisitor) VisitReply(ctx *ReplyContext) interface{} {
 	return v.VisitChildren(ctx)
 }
+
+func (v *BaseApiParserVisitor) VisitKvLit(ctx *KvLitContext) interface{} {
+	return v.VisitChildren(ctx)
+}

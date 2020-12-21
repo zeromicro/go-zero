@@ -29,6 +29,30 @@ func TestImport(t *testing.T) {
 	testImport(t, nil, true, `import "/"`)
 	testImport(t, nil, true, `import " "`)
 	testImport(t, nil, true, `import "user-.api"`)
+	testImport(t, nil, true, ``)
+	testImport(t, nil, true, `
+	import (
+		"user"
+	)`,
+	)
+
+	testImport(t, nil, true, `
+	import (
+		"user.ap"
+	)`,
+	)
+
+	testImport(t, nil, true, `
+	import (
+		"user\user.api"
+	)`,
+	)
+
+	testImport(t, nil, true, `
+	import (
+		"user.api"
+	`,
+	)
 }
 
 func testImport(t *testing.T, expected []string, expectErr bool, content string) {

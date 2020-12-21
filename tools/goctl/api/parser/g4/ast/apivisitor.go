@@ -12,7 +12,6 @@ import (
 type (
 	ApiVisitor struct {
 		parser.BaseApiParserVisitor
-
 		serviceGroup *spec.Group
 	}
 )
@@ -93,6 +92,7 @@ func (v *ApiVisitor) VisitImportLitGroup(ctx *parser.ImportLitGroupContext) inte
 }
 
 func (v *ApiVisitor) VisitInfoBlock(ctx *parser.InfoBlockContext) interface{} {
+
 	return v.VisitChildren(ctx)
 }
 
@@ -206,6 +206,10 @@ func (v *ApiVisitor) VisitRequest(ctx *parser.RequestContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitReply(ctx *parser.ReplyContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *ApiVisitor) VisitKvLit(ctx *parser.KvLitContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

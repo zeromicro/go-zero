@@ -34,6 +34,9 @@ TYPE:               'type';
 SERVICE:            'service';
 RETURNS:            'returns';
 IMPORT:             'import';
+ATSERVER:           '@server';
+ATDOC:              '@doc';
+ATHANDLER:          '@handler';
 
 HTTPMETHOD:         GET
                     |HEAD
@@ -78,7 +81,6 @@ SYNTAX_VERSION:     '"' 'v'[1-9][0-9]* '"';
 IMPORT_PATH:        '"' '/'? ID ('/' ID)* '.api' '"';
 STRING_LIT:         ('"' (~["\\] | EscapeSequence)* '"');
 RAW_STRING:         '`' (~[`\\\r\n] | EscapeSequence)* '`';
-AT:                 '@'ID;
 
 ID:         Letter LetterOrDigit*;
 
