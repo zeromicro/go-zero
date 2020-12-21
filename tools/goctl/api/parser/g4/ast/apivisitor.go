@@ -12,6 +12,8 @@ import (
 type (
 	ApiVisitor struct {
 		parser.BaseApiParserVisitor
+
+		serviceGroup *spec.Group
 	}
 	VisitResult struct {
 		v   interface{}
@@ -109,6 +111,7 @@ func (v *ApiVisitor) VisitPointer(ctx *parser.PointerContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitServiceBlock(ctx *parser.ServiceBlockContext) interface{} {
+	v.serviceGroup = new(spec.Group)
 	return v.VisitChildren(ctx)
 }
 
@@ -116,7 +119,11 @@ func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} 
 	return v.VisitChildren(ctx)
 }
 
-func (v *ApiVisitor) VisitIdValue(ctx *parser.IdValueContext) interface{} {
+func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *ApiVisitor) VisitAnnotationKeyValue(ctx *parser.AnnotationKeyValueContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

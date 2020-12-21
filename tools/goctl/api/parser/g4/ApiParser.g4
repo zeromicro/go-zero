@@ -38,8 +38,9 @@ arrayType:      '['']'lit=dataType;
 pointer:        STAR* (GOTYPE|ID);
 
 serviceBlock:       serverMeta? serviceBody;
-serverMeta:     ATSERVER '(' (key=ID COLON value=idValue?)* ')';
-idValue:        (ID ('/' ID)?)+;
+serverMeta:     '(' annotation* ')';
+annotation: key=ID COLON value=annotationKeyValue?;
+annotationKeyValue:        (ID ('/' ID)?)+;
 serviceBody:        SERVICE serviceName '{' routes=serviceRoute* '}';
 serviceName:        ID ('-' ID)?;
 serviceRoute:       routeDoc? (serverMeta|routeHandler) routePath ;

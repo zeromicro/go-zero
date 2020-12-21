@@ -1,4 +1,4 @@
-// Code generated from /Users/anqiansong/goland/go/go-zero_kingxt/tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
+// Code generated from /Users/kingxt/go/src/go-zero/tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.8. DO NOT EDIT.
 
 package parser // ApiParser
 
@@ -96,7 +96,11 @@ func (v *BaseApiParserVisitor) VisitServerMeta(ctx *ServerMetaContext) interface
 	return v.VisitChildren(ctx)
 }
 
-func (v *BaseApiParserVisitor) VisitIdValue(ctx *IdValueContext) interface{} {
+func (v *BaseApiParserVisitor) VisitAnnotation(ctx *AnnotationContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseApiParserVisitor) VisitAnnotationKeyValue(ctx *AnnotationKeyValueContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
