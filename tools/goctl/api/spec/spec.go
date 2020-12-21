@@ -24,8 +24,8 @@ type (
 	}
 
 	Group struct {
-		Annotations []Annotation
-		Routes      []Route
+		Annotation Annotation
+		Routes     []Route
 	}
 
 	Info struct {

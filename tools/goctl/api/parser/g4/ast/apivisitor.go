@@ -9,10 +9,13 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
+const serverAnnotationName = "server"
+
 type (
 	ApiVisitor struct {
 		parser.BaseApiParserVisitor
-		serviceGroup *spec.Group
+		serviceGroup      *spec.Group
+		serviceAnnotation *spec.Annotation
 	}
 )
 
@@ -92,7 +95,6 @@ func (v *ApiVisitor) VisitImportLitGroup(ctx *parser.ImportLitGroupContext) inte
 }
 
 func (v *ApiVisitor) VisitInfoBlock(ctx *parser.InfoBlockContext) interface{} {
-
 	return v.VisitChildren(ctx)
 }
 
@@ -154,14 +156,22 @@ func (v *ApiVisitor) VisitServiceBlock(ctx *parser.ServiceBlockContext) interfac
 }
 
 func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} {
+	v.serviceAnnotation = new(spec.Annotation)
+	v.serviceAnnotation.Name = serverAnnotationName
 	annos := ctx.AllAnnotation()
 	for _, anno := range annos {
 		anno.Accept(v)
 	}
-	return v.VisitChildren(ctx)
+	return v.serviceAnnotation
 }
 
 func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} {
+	key, err := v.getTokenText(ctx.GetKey(), true)
+	if err != nil {
+		panic(err)
+	}
+
+	v.serviceAnnotation.Properties[key] = ctx.GetValue().GetText()
 	return v.VisitChildren(ctx)
 }
 

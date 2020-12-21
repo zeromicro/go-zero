@@ -112,4 +112,7 @@ type ApiParserVisitor interface {
 	// Visit a parse tree produced by ApiParser#reply.
 	VisitReply(ctx *ReplyContext) interface{}
 
+	// Visit a parse tree produced by ApiParser#kvLit.
+	VisitKvLit(ctx *KvLitContext) interface{}
+
 }
