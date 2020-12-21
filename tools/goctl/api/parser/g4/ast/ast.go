@@ -26,7 +26,7 @@ func NewParser(content string, options ...option) *Parser {
 		lexer:     lexer,
 		ApiParser: p,
 	}
-
+	instance.AddErrorCallback(nil)
 	for _, opt := range options {
 		opt(instance)
 	}

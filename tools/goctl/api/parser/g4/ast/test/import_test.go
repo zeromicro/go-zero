@@ -20,22 +20,21 @@ import (
 `
 
 func TestImport(t *testing.T) {
-	//testImport(t, []string{"foo.api"}, false, importLit)
-	//testImport(t, []string{"foo.api","bar.api","foo/bar.api"}, false, importGroup)
-	//testImport(t, nil, false, `import ()`)
-	//testImport(t, nil, true, `import`)
-	//testImport(t, nil, true, `import user.api`)
-	//testImport(t, nil, true, `import "user.api "`)
-	//testImport(t, nil, true, `import "/"`)
-	//testImport(t, nil, true, `import " "`)
-	//testImport(t, nil, true, `import "user-.api"`)
+	testImport(t, []string{"foo.api"}, false, importLit)
+	testImport(t, []string{"foo.api", "bar.api", "foo/bar.api"}, false, importGroup)
 	testImport(t, nil, false, `import ()`)
+	testImport(t, nil, true, `import`)
+	testImport(t, nil, true, `import user.api`)
+	testImport(t, nil, true, `import "user.api "`)
+	testImport(t, nil, true, `import "/"`)
+	testImport(t, nil, true, `import " "`)
+	testImport(t, nil, true, `import "user-.api"`)
 }
 
-func testImport(t *testing.T, expected []string, expectedParserErr bool, content string) {
+func testImport(t *testing.T, expected []string, expectErr bool, content string) {
 	defer func() {
 		p := recover()
-		if expectedParserErr {
+		if expectErr {
 			assert.NotNil(t, p)
 			return
 		}
