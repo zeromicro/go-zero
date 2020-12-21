@@ -18,15 +18,12 @@ func TestService(t *testing.T) {
 }
 
 func testServiceAnnotation(t *testing.T, content, key, value string) {
-	var parserErr error
 	p := ast.NewParser(content, ast.WithErrorCallback(func(err error) {
 		assert.Nil(t, err)
 	}))
 	visitor := ast.NewApiVisitor()
 	result := p.ServerMeta().Accept(visitor)
-	if parserErr == nil {
-		anno, ok := result.(spec.Annotation)
-		assert.True(t, ok)
-		assert.Equal(t, anno.Properties[key], value)
-	}
+	anno, ok := result.(spec.Annotation)
+	assert.True(t, ok)
+	assert.Equal(t, anno.Properties[key], value)
 }
