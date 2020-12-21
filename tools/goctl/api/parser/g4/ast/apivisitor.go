@@ -154,6 +154,10 @@ func (v *ApiVisitor) VisitServiceBlock(ctx *parser.ServiceBlockContext) interfac
 }
 
 func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} {
+	annos := ctx.AllAnnotation()
+	for _, anno := range annos {
+		anno.Accept(v)
+	}
 	return v.VisitChildren(ctx)
 }
 

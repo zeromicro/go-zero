@@ -1,4 +1,4 @@
-// Code generated from /Users/anqiansong/goland/go/go-zero_kingxt/tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
+// Code generated from /Users/kingxt/go/src/go-zero/tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.8. DO NOT EDIT.
 
 package parser // ApiParser
 
@@ -153,6 +153,9 @@ var parserATN = []uint16{
 	139, 143, 149, 155, 162, 166, 169, 172, 178, 187, 202, 208, 217, 225, 230,
 	234, 242, 250, 253, 257, 263, 270, 284, 287, 291, 296, 300, 314,
 }
+var deserializer = antlr.NewATNDeserializer(nil)
+var deserializedATN = deserializer.DeserializeFromUInt16(parserATN)
+
 var literalNames = []string{
 	"", "", "'syntax'", "'info'", "'map'", "'struct'", "'interface{}'", "'type'",
 	"'service'", "'returns'", "'import'", "'@server'", "'@doc'", "'@handler'",
@@ -176,25 +179,21 @@ var ruleNames = []string{
 	"serviceBody", "serviceName", "serviceRoute", "routeDoc", "doc", "lineDoc",
 	"routeHandler", "routePath", "path", "request", "reply", "kvLit",
 }
+var decisionToDFA = make([]*antlr.DFA, len(deserializedATN.DecisionToState))
+
+func init() {
+	for index, ds := range deserializedATN.DecisionToState {
+		decisionToDFA[index] = antlr.NewDFA(ds, index)
+	}
+}
 
 type ApiParser struct {
 	*antlr.BaseParser
 }
 
-// NewApiParser produces a new parser instance for the optional input antlr.TokenStream.
-//
-// The *ApiParser instance produced may be reused by calling the SetInputStream method.
-// The initial parser configuration is expensive to construct, and the object is not thread-safe;
-// however, if used within a Golang sync.Pool, the construction cost amortizes well and the
-// objects can be used in a thread-safe manner.
 func NewApiParser(input antlr.TokenStream) *ApiParser {
 	this := new(ApiParser)
-	deserializer := antlr.NewATNDeserializer(nil)
-	deserializedATN := deserializer.DeserializeFromUInt16(parserATN)
-	decisionToDFA := make([]*antlr.DFA, len(deserializedATN.DecisionToState))
-	for index, ds := range deserializedATN.DecisionToState {
-		decisionToDFA[index] = antlr.NewDFA(ds, index)
-	}
+
 	this.BaseParser = antlr.NewBaseParser(input)
 
 	this.Interpreter = antlr.NewParserATNSimulator(this, deserializedATN, decisionToDFA, antlr.NewPredictionContextCache())
