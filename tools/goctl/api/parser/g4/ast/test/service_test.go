@@ -25,7 +25,7 @@ func testServiceAnnotation(t *testing.T, content, key, value string) {
 	visitor := ast.NewApiVisitor()
 	result := p.ServerMeta().Accept(visitor)
 	if parserErr == nil {
-		anno, ok := result.(*spec.Annotation)
+		anno, ok := result.(spec.Annotation)
 		assert.True(t, ok)
 		assert.Equal(t, anno.Properties[key], value)
 	}

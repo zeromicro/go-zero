@@ -15,8 +15,8 @@ const serverAnnotationName = "server"
 type (
 	ApiVisitor struct {
 		parser.BaseApiParserVisitor
-		serviceGroup      *spec.Group
-		serviceAnnotation *spec.Annotation
+		serviceGroup *spec.Group
+		apiSpec      spec.ApiSpec
 	}
 )
 
@@ -66,7 +66,6 @@ func (v *ApiVisitor) VisitImportSpec(ctx *parser.ImportSpecContext) interface{} 
 			}
 		}
 	}
-
 	return &spec.ApiImport{List: list}
 }
 
@@ -152,20 +151,26 @@ func (v *ApiVisitor) VisitPointer(ctx *parser.PointerContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitServiceBlock(ctx *parser.ServiceBlockContext) interface{} {
-	v.serviceGroup = new(spec.Group)
+	if v.serviceGroup == nil {
+		v.serviceGroup = new(spec.Group)
+		v.apiSpec.Service.Groups = append(v.apiSpec.Service.Groups, *v.serviceGroup)
+	}
 	return v.VisitChildren(ctx)
 }
 
 func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} {
-	v.serviceAnnotation = new(spec.Annotation)
-	v.serviceAnnotation.Name = serverAnnotationName
-	v.serviceAnnotation.Properties = make(map[string]string, 0)
+	if v.serviceGroup == nil {
+		v.serviceGroup = new(spec.Group)
+		v.apiSpec.Service.Groups = append(v.apiSpec.Service.Groups, *v.serviceGroup)
+	}
+	v.serviceGroup.Annotation.Name = serverAnnotationName
+	v.serviceGroup.Annotation.Properties = make(map[string]string, 0)
 	annos := ctx.AllAnnotation()
-	println(len(annos))
 	for _, anno := range annos {
 		anno.Accept(v)
 	}
-	return v.serviceAnnotation
+
+	return v.serviceGroup.Annotation
 }
 
 func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} {
@@ -178,7 +183,7 @@ func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} 
 		panic(errors.New("empty annotation key or value"))
 	}
 
-	v.serviceAnnotation.Properties[key] = ctx.GetValue().GetText()
+	v.serviceGroup.Annotation.Properties[key] = ctx.GetValue().GetText()
 	return nil
 }
 
