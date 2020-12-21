@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 
@@ -158,7 +159,9 @@ func (v *ApiVisitor) VisitServiceBlock(ctx *parser.ServiceBlockContext) interfac
 func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} {
 	v.serviceAnnotation = new(spec.Annotation)
 	v.serviceAnnotation.Name = serverAnnotationName
+	v.serviceAnnotation.Properties = make(map[string]string, 0)
 	annos := ctx.AllAnnotation()
+	println(len(annos))
 	for _, anno := range annos {
 		anno.Accept(v)
 	}
@@ -171,8 +174,12 @@ func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} 
 		panic(err)
 	}
 
+	if len(key) == 0 || ctx.GetValue() == nil {
+		panic(errors.New("empty annotation key or value"))
+	}
+
 	v.serviceAnnotation.Properties[key] = ctx.GetValue().GetText()
-	return v.VisitChildren(ctx)
+	return nil
 }
 
 func (v *ApiVisitor) VisitAnnotationKeyValue(ctx *parser.AnnotationKeyValueContext) interface{} {
