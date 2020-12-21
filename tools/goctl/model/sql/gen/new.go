@@ -14,7 +14,7 @@ func genNew(table Table, withCache bool) (string, error) {
 	output, err := util.With("new").
 		Parse(text).
 		Execute(map[string]interface{}{
-			"table":                 table.Name.Source(),
+			"table":                 wrapWithRawString(table.Name.Source()),
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),
 		})

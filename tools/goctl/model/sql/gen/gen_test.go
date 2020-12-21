@@ -1,13 +1,18 @@
 package gen
 
 import (
+	"database/sql"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
 )
 
 var (
@@ -78,4 +83,33 @@ func TestNamingModel(t *testing.T) {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_info_model.go"))
 		return err == nil
 	}())
+}
+
+func TestWrapWithRawString(t *testing.T) {
+	assert.Equal(t, "``", wrapWithRawString(""))
+	assert.Equal(t, "``", wrapWithRawString("``"))
+	assert.Equal(t, "`a`", wrapWithRawString("a"))
+	assert.Equal(t, "`   `", wrapWithRawString("   "))
+}
+
+func TestFields(t *testing.T) {
+	type Student struct {
+		Id         int64           `db:"id"`
+		Name       string          `db:"name"`
+		Age        sql.NullInt64   `db:"age"`
+		Score      sql.NullFloat64 `db:"score"`
+		CreateTime time.Time       `db:"create_time"`
+		UpdateTime sql.NullTime    `db:"update_time"`
+	}
+	var (
+		studentFieldNames          = builderx.FieldNames(&Student{})
+		studentRows                = strings.Join(studentFieldNames, ",")
+		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
+		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
+	)
+
+	assert.Equal(t, []string{"`id`", "`name`", "`age`", "`score`", "`create_time`", "`update_time`"}, studentFieldNames)
+	assert.Equal(t, "`id`,`name`,`age`,`score`,`create_time`,`update_time`", studentRows)
+	assert.Equal(t, "`name`,`age`,`score`", studentRowsExpectAutoSet)
+	assert.Equal(t, "`name`=?,`age`=?,`score`=?", studentRowsWithPlaceHolder)
 }

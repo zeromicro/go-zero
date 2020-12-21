@@ -21,9 +21,6 @@ import (
 const (
 	pwd             = "."
 	createTableFlag = `(?m)^(?i)CREATE\s+TABLE` // ignore case
-	NamingLower     = "lower"
-	NamingCamel     = "camel"
-	NamingSnake     = "snake"
 )
 
 type (
@@ -279,4 +276,21 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	return output.String(), nil
+}
+
+func wrapWithRawString(v string) string {
+	if v == "`" {
+		return v
+	}
+
+	if !strings.HasPrefix(v, "`") {
+		v = "`" + v
+	}
+
+	if !strings.HasSuffix(v, "`") {
+		v = v + "`"
+	} else if len(v) == 1 {
+		v = v + "`"
+	}
+	return v
 }
