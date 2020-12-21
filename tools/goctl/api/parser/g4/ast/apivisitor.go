@@ -18,6 +18,10 @@ type (
 		serviceGroup *spec.Group
 		apiSpec      spec.ApiSpec
 	}
+	kv struct {
+		key   string
+		value string
+	}
 )
 
 func NewApiVisitor() *ApiVisitor {
@@ -33,10 +37,7 @@ func (v *ApiVisitor) VisitBody(ctx *parser.BodyContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitSyntaxLit(ctx *parser.SyntaxLitContext) interface{} {
-	version, err := v.getTokenText(ctx.GetVersion(), true)
-	if err != nil {
-		panic(err)
-	}
+	version := v.getTokenText(ctx.GetVersion(), true)
 
 	return &spec.ApiSyntax{Version: version}
 }
@@ -70,10 +71,7 @@ func (v *ApiVisitor) VisitImportSpec(ctx *parser.ImportSpecContext) interface{} 
 }
 
 func (v *ApiVisitor) VisitImportLit(ctx *parser.ImportLitContext) interface{} {
-	importPath, err := v.getTokenText(ctx.GetImportPath(), true)
-	if err != nil {
-		panic(err)
-	}
+	importPath := v.getTokenText(ctx.GetImportPath(), true)
 
 	return &spec.ApiImport{
 		List: []string{importPath},
@@ -84,10 +82,7 @@ func (v *ApiVisitor) VisitImportLitGroup(ctx *parser.ImportLitGroupContext) inte
 	nodes := ctx.AllIMPORT_PATH()
 	var list []string
 	for _, node := range nodes {
-		importPath, err := v.getNodeText(node, true)
-		if err != nil {
-			panic(err)
-		}
+		importPath := v.getNodeText(node, true)
 
 		list = append(list, importPath)
 	}
@@ -95,7 +90,24 @@ func (v *ApiVisitor) VisitImportLitGroup(ctx *parser.ImportLitGroupContext) inte
 }
 
 func (v *ApiVisitor) VisitInfoBlock(ctx *parser.InfoBlockContext) interface{} {
-	return v.VisitChildren(ctx)
+	var info spec.Info
+	info.Proterties = make(map[string]string)
+	iKvLitContexts := ctx.AllKvLit()
+	for _, each := range iKvLitContexts {
+		kvLitContext, ok := each.(*parser.KvLitContext)
+		if !ok {
+			continue
+		}
+
+		r := v.VisitKvLit(kvLitContext)
+		kv, ok := r.(*kv)
+		if !ok {
+			continue
+		}
+		info.Proterties[kv.key] = kv.value
+
+	}
+	return &info
 }
 
 func (v *ApiVisitor) VisitTypeBlock(ctx *parser.TypeBlockContext) interface{} {
@@ -174,10 +186,7 @@ func (v *ApiVisitor) VisitServerMeta(ctx *parser.ServerMetaContext) interface{} 
 }
 
 func (v *ApiVisitor) VisitAnnotation(ctx *parser.AnnotationContext) interface{} {
-	key, err := v.getTokenText(ctx.GetKey(), true)
-	if err != nil {
-		panic(err)
-	}
+	key := v.getTokenText(ctx.GetKey(), true)
 
 	if len(key) == 0 || ctx.GetValue() == nil {
 		panic(errors.New("empty annotation key or value"))
@@ -236,13 +245,19 @@ func (v *ApiVisitor) VisitReply(ctx *parser.ReplyContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitKvLit(ctx *parser.KvLitContext) interface{} {
-	return v.VisitChildren(ctx)
+	key := v.getTokenText(ctx.GetKey(), false)
+	value := v.getTokenText(ctx.GetValue(), true)
+
+	return &kv{
+		key:   key,
+		value: value,
+	}
 }
 
 func (v *ApiVisitor) getTokenInt(token antlr.Token) (int64, error) {
-	text, err := v.getTokenText(token, true)
-	if err != nil {
-		return 0, err
+	text := v.getTokenText(token, true)
+	if len(text) == 0 {
+		return 0, nil
 	}
 
 	vInt, err := strconv.ParseInt(text, 10, 64)
@@ -253,22 +268,22 @@ func (v *ApiVisitor) getTokenInt(token antlr.Token) (int64, error) {
 	return vInt, nil
 }
 
-func (v *ApiVisitor) getTokenText(token antlr.Token, trimQuote bool) (string, error) {
+func (v *ApiVisitor) getTokenText(token antlr.Token, trimQuote bool) string {
 	if token == nil {
-		return "", nil
+		return ""
 	}
 
 	text := token.GetText()
 	if trimQuote {
 		text = v.trimQuote(text)
 	}
-	return text, nil
+	return text
 }
 
 func (v *ApiVisitor) getNodeInt(node antlr.TerminalNode) (int64, error) {
-	text, err := v.getNodeText(node, true)
-	if err != nil {
-		return 0, err
+	text := v.getNodeText(node, true)
+	if len(text) == 0 {
+		return 0, nil
 	}
 
 	vInt, err := strconv.ParseInt(text, 10, 64)
@@ -280,16 +295,16 @@ func (v *ApiVisitor) getNodeInt(node antlr.TerminalNode) (int64, error) {
 
 }
 
-func (v *ApiVisitor) getNodeText(node antlr.TerminalNode, trimQuote bool) (string, error) {
+func (v *ApiVisitor) getNodeText(node antlr.TerminalNode, trimQuote bool) string {
 	if node == nil {
-		return "", nil
+		return ""
 	}
 
 	text := node.GetText()
 	if trimQuote {
 		text = v.trimQuote(text)
 	}
-	return text, nil
+	return text
 }
 
 func (v *ApiVisitor) trimQuote(text string) string {
