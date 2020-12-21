@@ -15,10 +15,6 @@ type (
 
 		serviceGroup *spec.Group
 	}
-	VisitResult struct {
-		v   interface{}
-		err error
-	}
 )
 
 func NewApiVisitor() *ApiVisitor {
@@ -34,24 +30,66 @@ func (v *ApiVisitor) VisitBody(ctx *parser.BodyContext) interface{} {
 }
 
 func (v *ApiVisitor) VisitSyntaxLit(ctx *parser.SyntaxLitContext) interface{} {
-	version, err := v.getText(ctx.GetVersion(), true)
-	syntax := &spec.ApiSyntax{Version: version}
-	return &VisitResult{
-		err: err,
-		v:   syntax,
+	version, err := v.getTokenText(ctx.GetVersion(), true)
+	if err != nil {
+		panic(err)
 	}
+
+	return &spec.ApiSyntax{Version: version}
 }
 
 func (v *ApiVisitor) VisitImportSpec(ctx *parser.ImportSpecContext) interface{} {
-	return v.VisitChildren(ctx)
+	iImportLitContext := ctx.ImportLit()
+	iImportLitGroupContext := ctx.ImportLitGroup()
+	var list []string
+	if iImportLitContext != nil {
+		importLitContext, ok := iImportLitContext.(*parser.ImportLitContext)
+		if ok {
+			result := v.VisitImportLit(importLitContext)
+			importValue, ok := result.(*spec.ApiImport)
+			if ok {
+				list = append(list, importValue.List...)
+			}
+		}
+	}
+
+	if iImportLitGroupContext != nil {
+		importGroupContext, ok := iImportLitGroupContext.(*parser.ImportLitGroupContext)
+		if ok {
+			result := v.VisitImportLitGroup(importGroupContext)
+			importValue, ok := result.(*spec.ApiImport)
+			if ok {
+				list = append(list, importValue.List...)
+			}
+		}
+	}
+
+	return &spec.ApiImport{List: list}
 }
 
 func (v *ApiVisitor) VisitImportLit(ctx *parser.ImportLitContext) interface{} {
-	return v.VisitChildren(ctx)
+	importPath, err := v.getTokenText(ctx.GetImportPath(), true)
+	if err != nil {
+		panic(err)
+	}
+
+	return &spec.ApiImport{
+		List: []string{importPath},
+	}
 }
 
 func (v *ApiVisitor) VisitImportLitGroup(ctx *parser.ImportLitGroupContext) interface{} {
-	return v.VisitChildren(ctx)
+	nodes := ctx.AllIMPORT_PATH()
+	var list []string
+	for _, node := range nodes {
+		importPath, err := v.getNodeText(node, true)
+		if err != nil {
+			panic(err)
+		}
+
+		list = append(list, importPath)
+	}
+	return &spec.ApiImport{List: list}
 }
 
 func (v *ApiVisitor) VisitInfoBlock(ctx *parser.InfoBlockContext) interface{} {
@@ -171,12 +209,8 @@ func (v *ApiVisitor) VisitReply(ctx *parser.ReplyContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 
-func (v *VisitResult) Result() (interface{}, error) {
-	return v.v, v.err
-}
-
-func (v *ApiVisitor) getInt(token antlr.Token) (int64, error) {
-	text, err := v.getText(token, true)
+func (v *ApiVisitor) getTokenInt(token antlr.Token) (int64, error) {
+	text, err := v.getTokenText(token, true)
 	if err != nil {
 		return 0, err
 	}
@@ -189,11 +223,39 @@ func (v *ApiVisitor) getInt(token antlr.Token) (int64, error) {
 	return vInt, nil
 }
 
-func (v *ApiVisitor) getText(token antlr.Token, trimQuote bool) (string, error) {
+func (v *ApiVisitor) getTokenText(token antlr.Token, trimQuote bool) (string, error) {
 	if token == nil {
 		return "", nil
 	}
+
 	text := token.GetText()
+	if trimQuote {
+		text = v.trimQuote(text)
+	}
+	return text, nil
+}
+
+func (v *ApiVisitor) getNodeInt(node antlr.TerminalNode) (int64, error) {
+	text, err := v.getNodeText(node, true)
+	if err != nil {
+		return 0, err
+	}
+
+	vInt, err := strconv.ParseInt(text, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return vInt, nil
+
+}
+
+func (v *ApiVisitor) getNodeText(node antlr.TerminalNode, trimQuote bool) (string, error) {
+	if node == nil {
+		return "", nil
+	}
+
+	text := node.GetText()
 	if trimQuote {
 		text = v.trimQuote(text)
 	}

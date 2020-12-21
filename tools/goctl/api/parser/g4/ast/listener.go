@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -28,6 +29,7 @@ func (listener *ErrorListener) SyntaxError(recognizer antlr.Recognizer, offendin
 		listener.callback(fmt.Errorf("%s, %s", lineHeader, msg))
 		return
 	}
-
-	fmt.Printf("%s, %s\r\n", lineHeader, msg)
+	errString := fmt.Sprintf(lineHeader + ", " + msg)
+	fmt.Println(errString)
+	panic(errors.New(errString))
 }
