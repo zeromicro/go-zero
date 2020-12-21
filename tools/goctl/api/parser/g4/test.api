@@ -102,3 +102,10 @@ service example-api {
     @handler fooHandler4
     get /api/foo4
 }
+
+@custom(
+    foo: bar
+)
+service example-api{
+
+}

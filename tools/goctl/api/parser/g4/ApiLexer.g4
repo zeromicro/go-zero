@@ -31,9 +31,6 @@ MAP:                'map';
 STRUCT:             'struct';
 INTERFACE:          'interface{}';
 TYPE:               'type';
-ATSERVER:           '@server';
-ATDOC:              '@doc';
-ATHANDLER:          '@handler';
 SERVICE:            'service';
 RETURNS:            'returns';
 IMPORT:             'import';
@@ -68,7 +65,8 @@ BITAND:             '&';
 ASSIGN:             '=';
 SUB:                '-';
 COLON:              ':';
-STAR:                '*';
+STAR:               '*';
+
 
 // Whitespace and comments
 WS:                 [ \t\r\n\u000C]+ -> channel(HIDDEN);
@@ -80,6 +78,7 @@ SYNTAX_VERSION:     '"' 'v'[1-9][0-9]* '"';
 IMPORT_PATH:        '"' '/'? ID ('/' ID)* '.api' '"';
 STRING_LIT:         ('"' (~["\\] | EscapeSequence)* '"');
 RAW_STRING:         '`' (~[`\\\r\n] | EscapeSequence)* '`';
+AT:                 '@'ID;
 
 ID:         Letter LetterOrDigit*;
 
