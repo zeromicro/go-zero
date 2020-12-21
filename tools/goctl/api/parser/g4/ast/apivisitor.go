@@ -6,6 +6,7 @@ import (
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	parser "github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/g4gen"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
 type (
@@ -32,7 +33,7 @@ func (v *ApiVisitor) VisitBody(ctx *parser.BodyContext) interface{} {
 
 func (v *ApiVisitor) VisitSyntaxLit(ctx *parser.SyntaxLitContext) interface{} {
 	version, err := v.getText(ctx.GetVersion(), true)
-	syntax := &Syntax{Version: version}
+	syntax := &spec.ApiSyntax{Version: version}
 	return &VisitResult{
 		err: err,
 		v:   syntax,

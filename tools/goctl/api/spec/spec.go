@@ -7,10 +7,20 @@ type (
 		Value      string
 	}
 
+	ApiSyntax struct {
+		Version string
+	}
+
 	ApiSpec struct {
+		Syntax  ApiSyntax
+		Import  ApiImport
 		Info    Info
 		Types   []Type
 		Service Service
+	}
+
+	ApiImport struct {
+		List []string
 	}
 
 	Group struct {

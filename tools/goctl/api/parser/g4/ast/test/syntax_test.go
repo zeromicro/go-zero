@@ -6,7 +6,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/ast"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
+
+var logEnable = true
 
 func TestSyntaxLit(t *testing.T) {
 	testSyntax(t, "v1", false, `syntax = "v1"`)
@@ -26,7 +29,9 @@ func testSyntax(t *testing.T, expected interface{}, expectedParserErr bool, cont
 		globalErr = err
 		if expectedParserErr {
 			assert.Error(t, err)
-			fmt.Printf("%+v\r\n", err)
+			if logEnable {
+				fmt.Printf("%+v\r\n", err)
+			}
 			return
 		}
 		assert.Nil(t, err)
@@ -42,7 +47,7 @@ func testSyntax(t *testing.T, expected interface{}, expectedParserErr bool, cont
 	r, err := visitResult.Result()
 	assert.Nil(t, err)
 
-	syntax, ok := r.(*ast.Syntax)
+	syntax, ok := r.(*spec.ApiSyntax)
 	assert.True(t, ok)
 	assert.Equal(t, expected, syntax.Version)
 }
