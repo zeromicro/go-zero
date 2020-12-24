@@ -17,13 +17,15 @@ func TestConfigJson(t *testing.T) {
 	}
 	text := `{
 	"a": "foo",
-	"b": 1
+	"b": 1,
+	"c": "${FOO}"
 }`
 	for _, test := range tests {
 		test := test
 		t.Run(test, func(t *testing.T) {
 			t.Parallel()
-
+			os.Setenv("FOO", "2")
+			defer os.Unsetenv("FOO")
 			tmpfile, err := createTempFile(test, text)
 			assert.Nil(t, err)
 			defer os.Remove(tmpfile)
@@ -31,10 +33,12 @@ func TestConfigJson(t *testing.T) {
 			var val struct {
 				A string `json:"a"`
 				B int    `json:"b"`
+				C string    `json:"c"`
 			}
 			MustLoad(tmpfile, &val)
 			assert.Equal(t, "foo", val.A)
 			assert.Equal(t, 1, val.B)
+			assert.Equal(t, "2", val.C)
 		})
 	}
 }

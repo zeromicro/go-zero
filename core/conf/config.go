@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path"
 
 	"github.com/tal-tech/go-zero/core/mapping"
@@ -19,7 +20,7 @@ func LoadConfig(file string, v interface{}) error {
 	if content, err := ioutil.ReadFile(file); err != nil {
 		return err
 	} else if loader, ok := loaders[path.Ext(file)]; ok {
-		return loader(content, v)
+		return loader([]byte(os.ExpandEnv(string(content))), v)
 	} else {
 		return fmt.Errorf("unrecoginized file type: %s", file)
 	}
