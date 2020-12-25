@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"errors"
 	"log"
 	"net/http"
 
@@ -24,6 +23,9 @@ type (
 	}
 )
 
+// MustNewServer returns a server with given config of c and options defined in opts.
+// Be aware that later RunOption might overwrite previous one that write the same option.
+// The process will exit if error occurs.
 func MustNewServer(c RestConf, opts ...RunOption) *Server {
 	engine, err := NewServer(c, opts...)
 	if err != nil {
@@ -33,11 +35,9 @@ func MustNewServer(c RestConf, opts ...RunOption) *Server {
 	return engine
 }
 
+// NewServer returns a server with given config of c and options defined in opts.
+// Be aware that later RunOption might overwrite previous one that write the same option.
 func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
-	if len(opts) > 1 {
-		return nil, errors.New("only one RunOption is allowed")
-	}
-
 	if err := c.SetUp(); err != nil {
 		return nil, err
 	}
