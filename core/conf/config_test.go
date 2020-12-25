@@ -33,7 +33,7 @@ func TestConfigJson(t *testing.T) {
 			var val struct {
 				A string `json:"a"`
 				B int    `json:"b"`
-				C string    `json:"c"`
+				C string `json:"c"`
 			}
 			MustLoad(tmpfile, &val)
 			assert.Equal(t, "foo", val.A)
