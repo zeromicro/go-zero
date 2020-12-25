@@ -35,7 +35,7 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	if err != nil {
 		return err
 	}
-	_, err = fmt.Fprintf(writer, "\tprivate %s %s", ty, name)
+	_, err = fmt.Fprintf(writer, "private %s %s", ty, name)
 	if err != nil {
 		return err
 	}
@@ -143,9 +143,9 @@ func genGetSet(writer io.Writer, members []spec.Member, indent int) error {
 		decorator := ""
 		if !isPrimitiveType(member.Type) {
 			if member.IsOptional() {
-				decorator = "@org.jetbrains.annotations.Nullable "
+				decorator = "@Nullable "
 			} else {
-				decorator = "@org.jetbrains.annotations.NotNull "
+				decorator = "@NotNull "
 			}
 			tyString = decorator + tyString
 		}

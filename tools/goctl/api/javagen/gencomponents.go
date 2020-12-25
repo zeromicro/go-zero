@@ -18,6 +18,8 @@ const (
 package com.xhb.logic.http.packet.{{.packet}}.model;
 
 import com.xhb.logic.http.DeProguardable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 {{.componentType}}
 `
@@ -76,17 +78,17 @@ func buildType(ty spec.Type, types []spec.Type) (string, error) {
 func writeType(writer io.Writer, tp spec.Type, types []spec.Type) error {
 	fmt.Fprintf(writer, "public class %s implements DeProguardable {\n", util.Title(tp.Name))
 	var members []spec.Member
-	err := writeMembers(writer, types, tp.Members, &members)
+	err := writeMembers(writer, types, tp.Members, &members, 1)
 	if err != nil {
 		return err
 	}
 
 	genGetSet(writer, members, 1)
-	fmt.Fprintf(writer, "}\n")
+	fmt.Fprintf(writer, "}")
 	return nil
 }
 
-func writeMembers(writer io.Writer, types []spec.Type, members []spec.Member, allMembers *[]spec.Member) error {
+func writeMembers(writer io.Writer, types []spec.Type, members []spec.Member, allMembers *[]spec.Member, indent int) error {
 	for _, member := range members {
 		if !member.IsBodyMember() {
 			continue
@@ -102,7 +104,7 @@ func writeMembers(writer io.Writer, types []spec.Type, members []spec.Member, al
 			hasInline := false
 			for _, ty := range types {
 				if strings.ToLower(ty.Name) == strings.ToLower(member.Name) {
-					err := writeMembers(writer, types, ty.Members, allMembers)
+					err := writeMembers(writer, types, ty.Members, allMembers, indent)
 					if err != nil {
 						return err
 					}
@@ -114,7 +116,7 @@ func writeMembers(writer io.Writer, types []spec.Type, members []spec.Member, al
 				return errors.New("inline type " + member.Name + " not exist, please correct api file")
 			}
 		} else {
-			if err := writeProperty(writer, member, 1); err != nil {
+			if err := writeProperty(writer, member, indent); err != nil {
 				return err
 			}
 			*allMembers = append(*allMembers, member)

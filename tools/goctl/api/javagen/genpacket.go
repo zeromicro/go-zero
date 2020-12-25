@@ -19,14 +19,18 @@ const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
 
 import com.google.gson.Gson;
 import com.xhb.commons.JSON;
-import com.xhb.commons.JsonParser;
+import com.xhb.commons.JsonMarshal;
 import com.xhb.core.network.HttpRequestClient;
 import com.xhb.core.packet.HttpRequestPacket;
 import com.xhb.core.response.HttpResponseData;
 import com.xhb.logic.http.DeProguardable;
+{{if not .HasRequestBody}}
+import com.xhb.logic.http.request.EmptyRequest;
+{{end}}
 {{.import}}
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 public class {{.packetName}} extends HttpRequestPacket<{{.packetName}}.{{.packetName}}Response> {
@@ -270,7 +274,7 @@ func genType(writer io.Writer, tp spec.Type, types []spec.Type) error {
 	writeIndent(writer, 1)
 	fmt.Fprintf(writer, "static class %s implements DeProguardable {\n", util.Title(tp.Name))
 	var members []spec.Member
-	err := writeMembers(writer, types, tp.Members, &members)
+	err := writeMembers(writer, types, tp.Members, &members, 2)
 	if err != nil {
 		return err
 	}
