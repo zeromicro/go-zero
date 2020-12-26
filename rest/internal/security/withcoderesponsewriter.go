@@ -19,3 +19,9 @@ func (w *WithCodeResponseWriter) WriteHeader(code int) {
 	w.Writer.WriteHeader(code)
 	w.Code = code
 }
+
+func (w *WithCodeResponseWriter) Flush() {
+	if flusher, ok := w.Writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}

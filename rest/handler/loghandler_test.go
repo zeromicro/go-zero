@@ -30,6 +30,10 @@ func TestLogHandler(t *testing.T) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, err := w.Write([]byte("content"))
 			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.Equal(t, ok, true)
+			flusher.Flush()
 		}))
 
 		resp := httptest.NewRecorder()
