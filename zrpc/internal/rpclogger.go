@@ -64,10 +64,10 @@ func (l *Logger) Warning(args ...interface{}) {
 	// ignore builtin grpc warning
 }
 
-func (l *Logger) Warningln(args ...interface{}) {
+func (l *Logger) Warningf(format string, args ...interface{}) {
 	// ignore builtin grpc warning
 }
 
-func (l *Logger) Warningf(format string, args ...interface{}) {
+func (l *Logger) Warningln(args ...interface{}) {
 	// ignore builtin grpc warning
 }
