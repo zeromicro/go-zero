@@ -92,9 +92,8 @@ func TestCryptionHandlerFlush(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/any", nil)
 	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(respText))
-
 		flusher, ok := w.(http.Flusher)
-		assert.Equal(t, ok, true)
+		assert.True(t, ok)
 		flusher.Flush()
 	}))
 	recorder := httptest.NewRecorder()
