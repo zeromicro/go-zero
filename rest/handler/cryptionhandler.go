@@ -95,6 +95,12 @@ func (w *cryptionResponseWriter) WriteHeader(statusCode int) {
 	w.ResponseWriter.WriteHeader(statusCode)
 }
 
+func (w *cryptionResponseWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (w *cryptionResponseWriter) flush(key []byte) {
 	if w.buf.Len() == 0 {
 		return

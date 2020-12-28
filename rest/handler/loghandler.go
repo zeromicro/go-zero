@@ -38,6 +38,12 @@ func (w *LoggedResponseWriter) WriteHeader(code int) {
 	w.code = code
 }
 
+func (w *LoggedResponseWriter) Flush() {
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
@@ -79,6 +85,12 @@ func (w *DetailLoggedResponseWriter) Write(bs []byte) (int, error) {
 
 func (w *DetailLoggedResponseWriter) WriteHeader(code int) {
 	w.writer.WriteHeader(code)
+}
+
+func (w *DetailLoggedResponseWriter) Flush() {
+	if flusher, ok := http.ResponseWriter(w.writer).(http.Flusher); ok {
+		flusher.Flush()
+	}
 }
 
 func DetailedLogHandler(next http.Handler) http.Handler {

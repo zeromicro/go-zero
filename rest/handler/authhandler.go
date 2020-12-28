@@ -138,3 +138,9 @@ func (grw *guardedResponseWriter) WriteHeader(statusCode int) {
 	grw.wroteHeader = true
 	grw.writer.WriteHeader(statusCode)
 }
+
+func (grw *guardedResponseWriter) Flush() {
+	if flusher, ok := grw.writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
