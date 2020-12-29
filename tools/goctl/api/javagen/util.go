@@ -67,8 +67,8 @@ func indentString(indent int) string {
 	return result
 }
 
-func writeBreakline(writer io.Writer) {
-	fmt.Fprint(writer, "\n")
+func writeNewline(writer io.Writer) {
+	fmt.Fprint(writer, util.NL)
 }
 
 func isPrimitiveType(tp string) bool {
@@ -87,6 +87,7 @@ func goTypeToJava(tp string) (string, error) {
 	if len(tp) == 0 {
 		return "", errors.New("property type empty")
 	}
+
 	if strings.HasPrefix(tp, "*") {
 		tp = tp[1:]
 	}
@@ -107,39 +108,44 @@ func goTypeToJava(tp string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 		if len(tys) == 0 {
 			return "", fmt.Errorf("%s tp parse error", tp)
 		}
+
 		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(tys[0])), nil
 	} else if strings.HasPrefix(tp, "map") {
 		tys, err := apiutil.DecomposeType(tp)
 		if err != nil {
 			return "", err
 		}
+
 		if len(tys) == 2 {
 			return "", fmt.Errorf("%s tp parse error", tp)
 		}
+
 		return fmt.Sprintf("java.util.HashMap<String, %s>", util.Title(tys[1])), nil
 	}
 	return util.Title(tp), nil
 }
 
-func genGetSet(writer io.Writer, tp spec.Type, indent int) error {
+func genGetSet(writer io.Writer, members []spec.Member, indent int) error {
 	t := template.Must(template.New("getSetTemplate").Parse(getSetTemplate))
-	for _, member := range tp.Members {
+	for _, member := range members {
 		var tmplBytes bytes.Buffer
 
 		oty, err := goTypeToJava(member.Type)
 		if err != nil {
 			return err
 		}
+
 		tyString := oty
 		decorator := ""
 		if !isPrimitiveType(member.Type) {
 			if member.IsOptional() {
-				decorator = "@org.jetbrains.annotations.Nullable "
+				decorator = "@Nullable "
 			} else {
-				decorator = "@org.jetbrains.annotations.NotNull "
+				decorator = "@NotNull "
 			}
 			tyString = decorator + tyString
 		}
@@ -155,6 +161,7 @@ func genGetSet(writer io.Writer, tp spec.Type, indent int) error {
 		if err != nil {
 			return err
 		}
+
 		r := tmplBytes.String()
 		r = strings.Replace(r, " boolean get", " boolean is", 1)
 		writer.Write([]byte(r))

@@ -19,23 +19,27 @@ const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
 
 import com.google.gson.Gson;
 import com.xhb.commons.JSON;
-import com.xhb.commons.JsonParser;
+import com.xhb.commons.JsonMarshal;
 import com.xhb.core.network.HttpRequestClient;
 import com.xhb.core.packet.HttpRequestPacket;
 import com.xhb.core.response.HttpResponseData;
 import com.xhb.logic.http.DeProguardable;
+{{if not .HasRequestBody}}
+import com.xhb.logic.http.request.EmptyRequest;
+{{end}}
 {{.import}}
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 public class {{.packetName}} extends HttpRequestPacket<{{.packetName}}.{{.packetName}}Response> {
 
 	{{.paramsDeclaration}}
 
-	public {{.packetName}}({{.params}}{{.requestType}} request) {
-        super(request);
-		this.request = request;{{.paramsSet}}
+	public {{.packetName}}({{.params}}{{if .HasRequestBody}}, {{.requestType}} request{{end}}) {
+		{{if .HasRequestBody}}super(request);{{else}}super(EmptyRequest.instance);{{end}}
+		{{if .HasRequestBody}}this.request = request;{{end}}{{.paramsSet}}
     }
 
 	@Override
@@ -113,7 +117,8 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 		} else {
 			fmt.Fprintln(&builder)
 		}
-		if err := genType(&builder, tp); err != nil {
+
+		if err := genType(&builder, tp, api.Types); err != nil {
 			return err
 		}
 	}
@@ -126,7 +131,7 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 
 	t := template.Must(template.New("packetTemplate").Parse(packetTemplate))
 	var tmplBytes bytes.Buffer
-	err = t.Execute(&tmplBytes, map[string]string{
+	err = t.Execute(&tmplBytes, map[string]interface{}{
 		"packetName":        packet,
 		"method":            strings.ToUpper(route.Method),
 		"uri":               processUri(route),
@@ -137,6 +142,7 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 		"paramsSet":         paramsSet,
 		"packet":            packetName,
 		"requestType":       util.Title(route.RequestType.Name),
+		"HasRequestBody":    len(route.RequestType.GetBodyMembers()) > 0,
 		"import":            getImports(api, route, packetName),
 	})
 	if err != nil {
@@ -209,7 +215,7 @@ func paramsForRoute(route spec.Route) string {
 			builder.WriteString(fmt.Sprintf("String %s, ", cop[1:]))
 		}
 	}
-	return builder.String()
+	return strings.TrimSuffix(builder.String(), ", ")
 }
 
 func declarationForRoute(route spec.Route) string {
@@ -260,18 +266,22 @@ func processUri(route spec.Route) string {
 	return result
 }
 
-func genType(writer io.Writer, tp spec.Type) error {
-	writeIndent(writer, 1)
-	fmt.Fprintf(writer, "static class %s implements DeProguardable {\n", util.Title(tp.Name))
-	for _, member := range tp.Members {
-		if err := writeProperty(writer, member, 2); err != nil {
-			return err
-		}
+func genType(writer io.Writer, tp spec.Type, types []spec.Type) error {
+	if len(tp.GetBodyMembers()) == 0 {
+		return nil
 	}
 
-	writeBreakline(writer)
 	writeIndent(writer, 1)
-	genGetSet(writer, tp, 2)
+	fmt.Fprintf(writer, "static class %s implements DeProguardable {\n", util.Title(tp.Name))
+	var members []spec.Member
+	err := writeMembers(writer, types, tp.Members, &members, 2)
+	if err != nil {
+		return err
+	}
+
+	writeNewline(writer)
+	writeIndent(writer, 1)
+	genGetSet(writer, members, 2)
 	writeIndent(writer, 1)
 	fmt.Fprintln(writer, "}")
 
