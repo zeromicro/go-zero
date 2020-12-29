@@ -3,8 +3,8 @@ package spec
 type (
 	Annotation struct {
 		Name       string
-		Properties map[string]string
 		Value      string
+		Properties map[string]string
 	}
 
 	ApiSyntax struct {
@@ -24,8 +24,8 @@ type (
 	}
 
 	Group struct {
-		Annotations []Annotation
-		Routes      []Route
+		Annotation Annotation
+		Routes     []Route
 	}
 
 	Info struct {
