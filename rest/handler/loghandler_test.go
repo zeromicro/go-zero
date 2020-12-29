@@ -32,7 +32,7 @@ func TestLogHandler(t *testing.T) {
 			assert.Nil(t, err)
 
 			flusher, ok := w.(http.Flusher)
-			assert.Equal(t, ok, true)
+			assert.True(t, ok)
 			flusher.Flush()
 		}))
 
