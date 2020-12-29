@@ -3,43 +3,27 @@ package spec
 type (
 	Annotation struct {
 		Name       string
-		Value      string
 		Properties map[string]string
-	}
-
-	ApiSyntax struct {
-		Version string
+		Value      string
 	}
 
 	ApiSpec struct {
-		Syntax  ApiSyntax
-		Import  ApiImport
 		Info    Info
 		Types   []Type
 		Service Service
 	}
 
-	ApiImport struct {
-		List []string
-	}
-
 	Group struct {
-		Annotation Annotation
-		Routes     []Route
+		Annotations []Annotation
+		Routes      []Route
 	}
 
 	Info struct {
-		// Deprecated: use Proterties instead
-		Title string
-		// Deprecated: use Proterties instead
-		Desc string
-		// Deprecated: use Proterties instead
+		Title   string
+		Desc    string
 		Version string
-		// Deprecated: use Proterties instead
-		Author string
-		// Deprecated: use Proterties instead
-		Email      string
-		Proterties map[string]string
+		Author  string
+		Email   string
 	}
 
 	Member struct {
