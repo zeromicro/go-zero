@@ -75,8 +75,7 @@ func newDetailLoggedResponseWriter(writer *LoggedResponseWriter, buf *bytes.Buff
 }
 
 func (w *DetailLoggedResponseWriter) Flush() {
-	var f http.Flusher = w.writer
-	f.Flush()
+	w.writer.Flush()
 }
 
 func (w *DetailLoggedResponseWriter) Header() http.Header {
