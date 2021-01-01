@@ -149,3 +149,11 @@ func BenchmarkExecutor(b *testing.B) {
 		executor.Add(1)
 	}
 }
+
+func TestPeriodicalExecutor_Deadlock(t *testing.T) {
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+	}, WithBulkTasks(1), WithBulkInterval(time.Millisecond))
+	for i := 0; i < 1e6; i++ {
+		executer.Add(1)
+	}
+}
