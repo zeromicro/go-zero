@@ -134,28 +134,13 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 					pe.guarded = false
 					pe.lock.Unlock()
 
-					pe.cleanup()
+					// flush again to avoid missing tasks
+					pe.Flush()
 					return
 				}
 			}
 		}
 	})
-}
-
-func (pe *PeriodicalExecutor) cleanup() {
-	// avoid deadlock in Add()
-	for {
-		select {
-		case vals := <-pe.commander:
-			pe.enterExecution()
-			pe.confirmChan <- lang.Placeholder
-			pe.executeTasks(vals)
-		default:
-			// flush again to avoid missing tasks
-			pe.Flush()
-			return
-		}
-	}
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
