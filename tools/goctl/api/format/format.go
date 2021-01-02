@@ -155,7 +155,6 @@ func apiFormat(data string) (string, error) {
 
 func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Builder) (bool, error) {
 	noCommentLine := util.RemoveComment(line)
-
 	tokenCount := 0
 	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, "(") ||
 		strings.HasSuffix(noCommentLine, "{")) {
@@ -179,6 +178,7 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 				break
 			}
 		}
+
 		return true, nil
 	}
 	return false, nil
