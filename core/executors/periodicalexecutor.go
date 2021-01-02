@@ -3,6 +3,7 @@ package executors
 import (
 	"reflect"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/lang"
@@ -35,9 +36,9 @@ type (
 		// avoid race condition on waitGroup when calling wg.Add/Done/Wait(...)
 		wgBarrier   syncx.Barrier
 		confirmChan chan lang.PlaceholderType
+		inflight    int32
 		guarded     bool
 		newTicker   func(duration time.Duration) timex.Ticker
-		currTask    int
 		lock        sync.Mutex
 	}
 )
@@ -104,9 +105,8 @@ func (pe *PeriodicalExecutor) addAndCheck(task interface{}) (interface{}, bool) 
 	}()
 
 	if pe.container.AddTask(task) {
-		vals := pe.container.RemoveAll()
-		pe.currTask++
-		return vals, true
+		atomic.AddInt32(&pe.inflight, 1)
+		return pe.container.RemoveAll(), true
 	}
 
 	return nil, false
@@ -123,11 +123,9 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 			select {
 			case vals := <-pe.commander:
 				commanded = true
+				atomic.AddInt32(&pe.inflight, -1)
 				pe.enterExecution()
 				pe.confirmChan <- lang.Placeholder
-				pe.lock.Lock()
-				pe.currTask--
-				pe.lock.Unlock()
 				pe.executeTasks(vals)
 				last = timex.Now()
 			case <-ticker.Chan():
@@ -136,24 +134,29 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 				} else if pe.Flush() {
 					last = timex.Now()
 				} else if timex.Since(last) > pe.interval*idleRound {
-					var exit bool = true
-					pe.lock.Lock()
-					if pe.currTask > 0 {
-						exit = false
-					} else {
-						pe.guarded = false
-					}
-					pe.lock.Unlock()
-
-					if exit {
-						// flush again to avoid missing tasks
-						pe.Flush()
+					if pe.cleanup() {
 						return
 					}
 				}
 			}
 		}
 	})
+}
+
+func (pe *PeriodicalExecutor) cleanup() (stop bool) {
+	pe.lock.Lock()
+	pe.guarded = false
+	if atomic.LoadInt32(&pe.inflight) == 0 {
+		stop = true
+	}
+	pe.lock.Unlock()
+
+	if stop {
+		// flush again to avoid missing tasks
+		pe.Flush()
+	}
+
+	return
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
