@@ -185,14 +185,25 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 }
 
 func mayInsertStructKeyword(line string, token *int) string {
-	noCommentLine := util.RemoveComment(line)
-	if strings.HasSuffix(noCommentLine, "{") {
-		*token++
+	insertStruct := func() string {
 		if strings.Contains(line, " struct") {
 			return line
 		}
 		index := strings.Index(line, "{")
 		return line[:index] + " struct " + line[index:]
+	}
+
+	noCommentLine := util.RemoveComment(line)
+	if strings.HasSuffix(noCommentLine, "{") {
+		*token++
+		return insertStruct()
+	}
+	if strings.HasSuffix(noCommentLine, "}") {
+		noCommentLine = strings.TrimSuffix(noCommentLine, "}")
+		noCommentLine = util.RemoveComment(noCommentLine)
+		if strings.HasSuffix(noCommentLine, "{") {
+			return insertStruct()
+		}
 	}
 	if strings.HasSuffix(noCommentLine, "(") {
 		*token++
