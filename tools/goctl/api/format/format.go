@@ -14,7 +14,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	util2 "github.com/tal-tech/go-zero/tools/goctl/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -116,7 +116,7 @@ func apiFormat(data string) (string, error) {
 			newLineCount++
 		} else {
 			if preLine == "}" {
-				builder.WriteString(util2.NL)
+				builder.WriteString(ctlutil.NL)
 			}
 			newLineCount = 0
 		}
@@ -144,7 +144,7 @@ func apiFormat(data string) (string, error) {
 			}
 		}
 		util.WriteIndent(&builder, tapCount)
-		builder.WriteString(line + "\n")
+		builder.WriteString(line + ctlutil.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
 			tapCount += 1
 		}
@@ -160,10 +160,10 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, "(") ||
 		strings.HasSuffix(noCommentLine, "{")) {
 		var typeBuilder strings.Builder
-		typeBuilder.WriteString(mayInsertStructKeyword(line, &tokenCount) + "\n")
+		typeBuilder.WriteString(mayInsertStructKeyword(line, &tokenCount) + ctlutil.NL)
 		for scanner.Scan() {
 			noCommentLine := util.RemoveComment(scanner.Text())
-			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + "\n")
+			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + ctlutil.NL)
 			if noCommentLine == "}" || noCommentLine == ")" {
 				tokenCount--
 			}
@@ -173,8 +173,8 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 					return false, errors.New("error format \n" + typeBuilder.String())
 				}
 
-				result := strings.ReplaceAll(string(ts)," struct ", " ")
-				result = strings.ReplaceAll(result,"type ()", "")
+				result := strings.ReplaceAll(string(ts), " struct ", " ")
+				result = strings.ReplaceAll(result, "type ()", "")
 				builder.WriteString(result)
 				break
 			}

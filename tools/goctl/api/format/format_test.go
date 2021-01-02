@@ -24,11 +24,11 @@ handler: GreetHandler
 }
 `
 
-	formattedStr = `type Request struct {
+	formattedStr = `type Request {
 	Name string
 }
 
-type Response struct {
+type Response {
 	Message string
 }
 
@@ -40,7 +40,7 @@ service A-api {
 }`
 )
 
-func TestInlineTypeNotExist(t *testing.T) {
+func TestFormat(t *testing.T) {
 	r, err := apiFormat(notFormattedStr)
 	assert.Nil(t, err)
 	assert.Equal(t, r, formattedStr)
