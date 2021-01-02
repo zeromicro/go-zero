@@ -156,14 +156,14 @@ func apiFormat(data string) (string, error) {
 func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Builder) (bool, error) {
 	noCommentLine := util.RemoveComment(line)
 	tokenCount := 0
-	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, "(") ||
-		strings.HasSuffix(noCommentLine, "{")) {
+	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, leftParenthesis) ||
+		strings.HasSuffix(noCommentLine, leftBrace)) {
 		var typeBuilder strings.Builder
 		typeBuilder.WriteString(mayInsertStructKeyword(line, &tokenCount) + ctlutil.NL)
 		for scanner.Scan() {
 			noCommentLine := util.RemoveComment(scanner.Text())
 			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + ctlutil.NL)
-			if noCommentLine == "}" || noCommentLine == ")" {
+			if noCommentLine == rightBrace || noCommentLine == rightParenthesis {
 				tokenCount--
 			}
 			if tokenCount == 0 {
@@ -189,23 +189,23 @@ func mayInsertStructKeyword(line string, token *int) string {
 		if strings.Contains(line, " struct") {
 			return line
 		}
-		index := strings.Index(line, "{")
+		index := strings.Index(line, leftBrace)
 		return line[:index] + " struct " + line[index:]
 	}
 
 	noCommentLine := util.RemoveComment(line)
-	if strings.HasSuffix(noCommentLine, "{") {
+	if strings.HasSuffix(noCommentLine, leftBrace) {
 		*token++
 		return insertStruct()
 	}
-	if strings.HasSuffix(noCommentLine, "}") {
-		noCommentLine = strings.TrimSuffix(noCommentLine, "}")
+	if strings.HasSuffix(noCommentLine, rightBrace) {
+		noCommentLine = strings.TrimSuffix(noCommentLine, rightBrace)
 		noCommentLine = util.RemoveComment(noCommentLine)
-		if strings.HasSuffix(noCommentLine, "{") {
+		if strings.HasSuffix(noCommentLine, leftBrace) {
 			return insertStruct()
 		}
 	}
-	if strings.HasSuffix(noCommentLine, "(") {
+	if strings.HasSuffix(noCommentLine, leftParenthesis) {
 		*token++
 	}
 	return line
