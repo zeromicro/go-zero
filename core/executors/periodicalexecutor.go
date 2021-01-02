@@ -37,6 +37,7 @@ type (
 		confirmChan chan lang.PlaceholderType
 		guarded     bool
 		newTicker   func(duration time.Duration) timex.Ticker
+		currTask    int
 		lock        sync.Mutex
 	}
 )
@@ -103,7 +104,9 @@ func (pe *PeriodicalExecutor) addAndCheck(task interface{}) (interface{}, bool) 
 	}()
 
 	if pe.container.AddTask(task) {
-		return pe.container.RemoveAll(), true
+		vals := pe.container.RemoveAll()
+		pe.currTask++
+		return vals, true
 	}
 
 	return nil, false
@@ -122,6 +125,9 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 				commanded = true
 				pe.enterExecution()
 				pe.confirmChan <- lang.Placeholder
+				pe.lock.Lock()
+				pe.currTask--
+				pe.lock.Unlock()
 				pe.executeTasks(vals)
 				last = timex.Now()
 			case <-ticker.Chan():
@@ -130,32 +136,24 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 				} else if pe.Flush() {
 					last = timex.Now()
 				} else if timex.Since(last) > pe.interval*idleRound {
+					var exit bool = true
 					pe.lock.Lock()
-					pe.guarded = false
+					if pe.currTask > 0 {
+						exit = false
+					} else {
+						pe.guarded = false
+					}
 					pe.lock.Unlock()
 
-					pe.cleanup()
-					return
+					if exit {
+						// flush again to avoid missing tasks
+						pe.Flush()
+						return
+					}
 				}
 			}
 		}
 	})
-}
-
-func (pe *PeriodicalExecutor) cleanup() {
-	// avoid deadlock in Add()
-	for {
-		select {
-		case vals := <-pe.commander:
-			pe.enterExecution()
-			pe.confirmChan <- lang.Placeholder
-			pe.executeTasks(vals)
-		default:
-			// flush again to avoid missing tasks
-			pe.Flush()
-			return
-		}
-	}
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
