@@ -115,7 +115,7 @@ func apiFormat(data string) (string, error) {
 			}
 			newLineCount++
 		} else {
-			if preLine == "}" {
+			if preLine == rightBrace {
 				builder.WriteString(ctlutil.NL)
 			}
 			newLineCount = 0
