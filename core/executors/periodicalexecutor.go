@@ -182,6 +182,7 @@ func (pe *PeriodicalExecutor) shallQuit(last time.Duration) (stop bool) {
 		return
 	}
 
+	// checking pe.inflight and setting pe.guarded should be locked together
 	pe.lock.Lock()
 	if atomic.LoadInt32(&pe.inflight) == 0 {
 		pe.guarded = false
