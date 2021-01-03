@@ -45,31 +45,6 @@ func TestRollingWindowAdd(t *testing.T) {
 	assert.Equal(t, []float64{5, 15, 7}, listBuckets())
 }
 
-func TestRollingWindowAdd2(t *testing.T) {
-	const size = 3
-	interval := time.Millisecond * 50
-	r := NewRollingWindow(size, interval)
-	listBuckets := func() []float64 {
-		var buckets []float64
-		r.Reduce(func(b *Bucket) {
-			buckets = append(buckets, b.Sum)
-		})
-		return buckets
-	}
-	assert.Equal(t, []float64{0, 0, 0}, listBuckets())
-	r.Add(1)
-	assert.Equal(t, []float64{0, 0, 1}, listBuckets())
-	time.Sleep(time.Millisecond * 90)
-	r.Add(2)
-	r.Add(3)
-	assert.Equal(t, []float64{0, 1, 5}, listBuckets())
-	time.Sleep(time.Millisecond * 20)
-	r.Add(4)
-	r.Add(5)
-	r.Add(6)
-	assert.Equal(t, []float64{1, 5, 15}, listBuckets())
-}
-
 func TestRollingWindowReset(t *testing.T) {
 	const size = 3
 	r := NewRollingWindow(size, duration, IgnoreCurrentBucket())
@@ -128,6 +103,32 @@ func TestRollingWindowReduce(t *testing.T) {
 			assert.Equal(t, test.expect, result)
 		})
 	}
+}
+
+func TestRollingWindowBucketTimeBoundary(t *testing.T) {
+	const size = 3
+	interval := time.Millisecond * 30
+	r := NewRollingWindow(size, interval)
+	listBuckets := func() []float64 {
+		var buckets []float64
+		r.Reduce(func(b *Bucket) {
+			buckets = append(buckets, b.Sum)
+		})
+		return buckets
+	}
+	assert.Equal(t, []float64{0, 0, 0}, listBuckets())
+	r.Add(1)
+	assert.Equal(t, []float64{0, 0, 1}, listBuckets())
+	time.Sleep(time.Millisecond * 45)
+	r.Add(2)
+	r.Add(3)
+	assert.Equal(t, []float64{0, 1, 5}, listBuckets())
+	// sleep time should be less than interval, and make the bucket change happen
+	time.Sleep(time.Millisecond * 20)
+	r.Add(4)
+	r.Add(5)
+	r.Add(6)
+	assert.Equal(t, []float64{1, 5, 15}, listBuckets())
 }
 
 func TestRollingWindowDataRace(t *testing.T) {
