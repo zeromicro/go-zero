@@ -133,13 +133,11 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 					commanded = false
 				} else if pe.Flush() {
 					last = timex.Now()
-				} else if timex.Since(last) > pe.interval*idleRound {
-					if pe.shallQuit() {
-						pe.lock.Lock()
-						pe.guarded = false
-						pe.lock.Unlock()
-						return
-					}
+				} else if pe.shallQuit(last) {
+					pe.lock.Lock()
+					pe.guarded = false
+					pe.lock.Unlock()
+					return
 				}
 			}
 		}
@@ -182,6 +180,8 @@ func (pe *PeriodicalExecutor) hasTasks(tasks interface{}) bool {
 	}
 }
 
-func (pe *PeriodicalExecutor) shallQuit() bool {
-	return atomic.LoadInt32(&pe.inflight) == 0
+func (pe *PeriodicalExecutor) shallQuit(last time.Duration) bool {
+	idleEnough := timex.Since(last) > pe.interval*idleRound
+	noPending := atomic.LoadInt32(&pe.inflight) == 0
+	return idleEnough && noPending
 }
