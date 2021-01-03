@@ -111,6 +111,9 @@ func (pe *PeriodicalExecutor) addAndCheck(task interface{}) (interface{}, bool) 
 
 func (pe *PeriodicalExecutor) backgroundFlush() {
 	threading.GoSafe(func() {
+		// flush before quit goroutine to avoid missing tasks
+		defer pe.Flush()
+
 		ticker := pe.newTicker(pe.interval)
 		defer ticker.Stop()
 
@@ -130,28 +133,15 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 					commanded = false
 				} else if pe.Flush() {
 					last = timex.Now()
-				} else if timex.Since(last) > pe.interval*idleRound {
-					if pe.cleanup() {
-						return
-					}
+				} else if pe.shallQuit(last) {
+					pe.lock.Lock()
+					pe.guarded = false
+					pe.lock.Unlock()
+					return
 				}
 			}
 		}
 	})
-}
-
-func (pe *PeriodicalExecutor) cleanup() (stop bool) {
-	pe.lock.Lock()
-	pe.guarded = false
-	if atomic.LoadInt32(&pe.inflight) == 0 {
-		stop = true
-		// defer to unlock quickly
-		// flush again to avoid missing tasks
-		defer pe.Flush()
-	}
-	pe.lock.Unlock()
-
-	return
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
@@ -188,4 +178,10 @@ func (pe *PeriodicalExecutor) hasTasks(tasks interface{}) bool {
 		// unknown type, let caller execute it
 		return true
 	}
+}
+
+func (pe *PeriodicalExecutor) shallQuit(last time.Duration) bool {
+	idleEnough := timex.Since(last) > pe.interval*idleRound
+	noPending := atomic.LoadInt32(&pe.inflight) == 0
+	return idleEnough && noPending
 }
