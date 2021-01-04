@@ -129,6 +129,11 @@ func TestRollingWindowBucketTimeBoundary(t *testing.T) {
 	r.Add(5)
 	r.Add(6)
 	assert.Equal(t, []float64{1, 5, 15}, listBuckets())
+	time.Sleep(time.Millisecond * 100)
+	r.Add(7)
+	r.Add(8)
+	r.Add(9)
+	assert.Equal(t, []float64{0, 0, 24}, listBuckets())
 }
 
 func TestRollingWindowDataRace(t *testing.T) {
