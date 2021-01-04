@@ -79,20 +79,9 @@ func (rw *RollingWindow) updateOffset() {
 	}
 
 	offset := rw.offset
-	start := offset + 1
-	steps := start + span
-	var remainder int
-	if steps > rw.size {
-		remainder = steps - rw.size
-		steps = rw.size
-	}
-
 	// reset expired buckets
-	for i := start; i < steps; i++ {
-		rw.win.resetBucket(i)
-	}
-	for i := 0; i < remainder; i++ {
-		rw.win.resetBucket(i)
+	for i := 0; i < span; i++ {
+		rw.win.resetBucket(offset + 1 + i)
 	}
 
 	rw.offset = (offset + span) % rw.size
