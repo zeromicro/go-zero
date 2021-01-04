@@ -96,7 +96,9 @@ func (rw *RollingWindow) updateOffset() {
 	}
 
 	rw.offset = (offset + span) % rw.size
-	rw.lastTime = rw.lastTime + rw.interval*time.Duration(span)
+	now := timex.Now()
+	// align to interval time boundary
+	rw.lastTime = now - (now-rw.lastTime)%rw.interval
 }
 
 type Bucket struct {
