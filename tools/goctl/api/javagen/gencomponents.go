@@ -90,6 +90,12 @@ func writeType(writer io.Writer, tp spec.Type, types []spec.Type) error {
 
 func writeMembers(writer io.Writer, types []spec.Type, members []spec.Member, allMembers *[]spec.Member, indent int) error {
 	for _, member := range members {
+		if !member.IsInline {
+			_, err := member.GetPropertyName()
+			if err != nil {
+				return err
+			}
+		}
 		if !member.IsBodyMember() {
 			continue
 		}
