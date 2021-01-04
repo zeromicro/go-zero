@@ -63,10 +63,6 @@ func (m Member) IsOmitempty() bool {
 
 func (m Member) GetPropertyName() (string, error) {
 	tags := m.Tags()
-	if len(tags) == 0 {
-		return "", errors.New("json property name not exist, member: " + m.Name)
-	}
-
 	for _, tag := range tags {
 		if stringx.Contains(definedKeys, tag.Key) {
 			if tag.Name == "-" {

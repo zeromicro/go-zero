@@ -85,7 +85,7 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 		imports += fmt.Sprintf(`import * as components from "%s"`, "./"+outputFile)
 	}
 
-	apis, err := genApi(api, localTypes, caller, prefixForType)
+	apis, err := genApi(api, caller, prefixForType)
 	if err != nil {
 		return err
 	}
@@ -119,32 +119,34 @@ func genTypes(localTypes []spec.Type, inlineType func(string) (*spec.Type, error
 	return types, nil
 }
 
-func genApi(api *spec.ApiSpec, localTypes []spec.Type, caller string, prefixForType func(string) string) (string, error) {
+func genApi(api *spec.ApiSpec, caller string, prefixForType func(string) string) (string, error) {
 	var builder strings.Builder
-	for _, route := range api.Service.Routes() {
-		handler, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
-		if !ok {
-			return "", fmt.Errorf("missing handler annotation for route %q", route.Path)
-		}
-		handler = util.Untitle(handler)
-		handler = strings.Replace(handler, "Handler", "", 1)
-		comment := commentForRoute(route)
-		if len(comment) > 0 {
-			fmt.Fprintf(&builder, "%s\n", comment)
-		}
-		fmt.Fprintf(&builder, "export function %s(%s) {\n", handler, paramsForRoute(route, prefixForType))
-		writeIndent(&builder, 1)
-		responseGeneric := "<null>"
-		if len(route.ResponseType.Name) > 0 {
-			val, err := goTypeToTs(route.ResponseType.Name, prefixForType)
-			if err != nil {
-				return "", err
+	for _, group := range api.Service.Groups {
+		for _, route := range group.Routes {
+			handler, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
+			if !ok {
+				return "", fmt.Errorf("missing handler annotation for route %q", route.Path)
 			}
-			responseGeneric = fmt.Sprintf("<%s>", val)
+			handler = util.Untitle(handler)
+			handler = strings.Replace(handler, "Handler", "", 1)
+			comment := commentForRoute(route)
+			if len(comment) > 0 {
+				fmt.Fprintf(&builder, "%s\n", comment)
+			}
+			fmt.Fprintf(&builder, "export function %s(%s) {\n", handler, paramsForRoute(route, prefixForType))
+			writeIndent(&builder, 1)
+			responseGeneric := "<null>"
+			if len(route.ResponseType.Name) > 0 {
+				val, err := goTypeToTs(route.ResponseType.Name, prefixForType)
+				if err != nil {
+					return "", err
+				}
+				responseGeneric = fmt.Sprintf("<%s>", val)
+			}
+			fmt.Fprintf(&builder, `return %s.%s%s(%s)`, caller, strings.ToLower(route.Method),
+				util.Title(responseGeneric), callParamsForRoute(route, group))
+			builder.WriteString("\n}\n\n")
 		}
-		fmt.Fprintf(&builder, `return %s.%s%s(%s)`, caller, strings.ToLower(route.Method),
-			util.Title(responseGeneric), callParamsForRoute(route))
-		builder.WriteString("\n}\n\n")
 	}
 
 	apis := builder.String()
@@ -188,21 +190,28 @@ func commentForRoute(route spec.Route) string {
 	return builder.String()
 }
 
-func callParamsForRoute(route spec.Route) string {
+func callParamsForRoute(route spec.Route, group spec.Group) string {
 	hasParams := pathHasParams(route)
 	hasBody := hasRequestBody(route)
 	if hasParams && hasBody {
-		return fmt.Sprintf("%s, %s, %s", pathForRoute(route), "params", "req")
+		return fmt.Sprintf("%s, %s, %s", pathForRoute(route, group), "params", "req")
 	} else if hasParams {
-		return fmt.Sprintf("%s, %s", pathForRoute(route), "params")
+		return fmt.Sprintf("%s, %s", pathForRoute(route, group), "params")
 	} else if hasBody {
-		return fmt.Sprintf("%s, %s", pathForRoute(route), "req")
+		return fmt.Sprintf("%s, %s", pathForRoute(route, group), "req")
 	}
-	return pathForRoute(route)
+	return pathForRoute(route, group)
 }
 
-func pathForRoute(route spec.Route) string {
-	return "\"" + route.Path + "\""
+func pathForRoute(route spec.Route, group spec.Group) string {
+	value, ok := apiutil.GetAnnotationValue(group.Annotations, "server", pathPrefix)
+	if !ok {
+		return "\"" + route.Path + "\""
+	} else {
+		value = strings.TrimPrefix(value, `"`)
+		value = strings.TrimSuffix(value, `"`)
+		return fmt.Sprintf(`"%s/%s"`, value, strings.TrimPrefix(route.Path, "/"))
+	}
 }
 
 func pathHasParams(route spec.Route) bool {
