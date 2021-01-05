@@ -16,6 +16,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
@@ -501,6 +502,9 @@ func main() {
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
+	if _, err := config.InitOrGetConfig(); err != nil {
+		fmt.Printf("config.InitOrGetConfig error:%s, use:%s\n", err, config.DefaultFormat)
+	}
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println("error:", err)
