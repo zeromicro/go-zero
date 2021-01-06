@@ -10,9 +10,10 @@ var (
 
 type (
 	RedisConf struct {
-		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
+		Host    string
+		Type    string `json:",default=node,options=node|cluster"`
+		Pass    string `json:",optional"`
+		TLSFlag bool   `json:",default=false,options=true|false"`
 	}
 
 	RedisKeyConf struct {
@@ -22,7 +23,7 @@ type (
 )
 
 func (rc RedisConf) NewRedis() *Redis {
-	return NewRedis(rc.Host, rc.Type, rc.Pass)
+	return NewRedis(rc.Host, rc.Type, rc.TLSFlag, rc.Pass)
 }
 
 func (rc RedisConf) Validate() error {

@@ -32,10 +32,11 @@ type (
 
 	// thread-safe
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		brk  breaker.Breaker
+		Addr    string
+		Type    string
+		Pass    string
+		TLSFlag bool
+		brk     breaker.Breaker
 	}
 
 	RedisNode interface {
@@ -57,17 +58,18 @@ type (
 	FloatCmd = red.FloatCmd
 )
 
-func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
+func NewRedis(redisAddr, redisType string, tlsFlag bool, redisPass ...string) *Redis {
 	var pass string
 	for _, v := range redisPass {
 		pass = v
 	}
 
 	return &Redis{
-		Addr: redisAddr,
-		Type: redisType,
-		Pass: pass,
-		brk:  breaker.NewBreaker(),
+		Addr:    redisAddr,
+		Type:    redisType,
+		Pass:    pass,
+		TLSFlag: tlsFlag,
+		brk:     breaker.NewBreaker(),
 	}
 }
 

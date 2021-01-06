@@ -29,7 +29,7 @@ var (
 func main() {
 	flag.Parse()
 
-	store := redis.NewRedis(*rdx, *rdxType, *rdxPass)
+	store := redis.NewRedis(*rdx, *rdxType, false, *rdxPass)
 	fmt.Println(store.Ping())
 	limit := limit.NewTokenLimiter(rate, burst, store, *rdxKey)
 	timer := time.NewTimer(time.Second * seconds)
