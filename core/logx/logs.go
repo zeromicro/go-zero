@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -352,12 +353,21 @@ func outputError(writer io.Writer, msg string, callDepth int) {
 }
 
 func outputJson(writer io.Writer, info interface{}) {
-	if content, err := json.Marshal(info); err != nil {
+	jsonBuf := new(bytes.Buffer)
+	// json.NewEncoder 自带换行
+	// Encode writes the JSON encoding of v to the stream,
+	// followed by a newline character.
+	// See the documentation for Marshal for details about the
+	// conversion of Go values to JSON.
+	enc := json.NewEncoder(jsonBuf)
+	enc.SetEscapeHTML(false)
+	err := enc.Encode(info)
+	if err != nil{
 		log.Println(err.Error())
 	} else if atomic.LoadUint32(&initialized) == 0 || writer == nil {
-		log.Println(string(content))
+		log.Print(jsonBuf.String())
 	} else {
-		writer.Write(append(content, '\n'))
+		writer.Write(jsonBuf.Bytes())
 	}
 }
 
