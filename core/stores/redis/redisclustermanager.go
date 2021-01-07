@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"crypto/tls"
 	"io"
 
 	red "github.com/go-redis/redis"
@@ -9,13 +10,14 @@ import (
 
 var clusterManager = syncx.NewResourceManager()
 
-func getCluster(server, pass string) (*red.ClusterClient, error) {
+func getCluster(server, pass string, tlsFlag bool) (*red.ClusterClient, error) {
 	val, err := clusterManager.GetResource(server, func() (io.Closer, error) {
 		store := red.NewClusterClient(&red.ClusterOptions{
 			Addrs:        []string{server},
 			Password:     pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
+			TLSConfig:    &tls.Config{InsecureSkipVerify: tlsFlag},
 		})
 		store.WrapProcess(process)
 
