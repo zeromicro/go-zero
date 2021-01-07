@@ -46,7 +46,13 @@ func ToMap(in interface{}) map[string]interface{} {
 	return out
 }
 
-func FieldNames(in interface{}) []string {
+type FieldNameOption func(filedName string) string
+
+var RawStringOption = func(filedName string) string {
+	return fmt.Sprintf("`%s`", filedName)
+}
+
+func FieldNames(in interface{}, options ...FieldNameOption) []string {
 	out := make([]string, 0)
 	v := reflect.ValueOf(in)
 	if v.Kind() == reflect.Ptr {
@@ -61,10 +67,20 @@ func FieldNames(in interface{}) []string {
 		// gets us a StructField
 		fi := typ.Field(i)
 		if tagv := fi.Tag.Get(dbTag); tagv != "" {
-			out = append(out, fmt.Sprintf("`%v`", tagv))
+			out = append(out, filedNameWrapper(tagv, options...))
 		} else {
-			out = append(out, fmt.Sprintf("`%v`", fi.Name))
+			out = append(out, filedNameWrapper(fi.Name, options...))
 		}
 	}
 	return out
+}
+
+// fmt.Sprintf("`%v`", tagv)
+// fmt.Sprintf("`%v`", fi.Name)
+func filedNameWrapper(text string, options ...FieldNameOption) string {
+	var ret = text
+	for _, option := range options {
+		ret = option(text)
+	}
+	return ret
 }

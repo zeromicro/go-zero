@@ -26,10 +26,19 @@ type (
 var userFields = FieldNames(User{})
 
 func TestFieldNames(t *testing.T) {
-	var u User
-	out := FieldNames(&u)
-	actual := []string{"`id`", "`user_name`", "`sex`", "`uuid`", "`age`"}
-	assert.Equal(t, out, actual)
+	t.Run("old", func(t *testing.T) {
+		var u User
+		out := FieldNames(&u)
+		expected := []string{"id", "user_name", "sex", "uuid", "age"}
+		assert.Equal(t, expected, out)
+	})
+
+	t.Run("new", func(t *testing.T) {
+		var u User
+		out := FieldNames(&u, RawStringOption)
+		expected := []string{"`id`", "`user_name`", "`sex`", "`uuid`", "`age`"}
+		assert.Equal(t, expected, out)
+	})
 }
 
 func TestNewEq(t *testing.T) {
