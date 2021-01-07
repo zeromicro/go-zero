@@ -36,7 +36,8 @@ type (
 		Type    string
 		Pass    string
 		TLSFlag bool
-		brk     breaker.Breaker
+
+		brk breaker.Breaker
 	}
 
 	RedisNode interface {
