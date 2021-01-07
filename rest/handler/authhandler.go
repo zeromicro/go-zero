@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/rest/token"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/token"
 )
 
 const (

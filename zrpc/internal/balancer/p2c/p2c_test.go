@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/mathx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mathx"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/resolver"

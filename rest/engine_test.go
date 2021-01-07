@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/conf"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/conf"
 )
 
 func TestNewEngine(t *testing.T) {

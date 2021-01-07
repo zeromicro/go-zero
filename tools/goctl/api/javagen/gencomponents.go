@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/3Rivers/go-zero/tools/goctl/api/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
 )
 
 const (

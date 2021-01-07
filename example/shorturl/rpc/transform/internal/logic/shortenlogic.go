@@ -7,8 +7,8 @@ import (
 	"shorturl/rpc/transform/model"
 	transform "shorturl/rpc/transform/pb"
 
-	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/hash"
+	"github.com/3Rivers/go-zero/core/logx"
 )
 
 type ShortenLogic struct {

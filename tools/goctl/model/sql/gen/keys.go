@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/util/stringx"
 )
 
 type (

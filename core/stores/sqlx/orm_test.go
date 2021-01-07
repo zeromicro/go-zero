@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/logx"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
 )
 
 func TestUnmarshalRowBool(t *testing.T) {

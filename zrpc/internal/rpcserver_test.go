@@ -3,8 +3,8 @@ package internal
 import (
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/stat"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func TestWithMetrics(t *testing.T) {

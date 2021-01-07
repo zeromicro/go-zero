@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/breaker"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/breaker"
+	"github.com/3Rivers/go-zero/core/lang"
+	"github.com/3Rivers/go-zero/core/logx"
 	"gopkg.in/cheggaaa/pb.v1"
 )
 

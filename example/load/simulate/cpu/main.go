@@ -1,6 +1,6 @@
 package main
 
-import _ "github.com/tal-tech/go-zero/core/stat"
+import _ "github.com/3Rivers/go-zero/core/stat"
 
 func main() {
 	select {}

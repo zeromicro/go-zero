@@ -3,7 +3,7 @@ package resolver
 import (
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/discov"
+	"github.com/3Rivers/go-zero/core/discov"
 	"google.golang.org/grpc/resolver"
 )
 

@@ -5,11 +5,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	conf "github.com/3Rivers/go-zero/tools/goctl/config"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util/format"
+	"github.com/3Rivers/go-zero/tools/goctl/util/stringx"
 )
 
 const etcTemplate = `Name: {{.serviceName}}.rpc

@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/tal-tech/go-zero/rest"
-	"github.com/tal-tech/go-zero/zrpc"
+	"github.com/3Rivers/go-zero/rest"
+	"github.com/3Rivers/go-zero/zrpc"
 )
 
 type Config struct {

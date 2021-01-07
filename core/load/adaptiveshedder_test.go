@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/3Rivers/go-zero/core/collection"
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/mathx"
+	"github.com/3Rivers/go-zero/core/stat"
+	"github.com/3Rivers/go-zero/core/syncx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mathx"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 const (

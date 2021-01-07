@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/3Rivers/go-zero/core/syncx"
+	"github.com/3Rivers/go-zero/zrpc/internal"
+	"github.com/3Rivers/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 )
 

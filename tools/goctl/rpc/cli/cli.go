@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/generator"
 	"github.com/urfave/cli"
 )
 

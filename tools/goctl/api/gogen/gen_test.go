@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/3Rivers/go-zero/tools/goctl/api/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/execx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
 
 const testApiTemplate = `

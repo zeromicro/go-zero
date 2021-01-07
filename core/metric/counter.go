@@ -1,8 +1,8 @@
 package metric
 
 import (
+	"github.com/3Rivers/go-zero/core/proc"
 	prom "github.com/prometheus/client_golang/prometheus"
-	"github.com/tal-tech/go-zero/core/proc"
 )
 
 type (

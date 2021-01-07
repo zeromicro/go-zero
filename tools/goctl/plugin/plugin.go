@@ -13,10 +13,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/api/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/api/spec"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/execx"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

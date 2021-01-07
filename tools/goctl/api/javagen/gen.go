@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/tools/goctl/api/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

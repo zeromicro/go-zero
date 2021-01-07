@@ -8,10 +8,10 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mr"
-	"github.com/tal-tech/go-zero/core/proc"
+	"github.com/3Rivers/go-zero/core/lang"
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/mr"
+	"github.com/3Rivers/go-zero/core/proc"
 )
 
 func dumpGoroutines() {

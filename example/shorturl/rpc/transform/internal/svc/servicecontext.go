@@ -4,7 +4,7 @@ import (
 	"shorturl/rpc/transform/internal/config"
 	"shorturl/rpc/transform/model"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/3Rivers/go-zero/core/stores/sqlx"
 )
 
 type ServiceContext struct {

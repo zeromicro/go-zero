@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/3Rivers/go-zero/tools/goctl/api/spec"
+	"github.com/3Rivers/go-zero/tools/goctl/api/util"
+	"github.com/3Rivers/go-zero/tools/goctl/config"
+	ctlutil "github.com/3Rivers/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util/format"
 )
 
 const (

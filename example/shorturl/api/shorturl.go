@@ -7,8 +7,8 @@ import (
 	"shorturl/api/internal/handler"
 	"shorturl/api/internal/svc"
 
-	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/rest"
+	"github.com/3Rivers/go-zero/core/conf"
+	"github.com/3Rivers/go-zero/rest"
 )
 
 var configFile = flag.String("f", "etc/shorturl-api.yaml", "the config file")

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/contextx"
+	"github.com/3Rivers/go-zero/core/contextx"
 	"google.golang.org/grpc"
 )
 

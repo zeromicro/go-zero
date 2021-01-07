@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/3Rivers/go-zero/core/executors"
 )
 
 func main() {

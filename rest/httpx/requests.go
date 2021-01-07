@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/3Rivers/go-zero/core/mapping"
+	"github.com/3Rivers/go-zero/rest/internal/context"
 )
 
 const (

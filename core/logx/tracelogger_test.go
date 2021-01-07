@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/3Rivers/go-zero/core/trace/tracespec"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/trace/tracespec"
 )
 
 const (

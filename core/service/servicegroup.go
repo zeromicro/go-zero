@@ -3,9 +3,9 @@ package service
 import (
 	"log"
 
-	"github.com/tal-tech/go-zero/core/proc"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/3Rivers/go-zero/core/proc"
+	"github.com/3Rivers/go-zero/core/syncx"
+	"github.com/3Rivers/go-zero/core/threading"
 )
 
 type (

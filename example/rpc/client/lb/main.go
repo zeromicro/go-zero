@@ -7,9 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/example/rpc/remote/unary"
-	"github.com/tal-tech/go-zero/zrpc"
+	"github.com/3Rivers/go-zero/core/discov"
+	"github.com/3Rivers/go-zero/example/rpc/remote/unary"
+	"github.com/3Rivers/go-zero/zrpc"
 )
 
 var lb = flag.String("t", "direct", "the load balancer type")

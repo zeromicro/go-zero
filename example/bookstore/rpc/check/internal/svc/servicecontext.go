@@ -4,7 +4,7 @@ import (
 	"bookstore/rpc/check/internal/config"
 	"bookstore/rpc/model"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/3Rivers/go-zero/core/stores/sqlx"
 )
 
 type ServiceContext struct {

@@ -6,7 +6,7 @@ import (
 	check "bookstore/rpc/check/checker"
 	"bookstore/rpc/check/internal/svc"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/logx"
 )
 
 type CheckLogic struct {

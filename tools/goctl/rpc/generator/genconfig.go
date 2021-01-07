@@ -5,15 +5,15 @@ import (
 	"os"
 	"path/filepath"
 
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	conf "github.com/3Rivers/go-zero/tools/goctl/config"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util/format"
 )
 
 const configTemplate = `package config
 
-import "github.com/tal-tech/go-zero/zrpc"
+import "github.com/3Rivers/go-zero/zrpc"
 
 type Config struct {
 	zrpc.RpcServerConf

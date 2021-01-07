@@ -1,6 +1,6 @@
 package cache
 
-import "github.com/tal-tech/go-zero/core/stores/redis"
+import "github.com/3Rivers/go-zero/core/stores/redis"
 
 type (
 	ClusterConf []NodeConf

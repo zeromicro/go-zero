@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"io"
 
+	"github.com/3Rivers/go-zero/core/syncx"
 	red "github.com/go-redis/redis"
-	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 const (

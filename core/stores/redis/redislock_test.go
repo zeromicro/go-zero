@@ -3,8 +3,8 @@ package redis
 import (
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/stringx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 func TestRedisLock(t *testing.T) {

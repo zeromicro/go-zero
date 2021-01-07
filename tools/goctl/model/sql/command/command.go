@@ -6,14 +6,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/stores/sqlx"
+	"github.com/3Rivers/go-zero/tools/goctl/config"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/gen"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/model"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util/console"
 	"github.com/go-sql-driver/mysql"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
 )
 

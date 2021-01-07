@@ -7,11 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/stringx"
+	conf "github.com/3Rivers/go-zero/tools/goctl/config"
+	"github.com/3Rivers/go-zero/tools/goctl/rpc/execx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stringx"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
 
 var cfg = &conf.Config{

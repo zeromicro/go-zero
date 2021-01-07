@@ -7,7 +7,7 @@ import (
 	"bookstore/api/internal/svc"
 	"bookstore/api/internal/types"
 
-	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/3Rivers/go-zero/rest/httpx"
 )
 
 func CheckHandler(ctx *svc.ServiceContext) http.HandlerFunc {

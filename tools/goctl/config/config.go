@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
 	"gopkg.in/yaml.v2"
 )
 

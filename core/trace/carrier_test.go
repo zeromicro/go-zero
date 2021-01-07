@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/stringx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 func TestHttpCarrier(t *testing.T) {

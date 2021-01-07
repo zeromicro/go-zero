@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/lang"
+	"github.com/3Rivers/go-zero/core/mathx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/mathx"
 	"google.golang.org/grpc/resolver"
 )
 

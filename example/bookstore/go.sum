@@ -236,10 +236,10 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
-github.com/tal-tech/go-zero v1.0.16 h1:oT7sOFftEUdD/XcXF0xEugX9yhnw4DcQkeMNFLi5KO8=
-github.com/tal-tech/go-zero v1.0.16/go.mod h1:y2wBHTkxNJw79K9/wCSeDKzv2pCT6x45oOmXEsJdQK8=
-github.com/tal-tech/go-zero v1.0.27 h1:QMIbaTxibMc/OsO5RTAuKZ8ndbl2dGN6pITQEtp2x/A=
-github.com/tal-tech/go-zero v1.0.27/go.mod h1:JtNXlsh/CgeIHyQnt5C5M2IcSevW7V0NAnqO93TQgm8=
+github.com/3Rivers/go-zero v1.0.16 h1:oT7sOFftEUdD/XcXF0xEugX9yhnw4DcQkeMNFLi5KO8=
+github.com/3Rivers/go-zero v1.0.16/go.mod h1:y2wBHTkxNJw79K9/wCSeDKzv2pCT6x45oOmXEsJdQK8=
+github.com/3Rivers/go-zero v1.0.27 h1:QMIbaTxibMc/OsO5RTAuKZ8ndbl2dGN6pITQEtp2x/A=
+github.com/3Rivers/go-zero v1.0.27/go.mod h1:JtNXlsh/CgeIHyQnt5C5M2IcSevW7V0NAnqO93TQgm8=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20170815181823-89b8d40f7ca8/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 h1:lYIiVDtZnyTWlNwiAxLj0bbpTcx1BWCFhXjfsvmPdNc=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=

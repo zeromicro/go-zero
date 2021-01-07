@@ -6,11 +6,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/proc"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/threading"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/3Rivers/go-zero/core/lang"
+	"github.com/3Rivers/go-zero/core/proc"
+	"github.com/3Rivers/go-zero/core/syncx"
+	"github.com/3Rivers/go-zero/core/threading"
+	"github.com/3Rivers/go-zero/core/timex"
 )
 
 const idleRound = 10

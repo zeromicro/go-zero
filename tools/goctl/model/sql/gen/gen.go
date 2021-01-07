@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	modelutil "github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/3Rivers/go-zero/tools/goctl/config"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/model"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/parser"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/template"
+	modelutil "github.com/3Rivers/go-zero/tools/goctl/model/sql/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
+	"github.com/3Rivers/go-zero/tools/goctl/util/console"
+	"github.com/3Rivers/go-zero/tools/goctl/util/format"
+	"github.com/3Rivers/go-zero/tools/goctl/util/stringx"
 )
 
 const (

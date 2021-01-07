@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/logx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
 	"google.golang.org/grpc"
 )
 

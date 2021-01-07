@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/template"
+	"github.com/3Rivers/go-zero/tools/goctl/util"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func TestGenTemplates(t *testing.T) {

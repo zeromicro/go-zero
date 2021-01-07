@@ -7,7 +7,7 @@ import (
 	"bookstore/rpc/add/internal/svc"
 	"bookstore/rpc/model"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/logx"
 )
 
 type AddLogic struct {

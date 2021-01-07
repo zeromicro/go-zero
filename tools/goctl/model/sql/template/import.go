@@ -7,11 +7,11 @@ var (
 	"strings"
 	{{if .time}}"time"{{end}}
 
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/sqlc"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+	"github.com/3Rivers/go-zero/core/stores/cache"
+	"github.com/3Rivers/go-zero/core/stores/sqlc"
+	"github.com/3Rivers/go-zero/core/stores/sqlx"
+	"github.com/3Rivers/go-zero/core/stringx"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/builderx"
 )
 `
 	ImportsNoCache = `import (
@@ -20,10 +20,10 @@ var (
 	"strings"
 	{{if .time}}"time"{{end}}
 
-	"github.com/tal-tech/go-zero/core/stores/sqlc"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+	"github.com/3Rivers/go-zero/core/stores/sqlc"
+	"github.com/3Rivers/go-zero/core/stores/sqlx"
+	"github.com/3Rivers/go-zero/core/stringx"
+	"github.com/3Rivers/go-zero/tools/goctl/model/sql/builderx"
 )
 `
 )

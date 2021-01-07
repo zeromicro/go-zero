@@ -3,10 +3,10 @@ package mongoc
 import (
 	"log"
 
+	"github.com/3Rivers/go-zero/core/stores/cache"
+	"github.com/3Rivers/go-zero/core/stores/mongo"
+	"github.com/3Rivers/go-zero/core/stores/redis"
 	"github.com/globalsign/mgo"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/mongo"
-	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
 type Model struct {

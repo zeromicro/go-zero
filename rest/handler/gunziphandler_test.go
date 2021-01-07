@@ -9,9 +9,9 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/codec"
+	"github.com/3Rivers/go-zero/rest/httpx"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/codec"
-	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
 func TestGunzipHandler(t *testing.T) {

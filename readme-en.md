@@ -4,10 +4,10 @@
 
 English | [简体中文](readme.md)
 
-[![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
+[![Go](https://github.com/3Rivers/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/3Rivers/go-zero/actions)
 [![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tal-tech/go-zero)](https://goreportcard.com/report/github.com/tal-tech/go-zero)
-[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/3Rivers/go-zero)](https://goreportcard.com/report/github.com/3Rivers/go-zero)
+[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/3Rivers/go-zero)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## 0. what is go-zero
@@ -88,7 +88,7 @@ As below, go-zero protects the system with couple layers and mechanisms:
 Run the following command under your project:
 
 ```shell
-go get -u github.com/tal-tech/go-zero
+go get -u github.com/3Rivers/go-zero
 ```
 
 ## 6. Quick Start
@@ -104,7 +104,7 @@ go get -u github.com/tal-tech/go-zero
    `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
 
    ```shell
-   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
+   GO111MODULE=on go get -u github.com/3Rivers/go-zero/tools/goctl
    ```
 
    make sure goctl is executable.

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package stream;
 
-option go_package = "github.com/tal-tech/go-zero";
+option go_package = "github.com/3Rivers/go-zero";
 
 message placeholder {}
 

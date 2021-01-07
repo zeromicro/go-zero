@@ -6,8 +6,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/trace"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/3Rivers/go-zero/core/logx"
+	"github.com/3Rivers/go-zero/core/stat"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func init() {
