@@ -23,7 +23,8 @@ type (
 	}
 )
 
-var userFields = FieldNames(User{})
+var userFieldsWithRawStringQuote = FieldNames(User{}, RawStringOption)
+var userFieldsWithoutRawStringQuote = FieldNames(User{})
 
 func TestFieldNames(t *testing.T) {
 	t.Run("old", func(t *testing.T) {
@@ -57,7 +58,7 @@ func TestBuilderSql(t *testing.T) {
 	u := &User{
 		Id: "123123",
 	}
-	fields := FieldNames(u)
+	fields := FieldNames(u, RawStringOption)
 	eq := NewEq(u)
 	sql, args, err := builder.Select(fields...).From("user").Where(eq).ToSQL()
 	fmt.Println(sql, args, err)
@@ -73,13 +74,25 @@ func TestBuildSqlDefaultValue(t *testing.T) {
 	eq["age"] = 0
 	eq["user_name"] = ""
 
-	sql, args, err := builder.Select(userFields...).From("user").Where(eq).ToSQL()
-	fmt.Println(sql, args, err)
+	t.Run("raw", func(t *testing.T) {
+		sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(eq).ToSQL()
+		fmt.Println(sql, args, err)
 
-	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE age=? AND user_name=?"
-	actualArgs := []interface{}{0, ""}
-	assert.Equal(t, sql, actualSql)
-	assert.Equal(t, args, actualArgs)
+		actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE age=? AND user_name=?"
+		actualArgs := []interface{}{0, ""}
+		assert.Equal(t, sql, actualSql)
+		assert.Equal(t, args, actualArgs)
+	})
+
+	t.Run("withour raw quote", func(t *testing.T) {
+		sql, args, err := builder.Select(userFieldsWithoutRawStringQuote...).From("user").Where(eq).ToSQL()
+		fmt.Println(sql, args, err)
+
+		actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE age=? AND user_name=?"
+		actualArgs := []interface{}{0, ""}
+		assert.Equal(t, sql, actualSql)
+		assert.Equal(t, args, actualArgs)
+	})
 }
 
 func TestBuilderSqlIn(t *testing.T) {
@@ -88,7 +101,7 @@ func TestBuilderSqlIn(t *testing.T) {
 	}
 	gtU := NewGt(u)
 	in := builder.In("id", []string{"1", "2", "3"})
-	sql, args, err := builder.Select(userFields...).From("user").Where(in).And(gtU).ToSQL()
+	sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(in).And(gtU).ToSQL()
 	fmt.Println(sql, args, err)
 
 	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id IN (?,?,?) AND age>?"
@@ -99,7 +112,7 @@ func TestBuilderSqlIn(t *testing.T) {
 
 func TestBuildSqlLike(t *testing.T) {
 	like := builder.Like{"name", "wang"}
-	sql, args, err := builder.Select(userFields...).From("user").Where(like).ToSQL()
+	sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(like).ToSQL()
 	fmt.Println(sql, args, err)
 
 	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE name LIKE ?"
