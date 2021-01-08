@@ -516,6 +516,14 @@ func TestServiceSpec(t *testing.T) {
 		return p.ServiceSpec().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
+		_, err := parser.Accept(fn, `
+		service foo-api{
+			@handler foo
+			post /foo returns ([]int)
+		}
+		`)
+		assert.Nil(t, err)
+
 		v, err := parser.Accept(fn, `
 		@server(
 			// foo

@@ -233,6 +233,7 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 		default:
 			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
 		}
+		v.log.Warning("%s %d:%d deprecated array type near '%s'", v.prefix, dataType.ArrayExpr.Line(), dataType.ArrayExpr.Column(), dataType.ArrayExpr.Text())
 	case *Literal:
 		lit := dataType.Literal.Text()
 		if api.IsGolangKeyWord(dataType.Literal.Text()) {
