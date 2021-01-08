@@ -75,8 +75,6 @@ func FieldNames(in interface{}, options ...FieldNameOption) []string {
 	return out
 }
 
-// fmt.Sprintf("`%v`", tagv)
-// fmt.Sprintf("`%v`", fi.Name)
 func filedNameWrapper(text string, options ...FieldNameOption) string {
 	var ret = text
 	for _, option := range options {
