@@ -15,7 +15,8 @@ import "foo.api"
 
 // import group
 import (
-    
+    "bar.api"
+    "foo/bar.api"
 )
 info(
     author: "songmeizi"
