@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	studentFieldNames          = builderx.FieldNames(&Student{})
+	studentFieldNames          = builderx.RawFieldNames(&Student{})
 	studentRows                = strings.Join(studentFieldNames, ",")
 	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"

@@ -102,7 +102,7 @@ func TestFields(t *testing.T) {
 		UpdateTime sql.NullTime    `db:"update_time"`
 	}
 	var (
-		studentFieldNames          = builderx.FieldNames(&Student{})
+		studentFieldNames          = builderx.RawFieldNames(&Student{})
 		studentRows                = strings.Join(studentFieldNames, ",")
 		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
