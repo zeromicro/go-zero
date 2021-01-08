@@ -72,7 +72,7 @@ syntax是新加入的语法结构，该语法的引入可以解决：
 * 防止api语法大版本升级导致前后不能向前兼容
 
 > ### 警告 ⚠️
-> 在被import的api必须要和main api的syntax版本一致。
+> 被import的api必须要和main api的syntax版本一致。
 
 **语法定义**
 
