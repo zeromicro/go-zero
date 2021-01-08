@@ -48,7 +48,7 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			return err
 		}
 		if !created {
-			return nil
+			continue
 		}
 		defer fp.Close()
 
@@ -64,7 +64,9 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 
 		formatCode := formatCode(buffer.String())
 		_, err = fp.WriteString(formatCode)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
