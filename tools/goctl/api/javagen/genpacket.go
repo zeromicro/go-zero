@@ -17,7 +17,6 @@ import (
 const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
 
 import com.xhb.core.packet.HttpPacket;
-import com.xhb.logic.http.packet.tracevisual.model.*;
 import com.xhb.core.network.HttpRequestClient;
 {{.imports}}
 
