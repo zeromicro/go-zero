@@ -157,11 +157,11 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 7. 文档
 
-* API 文档 (逐步完善中)
+* API 文档
 
   [https://www.yuque.com/tal-tech/go-zero](https://www.yuque.com/tal-tech/go-zero)
 
-* awesome 系列
+* awesome 系列（全部收录于『微服务实践』公众号）
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
@@ -172,6 +172,12 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
   * [基于 prometheus 的微服务指标监控](https://github.com/tal-tech/zero-doc/blob/main/doc/metric.md)
   * [文本序列化和反序列化](https://github.com/tal-tech/zero-doc/blob/main/doc/mapping.md)
   * [快速构建 jwt 鉴权认证](https://github.com/tal-tech/zero-doc/blob/main/doc/jwt.md)
+  
+* 精选 `goctl` 插件
+
+  * [goctl-swagger](https://github.com/zeromicro/goctl-swagger) 一键生成 `api` 的 `swagger` 文档
+  * [goctl-android](https://github.com/zeromicro/goctl-android) 生成 `java (android)` 端 `http client` 请求代码
+  * [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件
 
 ## 8. 微信公众号
 

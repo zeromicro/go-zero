@@ -1,13 +1,10 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
-	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -52,39 +49,24 @@ func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		return err
 	}
 
-	goFile := filename + ".go"
-	fp, created, err := util.MaybeCreateFile(dir, "", goFile)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
 	parentPkg, err := getParentPackage(dir)
 	if err != nil {
 		return err
 	}
 
-	text, err := ctlutil.LoadTemplate(category, mainTemplateFile, mainTemplate)
-	if err != nil {
-		return err
-	}
-
-	t := template.Must(template.New("mainTemplate").Parse(text))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"importPackages": genMainImports(parentPkg),
-		"serviceName":    api.Service.Name,
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          "",
+		filename:        filename + ".go",
+		templateName:    "mainTemplate",
+		category:        category,
+		templateFile:    mainTemplateFile,
+		builtinTemplate: mainTemplate,
+		data: map[string]string{
+			"importPackages": genMainImports(parentPkg),
+			"serviceName":    api.Service.Name,
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func genMainImports(parentPkg string) string {

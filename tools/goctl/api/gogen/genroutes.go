@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -132,28 +131,19 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, handlerDir, routeFilename)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	t := template.Must(template.New("routesTemplate").Parse(routesTemplate))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"importPackages":  genRouteImports(parentPkg, api),
-		"routesAdditions": strings.TrimSpace(builder.String()),
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          handlerDir,
+		filename:        routeFilename,
+		templateName:    "routesTemplate",
+		category:        "",
+		templateFile:    "",
+		builtinTemplate: routesTemplate,
+		data: map[string]string{
+			"importPackages":  genRouteImports(parentPkg, api),
+			"routesAdditions": strings.TrimSpace(builder.String()),
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
