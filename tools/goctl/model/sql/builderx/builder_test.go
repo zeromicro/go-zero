@@ -23,7 +23,7 @@ type (
 	}
 )
 
-var userFieldsWithRawStringQuote = FieldNames(User{}, RawStringOption)
+var userFieldsWithRawStringQuote = RawFieldNames(User{})
 var userFieldsWithoutRawStringQuote = FieldNames(User{})
 
 func TestFieldNames(t *testing.T) {
@@ -36,7 +36,7 @@ func TestFieldNames(t *testing.T) {
 
 	t.Run("new", func(t *testing.T) {
 		var u User
-		out := FieldNames(&u, RawStringOption)
+		out := RawFieldNames(&u)
 		expected := []string{"`id`", "`user_name`", "`sex`", "`uuid`", "`age`"}
 		assert.Equal(t, expected, out)
 	})
@@ -58,7 +58,7 @@ func TestBuilderSql(t *testing.T) {
 	u := &User{
 		Id: "123123",
 	}
-	fields := FieldNames(u, RawStringOption)
+	fields := RawFieldNames(u)
 	eq := NewEq(u)
 	sql, args, err := builder.Select(fields...).From("user").Where(eq).ToSQL()
 	fmt.Println(sql, args, err)
