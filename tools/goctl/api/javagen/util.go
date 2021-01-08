@@ -103,6 +103,10 @@ func goTypeToJava(tp spec.Type) (string, error) {
 
 		return fmt.Sprintf("java.util.HashMap<String, %s>", util.Title(valueType)), nil
 	case spec.ArrayType:
+		if tp.Name() == "[]byte" {
+			return "byte[]", nil
+		}
+
 		valueType, err := goTypeToJava(v.Value)
 		if err != nil {
 			return "", err
@@ -136,7 +140,9 @@ func primitiveType(tp string) (string, bool) {
 }
 
 func genGetSet(writer io.Writer, defineStruct spec.DefineStruct, indent int) error {
-	for _, member := range defineStruct.Members {
+	var members = defineStruct.GetBodyMembers()
+	members = append(members, defineStruct.GetFormMembers()...)
+	for _, member := range members {
 		javaType, err := goTypeToJava(member.Type)
 		if err != nil {
 			return nil

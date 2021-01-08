@@ -192,6 +192,7 @@ func declarationForRoute(route spec.Route) string {
 
 func processUri(route spec.Route) string {
 	path := route.Path
+
 	var builder strings.Builder
 	cops := strings.Split(path, "/")
 	for index, cop := range cops {
@@ -212,6 +213,7 @@ func processUri(route spec.Route) string {
 		result = result[:len(result)-4]
 	}
 	if strings.HasPrefix(result, "/") {
+		result = strings.TrimPrefix(result, "/")
 		result = "\"" + result
 	}
 	return result + formString(route)

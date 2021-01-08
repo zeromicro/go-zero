@@ -71,8 +71,12 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 		return errors.New("unsupported type %s" + ty.Name())
 	}
 
-	if len(defineStruct.Members) == 0 {
-		return nil
+	for _, item := range c.requestTypes {
+		if item.Name() == defineStruct.Name() {
+			if len(defineStruct.GetFormMembers())+len(defineStruct.GetBodyMembers()) == 0 {
+				return nil
+			}
+		}
 	}
 
 	modelFile := util.Title(ty.Name()) + ".java"
