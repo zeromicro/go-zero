@@ -20,9 +20,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const (
-	pluginArg = "_plugin"
-)
+const pluginArg = "_plugin"
 
 type Plugin struct {
 	Api         *spec.ApiSpec
