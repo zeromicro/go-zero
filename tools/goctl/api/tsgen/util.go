@@ -64,6 +64,10 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 
 		return fmt.Sprintf("{ [key: string]: %s }", valueType), nil
 	case spec.ArrayType:
+		if tp.Name() == "[]byte" {
+			return "Blob", nil
+		}
+
 		valueType, err := goTypeToTs(v.Value, fromPacket)
 		if err != nil {
 			return "", err
@@ -75,7 +79,7 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 	case spec.PointerType:
 		return goTypeToTs(v.Type, fromPacket)
 	}
-	return "", errors.New("unsupported primitive type " + tp.Name())
+	return "", errors.New("unsupported type " + tp.Name())
 }
 
 func addPrefix(tp spec.Type, fromPacket bool) string {
