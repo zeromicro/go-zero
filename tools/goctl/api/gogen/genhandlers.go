@@ -1,12 +1,10 @@
 package gogen
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"path"
 	"strings"
-	"text/template"
 	"unicode"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
@@ -82,30 +80,16 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 		return err
 	}
 
-	filename = filename + ".go"
-	fp, created, err := apiutil.MaybeCreateFile(dir, getHandlerFolderPath(group, route), filename)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	text, err := util.LoadTemplate(category, handlerTemplateFile, handlerTemplate)
-	if err != nil {
-		return err
-	}
-
-	buffer := new(bytes.Buffer)
-	err = template.Must(template.New("handlerTemplate").Parse(text)).Execute(buffer, handleObj)
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          getHandlerFolderPath(group, route),
+		filename:        filename + ".go",
+		templateName:    "handlerTemplate",
+		category:        category,
+		templateFile:    handlerTemplateFile,
+		builtinTemplate: handlerTemplate,
+		data:            handleObj,
+	})
 }
 
 func genHandlers(dir string, cfg *config.Config, api *spec.ApiSpec) error {

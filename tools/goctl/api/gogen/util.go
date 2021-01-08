@@ -1,17 +1,63 @@
 package gogen
 
 import (
+	"bytes"
 	"fmt"
 	goformat "go/format"
 	"io"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
+
+type fileGenConfig struct {
+	dir             string
+	subdir          string
+	filename        string
+	templateName    string
+	category        string
+	templateFile    string
+	builtinTemplate string
+	data            interface{}
+}
+
+func genFile(c fileGenConfig) error {
+	fp, created, err := util.MaybeCreateFile(c.dir, c.subdir, c.filename)
+	if err != nil {
+		return err
+	}
+	if !created {
+		return nil
+	}
+	defer fp.Close()
+
+	var text string
+	if len(c.category) == 0 || len(c.templateFile) == 0 {
+		text = c.builtinTemplate
+	} else {
+		text, err = ctlutil.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
+		if err != nil {
+			return err
+		}
+	}
+
+	t := template.Must(template.New(c.templateName).Parse(text))
+	buffer := new(bytes.Buffer)
+	err = t.Execute(buffer, c.data)
+	if err != nil {
+		return err
+	}
+
+	code := formatCode(buffer.String())
+	_, err = fp.WriteString(code)
+	return err
+}
 
 func getParentPackage(dir string) (string, error) {
 	abs, err := filepath.Abs(dir)

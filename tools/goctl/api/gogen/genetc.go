@@ -1,15 +1,12 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
-	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 )
 
@@ -28,15 +25,6 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		return err
 	}
 
-	fp, created, err := util.MaybeCreateFile(dir, etcDir, fmt.Sprintf("%s.yaml", filename))
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
 	service := api.Service
 	host, ok := util.GetAnnotationValue(service.Groups[0].Annotations, "server", "host")
 	if !ok {
@@ -47,23 +35,18 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		port = strconv.Itoa(defaultPort)
 	}
 
-	text, err := ctlutil.LoadTemplate(category, etcTemplateFile, etcTemplate)
-	if err != nil {
-		return err
-	}
-
-	t := template.Must(template.New("etcTemplate").Parse(text))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"serviceName": service.Name,
-		"host":        host,
-		"port":        port,
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          etcDir,
+		filename:        fmt.Sprintf("%s.yaml", filename),
+		templateName:    "etcTemplate",
+		category:        category,
+		templateFile:    etcTemplateFile,
+		builtinTemplate: etcTemplate,
+		data: map[string]string{
+			"serviceName": service.Name,
+			"host":        host,
+			"port":        port,
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }

@@ -1,11 +1,9 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"path"
 	"strings"
-	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
@@ -61,17 +59,6 @@ func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spe
 		return err
 	}
 
-	goFile = goFile + ".go"
-	fp, created, err := util.MaybeCreateFile(dir, getLogicFolderPath(group, route), goFile)
-	if err != nil {
-		return err
-	}
-
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
 	parentPkg, err := getParentPackage(dir)
 	if err != nil {
 		return err
@@ -93,28 +80,23 @@ func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spe
 		requestString = "req " + "types." + strings.Title(route.RequestType.Name)
 	}
 
-	text, err := ctlutil.LoadTemplate(category, logicTemplateFile, logicTemplate)
-	if err != nil {
-		return err
-	}
-
-	t := template.Must(template.New("logicTemplate").Parse(text))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(fp, map[string]string{
-		"imports":      imports,
-		"logic":        strings.Title(logic),
-		"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-		"responseType": responseString,
-		"returnString": returnString,
-		"request":      requestString,
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          getLogicFolderPath(group, route),
+		filename:        goFile + ".go",
+		templateName:    "logicTemplate",
+		category:        category,
+		templateFile:    logicTemplateFile,
+		builtinTemplate: logicTemplate,
+		data: map[string]string{
+			"imports":      imports,
+			"logic":        strings.Title(logic),
+			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
+			"responseType": responseString,
+			"returnString": returnString,
+			"request":      requestString,
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func getLogicFolderPath(group spec.Group, route spec.Route) string {

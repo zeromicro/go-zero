@@ -1,14 +1,12 @@
 package gogen
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path"
 	"strings"
-	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
@@ -59,29 +57,19 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename := path.Join(dir, typesDir, typeFilename)
 	os.Remove(filename)
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, typesDir, typeFilename)
-	if err != nil {
-		return err
-	}
-
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	t := template.Must(template.New("typesTemplate").Parse(typesTemplate))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]interface{}{
-		"types":        val,
-		"containsTime": api.ContainsTime(),
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          typesDir,
+		filename:        typeFilename,
+		templateName:    "typesTemplate",
+		category:        "",
+		templateFile:    "",
+		builtinTemplate: typesTemplate,
+		data: map[string]interface{}{
+			"types":        val,
+			"containsTime": api.ContainsTime(),
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func convertTypeCase(types []spec.Type, t string) (string, error) {
