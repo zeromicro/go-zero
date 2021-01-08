@@ -178,6 +178,7 @@ func getPluginAndArgs(arg string) (string, string) {
 
 	return trimQuote(arg[:i]), trimQuote(arg[i+1:])
 }
+
 func trimQuote(in string) string {
 	in = strings.Trim(in, `"`)
 	in = strings.Trim(in, `'`)
