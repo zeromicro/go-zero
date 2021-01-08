@@ -536,8 +536,10 @@ func validate(t *testing.T, api string) {
 }
 
 func validateWithCamel(t *testing.T, api, camel string) {
-	dir := t.TempDir()
+	dir := "_go"
+	os.RemoveAll(dir)
 	err := DoGenProject(api, dir, camel)
+	defer os.RemoveAll(dir)
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".go") {
