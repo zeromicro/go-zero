@@ -1,12 +1,10 @@
 package dartgen
 
 import (
-	"log"
 	"os"
 	"reflect"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
@@ -37,47 +35,6 @@ func tagGet(tag, k string) (reflect.Value, error) {
 	v, _ := util.TagLookup(tag, k)
 	out := strings.Split(v, ",")[0]
 	return reflect.ValueOf(out), nil
-}
-
-func convertMemberType(api *spec.ApiSpec) {
-	for i, t := range api.Types {
-		for j, mem := range t.Members {
-			api.Types[i].Members[j].Type = goTypeToDart(mem.Type)
-		}
-	}
-}
-
-func goTypeToDart(t string) string {
-	t = strings.Replace(t, "*", "", -1)
-	if strings.HasPrefix(t, "[]") {
-		return "List<" + goTypeToDart(t[2:]) + ">"
-	}
-
-	if strings.HasPrefix(t, "map") {
-		tys, e := util.DecomposeType(t)
-		if e != nil {
-			log.Fatal(e)
-		}
-
-		if len(tys) != 2 {
-			log.Fatal("Map type number !=2")
-		}
-
-		return "Map<String," + goTypeToDart(tys[1]) + ">"
-	}
-
-	switch t {
-	case "string":
-		return "String"
-	case "int", "int32", "int64":
-		return "int"
-	case "float", "float32", "float64":
-		return "double"
-	case "bool":
-		return "bool"
-	default:
-		return t
-	}
 }
 
 func isDirectType(s string) bool {

@@ -41,7 +41,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 
 	var builder strings.Builder
 	for index, route := range api.Service.Routes() {
-		routeComment, _ := util.GetAnnotationValue(route.Annotations, "doc", "summary")
+		routeComment := route.JoinedDoc()
 		if len(routeComment) == 0 {
 			routeComment = "N/A"
 		}
@@ -58,8 +58,8 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 			"routeComment":    routeComment,
 			"method":          strings.ToUpper(route.Method),
 			"uri":             route.Path,
-			"requestType":     "`" + stringx.TakeOne(route.RequestType.Name, "-") + "`",
-			"responseType":    "`" + stringx.TakeOne(route.ResponseType.Name, "-") + "`",
+			"requestType":     "`" + stringx.TakeOne(route.RequestTypeName(), "-") + "`",
+			"responseType":    "`" + stringx.TakeOne(route.ResponseTypeName(), "-") + "`",
 			"responseContent": responseContent,
 		})
 		if err != nil {
@@ -73,10 +73,28 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 }
 
 func responseBody(api *spec.ApiSpec, route spec.Route) (string, error) {
-	tps := util.GetLocalTypes(api, route)
+	if len(route.ResponseTypeName()) == 0 {
+		return "", nil
+	}
+
+	var tps = make([]spec.Type, 0)
+	tps = append(tps, route.ResponseType)
+	if definedType, ok := route.ResponseType.(spec.DefineStruct); ok {
+		associatedTypes(definedType, &tps)
+	}
 	value, err := gogen.BuildTypes(tps)
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("\n\n```golang\n%s\n```\n", value), nil
+}
+
+func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
+	*tps = append(*tps, tp)
+	for _, item := range tp.Members {
+		if definedType, ok := item.Type.(spec.DefineStruct); ok {
+			associatedTypes(definedType, tps)
+		}
+	}
 }

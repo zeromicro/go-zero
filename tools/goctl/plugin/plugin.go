@@ -74,12 +74,7 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 
 	var transferData Plugin
 	if len(apiPath) > 0 && util.FileExists(apiPath) {
-		p, err := parser.NewParser(apiPath)
-		if err != nil {
-			return nil, err
-		}
-
-		api, err := p.Parse()
+		api, err := parser.Parse(apiPath)
 		if err != nil {
 			return nil, err
 		}

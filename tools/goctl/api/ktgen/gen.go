@@ -126,10 +126,25 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 }
 
 func genApi(dir, pkg string, api *spec.ApiSpec) error {
-	name := strcase.ToCamel(api.Info.Title + "Api")
+	properties := api.Info.Properties
+	if properties == nil {
+		return fmt.Errorf("none properties")
+	}
+
+	title := properties["Title"]
+	if len(title) == 0 {
+		return fmt.Errorf("none title")
+	}
+
+	desc := properties["Desc"]
+	if len(desc) == 0 {
+		return fmt.Errorf("none desc")
+	}
+
+	name := strcase.ToCamel(title + "Api")
 	path := filepath.Join(dir, name+".kt")
 	api.Info.Title = name
-	api.Info.Desc = pkg
+	api.Info.Desc = desc
 
 	e := os.MkdirAll(dir, 0755)
 	if e != nil {

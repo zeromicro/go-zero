@@ -35,8 +35,8 @@ func BuildTypes(types []spec.Type) (string, error) {
 		} else {
 			builder.WriteString("\n\n")
 		}
-		if err := writeType(&builder, tp, types); err != nil {
-			return "", apiutil.WrapErr(err, "Type "+tp.Name+" generate error")
+		if err := writeType(&builder, tp); err != nil {
+			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
 		}
 	}
 
@@ -53,6 +53,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+
 	typeFilename = typeFilename + ".go"
 	filename := path.Join(dir, typesDir, typeFilename)
 	os.Remove(filename)
@@ -67,67 +68,28 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		builtinTemplate: typesTemplate,
 		data: map[string]interface{}{
 			"types":        val,
-			"containsTime": api.ContainsTime(),
+			"containsTime": false,
 		},
 	})
 }
 
-func convertTypeCase(types []spec.Type, t string) (string, error) {
-	ts, err := apiutil.DecomposeType(t)
-	if err != nil {
-		return "", err
+func writeType(writer io.Writer, tp spec.Type) error {
+	structType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		return errors.New(fmt.Sprintf("unspport struct type: %s", tp.Name()))
 	}
 
-	var defTypes []string
-	for _, tp := range ts {
-		for _, typ := range types {
-			if typ.Name == tp {
-				defTypes = append(defTypes, tp)
-			}
-		}
-	}
-
-	for _, tp := range defTypes {
-		t = strings.ReplaceAll(t, tp, util.Title(tp))
-	}
-
-	return t, nil
-}
-
-func writeType(writer io.Writer, tp spec.Type, types []spec.Type) error {
-	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name))
-	for _, member := range tp.Members {
+	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
+	for _, member := range structType.Members {
 		if member.IsInline {
-			var found = false
-			for _, ty := range types {
-				if strings.ToLower(ty.Name) == strings.ToLower(member.Name) {
-					found = true
-				}
-			}
-			if !found {
-				return errors.New("inline type " + member.Name + " not exist, please correct api file")
-			}
-			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type)); err != nil {
+			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
 				return err
 			} else {
 				continue
 			}
 		}
-		tpString, err := convertTypeCase(types, member.Type)
-		if err != nil {
-			return err
-		}
-		pm, err := member.GetPropertyName()
-		if err != nil {
-			return err
-		}
-		if !strings.Contains(pm, "_") {
-			if strings.Title(member.Name) != strings.Title(pm) {
-				fmt.Printf("type: %s, property name %s json tag illegal, "+
-					"should set json tag as `json:\"%s\"` \n", tp.Name, member.Name, util.Untitle(member.Name))
-			}
-		}
-		if err := writeProperty(writer, member.Name, tpString, member.Tag, member.GetComment(), 1); err != nil {
+
+		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {
 			return err
 		}
 	}
