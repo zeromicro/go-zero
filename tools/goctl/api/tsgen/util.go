@@ -55,6 +55,7 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 		if !ok {
 			return "", errors.New("unsupported primitive type " + tp.Name())
 		}
+
 		return r, nil
 	case spec.MapType:
 		valueType, err := goTypeToTs(v.Value, fromPacket)
@@ -79,6 +80,7 @@ func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
 	case spec.PointerType:
 		return goTypeToTs(v.Type, fromPacket)
 	}
+
 	return "", errors.New("unsupported type " + tp.Name())
 }
 
