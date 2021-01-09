@@ -175,9 +175,11 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
   
 * 精选 `goctl` 插件
 
-  * [goctl-swagger](https://github.com/zeromicro/goctl-swagger) 一键生成 `api` 的 `swagger` 文档
-  * [goctl-android](https://github.com/zeromicro/goctl-android) 生成 `java (android)` 端 `http client` 请求代码
-  * [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件
+  | 插件    | 用途  |
+  | ------------- |:-------------|
+  | [goctl-swagger](https://github.com/zeromicro/goctl-swagger) | 一键生成 `api` 的 `swagger` 文档 |
+  | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
+  | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
 ## 8. 微信公众号
 
