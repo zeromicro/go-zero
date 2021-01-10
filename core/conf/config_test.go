@@ -6,8 +6,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/fs"
 	"github.com/tal-tech/go-zero/core/hash"
 )
+
+func TestLoadConfig_notExists(t *testing.T) {
+	assert.NotNil(t, LoadConfig("not_a_file", nil))
+}
+
+func TestLoadConfig_notRecogFile(t *testing.T) {
+	filename, err := fs.TempFilenameWithText("hello")
+	assert.Nil(t, err)
+	defer os.Remove(filename)
+	assert.NotNil(t, LoadConfig(filename, nil))
+}
 
 func TestConfigJson(t *testing.T) {
 	tests := []string{
