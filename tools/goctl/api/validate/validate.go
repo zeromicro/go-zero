@@ -16,11 +16,7 @@ func GoValidateApi(c *cli.Context) error {
 		return errors.New("missing -api")
 	}
 
-	p, err := parser.NewParser(apiFile)
-	if err != nil {
-		return err
-	}
-	_, err = p.Parse()
+	_, err := parser.Parse(apiFile)
 	if err == nil {
 		fmt.Println(aurora.Green("api format ok"))
 	}

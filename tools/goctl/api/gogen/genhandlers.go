@@ -1,14 +1,11 @@
 package gogen
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strings"
-	"unicode"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -65,11 +62,11 @@ func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Rou
 	return doGenToFile(dir, handler, cfg, group, route, Handler{
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
-		RequestType:    util.Title(route.RequestType.Name),
+		RequestType:    util.Title(route.RequestTypeName()),
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
-		HasResp:        len(route.ResponseType.Name) > 0,
-		HasRequest:     len(route.RequestType.Name) > 0,
+		HasResp:        len(route.ResponseTypeName()) > 0,
+		HasRequest:     len(route.RequestTypeName()) > 0,
 	})
 }
 
@@ -109,7 +106,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	imports = append(imports, fmt.Sprintf("\"%s\"",
 		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
 	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
-	if len(route.RequestType.Name) > 0 {
+	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
 	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceUrl))
@@ -118,18 +115,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 }
 
 func getHandlerBaseName(route spec.Route) (string, error) {
-	handler, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
-	if !ok {
-		return "", fmt.Errorf("missing handler annotation for %q", route.Path)
-	}
-
-	for _, char := range handler {
-		if !unicode.IsDigit(char) && !unicode.IsLetter(char) {
-			return "", errors.New(fmt.Sprintf("route [%s] handler [%s] invalid, handler name should only contains letter or digit",
-				route.Path, handler))
-		}
-	}
-
+	handler := route.Handler
 	handler = strings.TrimSpace(handler)
 	handler = strings.TrimSuffix(handler, "handler")
 	handler = strings.TrimSuffix(handler, "Handler")
@@ -137,10 +123,10 @@ func getHandlerBaseName(route spec.Route) (string, error) {
 }
 
 func getHandlerFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
-	if !ok {
-		folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
-		if !ok {
+	folder := route.GetAnnotation(groupProperty)
+	if len(folder) == 0 {
+		folder = group.GetAnnotation(groupProperty)
+		if len(folder) == 0 {
 			return handlerDir
 		}
 	}

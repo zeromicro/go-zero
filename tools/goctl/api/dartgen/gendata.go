@@ -59,7 +59,6 @@ func genData(dir string, api *spec.ApiSpec) error {
 		return e
 	}
 
-	convertMemberType(api)
 	return t.Execute(file, api)
 }
 

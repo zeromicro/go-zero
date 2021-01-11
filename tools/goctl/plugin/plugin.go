@@ -20,9 +20,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const (
-	pluginArg = "_plugin"
-)
+const pluginArg = "_plugin"
 
 type Plugin struct {
 	Api         *spec.ApiSpec
@@ -74,12 +72,7 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 
 	var transferData Plugin
 	if len(apiPath) > 0 && util.FileExists(apiPath) {
-		p, err := parser.NewParser(apiPath)
-		if err != nil {
-			return nil, err
-		}
-
-		api, err := p.Parse()
+		api, err := parser.Parse(apiPath)
 		if err != nil {
 			return nil, err
 		}
@@ -183,6 +176,7 @@ func getPluginAndArgs(arg string) (string, string) {
 
 	return trimQuote(arg[:i]), trimQuote(arg[i+1:])
 }
+
 func trimQuote(in string) string {
 	in = strings.Trim(in, `"`)
 	in = strings.Trim(in, `'`)

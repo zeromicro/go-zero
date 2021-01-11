@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 )
@@ -26,14 +25,8 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	}
 
 	service := api.Service
-	host, ok := util.GetAnnotationValue(service.Groups[0].Annotations, "server", "host")
-	if !ok {
-		host = "0.0.0.0"
-	}
-	port, ok := util.GetAnnotationValue(service.Groups[0].Annotations, "server", "port")
-	if !ok {
-		port = strconv.Itoa(defaultPort)
-	}
+	host := "0.0.0.0"
+	port := strconv.Itoa(defaultPort)
 
 	return genFile(fileGenConfig{
 		dir:             dir,

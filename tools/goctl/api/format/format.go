@@ -97,7 +97,7 @@ func ApiFormatByPath(apiFilePath string) error {
 }
 
 func apiFormat(data string) (string, error) {
-	_, err := parser.ParseApi(data)
+	_, err := parser.ParseContent(data)
 	if err != nil {
 		return "", err
 	}
@@ -207,6 +207,10 @@ func mayInsertStructKeyword(line string, token *int) string {
 	}
 	if strings.HasSuffix(noCommentLine, leftParenthesis) {
 		*token++
+	}
+
+	if strings.Contains(noCommentLine, "`") {
+		return util.UpperFirst(strings.TrimSpace(line))
 	}
 	return line
 }

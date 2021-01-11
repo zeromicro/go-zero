@@ -10,7 +10,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -151,10 +150,10 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
-			if !ok {
-				folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
-				if !ok {
+			folder := route.GetAnnotation(groupProperty)
+			if len(folder) == 0 {
+				folder = group.GetAnnotation(groupProperty)
+				if len(folder) == 0 {
 					continue
 				}
 			}
@@ -176,12 +175,12 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		for _, r := range g.Routes {
 			handler := getHandlerName(r)
 			handler = handler + "(serverCtx)"
-			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
-			if ok {
+			folder := r.GetAnnotation(groupProperty)
+			if len(folder) > 0 {
 				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			} else {
-				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
-				if ok {
+				folder = g.GetAnnotation(groupProperty)
+				if len(folder) > 0 {
 					handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 				}
 			}
@@ -192,12 +191,14 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			})
 		}
 
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
-			groupedRoutes.authName = value
+		jwt := g.GetAnnotation("jwt")
+		if len(jwt) > 0 {
+			groupedRoutes.authName = jwt
 			groupedRoutes.jwtEnabled = true
 		}
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
-			for _, item := range strings.Split(value, ",") {
+		middleware := g.GetAnnotation("middleware")
+		if len(middleware) > 0 {
+			for _, item := range strings.Split(middleware, ",") {
 				groupedRoutes.middlewares = append(groupedRoutes.middlewares, item)
 			}
 		}

@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -68,16 +67,20 @@ func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spe
 	var responseString string
 	var returnString string
 	var requestString string
-	if len(route.ResponseType.Name) > 0 {
-		resp := strings.Title(route.ResponseType.Name)
-		responseString = "(*types." + resp + ", error)"
-		returnString = fmt.Sprintf("return &types.%s{}, nil", resp)
+	if len(route.ResponseTypeName()) > 0 {
+		resp := responseGoTypeName(route, typesPacket)
+		responseString = "(" + resp + ", error)"
+		if strings.HasPrefix(resp, "*") {
+			returnString = fmt.Sprintf("return &%s{}, nil", strings.TrimPrefix(resp, "*"))
+		} else {
+			returnString = fmt.Sprintf("return %s{}, nil", resp)
+		}
 	} else {
 		responseString = "error"
 		returnString = "return nil"
 	}
-	if len(route.RequestType.Name) > 0 {
-		requestString = "req " + "types." + strings.Title(route.RequestType.Name)
+	if len(route.RequestTypeName()) > 0 {
+		requestString = "req " + requestGoTypeName(route, typesPacket)
 	}
 
 	return genFile(fileGenConfig{
@@ -100,10 +103,10 @@ func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spe
 }
 
 func getLogicFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := util.GetAnnotationValue(route.Annotations, "server", groupProperty)
-	if !ok {
-		folder, ok = util.GetAnnotationValue(group.Annotations, "server", groupProperty)
-		if !ok {
+	folder := route.GetAnnotation(groupProperty)
+	if len(folder) == 0 {
+		folder = group.GetAnnotation(groupProperty)
+		if len(folder) == 0 {
 			return logicDir
 		}
 	}
@@ -116,7 +119,7 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, `"context"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
-	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
+	if len(route.ResponseTypeName()) > 0 || len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, typesDir)))
 	}
 	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))

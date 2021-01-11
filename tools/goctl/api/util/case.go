@@ -1,5 +1,10 @@
 package util
 
+import (
+	"strings"
+	"unicode"
+)
+
 func IsUpperCase(r rune) bool {
 	if r >= 'A' && r <= 'Z' {
 		return true
@@ -15,7 +20,7 @@ func IsLowerCase(r rune) bool {
 }
 
 func ToSnakeCase(s string) string {
-	out := []rune{}
+	var out []rune
 	for index, r := range s {
 		if index == 0 {
 			out = append(out, ToLowerCase(r))
@@ -77,7 +82,7 @@ func ToUpperCase(r rune) rune {
 }
 
 func ToLower(s string) string {
-	out := []rune{}
+	var out []rune
 	for _, r := range s {
 		out = append(out, ToLowerCase(r))
 	}
@@ -85,7 +90,7 @@ func ToLower(s string) string {
 }
 
 func ToUpper(s string) string {
-	out := []rune{}
+	var out []rune
 	for _, r := range s {
 		out = append(out, ToUpperCase(r))
 	}
@@ -104,4 +109,19 @@ func UpperFirst(s string) string {
 		return s
 	}
 	return ToUpper(s[:1]) + s[1:]
+}
+
+func UnExport(text string) bool {
+	var flag bool
+	str := strings.Map(func(r rune) rune {
+		if flag {
+			return r
+		}
+		if unicode.IsLetter(r) {
+			flag = true
+			return unicode.ToLower(r)
+		}
+		return r
+	}, text)
+	return str == text
 }
