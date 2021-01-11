@@ -34,8 +34,9 @@ type (
 		MaxConns int    `json:",default=10000"`
 		MaxBytes int64  `json:",default=1048576,range=[0:8388608]"`
 		// milliseconds
-		Timeout      int64         `json:",default=3000"`
-		CpuThreshold int64         `json:",default=900,range=[0:1000]"`
-		Signature    SignatureConf `json:",optional"`
+		Timeout       int64         `json:",default=3000"`
+		TimeoutReason string        `json:",optional"`
+		CpuThreshold  int64         `json:",default=900,range=[0:1000]"`
+		Signature     SignatureConf `json:",optional"`
 	}
 )

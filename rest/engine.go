@@ -111,7 +111,7 @@ func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat
 		handler.MaxConns(s.conf.MaxConns),
 		handler.BreakerHandler(route.Method, route.Path, metrics),
 		handler.SheddingHandler(s.getShedder(fr.priority), metrics),
-		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
+		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond, s.conf.TimeoutReason),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
 		handler.PromethousHandler(route.Path),
