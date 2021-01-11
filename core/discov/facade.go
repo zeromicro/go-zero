@@ -8,6 +8,8 @@ import (
 type (
 	Facade struct {
 		endpoints []string
+		user      string
+		pass      string
 		registry  *internal.Registry
 	}
 
@@ -17,21 +19,23 @@ type (
 	}
 )
 
-func NewFacade(endpoints []string) Facade {
+func NewFacade(endpoints []string, user, pass string) Facade {
 	return Facade{
 		endpoints: endpoints,
+		user:      user,
+		pass:      pass,
 		registry:  internal.GetRegistry(),
 	}
 }
 
 func (f Facade) Client() internal.EtcdClient {
-	conn, err := f.registry.GetConn(f.endpoints)
+	conn, err := f.registry.GetConn(f.endpoints,f.user,f.pass)
 	logx.Must(err)
 	return conn
 }
 
 func (f Facade) Monitor(key string, l FacadeListener) {
-	f.registry.Monitor(f.endpoints, key, listenerAdapter{l})
+	f.registry.Monitor(f.endpoints, f.user, f.pass, key, listenerAdapter{l})
 }
 
 type listenerAdapter struct {

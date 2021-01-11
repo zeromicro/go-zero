@@ -22,7 +22,7 @@ func init() {
 
 func setMockClient(cli EtcdClient) func() {
 	mockLock.Lock()
-	NewClient = func([]string) (EtcdClient, error) {
+	NewClient = func([]string,string,string) (EtcdClient, error) {
 		return cli, nil
 	}
 	return func() {
@@ -32,9 +32,9 @@ func setMockClient(cli EtcdClient) func() {
 }
 
 func TestGetCluster(t *testing.T) {
-	c1 := GetRegistry().getCluster([]string{"first"})
-	c2 := GetRegistry().getCluster([]string{"second"})
-	c3 := GetRegistry().getCluster([]string{"first"})
+	c1 := GetRegistry().getCluster([]string{"first"}, "", "")
+	c2 := GetRegistry().getCluster([]string{"second"}, "", "")
+	c3 := GetRegistry().getCluster([]string{"first"}, "", "")
 	assert.Equal(t, c1, c3)
 	assert.NotEqual(t, c1, c2)
 }
@@ -71,7 +71,7 @@ func TestCluster_HandleChanges(t *testing.T) {
 		Key: "fourth",
 		Val: "4",
 	})
-	c := newCluster([]string{"any"})
+	c := newCluster([]string{"any"},"","")
 	c.listeners["any"] = []UpdateListener{l}
 	c.handleChanges("any", []KV{
 		{

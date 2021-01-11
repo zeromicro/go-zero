@@ -16,6 +16,8 @@ type (
 	Publisher struct {
 		endpoints  []string
 		key        string
+		user       string
+		pass       string
 		fullKey    string
 		id         int64
 		value      string
@@ -26,10 +28,12 @@ type (
 	}
 )
 
-func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption) *Publisher {
+func NewPublisher(endpoints []string, key, user, pass, value string, opts ...PublisherOption) *Publisher {
 	publisher := &Publisher{
 		endpoints:  endpoints,
 		key:        key,
+		user:       user,
+		pass:       pass,
 		value:      value,
 		quit:       syncx.NewDoneChan(),
 		pauseChan:  make(chan lang.PlaceholderType),
@@ -44,7 +48,7 @@ func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption
 }
 
 func (p *Publisher) KeepAlive() error {
-	cli, err := internal.GetRegistry().GetConn(p.endpoints)
+	cli, err := internal.GetRegistry().GetConn(p.endpoints, p.user, p.pass)
 	if err != nil {
 		return err
 	}

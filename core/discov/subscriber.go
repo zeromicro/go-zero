@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
+func NewSubscriber(endpoints []string, user, pass, key string, opts ...SubOption) (*Subscriber, error) {
 	var subOpts subOptions
 	for _, opt := range opts {
 		opt(&subOpts)
@@ -29,7 +29,7 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	sub := &Subscriber{
 		items: newContainer(subOpts.exclusive),
 	}
-	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items); err != nil {
+	if err := internal.GetRegistry().Monitor(endpoints, user, pass, key, sub.items); err != nil {
 		return nil, err
 	}
 
