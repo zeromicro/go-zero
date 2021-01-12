@@ -46,10 +46,11 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 
 	if len(api.Types) != 0 {
 		if len(imports) > 0 {
-			imports += "\n"
+			imports += util.NL
 		}
 		outputFile := apiutil.ComponentName(api)
 		imports += fmt.Sprintf(`import * as components from "%s"`, "./"+outputFile)
+		imports += fmt.Sprintf(`%sexport * from "%s"`, util.NL, "./"+outputFile)
 	}
 
 	apis, err := genApi(api, caller)
@@ -59,7 +60,6 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 
 	t := template.Must(template.New("handlerTemplate").Parse(handlerTemplate))
 	return t.Execute(fp, map[string]string{
-		"webApi":  webApi,
 		"imports": imports,
 		"apis":    strings.TrimSpace(apis),
 	})

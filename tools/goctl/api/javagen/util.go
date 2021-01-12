@@ -11,6 +11,10 @@ import (
 )
 
 func writeProperty(writer io.Writer, member spec.Member, indent int) error {
+	if len(member.Comment) > 0 {
+		writeIndent(writer, indent)
+		fmt.Fprint(writer, member.Comment+util.NL)
+	}
 	writeIndent(writer, indent)
 	ty, err := specTypeToJava(member.Type)
 	ty = strings.Replace(ty, "*", "", 1)
