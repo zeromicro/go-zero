@@ -1,6 +1,8 @@
 package javagen
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -22,9 +24,43 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 {{.imports}}
 
-{{.componentType}}
+public class {{.className}} extends {{.superClassName}} {
+
+{{.properties}}
+{{if .HasProperty}}
+
+	public {{.className}}() {
+	}
+
+	public {{.className}}({{.params}}) {
+{{.constructorSetter}}
+	}
+{{end}}
+
+{{.getSet}}
+}
+`
+	getSetTemplate = `
+{{.indent}}{{.decorator}}
+{{.indent}}public {{.returnType}} get{{.property}}() {
+{{.indent}}	return this.{{.tagValue}};
+{{.indent}}}
+
+{{.indent}}public void set{{.property}}({{.type}} {{.propertyValue}}) {
+{{.indent}}	this.{{.tagValue}} = {{.propertyValue}};
+{{.indent}}}
 `
 
+	boolTemplate = `
+{{.indent}}{{.decorator}}
+{{.indent}}public {{.returnType}} is{{.property}}() {
+{{.indent}}	return this.{{.tagValue}};
+{{.indent}}}
+
+{{.indent}}public void set{{.property}}({{.type}} {{.propertyValue}}) {
+{{.indent}}	this.{{.tagValue}} = {{.propertyValue}};
+{{.indent}}}
+`
 	httpResponseData = "import com.xhb.core.response.HttpResponseData;"
 	httpData         = "import com.xhb.core.packet.HttpData;"
 )
@@ -34,6 +70,7 @@ type componentsContext struct {
 	requestTypes  []spec.Type
 	responseTypes []spec.Type
 	imports       []string
+	members       []spec.Member
 }
 
 func genComponents(dir, packetName string, api *spec.ApiSpec) error {
@@ -94,56 +131,86 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 	}
 	defer fp.Close()
 
-	tyString, err := c.buildType(defineStruct)
+	propertiesString, err := c.buildProperties(defineStruct)
 	if err != nil {
 		return err
 	}
 
-	t := template.Must(template.New("componentType").Parse(componentTemplate))
-	return t.Execute(fp, map[string]string{
-		"componentType": tyString,
-		"packet":        packetName,
-		"imports":       strings.Join(c.imports, "\n"),
-	})
-}
-
-func (c *componentsContext) buildType(ty spec.DefineStruct) (string, error) {
-	var builder strings.Builder
-	if err := c.writeType(&builder, ty); err != nil {
-		return "", apiutil.WrapErr(err, "Type "+ty.Name()+" generate error")
+	getSetString, err := c.buildGetterSetter(defineStruct)
+	if err != nil {
+		return err
 	}
 
-	return builder.String(), nil
-}
-
-func (c *componentsContext) writeType(writer io.Writer, defineStruct spec.DefineStruct) error {
-	responseData := "HttpData"
+	superClassName := "HttpData"
 	for _, item := range c.responseTypes {
 		if item.Name() == defineStruct.Name() {
-			responseData = "HttpResponseData"
+			superClassName = "HttpResponseData"
 			if !stringx.Contains(c.imports, httpResponseData) {
 				c.imports = append(c.imports, httpResponseData)
 			}
 			break
 		}
 	}
-	if responseData == "HttpData" && !stringx.Contains(c.imports, httpData) {
+	if superClassName == "HttpData" && !stringx.Contains(c.imports, httpData) {
 		c.imports = append(c.imports, httpData)
 	}
 
-	fmt.Fprintf(writer, "public class %s extends %s {\n", util.Title(defineStruct.Name()), responseData)
+	params, constructorSetter, err := c.buildConstructor()
+	if err != nil {
+		return err
+	}
+
+	buffer := new(bytes.Buffer)
+	t := template.Must(template.New("componentType").Parse(componentTemplate))
+	err = t.Execute(buffer, map[string]interface{}{
+		"properties":        propertiesString,
+		"params":            params,
+		"constructorSetter": constructorSetter,
+		"getSet":            getSetString,
+		"packet":            packetName,
+		"imports":           strings.Join(c.imports, "\n"),
+		"className":         util.Title(defineStruct.Name()),
+		"superClassName":    superClassName,
+		"HasProperty":       len(strings.TrimSpace(propertiesString)) > 0,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = fp.WriteString(formatSource(buffer.String()))
+	return err
+}
+
+func (c *componentsContext) buildProperties(defineStruct spec.DefineStruct) (string, error) {
+	var builder strings.Builder
+	if err := c.writeType(&builder, defineStruct); err != nil {
+		return "", apiutil.WrapErr(err, "Type "+defineStruct.Name()+" generate error")
+	}
+
+	return builder.String(), nil
+}
+
+func (c *componentsContext) buildGetterSetter(defineStruct spec.DefineStruct) (string, error) {
+	var builder strings.Builder
+	if err := c.genGetSet(&builder, defineStruct, 1); err != nil {
+		return "", apiutil.WrapErr(err, "Type "+defineStruct.Name()+" get or set generate error")
+	}
+
+	return builder.String(), nil
+}
+
+func (c *componentsContext) writeType(writer io.Writer, defineStruct spec.DefineStruct) error {
+	c.members = make([]spec.Member, 0)
 	err := c.writeMembers(writer, defineStruct, 1)
 	if err != nil {
 		return err
 	}
 
-	genGetSet(writer, defineStruct, 1)
-	fmt.Fprintf(writer, "}")
 	return nil
 }
 
-func (c *componentsContext) writeMembers(writer io.Writer, ty spec.DefineStruct, indent int) error {
-	for _, member := range ty.Members {
+func (c *componentsContext) writeMembers(writer io.Writer, defineStruct spec.DefineStruct, indent int) error {
+	for _, member := range defineStruct.Members {
 		if member.IsInline {
 			defineStruct, ok := member.Type.(spec.DefineStruct)
 			if ok {
@@ -160,7 +227,113 @@ func (c *componentsContext) writeMembers(writer io.Writer, ty spec.DefineStruct,
 			if err := writeProperty(writer, member, indent); err != nil {
 				return err
 			}
+
+			c.members = append(c.members, member)
 		}
 	}
+
 	return nil
+}
+
+func (c *componentsContext) buildConstructor() (string, string, error) {
+	var params strings.Builder
+	var constructorSetter strings.Builder
+	for index, member := range c.members {
+		tp, err := specTypeToJava(member.Type)
+		if err != nil {
+			return "", "", err
+		}
+
+		params.WriteString(fmt.Sprintf("%s %s", tp, util.Untitle(member.Name)))
+		pn, err := member.GetPropertyName()
+		if err != nil {
+			return "", "", err
+		}
+
+		if index != len(c.members)-1 {
+			params.WriteString(", ")
+		}
+
+		writeIndent(&constructorSetter, 2)
+		constructorSetter.WriteString(fmt.Sprintf("this.%s = %s;", pn, util.Untitle(member.Name)))
+		if index != len(c.members)-1 {
+			constructorSetter.WriteString(util.NL)
+		}
+	}
+	return params.String(), constructorSetter.String(), nil
+}
+
+func (c *componentsContext) genGetSet(writer io.Writer, defineStruct spec.DefineStruct, indent int) error {
+	var members = defineStruct.GetBodyMembers()
+	members = append(members, defineStruct.GetFormMembers()...)
+	for _, member := range members {
+		javaType, err := specTypeToJava(member.Type)
+		if err != nil {
+			return nil
+		}
+
+		var property = util.Title(member.Name)
+		var templateStr = getSetTemplate
+		if javaType == "boolean" {
+			templateStr = boolTemplate
+			property = strings.TrimPrefix(property, "Is")
+			property = strings.TrimPrefix(property, "is")
+		}
+		t := template.Must(template.New(templateStr).Parse(getSetTemplate))
+		var tmplBytes bytes.Buffer
+
+		tyString := javaType
+		decorator := ""
+		javaPrimitiveType := []string{"int", "long", "boolean", "float", "double", "short"}
+		if !stringx.Contains(javaPrimitiveType, javaType) {
+			if member.IsOptional() || member.IsOmitEmpty() {
+				decorator = "@Nullable "
+			} else {
+				decorator = "@NotNull "
+			}
+			tyString = decorator + tyString
+		}
+
+		tagName, err := member.GetPropertyName()
+		if err != nil {
+			return err
+		}
+
+		err = t.Execute(&tmplBytes, map[string]string{
+			"property":      property,
+			"propertyValue": util.Untitle(member.Name),
+			"tagValue":      tagName,
+			"type":          tyString,
+			"decorator":     decorator,
+			"returnType":    javaType,
+			"indent":        indentString(indent),
+		})
+		if err != nil {
+			return err
+		}
+
+		r := tmplBytes.String()
+		r = strings.Replace(r, " boolean get", " boolean is", 1)
+		writer.Write([]byte(r))
+	}
+	return nil
+}
+
+func formatSource(source string) string {
+	var builder strings.Builder
+	scanner := bufio.NewScanner(strings.NewReader(source))
+	preIsBreakLine := false
+	for scanner.Scan() {
+		text := strings.TrimSpace(scanner.Text())
+		if text == "" && preIsBreakLine {
+			continue
+		}
+		preIsBreakLine = text == ""
+		builder.WriteString(scanner.Text() + "\n")
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
+	return builder.String()
 }
