@@ -14,7 +14,7 @@ func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 	hosts := strings.FieldsFunc(target.Authority, func(r rune) bool {
 		return r == EndpointSepChar
 	})
-	sub, err := discov.NewSubscriber(hosts, target.Endpoint)
+	sub, err := discov.NewSubscriber(hosts,"","", target.Endpoint)
 	if err != nil {
 		return nil, err
 	}

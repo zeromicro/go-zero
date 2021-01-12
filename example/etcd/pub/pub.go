@@ -14,7 +14,7 @@ var value = flag.String("v", "value", "the value")
 func main() {
 	flag.Parse()
 
-	client := discov.NewPublisher([]string{"etcd.discovery:2379"}, "028F2C35852D", *value)
+	client := discov.NewPublisher([]string{"etcd.discovery:2379"}, "028F2C35852D","","", *value)
 	if err := client.KeepAlive(); err != nil {
 		log.Fatal(err)
 	}

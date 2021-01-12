@@ -120,7 +120,7 @@ func serializeMap(m map[string]map[string]string, prefix string) string {
 }
 
 func main() {
-	registry := discov.NewFacade(endpoints)
+	registry := discov.NewFacade(endpoints,"","")
 	for _, key := range keys {
 		registry.Monitor(key, listener{key: key})
 	}
