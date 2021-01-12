@@ -28,7 +28,11 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 		return err
 	}
 
-	writeDefaultValue(writer, member)
+	err = writeDefaultValue(writer, member)
+	if err != nil {
+		return err
+	}
+
 	fmt.Fprint(writer, ";\n")
 	return err
 }
