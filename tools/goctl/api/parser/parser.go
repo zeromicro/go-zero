@@ -243,6 +243,16 @@ func (p parser) fillService() error {
 			if astRoute.Route.Reply != nil {
 				route.ResponseType = p.astTypeToSpec(astRoute.Route.Reply.Name)
 			}
+			if astRoute.AtDoc != nil {
+				var properties = make(map[string]string, 0)
+				for _, kv := range astRoute.AtDoc.Kv {
+					properties[kv.Key.Text()] = kv.Value.Text()
+				}
+				route.AtDoc.Properties = properties
+				if astRoute.AtDoc.LineDoc != nil {
+					route.AtDoc.Text = astRoute.AtDoc.LineDoc.Text()
+				}
+			}
 
 			err := p.fillRouteType(&route)
 			if err != nil {

@@ -142,7 +142,15 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 func genMembers(writer io.Writer, tp spec.Type, isParam bool) error {
 	definedType, ok := tp.(spec.DefineStruct)
 	if !ok {
-		return errors.New("no members of type " + tp.Name())
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			err := genMembers(writer, pointType.Type, isParam)
+			if err != nil {
+				return err
+			}
+		} else {
+			return errors.New("no members of type " + tp.Name())
+		}
 	}
 
 	members := definedType.GetBodyMembers()

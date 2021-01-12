@@ -8,8 +8,11 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const bodyTagKey = "json"
-const formTagKey = "form"
+const (
+	bodyTagKey        = "json"
+	formTagKey        = "form"
+	defaultSummaryKey = "summary"
+)
 
 var definedKeys = []string{bodyTagKey, formTagKey, "path"}
 
@@ -155,7 +158,12 @@ func (t DefineStruct) GetNonBodyMembers() []Member {
 }
 
 func (r Route) JoinedDoc() string {
-	return strings.Join(r.Docs, " ")
+	doc := r.AtDoc.Text
+	if r.AtDoc.Properties != nil {
+		doc += r.AtDoc.Properties[defaultSummaryKey]
+	}
+	doc += strings.Join(r.Docs, " ")
+	return strings.TrimSpace(doc)
 }
 
 func (r Route) GetAnnotation(key string) string {
