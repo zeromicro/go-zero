@@ -93,15 +93,15 @@ func specTypeToJava(tp spec.Type) (string, error) {
 
 		switch valueType {
 		case "int":
-			return "Integer", nil
+			return "Integer[]", nil
 		case "long":
-			return "Long", nil
+			return "Long[]", nil
 		case "float":
-			return "Float", nil
+			return "Float[]", nil
 		case "double":
-			return "Double", nil
+			return "Double[]", nil
 		case "boolean":
-			return "Boolean", nil
+			return "Boolean[]", nil
 		}
 
 		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(valueType)), nil
