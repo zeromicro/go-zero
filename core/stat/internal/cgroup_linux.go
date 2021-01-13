@@ -92,11 +92,12 @@ func currentCgroup() (*cgroup, error) {
 			continue
 		}
 
-		cgroups[subsys] = path.Join(cgroupDir, subsys)
 		if strings.Contains(subsys, ",") {
 			for _, k := range strings.Split(subsys, ",") {
 				cgroups[k] = path.Join(cgroupDir, k)
 			}
+		} else {
+			cgroups[subsys] = path.Join(cgroupDir, subsys)
 		}
 	}
 
