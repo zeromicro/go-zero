@@ -111,7 +111,7 @@ func primitiveType(tp string) (string, bool) {
 
 func writeType(writer io.Writer, tp spec.Type) error {
 	fmt.Fprintf(writer, "export interface %s {\n", util.Title(tp.Name()))
-	if err := genMembers(writer, tp, false); err != nil {
+	if err := writeMembers(writer, tp, false); err != nil {
 		return err
 	}
 
@@ -131,7 +131,7 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 	}
 	fmt.Fprintf(writer, "\n")
 	fmt.Fprintf(writer, "export interface %sParams {\n", util.Title(tp.Name()))
-	if err := genMembers(writer, tp, true); err != nil {
+	if err := writeMembers(writer, tp, true); err != nil {
 		return err
 	}
 
@@ -139,10 +139,14 @@ func genParamsTypesIfNeed(writer io.Writer, tp spec.Type) error {
 	return nil
 }
 
-func genMembers(writer io.Writer, tp spec.Type, isParam bool) error {
+func writeMembers(writer io.Writer, tp spec.Type, isParam bool) error {
 	definedType, ok := tp.(spec.DefineStruct)
 	if !ok {
-		return errors.New("no members of type " + tp.Name())
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			return writeMembers(writer, pointType.Type, isParam)
+		}
+		return errors.New(fmt.Sprintf("type %s not supported", tp.Name()))
 	}
 
 	members := definedType.GetBodyMembers()
@@ -151,7 +155,7 @@ func genMembers(writer io.Writer, tp spec.Type, isParam bool) error {
 	}
 	for _, member := range members {
 		if member.IsInline {
-			if err := genMembers(writer, member.Type, isParam); err != nil {
+			if err := writeMembers(writer, member.Type, isParam); err != nil {
 				return err
 			}
 			continue

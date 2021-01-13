@@ -104,9 +104,11 @@ func (p parser) fillTypes() error {
 		}
 	}
 
+	var types []spec.Type
 	for _, item := range p.spec.Types {
 		switch v := (item).(type) {
 		case spec.DefineStruct:
+			var members []spec.Member
 			for _, member := range v.Members {
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
@@ -117,11 +119,16 @@ func (p parser) fillTypes() error {
 						member.Type = *tp
 					}
 				}
+				members = append(members, member)
 			}
+			v.Members = members
+			types = append(types, v)
 		default:
 			return errors.New(fmt.Sprintf("unknown type %+v", v))
 		}
 	}
+	p.spec.Types = types
+
 	return nil
 }
 
@@ -242,6 +249,16 @@ func (p parser) fillService() error {
 			}
 			if astRoute.Route.Reply != nil {
 				route.ResponseType = p.astTypeToSpec(astRoute.Route.Reply.Name)
+			}
+			if astRoute.AtDoc != nil {
+				var properties = make(map[string]string, 0)
+				for _, kv := range astRoute.AtDoc.Kv {
+					properties[kv.Key.Text()] = kv.Value.Text()
+				}
+				route.AtDoc.Properties = properties
+				if astRoute.AtDoc.LineDoc != nil {
+					route.AtDoc.Text = astRoute.AtDoc.LineDoc.Text()
+				}
 			}
 
 			err := p.fillRouteType(&route)

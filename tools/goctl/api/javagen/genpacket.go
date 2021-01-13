@@ -1,10 +1,8 @@
 package javagen
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 	"text/template"
 
@@ -20,6 +18,7 @@ import com.xhb.core.packet.HttpPacket;
 import com.xhb.core.network.HttpRequestClient;
 {{.imports}}
 
+{{.doc}}
 public class {{.packetName}} extends HttpPacket<{{.responseType}}> {
 	{{.paramsDeclaration}}
 
@@ -101,12 +100,26 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 		"requestType":       util.Title(route.RequestTypeName()),
 		"HasRequestBody":    hasRequestBody,
 		"imports":           imports,
+		"doc":               doc(route),
 	})
 	if err != nil {
 		return err
 	}
-	formatFile(&tmplBytes, fp)
+
+	_, err = fp.WriteString(formatSource(tmplBytes.String()))
 	return nil
+}
+
+func doc(route spec.Route) string {
+	comment := route.JoinedDoc()
+	if len(comment) > 0 {
+		formatter := `
+/*
+    %s	
+*/`
+		return fmt.Sprintf(formatter, comment)
+	}
+	return ""
 }
 
 func getImports(api *spec.ApiSpec, packetName string) string {
@@ -116,24 +129,6 @@ func getImports(api *spec.ApiSpec, packetName string) string {
 		fmt.Fprintf(&builder, "import com.xhb.logic.http.packet.%s.model.*;\n", packetName)
 	}
 	return builder.String()
-}
-
-func formatFile(tmplBytes *bytes.Buffer, file *os.File) {
-	scanner := bufio.NewScanner(tmplBytes)
-	builder := bufio.NewWriter(file)
-	defer builder.Flush()
-	preIsBreakLine := false
-	for scanner.Scan() {
-		text := strings.TrimSpace(scanner.Text())
-		if text == "" && preIsBreakLine {
-			continue
-		}
-		preIsBreakLine = text == ""
-		builder.WriteString(scanner.Text() + "\n")
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-	}
 }
 
 func paramsSet(route spec.Route) string {

@@ -122,15 +122,6 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 		return err
 	}
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, modelDir, modelFile)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
 	propertiesString, err := c.buildProperties(defineStruct)
 	if err != nil {
 		return err
@@ -159,6 +150,15 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 	if err != nil {
 		return err
 	}
+
+	fp, created, err := apiutil.MaybeCreateFile(dir, modelDir, modelFile)
+	if err != nil {
+		return err
+	}
+	if !created {
+		return nil
+	}
+	defer fp.Close()
 
 	buffer := new(bytes.Buffer)
 	t := template.Must(template.New("componentType").Parse(componentTemplate))
@@ -192,7 +192,7 @@ func (c *componentsContext) buildProperties(defineStruct spec.DefineStruct) (str
 
 func (c *componentsContext) buildGetterSetter(defineStruct spec.DefineStruct) (string, error) {
 	var builder strings.Builder
-	if err := c.genGetSet(&builder, defineStruct, 1); err != nil {
+	if err := c.genGetSet(&builder, 1); err != nil {
 		return "", apiutil.WrapErr(err, "Type "+defineStruct.Name()+" get or set generate error")
 	}
 
@@ -209,18 +209,23 @@ func (c *componentsContext) writeType(writer io.Writer, defineStruct spec.Define
 	return nil
 }
 
-func (c *componentsContext) writeMembers(writer io.Writer, defineStruct spec.DefineStruct, indent int) error {
-	for _, member := range defineStruct.Members {
+func (c *componentsContext) writeMembers(writer io.Writer, tp spec.Type, indent int) error {
+	definedType, ok := tp.(spec.DefineStruct)
+	if !ok {
+		pointType, ok := tp.(spec.PointerType)
+		if ok {
+			return c.writeMembers(writer, pointType.Type, indent)
+		}
+		return errors.New(fmt.Sprintf("type %s not supported", tp.Name()))
+	}
+
+	for _, member := range definedType.Members {
 		if member.IsInline {
-			defineStruct, ok := member.Type.(spec.DefineStruct)
-			if ok {
-				err := c.writeMembers(writer, defineStruct, indent)
-				if err != nil {
-					return err
-				}
-				continue
+			err := c.writeMembers(writer, member.Type, indent)
+			if err != nil {
+				return err
 			}
-			return errors.New("unsupported inline type %s" + member.Type.Name())
+			continue
 		}
 
 		if member.IsBodyMember() || member.IsFormMember() {
@@ -263,9 +268,8 @@ func (c *componentsContext) buildConstructor() (string, string, error) {
 	return params.String(), constructorSetter.String(), nil
 }
 
-func (c *componentsContext) genGetSet(writer io.Writer, defineStruct spec.DefineStruct, indent int) error {
-	var members = defineStruct.GetBodyMembers()
-	members = append(members, defineStruct.GetFormMembers()...)
+func (c *componentsContext) genGetSet(writer io.Writer, indent int) error {
+	var members = c.members
 	for _, member := range members {
 		javaType, err := specTypeToJava(member.Type)
 		if err != nil {

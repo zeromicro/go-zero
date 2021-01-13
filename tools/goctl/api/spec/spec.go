@@ -61,6 +61,7 @@ type (
 		ResponseType Type
 		Docs         Doc
 		Handler      string
+		AtDoc        AtDoc
 	}
 
 	Service struct {
@@ -108,5 +109,10 @@ type (
 	PointerType struct {
 		RawName string
 		Type    Type
+	}
+
+	AtDoc struct {
+		Properties map[string]string
+		Text       string
 	}
 )
