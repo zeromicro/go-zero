@@ -54,10 +54,12 @@ func GoFormatApi(c *cli.Context) error {
 		})
 		be.Add(err)
 	}
+
 	if be.NotNil() {
 		scanner.PrintError(os.Stderr, be.Err())
 		os.Exit(1)
 	}
+
 	return be.Err()
 }
 
@@ -92,10 +94,7 @@ func ApiFormatByPath(apiFilePath string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm); err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
 func apiFormat(data string) (string, error) {
@@ -214,5 +213,6 @@ func mayInsertStructKeyword(line string, token *int) string {
 	if strings.Contains(noCommentLine, "`") {
 		return util.UpperFirst(strings.TrimSpace(line))
 	}
+
 	return line
 }
