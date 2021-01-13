@@ -73,10 +73,7 @@ func ApiFormatByStdin() error {
 	}
 
 	_, err = fmt.Print(result)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func ApiFormatByPath(apiFilePath string) error {
@@ -86,6 +83,11 @@ func ApiFormatByPath(apiFilePath string) error {
 	}
 
 	result, err := apiFormat(string(data))
+	if err != nil {
+		return err
+	}
+
+	_, err = parser.ParseContent(result)
 	if err != nil {
 		return err
 	}
