@@ -151,6 +151,7 @@ func apiFormat(data string) (string, error) {
 		}
 		preLine = line
 	}
+
 	return strings.TrimSpace(builder.String()), nil
 }
 
@@ -179,9 +180,9 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 				break
 			}
 		}
-
 		return true, nil
 	}
+
 	return false, nil
 }
 
