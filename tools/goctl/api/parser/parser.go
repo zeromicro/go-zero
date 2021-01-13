@@ -104,9 +104,11 @@ func (p parser) fillTypes() error {
 		}
 	}
 
+	var types []spec.Type
 	for _, item := range p.spec.Types {
 		switch v := (item).(type) {
 		case spec.DefineStruct:
+			var members []spec.Member
 			for _, member := range v.Members {
 				switch v := member.Type.(type) {
 				case spec.DefineStruct:
@@ -117,11 +119,16 @@ func (p parser) fillTypes() error {
 						member.Type = *tp
 					}
 				}
+				members = append(members, member)
 			}
+			v.Members = members
+			types = append(types, v)
 		default:
 			return errors.New(fmt.Sprintf("unknown type %+v", v))
 		}
 	}
+	p.spec.Types = types
+
 	return nil
 }
 
