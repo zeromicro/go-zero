@@ -92,12 +92,11 @@ func currentCgroup() (*cgroup, error) {
 			continue
 		}
 
-		if strings.Contains(subsys, ",") {
-			for _, k := range strings.Split(subsys, ",") {
-				cgroups[k] = path.Join(cgroupDir, k)
-			}
-		} else {
-			cgroups[subsys] = path.Join(cgroupDir, subsys)
+		// https://man7.org/linux/man-pages/man7/cgroups.7.html
+		// comma-separated list of controllers for cgroup version 1
+		fields := strings.Split(subsys, ",")
+		for _, val := range fields {
+			cgroups[val] = path.Join(cgroupDir, val)
 		}
 	}
 
