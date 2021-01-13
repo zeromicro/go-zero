@@ -5,11 +5,11 @@ package proc
 import "time"
 
 func AddShutdownListener(fn func()) func() {
-	return nil
+	return fn
 }
 
 func AddWrapUpListener(fn func()) func() {
-	return nil
+	return fn
 }
 
 func SetTimeoutToForceQuit(duration time.Duration) {
