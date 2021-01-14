@@ -161,17 +161,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
   [https://www.yuque.com/tal-tech/go-zero](https://www.yuque.com/tal-tech/go-zero)
 
-* awesome 系列（全部收录于『微服务实践』公众号）
+* awesome 系列（更多文章见『微服务实践』公众号）
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
-  * [通过 MapReduce 降低服务响应时间](https://github.com/tal-tech/zero-doc/blob/main/doc/mapreduce.md)
-  * [关键字替换和敏感词过滤工具](https://github.com/tal-tech/zero-doc/blob/main/doc/keywords.md)
-  * [进程内缓存使用方法](https://github.com/tal-tech/zero-doc/blob/main/doc/collection.md)
-  * [防止缓存击穿之进程内共享调用](https://github.com/tal-tech/zero-doc/blob/main/doc/sharedcalls.md)
-  * [基于 prometheus 的微服务指标监控](https://github.com/tal-tech/zero-doc/blob/main/doc/metric.md)
-  * [文本序列化和反序列化](https://github.com/tal-tech/zero-doc/blob/main/doc/mapping.md)
-  * [快速构建 jwt 鉴权认证](https://github.com/tal-tech/zero-doc/blob/main/doc/jwt.md)
   
 * 精选 `goctl` 插件
 
