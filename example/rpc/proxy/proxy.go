@@ -42,7 +42,7 @@ func main() {
 		ListenOn: *listen,
 	}, func(grpcServer *grpc.Server) {
 		unary.RegisterGreeterServer(grpcServer, &GreetServer{
-			RpcProxy: zrpc.NewProxy(*server),
+			RpcProxy: zrpc.NewProxy(*server, "", ""),
 		})
 	})
 	proxy.Start()

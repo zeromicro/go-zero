@@ -75,7 +75,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 func (c *client) dial(server string, opts ...ClientOption) error {
 	options := c.buildDialOptions(opts...)
-	timeCtx, cancel := context.WithTimeout(context.WithValue(context.Background(),"auth","root,root"), dialTimeout)
+	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
 	defer cancel()
 	conn, err := grpc.DialContext(timeCtx, server, options...)
 	if err != nil {

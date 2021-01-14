@@ -12,15 +12,19 @@ import (
 
 type RpcProxy struct {
 	backend     string
+	user		string
+	pass		string
 	clients     map[string]Client
 	options     []internal.ClientOption
 	sharedCalls syncx.SharedCalls
 	lock        sync.Mutex
 }
 
-func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
+func NewProxy(backend, user, pass string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
+		user:        user,
+		pass:        pass,
 		clients:     make(map[string]Client),
 		options:     opts,
 		sharedCalls: syncx.NewSharedCalls(),
@@ -42,7 +46,7 @@ func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 			App:   cred.App,
 			Token: cred.Token,
 		})))
-		client, err := NewClientWithTarget(p.backend, opts...)
+		client, err := NewClientWithTarget(p.backend, p.user, p.pass, opts...)
 		if err != nil {
 			return nil, err
 		}
