@@ -35,8 +35,11 @@ type (
 	}
 )
 
-func NewClient(target string, opts ...ClientOption) (*client, error) {
+func NewClient(target, user, pass string, opts ...ClientOption) (*client, error) {
 	var cli client
+	if len(user) > 0 && len(pass) > 0 {
+		resolver.SetDiscovAuth(user, pass)
+	}
 	opts = append([]ClientOption{WithDialOption(grpc.WithBalancerName(p2c.Name))}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
@@ -72,7 +75,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 func (c *client) dial(server string, opts ...ClientOption) error {
 	options := c.buildDialOptions(opts...)
-	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
+	timeCtx, cancel := context.WithTimeout(context.WithValue(context.Background(),"auth","root,root"), dialTimeout)
 	defer cancel()
 	conn, err := grpc.DialContext(timeCtx, server, options...)
 	if err != nil {

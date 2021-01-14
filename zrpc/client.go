@@ -53,9 +53,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	var client Client
 	var err error
 	if len(c.Endpoints) > 0 {
-		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
+		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints),"","", opts...)
 	} else if err = c.Etcd.Validate(); err == nil {
-		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
+		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key),c.Etcd.User,c.Etcd.Pass, opts...)
 	}
 	if err != nil {
 		return nil, err
@@ -67,7 +67,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 }
 
 func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
+	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key),"","", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
 }
 
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	return internal.NewClient(target, opts...)
+	return internal.NewClient(target,"","", opts...)
 }
 
 func (rc *RpcClient) Conn() *grpc.ClientConn {

@@ -24,6 +24,11 @@ func RegisterResolver() {
 	resolver.Register(&disBuilder)
 }
 
+func SetDiscovAuth(user, pass string) {
+	disBuilder.User = user
+	disBuilder.Pass = pass
+}
+
 type nopResolver struct {
 	cc resolver.ClientConn
 }

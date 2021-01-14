@@ -7,14 +7,17 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-type discovBuilder struct{}
+type discovBuilder struct{
+	User string
+	Pass string
+}
 
 func (d *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	hosts := strings.FieldsFunc(target.Authority, func(r rune) bool {
 		return r == EndpointSepChar
 	})
-	sub, err := discov.NewSubscriber(hosts,"","", target.Endpoint)
+	sub, err := discov.NewSubscriber(hosts,d.User,d.Pass, target.Endpoint)
 	if err != nil {
 		return nil, err
 	}
