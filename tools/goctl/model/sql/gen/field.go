@@ -10,6 +10,7 @@ import (
 
 func genFields(fields []parser.Field) (string, error) {
 	var list []string
+
 	for _, field := range fields {
 		result, err := genField(field)
 		if err != nil {
@@ -18,6 +19,7 @@ func genFields(fields []parser.Field) (string, error) {
 
 		list = append(list, result)
 	}
+
 	return strings.Join(list, "\n"), nil
 }
 

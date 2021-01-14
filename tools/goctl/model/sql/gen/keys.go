@@ -8,20 +8,18 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-type (
-	// tableName:user
-	// {{prefix}}=cache
-	// key:id
-	Key struct {
-		VarExpression     string // cacheUserIdPrefix = "cache#User#id#"
-		Left              string // cacheUserIdPrefix
-		Right             string // cache#user#id#
-		Variable          string // userIdKey
-		KeyExpression     string // userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
-		DataKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
-		RespKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
-	}
-)
+// tableName:user
+// {{prefix}}=cache
+// key:id
+type Key struct {
+	VarExpression     string // cacheUserIdPrefix = "cache#User#id#"
+	Left              string // cacheUserIdPrefix
+	Right             string // cache#user#id#
+	Variable          string // userIdKey
+	KeyExpression     string // userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
+	DataKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
+	RespKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
+}
 
 // key-数据库原始字段名,value-缓存key相关数据
 func genCacheKeys(table parser.Table) (map[string]Key, error) {
@@ -42,6 +40,7 @@ func genCacheKeys(table parser.Table) (map[string]Key, error) {
 			if strings.ToLower(lowerStartCamelTableName) == strings.ToLower(camelFieldName) {
 				variable = fmt.Sprintf("%sKey", lowerStartCamelTableName)
 			}
+
 			m[field.Name.Source()] = Key{
 				VarExpression:     fmt.Sprintf(`%s = "%s"`, left, right),
 				Left:              left,
@@ -53,5 +52,6 @@ func genCacheKeys(table parser.Table) (map[string]Key, error) {
 			}
 		}
 	}
+
 	return m, nil
 }

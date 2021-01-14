@@ -8,6 +8,7 @@ type (
 	InformationSchemaModel struct {
 		conn sqlx.SqlConn
 	}
+
 	Column struct {
 		Name          string      `db:"COLUMN_NAME"`
 		DataType      string      `db:"DATA_TYPE"`

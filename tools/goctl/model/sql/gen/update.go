@@ -15,11 +15,14 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
+
 		if field.IsPrimaryKey {
 			continue
 		}
+
 		expressionValues = append(expressionValues, "data."+camel)
 	}
+
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
