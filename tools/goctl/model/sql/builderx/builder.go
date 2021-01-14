@@ -23,10 +23,12 @@ func ToMap(in interface{}) map[string]interface{} {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+
 	// we only accept structs
 	if v.Kind() != reflect.Struct {
 		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
 	}
+
 	typ := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		// gets us a StructField
@@ -43,6 +45,7 @@ func ToMap(in interface{}) map[string]interface{} {
 			out[tagv] = current
 		}
 	}
+
 	return out
 }
 
@@ -53,10 +56,12 @@ func FieldNames(in interface{}) []string {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+
 	// we only accept structs
 	if v.Kind() != reflect.Struct {
 		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
 	}
+
 	typ := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		// gets us a StructField
@@ -67,6 +72,7 @@ func FieldNames(in interface{}) []string {
 			out = append(out, fi.Name)
 		}
 	}
+
 	return out
 }
 
@@ -76,10 +82,12 @@ func RawFieldNames(in interface{}) []string {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+
 	// we only accept structs
 	if v.Kind() != reflect.Struct {
 		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
 	}
+
 	typ := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		// gets us a StructField
@@ -90,5 +98,6 @@ func RawFieldNames(in interface{}) []string {
 			out = append(out, fmt.Sprintf(`"%s"`, fi.Name))
 		}
 	}
+
 	return out
 }

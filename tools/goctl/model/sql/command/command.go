@@ -17,8 +17,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-var errNotMatched = errors.New("sql not matched")
-
 const (
 	flagSrc   = "src"
 	flagDir   = "dir"
@@ -28,6 +26,8 @@ const (
 	flagTable = "table"
 	flagStyle = "style"
 )
+
+var errNotMatched = errors.New("sql not matched")
 
 func MysqlDDL(ctx *cli.Context) error {
 	src := ctx.String(flagSrc)
@@ -39,6 +39,7 @@ func MysqlDDL(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return fromDDl(src, dir, cfg, cache, idea)
 }
 
@@ -82,13 +83,13 @@ func fromDDl(src, dir string, cfg *config.Config, cache, idea bool) error {
 
 		source = append(source, string(data))
 	}
+
 	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log))
 	if err != nil {
 		return err
 	}
 
-	err = generator.StartFromDDL(strings.Join(source, "\n"), cache)
-	return err
+	return generator.StartFromDDL(strings.Join(source, "\n"), cache)
 }
 
 func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
@@ -144,6 +145,5 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		return err
 	}
 
-	err = generator.StartFromInformationSchema(dsn.DBName, matchTables, cache)
-	return err
+	return generator.StartFromInformationSchema(dsn.DBName, matchTables, cache)
 }

@@ -71,6 +71,7 @@ func RevertTemplate(name string) error {
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
+
 	return util.CreateTemplate(category, name, content)
 }
 
@@ -79,5 +80,6 @@ func Update() error {
 	if err != nil {
 		return err
 	}
+
 	return util.InitTemplates(category, templates)
 }
