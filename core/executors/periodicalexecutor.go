@@ -51,7 +51,7 @@ func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *Per
 		container:   container,
 		confirmChan: make(chan lang.PlaceholderType),
 		newTicker: func(d time.Duration) timex.Ticker {
-			return timex.NewTicker(interval)
+			return timex.NewTicker(d)
 		},
 	}
 	proc.AddShutdownListener(func() {
