@@ -58,6 +58,7 @@ func (p parser) convert2Spec() error {
 	if err != nil {
 		return err
 	}
+
 	return p.fillService()
 }
 
@@ -188,6 +189,7 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 			return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.DefineStruct{RawName: raw}}
 		}
 	}
+
 	panic(fmt.Sprintf("unspported type %+v", in))
 }
 
@@ -203,6 +205,7 @@ func (p parser) commentExprs(comment ast.Expr) string {
 	if comment == nil {
 		return ""
 	}
+
 	return comment.Text()
 }
 
@@ -310,5 +313,6 @@ func (p parser) fillRouteType(route *spec.Route) error {
 			route.ResponseType = *tp
 		}
 	}
+
 	return nil
 }
