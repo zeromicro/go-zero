@@ -69,6 +69,7 @@ func getParentPackage(dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return filepath.ToSlash(filepath.Join(projectCtx.Path, strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir))), nil
 }
 
@@ -82,6 +83,7 @@ func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, in
 	} else {
 		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
 	}
+
 	return err
 }
 
@@ -110,6 +112,7 @@ func getMiddleware(api *spec.ApiSpec) []string {
 			}
 		}
 	}
+
 	return result.KeysStr()
 }
 
@@ -127,7 +130,15 @@ func responseGoTypeName(r spec.Route, pkg ...string) string {
 		return ""
 	}
 
-	return golangExpr(r.ResponseType, pkg...)
+	resp := golangExpr(r.ResponseType, pkg...)
+	switch r.ResponseType.(type) {
+	case spec.DefineStruct:
+		if !strings.HasPrefix(resp, "*") {
+			return "*" + resp
+		}
+	}
+
+	return resp
 }
 
 func requestGoTypeName(r spec.Route, pkg ...string) string {

@@ -128,6 +128,7 @@ func getImports(api *spec.ApiSpec, packetName string) string {
 	if len(allTypes) > 0 {
 		fmt.Fprintf(&builder, "import com.xhb.logic.http.packet.%s.model.*;\n", packetName)
 	}
+
 	return builder.String()
 }
 

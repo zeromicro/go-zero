@@ -339,5 +339,6 @@ func formatSource(source string) string {
 	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
 	}
+
 	return builder.String()
 }
