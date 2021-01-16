@@ -161,10 +161,26 @@ func NewPlugin() (*Plugin, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal(content, &plugin)
+
+	var info struct {
+		ApiFilePath string
+		Style       string
+		Dir         string
+	}
+	err = json.Unmarshal(content, &info)
 	if err != nil {
 		return nil, err
 	}
+
+	plugin.ApiFilePath = info.ApiFilePath
+	plugin.Style = info.Style
+	plugin.Dir = info.Dir
+	api, err := parser.Parse(info.ApiFilePath)
+	if err != nil {
+		return nil, err
+	}
+
+	plugin.Api = api
 	return &plugin, nil
 }
 
