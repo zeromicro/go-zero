@@ -10,7 +10,7 @@ import (
 )
 
 // To make .json & .yaml consistent, we just use json as the tag key.
-const yamlTagKey = "json"
+const yamlTagKey = "yaml"
 
 var (
 	ErrUnsupportedType = errors.New("only map-like configs are suported")
