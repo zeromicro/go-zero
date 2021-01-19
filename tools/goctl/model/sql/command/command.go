@@ -119,7 +119,7 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		return err
 	}
 
-	matchTables := make(map[string][]*model.Column)
+	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
 		match, err := filepath.Match(pattern, item)
 		if err != nil {
@@ -129,11 +129,18 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		if !match {
 			continue
 		}
-		columns, err := im.FindByTableName(dsn.DBName, item)
+
+		columnData, err := im.FindColumns(dsn.DBName, item)
 		if err != nil {
 			return err
 		}
-		matchTables[item] = columns
+
+		table, err := columnData.Convert()
+		if err != nil {
+			return err
+		}
+
+		matchTables[item] = table
 	}
 
 	if len(matchTables) == 0 {
@@ -145,5 +152,5 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		return err
 	}
 
-	return generator.StartFromInformationSchema(dsn.DBName, matchTables, cache)
+	return generator.StartFromInformationSchema(matchTables, cache)
 }

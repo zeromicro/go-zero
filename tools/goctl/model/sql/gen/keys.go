@@ -8,50 +8,143 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-// tableName:user
-// {{prefix}}=cache
-// key:id
 type Key struct {
-	VarExpression     string // cacheUserIdPrefix = "cache#User#id#"
-	Left              string // cacheUserIdPrefix
-	Right             string // cache#user#id#
-	Variable          string // userIdKey
-	KeyExpression     string // userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
-	DataKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
-	RespKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
+	// cacheUserIdPrefix
+	VarLeft string
+	// "cache#user#id#"
+	VarRight string
+	// cacheUserIdPrefix = "cache#user#id#"
+	VarExpression string
+
+	// userKey
+	KeyLeft string
+	// fmt.Sprintf("%s%v", cacheUserPrefix, user)
+	KeyRight string
+	// fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
+	DataKeyRight string
+	// userKey := fmt.Sprintf("%s%v", cacheUserPrefix, user)
+	KeyExpression string
+	// userKey := fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
+	DataKeyExpression string
+	FieldNameJoin     Join
+	Fields            []*parser.Field
 }
 
-// key-数据库原始字段名,value-缓存key相关数据
-func genCacheKeys(table parser.Table) (map[string]Key, error) {
-	fields := table.Fields
-	m := make(map[string]Key)
-	camelTableName := table.Name.ToCamel()
-	lowerStartCamelTableName := stringx.From(camelTableName).Untitle()
-	for _, field := range fields {
-		if field.IsUniqueKey || field.IsPrimaryKey {
-			camelFieldName := field.Name.ToCamel()
-			lowerStartCamelFieldName := stringx.From(camelFieldName).Untitle()
-			left := fmt.Sprintf("cache%s%sPrefix", camelTableName, camelFieldName)
-			if strings.ToLower(camelFieldName) == strings.ToLower(camelTableName) {
-				left = fmt.Sprintf("cache%sPrefix", camelTableName)
-			}
-			right := fmt.Sprintf("cache#%s#%s#", camelTableName, lowerStartCamelFieldName)
-			variable := fmt.Sprintf("%s%sKey", lowerStartCamelTableName, camelFieldName)
-			if strings.ToLower(lowerStartCamelTableName) == strings.ToLower(camelFieldName) {
-				variable = fmt.Sprintf("%sKey", lowerStartCamelTableName)
-			}
+type Join []string
 
-			m[field.Name.Source()] = Key{
-				VarExpression:     fmt.Sprintf(`%s = "%s"`, left, right),
-				Left:              left,
-				Right:             right,
-				Variable:          variable,
-				KeyExpression:     fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,%s)`, variable, "%s", "%v", left, lowerStartCamelFieldName),
-				DataKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s",%s, data.%s)`, variable, "%s", "%v", left, camelFieldName),
-				RespKeyExpression: fmt.Sprintf(`%s := fmt.Sprintf("%s%s", %s,resp.%s)`, variable, "%s", "%v", left, camelFieldName),
-			}
-		}
+func genCacheKeys(table parser.Table) (Key, []Key) {
+	var primaryKey Key
+	var uniqueKey []Key
+	primaryKey = genCacheKey(table.Name, []*parser.Field{&table.PrimaryKey.Field})
+	for _, each := range table.UniqueIndex {
+		uniqueKey = append(uniqueKey, genCacheKey(table.Name, each))
 	}
 
-	return m, nil
+	return primaryKey, uniqueKey
+}
+
+func genCacheKey(table stringx.String, in []*parser.Field) Key {
+	var (
+		varLeftJoin, varRightJon, fieldNameJoin Join
+		varLeft, varRight, varExpression        string
+
+		keyLeftJoin, keyRightJoin, keyRightArgJoin, dataRightJoin         Join
+		keyLeft, keyRight, dataKeyRight, keyExpression, dataKeyExpression string
+	)
+
+	varLeftJoin = append(varLeftJoin, "cache", table.Source())
+	varRightJon = append(varRightJon, "cache", table.Source())
+	keyLeftJoin = append(keyLeftJoin, table.Source())
+
+	for _, each := range in {
+		varLeftJoin = append(varLeftJoin, each.Name.Source())
+		varRightJon = append(varRightJon, each.Name.Source())
+		keyLeftJoin = append(keyLeftJoin, each.Name.Source())
+		keyRightJoin = append(keyRightJoin, stringx.From(each.Name.ToCamel()).Untitle())
+		keyRightArgJoin = append(keyRightArgJoin, "%v")
+		dataRightJoin = append(dataRightJoin, "data."+each.Name.ToCamel())
+		fieldNameJoin = append(fieldNameJoin, each.Name.Source())
+	}
+	varLeftJoin = append(varLeftJoin, "prefix")
+	keyLeftJoin = append(keyLeftJoin, "key")
+
+	varLeft = varLeftJoin.Camel().With("").Untitle()
+	varRight = fmt.Sprintf(`"%s"`, varRightJon.Camel().Untitle().With("#").Source()+"#")
+	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
+
+	keyLeft = keyLeftJoin.Camel().With("").Untitle()
+	keyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With("").Source(), varLeft, keyRightJoin.With(", ").Source())
+	dataKeyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With("").Source(), varLeft, dataRightJoin.With(", ").Source())
+	keyExpression = fmt.Sprintf("%s := %s", keyLeft, keyRight)
+	dataKeyExpression = fmt.Sprintf("%s := %s", keyLeft, dataKeyRight)
+
+	return Key{
+		VarLeft:           varLeft,
+		VarRight:          varRight,
+		VarExpression:     varExpression,
+		KeyLeft:           keyLeft,
+		KeyRight:          keyRight,
+		DataKeyRight:      dataKeyRight,
+		KeyExpression:     keyExpression,
+		DataKeyExpression: dataKeyExpression,
+		Fields:            in,
+		FieldNameJoin:     fieldNameJoin,
+	}
+}
+
+func (j Join) Title() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).Title())
+	}
+
+	return join
+}
+
+func (j Join) Camel() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).ToCamel())
+	}
+	return join
+}
+
+func (j Join) Snake() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).ToSnake())
+	}
+
+	return join
+}
+
+func (j Join) Untitle() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).Untitle())
+	}
+
+	return join
+}
+
+func (j Join) Upper() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).Upper())
+	}
+
+	return join
+}
+
+func (j Join) Lower() Join {
+	var join Join
+	for _, each := range j {
+		join = append(join, stringx.From(each).Lower())
+	}
+
+	return join
+}
+
+func (j Join) With(sep string) stringx.String {
+	return stringx.From(strings.Join(j, sep))
 }

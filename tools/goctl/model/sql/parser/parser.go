@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
@@ -10,21 +11,15 @@ import (
 	"github.com/xwb1989/sqlparser"
 )
 
-const (
-	_ = iota
-	primary
-	unique
-	normal
-	spatial
-)
-
 const timeImport = "time.Time"
 
 type (
 	Table struct {
-		Name       stringx.String
-		PrimaryKey Primary
-		Fields     []Field
+		Name        stringx.String
+		PrimaryKey  Primary
+		UniqueIndex map[string][]*Field
+		NormalIndex map[string][]*Field
+		Fields      []*Field
 	}
 
 	Primary struct {
@@ -36,9 +31,8 @@ type (
 		Name         stringx.String
 		DataBaseType string
 		DataType     string
-		IsPrimaryKey bool
-		IsUniqueKey  bool
 		Comment      string
+		SeqInIndex   int
 	}
 
 	KeyType int
@@ -68,50 +62,81 @@ func Parse(ddl string) (*Table, error) {
 
 	columns := tableSpec.Columns
 	indexes := tableSpec.Indexes
-	keyMap := make(map[string]KeyType)
+	var primaryColumn string
+	uniqueKeyMap := make(map[string][]string)
+	spatialKeyMap := make(map[string][]string)
+	normalKeyMap := make(map[string][]string)
+
+	isCreateTimeOrUpdateTime := func(name string) bool {
+		camelColumnName := stringx.From(name).ToCamel()
+		// by default, createTime|updateTime findOne is not used.
+		return camelColumnName == "CreateTime" || camelColumnName == "UpdateTime"
+	}
+
 	for _, index := range indexes {
 		info := index.Info
 		if info == nil {
 			continue
 		}
+
+		indexName := index.Info.Name.String()
 		if info.Primary {
 			if len(index.Columns) > 1 {
 				return nil, errPrimaryKey
 			}
+			columnName := index.Columns[0].Column.String()
+			if isCreateTimeOrUpdateTime(columnName) {
+				continue
+			}
 
-			keyMap[index.Columns[0].Column.String()] = primary
+			primaryColumn = columnName
 			continue
-		}
-		// can optimize
-		if len(index.Columns) > 1 {
-			continue
-		}
-		column := index.Columns[0]
-		columnName := column.Column.String()
-		camelColumnName := stringx.From(columnName).ToCamel()
-		// by default, createTime|updateTime findOne is not used.
-		if camelColumnName == "CreateTime" || camelColumnName == "UpdateTime" {
-			continue
-		}
-		if info.Unique {
-			keyMap[columnName] = unique
+		} else if info.Unique {
+			for _, each := range index.Columns {
+				columnName := each.Column.String()
+				if isCreateTimeOrUpdateTime(columnName) {
+					break
+				}
+
+				uniqueKeyMap[indexName] = append(uniqueKeyMap[indexName], columnName)
+			}
 		} else if info.Spatial {
-			keyMap[columnName] = spatial
+			for _, each := range index.Columns {
+				columnName := each.Column.String()
+				if isCreateTimeOrUpdateTime(columnName) {
+					break
+				}
+
+				spatialKeyMap[indexName] = append(spatialKeyMap[indexName], each.Column.String())
+			}
 		} else {
-			keyMap[columnName] = normal
+			for _, each := range index.Columns {
+				columnName := each.Column.String()
+				if isCreateTimeOrUpdateTime(columnName) {
+					break
+				}
+
+				normalKeyMap[indexName] = append(normalKeyMap[indexName], each.Column.String())
+			}
 		}
 	}
 
-	var fields []Field
-	var primaryKey Primary
+	var (
+		fields     []*Field
+		primaryKey Primary
+		fieldM     = make(map[string]*Field)
+	)
+
 	for _, column := range columns {
 		if column == nil {
 			continue
 		}
+
 		var comment string
 		if column.Type.Comment != nil {
 			comment = string(column.Type.Comment.Val)
 		}
+
 		var isDefaultNull = true
 		if column.Type.NotNull {
 			isDefaultNull = false
@@ -122,6 +147,7 @@ func Parse(ddl string) (*Table, error) {
 				isDefaultNull = false
 			}
 		}
+
 		dataType, err := converter.ConvertDataType(column.Type.Type, isDefaultNull)
 		if err != nil {
 			return nil, err
@@ -132,24 +158,40 @@ func Parse(ddl string) (*Table, error) {
 		field.DataBaseType = column.Type.Type
 		field.DataType = dataType
 		field.Comment = comment
-		key, ok := keyMap[column.Name.String()]
-		if ok {
-			field.IsPrimaryKey = key == primary
-			field.IsUniqueKey = key == unique
-			if field.IsPrimaryKey {
-				primaryKey.Field = field
-				if column.Type.Autoincrement {
-					primaryKey.AutoIncrement = true
-				}
+
+		if field.Name.Source() == primaryColumn {
+			primaryKey = Primary{
+				Field:         field,
+				AutoIncrement: bool(column.Type.Autoincrement),
 			}
 		}
-		fields = append(fields, field)
+
+		fields = append(fields, &field)
+		fieldM[field.Name.Source()] = &field
+	}
+
+	var (
+		uniqueIndex = make(map[string][]*Field)
+		normalIndex = make(map[string][]*Field)
+	)
+	for indexName, each := range uniqueKeyMap {
+		for _, columnName := range each {
+			uniqueIndex[indexName] = append(uniqueIndex[indexName], fieldM[columnName])
+		}
+	}
+
+	for indexName, each := range uniqueKeyMap {
+		for _, columnName := range each {
+			normalIndex[indexName] = append(normalIndex[indexName], fieldM[columnName])
+		}
 	}
 
 	return &Table{
-		Name:       stringx.From(tableName),
-		PrimaryKey: primaryKey,
-		Fields:     fields,
+		Name:        stringx.From(tableName),
+		PrimaryKey:  primaryKey,
+		UniqueIndex: uniqueIndex,
+		NormalIndex: normalIndex,
+		Fields:      fields,
 	}, nil
 }
 
@@ -162,62 +204,69 @@ func (t *Table) ContainsTime() bool {
 	return false
 }
 
-func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
-	var reply Table
-	reply.Name = stringx.From(table)
-	keyMap := make(map[string][]*model.Column)
-
-	for _, column := range in {
-		keyMap[column.Key] = append(keyMap[column.Key], column)
-	}
-	primaryColumns := keyMap["PRI"]
-	if len(primaryColumns) == 0 {
-		return nil, fmt.Errorf("database:%s, table %s: missing primary key", db, table)
-	}
-
-	if len(primaryColumns) > 1 {
-		return nil, fmt.Errorf("database:%s, table %s: only one primary key expected", db, table)
-	}
-
-	primaryColumn := primaryColumns[0]
-	isDefaultNull := primaryColumn.ColumnDefault == nil && primaryColumn.IsNullAble == "YES"
-	primaryFt, err := converter.ConvertDataType(primaryColumn.DataType, isDefaultNull)
+func ConvertDataType(table *model.Table) (*Table, error) {
+	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
+	primaryDataType, err := converter.ConvertDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull)
 	if err != nil {
 		return nil, err
 	}
 
-	primaryField := Field{
-		Name:         stringx.From(primaryColumn.Name),
-		DataBaseType: primaryColumn.DataType,
-		DataType:     primaryFt,
-		IsUniqueKey:  true,
-		IsPrimaryKey: true,
-		Comment:      primaryColumn.Comment,
-	}
+	var reply Table
+	reply.UniqueIndex = map[string][]*Field{}
+	reply.NormalIndex = map[string][]*Field{}
+	reply.Name = stringx.From(table.Table)
 	reply.PrimaryKey = Primary{
-		Field:         primaryField,
-		AutoIncrement: strings.Contains(primaryColumn.Extra, "auto_increment"),
+		Field: Field{
+			Name:         stringx.From(table.PrimaryKey.Name),
+			DataBaseType: table.PrimaryKey.DataType,
+			DataType:     primaryDataType,
+			Comment:      table.PrimaryKey.Comment,
+			SeqInIndex:   table.PrimaryKey.SeqInIndex,
+		},
+		AutoIncrement: strings.Contains(table.PrimaryKey.Extra, "auto_increment"),
 	}
-	for key, columns := range keyMap {
-		for _, item := range columns {
-			isColumnDefaultNull := item.ColumnDefault == nil && item.IsNullAble == "YES"
-			dt, err := converter.ConvertDataType(item.DataType, isColumnDefaultNull)
-			if err != nil {
-				return nil, err
-			}
 
-			f := Field{
-				Name:         stringx.From(item.Name),
-				DataBaseType: item.DataType,
-				DataType:     dt,
-				IsPrimaryKey: primaryColumn.Name == item.Name,
-				Comment:      item.Comment,
-			}
-			if key == "UNI" {
-				f.IsUniqueKey = true
-			}
-			reply.Fields = append(reply.Fields, f)
+	fieldM := make(map[string]*Field)
+	for _, each := range table.Columns {
+		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
+		dt, err := converter.ConvertDataType(each.DataType, isDefaultNull)
+		if err != nil {
+			return nil, err
 		}
+
+		fieldM[each.Name] = &Field{
+			Name:         stringx.From(each.Name),
+			DataBaseType: each.DataType,
+			DataType:     dt,
+			Comment:      each.Comment,
+			SeqInIndex:   each.SeqInIndex,
+		}
+	}
+
+	for indexName, each := range table.UniqueIndex {
+		var list []*Field
+		for _, c := range each {
+			list = append(list, fieldM[c.Name])
+		}
+
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].SeqInIndex < list[j].SeqInIndex
+		})
+
+		reply.UniqueIndex[indexName] = list
+	}
+
+	for indexName, each := range table.NormalIndex {
+		var list []*Field
+		for _, c := range each {
+			list = append(list, fieldM[c.Name])
+		}
+
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].SeqInIndex < list[j].SeqInIndex
+		})
+
+		reply.NormalIndex[indexName] = list
 	}
 
 	return &reply, nil
