@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"path/filepath"
 	"strings"
 
@@ -16,14 +17,14 @@ func (g *defaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	base := filepath.Dir(proto.Src)
 	cw.WriteString("protoc ")
 	for _, ip := range protoImportPath {
-		cw.WriteString(" -I=" + ip)
+		cw.WriteString(" -I=" + util.WrapPath(ip))
 	}
-	cw.WriteString(" -I=" + base)
+	cw.WriteString(" -I=" + util.WrapPath(base))
 	cw.WriteString(" " + proto.Name)
 	if strings.Contains(proto.GoPackage, "/") {
-		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetMain().Filename)
+		cw.WriteString(" --go_out=plugins=grpc:" + util.WrapPath(ctx.GetMain().Filename))
 	} else {
-		cw.WriteString(" --go_out=plugins=grpc:" + dir.Filename)
+		cw.WriteString(" --go_out=plugins=grpc:" + util.WrapPath(dir.Filename))
 	}
 	command := cw.String()
 	g.log.Debug(command)

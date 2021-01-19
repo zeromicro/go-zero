@@ -3,6 +3,7 @@ package ctx
 import (
 	"errors"
 	"path/filepath"
+	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 )
@@ -33,6 +34,7 @@ func Prepare(workDir string) (*ProjectContext, error) {
 	}
 
 	name := filepath.Base(workDir)
+	name = strings.ReplaceAll(name, " ", "_")
 	_, err = execx.Run("go mod init "+name, workDir)
 	if err != nil {
 		return nil, err
