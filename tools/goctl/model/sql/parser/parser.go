@@ -5,8 +5,10 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/xwb1989/sqlparser"
 )
@@ -233,25 +235,46 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		fieldM[each.Name] = &Field{
+		field := &Field{
 			Name:         stringx.From(each.Name),
 			DataBaseType: each.DataType,
 			DataType:     dt,
 			Comment:      each.Comment,
 			SeqInIndex:   each.SeqInIndex,
 		}
+		fieldM[each.Name] = field
 	}
 
+	for _, each := range fieldM {
+		reply.Fields = append(reply.Fields, each)
+	}
+
+	uniqueIndexSet := collection.NewSet()
+	log := console.NewColorConsole()
 	for indexName, each := range table.UniqueIndex {
-		var list []*Field
-		for _, c := range each {
-			list = append(list, fieldM[c.Name])
+		sort.Slice(each, func(i, j int) bool {
+			return each[i].SeqInIndex < each[j].SeqInIndex
+		})
+		if len(each) == 1 {
+			one := each[0]
+			if one.Name == table.PrimaryKey.Name {
+				log.Warning("duplicate unique index with primary key, %s", one.Name)
+				continue
+			}
 		}
 
-		sort.Slice(list, func(i, j int) bool {
-			return list[i].SeqInIndex < list[j].SeqInIndex
-		})
+		var list []*Field
+		var uniqueJoin []string
+		for _, c := range each {
+			list = append(list, fieldM[c.Name])
+			uniqueJoin = append(uniqueJoin, c.Name)
+		}
+
+		uniqueKey := strings.Join(uniqueJoin, ",")
+		if uniqueIndexSet.Contains(uniqueKey) {
+			log.Warning("duplicate unique index, %s", uniqueKey)
+			continue
+		}
 
 		reply.UniqueIndex[indexName] = list
 	}

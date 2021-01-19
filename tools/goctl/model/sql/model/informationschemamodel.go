@@ -80,6 +80,8 @@ func (m *InformationSchemaModel) FindColumns(db, table string) (*ColumnData, err
 
 func (c *ColumnData) Convert() (*Table, error) {
 	var table Table
+	table.Table = c.Table
+	table.Db = c.Db
 	table.Columns = c.Columns
 	table.UniqueIndex = map[string][]*Column{}
 	table.NormalIndex = map[string][]*Column{}
