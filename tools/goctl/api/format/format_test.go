@@ -9,13 +9,11 @@ import (
 const (
 	notFormattedStr = `
 type Request struct {
-  Name string 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `  
 }
-
 type Response struct {
-  Message string
+  Message string ` + "`" + `json:"message"` + "`" + `
 }
-
 service A-api {
 @server(
 handler: GreetHandler
@@ -25,13 +23,11 @@ handler: GreetHandler
 `
 
 	formattedStr = `type Request {
-	Name string
+	Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
-
 type Response {
-	Message string
+	Message string ` + "`" + `json:"message"` + "`" + `
 }
-
 service A-api {
 	@server(
 		handler: GreetHandler

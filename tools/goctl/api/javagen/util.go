@@ -1,52 +1,53 @@
 package javagen
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
 	"strings"
-	"text/template"
 
 	"github.com/3Rivers/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/3Rivers/go-zero/tools/goctl/api/util"
 	"github.com/3Rivers/go-zero/tools/goctl/util"
 )
 
-const getSetTemplate = `
-{{.indent}}{{.decorator}}
-{{.indent}}public {{.returnType}} get{{.property}}() {
-{{.indent}}	return this.{{.propertyValue}};
-{{.indent}}}
-
-{{.indent}}public void set{{.property}}({{.type}} {{.propertyValue}}) {
-{{.indent}}	this.{{.propertyValue}} = {{.propertyValue}};
-{{.indent}}}
-`
-
 func writeProperty(writer io.Writer, member spec.Member, indent int) error {
+	if len(member.Comment) > 0 {
+		writeIndent(writer, indent)
+		fmt.Fprint(writer, member.Comment+util.NL)
+	}
 	writeIndent(writer, indent)
-	ty, err := goTypeToJava(member.Type)
+	ty, err := specTypeToJava(member.Type)
 	ty = strings.Replace(ty, "*", "", 1)
 	if err != nil {
 		return err
 	}
+
 	name, err := member.GetPropertyName()
 	if err != nil {
 		return err
 	}
+
 	_, err = fmt.Fprintf(writer, "private %s %s", ty, name)
 	if err != nil {
 		return err
 	}
-	writeDefaultValue(writer, member)
+
+	err = writeDefaultValue(writer, member)
+	if err != nil {
+		return err
+	}
+
 	fmt.Fprint(writer, ";\n")
 	return err
 }
 
 func writeDefaultValue(writer io.Writer, member spec.Member) error {
-	switch member.Type {
-	case "string":
+	javaType, err := specTypeToJava(member.Type)
+	if err != nil {
+		return err
+	}
+
+	if javaType == "String" {
 		_, err := fmt.Fprintf(writer, " = \"\"")
 		return err
 	}
@@ -67,104 +68,71 @@ func indentString(indent int) string {
 	return result
 }
 
-func writeNewline(writer io.Writer) {
-	fmt.Fprint(writer, util.NL)
+func specTypeToJava(tp spec.Type) (string, error) {
+	switch v := tp.(type) {
+	case spec.DefineStruct:
+		return util.Title(tp.Name()), nil
+	case spec.PrimitiveType:
+		r, ok := primitiveType(tp.Name())
+		if !ok {
+			return "", errors.New("unsupported primitive type " + tp.Name())
+		}
+		return r, nil
+	case spec.MapType:
+		valueType, err := specTypeToJava(v.Value)
+		if err != nil {
+			return "", err
+		}
+
+		return fmt.Sprintf("java.util.HashMap<String, %s>", util.Title(valueType)), nil
+	case spec.ArrayType:
+		if tp.Name() == "[]byte" {
+			return "byte[]", nil
+		}
+
+		valueType, err := specTypeToJava(v.Value)
+		if err != nil {
+			return "", err
+		}
+
+		switch valueType {
+		case "int":
+			return "Integer[]", nil
+		case "long":
+			return "Long[]", nil
+		case "float":
+			return "Float[]", nil
+		case "double":
+			return "Double[]", nil
+		case "boolean":
+			return "Boolean[]", nil
+		}
+
+		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(valueType)), nil
+	case spec.InterfaceType:
+		return "Object", nil
+	case spec.PointerType:
+		return specTypeToJava(v.Type)
+	}
+
+	return "", errors.New("unsupported primitive type " + tp.Name())
 }
 
-func isPrimitiveType(tp string) bool {
-	switch tp {
-	case "int", "int32", "int64":
-		return true
-	case "float", "float32", "float64":
-		return true
-	case "bool":
-		return true
-	}
-	return false
-}
-
-func goTypeToJava(tp string) (string, error) {
-	if len(tp) == 0 {
-		return "", errors.New("property type empty")
-	}
-
-	if strings.HasPrefix(tp, "*") {
-		tp = tp[1:]
-	}
+func primitiveType(tp string) (string, bool) {
 	switch tp {
 	case "string":
-		return "String", nil
-	case "int64":
-		return "long", nil
-	case "int", "int8", "int32":
-		return "int", nil
-	case "float", "float32", "float64":
-		return "double", nil
+		return "String", true
+	case "int64", "uint64":
+		return "long", true
+	case "int", "int8", "int32", "uint", "uint8", "uint16", "uint32":
+		return "int", true
+	case "float", "float32":
+		return "float", true
+	case "float64":
+		return "double", true
 	case "bool":
-		return "boolean", nil
+		return "boolean", true
 	}
-	if strings.HasPrefix(tp, "[]") {
-		tys, err := apiutil.DecomposeType(tp)
-		if err != nil {
-			return "", err
-		}
 
-		if len(tys) == 0 {
-			return "", fmt.Errorf("%s tp parse error", tp)
-		}
-
-		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(tys[0])), nil
-	} else if strings.HasPrefix(tp, "map") {
-		tys, err := apiutil.DecomposeType(tp)
-		if err != nil {
-			return "", err
-		}
-
-		if len(tys) == 2 {
-			return "", fmt.Errorf("%s tp parse error", tp)
-		}
-
-		return fmt.Sprintf("java.util.HashMap<String, %s>", util.Title(tys[1])), nil
-	}
-	return util.Title(tp), nil
-}
-
-func genGetSet(writer io.Writer, members []spec.Member, indent int) error {
-	t := template.Must(template.New("getSetTemplate").Parse(getSetTemplate))
-	for _, member := range members {
-		var tmplBytes bytes.Buffer
-
-		oty, err := goTypeToJava(member.Type)
-		if err != nil {
-			return err
-		}
-
-		tyString := oty
-		decorator := ""
-		if !isPrimitiveType(member.Type) {
-			if member.IsOptional() {
-				decorator = "@Nullable "
-			} else {
-				decorator = "@NotNull "
-			}
-			tyString = decorator + tyString
-		}
-
-		err = t.Execute(&tmplBytes, map[string]string{
-			"property":      util.Title(member.Name),
-			"propertyValue": util.Untitle(member.Name),
-			"type":          tyString,
-			"decorator":     decorator,
-			"returnType":    oty,
-			"indent":        indentString(indent),
-		})
-		if err != nil {
-			return err
-		}
-
-		r := tmplBytes.String()
-		r = strings.Replace(r, " boolean get", " boolean is", 1)
-		writer.Write([]byte(r))
-	}
-	return nil
+	return "", false
 }

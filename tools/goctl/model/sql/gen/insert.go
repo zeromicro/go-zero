@@ -22,12 +22,12 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
-	for _, filed := range table.Fields {
-		camel := filed.Name.ToCamel()
+	for _, field := range table.Fields {
+		camel := field.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
-		if filed.IsPrimaryKey && table.PrimaryKey.AutoIncrement {
+		if field.IsPrimaryKey && table.PrimaryKey.AutoIncrement {
 			continue
 		}
 		expressions = append(expressions, "?")

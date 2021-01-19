@@ -1,13 +1,12 @@
 package model
 
-import (
-	"github.com/3Rivers/go-zero/core/stores/sqlx"
-)
+import "github.com/3Rivers/go-zero/core/stores/sqlx"
 
 type (
 	InformationSchemaModel struct {
 		conn sqlx.SqlConn
 	}
+
 	Column struct {
 		Name          string      `db:"COLUMN_NAME"`
 		DataType      string      `db:"DATA_TYPE"`

@@ -23,12 +23,18 @@ import (
 	"github.com/3Rivers/go-zero/tools/goctl/plugin"
 	rpc "github.com/3Rivers/go-zero/tools/goctl/rpc/cli"
 	"github.com/3Rivers/go-zero/tools/goctl/tpl"
+	"github.com/3Rivers/go-zero/tools/goctl/upgrade"
 	"github.com/urfave/cli"
 )
 
 var (
-	BuildVersion = "1.1.1"
+	BuildVersion = "1.1.4"
 	commands     = []cli.Command{
+		{
+			Name:   "upgrade",
+			Usage:  "upgrade goctl to latest version",
+			Action: upgrade.Upgrade,
+		},
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -100,7 +106,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "style",
-							Usage: "the file naming format, see [https://github.com/3Rivers/go-zero/tree/master/tools/goctl/config/readme.md]",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
 					},
 					Action: gogen.GoCommand,
@@ -199,7 +205,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "style",
-							Usage: "the file naming format, see [https://github.com/3Rivers/go-zero/tree/master/tools/goctl/config/readme.md]",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
 					},
 					Action: plugin.PluginCommand,

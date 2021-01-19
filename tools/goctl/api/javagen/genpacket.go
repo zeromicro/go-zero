@@ -1,11 +1,8 @@
 package javagen
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"text/template"
 
@@ -17,29 +14,17 @@ import (
 
 const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
 
-import com.google.gson.Gson;
-import com.xhb.commons.JSON;
-import com.xhb.commons.JsonMarshal;
+import com.xhb.core.packet.HttpPacket;
 import com.xhb.core.network.HttpRequestClient;
-import com.xhb.core.packet.HttpRequestPacket;
-import com.xhb.core.response.HttpResponseData;
-import com.xhb.logic.http.DeProguardable;
-{{if not .HasRequestBody}}
-import com.xhb.logic.http.request.EmptyRequest;
-{{end}}
-{{.import}}
+{{.imports}}
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.json.JSONObject;
-
-public class {{.packetName}} extends HttpRequestPacket<{{.packetName}}.{{.packetName}}Response> {
-
+{{.doc}}
+public class {{.packetName}} extends HttpPacket<{{.responseType}}> {
 	{{.paramsDeclaration}}
 
-	public {{.packetName}}({{.params}}{{if .HasRequestBody}}, {{.requestType}} request{{end}}) {
+	public {{.packetName}}({{.params}}{{if .HasRequestBody}}{{.requestType}} request{{end}}) {
 		{{if .HasRequestBody}}super(request);{{else}}super(EmptyRequest.instance);{{end}}
-		{{if .HasRequestBody}}this.request = request;{{end}}{{.paramsSet}}
+		{{if .HasRequestBody}}this.request = request;{{end}}{{.paramsSetter}}
     }
 
 	@Override
@@ -51,32 +36,6 @@ public class {{.packetName}} extends HttpRequestPacket<{{.packetName}}.{{.packet
     public String requestUri() {
         return {{.uri}};
     }
-
-	@Override
-    public {{.packetName}}Response newInstanceFrom(JSON json) {
-        return new {{.packetName}}Response(json);
-    }
-
-	public static class {{.packetName}}Response extends HttpResponseData {
-
-		private {{.responseType}} responseData;
-
-        {{.packetName}}Response(@NotNull JSON json) {
-            super(json);
-            JSONObject jsonObject = json.asObject();
-			if (JsonParser.hasKey(jsonObject, "data")) {
-				Gson gson = new Gson();
-				JSONObject dataJson = JsonParser.getJSONObject(jsonObject, "data");
-				responseData = gson.fromJson(dataJson.toString(), {{.responseType}}.class);
-			}
-        }
-
-		public {{.responseType}} get{{.responseType}} () {
-            return responseData;
-        }
-    }
-
-	{{.types}}
 }
 `
 
@@ -91,10 +50,11 @@ func genPacket(dir, packetName string, api *spec.ApiSpec) error {
 }
 
 func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName string) error {
-	packet, ok := apiutil.GetAnnotationValue(route.Annotations, "server", "handler")
+	packet := route.Handler
 	packet = strings.Replace(packet, "Handler", "Packet", 1)
-	if !ok {
-		return fmt.Errorf("missing packet annotation for %q", route.Path)
+	packet = strings.Title(packet)
+	if !strings.HasSuffix(packet, "Packet") {
+		packet += "Packet"
 	}
 
 	javaFile := packet + ".java"
@@ -107,27 +67,24 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 	}
 	defer fp.Close()
 
-	var builder strings.Builder
-	var first bool
-	tps := apiutil.GetLocalTypes(api, route)
-
-	for _, tp := range tps {
-		if first {
-			first = false
-		} else {
-			fmt.Fprintln(&builder)
-		}
-
-		if err := genType(&builder, tp, api.Types); err != nil {
-			return err
+	var hasRequestBody = false
+	if route.RequestType != nil {
+		if defineStruct, ok := route.RequestType.(spec.DefineStruct); ok {
+			hasRequestBody = len(defineStruct.GetBodyMembers()) > 0 || len(defineStruct.GetFormMembers()) > 0
 		}
 	}
-	types := builder.String()
-	writeIndent(&builder, 1)
 
-	params := paramsForRoute(route)
+	params := strings.TrimSpace(paramsForRoute(route))
+	if len(params) > 0 && hasRequestBody {
+		params += ", "
+	}
 	paramsDeclaration := declarationForRoute(route)
-	paramsSet := paramsSet(route)
+	paramsSetter := paramsSet(route)
+	imports := getImports(api, packetName)
+
+	if len(route.ResponseTypeName()) == 0 {
+		imports += fmt.Sprintf("\v%s", "import com.xhb.core.response.EmptyResponse;")
+	}
 
 	t := template.Must(template.New("packetTemplate").Parse(packetTemplate))
 	var tmplBytes bytes.Buffer
@@ -135,54 +92,44 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 		"packetName":        packet,
 		"method":            strings.ToUpper(route.Method),
 		"uri":               processUri(route),
-		"types":             strings.TrimSpace(types),
-		"responseType":      stringx.TakeOne(util.Title(route.ResponseType.Name), "Object"),
+		"responseType":      stringx.TakeOne(util.Title(route.ResponseTypeName()), "EmptyResponse"),
 		"params":            params,
 		"paramsDeclaration": strings.TrimSpace(paramsDeclaration),
-		"paramsSet":         paramsSet,
+		"paramsSetter":      paramsSetter,
 		"packet":            packetName,
-		"requestType":       util.Title(route.RequestType.Name),
-		"HasRequestBody":    len(route.RequestType.GetBodyMembers()) > 0,
-		"import":            getImports(api, route, packetName),
+		"requestType":       util.Title(route.RequestTypeName()),
+		"HasRequestBody":    hasRequestBody,
+		"imports":           imports,
+		"doc":               doc(route),
 	})
 	if err != nil {
 		return err
 	}
-	formatFile(&tmplBytes, fp)
+
+	_, err = fp.WriteString(formatSource(tmplBytes.String()))
 	return nil
 }
 
-func getImports(api *spec.ApiSpec, route spec.Route, packetName string) string {
-	var builder strings.Builder
-	allTypes := apiutil.GetAllTypes(api, route)
-	sharedTypes := apiutil.GetSharedTypes(api)
-	for _, at := range allTypes {
-		for _, item := range sharedTypes {
-			if item.Name == at.Name {
-				fmt.Fprintf(&builder, "import com.xhb.logic.http.packet.%s.model.%s;\n", packetName, item.Name)
-				break
-			}
-		}
+func doc(route spec.Route) string {
+	comment := route.JoinedDoc()
+	if len(comment) > 0 {
+		formatter := `
+/*
+    %s	
+*/`
+		return fmt.Sprintf(formatter, comment)
 	}
-	return builder.String()
+	return ""
 }
 
-func formatFile(tmplBytes *bytes.Buffer, file *os.File) {
-	scanner := bufio.NewScanner(tmplBytes)
-	builder := bufio.NewWriter(file)
-	defer builder.Flush()
-	preIsBreakLine := false
-	for scanner.Scan() {
-		text := strings.TrimSpace(scanner.Text())
-		if text == "" && preIsBreakLine {
-			continue
-		}
-		preIsBreakLine = text == ""
-		builder.WriteString(scanner.Text() + "\n")
+func getImports(api *spec.ApiSpec, packetName string) string {
+	var builder strings.Builder
+	allTypes := api.Types
+	if len(allTypes) > 0 {
+		fmt.Fprintf(&builder, "import com.xhb.logic.http.packet.%s.model.*;\n", packetName)
 	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println(err)
-	}
+
+	return builder.String()
 }
 
 func paramsSet(route spec.Route) string {
@@ -241,6 +188,7 @@ func declarationForRoute(route spec.Route) string {
 
 func processUri(route spec.Route) string {
 	path := route.Path
+
 	var builder strings.Builder
 	cops := strings.Split(path, "/")
 	for index, cop := range cops {
@@ -261,29 +209,37 @@ func processUri(route spec.Route) string {
 		result = result[:len(result)-4]
 	}
 	if strings.HasPrefix(result, "/") {
+		result = strings.TrimPrefix(result, "/")
 		result = "\"" + result
 	}
-	return result
+	return result + formString(route)
 }
 
-func genType(writer io.Writer, tp spec.Type, types []spec.Type) error {
-	if len(tp.GetBodyMembers()) == 0 {
-		return nil
+func formString(route spec.Route) string {
+	var keyValues []string
+	if defineStruct, ok := route.RequestType.(spec.DefineStruct); ok {
+		forms := defineStruct.GetFormMembers()
+		for _, item := range forms {
+			name, err := item.GetPropertyName()
+			if err != nil {
+				panic(err)
+			}
+
+			strcat := "?"
+			if len(keyValues) > 0 {
+				strcat = "&"
+			}
+			if item.Type.Name() == "bool" {
+				name = strings.TrimPrefix(name, "Is")
+				name = strings.TrimPrefix(name, "is")
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.is%s()`, strcat, name, strings.Title(name)))
+			} else {
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.get%s()`, strcat, name, strings.Title(name)))
+			}
+		}
+		if len(keyValues) > 0 {
+			return " + " + strings.Join(keyValues, " + ")
+		}
 	}
-
-	writeIndent(writer, 1)
-	fmt.Fprintf(writer, "static class %s implements DeProguardable {\n", util.Title(tp.Name))
-	var members []spec.Member
-	err := writeMembers(writer, types, tp.Members, &members, 2)
-	if err != nil {
-		return err
-	}
-
-	writeNewline(writer)
-	writeIndent(writer, 1)
-	genGetSet(writer, members, 2)
-	writeIndent(writer, 1)
-	fmt.Fprintln(writer, "}")
-
-	return nil
+	return ""
 }

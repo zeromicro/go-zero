@@ -54,10 +54,12 @@ func GoFormatApi(c *cli.Context) error {
 		})
 		be.Add(err)
 	}
+
 	if be.NotNil() {
 		scanner.PrintError(os.Stderr, be.Err())
 		os.Exit(1)
 	}
+
 	return be.Err()
 }
 
@@ -73,10 +75,7 @@ func ApiFormatByStdin() error {
 	}
 
 	_, err = fmt.Print(result)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func ApiFormatByPath(apiFilePath string) error {
@@ -90,14 +89,16 @@ func ApiFormatByPath(apiFilePath string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm); err != nil {
+	_, err = parser.ParseContent(result)
+	if err != nil {
 		return err
 	}
-	return nil
+
+	return ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
 func apiFormat(data string) (string, error) {
-	_, err := parser.ParseApi(data)
+	_, err := parser.ParseContent(data)
 	if err != nil {
 		return "", err
 	}
@@ -150,6 +151,7 @@ func apiFormat(data string) (string, error) {
 		}
 		preLine = line
 	}
+
 	return strings.TrimSpace(builder.String()), nil
 }
 
@@ -178,9 +180,9 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 				break
 			}
 		}
-
 		return true, nil
 	}
+
 	return false, nil
 }
 
@@ -208,5 +210,10 @@ func mayInsertStructKeyword(line string, token *int) string {
 	if strings.HasSuffix(noCommentLine, leftParenthesis) {
 		*token++
 	}
+
+	if strings.Contains(noCommentLine, "`") {
+		return util.UpperFirst(strings.TrimSpace(line))
+	}
+
 	return line
 }

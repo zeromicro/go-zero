@@ -10,16 +10,19 @@ import (
 
 func genUpdate(table Table, withCache bool) (string, string, error) {
 	expressionValues := make([]string, 0)
-	for _, filed := range table.Fields {
-		camel := filed.Name.ToCamel()
+	for _, field := range table.Fields {
+		camel := field.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
-		if filed.IsPrimaryKey {
+
+		if field.IsPrimaryKey {
 			continue
 		}
+
 		expressionValues = append(expressionValues, "data."+camel)
 	}
+
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)

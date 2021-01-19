@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/3Rivers/go-zero/core/collection"
 	"github.com/3Rivers/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/3Rivers/go-zero/tools/goctl/api/util"
 	"github.com/3Rivers/go-zero/tools/goctl/config"
 	"github.com/3Rivers/go-zero/tools/goctl/util"
 	"github.com/3Rivers/go-zero/tools/goctl/util/format"
@@ -132,28 +130,19 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
-	fp, created, err := apiutil.MaybeCreateFile(dir, handlerDir, routeFilename)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	t := template.Must(template.New("routesTemplate").Parse(routesTemplate))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"importPackages":  genRouteImports(parentPkg, api),
-		"routesAdditions": strings.TrimSpace(builder.String()),
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          handlerDir,
+		filename:        routeFilename,
+		templateName:    "routesTemplate",
+		category:        "",
+		templateFile:    "",
+		builtinTemplate: routesTemplate,
+		data: map[string]string{
+			"importPackages":  genRouteImports(parentPkg, api),
+			"routesAdditions": strings.TrimSpace(builder.String()),
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
@@ -161,10 +150,10 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			folder, ok := apiutil.GetAnnotationValue(route.Annotations, "server", groupProperty)
-			if !ok {
-				folder, ok = apiutil.GetAnnotationValue(group.Annotations, "server", groupProperty)
-				if !ok {
+			folder := route.GetAnnotation(groupProperty)
+			if len(folder) == 0 {
+				folder = group.GetAnnotation(groupProperty)
+				if len(folder) == 0 {
 					continue
 				}
 			}
@@ -186,12 +175,12 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		for _, r := range g.Routes {
 			handler := getHandlerName(r)
 			handler = handler + "(serverCtx)"
-			folder, ok := apiutil.GetAnnotationValue(r.Annotations, "server", groupProperty)
-			if ok {
+			folder := r.GetAnnotation(groupProperty)
+			if len(folder) > 0 {
 				handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 			} else {
-				folder, ok = apiutil.GetAnnotationValue(g.Annotations, "server", groupProperty)
-				if ok {
+				folder = g.GetAnnotation(groupProperty)
+				if len(folder) > 0 {
 					handler = toPrefix(folder) + "." + strings.ToUpper(handler[:1]) + handler[1:]
 				}
 			}
@@ -202,12 +191,14 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			})
 		}
 
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "jwt"); ok {
-			groupedRoutes.authName = value
+		jwt := g.GetAnnotation("jwt")
+		if len(jwt) > 0 {
+			groupedRoutes.authName = jwt
 			groupedRoutes.jwtEnabled = true
 		}
-		if value, ok := apiutil.GetAnnotationValue(g.Annotations, "server", "middleware"); ok {
-			for _, item := range strings.Split(value, ",") {
+		middleware := g.GetAnnotation("middleware")
+		if len(middleware) > 0 {
+			for _, item := range strings.Split(middleware, ",") {
 				groupedRoutes.middlewares = append(groupedRoutes.middlewares, item)
 			}
 		}

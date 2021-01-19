@@ -68,5 +68,4 @@ func TestGenCacheKeys(t *testing.T) {
 		assert.Equal(t, fmt.Sprintf(`user%sKey`, name.ToCamel()), key.Variable)
 		assert.Equal(t, `user`+name.ToCamel()+`Key := fmt.Sprintf("%s%v", cacheUser`+name.ToCamel()+`Prefix,`+name.Untitle()+`)`, key.KeyExpression)
 	}
-
 }

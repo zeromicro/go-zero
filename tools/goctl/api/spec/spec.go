@@ -1,59 +1,67 @@
 package spec
 
 type (
+	Doc []string
+
 	Annotation struct {
-		Name       string
 		Properties map[string]string
-		Value      string
+	}
+
+	ApiSyntax struct {
+		Version string
 	}
 
 	ApiSpec struct {
 		Info    Info
+		Syntax  ApiSyntax
+		Imports []Import
 		Types   []Type
 		Service Service
 	}
 
+	Import struct {
+		Value string
+	}
+
 	Group struct {
-		Annotations []Annotation
-		Routes      []Route
+		Annotation Annotation
+		Routes     []Route
 	}
 
 	Info struct {
-		Title   string
-		Desc    string
+		// Deprecated: use Properties instead
+		Title string
+		// Deprecated: use Properties instead
+		Desc string
+		// Deprecated: use Properties instead
 		Version string
-		Author  string
-		Email   string
+		// Deprecated: use Properties instead
+		Author string
+		// Deprecated: use Properties instead
+		Email      string
+		Properties map[string]string
 	}
 
 	Member struct {
-		Annotations []Annotation
-		Name        string
+		Name string
 		// 数据类型字面值，如：string、map[int]string、[]int64、[]*User
-		Type string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		Expr interface{}
-		Tag  string
-		// Deprecated
-		Comment string // 换成标准struct中将废弃
-		// 成员尾部注释说明
-		Comments []string
+		Type    Type
+		Tag     string
+		Comment string
 		// 成员头顶注释说明
-		Docs     []string
+		Docs     Doc
 		IsInline bool
 	}
 
 	Route struct {
-		Annotations  []Annotation
+		Annotation   Annotation
 		Method       string
 		Path         string
 		RequestType  Type
 		ResponseType Type
+		Docs         Doc
+		Handler      string
+		AtDoc        AtDoc
 	}
 
 	Service struct {
@@ -61,71 +69,50 @@ type (
 		Groups []Group
 	}
 
-	Type struct {
-		Name        string
-		Annotations []Annotation
-		Members     []Member
+	Type interface {
+		Name() string
 	}
 
-	// 系统预设基本数据类型
-	BasicType struct {
-		StringExpr string
-		Name       string
+	DefineStruct struct {
+		RawName string
+		Members []Member
+		Docs    Doc
 	}
 
-	PointerType struct {
-		StringExpr string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		Star interface{}
+	// 系统预设基本数据类型 bool int32 int64 float32
+	PrimitiveType struct {
+		RawName string
 	}
 
 	MapType struct {
-		StringExpr string
-		// only support the BasicType
+		RawName string
+		// only support the PrimitiveType
 		Key string
-		// it can be asserted as BasicType: int、bool、
+		// it can be asserted as PrimitiveType: int、bool、
 		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
+		// MapType: map[${PrimitiveType}]interface、
 		// ArrayType:[]int、[]User、[]*User
 		// InterfaceType: interface{}
 		// Type
-		Value interface{}
+		Value Type
 	}
+
 	ArrayType struct {
-		StringExpr string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		ArrayType interface{}
+		RawName string
+		Value   Type
 	}
+
 	InterfaceType struct {
-		StringExpr string
-		// do nothing,just for assert
+		RawName string
 	}
-	TimeType struct {
-		StringExpr string
+
+	PointerType struct {
+		RawName string
+		Type    Type
 	}
-	StructType struct {
-		StringExpr string
+
+	AtDoc struct {
+		Properties map[string]string
+		Text       string
 	}
 )
-
-func (spec *ApiSpec) ContainsTime() bool {
-	for _, item := range spec.Types {
-		members := item.Members
-		for _, member := range members {
-			if _, ok := member.Expr.(*TimeType); ok {
-				return true
-			}
-		}
-	}
-	return false
-}

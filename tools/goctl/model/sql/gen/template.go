@@ -12,12 +12,12 @@ const (
 	category                              = "model"
 	deleteTemplateFile                    = "delete.tpl"
 	deleteMethodTemplateFile              = "interface-delete.tpl"
-	fieldTemplateFile                     = "filed.tpl"
+	fieldTemplateFile                     = "field.tpl"
 	findOneTemplateFile                   = "find-one.tpl"
 	findOneMethodTemplateFile             = "interface-find-one.tpl"
 	findOneByFieldTemplateFile            = "find-one-by-field.tpl"
 	findOneByFieldMethodTemplateFile      = "interface-find-one-by-field.tpl"
-	findOneByFieldExtraMethodTemplateFile = "find-one-by-filed-extra-method.tpl"
+	findOneByFieldExtraMethodTemplateFile = "find-one-by-field-extra-method.tpl"
 	importsTemplateFile                   = "import.tpl"
 	importsWithNoCacheTemplateFile        = "import-no-cache.tpl"
 	insertTemplateFile                    = "insert.tpl"
@@ -71,6 +71,7 @@ func RevertTemplate(name string) error {
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
+
 	return util.CreateTemplate(category, name, content)
 }
 
@@ -79,5 +80,6 @@ func Update() error {
 	if err != nil {
 		return err
 	}
+
 	return util.InitTemplates(category, templates)
 }

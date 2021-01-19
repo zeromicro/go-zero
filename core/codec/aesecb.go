@@ -146,15 +146,15 @@ func EcbEncryptBase64(key, src string) (string, error) {
 }
 
 func getKeyBytes(key string) ([]byte, error) {
-	if len(key) > 32 {
-		if keyBytes, err := base64.StdEncoding.DecodeString(key); err != nil {
-			return nil, err
-		} else {
-			return keyBytes, nil
-		}
+	if len(key) <= 32 {
+		return []byte(key), nil
 	}
 
-	return []byte(key), nil
+	if keyBytes, err := base64.StdEncoding.DecodeString(key); err != nil {
+		return nil, err
+	} else {
+		return keyBytes, nil
+	}
 }
 
 func pkcs5Padding(ciphertext []byte, blockSize int) []byte {

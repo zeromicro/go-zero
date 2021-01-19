@@ -29,14 +29,11 @@ func DocCommand(c *cli.Context) error {
 		return err
 	}
 	for _, f := range files {
-		p, err := parser.NewParser(f)
+		api, err := parser.Parse(f)
 		if err != nil {
 			return errors.New(fmt.Sprintf("parse file: %s, err: %s", f, err.Error()))
 		}
-		api, err := p.Parse()
-		if err != nil {
-			return err
-		}
+
 		index := strings.Index(f, dir)
 		if index < 0 {
 			continue

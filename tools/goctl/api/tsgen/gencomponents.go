@@ -1,7 +1,6 @@
 package tsgen
 
 import (
-	"errors"
 	"path"
 	"strings"
 	"text/template"
@@ -19,19 +18,12 @@ const (
 )
 
 func genComponents(dir string, api *spec.ApiSpec) error {
-	types := apiutil.GetSharedTypes(api)
+	types := api.Types
 	if len(types) == 0 {
 		return nil
 	}
 
-	val, err := buildTypes(types, func(name string) (*spec.Type, error) {
-		for _, ty := range api.Types {
-			if strings.ToLower(ty.Name) == strings.ToLower(name) {
-				return &ty, nil
-			}
-		}
-		return nil, errors.New("inline type " + name + " not exist, please correct api file")
-	})
+	val, err := buildTypes(types)
 	if err != nil {
 		return err
 	}
@@ -57,7 +49,7 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 	})
 }
 
-func buildTypes(types []spec.Type, inlineType func(string) (*spec.Type, error)) (string, error) {
+func buildTypes(types []spec.Type) (string, error) {
 	var builder strings.Builder
 	first := true
 	for _, tp := range types {
@@ -66,12 +58,8 @@ func buildTypes(types []spec.Type, inlineType func(string) (*spec.Type, error)) 
 		} else {
 			builder.WriteString("\n")
 		}
-		if err := writeType(&builder, tp, func(name string) (*spec.Type, error) {
-			return inlineType(name)
-		}, func(tp string) string {
-			return ""
-		}); err != nil {
-			return "", apiutil.WrapErr(err, "Type "+tp.Name+" generate error")
+		if err := writeType(&builder, tp); err != nil {
+			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
 		}
 	}
 

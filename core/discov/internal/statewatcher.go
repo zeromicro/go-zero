@@ -18,7 +18,8 @@ type (
 		disconnected bool
 		currentState connectivity.State
 		listeners    []func()
-		lock         sync.Mutex
+		// lock only guards listeners, because only listens can be accessed by other goroutines.
+		lock sync.Mutex
 	}
 )
 
@@ -32,27 +33,33 @@ func (sw *stateWatcher) addListener(l func()) {
 	sw.lock.Unlock()
 }
 
+func (sw *stateWatcher) notifyListeners() {
+	sw.lock.Lock()
+	defer sw.lock.Unlock()
+
+	for _, l := range sw.listeners {
+		l()
+	}
+}
+
+func (sw *stateWatcher) updateState(conn etcdConn) {
+	sw.currentState = conn.GetState()
+	switch sw.currentState {
+	case connectivity.TransientFailure, connectivity.Shutdown:
+		sw.disconnected = true
+	case connectivity.Ready:
+		if sw.disconnected {
+			sw.disconnected = false
+			sw.notifyListeners()
+		}
+	}
+}
+
 func (sw *stateWatcher) watch(conn etcdConn) {
 	sw.currentState = conn.GetState()
 	for {
 		if conn.WaitForStateChange(context.Background(), sw.currentState) {
-			newState := conn.GetState()
-			sw.lock.Lock()
-			sw.currentState = newState
-
-			switch newState {
-			case connectivity.TransientFailure, connectivity.Shutdown:
-				sw.disconnected = true
-			case connectivity.Ready:
-				if sw.disconnected {
-					sw.disconnected = false
-					for _, l := range sw.listeners {
-						l()
-					}
-				}
-			}
-
-			sw.lock.Unlock()
+			sw.updateState(conn)
 		}
 	}
 }
