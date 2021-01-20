@@ -19,7 +19,7 @@ func Run(arg string, dir string, in ...*bytes.Buffer) (string, error) {
 	case vars.OsMac, vars.OsLinux:
 		cmd = exec.Command("sh", "-c", arg)
 	case vars.OsWindows:
-		cmd = exec.Command("cmd.exe", "/c", arg)
+		cmd = exec.Command("powershell.exe", "/c", arg)
 	default:
 		return "", fmt.Errorf("unexpected os: %v", goos)
 	}

@@ -109,7 +109,7 @@ func FindProjectPath(loc string) (string, bool) {
 
 func WrapPath(s string) string {
 	if s != "" && s[0] != '"' && s[0] != '\''  {
-		return `'` + s + `'`
+		return `"` + s + `"`
 	}
 	return s
 }
