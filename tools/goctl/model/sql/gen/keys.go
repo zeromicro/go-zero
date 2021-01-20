@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
@@ -39,6 +40,9 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	for _, each := range table.UniqueIndex {
 		uniqueKey = append(uniqueKey, genCacheKey(table.Name, each))
 	}
+	sort.Slice(uniqueKey, func(i, j int) bool {
+		return uniqueKey[i].VarLeft < uniqueKey[j].VarLeft
+	})
 
 	return primaryKey, uniqueKey
 }
