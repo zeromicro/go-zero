@@ -715,6 +715,20 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Equal(t, 0, len(pairs))
 		_, err = NewRedis(client.Addr, "").Zrevrank("key", "value")
 		assert.NotNil(t, err)
+		client.Zadd("second", 2, "aa")
+		client.Zadd("third", 3, "bbb")
+		val, err = client.Zunionstore("union", ZStore{
+			Weights:   []float64{1, 2},
+			Aggregate: "SUM",
+		}, "second", "third")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
+		vals, err = client.Zrange("union", 0, 10000)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []string{"aa", "bbb"}, vals)
+		ival, err := client.Zcard("union")
+		assert.Nil(t, err)
+		assert.Equal(t, 2, ival)
 	})
 }
 
