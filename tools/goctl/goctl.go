@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	BuildVersion = "1.1.3"
+	BuildVersion = "1.1.5"
 	commands     = []cli.Command{
 		{
 			Name:   "upgrade",
