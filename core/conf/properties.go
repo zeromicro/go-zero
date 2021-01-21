@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -32,10 +33,15 @@ type mapBasedProperties struct {
 
 // Loads the properties into a properties configuration instance.
 // Returns an error that indicates if there was a problem loading the configuration.
-func LoadProperties(filename string) (Properties, error) {
+func LoadProperties(filename string, opts ...Option) (Properties, error) {
 	lines, err := iox.ReadTextLines(filename, iox.WithoutBlank(), iox.OmitWithPrefix("#"))
 	if err != nil {
 		return nil, err
+	}
+
+	var opt options
+	for _, o := range opts {
+		o(&opt)
 	}
 
 	raw := make(map[string]string)
@@ -50,7 +56,11 @@ func LoadProperties(filename string) (Properties, error) {
 
 		key := strings.TrimSpace(pair[0])
 		value := strings.TrimSpace(pair[1])
-		raw[key] = value
+		if opt.env {
+			raw[key] = os.ExpandEnv(value)
+		} else {
+			raw[key] = value
+		}
 	}
 
 	return &mapBasedProperties{
