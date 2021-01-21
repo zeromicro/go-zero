@@ -51,7 +51,8 @@ type (
 	Pipeliner = red.Pipeliner
 
 	// Z represents sorted set member.
-	Z = red.Z
+	Z      = red.Z
+	ZStore = red.ZStore
 
 	IntCmd   = red.IntCmd
 	FloatCmd = red.FloatCmd
@@ -1388,6 +1389,20 @@ func (s *Redis) Zrevrank(key string, field string) (val int64, err error) {
 		}
 
 		val, err = conn.ZRevRank(key, field).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.ZUnionStore(dest, store, keys...).Result()
 		return err
 	}, acceptable)
 
