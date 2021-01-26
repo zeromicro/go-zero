@@ -12,6 +12,7 @@ func lowCamelCase(s string) string {
 	if len(s) < 1 {
 		return ""
 	}
+
 	s = util.ToCamelCase(util.ToSnakeCase(s))
 	return util.ToLower(s[:1]) + s[1:]
 }
