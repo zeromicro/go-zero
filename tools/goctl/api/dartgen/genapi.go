@@ -60,12 +60,12 @@ func genApiFile(dir string) error {
 	if fileExists(path) {
 		return nil
 	}
-	apiFile, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if e != nil {
-		return e
+	apiFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
 	}
 
 	defer apiFile.Close()
-	_, err := apiFile.WriteString(apiFileContent)
+	_, err = apiFile.WriteString(apiFileContent)
 	return err
 }
