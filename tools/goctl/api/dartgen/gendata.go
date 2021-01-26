@@ -4,7 +4,6 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -35,18 +34,16 @@ class {{.Name}}{
 func genData(dir string, api *spec.ApiSpec) error {
 	e := os.MkdirAll(dir, 0755)
 	if e != nil {
-		logx.Error(e)
-		return e
-	}
-	e = genTokens(dir)
-	if e != nil {
-		logx.Error(e)
 		return e
 	}
 
-	file, e := os.OpenFile(dir+api.Info.Title+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	e = genTokens(dir)
 	if e != nil {
-		logx.Error(e)
+		return e
+	}
+
+	file, e := os.OpenFile(dir+api.Service.Name+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if e != nil {
 		return e
 	}
 	defer file.Close()
@@ -55,7 +52,6 @@ func genData(dir string, api *spec.ApiSpec) error {
 	t = t.Funcs(funcMap)
 	t, e = t.Parse(dataTemplate)
 	if e != nil {
-		logx.Error(e)
 		return e
 	}
 
@@ -67,12 +63,13 @@ func genTokens(dir string) error {
 	if fileExists(path) {
 		return nil
 	}
-	tokensFile, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if e != nil {
-		logx.Error(e)
-		return e
+
+	tokensFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
 	}
+
 	defer tokensFile.Close()
-	tokensFile.WriteString(tokensFileContent)
-	return nil
+	_, err = tokensFile.WriteString(tokensFileContent)
+	return err
 }
