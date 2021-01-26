@@ -3,8 +3,6 @@ package dartgen
 import (
 	"io/ioutil"
 	"os"
-
-	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const varTemplate = `import 'dart:convert';
@@ -51,7 +49,6 @@ func genVars(dir string) error {
 	if !fileExists(dir + "vars.dart") {
 		err = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0644)
 		if err != nil {
-			logx.Error(err)
 			return err
 		}
 	}
