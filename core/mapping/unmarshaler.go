@@ -219,13 +219,16 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 		return u.fillSlice(fieldType, value, mapValue)
 	case typeKind == reflect.Map && valueKind == reflect.Map:
 		//handle map multinest
-		for _, element := range mapValue.(map[string]interface{}) {
-			//if element:=map[string]interface{} established;
-			if reflect.ValueOf(element).Kind() == reflect.Map {
-				//if fieldType is <map[string]string> return error ;or <map[string]interface{}> return pass;
-				m := make(map[string]string)
-				if fieldType == reflect.TypeOf(m) {
-					return fmt.Errorf("error: field: %s, expect map[string]string, actual %v", fullName, reflect.TypeOf(mapValue))
+		_, ok := mapValue.(map[string]interface{})
+		if ok {
+			for _, element := range mapValue.(map[string]interface{}) {
+				//if element:=map[string]interface{} established;
+				if reflect.ValueOf(element).Kind() == reflect.Map {
+					//if fieldType is <map[string]string> return error ;or <map[string]interface{}> return pass;
+					m := make(map[string]string)
+					if fieldType == reflect.TypeOf(m) {
+						return fmt.Errorf("error: field: %s, expect map[string]string, actual %v", fullName, reflect.TypeOf(mapValue))
+					}
 				}
 			}
 		}
