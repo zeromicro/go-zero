@@ -32,27 +32,27 @@ class {{.Name}}{
 `
 
 func genData(dir string, api *spec.ApiSpec) error {
-	e := os.MkdirAll(dir, 0755)
-	if e != nil {
-		return e
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return err
 	}
 
-	e = genTokens(dir)
-	if e != nil {
-		return e
+	err = genTokens(dir)
+	if err != nil {
+		return err
 	}
 
-	file, e := os.OpenFile(dir+api.Service.Name+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if e != nil {
-		return e
+	file, err := os.OpenFile(dir+api.Service.Name+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
 	}
 	defer file.Close()
 
 	t := template.New("dataTemplate")
 	t = t.Funcs(funcMap)
-	t, e = t.Parse(dataTemplate)
-	if e != nil {
-		return e
+	t, err = t.Parse(dataTemplate)
+	if err != nil {
+		return err
 	}
 
 	return t.Execute(file, api)
