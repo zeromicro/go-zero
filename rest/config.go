@@ -32,7 +32,7 @@ type (
 		KeyFile  string `json:",optional"`
 		Verbose  bool   `json:",optional"`
 		MaxConns int    `json:",default=10000"`
-		MaxBytes int64  `json:",default=1048576,range=[0:31457280]"`
+		MaxBytes int64  `json:",default=1048576,range=[0:33554432]"`
 		// milliseconds
 		Timeout      int64         `json:",default=3000"`
 		CpuThreshold int64         `json:",default=900,range=[0:1000]"`
