@@ -35,7 +35,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
-			"upperField":                key.FieldNameJoin.Camel().With("And").Source(),
+			"upperField":                key.FieldNameJoin.Camel().With("").Source(),
 			"in":                        inJoin.With(", ").Source(),
 			"withCache":                 withCache,
 			"cacheKey":                  key.KeyExpression,
