@@ -751,6 +751,20 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 	return
 }
 
+func (s *Redis) Rpop(key string) (val string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.RPop(key).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) Rpush(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)

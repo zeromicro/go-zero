@@ -164,7 +164,7 @@ func TestRedis_Hscan(t *testing.T) {
 		key := "hash:test"
 		fieldsAndValues := make(map[string]string)
 		for i := 0; i < 1550; i++ {
-			fieldsAndValues["filed_" + strconv.Itoa(i)] = randomStr(i)
+			fieldsAndValues["filed_"+strconv.Itoa(i)] = randomStr(i)
 		}
 		err := client.Hmset(key, fieldsAndValues)
 		assert.Nil(t, err)
@@ -272,7 +272,12 @@ func TestRedis_List(t *testing.T) {
 		val, err = client.Lpush("key", "value1", "value2")
 		assert.Nil(t, err)
 		assert.Equal(t, 5, val)
-		val, err = client.Rpush("key", "value3", "value3")
+		_, err = NewRedis(client.Addr, "").Rpop("key")
+		assert.NotNil(t, err)
+		v, err = client.Rpop("key")
+		assert.Nil(t, err)
+		assert.Equal(t, "value4", v)
+		val, err = client.Rpush("key", "value4", "value3", "value3")
 		assert.Nil(t, err)
 		assert.Equal(t, 7, val)
 		_, err = NewRedis(client.Addr, "").Lrem("key", 2, "value1")
