@@ -3,6 +3,7 @@ package redis
 import (
 	"errors"
 	"io"
+	"strconv"
 	"testing"
 	"time"
 
@@ -155,6 +156,38 @@ func TestRedis_Hmset(t *testing.T) {
 		vals, err := client.Hmget("a", "aa", "bb")
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"aaa", "bbb"}, vals)
+	})
+}
+
+func TestRedis_Hscan(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		key := "hash:test"
+		fieldsAndValues := make(map[string]string)
+		for i := 0; i < 1550; i++ {
+			fieldsAndValues["filed_" + strconv.Itoa(i)] = randomStr(i)
+		}
+		err := client.Hmset(key, fieldsAndValues)
+		assert.Nil(t, err)
+
+		var cursor uint64 = 0
+		sum := 0
+		for {
+			_, _, err := NewRedis(client.Addr, "").Hscan(key, cursor, "*", 100)
+			assert.NotNil(t, err)
+			reMap, next, err := client.Hscan(key, cursor, "*", 100)
+			assert.Nil(t, err)
+			sum += len(reMap)
+			if next == 0 {
+				break
+			}
+			cursor = next
+		}
+
+		assert.Equal(t, sum, 3100)
+		_, err = NewRedis(client.Addr, "").Del(key)
+		assert.NotNil(t, err)
+		_, err = client.Del(key)
+		assert.Nil(t, err)
 	})
 }
 
