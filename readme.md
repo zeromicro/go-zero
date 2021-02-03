@@ -174,7 +174,7 @@ go get -u github.com/tal-tech/go-zero
    you can check it by curl:
 
    ```shell
-   curl -i http://localhost:8888/from/you
+   curl -i http://localhost:8888/greet/from/you
    ```
 
    the response looks like:
