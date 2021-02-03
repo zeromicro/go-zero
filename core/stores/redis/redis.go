@@ -487,20 +487,6 @@ func (s *Redis) Hmset(key string, fieldsAndValues map[string]string) error {
 	}, acceptable)
 }
 
-func (s *Redis) Hvals(key string) (val []string, err error) {
-	err = s.brk.DoWithAcceptable(func() error {
-		conn, err := getRedis(s)
-		if err != nil {
-			return err
-		}
-
-		val, err = conn.HVals(key).Result()
-		return err
-	}, acceptable)
-
-	return
-}
-
 func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (keys []string, cur uint64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -509,6 +495,20 @@ func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (key
 		}
 
 		keys, cur, err = conn.HScan(key, cursor, match, count).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+func (s *Redis) Hvals(key string) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.HVals(key).Result()
 		return err
 	}, acceptable)
 

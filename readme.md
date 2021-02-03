@@ -2,7 +2,7 @@
 
 # go-zero
 
-English | [简体中文](readme.md)
+English | [简体中文](readme-cn.md)
 
 [![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
 [![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
