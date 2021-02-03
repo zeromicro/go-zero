@@ -1,8 +1,11 @@
 package collection
 
+import "sync"
+
 type Ring struct {
 	elements []interface{}
 	index    int
+	lock     sync.Mutex
 }
 
 func NewRing(n int) *Ring {
@@ -16,11 +19,16 @@ func NewRing(n int) *Ring {
 }
 
 func (r *Ring) Add(v interface{}) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
 	r.elements[r.index%len(r.elements)] = v
 	r.index++
 }
 
 func (r *Ring) Take() []interface{} {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	var size int
 	var start int
 	if r.index > len(r.elements) {
