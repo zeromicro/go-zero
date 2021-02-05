@@ -42,6 +42,10 @@ func (mc *mockedNode) GetCache(key string, v interface{}) error {
 	return mc.errNotFound
 }
 
+func (mc *mockedNode) IsNotFound(err error) bool {
+	return err == mc.errNotFound
+}
+
 func (mc *mockedNode) SetCache(key string, v interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
@@ -117,7 +121,7 @@ func TestCache_SetDel(t *testing.T) {
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Equal(t, errPlaceholder, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.True(t, c.IsNotFound(c.GetCache(fmt.Sprintf("key/%d", i), &v)))
 		assert.Equal(t, 0, v)
 	}
 }
@@ -155,7 +159,7 @@ func TestCache_OneNode(t *testing.T) {
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Equal(t, errPlaceholder, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.True(t, c.IsNotFound(c.GetCache(fmt.Sprintf("key/%d", i), &v)))
 		assert.Equal(t, 0, v)
 	}
 }

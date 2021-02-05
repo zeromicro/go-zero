@@ -31,17 +31,6 @@ func TestRingMore(t *testing.T) {
 	assert.ElementsMatch(t, []interface{}{6, 7, 8, 9, 10}, elements)
 }
 
-func BenchmarkRingAdd(b *testing.B) {
-	ring := NewRing(500)
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			for i := 0; i < b.N; i++ {
-				ring.Add(i)
-			}
-		}
-	})
-}
-
 func TestRingAdd(t *testing.T) {
 	ring := NewRing(5051)
 	wg := sync.WaitGroup{}
@@ -56,4 +45,15 @@ func TestRingAdd(t *testing.T) {
 	}
 	wg.Wait()
 	assert.Equal(t, 5050, len(ring.Take()))
+}
+
+func BenchmarkRingAdd(b *testing.B) {
+	ring := NewRing(500)
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			for i := 0; i < b.N; i++ {
+				ring.Add(i)
+			}
+		}
+	})
 }

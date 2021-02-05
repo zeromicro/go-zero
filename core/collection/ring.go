@@ -21,6 +21,7 @@ func NewRing(n int) *Ring {
 func (r *Ring) Add(v interface{}) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
+
 	r.elements[r.index%len(r.elements)] = v
 	r.index++
 }
