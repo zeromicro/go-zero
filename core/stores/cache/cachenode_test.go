@@ -115,8 +115,8 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return errTestNotFound
 	})
-	assert.Equal(t, errTestNotFound, err)
-	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
+	assert.True(t, cn.IsNotFound(err))
+	assert.True(t, cn.IsNotFound(cn.GetCache("any", &str)))
 	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `*`, val)
@@ -125,8 +125,8 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return nil
 	})
-	assert.Equal(t, errTestNotFound, err)
-	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
+	assert.True(t, cn.IsNotFound(err))
+	assert.True(t, cn.IsNotFound(cn.GetCache("any", &str)))
 
 	store.Del("any")
 	var errDummy = errors.New("dummy")

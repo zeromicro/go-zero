@@ -82,6 +82,11 @@ func (c cacheNode) GetCache(key string, v interface{}) error {
 	}
 }
 
+// IsNotFound checks if the given error is the defined errNotFound.
+func (c cacheNode) IsNotFound(err error) bool {
+	return err == c.errNotFound
+}
+
 // SetCache sets the cache with key and v, using c.expiry.
 func (c cacheNode) SetCache(key string, v interface{}) error {
 	return c.SetCacheWithExpire(key, v, c.aroundDuration(c.expiry))

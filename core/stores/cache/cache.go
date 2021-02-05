@@ -14,6 +14,7 @@ type (
 	Cache interface {
 		DelCache(keys ...string) error
 		GetCache(key string, v interface{}) error
+		IsNotFound(err error) bool
 		SetCache(key string, v interface{}) error
 		SetCacheWithExpire(key string, v interface{}, expire time.Duration) error
 		Take(v interface{}, key string, query func(v interface{}) error) error
@@ -89,6 +90,10 @@ func (cc cacheCluster) GetCache(key string, v interface{}) error {
 	}
 
 	return c.(Cache).GetCache(key, v)
+}
+
+func (cc cacheCluster) IsNotFound(err error) bool {
+	return err == cc.errNotFound
 }
 
 func (cc cacheCluster) SetCache(key string, v interface{}) error {
