@@ -3,6 +3,8 @@ package zrpc
 import (
 	"context"
 	"fmt"
+	"github.com/tal-tech/go-zero/zrpc/internal"
+	"google.golang.org/grpc/connectivity"
 	"log"
 	"net"
 	"testing"
@@ -110,4 +112,16 @@ func TestDepositServer_Deposit(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestNewClientWithTarget(t *testing.T) {
+	//client, err := NewClientWithTarget("kubernetes://nginx-service.default:80")
+	//client, err := NewClientWithTarget("discov://nginx-service.default:80")
+
+	client, err := internal.NewClient(internal.BuildDiscovk8sTarget("nginx-service", "default", 80))
+
+	select {}
+	assert.Nil(t, err)
+
+	assert.Equal(t, client.Conn().GetState(), connectivity.Ready)
 }

@@ -9,19 +9,22 @@ import (
 const (
 	DirectScheme    = "direct"
 	DiscovScheme    = "discov"
+	DiscovK8sScheme = "kubernetes"
 	EndpointSepChar = ','
 	subsetSize      = 32
 )
 
 var (
-	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
-	dirBuilder  directBuilder
-	disBuilder  discovBuilder
+	EndpointSep   = fmt.Sprintf("%c", EndpointSepChar)
+	dirBuilder    directBuilder
+	disBuilder    discovBuilder
+	disK8sBuilder discovK8sBuilder
 )
 
 func RegisterResolver() {
 	resolver.Register(&dirBuilder)
 	resolver.Register(&disBuilder)
+	resolver.Register(&disK8sBuilder)
 }
 
 type nopResolver struct {
