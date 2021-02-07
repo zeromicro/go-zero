@@ -42,6 +42,13 @@ func TestRedis_Eval(t *testing.T) {
 	})
 }
 
+func TestRedis_GeoHash(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := client.GeoHash("parent", "child1", "child2")
+		assert.NotNil(t, err)
+	})
+}
+
 func TestRedis_Hgetall(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.Nil(t, client.Hset("a", "aa", "aaa"))
@@ -164,7 +171,7 @@ func TestRedis_Hscan(t *testing.T) {
 		key := "hash:test"
 		fieldsAndValues := make(map[string]string)
 		for i := 0; i < 1550; i++ {
-			fieldsAndValues["filed_" + strconv.Itoa(i)] = randomStr(i)
+			fieldsAndValues["filed_"+strconv.Itoa(i)] = randomStr(i)
 		}
 		err := client.Hmset(key, fieldsAndValues)
 		assert.Nil(t, err)
