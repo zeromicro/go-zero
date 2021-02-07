@@ -7,6 +7,6 @@ import (
 
 const postgresDriverName = "postgres"
 
-func NewPostgres(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
+func New(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
 	return sqlx.NewSqlConn(postgresDriverName, datasource, opts...)
 }
