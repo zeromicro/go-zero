@@ -4,10 +4,12 @@ import (
 	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/discov/internal"
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -151,4 +153,17 @@ func TestPublisher_keepAliveAsyncPause(t *testing.T) {
 	assert.Nil(t, pub.keepAliveAsync(cli))
 	pub.Pause()
 	wg.Wait()
+}
+
+func TestPublisher_Resume(t *testing.T) {
+	publisher := new(Publisher)
+	publisher.resumeChan = make(chan lang.PlaceholderType)
+	go func() {
+		publisher.Resume()
+	}()
+	go func() {
+		time.Sleep(time.Minute)
+		t.Fail()
+	}()
+	<-publisher.resumeChan
 }
