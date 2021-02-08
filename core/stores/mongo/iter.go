@@ -1,4 +1,5 @@
 //go:generate mockgen -package mongo -destination iter_mock.go -source iter.go Iter
+
 package mongo
 
 import (
