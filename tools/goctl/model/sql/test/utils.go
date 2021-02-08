@@ -1,4 +1,5 @@
 // copy from core/stores/sqlx/utils.go
+
 package mocksql
 
 import (
