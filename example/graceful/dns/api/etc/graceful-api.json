@@ -1,9 +1,0 @@
-{
-    "Name": "graceful-api",
-    "Host": "0.0.0.0",
-    "Port": 8888,
-    "MaxConns": 1000000,
-    "Rpc": {
-        "Server": "dns:///gracefulrpc:3456"
-    }
-}

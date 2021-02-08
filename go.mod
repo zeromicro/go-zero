@@ -8,7 +8,6 @@ require (
 	github.com/alicebob/miniredis/v2 v2.14.1
 	github.com/antlr/antlr4 v0.0.0-20210105212045-464bcbc32de2
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/dchest/siphash v1.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/proto v1.9.0
 	github.com/fatih/color v1.9.0 // indirect
@@ -22,13 +21,11 @@ require (
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.4.2
-	github.com/google/gops v0.3.7
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3 // indirect
 	github.com/iancoleman/strcase v0.1.2
 	github.com/justinas/alice v1.2.0
-	github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lib/pq v1.3.0
