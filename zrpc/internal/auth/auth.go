@@ -60,9 +60,9 @@ func (a *Authenticator) validate(app, token string) error {
 	if err != nil {
 		if a.strict {
 			return status.Error(codes.Internal, err.Error())
-		} else {
-			return nil
 		}
+
+		return nil
 	}
 
 	if token != expect {
