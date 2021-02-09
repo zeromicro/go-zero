@@ -30,7 +30,7 @@ type (
 		Score int64
 	}
 
-	// thread-safe
+	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
 		Addr string
 		Type string
@@ -86,9 +86,9 @@ func (s *Redis) Blpop(redisNode RedisNode, key string) (string, error) {
 
 	if len(vals) < 2 {
 		return "", fmt.Errorf("no value on key: %s", key)
-	} else {
-		return vals[1], nil
 	}
+
+	return vals[1], nil
 }
 
 func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
@@ -103,9 +103,9 @@ func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 
 	if len(vals) < 2 {
 		return "", false, fmt.Errorf("no value on key: %s", key)
-	} else {
-		return vals[1], true, nil
 	}
+
+	return vals[1], true, nil
 }
 
 func (s *Redis) Del(keys ...string) (val int, err error) {
@@ -115,12 +115,13 @@ func (s *Redis) Del(keys ...string) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.Del(keys...).Result(); err != nil {
+		v, err := conn.Del(keys...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -147,12 +148,13 @@ func (s *Redis) Exists(key string) (val bool, err error) {
 			return err
 		}
 
-		if v, err := conn.Exists(key).Result(); err != nil {
+		v, err := conn.Exists(key).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v == 1
-			return nil
 		}
+
+		val = v == 1
+		return nil
 	}, acceptable)
 
 	return
@@ -187,12 +189,13 @@ func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (val int64, err 
 			return err
 		}
 
-		if v, err := conn.GeoAdd(key, geoLocation...).Result(); err != nil {
+		v, err := conn.GeoAdd(key, geoLocation...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -204,12 +207,13 @@ func (s *Redis) GeoDist(key string, member1, member2, unit string) (val float64,
 			return err
 		}
 
-		if v, err := conn.GeoDist(key, member1, member2, unit).Result(); err != nil {
+		v, err := conn.GeoDist(key, member1, member2, unit).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -221,12 +225,13 @@ func (s *Redis) GeoHash(key string, members ...string) (val []string, err error)
 			return err
 		}
 
-		if v, err := conn.GeoHash(key, members...).Result(); err != nil {
+		v, err := conn.GeoHash(key, members...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -238,12 +243,13 @@ func (s *Redis) GeoRadius(key string, longitude, latitude float64, query *GeoRad
 			return err
 		}
 
-		if v, err := conn.GeoRadius(key, longitude, latitude, query).Result(); err != nil {
+		v, err := conn.GeoRadius(key, longitude, latitude, query).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -254,12 +260,13 @@ func (s *Redis) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) (va
 			return err
 		}
 
-		if v, err := conn.GeoRadiusByMember(key, member, query).Result(); err != nil {
+		v, err := conn.GeoRadiusByMember(key, member, query).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -271,12 +278,13 @@ func (s *Redis) GeoPos(key string, members ...string) (val []*GeoPos, err error)
 			return err
 		}
 
-		if v, err := conn.GeoPos(key, members...).Result(); err != nil {
+		v, err := conn.GeoPos(key, members...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 	return
 }
@@ -307,12 +315,13 @@ func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.GetBit(key, offset).Result(); err != nil {
+		v, err := conn.GetBit(key, offset).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -325,12 +334,13 @@ func (s *Redis) Hdel(key, field string) (val bool, err error) {
 			return err
 		}
 
-		if v, err := conn.HDel(key, field).Result(); err != nil {
+		v, err := conn.HDel(key, field).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v == 1
-			return nil
 		}
+
+		val = v == 1
+		return nil
 	}, acceptable)
 
 	return
@@ -385,12 +395,13 @@ func (s *Redis) Hincrby(key, field string, increment int) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.HIncrBy(key, field, int64(increment)).Result(); err != nil {
+		v, err := conn.HIncrBy(key, field, int64(increment)).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -417,12 +428,13 @@ func (s *Redis) Hlen(key string) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.HLen(key).Result(); err != nil {
+		v, err := conn.HLen(key).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -435,12 +447,13 @@ func (s *Redis) Hmget(key string, fields ...string) (val []string, err error) {
 			return err
 		}
 
-		if v, err := conn.HMGet(key, fields...).Result(); err != nil {
+		v, err := conn.HMGet(key, fields...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toStrings(v)
-			return nil
 		}
+
+		val = toStrings(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -564,12 +577,13 @@ func (s *Redis) Llen(key string) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.LLen(key).Result(); err != nil {
+		v, err := conn.LLen(key).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -596,12 +610,13 @@ func (s *Redis) Lpush(key string, values ...interface{}) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.LPush(key, values...).Result(); err != nil {
+		v, err := conn.LPush(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -628,12 +643,13 @@ func (s *Redis) Lrem(key string, count int, value string) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.LRem(key, int64(count), value).Result(); err != nil {
+		v, err := conn.LRem(key, int64(count), value).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -646,12 +662,13 @@ func (s *Redis) Mget(keys ...string) (val []string, err error) {
 			return err
 		}
 
-		if v, err := conn.MGet(keys...).Result(); err != nil {
+		v, err := conn.MGet(keys...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toStrings(v)
-			return nil
 		}
+
+		val = toStrings(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -678,12 +695,13 @@ func (s *Redis) Pfadd(key string, values ...interface{}) (val bool, err error) {
 			return err
 		}
 
-		if v, err := conn.PFAdd(key, values...).Result(); err != nil {
+		v, err := conn.PFAdd(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v == 1
-			return nil
 		}
+
+		val = v == 1
+		return nil
 	}, acceptable)
 
 	return
@@ -724,13 +742,14 @@ func (s *Redis) Ping() (val bool) {
 			return nil
 		}
 
-		if v, err := conn.Ping().Result(); err != nil {
+		v, err := conn.Ping().Result()
+		if err != nil {
 			val = false
 			return nil
-		} else {
-			val = v == "PONG"
-			return nil
 		}
+
+		val = v == "PONG"
+		return nil
 	}, acceptable)
 
 	return
@@ -772,12 +791,13 @@ func (s *Redis) Rpush(key string, values ...interface{}) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.RPush(key, values...).Result(); err != nil {
+		v, err := conn.RPush(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -790,12 +810,13 @@ func (s *Redis) Sadd(key string, values ...interface{}) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.SAdd(key, values...).Result(); err != nil {
+		v, err := conn.SAdd(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -911,6 +932,7 @@ func (s *Redis) Sismember(key string, value interface{}) (val bool, err error) {
 		if err != nil {
 			return err
 		}
+
 		val, err = conn.SIsMember(key, value).Result()
 		return err
 	}, acceptable)
@@ -925,12 +947,13 @@ func (s *Redis) Srem(key string, values ...interface{}) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.SRem(key, values...).Result(); err != nil {
+		v, err := conn.SRem(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -999,12 +1022,13 @@ func (s *Redis) Sunionstore(destination string, keys ...string) (val int, err er
 			return err
 		}
 
-		if v, err := conn.SUnionStore(destination, keys...).Result(); err != nil {
+		v, err := conn.SUnionStore(destination, keys...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1031,12 +1055,13 @@ func (s *Redis) Sdiffstore(destination string, keys ...string) (val int, err err
 			return err
 		}
 
-		if v, err := conn.SDiffStore(destination, keys...).Result(); err != nil {
+		v, err := conn.SDiffStore(destination, keys...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1049,12 +1074,13 @@ func (s *Redis) Ttl(key string) (val int, err error) {
 			return err
 		}
 
-		if duration, err := conn.TTL(key).Result(); err != nil {
+		duration, err := conn.TTL(key).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(duration / time.Second)
-			return nil
 		}
+
+		val = int(duration / time.Second)
+		return nil
 	}, acceptable)
 
 	return
@@ -1094,12 +1120,13 @@ func (s *Redis) Zadds(key string, ps ...Pair) (val int64, err error) {
 			zs = append(zs, z)
 		}
 
-		if v, err := conn.ZAdd(key, zs...).Result(); err != nil {
+		v, err := conn.ZAdd(key, zs...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v
-			return nil
 		}
+
+		val = v
+		return nil
 	}, acceptable)
 
 	return
@@ -1112,12 +1139,13 @@ func (s *Redis) Zcard(key string) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.ZCard(key).Result(); err != nil {
+		v, err := conn.ZCard(key).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1130,13 +1158,13 @@ func (s *Redis) Zcount(key string, start, stop int64) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.ZCount(key, strconv.FormatInt(start, 10),
-			strconv.FormatInt(stop, 10)).Result(); err != nil {
+		v, err := conn.ZCount(key, strconv.FormatInt(start, 10), strconv.FormatInt(stop, 10)).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1149,12 +1177,13 @@ func (s *Redis) Zincrby(key string, increment int64, field string) (val int64, e
 			return err
 		}
 
-		if v, err := conn.ZIncrBy(key, float64(increment), field).Result(); err != nil {
+		v, err := conn.ZIncrBy(key, float64(increment), field).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int64(v)
-			return nil
 		}
+
+		val = int64(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1167,12 +1196,13 @@ func (s *Redis) Zscore(key string, value string) (val int64, err error) {
 			return err
 		}
 
-		if v, err := conn.ZScore(key, value).Result(); err != nil {
+		v, err := conn.ZScore(key, value).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int64(v)
-			return nil
 		}
+
+		val = int64(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1199,12 +1229,13 @@ func (s *Redis) Zrem(key string, values ...interface{}) (val int, err error) {
 			return err
 		}
 
-		if v, err := conn.ZRem(key, values...).Result(); err != nil {
+		v, err := conn.ZRem(key, values...).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1217,13 +1248,14 @@ func (s *Redis) Zremrangebyscore(key string, start, stop int64) (val int, err er
 			return err
 		}
 
-		if v, err := conn.ZRemRangeByScore(key, strconv.FormatInt(start, 10),
-			strconv.FormatInt(stop, 10)).Result(); err != nil {
+		v, err := conn.ZRemRangeByScore(key, strconv.FormatInt(start, 10),
+			strconv.FormatInt(stop, 10)).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1236,12 +1268,13 @@ func (s *Redis) Zremrangebyrank(key string, start, stop int64) (val int, err err
 			return err
 		}
 
-		if v, err := conn.ZRemRangeByRank(key, start, stop).Result(); err != nil {
+		v, err := conn.ZRemRangeByRank(key, start, stop).Result()
+		if err != nil {
 			return err
-		} else {
-			val = int(v)
-			return nil
 		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1268,12 +1301,13 @@ func (s *Redis) ZrangeWithScores(key string, start, stop int64) (val []Pair, err
 			return err
 		}
 
-		if v, err := conn.ZRangeWithScores(key, start, stop).Result(); err != nil {
+		v, err := conn.ZRangeWithScores(key, start, stop).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1286,12 +1320,13 @@ func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) (val []Pair, 
 			return err
 		}
 
-		if v, err := conn.ZRevRangeWithScores(key, start, stop).Result(); err != nil {
+		v, err := conn.ZRevRangeWithScores(key, start, stop).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return
