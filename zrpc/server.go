@@ -109,9 +109,9 @@ func figureOutListenOn(listenOn string) string {
 	}
 	if len(ip) == 0 {
 		return listenOn
-	} else {
-		return strings.Join(append([]string{ip}, fields[1:]...), ":")
 	}
+
+	return strings.Join(append([]string{ip}, fields[1:]...), ":")
 }
 
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {

@@ -100,9 +100,9 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 
 	if early {
 		return previous, true
-	} else {
-		return nil, false
 	}
+
+	return nil, false
 }
 
 func (c *container) addListener(listener func()) {

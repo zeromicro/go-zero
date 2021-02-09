@@ -10,6 +10,7 @@ func NewRoutineGroup() *RoutineGroup {
 	return new(RoutineGroup)
 }
 
+// Run runs the given fn in RoutineGroup.
 // Don't reference the variables from outside,
 // because outside variables can be changed by other goroutines
 func (g *RoutineGroup) Run(fn func()) {
@@ -21,6 +22,7 @@ func (g *RoutineGroup) Run(fn func()) {
 	}()
 }
 
+// RunSafe runs the given fn in RoutineGroup, and avoid panics.
 // Don't reference the variables from outside,
 // because outside variables can be changed by other goroutines
 func (g *RoutineGroup) RunSafe(fn func()) {
@@ -32,6 +34,7 @@ func (g *RoutineGroup) RunSafe(fn func()) {
 	})
 }
 
+// Wait waits all running functions to be done.
 func (g *RoutineGroup) Wait() {
 	g.waitGroup.Wait()
 }

@@ -508,9 +508,9 @@ func (s *ServiceRoute) Format() error {
 func (s *ServiceRoute) GetHandler() Expr {
 	if s.AtHandler != nil {
 		return s.AtHandler.Name
-	} else {
-		return s.AtServer.Kv.Get("handler")
 	}
+
+	return s.AtServer.Kv.Get("handler")
 }
 
 func (a *ServiceApi) Format() error {

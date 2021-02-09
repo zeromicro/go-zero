@@ -124,23 +124,26 @@ func convertType(kind reflect.Kind, str string) (interface{}, error) {
 	case reflect.Bool:
 		return str == "1" || strings.ToLower(str) == "true", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if intValue, err := strconv.ParseInt(str, 10, 64); err != nil {
+		intValue, err := strconv.ParseInt(str, 10, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as int", str)
-		} else {
-			return intValue, nil
 		}
+
+		return intValue, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if uintValue, err := strconv.ParseUint(str, 10, 64); err != nil {
+		uintValue, err := strconv.ParseUint(str, 10, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as uint", str)
-		} else {
-			return uintValue, nil
 		}
+
+		return uintValue, nil
 	case reflect.Float32, reflect.Float64:
-		if floatValue, err := strconv.ParseFloat(str, 64); err != nil {
+		floatValue, err := strconv.ParseFloat(str, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as float", str)
-		} else {
-			return floatValue, nil
 		}
+
+		return floatValue, nil
 	case reflect.String:
 		return str, nil
 	default:
@@ -180,26 +183,28 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 			segs := strings.Split(option, equalToken)
 			if len(segs) != 2 {
 				return "", nil, fmt.Errorf("field %s has wrong options", field.Name)
-			} else {
-				fieldOpts.Options = strings.Split(segs[1], optionSeparator)
 			}
+
+			fieldOpts.Options = strings.Split(segs[1], optionSeparator)
 		case strings.HasPrefix(option, defaultOption):
 			segs := strings.Split(option, equalToken)
 			if len(segs) != 2 {
 				return "", nil, fmt.Errorf("field %s has wrong default option", field.Name)
-			} else {
-				fieldOpts.Default = strings.TrimSpace(segs[1])
 			}
+
+			fieldOpts.Default = strings.TrimSpace(segs[1])
 		case strings.HasPrefix(option, rangeOption):
 			segs := strings.Split(option, equalToken)
 			if len(segs) != 2 {
 				return "", nil, fmt.Errorf("field %s has wrong range", field.Name)
 			}
-			if nr, err := parseNumberRange(segs[1]); err != nil {
+
+			nr, err := parseNumberRange(segs[1])
+			if err != nil {
 				return "", nil, err
-			} else {
-				fieldOpts.Range = nr
 			}
+
+			fieldOpts.Range = nr
 		}
 	}
 

@@ -1,6 +1,7 @@
 package clickhouse
 
 import (
+	// imports the driver.
 	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )

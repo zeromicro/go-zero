@@ -83,9 +83,9 @@ func generateReport() string {
 	calcFn := func(total, count int64) string {
 		if count == 0 {
 			return "-"
-		} else {
-			return (time.Duration(total) / time.Duration(count)).String()
 		}
+
+		return (time.Duration(total) / time.Duration(count)).String()
 	}
 
 	func() {

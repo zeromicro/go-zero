@@ -72,7 +72,7 @@ func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 	}
 }
 
-// Use passed in redis connection to execute blocking queries
+// Blpop uses passed in redis connection to execute blocking queries.
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) Blpop(redisNode RedisNode, key string) (string, error) {
 	if redisNode == nil {
@@ -1093,15 +1093,16 @@ func (s *Redis) Zadd(key string, score int64, value string) (val bool, err error
 			return err
 		}
 
-		if v, err := conn.ZAdd(key, red.Z{
+		v, err := conn.ZAdd(key, red.Z{
 			Score:  float64(score),
 			Member: value,
-		}).Result(); err != nil {
+		}).Result()
+		if err != nil {
 			return err
-		} else {
-			val = v == 1
-			return nil
 		}
+
+		val = v == 1
+		return nil
 	}, acceptable)
 
 	return
@@ -1339,15 +1340,16 @@ func (s *Redis) ZrangebyscoreWithScores(key string, start, stop int64) (val []Pa
 			return err
 		}
 
-		if v, err := conn.ZRangeByScoreWithScores(key, red.ZRangeBy{
+		v, err := conn.ZRangeByScoreWithScores(key, red.ZRangeBy{
 			Min: strconv.FormatInt(start, 10),
 			Max: strconv.FormatInt(stop, 10),
-		}).Result(); err != nil {
+		}).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1365,17 +1367,18 @@ func (s *Redis) ZrangebyscoreWithScoresAndLimit(key string, start, stop int64, p
 			return err
 		}
 
-		if v, err := conn.ZRangeByScoreWithScores(key, red.ZRangeBy{
+		v, err := conn.ZRangeByScoreWithScores(key, red.ZRangeBy{
 			Min:    strconv.FormatInt(start, 10),
 			Max:    strconv.FormatInt(stop, 10),
 			Offset: int64(page * size),
 			Count:  int64(size),
-		}).Result(); err != nil {
+		}).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1402,15 +1405,16 @@ func (s *Redis) ZrevrangebyscoreWithScores(key string, start, stop int64) (val [
 			return err
 		}
 
-		if v, err := conn.ZRevRangeByScoreWithScores(key, red.ZRangeBy{
+		v, err := conn.ZRevRangeByScoreWithScores(key, red.ZRangeBy{
 			Min: strconv.FormatInt(start, 10),
 			Max: strconv.FormatInt(stop, 10),
-		}).Result(); err != nil {
+		}).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return
@@ -1428,17 +1432,18 @@ func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64
 			return err
 		}
 
-		if v, err := conn.ZRevRangeByScoreWithScores(key, red.ZRangeBy{
+		v, err := conn.ZRevRangeByScoreWithScores(key, red.ZRangeBy{
 			Min:    strconv.FormatInt(start, 10),
 			Max:    strconv.FormatInt(stop, 10),
 			Offset: int64(page * size),
 			Count:  int64(size),
-		}).Result(); err != nil {
+		}).Result()
+		if err != nil {
 			return err
-		} else {
-			val = toPairs(v)
-			return nil
 		}
+
+		val = toPairs(v)
+		return nil
 	}, acceptable)
 
 	return

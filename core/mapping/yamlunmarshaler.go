@@ -34,9 +34,9 @@ func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 
 	if m, ok := o.(map[string]interface{}); ok {
 		return unmarshaler.Unmarshal(m, v)
-	} else {
-		return ErrUnsupportedType
 	}
+
+	return ErrUnsupportedType
 }
 
 func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {

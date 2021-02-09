@@ -114,9 +114,9 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 
 	if options.optional() {
 		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
-	} else {
-		return u.processAnonymousFieldRequired(field, value, m, fullName)
 	}
+
+	return u.processAnonymousFieldRequired(field, value, m, fullName)
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
@@ -184,9 +184,9 @@ func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Valu
 
 	if field.Anonymous {
 		return u.processAnonymousField(field, value, m, fullName)
-	} else {
-		return u.processNamedField(field, value, m, fullName)
 	}
+
+	return u.processNamedField(field, value, m, fullName)
 }
 
 func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value reflect.Value,
@@ -319,9 +319,9 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	mapValue, hasValue := getValue(m, key)
 	if hasValue {
 		return u.processNamedFieldWithValue(field, value, mapValue, key, opts, fullName)
-	} else {
-		return u.processNamedFieldWithoutValue(field, value, opts, fullName)
 	}
+
+	return u.processNamedFieldWithoutValue(field, value, opts, fullName)
 }
 
 func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, value reflect.Value,
@@ -329,9 +329,9 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 	if mapValue == nil {
 		if opts.optional() {
 			return nil
-		} else {
-			return fmt.Errorf("field %s mustn't be nil", key)
 		}
+
+		return fmt.Errorf("field %s mustn't be nil", key)
 	}
 
 	maybeNewValue(field, value)

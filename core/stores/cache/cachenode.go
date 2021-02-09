@@ -75,11 +75,12 @@ func (c cacheNode) DelCache(keys ...string) error {
 
 // GetCache gets the cache with key and fills into v.
 func (c cacheNode) GetCache(key string, v interface{}) error {
-	if err := c.doGetCache(key, v); err == errPlaceholder {
+	err := c.doGetCache(key, v)
+	if err == errPlaceholder {
 		return c.errNotFound
-	} else {
-		return err
 	}
+
+	return err
 }
 
 // IsNotFound checks if the given error is the defined errNotFound.

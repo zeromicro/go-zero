@@ -300,9 +300,9 @@ func (p Stream) Walk(fn WalkFunc, opts ...Option) Stream {
 	option := buildOptions(opts...)
 	if option.unlimitedWorkers {
 		return p.walkUnlimited(fn, option)
-	} else {
-		return p.walkLimited(fn, option)
 	}
+
+	return p.walkLimited(fn, option)
 }
 
 func (p Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {

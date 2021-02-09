@@ -97,9 +97,9 @@ func (h *PeriodLimit) calcExpireSeconds() int {
 	if h.align {
 		unix := time.Now().Unix() + zoneDiff
 		return h.period - int(unix%int64(h.period))
-	} else {
-		return h.period
 	}
+
+	return h.period
 }
 
 func Align() LimitOption {

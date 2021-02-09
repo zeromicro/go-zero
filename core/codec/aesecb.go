@@ -150,11 +150,12 @@ func getKeyBytes(key string) ([]byte, error) {
 		return []byte(key), nil
 	}
 
-	if keyBytes, err := base64.StdEncoding.DecodeString(key); err != nil {
+	keyBytes, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
 		return nil, err
-	} else {
-		return keyBytes, nil
 	}
+
+	return keyBytes, nil
 }
 
 func pkcs5Padding(ciphertext []byte, blockSize int) []byte {
