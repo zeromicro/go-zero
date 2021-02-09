@@ -217,18 +217,18 @@ func unmarshalRows(v interface{}, scanner rowsScanner, strict bool) error {
 
 					if err := scanner.Scan(values...); err != nil {
 						return err
-					} else {
-						appendFn(value)
 					}
+
+					appendFn(value)
 				}
 			default:
 				return ErrUnsupportedValueType
 			}
 
 			return nil
-		} else {
-			return ErrNotSettable
 		}
+
+		return ErrNotSettable
 	default:
 		return ErrUnsupportedValueType
 	}
