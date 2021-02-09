@@ -143,11 +143,11 @@ func add(nd *node, route string, item interface{}) error {
 				}
 
 				return ErrInvalidState
-			} else {
-				child := newNode(nil)
-				children[token] = child
-				return add(child, route[i+1:], item)
 			}
+
+			child := newNode(nil)
+			children[token] = child
+			return add(child, route[i+1:], item)
 		}
 	}
 
