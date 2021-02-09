@@ -89,9 +89,9 @@ type mockShedder struct {
 func (s mockShedder) Allow() (load.Promise, error) {
 	if s.allow {
 		return mockPromise{}, nil
-	} else {
-		return nil, load.ErrServiceOverloaded
 	}
+
+	return nil, load.ErrServiceOverloaded
 }
 
 type mockPromise struct {

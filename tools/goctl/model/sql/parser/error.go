@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	unSupportDDL        = errors.New("unexpected type")
-	tableBodyIsNotFound = errors.New("create table spec not found")
-	errPrimaryKey       = errors.New("unexpected join primary key")
+	errUnsupportDDL      = errors.New("unexpected type")
+	errTableBodyNotFound = errors.New("create table spec not found")
+	errPrimaryKey        = errors.New("unexpected join primary key")
 )

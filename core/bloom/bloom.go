@@ -127,11 +127,12 @@ func (r *redisBitSet) check(offsets []uint) (bool, error) {
 		return false, err
 	}
 
-	if exists, ok := resp.(int64); !ok {
+	exists, ok := resp.(int64)
+	if !ok {
 		return false, nil
-	} else {
-		return exists == 1, nil
 	}
+
+	return exists == 1, nil
 }
 
 func (r *redisBitSet) del() error {
@@ -152,7 +153,7 @@ func (r *redisBitSet) set(offsets []uint) error {
 	_, err = r.store.Eval(setScript, []string{r.key}, args)
 	if err == redis.Nil {
 		return nil
-	} else {
-		return err
 	}
+
+	return err
 }

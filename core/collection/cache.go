@@ -136,11 +136,10 @@ func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}
 	if fresh {
 		c.stats.IncrementMiss()
 		return val, nil
-	} else {
-		// got the result from previous ongoing query
-		c.stats.IncrementHit()
 	}
 
+	// got the result from previous ongoing query
+	c.stats.IncrementHit()
 	return val, nil
 }
 

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"unicode"
@@ -101,7 +100,7 @@ func (p parser) fillTypes() error {
 				Docs:    p.stringExprs(v.Doc()),
 			})
 		default:
-			return errors.New(fmt.Sprintf("unknown type %+v", v))
+			return fmt.Errorf("unknown type %+v", v)
 		}
 	}
 
@@ -116,16 +115,16 @@ func (p parser) fillTypes() error {
 					tp, err := p.findDefinedType(v.RawName)
 					if err != nil {
 						return err
-					} else {
-						member.Type = *tp
 					}
+
+					member.Type = *tp
 				}
 				members = append(members, member)
 			}
 			v.Members = members
 			types = append(types, v)
 		default:
-			return errors.New(fmt.Sprintf("unknown type %+v", v))
+			return fmt.Errorf("unknown type %+v", v)
 		}
 	}
 	p.spec.Types = types
@@ -141,7 +140,8 @@ func (p parser) findDefinedType(name string) (*spec.Type, error) {
 			}
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("type %s not defined", name))
+
+	return nil, fmt.Errorf("type %s not defined", name)
 }
 
 func (p parser) fieldToMember(field *ast.TypeField) spec.Member {
@@ -172,9 +172,9 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 		raw := v.Literal.Text()
 		if api.IsBasicType(raw) {
 			return spec.PrimitiveType{RawName: raw}
-		} else {
-			return spec.DefineStruct{RawName: raw}
 		}
+
+		return spec.DefineStruct{RawName: raw}
 	case *ast.Interface:
 		return spec.InterfaceType{RawName: v.Literal.Text()}
 	case *ast.Map:
@@ -185,9 +185,9 @@ func (p parser) astTypeToSpec(in ast.DataType) spec.Type {
 		raw := v.Name.Text()
 		if api.IsBasicType(raw) {
 			return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.PrimitiveType{RawName: raw}}
-		} else {
-			return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.DefineStruct{RawName: raw}}
 		}
+
+		return spec.PointerType{RawName: v.PointerExpr.Text(), Type: spec.DefineStruct{RawName: raw}}
 	}
 
 	panic(fmt.Sprintf("unspported type %+v", in))
@@ -246,8 +246,8 @@ func (p parser) fillService() error {
 
 				for _, char := range route.Handler {
 					if !unicode.IsDigit(char) && !unicode.IsLetter(char) {
-						return errors.New(fmt.Sprintf("route [%s] handler [%s] invalid, handler name should only contains letter or digit",
-							route.Path, route.Handler))
+						return fmt.Errorf("route [%s] handler [%s] invalid, handler name should only contains letter or digit",
+							route.Path, route.Handler)
 					}
 				}
 			}
@@ -278,7 +278,7 @@ func (p parser) fillService() error {
 
 			name := item.ServiceApi.Name.Text()
 			if len(p.spec.Service.Name) > 0 && p.spec.Service.Name != name {
-				return errors.New(fmt.Sprintf("mulit service name defined %s and %s", name, p.spec.Service.Name))
+				return fmt.Errorf("mulit service name defined %s and %s", name, p.spec.Service.Name)
 			}
 			p.spec.Service.Name = name
 		}

@@ -58,9 +58,9 @@ func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*
 			token, err = tp.doParseToken(r, second)
 			if err != nil {
 				return nil, err
-			} else {
-				tp.incrementCount(second)
 			}
+
+			tp.incrementCount(second)
 		} else {
 			tp.incrementCount(first)
 		}

@@ -21,7 +21,7 @@ func DocCommand(c *cli.Context) error {
 
 	files, err := filePathWalkDir(dir)
 	if err != nil {
-		return errors.New(fmt.Sprintf("dir %s not exist", dir))
+		return fmt.Errorf("dir %s not exist", dir)
 	}
 
 	err = os.RemoveAll(dir + "/" + docDir + "/")
@@ -31,7 +31,7 @@ func DocCommand(c *cli.Context) error {
 	for _, f := range files {
 		api, err := parser.Parse(f)
 		if err != nil {
-			return errors.New(fmt.Sprintf("parse file: %s, err: %s", f, err.Error()))
+			return fmt.Errorf("parse file: %s, err: %s", f, err.Error())
 		}
 
 		index := strings.Index(f, dir)

@@ -16,7 +16,7 @@ import (
 const idleRound = 10
 
 type (
-	// A type that satisfies executors.TaskContainer can be used as the underlying
+	// TaskContainer interface defines a type that can be used as the underlying
 	// container that used to do periodical executions.
 	TaskContainer interface {
 		// AddTask adds the task into the container.

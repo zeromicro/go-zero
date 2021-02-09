@@ -52,7 +52,7 @@ func Parse(ddl string) (*Table, error) {
 
 	ddlStmt, ok := stmt.(*sqlparser.DDL)
 	if !ok {
-		return nil, unSupportDDL
+		return nil, errUnsupportDDL
 	}
 
 	action := ddlStmt.Action
@@ -63,7 +63,7 @@ func Parse(ddl string) (*Table, error) {
 	tableName := ddlStmt.NewName.Name.String()
 	tableSpec := ddlStmt.TableSpec
 	if tableSpec == nil {
-		return nil, tableBodyIsNotFound
+		return nil, errTableBodyNotFound
 	}
 
 	columns := tableSpec.Columns

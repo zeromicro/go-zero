@@ -155,10 +155,10 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 	pick := atomic.LoadInt64(&c2.pick)
 	if start-pick > forcePick && atomic.CompareAndSwapInt64(&c2.pick, pick, start) {
 		return c2
-	} else {
-		atomic.StoreInt64(&c1.pick, start)
-		return c1
 	}
+
+	atomic.StoreInt64(&c1.pick, start)
+	return c1
 }
 
 func (p *p2cPicker) logStats() {
@@ -196,7 +196,7 @@ func (c *subConn) load() int64 {
 	load := lag * (atomic.LoadInt64(&c.inflight) + 1)
 	if load == 0 {
 		return penalty
-	} else {
-		return load
 	}
+
+	return load
 }

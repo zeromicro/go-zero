@@ -114,9 +114,9 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 func (nd *node) getChildren(route string) map[string]*node {
 	if len(route) > 0 && route[0] == colon {
 		return nd.children[1]
-	} else {
-		return nd.children[0]
 	}
+
+	return nd.children[0]
 }
 
 func add(nd *node, route string, item interface{}) error {
@@ -140,9 +140,9 @@ func add(nd *node, route string, item interface{}) error {
 			if child, ok := children[token]; ok {
 				if child != nil {
 					return add(child, route[i+1:], item)
-				} else {
-					return ErrInvalidState
 				}
+
+				return ErrInvalidState
 			} else {
 				child := newNode(nil)
 				children[token] = child

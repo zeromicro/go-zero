@@ -107,10 +107,10 @@ func parseTagName(field reflect.StructField) string {
 	key := field.Tag.Get(tagName)
 	if len(key) == 0 {
 		return ""
-	} else {
-		options := strings.Split(key, ",")
-		return options[0]
 	}
+
+	options := strings.Split(key, ",")
+	return options[0]
 }
 
 func unmarshalRow(v interface{}, scanner rowsScanner, strict bool) error {
@@ -136,19 +136,21 @@ func unmarshalRow(v interface{}, scanner rowsScanner, strict bool) error {
 		reflect.String:
 		if rve.CanSet() {
 			return scanner.Scan(v)
-		} else {
-			return ErrNotSettable
 		}
+
+		return ErrNotSettable
 	case reflect.Struct:
 		columns, err := scanner.Columns()
 		if err != nil {
 			return err
 		}
-		if values, err := mapStructFieldsIntoSlice(rve, columns, strict); err != nil {
+
+		values, err := mapStructFieldsIntoSlice(rve, columns, strict)
+		if err != nil {
 			return err
-		} else {
-			return scanner.Scan(values...)
 		}
+
+		return scanner.Scan(values...)
 	default:
 		return ErrUnsupportedValueType
 	}
@@ -178,10 +180,10 @@ func unmarshalRows(v interface{}, scanner rowsScanner, strict bool) error {
 				if rve.CanSet() {
 					if err := scanner.Scan(value); err != nil {
 						return err
-					} else {
-						appendFn(reflect.ValueOf(value))
-						return nil
 					}
+
+					appendFn(reflect.ValueOf(value))
+					return nil
 				}
 				return ErrNotSettable
 			}
@@ -207,14 +209,15 @@ func unmarshalRows(v interface{}, scanner rowsScanner, strict bool) error {
 
 				for scanner.Next() {
 					value := reflect.New(base)
-					if values, err := mapStructFieldsIntoSlice(value, columns, strict); err != nil {
+					values, err := mapStructFieldsIntoSlice(value, columns, strict)
+					if err != nil {
+						return err
+					}
+
+					if err := scanner.Scan(values...); err != nil {
 						return err
 					} else {
-						if err := scanner.Scan(values...); err != nil {
-							return err
-						} else {
-							appendFn(value)
-						}
+						appendFn(value)
 					}
 				}
 			default:

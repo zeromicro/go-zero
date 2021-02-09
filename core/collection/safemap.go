@@ -59,10 +59,10 @@ func (m *SafeMap) Get(key interface{}) (interface{}, bool) {
 
 	if val, ok := m.dirtyOld[key]; ok {
 		return val, true
-	} else {
-		val, ok := m.dirtyNew[key]
-		return val, ok
 	}
+
+	val, ok := m.dirtyNew[key]
+	return val, ok
 }
 
 func (m *SafeMap) Set(key, value interface{}) {

@@ -73,9 +73,9 @@ func (rw *RollingWindow) span() int {
 	offset := int(timex.Since(rw.lastTime) / rw.interval)
 	if 0 <= offset && offset < rw.size {
 		return offset
-	} else {
-		return rw.size
 	}
+
+	return rw.size
 }
 
 func (rw *RollingWindow) updateOffset() {

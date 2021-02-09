@@ -34,9 +34,9 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 
 	if opt.env {
 		return loader([]byte(os.ExpandEnv(string(content))), v)
-	} else {
-		return loader(content, v)
 	}
+
+	return loader(content, v)
 }
 
 func LoadConfigFromJsonBytes(content []byte, v interface{}) error {

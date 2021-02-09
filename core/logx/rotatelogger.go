@@ -163,9 +163,9 @@ func (l *RotateLogger) Write(data []byte) (int, error) {
 func (l *RotateLogger) getBackupFilename() string {
 	if len(l.backup) == 0 {
 		return l.rule.BackupFileName()
-	} else {
-		return l.backup
 	}
+
+	return l.backup
 }
 
 func (l *RotateLogger) init() error {
