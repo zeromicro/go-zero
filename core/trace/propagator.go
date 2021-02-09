@@ -27,35 +27,35 @@ type (
 )
 
 func (h httpPropagator) Extract(carrier interface{}) (Carrier, error) {
-	if c, ok := carrier.(http.Header); !ok {
-		return nil, ErrInvalidCarrier
-	} else {
+	if c, ok := carrier.(http.Header); ok {
 		return httpCarrier(c), nil
 	}
+
+	return nil, ErrInvalidCarrier
 }
 
 func (h httpPropagator) Inject(carrier interface{}) (Carrier, error) {
 	if c, ok := carrier.(http.Header); ok {
 		return httpCarrier(c), nil
-	} else {
-		return nil, ErrInvalidCarrier
 	}
+
+	return nil, ErrInvalidCarrier
 }
 
 func (g grpcPropagator) Extract(carrier interface{}) (Carrier, error) {
 	if c, ok := carrier.(metadata.MD); ok {
 		return grpcCarrier(c), nil
-	} else {
-		return nil, ErrInvalidCarrier
 	}
+
+	return nil, ErrInvalidCarrier
 }
 
 func (g grpcPropagator) Inject(carrier interface{}) (Carrier, error) {
 	if c, ok := carrier.(metadata.MD); ok {
 		return grpcCarrier(c), nil
-	} else {
-		return nil, ErrInvalidCarrier
 	}
+
+	return nil, ErrInvalidCarrier
 }
 
 func Extract(format, carrier interface{}) (Carrier, error) {
