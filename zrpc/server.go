@@ -2,23 +2,15 @@ package zrpc
 
 import (
 	"log"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/netx"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
-)
-
-const (
-	allEths  = "0.0.0.0"
-	envPodIp = "POD_IP"
 )
 
 type RpcServer struct {
@@ -44,8 +36,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
 	if c.HasEtcd() {
-		listenOn := figureOutListenOn(c.ListenOn)
-		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, listenOn, internal.WithMetrics(metrics))
+		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn, internal.WithMetrics(metrics))
 		if err != nil {
 			return nil, err
 		}
@@ -90,28 +81,6 @@ func (rs *RpcServer) Start() {
 
 func (rs *RpcServer) Stop() {
 	logx.Close()
-}
-
-func figureOutListenOn(listenOn string) string {
-	fields := strings.Split(listenOn, ":")
-	if len(fields) == 0 {
-		return listenOn
-	}
-
-	host := fields[0]
-	if len(host) > 0 && host != allEths {
-		return listenOn
-	}
-
-	ip := os.Getenv(envPodIp)
-	if len(ip) == 0 {
-		ip = netx.InternalIp()
-	}
-	if len(ip) == 0 {
-		return listenOn
-	}
-
-	return strings.Join(append([]string{ip}, fields[1:]...), ":")
 }
 
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
