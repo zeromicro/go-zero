@@ -200,7 +200,7 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		return u.processFieldStruct(field, value, mapValue, fullName)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
-		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
+		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
 		return fillDurationValue(fieldType.Kind(), value, mapValue.(string))
 	default:
@@ -464,8 +464,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	return nil
 }
 
-func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
-	mapValue interface{}, fullName string) error {
+func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value, mapValue interface{}) error {
 	var slice []interface{}
 	if err := jsonx.UnmarshalFromString(mapValue.(string), &slice); err != nil {
 		return err
