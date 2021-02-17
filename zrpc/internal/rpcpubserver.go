@@ -2,9 +2,9 @@ package internal
 
 import "github.com/tal-tech/go-zero/core/discov"
 
-func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn string, opts ...ServerOption) (Server, error) {
+func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn, pubListenOn string, opts ...ServerOption) (Server, error) {
 	registerEtcd := func() error {
-		pubClient := discov.NewPublisher(etcdEndpoints, etcdKey, listenOn)
+		pubClient := discov.NewPublisher(etcdEndpoints, etcdKey, pubListenOn)
 		return pubClient.KeepAlive()
 	}
 	server := keepAliveServer{
