@@ -46,7 +46,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 			routeComment = "N/A"
 		}
 
-		responseContent, err := responseBody(api, route)
+		responseContent, err := responseBody(route)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 	return err
 }
 
-func responseBody(api *spec.ApiSpec, route spec.Route) (string, error) {
+func responseBody(route spec.Route) (string, error) {
 	if len(route.ResponseTypeName()) == 0 {
 		return "", nil
 	}
