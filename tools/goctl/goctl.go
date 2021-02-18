@@ -89,6 +89,11 @@ var (
 							Name:  "dir",
 							Usage: "the target dir",
 						},
+						cli.StringFlag{
+							Name:     "o",
+							Required: false,
+							Usage:    "the output markdown directory",
+						},
 					},
 					Action: docgen.DocCommand,
 				},
