@@ -47,12 +47,12 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 			routeComment = "N/A"
 		}
 
-		responseContent, err := responseBody(route.ResponseType)
+		requestContent, err := buildDoc(route.RequestType)
 		if err != nil {
 			return err
 		}
 
-		requestContent, err := responseBody(route.RequestType)
+		responseContent, err := buildDoc(route.ResponseType)
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 	return err
 }
 
-func responseBody(route spec.Type) (string, error) {
+func buildDoc(route spec.Type) (string, error) {
 	if route == nil || len(route.Name()) == 0 {
 		return "", nil
 	}
