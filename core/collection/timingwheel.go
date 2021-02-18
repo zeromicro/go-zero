@@ -13,8 +13,10 @@ import (
 const drainWorkers = 8
 
 type (
+	// Execute defines the method to execute the task.
 	Execute func(key, value interface{})
 
+	// A TimingWheel is a timing wheel object to schedule tasks.
 	TimingWheel struct {
 		interval      time.Duration
 		ticker        timex.Ticker
@@ -54,6 +56,7 @@ type (
 	}
 )
 
+// NewTimingWheel returns a TimingWheel.
 func NewTimingWheel(interval time.Duration, numSlots int, execute Execute) (*TimingWheel, error) {
 	if interval <= 0 || numSlots <= 0 || execute == nil {
 		return nil, fmt.Errorf("interval: %v, slots: %d, execute: %p", interval, numSlots, execute)
@@ -85,10 +88,12 @@ func newTimingWheelWithClock(interval time.Duration, numSlots int, execute Execu
 	return tw, nil
 }
 
+// Drain drains all items and executes them.
 func (tw *TimingWheel) Drain(fn func(key, value interface{})) {
 	tw.drainChannel <- fn
 }
 
+// MoveTimer moves the task with the given key to the given delay.
 func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) {
 	if delay <= 0 || key == nil {
 		return
@@ -100,6 +105,7 @@ func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) {
 	}
 }
 
+// RemoveTimer removes the task with the given key.
 func (tw *TimingWheel) RemoveTimer(key interface{}) {
 	if key == nil {
 		return
@@ -108,6 +114,7 @@ func (tw *TimingWheel) RemoveTimer(key interface{}) {
 	tw.removeChannel <- key
 }
 
+// SetTimer sets the task value with the given key to the delay.
 func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
 	if delay <= 0 || key == nil {
 		return
@@ -122,6 +129,7 @@ func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
 	}
 }
 
+// Stop stops tw.
 func (tw *TimingWheel) Stop() {
 	close(tw.stopChannel)
 }

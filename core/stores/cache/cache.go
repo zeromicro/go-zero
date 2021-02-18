@@ -12,11 +12,11 @@ import (
 
 type (
 	Cache interface {
-		DelCache(keys ...string) error
-		GetCache(key string, v interface{}) error
+		Del(keys ...string) error
+		Get(key string, v interface{}) error
 		IsNotFound(err error) bool
-		SetCache(key string, v interface{}) error
-		SetCacheWithExpire(key string, v interface{}, expire time.Duration) error
+		Set(key string, v interface{}) error
+		SetWithExpire(key string, v interface{}, expire time.Duration) error
 		Take(v interface{}, key string, query func(v interface{}) error) error
 		TakeWithExpire(v interface{}, key string, query func(v interface{}, expire time.Duration) error) error
 	}
@@ -27,19 +27,19 @@ type (
 	}
 )
 
-func NewCache(c ClusterConf, barrier syncx.SharedCalls, st *CacheStat, errNotFound error,
+func New(c ClusterConf, barrier syncx.SharedCalls, st *CacheStat, errNotFound error,
 	opts ...Option) Cache {
 	if len(c) == 0 || TotalWeights(c) <= 0 {
 		log.Fatal("no cache nodes")
 	}
 
 	if len(c) == 1 {
-		return NewCacheNode(c[0].NewRedis(), barrier, st, errNotFound, opts...)
+		return NewNode(c[0].NewRedis(), barrier, st, errNotFound, opts...)
 	}
 
 	dispatcher := hash.NewConsistentHash()
 	for _, node := range c {
-		cn := NewCacheNode(node.NewRedis(), barrier, st, errNotFound, opts...)
+		cn := NewNode(node.NewRedis(), barrier, st, errNotFound, opts...)
 		dispatcher.AddWithWeight(cn, node.Weight)
 	}
 
@@ -49,7 +49,7 @@ func NewCache(c ClusterConf, barrier syncx.SharedCalls, st *CacheStat, errNotFou
 	}
 }
 
-func (cc cacheCluster) DelCache(keys ...string) error {
+func (cc cacheCluster) Del(keys ...string) error {
 	switch len(keys) {
 	case 0:
 		return nil
@@ -60,7 +60,7 @@ func (cc cacheCluster) DelCache(keys ...string) error {
 			return cc.errNotFound
 		}
 
-		return c.(Cache).DelCache(key)
+		return c.(Cache).Del(key)
 	default:
 		var be errorx.BatchError
 		nodes := make(map[interface{}][]string)
@@ -74,7 +74,7 @@ func (cc cacheCluster) DelCache(keys ...string) error {
 			nodes[c] = append(nodes[c], key)
 		}
 		for c, ks := range nodes {
-			if err := c.(Cache).DelCache(ks...); err != nil {
+			if err := c.(Cache).Del(ks...); err != nil {
 				be.Add(err)
 			}
 		}
@@ -83,35 +83,35 @@ func (cc cacheCluster) DelCache(keys ...string) error {
 	}
 }
 
-func (cc cacheCluster) GetCache(key string, v interface{}) error {
+func (cc cacheCluster) Get(key string, v interface{}) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).GetCache(key, v)
+	return c.(Cache).Get(key, v)
 }
 
 func (cc cacheCluster) IsNotFound(err error) bool {
 	return err == cc.errNotFound
 }
 
-func (cc cacheCluster) SetCache(key string, v interface{}) error {
+func (cc cacheCluster) Set(key string, v interface{}) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).SetCache(key, v)
+	return c.(Cache).Set(key, v)
 }
 
-func (cc cacheCluster) SetCacheWithExpire(key string, v interface{}, expire time.Duration) error {
+func (cc cacheCluster) SetWithExpire(key string, v interface{}, expire time.Duration) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).SetCacheWithExpire(key, v, expire)
+	return c.(Cache).SetWithExpire(key, v, expire)
 }
 
 func (cc cacheCluster) Take(v interface{}, key string, query func(v interface{}) error) error {

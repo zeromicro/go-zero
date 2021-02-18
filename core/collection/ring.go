@@ -2,12 +2,14 @@ package collection
 
 import "sync"
 
+// A Ring can be used as fixed size ring.
 type Ring struct {
 	elements []interface{}
 	index    int
 	lock     sync.Mutex
 }
 
+// NewRing returns a Ring object with the given size n.
 func NewRing(n int) *Ring {
 	if n < 1 {
 		panic("n should be greater than 0")
@@ -18,6 +20,7 @@ func NewRing(n int) *Ring {
 	}
 }
 
+// Add adds v into r.
 func (r *Ring) Add(v interface{}) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -26,6 +29,7 @@ func (r *Ring) Add(v interface{}) {
 	r.index++
 }
 
+// Take takes all items from r.
 func (r *Ring) Take() []interface{} {
 	r.lock.Lock()
 	defer r.lock.Unlock()
