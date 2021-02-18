@@ -1,6 +1,7 @@
 package discovk8s
 
 import (
+	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
@@ -8,7 +9,6 @@ import (
 	"k8s.io/client-go/informers"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog"
 	"reflect"
 	"strconv"
 	"time"
@@ -107,7 +107,8 @@ func TestK8sClient_GetPodsExample(t *testing.T) {
 	k8sClient, err := NewK8sClient(localKubeconfig())
 	assert.Nil(t, err)
 
-	pods, err := k8sClient.Clientset.CoreV1().Pods("").List(metav1.ListOptions{})
+	ctx := context.Background()
+	pods, err := k8sClient.Clientset.CoreV1().Pods("").List(ctx, metav1.ListOptions{})
 
 	assert.Nil(t, err)
 
@@ -124,10 +125,8 @@ func TestK8sClient_WatchEndpointsExample(t *testing.T) {
 	controller := NewEndpointLoggingController(factory)
 	stop := make(chan struct{})
 	defer close(stop)
-	err = controller.Run(stop)
-	if err != nil {
-		klog.Fatal(err)
-	}
+	controller.Run(stop)
+
 	select {}
 }
 
