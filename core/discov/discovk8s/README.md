@@ -4,3 +4,14 @@
 ## 接口抽象
 - 抽象subscriber接口，方便后续从支持更多的注册中心发现服务
 - publisher暂不作抽象，新的服务注册建议通过etcd或者k8s service
+
+## 配置方法
+其中Name、Namespace、Port分为Kubernetes中Service相应的Name、Namespace、Port
+```yaml
+Transform:
+  K8s:
+    Name: transform-svc
+    Namespace: default
+    Port: 8081
+
+```
