@@ -36,23 +36,23 @@ type (
 func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
 	return CachedConn{
 		db:    db,
-		cache: cache.NewCacheNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+		cache: cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
 	}
 }
 
 func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
 	return CachedConn{
 		db:    db,
-		cache: cache.NewCache(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+		cache: cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
 	}
 }
 
 func (cc CachedConn) DelCache(keys ...string) error {
-	return cc.cache.DelCache(keys...)
+	return cc.cache.Del(keys...)
 }
 
 func (cc CachedConn) GetCache(key string, v interface{}) error {
-	return cc.cache.GetCache(key, v)
+	return cc.cache.Get(key, v)
 }
 
 func (cc CachedConn) Exec(exec ExecFn, keys ...string) (sql.Result, error) {
@@ -90,7 +90,7 @@ func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary
 		}
 
 		found = true
-		return cc.cache.SetCacheWithExpire(keyer(primaryKey), v, expire+cacheSafeGapBetweenIndexAndPrimary)
+		return cc.cache.SetWithExpire(keyer(primaryKey), v, expire+cacheSafeGapBetweenIndexAndPrimary)
 	}); err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (cc CachedConn) QueryRowsNoCache(v interface{}, q string, args ...interface
 }
 
 func (cc CachedConn) SetCache(key string, v interface{}) error {
-	return cc.cache.SetCache(key, v)
+	return cc.cache.Set(key, v)
 }
 
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {

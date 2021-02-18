@@ -37,13 +37,13 @@ type cacheNode struct {
 	errNotFound    error
 }
 
-// NewCacheNode returns a cacheNode.
+// NewNode returns a cacheNode.
 // rds is the underlying redis node or cluster.
 // barrier is the barrier that maybe shared with other cache nodes on cache cluster.
 // st is used to stat the cache.
 // errNotFound defines the error that returned on cache not found.
 // opts are the options that customize the cacheNode.
-func NewCacheNode(rds *redis.Redis, barrier syncx.SharedCalls, st *CacheStat,
+func NewNode(rds *redis.Redis, barrier syncx.SharedCalls, st *CacheStat,
 	errNotFound error, opts ...Option) Cache {
 	o := newOptions(opts...)
 	return cacheNode{
@@ -60,7 +60,7 @@ func NewCacheNode(rds *redis.Redis, barrier syncx.SharedCalls, st *CacheStat,
 }
 
 // DelCache deletes cached values with keys.
-func (c cacheNode) DelCache(keys ...string) error {
+func (c cacheNode) Del(keys ...string) error {
 	if len(keys) == 0 {
 		return nil
 	}
@@ -74,7 +74,7 @@ func (c cacheNode) DelCache(keys ...string) error {
 }
 
 // GetCache gets the cache with key and fills into v.
-func (c cacheNode) GetCache(key string, v interface{}) error {
+func (c cacheNode) Get(key string, v interface{}) error {
 	err := c.doGetCache(key, v)
 	if err == errPlaceholder {
 		return c.errNotFound
@@ -89,12 +89,12 @@ func (c cacheNode) IsNotFound(err error) bool {
 }
 
 // SetCache sets the cache with key and v, using c.expiry.
-func (c cacheNode) SetCache(key string, v interface{}) error {
-	return c.SetCacheWithExpire(key, v, c.aroundDuration(c.expiry))
+func (c cacheNode) Set(key string, v interface{}) error {
+	return c.SetWithExpire(key, v, c.aroundDuration(c.expiry))
 }
 
 // SetCacheWithExpire sets the cache with key and v, using given expire.
-func (c cacheNode) SetCacheWithExpire(key string, v interface{}, expire time.Duration) error {
+func (c cacheNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
 	data, err := jsonx.Marshal(v)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (c cacheNode) String() string {
 // query from DB and set cache using c.expiry, then return the result.
 func (c cacheNode) Take(v interface{}, key string, query func(v interface{}) error) error {
 	return c.doTake(v, key, query, func(v interface{}) error {
-		return c.SetCache(key, v)
+		return c.Set(key, v)
 	})
 }
 
@@ -124,7 +124,7 @@ func (c cacheNode) TakeWithExpire(v interface{}, key string, query func(v interf
 	return c.doTake(v, key, func(v interface{}) error {
 		return query(v, expire)
 	}, func(v interface{}) error {
-		return c.SetCacheWithExpire(key, v, expire)
+		return c.SetWithExpire(key, v, expire)
 	})
 }
 

@@ -34,14 +34,14 @@ func MustNewModel(url, collection string, c cache.CacheConf, opts ...cache.Optio
 }
 
 func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
-	c := cache.NewCacheNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	c := cache.NewNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
 	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
 }
 
 func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
-	c := cache.NewCache(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
+	c := cache.New(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
 	return createModel(url, collection, c, func(collection mongo.Collection) *cachedCollection {
 		return newCollection(collection, c)
 	})
@@ -54,11 +54,11 @@ func (mm *Model) Count(query interface{}) (int, error) {
 }
 
 func (mm *Model) DelCache(keys ...string) error {
-	return mm.cache.DelCache(keys...)
+	return mm.cache.Del(keys...)
 }
 
 func (mm *Model) GetCache(key string, v interface{}) error {
-	return mm.cache.GetCache(key, v)
+	return mm.cache.Get(key, v)
 }
 
 func (mm *Model) GetCollection(session *mgo.Session) *cachedCollection {
@@ -144,7 +144,7 @@ func (mm *Model) RemoveIdNoCache(id interface{}) error {
 }
 
 func (mm *Model) SetCache(key string, v interface{}) error {
-	return mm.cache.SetCache(key, v)
+	return mm.cache.Set(key, v)
 }
 
 func (mm *Model) Update(selector, update interface{}, keys ...string) error {
