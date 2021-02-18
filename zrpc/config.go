@@ -22,6 +22,7 @@ type (
 
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
+		K8s       discov.K8sConf  `json:",optional"`
 		Endpoints []string        `json:",optional=!Etcd"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`

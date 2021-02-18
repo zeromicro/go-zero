@@ -56,6 +56,8 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
 	} else if err = c.Etcd.Validate(); err == nil {
 		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
+	} else if err = c.K8s.Validate(); err == nil {
+		client, err = internal.NewClient(internal.BuildDiscovk8sTarget(c.K8s.Name, c.K8s.Namespace, c.K8s.Port))
 	}
 	if err != nil {
 		return nil, err
