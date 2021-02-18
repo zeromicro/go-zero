@@ -24,10 +24,9 @@ const (
 - Request: {{.requestType}}
 - Response: {{.responseType}}
 
-2. 请求定义
-{{.requestContent}}
 
-3. 返回定义
+2. 类型定义 
+
 {{.responseContent}}  
 
 `
@@ -47,12 +46,7 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 			routeComment = "N/A"
 		}
 
-		requestContent, err := buildDoc(route.RequestType)
-		if err != nil {
-			return err
-		}
-
-		responseContent, err := buildDoc(route.ResponseType)
+		responseContent, err := responseBody(route)
 		if err != nil {
 			return err
 		}
@@ -66,7 +60,6 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 			"uri":             route.Path,
 			"requestType":     "`" + stringx.TakeOne(route.RequestTypeName(), "-") + "`",
 			"responseType":    "`" + stringx.TakeOne(route.ResponseTypeName(), "-") + "`",
-			"requestContent":  requestContent,
 			"responseContent": responseContent,
 		})
 		if err != nil {
@@ -79,14 +72,14 @@ func genDoc(api *spec.ApiSpec, dir string, filename string) error {
 	return err
 }
 
-func buildDoc(route spec.Type) (string, error) {
-	if route == nil || len(route.Name()) == 0 {
+func responseBody(route spec.Route) (string, error) {
+	if len(route.ResponseTypeName()) == 0 {
 		return "", nil
 	}
 
 	var tps = make([]spec.Type, 0)
-	tps = append(tps, route)
-	if definedType, ok := route.(spec.DefineStruct); ok {
+	tps = append(tps, route.ResponseType)
+	if definedType, ok := route.ResponseType.(spec.DefineStruct); ok {
 		associatedTypes(definedType, &tps)
 	}
 	value, err := gogen.BuildTypes(tps)
@@ -98,17 +91,7 @@ func buildDoc(route spec.Type) (string, error) {
 }
 
 func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
-	var hasAdded = false
-	for _, item := range *tps {
-		if item.Name() == tp.Name() {
-			hasAdded = true
-			break
-		}
-	}
-	if !hasAdded {
-		*tps = append(*tps, tp)
-	}
-
+	*tps = append(*tps, tp)
 	for _, item := range tp.Members {
 		if definedType, ok := item.Type.(spec.DefineStruct); ok {
 			associatedTypes(definedType, tps)
