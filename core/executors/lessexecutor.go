@@ -7,11 +7,13 @@ import (
 	"github.com/tal-tech/go-zero/core/timex"
 )
 
+// A LessExecutor is an executor to limit execution once within given time interval.
 type LessExecutor struct {
 	threshold time.Duration
 	lastTime  *syncx.AtomicDuration
 }
 
+// NewLessExecutor returns a LessExecutor with given threshold as time interval.
 func NewLessExecutor(threshold time.Duration) *LessExecutor {
 	return &LessExecutor{
 		threshold: threshold,
@@ -19,6 +21,8 @@ func NewLessExecutor(threshold time.Duration) *LessExecutor {
 	}
 }
 
+// DoOrDiscard executes or discards the task depends on if
+// another task was executed within the time interval.
 func (le *LessExecutor) DoOrDiscard(execute func()) bool {
 	now := timex.Now()
 	lastTime := le.lastTime.Load()

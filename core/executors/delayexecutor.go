@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/threading"
 )
 
+// A DelayExecutor delays a tasks on given delay interval.
 type DelayExecutor struct {
 	fn        func()
 	delay     time.Duration
@@ -14,6 +15,7 @@ type DelayExecutor struct {
 	lock      sync.Mutex
 }
 
+// NewDelayExecutor returns a DelayExecutor with given fn and delay.
 func NewDelayExecutor(fn func(), delay time.Duration) *DelayExecutor {
 	return &DelayExecutor{
 		fn:    fn,
@@ -21,6 +23,7 @@ func NewDelayExecutor(fn func(), delay time.Duration) *DelayExecutor {
 	}
 }
 
+// Trigger triggers the task to be executed after given delay, safe to trigger more than once.
 func (de *DelayExecutor) Trigger() {
 	de.lock.Lock()
 	defer de.lock.Unlock()
