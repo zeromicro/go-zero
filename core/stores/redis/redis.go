@@ -108,6 +108,23 @@ func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 	return vals[1], true, nil
 }
 
+func (s *Redis) BitCount(key string, start, end int64) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitCount(key, &red.BitCount{
+			Start: start,
+			End:   end,
+		}).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) Del(keys ...string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
