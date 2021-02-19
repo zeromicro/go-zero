@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// TopWeight is the top weight that one entry might set.
 	TopWeight = 100
 
 	minReplicas = 100
@@ -18,10 +19,12 @@ const (
 )
 
 type (
-	HashFunc func(data []byte) uint64
+	// Func defines the hash method.
+	Func func(data []byte) uint64
 
+	// A ConsistentHash is a ring hash implementation.
 	ConsistentHash struct {
-		hashFunc HashFunc
+		hashFunc Func
 		replicas int
 		keys     []uint64
 		ring     map[uint64][]interface{}
@@ -30,11 +33,13 @@ type (
 	}
 )
 
+// NewConsistentHash returns a ConsistentHash.
 func NewConsistentHash() *ConsistentHash {
 	return NewCustomConsistentHash(minReplicas, Hash)
 }
 
-func NewCustomConsistentHash(replicas int, fn HashFunc) *ConsistentHash {
+// NewCustomConsistentHash returns a ConsistentHash with given replicas and hash func.
+func NewCustomConsistentHash(replicas int, fn Func) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
@@ -92,6 +97,7 @@ func (h *ConsistentHash) AddWithWeight(node interface{}, weight int) {
 	h.AddWithReplicas(node, replicas)
 }
 
+// Get returns the corresponding node from h base on the given v.
 func (h *ConsistentHash) Get(v interface{}) (interface{}, bool) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
@@ -118,6 +124,7 @@ func (h *ConsistentHash) Get(v interface{}) (interface{}, bool) {
 	}
 }
 
+// Remove removes the given node from h.
 func (h *ConsistentHash) Remove(node interface{}) {
 	nodeRepr := repr(node)
 
