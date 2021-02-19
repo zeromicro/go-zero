@@ -25,7 +25,7 @@ type (
 		Endpoints []string        `json:",optional=!Etcd"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
-		Timeout   int64           `json:",optional"`
+		Timeout   int64           `json:",default=2000"`
 	}
 )
 
