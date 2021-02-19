@@ -19,10 +19,10 @@ func (mt *MilliTime) UnmarshalJSON(data []byte) error {
 	var milli int64
 	if err := json.Unmarshal(data, &milli); err != nil {
 		return err
-	} else {
-		mt.Time = time.Unix(0, milli*int64(time.Millisecond))
-		return nil
 	}
+
+	mt.Time = time.Unix(0, milli*int64(time.Millisecond))
+	return nil
 }
 
 func (mt MilliTime) GetBSON() (interface{}, error) {

@@ -96,9 +96,9 @@ func Substr(str string, start int, stop int) (string, error) {
 func TakeOne(valid, or string) string {
 	if len(valid) > 0 {
 		return valid
-	} else {
-		return or
 	}
+
+	return or
 }
 
 func TakeWithPriority(fns ...func() string) string {

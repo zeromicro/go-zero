@@ -16,7 +16,7 @@ import (
 const idleRound = 10
 
 type (
-	// A type that satisfies executors.TaskContainer can be used as the underlying
+	// TaskContainer interface defines a type that can be used as the underlying
 	// container that used to do periodical executions.
 	TaskContainer interface {
 		// AddTask adds the task into the container.
@@ -28,6 +28,7 @@ type (
 		RemoveAll() interface{}
 	}
 
+	// A PeriodicalExecutor is an executor that periodically execute tasks.
 	PeriodicalExecutor struct {
 		commander chan interface{}
 		interval  time.Duration
@@ -43,6 +44,7 @@ type (
 	}
 )
 
+// NewPeriodicalExecutor returns a PeriodicalExecutor with given interval and container.
 func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *PeriodicalExecutor {
 	executor := &PeriodicalExecutor{
 		// buffer 1 to let the caller go quickly
@@ -61,6 +63,7 @@ func NewPeriodicalExecutor(interval time.Duration, container TaskContainer) *Per
 	return executor
 }
 
+// Add adds tasks into pe.
 func (pe *PeriodicalExecutor) Add(task interface{}) {
 	if vals, ok := pe.addAndCheck(task); ok {
 		pe.commander <- vals
@@ -68,6 +71,7 @@ func (pe *PeriodicalExecutor) Add(task interface{}) {
 	}
 }
 
+// Flush forces pe to execute tasks.
 func (pe *PeriodicalExecutor) Flush() bool {
 	pe.enterExecution()
 	return pe.executeTasks(func() interface{} {
@@ -77,12 +81,14 @@ func (pe *PeriodicalExecutor) Flush() bool {
 	}())
 }
 
+// Sync lets caller to run fn thread-safe with pe, especially for the underlying container.
 func (pe *PeriodicalExecutor) Sync(fn func()) {
 	pe.lock.Lock()
 	defer pe.lock.Unlock()
 	fn()
 }
 
+// Wait waits the execution to be done.
 func (pe *PeriodicalExecutor) Wait() {
 	pe.Flush()
 	pe.wgBarrier.Guard(func() {

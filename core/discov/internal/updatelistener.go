@@ -1,4 +1,5 @@
 //go:generate mockgen -package internal -destination updatelistener_mock.go -source updatelistener.go UpdateListener
+
 package internal
 
 type (

@@ -58,6 +58,7 @@ func TestAesEcbBase64(t *testing.T) {
 	_, err = EcbDecryptBase64(b64Key, val)
 	assert.NotNil(t, err)
 	src, err := EcbDecryptBase64(b64Key, dst)
+	assert.Nil(t, err)
 	b, err := base64.StdEncoding.DecodeString(src)
 	assert.Nil(t, err)
 	assert.Equal(t, val, string(b))

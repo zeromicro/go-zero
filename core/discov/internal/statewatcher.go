@@ -1,4 +1,5 @@
 //go:generate mockgen -package internal -destination statewatcher_mock.go -source statewatcher.go etcdConn
+
 package internal
 
 import (

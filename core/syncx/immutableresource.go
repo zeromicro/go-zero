@@ -69,7 +69,8 @@ func (ir *ImmutableResource) maybeRefresh(execute func()) {
 	}
 }
 
-// Set interval to 0 to enforce refresh every time if not succeeded. default is time.Second.
+// WithRefreshIntervalOnFailure sets refresh interval on failure.
+// Set interval to 0 to enforce refresh every time if not succeeded, default is time.Second.
 func WithRefreshIntervalOnFailure(interval time.Duration) ImmutableResourceOption {
 	return func(resource *ImmutableResource) {
 		resource.refreshInterval = interval

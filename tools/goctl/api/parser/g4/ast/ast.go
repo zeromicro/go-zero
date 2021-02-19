@@ -203,41 +203,40 @@ func (e *defaultExpr) IsNotNil() bool {
 
 func EqualDoc(spec1, spec2 Spec) bool {
 	if spec1 == nil {
-		if spec2 != nil {
+		return spec2 == nil
+	}
+
+	if spec2 == nil {
+		return false
+	}
+
+	var expectDoc, actualDoc []Expr
+	expectDoc = append(expectDoc, spec2.Doc()...)
+	actualDoc = append(actualDoc, spec1.Doc()...)
+	sort.Slice(expectDoc, func(i, j int) bool {
+		return expectDoc[i].Line() < expectDoc[j].Line()
+	})
+
+	for index, each := range actualDoc {
+		if !each.Equal(actualDoc[index]) {
 			return false
-		}
-		return true
-	} else {
-		if spec2 == nil {
-			return false
-		}
-
-		var expectDoc, actualDoc []Expr
-		expectDoc = append(expectDoc, spec2.Doc()...)
-		actualDoc = append(actualDoc, spec1.Doc()...)
-		sort.Slice(expectDoc, func(i, j int) bool {
-			return expectDoc[i].Line() < expectDoc[j].Line()
-		})
-
-		for index, each := range actualDoc {
-			if !each.Equal(actualDoc[index]) {
-				return false
-			}
-		}
-
-		if spec1.Comment() != nil {
-			if spec2.Comment() == nil {
-				return false
-			}
-			if !spec1.Comment().Equal(spec2.Comment()) {
-				return false
-			}
-		} else {
-			if spec2.Comment() != nil {
-				return false
-			}
 		}
 	}
+
+	if spec1.Comment() != nil {
+		if spec2.Comment() == nil {
+			return false
+		}
+
+		if !spec1.Comment().Equal(spec2.Comment()) {
+			return false
+		}
+	} else {
+		if spec2.Comment() != nil {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -295,8 +294,10 @@ func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsC
 				}
 			}
 		}
+
 		list = append(list, v.newExprWithToken(each))
 	}
+
 	return list
 }
 
@@ -307,6 +308,7 @@ func (v *ApiVisitor) getHiddenTokensToRight(t TokenStream, channel int) []Expr {
 	for _, each := range tokens {
 		list = append(list, v.newExprWithToken(each))
 	}
+
 	return list
 }
 
@@ -314,6 +316,7 @@ func (v *ApiVisitor) exportCheck(expr Expr) {
 	if expr == nil || !expr.IsNotNil() {
 		return
 	}
+
 	if api.IsBasicType(expr.Text()) {
 		return
 	}

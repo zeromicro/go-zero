@@ -30,9 +30,9 @@ func (h httpCarrier) Set(key, val string) {
 func (g grpcCarrier) Get(key string) string {
 	if vals, ok := g[strings.ToLower(key)]; ok && len(vals) > 0 {
 		return vals[0]
-	} else {
-		return ""
 	}
+
+	return ""
 }
 
 func (g grpcCarrier) Set(key, val string) {

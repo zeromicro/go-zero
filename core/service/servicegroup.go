@@ -38,6 +38,7 @@ func (sg *ServiceGroup) Add(service Service) {
 	sg.services = append(sg.services, service)
 }
 
+// Start starts the ServiceGroup.
 // There should not be any logic code after calling this method, because this method is a blocking one.
 // Also, quitting this method will close the logx output.
 func (sg *ServiceGroup) Start() {

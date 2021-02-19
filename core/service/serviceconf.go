@@ -19,7 +19,7 @@ const (
 type ServiceConf struct {
 	Name       string
 	Log        logx.LogConf
-	Mode       string            `json:",default=pro,options=dev|test|pre|pro"`
+	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
 	MetricsUrl string            `json:",optional"`
 	Prometheus prometheus.Config `json:",optional"`
 }

@@ -36,11 +36,11 @@ func (c *cachedCollection) Count(query interface{}) (int, error) {
 }
 
 func (c *cachedCollection) DelCache(keys ...string) error {
-	return c.cache.DelCache(keys...)
+	return c.cache.Del(keys...)
 }
 
 func (c *cachedCollection) GetCache(key string, v interface{}) error {
-	return c.cache.GetCache(key, v)
+	return c.cache.Get(key, v)
 }
 
 func (c *cachedCollection) FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error {
@@ -125,7 +125,7 @@ func (c *cachedCollection) RemoveIdNoCache(id interface{}) error {
 }
 
 func (c *cachedCollection) SetCache(key string, v interface{}) error {
-	return c.cache.SetCache(key, v)
+	return c.cache.Set(key, v)
 }
 
 func (c *cachedCollection) Update(selector, update interface{}, keys ...string) error {

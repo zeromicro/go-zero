@@ -77,32 +77,40 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	for i := range route {
 		if route[i] == slash {
 			token := route[:i]
-			for _, children := range n.children {
-				for k, v := range children {
-					if r := match(k, token); r.found {
-						if t.next(v, route[i+1:], result) {
-							if r.named {
-								addParam(result, r.key, r.value)
-							}
-
-							return true
+			return n.forEach(func(k string, v *node) bool {
+				if r := match(k, token); r.found {
+					if t.next(v, route[i+1:], result) {
+						if r.named {
+							addParam(result, r.key, r.value)
 						}
+
+						return true
 					}
 				}
-			}
 
-			return false
+				return false
+			})
 		}
 	}
 
-	for _, children := range n.children {
-		for k, v := range children {
-			if r := match(k, route); r.found && v.item != nil {
-				result.Item = v.item
-				if r.named {
-					addParam(result, r.key, r.value)
-				}
+	return n.forEach(func(k string, v *node) bool {
+		if r := match(k, route); r.found && v.item != nil {
+			result.Item = v.item
+			if r.named {
+				addParam(result, r.key, r.value)
+			}
 
+			return true
+		}
+
+		return false
+	})
+}
+
+func (nd *node) forEach(fn func(string, *node) bool) bool {
+	for _, children := range nd.children {
+		for k, v := range children {
+			if fn(k, v) {
 				return true
 			}
 		}
@@ -114,9 +122,9 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 func (nd *node) getChildren(route string) map[string]*node {
 	if len(route) > 0 && route[0] == colon {
 		return nd.children[1]
-	} else {
-		return nd.children[0]
 	}
+
+	return nd.children[0]
 }
 
 func add(nd *node, route string, item interface{}) error {
@@ -140,14 +148,14 @@ func add(nd *node, route string, item interface{}) error {
 			if child, ok := children[token]; ok {
 				if child != nil {
 					return add(child, route[i+1:], item)
-				} else {
-					return ErrInvalidState
 				}
-			} else {
-				child := newNode(nil)
-				children[token] = child
-				return add(child, route[i+1:], item)
+
+				return ErrInvalidState
 			}
+
+			child := newNode(nil)
+			children[token] = child
+			return add(child, route[i+1:], item)
 		}
 	}
 

@@ -43,13 +43,14 @@ func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error 
 	}
 
 	cleanPath := path.Clean(reqPath)
-	if tree, ok := pr.trees[method]; ok {
-		return tree.Add(cleanPath, handler)
-	} else {
-		tree = search.NewTree()
-		pr.trees[method] = tree
+	tree, ok := pr.trees[method]
+	if ok {
 		return tree.Add(cleanPath, handler)
 	}
+
+	tree = search.NewTree()
+	pr.trees[method] = tree
+	return tree.Add(cleanPath, handler)
 }
 
 func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -110,9 +111,9 @@ func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 
 	if len(allows) > 0 {
 		return strings.Join(allows, allowMethodSeparator), true
-	} else {
-		return "", false
 	}
+
+	return "", false
 }
 
 func validMethod(method string) bool {

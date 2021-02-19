@@ -1,4 +1,5 @@
 //go:generate mockgen -package internal -destination collection_mock.go -source collection.go
+
 package internal
 
 import "github.com/globalsign/mgo"

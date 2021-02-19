@@ -114,9 +114,9 @@ func dumpRequest(r *http.Request) string {
 	reqContent, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		return err.Error()
-	} else {
-		return string(reqContent)
 	}
+
+	return string(reqContent)
 }
 
 func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *internal.LogCollector) {
