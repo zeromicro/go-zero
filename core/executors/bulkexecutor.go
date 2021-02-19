@@ -5,8 +5,12 @@ import "time"
 const defaultBulkTasks = 1000
 
 type (
+	// BulkOption defines the method to customize a BulkExecutor.
 	BulkOption func(options *bulkOptions)
 
+	// A BulkExecutor is an executor that can execute tasks on either requirement meets:
+	// 1. up to given size of tasks
+	// 2. flush interval time elapsed
 	BulkExecutor struct {
 		executor  *PeriodicalExecutor
 		container *bulkContainer
@@ -18,6 +22,7 @@ type (
 	}
 )
 
+// NewBulkExecutor returns a BulkExecutor.
 func NewBulkExecutor(execute Execute, opts ...BulkOption) *BulkExecutor {
 	options := newBulkOptions()
 	for _, opt := range opts {
@@ -36,25 +41,30 @@ func NewBulkExecutor(execute Execute, opts ...BulkOption) *BulkExecutor {
 	return executor
 }
 
+// Add adds task into be.
 func (be *BulkExecutor) Add(task interface{}) error {
 	be.executor.Add(task)
 	return nil
 }
 
+// Flush forces be to flush and execute tasks.
 func (be *BulkExecutor) Flush() {
 	be.executor.Flush()
 }
 
+// Wait waits be to done with the task execution.
 func (be *BulkExecutor) Wait() {
 	be.executor.Wait()
 }
 
+// WithBulkTasks customizes a BulkExecutor with given tasks limit.
 func WithBulkTasks(tasks int) BulkOption {
 	return func(options *bulkOptions) {
 		options.cachedTasks = tasks
 	}
 }
 
+// WithBulkInterval customizes a BulkExecutor with given flush interval.
 func WithBulkInterval(duration time.Duration) BulkOption {
 	return func(options *bulkOptions) {
 		options.flushInterval = duration

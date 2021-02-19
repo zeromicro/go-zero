@@ -72,6 +72,24 @@ func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 	}
 }
 
+// BitCount is redis bitcount command implementation.
+func (s *Redis) BitCount(key string, start, end int64) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitCount(key, &red.BitCount{
+			Start: start,
+			End:   end,
+		}).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Blpop uses passed in redis connection to execute blocking queries.
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) Blpop(redisNode RedisNode, key string) (string, error) {
@@ -106,23 +124,6 @@ func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 	}
 
 	return vals[1], true, nil
-}
-
-func (s *Redis) BitCount(key string, start, end int64) (val int64, err error) {
-	err = s.brk.DoWithAcceptable(func() error {
-		conn, err := getRedis(s)
-		if err != nil {
-			return err
-		}
-
-		val, err = conn.BitCount(key, &red.BitCount{
-			Start: start,
-			End:   end,
-		}).Result()
-		return err
-	}, acceptable)
-
-	return
 }
 
 func (s *Redis) Del(keys ...string) (val int, err error) {
