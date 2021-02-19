@@ -341,6 +341,39 @@ func TestRedis_GetBit(t *testing.T) {
 	})
 }
 
+func TestRedis_BitCount(t *testing.T)  {
+	runOnRedis(t, func(client *Redis) {
+		for i := 0; i < 11; i++{
+			err := client.SetBit("key", int64(i), 1)
+			assert.Nil(t, err)
+		}
+
+		_, err := NewRedis(client.Addr,"").BitCount("key",0,-1)
+		assert.NotNil(t, err)
+		val, err := client.BitCount("key", 0,-1)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(11), val)
+
+		val, err = client.BitCount("key", 0,0)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(8), val)
+
+		val, err = client.BitCount("key", 1,1)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(3), val)
+
+		val, err = client.BitCount("key", 0,1)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(11), val)
+
+		val, err = client.BitCount("key", 2,2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), val)
+
+	})
+}
+
+
 func TestRedis_Persist(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := NewRedis(client.Addr, "").Persist("key")
