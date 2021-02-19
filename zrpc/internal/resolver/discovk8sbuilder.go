@@ -82,7 +82,6 @@ func (d *discovK8sBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		cc.UpdateState(resolver.State{
 			Addresses: addrs,
 		})
-		fmt.Printf("service %s, addres: %v\n", si.EpName(), sub.Values())
 	}
 	sub.SetUpdateFunc(update)
 

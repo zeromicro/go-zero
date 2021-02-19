@@ -109,11 +109,11 @@ func (e *EndpointController) endpointUpdate(old, new interface{}) {
 	}
 
 	e.lock.Lock()
-	var copyListeners []OnUpdateFunc
-	copyListeners = append(copyListeners, e.updatefuncs[epName]...)
+	var updateFuncs []OnUpdateFunc
+	updateFuncs = append(updateFuncs, e.updatefuncs[epName]...)
 	e.lock.Unlock()
 
-	for _, l := range copyListeners {
+	for _, l := range updateFuncs {
 		if l != nil {
 			l(newAddress)
 		}

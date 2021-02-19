@@ -118,7 +118,7 @@ func TestNewClientWithTarget(t *testing.T) {
 	//client, err := NewClientWithTarget("kubernetes://nginx-service.default:80")
 	//client, err := NewClientWithTarget("discov://nginx-service.default:80")
 
-	client, err := internal.NewClient(internal.BuildDiscovk8sTarget("nginx-service", "default", 80))
+	client, err := internal.NewClient(internal.BuildDiscovk8sTarget("transform-svc", "default", 8081))
 
 	select {}
 	assert.Nil(t, err)
