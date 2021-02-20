@@ -45,6 +45,7 @@ type (
 	}
 )
 
+// Deref dereferences a type, if pointer type, returns its element type.
 func Deref(t reflect.Type) reflect.Type {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -53,6 +54,7 @@ func Deref(t reflect.Type) reflect.Type {
 	return t
 }
 
+// Repr returns the string representation of v.
 func Repr(v interface{}) string {
 	if v == nil {
 		return ""
@@ -72,6 +74,7 @@ func Repr(v interface{}) string {
 	return reprOfValue(val)
 }
 
+// ValidatePtr validates v if it's a valid pointer.
 func ValidatePtr(v *reflect.Value) error {
 	// sequence is very important, IsNil must be called after checking Kind() with reflect.Ptr,
 	// panic otherwise

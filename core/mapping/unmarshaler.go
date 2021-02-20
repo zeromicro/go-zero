@@ -33,23 +33,27 @@ var (
 )
 
 type (
+	// A Unmarshaler is used to unmarshal with given tag key.
 	Unmarshaler struct {
 		key  string
 		opts unmarshalOptions
 	}
 
+	// UnmarshalOption defines the method to customize a Unmarshaler.
+	UnmarshalOption func(*unmarshalOptions)
+
 	unmarshalOptions struct {
 		fromString bool
 	}
 
-	keyCache        map[string][]string
-	UnmarshalOption func(*unmarshalOptions)
+	keyCache map[string][]string
 )
 
 func init() {
 	cacheKeys.Store(make(keyCache))
 }
 
+// NewUnmarshaler returns a Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	unmarshaler := Unmarshaler{
 		key: key,
@@ -62,14 +66,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	return &unmarshaler
 }
 
+// UnmarshalKey unmarshals m into v with tag key.
 func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 	return keyUnmarshaler.Unmarshal(m, v)
 }
 
+// Unmarshal unmarshals m into v.
 func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
 	return u.UnmarshalValuer(MapValuer(m), v)
 }
 
+// UnmarshalValuer unmarshals m into v.
 func (u *Unmarshaler) UnmarshalValuer(m Valuer, v interface{}) error {
 	return u.unmarshalWithFullName(m, v, "")
 }
@@ -590,6 +597,7 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	return key, optsWithContext, nil
 }
 
+// WithStringValues customizes a Unmarshaler with number values from strings.
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
