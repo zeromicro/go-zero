@@ -94,10 +94,6 @@ func getAuths(api *spec.ApiSpec) []string {
 		if len(jwt) > 0 {
 			authNames.Add(jwt)
 		}
-		signature := g.GetAnnotation("signature")
-		if len(signature) > 0 {
-			authNames.Add(signature)
-		}
 	}
 	return authNames.KeysStr()
 }
