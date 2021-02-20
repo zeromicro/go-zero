@@ -9,6 +9,8 @@ import (
 
 var errModuleCheck = errors.New("the work directory must be found in the go mod or the $GOPATH")
 
+// ProjectContext is a structure for the project,
+// which contains WorkDir, Name, Path and Dir
 type ProjectContext struct {
 	WorkDir string
 	// Name is the root name of the project

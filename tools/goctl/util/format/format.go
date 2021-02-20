@@ -18,6 +18,7 @@ const (
 	upper
 )
 
+// ErrNamingFormat defines an error for unknown fomat
 var ErrNamingFormat = errors.New("unsupported format")
 
 type (
