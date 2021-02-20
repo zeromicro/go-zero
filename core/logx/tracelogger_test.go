@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	mockTraceId = "mock-trace-id"
-	mockSpanId  = "mock-span-id"
+	mockTraceID = "mock-trace-id"
+	mockSpanID  = "mock-span-id"
 )
 
 var mock tracespec.Trace = new(mockTrace)
@@ -24,8 +24,8 @@ func TestTraceLog(t *testing.T) {
 	atomic.StoreUint32(&initialized, 1)
 	ctx := context.WithValue(context.Background(), tracespec.TracingKey, mock)
 	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 }
 
 func TestTraceError(t *testing.T) {
@@ -36,12 +36,12 @@ func TestTraceError(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Error(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 	buf.Reset()
 	l.WithDuration(time.Second).Errorf(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 }
 
 func TestTraceInfo(t *testing.T) {
@@ -52,12 +52,12 @@ func TestTraceInfo(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 	buf.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 }
 
 func TestTraceSlow(t *testing.T) {
@@ -68,12 +68,12 @@ func TestTraceSlow(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Slow(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 	buf.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	assert.True(t, strings.Contains(buf.String(), mockTraceId))
-	assert.True(t, strings.Contains(buf.String(), mockSpanId))
+	assert.True(t, strings.Contains(buf.String(), mockTraceID))
+	assert.True(t, strings.Contains(buf.String(), mockSpanID))
 }
 
 func TestTraceWithoutContext(t *testing.T) {
@@ -83,22 +83,22 @@ func TestTraceWithoutContext(t *testing.T) {
 	l := WithContext(context.Background()).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	assert.False(t, strings.Contains(buf.String(), mockTraceId))
-	assert.False(t, strings.Contains(buf.String(), mockSpanId))
+	assert.False(t, strings.Contains(buf.String(), mockTraceID))
+	assert.False(t, strings.Contains(buf.String(), mockSpanID))
 	buf.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	assert.False(t, strings.Contains(buf.String(), mockTraceId))
-	assert.False(t, strings.Contains(buf.String(), mockSpanId))
+	assert.False(t, strings.Contains(buf.String(), mockTraceID))
+	assert.False(t, strings.Contains(buf.String(), mockSpanID))
 }
 
 type mockTrace struct{}
 
 func (t mockTrace) TraceId() string {
-	return mockTraceId
+	return mockTraceID
 }
 
 func (t mockTrace) SpanId() string {
-	return mockSpanId
+	return mockSpanID
 }
 
 func (t mockTrace) Finish() {
