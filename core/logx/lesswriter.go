@@ -7,7 +7,7 @@ type lessWriter struct {
 	writer io.Writer
 }
 
-func NewLessWriter(writer io.Writer, milliseconds int) *lessWriter {
+func newLessWriter(writer io.Writer, milliseconds int) *lessWriter {
 	return &lessWriter{
 		limitedExecutor: newLimitedExecutor(milliseconds),
 		writer:          writer,
