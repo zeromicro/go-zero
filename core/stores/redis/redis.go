@@ -90,6 +90,81 @@ func (s *Redis) BitCount(key string, start, end int64) (val int64, err error) {
 	return
 }
 
+// BitOpAnd is redis bit operation (and) command implementation.
+func (s *Redis) BitOpAnd(destKey string, keys ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitOpAnd(destKey, keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// BitOpNot is redis bit operation (not) command implementation.
+func (s *Redis) BitOpNot(destKey, key string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitOpNot(destKey, key).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// BitOpOr is redis bit operation (or) command implementation.
+func (s *Redis) BitOpOr(destKey string, keys ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitOpOr(destKey, keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// BitOpXor is redis bit operation (xor) command implementation.
+func (s *Redis) BitOpXor(destKey string, keys ...string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitOpXor(destKey, keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// BitPos is redis bitpos command implementation.
+func (s *Redis) BitPos(key string, bit int64, start, end int64) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.BitPos(key, bit, start, end).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Blpop uses passed in redis connection to execute blocking queries.
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) Blpop(redisNode RedisNode, key string) (string, error) {

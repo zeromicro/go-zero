@@ -373,6 +373,103 @@ func TestRedis_BitCount(t *testing.T) {
 	})
 }
 
+func TestRedis_BitOpAnd(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := client.Set("key1", "0")
+		assert.Nil(t, err)
+		err = client.Set("key2", "1")
+		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").BitOpAnd("destKey", "key1", "key2")
+		assert.NotNil(t, err)
+		val, err := client.BitOpAnd("destKey", "key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		valStr, err := client.Get("destKey")
+		assert.Nil(t, err)
+		//destKey  binary 110000   ascii 0
+		assert.Equal(t, "0", valStr)
+	})
+}
+
+func TestRedis_BitOpNot(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := client.Set("key1", "\u0000")
+		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").BitOpNot("destKey", "key1")
+		assert.NotNil(t, err)
+		val, err := client.BitOpNot("destKey", "key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		valStr, err := client.Get("destKey")
+		assert.Nil(t, err)
+		assert.Equal(t, "\xff", valStr)
+	})
+}
+
+func TestRedis_BitOpOr(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := client.Set("key1", "1")
+		assert.Nil(t, err)
+		err = client.Set("key2", "0")
+		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").BitOpOr("destKey", "key1", "key2")
+		assert.NotNil(t, err)
+		val, err := client.BitOpOr("destKey", "key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		valStr, err := client.Get("destKey")
+		assert.Nil(t, err)
+		assert.Equal(t, "1", valStr)
+	})
+}
+
+func TestRedis_BitOpXor(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := client.Set("key1", "\xff")
+		assert.Nil(t, err)
+		err = client.Set("key2", "\x0f")
+		assert.Nil(t, err)
+		_, err = NewRedis(client.Addr, "").BitOpXor("destKey", "key1", "key2")
+		assert.NotNil(t, err)
+		val, err := client.BitOpXor("destKey", "key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		valStr, err := client.Get("destKey")
+		assert.Nil(t, err)
+		assert.Equal(t, "\xf0", valStr)
+	})
+}
+func TestRedis_BitPos(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		//11111111 11110000 00000000
+		err := client.Set("key", "\xff\xf0\x00")
+		assert.Nil(t, err)
+
+		_, err = NewRedis(client.Addr, "").BitPos("key", 0, 0, -1)
+		assert.NotNil(t, err)
+		val, err := client.BitPos("key", 0, 0, 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(12), val)
+
+		val, err = client.BitPos("key", 1, 0, 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), val)
+
+		val, err = client.BitPos("key", 0, 1, 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(12), val)
+
+		val, err = client.BitPos("key", 1, 1, 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(8), val)
+
+		val, err = client.BitPos("key", 1, 2, 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+
+	})
+}
+
 func TestRedis_Persist(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := NewRedis(client.Addr, "").Persist("key")
