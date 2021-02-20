@@ -160,6 +160,7 @@ type Response struct {
 
 @server(
 	jwt: Auth
+	signature: true
 )
 service A-api {
   @handler GreetHandler
