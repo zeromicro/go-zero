@@ -12,6 +12,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// DocCommand generate markdown doc file
 func DocCommand(c *cli.Context) error {
 	dir := c.String("dir")
 	if len(dir) == 0 {

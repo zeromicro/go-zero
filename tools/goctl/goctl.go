@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	BuildVersion = "1.1.5"
+	buildVersion = "1.1.5"
 	commands     = []cli.Command{
 		{
 			Name:   "upgrade",
@@ -510,7 +510,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
+	app.Version = fmt.Sprintf("%s %s/%s", buildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
