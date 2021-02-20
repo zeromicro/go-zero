@@ -68,6 +68,71 @@ func Parse(ddl string) (*Table, error) {
 
 	columns := tableSpec.Columns
 	indexes := tableSpec.Indexes
+	keyMap, err := getIndexKeyType(indexes)
+	if err != nil {
+		return nil, err
+	}
+
+	fields, primaryKey, err := convertFileds(columns, keyMap)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Table{
+		Name:       stringx.From(tableName),
+		PrimaryKey: primaryKey,
+		Fields:     fields,
+	}, nil
+}
+
+func convertFileds(columns []*sqlparser.ColumnDefinition, keyMap map[string]KeyType) ([]Field, Primary, error) {
+	var fields []Field
+	var primaryKey Primary
+	for _, column := range columns {
+		if column == nil {
+			continue
+		}
+		var comment string
+		if column.Type.Comment != nil {
+			comment = string(column.Type.Comment.Val)
+		}
+		var isDefaultNull = true
+		if column.Type.NotNull {
+			isDefaultNull = false
+		} else {
+			if column.Type.Default == nil {
+				isDefaultNull = false
+			} else if string(column.Type.Default.Val) != "null" {
+				isDefaultNull = false
+			}
+		}
+		dataType, err := converter.ConvertDataType(column.Type.Type, isDefaultNull)
+		if err != nil {
+			return nil, primaryKey, err
+		}
+
+		var field Field
+		field.Name = stringx.From(column.Name.String())
+		field.DataBaseType = column.Type.Type
+		field.DataType = dataType
+		field.Comment = comment
+		key, ok := keyMap[column.Name.String()]
+		if ok {
+			field.IsPrimaryKey = key == primary
+			field.IsUniqueKey = key == unique
+			if field.IsPrimaryKey {
+				primaryKey.Field = field
+				if column.Type.Autoincrement {
+					primaryKey.AutoIncrement = true
+				}
+			}
+		}
+		fields = append(fields, field)
+	}
+	return fields, primaryKey, nil
+}
+
+func getIndexKeyType(indexes []*sqlparser.IndexDefinition) (map[string]KeyType, error) {
 	keyMap := make(map[string]KeyType)
 	for _, index := range indexes {
 		info := index.Info
@@ -101,56 +166,7 @@ func Parse(ddl string) (*Table, error) {
 			keyMap[columnName] = normal
 		}
 	}
-
-	var fields []Field
-	var primaryKey Primary
-	for _, column := range columns {
-		if column == nil {
-			continue
-		}
-		var comment string
-		if column.Type.Comment != nil {
-			comment = string(column.Type.Comment.Val)
-		}
-		var isDefaultNull = true
-		if column.Type.NotNull {
-			isDefaultNull = false
-		} else {
-			if column.Type.Default == nil {
-				isDefaultNull = false
-			} else if string(column.Type.Default.Val) != "null" {
-				isDefaultNull = false
-			}
-		}
-		dataType, err := converter.ConvertDataType(column.Type.Type, isDefaultNull)
-		if err != nil {
-			return nil, err
-		}
-
-		var field Field
-		field.Name = stringx.From(column.Name.String())
-		field.DataBaseType = column.Type.Type
-		field.DataType = dataType
-		field.Comment = comment
-		key, ok := keyMap[column.Name.String()]
-		if ok {
-			field.IsPrimaryKey = key == primary
-			field.IsUniqueKey = key == unique
-			if field.IsPrimaryKey {
-				primaryKey.Field = field
-				if column.Type.Autoincrement {
-					primaryKey.AutoIncrement = true
-				}
-			}
-		}
-		fields = append(fields, field)
-	}
-
-	return &Table{
-		Name:       stringx.From(tableName),
-		PrimaryKey: primaryKey,
-		Fields:     fields,
-	}, nil
+	return keyMap, nil
 }
 
 func (t *Table) ContainsTime() bool {

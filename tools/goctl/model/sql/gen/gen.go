@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,7 +32,20 @@ type (
 		pkg string
 		cfg *config.Config
 	}
+
 	Option func(generator *defaultGenerator)
+
+	code struct {
+		importsCode string
+		varsCode    string
+		typesCode   string
+		newCode     string
+		insertCode  string
+		findCode    []string
+		updateCode  string
+		deleteCode  string
+		cacheExtra  string
+	}
 )
 
 func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
@@ -186,15 +200,6 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
-	if err != nil {
-		return "", err
-	}
-
-	t := util.With("model").
-		Parse(text).
-		GoFmt(true)
-
 	m, err := genCacheKeys(in)
 	if err != nil {
 		return "", err
@@ -261,23 +266,50 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	output, err := t.Execute(map[string]interface{}{
-		"pkg":         g.pkg,
-		"imports":     importsCode,
-		"vars":        varsCode,
-		"types":       typesCode,
-		"new":         newCode,
-		"insert":      insertCode,
-		"find":        strings.Join(findCode, "\n"),
-		"update":      updateCode,
-		"delete":      deleteCode,
-		"extraMethod": ret.cacheExtra,
-	})
+	code := &code{
+		importsCode: importsCode,
+		varsCode:    varsCode,
+		typesCode:   typesCode,
+		newCode:     newCode,
+		insertCode:  insertCode,
+		findCode:    findCode,
+		updateCode:  updateCode,
+		deleteCode:  deleteCode,
+		cacheExtra:  ret.cacheExtra,
+	}
+
+	output, err := g.executeModel(code)
 	if err != nil {
 		return "", err
 	}
 
 	return output.String(), nil
+}
+
+func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return nil, err
+	}
+	t := util.With("model").
+		Parse(text).
+		GoFmt(true)
+	output, err := t.Execute(map[string]interface{}{
+		"pkg":         g.pkg,
+		"imports":     code.importsCode,
+		"vars":        code.varsCode,
+		"types":       code.typesCode,
+		"new":         code.newCode,
+		"insert":      code.insertCode,
+		"find":        strings.Join(code.findCode, "\n"),
+		"update":      code.updateCode,
+		"delete":      code.deleteCode,
+		"extraMethod": code.cacheExtra,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func wrapWithRawString(v string) string {

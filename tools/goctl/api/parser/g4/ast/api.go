@@ -22,12 +22,6 @@ type Api struct {
 }
 
 func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
-	defer func() {
-		if p := recover(); p != nil {
-			panic(fmt.Errorf("%+v", p))
-		}
-	}()
-
 	var final Api
 	final.importM = map[string]PlaceHolder{}
 	final.typeM = map[string]PlaceHolder{}
@@ -36,107 +30,126 @@ func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
 	final.routeM = map[string]PlaceHolder{}
 	for _, each := range ctx.AllSpec() {
 		root := each.Accept(v).(*Api)
-		if root.Syntax != nil {
-			if final.Syntax != nil {
-				v.panic(root.Syntax.Syntax, fmt.Sprintf("mutiple syntax declaration"))
-			}
-
-			final.Syntax = root.Syntax
-		}
-
-		for _, imp := range root.Import {
-			if _, ok := final.importM[imp.Value.Text()]; ok {
-				v.panic(imp.Import, fmt.Sprintf("duplicate import '%s'", imp.Value.Text()))
-			}
-
-			final.importM[imp.Value.Text()] = Holder
-			final.Import = append(final.Import, imp)
-		}
-
-		if root.Info != nil {
-			infoM := map[string]PlaceHolder{}
-			if final.Info != nil {
-				v.panic(root.Info.Info, fmt.Sprintf("mutiple info declaration"))
-			}
-
-			for _, value := range root.Info.Kvs {
-				if _, ok := infoM[value.Key.Text()]; ok {
-					v.panic(value.Key, fmt.Sprintf("duplicate key '%s'", value.Key.Text()))
-				}
-				infoM[value.Key.Text()] = Holder
-			}
-
-			final.Info = root.Info
-		}
-
-		for _, tp := range root.Type {
-			if _, ok := final.typeM[tp.NameExpr().Text()]; ok {
-				v.panic(tp.NameExpr(), fmt.Sprintf("duplicate type '%s'", tp.NameExpr().Text()))
-			}
-
-			final.typeM[tp.NameExpr().Text()] = Holder
-			final.Type = append(final.Type, tp)
-		}
-
-		for _, service := range root.Service {
-			if _, ok := final.serviceM[service.ServiceApi.Name.Text()]; !ok && len(final.serviceM) > 0 {
-				v.panic(service.ServiceApi.Name, fmt.Sprintf("mutiple service declaration"))
-			}
-
-			if service.AtServer != nil {
-				atServerM := map[string]PlaceHolder{}
-				for _, kv := range service.AtServer.Kv {
-					if _, ok := atServerM[kv.Key.Text()]; ok {
-						v.panic(kv.Key, fmt.Sprintf("duplicate key '%s'", kv.Key.Text()))
-					}
-
-					atServerM[kv.Key.Text()] = Holder
-				}
-			}
-
-			for _, route := range service.ServiceApi.ServiceRoute {
-				uniqueRoute := fmt.Sprintf("%s %s", route.Route.Method.Text(), route.Route.Path.Text())
-				if _, ok := final.routeM[uniqueRoute]; ok {
-					v.panic(route.Route.Method, fmt.Sprintf("duplicate route '%s'", uniqueRoute))
-				}
-
-				final.routeM[uniqueRoute] = Holder
-				var handlerExpr Expr
-				if route.AtServer != nil {
-					atServerM := map[string]PlaceHolder{}
-					for _, kv := range route.AtServer.Kv {
-						if _, ok := atServerM[kv.Key.Text()]; ok {
-							v.panic(kv.Key, fmt.Sprintf("duplicate key '%s'", kv.Key.Text()))
-						}
-						atServerM[kv.Key.Text()] = Holder
-						if kv.Key.Text() == "handler" {
-							handlerExpr = kv.Value
-						}
-					}
-				}
-
-				if route.AtHandler != nil {
-					handlerExpr = route.AtHandler.Name
-				}
-
-				if handlerExpr == nil {
-					v.panic(route.Route.Method, fmt.Sprintf("mismtached handler"))
-				}
-
-				if handlerExpr.Text() == "" {
-					v.panic(handlerExpr, fmt.Sprintf("mismtached handler"))
-				}
-
-				if _, ok := final.handlerM[handlerExpr.Text()]; ok {
-					v.panic(handlerExpr, fmt.Sprintf("duplicate handler '%s'", handlerExpr.Text()))
-				}
-				final.handlerM[handlerExpr.Text()] = Holder
-			}
-			final.Service = append(final.Service, service)
-		}
+		v.acceptSyntax(root, &final)
+		v.accetpImport(root, &final)
+		v.acceptInfo(root, &final)
+		v.acceptType(root, &final)
+		v.acceptService(root, &final)
 	}
 
 	return &final
+}
+
+func (v *ApiVisitor) acceptService(root *Api, final *Api) {
+	for _, service := range root.Service {
+		if _, ok := final.serviceM[service.ServiceApi.Name.Text()]; !ok && len(final.serviceM) > 0 {
+			v.panic(service.ServiceApi.Name, fmt.Sprintf("mutiple service declaration"))
+		}
+		v.duplicateServerItemCheck(service)
+
+		for _, route := range service.ServiceApi.ServiceRoute {
+			uniqueRoute := fmt.Sprintf("%s %s", route.Route.Method.Text(), route.Route.Path.Text())
+			if _, ok := final.routeM[uniqueRoute]; ok {
+				v.panic(route.Route.Method, fmt.Sprintf("duplicate route '%s'", uniqueRoute))
+			}
+
+			final.routeM[uniqueRoute] = Holder
+			var handlerExpr Expr
+			if route.AtServer != nil {
+				atServerM := map[string]PlaceHolder{}
+				for _, kv := range route.AtServer.Kv {
+					if _, ok := atServerM[kv.Key.Text()]; ok {
+						v.panic(kv.Key, fmt.Sprintf("duplicate key '%s'", kv.Key.Text()))
+					}
+					atServerM[kv.Key.Text()] = Holder
+					if kv.Key.Text() == "handler" {
+						handlerExpr = kv.Value
+					}
+				}
+			}
+
+			if route.AtHandler != nil {
+				handlerExpr = route.AtHandler.Name
+			}
+
+			if handlerExpr == nil {
+				v.panic(route.Route.Method, fmt.Sprintf("mismtached handler"))
+			}
+
+			if handlerExpr.Text() == "" {
+				v.panic(handlerExpr, fmt.Sprintf("mismtached handler"))
+			}
+
+			if _, ok := final.handlerM[handlerExpr.Text()]; ok {
+				v.panic(handlerExpr, fmt.Sprintf("duplicate handler '%s'", handlerExpr.Text()))
+			}
+			final.handlerM[handlerExpr.Text()] = Holder
+		}
+		final.Service = append(final.Service, service)
+	}
+}
+
+func (v *ApiVisitor) duplicateServerItemCheck(service *Service) {
+	if service.AtServer != nil {
+		atServerM := map[string]PlaceHolder{}
+		for _, kv := range service.AtServer.Kv {
+			if _, ok := atServerM[kv.Key.Text()]; ok {
+				v.panic(kv.Key, fmt.Sprintf("duplicate key '%s'", kv.Key.Text()))
+			}
+
+			atServerM[kv.Key.Text()] = Holder
+		}
+	}
+}
+
+func (v *ApiVisitor) acceptType(root *Api, final *Api) {
+	for _, tp := range root.Type {
+		if _, ok := final.typeM[tp.NameExpr().Text()]; ok {
+			v.panic(tp.NameExpr(), fmt.Sprintf("duplicate type '%s'", tp.NameExpr().Text()))
+		}
+
+		final.typeM[tp.NameExpr().Text()] = Holder
+		final.Type = append(final.Type, tp)
+	}
+}
+
+func (v *ApiVisitor) acceptInfo(root *Api, final *Api) {
+	if root.Info != nil {
+		infoM := map[string]PlaceHolder{}
+		if final.Info != nil {
+			v.panic(root.Info.Info, fmt.Sprintf("mutiple info declaration"))
+		}
+
+		for _, value := range root.Info.Kvs {
+			if _, ok := infoM[value.Key.Text()]; ok {
+				v.panic(value.Key, fmt.Sprintf("duplicate key '%s'", value.Key.Text()))
+			}
+			infoM[value.Key.Text()] = Holder
+		}
+
+		final.Info = root.Info
+	}
+}
+
+func (v *ApiVisitor) accetpImport(root *Api, final *Api) {
+	for _, imp := range root.Import {
+		if _, ok := final.importM[imp.Value.Text()]; ok {
+			v.panic(imp.Import, fmt.Sprintf("duplicate import '%s'", imp.Value.Text()))
+		}
+
+		final.importM[imp.Value.Text()] = Holder
+		final.Import = append(final.Import, imp)
+	}
+}
+
+func (v *ApiVisitor) acceptSyntax(root *Api, final *Api) {
+	if root.Syntax != nil {
+		if final.Syntax != nil {
+			v.panic(root.Syntax.Syntax, fmt.Sprintf("mutiple syntax declaration"))
+		}
+
+		final.Syntax = root.Syntax
+	}
 }
 
 func (v *ApiVisitor) VisitSpec(ctx *api.SpecContext) interface{} {
