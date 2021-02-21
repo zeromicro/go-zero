@@ -6,10 +6,14 @@ import (
 )
 
 type (
+	// A CounterVecOpts is an alias of VectorOpts.
 	CounterVecOpts VectorOpts
 
+	// CounterVec interface represents a counter vector.
 	CounterVec interface {
+		// Inc increments labels.
 		Inc(lables ...string)
+		// Add adds labels with v.
 		Add(v float64, labels ...string)
 		close() bool
 	}
@@ -19,6 +23,7 @@ type (
 	}
 )
 
+// NewCounterVec returns a CounterVec.
 func NewCounterVec(cfg *CounterVecOpts) CounterVec {
 	if cfg == nil {
 		return nil
