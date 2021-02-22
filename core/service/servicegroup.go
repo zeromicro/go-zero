@@ -9,39 +9,45 @@ import (
 )
 
 type (
+	// Starter is the interface wraps the Start method.
 	Starter interface {
 		Start()
 	}
 
+	// Stopper is the interface wraps the Stop method.
 	Stopper interface {
 		Stop()
 	}
 
+	// Service is the interface that groups Start and Stop methods.
 	Service interface {
 		Starter
 		Stopper
 	}
 
-	ServiceGroup struct {
+	// A Group is a group of services.
+	Group struct {
 		services []Service
 		stopOnce func()
 	}
 )
 
-func NewServiceGroup() *ServiceGroup {
-	sg := new(ServiceGroup)
+// NewGroup returns a Group.
+func NewGroup() *Group {
+	sg := new(Group)
 	sg.stopOnce = syncx.Once(sg.doStop)
 	return sg
 }
 
-func (sg *ServiceGroup) Add(service Service) {
+// Add adds service into sg.
+func (sg *Group) Add(service Service) {
 	sg.services = append(sg.services, service)
 }
 
-// Start starts the ServiceGroup.
+// Start starts the Group.
 // There should not be any logic code after calling this method, because this method is a blocking one.
 // Also, quitting this method will close the logx output.
-func (sg *ServiceGroup) Start() {
+func (sg *Group) Start() {
 	proc.AddShutdownListener(func() {
 		log.Println("Shutting down...")
 		sg.stopOnce()
@@ -50,11 +56,12 @@ func (sg *ServiceGroup) Start() {
 	sg.doStart()
 }
 
-func (sg *ServiceGroup) Stop() {
+// Stop stops the Group.
+func (sg *Group) Stop() {
 	sg.stopOnce()
 }
 
-func (sg *ServiceGroup) doStart() {
+func (sg *Group) doStart() {
 	routineGroup := threading.NewRoutineGroup()
 
 	for i := range sg.services {
@@ -67,18 +74,20 @@ func (sg *ServiceGroup) doStart() {
 	routineGroup.Wait()
 }
 
-func (sg *ServiceGroup) doStop() {
+func (sg *Group) doStop() {
 	for _, service := range sg.services {
 		service.Stop()
 	}
 }
 
+// WithStart wraps a start func as a Service.
 func WithStart(start func()) Service {
 	return startOnlyService{
 		start: start,
 	}
 }
 
+// WithStarter wraps a Starter as a Service.
 func WithStarter(start Starter) Service {
 	return starterOnlyService{
 		Starter: start,

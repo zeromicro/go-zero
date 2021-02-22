@@ -10,12 +10,17 @@ import (
 )
 
 const (
-	DevMode  = "dev"
+	// DevMode means development mode.
+	DevMode = "dev"
+	// TestMode means test mode.
 	TestMode = "test"
-	PreMode  = "pre"
-	ProMode  = "pro"
+	// PreMode means pre-release mode.
+	PreMode = "pre"
+	// ProMode means production mode.
+	ProMode = "pro"
 )
 
+// A ServiceConf is a service config.
 type ServiceConf struct {
 	Name       string
 	Log        logx.LogConf
@@ -24,12 +29,14 @@ type ServiceConf struct {
 	Prometheus prometheus.Config `json:",optional"`
 }
 
+// MustSetUp sets up the service, exits on error.
 func (sc ServiceConf) MustSetUp() {
 	if err := sc.SetUp(); err != nil {
 		log.Fatal(err)
 	}
 }
 
+// SetUp sets up the service.
 func (sc ServiceConf) SetUp() error {
 	if len(sc.Log.ServiceName) == 0 {
 		sc.Log.ServiceName = sc.Name
