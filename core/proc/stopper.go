@@ -3,6 +3,7 @@ package proc
 var noopStopper nilStopper
 
 type (
+	// Stopper interface wraps the method Stop.
 	Stopper interface {
 		Stop()
 	}
