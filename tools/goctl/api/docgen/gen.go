@@ -29,7 +29,7 @@ func DocCommand(c *cli.Context) error {
 	}
 
 	if !util.FileExists(dir) {
-		return errors.New(fmt.Sprintf("dir %s not exsit", dir))
+		return fmt.Errorf("dir %s not exsit", dir)
 	}
 
 	dir, err := filepath.Abs(dir)

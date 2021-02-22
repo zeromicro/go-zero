@@ -25,12 +25,13 @@ const (
 	rightBrace       = "}"
 )
 
+// GoFormatApi format api file
 func GoFormatApi(c *cli.Context) error {
 	useStdin := c.Bool("stdin")
 
 	var be errorx.BatchError
 	if useStdin {
-		if err := ApiFormatByStdin(); err != nil {
+		if err := apiFormatByStdin(); err != nil {
 			be.Add(err)
 		}
 	} else {
@@ -63,7 +64,7 @@ func GoFormatApi(c *cli.Context) error {
 	return be.Err()
 }
 
-func ApiFormatByStdin() error {
+func apiFormatByStdin() error {
 	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -78,6 +79,7 @@ func ApiFormatByStdin() error {
 	return err
 }
 
+// ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string) error {
 	data, err := ioutil.ReadFile(apiFilePath)
 	if err != nil {
@@ -135,19 +137,19 @@ func apiFormat(data string) (string, error) {
 
 		noCommentLine := util.RemoveComment(line)
 		if noCommentLine == rightParenthesis || noCommentLine == rightBrace {
-			tapCount -= 1
+			tapCount--
 		}
 		if tapCount < 0 {
 			line := strings.TrimSuffix(noCommentLine, rightBrace)
 			line = strings.TrimSpace(line)
 			if strings.HasSuffix(line, leftBrace) {
-				tapCount += 1
+				tapCount++
 			}
 		}
 		util.WriteIndent(&builder, tapCount)
 		builder.WriteString(line + ctlutil.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
-			tapCount += 1
+			tapCount++
 		}
 		preLine = line
 	}
