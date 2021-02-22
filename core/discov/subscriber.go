@@ -52,6 +52,11 @@ func (s *Subscriber) Values() []string {
 	return s.items.getValues()
 }
 
+// Map returns all the subscription keys and values
+func (s *Subscriber) Map() map[string]string {
+	return s.items.getMap()
+}
+
 // Exclusive means that key value can only be 1:1,
 // which means later added value will remove the keys associated with the same value previously.
 func Exclusive() SubOption {
@@ -158,6 +163,18 @@ func (c *container) getValues() []string {
 	c.dirty.Set(false)
 
 	return vals
+}
+
+func (c *container) getMap() map[string]string {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	cloneTags := make(map[string]string)
+	for k, v := range c.mapping {
+		cloneTags[k] = v
+	}
+
+	return cloneTags
 }
 
 func (c *container) notifyChange() {

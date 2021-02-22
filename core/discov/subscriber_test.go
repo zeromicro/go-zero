@@ -174,6 +174,7 @@ func TestContainer(t *testing.T) {
 					changed = true
 				})
 				assert.Nil(t, c.getValues())
+				assert.Empty(t, c.getMap())
 				assert.False(t, changed)
 
 				for _, order := range test.do {
