@@ -8,6 +8,7 @@ import (
 
 const goctlDir = ".goctl"
 
+// GetGoctlHome returns the path value of the goctl home where Join $HOME with .goctl
 func GetGoctlHome() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -16,6 +17,7 @@ func GetGoctlHome() (string, error) {
 	return filepath.Join(home, goctlDir), nil
 }
 
+// GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome
 func GetTemplateDir(category string) (string, error) {
 	goctlHome, err := GetGoctlHome()
 	if err != nil {
@@ -25,6 +27,7 @@ func GetTemplateDir(category string) (string, error) {
 	return filepath.Join(goctlHome, category), nil
 }
 
+// InitTemplates creates template files GoctlHome where could get it by GetGoctlHome
 func InitTemplates(category string, templates map[string]string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -44,6 +47,7 @@ func InitTemplates(category string, templates map[string]string) error {
 	return nil
 }
 
+// CreateTemplate writes template into file even it is exists
 func CreateTemplate(category, name, content string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -52,6 +56,7 @@ func CreateTemplate(category, name, content string) error {
 	return createTemplate(filepath.Join(dir, name), content, true)
 }
 
+// Clean deletes all templates and removes the parent directory
 func Clean(category string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -60,6 +65,7 @@ func Clean(category string) error {
 	return os.RemoveAll(dir)
 }
 
+// LoadTemplate gets template content by the specified file
 func LoadTemplate(category, file, builtin string) (string, error) {
 	dir, err := GetTemplateDir(category)
 	if err != nil {

@@ -1,5 +1,6 @@
 package parser
 
+// Proto describes a proto file,
 type Proto struct {
 	Src       string
 	Name      string

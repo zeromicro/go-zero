@@ -1,7 +1,8 @@
 package parser
 
-import pr "github.com/emicklei/proto"
+import "github.com/emicklei/proto"
 
+// Message embeds proto.Message
 type Message struct {
-	*pr.Message
+	*proto.Message
 }

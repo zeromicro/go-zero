@@ -12,6 +12,7 @@ import (
 
 const NL = "\n"
 
+// CreateIfNotExist creates a file if it is not exists
 func CreateIfNotExist(file string) (*os.File, error) {
 	_, err := os.Stat(file)
 	if !os.IsNotExist(err) {
@@ -21,6 +22,7 @@ func CreateIfNotExist(file string) (*os.File, error) {
 	return os.Create(file)
 }
 
+// RemoveIfExist deletes the specficed file if it is exists
 func RemoveIfExist(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -29,6 +31,7 @@ func RemoveIfExist(filename string) error {
 	return os.Remove(filename)
 }
 
+// RemoveOrQuit deletes the specficed file if read a permit command from stdin
 func RemoveOrQuit(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -41,11 +44,13 @@ func RemoveOrQuit(filename string) error {
 	return os.Remove(filename)
 }
 
+// FileExists returns true if the specficed file is exists
 func FileExists(file string) bool {
 	_, err := os.Stat(file)
 	return err == nil
 }
 
+// FileNameWithoutExt returns a file name without suffix
 func FileNameWithoutExt(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
 }
