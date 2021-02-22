@@ -12,6 +12,7 @@ import (
 
 var once sync.Once
 
+// StartAgent starts a prometheus agent.
 func StartAgent(c Config) {
 	once.Do(func() {
 		if len(c.Host) == 0 {
