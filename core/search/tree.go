@@ -8,12 +8,18 @@ const (
 )
 
 var (
-	ErrDupItem      = errors.New("duplicated item")
-	ErrDupSlash     = errors.New("duplicated slash")
-	ErrEmptyItem    = errors.New("empty item")
+	// ErrDupItem means adding duplicated item.
+	ErrDupItem = errors.New("duplicated item")
+	// ErrDupSlash means item is started with more than one slash.
+	ErrDupSlash = errors.New("duplicated slash")
+	// ErrEmptyItem means adding empty item.
+	ErrEmptyItem = errors.New("empty item")
+	// ErrInvalidState means search tree is in an invalid state.
 	ErrInvalidState = errors.New("search tree is in an invalid state")
-	ErrNotFromRoot  = errors.New("path should start with /")
+	// ErrNotFromRoot means path is not starting with slash.
+	ErrNotFromRoot = errors.New("path should start with /")
 
+	// NotFound is used to hold the not found result.
 	NotFound Result
 )
 
@@ -30,22 +36,26 @@ type (
 		children [2]map[string]*node
 	}
 
+	// A Tree is a search tree.
 	Tree struct {
 		root *node
 	}
 
+	// A Result is a search result from tree.
 	Result struct {
 		Item   interface{}
 		Params map[string]string
 	}
 )
 
+// NewTree returns a Tree.
 func NewTree() *Tree {
 	return &Tree{
 		root: newNode(nil),
 	}
 }
 
+// Add adds item to associate with route.
 func (t *Tree) Add(route string, item interface{}) error {
 	if len(route) == 0 || route[0] != slash {
 		return ErrNotFromRoot
@@ -58,6 +68,7 @@ func (t *Tree) Add(route string, item interface{}) error {
 	return add(t.root, route[1:], item)
 }
 
+// Search searches item that associates with given route.
 func (t *Tree) Search(route string) (Result, bool) {
 	if len(route) == 0 || route[0] != slash {
 		return NotFound, false
