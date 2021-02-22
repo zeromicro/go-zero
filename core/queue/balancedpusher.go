@@ -7,14 +7,17 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 )
 
+// ErrNoAvailablePusher indicates no pusher available.
 var ErrNoAvailablePusher = errors.New("no available pusher")
 
+// A BalancedPusher is used to push messages to multiple pusher with round robin algorithm.
 type BalancedPusher struct {
 	name    string
 	pushers []Pusher
 	index   uint64
 }
 
+// NewBalancedPusher returns a BalancedPusher.
 func NewBalancedPusher(pushers []Pusher) Pusher {
 	return &BalancedPusher{
 		name:    generateName(pushers),
@@ -22,10 +25,12 @@ func NewBalancedPusher(pushers []Pusher) Pusher {
 	}
 }
 
+// Name returns the name of pusher.
 func (pusher *BalancedPusher) Name() string {
 	return pusher.name
 }
 
+// Push pushes message to one of the underlying pushers.
 func (pusher *BalancedPusher) Push(message string) error {
 	size := len(pusher.pushers)
 
