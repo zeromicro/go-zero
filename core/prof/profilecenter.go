@@ -13,34 +13,34 @@ import (
 )
 
 type (
-	Slot struct {
+	profileSlot struct {
 		lifecount int64
 		lastcount int64
 		lifecycle int64
 		lastcycle int64
 	}
 
-	ProfileCenter struct {
+	profileCenter struct {
 		lock  sync.RWMutex
-		slots map[string]*Slot
+		slots map[string]*profileSlot
 	}
 )
 
 const flushInterval = 5 * time.Minute
 
 var (
-	profileCenter = &ProfileCenter{
-		slots: make(map[string]*Slot),
+	pc = &profileCenter{
+		slots: make(map[string]*profileSlot),
 	}
 	once sync.Once
 )
 
 func report(name string, duration time.Duration) {
 	updated := func() bool {
-		profileCenter.lock.RLock()
-		defer profileCenter.lock.RUnlock()
+		pc.lock.RLock()
+		defer pc.lock.RUnlock()
 
-		slot, ok := profileCenter.slots[name]
+		slot, ok := pc.slots[name]
 		if ok {
 			atomic.AddInt64(&slot.lifecount, 1)
 			atomic.AddInt64(&slot.lastcount, 1)
@@ -52,10 +52,10 @@ func report(name string, duration time.Duration) {
 
 	if !updated {
 		func() {
-			profileCenter.lock.Lock()
-			defer profileCenter.lock.Unlock()
+			pc.lock.Lock()
+			defer pc.lock.Unlock()
 
-			profileCenter.slots[name] = &Slot{
+			pc.slots[name] = &profileSlot{
 				lifecount: 1,
 				lastcount: 1,
 				lifecycle: int64(duration),
@@ -89,10 +89,10 @@ func generateReport() string {
 	}
 
 	func() {
-		profileCenter.lock.Lock()
-		defer profileCenter.lock.Unlock()
+		pc.lock.Lock()
+		defer pc.lock.Unlock()
 
-		for key, slot := range profileCenter.slots {
+		for key, slot := range pc.slots {
 			data = append(data, []string{
 				key,
 				strconv.FormatInt(slot.lifecount, 10),
