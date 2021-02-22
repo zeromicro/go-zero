@@ -28,7 +28,7 @@ type (
 	}
 )
 
-// NewConsole returns a instance of Console
+// NewConsole returns an instance of Console
 func NewConsole(idea bool) Console {
 	if idea {
 		return NewIdeaConsole()
@@ -36,7 +36,7 @@ func NewConsole(idea bool) Console {
 	return NewColorConsole()
 }
 
-// NewColorConsole returns a instance of colorConsole
+// NewColorConsole returns an instance of colorConsole
 func NewColorConsole() Console {
 	return &colorConsole{}
 }

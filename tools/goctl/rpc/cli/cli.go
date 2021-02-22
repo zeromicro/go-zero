@@ -62,6 +62,7 @@ func RpcNew(c *cli.Context) error {
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 
+// RpcTemplate is the entry for generate rpc template
 func RpcTemplate(c *cli.Context) error {
 	protoFile := c.String("o")
 	if len(protoFile) == 0 {
