@@ -21,17 +21,20 @@ const (
 const timeImport = "time.Time"
 
 type (
+	// Table describes a mysql table
 	Table struct {
 		Name       stringx.String
 		PrimaryKey Primary
 		Fields     []Field
 	}
 
+	// Primary describes a primary key
 	Primary struct {
 		Field
 		AutoIncrement bool
 	}
 
+	// Field describes a table field
 	Field struct {
 		Name         stringx.String
 		DataBaseType string
@@ -41,9 +44,11 @@ type (
 		Comment      string
 	}
 
+	// KeyType types alias of int
 	KeyType int
 )
 
+// Parse parses ddl into golang structure
 func Parse(ddl string) (*Table, error) {
 	stmt, err := sqlparser.ParseStrictDDL(ddl)
 	if err != nil {
@@ -169,6 +174,7 @@ func getIndexKeyType(indexes []*sqlparser.IndexDefinition) (map[string]KeyType, 
 	return keyMap, nil
 }
 
+// ContainsTime determines whether the table field contains time.Time
 func (t *Table) ContainsTime() bool {
 	for _, item := range t.Fields {
 		if item.DataType == timeImport {
@@ -178,6 +184,7 @@ func (t *Table) ContainsTime() bool {
 	return false
 }
 
+// ConvertColumn provides type conversion for mysql clolumn, primary key lookup
 func ConvertColumn(db, table string, in []*model.Column) (*Table, error) {
 	var reply Table
 	reply.Name = stringx.From(table)

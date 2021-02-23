@@ -33,6 +33,7 @@ type (
 		cfg *config.Config
 	}
 
+	// Option defines a function with argument defaultGenerator
 	Option func(generator *defaultGenerator)
 
 	code struct {
@@ -48,6 +49,7 @@ type (
 	}
 )
 
+// NewDefaultGenerator creates an instance for defaultGenerator
 func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
@@ -75,6 +77,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 	return generator, nil
 }
 
+// WithConsoleOption creates a console option
 func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
 		generator.Console = c
@@ -189,6 +192,7 @@ func (g *defaultGenerator) genFromDDL(source string, withCache bool) (map[string
 	return m, nil
 }
 
+// Table defines mysql table
 type Table struct {
 	parser.Table
 	CacheKey          map[string]Key

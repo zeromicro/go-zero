@@ -8,17 +8,22 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-// tableName:user
-// {{prefix}}=cache
-// key:id
+// Key defines cache key variable for generating code
 type Key struct {
-	VarExpression     string // cacheUserIdPrefix = "cache#User#id#"
-	Left              string // cacheUserIdPrefix
-	Right             string // cache#user#id#
-	Variable          string // userIdKey
-	KeyExpression     string // userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
-	DataKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
-	RespKeyExpression string // userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
+	// VarExpression likes cacheUserIdPrefix = "cache#User#id#"
+	VarExpression string
+	// Left likes cacheUserIdPrefix
+	Left string
+	// Right likes  cache#user#id#
+	Right string
+	// Variable likes userIdKey
+	Variable string
+	// KeyExpression likes userIdKey: = fmt.Sprintf("cache#user#id#%v", userId)
+	KeyExpression string
+	// DataKeyExpression likes userIdKey: = fmt.Sprintf("cache#user#id#%v", data.userId)
+	DataKeyExpression string
+	// RespKeyExpression likes userIdKey: = fmt.Sprintf("cache#user#id#%v", resp.userId)
+	RespKeyExpression string
 }
 
 // key-数据库原始字段名,value-缓存key相关数据

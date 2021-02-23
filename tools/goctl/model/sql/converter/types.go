@@ -39,6 +39,7 @@ var commonMysqlDataTypeMap = map[string]string{
 	"json":       "string",
 }
 
+// ConvertDataType converts mysql column type into golang type
 func ConvertDataType(dataBaseType string, isDefaultNull bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMap[strings.ToLower(dataBaseType)]
 	if !ok {
