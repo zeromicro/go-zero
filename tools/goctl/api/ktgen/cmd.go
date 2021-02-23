@@ -7,6 +7,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// KtCommand the generate kotlin code command entrance
 func KtCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	if apiFile == "" {

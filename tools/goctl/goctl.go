@@ -49,7 +49,7 @@ var (
 				{
 					Name:   "new",
 					Usage:  "fast create api service",
-					Action: new.NewService,
+					Action: new.CreateServiceCommand,
 				},
 				{
 					Name:  "format",
