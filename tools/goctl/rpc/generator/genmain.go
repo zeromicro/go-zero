@@ -12,9 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-const mainTemplate = `{{.head}}
-
-package main
+const mainTemplate = `package main
 
 import (
 	"flag"
@@ -61,14 +59,12 @@ func (g *DefaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf
 	remoteImport := fmt.Sprintf(`"%v"`, ctx.GetServer().Package)
 	configImport := fmt.Sprintf(`"%v"`, ctx.GetConfig().Package)
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
-	head := util.GetHead(proto.Name)
 	text, err := util.LoadTemplate(category, mainTemplateFile, mainTemplate)
 	if err != nil {
 		return err
 	}
 
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"head":        head,
 		"serviceName": strings.ToLower(ctx.GetServiceName().ToCamel()),
 		"imports":     strings.Join(imports, util.NL),
 		"pkg":         proto.PbPackage,
