@@ -24,6 +24,7 @@ var (
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
 )
 
+// Parse parses the request.
 func Parse(r *http.Request, v interface{}) error {
 	if err := ParsePath(r, v); err != nil {
 		return err
@@ -36,7 +37,7 @@ func Parse(r *http.Request, v interface{}) error {
 	return ParseJsonBody(r, v)
 }
 
-// Parses the form request.
+// ParseForm parses the form request.
 func ParseForm(r *http.Request, v interface{}) error {
 	if err := r.ParseForm(); err != nil {
 		return err
@@ -80,7 +81,7 @@ func ParseHeader(headerValue string) map[string]string {
 	return ret
 }
 
-// Parses the post request which contains json in body.
+// ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
 	var reader io.Reader
 	if withJsonBody(r) {
@@ -92,7 +93,7 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 	return mapping.UnmarshalJsonReader(reader, v)
 }
 
-// Parses the symbols reside in url path.
+// ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
 func ParsePath(r *http.Request, v interface{}) error {
 	vars := context.Vars(r)

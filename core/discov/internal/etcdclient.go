@@ -1,4 +1,5 @@
 //go:generate mockgen -package internal -destination etcdclient_mock.go -source etcdclient.go EtcdClient
+
 package internal
 
 import (

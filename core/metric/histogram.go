@@ -6,6 +6,7 @@ import (
 )
 
 type (
+	// A HistogramVecOpts is a histogram vector options.
 	HistogramVecOpts struct {
 		Namespace string
 		Subsystem string
@@ -15,7 +16,9 @@ type (
 		Buckets   []float64
 	}
 
+	// A HistogramVec interface represents a histogram vector.
 	HistogramVec interface {
+		// Observe adds observation v to labels.
 		Observe(v int64, lables ...string)
 		close() bool
 	}
@@ -25,6 +28,7 @@ type (
 	}
 )
 
+// NewHistogramVec returns a HistogramVec.
 func NewHistogramVec(cfg *HistogramVecOpts) HistogramVec {
 	if cfg == nil {
 		return nil

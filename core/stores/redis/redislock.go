@@ -63,10 +63,10 @@ func (rl *RedisLock) Acquire() (bool, error) {
 	reply, ok := resp.(string)
 	if ok && reply == "OK" {
 		return true, nil
-	} else {
-		logx.Errorf("Unknown reply when acquiring lock for %s: %v", rl.key, resp)
-		return false, nil
 	}
+
+	logx.Errorf("Unknown reply when acquiring lock for %s: %v", rl.key, resp)
+	return false, nil
 }
 
 func (rl *RedisLock) Release() (bool, error) {
@@ -75,11 +75,12 @@ func (rl *RedisLock) Release() (bool, error) {
 		return false, err
 	}
 
-	if reply, ok := resp.(int64); !ok {
+	reply, ok := resp.(int64)
+	if !ok {
 		return false, nil
-	} else {
-		return reply == 1, nil
 	}
+
+	return reply == 1, nil
 }
 
 func (rl *RedisLock) SetExpire(seconds int) {

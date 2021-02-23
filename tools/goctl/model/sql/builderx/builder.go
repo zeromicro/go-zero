@@ -49,7 +49,7 @@ func ToMap(in interface{}) map[string]interface{} {
 	return out
 }
 
-// deprecated: use RawFieldNames instead automaticly while model generating after goctl version v1.1.0
+// deprecated: use RawFieldNames instead automatically while model generating after goctl version v1.1.0
 func FieldNames(in interface{}) []string {
 	out := make([]string, 0)
 	v := reflect.ValueOf(in)

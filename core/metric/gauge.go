@@ -6,11 +6,16 @@ import (
 )
 
 type (
+	// GaugeVecOpts is an alias of VectorOpts.
 	GaugeVecOpts VectorOpts
 
-	GuageVec interface {
+	// GaugeVec represents a gauge vector.
+	GaugeVec interface {
+		// Set sets v to labels.
 		Set(v float64, labels ...string)
+		// Inc increments labels.
 		Inc(labels ...string)
+		// Add adds v to labels.
 		Add(v float64, labels ...string)
 		close() bool
 	}
@@ -20,7 +25,8 @@ type (
 	}
 )
 
-func NewGaugeVec(cfg *GaugeVecOpts) GuageVec {
+// NewGaugeVec returns a GaugeVec.
+func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 	if cfg == nil {
 		return nil
 	}

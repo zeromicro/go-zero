@@ -2,9 +2,9 @@ package dartgen
 
 import (
 	"os"
-	"reflect"
 	"strings"
 
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 )
 
@@ -32,10 +32,18 @@ func pathToFuncName(path string) string {
 	return util.ToLower(camel[:1]) + camel[1:]
 }
 
-func tagGet(tag, k string) (reflect.Value, error) {
-	v, _ := util.TagLookup(tag, k)
-	out := strings.Split(v, ",")[0]
-	return reflect.ValueOf(out), nil
+func tagGet(tag, k string) string {
+	tags, err := spec.Parse(tag)
+	if err != nil {
+		panic(k + " not exist")
+	}
+
+	v, err := tags.Get(k)
+	if err != nil {
+		panic(k + " value not exist")
+	}
+
+	return v.Name
 }
 
 func isDirectType(s string) bool {

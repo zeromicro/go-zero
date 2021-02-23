@@ -20,18 +20,30 @@ type (
 		workers          int
 	}
 
-	FilterFunc   func(item interface{}) bool
-	ForAllFunc   func(pipe <-chan interface{})
-	ForEachFunc  func(item interface{})
+	// FilterFunc defines the method to filter a Stream.
+	FilterFunc func(item interface{}) bool
+	// ForAllFunc defines the method to handle all elements in a Stream.
+	ForAllFunc func(pipe <-chan interface{})
+	// ForEachFunc defines the method to handle each element in a Stream.
+	ForEachFunc func(item interface{})
+	// GenerateFunc defines the method to send elements into a Stream.
 	GenerateFunc func(source chan<- interface{})
-	KeyFunc      func(item interface{}) interface{}
-	LessFunc     func(a, b interface{}) bool
-	MapFunc      func(item interface{}) interface{}
-	Option       func(opts *rxOptions)
+	// KeyFunc defines the method to generate keys for the elements in a Stream.
+	KeyFunc func(item interface{}) interface{}
+	// LessFunc defines the method to compare the elements in a Stream.
+	LessFunc func(a, b interface{}) bool
+	// MapFunc defines the method to map each element to another object in a Stream.
+	MapFunc func(item interface{}) interface{}
+	// Option defines the method to customize a Stream.
+	Option func(opts *rxOptions)
+	// ParallelFunc defines the method to handle elements parallelly.
 	ParallelFunc func(item interface{})
-	ReduceFunc   func(pipe <-chan interface{}) (interface{}, error)
-	WalkFunc     func(item interface{}, pipe chan<- interface{})
+	// ReduceFunc defines the method to reduce all the elements in a Stream.
+	ReduceFunc func(pipe <-chan interface{}) (interface{}, error)
+	// WalkFunc defines the method to walk through all the elements in a Stream.
+	WalkFunc func(item interface{}, pipe chan<- interface{})
 
+	// A Stream is a stream that can be used to do stream processing.
 	Stream struct {
 		source <-chan interface{}
 	}
@@ -159,6 +171,7 @@ func (p Stream) Group(fn KeyFunc) Stream {
 	return Range(source)
 }
 
+// Head returns the first n elements in p.
 func (p Stream) Head(n int64) Stream {
 	if n < 1 {
 		panic("n must be greater than 0")
@@ -187,7 +200,7 @@ func (p Stream) Head(n int64) Stream {
 	return Range(source)
 }
 
-// Maps converts each item to another corresponding item, which means it's a 1:1 model.
+// Map converts each item to another corresponding item, which means it's a 1:1 model.
 func (p Stream) Map(fn MapFunc, opts ...Option) Stream {
 	return p.Walk(func(item interface{}, pipe chan<- interface{}) {
 		pipe <- fn(item)
@@ -274,6 +287,7 @@ func (p Stream) Split(n int) Stream {
 	return Range(source)
 }
 
+// Tail returns the last n elements in p.
 func (p Stream) Tail(n int64) Stream {
 	if n < 1 {
 		panic("n should be greater than 0")
@@ -300,9 +314,9 @@ func (p Stream) Walk(fn WalkFunc, opts ...Option) Stream {
 	option := buildOptions(opts...)
 	if option.unlimitedWorkers {
 		return p.walkUnlimited(fn, option)
-	} else {
-		return p.walkLimited(fn, option)
 	}
+
+	return p.walkLimited(fn, option)
 }
 
 func (p Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {

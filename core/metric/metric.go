@@ -1,6 +1,6 @@
 package metric
 
-// VectorOpts general configuration
+// A VectorOpts is a general configuration.
 type VectorOpts struct {
 	Namespace string
 	Subsystem string

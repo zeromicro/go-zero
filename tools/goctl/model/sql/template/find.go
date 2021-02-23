@@ -1,6 +1,6 @@
 package template
 
-// 通过id查询
+// FindOne defines find row by id.
 var FindOne = `
 func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
@@ -30,7 +30,7 @@ func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrima
 }
 `
 
-// 通过指定字段查询
+// FindOneByField defines find row by field.
 var FindOneByField = `
 func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
@@ -63,6 +63,8 @@ func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}
 	}
 }{{end}}
 `
+
+// FindOneByFieldExtraMethod defines find row by field with extras.
 var FindOneByFieldExtraMethod = `
 func (m *default{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
 	return fmt.Sprintf("%s%v", {{.primaryKeyLeft}}, primary)
@@ -74,5 +76,8 @@ func (m *default{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn,
 }
 `
 
+// FindOneMethod defines find row method.
 var FindOneMethod = `FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)`
+
+// FindOneByFieldMethod defines find row by field method.
 var FindOneByFieldMethod = `FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) `

@@ -62,9 +62,9 @@ type mockedShedder struct {
 func (m mockedShedder) Allow() (load.Promise, error) {
 	if m.allow {
 		return mockedPromise{}, nil
-	} else {
-		return nil, load.ErrServiceOverloaded
 	}
+
+	return nil, load.ErrServiceOverloaded
 }
 
 type mockedPromise struct {

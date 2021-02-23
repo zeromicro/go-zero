@@ -185,9 +185,9 @@ func getTopDuration(tasks []Task) float32 {
 	top := topK(tasks, 1)
 	if len(top) < 1 {
 		return 0
-	} else {
-		return float32(top[0].Duration) / float32(time.Millisecond)
 	}
+
+	return float32(top[0].Duration) / float32(time.Millisecond)
 }
 
 func log(report *StatReport) {

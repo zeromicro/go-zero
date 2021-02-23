@@ -40,7 +40,7 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, item := range authNames {
 		auths = append(auths, fmt.Sprintf("%s %s", item, jwtTemplate))
 	}
-	var authImportStr = fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl)
+	var authImportStr = fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
 
 	return genFile(fileGenConfig{
 		dir:             dir,

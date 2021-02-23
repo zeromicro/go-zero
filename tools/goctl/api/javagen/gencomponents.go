@@ -216,7 +216,7 @@ func (c *componentsContext) writeMembers(writer io.Writer, tp spec.Type, indent 
 		if ok {
 			return c.writeMembers(writer, pointType.Type, indent)
 		}
-		return errors.New(fmt.Sprintf("type %s not supported", tp.Name()))
+		return fmt.Errorf("type %s not supported", tp.Name())
 	}
 
 	for _, member := range definedType.Members {

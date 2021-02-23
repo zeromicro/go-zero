@@ -33,7 +33,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 	assert.Equal(t, 0, val)
 }
 
-func testPeriodLimit(t *testing.T, opts ...LimitOption) {
+func testPeriodLimit(t *testing.T, opts ...PeriodOption) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()

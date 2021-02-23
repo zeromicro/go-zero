@@ -655,9 +655,10 @@ func (cs clusterStore) Zscore(key string, value string) (int64, error) {
 }
 
 func (cs clusterStore) getRedis(key string) (*redis.Redis, error) {
-	if val, ok := cs.dispatcher.Get(key); !ok {
+	val, ok := cs.dispatcher.Get(key)
+	if !ok {
 		return nil, ErrNoRedisNode
-	} else {
-		return val.(*redis.Redis), nil
 	}
+
+	return val.(*redis.Redis), nil
 }

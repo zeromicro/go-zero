@@ -8,6 +8,7 @@ import (
 
 const bufSize = 32 * 1024
 
+// CountLines returns the number of lines in file.
 func CountLines(file string) (int, error) {
 	f, err := os.Open(file)
 	if err != nil {

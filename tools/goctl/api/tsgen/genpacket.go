@@ -160,11 +160,11 @@ func pathForRoute(route spec.Route, group spec.Group) string {
 	prefix := group.GetAnnotation("pathPrefix")
 	if len(prefix) == 0 {
 		return "\"" + route.Path + "\""
-	} else {
-		prefix = strings.TrimPrefix(prefix, `"`)
-		prefix = strings.TrimSuffix(prefix, `"`)
-		return fmt.Sprintf(`"%s/%s"`, prefix, strings.TrimPrefix(route.Path, "/"))
 	}
+
+	prefix = strings.TrimPrefix(prefix, `"`)
+	prefix = strings.TrimSuffix(prefix, `"`)
+	return fmt.Sprintf(`"%s/%s"`, prefix, strings.TrimPrefix(route.Path, "/"))
 }
 
 func pathHasParams(route spec.Route) bool {

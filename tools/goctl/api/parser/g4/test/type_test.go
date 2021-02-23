@@ -334,13 +334,13 @@ func TestTypeBlock(t *testing.T) {
 		return p.TypeBlock().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
-		v, err := parser.Accept(fn, `type(
+		_, err := parser.Accept(fn, `type(
 			// doc
 			Foo int
 		)`)
 		assert.Error(t, err)
 
-		v, err = parser.Accept(fn, `type (
+		v, err := parser.Accept(fn, `type (
 			// doc
 			Foo {
 				Bar int

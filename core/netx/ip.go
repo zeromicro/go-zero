@@ -2,6 +2,7 @@ package netx
 
 import "net"
 
+// InternalIp returns an internal ip.
 func InternalIp() string {
 	infs, err := net.Interfaces()
 	if err != nil {
