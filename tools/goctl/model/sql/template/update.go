@@ -1,5 +1,6 @@
 package template
 
+// Update defines a template for generating update codes
 var Update = `
 func (m *default{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelObject}}) error {
 	{{if .withCache}}{{.primaryCacheKey}}
@@ -12,4 +13,5 @@ func (m *default{{.upperStartCamelObject}}Model) Update(data {{.upperStartCamelO
 }
 `
 
+// UpdateMethod defines an interface method template for generating update codes
 var UpdateMethod = `Update(data {{.upperStartCamelObject}}) error`

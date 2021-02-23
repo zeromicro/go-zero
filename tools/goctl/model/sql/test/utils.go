@@ -94,11 +94,6 @@ func format(query string, args ...interface{}) (string, error) {
 	return b.String(), nil
 }
 
-func logInstanceError(datasource string, err error) {
-	datasource = desensitize(datasource)
-	logx.Errorf("Error on getting sql instance of %s: %v", datasource, err)
-}
-
 func logSqlError(stmt string, err error) {
 	if err != nil && err != ErrNotFound {
 		logx.Errorf("stmt: %s, error: %s", stmt, err.Error())

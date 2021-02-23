@@ -19,10 +19,11 @@ var (
 	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
 
-	cacheStudentIdPrefix = "cache#Student#id#"
+	cacheStudentIDPrefix = "cache#Student#id#"
 )
 
 type (
+	// StudentModel defines a model for Student
 	StudentModel interface {
 		Insert(data Student) (sql.Result, error)
 		FindOne(id int64) (*Student, error)
@@ -35,8 +36,9 @@ type (
 		table string
 	}
 
+	// Student defines an data structure for mysql
 	Student struct {
-		Id         int64           `db:"id"`
+		ID         int64           `db:"id"`
 		Name       string          `db:"name"`
 		Age        sql.NullInt64   `db:"age"`
 		Score      sql.NullFloat64 `db:"score"`
@@ -45,6 +47,7 @@ type (
 	}
 )
 
+// NewStudentModel creates an instance for StudentModel
 func NewStudentModel(conn sqlx.SqlConn, c cache.CacheConf) StudentModel {
 	return &defaultStudentModel{
 		CachedConn: sqlc.NewConn(conn, c),
@@ -60,9 +63,9 @@ func (m *defaultStudentModel) Insert(data Student) (sql.Result, error) {
 }
 
 func (m *defaultStudentModel) FindOne(id int64) (*Student, error) {
-	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, id)
+	studentIDKey := fmt.Sprintf("%s%v", cacheStudentIDPrefix, id)
 	var resp Student
-	err := m.QueryRow(&resp, studentIdKey, func(conn sqlx.SqlConn, v interface{}) error {
+	err := m.QueryRow(&resp, studentIDKey, func(conn sqlx.SqlConn, v interface{}) error {
 		query := fmt.Sprintf("select %s from %s where `id` = ? limit 1", studentRows, m.table)
 		return conn.QueryRow(v, query, id)
 	})
@@ -77,26 +80,26 @@ func (m *defaultStudentModel) FindOne(id int64) (*Student, error) {
 }
 
 func (m *defaultStudentModel) Update(data Student) error {
-	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, data.Id)
+	studentIDKey := fmt.Sprintf("%s%v", cacheStudentIDPrefix, data.ID)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, studentRowsWithPlaceHolder)
-		return conn.Exec(query, data.Name, data.Age, data.Score, data.Id)
-	}, studentIdKey)
+		return conn.Exec(query, data.Name, data.Age, data.Score, data.ID)
+	}, studentIDKey)
 	return err
 }
 
 func (m *defaultStudentModel) Delete(id int64) error {
 
-	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, id)
+	studentIDKey := fmt.Sprintf("%s%v", cacheStudentIDPrefix, id)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.Exec(query, id)
-	}, studentIdKey)
+	}, studentIDKey)
 	return err
 }
 
 func (m *defaultStudentModel) formatPrimary(primary interface{}) string {
-	return fmt.Sprintf("%s%v", cacheStudentIdPrefix, primary)
+	return fmt.Sprintf("%s%v", cacheStudentIDPrefix, primary)
 }
 
 func (m *defaultStudentModel) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {

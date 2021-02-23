@@ -20,6 +20,7 @@ var (
 )
 
 type (
+	// UserModel defines a model for user
 	UserModel interface {
 		Insert(data User) (sql.Result, error)
 		FindOne(id int64) (*User, error)
@@ -35,8 +36,9 @@ type (
 		table string
 	}
 
+	// User defines an data structure for mysql
 	User struct {
-		Id         int64     `db:"id"`
+		ID         int64     `db:"id"`
 		User       string    `db:"user"`     // 用户
 		Name       string    `db:"name"`     // 用户名称
 		Password   string    `db:"password"` // 用户密码
@@ -48,6 +50,7 @@ type (
 	}
 )
 
+// NewUserModel creates an instance for UserModel
 func NewUserModel(conn sqlx.SqlConn) UserModel {
 	return &defaultUserModel{
 		conn:  conn,
@@ -119,7 +122,7 @@ func (m *defaultUserModel) FindOneByMobile(mobile string) (*User, error) {
 
 func (m *defaultUserModel) Update(data User) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-	_, err := m.conn.Exec(query, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.Id)
+	_, err := m.conn.Exec(query, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.ID)
 	return err
 }
 
