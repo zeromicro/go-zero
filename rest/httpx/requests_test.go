@@ -136,6 +136,42 @@ func TestParseJsonBody(t *testing.T) {
 	assert.Equal(t, "kevin", v.Name)
 	assert.Equal(t, 18, v.Age)
 }
+func TestParseJsonBodyNotPanicErrorReturn(t *testing.T) {
+	var v struct {
+		Name string            `json:"name"`
+		Age  int               `json:"age"`
+		Bad  map[string]string `json:"bad"`
+	}
+
+	body := `{"name":"kevin", "age": 18,"bad":{"test":{"test":"test"}}}'}`
+	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r.Header.Set(ContentType, ApplicationJson)
+
+	test := func() {
+		err := Parse(r, &v)
+		assert.NotNil(t, err)
+	}
+	assert.NotPanics(t, assert.PanicTestFunc(test))
+}
+
+func TestParseJsonBodyMapTypeErrorReturn(t *testing.T) {
+	var v struct {
+		Name string            `json:"name"`
+		Age  int               `json:"age"`
+		Bad  map[string]string `json:"bad"`
+	}
+
+	body := `{"name":"kevin", "age": 18,"bad":{"test":1}}`
+	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r.Header.Set(ContentType, ApplicationJson)
+
+	test := func() {
+		err := Parse(r, &v)
+
+		assert.NotNil(t, err)
+	}
+	assert.NotPanics(t, assert.PanicTestFunc(test))
+}
 
 func TestParseRequired(t *testing.T) {
 	v := struct {
