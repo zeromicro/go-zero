@@ -27,6 +27,7 @@ service {{.name}}-api {
 }
 `
 
+// NewService fast create service
 func NewService(c *cli.Context) error {
 	args := c.Args()
 	dirName := args.First()

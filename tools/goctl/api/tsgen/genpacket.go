@@ -157,7 +157,7 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 }
 
 func pathForRoute(route spec.Route, group spec.Group) string {
-	prefix := group.GetAnnotation("pathPrefix")
+	prefix := group.GetAnnotation(pathPrefix)
 	if len(prefix) == 0 {
 		return "\"" + route.Path + "\""
 	}
