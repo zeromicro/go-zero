@@ -11,12 +11,13 @@ import (
 	"github.com/urfave/cli"
 )
 
+// TsCommand provides the entry to generting typescript codes
 func TsCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
-	webApi := c.String("webapi")
+	webAPI := c.String("webapi")
 	caller := c.String("caller")
-	unwrapApi := c.Bool("unwrap")
+	unwrapAPI := c.Bool("unwrap")
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -32,7 +33,7 @@ func TsCommand(c *cli.Context) error {
 	}
 
 	logx.Must(util.MkdirIfNotExist(dir))
-	logx.Must(genHandler(dir, webApi, caller, api, unwrapApi))
+	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
 	logx.Must(genComponents(dir, api))
 
 	fmt.Println(aurora.Green("Done."))

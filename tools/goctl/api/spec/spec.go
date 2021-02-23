@@ -1,16 +1,20 @@
 package spec
 
 type (
+	// Doc describes document
 	Doc []string
 
+	// Annotation defines key-value
 	Annotation struct {
 		Properties map[string]string
 	}
 
+	// ApiSyntax describes the syntax grammar
 	ApiSyntax struct {
 		Version string
 	}
 
+	// ApiSpec describes a api file
 	ApiSpec struct {
 		Info    Info
 		Syntax  ApiSyntax
@@ -19,15 +23,18 @@ type (
 		Service Service
 	}
 
+	// Import describes api import
 	Import struct {
 		Value string
 	}
 
+	// Group defines a set of routing information
 	Group struct {
 		Annotation Annotation
 		Routes     []Route
 	}
 
+	// Info describes info grammar block
 	Info struct {
 		// Deprecated: use Properties instead
 		Title string
@@ -42,6 +49,7 @@ type (
 		Properties map[string]string
 	}
 
+	// Member describes the field of a structure
 	Member struct {
 		Name string
 		// 数据类型字面值，如：string、map[int]string、[]int64、[]*User
@@ -53,6 +61,7 @@ type (
 		IsInline bool
 	}
 
+	// Route describes api route
 	Route struct {
 		Annotation   Annotation
 		Method       string
@@ -64,26 +73,30 @@ type (
 		AtDoc        AtDoc
 	}
 
+	// Service describes api service
 	Service struct {
 		Name   string
 		Groups []Group
 	}
 
+	// Type defines api type
 	Type interface {
 		Name() string
 	}
 
+	// DefineStruct describes api structure
 	DefineStruct struct {
 		RawName string
 		Members []Member
 		Docs    Doc
 	}
 
-	// 系统预设基本数据类型 bool int32 int64 float32
+	// PrimitiveType describes the basic golang type, such as bool,int32,int64, ...
 	PrimitiveType struct {
 		RawName string
 	}
 
+	// MapType describes a map for api
 	MapType struct {
 		RawName string
 		// only support the PrimitiveType
@@ -97,20 +110,24 @@ type (
 		Value Type
 	}
 
+	// ArrayType describes a slice for api
 	ArrayType struct {
 		RawName string
 		Value   Type
 	}
 
+	// InterfaceType describes a interface for api
 	InterfaceType struct {
 		RawName string
 	}
 
+	// PointerType describes a pointer for api
 	PointerType struct {
 		RawName string
 		Type    Type
 	}
 
+	// AtDoc describes a metadata for api grammar: @doc(...)
 	AtDoc struct {
 		Properties map[string]string
 		Text       string
