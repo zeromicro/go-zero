@@ -10,6 +10,7 @@ import (
 	"github.com/logrusorgru/aurora"
 )
 
+// NL defines a new line
 const NL = "\n"
 
 // CreateIfNotExist creates a file if it is not exists

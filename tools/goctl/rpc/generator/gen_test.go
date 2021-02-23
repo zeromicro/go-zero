@@ -27,7 +27,7 @@ func TestRpcGenerate(t *testing.T) {
 		return
 	}
 	projectName := stringx.Rand()
-	g := NewRpcGenerator(dispatcher, cfg)
+	g := NewRPCGenerator(dispatcher, cfg)
 
 	// case go path
 	src := filepath.Join(build.Default.GOPATH, "src")
