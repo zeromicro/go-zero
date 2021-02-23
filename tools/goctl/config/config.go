@@ -2,18 +2,11 @@ package config
 
 import (
 	"errors"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
-
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"gopkg.in/yaml.v2"
 )
 
 const (
-	configFile    = "config.yaml"
-	configFolder  = "config"
+	// DefaultFormat defines a default naming style
 	DefaultFormat = "gozero"
 )
 
@@ -31,6 +24,7 @@ const defaultYaml = `# namingFormat is used to define the naming format of the g
 namingFormat: gozero
 `
 
+// Config defines the file naming style
 type Config struct {
 	// NamingFormat is used to define the naming format of the generated file name.
 	// just like time formatting, you can specify the formatting style through the
@@ -43,6 +37,7 @@ type Config struct {
 	NamingFormat string `yaml:"namingFormat"`
 }
 
+// NewConfig creates an instance for Config
 func NewConfig(format string) (*Config, error) {
 	if len(format) == 0 {
 		format = DefaultFormat
@@ -50,68 +45,6 @@ func NewConfig(format string) (*Config, error) {
 	cfg := &Config{NamingFormat: format}
 	err := validate(cfg)
 	return cfg, err
-}
-
-func InitOrGetConfig() (*Config, error) {
-	var (
-		defaultConfig Config
-	)
-	err := yaml.Unmarshal([]byte(defaultYaml), &defaultConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	goctlHome, err := util.GetGoctlHome()
-	if err != nil {
-		return nil, err
-	}
-
-	configDir := filepath.Join(goctlHome, configFolder)
-	configFilename := filepath.Join(configDir, configFile)
-	if util.FileExists(configFilename) {
-		data, err := ioutil.ReadFile(configFilename)
-		if err != nil {
-			return nil, err
-		}
-
-		err = yaml.Unmarshal(data, &defaultConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		err = validate(&defaultConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		return &defaultConfig, nil
-	}
-
-	err = util.MkdirIfNotExist(configDir)
-	if err != nil {
-		return nil, err
-	}
-
-	f, err := os.Create(configFilename)
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		_ = f.Close()
-	}()
-
-	_, err = f.WriteString(defaultYaml)
-	if err != nil {
-		return nil, err
-	}
-
-	err = validate(&defaultConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return &defaultConfig, nil
 }
 
 func validate(cfg *Config) error {
