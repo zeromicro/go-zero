@@ -279,7 +279,7 @@ func Statf(format string, v ...interface{}) {
 	statSync(fmt.Sprintf(format, v...))
 }
 
-// WithCooldownMillis customizes logging on writting call stack interval.
+// WithCooldownMillis customizes logging on writing call stack interval.
 func WithCooldownMillis(millis int) LogOption {
 	return func(opts *logOptions) {
 		opts.logStackCooldownMills = millis

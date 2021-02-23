@@ -9,7 +9,7 @@ type (
 	// GaugeVecOpts is an alias of VectorOpts.
 	GaugeVecOpts VectorOpts
 
-	// GaugeVec represents a guage vector.
+	// GaugeVec represents a gauge vector.
 	GaugeVec interface {
 		// Set sets v to labels.
 		Set(v float64, labels ...string)
