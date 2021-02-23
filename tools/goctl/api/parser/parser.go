@@ -15,6 +15,7 @@ type parser struct {
 	spec *spec.ApiSpec
 }
 
+// Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)))
 	ast, err := astParser.Parse(filename)
@@ -32,6 +33,7 @@ func Parse(filename string) (*spec.ApiSpec, error) {
 	return spec, nil
 }
 
+// ParseContent parses the api content
 func ParseContent(content string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser()
 	ast, err := astParser.ParseContent(content)

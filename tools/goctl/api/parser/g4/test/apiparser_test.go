@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	normalApi = `
+	normalAPI = `
 	syntax="v1"
 	
 	info (
@@ -32,7 +32,7 @@ var (
 		post /foo (Foo) returns ([]int)
 	}
 `
-	missDeclarationApi = `
+	missDeclarationAPI = `
 	@server(
 		foo: bar
 	)
@@ -43,7 +43,7 @@ var (
 	}
 	`
 
-	missDeclarationInArrayApi = `
+	missDeclarationInArrayAPI = `
 	@server(
 		foo: bar
 	)
@@ -54,7 +54,7 @@ var (
 	}
 	`
 
-	missDeclarationInArrayApi2 = `
+	missDeclarationInArrayAPI2 = `
 	@server(
 		foo: bar
 	)
@@ -65,7 +65,7 @@ var (
 	}
 	`
 
-	nestedApiImport = `
+	nestedAPIImport = `
 	import "foo.api"
 	`
 
@@ -99,27 +99,27 @@ var (
 )
 
 func TestApiParser(t *testing.T) {
-	t.Run("missDeclarationApi", func(t *testing.T) {
-		_, err := parser.ParseContent(missDeclarationApi)
+	t.Run("missDeclarationAPI", func(t *testing.T) {
+		_, err := parser.ParseContent(missDeclarationAPI)
 		assert.Error(t, err)
 		fmt.Printf("%+v\n", err)
 	})
 
-	t.Run("missDeclarationApi", func(t *testing.T) {
-		_, err := parser.ParseContent(missDeclarationInArrayApi)
+	t.Run("missDeclarationAPI", func(t *testing.T) {
+		_, err := parser.ParseContent(missDeclarationInArrayAPI)
 		assert.Error(t, err)
 		fmt.Printf("%+v\n", err)
 	})
 
-	t.Run("missDeclarationApi", func(t *testing.T) {
-		_, err := parser.ParseContent(missDeclarationInArrayApi2)
+	t.Run("missDeclarationAPI", func(t *testing.T) {
+		_, err := parser.ParseContent(missDeclarationInArrayAPI2)
 		assert.Error(t, err)
 		fmt.Printf("%+v\n", err)
 	})
 
 	t.Run("nestedImport", func(t *testing.T) {
 		file := filepath.Join(t.TempDir(), "foo.api")
-		err := ioutil.WriteFile(file, []byte(nestedApiImport), os.ModePerm)
+		err := ioutil.WriteFile(file, []byte(nestedAPIImport), os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -275,7 +275,7 @@ func TestApiParser(t *testing.T) {
 	})
 
 	t.Run("normal", func(t *testing.T) {
-		v, err := parser.ParseContent(normalApi)
+		v, err := parser.ParseContent(normalAPI)
 		assert.Nil(t, err)
 		body := &ast.Body{
 			Lp:   ast.NewTextExpr("("),
