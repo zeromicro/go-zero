@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// GoValidateApi verifies whether the api has a syntax error
 func GoValidateApi(c *cli.Context) error {
 	apiFile := c.String("api")
 
