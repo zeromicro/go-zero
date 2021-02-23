@@ -6,6 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// KvExpr describes key-value for api
 type KvExpr struct {
 	Key         Expr
 	Value       Expr
@@ -13,6 +14,7 @@ type KvExpr struct {
 	CommentExpr Expr
 }
 
+// VisitKvLit implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitKvLit(ctx *api.KvLitContext) interface{} {
 	var kvExpr KvExpr
 	kvExpr.Key = v.newExprWithToken(ctx.GetKey())
@@ -48,11 +50,13 @@ func (v *ApiVisitor) VisitKvLit(ctx *api.KvLitContext) interface{} {
 	return &kvExpr
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (k *KvExpr) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two KvExpr are equal
 func (k *KvExpr) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -70,10 +74,12 @@ func (k *KvExpr) Equal(v interface{}) bool {
 	return k.Key.Equal(kv.Key) && k.Value.Equal(kv.Value)
 }
 
+// Doc returns the document of KvExpr, like // some text
 func (k *KvExpr) Doc() []Expr {
 	return k.DocExpr
 }
 
+// Comment returns the comment of KvExpr, like // some text
 func (k *KvExpr) Comment() Expr {
 	return k.CommentExpr
 }

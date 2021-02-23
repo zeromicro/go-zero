@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// Api describes syntax for api
 type Api struct {
 	LinePrefix string
 	Syntax     *SyntaxExpr
@@ -21,6 +22,7 @@ type Api struct {
 	routeM     map[string]PlaceHolder
 }
 
+// VisitApi implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
 	var final Api
 	final.importM = map[string]PlaceHolder{}
@@ -152,6 +154,7 @@ func (v *ApiVisitor) acceptSyntax(root *Api, final *Api) {
 	}
 }
 
+// VisitSpec implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitSpec(ctx *api.SpecContext) interface{} {
 	var root Api
 	if ctx.SyntaxLit() != nil {
@@ -178,11 +181,13 @@ func (v *ApiVisitor) VisitSpec(ctx *api.SpecContext) interface{} {
 	return &root
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (a *Api) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two Api are equal
 func (a *Api) Equal(v interface{}) bool {
 	if v == nil {
 		return false
