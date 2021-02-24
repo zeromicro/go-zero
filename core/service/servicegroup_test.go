@@ -41,7 +41,7 @@ func TestServiceGroup(t *testing.T) {
 	multipliers := []int{2, 3, 5, 7}
 	want := 1
 
-	group := NewGroup()
+	group := NewServiceGroup()
 	for _, multiplier := range multipliers {
 		want *= multiplier
 		service := newMockedService(multiplier)
@@ -68,7 +68,7 @@ func TestServiceGroup_WithStart(t *testing.T) {
 	var wait sync.WaitGroup
 	var lock sync.Mutex
 	wait.Add(len(multipliers))
-	group := NewGroup()
+	group := NewServiceGroup()
 	for _, multiplier := range multipliers {
 		var mul = multiplier
 		group.Add(WithStart(func() {
@@ -95,7 +95,7 @@ func TestServiceGroup_WithStarter(t *testing.T) {
 	var wait sync.WaitGroup
 	var lock sync.Mutex
 	wait.Add(len(multipliers))
-	group := NewGroup()
+	group := NewServiceGroup()
 	for _, multiplier := range multipliers {
 		var mul = multiplier
 		group.Add(WithStarter(mockedStarter{
