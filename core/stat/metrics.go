@@ -7,20 +7,23 @@ import (
 
 	"github.com/tal-tech/go-zero/core/executors"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 var (
-	LogInterval = time.Minute
-
+	logInterval  = time.Minute
 	writerLock   sync.Mutex
 	reportWriter Writer = nil
+	logEnabled          = syncx.ForAtomicBool(true)
 )
 
 type (
+	// Writer interface wraps the Write method.
 	Writer interface {
 		Write(report *StatReport) error
 	}
 
+	// A StatReport is a stat report entry.
 	StatReport struct {
 		Name          string  `json:"name"`
 		Timestamp     int64   `json:"tm"`
@@ -34,18 +37,26 @@ type (
 		Top99p9th     float32 `json:"t99p9"`
 	}
 
+	// A Metrics is used to log and report stat reports.
 	Metrics struct {
 		executor  *executors.PeriodicalExecutor
 		container *metricsContainer
 	}
 )
 
+// DisableLog disables logs of stats.
+func DisableLog() {
+	logEnabled.Set(false)
+}
+
+// SetReportWriter sets the report writer.
 func SetReportWriter(writer Writer) {
 	writerLock.Lock()
 	reportWriter = writer
 	writerLock.Unlock()
 }
 
+// NewMetrics returns a Metrics.
 func NewMetrics(name string) *Metrics {
 	container := &metricsContainer{
 		name: name,
@@ -53,21 +64,24 @@ func NewMetrics(name string) *Metrics {
 	}
 
 	return &Metrics{
-		executor:  executors.NewPeriodicalExecutor(LogInterval, container),
+		executor:  executors.NewPeriodicalExecutor(logInterval, container),
 		container: container,
 	}
 }
 
+// Add adds task to m.
 func (m *Metrics) Add(task Task) {
 	m.executor.Add(task)
 }
 
+// AddDrop adds a drop to m.
 func (m *Metrics) AddDrop() {
 	m.executor.Add(Task{
 		Drop: true,
 	})
 }
 
+// SetName sets the name of m.
 func (m *Metrics) SetName(name string) {
 	m.executor.Sync(func() {
 		m.container.name = name
@@ -113,7 +127,7 @@ func (c *metricsContainer) Execute(v interface{}) {
 		Name:          c.name,
 		Timestamp:     time.Now().Unix(),
 		Pid:           c.pid,
-		ReqsPerSecond: float32(size) / float32(LogInterval/time.Second),
+		ReqsPerSecond: float32(size) / float32(logInterval/time.Second),
 		Drops:         drops,
 	}
 
@@ -192,10 +206,12 @@ func getTopDuration(tasks []Task) float32 {
 
 func log(report *StatReport) {
 	writeReport(report)
-	logx.Statf("(%s) - qps: %.1f/s, drops: %d, avg time: %.1fms, med: %.1fms, "+
-		"90th: %.1fms, 99th: %.1fms, 99.9th: %.1fms",
-		report.Name, report.ReqsPerSecond, report.Drops, report.Average, report.Median,
-		report.Top90th, report.Top99th, report.Top99p9th)
+	if logEnabled.True() {
+		logx.Statf("(%s) - qps: %.1f/s, drops: %d, avg time: %.1fms, med: %.1fms, "+
+			"90th: %.1fms, 99th: %.1fms, 99.9th: %.1fms",
+			report.Name, report.ReqsPerSecond, report.Drops, report.Average, report.Median,
+			report.Top90th, report.Top99th, report.Top99p9th)
+	}
 }
 
 func writeReport(report *StatReport) {
