@@ -2,7 +2,7 @@ package httpx
 
 import "net/http"
 
-const xForwardFor = "X-Forward-For"
+const xForwardFor = "X-Forwarded-For"
 
 // GetRemoteAddr returns the peer address, supports X-Forward-For.
 func GetRemoteAddr(r *http.Request) string {
