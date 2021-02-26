@@ -2,10 +2,12 @@ package threading
 
 import "sync"
 
+// A RoutineGroup is used to group goroutines together and all wait all goroutines to be done.
 type RoutineGroup struct {
 	waitGroup sync.WaitGroup
 }
 
+// NewRoutineGroup returns a RoutineGroup.
 func NewRoutineGroup() *RoutineGroup {
 	return new(RoutineGroup)
 }
