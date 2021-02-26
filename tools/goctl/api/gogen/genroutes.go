@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -209,5 +210,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 }
 
 func toPrefix(folder string) string {
-	return strings.ReplaceAll(folder, "/", "")
+	prefix := strings.ReplaceAll(folder, "/", "")
+	prefix = strings.ReplaceAll(prefix, "-", "")
+	_, err := strconv.Atoi(string(prefix[0]))
+	if err != nil {
+		prefix = "v" + prefix
+	}
+	return prefix
 }
