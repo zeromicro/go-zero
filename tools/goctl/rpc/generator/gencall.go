@@ -61,7 +61,9 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context,in *{{.pbReque
 `
 )
 
-func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+// GenCall generates the rpc client code, which is the entry point for the rpc service call.
+// It is a layer of encapsulation for the rpc client and shields the details in the pb.
+func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
@@ -105,7 +107,7 @@ func (g *defaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	return err
 }
 
-func (g *defaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
+func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
 	for _, rpc := range service.RPC {
 		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
@@ -133,7 +135,7 @@ func (g *defaultGenerator) genFunction(goPackage string, service parser.Service)
 	return functions, nil
 }
 
-func (g *defaultGenerator) getInterfaceFuncs(service parser.Service) ([]string, error) {
+func (g *DefaultGenerator) getInterfaceFuncs(service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {

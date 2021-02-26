@@ -10,12 +10,12 @@ import (
 
 type mockedUser struct {
 	// 自增id
-	Id string `db:"id" json:"id,omitempty"`
+	ID string `db:"id" json:"id,omitempty"`
 	// 姓名
 	UserName string `db:"user_name" json:"userName,omitempty"`
 	// 1男,2女
 	Sex  int    `db:"sex" json:"sex,omitempty"`
-	Uuid string `db:"uuid" uuid:"uuid,omitempty"`
+	UUID string `db:"uuid" uuid:"uuid,omitempty"`
 	Age  int    `db:"age" json:"age"`
 }
 
@@ -42,7 +42,7 @@ func TestFieldNames(t *testing.T) {
 
 func TestNewEq(t *testing.T) {
 	u := &mockedUser{
-		Id:       "123456",
+		ID:       "123456",
 		UserName: "wahaha",
 	}
 	out := NewEq(u)
@@ -54,16 +54,16 @@ func TestNewEq(t *testing.T) {
 // @see https://github.com/go-xorm/builder
 func TestBuilderSql(t *testing.T) {
 	u := &mockedUser{
-		Id: "123123",
+		ID: "123123",
 	}
 	fields := RawFieldNames(u)
 	eq := NewEq(u)
 	sql, args, err := builder.Select(fields...).From("user").Where(eq).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id=?"
+	actualSQL := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id=?"
 	actualArgs := []interface{}{"123123"}
-	assert.Equal(t, sql, actualSql)
+	assert.Equal(t, sql, actualSQL)
 	assert.Equal(t, args, actualArgs)
 }
 
@@ -76,9 +76,9 @@ func TestBuildSqlDefaultValue(t *testing.T) {
 		sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(eq).ToSQL()
 		fmt.Println(sql, args, err)
 
-		actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE age=? AND user_name=?"
+		actualSQL := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE age=? AND user_name=?"
 		actualArgs := []interface{}{0, ""}
-		assert.Equal(t, sql, actualSql)
+		assert.Equal(t, sql, actualSQL)
 		assert.Equal(t, args, actualArgs)
 	})
 
@@ -86,9 +86,9 @@ func TestBuildSqlDefaultValue(t *testing.T) {
 		sql, args, err := builder.Select(userFieldsWithoutRawStringQuote...).From("user").Where(eq).ToSQL()
 		fmt.Println(sql, args, err)
 
-		actualSql := "SELECT id,user_name,sex,uuid,age FROM user WHERE age=? AND user_name=?"
+		actualSQL := "SELECT id,user_name,sex,uuid,age FROM user WHERE age=? AND user_name=?"
 		actualArgs := []interface{}{0, ""}
-		assert.Equal(t, sql, actualSql)
+		assert.Equal(t, sql, actualSQL)
 		assert.Equal(t, args, actualArgs)
 	})
 }
@@ -102,9 +102,9 @@ func TestBuilderSqlIn(t *testing.T) {
 	sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(in).And(gtU).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id IN (?,?,?) AND age>?"
+	actualSQL := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE id IN (?,?,?) AND age>?"
 	actualArgs := []interface{}{"1", "2", "3", 18}
-	assert.Equal(t, sql, actualSql)
+	assert.Equal(t, sql, actualSQL)
 	assert.Equal(t, args, actualArgs)
 }
 
@@ -113,8 +113,8 @@ func TestBuildSqlLike(t *testing.T) {
 	sql, args, err := builder.Select(userFieldsWithRawStringQuote...).From("user").Where(like).ToSQL()
 	fmt.Println(sql, args, err)
 
-	actualSql := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE name LIKE ?"
+	actualSQL := "SELECT `id`,`user_name`,`sex`,`uuid`,`age` FROM user WHERE name LIKE ?"
 	actualArgs := []interface{}{"%wang%"}
-	assert.Equal(t, sql, actualSql)
+	assert.Equal(t, sql, actualSQL)
 	assert.Equal(t, args, actualArgs)
 }

@@ -10,27 +10,33 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
 )
 
-type RpcGenerator struct {
+// RPCGenerator defines a generator and configure
+type RPCGenerator struct {
 	g   Generator
 	cfg *conf.Config
 }
 
-func NewDefaultRpcGenerator(style string) (*RpcGenerator, error) {
+// NewDefaultRPCGenerator wraps Generator with configure
+func NewDefaultRPCGenerator(style string) (*RPCGenerator, error) {
 	cfg, err := conf.NewConfig(style)
 	if err != nil {
 		return nil, err
 	}
-	return NewRpcGenerator(NewDefaultGenerator(), cfg), nil
+	return NewRPCGenerator(NewDefaultGenerator(), cfg), nil
 }
 
-func NewRpcGenerator(g Generator, cfg *conf.Config) *RpcGenerator {
-	return &RpcGenerator{
+// NewRPCGenerator creates an instance for RPCGenerator
+func NewRPCGenerator(g Generator, cfg *conf.Config) *RPCGenerator {
+	return &RPCGenerator{
 		g:   g,
 		cfg: cfg,
 	}
 }
 
-func (g *RpcGenerator) Generate(src, target string, protoImportPath []string) error {
+// Generate generates an rpc service, through the proto file,
+// code storage directory, and proto import parameters to control
+// the source file and target location of the rpc service that needs to be generated
+func (g *RPCGenerator) Generate(src, target string, protoImportPath []string) error {
 	abs, err := filepath.Abs(target)
 	if err != nil {
 		return err

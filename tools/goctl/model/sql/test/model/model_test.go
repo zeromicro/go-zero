@@ -20,11 +20,11 @@ func TestStudentModel(t *testing.T) {
 		testTable              = "`student`"
 		testUpdateName         = "gozero1"
 		testRowsAffected int64 = 1
-		testInsertId     int64 = 1
+		testInsertID     int64 = 1
 	)
 
 	var data Student
-	data.Id = testInsertId
+	data.ID = testInsertID
 	data.Name = "gozero"
 	data.Age = sql.NullInt64{
 		Int64: 1,
@@ -43,14 +43,14 @@ func TestStudentModel(t *testing.T) {
 	err := mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("insert into %s", testTable)).
 			WithArgs(data.Name, data.Age, data.Score).
-			WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+			WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m StudentModel) {
 		r, err := m.Insert(data)
 		assert.Nil(t, err)
 
-		lastInsertId, err := r.LastInsertId()
+		lastInsertID, err := r.LastInsertId()
 		assert.Nil(t, err)
-		assert.Equal(t, testInsertId, lastInsertId)
+		assert.Equal(t, testInsertID, lastInsertID)
 
 		rowsAffected, err := r.RowsAffected()
 		assert.Nil(t, err)
@@ -60,17 +60,17 @@ func TestStudentModel(t *testing.T) {
 
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s", testTable)).
-			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
+			WithArgs(testInsertID).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertID, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel) {
-		result, err := m.FindOne(testInsertId)
+		result, err := m.FindOne(testInsertID)
 		assert.Nil(t, err)
 		assert.Equal(t, *result, data)
 	})
 	assert.Nil(t, err)
 
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
-		mock.ExpectExec(fmt.Sprintf("update %s", testTable)).WithArgs(testUpdateName, data.Age, data.Score, testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+		mock.ExpectExec(fmt.Sprintf("update %s", testTable)).WithArgs(testUpdateName, data.Age, data.Score, testInsertID).WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m StudentModel) {
 		data.Name = testUpdateName
 		err := m.Update(data)
@@ -80,19 +80,19 @@ func TestStudentModel(t *testing.T) {
 
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
-			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
+			WithArgs(testInsertID).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertID, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel) {
-		result, err := m.FindOne(testInsertId)
+		result, err := m.FindOne(testInsertID)
 		assert.Nil(t, err)
 		assert.Equal(t, *result, data)
 	})
 	assert.Nil(t, err)
 
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
-		mock.ExpectExec(fmt.Sprintf("delete from %s where `id` = ?", testTable)).WithArgs(testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+		mock.ExpectExec(fmt.Sprintf("delete from %s where `id` = ?", testTable)).WithArgs(testInsertID).WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m StudentModel) {
-		err := m.Delete(testInsertId)
+		err := m.Delete(testInsertID)
 		assert.Nil(t, err)
 	})
 	assert.Nil(t, err)
@@ -109,11 +109,11 @@ func TestUserModel(t *testing.T) {
 		testGender             = "男"
 		testNickname           = "test_nickname"
 		testRowsAffected int64 = 1
-		testInsertId     int64 = 1
+		testInsertID     int64 = 1
 	)
 
 	var data User
-	data.Id = testInsertId
+	data.ID = testInsertID
 	data.User = testUser
 	data.Name = "gozero"
 	data.Password = testPassword
@@ -126,14 +126,14 @@ func TestUserModel(t *testing.T) {
 	err := mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("insert into %s", testTable)).
 			WithArgs(data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname).
-			WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+			WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m UserModel) {
 		r, err := m.Insert(data)
 		assert.Nil(t, err)
 
-		lastInsertId, err := r.LastInsertId()
+		lastInsertID, err := r.LastInsertId()
 		assert.Nil(t, err)
-		assert.Equal(t, testInsertId, lastInsertId)
+		assert.Equal(t, testInsertID, lastInsertID)
 
 		rowsAffected, err := r.RowsAffected()
 		assert.Nil(t, err)
@@ -143,17 +143,17 @@ func TestUserModel(t *testing.T) {
 
 	err = mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s", testTable)).
-			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
+			WithArgs(testInsertID).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertID, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
 	}, func(m UserModel) {
-		result, err := m.FindOne(testInsertId)
+		result, err := m.FindOne(testInsertID)
 		assert.Nil(t, err)
 		assert.Equal(t, *result, data)
 	})
 	assert.Nil(t, err)
 
 	err = mockUser(func(mock sqlmock.Sqlmock) {
-		mock.ExpectExec(fmt.Sprintf("update %s", testTable)).WithArgs(data.User, testUpdateName, data.Password, data.Mobile, data.Gender, data.Nickname, testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+		mock.ExpectExec(fmt.Sprintf("update %s", testTable)).WithArgs(data.User, testUpdateName, data.Password, data.Mobile, data.Gender, data.Nickname, testInsertID).WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m UserModel) {
 		data.Name = testUpdateName
 		err := m.Update(data)
@@ -163,19 +163,19 @@ func TestUserModel(t *testing.T) {
 
 	err = mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
-			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
+			WithArgs(testInsertID).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertID, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
 	}, func(m UserModel) {
-		result, err := m.FindOne(testInsertId)
+		result, err := m.FindOne(testInsertID)
 		assert.Nil(t, err)
 		assert.Equal(t, *result, data)
 	})
 	assert.Nil(t, err)
 
 	err = mockUser(func(mock sqlmock.Sqlmock) {
-		mock.ExpectExec(fmt.Sprintf("delete from %s where `id` = ?", testTable)).WithArgs(testInsertId).WillReturnResult(sqlmock.NewResult(testInsertId, testRowsAffected))
+		mock.ExpectExec(fmt.Sprintf("delete from %s where `id` = ?", testTable)).WithArgs(testInsertID).WillReturnResult(sqlmock.NewResult(testInsertID, testRowsAffected))
 	}, func(m UserModel) {
-		err := m.Delete(testInsertId)
+		err := m.Delete(testInsertID)
 		assert.Nil(t, err)
 	})
 	assert.Nil(t, err)

@@ -4,6 +4,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// InfoExpr defines info syntax for api
 type InfoExpr struct {
 	Info Expr
 	Lp   Expr
@@ -11,6 +12,7 @@ type InfoExpr struct {
 	Kvs  []*KvExpr
 }
 
+// VisitInfoSpec implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitInfoSpec(ctx *api.InfoSpecContext) interface{} {
 	var expr InfoExpr
 	expr.Info = v.newExprWithToken(ctx.GetInfoToken())
@@ -29,11 +31,13 @@ func (v *ApiVisitor) VisitInfoSpec(ctx *api.InfoSpecContext) interface{} {
 	return &expr
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (i *InfoExpr) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two InfoExpr are equal
 func (i *InfoExpr) Equal(v interface{}) bool {
 	if v == nil {
 		return false

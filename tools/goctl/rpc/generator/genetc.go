@@ -20,7 +20,9 @@ Etcd:
   Key: {{.serviceName}}.rpc
 `
 
-func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+// GenEtc generates the yaml configuration file of the rpc service,
+// including host, port monitoring configuration items and etcd configuration
+func (g *DefaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
 	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
 	if err != nil {

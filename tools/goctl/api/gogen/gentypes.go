@@ -25,6 +25,7 @@ import (
 `
 )
 
+// BuildTypes gen types to string
 func BuildTypes(types []spec.Type) (string, error) {
 	var builder strings.Builder
 	first := true

@@ -94,7 +94,7 @@ func TestWrapWithRawString(t *testing.T) {
 
 func TestFields(t *testing.T) {
 	type Student struct {
-		Id         int64           `db:"id"`
+		ID         int64           `db:"id"`
 		Name       string          `db:"name"`
 		Age        sql.NullInt64   `db:"age"`
 		Score      sql.NullFloat64 `db:"score"`

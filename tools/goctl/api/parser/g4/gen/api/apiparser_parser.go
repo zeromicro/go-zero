@@ -4931,7 +4931,7 @@ func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	checkHttpMethod(p)
+	checkHTTPMethod(p)
 	{
 		p.SetState(291)
 

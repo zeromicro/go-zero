@@ -10,6 +10,7 @@ import (
 var errTagNotExist = errors.New("tag does not exist")
 
 type (
+	// Tag defines a tag for structure filed
 	Tag struct {
 		// Key is the tag key, such as json, xml, etc..
 		// i.e: `json:"foo,omitempty". Here key is: "json"
@@ -24,11 +25,13 @@ type (
 		Options []string
 	}
 
+	// Tags defines a slice for Tag
 	Tags struct {
 		tags []*Tag
 	}
 )
 
+// Parse converts tag string into Tag
 func Parse(tag string) (*Tags, error) {
 	tag = strings.TrimPrefix(tag, "`")
 	tag = strings.TrimSuffix(tag, "`")
@@ -44,6 +47,7 @@ func Parse(tag string) (*Tags, error) {
 	return &result, nil
 }
 
+// Get gets tag value by specified key
 func (t *Tags) Get(key string) (*Tag, error) {
 	for _, tag := range t.tags {
 		if tag.Key == key {
@@ -54,6 +58,7 @@ func (t *Tags) Get(key string) (*Tag, error) {
 	return nil, errTagNotExist
 }
 
+// Keys returns all keys in Tags
 func (t *Tags) Keys() []string {
 	var keys []string
 	for _, tag := range t.tags {
@@ -62,6 +67,7 @@ func (t *Tags) Keys() []string {
 	return keys
 }
 
+// Tags returns all tags in Tags
 func (t *Tags) Tags() []*Tag {
 	return t.tags
 }

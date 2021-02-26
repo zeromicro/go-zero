@@ -54,18 +54,22 @@ var templates = map[string]string{
 	errTemplateFile:                       template.Error,
 }
 
+// Category returns model const value
 func Category() string {
 	return category
 }
 
+// Clean deletes all template files
 func Clean() error {
 	return util.Clean(category)
 }
 
+// GenTemplates creates template files if not exists
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, templates)
 }
 
+// RevertTemplate recovers the delete template files
 func RevertTemplate(name string) error {
 	content, ok := templates[name]
 	if !ok {
@@ -75,6 +79,7 @@ func RevertTemplate(name string) error {
 	return util.CreateTemplate(category, name, content)
 }
 
+// Update provides template clean and init
 func Update() error {
 	err := Clean()
 	if err != nil {

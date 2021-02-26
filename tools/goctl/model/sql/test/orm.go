@@ -13,9 +13,13 @@ import (
 const tagName = "db"
 
 var (
-	ErrNotMatchDestination  = errors.New("not matching destination to scan")
-	ErrNotReadableValue     = errors.New("value not addressable or interfaceable")
-	ErrNotSettable          = errors.New("passed in variable is not settable")
+	// ErrNotMatchDestination defines an error for mismatching case
+	ErrNotMatchDestination = errors.New("not matching destination to scan")
+	// ErrNotReadableValue defines an error for the value is not addressable or interfaceable
+	ErrNotReadableValue = errors.New("value not addressable or interfaceable")
+	// ErrNotSettable defines an error for the variable is not settable
+	ErrNotSettable = errors.New("passed in variable is not settable")
+	// ErrUnsupportedValueType deinfes an error for unsupported unmarshal type
 	ErrUnsupportedValueType = errors.New("unsupported unmarshal type")
 )
 

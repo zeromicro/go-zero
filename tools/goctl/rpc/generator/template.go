@@ -38,10 +38,13 @@ var templates = map[string]string{
 	rpcTemplateFile:                   rpcTemplateText,
 }
 
+// GenTemplates is the entry for command goctl template,
+// it will create the specified category
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, templates)
 }
 
+// RevertTemplate restores the deleted template files
 func RevertTemplate(name string) error {
 	content, ok := templates[name]
 	if !ok {
@@ -50,10 +53,13 @@ func RevertTemplate(name string) error {
 	return util.CreateTemplate(category, name, content)
 }
 
+// Clean deletes all template files
 func Clean() error {
 	return util.Clean(category)
 }
 
+// Update is used to update the template files, it will delete the existing old templates at first,
+// and then create the latest template files
 func Update() error {
 	err := Clean()
 	if err != nil {
@@ -63,6 +69,7 @@ func Update() error {
 	return util.InitTemplates(category, templates)
 }
 
+// Category returns a const string value for rpc template category
 func Category() string {
 	return category
 }

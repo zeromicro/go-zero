@@ -1,5 +1,6 @@
 package template
 
+// Insert defines a template for insert code in model
 var Insert = `
 func (m *default{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelObject}}) (sql.Result,error) {
 	{{if .withCache}}{{if .containsIndexCache}}{{.keys}}
@@ -14,4 +15,5 @@ func (m *default{{.upperStartCamelObject}}Model) Insert(data {{.upperStartCamelO
 }
 `
 
+// InsertMethod defines a interface method template for insert code in model
 var InsertMethod = `Insert(data {{.upperStartCamelObject}}) (sql.Result,error)`

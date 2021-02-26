@@ -13,6 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
+// MaybeCreateFile creates file if not exists
 func MaybeCreateFile(dir, subdir, file string) (fp *os.File, created bool, err error) {
 	logx.Must(util.MkdirIfNotExist(path.Join(dir, subdir)))
 	fpath := path.Join(dir, subdir, file)
@@ -26,10 +27,12 @@ func MaybeCreateFile(dir, subdir, file string) (fp *os.File, created bool, err e
 	return
 }
 
+// WrapErr wraps an error with message
 func WrapErr(err error, message string) error {
 	return errors.New(message + ", " + err.Error())
 }
 
+// Copy calls io.Copy if the source file and destination file exists
 func Copy(src, dst string) (int64, error) {
 	sourceFileStat, err := os.Stat(src)
 	if err != nil {
@@ -55,6 +58,7 @@ func Copy(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
+// ComponentName returns component name for typescript
 func ComponentName(api *spec.ApiSpec) string {
 	name := api.Service.Name
 	if strings.HasSuffix(name, "-api") {
@@ -63,12 +67,14 @@ func ComponentName(api *spec.ApiSpec) string {
 	return name + "Components"
 }
 
+// WriteIndent writes tab spaces
 func WriteIndent(writer io.Writer, indent int) {
 	for i := 0; i < indent; i++ {
 		fmt.Fprint(writer, "\t")
 	}
 }
 
+// RemoveComment filters comment content
 func RemoveComment(line string) string {
 	var commentIdx = strings.Index(line, "//")
 	if commentIdx >= 0 {

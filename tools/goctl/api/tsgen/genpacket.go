@@ -18,7 +18,7 @@ const (
 `
 )
 
-func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) error {
+func genHandler(dir, webAPI, caller string, api *spec.ApiSpec, unwrapAPI bool) error {
 	filename := strings.Replace(api.Service.Name, "-api", "", 1) + ".ts"
 	if err := util.RemoveIfExist(path.Join(dir, filename)); err != nil {
 		return err
@@ -37,11 +37,11 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 		caller = "webapi"
 	}
 	importCaller := caller
-	if unwrapApi {
+	if unwrapAPI {
 		importCaller = "{ " + importCaller + " }"
 	}
-	if len(webApi) > 0 {
-		imports += `import ` + importCaller + ` from ` + "\"" + webApi + "\""
+	if len(webAPI) > 0 {
+		imports += `import ` + importCaller + ` from ` + "\"" + webAPI + "\""
 	}
 
 	if len(api.Types) != 0 {
@@ -53,7 +53,7 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 		imports += fmt.Sprintf(`%sexport * from "%s"`, util.NL, "./"+outputFile)
 	}
 
-	apis, err := genApi(api, caller)
+	apis, err := genAPI(api, caller)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func genHandler(dir, webApi, caller string, api *spec.ApiSpec, unwrapApi bool) e
 	})
 }
 
-func genApi(api *spec.ApiSpec, caller string) (string, error) {
+func genAPI(api *spec.ApiSpec, caller string) (string, error) {
 	var builder strings.Builder
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
@@ -157,7 +157,7 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 }
 
 func pathForRoute(route spec.Route, group spec.Group) string {
-	prefix := group.GetAnnotation("pathPrefix")
+	prefix := group.GetAnnotation(pathPrefix)
 	if len(prefix) == 0 {
 		return "\"" + route.Path + "\""
 	}

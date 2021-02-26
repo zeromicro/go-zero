@@ -1,5 +1,6 @@
 package template
 
+// Model defines a template for model
 var Model = `package {{.pkg}}
 {{.imports}}
 {{.vars}}

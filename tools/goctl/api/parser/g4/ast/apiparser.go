@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Parser provides api parsing capabilities
 	Parser struct {
 		linePrefix string
 		debug      bool
@@ -19,9 +20,11 @@ type (
 		antlr.DefaultErrorListener
 	}
 
+	// ParserOption defines an function with argument Parser
 	ParserOption func(p *Parser)
 )
 
+// NewParser creates an instance for Parser
 func NewParser(options ...ParserOption) *Parser {
 	p := &Parser{
 		log: console.NewColorConsole(),
@@ -425,6 +428,7 @@ func (p *Parser) readContent(filename string) (string, error) {
 	return string(data), nil
 }
 
+// SyntaxError accepts errors and panic it
 func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
 	str := fmt.Sprintf(`%s line %d:%d  %s`, p.linePrefix, line, column, msg)
 	if p.debug {
@@ -433,12 +437,14 @@ func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int
 	panic(str)
 }
 
+// WithParserDebug returns a debug ParserOption
 func WithParserDebug() ParserOption {
 	return func(p *Parser) {
 		p.debug = true
 	}
 }
 
+// WithParserPrefix returns a prefix ParserOption
 func WithParserPrefix(prefix string) ParserOption {
 	return func(p *Parser) {
 		p.linePrefix = prefix

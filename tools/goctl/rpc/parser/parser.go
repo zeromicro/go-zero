@@ -14,14 +14,18 @@ import (
 )
 
 type (
-	defaultProtoParser struct{}
+	// DefaultProtoParser types a empty struct
+	DefaultProtoParser struct{}
 )
 
-func NewDefaultProtoParser() *defaultProtoParser {
-	return &defaultProtoParser{}
+// NewDefaultProtoParser creates a new instance
+func NewDefaultProtoParser() *DefaultProtoParser {
+	return &DefaultProtoParser{}
 }
 
-func (p *defaultProtoParser) Parse(src string) (Proto, error) {
+// Parse provides to parse the proto file into a golang structure,
+// which is convenient for subsequent rpc generation and use
+func (p *DefaultProtoParser) Parse(src string) (Proto, error) {
 	var ret Proto
 
 	abs, err := filepath.Abs(src)
@@ -101,7 +105,7 @@ func (p *defaultProtoParser) Parse(src string) (Proto, error) {
 	return ret, nil
 }
 
-// see google.golang.org/protobuf@v1.25.0/internal/strs/strings.go:71
+// GoSanitized copy from protobuf, for more information, please see google.golang.org/protobuf@v1.25.0/internal/strs/strings.go:71
 func GoSanitized(s string) string {
 	// Sanitize the input to the set of valid characters,
 	// which must be '_' or be in the Unicode L or N categories.
@@ -121,7 +125,7 @@ func GoSanitized(s string) string {
 	return s
 }
 
-// copy from github.com/golang/protobuf@v1.4.2/protoc-gen-go/generator/generator.go:2648
+// CamelCase copy from protobuf, for more information, please see github.com/golang/protobuf@v1.4.2/protoc-gen-go/generator/generator.go:2648
 func CamelCase(s string) string {
 	if s == "" {
 		return ""

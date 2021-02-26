@@ -12,6 +12,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// JavaCommand the generate java code command entrance
 func JavaCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")

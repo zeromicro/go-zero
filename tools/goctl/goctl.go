@@ -49,7 +49,7 @@ var (
 				{
 					Name:   "new",
 					Usage:  "fast create api service",
-					Action: new.NewService,
+					Action: new.CreateServiceCommand,
 				},
 				{
 					Name:  "format",
@@ -337,7 +337,7 @@ var (
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.RpcNew,
+					Action: rpc.RPCNew,
 				},
 				{
 					Name:  "template",
@@ -348,7 +348,7 @@ var (
 							Usage: "the target path of proto",
 						},
 					},
-					Action: rpc.RpcTemplate,
+					Action: rpc.RPCTemplate,
 				},
 				{
 					Name:  "proto",
@@ -375,7 +375,7 @@ var (
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.Rpc,
+					Action: rpc.RPC,
 				},
 			},
 		},
