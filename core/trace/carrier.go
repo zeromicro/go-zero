@@ -6,9 +6,11 @@ import (
 	"strings"
 )
 
+// ErrInvalidCarrier indicates an error that the carrier is invalid.
 var ErrInvalidCarrier = errors.New("invalid carrier")
 
 type (
+	// Carrier interface wraps the Get and Set method.
 	Carrier interface {
 		Get(key string) string
 		Set(key, value string)
