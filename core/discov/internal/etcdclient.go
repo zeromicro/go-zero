@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// EtcdClient interface represents an etcd client.
 type EtcdClient interface {
 	ActiveConnection() *grpc.ClientConn
 	Close() error
