@@ -8,6 +8,7 @@ import (
 )
 
 type (
+	// PoolOption defines the method to customize a Pool.
 	PoolOption func(*Pool)
 
 	node struct {
@@ -16,6 +17,11 @@ type (
 		lastUsed time.Duration
 	}
 
+	// A Pool is used to pool resources.
+	// The difference between sync.Pool is that:
+	//  1. the limit of the resouces
+	//  2. max age of the resources can be set
+	//  3. the method to destroy resources can be customized
 	Pool struct {
 		limit   int
 		created int
@@ -28,6 +34,7 @@ type (
 	}
 )
 
+// NewPool returns a Pool.
 func NewPool(n int, create func() interface{}, destroy func(interface{}), opts ...PoolOption) *Pool {
 	if n <= 0 {
 		panic("pool size can't be negative or zero")
@@ -49,6 +56,7 @@ func NewPool(n int, create func() interface{}, destroy func(interface{}), opts .
 	return pool
 }
 
+// Get gets a resouce.
 func (p *Pool) Get() interface{} {
 	p.lock.Lock()
 	defer p.lock.Unlock()
@@ -75,6 +83,7 @@ func (p *Pool) Get() interface{} {
 	}
 }
 
+// Put puts a resource back.
 func (p *Pool) Put(x interface{}) {
 	if x == nil {
 		return
@@ -91,6 +100,7 @@ func (p *Pool) Put(x interface{}) {
 	p.cond.Signal()
 }
 
+// WithMaxAge returns a function to customize a Pool with given max age.
 func WithMaxAge(duration time.Duration) PoolOption {
 	return func(pool *Pool) {
 		pool.maxAge = duration
