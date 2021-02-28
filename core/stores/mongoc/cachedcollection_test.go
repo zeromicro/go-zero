@@ -99,7 +99,7 @@ func TestStat(t *testing.T) {
 	defer clean()
 
 	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
-	c := newCollection(dummyConn{}, cach)
+	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	for i := 0; i < 10; i++ {
 		var str string
@@ -143,7 +143,7 @@ func TestStatDbFails(t *testing.T) {
 	defer clean()
 
 	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
-	c := newCollection(dummyConn{}, cach)
+	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	for i := 0; i < 20; i++ {
 		var str string
@@ -165,7 +165,7 @@ func TestStatFromMemory(t *testing.T) {
 	defer clean()
 
 	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
-	c := newCollection(dummyConn{}, cach)
+	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	var all sync.WaitGroup
 	var wait sync.WaitGroup
