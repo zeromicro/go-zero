@@ -6,6 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/core/breaker"
 )
 
+// ErrNotFound is an alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
 
 type (
@@ -25,8 +26,10 @@ type (
 		Transact(func(session Session) error) error
 	}
 
+	// SqlOption defines the method to customize a sql connection.
 	SqlOption func(*commonSqlConn)
 
+	// StmtSession interface represents a session that can be used to execute statements.
 	StmtSession interface {
 		Close() error
 		Exec(args ...interface{}) (sql.Result, error)
@@ -62,6 +65,7 @@ type (
 	}
 )
 
+// NewSqlConn returns a SqlConn with given driver name and datasource.
 func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		driverName: driverName,

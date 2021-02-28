@@ -36,7 +36,7 @@ func TestCacheNode_DelCache(t *testing.T) {
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	assert.Nil(t, cn.Del())
@@ -59,7 +59,7 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	s.Set("any", "value")
@@ -81,7 +81,7 @@ func TestCacheNode_Take(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	var str string
@@ -108,7 +108,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	var str string
@@ -147,7 +147,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 	var str string
@@ -174,7 +174,7 @@ func TestCacheNode_String(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 	assert.Equal(t, store.Addr, cn.String())
@@ -191,7 +191,7 @@ func TestCacheValueWithBigInt(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 

@@ -11,6 +11,7 @@ import (
 )
 
 type (
+	// Cache interface is used to define the cache implementation.
 	Cache interface {
 		Del(keys ...string) error
 		Get(key string, v interface{}) error
@@ -27,7 +28,8 @@ type (
 	}
 )
 
-func New(c ClusterConf, barrier syncx.SharedCalls, st *CacheStat, errNotFound error,
+// New returns a Cache.
+func New(c ClusterConf, barrier syncx.SharedCalls, st *Stat, errNotFound error,
 	opts ...Option) Cache {
 	if len(c) == 0 || TotalWeights(c) <= 0 {
 		log.Fatal("no cache nodes")
