@@ -20,8 +20,10 @@ const (
 var emptyBulkStmt bulkStmt
 
 type (
+	// ResultHandler defines the method of result handlers.
 	ResultHandler func(sql.Result, error)
 
+	// A BulkInserter is used to batch insert records.
 	BulkInserter struct {
 		executor *executors.PeriodicalExecutor
 		inserter *dbInserter
@@ -35,6 +37,7 @@ type (
 	}
 )
 
+// NewBulkInserter returns a BulkInserter.
 func NewBulkInserter(sqlConn SqlConn, stmt string) (*BulkInserter, error) {
 	bkStmt, err := parseInsertStmt(stmt)
 	if err != nil {
@@ -53,10 +56,12 @@ func NewBulkInserter(sqlConn SqlConn, stmt string) (*BulkInserter, error) {
 	}, nil
 }
 
+// Flush flushes all the pending records.
 func (bi *BulkInserter) Flush() {
 	bi.executor.Flush()
 }
 
+// Insert inserts given args.
 func (bi *BulkInserter) Insert(args ...interface{}) error {
 	value, err := format(bi.stmt.valueFormat, args...)
 	if err != nil {
@@ -68,17 +73,20 @@ func (bi *BulkInserter) Insert(args ...interface{}) error {
 	return nil
 }
 
+// SetResultHandler sets the given handler.
 func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 	bi.executor.Sync(func() {
 		bi.inserter.resultHandler = handler
 	})
 }
 
+// UpdateOrDelete runs update or delete queries, which flushes pending records first.
 func (bi *BulkInserter) UpdateOrDelete(fn func()) {
 	bi.executor.Flush()
 	fn()
 }
 
+// UpdateStmt updates the insert statement.
 func (bi *BulkInserter) UpdateStmt(stmt string) error {
 	bkStmt, err := parseInsertStmt(stmt)
 	if err != nil {

@@ -8,15 +8,44 @@ import (
 )
 
 var (
+	// ErrNotFound is an alias of mgo.ErrNotFound.
 	ErrNotFound = mgo.ErrNotFound
 
 	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
 	sharedCalls = syncx.NewSharedCalls()
-	stats       = cache.NewCacheStat("mongoc")
+	stats       = cache.NewStat("mongoc")
 )
 
 type (
+	// QueryOption defines the method to customize a mongo query.
 	QueryOption func(query mongo.Query) mongo.Query
+
+	// CachedCollection interface represents a mongo collection with cache.
+	CachedCollection interface {
+		Count(query interface{}) (int, error)
+		DelCache(keys ...string) error
+		FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error
+		FindOne(v interface{}, key string, query interface{}) error
+		FindOneNoCache(v interface{}, query interface{}) error
+		FindOneId(v interface{}, key string, id interface{}) error
+		FindOneIdNoCache(v interface{}, id interface{}) error
+		GetCache(key string, v interface{}) error
+		Insert(docs ...interface{}) error
+		Pipe(pipeline interface{}) mongo.Pipe
+		Remove(selector interface{}, keys ...string) error
+		RemoveNoCache(selector interface{}) error
+		RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error)
+		RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error)
+		RemoveId(id interface{}, keys ...string) error
+		RemoveIdNoCache(id interface{}) error
+		SetCache(key string, v interface{}) error
+		Update(selector, update interface{}, keys ...string) error
+		UpdateNoCache(selector, update interface{}) error
+		UpdateId(id, update interface{}, keys ...string) error
+		UpdateIdNoCache(id, update interface{}) error
+		Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error)
+		UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error)
+	}
 
 	cachedCollection struct {
 		collection mongo.Collection
@@ -24,7 +53,7 @@ type (
 	}
 )
 
-func newCollection(collection mongo.Collection, c cache.Cache) *cachedCollection {
+func newCollection(collection mongo.Collection, c cache.Cache) CachedCollection {
 	return &cachedCollection{
 		collection: collection,
 		cache:      c,
@@ -37,10 +66,6 @@ func (c *cachedCollection) Count(query interface{}) (int, error) {
 
 func (c *cachedCollection) DelCache(keys ...string) error {
 	return c.cache.Del(keys...)
-}
-
-func (c *cachedCollection) GetCache(key string, v interface{}) error {
-	return c.cache.Get(key, v)
 }
 
 func (c *cachedCollection) FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error {
@@ -73,6 +98,10 @@ func (c *cachedCollection) FindOneId(v interface{}, key string, id interface{}) 
 func (c *cachedCollection) FindOneIdNoCache(v interface{}, id interface{}) error {
 	q := c.collection.FindId(id)
 	return q.One(v)
+}
+
+func (c *cachedCollection) GetCache(key string, v interface{}) error {
+	return c.cache.Get(key, v)
 }
 
 func (c *cachedCollection) Insert(docs ...interface{}) error {

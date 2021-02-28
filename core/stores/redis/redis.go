@@ -12,9 +12,12 @@ import (
 )
 
 const (
+	// ClusterType means redis cluster.
 	ClusterType = "cluster"
-	NodeType    = "node"
-	Nil         = red.Nil
+	// NodeType means redis node.
+	NodeType = "node"
+	// Nil is an alias of redis.Nil.
+	Nil = red.Nil
 
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
@@ -22,9 +25,11 @@ const (
 	slowThreshold = time.Millisecond * 100
 )
 
+// ErrNilNode is an error that indicates a nil redis node.
 var ErrNilNode = errors.New("nil redis node")
 
 type (
+	// A Pair is a key/pair set used in redis zset.
 	Pair struct {
 		Key   string
 		Score int64
@@ -38,6 +43,7 @@ type (
 		brk  breaker.Breaker
 	}
 
+	// RedisNode interface represents a redis node.
 	RedisNode interface {
 		red.Cmdable
 	}
@@ -46,18 +52,24 @@ type (
 	GeoLocation = red.GeoLocation
 	// GeoRadiusQuery is used with GeoRadius to query geospatial index.
 	GeoRadiusQuery = red.GeoRadiusQuery
-	GeoPos         = red.GeoPos
+	// GeoPos is used to represent a geo position.
+	GeoPos = red.GeoPos
 
+	// Pipeliner is an alias of redis.Pipeliner.
 	Pipeliner = red.Pipeliner
 
 	// Z represents sorted set member.
-	Z      = red.Z
+	Z = red.Z
+	// ZStore is an alias of redis.ZStore.
 	ZStore = red.ZStore
 
-	IntCmd   = red.IntCmd
+	// IntCmd is an alias of redis.IntCmd.
+	IntCmd = red.IntCmd
+	// FloatCmd is an alias of redis.FloatCmd.
 	FloatCmd = red.FloatCmd
 )
 
+// NewRedis returns a Redis.
 func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 	var pass string
 	for _, v := range redisPass {
@@ -184,6 +196,8 @@ func (s *Redis) Blpop(redisNode RedisNode, key string) (string, error) {
 	return vals[1], nil
 }
 
+// BlpopEx uses passed in redis connection to execute blpop command.
+// The difference against Blpop is that this method returns a bool to indicate success.
 func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 	if redisNode == nil {
 		return "", false, ErrNilNode
@@ -201,6 +215,7 @@ func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 	return vals[1], true, nil
 }
 
+// Del deletes keys.
 func (s *Redis) Del(keys ...string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -220,6 +235,7 @@ func (s *Redis) Del(keys ...string) (val int, err error) {
 	return
 }
 
+// Eval is the implementation of redis eval command.
 func (s *Redis) Eval(script string, keys []string, args ...interface{}) (val interface{}, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -234,6 +250,7 @@ func (s *Redis) Eval(script string, keys []string, args ...interface{}) (val int
 	return
 }
 
+// Exists is the implementation of redis exists command.
 func (s *Redis) Exists(key string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -253,6 +270,7 @@ func (s *Redis) Exists(key string) (val bool, err error) {
 	return
 }
 
+// Expire is the implementation of redis expire command.
 func (s *Redis) Expire(key string, seconds int) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -264,6 +282,7 @@ func (s *Redis) Expire(key string, seconds int) error {
 	}, acceptable)
 }
 
+// Expireat is the implementation of redis expireat command.
 func (s *Redis) Expireat(key string, expireTime int64) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -275,6 +294,7 @@ func (s *Redis) Expireat(key string, expireTime int64) error {
 	}, acceptable)
 }
 
+// GeoAdd is the implementation of redis geoadd command.
 func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -293,6 +313,7 @@ func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (val int64, err 
 	return
 }
 
+// GeoDist is the implementation of redis geodist command.
 func (s *Redis) GeoDist(key string, member1, member2, unit string) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -311,6 +332,7 @@ func (s *Redis) GeoDist(key string, member1, member2, unit string) (val float64,
 	return
 }
 
+// GeoHash is the implementation of redis geohash command.
 func (s *Redis) GeoHash(key string, members ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -329,6 +351,7 @@ func (s *Redis) GeoHash(key string, members ...string) (val []string, err error)
 	return
 }
 
+// GeoRadius is the implementation of redis georadius command.
 func (s *Redis) GeoRadius(key string, longitude, latitude float64, query *GeoRadiusQuery) (val []GeoLocation, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -346,6 +369,8 @@ func (s *Redis) GeoRadius(key string, longitude, latitude float64, query *GeoRad
 	}, acceptable)
 	return
 }
+
+// GeoRadiusByMember is the implementation of redis georadiusbymember command.
 func (s *Redis) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) (val []GeoLocation, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -364,6 +389,7 @@ func (s *Redis) GeoRadiusByMember(key, member string, query *GeoRadiusQuery) (va
 	return
 }
 
+// GeoPos is the implementation of redis geopos command.
 func (s *Redis) GeoPos(key string, members ...string) (val []*GeoPos, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -382,6 +408,7 @@ func (s *Redis) GeoPos(key string, members ...string) (val []*GeoPos, err error)
 	return
 }
 
+// Get is the implementation of redis get command.
 func (s *Redis) Get(key string) (val string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -401,6 +428,7 @@ func (s *Redis) Get(key string) (val string, err error) {
 	return
 }
 
+// GetBit is the implementation of redis getbit command.
 func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -420,6 +448,7 @@ func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 	return
 }
 
+// Hdel is the implementation of redis hdel command.
 func (s *Redis) Hdel(key, field string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -439,6 +468,7 @@ func (s *Redis) Hdel(key, field string) (val bool, err error) {
 	return
 }
 
+// Hexists is the implementation of redis hexists command.
 func (s *Redis) Hexists(key, field string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -453,6 +483,7 @@ func (s *Redis) Hexists(key, field string) (val bool, err error) {
 	return
 }
 
+// Hget is the implementation of redis hget command.
 func (s *Redis) Hget(key, field string) (val string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -467,6 +498,7 @@ func (s *Redis) Hget(key, field string) (val string, err error) {
 	return
 }
 
+// Hgetall is the implementation of redis hgetall command.
 func (s *Redis) Hgetall(key string) (val map[string]string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -481,6 +513,7 @@ func (s *Redis) Hgetall(key string) (val map[string]string, err error) {
 	return
 }
 
+// Hincrby is the implementation of redis hincrby command.
 func (s *Redis) Hincrby(key, field string, increment int) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -500,6 +533,7 @@ func (s *Redis) Hincrby(key, field string, increment int) (val int, err error) {
 	return
 }
 
+// Hkeys is the implementation of redis hkeys command.
 func (s *Redis) Hkeys(key string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -514,6 +548,7 @@ func (s *Redis) Hkeys(key string) (val []string, err error) {
 	return
 }
 
+// Hlen is the implementation of redis hlen command.
 func (s *Redis) Hlen(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -533,6 +568,7 @@ func (s *Redis) Hlen(key string) (val int, err error) {
 	return
 }
 
+// Hmget is the implementation of redis hmget command.
 func (s *Redis) Hmget(key string, fields ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -552,6 +588,7 @@ func (s *Redis) Hmget(key string, fields ...string) (val []string, err error) {
 	return
 }
 
+// Hset is the implementation of redis hset command.
 func (s *Redis) Hset(key, field, value string) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -563,6 +600,7 @@ func (s *Redis) Hset(key, field, value string) error {
 	}, acceptable)
 }
 
+// Hsetnx is the implementation of redis hsetnx command.
 func (s *Redis) Hsetnx(key, field, value string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -577,6 +615,7 @@ func (s *Redis) Hsetnx(key, field, value string) (val bool, err error) {
 	return
 }
 
+// Hmset is the implementation of redis hmset command.
 func (s *Redis) Hmset(key string, fieldsAndValues map[string]string) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -593,6 +632,7 @@ func (s *Redis) Hmset(key string, fieldsAndValues map[string]string) error {
 	}, acceptable)
 }
 
+// Hscan is the implementation of redis hscan command.
 func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (keys []string, cur uint64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -607,6 +647,7 @@ func (s *Redis) Hscan(key string, cursor uint64, match string, count int64) (key
 	return
 }
 
+// Hvals is the implementation of redis hvals command.
 func (s *Redis) Hvals(key string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -621,6 +662,7 @@ func (s *Redis) Hvals(key string) (val []string, err error) {
 	return
 }
 
+// Incr is the implementation of redis incr command.
 func (s *Redis) Incr(key string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -635,6 +677,7 @@ func (s *Redis) Incr(key string) (val int64, err error) {
 	return
 }
 
+// Incrby is the implementation of redis incrby command.
 func (s *Redis) Incrby(key string, increment int64) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -649,6 +692,7 @@ func (s *Redis) Incrby(key string, increment int64) (val int64, err error) {
 	return
 }
 
+// Keys is the implementation of redis keys command.
 func (s *Redis) Keys(pattern string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -663,6 +707,7 @@ func (s *Redis) Keys(pattern string) (val []string, err error) {
 	return
 }
 
+// Llen is the implementation of redis llen command.
 func (s *Redis) Llen(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -682,6 +727,7 @@ func (s *Redis) Llen(key string) (val int, err error) {
 	return
 }
 
+// Lpop is the implementation of redis lpop command.
 func (s *Redis) Lpop(key string) (val string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -696,6 +742,7 @@ func (s *Redis) Lpop(key string) (val string, err error) {
 	return
 }
 
+// Lpush is the implementation of redis lpush command.
 func (s *Redis) Lpush(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -715,6 +762,7 @@ func (s *Redis) Lpush(key string, values ...interface{}) (val int, err error) {
 	return
 }
 
+// Lrange is the implementation of redis lrange command.
 func (s *Redis) Lrange(key string, start int, stop int) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -729,6 +777,7 @@ func (s *Redis) Lrange(key string, start int, stop int) (val []string, err error
 	return
 }
 
+// Lrem is the implementation of redis lrem command.
 func (s *Redis) Lrem(key string, count int, value string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -748,6 +797,7 @@ func (s *Redis) Lrem(key string, count int, value string) (val int, err error) {
 	return
 }
 
+// Mget is the implementation of redis mget command.
 func (s *Redis) Mget(keys ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -767,6 +817,7 @@ func (s *Redis) Mget(keys ...string) (val []string, err error) {
 	return
 }
 
+// Persist is the implementation of redis persist command.
 func (s *Redis) Persist(key string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -781,6 +832,7 @@ func (s *Redis) Persist(key string) (val bool, err error) {
 	return
 }
 
+// Pfadd is the implementation of redis pfadd command.
 func (s *Redis) Pfadd(key string, values ...interface{}) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -800,6 +852,7 @@ func (s *Redis) Pfadd(key string, values ...interface{}) (val bool, err error) {
 	return
 }
 
+// Pfcount is the implementation of redis pfcount command.
 func (s *Redis) Pfcount(key string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -814,6 +867,7 @@ func (s *Redis) Pfcount(key string) (val int64, err error) {
 	return
 }
 
+// Pfmerge is the implementation of redis pfmerge command.
 func (s *Redis) Pfmerge(dest string, keys ...string) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -826,6 +880,7 @@ func (s *Redis) Pfmerge(dest string, keys ...string) error {
 	}, acceptable)
 }
 
+// Ping is the implementation of redis ping command.
 func (s *Redis) Ping() (val bool) {
 	// ignore error, error means false
 	_ = s.brk.DoWithAcceptable(func() error {
@@ -848,6 +903,7 @@ func (s *Redis) Ping() (val bool) {
 	return
 }
 
+// Pipelined lets fn to execute pipelined commands.
 func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -863,6 +919,7 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 	return
 }
 
+// Rpop is the implementation of redis rpop command.
 func (s *Redis) Rpop(key string) (val string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -877,6 +934,7 @@ func (s *Redis) Rpop(key string) (val string, err error) {
 	return
 }
 
+// Rpush is the implementation of redis rpush command.
 func (s *Redis) Rpush(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -896,6 +954,7 @@ func (s *Redis) Rpush(key string, values ...interface{}) (val int, err error) {
 	return
 }
 
+// Sadd is the implementation of redis sadd command.
 func (s *Redis) Sadd(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -915,6 +974,7 @@ func (s *Redis) Sadd(key string, values ...interface{}) (val int, err error) {
 	return
 }
 
+// Scan is the implementation of redis scan command.
 func (s *Redis) Scan(cursor uint64, match string, count int64) (keys []string, cur uint64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -929,6 +989,7 @@ func (s *Redis) Scan(cursor uint64, match string, count int64) (keys []string, c
 	return
 }
 
+// SetBit is the implementation of redis setbit command.
 func (s *Redis) SetBit(key string, offset int64, value int) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -941,6 +1002,7 @@ func (s *Redis) SetBit(key string, offset int64, value int) error {
 	}, acceptable)
 }
 
+// Sscan is the implementation of redis sscan command.
 func (s *Redis) Sscan(key string, cursor uint64, match string, count int64) (keys []string, cur uint64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -955,6 +1017,7 @@ func (s *Redis) Sscan(key string, cursor uint64, match string, count int64) (key
 	return
 }
 
+// Scard is the implementation of redis scard command.
 func (s *Redis) Scard(key string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -969,6 +1032,7 @@ func (s *Redis) Scard(key string) (val int64, err error) {
 	return
 }
 
+// Set is the implementation of redis set command.
 func (s *Redis) Set(key string, value string) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -980,6 +1044,7 @@ func (s *Redis) Set(key string, value string) error {
 	}, acceptable)
 }
 
+// Setex is the implementation of redis setex command.
 func (s *Redis) Setex(key, value string, seconds int) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -991,6 +1056,7 @@ func (s *Redis) Setex(key, value string, seconds int) error {
 	}, acceptable)
 }
 
+// Setnx is the implementation of redis setnx command.
 func (s *Redis) Setnx(key, value string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1005,6 +1071,7 @@ func (s *Redis) Setnx(key, value string) (val bool, err error) {
 	return
 }
 
+// SetnxEx is the implementation of redis setnx command with expire.
 func (s *Redis) SetnxEx(key, value string, seconds int) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1019,6 +1086,7 @@ func (s *Redis) SetnxEx(key, value string, seconds int) (val bool, err error) {
 	return
 }
 
+// Sismember is the implementation of redis sismember command.
 func (s *Redis) Sismember(key string, value interface{}) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1033,6 +1101,7 @@ func (s *Redis) Sismember(key string, value interface{}) (val bool, err error) {
 	return
 }
 
+// Srem is the implementation of redis srem command.
 func (s *Redis) Srem(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1052,6 +1121,7 @@ func (s *Redis) Srem(key string, values ...interface{}) (val int, err error) {
 	return
 }
 
+// Smembers is the implementation of redis smembers command.
 func (s *Redis) Smembers(key string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1066,6 +1136,7 @@ func (s *Redis) Smembers(key string) (val []string, err error) {
 	return
 }
 
+// Spop is the implementation of redis spop command.
 func (s *Redis) Spop(key string) (val string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1080,6 +1151,7 @@ func (s *Redis) Spop(key string) (val string, err error) {
 	return
 }
 
+// Srandmember is the implementation of redis srandmember command.
 func (s *Redis) Srandmember(key string, count int) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1094,6 +1166,7 @@ func (s *Redis) Srandmember(key string, count int) (val []string, err error) {
 	return
 }
 
+// Sunion is the implementation of redis sunion command.
 func (s *Redis) Sunion(keys ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1108,6 +1181,7 @@ func (s *Redis) Sunion(keys ...string) (val []string, err error) {
 	return
 }
 
+// Sunionstore is the implementation of redis sunionstore command.
 func (s *Redis) Sunionstore(destination string, keys ...string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1127,6 +1201,7 @@ func (s *Redis) Sunionstore(destination string, keys ...string) (val int, err er
 	return
 }
 
+// Sdiff is the implementation of redis sdiff command.
 func (s *Redis) Sdiff(keys ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1141,6 +1216,7 @@ func (s *Redis) Sdiff(keys ...string) (val []string, err error) {
 	return
 }
 
+// Sdiffstore is the implementation of redis sdiffstore command.
 func (s *Redis) Sdiffstore(destination string, keys ...string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1160,6 +1236,7 @@ func (s *Redis) Sdiffstore(destination string, keys ...string) (val int, err err
 	return
 }
 
+// Ttl is the implementation of redis ttl command.
 func (s *Redis) Ttl(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1179,6 +1256,7 @@ func (s *Redis) Ttl(key string) (val int, err error) {
 	return
 }
 
+// Zadd is the implementation of redis zadd command.
 func (s *Redis) Zadd(key string, score int64, value string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1201,6 +1279,7 @@ func (s *Redis) Zadd(key string, score int64, value string) (val bool, err error
 	return
 }
 
+// Zadds is the implementation of redis zadds command.
 func (s *Redis) Zadds(key string, ps ...Pair) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1226,6 +1305,7 @@ func (s *Redis) Zadds(key string, ps ...Pair) (val int64, err error) {
 	return
 }
 
+// Zcard is the implementation of redis zcard command.
 func (s *Redis) Zcard(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1245,6 +1325,7 @@ func (s *Redis) Zcard(key string) (val int, err error) {
 	return
 }
 
+// Zcount is the implementation of redis zcount command.
 func (s *Redis) Zcount(key string, start, stop int64) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1264,6 +1345,7 @@ func (s *Redis) Zcount(key string, start, stop int64) (val int, err error) {
 	return
 }
 
+// Zincrby is the implementation of redis zincrby command.
 func (s *Redis) Zincrby(key string, increment int64, field string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1283,6 +1365,7 @@ func (s *Redis) Zincrby(key string, increment int64, field string) (val int64, e
 	return
 }
 
+// Zscore is the implementation of redis zscore command.
 func (s *Redis) Zscore(key string, value string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1302,6 +1385,7 @@ func (s *Redis) Zscore(key string, value string) (val int64, err error) {
 	return
 }
 
+// Zrank is the implementation of redis zrank command.
 func (s *Redis) Zrank(key, field string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1316,6 +1400,7 @@ func (s *Redis) Zrank(key, field string) (val int64, err error) {
 	return
 }
 
+// Zrem is the implementation of redis zrem command.
 func (s *Redis) Zrem(key string, values ...interface{}) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1335,6 +1420,7 @@ func (s *Redis) Zrem(key string, values ...interface{}) (val int, err error) {
 	return
 }
 
+// Zremrangebyscore is the implementation of redis zremrangebyscore command.
 func (s *Redis) Zremrangebyscore(key string, start, stop int64) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1355,6 +1441,7 @@ func (s *Redis) Zremrangebyscore(key string, start, stop int64) (val int, err er
 	return
 }
 
+// Zremrangebyrank is the implementation of redis zremrangebyrank command.
 func (s *Redis) Zremrangebyrank(key string, start, stop int64) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1374,6 +1461,7 @@ func (s *Redis) Zremrangebyrank(key string, start, stop int64) (val int, err err
 	return
 }
 
+// Zrange is the implementation of redis zrange command.
 func (s *Redis) Zrange(key string, start, stop int64) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1388,6 +1476,7 @@ func (s *Redis) Zrange(key string, start, stop int64) (val []string, err error) 
 	return
 }
 
+// ZrangeWithScores is the implementation of redis zrange command with scores.
 func (s *Redis) ZrangeWithScores(key string, start, stop int64) (val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1407,6 +1496,7 @@ func (s *Redis) ZrangeWithScores(key string, start, stop int64) (val []Pair, err
 	return
 }
 
+// ZRevRangeWithScores is the implementation of redis zrevrange command with scores.
 func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) (val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1426,6 +1516,7 @@ func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) (val []Pair, 
 	return
 }
 
+// ZrangebyscoreWithScores is the implementation of redis zrangebyscore command with scores.
 func (s *Redis) ZrangebyscoreWithScores(key string, start, stop int64) (val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1448,6 +1539,7 @@ func (s *Redis) ZrangebyscoreWithScores(key string, start, stop int64) (val []Pa
 	return
 }
 
+// ZrangebyscoreWithScoresAndLimit is the implementation of redis zrangebyscore command with scores and limit.
 func (s *Redis) ZrangebyscoreWithScoresAndLimit(key string, start, stop int64, page, size int) (
 	val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1477,6 +1569,7 @@ func (s *Redis) ZrangebyscoreWithScoresAndLimit(key string, start, stop int64, p
 	return
 }
 
+// Zrevrange is the implementation of redis zrevrange command.
 func (s *Redis) Zrevrange(key string, start, stop int64) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1491,6 +1584,7 @@ func (s *Redis) Zrevrange(key string, start, stop int64) (val []string, err erro
 	return
 }
 
+// ZrevrangebyscoreWithScores is the implementation of redis zrevrangebyscore command with scores.
 func (s *Redis) ZrevrangebyscoreWithScores(key string, start, stop int64) (val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1513,6 +1607,7 @@ func (s *Redis) ZrevrangebyscoreWithScores(key string, start, stop int64) (val [
 	return
 }
 
+// ZrevrangebyscoreWithScoresAndLimit is the implementation of redis zrevrangebyscore command with scores and limit.
 func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64, page, size int) (
 	val []Pair, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1542,6 +1637,7 @@ func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64
 	return
 }
 
+// Zrevrank is the implementation of redis zrevrank command.
 func (s *Redis) Zrevrank(key string, field string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1556,6 +1652,7 @@ func (s *Redis) Zrevrank(key string, field string) (val int64, err error) {
 	return
 }
 
+// Zunionstore is the implementation of redis zunionstore command.
 func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1570,6 +1667,7 @@ func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int6
 	return
 }
 
+// String returns the string representation of s.
 func (s *Redis) String() string {
 	return s.Addr
 }

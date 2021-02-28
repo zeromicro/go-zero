@@ -9,7 +9,8 @@ import (
 
 const statInterval = time.Minute
 
-type CacheStat struct {
+// A Stat is used to stat the cache.
+type Stat struct {
 	name string
 	// export the fields to let the unit tests working,
 	// reside in internal package, doesn't matter.
@@ -19,8 +20,9 @@ type CacheStat struct {
 	DbFails uint64
 }
 
-func NewCacheStat(name string) *CacheStat {
-	ret := &CacheStat{
+// NewStat returns a Stat.
+func NewStat(name string) *Stat {
+	ret := &Stat{
 		name: name,
 	}
 	go ret.statLoop()
@@ -28,37 +30,41 @@ func NewCacheStat(name string) *CacheStat {
 	return ret
 }
 
-func (cs *CacheStat) IncrementTotal() {
-	atomic.AddUint64(&cs.Total, 1)
+// IncrementTotal increments the total count.
+func (s *Stat) IncrementTotal() {
+	atomic.AddUint64(&s.Total, 1)
 }
 
-func (cs *CacheStat) IncrementHit() {
-	atomic.AddUint64(&cs.Hit, 1)
+// IncrementHit increments the hit count.
+func (s *Stat) IncrementHit() {
+	atomic.AddUint64(&s.Hit, 1)
 }
 
-func (cs *CacheStat) IncrementMiss() {
-	atomic.AddUint64(&cs.Miss, 1)
+// IncrementMiss increments the miss count.
+func (s *Stat) IncrementMiss() {
+	atomic.AddUint64(&s.Miss, 1)
 }
 
-func (cs *CacheStat) IncrementDbFails() {
-	atomic.AddUint64(&cs.DbFails, 1)
+// IncrementDbFails increments the db fail count.
+func (s *Stat) IncrementDbFails() {
+	atomic.AddUint64(&s.DbFails, 1)
 }
 
-func (cs *CacheStat) statLoop() {
+func (s *Stat) statLoop() {
 	ticker := time.NewTicker(statInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		total := atomic.SwapUint64(&cs.Total, 0)
+		total := atomic.SwapUint64(&s.Total, 0)
 		if total == 0 {
 			continue
 		}
 
-		hit := atomic.SwapUint64(&cs.Hit, 0)
+		hit := atomic.SwapUint64(&s.Hit, 0)
 		percent := 100 * float32(hit) / float32(total)
-		miss := atomic.SwapUint64(&cs.Miss, 0)
-		dbf := atomic.SwapUint64(&cs.DbFails, 0)
+		miss := atomic.SwapUint64(&s.Miss, 0)
+		dbf := atomic.SwapUint64(&s.DbFails, 0)
 		logx.Statf("dbcache(%s) - qpm: %d, hit_ratio: %.1f%%, hit: %d, miss: %d, db_fails: %d",
-			cs.name, total, percent, hit, miss, dbf)
+			s.name, total, percent, hit, miss, dbf)
 	}
 }
