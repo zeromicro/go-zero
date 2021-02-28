@@ -5,13 +5,16 @@ import (
 	"time"
 )
 
+// ErrTimeout is an error that indicates the borrow timeout.
 var ErrTimeout = errors.New("borrow timeout")
 
+// A TimeoutLimit is used to borrow with timeouts.
 type TimeoutLimit struct {
 	limit Limit
 	cond  *Cond
 }
 
+// NewTimeoutLimit returns a TimeoutLimit.
 func NewTimeoutLimit(n int) TimeoutLimit {
 	return TimeoutLimit{
 		limit: NewLimit(n),
@@ -19,6 +22,7 @@ func NewTimeoutLimit(n int) TimeoutLimit {
 	}
 }
 
+// Borrow borrows with given timeout.
 func (l TimeoutLimit) Borrow(timeout time.Duration) error {
 	if l.TryBorrow() {
 		return nil
@@ -37,6 +41,7 @@ func (l TimeoutLimit) Borrow(timeout time.Duration) error {
 	}
 }
 
+// Return returns a borrow.
 func (l TimeoutLimit) Return() error {
 	if err := l.limit.Return(); err != nil {
 		return err
@@ -46,6 +51,7 @@ func (l TimeoutLimit) Return() error {
 	return nil
 }
 
+// TryBorrow tries a borrow.
 func (l TimeoutLimit) TryBorrow() bool {
 	return l.limit.TryBorrow()
 }
