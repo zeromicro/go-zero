@@ -18,6 +18,7 @@ var (
 	lock         sync.Mutex
 )
 
+// SheddingHandler returns a middleware that does load shedding.
 func SheddingHandler(shedder load.Shedder, metrics *stat.Metrics) func(http.Handler) http.Handler {
 	if shedder == nil {
 		return func(next http.Handler) http.Handler {

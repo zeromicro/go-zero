@@ -25,13 +25,19 @@ const (
 )
 
 var (
+	// ErrInvalidContentType is an error that indicates invalid content type.
 	ErrInvalidContentType = errors.New("invalid content type")
-	ErrInvalidHeader      = errors.New("invalid X-Content-Security header")
-	ErrInvalidKey         = errors.New("invalid key")
-	ErrInvalidPublicKey   = errors.New("invalid public key")
-	ErrInvalidSecret      = errors.New("invalid secret")
+	// ErrInvalidHeader is an error that indicates invalid X-Content-Security header.
+	ErrInvalidHeader = errors.New("invalid X-Content-Security header")
+	// ErrInvalidKey is an error that indicates invalid key.
+	ErrInvalidKey = errors.New("invalid key")
+	// ErrInvalidPublicKey is an error that indicates invalid public key.
+	ErrInvalidPublicKey = errors.New("invalid public key")
+	// ErrInvalidSecret is an error that indicates invalid secret.
+	ErrInvalidSecret = errors.New("invalid secret")
 )
 
+// A ContentSecurityHeader is a content security header.
 type ContentSecurityHeader struct {
 	Key         []byte
 	Timestamp   string
@@ -39,10 +45,12 @@ type ContentSecurityHeader struct {
 	Signature   string
 }
 
+// Encrypted checks if it's a crypted request.
 func (h *ContentSecurityHeader) Encrypted() bool {
 	return h.ContentType == httpx.CryptionType
 }
 
+// ParseContentSecurity parses content security settings in give r.
 func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Request) (
 	*ContentSecurityHeader, error) {
 	contentSecurity := r.Header.Get(httpx.ContentSecurity)
@@ -88,6 +96,7 @@ func ParseContentSecurity(decrypters map[string]codec.RsaDecrypter, r *http.Requ
 	}, nil
 }
 
+// VerifySignature verifies the signature in given r.
 func VerifySignature(r *http.Request, securityHeader *ContentSecurityHeader, tolerance time.Duration) int {
 	seconds, err := strconv.ParseInt(securityHeader.Timestamp, 10, 64)
 	if err != nil {
