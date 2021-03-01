@@ -16,7 +16,7 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 			continue
 		}
 
-		if field.IsPrimaryKey {
+		if field.Name.Source() == table.PrimaryKey.Name.Source() {
 			continue
 		}
 
@@ -35,8 +35,8 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": camelTableName,
-			"primaryCacheKey":       table.CacheKey[table.PrimaryKey.Name.Source()].DataKeyExpression,
-			"primaryKeyVariable":    table.CacheKey[table.PrimaryKey.Name.Source()].Variable,
+			"primaryCacheKey":       table.PrimaryCacheKey.DataKeyExpression,
+			"primaryKeyVariable":    table.PrimaryCacheKey.KeyLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
 			"expressionValues":      strings.Join(expressionValues, ", "),

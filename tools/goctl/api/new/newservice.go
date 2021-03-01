@@ -1,6 +1,7 @@
 package new
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -33,6 +34,10 @@ func CreateServiceCommand(c *cli.Context) error {
 	dirName := args.First()
 	if len(dirName) == 0 {
 		dirName = "greet"
+	}
+
+	if strings.Contains(dirName, "-") {
+		return errors.New("api new command service name not support strikethrough, because this will used by function name")
 	}
 
 	abs, err := filepath.Abs(dirName)

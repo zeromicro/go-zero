@@ -11,6 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/core/mapping"
 )
 
+// ErrNotFound is the alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
 
 func desensitize(datasource string) string {

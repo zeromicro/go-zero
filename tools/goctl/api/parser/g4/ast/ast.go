@@ -7,7 +7,6 @@ import (
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
@@ -322,19 +321,4 @@ func (v *ApiVisitor) getHiddenTokensToRight(t TokenStream, channel int) []Expr {
 	}
 
 	return list
-}
-
-func (v *ApiVisitor) exportCheck(expr Expr) {
-	if expr == nil || !expr.IsNotNil() {
-		return
-	}
-
-	if api.IsBasicType(expr.Text()) {
-		return
-	}
-
-	if util.UnExport(expr.Text()) {
-		v.log.Warning("%s line %d:%d unexported declaration '%s', use %s instead", expr.Prefix(), expr.Line(),
-			expr.Column(), expr.Text(), strings.Title(expr.Text()))
-	}
 }

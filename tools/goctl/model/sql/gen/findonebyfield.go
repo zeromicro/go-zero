@@ -24,22 +24,40 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	t := util.With("findOneByField").Parse(text)
 	var list []string
 	camelTableName := table.Name.ToCamel()
-	for _, field := range table.Fields {
-		if field.IsPrimaryKey || !field.IsUniqueKey {
-			continue
+	for _, key := range table.UniqueCacheKey {
+		var inJoin, paramJoin, argJoin Join
+		for _, f := range key.Fields {
+			param := stringx.From(f.Name.ToCamel()).Untitle()
+			inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
+			paramJoin = append(paramJoin, param)
+			argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
 		}
-		camelFieldName := field.Name.ToCamel()
+		var in string
+		if len(inJoin) > 0 {
+			in = inJoin.With(", ").Source()
+		}
+
+		var paramJoinString string
+		if len(paramJoin) > 0 {
+			paramJoinString = paramJoin.With(",").Source()
+		}
+
+		var originalFieldString string
+		if len(argJoin) > 0 {
+			originalFieldString = argJoin.With(" and ").Source()
+		}
+
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
-			"upperField":                camelFieldName,
-			"in":                        fmt.Sprintf("%s %s", stringx.From(camelFieldName).Untitle(), field.DataType),
+			"upperField":                key.FieldNameJoin.Camel().With("").Source(),
+			"in":                        in,
 			"withCache":                 withCache,
-			"cacheKey":                  table.CacheKey[field.Name.Source()].KeyExpression,
-			"cacheKeyVariable":          table.CacheKey[field.Name.Source()].Variable,
+			"cacheKey":                  key.KeyExpression,
+			"cacheKeyVariable":          key.KeyLeft,
 			"lowerStartCamelObject":     stringx.From(camelTableName).Untitle(),
-			"lowerStartCamelField":      stringx.From(camelFieldName).Untitle(),
+			"lowerStartCamelField":      paramJoinString,
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
-			"originalField":             wrapWithRawString(field.Name.Source()),
+			"originalField":             originalFieldString,
 		})
 		if err != nil {
 			return nil, err
@@ -55,15 +73,22 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 
 	t = util.With("findOneByFieldMethod").Parse(text)
 	var listMethod []string
-	for _, field := range table.Fields {
-		if field.IsPrimaryKey || !field.IsUniqueKey {
-			continue
+	for _, key := range table.UniqueCacheKey {
+		var inJoin, paramJoin Join
+		for _, f := range key.Fields {
+			param := stringx.From(f.Name.ToCamel()).Untitle()
+			inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
+			paramJoin = append(paramJoin, param)
 		}
-		camelFieldName := field.Name.ToCamel()
+
+		var in string
+		if len(inJoin) > 0 {
+			in = inJoin.With(", ").Source()
+		}
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
-			"upperField":            camelFieldName,
-			"in":                    fmt.Sprintf("%s %s", stringx.From(camelFieldName).Untitle(), field.DataType),
+			"upperField":            key.FieldNameJoin.Camel().With("").Source(),
+			"in":                    in,
 		})
 		if err != nil {
 			return nil, err
@@ -80,7 +105,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 
 		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
-			"primaryKeyLeft":        table.CacheKey[table.PrimaryKey.Name.Source()].Left,
+			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source()),
 		})
