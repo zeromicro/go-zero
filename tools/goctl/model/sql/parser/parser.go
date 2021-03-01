@@ -354,12 +354,22 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		reply.UniqueIndex[indexName] = list
 	}
 
+	normalIndexSet := collection.NewSet()
 	for indexName, each := range table.NormalIndex {
 		var list []*Field
+		var normalJoin []string
 		for _, c := range each {
 			list = append(list, fieldM[c.Name])
+			normalJoin = append(normalJoin, c.Name)
 		}
 
+		normalKey := strings.Join(normalJoin, ",")
+		if normalIndexSet.Contains(normalKey) {
+			log.Warning("table %s: duplicate index, %s", table.Table, normalKey)
+			continue
+		}
+
+		normalIndexSet.AddStr(normalKey)
 		sort.Slice(list, func(i, j int) bool {
 			return list[i].SeqInIndex < list[j].SeqInIndex
 		})
