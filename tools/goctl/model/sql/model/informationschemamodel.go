@@ -128,6 +128,7 @@ func (m *InformationSchemaModel) FindColumns(db, table string) (*ColumnData, err
 	return &columnData, nil
 }
 
+// FindIndex finds index with given db, table and column.
 func (m *InformationSchemaModel) FindIndex(db, table, column string) ([]*DbIndex, error) {
 	querySql := `SELECT s.INDEX_NAME,s.NON_UNIQUE,s.SEQ_IN_INDEX from  STATISTICS s  WHERE  s.TABLE_SCHEMA = ? and s.TABLE_NAME = ? and s.COLUMN_NAME = ?`
 	var reply []*DbIndex

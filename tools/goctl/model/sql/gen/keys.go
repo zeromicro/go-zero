@@ -128,7 +128,7 @@ func (j Join) Snake() Join {
 	return join
 }
 
-// Snake convert items into Untitle and return
+// Untitle converts items into Untitle and return
 func (j Join) Untitle() Join {
 	var join Join
 	for _, each := range j {
