@@ -67,6 +67,7 @@ func init() {
 	}
 }
 
+// RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
 	total, err := totalCpuUsage()
 	if err != nil {
