@@ -7,18 +7,25 @@ import (
 )
 
 const (
-	DirectScheme    = "direct"
-	DiscovScheme    = "discov"
+	// DirectScheme stands for direct schema.
+	DirectScheme = "direct"
+	// DiscovSchema stands for discov schema.
+	DiscovScheme = "discov"
+	// EnpointSepChar is the separator cha in endpoints.
 	EndpointSepChar = ','
-	subsetSize      = 32
+
+	subsetSize = 32
 )
 
 var (
+	// EnpointSep is the separator string in endpoints.
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
-	dirBuilder  directBuilder
-	disBuilder  discovBuilder
+
+	dirBuilder directBuilder
+	disBuilder discovBuilder
 )
 
+// RegisterResolver registers the direct and discov schemas to the resolver.
 func RegisterResolver() {
 	resolver.Register(&dirBuilder)
 	resolver.Register(&disBuilder)

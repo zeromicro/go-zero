@@ -32,6 +32,7 @@ var (
 	})
 )
 
+// PrometheusInterceptor is an interceptor that reports to prometheus server.
 func PrometheusInterceptor(ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	startTime := timex.Now()
