@@ -24,13 +24,14 @@ var (
 )
 
 type (
-	// StudentModel defines a model for Student
+	// StudentModel only for test
 	StudentModel interface {
 		Insert(data Student) (sql.Result, error)
 		FindOne(id int64) (*Student, error)
-		FindOneByClassAndName(class string, name string) (*Student, error)
+		FindOneByClassName(class string, name string) (*Student, error)
 		Update(data Student) error
-		Delete(id int64, class, name string) error
+		// only for test
+		Delete(id int64, className, studentName string) error
 	}
 
 	defaultStudentModel struct {
@@ -38,7 +39,7 @@ type (
 		table string
 	}
 
-	// Student defines an data structure for mysql
+	// Student only for test
 	Student struct {
 		Id         int64           `db:"id"`
 		Class      string          `db:"class"`
@@ -50,7 +51,7 @@ type (
 	}
 )
 
-// NewStudentModel creates an instance for StudentModel
+// NewStudentModel only for test
 func NewStudentModel(conn sqlx.SqlConn, c cache.CacheConf) StudentModel {
 	return &defaultStudentModel{
 		CachedConn: sqlc.NewConn(conn, c),
@@ -84,7 +85,7 @@ func (m *defaultStudentModel) FindOne(id int64) (*Student, error) {
 	}
 }
 
-func (m *defaultStudentModel) FindOneByClassAndName(class string, name string) (*Student, error) {
+func (m *defaultStudentModel) FindOneByClassName(class string, name string) (*Student, error) {
 	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, class, name)
 	var resp Student
 	err := m.QueryRowIndex(&resp, studentClassNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
@@ -113,10 +114,9 @@ func (m *defaultStudentModel) Update(data Student) error {
 	return err
 }
 
-// transformed to make mock test pass
-func (m *defaultStudentModel) Delete(id int64, class, name string) error {
+func (m *defaultStudentModel) Delete(id int64, className, studentName string) error {
 	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, id)
-	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, class, name)
+	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, className, studentName)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.Exec(query, id)

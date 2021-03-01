@@ -91,8 +91,10 @@ func TestConvertColumn(t *testing.T) {
 			Table: "user",
 			Columns: []*model.Column{
 				{
-					Name:     "id",
-					DataType: "bigint",
+					DbColumn: &model.DbColumn{
+						Name:     "id",
+						DataType: "bigint",
+					},
 				},
 			},
 		}
@@ -107,15 +109,23 @@ func TestConvertColumn(t *testing.T) {
 			Table: "user",
 			Columns: []*model.Column{
 				{
-					Name:      "id",
-					DataType:  "bigint",
-					IndexName: "PRIMARY",
+					DbColumn: &model.DbColumn{
+						Name:     "id",
+						DataType: "bigint",
+					},
+					Index: &model.DbIndex{
+						IndexName: "PRIMARY",
+					},
 				},
 				{
-					Name:      "mobile",
-					DataType:  "varchar",
-					Comment:   "手机号",
-					IndexName: "PRIMARY",
+					DbColumn: &model.DbColumn{
+						Name:     "mobile",
+						DataType: "varchar",
+						Comment:  "手机号",
+					},
+					Index: &model.DbIndex{
+						IndexName: "PRIMARY",
+					},
 				},
 			},
 		}
@@ -130,28 +140,36 @@ func TestConvertColumn(t *testing.T) {
 			Table: "user",
 			Columns: []*model.Column{
 				{
-					Name:       "id",
-					DataType:   "bigint",
-					IndexName:  "PRIMARY",
-					Extra:      "auto_increment",
-					SeqInIndex: 1,
+					DbColumn: &model.DbColumn{
+						Name:     "id",
+						DataType: "bigint",
+						Extra:    "auto_increment",
+					},
+					Index: &model.DbIndex{
+						IndexName:  "PRIMARY",
+						SeqInIndex: 1,
+					},
 				},
 				{
-					Name:       "mobile",
-					DataType:   "varchar",
-					Comment:    "手机号",
-					IndexName:  "mobile_unique",
-					SeqInIndex: 1,
+					DbColumn: &model.DbColumn{
+						Name:     "mobile",
+						DataType: "varchar",
+						Comment:  "手机号",
+					},
+					Index: &model.DbIndex{
+						IndexName:  "mobile_unique",
+						SeqInIndex: 1,
+					},
 				},
 			},
 		}
 
 		table, err := columnData.Convert()
 		assert.Nil(t, err)
-		assert.True(t, table.PrimaryKey.IndexName == "PRIMARY" && table.PrimaryKey.Name == "id")
+		assert.True(t, table.PrimaryKey.Index.IndexName == "PRIMARY" && table.PrimaryKey.Name == "id")
 		for _, item := range table.Columns {
 			if item.Name == "mobile" {
-				assert.True(t, item.NonUnique == 0)
+				assert.True(t, item.Index.NonUnique == 0)
 				break
 			}
 		}

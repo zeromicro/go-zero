@@ -116,7 +116,7 @@ func TestStudentModel(t *testing.T) {
 			WithArgs(class, testUpdateName).
 			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel, redis *redis.Redis) {
-		result, err := m.FindOneByClassAndName(class, testUpdateName)
+		result, err := m.FindOneByClassName(class, testUpdateName)
 		assert.Nil(t, err)
 		assert.Equal(t, *result, data)
 

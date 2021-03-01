@@ -9,28 +9,31 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
+// Key describes cache key
 type Key struct {
-	// cacheUserIdPrefix
+	// VarLeft describes the varible of cache key expression which likes cacheUserIdPrefix
 	VarLeft string
-	// "cache#user#id#"
+	// VarRight describes the value of cache key expression which likes "cache#user#id#"
 	VarRight string
-	// cacheUserIdPrefix = "cache#user#id#"
+	// VarExpression describes the cache key expression which likes cacheUserIdPrefix = "cache#user#id#"
 	VarExpression string
-
-	// userKey
+	// KeyLeft describes the varible of key definiation expression which likes userKey
 	KeyLeft string
-	// fmt.Sprintf("%s%v", cacheUserPrefix, user)
+	// KeyRight describes the value of key definiation expression which likes fmt.Sprintf("%s%v", cacheUserPrefix, user)
 	KeyRight string
-	// fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
+	// DataKeyRight describes data key likes fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
 	DataKeyRight string
-	// userKey := fmt.Sprintf("%s%v", cacheUserPrefix, user)
+	// KeyExpression describes key expression likes userKey := fmt.Sprintf("%s%v", cacheUserPrefix, user)
 	KeyExpression string
-	// userKey := fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
+	// DataKeyExpression describes data key expression likes userKey := fmt.Sprintf("%s%v", cacheUserPrefix, data.User)
 	DataKeyExpression string
-	FieldNameJoin     Join
-	Fields            []*parser.Field
+	// FieldNameJoin describes the filed slice of table
+	FieldNameJoin Join
+	// Fields describes the fields of table
+	Fields []*parser.Field
 }
 
+// Join describes an alias of string slice
 type Join []string
 
 func genCacheKeys(table parser.Table) (Key, []Key) {
@@ -96,6 +99,7 @@ func genCacheKey(table stringx.String, in []*parser.Field) Key {
 	}
 }
 
+// Title convert items into Title and return
 func (j Join) Title() Join {
 	var join Join
 	for _, each := range j {
@@ -105,6 +109,7 @@ func (j Join) Title() Join {
 	return join
 }
 
+// Camel convert items into Camel and return
 func (j Join) Camel() Join {
 	var join Join
 	for _, each := range j {
@@ -113,6 +118,7 @@ func (j Join) Camel() Join {
 	return join
 }
 
+// Snake convert items into Snake and return
 func (j Join) Snake() Join {
 	var join Join
 	for _, each := range j {
@@ -122,6 +128,7 @@ func (j Join) Snake() Join {
 	return join
 }
 
+// Snake convert items into Untitle and return
 func (j Join) Untitle() Join {
 	var join Join
 	for _, each := range j {
@@ -131,6 +138,7 @@ func (j Join) Untitle() Join {
 	return join
 }
 
+// Upper convert items into Upper and return
 func (j Join) Upper() Join {
 	var join Join
 	for _, each := range j {
@@ -140,6 +148,7 @@ func (j Join) Upper() Join {
 	return join
 }
 
+// Lower convert items into Lower and return
 func (j Join) Lower() Join {
 	var join Join
 	for _, each := range j {
@@ -149,6 +158,7 @@ func (j Join) Lower() Join {
 	return join
 }
 
+// With convert items into With and return
 func (j Join) With(sep string) stringx.String {
 	return stringx.From(strings.Join(j, sep))
 }
