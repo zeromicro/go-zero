@@ -159,7 +159,7 @@ func TestUserModel(t *testing.T) {
 	)
 
 	var data User
-	data.Id = testInsertId
+	data.ID = testInsertId
 	data.User = testUser
 	data.Name = "gozero"
 	data.Password = testPassword

@@ -32,6 +32,11 @@ func (s String) Lower() string {
 	return strings.ToLower(s.source)
 }
 
+// Upper calls the strings.ToUpper
+func (s String) Upper() string {
+	return strings.ToUpper(s.source)
+}
+
 // ReplaceAll calls the strings.ReplaceAll
 func (s String) ReplaceAll(old, new string) string {
 	return strings.ReplaceAll(s.source, old, new)
