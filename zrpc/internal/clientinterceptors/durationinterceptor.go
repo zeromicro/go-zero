@@ -12,6 +12,7 @@ import (
 
 const slowThreshold = time.Millisecond * 500
 
+// DurationInterceptor is an interceptor that logs the processing time.
 func DurationInterceptor(ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	serverName := path.Join(cc.Target(), method)

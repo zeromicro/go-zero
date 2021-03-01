@@ -13,6 +13,7 @@ const (
 	envPodIp = "POD_IP"
 )
 
+// NewRpcPubServer returns a Server.
 func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn string, opts ...ServerOption) (Server, error) {
 	registerEtcd := func() error {
 		pubListenOn := figureOutListenOn(listenOn)

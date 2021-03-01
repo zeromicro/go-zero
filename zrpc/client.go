@@ -11,23 +11,27 @@ import (
 )
 
 var (
-	WithDialOption             = internal.WithDialOption
-	WithTimeout                = internal.WithTimeout
+	// WithDialOption is an alias of internal.WithDialOption.
+	WithDialOption = internal.WithDialOption
+	// WithTimeout is an alias of internal.WithTimeout.
+	WithTimeout = internal.WithTimeout
+	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
 
 type (
+	// Client is an alias of internal.Client.
+	Client = internal.Client
+	// ClientOption is an alias of internal.ClientOption.
 	ClientOption = internal.ClientOption
 
-	Client interface {
-		Conn() *grpc.ClientConn
-	}
-
+	// A RpcClient is a rpc client.
 	RpcClient struct {
 		client Client
 	}
 )
 
+// MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
 	if err != nil {
@@ -37,6 +41,7 @@ func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	return cli
 }
 
+// NewClient returns a Client.
 func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	var opts []ClientOption
 	if c.HasCredential() {
@@ -66,6 +71,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	}, nil
 }
 
+// NewClientNoAuth returns a Client without authentication.
 func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
 	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
 	if err != nil {
@@ -77,10 +83,12 @@ func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
 	}, nil
 }
 
+// NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 	return internal.NewClient(target, opts...)
 }
 
+// Conn returns the underlying grpc.ClientConn.
 func (rc *RpcClient) Conn() *grpc.ClientConn {
 	return rc.client.Conn()
 }

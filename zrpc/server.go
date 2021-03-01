@@ -13,11 +13,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+// A RpcServer is a rpc server.
 type RpcServer struct {
 	server   internal.Server
 	register internal.RegisterFn
 }
 
+// MustNewServer returns a RpcSever, exits on any error.
 func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
 	if err != nil {
@@ -27,6 +29,7 @@ func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	return server
 }
 
+// NewServer returns a RpcServer.
 func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error) {
 	var err error
 	if err = c.Validate(); err != nil {
@@ -60,18 +63,22 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	return rpcServer, nil
 }
 
+// AddOptions adds given options.
 func (rs *RpcServer) AddOptions(options ...grpc.ServerOption) {
 	rs.server.AddOptions(options...)
 }
 
+// AddStreamInterceptors adds given stream interceptors.
 func (rs *RpcServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
 	rs.server.AddStreamInterceptors(interceptors...)
 }
 
+// AddUnaryInterceptors adds given unary interceptors.
 func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
 	rs.server.AddUnaryInterceptors(interceptors...)
 }
 
+// Start starts the RpcServer.
 func (rs *RpcServer) Start() {
 	if err := rs.server.Start(rs.register); err != nil {
 		logx.Error(err)
@@ -79,6 +86,7 @@ func (rs *RpcServer) Start() {
 	}
 }
 
+// Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
 	logx.Close()
 }

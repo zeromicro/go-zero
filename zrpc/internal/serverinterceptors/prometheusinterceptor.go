@@ -32,6 +32,7 @@ var (
 	})
 )
 
+// UnaryPrometheusInterceptor returns a func that reports to the prometheus server.
 func UnaryPrometheusInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
 		interface{}, error) {

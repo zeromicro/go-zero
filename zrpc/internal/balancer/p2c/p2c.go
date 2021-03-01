@@ -20,7 +20,9 @@ import (
 )
 
 const (
-	Name            = "p2c_ewma"
+	// Name is the name of p2c balancer.
+	Name = "p2c_ewma"
+
 	decayTime       = int64(time.Second * 10) // default value from finagle
 	forcePick       = int64(time.Second)
 	initSuccess     = 1000
