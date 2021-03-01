@@ -78,9 +78,4 @@ func TestRpcGenerate(t *testing.T) {
 			return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
 		}())
 	}
-
-	// invalid directory
-	projectDir = filepath.Join(t.TempDir(), ".....")
-	err = g.Generate("./test.proto", projectDir, nil)
-	assert.NotNil(t, err)
 }

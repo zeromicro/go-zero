@@ -11,8 +11,8 @@ fromDDLWithoutCache:
 
 
 # generate model with cache from data source
-user=ugozero
-password=
+user=root
+password=password
 datasource=127.0.0.1:3306
 database=gozero
 
