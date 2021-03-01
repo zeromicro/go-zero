@@ -14,8 +14,10 @@ import (
 const claimHistoryResetDuration = time.Hour * 24
 
 type (
+	// ParseOption defines the method to customize a TokenParser.
 	ParseOption func(parser *TokenParser)
 
+	// A TokenParser is used to parse tokens.
 	TokenParser struct {
 		resetTime     time.Duration
 		resetDuration time.Duration
@@ -23,6 +25,7 @@ type (
 	}
 )
 
+// NewTokenParser returns a TokenParser.
 func NewTokenParser(opts ...ParseOption) *TokenParser {
 	parser := &TokenParser{
 		resetTime:     timex.Now(),
@@ -36,6 +39,7 @@ func NewTokenParser(opts ...ParseOption) *TokenParser {
 	return parser
 }
 
+// ParseToken parses token from given r, with passed in secret and prevSecret.
 func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*jwt.Token, error) {
 	var token *jwt.Token
 	var err error
@@ -108,6 +112,7 @@ func (tp *TokenParser) loadCount(secret string) uint64 {
 	return 0
 }
 
+// WithResetDuration returns a func to customize a TokenParser with reset duration.
 func WithResetDuration(duration time.Duration) ParseOption {
 	return func(parser *TokenParser) {
 		parser.resetDuration = duration

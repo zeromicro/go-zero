@@ -8,12 +8,14 @@ import (
 	"github.com/tal-tech/go-zero/core/proc"
 )
 
+// StartHttp starts a http server.
 func StartHttp(host string, port int, handler http.Handler) error {
 	return start(host, port, handler, func(srv *http.Server) error {
 		return srv.ListenAndServe()
 	})
 }
 
+// StartHttps starts a https server.
 func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler) error {
 	return start(host, port, handler, func(srv *http.Server) error {
 		// certFile and keyFile are set in buildHttpsServer

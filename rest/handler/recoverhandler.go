@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
+// RecoverHandler returns a middleware that recovers if panic happens.
 func RecoverHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
