@@ -58,6 +58,9 @@ func (r *K8sRegistry) NewSubscriber(service *Service) Subscriber {
 }
 
 func (r *K8sRegistry) GetServices(service *Service) []*ServiceInstance {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	if value, ok := r.services[service.EpName()]; ok {
 		var ret []*ServiceInstance
 

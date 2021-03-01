@@ -83,11 +83,13 @@ func (e *EndpointController) endpointAdd(obj interface{}) {
 	}
 
 	e.lock.Lock()
-	copyListeners := append([]OnUpdateFunc(nil), e.updatefuncs[epName]...)
+	funcs := append([]OnUpdateFunc(nil), e.updatefuncs[epName]...)
 	e.lock.Unlock()
 
-	for _, l := range copyListeners {
-		l(getReadyAddress(endpoints))
+	for _, f := range funcs {
+		if f != nil {
+			f(getReadyAddress(endpoints))
+		}
 	}
 }
 
@@ -109,13 +111,13 @@ func (e *EndpointController) endpointUpdate(old, new interface{}) {
 	}
 
 	e.lock.Lock()
-	var updateFuncs []OnUpdateFunc
-	updateFuncs = append(updateFuncs, e.updatefuncs[epName]...)
+	var funcs []OnUpdateFunc
+	funcs = append(funcs, e.updatefuncs[epName]...)
 	e.lock.Unlock()
 
-	for _, l := range updateFuncs {
-		if l != nil {
-			l(newAddress)
+	for _, f := range funcs {
+		if f != nil {
+			f(newAddress)
 		}
 	}
 
@@ -129,11 +131,13 @@ func (e *EndpointController) endpointDelete(obj interface{}) {
 		return
 	}
 	e.lock.Lock()
-	copyListeners := append([]OnUpdateFunc(nil), e.updatefuncs[epName]...)
+	funcs := append([]OnUpdateFunc(nil), e.updatefuncs[epName]...)
 	e.lock.Unlock()
 
-	for _, l := range copyListeners {
-		l(nil)
+	for _, f := range funcs {
+		if f != nil {
+			f(nil)
+		}
 	}
 }
 

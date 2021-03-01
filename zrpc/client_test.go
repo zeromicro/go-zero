@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/tal-tech/go-zero/zrpc/internal"
-	"google.golang.org/grpc/connectivity"
 	"log"
 	"net"
 	"testing"
@@ -118,10 +117,10 @@ func TestNewClientWithTarget(t *testing.T) {
 	//client, err := NewClientWithTarget("kubernetes://nginx-service.default:80")
 	//client, err := NewClientWithTarget("discov://nginx-service.default:80")
 
-	client, err := internal.NewClient(internal.BuildDiscovk8sTarget("transform-svc", "default", 8081))
-
+	client, err := internal.NewClient(internal.BuildDiscovK8sTarget("k8s:///transform-svc.default:8081"))
+	fmt.Println(client, err)
 	select {}
-	assert.Nil(t, err)
+	//assert.Nil(t, err)
 
-	assert.Equal(t, client.Conn().GetState(), connectivity.Ready)
+	//assert.Equal(t, client.Conn().GetState(), connectivity.Ready)
 }

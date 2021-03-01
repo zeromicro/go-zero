@@ -9,7 +9,7 @@ import (
 const (
 	DirectScheme    = "direct"
 	DiscovScheme    = "discov"
-	DiscovK8sScheme = "kubernetes"
+	DiscovK8sScheme = "k8s"
 	EndpointSepChar = ','
 	subsetSize      = 32
 )

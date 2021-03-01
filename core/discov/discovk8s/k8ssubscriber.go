@@ -14,7 +14,9 @@ func (s *K8sSubscriber) SetUpdateFunc(f func()) {
 }
 
 func (s *K8sSubscriber) OnUpdate() {
-	s.updateFunc()
+	if s.updateFunc != nil {
+		s.updateFunc()
+	}
 }
 
 func (s *K8sSubscriber) Values() []string {

@@ -2,6 +2,7 @@ package zrpc
 
 import (
 	"log"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/discov"
@@ -53,12 +54,15 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	var client Client
 	var err error
 	if len(c.Endpoints) > 0 {
-		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
+		if !shoudBuildK8sTarget(c.Endpoints) {
+			client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
+		} else {
+			client, err = internal.NewClient(internal.BuildDiscovK8sTarget(c.Endpoints[0]))
+		}
 	} else if err = c.Etcd.Validate(); err == nil {
 		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
-	} else if err = c.K8s.Validate(); err == nil {
-		client, err = internal.NewClient(internal.BuildDiscovk8sTarget(c.K8s.Name, c.K8s.Namespace, c.K8s.Port))
 	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -66,6 +70,13 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	return &RpcClient{
 		client: client,
 	}, nil
+}
+
+func shoudBuildK8sTarget(endpoints []string) bool {
+	if len(endpoints) == 1 && strings.HasPrefix(endpoints[0], "k8s:///") {
+		return true
+	}
+	return false
 }
 
 func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {

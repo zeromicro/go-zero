@@ -8,7 +8,6 @@ import (
 
 	"time"
 )
-import "github.com/tal-tech/go-zero/core/logx"
 
 // K8sClient is the k8s regular client struct
 type K8sClient struct {
@@ -20,7 +19,7 @@ type K8sClient struct {
 // NewK8sClient generate a kubernetes client
 func NewK8sClient(kubeconfig string) (*K8sClient, error) {
 	// Get k8s config
-	config, err := GetK8sConfig(kubeconfig)
+	config, err := getK8sConfig(kubeconfig)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +27,6 @@ func NewK8sClient(kubeconfig string) (*K8sClient, error) {
 	// Creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		logx.Error("new k8s client error", "error", err)
 		return nil, err
 	}
 	factory := informers.NewSharedInformerFactory(clientset, time.Hour*24)
@@ -44,8 +42,8 @@ func NewK8sClient(kubeconfig string) (*K8sClient, error) {
 	}, nil
 }
 
-// GetK8sConfig to get K8s config
-func GetK8sConfig(kubeconfig string) (*rest.Config, error) {
+// getK8sConfig to get K8s config
+func getK8sConfig(kubeconfig string) (*rest.Config, error) {
 	var (
 		config *rest.Config
 		err    error

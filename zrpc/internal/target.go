@@ -17,7 +17,7 @@ func BuildDiscovTarget(endpoints []string, key string) string {
 		strings.Join(endpoints, resolver.EndpointSep), key)
 }
 
-// The target format is: kubernetes://service-name.namespace:8080/
-func BuildDiscovk8sTarget(name string, namespace string, port uint32) string {
-	return fmt.Sprintf("%s://%s.%s:%v/", resolver.DiscovK8sScheme, name, namespace, port)
+// The target format is: k8s:///service-name.namespace:8080
+func BuildDiscovK8sTarget(name string) string {
+	return name
 }
