@@ -24,6 +24,7 @@ var (
 )
 
 type (
+	// StudentModel defines a model for Student
 	StudentModel interface {
 		Insert(data Student) (sql.Result, error)
 		FindOne(id int64) (*Student, error)
@@ -37,6 +38,7 @@ type (
 		table string
 	}
 
+	// Student defines an data structure for mysql
 	Student struct {
 		Id         int64           `db:"id"`
 		Class      string          `db:"class"`
@@ -48,6 +50,7 @@ type (
 	}
 )
 
+// NewStudentModel creates an instance for StudentModel
 func NewStudentModel(conn sqlx.SqlConn, c cache.CacheConf) StudentModel {
 	return &defaultStudentModel{
 		CachedConn: sqlc.NewConn(conn, c),

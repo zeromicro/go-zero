@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// DartCommand create dart network request code
 func DartCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")

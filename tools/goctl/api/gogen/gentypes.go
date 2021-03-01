@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +25,7 @@ import (
 `
 )
 
+// BuildTypes gen types to string
 func BuildTypes(types []spec.Type) (string, error) {
 	var builder strings.Builder
 	first := true
@@ -76,7 +76,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 func writeType(writer io.Writer, tp spec.Type) error {
 	structType, ok := tp.(spec.DefineStruct)
 	if !ok {
-		return errors.New(fmt.Sprintf("unspport struct type: %s", tp.Name()))
+		return fmt.Errorf("unspport struct type: %s", tp.Name())
 	}
 
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
@@ -84,9 +84,9 @@ func writeType(writer io.Writer, tp spec.Type) error {
 		if member.IsInline {
 			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
 				return err
-			} else {
-				continue
 			}
+
+			continue
 		}
 
 		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {

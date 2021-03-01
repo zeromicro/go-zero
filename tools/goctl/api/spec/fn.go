@@ -16,6 +16,7 @@ const (
 
 var definedKeys = []string{bodyTagKey, formTagKey, "path"}
 
+// Routes returns all routes in api service
 func (s Service) Routes() []Route {
 	var result []Route
 	for _, group := range s.Groups {
@@ -24,6 +25,7 @@ func (s Service) Routes() []Route {
 	return result
 }
 
+// Tags retuens all tags in Member
 func (m Member) Tags() []*Tag {
 	tags, err := Parse(m.Tag)
 	if err != nil {
@@ -33,6 +35,7 @@ func (m Member) Tags() []*Tag {
 	return tags.Tags()
 }
 
+// IsOptional returns true if tag is optional
 func (m Member) IsOptional() bool {
 	if !m.IsBodyMember() {
 		return false
@@ -49,6 +52,7 @@ func (m Member) IsOptional() bool {
 	return false
 }
 
+// IsOmitEmpty returns true if tag contains omitempty
 func (m Member) IsOmitEmpty() bool {
 	if !m.IsBodyMember() {
 		return false
@@ -65,22 +69,7 @@ func (m Member) IsOmitEmpty() bool {
 	return false
 }
 
-func (m Member) IsOmitempty() bool {
-	if !m.IsBodyMember() {
-		return false
-	}
-
-	tag := m.Tags()
-	for _, item := range tag {
-		if item.Key == bodyTagKey {
-			if stringx.Contains(item.Options, "omitempty") {
-				return true
-			}
-		}
-	}
-	return false
-}
-
+// GetPropertyName returns json tag value
 func (m Member) GetPropertyName() (string, error) {
 	tags := m.Tags()
 	for _, tag := range tags {
@@ -95,10 +84,12 @@ func (m Member) GetPropertyName() (string, error) {
 	return "", errors.New("json property name not exist, member: " + m.Name)
 }
 
+// GetComment returns comment value of Member
 func (m Member) GetComment() string {
 	return strings.TrimSpace(m.Comment)
 }
 
+// IsBodyMember returns true if contains json tag
 func (m Member) IsBodyMember() bool {
 	if m.IsInline {
 		return true
@@ -113,6 +104,7 @@ func (m Member) IsBodyMember() bool {
 	return false
 }
 
+// IsFormMember returns true if contains form tag
 func (m Member) IsFormMember() bool {
 	if m.IsInline {
 		return false
@@ -127,6 +119,7 @@ func (m Member) IsFormMember() bool {
 	return false
 }
 
+// GetBodyMembers returns all json fields
 func (t DefineStruct) GetBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
@@ -137,6 +130,7 @@ func (t DefineStruct) GetBodyMembers() []Member {
 	return result
 }
 
+// GetFormMembers returns all form fields
 func (t DefineStruct) GetFormMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
@@ -147,6 +141,7 @@ func (t DefineStruct) GetFormMembers() []Member {
 	return result
 }
 
+// GetNonBodyMembers retruns all have no tag fields
 func (t DefineStruct) GetNonBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
@@ -157,6 +152,7 @@ func (t DefineStruct) GetNonBodyMembers() []Member {
 	return result
 }
 
+// JoinedDoc joins comments and summary value in AtDoc
 func (r Route) JoinedDoc() string {
 	doc := r.AtDoc.Text
 	if r.AtDoc.Properties != nil {
@@ -166,6 +162,7 @@ func (r Route) JoinedDoc() string {
 	return strings.TrimSpace(doc)
 }
 
+// GetAnnotation returns the value by specified key
 func (r Route) GetAnnotation(key string) string {
 	if r.Annotation.Properties == nil {
 		return ""
@@ -174,6 +171,7 @@ func (r Route) GetAnnotation(key string) string {
 	return r.Annotation.Properties[key]
 }
 
+// GetAnnotation returns the value by specified key
 func (g Group) GetAnnotation(key string) string {
 	if g.Annotation.Properties == nil {
 		return ""
@@ -182,6 +180,7 @@ func (g Group) GetAnnotation(key string) string {
 	return g.Annotation.Properties[key]
 }
 
+// ResponseTypeName returns response type name of route
 func (r Route) ResponseTypeName() string {
 	if r.ResponseType == nil {
 		return ""
@@ -190,6 +189,7 @@ func (r Route) ResponseTypeName() string {
 	return r.ResponseType.Name()
 }
 
+// RequestTypeName returns request type name of route
 func (r Route) RequestTypeName() string {
 	if r.RequestType == nil {
 		return ""

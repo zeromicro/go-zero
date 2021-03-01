@@ -6,6 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/core/breaker"
 )
 
+// ErrNotFound is an alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
 
 type (
@@ -25,8 +26,10 @@ type (
 		Transact(func(session Session) error) error
 	}
 
+	// SqlOption defines the method to customize a sql connection.
 	SqlOption func(*commonSqlConn)
 
+	// StmtSession interface represents a session that can be used to execute statements.
 	StmtSession interface {
 		Close() error
 		Exec(args ...interface{}) (sql.Result, error)
@@ -62,6 +65,7 @@ type (
 	}
 )
 
+// NewSqlConn returns a SqlConn with given driver name and datasource.
 func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		driverName: driverName,
@@ -101,14 +105,15 @@ func (db *commonSqlConn) Prepare(query string) (stmt StmtSession, err error) {
 			return err
 		}
 
-		if st, err := conn.Prepare(query); err != nil {
+		st, err := conn.Prepare(query)
+		if err != nil {
 			return err
-		} else {
-			stmt = statement{
-				stmt: st,
-			}
-			return nil
 		}
+
+		stmt = statement{
+			stmt: st,
+		}
+		return nil
 	}, db.acceptable)
 
 	return
@@ -148,9 +153,9 @@ func (db *commonSqlConn) acceptable(err error) bool {
 	ok := err == nil || err == sql.ErrNoRows || err == sql.ErrTxDone
 	if db.accept == nil {
 		return ok
-	} else {
-		return ok || db.accept(err)
 	}
+
+	return ok || db.accept(err)
 }
 
 func (db *commonSqlConn) queryRows(scanner func(*sql.Rows) error, q string, args ...interface{}) error {

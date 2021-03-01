@@ -16,7 +16,7 @@ func TestParsePlainText(t *testing.T) {
 
 func TestParseSelect(t *testing.T) {
 	_, err := Parse("select * from user")
-	assert.Equal(t, unSupportDDL, err)
+	assert.Equal(t, errUnsupportDDL, err)
 }
 
 func TestParseCreateTable(t *testing.T) {

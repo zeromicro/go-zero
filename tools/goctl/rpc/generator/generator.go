@@ -5,6 +5,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 )
 
+// Generator defines a generator interface to describe how to generate rpc service
 type Generator interface {
 	Prepare() error
 	GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config) error

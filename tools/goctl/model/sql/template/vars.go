@@ -2,6 +2,7 @@ package template
 
 import "fmt"
 
+// Vars defines a template for var block in model
 var Vars = fmt.Sprintf(`
 var (
 	{{.lowerStartCamelObject}}FieldNames          = builderx.RawFieldNames(&{{.upperStartCamelObject}}{})

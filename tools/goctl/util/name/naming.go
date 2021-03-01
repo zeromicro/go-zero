@@ -1,3 +1,5 @@
+// Package name provides methods to verify naming style and format naming style
+// See the method IsNamingValid, FormatFilename
 package name
 
 import (
@@ -6,11 +8,15 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
+// NamingStyle the type of string
 type NamingStyle = string
 
 const (
+	// NamingLower defines the lower spell case
 	NamingLower NamingStyle = "lower"
+	// NamingCamel defines the camel spell case
 	NamingCamel NamingStyle = "camel"
+	// NamingSnake defines the snake spell case
 	NamingSnake NamingStyle = "snake"
 )
 
@@ -29,6 +35,8 @@ func IsNamingValid(namingStyle string) (NamingStyle, bool) {
 	}
 }
 
+// FormatFilename converts the filename string to the target
+// naming style by calling method of stringx
 func FormatFilename(filename string, style NamingStyle) string {
 	switch style {
 	case NamingCamel:

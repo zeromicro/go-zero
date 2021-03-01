@@ -27,9 +27,13 @@ end`
 )
 
 const (
+	// Unknown means not initialized state.
 	Unknown = iota
+	// Allowed means allowed state.
 	Allowed
+	// HitQuota means this request exactly hit the quota.
 	HitQuota
+	// OverQuota means passed the quota.
 	OverQuota
 
 	internalOverQuota = 0
@@ -37,11 +41,14 @@ const (
 	internalHitQuota  = 2
 )
 
+// ErrUnknownCode is an error that represents unknown status code.
 var ErrUnknownCode = errors.New("unknown status code")
 
 type (
-	LimitOption func(l *PeriodLimit)
+	// PeriodOption defines the method to customize a PeriodLimit.
+	PeriodOption func(l *PeriodLimit)
 
+	// A PeriodLimit is used to limit requests during a period of time.
 	PeriodLimit struct {
 		period     int
 		quota      int
@@ -51,8 +58,9 @@ type (
 	}
 )
 
+// NewPeriodLimit returns a PeriodLimit with given parameters.
 func NewPeriodLimit(period, quota int, limitStore *redis.Redis, keyPrefix string,
-	opts ...LimitOption) *PeriodLimit {
+	opts ...PeriodOption) *PeriodLimit {
 	limiter := &PeriodLimit{
 		period:     period,
 		quota:      quota,
@@ -67,6 +75,7 @@ func NewPeriodLimit(period, quota int, limitStore *redis.Redis, keyPrefix string
 	return limiter
 }
 
+// Take requests a permit, it returns the permit state.
 func (h *PeriodLimit) Take(key string) (int, error) {
 	resp, err := h.limitStore.Eval(periodScript, []string{h.keyPrefix + key}, []string{
 		strconv.Itoa(h.quota),
@@ -97,12 +106,13 @@ func (h *PeriodLimit) calcExpireSeconds() int {
 	if h.align {
 		unix := time.Now().Unix() + zoneDiff
 		return h.period - int(unix%int64(h.period))
-	} else {
-		return h.period
 	}
+
+	return h.period
 }
 
-func Align() LimitOption {
+// Align returns a func to customize a PeriodLimit with alignment.
+func Align() PeriodOption {
 	return func(l *PeriodLimit) {
 		l.align = true
 	}

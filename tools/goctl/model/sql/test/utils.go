@@ -1,4 +1,5 @@
 // copy from core/stores/sqlx/utils.go
+
 package mocksql
 
 import (
@@ -91,11 +92,6 @@ func format(query string, args ...interface{}) (string, error) {
 	}
 
 	return b.String(), nil
-}
-
-func logInstanceError(datasource string, err error) {
-	datasource = desensitize(datasource)
-	logx.Errorf("Error on getting sql instance of %s: %v", datasource, err)
 }
 
 func logSqlError(stmt string, err error) {

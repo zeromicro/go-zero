@@ -9,10 +9,12 @@ import (
 const indexPri = "PRIMARY"
 
 type (
+	// InformationSchemaModel defines information schema model
 	InformationSchemaModel struct {
 		conn sqlx.SqlConn
 	}
 
+	// Column defines column in table
 	Column struct {
 		Name          string      `db:"COLUMN_NAME"`
 		DataType      string      `db:"DATA_TYPE"`
@@ -48,10 +50,12 @@ type (
 	}
 )
 
+// NewInformationSchemaModel creates an instance for InformationSchemaModel
 func NewInformationSchemaModel(conn sqlx.SqlConn) *InformationSchemaModel {
 	return &InformationSchemaModel{conn: conn}
 }
 
+// GetAllTables selects all tables from TABLE_SCHEMA
 func (m *InformationSchemaModel) GetAllTables(database string) ([]string, error) {
 	query := `select TABLE_NAME from TABLES where TABLE_SCHEMA = ?`
 	var tables []string

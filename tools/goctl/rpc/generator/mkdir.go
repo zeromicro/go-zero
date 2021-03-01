@@ -23,6 +23,7 @@ const (
 )
 
 type (
+	// DirContext defines a rpc service directories context
 	DirContext interface {
 		GetCall() Dir
 		GetEtc() Dir
@@ -36,11 +37,13 @@ type (
 		GetServiceName() stringx.String
 	}
 
+	// Dir defines a directory
 	Dir struct {
 		Base     string
 		Filename string
 		Package  string
 	}
+
 	defaultDirContext struct {
 		inner       map[string]Dir
 		serviceName stringx.String
@@ -159,6 +162,7 @@ func (d *defaultDirContext) GetServiceName() stringx.String {
 	return d.serviceName
 }
 
+// Valid returns true if the directory is valid
 func (d *Dir) Valid() bool {
 	return len(d.Filename) > 0 && len(d.Package) > 0
 }

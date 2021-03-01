@@ -19,7 +19,7 @@ func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	}
 
 	optionalTag := ""
-	if member.IsOptional() || member.IsOmitempty() {
+	if member.IsOptional() || member.IsOmitEmpty() {
 		optionalTag = "?"
 	}
 	name, err := member.GetPropertyName()
@@ -146,7 +146,8 @@ func writeMembers(writer io.Writer, tp spec.Type, isParam bool) error {
 		if ok {
 			return writeMembers(writer, pointType.Type, isParam)
 		}
-		return errors.New(fmt.Sprintf("type %s not supported", tp.Name()))
+
+		return fmt.Errorf("type %s not supported", tp.Name())
 	}
 
 	members := definedType.GetBodyMembers()

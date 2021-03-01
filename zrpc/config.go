@@ -14,8 +14,7 @@ type (
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
-		// pending forever is not allowed
-		// never set it to 0, if zero, the underlying will set to 2s automatically
+		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
 	}
@@ -25,7 +24,7 @@ type (
 		Endpoints []string        `json:",optional=!Etcd"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
-		Timeout   int64           `json:",optional"`
+		Timeout   int64           `json:",default=2000"`
 	}
 )
 

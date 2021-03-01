@@ -18,6 +18,7 @@ type SafeMap struct {
 	dirtyNew    map[interface{}]interface{}
 }
 
+// NewSafeMap returns a SafeMap.
 func NewSafeMap() *SafeMap {
 	return &SafeMap{
 		dirtyOld: make(map[interface{}]interface{}),
@@ -25,6 +26,7 @@ func NewSafeMap() *SafeMap {
 	}
 }
 
+// Del deletes the value with the given key from m.
 func (m *SafeMap) Del(key interface{}) {
 	m.lock.Lock()
 	if _, ok := m.dirtyOld[key]; ok {
@@ -53,18 +55,20 @@ func (m *SafeMap) Del(key interface{}) {
 	m.lock.Unlock()
 }
 
+// Get gets the value with the given key from m.
 func (m *SafeMap) Get(key interface{}) (interface{}, bool) {
 	m.lock.RLock()
 	defer m.lock.RUnlock()
 
 	if val, ok := m.dirtyOld[key]; ok {
 		return val, true
-	} else {
-		val, ok := m.dirtyNew[key]
-		return val, ok
 	}
+
+	val, ok := m.dirtyNew[key]
+	return val, ok
 }
 
+// Set sets the value into m with the given key.
 func (m *SafeMap) Set(key, value interface{}) {
 	m.lock.Lock()
 	if m.deletionOld <= maxDeletion {
@@ -83,6 +87,7 @@ func (m *SafeMap) Set(key, value interface{}) {
 	m.lock.Unlock()
 }
 
+// Size returns the size of m.
 func (m *SafeMap) Size() int {
 	m.lock.RLock()
 	size := len(m.dirtyOld) + len(m.dirtyNew)

@@ -107,7 +107,7 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 	}
 
 	_, err = fp.WriteString(formatSource(tmplBytes.String()))
-	return nil
+	return err
 }
 
 func doc(route spec.Route) string {

@@ -118,9 +118,9 @@ func VerifySignature(r *http.Request, securityHeader *ContentSecurityHeader, tol
 
 	if passed {
 		return httpx.CodeSignaturePass
-	} else {
-		return httpx.CodeSignatureInvalidToken
 	}
+
+	return httpx.CodeSignatureInvalidToken
 }
 
 func computeBodySignature(r *http.Request) string {

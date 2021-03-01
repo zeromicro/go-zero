@@ -12,6 +12,7 @@ import (
 )
 
 type (
+	// Parser provides api parsing capabilities
 	Parser struct {
 		linePrefix string
 		debug      bool
@@ -19,9 +20,11 @@ type (
 		antlr.DefaultErrorListener
 	}
 
+	// ParserOption defines an function with argument Parser
 	ParserOption func(p *Parser)
 )
 
+// NewParser creates an instance for Parser
 func NewParser(options ...ParserOption) *Parser {
 	p := &Parser{
 		log: console.NewColorConsole(),
@@ -156,28 +159,9 @@ func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
 }
 
 func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
-	if len(nestedApi.Import) > 0 {
-		importToken := nestedApi.Import[0].Import
-		return fmt.Errorf("%s line %d:%d the nested api does not support import",
-			nestedApi.LinePrefix, importToken.Line(), importToken.Column())
-	}
-
-	if mainApi.Syntax != nil && nestedApi.Syntax != nil {
-		if mainApi.Syntax.Version.Text() != nestedApi.Syntax.Version.Text() {
-			syntaxToken := nestedApi.Syntax.Syntax
-			return fmt.Errorf("%s line %d:%d multiple syntax declaration, expecting syntax '%s', but found '%s'",
-				nestedApi.LinePrefix, syntaxToken.Line(), syntaxToken.Column(), mainApi.Syntax.Version.Text(), nestedApi.Syntax.Version.Text())
-		}
-	}
-
-	if len(mainApi.Service) > 0 {
-		mainService := mainApi.Service[0]
-		for _, service := range nestedApi.Service {
-			if mainService.ServiceApi.Name.Text() != service.ServiceApi.Name.Text() {
-				return fmt.Errorf("%s multiple service name declaration, expecting service name '%s', but found '%s'",
-					nestedApi.LinePrefix, mainService.ServiceApi.Name.Text(), service.ServiceApi.Name.Text())
-			}
-		}
+	err := p.nestedApiCheck(mainApi, nestedApi)
+	if err != nil {
+		return err
 	}
 
 	mainHandlerMap := make(map[string]PlaceHolder)
@@ -218,6 +202,23 @@ func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
 	}
 
 	// duplicate route check
+	err = p.duplicateRouteCheck(nestedApi, mainHandlerMap, mainRouteMap)
+	if err != nil {
+		return err
+	}
+
+	// duplicate type check
+	for _, each := range nestedApi.Type {
+		if _, ok := mainTypeMap[each.NameExpr().Text()]; ok {
+			return fmt.Errorf("%s line %d:%d duplicate type declaration '%s'",
+				nestedApi.LinePrefix, each.NameExpr().Line(), each.NameExpr().Column(), each.NameExpr().Text())
+		}
+	}
+
+	return nil
+}
+
+func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap map[string]PlaceHolder, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
 		for _, r := range each.ServiceApi.ServiceRoute {
 			handler := r.GetHandler()
@@ -237,12 +238,31 @@ func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
 			}
 		}
 	}
+	return nil
+}
 
-	// duplicate type check
-	for _, each := range nestedApi.Type {
-		if _, ok := mainTypeMap[each.NameExpr().Text()]; ok {
-			return fmt.Errorf("%s line %d:%d duplicate type declaration '%s'",
-				nestedApi.LinePrefix, each.NameExpr().Line(), each.NameExpr().Column(), each.NameExpr().Text())
+func (p *Parser) nestedApiCheck(mainApi *Api, nestedApi *Api) error {
+	if len(nestedApi.Import) > 0 {
+		importToken := nestedApi.Import[0].Import
+		return fmt.Errorf("%s line %d:%d the nested api does not support import",
+			nestedApi.LinePrefix, importToken.Line(), importToken.Column())
+	}
+
+	if mainApi.Syntax != nil && nestedApi.Syntax != nil {
+		if mainApi.Syntax.Version.Text() != nestedApi.Syntax.Version.Text() {
+			syntaxToken := nestedApi.Syntax.Syntax
+			return fmt.Errorf("%s line %d:%d multiple syntax declaration, expecting syntax '%s', but found '%s'",
+				nestedApi.LinePrefix, syntaxToken.Line(), syntaxToken.Column(), mainApi.Syntax.Version.Text(), nestedApi.Syntax.Version.Text())
+		}
+	}
+
+	if len(mainApi.Service) > 0 {
+		mainService := mainApi.Service[0]
+		for _, service := range nestedApi.Service {
+			if mainService.ServiceApi.Name.Text() != service.ServiceApi.Name.Text() {
+				return fmt.Errorf("%s multiple service name declaration, expecting service name '%s', but found '%s'",
+					nestedApi.LinePrefix, mainService.ServiceApi.Name.Text(), service.ServiceApi.Name.Text())
+			}
 		}
 	}
 	return nil
@@ -276,56 +296,80 @@ func (p *Parser) checkTypeDeclaration(apiList []*Api) error {
 
 	for _, apiItem := range apiList {
 		linePrefix := apiItem.LinePrefix
-		for _, each := range apiItem.Type {
-			tp, ok := each.(*TypeStruct)
-			if !ok {
-				continue
+		err := p.checkTypes(apiItem, linePrefix, types)
+		if err != nil {
+			return err
+		}
+
+		err = p.checkServices(apiItem, types, linePrefix)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (p *Parser) checkServices(apiItem *Api, types map[string]TypeExpr, linePrefix string) error {
+	for _, service := range apiItem.Service {
+		for _, each := range service.ServiceApi.ServiceRoute {
+			route := each.Route
+			err := p.checkRequestBody(route, types, linePrefix)
+			if err != nil {
+				return err
 			}
 
-			for _, member := range tp.Fields {
-				err := p.checkType(linePrefix, types, member.DataType)
-				if err != nil {
-					return err
+			if route.Reply != nil && route.Reply.Name.IsNotNil() && route.Reply.Name.Expr().IsNotNil() {
+				reply := route.Reply.Name
+				var structName string
+				switch tp := reply.(type) {
+				case *Literal:
+					structName = tp.Literal.Text()
+				case *Array:
+					switch innerTp := tp.Literal.(type) {
+					case *Literal:
+						structName = innerTp.Literal.Text()
+					case *Pointer:
+						structName = innerTp.Name.Text()
+					}
+				}
+
+				if api.IsBasicType(structName) {
+					continue
+				}
+
+				_, ok := types[structName]
+				if !ok {
+					return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+						linePrefix, route.Reply.Name.Expr().Line(), route.Reply.Name.Expr().Column(), structName)
 				}
 			}
 		}
+	}
+	return nil
+}
 
-		for _, service := range apiItem.Service {
-			for _, each := range service.ServiceApi.ServiceRoute {
-				route := each.Route
-				if route.Req != nil && route.Req.Name.IsNotNil() && route.Req.Name.Expr().IsNotNil() {
-					_, ok := types[route.Req.Name.Expr().Text()]
-					if !ok {
-						return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
-							linePrefix, route.Req.Name.Expr().Line(), route.Req.Name.Expr().Column(), route.Req.Name.Expr().Text())
-					}
-				}
+func (p *Parser) checkRequestBody(route *Route, types map[string]TypeExpr, linePrefix string) error {
+	if route.Req != nil && route.Req.Name.IsNotNil() && route.Req.Name.Expr().IsNotNil() {
+		_, ok := types[route.Req.Name.Expr().Text()]
+		if !ok {
+			return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
+				linePrefix, route.Req.Name.Expr().Line(), route.Req.Name.Expr().Column(), route.Req.Name.Expr().Text())
+		}
+	}
+	return nil
+}
 
-				if route.Reply != nil && route.Reply.Name.IsNotNil() && route.Reply.Name.Expr().IsNotNil() {
-					reply := route.Reply.Name
-					var structName string
-					switch tp := reply.(type) {
-					case *Literal:
-						structName = tp.Literal.Text()
-					case *Array:
-						switch innerTp := tp.Literal.(type) {
-						case *Literal:
-							structName = innerTp.Literal.Text()
-						case *Pointer:
-							structName = innerTp.Name.Text()
-						}
-					}
+func (p *Parser) checkTypes(apiItem *Api, linePrefix string, types map[string]TypeExpr) error {
+	for _, each := range apiItem.Type {
+		tp, ok := each.(*TypeStruct)
+		if !ok {
+			continue
+		}
 
-					if api.IsBasicType(structName) {
-						continue
-					}
-
-					_, ok := types[structName]
-					if !ok {
-						return fmt.Errorf("%s line %d:%d can not found declaration '%s' in context",
-							linePrefix, route.Reply.Name.Expr().Line(), route.Reply.Name.Expr().Column(), structName)
-					}
-				}
+		for _, member := range tp.Fields {
+			err := p.checkType(linePrefix, types, member.DataType)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -384,6 +428,7 @@ func (p *Parser) readContent(filename string) (string, error) {
 	return string(data), nil
 }
 
+// SyntaxError accepts errors and panic it
 func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
 	str := fmt.Sprintf(`%s line %d:%d  %s`, p.linePrefix, line, column, msg)
 	if p.debug {
@@ -392,12 +437,14 @@ func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int
 	panic(str)
 }
 
+// WithParserDebug returns a debug ParserOption
 func WithParserDebug() ParserOption {
 	return func(p *Parser) {
 		p.debug = true
 	}
 }
 
+// WithParserPrefix returns a prefix ParserOption
 func WithParserPrefix(prefix string) ParserOption {
 	return func(p *Parser) {
 		p.linePrefix = prefix

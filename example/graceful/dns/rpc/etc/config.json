@@ -1,4 +1,0 @@
-{
-    "Name": "rpc.grace",
-    "ListenOn": "0.0.0.0:3456"
-}

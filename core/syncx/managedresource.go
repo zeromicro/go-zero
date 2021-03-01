@@ -2,6 +2,7 @@ package syncx
 
 import "sync"
 
+// A ManagedResource is used to manage a resource that might be broken and refetched, like a connection.
 type ManagedResource struct {
 	resource interface{}
 	lock     sync.RWMutex
@@ -9,6 +10,7 @@ type ManagedResource struct {
 	equals   func(a, b interface{}) bool
 }
 
+// NewManagedResource returns a ManagedResource.
 func NewManagedResource(generate func() interface{}, equals func(a, b interface{}) bool) *ManagedResource {
 	return &ManagedResource{
 		generate: generate,
@@ -16,6 +18,7 @@ func NewManagedResource(generate func() interface{}, equals func(a, b interface{
 	}
 }
 
+// MarkBroken marks the resouce broken.
 func (mr *ManagedResource) MarkBroken(resource interface{}) {
 	mr.lock.Lock()
 	defer mr.lock.Unlock()
@@ -25,6 +28,7 @@ func (mr *ManagedResource) MarkBroken(resource interface{}) {
 	}
 }
 
+// Take takes the resource, if not loaded, generates it.
 func (mr *ManagedResource) Take() interface{} {
 	mr.lock.RLock()
 	resource := mr.resource

@@ -89,7 +89,7 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		}
 		var signature string
 		if g.signatureEnabled {
-			signature = fmt.Sprintf("\n rest.WithSignature(serverCtx.Config.%s.Signature),", g.authName)
+			signature = "\n rest.WithSignature(serverCtx.Config.Signature),"
 		}
 
 		var routes string
@@ -163,7 +163,7 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	imports := importSet.KeysStr()
 	sort.Strings(imports)
 	projectSection := strings.Join(imports, "\n\t")
-	depSection := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl)
+	depSection := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
 	return fmt.Sprintf("%s\n\n\t%s", projectSection, depSection)
 }
 
@@ -195,6 +195,10 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		if len(jwt) > 0 {
 			groupedRoutes.authName = jwt
 			groupedRoutes.jwtEnabled = true
+		}
+		signature := g.GetAnnotation("signature")
+		if signature == "true" {
+			groupedRoutes.signatureEnabled = true
 		}
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {

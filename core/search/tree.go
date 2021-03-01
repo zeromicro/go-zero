@@ -8,12 +8,18 @@ const (
 )
 
 var (
-	ErrDupItem      = errors.New("duplicated item")
-	ErrDupSlash     = errors.New("duplicated slash")
-	ErrEmptyItem    = errors.New("empty item")
+	// ErrDupItem means adding duplicated item.
+	ErrDupItem = errors.New("duplicated item")
+	// ErrDupSlash means item is started with more than one slash.
+	ErrDupSlash = errors.New("duplicated slash")
+	// ErrEmptyItem means adding empty item.
+	ErrEmptyItem = errors.New("empty item")
+	// ErrInvalidState means search tree is in an invalid state.
 	ErrInvalidState = errors.New("search tree is in an invalid state")
-	ErrNotFromRoot  = errors.New("path should start with /")
+	// ErrNotFromRoot means path is not starting with slash.
+	ErrNotFromRoot = errors.New("path should start with /")
 
+	// NotFound is used to hold the not found result.
 	NotFound Result
 )
 
@@ -30,22 +36,26 @@ type (
 		children [2]map[string]*node
 	}
 
+	// A Tree is a search tree.
 	Tree struct {
 		root *node
 	}
 
+	// A Result is a search result from tree.
 	Result struct {
 		Item   interface{}
 		Params map[string]string
 	}
 )
 
+// NewTree returns a Tree.
 func NewTree() *Tree {
 	return &Tree{
 		root: newNode(nil),
 	}
 }
 
+// Add adds item to associate with route.
 func (t *Tree) Add(route string, item interface{}) error {
 	if len(route) == 0 || route[0] != slash {
 		return ErrNotFromRoot
@@ -58,6 +68,7 @@ func (t *Tree) Add(route string, item interface{}) error {
 	return add(t.root, route[1:], item)
 }
 
+// Search searches item that associates with given route.
 func (t *Tree) Search(route string) (Result, bool) {
 	if len(route) == 0 || route[0] != slash {
 		return NotFound, false
@@ -77,32 +88,40 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	for i := range route {
 		if route[i] == slash {
 			token := route[:i]
-			for _, children := range n.children {
-				for k, v := range children {
-					if r := match(k, token); r.found {
-						if t.next(v, route[i+1:], result) {
-							if r.named {
-								addParam(result, r.key, r.value)
-							}
-
-							return true
+			return n.forEach(func(k string, v *node) bool {
+				if r := match(k, token); r.found {
+					if t.next(v, route[i+1:], result) {
+						if r.named {
+							addParam(result, r.key, r.value)
 						}
+
+						return true
 					}
 				}
-			}
 
-			return false
+				return false
+			})
 		}
 	}
 
-	for _, children := range n.children {
-		for k, v := range children {
-			if r := match(k, route); r.found && v.item != nil {
-				result.Item = v.item
-				if r.named {
-					addParam(result, r.key, r.value)
-				}
+	return n.forEach(func(k string, v *node) bool {
+		if r := match(k, route); r.found && v.item != nil {
+			result.Item = v.item
+			if r.named {
+				addParam(result, r.key, r.value)
+			}
 
+			return true
+		}
+
+		return false
+	})
+}
+
+func (nd *node) forEach(fn func(string, *node) bool) bool {
+	for _, children := range nd.children {
+		for k, v := range children {
+			if fn(k, v) {
 				return true
 			}
 		}
@@ -114,9 +133,9 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 func (nd *node) getChildren(route string) map[string]*node {
 	if len(route) > 0 && route[0] == colon {
 		return nd.children[1]
-	} else {
-		return nd.children[0]
 	}
+
+	return nd.children[0]
 }
 
 func add(nd *node, route string, item interface{}) error {
@@ -140,14 +159,14 @@ func add(nd *node, route string, item interface{}) error {
 			if child, ok := children[token]; ok {
 				if child != nil {
 					return add(child, route[i+1:], item)
-				} else {
-					return ErrInvalidState
 				}
-			} else {
-				child := newNode(nil)
-				children[token] = child
-				return add(child, route[i+1:], item)
+
+				return ErrInvalidState
 			}
+
+			child := newNode(nil)
+			children[token] = child
+			return add(child, route[i+1:], item)
 		}
 	}
 

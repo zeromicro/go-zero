@@ -36,17 +36,17 @@ func TestCacheNode_DelCache(t *testing.T) {
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
-	assert.Nil(t, cn.DelCache())
-	assert.Nil(t, cn.DelCache([]string{}...))
-	assert.Nil(t, cn.DelCache(make([]string, 0)...))
-	cn.SetCache("first", "one")
-	assert.Nil(t, cn.DelCache("first"))
-	cn.SetCache("first", "one")
-	cn.SetCache("second", "two")
-	assert.Nil(t, cn.DelCache("first", "second"))
+	assert.Nil(t, cn.Del())
+	assert.Nil(t, cn.Del([]string{}...))
+	assert.Nil(t, cn.Del(make([]string, 0)...))
+	cn.Set("first", "one")
+	assert.Nil(t, cn.Del("first"))
+	cn.Set("first", "one")
+	cn.Set("second", "two")
+	assert.Nil(t, cn.Del("first", "second"))
 }
 
 func TestCacheNode_InvalidCache(t *testing.T) {
@@ -59,12 +59,12 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	s.Set("any", "value")
 	var str string
-	assert.NotNil(t, cn.GetCache("any", &str))
+	assert.NotNil(t, cn.Get("any", &str))
 	assert.Equal(t, "", str)
 	_, err = s.Get("any")
 	assert.Equal(t, miniredis.ErrKeyNotFound, err)
@@ -81,7 +81,7 @@ func TestCacheNode_Take(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	var str string
@@ -91,7 +91,7 @@ func TestCacheNode_Take(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, "value", str)
-	assert.Nil(t, cn.GetCache("any", &str))
+	assert.Nil(t, cn.Get("any", &str))
 	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `"value"`, val)
@@ -108,15 +108,15 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errTestNotFound,
 	}
 	var str string
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return errTestNotFound
 	})
-	assert.Equal(t, errTestNotFound, err)
-	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
+	assert.True(t, cn.IsNotFound(err))
+	assert.True(t, cn.IsNotFound(cn.Get("any", &str)))
 	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `*`, val)
@@ -125,8 +125,8 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return nil
 	})
-	assert.Equal(t, errTestNotFound, err)
-	assert.Equal(t, errTestNotFound, cn.GetCache("any", &str))
+	assert.True(t, cn.IsNotFound(err))
+	assert.True(t, cn.IsNotFound(cn.Get("any", &str)))
 
 	store.Del("any")
 	var errDummy = errors.New("dummy")
@@ -147,7 +147,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 	var str string
@@ -157,7 +157,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 	})
 	assert.Nil(t, err)
 	assert.Equal(t, "value", str)
-	assert.Nil(t, cn.GetCache("any", &str))
+	assert.Nil(t, cn.Get("any", &str))
 	val, err := store.Get("any")
 	assert.Nil(t, err)
 	assert.Equal(t, `"value"`, val)
@@ -174,7 +174,7 @@ func TestCacheNode_String(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 	assert.Equal(t, store.Addr, cn.String())
@@ -191,7 +191,7 @@ func TestCacheValueWithBigInt(t *testing.T) {
 		barrier:        syncx.NewSharedCalls(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
-		stat:           NewCacheStat("any"),
+		stat:           NewStat("any"),
 		errNotFound:    errors.New("any"),
 	}
 
@@ -200,8 +200,8 @@ func TestCacheValueWithBigInt(t *testing.T) {
 		value int64 = 323427211229009810
 	)
 
-	assert.Nil(t, cn.SetCache(key, value))
+	assert.Nil(t, cn.Set(key, value))
 	var val interface{}
-	assert.Nil(t, cn.GetCache(key, &val))
+	assert.Nil(t, cn.Get(key, &val))
 	assert.Equal(t, strconv.FormatInt(value, 10), fmt.Sprintf("%v", val))
 }

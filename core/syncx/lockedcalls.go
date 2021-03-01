@@ -19,6 +19,7 @@ type (
 	}
 )
 
+// NewLockedCalls returns a LockedCalls.
 func NewLockedCalls() LockedCalls {
 	return &lockedGroup{
 		m: make(map[string]*sync.WaitGroup),

@@ -22,6 +22,7 @@ import (
 
 const pluginArg = "_plugin"
 
+// Plugin defines an api plugin
 type Plugin struct {
 	Api         *spec.ApiSpec
 	ApiFilePath string
@@ -29,6 +30,7 @@ type Plugin struct {
 	Dir         string
 }
 
+// PluginCommand is the entry of goctl api plugin
 func PluginCommand(c *cli.Context) error {
 	ex, err := os.Executable()
 	if err != nil {
@@ -155,6 +157,7 @@ func downloadFile(filepath string, url string) error {
 	return err
 }
 
+// NewPlugin returns contextual resources when written in other languages
 func NewPlugin() (*Plugin, error) {
 	var plugin Plugin
 	content, err := ioutil.ReadAll(os.Stdin)

@@ -11,6 +11,7 @@ var (
 	envLock sync.RWMutex
 )
 
+// Env returns the value of the given environment variable.
 func Env(name string) string {
 	envLock.RLock()
 	val, ok := envs[name]
@@ -28,6 +29,7 @@ func Env(name string) string {
 	return val
 }
 
+// EnvInt returns an int value of the given environment variable.
 func EnvInt(name string) (int, bool) {
 	val := Env(name)
 	if len(val) == 0 {

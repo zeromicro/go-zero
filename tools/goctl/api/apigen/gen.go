@@ -39,6 +39,7 @@ service {{.serviceName}} {
 }
 `
 
+// ApiCommand create api template file
 func ApiCommand(c *cli.Context) error {
 	apiFile := c.String("o")
 	if len(apiFile) == 0 {

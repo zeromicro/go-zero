@@ -39,7 +39,7 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 }
 `
 
-type Handler struct {
+type handlerInfo struct {
 	ImportPackages string
 	HandlerName    string
 	RequestType    string
@@ -59,7 +59,7 @@ func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Rou
 		return err
 	}
 
-	return doGenToFile(dir, handler, cfg, group, route, Handler{
+	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
@@ -71,7 +71,7 @@ func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Rou
 }
 
 func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
-	route spec.Route, handleObj Handler) error {
+	route spec.Route, handleObj handlerInfo) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, handler)
 	if err != nil {
 		return err
@@ -109,7 +109,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceUrl))
+	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 
 	return strings.Join(imports, "\n\t")
 }

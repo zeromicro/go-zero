@@ -16,6 +16,7 @@ import (
 const timeImport = "time.Time"
 
 type (
+	// Table describes a mysql table
 	Table struct {
 		Name        stringx.String
 		PrimaryKey  Primary
@@ -24,11 +25,13 @@ type (
 		Fields      []*Field
 	}
 
+	// Primary describes a primary key
 	Primary struct {
 		Field
 		AutoIncrement bool
 	}
 
+	// Field describes a table field
 	Field struct {
 		Name         stringx.String
 		DataBaseType string
@@ -37,9 +40,11 @@ type (
 		SeqInIndex   int
 	}
 
+	// KeyType types alias of int
 	KeyType int
 )
 
+// Parse parses ddl into golang structure
 func Parse(ddl string) (*Table, error) {
 	stmt, err := sqlparser.ParseStrictDDL(ddl)
 	if err != nil {
@@ -48,7 +53,7 @@ func Parse(ddl string) (*Table, error) {
 
 	ddlStmt, ok := stmt.(*sqlparser.DDL)
 	if !ok {
-		return nil, unSupportDDL
+		return nil, errUnsupportDDL
 	}
 
 	action := ddlStmt.Action
@@ -59,7 +64,7 @@ func Parse(ddl string) (*Table, error) {
 	tableName := ddlStmt.NewName.Name.String()
 	tableSpec := ddlStmt.TableSpec
 	if tableSpec == nil {
-		return nil, tableBodyIsNotFound
+		return nil, errTableBodyNotFound
 	}
 
 	columns := tableSpec.Columns

@@ -3,6 +3,7 @@ package stringx
 import "strings"
 
 type (
+	// Replacer interface wraps the Replace method.
 	Replacer interface {
 		Replace(text string) string
 	}
@@ -13,6 +14,7 @@ type (
 	}
 )
 
+// NewReplacer returns a Replacer.
 func NewReplacer(mapping map[string]string) Replacer {
 	var rep = &replacer{
 		mapping: mapping,
