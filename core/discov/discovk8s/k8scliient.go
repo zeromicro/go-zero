@@ -5,6 +5,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"os"
+	"path/filepath"
 
 	"time"
 )
@@ -17,7 +19,10 @@ type K8sClient struct {
 }
 
 // NewK8sClient generate a kubernetes client
-func NewK8sClient(kubeconfig string) (*K8sClient, error) {
+func NewK8sClient(k8sConfig *K8sConfig) (*K8sClient, error) {
+
+	kubeconfig := getKubeconfig(k8sConfig)
+
 	// Get k8s config
 	config, err := getK8sConfig(kubeconfig)
 	if err != nil {
@@ -65,4 +70,19 @@ func getK8sConfig(kubeconfig string) (*rest.Config, error) {
 
 	config.Timeout = 10 * time.Second
 	return config, nil
+}
+
+func getKubeconfig(config *K8sConfig) string {
+
+	if config != nil && config.KubeconfigFile != "" {
+		return config.KubeconfigFile
+	}
+	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
+
+	_, err := os.Lstat(kubeconfig)
+
+	if err == nil || os.IsExist(err) {
+		return kubeconfig
+	}
+	return ""
 }

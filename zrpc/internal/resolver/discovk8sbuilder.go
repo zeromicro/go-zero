@@ -14,7 +14,7 @@ import (
 )
 
 type discovK8sBuilder struct {
-	registry *discovk8s.K8sRegistry
+	registry discovk8s.Registry
 	once     sync.Once
 }
 
@@ -60,7 +60,19 @@ func (d *discovK8sBuilder) parseTarget(target resolver.Target) (*discovk8s.Servi
 func (d *discovK8sBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	d.once.Do(func() {
-		d.registry = discovk8s.NewK8sRegistry(nil)
+		k8sClient, err := discovk8s.NewK8sClient(nil)
+		if err != nil {
+			logx.Error("New k8s client error", err)
+			os.Exit(1)
+		}
+
+		epController, err := discovk8s.NewEndpointController(k8sClient)
+		if err != nil {
+			logx.Error("New endpoint controller error", err)
+			os.Exit(1)
+		}
+
+		d.registry = discovk8s.NewK8sRegistry(epController)
 	})
 
 	si, err := d.parseTarget(target)

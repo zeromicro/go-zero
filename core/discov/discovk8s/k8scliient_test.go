@@ -1,22 +1,13 @@
 package discovk8s
 
 import (
-	"context"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"reflect"
 	"strconv"
-	"time"
-
-	"path/filepath"
-
-	"os"
-	"testing"
 )
 
 // EndpointLoggingController logs the name and namespace of pods that are added,
@@ -103,40 +94,41 @@ func NewEndpointLoggingController(informerFactory informers.SharedInformerFactor
 	return c
 }
 
-func TestK8sClient_GetPodsExample(t *testing.T) {
-	k8sClient, err := NewK8sClient(localKubeconfig())
-	assert.Nil(t, err)
+var (
+	k8sClient *K8sClient
+)
 
-	ctx := context.Background()
-	pods, err := k8sClient.Clientset.CoreV1().Pods("").List(ctx, metav1.ListOptions{})
-
-	assert.Nil(t, err)
-
-	for _, pod := range pods.Items {
-		fmt.Println(pod.Namespace, pod.Name, pod.Status.Phase)
-	}
-}
-
-func TestK8sClient_WatchEndpointsExample(t *testing.T) {
-	k8sClient, err := NewK8sClient(localKubeconfig())
-	assert.Nil(t, err)
-
-	factory := informers.NewSharedInformerFactory(k8sClient.Clientset, time.Hour*24)
-	controller := NewEndpointLoggingController(factory)
-	stop := make(chan struct{})
-	defer close(stop)
-	controller.Run(stop)
-
-	select {}
-}
-
-func localKubeconfig() string {
-	return filepath.Join(os.Getenv("HOME"), ".kube", "config")
-}
-
-func TestNewK8sClient(t *testing.T) {
-	k8sClient, err := NewK8sClient(localKubeconfig())
-
-	assert.NotNil(t, k8sClient)
-	assert.Nil(t, err)
-}
+//func TestK8sClient_GetPodsExample(t *testing.T) {
+//	k8sClient, err := NewK8sClient(nil)
+//	assert.Nil(t, err)
+//
+//	ctx := context.Background()
+//	pods, err := k8sClient.Clientset.CoreV1().Pods("").List(ctx, metav1.ListOptions{})
+//
+//	assert.Nil(t, err)
+//
+//	for _, pod := range pods.Items {
+//		fmt.Println(pod.Namespace, pod.Name, pod.Status.Phase)
+//	}
+//}
+//
+//func TestK8sClient_WatchEndpointsExample(t *testing.T) {
+//	k8sClient, err := NewK8sClient(nil)
+//	assert.Nil(t, err)
+//
+//	factory := informers.NewSharedInformerFactory(k8sClient.Clientset, time.Hour*24)
+//	controller := NewEndpointLoggingController(factory)
+//	stop := make(chan struct{})
+//	defer close(stop)
+//	controller.Run(stop)
+//
+//	select {}
+//}
+//
+//
+//func TestNewK8sClient(t *testing.T) {
+//	k8sClient, err := NewK8sClient(nil)
+//
+//	assert.NotNil(t, k8sClient)
+//	assert.Nil(t, err)
+//}

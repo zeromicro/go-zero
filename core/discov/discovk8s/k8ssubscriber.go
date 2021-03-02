@@ -4,7 +4,7 @@ import "strconv"
 
 type K8sSubscriber struct {
 	Subscriber
-	k8sRegistry *K8sRegistry
+	k8sRegistry *k8sRegistry
 	instance    *Service
 	updateFunc  func()
 }
