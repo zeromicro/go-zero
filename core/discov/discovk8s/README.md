@@ -1,17 +1,15 @@
 # 设计思路
-支持通过Kubernetes Service进行服务发现，方便集成现有服务。
+支持通过Kubernetes Service进行服务发现，方便集成现有服务。<br />
+每个k8s Service都关联有唯一的Endpoints对象，保存了所有ready和not ready的Pod，
+deployment扩缩容时，会实时更新Endpoints下的地址列表，使用k8s的informer sdk 
+来watch我们感兴趣的Endpoints，再更新到gRPC。
 
-## 接口抽象
-- 抽象subscriber接口，方便后续从支持更多的注册中心发现服务
-- publisher暂不作抽象，新的服务注册建议通过etcd或者k8s service
+
 
 ## 配置方法
-其中Name、Namespace、Port分为Kubernetes中Service相应的Name、Namespace、Port
+复用Endpoints配置项，要求数组长度为且格式如下：
 ```yaml
 Transform:
-  K8s:
-    Name: transform-svc
-    Namespace: default
-    Port: 8081
-
+   Endpoints:
+   - k8s:///transform-svc.ns:8081
 ```
