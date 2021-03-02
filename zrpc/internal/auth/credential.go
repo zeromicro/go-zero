@@ -6,11 +6,13 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// A Credential is used to authenticate.
 type Credential struct {
 	App   string
 	Token string
 }
 
+// GetRequestMetadata gets the request metadata.
 func (c *Credential) GetRequestMetadata(context.Context, ...string) (map[string]string, error) {
 	return map[string]string{
 		appKey:   c.App,
@@ -18,10 +20,12 @@ func (c *Credential) GetRequestMetadata(context.Context, ...string) (map[string]
 	}, nil
 }
 
+// RequireTransportSecurity always returns false.
 func (c *Credential) RequireTransportSecurity() bool {
 	return false
 }
 
+// ParseCredential parses credential from given ctx.
 func ParseCredential(ctx context.Context) Credential {
 	var credential Credential
 

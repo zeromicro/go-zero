@@ -9,14 +9,17 @@ import (
 
 const dbTag = "db"
 
+// NewEq wraps builder.Eq
 func NewEq(in interface{}) builder.Eq {
 	return builder.Eq(ToMap(in))
 }
 
+// NewGt wraps builder.Gt
 func NewGt(in interface{}) builder.Gt {
 	return builder.Gt(ToMap(in))
 }
 
+// ToMap converts interface into map
 func ToMap(in interface{}) map[string]interface{} {
 	out := make(map[string]interface{})
 	v := reflect.ValueOf(in)
@@ -49,6 +52,7 @@ func ToMap(in interface{}) map[string]interface{} {
 	return out
 }
 
+// FieldNames returns field names from given in.
 // deprecated: use RawFieldNames instead automatically while model generating after goctl version v1.1.0
 func FieldNames(in interface{}) []string {
 	out := make([]string, 0)
@@ -76,6 +80,7 @@ func FieldNames(in interface{}) []string {
 	return out
 }
 
+// RawFieldNames converts golang struct field into slice string
 func RawFieldNames(in interface{}) []string {
 	out := make([]string, 0)
 	v := reflect.ValueOf(in)

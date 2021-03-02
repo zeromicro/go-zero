@@ -33,7 +33,7 @@ type cacheNode struct {
 	r              *rand.Rand
 	lock           *sync.Mutex
 	unstableExpiry mathx.Unstable
-	stat           *CacheStat
+	stat           *Stat
 	errNotFound    error
 }
 
@@ -43,7 +43,7 @@ type cacheNode struct {
 // st is used to stat the cache.
 // errNotFound defines the error that returned on cache not found.
 // opts are the options that customize the cacheNode.
-func NewNode(rds *redis.Redis, barrier syncx.SharedCalls, st *CacheStat,
+func NewNode(rds *redis.Redis, barrier syncx.SharedCalls, st *Stat,
 	errNotFound error, opts ...Option) Cache {
 	o := newOptions(opts...)
 	return cacheNode{

@@ -19,15 +19,19 @@ var (
 	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
 
-	cacheStudentIdPrefix = "cache#Student#id#"
+	cacheStudentIdPrefix        = "cache#student#id#"
+	cacheStudentClassNamePrefix = "cache#student#class#name#"
 )
 
 type (
+	// StudentModel only for test
 	StudentModel interface {
 		Insert(data Student) (sql.Result, error)
 		FindOne(id int64) (*Student, error)
+		FindOneByClassName(class string, name string) (*Student, error)
 		Update(data Student) error
-		Delete(id int64) error
+		// only for test
+		Delete(id int64, className, studentName string) error
 	}
 
 	defaultStudentModel struct {
@@ -35,8 +39,10 @@ type (
 		table string
 	}
 
+	// Student only for test
 	Student struct {
 		Id         int64           `db:"id"`
+		Class      string          `db:"class"`
 		Name       string          `db:"name"`
 		Age        sql.NullInt64   `db:"age"`
 		Score      sql.NullFloat64 `db:"score"`
@@ -45,6 +51,7 @@ type (
 	}
 )
 
+// NewStudentModel only for test
 func NewStudentModel(conn sqlx.SqlConn, c cache.CacheConf) StudentModel {
 	return &defaultStudentModel{
 		CachedConn: sqlc.NewConn(conn, c),
@@ -53,9 +60,11 @@ func NewStudentModel(conn sqlx.SqlConn, c cache.CacheConf) StudentModel {
 }
 
 func (m *defaultStudentModel) Insert(data Student) (sql.Result, error) {
-	query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?)", m.table, studentRowsExpectAutoSet)
-	ret, err := m.ExecNoCache(query, data.Name, data.Age, data.Score)
-
+	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, data.Class, data.Name)
+	ret, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?)", m.table, studentRowsExpectAutoSet)
+		return conn.Exec(query, data.Class, data.Name, data.Age, data.Score)
+	}, studentClassNameKey)
 	return ret, err
 }
 
@@ -76,22 +85,42 @@ func (m *defaultStudentModel) FindOne(id int64) (*Student, error) {
 	}
 }
 
+func (m *defaultStudentModel) FindOneByClassName(class string, name string) (*Student, error) {
+	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, class, name)
+	var resp Student
+	err := m.QueryRowIndex(&resp, studentClassNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+		query := fmt.Sprintf("select %s from %s where `class` = ? and `name` = ? limit 1", studentRows, m.table)
+		if err := conn.QueryRow(&resp, query, class, name); err != nil {
+			return nil, err
+		}
+		return resp.Id, nil
+	}, m.queryPrimary)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultStudentModel) Update(data Student) error {
 	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, data.Id)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, studentRowsWithPlaceHolder)
-		return conn.Exec(query, data.Name, data.Age, data.Score, data.Id)
+		return conn.Exec(query, data.Class, data.Name, data.Age, data.Score, data.Id)
 	}, studentIdKey)
 	return err
 }
 
-func (m *defaultStudentModel) Delete(id int64) error {
-
+func (m *defaultStudentModel) Delete(id int64, className, studentName string) error {
 	studentIdKey := fmt.Sprintf("%s%v", cacheStudentIdPrefix, id)
+	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, className, studentName)
 	_, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.Exec(query, id)
-	}, studentIdKey)
+	}, studentIdKey, studentClassNameKey)
 	return err
 }
 

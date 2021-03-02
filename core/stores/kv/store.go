@@ -10,9 +10,11 @@ import (
 	"github.com/tal-tech/go-zero/core/stores/redis"
 )
 
+// ErrNoRedisNode is an error that indicates no redis node.
 var ErrNoRedisNode = errors.New("no redis node")
 
 type (
+	// Store interface represents a KV store.
 	Store interface {
 		Del(keys ...string) (int, error)
 		Eval(script string, key string, args ...interface{}) (interface{}, error)
@@ -81,6 +83,7 @@ type (
 	}
 )
 
+// NewStore returns a Store.
 func NewStore(c KvConf) Store {
 	if len(c) == 0 || cache.TotalWeights(c) <= 0 {
 		log.Fatal("no cache nodes")

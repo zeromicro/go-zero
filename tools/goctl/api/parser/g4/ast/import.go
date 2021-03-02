@@ -4,6 +4,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// ImportExpr defines import syntax for api
 type ImportExpr struct {
 	Import      Expr
 	Value       Expr
@@ -11,6 +12,7 @@ type ImportExpr struct {
 	CommentExpr Expr
 }
 
+// VisitImportSpec implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitImportSpec(ctx *api.ImportSpecContext) interface{} {
 	var list []*ImportExpr
 	if ctx.ImportLit() != nil {
@@ -25,6 +27,7 @@ func (v *ApiVisitor) VisitImportSpec(ctx *api.ImportSpecContext) interface{} {
 	return list
 }
 
+// VisitImportLit implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitImportLit(ctx *api.ImportLitContext) interface{} {
 	importToken := v.newExprWithToken(ctx.GetImportToken())
 	valueExpr := ctx.ImportValue().Accept(v).(Expr)
@@ -38,6 +41,7 @@ func (v *ApiVisitor) VisitImportLit(ctx *api.ImportLitContext) interface{} {
 	}
 }
 
+// VisitImportBlock implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitImportBlock(ctx *api.ImportBlockContext) interface{} {
 	importToken := v.newExprWithToken(ctx.GetImportToken())
 	values := ctx.AllImportBlockValue()
@@ -52,6 +56,7 @@ func (v *ApiVisitor) VisitImportBlock(ctx *api.ImportBlockContext) interface{} {
 	return list
 }
 
+// VisitImportBlockValue implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitImportBlockValue(ctx *api.ImportBlockValueContext) interface{} {
 	value := ctx.ImportValue().Accept(v).(Expr)
 	return &ImportExpr{
@@ -61,15 +66,18 @@ func (v *ApiVisitor) VisitImportBlockValue(ctx *api.ImportBlockValueContext) int
 	}
 }
 
+// VisitImportValue implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitImportValue(ctx *api.ImportValueContext) interface{} {
 	return v.newExprWithTerminalNode(ctx.STRING())
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (i *ImportExpr) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two ImportExpr are equal
 func (i *ImportExpr) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -87,10 +95,12 @@ func (i *ImportExpr) Equal(v interface{}) bool {
 	return i.Import.Equal(imp.Import) && i.Value.Equal(imp.Value)
 }
 
+// Doc returns the document of ImportExpr, like // some text
 func (i *ImportExpr) Doc() []Expr {
 	return i.DocExpr
 }
 
+// Comment returns the comment of ImportExpr, like // some text
 func (i *ImportExpr) Comment() Expr {
 	return i.CommentExpr
 }

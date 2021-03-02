@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
 		service.ServiceConf
 		ListenOn      string
@@ -19,6 +20,7 @@ type (
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
 	}
 
+	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
 		Endpoints []string        `json:",optional=!Etcd"`
@@ -28,6 +30,7 @@ type (
 	}
 )
 
+// NewDirectClientConf returns a RpcClientConf.
 func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Endpoints: endpoints,
@@ -36,6 +39,7 @@ func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	}
 }
 
+// NewEtcdClientConf returns a RpcClientConf.
 func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Etcd: discov.EtcdConf{
@@ -47,10 +51,12 @@ func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	}
 }
 
+// HasEtcd checks if there is etcd settings in config.
 func (sc RpcServerConf) HasEtcd() bool {
 	return len(sc.Etcd.Hosts) > 0 && len(sc.Etcd.Key) > 0
 }
 
+// Validate validates the config.
 func (sc RpcServerConf) Validate() error {
 	if sc.Auth {
 		if err := sc.Redis.Validate(); err != nil {
@@ -61,6 +67,7 @@ func (sc RpcServerConf) Validate() error {
 	return nil
 }
 
+// HasCredential checks if there is a credential in config.
 func (cc RpcClientConf) HasCredential() bool {
 	return len(cc.App) > 0 && len(cc.Token) > 0
 }

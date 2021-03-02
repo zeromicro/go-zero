@@ -7,20 +7,28 @@ import (
 )
 
 const (
-	DirectScheme    = "direct"
-	DiscovScheme    = "discov"
+	// DirectScheme stands for direct scheme.
+	DirectScheme = "direct"
+	// DiscovScheme stands for discov scheme.
+	DiscovScheme = "discov"
+	// DiscovK8sScheme stands for k8s schema.
 	DiscovK8sScheme = "k8s"
+	// EndpointSepChar is the separator cha in endpoints.
 	EndpointSepChar = ','
-	subsetSize      = 32
+
+	subsetSize = 32
 )
 
 var (
-	EndpointSep   = fmt.Sprintf("%c", EndpointSepChar)
-	dirBuilder    directBuilder
-	disBuilder    discovBuilder
+	// EndpointSep is the separator string in endpoints.
+	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
+
+	dirBuilder directBuilder
+	disBuilder discovBuilder
 	disK8sBuilder discovK8sBuilder
 )
 
+// RegisterResolver registers the direct and discov schemes to the resolver.
 func RegisterResolver() {
 	resolver.Register(&dirBuilder)
 	resolver.Register(&disBuilder)

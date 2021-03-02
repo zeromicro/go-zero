@@ -8,6 +8,7 @@ import (
 )
 
 type (
+	// Query interface represents a mongo query.
 	Query interface {
 		All(result interface{}) error
 		Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error)

@@ -7,10 +7,13 @@ import (
 )
 
 var (
+	// ErrInvalidStartPosition is an error that indicates the start position is invalid.
 	ErrInvalidStartPosition = errors.New("start position is invalid")
-	ErrInvalidStopPosition  = errors.New("stop position is invalid")
+	// ErrInvalidStopPosition is an error that indicates the stop position is invalid.
+	ErrInvalidStopPosition = errors.New("stop position is invalid")
 )
 
+// Contains checks if str is in list.
 func Contains(list []string, str string) bool {
 	for _, each := range list {
 		if each == str {
@@ -21,6 +24,7 @@ func Contains(list []string, str string) bool {
 	return false
 }
 
+// Filter filters chars from s with given filter function.
 func Filter(s string, filter func(r rune) bool) string {
 	var n int
 	chars := []rune(s)
@@ -36,6 +40,7 @@ func Filter(s string, filter func(r rune) bool) string {
 	return string(chars[:n])
 }
 
+// HasEmpty checks if there are empty strings in args.
 func HasEmpty(args ...string) bool {
 	for _, arg := range args {
 		if len(arg) == 0 {
@@ -46,10 +51,12 @@ func HasEmpty(args ...string) bool {
 	return false
 }
 
+// NotEmpty checks if all strings are not empty in args.
 func NotEmpty(args ...string) bool {
 	return !HasEmpty(args...)
 }
 
+// Remove removes given strs from strings.
 func Remove(strings []string, strs ...string) []string {
 	out := append([]string(nil), strings...)
 
@@ -67,6 +74,7 @@ func Remove(strings []string, strs ...string) []string {
 	return out
 }
 
+// Reverse reverses s.
 func Reverse(s string) string {
 	runes := []rune(s)
 
@@ -77,7 +85,7 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
-// Substr returns runes between start and stop [start, stop) regardless of the chars are ascii or utf8
+// Substr returns runes between start and stop [start, stop) regardless of the chars are ascii or utf8.
 func Substr(str string, start int, stop int) (string, error) {
 	rs := []rune(str)
 	length := len(rs)
@@ -93,6 +101,7 @@ func Substr(str string, start int, stop int) (string, error) {
 	return string(rs[start:stop]), nil
 }
 
+// TakeOne returns valid string if not empty or later one.
 func TakeOne(valid, or string) string {
 	if len(valid) > 0 {
 		return valid
@@ -101,6 +110,7 @@ func TakeOne(valid, or string) string {
 	return or
 }
 
+// TakeWithPriority returns the first not empty result from fns.
 func TakeWithPriority(fns ...func() string) string {
 	for _, fn := range fns {
 		val := fn()
@@ -112,6 +122,7 @@ func TakeWithPriority(fns ...func() string) string {
 	return ""
 }
 
+// Union merges the strings in first and second.
 func Union(first, second []string) []string {
 	set := make(map[string]lang.PlaceholderType)
 

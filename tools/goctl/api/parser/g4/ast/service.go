@@ -7,13 +7,16 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// Service describes service for api syntax
 type Service struct {
 	AtServer   *AtServer
 	ServiceApi *ServiceApi
 }
 
+// KV defines a slice for KvExpr
 type KV []*KvExpr
 
+// AtServer describes server metadata for api syntax
 type AtServer struct {
 	AtServerToken Expr
 	Lp            Expr
@@ -21,6 +24,7 @@ type AtServer struct {
 	Kv            KV
 }
 
+// ServiceApi describes service ast for api syntax
 type ServiceApi struct {
 	ServiceToken Expr
 	Name         Expr
@@ -29,6 +33,7 @@ type ServiceApi struct {
 	ServiceRoute []*ServiceRoute
 }
 
+// ServiceRoute describes service route ast for api syntax
 type ServiceRoute struct {
 	AtDoc     *AtDoc
 	AtServer  *AtServer
@@ -36,6 +41,7 @@ type ServiceRoute struct {
 	Route     *Route
 }
 
+// AtDoc describes service comments ast for api syntax
 type AtDoc struct {
 	AtDocToken Expr
 	Lp         Expr
@@ -44,6 +50,7 @@ type AtDoc struct {
 	Kv         []*KvExpr
 }
 
+// AtHandler describes service hander ast for api syntax
 type AtHandler struct {
 	AtHandlerToken Expr
 	Name           Expr
@@ -51,6 +58,7 @@ type AtHandler struct {
 	CommentExpr    Expr
 }
 
+// Route describes route ast for api syntax
 type Route struct {
 	Method      Expr
 	Path        Expr
@@ -61,12 +69,14 @@ type Route struct {
 	CommentExpr Expr
 }
 
+// Body describes request,response body ast for api syntax
 type Body struct {
 	Lp   Expr
 	Rp   Expr
 	Name DataType
 }
 
+// VisitServiceSpec implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitServiceSpec(ctx *api.ServiceSpecContext) interface{} {
 	var serviceSpec Service
 	if ctx.AtServer() != nil {
@@ -77,6 +87,7 @@ func (v *ApiVisitor) VisitServiceSpec(ctx *api.ServiceSpecContext) interface{} {
 	return &serviceSpec
 }
 
+// VisitAtServer implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitAtServer(ctx *api.AtServerContext) interface{} {
 	var atServer AtServer
 	atServer.AtServerToken = v.newExprWithTerminalNode(ctx.ATSERVER())
@@ -90,6 +101,7 @@ func (v *ApiVisitor) VisitAtServer(ctx *api.AtServerContext) interface{} {
 	return &atServer
 }
 
+// VisitServiceApi implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) interface{} {
 	var serviceApi ServiceApi
 	serviceApi.ServiceToken = v.newExprWithToken(ctx.GetServiceToken())
@@ -105,6 +117,7 @@ func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) interface{} {
 	return &serviceApi
 }
 
+// VisitServiceRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) interface{} {
 	var serviceRoute ServiceRoute
 	if ctx.AtDoc() != nil {
@@ -121,6 +134,7 @@ func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) interface{}
 	return &serviceRoute
 }
 
+// VisitAtDoc implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitAtDoc(ctx *api.AtDocContext) interface{} {
 	var atDoc AtDoc
 	atDoc.AtDocToken = v.newExprWithTerminalNode(ctx.ATDOC())
@@ -150,6 +164,7 @@ func (v *ApiVisitor) VisitAtDoc(ctx *api.AtDocContext) interface{} {
 	return &atDoc
 }
 
+// VisitAtHandler implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	var atHandler AtHandler
 	astHandlerExpr := v.newExprWithTerminalNode(ctx.ATHANDLER())
@@ -160,6 +175,7 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
+// VisitRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	var route Route
 	path := ctx.Path()
@@ -193,6 +209,7 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	return &route
 }
 
+// VisitBody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	if ctx.ID() == nil {
 		return nil
@@ -202,7 +219,6 @@ func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	if api.IsGolangKeyWord(idRxpr.Text()) {
 		v.panic(idRxpr, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", idRxpr.Text()))
 	}
-	v.exportCheck(idRxpr)
 
 	return &Body{
 		Lp:   v.newExprWithToken(ctx.GetLp()),
@@ -211,7 +227,7 @@ func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	}
 }
 
-// note: forward compatible
+// VisitReplybody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	if ctx.DataType() == nil {
 		return nil
@@ -233,7 +249,6 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 		default:
 			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
 		}
-		v.log.Warning("%s %d:%d deprecated array type near '%s'", v.prefix, dataType.ArrayExpr.Line(), dataType.ArrayExpr.Column(), dataType.ArrayExpr.Text())
 	case *Literal:
 		lit := dataType.Literal.Text()
 		if api.IsGolangKeyWord(dataType.Literal.Text()) {
@@ -253,10 +268,13 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	}
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (b *Body) Format() error {
 	// todo
 	return nil
 }
+
+// Equal compares whether the element literals in two Body are equal
 func (b *Body) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -278,19 +296,23 @@ func (b *Body) Equal(v interface{}) bool {
 	return b.Name.Equal(body.Name)
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (r *Route) Format() error {
 	// todo
 	return nil
 }
 
+// Doc returns the document of Route, like // some text
 func (r *Route) Doc() []Expr {
 	return r.DocExpr
 }
 
+// Comment returns the comment of Route, like // some text
 func (r *Route) Comment() Expr {
 	return r.CommentExpr
 }
 
+// Equal compares whether the element literals in two Route are equal
 func (r *Route) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -330,19 +352,23 @@ func (r *Route) Equal(v interface{}) bool {
 	return EqualDoc(r, route)
 }
 
+// Doc returns the document of AtHandler, like // some text
 func (a *AtHandler) Doc() []Expr {
 	return a.DocExpr
 }
 
+// Comment returns the comment of AtHandler, like // some text
 func (a *AtHandler) Comment() Expr {
 	return a.CommentExpr
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (a *AtHandler) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two AtHandler are equal
 func (a *AtHandler) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -364,11 +390,13 @@ func (a *AtHandler) Equal(v interface{}) bool {
 	return EqualDoc(a, atHandler)
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (a *AtDoc) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two AtDoc are equal
 func (a *AtDoc) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -419,11 +447,13 @@ func (a *AtDoc) Equal(v interface{}) bool {
 	return true
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (a *AtServer) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two AtServer are equal
 func (a *AtServer) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -471,6 +501,7 @@ func (a *AtServer) Equal(v interface{}) bool {
 	return true
 }
 
+// Equal compares whether the element literals in two ServiceRoute are equal
 func (s *ServiceRoute) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -500,11 +531,13 @@ func (s *ServiceRoute) Equal(v interface{}) bool {
 	return s.Route.Equal(sr.Route)
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (s *ServiceRoute) Format() error {
 	// todo
 	return nil
 }
 
+// GetHandler returns handler name of api route
 func (s *ServiceRoute) GetHandler() Expr {
 	if s.AtHandler != nil {
 		return s.AtHandler.Name
@@ -513,11 +546,13 @@ func (s *ServiceRoute) GetHandler() Expr {
 	return s.AtServer.Kv.Get("handler")
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (a *ServiceApi) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two ServiceApi are equal
 func (a *ServiceApi) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -569,11 +604,13 @@ func (a *ServiceApi) Equal(v interface{}) bool {
 	return true
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (s *Service) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two Service are equal
 func (s *Service) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -593,6 +630,7 @@ func (s *Service) Equal(v interface{}) bool {
 	return s.ServiceApi.Equal(service.ServiceApi)
 }
 
+// Get returns the tergate KV by specified key
 func (kv KV) Get(key string) Expr {
 	for _, each := range kv {
 		if each.Key.Text() == key {

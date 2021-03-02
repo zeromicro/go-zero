@@ -9,10 +9,10 @@ import (
 	"github.com/urfave/cli"
 )
 
-// Rpc is to generate rpc service code from a proto file by specifying a proto file using flag src,
+// RPC is to generate rpc service code from a proto file by specifying a proto file using flag src,
 // you can specify a target folder for code generation, when the proto file has import, you can specify
 // the import search directory through the proto_path command, for specific usage, please refer to protoc -h
-func Rpc(c *cli.Context) error {
+func RPC(c *cli.Context) error {
 	src := c.String("src")
 	out := c.String("dir")
 	style := c.String("style")
@@ -24,7 +24,7 @@ func Rpc(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	g, err := generator.NewDefaultRpcGenerator(style)
+	g, err := generator.NewDefaultRPCGenerator(style)
 	if err != nil {
 		return err
 	}
@@ -32,9 +32,9 @@ func Rpc(c *cli.Context) error {
 	return g.Generate(src, out, protoImportPath)
 }
 
-// RpcNew is to generate rpc greet service, this greet service can speed
+// RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
-func RpcNew(c *cli.Context) error {
+func RPCNew(c *cli.Context) error {
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
@@ -54,7 +54,7 @@ func RpcNew(c *cli.Context) error {
 		return err
 	}
 
-	g, err := generator.NewDefaultRpcGenerator(style)
+	g, err := generator.NewDefaultRPCGenerator(style)
 	if err != nil {
 		return err
 	}
@@ -62,7 +62,8 @@ func RpcNew(c *cli.Context) error {
 	return g.Generate(src, filepath.Dir(src), nil)
 }
 
-func RpcTemplate(c *cli.Context) error {
+// RPCTemplate is the entry for generate rpc template
+func RPCTemplate(c *cli.Context) error {
 	protoFile := c.String("o")
 	if len(protoFile) == 0 {
 		return errors.New("missing -o")

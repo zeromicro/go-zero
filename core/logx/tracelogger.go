@@ -67,6 +67,7 @@ func (l *traceLogger) write(writer io.Writer, level, content string) {
 	outputJson(writer, l)
 }
 
+// WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
 	return &traceLogger{
 		ctx: ctx,

@@ -2,11 +2,11 @@ package httpx
 
 import "net/http"
 
-const xForwardFor = "X-Forward-For"
+const xForwardedFor = "X-Forwarded-For"
 
 // GetRemoteAddr returns the peer address, supports X-Forward-For.
 func GetRemoteAddr(r *http.Request) string {
-	v := r.Header.Get(xForwardFor)
+	v := r.Header.Get(xForwardedFor)
 	if len(v) > 0 {
 		return v
 	}

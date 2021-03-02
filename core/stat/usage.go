@@ -44,6 +44,7 @@ func init() {
 	}()
 }
 
+// CpuUsage returns current cpu usage.
 func CpuUsage() int64 {
 	return atomic.LoadInt64(&cpuUsage)
 }

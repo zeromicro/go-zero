@@ -7,7 +7,9 @@ import (
 )
 
 const (
+	// HttpFormat means http carrier format.
 	HttpFormat = iota
+	// GrpcFormat means grpc carrier format.
 	GrpcFormat
 )
 
@@ -17,6 +19,7 @@ var (
 )
 
 type (
+	// Propagator interface wraps the Extract and Inject methods.
 	Propagator interface {
 		Extract(carrier interface{}) (Carrier, error)
 		Inject(carrier interface{}) (Carrier, error)
@@ -58,6 +61,7 @@ func (g grpcPropagator) Inject(carrier interface{}) (Carrier, error) {
 	return nil, ErrInvalidCarrier
 }
 
+// Extract extracts tracing information from carrier with given format.
 func Extract(format, carrier interface{}) (Carrier, error) {
 	switch v := format.(type) {
 	case int:
@@ -71,6 +75,7 @@ func Extract(format, carrier interface{}) (Carrier, error) {
 	return nil, ErrInvalidCarrier
 }
 
+// Inject injects tracing information into carrier with given format.
 func Inject(format, carrier interface{}) (Carrier, error) {
 	switch v := format.(type) {
 	case int:

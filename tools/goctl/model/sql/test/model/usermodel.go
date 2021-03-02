@@ -13,19 +13,20 @@ import (
 )
 
 var (
-	userFieldNames          = builderx.FieldNames(&User{})
+	userFieldNames          = builderx.RawFieldNames(&User{})
 	userRows                = strings.Join(userFieldNames, ",")
-	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), ",")
-	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
+	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
+	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
 )
 
 type (
+	// UserModel defines a model for user
 	UserModel interface {
 		Insert(data User) (sql.Result, error)
 		FindOne(id int64) (*User, error)
 		FindOneByUser(user string) (*User, error)
-		FindOneByName(name string) (*User, error)
 		FindOneByMobile(mobile string) (*User, error)
+		FindOneByName(name string) (*User, error)
 		Update(data User) error
 		Delete(id int64) error
 	}
@@ -35,8 +36,9 @@ type (
 		table string
 	}
 
+	// User defines an data structure for mysql
 	User struct {
-		Id         int64     `db:"id"`
+		ID         int64     `db:"id"`
 		User       string    `db:"user"`     // 用户
 		Name       string    `db:"name"`     // 用户名称
 		Password   string    `db:"password"` // 用户密码
@@ -48,6 +50,7 @@ type (
 	}
 )
 
+// NewUserModel creates an instance for UserModel
 func NewUserModel(conn sqlx.SqlConn) UserModel {
 	return &defaultUserModel{
 		conn:  conn,
@@ -89,20 +92,6 @@ func (m *defaultUserModel) FindOneByUser(user string) (*User, error) {
 	}
 }
 
-func (m *defaultUserModel) FindOneByName(name string) (*User, error) {
-	var resp User
-	query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", userRows, m.table)
-	err := m.conn.QueryRow(&resp, query, name)
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
-}
-
 func (m *defaultUserModel) FindOneByMobile(mobile string) (*User, error) {
 	var resp User
 	query := fmt.Sprintf("select %s from %s where `mobile` = ? limit 1", userRows, m.table)
@@ -117,9 +106,23 @@ func (m *defaultUserModel) FindOneByMobile(mobile string) (*User, error) {
 	}
 }
 
+func (m *defaultUserModel) FindOneByName(name string) (*User, error) {
+	var resp User
+	query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", userRows, m.table)
+	err := m.conn.QueryRow(&resp, query, name)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultUserModel) Update(data User) error {
 	query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-	_, err := m.conn.Exec(query, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.Id)
+	_, err := m.conn.Exec(query, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, data.ID)
 	return err
 }
 

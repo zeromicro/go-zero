@@ -19,6 +19,7 @@ import (
 // use 1000m to represent 100%
 const topCpuUsage = 1000
 
+// ErrSignatureConfig is an error that indicates bad config for signature.
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
 type engine struct {
@@ -114,7 +115,7 @@ func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat
 		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
-		handler.PromethousHandler(route.Path),
+		handler.PrometheusHandler(route.Path),
 		handler.MaxBytesHandler(s.conf.MaxBytes),
 		handler.GunzipHandler,
 	)

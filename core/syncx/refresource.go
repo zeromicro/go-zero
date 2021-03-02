@@ -5,8 +5,10 @@ import (
 	"sync"
 )
 
+// ErrUseOfCleaned is an error that indicates using a cleaned resource.
 var ErrUseOfCleaned = errors.New("using a cleaned resource")
 
+// A RefResource is used to reference counting a resouce.
 type RefResource struct {
 	lock    sync.Mutex
 	ref     int32
@@ -14,12 +16,14 @@ type RefResource struct {
 	clean   func()
 }
 
+// NewRefResource returns a RefResource.
 func NewRefResource(clean func()) *RefResource {
 	return &RefResource{
 		clean: clean,
 	}
 }
 
+// Use uses the resource with reference count incremented.
 func (r *RefResource) Use() error {
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -32,6 +36,7 @@ func (r *RefResource) Use() error {
 	return nil
 }
 
+// Clean cleans a resource with reference count decremented.
 func (r *RefResource) Clean() {
 	r.lock.Lock()
 	defer r.lock.Unlock()

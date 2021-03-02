@@ -122,6 +122,6 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	if len(route.ResponseTypeName()) > 0 || len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceUrl))
+	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

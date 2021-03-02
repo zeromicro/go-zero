@@ -7,16 +7,19 @@ import (
 
 	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
 type (
+	// TokenStream defines a token
 	TokenStream interface {
 		GetStart() antlr.Token
 		GetStop() antlr.Token
 		GetParser() antlr.Parser
 	}
+
+	// ApiVisitor wraps api.BaseApiParserVisitor to call methods which has prefix Visit to
+	// visit node from the api syntax
 	ApiVisitor struct {
 		api.BaseApiParserVisitor
 		debug    bool
@@ -25,8 +28,10 @@ type (
 		infoFlag bool
 	}
 
+	// VisitorOption defines a function with argument ApiVisitor
 	VisitorOption func(v *ApiVisitor)
 
+	// Spec describes api spec
 	Spec interface {
 		Doc() []Expr
 		Comment() Expr
@@ -34,6 +39,7 @@ type (
 		Equal(v interface{}) bool
 	}
 
+	// Expr describes ast expression
 	Expr interface {
 		Prefix() string
 		Line() int
@@ -47,6 +53,7 @@ type (
 	}
 )
 
+// NewApiVisitor creates an instance for ApiVisitor
 func NewApiVisitor(options ...VisitorOption) *ApiVisitor {
 	v := &ApiVisitor{
 		log: console.NewColorConsole(),
@@ -66,12 +73,14 @@ func (v *ApiVisitor) panic(expr Expr, msg string) {
 	panic(errString)
 }
 
+// WithVisitorPrefix returns a VisitorOption wrap with specified prefix
 func WithVisitorPrefix(prefix string) VisitorOption {
 	return func(v *ApiVisitor) {
 		v.prefix = prefix
 	}
 }
 
+// WithVisitorDebug returns a debug VisitorOption
 func WithVisitorDebug() VisitorOption {
 	return func(v *ApiVisitor) {
 		v.debug = true
@@ -84,6 +93,7 @@ type defaultExpr struct {
 	start, stop  int
 }
 
+// NewTextExpr creates a default instance for Expr
 func NewTextExpr(v string) *defaultExpr {
 	return &defaultExpr{
 		v: v,
@@ -201,6 +211,7 @@ func (e *defaultExpr) IsNotNil() bool {
 	return e != nil
 }
 
+// EqualDoc compares whether the element literals in two Spec are equal
 func EqualDoc(spec1, spec2 Spec) bool {
 	if spec1 == nil {
 		return spec2 == nil
@@ -310,19 +321,4 @@ func (v *ApiVisitor) getHiddenTokensToRight(t TokenStream, channel int) []Expr {
 	}
 
 	return list
-}
-
-func (v *ApiVisitor) exportCheck(expr Expr) {
-	if expr == nil || !expr.IsNotNil() {
-		return
-	}
-
-	if api.IsBasicType(expr.Text()) {
-		return
-	}
-
-	if util.UnExport(expr.Text()) {
-		v.log.Warning("%s line %d:%d unexported declaration '%s', use %s instead", expr.Prefix(), expr.Line(),
-			expr.Column(), expr.Text(), strings.Title(expr.Text()))
-	}
 }

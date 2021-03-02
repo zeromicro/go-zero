@@ -28,6 +28,7 @@ end`
 	millisPerSecond = 1000
 )
 
+// A RedisLock is a redis lock.
 type RedisLock struct {
 	store   *Redis
 	seconds uint32
@@ -39,6 +40,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+// NewRedisLock returns a RedisLock.
 func NewRedisLock(store *Redis, key string) *RedisLock {
 	return &RedisLock{
 		store: store,
@@ -47,6 +49,7 @@ func NewRedisLock(store *Redis, key string) *RedisLock {
 	}
 }
 
+// Acquire acquires the lock.
 func (rl *RedisLock) Acquire() (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
 	resp, err := rl.store.Eval(lockCommand, []string{rl.key}, []string{
@@ -69,6 +72,7 @@ func (rl *RedisLock) Acquire() (bool, error) {
 	return false, nil
 }
 
+// Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
 	resp, err := rl.store.Eval(delCommand, []string{rl.key}, []string{rl.id})
 	if err != nil {
@@ -83,6 +87,7 @@ func (rl *RedisLock) Release() (bool, error) {
 	return reply == 1, nil
 }
 
+// SetExpire sets the expire.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
 }

@@ -15,6 +15,7 @@ type parser struct {
 	spec *spec.ApiSpec
 }
 
+// Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)))
 	ast, err := astParser.Parse(filename)
@@ -32,6 +33,7 @@ func Parse(filename string) (*spec.ApiSpec, error) {
 	return spec, nil
 }
 
+// ParseContent parses the api content
 func ParseContent(content string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser()
 	ast, err := astParser.ParseContent(content)
@@ -213,13 +215,7 @@ func (p parser) fillService() error {
 	var groups []spec.Group
 	for _, item := range p.ast.Service {
 		var group spec.Group
-		if item.AtServer != nil {
-			var properties = make(map[string]string, 0)
-			for _, kv := range item.AtServer.Kv {
-				properties[kv.Key.Text()] = kv.Value.Text()
-			}
-			group.Annotation.Properties = properties
-		}
+		p.fillAtServer(item, &group)
 
 		for _, astRoute := range item.ServiceApi.ServiceRoute {
 			route := spec.Route{
@@ -231,25 +227,9 @@ func (p parser) fillService() error {
 				route.Handler = astRoute.AtHandler.Name.Text()
 			}
 
-			if astRoute.AtServer != nil {
-				var properties = make(map[string]string, 0)
-				for _, kv := range astRoute.AtServer.Kv {
-					properties[kv.Key.Text()] = kv.Value.Text()
-				}
-				route.Annotation.Properties = properties
-				if len(route.Handler) == 0 {
-					route.Handler = properties["handler"]
-				}
-				if len(route.Handler) == 0 {
-					return fmt.Errorf("missing handler annotation for %q", route.Path)
-				}
-
-				for _, char := range route.Handler {
-					if !unicode.IsDigit(char) && !unicode.IsLetter(char) {
-						return fmt.Errorf("route [%s] handler [%s] invalid, handler name should only contains letter or digit",
-							route.Path, route.Handler)
-					}
-				}
+			err := p.fillRouteAtServer(astRoute, &route)
+			if err != nil {
+				return err
 			}
 
 			if astRoute.Route.Req != nil {
@@ -269,7 +249,7 @@ func (p parser) fillService() error {
 				}
 			}
 
-			err := p.fillRouteType(&route)
+			err = p.fillRouteType(&route)
 			if err != nil {
 				return err
 			}
@@ -287,6 +267,40 @@ func (p parser) fillService() error {
 	p.spec.Service.Groups = groups
 
 	return nil
+}
+
+func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route) error {
+	if astRoute.AtServer != nil {
+		var properties = make(map[string]string, 0)
+		for _, kv := range astRoute.AtServer.Kv {
+			properties[kv.Key.Text()] = kv.Value.Text()
+		}
+		route.Annotation.Properties = properties
+		if len(route.Handler) == 0 {
+			route.Handler = properties["handler"]
+		}
+		if len(route.Handler) == 0 {
+			return fmt.Errorf("missing handler annotation for %q", route.Path)
+		}
+
+		for _, char := range route.Handler {
+			if !unicode.IsDigit(char) && !unicode.IsLetter(char) {
+				return fmt.Errorf("route [%s] handler [%s] invalid, handler name should only contains letter or digit",
+					route.Path, route.Handler)
+			}
+		}
+	}
+	return nil
+}
+
+func (p parser) fillAtServer(item *ast.Service, group *spec.Group) {
+	if item.AtServer != nil {
+		var properties = make(map[string]string, 0)
+		for _, kv := range item.AtServer.Kv {
+			properties[kv.Key.Text()] = kv.Value.Text()
+		}
+		group.Annotation.Properties = properties
+	}
 }
 
 func (p parser) fillRouteType(route *spec.Route) error {

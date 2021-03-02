@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// TracingInterceptor is an interceptor that handles tracing.
 func TracingInterceptor(ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	ctx, span := trace.StartClientSpan(ctx, cc.Target(), method)

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 )
 
-// expression: globbing patterns
+// MatchFiles returns the match values by globbing patterns
 func MatchFiles(in string) ([]string, error) {
 	dir, pattern := filepath.Split(in)
 	abs, err := filepath.Abs(dir)

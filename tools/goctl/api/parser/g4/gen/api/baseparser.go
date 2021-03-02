@@ -74,7 +74,7 @@ func checkKeyValue(p *ApiParserParser) {
 	setCurrentTokenText(p, v)
 }
 
-func checkHttpMethod(p *ApiParserParser) {
+func checkHTTPMethod(p *ApiParserParser) {
 	method := getCurrentTokenText(p)
 	uppler := strings.ToUpper(method)
 	switch uppler {
@@ -107,11 +107,13 @@ func checkKey(p *ApiParserParser) {
 	}
 }
 
+// IsBasicType returns true if the input argument is basic golang type
 func IsBasicType(text string) bool {
 	_, ok := kind[text]
 	return ok
 }
 
+// IsGolangKeyWord returns true if input argument is golang keyword, but it will be ignored which in excepts
 func IsGolangKeyWord(text string, excepts ...string) bool {
 	for _, each := range excepts {
 		if text == each {
@@ -171,6 +173,7 @@ func isNormal(p *ApiParserParser) bool {
 	return len(list) > 1
 }
 
+// MatchTag returns a Boolean value, which returns true if it does matched, otherwise returns fase
 func MatchTag(v string) bool {
 	return matchRegex(v, tagRegex)
 }

@@ -57,8 +57,11 @@ const (
 )
 
 var (
-	ErrLogPathNotSet        = errors.New("log path must be set")
-	ErrLogNotInitialized    = errors.New("log not initialized")
+	// ErrLogPathNotSet is an error that indicates the log path is not set.
+	ErrLogPathNotSet = errors.New("log path must be set")
+	// ErrLogNotInitialized is an error that log is not initialized.
+	ErrLogNotInitialized = errors.New("log not initialized")
+	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 
 	writeConsole bool
@@ -89,8 +92,10 @@ type (
 		keepDays              int
 	}
 
+	// LogOption defines the method to customize the logging.
 	LogOption func(options *logOptions)
 
+	// A Logger represents a logger.
 	Logger interface {
 		Error(...interface{})
 		Errorf(string, ...interface{})
@@ -102,6 +107,7 @@ type (
 	}
 )
 
+// MustSetup sets up logging with given config c. It exits on error.
 func MustSetup(c LogConf) {
 	Must(SetUp(c))
 }
@@ -122,10 +128,12 @@ func SetUp(c LogConf) error {
 	}
 }
 
+// Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
 	output(errorLog, levelAlert, v)
 }
 
+// Close closes the logging.
 func Close() error {
 	if writeConsole {
 		return nil
@@ -170,6 +178,7 @@ func Close() error {
 	return nil
 }
 
+// Disable disables the logging.
 func Disable() {
 	once.Do(func() {
 		atomic.StoreUint32(&initialized, 1)
@@ -183,40 +192,49 @@ func Disable() {
 	})
 }
 
+// Error writes v into error log.
 func Error(v ...interface{}) {
 	ErrorCaller(1, v...)
 }
 
+// Errorf writes v with format into error log.
 func Errorf(format string, v ...interface{}) {
 	ErrorCallerf(1, format, v...)
 }
 
+// ErrorCaller writes v with context into error log.
 func ErrorCaller(callDepth int, v ...interface{}) {
 	errorSync(fmt.Sprint(v...), callDepth+callerInnerDepth)
 }
 
+// ErrorCallerf writes v with context in format into error log.
 func ErrorCallerf(callDepth int, format string, v ...interface{}) {
 	errorSync(fmt.Sprintf(format, v...), callDepth+callerInnerDepth)
 }
 
+// ErrorStack writes v along with call stack into error log.
 func ErrorStack(v ...interface{}) {
 	// there is newline in stack string
 	stackSync(fmt.Sprint(v...))
 }
 
+// ErrorStackf writes v along with call stack in format into error log.
 func ErrorStackf(format string, v ...interface{}) {
 	// there is newline in stack string
 	stackSync(fmt.Sprintf(format, v...))
 }
 
+// Info writes v into access log.
 func Info(v ...interface{}) {
 	infoSync(fmt.Sprint(v...))
 }
 
+// Infof writes v with format into access log.
 func Infof(format string, v ...interface{}) {
 	infoSync(fmt.Sprintf(format, v...))
 }
 
+// Must checks if err is nil, otherwise logs the err and exits.
 func Must(err error) {
 	if err != nil {
 		msg := formatWithCaller(err.Error(), 3)
@@ -226,46 +244,56 @@ func Must(err error) {
 	}
 }
 
+// SetLevel sets the logging level. It can be used to suppress some logs.
 func SetLevel(level uint32) {
 	atomic.StoreUint32(&logLevel, level)
 }
 
+// Severe writes v into severe log.
 func Severe(v ...interface{}) {
 	severeSync(fmt.Sprint(v...))
 }
 
+// Severef writes v with format into severe log.
 func Severef(format string, v ...interface{}) {
 	severeSync(fmt.Sprintf(format, v...))
 }
 
+// Slow writes v into slow log.
 func Slow(v ...interface{}) {
 	slowSync(fmt.Sprint(v...))
 }
 
+// Slowf writes v with format into slow log.
 func Slowf(format string, v ...interface{}) {
 	slowSync(fmt.Sprintf(format, v...))
 }
 
+// Stat writes v into stat log.
 func Stat(v ...interface{}) {
 	statSync(fmt.Sprint(v...))
 }
 
+// Statf writes v with format into stat log.
 func Statf(format string, v ...interface{}) {
 	statSync(fmt.Sprintf(format, v...))
 }
 
+// WithCooldownMillis customizes logging on writing call stack interval.
 func WithCooldownMillis(millis int) LogOption {
 	return func(opts *logOptions) {
 		opts.logStackCooldownMills = millis
 	}
 }
 
+// WithKeepDays customizes logging to keep logs with days.
 func WithKeepDays(days int) LogOption {
 	return func(opts *logOptions) {
 		opts.keepDays = days
 	}
 }
 
+// WithGzip customizes logging to automatically gzip the log files.
 func WithGzip() LogOption {
 	return func(opts *logOptions) {
 		opts.gzipEnabled = true
@@ -382,7 +410,7 @@ func setupWithConsole(c LogConf) {
 		errorLog = newLogWriter(log.New(os.Stderr, "", flags))
 		severeLog = newLogWriter(log.New(os.Stderr, "", flags))
 		slowLog = newLogWriter(log.New(os.Stderr, "", flags))
-		stackLog = NewLessWriter(errorLog, options.logStackCooldownMills)
+		stackLog = newLessWriter(errorLog, options.logStackCooldownMills)
 		statLog = infoLog
 	})
 }
@@ -434,7 +462,7 @@ func setupWithFiles(c LogConf) error {
 			return
 		}
 
-		stackLog = NewLessWriter(errorLog, options.logStackCooldownMills)
+		stackLog = newLessWriter(errorLog, options.logStackCooldownMills)
 	})
 
 	return err

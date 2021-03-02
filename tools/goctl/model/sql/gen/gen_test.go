@@ -16,18 +16,15 @@ import (
 )
 
 var (
-	source = "CREATE TABLE `test_user_info` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `nanosecond` bigint NOT NULL DEFAULT '0',\n  `data` varchar(255) DEFAULT '',\n  `content` json DEFAULT NULL,\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `nanosecond_unique` (`nanosecond`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;"
+	source = "CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL,\n  `class` bigint NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
 )
 
 func TestCacheModel(t *testing.T) {
 	logx.Disable()
 	_ = Clean()
-	dir, _ := filepath.Abs("./testmodel")
+	dir := filepath.Join(t.TempDir(), "./testmodel")
 	cacheDir := filepath.Join(dir, "cache")
 	noCacheDir := filepath.Join(dir, "nocache")
-	defer func() {
-		_ = os.RemoveAll(dir)
-	}()
 	g, err := NewDefaultGenerator(cacheDir, &config.Config{
 		NamingFormat: "GoZero",
 	})
@@ -36,7 +33,7 @@ func TestCacheModel(t *testing.T) {
 	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(cacheDir, "TestUserInfoModel.go"))
+		_, err := os.Stat(filepath.Join(cacheDir, "TestUserModel.go"))
 		return err == nil
 	}())
 	g, err = NewDefaultGenerator(noCacheDir, &config.Config{
@@ -47,7 +44,7 @@ func TestCacheModel(t *testing.T) {
 	err = g.StartFromDDL(source, false)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(noCacheDir, "testuserinfomodel.go"))
+		_, err := os.Stat(filepath.Join(noCacheDir, "testusermodel.go"))
 		return err == nil
 	}())
 }
@@ -69,7 +66,7 @@ func TestNamingModel(t *testing.T) {
 	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(camelDir, "TestUserInfoModel.go"))
+		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
 		return err == nil
 	}())
 	g, err = NewDefaultGenerator(snakeDir, &config.Config{
@@ -80,7 +77,7 @@ func TestNamingModel(t *testing.T) {
 	err = g.StartFromDDL(source, true)
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
-		_, err := os.Stat(filepath.Join(snakeDir, "test_user_info_model.go"))
+		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))
 		return err == nil
 	}())
 }
@@ -94,7 +91,7 @@ func TestWrapWithRawString(t *testing.T) {
 
 func TestFields(t *testing.T) {
 	type Student struct {
-		Id         int64           `db:"id"`
+		ID         int64           `db:"id"`
 		Name       string          `db:"name"`
 		Age        sql.NullInt64   `db:"age"`
 		Score      sql.NullFloat64 `db:"score"`

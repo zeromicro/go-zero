@@ -17,8 +17,10 @@ const (
 )
 
 var (
+	// ErrInvalidMethod is an error that indicates not a valid http method.
 	ErrInvalidMethod = errors.New("not a valid http method")
-	ErrInvalidPath   = errors.New("path must begin with '/'")
+	// ErrInvalidPath is an error that indicates path is not start with /.
+	ErrInvalidPath = errors.New("path must begin with '/'")
 )
 
 type patRouter struct {
@@ -27,6 +29,7 @@ type patRouter struct {
 	notAllowed http.Handler
 }
 
+// NewRouter returns a httpx.Router.
 func NewRouter() httpx.Router {
 	return &patRouter{
 		trees: make(map[string]*search.Tree),

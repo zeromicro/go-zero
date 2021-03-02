@@ -15,10 +15,12 @@ func init() {
 	pid = os.Getpid()
 }
 
+// Pid returns pid of current process.
 func Pid() int {
 	return pid
 }
 
+// ProcessName returns the processname, same as the command name.
 func ProcessName() string {
 	return procName
 }

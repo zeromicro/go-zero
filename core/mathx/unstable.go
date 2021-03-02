@@ -6,12 +6,14 @@ import (
 	"time"
 )
 
+// A Unstable is used to generate random value around the mean value base on given deviation.
 type Unstable struct {
 	deviation float64
 	r         *rand.Rand
 	lock      *sync.Mutex
 }
 
+// NewUnstable returns a Unstable.
 func NewUnstable(deviation float64) Unstable {
 	if deviation < 0 {
 		deviation = 0
@@ -26,6 +28,7 @@ func NewUnstable(deviation float64) Unstable {
 	}
 }
 
+// AroundDuration returns a random duration with given base and deviation.
 func (u Unstable) AroundDuration(base time.Duration) time.Duration {
 	u.lock.Lock()
 	val := time.Duration((1 + u.deviation - 2*u.deviation*u.r.Float64()) * float64(base))
@@ -33,6 +36,7 @@ func (u Unstable) AroundDuration(base time.Duration) time.Duration {
 	return val
 }
 
+// AroundInt returns a randome int64 with given base and deviation.
 func (u Unstable) AroundInt(base int64) int64 {
 	u.lock.Lock()
 	val := int64((1 + u.deviation - 2*u.deviation*u.r.Float64()) * float64(base))

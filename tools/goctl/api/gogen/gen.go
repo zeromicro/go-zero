@@ -25,6 +25,7 @@ const tmpFile = "%s-%d"
 
 var tmpDir = path.Join(os.TempDir(), "goctl")
 
+// GoCommand gen go project files from command line
 func GoCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
@@ -40,6 +41,7 @@ func GoCommand(c *cli.Context) error {
 	return DoGenProject(apiFile, dir, namingStyle)
 }
 
+// DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {

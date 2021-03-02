@@ -16,6 +16,7 @@ import (
 
 const templateParentPath = "/"
 
+// GenTemplates wtites the latest template text into file which is not exists
 func GenTemplates(ctx *cli.Context) error {
 	if err := errorx.Chain(
 		func() error {
@@ -48,6 +49,7 @@ func GenTemplates(ctx *cli.Context) error {
 	return nil
 }
 
+// CleanTemplates deletes all templates
 func CleanTemplates(_ *cli.Context) error {
 	err := errorx.Chain(
 		func() error {
@@ -68,6 +70,8 @@ func CleanTemplates(_ *cli.Context) error {
 	return nil
 }
 
+// UpdateTemplates wtites the latest template text into file,
+// it will delete the oldler templates if there are exists
 func UpdateTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
 	defer func() {
@@ -92,6 +96,7 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 	}
 }
 
+// RevertTemplates will overwrite the old template content with the new template
 func RevertTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
 	filename := ctx.String("name")

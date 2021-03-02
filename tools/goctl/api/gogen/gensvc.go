@@ -64,7 +64,7 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
 		configImport += "\n\t\"" + ctlutil.JoinPackages(parentPkg, middlewareDir) + "\""
-		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceUrl)
+		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
 	return genFile(fileGenConfig{

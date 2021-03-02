@@ -11,16 +11,19 @@ CREATE TABLE `user` (
   `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_index` (`name`),
+  UNIQUE KEY `name_index2` (`name`),
   UNIQUE KEY `user_index` (`user`),
   UNIQUE KEY `mobile_index` (`mobile`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `student` (
   `id` bigint NOT NULL AUTO_INCREMENT,
+  `class` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `name` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
   `age` tinyint DEFAULT NULL,
   `score` float(10,0) DEFAULT NULL,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `class_name_index` (`class`,`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

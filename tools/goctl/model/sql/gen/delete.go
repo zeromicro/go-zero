@@ -12,13 +12,11 @@ import (
 func genDelete(table Table, withCache bool) (string, string, error) {
 	keySet := collection.NewSet()
 	keyVariableSet := collection.NewSet()
-	for fieldName, key := range table.CacheKey {
-		if fieldName == table.PrimaryKey.Name.Source() {
-			keySet.AddStr(key.KeyExpression)
-		} else {
-			keySet.AddStr(key.DataKeyExpression)
-		}
-		keyVariableSet.AddStr(key.Variable)
+	keySet.AddStr(table.PrimaryCacheKey.KeyExpression)
+	keyVariableSet.AddStr(table.PrimaryCacheKey.KeyLeft)
+	for _, key := range table.UniqueCacheKey {
+		keySet.AddStr(key.DataKeyExpression)
+		keyVariableSet.AddStr(key.KeyLeft)
 	}
 
 	camel := table.Name.ToCamel()
@@ -32,7 +30,7 @@ func genDelete(table Table, withCache bool) (string, string, error) {
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
 			"withCache":                 withCache,
-			"containsIndexCache":        table.ContainsUniqueKey,
+			"containsIndexCache":        table.ContainsUniqueCacheKey,
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),

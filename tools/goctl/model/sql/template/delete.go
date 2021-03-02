@@ -1,5 +1,6 @@
 package template
 
+// Delete defines a delete template
 var Delete = `
 func (m *default{{.upperStartCamelObject}}Model) Delete({{.lowerStartCamelPrimaryKey}} {{.dataType}}) error {
 	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne({{.lowerStartCamelPrimaryKey}})
@@ -17,4 +18,5 @@ func (m *default{{.upperStartCamelObject}}Model) Delete({{.lowerStartCamelPrimar
 }
 `
 
+// DeleteMethod defines a delete template for interface method
 var DeleteMethod = `Delete({{.lowerStartCamelPrimaryKey}} {{.dataType}}) error`

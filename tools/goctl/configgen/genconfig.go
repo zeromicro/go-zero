@@ -37,6 +37,7 @@ func main() {
 }
 `
 
+// GenConfigCommand provides the entry of goctl config
 func GenConfigCommand(c *cli.Context) error {
 	path, err := filepath.Abs(c.String("path"))
 	if err != nil {

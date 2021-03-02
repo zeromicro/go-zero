@@ -60,6 +60,7 @@ func ParseForm(r *http.Request, v interface{}) error {
 	return formUnmarshaler.Unmarshal(params, v)
 }
 
+// ParseHeader parses the request header and returns a map.
 func ParseHeader(headerValue string) map[string]string {
 	ret := make(map[string]string)
 	fields := strings.Split(headerValue, separator)

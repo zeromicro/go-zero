@@ -27,7 +27,7 @@ func TestRpcGenerate(t *testing.T) {
 		return
 	}
 	projectName := stringx.Rand()
-	g := NewRpcGenerator(dispatcher, cfg)
+	g := NewRPCGenerator(dispatcher, cfg)
 
 	// case go path
 	src := filepath.Join(build.Default.GOPATH, "src")
@@ -78,9 +78,4 @@ func TestRpcGenerate(t *testing.T) {
 			return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
 		}())
 	}
-
-	// invalid directory
-	projectDir = filepath.Join(t.TempDir(), ".....")
-	err = g.Generate("./test.proto", projectDir, nil)
-	assert.NotNil(t, err)
 }

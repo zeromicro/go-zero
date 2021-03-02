@@ -22,13 +22,14 @@ const (
 	flagDir   = "dir"
 	flagCache = "cache"
 	flagIdea  = "idea"
-	flagUrl   = "url"
+	flagURL   = "url"
 	flagTable = "table"
 	flagStyle = "style"
 )
 
 var errNotMatched = errors.New("sql not matched")
 
+// MysqlDDL generates model code from ddl
 func MysqlDDL(ctx *cli.Context) error {
 	src := ctx.String(flagSrc)
 	dir := ctx.String(flagDir)
@@ -43,8 +44,9 @@ func MysqlDDL(ctx *cli.Context) error {
 	return fromDDl(src, dir, cfg, cache, idea)
 }
 
+// MyDataSource generates model code from datasource
 func MyDataSource(ctx *cli.Context) error {
-	url := strings.TrimSpace(ctx.String(flagUrl))
+	url := strings.TrimSpace(ctx.String(flagURL))
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
@@ -119,7 +121,7 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		return err
 	}
 
-	matchTables := make(map[string][]*model.Column)
+	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
 		match, err := filepath.Match(pattern, item)
 		if err != nil {
@@ -129,11 +131,18 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		if !match {
 			continue
 		}
-		columns, err := im.FindByTableName(dsn.DBName, item)
+
+		columnData, err := im.FindColumns(dsn.DBName, item)
 		if err != nil {
 			return err
 		}
-		matchTables[item] = columns
+
+		table, err := columnData.Convert()
+		if err != nil {
+			return err
+		}
+
+		matchTables[item] = table
 	}
 
 	if len(matchTables) == 0 {
@@ -145,5 +154,5 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 		return err
 	}
 
-	return generator.StartFromInformationSchema(dsn.DBName, matchTables, cache)
+	return generator.StartFromInformationSchema(matchTables, cache)
 }

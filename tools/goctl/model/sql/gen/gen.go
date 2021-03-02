@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,9 +32,24 @@ type (
 		pkg string
 		cfg *config.Config
 	}
+
+	// Option defines a function with argument defaultGenerator
 	Option func(generator *defaultGenerator)
+
+	code struct {
+		importsCode string
+		varsCode    string
+		typesCode   string
+		newCode     string
+		insertCode  string
+		findCode    []string
+		updateCode  string
+		deleteCode  string
+		cacheExtra  string
+	}
 )
 
+// NewDefaultGenerator creates an instance for defaultGenerator
 func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
@@ -61,6 +77,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 	return generator, nil
 }
 
+// WithConsoleOption creates a console option
 func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
 		generator.Console = c
@@ -82,10 +99,10 @@ func (g *defaultGenerator) StartFromDDL(source string, withCache bool) error {
 	return g.createFile(modelList)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[string][]*model.Column, withCache bool) error {
+func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache bool) error {
 	m := make(map[string]string)
-	for tableName, column := range columns {
-		table, err := parser.ConvertColumn(db, tableName, column)
+	for _, each := range tables {
+		table, err := parser.ConvertDataType(each)
 		if err != nil {
 			return err
 		}
@@ -165,20 +182,24 @@ func (g *defaultGenerator) genFromDDL(source string, withCache bool) (map[string
 		if err != nil {
 			return nil, err
 		}
+
 		code, err := g.genModel(*table, withCache)
 		if err != nil {
 			return nil, err
 		}
+
 		m[table.Name.Source()] = code
 	}
 
 	return m, nil
 }
 
+// Table defines mysql table
 type Table struct {
 	parser.Table
-	CacheKey          map[string]Key
-	ContainsUniqueKey bool
+	PrimaryCacheKey        Key
+	UniqueCacheKey         []Key
+	ContainsUniqueCacheKey bool
 }
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
@@ -186,19 +207,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
-	if err != nil {
-		return "", err
-	}
-
-	t := util.With("model").
-		Parse(text).
-		GoFmt(true)
-
-	m, err := genCacheKeys(in)
-	if err != nil {
-		return "", err
-	}
+	primaryKey, uniqueKey := genCacheKeys(in)
 
 	importsCode, err := genImports(withCache, in.ContainsTime())
 	if err != nil {
@@ -207,15 +216,9 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 	var table Table
 	table.Table = in
-	table.CacheKey = m
-	var containsUniqueCache = false
-	for _, item := range table.Fields {
-		if item.IsUniqueKey {
-			containsUniqueCache = true
-			break
-		}
-	}
-	table.ContainsUniqueKey = containsUniqueCache
+	table.PrimaryCacheKey = primaryKey
+	table.UniqueCacheKey = uniqueKey
+	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 
 	varsCode, err := genVars(table, withCache)
 	if err != nil {
@@ -261,23 +264,50 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	output, err := t.Execute(map[string]interface{}{
-		"pkg":         g.pkg,
-		"imports":     importsCode,
-		"vars":        varsCode,
-		"types":       typesCode,
-		"new":         newCode,
-		"insert":      insertCode,
-		"find":        strings.Join(findCode, "\n"),
-		"update":      updateCode,
-		"delete":      deleteCode,
-		"extraMethod": ret.cacheExtra,
-	})
+	code := &code{
+		importsCode: importsCode,
+		varsCode:    varsCode,
+		typesCode:   typesCode,
+		newCode:     newCode,
+		insertCode:  insertCode,
+		findCode:    findCode,
+		updateCode:  updateCode,
+		deleteCode:  deleteCode,
+		cacheExtra:  ret.cacheExtra,
+	}
+
+	output, err := g.executeModel(code)
 	if err != nil {
 		return "", err
 	}
 
 	return output.String(), nil
+}
+
+func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return nil, err
+	}
+	t := util.With("model").
+		Parse(text).
+		GoFmt(true)
+	output, err := t.Execute(map[string]interface{}{
+		"pkg":         g.pkg,
+		"imports":     code.importsCode,
+		"vars":        code.varsCode,
+		"types":       code.typesCode,
+		"new":         code.newCode,
+		"insert":      code.insertCode,
+		"find":        strings.Join(code.findCode, "\n"),
+		"update":      code.updateCode,
+		"delete":      code.deleteCode,
+		"extraMethod": code.cacheExtra,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func wrapWithRawString(v string) string {

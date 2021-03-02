@@ -18,6 +18,7 @@ const (
 	portLimit          = 32767
 )
 
+// Deployment describes the k8s deployment yaml
 type Deployment struct {
 	Name        string
 	Namespace   string

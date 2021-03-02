@@ -4,6 +4,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+// SyntaxExpr describes syntax for api
 type SyntaxExpr struct {
 	Syntax      Expr
 	Assign      Expr
@@ -12,6 +13,7 @@ type SyntaxExpr struct {
 	CommentExpr Expr
 }
 
+// VisitSyntaxLit implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitSyntaxLit(ctx *api.SyntaxLitContext) interface{} {
 	syntax := v.newExprWithToken(ctx.GetSyntaxToken())
 	assign := v.newExprWithToken(ctx.GetAssign())
@@ -25,11 +27,13 @@ func (v *ApiVisitor) VisitSyntaxLit(ctx *api.SyntaxLitContext) interface{} {
 	}
 }
 
+// Format provides a formatter for api command, now nothing to do
 func (s *SyntaxExpr) Format() error {
 	// todo
 	return nil
 }
 
+// Equal compares whether the element literals in two SyntaxExpr are equal
 func (s *SyntaxExpr) Equal(v interface{}) bool {
 	if v == nil {
 		return false
@@ -49,10 +53,12 @@ func (s *SyntaxExpr) Equal(v interface{}) bool {
 		s.Version.Equal(syntax.Version)
 }
 
+// Doc returns the document of SyntaxExpr, like // some text
 func (s *SyntaxExpr) Doc() []Expr {
 	return s.DocExpr
 }
 
+// Comment returns the comment of SyntaxExpr, like // some text
 func (s *SyntaxExpr) Comment() Expr {
 	return s.CommentExpr
 }
