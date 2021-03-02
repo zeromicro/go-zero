@@ -45,10 +45,10 @@ func TestGenCacheKeys(t *testing.T) {
 			AutoIncrement: true,
 		},
 		UniqueIndex: map[string][]*parser.Field{
-			"mobile_unique": []*parser.Field{
+			"mobile_unique": {
 				mobileField,
 			},
-			"class_name_unique": []*parser.Field{
+			"class_name_unique": {
 				classField,
 				nameField,
 			},
