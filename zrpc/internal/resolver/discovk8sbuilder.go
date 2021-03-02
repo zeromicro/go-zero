@@ -78,7 +78,7 @@ func (d *discovK8sBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	si, err := d.parseTarget(target)
 
 	if err != nil {
-		logx.Error("parse k8s service error: %v", err)
+		logx.Errorf("parse k8s service error: %v", err)
 		os.Exit(1)
 	}
 
