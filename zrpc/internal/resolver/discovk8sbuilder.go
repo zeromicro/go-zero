@@ -19,10 +19,10 @@ type discovK8sBuilder struct {
 }
 
 func (d *discovK8sBuilder) parseTarget(target resolver.Target) (*discovk8s.Service, error) {
-	// kubernetes://default/service:port
+	// k8s://default/service:port
 	end := target.Endpoint
 	snamespace := target.Authority
-	// kubernetes://service.default:port/
+	// k8s://service.default:port/
 	if end == "" {
 		end = target.Authority
 		snamespace = ""
