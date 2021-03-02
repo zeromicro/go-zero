@@ -23,8 +23,8 @@ var (
 	// EndpointSep is the separator string in endpoints.
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
 
-	dirBuilder directBuilder
-	disBuilder discovBuilder
+	dirBuilder    directBuilder
+	disBuilder    discovBuilder
 	disK8sBuilder discovK8sBuilder
 )
 
