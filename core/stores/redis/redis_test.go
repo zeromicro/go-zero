@@ -947,10 +947,21 @@ func TestRedisString(t *testing.T) {
 func TestRedisScriptLoad(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
-		_, err := NewRedis(client.Addr, "").scriptLoad("foo")
+		_, err := NewRedis(client.Addr, "").ScriptLoad("foo")
 		assert.NotNil(t, err)
-		_, err = client.scriptLoad("foo")
+		_, err = client.ScriptLoad("foo")
 		assert.NotNil(t, err)
+	})
+}
+
+func TestRedisEvalSha(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		scriptHash, err := client.ScriptLoad(`return redis.call("EXISTS", KEYS[1])`)
+		assert.Nil(t, err)
+		result, err := client.EvalSha(scriptHash, []string{"key1"})
+		assert.Nil(t, err)
+		assert.Equal(t, int64(0), result)
 	})
 }
 
