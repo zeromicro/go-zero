@@ -43,11 +43,11 @@ type (
 	}
 )
 
-func newCollection(collection *mgo.Collection) Collection {
+func newCollection(collection *mgo.Collection, url string) Collection {
 	return &decoratedCollection{
 		name:       collection.FullName,
 		collection: collection,
-		brk:        breaker.NewBreaker(),
+		brk:        breaker.GetBreaker(url),
 	}
 }
 

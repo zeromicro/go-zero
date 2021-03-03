@@ -71,7 +71,7 @@ func TestNewCollection(t *testing.T) {
 		Database: nil,
 		Name:     "foo",
 		FullName: "bar",
-	})
+	}, "localhost")
 	assert.Equal(t, "bar", col.(*decoratedCollection).name)
 }
 
