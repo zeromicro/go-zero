@@ -20,7 +20,7 @@ type (
 	Model struct {
 		session    *concurrentSession
 		db         *mgo.Database
-		url        string
+		brk        breaker.Breaker
 		collection string
 		opts       []Option
 	}
@@ -47,7 +47,7 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 		session: session,
 		// If name is empty, the database name provided in the dialed URL is used instead
 		db:         session.DB(""),
-		url:        url,
+		brk:        breaker.GetBreaker(url),
 		collection: collection,
 		opts:       opts,
 	}, nil
@@ -69,7 +69,7 @@ func (mm *Model) FindId(id interface{}) (Query, error) {
 
 // GetCollection returns a Collection with given session.
 func (mm *Model) GetCollection(session *mgo.Session) Collection {
-	return newCollection(mm.db.C(mm.collection).With(session), breaker.GetBreaker(mm.url))
+	return newCollection(mm.db.C(mm.collection).With(session), mm.brk)
 }
 
 // Insert inserts docs into mm.
