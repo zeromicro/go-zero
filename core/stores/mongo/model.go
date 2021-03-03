@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (
@@ -20,6 +21,7 @@ type (
 		session    *concurrentSession
 		db         *mgo.Database
 		collection string
+		brk        breaker.Breaker
 		opts       []Option
 	}
 )
@@ -46,6 +48,7 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 		// If name is empty, the database name provided in the dialed URL is used instead
 		db:         session.DB(""),
 		collection: collection,
+		brk:        breaker.GetBreaker(url),
 		opts:       opts,
 	}, nil
 }
@@ -66,7 +69,7 @@ func (mm *Model) FindId(id interface{}) (Query, error) {
 
 // GetCollection returns a Collection with given session.
 func (mm *Model) GetCollection(session *mgo.Session) Collection {
-	return newCollection(mm.db.C(mm.collection).With(session))
+	return newCollection(mm.db.C(mm.collection).With(session), mm.brk)
 }
 
 // Insert inserts docs into mm.
