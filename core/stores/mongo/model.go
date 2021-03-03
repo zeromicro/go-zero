@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (
@@ -68,7 +69,7 @@ func (mm *Model) FindId(id interface{}) (Query, error) {
 
 // GetCollection returns a Collection with given session.
 func (mm *Model) GetCollection(session *mgo.Session) Collection {
-	return newCollection(mm.db.C(mm.collection).With(session), mm.url)
+	return newCollection(mm.db.C(mm.collection).With(session), breaker.GetBreaker(mm.url))
 }
 
 // Insert inserts docs into mm.
