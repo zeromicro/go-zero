@@ -20,8 +20,8 @@ type (
 	Model struct {
 		session    *concurrentSession
 		db         *mgo.Database
-		brk        breaker.Breaker
 		collection string
+		brk        breaker.Breaker
 		opts       []Option
 	}
 )
@@ -47,8 +47,8 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 		session: session,
 		// If name is empty, the database name provided in the dialed URL is used instead
 		db:         session.DB(""),
-		brk:        breaker.GetBreaker(url),
 		collection: collection,
+		brk:        breaker.GetBreaker(url),
 		opts:       opts,
 	}, nil
 }
