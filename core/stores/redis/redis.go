@@ -250,6 +250,21 @@ func (s *Redis) Eval(script string, keys []string, args ...interface{}) (val int
 	return
 }
 
+// Eval is the implementation of redis eval command.
+func (s *Redis) EvalSha(script string, keys []string, args ...interface{}) (val interface{}, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.EvalSha(script, keys, args...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Exists is the implementation of redis exists command.
 func (s *Redis) Exists(key string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1672,7 +1687,7 @@ func (s *Redis) String() string {
 	return s.Addr
 }
 
-func (s *Redis) scriptLoad(script string) (string, error) {
+func (s *Redis) ScriptLoad(script string) (string, error) {
 	conn, err := getRedis(s)
 	if err != nil {
 		return "", err
