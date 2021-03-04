@@ -11,10 +11,11 @@ import (
 const (
 	bodyTagKey        = "json"
 	formTagKey        = "form"
+	pathTagKey        = "path"
 	defaultSummaryKey = "summary"
 )
 
-var definedKeys = []string{bodyTagKey, formTagKey, "path"}
+var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
 
 // Routes returns all routes in api service
 func (s Service) Routes() []Route {
