@@ -63,14 +63,14 @@ type (
 
 	// Route describes api route
 	Route struct {
-		Annotation   Annotation
-		Method       string
-		Path         string
-		RequestType  Type
-		ResponseType Type
-		Docs         Doc
-		Handler      string
-		AtDoc        AtDoc
+		AtServerAnnotation Annotation
+		Method             string
+		Path               string
+		RequestType        Type
+		ResponseType       Type
+		Docs               Doc
+		Handler            string
+		AtDoc              AtDoc
 	}
 
 	// Service describes api service

@@ -25,7 +25,7 @@ func (s Service) Routes() []Route {
 	return result
 }
 
-// Tags retuens all tags in Member
+// Tags returns all tags in Member
 func (m Member) Tags() []*Tag {
 	tags, err := Parse(m.Tag)
 	if err != nil {
@@ -141,7 +141,7 @@ func (t DefineStruct) GetFormMembers() []Member {
 	return result
 }
 
-// GetNonBodyMembers retruns all have no tag fields
+// GetNonBodyMembers returns all have no tag fields
 func (t DefineStruct) GetNonBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
@@ -162,16 +162,16 @@ func (r Route) JoinedDoc() string {
 	return strings.TrimSpace(doc)
 }
 
-// GetAnnotation returns the value by specified key
+// GetAnnotation returns the value by specified from @server
 func (r Route) GetAnnotation(key string) string {
-	if r.Annotation.Properties == nil {
+	if r.AtServerAnnotation.Properties == nil {
 		return ""
 	}
 
-	return r.Annotation.Properties[key]
+	return r.AtServerAnnotation.Properties[key]
 }
 
-// GetAnnotation returns the value by specified key
+// GetAnnotation returns the value by specified key from @server
 func (g Group) GetAnnotation(key string) string {
 	if g.Annotation.Properties == nil {
 		return ""
