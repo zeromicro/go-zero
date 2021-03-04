@@ -162,7 +162,7 @@ func (r Route) JoinedDoc() string {
 	return strings.TrimSpace(doc)
 }
 
-// GetAnnotation returns the value by specified from @server
+// GetAnnotation returns the value by specified key from @server
 func (r Route) GetAnnotation(key string) string {
 	if r.AtServerAnnotation.Properties == nil {
 		return ""
