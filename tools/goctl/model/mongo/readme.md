@@ -47,7 +47,7 @@ type User struct {
 
 * 命令行生成 在types.go所在文件夹执行命令
     ```shell
-    $ goctl model mongo -t User
+    $ goctl model mongo -t User -style gozero
     ```
 * 在types.go中添加`//go:generate`，然后点击执行按钮即可生成，内容示例如下：
   ```golang
@@ -196,6 +196,8 @@ OPTIONS:
    --type value, -t value  specified model type name
    --cache, -c             generate code with cache [optional]
    --dir value, -d value   the target dir
+   --style value           the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
+
 ```
 
 > 温馨提示
