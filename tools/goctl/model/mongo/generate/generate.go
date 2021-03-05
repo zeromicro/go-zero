@@ -49,7 +49,6 @@ func generateModel(ctx *Context) error {
 			"Type":  t,
 			"Cache": ctx.Cache,
 		}, output, false)
-
 		if err != nil {
 			return err
 		}
