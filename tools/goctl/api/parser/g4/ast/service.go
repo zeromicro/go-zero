@@ -50,7 +50,7 @@ type AtDoc struct {
 	Kv         []*KvExpr
 }
 
-// AtHandler describes service hander ast for api syntax
+// AtHandler describes service handler ast for api syntax
 type AtHandler struct {
 	AtHandlerToken Expr
 	Name           Expr
@@ -630,7 +630,7 @@ func (s *Service) Equal(v interface{}) bool {
 	return s.ServiceApi.Equal(service.ServiceApi)
 }
 
-// Get returns the tergate KV by specified key
+// Get returns the target KV by specified key
 func (kv KV) Get(key string) Expr {
 	for _, each := range kv {
 		if each.Key.Text() == key {

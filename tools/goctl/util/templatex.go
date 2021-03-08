@@ -17,7 +17,7 @@ type DefaultTemplate struct {
 	savePath string
 }
 
-// With returns a instace of DefaultTemplate
+// With returns a instance of DefaultTemplate
 func With(name string) *DefaultTemplate {
 	return &DefaultTemplate{
 		name: name,
@@ -30,7 +30,7 @@ func (t *DefaultTemplate) Parse(text string) *DefaultTemplate {
 	return t
 }
 
-// GoFmt sets the value to goFmt and marks the generated codes will be formated or not
+// GoFmt sets the value to goFmt and marks the generated codes will be formatted or not
 func (t *DefaultTemplate) GoFmt(format bool) *DefaultTemplate {
 	t.goFmt = format
 	return t

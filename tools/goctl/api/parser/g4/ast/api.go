@@ -33,7 +33,7 @@ func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
 	for _, each := range ctx.AllSpec() {
 		root := each.Accept(v).(*Api)
 		v.acceptSyntax(root, &final)
-		v.accetpImport(root, &final)
+		v.acceptImport(root, &final)
 		v.acceptInfo(root, &final)
 		v.acceptType(root, &final)
 		v.acceptService(root, &final)
@@ -133,7 +133,7 @@ func (v *ApiVisitor) acceptInfo(root *Api, final *Api) {
 	}
 }
 
-func (v *ApiVisitor) accetpImport(root *Api, final *Api) {
+func (v *ApiVisitor) acceptImport(root *Api, final *Api) {
 	for _, imp := range root.Import {
 		if _, ok := final.importM[imp.Value.Text()]; ok {
 			v.panic(imp.Import, fmt.Sprintf("duplicate import '%s'", imp.Value.Text()))

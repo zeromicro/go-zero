@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-// String  provides for coverting the source text into other spell case,like lower,snake,camel
+// String  provides for converting the source text into other spell case,like lower,snake,camel
 type String struct {
 	source string
 }
