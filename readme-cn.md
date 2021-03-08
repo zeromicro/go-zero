@@ -159,7 +159,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * API 文档
 
-  [https://www.yuque.com/tal-tech/go-zero](https://www.yuque.com/tal-tech/go-zero)
+  [https://zeromicro.github.io/go-zero](https://zeromicro.github.io/go-zero)
 
 * awesome 系列（更多文章见『微服务实践』公众号）
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
