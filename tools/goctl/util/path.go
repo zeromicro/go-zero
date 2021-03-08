@@ -33,7 +33,7 @@ func MkdirIfNotExist(dir string) error {
 	return nil
 }
 
-// PathFromGoSrc returns the path whihout slash where has been trim the prefix $GOPATH
+// PathFromGoSrc returns the path without slash where has been trim the prefix $GOPATH
 func PathFromGoSrc() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
