@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"errors"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 
 	"github.com/tal-tech/go-zero/core/codec"
@@ -92,6 +94,12 @@ func (w *cryptionResponseWriter) Flush() {
 
 func (w *cryptionResponseWriter) Header() http.Header {
 	return w.ResponseWriter.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *cryptionResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.ResponseWriter.(http.Hijacker).Hijack()
 }
 
 func (w *cryptionResponseWriter) Write(p []byte) (int, error) {

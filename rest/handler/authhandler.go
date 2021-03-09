@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"bufio"
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httputil"
 
@@ -136,6 +138,12 @@ func (grw *guardedResponseWriter) Flush() {
 
 func (grw *guardedResponseWriter) Header() http.Header {
 	return grw.writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (grw *guardedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return grw.writer.(http.Hijacker).Hijack()
 }
 
 func (grw *guardedResponseWriter) Write(body []byte) (int, error) {
