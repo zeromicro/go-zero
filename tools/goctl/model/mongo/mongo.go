@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-// Command provides the entry for goctl
+// Action provides the entry for goctl mongo code generation.
 func Action(ctx *cli.Context) error {
 	tp := ctx.StringSlice("type")
 	c := ctx.Bool("cache")

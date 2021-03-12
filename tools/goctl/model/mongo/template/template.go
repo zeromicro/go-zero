@@ -101,6 +101,7 @@ func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) error {
 }
 `
 
+// Error provides the default template for error definition in mongo code generation.
 var Error = `
 package model
 
