@@ -464,14 +464,14 @@ func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 }
 
 // Hdel is the implementation of redis hdel command.
-func (s *Redis) Hdel(key, field string) (val bool, err error) {
+func (s *Redis) Hdel(key string, fields ...string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
 
-		v, err := conn.HDel(key, field).Result()
+		v, err := conn.HDel(key, fields...).Result()
 		if err != nil {
 			return err
 		}
