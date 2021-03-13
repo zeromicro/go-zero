@@ -40,8 +40,12 @@ type (
 		Addr string
 		Type string
 		Pass string
+		Tls  bool
 		brk  breaker.Breaker
 	}
+
+	// Option is a function to set Pass or Tls
+	Option func(*Redis)
 
 	// RedisNode interface represents a redis node.
 	RedisNode interface {
@@ -69,19 +73,32 @@ type (
 	FloatCmd = red.FloatCmd
 )
 
-// NewRedis returns a Redis.
-func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
-	var pass string
-	for _, v := range redisPass {
-		pass = v
+func SetPass(pass string) Option {
+	return func(r *Redis) {
+		r.Pass = pass
 	}
+}
 
-	return &Redis{
+func SetTls(tls bool) Option {
+	return func(r *Redis) {
+		r.Tls = tls
+	}
+}
+
+// NewRedis returns a Redis.
+func NewRedis(redisAddr, redisType string, options ...Option) *Redis {
+	defaultRedis := Redis{
 		Addr: redisAddr,
 		Type: redisType,
-		Pass: pass,
+		Tls:  false,
 		brk:  breaker.NewBreaker(),
 	}
+
+	for _, v := range options {
+		v(&defaultRedis)
+	}
+
+	return &defaultRedis
 }
 
 // BitCount is redis bitcount command implementation.

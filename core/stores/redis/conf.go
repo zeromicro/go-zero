@@ -17,6 +17,7 @@ type (
 		Host string
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
+		Tls  bool   `json:",optional"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -28,7 +29,7 @@ type (
 
 // NewRedis returns a Redis.
 func (rc RedisConf) NewRedis() *Redis {
-	return NewRedis(rc.Host, rc.Type, rc.Pass)
+	return NewRedis(rc.Host, rc.Type, SetPass(rc.Pass))
 }
 
 // Validate validates the RedisConf.
