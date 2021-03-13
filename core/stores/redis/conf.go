@@ -29,7 +29,7 @@ type (
 
 // NewRedis returns a Redis.
 func (rc RedisConf) NewRedis() *Redis {
-	return NewRedis(rc.Host, rc.Type, SetPass(rc.Pass))
+	return NewRedis(rc.Host, rc.Type, SetPass(rc.Pass), SetTls(rc.Tls))
 }
 
 // Validate validates the RedisConf.

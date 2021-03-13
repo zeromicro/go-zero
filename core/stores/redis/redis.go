@@ -1721,9 +1721,9 @@ func acceptable(err error) bool {
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:
-		return getCluster(r.Addr, r.Pass)
+		return getCluster(r.Addr, r.Pass, r.Tls)
 	case NodeType:
-		return getClient(r.Addr, r.Pass)
+		return getClient(r.Addr, r.Pass, r.Tls)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
