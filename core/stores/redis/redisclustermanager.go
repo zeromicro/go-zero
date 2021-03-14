@@ -12,12 +12,16 @@ var clusterManager = syncx.NewResourceManager()
 
 func getCluster(server, pass string, tlsFlag bool) (*red.ClusterClient, error) {
 	val, err := clusterManager.GetResource(server, func() (io.Closer, error) {
+		tlsConfig := &tls.Config{InsecureSkipVerify: true}
+		if tlsFlag == false {
+			tlsConfig = nil
+		}
 		store := red.NewClusterClient(&red.ClusterOptions{
 			Addrs:        []string{server},
 			Password:     pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
-			TLSConfig:    &tls.Config{InsecureSkipVerify: tlsFlag},
+			TLSConfig:    tlsConfig,
 		})
 		store.WrapProcess(process)
 
