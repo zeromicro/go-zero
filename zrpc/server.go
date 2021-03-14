@@ -79,6 +79,8 @@ func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterc
 }
 
 // Start starts the RpcServer.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (rs *RpcServer) Start() {
 	if err := rs.server.Start(rs.register); err != nil {
 		logx.Error(err)
