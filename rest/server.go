@@ -77,6 +77,8 @@ func (e *Server) AddRoute(r Route, opts ...RouteOption) {
 }
 
 // Start starts the Server.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (e *Server) Start() {
 	handleError(e.opts.start(e.ngin))
 }
