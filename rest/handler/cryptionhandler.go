@@ -99,7 +99,11 @@ func (w *cryptionResponseWriter) Header() http.Header {
 // Hijack implements the http.Hijacker interface.
 // This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
 func (w *cryptionResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return w.ResponseWriter.(http.Hijacker).Hijack()
+	if hijacked, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *cryptionResponseWriter) Write(p []byte) (int, error) {
