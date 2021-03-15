@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -40,7 +41,11 @@ func (w *loggedResponseWriter) Header() http.Header {
 // Hijack implements the http.Hijacker interface.
 // This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
 func (w *loggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return w.w.(http.Hijacker).Hijack()
+	if hijacked, ok := w.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
@@ -89,6 +94,16 @@ func (w *detailLoggedResponseWriter) Flush() {
 
 func (w *detailLoggedResponseWriter) Header() http.Header {
 	return w.writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *detailLoggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.writer.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *detailLoggedResponseWriter) Write(bs []byte) (int, error) {
