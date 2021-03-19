@@ -20,6 +20,17 @@ func TestUnaryTimeoutInterceptor(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestUnaryTimeoutInterceptor_panic(t *testing.T) {
+	interceptor := UnaryTimeoutInterceptor(time.Millisecond * 10)
+	assert.Panics(t, func() {
+		_, _ = interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+			FullMethod: "/",
+		}, func(ctx context.Context, req interface{}) (interface{}, error) {
+			panic("any")
+		})
+	})
+}
+
 func TestUnaryTimeoutInterceptor_timeout(t *testing.T) {
 	const timeout = time.Millisecond * 10
 	interceptor := UnaryTimeoutInterceptor(timeout)
@@ -38,4 +49,22 @@ func TestUnaryTimeoutInterceptor_timeout(t *testing.T) {
 	})
 	wg.Wait()
 	assert.Nil(t, err)
+}
+
+func TestUnaryTimeoutInterceptor_timeoutExpire(t *testing.T) {
+	const timeout = time.Millisecond * 10
+	interceptor := UnaryTimeoutInterceptor(timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
+		FullMethod: "/",
+	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+		defer wg.Done()
+		time.Sleep(time.Millisecond * 50)
+		return nil, nil
+	})
+	wg.Wait()
+	assert.Equal(t, context.DeadlineExceeded, err)
 }

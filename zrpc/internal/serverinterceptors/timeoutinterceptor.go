@@ -14,6 +14,27 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		handler grpc.UnaryHandler) (resp interface{}, err error) {
 		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
 		defer cancel()
-		return handler(ctx, req)
+
+		done := make(chan struct{})
+		panicChan := make(chan interface{}, 1)
+		go func() {
+			defer func() {
+				if p := recover(); p != nil {
+					panicChan <- p
+				}
+			}()
+
+			resp, err = handler(ctx, req)
+			close(done)
+		}()
+
+		select {
+		case p := <-panicChan:
+			panic(p)
+		case <-done:
+			return
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
 	}
 }
