@@ -18,6 +18,27 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 
 		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
 		defer cancel()
-		return invoker(ctx, method, req, reply, cc, opts...)
+
+		done := make(chan error)
+		panicChan := make(chan interface{}, 1)
+		go func() {
+			defer func() {
+				if p := recover(); p != nil {
+					panicChan <- p
+				}
+			}()
+
+			done <- invoker(ctx, method, req, reply, cc, opts...)
+			close(done)
+		}()
+
+		select {
+		case p := <-panicChan:
+			panic(p)
+		case err := <-done:
+			return err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 }
