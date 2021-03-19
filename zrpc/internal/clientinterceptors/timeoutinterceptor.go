@@ -11,7 +11,7 @@ import (
 // TimeoutInterceptor is an interceptor that controls timeout.
 func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
-		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) (err error) {
+		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if timeout <= 0 {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
@@ -19,7 +19,7 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
 		defer cancel()
 
-		done := make(chan struct{})
+		done := make(chan error)
 		panicChan := make(chan interface{}, 1)
 		go func() {
 			defer func() {
@@ -28,15 +28,15 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 				}
 			}()
 
-			err = invoker(ctx, method, req, reply, cc, opts...)
+			done <- invoker(ctx, method, req, reply, cc, opts...)
 			close(done)
 		}()
 
 		select {
 		case p := <-panicChan:
 			panic(p)
-		case <-done:
-			return
+		case err := <-done:
+			return err
 		case <-ctx.Done():
 			return ctx.Err()
 		}
