@@ -2,6 +2,7 @@ package serverinterceptors
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/contextx"
@@ -15,6 +16,8 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
 		defer cancel()
 
+		// guards resp and err
+		var lock sync.Mutex
 		done := make(chan struct{})
 		panicChan := make(chan interface{}, 1)
 		go func() {
@@ -24,6 +27,8 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 				}
 			}()
 
+			lock.Lock()
+			defer lock.Unlock()
 			resp, err = handler(ctx, req)
 			close(done)
 		}()
@@ -32,6 +37,9 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		case p := <-panicChan:
 			panic(p)
 		case <-done:
+			// barrier cannot be removed, guards resp and err
+			lock.Lock()
+			defer lock.Unlock()
 			return
 		case <-ctx.Done():
 			return nil, ctx.Err()
