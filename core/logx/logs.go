@@ -20,6 +20,7 @@ import (
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/sysx"
 	"github.com/tal-tech/go-zero/core/timex"
+
 )
 
 const (
@@ -32,8 +33,6 @@ const (
 )
 
 const (
-	timeFormat = "2006-01-02T15:04:05.000Z07"
-
 	accessFilename = "access.log"
 	errorFilename  = "error.log"
 	severeFilename = "severe.log"
@@ -64,6 +63,7 @@ var (
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 
+	timeFormat   = "2006-01-02T15:04:05.000Z07"
 	writeConsole bool
 	logLevel     uint32
 	infoLog      io.WriteCloser
@@ -117,6 +117,9 @@ func MustSetup(c LogConf) {
 // we need to allow different service frameworks to initialize logx respectively.
 // the same logic for SetUp
 func SetUp(c LogConf) error {
+	if len(c.TimeFormat) > 0 {
+		timeFormat = c.TimeFormat
+	}
 	switch c.Mode {
 	case consoleMode:
 		setupWithConsole(c)
