@@ -37,10 +37,11 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		brk  breaker.Breaker
+		Addr    string
+		Type    string
+		Pass    string
+		brk     breaker.Breaker
+		TLSFlag bool
 	}
 
 	// RedisNode interface represents a redis node.
@@ -71,16 +72,21 @@ type (
 
 // NewRedis returns a Redis.
 func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
+	return NewRedisWithTLS(redisAddr, redisType, false, redisPass...)
+}
+
+func NewRedisWithTLS(redisAddr, redisType string, tlsFlag bool, redisPass ...string) *Redis {
 	var pass string
 	for _, v := range redisPass {
 		pass = v
 	}
 
 	return &Redis{
-		Addr: redisAddr,
-		Type: redisType,
-		Pass: pass,
-		brk:  breaker.NewBreaker(),
+		Addr:    redisAddr,
+		Type:    redisType,
+		Pass:    pass,
+		brk:     breaker.NewBreaker(),
+		TLSFlag: tlsFlag,
 	}
 }
 
@@ -1704,9 +1710,17 @@ func acceptable(err error) bool {
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:
-		return getCluster(r.Addr, r.Pass)
+		if r.TLSFlag {
+			return getClusterWithTLS(r.Addr, r.Pass, r.TLSFlag)
+		} else {
+			return getCluster(r.Addr, r.Pass)
+		}
 	case NodeType:
-		return getClient(r.Addr, r.Pass)
+		if r.TLSFlag {
+			return getClientWithTLS(r.Addr, r.Pass, r.TLSFlag)
+		} else {
+			return getClient(r.Addr, r.Pass)
+		}
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}

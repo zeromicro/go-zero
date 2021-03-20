@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"crypto/tls"
 	"io"
 
 	red "github.com/go-redis/redis"
@@ -16,16 +17,35 @@ const (
 var clientManager = syncx.NewResourceManager()
 
 func getClient(server, pass string) (*red.Client, error) {
+	return getClientWithTLS(server, pass, false)
+}
+
+func getClientWithTLS(server, pass string, tlsFlag bool) (*red.Client, error) {
 	val, err := clientManager.GetResource(server, func() (io.Closer, error) {
-		store := red.NewClient(&red.Options{
-			Addr:         server,
-			Password:     pass,
-			DB:           defaultDatabase,
-			MaxRetries:   maxRetries,
-			MinIdleConns: idleConns,
-		})
-		store.WrapProcess(process)
-		return store, nil
+		if tlsFlag {
+			store := red.NewClient(&red.Options{
+				Addr:         server,
+				Password:     pass,
+				DB:           defaultDatabase,
+				MaxRetries:   maxRetries,
+				MinIdleConns: idleConns,
+				TLSConfig:    &tls.Config{
+					InsecureSkipVerify: tlsFlag,
+				},
+			})
+			store.WrapProcess(process)
+			return store, nil
+		} else {
+			store := red.NewClient(&red.Options{
+				Addr:         server,
+				Password:     pass,
+				DB:           defaultDatabase,
+				MaxRetries:   maxRetries,
+				MinIdleConns: idleConns,
+			})
+			store.WrapProcess(process)
+			return store, nil
+		}
 	})
 	if err != nil {
 		return nil, err
