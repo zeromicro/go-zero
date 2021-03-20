@@ -19,6 +19,8 @@ import (
 
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/sysx"
+	"github.com/tal-tech/go-zero/core/timex"
+
 )
 
 const (
@@ -62,8 +64,6 @@ var (
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 
 	timeFormat   = "2006-01-02T15:04:05.000Z07"
-	timeZone     = "Asia/Shanghai"
-	loc          *time.Location
 	writeConsole bool
 	logLevel     uint32
 	infoLog      io.WriteCloser
@@ -119,9 +119,6 @@ func MustSetup(c LogConf) {
 func SetUp(c LogConf) error {
 	if len(c.TimeFormat) > 0 {
 		timeFormat = c.TimeFormat
-	}
-	if len(c.TimeZone) > 0 {
-		timeZone = c.TimeZone
 	}
 	switch c.Mode {
 	case consoleMode:
@@ -356,9 +353,7 @@ func getCaller(callDepth int) string {
 }
 
 func getTimestamp() string {
-	loc, _ := time.LoadLocation(timeZone)
-	now := time.Now().In(loc)
-	return now.Format(timeFormat)
+	return timex.Time().Format(timeFormat)
 }
 
 func handleOptions(opts []LogOption) {

@@ -4,7 +4,6 @@ package logx
 type LogConf struct {
 	ServiceName         string `json:",optional"`
 	Mode                string `json:",default=console,options=console|file|volume"`
-	TimeZone            string `json:",optional"`
 	TimeFormat          string `json:",optional"`
 	Path                string `json:",default=logs"`
 	Level               string `json:",default=info,options=info|error|severe"`
