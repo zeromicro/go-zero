@@ -20,7 +20,6 @@ import (
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/sysx"
 	"github.com/tal-tech/go-zero/core/timex"
-
 )
 
 const (
@@ -120,6 +119,7 @@ func SetUp(c LogConf) error {
 	if len(c.TimeFormat) > 0 {
 		timeFormat = c.TimeFormat
 	}
+
 	switch c.Mode {
 	case consoleMode:
 		setupWithConsole(c)
