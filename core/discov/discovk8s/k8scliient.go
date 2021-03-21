@@ -19,9 +19,9 @@ type K8sClient struct {
 }
 
 // NewK8sClient generate a kubernetes client
-func NewK8sClient(k8sConfig *K8sConfig) (*K8sClient, error) {
+func NewK8sClient() (*K8sClient, error) {
 
-	kubeconfig := getKubeconfig(k8sConfig)
+	kubeconfig := getKubeconfig()
 
 	// Get k8s config
 	config, err := getK8sConfig(kubeconfig)
@@ -72,11 +72,8 @@ func getK8sConfig(kubeconfig string) (*rest.Config, error) {
 	return config, nil
 }
 
-func getKubeconfig(config *K8sConfig) string {
+func getKubeconfig() string {
 
-	if config != nil && config.KubeconfigFile != "" {
-		return config.KubeconfigFile
-	}
 	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 
 	_, err := os.Lstat(kubeconfig)

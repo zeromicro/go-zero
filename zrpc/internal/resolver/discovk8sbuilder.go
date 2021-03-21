@@ -65,7 +65,7 @@ func (d *discovK8sBuilder) parseTarget(target resolver.Target) (*discovk8s.Servi
 func (d *discovK8sBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	d.once.Do(func() {
-		k8sClient, err := discovk8s.NewK8sClient(nil)
+		k8sClient, err := discovk8s.NewK8sClient()
 		if err != nil {
 			logx.Error("New k8s client error", err)
 			os.Exit(1)
