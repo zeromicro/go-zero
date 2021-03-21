@@ -51,8 +51,13 @@ func (d *discovK8sBuilder) parseTarget(target resolver.Target) (*discovk8s.Servi
 	}
 	ti.Name = sname
 	ti.Namespace = snamespace
-	int64Port, _ := strconv.ParseInt(port, 10, 64)
-	ti.Port = int32(int64Port)
+
+	intPort, err := strconv.Atoi(port)
+	if err != nil {
+		return nil, err
+	}
+
+	ti.Port = int32(intPort)
 
 	return &ti, nil
 }
