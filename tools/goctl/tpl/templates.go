@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
+	mongogen "github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
 	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	rpcgen "github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -16,7 +17,7 @@ import (
 
 const templateParentPath = "/"
 
-// GenTemplates wtites the latest template text into file which is not exists
+// GenTemplates writes the latest template text into file which is not exists
 func GenTemplates(ctx *cli.Context) error {
 	if err := errorx.Chain(
 		func() error {
@@ -33,6 +34,9 @@ func GenTemplates(ctx *cli.Context) error {
 		},
 		func() error {
 			return kube.GenTemplates(ctx)
+		},
+		func() error {
+			return mongogen.Templates(ctx)
 		},
 	); err != nil {
 		return err
@@ -61,6 +65,15 @@ func CleanTemplates(_ *cli.Context) error {
 		func() error {
 			return rpcgen.Clean()
 		},
+		func() error {
+			return docker.Clean()
+		},
+		func() error {
+			return kube.Clean()
+		},
+		func() error {
+			return mongogen.Clean()
+		},
 	)
 	if err != nil {
 		return err
@@ -70,8 +83,8 @@ func CleanTemplates(_ *cli.Context) error {
 	return nil
 }
 
-// UpdateTemplates wtites the latest template text into file,
-// it will delete the oldler templates if there are exists
+// UpdateTemplates writes the latest template text into file,
+// it will delete the older templates if there are exists
 func UpdateTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
 	defer func() {
@@ -90,6 +103,8 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 		return rpcgen.Update()
 	case modelgen.Category():
 		return modelgen.Update()
+	case mongogen.Category():
+		return mongogen.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -116,6 +131,8 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 		return rpcgen.RevertTemplate(filename)
 	case modelgen.Category():
 		return modelgen.RevertTemplate(filename)
+	case mongogen.Category():
+		return mongogen.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

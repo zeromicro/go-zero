@@ -250,6 +250,21 @@ func (s *Redis) Eval(script string, keys []string, args ...interface{}) (val int
 	return
 }
 
+// EvalSha is the implementation of redis evalsha command.
+func (s *Redis) EvalSha(sha string, keys []string, args ...interface{}) (val interface{}, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.EvalSha(sha, keys, args...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Exists is the implementation of redis exists command.
 func (s *Redis) Exists(key string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -449,14 +464,14 @@ func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 }
 
 // Hdel is the implementation of redis hdel command.
-func (s *Redis) Hdel(key, field string) (val bool, err error) {
+func (s *Redis) Hdel(key string, fields ...string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
 
-		v, err := conn.HDel(key, field).Result()
+		v, err := conn.HDel(key, fields...).Result()
 		if err != nil {
 			return err
 		}
@@ -1032,6 +1047,16 @@ func (s *Redis) Scard(key string) (val int64, err error) {
 	return
 }
 
+// ScriptLoad is the implementation of redis script load command.
+func (s *Redis) ScriptLoad(script string) (string, error) {
+	conn, err := getRedis(s)
+	if err != nil {
+		return "", err
+	}
+
+	return conn.ScriptLoad(script).Result()
+}
+
 // Set is the implementation of redis set command.
 func (s *Redis) Set(key string, value string) error {
 	return s.brk.DoWithAcceptable(func() error {
@@ -1101,26 +1126,6 @@ func (s *Redis) Sismember(key string, value interface{}) (val bool, err error) {
 	return
 }
 
-// Srem is the implementation of redis srem command.
-func (s *Redis) Srem(key string, values ...interface{}) (val int, err error) {
-	err = s.brk.DoWithAcceptable(func() error {
-		conn, err := getRedis(s)
-		if err != nil {
-			return err
-		}
-
-		v, err := conn.SRem(key, values...).Result()
-		if err != nil {
-			return err
-		}
-
-		val = int(v)
-		return nil
-	}, acceptable)
-
-	return
-}
-
 // Smembers is the implementation of redis smembers command.
 func (s *Redis) Smembers(key string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1164,6 +1169,31 @@ func (s *Redis) Srandmember(key string, count int) (val []string, err error) {
 	}, acceptable)
 
 	return
+}
+
+// Srem is the implementation of redis srem command.
+func (s *Redis) Srem(key string, values ...interface{}) (val int, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.SRem(key, values...).Result()
+		if err != nil {
+			return err
+		}
+
+		val = int(v)
+		return nil
+	}, acceptable)
+
+	return
+}
+
+// String returns the string representation of s.
+func (s *Redis) String() string {
+	return s.Addr
 }
 
 // Sunion is the implementation of redis sunion command.
@@ -1665,20 +1695,6 @@ func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int6
 	}, acceptable)
 
 	return
-}
-
-// String returns the string representation of s.
-func (s *Redis) String() string {
-	return s.Addr
-}
-
-func (s *Redis) scriptLoad(script string) (string, error) {
-	conn, err := getRedis(s)
-	if err != nil {
-		return "", err
-	}
-
-	return conn.ScriptLoad(script).Result()
 }
 
 func acceptable(err error) bool {

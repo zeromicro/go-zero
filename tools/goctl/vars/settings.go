@@ -3,7 +3,7 @@ package vars
 const (
 	// ProjectName the const value of zero
 	ProjectName = "zero"
-	// ProjectOpenSourceURL the githb url of go-zero
+	// ProjectOpenSourceURL the github url of go-zero
 	ProjectOpenSourceURL = "github.com/tal-tech/go-zero"
 	// OsWindows windows os
 	OsWindows = "windows"

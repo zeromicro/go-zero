@@ -103,3 +103,16 @@ func TestCryptionHandlerFlush(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, base64.StdEncoding.EncodeToString(expect), recorder.Body.String())
 }
+
+func TestCryptionHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := newCryptionResponseWriter(resp)
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = newCryptionResponseWriter(mockedHijackable{resp})
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}

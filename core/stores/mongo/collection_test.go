@@ -71,7 +71,7 @@ func TestNewCollection(t *testing.T) {
 		Database: nil,
 		Name:     "foo",
 		FullName: "bar",
-	})
+	}, breaker.GetBreaker("localhost"))
 	assert.Equal(t, "bar", col.(*decoratedCollection).name)
 }
 

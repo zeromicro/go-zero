@@ -219,9 +219,9 @@ func (p parser) fillService() error {
 
 		for _, astRoute := range item.ServiceApi.ServiceRoute {
 			route := spec.Route{
-				Annotation: spec.Annotation{},
-				Method:     astRoute.Route.Method.Text(),
-				Path:       astRoute.Route.Path.Text(),
+				AtServerAnnotation: spec.Annotation{},
+				Method:             astRoute.Route.Method.Text(),
+				Path:               astRoute.Route.Path.Text(),
 			}
 			if astRoute.AtHandler != nil {
 				route.Handler = astRoute.AtHandler.Name.Text()
@@ -275,7 +275,7 @@ func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route)
 		for _, kv := range astRoute.AtServer.Kv {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}
-		route.Annotation.Properties = properties
+		route.AtServerAnnotation.Properties = properties
 		if len(route.Handler) == 0 {
 			route.Handler = properties["handler"]
 		}

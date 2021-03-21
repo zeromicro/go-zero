@@ -3,6 +3,7 @@ package gen
 import (
 	"strings"
 
+	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
@@ -23,6 +24,15 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 		expressionValues = append(expressionValues, "data."+camel)
 	}
 
+	keySet := collection.NewSet()
+	keyVariableSet := collection.NewSet()
+	keySet.AddStr(table.PrimaryCacheKey.DataKeyExpression)
+	keyVariableSet.AddStr(table.PrimaryCacheKey.KeyLeft)
+	for _, key := range table.UniqueCacheKey {
+		keySet.AddStr(key.DataKeyExpression)
+		keyVariableSet.AddStr(key.KeyLeft)
+	}
+
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
@@ -35,6 +45,8 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
 			"upperStartCamelObject": camelTableName,
+			"keys":                  strings.Join(keySet.KeysStr(), "\n"),
+			"keyValues":             strings.Join(keyVariableSet.KeysStr(), ", "),
 			"primaryCacheKey":       table.PrimaryCacheKey.DataKeyExpression,
 			"primaryKeyVariable":    table.PrimaryCacheKey.KeyLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),

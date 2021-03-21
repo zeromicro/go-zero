@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -25,8 +28,24 @@ type loggedResponseWriter struct {
 	code int
 }
 
+func (w *loggedResponseWriter) Flush() {
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (w *loggedResponseWriter) Header() http.Header {
 	return w.w.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *loggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
@@ -36,12 +55,6 @@ func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
 func (w *loggedResponseWriter) WriteHeader(code int) {
 	w.w.WriteHeader(code)
 	w.code = code
-}
-
-func (w *loggedResponseWriter) Flush() {
-	if flusher, ok := w.w.(http.Flusher); ok {
-		flusher.Flush()
-	}
 }
 
 // LogHandler returns a middleware that logs http request and response.
@@ -81,6 +94,16 @@ func (w *detailLoggedResponseWriter) Flush() {
 
 func (w *detailLoggedResponseWriter) Header() http.Header {
 	return w.writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *detailLoggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.writer.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *detailLoggedResponseWriter) Write(bs []byte) (int, error) {

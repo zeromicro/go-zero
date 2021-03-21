@@ -19,6 +19,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
@@ -28,7 +29,7 @@ import (
 )
 
 var (
-	buildVersion = "1.1.5"
+	buildVersion = "1.1.6"
 	commands     = []cli.Command{
 		{
 			Name:   "upgrade",
@@ -446,6 +447,29 @@ var (
 							Action: model.MyDataSource,
 						},
 					},
+				},
+				{
+					Name:  "mongo",
+					Usage: `generate mongo model`,
+					Flags: []cli.Flag{
+						cli.StringSliceFlag{
+							Name:  "type, t",
+							Usage: "specified model type name",
+						},
+						cli.BoolFlag{
+							Name:  "cache, c",
+							Usage: "generate code with cache [optional]",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: "the target dir",
+						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+					},
+					Action: mongo.Action,
 				},
 			},
 		},

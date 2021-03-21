@@ -1,6 +1,10 @@
 package security
 
-import "net/http"
+import (
+	"bufio"
+	"net"
+	"net/http"
+)
 
 // A WithCodeResponseWriter is a helper to delay sealing a http.ResponseWriter on writing code.
 type WithCodeResponseWriter struct {
@@ -18,6 +22,12 @@ func (w *WithCodeResponseWriter) Flush() {
 // Header returns the http header.
 func (w *WithCodeResponseWriter) Header() http.Header {
 	return w.Writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *WithCodeResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return w.Writer.(http.Hijacker).Hijack()
 }
 
 // Write writes bytes into w.
