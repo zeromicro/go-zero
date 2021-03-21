@@ -19,7 +19,8 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
 		defer cancel()
 
-		done := make(chan error)
+		// create channel with buffer size 1 to avoid goroutine leak
+		done := make(chan error, 1)
 		panicChan := make(chan interface{}, 1)
 		go func() {
 			defer func() {
@@ -29,7 +30,6 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 			}()
 
 			done <- invoker(ctx, method, req, reply, cc, opts...)
-			close(done)
 		}()
 
 		select {
