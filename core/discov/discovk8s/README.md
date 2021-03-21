@@ -9,7 +9,7 @@ deployment扩缩容时，会实时更新Endpoints下的地址列表，使用k8s�
 
 ## 配置方法
 
-复用Endpoints配置项，要求数组长度为1且格式如下：
+复用Endpoints配置项，要求数组长度为1且格式如下
 ```yaml
 Transform:
    Endpoints:
@@ -21,7 +21,7 @@ Transform:
 Pod需要具有读取Endpoints权限，需执行以下配置
 
 ```yaml
-# # 一个K8s集群仅需配置一次
+# 一个K8s集群仅需配置一次
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
