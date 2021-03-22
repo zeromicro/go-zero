@@ -16,16 +16,16 @@ func getCluster(server, pass string) (*red.ClusterClient, error) {
 
 func getClusterWithTLS(server, pass string, tlsFlag bool) (*red.ClusterClient, error) {
 	val, err := clusterManager.GetResource(server, func() (io.Closer, error) {
-		tlsConfig := tls.Config{}
-		if tlsFlag {
-			tlsConfig.InsecureSkipVerify = tlsFlag
+		tlsConfig := new(tls.Config)
+		if !tlsFlag {
+			tlsConfig = nil
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
 			Addrs:        []string{server},
 			Password:     pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
-			TLSConfig:    &tlsConfig,
+			TLSConfig:    tlsConfig,
 		})
 		store.WrapProcess(process)
 

@@ -22,30 +22,20 @@ func getClient(server, pass string) (*red.Client, error) {
 
 func getClientWithTLS(server, pass string, tlsFlag bool) (*red.Client, error) {
 	val, err := clientManager.GetResource(server, func() (io.Closer, error) {
-		if tlsFlag {
-			store := red.NewClient(&red.Options{
-				Addr:         server,
-				Password:     pass,
-				DB:           defaultDatabase,
-				MaxRetries:   maxRetries,
-				MinIdleConns: idleConns,
-				TLSConfig:    &tls.Config{
-					InsecureSkipVerify: tlsFlag,
-				},
-			})
-			store.WrapProcess(process)
-			return store, nil
-		} else {
-			store := red.NewClient(&red.Options{
-				Addr:         server,
-				Password:     pass,
-				DB:           defaultDatabase,
-				MaxRetries:   maxRetries,
-				MinIdleConns: idleConns,
-			})
-			store.WrapProcess(process)
-			return store, nil
+		tlsConfig := new(tls.Config)
+		if !tlsFlag {
+			tlsConfig = nil
 		}
+		store := red.NewClient(&red.Options{
+			Addr:         server,
+			Password:     pass,
+			DB:           defaultDatabase,
+			MaxRetries:   maxRetries,
+			MinIdleConns: idleConns,
+			TLSConfig:    tlsConfig,
+		})
+		store.WrapProcess(process)
+		return store, nil
 	})
 	if err != nil {
 		return nil, err
