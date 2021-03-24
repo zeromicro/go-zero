@@ -106,7 +106,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	}, nil
 }
 
-func convertJoin(key Key) (string, string, string) {
+func convertJoin(key Key) (in, paramJoinString, originalFieldString string) {
 	var inJoin, paramJoin, argJoin Join
 	for _, f := range key.Fields {
 		param := stringx.From(f.Name.ToCamel()).Untitle()
@@ -114,17 +114,14 @@ func convertJoin(key Key) (string, string, string) {
 		paramJoin = append(paramJoin, param)
 		argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
 	}
-	var in string
 	if len(inJoin) > 0 {
 		in = inJoin.With(", ").Source()
 	}
 
-	var paramJoinString string
 	if len(paramJoin) > 0 {
 		paramJoinString = paramJoin.With(",").Source()
 	}
 
-	var originalFieldString string
 	if len(argJoin) > 0 {
 		originalFieldString = argJoin.With(" and ").Source()
 	}
