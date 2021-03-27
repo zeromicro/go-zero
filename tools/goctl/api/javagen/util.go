@@ -95,17 +95,9 @@ func specTypeToJava(tp spec.Type) (string, error) {
 			return "", err
 		}
 
-		switch valueType {
-		case "int":
-			return "Integer[]", nil
-		case "long":
-			return "Long[]", nil
-		case "float":
-			return "Float[]", nil
-		case "double":
-			return "Double[]", nil
-		case "boolean":
-			return "Boolean[]", nil
+		s := getBaseType(valueType)
+		if len(s) == 0 {
+			return s, errors.New("unsupported primitive type " + tp.Name())
 		}
 
 		return fmt.Sprintf("java.util.ArrayList<%s>", util.Title(valueType)), nil
@@ -116,6 +108,23 @@ func specTypeToJava(tp spec.Type) (string, error) {
 	}
 
 	return "", errors.New("unsupported primitive type " + tp.Name())
+}
+
+func getBaseType(valueType string) string {
+	switch valueType {
+	case "int":
+		return "Integer[]"
+	case "long":
+		return "Long[]"
+	case "float":
+		return "Float[]"
+	case "double":
+		return "Double[]"
+	case "boolean":
+		return "Boolean[]"
+	default:
+		return ""
+	}
 }
 
 func primitiveType(tp string) (string, bool) {

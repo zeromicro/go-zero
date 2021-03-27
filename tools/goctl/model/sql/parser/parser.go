@@ -102,6 +102,17 @@ func Parse(ddl string) (*Table, error) {
 		}
 	}
 
+	checkDuplicateUniqueIndex(uniqueIndex, tableName, normalIndex)
+	return &Table{
+		Name:        stringx.From(tableName),
+		PrimaryKey:  primaryKey,
+		UniqueIndex: uniqueIndex,
+		NormalIndex: normalIndex,
+		Fields:      fields,
+	}, nil
+}
+
+func checkDuplicateUniqueIndex(uniqueIndex map[string][]*Field, tableName string, normalIndex map[string][]*Field) {
 	log := console.NewColorConsole()
 	uniqueSet := collection.NewSet()
 	for k, i := range uniqueIndex {
@@ -136,14 +147,6 @@ func Parse(ddl string) (*Table, error) {
 
 		normalIndexSet.Add(joinRet)
 	}
-
-	return &Table{
-		Name:        stringx.From(tableName),
-		PrimaryKey:  primaryKey,
-		UniqueIndex: uniqueIndex,
-		NormalIndex: normalIndex,
-		Fields:      fields,
-	}, nil
 }
 
 func convertColumns(columns []*sqlparser.ColumnDefinition, primaryColumn string) (Primary, map[string]*Field, error) {
@@ -289,27 +292,9 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		AutoIncrement: strings.Contains(table.PrimaryKey.Extra, "auto_increment"),
 	}
 
-	fieldM := make(map[string]*Field)
-	for _, each := range table.Columns {
-		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
-		dt, err := converter.ConvertDataType(each.DataType, isDefaultNull)
-		if err != nil {
-			return nil, err
-		}
-		columnSeqInIndex := 0
-		if each.Index != nil {
-			columnSeqInIndex = each.Index.SeqInIndex
-		}
-
-		field := &Field{
-			Name:            stringx.From(each.Name),
-			DataBaseType:    each.DataType,
-			DataType:        dt,
-			Comment:         each.Comment,
-			SeqInIndex:      columnSeqInIndex,
-			OrdinalPosition: each.OrdinalPosition,
-		}
-		fieldM[each.Name] = field
+	fieldM, err := getTableFields(table)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, each := range fieldM {
@@ -378,4 +363,30 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 	}
 
 	return &reply, nil
+}
+
+func getTableFields(table *model.Table) (map[string]*Field, error) {
+	fieldM := make(map[string]*Field)
+	for _, each := range table.Columns {
+		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
+		dt, err := converter.ConvertDataType(each.DataType, isDefaultNull)
+		if err != nil {
+			return nil, err
+		}
+		columnSeqInIndex := 0
+		if each.Index != nil {
+			columnSeqInIndex = each.Index.SeqInIndex
+		}
+
+		field := &Field{
+			Name:            stringx.From(each.Name),
+			DataBaseType:    each.DataType,
+			DataType:        dt,
+			Comment:         each.Comment,
+			SeqInIndex:      columnSeqInIndex,
+			OrdinalPosition: each.OrdinalPosition,
+		}
+		fieldM[each.Name] = field
+	}
+	return fieldM, nil
 }
