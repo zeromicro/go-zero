@@ -170,6 +170,28 @@ func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 	return false, nil
 }
 
+func isLeftInclude(b byte) (bool, error) {
+	switch b {
+	case '[':
+		return true, nil
+	case '(':
+		return false, nil
+	default:
+		return false, errNumberRange
+	}
+}
+
+func isRightInclude(b byte) (bool, error) {
+	switch b {
+	case ']':
+		return true, nil
+	case ')':
+		return false, nil
+	default:
+		return false, errNumberRange
+	}
+}
+
 func maybeNewValue(field reflect.StructField, value reflect.Value) {
 	if field.Type.Kind() == reflect.Ptr && value.IsNil() {
 		value.Set(reflect.New(value.Type().Elem()))
@@ -211,14 +233,9 @@ func parseNumberRange(str string) (*numberRange, error) {
 		return nil, errNumberRange
 	}
 
-	var leftInclude bool
-	switch str[0] {
-	case '[':
-		leftInclude = true
-	case '(':
-		leftInclude = false
-	default:
-		return nil, errNumberRange
+	leftInclude, err := isLeftInclude(str[0])
+	if err != nil {
+		return nil, err
 	}
 
 	str = str[1:]
@@ -226,14 +243,9 @@ func parseNumberRange(str string) (*numberRange, error) {
 		return nil, errNumberRange
 	}
 
-	var rightInclude bool
-	switch str[len(str)-1] {
-	case ']':
-		rightInclude = true
-	case ')':
-		rightInclude = false
-	default:
-		return nil, errNumberRange
+	rightInclude, err := isRightInclude(str[len(str)-1])
+	if err != nil {
+		return nil, err
 	}
 
 	str = str[:len(str)-1]
