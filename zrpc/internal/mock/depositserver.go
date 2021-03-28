@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// DespositServer is used for mocking.
+// DepositServer is used for mocking.
 type DepositServer struct {
 }
 
