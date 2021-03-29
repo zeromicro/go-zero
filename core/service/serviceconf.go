@@ -14,6 +14,8 @@ const (
 	DevMode = "dev"
 	// TestMode means test mode.
 	TestMode = "test"
+	// RtMode means rt mode.
+	RtMode = "rt"
 	// PreMode means pre-release mode.
 	PreMode = "pre"
 	// ProMode means production mode.
@@ -56,7 +58,7 @@ func (sc ServiceConf) SetUp() error {
 
 func (sc ServiceConf) initMode() {
 	switch sc.Mode {
-	case DevMode, TestMode, PreMode:
+	case DevMode, TestMode, RtMode, PreMode:
 		load.Disable()
 		stat.SetReporter(nil)
 	}
