@@ -14,7 +14,7 @@ const (
 	DevMode = "dev"
 	// TestMode means test mode.
 	TestMode = "test"
-	// RtMode means rt mode.
+	// RtMode means regression test mode.
 	RtMode = "rt"
 	// PreMode means pre-release mode.
 	PreMode = "pre"
