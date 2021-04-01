@@ -14,9 +14,10 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
+		Host    string
+		Type    string `json:",default=node,options=node|cluster"`
+		Pass    string `json:",optional"`
+		TLSFlag bool   `json:",default=false,options=true|false"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -28,6 +29,9 @@ type (
 
 // NewRedis returns a Redis.
 func (rc RedisConf) NewRedis() *Redis {
+	if rc.TLSFlag {
+		return NewRedisWithTLS(rc.Host, rc.Type, rc.TLSFlag, rc.Pass)
+	}
 	return NewRedis(rc.Host, rc.Type, rc.Pass)
 }
 
