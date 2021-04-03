@@ -16,7 +16,6 @@ func TestStmt_exec(t *testing.T) {
 		name         string
 		args         []interface{}
 		delay        bool
-		formatError  bool
 		hasError     bool
 		err          error
 		lastInsertId int64
@@ -27,12 +26,6 @@ func TestStmt_exec(t *testing.T) {
 			args:         []interface{}{1},
 			lastInsertId: 1,
 			rowsAffected: 2,
-		},
-		{
-			name:        "wrong format",
-			args:        []interface{}{1, 2},
-			formatError: true,
-			hasError:    true,
 		},
 		{
 			name:     "exec error",
@@ -70,18 +63,13 @@ func TestStmt_exec(t *testing.T) {
 			},
 		}
 
-		for i, fn := range fns {
-			i := i
+		for _, fn := range fns {
 			fn := fn
 			t.Run(test.name, func(t *testing.T) {
 				t.Parallel()
 
 				res, err := fn(test.args...)
-				if i == 0 && test.formatError {
-					assert.NotNil(t, err)
-					return
-				}
-				if !test.formatError && test.hasError {
+				if test.hasError {
 					assert.NotNil(t, err)
 					return
 				}
@@ -100,22 +88,15 @@ func TestStmt_exec(t *testing.T) {
 
 func TestStmt_query(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []interface{}
-		delay       bool
-		formatError bool
-		hasError    bool
-		err         error
+		name     string
+		args     []interface{}
+		delay    bool
+		hasError bool
+		err      error
 	}{
 		{
 			name: "normal",
 			args: []interface{}{1},
-		},
-		{
-			name:        "wrong format",
-			args:        []interface{}{1, 2},
-			formatError: true,
-			hasError:    true,
 		},
 		{
 			name:     "query error",
@@ -151,18 +132,13 @@ func TestStmt_query(t *testing.T) {
 			},
 		}
 
-		for i, fn := range fns {
-			i := i
+		for _, fn := range fns {
 			fn := fn
 			t.Run(test.name, func(t *testing.T) {
 				t.Parallel()
 
 				err := fn(test.args...)
-				if i == 0 && test.formatError {
-					assert.NotNil(t, err)
-					return
-				}
-				if !test.formatError && test.hasError {
+				if test.hasError {
 					assert.NotNil(t, err)
 					return
 				}

@@ -25,27 +25,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, key := range table.UniqueCacheKey {
-		var inJoin, paramJoin, argJoin Join
-		for _, f := range key.Fields {
-			param := stringx.From(f.Name.ToCamel()).Untitle()
-			inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
-			paramJoin = append(paramJoin, param)
-			argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
-		}
-		var in string
-		if len(inJoin) > 0 {
-			in = inJoin.With(", ").Source()
-		}
-
-		var paramJoinString string
-		if len(paramJoin) > 0 {
-			paramJoinString = paramJoin.With(",").Source()
-		}
-
-		var originalFieldString string
-		if len(argJoin) > 0 {
-			originalFieldString = argJoin.With(" and ").Source()
-		}
+		in, paramJoinString, originalFieldString := convertJoin(key)
 
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
@@ -124,4 +104,26 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 		findOneMethod:          strings.Join(list, util.NL),
 		findOneInterfaceMethod: strings.Join(listMethod, util.NL),
 	}, nil
+}
+
+func convertJoin(key Key) (in, paramJoinString, originalFieldString string) {
+	var inJoin, paramJoin, argJoin Join
+	for _, f := range key.Fields {
+		param := stringx.From(f.Name.ToCamel()).Untitle()
+		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
+		paramJoin = append(paramJoin, param)
+		argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
+	}
+	if len(inJoin) > 0 {
+		in = inJoin.With(", ").Source()
+	}
+
+	if len(paramJoin) > 0 {
+		paramJoinString = paramJoin.With(",").Source()
+	}
+
+	if len(argJoin) > 0 {
+		originalFieldString = argJoin.With(" and ").Source()
+	}
+	return in, paramJoinString, originalFieldString
 }

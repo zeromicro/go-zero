@@ -22,9 +22,11 @@ func getClient(server, pass string) (*red.Client, error) {
 
 func getClientWithTLS(server, pass string, tlsFlag bool) (*red.Client, error) {
 	val, err := clientManager.GetResource(server, func() (io.Closer, error) {
-		tlsConfig := new(tls.Config)
-		if !tlsFlag {
-			tlsConfig = nil
+		var tlsConfig *tls.Config = nil
+		if tlsFlag {
+			tlsConfig = &tls.Config{
+				InsecureSkipVerify: true,
+			}
 		}
 		store := red.NewClient(&red.Options{
 			Addr:         server,
