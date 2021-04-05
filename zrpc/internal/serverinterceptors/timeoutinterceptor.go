@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/contextx"
 	"google.golang.org/grpc"
 )
 
@@ -13,7 +12,7 @@ import (
 func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
-		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
 		var resp interface{}

@@ -3,8 +3,6 @@ package fx
 import (
 	"context"
 	"time"
-
-	"github.com/tal-tech/go-zero/core/contextx"
 )
 
 var (
@@ -23,7 +21,7 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 	for _, opt := range opts {
 		parentCtx = opt()
 	}
-	ctx, cancel := contextx.ShrinkDeadline(parentCtx, timeout)
+	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
 	// create channel with buffer size 1 to avoid goroutine leak
