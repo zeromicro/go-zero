@@ -2,7 +2,6 @@ package serverinterceptors
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"google.golang.org/grpc"
@@ -17,7 +16,6 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 
 		var resp interface{}
 		var err error
-		var lock sync.Mutex
 		done := make(chan struct{})
 		// create channel with buffer size 1 to avoid goroutine leak
 		panicChan := make(chan interface{}, 1)
@@ -28,8 +26,6 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 				}
 			}()
 
-			lock.Lock()
-			defer lock.Unlock()
 			resp, err = handler(ctx, req)
 			close(done)
 		}()
@@ -38,8 +34,6 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		case p := <-panicChan:
 			panic(p)
 		case <-done:
-			lock.Lock()
-			defer lock.Unlock()
 			return resp, err
 		case <-ctx.Done():
 			return nil, ctx.Err()
