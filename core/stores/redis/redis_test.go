@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"crypto/tls"
 	"errors"
 	"io"
 	"strconv"
@@ -23,6 +24,20 @@ func TestRedis_Exists(t *testing.T) {
 		ok, err = client.Exists("a")
 		assert.Nil(t, err)
 		assert.True(t, ok)
+	})
+}
+
+func TestRedisTLS_Exists(t *testing.T) {
+	runOnRedisTLS(t, func(client *Redis) {
+		_, err := NewRedisWithTLS(client.Addr, "", true).Exists("a")
+		assert.NotNil(t, err)
+		ok, err := client.Exists("a")
+		assert.NotNil(t, err)
+		assert.False(t, ok)
+		assert.NotNil(t, client.Set("a", "b"))
+		ok, err = client.Exists("a")
+		assert.NotNil(t, err)
+		assert.False(t, ok)
 	})
 }
 
@@ -1062,8 +1077,28 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 			client.Close()
 		}
 	}()
-
 	fn(NewRedis(s.Addr(), NodeType))
+
+}
+
+func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
+	s, err := miniredis.RunTLS(&tls.Config{
+		Certificates:       make([]tls.Certificate, 1),
+		InsecureSkipVerify: true,
+	})
+	assert.Nil(t, err)
+	defer func() {
+		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+			return nil, errors.New("should already exist")
+		})
+		if err != nil {
+			t.Error(err)
+		}
+		if client != nil {
+			client.Close()
+		}
+	}()
+	fn(NewRedisWithTLS(s.Addr(), NodeType, true))
 }
 
 type mockedNode struct {
