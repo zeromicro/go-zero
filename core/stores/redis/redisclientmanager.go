@@ -20,10 +20,10 @@ func getClient(server, pass string) (*red.Client, error) {
 	return getClientWithTLS(server, pass, false)
 }
 
-func getClientWithTLS(server, pass string, tlsFlag bool) (*red.Client, error) {
+func getClientWithTLS(server, pass string, tlsEnabled bool) (*red.Client, error) {
 	val, err := clientManager.GetResource(server, func() (io.Closer, error) {
-		var tlsConfig *tls.Config = nil
-		if tlsFlag {
+		var tlsConfig *tls.Config
+		if tlsEnabled {
 			tlsConfig = &tls.Config{
 				InsecureSkipVerify: true,
 			}

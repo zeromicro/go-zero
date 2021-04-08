@@ -29,6 +29,9 @@ const (
 var ErrNilNode = errors.New("nil redis node")
 
 type (
+	// Option defines the method to customize a Redis.
+	Option func(r *Redis)
+
 	// A Pair is a key/pair set used in redis zset.
 	Pair struct {
 		Key   string
@@ -37,11 +40,11 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr    string
-		Type    string
-		Pass    string
-		brk     breaker.Breaker
-		TLSFlag bool
+		Addr string
+		Type string
+		Pass string
+		tls  bool
+		brk  breaker.Breaker
 	}
 
 	// RedisNode interface represents a redis node.
@@ -70,24 +73,32 @@ type (
 	FloatCmd = red.FloatCmd
 )
 
-// NewRedis returns a Redis.
-func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
-	return NewRedisWithTLS(redisAddr, redisType, false, redisPass...)
+// New returns a Redis with given options.
+func New(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
 }
 
-func NewRedisWithTLS(redisAddr, redisType string, tlsFlag bool, redisPass ...string) *Redis {
-	var pass string
+// NewRedis returns a Redis.
+func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
+	var opts []Option
+	if redisType == ClusterType {
+		opts = append(opts, Cluster())
+	}
 	for _, v := range redisPass {
-		pass = v
+		opts = append(opts, WithPass(v))
 	}
 
-	return &Redis{
-		Addr:    redisAddr,
-		Type:    redisType,
-		Pass:    pass,
-		brk:     breaker.NewBreaker(),
-		TLSFlag: tlsFlag,
-	}
+	return New(redisAddr, opts...)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -1703,6 +1714,27 @@ func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int6
 	return
 }
 
+// Cluster customizes the given Redis as a cluster.
+func Cluster() Option {
+	return func(r *Redis) {
+		r.Type = ClusterType
+	}
+}
+
+// WithPass customizes the given Redis with given password.
+func WithPass(pass string) Option {
+	return func(r *Redis) {
+		r.Pass = pass
+	}
+}
+
+// WithTLS customizes the given Redis with TLS enabled.
+func WithTLS() Option {
+	return func(r *Redis) {
+		r.tls = true
+	}
+}
+
 func acceptable(err error) bool {
 	return err == nil || err == red.Nil
 }
@@ -1710,14 +1742,14 @@ func acceptable(err error) bool {
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:
-		if r.TLSFlag {
-			return getClusterWithTLS(r.Addr, r.Pass, r.TLSFlag)
+		if r.tls {
+			return getClusterWithTLS(r.Addr, r.Pass, r.tls)
 		} else {
 			return getCluster(r.Addr, r.Pass)
 		}
 	case NodeType:
-		if r.TLSFlag {
-			return getClientWithTLS(r.Addr, r.Pass, r.TLSFlag)
+		if r.tls {
+			return getClientWithTLS(r.Addr, r.Pass, r.tls)
 		} else {
 			return getClient(r.Addr, r.Pass)
 		}
