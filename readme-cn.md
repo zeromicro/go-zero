@@ -175,13 +175,30 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
   | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
   | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
-## 8. 微信公众号
+## 8. go-zero 用户
+
+go-zero 已被许多公司用于生成部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
+
+>1. 好未来
+>2. 上海玉数科技有限公司
+>3. 常州千帆网络科技有限公司
+>4. 上班族科技
+>5. 英雄体育（VSPN）
+>6. githubmemory
+>7. 释空(上海)品牌策划有限公司(senkoo)
+>8. 鞍山三合众鑫科技有限公司
+>9. 广州星梦工场网络科技有限公司
+>10. 杭州复杂美科技有限公司
+>11. 赛凌科技
+>12. 捞月狗
+
+## 9. 微信公众号
 
 `go-zero` 相关文章都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注，也可以通过公众号私信我 👏
 
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
 
-## 9. 微信交流群
+## 10. 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -196,5 +213,3 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
 
 项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
-
-码云地址：[https://gitee.com/kevwan/go-zero](https://gitee.com/kevwan/go-zero) (国内用户可访问gitee，每日自动从github同步代码)
