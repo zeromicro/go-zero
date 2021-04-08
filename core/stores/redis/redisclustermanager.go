@@ -14,10 +14,10 @@ func getCluster(server, pass string) (*red.ClusterClient, error) {
 	return getClusterWithTLS(server, pass, false)
 }
 
-func getClusterWithTLS(server, pass string, tlsFlag bool) (*red.ClusterClient, error) {
+func getClusterWithTLS(server, pass string, tlsEnabled bool) (*red.ClusterClient, error) {
 	val, err := clusterManager.GetResource(server, func() (io.Closer, error) {
-		var tlsConfig *tls.Config = nil
-		if tlsFlag {
+		var tlsConfig *tls.Config
+		if tlsEnabled {
 			tlsConfig = &tls.Config{
 				InsecureSkipVerify: true,
 			}
