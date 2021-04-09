@@ -177,7 +177,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 8. go-zero 用户
 
-go-zero 已被许多公司用于生成部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
+go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
 
 >1. 好未来
 >2. 上海玉数科技有限公司
