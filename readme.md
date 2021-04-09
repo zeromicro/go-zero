@@ -216,6 +216,10 @@ go get -u github.com/tal-tech/go-zero
 
   `google.golang.org/grpc v1.29.1`
 
+* For protobuf compatibility, use `protocol-gen@v1.3.2`.
+
+  ` go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
+
 ## 10. Chat group
 
 Join the chat via https://join.slack.com/t/go-zeroworkspace/shared_invite/zt-m39xssxc-kgIqERa7aVsujKNj~XuPKg
