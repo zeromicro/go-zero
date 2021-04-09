@@ -10,21 +10,17 @@ import (
 
 var clusterManager = syncx.NewResourceManager()
 
-func getCluster(server, pass string) (*red.ClusterClient, error) {
-	return getClusterWithTLS(server, pass, false)
-}
-
-func getClusterWithTLS(server, pass string, tlsEnabled bool) (*red.ClusterClient, error) {
-	val, err := clusterManager.GetResource(server, func() (io.Closer, error) {
+func getCluster(r *Redis) (*red.ClusterClient, error) {
+	val, err := clusterManager.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
-		if tlsEnabled {
+		if r.tls {
 			tlsConfig = &tls.Config{
 				InsecureSkipVerify: true,
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        []string{server},
-			Password:     pass,
+			Addrs:        []string{r.Addr},
+			Password:     r.Pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,

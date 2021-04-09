@@ -16,21 +16,17 @@ const (
 
 var clientManager = syncx.NewResourceManager()
 
-func getClient(server, pass string) (*red.Client, error) {
-	return getClientWithTLS(server, pass, false)
-}
-
-func getClientWithTLS(server, pass string, tlsEnabled bool) (*red.Client, error) {
-	val, err := clientManager.GetResource(server, func() (io.Closer, error) {
+func getClient(r *Redis) (*red.Client, error) {
+	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
-		if tlsEnabled {
+		if r.tls {
 			tlsConfig = &tls.Config{
 				InsecureSkipVerify: true,
 			}
 		}
 		store := red.NewClient(&red.Options{
-			Addr:         server,
-			Password:     pass,
+			Addr:         r.Addr,
+			Password:     r.Pass,
 			DB:           defaultDatabase,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
