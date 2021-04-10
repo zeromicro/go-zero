@@ -190,27 +190,28 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
 
 >1. 好未来
->2. 上海玉数科技有限公司
->3. 常州千帆网络科技有限公司
->4. 上班族科技
->5. 英雄体育（VSPN）
->6. githubmemory
->7. 释空(上海)品牌策划有限公司(senkoo)
->8. 鞍山三合众鑫科技有限公司
->9. 广州星梦工场网络科技有限公司
->10. 杭州复杂美科技有限公司
->11. 赛凌科技
->12. 捞月狗
->13. 浙江三合通信科技有限公司
->14. 爱克萨
->15. 郑州众合互联信息技术有限公司
->16. 三七游戏
+>2. 上海晓信信息科技有限公司（晓黑板）
+>3. 上海玉数科技有限公司
+>4. 常州千帆网络科技有限公司
+>5. 上班族科技
+>6. 英雄体育（VSPN）
+>7. githubmemory
+>8. 释空(上海)品牌策划有限公司(senkoo)
+>9. 鞍山三合众鑫科技有限公司
+>10. 广州星梦工场网络科技有限公司
+>11. 杭州复杂美科技有限公司
+>12. 赛凌科技
+>13. 捞月狗
+>14. 浙江三合通信科技有限公司
+>15. 爱克萨
+>16. 郑州众合互联信息技术有限公司
+>17. 三七游戏
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/tal-tech/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
 ## 9. 微信公众号
 
-`go-zero` 相关文章都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注，也可以通过公众号私信我 👏
+`go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
 
@@ -227,5 +228,3 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
 
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
-
-项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
