@@ -110,7 +110,7 @@ func WithJwt(secret string) RouteOption {
 }
 
 // WithJwtTransition returns a func to enable jwt authentication as well as jwt secret transition.
-// Which means old and new jwt secrets work together for a peroid.
+// Which means old and new jwt secrets work together for a period.
 func WithJwtTransition(secret, prevSecret string) RouteOption {
 	return func(r *featuredRoutes) {
 		// why not validate prevSecret, because prevSecret is an already used one,
