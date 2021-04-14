@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -11,13 +12,9 @@ import (
 const tagName = "db"
 
 var (
-	// ErrNotMatchDestination is an error that indicates not matching destination to scan.
-	ErrNotMatchDestination = errors.New("not matching destination to scan")
-	// ErrNotReadableValue is an error that indicates value is not addressable or interfaceable.
-	ErrNotReadableValue = errors.New("value not addressable or interfaceable")
-	// ErrNotSettable is an error that indicates the passed in variable is not settable.
-	ErrNotSettable = errors.New("passed in variable is not settable")
-	// ErrUnsupportedValueType is an error that indicates unsupported unmarshal type.
+	ErrNotMatchDestination  = errors.New("not matching destination to scan")
+	ErrNotReadableValue     = errors.New("value not addressable or interfaceable")
+	ErrNotSettable          = errors.New("passed in variable is not settable")
 	ErrUnsupportedValueType = errors.New("unsupported unmarshal type")
 )
 
@@ -111,10 +108,10 @@ func parseTagName(field reflect.StructField) string {
 	key := field.Tag.Get(tagName)
 	if len(key) == 0 {
 		return ""
+	} else {
+		options := strings.Split(key, ",")
+		return options[0]
 	}
-
-	options := strings.Split(key, ",")
-	return options[0]
 }
 
 func unmarshalRow(v interface{}, scanner rowsScanner, strict bool) error {
@@ -140,21 +137,26 @@ func unmarshalRow(v interface{}, scanner rowsScanner, strict bool) error {
 		reflect.String:
 		if rve.CanSet() {
 			return scanner.Scan(v)
+		} else {
+			return ErrNotSettable
 		}
-
-		return ErrNotSettable
 	case reflect.Struct:
 		columns, err := scanner.Columns()
 		if err != nil {
 			return err
 		}
-
-		values, err := mapStructFieldsIntoSlice(rve, columns, strict)
-		if err != nil {
+		if values, err := mapStructFieldsIntoSlice(rve, columns, strict); err != nil {
 			return err
+		} else {
+			return scanner.Scan(values...)
 		}
-
-		return scanner.Scan(values...)
+	case reflect.Map:
+		if item, err := sqlRowToMap(scanner); err != nil {
+			return err
+		} else {
+			*v.(*map[string]interface{}) = *item
+			return nil
+		}
 	default:
 		return ErrUnsupportedValueType
 	}
@@ -184,10 +186,10 @@ func unmarshalRows(v interface{}, scanner rowsScanner, strict bool) error {
 				if rve.CanSet() {
 					if err := scanner.Scan(value); err != nil {
 						return err
+					} else {
+						appendFn(reflect.ValueOf(value))
+						return nil
 					}
-
-					appendFn(reflect.ValueOf(value))
-					return nil
 				}
 				return ErrNotSettable
 			}
@@ -213,25 +215,35 @@ func unmarshalRows(v interface{}, scanner rowsScanner, strict bool) error {
 
 				for scanner.Next() {
 					value := reflect.New(base)
-					values, err := mapStructFieldsIntoSlice(value, columns, strict)
-					if err != nil {
+					if values, err := mapStructFieldsIntoSlice(value, columns, strict); err != nil {
 						return err
+					} else {
+						if err := scanner.Scan(values...); err != nil {
+							return err
+						} else {
+							appendFn(value)
+						}
 					}
-
-					if err := scanner.Scan(values...); err != nil {
-						return err
-					}
-
-					appendFn(value)
 				}
+			case reflect.Map:
+				list := make([]map[string]interface{}, 0)
+				for scanner.Next() {
+					if item, err := sqlRowToMap(scanner); err != nil {
+						return err
+					} else {
+						list = append(list, *item)
+					}
+				}
+				*v.(*[]map[string]interface{}) = list
 			default:
+				fmt.Println("==============ErrUnsupportedValueType==============")
 				return ErrUnsupportedValueType
 			}
 
 			return nil
+		} else {
+			return ErrNotSettable
 		}
-
-		return ErrNotSettable
 	default:
 		return ErrUnsupportedValueType
 	}
@@ -258,4 +270,60 @@ func unwrapFields(v reflect.Value) []reflect.Value {
 	}
 
 	return fields
+}
+
+func sqlRowToMap(rows rowsScanner) (*map[string]interface{}, error) {
+	columns, _ := rows.Columns()
+	columnLength := len(columns)
+	cache := make([]interface{}, columnLength)
+	for index, _ := range cache {
+		var a interface{}
+		cache[index] = &a
+	}
+	_ = rows.Scan(cache...)
+	item := make(map[string]interface{})
+	for i, data := range cache {
+		item[columns[i]] = Readval(*data.(*interface{})) //取实际类型
+	}
+	return &item, nil
+}
+
+func Readval(value interface{}) interface{} {
+	var key string
+	if value == nil {
+		return key
+	}
+	switch value.(type) {
+	case float64:
+		return value.(float64)
+	case float32:
+		return value.(float32)
+	case int:
+		return value.(int)
+	case uint:
+		return value.(uint)
+	case int8:
+		return value.(int8)
+	case uint8:
+		return value.(uint8)
+	case int16:
+		return value.(int16)
+	case uint16:
+		return value.(uint16)
+	case int32:
+		return value.(int32)
+	case uint32:
+		return value.(uint32)
+	case int64:
+		return value.(int64)
+	case uint64:
+		return value.(uint64)
+	case string:
+		key = value.(string)
+	case []byte:
+		key = string(value.([]byte))
+	default:
+		return value
+	}
+	return key
 }
