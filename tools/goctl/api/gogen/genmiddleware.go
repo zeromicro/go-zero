@@ -31,7 +31,7 @@ func (m *{{.name}})Handle(next http.HandlerFunc) http.HandlerFunc {
 `
 
 func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	var middlewares = getMiddleware(api)
+	middlewares := getMiddleware(api)
 	for _, item := range middlewares {
 		middlewareFilename := strings.TrimSuffix(strings.ToLower(item), "middleware") + "_middleware"
 		filename, err := format.FileNamingFormat(cfg.NamingFormat, middlewareFilename)

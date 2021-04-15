@@ -64,7 +64,7 @@ func (p parser) convert2Spec() error {
 }
 
 func (p parser) fillInfo() {
-	var properties = make(map[string]string, 0)
+	properties := make(map[string]string, 0)
 	if p.ast.Info != nil {
 		p.spec.Info = spec.Info{}
 		for _, kv := range p.ast.Info.Kvs {
@@ -147,8 +147,8 @@ func (p parser) findDefinedType(name string) (*spec.Type, error) {
 }
 
 func (p parser) fieldToMember(field *ast.TypeField) spec.Member {
-	var name = ""
-	var tag = ""
+	name := ""
+	tag := ""
 	if !field.IsAnonymous {
 		name = field.Name.Text()
 		if field.Tag == nil {
@@ -239,7 +239,7 @@ func (p parser) fillService() error {
 				route.ResponseType = p.astTypeToSpec(astRoute.Route.Reply.Name)
 			}
 			if astRoute.AtDoc != nil {
-				var properties = make(map[string]string, 0)
+				properties := make(map[string]string, 0)
 				for _, kv := range astRoute.AtDoc.Kv {
 					properties[kv.Key.Text()] = kv.Value.Text()
 				}
@@ -271,7 +271,7 @@ func (p parser) fillService() error {
 
 func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route) error {
 	if astRoute.AtServer != nil {
-		var properties = make(map[string]string, 0)
+		properties := make(map[string]string, 0)
 		for _, kv := range astRoute.AtServer.Kv {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}
@@ -295,7 +295,7 @@ func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route)
 
 func (p parser) fillAtServer(item *ast.Service, group *spec.Group) {
 	if item.AtServer != nil {
-		var properties = make(map[string]string, 0)
+		properties := make(map[string]string, 0)
 		for _, kv := range item.AtServer.Kv {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}

@@ -36,8 +36,7 @@ func init() {
 	balancer.Register(newBuilder())
 }
 
-type p2cPickerBuilder struct {
-}
+type p2cPickerBuilder struct{}
 
 func newBuilder() balancer.Builder {
 	return base.NewBalancerBuilder(Name, new(p2cPickerBuilder))

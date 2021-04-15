@@ -277,15 +277,15 @@ func (c *componentsContext) buildConstructor() (string, string, error) {
 }
 
 func (c *componentsContext) genGetSet(writer io.Writer, indent int) error {
-	var members = c.members
+	members := c.members
 	for _, member := range members {
 		javaType, err := specTypeToJava(member.Type)
 		if err != nil {
 			return nil
 		}
 
-		var property = util.Title(member.Name)
-		var templateStr = getSetTemplate
+		property := util.Title(member.Name)
+		templateStr := getSetTemplate
 		if javaType == "boolean" {
 			templateStr = boolTemplate
 			property = strings.TrimPrefix(property, "Is")

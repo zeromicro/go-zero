@@ -752,7 +752,7 @@ func TestUnmarshalJsonNumberInt64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue int64 = 1 << uint(i)
 		strValue := strconv.FormatInt(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}
@@ -768,7 +768,7 @@ func TestUnmarshalJsonNumberUint64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}
@@ -784,7 +784,7 @@ func TestUnmarshalJsonNumberUint64Ptr(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}

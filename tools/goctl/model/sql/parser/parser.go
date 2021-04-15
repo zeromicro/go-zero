@@ -165,7 +165,7 @@ func convertColumns(columns []*sqlparser.ColumnDefinition, primaryColumn string)
 			comment = string(column.Type.Comment.Val)
 		}
 
-		var isDefaultNull = true
+		isDefaultNull := true
 		if column.Type.NotNull {
 			isDefaultNull = false
 		} else {

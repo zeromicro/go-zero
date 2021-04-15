@@ -168,7 +168,7 @@ func (as *adaptiveShedder) maxPass() int64 {
 }
 
 func (as *adaptiveShedder) minRt() float64 {
-	var result = defaultMinRt
+	result := defaultMinRt
 
 	as.rtCounter.Reduce(func(b *collection.Bucket) {
 		if b.Count <= 0 {

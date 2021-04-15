@@ -128,7 +128,6 @@ func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) interface{} {
 	var types []TypeExpr
 	for _, each := range list {
 		types = append(types, each.Accept(v).(TypeExpr))
-
 	}
 	return types
 }
@@ -155,7 +154,6 @@ func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) interface{} {
 	st.Name = v.newExprWithToken(ctx.GetStructName())
 
 	if util.UnExport(ctx.GetStructName().GetText()) {
-
 	}
 	if ctx.GetStructToken() != nil {
 		structExpr := v.newExprWithToken(ctx.GetStructToken())
