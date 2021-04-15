@@ -15,7 +15,7 @@ type (
 
 // DoWithRetry runs fn, and retries if failed. Default to retry 3 times.
 func DoWithRetry(fn func() error, opts ...RetryOption) error {
-	var options = newRetryOptions()
+	options := newRetryOptions()
 	for _, opt := range opts {
 		opt(options)
 	}

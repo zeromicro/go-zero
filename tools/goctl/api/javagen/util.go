@@ -61,7 +61,7 @@ func writeIndent(writer io.Writer, indent int) {
 }
 
 func indentString(indent int) string {
-	var result = ""
+	result := ""
 	for i := 0; i < indent; i++ {
 		result += "\t"
 	}

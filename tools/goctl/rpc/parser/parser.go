@@ -164,6 +164,7 @@ func CamelCase(s string) string {
 	}
 	return string(t)
 }
+
 func isASCIILower(c byte) bool {
 	return 'a' <= c && c <= 'z'
 }

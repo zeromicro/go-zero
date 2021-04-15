@@ -945,7 +945,6 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 
 		_, err = conn.Pipelined(fn)
 		return err
-
 	}, acceptable)
 
 	return

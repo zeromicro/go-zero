@@ -84,7 +84,7 @@ func buildDoc(route spec.Type) (string, error) {
 		return "", nil
 	}
 
-	var tps = make([]spec.Type, 0)
+	tps := make([]spec.Type, 0)
 	tps = append(tps, route)
 	if definedType, ok := route.(spec.DefineStruct); ok {
 		associatedTypes(definedType, &tps)
@@ -98,7 +98,7 @@ func buildDoc(route spec.Type) (string, error) {
 }
 
 func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
-	var hasAdded = false
+	hasAdded := false
 	for _, item := range *tps {
 		if item.Name() == tp.Name() {
 			hasAdded = true

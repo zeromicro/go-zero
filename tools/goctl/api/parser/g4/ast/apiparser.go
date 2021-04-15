@@ -175,7 +175,7 @@ func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
 		for _, g := range list {
 			handler := g.GetHandler()
 			if handler.IsNotNil() {
-				var handlerName = handler.Text()
+				handlerName := handler.Text()
 				handlerMap[handlerName] = Holder
 				path := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
 				routeMap[path] = Holder

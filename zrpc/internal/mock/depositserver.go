@@ -8,8 +8,7 @@ import (
 )
 
 // DepositServer is used for mocking.
-type DepositServer struct {
-}
+type DepositServer struct{}
 
 // Deposit handles the deposit requests.
 func (*DepositServer) Deposit(ctx context.Context, req *DepositRequest) (*DepositResponse, error) {

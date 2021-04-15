@@ -53,7 +53,8 @@ func NewRedisLock(store *Redis, key string) *RedisLock {
 func (rl *RedisLock) Acquire() (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
 	resp, err := rl.store.Eval(lockCommand, []string{rl.key}, []string{
-		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance)})
+		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
+	})
 	if err == red.Nil {
 		return false, nil
 	} else if err != nil {

@@ -39,7 +39,7 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 		return err
 	}
 
-	var authNames = getAuths(api)
+	authNames := getAuths(api)
 	var auths []string
 	for _, item := range authNames {
 		auths = append(auths, fmt.Sprintf("%s config.AuthConfig", item))
@@ -52,7 +52,7 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 
 	var middlewareStr string
 	var middlewareAssignment string
-	var middlewares = getMiddleware(api)
+	middlewares := getMiddleware(api)
 
 	for _, item := range middlewares {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
@@ -61,7 +61,7 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
-	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
+	configImport := "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
 		configImport += "\n\t\"" + ctlutil.JoinPackages(parentPkg, middlewareDir) + "\""
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
