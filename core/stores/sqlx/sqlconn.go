@@ -24,6 +24,7 @@ type (
 	SqlConn interface {
 		Session
 		Transact(func(session Session) error) error
+		QueryRowsRaw(q string, args ...interface{}) (*[]map[string]interface{}, error)
 	}
 
 	// SqlOption defines the method to customize a sql connection.
@@ -175,6 +176,21 @@ func (db *commonSqlConn) queryRows(scanner func(*sql.Rows) error, q string, args
 		return qerr == err || db.acceptable(err)
 	})
 }
+func (db *commonSqlConn) QueryRowsRaw(q string, args ...interface{}) (*[]map[string]interface{}, error) {
+	var v []map[string]interface{}
+	return &v, db.queryRows(func(rows *sql.Rows) error {
+		list := make([]map[string]interface{}, 0)
+		for rows.Next() {
+			if item, err := sqlRowToMap(rows); err != nil {
+				return err
+			} else {
+				list = append(list, *item)
+			}
+		}
+		v = list
+		return nil
+	}, q, args...)
+}
 
 func (s statement) Close() error {
 	return s.stmt.Close()
@@ -206,4 +222,60 @@ func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, args...)
+}
+
+func sqlRowToMap(rows rowsScanner) (*map[string]interface{}, error) {
+	columns, _ := rows.Columns()
+	columnLength := len(columns)
+	cache := make([]interface{}, columnLength)
+	for index, _ := range cache {
+		var a interface{}
+		cache[index] = &a
+	}
+	_ = rows.Scan(cache...)
+	item := make(map[string]interface{})
+	for i, data := range cache {
+		item[columns[i]] = readval(*data.(*interface{})) //取实际类型
+	}
+	return &item, nil
+}
+
+func readval(value interface{}) interface{} {
+	var key string
+	if value == nil {
+		return key
+	}
+	switch value.(type) {
+	case float64:
+		return value.(float64)
+	case float32:
+		return value.(float32)
+	case int:
+		return value.(int)
+	case uint:
+		return value.(uint)
+	case int8:
+		return value.(int8)
+	case uint8:
+		return value.(uint8)
+	case int16:
+		return value.(int16)
+	case uint16:
+		return value.(uint16)
+	case int32:
+		return value.(int32)
+	case uint32:
+		return value.(uint32)
+	case int64:
+		return value.(int64)
+	case uint64:
+		return value.(uint64)
+	case string:
+		key = value.(string)
+	case []byte:
+		key = string(value.([]byte))
+	default:
+		return value
+	}
+	return key
 }
