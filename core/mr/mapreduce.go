@@ -101,7 +101,7 @@ func Map(generate GenerateFunc, mapper MapFunc, opts ...Option) chan interface{}
 }
 
 // MapReduce maps all elements generated from given generate func,
-// and reduces the output elemenets with given reducer.
+// and reduces the output elements with given reducer.
 func MapReduce(generate GenerateFunc, mapper MapperFunc, reducer ReducerFunc, opts ...Option) (interface{}, error) {
 	source := buildSource(generate)
 	return MapReduceWithSource(source, mapper, reducer, opts...)
