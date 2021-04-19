@@ -200,6 +200,8 @@ go get -u github.com/tal-tech/go-zero
 
 ## 7. Benchmark
 
+Document: [https://go-zero.dev/en/](https://go-zero.dev/en/)
+  
 ![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
