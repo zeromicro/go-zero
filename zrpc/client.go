@@ -17,6 +17,8 @@ var (
 	WithTimeout = internal.WithTimeout
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
+	// WithInsecure is an alias of internal.WithInsecure.
+	WithInsecure = internal.WithInsecure
 )
 
 type (
@@ -54,6 +56,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
 	opts = append(opts, options...)
+	if !c.SecureOpt {
+		opts = append(opts, WithInsecure())
+	}
 
 	var client Client
 	var err error

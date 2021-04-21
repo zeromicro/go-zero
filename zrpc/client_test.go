@@ -3,10 +3,6 @@ package zrpc
 import (
 	"context"
 	"fmt"
-	"log"
-	"net"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/zrpc/internal/mock"
@@ -14,6 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
+	"log"
+	"net"
+	"testing"
 )
 
 func init() {
@@ -67,7 +66,34 @@ func TestDepositServer_Deposit(t *testing.T) {
 			Token:     "bar",
 			Timeout:   1000,
 		},
-		WithDialOption(grpc.WithInsecure()),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	directClientWithDefaultInsecure := MustNewClient(
+		RpcClientConf{
+			Endpoints: []string{"foo"},
+			App:       "foo",
+			Token:     "bar",
+			Timeout:   1000,
+		},
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	//todo 校验Insecure == false grpc是否正确配置该项  o.insecure = false
+	directClientWithSecure := MustNewClient(
+		RpcClientConf{
+			Endpoints: []string{"foo"},
+			App:       "foo",
+			Token:     "bar",
+			Timeout:   1000,
+			//Insecure: false,
+		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
 			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
@@ -84,6 +110,8 @@ func TestDepositServer_Deposit(t *testing.T) {
 	clients := []Client{
 		directClient,
 		targetClient,
+		directClientWithDefaultInsecure,
+		directClientWithSecure,
 	}
 	for _, tt := range tests {
 		for _, client := range clients {
