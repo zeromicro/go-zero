@@ -20,12 +20,17 @@ import (
 	{{.importPackages}}
 )
 
+var baseConfigFile = flag.String("bf", "", "the base config file")
+
 var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
 
 func main() {
 	flag.Parse()
 
 	var c config.Config
+	if *baseConfigFile != "" {
+		conf.MustLoad(*baseConfigFile, &c)
+	}
 	conf.MustLoad(*configFile, &c)
 
 	ctx := svc.NewServiceContext(c)
