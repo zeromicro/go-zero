@@ -230,7 +230,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	var findCode = make([]string, 0)
+	findCode := make([]string, 0)
 	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache)
 	if err != nil {
 		return "", err

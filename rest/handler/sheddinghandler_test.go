@@ -94,8 +94,7 @@ func (s mockShedder) Allow() (load.Promise, error) {
 	return nil, load.ErrServiceOverloaded
 }
 
-type mockPromise struct {
-}
+type mockPromise struct{}
 
 func (p mockPromise) Pass() {
 }
