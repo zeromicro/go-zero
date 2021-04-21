@@ -103,17 +103,9 @@ func genComponents(dir, packetName string, api *spec.ApiSpec) error {
 }
 
 func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type) error {
-	defineStruct, ok := ty.(spec.DefineStruct)
-	if !ok {
-		return errors.New("unsupported type %s" + ty.Name())
-	}
-
-	for _, item := range c.requestTypes {
-		if item.Name() == defineStruct.Name() {
-			if len(defineStruct.GetFormMembers())+len(defineStruct.GetBodyMembers()) == 0 {
-				return nil
-			}
-		}
+	defineStruct, done, err := c.checkStruct(ty)
+	if done {
+		return err
 	}
 
 	modelFile := util.Title(ty.Name()) + ".java"
@@ -179,6 +171,22 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 
 	_, err = fp.WriteString(formatSource(buffer.String()))
 	return err
+}
+
+func (c *componentsContext) checkStruct(ty spec.Type) (spec.DefineStruct, bool, error) {
+	defineStruct, ok := ty.(spec.DefineStruct)
+	if !ok {
+		return spec.DefineStruct{}, true, errors.New("unsupported type %s" + ty.Name())
+	}
+
+	for _, item := range c.requestTypes {
+		if item.Name() == defineStruct.Name() {
+			if len(defineStruct.GetFormMembers())+len(defineStruct.GetBodyMembers()) == 0 {
+				return spec.DefineStruct{}, true, nil
+			}
+		}
+	}
+	return defineStruct, false, nil
 }
 
 func (c *componentsContext) buildProperties(defineStruct spec.DefineStruct) (string, error) {
@@ -269,15 +277,15 @@ func (c *componentsContext) buildConstructor() (string, string, error) {
 }
 
 func (c *componentsContext) genGetSet(writer io.Writer, indent int) error {
-	var members = c.members
+	members := c.members
 	for _, member := range members {
 		javaType, err := specTypeToJava(member.Type)
 		if err != nil {
 			return nil
 		}
 
-		var property = util.Title(member.Name)
-		var templateStr = getSetTemplate
+		property := util.Title(member.Name)
+		templateStr := getSetTemplate
 		if javaType == "boolean" {
 			templateStr = boolTemplate
 			property = strings.TrimPrefix(property, "Is")

@@ -140,7 +140,7 @@ func (h *ConsistentHash) Remove(node interface{}) {
 		index := sort.Search(len(h.keys), func(i int) bool {
 			return h.keys[i] >= hash
 		})
-		if index < len(h.keys) {
+		if index < len(h.keys) && h.keys[index] == hash {
 			h.keys = append(h.keys[:index], h.keys[index+1:]...)
 		}
 		h.removeRingNode(hash, nodeRepr)

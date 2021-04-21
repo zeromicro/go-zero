@@ -154,8 +154,7 @@ Verbose: true
 	}
 }
 
-type mockedRouter struct {
-}
+type mockedRouter struct{}
 
 func (m mockedRouter) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }

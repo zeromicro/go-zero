@@ -3,8 +3,6 @@ package fx
 import (
 	"context"
 	"time"
-
-	"github.com/tal-tech/go-zero/core/contextx"
 )
 
 var (
@@ -23,10 +21,11 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 	for _, opt := range opts {
 		parentCtx = opt()
 	}
-	ctx, cancel := contextx.ShrinkDeadline(parentCtx, timeout)
+	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
-	done := make(chan error)
+	// create channel with buffer size 1 to avoid goroutine leak
+	done := make(chan error, 1)
 	panicChan := make(chan interface{}, 1)
 	go func() {
 		defer func() {
@@ -35,7 +34,6 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 			}
 		}()
 		done <- fn()
-		close(done)
 	}()
 
 	select {

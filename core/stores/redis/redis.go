@@ -29,6 +29,9 @@ const (
 var ErrNilNode = errors.New("nil redis node")
 
 type (
+	// Option defines the method to customize a Redis.
+	Option func(r *Redis)
+
 	// A Pair is a key/pair set used in redis zset.
 	Pair struct {
 		Key   string
@@ -40,6 +43,7 @@ type (
 		Addr string
 		Type string
 		Pass string
+		tls  bool
 		brk  breaker.Breaker
 	}
 
@@ -69,19 +73,32 @@ type (
 	FloatCmd = red.FloatCmd
 )
 
-// NewRedis returns a Redis.
-func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
-	var pass string
-	for _, v := range redisPass {
-		pass = v
-	}
-
-	return &Redis{
-		Addr: redisAddr,
-		Type: redisType,
-		Pass: pass,
+// New returns a Redis with given options.
+func New(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
 		brk:  breaker.NewBreaker(),
 	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
+
+// NewRedis returns a Redis.
+func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
+	var opts []Option
+	if redisType == ClusterType {
+		opts = append(opts, Cluster())
+	}
+	for _, v := range redisPass {
+		opts = append(opts, WithPass(v))
+	}
+
+	return New(redisAddr, opts...)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -928,7 +945,6 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 
 		_, err = conn.Pipelined(fn)
 		return err
-
 	}, acceptable)
 
 	return
@@ -1697,6 +1713,27 @@ func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int6
 	return
 }
 
+// Cluster customizes the given Redis as a cluster.
+func Cluster() Option {
+	return func(r *Redis) {
+		r.Type = ClusterType
+	}
+}
+
+// WithPass customizes the given Redis with given password.
+func WithPass(pass string) Option {
+	return func(r *Redis) {
+		r.Pass = pass
+	}
+}
+
+// WithTLS customizes the given Redis with TLS enabled.
+func WithTLS() Option {
+	return func(r *Redis) {
+		r.tls = true
+	}
+}
+
 func acceptable(err error) bool {
 	return err == nil || err == red.Nil
 }
@@ -1704,9 +1741,9 @@ func acceptable(err error) bool {
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:
-		return getCluster(r.Addr, r.Pass)
+		return getCluster(r)
 	case NodeType:
-		return getClient(r.Addr, r.Pass)
+		return getClient(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}

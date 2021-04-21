@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -19,7 +21,10 @@ var (
 )
 
 func TestFromDDl(t *testing.T) {
-	err := fromDDl("./user.sql", t.TempDir(), cfg, true, false)
+	err := gen.Clean()
+	assert.Nil(t, err)
+
+	err = fromDDl("./user.sql", t.TempDir(), cfg, true, false)
 	assert.Equal(t, errNotMatched, err)
 
 	// case dir is not exists

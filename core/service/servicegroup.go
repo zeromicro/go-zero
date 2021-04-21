@@ -95,8 +95,7 @@ func WithStarter(start Starter) Service {
 }
 
 type (
-	stopper struct {
-	}
+	stopper struct{}
 
 	startOnlyService struct {
 		start func()

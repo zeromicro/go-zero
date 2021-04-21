@@ -42,7 +42,7 @@ func (s String) ReplaceAll(old, new string) string {
 	return strings.ReplaceAll(s.source, old, new)
 }
 
-//Source returns the source string value
+// Source returns the source string value
 func (s String) Source() string {
 	return s.source
 }

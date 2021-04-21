@@ -68,7 +68,7 @@ func TestBuilderSql(t *testing.T) {
 }
 
 func TestBuildSqlDefaultValue(t *testing.T) {
-	var eq = builder.Eq{}
+	eq := builder.Eq{}
 	eq["age"] = 0
 	eq["user_name"] = ""
 

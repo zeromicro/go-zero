@@ -45,6 +45,24 @@ func escape(input string) string {
 	return b.String()
 }
 
+func formatForPrint(query string, args ...interface{}) string {
+	if len(args) == 0 {
+		return query
+	}
+
+	var vals []string
+	for _, arg := range args {
+		vals = append(vals, fmt.Sprintf("%q", mapping.Repr(arg)))
+	}
+
+	var b strings.Builder
+	b.WriteByte('[')
+	b.WriteString(strings.Join(vals, ", "))
+	b.WriteByte(']')
+
+	return strings.Join([]string{query, b.String()}, " ")
+}
+
 func format(query string, args ...interface{}) (string, error) {
 	numArgs := len(args)
 	if numArgs == 0 {

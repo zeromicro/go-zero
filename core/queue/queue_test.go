@@ -84,8 +84,7 @@ func (p *mockedProducer) Produce() (string, bool) {
 	return "", false
 }
 
-type mockedListener struct {
-}
+type mockedListener struct{}
 
 func (l *mockedListener) OnPause() {
 }

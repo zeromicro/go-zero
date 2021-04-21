@@ -129,7 +129,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	assert.True(t, cn.IsNotFound(cn.Get("any", &str)))
 
 	store.Del("any")
-	var errDummy = errors.New("dummy")
+	errDummy := errors.New("dummy")
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		return errDummy
 	})

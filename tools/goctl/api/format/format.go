@@ -107,8 +107,8 @@ func apiFormat(data string) (string, error) {
 
 	var builder strings.Builder
 	s := bufio.NewScanner(strings.NewReader(data))
-	var tapCount = 0
-	var newLineCount = 0
+	tapCount := 0
+	newLineCount := 0
 	var preLine string
 	for s.Scan() {
 		line := strings.TrimSpace(s.Text())

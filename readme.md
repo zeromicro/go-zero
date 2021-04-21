@@ -12,7 +12,7 @@ English | [简体中文](readme-cn.md)
 
 ## 0. what is go-zero
 
-go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
@@ -200,6 +200,8 @@ go get -u github.com/tal-tech/go-zero
 
 ## 7. Benchmark
 
+Document: [https://go-zero.dev/en/](https://go-zero.dev/en/)
+
 ![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
@@ -215,6 +217,10 @@ go get -u github.com/tal-tech/go-zero
 * Use grpc 1.29.1, because etcd lib doesn’t support latter versions.
 
   `google.golang.org/grpc v1.29.1`
+
+* For protobuf compatibility, use `protocol-gen@v1.3.2`.
+
+  ` go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
 
 ## 10. Chat group
 

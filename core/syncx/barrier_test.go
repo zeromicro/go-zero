@@ -38,3 +38,19 @@ func TestBarrierPtr_Guard(t *testing.T) {
 	wg.Wait()
 	assert.Equal(t, total, count)
 }
+
+func TestGuard(t *testing.T) {
+	const total = 10000
+	var count int
+	var lock sync.Mutex
+	wg := new(sync.WaitGroup)
+	wg.Add(total)
+	for i := 0; i < total; i++ {
+		go Guard(&lock, func() {
+			count++
+			wg.Done()
+		})
+	}
+	wg.Wait()
+	assert.Equal(t, total, count)
+}

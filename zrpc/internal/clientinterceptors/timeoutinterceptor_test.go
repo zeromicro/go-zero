@@ -48,3 +48,40 @@ func TestTimeoutInterceptor_timeout(t *testing.T) {
 	wg.Wait()
 	assert.Nil(t, err)
 }
+
+func TestTimeoutInterceptor_timeoutExpire(t *testing.T) {
+	const timeout = time.Millisecond * 10
+	interceptor := TimeoutInterceptor(timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
+	defer cancel()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	err := interceptor(ctx, "/foo", nil, nil, cc,
+		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+			opts ...grpc.CallOption) error {
+			defer wg.Done()
+			time.Sleep(time.Millisecond * 50)
+			return nil
+		})
+	wg.Wait()
+	assert.Equal(t, context.DeadlineExceeded, err)
+}
+
+func TestTimeoutInterceptor_panic(t *testing.T) {
+	timeouts := []time.Duration{0, time.Millisecond * 10}
+	for _, timeout := range timeouts {
+		t.Run(strconv.FormatInt(int64(timeout), 10), func(t *testing.T) {
+			interceptor := TimeoutInterceptor(timeout)
+			cc := new(grpc.ClientConn)
+			assert.Panics(t, func() {
+				_ = interceptor(context.Background(), "/foo", nil, nil, cc,
+					func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+						opts ...grpc.CallOption) error {
+						panic("any")
+					},
+				)
+			})
+		})
+	}
+}

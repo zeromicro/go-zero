@@ -289,7 +289,7 @@ func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsC
 
 			if index > 0 {
 				allTokens := ct.GetAllTokens()
-				var flag = false
+				flag := false
 				for i := index; i >= 0; i-- {
 					tk := allTokens[i]
 					if tk.GetChannel() == antlr.LexerDefaultTokenChannel {

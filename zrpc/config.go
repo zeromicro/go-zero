@@ -58,13 +58,11 @@ func (sc RpcServerConf) HasEtcd() bool {
 
 // Validate validates the config.
 func (sc RpcServerConf) Validate() error {
-	if sc.Auth {
-		if err := sc.Redis.Validate(); err != nil {
-			return err
-		}
+	if !sc.Auth {
+		return nil
 	}
 
-	return nil
+	return sc.Redis.Validate()
 }
 
 // HasCredential checks if there is a credential in config.
