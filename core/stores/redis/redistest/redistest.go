@@ -15,7 +15,7 @@ func CreateRedis() (r *redis.Redis, clean func(), err error) {
 		return nil, nil, err
 	}
 
-	return redis.NewRedis(mr.Addr(), redis.NodeType), func() {
+	return redis.NewRedis(mr.Addr(), redis.NodeType, 0), func() {
 		ch := make(chan lang.PlaceholderType)
 		go func() {
 			mr.Close()
