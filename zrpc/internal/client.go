@@ -64,7 +64,6 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	}
 
 	options := []grpc.DialOption{
-		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
 			clientinterceptors.TracingInterceptor,
@@ -104,6 +103,13 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 func WithDialOption(opt grpc.DialOption) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, opt)
+	}
+}
+
+// WithInsecure returns a func to customize a ClientOptions with secure option.
+func WithInsecure() ClientOption {
+	return func(options *ClientOptions) {
+		options.DialOptions = append(options.DialOptions, grpc.WithInsecure())
 	}
 }
 
