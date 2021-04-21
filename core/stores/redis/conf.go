@@ -15,6 +15,7 @@ type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
 		Host string
+		Db   int    `json:",default=0"`
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
 		Tls  bool   `json:",default=false,options=true|false"`
@@ -40,7 +41,7 @@ func (rc RedisConf) NewRedis() *Redis {
 		opts = append(opts, WithTLS())
 	}
 
-	return New(rc.Host, opts...)
+	return New(rc.Host, rc.Db, opts...)
 }
 
 // Validate validates the RedisConf.
