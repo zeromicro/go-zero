@@ -36,8 +36,7 @@ type (
 // MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
-	if err 
-	nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -57,7 +56,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
 	opts = append(opts, options...)
-	if c.SecureOpt != true {
+	if !c.SecureOpt {
 		opts = append(opts, WithInsecure())
 	}
 
