@@ -56,7 +56,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
 	opts = append(opts, options...)
-	if c.SecureOpt == false {
+	if c.SecureOpt != true {
 		opts = append(opts, WithInsecure())
 	}
 
