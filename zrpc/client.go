@@ -36,7 +36,8 @@ type (
 // MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
-	if err != nil {
+	if err 
+	nil {
 		log.Fatal(err)
 	}
 
