@@ -19,7 +19,7 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
-	for _, field := range table.Fields {
+	for i, field := range table.Fields {
 		camel := field.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
@@ -31,7 +31,7 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 			}
 		}
 
-		expressions = append(expressions, "?")
+		expressions = append(expressions, genPositionalParameter(i))
 		expressionValues = append(expressionValues, "data."+camel)
 	}
 

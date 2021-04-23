@@ -98,6 +98,7 @@ func RawFieldNames(in interface{}) []string {
 		// gets us a StructField
 		fi := typ.Field(i)
 		if tagv := fi.Tag.Get(dbTag); tagv != "" {
+			// TODO: adapt to various sql dialect
 			out = append(out, fmt.Sprintf("`%s`", tagv))
 		} else {
 			out = append(out, fmt.Sprintf(`"%s"`, fi.Name))

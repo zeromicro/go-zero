@@ -35,7 +35,7 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 
 	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
 	camelTableName := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
+	text, err := util.LoadTemplate(category, updateTemplateFile, template.GenUpdate(dialect))
 	if err != nil {
 		return "", "", err
 	}

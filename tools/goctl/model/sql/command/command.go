@@ -2,6 +2,7 @@ package command
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -41,6 +42,8 @@ func MysqlDDL(ctx *cli.Context) error {
 		return err
 	}
 
+	dialect := ctx.Parent().Parent().Args().First()
+	gen.SetSqlDialect(dialect)
 	return fromDDl(src, dir, cfg, cache, idea)
 }
 
@@ -57,6 +60,10 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
+	dialect := ctx.Parent().Parent().Args().First()
+	if dialect == "postgres" {
+		return fmt.Errorf("not implemented yet")
+	}
 	return fromDataSource(url, pattern, dir, cfg, cache, idea)
 }
 

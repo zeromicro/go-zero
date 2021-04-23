@@ -385,12 +385,13 @@ var (
 			Usage: "generate model code",
 			Subcommands: []cli.Command{
 				{
-					Name:  "mysql",
-					Usage: `generate mysql model`,
+					Name:    "mysql",
+					Aliases: []string{"postgres"},
+					Usage:   `generate mysql/postgres model`,
 					Subcommands: []cli.Command{
 						{
 							Name:  "ddl",
-							Usage: `generate mysql model from ddl`,
+							Usage: `generate mysql/postgres model from ddl`,
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "src, s",

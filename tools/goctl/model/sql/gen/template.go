@@ -32,26 +32,30 @@ const (
 	errTemplateFile                       = "err.tpl"
 )
 
-var templates = map[string]string{
-	deleteTemplateFile:                    template.Delete,
-	deleteMethodTemplateFile:              template.DeleteMethod,
-	fieldTemplateFile:                     template.Field,
-	findOneTemplateFile:                   template.FindOne,
-	findOneMethodTemplateFile:             template.FindOneMethod,
-	findOneByFieldTemplateFile:            template.FindOneByField,
-	findOneByFieldMethodTemplateFile:      template.FindOneByFieldMethod,
-	findOneByFieldExtraMethodTemplateFile: template.FindOneByFieldExtraMethod,
-	importsTemplateFile:                   template.Imports,
-	importsWithNoCacheTemplateFile:        template.ImportsNoCache,
-	insertTemplateFile:                    template.Insert,
-	insertTemplateMethodFile:              template.InsertMethod,
-	modelTemplateFile:                     template.Model,
-	modelNewTemplateFile:                  template.New,
-	tagTemplateFile:                       template.Tag,
-	typesTemplateFile:                     template.Types,
-	updateTemplateFile:                    template.Update,
-	varTemplateFile:                       template.Vars,
-	errTemplateFile:                       template.Error,
+var templates = genTemplates()
+
+func genTemplates() map[string]string {
+	return map[string]string{
+		deleteTemplateFile:                    template.GenDelete(dialect),
+		deleteMethodTemplateFile:              template.DeleteMethod,
+		fieldTemplateFile:                     template.Field,
+		findOneTemplateFile:                   template.GenFindOne(dialect),
+		findOneMethodTemplateFile:             template.FindOneMethod,
+		findOneByFieldTemplateFile:            template.GenFindOneByField(dialect),
+		findOneByFieldMethodTemplateFile:      template.FindOneByFieldMethod,
+		findOneByFieldExtraMethodTemplateFile: template.GenFindOneByFieldExtraMethod(dialect),
+		importsTemplateFile:                   template.Imports,
+		importsWithNoCacheTemplateFile:        template.ImportsNoCache,
+		insertTemplateFile:                    template.Insert,
+		insertTemplateMethodFile:              template.InsertMethod,
+		modelTemplateFile:                     template.Model,
+		modelNewTemplateFile:                  template.New,
+		tagTemplateFile:                       template.Tag,
+		typesTemplateFile:                     template.Types,
+		updateTemplateFile:                    template.GenUpdate(dialect),
+		varTemplateFile:                       template.GenVars(dialect),
+		errTemplateFile:                       template.Error,
+	}
 }
 
 // Category returns model const value

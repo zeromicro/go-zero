@@ -311,19 +311,82 @@ func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
 }
 
 func wrapWithRawString(v string) string {
-	if v == "`" {
-		return v
+	q := dialect.IdentifierQuote()
+	eq := q
+	if q == `"` {
+		eq = `\"`
+	}
+	if v == q {
+		return eq
 	}
 
-	if !strings.HasPrefix(v, "`") {
-		v = "`" + v
+	if !strings.HasPrefix(v, q) {
+		v = eq + v
 	}
 
-	if !strings.HasSuffix(v, "`") {
-		v = v + "`"
+	if !strings.HasSuffix(v, q) {
+		v = v + eq
 	} else if len(v) == 1 {
-		v = v + "`"
+		v = v + eq
 	}
 
 	return v
+}
+
+// genPositionalParameter returns the positional parameter according to dialect.
+// param pos is zero-based
+func genPositionalParameter(pos int) string {
+	return dialect.PositionalParameter(pos)
+}
+
+var (
+	mysql               = mysqlDialect("mysql")
+	postgres            = newPostgres()
+	dialect  SqlDialect = &mysql
+)
+
+func GetDialect(dialect_ string) SqlDialect {
+	switch dialect_ {
+	case "mysql":
+		return &mysql
+	case "postgres":
+		return &postgres
+	}
+	return dialect
+}
+
+func SetSqlDialect(dialect_ string) {
+	switch dialect_ {
+	case "postgres":
+		dialect = &postgres
+	default:
+		dialect = &mysql
+	}
+	templates = genTemplates()
+}
+
+type SqlDialect interface {
+	IdentifierQuote() string
+	PositionalParameter(idx int) string
+}
+
+type mysqlDialect string
+
+func (o *mysqlDialect) IdentifierQuote() string            { return "`" }
+func (o *mysqlDialect) PositionalParameter(idx int) string { return "?" }
+
+type postgresDialect [16]string
+
+func newPostgres() (d postgresDialect) {
+	for i := range d {
+		d[i] = fmt.Sprintf("$%v", i+1)
+	}
+	return
+}
+func (o *postgresDialect) IdentifierQuote() string { return `"` }
+func (o *postgresDialect) PositionalParameter(idx int) string {
+	if idx < len(o) {
+		return o[idx]
+	}
+	return fmt.Sprintf("$%v", idx+1)
 }

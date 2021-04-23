@@ -16,7 +16,7 @@ type findOneCode struct {
 }
 
 func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
-	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
+	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.GenFindOneByField(dialect))
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	}
 
 	if withCache {
-		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.GenFindOneByFieldExtraMethod(dialect))
 		if err != nil {
 			return nil, err
 		}
@@ -108,11 +108,11 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 
 func convertJoin(key Key) (in, paramJoinString, originalFieldString string) {
 	var inJoin, paramJoin, argJoin Join
-	for _, f := range key.Fields {
+	for i, f := range key.Fields {
 		param := stringx.From(f.Name.ToCamel()).Untitle()
 		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 		paramJoin = append(paramJoin, param)
-		argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
+		argJoin = append(argJoin, fmt.Sprintf("%s = %s", wrapWithRawString(f.Name.Source()), genPositionalParameter(i)))
 	}
 	if len(inJoin) > 0 {
 		in = inJoin.With(", ").Source()

@@ -16,7 +16,7 @@ func genVars(table Table, withCache bool) (string, error) {
 	}
 
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, varTemplateFile, template.Vars)
+	text, err := util.LoadTemplate(category, varTemplateFile, template.GenVars(dialect))
 	if err != nil {
 		return "", err
 	}

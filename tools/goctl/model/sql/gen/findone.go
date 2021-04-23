@@ -8,7 +8,7 @@ import (
 
 func genFindOne(table Table, withCache bool) (string, string, error) {
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
+	text, err := util.LoadTemplate(category, findOneTemplateFile, template.GenFindOne(dialect))
 	if err != nil {
 		return "", "", err
 	}

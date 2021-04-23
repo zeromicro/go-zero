@@ -20,7 +20,7 @@ func genDelete(table Table, withCache bool) (string, string, error) {
 	}
 
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, deleteTemplateFile, template.Delete)
+	text, err := util.LoadTemplate(category, deleteTemplateFile, template.GenDelete(dialect))
 	if err != nil {
 		return "", "", err
 	}
