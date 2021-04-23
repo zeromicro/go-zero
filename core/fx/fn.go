@@ -311,7 +311,7 @@ func (p Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 	go func() {
 		var wg sync.WaitGroup
 		pool := make(chan lang.PlaceholderType, option.workers)
-
+		defer close(pool)
 		for {
 			pool <- lang.Placeholder
 			item, ok := <-p.source
