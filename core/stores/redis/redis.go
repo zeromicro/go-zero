@@ -1098,6 +1098,10 @@ func (s *Redis) Set(key string, value string) error {
 
 // Setex is the implementation of redis setex command.
 func (s *Redis) Setex(key, value string, seconds int) error {
+	//If the expireTime overflow time.duration, above 290 year, the expireTime may become negative. The negative expireTime will cause the k/v in redis to be deleted.
+	if seconds > maxExpireTime {
+		return ErrExpireTimeTooBig
+	}
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1127,7 +1131,7 @@ func (s *Redis) Setnx(key, value string) (val bool, err error) {
 func (s *Redis) SetnxEx(key, value string, seconds int) (val bool, err error) {
 	//If the expireTime overflow time.duration, above 290 year, the expireTime may become negative. The negative expireTime will cause the k/v in redis to be deleted.
 	if seconds > maxExpireTime {
-		return false,ErrExpireTimeTooBig
+		return false, ErrExpireTimeTooBig
 	}
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
