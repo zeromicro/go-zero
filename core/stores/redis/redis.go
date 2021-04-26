@@ -40,6 +40,7 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
+		DB   int
 		Addr string
 		Type string
 		Pass string
@@ -74,8 +75,9 @@ type (
 )
 
 // New returns a Redis with given options.
-func New(addr string, opts ...Option) *Redis {
+func New(addr string, db int, opts ...Option) *Redis {
 	r := &Redis{
+		DB:   db,
 		Addr: addr,
 		Type: NodeType,
 		brk:  breaker.NewBreaker(),
@@ -98,7 +100,20 @@ func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 		opts = append(opts, WithPass(v))
 	}
 
-	return New(redisAddr, opts...)
+	return New(redisAddr, 0, opts...)
+}
+
+// NewRedis returns a Redis.
+func NewRedisWithDB(redisAddr, redisType string, db int, redisPass ...string) *Redis {
+	var opts []Option
+	if redisType == ClusterType {
+		opts = append(opts, Cluster())
+	}
+	for _, v := range redisPass {
+		opts = append(opts, WithPass(v))
+	}
+
+	return New(redisAddr, db, opts...)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -1743,7 +1758,7 @@ func getRedis(r *Redis) (RedisNode, error) {
 	case ClusterType:
 		return getCluster(r)
 	case NodeType:
-		return getClient(r)
+		return getClient(r, r.DB)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}
