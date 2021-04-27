@@ -24,14 +24,18 @@ const (
 
 	slowThreshold = time.Millisecond * 100
 
-	//seconds of ten year
+	// Seconds of ten year。
 	maxExpireTime = 10 * 365 * 24 * 3600
 )
 
 var (
 	// ErrNilNode is an error that indicates a nil redis node.
 	ErrNilNode = errors.New("nil redis node")
-	// ErrTimeTooBig is an error that indicates the expireTime is too big.
+	/*
+		ErrTimeTooBig is an error that indicates the expireTime is too big.
+		If the expireTime overflow time.duration, above 290 year, the expireTime may become negative.
+		The negative expireTime will cause the k/v in redis to be deleted.
+	*/
 	ErrExpireTimeTooBig = errors.New("expireTime too big")
 )
 
@@ -311,7 +315,6 @@ func (s *Redis) Exists(key string) (val bool, err error) {
 
 // Expire is the implementation of redis expire command.
 func (s *Redis) Expire(key string, seconds int) error {
-	//If the expireTime overflow time.duration, above 290 year, the expireTime may become negative. The negative expireTime will cause the k/v in redis to be deleted.
 	if seconds > maxExpireTime {
 		return ErrExpireTimeTooBig
 	}
@@ -1098,7 +1101,6 @@ func (s *Redis) Set(key string, value string) error {
 
 // Setex is the implementation of redis setex command.
 func (s *Redis) Setex(key, value string, seconds int) error {
-	//If the expireTime overflow time.duration, above 290 year, the expireTime may become negative. The negative expireTime will cause the k/v in redis to be deleted.
 	if seconds > maxExpireTime {
 		return ErrExpireTimeTooBig
 	}
@@ -1129,7 +1131,6 @@ func (s *Redis) Setnx(key, value string) (val bool, err error) {
 
 // SetnxEx is the implementation of redis setnx command with expire.
 func (s *Redis) SetnxEx(key, value string, seconds int) (val bool, err error) {
-	//If the expireTime overflow time.duration, above 290 year, the expireTime may become negative. The negative expireTime will cause the k/v in redis to be deleted.
 	if seconds > maxExpireTime {
 		return false, ErrExpireTimeTooBig
 	}
