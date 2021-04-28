@@ -24,7 +24,7 @@ const (
 
 	slowThreshold = time.Millisecond * 100
 
-	// Seconds of ten year
+	// Seconds of ten years
 	maxExpireTime = 10 * 365 * 24 * 3600
 )
 
