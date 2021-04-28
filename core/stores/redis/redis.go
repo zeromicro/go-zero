@@ -33,7 +33,7 @@ var (
 	ErrNilNode = errors.New("nil redis node")
 	/*
 		ErrTimeTooBig is an error that indicates the expireTime is too big.
-		If the expireTime overflows max value of time.duration, approximately 290 years, the expireTime may become negative.
+		If the expireTime overflows the max value of time.duration, approximately 290 years, the expireTime may become negative.
 		The negative expireTime will cause the k/v in redis to be deleted.
 	*/
 	ErrExpireTimeTooBig = errors.New("expireTime too big")
