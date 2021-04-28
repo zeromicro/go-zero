@@ -24,7 +24,7 @@ const (
 
 	slowThreshold = time.Millisecond * 100
 
-	// Seconds of ten year。
+	// Seconds of ten year
 	maxExpireTime = 10 * 365 * 24 * 3600
 )
 
@@ -33,7 +33,7 @@ var (
 	ErrNilNode = errors.New("nil redis node")
 	/*
 		ErrTimeTooBig is an error that indicates the expireTime is too big.
-		If the expireTime overflow time.duration, above 290 year, the expireTime may become negative.
+		If the expireTime overflows max value of time.duration, approximately 290 years, the expireTime may become negative.
 		The negative expireTime will cause the k/v in redis to be deleted.
 	*/
 	ErrExpireTimeTooBig = errors.New("expireTime too big")
