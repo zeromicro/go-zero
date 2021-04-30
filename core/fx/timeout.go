@@ -6,13 +6,17 @@ import (
 )
 
 var (
+	// ErrCanceled is the error returned when the context is canceled.
 	ErrCanceled = context.Canceled
-	ErrTimeout  = context.DeadlineExceeded
+	// ErrTimeout is the error returned when the context's deadline passes.
+	ErrTimeout = context.DeadlineExceeded
 )
 
-type FxOption func() context.Context
+// DoOption defines the method to customize a DoWithTimeout call.
+type DoOption func() context.Context
 
-func DoWithTimeout(fn func() error, timeout time.Duration, opts ...FxOption) error {
+// DoWithTimeout runs fn with timeout control.
+func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) error {
 	parentCtx := context.Background()
 	for _, opt := range opts {
 		parentCtx = opt()
@@ -20,7 +24,8 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...FxOption) err
 	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
-	done := make(chan error)
+	// create channel with buffer size 1 to avoid goroutine leak
+	done := make(chan error, 1)
 	panicChan := make(chan interface{}, 1)
 	go func() {
 		defer func() {
@@ -29,7 +34,6 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...FxOption) err
 			}
 		}()
 		done <- fn()
-		close(done)
 	}()
 
 	select {
@@ -42,7 +46,8 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...FxOption) err
 	}
 }
 
-func WithContext(ctx context.Context) FxOption {
+// WithContext customizes a DoWithTimeout call with given ctx.
+func WithContext(ctx context.Context) DoOption {
 	return func() context.Context {
 		return ctx
 	}

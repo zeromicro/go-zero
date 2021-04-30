@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"bufio"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,6 +43,10 @@ func TestAuthHandler(t *testing.T) {
 			w.Header().Set("X-Test", "test")
 			_, err := w.Write([]byte("content"))
 			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.True(t, ok)
+			flusher.Flush()
 		}))
 
 	resp := httptest.NewRecorder()
@@ -83,6 +89,26 @@ func TestAuthHandler_NilError(t *testing.T) {
 	})
 }
 
+func TestAuthHandler_Flush(t *testing.T) {
+	resp := httptest.NewRecorder()
+	handler := newGuardedResponseWriter(resp)
+	handler.Flush()
+	assert.True(t, resp.Flushed)
+}
+
+func TestAuthHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := newGuardedResponseWriter(resp)
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = newGuardedResponseWriter(mockedHijackable{resp})
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
 func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
@@ -96,4 +122,12 @@ func buildToken(secretKey string, payloads map[string]interface{}, seconds int64
 	token.Claims = claims
 
 	return token.SignedString([]byte(secretKey))
+}
+
+type mockedHijackable struct {
+	*httptest.ResponseRecorder
+}
+
+func (m mockedHijackable) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return nil, nil, nil
 }

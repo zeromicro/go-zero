@@ -39,10 +39,9 @@ func forChksumHandler(file string, next http.Handler) http.Handler {
 		if chksum == r.Header.Get(contentMd5Header) {
 			w.WriteHeader(http.StatusNotModified)
 			return
-		} else {
-			w.Header().Set(contentMd5Header, chksum)
 		}
 
+		w.Header().Set(contentMd5Header, chksum)
 		next.ServeHTTP(w, r)
 	})
 }

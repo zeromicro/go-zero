@@ -20,7 +20,9 @@ import (
 )
 
 const (
-	Name            = "p2c_ewma"
+	// Name is the name of p2c balancer.
+	Name = "p2c_ewma"
+
 	decayTime       = int64(time.Second * 10) // default value from finagle
 	forcePick       = int64(time.Second)
 	initSuccess     = 1000
@@ -34,8 +36,7 @@ func init() {
 	balancer.Register(newBuilder())
 }
 
-type p2cPickerBuilder struct {
-}
+type p2cPickerBuilder struct{}
 
 func newBuilder() balancer.Builder {
 	return base.NewBalancerBuilder(Name, new(p2cPickerBuilder))
@@ -155,10 +156,10 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 	pick := atomic.LoadInt64(&c2.pick)
 	if start-pick > forcePick && atomic.CompareAndSwapInt64(&c2.pick, pick, start) {
 		return c2
-	} else {
-		atomic.StoreInt64(&c1.pick, start)
-		return c1
 	}
+
+	atomic.StoreInt64(&c1.pick, start)
+	return c1
 }
 
 func (p *p2cPicker) logStats() {
@@ -196,7 +197,7 @@ func (c *subConn) load() int64 {
 	load := lag * (atomic.LoadInt64(&c.inflight) + 1)
 	if load == 0 {
 		return penalty
-	} else {
-		return load
 	}
+
+	return load
 }

@@ -78,14 +78,13 @@ func (p *mockedProducer) Produce() (string, bool) {
 	if atomic.AddInt32(&p.count, 1) <= p.total {
 		p.wait.Done()
 		return "item", true
-	} else {
-		time.Sleep(time.Second)
-		return "", false
 	}
+
+	time.Sleep(time.Second)
+	return "", false
 }
 
-type mockedListener struct {
-}
+type mockedListener struct{}
 
 func (l *mockedListener) OnPause() {
 }

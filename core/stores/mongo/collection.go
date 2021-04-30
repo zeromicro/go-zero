@@ -13,9 +13,11 @@ import (
 
 const slowThreshold = time.Millisecond * 500
 
+// ErrNotFound is an alias of mgo.ErrNotFound.
 var ErrNotFound = mgo.ErrNotFound
 
 type (
+	// Collection interface represents a mongo connection.
 	Collection interface {
 		Find(query interface{}) Query
 		FindId(id interface{}) Query
@@ -41,11 +43,11 @@ type (
 	}
 )
 
-func newCollection(collection *mgo.Collection) Collection {
+func newCollection(collection *mgo.Collection, brk breaker.Breaker) Collection {
 	return &decoratedCollection{
 		name:       collection.FullName,
 		collection: collection,
-		brk:        breaker.NewBreaker(),
+		brk:        brk,
 	}
 }
 

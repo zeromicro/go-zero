@@ -39,6 +39,7 @@ func init() {
 	})
 }
 
+// AddCleanTask adds a clean task on given keys.
 func AddCleanTask(task func() error, keys ...string) {
 	timingWheel.SetTimer(stringx.Randn(taskKeyLen), delayTask{
 		delay: time.Second,

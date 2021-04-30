@@ -8,12 +8,12 @@ import (
 )
 
 func TestRetry(t *testing.T) {
-	assert.NotNil(t, DoWithRetries(func() error {
+	assert.NotNil(t, DoWithRetry(func() error {
 		return errors.New("any")
 	}))
 
 	var times int
-	assert.Nil(t, DoWithRetries(func() error {
+	assert.Nil(t, DoWithRetry(func() error {
 		times++
 		if times == defaultRetryTimes {
 			return nil
@@ -22,7 +22,7 @@ func TestRetry(t *testing.T) {
 	}))
 
 	times = 0
-	assert.NotNil(t, DoWithRetries(func() error {
+	assert.NotNil(t, DoWithRetry(func() error {
 		times++
 		if times == defaultRetryTimes+1 {
 			return nil
@@ -30,13 +30,13 @@ func TestRetry(t *testing.T) {
 		return errors.New("any")
 	}))
 
-	var total = 2 * defaultRetryTimes
+	total := 2 * defaultRetryTimes
 	times = 0
-	assert.Nil(t, DoWithRetries(func() error {
+	assert.Nil(t, DoWithRetry(func() error {
 		times++
 		if times == total {
 			return nil
 		}
 		return errors.New("any")
-	}, WithRetries(total)))
+	}, WithRetry(total)))
 }

@@ -5,12 +5,15 @@ import (
 	"os"
 )
 
+// OffsetRange represents a content block of a file.
 type OffsetRange struct {
 	File  string
 	Start int64
 	Stop  int64
 }
 
+// SplitLineChunks splits file into chunks.
+// The whole line are guaranteed to be split in the same chunk.
 func SplitLineChunks(filename string, chunks int) ([]OffsetRange, error) {
 	info, err := os.Stat(filename)
 	if err != nil {

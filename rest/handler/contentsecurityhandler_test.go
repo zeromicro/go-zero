@@ -113,7 +113,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -122,7 +122,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(-timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -148,7 +148,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			crypt:       true,
 			timestamp:   time.Now().Add(-timeDiff).Unix(),
 			fingerprint: "badone",
-			statusCode:  http.StatusUnauthorized,
+			statusCode:  http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -157,7 +157,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			missHeader: true,
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method: http.MethodHead,
@@ -171,7 +171,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      false,
 			signature:  "badone",
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 	}
 
@@ -315,12 +315,13 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 		var path string
 		var query string
 		if len(rs.requestUri) > 0 {
-			if u, err := url.Parse(rs.requestUri); err != nil {
+			u, err := url.Parse(rs.requestUri)
+			if err != nil {
 				return nil, err
-			} else {
-				path = u.Path
-				query = u.RawQuery
 			}
+
+			path = u.Path
+			query = u.RawQuery
 		} else {
 			path = r.URL.Path
 			query = r.URL.RawQuery
@@ -377,10 +378,9 @@ func createTempFile(body []byte) (string, error) {
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "go-unit-*.tmp")
 	if err != nil {
 		return "", err
-	} else {
-		tmpFile.Close()
 	}
 
+	tmpFile.Close()
 	err = ioutil.WriteFile(tmpFile.Name(), body, os.ModePerm)
 	if err != nil {
 		return "", err

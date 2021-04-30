@@ -3,22 +3,54 @@ package httpx
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 
 	"github.com/tal-tech/go-zero/core/logx"
 )
 
+var (
+	errorHandler func(error) (int, interface{})
+	lock         sync.RWMutex
+)
+
+// Error writes err into w.
 func Error(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusBadRequest)
+	lock.RLock()
+	handler := errorHandler
+	lock.RUnlock()
+
+	if handler == nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	code, body := errorHandler(err)
+	e, ok := body.(error)
+	if ok {
+		http.Error(w, e.Error(), code)
+	} else {
+		WriteJson(w, code, body)
+	}
 }
 
+// Ok writes HTTP 200 OK into w.
 func Ok(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v interface{}) {
 	WriteJson(w, http.StatusOK, v)
 }
 
+// SetErrorHandler sets the error handler, which is called on calling Error.
+func SetErrorHandler(handler func(error) (int, interface{})) {
+	lock.Lock()
+	defer lock.Unlock()
+	errorHandler = handler
+}
+
+// WriteJson writes v as json string into w with code.
 func WriteJson(w http.ResponseWriter, code int, v interface{}) {
 	w.Header().Set(ContentType, ApplicationJson)
 	w.WriteHeader(code)

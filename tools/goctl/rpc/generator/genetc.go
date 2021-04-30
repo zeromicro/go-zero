@@ -3,9 +3,13 @@ package generator
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 const etcTemplate = `Name: {{.serviceName}}.rpc
@@ -16,10 +20,16 @@ Etcd:
   Key: {{.serviceName}}.rpc
 `
 
-func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto) error {
+// GenEtc generates the yaml configuration file of the rpc service,
+// including host, port monitoring configuration items and etcd configuration
+func (g *DefaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
-	serviceNameLower := formatFilename(ctx.GetMain().Base)
-	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", serviceNameLower))
+	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	if err != nil {
+		return err
+	}
+
+	fileName := filepath.Join(dir.Filename, fmt.Sprintf("%v.yaml", etcFilename))
 
 	text, err := util.LoadTemplate(category, etcTemplateFileFile, etcTemplate)
 	if err != nil {
@@ -27,6 +37,6 @@ func (g *defaultGenerator) GenEtc(ctx DirContext, _ parser.Proto) error {
 	}
 
 	return util.With("etc").Parse(text).SaveTo(map[string]interface{}{
-		"serviceName": serviceNameLower,
+		"serviceName": strings.ToLower(stringx.From(ctx.GetServiceName().Source()).ToCamel()),
 	}, fileName, false)
 }

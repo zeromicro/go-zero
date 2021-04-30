@@ -2,7 +2,6 @@ package spec
 
 import (
 	"errors"
-	"regexp"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/stringx"
@@ -10,119 +9,119 @@ import (
 )
 
 const (
-	TagKey    = "tag"
-	NameKey   = "name"
-	OptionKey = "option"
-	BodyTag   = "json"
+	bodyTagKey        = "json"
+	formTagKey        = "form"
+	pathTagKey        = "path"
+	defaultSummaryKey = "summary"
 )
 
-var (
-	TagRe       = regexp.MustCompile(`(?P<tag>\w+):"(?P<name>[^,"]+)[,]?(?P<option>[^"]*)"`)
-	TagSubNames = TagRe.SubexpNames()
-	definedTags = []string{TagKey, NameKey, OptionKey}
-)
+var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
 
-type Attribute struct {
-	Key   string
-	value string
-}
-
-func (m Member) IsOptional() bool {
-	var option string
-
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	for i := range matches {
-		name := TagSubNames[i]
-		if name == OptionKey {
-			option = matches[i]
-		}
-	}
-
-	if len(option) == 0 {
-		return false
-	}
-
-	fields := strings.Split(option, ",")
-	for _, field := range fields {
-		if field == "optional" || strings.HasPrefix(field, "default=") {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (m Member) IsOmitempty() bool {
-	var option string
-
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	for i := range matches {
-		name := TagSubNames[i]
-		if name == OptionKey {
-			option = matches[i]
-		}
-	}
-
-	if len(option) == 0 {
-		return false
-	}
-
-	fields := strings.Split(option, ",")
-	for _, field := range fields {
-		if field == "omitempty" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (m Member) GetAttributes() []Attribute {
-	matches := TagRe.FindStringSubmatch(m.Tag)
-	var result []Attribute
-	for i := range matches {
-		name := TagSubNames[i]
-		if stringx.Contains(definedTags, name) {
-			result = append(result, Attribute{
-				Key:   name,
-				value: matches[i],
-			})
-		}
+// Routes returns all routes in api service
+func (s Service) Routes() []Route {
+	var result []Route
+	for _, group := range s.Groups {
+		result = append(result, group.Routes...)
 	}
 	return result
 }
 
-func (m Member) GetPropertyName() (string, error) {
-	attrs := m.GetAttributes()
-	for _, attr := range attrs {
-		if attr.Key == NameKey && len(attr.value) > 0 {
-			if attr.value == "-" {
-				return util.Untitle(m.Name), nil
+// Tags returns all tags in Member
+func (m Member) Tags() []*Tag {
+	tags, err := Parse(m.Tag)
+	if err != nil {
+		panic(m.Tag + ", " + err.Error())
+	}
+
+	return tags.Tags()
+}
+
+// IsOptional returns true if tag is optional
+func (m Member) IsOptional() bool {
+	if !m.IsBodyMember() {
+		return false
+	}
+
+	tag := m.Tags()
+	for _, item := range tag {
+		if item.Key == bodyTagKey {
+			if stringx.Contains(item.Options, "optional") {
+				return true
 			}
-			return attr.value, nil
 		}
 	}
+	return false
+}
+
+// IsOmitEmpty returns true if tag contains omitempty
+func (m Member) IsOmitEmpty() bool {
+	if !m.IsBodyMember() {
+		return false
+	}
+
+	tag := m.Tags()
+	for _, item := range tag {
+		if item.Key == bodyTagKey {
+			if stringx.Contains(item.Options, "omitempty") {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// GetPropertyName returns json tag value
+func (m Member) GetPropertyName() (string, error) {
+	tags := m.Tags()
+	for _, tag := range tags {
+		if stringx.Contains(definedKeys, tag.Key) {
+			if tag.Name == "-" {
+				return util.Untitle(m.Name), nil
+			}
+			return tag.Name, nil
+		}
+	}
+
 	return "", errors.New("json property name not exist, member: " + m.Name)
 }
 
+// GetComment returns comment value of Member
 func (m Member) GetComment() string {
-	return strings.TrimSpace(strings.Join(m.Comments, "; "))
+	return strings.TrimSpace(m.Comment)
 }
 
+// IsBodyMember returns true if contains json tag
 func (m Member) IsBodyMember() bool {
 	if m.IsInline {
 		return true
 	}
-	attrs := m.GetAttributes()
-	for _, attr := range attrs {
-		if attr.value == BodyTag {
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == bodyTagKey {
 			return true
 		}
 	}
 	return false
 }
 
-func (t Type) GetBodyMembers() []Member {
+// IsFormMember returns true if contains form tag
+func (m Member) IsFormMember() bool {
+	if m.IsInline {
+		return false
+	}
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == formTagKey {
+			return true
+		}
+	}
+	return false
+}
+
+// GetBodyMembers returns all json fields
+func (t DefineStruct) GetBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
 		if member.IsBodyMember() {
@@ -132,7 +131,19 @@ func (t Type) GetBodyMembers() []Member {
 	return result
 }
 
-func (t Type) GetNonBodyMembers() []Member {
+// GetFormMembers returns all form fields
+func (t DefineStruct) GetFormMembers() []Member {
+	var result []Member
+	for _, member := range t.Members {
+		if member.IsFormMember() {
+			result = append(result, member)
+		}
+	}
+	return result
+}
+
+// GetNonBodyMembers returns all have no tag fields
+func (t DefineStruct) GetNonBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
 		if !member.IsBodyMember() {
@@ -140,4 +151,50 @@ func (t Type) GetNonBodyMembers() []Member {
 		}
 	}
 	return result
+}
+
+// JoinedDoc joins comments and summary value in AtDoc
+func (r Route) JoinedDoc() string {
+	doc := r.AtDoc.Text
+	if r.AtDoc.Properties != nil {
+		doc += r.AtDoc.Properties[defaultSummaryKey]
+	}
+	doc += strings.Join(r.Docs, " ")
+	return strings.TrimSpace(doc)
+}
+
+// GetAnnotation returns the value by specified key from @server
+func (r Route) GetAnnotation(key string) string {
+	if r.AtServerAnnotation.Properties == nil {
+		return ""
+	}
+
+	return r.AtServerAnnotation.Properties[key]
+}
+
+// GetAnnotation returns the value by specified key from @server
+func (g Group) GetAnnotation(key string) string {
+	if g.Annotation.Properties == nil {
+		return ""
+	}
+
+	return g.Annotation.Properties[key]
+}
+
+// ResponseTypeName returns response type name of route
+func (r Route) ResponseTypeName() string {
+	if r.ResponseType == nil {
+		return ""
+	}
+
+	return r.ResponseType.Name()
+}
+
+// RequestTypeName returns request type name of route
+func (r Route) RequestTypeName() string {
+	if r.RequestType == nil {
+		return ""
+	}
+
+	return r.RequestType.Name()
 }

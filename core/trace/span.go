@@ -21,6 +21,7 @@ const (
 
 var spanSep = string([]byte{spanSepRune})
 
+// A Span is a calling span that connects caller and callee.
 type Span struct {
 	ctx           spanContext
 	serviceName   string
@@ -58,9 +59,11 @@ func newServerSpan(carrier Carrier, serviceName, operationName string) tracespec
 	}
 }
 
+// Finish finishes the calling span.
 func (s *Span) Finish() {
 }
 
+// Follow follows the tracing service and operation names in context.
 func (s *Span) Follow(ctx context.Context, serviceName, operationName string) (context.Context, tracespec.Trace) {
 	span := &Span{
 		ctx: spanContext{
@@ -75,6 +78,7 @@ func (s *Span) Follow(ctx context.Context, serviceName, operationName string) (c
 	return context.WithValue(ctx, tracespec.TracingKey, span), span
 }
 
+// Fork forks the tracing service and operation names in context.
 func (s *Span) Fork(ctx context.Context, serviceName, operationName string) (context.Context, tracespec.Trace) {
 	span := &Span{
 		ctx: spanContext{
@@ -89,14 +93,17 @@ func (s *Span) Fork(ctx context.Context, serviceName, operationName string) (con
 	return context.WithValue(ctx, tracespec.TracingKey, span), span
 }
 
+// SpanId returns the span id.
 func (s *Span) SpanId() string {
 	return s.ctx.SpanId()
 }
 
+// TraceId returns the trace id.
 func (s *Span) TraceId() string {
 	return s.ctx.TraceId()
 }
 
+// Visit visits the span using fn.
 func (s *Span) Visit(fn func(key, val string) bool) {
 	s.ctx.Visit(fn)
 }
@@ -126,6 +133,7 @@ func (s *Span) followSpanId() string {
 	return strings.Join(fields, spanSep)
 }
 
+// StartClientSpan starts the client span with given context, service and operation names.
 func StartClientSpan(ctx context.Context, serviceName, operationName string) (context.Context, tracespec.Trace) {
 	if span, ok := ctx.Value(tracespec.TracingKey).(*Span); ok {
 		return span.Fork(ctx, serviceName, operationName)
@@ -134,6 +142,7 @@ func StartClientSpan(ctx context.Context, serviceName, operationName string) (co
 	return ctx, emptyNoopSpan
 }
 
+// StartServerSpan starts the server span with given context, carrier, service and operation names.
 func StartServerSpan(ctx context.Context, carrier Carrier, serviceName, operationName string) (
 	context.Context, tracespec.Trace) {
 	span := newServerSpan(carrier, serviceName, operationName)

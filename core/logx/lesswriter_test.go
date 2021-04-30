@@ -9,7 +9,7 @@ import (
 
 func TestLessWriter(t *testing.T) {
 	var builder strings.Builder
-	w := NewLessWriter(&builder, 500)
+	w := newLessWriter(&builder, 500)
 	for i := 0; i < 100; i++ {
 		_, err := w.Write([]byte("hello"))
 		assert.Nil(t, err)

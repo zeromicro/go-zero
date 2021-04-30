@@ -23,8 +23,10 @@ const (
 var emptyLruCache = emptyLru{}
 
 type (
+	// CacheOption defines the method to customize a Cache.
 	CacheOption func(cache *Cache)
 
+	// A Cache object is a in-memory cache.
 	Cache struct {
 		name           string
 		lock           sync.Mutex
@@ -38,6 +40,7 @@ type (
 	}
 )
 
+// NewCache returns a Cache with given expire.
 func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	cache := &Cache{
 		data:           make(map[string]interface{}),
@@ -72,6 +75,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	return cache, nil
 }
 
+// Del deletes the item with the given key from c.
 func (c *Cache) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
@@ -80,6 +84,7 @@ func (c *Cache) Del(key string) {
 	c.timingWheel.RemoveTimer(key)
 }
 
+// Get returns the item with the given key from c.
 func (c *Cache) Get(key string) (interface{}, bool) {
 	value, ok := c.doGet(key)
 	if ok {
@@ -91,6 +96,7 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
+// Set sets value into c with key.
 func (c *Cache) Set(key string, value interface{}) {
 	c.lock.Lock()
 	_, ok := c.data[key]
@@ -106,6 +112,9 @@ func (c *Cache) Set(key string, value interface{}) {
 	}
 }
 
+// Take returns the item with the given key.
+// If the item is in c, return it directly.
+// If not, use fetch method to get the item, set into c and return it.
 func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}, error) {
 	if val, ok := c.doGet(key); ok {
 		c.stats.IncrementHit()
@@ -136,11 +145,10 @@ func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}
 	if fresh {
 		c.stats.IncrementMiss()
 		return val, nil
-	} else {
-		// got the result from previous ongoing query
-		c.stats.IncrementHit()
 	}
 
+	// got the result from previous ongoing query
+	c.stats.IncrementHit()
 	return val, nil
 }
 
@@ -168,6 +176,7 @@ func (c *Cache) size() int {
 	return len(c.data)
 }
 
+// WithLimit customizes a Cache with items up to limit.
 func WithLimit(limit int) CacheOption {
 	return func(cache *Cache) {
 		if limit > 0 {
@@ -176,6 +185,7 @@ func WithLimit(limit int) CacheOption {
 	}
 }
 
+// WithName customizes a Cache with the given name.
 func WithName(name string) CacheOption {
 	return func(cache *Cache) {
 		cache.name = name

@@ -18,12 +18,14 @@ const (
 	timeFormat        = "15:04:05"
 )
 
-// ErrServiceUnavailable is returned when the CB state is open
+// ErrServiceUnavailable is returned when the Breaker state is open.
 var ErrServiceUnavailable = errors.New("circuit breaker is open")
 
 type (
+	// Acceptable is the func to check if the error can be accepted.
 	Acceptable func(err error) bool
 
+	// A Breaker represents a circuit breaker.
 	Breaker interface {
 		// Name returns the name of the Breaker.
 		Name() string
@@ -61,10 +63,14 @@ type (
 		DoWithFallbackAcceptable(req func() error, fallback func(err error) error, acceptable Acceptable) error
 	}
 
+	// Option defines the method to customize a Breaker.
 	Option func(breaker *circuitBreaker)
 
+	// Promise interface defines the callbacks that returned by Breaker.Allow.
 	Promise interface {
+		// Accept tells the Breaker that the call is successful.
 		Accept()
+		// Reject tells the Breaker that the call is failed.
 		Reject(reason string)
 	}
 
@@ -89,6 +95,8 @@ type (
 	}
 )
 
+// NewBreaker returns a Breaker object.
+// opts can be used to customize the Breaker.
 func NewBreaker(opts ...Option) Breaker {
 	var b circuitBreaker
 	for _, opt := range opts {
@@ -127,6 +135,7 @@ func (cb *circuitBreaker) Name() string {
 	return cb.name
 }
 
+// WithName returns a function to set the name of a Breaker.
 func WithName(name string) Option {
 	return func(b *circuitBreaker) {
 		b.name = name

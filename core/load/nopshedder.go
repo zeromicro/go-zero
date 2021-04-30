@@ -1,7 +1,6 @@
 package load
 
-type nopShedder struct {
-}
+type nopShedder struct{}
 
 func newNopShedder() Shedder {
 	return nopShedder{}
@@ -11,8 +10,7 @@ func (s nopShedder) Allow() (Promise, error) {
 	return nopPromise{}, nil
 }
 
-type nopPromise struct {
-}
+type nopPromise struct{}
 
 func (p nopPromise) Pass() {
 }

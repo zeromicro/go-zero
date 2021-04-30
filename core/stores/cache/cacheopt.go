@@ -8,11 +8,13 @@ const (
 )
 
 type (
+	// An Options is used to store the cache options.
 	Options struct {
 		Expiry         time.Duration
 		NotFoundExpiry time.Duration
 	}
 
+	// Option defines the method to customize an Options.
 	Option func(o *Options)
 )
 
@@ -32,12 +34,14 @@ func newOptions(opts ...Option) Options {
 	return o
 }
 
+// WithExpiry returns a func to customize a Options with given expiry.
 func WithExpiry(expiry time.Duration) Option {
 	return func(o *Options) {
 		o.Expiry = expiry
 	}
 }
 
+// WithNotFoundExpiry returns a func to customize a Options with given not found expiry.
 func WithNotFoundExpiry(expiry time.Duration) Option {
 	return func(o *Options) {
 		o.NotFoundExpiry = expiry

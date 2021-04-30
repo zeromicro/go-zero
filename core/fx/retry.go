@@ -5,6 +5,7 @@ import "github.com/tal-tech/go-zero/core/errorx"
 const defaultRetryTimes = 3
 
 type (
+	// RetryOption defines the method to customize DoWithRetry.
 	RetryOption func(*retryOptions)
 
 	retryOptions struct {
@@ -12,8 +13,9 @@ type (
 	}
 )
 
-func DoWithRetries(fn func() error, opts ...RetryOption) error {
-	var options = newRetryOptions()
+// DoWithRetry runs fn, and retries if failed. Default to retry 3 times.
+func DoWithRetry(fn func() error, opts ...RetryOption) error {
+	options := newRetryOptions()
 	for _, opt := range opts {
 		opt(options)
 	}
@@ -30,7 +32,8 @@ func DoWithRetries(fn func() error, opts ...RetryOption) error {
 	return berr.Err()
 }
 
-func WithRetries(times int) RetryOption {
+// WithRetry customize a DoWithRetry call with given retry times.
+func WithRetry(times int) RetryOption {
 	return func(options *retryOptions) {
 		options.times = times
 	}

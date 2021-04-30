@@ -6,8 +6,10 @@ import (
 )
 
 type (
+	// RegisterFn defines the method to register a server.
 	RegisterFn func(*grpc.Server)
 
+	// Server interface represents a rpc server.
 	Server interface {
 		AddOptions(options ...grpc.ServerOption)
 		AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor)

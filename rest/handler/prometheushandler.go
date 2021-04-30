@@ -31,7 +31,8 @@ var (
 	})
 )
 
-func PromethousHandler(path string) func(http.Handler) http.Handler {
+// PrometheusHandler returns a middleware that reports stats to prometheus.
+func PrometheusHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := timex.Now()

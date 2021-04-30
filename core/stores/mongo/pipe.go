@@ -8,6 +8,7 @@ import (
 )
 
 type (
+	// Pipe interface represents a mongo pipe.
 	Pipe interface {
 		All(result interface{}) error
 		AllowDiskUse() Pipe

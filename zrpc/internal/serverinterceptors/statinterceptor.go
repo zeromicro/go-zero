@@ -14,6 +14,7 @@ import (
 
 const serverSlowThreshold = time.Millisecond * 500
 
+// UnaryStatInterceptor returns a func that uses given metrics to report stats.
 func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (resp interface{}, err error) {
