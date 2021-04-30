@@ -9,6 +9,7 @@ import (
 	"github.com/justinas/alice"
 	"github.com/tal-tech/go-zero/core/codec"
 	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/rest/handler"
 	"github.com/tal-tech/go-zero/rest/httpx"
@@ -114,12 +115,13 @@ func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat
 		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
-		handler.PromethousHandler(route.Path),
 		handler.MaxBytesHandler(s.conf.MaxBytes),
 		handler.GunzipHandler,
 	)
 	chain = s.appendAuthHandler(fr, chain, verifier)
-
+	if prometheus.EnablePrometheus {
+		chain = chain.Append(handler.PromethousHandler(route.Path))
+	}
 	for _, middleware := range s.middlewares {
 		chain = chain.Append(convertMiddleware(middleware))
 	}

@@ -10,13 +10,18 @@ import (
 	"github.com/tal-tech/go-zero/core/threading"
 )
 
-var once sync.Once
+var (
+	once             sync.Once
+	EnablePrometheus bool
+)
 
 func StartAgent(c Config) {
 	once.Do(func() {
 		if len(c.Host) == 0 {
 			return
 		}
+
+		EnablePrometheus = true
 
 		threading.GoSafe(func() {
 			http.Handle(c.Path, promhttp.Handler())

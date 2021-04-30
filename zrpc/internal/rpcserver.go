@@ -4,6 +4,7 @@ import (
 	"net"
 
 	"github.com/tal-tech/go-zero/core/proc"
+	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
@@ -55,7 +56,9 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		serverinterceptors.UnaryTracingInterceptor(s.name),
 		serverinterceptors.UnaryCrashInterceptor(),
 		serverinterceptors.UnaryStatInterceptor(s.metrics),
-		serverinterceptors.UnaryPrometheusInterceptor(),
+	}
+	if prometheus.EnablePrometheus {
+		unaryInterceptors = append(unaryInterceptors, serverinterceptors.UnaryPrometheusInterceptor())
 	}
 	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
 	streamInterceptors := []grpc.StreamServerInterceptor{
