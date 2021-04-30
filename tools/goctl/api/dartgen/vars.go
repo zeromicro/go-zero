@@ -11,7 +11,8 @@ var funcMap = template.FuncMap{
 	"lowCamelCase":    lowCamelCase,
 }
 
-const apiFileContent = `import 'dart:io';
+const (
+	apiFileContent = `import 'dart:io';
 import 'dart:convert';
 import '../vars/kv.dart';
 import '../vars/vars.dart';
@@ -97,7 +98,8 @@ Future _apiRequest(String method, String path, dynamic data,
   if (eventually != null) eventually();
 }
 `
-const tokensFileContent = `class Tokens {
+
+	tokensFileContent = `class Tokens {
   /// 用于访问的token, 每次请求都必须带在Header里面
   final String accessToken;
   final int accessExpire;
@@ -131,3 +133,4 @@ const tokensFileContent = `class Tokens {
   }
 }
 `
+)

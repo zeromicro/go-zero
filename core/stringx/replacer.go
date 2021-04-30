@@ -3,6 +3,7 @@ package stringx
 import "strings"
 
 type (
+	// Replacer interface wraps the Replace method.
 	Replacer interface {
 		Replace(text string) string
 	}
@@ -13,8 +14,9 @@ type (
 	}
 )
 
+// NewReplacer returns a Replacer.
 func NewReplacer(mapping map[string]string) Replacer {
-	var rep = &replacer{
+	rep := &replacer{
 		mapping: mapping,
 	}
 	for k := range mapping {
@@ -26,9 +28,9 @@ func NewReplacer(mapping map[string]string) Replacer {
 
 func (r *replacer) Replace(text string) string {
 	var builder strings.Builder
-	var chars = []rune(text)
-	var size = len(chars)
-	var start = -1
+	chars := []rune(text)
+	size := len(chars)
+	start := -1
 
 	for i := 0; i < size; i++ {
 		child, ok := r.children[chars[i]]
@@ -40,12 +42,12 @@ func (r *replacer) Replace(text string) string {
 		if start < 0 {
 			start = i
 		}
-		var end = -1
+		end := -1
 		if child.end {
 			end = i + 1
 		}
 
-		var j = i + 1
+		j := i + 1
 		for ; j < size; j++ {
 			grandchild, ok := child.children[chars[j]]
 			if !ok {

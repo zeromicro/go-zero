@@ -157,10 +157,10 @@ OPTIONS:
 
 ### 注意事项
 
-* `google.golang.org/grpc`需要降级到v1.26.0,且protoc-gen-go版本不能高于v1.3.2（see [https://github.com/grpc/grpc-go/issues/3347](https://github.com/grpc/grpc-go/issues/3347)）即
+* `google.golang.org/grpc`需要降级到 `v1.29.1`，且protoc-gen-go版本不能高于v1.3.2（see [https://github.com/grpc/grpc-go/issues/3347](https://github.com/grpc/grpc-go/issues/3347)）即
   
   ```shell script
-  replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+  replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
   ```
 
 * proto不支持暂多文件同时生成
@@ -261,5 +261,5 @@ service Greet {
   解决方法：
   
     ```golang
-    replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+    replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
     ```

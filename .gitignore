@@ -4,6 +4,7 @@
 # Unignore all with extensions
 !*.*
 !**/Dockerfile
+!**/Makefile
 
 # Unignore all dirs
 !*/
@@ -12,7 +13,6 @@
 .idea
 **/.DS_Store
 **/logs
-!Makefile
 
 # gitlab ci
 .cache

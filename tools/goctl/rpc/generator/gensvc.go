@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 )
 
 const svcTemplate = `package svc
@@ -13,19 +15,26 @@ const svcTemplate = `package svc
 import {{.imports}}
 
 type ServiceContext struct {
-	c config.Config
+	Config config.Config
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
 	return &ServiceContext{
-		c:c,
+		Config:c,
 	}
 }
 `
 
-func (g *defaultGenerator) GenSvc(ctx DirContext, _ parser.Proto) error {
+// GenSvc generates the servicecontext.go file, which is the resource dependency of a service,
+// such as rpc dependency, model dependency, etc.
+func (g *DefaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetSvc()
-	fileName := filepath.Join(dir.Filename, formatFilename("service_context")+".go")
+	svcFilename, err := format.FileNamingFormat(cfg.NamingFormat, "service_context")
+	if err != nil {
+		return err
+	}
+
+	fileName := filepath.Join(dir.Filename, svcFilename+".go")
 	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
 	if err != nil {
 		return err

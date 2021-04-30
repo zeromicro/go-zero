@@ -26,6 +26,7 @@ type (
 	}
 )
 
+// NewSharedCalls returns a SharedCalls.
 func NewSharedCalls() SharedCalls {
 	return &sharedGroup{
 		calls: make(map[string]*call),
@@ -70,8 +71,6 @@ func (g *sharedGroup) createCall(key string) (c *call, done bool) {
 
 func (g *sharedGroup) makeCall(c *call, key string, fn func() (interface{}, error)) {
 	defer func() {
-		// delete key first, done later. can't reverse the order, because if reverse,
-		// another Do call might wg.Wait() without get notified with wg.Done()
 		g.lock.Lock()
 		delete(g.calls, key)
 		g.lock.Unlock()

@@ -85,7 +85,7 @@ func TestUpdate(t *testing.T) {
 
 	assert.Equal(t, string(data), modifyData)
 
-	assert.Nil(t, Update(category))
+	assert.Nil(t, Update())
 
 	data, err = ioutil.ReadFile(file)
 	assert.Nil(t, err)

@@ -7,6 +7,7 @@ const (
 	duplicateEntryCode uint16 = 1062
 )
 
+// NewMysql returns a mysql connection.
 func NewMysql(datasource string, opts ...SqlOption) SqlConn {
 	opts = append(opts, withMysqlAcceptable())
 	return NewSqlConn(mysqlDriverName, datasource, opts...)

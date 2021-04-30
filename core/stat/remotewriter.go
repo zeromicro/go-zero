@@ -12,12 +12,15 @@ import (
 
 const httpTimeout = time.Second * 5
 
+// ErrWriteFailed is an error that indicates failed to submit a StatReport.
 var ErrWriteFailed = errors.New("submit failed")
 
+// A RemoteWriter is a writer to write StatReport.
 type RemoteWriter struct {
 	endpoint string
 }
 
+// NewRemoteWriter returns a RemoteWriter.
 func NewRemoteWriter(endpoint string) Writer {
 	return &RemoteWriter{
 		endpoint: endpoint,

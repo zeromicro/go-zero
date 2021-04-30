@@ -9,6 +9,7 @@ import (
 )
 
 type (
+	// A SheddingStat is used to store the statistics for load shedding.
 	SheddingStat struct {
 		name  string
 		total int64
@@ -23,6 +24,7 @@ type (
 	}
 )
 
+// NewSheddingStat returns a SheddingStat.
 func NewSheddingStat(name string) *SheddingStat {
 	st := &SheddingStat{
 		name: name,
@@ -31,14 +33,17 @@ func NewSheddingStat(name string) *SheddingStat {
 	return st
 }
 
+// IncrementTotal increments the total requests.
 func (s *SheddingStat) IncrementTotal() {
 	atomic.AddInt64(&s.total, 1)
 }
 
+// IncrementPass increments the passed requests.
 func (s *SheddingStat) IncrementPass() {
 	atomic.AddInt64(&s.pass, 1)
 }
 
+// IncrementDrop increments the dropped requests.
 func (s *SheddingStat) IncrementDrop() {
 	atomic.AddInt64(&s.drop, 1)
 }

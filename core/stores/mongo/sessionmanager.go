@@ -66,7 +66,7 @@ func (cs *concurrentSession) takeSession(opts ...Option) (*mgo.Session, error) {
 
 	if err := cs.limit.Borrow(o.timeout); err != nil {
 		return nil, err
-	} else {
-		return cs.Copy(), nil
 	}
+
+	return cs.Copy(), nil
 }

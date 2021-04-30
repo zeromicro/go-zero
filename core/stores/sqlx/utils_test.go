@@ -28,3 +28,31 @@ func TestDesensitize_WithoutAccount(t *testing.T) {
 	datasource = desensitize(datasource)
 	assert.True(t, strings.Contains(datasource, "tcp(111.222.333.44:3306)"))
 }
+
+func TestFormatForPrint(t *testing.T) {
+	tests := []struct {
+		name   string
+		query  string
+		args   []interface{}
+		expect string
+	}{
+		{
+			name:   "no args",
+			query:  "select user, name from table where id=?",
+			expect: `select user, name from table where id=?`,
+		},
+		{
+			name:   "one arg",
+			query:  "select user, name from table where id=?",
+			args:   []interface{}{"kevin"},
+			expect: `select user, name from table where id=? ["kevin"]`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			actual := formatForPrint(test.query, test.args...)
+			assert.Equal(t, test.expect, actual)
+		})
+	}
+}

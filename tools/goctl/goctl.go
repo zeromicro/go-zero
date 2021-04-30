@@ -18,15 +18,24 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/kube"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
+	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
+	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
 	"github.com/urfave/cli"
 )
 
 var (
-	BuildVersion = "20201108"
+	buildVersion = "1.1.6"
 	commands     = []cli.Command{
+		{
+			Name:   "upgrade",
+			Usage:  "upgrade goctl to latest version",
+			Action: upgrade.Upgrade,
+		},
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -41,7 +50,7 @@ var (
 				{
 					Name:   "new",
 					Usage:  "fast create api service",
-					Action: new.NewService,
+					Action: new.CreateServiceCommand,
 				},
 				{
 					Name:  "format",
@@ -52,14 +61,12 @@ var (
 							Usage: "the format target dir",
 						},
 						cli.BoolFlag{
-							Name:     "iu",
-							Usage:    "ignore update",
-							Required: false,
+							Name:  "iu",
+							Usage: "ignore update",
 						},
 						cli.BoolFlag{
-							Name:     "stdin",
-							Usage:    "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
-							Required: false,
+							Name:  "stdin",
+							Usage: "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
 						},
 					},
 					Action: format.GoFormatApi,
@@ -83,6 +90,11 @@ var (
 							Name:  "dir",
 							Usage: "the target dir",
 						},
+						cli.StringFlag{
+							Name:     "o",
+							Required: false,
+							Usage:    "the output markdown directory",
+						},
 					},
 					Action: docgen.DocCommand,
 				},
@@ -98,9 +110,9 @@ var (
 							Name:  "api",
 							Usage: "the api file",
 						},
-						cli.BoolFlag{
-							Name:  "force",
-							Usage: "force override the exist files",
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
 					},
 					Action: gogen.GoCommand,
@@ -133,19 +145,16 @@ var (
 							Usage: "the api file",
 						},
 						cli.StringFlag{
-							Name:     "webapi",
-							Usage:    "the web api file path",
-							Required: false,
+							Name:  "webapi",
+							Usage: "the web api file path",
 						},
 						cli.StringFlag{
-							Name:     "caller",
-							Usage:    "the web api caller",
-							Required: false,
+							Name:  "caller",
+							Usage: "the web api caller",
 						},
 						cli.BoolFlag{
-							Name:     "unwrap",
-							Usage:    "unwrap the webapi caller for import",
-							Required: false,
+							Name:  "unwrap",
+							Usage: "unwrap the webapi caller for import",
 						},
 					},
 					Action: tsgen.TsCommand,
@@ -184,6 +193,29 @@ var (
 					},
 					Action: ktgen.KtCommand,
 				},
+				{
+					Name:  "plugin",
+					Usage: "custom file generator",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "plugin, p",
+							Usage: "the plugin file",
+						},
+						cli.StringFlag{
+							Name:  "dir",
+							Usage: "the target directory",
+						},
+						cli.StringFlag{
+							Name:  "api",
+							Usage: "the api file",
+						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+					},
+					Action: plugin.PluginCommand,
+				},
 			},
 		},
 		{
@@ -194,8 +226,100 @@ var (
 					Name:  "go",
 					Usage: "the file that contains main function",
 				},
+				cli.IntFlag{
+					Name:  "port",
+					Usage: "the port to expose, default none",
+					Value: 0,
+				},
 			},
 			Action: docker.DockerCommand,
+		},
+		{
+			Name:  "kube",
+			Usage: "generate kubernetes files",
+			Subcommands: []cli.Command{
+				{
+					Name:  "deploy",
+					Usage: "generate deployment yaml file",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:     "name",
+							Usage:    "the name of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "namespace",
+							Usage:    "the namespace of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:     "image",
+							Usage:    "the docker image of deployment",
+							Required: true,
+						},
+						cli.StringFlag{
+							Name:  "secret",
+							Usage: "the secret to image pull from registry",
+						},
+						cli.IntFlag{
+							Name:  "requestCpu",
+							Usage: "the request cpu to deploy",
+							Value: 500,
+						},
+						cli.IntFlag{
+							Name:  "requestMem",
+							Usage: "the request memory to deploy",
+							Value: 512,
+						},
+						cli.IntFlag{
+							Name:  "limitCpu",
+							Usage: "the limit cpu to deploy",
+							Value: 1000,
+						},
+						cli.IntFlag{
+							Name:  "limitMem",
+							Usage: "the limit memory to deploy",
+							Value: 1024,
+						},
+						cli.StringFlag{
+							Name:     "o",
+							Usage:    "the output yaml file",
+							Required: true,
+						},
+						cli.IntFlag{
+							Name:  "replicas",
+							Usage: "the number of replicas to deploy",
+							Value: 3,
+						},
+						cli.IntFlag{
+							Name:  "revisions",
+							Usage: "the number of revision history to limit",
+							Value: 5,
+						},
+						cli.IntFlag{
+							Name:     "port",
+							Usage:    "the port of the deployment to listen on pod",
+							Required: true,
+						},
+						cli.IntFlag{
+							Name:  "nodePort",
+							Usage: "the nodePort of the deployment to expose",
+							Value: 0,
+						},
+						cli.IntFlag{
+							Name:  "minReplicas",
+							Usage: "the min replicas to deploy",
+							Value: 3,
+						},
+						cli.IntFlag{
+							Name:  "maxReplicas",
+							Usage: "the max replicas of deploy",
+							Value: 10,
+						},
+					},
+					Action: kube.DeploymentCommand,
+				},
+			},
 		},
 		{
 			Name:  "rpc",
@@ -205,12 +329,16 @@ var (
 					Name:  "new",
 					Usage: `generate rpc demo service`,
 					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
 						cli.BoolFlag{
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.RpcNew,
+					Action: rpc.RPCNew,
 				},
 				{
 					Name:  "template",
@@ -221,7 +349,7 @@ var (
 							Usage: "the target path of proto",
 						},
 					},
-					Action: rpc.RpcTemplate,
+					Action: rpc.RPCTemplate,
 				},
 				{
 					Name:  "proto",
@@ -239,12 +367,16 @@ var (
 							Name:  "dir, d",
 							Usage: `the target path of the code`,
 						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
 						cli.BoolFlag{
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
 					},
-					Action: rpc.Rpc,
+					Action: rpc.RPC,
 				},
 			},
 		},
@@ -270,7 +402,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the file naming style, lower|camel|underline,default is lower",
+									Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 								},
 								cli.BoolFlag{
 									Name:  "cache, c",
@@ -305,7 +437,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "style",
-									Usage: "the file naming style, lower|camel|snake, default is lower",
+									Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 								},
 								cli.BoolFlag{
 									Name:  "idea",
@@ -315,6 +447,29 @@ var (
 							Action: model.MyDataSource,
 						},
 					},
+				},
+				{
+					Name:  "mongo",
+					Usage: `generate mongo model`,
+					Flags: []cli.Flag{
+						cli.StringSliceFlag{
+							Name:  "type, t",
+							Usage: "specified model type name",
+						},
+						cli.BoolFlag{
+							Name:  "cache, c",
+							Usage: "generate code with cache [optional]",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: "the target dir",
+						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+					},
+					Action: mongo.Action,
 				},
 			},
 		},
@@ -349,7 +504,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "category,c",
-							Usage: "the category of template, enum [api,rpc,model]",
+							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
 						},
 					},
 					Action: tpl.UpdateTemplates,
@@ -360,7 +515,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "category,c",
-							Usage: "the category of template, enum [api,rpc,model]",
+							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
 						},
 						cli.StringFlag{
 							Name:  "name,n",
@@ -379,7 +534,7 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
+	app.Version = fmt.Sprintf("%s %s/%s", buildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {

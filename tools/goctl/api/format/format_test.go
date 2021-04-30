@@ -9,13 +9,11 @@ import (
 const (
 	notFormattedStr = `
 type Request struct {
-  Name string 
+  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `  
 }
-
 type Response struct {
-  Message string
+  Message string ` + "`" + `json:"message"` + "`" + `
 }
-
 service A-api {
 @server(
 handler: GreetHandler
@@ -24,14 +22,12 @@ handler: GreetHandler
 }
 `
 
-	formattedStr = `type Request struct {
-	Name string
+	formattedStr = `type Request {
+	Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
-
-type Response struct {
-	Message string
+type Response {
+	Message string ` + "`" + `json:"message"` + "`" + `
 }
-
 service A-api {
 	@server(
 		handler: GreetHandler
@@ -40,7 +36,7 @@ service A-api {
 }`
 )
 
-func TestInlineTypeNotExist(t *testing.T) {
+func TestFormat(t *testing.T) {
 	r, err := apiFormat(notFormattedStr)
 	assert.Nil(t, err)
 	assert.Equal(t, r, formattedStr)

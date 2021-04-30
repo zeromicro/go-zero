@@ -92,11 +92,11 @@ func currentCgroup() (*cgroup, error) {
 			continue
 		}
 
-		cgroups[subsys] = path.Join(cgroupDir, subsys)
-		if strings.Contains(subsys, ",") {
-			for _, k := range strings.Split(subsys, ",") {
-				cgroups[k] = path.Join(cgroupDir, k)
-			}
+		// https://man7.org/linux/man-pages/man7/cgroups.7.html
+		// comma-separated list of controllers for cgroup version 1
+		fields := strings.Split(subsys, ",")
+		for _, val := range fields {
+			cgroups[val] = path.Join(cgroupDir, val)
 		}
 	}
 
@@ -110,16 +110,16 @@ func parseUint(s string) (uint64, error) {
 	if err != nil {
 		if err.(*strconv.NumError).Err == strconv.ErrRange {
 			return 0, nil
-		} else {
-			return 0, fmt.Errorf("cgroup: bad int format: %s", s)
 		}
-	} else {
-		if v < 0 {
-			return 0, nil
-		} else {
-			return uint64(v), nil
-		}
+
+		return 0, fmt.Errorf("cgroup: bad int format: %s", s)
 	}
+
+	if v < 0 {
+		return 0, nil
+	}
+
+	return uint64(v), nil
 }
 
 func parseUints(val string) ([]uint64, error) {

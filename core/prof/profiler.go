@@ -3,56 +3,61 @@ package prof
 import "github.com/tal-tech/go-zero/core/utils"
 
 type (
+	// A ProfilePoint is a profile time point.
 	ProfilePoint struct {
 		*utils.ElapsedTimer
 	}
 
+	// A Profiler interface represents a profiler that used to report profile points.
 	Profiler interface {
 		Start() ProfilePoint
 		Report(name string, point ProfilePoint)
 	}
 
-	RealProfiler struct{}
+	realProfiler struct{}
 
-	NullProfiler struct{}
+	nullProfiler struct{}
 )
 
 var profiler = newNullProfiler()
 
+// EnableProfiling enables profiling.
 func EnableProfiling() {
 	profiler = newRealProfiler()
 }
 
+// Start starts a Profiler, and returns a start profiling point.
 func Start() ProfilePoint {
 	return profiler.Start()
 }
 
+// Report reports a ProfilePoint with given name.
 func Report(name string, point ProfilePoint) {
 	profiler.Report(name, point)
 }
 
 func newRealProfiler() Profiler {
-	return &RealProfiler{}
+	return &realProfiler{}
 }
 
-func (rp *RealProfiler) Start() ProfilePoint {
+func (rp *realProfiler) Start() ProfilePoint {
 	return ProfilePoint{
 		ElapsedTimer: utils.NewElapsedTimer(),
 	}
 }
 
-func (rp *RealProfiler) Report(name string, point ProfilePoint) {
+func (rp *realProfiler) Report(name string, point ProfilePoint) {
 	duration := point.Duration()
 	report(name, duration)
 }
 
 func newNullProfiler() Profiler {
-	return &NullProfiler{}
+	return &nullProfiler{}
 }
 
-func (np *NullProfiler) Start() ProfilePoint {
+func (np *nullProfiler) Start() ProfilePoint {
 	return ProfilePoint{}
 }
 
-func (np *NullProfiler) Report(string, ProfilePoint) {
+func (np *nullProfiler) Report(string, ProfilePoint) {
 }

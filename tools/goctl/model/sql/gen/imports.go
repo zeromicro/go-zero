@@ -20,19 +20,19 @@ func genImports(withCache, timeImport bool) (string, error) {
 		}
 
 		return buffer.String(), nil
-	} else {
-		text, err := util.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
-		if err != nil {
-			return "", err
-		}
-
-		buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
-			"time": timeImport,
-		})
-		if err != nil {
-			return "", err
-		}
-
-		return buffer.String(), nil
 	}
+
+	text, err := util.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
+	if err != nil {
+		return "", err
+	}
+
+	buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
+		"time": timeImport,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return buffer.String(), nil
 }

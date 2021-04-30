@@ -37,14 +37,15 @@ func main() {
 }
 `
 
+// GenConfigCommand provides the entry of goctl config
 func GenConfigCommand(c *cli.Context) error {
 	path, err := filepath.Abs(c.String("path"))
 	if err != nil {
 		return errors.New("abs failed: " + c.String("path"))
 	}
 
-	goModPath, hasFound := util.FindGoModPath(path)
-	if !hasFound {
+	goModPath, found := util.FindGoModPath(path)
+	if !found {
 		return errors.New("go mod not initial")
 	}
 

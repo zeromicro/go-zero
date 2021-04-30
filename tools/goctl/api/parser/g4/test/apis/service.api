@@ -1,0 +1,29 @@
+type Foo {}
+
+@server(
+    foo: foo
+    bar: "bar"
+    fooBar: "foo
+bar"
+)
+service foo-api {
+    @doc("foo")
+    @handler foo
+    get /foo (Foo) returns (Foo)
+    @handler bar
+    post /foo (Foo)
+    @handler fooBar
+    post /foo/bar
+    @server(
+        handler: getFoo
+    )
+    post /foo/:id returns(Foo)
+}
+
+service foo-api {
+    @doc(
+        summary:"post foo"
+    )
+    @handler postFoo
+    post /foo/bar/post (Foo)
+}

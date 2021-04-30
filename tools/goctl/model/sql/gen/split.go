@@ -1,14 +1,12 @@
 package gen
 
-import (
-	"regexp"
-)
+import "regexp"
 
-func (g *defaultGenerator) split() []string {
+func (g *defaultGenerator) split(source string) []string {
 	reg := regexp.MustCompile(createTableFlag)
-	index := reg.FindAllStringIndex(g.source, -1)
+	index := reg.FindAllStringIndex(source, -1)
 	list := make([]string, 0)
-	source := g.source
+
 	for i := len(index) - 1; i >= 0; i-- {
 		subIndex := index[i]
 		if len(subIndex) == 0 {
@@ -19,5 +17,6 @@ func (g *defaultGenerator) split() []string {
 		list = append(list, ddl)
 		source = source[:start]
 	}
+
 	return list
 }

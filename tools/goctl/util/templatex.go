@@ -7,31 +7,37 @@ import (
 	"text/template"
 )
 
-const regularPerm = 0666
+const regularPerm = 0o666
 
-type defaultTemplate struct {
+// DefaultTemplate is a tool to provides the text/template operations
+type DefaultTemplate struct {
 	name     string
 	text     string
 	goFmt    bool
 	savePath string
 }
 
-func With(name string) *defaultTemplate {
-	return &defaultTemplate{
+// With returns a instance of DefaultTemplate
+func With(name string) *DefaultTemplate {
+	return &DefaultTemplate{
 		name: name,
 	}
 }
-func (t *defaultTemplate) Parse(text string) *defaultTemplate {
+
+// Parse accepts a source template and returns DefaultTemplate
+func (t *DefaultTemplate) Parse(text string) *DefaultTemplate {
 	t.text = text
 	return t
 }
 
-func (t *defaultTemplate) GoFmt(format bool) *defaultTemplate {
+// GoFmt sets the value to goFmt and marks the generated codes will be formatted or not
+func (t *DefaultTemplate) GoFmt(format bool) *DefaultTemplate {
 	t.goFmt = format
 	return t
 }
 
-func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool) error {
+// SaveTo writes the codes to the target path
+func (t *DefaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool) error {
 	if FileExists(path) && !forceUpdate {
 		return nil
 	}
@@ -44,7 +50,8 @@ func (t *defaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 	return ioutil.WriteFile(path, output.Bytes(), regularPerm)
 }
 
-func (t *defaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
+// Execute returns the codes after the template executed
+func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
 		return nil, err

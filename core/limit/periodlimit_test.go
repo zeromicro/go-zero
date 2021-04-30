@@ -3,7 +3,7 @@ package limit
 import (
 	"testing"
 
-	"github.com/alicebob/miniredis"
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/stores/redis"
 	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
@@ -33,7 +33,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 	assert.Equal(t, 0, val)
 }
 
-func testPeriodLimit(t *testing.T, opts ...LimitOption) {
+func testPeriodLimit(t *testing.T, opts ...PeriodOption) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
