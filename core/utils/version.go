@@ -5,14 +5,12 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/mathx"
-	"github.com/tal-tech/go-zero/core/stringx"
 )
 
-var replacer = stringx.NewReplacer(map[string]string{
-	"V": "",
-	"v": "",
-	"-": ".",
-})
+var replacer = strings.NewReplacer(
+	"V", "",
+	"v", "",
+	"-", ".")
 
 // CompareVersions returns true if the first field and the third field are equal, otherwise false.
 func CompareVersions(v1, op, v2 string) bool {
