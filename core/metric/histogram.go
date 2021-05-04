@@ -19,7 +19,7 @@ type (
 	// A HistogramVec interface represents a histogram vector.
 	HistogramVec interface {
 		// Observe adds observation v to labels.
-		Observe(v int64, lables ...string)
+		Observe(v int64, labels ...string)
 		close() bool
 	}
 
