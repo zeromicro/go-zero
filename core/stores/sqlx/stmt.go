@@ -49,7 +49,8 @@ func query(conn sessionConn, scanner func(*sql.Rows) error, q string, args ...in
 	startTime := timex.Now()
 	rows, err := conn.Query(q, args...)
 	duration := timex.Since(startTime)
-	stmt := fmt.Sprint(args...)
+	// stmt := fmt.Sprint(args...)
+	stmt := formatForPrint(q, args)
 	if duration > slowThreshold {
 		logx.WithDuration(duration).Slowf("[SQL] query: slowcall - %s", stmt)
 	} else {
@@ -65,10 +66,10 @@ func query(conn sessionConn, scanner func(*sql.Rows) error, q string, args ...in
 }
 
 func queryStmt(conn stmtConn, scanner func(*sql.Rows) error, args ...interface{}) error {
-	stmt := fmt.Sprint(args...)
 	startTime := timex.Now()
 	rows, err := conn.Query(args...)
 	duration := timex.Since(startTime)
+	stmt := fmt.Sprint(args...)
 	if duration > slowThreshold {
 		logx.WithDuration(duration).Slowf("[SQL] queryStmt: slowcall - %s", stmt)
 	} else {
