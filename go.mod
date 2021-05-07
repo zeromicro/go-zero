@@ -61,3 +61,4 @@ require (
 	honnef.co/go/tools v0.0.1-2020.1.4 // indirect
 	sigs.k8s.io/yaml v1.2.0 // indirect
 )
+replace github.com/antlr/antlr4/runtime/Go/antlr => github.com/antlr/antlr4 v0.0.0-20210105212045-464bcbc32de2
