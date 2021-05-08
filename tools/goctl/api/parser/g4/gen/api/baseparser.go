@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/zeromicro/antlr"
 )
 
 const (
