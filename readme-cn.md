@@ -225,8 +225,6 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
-为了防止广告用户、识别技术同行，请 ***star*** 后加我时注明 **github** 当前 ***star*** 数，我再拉进 **go-zero** 群，感谢！
-
-加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
+加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
 
 <img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
