@@ -115,11 +115,11 @@ go get -u github.com/tal-tech/go-zero
    type Request struct {
      Name string `path:"name,options=you|me"` // parameters are auto validated
    }
-
+   
    type Response struct {
      Message string `json:"message"`
    }
-
+   
    service greet-api {
      @handler GreetHandler
      get /greet/from/:name(Request) returns (Response);
@@ -225,3 +225,7 @@ Document: [https://go-zero.dev/en/](https://go-zero.dev/en/)
 ## 10. Chat group
 
 Join the chat via https://join.slack.com/t/go-zeroworkspace/shared_invite/zt-m39xssxc-kgIqERa7aVsujKNj~XuPKg
+
+## Give a Star! ⭐
+
+If you like or are using this project to learn or start your solution, please give it a star. Thanks!
