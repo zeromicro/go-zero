@@ -8,7 +8,7 @@ import (
 // ErrUseOfCleaned is an error that indicates using a cleaned resource.
 var ErrUseOfCleaned = errors.New("using a cleaned resource")
 
-// A RefResource is used to reference counting a resouce.
+// A RefResource is used to reference counting a resource.
 type RefResource struct {
 	lock    sync.Mutex
 	ref     int32
