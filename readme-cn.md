@@ -159,7 +159,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * API 文档
 
-  [https://go-zero.dev/zh-hans/](https://go-zero.dev/zh-hans/)
+  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
 
 * 常见问题
 
