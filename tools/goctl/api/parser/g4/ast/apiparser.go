@@ -18,6 +18,7 @@ type (
 		debug      bool
 		log        console.Console
 		antlr.DefaultErrorListener
+		src string
 	}
 
 	// ParserOption defines an function with argument Parser
@@ -94,7 +95,8 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	var apiAstList []*Api
 	apiAstList = append(apiAstList, root)
 	for _, imp := range root.Import {
-		path := imp.Value.Text()
+		dir := filepath.Dir(p.src)
+		path := filepath.Join(dir, imp.Value.Text())
 		data, err := p.readContent(path)
 		if err != nil {
 			return nil, err
@@ -420,6 +422,7 @@ func (p *Parser) readContent(filename string) (string, error) {
 		return "", err
 	}
 
+	p.src = abs
 	data, err := ioutil.ReadFile(abs)
 	if err != nil {
 		return "", err
