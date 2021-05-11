@@ -22,7 +22,7 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 		client := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           r.Database, //senkoo self
 			MaxRetries:   maxRetries,
 			PoolSize:     1,
 			MinIdleConns: 1,

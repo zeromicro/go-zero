@@ -14,10 +14,11 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
-		Tls  bool   `json:",default=false,options=true|false"`
+		Host     string
+		Type     string `json:",default=node,options=node|cluster"`
+		Pass     string `json:",optional"`
+		Database int    `json:",default=0"` //senkoo self
+		Tls      bool   `json:",default=false,options=true|false"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -39,7 +40,10 @@ func (rc RedisConf) NewRedis() *Redis {
 	if rc.Tls {
 		opts = append(opts, WithTLS())
 	}
-
+	//senkoo self
+	if rc.Database > 0 {
+		opts = append(opts, WithDatabase(rc.Database))
+	}
 	return New(rc.Host, opts...)
 }
 

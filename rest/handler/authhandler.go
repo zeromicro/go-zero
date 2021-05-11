@@ -10,6 +10,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/token"
 )
 
@@ -115,7 +116,7 @@ func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback Un
 	if callback != nil {
 		callback(writer, r, err)
 	}
-
+	httpx.Error(w, err) //senkoo self
 	writer.WriteHeader(http.StatusUnauthorized)
 }
 

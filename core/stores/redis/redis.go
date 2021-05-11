@@ -40,11 +40,12 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		tls  bool
-		brk  breaker.Breaker
+		Addr     string
+		Type     string
+		Pass     string
+		Database int //senkoo self
+		tls      bool
+		brk      breaker.Breaker
 	}
 
 	// RedisNode interface represents a redis node.
@@ -1734,6 +1735,12 @@ func WithTLS() Option {
 	}
 }
 
+// WithDatabase senkoo self
+func WithDatabase(database int) Option {
+	return func(r *Redis) {
+		r.Database = database
+	}
+}
 func acceptable(err error) bool {
 	return err == nil || err == red.Nil
 }

@@ -27,7 +27,7 @@ func getClient(r *Redis) (*red.Client, error) {
 		store := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           r.Database, //senkoo self
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
