@@ -1,5 +1,7 @@
 package util
 
+import "strings"
+
 // TrimStringSlice returns a copy slice without empty string item
 func TrimStringSlice(list []string) []string {
 	var out []string
@@ -10,4 +12,10 @@ func TrimStringSlice(list []string) []string {
 		out = append(out, item)
 	}
 	return out
+}
+
+func TrimNewLine(s string) string {
+	s = strings.ReplaceAll(s, "\r", "")
+	s = strings.ReplaceAll(s, "\n", "")
+	return s
 }
