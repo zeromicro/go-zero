@@ -71,6 +71,12 @@ func (p *Parser) Accept(fn func(p *api.ApiParserParser, visitor *ApiVisitor) int
 
 // Parse is used to parse the api from the specified file name
 func (p *Parser) Parse(filename string) (*Api, error) {
+	abs, err := filepath.Abs(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	p.src = abs
 	data, err := p.readContent(filename)
 	if err != nil {
 		return nil, err
@@ -80,8 +86,19 @@ func (p *Parser) Parse(filename string) (*Api, error) {
 }
 
 // ParseContent is used to parse the api from the specified content
-func (p *Parser) ParseContent(content string) (*Api, error) {
-	return p.parse("", content)
+func (p *Parser) ParseContent(content string, filename ...string) (*Api, error) {
+	var f string
+	if len(filename) > 0 {
+		f = filename[0]
+		abs, err := filepath.Abs(f)
+		if err != nil {
+			return nil, err
+		}
+
+		p.src = abs
+	}
+
+	return p.parse(f, content)
 }
 
 // parse is used to parse api from the content
@@ -417,13 +434,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 
 func (p *Parser) readContent(filename string) (string, error) {
 	filename = strings.ReplaceAll(filename, `"`, "")
-	abs, err := filepath.Abs(filename)
-	if err != nil {
-		return "", err
-	}
-
-	p.src = abs
-	data, err := ioutil.ReadFile(abs)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}

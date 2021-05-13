@@ -34,9 +34,9 @@ func Parse(filename string) (*spec.ApiSpec, error) {
 }
 
 // ParseContent parses the api content
-func ParseContent(content string) (*spec.ApiSpec, error) {
+func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser()
-	ast, err := astParser.ParseContent(content)
+	ast, err := astParser.ParseContent(content, filename...)
 	if err != nil {
 		return nil, err
 	}
