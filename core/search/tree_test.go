@@ -151,9 +151,9 @@ func TestAddDuplicate(t *testing.T) {
 	err := tree.Add("/a/b", 1)
 	assert.Nil(t, err)
 	err = tree.Add("/a/b", 2)
-	assert.Equal(t, errDupItem, err)
+	assert.Error(t, errDupItem, err)
 	err = tree.Add("/a/b/", 2)
-	assert.Equal(t, errDupItem, err)
+	assert.Error(t, errDupItem, err)
 }
 
 func TestPlain(t *testing.T) {
