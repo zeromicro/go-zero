@@ -11,18 +11,22 @@ import (
 const (
 	// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
 	periodScript = `local limit = tonumber(ARGV[1])
-local window = tonumber(ARGV[2])
-local current = redis.call("INCRBY", KEYS[1], 1)
-if current == 1 then
-    redis.call("expire", KEYS[1], window)
-    return 1
-elseif current < limit then
-    return 1
-elseif current == limit then
-    return 2
-else
-    return 0
-end`
+	local window = tonumber(ARGV[2])
+	local current = tonumber(redis.call("get", KEYS[1]) or "0")
+	
+	if current == 0 then
+		redis.call("INCRBY", KEYS[1], 1)
+		redis.call("expire", KEYS[1], window)
+		return 1
+	elseif  current+1 < limit then
+		redis.call("INCRBY", KEYS[1], 1)
+		return 1
+	elseif current +1 == limit then
+		redis.call("INCRBY", KEYS[1], 1)
+		return 2
+	else
+		return 0
+	end`
 	zoneDiff = 3600 * 8 // GMT+8 for our services
 )
 
