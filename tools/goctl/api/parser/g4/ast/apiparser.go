@@ -177,7 +177,7 @@ func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
 	return
 }
 
-func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
+func (p *Parser) valid(mainApi, nestedApi *Api) error {
 	err := p.nestedApiCheck(mainApi, nestedApi)
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func (p *Parser) valid(mainApi *Api, nestedApi *Api) error {
 	return nil
 }
 
-func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap map[string]PlaceHolder, mainRouteMap map[string]PlaceHolder) error {
+func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
 		for _, r := range each.ServiceApi.ServiceRoute {
 			handler := r.GetHandler()
@@ -260,7 +260,7 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap map[string]P
 	return nil
 }
 
-func (p *Parser) nestedApiCheck(mainApi *Api, nestedApi *Api) error {
+func (p *Parser) nestedApiCheck(mainApi, nestedApi *Api) error {
 	if len(nestedApi.Import) > 0 {
 		importToken := nestedApi.Import[0].Import
 		return fmt.Errorf("%s line %d:%d the nested api does not support import",

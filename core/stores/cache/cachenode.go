@@ -205,7 +205,7 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 	return jsonx.Unmarshal(val.([]byte), v)
 }
 
-func (c cacheNode) processCache(key string, data string, v interface{}) error {
+func (c cacheNode) processCache(key, data string, v interface{}) error {
 	err := jsonx.Unmarshal([]byte(data), v)
 	if err == nil {
 		return nil
