@@ -42,7 +42,7 @@ func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
 	return &final
 }
 
-func (v *ApiVisitor) acceptService(root *Api, final *Api) {
+func (v *ApiVisitor) acceptService(root, final *Api) {
 	for _, service := range root.Service {
 		if _, ok := final.serviceM[service.ServiceApi.Name.Text()]; !ok && len(final.serviceM) > 0 {
 			v.panic(service.ServiceApi.Name, fmt.Sprintf("mutiple service declaration"))
@@ -104,7 +104,7 @@ func (v *ApiVisitor) duplicateServerItemCheck(service *Service) {
 	}
 }
 
-func (v *ApiVisitor) acceptType(root *Api, final *Api) {
+func (v *ApiVisitor) acceptType(root, final *Api) {
 	for _, tp := range root.Type {
 		if _, ok := final.typeM[tp.NameExpr().Text()]; ok {
 			v.panic(tp.NameExpr(), fmt.Sprintf("duplicate type '%s'", tp.NameExpr().Text()))
@@ -115,7 +115,7 @@ func (v *ApiVisitor) acceptType(root *Api, final *Api) {
 	}
 }
 
-func (v *ApiVisitor) acceptInfo(root *Api, final *Api) {
+func (v *ApiVisitor) acceptInfo(root, final *Api) {
 	if root.Info != nil {
 		infoM := map[string]PlaceHolder{}
 		if final.Info != nil {
@@ -133,7 +133,7 @@ func (v *ApiVisitor) acceptInfo(root *Api, final *Api) {
 	}
 }
 
-func (v *ApiVisitor) acceptImport(root *Api, final *Api) {
+func (v *ApiVisitor) acceptImport(root, final *Api) {
 	for _, imp := range root.Import {
 		if _, ok := final.importM[imp.Value.Text()]; ok {
 			v.panic(imp.Import, fmt.Sprintf("duplicate import '%s'", imp.Value.Text()))
@@ -144,7 +144,7 @@ func (v *ApiVisitor) acceptImport(root *Api, final *Api) {
 	}
 }
 
-func (v *ApiVisitor) acceptSyntax(root *Api, final *Api) {
+func (v *ApiVisitor) acceptSyntax(root, final *Api) {
 	if root.Syntax != nil {
 		if final.Syntax != nil {
 			v.panic(root.Syntax.Syntax, fmt.Sprintf("mutiple syntax declaration"))
