@@ -109,7 +109,6 @@ func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) interface{} {
 	serviceApi.Name = v.newExprWithText(serviceName.GetText(), serviceName.GetStart().GetLine(), serviceName.GetStart().GetColumn(), serviceName.GetStart().GetStart(), serviceName.GetStop().GetStop())
 	serviceApi.Lbrace = v.newExprWithToken(ctx.GetLbrace())
 	serviceApi.Rbrace = v.newExprWithToken(ctx.GetRbrace())
-
 	for _, each := range ctx.AllServiceRoute() {
 		serviceApi.ServiceRoute = append(serviceApi.ServiceRoute, each.Accept(v).(*ServiceRoute))
 	}

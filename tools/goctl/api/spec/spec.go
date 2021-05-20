@@ -12,6 +12,8 @@ type (
 	// ApiSyntax describes the syntax grammar
 	ApiSyntax struct {
 		Version string
+		Doc     []string
+		Comment []string
 	}
 
 	// ApiSpec describes a api file
@@ -25,7 +27,9 @@ type (
 
 	// Import describes api import
 	Import struct {
-		Value string
+		Value   string
+		Doc     []string
+		Comment []string
 	}
 
 	// Group defines a set of routing information
@@ -71,6 +75,10 @@ type (
 		Docs               Doc
 		Handler            string
 		AtDoc              AtDoc
+		HandlerDoc         []string
+		HandlerComment     []string
+		Doc                []string
+		Comment            []string
 	}
 
 	// Service describes api service
@@ -82,6 +90,8 @@ type (
 	// Type defines api type
 	Type interface {
 		Name() string
+		Comments() []string
+		Documents() []string
 	}
 
 	// DefineStruct describes api structure
@@ -89,6 +99,7 @@ type (
 		RawName string
 		Members []Member
 		Docs    Doc
+		Doc     []string
 	}
 
 	// PrimitiveType describes the basic golang type, such as bool,int32,int64, ...
