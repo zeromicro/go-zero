@@ -12,8 +12,8 @@ type (
 	// ApiSyntax describes the syntax grammar
 	ApiSyntax struct {
 		Version string
-		Doc     []string
-		Comment []string
+		Doc     Doc
+		Comment Doc
 	}
 
 	// ApiSpec describes a api file
@@ -28,8 +28,8 @@ type (
 	// Import describes api import
 	Import struct {
 		Value   string
-		Doc     []string
-		Comment []string
+		Doc     Doc
+		Comment Doc
 	}
 
 	// Group defines a set of routing information
@@ -75,10 +75,10 @@ type (
 		Docs               Doc
 		Handler            string
 		AtDoc              AtDoc
-		HandlerDoc         []string
-		HandlerComment     []string
-		Doc                []string
-		Comment            []string
+		HandlerDoc         Doc
+		HandlerComment     Doc
+		Doc                Doc
+		Comment            Doc
 	}
 
 	// Service describes api service
