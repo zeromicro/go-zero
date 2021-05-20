@@ -99,7 +99,6 @@ type (
 		RawName string
 		Members []Member
 		Docs    Doc
-		Doc     []string
 	}
 
 	// PrimitiveType describes the basic golang type, such as bool,int32,int64, ...

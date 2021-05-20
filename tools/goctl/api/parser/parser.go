@@ -108,7 +108,6 @@ func (p parser) fillTypes() error {
 				RawName: v.Name.Text(),
 				Members: members,
 				Docs:    p.stringExprs(v.Doc()),
-				Doc:     p.stringExprs(v.DocExpr),
 			})
 		default:
 			return fmt.Errorf("unknown type %+v", v)

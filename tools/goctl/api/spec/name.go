@@ -27,7 +27,7 @@ func (t DefineStruct) Comments() []string {
 
 // Documents returns the documents of struct
 func (t DefineStruct) Documents() []string {
-	return t.Doc
+	return t.Docs
 }
 
 // Name returns a map string, such as map[string]int
