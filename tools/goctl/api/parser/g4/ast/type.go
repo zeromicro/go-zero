@@ -114,8 +114,10 @@ func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) interface{} {
 		return alias
 	}
 
+	doc := v.getDoc(ctx)
 	st, ok := typeLit.(*TypeStruct)
 	if ok {
+		st.DocExpr = doc
 		return st
 	}
 
