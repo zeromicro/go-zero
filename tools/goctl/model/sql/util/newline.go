@@ -2,8 +2,7 @@ package util
 
 import "strings"
 
+// TrimNewLine trims \r and \n chars.
 func TrimNewLine(s string) string {
-	s = strings.ReplaceAll(s, "\r", "")
-	s = strings.ReplaceAll(s, "\n", "")
-	return s
+	return strings.NewReplacer("\r", "", "\n", "").Replace(s)
 }
