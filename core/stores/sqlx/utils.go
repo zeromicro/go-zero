@@ -53,9 +53,9 @@ func format(query string, args ...interface{}) (string, error) {
 	}
 
 	var b strings.Builder
-	argIndex := 0
-
+	var argIndex int
 	bytes := len(query)
+
 	for i := 0; i < bytes; i++ {
 		ch := query[i]
 		switch ch {
