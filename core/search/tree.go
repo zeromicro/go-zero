@@ -97,22 +97,21 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	}
 
 	for i := range route {
-		if route[i] == slash {
-			token := route[:i]
-			return n.forEach(func(k string, v *node) bool {
-				if r := match(k, token); r.found {
-					if t.next(v, route[i+1:], result) {
-						if r.named {
-							addParam(result, r.key, r.value)
-						}
-
-						return true
-					}
-				}
-
-				return false
-			})
+		if route[i] != slash {
+			continue
 		}
+		token := route[:i]
+		return n.forEach(func(k string, v *node) bool {
+			r := match(k, token)
+			if !r.found || !t.next(v, route[i+1:], result) {
+				return false
+			}
+			if r.named {
+				addParam(result, r.key, r.value)
+			}
+
+			return true
+		})
 	}
 
 	return n.forEach(func(k string, v *node) bool {
