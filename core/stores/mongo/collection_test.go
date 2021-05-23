@@ -279,8 +279,7 @@ func (p *mockPromise) Reject(reason string) {
 	p.reason = reason
 }
 
-type dropBreaker struct {
-}
+type dropBreaker struct{}
 
 func (d *dropBreaker) Name() string {
 	return "dummy"

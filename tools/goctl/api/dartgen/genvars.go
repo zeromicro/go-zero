@@ -41,20 +41,20 @@ Future<Tokens> getTokens() async {
 `
 
 func genVars(dir string) error {
-	err := os.MkdirAll(dir, 0755)
+	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return err
 	}
 
 	if !fileExists(dir + "vars.dart") {
-		err = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0644)
+		err = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0o644)
 		if err != nil {
 			return err
 		}
 	}
 
 	if !fileExists(dir + "kv.dart") {
-		err = ioutil.WriteFile(dir+"kv.dart", []byte(varTemplate), 0644)
+		err = ioutil.WriteFile(dir+"kv.dart", []byte(varTemplate), 0o644)
 		if err != nil {
 			return err
 		}

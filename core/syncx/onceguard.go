@@ -2,7 +2,7 @@ package syncx
 
 import "sync/atomic"
 
-// A OnceGuard is used to make sure a resouce can be taken once.
+// A OnceGuard is used to make sure a resource can be taken once.
 type OnceGuard struct {
 	done uint32
 }

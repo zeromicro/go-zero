@@ -33,7 +33,7 @@ const (
 `
 )
 
-func genDoc(api *spec.ApiSpec, dir string, filename string) error {
+func genDoc(api *spec.ApiSpec, dir, filename string) error {
 	fp, _, err := util.MaybeCreateFile(dir, "", filename)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func buildDoc(route spec.Type) (string, error) {
 		return "", nil
 	}
 
-	var tps = make([]spec.Type, 0)
+	tps := make([]spec.Type, 0)
 	tps = append(tps, route)
 	if definedType, ok := route.(spec.DefineStruct); ok {
 		associatedTypes(definedType, &tps)
@@ -98,7 +98,7 @@ func buildDoc(route spec.Type) (string, error) {
 }
 
 func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
-	var hasAdded = false
+	hasAdded := false
 	for _, item := range *tps {
 		if item.Name() == tp.Name() {
 			hasAdded = true

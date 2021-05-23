@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/zeromicro/antlr"
 )
 
 // Suppress unused import error
-var _ = fmt.Printf
-var _ = unicode.IsLetter
+var (
+	_ = fmt.Printf
+	_ = unicode.IsLetter
+)
 
 var serializedLexerAtn = []uint16{
 	3, 24715, 42794, 33075, 47597, 16764, 15335, 30598, 22884, 2, 25, 266,

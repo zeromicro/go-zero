@@ -103,8 +103,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 	}
 }
 
-type mockClientConn struct {
-}
+type mockClientConn struct{}
 
 func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
 }

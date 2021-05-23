@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/metric"
+	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/timex"
 	"github.com/tal-tech/go-zero/rest/internal/security"
 )
@@ -34,6 +35,10 @@ var (
 // PrometheusHandler returns a middleware that reports stats to prometheus.
 func PrometheusHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+		if !prometheus.Enabled() {
+			return next
+		}
+
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			startTime := timex.Now()
 			cw := &security.WithCodeResponseWriter{Writer: w}

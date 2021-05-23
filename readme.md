@@ -12,7 +12,7 @@ English | [简体中文](readme-cn.md)
 
 ## 0. what is go-zero
 
-go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
@@ -97,7 +97,7 @@ go get -u github.com/tal-tech/go-zero
 
      [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore-en.md)
+     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
 1. install goctl
 
@@ -115,11 +115,11 @@ go get -u github.com/tal-tech/go-zero
    type Request struct {
      Name string `path:"name,options=you|me"` // parameters are auto validated
    }
-
+   
    type Response struct {
      Message string `json:"message"`
    }
-
+   
    service greet-api {
      @handler GreetHandler
      get /greet/from/:name(Request) returns (Response);
@@ -206,6 +206,7 @@ go get -u github.com/tal-tech/go-zero
 
 ## 8. Documents (adding)
 
+* [Documents](https://go-zero.dev/en/)
 * [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
@@ -216,6 +217,14 @@ go get -u github.com/tal-tech/go-zero
 
   `google.golang.org/grpc v1.29.1`
 
+* For protobuf compatibility, use `protocol-gen@v1.3.2`.
+
+  ` go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
+
 ## 10. Chat group
 
 Join the chat via https://join.slack.com/t/go-zeroworkspace/shared_invite/zt-m39xssxc-kgIqERa7aVsujKNj~XuPKg
+
+## Give a Star! ⭐
+
+If you like or are using this project to learn or start your solution, please give it a star. Thanks!

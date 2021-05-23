@@ -14,9 +14,9 @@ var errMockedPlaceholder = errors.New("placeholder")
 func TestStmt_exec(t *testing.T) {
 	tests := []struct {
 		name         string
+		query        string
 		args         []interface{}
 		delay        bool
-		formatError  bool
 		hasError     bool
 		err          error
 		lastInsertId int64
@@ -24,24 +24,28 @@ func TestStmt_exec(t *testing.T) {
 	}{
 		{
 			name:         "normal",
+			query:        "select user from users where id=?",
 			args:         []interface{}{1},
 			lastInsertId: 1,
 			rowsAffected: 2,
 		},
 		{
-			name:        "wrong format",
-			args:        []interface{}{1, 2},
-			formatError: true,
-			hasError:    true,
+			name:     "exec error",
+			query:    "select user from users where id=?",
+			args:     []interface{}{1},
+			hasError: true,
+			err:      errors.New("exec"),
 		},
 		{
-			name:     "exec error",
+			name:     "exec more args error",
+			query:    "select user from users where id=? and name=?",
 			args:     []interface{}{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:         "slowcall",
+			query:        "select user from users where id=?",
 			args:         []interface{}{1},
 			delay:        true,
 			lastInsertId: 1,
@@ -58,7 +62,7 @@ func TestStmt_exec(t *testing.T) {
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
 					delay:        test.delay,
-				}, "select user from users where id=?", args...)
+				}, test.query, args...)
 			},
 			func(args ...interface{}) (sql.Result, error) {
 				return execStmt(&mockedStmtConn{
@@ -66,22 +70,17 @@ func TestStmt_exec(t *testing.T) {
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
 					delay:        test.delay,
-				}, args...)
+				}, test.query, args...)
 			},
 		}
 
-		for i, fn := range fns {
-			i := i
+		for _, fn := range fns {
 			fn := fn
 			t.Run(test.name, func(t *testing.T) {
 				t.Parallel()
 
 				res, err := fn(test.args...)
-				if i == 0 && test.formatError {
-					assert.NotNil(t, err)
-					return
-				}
-				if !test.formatError && test.hasError {
+				if test.hasError {
 					assert.NotNil(t, err)
 					return
 				}
@@ -100,31 +99,35 @@ func TestStmt_exec(t *testing.T) {
 
 func TestStmt_query(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []interface{}
-		delay       bool
-		formatError bool
-		hasError    bool
-		err         error
+		name     string
+		query    string
+		args     []interface{}
+		delay    bool
+		hasError bool
+		err      error
 	}{
 		{
-			name: "normal",
-			args: []interface{}{1},
-		},
-		{
-			name:        "wrong format",
-			args:        []interface{}{1, 2},
-			formatError: true,
-			hasError:    true,
+			name:  "normal",
+			query: "select user from users where id=?",
+			args:  []interface{}{1},
 		},
 		{
 			name:     "query error",
+			query:    "select user from users where id=?",
+			args:     []interface{}{1},
+			hasError: true,
+			err:      errors.New("exec"),
+		},
+		{
+			name:     "query more args error",
+			query:    "select user from users where id=? and name=?",
 			args:     []interface{}{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:  "slowcall",
+			query: "select user from users where id=?",
 			args:  []interface{}{1},
 			delay: true,
 		},
@@ -139,7 +142,7 @@ func TestStmt_query(t *testing.T) {
 					delay: test.delay,
 				}, func(rows *sql.Rows) error {
 					return nil
-				}, "select user from users where id=?", args...)
+				}, test.query, args...)
 			},
 			func(args ...interface{}) error {
 				return queryStmt(&mockedStmtConn{
@@ -147,27 +150,22 @@ func TestStmt_query(t *testing.T) {
 					delay: test.delay,
 				}, func(rows *sql.Rows) error {
 					return nil
-				}, args...)
+				}, test.query, args...)
 			},
 		}
 
-		for i, fn := range fns {
-			i := i
+		for _, fn := range fns {
 			fn := fn
 			t.Run(test.name, func(t *testing.T) {
 				t.Parallel()
 
 				err := fn(test.args...)
-				if i == 0 && test.formatError {
-					assert.NotNil(t, err)
-					return
-				}
-				if !test.formatError && test.hasError {
+				if test.hasError {
 					assert.NotNil(t, err)
 					return
 				}
 
-				assert.Equal(t, errMockedPlaceholder, err)
+				assert.NotNil(t, err)
 			})
 		}
 	}

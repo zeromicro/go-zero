@@ -37,7 +37,7 @@ func PluginCommand(c *cli.Context) error {
 		panic(err)
 	}
 
-	var plugin = c.String("plugin")
+	plugin := c.String("plugin")
 	if len(plugin) == 0 {
 		return errors.New("missing plugin")
 	}
@@ -113,7 +113,7 @@ func getCommand(arg string) (string, bool, error) {
 		return abs, false, nil
 	}
 
-	var defaultErr = errors.New("invalid plugin value " + arg)
+	defaultErr := errors.New("invalid plugin value " + arg)
 	if strings.HasPrefix(arg, "http") {
 		items := strings.Split(arg, "/")
 		if len(items) == 0 {
@@ -136,7 +136,7 @@ func getCommand(arg string) (string, bool, error) {
 	return arg, false, nil
 }
 
-func downloadFile(filepath string, url string) error {
+func downloadFile(filepath, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err

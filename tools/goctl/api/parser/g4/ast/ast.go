@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/antlr"
 )
 
 type (
@@ -289,7 +289,7 @@ func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsC
 
 			if index > 0 {
 				allTokens := ct.GetAllTokens()
-				var flag = false
+				flag := false
 				for i := index; i >= 0; i-- {
 					tk := allTokens[i]
 					if tk.GetChannel() == antlr.LexerDefaultTokenChannel {

@@ -21,11 +21,9 @@ type (
 		MarkDone()
 		Must(err error)
 	}
-	colorConsole struct {
-	}
+	colorConsole struct{}
 	// for idea log
-	ideaConsole struct {
-	}
+	ideaConsole struct{}
 )
 
 // NewConsole returns an instance of Console

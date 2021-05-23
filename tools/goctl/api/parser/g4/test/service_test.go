@@ -120,7 +120,8 @@ func TestRoute(t *testing.T) {
 						PointerExpr: ast.NewTextExpr("*Bar"),
 						Star:        ast.NewTextExpr("*"),
 						Name:        ast.NewTextExpr("Bar"),
-					}},
+					},
+				},
 			},
 		}))
 
@@ -224,7 +225,6 @@ func TestAtHandler(t *testing.T) {
 		_, err = parser.Accept(fn, `@handler "foo"`)
 		assert.Error(t, err)
 	})
-
 }
 
 func TestAtDoc(t *testing.T) {

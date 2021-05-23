@@ -7,7 +7,7 @@ import (
 	"text/template"
 )
 
-const regularPerm = 0666
+const regularPerm = 0o666
 
 // DefaultTemplate is a tool to provides the text/template operations
 type DefaultTemplate struct {

@@ -83,7 +83,7 @@ func (h *ConsistentHash) AddWithReplicas(node interface{}, replicas int) {
 		h.ring[hash] = append(h.ring[hash], node)
 	}
 
-	sort.Slice(h.keys, func(i int, j int) bool {
+	sort.Slice(h.keys, func(i, j int) bool {
 		return h.keys[i] < h.keys[j]
 	})
 }
@@ -140,7 +140,7 @@ func (h *ConsistentHash) Remove(node interface{}) {
 		index := sort.Search(len(h.keys), func(i int) bool {
 			return h.keys[i] >= hash
 		})
-		if index < len(h.keys) {
+		if index < len(h.keys) && h.keys[index] == hash {
 			h.keys = append(h.keys[:index], h.keys[index+1:]...)
 		}
 		h.removeRingNode(hash, nodeRepr)

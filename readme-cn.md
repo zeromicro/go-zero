@@ -159,7 +159,17 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * API 文档
 
-  [https://zeromicro.github.io/go-zero](https://zeromicro.github.io/go-zero)
+  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
+
+* 常见问题
+
+  * 因为 `etcd` 和 `grpc` 兼容性问题，请使用 `grpc@v1.29.1`
+
+    `google.golang.org/grpc v1.29.1`
+
+  * 因为 `protobuf` 兼容性问题，请使用 `protocol-gen@v1.3.2`
+
+    `go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
 
 * awesome 系列（更多文章见『微服务实践』公众号）
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
@@ -175,13 +185,41 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
   | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
   | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
-## 8. 微信公众号
+## 8. go-zero 用户
 
-`go-zero` 相关文章都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注，也可以通过公众号私信我 👏
+go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
+
+>1. 好未来
+>2. 上海晓信信息科技有限公司（晓黑板）
+>3. 上海玉数科技有限公司
+>4. 常州千帆网络科技有限公司
+>5. 上班族科技
+>6. 英雄体育（VSPN）
+>7. githubmemory
+>8. 释空(上海)品牌策划有限公司(senkoo)
+>9. 鞍山三合众鑫科技有限公司
+>10. 广州星梦工场网络科技有限公司
+>11. 杭州复杂美科技有限公司
+>12. 赛凌科技
+>13. 捞月狗
+>14. 浙江三合通信科技有限公司
+>15. 爱克萨
+>16. 郑州众合互联信息技术有限公司
+>17. 三七游戏
+>18. 成都创道夫科技有限公司
+>19. 联想Lenovo
+>20. 云犀
+>21. 高盈国际
+
+如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/tal-tech/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
+
+## 9. 微信公众号
+
+`go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
 
-## 9. 微信交流群
+## 10. 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -189,12 +227,6 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
-为了防止广告用户、识别技术同行，请 ***star*** 后加我时注明 **github** 当前 ***star*** 数，我再拉进 **go-zero** 群，感谢！
+加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
 
-加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
-
-<img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
-
-项目地址：[https://github.com/tal-tech/go-zero](https://github.com/tal-tech/go-zero)
-
-码云地址：[https://gitee.com/kevwan/go-zero](https://gitee.com/kevwan/go-zero) (国内用户可访问gitee，每日自动从github同步代码)
+<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />

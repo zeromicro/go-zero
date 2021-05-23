@@ -112,5 +112,5 @@ func (t mockTrace) Follow(ctx context.Context, serviceName, operationName string
 	return nil, nil
 }
 
-func (t mockTrace) Visit(fn func(key string, val string) bool) {
+func (t mockTrace) Visit(fn func(key, val string) bool) {
 }

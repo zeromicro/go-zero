@@ -22,8 +22,8 @@ const (
 	dateFormat      = "2006-01-02"
 	hoursPerDay     = 24
 	bufferSize      = 100
-	defaultDirMode  = 0755
-	defaultFileMode = 0600
+	defaultDirMode  = 0o755
+	defaultFileMode = 0o600
 )
 
 // ErrLogFileClosed is an error that indicates the log file is already closed.

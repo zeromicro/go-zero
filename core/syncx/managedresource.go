@@ -18,7 +18,7 @@ func NewManagedResource(generate func() interface{}, equals func(a, b interface{
 	}
 }
 
-// MarkBroken marks the resouce broken.
+// MarkBroken marks the resource broken.
 func (mr *ManagedResource) MarkBroken(resource interface{}) {
 	mr.lock.Lock()
 	defer mr.lock.Unlock()

@@ -134,10 +134,9 @@ func TestGenCacheKeys(t *testing.T) {
 			return true
 		}())
 	})
-
 }
 
-func cacheKeyEqual(k1 Key, k2 Key) bool {
+func cacheKeyEqual(k1, k2 Key) bool {
 	k1Join := k1.FieldNameJoin
 	k2Join := k2.FieldNameJoin
 	sort.Strings(k1Join)
@@ -161,5 +160,4 @@ func cacheKeyEqual(k1 Key, k2 Key) bool {
 		k1.DataKeyRight == k2.DataKeyRight &&
 		k1.DataKeyExpression == k2.DataKeyExpression &&
 		k1.KeyExpression == k2.KeyExpression
-
 }
