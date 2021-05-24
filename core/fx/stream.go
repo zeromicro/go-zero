@@ -1,6 +1,8 @@
 package fx
 
 import (
+	"errors"
+	"fmt"
 	"sort"
 	"sync"
 
@@ -49,6 +51,20 @@ type (
 	}
 )
 
+// empty a empty Stream.
+var empty Stream
+
+func init() {
+	source := make(chan interface{})
+	empty.source = source
+	close(source)
+}
+
+// Empty Returns a empty stream.
+func Empty() Stream {
+	return empty
+}
+
 // From constructs a Stream from the given GenerateFunc.
 func From(generate GenerateFunc) Stream {
 	source := make(chan interface{})
@@ -63,6 +79,9 @@ func From(generate GenerateFunc) Stream {
 
 // Just converts the given arbitrary items to a Stream.
 func Just(items ...interface{}) Stream {
+	if len(items) == 0 {
+		return empty
+	}
 	source := make(chan interface{}, len(items))
 	for _, item := range items {
 		source <- item
@@ -77,6 +96,11 @@ func Range(source <-chan interface{}) Stream {
 	return Stream{
 		source: source,
 	}
+}
+
+// Concat Returns a concat Stream.
+func Concat(a Stream, others ...Stream) Stream {
+	return a.Concat(others...)
 }
 
 // Buffer buffers the items into a queue with size n.
@@ -143,6 +167,19 @@ func (p Stream) Filter(fn FilterFunc, opts ...Option) Stream {
 // ForAll handles the streaming elements from the source and no later streams.
 func (p Stream) ForAll(fn ForAllFunc) {
 	fn(p.source)
+}
+
+// ForeachOrdered Traversals all elements in reverse order.
+func (p Stream) ForeachOrdered(f ForEachFunc) {
+	items := make([]interface{}, 0)
+	for item := range p.source {
+		items = append(items, item)
+	}
+	n := len(items)
+	for i := 0; i < n; i++ {
+		f(items[n-i-1])
+	}
+
 }
 
 // ForEach seals the Stream with the ForEachFunc on each item, no successive operations.
@@ -287,6 +324,35 @@ func (p Stream) Split(n int) Stream {
 	return Range(source)
 }
 
+// SplitSteam Returns a split Stream that contains multiple stream of chunk size n.
+func (p Stream) SplitSteam(n int) Stream {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+	source := make(chan interface{})
+
+	var chunkSource = make(chan interface{}, n)
+	go func() {
+
+		for item := range p.source {
+			chunkSource <- item
+			if len(chunkSource) == n {
+
+				source <- Range(chunkSource)
+				close(chunkSource)
+				chunkSource = nil
+				chunkSource = make(chan interface{}, n)
+			}
+		}
+		if len(chunkSource) != 0 {
+			source <- Range(chunkSource)
+			close(chunkSource)
+		}
+		close(source)
+	}()
+	return Range(source)
+}
+
 // Tail returns the last n elements in p.
 func (p Stream) Tail(n int64) Stream {
 	if n < 1 {
@@ -378,6 +444,145 @@ func (p Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 	}()
 
 	return Range(pipe)
+}
+
+// AnyMach Returns whether any elements of this stream match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then false is returned and the predicate is not evaluated.
+func (p Stream) AnyMach(f func(item interface{}) bool) (isFind bool) {
+	for item := range p.source {
+		if f(item) {
+			isFind = true
+		}
+	}
+	return
+}
+
+// AllMach Returns whether all elements of this stream match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then true is returned and the predicate is not evaluated.
+func (p Stream) AllMach(f func(item interface{}) bool) (isFind bool) {
+	isFind = true
+	for item := range p.source {
+		if !f(item) {
+			isFind = false
+			return
+		}
+	}
+	return
+}
+
+// FindFirst Returns an interface{} the first element of this stream, or a nil and a error if the stream is empty.
+// If the stream has no encounter order, then any element may be returned
+func (p Stream) FindFirst() (result interface{}, err error) {
+	for item := range p.source {
+		result = item
+	}
+	if result == nil {
+		err = errors.New("no element")
+	}
+	return
+}
+
+// Peek Returns a Stream consisting of the elements of this stream,
+// additionally performing the provided action on each element as elements are consumed from the resulting stream.
+func (p Stream) Peek(f ForEachFunc) Stream {
+	source := make(chan interface{})
+	go func() {
+		for item := range p.source {
+			source <- item
+			f(item)
+		}
+		close(source)
+	}()
+	return Range(source)
+}
+
+// Concat Returns a Stream that concat others streams
+func (p Stream) Concat(others ...Stream) Stream {
+	source := make(chan interface{})
+	wg := sync.WaitGroup{}
+	for _, other := range others {
+		if p == other {
+			continue
+		}
+		wg.Add(1)
+		go func(iother Stream) {
+			for item := range iother.source {
+				source <- item
+			}
+			wg.Done()
+		}(other)
+
+	}
+
+	wg.Add(1)
+	go func() {
+		for item := range p.source {
+			source <- item
+		}
+		wg.Done()
+	}()
+	go func() {
+		wg.Wait()
+		close(source)
+	}()
+	return Range(source)
+}
+
+// Skip Returns a Stream that skips size elements.
+func (p Stream) Skip(size int) Stream {
+	if size == 0 {
+		return p
+	}
+	if size < 0 {
+		panic("size must be greater than -1")
+	}
+	source := make(chan interface{})
+
+	go func() {
+		i := 0
+		for item := range p.source {
+			if i >= size {
+				source <- item
+			}
+			i++
+		}
+		close(source)
+	}()
+	return Range(source)
+}
+
+// Limit Returns a Stream that contains size elements.
+func (p Stream) Limit(size int) Stream {
+	if size == 0 {
+		return empty
+	}
+	if size < 0 {
+		panic("size must be greater than -1")
+	}
+	source := make(chan interface{})
+
+	go func() {
+		i := 0
+		for item := range p.source {
+			if i != size {
+				source <- item
+			}
+			i++
+		}
+		close(source)
+	}()
+	return Range(source)
+}
+
+func (p Stream) String() string {
+	return fmt.Sprintf("Stream{len:%d,cap:%d}", len(p.source), cap(p.source))
+}
+
+// Chan Returns a channel of Stream.
+func (p Stream) Chan() <-chan interface{} {
+	return p.source
 }
 
 // UnlimitedWorkers lets the caller to use as many workers as the tasks.
