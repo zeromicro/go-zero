@@ -170,19 +170,6 @@ func (p Stream) ForAll(fn ForAllFunc) {
 	fn(p.source)
 }
 
-// ForeachOrdered Traversals all elements in reverse order.
-func (p Stream) ForeachOrdered(f ForEachFunc) {
-	items := make([]interface{}, 0)
-	for item := range p.source {
-		items = append(items, item)
-	}
-	n := len(items)
-	for i := 0; i < n; i++ {
-		f(items[n-i-1])
-	}
-
-}
-
 // ForEach seals the Stream with the ForEachFunc on each item, no successive operations.
 func (p Stream) ForEach(fn ForEachFunc) {
 	for item := range p.source {
@@ -478,10 +465,9 @@ func (p Stream) AllMach(f func(item interface{}) bool) (isFind bool) {
 func (p Stream) FindFirst() (result interface{}, err error) {
 	for item := range p.source {
 		result = item
+		return
 	}
-	if result == nil {
-		err = errors.New("no element")
-	}
+	err = errors.New("no element")
 	return
 }
 
