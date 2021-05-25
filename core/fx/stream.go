@@ -1,8 +1,6 @@
 package fx
 
 import (
-	"errors"
-	"fmt"
 	"sort"
 	"sync"
 
@@ -460,17 +458,6 @@ func (p Stream) AllMach(f func(item interface{}) bool) (isFind bool) {
 	return
 }
 
-// FindFirst Returns an interface{} the first element of this stream, or a nil and a error if the stream is empty.
-// If the stream has no encounter order, then any element may be returned
-func (p Stream) FindFirst() (result interface{}, err error) {
-	for item := range p.source {
-		result = item
-		return
-	}
-	err = errors.New("no element")
-	return
-}
-
 // Peek Returns a Stream consisting of the elements of this stream,
 // additionally performing the provided action on each element as elements are consumed from the resulting stream.
 func (p Stream) Peek(f ForEachFunc) Stream {
@@ -518,7 +505,7 @@ func (p Stream) Concat(others ...Stream) Stream {
 }
 
 // Skip Returns a Stream that skips size elements.
-func (p Stream) Skip(size int) Stream {
+func (p Stream) Skip(size int64) Stream {
 	if size == 0 {
 		return p
 	}
@@ -530,7 +517,7 @@ func (p Stream) Skip(size int) Stream {
 	go func() {
 		i := 0
 		for item := range p.source {
-			if i >= size {
+			if i >= int(size) {
 				source <- item
 			}
 			i++
@@ -538,33 +525,6 @@ func (p Stream) Skip(size int) Stream {
 		close(source)
 	}()
 	return Range(source)
-}
-
-// Limit Returns a Stream that contains size elements.
-func (p Stream) Limit(size int) Stream {
-	if size == 0 {
-		return empty
-	}
-	if size < 0 {
-		panic("size must be greater than -1")
-	}
-	source := make(chan interface{})
-
-	go func() {
-		i := 0
-		for item := range p.source {
-			if i != size {
-				source <- item
-			}
-			i++
-		}
-		close(source)
-	}()
-	return Range(source)
-}
-
-func (p Stream) String() string {
-	return fmt.Sprintf("Stream{len:%d,cap:%d}", len(p.source), cap(p.source))
 }
 
 // Chan Returns a channel of Stream.

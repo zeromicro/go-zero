@@ -347,18 +347,14 @@ func BenchmarkParallelMapReduce(b *testing.B) {
 		return result, nil
 	}
 	b.ResetTimer()
-	//for i := 0; i < b.N; i++ {
 	From(func(input chan<- interface{}) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
 				input <- int64(rand.Int())
 			}
 		})
-		//for j := 0; j < 2; j++ {
-		//
-		//}
+
 	}).Map(mapper).Reduce(reducer)
-	//}
 
 }
 
@@ -459,28 +455,22 @@ func TestStream_Chan(t *testing.T) {
 
 func TestStream_SplitSteam(t *testing.T) {
 	streams := Just(1, 2, 444, 441, 1).SplitSteam(3)
-
 	equal(t, (<-streams.source).(Stream), []interface{}{1, 2, 444})
 	equal(t, (<-streams.source).(Stream), []interface{}{441, 1})
+	assert.Panics(t, func() {
+		Just(1, 2, 444, 441, 1).SplitSteam(-1)
+	})
 }
 func TestStream_Skip(t *testing.T) {
 	assetEqual(t, 3, Just(1, 2, 3, 4).Skip(1).Count())
 	assetEqual(t, 1, Just(1, 2, 3, 4).Skip(3).Count())
+	assetEqual(t, 4, Just(1, 2, 3, 4).Skip(0).Count())
 	equal(t, Just(1, 2, 3, 4).Skip(3), []interface{}{4})
-}
-func TestStream_Limit(t *testing.T) {
-
-	equal(t, Just(1, 2, 3, 4).Limit(3), []interface{}{1, 2, 3})
-	equal(t, Just(1, 2, 3, 4).Limit(4), []interface{}{1, 2, 3, 4})
-	equal(t, Just(1, 2, 3, 4).Limit(5), []interface{}{1, 2, 3, 4})
-}
-func TestStream_ForeachOrdered(t *testing.T) {
-	var items []interface{}
-	Just(1, 2, 3, 4).ForeachOrdered(func(item interface{}) {
-		items = append(items, item)
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Skip(-1)
 	})
-	assetEqual(t, []interface{}{4, 3, 2, 1}, items)
 }
+
 func TestStream_Concat(t *testing.T) {
 	stream := Just(1).Concat(Just(2), Just(3))
 	var items []interface{}
@@ -491,4 +481,17 @@ func TestStream_Concat(t *testing.T) {
 		return items[i].(int) < items[j].(int)
 	})
 	assetEqual(t, []interface{}{1, 2, 3}, items)
+
+	just := Just(1)
+	equal(t, just.Concat(just), []interface{}{1})
+}
+func TestStream_Peek(t *testing.T) {
+	items := make([]interface{}, 0)
+	Just(1, 2, 3, 4).Peek(func(item interface{}) {
+		items = append(items, item)
+	}).Done()
+	assert.Equal(t, items, []interface{}{1, 2, 3, 4})
+}
+func TestStream_FindFirst(t *testing.T) {
+	Just(1, 2, 4, 4).Head(1)
 }
