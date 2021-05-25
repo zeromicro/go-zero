@@ -439,6 +439,7 @@ func (p Stream) AnyMach(f func(item interface{}) bool) (isFind bool) {
 	for item := range p.source {
 		if f(item) {
 			isFind = true
+			return
 		}
 	}
 	return

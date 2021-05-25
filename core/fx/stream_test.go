@@ -399,6 +399,12 @@ func TestStream_AnyMach(t *testing.T) {
 	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
 		return 4 == item.(int)
 	}))
+	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 0 == item.(int)
+	}))
+	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 2 == item.(int)
+	}))
 	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
 		return 2 == item.(int)
 	}))
