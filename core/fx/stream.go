@@ -52,7 +52,14 @@ type (
 )
 
 // empty a empty Stream.
-var empty = Just()
+var empty Stream
+
+func init() {
+	// initial empty Stream.
+	source := make(chan interface{})
+	close(source)
+	empty.source = source
+}
 
 // Empty Returns a empty stream.
 func Empty() Stream {
