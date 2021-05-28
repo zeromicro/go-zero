@@ -78,9 +78,10 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 // Del deletes the item with the given key from c.
 func (c *Cache) Del(key string) {
 	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	delete(c.data, key)
 	c.lruCache.remove(key)
-	c.lock.Unlock()
 	c.timingWheel.RemoveTimer(key)
 }
 
@@ -99,10 +100,11 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 // Set sets value into c with key.
 func (c *Cache) Set(key string, value interface{}) {
 	c.lock.Lock()
+	defer c.lock.Unlock()
+
 	_, ok := c.data[key]
 	c.data[key] = value
 	c.lruCache.add(key)
-	c.lock.Unlock()
 
 	expiry := c.unstableExpiry.AroundDuration(c.expire)
 	if ok {

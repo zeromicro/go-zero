@@ -29,6 +29,8 @@ func NewSafeMap() *SafeMap {
 // Del deletes the value with the given key from m.
 func (m *SafeMap) Del(key interface{}) {
 	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	if _, ok := m.dirtyOld[key]; ok {
 		delete(m.dirtyOld, key)
 		m.deletionOld++
@@ -52,7 +54,6 @@ func (m *SafeMap) Del(key interface{}) {
 		m.dirtyNew = make(map[interface{}]interface{})
 		m.deletionNew = 0
 	}
-	m.lock.Unlock()
 }
 
 // Get gets the value with the given key from m.
@@ -71,6 +72,8 @@ func (m *SafeMap) Get(key interface{}) (interface{}, bool) {
 // Set sets the value into m with the given key.
 func (m *SafeMap) Set(key, value interface{}) {
 	m.lock.Lock()
+	defer m.lock.Unlock()
+
 	if m.deletionOld <= maxDeletion {
 		if _, ok := m.dirtyNew[key]; ok {
 			delete(m.dirtyNew, key)
@@ -84,13 +87,12 @@ func (m *SafeMap) Set(key, value interface{}) {
 		}
 		m.dirtyNew[key] = value
 	}
-	m.lock.Unlock()
 }
 
 // Size returns the size of m.
 func (m *SafeMap) Size() int {
 	m.lock.RLock()
-	size := len(m.dirtyOld) + len(m.dirtyNew)
-	m.lock.RUnlock()
-	return size
+	defer m.lock.RUnlock()
+
+	return len(m.dirtyOld) + len(m.dirtyNew)
 }
