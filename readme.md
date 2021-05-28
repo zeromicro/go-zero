@@ -223,7 +223,7 @@ go get -u github.com/tal-tech/go-zero
 
 ## 10. Chat group
 
-Join the chat via https://join.slack.com/t/go-zeroworkspace/shared_invite/zt-m39xssxc-kgIqERa7aVsujKNj~XuPKg
+Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-qxlclrv9-MWrCNkB2DpSgtEK2tVXJcw
 
 ## Give a Star! ⭐
 
