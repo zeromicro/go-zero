@@ -49,14 +49,14 @@ type handlerInfo struct {
 	HasRequest     bool
 }
 
-func genHandler(dir, parentPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	if getHandlerFolderPath(group, route) != handlerDir {
 		handler = strings.Title(handler)
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		ImportPackages: genHandlerImports(group, route, parentPkg),
+		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicType:      strings.Title(getLogicName(route)),
