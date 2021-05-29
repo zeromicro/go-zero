@@ -39,17 +39,12 @@ func main() {
 }
 `
 
-func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMain(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
 	if strings.HasSuffix(name, "-api") {
 		name = strings.ReplaceAll(name, "-api", "")
 	}
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
-	if err != nil {
-		return err
-	}
-
-	parentPkg, err := getParentPackage(dir)
 	if err != nil {
 		return err
 	}

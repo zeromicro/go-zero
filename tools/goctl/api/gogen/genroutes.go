@@ -62,7 +62,7 @@ type (
 	}
 )
 
-func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genRoutes(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -114,11 +114,6 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		}); err != nil {
 			return err
 		}
-	}
-
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
 	}
 
 	routeFilename, err := format.FileNamingFormat(cfg.NamingFormat, routesFilename)

@@ -33,7 +33,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 `
 )
 
-func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
@@ -43,11 +43,6 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 	var auths []string
 	for _, item := range authNames {
 		auths = append(auths, fmt.Sprintf("%s config.AuthConfig", item))
-	}
-
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
 	}
 
 	var middlewareStr string
