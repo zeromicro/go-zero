@@ -54,19 +54,19 @@ func DoGenProject(apiFile, dir, style string) error {
 	}
 
 	logx.Must(util.MkdirIfNotExist(dir))
-	parentPkg, err := getParentPackage(dir)
+	rootPkg, err := getParentPackage(dir)
 	if err != nil {
 		return err
 	}
 
 	logx.Must(genEtc(dir, cfg, api))
 	logx.Must(genConfig(dir, cfg, api))
-	logx.Must(genMain(dir, parentPkg, cfg, api))
-	logx.Must(genServiceContext(dir, parentPkg, cfg, api))
+	logx.Must(genMain(dir, rootPkg, cfg, api))
+	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
 	logx.Must(genTypes(dir, cfg, api))
-	logx.Must(genRoutes(dir, parentPkg, cfg, api))
-	logx.Must(genHandlers(dir, parentPkg, cfg, api))
-	logx.Must(genLogic(dir, parentPkg, cfg, api))
+	logx.Must(genRoutes(dir, rootPkg, cfg, api))
+	logx.Must(genHandlers(dir, rootPkg, cfg, api))
+	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
 
 	if err := backupAndSweep(apiFile); err != nil {

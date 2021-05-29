@@ -39,10 +39,10 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 }
 `
 
-func genLogic(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, parentPkg, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -51,14 +51,14 @@ func genLogic(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) erro
 	return nil
 }
 
-func genLogicByRoute(dir, parentPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
 		return err
 	}
 
-	imports := genLogicImports(route, parentPkg)
+	imports := genLogicImports(route, rootPkg)
 	var responseString string
 	var returnString string
 	var requestString string

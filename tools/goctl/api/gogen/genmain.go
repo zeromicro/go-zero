@@ -39,7 +39,7 @@ func main() {
 }
 `
 
-func genMain(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
 	if strings.HasSuffix(name, "-api") {
 		name = strings.ReplaceAll(name, "-api", "")
@@ -58,7 +58,7 @@ func genMain(dir, parentPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		templateFile:    mainTemplateFile,
 		builtinTemplate: mainTemplate,
 		data: map[string]string{
-			"importPackages": genMainImports(parentPkg),
+			"importPackages": genMainImports(rootPkg),
 			"serviceName":    api.Service.Name,
 		},
 	})
