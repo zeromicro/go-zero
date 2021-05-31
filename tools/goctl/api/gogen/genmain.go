@@ -39,7 +39,7 @@ func main() {
 }
 `
 
-func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
 	if err != nil {
@@ -48,11 +48,6 @@ func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	configName := filename
 	if strings.HasSuffix(filename, "-api") {
 		filename = strings.ReplaceAll(filename, "-api", "")
-	}
-
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
 	}
 
 	return genFile(fileGenConfig{
@@ -64,7 +59,7 @@ func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		templateFile:    mainTemplateFile,
 		builtinTemplate: mainTemplate,
 		data: map[string]string{
-			"importPackages": genMainImports(parentPkg),
+			"importPackages": genMainImports(rootPkg),
 			"serviceName":   configName,
 		},
 	})

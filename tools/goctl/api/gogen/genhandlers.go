@@ -49,18 +49,14 @@ type handlerInfo struct {
 	HasRequest     bool
 }
 
-func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	if getHandlerFolderPath(group, route) != handlerDir {
 		handler = strings.Title(handler)
 	}
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
-	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		ImportPackages: genHandlerImports(group, route, parentPkg),
+		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicType:      strings.Title(getLogicName(route)),
@@ -89,10 +85,10 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 	})
 }
 
-func genHandlers(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, cfg, group, route); err != nil {
+			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
 				return err
 			}
 		}
