@@ -13,9 +13,9 @@ import (
 type Key struct {
 	// VarLeft describes the variable of cache key expression which likes cacheUserIdPrefix
 	VarLeft string
-	// VarRight describes the value of cache key expression which likes "cache#user#id#"
+	// VarRight describes the value of cache key expression which likes "cache:user:id:"
 	VarRight string
-	// VarExpression describes the cache key expression which likes cacheUserIdPrefix = "cache#user#id#"
+	// VarExpression describes the cache key expression which likes cacheUserIdPrefix = "cache:user:id:"
 	VarExpression string
 	// KeyLeft describes the variable of key definition expression which likes userKey
 	KeyLeft string
@@ -76,12 +76,12 @@ func genCacheKey(table stringx.String, in []*parser.Field) Key {
 	keyLeftJoin = append(keyLeftJoin, "key")
 
 	varLeft = varLeftJoin.Camel().With("").Untitle()
-	varRight = fmt.Sprintf(`"%s"`, varRightJon.Camel().Untitle().With("#").Source()+"#")
+	varRight = fmt.Sprintf(`"%s"`, varRightJon.Camel().Untitle().With(":").Source()+":")
 	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
 
 	keyLeft = keyLeftJoin.Camel().With("").Untitle()
-	keyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With("").Source(), varLeft, keyRightJoin.With(", ").Source())
-	dataKeyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With("").Source(), varLeft, dataRightJoin.With(", ").Source())
+	keyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, keyRightJoin.With(", ").Source())
+	dataKeyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, dataRightJoin.With(", ").Source())
 	keyExpression = fmt.Sprintf("%s := %s", keyLeft, keyRight)
 	dataKeyExpression = fmt.Sprintf("%s := %s", keyLeft, dataKeyRight)
 
