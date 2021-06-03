@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package test;
+option go_package = "go";
+
+message Req2{}
+message Reply2{}
+
+//message StreamReq {
+//  string name = 1;
+//}
+//
+//message StreamResp {
+//  string greet = 1;
+//}
+//
+//service StreamGreeter {
+//  rpc greet(StreamReq) returns (StreamResp);
+//}

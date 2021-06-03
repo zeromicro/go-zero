@@ -9,5 +9,5 @@ message Req{}
 
 
 service TestService {
-  rpc TestRpcTwo (Req) returns (base.Reply);
+  rpc TestRpcTwo (Req) returns (base.Reply2);
 }
