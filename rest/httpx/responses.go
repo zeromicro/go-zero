@@ -11,6 +11,7 @@ import (
 var (
 	errorHandler func(error) (int, interface{})
 	lock         sync.RWMutex
+	okHandler    func(interface{}) interface{}
 )
 
 // Error writes err into w.
@@ -40,7 +41,15 @@ func Ok(w http.ResponseWriter) {
 
 // OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v interface{}) {
-	WriteJson(w, http.StatusOK, v)
+	handled := okHandler(v)
+	WriteJson(w, http.StatusOK, handled)
+}
+
+// SetOkHandler sets the OK handler, you can wrap the response data or do other things.
+func SetOkHandler(handler func(interface{}) interface{}) {
+	lock.Lock()
+	defer lock.Unlock()
+	okHandler = handler
 }
 
 // SetErrorHandler sets the error handler, which is called on calling Error.
