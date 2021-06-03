@@ -337,6 +337,10 @@ var (
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
+						cli.StringFlag{
+							Name:        "protoc-plugin, p",
+							Usage:       `default is go  (then it's protoc_gen_go)', you can change to gogoslick (protoc_gen_gogoslick),using for go_out plugin replace`,
+						},
 					},
 					Action: rpc.RPCNew,
 				},
@@ -366,6 +370,10 @@ var (
 						cli.StringFlag{
 							Name:  "dir, d",
 							Usage: `the target path of the code`,
+						},
+						cli.StringFlag{
+							Name:  "protoc-plugin, p",
+							Usage: `default is go  (then it's protoc_gen_go)', you can change to gogoslick (protoc_gen_gogoslick),using for go_out plugin replace`,
 						},
 						cli.StringFlag{
 							Name:  "style",

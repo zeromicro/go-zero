@@ -23,13 +23,17 @@ func RPC(c *cli.Context) error {
 	if len(out) == 0 {
 		return errors.New("missing -dir")
 	}
+	protoc_gen_name := c.String("protoc-plugin")
+	if len(protoc_gen_name)==0{
+		protoc_gen_name="go"
+	}
 
 	g, err := generator.NewDefaultRPCGenerator(style)
 	if err != nil {
 		return err
 	}
 
-	return g.Generate(src, out, protoImportPath)
+	return g.Generate(protoc_gen_name,src, out, protoImportPath)
 }
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -41,6 +45,10 @@ func RPCNew(c *cli.Context) error {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 	style := c.String("style")
+	protoc_gen_name := c.String("protoc-plugin")
+	if len(protoc_gen_name)==0{
+		protoc_gen_name="go"
+	}
 
 	protoName := rpcname + ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
@@ -59,7 +67,7 @@ func RPCNew(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(src, filepath.Dir(src), nil)
+	return g.Generate(protoc_gen_name,src, filepath.Dir(src), nil)
 }
 
 // RPCTemplate is the entry for generate rpc template
