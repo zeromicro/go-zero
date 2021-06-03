@@ -22,7 +22,7 @@ var (
 	// ErrInvalidPath is an error that indicates path is not start with /.
 	ErrInvalidPath = errors.New("path must begin with '/'")
 	// instantiate only once
-	pat *patRouter
+	defaultPat httpx.Router
 )
 
 type patRouter struct {
@@ -33,12 +33,16 @@ type patRouter struct {
 
 // NewRouter returns a httpx.Router.
 func NewRouter() httpx.Router {
-	if pat == nil {
-		pat = &patRouter{
-			trees: make(map[string]*search.Tree),
-		}
+	return &patRouter{
+		trees: make(map[string]*search.Tree),
 	}
-	return pat
+}
+
+func GetDefaultRouter() httpx.Router {
+	if defaultPat == nil {
+		defaultPat = NewRouter()
+	}
+	return defaultPat
 }
 
 func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error {
