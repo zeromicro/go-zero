@@ -41,8 +41,12 @@ func Ok(w http.ResponseWriter) {
 
 // OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v interface{}) {
-	handled := okHandler(v)
-	WriteJson(w, http.StatusOK, handled)
+	if okHandler == nil {
+		WriteJson(w, http.StatusOK, v)
+	} else {
+		handled := okHandler(v)
+		WriteJson(w, http.StatusOK, handled)
+	}
 }
 
 // SetOkHandler sets the OK handler, you can wrap the response data or do other things.
