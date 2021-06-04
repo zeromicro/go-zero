@@ -310,35 +310,6 @@ func (p Stream) Split(n int) Stream {
 	return Range(source)
 }
 
-// SplitSteam Returns a split Stream that contains multiple stream of chunk size n.
-func (p Stream) SplitSteam(n int) Stream {
-	if n < 1 {
-		panic("n should be greater than 0")
-	}
-	source := make(chan interface{})
-
-	var chunkSource = make(chan interface{}, n)
-	go func() {
-
-		for item := range p.source {
-			chunkSource <- item
-			if len(chunkSource) == n {
-
-				source <- Range(chunkSource)
-				close(chunkSource)
-				chunkSource = nil
-				chunkSource = make(chan interface{}, n)
-			}
-		}
-		if len(chunkSource) != 0 {
-			source <- Range(chunkSource)
-			close(chunkSource)
-		}
-		close(source)
-	}()
-	return Range(source)
-}
-
 // Tail returns the last n elements in p.
 func (p Stream) Tail(n int64) Stream {
 	if n < 1 {

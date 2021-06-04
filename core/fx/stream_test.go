@@ -459,14 +459,6 @@ func TestStream_Chan(t *testing.T) {
 	assetEqual(t, items, []interface{}{1, 2, 3})
 }
 
-func TestStream_SplitSteam(t *testing.T) {
-	streams := Just(1, 2, 444, 441, 1).SplitSteam(3)
-	equal(t, (<-streams.source).(Stream), []interface{}{1, 2, 444})
-	equal(t, (<-streams.source).(Stream), []interface{}{441, 1})
-	assert.Panics(t, func() {
-		Just(1, 2, 444, 441, 1).SplitSteam(-1)
-	})
-}
 func TestStream_Skip(t *testing.T) {
 	assetEqual(t, 3, Just(1, 2, 3, 4).Skip(1).Count())
 	assetEqual(t, 1, Just(1, 2, 3, 4).Skip(3).Count())
@@ -497,7 +489,4 @@ func TestStream_Peek(t *testing.T) {
 		items = append(items, item)
 	}).Done()
 	assert.Equal(t, items, []interface{}{1, 2, 3, 4})
-}
-func TestStream_FindFirst(t *testing.T) {
-	Just(1, 2, 4, 4).Head(1)
 }
