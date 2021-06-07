@@ -78,9 +78,6 @@ func From(generate GenerateFunc) Stream {
 
 // Just converts the given arbitrary items to a Stream.
 func Just(items ...interface{}) Stream {
-	if len(items) == 0 {
-		return empty
-	}
 	source := make(chan interface{}, len(items))
 	for _, item := range items {
 		source <- item
@@ -428,20 +425,6 @@ func (p Stream) AllMach(f func(item interface{}) bool) (isFind bool) {
 		}
 	}
 	return
-}
-
-// Peek Returns a Stream consisting of the elements of this stream,
-// additionally performing the provided action on each element as elements are consumed from the resulting stream.
-func (p Stream) Peek(f ForEachFunc) Stream {
-	source := make(chan interface{})
-	go func() {
-		for item := range p.source {
-			source <- item
-			f(item)
-		}
-		close(source)
-	}()
-	return Range(source)
 }
 
 // Concat Returns a Stream that concat others streams

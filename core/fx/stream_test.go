@@ -483,10 +483,3 @@ func TestStream_Concat(t *testing.T) {
 	just := Just(1)
 	equal(t, just.Concat(just), []interface{}{1})
 }
-func TestStream_Peek(t *testing.T) {
-	items := make([]interface{}, 0)
-	Just(1, 2, 3, 4).Peek(func(item interface{}) {
-		items = append(items, item)
-	}).Done()
-	assert.Equal(t, items, []interface{}{1, 2, 3, 4})
-}
