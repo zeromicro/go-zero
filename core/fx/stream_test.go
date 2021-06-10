@@ -353,9 +353,7 @@ func BenchmarkParallelMapReduce(b *testing.B) {
 				input <- int64(rand.Int())
 			}
 		})
-
 	}).Map(mapper).Reduce(reducer)
-
 }
 
 func BenchmarkMapReduce(b *testing.B) {
@@ -377,7 +375,6 @@ func BenchmarkMapReduce(b *testing.B) {
 			input <- int64(rand.Int())
 		}
 	}).Map(mapper).Reduce(reducer)
-
 }
 
 func equal(t *testing.T, stream Stream, data []interface{}) {
@@ -389,12 +386,13 @@ func equal(t *testing.T, stream Stream, data []interface{}) {
 		t.Errorf(" %v, want %v", items, data)
 	}
 }
-func assetEqual(t *testing.T, except interface{}, data interface{}) {
+
+func assetEqual(t *testing.T, except, data interface{}) {
 	if !reflect.DeepEqual(except, data) {
 		t.Errorf(" %v, want %v", data, except)
 	}
-
 }
+
 func TestStream_AnyMach(t *testing.T) {
 	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
 		return 4 == item.(int)
@@ -409,6 +407,7 @@ func TestStream_AnyMach(t *testing.T) {
 		return 2 == item.(int)
 	}))
 }
+
 func TestStream_AllMach(t *testing.T) {
 	assetEqual(
 		t, true, Just(1, 2, 3).AllMach(func(item interface{}) bool {
@@ -426,11 +425,7 @@ func TestStream_AllMach(t *testing.T) {
 		}),
 	)
 }
-func TestEmpty(t *testing.T) {
-	empty := Empty()
-	assetEqual(t, len(empty.source), 0)
-	assetEqual(t, cap(empty.source), 0)
-}
+
 func TestConcat(t *testing.T) {
 	a1 := []interface{}{1, 2, 3}
 	a2 := []interface{}{4, 5, 6}
@@ -448,15 +443,6 @@ func TestConcat(t *testing.T) {
 	ints = append(ints, a1...)
 	ints = append(ints, a2...)
 	assetEqual(t, ints, items)
-
-}
-func TestStream_Chan(t *testing.T) {
-	var items []interface{}
-
-	for item := range Just(1, 2, 3).Chan() {
-		items = append(items, item)
-	}
-	assetEqual(t, items, []interface{}{1, 2, 3})
 }
 
 func TestStream_Skip(t *testing.T) {
