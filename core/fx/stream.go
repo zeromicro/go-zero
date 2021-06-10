@@ -49,6 +49,21 @@ type (
 	}
 )
 
+// empty a empty Stream.
+var empty Stream
+
+func init() {
+	// initial empty Stream.
+	source := make(chan interface{})
+	close(source)
+	empty.source = source
+}
+
+// Empty Returns a empty stream.
+func Empty() Stream {
+	return empty
+}
+
 // From constructs a Stream from the given GenerateFunc.
 func From(generate GenerateFunc) Stream {
 	source := make(chan interface{})
@@ -77,6 +92,11 @@ func Range(source <-chan interface{}) Stream {
 	return Stream{
 		source: source,
 	}
+}
+
+// Concat Returns a concat Stream.
+func Concat(a Stream, others ...Stream) Stream {
+	return a.Concat(others...)
 }
 
 // Buffer buffers the items into a queue with size n.
@@ -378,6 +398,93 @@ func (p Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 	}()
 
 	return Range(pipe)
+}
+
+// AnyMach Returns whether any elements of this stream match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then false is returned and the predicate is not evaluated.
+func (p Stream) AnyMach(f func(item interface{}) bool) (isFind bool) {
+	for item := range p.source {
+		if f(item) {
+			isFind = true
+			return
+		}
+	}
+	return
+}
+
+// AllMach Returns whether all elements of this stream match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then true is returned and the predicate is not evaluated.
+func (p Stream) AllMach(f func(item interface{}) bool) (isFind bool) {
+	isFind = true
+	for item := range p.source {
+		if !f(item) {
+			isFind = false
+			return
+		}
+	}
+	return
+}
+
+// Concat Returns a Stream that concat others streams
+func (p Stream) Concat(others ...Stream) Stream {
+	source := make(chan interface{})
+	wg := sync.WaitGroup{}
+	for _, other := range others {
+		if p == other {
+			continue
+		}
+		wg.Add(1)
+		go func(iother Stream) {
+			for item := range iother.source {
+				source <- item
+			}
+			wg.Done()
+		}(other)
+
+	}
+
+	wg.Add(1)
+	go func() {
+		for item := range p.source {
+			source <- item
+		}
+		wg.Done()
+	}()
+	go func() {
+		wg.Wait()
+		close(source)
+	}()
+	return Range(source)
+}
+
+// Skip Returns a Stream that skips size elements.
+func (p Stream) Skip(size int64) Stream {
+	if size == 0 {
+		return p
+	}
+	if size < 0 {
+		panic("size must be greater than -1")
+	}
+	source := make(chan interface{})
+
+	go func() {
+		i := 0
+		for item := range p.source {
+			if i >= int(size) {
+				source <- item
+			}
+			i++
+		}
+		close(source)
+	}()
+	return Range(source)
+}
+
+// Chan Returns a channel of Stream.
+func (p Stream) Chan() <-chan interface{} {
+	return p.source
 }
 
 // UnlimitedWorkers lets the caller to use as many workers as the tasks.
