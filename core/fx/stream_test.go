@@ -387,7 +387,7 @@ func equal(t *testing.T, stream Stream, data []interface{}) {
 	}
 }
 
-func assetEqual(t *testing.T, except interface{}, data interface{}) {
+func assetEqual(t *testing.T, except, data interface{}) {
 	if !reflect.DeepEqual(except, data) {
 		t.Errorf(" %v, want %v", data, except)
 	}
