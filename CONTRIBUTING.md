@@ -20,7 +20,7 @@ Welcome to go-zero!
 
 ## Code of Conduct
 
-Please make sure to read and observe our [Code of Conduct](/CODE_OF_CONDUCT.md).
+Please make sure to read and observe our [Code of Conduct](/code-of-conduct.md).
 
 ## Community Expectations
 
