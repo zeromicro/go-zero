@@ -6,7 +6,7 @@ package test;
 import "base/common.proto";
 import "google/protobuf/any.proto";
 
-option go_package = "github.com/test";
+//option go_package = "github.com/test";
 
 message Req {
   string in = 1;

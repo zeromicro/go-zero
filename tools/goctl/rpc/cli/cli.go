@@ -17,6 +17,7 @@ func RPC(c *cli.Context) error {
 	out := c.String("dir")
 	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
+	goOptions := c.StringSlice("go_opt")
 	if len(src) == 0 {
 		return errors.New("missing -src")
 	}
@@ -29,7 +30,7 @@ func RPC(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(src, out, protoImportPath)
+	return g.Generate(src, out, protoImportPath, goOptions...)
 }
 
 // RPCNew is to generate rpc greet service, this greet service can speed
