@@ -56,7 +56,14 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 		cw.WriteString(" --go_opt=" + op)
 	}
 
-	currentFileOpt := " --go_opt=M" + base + "=../" + proto.GoPackage
+	var currentFileOpt string
+	if filepath.IsAbs(proto.GoPackage) {
+		currentFileOpt = " --go_opt=M" + base + "=" + proto.GoPackage
+	} else if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
+		currentFileOpt = " --go_opt=M" + base + "=./" + proto.GoPackage
+	} else {
+		currentFileOpt = " --go_opt=M" + base + "=../" + proto.GoPackage
+	}
 	if !optSet.Contains(currentFileOpt) {
 		cw.WriteString(currentFileOpt)
 	}
