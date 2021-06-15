@@ -170,9 +170,7 @@ func convertColumns(columns []*sqlparser.ColumnDefinition, primaryColumn string)
 		if column.Type.NotNull {
 			isDefaultNull = false
 		} else {
-			if column.Type.Default == nil {
-				isDefaultNull = false
-			} else if string(column.Type.Default.Val) != "null" {
+			if column.Type.Default != nil {
 				isDefaultNull = false
 			}
 		}
