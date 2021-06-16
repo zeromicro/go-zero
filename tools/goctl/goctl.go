@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -31,7 +32,7 @@ import (
 )
 
 var (
-	buildVersion = "1.1.8"
+	buildVersion = "1.1.9-pre"
 	commands     = []cli.Command{
 		{
 			Name:   "upgrade",
@@ -365,6 +366,10 @@ var (
 							Name:  "proto_path, I",
 							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
+						cli.StringSliceFlag{
+							Name:  "go_opt",
+							Usage: `native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]`,
+						},
 						cli.StringFlag{
 							Name:  "dir, d",
 							Usage: `the target path of the code`,
@@ -542,6 +547,6 @@ func main() {
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println("error:", err)
+		fmt.Println(aurora.Red("error: " + err.Error()))
 	}
 }
