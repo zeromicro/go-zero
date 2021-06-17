@@ -269,7 +269,7 @@ func (c *cluster) watch(cli EtcdClient, key string) {
 				return
 			}
 			if wresp.Canceled {
-				logx.Error("etcd monitor chan has been canceled")
+				logx.Errorf("etcd monitor chan has been canceled, err:%s", wresp.Err().Error())
 				return
 			}
 			if wresp.Err() != nil {
