@@ -1,7 +1,6 @@
 package p2c
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"math/rand"
@@ -32,25 +31,24 @@ const (
 	logInterval     = time.Minute
 )
 
+var emptyPickResult balancer.PickResult
+
 func init() {
 	balancer.Register(newBuilder())
 }
 
 type p2cPickerBuilder struct{}
 
-func newBuilder() balancer.Builder {
-	return base.NewBalancerBuilder(Name, new(p2cPickerBuilder))
-}
-
-func (b *p2cPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn) balancer.Picker {
+func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
+	readySCs := info.ReadySCs
 	if len(readySCs) == 0 {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
 	var conns []*subConn
-	for addr, conn := range readySCs {
+	for conn, connInfo := range readySCs {
 		conns = append(conns, &subConn{
-			addr:    addr,
+			addr:    connInfo.Address,
 			conn:    conn,
 			success: initSuccess,
 		})
@@ -63,6 +61,10 @@ func (b *p2cPickerBuilder) Build(readySCs map[resolver.Address]balancer.SubConn)
 	}
 }
 
+func newBuilder() balancer.Builder {
+	return base.NewBalancerBuilder(Name, new(p2cPickerBuilder), base.Config{HealthCheck: true})
+}
+
 type p2cPicker struct {
 	conns []*subConn
 	r     *rand.Rand
@@ -70,15 +72,14 @@ type p2cPicker struct {
 	lock  sync.Mutex
 }
 
-func (p *p2cPicker) Pick(ctx context.Context, info balancer.PickInfo) (
-	conn balancer.SubConn, done func(balancer.DoneInfo), err error) {
+func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
 	var chosen *subConn
 	switch len(p.conns) {
 	case 0:
-		return nil, nil, balancer.ErrNoSubConnAvailable
+		return emptyPickResult, balancer.ErrNoSubConnAvailable
 	case 1:
 		chosen = p.choose(p.conns[0], nil)
 	case 2:
@@ -103,7 +104,11 @@ func (p *p2cPicker) Pick(ctx context.Context, info balancer.PickInfo) (
 
 	atomic.AddInt64(&chosen.inflight, 1)
 	atomic.AddInt64(&chosen.requests, 1)
-	return chosen.conn, p.buildDoneFunc(chosen), nil
+
+	return balancer.PickResult{
+		SubConn: chosen.conn,
+		Done:    p.buildDoneFunc(chosen),
+	}, nil
 }
 
 func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
