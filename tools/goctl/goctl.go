@@ -5,7 +5,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -531,6 +533,8 @@ var (
 
 func main() {
 	logx.Disable()
+	load.Disable()
+	stat.DisableLog()
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
