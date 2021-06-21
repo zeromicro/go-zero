@@ -26,7 +26,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 自动校验客户端请求参数合法性
 * 大量微服务治理和并发工具包
 
-<img src="https://gitee.com/kevwan/static/raw/master/doc/images/architecture.png" alt="架构图" width="1500" />
+![架构图](https://gitee.com/kevwan/static/raw/master/doc/images/architecture.png)
 
 ## 1. go-zero 框架背景
 
