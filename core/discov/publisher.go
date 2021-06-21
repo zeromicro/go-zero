@@ -7,7 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type (
