@@ -1282,6 +1282,41 @@ func (s *Redis) Sdiffstore(destination string, keys ...string) (val int, err err
 	return
 }
 
+// Sinter is the implementation of redis sinter command.
+func (s *Redis) Sinter(keys ...string) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.SInter(keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Sinterstore is the implementation of redis sinterstore command.
+func (s *Redis) Sinterstore(destination string, keys ...string) (val int, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.SInterStore(destination, keys...).Result()
+		if err != nil {
+			return err
+		}
+
+		val = int(v)
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Ttl is the implementation of redis ttl command.
 func (s *Redis) Ttl(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
