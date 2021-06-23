@@ -642,7 +642,7 @@ func TestRedis_Set(t *testing.T) {
 		assert.NotNil(t, err)
 		vals, err = client.Sinter("key1", "key2")
 		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"2", "3", "4"}, vals)
+		assert.ElementsMatch(t, []string{"2", "3", "4"}, vals)
 		_, err = New(client.Addr, badType()).Sinterstore("key4", "key1", "key2")
 		assert.NotNil(t, err)
 		num, err = client.Sinterstore("key4", "key1", "key2")
