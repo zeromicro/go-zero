@@ -15,15 +15,14 @@ type (
 	}
 
 	call struct {
-		wg       sync.WaitGroup
-		consumer sync.WaitGroup
-		val      interface{}
-		err      error
+		wg  sync.WaitGroup
+		val interface{}
+		err error
 	}
 
 	sharedGroup struct {
 		calls *sync.Map
-		pools *sync.Pool //
+		pools *sync.Pool // reuse
 	}
 )
 
@@ -56,21 +55,14 @@ func (g *sharedGroup) do(key string, fn func() (interface{}, error)) (val interf
 		c := v.(*call)
 		c.wg.Wait()
 
-		c.consumer.Add(1)
 		val = c.val
 		err = c.err
-		c.consumer.Done()
 		return val, false, err
 	} else {
 		c := v.(*call)
 		defer func() {
 			c.wg.Done()
 			g.calls.Delete(key)
-
-			// wait for the consumption of other goroutines to complete,restore a *call
-			c.consumer.Wait()
-			g.pools.Put(c)
-
 		}()
 		c.wg.Add(1)
 		c.val, c.err = fn()
