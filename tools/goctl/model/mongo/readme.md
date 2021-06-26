@@ -60,91 +60,67 @@ type User struct {
 
   ```golang
   package model
-  
-  import (
-      "context"
-  
-      "github.com/globalsign/mgo/bson"
-      cachec "github.com/tal-tech/go-zero/core/stores/cache"
-      "github.com/tal-tech/go-zero/core/stores/mongoc"
-  )
-  
-  type UserModel interface {
-      Insert(data *User, ctx context.Context) error
-      FindOne(id string, ctx context.Context) (*User, error)
-      Update(data *User, ctx context.Context) error
-      Delete(id string, ctx context.Context) error
-  }
-  
-  type defaultUserModel struct {
-      *mongoc.Model
-  }
-  
-  func NewUserModel(url, collection string, c cachec.CacheConf) UserModel {
-      return &defaultUserModel{
-          Model: mongoc.MustNewModel(url, collection, c),
-      }
-  }
-  
-  func (m *defaultUserModel) Insert(data *User, ctx context.Context) error {
-      if !data.ID.Valid() {
-          data.ID = bson.NewObjectId()
-      }
-  
-      session, err := m.TakeSession()
-      if err != nil {
-          return err
-      }
-  
-      defer m.PutSession(session)
-      return m.GetCollection(session).Insert(data)
-  }
-  
-  func (m *defaultUserModel) FindOne(id string, ctx context.Context) (*User, error) {
-      if !bson.IsObjectIdHex(id) {
-          return nil, ErrInvalidObjectId
-      }
-  
-      session, err := m.TakeSession()
-      if err != nil {
-          return nil, err
-      }
-  
-      defer m.PutSession(session)
-      var data User
-  
-      err = m.GetCollection(session).FindOneIdNoCache(&data, bson.ObjectIdHex(id))
-      switch err {
-      case nil:
-          return &data, nil
-      case mongoc.ErrNotFound:
-          return nil, ErrNotFound
-      default:
-          return nil, err
-      }
-  }
-  
-  func (m *defaultUserModel) Update(data *User, ctx context.Context) error {
-      session, err := m.TakeSession()
-      if err != nil {
-          return err
-      }
-  
-      defer m.PutSession(session)
-  
-      return m.GetCollection(session).UpdateIdNoCache(data.ID, data)
-  }
-  
-  func (m *defaultUserModel) Delete(id string, ctx context.Context) error {
-      session, err := m.TakeSession()
-      if err != nil {
-          return err
-      }
-  
-      defer m.PutSession(session)
-  
-      return m.GetCollection(session).RemoveIdNoCache(bson.ObjectIdHex(id))
-  }
+
+import (
+	"context"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+type UserModel interface {
+	Insert(ctx context.Context, data *User) error
+	FindOne(ctx context.Context, id string) (*User, error)
+	Update(ctx context.Context, data *User) error
+	Delete(ctx context.Context, id string) error
+}
+
+type defaultUserModel struct {
+	collection *mongo.Collection
+}
+
+func NewUserModel(url string) UserModel {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(url))
+	if err != nil {
+		panic(err)
+	}
+	collection := client.Database("db_user").Collection("t_user")
+	return &defaultUserModel{collection: collection}
+}
+
+func (m *defaultUserModel) Insert(ctx context.Context, data *User) error {
+	_, err := m.collection.InsertOne(ctx, data)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ErrNotFound
+		}
+		return err
+	}
+	return nil
+}
+
+func (m *defaultUserModel) FindOne(ctx context.Context, id string) (*User, error) {
+	var result User
+	err := m.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (m *defaultUserModel) Update(ctx context.Context, data *User) error {
+	_, err := m.collection.UpdateByID(ctx, data.Id, data)
+	return err
+}
+
+func (m *defaultUserModel) Delete(ctx context.Context, id string) error {
+	_, err := m.collection.DeleteOne(ctx, bson.M{"_id": id})
+	return err
+}
   ```
 
 * error.go
@@ -152,10 +128,9 @@ type User struct {
   ```golang
   package model
 
-  import "errors"
-  
-  var ErrNotFound = errors.New("not found")
-  var ErrInvalidObjectId = errors.New("invalid objectId")
+import "errors"
+
+var ErrNotFound = errors.New("not found")
   ```
 
 ### 文件目录预览
@@ -187,17 +162,18 @@ OPTIONS:
 
 ```text
 NAME:
-   goctl model mongo - generate mongo model
+   goctl.exe model mongo - generate mongo model
 
 USAGE:
-   goctl model mongo [command options] [arguments...]
+   goctl.exe model mongo [command options] [arguments...]
 
 OPTIONS:
    --type value, -t value  specified model type name
    --cache, -c             generate code with cache [optional]
    --dir value, -d value   the target dir
    --style value           the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
-
+   --db value              the database name
+   --coll value            the collection name
 ```
 
 > 温馨提示
