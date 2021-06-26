@@ -16,6 +16,8 @@ func Action(ctx *cli.Context) error {
 	c := ctx.Bool("cache")
 	o := strings.TrimSpace(ctx.String("dir"))
 	s := ctx.String("style")
+	db := ctx.String("db")
+	coll := ctx.String("coll")
 	if len(tp) == 0 {
 		return errors.New("missing type")
 	}
@@ -31,9 +33,11 @@ func Action(ctx *cli.Context) error {
 	}
 
 	return generate.Do(&generate.Context{
-		Types:  tp,
-		Cache:  c,
-		Output: a,
-		Cfg:    cfg,
+		Types:      tp,
+		Cache:      c,
+		Output:     a,
+		Cfg:        cfg,
+		Db:         db,
+		Collection: coll,
 	})
 }

@@ -12,10 +12,12 @@ import (
 
 // Context defines the model generation data what they needs
 type Context struct {
-	Types  []string
-	Cache  bool
-	Output string
-	Cfg    *config.Config
+	Types      []string
+	Cache      bool
+	Output     string
+	Cfg        *config.Config
+	Db         string
+	Collection string
 }
 
 // Do executes model template and output the result into the specified file path
@@ -46,8 +48,10 @@ func generateModel(ctx *Context) error {
 
 		output := filepath.Join(ctx.Output, fn+".go")
 		err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
-			"Type":  t,
-			"Cache": ctx.Cache,
+			"Type":       t,
+			"Cache":      ctx.Cache,
+			"Db":         ctx.Db,
+			"Collection": ctx.Collection,
 		}, output, false)
 		if err != nil {
 			return err

@@ -470,6 +470,14 @@ var (
 							Name:  "style",
 							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
+						cli.StringFlag{
+							Name:  "db",
+							Usage: "the database name",
+						},
+						cli.StringFlag{
+							Name:  "coll",
+							Usage: "the collection name",
+						},
 					},
 					Action: mongo.Action,
 				},
