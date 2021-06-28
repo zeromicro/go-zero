@@ -37,9 +37,6 @@ func New{{.Type}}Model(url string) {{.Type}}Model {
 func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) error {
 	_, err := m.collection.InsertOne(ctx, data)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return ErrNotFound
-		}
 		return err
 	}
 	return nil
@@ -49,6 +46,9 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
 	var result {{.Type}}
 	err := m.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&result)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 	return &result, nil
