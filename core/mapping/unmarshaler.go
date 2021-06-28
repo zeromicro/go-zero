@@ -457,6 +457,10 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 			} else {
 				conv.Index(i).Set(target.Elem())
 			}
+		case reflect.Slice:
+			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue); err != nil {
+				return err
+			}
 		default:
 			if err := u.fillSliceValue(conv, i, dereffedBaseKind, ithValue); err != nil {
 				return err
@@ -492,18 +496,31 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 }
 
 func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind reflect.Kind, value interface{}) error {
+	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case json.Number:
-		return setValue(baseKind, slice.Index(index), v.String())
+		return setValue(baseKind, ithVal, v.String())
 	default:
 		// don't need to consider the difference between int, int8, int16, int32, int64,
 		// uint, uint8, uint16, uint32, uint64, because they're handled as json.Number.
-		if slice.Index(index).Kind() != reflect.TypeOf(value).Kind() {
-			return errTypeMismatch
-		}
+		if ithVal.Kind() == reflect.Ptr {
+			baseType := Deref(ithVal.Type())
+			if baseType.Kind() != reflect.TypeOf(value).Kind() {
+				return errTypeMismatch
+			}
 
-		slice.Index(index).Set(reflect.ValueOf(value))
-		return nil
+			target := reflect.New(baseType).Elem()
+			target.Set(reflect.ValueOf(value))
+			ithVal.Set(target.Addr())
+			return nil
+		} else {
+			if ithVal.Kind() != reflect.TypeOf(value).Kind() {
+				return errTypeMismatch
+			}
+
+			ithVal.Set(reflect.ValueOf(value))
+			return nil
+		}
 	}
 }
 
