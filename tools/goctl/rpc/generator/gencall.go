@@ -16,7 +16,7 @@ import (
 const (
 	callTemplateText = `{{.head}}
 
-//go:generate mockgen -destination ./{{.name}}_mock.go -package {{.filePackage}} -source $GOFILE
+//go:generate mockgen -destination ./{{.name}}_mock.go -package {{.filePackage}} -source {{.name}}.go
 
 package {{.filePackage}}
 
