@@ -30,7 +30,8 @@ func (t txSession) Prepare(q string) (StmtSession, error) {
 	}
 
 	return statement{
-		stmt: stmt,
+		query: q,
+		stmt:  stmt,
 	}, nil
 }
 
