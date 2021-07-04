@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -36,12 +38,36 @@ func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 	}
 
 	if m, ok := o.(map[string]interface{}); ok {
+		env := make(map[string]string)
+		for kEnv, vEnv := range m {
+			switch d := vEnv.(type) {
+			case string:
+				// parse environment variable
+				if vParse, yes := parseIfEnv(d, env); yes {
+					m[kEnv] = vParse
+				}
+			}
+		}
+
 		return unmarshaler.Unmarshal(m, v)
 	}
 
 	return ErrUnsupportedType
 }
 
+func parseIfEnv(value string, env map[string]string) (string, bool) {
+	if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}") {
+		envKey := strings.TrimSuffix(strings.TrimPrefix(value, "${"), "}")
+		if v, ok := env[envKey]; !ok {
+			v = os.Getenv(envKey)
+			env[envKey] = v
+			return v, true
+		} else {
+			return v, true
+		}
+	}
+	return "", false
+}
 func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
 	content, err := ioutil.ReadAll(reader)
 	if err != nil {

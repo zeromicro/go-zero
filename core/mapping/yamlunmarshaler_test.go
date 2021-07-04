@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -917,4 +918,20 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 
 	err := UnmarshalYamlReader(reader, &v)
 	assert.NotNil(t, err)
+}
+
+func TestUnmarshalYamlBytesEnv(t *testing.T) {
+	payload := []byte(`
+Path: ${Path}
+Name: go-zero
+`)
+	var v struct {
+		Path string
+		Name string
+	}
+	err := UnmarshalYamlBytes(payload, &v)
+	assert.Nil(t, err)
+	assert.Equal(t, os.Getenv("PATH"), v.Path)
+	assert.Equal(t, "go-zero", v.Name)
+
 }
