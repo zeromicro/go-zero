@@ -36,14 +36,15 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	if err := ParseInHeader(r, v); err != nil {
+	if err := ParseHeaders(r, v); err != nil {
 		return err
 	}
 
 	return ParseJsonBody(r, v)
 }
 
-func ParseInHeader(r *http.Request, v interface{}) error {
+// ParseHeaders parses the headers request.
+func ParseHeaders(r *http.Request, v interface{}) error {
 	m := map[string]interface{}{}
 	for k, v := range r.Header {
 		k = strings.ToLower(k)

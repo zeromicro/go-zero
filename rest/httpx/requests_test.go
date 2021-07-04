@@ -202,7 +202,7 @@ func BenchmarkParseAuto(b *testing.B) {
 	}
 }
 
-func TestParseInHeader(t *testing.T) {
+func TestParseHeaders(t *testing.T) {
 	v := struct {
 		Name    string   `header:"name"`
 		Percent string   `header:"percent"`
@@ -216,7 +216,7 @@ func TestParseInHeader(t *testing.T) {
 	request.Header.Set("percent", "1")
 	request.Header.Add("addrs", "addr1")
 	request.Header.Add("addrs", "addr2")
-	err = ParseInHeader(request, &v)
+	err = ParseHeaders(request, &v)
 	if err != nil {
 		t.Fatal(err)
 	}
