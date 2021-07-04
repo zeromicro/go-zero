@@ -40,13 +40,12 @@ func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 	if m, ok := o.(map[string]interface{}); ok {
 		env := make(map[string]string)
 		for kEnv, vEnv := range m {
-			switch d := vEnv.(type) {
-			case string:
-				// parse environment variable
-				if vParse, yes := parseIfEnv(d, env); yes {
+			if vEnvStr, yes := vEnv.(string); yes {
+				if vParse, yes := parseIfEnv(vEnvStr, env); yes {
 					m[kEnv] = vParse
 				}
 			}
+
 		}
 
 		return unmarshaler.Unmarshal(m, v)

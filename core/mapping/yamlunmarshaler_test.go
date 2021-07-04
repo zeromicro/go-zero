@@ -922,7 +922,7 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 
 func TestUnmarshalYamlBytesEnv(t *testing.T) {
 	payload := []byte(`
-Path: ${Path}
+Path: ${PATH}
 Name: go-zero
 `)
 	var v struct {
