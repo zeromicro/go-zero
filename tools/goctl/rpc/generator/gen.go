@@ -36,7 +36,7 @@ func NewRPCGenerator(g Generator, cfg *conf.Config) *RPCGenerator {
 // Generate generates an rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
-func (g *RPCGenerator) Generate(src, target string, protoImportPath []string) error {
+func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, goOptions ...string) error {
 	abs, err := filepath.Abs(target)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string) er
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.cfg)
+	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.cfg, goOptions...)
 	if err != nil {
 		return err
 	}

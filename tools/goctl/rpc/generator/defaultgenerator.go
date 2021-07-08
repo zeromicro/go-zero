@@ -11,8 +11,11 @@ type DefaultGenerator struct {
 	log console.Console
 }
 
+// just test interface implement
+var _ Generator = (*DefaultGenerator)(nil)
+
 // NewDefaultGenerator returns an instance of DefaultGenerator
-func NewDefaultGenerator() *DefaultGenerator {
+func NewDefaultGenerator() Generator {
 	log := console.NewColorConsole()
 	return &DefaultGenerator{
 		log: log,
@@ -33,5 +36,6 @@ func (g *DefaultGenerator) Prepare() error {
 	}
 
 	_, err = exec.LookPath("protoc-gen-go")
+
 	return err
 }
