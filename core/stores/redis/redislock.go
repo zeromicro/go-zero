@@ -88,6 +88,19 @@ func (rl *RedisLock) Release() (bool, error) {
 	return reply == 1, nil
 }
 
+func (rl *RedisLock) Spin(n int) error {
+	var err error
+	for i := 0; i < n; i++ {
+		if acquire, err := rl.Acquire(); err == nil && acquire {
+			return nil
+		}
+		//millisPerSecond 1000/20 = 50
+		time.Sleep(time.Millisecond * millisPerSecond / 20)
+	}
+
+	return err
+}
+
 // SetExpire sets the expire.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
