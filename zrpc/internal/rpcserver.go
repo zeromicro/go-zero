@@ -10,6 +10,7 @@ import (
 )
 
 type (
+	// ServerOption defines the method to customize a rpcServerOptions.
 	ServerOption func(options *rpcServerOptions)
 
 	rpcServerOptions struct {
@@ -26,6 +27,7 @@ func init() {
 	InitLogger()
 }
 
+// NewRpcServer returns a Server.
 func NewRpcServer(address string, opts ...ServerOption) Server {
 	var options rpcServerOptions
 	for _, opt := range opts {
@@ -68,15 +70,15 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	register(server)
 	// we need to make sure all others are wrapped up
 	// so we do graceful stop at shutdown phase instead of wrap up phase
-	shutdownCalled := proc.AddShutdownListener(func() {
+	waitForCalled := proc.AddWrapUpListener(func() {
 		server.GracefulStop()
 	})
-	err = server.Serve(lis)
-	shutdownCalled()
+	defer waitForCalled()
 
-	return err
+	return server.Serve(lis)
 }
 
+// WithMetrics returns a func that sets metrics to a Server.
 func WithMetrics(metrics *stat.Metrics) ServerOption {
 	return func(options *rpcServerOptions) {
 		options.metrics = metrics

@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"errors"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 
 	"github.com/tal-tech/go-zero/core/codec"
@@ -16,6 +18,7 @@ const maxBytes = 1 << 20 // 1 MiB
 
 var errContentLengthExceeded = errors.New("content length exceeded")
 
+// CryptionHandler returns a middleware to handle cryption.
 func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +48,7 @@ func decryptBody(key []byte, r *http.Request) error {
 	var content []byte
 	var err error
 	if r.ContentLength > 0 {
-		content = make([]byte, r.ContentLength, r.ContentLength)
+		content = make([]byte, r.ContentLength)
 		_, err = io.ReadFull(r.Body, content)
 	} else {
 		content, err = ioutil.ReadAll(io.LimitReader(r.Body, maxBytes))
@@ -83,8 +86,24 @@ func newCryptionResponseWriter(w http.ResponseWriter) *cryptionResponseWriter {
 	}
 }
 
+func (w *cryptionResponseWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (w *cryptionResponseWriter) Header() http.Header {
 	return w.ResponseWriter.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *cryptionResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.ResponseWriter.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *cryptionResponseWriter) Write(p []byte) (int, error) {

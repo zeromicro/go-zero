@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"bufio"
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httputil"
 
@@ -28,15 +30,19 @@ var (
 )
 
 type (
+	// A AuthorizeOptions is authorize options.
 	AuthorizeOptions struct {
 		PrevSecret string
 		Callback   UnauthorizedCallback
 	}
 
+	// UnauthorizedCallback defines the method of unauthorized callback.
 	UnauthorizedCallback func(w http.ResponseWriter, r *http.Request, err error)
-	AuthorizeOption      func(opts *AuthorizeOptions)
+	// AuthorizeOption defines the method to customize an AuthorizeOptions.
+	AuthorizeOption func(opts *AuthorizeOptions)
 )
 
+// Authorize returns an authorize middleware.
 func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.Handler {
 	var authOpts AuthorizeOptions
 	for _, opt := range opts {
@@ -46,18 +52,18 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 	parser := token.NewTokenParser()
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token, err := parser.ParseToken(r, secret, authOpts.PrevSecret)
+			tok, err := parser.ParseToken(r, secret, authOpts.PrevSecret)
 			if err != nil {
 				unauthorized(w, r, err, authOpts.Callback)
 				return
 			}
 
-			if !token.Valid {
+			if !tok.Valid {
 				unauthorized(w, r, errInvalidToken, authOpts.Callback)
 				return
 			}
 
-			claims, ok := token.Claims.(jwt.MapClaims)
+			claims, ok := tok.Claims.(jwt.MapClaims)
 			if !ok {
 				unauthorized(w, r, errNoClaims, authOpts.Callback)
 				return
@@ -78,12 +84,14 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 	}
 }
 
+// WithPrevSecret returns an AuthorizeOption with setting previous secret.
 func WithPrevSecret(secret string) AuthorizeOption {
 	return func(opts *AuthorizeOptions) {
 		opts.PrevSecret = secret
 	}
 }
 
+// WithUnauthorizedCallback returns an AuthorizeOption with setting unauthorized callback.
 func WithUnauthorizedCallback(callback UnauthorizedCallback) AuthorizeOption {
 	return func(opts *AuthorizeOptions) {
 		opts.Callback = callback
@@ -122,8 +130,24 @@ func newGuardedResponseWriter(w http.ResponseWriter) *guardedResponseWriter {
 	}
 }
 
+func (grw *guardedResponseWriter) Flush() {
+	if flusher, ok := grw.writer.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (grw *guardedResponseWriter) Header() http.Header {
 	return grw.writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (grw *guardedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := grw.writer.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (grw *guardedResponseWriter) Write(body []byte) (int, error) {

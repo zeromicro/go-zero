@@ -1,6 +1,7 @@
 package ktgen
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"text/template"
@@ -44,7 +45,7 @@ func parseType(t string) string {
 	}
 
 	if strings.HasPrefix(t, "map") {
-		tys, e := util.DecomposeType(t)
+		tys, e := decomposeType(t)
 		if e != nil {
 			log.Fatal(e)
 		}
@@ -66,6 +67,47 @@ func parseType(t string) string {
 	default:
 		return t
 	}
+}
+
+func decomposeType(t string) (result []string, err error) {
+	add := func(tp string) error {
+		ret, err := decomposeType(tp)
+		if err != nil {
+			return err
+		}
+
+		result = append(result, ret...)
+		return nil
+	}
+	if strings.HasPrefix(t, "map") {
+		t = strings.ReplaceAll(t, "map", "")
+		if t[0] == '[' {
+			pos := strings.Index(t, "]")
+			if pos > 1 {
+				if err = add(t[1:pos]); err != nil {
+					return
+				}
+				if len(t) > pos+1 {
+					err = add(t[pos+1:])
+					return
+				}
+			}
+		}
+	} else if strings.HasPrefix(t, "[]") {
+		if len(t) > 2 {
+			err = add(t[2:])
+			return
+		}
+	} else if strings.HasPrefix(t, "*") {
+		err = add(t[1:])
+		return
+	} else {
+		result = append(result, t)
+		return
+	}
+
+	err = fmt.Errorf("bad type %q", t)
+	return
 }
 
 func add(a, i int) int {

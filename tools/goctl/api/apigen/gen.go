@@ -12,34 +12,34 @@ import (
 	"github.com/urfave/cli"
 )
 
-const apiTemplate = `info(
+const apiTemplate = `
+syntax = "v1"
+
+info(
 	title: // TODO: add title
 	desc: // TODO: add description
-	author: {{.gitUser}}
-	email: {{.gitEmail}}
+	author: "{{.gitUser}}"
+	email: "{{.gitEmail}}"
 )
 
-type request struct {
+type request {
 	// TODO: add members here and delete this comment
 }
 
-type response struct {
+type response {
 	// TODO: add members here and delete this comment
 }
 
 service {{.serviceName}} {
-	@server(
-		handler: // TODO: set handler name and delete this comment
-	)
+	@handler GetUser // TODO: set handler name and delete this comment
 	get /users/id/:userId(request) returns(response)
 
-	@server(
-		handler: // TODO: set handler name and delete this comment
-	)
+	@handler CreateUser // TODO: set handler name and delete this comment
 	post /users/create(request)
 }
 `
 
+// ApiCommand create api template file
 func ApiCommand(c *cli.Context) error {
 	apiFile := c.String("o")
 	if len(apiFile) == 0 {

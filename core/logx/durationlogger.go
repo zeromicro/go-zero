@@ -12,6 +12,7 @@ const durationCallerDepth = 3
 
 type durationLogger logEntry
 
+// WithDuration returns a Logger which logs the given duration.
 func WithDuration(d time.Duration) Logger {
 	return &durationLogger{
 		Duration: timex.ReprOfDuration(d),

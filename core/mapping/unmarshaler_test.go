@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -752,15 +753,15 @@ func TestUnmarshalJsonNumberInt64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue int64 = 1 << uint(i)
 		strValue := strconv.FormatInt(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
-			"Id": number,
+			"ID": number,
 		}
 		var v struct {
-			Id int64
+			ID int64
 		}
 		assert.Nil(t, UnmarshalKey(m, &v))
-		assert.Equal(t, intValue, v.Id)
+		assert.Equal(t, intValue, v.ID)
 	}
 }
 
@@ -768,15 +769,15 @@ func TestUnmarshalJsonNumberUint64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
-			"Id": number,
+			"ID": number,
 		}
 		var v struct {
-			Id uint64
+			ID uint64
 		}
 		assert.Nil(t, UnmarshalKey(m, &v))
-		assert.Equal(t, intValue, v.Id)
+		assert.Equal(t, intValue, v.ID)
 	}
 }
 
@@ -784,17 +785,17 @@ func TestUnmarshalJsonNumberUint64Ptr(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
-			"Id": number,
+			"ID": number,
 		}
 		var v struct {
-			Id *uint64
+			ID *uint64
 		}
 		ast := assert.New(t)
 		ast.Nil(UnmarshalKey(m, &v))
-		ast.NotNil(v.Id)
-		ast.Equal(intValue, *v.Id)
+		ast.NotNil(v.ID)
+		ast.Equal(intValue, *v.ID)
 	}
 }
 
@@ -1061,38 +1062,38 @@ func TestUnmarshalWithOptionsAndSet(t *testing.T) {
 
 func TestUnmarshalNestedKey(t *testing.T) {
 	var c struct {
-		Id int `json:"Persons.first.Id"`
+		ID int `json:"Persons.first.ID"`
 	}
 	m := map[string]interface{}{
 		"Persons": map[string]interface{}{
 			"first": map[string]interface{}{
-				"Id": 1,
+				"ID": 1,
 			},
 		},
 	}
 
 	assert.Nil(t, NewUnmarshaler("json").Unmarshal(m, &c))
-	assert.Equal(t, 1, c.Id)
+	assert.Equal(t, 1, c.ID)
 }
 
 func TestUnmarhsalNestedKeyArray(t *testing.T) {
 	var c struct {
 		First []struct {
-			Id int
+			ID int
 		} `json:"Persons.first"`
 	}
 	m := map[string]interface{}{
 		"Persons": map[string]interface{}{
 			"first": []map[string]interface{}{
-				{"Id": 1},
-				{"Id": 2},
+				{"ID": 1},
+				{"ID": 2},
 			},
 		},
 	}
 
 	assert.Nil(t, NewUnmarshaler("json").Unmarshal(m, &c))
 	assert.Equal(t, 2, len(c.First))
-	assert.Equal(t, 1, c.First[0].Id)
+	assert.Equal(t, 1, c.First[0].ID)
 }
 
 func TestUnmarshalAnonymousOptionalRequiredProvided(t *testing.T) {
@@ -2479,4 +2480,41 @@ func BenchmarkUnmarshal(b *testing.B) {
 		var an anonymous
 		UnmarshalKey(data, &an)
 	}
+}
+
+func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
+	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
+	var res struct {
+		A string     `json:"a"`
+		B [][]string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
+	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
+	var res struct {
+		A string      `json:"a"`
+		B [][]*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
+func TestUnmarshalJsonReaderPtrArray(t *testing.T) {
+	payload := `{"a": "133", "b": ["add", "cccd", "eeee"]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
 }

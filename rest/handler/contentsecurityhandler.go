@@ -12,8 +12,10 @@ import (
 
 const contentSecurity = "X-Content-Security"
 
+// UnsignedCallback defines the method of the unsigned callback.
 type UnsignedCallback func(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int)
 
+// ContentSecurityHandler returns a middleware to verify content security.
 func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
 	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
 	if len(callbacks) == 0 {
@@ -26,11 +28,11 @@ func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance 
 			case http.MethodDelete, http.MethodGet, http.MethodPost, http.MethodPut:
 				header, err := security.ParseContentSecurity(decrypters, r)
 				if err != nil {
-					logx.Infof("Signature parse failed, X-Content-Security: %s, error: %s",
+					logx.Errorf("Signature parse failed, X-Content-Security: %s, error: %s",
 						r.Header.Get(contentSecurity), err.Error())
 					executeCallbacks(w, r, next, strict, httpx.CodeSignatureInvalidHeader, callbacks)
 				} else if code := security.VerifySignature(r, header, tolerance); code != httpx.CodeSignaturePass {
-					logx.Infof("Signature verification failed, X-Content-Security: %s",
+					logx.Errorf("Signature verification failed, X-Content-Security: %s",
 						r.Header.Get(contentSecurity))
 					executeCallbacks(w, r, next, strict, code, callbacks)
 				} else if r.ContentLength > 0 && header.Encrypted() {
@@ -54,7 +56,7 @@ func executeCallbacks(w http.ResponseWriter, r *http.Request, next http.Handler,
 
 func handleVerificationFailure(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int) {
 	if strict {
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusForbidden)
 	} else {
 		next.ServeHTTP(w, r)
 	}

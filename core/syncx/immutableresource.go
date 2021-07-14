@@ -10,8 +10,10 @@ import (
 const defaultRefreshInterval = time.Second
 
 type (
+	// ImmutableResourceOption defines the method to customize an ImmutableResource.
 	ImmutableResourceOption func(resource *ImmutableResource)
 
+	// An ImmutableResource is used to manage an immutable resource.
 	ImmutableResource struct {
 		fetch           func() (interface{}, error)
 		resource        interface{}
@@ -22,6 +24,7 @@ type (
 	}
 )
 
+// NewImmutableResource returns an ImmutableResource.
 func NewImmutableResource(fn func() (interface{}, error), opts ...ImmutableResourceOption) *ImmutableResource {
 	// cannot use executors.LessExecutor because of cycle imports
 	ir := ImmutableResource{
@@ -35,6 +38,7 @@ func NewImmutableResource(fn func() (interface{}, error), opts ...ImmutableResou
 	return &ir
 }
 
+// Get gets the immutable resource, fetches automatically if not loaded.
 func (ir *ImmutableResource) Get() (interface{}, error) {
 	ir.lock.RLock()
 	resource := ir.resource
@@ -69,7 +73,8 @@ func (ir *ImmutableResource) maybeRefresh(execute func()) {
 	}
 }
 
-// Set interval to 0 to enforce refresh every time if not succeeded. default is time.Second.
+// WithRefreshIntervalOnFailure sets refresh interval on failure.
+// Set interval to 0 to enforce refresh every time if not succeeded, default is time.Second.
 func WithRefreshIntervalOnFailure(interval time.Duration) ImmutableResourceOption {
 	return func(resource *ImmutableResource) {
 		resource.refreshInterval = interval

@@ -8,7 +8,7 @@ func subset(set []string, sub int) []string {
 	})
 	if len(set) <= sub {
 		return set
-	} else {
-		return set[:sub]
 	}
+
+	return set[:sub]
 }

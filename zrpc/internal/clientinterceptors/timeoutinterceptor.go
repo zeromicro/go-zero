@@ -4,21 +4,40 @@ import (
 	"context"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/contextx"
 	"google.golang.org/grpc"
 )
 
-const defaultTimeout = time.Second * 2
-
+// TimeoutInterceptor is an interceptor that controls timeout.
 func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
-	if timeout <= 0 {
-		timeout = defaultTimeout
-	}
-
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
+		if timeout <= 0 {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}
+
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
-		return invoker(ctx, method, req, reply, cc, opts...)
+
+		// create channel with buffer size 1 to avoid goroutine leak
+		done := make(chan error, 1)
+		panicChan := make(chan interface{}, 1)
+		go func() {
+			defer func() {
+				if p := recover(); p != nil {
+					panicChan <- p
+				}
+			}()
+
+			done <- invoker(ctx, method, req, reply, cc, opts...)
+		}()
+
+		select {
+		case p := <-panicChan:
+			panic(p)
+		case err := <-done:
+			return err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 }

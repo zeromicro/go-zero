@@ -87,3 +87,32 @@ func TestCryptionHandlerWriteHeader(t *testing.T) {
 	handler.ServeHTTP(recorder, req)
 	assert.Equal(t, http.StatusServiceUnavailable, recorder.Code)
 }
+
+func TestCryptionHandlerFlush(t *testing.T) {
+	req := httptest.NewRequest(http.MethodGet, "/any", nil)
+	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(respText))
+		flusher, ok := w.(http.Flusher)
+		assert.True(t, ok)
+		flusher.Flush()
+	}))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, req)
+
+	expect, err := codec.EcbEncrypt(aesKey, []byte(respText))
+	assert.Nil(t, err)
+	assert.Equal(t, base64.StdEncoding.EncodeToString(expect), recorder.Body.String())
+}
+
+func TestCryptionHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := newCryptionResponseWriter(resp)
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = newCryptionResponseWriter(mockedHijackable{resp})
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}

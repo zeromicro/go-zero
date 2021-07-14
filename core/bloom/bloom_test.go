@@ -3,19 +3,15 @@ package bloom
 import (
 	"testing"
 
-	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
 )
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error("Miniredis could not start")
-	}
-	defer s.Close()
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
-	store := redis.NewRedis(s.Addr(), redis.NodeType)
 	bitSet := newRedisBitSet(store, "test_key", 1024)
 	isSetBefore, err := bitSet.check([]uint{0})
 	if err != nil {
@@ -46,13 +42,10 @@ func TestRedisBitSet_New_Set_Test(t *testing.T) {
 }
 
 func TestRedisBitSet_Add(t *testing.T) {
-	s, err := miniredis.Run()
-	if err != nil {
-		t.Error("Miniredis could not start")
-	}
-	defer s.Close()
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
-	store := redis.NewRedis(s.Addr(), redis.NodeType)
 	filter := New(store, "test_key", 64)
 	assert.Nil(t, filter.Add([]byte("hello")))
 	assert.Nil(t, filter.Add([]byte("world")))

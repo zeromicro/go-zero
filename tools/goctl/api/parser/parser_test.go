@@ -1,166 +1,28 @@
 package parser
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-const testApiTemplate = `
-info(
-    title: doc title
-    desc: >
-    doc description first part,
-    doc description second part<
-    version: 1.0
-)
+var testApi = "// syntax doc\nsyntax = \"v1\" // syntax comment\n\n// type doc\ntype Request {\n\tName string `path:\"name,options=you|me\"`\n}\n\ntype Response {\n\tMessage string `json:\"message\"`\n}\n\n// service doc\nservice greet-api {\n\t// handler doc\n\t@handler GreetHandler // handler comment\n\tget /from/:name(Request) returns (Response);\n}"
 
-type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
-}
-
-type Response struct {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service A-api {
-  @server(
-    handler: GreetHandler
-  )
-  get /greet/from/:name(Request) returns (Response)
-
-  @server(
-    handler: NoResponseHandler
-  )
-  get /greet/get(Request) returns
-}
-`
-
-const testMultiServiceTemplate = `
-info(
-    title: doc title
-    desc: >
-    doc description first part,
-    doc description second part<
-    version: 1.0
-)
-
-type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
-}
-
-type Response struct {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service A-api {
-  @server(
-    handler: GreetHandler
-  )
-  get /greet/from/:name(Request) returns (Response)
-}
-
-service A-api {
-  @server(
-    handler: NoResponseHandler
-  )
-  get /greet/get(Request) returns
-}
-`
-
-const apiNoInfo = `
-type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
-}
-
-type Response struct {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service A-api {
-  @server(
-    handler: GreetHandler
-  )
-  get /greet/from/:name(Request) returns (Response)
-}
-`
-
-const invalidApiFile = `
-type Request struct {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
-}
-
-type Response struct {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service A-api
-  @server(
-    handler: GreetHandler
-  )
-  get /greet/from/:name(Request) returns (Response)
-}
-`
-
-func TestParser(t *testing.T) {
-	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(testApiTemplate), os.ModePerm)
+func TestParseContent(t *testing.T) {
+	sp, err := ParseContent(testApi)
 	assert.Nil(t, err)
-	defer os.Remove(filename)
-
-	parser, err := NewParser(filename)
-	assert.Nil(t, err)
-
-	api, err := parser.Parse()
-	assert.Nil(t, err)
-
-	assert.Equal(t, len(api.Types), 2)
-	assert.Equal(t, len(api.Service.Routes), 2)
-
-	assert.Equal(t, api.Service.Routes[0].Path, "/greet/from/:name")
-	assert.Equal(t, api.Service.Routes[1].Path, "/greet/get")
-
-	assert.Equal(t, api.Service.Routes[1].RequestType.Name, "Request")
-	assert.Equal(t, api.Service.Routes[1].ResponseType.Name, "")
-}
-
-func TestMultiService(t *testing.T) {
-	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(testMultiServiceTemplate), os.ModePerm)
-	assert.Nil(t, err)
-	defer os.Remove(filename)
-
-	parser, err := NewParser(filename)
-	assert.Nil(t, err)
-
-	api, err := parser.Parse()
-	assert.Nil(t, err)
-
-	assert.Equal(t, len(api.Service.Routes), 2)
-	assert.Equal(t, len(api.Service.Groups), 2)
-}
-
-func TestApiNoInfo(t *testing.T) {
-	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(apiNoInfo), os.ModePerm)
-	assert.Nil(t, err)
-	defer os.Remove(filename)
-
-	parser, err := NewParser(filename)
-	assert.Nil(t, err)
-
-	_, err = parser.Parse()
-	assert.Nil(t, err)
-}
-
-func TestInvalidApiFile(t *testing.T) {
-	filename := "greet.api"
-	err := ioutil.WriteFile(filename, []byte(invalidApiFile), os.ModePerm)
-	assert.Nil(t, err)
-	defer os.Remove(filename)
-
-	_, err = NewParser(filename)
-	assert.NotNil(t, err)
+	assert.Equal(t, spec.Doc{`// syntax doc`}, sp.Syntax.Doc)
+	assert.Equal(t, spec.Doc{`// syntax comment`}, sp.Syntax.Comment)
+	for _, tp := range sp.Types {
+		if tp.Name() == "Request" {
+			assert.Equal(t, []string{`// type doc`}, tp.Documents())
+		}
+	}
+	for _, e := range sp.Service.Routes() {
+		if e.Handler == "GreetHandler" {
+			assert.Equal(t, spec.Doc{"// handler doc"}, e.HandlerDoc)
+			assert.Equal(t, spec.Doc{"// handler comment"}, e.HandlerComment)
+		}
+	}
 }

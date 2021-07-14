@@ -12,6 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/core/hash"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
 	"github.com/tal-tech/go-zero/core/syncx"
 )
 
@@ -20,7 +21,7 @@ type mockedNode struct {
 	errNotFound error
 }
 
-func (mc *mockedNode) DelCache(keys ...string) error {
+func (mc *mockedNode) Del(keys ...string) error {
 	var be errorx.BatchError
 	for _, key := range keys {
 		if _, ok := mc.vals[key]; !ok {
@@ -32,7 +33,7 @@ func (mc *mockedNode) DelCache(keys ...string) error {
 	return be.Err()
 }
 
-func (mc *mockedNode) GetCache(key string, v interface{}) error {
+func (mc *mockedNode) Get(key string, v interface{}) error {
 	bs, ok := mc.vals[key]
 	if ok {
 		return json.Unmarshal(bs, v)
@@ -41,7 +42,11 @@ func (mc *mockedNode) GetCache(key string, v interface{}) error {
 	return mc.errNotFound
 }
 
-func (mc *mockedNode) SetCache(key string, v interface{}) error {
+func (mc *mockedNode) IsNotFound(err error) bool {
+	return err == mc.errNotFound
+}
+
+func (mc *mockedNode) Set(key string, v interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -51,20 +56,20 @@ func (mc *mockedNode) SetCache(key string, v interface{}) error {
 	return nil
 }
 
-func (mc *mockedNode) SetCacheWithExpire(key string, v interface{}, expire time.Duration) error {
-	return mc.SetCache(key, v)
+func (mc *mockedNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
+	return mc.Set(key, v)
 }
 
 func (mc *mockedNode) Take(v interface{}, key string, query func(v interface{}) error) error {
 	if _, ok := mc.vals[key]; ok {
-		return mc.GetCache(key, v)
+		return mc.Get(key, v)
 	}
 
 	if err := query(v); err != nil {
 		return err
 	}
 
-	return mc.SetCache(key, v)
+	return mc.Set(key, v)
 }
 
 func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v interface{}, expire time.Duration) error) error {
@@ -75,86 +80,86 @@ func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v int
 
 func TestCache_SetDel(t *testing.T) {
 	const total = 1000
-	r1, clean1, err := createMiniRedis()
+	r1, clean1, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean1()
-	r2, clean2, err := createMiniRedis()
+	r2, clean2, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean2()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
-				Host: r1.Addr(),
+				Host: r1.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
 		},
 		{
 			RedisConf: redis.RedisConf{
-				Host: r2.Addr(),
+				Host: r2.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
 		},
 	}
-	c := NewCache(conf, syncx.NewSharedCalls(), NewCacheStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
-			assert.Nil(t, c.SetCache(fmt.Sprintf("key/%d", i), i))
+			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
 		} else {
-			assert.Nil(t, c.SetCacheWithExpire(fmt.Sprintf("key/%d", i), i, 0))
+			assert.Nil(t, c.SetWithExpire(fmt.Sprintf("key/%d", i), i, 0))
 		}
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Nil(t, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &v))
 		assert.Equal(t, i, v)
 	}
-	assert.Nil(t, c.DelCache())
+	assert.Nil(t, c.Del())
 	for i := 0; i < total; i++ {
-		assert.Nil(t, c.DelCache(fmt.Sprintf("key/%d", i)))
+		assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Equal(t, errPlaceholder, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &v)))
 		assert.Equal(t, 0, v)
 	}
 }
 
 func TestCache_OneNode(t *testing.T) {
 	const total = 1000
-	r, clean, err := createMiniRedis()
+	r, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{
-				Host: r.Addr(),
+				Host: r.Addr,
 				Type: redis.NodeType,
 			},
 			Weight: 100,
 		},
 	}
-	c := NewCache(conf, syncx.NewSharedCalls(), NewCacheStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
-			assert.Nil(t, c.SetCache(fmt.Sprintf("key/%d", i), i))
+			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
 		} else {
-			assert.Nil(t, c.SetCacheWithExpire(fmt.Sprintf("key/%d", i), i, 0))
+			assert.Nil(t, c.SetWithExpire(fmt.Sprintf("key/%d", i), i, 0))
 		}
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Nil(t, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &v))
 		assert.Equal(t, i, v)
 	}
-	assert.Nil(t, c.DelCache())
+	assert.Nil(t, c.Del())
 	for i := 0; i < total; i++ {
-		assert.Nil(t, c.DelCache(fmt.Sprintf("key/%d", i)))
+		assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
 	}
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Equal(t, errPlaceholder, c.GetCache(fmt.Sprintf("key/%d", i), &v))
+		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &v)))
 		assert.Equal(t, 0, v)
 	}
 }
@@ -183,7 +188,7 @@ func TestCache_Balance(t *testing.T) {
 		errNotFound: errPlaceholder,
 	}
 	for i := 0; i < total; i++ {
-		assert.Nil(t, c.SetCache(strconv.Itoa(i), i))
+		assert.Nil(t, c.Set(strconv.Itoa(i), i))
 	}
 
 	counts := make(map[int]int)
@@ -196,13 +201,13 @@ func TestCache_Balance(t *testing.T) {
 
 	for i := 0; i < total; i++ {
 		var v int
-		assert.Nil(t, c.GetCache(strconv.Itoa(i), &v))
+		assert.Nil(t, c.Get(strconv.Itoa(i), &v))
 		assert.Equal(t, i, v)
 	}
 
 	for i := 0; i < total/10; i++ {
-		assert.Nil(t, c.DelCache(strconv.Itoa(i*10), strconv.Itoa(i*10+1), strconv.Itoa(i*10+2)))
-		assert.Nil(t, c.DelCache(strconv.Itoa(i*10+9)))
+		assert.Nil(t, c.Del(strconv.Itoa(i*10), strconv.Itoa(i*10+1), strconv.Itoa(i*10+2)))
+		assert.Nil(t, c.Del(strconv.Itoa(i*10+9)))
 	}
 
 	var count int
@@ -232,11 +237,11 @@ func TestCacheNoNode(t *testing.T) {
 		dispatcher:  dispatcher,
 		errNotFound: errPlaceholder,
 	}
-	assert.NotNil(t, c.DelCache("foo"))
-	assert.NotNil(t, c.DelCache("foo", "bar", "any"))
-	assert.NotNil(t, c.GetCache("foo", nil))
-	assert.NotNil(t, c.SetCache("foo", nil))
-	assert.NotNil(t, c.SetCacheWithExpire("foo", nil, time.Second))
+	assert.NotNil(t, c.Del("foo"))
+	assert.NotNil(t, c.Del("foo", "bar", "any"))
+	assert.NotNil(t, c.Get("foo", nil))
+	assert.NotNil(t, c.Set("foo", nil))
+	assert.NotNil(t, c.SetWithExpire("foo", nil, time.Second))
 	assert.NotNil(t, c.Take(nil, "foo", func(v interface{}) error {
 		return nil
 	}))

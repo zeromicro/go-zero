@@ -45,6 +45,7 @@ type (
 	}
 )
 
+// Deref dereferences a type, if pointer type, returns its element type.
 func Deref(t reflect.Type) reflect.Type {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -53,6 +54,7 @@ func Deref(t reflect.Type) reflect.Type {
 	return t
 }
 
+// Repr returns the string representation of v.
 func Repr(v interface{}) string {
 	if v == nil {
 		return ""
@@ -69,46 +71,10 @@ func Repr(v interface{}) string {
 		val = val.Elem()
 	}
 
-	switch vt := val.Interface().(type) {
-	case bool:
-		return strconv.FormatBool(vt)
-	case error:
-		return vt.Error()
-	case float32:
-		return strconv.FormatFloat(float64(vt), 'f', -1, 32)
-	case float64:
-		return strconv.FormatFloat(vt, 'f', -1, 64)
-	case fmt.Stringer:
-		return vt.String()
-	case int:
-		return strconv.Itoa(vt)
-	case int8:
-		return strconv.Itoa(int(vt))
-	case int16:
-		return strconv.Itoa(int(vt))
-	case int32:
-		return strconv.Itoa(int(vt))
-	case int64:
-		return strconv.FormatInt(vt, 10)
-	case string:
-		return vt
-	case uint:
-		return strconv.FormatUint(uint64(vt), 10)
-	case uint8:
-		return strconv.FormatUint(uint64(vt), 10)
-	case uint16:
-		return strconv.FormatUint(uint64(vt), 10)
-	case uint32:
-		return strconv.FormatUint(uint64(vt), 10)
-	case uint64:
-		return strconv.FormatUint(vt, 10)
-	case []byte:
-		return string(vt)
-	default:
-		return fmt.Sprint(val.Interface())
-	}
+	return reprOfValue(val)
 }
 
+// ValidatePtr validates v if it's a valid pointer.
 func ValidatePtr(v *reflect.Value) error {
 	// sequence is very important, IsNil must be called after checking Kind() with reflect.Ptr,
 	// panic otherwise
@@ -124,23 +90,26 @@ func convertType(kind reflect.Kind, str string) (interface{}, error) {
 	case reflect.Bool:
 		return str == "1" || strings.ToLower(str) == "true", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		if intValue, err := strconv.ParseInt(str, 10, 64); err != nil {
+		intValue, err := strconv.ParseInt(str, 10, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as int", str)
-		} else {
-			return intValue, nil
 		}
+
+		return intValue, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		if uintValue, err := strconv.ParseUint(str, 10, 64); err != nil {
+		uintValue, err := strconv.ParseUint(str, 10, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as uint", str)
-		} else {
-			return uintValue, nil
 		}
+
+		return uintValue, nil
 	case reflect.Float32, reflect.Float64:
-		if floatValue, err := strconv.ParseFloat(str, 64); err != nil {
+		floatValue, err := strconv.ParseFloat(str, 64)
+		if err != nil {
 			return 0, fmt.Errorf("the value %q cannot parsed as float", str)
-		} else {
-			return floatValue, nil
 		}
+
+		return floatValue, nil
 	case reflect.String:
 		return str, nil
 	default:
@@ -153,58 +122,19 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 	key := strings.TrimSpace(segments[0])
 	options := segments[1:]
 
-	if len(options) > 0 {
-		var fieldOpts fieldOptions
-
-		for _, segment := range options {
-			option := strings.TrimSpace(segment)
-			switch {
-			case option == stringOption:
-				fieldOpts.FromString = true
-			case strings.HasPrefix(option, optionalOption):
-				segs := strings.Split(option, equalToken)
-				switch len(segs) {
-				case 1:
-					fieldOpts.Optional = true
-				case 2:
-					fieldOpts.Optional = true
-					fieldOpts.OptionalDep = segs[1]
-				default:
-					return "", nil, fmt.Errorf("field %s has wrong optional", field.Name)
-				}
-			case option == optionalOption:
-				fieldOpts.Optional = true
-			case strings.HasPrefix(option, optionsOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong options", field.Name)
-				} else {
-					fieldOpts.Options = strings.Split(segs[1], optionSeparator)
-				}
-			case strings.HasPrefix(option, defaultOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong default option", field.Name)
-				} else {
-					fieldOpts.Default = strings.TrimSpace(segs[1])
-				}
-			case strings.HasPrefix(option, rangeOption):
-				segs := strings.Split(option, equalToken)
-				if len(segs) != 2 {
-					return "", nil, fmt.Errorf("field %s has wrong range", field.Name)
-				}
-				if nr, err := parseNumberRange(segs[1]); err != nil {
-					return "", nil, err
-				} else {
-					fieldOpts.Range = nr
-				}
-			}
-		}
-
-		return key, &fieldOpts, nil
+	if len(options) == 0 {
+		return key, nil, nil
 	}
 
-	return key, nil, nil
+	var fieldOpts fieldOptions
+	for _, segment := range options {
+		option := strings.TrimSpace(segment)
+		if err := parseOption(&fieldOpts, field.Name, option); err != nil {
+			return "", nil, err
+		}
+	}
+
+	return key, &fieldOpts, nil
 }
 
 func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
@@ -238,6 +168,28 @@ func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func isLeftInclude(b byte) (bool, error) {
+	switch b {
+	case '[':
+		return true, nil
+	case '(':
+		return false, nil
+	default:
+		return false, errNumberRange
+	}
+}
+
+func isRightInclude(b byte) (bool, error) {
+	switch b {
+	case ']':
+		return true, nil
+	case ')':
+		return false, nil
+	default:
+		return false, errNumberRange
+	}
 }
 
 func maybeNewValue(field reflect.StructField, value reflect.Value) {
@@ -281,14 +233,9 @@ func parseNumberRange(str string) (*numberRange, error) {
 		return nil, errNumberRange
 	}
 
-	var leftInclude bool
-	switch str[0] {
-	case '[':
-		leftInclude = true
-	case '(':
-		leftInclude = false
-	default:
-		return nil, errNumberRange
+	leftInclude, err := isLeftInclude(str[0])
+	if err != nil {
+		return nil, err
 	}
 
 	str = str[1:]
@@ -296,14 +243,9 @@ func parseNumberRange(str string) (*numberRange, error) {
 		return nil, errNumberRange
 	}
 
-	var rightInclude bool
-	switch str[len(str)-1] {
-	case ']':
-		rightInclude = true
-	case ')':
-		rightInclude = false
-	default:
-		return nil, errNumberRange
+	rightInclude, err := isRightInclude(str[len(str)-1])
+	if err != nil {
+		return nil, err
 	}
 
 	str = str[:len(str)-1]
@@ -342,6 +284,95 @@ func parseNumberRange(str string) (*numberRange, error) {
 		right:        right,
 		rightInclude: rightInclude,
 	}, nil
+}
+
+func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
+	switch {
+	case option == stringOption:
+		fieldOpts.FromString = true
+	case strings.HasPrefix(option, optionalOption):
+		segs := strings.Split(option, equalToken)
+		switch len(segs) {
+		case 1:
+			fieldOpts.Optional = true
+		case 2:
+			fieldOpts.Optional = true
+			fieldOpts.OptionalDep = segs[1]
+		default:
+			return fmt.Errorf("field %s has wrong optional", fieldName)
+		}
+	case option == optionalOption:
+		fieldOpts.Optional = true
+	case strings.HasPrefix(option, optionsOption):
+		segs := strings.Split(option, equalToken)
+		if len(segs) != 2 {
+			return fmt.Errorf("field %s has wrong options", fieldName)
+		}
+
+		fieldOpts.Options = strings.Split(segs[1], optionSeparator)
+	case strings.HasPrefix(option, defaultOption):
+		segs := strings.Split(option, equalToken)
+		if len(segs) != 2 {
+			return fmt.Errorf("field %s has wrong default option", fieldName)
+		}
+
+		fieldOpts.Default = strings.TrimSpace(segs[1])
+	case strings.HasPrefix(option, rangeOption):
+		segs := strings.Split(option, equalToken)
+		if len(segs) != 2 {
+			return fmt.Errorf("field %s has wrong range", fieldName)
+		}
+
+		nr, err := parseNumberRange(segs[1])
+		if err != nil {
+			return err
+		}
+
+		fieldOpts.Range = nr
+	}
+
+	return nil
+}
+
+func reprOfValue(val reflect.Value) string {
+	switch vt := val.Interface().(type) {
+	case bool:
+		return strconv.FormatBool(vt)
+	case error:
+		return vt.Error()
+	case float32:
+		return strconv.FormatFloat(float64(vt), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(vt, 'f', -1, 64)
+	case fmt.Stringer:
+		return vt.String()
+	case int:
+		return strconv.Itoa(vt)
+	case int8:
+		return strconv.Itoa(int(vt))
+	case int16:
+		return strconv.Itoa(int(vt))
+	case int32:
+		return strconv.Itoa(int(vt))
+	case int64:
+		return strconv.FormatInt(vt, 10)
+	case string:
+		return vt
+	case uint:
+		return strconv.FormatUint(uint64(vt), 10)
+	case uint8:
+		return strconv.FormatUint(uint64(vt), 10)
+	case uint16:
+		return strconv.FormatUint(uint64(vt), 10)
+	case uint32:
+		return strconv.FormatUint(uint64(vt), 10)
+	case uint64:
+		return strconv.FormatUint(vt, 10)
+	case []byte:
+		return string(vt)
+	default:
+		return fmt.Sprint(val.Interface())
+	}
 }
 
 func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v interface{}) error {
