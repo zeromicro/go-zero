@@ -116,8 +116,12 @@ func Parse(filename string) ([]*Table, error) {
 		}
 
 		var fields []*Field
-		for _, e := range fieldM {
-			fields = append(fields, e)
+		// sort
+		for _, c := range columns {
+			field, ok := fieldM[c.Name]
+			if ok {
+				fields = append(fields, field)
+			}
 		}
 
 		var (
@@ -189,6 +193,9 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		if column.Constraint != nil {
 			comment = column.Constraint.Comment
 			isDefaultNull = !column.Constraint.HasDefaultValue
+			if column.Name == primaryColumn && column.Constraint.AutoIncrement {
+				isDefaultNull = false
+			}
 		}
 
 		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull)
