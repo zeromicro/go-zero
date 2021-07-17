@@ -13,14 +13,15 @@ import (
 
 func TestParseForm(t *testing.T) {
 	var v struct {
-		Name    string   `form:"name"`
-		Age     int      `form:"age"`
-		Percent float64  `form:"percent,optional"`
-		Addrs   []string `form:"addrs[]"`
-		Foo     []string `form:"foo[]"`
+		Name    string    `form:"name"`
+		Age     int       `form:"age"`
+		Percent float64   `form:"percent,optional"`
+		Addrs   []string  `form:"addrs[]"`
+		Foo     []int     `form:"foo[]"`
+		Foo1    []float64 `form:"foo1[]"`
 	}
 
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4&addrs=addr1&addrs=addr2", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4&addrs=addr1&addrs=addr2&foo1=2.0&foo1=1.1", nil)
 	assert.Nil(t, err)
 
 	r.PostForm = url.Values{}
@@ -32,7 +33,8 @@ func TestParseForm(t *testing.T) {
 	assert.Equal(t, 18, v.Age)
 	assert.Equal(t, 3.4, v.Percent)
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
-	assert.Equal(t, []string{"2", "1"}, v.Foo)
+	assert.Equal(t, []int{2, 1}, v.Foo)
+	assert.Equal(t, []float64{2.0, 1.1}, v.Foo1)
 }
 
 func TestParseHeader(t *testing.T) {
@@ -214,10 +216,12 @@ func BenchmarkParseAuto(b *testing.B) {
 
 func TestParseHeaders(t *testing.T) {
 	v := struct {
-		Name    string   `header:"name"`
-		Phone   []string `header:"phone[]"`
-		Percent string   `header:"Percent"`
-		Addrs   []string `header:"Addrs[]"`
+		Name    string    `header:"name"`
+		Phone   []string  `header:"phone[]"`
+		Percent string    `header:"Percent"`
+		Addrs   []string  `header:"Addrs[]"`
+		Foo     []int     `header:"foo[]"`
+		Foo1    []float64 `header:"foo1[]"`
 	}{}
 	request, err := http.NewRequest("POST", "http://hello.com/", nil)
 	if err != nil {
@@ -230,12 +234,18 @@ func TestParseHeaders(t *testing.T) {
 	request.Header.Set("percent", "1")
 	request.Header.Add("addrs", "addr1")
 	request.Header.Add("addrs", "addr2")
+	request.Header.Add("foo", "1")
+	request.Header.Add("foo", "2")
+	request.Header.Add("foo1", "1")
+	request.Header.Add("foo1", "2")
+
 	err = ParseHeaders(request, &v)
-	if err != nil {
-		t.Fatal(err)
-	}
+
+	assert.NoError(t, err)
 	assert.Equal(t, "chenquan", v.Name)
 	assert.Equal(t, []string{"111111111", "122222222"}, v.Phone)
 	assert.Equal(t, "1", v.Percent)
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+	assert.Equal(t, []int{1, 2}, v.Foo)
+	assert.Equal(t, []float64{1, 2}, v.Foo1)
 }

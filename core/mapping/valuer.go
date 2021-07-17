@@ -40,9 +40,11 @@ func (mv HeaderMapValuer) Value(key string) (interface{}, bool) {
 		}
 	}
 	v, ok := mv[textproto.CanonicalMIMEHeaderKey(headerKey)]
-	if !isSlice {
+	if !isSlice && ok {
 		if newV, yes := v.([]string); yes && len(newV) > 0 {
 			v = newV[0]
+		} else {
+			return nil, false
 		}
 	}
 
@@ -62,7 +64,7 @@ func (mv FormMapValuer) Value(key string) (interface{}, bool) {
 		}
 	}
 	v, ok := mv[key]
-	if !isSlice {
+	if !isSlice && ok {
 		if newV, yes := v.([]string); yes && len(newV) > 0 {
 			v = newV[0]
 		} else {
