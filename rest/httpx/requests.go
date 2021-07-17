@@ -3,6 +3,7 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/mapping"
@@ -45,17 +46,12 @@ func Parse(r *http.Request, v interface{}) error {
 
 // ParseHeaders parses the headers request.
 func ParseHeaders(r *http.Request, v interface{}) error {
-	m := map[string]interface{}{}
+	m := make(mapping.HeaderMapValuer, len(r.Header))
 	for k, v := range r.Header {
-		k = strings.ToLower(k)
-		if len(v) == 1 {
-			m[k] = v[0]
-		} else {
-			m[k] = v
-		}
+		m[textproto.CanonicalMIMEHeaderKey(k)] = v
 	}
 
-	return headerUnmarshaler.Unmarshal(m, v)
+	return headerUnmarshaler.UnmarshalValuer(m, v)
 }
 
 // ParseForm parses the form request.
@@ -70,15 +66,14 @@ func ParseForm(r *http.Request, v interface{}) error {
 		}
 	}
 
-	params := make(map[string]interface{}, len(r.Form))
-	for name := range r.Form {
-		formValue := r.Form.Get(name)
-		if len(formValue) > 0 {
-			params[name] = formValue
+	params := make(mapping.FormMapValuer, len(r.Form))
+	for name, value := range r.Form {
+		if len(value) > 0 {
+			params[name] = value
 		}
 	}
 
-	return formUnmarshaler.Unmarshal(params, v)
+	return formUnmarshaler.UnmarshalValuer(params, v)
 }
 
 // ParseHeader parses the request header and returns a map.

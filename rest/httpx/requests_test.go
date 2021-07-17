@@ -3,6 +3,7 @@ package httpx
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -12,17 +13,26 @@ import (
 
 func TestParseForm(t *testing.T) {
 	var v struct {
-		Name    string  `form:"name"`
-		Age     int     `form:"age"`
-		Percent float64 `form:"percent,optional"`
+		Name    string   `form:"name"`
+		Age     int      `form:"age"`
+		Percent float64  `form:"percent,optional"`
+		Addrs   []string `form:"addrs[]"`
+		Foo     []string `form:"foo[]"`
 	}
 
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4&addrs=addr1&addrs=addr2", nil)
 	assert.Nil(t, err)
+
+	r.PostForm = url.Values{}
+	r.PostForm.Add("foo", "2")
+	r.PostForm.Add("foo", "1")
+
 	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "hello", v.Name)
 	assert.Equal(t, 18, v.Age)
 	assert.Equal(t, 3.4, v.Percent)
+	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+	assert.Equal(t, []string{"2", "1"}, v.Foo)
 }
 
 func TestParseHeader(t *testing.T) {
@@ -205,14 +215,18 @@ func BenchmarkParseAuto(b *testing.B) {
 func TestParseHeaders(t *testing.T) {
 	v := struct {
 		Name    string   `header:"name"`
-		Percent string   `header:"percent"`
-		Addrs   []string `header:"addrs"`
+		Phone   []string `header:"phone[]"`
+		Percent string   `header:"Percent"`
+		Addrs   []string `header:"Addrs[]"`
 	}{}
 	request, err := http.NewRequest("POST", "http://hello.com/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Header.Set("name", "chenquan")
+	request.Header = map[string][]string{"name": {"chenquan"}, "context-application": {"chenquan"}}
+	request.Header.Add("phone", "111111111")
+	request.Header.Add("phone", "122222222")
+	request.Header.Set("percent", "1")
 	request.Header.Set("percent", "1")
 	request.Header.Add("addrs", "addr1")
 	request.Header.Add("addrs", "addr2")
@@ -221,6 +235,7 @@ func TestParseHeaders(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, "chenquan", v.Name)
+	assert.Equal(t, []string{"111111111", "122222222"}, v.Phone)
 	assert.Equal(t, "1", v.Percent)
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
 }
