@@ -501,10 +501,8 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 	case json.Number:
 		return setValue(baseKind, ithVal, v.String())
 	default:
-		if vStr, ok := value.(string); ok {
-			if u.opts.fromString || opts.fromString() {
-				return setValue(baseKind, ithVal, vStr)
-			}
+		if vStr, ok := value.(string); ok && (u.opts.fromString || opts.fromString()) {
+			return setValue(baseKind, ithVal, vStr)
 		}
 
 		// don't need to consider the difference between int, int8, int16, int32, int64,
