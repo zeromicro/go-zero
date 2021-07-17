@@ -67,9 +67,16 @@ func ParseForm(r *http.Request, v interface{}) error {
 	}
 
 	params := make(mapping.FormMapValuer, len(r.Form))
-	for name, value := range r.Form {
-		if len(value) > 0 {
-			params[name] = value
+	for name, values := range r.Form {
+		valuesLen := len(values)
+		if valuesLen > 0 {
+			newValues := make([]string, 0, valuesLen)
+			for i := 0; i < valuesLen; i++ {
+				if len(values[i]) > 0 {
+					newValues = append(newValues, values[i])
+				}
+			}
+			params[name] = newValues
 		}
 	}
 
