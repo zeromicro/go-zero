@@ -74,7 +74,6 @@ func TestRpcGenerate(t *testing.T) {
 				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
 			}())
 		}
-
 	})
 
 	// case not in go mod and go path

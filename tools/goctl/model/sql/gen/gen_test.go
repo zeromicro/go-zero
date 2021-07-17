@@ -23,7 +23,7 @@ func TestCacheModel(t *testing.T) {
 	_ = Clean()
 
 	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte(source), 0777)
+	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
 	assert.Nil(t, err)
 
 	dir := filepath.Join(t.TempDir(), "./testmodel")
@@ -58,7 +58,7 @@ func TestNamingModel(t *testing.T) {
 	_ = Clean()
 
 	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte(source), 0777)
+	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
 	assert.Nil(t, err)
 
 	dir, _ := filepath.Abs("./testmodel")

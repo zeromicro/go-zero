@@ -83,7 +83,7 @@ func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *con
 	return nil
 }
 
-func (g *DefaultGenerator) genLogicFunction(serviceName string, goPackage string, rpc *parser.RPC) (string, error) {
+func (g *DefaultGenerator) genLogicFunction(serviceName, goPackage string, rpc *parser.RPC) (string, error) {
 	functions := make([]string, 0)
 	text, err := util.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
 	if err != nil {

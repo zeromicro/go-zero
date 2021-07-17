@@ -12,7 +12,7 @@ import (
 
 func TestParsePlainText(t *testing.T) {
 	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte("plain text"), 0777)
+	err := ioutil.WriteFile(sqlFile, []byte("plain text"), 0o777)
 	assert.Nil(t, err)
 
 	_, err = Parse(sqlFile)
@@ -21,7 +21,7 @@ func TestParsePlainText(t *testing.T) {
 
 func TestParseSelect(t *testing.T) {
 	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte("select * from user"), 0777)
+	err := ioutil.WriteFile(sqlFile, []byte("select * from user"), 0o777)
 	assert.Nil(t, err)
 
 	tables, err := Parse(sqlFile)
@@ -31,7 +31,7 @@ func TestParseSelect(t *testing.T) {
 
 func TestParseCreateTable(t *testing.T) {
 	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte("CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL comment '手\\t机  号',\n  `class` bigint NOT NULL comment '班级',\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL comment '姓\n  名',\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP comment '创建\\r时间',\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"), 0777)
+	err := ioutil.WriteFile(sqlFile, []byte("CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL comment '手\\t机  号',\n  `class` bigint NOT NULL comment '班级',\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL comment '姓\n  名',\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP comment '创建\\r时间',\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"), 0o777)
 	assert.Nil(t, err)
 
 	tables, err := Parse(sqlFile)
