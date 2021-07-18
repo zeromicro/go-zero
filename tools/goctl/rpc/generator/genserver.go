@@ -91,15 +91,7 @@ func (g *DefaultGenerator) genFunctions(goPackage string, service parser.Service
 		}
 
 		comment := parser.GetComment(rpc.Doc())
-		var streamServer string
-		if rpc.StreamsRequest && rpc.StreamsReturns {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_StreamServer")
-		} else if rpc.StreamsRequest {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ClientStreamServer")
-		} else {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ServerStreamServer")
-		}
-
+		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Server")
 		buffer, err := util.With("func").Parse(text).Execute(map[string]interface{}{
 			"server":     stringx.From(service.Name).ToCamel(),
 			"logicName":  fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),

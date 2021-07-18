@@ -115,14 +115,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 		}
 
 		comment := parser.GetComment(rpc.Doc())
-		var streamServer string
-		if rpc.StreamsRequest && rpc.StreamsReturns {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_StreamClient")
-		} else if rpc.StreamsRequest {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ClientStreamClient")
-		} else {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ServerStreamClient")
-		}
+		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
 		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
 			"serviceName":    stringx.From(service.Name).ToCamel(),
 			"rpcServiceName": parser.CamelCase(service.Name),
@@ -155,15 +148,7 @@ func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Se
 		}
 
 		comment := parser.GetComment(rpc.Doc())
-		var streamServer string
-		if rpc.StreamsRequest && rpc.StreamsReturns {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_StreamClient")
-		} else if rpc.StreamsRequest {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ClientStreamClient")
-		} else {
-			streamServer = fmt.Sprintf("%s.%s", goPackage, parser.CamelCase(service.Name)+"_ServerStreamClient")
-		}
-
+		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
 		buffer, err := util.With("interfaceFn").Parse(text).Execute(
 			map[string]interface{}{
 				"hasComment": len(comment) > 0,
