@@ -211,14 +211,7 @@ go get -u github.com/tal-tech/go-zero
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
-## 9. Important notes
-
-* For protobuf compatibility, use `protocol-gen@v1.3.2`.
-
-  ` go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
-
-
-## 10. Chat group
+## 9. Chat group
 
 Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-thyennhc-_fNXFpeUJcGE_tQNZFpsdA
 
