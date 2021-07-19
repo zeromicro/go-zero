@@ -161,13 +161,8 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
   [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
 
-* 常见问题
-
-  * 因为 `protobuf` 兼容性问题，请使用 `protocol-gen@v1.3.2`
-
-    `go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
-
 * awesome 系列（更多文章见『微服务实践』公众号）
+
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
