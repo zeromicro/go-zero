@@ -163,10 +163,6 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * 常见问题
 
-  * 因为 `etcd` 和 `grpc` 兼容性问题，请使用 `grpc@v1.29.1`
-
-    `google.golang.org/grpc v1.29.1`
-
   * 因为 `protobuf` 兼容性问题，请使用 `protocol-gen@v1.3.2`
 
     `go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
@@ -224,6 +220,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >33. 上海鲸思智能科技有限公司
 >34. 南宁宸升计算机科技有限公司
 >35. 秦皇岛2084team
+>36. 天翼云股份有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/tal-tech/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
