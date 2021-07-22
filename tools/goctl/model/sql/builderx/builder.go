@@ -3,6 +3,7 @@ package builderx
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-xorm/builder"
 )
@@ -105,4 +106,17 @@ func RawFieldNames(in interface{}) []string {
 	}
 
 	return out
+}
+
+func PostgreSqlJoin(elems []string) string {
+	var b = new(strings.Builder)
+	for index, e := range elems {
+		b.WriteString(fmt.Sprintf("%s = $%d, ", e, index+1))
+	}
+
+	if b.Len() == 0 {
+		return b.String()
+	}
+
+	return b.String()[0 : b.Len()-2]
 }

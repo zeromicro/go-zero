@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genUpdate(table Table, withCache bool) (string, string, error) {
+func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) {
 	expressionValues := make([]string, 0)
 	for _, field := range table.Fields {
 		camel := field.Name.ToCamel()
@@ -52,6 +52,7 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
 			"expressionValues":      strings.Join(expressionValues, ", "),
+			"postgreSql":            postgreSql,
 		})
 	if err != nil {
 		return "", "", nil

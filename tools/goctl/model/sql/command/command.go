@@ -2,11 +2,14 @@ package command
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stores/postgres"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
@@ -17,13 +20,13 @@ import (
 )
 
 const (
-	flagSrc   = "src"
-	flagDir   = "dir"
-	flagCache = "cache"
-	flagIdea  = "idea"
-	flagURL   = "url"
-	flagTable = "table"
-	flagStyle = "style"
+	flagSrc      = "src"
+	flagDir      = "dir"
+	flagCache    = "cache"
+	flagIdea     = "idea"
+	flagURL      = "url"
+	flagTable    = "table"
+	flagStyle    = "style"
 	flagDatabase = "database"
 )
 
@@ -45,8 +48,8 @@ func MysqlDDL(ctx *cli.Context) error {
 	return fromDDl(src, dir, cfg, cache, idea, database)
 }
 
-// MyDataSource generates model code from datasource
-func MyDataSource(ctx *cli.Context) error {
+// MySqlDataSource generates model code from datasource
+func MySqlDataSource(ctx *cli.Context) error {
 	url := strings.TrimSpace(ctx.String(flagURL))
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
@@ -58,7 +61,23 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
-	return fromDataSource(url, pattern, dir, cfg, cache, idea)
+	return fromMysqlDataSource(url, pattern, dir, cfg, cache, idea)
+}
+
+// PostgreSqlDataSource generates model code from datasource
+func PostgreSqlDataSource(ctx *cli.Context) error {
+	url := strings.TrimSpace(ctx.String(flagURL))
+	dir := strings.TrimSpace(ctx.String(flagDir))
+	cache := ctx.Bool(flagCache)
+	idea := ctx.Bool(flagIdea)
+	style := ctx.String(flagStyle)
+	pattern := strings.TrimSpace(ctx.String(flagTable))
+	cfg, err := config.NewConfig(style)
+	if err != nil {
+		return err
+	}
+
+	return fromPostgreSqlDataSource(url, pattern, dir, cfg, cache, idea)
 }
 
 func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
@@ -92,7 +111,7 @@ func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database str
 	return nil
 }
 
-func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
+func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
@@ -153,4 +172,83 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 	}
 
 	return generator.StartFromInformationSchema(matchTables, cache)
+}
+
+func fromPostgreSqlDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
+	log := console.NewConsole(idea)
+	if len(url) == 0 {
+		log.Error("%v", "expected data source of mysql, but nothing found")
+		return nil
+	}
+
+	if len(pattern) == 0 {
+		log.Error("%v", "expected table or table globbing patterns, but nothing found")
+		return nil
+	}
+	db := postgres.New(url)
+	im := model.NewPostgreSqlModel(db)
+
+	dbName, err := getPostgreSqlDb(url)
+	if err != nil {
+		return err
+	}
+
+	tables, err := im.GetAllTables(dbName)
+	if err != nil {
+		return err
+	}
+
+	matchTables := make(map[string]*model.Table)
+	for _, item := range tables {
+		match, err := filepath.Match(pattern, item)
+		if err != nil {
+			return err
+		}
+
+		if !match {
+			continue
+		}
+
+		columnData, err := im.FindColumns(dbName, item)
+		if err != nil {
+			return err
+		}
+
+		table, err := columnData.Convert()
+		if err != nil {
+			return err
+		}
+
+		matchTables[item] = table
+	}
+
+	if len(matchTables) == 0 {
+		return errors.New("no tables matched")
+	}
+
+	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql())
+	if err != nil {
+		return err
+	}
+
+	return generator.StartFromInformationSchema(matchTables, cache)
+}
+
+func getPostgreSqlDb(url string) (string, error) {
+	dns, err := pq.ParseURL(url)
+	if err != nil {
+		return "", err
+	}
+	fields := strings.Fields(dns)
+	for _, f := range fields {
+		s := strings.Split(f, "=")
+		if len(s) != 2 {
+			continue
+		}
+		if s[0] == "dbname" {
+			return strings.TrimSpace(s[1]), nil
+		}
+	}
+
+	return "", fmt.Errorf("missing db name in '%s'", url)
 }

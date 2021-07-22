@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genDelete(table Table, withCache bool) (string, string, error) {
+func genDelete(table Table, withCache, postgreSql bool) (string, string, error) {
 	keySet := collection.NewSet()
 	keyVariableSet := collection.NewSet()
 	keySet.AddStr(table.PrimaryCacheKey.KeyExpression)
@@ -36,6 +36,7 @@ func genDelete(table Table, withCache bool) (string, string, error) {
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
 			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source()),
 			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
+			"postgreSql":                postgreSql,
 		})
 	if err != nil {
 		return "", "", err

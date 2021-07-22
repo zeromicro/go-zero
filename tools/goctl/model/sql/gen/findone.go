@@ -6,7 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genFindOne(table Table, withCache bool) (string, string, error) {
+func genFindOne(table Table, withCache, postgreSql bool) (string, string, error) {
 	camel := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
 	if err != nil {
@@ -24,6 +24,7 @@ func genFindOne(table Table, withCache bool) (string, string, error) {
 			"dataType":                  table.PrimaryKey.DataType,
 			"cacheKey":                  table.PrimaryCacheKey.KeyExpression,
 			"cacheKeyVariable":          table.PrimaryCacheKey.KeyLeft,
+			"postgreSql":                postgreSql,
 		})
 	if err != nil {
 		return "", "", err
