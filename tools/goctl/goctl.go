@@ -419,6 +419,10 @@ var (
 									Name:  "idea",
 									Usage: "for idea plugin [optional]",
 								},
+								cli.StringFlag{
+									Name:  "database, db",
+									Usage: "the name of database [optional]",
+								},
 							},
 							Action: model.MysqlDDL,
 						},
