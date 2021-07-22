@@ -13,8 +13,10 @@ import (
 const drainWorkers = 8
 
 type (
+	// Execute defines the method to execute the task.
 	Execute func(key, value interface{})
 
+	// A TimingWheel is a timing wheel object to schedule tasks.
 	TimingWheel struct {
 		interval      time.Duration
 		ticker        timex.Ticker
@@ -54,6 +56,7 @@ type (
 	}
 )
 
+// NewTimingWheel returns a TimingWheel.
 func NewTimingWheel(interval time.Duration, numSlots int, execute Execute) (*TimingWheel, error) {
 	if interval <= 0 || numSlots <= 0 || execute == nil {
 		return nil, fmt.Errorf("interval: %v, slots: %d, execute: %p", interval, numSlots, execute)
@@ -85,10 +88,12 @@ func newTimingWheelWithClock(interval time.Duration, numSlots int, execute Execu
 	return tw, nil
 }
 
+// Drain drains all items and executes them.
 func (tw *TimingWheel) Drain(fn func(key, value interface{})) {
 	tw.drainChannel <- fn
 }
 
+// MoveTimer moves the task with the given key to the given delay.
 func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) {
 	if delay <= 0 || key == nil {
 		return
@@ -100,6 +105,7 @@ func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) {
 	}
 }
 
+// RemoveTimer removes the task with the given key.
 func (tw *TimingWheel) RemoveTimer(key interface{}) {
 	if key == nil {
 		return
@@ -108,6 +114,7 @@ func (tw *TimingWheel) RemoveTimer(key interface{}) {
 	tw.removeChannel <- key
 }
 
+// SetTimer sets the task value with the given key to the delay.
 func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
 	if delay <= 0 || key == nil {
 		return
@@ -122,6 +129,7 @@ func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
 	}
 }
 
+// Stop stops tw.
 func (tw *TimingWheel) Stop() {
 	close(tw.stopChannel)
 }
@@ -143,7 +151,7 @@ func (tw *TimingWheel) drainAll(fn func(key, value interface{})) {
 	}
 }
 
-func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos int, circle int) {
+func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos, circle int) {
 	steps := int(d / tw.interval)
 	pos = (tw.tickedPos + steps) % tw.numSlots
 	circle = (steps - 1) / tw.numSlots
@@ -204,6 +212,7 @@ func (tw *TimingWheel) removeTask(key interface{}) {
 
 	timer := val.(*positionEntry)
 	timer.item.removed = true
+	tw.timers.Del(key)
 }
 
 func (tw *TimingWheel) run() {
@@ -248,7 +257,6 @@ func (tw *TimingWheel) scanAndRunTasks(l *list.List) {
 		if task.removed {
 			next := e.Next()
 			l.Remove(e)
-			tw.timers.Del(task.key)
 			e = next
 			continue
 		} else if task.circle > 0 {
@@ -301,6 +309,7 @@ func (tw *TimingWheel) setTask(task *timingEntry) {
 func (tw *TimingWheel) setTimerPosition(pos int, task *timingEntry) {
 	if val, ok := tw.timers.Get(task.key); ok {
 		timer := val.(*positionEntry)
+		timer.item = task
 		timer.pos = pos
 	} else {
 		tw.timers.Set(task.key, &positionEntry{

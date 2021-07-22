@@ -29,5 +29,5 @@ func TestTimeoutLimit(t *testing.T) {
 	assert.Equal(t, ErrTimeout, limit.Borrow(time.Millisecond*100))
 	assert.Nil(t, limit.Return())
 	assert.Nil(t, limit.Return())
-	assert.Equal(t, ErrReturn, limit.Return())
+	assert.Equal(t, ErrLimitReturn, limit.Return())
 }

@@ -132,8 +132,8 @@ func TestConsistentHash_RemoveInterface(t *testing.T) {
 	assert.Equal(t, 1, len(ch.nodes))
 	node, ok := ch.Get(1)
 	assert.True(t, ok)
-	assert.Equal(t, key, node.(*MockNode).Addr)
-	assert.Equal(t, 2, node.(*MockNode).Id)
+	assert.Equal(t, key, node.(*mockNode).addr)
+	assert.Equal(t, 2, node.(*mockNode).id)
 }
 
 func getKeysBeforeAndAfterFailure(t *testing.T, prefix string, index int) (map[int]string, map[int]string) {
@@ -164,18 +164,18 @@ func getKeysBeforeAndAfterFailure(t *testing.T, prefix string, index int) (map[i
 	return keys, newKeys
 }
 
-type MockNode struct {
-	Addr string
-	Id   int
+type mockNode struct {
+	addr string
+	id   int
 }
 
-func newMockNode(addr string, id int) *MockNode {
-	return &MockNode{
-		Addr: addr,
-		Id:   id,
+func newMockNode(addr string, id int) *mockNode {
+	return &mockNode{
+		addr: addr,
+		id:   id,
 	}
 }
 
-func (n *MockNode) String() string {
-	return n.Addr
+func (n *mockNode) String() string {
+	return n.addr
 }

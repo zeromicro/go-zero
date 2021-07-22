@@ -15,7 +15,7 @@ const testlog = "Stay hungry, stay foolish."
 func TestCollectSysLog(t *testing.T) {
 	CollectSysLog()
 	content := getContent(captureOutput(func() {
-		log.Printf(testlog)
+		log.Print(testlog)
 	}))
 	assert.True(t, strings.Contains(content, testlog))
 }
@@ -33,10 +33,10 @@ func captureOutput(f func()) string {
 	writer := new(mockWriter)
 	infoLog = writer
 
-	prevLevel := logLevel
-	logLevel = InfoLevel
+	prevLevel := atomic.LoadUint32(&logLevel)
+	SetLevel(InfoLevel)
 	f()
-	logLevel = prevLevel
+	SetLevel(prevLevel)
 
 	return writer.builder.String()
 }

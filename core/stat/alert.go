@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/sysx"
 	"github.com/tal-tech/go-zero/core/timex"
@@ -23,7 +24,7 @@ const (
 )
 
 var (
-	reporter     func(string)
+	reporter     = logx.Alert
 	lock         sync.RWMutex
 	lessExecutor = executors.NewLessExecutor(time.Minute * 5)
 	dropped      int32
@@ -36,6 +37,7 @@ func init() {
 	}
 }
 
+// Report reports given message.
 func Report(msg string) {
 	lock.RLock()
 	fn := reporter
@@ -62,6 +64,7 @@ func Report(msg string) {
 	}
 }
 
+// SetReporter sets the given reporter.
 func SetReporter(fn func(string)) {
 	lock.Lock()
 	defer lock.Unlock()

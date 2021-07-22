@@ -2,13 +2,13 @@ version := $(shell /bin/date "+%Y-%m-%d %H:%M")
 
 build:
 	go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" goctl.go
-	command -v upx &> /dev/null && upx goctl
+	$(if $(shell command -v upx), upx goctl)
 mac:
 	GOOS=darwin go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl-darwin goctl.go
-	command -v upx &> /dev/null && upx goctl-darwin
+	$(if $(shell command -v upx), upx goctl-darwin)
 win:
 	GOOS=windows go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl.exe goctl.go
-	command -v upx &> /dev/null && upx goctl.exe
+	$(if $(shell command -v upx), upx goctl.exe)
 linux:
 	GOOS=linux go build -ldflags="-s -w" -ldflags="-X 'main.BuildTime=$(version)'" -o goctl-linux goctl.go
-	command -v upx &> /dev/null && upx goctl-linux
+	$(if $(shell command -v upx), upx goctl-linux)

@@ -2,29 +2,58 @@ package mongoc
 
 import (
 	"github.com/globalsign/mgo"
-	"github.com/tal-tech/go-zero/core/stores/internal"
+	"github.com/tal-tech/go-zero/core/stores/cache"
 	"github.com/tal-tech/go-zero/core/stores/mongo"
 	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 var (
+	// ErrNotFound is an alias of mgo.ErrNotFound.
 	ErrNotFound = mgo.ErrNotFound
 
 	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
 	sharedCalls = syncx.NewSharedCalls()
-	stats       = internal.NewCacheStat("mongoc")
+	stats       = cache.NewStat("mongoc")
 )
 
 type (
+	// QueryOption defines the method to customize a mongo query.
 	QueryOption func(query mongo.Query) mongo.Query
+
+	// CachedCollection interface represents a mongo collection with cache.
+	CachedCollection interface {
+		Count(query interface{}) (int, error)
+		DelCache(keys ...string) error
+		FindAllNoCache(v, query interface{}, opts ...QueryOption) error
+		FindOne(v interface{}, key string, query interface{}) error
+		FindOneNoCache(v, query interface{}) error
+		FindOneId(v interface{}, key string, id interface{}) error
+		FindOneIdNoCache(v, id interface{}) error
+		GetCache(key string, v interface{}) error
+		Insert(docs ...interface{}) error
+		Pipe(pipeline interface{}) mongo.Pipe
+		Remove(selector interface{}, keys ...string) error
+		RemoveNoCache(selector interface{}) error
+		RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error)
+		RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error)
+		RemoveId(id interface{}, keys ...string) error
+		RemoveIdNoCache(id interface{}) error
+		SetCache(key string, v interface{}) error
+		Update(selector, update interface{}, keys ...string) error
+		UpdateNoCache(selector, update interface{}) error
+		UpdateId(id, update interface{}, keys ...string) error
+		UpdateIdNoCache(id, update interface{}) error
+		Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error)
+		UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error)
+	}
 
 	cachedCollection struct {
 		collection mongo.Collection
-		cache      internal.Cache
+		cache      cache.Cache
 	}
 )
 
-func newCollection(collection mongo.Collection, c internal.Cache) *cachedCollection {
+func newCollection(collection mongo.Collection, c cache.Cache) CachedCollection {
 	return &cachedCollection{
 		collection: collection,
 		cache:      c,
@@ -36,14 +65,10 @@ func (c *cachedCollection) Count(query interface{}) (int, error) {
 }
 
 func (c *cachedCollection) DelCache(keys ...string) error {
-	return c.cache.DelCache(keys...)
+	return c.cache.Del(keys...)
 }
 
-func (c *cachedCollection) GetCache(key string, v interface{}) error {
-	return c.cache.GetCache(key, v)
-}
-
-func (c *cachedCollection) FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error {
+func (c *cachedCollection) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
 	q := c.collection.Find(query)
 	for _, opt := range opts {
 		q = opt(q)
@@ -58,7 +83,7 @@ func (c *cachedCollection) FindOne(v interface{}, key string, query interface{})
 	})
 }
 
-func (c *cachedCollection) FindOneNoCache(v interface{}, query interface{}) error {
+func (c *cachedCollection) FindOneNoCache(v, query interface{}) error {
 	q := c.collection.Find(query)
 	return q.One(v)
 }
@@ -70,9 +95,13 @@ func (c *cachedCollection) FindOneId(v interface{}, key string, id interface{}) 
 	})
 }
 
-func (c *cachedCollection) FindOneIdNoCache(v interface{}, id interface{}) error {
+func (c *cachedCollection) FindOneIdNoCache(v, id interface{}) error {
 	q := c.collection.FindId(id)
 	return q.One(v)
+}
+
+func (c *cachedCollection) GetCache(key string, v interface{}) error {
+	return c.cache.Get(key, v)
 }
 
 func (c *cachedCollection) Insert(docs ...interface{}) error {
@@ -125,7 +154,7 @@ func (c *cachedCollection) RemoveIdNoCache(id interface{}) error {
 }
 
 func (c *cachedCollection) SetCache(key string, v interface{}) error {
-	return c.cache.SetCache(key, v)
+	return c.cache.Set(key, v)
 }
 
 func (c *cachedCollection) Update(selector, update interface{}, keys ...string) error {

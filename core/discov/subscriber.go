@@ -13,13 +13,19 @@ type (
 		exclusive bool
 	}
 
+	// SubOption defines the method to customize a Subscriber.
 	SubOption func(opts *subOptions)
 
+	// A Subscriber is used to subscribe the given key on a etcd cluster.
 	Subscriber struct {
 		items *container
 	}
 )
 
+// NewSubscriber returns a Subscriber.
+// endpoints is the hosts of the etcd cluster.
+// key is the key to subscribe.
+// opts are used to customize the Subscriber.
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
 	var subOpts subOptions
 	for _, opt := range opts {
@@ -36,15 +42,17 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	return sub, nil
 }
 
+// AddListener adds listener to s.
 func (s *Subscriber) AddListener(listener func()) {
 	s.items.addListener(listener)
 }
 
+// Values returns all the subscription values.
 func (s *Subscriber) Values() []string {
 	return s.items.getValues()
 }
 
-// exclusive means that key value can only be 1:1,
+// Exclusive means that key value can only be 1:1,
 // which means later added value will remove the keys associated with the same value previously.
 func Exclusive() SubOption {
 	return func(opts *subOptions) {
@@ -100,9 +108,9 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 
 	if early {
 		return previous, true
-	} else {
-		return nil, false
 	}
+
+	return nil, false
 }
 
 func (c *container) addListener(listener func()) {

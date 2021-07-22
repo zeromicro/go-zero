@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"database/sql"
+	"errors"
 	"strconv"
 	"testing"
 
@@ -11,14 +12,15 @@ import (
 )
 
 type mockedConn struct {
-	query string
-	args  []interface{}
+	query   string
+	args    []interface{}
+	execErr error
 }
 
 func (c *mockedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
 	c.query = query
 	c.args = args
-	return nil, nil
+	return nil, c.execErr
 }
 
 func (c *mockedConn) Prepare(query string) (StmtSession, error) {
@@ -68,9 +70,12 @@ func TestBulkInserterSuffix(t *testing.T) {
 		inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES`+
 			`(?, ?, ?) ON DUPLICATE KEY UPDATE is_overtime=VALUES(is_overtime)`)
 		assert.Nil(t, err)
+		assert.Nil(t, inserter.UpdateStmt(`INSERT INTO classroom_dau(classroom, user, count) VALUES`+
+			`(?, ?, ?) ON DUPLICATE KEY UPDATE is_overtime=VALUES(is_overtime)`))
 		for i := 0; i < 5; i++ {
 			assert.Nil(t, inserter.Insert("class_"+strconv.Itoa(i), "user_"+strconv.Itoa(i), i))
 		}
+		inserter.SetResultHandler(func(result sql.Result, err error) {})
 		inserter.Flush()
 		assert.Equal(t, `INSERT INTO classroom_dau(classroom, user, count) VALUES `+
 			`('class_0', 'user_0', 0), ('class_1', 'user_1', 1), ('class_2', 'user_2', 2), `+
@@ -78,6 +83,33 @@ func TestBulkInserterSuffix(t *testing.T) {
 			conn.query)
 		assert.Nil(t, conn.args)
 	})
+}
+
+func TestBulkInserterBadStatement(t *testing.T) {
+	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var conn mockedConn
+		_, err := NewBulkInserter(&conn, "foo")
+		assert.NotNil(t, err)
+	})
+}
+
+func TestBulkInserter_Update(t *testing.T) {
+	conn := mockedConn{
+		execErr: errors.New("foo"),
+	}
+	_, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES()`)
+	assert.NotNil(t, err)
+	_, err = NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES(?)`)
+	assert.NotNil(t, err)
+	inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES(?, ?, ?)`)
+	assert.Nil(t, err)
+	inserter.inserter.Execute([]string{"bar"})
+	inserter.SetResultHandler(func(result sql.Result, err error) {
+	})
+	inserter.UpdateOrDelete(func() {})
+	inserter.inserter.Execute([]string(nil))
+	assert.NotNil(t, inserter.UpdateStmt("foo"))
+	assert.NotNil(t, inserter.Insert("foo", "bar"))
 }
 
 func runSqlTest(t *testing.T, fn func(db *sql.DB, mock sqlmock.Sqlmock)) {

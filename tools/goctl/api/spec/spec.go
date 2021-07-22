@@ -1,131 +1,145 @@
 package spec
 
 type (
+	// Doc describes document
+	Doc []string
+
+	// Annotation defines key-value
 	Annotation struct {
-		Name       string
 		Properties map[string]string
 	}
 
+	// ApiSyntax describes the syntax grammar
+	ApiSyntax struct {
+		Version string
+		Doc     Doc
+		Comment Doc
+	}
+
+	// ApiSpec describes a api file
 	ApiSpec struct {
 		Info    Info
+		Syntax  ApiSyntax
+		Imports []Import
 		Types   []Type
 		Service Service
 	}
 
+	// Import describes api import
+	Import struct {
+		Value   string
+		Doc     Doc
+		Comment Doc
+	}
+
+	// Group defines a set of routing information
 	Group struct {
-		Annotations []Annotation
-		Routes      []Route
+		Annotation Annotation
+		Routes     []Route
 	}
 
+	// Info describes info grammar block
 	Info struct {
-		Title   string
-		Desc    string
+		// Deprecated: use Properties instead
+		Title string
+		// Deprecated: use Properties instead
+		Desc string
+		// Deprecated: use Properties instead
 		Version string
-		Author  string
-		Email   string
+		// Deprecated: use Properties instead
+		Author string
+		// Deprecated: use Properties instead
+		Email      string
+		Properties map[string]string
 	}
 
+	// Member describes the field of a structure
 	Member struct {
-		Annotations []Annotation
-		Name        string
+		Name string
 		// 数据类型字面值，如：string、map[int]string、[]int64、[]*User
-		Type string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		Expr interface{}
-		Tag  string
-		// Deprecated
-		Comment string // 换成标准struct中将废弃
-		// 成员尾部注释说明
-		Comments []string
+		Type    Type
+		Tag     string
+		Comment string
 		// 成员头顶注释说明
-		Docs     []string
+		Docs     Doc
 		IsInline bool
 	}
 
+	// Route describes api route
 	Route struct {
-		Annotations  []Annotation
-		Method       string
-		Path         string
-		RequestType  Type
-		ResponseType Type
+		AtServerAnnotation Annotation
+		Method             string
+		Path               string
+		RequestType        Type
+		ResponseType       Type
+		Docs               Doc
+		Handler            string
+		AtDoc              AtDoc
+		HandlerDoc         Doc
+		HandlerComment     Doc
+		Doc                Doc
+		Comment            Doc
 	}
 
+	// Service describes api service
 	Service struct {
-		Name        string
-		Annotations []Annotation
-		Routes      []Route
-		Groups      []Group
+		Name   string
+		Groups []Group
 	}
 
-	Type struct {
-		Name        string
-		Annotations []Annotation
-		Members     []Member
+	// Type defines api type
+	Type interface {
+		Name() string
+		Comments() []string
+		Documents() []string
 	}
 
-	// 系统预设基本数据类型
-	BasicType struct {
-		StringExpr string
-		Name       string
-	}
-	PointerType struct {
-		StringExpr string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		Star interface{}
+	// DefineStruct describes api structure
+	DefineStruct struct {
+		RawName string
+		Members []Member
+		Docs    Doc
 	}
 
+	// PrimitiveType describes the basic golang type, such as bool,int32,int64, ...
+	PrimitiveType struct {
+		RawName string
+	}
+
+	// MapType describes a map for api
 	MapType struct {
-		StringExpr string
-		// only support the BasicType
+		RawName string
+		// only support the PrimitiveType
 		Key string
-		// it can be asserted as BasicType: int、bool、
+		// it can be asserted as PrimitiveType: int、bool、
 		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
+		// MapType: map[${PrimitiveType}]interface、
 		// ArrayType:[]int、[]User、[]*User
 		// InterfaceType: interface{}
 		// Type
-		Value interface{}
+		Value Type
 	}
+
+	// ArrayType describes a slice for api
 	ArrayType struct {
-		StringExpr string
-		// it can be asserted as BasicType: int、bool、
-		// PointerType: *string、*User、
-		// MapType: map[${BasicType}]interface、
-		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
-		// Type
-		ArrayType interface{}
+		RawName string
+		Value   Type
 	}
+
+	// InterfaceType describes a interface for api
 	InterfaceType struct {
-		StringExpr string
-		// do nothing,just for assert
+		RawName string
 	}
-	TimeType struct {
-		StringExpr string
+
+	// PointerType describes a pointer for api
+	PointerType struct {
+		RawName string
+		Type    Type
 	}
-	StructType struct {
-		StringExpr string
+
+	// AtDoc describes a metadata for api grammar: @doc(...)
+	AtDoc struct {
+		Properties map[string]string
+		Text       string
 	}
 )
-
-func (spec *ApiSpec) ContainsTime() bool {
-	for _, item := range spec.Types {
-		members := item.Members
-		for _, member := range members {
-			if _, ok := member.Expr.(*TimeType); ok {
-				return true
-			}
-		}
-	}
-	return false
-}

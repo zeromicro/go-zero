@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	indexOfKey = iota
+	_ = iota
 	indexOfId
 )
 
 const timeToLive int64 = 10
 
+// TimeToLive is seconds to live in etcd.
 var TimeToLive = timeToLive
 
 func extract(etcdKey string, index int) (string, bool) {

@@ -23,13 +23,14 @@ const (
 var emptyLruCache = emptyLru{}
 
 type (
+	// CacheOption defines the method to customize a Cache.
 	CacheOption func(cache *Cache)
 
+	// A Cache object is a in-memory cache.
 	Cache struct {
 		name           string
 		lock           sync.Mutex
 		data           map[string]interface{}
-		evicts         *list.List
 		expire         time.Duration
 		timingWheel    *TimingWheel
 		lruCache       lru
@@ -39,6 +40,7 @@ type (
 	}
 )
 
+// NewCache returns a Cache with given expire.
 func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	cache := &Cache{
 		data:           make(map[string]interface{}),
@@ -73,6 +75,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 	return cache, nil
 }
 
+// Del deletes the item with the given key from c.
 func (c *Cache) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
@@ -81,13 +84,9 @@ func (c *Cache) Del(key string) {
 	c.timingWheel.RemoveTimer(key)
 }
 
+// Get returns the item with the given key from c.
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.lock.Lock()
-	value, ok := c.data[key]
-	if ok {
-		c.lruCache.add(key)
-	}
-	c.lock.Unlock()
+	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
 	} else {
@@ -97,6 +96,7 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
+// Set sets value into c with key.
 func (c *Cache) Set(key string, value interface{}) {
 	c.lock.Lock()
 	_, ok := c.data[key]
@@ -112,13 +112,29 @@ func (c *Cache) Set(key string, value interface{}) {
 	}
 }
 
+// Take returns the item with the given key.
+// If the item is in c, return it directly.
+// If not, use fetch method to get the item, set into c and return it.
 func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}, error) {
-	val, fresh, err := c.barrier.DoEx(key, func() (interface{}, error) {
+	if val, ok := c.doGet(key); ok {
+		c.stats.IncrementHit()
+		return val, nil
+	}
+
+	var fresh bool
+	val, err := c.barrier.Do(key, func() (interface{}, error) {
+		// because O(1) on map search in memory, and fetch is an IO query
+		// so we do double check, cache might be taken by another call
+		if val, ok := c.doGet(key); ok {
+			return val, nil
+		}
+
 		v, e := fetch()
 		if e != nil {
 			return nil, e
 		}
 
+		fresh = true
 		c.Set(key, v)
 		return v, nil
 	})
@@ -129,12 +145,23 @@ func (c *Cache) Take(key string, fetch func() (interface{}, error)) (interface{}
 	if fresh {
 		c.stats.IncrementMiss()
 		return val, nil
-	} else {
-		// got the result from previous ongoing query
-		c.stats.IncrementHit()
 	}
 
+	// got the result from previous ongoing query
+	c.stats.IncrementHit()
 	return val, nil
+}
+
+func (c *Cache) doGet(key string) (interface{}, bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	value, ok := c.data[key]
+	if ok {
+		c.lruCache.add(key)
+	}
+
+	return value, ok
 }
 
 func (c *Cache) onEvict(key string) {
@@ -149,6 +176,7 @@ func (c *Cache) size() int {
 	return len(c.data)
 }
 
+// WithLimit customizes a Cache with items up to limit.
 func WithLimit(limit int) CacheOption {
 	return func(cache *Cache) {
 		if limit > 0 {
@@ -157,6 +185,7 @@ func WithLimit(limit int) CacheOption {
 	}
 }
 
+// WithName customizes a Cache with the given name.
 func WithName(name string) CacheOption {
 	return func(cache *Cache) {
 		cache.name = name
@@ -258,18 +287,15 @@ func (cs *cacheStat) statLoop() {
 	ticker := time.NewTicker(statInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			hit := atomic.SwapUint64(&cs.hit, 0)
-			miss := atomic.SwapUint64(&cs.miss, 0)
-			total := hit + miss
-			if total == 0 {
-				continue
-			}
-			percent := 100 * float32(hit) / float32(total)
-			logx.Statf("cache(%s) - qpm: %d, hit_ratio: %.1f%%, elements: %d, hit: %d, miss: %d",
-				cs.name, total, percent, cs.sizeCallback(), hit, miss)
+	for range ticker.C {
+		hit := atomic.SwapUint64(&cs.hit, 0)
+		miss := atomic.SwapUint64(&cs.miss, 0)
+		total := hit + miss
+		if total == 0 {
+			continue
 		}
+		percent := 100 * float32(hit) / float32(total)
+		logx.Statf("cache(%s) - qpm: %d, hit_ratio: %.1f%%, elements: %d, hit: %d, miss: %d",
+			cs.name, total, percent, cs.sizeCallback(), hit, miss)
 	}
 }

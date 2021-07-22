@@ -7,6 +7,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// KtCommand the generate kotlin code command entrance
 func KtCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	if apiFile == "" {
@@ -21,11 +22,7 @@ func KtCommand(c *cli.Context) error {
 		return errors.New("missing -pkg")
 	}
 
-	p, e := parser.NewParser(apiFile)
-	if e != nil {
-		return e
-	}
-	api, e := p.Parse()
+	api, e := parser.Parse(apiFile)
 	if e != nil {
 		return e
 	}

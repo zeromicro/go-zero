@@ -7,6 +7,8 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 * 简单易用
 * 快速提升开发效率
 * 出错率低
+* 贴近protoc
+
 
 ## 快速开始
 
@@ -16,44 +18,64 @@ Goctl Rpc是`goctl`脚手架下的一个rpc服务代码生成模块，支持prot
 
   如生成greet rpc服务：
 
-  ```shell script
+  ```Bash
   goctl rpc new greet
   ```
 
   执行后代码结构如下:
 
   ```golang
-  └── greet
-    ├── etc
-    │   └── greet.yaml
-    ├── go.mod
-    ├── go.sum
-    ├── greet
-    │   ├── greet.go
-    │   ├── greet_mock.go
-    │   └── types.go
-    ├── greet.go
-    ├── greet.proto
-    ├── internal
-    │   ├── config
-    │   │   └── config.go
-    │   ├── logic
-    │   │   └── pinglogic.go
-    │   ├── server
-    │   │   └── greetserver.go
-    │   └── svc
-    │       └── servicecontext.go
-    └── pb
-        └── greet.pb.go
+.
+├── etc             // yaml配置文件
+│   └── greet.yaml
+├── go.mod
+├── greet           // pb.go文件夹①
+│   └── greet.pb.go
+├── greet.go        // main函数
+├── greet.proto     // proto 文件
+├── greetclient     // call logic ②
+│   └── greet.go
+└── internal        
+    ├── config      // yaml配置对应的实体
+    │   └── config.go
+    ├── logic       // 业务代码
+    │   └── pinglogic.go
+    ├── server      // rpc server
+    │   └── greetserver.go
+    └── svc         // 依赖资源
+        └── servicecontext.go
   ```
 
-rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题解决</a>
+> ① pb文件夹名（老版本文件夹固定为pb）称取自于proto文件中option go_package的值最后一层级按照一定格式进行转换，若无此声明，则取自于package的值，大致代码如下：
+
+```go
+  if option.Name == "go_package" {
+    ret.GoPackage = option.Constant.Source
+  }
+  ...
+  if len(ret.GoPackage) == 0 {
+    ret.GoPackage = ret.Package.Name
+  }
+  ret.PbPackage = GoSanitized(filepath.Base(ret.GoPackage))
+  ...
+```
+> GoSanitized方法请参考google.golang.org/protobuf@v1.25.0/internal/strs/strings.go:71
+
+> ② call 层文件夹名称取自于proto中service的名称，如该sercice的名称和pb文件夹名称相等，则会在srervice后面补充client进行区分，使pb和call分隔。
+
+```go
+if strings.ToLower(proto.Service.Name) == strings.ToLower(proto.GoPackage) {
+	callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
+}
+```
+
+rpc一键生成常见问题解决，见 <a href="#常见问题解决">常见问题解决</a>
 
 ### 方式二：通过指定proto生成rpc服务
 
 * 生成proto模板
 
-  ```shell script
+  ```Bash
   goctl rpc template -o=user.proto
   ```
 
@@ -84,51 +106,25 @@ rpc一键生成常见问题解决见 <a href="#常见问题解决">常见问题�
 
 * 生成rpc服务代码
 
-  ```shell script
+  ```Bash
   goctl rpc proto -src=user.proto
-  ```
-
-  代码tree
-
-  ```Plain Text
-  user
-      ├── etc
-      │   └── user.json
-      ├── internal
-      │   ├── config
-      │   │   └── config.go
-      │   ├── handler
-      │   │   ├── loginhandler.go
-      │   ├── logic
-      │   │   └── loginlogic.go
-      │   └── svc
-      │       └── servicecontext.go
-      ├── pb
-      │   └── user.pb.go
-      ├── shared
-      │   ├── mockusermodel.go
-      │   ├── types.go
-      │   └── usermodel.go
-      ├── user.go
-      └── user.proto
   ```
 
 ## 准备工作
 
 * 安装了go环境
 * 安装了protoc&protoc-gen-go，并且已经设置环境变量
-* mockgen(可选,将移除)
 * 更多问题请见 <a href="#注意事项">注意事项</a>
 
 ## 用法
 
 ### rpc服务生成用法
 
-```shell script
+```Bash
 goctl rpc proto -h
 ```
 
-```shell script
+```Bash
 NAME:
    goctl rpc proto - generate rpc from proto
 
@@ -137,51 +133,40 @@ USAGE:
 
 OPTIONS:
    --src value, -s value         the file path of the proto source file
-   --dir value, -d value         the target path of the code,default path is "${pwd}". [option]
-   --service value, --srv value  the name of rpc service. [option]
-   --shared[已废弃] value                the dir of the shared file,default path is "${pwd}/shared. [option]"
-   --idea                        whether the command execution environment is from idea plugin. [option]
+   --proto_path value, -I value  native command of protoc, specify the directory in which to search for imports. [optional]
+   --go_opt value                native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]
+   --dir value, -d value         the target path of the code
+   --style value                 the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
+   --idea                        whether the command execution environment is from idea plugin. [optional]
 
 ```
 
 ### 参数说明
 
-* --src 必填，proto数据源，目前暂时支持单个proto文件生成，这里不支持（不建议）外部依赖
-* --dir 非必填，默认为proto文件所在目录，生成代码的目标目录
-* --service 服务名称，非必填，默认为proto文件所在目录名称，但是，如果proto所在目录为一下结构：
+* --src 必填，proto数据源，目前暂时支持单个proto文件生成
+* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`
+  ,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --go_opt 可选，protoc-gen-go插件原生flag，用于指定go_package
+* --dir 可选，默认为proto文件所在目录，生成代码的目标目录
+* --style 可选，指定生成文件名的命名风格
+* --idea 可选，是否为idea插件中执行，终端执行可以忽略
 
-    ```shell script
-    user
-        ├── cmd
-        │   └── rpc
-        │       └── user.proto
-    ```
-
-    则服务名称亦为user，而非proto所在文件夹名称了，这里推荐使用这种结构，可以方便在同一个服务名下建立不同类型的服务(api、rpc、mq等)，便于代码管理与维护。
-* --shared[⚠️已废弃] 非必填，默认为$dir(xxx.proto)/shared，rpc client逻辑代码存放目录。
-  
-  > 注意：这里的shared文件夹名称将会是代码中的package名称。
-
-* --idea 非必填，是否为idea插件中执行，保留字段，终端执行可以忽略
 
 ### 开发人员需要做什么
 
-关注业务代码编写，将重复性、与业务无关的工作交给goctl，生成好rpc服务代码后，开饭人员仅需要修改
+关注业务代码编写，将重复性、与业务无关的工作交给goctl，生成好rpc服务代码后，开发人员仅需要修改
 
 * 服务中的配置文件编写(etc/xx.json、internal/config/config.go)
 * 服务中业务逻辑编写(internal/logic/xxlogic.go)
 * 服务中资源上下文的编写(internal/svc/servicecontext.go)
 
-## 扩展
-
-对于需要进行rpc mock的开发人员，在安装了`mockgen`工具的前提下可以在rpc的shared文件中生成好对应的mock文件。
 
 ### 注意事项
 
-* `google.golang.org/grpc`需要降级到v1.26.0,且protoc-gen-go版本不能高于v1.3.2（see [https://github.com/grpc/grpc-go/issues/3347](https://github.com/grpc/grpc-go/issues/3347)）即
+* `google.golang.org/grpc`需要降级到 `v1.29.1`，且protoc-gen-go版本不能高于v1.3.2（see [https://github.com/grpc/grpc-go/issues/3347](https://github.com/grpc/grpc-go/issues/3347)）即
   
   ```shell script
-  replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+  replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
   ```
 
 * proto不支持暂多文件同时生成
@@ -194,6 +179,55 @@ OPTIONS:
 ```
 
 的标识，请注意不要将也写业务性代码写在里面。
+
+## proto import
+* 对于rpc中的requestType和returnType必须在main proto文件定义，对于proto中的message可以像protoc一样import其他proto文件。
+
+proto示例:
+
+### 错误import
+```proto
+syntax = "proto3";
+
+package greet;
+
+import "base/common.proto"
+
+message Request {
+  string ping = 1;
+}
+
+message Response {
+  string pong = 1;
+}
+
+service Greet {
+  rpc Ping(base.In) returns(base.Out);// request和return 不支持import
+}
+
+```
+
+
+### 正确import
+```proto
+syntax = "proto3";
+
+package greet;
+
+import "base/common.proto"
+
+message Request {
+  base.In in = 1;// 支持import
+}
+
+message Response {
+ base.Out out = 2;// 支持import
+}
+
+service Greet {
+  rpc Ping(Request) returns(Response);
+}
+```
 
 ## 常见问题解决(go mod工程)
 
@@ -220,11 +254,11 @@ OPTIONS:
     *rrBalanced does not implement Picker (wrong type for Pick method)
 		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
     want Pick(balancer.PickInfo) (balancer.PickResult, error)
-    #github.com/tal-tech/go-zero/rpcx/internal/balancer/p2c
-    ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/rpcx/internal/balancer/p2c/p2c.go:41:32: not enough arguments in call to base.NewBalancerBuilder
+    #github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c
+    ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:41:32: not enough arguments in call to base.NewBalancerBuilder
 	have (string, *p2cPickerBuilder)
   want (string, base.PickerBuilder, base.Config)
-  ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/rpcx/internal/balancer/p2c/p2c.go:58:9: cannot use &p2cPicker literal (type *p2cPicker) as type balancer.Picker in return argument:
+  ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:58:9: cannot use &p2cPicker literal (type *p2cPicker) as type balancer.Picker in return argument:
 	*p2cPicker does not implement balancer.Picker (wrong type for Pick method)
 		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
 		want Pick(balancer.PickInfo) (balancer.PickResult, error)
@@ -233,5 +267,5 @@ OPTIONS:
   解决方法：
   
     ```golang
-    replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+    replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
     ```

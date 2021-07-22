@@ -13,15 +13,13 @@ const (
 	// maps as k in the error rate table
 	maps      = 14
 	setScript = `
-local key = KEYS[1]
 for _, offset in ipairs(ARGV) do
-	redis.call("setbit", key, offset, 1)
+	redis.call("setbit", KEYS[1], offset, 1)
 end
 `
 	testScript = `
-local key = KEYS[1]
 for _, offset in ipairs(ARGV) do
-	if tonumber(redis.call("getbit", key, offset)) == 0 then
+	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then
 		return false
 	end
 end
@@ -29,44 +27,43 @@ return true
 `
 )
 
+// ErrTooLargeOffset indicates the offset is too large in bitset.
 var ErrTooLargeOffset = errors.New("too large offset")
 
 type (
-	BitSetProvider interface {
+	// A Filter is a bloom filter.
+	Filter struct {
+		bits   uint
+		bitSet bitSetProvider
+	}
+
+	bitSetProvider interface {
 		check([]uint) (bool, error)
 		set([]uint) error
 	}
-
-	BloomFilter struct {
-		bits   uint
-		maps   uint
-		bitSet BitSetProvider
-	}
 )
 
-// New create a BloomFilter, store is the backed redis, key is the key for the bloom filter,
+// New create a Filter, store is the backed redis, key is the key for the bloom filter,
 // bits is how many bits will be used, maps is how many hashes for each addition.
 // best practices:
 // elements - means how many actual elements
 // when maps = 14, formula: 0.7*(bits/maps), bits = 20*elements, the error rate is 0.000067 < 1e-4
 // for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
-func New(store *redis.Redis, key string, bits uint) *BloomFilter {
-	return &BloomFilter{
+func New(store *redis.Redis, key string, bits uint) *Filter {
+	return &Filter{
 		bits:   bits,
 		bitSet: newRedisBitSet(store, key, bits),
 	}
 }
 
-func (f *BloomFilter) Add(data []byte) error {
+// Add adds data into f.
+func (f *Filter) Add(data []byte) error {
 	locations := f.getLocations(data)
-	err := f.bitSet.set(locations)
-	if err != nil {
-		return err
-	}
-	return nil
+	return f.bitSet.set(locations)
 }
 
-func (f *BloomFilter) Exists(data []byte) (bool, error) {
+// Exists checks if data is in f.
+func (f *Filter) Exists(data []byte) (bool, error) {
 	locations := f.getLocations(data)
 	isSet, err := f.bitSet.check(locations)
 	if err != nil {
@@ -79,7 +76,7 @@ func (f *BloomFilter) Exists(data []byte) (bool, error) {
 	return true, nil
 }
 
-func (f *BloomFilter) getLocations(data []byte) []uint {
+func (f *Filter) getLocations(data []byte) []uint {
 	locations := make([]uint, maps)
 	for i := uint(0); i < maps; i++ {
 		hashValue := hash.Hash(append(data, byte(i)))
@@ -130,11 +127,12 @@ func (r *redisBitSet) check(offsets []uint) (bool, error) {
 		return false, err
 	}
 
-	if exists, ok := resp.(int64); !ok {
+	exists, ok := resp.(int64)
+	if !ok {
 		return false, nil
-	} else {
-		return exists == 1, nil
 	}
+
+	return exists == 1, nil
 }
 
 func (r *redisBitSet) del() error {
@@ -155,7 +153,7 @@ func (r *redisBitSet) set(offsets []uint) error {
 	_, err = r.store.Eval(setScript, []string{r.key}, args)
 	if err == redis.Nil {
 		return nil
-	} else {
-		return err
 	}
+
+	return err
 }

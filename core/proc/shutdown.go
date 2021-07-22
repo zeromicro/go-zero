@@ -24,15 +24,20 @@ var (
 	delayTimeBeforeForceQuit = waitTime
 )
 
+// AddShutdownListener adds fn as a shutdown listener.
+// The returned func can be used to wait for fn getting called.
 func AddShutdownListener(fn func()) (waitForCalled func()) {
 	return shutdownListeners.addListener(fn)
 }
 
+// AddWrapUpListener adds fn as a wrap up listener.
+// The returned func can be used to wait for fn getting called.
 func AddWrapUpListener(fn func()) (waitForCalled func()) {
 	return wrapUpListeners.addListener(fn)
 }
 
-func SetTimeoutToForceQuit(duration time.Duration) {
+// SetTimeToForceQuit sets the waiting time before force quitting.
+func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
 

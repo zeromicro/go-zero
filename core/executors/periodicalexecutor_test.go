@@ -140,6 +140,26 @@ func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 	assert.Equal(t, total, cnt)
 }
 
+func TestPeriodicalExecutor_Deadlock(t *testing.T) {
+	executor := NewBulkExecutor(func(tasks []interface{}) {
+	}, WithBulkTasks(1), WithBulkInterval(time.Millisecond))
+	for i := 0; i < 1e5; i++ {
+		executor.Add(1)
+	}
+}
+
+func TestPeriodicalExecutor_hasTasks(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	defer ticker.Stop()
+
+	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, nil))
+	exec.newTicker = func(d time.Duration) timex.Ticker {
+		return ticker
+	}
+	assert.False(t, exec.hasTasks(nil))
+	assert.True(t, exec.hasTasks(1))
+}
+
 // go test -benchtime 10s -bench .
 func BenchmarkExecutor(b *testing.B) {
 	b.ReportAllocs()

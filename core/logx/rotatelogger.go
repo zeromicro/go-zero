@@ -22,13 +22,15 @@ const (
 	dateFormat      = "2006-01-02"
 	hoursPerDay     = 24
 	bufferSize      = 100
-	defaultDirMode  = 0755
-	defaultFileMode = 0600
+	defaultDirMode  = 0o755
+	defaultFileMode = 0o600
 )
 
+// ErrLogFileClosed is an error that indicates the log file is already closed.
 var ErrLogFileClosed = errors.New("error: log file closed")
 
 type (
+	// A RotateRule interface is used to define the log rotating rules.
 	RotateRule interface {
 		BackupFileName() string
 		MarkRotated()
@@ -36,6 +38,7 @@ type (
 		ShallRotate() bool
 	}
 
+	// A RotateLogger is a Logger that can rotate log files with given rules.
 	RotateLogger struct {
 		filename string
 		backup   string
@@ -50,6 +53,7 @@ type (
 		closeOnce sync.Once
 	}
 
+	// A DailyRotateRule is a rule to daily rotate the log files.
 	DailyRotateRule struct {
 		rotatedTime string
 		filename    string
@@ -59,6 +63,7 @@ type (
 	}
 )
 
+// DefaultRotateRule is a default log rotating rule, currently DailyRotateRule.
 func DefaultRotateRule(filename, delimiter string, days int, gzip bool) RotateRule {
 	return &DailyRotateRule{
 		rotatedTime: getNowDate(),
@@ -69,14 +74,17 @@ func DefaultRotateRule(filename, delimiter string, days int, gzip bool) RotateRu
 	}
 }
 
+// BackupFileName returns the backup filename on rotating.
 func (r *DailyRotateRule) BackupFileName() string {
 	return fmt.Sprintf("%s%s%s", r.filename, r.delimiter, getNowDate())
 }
 
+// MarkRotated marks the rotated time of r to be the current time.
 func (r *DailyRotateRule) MarkRotated() {
 	r.rotatedTime = getNowDate()
 }
 
+// OutdatedFiles returns the files that exceeded the keeping days.
 func (r *DailyRotateRule) OutdatedFiles() []string {
 	if r.days <= 0 {
 		return nil
@@ -113,10 +121,12 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 	return outdates
 }
 
+// ShallRotate checks if the file should be rotated.
 func (r *DailyRotateRule) ShallRotate() bool {
 	return len(r.rotatedTime) > 0 && getNowDate() != r.rotatedTime
 }
 
+// NewLogger returns a RotateLogger with given filename and rule, etc.
 func NewLogger(filename string, rule RotateRule, compress bool) (*RotateLogger, error) {
 	l := &RotateLogger{
 		filename: filename,
@@ -133,6 +143,7 @@ func NewLogger(filename string, rule RotateRule, compress bool) (*RotateLogger, 
 	return l, nil
 }
 
+// Close closes l.
 func (l *RotateLogger) Close() error {
 	var err error
 
@@ -163,9 +174,9 @@ func (l *RotateLogger) Write(data []byte) (int, error) {
 func (l *RotateLogger) getBackupFilename() string {
 	if len(l.backup) == 0 {
 		return l.rule.BackupFileName()
-	} else {
-		return l.backup
 	}
+
+	return l.backup
 }
 
 func (l *RotateLogger) init() error {
@@ -192,14 +203,16 @@ func (l *RotateLogger) init() error {
 }
 
 func (l *RotateLogger) maybeCompressFile(file string) {
-	if l.compress {
-		defer func() {
-			if r := recover(); r != nil {
-				ErrorStack(r)
-			}
-		}()
-		compressLogFile(file)
+	if !l.compress {
+		return
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			ErrorStack(r)
+		}
+	}()
+	compressLogFile(file)
 }
 
 func (l *RotateLogger) maybeDeleteOutdatedFiles() {

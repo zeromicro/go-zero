@@ -6,21 +6,27 @@ import (
 )
 
 type (
+	// GaugeVecOpts is an alias of VectorOpts.
 	GaugeVecOpts VectorOpts
 
-	GuageVec interface {
+	// GaugeVec represents a gauge vector.
+	GaugeVec interface {
+		// Set sets v to labels.
 		Set(v float64, labels ...string)
+		// Inc increments labels.
 		Inc(labels ...string)
+		// Add adds v to labels.
 		Add(v float64, labels ...string)
 		close() bool
 	}
 
-	promGuageVec struct {
+	promGaugeVec struct {
 		gauge *prom.GaugeVec
 	}
 )
 
-func NewGaugeVec(cfg *GaugeVecOpts) GuageVec {
+// NewGaugeVec returns a GaugeVec.
+func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 	if cfg == nil {
 		return nil
 	}
@@ -33,7 +39,7 @@ func NewGaugeVec(cfg *GaugeVecOpts) GuageVec {
 			Help:      cfg.Help,
 		}, cfg.Labels)
 	prom.MustRegister(vec)
-	gv := &promGuageVec{
+	gv := &promGaugeVec{
 		gauge: vec,
 	}
 	proc.AddShutdownListener(func() {
@@ -43,18 +49,18 @@ func NewGaugeVec(cfg *GaugeVecOpts) GuageVec {
 	return gv
 }
 
-func (gv *promGuageVec) Inc(labels ...string) {
+func (gv *promGaugeVec) Inc(labels ...string) {
 	gv.gauge.WithLabelValues(labels...).Inc()
 }
 
-func (gv *promGuageVec) Add(v float64, lables ...string) {
-	gv.gauge.WithLabelValues(lables...).Add(v)
+func (gv *promGaugeVec) Add(v float64, labels ...string) {
+	gv.gauge.WithLabelValues(labels...).Add(v)
 }
 
-func (gv *promGuageVec) Set(v float64, lables ...string) {
-	gv.gauge.WithLabelValues(lables...).Set(v)
+func (gv *promGaugeVec) Set(v float64, labels ...string) {
+	gv.gauge.WithLabelValues(labels...).Set(v)
 }
 
-func (gv *promGuageVec) close() bool {
+func (gv *promGaugeVec) close() bool {
 	return prom.Unregister(gv.gauge)
 }

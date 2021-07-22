@@ -17,22 +17,26 @@ const (
 )
 
 var (
+	// ErrInvalidMethod is an error that indicates not a valid http method.
 	ErrInvalidMethod = errors.New("not a valid http method")
-	ErrInvalidPath   = errors.New("path must begin with '/'")
+	// ErrInvalidPath is an error that indicates path is not start with /.
+	ErrInvalidPath = errors.New("path must begin with '/'")
 )
 
-type PatRouter struct {
-	trees    map[string]*search.Tree
-	notFound http.Handler
+type patRouter struct {
+	trees      map[string]*search.Tree
+	notFound   http.Handler
+	notAllowed http.Handler
 }
 
-func NewPatRouter() httpx.Router {
-	return &PatRouter{
+// NewRouter returns a httpx.Router.
+func NewRouter() httpx.Router {
+	return &patRouter{
 		trees: make(map[string]*search.Tree),
 	}
 }
 
-func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error {
+func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error {
 	if !validMethod(method) {
 		return ErrInvalidMethod
 	}
@@ -42,16 +46,17 @@ func (pr *PatRouter) Handle(method, reqPath string, handler http.Handler) error 
 	}
 
 	cleanPath := path.Clean(reqPath)
-	if tree, ok := pr.trees[method]; ok {
-		return tree.Add(cleanPath, handler)
-	} else {
-		tree = search.NewTree()
-		pr.trees[method] = tree
+	tree, ok := pr.trees[method]
+	if ok {
 		return tree.Add(cleanPath, handler)
 	}
+
+	tree = search.NewTree()
+	pr.trees[method] = tree
+	return tree.Add(cleanPath, handler)
 }
 
-func (pr *PatRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	reqPath := path.Clean(r.URL.Path)
 	if tree, ok := pr.trees[r.Method]; ok {
 		if result, ok := tree.Search(reqPath); ok {
@@ -63,19 +68,29 @@ func (pr *PatRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if allow, ok := pr.methodNotAllowed(r.Method, reqPath); ok {
-		w.Header().Set(allowHeader, allow)
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	} else {
+	allows, ok := pr.methodsAllowed(r.Method, reqPath)
+	if !ok {
 		pr.handleNotFound(w, r)
+		return
+	}
+
+	if pr.notAllowed != nil {
+		pr.notAllowed.ServeHTTP(w, r)
+	} else {
+		w.Header().Set(allowHeader, allows)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-func (pr *PatRouter) SetNotFoundHandler(handler http.Handler) {
+func (pr *patRouter) SetNotFoundHandler(handler http.Handler) {
 	pr.notFound = handler
 }
 
-func (pr *PatRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
+func (pr *patRouter) SetNotAllowedHandler(handler http.Handler) {
+	pr.notAllowed = handler
+}
+
+func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	if pr.notFound != nil {
 		pr.notFound.ServeHTTP(w, r)
 	} else {
@@ -83,7 +98,7 @@ func (pr *PatRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (pr *PatRouter) methodNotAllowed(method, path string) (string, bool) {
+func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 	var allows []string
 
 	for treeMethod, tree := range pr.trees {
@@ -99,9 +114,9 @@ func (pr *PatRouter) methodNotAllowed(method, path string) (string, bool) {
 
 	if len(allows) > 0 {
 		return strings.Join(allows, allowMethodSeparator), true
-	} else {
-		return "", false
 	}
+
+	return "", false
 }
 
 func validMethod(method string) bool {

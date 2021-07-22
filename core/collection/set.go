@@ -15,11 +15,13 @@ const (
 	stringType
 )
 
+// Set is not thread-safe, for concurrent use, make sure to use it with synchronization.
 type Set struct {
 	data map[interface{}]lang.PlaceholderType
 	tp   int
 }
 
+// NewSet returns a managed Set, can only put the values with the same type.
 func NewSet() *Set {
 	return &Set{
 		data: make(map[interface{}]lang.PlaceholderType),
@@ -27,6 +29,7 @@ func NewSet() *Set {
 	}
 }
 
+// NewUnmanagedSet returns a unmanaged Set, which can put values with different types.
 func NewUnmanagedSet() *Set {
 	return &Set{
 		data: make(map[interface{}]lang.PlaceholderType),
@@ -34,42 +37,49 @@ func NewUnmanagedSet() *Set {
 	}
 }
 
+// Add adds i into s.
 func (s *Set) Add(i ...interface{}) {
 	for _, each := range i {
 		s.add(each)
 	}
 }
 
+// AddInt adds int values ii into s.
 func (s *Set) AddInt(ii ...int) {
 	for _, each := range ii {
 		s.add(each)
 	}
 }
 
+// AddInt64 adds int64 values ii into s.
 func (s *Set) AddInt64(ii ...int64) {
 	for _, each := range ii {
 		s.add(each)
 	}
 }
 
+// AddUint adds uint values ii into s.
 func (s *Set) AddUint(ii ...uint) {
 	for _, each := range ii {
 		s.add(each)
 	}
 }
 
+// AddUint64 adds uint64 values ii into s.
 func (s *Set) AddUint64(ii ...uint64) {
 	for _, each := range ii {
 		s.add(each)
 	}
 }
 
+// AddStr adds string values ss into s.
 func (s *Set) AddStr(ss ...string) {
 	for _, each := range ss {
 		s.add(each)
 	}
 }
 
+// Contains checks if i is in s.
 func (s *Set) Contains(i interface{}) bool {
 	if len(s.data) == 0 {
 		return false
@@ -80,6 +90,7 @@ func (s *Set) Contains(i interface{}) bool {
 	return ok
 }
 
+// Keys returns the keys in s.
 func (s *Set) Keys() []interface{} {
 	var keys []interface{}
 
@@ -90,13 +101,12 @@ func (s *Set) Keys() []interface{} {
 	return keys
 }
 
+// KeysInt returns the int keys in s.
 func (s *Set) KeysInt() []int {
 	var keys []int
 
 	for key := range s.data {
-		if intKey, ok := key.(int); !ok {
-			continue
-		} else {
+		if intKey, ok := key.(int); ok {
 			keys = append(keys, intKey)
 		}
 	}
@@ -104,13 +114,12 @@ func (s *Set) KeysInt() []int {
 	return keys
 }
 
+// KeysInt64 returns int64 keys in s.
 func (s *Set) KeysInt64() []int64 {
 	var keys []int64
 
 	for key := range s.data {
-		if intKey, ok := key.(int64); !ok {
-			continue
-		} else {
+		if intKey, ok := key.(int64); ok {
 			keys = append(keys, intKey)
 		}
 	}
@@ -118,13 +127,12 @@ func (s *Set) KeysInt64() []int64 {
 	return keys
 }
 
+// KeysUint returns uint keys in s.
 func (s *Set) KeysUint() []uint {
 	var keys []uint
 
 	for key := range s.data {
-		if intKey, ok := key.(uint); !ok {
-			continue
-		} else {
+		if intKey, ok := key.(uint); ok {
 			keys = append(keys, intKey)
 		}
 	}
@@ -132,13 +140,12 @@ func (s *Set) KeysUint() []uint {
 	return keys
 }
 
+// KeysUint64 returns uint64 keys in s.
 func (s *Set) KeysUint64() []uint64 {
 	var keys []uint64
 
 	for key := range s.data {
-		if intKey, ok := key.(uint64); !ok {
-			continue
-		} else {
+		if intKey, ok := key.(uint64); ok {
 			keys = append(keys, intKey)
 		}
 	}
@@ -146,13 +153,12 @@ func (s *Set) KeysUint64() []uint64 {
 	return keys
 }
 
+// KeysStr returns string keys in s.
 func (s *Set) KeysStr() []string {
 	var keys []string
 
 	for key := range s.data {
-		if strKey, ok := key.(string); !ok {
-			continue
-		} else {
+		if strKey, ok := key.(string); ok {
 			keys = append(keys, strKey)
 		}
 	}
@@ -160,11 +166,13 @@ func (s *Set) KeysStr() []string {
 	return keys
 }
 
+// Remove removes i from s.
 func (s *Set) Remove(i interface{}) {
 	s.validate(i)
 	delete(s.data, i)
 }
 
+// Count returns the number of items in s.
 func (s *Set) Count() int {
 	return len(s.data)
 }
@@ -182,10 +190,7 @@ func (s *Set) add(i interface{}) {
 }
 
 func (s *Set) setType(i interface{}) {
-	if s.tp != untyped {
-		return
-	}
-
+	// s.tp can only be untyped here
 	switch i.(type) {
 	case int:
 		s.tp = intType

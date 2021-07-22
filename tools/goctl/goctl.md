@@ -17,18 +17,11 @@
   > -api 自定义api所在路径
   >
   > -dir 自定义生成目录
-  
-#### 保持goctl总是最新版
-
-  第一次运行会在~/.goctl里增加下面两行：
-
-  ```Plain Text
-  url = http://47.97.184.41:7777/
-  ```
 
 #### API 语法说明
 
-```Plain Text
+```golang
+
 info(
     title: doc title
     desc: >
@@ -61,8 +54,8 @@ type (
 
 	createRequest struct {
 		innerType
-		name    string    `form:"name"`         // niha
-		age     int       `form:"age,optional"` // nihaod
+		name    string    `form:"name"`
+		age     int       `form:"age,optional"`
 		address []address `json:"address,optional"`
 	}
 
@@ -89,20 +82,20 @@ service user-api {
     )
     @server(
         handler: GetUserHandler
-        folder: user
+        group: user
     )
     get /api/user/:name(getRequest) returns(getResponse)
 
     @server(
         handler: CreateUserHandler
-        folder: user
+        group: user
     )
     post /api/users/create(createRequest)
 }
 
 @server(
     jwt: Auth
-    folder: profile
+    group: profile
 )
 service user-api {
     @doc(summary: user title)
@@ -128,7 +121,7 @@ service user-api {
 
 1. info部分：描述了api基本信息，比如Auth，api是哪个用途。
 2. type部分：type类型声明和golang语法兼容。
-3. service部分：service代表一组服务，一个服务可以由多组名称相同的service组成，可以针对每一组service配置jwt和auth认证，另外通过folder属性可以指定service生成所在子目录。
+3. service部分：service代表一组服务，一个服务可以由多组名称相同的service组成，可以针对每一组service配置group属性来指定service生成所在子目录。
    service里面包含api路由，比如上面第一组service的第一个路由，doc用来描述此路由的用途，GetProfileHandler表示处理这个路由的handler，
    `get /api/profile/:name(getRequest) returns(getResponse)` 中get代表api的请求方式（get/post/put/delete）, `/api/profile/:name` 描述了路由path，`:name`通过
    请求getRequest里面的属性赋值，getResponse为返回的结构体，这两个类型都定义在2描述的类型中。

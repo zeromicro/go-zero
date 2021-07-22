@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
+// MaxConns returns a middleware that limit the concurrent connections.
 func MaxConns(n int) func(http.Handler) http.Handler {
 	if n <= 0 {
 		return func(next http.Handler) http.Handler {
@@ -16,19 +17,19 @@ func MaxConns(n int) func(http.Handler) http.Handler {
 	}
 
 	return func(next http.Handler) http.Handler {
-		latchLimiter := syncx.NewLimit(n)
+		latch := syncx.NewLimit(n)
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if latchLimiter.TryBorrow() {
+			if latch.TryBorrow() {
 				defer func() {
-					if err := latchLimiter.Return(); err != nil {
+					if err := latch.Return(); err != nil {
 						logx.Error(err)
 					}
 				}()
 
 				next.ServeHTTP(w, r)
 			} else {
-				internal.Errorf(r, "Concurrent connections over %d, rejected with code %d",
+				internal.Errorf(r, "concurrent connections over %d, rejected with code %d",
 					n, http.StatusServiceUnavailable)
 				w.WriteHeader(http.StatusServiceUnavailable)
 			}

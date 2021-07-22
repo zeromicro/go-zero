@@ -6,9 +6,11 @@ import (
 	"strings"
 )
 
+// ErrInvalidCarrier indicates an error that the carrier is invalid.
 var ErrInvalidCarrier = errors.New("invalid carrier")
 
 type (
+	// Carrier interface wraps the Get and Set method.
 	Carrier interface {
 		Get(key string) string
 		Set(key, value string)
@@ -30,9 +32,9 @@ func (h httpCarrier) Set(key, val string) {
 func (g grpcCarrier) Get(key string) string {
 	if vals, ok := g[strings.ToLower(key)]; ok && len(vals) > 0 {
 		return vals[0]
-	} else {
-		return ""
 	}
+
+	return ""
 }
 
 func (g grpcCarrier) Set(key, val string) {

@@ -28,6 +28,9 @@ func TestExtract(t *testing.T) {
 
 	_, ok = extract("any", -1)
 	assert.False(t, ok)
+
+	_, ok = extract("any", 10)
+	assert.False(t, ok)
 }
 
 func TestMakeKey(t *testing.T) {

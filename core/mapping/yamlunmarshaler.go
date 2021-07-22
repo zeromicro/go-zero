@@ -13,15 +13,18 @@ import (
 const yamlTagKey = "json"
 
 var (
+	// ErrUnsupportedType is an error that indicates the config format is not supported.
 	ErrUnsupportedType = errors.New("only map-like configs are suported")
 
 	yamlUnmarshaler = NewUnmarshaler(yamlTagKey)
 )
 
+// UnmarshalYamlBytes unmarshals content into v.
 func UnmarshalYamlBytes(content []byte, v interface{}) error {
 	return unmarshalYamlBytes(content, v, yamlUnmarshaler)
 }
 
+// UnmarshalYamlReader unmarshals content from reader into v.
 func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
 	return unmarshalYamlReader(reader, v, yamlUnmarshaler)
 }
@@ -34,9 +37,9 @@ func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 
 	if m, ok := o.(map[string]interface{}); ok {
 		return unmarshaler.Unmarshal(m, v)
-	} else {
-		return ErrUnsupportedType
 	}
+
+	return ErrUnsupportedType
 }
 
 func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {

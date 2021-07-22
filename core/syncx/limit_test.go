@@ -13,5 +13,5 @@ func TestLimit(t *testing.T) {
 	assert.False(t, limit.TryBorrow())
 	assert.Nil(t, limit.Return())
 	assert.Nil(t, limit.Return())
-	assert.Equal(t, ErrReturn, limit.Return())
+	assert.Equal(t, ErrLimitReturn, limit.Return())
 }
