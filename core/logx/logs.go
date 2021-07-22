@@ -195,92 +195,127 @@ func Disable() {
 	})
 }
 
-// Error writes v into error log.
-func Error(v ...interface{}) {
-	ErrorCaller(1, v...)
+func init() {
+
+
+	Error = func(v ...interface{}) {
+		errorSync(fmt.Sprint(v...), callerInnerDepth)
+	}
+
+	Errorf = func(format string, v ...interface{}) {
+		errorSync(fmt.Sprintf(format, v...),  callerInnerDepth)
+	}
+
+	ErrorCaller = func(callDepth int, v ...interface{}) {
+		errorSync(fmt.Sprint(v...), callDepth + callerInnerDepth)
+	}
+
+	ErrorCallerf = func(callDepth int, format string, v ...interface{}) {
+		errorSync(fmt.Sprintf(format, v...), callDepth+callerInnerDepth)
+	}
+
+	ErrorStack = func(v ...interface{}) {
+		stackSync(fmt.Sprint(v...))
+	}
+
+	ErrorStackf = func(format string, v ...interface{}) {
+		stackSync(fmt.Sprintf(format, v...))
+	}
+
+	Info = func(v ...interface{}) {
+		infoSync(fmt.Sprint(v...))
+	}
+
+	Infof = func(format string, v ...interface{}) {
+		infoSync(fmt.Sprintf(format, v...))
+	}
+
+	Must = func(err error) {
+		if err != nil {
+			msg := formatWithCaller(err.Error(), 3)
+			log.Print(msg)
+			output(severeLog, levelFatal, msg)
+			os.Exit(1)
+		}
+	}
+
+	SetLevel = func (level uint32) {
+		atomic.StoreUint32(&logLevel, level)
+	}
+
+	Severe = func (v ...interface{}) {
+		severeSync(fmt.Sprint(v...))
+	}
+
+	Severef = func(format string, v ...interface{}) {
+		severeSync(fmt.Sprintf(format, v...))
+	}
+
+	Slow = func(v ...interface{}) {
+		slowSync(fmt.Sprint(v...))
+	}
+
+	Slowf = func(format string, v ...interface{}) {
+		slowSync(fmt.Sprintf(format, v...))
+	}
+
+	Stat = func(v ...interface{}) {
+		statSync(fmt.Sprint(v...))
+	}
+
+	Statf = func(format string, v ...interface{}) {
+		statSync(fmt.Sprintf(format, v...))
+	}
+
 }
+
+// Error writes v into error log.
+var Error func(v ...interface{})
 
 // Errorf writes v with format into error log.
-func Errorf(format string, v ...interface{}) {
-	ErrorCallerf(1, format, v...)
-}
+var Errorf func (format string, v ...interface{})
 
 // ErrorCaller writes v with context into error log.
-func ErrorCaller(callDepth int, v ...interface{}) {
-	errorSync(fmt.Sprint(v...), callDepth+callerInnerDepth)
-}
+var ErrorCaller func (callDepth int, v ...interface{})
 
 // ErrorCallerf writes v with context in format into error log.
-func ErrorCallerf(callDepth int, format string, v ...interface{}) {
-	errorSync(fmt.Sprintf(format, v...), callDepth+callerInnerDepth)
-}
+var ErrorCallerf func (callDepth int, format string, v ...interface{})
 
 // ErrorStack writes v along with call stack into error log.
-func ErrorStack(v ...interface{}) {
-	// there is newline in stack string
-	stackSync(fmt.Sprint(v...))
-}
+var  ErrorStack func (v ...interface{})
 
 // ErrorStackf writes v along with call stack in format into error log.
-func ErrorStackf(format string, v ...interface{}) {
-	// there is newline in stack string
-	stackSync(fmt.Sprintf(format, v...))
-}
+var ErrorStackf func (format string, v ...interface{})
 
 // Info writes v into access log.
-func Info(v ...interface{}) {
-	infoSync(fmt.Sprint(v...))
-}
+var  Info func (v ...interface{})
 
 // Infof writes v with format into access log.
-func Infof(format string, v ...interface{}) {
-	infoSync(fmt.Sprintf(format, v...))
-}
+var Infof func (format string, v ...interface{})
 
 // Must checks if err is nil, otherwise logs the err and exits.
-func Must(err error) {
-	if err != nil {
-		msg := formatWithCaller(err.Error(), 3)
-		log.Print(msg)
-		output(severeLog, levelFatal, msg)
-		os.Exit(1)
-	}
-}
+var Must func (err error)
 
 // SetLevel sets the logging level. It can be used to suppress some logs.
-func SetLevel(level uint32) {
-	atomic.StoreUint32(&logLevel, level)
-}
+var SetLevel func (level uint32)
 
 // Severe writes v into severe log.
-func Severe(v ...interface{}) {
-	severeSync(fmt.Sprint(v...))
-}
+var  Severe func (v ...interface{})
 
 // Severef writes v with format into severe log.
-func Severef(format string, v ...interface{}) {
-	severeSync(fmt.Sprintf(format, v...))
-}
+var Severef func (format string, v ...interface{})
 
 // Slow writes v into slow log.
-func Slow(v ...interface{}) {
-	slowSync(fmt.Sprint(v...))
-}
+var Slow func  (v ...interface{})
 
 // Slowf writes v with format into slow log.
-func Slowf(format string, v ...interface{}) {
-	slowSync(fmt.Sprintf(format, v...))
-}
+var Slowf func (format string, v ...interface{})
 
 // Stat writes v into stat log.
-func Stat(v ...interface{}) {
-	statSync(fmt.Sprint(v...))
-}
+var Stat func (v ...interface{})
 
 // Statf writes v with format into stat log.
-func Statf(format string, v ...interface{}) {
-	statSync(fmt.Sprintf(format, v...))
-}
+var  Statf func (format string, v ...interface{})
 
 // WithCooldownMillis customizes logging on writing call stack interval.
 func WithCooldownMillis(millis int) LogOption {
