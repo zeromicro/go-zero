@@ -90,8 +90,8 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDDL(filename string, withCache bool) error {
-	modelList, err := g.genFromDDL(filename, withCache)
+func (g *defaultGenerator) StartFromDDL(filename string, withCache bool, database string) error {
+	modelList, err := g.genFromDDL(filename, withCache, database)
 	if err != nil {
 		return err
 	}
@@ -174,9 +174,9 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(filename string, withCache bool) (map[string]string, error) {
+func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (map[string]string, error) {
 	m := make(map[string]string)
-	tables, err := parser.Parse(filename)
+	tables, err := parser.Parse(filename, database)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(cacheDir, "TestUserModel.go"))
@@ -45,7 +45,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, false)
+	err = g.StartFromDDL(sqlFile, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(noCacheDir, "testusermodel.go"))
@@ -72,7 +72,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
@@ -83,7 +83,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))

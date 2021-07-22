@@ -24,6 +24,7 @@ const (
 	flagURL   = "url"
 	flagTable = "table"
 	flagStyle = "style"
+	flagDatabase = "database"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -35,12 +36,13 @@ func MysqlDDL(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
+	database := ctx.String(flagDatabase)
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 
-	return fromDDl(src, dir, cfg, cache, idea)
+	return fromDDl(src, dir, cfg, cache, idea, database)
 }
 
 // MyDataSource generates model code from datasource
@@ -59,7 +61,7 @@ func MyDataSource(ctx *cli.Context) error {
 	return fromDataSource(url, pattern, dir, cfg, cache, idea)
 }
 
-func fromDDl(src, dir string, cfg *config.Config, cache, idea bool) error {
+func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
@@ -81,7 +83,7 @@ func fromDDl(src, dir string, cfg *config.Config, cache, idea bool) error {
 	}
 
 	for _, file := range files {
-		err = generator.StartFromDDL(file, cache)
+		err = generator.StartFromDDL(file, cache, database)
 		if err != nil {
 			return err
 		}

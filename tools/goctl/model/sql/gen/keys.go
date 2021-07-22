@@ -39,9 +39,9 @@ type Join []string
 func genCacheKeys(table parser.Table) (Key, []Key) {
 	var primaryKey Key
 	var uniqueKey []Key
-	primaryKey = genCacheKey(table.Name, []*parser.Field{&table.PrimaryKey.Field})
+	primaryKey = genCacheKey(table.Db, table.Name, []*parser.Field{&table.PrimaryKey.Field})
 	for _, each := range table.UniqueIndex {
-		uniqueKey = append(uniqueKey, genCacheKey(table.Name, each))
+		uniqueKey = append(uniqueKey, genCacheKey(table.Db, table.Name, each))
 	}
 	sort.Slice(uniqueKey, func(i, j int) bool {
 		return uniqueKey[i].VarLeft < uniqueKey[j].VarLeft
@@ -50,7 +50,7 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(table stringx.String, in []*parser.Field) Key {
+func genCacheKey(db stringx.String, table stringx.String, in []*parser.Field) Key {
 	var (
 		varLeftJoin, varRightJon, fieldNameJoin Join
 		varLeft, varRight, varExpression        string
@@ -59,9 +59,9 @@ func genCacheKey(table stringx.String, in []*parser.Field) Key {
 		keyLeft, keyRight, dataKeyRight, keyExpression, dataKeyExpression string
 	)
 
-	varLeftJoin = append(varLeftJoin, "cache", table.Source())
-	varRightJon = append(varRightJon, "cache", table.Source())
-	keyLeftJoin = append(keyLeftJoin, table.Source())
+	varLeftJoin = append(varLeftJoin, "cache", db.Source(), table.Source())
+	varRightJon = append(varRightJon, "cache", db.Source(), table.Source())
+	keyLeftJoin = append(keyLeftJoin, db.Source(), table.Source())
 
 	for _, each := range in {
 		varLeftJoin = append(varLeftJoin, each.Name.Source())

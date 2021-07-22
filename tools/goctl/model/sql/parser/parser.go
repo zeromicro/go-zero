@@ -21,6 +21,7 @@ type (
 	// Table describes a mysql table
 	Table struct {
 		Name        stringx.String
+		Db          stringx.String
 		PrimaryKey  Primary
 		UniqueIndex map[string][]*Field
 		Fields      []*Field
@@ -46,7 +47,7 @@ type (
 )
 
 // Parse parses ddl into golang structure
-func Parse(filename string) ([]*Table, error) {
+func Parse(filename string, database string) ([]*Table, error) {
 	p := parser.NewParser()
 	tables, err := p.From(filename)
 	if err != nil {
@@ -145,6 +146,7 @@ func Parse(filename string) ([]*Table, error) {
 
 		list = append(list, &Table{
 			Name:        stringx.From(e.Name),
+			Db: 		 stringx.From(database),
 			PrimaryKey:  primaryKey,
 			UniqueIndex: uniqueIndex,
 			Fields:      fields,
@@ -243,6 +245,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 	var reply Table
 	reply.UniqueIndex = map[string][]*Field{}
 	reply.Name = stringx.From(table.Table)
+	reply.Db = stringx.From(table.Db)
 	seqInIndex := 0
 	if table.PrimaryKey.Index != nil {
 		seqInIndex = table.PrimaryKey.Index.SeqInIndex
