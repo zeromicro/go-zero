@@ -56,12 +56,12 @@ func gracefulStop(signals chan os.Signal) {
 }
 
 // NotifyWrapUpListeners notifies wrap up listeners.
-func NotifyWrapUpListeners(){
+func NotifyWrapUpListeners() {
 	wrapUpListeners.notifyListeners()
 }
 
 // NotifyShutdownListeners notifies wrap down listeners.
-func NotifyShutdownListeners(){
+func NotifyShutdownListeners() {
 	shutdownListeners.notifyListeners()
 }
 
