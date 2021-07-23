@@ -33,5 +33,13 @@ func start(host string, port int, handler http.Handler, run func(srv *http.Serve
 	})
 	defer waitForCalled()
 
-	return run(server)
+	err :=  run(server)
+
+	if err != nil{
+		proc.NotifyWrapUpListeners()
+
+		return err
+	}
+
+	return nil
 }
