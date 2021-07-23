@@ -92,10 +92,11 @@ func TestNamingModel(t *testing.T) {
 }
 
 func TestWrapWithRawString(t *testing.T) {
-	assert.Equal(t, "``", wrapWithRawString(""))
-	assert.Equal(t, "``", wrapWithRawString("``"))
-	assert.Equal(t, "`a`", wrapWithRawString("a"))
-	assert.Equal(t, "`   `", wrapWithRawString("   "))
+	assert.Equal(t, "``", wrapWithRawString("", false))
+	assert.Equal(t, "``", wrapWithRawString("``", false))
+	assert.Equal(t, "`a`", wrapWithRawString("a", false))
+	assert.Equal(t, "a", wrapWithRawString("a", true))
+	assert.Equal(t, "`   `", wrapWithRawString("   ", false))
 }
 
 func TestFields(t *testing.T) {

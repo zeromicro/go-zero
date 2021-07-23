@@ -34,7 +34,7 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
 			"dataType":                  table.PrimaryKey.DataType,
 			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
-			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source()),
+			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
 			"postgreSql":                postgreSql,
 		})

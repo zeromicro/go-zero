@@ -88,7 +88,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
-			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source()),
+			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"postgreSql":            postgreSql,
 		})
 		if err != nil {
@@ -115,9 +115,9 @@ func convertJoin(key Key, postgreSql bool) (in, paramJoinString, originalFieldSt
 		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 		paramJoin = append(paramJoin, param)
 		if postgreSql {
-			argJoin = append(argJoin, fmt.Sprintf("%s = $%d", wrapWithRawString(f.Name.Source()), index+1))
+			argJoin = append(argJoin, fmt.Sprintf("%s = $%d", wrapWithRawString(f.Name.Source(), postgreSql), index+1))
 		} else {
-			argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
+			argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source(), postgreSql)))
 		}
 	}
 	if len(inJoin) > 0 {

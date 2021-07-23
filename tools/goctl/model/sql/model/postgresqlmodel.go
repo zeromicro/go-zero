@@ -126,7 +126,22 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 			extra = ""
 		}
 
-		for _, i := range index[e.Field.String] {
+		if len(index[e.Field.String]) > 0 {
+			for _, i := range index[e.Field.String] {
+				list = append(list, &Column{
+					DbColumn: &DbColumn{
+						Name:            e.Field.String,
+						DataType:        m.convertPostgreSqlTypeIntoMysqlType(e.Type.String),
+						Extra:           extra,
+						Comment:         e.Comment.String,
+						ColumnDefault:   dft,
+						IsNullAble:      isNullAble,
+						OrdinalPosition: int(e.Num.Int32),
+					},
+					Index: i,
+				})
+			}
+		} else {
 			list = append(list, &Column{
 				DbColumn: &DbColumn{
 					Name:            e.Field.String,
@@ -137,7 +152,6 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 					IsNullAble:      isNullAble,
 					OrdinalPosition: int(e.Num.Int32),
 				},
-				Index: i,
 			})
 		}
 	}

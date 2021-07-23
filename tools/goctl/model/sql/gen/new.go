@@ -5,7 +5,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func genNew(table Table, withCache bool) (string, error) {
+func genNew(table Table, withCache, postgreSql bool) (string, error) {
 	text, err := util.LoadTemplate(category, modelNewTemplateFile, template.New)
 	if err != nil {
 		return "", err
@@ -14,7 +14,7 @@ func genNew(table Table, withCache bool) (string, error) {
 	output, err := util.With("new").
 		Parse(text).
 		Execute(map[string]interface{}{
-			"table":                 wrapWithRawString(table.Name.Source()),
+			"table":                 wrapWithRawString(table.Name.Source(), postgreSql),
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),
 		})

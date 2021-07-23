@@ -50,7 +50,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) 
 			"primaryCacheKey":       table.PrimaryCacheKey.DataKeyExpression,
 			"primaryKeyVariable":    table.PrimaryCacheKey.KeyLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
-			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
+			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"expressionValues":      strings.Join(expressionValues, ", "),
 			"postgreSql":            postgreSql,
 		})

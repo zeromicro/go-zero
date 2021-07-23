@@ -266,7 +266,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	newCode, err := genNew(table, withCache)
+	newCode, err := genNew(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
@@ -317,7 +317,11 @@ func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
 	return output, nil
 }
 
-func wrapWithRawString(v string) string {
+func wrapWithRawString(v string, postgreSql bool) string {
+	if postgreSql {
+		return v
+	}
+
 	if v == "`" {
 		return v
 	}
