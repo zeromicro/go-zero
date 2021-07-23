@@ -2,12 +2,10 @@ package command
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/lib/pq"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stores/postgres"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
@@ -28,6 +26,7 @@ const (
 	flagTable    = "table"
 	flagStyle    = "style"
 	flagDatabase = "database"
+	flagSchema   = "schema"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -71,13 +70,18 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
+	schema := ctx.String(flagSchema)
+	if len(schema) == 0 {
+		schema = "public"
+	}
+
 	pattern := strings.TrimSpace(ctx.String(flagTable))
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 
-	return fromPostgreSqlDataSource(url, pattern, dir, cfg, cache, idea)
+	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea)
 }
 
 func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
@@ -174,7 +178,7 @@ func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, id
 	return generator.StartFromInformationSchema(matchTables, cache)
 }
 
-func fromPostgreSqlDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
+func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
@@ -188,12 +192,7 @@ func fromPostgreSqlDataSource(url, pattern, dir string, cfg *config.Config, cach
 	db := postgres.New(url)
 	im := model.NewPostgreSqlModel(db)
 
-	dbName, err := getPostgreSqlDb(url)
-	if err != nil {
-		return err
-	}
-
-	tables, err := im.GetAllTables(dbName)
+	tables, err := im.GetAllTables(schema)
 	if err != nil {
 		return err
 	}
@@ -209,7 +208,7 @@ func fromPostgreSqlDataSource(url, pattern, dir string, cfg *config.Config, cach
 			continue
 		}
 
-		columnData, err := im.FindColumns(dbName, item)
+		columnData, err := im.FindColumns(schema, item)
 		if err != nil {
 			return err
 		}
@@ -232,23 +231,4 @@ func fromPostgreSqlDataSource(url, pattern, dir string, cfg *config.Config, cach
 	}
 
 	return generator.StartFromInformationSchema(matchTables, cache)
-}
-
-func getPostgreSqlDb(url string) (string, error) {
-	dns, err := pq.ParseURL(url)
-	if err != nil {
-		return "", err
-	}
-	fields := strings.Fields(dns)
-	for _, f := range fields {
-		s := strings.Split(f, "=")
-		if len(s) != 2 {
-			continue
-		}
-		if s[0] == "dbname" {
-			return strings.TrimSpace(s[1]), nil
-		}
-	}
-
-	return "", fmt.Errorf("missing db name in '%s'", url)
 }

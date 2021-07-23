@@ -475,6 +475,10 @@ var (
 									Name:  "table, t",
 									Usage: `the table or table globbing patterns in the database`,
 								},
+								cli.StringFlag{
+									Name:  "schema, s",
+									Usage: `the table schema, default is [public]`,
+								},
 								cli.BoolFlag{
 									Name:  "cache, c",
 									Usage: "generate code with cache [optional]",

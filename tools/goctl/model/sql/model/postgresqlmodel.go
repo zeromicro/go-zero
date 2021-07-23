@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
@@ -24,23 +25,23 @@ type PostgreSqlModel struct {
 
 // PostgreColumn describes a column in table
 type PostgreColumn struct {
-	Num               int    `db:"num"`
-	Field             string `db:"field"`
-	Type              string `db:"type"`
-	NotNull           bool   `db:"not_null"`
-	Comment           string `db:"comment"`
-	ColumnDefault     string `db:"column_default"`
-	IdentityIncrement int    `db:"identity_increment"`
+	Num               sql.NullInt32  `db:"num"`
+	Field             sql.NullString `db:"field"`
+	Type              sql.NullString `db:"type"`
+	NotNull           sql.NullBool   `db:"not_null"`
+	Comment           sql.NullString `db:"comment"`
+	ColumnDefault     sql.NullString `db:"column_default"`
+	IdentityIncrement sql.NullInt32  `db:"identity_increment"`
 }
 
 // PostgreIndex describes an index for a column
 type PostgreIndex struct {
-	IndexName  string `db:"index_name"`
-	IndexId    int64  `db:"index_id"`
-	IsUnique   bool   `db:"is_unique"`
-	IsPrimary  bool   `db:"is_primary"`
-	ColumnName string `db:"column_name"`
-	IndexSort  int    `db:"index_sort"`
+	IndexName  sql.NullString `db:"index_name"`
+	IndexId    sql.NullInt32  `db:"index_id"`
+	IsUnique   sql.NullBool   `db:"is_unique"`
+	IsPrimary  sql.NullBool   `db:"is_primary"`
+	ColumnName sql.NullString `db:"column_name"`
+	IndexSort  sql.NullInt32  `db:"index_sort"`
 }
 
 // NewPostgreSqlModel creates an instance and return
@@ -51,10 +52,10 @@ func NewPostgreSqlModel(conn sqlx.SqlConn) *PostgreSqlModel {
 }
 
 // GetAllTables selects all tables from TABLE_SCHEMA
-func (m *PostgreSqlModel) GetAllTables(database string) ([]string, error) {
-	query := `select table_name from information_schema.tables where table_schema = ?;`
+func (m *PostgreSqlModel) GetAllTables(schema string) ([]string, error) {
+	query := `select table_name from information_schema.tables where table_schema = $1`
 	var tables []string
-	err := m.conn.QueryRows(&tables, query, database)
+	err := m.conn.QueryRows(&tables, query, schema)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +64,7 @@ func (m *PostgreSqlModel) GetAllTables(database string) ([]string, error) {
 }
 
 // FindColumns return columns in specified database and table
-func (m *PostgreSqlModel) FindColumns(db, table string) (*ColumnData, error) {
+func (m *PostgreSqlModel) FindColumns(schema, table string) (*ColumnData, error) {
 	querySql := `select t.num,t.field,t.type,t.not_null,t.comment, c.column_default, identity_increment
 from (
          SELECT a.attnum AS num,
@@ -77,66 +78,68 @@ from (
               pg_attribute a
                   LEFT OUTER JOIN pg_description b ON a.attrelid = b.objoid AND a.attnum = b.objsubid,
               pg_type t
-         WHERE c.relname = ?
+         WHERE c.relname = $1
            and a.attnum > 0
            and a.attrelid = c.oid
            and a.atttypid = t.oid
          ORDER BY a.attnum) AS t
          left join information_schema.columns AS c on t.relname = c.table_name 
-		and t.field = c.column_name and c.table_schema = ?`
+		and t.field = c.column_name and c.table_schema = $2`
 
 	var reply []*PostgreColumn
-	err := m.conn.QueryRowsPartial(&reply, querySql, db, table)
+	err := m.conn.QueryRowsPartial(&reply, querySql, table, schema)
 	if err != nil {
 		return nil, err
 	}
 
-	list, err := m.getColumns(db, table, reply)
+	list, err := m.getColumns(schema, table, reply)
 	if err != nil {
 		return nil, err
 	}
 
 	var columnData ColumnData
-	columnData.Db = db
+	columnData.Db = schema
 	columnData.Table = table
 	columnData.Columns = list
 	return &columnData, nil
 }
 
-func (m *PostgreSqlModel) getColumns(db, table string, in []*PostgreColumn) ([]*Column, error) {
-	index, err := m.getIndex(db, table)
+func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) ([]*Column, error) {
+	index, err := m.getIndex(schema, table)
 	if err != nil {
 		return nil, err
 	}
 	var list []*Column
 	for _, e := range in {
 		var dft interface{}
-		if len(e.ColumnDefault) > 0 {
+		if len(e.ColumnDefault.String) > 0 {
 			dft = e.ColumnDefault
 		}
 
 		isNullAble := "YES"
-		if e.NotNull {
+		if e.NotNull.Bool {
 			isNullAble = "NO"
 		}
 
 		extra := "auto_increment"
-		if e.IdentityIncrement != 1 {
+		if e.IdentityIncrement.Int32 != 1 {
 			extra = ""
 		}
 
-		list = append(list, &Column{
-			DbColumn: &DbColumn{
-				Name:            e.Field,
-				DataType:        m.convertPostgreSqlTypeIntoMysqlType(e.Type),
-				Extra:           extra,
-				Comment:         e.Comment,
-				ColumnDefault:   dft,
-				IsNullAble:      isNullAble,
-				OrdinalPosition: e.Num,
-			},
-			Index: index[e.Field],
-		})
+		for _, i := range index[e.Field.String] {
+			list = append(list, &Column{
+				DbColumn: &DbColumn{
+					Name:            e.Field.String,
+					DataType:        m.convertPostgreSqlTypeIntoMysqlType(e.Type.String),
+					Extra:           extra,
+					Comment:         e.Comment.String,
+					ColumnDefault:   dft,
+					IsNullAble:      isNullAble,
+					OrdinalPosition: int(e.Num.Int32),
+				},
+				Index: i,
+			})
+		}
 	}
 
 	return list, nil
@@ -151,37 +154,37 @@ func (m *PostgreSqlModel) convertPostgreSqlTypeIntoMysqlType(in string) string {
 	return in
 }
 
-func (m *PostgreSqlModel) getIndex(db, table string) (map[string]*DbIndex, error) {
-	indexes, err := m.FindIndex(db, table)
+func (m *PostgreSqlModel) getIndex(schema, table string) (map[string][]*DbIndex, error) {
+	indexes, err := m.FindIndex(schema, table)
 	if err != nil {
 		return nil, err
 	}
-	var index = make(map[string]*DbIndex)
+	var index = make(map[string][]*DbIndex)
 	for _, e := range indexes {
-		if e.IsPrimary {
-			index[e.ColumnName] = &DbIndex{
+		if e.IsPrimary.Bool {
+			index[e.ColumnName.String] = append(index[e.ColumnName.String], &DbIndex{
 				IndexName:  indexPri,
-				SeqInIndex: e.IndexSort,
-			}
+				SeqInIndex: int(e.IndexSort.Int32),
+			})
 			continue
 		}
 
 		nonUnique := 0
-		if !e.IsUnique {
+		if !e.IsUnique.Bool {
 			nonUnique = 1
 		}
 
-		index[e.ColumnName] = &DbIndex{
-			IndexName:  e.IndexName,
+		index[e.ColumnName.String] = append(index[e.ColumnName.String], &DbIndex{
+			IndexName:  e.IndexName.String,
 			NonUnique:  nonUnique,
-			SeqInIndex: e.IndexSort,
-		}
+			SeqInIndex: int(e.IndexSort.Int32),
+		})
 	}
 	return index, nil
 }
 
-// FindIndex finds index with given db, table and column.
-func (m *PostgreSqlModel) FindIndex(db, table string) ([]*PostgreIndex, error) {
+// FindIndex finds index with given schema, table and column.
+func (m *PostgreSqlModel) FindIndex(schema, table string) ([]*PostgreIndex, error) {
 	querySql := `select A.INDEXNAME AS index_name,
        C.INDEXRELID AS index_id,
        C.INDISUNIQUE AS is_unique,
@@ -203,12 +206,12 @@ where A.SCHEMANAME = E.SCHEMANAME
   and A.TABLENAME = E.RELNAME
   and A.INDEXNAME = E.INDEXRELNAME
   and F.oid = G.attrelid
-  and E.SCHEMANAME = ?
-  and E.RELNAME = ?
+  and E.SCHEMANAME = $1
+  and E.RELNAME = $2
     order by C.INDEXRELID,G.attnum`
 
 	var reply []*PostgreIndex
-	err := m.conn.QueryRowsPartial(&reply, querySql, db, table)
+	err := m.conn.QueryRowsPartial(&reply, querySql, schema, table)
 	if err != nil {
 		return nil, err
 	}
