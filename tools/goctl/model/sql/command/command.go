@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stores/postgres"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
@@ -17,14 +18,15 @@ import (
 )
 
 const (
-	flagSrc   = "src"
-	flagDir   = "dir"
-	flagCache = "cache"
-	flagIdea  = "idea"
-	flagURL   = "url"
-	flagTable = "table"
-	flagStyle = "style"
+	flagSrc      = "src"
+	flagDir      = "dir"
+	flagCache    = "cache"
+	flagIdea     = "idea"
+	flagURL      = "url"
+	flagTable    = "table"
+	flagStyle    = "style"
 	flagDatabase = "database"
+	flagSchema   = "schema"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -45,8 +47,8 @@ func MysqlDDL(ctx *cli.Context) error {
 	return fromDDl(src, dir, cfg, cache, idea, database)
 }
 
-// MyDataSource generates model code from datasource
-func MyDataSource(ctx *cli.Context) error {
+// MySqlDataSource generates model code from datasource
+func MySqlDataSource(ctx *cli.Context) error {
 	url := strings.TrimSpace(ctx.String(flagURL))
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
@@ -58,7 +60,28 @@ func MyDataSource(ctx *cli.Context) error {
 		return err
 	}
 
-	return fromDataSource(url, pattern, dir, cfg, cache, idea)
+	return fromMysqlDataSource(url, pattern, dir, cfg, cache, idea)
+}
+
+// PostgreSqlDataSource generates model code from datasource
+func PostgreSqlDataSource(ctx *cli.Context) error {
+	url := strings.TrimSpace(ctx.String(flagURL))
+	dir := strings.TrimSpace(ctx.String(flagDir))
+	cache := ctx.Bool(flagCache)
+	idea := ctx.Bool(flagIdea)
+	style := ctx.String(flagStyle)
+	schema := ctx.String(flagSchema)
+	if len(schema) == 0 {
+		schema = "public"
+	}
+
+	pattern := strings.TrimSpace(ctx.String(flagTable))
+	cfg, err := config.NewConfig(style)
+	if err != nil {
+		return err
+	}
+
+	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea)
 }
 
 func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
@@ -92,7 +115,7 @@ func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database str
 	return nil
 }
 
-func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
+func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
@@ -148,6 +171,61 @@ func fromDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bo
 	}
 
 	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log))
+	if err != nil {
+		return err
+	}
+
+	return generator.StartFromInformationSchema(matchTables, cache)
+}
+
+func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea bool) error {
+	log := console.NewConsole(idea)
+	if len(url) == 0 {
+		log.Error("%v", "expected data source of mysql, but nothing found")
+		return nil
+	}
+
+	if len(pattern) == 0 {
+		log.Error("%v", "expected table or table globbing patterns, but nothing found")
+		return nil
+	}
+	db := postgres.New(url)
+	im := model.NewPostgreSqlModel(db)
+
+	tables, err := im.GetAllTables(schema)
+	if err != nil {
+		return err
+	}
+
+	matchTables := make(map[string]*model.Table)
+	for _, item := range tables {
+		match, err := filepath.Match(pattern, item)
+		if err != nil {
+			return err
+		}
+
+		if !match {
+			continue
+		}
+
+		columnData, err := im.FindColumns(schema, item)
+		if err != nil {
+			return err
+		}
+
+		table, err := columnData.Convert()
+		if err != nil {
+			return err
+		}
+
+		matchTables[item] = table
+	}
+
+	if len(matchTables) == 0 {
+		return errors.New("no tables matched")
+	}
+
+	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql())
 	if err != nil {
 		return err
 	}

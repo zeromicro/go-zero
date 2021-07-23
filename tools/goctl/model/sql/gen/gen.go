@@ -29,8 +29,9 @@ type (
 		// source string
 		dir string
 		console.Console
-		pkg string
-		cfg *config.Config
+		pkg          string
+		cfg          *config.Config
+		isPostgreSql bool
 	}
 
 	// Option defines a function with argument defaultGenerator
@@ -81,6 +82,13 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
 		generator.Console = c
+	}
+}
+
+// WithPostgreSql marks  defaultGenerator.isPostgreSql true
+func WithPostgreSql() Option {
+	return func(generator *defaultGenerator) {
+		generator.isPostgreSql = true
 	}
 }
 
@@ -219,34 +227,34 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.UniqueCacheKey = uniqueKey
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 
-	varsCode, err := genVars(table, withCache)
+	varsCode, err := genVars(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	insertCode, insertCodeMethod, err := genInsert(table, withCache)
+	insertCode, insertCodeMethod, err := genInsert(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
 	findCode := make([]string, 0)
-	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache)
+	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	ret, err := genFindOneByField(table, withCache)
+	ret, err := genFindOneByField(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
 	findCode = append(findCode, findOneCode, ret.findOneMethod)
-	updateCode, updateCodeMethod, err := genUpdate(table, withCache)
+	updateCode, updateCodeMethod, err := genUpdate(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	deleteCode, deleteCodeMethod, err := genDelete(table, withCache)
+	deleteCode, deleteCodeMethod, err := genDelete(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
@@ -258,7 +266,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	newCode, err := genNew(table, withCache)
+	newCode, err := genNew(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
@@ -309,7 +317,11 @@ func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
 	return output, nil
 }
 
-func wrapWithRawString(v string) string {
+func wrapWithRawString(v string, postgreSql bool) string {
+	if postgreSql {
+		return v
+	}
+
 	if v == "`" {
 		return v
 	}

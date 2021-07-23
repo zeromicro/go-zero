@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genVars(table Table, withCache bool) (string, error) {
+func genVars(table Table, withCache, postgreSql bool) (string, error) {
 	keys := make([]string, 0)
 	keys = append(keys, table.PrimaryCacheKey.VarExpression)
 	for _, v := range table.UniqueCacheKey {
@@ -27,8 +27,9 @@ func genVars(table Table, withCache bool) (string, error) {
 		"upperStartCamelObject": camel,
 		"cacheKeys":             strings.Join(keys, "\n"),
 		"autoIncrement":         table.PrimaryKey.AutoIncrement,
-		"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
+		"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 		"withCache":             withCache,
+		"postgreSql":            postgreSql,
 	})
 	if err != nil {
 		return "", err
