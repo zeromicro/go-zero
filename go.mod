@@ -40,11 +40,11 @@ require (
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.uber.org/automaxprocs v1.3.0
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
-	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
+	golang.org/x/net v0.0.0-20210716203947-853a461950ff
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba
-	google.golang.org/genproto v0.0.0-20210617175327-b9e0b3197ced // indirect
-	google.golang.org/grpc v1.38.0
+	google.golang.org/genproto v0.0.0-20210722135532-667f2b7c528f // indirect
+	google.golang.org/grpc v1.39.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.0.15
 	gopkg.in/yaml.v2 v2.4.0
