@@ -55,16 +55,6 @@ func gracefulStop(signals chan os.Signal) {
 	syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
 }
 
-// NotifyWrapUpListeners notifies wrap up listeners.
-func NotifyWrapUpListeners() {
-	wrapUpListeners.notifyListeners()
-}
-
-// NotifyShutdownListeners notifies wrap down listeners.
-func NotifyShutdownListeners() {
-	shutdownListeners.notifyListeners()
-}
-
 type listenerManager struct {
 	lock      sync.Mutex
 	waitGroup sync.WaitGroup
