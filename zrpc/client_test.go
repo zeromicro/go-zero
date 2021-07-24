@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
@@ -58,6 +59,13 @@ func TestDepositServer_Deposit(t *testing.T) {
 			codes.OK,
 			"",
 		},
+		{
+			"valid request with long handling time",
+			2000.00,
+			nil,
+			codes.DeadlineExceeded,
+			fmt.Sprintf("context deadline exceeded"),
+		},
 	}
 
 	directClient := MustNewClient(
@@ -79,7 +87,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 				invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 				return invoker(ctx, method, req, reply, cc, opts...)
-			}))
+			}), WithTimeout(1000*time.Millisecond))
 	assert.Nil(t, err)
 	clients := []Client{
 		directClient,
