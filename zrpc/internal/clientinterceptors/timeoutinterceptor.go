@@ -17,6 +17,7 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
+
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 }
