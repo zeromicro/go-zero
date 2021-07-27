@@ -47,6 +47,10 @@ var commonMysqlDataTypeMap = map[int]string{
 	parser.Enum:       "string",
 	parser.Set:        "string",
 	parser.Json:       "string",
+	parser.Blob:       "string",
+	parser.LongBlob:   "string",
+	parser.MediumBlob: "string",
+	parser.TinyBlob:   "string",
 }
 
 var commonMysqlDataTypeMap2 = map[string]string{
@@ -81,6 +85,10 @@ var commonMysqlDataTypeMap2 = map[string]string{
 	"enum":       "string",
 	"set":        "string",
 	"json":       "string",
+	"blob":       "string",
+	"longblob":   "string",
+	"mediumblob": "string",
+	"tinyblob":   "string",
 }
 
 // ConvertDataType converts mysql column type into golang type
