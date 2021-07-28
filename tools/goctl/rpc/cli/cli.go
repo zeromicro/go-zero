@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -18,9 +19,16 @@ func RPC(c *cli.Context) error {
 	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
 	goOptions := c.StringSlice("go_opt")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(src) == 0 {
 		return errors.New("missing -src")
 	}
+
 	if len(out) == 0 {
 		return errors.New("missing -dir")
 	}
@@ -42,6 +50,11 @@ func RPCNew(c *cli.Context) error {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 	style := c.String("style")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
 
 	protoName := rpcname + ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
