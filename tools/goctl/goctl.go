@@ -119,7 +119,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: gogen.GoCommand,
@@ -240,7 +240,7 @@ var (
 				},
 				cli.StringFlag{
 					Name:  "home",
-					Usage: "the goclt home path of the template",
+					Usage: "the goctl home path of the template",
 				},
 			},
 			Action: docker.DockerCommand,
@@ -329,7 +329,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: kube.DeploymentCommand,
@@ -354,7 +354,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: rpc.RPCNew,
@@ -400,7 +400,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: rpc.RPC,
@@ -445,7 +445,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "home",
-									Usage: "the goclt home path of the template",
+									Usage: "the goctl home path of the template",
 								},
 							},
 							Action: model.MysqlDDL,
@@ -480,7 +480,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "home",
-									Usage: "the goclt home path of the template",
+									Usage: "the goctl home path of the template",
 								},
 							},
 							Action: model.MySqlDataSource,
@@ -525,7 +525,7 @@ var (
 								},
 								cli.StringFlag{
 									Name:  "home",
-									Usage: "the goclt home path of the template",
+									Usage: "the goctl home path of the template",
 								},
 							},
 							Action: model.PostgreSqlDataSource,
@@ -554,7 +554,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: mongo.Action,
@@ -582,7 +582,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.GenTemplates,
@@ -593,7 +593,7 @@ var (
 					Flags: []cli.Flag{
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.CleanTemplates,
@@ -608,7 +608,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.UpdateTemplates,
@@ -627,7 +627,7 @@ var (
 						},
 						cli.StringFlag{
 							Name:  "home",
-							Usage: "the goclt home path of the template",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.RevertTemplates,
