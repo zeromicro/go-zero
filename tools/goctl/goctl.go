@@ -117,6 +117,10 @@ var (
 							Name:  "style",
 							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: gogen.GoCommand,
 				},
@@ -234,6 +238,10 @@ var (
 					Usage: "the port to expose, default none",
 					Value: 0,
 				},
+				cli.StringFlag{
+					Name:  "home",
+					Usage: "the goctl home path of the template",
+				},
 			},
 			Action: docker.DockerCommand,
 		},
@@ -319,6 +327,10 @@ var (
 							Usage: "the max replicas of deploy",
 							Value: 10,
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: kube.DeploymentCommand,
 				},
@@ -339,6 +351,10 @@ var (
 						cli.BoolFlag{
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: rpc.RPCNew,
@@ -382,6 +398,10 @@ var (
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: rpc.RPC,
 				},
@@ -423,6 +443,10 @@ var (
 									Name:  "database, db",
 									Usage: "the name of database [optional]",
 								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
+								},
 							},
 							Action: model.MysqlDDL,
 						},
@@ -453,6 +477,10 @@ var (
 								cli.BoolFlag{
 									Name:  "idea",
 									Usage: "for idea plugin [optional]",
+								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
 								},
 							},
 							Action: model.MySqlDataSource,
@@ -495,6 +523,10 @@ var (
 									Name:  "idea",
 									Usage: "for idea plugin [optional]",
 								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
+								},
 							},
 							Action: model.PostgreSqlDataSource,
 						},
@@ -520,6 +552,10 @@ var (
 							Name:  "style",
 							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: mongo.Action,
 				},
@@ -541,13 +577,25 @@ var (
 			Usage: "template operation",
 			Subcommands: []cli.Command{
 				{
-					Name:   "init",
-					Usage:  "initialize the all templates(force update)",
+					Name:  "init",
+					Usage: "initialize the all templates(force update)",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
+					},
 					Action: tpl.GenTemplates,
 				},
 				{
-					Name:   "clean",
-					Usage:  "clean the all cache templates",
+					Name:  "clean",
+					Usage: "clean the all cache templates",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
+					},
 					Action: tpl.CleanTemplates,
 				},
 				{
@@ -557,6 +605,10 @@ var (
 						cli.StringFlag{
 							Name:  "category,c",
 							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.UpdateTemplates,
@@ -572,6 +624,10 @@ var (
 						cli.StringFlag{
 							Name:  "name,n",
 							Usage: "the target file name of template",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.RevertTemplates,
