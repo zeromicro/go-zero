@@ -2,9 +2,11 @@ package router
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/tal-tech/go-zero/core/search"
 	"github.com/tal-tech/go-zero/rest/httpx"
@@ -29,11 +31,17 @@ type patRouter struct {
 	notAllowed http.Handler
 }
 
+var patRouterOnce sync.Once
+var patRouterInstance httpx.Router
+
 // NewRouter returns a httpx.Router.
 func NewRouter() httpx.Router {
-	return &patRouter{
-		trees: make(map[string]*search.Tree),
-	}
+	patRouterOnce.Do(func() {
+		patRouterInstance = &patRouter{
+			trees: make(map[string]*search.Tree),
+		}
+	})
+	return patRouterInstance
 }
 
 func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error {
