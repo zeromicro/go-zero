@@ -2,7 +2,6 @@ package router
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
