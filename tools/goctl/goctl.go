@@ -488,7 +488,7 @@ var (
 					},
 				},
 				{
-					Name:  "postgresql",
+					Name:  "pg",
 					Usage: `generate postgresql model`,
 					Subcommands: []cli.Command{
 						{
