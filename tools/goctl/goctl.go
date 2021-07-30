@@ -456,7 +456,7 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
@@ -497,7 +497,7 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
+									Usage: `the data source of database,like "postgres://root:password@127.0.0.1:54332/database?sslmode=disable"`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
