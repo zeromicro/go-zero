@@ -199,7 +199,7 @@ func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, id
 func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
-		log.Error("%v", "expected data source of mysql, but nothing found")
+		log.Error("%v", "expected data source of postgresql, but nothing found")
 		return nil
 	}
 
