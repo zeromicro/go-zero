@@ -23,10 +23,22 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	directory = filepath.Clean(directory)
 	cw.WriteString("protoc ")
 	protoImportPathSet := collection.NewSet()
+	isSamePackage := true
 	for _, ip := range protoImportPath {
 		pip := " --proto_path=" + ip
 		if protoImportPathSet.Contains(pip) {
 			continue
+		}
+
+		abs, err := filepath.Abs(ip)
+		if err != nil {
+			return err
+		}
+
+		if abs == directory {
+			isSamePackage = true
+		} else {
+			isSamePackage = false
 		}
 
 		protoImportPathSet.AddStr(pip)
@@ -36,6 +48,7 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	if !protoImportPathSet.Contains(currentPath) {
 		cw.WriteString(currentPath)
 	}
+
 	cw.WriteString(" " + proto.Name)
 	if strings.Contains(proto.GoPackage, "/") {
 		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetMain().Filename)
@@ -57,13 +70,18 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	}
 
 	var currentFileOpt string
-	if filepath.IsAbs(proto.GoPackage) {
-		currentFileOpt = " --go_opt=M" + base + "=" + proto.GoPackage
-	} else if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
-		currentFileOpt = " --go_opt=M" + base + "=./" + proto.GoPackage
+	if !isSamePackage || (len(proto.GoPackage) > 0 && proto.GoPackage != proto.Package.Name) {
+		if filepath.IsAbs(proto.GoPackage) {
+			currentFileOpt = " --go_opt=M" + base + "=" + proto.GoPackage
+		} else if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
+			currentFileOpt = " --go_opt=M" + base + "=./" + proto.GoPackage
+		} else {
+			currentFileOpt = " --go_opt=M" + base + "=../" + proto.GoPackage
+		}
 	} else {
-		currentFileOpt = " --go_opt=M" + base + "=../" + proto.GoPackage
+		currentFileOpt = " --go_opt=M" + base + "=."
 	}
+
 	if !optSet.Contains(currentFileOpt) {
 		cw.WriteString(currentFileOpt)
 	}
