@@ -19,7 +19,7 @@ const (
 package server
 
 import (
-	"context"
+	{{if .notStream}}"context"{{end}}
 
 	{{.imports}}
 )
