@@ -1,8 +1,10 @@
 package redis
 
 import (
+	"errors"
 	"math/rand"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -34,6 +36,8 @@ type RedisLock struct {
 	seconds uint32
 	key     string
 	id      string
+	lockSHA string
+	delSHA  string
 }
 
 func init() {
@@ -42,24 +46,44 @@ func init() {
 
 // NewRedisLock returns a RedisLock.
 func NewRedisLock(store *Redis, key string) *RedisLock {
+	lockSHA, err := store.ScriptLoad(lockCommand)
+	if err != nil {
+		logx.Error("Error on failed to load lua script in lockCommand")
+		return nil
+	}
+	delSHA, err := store.ScriptLoad(delCommand)
+	if err != nil {
+		logx.Error("Error on failed to load lua script in delCommand")
+		return nil
+	}
+
 	return &RedisLock{
-		store: store,
-		key:   key,
-		id:    randomStr(randomLen),
+		store:   store,
+		key:     key,
+		id:      randomStr(randomLen),
+		lockSHA: lockSHA,
+		delSHA:  delSHA,
 	}
 }
 
 // Acquire acquires the lock.
 func (rl *RedisLock) Acquire() (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.Eval(lockCommand, []string{rl.key}, []string{
+	resp, err := rl.store.EvalSha(rl.lockSHA, []string{rl.key}, []string{
 		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
 	})
 	if err == red.Nil {
 		return false, nil
 	} else if err != nil {
-		logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
-		return false, err
+		if isLuaScriptDone(err) {
+			if err = rl.reloadScript("lock", lockCommand); err != nil {
+				logx.Errorf("Error on reload lockscript: %s", err)
+				return false, err
+			}
+		} else {
+			logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
+			return false, err
+		}
 	} else if resp == nil {
 		return false, nil
 	}
@@ -75,9 +99,21 @@ func (rl *RedisLock) Acquire() (bool, error) {
 
 // Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
-	resp, err := rl.store.Eval(delCommand, []string{rl.key}, []string{rl.id})
-	if err != nil {
-		return false, err
+	resp, err := rl.store.EvalSha(rl.delSHA, []string{rl.key}, []string{rl.id})
+	if err == red.Nil {
+		return false, nil
+	} else if err != nil {
+		if isLuaScriptDone(err) {
+			if err = rl.reloadScript("del", lockCommand); err != nil {
+				logx.Errorf("Error on reload lockscript: %s", err)
+				return false, err
+			}
+		} else {
+			logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
+			return false, err
+		}
+	} else if resp == nil {
+		return false, nil
 	}
 
 	reply, ok := resp.(int64)
@@ -91,6 +127,31 @@ func (rl *RedisLock) Release() (bool, error) {
 // SetExpire sets the expire.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
+}
+
+func (rl *RedisLock) reloadScript(loadType string, script string) error {
+	if rl == nil {
+		return errors.New("redislock instance was not initialized")
+	}
+
+	load, err := rl.store.ScriptLoad(script)
+	if err != nil {
+		logx.Errorf("Error on failed to load lua script in lockCommand")
+		return err
+	}
+	switch loadType {
+	case "lock":
+		rl.lockSHA = load
+	case "del":
+		rl.delSHA = load
+	default:
+		return errors.New("script initialization is not supported")
+	}
+	return nil
+}
+
+func isLuaScriptDone(err error) bool {
+	return strings.Contains(err.Error(), "NOSCRIPT")
 }
 
 func randomStr(n int) string {
