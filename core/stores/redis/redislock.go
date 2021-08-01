@@ -12,6 +12,17 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 )
 
+type loadType string
+
+func (load loadType) get() string {
+	return string(load)
+}
+
+const (
+	LOCK loadType = "lock"
+	DEL  loadType = "del"
+)
+
 const (
 	letters     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	lockCommand = `if redis.call("GET", KEYS[1]) == ARGV[1] then
@@ -76,7 +87,7 @@ func (rl *RedisLock) Acquire() (bool, error) {
 		return false, nil
 	} else if err != nil {
 		if isLuaScriptDone(err) {
-			if err = rl.reloadScript("lock", lockCommand); err != nil {
+			if err = rl.reloadScript(LOCK.get(), lockCommand); err != nil {
 				logx.Errorf("Error on reload lockscript: %s", err)
 				return false, err
 			}
@@ -104,7 +115,7 @@ func (rl *RedisLock) Release() (bool, error) {
 		return false, nil
 	} else if err != nil {
 		if isLuaScriptDone(err) {
-			if err = rl.reloadScript("del", lockCommand); err != nil {
+			if err = rl.reloadScript(DEL.get(), lockCommand); err != nil {
 				logx.Errorf("Error on reload lockscript: %s", err)
 				return false, err
 			}
@@ -140,9 +151,9 @@ func (rl *RedisLock) reloadScript(loadType string, script string) error {
 		return err
 	}
 	switch loadType {
-	case "lock":
+	case LOCK.get():
 		rl.lockSHA = load
-	case "del":
+	case DEL.get():
 		rl.delSHA = load
 	default:
 		return errors.New("script initialization is not supported")
