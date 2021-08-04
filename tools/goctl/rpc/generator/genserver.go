@@ -73,11 +73,20 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 		return err
 	}
 
+	notStream := false
+	for _, rpc := range service.RPC {
+		if !rpc.StreamsRequest && !rpc.StreamsReturns {
+			notStream = true
+			break
+		}
+	}
+
 	err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"head":    head,
-		"server":  stringx.From(service.Name).ToCamel(),
-		"imports": strings.Join(imports.KeysStr(), util.NL),
-		"funcs":   strings.Join(funcList, util.NL),
+		"head":      head,
+		"server":    stringx.From(service.Name).ToCamel(),
+		"imports":   strings.Join(imports.KeysStr(), util.NL),
+		"funcs":     strings.Join(funcList, util.NL),
+		"notStream": notStream,
 	}, serverFile, true)
 	return err
 }
