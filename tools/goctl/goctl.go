@@ -367,6 +367,10 @@ var (
 							Name:  "out, o",
 							Usage: "the target path of proto",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: rpc.RPCTemplate,
 				},
