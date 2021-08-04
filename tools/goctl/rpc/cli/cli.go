@@ -79,6 +79,12 @@ func RPCNew(c *cli.Context) error {
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(c *cli.Context) error {
 	protoFile := c.String("o")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(protoFile) == 0 {
 		return errors.New("missing -o")
 	}
