@@ -22,6 +22,7 @@ type (
 	Server struct {
 		ngin *engine
 		opts runOptions
+		patRouter httpx.Router
 	}
 )
 
@@ -51,11 +52,14 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 				return srv.Start()
 			},
 		},
+		patRouter: router.NewRouter(),
 	}
 
 	for _, opt := range opts {
 		opt(server)
 	}
+
+	WithRouter(server.patRouter)(server)
 
 	return server, nil
 }
@@ -148,16 +152,16 @@ func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 
 // WithNotFoundHandler returns a RunOption with not found handler set to given handler.
 func WithNotFoundHandler(handler http.Handler) RunOption {
-	rt := router.NewRouter()
-	rt.SetNotFoundHandler(handler)
-	return WithRouter(rt)
+	return func(server *Server) {
+		server.patRouter.SetNotFoundHandler(handler)
+	}
 }
 
 // WithNotAllowedHandler returns a RunOption with not allowed handler set to given handler.
 func WithNotAllowedHandler(handler http.Handler) RunOption {
-	rt := router.NewRouter()
-	rt.SetNotAllowedHandler(handler)
-	return WithRouter(rt)
+	return func(server *Server) {
+		server.patRouter.SetNotAllowedHandler(handler)
+	}
 }
 
 // WithPriority returns a RunOption with priority.
