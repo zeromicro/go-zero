@@ -3,6 +3,7 @@ package builderx
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/go-xorm/builder"
 )
@@ -81,11 +82,16 @@ func FieldNames(in interface{}) []string {
 }
 
 // RawFieldNames converts golang struct field into slice string
-func RawFieldNames(in interface{}) []string {
+func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 	out := make([]string, 0)
 	v := reflect.ValueOf(in)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
+	}
+
+	var pg bool
+	if len(postgresSql) > 0 {
+		pg = postgresSql[0]
 	}
 
 	// we only accept structs
@@ -98,11 +104,32 @@ func RawFieldNames(in interface{}) []string {
 		// gets us a StructField
 		fi := typ.Field(i)
 		if tagv := fi.Tag.Get(dbTag); tagv != "" {
-			out = append(out, fmt.Sprintf("`%s`", tagv))
+			if pg {
+				out = append(out, fmt.Sprintf("%s", tagv))
+			} else {
+				out = append(out, fmt.Sprintf("`%s`", tagv))
+			}
 		} else {
-			out = append(out, fmt.Sprintf(`"%s"`, fi.Name))
+			if pg {
+				out = append(out, fmt.Sprintf("%s", fi.Name))
+			} else {
+				out = append(out, fmt.Sprintf("`%s`", fi.Name))
+			}
 		}
 	}
 
 	return out
+}
+
+func PostgreSqlJoin(elems []string) string {
+	var b = new(strings.Builder)
+	for index, e := range elems {
+		b.WriteString(fmt.Sprintf("%s = $%d, ", e, index+1))
+	}
+
+	if b.Len() == 0 {
+		return b.String()
+	}
+
+	return b.String()[0 : b.Len()-2]
 }

@@ -56,7 +56,8 @@ type (
 	}
 
 	statement struct {
-		stmt *sql.Stmt
+		query string
+		stmt  *sql.Stmt
 	}
 
 	stmtConn interface {
@@ -111,7 +112,8 @@ func (db *commonSqlConn) Prepare(query string) (stmt StmtSession, err error) {
 		}
 
 		stmt = statement{
-			stmt: st,
+			query: query,
+			stmt:  st,
 		}
 		return nil
 	}, db.acceptable)
@@ -181,29 +183,29 @@ func (s statement) Close() error {
 }
 
 func (s statement) Exec(args ...interface{}) (sql.Result, error) {
-	return execStmt(s.stmt, args...)
+	return execStmt(s.stmt, s.query, args...)
 }
 
 func (s statement) QueryRow(v interface{}, args ...interface{}) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
-	}, args...)
+	}, s.query, args...)
 }
 
 func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
-	}, args...)
+	}, s.query, args...)
 }
 
 func (s statement) QueryRows(v interface{}, args ...interface{}) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
-	}, args...)
+	}, s.query, args...)
 }
 
 func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
-	}, args...)
+	}, s.query, args...)
 }

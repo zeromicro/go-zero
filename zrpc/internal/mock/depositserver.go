@@ -2,6 +2,7 @@ package mock
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,5 +17,6 @@ func (*DepositServer) Deposit(ctx context.Context, req *DepositRequest) (*Deposi
 		return nil, status.Errorf(codes.InvalidArgument, "cannot deposit %v", req.GetAmount())
 	}
 
+	time.Sleep(time.Duration(req.GetAmount()) * time.Millisecond)
 	return &DepositResponse{Ok: true}, nil
 }

@@ -64,8 +64,13 @@ func (g *DefaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf
 		return err
 	}
 
+	etcFileName, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	if err != nil {
+		return err
+	}
+
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"serviceName": strings.ToLower(ctx.GetServiceName().ToCamel()),
+		"serviceName": etcFileName,
 		"imports":     strings.Join(imports, util.NL),
 		"pkg":         proto.PbPackage,
 		"serviceNew":  stringx.From(proto.Service.Name).ToCamel(),

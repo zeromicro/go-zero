@@ -23,7 +23,7 @@ func StartHttps(host string, port int, certFile, keyFile string, handler http.Ha
 	})
 }
 
-func start(host string, port int, handler http.Handler, run func(srv *http.Server) error) error {
+func start(host string, port int, handler http.Handler, run func(srv *http.Server) error) (err error) {
 	server := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", host, port),
 		Handler: handler,
@@ -31,7 +31,11 @@ func start(host string, port int, handler http.Handler, run func(srv *http.Serve
 	waitForCalled := proc.AddWrapUpListener(func() {
 		server.Shutdown(context.Background())
 	})
-	defer waitForCalled()
+	defer func() {
+		if err == http.ErrServerClosed {
+			waitForCalled()
+		}
+	}()
 
 	return run(server)
 }

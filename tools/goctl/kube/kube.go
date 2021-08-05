@@ -40,6 +40,12 @@ type Deployment struct {
 // DeploymentCommand is used to generate the kubernetes deployment yaml files.
 func DeploymentCommand(c *cli.Context) error {
 	nodePort := c.Int("nodePort")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	// 0 to disable the nodePort type
 	if nodePort != 0 && (nodePort < basePort || nodePort > portLimit) {
 		return errors.New("nodePort should be between 30000 and 32767")

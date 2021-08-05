@@ -201,3 +201,26 @@ func BenchmarkParseAuto(b *testing.B) {
 		}
 	}
 }
+
+func TestParseHeaders(t *testing.T) {
+	v := struct {
+		Name    string   `header:"name"`
+		Percent string   `header:"percent"`
+		Addrs   []string `header:"addrs"`
+	}{}
+	request, err := http.NewRequest("POST", "http://hello.com/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("name", "chenquan")
+	request.Header.Set("percent", "1")
+	request.Header.Add("addrs", "addr1")
+	request.Header.Add("addrs", "addr2")
+	err = ParseHeaders(request, &v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "chenquan", v.Name)
+	assert.Equal(t, "1", v.Percent)
+	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+}

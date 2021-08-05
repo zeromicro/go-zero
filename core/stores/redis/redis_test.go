@@ -638,6 +638,16 @@ func TestRedis_Set(t *testing.T) {
 		num, err = client.Sdiffstore("key4", "key1", "key2")
 		assert.Nil(t, err)
 		assert.Equal(t, 1, num)
+		_, err = New(client.Addr, badType()).Sinter("key1", "key2")
+		assert.NotNil(t, err)
+		vals, err = client.Sinter("key1", "key2")
+		assert.Nil(t, err)
+		assert.ElementsMatch(t, []string{"2", "3", "4"}, vals)
+		_, err = New(client.Addr, badType()).Sinterstore("key4", "key1", "key2")
+		assert.NotNil(t, err)
+		num, err = client.Sinterstore("key4", "key1", "key2")
+		assert.Nil(t, err)
+		assert.Equal(t, 3, num)
 	})
 }
 

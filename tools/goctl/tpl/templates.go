@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/errorx"
@@ -19,6 +20,11 @@ const templateParentPath = "/"
 
 // GenTemplates writes the latest template text into file which is not exists
 func GenTemplates(ctx *cli.Context) error {
+	path := ctx.String("home")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	if err := errorx.Chain(
 		func() error {
 			return gogen.GenTemplates(ctx)
@@ -47,14 +53,24 @@ func GenTemplates(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(dir),
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(abs),
 		aurora.Red("edit on your risk!"))
 
 	return nil
 }
 
 // CleanTemplates deletes all templates
-func CleanTemplates(_ *cli.Context) error {
+func CleanTemplates(ctx *cli.Context) error {
+	path := ctx.String("home")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	err := errorx.Chain(
 		func() error {
 			return gogen.Clean()
@@ -86,7 +102,12 @@ func CleanTemplates(_ *cli.Context) error {
 // UpdateTemplates writes the latest template text into file,
 // it will delete the older templates if there are exists
 func UpdateTemplates(ctx *cli.Context) (err error) {
+	path := ctx.String("home")
 	category := ctx.String("category")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	defer func() {
 		if err == nil {
 			fmt.Println(aurora.Green(fmt.Sprintf("%s template are update!", category)).String())
@@ -113,8 +134,13 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 
 // RevertTemplates will overwrite the old template content with the new template
 func RevertTemplates(ctx *cli.Context) (err error) {
+	path := ctx.String("home")
 	category := ctx.String("category")
 	filename := ctx.String("name")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	defer func() {
 		if err == nil {
 			fmt.Println(aurora.Green(fmt.Sprintf("%s template are reverted!", filename)).String())

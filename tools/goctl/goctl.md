@@ -54,8 +54,8 @@ type (
 
 	createRequest struct {
 		innerType
-		name    string    `form:"name"`         // niha
-		age     int       `form:"age,optional"` // nihaod
+		name    string    `form:"name"`
+		age     int       `form:"age,optional"`
 		address []address `json:"address,optional"`
 	}
 

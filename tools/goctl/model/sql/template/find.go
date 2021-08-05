@@ -6,7 +6,7 @@ func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrima
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
 	err := m.QueryRow(&resp, {{.cacheKeyVariable}}, func(conn sqlx.SqlConn, v interface{}) error {
-		query :=  fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table)
+		query :=  fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table)
 		return conn.QueryRow(v, query, {{.lowerStartCamelPrimaryKey}})
 	})
 	switch err {
@@ -16,7 +16,7 @@ func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrima
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{else}}query := fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table)
+	}{{else}}query := fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table)
 	var resp {{.upperStartCamelObject}}
 	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelPrimaryKey}})
 	switch err {
@@ -71,7 +71,7 @@ func (m *default{{.upperStartCamelObject}}Model) formatPrimary(primary interface
 }
 
 func (m *default{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
-	query := fmt.Sprintf("select %s from %s where {{.originalPrimaryField}} = ? limit 1", {{.lowerStartCamelObject}}Rows, m.table )
+	query := fmt.Sprintf("select %s from %s where {{.originalPrimaryField}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table )
 	return conn.QueryRow(v, query, primary)
 }
 `

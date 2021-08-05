@@ -26,7 +26,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 自动校验客户端请求参数合法性
 * 大量微服务治理和并发工具包
 
-<img src="https://gitee.com/kevwan/static/raw/master/doc/images/architecture.png" alt="架构图" width="1500" />
+![架构图](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/architecture.png)
 
 ## 1. go-zero 框架背景
 
@@ -78,7 +78,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
-![弹性设计](https://gitee.com/kevwan/static/raw/master/doc/images/resilience.jpg)
+![弹性设计](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/resilience.jpg)
 
 觉得不错的话，别忘 **star** 👏
 
@@ -151,7 +151,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 6. Benchmark
 
-![benchmark](https://gitee.com/kevwan/static/raw/master/doc/images/benchmark.png)
+![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
@@ -159,19 +159,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * API 文档
 
-  [https://go-zero.dev/zh-hans/](https://zeromicro.github.io/go-zero)
-
-* 常见问题
-
-  * 因为 `etcd` 和 `grpc` 兼容性问题，请使用 `grpc@v1.29.1`
-
-    `google.golang.org/grpc v1.29.1`
-
-  * 因为 `protobuf` 兼容性问题，请使用 `protocol-gen@v1.3.2`
-
-    `go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
+  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
 
 * awesome 系列（更多文章见『微服务实践』公众号）
+
   * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
@@ -208,6 +199,23 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >17. 三七游戏
 >18. 成都创道夫科技有限公司
 >19. 联想Lenovo
+>20. 云犀
+>21. 高盈国际
+>22. 北京中科生活服务有限公司
+>23. Indochat 印尼艾希英
+>24. 数赞
+>25. 量冠科技
+>26. 杭州又拍云科技有限公司
+>27. 深圳市点购电子商务控股股份有限公司
+>28. 深圳市宁克沃德科技有限公司
+>29. 桂林优利特医疗电子有限公司
+>30. 成都智橙互动科技有限公司
+>31. 深圳市班班科技有限公司
+>32. 飞视（苏州）数字技术有限公司
+>33. 上海鲸思智能科技有限公司
+>34. 南宁宸升计算机科技有限公司
+>35. 秦皇岛2084team
+>36. 天翼云股份有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/tal-tech/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
@@ -215,7 +223,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
-<img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat-micro.jpg" alt="wechat" width="300" />
 
 ## 10. 微信交流群
 
