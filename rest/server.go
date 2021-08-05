@@ -59,7 +59,9 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 		opt(server)
 	}
 
-	WithRouter(server.patRouter)(server)
+	if len(opts) != 0 {
+		WithRouter(server.patRouter)(server)
+	}
 
 	return server, nil
 }
