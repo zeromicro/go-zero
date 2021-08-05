@@ -193,11 +193,7 @@ func (e *defaultExpr) Stop() int {
 
 func (e *defaultExpr) Equal(expr Expr) bool {
 	if e == nil {
-		if expr != nil {
-			return false
-		}
-
-		return true
+		return expr == nil
 	}
 
 	if expr == nil {
@@ -277,10 +273,8 @@ func (v *ApiVisitor) getComment(t TokenStream) Expr {
 func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsCommentOfDefaultChannel bool) []Expr {
 	ct := t.GetParser().GetTokenStream().(*antlr.CommonTokenStream)
 	tokens := ct.GetHiddenTokensToLeft(t.GetStart().GetTokenIndex(), channel)
-	var tmp []antlr.Token
-	for _, each := range tokens {
-		tmp = append(tmp, each)
-	}
+	tmp := make([]antlr.Token, len(tokens))
+	copy(tmp, tokens)
 
 	var list []Expr
 	for _, each := range tmp {
