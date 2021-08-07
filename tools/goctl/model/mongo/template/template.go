@@ -24,7 +24,7 @@ type default{{.Type}}Model struct {
     {{if .Cache}}*mongoc.Model{{else}}*mongo.Model{{end}}
 }
 
-func New{{.Type}}Model(url, collection string, c cachec.CacheConf) {{.Type}}Model {
+func New{{.Type}}Model(url, collection string{{if .Cache}}, c cachec.CacheConf{{end}}) {{.Type}}Model {
 	return &default{{.Type}}Model{
 		Model: {{if .Cache}}mongoc.MustNewModel(url, collection, c){{else}}mongo.MustNewModel(url, collection){{end}},
 	}
