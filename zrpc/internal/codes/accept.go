@@ -2,10 +2,24 @@ package codes
 
 import (
 	"context"
+	"github.com/tal-tech/go-zero/core/lang"
+	"sync"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+var rejectErr = make(map[error]lang.PlaceholderType)
+var one sync.Once
+
+// RejectErr Setting should be rejected error.
+func RejectErr(errs ...error) {
+	one.Do(func() {
+		for _, err := range errs {
+			rejectErr[err] = lang.PlaceholderType{}
+		}
+	})
+}
 
 // Acceptable checks if given error is acceptable.
 func Acceptable(err error) bool {
@@ -24,6 +38,7 @@ func acceptableUnknown(err error) bool {
 	case context.DeadlineExceeded:
 		return false
 	default:
-		return true
+		_, ok := rejectErr[err]
+		return !ok
 	}
 }
