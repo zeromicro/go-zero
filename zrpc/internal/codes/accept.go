@@ -9,8 +9,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var rejectErr = make(map[error]lang.PlaceholderType)
-var one sync.Once
+var (
+	// rejectErr A collection of errors that should be rejected.
+	rejectErr = make(map[error]lang.PlaceholderType)
+	// one Make sure to be executed only once.
+	one sync.Once
+)
 
 // RejectErr Setting should be rejected error.
 func RejectErr(errs ...error) {
