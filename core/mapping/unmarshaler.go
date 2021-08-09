@@ -43,7 +43,8 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fromString bool
+		fromString   bool
+		canonicalKey func(key string) string
 	}
 
 	keyCache map[string][]string
@@ -321,9 +322,12 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	if err != nil {
 		return err
 	}
-
+	k := key
+	if u.opts.canonicalKey != nil {
+		k = u.opts.canonicalKey(key)
+	}
 	fullName = join(fullName, key)
-	mapValue, hasValue := getValue(m, key)
+	mapValue, hasValue := getValue(m, k)
 	if hasValue {
 		return u.processNamedFieldWithValue(field, value, mapValue, key, opts, fullName)
 	}
@@ -618,6 +622,12 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
+	}
+}
+
+func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.canonicalKey = f
 	}
 }
 
