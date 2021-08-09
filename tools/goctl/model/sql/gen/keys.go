@@ -50,7 +50,7 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(db stringx.String, table stringx.String, in []*parser.Field) Key {
+func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	var (
 		varLeftJoin, varRightJon, fieldNameJoin Join
 		varLeft, varRight, varExpression        string
