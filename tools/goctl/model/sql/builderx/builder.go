@@ -122,7 +122,7 @@ func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 }
 
 func PostgreSqlJoin(elems []string) string {
-	var b = new(strings.Builder)
+	b := new(strings.Builder)
 	for index, e := range elems {
 		b.WriteString(fmt.Sprintf("%s = $%d, ", e, index+1))
 	}
