@@ -246,6 +246,17 @@ func TestDisable(t *testing.T) {
 	assert.Nil(t, Close())
 }
 
+func TestDisableStat(t *testing.T) {
+	DisableStat()
+
+	const message = "hello there"
+	writer := new(mockWriter)
+	statLog = writer
+	atomic.StoreUint32(&initialized, 1)
+	Stat(message)
+	assert.Equal(t, 0, writer.builder.Len())
+}
+
 func TestWithGzip(t *testing.T) {
 	fn := WithGzip()
 	var opt logOptions

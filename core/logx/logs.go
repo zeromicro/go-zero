@@ -65,12 +65,14 @@ var (
 	timeFormat   = "2006-01-02T15:04:05.000Z07"
 	writeConsole bool
 	logLevel     uint32
-	infoLog      io.WriteCloser
-	errorLog     io.WriteCloser
-	severeLog    io.WriteCloser
-	slowLog      io.WriteCloser
-	statLog      io.WriteCloser
-	stackLog     io.Writer
+	// use uint32 for atomic operations
+	disableStat uint32
+	infoLog     io.WriteCloser
+	errorLog    io.WriteCloser
+	severeLog   io.WriteCloser
+	slowLog     io.WriteCloser
+	statLog     io.WriteCloser
+	stackLog    io.Writer
 
 	once        sync.Once
 	initialized uint32
@@ -193,6 +195,10 @@ func Disable() {
 		statLog = iox.NopCloser(ioutil.Discard)
 		stackLog = ioutil.Discard
 	})
+}
+
+func DisableStat() {
+	atomic.StoreUint32(&disableStat, 1)
 }
 
 // Error writes v into error log.
@@ -503,7 +509,7 @@ func stackSync(msg string) {
 }
 
 func statSync(msg string) {
-	if shouldLog(InfoLevel) {
+	if shouldLog(InfoLevel) && atomic.LoadUint32(&disableStat) == 0 {
 		output(statLog, levelStat, msg)
 	}
 }
