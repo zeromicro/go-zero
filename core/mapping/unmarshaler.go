@@ -625,6 +625,7 @@ func WithStringValues() UnmarshalOption {
 	}
 }
 
+// WithCanonicalKeyFunc customizes a Unmarshaler with Canonical Key func
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
