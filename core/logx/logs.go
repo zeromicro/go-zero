@@ -319,7 +319,7 @@ func createOutput(path string) (io.WriteCloser, error) {
 }
 
 func errorSync(msg string, callDepth int) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		outputError(errorLog, msg, callDepth)
 	}
 }
@@ -369,7 +369,7 @@ func handleOptions(opts []LogOption) {
 }
 
 func infoSync(msg string) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		output(infoLog, levelInfo, msg)
 	}
 }
@@ -487,29 +487,33 @@ func setupWithVolume(c LogConf) error {
 }
 
 func severeSync(msg string) {
-	if shouldLog(SevereLevel) {
+	if shallLog(SevereLevel) {
 		output(severeLog, levelSevere, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
-func shouldLog(level uint32) bool {
+func shallLog(level uint32) bool {
 	return atomic.LoadUint32(&logLevel) <= level
 }
 
+func shallLogStat() bool {
+	return atomic.LoadUint32(&disableStat) == 0
+}
+
 func slowSync(msg string) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		output(slowLog, levelSlow, msg)
 	}
 }
 
 func stackSync(msg string) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		output(stackLog, levelError, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
 func statSync(msg string) {
-	if shouldLog(InfoLevel) && atomic.LoadUint32(&disableStat) == 0 {
+	if shallLogStat() && shallLog(InfoLevel) {
 		output(statLog, levelStat, msg)
 	}
 }

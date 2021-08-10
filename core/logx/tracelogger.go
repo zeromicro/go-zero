@@ -18,37 +18,37 @@ type traceLogger struct {
 }
 
 func (l *traceLogger) Error(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
 	}
 }
 
 func (l *traceLogger) Errorf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
 	}
 }
 
 func (l *traceLogger) Info(v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprint(v...))
 	}
 }
 
 func (l *traceLogger) Infof(format string, v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprintf(format, v...))
 	}
 }
 
 func (l *traceLogger) Slow(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprint(v...))
 	}
 }
 
 func (l *traceLogger) Slowf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprintf(format, v...))
 	}
 }
