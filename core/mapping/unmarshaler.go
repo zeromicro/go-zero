@@ -322,12 +322,13 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	if err != nil {
 		return err
 	}
-	k := key
-	if u.opts.canonicalKey != nil {
-		k = u.opts.canonicalKey(key)
-	}
+
 	fullName = join(fullName, key)
-	mapValue, hasValue := getValue(m, k)
+	canonicalKey := key
+	if u.opts.canonicalKey != nil {
+		canonicalKey = u.opts.canonicalKey(key)
+	}
+	mapValue, hasValue := getValue(m, canonicalKey)
 	if hasValue {
 		return u.processNamedFieldWithValue(field, value, mapValue, key, opts, fullName)
 	}
