@@ -3,6 +3,7 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/mapping"
@@ -23,7 +24,7 @@ const (
 var (
 	formUnmarshaler   = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues())
+	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(), mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 )
 
 // Parse parses the request.
@@ -47,7 +48,6 @@ func Parse(r *http.Request, v interface{}) error {
 func ParseHeaders(r *http.Request, v interface{}) error {
 	m := map[string]interface{}{}
 	for k, v := range r.Header {
-		k = strings.ToLower(k)
 		if len(v) == 1 {
 			m[k] = v[0]
 		} else {
