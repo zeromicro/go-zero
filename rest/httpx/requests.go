@@ -24,7 +24,8 @@ const (
 var (
 	formUnmarshaler   = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(), mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
+	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
+		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 )
 
 // Parse parses the request.
