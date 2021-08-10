@@ -50,9 +50,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 保持简单，第一原则
 * 弹性设计，面向故障编程
 * 工具大于约定和文档
-* 高可用
-* 高并发
-* 易扩展
+* 高可用、高并发、易扩展
 * 对业务开发友好，封装复杂度
 * 约束做一件事只有一种方式
 
@@ -118,7 +116,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     go run greet.go -f etc/greet-api.yaml
     ```
 
-    默认侦听在 8888 端口（可以在配置文件里修改），可以通过 curl 请求：
+    默认侦听在 `8888` 端口（可以在配置文件里修改），可以通过 `curl` 请求：
 
     ```shell
     curl -i http://localhost:8888/from/you
@@ -129,10 +127,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     ```http
     HTTP/1.1 200 OK
     Content-Type: application/json
-	Date: Thu, 22 Oct 2020 14:03:18 GMT
-	Content-Length: 14
+    Date: Thu, 22 Oct 2020 14:03:18 GMT
+    Content-Length: 14
 
-	{"message":""}
+    {"message":""}
     ```
 
     编写业务代码：
@@ -234,6 +232,6 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
-加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
+加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力！🤝
 
 <img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
