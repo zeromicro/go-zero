@@ -13,6 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
+	file "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
 )
@@ -39,6 +40,11 @@ func MysqlDDL(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	database := ctx.String(flagDatabase)
+	home := ctx.String("home")
+
+	if len(home) > 0 {
+		file.RegisterGoctlHome(home)
+	}
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
@@ -54,6 +60,12 @@ func MySqlDataSource(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
+	home := ctx.String("home")
+
+	if len(home) > 0 {
+		file.RegisterGoctlHome(home)
+	}
+
 	pattern := strings.TrimSpace(ctx.String(flagTable))
 	cfg, err := config.NewConfig(style)
 	if err != nil {
@@ -71,6 +83,12 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	schema := ctx.String(flagSchema)
+	home := ctx.String("home")
+
+	if len(home) > 0 {
+		file.RegisterGoctlHome(home)
+	}
+
 	if len(schema) == 0 {
 		schema = "public"
 	}
@@ -181,7 +199,7 @@ func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, id
 func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
-		log.Error("%v", "expected data source of mysql, but nothing found")
+		log.Error("%v", "expected data source of postgresql, but nothing found")
 		return nil
 	}
 

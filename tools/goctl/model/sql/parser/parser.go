@@ -47,7 +47,7 @@ type (
 )
 
 // Parse parses ddl into golang structure
-func Parse(filename string, database string) ([]*Table, error) {
+func Parse(filename, database string) ([]*Table, error) {
 	p := parser.NewParser()
 	tables, err := p.From(filename)
 	if err != nil {
@@ -146,7 +146,7 @@ func Parse(filename string, database string) ([]*Table, error) {
 
 		list = append(list, &Table{
 			Name:        stringx.From(e.Name),
-			Db: 		 stringx.From(database),
+			Db:          stringx.From(database),
 			PrimaryKey:  primaryKey,
 			UniqueIndex: uniqueIndex,
 			Fields:      fields,
