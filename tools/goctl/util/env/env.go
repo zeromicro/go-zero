@@ -71,6 +71,7 @@ func CanExec() bool {
 		return true
 	}
 }
+
 func getExeSuffix() string {
 	if runtime.GOOS == vars.OsWindows {
 		return ".exe"
