@@ -50,7 +50,7 @@ func LookUpProtocGenGo() (string, error) {
 // .exe suffix.
 func LookPath(xBin string) (string, error) {
 	suffix := getExeSuffix()
-	if len(suffix) > 0 && strings.HasSuffix(xBin, suffix) {
+	if len(suffix) > 0 && !strings.HasSuffix(xBin, suffix) {
 		xBin = xBin + suffix
 	}
 
