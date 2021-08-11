@@ -524,7 +524,6 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 			return errTypeMismatch
 		}
 
-
 		ithVal.Set(reflect.ValueOf(value))
 		return nil
 	}
