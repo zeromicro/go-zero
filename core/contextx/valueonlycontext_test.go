@@ -9,8 +9,7 @@ import (
 )
 
 func TestContextCancel(t *testing.T) {
-	type key string
-	const KeyKey key = "name"
+	var KeyKey = "name"
 	c := context.WithValue(context.Background(), KeyKey, "value")
 	c1, cancel := context.WithCancel(c)
 	o := ValueOnlyFrom(c1)

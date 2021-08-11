@@ -8,20 +8,14 @@ import (
 )
 
 func TestUnmarshalContext(t *testing.T) {
+
 	type Person struct {
 		Name string `ctx:"name"`
 		Age  int    `ctx:"age"`
 	}
 
-	type (
-		name string
-		age  string
-	)
-
-	const (
-		PersonNameKey name = "name"
-		PersonAgeKey  age  = "age"
-	)
+	var PersonNameKey = "name"
+	var PersonAgeKey = "age"
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, PersonNameKey, "kevin")
@@ -40,8 +34,7 @@ func TestUnmarshalContextWithOptional(t *testing.T) {
 		Name string `ctx:"name"`
 		Age  int    `ctx:"age,optional"`
 	}
-	type name string
-	const PersonNameKey name = "name"
+	var PersonNameKey = "name"
 
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, PersonNameKey, "kevin")
