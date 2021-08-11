@@ -19,6 +19,7 @@ const (
 
 var goctlHome string
 
+// RegisterGoctlHome register goctl home path
 func RegisterGoctlHome(home string) {
 	goctlHome = home
 }

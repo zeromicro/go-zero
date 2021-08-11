@@ -121,6 +121,7 @@ func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 	return out
 }
 
+//PostgreSqlJoin concatenate the given elements into a string
 func PostgreSqlJoin(elems []string) string {
 	b := new(strings.Builder)
 	for index, e := range elems {

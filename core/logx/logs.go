@@ -197,6 +197,7 @@ func Disable() {
 	})
 }
 
+// DisableStat to disable stat logs
 func DisableStat() {
 	atomic.StoreUint32(&disableStat, 1)
 }

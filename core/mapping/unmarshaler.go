@@ -230,7 +230,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 	default:
 		switch v := mapValue.(type) {
 		case json.Number:
-			return u.processFieldPrimitiveWithJsonNumber(field, value, v, opts, fullName)
+			return u.processFieldPrimitiveWithJSONNumber(field, value, v, opts, fullName)
 		default:
 			if typeKind == valueKind {
 				if err := validateValueInOptions(opts.options(), mapValue); err != nil {
@@ -245,7 +245,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 	return newTypeMismatchError(fullName)
 }
 
-func (u *Unmarshaler) processFieldPrimitiveWithJsonNumber(field reflect.StructField, value reflect.Value,
+func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructField, value reflect.Value,
 	v json.Number, opts *fieldOptionsWithContext, fullName string) error {
 	fieldType := field.Type
 	fieldKind := fieldType.Kind()
@@ -524,6 +524,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 			return errTypeMismatch
 		}
 
+
 		ithVal.Set(reflect.ValueOf(value))
 		return nil
 	}
@@ -626,6 +627,7 @@ func WithStringValues() UnmarshalOption {
 	}
 }
 
+// WithCanonicalKeyFunc customizes a Unmarshaler with Canonical Key func
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
