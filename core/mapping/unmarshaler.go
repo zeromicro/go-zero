@@ -43,7 +43,8 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fromString bool
+		fromString   bool
+		canonicalKey func(key string) string
 	}
 
 	keyCache map[string][]string
@@ -323,7 +324,11 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	fullName = join(fullName, key)
-	mapValue, hasValue := getValue(m, key)
+	canonicalKey := key
+	if u.opts.canonicalKey != nil {
+		canonicalKey = u.opts.canonicalKey(key)
+	}
+	mapValue, hasValue := getValue(m, canonicalKey)
 	if hasValue {
 		return u.processNamedFieldWithValue(field, value, mapValue, key, opts, fullName)
 	}
@@ -513,14 +518,14 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 			target.Set(reflect.ValueOf(value))
 			ithVal.Set(target.Addr())
 			return nil
-		} else {
-			if ithVal.Kind() != reflect.TypeOf(value).Kind() {
-				return errTypeMismatch
-			}
-
-			ithVal.Set(reflect.ValueOf(value))
-			return nil
 		}
+
+		if ithVal.Kind() != reflect.TypeOf(value).Kind() {
+			return errTypeMismatch
+		}
+
+		ithVal.Set(reflect.ValueOf(value))
+		return nil
 	}
 }
 
@@ -618,6 +623,12 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
+	}
+}
+
+func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.canonicalKey = f
 	}
 }
 

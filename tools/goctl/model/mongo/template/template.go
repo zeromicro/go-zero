@@ -7,8 +7,8 @@ import (
     "context"
 
     "github.com/globalsign/mgo/bson"
-     cachec "github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/mongoc"
+     {{if .Cache}}cachec "github.com/tal-tech/go-zero/core/stores/cache"
+	"github.com/tal-tech/go-zero/core/stores/mongoc"{{else}}"github.com/tal-tech/go-zero/core/stores/mongo"{{end}}
 )
 
 {{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.Type}}:"{{end}}
@@ -21,12 +21,12 @@ type {{.Type}}Model interface{
 }
 
 type default{{.Type}}Model struct {
-    *mongoc.Model
+    {{if .Cache}}*mongoc.Model{{else}}*mongo.Model{{end}}
 }
 
-func New{{.Type}}Model(url, collection string, c cachec.CacheConf) {{.Type}}Model {
+func New{{.Type}}Model(url, collection string{{if .Cache}}, c cachec.CacheConf{{end}}) {{.Type}}Model {
 	return &default{{.Type}}Model{
-		Model: mongoc.MustNewModel(url, collection, c),
+		Model: {{if .Cache}}mongoc.MustNewModel(url, collection, c){{else}}mongo.MustNewModel(url, collection){{end}},
 	}
 }
 
@@ -60,12 +60,12 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
     {{if .Cache}}key := prefix{{.Type}}CacheKey + id
     err = m.GetCollection(session).FindOneId(&data, key, bson.ObjectIdHex(id))
 	{{- else}}
-	err = m.GetCollection(session).FindOneIdNoCache(&data, bson.ObjectIdHex(id))
+	err = m.GetCollection(session).FindId(bson.ObjectIdHex(id)).One(&data)
 	{{- end}}
     switch err {
     case nil:
         return &data,nil
-    case mongoc.ErrNotFound:
+    case {{if .Cache}}mongoc.ErrNotFound{{else}}mongo.ErrNotFound{{end}}:
         return nil,ErrNotFound
     default:
         return nil,err
@@ -82,7 +82,7 @@ func (m *default{{.Type}}Model) Update(ctx context.Context, data *{{.Type}}) err
 	{{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex()
     return m.GetCollection(session).UpdateId(data.ID, data, key)
 	{{- else}}
-	return m.GetCollection(session).UpdateIdNoCache(data.ID, data)
+	return m.GetCollection(session).UpdateId(data.ID, data)
 	{{- end}}
 }
 
@@ -96,7 +96,7 @@ func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) error {
     {{if .Cache}}key := prefix{{.Type}}CacheKey + id
     return m.GetCollection(session).RemoveId(bson.ObjectIdHex(id), key)
 	{{- else}}
-	return m.GetCollection(session).RemoveIdNoCache(bson.ObjectIdHex(id))
+	return m.GetCollection(session).RemoveId(bson.ObjectIdHex(id))
 	{{- end}}
 }
 `

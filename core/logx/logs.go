@@ -65,12 +65,14 @@ var (
 	timeFormat   = "2006-01-02T15:04:05.000Z07"
 	writeConsole bool
 	logLevel     uint32
-	infoLog      io.WriteCloser
-	errorLog     io.WriteCloser
-	severeLog    io.WriteCloser
-	slowLog      io.WriteCloser
-	statLog      io.WriteCloser
-	stackLog     io.Writer
+	// use uint32 for atomic operations
+	disableStat uint32
+	infoLog     io.WriteCloser
+	errorLog    io.WriteCloser
+	severeLog   io.WriteCloser
+	slowLog     io.WriteCloser
+	statLog     io.WriteCloser
+	stackLog    io.Writer
 
 	once        sync.Once
 	initialized uint32
@@ -195,6 +197,10 @@ func Disable() {
 	})
 }
 
+func DisableStat() {
+	atomic.StoreUint32(&disableStat, 1)
+}
+
 // Error writes v into error log.
 func Error(v ...interface{}) {
 	ErrorCaller(1, v...)
@@ -313,7 +319,7 @@ func createOutput(path string) (io.WriteCloser, error) {
 }
 
 func errorSync(msg string, callDepth int) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		outputError(errorLog, msg, callDepth)
 	}
 }
@@ -363,7 +369,7 @@ func handleOptions(opts []LogOption) {
 }
 
 func infoSync(msg string) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		output(infoLog, levelInfo, msg)
 	}
 }
@@ -481,29 +487,33 @@ func setupWithVolume(c LogConf) error {
 }
 
 func severeSync(msg string) {
-	if shouldLog(SevereLevel) {
+	if shallLog(SevereLevel) {
 		output(severeLog, levelSevere, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
-func shouldLog(level uint32) bool {
+func shallLog(level uint32) bool {
 	return atomic.LoadUint32(&logLevel) <= level
 }
 
+func shallLogStat() bool {
+	return atomic.LoadUint32(&disableStat) == 0
+}
+
 func slowSync(msg string) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		output(slowLog, levelSlow, msg)
 	}
 }
 
 func stackSync(msg string) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		output(stackLog, levelError, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
 func statSync(msg string) {
-	if shouldLog(InfoLevel) {
+	if shallLogStat() && shallLog(InfoLevel) {
 		output(statLog, levelStat, msg)
 	}
 }
