@@ -66,7 +66,6 @@ func (p parser) convert2Spec() error {
 func (p parser) fillInfo() {
 	properties := make(map[string]string)
 	if p.ast.Info != nil {
-		p.spec.Info = spec.Info{}
 		for _, kv := range p.ast.Info.Kvs {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}
