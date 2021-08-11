@@ -14,7 +14,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var (
@@ -260,26 +260,34 @@ func (c *cluster) reload(cli EtcdClient) {
 }
 
 func (c *cluster) watch(cli EtcdClient, key string) {
+	for {
+		if c.watchStream(cli, key) {
+			return
+		}
+	}
+}
+
+func (c *cluster) watchStream(cli EtcdClient, key string) bool {
 	rch := cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
 	for {
 		select {
 		case wresp, ok := <-rch:
 			if !ok {
 				logx.Error("etcd monitor chan has been closed")
-				return
+				return false
 			}
 			if wresp.Canceled {
-				logx.Error("etcd monitor chan has been canceled")
-				return
+				logx.Errorf("etcd monitor chan has been canceled, error: %v", wresp.Err())
+				return false
 			}
 			if wresp.Err() != nil {
 				logx.Error(fmt.Sprintf("etcd monitor chan error: %v", wresp.Err()))
-				return
+				return false
 			}
 
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
-			return
+			return true
 		}
 	}
 }

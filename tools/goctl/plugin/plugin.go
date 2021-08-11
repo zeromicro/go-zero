@@ -136,7 +136,7 @@ func getCommand(arg string) (string, bool, error) {
 	return arg, false, nil
 }
 
-func downloadFile(filepath string, url string) error {
+func downloadFile(filepath, url string) error {
 	resp, err := http.Get(url)
 	if err != nil {
 		return err

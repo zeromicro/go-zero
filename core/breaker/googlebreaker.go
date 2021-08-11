@@ -94,7 +94,7 @@ func (b *googleBreaker) markFailure() {
 	b.stat.Add(0)
 }
 
-func (b *googleBreaker) history() (accepts int64, total int64) {
+func (b *googleBreaker) history() (accepts, total int64) {
 	b.stat.Reduce(func(b *collection.Bucket) {
 		accepts += int64(b.Sum)
 		total += b.Count

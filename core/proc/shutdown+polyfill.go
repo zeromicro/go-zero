@@ -14,5 +14,5 @@ func AddWrapUpListener(fn func()) func() {
 	return fn
 }
 
-func SetTimeoutToForceQuit(duration time.Duration) {
+func SetTimeToForceQuit(duration time.Duration) {
 }

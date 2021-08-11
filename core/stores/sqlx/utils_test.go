@@ -29,30 +29,63 @@ func TestDesensitize_WithoutAccount(t *testing.T) {
 	assert.True(t, strings.Contains(datasource, "tcp(111.222.333.44:3306)"))
 }
 
-func TestFormatForPrint(t *testing.T) {
+func TestFormat(t *testing.T) {
 	tests := []struct {
 		name   string
 		query  string
 		args   []interface{}
 		expect string
+		hasErr bool
 	}{
 		{
-			name:   "no args",
-			query:  "select user, name from table where id=?",
-			expect: `select user, name from table where id=?`,
+			name:   "mysql normal",
+			query:  "select name, age from users where bool=? and phone=?",
+			args:   []interface{}{true, "133"},
+			expect: "select name, age from users where bool=1 and phone='133'",
 		},
 		{
-			name:   "one arg",
-			query:  "select user, name from table where id=?",
-			args:   []interface{}{"kevin"},
-			expect: `select user, name from table where id=? ["kevin"]`,
+			name:   "mysql normal",
+			query:  "select name, age from users where bool=? and phone=?",
+			args:   []interface{}{false, "133"},
+			expect: "select name, age from users where bool=0 and phone='133'",
+		},
+		{
+			name:   "pg normal",
+			query:  "select name, age from users where bool=$1 and phone=$2",
+			args:   []interface{}{true, "133"},
+			expect: "select name, age from users where bool=1 and phone='133'",
+		},
+		{
+			name:   "pg normal reverse",
+			query:  "select name, age from users where bool=$2 and phone=$1",
+			args:   []interface{}{"133", false},
+			expect: "select name, age from users where bool=0 and phone='133'",
+		},
+		{
+			name:   "pg error not number",
+			query:  "select name, age from users where bool=$a and phone=$1",
+			args:   []interface{}{"133", false},
+			hasErr: true,
+		},
+		{
+			name:   "pg error more args",
+			query:  "select name, age from users where bool=$2 and phone=$1 and nickname=$3",
+			args:   []interface{}{"133", false},
+			hasErr: true,
 		},
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.name, func(t *testing.T) {
-			actual := formatForPrint(test.query, test.args...)
-			assert.Equal(t, test.expect, actual)
+			t.Parallel()
+
+			actual, err := format(test.query, test.args...)
+			if test.hasErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Equal(t, test.expect, actual)
+			}
 		})
 	}
 }

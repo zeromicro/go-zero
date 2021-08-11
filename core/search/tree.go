@@ -1,6 +1,9 @@
 package search
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 const (
 	colon = ':'
@@ -8,16 +11,16 @@ const (
 )
 
 var (
-	// ErrDupItem means adding duplicated item.
-	ErrDupItem = errors.New("duplicated item")
-	// ErrDupSlash means item is started with more than one slash.
-	ErrDupSlash = errors.New("duplicated slash")
-	// ErrEmptyItem means adding empty item.
-	ErrEmptyItem = errors.New("empty item")
-	// ErrInvalidState means search tree is in an invalid state.
-	ErrInvalidState = errors.New("search tree is in an invalid state")
-	// ErrNotFromRoot means path is not starting with slash.
-	ErrNotFromRoot = errors.New("path should start with /")
+	// errDupItem means adding duplicated item.
+	errDupItem = errors.New("duplicated item")
+	// errDupSlash means item is started with more than one slash.
+	errDupSlash = errors.New("duplicated slash")
+	// errEmptyItem means adding empty item.
+	errEmptyItem = errors.New("empty item")
+	// errInvalidState means search tree is in an invalid state.
+	errInvalidState = errors.New("search tree is in an invalid state")
+	// errNotFromRoot means path is not starting with slash.
+	errNotFromRoot = errors.New("path should start with /")
 
 	// NotFound is used to hold the not found result.
 	NotFound Result
@@ -58,14 +61,22 @@ func NewTree() *Tree {
 // Add adds item to associate with route.
 func (t *Tree) Add(route string, item interface{}) error {
 	if len(route) == 0 || route[0] != slash {
-		return ErrNotFromRoot
+		return errNotFromRoot
 	}
 
 	if item == nil {
-		return ErrEmptyItem
+		return errEmptyItem
 	}
 
-	return add(t.root, route[1:], item)
+	err := add(t.root, route[1:], item)
+	switch err {
+	case errDupItem:
+		return duplicatedItem(route)
+	case errDupSlash:
+		return duplicatedSlash(route)
+	default:
+		return err
+	}
 }
 
 // Search searches item that associates with given route.
@@ -86,22 +97,22 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	}
 
 	for i := range route {
-		if route[i] == slash {
-			token := route[:i]
-			return n.forEach(func(k string, v *node) bool {
-				if r := match(k, token); r.found {
-					if t.next(v, route[i+1:], result) {
-						if r.named {
-							addParam(result, r.key, r.value)
-						}
-
-						return true
-					}
-				}
-
-				return false
-			})
+		if route[i] != slash {
+			continue
 		}
+
+		token := route[:i]
+		return n.forEach(func(k string, v *node) bool {
+			r := match(k, token)
+			if !r.found || !t.next(v, route[i+1:], result) {
+				return false
+			}
+			if r.named {
+				addParam(result, r.key, r.value)
+			}
+
+			return true
+		})
 	}
 
 	return n.forEach(func(k string, v *node) bool {
@@ -141,7 +152,7 @@ func (nd *node) getChildren(route string) map[string]*node {
 func add(nd *node, route string, item interface{}) error {
 	if len(route) == 0 {
 		if nd.item != nil {
-			return ErrDupItem
+			return errDupItem
 		}
 
 		nd.item = item
@@ -149,31 +160,33 @@ func add(nd *node, route string, item interface{}) error {
 	}
 
 	if route[0] == slash {
-		return ErrDupSlash
+		return errDupSlash
 	}
 
 	for i := range route {
-		if route[i] == slash {
-			token := route[:i]
-			children := nd.getChildren(token)
-			if child, ok := children[token]; ok {
-				if child != nil {
-					return add(child, route[i+1:], item)
-				}
+		if route[i] != slash {
+			continue
+		}
 
-				return ErrInvalidState
+		token := route[:i]
+		children := nd.getChildren(token)
+		if child, ok := children[token]; ok {
+			if child != nil {
+				return add(child, route[i+1:], item)
 			}
 
-			child := newNode(nil)
-			children[token] = child
-			return add(child, route[i+1:], item)
+			return errInvalidState
 		}
+
+		child := newNode(nil)
+		children[token] = child
+		return add(child, route[i+1:], item)
 	}
 
 	children := nd.getChildren(route)
 	if child, ok := children[route]; ok {
 		if child.item != nil {
-			return ErrDupItem
+			return errDupItem
 		}
 
 		child.item = item
@@ -190,6 +203,14 @@ func addParam(result *Result, k, v string) {
 	}
 
 	result.Params[k] = v
+}
+
+func duplicatedItem(item string) error {
+	return fmt.Errorf("duplicated item for %s", item)
+}
+
+func duplicatedSlash(item string) error {
+	return fmt.Errorf("duplicated slash for %s", item)
 }
 
 func match(pat, token string) innerResult {
