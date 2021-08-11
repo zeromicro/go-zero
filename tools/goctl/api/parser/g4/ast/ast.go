@@ -104,6 +104,7 @@ func (v *ApiVisitor) newExprWithTerminalNode(node antlr.TerminalNode) *defaultEx
 	if node == nil {
 		return nil
 	}
+
 	token := node.GetSymbol()
 	return v.newExprWithToken(token)
 }
@@ -132,6 +133,7 @@ func (v *ApiVisitor) newExprWithText(text string, line, column, start, stop int)
 	instance.column = column
 	instance.start = start
 	instance.stop = stop
+
 	return instance
 }
 
@@ -248,8 +250,7 @@ func EqualDoc(spec1, spec2 Spec) bool {
 }
 
 func (v *ApiVisitor) getDoc(t TokenStream) []Expr {
-	list := v.getHiddenTokensToLeft(t, api.COMEMNTS, false)
-	return list
+	return v.getHiddenTokensToLeft(t, api.COMEMNTS, false)
 }
 
 func (v *ApiVisitor) getComment(t TokenStream) Expr {
@@ -273,11 +274,9 @@ func (v *ApiVisitor) getComment(t TokenStream) Expr {
 func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsCommentOfDefaultChannel bool) []Expr {
 	ct := t.GetParser().GetTokenStream().(*antlr.CommonTokenStream)
 	tokens := ct.GetHiddenTokensToLeft(t.GetStart().GetTokenIndex(), channel)
-	tmp := make([]antlr.Token, len(tokens))
-	copy(tmp, tokens)
 
 	var list []Expr
-	for _, each := range tmp {
+	for _, each := range tokens {
 		if !containsCommentOfDefaultChannel {
 			index := each.GetTokenIndex() - 1
 
