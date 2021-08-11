@@ -64,7 +64,7 @@ func (p parser) convert2Spec() error {
 }
 
 func (p parser) fillInfo() {
-	properties := make(map[string]string, len(p.ast.Info.Kvs))
+	properties := make(map[string]string)
 	if p.ast.Info != nil {
 		p.spec.Info = spec.Info{}
 		for _, kv := range p.ast.Info.Kvs {
@@ -239,7 +239,7 @@ func (p parser) fillService() error {
 				route.ResponseType = p.astTypeToSpec(astRoute.Route.Reply.Name)
 			}
 			if astRoute.AtDoc != nil {
-				properties := make(map[string]string, len(astRoute.AtDoc.Kv))
+				properties := make(map[string]string)
 				for _, kv := range astRoute.AtDoc.Kv {
 					properties[kv.Key.Text()] = kv.Value.Text()
 				}
@@ -271,7 +271,7 @@ func (p parser) fillService() error {
 
 func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route) error {
 	if astRoute.AtServer != nil {
-		properties := make(map[string]string, len(astRoute.AtServer.Kv))
+		properties := make(map[string]string)
 		for _, kv := range astRoute.AtServer.Kv {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}
@@ -295,7 +295,7 @@ func (p parser) fillRouteAtServer(astRoute *ast.ServiceRoute, route *spec.Route)
 
 func (p parser) fillAtServer(item *ast.Service, group *spec.Group) {
 	if item.AtServer != nil {
-		properties := make(map[string]string, len(item.AtServer.Kv))
+		properties := make(map[string]string)
 		for _, kv := range item.AtServer.Kv {
 			properties[kv.Key.Text()] = kv.Value.Text()
 		}
