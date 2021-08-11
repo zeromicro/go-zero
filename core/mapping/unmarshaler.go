@@ -518,14 +518,14 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 			target.Set(reflect.ValueOf(value))
 			ithVal.Set(target.Addr())
 			return nil
-		} else {
-			if ithVal.Kind() != reflect.TypeOf(value).Kind() {
-				return errTypeMismatch
-			}
-
-			ithVal.Set(reflect.ValueOf(value))
-			return nil
 		}
+
+		if ithVal.Kind() != reflect.TypeOf(value).Kind() {
+			return errTypeMismatch
+		}
+
+		ithVal.Set(reflect.ValueOf(value))
+		return nil
 	}
 }
 
