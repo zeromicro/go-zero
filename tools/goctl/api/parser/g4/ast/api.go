@@ -45,7 +45,7 @@ func (v *ApiVisitor) VisitApi(ctx *api.ApiContext) interface{} {
 func (v *ApiVisitor) acceptService(root, final *Api) {
 	for _, service := range root.Service {
 		if _, ok := final.serviceM[service.ServiceApi.Name.Text()]; !ok && len(final.serviceM) > 0 {
-			v.panic(service.ServiceApi.Name, fmt.Sprintf("mutiple service declaration"))
+			v.panic(service.ServiceApi.Name, "multiple service declaration")
 		}
 		v.duplicateServerItemCheck(service)
 
@@ -75,11 +75,11 @@ func (v *ApiVisitor) acceptService(root, final *Api) {
 			}
 
 			if handlerExpr == nil {
-				v.panic(route.Route.Method, fmt.Sprintf("mismtached handler"))
+				v.panic(route.Route.Method, "mismatched handler")
 			}
 
 			if handlerExpr.Text() == "" {
-				v.panic(handlerExpr, fmt.Sprintf("mismtached handler"))
+				v.panic(handlerExpr, "mismatched handler")
 			}
 
 			if _, ok := final.handlerM[handlerExpr.Text()]; ok {
@@ -119,7 +119,7 @@ func (v *ApiVisitor) acceptInfo(root, final *Api) {
 	if root.Info != nil {
 		infoM := map[string]PlaceHolder{}
 		if final.Info != nil {
-			v.panic(root.Info.Info, fmt.Sprintf("mutiple info declaration"))
+			v.panic(root.Info.Info, "multiple info declaration")
 		}
 
 		for _, value := range root.Info.Kvs {
@@ -147,7 +147,7 @@ func (v *ApiVisitor) acceptImport(root, final *Api) {
 func (v *ApiVisitor) acceptSyntax(root, final *Api) {
 	if root.Syntax != nil {
 		if final.Syntax != nil {
-			v.panic(root.Syntax.Syntax, fmt.Sprintf("mutiple syntax declaration"))
+			v.panic(root.Syntax.Syntax, "multiple syntax declaration")
 		}
 
 		final.Syntax = root.Syntax
