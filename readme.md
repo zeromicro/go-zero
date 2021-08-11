@@ -124,7 +124,7 @@ go get -u github.com/tal-tech/go-zero
    
    service greet-api {
      @handler GreetHandler
-     get /greet/from/:name(Request) returns (Response);
+     get /greet/from/:name(Request) returns (Response)
    }
    ```
    
