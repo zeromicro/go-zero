@@ -14,12 +14,9 @@ func TestUnmarshalContext(t *testing.T) {
 		Age  int    `ctx:"age"`
 	}
 
-	var PersonNameKey = "name"
-	var PersonAgeKey = "age"
-
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, PersonNameKey, "kevin")
-	ctx = context.WithValue(ctx, PersonAgeKey, 20)
+	ctx = context.WithValue(ctx, "name", "kevin")
+	ctx = context.WithValue(ctx, "age", 20)
 
 	var person Person
 	err := For(ctx, &person)
@@ -34,10 +31,9 @@ func TestUnmarshalContextWithOptional(t *testing.T) {
 		Name string `ctx:"name"`
 		Age  int    `ctx:"age,optional"`
 	}
-	var PersonNameKey = "name"
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, PersonNameKey, "kevin")
+	ctx = context.WithValue(ctx, "name", "kevin")
 
 	var person Person
 	err := For(ctx, &person)
