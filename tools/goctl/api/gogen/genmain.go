@@ -45,6 +45,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	if err != nil {
 		return err
 	}
+
 	configName := filename
 	if strings.HasSuffix(filename, "-api") {
 		filename = strings.ReplaceAll(filename, "-api", "")
@@ -60,7 +61,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		builtinTemplate: mainTemplate,
 		data: map[string]string{
 			"importPackages": genMainImports(rootPkg),
-			"serviceName":   configName,
+			"serviceName":    configName,
 		},
 	})
 }
