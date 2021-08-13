@@ -29,6 +29,12 @@ func (l *traceLogger) Errorf(format string, v ...interface{}) {
 	}
 }
 
+func (l *traceLogger) Errorv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(errorLog, levelError, v)
+	}
+}
+
 func (l *traceLogger) Info(v ...interface{}) {
 	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprint(v...))
@@ -38,6 +44,12 @@ func (l *traceLogger) Info(v ...interface{}) {
 func (l *traceLogger) Infof(format string, v ...interface{}) {
 	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprintf(format, v...))
+	}
+}
+
+func (l *traceLogger) Infov(v interface{}) {
+	if shallLog(InfoLevel) {
+		l.write(infoLog, levelInfo, v)
 	}
 }
 
@@ -53,15 +65,21 @@ func (l *traceLogger) Slowf(format string, v ...interface{}) {
 	}
 }
 
+func (l *traceLogger) Slowv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(slowLog, levelSlow, v)
+	}
+}
+
 func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
 }
 
-func (l *traceLogger) write(writer io.Writer, level, content string) {
+func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 	l.Timestamp = getTimestamp()
 	l.Level = level
-	l.Content = content
+	l.Content = val
 	l.Trace = traceIdFromContext(l.ctx)
 	l.Span = spanIdFromContext(l.ctx)
 	outputJson(writer, l)
