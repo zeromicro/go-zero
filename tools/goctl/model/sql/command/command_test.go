@@ -70,9 +70,18 @@ func TestFromDDl(t *testing.T) {
 	_, err = os.Stat(user2Sql)
 	assert.Nil(t, err)
 
-	err = fromDDl(filepath.Join(tempDir, "user*.sql"), tempDir, cfg, true, false, "go_zero")
-	assert.Nil(t, err)
+	filename := filepath.Join(tempDir, "usermodel.go")
+	fromDDL := func(db string) {
+		err = fromDDl(filepath.Join(tempDir, "user*.sql"), tempDir, cfg, true, false, db)
+		assert.Nil(t, err)
 
-	_, err = os.Stat(filepath.Join(tempDir, "usermodel.go"))
-	assert.Nil(t, err)
+		_, err = os.Stat(filename)
+		assert.Nil(t, err)
+	}
+
+	fromDDL("go_zero")
+	_ = os.Remove(filename)
+	fromDDL("go-zero")
+	_ = os.Remove(filename)
+	fromDDL("1gozero")
 }
