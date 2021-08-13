@@ -50,7 +50,7 @@ func MysqlDDL(ctx *cli.Context) error {
 		return err
 	}
 
-	return fromDDl(src, dir, cfg, cache, idea, database)
+	return fromDDL(src, dir, cfg, cache, idea, database)
 }
 
 // MySqlDataSource generates model code from datasource
@@ -102,7 +102,7 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea)
 }
 
-func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
+func fromDDL(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {
