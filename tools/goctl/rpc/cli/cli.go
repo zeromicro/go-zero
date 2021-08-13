@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
 )
 
@@ -14,6 +16,10 @@ import (
 // you can specify a target folder for code generation, when the proto file has import, you can specify
 // the import search directory through the proto_path command, for specific usage, please refer to protoc -h
 func RPC(c *cli.Context) error {
+	if err := prepare(); err != nil {
+		return err
+	}
+
 	src := c.String("src")
 	out := c.String("dir")
 	style := c.String("style")
@@ -39,6 +45,22 @@ func RPC(c *cli.Context) error {
 	}
 
 	return g.Generate(src, out, protoImportPath, goOptions...)
+}
+
+func prepare() error {
+	if !env.CanExec() {
+		return fmt.Errorf("%s: can not start new processes using os.StartProcess or exec.Command", runtime.GOOS)
+	}
+	if _, err := env.LookUpGo(); err != nil {
+		return err
+	}
+	if _, err := env.LookUpProtoc(); err != nil {
+		return err
+	}
+	if _, err := env.LookUpProtocGenGo(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // RPCNew is to generate rpc greet service, this greet service can speed

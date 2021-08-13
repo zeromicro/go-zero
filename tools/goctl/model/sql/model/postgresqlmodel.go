@@ -8,12 +8,13 @@ import (
 )
 
 var p2m = map[string]string{
-	"int8":    "bigint",
-	"numeric": "bigint",
-	"float8":  "double",
-	"float4":  "float",
-	"int2":    "smallint",
-	"int4":    "integer",
+	"int8":        "bigint",
+	"numeric":     "bigint",
+	"float8":      "double",
+	"float4":      "float",
+	"int2":        "smallint",
+	"int4":        "integer",
+	"timestamptz": "timestamp",
 }
 
 // PostgreSqlModel gets table information from information_schema、pg_catalog

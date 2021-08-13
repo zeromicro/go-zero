@@ -5,10 +5,14 @@ const (
 	ProjectName = "zero"
 	// ProjectOpenSourceURL the github url of go-zero
 	ProjectOpenSourceURL = "github.com/tal-tech/go-zero"
-	// OsWindows windows os
+	// OsWindows represents os windows
 	OsWindows = "windows"
-	// OsMac mac os
+	// OsMac represents os mac
 	OsMac = "darwin"
-	// OsLinux linux os
+	// OsLinux represents os linux
 	OsLinux = "linux"
+	// OsJs represents os js
+	OsJs = "js"
+	// OsIOS represents os ios
+	OsIOS = "ios"
 )
