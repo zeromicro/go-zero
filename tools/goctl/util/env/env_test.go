@@ -87,6 +87,7 @@ func execCommand(cmd string, arg ...string) (stdout string, stderr string, err e
 	stdout = strings.TrimSpace(output.String())
 	return
 }
+
 func wrapVersion() string {
 	version := runtime.Version()
 	os := runtime.GOOS
