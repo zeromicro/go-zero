@@ -1,4 +1,4 @@
-package context
+package pathvar
 
 import (
 	"context"
@@ -17,13 +17,13 @@ func Vars(r *http.Request) map[string]string {
 	return nil
 }
 
-// WithPathVars writes params into given r and returns a new http.Request.
-func WithPathVars(r *http.Request, params map[string]string) *http.Request {
+// WithVars writes params into given r and returns a new http.Request.
+func WithVars(r *http.Request, params map[string]string) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), pathVars, params))
 }
 
 type contextKey string
 
 func (c contextKey) String() string {
-	return "rest/internal/context key: " + string(c)
+	return "rest/pathvar/context key: " + string(c)
 }

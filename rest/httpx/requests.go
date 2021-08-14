@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
@@ -119,7 +119,7 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 // ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
 func ParsePath(r *http.Request, v interface{}) error {
-	vars := context.Vars(r)
+	vars := pathvar.Vars(r)
 	m := make(map[string]interface{}, len(vars))
 	for k, v := range vars {
 		m[k] = v
