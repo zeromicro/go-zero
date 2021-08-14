@@ -29,12 +29,12 @@ type (
 // Be aware that later RunOption might overwrite previous one that write the same option.
 // The process will exit if error occurs.
 func MustNewServer(c RestConf, opts ...RunOption) *Server {
-	engine, err := NewServer(c, opts...)
+	server, err := NewServer(c, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return engine
+	return server
 }
 
 // NewServer returns a server with given config of c and options defined in opts.
@@ -61,36 +61,36 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 }
 
 // AddRoutes add given routes into the Server.
-func (e *Server) AddRoutes(rs []Route, opts ...RouteOption) {
+func (s *Server) AddRoutes(rs []Route, opts ...RouteOption) {
 	r := featuredRoutes{
 		routes: rs,
 	}
 	for _, opt := range opts {
 		opt(&r)
 	}
-	e.ngin.AddRoutes(r)
+	s.ngin.AddRoutes(r)
 }
 
 // AddRoute adds given route into the Server.
-func (e *Server) AddRoute(r Route, opts ...RouteOption) {
-	e.AddRoutes([]Route{r}, opts...)
+func (s *Server) AddRoute(r Route, opts ...RouteOption) {
+	s.AddRoutes([]Route{r}, opts...)
 }
 
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
-func (e *Server) Start() {
-	handleError(e.opts.start(e.ngin))
+func (s *Server) Start() {
+	handleError(s.opts.start(s.ngin))
 }
 
 // Stop stops the Server.
-func (e *Server) Stop() {
+func (s *Server) Stop() {
 	logx.Close()
 }
 
 // Use adds the given middleware in the Server.
-func (e *Server) Use(middleware Middleware) {
-	e.ngin.use(middleware)
+func (s *Server) Use(middleware Middleware) {
+	s.ngin.use(middleware)
 }
 
 // ToMiddleware converts the given handler to a Middleware.
