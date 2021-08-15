@@ -2,6 +2,9 @@ package serverinterceptors
 
 import (
 	"context"
+	"fmt"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -24,7 +27,8 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		go func() {
 			defer func() {
 				if p := recover(); p != nil {
-					panicChan <- p
+					// attach call stack to avoid missing in different goroutine
+					panicChan <- fmt.Sprintf("%+v\n\n%s", p, strings.TrimSpace(string(debug.Stack())))
 				}
 			}()
 
