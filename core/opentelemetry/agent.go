@@ -42,7 +42,7 @@ func StartAgent(c Config) {
 
 		tp := tracesdk.NewTracerProvider(
 			// Set the sampling rate based on the parent span to 100%
-			tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(1.0))),
+			tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(c.Sampler))),
 			// Always be sure to batch in production.
 			tracesdk.WithBatcher(exp),
 			// Record information about this application in an Resource.
