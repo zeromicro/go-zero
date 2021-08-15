@@ -10,10 +10,12 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-const bin = "bin"
-const binGo = "go"
-const binProtoc = "protoc"
-const binProtocGenGo = "protoc-gen-go"
+const (
+	bin            = "bin"
+	binGo          = "go"
+	binProtoc      = "protoc"
+	binProtocGenGo = "protoc-gen-go"
+)
 
 // LookUpGo searches an executable go in the directories
 // named by the GOROOT/bin or PATH environment variable.

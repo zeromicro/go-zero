@@ -92,6 +92,46 @@ func TestFilter(t *testing.T) {
 	}
 }
 
+func TestFirstN(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		n      int
+		expect string
+	}{
+		{
+			name:   "english string",
+			input:  "anything that we use",
+			n:      8,
+			expect: "anything",
+		},
+		{
+			name:   "english string more",
+			input:  "anything that we use",
+			n:      80,
+			expect: "anything that we use",
+		},
+		{
+			name:   "chinese string",
+			input:  "我是中国人",
+			n:      2,
+			expect: "我是",
+		},
+		{
+			name:   "chinese string",
+			input:  "我是中国人",
+			n:      10,
+			expect: "我是中国人",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expect, FirstN(test.input, test.n))
+		})
+	}
+}
+
 func TestRemove(t *testing.T) {
 	cases := []struct {
 		input  []string
