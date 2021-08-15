@@ -40,6 +40,20 @@ func Filter(s string, filter func(r rune) bool) string {
 	return string(chars[:n])
 }
 
+// FirstN returns first n runes from s.
+func FirstN(s string, n int) string {
+	var i int
+
+	for j := range s {
+		if i == n {
+			return s[:j]
+		}
+		i++
+	}
+
+	return s
+}
+
 // HasEmpty checks if there are empty strings in args.
 func HasEmpty(args ...string) bool {
 	for _, arg := range args {
