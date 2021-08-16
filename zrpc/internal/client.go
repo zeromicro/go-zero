@@ -74,6 +74,9 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
 			clientinterceptors.OpenTracingInterceptor(),
 		),
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamOpenTracingInterceptor(),
+		),
 	}
 
 	return append(options, cliOpts.DialOptions...)

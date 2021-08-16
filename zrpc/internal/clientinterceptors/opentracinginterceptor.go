@@ -54,3 +54,55 @@ func OpenTracingInterceptor() grpc.UnaryClientInterceptor {
 		return err
 	}
 }
+
+func StreamOpenTracingInterceptor() grpc.StreamClientInterceptor {
+	propagator := otel.GetTextMapPropagator()
+	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		if !opentelemetry.Enabled() {
+			return streamer(ctx, desc, cc, method, opts...)
+		}
+
+		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
+		metadataCopy := requestMetadata.Copy()
+
+		tr := otel.Tracer("ecoplants")
+
+		name, attr := opentelemetry.SpanInfo(method, cc.Target())
+		var span trace.Span
+		ctx, span = tr.Start(
+			ctx,
+			name,
+			trace.WithSpanKind(trace.SpanKindClient),
+			trace.WithAttributes(attr...),
+		)
+
+		opentelemetry.Inject(ctx, propagator, &metadataCopy)
+		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
+
+		s, err := streamer(ctx, desc, cc, method, opts...)
+		if err != nil {
+			grpcStatus, _ := status.FromError(err)
+			span.SetStatus(codes.Error, grpcStatus.Message())
+			span.SetAttributes(opentelemetry.StatusCodeAttr(grpcStatus.Code()))
+			span.End()
+			return s, err
+		}
+		stream := opentelemetry.WrapClientStream(ctx, s, desc)
+
+		go func() {
+			err := <-stream.Finished
+
+			if err != nil {
+				s, _ := status.FromError(err)
+				span.SetStatus(codes.Error, s.Message())
+				span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
+			} else {
+				span.SetAttributes(opentelemetry.StatusCodeAttr(grpc_codes.OK))
+			}
+
+			span.End()
+		}()
+
+		return stream, nil
+	}
+}

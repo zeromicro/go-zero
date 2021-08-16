@@ -8,6 +8,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+var (
+	MessageSent     = messageType(RPCMessageTypeSent)
+	MessageReceived = messageType(RPCMessageTypeReceived)
+)
+
 type messageType attribute.KeyValue
 
 // Event adds an event of the messageType to the span associated with the
@@ -27,8 +32,3 @@ func (m messageType) Event(ctx context.Context, id int, message interface{}) {
 		))
 	}
 }
-
-var (
-	MessageSent     = messageType(RPCMessageTypeSent)
-	MessageReceived = messageType(RPCMessageTypeReceived)
-)
