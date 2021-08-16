@@ -8,6 +8,9 @@ import "base.proto";
 message TestMessage{}
 message TestReq{}
 message TestReply{}
+message Inline {
+  message Inner{}
+}
 
 enum TestEnum {
   unknown = 0;
