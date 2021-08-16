@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/core/collection"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
@@ -90,7 +91,8 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 
 	alias := collection.NewSet()
 	for _, item := range proto.Message {
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.Name), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.Name))))
+		msgName := getMessageName(*item.Message)
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
 	}
 
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
@@ -104,6 +106,26 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		"interface":   strings.Join(iFunctions, util.NL),
 	}, filename, true)
 	return err
+}
+
+func getMessageName(msg proto.Message) string {
+	var list = []string{msg.Name}
+	for {
+		parent := msg.Parent
+		if parent == nil {
+			break
+		}
+
+		parentMsg, ok := parent.(*proto.Message)
+		if !ok {
+			break
+		}
+
+		tmp := []string{parentMsg.Name}
+		list = append(tmp, list...)
+		msg = *parentMsg
+	}
+	return strings.Join(list, "_")
 }
 
 func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
