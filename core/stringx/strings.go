@@ -41,12 +41,16 @@ func Filter(s string, filter func(r rune) bool) string {
 }
 
 // FirstN returns first n runes from s.
-func FirstN(s string, n int) string {
+func FirstN(s string, n int, ellipsis ...string) string {
 	var i int
 
 	for j := range s {
 		if i == n {
-			return s[:j]
+			ret := s[:j]
+			for _, each := range ellipsis {
+				ret += each
+			}
+			return ret
 		}
 		i++
 	}
