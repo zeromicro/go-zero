@@ -15,7 +15,7 @@ func TestTracingHandler(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 
 	traceId := stringx.RandId()
-	req.Header.Set("X-Trace-ID", traceId)
+	req.Header.Set(trace.TraceIdKey, traceId)
 
 	handler := TracingHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		span, ok := r.Context().Value(tracespec.TracingKey).(tracespec.Trace)
