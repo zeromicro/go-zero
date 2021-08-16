@@ -123,6 +123,6 @@ func WrapClientStream(ctx context.Context, s grpc.ClientStream, desc *grpc.Strea
 		desc:         desc,
 		events:       events,
 		eventsDone:   eventsDone,
-		finished:     finished,
+		Finished:     finished,
 	}
 }
