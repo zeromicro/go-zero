@@ -109,7 +109,8 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 }
 
 func getMessageName(msg proto.Message) string {
-	var list = []string{msg.Name}
+	list := []string{msg.Name}
+
 	for {
 		parent := msg.Parent
 		if parent == nil {
@@ -125,11 +126,13 @@ func getMessageName(msg proto.Message) string {
 		list = append(tmp, list...)
 		msg = *parentMsg
 	}
+
 	return strings.Join(list, "_")
 }
 
 func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
+
 	for _, rpc := range service.RPC {
 		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
 		if err != nil {
@@ -157,6 +160,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 
 		functions = append(functions, buffer.String())
 	}
+
 	return functions, nil
 }
 
