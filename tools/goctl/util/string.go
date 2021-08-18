@@ -1,8 +1,6 @@
 package util
 
-import (
-	"strings"
-)
+import "strings"
 
 // Title returns a string value with s[0] which has been convert into upper case that
 // there are not empty input text
