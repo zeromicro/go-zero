@@ -146,7 +146,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 			return err
 		}
 
-		name := modelFilename + ".go"
+		name := util.SafeString(modelFilename) + ".go"
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
 			g.Warning("%s already exists, ignored.", name)
