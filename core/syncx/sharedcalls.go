@@ -15,6 +15,7 @@ type (
 	SharedCalls interface {
 		Do(key string, fn func() (interface{}, error)) (interface{}, error)
 		DoEx(key string, fn func() (interface{}, error)) (interface{}, bool, error)
+		SetCatch(catch bool)
 	}
 
 	call struct {
@@ -26,6 +27,7 @@ type (
 	sharedGroup struct {
 		calls map[string]*call
 		lock  sync.Mutex
+		catch bool
 	}
 )
 
@@ -34,6 +36,10 @@ func NewSharedCalls() SharedCalls {
 	return &sharedGroup{
 		calls: make(map[string]*call),
 	}
+}
+
+func (g *sharedGroup) SetCatch(catch bool) {
+	g.catch = catch
 }
 
 func (g *sharedGroup) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
@@ -76,12 +82,11 @@ func (g *sharedGroup) makeCall(c *call, key string, fn func() (interface{}, erro
 	returned := false
 
 	defer func() {
-		if !returned {
+		if g.catch && !returned {
 			if r := recover(); r != nil {
 				c.err = err.NewPanicError(r)
 			}
 		}
-
 		g.lock.Lock()
 		delete(g.calls, key)
 		g.lock.Unlock()

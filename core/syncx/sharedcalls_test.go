@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -149,31 +148,27 @@ func TestExclusiveCallDoExDupSuppress(t *testing.T) {
 // TestExclusiveCallDoErrPanic: when fn panic, catch it
 func TestExclusiveCallDoErrPanic(t *testing.T) {
 	g := NewSharedCalls()
-
-	c := time.After(5*time.Second)
+	g.SetCatch(true)
+	c := time.After(5 * time.Second)
 	var i int32
 	for {
 		atomic.AddInt32(&i, 1)
 		go func() {
 			v, err := g.Do("key", func() (interface{}, error) {
-				x := rand.Intn(99999)
-				fmt.Println(i, x)
-				if x > 99000 {
-					panic("is panic")
-				}
+				panic("is panic")
 				return 1, nil
 			})
 			if err != nil {
 				t.Errorf("error = %v;", err)
-			}else {
+			} else {
 				t.Log("val is:", v)
 			}
+			t.Log(i, v, err)
 		}()
-		if i > 99999 {
+		if i > 10 {
 			break
 		}
 	}
-
 
 	for {
 		select {
