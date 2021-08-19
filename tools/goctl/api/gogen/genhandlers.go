@@ -7,8 +7,10 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
+	env "github.com/tal-tech/go-zero/tools/goctl/internal"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const handlerTemplate = `package handler
@@ -16,7 +18,7 @@ const handlerTemplate = `package handler
 import (
 	"net/http"
 
-	"github.com/tal-tech/go-zero/rest/httpx"
+	{{if .After1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
@@ -47,6 +49,7 @@ type handlerInfo struct {
 	Call           string
 	HasResp        bool
 	HasRequest     bool
+	After1_10      bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -55,9 +58,12 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 	}
 
+	goctlVersion := env.GetGoctlVersion()
+	after1_1_10 := env.IsVersionGatherThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
+		After1_10:      after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
@@ -104,6 +110,11 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
+	}
+
+	currentVersion := env.GetGoctlVersion()
+	if !env.IsVersionGatherThan(currentVersion, "1.1.10") {
+		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 	}
 
 	return strings.Join(imports, "\n\t")

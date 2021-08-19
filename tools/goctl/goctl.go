@@ -655,3 +655,7 @@ func main() {
 		fmt.Println(aurora.Red("error: " + err.Error()))
 	}
 }
+
+func init() {
+	os.Setenv("GOCTL_VERSION", buildVersion)
+}
