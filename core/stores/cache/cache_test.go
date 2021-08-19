@@ -23,6 +23,7 @@ type mockedNode struct {
 
 func (mc *mockedNode) Del(keys ...string) error {
 	var be errorx.BatchError
+
 	for _, key := range keys {
 		if _, ok := mc.vals[key]; !ok {
 			be.Add(mc.errNotFound)
@@ -30,6 +31,7 @@ func (mc *mockedNode) Del(keys ...string) error {
 			delete(mc.vals, key)
 		}
 	}
+
 	return be.Err()
 }
 

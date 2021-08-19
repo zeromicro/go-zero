@@ -65,9 +65,18 @@ func (c cacheNode) Del(keys ...string) error {
 		return nil
 	}
 
-	if _, err := c.rds.Del(keys...); err != nil {
-		logx.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
-		c.asyncRetryDelCache(keys...)
+	if len(keys) > 1 && c.rds.Type == redis.ClusterType {
+		for _, key := range keys {
+			if _, err := c.rds.Del(key); err != nil {
+				logx.Errorf("failed to clear cache with key: %q, error: %v", key, err)
+				c.asyncRetryDelCache(key)
+			}
+		}
+	} else {
+		if _, err := c.rds.Del(keys...); err != nil {
+			logx.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
+			c.asyncRetryDelCache(keys...)
+		}
 	}
 
 	return nil
