@@ -1,6 +1,9 @@
 package syncx
 
-import "sync"
+import (
+	"github.com/tal-tech/go-zero/tools/goctl/util/err"
+	"sync"
+)
 
 type (
 	// SharedCalls lets the concurrent calls with the same key to share the call result.
@@ -70,7 +73,15 @@ func (g *sharedGroup) createCall(key string) (c *call, done bool) {
 }
 
 func (g *sharedGroup) makeCall(c *call, key string, fn func() (interface{}, error)) {
+	returned := false
+
 	defer func() {
+		if !returned {
+			if r := recover(); r != nil {
+				c.err = err.NewPanicError(r)
+			}
+		}
+
 		g.lock.Lock()
 		delete(g.calls, key)
 		g.lock.Unlock()
@@ -78,4 +89,5 @@ func (g *sharedGroup) makeCall(c *call, key string, fn func() (interface{}, erro
 	}()
 
 	c.val, c.err = fn()
+	returned = true
 }

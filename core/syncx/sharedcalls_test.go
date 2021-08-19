@@ -3,6 +3,8 @@ package syncx
 import (
 	"errors"
 	"fmt"
+	"math"
+	"math/rand"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -26,6 +28,10 @@ func TestExclusiveCallDoErr(t *testing.T) {
 	g := NewSharedCalls()
 	someErr := errors.New("some error")
 	v, err := g.Do("key", func() (interface{}, error) {
+		x := math.Round(99999)
+		if x > 99000 {
+			panic("xxxxxx")
+		}
 		return nil, someErr
 	})
 	if err != someErr {
@@ -137,5 +143,43 @@ func TestExclusiveCallDoExDupSuppress(t *testing.T) {
 	}
 	if got := atomic.LoadInt32(&freshes); got != 1 {
 		t.Errorf("freshes = %d; want 1", got)
+	}
+}
+
+// TestExclusiveCallDoErrPanic: when fn panic, catch it
+func TestExclusiveCallDoErrPanic(t *testing.T) {
+	g := NewSharedCalls()
+
+	c := time.After(5*time.Second)
+	var i int32
+	for {
+		atomic.AddInt32(&i, 1)
+		go func() {
+			v, err := g.Do("key", func() (interface{}, error) {
+				x := rand.Intn(99999)
+				fmt.Println(i, x)
+				if x > 99000 {
+					panic("is panic")
+				}
+				return 1, nil
+			})
+			if err != nil {
+				t.Errorf("error = %v;", err)
+			}else {
+				t.Log("val is:", v)
+			}
+		}()
+		if i > 99999 {
+			break
+		}
+	}
+
+
+	for {
+		select {
+		case <-c:
+			t.Log("over")
+			return
+		}
 	}
 }
