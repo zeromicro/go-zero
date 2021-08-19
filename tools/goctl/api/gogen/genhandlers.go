@@ -7,7 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
-	env "github.com/tal-tech/go-zero/tools/goctl/internal"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/env"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
