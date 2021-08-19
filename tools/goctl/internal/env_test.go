@@ -29,4 +29,5 @@ func Test_IsVersionGatherThan(t *testing.T) {
 	assert.True(t, IsVersionGatherThan("0.112", "0.1"))
 	assert.True(t, IsVersionGatherThan("1.1.10", "1.0.111"))
 	assert.True(t, IsVersionGatherThan("1.1.10", "1.1.10-pre"))
+	assert.True(t, IsVersionGatherThan("1.1.11-pre", "1.1.10"))
 }
