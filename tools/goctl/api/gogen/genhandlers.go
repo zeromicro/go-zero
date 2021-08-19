@@ -18,7 +18,7 @@ const handlerTemplate = `package handler
 import (
 	"net/http"
 
-	{{if .After1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
+	{{if .After1_1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
@@ -49,7 +49,7 @@ type handlerInfo struct {
 	Call           string
 	HasResp        bool
 	HasRequest     bool
-	After1_10      bool
+	After1_1_10    bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -63,7 +63,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
-		After1_10:      after1_1_10,
+		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
