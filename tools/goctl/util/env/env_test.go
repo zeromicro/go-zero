@@ -70,7 +70,7 @@ func TestCanExec(t *testing.T) {
 	assert.Equal(t, canExec, CanExec())
 }
 
-func execCommand(cmd string, arg ...string) (stdout string, stderr string, err error) {
+func execCommand(cmd string, arg ...string) (stdout, stderr string, err error) {
 	output := bytes.NewBuffer(nil)
 	errOutput := bytes.NewBuffer(nil)
 	c := exec.Command(cmd, arg...)
