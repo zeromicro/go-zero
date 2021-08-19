@@ -9,7 +9,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const handlerTemplate = `package handler
@@ -17,6 +16,7 @@ const handlerTemplate = `package handler
 import (
 	"net/http"
 
+	"github.com/tal-tech/go-zero/rest/httpx"
 	{{.ImportPackages}}
 )
 
@@ -105,7 +105,6 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 
 	return strings.Join(imports, "\n\t")
 }
