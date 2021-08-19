@@ -196,6 +196,10 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		if column.Constraint != nil {
 			comment = column.Constraint.Comment
 			isDefaultNull = !column.Constraint.NotNull
+			if !column.Constraint.NotNull && column.Constraint.HasDefaultValue {
+				isDefaultNull = false
+			}
+
 			if column.Name == primaryColumn {
 				isDefaultNull = false
 			}
@@ -209,10 +213,10 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		if column.Constraint != nil {
 			if column.Name == primaryColumn {
 				if !column.Constraint.AutoIncrement && dataType == "int64" {
-					log.Warning("%s: The primary key is recommended to add constraint AUTO_INCREMENT", column.Name)
+					log.Warning("%s: The primary key is recommended to add constraint `AUTO_INCREMENT`", column.Name)
 				}
 			} else if column.Constraint.NotNull && !column.Constraint.HasDefaultValue {
-				log.Warning("%s: The column is recommended to add constraint DEFAULT value")
+				log.Warning("%s: The column is recommended to add constraint `DEFAULT`", column.Name)
 			}
 		}
 
