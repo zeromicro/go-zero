@@ -112,11 +112,12 @@ func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback Un
 	} else {
 		detailAuthLog(r, noDetailReason)
 	}
+
+	writer.WriteHeader(http.StatusUnauthorized)
+
 	if callback != nil {
 		callback(writer, r, err)
 	}
-
-	writer.WriteHeader(http.StatusUnauthorized)
 }
 
 type guardedResponseWriter struct {
