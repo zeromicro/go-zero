@@ -24,7 +24,7 @@ func (s *metadataSupplier) Get(key string) string {
 	return values[0]
 }
 
-func (s *metadataSupplier) Set(key string, value string) {
+func (s *metadataSupplier) Set(key, value string) {
 	s.metadata.Set(key, value)
 }
 
@@ -35,6 +35,7 @@ func (s *metadataSupplier) Keys() []string {
 	}
 	return out
 }
+
 func Inject(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) {
 	p.Inject(ctx, &metadataSupplier{
 		metadata: metadata,
