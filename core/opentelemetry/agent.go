@@ -55,6 +55,5 @@ func StartAgent(c Config) {
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
 
 		enabled.Set(true)
-
 	})
 }
