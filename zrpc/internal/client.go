@@ -72,6 +72,10 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.OpenTracingInterceptor(),
+		),
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
 
