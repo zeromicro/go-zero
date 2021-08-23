@@ -770,6 +770,20 @@ func (s *Redis) SetnxEx(key, value string, seconds int) (val bool, err error) {
 	return
 }
 
+func (s *Redis) Sinter(keys ...string) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.SInter(keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 func (s *Redis) Sismember(key string, value interface{}) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
