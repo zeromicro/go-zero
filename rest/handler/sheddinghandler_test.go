@@ -7,10 +7,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"zero/core/load"
-	"zero/core/stat"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/load"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func init() {
@@ -90,13 +89,12 @@ type mockShedder struct {
 func (s mockShedder) Allow() (load.Promise, error) {
 	if s.allow {
 		return mockPromise{}, nil
-	} else {
-		return nil, load.ErrServiceOverloaded
 	}
+
+	return nil, load.ErrServiceOverloaded
 }
 
-type mockPromise struct {
-}
+type mockPromise struct{}
 
 func (p mockPromise) Pass() {
 }

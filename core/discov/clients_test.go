@@ -4,9 +4,8 @@ import (
 	"sync"
 	"testing"
 
-	"zero/core/discov/internal"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/discov/internal"
 )
 
 var mockLock sync.Mutex
@@ -28,6 +27,9 @@ func TestExtract(t *testing.T) {
 	assert.Equal(t, "123", id)
 
 	_, ok = extract("any", -1)
+	assert.False(t, ok)
+
+	_, ok = extract("any", 10)
 	assert.False(t, ok)
 }
 

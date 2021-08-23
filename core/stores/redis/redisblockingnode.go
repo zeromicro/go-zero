@@ -3,16 +3,17 @@ package redis
 import (
 	"fmt"
 
-	"zero/core/logx"
-
 	red "github.com/go-redis/redis"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
+// ClosableNode interface represents a closable redis node.
 type ClosableNode interface {
 	RedisNode
 	Close()
 }
 
+// CreateBlockingNode returns a ClosableNode.
 func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 	timeout := readWriteTimeout + blockingQueryTimeout
 

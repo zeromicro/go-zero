@@ -35,12 +35,13 @@ spec:
         - --listen-client-urls
         - http://0.0.0.0:2379
         - --advertise-client-urls
-        - http://etcd0:2379
+        - http://etcd0.discov:2379
         - --initial-cluster
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
       name: etcd0
       ports:
         - containerPort: 2379
@@ -49,8 +50,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -108,12 +107,13 @@ spec:
         - --listen-client-urls
         - http://0.0.0.0:2379
         - --advertise-client-urls
-        - http://etcd1:2379
+        - http://etcd1.discov:2379
         - --initial-cluster
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
       name: etcd1
       ports:
         - containerPort: 2379
@@ -122,8 +122,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -181,12 +179,13 @@ spec:
         - --listen-client-urls
         - http://0.0.0.0:2379
         - --advertise-client-urls
-        - http://etcd2:2379
+        - http://etcd2.discov:2379
         - --initial-cluster
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
       name: etcd2
       ports:
         - containerPort: 2379
@@ -195,8 +194,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -254,12 +251,13 @@ spec:
         - --listen-client-urls
         - http://0.0.0.0:2379
         - --advertise-client-urls
-        - http://etcd3:2379
+        - http://etcd3.discov:2379
         - --initial-cluster
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
       name: etcd3
       ports:
         - containerPort: 2379
@@ -268,8 +266,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -327,12 +323,13 @@ spec:
         - --listen-client-urls
         - http://0.0.0.0:2379
         - --advertise-client-urls
-        - http://etcd4:2379
+        - http://etcd4.discov:2379
         - --initial-cluster
         - etcd0=http://etcd0:2380,etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380,etcd4=http://etcd4:2380
         - --initial-cluster-state
         - new
-      image: registry-vpc.cn-hangzhou.aliyuncs.com/xapp/etcd:latest
+        - --auto-compaction-retention=1
+      image: quay.io/coreos/etcd:latest
       name: etcd4
       ports:
         - containerPort: 2379
@@ -341,8 +338,6 @@ spec:
         - containerPort: 2380
           name: server
           protocol: TCP
-  imagePullSecrets:
-    - name: aliyun
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:

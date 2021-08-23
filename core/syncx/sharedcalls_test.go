@@ -68,6 +68,39 @@ func TestExclusiveCallDoDupSuppress(t *testing.T) {
 	}
 }
 
+func TestExclusiveCallDoDiffDupSuppress(t *testing.T) {
+	g := NewSharedCalls()
+	broadcast := make(chan struct{})
+	var calls int32
+	tests := []string{"e", "a", "e", "a", "b", "c", "b", "a", "c", "d", "b", "c", "d"}
+
+	var wg sync.WaitGroup
+	for _, key := range tests {
+		wg.Add(1)
+		go func(k string) {
+			<-broadcast // get all goroutines ready
+			_, err := g.Do(k, func() (interface{}, error) {
+				atomic.AddInt32(&calls, 1)
+				time.Sleep(10 * time.Millisecond)
+				return nil, nil
+			})
+			if err != nil {
+				t.Errorf("Do error: %v", err)
+			}
+			wg.Done()
+		}(key)
+	}
+
+	time.Sleep(100 * time.Millisecond) // let goroutines above block
+	close(broadcast)
+	wg.Wait()
+
+	if got := atomic.LoadInt32(&calls); got != 5 {
+		// five letters
+		t.Errorf("number of calls = %d; want 5", got)
+	}
+}
+
 func TestExclusiveCallDoExDupSuppress(t *testing.T) {
 	g := NewSharedCalls()
 	c := make(chan string)

@@ -3,16 +3,17 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 
-	"zero/core/mapping"
-	"zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/core/mapping"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
-	multipartFormData = "multipart/form-data"
 	formKey           = "form"
 	pathKey           = "path"
+	headerKey         = "header"
 	emptyJson         = "{}"
 	maxMemory         = 32 << 20 // 32MB
 	maxBodyLen        = 8 << 20  // 8MB
@@ -21,10 +22,13 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	formUnmarshaler   = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
+	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
+		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 )
 
+// Parse parses the request.
 func Parse(r *http.Request, v interface{}) error {
 	if err := ParsePath(r, v); err != nil {
 		return err
@@ -34,17 +38,35 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
+	if err := ParseHeaders(r, v); err != nil {
+		return err
+	}
+
 	return ParseJsonBody(r, v)
 }
 
-// Parses the form request.
-func ParseForm(r *http.Request, v interface{}) error {
-	if strings.Index(r.Header.Get(ContentType), multipartFormData) != -1 {
-		if err := r.ParseMultipartForm(maxMemory); err != nil {
-			return err
+// ParseHeaders parses the headers request.
+func ParseHeaders(r *http.Request, v interface{}) error {
+	m := map[string]interface{}{}
+	for k, v := range r.Header {
+		if len(v) == 1 {
+			m[k] = v[0]
+		} else {
+			m[k] = v
 		}
-	} else {
-		if err := r.ParseForm(); err != nil {
+	}
+
+	return headerUnmarshaler.Unmarshal(m, v)
+}
+
+// ParseForm parses the form request.
+func ParseForm(r *http.Request, v interface{}) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+
+	if err := r.ParseMultipartForm(maxMemory); err != nil {
+		if err != http.ErrNotMultipart {
 			return err
 		}
 	}
@@ -60,6 +82,7 @@ func ParseForm(r *http.Request, v interface{}) error {
 	return formUnmarshaler.Unmarshal(params, v)
 }
 
+// ParseHeader parses the request header and returns a map.
 func ParseHeader(headerValue string) map[string]string {
 	ret := make(map[string]string)
 	fields := strings.Split(headerValue, separator)
@@ -81,10 +104,9 @@ func ParseHeader(headerValue string) map[string]string {
 	return ret
 }
 
-// Parses the post request which contains json in body.
+// ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
 	var reader io.Reader
-
 	if withJsonBody(r) {
 		reader = io.LimitReader(r.Body, maxBodyLen)
 	} else {
@@ -94,10 +116,10 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 	return mapping.UnmarshalJsonReader(reader, v)
 }
 
-// Parses the symbols reside in url path.
+// ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
 func ParsePath(r *http.Request, v interface{}) error {
-	vars := context.Vars(r)
+	vars := pathvar.Vars(r)
 	m := make(map[string]interface{}, len(vars))
 	for k, v := range vars {
 		m[k] = v
@@ -107,5 +129,5 @@ func ParsePath(r *http.Request, v interface{}) error {
 }
 
 func withJsonBody(r *http.Request) bool {
-	return r.ContentLength > 0 && strings.Index(r.Header.Get(ContentType), ApplicationJson) != -1
+	return r.ContentLength > 0 && strings.Contains(r.Header.Get(ContentType), ApplicationJson)
 }

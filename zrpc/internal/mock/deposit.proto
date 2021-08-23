@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package mock;
+
+message DepositRequest {
+  float amount = 1;
+}
+
+message DepositResponse {
+  bool ok = 1;
+}
+
+service DepositService {
+  rpc Deposit(DepositRequest) returns (DepositResponse);
+}

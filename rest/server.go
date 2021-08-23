@@ -1,215 +1,217 @@
 package rest
 
 import (
-	"errors"
-	"fmt"
+	"log"
 	"net/http"
-	"time"
 
-	"zero/core/codec"
-	"zero/core/load"
-	"zero/core/stat"
-	"zero/rest/handler"
-	"zero/rest/httpx"
-	"zero/rest/internal"
-	"zero/rest/internal/router"
-
-	"github.com/justinas/alice"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/rest/handler"
+	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/router"
 )
 
-// use 1000m to represent 100%
-const topCpuUsage = 1000
-
-var ErrSignatureConfig = errors.New("bad config for Signature")
-
-type engine struct {
-	conf                 RestConf
-	routes               []featuredRoutes
-	unauthorizedCallback handler.UnauthorizedCallback
-	unsignedCallback     handler.UnsignedCallback
-	middlewares          []Middleware
-	shedder              load.Shedder
-	priorityShedder      load.Shedder
-}
-
-func newEngine(c RestConf) *engine {
-	srv := &engine{
-		conf: c,
-	}
-	if c.CpuThreshold > 0 {
-		srv.shedder = load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
-		srv.priorityShedder = load.NewAdaptiveShedder(load.WithCpuThreshold(
-			(c.CpuThreshold + topCpuUsage) >> 1))
+type (
+	runOptions struct {
+		start func(*engine) error
 	}
 
-	return srv
-}
+	// RunOption defines the method to customize a Server.
+	RunOption func(*Server)
 
-func (s *engine) AddRoutes(r featuredRoutes) {
-	s.routes = append(s.routes, r)
-}
-
-func (s *engine) SetUnauthorizedCallback(callback handler.UnauthorizedCallback) {
-	s.unauthorizedCallback = callback
-}
-
-func (s *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
-	s.unsignedCallback = callback
-}
-
-func (s *engine) Start() error {
-	return s.StartWithRouter(router.NewPatRouter())
-}
-
-func (s *engine) StartWithRouter(router httpx.Router) error {
-	if err := s.bindRoutes(router); err != nil {
-		return err
+	// A Server is a http server.
+	Server struct {
+		ngin *engine
+		opts runOptions
 	}
+)
 
-	return internal.StartHttp(s.conf.Host, s.conf.Port, router)
-}
-
-func (s *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
-	verifier func(alice.Chain) alice.Chain) alice.Chain {
-	if fr.jwt.enabled {
-		if len(fr.jwt.prevSecret) == 0 {
-			chain = chain.Append(handler.Authorize(fr.jwt.secret,
-				handler.WithUnauthorizedCallback(s.unauthorizedCallback)))
-		} else {
-			chain = chain.Append(handler.Authorize(fr.jwt.secret,
-				handler.WithPrevSecret(fr.jwt.prevSecret),
-				handler.WithUnauthorizedCallback(s.unauthorizedCallback)))
-		}
-	}
-
-	return verifier(chain)
-}
-
-func (s *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, metrics *stat.Metrics) error {
-	verifier, err := s.signatureVerifier(fr.signature)
+// MustNewServer returns a server with given config of c and options defined in opts.
+// Be aware that later RunOption might overwrite previous one that write the same option.
+// The process will exit if error occurs.
+func MustNewServer(c RestConf, opts ...RunOption) *Server {
+	server, err := NewServer(c, opts...)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
 
-	for _, route := range fr.routes {
-		if err := s.bindRoute(fr, router, metrics, route, verifier); err != nil {
-			return err
+	return server
+}
+
+// NewServer returns a server with given config of c and options defined in opts.
+// Be aware that later RunOption might overwrite previous one that write the same option.
+func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
+	if err := c.SetUp(); err != nil {
+		return nil, err
+	}
+
+	server := &Server{
+		ngin: newEngine(c),
+		opts: runOptions{
+			start: func(srv *engine) error {
+				return srv.Start()
+			},
+		},
+	}
+
+	for _, opt := range opts {
+		opt(server)
+	}
+
+	return server, nil
+}
+
+// AddRoutes add given routes into the Server.
+func (s *Server) AddRoutes(rs []Route, opts ...RouteOption) {
+	r := featuredRoutes{
+		routes: rs,
+	}
+	for _, opt := range opts {
+		opt(&r)
+	}
+	s.ngin.AddRoutes(r)
+}
+
+// AddRoute adds given route into the Server.
+func (s *Server) AddRoute(r Route, opts ...RouteOption) {
+	s.AddRoutes([]Route{r}, opts...)
+}
+
+// Start starts the Server.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (s *Server) Start() {
+	handleError(s.opts.start(s.ngin))
+}
+
+// Stop stops the Server.
+func (s *Server) Stop() {
+	logx.Close()
+}
+
+// Use adds the given middleware in the Server.
+func (s *Server) Use(middleware Middleware) {
+	s.ngin.use(middleware)
+}
+
+// ToMiddleware converts the given handler to a Middleware.
+func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
+	return func(handle http.HandlerFunc) http.HandlerFunc {
+		return handler(handle).ServeHTTP
+	}
+}
+
+// WithJwt returns a func to enable jwt authentication in given route.
+func WithJwt(secret string) RouteOption {
+	return func(r *featuredRoutes) {
+		validateSecret(secret)
+		r.jwt.enabled = true
+		r.jwt.secret = secret
+	}
+}
+
+// WithJwtTransition returns a func to enable jwt authentication as well as jwt secret transition.
+// Which means old and new jwt secrets work together for a period.
+func WithJwtTransition(secret, prevSecret string) RouteOption {
+	return func(r *featuredRoutes) {
+		// why not validate prevSecret, because prevSecret is an already used one,
+		// even it not meet our requirement, we still need to allow the transition.
+		validateSecret(secret)
+		r.jwt.enabled = true
+		r.jwt.secret = secret
+		r.jwt.prevSecret = prevSecret
+	}
+}
+
+// WithMiddlewares adds given middlewares to given routes.
+func WithMiddlewares(ms []Middleware, rs ...Route) []Route {
+	for i := len(ms) - 1; i >= 0; i-- {
+		rs = WithMiddleware(ms[i], rs...)
+	}
+	return rs
+}
+
+// WithMiddleware adds given middleware to given route.
+func WithMiddleware(middleware Middleware, rs ...Route) []Route {
+	routes := make([]Route, len(rs))
+
+	for i := range rs {
+		route := rs[i]
+		routes[i] = Route{
+			Method:  route.Method,
+			Path:    route.Path,
+			Handler: middleware(route.Handler),
 		}
 	}
 
-	return nil
+	return routes
 }
 
-func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
-	route Route, verifier func(chain alice.Chain) alice.Chain) error {
-	chain := alice.New(
-		handler.TracingHandler,
-		s.getLogHandler(),
-		handler.MaxConns(s.conf.MaxConns),
-		handler.BreakerHandler(route.Method, route.Path, metrics),
-		handler.SheddingHandler(s.getShedder(fr.priority), metrics),
-		handler.TimeoutHandler(time.Duration(s.conf.Timeout)*time.Millisecond),
-		handler.RecoverHandler,
-		handler.MetricHandler(metrics),
-		handler.PromMetricHandler(route.Path),
-		handler.MaxBytesHandler(s.conf.MaxBytes),
-		handler.GunzipHandler,
-	)
-	chain = s.appendAuthHandler(fr, chain, verifier)
+// WithNotFoundHandler returns a RunOption with not found handler set to given handler.
+func WithNotFoundHandler(handler http.Handler) RunOption {
+	rt := router.NewRouter()
+	rt.SetNotFoundHandler(handler)
+	return WithRouter(rt)
+}
 
-	for _, middleware := range s.middlewares {
-		chain = chain.Append(convertMiddleware(middleware))
+// WithNotAllowedHandler returns a RunOption with not allowed handler set to given handler.
+func WithNotAllowedHandler(handler http.Handler) RunOption {
+	rt := router.NewRouter()
+	rt.SetNotAllowedHandler(handler)
+	return WithRouter(rt)
+}
+
+// WithPriority returns a RunOption with priority.
+func WithPriority() RouteOption {
+	return func(r *featuredRoutes) {
+		r.priority = true
 	}
-	handle := chain.ThenFunc(route.Handler)
-
-	return router.Handle(route.Method, route.Path, handle)
 }
 
-func (s *engine) bindRoutes(router httpx.Router) error {
-	metrics := s.createMetrics()
-
-	for _, fr := range s.routes {
-		if err := s.bindFeaturedRoutes(router, fr, metrics); err != nil {
-			return err
+// WithRouter returns a RunOption that make server run with given router.
+func WithRouter(router httpx.Router) RunOption {
+	return func(server *Server) {
+		server.opts.start = func(srv *engine) error {
+			return srv.StartWithRouter(router)
 		}
 	}
-
-	return nil
 }
 
-func (s *engine) createMetrics() *stat.Metrics {
-	var metrics *stat.Metrics
-
-	if len(s.conf.Name) > 0 {
-		metrics = stat.NewMetrics(s.conf.Name)
-	} else {
-		metrics = stat.NewMetrics(fmt.Sprintf("%s:%d", s.conf.Host, s.conf.Port))
-	}
-
-	return metrics
-}
-
-func (s *engine) getLogHandler() func(http.Handler) http.Handler {
-	if s.conf.Verbose {
-		return handler.DetailedLogHandler
-	} else {
-		return handler.LogHandler
+// WithSignature returns a RouteOption to enable signature verification.
+func WithSignature(signature SignatureConf) RouteOption {
+	return func(r *featuredRoutes) {
+		r.signature.enabled = true
+		r.signature.Strict = signature.Strict
+		r.signature.Expiry = signature.Expiry
+		r.signature.PrivateKeys = signature.PrivateKeys
 	}
 }
 
-func (s *engine) getShedder(priority bool) load.Shedder {
-	if priority && s.priorityShedder != nil {
-		return s.priorityShedder
+// WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
+func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
+	return func(engine *Server) {
+		engine.ngin.SetUnauthorizedCallback(callback)
 	}
-	return s.shedder
 }
 
-func (s *engine) signatureVerifier(signature signatureSetting) (func(chain alice.Chain) alice.Chain, error) {
-	if !signature.enabled {
-		return func(chain alice.Chain) alice.Chain {
-			return chain
-		}, nil
+// WithUnsignedCallback returns a RunOption that with given unsigned callback set.
+func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
+	return func(engine *Server) {
+		engine.ngin.SetUnsignedCallback(callback)
 	}
-
-	if len(signature.PrivateKeys) == 0 {
-		if signature.Strict {
-			return nil, ErrSignatureConfig
-		} else {
-			return func(chain alice.Chain) alice.Chain {
-				return chain
-			}, nil
-		}
-	}
-
-	decrypters := make(map[string]codec.RsaDecrypter)
-	for _, key := range signature.PrivateKeys {
-		fingerprint := key.Fingerprint
-		file := key.KeyFile
-		decrypter, err := codec.NewRsaDecrypter(file)
-		if err != nil {
-			return nil, err
-		}
-
-		decrypters[fingerprint] = decrypter
-	}
-
-	return func(chain alice.Chain) alice.Chain {
-		if s.unsignedCallback != nil {
-			return chain.Append(handler.ContentSecurityHandler(
-				decrypters, signature.Expiry, signature.Strict, s.unsignedCallback))
-		} else {
-			return chain.Append(handler.ContentSecurityHandler(
-				decrypters, signature.Expiry, signature.Strict))
-		}
-	}, nil
 }
 
-func (s *engine) use(middleware Middleware) {
-	s.middlewares = append(s.middlewares, middleware)
+func handleError(err error) {
+	// ErrServerClosed means the server is closed manually
+	if err == nil || err == http.ErrServerClosed {
+		return
+	}
+
+	logx.Error(err)
+	panic(err)
 }
 
-func convertMiddleware(ware Middleware) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(ware(next.ServeHTTP))
+func validateSecret(secret string) {
+	if len(secret) < 8 {
+		panic("secret's length can't be less than 8")
 	}
 }

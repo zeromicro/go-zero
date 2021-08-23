@@ -2,16 +2,14 @@ package breaker
 
 import (
 	"errors"
-	"math"
 	"math/rand"
 	"testing"
 	"time"
 
-	"zero/core/collection"
-	"zero/core/mathx"
-	"zero/core/stat"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/collection"
+	"github.com/tal-tech/go-zero/core/mathx"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 const (
@@ -28,7 +26,6 @@ func getGoogleBreaker() *googleBreaker {
 	return &googleBreaker{
 		stat:  st,
 		k:     5,
-		state: StateClosed,
 		proba: mathx.NewProba(),
 	}
 }
@@ -159,7 +156,7 @@ func TestGoogleBreakerSelfProtection(t *testing.T) {
 	t.Run("total request > 100, total < 2 * success", func(t *testing.T) {
 		b := getGoogleBreaker()
 		size := rand.Intn(10000)
-		accepts := int(math.Ceil(float64(size))) + 1
+		accepts := size + 1
 		markSuccess(b, accepts)
 		markFailed(b, size-accepts)
 		assert.Nil(t, b.accept())

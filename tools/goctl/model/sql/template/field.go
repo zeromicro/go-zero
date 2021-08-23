@@ -1,3 +1,4 @@
-package sqltemplate
+package template
 
-var Field = `{{.name}} {{.type}} {{.tag}} {{.comment}}`
+// Field defines a filed template for types
+var Field = `{{.name}} {{.type}} {{.tag}} {{if .hasComment}}// {{.comment}}{{end}}`

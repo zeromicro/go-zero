@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -12,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"zero/core/lang"
-	apiformat "zero/tools/goctl/api/format"
-	"zero/tools/goctl/api/parser"
-	apiutil "zero/tools/goctl/api/util"
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/logx"
+	apiformat "github.com/tal-tech/go-zero/tools/goctl/api/format"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -26,9 +25,16 @@ const tmpFile = "%s-%d"
 
 var tmpDir = path.Join(os.TempDir(), "goctl")
 
+// GoCommand gen go project files from command line
 func GoCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
+	namingStyle := c.String("style")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}
@@ -36,32 +42,42 @@ func GoCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	p, err := parser.NewParser(apiFile)
-	if err != nil {
-		return err
-	}
-	api, err := p.Parse()
+	return DoGenProject(apiFile, dir, namingStyle)
+}
+
+// DoGenProject gen go project files with api file
+func DoGenProject(apiFile, dir, style string) error {
+	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genEtc(dir, api))
-	lang.Must(genConfig(dir, api))
-	lang.Must(genMain(dir, api))
-	lang.Must(genServiceContext(dir, api))
-	lang.Must(genTypes(dir, api))
-	lang.Must(genHandlers(dir, api))
-	lang.Must(genRoutes(dir, api))
-	lang.Must(genLogic(dir, api))
-	// it does not work
-	format(dir)
+	cfg, err := config.NewConfig(style)
+	if err != nil {
+		return err
+	}
+
+	logx.Must(util.MkdirIfNotExist(dir))
+	rootPkg, err := getParentPackage(dir)
+	if err != nil {
+		return err
+	}
+
+	logx.Must(genEtc(dir, cfg, api))
+	logx.Must(genConfig(dir, cfg, api))
+	logx.Must(genMain(dir, rootPkg, cfg, api))
+	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
+	logx.Must(genTypes(dir, cfg, api))
+	logx.Must(genRoutes(dir, rootPkg, cfg, api))
+	logx.Must(genHandlers(dir, rootPkg, cfg, api))
+	logx.Must(genLogic(dir, rootPkg, cfg, api))
+	logx.Must(genMiddleware(dir, cfg, api))
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
 	}
 
-	if err = apiformat.ApiFormat(apiFile, false); err != nil {
+	if err := apiformat.ApiFormatByPath(apiFile); err != nil {
 		return err
 	}
 
@@ -93,14 +109,6 @@ func backupAndSweep(apiFile string) error {
 	wg.Wait()
 
 	return err
-}
-
-func format(dir string) {
-	cmd := exec.Command("go", "fmt", "./"+dir+"...")
-	_, err := cmd.CombinedOutput()
-	if err != nil {
-		print(err.Error())
-	}
 }
 
 func sweep() error {

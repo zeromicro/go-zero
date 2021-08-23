@@ -1,13 +1,13 @@
-package sqltemplate
+package template
 
-// 通过id查询
+// FindOne defines find row by id.
 var FindOne = `
-func (m *{{.upperObject}}Model) FindOne({{.lowerPrimaryKey}} {{.dataType}}) (*{{.upperObject}}, error) {
+func (m *default{{.upperStartCamelObject}}Model) FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
-	var resp {{.upperObject}}
+	var resp {{.upperStartCamelObject}}
 	err := m.QueryRow(&resp, {{.cacheKeyVariable}}, func(conn sqlx.SqlConn, v interface{}) error {
-		query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.snakePrimaryKey}} = ? limit 1` + "`" + `
-		return conn.QueryRow(v, query, {{.lowerPrimaryKey}})
+		query :=  fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table)
+		return conn.QueryRow(v, query, {{.lowerStartCamelPrimaryKey}})
 	})
 	switch err {
 	case nil:
@@ -16,9 +16,9 @@ func (m *{{.upperObject}}Model) FindOne({{.lowerPrimaryKey}} {{.dataType}}) (*{{
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{else}}query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.snakePrimaryKey}} = ? limit 1` + "`" + `
-	var resp {{.upperObject}}
-	err := m.QueryRowNoCache(&resp, query, {{.lowerPrimaryKey}})
+	}{{else}}query := fmt.Sprintf("select %s from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table)
+	var resp {{.upperStartCamelObject}}
+	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelPrimaryKey}})
 	switch err {
 	case nil:
 		return &resp, nil
@@ -30,23 +30,18 @@ func (m *{{.upperObject}}Model) FindOne({{.lowerPrimaryKey}} {{.dataType}}) (*{{
 }
 `
 
-// 通过指定字段查询
+// FindOneByField defines find row by field.
 var FindOneByField = `
-func (m *{{.upperObject}}Model) FindOneBy{{.upperFields}}({{.in}}) (*{{.upperObject}}, error) {
-	{{if .onlyOneFiled}}{{if .withCache}}{{.cacheKey}}
-	var resp {{.upperObject}}
-	err := m.QueryRowIndex(&resp, {{.cacheKeyVariable}}, func(primary interface{}) string {
-		return fmt.Sprintf("%s%v", {{.primaryKeyDefine}}, primary)
-	}, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
-		query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.snakeField}} = ? limit 1` + "`" + `
-		if err := conn.QueryRow(&resp, query, {{.lowerField}}); err != nil {
+func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) {
+	{{if .withCache}}{{.cacheKey}}
+	var resp {{.upperStartCamelObject}}
+	err := m.QueryRowIndex(&resp, {{.cacheKeyVariable}}, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+		query := fmt.Sprintf("select %s from %s where {{.originalField}} limit 1", {{.lowerStartCamelObject}}Rows, m.table)
+		if err := conn.QueryRow(&resp, query, {{.lowerStartCamelField}}); err != nil {
 			return nil, err
 		}
-		return resp.{{.UpperPrimaryKey}}, nil
-	}, func(conn sqlx.SqlConn, v, primary interface{}) error {
-		query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.primarySnakeField}} = ? limit 1` + "`" + `
-		return conn.QueryRow(v, query, primary)
-	})
+		return resp.{{.upperStartCamelPrimaryKey}}, nil
+	}, m.queryPrimary)
 	switch err {
 	case nil:
 		return &resp, nil
@@ -54,9 +49,10 @@ func (m *{{.upperObject}}Model) FindOneBy{{.upperFields}}({{.in}}) (*{{.upperObj
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{else}}var resp {{.upperObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.expression}} limit 1` + "`" + `
-	err := m.QueryRowNoCache(&resp, query, {{.expressionValues}})
+	}
+}{{else}}var resp {{.upperStartCamelObject}}
+	query := fmt.Sprintf("select %s from %s where {{.originalField}} limit 1", {{.lowerStartCamelObject}}Rows, m.table )
+	err := m.conn.QueryRow(&resp, query, {{.lowerStartCamelField}})
 	switch err {
 	case nil:
 		return &resp, nil
@@ -64,52 +60,24 @@ func (m *{{.upperObject}}Model) FindOneBy{{.upperFields}}({{.in}}) (*{{.upperObj
 		return nil, ErrNotFound
 	default:
 		return nil, err
-	}{{end}}{{else}}var resp {{.upperObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.expression}} limit 1` + "`" + `
-	err := m.QueryRowNoCache(&resp, query, {{.expressionValues}})
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}{{end}}
+	}
+}{{end}}
+`
+
+// FindOneByFieldExtraMethod defines find row by field with extras.
+var FindOneByFieldExtraMethod = `
+func (m *default{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
+	return fmt.Sprintf("%s%v", {{.primaryKeyLeft}}, primary)
+}
+
+func (m *default{{.upperStartCamelObject}}Model) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
+	query := fmt.Sprintf("select %s from %s where {{.originalPrimaryField}} = {{if .postgreSql}}$1{{else}}?{{end}} limit 1", {{.lowerStartCamelObject}}Rows, m.table )
+	return conn.QueryRow(v, query, primary)
 }
 `
 
-// 查询all
-var FindAllByField = `
-func (m *{{.upperObject}}Model) FindAllBy{{.upperFields}}({{.in}}) ([]*{{.upperObject}}, error) {
-	var resp []*{{.upperObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + ` from ` + "` + " + `m.table ` + " + `" + ` where {{.expression}}` + "`" + `
-	err := m.QueryRowsNoCache(&resp, query, {{.expressionValues}})
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-`
+// FindOneMethod defines find row method.
+var FindOneMethod = `FindOne({{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)`
 
-// limit分页查询
-var FindLimitByField = `
-func (m *{{.upperObject}}Model) FindLimitBy{{.upperFields}}({{.in}}, page, limit int) ([]*{{.upperObject}}, error) {
-	var resp []*{{.upperObject}}
-	query := ` + "`" + `select ` + "`" + ` + {{.lowerObject}}Rows + ` + "`" + `from ` + "` + " + `m.table ` + " + `" + ` where {{.expression}} order by {{.sortExpression}} limit ?,?` + "`" + `
-	err := m.QueryRowsNoCache(&resp, query, {{.expressionValues}}, (page-1)*limit, limit)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
-}
-
-func (m *{{.upperObject}}Model) FindAllCountBy{{.upperFields}}({{.in}}) (int64, error) {
-	var count int64
-	query := ` + "`" + `select count(1)  from ` + "` + " + `m.table ` + " + `" + ` where {{.expression}} ` + "`" + `
-	err := m.QueryRowNoCache(&count, query, {{.expressionValues}})
-	if err != nil {
-		return 0, err
-	}
-	return count, nil
-}
-`
+// FindOneByFieldMethod defines find row by field method.
+var FindOneByFieldMethod = `FindOneBy{{.upperField}}({{.in}}) (*{{.upperStartCamelObject}}, error) `

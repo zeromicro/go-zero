@@ -1,13 +1,14 @@
 //go:generate mockgen -package mongo -destination iter_mock.go -source iter.go Iter
+
 package mongo
 
 import (
-	"zero/core/breaker"
-
 	"github.com/globalsign/mgo/bson"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (
+	// Iter interface represents a mongo iter.
 	Iter interface {
 		All(result interface{}) error
 		Close() error
@@ -19,6 +20,7 @@ type (
 		Timeout() bool
 	}
 
+	// A ClosableIter is a closable mongo iter.
 	ClosableIter struct {
 		Iter
 		Cleanup func()
@@ -57,6 +59,7 @@ func (i promisedIter) For(result interface{}, f func() error) error {
 	return i.promise.keep(err)
 }
 
+// Close closes a mongo iter.
 func (it *ClosableIter) Close() error {
 	err := it.Iter.Close()
 	it.Cleanup()

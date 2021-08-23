@@ -5,16 +5,21 @@ import (
 	"sync"
 	"testing"
 
-	"zero/core/contextx"
-	"zero/core/stringx"
-
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+	"github.com/tal-tech/go-zero/core/contextx"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var mockLock sync.Mutex
+
+func init() {
+	logx.Disable()
+}
 
 func setMockClient(cli EtcdClient) func() {
 	mockLock.Lock()
@@ -198,11 +203,13 @@ func TestClusterWatch_RespFailures(t *testing.T) {
 			restore := setMockClient(cli)
 			defer restore()
 			ch := make(chan clientv3.WatchResponse)
-			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
+			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 			cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
 			c := new(cluster)
+			c.done = make(chan lang.PlaceholderType)
 			go func() {
 				ch <- resp
+				close(c.done)
 			}()
 			c.watch(cli, "any")
 		})
@@ -216,11 +223,13 @@ func TestClusterWatch_CloseChan(t *testing.T) {
 	restore := setMockClient(cli)
 	defer restore()
 	ch := make(chan clientv3.WatchResponse)
-	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
 	c := new(cluster)
+	c.done = make(chan lang.PlaceholderType)
 	go func() {
 		close(ch)
+		close(c.done)
 	}()
 	c.watch(cli, "any")
 }
@@ -229,17 +238,4 @@ func TestValueOnlyContext(t *testing.T) {
 	ctx := contextx.ValueOnlyFrom(context.Background())
 	ctx.Done()
 	assert.Nil(t, ctx.Err())
-}
-
-type mockedSharedCalls struct {
-	fn func() (interface{}, error)
-}
-
-func (c mockedSharedCalls) Do(_ string, fn func() (interface{}, error)) (interface{}, error) {
-	return c.fn()
-}
-
-func (c mockedSharedCalls) DoEx(_ string, fn func() (interface{}, error)) (interface{}, bool, error) {
-	val, err := c.fn()
-	return val, true, err
 }

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"zero/core/iox"
-	"zero/core/lang"
+	"github.com/tal-tech/go-zero/core/iox"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const (
@@ -22,19 +22,30 @@ var (
 	cores     uint64
 )
 
+// if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
 	cpus, err := perCpuUsage()
-	lang.Must(err)
-	cores = uint64(len(cpus))
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 
+	cores = uint64(len(cpus))
 	sets, err := cpuSets()
-	lang.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
+
 	quota = float64(len(sets))
 	cq, err := cpuQuota()
 	if err == nil {
 		if cq != -1 {
 			period, err := cpuPeriod()
-			lang.Must(err)
+			if err != nil {
+				logx.Error(err)
+				return
+			}
 
 			limit := float64(cq) / float64(period)
 			if limit < quota {
@@ -44,12 +55,19 @@ func init() {
 	}
 
 	preSystem, err = systemCpuUsage()
-	lang.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 
 	preTotal, err = totalCpuUsage()
-	lang.Must(err)
+	if err != nil {
+		logx.Error(err)
+		return
+	}
 }
 
+// RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
 	total, err := totalCpuUsage()
 	if err != nil {

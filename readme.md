@@ -1,172 +1,222 @@
-# go-zero项目介绍
+<img align="right" width="150px" src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/go-zero.png">
 
-## 1. go-zero框架背景
+# go-zero
 
-18年初，晓黑板后端在经过频繁的宕机后，决定从`Java+MongoDB`的单体架构迁移到微服务架构，经过仔细思考和对比，我们决定：
+English | [简体中文](readme-cn.md)
 
-* 基于Go语言
-  * 高效的性能
-  * 简洁的语法
-  * 广泛验证的工程效率
-  * 极致的部署体验
-  * 极低的服务端资源成本
-* 自研微服务框架
-  * 个人有过很多微服务框架自研经验
-  * 需要有更快速的问题定位能力
-  * 更便捷的增加新特性
+[![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
+[![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tal-tech/go-zero)](https://goreportcard.com/report/github.com/tal-tech/go-zero)
+[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 2. go-zero框架设计思考
+## 0. what is go-zero
 
-对于微服务框架的设计，我们期望保障微服务稳定性的同时，也要特别注重研发效率。所以设计之初，我们就有如下一些准则：
+go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
-* 保持简单
-* 高可用
-* 高并发
-* 易扩展
-* 弹性设计，面向故障编程
-* 尽可能对业务开发友好，封装复杂度
-* 尽可能约束做一件事只有一种方式
+go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
-我们经历不到半年时间，彻底完成了从`Java+MongoDB`到`Golang+MySQL`为主的微服务体系迁移，并于18年8月底完全上线，稳定保障了晓黑板后续增长，确保了整个服务的高可用。
+Advantages of go-zero:
 
-## 3. go-zero项目实现和特点
+* improve the stability of the services with tens of millions of daily active users
+* builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
+* builtin middlewares also can be integrated into your frameworks
+* simple API syntax, one command to generate couple of different languages
+* auto validate the request parameters from clients
+* plenty of builtin microservice management and concurrent toolkits
 
-go-zero是一个集成了各种工程实践的包含web和rpc框架，有如下主要特点：
+<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
-* 强大的工具支持，尽可能少的代码编写
-* 极简的接口
-* 完全兼容net/http
-* 支持中间件，方便扩展
-* 高性能
-* 面向故障编程，弹性设计
-* 内建服务发现、负载均衡
-* 内建限流、熔断、降载，且自动触发，自动恢复
-* API参数自动校验
-* 超时级联控制
-* 自动缓存控制
-* 链路跟踪、统计报警等
-* 高并发支撑，稳定保障了晓黑板疫情期间每天的流量洪峰
+## 1. Backgrounds of go-zero
 
-如下图，我们从多个层面保障了整体服务的高可用：
+At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
 
-![弹性设计](doc/images/resilience.jpg)
+* Golang based
+  * great performance
+  * simple syntax
+  * proven engineering efficiency
+  * extreme deployment experience
+  * less server resource consumption
+* Self-designed microservice architecture
+  * I have rich experience on designing microservice architectures
+  * easy to location the problems
+  * easy to extend the features
 
-## 4. go-zero框架收益
+## 2. Design considerations on go-zero
 
-* 保障大并发服务端的稳定性，经受了充分的实战检验
-* 极简的API定义
-* 一键生成Go, iOS, Android, Dart, TypeScript, JavaScript代码，并可直接运行
-* 服务端自动校验参数合法性
+By designing the microservice architecture, we expected to ensure the stability, as well as the productivity. And from just the beginning, we have the following design principles:
 
-## 5. go-zero近期开发计划
+* keep it simple
+* high availability
+* stable on high concurrency
+* easy to extend
+* resilience design, failure-oriented programming
+* try best to be friendly to the business logic development, encapsulate the complexity
+* one thing, one way
 
-* 自动生成API mock server，便于客户端开发
-* 自动生成服务端功能测试
+After almost half a year, we finished the transfer from monolithic system to microservice system, and deployed on August 2018. The new system guaranteed the business growth, and the system stability.
 
-## 6. Installation
+## 3. The implementation and features of go-zero
 
-1. 在项目目录下通过如下命令安装：
+go-zero is a web and rpc framework that integrates lots of engineering practices. The features are mainly listed below:
+
+* powerful tool included, less code to write
+* simple interfaces
+* fully compatible with net/http
+* middlewares are supported, easy to extend
+* high performance
+* failure-oriented programming, resilience design
+* builtin service discovery, load balancing
+* builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto trigger, auto recover
+* auto validation of API request parameters
+* chained timeout control
+* auto management of data caching
+* call tracing, metrics and monitoring
+* high concurrency protected
+
+As below, go-zero protects the system with couple layers and mechanisms:
+
+![Resilience](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/resilience-en.png)
+
+## 4. Future development plans of go-zero
+
+* auto generate API mock server, make the client debugging easier
+* auto generate the simple integration test for the server side just from the .api files
+
+## 5. Installation
+
+Run the following command under your project:
+
+```shell
+go get -u github.com/tal-tech/go-zero
+```
+
+## 6. Quick Start
+
+0. full examples can be checked out from below:
+
+     [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
+
+     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
+
+1. install goctl
+
+   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
 
    ```shell
-   go get -u github.com/tal-tech/go-zero
+   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
    ```
 
-2. 代码里导入go-zero
+   make sure goctl is executable.
+
+2. create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
    ```go
-   import "github.com/tal-tech/go-zero"
-   ```
-
-## 7. Quick Start
-
-1. 编译goctl工具
-
-   ```shell
-   go build tools/goctl/goctl.go
-   ```
-
-   把goctl放到$PATH的目录下，确保goctl可执行
-
-2. 定义API文件，比如greet.api，可以在vs code里安装`goctl`插件，支持api语法
-
-   ```go
-   type Request struct {
-     Name string `path:"name"`
-   }
+   type (
+     Request {
+       Name string `path:"name,options=you|me"` // parameters are auto validated
+     }
    
-   type Response struct {
-     Message string `json:"message"`
-   }
+     Response {
+       Message string `json:"message"`
+     }
+   )
    
    service greet-api {
-     @server(
-       handler: GreetHandler
-     )
-     get /greet/from/:name(Request) returns (Response);
+     @handler GreetHandler
+     get /greet/from/:name(Request) returns (Response)
    }
    ```
-
-   也可以通过goctl生成api模本文件，命令如下：
+   
+   the .api files also can be generate by goctl, like below:
 
    ```shell
    goctl api -o greet.api
    ```
-
-3. 生成go服务端代码
+   
+3. generate the go server side code
 
    ```shell
    goctl api go -api greet.api -dir greet
    ```
 
-   生成的文件结构如下：
+   the generated files look like:
 
-   ```
-   .
+   ```Plain Text
    ├── greet
    │   ├── etc
-   │   │   └── greet-api.json        // 配置文件
-   │   ├── greet.go                  // main文件
+   │   │   └── greet-api.yaml        // configuration file
+   │   ├── greet.go                  // main file
    │   └── internal
    │       ├── config
-   │       │   └── config.go         // 配置定义
+   │       │   └── config.go         // configuration definition
    │       ├── handler
-   │       │   ├── greethandler.go   // get/put/post/delete等路由定义文件
-   │       │   └── routes.go         // 路由列表
+   │       │   ├── greethandler.go   // get/put/post/delete routes are defined here
+   │       │   └── routes.go         // routes list
    │       ├── logic
-   │       │   └── greetlogic.go     // 请求逻辑处理文件
+   │       │   └── greetlogic.go     // request logic can be written here
    │       ├── svc
-   │       │   └── servicecontext.go // 请求上下文，可以传入mysql, redis等依赖
+   │       │   └── servicecontext.go // service context, mysql/redis can be passed in here
    │       └── types
-   │           └── types.go          // 请求、返回等类型定义
-   └── greet.api                     // api描述文件
-   
-   8 directories, 9 files
+   │           └── types.go          // request/response defined here
+   └── greet.api                     // api description file
    ```
 
-   生成的代码可以直接运行：
+   the generated code can be run directly:
 
    ```shell
    cd greet
-   go run greet.go -f etc/greet-api.json
+   go mod init
+   go mod tidy
+   go run greet.go -f etc/greet-api.yaml
    ```
 
-   默认侦听在8888端口（可以在配置文件里修改），可以通过curl请求：
+   by default, it’s listening on port 8888, while it can be changed in configuration file.
+
+   you can check it by curl:
 
    ```shell
-   ➜  go-zero git:(master) curl -w "\ncode: %{http_code}\n" http://localhost:8888/greet/from/kevin
-   {"code":0}
-   code: 200
+   curl -i http://localhost:8888/greet/from/you
    ```
 
-   编写业务代码：
+   the response looks like:
 
-   * 可以在servicecontext.go里面传递依赖给logic，比如mysql, redis等
-   * 在api定义的get/post/put/delete等请求对应的logic里增加业务处理逻辑
+   ```http
+   HTTP/1.1 200 OK
+   Date: Sun, 30 Aug 2020 15:32:35 GMT
+   Content-Length: 0
+   ```
 
-4. 可以根据api文件生成前端需要的Java, TypeScript, Dart, JavaScript代码
+4. Write the business logic code
+
+    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds etc.
+    * add the logic code in logic package according to .api file
+
+5. Generate code like Java, TypeScript, Dart, JavaScript etc. just from the api file
 
    ```shell
    goctl api java -api greet.api -dir greet
    goctl api dart -api greet.api -dir greet
    ...
    ```
+
+## 7. Benchmark
+
+![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
+
+[Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
+
+## 8. Documents (adding)
+
+* [Documents](https://go-zero.dev/en/)
+* [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
+* [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
+* [Examples](https://github.com/zeromicro/zero-examples)
+
+## 9. Chat group
+
+Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-ulzixfgi-NAkZjq856TewLY2KQSxHCw
+
+## Give a Star! ⭐
+
+If you like or are using this project to learn or start your solution, please give it a star. Thanks!

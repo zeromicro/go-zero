@@ -3,7 +3,7 @@ package contextx
 import (
 	"context"
 
-	"zero/core/mapping"
+	"github.com/tal-tech/go-zero/core/mapping"
 )
 
 const contextTagKey = "ctx"
@@ -19,6 +19,7 @@ func (cv contextValuer) Value(key string) (interface{}, bool) {
 	return v, v != nil
 }
 
+// For unmarshals ctx into v.
 func For(ctx context.Context, v interface{}) error {
 	return unmarshaler.UnmarshalValuer(contextValuer{
 		Context: ctx,

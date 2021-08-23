@@ -1,6 +1,7 @@
-package sqltemplate
+package template
 
-var Model = `package model
+// Model defines a template for model
+var Model = `package {{.pkg}}
 {{.imports}}
 {{.vars}}
 {{.types}}
@@ -9,4 +10,5 @@ var Model = `package model
 {{.find}}
 {{.update}}
 {{.delete}}
+{{.extraMethod}}
 `

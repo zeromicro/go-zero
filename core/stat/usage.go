@@ -5,9 +5,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"zero/core/logx"
-	"zero/core/stat/internal"
-	"zero/core/threading"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat/internal"
+	"github.com/tal-tech/go-zero/core/threading"
 )
 
 const (
@@ -44,6 +44,7 @@ func init() {
 	}()
 }
 
+// CpuUsage returns current cpu usage.
 func CpuUsage() int64 {
 	return atomic.LoadInt64(&cpuUsage)
 }

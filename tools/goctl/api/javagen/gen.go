@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"zero/core/lang"
-	"zero/tools/goctl/api/parser"
-	"zero/tools/goctl/util"
-
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
+// JavaCommand the generate java code command entrance
 func JavaCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
@@ -23,11 +23,7 @@ func JavaCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	p, err := parser.NewParser(apiFile)
-	if err != nil {
-		return err
-	}
-	api, err := p.Parse()
+	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
 	}
@@ -37,9 +33,9 @@ func JavaCommand(c *cli.Context) error {
 		packetName = packetName[:len(packetName)-4]
 	}
 
-	lang.Must(util.MkdirIfNotExist(dir))
-	lang.Must(genPacket(dir, packetName, api))
-	lang.Must(genComponents(dir, packetName, api))
+	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(genPacket(dir, packetName, api))
+	logx.Must(genComponents(dir, packetName, api))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

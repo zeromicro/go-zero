@@ -1,26 +1,26 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
-	"path"
-	"sort"
 	"strings"
-	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const mainTemplate = `package main
 
 import (
 	"flag"
+	"fmt"
 
 	{{.importPackages}}
 )
 
-var configFile = flag.String("f", "etc/{{.serviceName}}.json", "the config file")
+var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
 
 func main() {
 	flag.Parse()
@@ -29,57 +29,49 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	ctx := svc.NewServiceContext(c)
+	server := rest.MustNewServer(c.RestConf)
+	defer server.Stop()
 
-	engine := rest.MustNewServer(c.RestConf)
-	defer engine.Stop()
+	handler.RegisterHandlers(server, ctx)
 
-	handler.RegisterHandlers(engine, ctx)
-	engine.Start()
+	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
+	server.Start()
 }
 `
 
-func genMain(dir string, api *spec.ApiSpec) error {
+func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
-	if strings.HasSuffix(name, "-api") {
-		name = strings.ReplaceAll(name, "-api", "")
-	}
-	goFile := name + ".go"
-	fp, created, err := util.MaybeCreateFile(dir, "", goFile)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	parentPkg, err := getParentPackage(dir)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
 	if err != nil {
 		return err
 	}
 
-	t := template.Must(template.New("mainTemplate").Parse(mainTemplate))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"importPackages": genMainImports(parentPkg),
-		"serviceName":    api.Service.Name,
+	configName := filename
+	if strings.HasSuffix(filename, "-api") {
+		filename = strings.ReplaceAll(filename, "-api", "")
+	}
+
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          "",
+		filename:        filename + ".go",
+		templateName:    "mainTemplate",
+		category:        category,
+		templateFile:    mainTemplateFile,
+		builtinTemplate: mainTemplate,
+		data: map[string]string{
+			"importPackages": genMainImports(rootPkg),
+			"serviceName":    configName,
+		},
 	})
-	if err != nil {
-		return nil
-	}
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func genMainImports(parentPkg string) string {
-	imports := []string{
-		`"zero/core/conf"`,
-		`"zero/rest"`,
-	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, configDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, handlerDir)))
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
-	sort.Strings(imports)
+	var imports []string
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, configDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, handlerDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceURL))
+	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

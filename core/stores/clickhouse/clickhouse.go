@@ -1,13 +1,14 @@
 package clickhouse
 
 import (
-	"zero/core/stores/sqlx"
-
-	_ "github.com/kshvakov/clickhouse"
+	// imports the driver.
+	_ "github.com/ClickHouse/clickhouse-go"
+	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
 
 const clickHouseDriverName = "clickhouse"
 
+// New returns a clickhouse connection.
 func New(datasource string, opts ...sqlx.SqlOption) sqlx.SqlConn {
 	return sqlx.NewSqlConn(clickHouseDriverName, datasource, opts...)
 }

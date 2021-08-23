@@ -5,14 +5,15 @@ import (
 	"runtime"
 	"strconv"
 
-	"zero/core/rescue"
+	"github.com/tal-tech/go-zero/core/rescue"
 )
 
+// GoSafe runs the given fn using another goroutine, recovers if fn panics.
 func GoSafe(fn func()) {
 	go RunSafe(fn)
 }
 
-// Only for debug, never use it in production
+// RoutineId is only for debug, never use it in production.
 func RoutineId() uint64 {
 	b := make([]byte, 64)
 	b = b[:runtime.Stack(b, false)]
@@ -24,6 +25,7 @@ func RoutineId() uint64 {
 	return n
 }
 
+// RunSafe runs the given fn, recovers if fn panics.
 func RunSafe(fn func()) {
 	defer rescue.Recover()
 

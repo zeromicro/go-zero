@@ -1,13 +1,18 @@
-package sqltemplate
+package template
 
+// Types defines a template for types in model
 var Types = `
 type (
-	{{.upperObject}}Model struct {
-		sqlc.CachedConn
+	{{.upperStartCamelObject}}Model interface{
+		{{.method}}
+	}
+
+	default{{.upperStartCamelObject}}Model struct {
+		{{if .withCache}}sqlc.CachedConn{{else}}conn sqlx.SqlConn{{end}}
 		table string
 	}
 
-	{{.upperObject}} struct {
+	{{.upperStartCamelObject}} struct {
 		{{.fields}}
 	}
 )

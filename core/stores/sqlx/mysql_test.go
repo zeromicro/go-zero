@@ -1,14 +1,15 @@
 package sqlx
 
 import (
+	"errors"
+	"reflect"
 	"testing"
-
-	"zero/core/breaker"
-	"zero/core/logx"
-	"zero/core/stat"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func init() {
@@ -32,6 +33,15 @@ func TestBreakerOnNotHandlingDuplicateEntry(t *testing.T) {
 		}
 	}
 	assert.True(t, found)
+}
+
+func TestMysqlAcceptable(t *testing.T) {
+	conn := NewMysql("nomysql").(*commonSqlConn)
+	withMysqlAcceptable()(conn)
+	assert.EqualValues(t, reflect.ValueOf(mysqlAcceptable).Pointer(), reflect.ValueOf(conn.accept).Pointer())
+	assert.True(t, mysqlAcceptable(nil))
+	assert.False(t, mysqlAcceptable(errors.New("any")))
+	assert.False(t, mysqlAcceptable(new(mysql.MySQLError)))
 }
 
 func tryOnDuplicateEntryError(t *testing.T, accept func(error) bool) error {

@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"strings"
 
-	"zero/rest/httpx"
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
 const gzipEncoding = "gzip"
 
+// GunzipHandler returns a middleware to gunzip http request body.
 func GunzipHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.Header.Get(httpx.ContentEncoding), gzipEncoding) {

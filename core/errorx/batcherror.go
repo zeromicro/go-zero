@@ -3,6 +3,7 @@ package errorx
 import "bytes"
 
 type (
+	// A BatchError is an error that can hold multiple errors.
 	BatchError struct {
 		errs errorArray
 	}
@@ -10,12 +11,14 @@ type (
 	errorArray []error
 )
 
+// Add adds err to be.
 func (be *BatchError) Add(err error) {
 	if err != nil {
 		be.errs = append(be.errs, err)
 	}
 }
 
+// Err returns an error that represents all errors.
 func (be *BatchError) Err() error {
 	switch len(be.errs) {
 	case 0:
@@ -27,10 +30,12 @@ func (be *BatchError) Err() error {
 	}
 }
 
+// NotNil checks if any error inside.
 func (be *BatchError) NotNil() bool {
 	return len(be.errs) > 0
 }
 
+// Error returns a string that represents inside errors.
 func (ea errorArray) Error() string {
 	var buf bytes.Buffer
 

@@ -7,12 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/lang"
-	"zero/core/stringx"
-	"zero/core/syncx"
-	"zero/core/timex"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const (
@@ -214,7 +213,10 @@ func TestTimingWheel_SetTimer(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -292,7 +294,10 @@ func TestTimingWheel_SetAndMoveThenStart(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -377,7 +382,10 @@ func TestTimingWheel_SetAndMoveTwice(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -455,7 +463,10 @@ func TestTimingWheel_ElapsedAndSet(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -543,7 +554,10 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(stringx.RandId(), func(t *testing.T) {
+			t.Parallel()
+
 			var count int32
 			ticker := timex.NewFakeTicker()
 			tick := func() {
@@ -578,6 +592,31 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMoveAndRemoveTask(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	tick := func(v int) {
+		for i := 0; i < v; i++ {
+			ticker.Tick()
+		}
+	}
+	var keys []int
+	tw, _ := newTimingWheelWithClock(testStep, 10, func(k, v interface{}) {
+		assert.Equal(t, "any", k)
+		assert.Equal(t, 3, v.(int))
+		keys = append(keys, v.(int))
+		ticker.Done()
+	}, ticker)
+	defer tw.Stop()
+	tw.SetTimer("any", 3, testStep*8)
+	tick(6)
+	tw.MoveTimer("any", testStep*7)
+	tick(3)
+	tw.RemoveTimer("any")
+	tick(30)
+	time.Sleep(time.Millisecond)
+	assert.Equal(t, 0, len(keys))
 }
 
 func BenchmarkTimingWheel(b *testing.B) {

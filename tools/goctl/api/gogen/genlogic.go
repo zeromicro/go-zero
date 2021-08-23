@@ -1,14 +1,15 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"path"
 	"strings"
-	"text/template"
 
-	"zero/tools/goctl/api/spec"
-	"zero/tools/goctl/api/util"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
+	"github.com/tal-tech/go-zero/tools/goctl/config"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const logicTemplate = `package logic
@@ -18,28 +19,30 @@ import (
 )
 
 type {{.logic}} struct {
-	ctx context.Context
 	logx.Logger
+	ctx    context.Context
+	svcCtx *svc.ServiceContext
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
 	return {{.logic}}{
-		ctx:    ctx,
 		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		svcCtx: svcCtx,
 	}
-	// TODO need set model here from svc
 }
 
 func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
+	// todo: add your logic here and delete this line
+
 	{{.returnString}}
 }
-
 `
 
-func genLogic(dir string, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -48,67 +51,57 @@ func genLogic(dir string, api *spec.ApiSpec) error {
 	return nil
 }
 
-func genLogicByRoute(dir string, group spec.Group, route spec.Route) error {
-	handler, ok := util.GetAnnotationValue(route.Annotations, "server", "handler")
-	if !ok {
-		return fmt.Errorf("missing handler annotation for %q", route.Path)
-	}
-	handler = strings.TrimSuffix(handler, "handler")
-	handler = strings.TrimSuffix(handler, "Handler")
-	filename := strings.ToLower(handler)
-	goFile := filename + "logic.go"
-	fp, created, err := util.MaybeCreateFile(dir, getLogicFolderPath(group, route), goFile)
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
+	logic := getLogicName(route)
+	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
 		return err
 	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
 
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
-	}
-	imports := genLogicImports(route, parentPkg)
-
-	responseString := ""
-	returnString := ""
-	requestString := ""
-	if len(route.ResponseType.Name) > 0 {
-		responseString = "(*types." + strings.Title(route.ResponseType.Name) + ", error)"
-		returnString = "return nil, nil"
+	imports := genLogicImports(route, rootPkg)
+	var responseString string
+	var returnString string
+	var requestString string
+	if len(route.ResponseTypeName()) > 0 {
+		resp := responseGoTypeName(route, typesPacket)
+		responseString = "(" + resp + ", error)"
+		if strings.HasPrefix(resp, "*") {
+			returnString = fmt.Sprintf("return &%s{}, nil", strings.TrimPrefix(resp, "*"))
+		} else {
+			returnString = fmt.Sprintf("return %s{}, nil", resp)
+		}
 	} else {
 		responseString = "error"
 		returnString = "return nil"
 	}
-	if len(route.RequestType.Name) > 0 {
-		requestString = "req " + "types." + strings.Title(route.RequestType.Name)
+	if len(route.RequestTypeName()) > 0 {
+		requestString = "req " + requestGoTypeName(route, typesPacket)
 	}
 
-	t := template.Must(template.New("logicTemplate").Parse(logicTemplate))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(fp, map[string]string{
-		"imports":      imports,
-		"logic":        strings.Title(handler) + "Logic",
-		"function":     strings.Title(strings.TrimSuffix(handler, "Handler")),
-		"responseType": responseString,
-		"returnString": returnString,
-		"request":      requestString,
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          getLogicFolderPath(group, route),
+		filename:        goFile + ".go",
+		templateName:    "logicTemplate",
+		category:        category,
+		templateFile:    logicTemplateFile,
+		builtinTemplate: logicTemplate,
+		data: map[string]string{
+			"imports":      imports,
+			"logic":        strings.Title(logic),
+			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
+			"responseType": responseString,
+			"returnString": returnString,
+			"request":      requestString,
+		},
 	})
-	if err != nil {
-		return nil
-	}
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func getLogicFolderPath(group spec.Group, route spec.Route) string {
-	folder, ok := util.GetAnnotationValue(route.Annotations, "server", folderProperty)
-	if !ok {
-		folder, ok = util.GetAnnotationValue(group.Annotations, "server", folderProperty)
-		if !ok {
+	folder := route.GetAnnotation(groupProperty)
+	if len(folder) == 0 {
+		folder = group.GetAnnotation(groupProperty)
+		if len(folder) == 0 {
 			return logicDir
 		}
 	}
@@ -119,12 +112,11 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`)
-	imports = append(imports, "\n")
-	imports = append(imports, `"zero/core/logx"`)
-	if len(route.ResponseType.Name) > 0 || len(route.RequestType.Name) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, typesDir)))
+	imports = append(imports, `"context"`+"\n")
+	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, contextDir)))
+	if len(route.ResponseTypeName()) > 0 || len(route.RequestTypeName()) > 0 {
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s\"", path.Join(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

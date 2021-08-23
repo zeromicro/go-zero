@@ -3,17 +3,19 @@ package mapping
 import (
 	"io"
 
-	"zero/core/jsonx"
+	"github.com/tal-tech/go-zero/core/jsonx"
 )
 
 const jsonTagKey = "json"
 
 var jsonUnmarshaler = NewUnmarshaler(jsonTagKey)
 
+// UnmarshalJsonBytes unmarshals content into v.
 func UnmarshalJsonBytes(content []byte, v interface{}) error {
 	return unmarshalJsonBytes(content, v, jsonUnmarshaler)
 }
 
+// UnmarshalJsonReader unmarshals content from reader into v.
 func UnmarshalJsonReader(reader io.Reader, v interface{}) error {
 	return unmarshalJsonReader(reader, v, jsonUnmarshaler)
 }

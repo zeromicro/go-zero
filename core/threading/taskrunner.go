@@ -1,20 +1,23 @@
 package threading
 
 import (
-	"zero/core/lang"
-	"zero/core/rescue"
+	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/core/rescue"
 )
 
+// A TaskRunner is used to control the concurrency of goroutines.
 type TaskRunner struct {
 	limitChan chan lang.PlaceholderType
 }
 
+// NewTaskRunner returns a TaskRunner.
 func NewTaskRunner(concurrency int) *TaskRunner {
 	return &TaskRunner{
 		limitChan: make(chan lang.PlaceholderType, concurrency),
 	}
 }
 
+// Schedule schedules a task to run under concurrency control.
 func (rp *TaskRunner) Schedule(task func()) {
 	rp.limitChan <- lang.Placeholder
 

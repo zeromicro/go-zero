@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"zero/core/stat"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stat"
 )
 
 func init() {
@@ -56,7 +55,7 @@ func TestBreakersDoWithAcceptable(t *testing.T) {
 }
 
 func TestBreakersNoBreakerFor(t *testing.T) {
-	NoBreakFor("any")
+	NoBreakerFor("any")
 	errDummy := errors.New("any")
 	for i := 0; i < 10000; i++ {
 		assert.Equal(t, errDummy, GetBreaker("any").Do(func() error {

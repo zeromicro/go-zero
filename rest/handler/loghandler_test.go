@@ -8,9 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"zero/rest/internal"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/rest/internal"
 )
 
 func init() {
@@ -31,6 +30,10 @@ func TestLogHandler(t *testing.T) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, err := w.Write([]byte("content"))
 			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.True(t, ok)
+			flusher.Flush()
 		}))
 
 		resp := httptest.NewRecorder()
@@ -57,6 +60,44 @@ func TestLogHandlerSlow(t *testing.T) {
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
+}
+
+func TestLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &loggedResponseWriter{
+		w: resp,
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &loggedResponseWriter{
+		w: mockedHijackable{resp},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
+func TestDetailedLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: resp,
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: mockedHijackable{resp},
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
 }
 
 func BenchmarkLogHandler(b *testing.B) {

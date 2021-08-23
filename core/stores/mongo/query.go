@@ -3,12 +3,12 @@ package mongo
 import (
 	"time"
 
-	"zero/core/breaker"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (
+	// Query interface represents a mongo query.
 	Query interface {
 		All(result interface{}) error
 		Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error)

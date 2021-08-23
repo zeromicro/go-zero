@@ -1,23 +1,38 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func genImports(table *InnerTable) (string, error) {
-	t, err := template.New("imports").Parse(sqltemplate.Imports)
+func genImports(withCache, timeImport bool) (string, error) {
+	if withCache {
+		text, err := util.LoadTemplate(category, importsTemplateFile, template.Imports)
+		if err != nil {
+			return "", err
+		}
+
+		buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
+			"time": timeImport,
+		})
+		if err != nil {
+			return "", err
+		}
+
+		return buffer.String(), nil
+	}
+
+	text, err := util.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
 	if err != nil {
 		return "", err
 	}
-	importBuffer := new(bytes.Buffer)
-	err = t.Execute(importBuffer, map[string]interface{}{
-		"containsCache": table.ContainsCache,
+
+	buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
+		"time": timeImport,
 	})
 	if err != nil {
 		return "", err
 	}
-	return importBuffer.String(), nil
+
+	return buffer.String(), nil
 }

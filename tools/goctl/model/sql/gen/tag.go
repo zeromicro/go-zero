@@ -1,26 +1,26 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 func genTag(in string) (string, error) {
 	if in == "" {
 		return in, nil
 	}
-	t, err := template.New("tag").Parse(sqltemplate.Tag)
+
+	text, err := util.LoadTemplate(category, tagTemplateFile, template.Tag)
 	if err != nil {
 		return "", err
 	}
-	var tagBuffer = new(bytes.Buffer)
-	err = t.Execute(tagBuffer, map[string]interface{}{
+
+	output, err := util.With("tag").Parse(text).Execute(map[string]interface{}{
 		"field": in,
 	})
 	if err != nil {
 		return "", err
 	}
-	return tagBuffer.String(), nil
+
+	return output.String(), nil
 }

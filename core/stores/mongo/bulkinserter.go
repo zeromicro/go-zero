@@ -3,10 +3,9 @@ package mongo
 import (
 	"time"
 
-	"zero/core/executors"
-	"zero/core/logx"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/executors"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 const (
@@ -15,14 +14,17 @@ const (
 )
 
 type (
+	// ResultHandler is a handler that used to handle results.
 	ResultHandler func(*mgo.BulkResult, error)
 
+	// A BulkInserter is used to insert bulk of mongo records.
 	BulkInserter struct {
 		executor *executors.PeriodicalExecutor
 		inserter *dbInserter
 	}
 )
 
+// NewBulkInserter returns a BulkInserter.
 func NewBulkInserter(session *mgo.Session, dbName string, collectionNamer func() string) *BulkInserter {
 	inserter := &dbInserter{
 		session:         session,
@@ -36,14 +38,17 @@ func NewBulkInserter(session *mgo.Session, dbName string, collectionNamer func()
 	}
 }
 
+// Flush flushes the inserter, writes all pending records.
 func (bi *BulkInserter) Flush() {
 	bi.executor.Flush()
 }
 
+// Insert inserts doc.
 func (bi *BulkInserter) Insert(doc interface{}) {
 	bi.executor.Add(doc)
 }
 
+// SetResultHandler sets the result handler.
 func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 	bi.executor.Sync(func() {
 		bi.inserter.resultHandler = handler

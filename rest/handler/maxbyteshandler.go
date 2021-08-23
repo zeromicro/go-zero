@@ -3,9 +3,10 @@ package handler
 import (
 	"net/http"
 
-	"zero/rest/internal"
+	"github.com/tal-tech/go-zero/rest/internal"
 )
 
+// MaxBytesHandler returns a middleware that limit reading of http request body.
 func MaxBytesHandler(n int64) func(http.Handler) http.Handler {
 	if n <= 0 {
 		return func(next http.Handler) http.Handler {

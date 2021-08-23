@@ -3,12 +3,12 @@ package mongo
 import (
 	"time"
 
-	"zero/core/breaker"
-
 	"github.com/globalsign/mgo"
+	"github.com/tal-tech/go-zero/core/breaker"
 )
 
 type (
+	// Pipe interface represents a mongo pipe.
 	Pipe interface {
 		All(result interface{}) error
 		AllowDiskUse() Pipe

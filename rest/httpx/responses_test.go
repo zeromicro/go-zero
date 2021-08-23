@@ -1,13 +1,13 @@
 package httpx
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
 
-	"zero/core/logx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/logx"
 )
 
 type message struct {
@@ -16,6 +16,76 @@ type message struct {
 
 func init() {
 	logx.Disable()
+}
+
+func TestError(t *testing.T) {
+	const (
+		body        = "foo"
+		wrappedBody = `"foo"`
+	)
+
+	tests := []struct {
+		name         string
+		input        string
+		errorHandler func(error) (int, interface{})
+		expectBody   string
+		expectCode   int
+	}{
+		{
+			name:       "default error handler",
+			input:      body,
+			expectBody: body,
+			expectCode: http.StatusBadRequest,
+		},
+		{
+			name:  "customized error handler return string",
+			input: body,
+			errorHandler: func(err error) (int, interface{}) {
+				return http.StatusForbidden, err.Error()
+			},
+			expectBody: wrappedBody,
+			expectCode: http.StatusForbidden,
+		},
+		{
+			name:  "customized error handler return error",
+			input: body,
+			errorHandler: func(err error) (int, interface{}) {
+				return http.StatusForbidden, err
+			},
+			expectBody: body,
+			expectCode: http.StatusForbidden,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			w := tracedResponseWriter{
+				headers: make(map[string][]string),
+			}
+			if test.errorHandler != nil {
+				lock.RLock()
+				prev := errorHandler
+				lock.RUnlock()
+				SetErrorHandler(test.errorHandler)
+				defer func() {
+					lock.Lock()
+					errorHandler = prev
+					lock.Unlock()
+				}()
+			}
+			Error(&w, errors.New(test.input))
+			assert.Equal(t, test.expectCode, w.code)
+			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
+		})
+	}
+}
+
+func TestOk(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Ok(&w)
+	assert.Equal(t, http.StatusOK, w.code)
 }
 
 func TestOkJson(t *testing.T) {

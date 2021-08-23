@@ -1,30 +1,50 @@
 package gen
 
 import (
-	"bytes"
-	"text/template"
-
-	sqltemplate "zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genFindOne(table *InnerTable) (string, error) {
-	t, err := template.New("findOne").Parse(sqltemplate.FindOne)
+func genFindOne(table Table, withCache, postgreSql bool) (string, string, error) {
+	camel := table.Name.ToCamel()
+	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	fineOneBuffer := new(bytes.Buffer)
-	err = t.Execute(fineOneBuffer, map[string]interface{}{
-		"withCache":        table.PrimaryField.Cache,
-		"upperObject":      table.UpperCamelCase,
-		"lowerObject":      table.LowerCamelCase,
-		"snakePrimaryKey":  table.PrimaryField.SnakeCase,
-		"lowerPrimaryKey":  table.PrimaryField.LowerCamelCase,
-		"dataType":         table.PrimaryField.DataType,
-		"cacheKey":         table.CacheKey[table.PrimaryField.SnakeCase].Key,
-		"cacheKeyVariable": table.CacheKey[table.PrimaryField.SnakeCase].KeyVariable,
-	})
+
+	output, err := util.With("findOne").
+		Parse(text).
+		Execute(map[string]interface{}{
+			"withCache":                 withCache,
+			"upperStartCamelObject":     camel,
+			"lowerStartCamelObject":     stringx.From(camel).Untitle(),
+			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
+			"dataType":                  table.PrimaryKey.DataType,
+			"cacheKey":                  table.PrimaryCacheKey.KeyExpression,
+			"cacheKeyVariable":          table.PrimaryCacheKey.KeyLeft,
+			"postgreSql":                postgreSql,
+		})
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	return fineOneBuffer.String(), nil
+
+	text, err = util.LoadTemplate(category, findOneMethodTemplateFile, template.FindOneMethod)
+	if err != nil {
+		return "", "", err
+	}
+
+	findOneMethod, err := util.With("findOneMethod").
+		Parse(text).
+		Execute(map[string]interface{}{
+			"upperStartCamelObject":     camel,
+			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
+			"dataType":                  table.PrimaryKey.DataType,
+		})
+	if err != nil {
+		return "", "", err
+	}
+
+	return output.String(), findOneMethod.String(), nil
 }

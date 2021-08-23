@@ -7,9 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/timex"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/timex"
 )
 
 const threshold = 10
@@ -105,6 +104,60 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	lock.Lock()
 	assert.EqualValues(t, expect, vals)
 	lock.Unlock()
+}
+
+func TestPeriodicalExecutor_Wait(t *testing.T) {
+	var lock sync.Mutex
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+		lock.Lock()
+		defer lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+	}, WithBulkTasks(1), WithBulkInterval(time.Second))
+	for i := 0; i < 10; i++ {
+		executer.Add(1)
+	}
+	executer.Flush()
+	executer.Wait()
+}
+
+func TestPeriodicalExecutor_WaitFast(t *testing.T) {
+	const total = 3
+	var cnt int
+	var lock sync.Mutex
+	executer := NewBulkExecutor(func(tasks []interface{}) {
+		defer func() {
+			cnt++
+		}()
+		lock.Lock()
+		defer lock.Unlock()
+		time.Sleep(10 * time.Millisecond)
+	}, WithBulkTasks(1), WithBulkInterval(10*time.Millisecond))
+	for i := 0; i < total; i++ {
+		executer.Add(2)
+	}
+	executer.Flush()
+	executer.Wait()
+	assert.Equal(t, total, cnt)
+}
+
+func TestPeriodicalExecutor_Deadlock(t *testing.T) {
+	executor := NewBulkExecutor(func(tasks []interface{}) {
+	}, WithBulkTasks(1), WithBulkInterval(time.Millisecond))
+	for i := 0; i < 1e5; i++ {
+		executor.Add(1)
+	}
+}
+
+func TestPeriodicalExecutor_hasTasks(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	defer ticker.Stop()
+
+	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, nil))
+	exec.newTicker = func(d time.Duration) timex.Ticker {
+		return ticker
+	}
+	assert.False(t, exec.hasTasks(nil))
+	assert.True(t, exec.hasTasks(1))
 }
 
 // go test -benchtime 10s -bench .

@@ -1,7 +1,8 @@
 package config
 
-import "zero/core/logx"
+import "github.com/tal-tech/go-zero/core/logx"
 
+// Config defines a service configure for goctl update
 type Config struct {
 	logx.LogConf
 	ListenOn string

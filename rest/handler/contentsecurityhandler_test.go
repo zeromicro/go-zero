@@ -17,10 +17,9 @@ import (
 	"testing"
 	"time"
 
-	"zero/core/codec"
-	"zero/rest/httpx"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/codec"
+	"github.com/tal-tech/go-zero/rest/httpx"
 )
 
 const timeDiff = time.Hour * 2 * 24
@@ -114,7 +113,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -123,7 +122,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			timestamp:  time.Now().Add(-timeDiff).Unix(),
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -149,7 +148,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			crypt:       true,
 			timestamp:   time.Now().Add(-timeDiff).Unix(),
 			fingerprint: "badone",
-			statusCode:  http.StatusUnauthorized,
+			statusCode:  http.StatusForbidden,
 		},
 		{
 			method:     http.MethodPost,
@@ -158,7 +157,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      true,
 			missHeader: true,
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 		{
 			method: http.MethodHead,
@@ -172,7 +171,7 @@ func TestContentSecurityHandler(t *testing.T) {
 			strict:     true,
 			crypt:      false,
 			signature:  "badone",
-			statusCode: http.StatusUnauthorized,
+			statusCode: http.StatusForbidden,
 		},
 	}
 
@@ -218,6 +217,7 @@ func TestContentSecurityHandler(t *testing.T) {
 					signature:   test.signature,
 				}
 				req, err := buildRequest(setting)
+				assert.Nil(t, err)
 				resp := httptest.NewRecorder()
 				handler.ServeHTTP(resp, req)
 				assert.Equal(t, test.statusCode, resp.Code)
@@ -250,6 +250,7 @@ func TestContentSecurityHandler_UnsignedCallback(t *testing.T) {
 		signature: "badone",
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -286,6 +287,7 @@ func TestContentSecurityHandler_UnsignedCallback_WrongTime(t *testing.T) {
 		fingerprint: fingerprint,
 	}
 	req, err := buildRequest(setting)
+	assert.Nil(t, err)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -313,12 +315,13 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 		var path string
 		var query string
 		if len(rs.requestUri) > 0 {
-			if u, err := url.Parse(rs.requestUri); err != nil {
+			u, err := url.Parse(rs.requestUri)
+			if err != nil {
 				return nil, err
-			} else {
-				path = u.Path
-				query = u.RawQuery
 			}
+
+			path = u.Path
+			query = u.RawQuery
 		} else {
 			path = r.URL.Path
 			query = r.URL.RawQuery
@@ -375,10 +378,9 @@ func createTempFile(body []byte) (string, error) {
 	tmpFile, err := ioutil.TempFile(os.TempDir(), "go-unit-*.tmp")
 	if err != nil {
 		return "", err
-	} else {
-		tmpFile.Close()
 	}
 
+	tmpFile.Close()
 	err = ioutil.WriteFile(tmpFile.Name(), body, os.ModePerm)
 	if err != nil {
 		return "", err
