@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	errorHandler func(error) (int, interface{})
-	lock         sync.RWMutex
+	errorHandler   func(error) (int, interface{})
+	successHandler func(interface{}) interface{}
+	lock           sync.RWMutex
 )
 
 // Error writes err into w.
@@ -33,6 +34,20 @@ func Error(w http.ResponseWriter, err error) {
 	}
 }
 
+func Success(w http.ResponseWriter, data interface{})  {
+	lock.RLock()
+	handler := successHandler
+	lock.RUnlock()
+
+	if handler == nil {
+		OkJson(w, data)
+		return
+	}
+
+	body := successHandler(data)
+	OkJson(w, body)
+}
+
 // Ok writes HTTP 200 OK into w.
 func Ok(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
@@ -48,6 +63,12 @@ func SetErrorHandler(handler func(error) (int, interface{})) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandler = handler
+}
+
+func SetSuccessHandler(handler func(interface{}) interface{}) {
+	lock.Lock()
+	defer lock.Unlock()
+	successHandler = handler
 }
 
 // WriteJson writes v as json string into w with code.
