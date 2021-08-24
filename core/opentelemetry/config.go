@@ -1,8 +1,6 @@
 package opentelemetry
 
-const (
-	TraceName = "go-zero"
-)
+const TraceName = "go-zero"
 
 // A Config is a opentelemetry config.
 type Config struct {

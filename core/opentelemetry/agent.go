@@ -5,6 +5,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -53,7 +54,17 @@ func StartAgent(c Config) {
 
 		otel.SetTracerProvider(tp)
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		otel.SetErrorHandler(otelErrHandler{})
 
 		enabled.Set(true)
 	})
+}
+
+// errHandler handing otel errors.
+type otelErrHandler struct{}
+
+var _ otel.ErrorHandler = otelErrHandler{}
+
+func (o otelErrHandler) Handle(err error) {
+	logx.Errorf("[otel] error: %v", err)
 }

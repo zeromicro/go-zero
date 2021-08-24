@@ -45,6 +45,9 @@ func (sc ServiceConf) SetUp() error {
 	if len(sc.Log.ServiceName) == 0 {
 		sc.Log.ServiceName = sc.Name
 	}
+	if len(sc.OpenTelemetry.Name) == 0 {
+		sc.OpenTelemetry.Name = sc.Name
+	}
 	if err := logx.SetUp(sc.Log); err != nil {
 		return err
 	}
