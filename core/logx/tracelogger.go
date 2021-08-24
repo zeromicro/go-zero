@@ -8,7 +8,6 @@ import (
 
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/tal-tech/go-zero/core/opentelemetry"
 	"github.com/tal-tech/go-zero/core/timex"
 	"github.com/tal-tech/go-zero/core/trace/tracespec"
 )
@@ -96,11 +95,9 @@ func WithContext(ctx context.Context) Logger {
 }
 
 func spanIdFromContext(ctx context.Context) string {
-	if opentelemetry.Enabled() {
-		spanCtx := trace.SpanContextFromContext(ctx)
-		if spanId := spanCtx.SpanID().String(); spanId != "" {
-			return spanId
-		}
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanId := spanCtx.SpanID().String(); spanId != "" {
+		return spanId
 	}
 
 	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
@@ -112,11 +109,9 @@ func spanIdFromContext(ctx context.Context) string {
 }
 
 func traceIdFromContext(ctx context.Context) string {
-	if opentelemetry.Enabled() {
-		spanCtx := trace.SpanContextFromContext(ctx)
-		if traceId := spanCtx.TraceID().String(); traceId != "" {
-			return traceId
-		}
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if traceId := spanCtx.TraceID().String(); traceId != "" {
+		return traceId
 	}
 
 	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
