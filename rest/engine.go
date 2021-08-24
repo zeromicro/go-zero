@@ -108,6 +108,7 @@ func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	chain := alice.New(
 		handler.TracingHandler,
+		handler.OtelHandler(route.Path),
 		s.getLogHandler(),
 		handler.PrometheusHandler(route.Path),
 		handler.MaxConns(s.conf.MaxConns),

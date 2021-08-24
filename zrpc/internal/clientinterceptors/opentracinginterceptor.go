@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/tal-tech/go-zero/core/opentelemetry"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
