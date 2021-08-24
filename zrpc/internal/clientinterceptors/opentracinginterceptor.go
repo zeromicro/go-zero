@@ -66,7 +66,7 @@ func StreamOpenTracingInterceptor() grpc.StreamClientInterceptor {
 		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
 
-		tr := otel.Tracer("ecoplants")
+		tr := otel.Tracer(opentelemetry.TraceName)
 
 		name, attr := opentelemetry.SpanInfo(method, cc.Target())
 		var span trace.Span
