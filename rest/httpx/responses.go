@@ -9,16 +9,17 @@ import (
 )
 
 var (
-	errorHandler   func(error) (int, interface{})
 	successHandler func(interface{}) interface{}
-	lock           sync.RWMutex
+	errorHandler   func(error) (int, interface{})
+	errLock        sync.RWMutex
+	sucLock        sync.RWMutex
 )
 
 // Error writes err into w.
 func Error(w http.ResponseWriter, err error) {
-	lock.RLock()
+	errLock.RLock()
 	handler := errorHandler
-	lock.RUnlock()
+	errLock.RUnlock()
 
 	if handler == nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -34,10 +35,10 @@ func Error(w http.ResponseWriter, err error) {
 	}
 }
 
-func Success(w http.ResponseWriter, data interface{})  {
-	lock.RLock()
+func Success(w http.ResponseWriter, data interface{}) {
+	sucLock.RLock()
 	handler := successHandler
-	lock.RUnlock()
+	sucLock.RUnlock()
 
 	if handler == nil {
 		OkJson(w, data)
@@ -60,14 +61,14 @@ func OkJson(w http.ResponseWriter, v interface{}) {
 
 // SetErrorHandler sets the error handler, which is called on calling Error.
 func SetErrorHandler(handler func(error) (int, interface{})) {
-	lock.Lock()
-	defer lock.Unlock()
+	errLock.Lock()
+	defer errLock.Unlock()
 	errorHandler = handler
 }
 
 func SetSuccessHandler(handler func(interface{}) interface{}) {
-	lock.Lock()
-	defer lock.Unlock()
+	sucLock.Lock()
+	defer sucLock.Unlock()
 	successHandler = handler
 }
 
