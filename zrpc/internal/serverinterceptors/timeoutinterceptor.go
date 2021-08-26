@@ -2,7 +2,6 @@ package serverinterceptors
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -51,9 +50,9 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		case <-ctx.Done():
 			err := ctx.Err()
 
-			if errors.Is(err, context.Canceled) {
+			if err == context.Canceled {
 				err = status.Error(codes.Canceled, err.Error())
-			} else if errors.Is(err, context.DeadlineExceeded) {
+			} else if err == context.DeadlineExceeded {
 				err = status.Error(codes.DeadlineExceeded, err.Error())
 			}
 			return nil, err
