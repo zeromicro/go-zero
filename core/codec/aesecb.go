@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 )
 
+// ErrPaddingSize indicates bad padding size.
 var ErrPaddingSize = errors.New("padding size error")
 
 type ecb struct {
@@ -26,6 +27,7 @@ func newECB(b cipher.Block) *ecb {
 
 type ecbEncrypter ecb
 
+// NewECBEncrypter returns an ECB encrypter.
 func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
@@ -52,6 +54,7 @@ func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 
 type ecbDecrypter ecb
 
+// NewECBDecrypter returns an ECB decrypter.
 func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
@@ -78,6 +81,7 @@ func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 	}
 }
 
+// EcbDecrypt decrypts src with the given key.
 func EcbDecrypt(key, src []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -92,6 +96,8 @@ func EcbDecrypt(key, src []byte) ([]byte, error) {
 	return pkcs5Unpadding(decrypted, decrypter.BlockSize())
 }
 
+// EcbDecryptBase64 decrypts base64 encoded src with the given base64 encoded key.
+// The returned string is also base64 encoded.
 func EcbDecryptBase64(key, src string) (string, error) {
 	keyBytes, err := getKeyBytes(key)
 	if err != nil {
@@ -111,6 +117,7 @@ func EcbDecryptBase64(key, src string) (string, error) {
 	return base64.StdEncoding.EncodeToString(decryptedBytes), nil
 }
 
+// EcbEncrypt encrypts src with the given key.
 func EcbEncrypt(key, src []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -126,6 +133,8 @@ func EcbEncrypt(key, src []byte) ([]byte, error) {
 	return crypted, nil
 }
 
+// EcbEncryptBase64 encrypts base64 encoded src with the given base64 encoded key.
+// The returned string is also base64 encoded.
 func EcbEncryptBase64(key, src string) (string, error) {
 	keyBytes, err := getKeyBytes(key)
 	if err != nil {
@@ -146,15 +155,16 @@ func EcbEncryptBase64(key, src string) (string, error) {
 }
 
 func getKeyBytes(key string) ([]byte, error) {
-	if len(key) > 32 {
-		if keyBytes, err := base64.StdEncoding.DecodeString(key); err != nil {
-			return nil, err
-		} else {
-			return keyBytes, nil
-		}
+	if len(key) <= 32 {
+		return []byte(key), nil
 	}
 
-	return []byte(key), nil
+	keyBytes, err := base64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return nil, err
+	}
+
+	return keyBytes, nil
 }
 
 func pkcs5Padding(ciphertext []byte, blockSize int) []byte {

@@ -139,7 +139,7 @@ func TestRollingWindowBucketTimeBoundary(t *testing.T) {
 func TestRollingWindowDataRace(t *testing.T) {
 	const size = 3
 	r := NewRollingWindow(size, duration)
-	var stop = make(chan bool)
+	stop := make(chan bool)
 	go func() {
 		for {
 			select {

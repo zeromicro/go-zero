@@ -154,13 +154,12 @@ Verbose: true
 	}
 }
 
-type mockedRouter struct {
-}
+type mockedRouter struct{}
 
 func (m mockedRouter) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 }
 
-func (m mockedRouter) Handle(method string, path string, handler http.Handler) error {
+func (m mockedRouter) Handle(method, path string, handler http.Handler) error {
 	return errors.New("foo")
 }
 

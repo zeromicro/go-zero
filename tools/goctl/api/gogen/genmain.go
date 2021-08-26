@@ -1,13 +1,10 @@
 package gogen
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
-	"text/template"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
@@ -42,49 +39,31 @@ func main() {
 }
 `
 
-func genMain(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	name := strings.ToLower(api.Service.Name)
-	if strings.HasSuffix(name, "-api") {
-		name = strings.ReplaceAll(name, "-api", "")
-	}
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
 	if err != nil {
 		return err
 	}
 
-	goFile := filename + ".go"
-	fp, created, err := util.MaybeCreateFile(dir, "", goFile)
-	if err != nil {
-		return err
-	}
-	if !created {
-		return nil
-	}
-	defer fp.Close()
-
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
+	configName := filename
+	if strings.HasSuffix(filename, "-api") {
+		filename = strings.ReplaceAll(filename, "-api", "")
 	}
 
-	text, err := ctlutil.LoadTemplate(category, mainTemplateFile, mainTemplate)
-	if err != nil {
-		return err
-	}
-
-	t := template.Must(template.New("mainTemplate").Parse(text))
-	buffer := new(bytes.Buffer)
-	err = t.Execute(buffer, map[string]string{
-		"importPackages": genMainImports(parentPkg),
-		"serviceName":    api.Service.Name,
+	return genFile(fileGenConfig{
+		dir:             dir,
+		subdir:          "",
+		filename:        filename + ".go",
+		templateName:    "mainTemplate",
+		category:        category,
+		templateFile:    mainTemplateFile,
+		builtinTemplate: mainTemplate,
+		data: map[string]string{
+			"importPackages": genMainImports(rootPkg),
+			"serviceName":    configName,
+		},
 	})
-	if err != nil {
-		return err
-	}
-
-	formatCode := formatCode(buffer.String())
-	_, err = fp.WriteString(formatCode)
-	return err
 }
 
 func genMainImports(parentPkg string) string {
@@ -92,7 +71,7 @@ func genMainImports(parentPkg string) string {
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", ctlutil.JoinPackages(parentPkg, handlerDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"\n", ctlutil.JoinPackages(parentPkg, contextDir)))
-	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceUrl))
-	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceUrl))
+	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceURL))
+	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }

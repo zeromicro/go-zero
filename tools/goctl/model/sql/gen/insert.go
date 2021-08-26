@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/collection"
@@ -9,30 +10,38 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genInsert(table Table, withCache bool) (string, string, error) {
+func genInsert(table Table, withCache, postgreSql bool) (string, string, error) {
 	keySet := collection.NewSet()
 	keyVariableSet := collection.NewSet()
-	for fieldName, key := range table.CacheKey {
-		if fieldName == table.PrimaryKey.Name.Source() {
-			continue
-		}
+	for _, key := range table.UniqueCacheKey {
 		keySet.AddStr(key.DataKeyExpression)
-		keyVariableSet.AddStr(key.Variable)
+		keyVariableSet.AddStr(key.KeyLeft)
 	}
 
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
-	for _, filed := range table.Fields {
-		camel := filed.Name.ToCamel()
+	var count int
+	for _, field := range table.Fields {
+		camel := field.Name.ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
-		if filed.IsPrimaryKey && table.PrimaryKey.AutoIncrement {
-			continue
+
+		if field.Name.Source() == table.PrimaryKey.Name.Source() {
+			if table.PrimaryKey.AutoIncrement {
+				continue
+			}
 		}
-		expressions = append(expressions, "?")
+
+		count += 1
+		if postgreSql {
+			expressions = append(expressions, fmt.Sprintf("$%d", count))
+		} else {
+			expressions = append(expressions, "?")
+		}
 		expressionValues = append(expressionValues, "data."+camel)
 	}
+
 	camel := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, insertTemplateFile, template.Insert)
 	if err != nil {
@@ -43,7 +52,7 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
-			"containsIndexCache":    table.ContainsUniqueKey,
+			"containsIndexCache":    table.ContainsUniqueCacheKey,
 			"upperStartCamelObject": camel,
 			"lowerStartCamelObject": stringx.From(camel).Untitle(),
 			"expression":            strings.Join(expressions, ", "),
@@ -61,11 +70,9 @@ func genInsert(table Table, withCache bool) (string, string, error) {
 		return "", "", err
 	}
 
-	insertMethodOutput, err := util.With("insertMethod").
-		Parse(text).
-		Execute(map[string]interface{}{
-			"upperStartCamelObject": camel,
-		})
+	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]interface{}{
+		"upperStartCamelObject": camel,
+	})
 	if err != nil {
 		return "", "", err
 	}

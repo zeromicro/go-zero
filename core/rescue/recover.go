@@ -2,6 +2,9 @@ package rescue
 
 import "github.com/tal-tech/go-zero/core/logx"
 
+// Recover is used with defer to do cleanup on panics.
+// Use it like:
+//  defer Recover(func() {})
 func Recover(cleanups ...func()) {
 	for _, cleanup := range cleanups {
 		cleanup()

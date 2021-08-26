@@ -1,5 +1,11 @@
 package util
 
+import (
+	"strings"
+	"unicode"
+)
+
+// IsUpperCase returns true if the rune in A-Z
 func IsUpperCase(r rune) bool {
 	if r >= 'A' && r <= 'Z' {
 		return true
@@ -7,6 +13,7 @@ func IsUpperCase(r rune) bool {
 	return false
 }
 
+// IsLowerCase returns true if the rune in a-z
 func IsLowerCase(r rune) bool {
 	if r >= 'a' && r <= 'z' {
 		return true
@@ -14,8 +21,9 @@ func IsLowerCase(r rune) bool {
 	return false
 }
 
+// ToSnakeCase returns a copy string by converting camel case into snake case
 func ToSnakeCase(s string) string {
-	out := []rune{}
+	var out []rune
 	for index, r := range s {
 		if index == 0 {
 			out = append(out, ToLowerCase(r))
@@ -39,6 +47,7 @@ func ToSnakeCase(s string) string {
 	return string(out)
 }
 
+// ToCamelCase returns a copy string by converting snake case into camel case
 func ToCamelCase(s string) string {
 	s = ToLower(s)
 	out := []rune{}
@@ -61,6 +70,7 @@ func ToCamelCase(s string) string {
 	return string(out)
 }
 
+// ToLowerCase converts rune into lower case
 func ToLowerCase(r rune) rune {
 	dx := 'A' - 'a'
 	if IsUpperCase(r) {
@@ -68,6 +78,8 @@ func ToLowerCase(r rune) rune {
 	}
 	return r
 }
+
+// ToUpperCase converts rune into upper case
 func ToUpperCase(r rune) rune {
 	dx := 'A' - 'a'
 	if IsLowerCase(r) {
@@ -76,32 +88,44 @@ func ToUpperCase(r rune) rune {
 	return r
 }
 
+// ToLower returns a copy string by converting it into lower
 func ToLower(s string) string {
-	out := []rune{}
+	var out []rune
 	for _, r := range s {
 		out = append(out, ToLowerCase(r))
 	}
 	return string(out)
 }
 
+// ToUpper returns a copy string by converting it into upper
 func ToUpper(s string) string {
-	out := []rune{}
+	var out []rune
 	for _, r := range s {
 		out = append(out, ToUpperCase(r))
 	}
 	return string(out)
 }
 
-func LowerFirst(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return ToLower(s[:1]) + s[1:]
-}
-
+// UpperFirst converts s[0] into upper case
 func UpperFirst(s string) string {
 	if len(s) == 0 {
 		return s
 	}
 	return ToUpper(s[:1]) + s[1:]
+}
+
+// UnExport converts the first letter into lower case
+func UnExport(text string) bool {
+	var flag bool
+	str := strings.Map(func(r rune) rune {
+		if flag {
+			return r
+		}
+		if unicode.IsLetter(r) {
+			flag = true
+			return unicode.ToLower(r)
+		}
+		return r
+	}, text)
+	return str == text
 }

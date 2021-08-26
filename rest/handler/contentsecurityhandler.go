@@ -12,8 +12,10 @@ import (
 
 const contentSecurity = "X-Content-Security"
 
+// UnsignedCallback defines the method of the unsigned callback.
 type UnsignedCallback func(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int)
 
+// ContentSecurityHandler returns a middleware to verify content security.
 func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
 	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
 	if len(callbacks) == 0 {

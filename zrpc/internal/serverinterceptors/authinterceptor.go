@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
+// StreamAuthorizeInterceptor returns a func that uses given authenticator in processing stream requests.
 func StreamAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.StreamServerInterceptor {
 	return func(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler) error {
@@ -18,6 +19,7 @@ func StreamAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.StreamSe
 	}
 }
 
+// UnaryAuthorizeInterceptor returns a func that uses given authenticator in processing unary requests.
 func UnaryAuthorizeInterceptor(authenticator *auth.Authenticator) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {

@@ -1,6 +1,7 @@
 package discov
 
 import (
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -197,4 +198,19 @@ func TestContainer(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestSubscriber(t *testing.T) {
+	var opt subOptions
+	Exclusive()(&opt)
+
+	sub := new(Subscriber)
+	sub.items = newContainer(opt.exclusive)
+	var count int32
+	sub.AddListener(func() {
+		atomic.AddInt32(&count, 1)
+	})
+	sub.items.notifyChange()
+	assert.Empty(t, sub.Values())
+	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
 }

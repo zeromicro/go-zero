@@ -71,7 +71,7 @@ func TestNewCollection(t *testing.T) {
 		Database: nil,
 		Name:     "foo",
 		FullName: "bar",
-	})
+	}, breaker.GetBreaker("localhost"))
 	assert.Equal(t, "bar", col.(*decoratedCollection).name)
 }
 
@@ -279,8 +279,7 @@ func (p *mockPromise) Reject(reason string) {
 	p.reason = reason
 }
 
-type dropBreaker struct {
-}
+type dropBreaker struct{}
 
 func (d *dropBreaker) Name() string {
 	return "dummy"

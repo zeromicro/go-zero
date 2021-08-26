@@ -8,11 +8,13 @@ import (
 )
 
 type (
+	// Ticker interface wraps the Chan and Stop methods.
 	Ticker interface {
 		Chan() <-chan time.Time
 		Stop()
 	}
 
+	// FakeTicker interface is used for unit testing.
 	FakeTicker interface {
 		Ticker
 		Done()
@@ -30,6 +32,7 @@ type (
 	}
 )
 
+// NewTicker returns a Ticker.
 func NewTicker(d time.Duration) Ticker {
 	return &realTicker{
 		Ticker: time.NewTicker(d),
@@ -40,6 +43,7 @@ func (rt *realTicker) Chan() <-chan time.Time {
 	return rt.C
 }
 
+// NewFakeTicker returns a FakeTicker.
 func NewFakeTicker() FakeTicker {
 	return &fakeTicker{
 		c:    make(chan time.Time, 1),

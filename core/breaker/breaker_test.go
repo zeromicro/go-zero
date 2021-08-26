@@ -122,8 +122,7 @@ func BenchmarkGoogleBreaker(b *testing.B) {
 	}
 }
 
-type mockedPromise struct {
-}
+type mockedPromise struct{}
 
 func (m *mockedPromise) Accept() {
 }

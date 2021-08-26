@@ -6,14 +6,17 @@ import (
 	"unicode"
 )
 
+// String  provides for converting the source text into other spell case,like lower,snake,camel
 type String struct {
 	source string
 }
 
+// From converts the input text to String and returns it
 func From(data string) String {
 	return String{source: data}
 }
 
+// IsEmptyOrSpace returns true if the length of the string value is 0 after call strings.TrimSpace, or else returns false
 func (s String) IsEmptyOrSpace() bool {
 	if len(s.source) == 0 {
 		return true
@@ -24,18 +27,27 @@ func (s String) IsEmptyOrSpace() bool {
 	return false
 }
 
+// Lower calls the strings.ToLower
 func (s String) Lower() string {
 	return strings.ToLower(s.source)
 }
 
+// Upper calls the strings.ToUpper
+func (s String) Upper() string {
+	return strings.ToUpper(s.source)
+}
+
+// ReplaceAll calls the strings.ReplaceAll
 func (s String) ReplaceAll(old, new string) string {
 	return strings.ReplaceAll(s.source, old, new)
 }
 
+// Source returns the source string value
 func (s String) Source() string {
 	return s.source
 }
 
+// Title calls the strings.Title
 func (s String) Title() string {
 	if s.IsEmptyOrSpace() {
 		return s.source
@@ -43,7 +55,7 @@ func (s String) Title() string {
 	return strings.Title(s.source)
 }
 
-// snake->camel(upper start)
+// ToCamel converts the input text into camel case
 func (s String) ToCamel() string {
 	list := s.splitBy(func(r rune) bool {
 		return r == '_'
@@ -55,7 +67,7 @@ func (s String) ToCamel() string {
 	return strings.Join(target, "")
 }
 
-// camel->snake
+// ToSnake converts the input text into snake case
 func (s String) ToSnake() string {
 	list := s.splitBy(unicode.IsUpper, false)
 	var target []string
@@ -65,7 +77,7 @@ func (s String) ToSnake() string {
 	return strings.Join(target, "_")
 }
 
-// return original string if rune is not letter at index 0
+// Untitle return the original string if rune is not letter at index 0
 func (s String) Untitle() string {
 	if s.IsEmptyOrSpace() {
 		return s.source
@@ -75,10 +87,6 @@ func (s String) Untitle() string {
 		return s.source
 	}
 	return string(unicode.ToLower(r)) + s.source[1:]
-}
-
-func (s String) Upper() string {
-	return strings.ToUpper(s.source)
 }
 
 // it will not ignore spaces

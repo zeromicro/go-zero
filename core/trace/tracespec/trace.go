@@ -2,6 +2,7 @@ package tracespec
 
 import "context"
 
+// Trace interface represents a tracing.
 type Trace interface {
 	SpanContext
 	Finish()

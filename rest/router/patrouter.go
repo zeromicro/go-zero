@@ -8,7 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/search"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
@@ -17,8 +17,10 @@ const (
 )
 
 var (
+	// ErrInvalidMethod is an error that indicates not a valid http method.
 	ErrInvalidMethod = errors.New("not a valid http method")
-	ErrInvalidPath   = errors.New("path must begin with '/'")
+	// ErrInvalidPath is an error that indicates path is not start with /.
+	ErrInvalidPath = errors.New("path must begin with '/'")
 )
 
 type patRouter struct {
@@ -27,6 +29,7 @@ type patRouter struct {
 	notAllowed http.Handler
 }
 
+// NewRouter returns a httpx.Router.
 func NewRouter() httpx.Router {
 	return &patRouter{
 		trees: make(map[string]*search.Tree),
@@ -43,13 +46,14 @@ func (pr *patRouter) Handle(method, reqPath string, handler http.Handler) error 
 	}
 
 	cleanPath := path.Clean(reqPath)
-	if tree, ok := pr.trees[method]; ok {
-		return tree.Add(cleanPath, handler)
-	} else {
-		tree = search.NewTree()
-		pr.trees[method] = tree
+	tree, ok := pr.trees[method]
+	if ok {
 		return tree.Add(cleanPath, handler)
 	}
+
+	tree = search.NewTree()
+	pr.trees[method] = tree
+	return tree.Add(cleanPath, handler)
 }
 
 func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +61,7 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if tree, ok := pr.trees[r.Method]; ok {
 		if result, ok := tree.Search(reqPath); ok {
 			if len(result.Params) > 0 {
-				r = context.WithPathVars(r, result.Params)
+				r = pathvar.WithVars(r, result.Params)
 			}
 			result.Item.(http.Handler).ServeHTTP(w, r)
 			return
@@ -110,9 +114,9 @@ func (pr *patRouter) methodsAllowed(method, path string) (string, bool) {
 
 	if len(allows) > 0 {
 		return strings.Join(allows, allowMethodSeparator), true
-	} else {
-		return "", false
 	}
+
+	return "", false
 }
 
 func validMethod(method string) bool {

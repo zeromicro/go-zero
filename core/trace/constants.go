@@ -1,6 +1,7 @@
 package trace
 
 const (
-	traceIdKey = "X-Trace-ID"
-	spanIdKey  = "X-Span-ID"
+	TraceIdKey = "X-Trace-ID"
+
+	spanIdKey = "X-Span-ID"
 )

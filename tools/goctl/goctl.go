@@ -5,7 +5,10 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -19,16 +22,23 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
+	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
+	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
 	"github.com/urfave/cli"
 )
 
 var (
-	BuildVersion = "1.1.1"
+	buildVersion = "1.1.11-beta"
 	commands     = []cli.Command{
+		{
+			Name:   "upgrade",
+			Usage:  "upgrade goctl to latest version",
+			Action: upgrade.Upgrade,
+		},
 		{
 			Name:  "api",
 			Usage: "generate api related files",
@@ -43,7 +53,7 @@ var (
 				{
 					Name:   "new",
 					Usage:  "fast create api service",
-					Action: new.NewService,
+					Action: new.CreateServiceCommand,
 				},
 				{
 					Name:  "format",
@@ -83,6 +93,11 @@ var (
 							Name:  "dir",
 							Usage: "the target dir",
 						},
+						cli.StringFlag{
+							Name:     "o",
+							Required: false,
+							Usage:    "the output markdown directory",
+						},
 					},
 					Action: docgen.DocCommand,
 				},
@@ -101,6 +116,10 @@ var (
 						cli.StringFlag{
 							Name:  "style",
 							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: gogen.GoCommand,
@@ -219,6 +238,10 @@ var (
 					Usage: "the port to expose, default none",
 					Value: 0,
 				},
+				cli.StringFlag{
+					Name:  "home",
+					Usage: "the goctl home path of the template",
+				},
 			},
 			Action: docker.DockerCommand,
 		},
@@ -304,6 +327,10 @@ var (
 							Usage: "the max replicas of deploy",
 							Value: 10,
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: kube.DeploymentCommand,
 				},
@@ -325,8 +352,12 @@ var (
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
-					Action: rpc.RpcNew,
+					Action: rpc.RPCNew,
 				},
 				{
 					Name:  "template",
@@ -336,8 +367,12 @@ var (
 							Name:  "out, o",
 							Usage: "the target path of proto",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
-					Action: rpc.RpcTemplate,
+					Action: rpc.RPCTemplate,
 				},
 				{
 					Name:  "proto",
@@ -351,6 +386,10 @@ var (
 							Name:  "proto_path, I",
 							Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
 						},
+						cli.StringSliceFlag{
+							Name:  "go_opt",
+							Usage: `native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]`,
+						},
 						cli.StringFlag{
 							Name:  "dir, d",
 							Usage: `the target path of the code`,
@@ -363,8 +402,12 @@ var (
 							Name:  "idea",
 							Usage: "whether the command execution environment is from idea plugin. [optional]",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
-					Action: rpc.Rpc,
+					Action: rpc.RPC,
 				},
 			},
 		},
@@ -400,6 +443,14 @@ var (
 									Name:  "idea",
 									Usage: "for idea plugin [optional]",
 								},
+								cli.StringFlag{
+									Name:  "database, db",
+									Usage: "the name of database [optional]",
+								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
+								},
 							},
 							Action: model.MysqlDDL,
 						},
@@ -409,7 +460,7 @@ var (
 							Flags: []cli.Flag{
 								cli.StringFlag{
 									Name:  "url",
-									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database`,
+									Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
 								},
 								cli.StringFlag{
 									Name:  "table, t",
@@ -431,10 +482,86 @@ var (
 									Name:  "idea",
 									Usage: "for idea plugin [optional]",
 								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
+								},
 							},
-							Action: model.MyDataSource,
+							Action: model.MySqlDataSource,
 						},
 					},
+				},
+				{
+					Name:  "pg",
+					Usage: `generate postgresql model`,
+					Subcommands: []cli.Command{
+						{
+							Name:  "datasource",
+							Usage: `generate model from datasource`,
+							Flags: []cli.Flag{
+								cli.StringFlag{
+									Name:  "url",
+									Usage: `the data source of database,like "postgres://root:password@127.0.0.1:54332/database?sslmode=disable"`,
+								},
+								cli.StringFlag{
+									Name:  "table, t",
+									Usage: `the table or table globbing patterns in the database`,
+								},
+								cli.StringFlag{
+									Name:  "schema, s",
+									Usage: `the table schema, default is [public]`,
+								},
+								cli.BoolFlag{
+									Name:  "cache, c",
+									Usage: "generate code with cache [optional]",
+								},
+								cli.StringFlag{
+									Name:  "dir, d",
+									Usage: "the target dir",
+								},
+								cli.StringFlag{
+									Name:  "style",
+									Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								},
+								cli.BoolFlag{
+									Name:  "idea",
+									Usage: "for idea plugin [optional]",
+								},
+								cli.StringFlag{
+									Name:  "home",
+									Usage: "the goctl home path of the template",
+								},
+							},
+							Action: model.PostgreSqlDataSource,
+						},
+					},
+				},
+				{
+					Name:  "mongo",
+					Usage: `generate mongo model`,
+					Flags: []cli.Flag{
+						cli.StringSliceFlag{
+							Name:  "type, t",
+							Usage: "specified model type name",
+						},
+						cli.BoolFlag{
+							Name:  "cache, c",
+							Usage: "generate code with cache [optional]",
+						},
+						cli.StringFlag{
+							Name:  "dir, d",
+							Usage: "the target dir",
+						},
+						cli.StringFlag{
+							Name:  "style",
+							Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
+					},
+					Action: mongo.Action,
 				},
 			},
 		},
@@ -454,13 +581,25 @@ var (
 			Usage: "template operation",
 			Subcommands: []cli.Command{
 				{
-					Name:   "init",
-					Usage:  "initialize the all templates(force update)",
+					Name:  "init",
+					Usage: "initialize the all templates(force update)",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
+					},
 					Action: tpl.GenTemplates,
 				},
 				{
-					Name:   "clean",
-					Usage:  "clean the all cache templates",
+					Name:  "clean",
+					Usage: "clean the all cache templates",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
+					},
 					Action: tpl.CleanTemplates,
 				},
 				{
@@ -470,6 +609,10 @@ var (
 						cli.StringFlag{
 							Name:  "category,c",
 							Usage: "the category of template, enum [api,rpc,model,docker,kube]",
+						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
 						},
 					},
 					Action: tpl.UpdateTemplates,
@@ -486,6 +629,10 @@ var (
 							Name:  "name,n",
 							Usage: "the target file name of template",
 						},
+						cli.StringFlag{
+							Name:  "home",
+							Usage: "the goctl home path of the template",
+						},
 					},
 					Action: tpl.RevertTemplates,
 				},
@@ -496,13 +643,19 @@ var (
 
 func main() {
 	logx.Disable()
+	load.Disable()
+	stat.DisableLog()
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = fmt.Sprintf("%s %s/%s", BuildVersion, runtime.GOOS, runtime.GOARCH)
+	app.Version = fmt.Sprintf("%s %s/%s", buildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println("error:", err)
+		fmt.Println(aurora.Red("error: " + err.Error()))
 	}
+}
+
+func init() {
+	os.Setenv("GOCTL_VERSION", buildVersion)
 }

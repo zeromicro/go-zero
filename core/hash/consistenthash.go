@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// TopWeight is the top weight that one entry might set.
 	TopWeight = 100
 
 	minReplicas = 100
@@ -18,10 +19,12 @@ const (
 )
 
 type (
-	HashFunc func(data []byte) uint64
+	// Func defines the hash method.
+	Func func(data []byte) uint64
 
+	// A ConsistentHash is a ring hash implementation.
 	ConsistentHash struct {
-		hashFunc HashFunc
+		hashFunc Func
 		replicas int
 		keys     []uint64
 		ring     map[uint64][]interface{}
@@ -30,11 +33,13 @@ type (
 	}
 )
 
+// NewConsistentHash returns a ConsistentHash.
 func NewConsistentHash() *ConsistentHash {
 	return NewCustomConsistentHash(minReplicas, Hash)
 }
 
-func NewCustomConsistentHash(replicas int, fn HashFunc) *ConsistentHash {
+// NewCustomConsistentHash returns a ConsistentHash with given replicas and hash func.
+func NewCustomConsistentHash(replicas int, fn Func) *ConsistentHash {
 	if replicas < minReplicas {
 		replicas = minReplicas
 	}
@@ -78,7 +83,7 @@ func (h *ConsistentHash) AddWithReplicas(node interface{}, replicas int) {
 		h.ring[hash] = append(h.ring[hash], node)
 	}
 
-	sort.Slice(h.keys, func(i int, j int) bool {
+	sort.Slice(h.keys, func(i, j int) bool {
 		return h.keys[i] < h.keys[j]
 	})
 }
@@ -92,6 +97,7 @@ func (h *ConsistentHash) AddWithWeight(node interface{}, weight int) {
 	h.AddWithReplicas(node, replicas)
 }
 
+// Get returns the corresponding node from h base on the given v.
 func (h *ConsistentHash) Get(v interface{}) (interface{}, bool) {
 	h.lock.RLock()
 	defer h.lock.RUnlock()
@@ -118,6 +124,7 @@ func (h *ConsistentHash) Get(v interface{}) (interface{}, bool) {
 	}
 }
 
+// Remove removes the given node from h.
 func (h *ConsistentHash) Remove(node interface{}) {
 	nodeRepr := repr(node)
 
@@ -133,7 +140,7 @@ func (h *ConsistentHash) Remove(node interface{}) {
 		index := sort.Search(len(h.keys), func(i int) bool {
 			return h.keys[i] >= hash
 		})
-		if index < len(h.keys) {
+		if index < len(h.keys) && h.keys[index] == hash {
 			h.keys = append(h.keys[:index], h.keys[index+1:]...)
 		}
 		h.removeRingNode(hash, nodeRepr)

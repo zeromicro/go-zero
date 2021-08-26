@@ -4,7 +4,6 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
@@ -30,33 +29,30 @@ Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.
 {{end}}`
 
 func genApi(dir string, api *spec.ApiSpec) error {
-	e := os.MkdirAll(dir, 0755)
-	if e != nil {
-		logx.Error(e)
-		return e
-	}
-	e = genApiFile(dir)
-	if e != nil {
-		logx.Error(e)
-		return e
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
+		return err
 	}
 
-	file, e := os.OpenFile(dir+api.Info.Title+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if e != nil {
-		logx.Error(e)
-		return e
+	err = genApiFile(dir)
+	if err != nil {
+		return err
 	}
+
+	file, err := os.OpenFile(dir+api.Service.Name+".dart", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
+	}
+
 	defer file.Close()
-
 	t := template.New("apiTemplate")
 	t = t.Funcs(funcMap)
-	t, e = t.Parse(apiTemplate)
-	if e != nil {
-		logx.Error(e)
-		return e
+	t, err = t.Parse(apiTemplate)
+	if err != nil {
+		return err
 	}
-	t.Execute(file, api)
-	return nil
+
+	return t.Execute(file, api)
 }
 
 func genApiFile(dir string) error {
@@ -64,12 +60,12 @@ func genApiFile(dir string) error {
 	if fileExists(path) {
 		return nil
 	}
-	apiFile, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-	if e != nil {
-		logx.Error(e)
-		return e
+	apiFile, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
 	}
+
 	defer apiFile.Close()
-	apiFile.WriteString(apiFileContent)
-	return nil
+	_, err = apiFile.WriteString(apiFileContent)
+	return err
 }

@@ -2,6 +2,7 @@ package collection
 
 import "sync"
 
+// A Queue is a FIFO queue.
 type Queue struct {
 	lock     sync.Mutex
 	elements []interface{}
@@ -11,6 +12,7 @@ type Queue struct {
 	count    int
 }
 
+// NewQueue returns a Queue object.
 func NewQueue(size int) *Queue {
 	return &Queue{
 		elements: make([]interface{}, size),
@@ -18,6 +20,7 @@ func NewQueue(size int) *Queue {
 	}
 }
 
+// Empty checks if q is empty.
 func (q *Queue) Empty() bool {
 	q.lock.Lock()
 	empty := q.count == 0
@@ -26,6 +29,7 @@ func (q *Queue) Empty() bool {
 	return empty
 }
 
+// Put puts element into q at the last position.
 func (q *Queue) Put(element interface{}) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
@@ -44,6 +48,7 @@ func (q *Queue) Put(element interface{}) {
 	q.count++
 }
 
+// Take takes the first element out of q if not empty.
 func (q *Queue) Take() (interface{}, bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()

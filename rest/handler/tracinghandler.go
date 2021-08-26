@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/core/trace"
 )
 
+// TracingHandler returns a middleware that traces the request.
 func TracingHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		carrier, err := trace.Extract(trace.HttpFormat, r.Header)
@@ -20,6 +21,8 @@ func TracingHandler(next http.Handler) http.Handler {
 		defer span.Finish()
 		r = r.WithContext(ctx)
 
+		// conveniently tracking error messages
+		w.Header().Set(trace.TraceIdKey, span.TraceId())
 		next.ServeHTTP(w, r)
 	})
 }

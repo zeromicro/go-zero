@@ -7,6 +7,7 @@ import (
 )
 
 type (
+	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
 		service.ServiceConf
 		ListenOn      string
@@ -14,21 +15,22 @@ type (
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
-		// pending forever is not allowed
-		// never set it to 0, if zero, the underlying will set to 2s automatically
+		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
 	}
 
+	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
 		Endpoints []string        `json:",optional=!Etcd"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
-		Timeout   int64           `json:",optional"`
+		Timeout   int64           `json:",default=2000"`
 	}
 )
 
+// NewDirectClientConf returns a RpcClientConf.
 func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Endpoints: endpoints,
@@ -37,6 +39,7 @@ func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	}
 }
 
+// NewEtcdClientConf returns a RpcClientConf.
 func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Etcd: discov.EtcdConf{
@@ -48,20 +51,21 @@ func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	}
 }
 
+// HasEtcd checks if there is etcd settings in config.
 func (sc RpcServerConf) HasEtcd() bool {
 	return len(sc.Etcd.Hosts) > 0 && len(sc.Etcd.Key) > 0
 }
 
+// Validate validates the config.
 func (sc RpcServerConf) Validate() error {
-	if sc.Auth {
-		if err := sc.Redis.Validate(); err != nil {
-			return err
-		}
+	if !sc.Auth {
+		return nil
 	}
 
-	return nil
+	return sc.Redis.Validate()
 }
 
+// HasCredential checks if there is a credential in config.
 func (cc RpcClientConf) HasCredential() bool {
 	return len(cc.App) > 0 && len(cc.Token) > 0
 }

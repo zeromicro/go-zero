@@ -502,49 +502,49 @@ func TestUnmarshalYamlBytesMap(t *testing.T) {
 func TestUnmarshalYamlBytesMapStruct(t *testing.T) {
 	var c struct {
 		Persons map[string]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1
+    ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 	assert.Equal(t, "kevin", c.Persons["first"].Name)
 }
 
 func TestUnmarshalYamlBytesMapStructPtr(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1
+    ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 	assert.Equal(t, "kevin", c.Persons["first"].Name)
 }
 
 func TestUnmarshalYamlBytesMapStructMissingPartial(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1`)
+    ID: 1`)
 
 	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
@@ -552,41 +552,41 @@ func TestUnmarshalYamlBytesMapStructMissingPartial(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructOptional(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1`)
+    ID: 1`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 }
 
 func TestUnmarshalYamlBytesMapStructSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1
+  - ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 	assert.Equal(t, "kevin", c.Persons["first"][0].Name)
 }
 
 func TestUnmarshalYamlBytesMapEmptyStructSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
@@ -601,25 +601,25 @@ func TestUnmarshalYamlBytesMapEmptyStructSlice(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1
+  - ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 	assert.Equal(t, "kevin", c.Persons["first"][0].Name)
 }
 
 func TestUnmarshalYamlBytesMapEmptyStructPtrSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
@@ -634,13 +634,13 @@ func TestUnmarshalYamlBytesMapEmptyStructPtrSlice(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSliceMissingPartial(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1`)
+  - ID: 1`)
 
 	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
@@ -648,17 +648,17 @@ func TestUnmarshalYamlBytesMapStructPtrSliceMissingPartial(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSliceOptional(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1`)
+  - ID: 1`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 }
 
 func TestUnmarshalYamlStructOptional(t *testing.T) {

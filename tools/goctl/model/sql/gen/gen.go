@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -25,15 +26,31 @@ const (
 
 type (
 	defaultGenerator struct {
-		//source string
+		// source string
 		dir string
 		console.Console
-		pkg string
-		cfg *config.Config
+		pkg          string
+		cfg          *config.Config
+		isPostgreSql bool
 	}
+
+	// Option defines a function with argument defaultGenerator
 	Option func(generator *defaultGenerator)
+
+	code struct {
+		importsCode string
+		varsCode    string
+		typesCode   string
+		newCode     string
+		insertCode  string
+		findCode    []string
+		updateCode  string
+		deleteCode  string
+		cacheExtra  string
+	}
 )
 
+// NewDefaultGenerator creates an instance for defaultGenerator
 func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaultGenerator, error) {
 	if dir == "" {
 		dir = pwd
@@ -57,12 +74,21 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 	for _, fn := range optionList {
 		fn(generator)
 	}
+
 	return generator, nil
 }
 
+// WithConsoleOption creates a console option
 func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
 		generator.Console = c
+	}
+}
+
+// WithPostgreSql marks  defaultGenerator.isPostgreSql true
+func WithPostgreSql() Option {
+	return func(generator *defaultGenerator) {
+		generator.isPostgreSql = true
 	}
 }
 
@@ -72,8 +98,8 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDDL(source string, withCache bool) error {
-	modelList, err := g.genFromDDL(source, withCache)
+func (g *defaultGenerator) StartFromDDL(filename string, withCache bool, database string) error {
+	modelList, err := g.genFromDDL(filename, withCache, database)
 	if err != nil {
 		return err
 	}
@@ -81,10 +107,10 @@ func (g *defaultGenerator) StartFromDDL(source string, withCache bool) error {
 	return g.createFile(modelList)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[string][]*model.Column, withCache bool) error {
+func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache bool) error {
 	m := make(map[string]string)
-	for tableName, column := range columns {
-		table, err := parser.ConvertColumn(db, tableName, column)
+	for _, each := range tables {
+		table, err := parser.ConvertDataType(each)
 		if err != nil {
 			return err
 		}
@@ -96,6 +122,7 @@ func (g *defaultGenerator) StartFromInformationSchema(db string, columns map[str
 
 		m[table.Name.Source()] = code
 	}
+
 	return g.createFile(m)
 }
 
@@ -119,7 +146,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 			return err
 		}
 
-		name := modelFilename + ".go"
+		name := util.SafeString(modelFilename) + ".go"
 		filename := filepath.Join(dirAbs, name)
 		if util.FileExists(filename) {
 			g.Warning("%s already exists, ignored.", name)
@@ -130,6 +157,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 			return err
 		}
 	}
+
 	// generate error file
 	varFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, "vars")
 	if err != nil {
@@ -154,49 +182,39 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(source string, withCache bool) (map[string]string, error) {
-	ddlList := g.split(source)
+func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (map[string]string, error) {
 	m := make(map[string]string)
-	for _, ddl := range ddlList {
-		table, err := parser.Parse(ddl)
-		if err != nil {
-			return nil, err
-		}
-		code, err := g.genModel(*table, withCache)
-		if err != nil {
-			return nil, err
-		}
-		m[table.Name.Source()] = code
+	tables, err := parser.Parse(filename, database)
+	if err != nil {
+		return nil, err
 	}
+
+	for _, e := range tables {
+		code, err := g.genModel(*e, withCache)
+		if err != nil {
+			return nil, err
+		}
+
+		m[e.Name.Source()] = code
+	}
+
 	return m, nil
 }
 
-type (
-	Table struct {
-		parser.Table
-		CacheKey          map[string]Key
-		ContainsUniqueKey bool
-	}
-)
+// Table defines mysql table
+type Table struct {
+	parser.Table
+	PrimaryCacheKey        Key
+	UniqueCacheKey         []Key
+	ContainsUniqueCacheKey bool
+}
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
 	if len(in.PrimaryKey.Name.Source()) == 0 {
 		return "", fmt.Errorf("table %s: missing primary key", in.Name.Source())
 	}
 
-	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
-	if err != nil {
-		return "", err
-	}
-
-	t := util.With("model").
-		Parse(text).
-		GoFmt(true)
-
-	m, err := genCacheKeys(in)
-	if err != nil {
-		return "", err
-	}
+	primaryKey, uniqueKey := genCacheKeys(in)
 
 	importsCode, err := genImports(withCache, in.ContainsTime())
 	if err != nil {
@@ -205,44 +223,38 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 	var table Table
 	table.Table = in
-	table.CacheKey = m
-	var containsUniqueCache = false
-	for _, item := range table.Fields {
-		if item.IsUniqueKey {
-			containsUniqueCache = true
-			break
-		}
-	}
-	table.ContainsUniqueKey = containsUniqueCache
+	table.PrimaryCacheKey = primaryKey
+	table.UniqueCacheKey = uniqueKey
+	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 
-	varsCode, err := genVars(table, withCache)
+	varsCode, err := genVars(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	insertCode, insertCodeMethod, err := genInsert(table, withCache)
+	insertCode, insertCodeMethod, err := genInsert(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	var findCode = make([]string, 0)
-	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache)
+	findCode := make([]string, 0)
+	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	ret, err := genFindOneByField(table, withCache)
+	ret, err := genFindOneByField(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
 	findCode = append(findCode, findOneCode, ret.findOneMethod)
-	updateCode, updateCodeMethod, err := genUpdate(table, withCache)
+	updateCode, updateCodeMethod, err := genUpdate(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	deleteCode, deleteCodeMethod, err := genDelete(table, withCache)
+	deleteCode, deleteCodeMethod, err := genDelete(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
@@ -254,23 +266,24 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	newCode, err := genNew(table, withCache)
+	newCode, err := genNew(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
 
-	output, err := t.Execute(map[string]interface{}{
-		"pkg":         g.pkg,
-		"imports":     importsCode,
-		"vars":        varsCode,
-		"types":       typesCode,
-		"new":         newCode,
-		"insert":      insertCode,
-		"find":        strings.Join(findCode, "\n"),
-		"update":      updateCode,
-		"delete":      deleteCode,
-		"extraMethod": ret.cacheExtra,
-	})
+	code := &code{
+		importsCode: importsCode,
+		varsCode:    varsCode,
+		typesCode:   typesCode,
+		newCode:     newCode,
+		insertCode:  insertCode,
+		findCode:    findCode,
+		updateCode:  updateCode,
+		deleteCode:  deleteCode,
+		cacheExtra:  ret.cacheExtra,
+	}
+
+	output, err := g.executeModel(code)
 	if err != nil {
 		return "", err
 	}
@@ -278,7 +291,37 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	return output.String(), nil
 }
 
-func wrapWithRawString(v string) string {
+func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
+	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	if err != nil {
+		return nil, err
+	}
+	t := util.With("model").
+		Parse(text).
+		GoFmt(true)
+	output, err := t.Execute(map[string]interface{}{
+		"pkg":         g.pkg,
+		"imports":     code.importsCode,
+		"vars":        code.varsCode,
+		"types":       code.typesCode,
+		"new":         code.newCode,
+		"insert":      code.insertCode,
+		"find":        strings.Join(code.findCode, "\n"),
+		"update":      code.updateCode,
+		"delete":      code.deleteCode,
+		"extraMethod": code.cacheExtra,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
+}
+
+func wrapWithRawString(v string, postgreSql bool) string {
+	if postgreSql {
+		return v
+	}
+
 	if v == "`" {
 		return v
 	}
@@ -292,5 +335,6 @@ func wrapWithRawString(v string) string {
 	} else if len(v) == 1 {
 		v = v + "`"
 	}
+
 	return v
 }

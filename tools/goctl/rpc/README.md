@@ -134,15 +134,21 @@ USAGE:
 OPTIONS:
    --src value, -s value         the file path of the proto source file
    --proto_path value, -I value  native command of protoc, specify the directory in which to search for imports. [optional]
+   --go_opt value                native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]
    --dir value, -d value         the target path of the code
+   --style value                 the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
    --idea                        whether the command execution environment is from idea plugin. [optional]
+
 ```
 
 ### 参数说明
 
 * --src 必填，proto数据源，目前暂时支持单个proto文件生成
-* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`
+  ,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --go_opt 可选，protoc-gen-go插件原生flag，用于指定go_package
 * --dir 可选，默认为proto文件所在目录，生成代码的目标目录
+* --style 可选，指定生成文件名的命名风格
 * --idea 可选，是否为idea插件中执行，终端执行可以忽略
 
 

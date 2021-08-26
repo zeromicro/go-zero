@@ -24,13 +24,15 @@ func (t txSession) Exec(q string, args ...interface{}) (sql.Result, error) {
 }
 
 func (t txSession) Prepare(q string) (StmtSession, error) {
-	if stmt, err := t.Tx.Prepare(q); err != nil {
+	stmt, err := t.Tx.Prepare(q)
+	if err != nil {
 		return nil, err
-	} else {
-		return statement{
-			stmt: stmt,
-		}, nil
 	}
+
+	return statement{
+		query: q,
+		stmt:  stmt,
+	}, nil
 }
 
 func (t txSession) QueryRow(v interface{}, q string, args ...interface{}) error {
@@ -58,13 +60,14 @@ func (t txSession) QueryRowsPartial(v interface{}, q string, args ...interface{}
 }
 
 func begin(db *sql.DB) (trans, error) {
-	if tx, err := db.Begin(); err != nil {
+	tx, err := db.Begin()
+	if err != nil {
 		return nil, err
-	} else {
-		return txSession{
-			Tx: tx,
-		}, nil
 	}
+
+	return txSession{
+		Tx: tx,
+	}, nil
 }
 
 func transact(db *commonSqlConn, b beginnable, fn func(Session) error) (err error) {
@@ -83,6 +86,7 @@ func transactOnConn(conn *sql.DB, b beginnable, fn func(Session) error) (err err
 	if err != nil {
 		return
 	}
+
 	defer func() {
 		if p := recover(); p != nil {
 			if e := tx.Rollback(); e != nil {

@@ -8,8 +8,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-func genFields(fields []parser.Field) (string, error) {
+func genFields(fields []*parser.Field) (string, error) {
 	var list []string
+
 	for _, field := range fields {
 		result, err := genField(field)
 		if err != nil {
@@ -18,10 +19,11 @@ func genFields(fields []parser.Field) (string, error) {
 
 		list = append(list, result)
 	}
+
 	return strings.Join(list, "\n"), nil
 }
 
-func genField(field parser.Field) (string, error) {
+func genField(field *parser.Field) (string, error) {
 	tag, err := genTag(field.Name.Source())
 	if err != nil {
 		return "", err

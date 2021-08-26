@@ -161,7 +161,7 @@ func (p *Profile) Stop() {
 	atomic.StoreUint32(&started, 0)
 }
 
-// Start starts a new profiling session.
+// StartProfile starts a new profiling session.
 // The caller should call the Stop method on the value returned
 // to cleanly stop profiling.
 func StartProfile() Stopper {

@@ -18,6 +18,7 @@ const (
 	portLimit          = 32767
 )
 
+// Deployment describes the k8s deployment yaml
 type Deployment struct {
 	Name        string
 	Namespace   string
@@ -36,8 +37,15 @@ type Deployment struct {
 	MaxReplicas int
 }
 
+// DeploymentCommand is used to generate the kubernetes deployment yaml files.
 func DeploymentCommand(c *cli.Context) error {
 	nodePort := c.Int("nodePort")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	// 0 to disable the nodePort type
 	if nodePort != 0 && (nodePort < basePort || nodePort > portLimit) {
 		return errors.New("nodePort should be between 30000 and 32767")
@@ -80,14 +88,17 @@ func DeploymentCommand(c *cli.Context) error {
 	return nil
 }
 
+// Category returns the category of the deployments.
 func Category() string {
 	return category
 }
 
+// Clean cleans the generated deployment files.
 func Clean() error {
 	return util.Clean(category)
 }
 
+// GenTemplates generates the deployment template files.
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
@@ -95,10 +106,12 @@ func GenTemplates(_ *cli.Context) error {
 	})
 }
 
+// RevertTemplate reverts the given template file to the default value.
 func RevertTemplate(name string) error {
 	return util.CreateTemplate(category, name, deploymentTemplate)
 }
 
+// Update updates the template files to the templates built in current goctl.
 func Update() error {
 	err := Clean()
 	if err != nil {

@@ -3,27 +3,9 @@ package dartgen
 import (
 	"io/ioutil"
 	"os"
-
-	"github.com/tal-tech/go-zero/core/logx"
 )
 
-func genVars(dir string) error {
-	e := os.MkdirAll(dir, 0755)
-	if e != nil {
-		logx.Error(e)
-		return e
-	}
-
-	if !fileExists(dir + "vars.dart") {
-		e = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0644)
-		if e != nil {
-			logx.Error(e)
-			return e
-		}
-	}
-
-	if !fileExists(dir + "kv.dart") {
-		e = ioutil.WriteFile(dir+"kv.dart", []byte(`import 'dart:convert';
+const varTemplate = `import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/tokens.dart';
 
@@ -56,10 +38,25 @@ Future<Tokens> getTokens() async {
     return null;
   }
 }
-`), 0644)
-		if e != nil {
-			logx.Error(e)
-			return e
+`
+
+func genVars(dir string) error {
+	err := os.MkdirAll(dir, 0o755)
+	if err != nil {
+		return err
+	}
+
+	if !fileExists(dir + "vars.dart") {
+		err = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0o644)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !fileExists(dir + "kv.dart") {
+		err = ioutil.WriteFile(dir+"kv.dart", []byte(varTemplate), 0o644)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
