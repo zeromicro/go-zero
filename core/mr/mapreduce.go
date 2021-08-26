@@ -112,6 +112,12 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 	opts ...Option) (interface{}, error) {
 	options := buildOptions(opts...)
 	output := make(chan interface{})
+	defer func() {
+		for range output {
+			panic("more than one element written in reducer")
+		}
+	}()
+
 	collector := make(chan interface{}, options.workers)
 	done := syncx.NewDoneChan()
 	writer := newGuardedWriter(output, done.Done())
