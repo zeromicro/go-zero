@@ -22,7 +22,7 @@ var (
 	cores     uint64
 )
 
-// if /proc not present, ignore the cpu calcuation, like wsl linux
+// if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
 	cpus, err := perCpuUsage()
 	if err != nil {
@@ -67,6 +67,7 @@ func init() {
 	}
 }
 
+// RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
 	total, err := totalCpuUsage()
 	if err != nil {

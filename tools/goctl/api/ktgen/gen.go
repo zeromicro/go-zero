@@ -98,7 +98,7 @@ object {{with .Info}}{{.Title}}{{end}}{
 )
 
 func genBase(dir, pkg string, api *spec.ApiSpec) error {
-	e := os.MkdirAll(dir, 0755)
+	e := os.MkdirAll(dir, 0o755)
 	if e != nil {
 		return e
 	}
@@ -108,7 +108,7 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 		return nil
 	}
 
-	file, e := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	file, e := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if e != nil {
 		return e
 	}
@@ -126,17 +126,32 @@ func genBase(dir, pkg string, api *spec.ApiSpec) error {
 }
 
 func genApi(dir, pkg string, api *spec.ApiSpec) error {
-	name := strcase.ToCamel(api.Info.Title + "Api")
+	properties := api.Info.Properties
+	if properties == nil {
+		return fmt.Errorf("none properties")
+	}
+
+	title := properties["Title"]
+	if len(title) == 0 {
+		return fmt.Errorf("none title")
+	}
+
+	desc := properties["Desc"]
+	if len(desc) == 0 {
+		return fmt.Errorf("none desc")
+	}
+
+	name := strcase.ToCamel(title + "Api")
 	path := filepath.Join(dir, name+".kt")
 	api.Info.Title = name
-	api.Info.Desc = pkg
+	api.Info.Desc = desc
 
-	e := os.MkdirAll(dir, 0755)
+	e := os.MkdirAll(dir, 0o755)
 	if e != nil {
 		return e
 	}
 
-	file, e := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	file, e := os.OpenFile(path, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0o644)
 	if e != nil {
 		return e
 	}

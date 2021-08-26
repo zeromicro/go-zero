@@ -62,6 +62,44 @@ func TestLogHandlerSlow(t *testing.T) {
 	}
 }
 
+func TestLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &loggedResponseWriter{
+		w: resp,
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &loggedResponseWriter{
+		w: mockedHijackable{resp},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
+func TestDetailedLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: resp,
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: mockedHijackable{resp},
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
 func BenchmarkLogHandler(b *testing.B) {
 	b.ReportAllocs()
 

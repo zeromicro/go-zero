@@ -12,12 +12,12 @@ const (
 	category                              = "model"
 	deleteTemplateFile                    = "delete.tpl"
 	deleteMethodTemplateFile              = "interface-delete.tpl"
-	fieldTemplateFile                     = "filed.tpl"
+	fieldTemplateFile                     = "field.tpl"
 	findOneTemplateFile                   = "find-one.tpl"
 	findOneMethodTemplateFile             = "interface-find-one.tpl"
 	findOneByFieldTemplateFile            = "find-one-by-field.tpl"
 	findOneByFieldMethodTemplateFile      = "interface-find-one-by-field.tpl"
-	findOneByFieldExtraMethodTemplateFile = "find-one-by-filed-extra-method.tpl"
+	findOneByFieldExtraMethodTemplateFile = "find-one-by-field-extra-method.tpl"
 	importsTemplateFile                   = "import.tpl"
 	importsWithNoCacheTemplateFile        = "import-no-cache.tpl"
 	insertTemplateFile                    = "insert.tpl"
@@ -50,34 +50,42 @@ var templates = map[string]string{
 	tagTemplateFile:                       template.Tag,
 	typesTemplateFile:                     template.Types,
 	updateTemplateFile:                    template.Update,
+	updateMethodTemplateFile:              template.UpdateMethod,
 	varTemplateFile:                       template.Vars,
 	errTemplateFile:                       template.Error,
 }
 
+// Category returns model const value
 func Category() string {
 	return category
 }
 
+// Clean deletes all template files
 func Clean() error {
 	return util.Clean(category)
 }
 
+// GenTemplates creates template files if not exists
 func GenTemplates(_ *cli.Context) error {
 	return util.InitTemplates(category, templates)
 }
 
+// RevertTemplate recovers the delete template files
 func RevertTemplate(name string) error {
 	content, ok := templates[name]
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
+
 	return util.CreateTemplate(category, name, content)
 }
 
+// Update provides template clean and init
 func Update() error {
 	err := Clean()
 	if err != nil {
 		return err
 	}
+
 	return util.InitTemplates(category, templates)
 }

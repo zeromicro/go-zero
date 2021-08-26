@@ -8,46 +8,51 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
-var docDir = "doc"
-
+// DocCommand generate markdown doc file
 func DocCommand(c *cli.Context) error {
 	dir := c.String("dir")
 	if len(dir) == 0 {
 		return errors.New("missing -dir")
 	}
 
-	files, err := filePathWalkDir(dir)
-	if err != nil {
-		return errors.New(fmt.Sprintf("dir %s not exist", dir))
-	}
-
-	err = os.RemoveAll(dir + "/" + docDir + "/")
-	if err != nil {
-		return err
-	}
-	for _, f := range files {
-		p, err := parser.NewParser(f)
-		if err != nil {
-			return errors.New(fmt.Sprintf("parse file: %s, err: %s", f, err.Error()))
-		}
-		api, err := p.Parse()
+	outputDir := c.String("o")
+	if len(outputDir) == 0 {
+		var err error
+		outputDir, err = os.Getwd()
 		if err != nil {
 			return err
 		}
-		index := strings.Index(f, dir)
-		if index < 0 {
-			continue
+	}
+
+	if !util.FileExists(dir) {
+		return fmt.Errorf("dir %s not exsit", dir)
+	}
+
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+
+	files, err := filePathWalkDir(dir)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range files {
+		api, err := parser.Parse(path)
+		if err != nil {
+			return fmt.Errorf("parse file: %s, err: %s", path, err.Error())
 		}
-		dst := dir + "/" + docDir + f[index+len(dir):]
-		index = strings.LastIndex(dst, "/")
-		if index < 0 {
-			continue
+
+		err = genDoc(api, filepath.Dir(filepath.Join(outputDir, path[len(dir):])),
+			strings.Replace(path[len(filepath.Dir(path)):], ".api", ".md", 1))
+		if err != nil {
+			return err
 		}
-		dir := dst[:index]
-		genDoc(api, dir, strings.Replace(dst[index+1:], ".api", ".md", 1))
 	}
 	return nil
 }

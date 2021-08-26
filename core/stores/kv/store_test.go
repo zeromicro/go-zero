@@ -12,8 +12,10 @@ import (
 	"github.com/tal-tech/go-zero/core/stringx"
 )
 
-var s1, _ = miniredis.Run()
-var s2, _ = miniredis.Run()
+var (
+	s1, _ = miniredis.Run()
+	s2, _ = miniredis.Run()
+)
 
 func TestRedis_Exists(t *testing.T) {
 	store := clusterStore{dispatcher: hash.NewConsistentHash()}

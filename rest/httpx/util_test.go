@@ -13,6 +13,6 @@ func TestGetRemoteAddr(t *testing.T) {
 	r, err := http.NewRequest(http.MethodGet, "/", strings.NewReader(""))
 	assert.Nil(t, err)
 
-	r.Header.Set(xForwardFor, host)
+	r.Header.Set(xForwardedFor, host)
 	assert.Equal(t, host, GetRemoteAddr(r))
 }

@@ -14,7 +14,7 @@ var replacer = stringx.NewReplacer(map[string]string{
 	"-": ".",
 })
 
-// operator compare returns true if the first field and the third field equation holds else false
+// CompareVersions returns true if the first field and the third field are equal, otherwise false.
 func CompareVersions(v1, op, v2 string) bool {
 	result := compare(v1, v2)
 	switch op {

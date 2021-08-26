@@ -37,6 +37,7 @@ func init() {
 	}
 }
 
+// Report reports given message.
 func Report(msg string) {
 	lock.RLock()
 	fn := reporter
@@ -63,6 +64,7 @@ func Report(msg string) {
 	}
 }
 
+// SetReporter sets the given reporter.
 func SetReporter(fn func(string)) {
 	lock.Lock()
 	defer lock.Unlock()

@@ -8,10 +8,16 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
-const bodyTagKey = "json"
+const (
+	bodyTagKey        = "json"
+	formTagKey        = "form"
+	pathTagKey        = "path"
+	defaultSummaryKey = "summary"
+)
 
-var definedKeys = []string{"json", "form", "path"}
+var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
 
+// Routes returns all routes in api service
 func (s Service) Routes() []Route {
 	var result []Route
 	for _, group := range s.Groups {
@@ -20,6 +26,7 @@ func (s Service) Routes() []Route {
 	return result
 }
 
+// Tags returns all tags in Member
 func (m Member) Tags() []*Tag {
 	tags, err := Parse(m.Tag)
 	if err != nil {
@@ -29,6 +36,7 @@ func (m Member) Tags() []*Tag {
 	return tags.Tags()
 }
 
+// IsOptional returns true if tag is optional
 func (m Member) IsOptional() bool {
 	if !m.IsBodyMember() {
 		return false
@@ -45,7 +53,8 @@ func (m Member) IsOptional() bool {
 	return false
 }
 
-func (m Member) IsOmitempty() bool {
+// IsOmitEmpty returns true if tag contains omitempty
+func (m Member) IsOmitEmpty() bool {
 	if !m.IsBodyMember() {
 		return false
 	}
@@ -61,6 +70,7 @@ func (m Member) IsOmitempty() bool {
 	return false
 }
 
+// GetPropertyName returns json tag value
 func (m Member) GetPropertyName() (string, error) {
 	tags := m.Tags()
 	for _, tag := range tags {
@@ -75,10 +85,12 @@ func (m Member) GetPropertyName() (string, error) {
 	return "", errors.New("json property name not exist, member: " + m.Name)
 }
 
+// GetComment returns comment value of Member
 func (m Member) GetComment() string {
-	return strings.TrimSpace(strings.Join(m.Comments, "; "))
+	return strings.TrimSpace(m.Comment)
 }
 
+// IsBodyMember returns true if contains json tag
 func (m Member) IsBodyMember() bool {
 	if m.IsInline {
 		return true
@@ -93,7 +105,23 @@ func (m Member) IsBodyMember() bool {
 	return false
 }
 
-func (t Type) GetBodyMembers() []Member {
+// IsFormMember returns true if contains form tag
+func (m Member) IsFormMember() bool {
+	if m.IsInline {
+		return false
+	}
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == formTagKey {
+			return true
+		}
+	}
+	return false
+}
+
+// GetBodyMembers returns all json fields
+func (t DefineStruct) GetBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
 		if member.IsBodyMember() {
@@ -103,7 +131,19 @@ func (t Type) GetBodyMembers() []Member {
 	return result
 }
 
-func (t Type) GetNonBodyMembers() []Member {
+// GetFormMembers returns all form fields
+func (t DefineStruct) GetFormMembers() []Member {
+	var result []Member
+	for _, member := range t.Members {
+		if member.IsFormMember() {
+			result = append(result, member)
+		}
+	}
+	return result
+}
+
+// GetNonBodyMembers returns all have no tag fields
+func (t DefineStruct) GetNonBodyMembers() []Member {
 	var result []Member
 	for _, member := range t.Members {
 		if !member.IsBodyMember() {
@@ -111,4 +151,50 @@ func (t Type) GetNonBodyMembers() []Member {
 		}
 	}
 	return result
+}
+
+// JoinedDoc joins comments and summary value in AtDoc
+func (r Route) JoinedDoc() string {
+	doc := r.AtDoc.Text
+	if r.AtDoc.Properties != nil {
+		doc += r.AtDoc.Properties[defaultSummaryKey]
+	}
+	doc += strings.Join(r.Docs, " ")
+	return strings.TrimSpace(doc)
+}
+
+// GetAnnotation returns the value by specified key from @server
+func (r Route) GetAnnotation(key string) string {
+	if r.AtServerAnnotation.Properties == nil {
+		return ""
+	}
+
+	return r.AtServerAnnotation.Properties[key]
+}
+
+// GetAnnotation returns the value by specified key from @server
+func (g Group) GetAnnotation(key string) string {
+	if g.Annotation.Properties == nil {
+		return ""
+	}
+
+	return g.Annotation.Properties[key]
+}
+
+// ResponseTypeName returns response type name of route
+func (r Route) ResponseTypeName() string {
+	if r.ResponseType == nil {
+		return ""
+	}
+
+	return r.ResponseType.Name()
+}
+
+// RequestTypeName returns request type name of route
+func (r Route) RequestTypeName() string {
+	if r.RequestType == nil {
+		return ""
+	}
+
+	return r.RequestType.Name()
 }

@@ -57,7 +57,7 @@ func TestServerSpan(t *testing.T) {
 
 func TestServerSpan_WithCarrier(t *testing.T) {
 	md := metadata.New(map[string]string{
-		traceIdKey: "a",
+		TraceIdKey: "a",
 		spanIdKey:  "0.1",
 	})
 	ctx, span := StartServerSpan(context.Background(), grpcCarrier(md), "service", "operation")
@@ -99,7 +99,7 @@ func TestSpan_Follow(t *testing.T) {
 	for _, test := range tests {
 		t.Run(stringx.RandId(), func(t *testing.T) {
 			md := metadata.New(map[string]string{
-				traceIdKey: "a",
+				TraceIdKey: "a",
 				spanIdKey:  test.span,
 			})
 			ctx, span := StartServerSpan(context.Background(), grpcCarrier(md),

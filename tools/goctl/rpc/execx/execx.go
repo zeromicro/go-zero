@@ -12,7 +12,10 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-func Run(arg string, dir string, in ...*bytes.Buffer) (string, error) {
+// Run provides the execution of shell scripts in golang,
+// which can support macOS, Windows, and Linux operating systems.
+// Other operating systems are currently not supported
+func Run(arg, dir string, in ...*bytes.Buffer) (string, error) {
 	goos := runtime.GOOS
 	var cmd *exec.Cmd
 	switch goos {

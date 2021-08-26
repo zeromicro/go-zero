@@ -22,6 +22,7 @@ const (
 	cstOffset      = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
 
+// Docker describes a dockerfile
 type Docker struct {
 	Chinese   bool
 	GoRelPath string
@@ -32,6 +33,7 @@ type Docker struct {
 	Argument  string
 }
 
+// DockerCommand provides the entry for goctl docker
 func DockerCommand(c *cli.Context) (err error) {
 	defer func() {
 		if err == nil {
@@ -40,6 +42,12 @@ func DockerCommand(c *cli.Context) (err error) {
 	}()
 
 	goFile := c.String("go")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
 	}

@@ -25,12 +25,13 @@ const (
 	rightBrace       = "}"
 )
 
+// GoFormatApi format api file
 func GoFormatApi(c *cli.Context) error {
 	useStdin := c.Bool("stdin")
 
 	var be errorx.BatchError
 	if useStdin {
-		if err := ApiFormatByStdin(); err != nil {
+		if err := apiFormatByStdin(); err != nil {
 			be.Add(err)
 		}
 	} else {
@@ -54,14 +55,16 @@ func GoFormatApi(c *cli.Context) error {
 		})
 		be.Add(err)
 	}
+
 	if be.NotNil() {
 		scanner.PrintError(os.Stderr, be.Err())
 		os.Exit(1)
 	}
+
 	return be.Err()
 }
 
-func ApiFormatByStdin() error {
+func apiFormatByStdin() error {
 	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
@@ -73,39 +76,44 @@ func ApiFormatByStdin() error {
 	}
 
 	_, err = fmt.Print(result)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
+// ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string) error {
 	data, err := ioutil.ReadFile(apiFilePath)
 	if err != nil {
 		return err
 	}
 
-	result, err := apiFormat(string(data))
+	abs, err := filepath.Abs(apiFilePath)
 	if err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm); err != nil {
+	result, err := apiFormat(string(data), abs)
+	if err != nil {
 		return err
 	}
-	return nil
+
+	_, err = parser.ParseContent(result, abs)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
-func apiFormat(data string) (string, error) {
-	_, err := parser.ParseApi(data)
+func apiFormat(data string, filename ...string) (string, error) {
+	_, err := parser.ParseContent(data, filename...)
 	if err != nil {
 		return "", err
 	}
 
 	var builder strings.Builder
 	s := bufio.NewScanner(strings.NewReader(data))
-	var tapCount = 0
-	var newLineCount = 0
+	tapCount := 0
+	newLineCount := 0
 	var preLine string
 	for s.Scan() {
 		line := strings.TrimSpace(s.Text())
@@ -134,22 +142,23 @@ func apiFormat(data string) (string, error) {
 
 		noCommentLine := util.RemoveComment(line)
 		if noCommentLine == rightParenthesis || noCommentLine == rightBrace {
-			tapCount -= 1
+			tapCount--
 		}
 		if tapCount < 0 {
 			line := strings.TrimSuffix(noCommentLine, rightBrace)
 			line = strings.TrimSpace(line)
 			if strings.HasSuffix(line, leftBrace) {
-				tapCount += 1
+				tapCount++
 			}
 		}
 		util.WriteIndent(&builder, tapCount)
 		builder.WriteString(line + ctlutil.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
-			tapCount += 1
+			tapCount++
 		}
 		preLine = line
 	}
+
 	return strings.TrimSpace(builder.String()), nil
 }
 
@@ -178,9 +187,9 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 				break
 			}
 		}
-
 		return true, nil
 	}
+
 	return false, nil
 }
 
@@ -208,5 +217,10 @@ func mayInsertStructKeyword(line string, token *int) string {
 	if strings.HasSuffix(noCommentLine, leftParenthesis) {
 		*token++
 	}
+
+	if strings.Contains(noCommentLine, "`") {
+		return util.UpperFirst(strings.TrimSpace(line))
+	}
+
 	return line
 }

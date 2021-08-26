@@ -201,7 +201,7 @@ func BenchmarkAdaptiveShedder_Allow(b *testing.B) {
 	logx.Disable()
 
 	bench := func(b *testing.B) {
-		var shedder = NewAdaptiveShedder()
+		shedder := NewAdaptiveShedder()
 		proba := mathx.NewProba()
 		for i := 0; i < 6000; i++ {
 			p, err := shedder.Allow()

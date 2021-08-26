@@ -14,23 +14,35 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var (
-	registryInstance = Registry{
+	registry = Registry{
 		clusters: make(map[string]*cluster),
 	}
 	connManager = syncx.NewResourceManager()
 )
 
+// A Registry is a registry that manages the etcd client connections.
 type Registry struct {
 	clusters map[string]*cluster
 	lock     sync.Mutex
 }
 
+// GetRegistry returns a global Registry.
 func GetRegistry() *Registry {
-	return &registryInstance
+	return &registry
+}
+
+// GetConn returns an etcd client connection associated with given endpoints.
+func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
+	return r.getCluster(endpoints).getClient()
+}
+
+// Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
+func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
+	return r.getCluster(endpoints).monitor(key, l)
 }
 
 func (r *Registry) getCluster(endpoints []string) *cluster {
@@ -59,16 +71,8 @@ func (r *Registry) getClusterWithAuth(endpoints []string, user, pass string) *cl
 	return c
 }
 
-func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
-	return r.getCluster(endpoints).getClient()
-}
-
 func (r *Registry) GetConnWithAuth(endpoints []string, user, pass string) (EtcdClient, error) {
 	return r.getClusterWithAuth(endpoints, user, pass).getClient()
-}
-
-func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
-	return r.getCluster(endpoints).monitor(key, l)
 }
 
 func (r *Registry) MonitorWithAuth(endpoints []string, user, pass, key string, l UpdateListener) error {
@@ -292,26 +296,34 @@ func (c *cluster) reload(cli EtcdClient) {
 }
 
 func (c *cluster) watch(cli EtcdClient, key string) {
+	for {
+		if c.watchStream(cli, key) {
+			return
+		}
+	}
+}
+
+func (c *cluster) watchStream(cli EtcdClient, key string) bool {
 	rch := cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
 	for {
 		select {
 		case wresp, ok := <-rch:
 			if !ok {
 				logx.Error("etcd monitor chan has been closed")
-				return
+				return false
 			}
 			if wresp.Canceled {
-				logx.Error("etcd monitor chan has been canceled")
-				return
+				logx.Errorf("etcd monitor chan has been canceled, error: %v", wresp.Err())
+				return false
 			}
 			if wresp.Err() != nil {
 				logx.Error(fmt.Sprintf("etcd monitor chan error: %v", wresp.Err()))
-				return
+				return false
 			}
 
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
-			return
+			return true
 		}
 	}
 }

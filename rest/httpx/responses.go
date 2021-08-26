@@ -13,6 +13,7 @@ var (
 	lock         sync.RWMutex
 )
 
+// Error writes err into w.
 func Error(w http.ResponseWriter, err error) {
 	lock.RLock()
 	handler := errorHandler
@@ -32,20 +33,24 @@ func Error(w http.ResponseWriter, err error) {
 	}
 }
 
+// Ok writes HTTP 200 OK into w.
 func Ok(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v interface{}) {
 	WriteJson(w, http.StatusOK, v)
 }
 
+// SetErrorHandler sets the error handler, which is called on calling Error.
 func SetErrorHandler(handler func(error) (int, interface{})) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandler = handler
 }
 
+// WriteJson writes v as json string into w with code.
 func WriteJson(w http.ResponseWriter, code int, v interface{}) {
 	w.Header().Set(ContentType, ApplicationJson)
 	w.WriteHeader(code)

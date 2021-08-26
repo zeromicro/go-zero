@@ -1,13 +1,15 @@
 //go:generate mockgen -package internal -destination etcdclient_mock.go -source etcdclient.go EtcdClient
+
 package internal
 
 import (
 	"context"
 
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
 )
 
+// EtcdClient interface represents an etcd client.
 type EtcdClient interface {
 	ActiveConnection() *grpc.ClientConn
 	Close() error

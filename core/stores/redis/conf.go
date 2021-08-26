@@ -3,28 +3,47 @@ package redis
 import "errors"
 
 var (
+	// ErrEmptyHost is an error that indicates no redis host is set.
 	ErrEmptyHost = errors.New("empty redis host")
+	// ErrEmptyType is an error that indicates no redis type is set.
 	ErrEmptyType = errors.New("empty redis type")
-	ErrEmptyKey  = errors.New("empty redis key")
+	// ErrEmptyKey is an error that indicates no redis key is set.
+	ErrEmptyKey = errors.New("empty redis key")
 )
 
 type (
+	// A RedisConf is a redis config.
 	RedisConf struct {
 		Host string
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
+		Tls  bool   `json:",default=false,options=true|false"`
 	}
 
+	// A RedisKeyConf is a redis config with key.
 	RedisKeyConf struct {
 		RedisConf
 		Key string `json:",optional"`
 	}
 )
 
+// NewRedis returns a Redis.
 func (rc RedisConf) NewRedis() *Redis {
-	return NewRedis(rc.Host, rc.Type, rc.Pass)
+	var opts []Option
+	if rc.Type == ClusterType {
+		opts = append(opts, Cluster())
+	}
+	if len(rc.Pass) > 0 {
+		opts = append(opts, WithPass(rc.Pass))
+	}
+	if rc.Tls {
+		opts = append(opts, WithTLS())
+	}
+
+	return New(rc.Host, opts...)
 }
 
+// Validate validates the RedisConf.
 func (rc RedisConf) Validate() error {
 	if len(rc.Host) == 0 {
 		return ErrEmptyHost
@@ -37,6 +56,7 @@ func (rc RedisConf) Validate() error {
 	return nil
 }
 
+// Validate validates the RedisKeyConf.
 func (rkc RedisKeyConf) Validate() error {
 	if err := rkc.RedisConf.Validate(); err != nil {
 		return err

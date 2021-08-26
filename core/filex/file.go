@@ -7,6 +7,7 @@ import (
 
 const bufSize = 1024
 
+// FirstLine returns the first line of the file.
 func FirstLine(filename string) (string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -17,6 +18,7 @@ func FirstLine(filename string) (string, error) {
 	return firstLine(file)
 }
 
+// LastLine returns the last line of the file.
 func LastLine(filename string) (string, error) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -69,11 +71,11 @@ func lastLine(filename string, file *os.File) (string, error) {
 
 		if buf[n-1] == '\n' {
 			buf = buf[:n-1]
-			n -= 1
+			n--
 		} else {
 			buf = buf[:n]
 		}
-		for n -= 1; n >= 0; n-- {
+		for n--; n >= 0; n-- {
 			if buf[n] == '\n' {
 				return string(append(buf[n+1:], last...)), nil
 			}

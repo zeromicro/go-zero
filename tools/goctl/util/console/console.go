@@ -8,6 +8,9 @@ import (
 )
 
 type (
+	// Console wraps from the fmt.Sprintf,
+	// by default, it implemented the colorConsole to provide the colorful output to the console
+	// and the ideaConsole to output with prefix for the plugin of intellij
 	Console interface {
 		Success(format string, a ...interface{})
 		Info(format string, a ...interface{})
@@ -18,13 +21,12 @@ type (
 		MarkDone()
 		Must(err error)
 	}
-	colorConsole struct {
-	}
+	colorConsole struct{}
 	// for idea log
-	ideaConsole struct {
-	}
+	ideaConsole struct{}
 )
 
+// NewConsole returns an instance of Console
 func NewConsole(idea bool) Console {
 	if idea {
 		return NewIdeaConsole()
@@ -32,7 +34,8 @@ func NewConsole(idea bool) Console {
 	return NewColorConsole()
 }
 
-func NewColorConsole() *colorConsole {
+// NewColorConsole returns an instance of colorConsole
+func NewColorConsole() Console {
 	return &colorConsole{}
 }
 
@@ -76,7 +79,8 @@ func (c *colorConsole) Must(err error) {
 	}
 }
 
-func NewIdeaConsole() *ideaConsole {
+// NewIdeaConsole returns a instance of ideaConsole
+func NewIdeaConsole() Console {
 	return &ideaConsole{}
 }
 

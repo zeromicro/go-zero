@@ -14,6 +14,6 @@ func (sc spanContext) SpanId() string {
 }
 
 func (sc spanContext) Visit(fn func(key, val string) bool) {
-	fn(traceIdKey, sc.traceId)
+	fn(TraceIdKey, sc.traceId)
 	fn(spanIdKey, sc.spanId)
 }

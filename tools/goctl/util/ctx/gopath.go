@@ -25,7 +25,7 @@ func projectFromGoPath(workDir string) (*ProjectContext, error) {
 	goPath := buildContext.GOPATH
 	goSrc := filepath.Join(goPath, "src")
 	if !util.FileExists(goSrc) {
-		return nil, moduleCheckErr
+		return nil, errModuleCheck
 	}
 
 	wd, err := filepath.Abs(workDir)
@@ -34,7 +34,7 @@ func projectFromGoPath(workDir string) (*ProjectContext, error) {
 	}
 
 	if !strings.HasPrefix(wd, goSrc) {
-		return nil, moduleCheckErr
+		return nil, errModuleCheck
 	}
 
 	projectName := strings.TrimPrefix(wd, goSrc+string(filepath.Separator))

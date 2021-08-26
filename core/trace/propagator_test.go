@@ -11,11 +11,11 @@ import (
 
 func TestHttpPropagator_Extract(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.Header.Set(traceIdKey, "trace")
+	req.Header.Set(TraceIdKey, "trace")
 	req.Header.Set(spanIdKey, "span")
 	carrier, err := Extract(HttpFormat, req.Header)
 	assert.Nil(t, err)
-	assert.Equal(t, "trace", carrier.Get(traceIdKey))
+	assert.Equal(t, "trace", carrier.Get(TraceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
 	_, err = Extract(HttpFormat, req)
@@ -24,11 +24,11 @@ func TestHttpPropagator_Extract(t *testing.T) {
 
 func TestHttpPropagator_Inject(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	req.Header.Set(traceIdKey, "trace")
+	req.Header.Set(TraceIdKey, "trace")
 	req.Header.Set(spanIdKey, "span")
 	carrier, err := Inject(HttpFormat, req.Header)
 	assert.Nil(t, err)
-	assert.Equal(t, "trace", carrier.Get(traceIdKey))
+	assert.Equal(t, "trace", carrier.Get(TraceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
 	_, err = Inject(HttpFormat, req)
@@ -37,12 +37,12 @@ func TestHttpPropagator_Inject(t *testing.T) {
 
 func TestGrpcPropagator_Extract(t *testing.T) {
 	md := metadata.New(map[string]string{
-		traceIdKey: "trace",
+		TraceIdKey: "trace",
 		spanIdKey:  "span",
 	})
 	carrier, err := Extract(GrpcFormat, md)
 	assert.Nil(t, err)
-	assert.Equal(t, "trace", carrier.Get(traceIdKey))
+	assert.Equal(t, "trace", carrier.Get(TraceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
 	_, err = Extract(GrpcFormat, 1)
@@ -53,12 +53,12 @@ func TestGrpcPropagator_Extract(t *testing.T) {
 
 func TestGrpcPropagator_Inject(t *testing.T) {
 	md := metadata.New(map[string]string{
-		traceIdKey: "trace",
+		TraceIdKey: "trace",
 		spanIdKey:  "span",
 	})
 	carrier, err := Inject(GrpcFormat, md)
 	assert.Nil(t, err)
-	assert.Equal(t, "trace", carrier.Get(traceIdKey))
+	assert.Equal(t, "trace", carrier.Get(TraceIdKey))
 	assert.Equal(t, "span", carrier.Get(spanIdKey))
 
 	_, err = Inject(GrpcFormat, 1)

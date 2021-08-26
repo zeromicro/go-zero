@@ -4,6 +4,7 @@ import "strings"
 
 const keySeparator = ","
 
+// TotalWeights returns the total weights of given nodes.
 func TotalWeights(c []NodeConf) int {
 	var weights int
 

@@ -49,10 +49,10 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), ",")
     	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
     
-    	cacheUserPrefix       = "cache#User#user#"
-    	cacheUserNamePrefix   = "cache#User#name#"
-    	cacheUserMobilePrefix = "cache#User#mobile#"
-    	cacheUserIdPrefix     = "cache#User#id#"
+    	cacheUserPrefix       = "cache:User:user:"
+    	cacheUserNamePrefix   = "cache:User:name:"
+    	cacheUserMobilePrefix = "cache:User:mobile:"
+    	cacheUserIdPrefix     = "cache:User:id:"
     )
     
     type (
@@ -264,6 +264,7 @@ OPTIONS:
        --style value          the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
        --cache, -c            generate code with cache [optional]
        --idea                 for idea plugin [optional]
+       --database, -db        the name of database [optional]
 	```
 
   * datasource
@@ -348,7 +349,8 @@ OPTIONS:
   目前，我认为除了基本的CURD外，其他的代码均属于<i>业务型</i>代码，这个我觉得开发人员根据业务需要进行编写更好。
 
 # 类型转换规则
-| mysql dataType | golang dataType | golang dataType(if null&&default null) |
+
+| mysql dataType | golang dataType | golang Null dataType |
 |----------------|-----------------|----------------------------------------|
 | bool           | int64           | sql.NullInt64                          |
 | boolean        | int64           | sql.NullInt64                          |

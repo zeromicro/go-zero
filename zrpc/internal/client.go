@@ -23,11 +23,18 @@ func init() {
 }
 
 type (
+	// Client interface wraps the Conn method.
+	Client interface {
+		Conn() *grpc.ClientConn
+	}
+
+	// A ClientOptions is a client options.
 	ClientOptions struct {
 		Timeout     time.Duration
 		DialOptions []grpc.DialOption
 	}
 
+	// ClientOption defines the method to customize a ClientOptions.
 	ClientOption func(options *ClientOptions)
 
 	client struct {
@@ -35,7 +42,8 @@ type (
 	}
 )
 
-func NewClient(target string, opts ...ClientOption) (*client, error) {
+// NewClient returns a Client.
+func NewClient(target string, opts ...ClientOption) (Client, error) {
 	var cli client
 	opts = append([]ClientOption{WithDialOption(grpc.WithBalancerName(p2c.Name))}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
@@ -61,9 +69,13 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		WithUnaryClientInterceptors(
 			clientinterceptors.TracingInterceptor,
 			clientinterceptors.DurationInterceptor,
-			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PrometheusInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.OpenTracingInterceptor(),
+		),
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
 
@@ -84,7 +96,7 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 				service = server[pos+1:]
 			}
 		}
-		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is alread started",
+		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is already started",
 			server, err.Error(), service)
 	}
 
@@ -92,18 +104,21 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 	return nil
 }
 
+// WithDialOption returns a func to customize a ClientOptions with given dial option.
 func WithDialOption(opt grpc.DialOption) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, opt)
 	}
 }
 
+// WithTimeout returns a func to customize a ClientOptions with given timeout.
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
 		options.Timeout = timeout
 	}
 }
 
+// WithUnaryClientInterceptor returns a func to customize a ClientOptions with given interceptor.
 func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))

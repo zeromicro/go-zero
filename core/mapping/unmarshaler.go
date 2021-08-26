@@ -33,23 +33,28 @@ var (
 )
 
 type (
+	// A Unmarshaler is used to unmarshal with given tag key.
 	Unmarshaler struct {
 		key  string
 		opts unmarshalOptions
 	}
 
+	// UnmarshalOption defines the method to customize a Unmarshaler.
+	UnmarshalOption func(*unmarshalOptions)
+
 	unmarshalOptions struct {
-		fromString bool
+		fromString   bool
+		canonicalKey func(key string) string
 	}
 
-	keyCache        map[string][]string
-	UnmarshalOption func(*unmarshalOptions)
+	keyCache map[string][]string
 )
 
 func init() {
 	cacheKeys.Store(make(keyCache))
 }
 
+// NewUnmarshaler returns a Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	unmarshaler := Unmarshaler{
 		key: key,
@@ -62,14 +67,17 @@ func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	return &unmarshaler
 }
 
+// UnmarshalKey unmarshals m into v with tag key.
 func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 	return keyUnmarshaler.Unmarshal(m, v)
 }
 
+// Unmarshal unmarshals m into v.
 func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
 	return u.UnmarshalValuer(MapValuer(m), v)
 }
 
+// UnmarshalValuer unmarshals m into v.
 func (u *Unmarshaler) UnmarshalValuer(m Valuer, v interface{}) error {
 	return u.unmarshalWithFullName(m, v, "")
 }
@@ -114,9 +122,9 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 
 	if options.optional() {
 		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
-	} else {
-		return u.processAnonymousFieldRequired(field, value, m, fullName)
 	}
+
+	return u.processAnonymousFieldRequired(field, value, m, fullName)
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
@@ -184,9 +192,9 @@ func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Valu
 
 	if field.Anonymous {
 		return u.processAnonymousField(field, value, m, fullName)
-	} else {
-		return u.processNamedField(field, value, m, fullName)
 	}
+
+	return u.processNamedField(field, value, m, fullName)
 }
 
 func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value reflect.Value,
@@ -200,7 +208,7 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		return u.processFieldStruct(field, value, mapValue, fullName)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
-		return u.fillSliceFromString(fieldType, value, mapValue, fullName)
+		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
 		return fillDurationValue(fieldType.Kind(), value, mapValue.(string))
 	default:
@@ -222,7 +230,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 	default:
 		switch v := mapValue.(type) {
 		case json.Number:
-			return u.processFieldPrimitiveWithJsonNumber(field, value, v, opts, fullName)
+			return u.processFieldPrimitiveWithJSONNumber(field, value, v, opts, fullName)
 		default:
 			if typeKind == valueKind {
 				if err := validateValueInOptions(opts.options(), mapValue); err != nil {
@@ -237,7 +245,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 	return newTypeMismatchError(fullName)
 }
 
-func (u *Unmarshaler) processFieldPrimitiveWithJsonNumber(field reflect.StructField, value reflect.Value,
+func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructField, value reflect.Value,
 	v json.Number, opts *fieldOptionsWithContext, fullName string) error {
 	fieldType := field.Type
 	fieldKind := fieldType.Kind()
@@ -316,12 +324,16 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	fullName = join(fullName, key)
-	mapValue, hasValue := getValue(m, key)
+	canonicalKey := key
+	if u.opts.canonicalKey != nil {
+		canonicalKey = u.opts.canonicalKey(key)
+	}
+	mapValue, hasValue := getValue(m, canonicalKey)
 	if hasValue {
 		return u.processNamedFieldWithValue(field, value, mapValue, key, opts, fullName)
-	} else {
-		return u.processNamedFieldWithoutValue(field, value, opts, fullName)
 	}
+
+	return u.processNamedFieldWithoutValue(field, value, opts, fullName)
 }
 
 func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, value reflect.Value,
@@ -329,9 +341,9 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 	if mapValue == nil {
 		if opts.optional() {
 			return nil
-		} else {
-			return fmt.Errorf("field %s mustn't be nil", key)
 		}
+
+		return fmt.Errorf("field %s mustn't be nil", key)
 	}
 
 	maybeNewValue(field, value)
@@ -450,6 +462,10 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 			} else {
 				conv.Index(i).Set(target.Elem())
 			}
+		case reflect.Slice:
+			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue); err != nil {
+				return err
+			}
 		default:
 			if err := u.fillSliceValue(conv, i, dereffedBaseKind, ithValue); err != nil {
 				return err
@@ -464,8 +480,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	return nil
 }
 
-func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
-	mapValue interface{}, fullName string) error {
+func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value, mapValue interface{}) error {
 	var slice []interface{}
 	if err := jsonx.UnmarshalFromString(mapValue.(string), &slice); err != nil {
 		return err
@@ -486,17 +501,30 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 }
 
 func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind reflect.Kind, value interface{}) error {
+	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case json.Number:
-		return setValue(baseKind, slice.Index(index), v.String())
+		return setValue(baseKind, ithVal, v.String())
 	default:
 		// don't need to consider the difference between int, int8, int16, int32, int64,
 		// uint, uint8, uint16, uint32, uint64, because they're handled as json.Number.
-		if slice.Index(index).Kind() != reflect.TypeOf(value).Kind() {
+		if ithVal.Kind() == reflect.Ptr {
+			baseType := Deref(ithVal.Type())
+			if baseType.Kind() != reflect.TypeOf(value).Kind() {
+				return errTypeMismatch
+			}
+
+			target := reflect.New(baseType).Elem()
+			target.Set(reflect.ValueOf(value))
+			ithVal.Set(target.Addr())
+			return nil
+		}
+
+		if ithVal.Kind() != reflect.TypeOf(value).Kind() {
 			return errTypeMismatch
 		}
 
-		slice.Index(index).Set(reflect.ValueOf(value))
+		ithVal.Set(reflect.ValueOf(value))
 		return nil
 	}
 }
@@ -591,9 +619,17 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	return key, optsWithContext, nil
 }
 
+// WithStringValues customizes a Unmarshaler with number values from strings.
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
+	}
+}
+
+// WithCanonicalKeyFunc customizes a Unmarshaler with Canonical Key func
+func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.canonicalKey = f
 	}
 }
 

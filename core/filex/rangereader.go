@@ -5,12 +5,14 @@ import (
 	"os"
 )
 
+// A RangeReader is used to read a range of content from a file.
 type RangeReader struct {
 	file  *os.File
 	start int64
 	stop  int64
 }
 
+// NewRangeReader returns a RangeReader, which will read the range of content from file.
 func NewRangeReader(file *os.File, start, stop int64) *RangeReader {
 	return &RangeReader{
 		file:  file,
@@ -19,6 +21,7 @@ func NewRangeReader(file *os.File, start, stop int64) *RangeReader {
 	}
 }
 
+// Read reads the range of content into p.
 func (rr *RangeReader) Read(p []byte) (n int, err error) {
 	stat, err := rr.file.Stat()
 	if err != nil {
