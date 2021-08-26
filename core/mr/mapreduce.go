@@ -114,7 +114,8 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 	output := make(chan interface{})
 	collector := make(chan interface{}, options.workers)
 	done := syncx.NewDoneChan()
-	writer := newGuardedWriter(output, done.Done())
+	guardedWriter := newGuardedWriter(output, done.Done())
+	writer := newOnceWriter(guardedWriter)
 	var closeOnce sync.Once
 	var retErr errorx.AtomicError
 	finish := func() {
@@ -286,5 +287,27 @@ func (gw guardedWriter) Write(v interface{}) {
 		return
 	default:
 		gw.channel <- v
+	}
+}
+
+type onceWriter struct {
+	guardedWriter
+	once sync.Once
+}
+
+func newOnceWriter(writer guardedWriter) *onceWriter {
+	return &onceWriter{
+		guardedWriter: writer,
+	}
+}
+
+func (ow *onceWriter) Writer(v interface{})  {
+	select {
+	case <-ow.done:
+		return
+	default:
+		ow.once.Do(func() {
+			ow.channel <- v
+		})
 	}
 }
