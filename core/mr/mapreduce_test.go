@@ -202,6 +202,22 @@ func TestMapReduce(t *testing.T) {
 	}
 }
 
+func TestMapReduceWithReduerWriteMoreThanOnce(t *testing.T) {
+	assert.Panics(t, func() {
+		MapReduce(func(source chan<- interface{}) {
+			for i := 0; i < 10; i++ {
+				source <- i
+			}
+		}, func(item interface{}, writer Writer, cancel func(error)) {
+			writer.Write(item)
+		}, func(pipe <-chan interface{}, writer Writer, cancel func(error)) {
+			drain(pipe)
+			writer.Write("one")
+			writer.Write("two")
+		})
+	})
+}
+
 func TestMapReduceVoid(t *testing.T) {
 	var value uint32
 	tests := []struct {
