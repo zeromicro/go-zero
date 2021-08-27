@@ -1,14 +1,14 @@
 package generator
 
 import (
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"path/filepath"
 	"strings"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -61,7 +61,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, cfg *conf.Config) (DirCo
 	serverDir := filepath.Join(internalDir, "server")
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
-	sName,err:=format.FileNamingFormat(cfg.NamingFormat,proto.Service.Name)
+	sName, err := format.FileNamingFormat(cfg.NamingFormat, proto.Service.Name)
 	if err != nil {
 		return nil, err
 	}
