@@ -1,6 +1,7 @@
 package codes
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,6 +10,8 @@ import (
 )
 
 func TestAccept(t *testing.T) {
+	err := errors.New("custom error")
+	AddRejectBreakerErrors(err)
 	tests := []struct {
 		name   string
 		err    error
@@ -22,6 +25,10 @@ func TestAccept(t *testing.T) {
 		{
 			name:   "deadline error",
 			err:    status.Error(codes.DeadlineExceeded, "deadline"),
+			accept: false,
+		}, {
+			name:   "custom error",
+			err:    err,
 			accept: false,
 		},
 	}
