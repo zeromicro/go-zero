@@ -85,6 +85,7 @@ var commonMysqlDataTypeMap2 = map[string]string{
 	"enum":       "string",
 	"set":        "string",
 	"json":       "string",
+	"jsonb":      "string",
 	"blob":       "string",
 	"longblob":   "string",
 	"mediumblob": "string",

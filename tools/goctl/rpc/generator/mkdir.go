@@ -1,6 +1,8 @@
 package generator
 
 import (
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"path/filepath"
 	"strings"
 
@@ -50,7 +52,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, cfg *conf.Config) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
@@ -59,9 +61,19 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 	serverDir := filepath.Join(internalDir, "server")
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
-	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
+	sName,err:=format.FileNamingFormat(cfg.NamingFormat,proto.Service.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	callDir := filepath.Join(ctx.WorkDir, sName)
 	if strings.EqualFold(proto.Service.Name, proto.GoPackage) {
-		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
+		clientDir, err := format.FileNamingFormat(cfg.NamingFormat, proto.Service.Name+"_client")
+		if err != nil {
+			return nil, err
+		}
+
+		callDir = filepath.Join(ctx.WorkDir, clientDir)
 	}
 
 	inner[wd] = Dir{
