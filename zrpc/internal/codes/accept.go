@@ -8,17 +8,17 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// rejectErrors storage rejected errors.
-var rejectErrors = make(map[error]lang.PlaceholderType)
+// breakerErrors storage rejected errors.
+var breakerErrors = make(map[error]lang.PlaceholderType)
 
-// once only allow rejectErrors to be added once.
+// once only allow breakerErrors to be added once.
 var once sync.Once
 
-// AddRejectBreakerErrors add customized breaker errors for the client and server.
-func AddRejectBreakerErrors(errs ...error) {
+// AddBreakerErrors add customized breaker errors for the client and server.
+func AddBreakerErrors(errs ...error) {
 	once.Do(func() {
 		for _, err := range errs {
-			rejectErrors[err] = lang.Placeholder
+			breakerErrors[err] = lang.Placeholder
 		}
 	})
 }
@@ -36,6 +36,6 @@ func Acceptable(err error) bool {
 }
 
 func acceptableUnknown(err error) bool {
-	_, ok := rejectErrors[err]
+	_, ok := breakerErrors[err]
 	return !ok
 }

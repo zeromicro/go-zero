@@ -11,7 +11,7 @@ import (
 
 func TestAccept(t *testing.T) {
 	err := errors.New("custom error")
-	AddRejectBreakerErrors(err)
+	AddBreakerErrors(err)
 	tests := []struct {
 		name   string
 		err    error
