@@ -2,14 +2,14 @@ package serverinterceptors
 
 import (
 	"context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestUnaryTimeoutInterceptor(t *testing.T) {
@@ -70,6 +70,7 @@ func TestUnaryTimeoutInterceptor_timeoutExpire(t *testing.T) {
 	wg.Wait()
 	assert.EqualValues(t, status.Error(codes.DeadlineExceeded, context.DeadlineExceeded.Error()), err)
 }
+
 func TestUnaryTimeoutInterceptor_cancel(t *testing.T) {
 	const timeout = time.Minute * 10
 	interceptor := UnaryTimeoutInterceptor(timeout)
