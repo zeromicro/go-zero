@@ -3,6 +3,8 @@ package serverinterceptors
 import (
 	"context"
 	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"runtime/debug"
 	"strings"
 	"sync"
@@ -46,7 +48,14 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 			defer lock.Unlock()
 			return resp, err
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			err := ctx.Err()
+
+			if err == context.Canceled {
+				err = status.Error(codes.Canceled, err.Error())
+			} else if err == context.DeadlineExceeded {
+				err = status.Error(codes.DeadlineExceeded, err.Error())
+			}
+			return nil, err
 		}
 	}
 }
