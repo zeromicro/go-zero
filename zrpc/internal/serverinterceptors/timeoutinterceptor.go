@@ -3,14 +3,14 @@ package serverinterceptors
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
