@@ -101,7 +101,11 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 ` 她 ` 来解放我们的双手👈
 
     ```shell
+    # Go 1.15 及之前版本
     GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
+    
+    # Go 1.16 及以后版本
+    go install github.com/tal-tech/go-zero/tools/goctl@latest
     ```
 
     确保 goctl 可执行
