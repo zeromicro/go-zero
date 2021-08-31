@@ -21,7 +21,7 @@ func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn string, opts ...S
 		return pubClient.KeepAlive()
 	}
 
-	return newKeepAliveServer(registerEtcd,listenOn,opts...), nil
+	return newKeepAliveServer(registerEtcd, listenOn, opts...), nil
 }
 
 func NewRpcPubServerWithEtcdAuth(etcdEndpoints []string, user, pass, etcdKey, listenOn string, opts ...ServerOption) (Server, error) {
@@ -31,7 +31,7 @@ func NewRpcPubServerWithEtcdAuth(etcdEndpoints []string, user, pass, etcdKey, li
 		return pubClient.KeepAliveWithAuth()
 	}
 
-	return newKeepAliveServer(registerEtcd,listenOn,opts...), nil
+	return newKeepAliveServer(registerEtcd, listenOn, opts...), nil
 }
 
 func newKeepAliveServer(registerEtcd func() error, listenOn string, opts ...ServerOption) keepAliveServer {

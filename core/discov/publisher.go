@@ -17,8 +17,8 @@ type (
 	// A Publisher can be used to publish the value to an etcd cluster on the given key.
 	Publisher struct {
 		endpoints  []string
-		user	   string
-		pass	   string
+		user       string
+		pass       string
 		key        string
 		fullKey    string
 		id         int64
@@ -50,7 +50,6 @@ func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption
 
 	return publisher
 }
-
 
 func NewPublisherWithAuth(endpoints []string, user, pass, key, value string, opts ...PublisherOption) *Publisher {
 	publisher := &Publisher{
