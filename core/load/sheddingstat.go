@@ -48,6 +48,25 @@ func (s *SheddingStat) IncrementDrop() {
 	atomic.AddInt64(&s.drop, 1)
 }
 
+func (s *SheddingStat) loop(c <-chan time.Time) {
+	for range c {
+		st := s.reset()
+
+		if !logEnabled.True() {
+			continue
+		}
+
+		c := stat.CpuUsage()
+		if st.Drop == 0 {
+			logx.Statf("(%s) shedding_stat [1m], cpu: %d, total: %d, pass: %d, drop: %d",
+				s.name, c, st.Total, st.Pass, st.Drop)
+		} else {
+			logx.Statf("(%s) shedding_stat_drop [1m], cpu: %d, total: %d, pass: %d, drop: %d",
+				s.name, c, st.Total, st.Pass, st.Drop)
+		}
+	}
+}
+
 func (s *SheddingStat) reset() snapshot {
 	return snapshot{
 		Total: atomic.SwapInt64(&s.total, 0),
@@ -59,15 +78,6 @@ func (s *SheddingStat) reset() snapshot {
 func (s *SheddingStat) run() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
-	for range ticker.C {
-		c := stat.CpuUsage()
-		st := s.reset()
-		if st.Drop == 0 {
-			logx.Statf("(%s) shedding_stat [1m], cpu: %d, total: %d, pass: %d, drop: %d",
-				s.name, c, st.Total, st.Pass, st.Drop)
-		} else {
-			logx.Statf("(%s) shedding_stat_drop [1m], cpu: %d, total: %d, pass: %d, drop: %d",
-				s.name, c, st.Total, st.Pass, st.Drop)
-		}
-	}
+
+	s.loop(ticker.C)
 }
