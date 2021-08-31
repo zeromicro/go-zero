@@ -28,6 +28,7 @@ const (
 	flagStyle    = "style"
 	flagDatabase = "database"
 	flagSchema   = "schema"
+	flagHome     = "home"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -40,7 +41,7 @@ func MysqlDDL(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	database := ctx.String(flagDatabase)
-	home := ctx.String("home")
+	home := ctx.String(flagHome)
 
 	if len(home) > 0 {
 		file.RegisterGoctlHome(home)
