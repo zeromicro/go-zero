@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/tal-tech/go-zero/core/opentelemetry"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
-	grpc_codes "google.golang.org/grpc/codes"
+	gcodes "google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
@@ -23,7 +22,6 @@ func OpenTracingInterceptor() grpc.UnaryClientInterceptor {
 
 		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
-
 		tr := otel.Tracer(opentelemetry.TraceName)
 		name, attr := opentelemetry.SpanInfo(method, cc.Target())
 
@@ -37,22 +35,18 @@ func OpenTracingInterceptor() grpc.UnaryClientInterceptor {
 
 		opentelemetry.Inject(ctx, propagator, &metadataCopy)
 		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
-
 		opentelemetry.MessageSent.Event(ctx, 1, req)
-
-		err := invoker(ctx, method, req, reply, cc, opts...)
-
 		opentelemetry.MessageReceived.Event(ctx, 1, reply)
 
-		if err != nil {
+		if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
 			s, _ := status.FromError(err)
 			span.SetStatus(codes.Error, s.Message())
 			span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
-		} else {
-			span.SetAttributes(opentelemetry.StatusCodeAttr(grpc_codes.OK))
+			return err
 		}
 
-		return err
+		span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
+		return nil
 	}
 }
 
@@ -98,7 +92,7 @@ func StreamOpenTracingInterceptor() grpc.StreamClientInterceptor {
 				span.SetStatus(codes.Error, s.Message())
 				span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
 			} else {
-				span.SetAttributes(opentelemetry.StatusCodeAttr(grpc_codes.OK))
+				span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
 			}
 
 			span.End()
