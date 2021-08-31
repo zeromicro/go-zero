@@ -6,10 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
