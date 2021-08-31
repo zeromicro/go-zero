@@ -38,7 +38,9 @@ func init() {
 					atomic.StoreInt64(&cpuUsage, usage)
 				})
 			case <-allTicker.C:
-				printUsage()
+				if logEnabled.True() {
+					printUsage()
+				}
 			}
 		}
 	}()

@@ -31,6 +31,8 @@ var (
 
 	// default to be enabled
 	enabled = syncx.ForAtomicBool(true)
+	// default to be enabled
+	logEnabled = syncx.ForAtomicBool(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -78,6 +80,11 @@ type (
 // Disable lets callers disable load shedding.
 func Disable() {
 	enabled.Set(false)
+}
+
+// DisableLog disables the stat logs for load shedding.
+func DisableLog() {
+	logEnabled.Set(false)
 }
 
 // NewAdaptiveShedder returns an adaptive shedder.
