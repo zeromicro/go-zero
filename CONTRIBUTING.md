@@ -90,7 +90,7 @@ After that, run these local verifications before submitting pull request to pred
 fail of continuous integration.
 
 * Format the code with `gofmt`
-* Run the test with data race enabled `go test -race ./…`
+* Run the test with data race enabled `go test -race ./...`
 
 ## Code Review
 
