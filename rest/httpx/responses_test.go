@@ -25,17 +25,19 @@ func TestError(t *testing.T) {
 	)
 
 	tests := []struct {
-		name         string
-		input        string
-		errorHandler func(error) (int, interface{})
-		expectBody   string
-		expectCode   int
+		name           string
+		input          string
+		errorHandler   func(error) (int, interface{})
+		expectHaveBody bool
+		expectBody     string
+		expectCode     int
 	}{
 		{
-			name:       "default error handler",
-			input:      body,
-			expectBody: body,
-			expectCode: http.StatusBadRequest,
+			name:           "default error handler",
+			input:          body,
+			expectHaveBody: true,
+			expectBody:     body,
+			expectCode:     http.StatusBadRequest,
 		},
 		{
 			name:  "customized error handler return string",
@@ -43,8 +45,9 @@ func TestError(t *testing.T) {
 			errorHandler: func(err error) (int, interface{}) {
 				return http.StatusForbidden, err.Error()
 			},
-			expectBody: wrappedBody,
-			expectCode: http.StatusForbidden,
+			expectHaveBody: true,
+			expectBody:     wrappedBody,
+			expectCode:     http.StatusForbidden,
 		},
 		{
 			name:  "customized error handler return error",
@@ -52,8 +55,19 @@ func TestError(t *testing.T) {
 			errorHandler: func(err error) (int, interface{}) {
 				return http.StatusForbidden, err
 			},
-			expectBody: body,
-			expectCode: http.StatusForbidden,
+			expectHaveBody: true,
+			expectBody:     body,
+			expectCode:     http.StatusForbidden,
+		},
+		{
+			name:  "customized error handler return nil",
+			input: body,
+			errorHandler: func(err error) (int, interface{}) {
+				return http.StatusForbidden, nil
+			},
+			expectHaveBody: false,
+			expectBody:     "",
+			expectCode:     http.StatusForbidden,
 		},
 	}
 
@@ -75,6 +89,7 @@ func TestError(t *testing.T) {
 			}
 			Error(&w, errors.New(test.input))
 			assert.Equal(t, test.expectCode, w.code)
+			assert.Equal(t, test.expectHaveBody, w.haveBody)
 			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
 		})
 	}
@@ -122,6 +137,7 @@ func TestWriteJsonLessWritten(t *testing.T) {
 type tracedResponseWriter struct {
 	headers     map[string][]string
 	builder     strings.Builder
+	haveBody    bool
 	code        int
 	lessWritten bool
 	timeout     bool
@@ -140,6 +156,7 @@ func (w *tracedResponseWriter) Write(bytes []byte) (n int, err error) {
 	if w.lessWritten {
 		n -= 1
 	}
+	w.haveBody = true
 	return
 }
 
