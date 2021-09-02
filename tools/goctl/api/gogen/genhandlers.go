@@ -28,9 +28,9 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.Error(w, err)
 			return
-		}{{end}}
+		}
 
-		l := logic.New{{.LogicType}}(r.Context(), ctx)
+		{{end}}l := logic.New{{.LogicType}}(r.Context(), ctx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}req{{end}})
 		if err != nil {
 			httpx.Error(w, err)
