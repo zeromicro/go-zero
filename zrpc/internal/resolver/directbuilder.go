@@ -20,9 +20,11 @@ func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, op
 			Addr: val,
 		})
 	}
-	cc.UpdateState(resolver.State{
+	if err := cc.UpdateState(resolver.State{
 		Addresses: addrs,
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	return &nopResolver{cc: cc}, nil
 }

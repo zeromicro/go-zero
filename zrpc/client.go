@@ -59,6 +59,8 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	var err error
 	if len(c.Endpoints) > 0 {
 		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
+	} else if len(c.Target) > 0 {
+		client, err = internal.NewClient(c.Target, opts...)
 	} else if err = c.Etcd.Validate(); err == nil {
 		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
 	}

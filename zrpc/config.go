@@ -23,7 +23,8 @@ type (
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
-		Endpoints []string        `json:",optional=!Etcd"`
+		Endpoints []string        `json:",optional"`
+		Target    string          `json:",optional"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
 		Timeout   int64           `json:",default=2000"`
