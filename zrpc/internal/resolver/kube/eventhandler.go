@@ -32,7 +32,6 @@ func (h *EventHandler) OnAdd(obj interface{}) {
 	defer h.lock.Unlock()
 
 	var changed bool
-	var targets []string
 	for _, sub := range endpoints.Subsets {
 		for _, point := range sub.Addresses {
 			if _, ok := h.endpoints[point.IP]; !ok {
@@ -42,12 +41,8 @@ func (h *EventHandler) OnAdd(obj interface{}) {
 		}
 	}
 
-	for k := range h.endpoints {
-		targets = append(targets, k)
-	}
-
 	if changed {
-		h.update(targets)
+		h.notify()
 	}
 }
 
@@ -62,7 +57,6 @@ func (h *EventHandler) OnDelete(obj interface{}) {
 	defer h.lock.Unlock()
 
 	var changed bool
-	var targets []string
 	for _, sub := range endpoints.Subsets {
 		for _, point := range sub.Addresses {
 			if _, ok := h.endpoints[point.IP]; ok {
@@ -72,12 +66,8 @@ func (h *EventHandler) OnDelete(obj interface{}) {
 		}
 	}
 
-	for k := range h.endpoints {
-		targets = append(targets, k)
-	}
-
 	if changed {
-		h.update(targets)
+		h.notify()
 	}
 }
 
@@ -105,8 +95,6 @@ func (h *EventHandler) Update(endpoints *v1.Endpoints) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
 
-	var changed bool
-	var targets []string
 	old := h.endpoints
 	h.endpoints = make(map[string]lang.PlaceholderType)
 	for _, sub := range endpoints.Subsets {
@@ -116,16 +104,18 @@ func (h *EventHandler) Update(endpoints *v1.Endpoints) {
 	}
 
 	if diff(old, h.endpoints) {
-		changed = true
+		h.notify()
 	}
+}
+
+func (h *EventHandler) notify() {
+	var targets []string
 
 	for k := range h.endpoints {
 		targets = append(targets, k)
 	}
 
-	if changed {
-		h.update(targets)
-	}
+	h.update(targets)
 }
 
 func diff(o, n map[string]lang.PlaceholderType) bool {
