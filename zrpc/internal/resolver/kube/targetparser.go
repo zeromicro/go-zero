@@ -8,7 +8,10 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-const colon = ":"
+const (
+	colon            = ":"
+	defaultNamespace = "default"
+)
 
 var emptyService Service
 
@@ -21,6 +24,10 @@ type Service struct {
 func ParseTarget(target resolver.Target) (Service, error) {
 	var service Service
 	service.Namespace = target.Authority
+	if len(service.Namespace) == 0 {
+		service.Namespace = defaultNamespace
+	}
+
 	segs := strings.SplitN(target.Endpoint, colon, 2)
 	if len(segs) < 2 {
 		return emptyService, fmt.Errorf("bad endpoint: %s", target.Endpoint)
