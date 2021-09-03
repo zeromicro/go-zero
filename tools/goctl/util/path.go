@@ -116,6 +116,11 @@ func FindProjectPath(loc string) (string, bool) {
 
 // ReadLink returns the destination of the named symbolic link recursively.
 func ReadLink(name string) (string, error) {
+	name, err := filepath.Abs(name)
+	if err != nil {
+		return "", err
+	}
+
 	if name == "/" {
 		return "/", nil
 	}

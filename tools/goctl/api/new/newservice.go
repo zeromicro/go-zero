@@ -50,11 +50,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	abs, err = util.ReadLink(abs)
-	if err != nil {
-		return err
-	}
-
 	dirName = filepath.Base(filepath.Clean(abs))
 	filename := dirName + ".api"
 	apiFilePath := filepath.Join(abs, filename)
