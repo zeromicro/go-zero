@@ -3,6 +3,7 @@ package docker
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,11 +50,11 @@ func DockerCommand(c *cli.Context) (err error) {
 	}
 
 	if len(goFile) == 0 {
-		return errors.New("-go can't be empty")
+		errorx.Must(errors.New("-go can't be empty"))
 	}
 
 	if !util.FileExists(goFile) {
-		return fmt.Errorf("file %q not found", goFile)
+		errorx.Must(fmt.Errorf("file %q not found", goFile))
 	}
 
 	port := c.Int("port")
@@ -62,13 +63,9 @@ func DockerCommand(c *cli.Context) (err error) {
 	}
 
 	cfg, err := findConfig(goFile, etcDir)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
-	if err := generateDockerfile(goFile, port, "-f", "etc/"+cfg); err != nil {
-		return err
-	}
+	errorx.Must(generateDockerfile(goFile, port, "-f", "etc/"+cfg))
 
 	projDir, ok := util.FindProjectPath(goFile)
 	if ok {

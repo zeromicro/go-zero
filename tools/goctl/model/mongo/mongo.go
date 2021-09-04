@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"errors"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"path/filepath"
 	"strings"
 
@@ -18,29 +19,23 @@ func Action(ctx *cli.Context) error {
 	o := strings.TrimSpace(ctx.String("dir"))
 	s := ctx.String("style")
 	home := ctx.String("home")
-
 	if len(home) > 0 {
 		file.RegisterGoctlHome(home)
 	}
 
 	if len(tp) == 0 {
-		return errors.New("missing type")
+		errorx.Must(errors.New("missing type"))
 	}
 
 	cfg, err := config.NewConfig(s)
-	if err != nil {
-		return err
-	}
-
+	errorx.Must(err)
 	a, err := filepath.Abs(o)
-	if err != nil {
-		return err
-	}
-
-	return generate.Do(&generate.Context{
+	errorx.Must(err)
+	errorx.Must(generate.Do(&generate.Context{
 		Types:  tp,
 		Cache:  c,
 		Output: a,
 		Cfg:    cfg,
-	})
+	}))
+	return nil
 }

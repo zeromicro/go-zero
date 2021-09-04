@@ -3,6 +3,7 @@ package kube
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
@@ -48,22 +49,18 @@ func DeploymentCommand(c *cli.Context) error {
 
 	// 0 to disable the nodePort type
 	if nodePort != 0 && (nodePort < basePort || nodePort > portLimit) {
-		return errors.New("nodePort should be between 30000 and 32767")
+		errorx.Must(errors.New("nodePort should be between 30000 and 32767"))
 	}
 
 	text, err := util.LoadTemplate(category, deployTemplateFile, deploymentTemplate)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
 	out, err := util.CreateIfNotExist(c.String("o"))
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 	defer out.Close()
 
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
-	err = t.Execute(out, Deployment{
+	errorx.Must(t.Execute(out, Deployment{
 		Name:        c.String("name"),
 		Namespace:   c.String("namespace"),
 		Image:       c.String("image"),
@@ -79,10 +76,7 @@ func DeploymentCommand(c *cli.Context) error {
 		LimitMem:    c.Int("limitMem"),
 		MinReplicas: c.Int("minReplicas"),
 		MaxReplicas: c.Int("maxReplicas"),
-	})
-	if err != nil {
-		return err
-	}
+	}))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

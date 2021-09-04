@@ -3,6 +3,7 @@ package gogen
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"os"
 	"path"
 	"path/filepath"
@@ -36,13 +37,15 @@ func GoCommand(c *cli.Context) error {
 		util.RegisterGoctlHome(home)
 	}
 	if len(apiFile) == 0 {
-		return errors.New("missing -api")
-	}
-	if len(dir) == 0 {
-		return errors.New("missing -dir")
+		errorx.Must(errors.New("missing -api"))
 	}
 
-	return DoGenProject(apiFile, dir, namingStyle)
+	if len(dir) == 0 {
+		errorx.Must(errors.New("missing -dir"))
+	}
+
+	errorx.Must(DoGenProject(apiFile, dir, namingStyle))
+	return nil
 }
 
 // DoGenProject gen go project files with api file

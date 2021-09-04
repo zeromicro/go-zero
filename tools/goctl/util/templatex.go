@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
@@ -67,9 +68,7 @@ func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 	}
 
 	formatOutput, err := goformat.Source(buf.Bytes())
-	if err != nil {
-		return nil, err
-	}
+	errorx.Must(err, "go fmt error:\r\n", string(buf.Bytes()))
 
 	buf.Reset()
 	buf.Write(formatOutput)

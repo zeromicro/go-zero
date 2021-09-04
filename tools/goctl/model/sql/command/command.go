@@ -2,6 +2,7 @@ package command
 
 import (
 	"errors"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"path/filepath"
 	"strings"
 
@@ -42,16 +43,14 @@ func MysqlDDL(ctx *cli.Context) error {
 	style := ctx.String(flagStyle)
 	database := ctx.String(flagDatabase)
 	home := ctx.String(flagHome)
-
 	if len(home) > 0 {
 		file.RegisterGoctlHome(home)
 	}
-	cfg, err := config.NewConfig(style)
-	if err != nil {
-		return err
-	}
 
-	return fromDDL(src, dir, cfg, cache, idea, database)
+	cfg, err := config.NewConfig(style)
+	errorx.Must(err)
+	errorx.Must(fromDDL(src, dir, cfg, cache, idea, database))
+	return nil
 }
 
 // MySqlDataSource generates model code from datasource
@@ -62,18 +61,15 @@ func MySqlDataSource(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	home := ctx.String("home")
-
 	if len(home) > 0 {
 		file.RegisterGoctlHome(home)
 	}
 
 	pattern := strings.TrimSpace(ctx.String(flagTable))
 	cfg, err := config.NewConfig(style)
-	if err != nil {
-		return err
-	}
-
-	return fromMysqlDataSource(url, pattern, dir, cfg, cache, idea)
+	errorx.Must(err)
+	errorx.Must(fromMysqlDataSource(url, pattern, dir, cfg, cache, idea))
+	return nil
 }
 
 // PostgreSqlDataSource generates model code from datasource
@@ -85,7 +81,6 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	style := ctx.String(flagStyle)
 	schema := ctx.String(flagSchema)
 	home := ctx.String("home")
-
 	if len(home) > 0 {
 		file.RegisterGoctlHome(home)
 	}
@@ -96,11 +91,9 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 
 	pattern := strings.TrimSpace(ctx.String(flagTable))
 	cfg, err := config.NewConfig(style)
-	if err != nil {
-		return err
-	}
-
-	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea)
+	errorx.Must(err)
+	errorx.Must(fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea))
+	return nil
 }
 
 func fromDDL(src, dir string, cfg *config.Config, cache, idea bool, database string) error {

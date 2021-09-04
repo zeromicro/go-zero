@@ -3,10 +3,10 @@ package javagen
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
@@ -17,25 +17,24 @@ func JavaCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
 	if len(apiFile) == 0 {
-		return errors.New("missing -api")
+		errorx.Must(errors.New("missing -api"))
 	}
+
 	if len(dir) == 0 {
-		return errors.New("missing -dir")
+		errorx.Must(errors.New("missing -dir"))
 	}
 
 	api, err := parser.Parse(apiFile)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
 	packetName := api.Service.Name
 	if strings.HasSuffix(packetName, "-api") {
 		packetName = packetName[:len(packetName)-4]
 	}
 
-	logx.Must(util.MkdirIfNotExist(dir))
-	logx.Must(genPacket(dir, packetName, api))
-	logx.Must(genComponents(dir, packetName, api))
+	errorx.Must(util.MkdirIfNotExist(dir))
+	errorx.Must(genPacket(dir, packetName, api))
+	errorx.Must(genComponents(dir, packetName, api))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

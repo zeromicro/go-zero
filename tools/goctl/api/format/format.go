@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
-	"go/scanner"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,6 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	internalErrorx "github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -37,13 +37,11 @@ func GoFormatApi(c *cli.Context) error {
 	} else {
 		dir := c.String("dir")
 		if len(dir) == 0 {
-			return errors.New("missing -dir")
+			internalErrorx.Must(errors.New("missing -dir"))
 		}
 
 		_, err := os.Lstat(dir)
-		if err != nil {
-			return errors.New(dir + ": No such file or directory")
-		}
+		internalErrorx.Must(err)
 
 		err = filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
@@ -57,11 +55,10 @@ func GoFormatApi(c *cli.Context) error {
 	}
 
 	if be.NotNil() {
-		scanner.PrintError(os.Stderr, be.Err())
-		os.Exit(1)
+		internalErrorx.Must(be.Err())
 	}
 
-	return be.Err()
+	return nil
 }
 
 func apiFormatByStdin() error {

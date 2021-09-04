@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"path/filepath"
 	"runtime"
 
@@ -16,35 +17,29 @@ import (
 // you can specify a target folder for code generation, when the proto file has import, you can specify
 // the import search directory through the proto_path command, for specific usage, please refer to protoc -h
 func RPC(c *cli.Context) error {
-	if err := prepare(); err != nil {
-		return err
-	}
-
+	errorx.Must(prepare())
 	src := c.String("src")
 	out := c.String("dir")
 	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
 	goOptions := c.StringSlice("go_opt")
 	home := c.String("home")
-
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
 	}
 
 	if len(src) == 0 {
-		return errors.New("missing -src")
+		errorx.Must(errors.New("missing -src"))
 	}
 
 	if len(out) == 0 {
-		return errors.New("missing -dir")
+		errorx.Must(errors.New("missing -dir"))
 	}
 
 	g, err := generator.NewDefaultRPCGenerator(style)
-	if err != nil {
-		return err
-	}
-
-	return g.Generate(src, out, protoImportPath, goOptions...)
+	errorx.Must(err)
+	errorx.Must(g.Generate(src, out, protoImportPath, goOptions...))
+	return nil
 }
 
 func prepare() error {
@@ -69,11 +64,11 @@ func RPCNew(c *cli.Context) error {
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
-		return fmt.Errorf("unexpected ext: %s", ext)
+		errorx.Must(fmt.Errorf("unexpected ext: %s", ext))
 	}
+
 	style := c.String("style")
 	home := c.String("home")
-
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
 	}
@@ -81,21 +76,14 @@ func RPCNew(c *cli.Context) error {
 	protoName := rpcname + ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
 	src, err := filepath.Abs(filename)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
-	err = generator.ProtoTmpl(src)
-	if err != nil {
-		return err
-	}
-
+	errorx.Must(generator.ProtoTmpl(src))
 	g, err := generator.NewDefaultRPCGenerator(style)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
-	return g.Generate(src, filepath.Dir(src), nil)
+	errorx.Must(g.Generate(src, filepath.Dir(src), nil))
+	return nil
 }
 
 // RPCTemplate is the entry for generate rpc template
@@ -108,8 +96,9 @@ func RPCTemplate(c *cli.Context) error {
 	}
 
 	if len(protoFile) == 0 {
-		return errors.New("missing -o")
+		errorx.Must(errors.New("missing -o"))
 	}
 
-	return generator.ProtoTmpl(protoFile)
+	errorx.Must(generator.ProtoTmpl(protoFile))
+	return nil
 }

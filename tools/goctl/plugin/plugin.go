@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -33,26 +34,19 @@ type Plugin struct {
 // PluginCommand is the entry of goctl api plugin
 func PluginCommand(c *cli.Context) error {
 	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
+	errorx.Must(err)
 
 	plugin := c.String("plugin")
 	if len(plugin) == 0 {
-		return errors.New("missing plugin")
+		errorx.Must(errors.New("missing plugin"))
 	}
 
 	transferData, err := prepareArgs(c)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
 	bin, args := getPluginAndArgs(plugin)
-
 	bin, download, err := getCommand(bin)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
 	if download {
 		defer func() {
@@ -61,9 +55,7 @@ func PluginCommand(c *cli.Context) error {
 	}
 
 	content, err := execx.Run(bin+" "+args, filepath.Dir(ex), bytes.NewBuffer(transferData))
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 
 	fmt.Println(content)
 	return nil

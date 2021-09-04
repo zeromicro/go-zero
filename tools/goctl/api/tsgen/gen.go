@@ -3,9 +3,9 @@ package tsgen
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
@@ -19,22 +19,18 @@ func TsCommand(c *cli.Context) error {
 	caller := c.String("caller")
 	unwrapAPI := c.Bool("unwrap")
 	if len(apiFile) == 0 {
-		return errors.New("missing -api")
+		errorx.Must(errors.New("missing -api"))
 	}
 
 	if len(dir) == 0 {
-		return errors.New("missing -dir")
+		errorx.Must(errors.New("missing -dir"))
 	}
 
 	api, err := parser.Parse(apiFile)
-	if err != nil {
-		fmt.Println(aurora.Red("Failed"))
-		return err
-	}
-
-	logx.Must(util.MkdirIfNotExist(dir))
-	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
-	logx.Must(genComponents(dir, api))
+	errorx.Must(err)
+	errorx.Must(util.MkdirIfNotExist(dir))
+	errorx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
+	errorx.Must(genComponents(dir, api))
 
 	fmt.Println(aurora.Green("Done."))
 	return nil

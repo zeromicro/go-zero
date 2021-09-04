@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	internalErrorx "github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	mongogen "github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
 	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
@@ -25,7 +26,7 @@ func GenTemplates(ctx *cli.Context) error {
 		util.RegisterGoctlHome(path)
 	}
 
-	if err := errorx.Chain(
+	internalErrorx.Must(errorx.Chain(
 		func() error {
 			return gogen.GenTemplates(ctx)
 		},
@@ -44,19 +45,13 @@ func GenTemplates(ctx *cli.Context) error {
 		func() error {
 			return mongogen.Templates(ctx)
 		},
-	); err != nil {
-		return err
-	}
+	))
 
 	dir, err := util.GetTemplateDir(templateParentPath)
-	if err != nil {
-		return err
-	}
+	internalErrorx.Must(err)
 
 	abs, err := filepath.Abs(dir)
-	if err != nil {
-		return err
-	}
+	internalErrorx.Must(err)
 
 	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(abs),
 		aurora.Red("edit on your risk!"))
@@ -71,7 +66,7 @@ func CleanTemplates(ctx *cli.Context) error {
 		util.RegisterGoctlHome(path)
 	}
 
-	err := errorx.Chain(
+	internalErrorx.Must(errorx.Chain(
 		func() error {
 			return gogen.Clean()
 		},
@@ -90,10 +85,7 @@ func CleanTemplates(ctx *cli.Context) error {
 		func() error {
 			return mongogen.Clean()
 		},
-	)
-	if err != nil {
-		return err
-	}
+	))
 
 	fmt.Printf("%s\n", aurora.Green("template are clean!"))
 	return nil
@@ -115,21 +107,22 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 	}()
 	switch category {
 	case docker.Category():
-		return docker.Update()
+		internalErrorx.Must(docker.Update())
 	case gogen.Category():
-		return gogen.Update()
+		internalErrorx.Must(gogen.Update())
 	case kube.Category():
-		return kube.Update()
+		internalErrorx.Must(kube.Update())
 	case rpcgen.Category():
-		return rpcgen.Update()
+		internalErrorx.Must(rpcgen.Update())
 	case modelgen.Category():
-		return modelgen.Update()
+		internalErrorx.Must(modelgen.Update())
 	case mongogen.Category():
-		return mongogen.Update()
+		internalErrorx.Must(mongogen.Update())
 	default:
-		err = fmt.Errorf("unexpected category: %s", category)
-		return
+		internalErrorx.Must(fmt.Errorf("unexpected category: %s", category))
 	}
+
+	return nil
 }
 
 // RevertTemplates will overwrite the old template content with the new template
@@ -148,19 +141,20 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 	}()
 	switch category {
 	case docker.Category():
-		return docker.RevertTemplate(filename)
+		internalErrorx.Must(docker.RevertTemplate(filename))
 	case kube.Category():
-		return kube.RevertTemplate(filename)
+		internalErrorx.Must(kube.RevertTemplate(filename))
 	case gogen.Category():
-		return gogen.RevertTemplate(filename)
+		internalErrorx.Must(gogen.RevertTemplate(filename))
 	case rpcgen.Category():
-		return rpcgen.RevertTemplate(filename)
+		internalErrorx.Must(rpcgen.RevertTemplate(filename))
 	case modelgen.Category():
-		return modelgen.RevertTemplate(filename)
+		internalErrorx.Must(modelgen.RevertTemplate(filename))
 	case mongogen.Category():
-		return mongogen.RevertTemplate(filename)
+		internalErrorx.Must(mongogen.RevertTemplate(filename))
 	default:
-		err = fmt.Errorf("unexpected category: %s", category)
-		return
+		internalErrorx.Must(fmt.Errorf("unexpected category: %s", category))
 	}
+
+	return nil
 }

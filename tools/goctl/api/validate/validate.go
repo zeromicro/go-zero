@@ -3,6 +3,7 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
@@ -21,5 +22,6 @@ func GoValidateApi(c *cli.Context) error {
 	if err == nil {
 		fmt.Println(aurora.Green("api format ok"))
 	}
-	return err
+	errorx.Must(err)
+	return nil
 }

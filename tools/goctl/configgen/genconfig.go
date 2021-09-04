@@ -3,6 +3,7 @@ package configgen
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,55 +42,39 @@ func main() {
 func GenConfigCommand(c *cli.Context) error {
 	path, err := filepath.Abs(c.String("path"))
 	if err != nil {
-		return errors.New("abs failed: " + c.String("path"))
+		errorx.Must(errors.New("abs failed: " + c.String("path")))
 	}
 
 	goModPath, found := util.FindGoModPath(path)
 	if !found {
-		return errors.New("go mod not initial")
+		errorx.Must(errors.New("go mod not initial"))
 	}
 
 	path = strings.TrimSuffix(path, "/config.go")
 	location := filepath.Join(path, "tmp")
-	err = os.MkdirAll(location, os.ModePerm)
-	if err != nil {
-		return err
-	}
+	errorx.Must(os.MkdirAll(location, os.ModePerm))
 
 	goPath := filepath.Join(location, "config.go")
 	fp, err := os.Create(goPath)
-	if err != nil {
-		return err
-	}
+	errorx.Must(err)
 	defer fp.Close()
 	defer os.RemoveAll(location)
 
 	t := template.Must(template.New("template").Parse(configTemplate))
-	if err := t.Execute(fp, map[string]string{
+	errorx.Must(t.Execute(fp, map[string]string{
 		"import": filepath.Dir(goModPath),
-	}); err != nil {
-		return err
-	}
+	}))
 
 	gen := exec.Command("go", "run", "config.go")
 	gen.Dir = filepath.Dir(goPath)
 	gen.Stderr = os.Stderr
 	gen.Stdout = os.Stdout
-	err = gen.Run()
-	if err != nil {
-		panic(err)
-	}
+	errorx.Must(gen.Run())
 
 	path, err = os.Getwd()
-	if err != nil {
-		panic(err)
-	}
+	errorx.Must(err)
 
-	err = os.Rename(filepath.Dir(goPath)+"/config.yaml", path+"/config.yaml")
-	if err != nil {
-		panic(err)
-	}
-
+	errorx.Must(os.Rename(filepath.Dir(goPath)+"/config.yaml", path+"/config.yaml"))
 	fmt.Println(aurora.Green("Done."))
 	return nil
 }
