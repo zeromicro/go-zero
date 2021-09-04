@@ -10,6 +10,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
+// OtelHandler return a middleware that process the opentelemetry.
 func OtelHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if !opentelemetry.Enabled() {

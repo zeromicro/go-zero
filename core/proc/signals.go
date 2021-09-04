@@ -51,6 +51,7 @@ func init() {
 	}()
 }
 
+// Done returns the channel that notifies the process quitting.
 func Done() <-chan struct{} {
 	return done
 }

@@ -1,5 +1,6 @@
 package opentelemetry
 
+// TraceName represents the tracing name.
 const TraceName = "go-zero"
 
 // A Config is a opentelemetry config.

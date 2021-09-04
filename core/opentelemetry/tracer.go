@@ -36,12 +36,14 @@ func (s *metadataSupplier) Keys() []string {
 	return out
 }
 
+// Inject injects the metadata into ctx.
 func Inject(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) {
 	p.Inject(ctx, &metadataSupplier{
 		metadata: metadata,
 	})
 }
 
+// Extract extracts the metadata from ctx.
 func Extract(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) (baggage.Baggage, trace.SpanContext) {
 	ctx = p.Extract(ctx, &metadataSupplier{
 		metadata: metadata,

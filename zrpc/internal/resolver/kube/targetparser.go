@@ -15,12 +15,14 @@ const (
 
 var emptyService Service
 
+// Service represents a service with namespace, name and port.
 type Service struct {
 	Namespace string
 	Name      string
 	Port      int
 }
 
+// ParseTarget parses the resolver.Target.
 func ParseTarget(target resolver.Target) (Service, error) {
 	var service Service
 	service.Namespace = target.Authority

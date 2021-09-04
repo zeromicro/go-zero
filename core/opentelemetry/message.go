@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	MessageSent     = messageType(RPCMessageTypeSent)
+	// MessageSent is the type of sent messages.
+	MessageSent = messageType(RPCMessageTypeSent)
+	// MessageReceived is the type of received messages.
 	MessageReceived = messageType(RPCMessageTypeReceived)
 )
 

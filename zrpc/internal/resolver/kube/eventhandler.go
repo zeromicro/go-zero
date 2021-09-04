@@ -8,12 +8,14 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// EventHandler is ResourceEventHandler implementation.
 type EventHandler struct {
 	update    func([]string)
 	endpoints map[string]lang.PlaceholderType
 	lock      sync.Mutex
 }
 
+// NewEventHandler returns an EventHandler.
 func NewEventHandler(update func([]string)) *EventHandler {
 	return &EventHandler{
 		update:    update,
@@ -21,6 +23,7 @@ func NewEventHandler(update func([]string)) *EventHandler {
 	}
 }
 
+// OnAdd handles the endpoints add events.
 func (h *EventHandler) OnAdd(obj interface{}) {
 	endpoints, ok := obj.(*v1.Endpoints)
 	if !ok {
@@ -46,6 +49,7 @@ func (h *EventHandler) OnAdd(obj interface{}) {
 	}
 }
 
+// OnDelete handles the endpoints delete events.
 func (h *EventHandler) OnDelete(obj interface{}) {
 	endpoints, ok := obj.(*v1.Endpoints)
 	if !ok {
@@ -71,6 +75,7 @@ func (h *EventHandler) OnDelete(obj interface{}) {
 	}
 }
 
+// OnUpdate handles the endpoints update events.
 func (h *EventHandler) OnUpdate(oldObj, newObj interface{}) {
 	oldEndpoints, ok := oldObj.(*v1.Endpoints)
 	if !ok {
@@ -91,6 +96,7 @@ func (h *EventHandler) OnUpdate(oldObj, newObj interface{}) {
 	h.Update(newEndpoints)
 }
 
+// Update updates the endpoints.
 func (h *EventHandler) Update(endpoints *v1.Endpoints) {
 	h.lock.Lock()
 	defer h.lock.Unlock()
