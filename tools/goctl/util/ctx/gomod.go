@@ -2,12 +2,12 @@ package ctx
 
 import (
 	"errors"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"os"
 	"path/filepath"
 
 	"github.com/tal-tech/go-zero/core/jsonx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 // Module contains the relative data of go module,
