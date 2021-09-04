@@ -40,6 +40,7 @@ func (w *serverStream) SendMsg(m interface{}) error {
 	return err
 }
 
+// WrapServerStream wraps the given grpc.ServerStream with the given context.
 func WrapServerStream(ctx context.Context, ss grpc.ServerStream) *serverStream {
 	return &serverStream{
 		ServerStream: ss,

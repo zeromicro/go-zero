@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// UnaryOpenTracingInterceptor returns a grpc.UnaryServerInterceptor for opentelemetry.
 func UnaryOpenTracingInterceptor() grpc.UnaryServerInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
@@ -24,20 +25,12 @@ func UnaryOpenTracingInterceptor() grpc.UnaryServerInterceptor {
 
 		requestMetadata, _ := metadata.FromIncomingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
-
 		bags, spanCtx := opentelemetry.Extract(ctx, propagator, &metadataCopy)
 		ctx = baggage.ContextWithBaggage(ctx, bags)
-
 		tr := otel.Tracer(opentelemetry.TraceName)
 		name, attr := opentelemetry.SpanInfo(info.FullMethod, opentelemetry.PeerFromCtx(ctx))
-
-		var span trace.Span
-		ctx, span = tr.Start(
-			trace.ContextWithRemoteSpanContext(ctx, spanCtx),
-			name,
-			trace.WithSpanKind(trace.SpanKindServer),
-			trace.WithAttributes(attr...),
-		)
+		ctx, span := tr.Start(trace.ContextWithRemoteSpanContext(ctx, spanCtx), name,
+			trace.WithSpanKind(trace.SpanKindServer), trace.WithAttributes(attr...))
 		defer span.End()
 
 		opentelemetry.MessageReceived.Event(ctx, 1, req)
@@ -57,6 +50,7 @@ func UnaryOpenTracingInterceptor() grpc.UnaryServerInterceptor {
 	}
 }
 
+// StreamOpenTracingInterceptor returns a grpc.StreamServerInterceptor for opentelemetry.
 func StreamOpenTracingInterceptor() grpc.StreamServerInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -67,30 +61,22 @@ func StreamOpenTracingInterceptor() grpc.StreamServerInterceptor {
 
 		requestMetadata, _ := metadata.FromIncomingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
-
 		bags, spanCtx := opentelemetry.Extract(ctx, propagator, &metadataCopy)
 		ctx = baggage.ContextWithBaggage(ctx, bags)
-
 		tr := otel.Tracer(opentelemetry.TraceName)
 		name, attr := opentelemetry.SpanInfo(info.FullMethod, opentelemetry.PeerFromCtx(ctx))
-		ctx, span := tr.Start(
-			trace.ContextWithRemoteSpanContext(ctx, spanCtx),
-			name,
-			trace.WithSpanKind(trace.SpanKindServer),
-			trace.WithAttributes(attr...),
-		)
+		ctx, span := tr.Start(trace.ContextWithRemoteSpanContext(ctx, spanCtx), name,
+			trace.WithSpanKind(trace.SpanKindServer), trace.WithAttributes(attr...))
 		defer span.End()
 
-		err := handler(srv, opentelemetry.WrapServerStream(ctx, ss))
-
-		if err != nil {
+		if err := handler(srv, opentelemetry.WrapServerStream(ctx, ss)); err != nil {
 			s, _ := status.FromError(err)
 			span.SetStatus(codes.Error, s.Message())
 			span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
-		} else {
-			span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
+			return err
 		}
 
-		return err
+		span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
+		return nil
 	}
 }

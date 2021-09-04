@@ -10,14 +10,17 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+// PeerFromCtx returns the peer from ctx.
 func PeerFromCtx(ctx context.Context) string {
 	p, ok := peer.FromContext(ctx)
 	if !ok {
 		return ""
 	}
+
 	return p.Addr.String()
 }
 
+// SpanInfo returns the span info.
 func SpanInfo(fullMethod, peerAddress string) (string, []attribute.KeyValue) {
 	attrs := []attribute.KeyValue{RPCSystemGRPC}
 	name, mAttrs := ParseFullMethod(fullMethod)
@@ -26,6 +29,7 @@ func SpanInfo(fullMethod, peerAddress string) (string, []attribute.KeyValue) {
 	return name, attrs
 }
 
+// ParseFullMethod returns the method name and attributes.
 func ParseFullMethod(fullMethod string) (string, []attribute.KeyValue) {
 	name := strings.TrimLeft(fullMethod, "/")
 	parts := strings.SplitN(name, "/", 2)
@@ -41,9 +45,11 @@ func ParseFullMethod(fullMethod string) (string, []attribute.KeyValue) {
 	if method := parts[1]; method != "" {
 		attrs = append(attrs, semconv.RPCMethodKey.String(method))
 	}
+
 	return name, attrs
 }
 
+// PeerAttr returns the peer attributes.
 func PeerAttr(addr string) []attribute.KeyValue {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
