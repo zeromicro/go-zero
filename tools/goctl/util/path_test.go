@@ -1,11 +1,12 @@
 package util
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestReadLink(t *testing.T) {
@@ -28,7 +29,6 @@ func TestReadLink(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, pwd, ret)
 	})
-
 }
 
 func assertError(err error, t *testing.T) {
