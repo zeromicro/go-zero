@@ -1,3 +1,4 @@
+comment: false
 ignore:
   - "doc"
   - "example"
