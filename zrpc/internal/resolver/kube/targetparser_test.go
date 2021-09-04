@@ -28,6 +28,19 @@ func TestParseTarget(t *testing.T) {
 			},
 		},
 		{
+			name: "normal case",
+			input: resolver.Target{
+				Scheme:    "k8s",
+				Authority: "",
+				Endpoint:  "my-svc:8080",
+			},
+			expect: Service{
+				Namespace: defaultNamespace,
+				Name:      "my-svc",
+				Port:      8080,
+			},
+		},
+		{
 			name: "no port",
 			input: resolver.Target{
 				Scheme:    "k8s",
