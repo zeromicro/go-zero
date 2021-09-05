@@ -128,6 +128,55 @@ func TestGenCacheKeys(t *testing.T) {
 			return true
 		}())
 	})
+	t.Run("no database name", func(t *testing.T) {
+		primariCacheKey, _ = genCacheKeys(parser.Table{
+			Name: stringx.From("user"),
+			Db:   stringx.From(""),
+			PrimaryKey: parser.Primary{
+				Field:         *primaryField,
+				AutoIncrement: true,
+			},
+			UniqueIndex: map[string][]*parser.Field{
+				"mobile_unique": {
+					mobileField,
+				},
+				"class_name_unique": {
+					classField,
+					nameField,
+				},
+			},
+			Fields: []*parser.Field{
+				primaryField,
+				mobileField,
+				classField,
+				nameField,
+				{
+					Name:     stringx.From("createTime"),
+					DataType: "time.Time",
+					Comment:  "创建时间",
+				},
+				{
+					Name:     stringx.From("updateTime"),
+					DataType: "time.Time",
+					Comment:  "更新时间",
+				},
+			},
+		})
+
+		assert.Equal(t, true, func() bool {
+			return cacheKeyEqual(primariCacheKey, Key{
+				VarLeft:           "cacheUserIdPrefix",
+				VarRight:          `"cache:user:id:"`,
+				VarExpression:     `cacheUserIdPrefix = "cache:user:id:"`,
+				KeyLeft:           "userIdKey",
+				KeyRight:          `fmt.Sprintf("%s%v", cacheUserIdPrefix, id)`,
+				DataKeyRight:      `fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)`,
+				KeyExpression:     `userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)`,
+				DataKeyExpression: `userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, data.Id)`,
+				FieldNameJoin:     []string{"id"},
+			})
+		}())
+	})
 }
 
 func cacheKeyEqual(k1, k2 Key) bool {

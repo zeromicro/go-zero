@@ -5,7 +5,6 @@ import (
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/propagation"
@@ -30,6 +29,7 @@ func StartAgent(c Config) {
 		if len(c.Endpoint) == 0 {
 			return
 		}
+
 		// Just support jaeger now
 		if c.Batcher != "jaeger" {
 			return
@@ -47,9 +47,7 @@ func StartAgent(c Config) {
 			// Always be sure to batch in production.
 			tracesdk.WithBatcher(exp),
 			// Record information about this application in an Resource.
-			tracesdk.WithResource(resource.NewSchemaless(
-				semconv.ServiceNameKey.String(c.Name),
-			)),
+			tracesdk.WithResource(resource.NewSchemaless(semconv.ServiceNameKey.String(c.Name))),
 		)
 
 		otel.SetTracerProvider(tp)

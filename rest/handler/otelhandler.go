@@ -3,14 +3,14 @@ package handler
 import (
 	"net/http"
 
-	"github.com/tal-tech/go-zero/core/opentelemetry"
-
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
+// OtelHandler return a middleware that process the opentelemetry.
 func OtelHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if !opentelemetry.Enabled() {

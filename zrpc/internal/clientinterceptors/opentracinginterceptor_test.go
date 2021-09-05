@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"google.golang.org/grpc"
 )
 

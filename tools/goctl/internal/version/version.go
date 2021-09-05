@@ -1,28 +1,22 @@
-package env
+package version
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 )
 
-// GetGoctlVersion obtains from the environment variable GOCTL_VERSION, prior to 1.1.11,
-// the goctl version was 1.1.10 by default.
-// the goctl version is set at runtime in the environment variable GOCTL_VERSION,
-// see the detail at https://github.com/tal-tech/go-zero/blob/master/tools/goctl/goctl.go
+const BuildVersion = "1.1.11-beta-2"
+
+// GetGoctlVersion returns BuildVersion
 func GetGoctlVersion() string {
-	currentVersion := os.Getenv("GOCTL_VERSION")
-	if currentVersion == "" {
-		currentVersion = "1.1.10"
-	}
-	return currentVersion
+	return BuildVersion
 }
 
 var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
-// IsVersionGatherThan compares whether the current goctl version
-// is gather than the target version
-func IsVersionGatherThan(version, target string) bool {
+// IsVersionGreaterThan compares whether the current goctl version
+// is greater than the target version
+func IsVersionGreaterThan(version, target string) bool {
 	versionNumber, versionTag := convertVersion(version)
 	targetVersionNumber, targetTag := convertVersion(target)
 	if versionNumber > targetVersionNumber {

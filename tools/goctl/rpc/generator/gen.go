@@ -63,7 +63,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto)
+	dirCtx, err := mkdir(projectCtx, proto, g.cfg)
 	if err != nil {
 		return err
 	}

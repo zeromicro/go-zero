@@ -6,38 +6,34 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/proto"
 )
-
-type streamEventType int
-
-type streamEvent struct {
-	Type streamEventType
-	Err  error
-}
 
 const (
 	receiveEndEvent streamEventType = iota
 	errorEvent
 )
 
-type clientStream struct {
-	grpc.ClientStream
+type (
+	streamEventType int
 
-	desc       *grpc.StreamDesc
-	events     chan streamEvent
-	eventsDone chan struct{}
-	Finished   chan error
+	streamEvent struct {
+		Type streamEventType
+		Err  error
+	}
 
-	receivedMessageID int
-	sentMessageID     int
-}
-
-var _ = proto.Marshal
+	clientStream struct {
+		grpc.ClientStream
+		Finished          chan error
+		desc              *grpc.StreamDesc
+		events            chan streamEvent
+		eventsDone        chan struct{}
+		receivedMessageID int
+		sentMessageID     int
+	}
+)
 
 func (w *clientStream) RecvMsg(m interface{}) error {
 	err := w.ClientStream.RecvMsg(m)
-
 	if err == nil && !w.desc.ServerStreams {
 		w.sendStreamEvent(receiveEndEvent, nil)
 	} else if err == io.EOF {
@@ -54,10 +50,8 @@ func (w *clientStream) RecvMsg(m interface{}) error {
 
 func (w *clientStream) SendMsg(m interface{}) error {
 	err := w.ClientStream.SendMsg(m)
-
 	w.sentMessageID++
 	MessageSent.Event(w.Context(), w.sentMessageID, m)
-
 	if err != nil {
 		w.sendStreamEvent(errorEvent, err)
 	}
@@ -90,6 +84,7 @@ func (w *clientStream) sendStreamEvent(eventType streamEventType, err error) {
 	}
 }
 
+// WrapClientStream wraps s with given ctx and desc.
 func WrapClientStream(ctx context.Context, s grpc.ClientStream, desc *grpc.StreamDesc) *clientStream {
 	events := make(chan streamEvent)
 	eventsDone := make(chan struct{})

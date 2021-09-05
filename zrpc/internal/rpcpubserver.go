@@ -14,7 +14,8 @@ const (
 )
 
 // NewRpcPubServer returns a Server.
-func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn string, opts ...ServerOption) (Server, error) {
+func NewRpcPubServer(etcdEndpoints []string, etcdKey, listenOn string,
+	opts ...ServerOption) (Server, error) {
 	registerEtcd := func() error {
 		pubListenOn := figureOutListenOn(listenOn)
 		pubClient := discov.NewPublisher(etcdEndpoints, etcdKey, pubListenOn)

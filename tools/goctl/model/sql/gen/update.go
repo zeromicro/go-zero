@@ -33,7 +33,11 @@ func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) 
 		keyVariableSet.AddStr(key.KeyLeft)
 	}
 
-	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
+	if postgreSql {
+		expressionValues = append([]string{"data." + table.PrimaryKey.Name.ToCamel()}, expressionValues...)
+	} else {
+		expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
+	}
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
 	if err != nil {
