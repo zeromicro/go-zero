@@ -25,12 +25,12 @@ const (
 
 // A ServiceConf is a service config.
 type ServiceConf struct {
-	Name          string
-	Log           logx.LogConf
-	Mode          string               `json:",default=pro,options=dev|test|rt|pre|pro"`
-	MetricsUrl    string               `json:",optional"`
-	Prometheus    prometheus.Config    `json:",optional"`
-	OpenTelemetry opentelemetry.Config `json:",optional"`
+	Name       string
+	Log        logx.LogConf
+	Mode       string               `json:",default=pro,options=dev|test|rt|pre|pro"`
+	MetricsUrl string               `json:",optional"`
+	Prometheus prometheus.Config    `json:",optional"`
+	Telemetry  opentelemetry.Config `json:",optional"`
 }
 
 // MustSetUp sets up the service, exits on error.
@@ -45,8 +45,8 @@ func (sc ServiceConf) SetUp() error {
 	if len(sc.Log.ServiceName) == 0 {
 		sc.Log.ServiceName = sc.Name
 	}
-	if len(sc.OpenTelemetry.Name) == 0 {
-		sc.OpenTelemetry.Name = sc.Name
+	if len(sc.Telemetry.Name) == 0 {
+		sc.Telemetry.Name = sc.Name
 	}
 	if err := logx.SetUp(sc.Log); err != nil {
 		return err
@@ -54,7 +54,7 @@ func (sc ServiceConf) SetUp() error {
 
 	sc.initMode()
 	prometheus.StartAgent(sc.Prometheus)
-	opentelemetry.StartAgent(sc.OpenTelemetry)
+	opentelemetry.StartAgent(sc.Telemetry)
 
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
