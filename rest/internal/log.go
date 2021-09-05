@@ -54,12 +54,12 @@ func (lc *LogCollector) takeAll() []string {
 
 // Error logs the given v along with r in error log.
 func Error(r *http.Request, v ...interface{}) {
-	logx.WithContext(r.Context()).Error(v)
+	logx.WithContext(r.Context()).Error(format(r, v...))
 }
 
 // Errorf logs the given v with format along with r in error log.
 func Errorf(r *http.Request, format string, v ...interface{}) {
-	logx.WithContext(r.Context()).Errorf(format, v)
+	logx.WithContext(r.Context()).Error(formatf(r, format, v...))
 }
 
 // Info logs the given v along with r in access log.
