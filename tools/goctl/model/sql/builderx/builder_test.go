@@ -121,5 +121,5 @@ func TestBuildSqlLike(t *testing.T) {
 
 func TestJoin(t *testing.T) {
 	ret := PostgreSqlJoin([]string{"name", "age"})
-	assert.Equal(t, "name = $1, age = $2", ret)
+	assert.Equal(t, "name = $2, age = $3", ret)
 }
