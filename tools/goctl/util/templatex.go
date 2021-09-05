@@ -2,10 +2,11 @@ package util
 
 import (
 	"bytes"
-	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
+
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 )
 
 const regularPerm = 0o666

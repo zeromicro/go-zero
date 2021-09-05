@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"os"
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -22,6 +23,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
@@ -29,7 +31,6 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
-	"github.com/urfave/cli"
 )
 
 var (
