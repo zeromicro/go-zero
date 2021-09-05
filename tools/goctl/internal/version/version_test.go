@@ -1,4 +1,4 @@
-package env
+package version
 
 import (
 	"testing"
