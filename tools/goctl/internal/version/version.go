@@ -14,9 +14,9 @@ func GetGoctlVersion() string {
 
 var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
-// IsVersionGatherThan compares whether the current goctl version
-// is gather than the target version
-func IsVersionGatherThan(version, target string) bool {
+// IsVersionGreaterThan compares whether the current goctl version
+// is greater than the target version
+func IsVersionGreaterThan(version, target string) bool {
 	versionNumber, versionTag := convertVersion(version)
 	targetVersionNumber, targetTag := convertVersion(target)
 	if versionNumber > targetVersionNumber {

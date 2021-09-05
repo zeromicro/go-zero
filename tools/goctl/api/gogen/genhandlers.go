@@ -60,7 +60,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 
 	goctlVersion := version.GetGoctlVersion()
 	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	after1_1_10 := version.IsVersionGatherThan(goctlVersion, "1.1.10")
+	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
@@ -115,7 +115,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 
 	currentVersion := version.GetGoctlVersion()
 	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	if !version.IsVersionGatherThan(currentVersion, "1.1.10") {
+	if !version.IsVersionGreaterThan(currentVersion, "1.1.10") {
 		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 	}
 
