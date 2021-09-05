@@ -1,4 +1,4 @@
-package env
+package version
 
 import (
 	"testing"
@@ -25,9 +25,9 @@ func Test_convertVersion(t *testing.T) {
 }
 
 func Test_IsVersionGatherThan(t *testing.T) {
-	assert.False(t, IsVersionGatherThan("0.11", "1.1"))
-	assert.True(t, IsVersionGatherThan("0.112", "0.1"))
-	assert.True(t, IsVersionGatherThan("1.1.10", "1.0.111"))
-	assert.True(t, IsVersionGatherThan("1.1.10", "1.1.10-pre"))
-	assert.True(t, IsVersionGatherThan("1.1.11-pre", "1.1.10"))
+	assert.False(t, IsVersionGreaterThan("0.11", "1.1"))
+	assert.True(t, IsVersionGreaterThan("0.112", "0.1"))
+	assert.True(t, IsVersionGreaterThan("1.1.10", "1.0.111"))
+	assert.True(t, IsVersionGreaterThan("1.1.10", "1.1.10-pre"))
+	assert.True(t, IsVersionGreaterThan("1.1.11-pre", "1.1.10"))
 }

@@ -7,7 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/internal/env"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
@@ -58,9 +58,9 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 	}
 
-	goctlVersion := env.GetGoctlVersion()
+	goctlVersion := version.GetGoctlVersion()
 	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	after1_1_10 := env.IsVersionGatherThan(goctlVersion, "1.1.10")
+	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
@@ -113,9 +113,9 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
 
-	currentVersion := env.GetGoctlVersion()
+	currentVersion := version.GetGoctlVersion()
 	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	if !env.IsVersionGatherThan(currentVersion, "1.1.10") {
+	if !version.IsVersionGreaterThan(currentVersion, "1.1.10") {
 		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 	}
 

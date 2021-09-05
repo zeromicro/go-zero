@@ -6,6 +6,8 @@ import (
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -21,6 +23,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
 	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
@@ -28,12 +32,10 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
-	"github.com/urfave/cli"
 )
 
 var (
-	buildVersion = "1.1.11-beta-1"
-	commands     = []cli.Command{
+	commands = []cli.Command{
 		{
 			Name:   "upgrade",
 			Usage:  "upgrade goctl to latest version",
@@ -648,14 +650,10 @@ func main() {
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
-	app.Version = fmt.Sprintf("%s %s/%s", buildVersion, runtime.GOOS, runtime.GOARCH)
+	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(aurora.Red("error: " + err.Error()))
+		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
 	}
-}
-
-func init() {
-	os.Setenv("GOCTL_VERSION", buildVersion)
 }
