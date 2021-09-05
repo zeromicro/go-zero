@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
@@ -54,12 +55,12 @@ func (t *DefaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template parse error:", t.text)
 	}
 
 	buf := new(bytes.Buffer)
 	if err = tem.Execute(buf, data); err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template execute error:", t.text)
 	}
 
 	if !t.goFmt {
@@ -68,7 +69,7 @@ func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 
 	formatOutput, err := goformat.Source(buf.Bytes())
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "go format error:", string(buf.Bytes()))
 	}
 
 	buf.Reset()

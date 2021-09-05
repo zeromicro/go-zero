@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"os"
 	"runtime"
 
@@ -32,7 +33,7 @@ import (
 )
 
 var (
-	buildVersion = "1.1.11-beta-1"
+	buildVersion = "1.1.11-beta-2"
 	commands     = []cli.Command{
 		{
 			Name:   "upgrade",
@@ -652,10 +653,10 @@ func main() {
 	app.Commands = commands
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(aurora.Red("error: " + err.Error()))
+		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
 	}
 }
 
 func init() {
-	os.Setenv("GOCTL_VERSION", buildVersion)
+	_ = os.Setenv("GOCTL_VERSION", buildVersion)
 }
