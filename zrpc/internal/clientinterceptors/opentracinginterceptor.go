@@ -3,7 +3,7 @@ package clientinterceptors
 import (
 	"context"
 
-	"github.com/tal-tech/go-zero/core/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"

@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/tal-tech/go-zero/core/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"

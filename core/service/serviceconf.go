@@ -5,9 +5,9 @@ import (
 
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/opentelemetry"
 	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 )
 
 const (

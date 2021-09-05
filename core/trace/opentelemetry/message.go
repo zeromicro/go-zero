@@ -8,6 +8,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const messageEvent = "message"
+
 var (
 	// MessageSent is the type of sent messages.
 	MessageSent = messageType(RPCMessageTypeSent)
@@ -22,13 +24,13 @@ type messageType attribute.KeyValue
 func (m messageType) Event(ctx context.Context, id int, message interface{}) {
 	span := trace.SpanFromContext(ctx)
 	if p, ok := message.(proto.Message); ok {
-		span.AddEvent("message", trace.WithAttributes(
+		span.AddEvent(messageEvent, trace.WithAttributes(
 			attribute.KeyValue(m),
 			RPCMessageIDKey.Int(id),
 			RPCMessageUncompressedSizeKey.Int(proto.Size(p)),
 		))
 	} else {
-		span.AddEvent("message", trace.WithAttributes(
+		span.AddEvent(messageEvent, trace.WithAttributes(
 			attribute.KeyValue(m),
 			RPCMessageIDKey.Int(id),
 		))

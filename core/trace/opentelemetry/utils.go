@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+const localhost = "127.0.0.1"
+
 // PeerFromCtx returns the peer from ctx.
 func PeerFromCtx(ctx context.Context) string {
 	p, ok := peer.FromContext(ctx)
@@ -56,8 +58,8 @@ func PeerAttr(addr string) []attribute.KeyValue {
 		return []attribute.KeyValue(nil)
 	}
 
-	if host == "" {
-		host = "127.0.0.1"
+	if len(host) == 0 {
+		host = localhost
 	}
 
 	return []attribute.KeyValue{
