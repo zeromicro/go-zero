@@ -3,7 +3,7 @@ package clientinterceptors
 import (
 	"context"
 
-	opentelemetry2 "github.com/tal-tech/go-zero/core/trace/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -18,31 +18,31 @@ func OpenTracingInterceptor() grpc.UnaryClientInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		if !opentelemetry2.Enabled() {
+		if !opentelemetry.Enabled() {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
 
 		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
-		tr := otel.Tracer(opentelemetry2.TraceName)
-		name, attr := opentelemetry2.SpanInfo(method, cc.Target())
+		tr := otel.Tracer(opentelemetry.TraceName)
+		name, attr := opentelemetry.SpanInfo(method, cc.Target())
 		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
 			trace.WithAttributes(attr...))
 		defer span.End()
 
-		opentelemetry2.Inject(ctx, propagator, &metadataCopy)
+		opentelemetry.Inject(ctx, propagator, &metadataCopy)
 		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
-		opentelemetry2.MessageSent.Event(ctx, 1, req)
-		opentelemetry2.MessageReceived.Event(ctx, 1, reply)
+		opentelemetry.MessageSent.Event(ctx, 1, req)
+		opentelemetry.MessageReceived.Event(ctx, 1, reply)
 
 		if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
 			s, _ := status.FromError(err)
 			span.SetStatus(codes.Error, s.Message())
-			span.SetAttributes(opentelemetry2.StatusCodeAttr(s.Code()))
+			span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
 			return err
 		}
 
-		span.SetAttributes(opentelemetry2.StatusCodeAttr(gcodes.OK))
+		span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
 		return nil
 	}
 }
@@ -52,36 +52,36 @@ func StreamOpenTracingInterceptor() grpc.StreamClientInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
 		streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		if !opentelemetry2.Enabled() {
+		if !opentelemetry.Enabled() {
 			return streamer(ctx, desc, cc, method, opts...)
 		}
 
 		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
 		metadataCopy := requestMetadata.Copy()
-		tr := otel.Tracer(opentelemetry2.TraceName)
-		name, attr := opentelemetry2.SpanInfo(method, cc.Target())
+		tr := otel.Tracer(opentelemetry.TraceName)
+		name, attr := opentelemetry.SpanInfo(method, cc.Target())
 		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
 			trace.WithAttributes(attr...))
-		opentelemetry2.Inject(ctx, propagator, &metadataCopy)
+		opentelemetry.Inject(ctx, propagator, &metadataCopy)
 		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
 		s, err := streamer(ctx, desc, cc, method, opts...)
 		if err != nil {
 			grpcStatus, _ := status.FromError(err)
 			span.SetStatus(codes.Error, grpcStatus.Message())
-			span.SetAttributes(opentelemetry2.StatusCodeAttr(grpcStatus.Code()))
+			span.SetAttributes(opentelemetry.StatusCodeAttr(grpcStatus.Code()))
 			span.End()
 			return s, err
 		}
 
-		stream := opentelemetry2.WrapClientStream(ctx, s, desc)
+		stream := opentelemetry.WrapClientStream(ctx, s, desc)
 
 		go func() {
 			if err := <-stream.Finished; err != nil {
 				s, _ := status.FromError(err)
 				span.SetStatus(codes.Error, s.Message())
-				span.SetAttributes(opentelemetry2.StatusCodeAttr(s.Code()))
+				span.SetAttributes(opentelemetry.StatusCodeAttr(s.Code()))
 			} else {
-				span.SetAttributes(opentelemetry2.StatusCodeAttr(gcodes.OK))
+				span.SetAttributes(opentelemetry.StatusCodeAttr(gcodes.OK))
 			}
 
 			span.End()

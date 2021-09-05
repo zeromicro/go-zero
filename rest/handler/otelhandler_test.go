@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	opentelemetry2 "github.com/tal-tech/go-zero/core/trace/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
 func TestOtelHandler(t *testing.T) {
-	opentelemetry2.StartAgent(opentelemetry2.Config{
+	opentelemetry.StartAgent(opentelemetry.Config{
 		Name:     "go-zero-test",
 		Endpoint: "http://localhost:14268/api/traces",
 		Batcher:  "jaeger",
