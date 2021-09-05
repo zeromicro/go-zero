@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/opentelemetry"
+	opentelemetry2 "github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"google.golang.org/grpc"
 )
 
@@ -20,7 +20,7 @@ func TestUnaryOpenTracingInterceptor_Disable(t *testing.T) {
 }
 
 func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
-	opentelemetry.StartAgent(opentelemetry.Config{
+	opentelemetry2.StartAgent(opentelemetry2.Config{
 		Name:     "go-zero-test",
 		Endpoint: "http://localhost:14268/api/traces",
 		Batcher:  "jaeger",

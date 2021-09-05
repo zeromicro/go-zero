@@ -6,7 +6,6 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -14,26 +13,24 @@ const (
 	errorEvent
 )
 
-var _ = proto.Marshal
+type (
+	streamEventType int
 
-type streamEventType int
+	streamEvent struct {
+		Type streamEventType
+		Err  error
+	}
 
-type streamEvent struct {
-	Type streamEventType
-	Err  error
-}
-
-type clientStream struct {
-	grpc.ClientStream
-
-	desc       *grpc.StreamDesc
-	events     chan streamEvent
-	eventsDone chan struct{}
-	Finished   chan error
-
-	receivedMessageID int
-	sentMessageID     int
-}
+	clientStream struct {
+		grpc.ClientStream
+		Finished          chan error
+		desc              *grpc.StreamDesc
+		events            chan streamEvent
+		eventsDone        chan struct{}
+		receivedMessageID int
+		sentMessageID     int
+	}
+)
 
 func (w *clientStream) RecvMsg(m interface{}) error {
 	err := w.ClientStream.RecvMsg(m)

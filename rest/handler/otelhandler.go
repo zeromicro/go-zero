@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/tal-tech/go-zero/core/opentelemetry"
+	opentelemetry2 "github.com/tal-tech/go-zero/core/trace/opentelemetry"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -13,12 +13,12 @@ import (
 // OtelHandler return a middleware that process the opentelemetry.
 func OtelHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		if !opentelemetry.Enabled() {
+		if !opentelemetry2.Enabled() {
 			return next
 		}
 
 		propagator := otel.GetTextMapPropagator()
-		tracer := otel.GetTracerProvider().Tracer(opentelemetry.TraceName)
+		tracer := otel.GetTracerProvider().Tracer(opentelemetry2.TraceName)
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))

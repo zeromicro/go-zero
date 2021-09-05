@@ -22,7 +22,6 @@ func (w *serverStream) Context() context.Context {
 
 func (w *serverStream) RecvMsg(m interface{}) error {
 	err := w.ServerStream.RecvMsg(m)
-
 	if err == nil {
 		w.receivedMessageID++
 		MessageReceived.Event(w.Context(), w.receivedMessageID, m)
@@ -33,7 +32,6 @@ func (w *serverStream) RecvMsg(m interface{}) error {
 
 func (w *serverStream) SendMsg(m interface{}) error {
 	err := w.ServerStream.SendMsg(m)
-
 	w.sentMessageID++
 	MessageSent.Event(w.Context(), w.sentMessageID, m)
 

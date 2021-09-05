@@ -9,18 +9,19 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// assert that metadataSupplier implements the TextMapCarrier interface
+var _ propagation.TextMapCarrier = new(metadataSupplier)
+
 type metadataSupplier struct {
 	metadata *metadata.MD
 }
-
-// assert that metadataSupplier implements the TextMapCarrier interface
-var _ propagation.TextMapCarrier = &metadataSupplier{}
 
 func (s *metadataSupplier) Get(key string) string {
 	values := s.metadata.Get(key)
 	if len(values) == 0 {
 		return ""
 	}
+
 	return values[0]
 }
 
@@ -33,6 +34,7 @@ func (s *metadataSupplier) Keys() []string {
 	for key := range *s.metadata {
 		out = append(out, key)
 	}
+
 	return out
 }
 
