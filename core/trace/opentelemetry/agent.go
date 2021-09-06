@@ -18,12 +18,12 @@ var (
 	enabled syncx.AtomicBool
 )
 
-// Enabled returns if prometheus is enabled.
+// Enabled returns if opentelemetry is enabled.
 func Enabled() bool {
 	return enabled.True()
 }
 
-// StartAgent starts a prometheus agent.
+// StartAgent starts a opentelemetry agent.
 func StartAgent(c Config) {
 	once.Do(func() {
 		if len(c.Endpoint) == 0 {
