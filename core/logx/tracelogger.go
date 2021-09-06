@@ -6,10 +6,9 @@ import (
 	"io"
 	"time"
 
-	"go.opentelemetry.io/otel/trace"
-
 	"github.com/tal-tech/go-zero/core/timex"
 	"github.com/tal-tech/go-zero/core/trace/tracespec"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type traceLogger struct {
