@@ -48,6 +48,10 @@ var commands = []cli.Command{
 				Name:  "o",
 				Usage: "the output api file",
 			},
+			cli.StringFlag{
+				Name:  "home",
+				Usage: "the goctl home path of the template",
+			},
 		},
 		Action: apigen.ApiCommand,
 		Subcommands: []cli.Command{
