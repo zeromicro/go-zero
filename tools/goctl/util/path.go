@@ -121,8 +121,13 @@ func ReadLink(name string) (string, error) {
 		return "", err
 	}
 
-	if name == "/" {
-		return "/", nil
+	if _, err := os.Lstat(name); err != nil {
+		return name, nil
+	}
+
+	// uncheck condition: ignore file path /var, maybe be temporary file path
+	if name == "/" || name == "/var" {
+		return name, nil
 	}
 
 	isLink, err := isLink(name)
