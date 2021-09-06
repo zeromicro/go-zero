@@ -1,5 +1,4 @@
 comment: false
-github_checks: false
 ignore:
   - "doc"
   - "example"
