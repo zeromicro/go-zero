@@ -35,7 +35,7 @@ func TestPublisher_register(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestNewPublisherWithAuth(t *testing.T) {
+func TestPublisher_NewPublisherWithAuth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	const id = 1
