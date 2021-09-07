@@ -18,7 +18,7 @@ func TestOpenTracingInterceptor(t *testing.T) {
 	})
 
 	cc := new(grpc.ClientConn)
-	err := OpenTracingInterceptor()(context.Background(), "/ListUser", nil, nil, cc,
+	err := UnaryOpenTracingInterceptor()(context.Background(), "/ListUser", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			return nil

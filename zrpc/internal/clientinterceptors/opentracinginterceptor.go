@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// OpenTracingInterceptor returns a grpc.UnaryClientInterceptor for opentelemetry.
-func OpenTracingInterceptor() grpc.UnaryClientInterceptor {
+// UnaryOpenTracingInterceptor returns a grpc.UnaryClientInterceptor for opentelemetry.
+func UnaryOpenTracingInterceptor() grpc.UnaryClientInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {

@@ -55,6 +55,7 @@ func (s *rpcServer) Start(register RegisterFn) error {
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
 		serverinterceptors.UnaryTracingInterceptor(s.name),
+		serverinterceptors.UnaryOpenTracingInterceptor(),
 		serverinterceptors.UnaryCrashInterceptor(),
 		serverinterceptors.UnaryStatInterceptor(s.metrics),
 		serverinterceptors.UnaryPrometheusInterceptor(),
