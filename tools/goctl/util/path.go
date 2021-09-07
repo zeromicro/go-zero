@@ -2,7 +2,6 @@ package util
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -167,5 +166,5 @@ func isLink(name string) (bool, error) {
 		return false, err
 	}
 
-	return fi.Mode()&fs.ModeSymlink != 0, nil
+	return fi.Mode()&os.ModeSymlink != 0, nil
 }
