@@ -13,7 +13,9 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-const handlerTemplate = `package {{.PkgName}}
+const (
+	defaultLogicPackage = "logic"
+	handlerTemplate     = `package {{.PkgName}}
 
 import (
 	"net/http"
@@ -40,6 +42,7 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 	}
 }
 `
+)
 
 type handlerInfo struct {
 	PkgName        string
@@ -58,7 +61,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	handler := getHandlerName(route)
 	handlerPath := getHandlerFolderPath(group, route)
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
-	logicName := "logic"
+	logicName := defaultLogicPackage
 	if handlerPath != handlerDir {
 		handler = strings.Title(handler)
 		logicName = pkgName
@@ -150,6 +153,7 @@ func getHandlerFolderPath(group spec.Group, route spec.Route) string {
 			return handlerDir
 		}
 	}
+
 	folder = strings.TrimPrefix(folder, "/")
 	folder = strings.TrimSuffix(folder, "/")
 	return path.Join(handlerDir, folder)

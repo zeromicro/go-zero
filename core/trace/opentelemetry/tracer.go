@@ -5,7 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
+	sdktrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -46,10 +46,11 @@ func Inject(ctx context.Context, p propagation.TextMapPropagator, metadata *meta
 }
 
 // Extract extracts the metadata from ctx.
-func Extract(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) (baggage.Baggage, trace.SpanContext) {
+func Extract(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) (
+	baggage.Baggage, sdktrace.SpanContext) {
 	ctx = p.Extract(ctx, &metadataSupplier{
 		metadata: metadata,
 	})
 
-	return baggage.FromContext(ctx), trace.SpanContextFromContext(ctx)
+	return baggage.FromContext(ctx), sdktrace.SpanContextFromContext(ctx)
 }
