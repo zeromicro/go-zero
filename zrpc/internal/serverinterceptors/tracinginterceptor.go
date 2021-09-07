@@ -8,7 +8,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// UnaryTracingInterceptor returns a func that handles tracing with given service name.
+// UnaryTracingInterceptor returns a grpc.UnaryServerInterceptor
+// that handles tracing with given service name.
 func UnaryTracingInterceptor(serviceName string) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (resp interface{}, err error) {
@@ -28,6 +29,8 @@ func UnaryTracingInterceptor(serviceName string) grpc.UnaryServerInterceptor {
 	}
 }
 
+// StreamTracingInterceptor returns a grpc.StreamServerInterceptor
+// that handles tracing with given service name.
 func StreamTracingInterceptor(serviceName string) grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler) error {
