@@ -30,7 +30,7 @@ type ServiceConf struct {
 	MetricsUrl string            `json:",optional"`
 	Prometheus prometheus.Config `json:",optional"`
 	// TODO: enable it in v1.2.1
-	// Telemetry  opentelemetry.Config `json:",optional"`
+	// Telemetry opentelemetry.Config `json:",optional"`
 }
 
 // MustSetUp sets up the service, exits on error.

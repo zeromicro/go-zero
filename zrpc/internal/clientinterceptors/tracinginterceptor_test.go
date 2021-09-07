@@ -12,12 +12,12 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func TestTracingInterceptor(t *testing.T) {
+func TestUnaryTracingInterceptor(t *testing.T) {
 	var run int32
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
-	err := TracingInterceptor(context.Background(), "/foo", nil, nil, cc,
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
@@ -29,7 +29,24 @@ func TestTracingInterceptor(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
 }
 
-func TestTracingInterceptor_GrpcFormat(t *testing.T) {
+func TestStreamTracingInterceptor(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	_, err := StreamTracingInterceptor(context.Background(), nil, cc, "/foo",
+		func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
+			opts ...grpc.CallOption) (grpc.ClientStream, error) {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return nil, nil
+		})
+	wg.Wait()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+func TestUnaryTracingInterceptor_GrpcFormat(t *testing.T) {
 	var run int32
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -40,12 +57,35 @@ func TestTracingInterceptor_GrpcFormat(t *testing.T) {
 	assert.Nil(t, err)
 	ctx, _ := trace.StartServerSpan(context.Background(), carrier, "user", "/foo")
 	cc := new(grpc.ClientConn)
-	err = TracingInterceptor(ctx, "/foo", nil, nil, cc,
+	err = UnaryTracingInterceptor(ctx, "/foo", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
 			return nil
+		})
+	wg.Wait()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	md := metadata.New(map[string]string{
+		"foo": "bar",
+	})
+	carrier, err := trace.Inject(trace.GrpcFormat, md)
+	assert.Nil(t, err)
+	ctx, _ := trace.StartServerSpan(context.Background(), carrier, "user", "/foo")
+	cc := new(grpc.ClientConn)
+	_, err = StreamTracingInterceptor(ctx, nil, cc, "/foo",
+		func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
+			opts ...grpc.CallOption) (grpc.ClientStream, error) {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return nil, nil
 		})
 	wg.Wait()
 	assert.Nil(t, err)

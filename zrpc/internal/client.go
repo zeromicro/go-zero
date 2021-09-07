@@ -67,14 +67,15 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
-			clientinterceptors.TracingInterceptor,
+			clientinterceptors.UnaryTracingInterceptor,
+			clientinterceptors.UnaryOpenTracingInterceptor(),
 			clientinterceptors.DurationInterceptor,
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
-			clientinterceptors.OpenTracingInterceptor(),
 		),
 		WithStreamClientInterceptors(
+			clientinterceptors.StreamTracingInterceptor,
 			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
