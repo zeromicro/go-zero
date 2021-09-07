@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/contextx"
 	"google.golang.org/grpc"
 )
 
@@ -16,8 +15,9 @@ func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
 
-		ctx, cancel := contextx.ShrinkDeadline(ctx, timeout)
+		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
+
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
 }

@@ -1,12 +1,17 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
@@ -17,7 +22,10 @@ import (
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
-const slowThreshold = time.Millisecond * 500
+const (
+	limitBodyBytes = 1024
+	slowThreshold  = time.Millisecond * 500
+)
 
 type loggedResponseWriter struct {
 	w    http.ResponseWriter
@@ -25,8 +33,24 @@ type loggedResponseWriter struct {
 	code int
 }
 
+func (w *loggedResponseWriter) Flush() {
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (w *loggedResponseWriter) Header() http.Header {
 	return w.w.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *loggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
@@ -36,12 +60,6 @@ func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
 func (w *loggedResponseWriter) WriteHeader(code int) {
 	w.w.WriteHeader(code)
 	w.code = code
-}
-
-func (w *loggedResponseWriter) Flush() {
-	if flusher, ok := w.w.(http.Flusher); ok {
-		flusher.Flush()
-	}
 }
 
 // LogHandler returns a middleware that logs http request and response.
@@ -81,6 +99,16 @@ func (w *detailLoggedResponseWriter) Flush() {
 
 func (w *detailLoggedResponseWriter) Header() http.Header {
 	return w.writer.Header()
+}
+
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *detailLoggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.writer.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *detailLoggedResponseWriter) Write(bs []byte) (int, error) {
@@ -133,7 +161,14 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 
 	ok := isOkResponse(code)
 	if !ok {
-		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
+		fullReq := dumpRequest(r)
+		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
+		body, err := ioutil.ReadAll(limitReader)
+		if err != nil {
+			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
+		} else {
+			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
+		}
 	}
 
 	body := logs.Flush()

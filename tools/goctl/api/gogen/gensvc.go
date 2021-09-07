@@ -33,26 +33,21 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 `
 )
 
-func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
 	}
 
-	var authNames = getAuths(api)
+	authNames := getAuths(api)
 	var auths []string
 	for _, item := range authNames {
 		auths = append(auths, fmt.Sprintf("%s config.AuthConfig", item))
 	}
 
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
-	}
-
 	var middlewareStr string
 	var middlewareAssignment string
-	var middlewares = getMiddleware(api)
+	middlewares := getMiddleware(api)
 
 	for _, item := range middlewares {
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
@@ -61,9 +56,9 @@ func genServiceContext(dir string, cfg *config.Config, api *spec.ApiSpec) error 
 			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
-	var configImport = "\"" + ctlutil.JoinPackages(parentPkg, configDir) + "\""
+	configImport := "\"" + ctlutil.JoinPackages(rootPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
-		configImport += "\n\t\"" + ctlutil.JoinPackages(parentPkg, middlewareDir) + "\""
+		configImport += "\n\t\"" + ctlutil.JoinPackages(rootPkg, middlewareDir) + "\""
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 

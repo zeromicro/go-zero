@@ -76,7 +76,7 @@ func WriteIndent(writer io.Writer, indent int) {
 
 // RemoveComment filters comment content
 func RemoveComment(line string) string {
-	var commentIdx = strings.Index(line, "//")
+	commentIdx := strings.Index(line, "//")
 	if commentIdx >= 0 {
 		return strings.TrimSpace(line[:commentIdx])
 	}

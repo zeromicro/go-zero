@@ -17,6 +17,13 @@ const (
 	goctlDir = ".goctl"
 )
 
+var goctlHome string
+
+// RegisterGoctlHome register goctl home path
+func RegisterGoctlHome(home string) {
+	goctlHome = home
+}
+
 // CreateIfNotExist creates a file if it is not exists
 func CreateIfNotExist(file string) (*os.File, error) {
 	_, err := os.Stat(file)
@@ -27,7 +34,7 @@ func CreateIfNotExist(file string) (*os.File, error) {
 	return os.Create(file)
 }
 
-// RemoveIfExist deletes the specficed file if it is exists
+// RemoveIfExist deletes the specified file if it is exists
 func RemoveIfExist(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -36,7 +43,7 @@ func RemoveIfExist(filename string) error {
 	return os.Remove(filename)
 }
 
-// RemoveOrQuit deletes the specficed file if read a permit command from stdin
+// RemoveOrQuit deletes the specified file if read a permit command from stdin
 func RemoveOrQuit(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -49,7 +56,7 @@ func RemoveOrQuit(filename string) error {
 	return os.Remove(filename)
 }
 
-// FileExists returns true if the specficed file is exists
+// FileExists returns true if the specified file is exists
 func FileExists(file string) bool {
 	_, err := os.Stat(file)
 	return err == nil
@@ -62,6 +69,10 @@ func FileNameWithoutExt(file string) string {
 
 // GetGoctlHome returns the path value of the goctl home where Join $HOME with .goctl
 func GetGoctlHome() (string, error) {
+	if len(goctlHome) != 0 {
+		return goctlHome, nil
+	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err

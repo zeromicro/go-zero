@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/antlr/antlr4/runtime/Go/antlr"
+	"github.com/zeromicro/antlr"
 )
 
 const (
@@ -16,28 +16,30 @@ const (
 	tagRegex         = `(?m)\x60[a-z]+:".+"\x60`
 )
 
-var holder = struct{}{}
-var kind = map[string]struct{}{
-	"bool":       holder,
-	"int":        holder,
-	"int8":       holder,
-	"int16":      holder,
-	"int32":      holder,
-	"int64":      holder,
-	"uint":       holder,
-	"uint8":      holder,
-	"uint16":     holder,
-	"uint32":     holder,
-	"uint64":     holder,
-	"uintptr":    holder,
-	"float32":    holder,
-	"float64":    holder,
-	"complex64":  holder,
-	"complex128": holder,
-	"string":     holder,
-	"byte":       holder,
-	"rune":       holder,
-}
+var (
+	holder = struct{}{}
+	kind   = map[string]struct{}{
+		"bool":       holder,
+		"int":        holder,
+		"int8":       holder,
+		"int16":      holder,
+		"int32":      holder,
+		"int64":      holder,
+		"uint":       holder,
+		"uint8":      holder,
+		"uint16":     holder,
+		"uint32":     holder,
+		"uint64":     holder,
+		"uintptr":    holder,
+		"float32":    holder,
+		"float64":    holder,
+		"complex64":  holder,
+		"complex128": holder,
+		"string":     holder,
+		"byte":       holder,
+		"rune":       holder,
+	}
+)
 
 func match(p *ApiParserParser, text string) {
 	v := getCurrentTokenText(p)

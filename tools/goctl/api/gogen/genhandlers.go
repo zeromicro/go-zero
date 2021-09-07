@@ -7,6 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
@@ -17,6 +18,7 @@ const handlerTemplate = `package {{.PkgName}}
 import (
 	"net/http"
 
+	{{if .After1_1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
@@ -26,9 +28,9 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.Error(w, err)
 			return
-		}{{end}}
+		}
 
-		l := {{.LogicName}}.New{{.LogicType}}(r.Context(), ctx)
+		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), ctx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}req{{end}})
 		if err != nil {
 			httpx.Error(w, err)
@@ -49,9 +51,10 @@ type handlerInfo struct {
 	Call           string
 	HasResp        bool
 	HasRequest     bool
+	After1_1_10    bool
 }
 
-func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
 	handlerPath := getHandlerFolderPath(group, route)
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
@@ -60,15 +63,15 @@ func genHandler(dir string, cfg *config.Config, group spec.Group, route spec.Rou
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
-	}
 
+	goctlVersion := version.GetGoctlVersion()
+	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
+	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
+		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),
@@ -97,10 +100,10 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 	})
 }
 
-func genHandlers(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, cfg, group, route); err != nil {
+			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
 				return err
 			}
 		}
@@ -117,7 +120,12 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
+
+	currentVersion := version.GetGoctlVersion()
+	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
+	if !version.IsVersionGreaterThan(currentVersion, "1.1.10") {
+		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
+	}
 
 	return strings.Join(imports, "\n\t")
 }

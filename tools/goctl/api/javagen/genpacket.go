@@ -67,7 +67,7 @@ func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName stri
 	}
 	defer fp.Close()
 
-	var hasRequestBody = false
+	hasRequestBody := false
 	if route.RequestType != nil {
 		if defineStruct, ok := route.RequestType.(spec.DefineStruct); ok {
 			hasRequestBody = len(defineStruct.GetBodyMembers()) > 0 || len(defineStruct.GetFormMembers()) > 0

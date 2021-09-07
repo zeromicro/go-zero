@@ -36,7 +36,7 @@ func (u Unstable) AroundDuration(base time.Duration) time.Duration {
 	return val
 }
 
-// AroundInt returns a randome int64 with given base and deviation.
+// AroundInt returns a random int64 with given base and deviation.
 func (u Unstable) AroundInt(base int64) int64 {
 	u.lock.Lock()
 	val := int64((1 + u.deviation - 2*u.deviation*u.r.Float64()) * float64(base))

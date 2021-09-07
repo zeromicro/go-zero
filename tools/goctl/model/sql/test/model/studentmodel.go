@@ -28,7 +28,7 @@ type (
 	StudentModel interface {
 		Insert(data Student) (sql.Result, error)
 		FindOne(id int64) (*Student, error)
-		FindOneByClassName(class string, name string) (*Student, error)
+		FindOneByClassName(class, name string) (*Student, error)
 		Update(data Student) error
 		// only for test
 		Delete(id int64, className, studentName string) error
@@ -85,7 +85,7 @@ func (m *defaultStudentModel) FindOne(id int64) (*Student, error) {
 	}
 }
 
-func (m *defaultStudentModel) FindOneByClassName(class string, name string) (*Student, error) {
+func (m *defaultStudentModel) FindOneByClassName(class, name string) (*Student, error) {
 	studentClassNameKey := fmt.Sprintf("%s%v%v", cacheStudentClassNamePrefix, class, name)
 	var resp Student
 	err := m.QueryRowIndex(&resp, studentClassNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {

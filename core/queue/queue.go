@@ -71,7 +71,7 @@ func NewQueue(producerFactory ProducerFactory, consumerFactory ConsumerFactory) 
 	return q
 }
 
-// AddListener adds a litener to q.
+// AddListener adds a listener to q.
 func (q *Queue) AddListener(listener Listener) {
 	q.listeners = append(q.listeners, listener)
 }

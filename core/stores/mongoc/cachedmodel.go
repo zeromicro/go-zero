@@ -75,7 +75,7 @@ func (mm *Model) GetCollection(session *mgo.Session) CachedCollection {
 }
 
 // FindAllNoCache finds all records without cache.
-func (mm *Model) FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error {
+func (mm *Model) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindAllNoCache(v, query, opts...)
 	})
@@ -89,7 +89,7 @@ func (mm *Model) FindOne(v interface{}, key string, query interface{}) error {
 }
 
 // FindOneNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneNoCache(v interface{}, query interface{}) error {
+func (mm *Model) FindOneNoCache(v, query interface{}) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOneNoCache(v, query)
 	})
@@ -103,7 +103,7 @@ func (mm *Model) FindOneId(v interface{}, key string, id interface{}) error {
 }
 
 // FindOneIdNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneIdNoCache(v interface{}, id interface{}) error {
+func (mm *Model) FindOneIdNoCache(v, id interface{}) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOneIdNoCache(v, id)
 	})

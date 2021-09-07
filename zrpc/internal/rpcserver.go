@@ -58,10 +58,14 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		serverinterceptors.UnaryCrashInterceptor(),
 		serverinterceptors.UnaryStatInterceptor(s.metrics),
 		serverinterceptors.UnaryPrometheusInterceptor(),
+		serverinterceptors.UnaryBreakerInterceptor(),
+		serverinterceptors.UnaryOpenTracingInterceptor(),
 	}
 	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
 	streamInterceptors := []grpc.StreamServerInterceptor{
 		serverinterceptors.StreamCrashInterceptor,
+		serverinterceptors.StreamBreakerInterceptor,
+		serverinterceptors.StreamOpenTracingInterceptor(),
 	}
 	streamInterceptors = append(streamInterceptors, s.streamInterceptors...)
 	options := append(s.options, WithUnaryServerInterceptors(unaryInterceptors...),

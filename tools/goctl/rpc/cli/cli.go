@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"runtime"
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
 )
 
@@ -13,13 +16,25 @@ import (
 // you can specify a target folder for code generation, when the proto file has import, you can specify
 // the import search directory through the proto_path command, for specific usage, please refer to protoc -h
 func RPC(c *cli.Context) error {
+	if err := prepare(); err != nil {
+		return err
+	}
+
 	src := c.String("src")
 	out := c.String("dir")
 	style := c.String("style")
 	protoImportPath := c.StringSlice("proto_path")
+	goOptions := c.StringSlice("go_opt")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(src) == 0 {
 		return errors.New("missing -src")
 	}
+
 	if len(out) == 0 {
 		return errors.New("missing -dir")
 	}
@@ -29,7 +44,23 @@ func RPC(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(src, out, protoImportPath)
+	return g.Generate(src, out, protoImportPath, goOptions...)
+}
+
+func prepare() error {
+	if !env.CanExec() {
+		return fmt.Errorf("%s: can not start new processes using os.StartProcess or exec.Command", runtime.GOOS)
+	}
+	if _, err := env.LookUpGo(); err != nil {
+		return err
+	}
+	if _, err := env.LookUpProtoc(); err != nil {
+		return err
+	}
+	if _, err := env.LookUpProtocGenGo(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -41,6 +72,11 @@ func RPCNew(c *cli.Context) error {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
 	style := c.String("style")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
 
 	protoName := rpcname + ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
@@ -65,6 +101,12 @@ func RPCNew(c *cli.Context) error {
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(c *cli.Context) error {
 	protoFile := c.String("o")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(protoFile) == 0 {
 		return errors.New("missing -o")
 	}

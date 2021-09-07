@@ -5,9 +5,11 @@ import (
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
+
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 )
 
-const regularPerm = 0666
+const regularPerm = 0o666
 
 // DefaultTemplate is a tool to provides the text/template operations
 type DefaultTemplate struct {
@@ -17,7 +19,7 @@ type DefaultTemplate struct {
 	savePath string
 }
 
-// With returns a instace of DefaultTemplate
+// With returns a instance of DefaultTemplate
 func With(name string) *DefaultTemplate {
 	return &DefaultTemplate{
 		name: name,
@@ -30,7 +32,7 @@ func (t *DefaultTemplate) Parse(text string) *DefaultTemplate {
 	return t
 }
 
-// GoFmt sets the value to goFmt and marks the generated codes will be formated or not
+// GoFmt sets the value to goFmt and marks the generated codes will be formatted or not
 func (t *DefaultTemplate) GoFmt(format bool) *DefaultTemplate {
 	t.goFmt = format
 	return t
@@ -54,12 +56,12 @@ func (t *DefaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template parse error:", t.text)
 	}
 
 	buf := new(bytes.Buffer)
 	if err = tem.Execute(buf, data); err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template execute error:", t.text)
 	}
 
 	if !t.goFmt {
@@ -68,7 +70,7 @@ func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 
 	formatOutput, err := goformat.Source(buf.Bytes())
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "go format error:", string(buf.Bytes()))
 	}
 
 	buf.Reset()

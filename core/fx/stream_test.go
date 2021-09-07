@@ -3,7 +3,10 @@ package fx
 import (
 	"io/ioutil"
 	"log"
+	"math/rand"
+	"reflect"
 	"runtime"
+	"sort"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -330,6 +333,29 @@ func TestWalk(t *testing.T) {
 	assert.Equal(t, 9, result)
 }
 
+func BenchmarkParallelMapReduce(b *testing.B) {
+	b.ReportAllocs()
+
+	mapper := func(v interface{}) interface{} {
+		return v.(int64) * v.(int64)
+	}
+	reducer := func(input <-chan interface{}) (interface{}, error) {
+		var result int64
+		for v := range input {
+			result += v.(int64)
+		}
+		return result, nil
+	}
+	b.ResetTimer()
+	From(func(input chan<- interface{}) {
+		b.RunParallel(func(pb *testing.PB) {
+			for pb.Next() {
+				input <- int64(rand.Int())
+			}
+		})
+	}).Map(mapper).Reduce(reducer)
+}
+
 func BenchmarkMapReduce(b *testing.B) {
 	b.ReportAllocs()
 
@@ -343,12 +369,103 @@ func BenchmarkMapReduce(b *testing.B) {
 		}
 		return result, nil
 	}
+	b.ResetTimer()
+	From(func(input chan<- interface{}) {
+		for i := 0; i < b.N; i++ {
+			input <- int64(rand.Int())
+		}
+	}).Map(mapper).Reduce(reducer)
+}
 
-	for i := 0; i < b.N; i++ {
-		From(func(input chan<- interface{}) {
-			for j := 0; j < 2; j++ {
-				input <- int64(j)
-			}
-		}).Map(mapper).Reduce(reducer)
+func equal(t *testing.T, stream Stream, data []interface{}) {
+	items := make([]interface{}, 0)
+	for item := range stream.source {
+		items = append(items, item)
 	}
+	if !reflect.DeepEqual(items, data) {
+		t.Errorf(" %v, want %v", items, data)
+	}
+}
+
+func assetEqual(t *testing.T, except, data interface{}) {
+	if !reflect.DeepEqual(except, data) {
+		t.Errorf(" %v, want %v", data, except)
+	}
+}
+
+func TestStream_AnyMach(t *testing.T) {
+	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 4 == item.(int)
+	}))
+	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 0 == item.(int)
+	}))
+	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 2 == item.(int)
+	}))
+	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		return 2 == item.(int)
+	}))
+}
+
+func TestStream_AllMach(t *testing.T) {
+	assetEqual(
+		t, true, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			return true
+		}),
+	)
+	assetEqual(
+		t, false, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			return false
+		}),
+	)
+	assetEqual(
+		t, false, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			return item.(int) == 1
+		}),
+	)
+}
+
+func TestConcat(t *testing.T) {
+	a1 := []interface{}{1, 2, 3}
+	a2 := []interface{}{4, 5, 6}
+	s1 := Just(a1...)
+	s2 := Just(a2...)
+	stream := Concat(s1, s2)
+	var items []interface{}
+	for item := range stream.source {
+		items = append(items, item)
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].(int) < items[j].(int)
+	})
+	ints := make([]interface{}, 0)
+	ints = append(ints, a1...)
+	ints = append(ints, a2...)
+	assetEqual(t, ints, items)
+}
+
+func TestStream_Skip(t *testing.T) {
+	assetEqual(t, 3, Just(1, 2, 3, 4).Skip(1).Count())
+	assetEqual(t, 1, Just(1, 2, 3, 4).Skip(3).Count())
+	assetEqual(t, 4, Just(1, 2, 3, 4).Skip(0).Count())
+	equal(t, Just(1, 2, 3, 4).Skip(3), []interface{}{4})
+	assert.Panics(t, func() {
+		Just(1, 2, 3, 4).Skip(-1)
+	})
+}
+
+func TestStream_Concat(t *testing.T) {
+	stream := Just(1).Concat(Just(2), Just(3))
+	var items []interface{}
+	for item := range stream.source {
+		items = append(items, item)
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].(int) < items[j].(int)
+	})
+	assetEqual(t, []interface{}{1, 2, 3}, items)
+
+	just := Just(1)
+	equal(t, just.Concat(just), []interface{}{1})
 }

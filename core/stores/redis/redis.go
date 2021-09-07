@@ -29,6 +29,9 @@ const (
 var ErrNilNode = errors.New("nil redis node")
 
 type (
+	// Option defines the method to customize a Redis.
+	Option func(r *Redis)
+
 	// A Pair is a key/pair set used in redis zset.
 	Pair struct {
 		Key   string
@@ -40,6 +43,7 @@ type (
 		Addr string
 		Type string
 		Pass string
+		tls  bool
 		brk  breaker.Breaker
 	}
 
@@ -67,21 +71,36 @@ type (
 	IntCmd = red.IntCmd
 	// FloatCmd is an alias of redis.FloatCmd.
 	FloatCmd = red.FloatCmd
+	// StringCmd is an alias of redis.StringCmd.
+	StringCmd = red.StringCmd
 )
+
+// New returns a Redis with given options.
+func New(addr string, opts ...Option) *Redis {
+	r := &Redis{
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
+	}
+
+	for _, opt := range opts {
+		opt(r)
+	}
+
+	return r
+}
 
 // NewRedis returns a Redis.
 func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
-	var pass string
+	var opts []Option
+	if redisType == ClusterType {
+		opts = append(opts, Cluster())
+	}
 	for _, v := range redisPass {
-		pass = v
+		opts = append(opts, WithPass(v))
 	}
 
-	return &Redis{
-		Addr: redisAddr,
-		Type: redisType,
-		Pass: pass,
-		brk:  breaker.NewBreaker(),
-	}
+	return New(redisAddr, opts...)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -163,7 +182,7 @@ func (s *Redis) BitOpXor(destKey string, keys ...string) (val int64, err error) 
 }
 
 // BitPos is redis bitpos command implementation.
-func (s *Redis) BitPos(key string, bit int64, start, end int64) (val int64, err error) {
+func (s *Redis) BitPos(key string, bit, start, end int64) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -329,7 +348,7 @@ func (s *Redis) GeoAdd(key string, geoLocation ...*GeoLocation) (val int64, err 
 }
 
 // GeoDist is the implementation of redis geodist command.
-func (s *Redis) GeoDist(key string, member1, member2, unit string) (val float64, err error) {
+func (s *Redis) GeoDist(key, member1, member2, unit string) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -464,14 +483,14 @@ func (s *Redis) GetBit(key string, offset int64) (val int, err error) {
 }
 
 // Hdel is the implementation of redis hdel command.
-func (s *Redis) Hdel(key, field string) (val bool, err error) {
+func (s *Redis) Hdel(key string, fields ...string) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
 
-		v, err := conn.HDel(key, field).Result()
+		v, err := conn.HDel(key, fields...).Result()
 		if err != nil {
 			return err
 		}
@@ -778,7 +797,7 @@ func (s *Redis) Lpush(key string, values ...interface{}) (val int, err error) {
 }
 
 // Lrange is the implementation of redis lrange command.
-func (s *Redis) Lrange(key string, start int, stop int) (val []string, err error) {
+func (s *Redis) Lrange(key string, start, stop int) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -928,7 +947,6 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) (err error) {
 
 		_, err = conn.Pipelined(fn)
 		return err
-
 	}, acceptable)
 
 	return
@@ -1058,7 +1076,7 @@ func (s *Redis) ScriptLoad(script string) (string, error) {
 }
 
 // Set is the implementation of redis set command.
-func (s *Redis) Set(key string, value string) error {
+func (s *Redis) Set(key, value string) error {
 	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1266,6 +1284,41 @@ func (s *Redis) Sdiffstore(destination string, keys ...string) (val int, err err
 	return
 }
 
+// Sinter is the implementation of redis sinter command.
+func (s *Redis) Sinter(keys ...string) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.SInter(keys...).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Sinterstore is the implementation of redis sinterstore command.
+func (s *Redis) Sinterstore(destination string, keys ...string) (val int, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.SInterStore(destination, keys...).Result()
+		if err != nil {
+			return err
+		}
+
+		val = int(v)
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Ttl is the implementation of redis ttl command.
 func (s *Redis) Ttl(key string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -1396,7 +1449,7 @@ func (s *Redis) Zincrby(key string, increment int64, field string) (val int64, e
 }
 
 // Zscore is the implementation of redis zscore command.
-func (s *Redis) Zscore(key string, value string) (val int64, err error) {
+func (s *Redis) Zscore(key, value string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1668,7 +1721,7 @@ func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64
 }
 
 // Zrevrank is the implementation of redis zrevrank command.
-func (s *Redis) Zrevrank(key string, field string) (val int64, err error) {
+func (s *Redis) Zrevrank(key, field string) (val int64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1697,6 +1750,27 @@ func (s *Redis) Zunionstore(dest string, store ZStore, keys ...string) (val int6
 	return
 }
 
+// Cluster customizes the given Redis as a cluster.
+func Cluster() Option {
+	return func(r *Redis) {
+		r.Type = ClusterType
+	}
+}
+
+// WithPass customizes the given Redis with given password.
+func WithPass(pass string) Option {
+	return func(r *Redis) {
+		r.Pass = pass
+	}
+}
+
+// WithTLS customizes the given Redis with TLS enabled.
+func WithTLS() Option {
+	return func(r *Redis) {
+		r.tls = true
+	}
+}
+
 func acceptable(err error) bool {
 	return err == nil || err == red.Nil
 }
@@ -1704,9 +1778,9 @@ func acceptable(err error) bool {
 func getRedis(r *Redis) (RedisNode, error) {
 	switch r.Type {
 	case ClusterType:
-		return getCluster(r.Addr, r.Pass)
+		return getCluster(r)
 	case NodeType:
-		return getClient(r.Addr, r.Pass)
+		return getClient(r)
 	default:
 		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
 	}

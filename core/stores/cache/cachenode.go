@@ -59,21 +59,30 @@ func NewNode(rds *redis.Redis, barrier syncx.SharedCalls, st *Stat,
 	}
 }
 
-// DelCache deletes cached values with keys.
+// Del deletes cached values with keys.
 func (c cacheNode) Del(keys ...string) error {
 	if len(keys) == 0 {
 		return nil
 	}
 
-	if _, err := c.rds.Del(keys...); err != nil {
-		logx.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
-		c.asyncRetryDelCache(keys...)
+	if len(keys) > 1 && c.rds.Type == redis.ClusterType {
+		for _, key := range keys {
+			if _, err := c.rds.Del(key); err != nil {
+				logx.Errorf("failed to clear cache with key: %q, error: %v", key, err)
+				c.asyncRetryDelCache(key)
+			}
+		}
+	} else {
+		if _, err := c.rds.Del(keys...); err != nil {
+			logx.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
+			c.asyncRetryDelCache(keys...)
+		}
 	}
 
 	return nil
 }
 
-// GetCache gets the cache with key and fills into v.
+// Get gets the cache with key and fills into v.
 func (c cacheNode) Get(key string, v interface{}) error {
 	err := c.doGetCache(key, v)
 	if err == errPlaceholder {
@@ -88,12 +97,12 @@ func (c cacheNode) IsNotFound(err error) bool {
 	return err == c.errNotFound
 }
 
-// SetCache sets the cache with key and v, using c.expiry.
+// Set sets the cache with key and v, using c.expiry.
 func (c cacheNode) Set(key string, v interface{}) error {
 	return c.SetWithExpire(key, v, c.aroundDuration(c.expiry))
 }
 
-// SetCacheWithExpire sets the cache with key and v, using given expire.
+// SetWithExpire sets the cache with key and v, using given expire.
 func (c cacheNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
 	data, err := jsonx.Marshal(v)
 	if err != nil {
@@ -108,7 +117,7 @@ func (c cacheNode) String() string {
 	return c.rds.Addr
 }
 
-// TakeWithExpire takes the result from cache first, if not found,
+// Take takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
 func (c cacheNode) Take(v interface{}, key string, query func(v interface{}) error) error {
 	return c.doTake(v, key, query, func(v interface{}) error {
@@ -205,7 +214,7 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 	return jsonx.Unmarshal(val.([]byte), v)
 }
 
-func (c cacheNode) processCache(key string, data string, v interface{}) error {
+func (c cacheNode) processCache(key, data string, v interface{}) error {
 	err := jsonx.Unmarshal([]byte(data), v)
 	if err == nil {
 		return nil

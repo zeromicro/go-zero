@@ -29,7 +29,7 @@ func TestGaugeInc(t *testing.T) {
 		Labels:    []string{"path"},
 	})
 	defer gaugeVec.close()
-	gv, _ := gaugeVec.(*promGuageVec)
+	gv, _ := gaugeVec.(*promGaugeVec)
 	gv.Inc("/users")
 	gv.Inc("/users")
 	r := testutil.ToFloat64(gv.gauge)
@@ -45,7 +45,7 @@ func TestGaugeAdd(t *testing.T) {
 		Labels:    []string{"path"},
 	})
 	defer gaugeVec.close()
-	gv, _ := gaugeVec.(*promGuageVec)
+	gv, _ := gaugeVec.(*promGaugeVec)
 	gv.Add(-10, "/classroom")
 	gv.Add(30, "/classroom")
 	r := testutil.ToFloat64(gv.gauge)
@@ -61,7 +61,7 @@ func TestGaugeSet(t *testing.T) {
 		Labels:    []string{"path"},
 	})
 	gaugeVec.close()
-	gv, _ := gaugeVec.(*promGuageVec)
+	gv, _ := gaugeVec.(*promGaugeVec)
 	gv.Set(666, "/users")
 	r := testutil.ToFloat64(gv.gauge)
 	assert.Equal(t, float64(666), r)

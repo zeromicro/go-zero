@@ -25,7 +25,7 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 
 	loader, ok := loaders[path.Ext(file)]
 	if !ok {
-		return fmt.Errorf("unrecoginized file type: %s", file)
+		return fmt.Errorf("unrecognized file type: %s", file)
 	}
 
 	var opt options

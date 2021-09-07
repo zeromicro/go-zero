@@ -8,7 +8,7 @@ import (
 
 	"github.com/tal-tech/go-zero/core/search"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
@@ -61,7 +61,7 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if tree, ok := pr.trees[r.Method]; ok {
 		if result, ok := tree.Search(reqPath); ok {
 			if len(result.Params) > 0 {
-				r = context.WithPathVars(r, result.Params)
+				r = pathvar.WithVars(r, result.Params)
 			}
 			result.Item.(http.Handler).ServeHTTP(w, r)
 			return

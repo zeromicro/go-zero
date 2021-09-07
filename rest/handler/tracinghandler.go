@@ -21,6 +21,8 @@ func TracingHandler(next http.Handler) http.Handler {
 		defer span.Finish()
 		r = r.WithContext(ctx)
 
+		// conveniently tracking error messages
+		w.Header().Set(trace.TraceIdKey, span.TraceId())
 		next.ServeHTTP(w, r)
 	})
 }

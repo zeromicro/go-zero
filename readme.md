@@ -12,7 +12,7 @@ English | [简体中文](readme-cn.md)
 
 ## 0. what is go-zero
 
-go-zero is a web and rpc framework that with lots of engineering practices builtin. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
@@ -97,14 +97,18 @@ go get -u github.com/tal-tech/go-zero
 
      [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/doc/bookstore-en.md)
+     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
 1. install goctl
 
    `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
 
    ```shell
+   # for Go 1.15 and earlier
    GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
+   
+   # for Go 1.16 and later
+   go install github.com/tal-tech/go-zero/tools/goctl@latest
    ```
 
    make sure goctl is executable.
@@ -112,17 +116,19 @@ go get -u github.com/tal-tech/go-zero
 2. create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
    ```go
-   type Request struct {
-     Name string `path:"name,options=you|me"` // parameters are auto validated
-   }
-
-   type Response struct {
-     Message string `json:"message"`
-   }
-
+   type (
+     Request {
+       Name string `path:"name,options=you|me"` // parameters are auto validated
+     }
+   
+     Response {
+       Message string `json:"message"`
+     }
+   )
+   
    service greet-api {
      @handler GreetHandler
-     get /greet/from/:name(Request) returns (Response);
+     get /greet/from/:name(Request) returns (Response)
    }
    ```
    
@@ -206,10 +212,15 @@ go get -u github.com/tal-tech/go-zero
 
 ## 8. Documents (adding)
 
+* [Documents](https://go-zero.dev/en/)
 * [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
 ## 9. Chat group
 
-Join the chat via https://join.slack.com/t/go-zeroworkspace/shared_invite/zt-m39xssxc-kgIqERa7aVsujKNj~XuPKg
+Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-ulzixfgi-NAkZjq856TewLY2KQSxHCw
+
+## Give a Star! ⭐
+
+If you like or are using this project to learn or start your solution, please give it a star. Thanks!

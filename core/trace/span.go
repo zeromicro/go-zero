@@ -34,7 +34,7 @@ type Span struct {
 func newServerSpan(carrier Carrier, serviceName, operationName string) tracespec.Trace {
 	traceId := stringx.TakeWithPriority(func() string {
 		if carrier != nil {
-			return carrier.Get(traceIdKey)
+			return carrier.Get(TraceIdKey)
 		}
 		return ""
 	}, stringx.RandId)

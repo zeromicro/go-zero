@@ -17,7 +17,7 @@ type (
 		NameExpr() Expr
 	}
 
-	// TypeAlias describes alias ast for api syatax
+	// TypeAlias describes alias ast for api syntax
 	TypeAlias struct {
 		Name        Expr
 		Assign      Expr
@@ -26,7 +26,7 @@ type (
 		CommentExpr Expr
 	}
 
-	// TypeStruct describes structure ast for api syatax
+	// TypeStruct describes structure ast for api syntax
 	TypeStruct struct {
 		Name    Expr
 		Struct  Expr
@@ -114,8 +114,10 @@ func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) interface{} {
 		return alias
 	}
 
+	doc := v.getDoc(ctx)
 	st, ok := typeLit.(*TypeStruct)
 	if ok {
+		st.DocExpr = doc
 		return st
 	}
 
@@ -128,7 +130,6 @@ func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) interface{} {
 	var types []TypeExpr
 	for _, each := range list {
 		types = append(types, each.Accept(v).(TypeExpr))
-
 	}
 	return types
 }
@@ -155,7 +156,6 @@ func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) interface{} {
 	st.Name = v.newExprWithToken(ctx.GetStructName())
 
 	if util.UnExport(ctx.GetStructName().GetText()) {
-
 	}
 	if ctx.GetStructToken() != nil {
 		structExpr := v.newExprWithToken(ctx.GetStructToken())
@@ -225,7 +225,7 @@ func (v *ApiVisitor) VisitTypeBlockAlias(ctx *api.TypeBlockAliasContext) interfa
 	alias.DocExpr = v.getDoc(ctx)
 	alias.CommentExpr = v.getComment(ctx)
 	// todo: reopen if necessary
-	v.panic(alias.Name, "unsupport alias")
+	v.panic(alias.Name, "unsupported alias")
 	return &alias
 }
 
@@ -238,7 +238,7 @@ func (v *ApiVisitor) VisitTypeAlias(ctx *api.TypeAliasContext) interface{} {
 	alias.DocExpr = v.getDoc(ctx)
 	alias.CommentExpr = v.getComment(ctx)
 	// todo: reopen if necessary
-	v.panic(alias.Name, "unsupport alias")
+	v.panic(alias.Name, "unsupported alias")
 	return &alias
 }
 
@@ -319,7 +319,7 @@ func (v *ApiVisitor) VisitDataType(ctx *api.DataTypeContext) interface{} {
 	if ctx.GetTime() != nil {
 		// todo: reopen if it is necessary
 		timeExpr := v.newExprWithToken(ctx.GetTime())
-		v.panic(timeExpr, "unsupport time.Time")
+		v.panic(timeExpr, "unsupported time.Time")
 		return &Time{Literal: timeExpr}
 	}
 	if ctx.PointerType() != nil {

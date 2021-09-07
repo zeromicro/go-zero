@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -752,7 +753,7 @@ func TestUnmarshalJsonNumberInt64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue int64 = 1 << uint(i)
 		strValue := strconv.FormatInt(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}
@@ -768,7 +769,7 @@ func TestUnmarshalJsonNumberUint64(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}
@@ -784,7 +785,7 @@ func TestUnmarshalJsonNumberUint64Ptr(t *testing.T) {
 	for i := 0; i <= maxUintBitsToTest; i++ {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
-		var number = json.Number(strValue)
+		number := json.Number(strValue)
 		m := map[string]interface{}{
 			"ID": number,
 		}
@@ -2479,4 +2480,41 @@ func BenchmarkUnmarshal(b *testing.B) {
 		var an anonymous
 		UnmarshalKey(data, &an)
 	}
+}
+
+func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
+	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
+	var res struct {
+		A string     `json:"a"`
+		B [][]string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
+	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
+	var res struct {
+		A string      `json:"a"`
+		B [][]*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
+func TestUnmarshalJsonReaderPtrArray(t *testing.T) {
+	payload := `{"a": "133", "b": ["add", "cccd", "eeee"]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
 }

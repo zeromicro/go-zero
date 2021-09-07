@@ -25,6 +25,7 @@ func init() {
 }
 
 func TestAdaptiveShedder(t *testing.T) {
+	DisableLog()
 	shedder := NewAdaptiveShedder(WithWindow(bucketDuration), WithBuckets(buckets), WithCpuThreshold(100))
 	var wg sync.WaitGroup
 	var drop int64
@@ -201,7 +202,7 @@ func BenchmarkAdaptiveShedder_Allow(b *testing.B) {
 	logx.Disable()
 
 	bench := func(b *testing.B) {
-		var shedder = NewAdaptiveShedder()
+		shedder := NewAdaptiveShedder()
 		proba := mathx.NewProba()
 		for i := 0; i < 6000; i++ {
 			p, err := shedder.Allow()

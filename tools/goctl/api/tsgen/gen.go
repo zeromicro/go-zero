@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-// TsCommand provides the entry to generting typescript codes
+// TsCommand provides the entry to generate typescript codes
 func TsCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")

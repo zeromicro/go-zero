@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -33,7 +34,7 @@ func MkdirIfNotExist(dir string) error {
 	return nil
 }
 
-// PathFromGoSrc returns the path whihout slash where has been trim the prefix $GOPATH
+// PathFromGoSrc returns the path without slash where has been trim the prefix $GOPATH
 func PathFromGoSrc() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {
@@ -61,8 +62,8 @@ func FindGoModPath(dir string) (string, bool) {
 
 	absDir = strings.ReplaceAll(absDir, `\`, `/`)
 	var rootPath string
-	var tempPath = absDir
-	var hasGoMod = false
+	tempPath := absDir
+	hasGoMod := false
 	for {
 		if FileExists(filepath.Join(tempPath, goModeIdentifier)) {
 			rootPath = strings.TrimPrefix(absDir[len(tempPath):], "/")
@@ -111,4 +112,60 @@ func FindProjectPath(loc string) (string, bool) {
 	}
 
 	return "", false
+}
+
+// ReadLink returns the destination of the named symbolic link recursively.
+func ReadLink(name string) (string, error) {
+	name, err := filepath.Abs(name)
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := os.Lstat(name); err != nil {
+		return name, nil
+	}
+
+	// uncheck condition: ignore file path /var, maybe be temporary file path
+	if name == "/" || name == "/var" {
+		return name, nil
+	}
+
+	isLink, err := isLink(name)
+	if err != nil {
+		return "", err
+	}
+
+	if !isLink {
+		dir, base := filepath.Split(name)
+		dir = filepath.Clean(dir)
+		dir, err := ReadLink(dir)
+		if err != nil {
+			return "", err
+		}
+
+		return filepath.Join(dir, base), nil
+	}
+
+	link, err := os.Readlink(name)
+	if err != nil {
+		return "", err
+	}
+
+	dir, base := filepath.Split(link)
+	dir = filepath.Dir(dir)
+	dir, err = ReadLink(dir)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(dir, base), nil
+}
+
+func isLink(name string) (bool, error) {
+	fi, err := os.Lstat(name)
+	if err != nil {
+		return false, err
+	}
+
+	return fi.Mode()&fs.ModeSymlink != 0, nil
 }
