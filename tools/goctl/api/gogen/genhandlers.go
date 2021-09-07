@@ -13,7 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-const handlerTemplate = `package handler
+const handlerTemplate = `package {{.PkgName}}
 
 import (
 	"net/http"
@@ -30,7 +30,7 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		{{end}}l := logic.New{{.LogicType}}(r.Context(), ctx)
+		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), ctx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}req{{end}})
 		if err != nil {
 			httpx.Error(w, err)
@@ -42,9 +42,11 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 `
 
 type handlerInfo struct {
+	PkgName        string
 	ImportPackages string
 	HandlerName    string
 	RequestType    string
+	LogicName      string
 	LogicType      string
 	Call           string
 	HasResp        bool
@@ -54,18 +56,28 @@ type handlerInfo struct {
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
-	if getHandlerFolderPath(group, route) != handlerDir {
+	handlerPath := getHandlerFolderPath(group, route)
+	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
+	logicName := "logic"
+	if handlerPath != handlerDir {
 		handler = strings.Title(handler)
+		logicName = pkgName
+	}
+	parentPkg, err := getParentPackage(dir)
+	if err != nil {
+		return err
 	}
 
 	goctlVersion := version.GetGoctlVersion()
 	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
 	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		ImportPackages: genHandlerImports(group, route, rootPkg),
+		PkgName:        pkgName,
+		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
 		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
+		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
