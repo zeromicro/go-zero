@@ -23,6 +23,7 @@ type (
 	// SqlConn only stands for raw connections, so Transact method can be called.
 	SqlConn interface {
 		Session
+		RawDB() (*sql.DB, error)
 		Transact(func(session Session) error) error
 	}
 
@@ -143,6 +144,10 @@ func (db *commonSqlConn) QueryRowsPartial(v interface{}, q string, args ...inter
 	return db.queryRows(func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
+}
+
+func (db *commonSqlConn) RawDB() (*sql.DB, error) {
+	return getSqlConn(db.driverName, db.datasource)
 }
 
 func (db *commonSqlConn) Transact(fn func(Session) error) error {

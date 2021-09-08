@@ -600,6 +600,10 @@ func (d dummySqlConn) QueryRowsPartial(v interface{}, query string, args ...inte
 	return nil
 }
 
+func (d dummySqlConn) RawDB() (*sql.DB, error) {
+	return nil, nil
+}
+
 func (d dummySqlConn) Transact(func(session sqlx.Session) error) error {
 	return nil
 }
@@ -619,6 +623,10 @@ func (c *trackedConn) Exec(query string, args ...interface{}) (sql.Result, error
 func (c *trackedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
 	c.queryRowsValue = true
 	return c.dummySqlConn.QueryRows(v, query, args...)
+}
+
+func (c *trackedConn) RawDB() (*sql.DB, error) {
+	return nil, nil
 }
 
 func (c *trackedConn) Transact(fn func(session sqlx.Session) error) error {
