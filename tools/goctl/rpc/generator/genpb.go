@@ -2,14 +2,17 @@ package generator
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/collection"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported; use 'protoc --go-grpc_out=...' to generate gRPC`
@@ -19,26 +22,14 @@ const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported
 func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, goOptions ...string) error {
 	dir := ctx.GetPb()
 	cw := new(bytes.Buffer)
-	directory, base := filepath.Split(proto.Src)
+	directory, _ := filepath.Split(proto.Src)
 	directory = filepath.Clean(directory)
 	cw.WriteString("protoc ")
 	protoImportPathSet := collection.NewSet()
-	isSamePackage := true
 	for _, ip := range protoImportPath {
 		pip := " --proto_path=" + ip
 		if protoImportPathSet.Contains(pip) {
 			continue
-		}
-
-		abs, err := filepath.Abs(ip)
-		if err != nil {
-			return err
-		}
-
-		if abs == directory {
-			isSamePackage = true
-		} else {
-			isSamePackage = false
 		}
 
 		protoImportPathSet.AddStr(pip)
@@ -56,50 +47,39 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 		cw.WriteString(" --go_out=plugins=grpc:" + dir.Filename)
 	}
 
-	// Compatible with version 1.4.0，github.com/golang/protobuf/protoc-gen-go@v1.4.0
-	// --go_opt usage please see https://developers.google.com/protocol-buffers/docs/reference/go-generated#package
-	optSet := collection.NewSet()
-	for _, op := range goOptions {
-		opt := " --go_opt=" + op
-		if optSet.Contains(opt) {
-			continue
-		}
+	return g.generatePbWithVersion132(cw.String())
+}
 
-		optSet.AddStr(op)
-		cw.WriteString(" --go_opt=" + op)
-	}
-
-	var currentFileOpt string
-	if !isSamePackage || (len(proto.GoPackage) > 0 && proto.GoPackage != proto.Package.Name) {
-		if filepath.IsAbs(proto.GoPackage) {
-			currentFileOpt = " --go_opt=M" + base + "=" + proto.GoPackage
-		} else if strings.Contains(proto.GoPackage, string(filepath.Separator)) {
-			currentFileOpt = " --go_opt=M" + base + "=./" + proto.GoPackage
-		} else {
-			currentFileOpt = " --go_opt=M" + base + "=../" + proto.GoPackage
-		}
-	} else {
-		currentFileOpt = " --go_opt=M" + base + "=."
-	}
-
-	if !optSet.Contains(currentFileOpt) {
-		cw.WriteString(currentFileOpt)
-	}
-
-	command := cw.String()
-	g.log.Debug(command)
-	_, err := execx.Run(command, "")
+// generatePbWithVersion132 generates pb.go by specifying protoc-gen-go@1.3.2 version
+func (g *DefaultGenerator) generatePbWithVersion132(cmd string) error {
+	goctlHome, err := util.GetGoctlHome()
 	if err != nil {
-		if strings.Contains(err.Error(), googleProtocGenGoErr) {
-			return errors.New(`Unsupported plugin protoc-gen-go which installed from the following source:
-google.golang.org/protobuf/cmd/protoc-gen-go, 
-github.com/protocolbuffers/protobuf-go/cmd/protoc-gen-go;
-
-Please replace it by the following command, we recommend to use version before v1.3.5:
-go get -u github.com/golang/protobuf/protoc-gen-go`)
-		}
-
 		return err
 	}
-	return nil
+
+	err = util.MkdirIfNotExist(goctlHome)
+	if err != nil {
+		return err
+	}
+
+	protocGenGo := filepath.Join(goctlHome, "bin", "protoc-gen-go")
+	goGetCmd := "\ngo get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2"
+	if util.FileExists(protocGenGo) {
+		goGetCmd = ""
+	}
+	goos := runtime.GOOS
+	switch goos {
+	case vars.OsLinux, vars.OsMac:
+		cmd = fmt.Sprintf(`export GOPATH=%s %s
+%s`, goctlHome, goGetCmd, cmd)
+	case vars.OsWindows:
+		cmd = fmt.Sprintf(`set GOPATH=%s %s
+%s`, goctlHome, goGetCmd, cmd)
+	default:
+		return fmt.Errorf("unsupported os: %s", goos)
+	}
+
+	g.log.Debug(cmd)
+	_, err = execx.Run(cmd, "")
+	return err
 }
