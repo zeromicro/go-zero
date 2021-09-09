@@ -4,10 +4,8 @@ import (
 	"database/sql"
 
 	"github.com/tal-tech/go-zero/core/breaker"
+	"github.com/tal-tech/go-zero/core/logx"
 )
-
-// datasource placeholder for logging error.
-const rawDB = "sql.DB"
 
 // ErrNotFound is an alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
@@ -47,11 +45,11 @@ type (
 	// Because CORBA doesn't support PREPARE, so we need to combine the
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
-		datasource string
-		connProv   connProvider
-		beginTx    beginnable
-		brk        breaker.Breaker
-		accept     func(error) bool
+		connProv connProvider
+		onError  func(error)
+		beginTx  beginnable
+		brk      breaker.Breaker
+		accept   func(error) bool
 	}
 
 	connProvider func() (*sql.DB, error)
@@ -75,9 +73,11 @@ type (
 // NewSqlConn returns a SqlConn with given driver name and datasource.
 func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		datasource: datasource,
 		connProv: func() (*sql.DB, error) {
 			return getSqlConn(driverName, datasource)
+		},
+		onError: func(err error) {
+			logInstanceError(datasource, err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -93,9 +93,11 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 // Use it with caution, it's provided for other ORM to interact with.
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		datasource: rawDB,
 		connProv: func() (*sql.DB, error) {
 			return db, nil
+		},
+		onError: func(err error) {
+			logx.Errorf("Error on getting sql instance: %v", err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -112,7 +114,7 @@ func (db *commonSqlConn) Exec(q string, args ...interface{}) (result sql.Result,
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			logInstanceError(db.datasource, err)
+			db.onError(err)
 			return err
 		}
 
@@ -128,7 +130,7 @@ func (db *commonSqlConn) Prepare(query string) (stmt StmtSession, err error) {
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			logInstanceError(db.datasource, err)
+			db.onError(err)
 			return err
 		}
 
@@ -195,7 +197,7 @@ func (db *commonSqlConn) queryRows(scanner func(*sql.Rows) error, q string, args
 	return db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
-			logInstanceError(db.datasource, err)
+			db.onError(err)
 			return err
 		}
 
