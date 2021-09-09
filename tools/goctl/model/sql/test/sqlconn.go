@@ -13,6 +13,7 @@ type (
 	MockConn struct {
 		db *sql.DB
 	}
+
 	statement struct {
 		stmt *sql.Stmt
 	}
@@ -60,6 +61,11 @@ func (conn *MockConn) QueryRowsPartial(v interface{}, q string, args ...interfac
 	return query(conn.db, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
+}
+
+// RawDB returns the underlying sql.DB.
+func (conn *MockConn) RawDB() (*sql.DB, error) {
+	return conn.db, nil
 }
 
 // Transact is the implemention of sqlx.SqlConn, nothing to do
