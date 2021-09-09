@@ -10,7 +10,7 @@ import (
 )
 
 func TestExclusiveCallDo(t *testing.T) {
-	g := NewSharedCalls()
+	g := NewSingleFlight()
 	v, err := g.Do("key", func() (interface{}, error) {
 		return "bar", nil
 	})
@@ -23,7 +23,7 @@ func TestExclusiveCallDo(t *testing.T) {
 }
 
 func TestExclusiveCallDoErr(t *testing.T) {
-	g := NewSharedCalls()
+	g := NewSingleFlight()
 	someErr := errors.New("some error")
 	v, err := g.Do("key", func() (interface{}, error) {
 		return nil, someErr
@@ -37,7 +37,7 @@ func TestExclusiveCallDoErr(t *testing.T) {
 }
 
 func TestExclusiveCallDoDupSuppress(t *testing.T) {
-	g := NewSharedCalls()
+	g := NewSingleFlight()
 	c := make(chan string)
 	var calls int32
 	fn := func() (interface{}, error) {
@@ -69,7 +69,7 @@ func TestExclusiveCallDoDupSuppress(t *testing.T) {
 }
 
 func TestExclusiveCallDoDiffDupSuppress(t *testing.T) {
-	g := NewSharedCalls()
+	g := NewSingleFlight()
 	broadcast := make(chan struct{})
 	var calls int32
 	tests := []string{"e", "a", "e", "a", "b", "c", "b", "a", "c", "d", "b", "c", "d"}
@@ -102,7 +102,7 @@ func TestExclusiveCallDoDiffDupSuppress(t *testing.T) {
 }
 
 func TestExclusiveCallDoExDupSuppress(t *testing.T) {
-	g := NewSharedCalls()
+	g := NewSingleFlight()
 	c := make(chan string)
 	var calls int32
 	fn := func() (interface{}, error) {
