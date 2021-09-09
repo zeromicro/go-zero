@@ -96,7 +96,7 @@ func TestCacheNode_Take(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -123,7 +123,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -162,7 +162,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -189,7 +189,7 @@ func TestCacheNode_String(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -206,7 +206,7 @@ func TestCacheValueWithBigInt(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
