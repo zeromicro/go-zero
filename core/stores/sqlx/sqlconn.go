@@ -24,6 +24,7 @@ type (
 	// SqlConn only stands for raw connections, so Transact method can be called.
 	SqlConn interface {
 		Session
+		// RawDB is for other ORM to operate with, use it with caution.
 		RawDB() (*sql.DB, error)
 		Transact(func(session Session) error) error
 	}
