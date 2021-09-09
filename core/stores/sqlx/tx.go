@@ -73,7 +73,7 @@ func begin(db *sql.DB) (trans, error) {
 func transact(db *commonSqlConn, b beginnable, fn func(Session) error) (err error) {
 	conn, err := db.connProv()
 	if err != nil {
-		logInstanceError(db.datasource, err)
+		db.onError(err)
 		return err
 	}
 
