@@ -6,8 +6,6 @@ import (
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
-
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -32,6 +30,7 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
+	"github.com/urfave/cli"
 )
 
 var commands = []cli.Command{

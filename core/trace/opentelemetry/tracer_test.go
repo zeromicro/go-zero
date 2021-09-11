@@ -173,7 +173,6 @@ func TestExtractValidTraceContext(t *testing.T) {
 }
 
 func TestExtractInvalidTraceContext(t *testing.T) {
-
 	tests := []struct {
 		name   string
 		header string

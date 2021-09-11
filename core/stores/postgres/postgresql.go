@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	// imports the driver.
 	_ "github.com/lib/pq"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 )
