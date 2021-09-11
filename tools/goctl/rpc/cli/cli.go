@@ -6,10 +6,11 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/urfave/cli"
+
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
-	"github.com/urfave/cli"
 )
 
 // RPC is to generate rpc service code from a proto file by specifying a proto file using flag src,
@@ -55,9 +56,6 @@ func prepare() error {
 		return err
 	}
 	if _, err := env.LookUpProtoc(); err != nil {
-		return err
-	}
-	if _, err := env.LookUpProtocGenGo(); err != nil {
 		return err
 	}
 	return nil

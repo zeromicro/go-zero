@@ -1,9 +1,11 @@
 package generator
 
 import (
+	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/tal-tech/go-zero/core/stringx"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 )
 
 var cfg = &conf.Config{
@@ -22,7 +25,7 @@ var cfg = &conf.Config{
 func TestRpcGenerate(t *testing.T) {
 	_ = Clean()
 	dispatcher := NewDefaultGenerator()
-	err := dispatcher.Prepare()
+	err := prepare()
 	if err != nil {
 		logx.Error(err)
 		return
@@ -88,4 +91,17 @@ func TestRpcGenerate(t *testing.T) {
 			}())
 		}
 	})
+}
+
+func prepare() error {
+	if !env.CanExec() {
+		return fmt.Errorf("%s: can not start new processes using os.StartProcess or exec.Command", runtime.GOOS)
+	}
+	if _, err := env.LookUpGo(); err != nil {
+		return err
+	}
+	if _, err := env.LookUpProtoc(); err != nil {
+		return err
+	}
+	return nil
 }

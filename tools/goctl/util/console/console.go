@@ -3,8 +3,11 @@ package console
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/logrusorgru/aurora"
+
+	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
 type (
@@ -46,22 +49,22 @@ func (c *colorConsole) Info(format string, a ...interface{}) {
 
 func (c *colorConsole) Debug(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.Blue(msg))
+	println(aurora.Blue(msg))
 }
 
 func (c *colorConsole) Success(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.Green(msg))
+	println(aurora.Green(msg))
 }
 
 func (c *colorConsole) Warning(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.Yellow(msg))
+	println(aurora.Yellow(msg))
 }
 
 func (c *colorConsole) Error(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.Red(msg))
+	println(aurora.Red(msg))
 }
 
 func (c *colorConsole) Fatalln(format string, a ...interface{}) {
@@ -122,4 +125,19 @@ func (i *ideaConsole) Must(err error) {
 	if err != nil {
 		i.Fatalln("%+v", err)
 	}
+}
+
+func println(msg interface{}) {
+	value, ok := msg.(aurora.Value)
+	if !ok {
+		fmt.Println(msg)
+	}
+
+	goos := runtime.GOOS
+	if goos == vars.OsWindows {
+		fmt.Println(value.Value())
+		return
+	}
+
+	fmt.Println(msg)
 }
