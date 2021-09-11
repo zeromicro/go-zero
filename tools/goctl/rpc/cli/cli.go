@@ -58,6 +58,9 @@ func prepare() error {
 	if _, err := env.LookUpProtoc(); err != nil {
 		return err
 	}
+	if _, err := env.LookUpProtocGenGo(); err != nil {
+		return err
+	}
 	return nil
 }
 

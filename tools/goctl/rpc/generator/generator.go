@@ -7,6 +7,7 @@ import (
 
 // Generator defines a generator interface to describe how to generate rpc service
 type Generator interface {
+	Prepare() error
 	GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config) error
 	GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error
 	GenEtc(ctx DirContext, proto parser.Proto, cfg *conf.Config) error

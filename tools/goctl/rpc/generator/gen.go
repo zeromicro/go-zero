@@ -47,6 +47,11 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
+	err = g.g.Prepare()
+	if err != nil {
+		return err
+	}
+
 	projectCtx, err := ctx.Prepare(abs)
 	if err != nil {
 		return err
