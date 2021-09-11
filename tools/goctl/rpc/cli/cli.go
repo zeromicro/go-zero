@@ -6,11 +6,10 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/urfave/cli"
-
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/urfave/cli"
 )
 
 // RPC is to generate rpc service code from a proto file by specifying a proto file using flag src,
