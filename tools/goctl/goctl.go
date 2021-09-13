@@ -19,7 +19,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
-	"github.com/tal-tech/go-zero/tools/goctl/configgen"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
@@ -568,17 +567,6 @@ var commands = []cli.Command{
 				Action: mongo.Action,
 			},
 		},
-	},
-	{
-		Name:  "config",
-		Usage: "generate config json",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "path, p",
-				Usage: "the target config go file",
-			},
-		},
-		Action: configgen.GenConfigCommand,
 	},
 	{
 		Name:  "template",
