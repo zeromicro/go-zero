@@ -37,6 +37,6 @@ func TestWithUnaryClientInterceptor(t *testing.T) {
 func TestBuildDialOptions(t *testing.T) {
 	var c client
 	agent := grpc.WithUserAgent("chrome")
-	opts := c.buildDialOptions(WithDialOption(agent))
+	opts := c.buildDialOptions(false, WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }
