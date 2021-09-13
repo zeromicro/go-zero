@@ -73,6 +73,17 @@ func (rl *RedisLock) Acquire() (bool, error) {
 	return false, nil
 }
 
+func (rl *RedisLock) AcquireLockWithTimeout() (bool, error) {
+	end := time.Now().Add(time.Duration(rl.seconds))
+	for time.Now().Before(end) {
+		ttl, err := rl.store.Ttl(rl.key)
+		if ttl == -1 && err == nil {
+			return rl.Acquire()
+		}
+	}
+	return true, nil
+}
+
 // Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
 	resp, err := rl.store.Eval(delCommand, []string{rl.key}, []string{rl.id})
