@@ -16,8 +16,8 @@ type Foo struct {
 }
 
 func TestDeferInt(t *testing.T) {
-	var i = 1
-	var s = "hello"
+	i := 1
+	s := "hello"
 	number := struct {
 		f float64
 	}{

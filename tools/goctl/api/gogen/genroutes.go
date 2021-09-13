@@ -62,7 +62,7 @@ type (
 	}
 )
 
-func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	var builder strings.Builder
 	groups, err := getRoutes(api)
 	if err != nil {
@@ -95,11 +95,11 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		var routes string
 		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
-			var params = g.middlewares
+			params := g.middlewares
 			for i := range params {
 				params[i] = "serverCtx." + params[i]
 			}
-			var middlewareStr = strings.Join(params, ", ")
+			middlewareStr := strings.Join(params, ", ")
 			routes = fmt.Sprintf("rest.WithMiddlewares(\n[]rest.Middleware{ %s }, \n %s \n),",
 				middlewareStr, strings.TrimSpace(gbuilder.String()))
 		} else {
@@ -114,11 +114,6 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		}); err != nil {
 			return err
 		}
-	}
-
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
 	}
 
 	routeFilename, err := format.FileNamingFormat(cfg.NamingFormat, routesFilename)
@@ -139,14 +134,14 @@ func genRoutes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		templateFile:    "",
 		builtinTemplate: routesTemplate,
 		data: map[string]string{
-			"importPackages":  genRouteImports(parentPkg, api),
+			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
 		},
 	})
 }
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
-	var importSet = collection.NewSet()
+	importSet := collection.NewSet()
 	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {

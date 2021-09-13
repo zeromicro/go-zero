@@ -24,6 +24,7 @@ type (
 	ResultHandler func(sql.Result, error)
 
 	// A BulkInserter is used to batch insert records.
+	// Postgresql is not supported yet, because of the sql is formated with symbol `$`.
 	BulkInserter struct {
 		executor *executors.PeriodicalExecutor
 		inserter *dbInserter

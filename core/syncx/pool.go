@@ -19,7 +19,7 @@ type (
 
 	// A Pool is used to pool resources.
 	// The difference between sync.Pool is that:
-	//  1. the limit of the resouces
+	//  1. the limit of the resources
 	//  2. max age of the resources can be set
 	//  3. the method to destroy resources can be customized
 	Pool struct {
@@ -56,7 +56,7 @@ func NewPool(n int, create func() interface{}, destroy func(interface{}), opts .
 	return pool
 }
 
-// Get gets a resouce.
+// Get gets a resource.
 func (p *Pool) Get() interface{} {
 	p.lock.Lock()
 	defer p.lock.Unlock()

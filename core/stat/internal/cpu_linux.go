@@ -22,7 +22,7 @@ var (
 	cores     uint64
 )
 
-// if /proc not present, ignore the cpu calcuation, like wsl linux
+// if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
 	cpus, err := perCpuUsage()
 	if err != nil {

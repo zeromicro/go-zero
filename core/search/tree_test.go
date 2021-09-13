@@ -151,9 +151,9 @@ func TestAddDuplicate(t *testing.T) {
 	err := tree.Add("/a/b", 1)
 	assert.Nil(t, err)
 	err = tree.Add("/a/b", 2)
-	assert.Equal(t, ErrDupItem, err)
+	assert.Error(t, errDupItem, err)
 	err = tree.Add("/a/b/", 2)
-	assert.Equal(t, ErrDupItem, err)
+	assert.Error(t, errDupItem, err)
 }
 
 func TestPlain(t *testing.T) {
@@ -169,19 +169,19 @@ func TestPlain(t *testing.T) {
 func TestSearchWithDoubleSlashes(t *testing.T) {
 	tree := NewTree()
 	err := tree.Add("//a", 1)
-	assert.Error(t, ErrDupSlash, err)
+	assert.Error(t, errDupSlash, err)
 }
 
 func TestSearchInvalidRoute(t *testing.T) {
 	tree := NewTree()
 	err := tree.Add("", 1)
-	assert.Equal(t, ErrNotFromRoot, err)
+	assert.Equal(t, errNotFromRoot, err)
 	err = tree.Add("bad", 1)
-	assert.Equal(t, ErrNotFromRoot, err)
+	assert.Equal(t, errNotFromRoot, err)
 }
 
 func TestSearchInvalidItem(t *testing.T) {
 	tree := NewTree()
 	err := tree.Add("/", nil)
-	assert.Equal(t, ErrEmptyItem, err)
+	assert.Equal(t, errEmptyItem, err)
 }

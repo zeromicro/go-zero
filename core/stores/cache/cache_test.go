@@ -23,6 +23,7 @@ type mockedNode struct {
 
 func (mc *mockedNode) Del(keys ...string) error {
 	var be errorx.BatchError
+
 	for _, key := range keys {
 		if _, ok := mc.vals[key]; !ok {
 			be.Add(mc.errNotFound)
@@ -30,6 +31,7 @@ func (mc *mockedNode) Del(keys ...string) error {
 			delete(mc.vals, key)
 		}
 	}
+
 	return be.Err()
 }
 
@@ -102,7 +104,7 @@ func TestCache_SetDel(t *testing.T) {
 			Weight: 100,
 		},
 	}
-	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
 			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
@@ -140,7 +142,7 @@ func TestCache_OneNode(t *testing.T) {
 			Weight: 100,
 		},
 	}
-	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
 			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))

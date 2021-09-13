@@ -2,7 +2,6 @@ package sqlx
 
 import (
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/logx"
@@ -32,8 +31,12 @@ func exec(conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
 	return result, err
 }
 
-func execStmt(conn stmtConn, args ...interface{}) (sql.Result, error) {
-	stmt := fmt.Sprint(args...)
+func execStmt(conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
+	stmt, err := format(q, args...)
+	if err != nil {
+		return nil, err
+	}
+
 	startTime := timex.Now()
 	result, err := conn.Exec(args...)
 	duration := timex.Since(startTime)
@@ -72,8 +75,12 @@ func query(conn sessionConn, scanner func(*sql.Rows) error, q string, args ...in
 	return scanner(rows)
 }
 
-func queryStmt(conn stmtConn, scanner func(*sql.Rows) error, args ...interface{}) error {
-	stmt := fmt.Sprint(args...)
+func queryStmt(conn stmtConn, scanner func(*sql.Rows) error, q string, args ...interface{}) error {
+	stmt, err := format(q, args...)
+	if err != nil {
+		return err
+	}
+
 	startTime := timex.Now()
 	rows, err := conn.Query(args...)
 	duration := timex.Since(startTime)

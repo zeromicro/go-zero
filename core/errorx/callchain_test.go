@@ -8,7 +8,7 @@ import (
 )
 
 func TestChain(t *testing.T) {
-	var errDummy = errors.New("dummy")
+	errDummy := errors.New("dummy")
 	assert.Nil(t, Chain(func() error {
 		return nil
 	}, func() error {

@@ -23,7 +23,8 @@ type (
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
-		Endpoints []string        `json:",optional=!Etcd"`
+		Endpoints []string        `json:",optional"`
+		Target    string          `json:",optional"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
 		Timeout   int64           `json:",default=2000"`
@@ -58,13 +59,11 @@ func (sc RpcServerConf) HasEtcd() bool {
 
 // Validate validates the config.
 func (sc RpcServerConf) Validate() error {
-	if sc.Auth {
-		if err := sc.Redis.Validate(); err != nil {
-			return err
-		}
+	if !sc.Auth {
+		return nil
 	}
 
-	return nil
+	return sc.Redis.Validate()
 }
 
 // HasCredential checks if there is a credential in config.

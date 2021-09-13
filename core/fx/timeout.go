@@ -2,9 +2,10 @@ package fx
 
 import (
 	"context"
+	"fmt"
+	"runtime/debug"
+	"strings"
 	"time"
-
-	"github.com/tal-tech/go-zero/core/contextx"
 )
 
 var (
@@ -23,7 +24,7 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 	for _, opt := range opts {
 		parentCtx = opt()
 	}
-	ctx, cancel := contextx.ShrinkDeadline(parentCtx, timeout)
+	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
 	// create channel with buffer size 1 to avoid goroutine leak
@@ -32,7 +33,8 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
-				panicChan <- p
+				// attach call stack to avoid missing in different goroutine
+				panicChan <- fmt.Sprintf("%+v\n\n%s", p, strings.TrimSpace(string(debug.Stack())))
 			}
 		}()
 		done <- fn()

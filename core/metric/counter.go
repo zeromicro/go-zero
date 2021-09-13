@@ -12,7 +12,7 @@ type (
 	// CounterVec interface represents a counter vector.
 	CounterVec interface {
 		// Inc increments labels.
-		Inc(lables ...string)
+		Inc(labels ...string)
 		// Add adds labels with v.
 		Add(v float64, labels ...string)
 		close() bool
@@ -50,8 +50,8 @@ func (cv *promCounterVec) Inc(labels ...string) {
 	cv.counter.WithLabelValues(labels...).Inc()
 }
 
-func (cv *promCounterVec) Add(v float64, lables ...string) {
-	cv.counter.WithLabelValues(lables...).Add(v)
+func (cv *promCounterVec) Add(v float64, labels ...string) {
+	cv.counter.WithLabelValues(labels...).Add(v)
 }
 
 func (cv *promCounterVec) close() bool {

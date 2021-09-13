@@ -68,7 +68,7 @@ func TestBuilderSql(t *testing.T) {
 }
 
 func TestBuildSqlDefaultValue(t *testing.T) {
-	var eq = builder.Eq{}
+	eq := builder.Eq{}
 	eq["age"] = 0
 	eq["user_name"] = ""
 
@@ -117,4 +117,9 @@ func TestBuildSqlLike(t *testing.T) {
 	actualArgs := []interface{}{"%wang%"}
 	assert.Equal(t, sql, actualSQL)
 	assert.Equal(t, args, actualArgs)
+}
+
+func TestJoin(t *testing.T) {
+	ret := PostgreSqlJoin([]string{"name", "age"})
+	assert.Equal(t, "name = $2, age = $3", ret)
 }

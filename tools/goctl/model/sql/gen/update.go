@@ -9,7 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
-func genUpdate(table Table, withCache bool) (string, string, error) {
+func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) {
 	expressionValues := make([]string, 0)
 	for _, field := range table.Fields {
 		camel := field.Name.ToCamel()
@@ -33,7 +33,11 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 		keyVariableSet.AddStr(key.KeyLeft)
 	}
 
-	expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
+	if postgreSql {
+		expressionValues = append([]string{"data." + table.PrimaryKey.Name.ToCamel()}, expressionValues...)
+	} else {
+		expressionValues = append(expressionValues, "data."+table.PrimaryKey.Name.ToCamel())
+	}
 	camelTableName := table.Name.ToCamel()
 	text, err := util.LoadTemplate(category, updateTemplateFile, template.Update)
 	if err != nil {
@@ -50,8 +54,9 @@ func genUpdate(table Table, withCache bool) (string, string, error) {
 			"primaryCacheKey":       table.PrimaryCacheKey.DataKeyExpression,
 			"primaryKeyVariable":    table.PrimaryCacheKey.KeyLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
-			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source()),
+			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"expressionValues":      strings.Join(expressionValues, ", "),
+			"postgreSql":            postgreSql,
 		})
 	if err != nil {
 		return "", "", nil

@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
@@ -20,7 +22,10 @@ import (
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
-const slowThreshold = time.Millisecond * 500
+const (
+	limitBodyBytes = 1024
+	slowThreshold  = time.Millisecond * 500
+)
 
 type loggedResponseWriter struct {
 	w    http.ResponseWriter
@@ -156,7 +161,14 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 
 	ok := isOkResponse(code)
 	if !ok {
-		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
+		fullReq := dumpRequest(r)
+		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
+		body, err := ioutil.ReadAll(limitReader)
+		if err != nil {
+			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
+		} else {
+			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
+		}
 	}
 
 	body := logs.Flush()

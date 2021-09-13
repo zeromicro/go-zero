@@ -1,6 +1,8 @@
 package trace
 
 const (
-	traceIdKey = "X-Trace-ID"
-	spanIdKey  = "X-Span-ID"
+	// TraceIdKey is the trace id header.
+	TraceIdKey = "X-Trace-ID"
+
+	spanIdKey = "X-Span-ID"
 )

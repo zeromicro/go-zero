@@ -42,6 +42,12 @@ func DockerCommand(c *cli.Context) (err error) {
 	}()
 
 	goFile := c.String("go")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
 	}

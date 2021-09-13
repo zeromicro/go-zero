@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func TestUnaryTimeoutInterceptor(t *testing.T) {
@@ -66,5 +68,25 @@ func TestUnaryTimeoutInterceptor_timeoutExpire(t *testing.T) {
 		return nil, nil
 	})
 	wg.Wait()
-	assert.Equal(t, context.DeadlineExceeded, err)
+	assert.EqualValues(t, status.Error(codes.DeadlineExceeded, context.DeadlineExceeded.Error()), err)
+}
+
+func TestUnaryTimeoutInterceptor_cancel(t *testing.T) {
+	const timeout = time.Minute * 10
+	interceptor := UnaryTimeoutInterceptor(timeout)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
+		FullMethod: "/",
+	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+		defer wg.Done()
+		time.Sleep(time.Millisecond * 50)
+		return nil, nil
+	})
+
+	wg.Wait()
+	assert.EqualValues(t, status.Error(codes.Canceled, context.Canceled.Error()), err)
 }

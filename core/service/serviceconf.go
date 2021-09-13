@@ -14,6 +14,8 @@ const (
 	DevMode = "dev"
 	// TestMode means test mode.
 	TestMode = "test"
+	// RtMode means regression test mode.
+	RtMode = "rt"
 	// PreMode means pre-release mode.
 	PreMode = "pre"
 	// ProMode means production mode.
@@ -27,6 +29,8 @@ type ServiceConf struct {
 	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
 	MetricsUrl string            `json:",optional"`
 	Prometheus prometheus.Config `json:",optional"`
+	// TODO: enable it in v1.2.1
+	// Telemetry opentelemetry.Config `json:",optional"`
 }
 
 // MustSetUp sets up the service, exits on error.
@@ -47,6 +51,13 @@ func (sc ServiceConf) SetUp() error {
 
 	sc.initMode()
 	prometheus.StartAgent(sc.Prometheus)
+
+	// TODO: enable it in v1.2.1
+	// if len(sc.Telemetry.Name) == 0 {
+	// 	sc.Telemetry.Name = sc.Name
+	// }
+	// opentelemetry.StartAgent(sc.Telemetry)
+
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
 	}
@@ -56,7 +67,7 @@ func (sc ServiceConf) SetUp() error {
 
 func (sc ServiceConf) initMode() {
 	switch sc.Mode {
-	case DevMode, TestMode, PreMode:
+	case DevMode, TestMode, RtMode, PreMode:
 		load.Disable()
 		stat.SetReporter(nil)
 	}

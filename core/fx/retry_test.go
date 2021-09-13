@@ -30,7 +30,7 @@ func TestRetry(t *testing.T) {
 		return errors.New("any")
 	}))
 
-	var total = 2 * defaultRetryTimes
+	total := 2 * defaultRetryTimes
 	times = 0
 	assert.Nil(t, DoWithRetry(func() error {
 		times++

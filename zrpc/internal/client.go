@@ -67,11 +67,16 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
-			clientinterceptors.TracingInterceptor,
+			clientinterceptors.UnaryTracingInterceptor,
+			clientinterceptors.UnaryOpenTracingInterceptor(),
 			clientinterceptors.DurationInterceptor,
-			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PrometheusInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+		),
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamTracingInterceptor,
+			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
 
@@ -92,7 +97,7 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 				service = server[pos+1:]
 			}
 		}
-		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is alread started",
+		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is already started",
 			server, err.Error(), service)
 	}
 

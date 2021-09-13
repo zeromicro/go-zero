@@ -20,38 +20,56 @@ func WithDuration(d time.Duration) Logger {
 }
 
 func (l *durationLogger) Error(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
 	}
 }
 
 func (l *durationLogger) Errorf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
 	}
 }
 
+func (l *durationLogger) Errorv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(errorLog, levelError, v)
+	}
+}
+
 func (l *durationLogger) Info(v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprint(v...))
 	}
 }
 
 func (l *durationLogger) Infof(format string, v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprintf(format, v...))
 	}
 }
 
+func (l *durationLogger) Infov(v interface{}) {
+	if shallLog(InfoLevel) {
+		l.write(infoLog, levelInfo, v)
+	}
+}
+
 func (l *durationLogger) Slow(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprint(v...))
 	}
 }
 
 func (l *durationLogger) Slowf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprintf(format, v...))
+	}
+}
+
+func (l *durationLogger) Slowv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(slowLog, levelSlow, v)
 	}
 }
 
@@ -60,9 +78,9 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
-func (l *durationLogger) write(writer io.Writer, level, content string) {
+func (l *durationLogger) write(writer io.Writer, level string, val interface{}) {
 	l.Timestamp = getTimestamp()
 	l.Level = level
-	l.Content = content
-	outputJson(writer, logEntry(*l))
+	l.Content = val
+	outputJson(writer, l)
 }

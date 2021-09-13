@@ -1,4 +1,4 @@
-package context
+package pathvar
 
 import (
 	"context"

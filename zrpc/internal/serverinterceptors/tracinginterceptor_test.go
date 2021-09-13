@@ -46,3 +46,71 @@ func TestUnaryTracingInterceptor_GrpcFormat(t *testing.T) {
 	wg.Wait()
 	assert.Nil(t, err)
 }
+
+func TestStreamTracingInterceptor(t *testing.T) {
+	interceptor := StreamTracingInterceptor("foo")
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	err := interceptor(nil, new(mockedServerStream), nil,
+		func(srv interface{}, stream grpc.ServerStream) error {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return nil
+		})
+	wg.Wait()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
+	interceptor := StreamTracingInterceptor("foo")
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	var md metadata.MD
+	ctx := metadata.NewIncomingContext(context.Background(), md)
+	stream := mockedServerStream{ctx: ctx}
+	err := interceptor(nil, &stream, &grpc.StreamServerInfo{
+		FullMethod: "/foo",
+	}, func(srv interface{}, stream grpc.ServerStream) error {
+		defer wg.Done()
+		atomic.AddInt32(&run, 1)
+		return nil
+	})
+	wg.Wait()
+	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+type mockedServerStream struct {
+	ctx context.Context
+}
+
+func (m *mockedServerStream) SetHeader(md metadata.MD) error {
+	panic("implement me")
+}
+
+func (m *mockedServerStream) SendHeader(md metadata.MD) error {
+	panic("implement me")
+}
+
+func (m *mockedServerStream) SetTrailer(md metadata.MD) {
+	panic("implement me")
+}
+
+func (m *mockedServerStream) Context() context.Context {
+	if m.ctx == nil {
+		return context.Background()
+	}
+
+	return m.ctx
+}
+
+func (m *mockedServerStream) SendMsg(v interface{}) error {
+	panic("implement me")
+}
+
+func (m *mockedServerStream) RecvMsg(v interface{}) error {
+	panic("implement me")
+}

@@ -40,7 +40,7 @@ func TestAesEcbBase64(t *testing.T) {
 		// more than 32 chars
 		badKey2 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	)
-	var key = []byte("q4t7w!z%C*F-JaNdRgUjXn2r5u8x/A?D")
+	key := []byte("q4t7w!z%C*F-JaNdRgUjXn2r5u8x/A?D")
 	b64Key := base64.StdEncoding.EncodeToString(key)
 	b64Val := base64.StdEncoding.EncodeToString([]byte(val))
 	_, err := EcbEncryptBase64(badKey1, val)

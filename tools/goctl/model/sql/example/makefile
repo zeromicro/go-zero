@@ -5,6 +5,10 @@ fromDDLWithCache:
 	goctl template clean
 	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/cache" -cache
 
+fromDDLWithCacheAndDb:
+	goctl template clean
+	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/cache_db" -database="1gozero" -cache
+
 fromDDLWithoutCache:
 	goctl template clean;
 	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/nocache"

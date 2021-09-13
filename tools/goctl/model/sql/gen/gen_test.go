@@ -2,6 +2,7 @@ package gen
 
 import (
 	"database/sql"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,13 +16,16 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
 )
 
-var (
-	source = "CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL,\n  `class` bigint NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
-)
+var source = "CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL,\n  `class` bigint NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
 
 func TestCacheModel(t *testing.T) {
 	logx.Disable()
 	_ = Clean()
+
+	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
+	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	assert.Nil(t, err)
+
 	dir := filepath.Join(t.TempDir(), "./testmodel")
 	cacheDir := filepath.Join(dir, "cache")
 	noCacheDir := filepath.Join(dir, "nocache")
@@ -30,7 +34,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(source, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(cacheDir, "TestUserModel.go"))
@@ -41,7 +45,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(source, false)
+	err = g.StartFromDDL(sqlFile, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(noCacheDir, "testusermodel.go"))
@@ -52,6 +56,11 @@ func TestCacheModel(t *testing.T) {
 func TestNamingModel(t *testing.T) {
 	logx.Disable()
 	_ = Clean()
+
+	sqlFile := filepath.Join(t.TempDir(), "tmp.sql")
+	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	assert.Nil(t, err)
+
 	dir, _ := filepath.Abs("./testmodel")
 	camelDir := filepath.Join(dir, "camel")
 	snakeDir := filepath.Join(dir, "snake")
@@ -63,7 +72,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(source, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
@@ -74,7 +83,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(source, true)
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))
@@ -83,10 +92,11 @@ func TestNamingModel(t *testing.T) {
 }
 
 func TestWrapWithRawString(t *testing.T) {
-	assert.Equal(t, "``", wrapWithRawString(""))
-	assert.Equal(t, "``", wrapWithRawString("``"))
-	assert.Equal(t, "`a`", wrapWithRawString("a"))
-	assert.Equal(t, "`   `", wrapWithRawString("   "))
+	assert.Equal(t, "``", wrapWithRawString("", false))
+	assert.Equal(t, "``", wrapWithRawString("``", false))
+	assert.Equal(t, "`a`", wrapWithRawString("a", false))
+	assert.Equal(t, "a", wrapWithRawString("a", true))
+	assert.Equal(t, "`   `", wrapWithRawString("   ", false))
 }
 
 func TestFields(t *testing.T) {

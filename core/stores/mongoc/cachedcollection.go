@@ -11,8 +11,8 @@ var (
 	// ErrNotFound is an alias of mgo.ErrNotFound.
 	ErrNotFound = mgo.ErrNotFound
 
-	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
-	sharedCalls = syncx.NewSharedCalls()
+	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
+	sharedCalls = syncx.NewSingleFlight()
 	stats       = cache.NewStat("mongoc")
 )
 
@@ -24,11 +24,11 @@ type (
 	CachedCollection interface {
 		Count(query interface{}) (int, error)
 		DelCache(keys ...string) error
-		FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error
+		FindAllNoCache(v, query interface{}, opts ...QueryOption) error
 		FindOne(v interface{}, key string, query interface{}) error
-		FindOneNoCache(v interface{}, query interface{}) error
+		FindOneNoCache(v, query interface{}) error
 		FindOneId(v interface{}, key string, id interface{}) error
-		FindOneIdNoCache(v interface{}, id interface{}) error
+		FindOneIdNoCache(v, id interface{}) error
 		GetCache(key string, v interface{}) error
 		Insert(docs ...interface{}) error
 		Pipe(pipeline interface{}) mongo.Pipe
@@ -68,7 +68,7 @@ func (c *cachedCollection) DelCache(keys ...string) error {
 	return c.cache.Del(keys...)
 }
 
-func (c *cachedCollection) FindAllNoCache(v interface{}, query interface{}, opts ...QueryOption) error {
+func (c *cachedCollection) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
 	q := c.collection.Find(query)
 	for _, opt := range opts {
 		q = opt(q)
@@ -83,7 +83,7 @@ func (c *cachedCollection) FindOne(v interface{}, key string, query interface{})
 	})
 }
 
-func (c *cachedCollection) FindOneNoCache(v interface{}, query interface{}) error {
+func (c *cachedCollection) FindOneNoCache(v, query interface{}) error {
 	q := c.collection.Find(query)
 	return q.One(v)
 }
@@ -95,7 +95,7 @@ func (c *cachedCollection) FindOneId(v interface{}, key string, id interface{}) 
 	})
 }
 
-func (c *cachedCollection) FindOneIdNoCache(v interface{}, id interface{}) error {
+func (c *cachedCollection) FindOneIdNoCache(v, id interface{}) error {
 	q := c.collection.FindId(id)
 	return q.One(v)
 }

@@ -20,7 +20,7 @@ func TestDo(t *testing.T) {
 
 	tempDir := t.TempDir()
 	typesfile := filepath.Join(tempDir, "types.go")
-	err = ioutil.WriteFile(typesfile, []byte(testTypes), 0666)
+	err = ioutil.WriteFile(typesfile, []byte(testTypes), 0o666)
 	assert.Nil(t, err)
 
 	err = Do(&Context{

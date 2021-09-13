@@ -201,3 +201,38 @@ func BenchmarkParseAuto(b *testing.B) {
 		}
 	}
 }
+
+func TestParseHeaders(t *testing.T) {
+	type AnonymousStruct struct {
+		XRealIP string `header:"x-real-ip"`
+		Accept  string `header:"Accept,optional"`
+	}
+	v := struct {
+		Name          string   `header:"name,optional"`
+		Percent       string   `header:"percent"`
+		Addrs         []string `header:"addrs"`
+		XForwardedFor string   `header:"X-Forwarded-For,optional"`
+		AnonymousStruct
+	}{}
+	request, err := http.NewRequest("POST", "http://hello.com/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("name", "chenquan")
+	request.Header.Set("percent", "1")
+	request.Header.Add("addrs", "addr1")
+	request.Header.Add("addrs", "addr2")
+	request.Header.Add("X-Forwarded-For", "10.0.10.11")
+	request.Header.Add("x-real-ip", "10.0.11.10")
+	request.Header.Add("Accept", "application/json")
+	err = ParseHeaders(request, &v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "chenquan", v.Name)
+	assert.Equal(t, "1", v.Percent)
+	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
+	assert.Equal(t, "10.0.11.10", v.XRealIP)
+	assert.Equal(t, "application/json", v.Accept)
+}
