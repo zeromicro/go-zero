@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
@@ -115,6 +116,11 @@ func FindProjectPath(loc string) (string, bool) {
 
 // ReadLink returns the destination of the named symbolic link recursively.
 func ReadLink(name string) (string, error) {
+	goos := runtime.GOOS
+	if goos == vars.OsWindows { // There has no symbol link on Windows
+		return name, nil
+	}
+
 	name, err := filepath.Abs(name)
 	if err != nil {
 		return "", err
