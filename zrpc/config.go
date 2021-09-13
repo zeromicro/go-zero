@@ -28,6 +28,7 @@ type (
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
 		Timeout   int64           `json:",default=2000"`
+		Insecure  bool            `json:",default=true"`
 	}
 )
 

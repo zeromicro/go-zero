@@ -69,7 +69,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		target = internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
 	}
 
-	client, err := internal.NewClient(target, opts...)
+	client, err := internal.NewClient(target, c.Insecure, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 // NewClientNoAuth returns a Client without authentication.
 func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
+	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), false, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
 
 // NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	return internal.NewClient(target, opts...)
+	return internal.NewClient(target, false, opts...)
 }
 
 // Conn returns the underlying grpc.ClientConn.

@@ -43,10 +43,10 @@ type (
 )
 
 // NewClient returns a Client.
-func NewClient(target string, opts ...ClientOption) (Client, error) {
+func NewClient(target string, insecure bool, opts ...ClientOption) (Client, error) {
 	var cli client
 	opts = append([]ClientOption{WithDialOption(grpc.WithBalancerName(p2c.Name))}, opts...)
-	if err := cli.dial(target, opts...); err != nil {
+	if err := cli.dial(target, insecure, opts...); err != nil {
 		return nil, err
 	}
 
@@ -57,14 +57,13 @@ func (c *client) Conn() *grpc.ClientConn {
 	return c.conn
 }
 
-func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
+func (c *client) buildDialOptions(insecure bool, opts ...ClientOption) []grpc.DialOption {
 	var cliOpts ClientOptions
 	for _, opt := range opts {
 		opt(&cliOpts)
 	}
 
 	options := []grpc.DialOption{
-		grpc.WithInsecure(),
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
 			clientinterceptors.UnaryTracingInterceptor,
@@ -79,12 +78,15 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
+	if insecure {
+		options = append(options, grpc.WithInsecure())
+	}
 
 	return append(options, cliOpts.DialOptions...)
 }
 
-func (c *client) dial(server string, opts ...ClientOption) error {
-	options := c.buildDialOptions(opts...)
+func (c *client) dial(server string, insecure bool, opts ...ClientOption) error {
+	options := c.buildDialOptions(insecure, opts...)
 	timeCtx, cancel := context.WithTimeout(context.Background(), dialTimeout)
 	defer cancel()
 	conn, err := grpc.DialContext(timeCtx, server, options...)
