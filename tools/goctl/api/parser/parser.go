@@ -276,7 +276,7 @@ func (p parser) fillService() error {
 
 			name := item.ServiceApi.Name.Text()
 			if len(p.spec.Service.Name) > 0 && p.spec.Service.Name != name {
-				return fmt.Errorf("mulit service name defined %s and %s", name, p.spec.Service.Name)
+				return fmt.Errorf("multiple service names defined %s and %s", name, p.spec.Service.Name)
 			}
 			p.spec.Service.Name = name
 		}
