@@ -2,6 +2,7 @@ package rest
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -24,6 +25,8 @@ CpuThreshold: 500
 Verbose: true
 `,
 	}
+	testString  := "just for test"
+    fmt.Println("testString",testString)
 
 	routes := []featuredRoutes{
 		{
@@ -32,7 +35,7 @@ Verbose: true
 			routes: []Route{{
 				Method:  http.MethodGet,
 				Path:    "/",
-				Handler: func(w http.ResponseWriter, r *http.Request) {},
+				Handler: func(w http.ResponseWriter, r *http.Request) {},  //test
 			}},
 		},
 		{
