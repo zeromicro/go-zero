@@ -26,7 +26,7 @@ Verbose: true
 `,
 	}
 	testString  := "just for test"
-    fmt.Println("testStringssssss2",testString)
+    fmt.Println("testString333ssssss2",testString)
 
 	routes := []featuredRoutes{
 		{
