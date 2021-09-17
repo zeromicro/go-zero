@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	apinew "github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	mongogen "github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
@@ -47,6 +48,9 @@ func GenTemplates(ctx *cli.Context) error {
 		},
 		func() error {
 			return apigen.GenTemplates(ctx)
+		},
+		func() error {
+			return apinew.GenTemplates(ctx)
 		},
 	); err != nil {
 		return err

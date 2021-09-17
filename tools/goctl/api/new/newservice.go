@@ -13,11 +13,6 @@ import (
 	"github.com/urfave/cli"
 )
 
-const (
-	category        = "api"
-	apiTemplateFile = "template.tpl"
-)
-
 const apiTemplate = `
 type Request {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
