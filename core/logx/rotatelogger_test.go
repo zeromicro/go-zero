@@ -100,7 +100,7 @@ func TestRotateLoggerRotate(t *testing.T) {
 	err = logger.rotate()
 	switch v := err.(type) {
 	case *os.LinkError:
-		// avoid rename error on ubuntu
+		// avoid rename error on docker container
 		assert.Equal(t, syscall.EXDEV, v.Err)
 	default:
 		assert.Nil(t, err)
