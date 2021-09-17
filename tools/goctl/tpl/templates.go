@@ -101,6 +101,9 @@ func CleanTemplates(ctx *cli.Context) error {
 		func() error {
 			return apigen.Clean()
 		},
+		func() error {
+			return apinew.Clean()
+		},
 	)
 	if err != nil {
 		return err
@@ -139,6 +142,8 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 		return mongogen.Update()
 	case apigen.Category():
 		return apigen.Update()
+	case apinew.Category():
+		return apinew.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -174,6 +179,8 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 		return mongogen.RevertTemplate(filename)
 	case apigen.Category():
 		return apigen.RevertTemplate(filename)
+	case apinew.Category():
+		return apinew.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
