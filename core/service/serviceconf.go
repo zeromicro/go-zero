@@ -29,7 +29,7 @@ type ServiceConf struct {
 	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
 	MetricsUrl string            `json:",optional"`
 	Prometheus prometheus.Config `json:",optional"`
-	// TODO: enable it in v1.2.1
+	// TODO: enable it in v1.2.2
 	// Telemetry opentelemetry.Config `json:",optional"`
 }
 
@@ -52,7 +52,7 @@ func (sc ServiceConf) SetUp() error {
 	sc.initMode()
 	prometheus.StartAgent(sc.Prometheus)
 
-	// TODO: enable it in v1.2.1
+	// TODO: enable it in v1.2.2
 	// if len(sc.Telemetry.Name) == 0 {
 	// 	sc.Telemetry.Name = sc.Name
 	// }
