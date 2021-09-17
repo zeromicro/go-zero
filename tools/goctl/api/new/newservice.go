@@ -13,6 +13,11 @@ import (
 	"github.com/urfave/cli"
 )
 
+const (
+	category        = "api"
+	apiTemplateFile = "template.tpl"
+)
+
 const apiTemplate = `
 type Request {
   Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
@@ -65,7 +70,12 @@ func CreateServiceCommand(c *cli.Context) error {
 		util.RegisterGoctlHome(home)
 	}
 
-	t := template.Must(template.New("template").Parse(apiTemplate))
+	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("template").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"name":    dirName,
 		"handler": strings.Title(dirName),
