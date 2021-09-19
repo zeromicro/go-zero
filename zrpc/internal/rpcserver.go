@@ -14,7 +14,8 @@ type (
 	ServerOption func(options *rpcServerOptions)
 
 	rpcServerOptions struct {
-		metrics *stat.Metrics
+		slowThreshold int
+		metrics       *stat.Metrics
 	}
 
 	rpcServer struct {
@@ -35,6 +36,9 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 	}
 	if options.metrics == nil {
 		options.metrics = stat.NewMetrics(address)
+	}
+	if slowThreshold := options.slowThreshold; slowThreshold > 0 {
+		serverinterceptors.SetSlowThreshold(slowThreshold)
 	}
 
 	return &rpcServer{
@@ -87,5 +91,12 @@ func (s *rpcServer) Start(register RegisterFn) error {
 func WithMetrics(metrics *stat.Metrics) ServerOption {
 	return func(options *rpcServerOptions) {
 		options.metrics = metrics
+	}
+}
+
+// WithSlowThreshold returns a func that sets slowThreshold to a Server.
+func WithSlowThreshold(slowThreshold int) ServerOption {
+	return func(options *rpcServerOptions) {
+		options.slowThreshold = slowThreshold
 	}
 }

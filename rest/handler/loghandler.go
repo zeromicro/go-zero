@@ -24,6 +24,9 @@ import (
 
 const (
 	limitBodyBytes = 1024
+)
+
+var (
 	slowThreshold  = time.Millisecond * 500
 )
 
@@ -60,6 +63,11 @@ func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
 func (w *loggedResponseWriter) WriteHeader(code int) {
 	w.w.WriteHeader(code)
 	w.code = code
+}
+
+// SetSlowThreshold Set rest api interface slow threshold time.
+func SetSlowThreshold(value int)  {
+	slowThreshold = time.Duration(value) * time.Millisecond
 }
 
 // LogHandler returns a middleware that logs http request and response.

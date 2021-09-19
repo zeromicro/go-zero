@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/rest/handler"
 )
 
 const (
@@ -24,11 +25,12 @@ const (
 
 // A ServiceConf is a service config.
 type ServiceConf struct {
-	Name       string
-	Log        logx.LogConf
-	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
-	MetricsUrl string            `json:",optional"`
-	Prometheus prometheus.Config `json:",optional"`
+	Name          string
+	Log           logx.LogConf
+	Mode          string            `json:",default=pro,options=dev|test|rt|pre|pro"`
+	MetricsUrl    string            `json:",optional"`
+	Prometheus    prometheus.Config `json:",optional"`
+	SlowThreshold int               `json:",optional"`
 	// TODO: enable it in v1.2.2
 	// Telemetry opentelemetry.Config `json:",optional"`
 }
@@ -60,6 +62,10 @@ func (sc ServiceConf) SetUp() error {
 
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
+	}
+
+	if slowThreshold := sc.SlowThreshold; slowThreshold > 0 {
+		handler.SetSlowThreshold(slowThreshold)
 	}
 
 	return nil

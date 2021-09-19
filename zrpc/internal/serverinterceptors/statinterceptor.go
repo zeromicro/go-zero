@@ -12,7 +12,14 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-const serverSlowThreshold = time.Millisecond * 500
+var (
+	serverSlowThreshold = time.Millisecond * 500
+)
+
+// SetSlowThreshold Set rest api interface slow threshold time.
+func SetSlowThreshold(slowThreshold int)  {
+	serverSlowThreshold = time.Duration(slowThreshold) * time.Millisecond
+}
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.
 func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
