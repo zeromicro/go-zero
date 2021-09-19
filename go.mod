@@ -7,7 +7,6 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/alicebob/miniredis/v2 v2.14.1
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/emicklei/proto v1.9.0
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fatih/structtag v1.2.0
@@ -16,6 +15,7 @@ require (
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-xorm/builder v0.3.4
+	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/golang/mock v1.4.3
 	github.com/google/uuid v1.1.2
 	github.com/iancoleman/strcase v0.1.2
