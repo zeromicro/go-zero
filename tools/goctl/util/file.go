@@ -148,6 +148,24 @@ func LoadTemplate(category, file, builtin string) (string, error) {
 	return string(content), nil
 }
 
+// SameFile compares the between path if the same path,
+// it maybe the same path in case case-ignore, such as:
+// /Users/go_zero and /Users/Go_zero, as far as we know,
+// this case maybe appear on macOS and Windows.
+func SameFile(path1, path2 string) (bool, error) {
+	stat1, err := os.Stat(path1)
+	if err != nil {
+		return false, err
+	}
+
+	stat2, err := os.Stat(path2)
+	if err != nil {
+		return false, err
+	}
+
+	return os.SameFile(stat1, stat2), nil
+}
+
 func createTemplate(file, content string, force bool) error {
 	if FileExists(file) && !force {
 		return nil
