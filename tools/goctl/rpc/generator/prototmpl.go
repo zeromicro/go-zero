@@ -25,7 +25,7 @@ service {{.serviceName}} {
 }
 `
 
-// ProtoTmpl returns an sample of a proto file
+// ProtoTmpl returns a sample of a proto file
 func ProtoTmpl(out string) error {
 	protoFilename := filepath.Base(out)
 	serviceName := stringx.From(strings.TrimSuffix(protoFilename, filepath.Ext(protoFilename)))

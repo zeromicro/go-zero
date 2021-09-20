@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -179,4 +180,14 @@ func createTemplate(file, content string, force bool) error {
 
 	_, err = f.WriteString(content)
 	return err
+}
+
+// MustTempDir creates a temporary directory
+func MustTempDir() string {
+	dir, err := ioutil.TempDir("", "")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return dir
 }
