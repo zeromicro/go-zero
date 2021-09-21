@@ -42,10 +42,9 @@ func (g *DefaultGenerator) Prepare() error {
 	_, err := env.LookUpProtocGenGoctl()
 	if err == nil {
 		return nil
-	} else {
-		g.log.Warning("%+v", err)
 	}
 
+	g.log.Warning("%+v", err)
 	_, err = env.LookUpProtocGenGo()
 	return err
 }

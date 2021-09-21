@@ -8,10 +8,6 @@ import (
 	"syscall"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
-
-	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
-
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
@@ -37,6 +33,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/urfave/cli"
+	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
 )
 
 var commands = []cli.Command{
