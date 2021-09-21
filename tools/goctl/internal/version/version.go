@@ -6,7 +6,7 @@ import (
 )
 
 // BuildVersion is the version of goctl.
-const BuildVersion = "1.2.1"
+const BuildVersion = "1.2.2-beta"
 
 // GetGoctlVersion returns BuildVersion
 func GetGoctlVersion() string {

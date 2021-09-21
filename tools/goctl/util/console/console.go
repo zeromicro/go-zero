@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
+
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -139,4 +140,31 @@ func println(msg interface{}) {
 	}
 
 	fmt.Println(msg)
+}
+
+var defaultConsole = new(colorConsole)
+
+func Success(format string, a ...interface{}) {
+	defaultConsole.Success(format, a...)
+}
+func Info(format string, a ...interface{}) {
+	defaultConsole.Info(format, a...)
+}
+func Debug(format string, a ...interface{}) {
+	defaultConsole.Debug(format, a...)
+}
+func Warning(format string, a ...interface{}) {
+	defaultConsole.Warning(format, a...)
+}
+func Error(format string, a ...interface{}) {
+	defaultConsole.Error(format, a...)
+}
+func Fatalln(format string, a ...interface{}) {
+	defaultConsole.Fatalln(format, a...)
+}
+func MarkDone() {
+	defaultConsole.MarkDone()
+}
+func Must(err error) {
+	defaultConsole.Must(err)
 }
