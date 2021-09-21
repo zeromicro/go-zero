@@ -15,7 +15,7 @@ require (
 	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-xorm/builder v0.3.4
-	github.com/golang-jwt/jwt/v4 v4.0.0
+	github.com/golang-jwt/jwt v3.2.1+incompatible
 	github.com/golang/mock v1.4.3
 	github.com/google/uuid v1.1.2
 	github.com/iancoleman/strcase v0.1.2
