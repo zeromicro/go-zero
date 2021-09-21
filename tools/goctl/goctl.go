@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
+	"syscall"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/load"
@@ -29,7 +31,10 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
+	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
 )
 
 var commands = []cli.Command{
@@ -637,6 +642,13 @@ func main() {
 	load.Disable()
 	stat.DisableLog()
 
+	args := os.Args
+	pluginName := filepath.Base(args[0])
+	if pluginName == protocGenGoctl {
+		pluginCtl.Generate()
+		return
+	}
+
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
@@ -645,4 +657,34 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
 	}
+}
+
+func init() {
+	err := linkProtocGenGoctl()
+	if err != nil {
+		console.Error("%+v", err)
+	}
+}
+
+const protocGenGoctl = "protoc-gen-goctl"
+
+func linkProtocGenGoctl() error {
+	path, err := env.LookPath("goctl")
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Dir(path)
+	ext := filepath.Ext(path)
+	target := filepath.Join(dir, protocGenGoctl)
+	if len(ext) > 0 {
+		target = target + ext
+	}
+
+	err = syscall.Unlink(target)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	return os.Symlink(path, target)
 }

@@ -32,6 +32,7 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348
+	github.com/zeromicro/protobuf v0.0.0-20210921042113-636cd51f0c35 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.0
 	go.etcd.io/etcd/client/v3 v3.5.0
 	go.opentelemetry.io/otel v1.0.0
