@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
@@ -23,12 +24,12 @@ func TestFromDDl(t *testing.T) {
 	err := gen.Clean()
 	assert.Nil(t, err)
 
-	err = fromDDL("./user.sql", t.TempDir(), cfg, true, false, "go_zero")
+	err = fromDDL("./user.sql", util.MustTempDir(), cfg, true, false, "go_zero")
 	assert.Equal(t, errNotMatched, err)
 
 	// case dir is not exists
-	unknownDir := filepath.Join(t.TempDir(), "test", "user.sql")
-	err = fromDDL(unknownDir, t.TempDir(), cfg, true, false, "go_zero")
+	unknownDir := filepath.Join(util.MustTempDir(), "test", "user.sql")
+	err = fromDDL(unknownDir, util.MustTempDir(), cfg, true, false, "go_zero")
 	assert.True(t, func() bool {
 		switch err.(type) {
 		case *os.PathError:
@@ -39,12 +40,12 @@ func TestFromDDl(t *testing.T) {
 	}())
 
 	// case empty src
-	err = fromDDL("", t.TempDir(), cfg, true, false, "go_zero")
+	err = fromDDL("", util.MustTempDir(), cfg, true, false, "go_zero")
 	if err != nil {
 		assert.Equal(t, "expected path or path globbing patterns, but nothing found", err.Error())
 	}
 
-	tempDir := filepath.Join(t.TempDir(), "test")
+	tempDir := filepath.Join(util.MustTempDir(), "test")
 	err = util.MkdirIfNotExist(tempDir)
 	if err != nil {
 		return

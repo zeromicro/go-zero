@@ -48,7 +48,7 @@ func convertVersion(version string) (versionNumber float64, tag string) {
 		}
 		return '_'
 	}, splits[0])
-	numberStr = strings.ReplaceAll(numberStr, "_", "")
+	numberStr = strings.Replace(numberStr, "_", "", -1)
 	versionNumber, _ = json.Number(numberStr).Float64()
 	return
 }
