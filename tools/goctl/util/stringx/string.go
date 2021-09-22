@@ -39,7 +39,7 @@ func (s String) Upper() string {
 
 // ReplaceAll calls the strings.ReplaceAll
 func (s String) ReplaceAll(old, new string) string {
-	return strings.ReplaceAll(s.source, old, new)
+	return strings.Replace(s.source, old, new, -1)
 }
 
 // Source returns the source string value
