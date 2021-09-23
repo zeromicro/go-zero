@@ -13,9 +13,7 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-var (
-	serverSlowThreshold int32 = 500
-)
+var serverSlowThreshold int32 = 500
 
 // SetSlowThreshold Set rest api interface slow threshold time.
 func SetSlowThreshold(slowThreshold int32) {

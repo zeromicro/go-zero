@@ -27,9 +27,7 @@ const (
 	limitBodyBytes = 1024
 )
 
-var (
-	slowThreshold int32 = 500
-)
+var slowThreshold int32 = 500
 
 type loggedResponseWriter struct {
 	w    http.ResponseWriter
