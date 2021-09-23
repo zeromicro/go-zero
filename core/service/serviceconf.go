@@ -30,7 +30,7 @@ type ServiceConf struct {
 	Mode          string            `json:",default=pro,options=dev|test|rt|pre|pro"`
 	MetricsUrl    string            `json:",optional"`
 	Prometheus    prometheus.Config `json:",optional"`
-	SlowThreshold int               `json:",optional"`
+	SlowThreshold int32             `json:",optional"`
 	// TODO: enable it in v1.2.2
 	// Telemetry opentelemetry.Config `json:",optional"`
 }

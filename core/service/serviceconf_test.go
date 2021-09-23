@@ -13,6 +13,7 @@ func TestServiceConf(t *testing.T) {
 			Mode: "console",
 		},
 		Mode: "dev",
+		SlowThreshold: 500,
 	}
 	c.MustSetUp()
 }

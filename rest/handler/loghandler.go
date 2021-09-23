@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
@@ -27,7 +28,7 @@ const (
 )
 
 var (
-	slowThreshold  = time.Millisecond * 500
+	slowThreshold int32 = 500
 )
 
 type loggedResponseWriter struct {
@@ -66,8 +67,8 @@ func (w *loggedResponseWriter) WriteHeader(code int) {
 }
 
 // SetSlowThreshold Set rest api interface slow threshold time.
-func SetSlowThreshold(value int)  {
-	slowThreshold = time.Duration(value) * time.Millisecond
+func SetSlowThreshold(value int32) {
+	atomic.StoreInt32(&slowThreshold, value)
 }
 
 // LogHandler returns a middleware that logs http request and response.
@@ -162,7 +163,8 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	duration := timer.Duration()
 	buf.WriteString(fmt.Sprintf("%d - %s - %s - %s - %s",
 		code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
-	if duration > slowThreshold {
+	_slowThreshold := time.Duration(atomic.LoadInt32(&slowThreshold)) * time.Millisecond
+	if duration > _slowThreshold {
 		logx.WithContext(r.Context()).Slowf("[HTTP] %d - %s - %s - %s - slowcall(%s)",
 			code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
 	}
@@ -195,9 +197,10 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
+	_slowThreshold := time.Duration(atomic.LoadInt32(&slowThreshold)) * time.Millisecond
 	buf.WriteString(fmt.Sprintf("%d - %s - %s\n=> %s\n",
 		response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
-	if duration > slowThreshold {
+	if duration > _slowThreshold {
 		logx.WithContext(r.Context()).Slowf("[HTTP] %d - %s - slowcall(%s)\n=> %s\n",
 			response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
 	}

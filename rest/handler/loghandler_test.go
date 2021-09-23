@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -58,7 +59,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	for _, logHandler := range handlers {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(slowThreshold + time.Millisecond*50)
+			time.Sleep(time.Duration(atomic.LoadInt32(&slowThreshold)) * time.Millisecond + time.Millisecond*50)
 		}))
 
 		resp := httptest.NewRecorder()
