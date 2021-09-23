@@ -14,7 +14,7 @@ type (
 	ServerOption func(options *rpcServerOptions)
 
 	rpcServerOptions struct {
-		slowThreshold int
+		slowThreshold int32
 		metrics       *stat.Metrics
 	}
 
@@ -95,7 +95,7 @@ func WithMetrics(metrics *stat.Metrics) ServerOption {
 }
 
 // WithSlowThreshold returns a func that sets slowThreshold to a Server.
-func WithSlowThreshold(slowThreshold int) ServerOption {
+func WithSlowThreshold(slowThreshold int32) ServerOption {
 	return func(options *rpcServerOptions) {
 		options.slowThreshold = slowThreshold
 	}
