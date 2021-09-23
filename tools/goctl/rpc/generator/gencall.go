@@ -3,6 +3,7 @@ package generator
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/emicklei/proto"
@@ -95,9 +96,11 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
 	}
 
+	aliasKeys := alias.KeysStr()
+	sort.Strings(aliasKeys)
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":        callFilename,
-		"alias":       strings.Join(alias.KeysStr(), util.NL),
+		"alias":       strings.Join(aliasKeys, util.NL),
 		"head":        head,
 		"filePackage": dir.Base,
 		"package":     fmt.Sprintf(`"%s"`, ctx.GetPb().Package),

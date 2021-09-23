@@ -62,6 +62,12 @@ var commands = []cli.Command{
 				Name:   "new",
 				Usage:  "fast create api service",
 				Action: new.CreateServiceCommand,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
 			},
 			{
 				Name:  "format",

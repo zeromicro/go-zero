@@ -17,10 +17,11 @@ func TestPoolGet(t *testing.T) {
 	ch := make(chan lang.PlaceholderType)
 
 	for i := 0; i < limit; i++ {
+		var fail AtomicBool
 		go func() {
 			v := stack.Get()
 			if v.(int) != 1 {
-				t.Fatal("unmatch value")
+				fail.Set(true)
 			}
 			ch <- lang.Placeholder
 		}()
@@ -29,6 +30,10 @@ func TestPoolGet(t *testing.T) {
 		case <-ch:
 		case <-time.After(time.Second):
 			t.Fail()
+		}
+
+		if fail.True() {
+			t.Fatal("unmatch value")
 		}
 	}
 }

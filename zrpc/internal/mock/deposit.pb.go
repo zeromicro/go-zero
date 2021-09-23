@@ -8,13 +8,14 @@ package mock
 
 import (
 	context "context"
+	reflect "reflect"
+	sync "sync"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -147,11 +148,14 @@ func file_deposit_proto_rawDescGZIP() []byte {
 	return file_deposit_proto_rawDescData
 }
 
-var file_deposit_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_deposit_proto_goTypes = []interface{}{
-	(*DepositRequest)(nil),  // 0: mock.DepositRequest
-	(*DepositResponse)(nil), // 1: mock.DepositResponse
-}
+var (
+	file_deposit_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+	file_deposit_proto_goTypes  = []interface{}{
+		(*DepositRequest)(nil),  // 0: mock.DepositRequest
+		(*DepositResponse)(nil), // 1: mock.DepositResponse
+	}
+)
+
 var file_deposit_proto_depIdxs = []int32{
 	0, // 0: mock.DepositService.Deposit:input_type -> mock.DepositRequest
 	1, // 1: mock.DepositService.Deposit:output_type -> mock.DepositResponse
@@ -214,8 +218,10 @@ func file_deposit_proto_init() {
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
-var _ context.Context
-var _ grpc.ClientConnInterface
+var (
+	_ context.Context
+	_ grpc.ClientConnInterface
+)
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
@@ -251,8 +257,7 @@ type DepositServiceServer interface {
 }
 
 // UnimplementedDepositServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedDepositServiceServer struct {
-}
+type UnimplementedDepositServiceServer struct{}
 
 func (*UnimplementedDepositServiceServer) Deposit(context.Context, *DepositRequest) (*DepositResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
