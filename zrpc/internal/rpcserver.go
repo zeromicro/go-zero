@@ -37,8 +37,8 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 	if options.metrics == nil {
 		options.metrics = stat.NewMetrics(address)
 	}
-	if slowThreshold := options.slowThreshold; slowThreshold > 0 {
-		serverinterceptors.SetSlowThreshold(slowThreshold)
+	if options.slowThreshold > 0 {
+		serverinterceptors.SetSlowThreshold(options.slowThreshold)
 	}
 
 	return &rpcServer{

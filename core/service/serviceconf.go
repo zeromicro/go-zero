@@ -64,8 +64,8 @@ func (sc ServiceConf) SetUp() error {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
 	}
 
-	if slowThreshold := sc.SlowThreshold; slowThreshold > 0 {
-		handler.SetSlowThreshold(slowThreshold)
+	if sc.SlowThreshold > 0 {
+		handler.SetSlowThreshold(sc.SlowThreshold)
 	}
 
 	return nil
