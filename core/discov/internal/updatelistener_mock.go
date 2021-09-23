@@ -5,8 +5,9 @@
 package internal
 
 import (
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockUpdateListener is a mock of UpdateListener interface
