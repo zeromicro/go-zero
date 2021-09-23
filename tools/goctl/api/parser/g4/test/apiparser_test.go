@@ -8,7 +8,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/ast"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 var (
@@ -118,7 +120,7 @@ func TestApiParser(t *testing.T) {
 	})
 
 	t.Run("nestedImport", func(t *testing.T) {
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err := ioutil.WriteFile(file, []byte(nestedAPIImport), os.ModePerm)
 		if err != nil {
 			return
@@ -148,7 +150,7 @@ func TestApiParser(t *testing.T) {
 	})
 
 	t.Run("ambiguousSyntax", func(t *testing.T) {
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err := ioutil.WriteFile(file, []byte(ambiguousSyntax), os.ModePerm)
 		if err != nil {
 			return
@@ -162,7 +164,7 @@ func TestApiParser(t *testing.T) {
 	})
 
 	t.Run("ambiguousSyntax", func(t *testing.T) {
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err := ioutil.WriteFile(file, []byte(ambiguousSyntax), os.ModePerm)
 		if err != nil {
 			return
@@ -176,7 +178,7 @@ func TestApiParser(t *testing.T) {
 	})
 
 	t.Run("ambiguousService", func(t *testing.T) {
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err := ioutil.WriteFile(file, []byte(ambiguousService), os.ModePerm)
 		if err != nil {
 			return
@@ -206,7 +208,7 @@ func TestApiParser(t *testing.T) {
 		`)
 		assert.Error(t, err)
 
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err = ioutil.WriteFile(file, []byte(duplicateHandler), os.ModePerm)
 		if err != nil {
 			return
@@ -235,7 +237,7 @@ func TestApiParser(t *testing.T) {
 		`)
 		assert.Error(t, err)
 
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err = ioutil.WriteFile(file, []byte(duplicateRoute), os.ModePerm)
 		if err != nil {
 			return
@@ -259,7 +261,7 @@ func TestApiParser(t *testing.T) {
 		`)
 		assert.Error(t, err)
 
-		file := filepath.Join(t.TempDir(), "foo.api")
+		file := filepath.Join(util.MustTempDir(), "foo.api")
 		err = ioutil.WriteFile(file, []byte(duplicateType), os.ModePerm)
 		if err != nil {
 			return
