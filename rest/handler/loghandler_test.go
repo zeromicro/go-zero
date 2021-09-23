@@ -44,6 +44,11 @@ func TestLogHandler(t *testing.T) {
 	}
 }
 
+func TestSetSlowThreshold(t *testing.T) {
+	SetSlowThreshold( 100 )
+	TestLogHandlerSlow(t)
+}
+
 func TestLogHandlerSlow(t *testing.T) {
 	handlers := []func(handler http.Handler) http.Handler{
 		LogHandler,
