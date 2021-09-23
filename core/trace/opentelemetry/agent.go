@@ -51,7 +51,8 @@ func StartAgent(c Config) {
 		)
 
 		otel.SetTracerProvider(tp)
-		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+			propagation.TraceContext{}, propagation.Baggage{}))
 		otel.SetErrorHandler(otel.ErrorHandlerFunc(func(e error) {
 			logx.Errorf("[otel] error: %v", err)
 		}))
