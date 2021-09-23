@@ -18,7 +18,7 @@ func TestSetSlowThreshold(t *testing.T) {
 	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
-		time.Sleep(time.Duration(atomic.LoadInt32(&serverSlowThreshold)) * time.Millisecond + time.Millisecond * 200)
+		time.Sleep(time.Duration(atomic.LoadInt32(&serverSlowThreshold))*time.Millisecond + time.Millisecond*200)
 		return nil, nil
 	})
 	assert.Nil(t, err)

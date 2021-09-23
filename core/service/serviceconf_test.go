@@ -12,7 +12,7 @@ func TestServiceConf(t *testing.T) {
 		Log: logx.LogConf{
 			Mode: "console",
 		},
-		Mode: "dev",
+		Mode:          "dev",
 		SlowThreshold: 500,
 	}
 	c.MustSetUp()

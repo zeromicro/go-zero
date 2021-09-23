@@ -18,7 +18,7 @@ var (
 )
 
 // SetSlowThreshold Set rest api interface slow threshold time.
-func SetSlowThreshold(slowThreshold int32)  {
+func SetSlowThreshold(slowThreshold int32) {
 	atomic.StoreInt32(&serverSlowThreshold, slowThreshold)
 }
 
@@ -52,7 +52,7 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 	content, err := json.Marshal(req)
 	if err != nil {
 		logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
-	} else if duration > time.Duration(atomic.LoadInt32(&serverSlowThreshold)) * time.Millisecond {
+	} else if duration > time.Duration(atomic.LoadInt32(&serverSlowThreshold))*time.Millisecond {
 		logx.WithContext(ctx).WithDuration(duration).Slowf("[RPC] slowcall - %s - %s - %s",
 			addr, method, string(content))
 	} else {

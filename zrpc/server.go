@@ -39,12 +39,12 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
 	if c.HasEtcd() {
-		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn,internal.WithSlowThreshold(c.SlowThreshold), internal.WithMetrics(metrics))
+		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn, internal.WithSlowThreshold(c.SlowThreshold), internal.WithMetrics(metrics))
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, internal.WithSlowThreshold(c.SlowThreshold),internal.WithMetrics(metrics))
+		server = internal.NewRpcServer(c.ListenOn, internal.WithSlowThreshold(c.SlowThreshold), internal.WithMetrics(metrics))
 	}
 
 	server.SetName(c.Name)

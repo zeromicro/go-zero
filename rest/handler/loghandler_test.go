@@ -46,7 +46,7 @@ func TestLogHandler(t *testing.T) {
 }
 
 func TestSetSlowThreshold(t *testing.T) {
-	SetSlowThreshold( 100 )
+	SetSlowThreshold(100)
 	TestLogHandlerSlow(t)
 }
 
@@ -59,7 +59,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	for _, logHandler := range handlers {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(time.Duration(atomic.LoadInt32(&slowThreshold)) * time.Millisecond + time.Millisecond*50)
+			time.Sleep(time.Duration(atomic.LoadInt32(&slowThreshold))*time.Millisecond + time.Millisecond*50)
 		}))
 
 		resp := httptest.NewRecorder()
