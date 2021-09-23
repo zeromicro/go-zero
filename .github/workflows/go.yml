@@ -27,8 +27,6 @@ jobs:
 
     - name: Test
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
-      with:
-        go-version: 1.14
 
     - name: Codecov
       uses: codecov/codecov-action@v2
