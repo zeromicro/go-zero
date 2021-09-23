@@ -52,17 +52,10 @@ func StartAgent(c Config) {
 
 		otel.SetTracerProvider(tp)
 		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-		otel.SetErrorHandler(otelErrHandler{})
+		otel.SetErrorHandler(otel.ErrorHandlerFunc(func(e error) {
+			logx.Errorf("[otel] error: %v", err)
+		}))
 
 		enabled.Set(true)
 	})
-}
-
-// errHandler handing otel errors.
-type otelErrHandler struct{}
-
-var _ otel.ErrorHandler = otelErrHandler{}
-
-func (o otelErrHandler) Handle(err error) {
-	logx.Errorf("[otel] error: %v", err)
 }
