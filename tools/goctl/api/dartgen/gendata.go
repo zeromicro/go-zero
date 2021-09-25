@@ -55,6 +55,11 @@ func genData(dir string, api *spec.ApiSpec) error {
 		return err
 	}
 
+	err = convertDataType(api)
+	if err != nil {
+		return err
+	}
+
 	return t.Execute(file, api)
 }
 
@@ -72,4 +77,26 @@ func genTokens(dir string) error {
 	defer tokensFile.Close()
 	_, err = tokensFile.WriteString(tokensFileContent)
 	return err
+}
+
+func convertDataType(api *spec.ApiSpec) error {
+	types := api.Types
+	if len(types) == 0 {
+		return nil
+	}
+
+	for _, ty := range types {
+		defineStruct, ok := ty.(spec.DefineStruct)
+		if ok {
+			for index, member := range defineStruct.Members {
+				tp, err := specTypeToDart(member.Type)
+				if err != nil {
+					return err
+				}
+				defineStruct.Members[index].Type = buildSpecType(member.Type, tp)
+			}
+		}
+	}
+
+	return nil
 }
