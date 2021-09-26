@@ -120,7 +120,7 @@ func specTypeToDart(tp spec.Type) (string, error) {
 		return fmt.Sprintf("Map<String, %s>", valueType), nil
 	case spec.ArrayType:
 		if tp.Name() == "[]byte" {
-			return "int[]", nil
+			return "List<int>", nil
 		}
 
 		valueType, err := specTypeToDart(v.Value)
