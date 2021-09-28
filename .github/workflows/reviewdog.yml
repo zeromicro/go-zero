@@ -1,15 +1,17 @@
 name: reviewdog
 on: [pull_request]
 jobs:
-  reviewdog:
-    name: reviewdog
+  staticcheck:
+    name: runner / staticcheck
     runs-on: ubuntu-latest
     steps:
-      - uses: reviewdog/action-setup@v1
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-staticcheck@v1
         with:
-          reviewdog_version: latest
-      - name: Run reviewdog
-        env:
-          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          reviewdog -reporter=github-pr-review -runners=golint,govet
+          github_token: ${{ secrets.github_token }}
+          # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
+          reporter: github-pr-review
+          # Report all results.
+          filter_mode: nofilter
+          # Exit with 1 when it find at least one finding.
+          fail_on_error: true
