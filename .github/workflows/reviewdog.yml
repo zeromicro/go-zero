@@ -16,4 +16,4 @@ jobs:
           # Exit with 1 when it find at least one finding.
           fail_on_error: true
           # Set staticcheck flags
-          staticcheck_flags: -checks=inherit,-SA5008
+          staticcheck_flags: -checks=inherit,-SA5008,-SA4006
