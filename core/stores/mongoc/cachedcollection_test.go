@@ -120,7 +120,7 @@ func TestStatCacheFails(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	defer log.SetOutput(os.Stdout)
 
-	r := redis.NewRedis("localhost:59999", redis.NodeType)
+	r := redis.New("localhost:59999")
 	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 
