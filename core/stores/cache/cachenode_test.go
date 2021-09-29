@@ -73,7 +73,7 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 	defer s.Close()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            redis.New(s.Addr()),
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
