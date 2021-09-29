@@ -13,10 +13,9 @@ const regularPerm = 0o666
 
 // DefaultTemplate is a tool to provides the text/template operations
 type DefaultTemplate struct {
-	name     string
-	text     string
-	goFmt    bool
-	savePath string
+	name  string
+	text  string
+	goFmt bool
 }
 
 // With returns a instance of DefaultTemplate
@@ -70,7 +69,7 @@ func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 
 	formatOutput, err := goformat.Source(buf.Bytes())
 	if err != nil {
-		return nil, errorx.Wrap(err, "go format error:", string(buf.Bytes()))
+		return nil, errorx.Wrap(err, "go format error:", buf.String())
 	}
 
 	buf.Reset()

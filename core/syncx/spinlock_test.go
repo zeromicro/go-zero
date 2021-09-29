@@ -30,8 +30,6 @@ func TestSpinLockRace(t *testing.T) {
 	var wait sync.WaitGroup
 	wait.Add(1)
 	go func() {
-		lock.Lock()
-		lock.Unlock()
 		wait.Done()
 	}()
 	time.Sleep(time.Millisecond * 100)

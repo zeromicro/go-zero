@@ -45,7 +45,7 @@ func StreamTracingInterceptor(serviceName string) grpc.StreamServerInterceptor {
 			return handler(srv, ss)
 		}
 
-		ctx, span := trace.StartServerSpan(ctx, carrier, serviceName, info.FullMethod)
+		_, span := trace.StartServerSpan(ctx, carrier, serviceName, info.FullMethod)
 		defer span.Finish()
 		return handler(srv, ss)
 	}
