@@ -11,7 +11,6 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -128,7 +127,7 @@ func generateDockerfile(goFile string, port int, args ...string) error {
 	}
 	defer out.Close()
 
-	text, err := ctlutil.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
+	text, err := util.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
 	if err != nil {
 		return err
 	}

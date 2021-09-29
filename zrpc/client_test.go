@@ -64,7 +64,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 			2000.00,
 			nil,
 			codes.DeadlineExceeded,
-			fmt.Sprintf("context deadline exceeded"),
+			"context deadline exceeded",
 		},
 	}
 

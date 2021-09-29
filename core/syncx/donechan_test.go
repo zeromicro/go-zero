@@ -19,10 +19,8 @@ func TestDoneChanDone(t *testing.T) {
 
 	waitGroup.Add(1)
 	go func() {
-		select {
-		case <-doneChan.Done():
-			waitGroup.Done()
-		}
+		<-doneChan.Done()
+		waitGroup.Done()
 	}()
 
 	for i := 0; i < 5; i++ {

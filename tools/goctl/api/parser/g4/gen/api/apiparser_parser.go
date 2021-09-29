@@ -1087,7 +1087,6 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	}
 	p.SetState(105)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserSTRING {
 		{
@@ -1447,7 +1446,6 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	}
 	p.SetState(120)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
@@ -4102,7 +4100,6 @@ func (p *ApiParserParser) AtServer() (localctx IAtServerContext) {
 	}
 	p.SetState(245)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
@@ -4627,7 +4624,6 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 	case ApiParserParserID:
 		p.SetState(277)
 		p.GetErrorHandler().Sync(p)
-		_la = p.GetTokenStream().LA(1)
 
 		for ok := true; ok; ok = _la == ApiParserParserID {
 			{
@@ -5461,7 +5457,6 @@ func (p *ApiParserParser) ServiceName() (localctx IServiceNameContext) {
 	p.EnterOuterAlt(localctx, 1)
 	p.SetState(322)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
@@ -5575,7 +5570,6 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 	p.EnterOuterAlt(localctx, 1)
 	p.SetState(341)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserT__10 || _la == ApiParserParserT__11 {
 		p.SetState(341)

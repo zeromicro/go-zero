@@ -11,6 +11,7 @@ import (
 
 func TestReadLink(t *testing.T) {
 	dir, err := ioutil.TempDir("", "go-zero")
+	assert.Nil(t, err)
 	symLink := filepath.Join(dir, "test")
 	pwd, err := os.Getwd()
 	assertError(err, t)

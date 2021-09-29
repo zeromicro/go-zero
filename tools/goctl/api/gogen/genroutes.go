@@ -197,9 +197,8 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		}
 		middleware := g.GetAnnotation("middleware")
 		if len(middleware) > 0 {
-			for _, item := range strings.Split(middleware, ",") {
-				groupedRoutes.middlewares = append(groupedRoutes.middlewares, item)
-			}
+			groupedRoutes.middlewares = append(groupedRoutes.middlewares,
+				strings.Split(middleware, ",")...)
 		}
 		routes = append(routes, groupedRoutes)
 	}
