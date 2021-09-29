@@ -40,12 +40,12 @@ require (
 	go.opentelemetry.io/otel/sdk v1.0.0
 	go.opentelemetry.io/otel/trace v1.0.0
 	go.uber.org/automaxprocs v1.3.0
-	golang.org/x/net v0.0.0-20210917221730-978cfadd31cf // indirect
-	golang.org/x/sys v0.0.0-20210921065528-437939a70204 // indirect
+	golang.org/x/net v0.0.0-20210928044308-7d9f5e0b762b // indirect
+	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
-	google.golang.org/genproto v0.0.0-20210917145530-b395a37504d4 // indirect
-	google.golang.org/grpc v1.40.0
+	google.golang.org/genproto v0.0.0-20210928142010-c7af6a1a74c9 // indirect
+	google.golang.org/grpc v1.41.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.0.15
