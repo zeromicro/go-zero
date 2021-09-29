@@ -7,7 +7,9 @@ import (
 )
 
 func TestRefreshCpu(t *testing.T) {
-	assert.NotPanics(t, RefreshCpu())
+	assert.NotPanics(t, func() {
+		RefreshCpu()
+	})
 }
 
 func BenchmarkRefreshCpu(b *testing.B) {
