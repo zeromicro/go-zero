@@ -44,3 +44,17 @@ func TestResourceManager_GetResourceError(t *testing.T) {
 		assert.NotNil(t, err)
 	}
 }
+
+func TestResourceManager_Close(t *testing.T) {
+	manager := NewResourceManager()
+
+	for i := 0; i < 10; i++ {
+		_, err := manager.GetResource("key", func() (io.Closer, error) {
+			return nil, errors.New("fail")
+		})
+		assert.NotNil(t, err)
+	}
+	err := manager.Close()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(manager.resources))
+}
