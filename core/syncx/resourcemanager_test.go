@@ -44,6 +44,7 @@ func TestResourceManager_GetResourceError(t *testing.T) {
 		assert.NotNil(t, err)
 	}
 }
+
 func TestResourceManager_Close(t *testing.T) {
 	manager := NewResourceManager()
 
