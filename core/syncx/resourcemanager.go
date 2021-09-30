@@ -33,7 +33,8 @@ func (manager *ResourceManager) Close() error {
 			be.Add(err)
 		}
 	}
-
+	// reset resources
+	manager.resources = make(map[string]io.Closer)
 	return be.Err()
 }
 
