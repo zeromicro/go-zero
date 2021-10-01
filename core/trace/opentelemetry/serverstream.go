@@ -6,8 +6,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// serverStream wraps around the embedded grpc.ServerStream, and intercepts the RecvMsg and
-// SendMsg method call.
+// serverStream wraps around the embedded grpc.ServerStream,
+// and intercepts the RecvMsg and SendMsg method call.
 type serverStream struct {
 	grpc.ServerStream
 	ctx context.Context

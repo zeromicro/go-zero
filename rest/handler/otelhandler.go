@@ -11,7 +11,7 @@ import (
 )
 
 // OtelHandler return a middleware that process the opentelemetry.
-func OtelHandler(path string) func(http.Handler) http.Handler {
+func OtelHandler(serviceName, path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if !opentelemetry.Enabled() {
 			return next
@@ -26,7 +26,8 @@ func OtelHandler(path string) func(http.Handler) http.Handler {
 				ctx,
 				path,
 				oteltrace.WithSpanKind(oteltrace.SpanKindServer),
-				oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest("", path, r)...),
+				oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(
+					serviceName, path, r)...),
 			)
 			defer span.End()
 
