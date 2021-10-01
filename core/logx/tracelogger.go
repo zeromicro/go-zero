@@ -96,7 +96,10 @@ func WithContext(ctx context.Context) Logger {
 func spanIdFromContext(ctx context.Context) string {
 	span := trace.SpanFromContext(ctx)
 	if span.IsRecording() {
-		return span.SpanContext().SpanID().String()
+		spanCtx := span.SpanContext()
+		if spanCtx.IsValid() {
+			return spanCtx.SpanID().String()
+		}
 	}
 
 	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
@@ -110,7 +113,10 @@ func spanIdFromContext(ctx context.Context) string {
 func traceIdFromContext(ctx context.Context) string {
 	span := trace.SpanFromContext(ctx)
 	if span.IsRecording() {
-		return span.SpanContext().SpanID().String()
+		spanCtx := span.SpanContext()
+		if spanCtx.IsValid() {
+			return span.SpanContext().TraceID().String()
+		}
 	}
 
 	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
