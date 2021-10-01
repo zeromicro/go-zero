@@ -24,7 +24,7 @@ import (
 	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"github.com/tal-tech/go-zero/core/service"
-    "google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/reflection"
 )
 
 var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
