@@ -51,17 +51,17 @@ func TestSpinLock_TryLock(t *testing.T) {
 	go func() {
 		lock.TryLock()
 		sig <- lang.Placeholder
+		atomic.AddInt32(&count, 1)
 		runtime.Gosched()
 		lock.Unlock()
-		atomic.AddInt32(&count, 1)
 		wait.Done()
 	}()
 
 	go func() {
 		<-sig
 		lock.Lock()
-		lock.Unlock()
 		atomic.AddInt32(&count, 1)
+		lock.Unlock()
 		wait.Done()
 	}()
 
