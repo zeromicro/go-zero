@@ -7,13 +7,17 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-const kindJaeger = "jaeger"
+const (
+	kindJaeger = "jaeger"
+	kindZipkin = "zipkin"
+)
 
 var once sync.Once
 
@@ -28,12 +32,9 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	// Just support jaeger now, more for later
 	switch c.Batcher {
 	case kindJaeger:
-		exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
-		if err != nil {
-			return nil, err
-		}
-
-		return exp, nil
+		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
+	case kindZipkin:
+		return zipkin.New(c.Endpoint)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
