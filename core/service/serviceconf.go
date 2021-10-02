@@ -7,7 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/prometheus"
 	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/trace/opentelemetry"
+	"github.com/tal-tech/go-zero/core/trace"
 )
 
 const (
@@ -27,10 +27,10 @@ const (
 type ServiceConf struct {
 	Name       string
 	Log        logx.LogConf
-	Mode       string               `json:",default=pro,options=dev|test|rt|pre|pro"`
-	MetricsUrl string               `json:",optional"`
-	Prometheus prometheus.Config    `json:",optional"`
-	Telemetry  opentelemetry.Config `json:",optional"`
+	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
+	MetricsUrl string            `json:",optional"`
+	Prometheus prometheus.Config `json:",optional"`
+	Telemetry  trace.Config      `json:",optional"`
 }
 
 // MustSetUp sets up the service, exits on error.
@@ -55,7 +55,7 @@ func (sc ServiceConf) SetUp() error {
 	if len(sc.Telemetry.Name) == 0 {
 		sc.Telemetry.Name = sc.Name
 	}
-	opentelemetry.StartAgent(sc.Telemetry)
+	trace.StartAgent(sc.Telemetry)
 
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
