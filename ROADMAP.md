@@ -5,7 +5,7 @@ Community and contributor involvement is vital for successfully implementing all
 We hope that the items listed below will inspire further engagement from the community to keep go-zero progressing and shipping exciting and valuable features.
 
 ## 2021 Q2
-- [x] Support service discovery through K8S watch api
+- [x] Support service discovery through K8S client api
 - [x] Log full sql statements for easier sql problem solving
 
 ## 2021 Q3
@@ -14,6 +14,7 @@ We hope that the items listed below will inspire further engagement from the com
 - [ ] Adapt builtin tracing mechanism to opentracing solutions
 
 ## 2021 Q4
+- [ ] Add `httpx.Client` with governance, like circuit breaker etc.
 - [ ] Support `goctl doctor` command to report potential issues for given service
 - [ ] Support `context` in redis related methods for timeout and tracing
 - [ ] Support `context` in sql related methods for timeout and tracing
