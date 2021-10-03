@@ -55,10 +55,8 @@ func startAgent(c Config) {
 			return
 		}
 
-		opts = append(opts,
-			// Always be sure to batch in production.
-			sdktrace.WithBatcher(exp),
-		)
+		// Always be sure to batch in production.
+		opts = append(opts, sdktrace.WithBatcher(exp))
 	}
 
 	tp := sdktrace.NewTracerProvider(opts...)
