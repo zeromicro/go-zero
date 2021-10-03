@@ -1,4 +1,4 @@
-package opentelemetry
+package trace
 
 import (
 	"go.opentelemetry.io/otel/attribute"

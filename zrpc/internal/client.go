@@ -68,7 +68,6 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
 			clientinterceptors.UnaryTracingInterceptor,
-			clientinterceptors.UnaryOpenTracingInterceptor(),
 			clientinterceptors.DurationInterceptor,
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
@@ -76,7 +75,6 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		),
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
-			clientinterceptors.StreamOpenTracingInterceptor(),
 		),
 	}
 

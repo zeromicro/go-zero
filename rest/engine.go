@@ -107,8 +107,7 @@ func (s *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, metr
 func (s *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	chain := alice.New(
-		handler.TracingHandler,
-		handler.OtelHandler(s.conf.Name, route.Path),
+		handler.TracingHandler(s.conf.Name, route.Path),
 		s.getLogHandler(),
 		handler.PrometheusHandler(route.Path),
 		handler.MaxConns(s.conf.MaxConns),

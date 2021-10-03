@@ -33,18 +33,16 @@ var (
 	})
 )
 
-// UnaryPrometheusInterceptor returns a func that reports to the prometheus server.
-func UnaryPrometheusInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
-		interface{}, error) {
-		if !prometheus.Enabled() {
-			return handler(ctx, req)
-		}
-
-		startTime := timex.Now()
-		resp, err := handler(ctx, req)
-		metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), info.FullMethod)
-		metricServerReqCodeTotal.Inc(info.FullMethod, strconv.Itoa(int(status.Code(err))))
-		return resp, err
+// UnaryPrometheusInterceptor reports the statistics to the prometheus server.
+func UnaryPrometheusInterceptor(ctx context.Context, req interface{},
+	info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	if !prometheus.Enabled() {
+		return handler(ctx, req)
 	}
+
+	startTime := timex.Now()
+	resp, err := handler(ctx, req)
+	metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), info.FullMethod)
+	metricServerReqCodeTotal.Inc(info.FullMethod, strconv.Itoa(int(status.Code(err))))
+	return resp, err
 }

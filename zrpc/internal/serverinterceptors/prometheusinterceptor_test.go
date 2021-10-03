@@ -10,8 +10,7 @@ import (
 )
 
 func TestUnaryPromMetricInterceptor_Disabled(t *testing.T) {
-	interceptor := UnaryPrometheusInterceptor()
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+	_, err := UnaryPrometheusInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, nil
@@ -24,8 +23,7 @@ func TestUnaryPromMetricInterceptor_Enabled(t *testing.T) {
 		Host: "localhost",
 		Path: "/",
 	})
-	interceptor := UnaryPrometheusInterceptor()
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+	_, err := UnaryPrometheusInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, nil
