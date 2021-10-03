@@ -24,22 +24,29 @@ func UnaryTracingInterceptor() grpc.UnaryClientInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
-		metadataCopy := requestMetadata.Copy()
+		var md metadata.MD
+		requestMetadata, ok := metadata.FromOutgoingContext(ctx)
+		if ok {
+			md = requestMetadata.Copy()
+		}
 		tr := otel.Tracer(ztrace.TraceName)
 		name, attr := ztrace.SpanInfo(method, cc.Target())
 		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
 			trace.WithAttributes(attr...))
 		defer span.End()
 
-		ztrace.Inject(ctx, propagator, &metadataCopy)
-		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
+		ztrace.Inject(ctx, propagator, &md)
+		ctx = metadata.NewOutgoingContext(ctx, md)
 		ztrace.MessageSent.Event(ctx, 1, req)
 		ztrace.MessageReceived.Event(ctx, 1, reply)
 
 		if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
-			s, _ := status.FromError(err)
-			span.SetStatus(codes.Error, s.Message())
+			s, ok := status.FromError(err)
+			if ok {
+				span.SetStatus(codes.Error, s.Message())
+			} else {
+				span.SetStatus(codes.Error, err.Error())
+			}
 			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 			return err
 		}
@@ -54,18 +61,25 @@ func StreamTracingInterceptor() grpc.StreamClientInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
 		streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		requestMetadata, _ := metadata.FromOutgoingContext(ctx)
-		metadataCopy := requestMetadata.Copy()
+		var md metadata.MD
+		requestMetadata, ok := metadata.FromOutgoingContext(ctx)
+		if ok {
+			md = requestMetadata.Copy()
+		}
 		tr := otel.Tracer(ztrace.TraceName)
 		name, attr := ztrace.SpanInfo(method, cc.Target())
 		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
 			trace.WithAttributes(attr...))
-		ztrace.Inject(ctx, propagator, &metadataCopy)
-		ctx = metadata.NewOutgoingContext(ctx, metadataCopy)
+		ztrace.Inject(ctx, propagator, &md)
+		ctx = metadata.NewOutgoingContext(ctx, md)
 		s, err := streamer(ctx, desc, cc, method, opts...)
 		if err != nil {
-			grpcStatus, _ := status.FromError(err)
-			span.SetStatus(codes.Error, grpcStatus.Message())
+			grpcStatus, ok := status.FromError(err)
+			if ok {
+				span.SetStatus(codes.Error, grpcStatus.Message())
+			} else {
+				span.SetStatus(codes.Error, err.Error())
+			}
 			span.SetAttributes(ztrace.StatusCodeAttr(grpcStatus.Code()))
 			span.End()
 			return s, err
@@ -75,8 +89,12 @@ func StreamTracingInterceptor() grpc.StreamClientInterceptor {
 
 		go func() {
 			if err := <-stream.Finished; err != nil {
-				s, _ := status.FromError(err)
-				span.SetStatus(codes.Error, s.Message())
+				s, ok := status.FromError(err)
+				if ok {
+					span.SetStatus(codes.Error, s.Message())
+				} else {
+					span.SetStatus(codes.Error, err.Error())
+				}
 				span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 			} else {
 				span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
