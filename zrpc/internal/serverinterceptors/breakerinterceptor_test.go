@@ -21,7 +21,7 @@ func TestStreamBreakerInterceptor(t *testing.T) {
 }
 
 func TestUnaryBreakerInterceptor(t *testing.T) {
-	_, err := UnaryBreakerInterceptor(nil, nil, &grpc.UnaryServerInfo{
+	_, err := UnaryBreakerInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "any",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, status.New(codes.DeadlineExceeded, "any").Err()
