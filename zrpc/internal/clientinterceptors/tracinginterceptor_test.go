@@ -2,6 +2,7 @@ package clientinterceptors
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -45,6 +46,23 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
 }
 
+func TestUnaryTracingInterceptor_WithError(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
+		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+			opts ...grpc.CallOption) error {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return errors.New("dummy")
+		})
+	wg.Wait()
+	assert.NotNil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
 func TestStreamTracingInterceptor(t *testing.T) {
 	var run int32
 	var wg sync.WaitGroup
@@ -59,6 +77,23 @@ func TestStreamTracingInterceptor(t *testing.T) {
 		})
 	wg.Wait()
 	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
+func TestStreamTracingInterceptor_WithError(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	_, err := StreamTracingInterceptor(context.Background(), nil, cc, "/foo",
+		func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
+			opts ...grpc.CallOption) (grpc.ClientStream, error) {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return nil, errors.New("dummy")
+		})
+	wg.Wait()
+	assert.NotNil(t, err)
 	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
 }
 
