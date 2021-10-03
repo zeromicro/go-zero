@@ -28,11 +28,9 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			defer span.End()
 
 			// convenient for tracking error messages
-			if span.IsRecording() {
-				sc := span.SpanContext()
-				if sc.HasTraceID() {
-					w.Header().Set(trace.TraceIdKey, sc.TraceID().String())
-				}
+			sc := span.SpanContext()
+			if sc.HasTraceID() {
+				w.Header().Set(trace.TraceIdKey, sc.TraceID().String())
 			}
 
 			next.ServeHTTP(w, r.WithContext(spanCtx))
