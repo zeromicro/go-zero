@@ -13,8 +13,7 @@ import (
 )
 
 func TestUnaryOpenTracingInterceptor_Disable(t *testing.T) {
-	interceptor := UnaryTracingInterceptor()
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, nil
@@ -29,8 +28,7 @@ func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
-	interceptor := UnaryTracingInterceptor()
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/package.TestService.GetUser",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		return nil, nil
@@ -39,11 +37,10 @@ func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
 }
 
 func TestUnaryTracingInterceptor(t *testing.T) {
-	interceptor := UnaryTracingInterceptor()
 	var run int32
 	var wg sync.WaitGroup
 	wg.Add(1)
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {
 		defer wg.Done()
@@ -56,14 +53,13 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 }
 
 func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
-	interceptor := StreamTracingInterceptor()
 	var run int32
 	var wg sync.WaitGroup
 	wg.Add(1)
 	var md metadata.MD
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 	stream := mockedServerStream{ctx: ctx}
-	err := interceptor(nil, &stream, &grpc.StreamServerInfo{
+	err := StreamTracingInterceptor(nil, &stream, &grpc.StreamServerInfo{
 		FullMethod: "/foo",
 	}, func(srv interface{}, stream grpc.ServerStream) error {
 		defer wg.Done()

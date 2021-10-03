@@ -20,27 +20,50 @@ const (
 )
 
 // UnaryTracingInterceptor returns a grpc.UnaryClientInterceptor for opentelemetry.
-func UnaryTracingInterceptor() grpc.UnaryClientInterceptor {
-	propagator := otel.GetTextMapPropagator()
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
-		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		var md metadata.MD
-		requestMetadata, ok := metadata.FromOutgoingContext(ctx)
+func UnaryTracingInterceptor(ctx context.Context, method string, req, reply interface{},
+	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+	ctx, span := startSpan(ctx, method, cc.Target())
+	defer span.End()
+
+	ztrace.MessageSent.Event(ctx, 1, req)
+	ztrace.MessageReceived.Event(ctx, 1, reply)
+
+	if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
+		s, ok := status.FromError(err)
 		if ok {
-			md = requestMetadata.Copy()
+			span.SetStatus(codes.Error, s.Message())
+			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
+		} else {
+			span.SetStatus(codes.Error, err.Error())
 		}
-		tr := otel.Tracer(ztrace.TraceName)
-		name, attr := ztrace.SpanInfo(method, cc.Target())
-		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
-			trace.WithAttributes(attr...))
-		defer span.End()
+		return err
+	}
 
-		ztrace.Inject(ctx, propagator, &md)
-		ctx = metadata.NewOutgoingContext(ctx, md)
-		ztrace.MessageSent.Event(ctx, 1, req)
-		ztrace.MessageReceived.Event(ctx, 1, reply)
+	span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
+	return nil
+}
 
-		if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
+// StreamTracingInterceptor returns a grpc.StreamClientInterceptor for opentelemetry.
+func StreamTracingInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn,
+	method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	ctx, span := startSpan(ctx, method, cc.Target())
+	s, err := streamer(ctx, desc, cc, method, opts...)
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			span.SetStatus(codes.Error, st.Message())
+			span.SetAttributes(ztrace.StatusCodeAttr(st.Code()))
+		} else {
+			span.SetStatus(codes.Error, err.Error())
+		}
+		span.End()
+		return s, err
+	}
+
+	stream := wrapClientStream(ctx, s, desc)
+
+	go func() {
+		if err := <-stream.Finished; err != nil {
 			s, ok := status.FromError(err)
 			if ok {
 				span.SetStatus(codes.Error, s.Message())
@@ -48,63 +71,14 @@ func UnaryTracingInterceptor() grpc.UnaryClientInterceptor {
 				span.SetStatus(codes.Error, err.Error())
 			}
 			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
-			return err
+		} else {
+			span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
 		}
 
-		span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
-		return nil
-	}
-}
+		span.End()
+	}()
 
-// StreamTracingInterceptor returns a grpc.StreamClientInterceptor for opentelemetry.
-func StreamTracingInterceptor() grpc.StreamClientInterceptor {
-	propagator := otel.GetTextMapPropagator()
-	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
-		streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-		var md metadata.MD
-		requestMetadata, ok := metadata.FromOutgoingContext(ctx)
-		if ok {
-			md = requestMetadata.Copy()
-		}
-		tr := otel.Tracer(ztrace.TraceName)
-		name, attr := ztrace.SpanInfo(method, cc.Target())
-		ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
-			trace.WithAttributes(attr...))
-		ztrace.Inject(ctx, propagator, &md)
-		ctx = metadata.NewOutgoingContext(ctx, md)
-		s, err := streamer(ctx, desc, cc, method, opts...)
-		if err != nil {
-			grpcStatus, ok := status.FromError(err)
-			if ok {
-				span.SetStatus(codes.Error, grpcStatus.Message())
-			} else {
-				span.SetStatus(codes.Error, err.Error())
-			}
-			span.SetAttributes(ztrace.StatusCodeAttr(grpcStatus.Code()))
-			span.End()
-			return s, err
-		}
-
-		stream := wrapClientStream(ctx, s, desc)
-
-		go func() {
-			if err := <-stream.Finished; err != nil {
-				s, ok := status.FromError(err)
-				if ok {
-					span.SetStatus(codes.Error, s.Message())
-				} else {
-					span.SetStatus(codes.Error, err.Error())
-				}
-				span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
-			} else {
-				span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
-			}
-
-			span.End()
-		}()
-
-		return stream, nil
-	}
+	return stream, nil
 }
 
 type (
@@ -176,6 +150,24 @@ func (w *clientStream) sendStreamEvent(eventType streamEventType, err error) {
 	case <-w.eventsDone:
 	case w.events <- streamEvent{Type: eventType, Err: err}:
 	}
+}
+
+func startSpan(ctx context.Context, method, target string) (context.Context, trace.Span) {
+	var md metadata.MD
+	requestMetadata, ok := metadata.FromOutgoingContext(ctx)
+	if ok {
+		md = requestMetadata.Copy()
+	} else {
+		md = metadata.MD{}
+	}
+	tr := otel.Tracer(ztrace.TraceName)
+	name, attr := ztrace.SpanInfo(method, target)
+	ctx, span := tr.Start(ctx, name, trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(attr...))
+	ztrace.Inject(ctx, otel.GetTextMapPropagator(), &md)
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
+	return ctx, span
 }
 
 // wrapClientStream wraps s with given ctx and desc.

@@ -20,7 +20,7 @@ func TestOpenTracingInterceptor(t *testing.T) {
 	})
 
 	cc := new(grpc.ClientConn)
-	err := UnaryTracingInterceptor()(context.Background(), "/ListUser", nil, nil, cc,
+	err := UnaryTracingInterceptor(context.Background(), "/ListUser", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			return nil
@@ -33,7 +33,7 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
-	err := UnaryTracingInterceptor()(context.Background(), "/foo", nil, nil, cc,
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
@@ -50,7 +50,7 @@ func TestStreamTracingInterceptor(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
-	_, err := StreamTracingInterceptor()(context.Background(), nil, cc, "/foo",
+	_, err := StreamTracingInterceptor(context.Background(), nil, cc, "/foo",
 		func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
 			opts ...grpc.CallOption) (grpc.ClientStream, error) {
 			defer wg.Done()
@@ -67,7 +67,7 @@ func TestUnaryTracingInterceptor_GrpcFormat(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
-	err := UnaryTracingInterceptor()(context.Background(), "/foo", nil, nil, cc,
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
@@ -84,7 +84,7 @@ func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
-	_, err := StreamTracingInterceptor()(context.Background(), nil, cc, "/foo",
+	_, err := StreamTracingInterceptor(context.Background(), nil, cc, "/foo",
 		func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string,
 			opts ...grpc.CallOption) (grpc.ClientStream, error) {
 			defer wg.Done()
