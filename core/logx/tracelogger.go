@@ -93,8 +93,7 @@ func WithContext(ctx context.Context) Logger {
 }
 
 func spanIdFromContext(ctx context.Context) string {
-	span := trace.SpanFromContext(ctx)
-	spanCtx := span.SpanContext()
+	spanCtx := trace.SpanContextFromContext(ctx)
 	if spanCtx.HasSpanID() {
 		return spanCtx.SpanID().String()
 	}
@@ -103,8 +102,7 @@ func spanIdFromContext(ctx context.Context) string {
 }
 
 func traceIdFromContext(ctx context.Context) string {
-	span := trace.SpanFromContext(ctx)
-	spanCtx := span.SpanContext()
+	spanCtx := trace.SpanContextFromContext(ctx)
 	if spanCtx.HasTraceID() {
 		return spanCtx.TraceID().String()
 	}

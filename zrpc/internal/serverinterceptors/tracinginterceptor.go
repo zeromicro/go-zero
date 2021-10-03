@@ -19,9 +19,12 @@ func UnaryTracingInterceptor() grpc.UnaryServerInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
-		requestMetadata, _ := metadata.FromIncomingContext(ctx)
-		metadataCopy := requestMetadata.Copy()
-		bags, spanCtx := ztrace.Extract(ctx, propagator, &metadataCopy)
+		var md metadata.MD
+		requestMetadata, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			md = requestMetadata.Copy()
+		}
+		bags, spanCtx := ztrace.Extract(ctx, propagator, &md)
 		ctx = baggage.ContextWithBaggage(ctx, bags)
 		tr := otel.Tracer(ztrace.TraceName)
 		name, attr := ztrace.SpanInfo(info.FullMethod, ztrace.PeerFromCtx(ctx))
@@ -32,8 +35,12 @@ func UnaryTracingInterceptor() grpc.UnaryServerInterceptor {
 		ztrace.MessageReceived.Event(ctx, 1, req)
 		resp, err := handler(ctx, req)
 		if err != nil {
-			s, _ := status.FromError(err)
-			span.SetStatus(codes.Error, s.Message())
+			s, ok := status.FromError(err)
+			if ok {
+				span.SetStatus(codes.Error, s.Message())
+			} else {
+				span.SetStatus(codes.Error, err.Error())
+			}
 			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 			ztrace.MessageSent.Event(ctx, 1, s.Proto())
 			return nil, err
@@ -50,10 +57,13 @@ func UnaryTracingInterceptor() grpc.UnaryServerInterceptor {
 func StreamTracingInterceptor() grpc.StreamServerInterceptor {
 	propagator := otel.GetTextMapPropagator()
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		var md metadata.MD
 		ctx := ss.Context()
-		requestMetadata, _ := metadata.FromIncomingContext(ctx)
-		metadataCopy := requestMetadata.Copy()
-		bags, spanCtx := ztrace.Extract(ctx, propagator, &metadataCopy)
+		requestMetadata, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			md = requestMetadata.Copy()
+		}
+		bags, spanCtx := ztrace.Extract(ctx, propagator, &md)
 		ctx = baggage.ContextWithBaggage(ctx, bags)
 		tr := otel.Tracer(ztrace.TraceName)
 		name, attr := ztrace.SpanInfo(info.FullMethod, ztrace.PeerFromCtx(ctx))
@@ -62,8 +72,12 @@ func StreamTracingInterceptor() grpc.StreamServerInterceptor {
 		defer span.End()
 
 		if err := handler(srv, wrapServerStream(ctx, ss)); err != nil {
-			s, _ := status.FromError(err)
-			span.SetStatus(codes.Error, s.Message())
+			s, ok := status.FromError(err)
+			if ok {
+				span.SetStatus(codes.Error, s.Message())
+			} else {
+				span.SetStatus(codes.Error, err.Error())
+			}
 			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 			return err
 		}
