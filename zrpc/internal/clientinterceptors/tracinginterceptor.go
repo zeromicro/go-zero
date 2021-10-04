@@ -67,10 +67,10 @@ func StreamTracingInterceptor(ctx context.Context, desc *grpc.StreamDesc, cc *gr
 			s, ok := status.FromError(err)
 			if ok {
 				span.SetStatus(codes.Error, s.Message())
+				span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 			} else {
 				span.SetStatus(codes.Error, err.Error())
 			}
-			span.SetAttributes(ztrace.StatusCodeAttr(s.Code()))
 		} else {
 			span.SetAttributes(ztrace.StatusCodeAttr(gcodes.OK))
 		}
