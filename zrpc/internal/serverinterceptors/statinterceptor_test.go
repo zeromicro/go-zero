@@ -2,8 +2,6 @@ package serverinterceptors
 
 import (
 	"context"
-	"io"
-	"log"
 	"net"
 	"testing"
 	"time"
@@ -78,7 +76,6 @@ func TestLogDuration(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			log.SetOutput(io.Discard)
 			assert.NotPanics(t, func() {
 				logDuration(test.ctx, "foo", test.req, test.duration)
 			})
