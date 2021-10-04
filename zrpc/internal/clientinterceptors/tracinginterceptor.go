@@ -100,6 +100,24 @@ type (
 	}
 )
 
+func (w *clientStream) CloseSend() error {
+	err := w.ClientStream.CloseSend()
+	if err != nil {
+		w.sendStreamEvent(errorEvent, err)
+	}
+
+	return err
+}
+
+func (w *clientStream) Header() (metadata.MD, error) {
+	md, err := w.ClientStream.Header()
+	if err != nil {
+		w.sendStreamEvent(errorEvent, err)
+	}
+
+	return md, err
+}
+
 func (w *clientStream) RecvMsg(m interface{}) error {
 	err := w.ClientStream.RecvMsg(m)
 	if err == nil && !w.desc.ServerStreams {
@@ -120,24 +138,6 @@ func (w *clientStream) SendMsg(m interface{}) error {
 	err := w.ClientStream.SendMsg(m)
 	w.sentMessageID++
 	ztrace.MessageSent.Event(w.Context(), w.sentMessageID, m)
-	if err != nil {
-		w.sendStreamEvent(errorEvent, err)
-	}
-
-	return err
-}
-
-func (w *clientStream) Header() (metadata.MD, error) {
-	md, err := w.ClientStream.Header()
-	if err != nil {
-		w.sendStreamEvent(errorEvent, err)
-	}
-
-	return md, err
-}
-
-func (w *clientStream) CloseSend() error {
-	err := w.ClientStream.CloseSend()
 	if err != nil {
 		w.sendStreamEvent(errorEvent, err)
 	}

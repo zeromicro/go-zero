@@ -3,6 +3,7 @@ package clientinterceptors
 import (
 	"context"
 	"errors"
+	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -24,7 +25,8 @@ func TestOpenTracingInterceptor(t *testing.T) {
 	})
 
 	cc := new(grpc.ClientConn)
-	err := UnaryTracingInterceptor(context.Background(), "/ListUser", nil, nil, cc,
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.MD{})
+	err := UnaryTracingInterceptor(ctx, "/ListUser", nil, nil, cc,
 		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			return nil
@@ -220,6 +222,101 @@ func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
 }
 
+func TestClientStream_RecvMsg(t *testing.T) {
+	tests := []struct {
+		name          string
+		serverStreams bool
+		err           error
+	}{
+		{
+			name: "nil error",
+		},
+		{
+			name: "EOF",
+			err:  io.EOF,
+		},
+		{
+			name: "dummy error",
+			err:  errors.New("dummy"),
+		},
+		{
+			name:          "server streams",
+			serverStreams: true,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			desc := new(grpc.StreamDesc)
+			desc.ServerStreams = test.serverStreams
+			stream := wrapClientStream(context.Background(), &mockedClientStream{
+				md:  nil,
+				err: test.err,
+			}, desc)
+			assert.Equal(t, test.err, stream.RecvMsg(nil))
+		})
+	}
+}
+
+func TestClientStream_Header(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "nil error",
+		},
+		{
+			name: "with error",
+			err:  errors.New("dummy"),
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			desc := new(grpc.StreamDesc)
+			stream := wrapClientStream(context.Background(), &mockedClientStream{
+				md:  metadata.MD{},
+				err: test.err,
+			}, desc)
+			_, err := stream.Header()
+			assert.Equal(t, test.err, err)
+		})
+	}
+}
+
+func TestClientStream_SendMsg(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "nil error",
+		},
+		{
+			name: "with error",
+			err:  errors.New("dummy"),
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			desc := new(grpc.StreamDesc)
+			stream := wrapClientStream(context.Background(), &mockedClientStream{
+				md:  metadata.MD{},
+				err: test.err,
+			}, desc)
+			assert.Equal(t, test.err, stream.SendMsg(nil))
+		})
+	}
+}
+
 type mockedClientStream struct {
 	md  metadata.MD
 	err error
@@ -238,13 +335,13 @@ func (m *mockedClientStream) CloseSend() error {
 }
 
 func (m *mockedClientStream) Context() context.Context {
-	panic("implement me")
+	return context.Background()
 }
 
 func (m *mockedClientStream) SendMsg(v interface{}) error {
-	panic("implement me")
+	return m.err
 }
 
 func (m *mockedClientStream) RecvMsg(v interface{}) error {
-	panic("implement me")
+	return m.err
 }
