@@ -229,13 +229,22 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
-## 9. 微信公众号
+## 9. CNCF 云原生技术全景图
+
+<p float="left">
+<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
+<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+</p>
+
+go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
+
+## 10. 微信公众号
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat-micro.jpg" alt="wechat" width="300" />
 
-## 10. 微信交流群
+## 11. 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
