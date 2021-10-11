@@ -23,7 +23,7 @@ package {{.filePackage}}
 
 import (
 	"context"
-    "google.golang.org/grpc"
+	"google.golang.org/grpc"
 	{{.package}}
 
 	"github.com/tal-tech/go-zero/zrpc"
