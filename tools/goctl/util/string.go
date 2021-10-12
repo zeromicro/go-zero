@@ -1,6 +1,37 @@
 package util
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/tal-tech/go-zero/core/lang"
+)
+
+var goKeyword = map[string]lang.PlaceholderType{
+	"var":         lang.Placeholder,
+	"const":       lang.Placeholder,
+	"package":     lang.Placeholder,
+	"func":        lang.Placeholder,
+	"return":      lang.Placeholder,
+	"defer":       lang.Placeholder,
+	"go":          lang.Placeholder,
+	"select":      lang.Placeholder,
+	"struct":      lang.Placeholder,
+	"interface":   lang.Placeholder,
+	"chan":        lang.Placeholder,
+	"type":        lang.Placeholder,
+	"map":         lang.Placeholder,
+	"range":       lang.Placeholder,
+	"break":       lang.Placeholder,
+	"case":        lang.Placeholder,
+	"continue":    lang.Placeholder,
+	"for":         lang.Placeholder,
+	"fallthrough": lang.Placeholder,
+	"else":        lang.Placeholder,
+	"if":          lang.Placeholder,
+	"switch":      lang.Placeholder,
+	"goto":        lang.Placeholder,
+	"default":     lang.Placeholder,
+}
 
 // Title returns a string value with s[0] which has been convert into upper case that
 // there are not empty input text
@@ -50,7 +81,7 @@ func SafeString(in string) string {
 	if isNumber(headRune) {
 		return "_" + data
 	}
-	return data
+	return escapeGolangKeyword(data)
 }
 
 func isSafeRune(r rune) bool {
@@ -63,4 +94,16 @@ func isLetter(r rune) bool {
 
 func isNumber(r rune) bool {
 	return '0' <= r && r <= '9'
+}
+
+func escapeGolangKeyword(s string) string {
+	if !isGolangKeyword(s) {
+		return s
+	}
+	return "_" + s
+}
+
+func isGolangKeyword(s string) bool {
+	_, ok := goKeyword[s]
+	return ok
 }
