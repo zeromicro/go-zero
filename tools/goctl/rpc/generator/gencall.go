@@ -18,15 +18,15 @@ import (
 const (
 	callTemplateText = `{{.head}}
 
-
 package {{.filePackage}}
 
 import (
 	"context"
-	"google.golang.org/grpc"
+
 	{{.package}}
 
 	"github.com/tal-tech/go-zero/zrpc"
+	"google.golang.org/grpc"
 )
 
 type (
