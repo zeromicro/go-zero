@@ -10,10 +10,20 @@ type SpinLock struct {
 	lock uint32
 }
 
+const maxBackoff = 64
+
 // Lock locks the SpinLock.
+// The Design reference https://github.com/panjf2000/ants/blob/master/internal/spinlock.go
 func (sl *SpinLock) Lock() {
+	backoff := 1
 	for !sl.TryLock() {
-		runtime.Gosched()
+		// Leverage the exponential backoff algorithm, see https://en.wikipedia.org/wiki/Exponential_backoff.
+		for i := 0; i < backoff; i++ {
+			runtime.Gosched()
+		}
+		if backoff < maxBackoff {
+			backoff <<= 1
+		}
 	}
 }
 
