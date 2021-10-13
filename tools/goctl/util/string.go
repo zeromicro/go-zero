@@ -6,6 +6,8 @@ import (
 	"github.com/tal-tech/go-zero/core/lang"
 )
 
+const escapePrefix = "es_"
+
 var goKeyword = map[string]lang.PlaceholderType{
 	"var":         lang.Placeholder,
 	"const":       lang.Placeholder,
@@ -81,7 +83,7 @@ func SafeString(in string) string {
 	if isNumber(headRune) {
 		return "_" + data
 	}
-	return escapeGolangKeyword(data)
+	return data
 }
 
 func isSafeRune(r rune) bool {
@@ -96,11 +98,11 @@ func isNumber(r rune) bool {
 	return '0' <= r && r <= '9'
 }
 
-func escapeGolangKeyword(s string) string {
+func EscapeGolangKeyword(s string) string {
 	if !isGolangKeyword(s) {
 		return s
 	}
-	return "_" + s
+	return escapePrefix + s
 }
 
 func isGolangKeyword(s string) bool {
