@@ -169,7 +169,7 @@ func checkDuplicateUniqueIndex(uniqueIndex map[string][]*Field, tableName string
 
 		joinRet := strings.Join(list, ",")
 		if uniqueSet.Contains(joinRet) {
-			log.Warning("table %s: duplicate unique index %s", tableName, joinRet)
+			log.Warning("[checkDuplicateUniqueIndex]: table %s: duplicate unique index %s", tableName, joinRet)
 			delete(uniqueIndex, k)
 			continue
 		}
@@ -215,10 +215,10 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		if column.Constraint != nil {
 			if column.Name == primaryColumn {
 				if !column.Constraint.AutoIncrement && dataType == "int64" {
-					log.Warning("%s: The primary key is recommended to add constraint `AUTO_INCREMENT`", column.Name)
+					log.Warning("[convertColumns]: The primary key %q is recommended to add constraint `AUTO_INCREMENT`", column.Name)
 				}
 			} else if column.Constraint.NotNull && !column.Constraint.HasDefaultValue {
-				log.Warning("%s: The column is recommended to add constraint `DEFAULT`", column.Name)
+				log.Warning("[convertColumns]: The column %q is recommended to add constraint `DEFAULT`", column.Name)
 			}
 		}
 
@@ -304,7 +304,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		if len(each) == 1 {
 			one := each[0]
 			if one.Name == table.PrimaryKey.Name {
-				log.Warning("table %s: duplicate unique index with primary key, %s", table.Table, one.Name)
+				log.Warning("[ConvertDataType]: table q%, duplicate unique index with primary key:  %q", table.Table, one.Name)
 				continue
 			}
 		}
@@ -318,7 +318,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 
 		uniqueKey := strings.Join(uniqueJoin, ",")
 		if uniqueIndexSet.Contains(uniqueKey) {
-			log.Warning("table %s: duplicate unique index, %s", table.Table, uniqueKey)
+			log.Warning("[ConvertDataType]: table %q, duplicate unique index %q", table.Table, uniqueKey)
 			continue
 		}
 

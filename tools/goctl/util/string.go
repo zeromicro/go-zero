@@ -3,36 +3,34 @@ package util
 import (
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 )
 
-const escapePrefix = "es_"
-
-var goKeyword = map[string]lang.PlaceholderType{
-	"var":         lang.Placeholder,
-	"const":       lang.Placeholder,
-	"package":     lang.Placeholder,
-	"func":        lang.Placeholder,
-	"return":      lang.Placeholder,
-	"defer":       lang.Placeholder,
-	"go":          lang.Placeholder,
-	"select":      lang.Placeholder,
-	"struct":      lang.Placeholder,
-	"interface":   lang.Placeholder,
-	"chan":        lang.Placeholder,
-	"type":        lang.Placeholder,
-	"map":         lang.Placeholder,
-	"range":       lang.Placeholder,
-	"break":       lang.Placeholder,
-	"case":        lang.Placeholder,
-	"continue":    lang.Placeholder,
-	"for":         lang.Placeholder,
-	"fallthrough": lang.Placeholder,
-	"else":        lang.Placeholder,
-	"if":          lang.Placeholder,
-	"switch":      lang.Placeholder,
-	"goto":        lang.Placeholder,
-	"default":     lang.Placeholder,
+var goKeyword = map[string]string{
+	"var":         "variable",
+	"const":       "constant",
+	"package":     "pkg",
+	"func":        "function",
+	"return":      "rtn",
+	"defer":       "dfr",
+	"go":          "goo",
+	"select":      "slt",
+	"struct":      "structure",
+	"interface":   "itf",
+	"chan":        "channel",
+	"type":        "tp",
+	"map":         "mp",
+	"range":       "rg",
+	"break":       "brk",
+	"case":        "caz",
+	"continue":    "ctn",
+	"for":         "fr",
+	"fallthrough": "fth",
+	"else":        "es",
+	"if":          "ef",
+	"switch":      "swt",
+	"goto":        "gt",
+	"default":     "dft",
 }
 
 // Title returns a string value with s[0] which has been convert into upper case that
@@ -102,7 +100,10 @@ func EscapeGolangKeyword(s string) string {
 	if !isGolangKeyword(s) {
 		return s
 	}
-	return escapePrefix + s
+
+	r := goKeyword[s]
+	console.Info("[EscapeGolangKeyword]: go keyword is forbidden %q, converted into %q", s, r)
+	return r
 }
 
 func isGolangKeyword(s string) bool {

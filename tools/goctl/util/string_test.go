@@ -68,7 +68,7 @@ func TestSafeString(t *testing.T) {
 
 func TestEscapeGoKeyword(t *testing.T) {
 	for k := range goKeyword {
-		assert.Equal(t, escapePrefix+k, EscapeGolangKeyword(k))
+		assert.Equal(t, goKeyword[k], EscapeGolangKeyword(k))
 		assert.False(t, isGolangKeyword(strings.Title(k)))
 	}
 }
