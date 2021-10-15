@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/utils/io"
 )
 
 func TestUnmarshalYamlBytes(t *testing.T) {
@@ -16,6 +17,22 @@ func TestUnmarshalYamlBytes(t *testing.T) {
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, "liao", c.Name)
+}
+
+func TestUnmarshalYamlBytesErrorInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(`liao`)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
+}
+
+func TestUnmarshalYamlBytesEmptyInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(``)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
 
 func TestUnmarshalYamlBytesOptional(t *testing.T) {
@@ -917,4 +934,19 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 
 	err := UnmarshalYamlReader(reader, &v)
 	assert.NotNil(t, err)
+}
+
+func TestUnmarshalYamlBadReader(t *testing.T) {
+	var v struct {
+		Any string
+	}
+
+	err := UnmarshalYamlReader(new(badReader), &v)
+	assert.NotNil(t, err)
+}
+
+type badReader struct{}
+
+func (b *badReader) Read(p []byte) (n int, err error) {
+	return 0, io.ErrLimitReached
 }
