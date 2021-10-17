@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
 var errorFormat = `goctl: generation error: %+v

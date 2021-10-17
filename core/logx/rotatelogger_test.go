@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/fs"
+	"github.com/zeromicro/go-zero/core/fs"
 )
 
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
