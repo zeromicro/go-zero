@@ -15,7 +15,7 @@ const localhost = "127.0.0.1"
 // PeerFromCtx returns the peer from ctx.
 func PeerFromCtx(ctx context.Context) string {
 	p, ok := peer.FromContext(ctx)
-	if !ok {
+	if !ok || p == nil {
 		return ""
 	}
 
@@ -55,7 +55,7 @@ func ParseFullMethod(fullMethod string) (string, []attribute.KeyValue) {
 func PeerAttr(addr string) []attribute.KeyValue {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {
-		return []attribute.KeyValue(nil)
+		return nil
 	}
 
 	if len(host) == 0 {
