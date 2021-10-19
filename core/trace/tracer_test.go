@@ -157,7 +157,8 @@ func TestExtractValidTraceContext(t *testing.T) {
 			}),
 		},
 	}
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{}))
 	propagator := otel.GetTextMapPropagator()
 
 	for _, tt := range tests {
@@ -242,7 +243,8 @@ func TestExtractInvalidTraceContext(t *testing.T) {
 			header: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-",
 		},
 	}
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{}))
 	propagator := otel.GetTextMapPropagator()
 
 	for _, tt := range tests {
@@ -308,7 +310,8 @@ func TestInjectValidTraceContext(t *testing.T) {
 			}),
 		},
 	}
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{}))
 	propagator := otel.GetTextMapPropagator()
 
 	for _, tt := range tests {
@@ -325,6 +328,11 @@ func TestInjectValidTraceContext(t *testing.T) {
 			md := metadata.MD{}
 			Inject(ctx, propagator, &md)
 			assert.Equal(t, want, md)
+
+			mm := &metadataSupplier{
+				metadata: &md,
+			}
+			assert.NotEmpty(t, mm.Keys())
 		})
 	}
 }
@@ -334,7 +342,8 @@ func TestInvalidSpanContextDropped(t *testing.T) {
 	require.False(t, invalidSC.IsValid())
 	ctx := trace.ContextWithRemoteSpanContext(context.Background(), invalidSC)
 
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{}, propagation.Baggage{}))
 	propagator := otel.GetTextMapPropagator()
 
 	md := metadata.MD{}
@@ -342,5 +351,6 @@ func TestInvalidSpanContextDropped(t *testing.T) {
 	mm := &metadataSupplier{
 		metadata: &md,
 	}
+	assert.Empty(t, mm.Keys())
 	assert.Equal(t, "", mm.Get("traceparent"), "injected invalid SpanContext")
 }
