@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
@@ -70,18 +69,6 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	}
 
 	client, err := internal.NewClient(target, opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return &RpcClient{
-		client: client,
-	}, nil
-}
-
-// NewClientNoAuth returns a Client without authentication.
-func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
 	if err != nil {
 		return nil, err
 	}
