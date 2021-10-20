@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 )
 
 // NL defines a new line
@@ -88,7 +89,7 @@ func GetTemplateDir(category string) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(goctlHome, category), nil
+	return filepath.Join(goctlHome, version.GetGoctlVersion(), category), nil
 }
 
 // InitTemplates creates template files GoctlHome where could get it by GetGoctlHome
