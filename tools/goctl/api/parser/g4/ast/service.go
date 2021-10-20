@@ -213,7 +213,12 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	if ctx.ID() == nil {
 		if v.debug {
-			v.log.Warning(fmt.Sprintf(`%s line %d:  expr "()" is deprecated, if there has no request body, please omit it`, v.prefix, ctx.GetStart().GetLine()))
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "()" is deprecated, if there has no request body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
 		}
 		return nil
 	}
@@ -234,7 +239,12 @@ func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	if ctx.DataType() == nil {
 		if v.debug {
-			v.log.Warning(fmt.Sprintf(`%s line %d:  expr "returns ()" or "()" is deprecated, if there has no response body, please omit it`, v.prefix, ctx.GetStart().GetLine()))
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "returns ()" or "()" is deprecated, if there has no response body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
 		}
 		return nil
 	}
