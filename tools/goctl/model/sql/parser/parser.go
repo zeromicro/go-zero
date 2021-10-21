@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
+	su "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/zeromicro/ddl-parser/parser"
@@ -49,11 +50,12 @@ type (
 // Parse parses ddl into golang structure
 func Parse(filename, database string) ([]*Table, error) {
 	p := parser.NewParser()
-	tables, err := p.From(filename)
+	ts, err := p.From(filename)
 	if err != nil {
 		return nil, err
 	}
 
+	tables := GetSafeTables(ts)
 	indexNameGen := func(column ...string) string {
 		return strings.Join(column, "_")
 	}
@@ -167,7 +169,7 @@ func checkDuplicateUniqueIndex(uniqueIndex map[string][]*Field, tableName string
 
 		joinRet := strings.Join(list, ",")
 		if uniqueSet.Contains(joinRet) {
-			log.Warning("table %s: duplicate unique index %s", tableName, joinRet)
+			log.Warning("[checkDuplicateUniqueIndex]: table %s: duplicate unique index %s", tableName, joinRet)
 			delete(uniqueIndex, k)
 			continue
 		}
@@ -213,10 +215,10 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		if column.Constraint != nil {
 			if column.Name == primaryColumn {
 				if !column.Constraint.AutoIncrement && dataType == "int64" {
-					log.Warning("%s: The primary key is recommended to add constraint `AUTO_INCREMENT`", column.Name)
+					log.Warning("[convertColumns]: The primary key %q is recommended to add constraint `AUTO_INCREMENT`", column.Name)
 				}
 			} else if column.Constraint.NotNull && !column.Constraint.HasDefaultValue {
-				log.Warning("%s: The column is recommended to add constraint `DEFAULT`", column.Name)
+				log.Warning("[convertColumns]: The column %q is recommended to add constraint `DEFAULT`", column.Name)
 			}
 		}
 
@@ -302,7 +304,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		if len(each) == 1 {
 			one := each[0]
 			if one.Name == table.PrimaryKey.Name {
-				log.Warning("table %s: duplicate unique index with primary key, %s", table.Table, one.Name)
+				log.Warning("[ConvertDataType]: table q%, duplicate unique index with primary key:  %q", table.Table, one.Name)
 				continue
 			}
 		}
@@ -316,7 +318,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 
 		uniqueKey := strings.Join(uniqueJoin, ",")
 		if uniqueIndexSet.Contains(uniqueKey) {
-			log.Warning("table %s: duplicate unique index, %s", table.Table, uniqueKey)
+			log.Warning("[ConvertDataType]: table %q, duplicate unique index %q", table.Table, uniqueKey)
 			continue
 		}
 
@@ -350,4 +352,34 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 		fieldM[each.Name] = field
 	}
 	return fieldM, nil
+}
+
+func GetSafeTables(tables []*parser.Table) []*parser.Table {
+	var list []*parser.Table
+	for _, t := range tables {
+		table := GetSafeTable(t)
+		list = append(list, table)
+	}
+
+	return list
+}
+
+func GetSafeTable(table *parser.Table) *parser.Table {
+	table.Name = su.EscapeGolangKeyword(table.Name)
+	for _, c := range table.Columns {
+		c.Name = su.EscapeGolangKeyword(c.Name)
+	}
+
+	for _, e := range table.Constraints {
+		var uniqueKeys, primaryKeys []string
+		for _, u := range e.ColumnUniqueKey {
+			uniqueKeys = append(uniqueKeys, su.EscapeGolangKeyword(u))
+		}
+		for _, p := range e.ColumnPrimaryKey {
+			primaryKeys = append(primaryKeys, su.EscapeGolangKeyword(p))
+		}
+		e.ColumnUniqueKey = uniqueKeys
+		e.ColumnPrimaryKey = primaryKeys
+	}
+	return table
 }

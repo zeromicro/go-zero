@@ -24,7 +24,7 @@ func TestTokenLimit_Rescue(t *testing.T) {
 		rate  = 5
 		burst = 10
 	)
-	l := NewTokenLimiter(rate, burst, redis.NewRedis(s.Addr(), redis.NodeType), "tokenlimit")
+	l := NewTokenLimiter(rate, burst, redis.New(s.Addr()), "tokenlimit")
 	s.Close()
 
 	var allowed int

@@ -39,12 +39,6 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		return err
 	}
 
-	authNames := getAuths(api)
-	var auths []string
-	for _, item := range authNames {
-		auths = append(auths, fmt.Sprintf("%s config.AuthConfig", item))
-	}
-
 	var middlewareStr string
 	var middlewareAssignment string
 	middlewares := getMiddleware(api)

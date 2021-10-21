@@ -10,10 +10,10 @@ import (
 func TestBlockingNode(t *testing.T) {
 	r, err := miniredis.Run()
 	assert.Nil(t, err)
-	node, err := CreateBlockingNode(NewRedis(r.Addr(), NodeType))
+	node, err := CreateBlockingNode(New(r.Addr()))
 	assert.Nil(t, err)
 	node.Close()
-	node, err = CreateBlockingNode(NewRedis(r.Addr(), ClusterType))
+	node, err = CreateBlockingNode(New(r.Addr(), Cluster()))
 	assert.Nil(t, err)
 	node.Close()
 }

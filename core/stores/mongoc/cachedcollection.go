@@ -11,8 +11,8 @@ var (
 	// ErrNotFound is an alias of mgo.ErrNotFound.
 	ErrNotFound = mgo.ErrNotFound
 
-	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
-	sharedCalls = syncx.NewSharedCalls()
+	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
+	sharedCalls = syncx.NewSingleFlight()
 	stats       = cache.NewStat("mongoc")
 )
 

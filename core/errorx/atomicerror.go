@@ -9,7 +9,9 @@ type AtomicError struct {
 
 // Set sets the error.
 func (ae *AtomicError) Set(err error) {
-	ae.err.Store(err)
+	if err != nil {
+		ae.err.Store(err)
+	}
 }
 
 // Load returns the error.

@@ -59,7 +59,18 @@ func CreateServiceCommand(c *cli.Context) error {
 	}
 
 	defer fp.Close()
-	t := template.Must(template.New("template").Parse(apiTemplate))
+
+	home := c.String("home")
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
+	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("template").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"name":    dirName,
 		"handler": strings.Title(dirName),

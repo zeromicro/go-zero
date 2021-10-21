@@ -395,16 +395,16 @@ func assetEqual(t *testing.T, except, data interface{}) {
 
 func TestStream_AnyMach(t *testing.T) {
 	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
-		return 4 == item.(int)
+		return item.(int) == 4
 	}))
 	assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
-		return 0 == item.(int)
+		return item.(int) == 0
 	}))
 	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
-		return 2 == item.(int)
+		return item.(int) == 2
 	}))
 	assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
-		return 2 == item.(int)
+		return item.(int) == 2
 	}))
 }
 

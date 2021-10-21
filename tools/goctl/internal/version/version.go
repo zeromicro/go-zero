@@ -5,7 +5,8 @@ import (
 	"strings"
 )
 
-const BuildVersion = "1.1.11-beta-2"
+// BuildVersion is the version of goctl.
+const BuildVersion = "1.2.2"
 
 // GetGoctlVersion returns BuildVersion
 func GetGoctlVersion() string {
@@ -47,7 +48,7 @@ func convertVersion(version string) (versionNumber float64, tag string) {
 		}
 		return '_'
 	}, splits[0])
-	numberStr = strings.ReplaceAll(numberStr, "_", "")
+	numberStr = strings.Replace(numberStr, "_", "", -1)
 	versionNumber, _ = json.Number(numberStr).Float64()
 	return
 }

@@ -21,15 +21,13 @@ func StreamCrashInterceptor(srv interface{}, stream grpc.ServerStream, info *grp
 }
 
 // UnaryCrashInterceptor catches panics in processing unary requests and recovers.
-func UnaryCrashInterceptor() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (resp interface{}, err error) {
-		defer handleCrash(func(r interface{}) {
-			err = toPanicError(r)
-		})
+func UnaryCrashInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (resp interface{}, err error) {
+	defer handleCrash(func(r interface{}) {
+		err = toPanicError(r)
+	})
 
-		return handler(ctx, req)
-	}
+	return handler(ctx, req)
 }
 
 func handleCrash(handler func(interface{})) {

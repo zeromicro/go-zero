@@ -1,6 +1,37 @@
 package util
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+)
+
+var goKeyword = map[string]string{
+	"var":         "variable",
+	"const":       "constant",
+	"package":     "pkg",
+	"func":        "function",
+	"return":      "rtn",
+	"defer":       "dfr",
+	"go":          "goo",
+	"select":      "slt",
+	"struct":      "structure",
+	"interface":   "itf",
+	"chan":        "channel",
+	"type":        "tp",
+	"map":         "mp",
+	"range":       "rg",
+	"break":       "brk",
+	"case":        "caz",
+	"continue":    "ctn",
+	"for":         "fr",
+	"fallthrough": "fth",
+	"else":        "es",
+	"if":          "ef",
+	"switch":      "swt",
+	"goto":        "gt",
+	"default":     "dft",
+}
 
 // Title returns a string value with s[0] which has been convert into upper case that
 // there are not empty input text
@@ -63,4 +94,19 @@ func isLetter(r rune) bool {
 
 func isNumber(r rune) bool {
 	return '0' <= r && r <= '9'
+}
+
+func EscapeGolangKeyword(s string) string {
+	if !isGolangKeyword(s) {
+		return s
+	}
+
+	r := goKeyword[s]
+	console.Info("[EscapeGolangKeyword]: go keyword is forbidden %q, converted into %q", s, r)
+	return r
+}
+
+func isGolangKeyword(s string) bool {
+	_, ok := goKeyword[s]
+	return ok
 }

@@ -17,8 +17,8 @@ var (
 	// ErrNotFound is an alias of sqlx.ErrNotFound.
 	ErrNotFound = sqlx.ErrNotFound
 
-	// can't use one SharedCalls per conn, because multiple conns may share the same cache key.
-	exclusiveCalls = syncx.NewSharedCalls()
+	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
+	exclusiveCalls = syncx.NewSingleFlight()
 	stats          = cache.NewStat("sqlc")
 )
 

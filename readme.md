@@ -1,18 +1,20 @@
-<img align="right" width="150px" src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/go-zero.png">
+<img align="right" width="150px" src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/go-zero.png">
 
 # go-zero
 
 English | [简体中文](readme-cn.md)
 
-[![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
-[![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tal-tech/go-zero)](https://goreportcard.com/report/github.com/tal-tech/go-zero)
-[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
+[![Go](https://github.com/zeromicro/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/zeromicro/go-zero/actions)
+[![codecov](https://codecov.io/gh/zeromicro/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromicro/go-zero)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
+[![Release](https://img.shields.io/github/v/release/zeromicro/go-zero.svg?style=flat-square)](https://github.com/zeromicro/go-zero)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**Note: To meet the requirements of Open Source Foundation, we moved go-zero from tal-tech to zeromicro (a neutral GitHub organization).**
 
 ## 0. what is go-zero
 
-go-zero is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero (listed in CNCF Landscape: [https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
@@ -25,7 +27,7 @@ Advantages of go-zero:
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
-<img src="https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture-en.png" alt="Architecture" width="1500" />
 
 ## 1. Backgrounds of go-zero
 
@@ -76,7 +78,7 @@ go-zero is a web and rpc framework that integrates lots of engineering practices
 
 As below, go-zero protects the system with couple layers and mechanisms:
 
-![Resilience](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/resilience-en.png)
+![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
 ## 4. Future development plans of go-zero
 
@@ -95,9 +97,9 @@ go get -u github.com/tal-tech/go-zero
 
 0. full examples can be checked out from below:
 
-     [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
+     [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 
-     [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
+     [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 
 1. install goctl
 
@@ -206,20 +208,29 @@ go get -u github.com/tal-tech/go-zero
 
 ## 7. Benchmark
 
-![benchmark](https://raw.githubusercontent.com/tal-tech/zero-doc/main/doc/images/benchmark.png)
+![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
 ## 8. Documents (adding)
 
 * [Documents](https://go-zero.dev/en/)
-* [Rapid development of microservice systems](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl-en.md)
-* [Rapid development of microservice systems - multiple RPCs](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore-en.md)
+* [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
+* [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
 
 ## 9. Chat group
 
 Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-ulzixfgi-NAkZjq856TewLY2KQSxHCw
+
+## 10. Cloud Native Landscape
+
+<p float="left">
+<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
+<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+</p>
+
+go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/?selected=go-zero).
 
 ## Give a Star! ⭐
 

@@ -28,11 +28,7 @@ func JavaCommand(c *cli.Context) error {
 		return err
 	}
 
-	packetName := api.Service.Name
-	if strings.HasSuffix(packetName, "-api") {
-		packetName = packetName[:len(packetName)-4]
-	}
-
+	packetName := strings.TrimSuffix(api.Service.Name, "-api")
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genPacket(dir, packetName, api))
 	logx.Must(genComponents(dir, packetName, api))

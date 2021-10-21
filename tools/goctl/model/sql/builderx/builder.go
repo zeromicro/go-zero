@@ -105,13 +105,13 @@ func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 		fi := typ.Field(i)
 		if tagv := fi.Tag.Get(dbTag); tagv != "" {
 			if pg {
-				out = append(out, fmt.Sprintf("%s", tagv))
+				out = append(out, tagv)
 			} else {
 				out = append(out, fmt.Sprintf("`%s`", tagv))
 			}
 		} else {
 			if pg {
-				out = append(out, fmt.Sprintf("%s", fi.Name))
+				out = append(out, fi.Name)
 			} else {
 				out = append(out, fmt.Sprintf("`%s`", fi.Name))
 			}

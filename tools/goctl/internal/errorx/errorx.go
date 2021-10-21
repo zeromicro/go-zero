@@ -12,6 +12,7 @@ var errorFormat = `goctl: generation error: %+v
 goctl version: %s
 %s`
 
+// GoctlError represents a goctl error.
 type GoctlError struct {
 	message []string
 	err     error

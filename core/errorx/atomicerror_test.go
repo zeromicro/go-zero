@@ -17,6 +17,15 @@ func TestAtomicError(t *testing.T) {
 	assert.Equal(t, errDummy, err.Load())
 }
 
+func TestAtomicErrorSetNil(t *testing.T) {
+	var (
+		errNil error
+		err    AtomicError
+	)
+	err.Set(errNil)
+	assert.Equal(t, errNil, err.Load())
+}
+
 func TestAtomicErrorNil(t *testing.T) {
 	var err AtomicError
 	assert.Nil(t, err.Load())

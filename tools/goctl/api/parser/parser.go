@@ -17,7 +17,7 @@ type parser struct {
 
 // Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
-	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)))
+	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
 	ast, err := astParser.Parse(filename)
 	if err != nil {
 		return nil, err
@@ -276,7 +276,7 @@ func (p parser) fillService() error {
 
 			name := item.ServiceApi.Name.Text()
 			if len(p.spec.Service.Name) > 0 && p.spec.Service.Name != name {
-				return fmt.Errorf("mulit service name defined %s and %s", name, p.spec.Service.Name)
+				return fmt.Errorf("multiple service names defined %s and %s", name, p.spec.Service.Name)
 			}
 			p.spec.Service.Name = name
 		}

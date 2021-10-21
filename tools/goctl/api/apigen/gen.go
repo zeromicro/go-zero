@@ -52,13 +52,24 @@ func ApiCommand(c *cli.Context) error {
 	}
 	defer fp.Close()
 
+	home := c.String("home")
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
+	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if err != nil {
+		return err
+	}
+
 	baseName := util.FileNameWithoutExt(filepath.Base(apiFile))
 	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
 		baseName = baseName[:len(baseName)-4]
 	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
 		baseName = baseName[:len(baseName)-3]
 	}
-	t := template.Must(template.New("etcTemplate").Parse(apiTemplate))
+
+	t := template.Must(template.New("etcTemplate").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"gitUser":     getGitName(),
 		"gitEmail":    getGitEmail(),

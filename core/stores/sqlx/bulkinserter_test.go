@@ -43,6 +43,10 @@ func (c *mockedConn) QueryRowsPartial(v interface{}, query string, args ...inter
 	panic("should not called")
 }
 
+func (c *mockedConn) RawDB() (*sql.DB, error) {
+	panic("should not called")
+}
+
 func (c *mockedConn) Transact(func(session Session) error) error {
 	panic("should not called")
 }

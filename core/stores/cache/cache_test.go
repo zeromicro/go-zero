@@ -104,7 +104,7 @@ func TestCache_SetDel(t *testing.T) {
 			Weight: 100,
 		},
 	}
-	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
 			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
@@ -142,7 +142,7 @@ func TestCache_OneNode(t *testing.T) {
 			Weight: 100,
 		},
 	}
-	c := New(conf, syncx.NewSharedCalls(), NewStat("mock"), errPlaceholder)
+	c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
 	for i := 0; i < total; i++ {
 		if i%2 == 0 {
 			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))

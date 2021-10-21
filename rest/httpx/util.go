@@ -10,5 +10,6 @@ func GetRemoteAddr(r *http.Request) string {
 	if len(v) > 0 {
 		return v
 	}
+
 	return r.RemoteAddr
 }

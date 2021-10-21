@@ -3,6 +3,7 @@ package logx
 import (
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
@@ -97,7 +98,13 @@ func TestRotateLoggerRotate(t *testing.T) {
 		}()
 	}
 	err = logger.rotate()
-	assert.Nil(t, err)
+	switch v := err.(type) {
+	case *os.LinkError:
+		// avoid rename error on docker container
+		assert.Equal(t, syscall.EXDEV, v.Err)
+	default:
+		assert.Nil(t, err)
+	}
 }
 
 func TestRotateLoggerWrite(t *testing.T) {
