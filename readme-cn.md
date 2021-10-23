@@ -245,7 +245,7 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
-<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat-micro.jpg" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
 ## 11. 微信交流群
 
