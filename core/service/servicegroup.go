@@ -26,6 +26,7 @@ type (
 	}
 
 	// A ServiceGroup is a group of services.
+	// Attention: the starting order of the added services is not guaranteed.
 	ServiceGroup struct {
 		services []Service
 		stopOnce func()
@@ -75,8 +76,8 @@ func (sg *ServiceGroup) doStart() {
 }
 
 func (sg *ServiceGroup) doStop() {
-	for _, service := range sg.services {
-		service.Stop()
+	for i := len(sg.services) - 1; i >= 0; i-- {
+		sg.services[i].Stop()
 	}
 }
 
