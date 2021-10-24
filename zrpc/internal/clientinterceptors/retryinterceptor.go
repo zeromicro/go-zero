@@ -3,11 +3,12 @@ package clientinterceptors
 import (
 	"context"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors/retrybackoff"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"math/rand"
+
 	"strconv"
 	"time"
 )
@@ -22,20 +23,19 @@ var (
 		perCallTimeout: 0, // disabled
 		includeHeader:  true,
 		codes:          DefaultRetriableCodes,
-		backoffFunc:    BackoffLinearWithJitter(50*time.Millisecond /*jitter*/, 0.10),
+		backoffFunc:    retrybackoff.BackoffLinearWithJitter(50*time.Millisecond /*jitter*/, 0.10),
 	}
 )
 
 type (
-	BackoffFunc  func(ctx context.Context, attempt uint) time.Duration
 	retryOptions struct {
 		max            uint
 		perCallTimeout time.Duration
 		includeHeader  bool
 		codes          []codes.Code
-		backoffFunc    BackoffFunc
+		backoffFunc    retrybackoff.BackoffFunc
 	}
-	// RetryCallOption is a grpc.CallOption that is local to grpc_retry.
+	// RetryCallOption is a grpc.CallOption that is local to grpc retry.
 	RetryCallOption struct {
 		grpc.EmptyCallOption // make sure we implement private after() and before() fields so we don't panic.
 		applyFunc            func(opt *retryOptions)
@@ -86,10 +86,12 @@ func RetryInterceptor(optFuncs ...*RetryCallOption) grpc.UnaryClientInterceptor 
 			return invoker(ctx, method, req, reply, cc, grpcOpts...)
 		}
 		var lastErr error
-		for attempt := uint(0); attempt < callOpts.max; attempt++ {
+		for attempt := uint(1); attempt <= callOpts.max; attempt++ {
+			// wait a while
 			if err := waitRetryBackoff(attempt, ctx, callOpts); err != nil {
 				return err
 			}
+			// retry
 			callCtx := perCallContext(ctx, callOpts, attempt)
 			lastErr = invoker(callCtx, method, req, reply, cc, grpcOpts...)
 
@@ -120,8 +122,8 @@ func waitRetryBackoff(attempt uint, ctx context.Context, retryOptions *retryOpti
 		waitTime = retryOptions.backoffFunc(ctx, attempt)
 	}
 	if waitTime > 0 {
-		logger.Infof("grpc retry attempt: %d, backoff for %v", attempt, waitTime)
 		timer := time.NewTimer(waitTime)
+		logger.Infof("grpc retry attempt: %d, backoff for %v", attempt, waitTime)
 		select {
 		case <-ctx.Done():
 			timer.Stop()
@@ -161,10 +163,11 @@ func reuseOrNewWithCallOptions(opt *retryOptions, callOptions []*RetryCallOption
 	return optCopy
 }
 
-func perCallContext(parentCtx context.Context, callOpts *retryOptions, attempt uint) context.Context {
-	ctx := parentCtx
+func perCallContext(ctx context.Context, callOpts *retryOptions, attempt uint) context.Context {
 	if callOpts.perCallTimeout != 0 {
-		ctx, _ = context.WithTimeout(ctx, callOpts.perCallTimeout)
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, callOpts.perCallTimeout)
+		_ = cancel
 	}
 	if attempt > 0 && callOpts.includeHeader {
 		mdClone := extractIncomingAndClone(ctx)
@@ -194,10 +197,4 @@ func filterCallOptions(callOptions []grpc.CallOption) (grpcOptions []grpc.CallOp
 		}
 	}
 	return grpcOptions, retryOptions
-}
-func BackoffLinearWithJitter(waitBetween time.Duration, jitterFraction float64) BackoffFunc {
-	return func(ctx context.Context, attempt uint) time.Duration {
-		multiplier := jitterFraction * (rand.Float64()*2 - 1)
-		return time.Duration(float64(waitBetween) * (1 + multiplier))
-	}
 }
