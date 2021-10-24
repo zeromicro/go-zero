@@ -77,8 +77,8 @@ func (sg *ServiceGroup) doStart() {
 }
 
 func (sg *ServiceGroup) doStop() {
-	for i := len(sg.services) - 1; i >= 0; i-- {
-		sg.services[i].Stop()
+	for _, service := range sg.services {
+		service.Stop()
 	}
 }
 
