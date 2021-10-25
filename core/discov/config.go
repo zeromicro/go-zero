@@ -7,7 +7,7 @@ type EtcdConf struct {
 	Hosts []string
 	Key   string
 	User  string `json:",optional"`
-	Pass  string `json:",optional"`
+	Pass  string `json:",optional=User"`
 }
 
 // Validate validates c.
