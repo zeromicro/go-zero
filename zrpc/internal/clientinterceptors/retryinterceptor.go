@@ -142,6 +142,11 @@ func waitRetryBackoff(logger logx.Logger, attempt int, ctx context.Context, retr
 			timer.Stop()
 			return status.FromContextError(ctx.Err()).Err()
 		case <-timer.C:
+			// double check
+			err := ctx.Err()
+			if err != nil {
+				return status.FromContextError(ctx.Err()).Err()
+			}
 		}
 	}
 	return nil
