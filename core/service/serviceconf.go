@@ -50,7 +50,9 @@ func (sc ServiceConf) SetUp() error {
 	}
 
 	sc.initMode()
-	prometheus.StartAgent(sc.Prometheus)
+	if sc.Prometheus.Available() {
+		prometheus.StartAgent(sc.Prometheus)
+	}
 
 	if len(sc.Telemetry.Name) == 0 {
 		sc.Telemetry.Name = sc.Name
