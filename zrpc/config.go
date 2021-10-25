@@ -27,6 +27,7 @@ type (
 		Target    string          `json:",optional"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
+		AutoRetry bool            `json:",optional"`
 		Timeout   int64           `json:",default=2000"`
 	}
 )

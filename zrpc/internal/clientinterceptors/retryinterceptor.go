@@ -13,12 +13,13 @@ import (
 	"time"
 )
 
-const AttemptMetadataKey = "X-retry-attempt"
+const AttemptMetadataKey = "x-retry-attempt"
 
 var (
+	// DefaultRetriableCodes default retry code
 	DefaultRetriableCodes = []codes.Code{codes.ResourceExhausted, codes.Unavailable}
-
-	defaultOptions = &retryOptions{
+	// defaultRetryOptions default retry configuration
+	defaultRetryOptions = &retryOptions{
 		max:                0, // disabled
 		perCallTimeout:     0, // disabled
 		includeRetryHeader: true,
@@ -28,6 +29,7 @@ var (
 )
 
 type (
+	// retryOptions retry the configuration
 	retryOptions struct {
 		max                int
 		perCallTimeout     time.Duration
@@ -42,10 +44,10 @@ type (
 	}
 )
 
-// RetryDisable disables the retry behaviour on this call, or this interceptor.
+// RetryWithDisable disables the retry behaviour on this call, or this interceptor.
 //
 // Its semantically the same to `RetryWithMax`
-func RetryDisable() *RetryCallOption {
+func RetryWithDisable() *RetryCallOption {
 	return RetryWithMax(0)
 }
 
@@ -65,24 +67,29 @@ func RetryWithBackoff(backoffFunc func(attempt int) time.Duration) *RetryCallOpt
 	}}
 }
 
+// RetryWithCodes Allow code to be retried.
 func RetryWithCodes(retryCodes ...codes.Code) *RetryCallOption {
 	return &RetryCallOption{applyFunc: func(o *retryOptions) {
 		o.codes = retryCodes
 	}}
 }
 
+// RetryWithPerRetryTimeout timeout for each retry
 func RetryWithPerRetryTimeout(timeout time.Duration) *RetryCallOption {
 	return &RetryCallOption{applyFunc: func(o *retryOptions) {
 		o.perCallTimeout = timeout
 	}}
 }
 
-func RetryInterceptor(opts ...*RetryCallOption) grpc.UnaryClientInterceptor {
-	intOpts := reuseOrNewWithCallOptions(defaultOptions, opts)
+// AutoRetryInterceptor retry interceptor
+func AutoRetryInterceptor(enable bool) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		if !enable {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}
 		logger := logx.WithContext(ctx)
 		grpcOpts, retryOpts := filterCallOptions(opts)
-		callOpts := reuseOrNewWithCallOptions(intOpts, retryOpts)
+		callOpts := reuseOrNewWithCallOptions(defaultRetryOptions, retryOpts)
 		// short circuit for simplicity, and avoiding allocations.
 		if callOpts.max == 0 {
 			return invoker(ctx, method, req, reply, cc, grpcOpts...)
@@ -90,7 +97,7 @@ func RetryInterceptor(opts ...*RetryCallOption) grpc.UnaryClientInterceptor {
 
 		var lastErr error
 		for attempt := 0; attempt <= callOpts.max; attempt++ {
-			if err := waitRetryBackoff(attempt, ctx, callOpts); err != nil {
+			if err := waitRetryBackoff(logger, attempt, ctx, callOpts); err != nil {
 				return err
 			}
 
@@ -121,8 +128,8 @@ func RetryInterceptor(opts ...*RetryCallOption) grpc.UnaryClientInterceptor {
 		return lastErr
 	}
 }
-func waitRetryBackoff(attempt int, ctx context.Context, retryOptions *retryOptions) error {
-	logger := logx.WithContext(ctx)
+
+func waitRetryBackoff(logger logx.Logger, attempt int, ctx context.Context, retryOptions *retryOptions) error {
 	var waitTime time.Duration = 0
 	if attempt > 0 {
 		waitTime = retryOptions.backoffFunc(ctx, attempt)
@@ -157,16 +164,19 @@ func isContextError(err error) bool {
 	code := status.Code(err)
 	return code == codes.DeadlineExceeded || code == codes.Canceled
 }
-func reuseOrNewWithCallOptions(opt *retryOptions, callOptions []*RetryCallOption) *retryOptions {
-	if len(callOptions) == 0 {
+
+func reuseOrNewWithCallOptions(opt *retryOptions, retryCallOptions []*RetryCallOption) *retryOptions {
+	if len(retryCallOptions) == 0 {
 		return opt
 	}
-	optCopy := &retryOptions{}
-	*optCopy = *opt
-	for _, f := range callOptions {
-		f.applyFunc(optCopy)
+	return parseRetryCallOptions(opt, retryCallOptions...)
+}
+
+func parseRetryCallOptions(opt *retryOptions, opts ...*RetryCallOption) *retryOptions {
+	for _, option := range opts {
+		option.applyFunc(opt)
 	}
-	return optCopy
+	return opt
 }
 
 func perCallContext(ctx context.Context, callOpts *retryOptions, attempt int) context.Context {
@@ -185,6 +195,7 @@ func perCallContext(ctx context.Context, callOpts *retryOptions, attempt int) co
 
 	return ctx
 }
+
 func extractIncomingAndClone(ctx context.Context) metadata.MD {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
@@ -198,6 +209,7 @@ func extractIncomingAndClone(ctx context.Context) metadata.MD {
 	}
 	return cloneMd
 }
+
 func filterCallOptions(callOptions []grpc.CallOption) (grpcOptions []grpc.CallOption, retryOptions []*RetryCallOption) {
 	for _, opt := range callOptions {
 		if co, ok := opt.(*RetryCallOption); ok {

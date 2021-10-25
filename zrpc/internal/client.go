@@ -31,6 +31,7 @@ type (
 	// A ClientOptions is a client options.
 	ClientOptions struct {
 		Timeout     time.Duration
+		AutoRetry   bool
 		DialOptions []grpc.DialOption
 	}
 
@@ -72,6 +73,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.AutoRetryInterceptor(cliOpts.AutoRetry),
 		),
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
@@ -114,6 +116,13 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
 		options.Timeout = timeout
+	}
+}
+
+// WithAutoRetry returns a func to customize a ClientOptions with auto retry.
+func WithAutoRetry() ClientOption {
+	return func(options *ClientOptions) {
+		options.AutoRetry = true
 	}
 }
 
