@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 func TestParseForm(t *testing.T) {
@@ -17,7 +18,7 @@ func TestParseForm(t *testing.T) {
 		Percent float64 `form:"percent,optional"`
 	}
 
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", nil)
 	assert.Nil(t, err)
 	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "hello", v.Name)
@@ -25,11 +26,83 @@ func TestParseForm(t *testing.T) {
 	assert.Equal(t, 3.4, v.Percent)
 }
 
+func TestParseForm_Error(t *testing.T) {
+	var v struct {
+		Name string `form:"name"`
+		Age  int    `form:"age"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/a?name=hello;", nil)
+	assert.NotNil(t, ParseForm(r, &v))
+}
+
 func TestParseHeader(t *testing.T) {
-	m := ParseHeader("key=value;")
-	assert.EqualValues(t, map[string]string{
-		"key": "value",
-	}, m)
+	tests := []struct {
+		name   string
+		value  string
+		expect map[string]string
+	}{
+		{
+			name:   "empty",
+			value:  "",
+			expect: map[string]string{},
+		},
+		{
+			name:   "regular",
+			value:  "key=value",
+			expect: map[string]string{"key": "value"},
+		},
+		{
+			name:   "next empty",
+			value:  "key=value;",
+			expect: map[string]string{"key": "value"},
+		},
+		{
+			name:   "regular",
+			value:  "key=value;foo",
+			expect: map[string]string{"key": "value"},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			m := ParseHeader(test.value)
+			assert.EqualValues(t, test.expect, m)
+		})
+	}
+}
+
+func TestParsePath(t *testing.T) {
+	var v struct {
+		Name string `path:"name"`
+		Age  int    `path:"age"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r = pathvar.WithVars(r, map[string]string{
+		"name": "foo",
+		"age":  "18",
+	})
+	err := Parse(r, &v)
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", v.Name)
+	assert.Equal(t, 18, v.Age)
+}
+
+func TestParsePath_Error(t *testing.T) {
+	var v struct {
+		Name string `path:"name"`
+		Age  int    `path:"age"`
+	}
+
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r = pathvar.WithVars(r, map[string]string{
+		"name": "foo",
+	})
+	assert.NotNil(t, Parse(r, &v))
 }
 
 func TestParseFormOutOfRange(t *testing.T) {
@@ -42,23 +115,23 @@ func TestParseFormOutOfRange(t *testing.T) {
 		pass bool
 	}{
 		{
-			url:  "http://hello.com/a?age=5",
+			url:  "/a?age=5",
 			pass: false,
 		},
 		{
-			url:  "http://hello.com/a?age=10",
+			url:  "/a?age=10",
 			pass: true,
 		},
 		{
-			url:  "http://hello.com/a?age=15",
+			url:  "/a?age=15",
 			pass: true,
 		},
 		{
-			url:  "http://hello.com/a?age=20",
+			url:  "/a?age=20",
 			pass: false,
 		},
 		{
-			url:  "http://hello.com/a?age=28",
+			url:  "/a?age=28",
 			pass: false,
 		},
 	}
@@ -92,7 +165,7 @@ Content-Disposition: form-data; name="age"
 18
 ----------------------------220477612388154780019383--`, "\n", "\r\n", -1)
 
-	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
 
 	assert.Nil(t, Parse(r, &v))
@@ -116,7 +189,7 @@ Content-Disposition: form-data; name="age"
 18
 ----------------------------22047761238815478001938--`, "\n", "\r\n", -1)
 
-	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
 
 	assert.NotNil(t, Parse(r, &v))
@@ -129,7 +202,7 @@ func TestParseJsonBody(t *testing.T) {
 	}
 
 	body := `{"name":"kevin", "age": 18}`
-	r := httptest.NewRequest(http.MethodPost, "http://localhost:3333/", strings.NewReader(body))
+	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	r.Header.Set(ContentType, ApplicationJson)
 
 	assert.Nil(t, Parse(r, &v))
@@ -143,7 +216,7 @@ func TestParseRequired(t *testing.T) {
 		Percent float64 `form:"percent"`
 	}{}
 
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello", nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, Parse(r, &v))
 }
@@ -153,8 +226,54 @@ func TestParseOptions(t *testing.T) {
 		Position int8 `form:"pos,options=1|2"`
 	}{}
 
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?pos=4", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?pos=4", nil)
 	assert.Nil(t, err)
+	assert.NotNil(t, Parse(r, &v))
+}
+
+func TestParseHeaders(t *testing.T) {
+	type AnonymousStruct struct {
+		XRealIP string `header:"x-real-ip"`
+		Accept  string `header:"Accept,optional"`
+	}
+	v := struct {
+		Name          string   `header:"name,optional"`
+		Percent       string   `header:"percent"`
+		Addrs         []string `header:"addrs"`
+		XForwardedFor string   `header:"X-Forwarded-For,optional"`
+		AnonymousStruct
+	}{}
+	request, err := http.NewRequest("POST", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request.Header.Set("name", "chenquan")
+	request.Header.Set("percent", "1")
+	request.Header.Add("addrs", "addr1")
+	request.Header.Add("addrs", "addr2")
+	request.Header.Add("X-Forwarded-For", "10.0.10.11")
+	request.Header.Add("x-real-ip", "10.0.11.10")
+	request.Header.Add("Accept", "application/json")
+	err = ParseHeaders(request, &v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "chenquan", v.Name)
+	assert.Equal(t, "1", v.Percent)
+	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
+	assert.Equal(t, "10.0.11.10", v.XRealIP)
+	assert.Equal(t, "application/json", v.Accept)
+}
+
+func TestParseHeaders_Error(t *testing.T) {
+	v := struct {
+		Name string `header:"name"`
+		Age  int    `header:"age"`
+	}{}
+
+	r := httptest.NewRequest("POST", "/", nil)
+	r.Header.Set("name", "foo")
 	assert.NotNil(t, Parse(r, &v))
 }
 
@@ -200,39 +319,4 @@ func BenchmarkParseAuto(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
-}
-
-func TestParseHeaders(t *testing.T) {
-	type AnonymousStruct struct {
-		XRealIP string `header:"x-real-ip"`
-		Accept  string `header:"Accept,optional"`
-	}
-	v := struct {
-		Name          string   `header:"name,optional"`
-		Percent       string   `header:"percent"`
-		Addrs         []string `header:"addrs"`
-		XForwardedFor string   `header:"X-Forwarded-For,optional"`
-		AnonymousStruct
-	}{}
-	request, err := http.NewRequest("POST", "http://hello.com/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	request.Header.Set("name", "chenquan")
-	request.Header.Set("percent", "1")
-	request.Header.Add("addrs", "addr1")
-	request.Header.Add("addrs", "addr2")
-	request.Header.Add("X-Forwarded-For", "10.0.10.11")
-	request.Header.Add("x-real-ip", "10.0.11.10")
-	request.Header.Add("Accept", "application/json")
-	err = ParseHeaders(request, &v)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, "chenquan", v.Name)
-	assert.Equal(t, "1", v.Percent)
-	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
-	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
-	assert.Equal(t, "10.0.11.10", v.XRealIP)
-	assert.Equal(t, "application/json", v.Accept)
 }
