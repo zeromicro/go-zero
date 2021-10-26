@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"github.com/tal-tech/go-zero/core/retry/backoff"
 	"google.golang.org/grpc/codes"
 	"time"
 )
@@ -20,11 +21,9 @@ func WithMax(maxRetries int) *CallOption {
 }
 
 // WithBackoff sets the `BackoffFunc` used to control time between retries.
-func WithBackoff(backoffFunc func(attempt int) time.Duration) *CallOption {
+func WithBackoff(backoffFunc backoff.Func) *CallOption {
 	return &CallOption{apply: func(o *options) {
-		o.backoffFunc = func(attempt int) time.Duration {
-			return backoffFunc(attempt)
-		}
+		o.backoffFunc = backoffFunc
 	}}
 }
 
