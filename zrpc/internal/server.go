@@ -21,16 +21,18 @@ type (
 	baseRpcServer struct {
 		address            string
 		metrics            *stat.Metrics
+		maxRetries         int
 		options            []grpc.ServerOption
 		streamInterceptors []grpc.StreamServerInterceptor
 		unaryInterceptors  []grpc.UnaryServerInterceptor
 	}
 )
 
-func newBaseRpcServer(address string, metrics *stat.Metrics) *baseRpcServer {
+func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcServer {
 	return &baseRpcServer{
-		address: address,
-		metrics: metrics,
+		address:    address,
+		metrics:    rpcServerOpts.metrics,
+		maxRetries: rpcServerOpts.MaxRetries,
 	}
 }
 

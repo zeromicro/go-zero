@@ -15,8 +15,8 @@ var (
 	WithDialOption = internal.WithDialOption
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
-	// WithAutoRetry is an alias of internal.WithAutoRetry.
-	WithAutoRetry = internal.WithAutoRetry
+	// WithRetry is an alias of internal.WithRetry.
+	WithRetry = internal.WithRetry
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
@@ -55,8 +55,8 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
-	if c.AutoRetry {
-		opts = append(opts, WithAutoRetry())
+	if c.Retry {
+		opts = append(opts, WithRetry())
 	}
 	opts = append(opts, options...)
 

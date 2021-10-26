@@ -11,7 +11,7 @@ import (
 
 func TestBaseRpcServer_AddOptions(t *testing.T) {
 	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", metrics)
+	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
 	server.SetName("bar")
 	var opt grpc.EmptyServerOption
 	server.AddOptions(opt)
@@ -20,7 +20,7 @@ func TestBaseRpcServer_AddOptions(t *testing.T) {
 
 func TestBaseRpcServer_AddStreamInterceptors(t *testing.T) {
 	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", metrics)
+	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
 	server.SetName("bar")
 	var vals []int
 	f := func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
@@ -36,7 +36,7 @@ func TestBaseRpcServer_AddStreamInterceptors(t *testing.T) {
 
 func TestBaseRpcServer_AddUnaryInterceptors(t *testing.T) {
 	metrics := stat.NewMetrics("foo")
-	server := newBaseRpcServer("foo", metrics)
+	server := newBaseRpcServer("foo", &rpcServerOptions{metrics: metrics})
 	server.SetName("bar")
 	var vals []int
 	f := func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
