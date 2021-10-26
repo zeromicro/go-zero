@@ -120,7 +120,7 @@ func perCallContext(ctx context.Context, callOpts *options, attempt int) context
 func extractIncomingAndClone(ctx context.Context) metadata.MD {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return metadata.Pairs()
+		return metadata.MD{}
 	}
 	// clone
 	return md.Copy()
