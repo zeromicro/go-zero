@@ -18,7 +18,7 @@ func RetryInterceptor(maxAttempt int) grpc.UnaryServerInterceptor {
 		if ok {
 			md = requestMd.Copy()
 			attemptMd := md.Get(retry.AttemptMetadataKey)
-			if attemptMd != nil && len(attemptMd) != 0 && attemptMd[0] != "" {
+			if len(attemptMd) != 0 && attemptMd[0] != "" {
 				if attempt, err := strconv.Atoi(attemptMd[0]); err == nil {
 					if attempt > maxAttempt {
 						logx.WithContext(ctx).Errorf("retries exceeded:%d, max retries:%d", attempt, maxAttempt)
