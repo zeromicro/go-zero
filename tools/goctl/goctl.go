@@ -685,7 +685,7 @@ func linkProtocGenGoctl() error {
 	if len(ext) > 0 {
 		target = target + ext
 	}
-	_, err = os.Readlink(target)
+	_, err = os.Lstat(target)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
