@@ -2,16 +2,15 @@ package retry
 
 import (
 	"context"
+	"strconv"
+	"time"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/retry/backoff"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
-	"strconv"
-	"time"
 )
 
 const AttemptMetadataKey = "x-retry-attempt"
@@ -38,6 +37,7 @@ type (
 		codes              []codes.Code
 		backoffFunc        backoff.Func
 	}
+
 	// CallOption is a grpc.CallOption that is local to grpc retry.
 	CallOption struct {
 		grpc.EmptyCallOption // make sure we implement private after() and before() fields so we don't panic.
@@ -65,6 +65,7 @@ func waitRetryBackoff(logger logx.Logger, attempt int, ctx context.Context, retr
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -73,11 +74,13 @@ func isRetriable(err error, retryOptions *options) bool {
 	if isContextError(err) {
 		return false
 	}
+
 	for _, code := range retryOptions.codes {
 		if code == errCode {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -90,6 +93,7 @@ func reuseOrNewWithCallOptions(opt *options, retryCallOptions []*CallOption) *op
 	if len(retryCallOptions) == 0 {
 		return opt
 	}
+
 	return parseRetryCallOptions(opt, retryCallOptions...)
 }
 
@@ -97,6 +101,7 @@ func parseRetryCallOptions(opt *options, opts ...*CallOption) *options {
 	for _, option := range opts {
 		option.apply(opt)
 	}
+
 	return opt
 }
 
@@ -122,7 +127,7 @@ func extractIncomingAndClone(ctx context.Context) metadata.MD {
 	if !ok {
 		return metadata.MD{}
 	}
-	// clone
+
 	return md.Copy()
 }
 
@@ -134,6 +139,7 @@ func filterCallOptions(callOptions []grpc.CallOption) (grpcOptions []grpc.CallOp
 			grpcOptions = append(grpcOptions, opt)
 		}
 	}
+
 	return grpcOptions, retryOptions
 }
 
@@ -145,6 +151,7 @@ func Do(ctx context.Context, call func(ctx context.Context, opts ...grpc.CallOpt
 	if callOpts.max == 0 {
 		return call(ctx, opts...)
 	}
+
 	var lastErr error
 	for attempt := 0; attempt <= callOpts.max; attempt++ {
 		if err := waitRetryBackoff(logger, attempt, ctx, callOpts); err != nil {
@@ -157,6 +164,7 @@ func Do(ctx context.Context, call func(ctx context.Context, opts ...grpc.CallOpt
 		if lastErr == nil {
 			return nil
 		}
+
 		if attempt == 0 {
 			logger.Errorf("grpc call failed, got err: %v", lastErr)
 		} else {
@@ -175,5 +183,6 @@ func Do(ctx context.Context, call func(ctx context.Context, opts ...grpc.CallOpt
 			return lastErr
 		}
 	}
+
 	return lastErr
 }

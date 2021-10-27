@@ -3,14 +3,15 @@ package retry
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"testing"
-	"time"
 )
 
 func TestRetryWithDisable(t *testing.T) {
@@ -33,7 +34,6 @@ func TestRetryWithBackoff(t *testing.T) {
 		return time.Millisecond
 	}))
 	assert.EqualValues(t, time.Millisecond, retryCallOptions.backoffFunc(1))
-
 }
 
 func TestRetryWithCodes(t *testing.T) {
@@ -50,7 +50,6 @@ func TestRetryWithPerRetryTimeout(t *testing.T) {
 }
 
 func Test_waitRetryBackoff(t *testing.T) {
-
 	opt := &options{perCallTimeout: time.Second, backoffFunc: func(attempt int) time.Duration {
 		return time.Second
 	}}
@@ -76,7 +75,6 @@ func Test_perCallContext(t *testing.T) {
 	md, ok := metadata.FromOutgoingContext(callContext)
 	assert.True(t, ok)
 	assert.EqualValues(t, metadata.MD{"1": {"1"}, AttemptMetadataKey: {"1"}}, md)
-
 }
 
 func Test_filterCallOptions(t *testing.T) {
@@ -88,5 +86,4 @@ func Test_filterCallOptions(t *testing.T) {
 	})
 	assert.EqualValues(t, []grpc.CallOption{grpcEmptyCallOpt}, options)
 	assert.EqualValues(t, []*CallOption{retryCallOpt}, retryCallOptions)
-
 }
