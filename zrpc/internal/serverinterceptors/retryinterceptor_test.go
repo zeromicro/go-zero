@@ -2,10 +2,11 @@ package serverinterceptors
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/retry"
 	"google.golang.org/grpc/metadata"
-	"testing"
 )
 
 func TestRetryInterceptor(t *testing.T) {

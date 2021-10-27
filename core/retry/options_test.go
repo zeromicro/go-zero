@@ -3,14 +3,15 @@ package retry
 import (
 	"context"
 	"errors"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"testing"
-	"time"
 )
 
 func TestRetryWithDisable(t *testing.T) {

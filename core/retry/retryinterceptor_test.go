@@ -2,11 +2,12 @@ package retry
 
 import (
 	"context"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"testing"
 )
 
 func TestDo(t *testing.T) {

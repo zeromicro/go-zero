@@ -2,16 +2,15 @@ package retry
 
 import (
 	"context"
+	"strconv"
+	"time"
+
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/retry/backoff"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
-	"strconv"
-	"time"
 )
 
 const AttemptMetadataKey = "x-retry-attempt"
