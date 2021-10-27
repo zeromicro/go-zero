@@ -15,7 +15,7 @@ func TestRetryInterceptor_WithMax(t *testing.T) {
 	for i := 0; i < n; i++ {
 		count := 0
 		cc := new(grpc.ClientConn)
-		err := AutoRetryInterceptor(true)(context.Background(), "/1", nil, nil, cc,
+		err := RetryInterceptor(true)(context.Background(), "/1", nil, nil, cc,
 			func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 				count++
 				return status.Error(codes.ResourceExhausted, "ResourceExhausted")

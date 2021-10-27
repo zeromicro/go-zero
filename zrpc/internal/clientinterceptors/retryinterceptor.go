@@ -6,8 +6,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// AutoRetryInterceptor retry interceptor
-func AutoRetryInterceptor(enable bool) grpc.UnaryClientInterceptor {
+// RetryInterceptor retry interceptor
+func RetryInterceptor(enable bool) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if !enable {
 			return invoker(ctx, method, req, reply, cc, opts...)
