@@ -52,10 +52,11 @@ func waitRetryBackoff(logger logx.Logger, attempt int, ctx context.Context, retr
 	}
 	if waitTime > 0 {
 		timer := time.NewTimer(waitTime)
+		defer timer.Stop()
+
 		logger.Infof("grpc retry attempt: %d, backoff for %v", attempt, waitTime)
 		select {
 		case <-ctx.Done():
-			timer.Stop()
 			return status.FromContextError(ctx.Err()).Err()
 		case <-timer.C:
 			// double check
