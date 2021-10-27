@@ -17,10 +17,8 @@ func TestDo(t *testing.T) {
 		err := Do(context.Background(), func(ctx context.Context, opts ...grpc.CallOption) error {
 			count++
 			return status.Error(codes.ResourceExhausted, "ResourceExhausted")
-
 		}, WithMax(i))
 		assert.Error(t, err)
 		assert.Equal(t, i+1, count)
 	}
-
 }

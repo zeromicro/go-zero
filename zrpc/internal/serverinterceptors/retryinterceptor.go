@@ -13,7 +13,8 @@ import (
 )
 
 func RetryInterceptor(maxAttempt int) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (resp interface{}, err error) {
 		var md metadata.MD
 		requestMd, ok := metadata.FromIncomingContext(ctx)
 		if ok {

@@ -8,8 +8,7 @@ import (
 )
 
 // WithDisable disables the retry behaviour on this call, or this interceptor.
-//
-// Its semantically the same to `WithMax`
+// It's semantically the same to `WithMax(0)`
 func WithDisable() *CallOption {
 	return WithMax(0)
 }
