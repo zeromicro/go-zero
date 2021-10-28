@@ -46,7 +46,7 @@ func TestGoWithTimeout(t *testing.T) {
 	t.Run("DeadlineExceeded", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 		defer cancel()
-		assert.ErrorIs(t, context.Canceled, ExecuteWithTimeout(ctx, func() error {
+		assert.ErrorIs(t, context.DeadlineExceeded, ExecuteWithTimeout(ctx, func() error {
 			time.Sleep(time.Millisecond * 50)
 			return nil
 		}))
