@@ -18,10 +18,11 @@ var (
 )
 
 // DoOption defines the method to customize a DoWithTimeout call.
+// Deprecated
 type DoOption func() context.Context
 
 // DoWithTimeout runs fn with timeout control.
-// Deprecated: Use GoWithTimeout instead
+// Deprecated: Use ExecuteWithTimeout instead
 func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) error {
 	parentCtx := context.Background()
 	for _, opt := range opts {
