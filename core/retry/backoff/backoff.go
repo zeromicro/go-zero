@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Func defines the method to calculate how long to retry.
 type Func func(attempt int) time.Duration
 
 // LinearWithJitter waits a set period of time, allowing for jitter (fractional adjustment).

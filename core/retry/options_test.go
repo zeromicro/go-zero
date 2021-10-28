@@ -50,6 +50,8 @@ func TestRetryWithPerRetryTimeout(t *testing.T) {
 }
 
 func Test_waitRetryBackoff(t *testing.T) {
+	logx.Disable()
+
 	opt := &options{perCallTimeout: time.Second, backoffFunc: func(attempt int) time.Duration {
 		return time.Second
 	}}
