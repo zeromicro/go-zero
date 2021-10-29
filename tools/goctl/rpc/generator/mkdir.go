@@ -8,7 +8,6 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -52,7 +51,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, cfg *conf.Config) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
@@ -61,19 +60,9 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, cfg *conf.Config) (DirCo
 	serverDir := filepath.Join(internalDir, "server")
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
-	sName, err := format.FileNamingFormat(cfg.NamingFormat, proto.Service.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	callDir := filepath.Join(ctx.WorkDir, sName)
+	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
 	if strings.EqualFold(proto.Service.Name, proto.GoPackage) {
-		clientDir, err := format.FileNamingFormat(cfg.NamingFormat, proto.Service.Name+"_client")
-		if err != nil {
-			return nil, err
-		}
-
-		callDir = filepath.Join(ctx.WorkDir, clientDir)
+		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
 	}
 
 	inner[wd] = Dir{
