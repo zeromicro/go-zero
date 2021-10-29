@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"syscall"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/load"
@@ -686,11 +685,12 @@ func linkProtocGenGoctl() error {
 	if len(ext) > 0 {
 		target = target + ext
 	}
-
-	err = syscall.Unlink(target)
+	_, err = os.Lstat(target)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-
-	return os.Symlink(path, target)
+	if os.IsNotExist(err) {
+		return os.Symlink(path, target)
+	}
+	return nil
 }
