@@ -44,3 +44,39 @@ func TestConfig(t *testing.T) {
 		}
 	}
 }
+
+func TestEtcdConf_HasAccount(t *testing.T) {
+	tests := []struct {
+		EtcdConf
+		hasAccount bool
+	}{
+		{
+			EtcdConf: EtcdConf{
+				Hosts: []string{"any"},
+				Key:   "key",
+			},
+			hasAccount: false,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Hosts: []string{"any"},
+				Key:   "key",
+				User:  "foo",
+			},
+			hasAccount: false,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Hosts: []string{"any"},
+				Key:   "key",
+				User:  "foo",
+				Pass:  "bar",
+			},
+			hasAccount: true,
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.hasAccount, test.EtcdConf.HasAccount())
+	}
+}

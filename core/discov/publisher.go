@@ -11,8 +11,8 @@ import (
 )
 
 type (
-	// PublisherOption defines the method to customize a Publisher.
-	PublisherOption func(client *Publisher)
+	// PubOption defines the method to customize a Publisher.
+	PubOption func(client *Publisher)
 
 	// A Publisher can be used to publish the value to an etcd cluster on the given key.
 	Publisher struct {
@@ -32,7 +32,7 @@ type (
 // endpoints is the hosts of the etcd cluster.
 // key:value are a pair to be published.
 // opts are used to customize the Publisher.
-func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption) *Publisher {
+func NewPublisher(endpoints []string, key, value string, opts ...PubOption) *Publisher {
 	publisher := &Publisher{
 		endpoints:  endpoints,
 		key:        key,
@@ -145,8 +145,15 @@ func (p *Publisher) revoke(cli internal.EtcdClient) {
 	}
 }
 
+// WithPubEtcdAccount provides the etcd username/password.
+func WithPubEtcdAccount(user, pass string) PubOption {
+	return func(pub *Publisher) {
+		internal.AddAccount(pub.endpoints, user, pass)
+	}
+}
+
 // WithId customizes a Publisher with the id.
-func WithId(id int64) PublisherOption {
+func WithId(id int64) PubOption {
 	return func(publisher *Publisher) {
 		publisher.id = id
 	}

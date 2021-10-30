@@ -11,6 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/core/discov/internal"
 	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stringx"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -30,7 +31,8 @@ func TestPublisher_register(t *testing.T) {
 		ID: id,
 	}, nil)
 	cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), "thevalue", gomock.Any())
-	pub := NewPublisher(nil, "thekey", "thevalue")
+	pub := NewPublisher(nil, "thekey", "thevalue",
+		WithPubEtcdAccount(stringx.Rand(), "bar"))
 	_, err := pub.register(cli)
 	assert.Nil(t, err)
 }

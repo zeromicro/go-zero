@@ -302,14 +302,20 @@ func (c *cluster) watchConnState(cli EtcdClient) {
 
 // DialClient dials an etcd cluster with given endpoints.
 func DialClient(endpoints []string) (EtcdClient, error) {
-	return clientv3.New(clientv3.Config{
+	cfg := clientv3.Config{
 		Endpoints:            endpoints,
 		AutoSyncInterval:     autoSyncInterval,
 		DialTimeout:          DialTimeout,
 		DialKeepAliveTime:    dialKeepAliveTime,
 		DialKeepAliveTimeout: DialTimeout,
 		RejectOldCluster:     true,
-	})
+	}
+	if account, ok := GetAccount(endpoints); ok {
+		cfg.Username = account.User
+		cfg.Password = account.Pass
+	}
+
+	return clientv3.New(cfg)
 }
 
 func getClusterKey(endpoints []string) string {
