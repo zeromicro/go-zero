@@ -21,8 +21,18 @@ func projectFromGoPath(workDir string) (*ProjectContext, error) {
 		return nil, err
 	}
 
+	workDir, err := util.ReadLink(workDir)
+	if err != nil {
+		return nil, err
+	}
+
 	buildContext := build.Default
 	goPath := buildContext.GOPATH
+	goPath, err = util.ReadLink(goPath)
+	if err != nil {
+		return nil, err
+	}
+
 	goSrc := filepath.Join(goPath, "src")
 	if !util.FileExists(goSrc) {
 		return nil, errModuleCheck

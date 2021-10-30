@@ -36,6 +36,7 @@ type (
 	// A ClientOptions is a client options.
 	ClientOptions struct {
 		Timeout     time.Duration
+		Retry       bool
 		DialOptions []grpc.DialOption
 	}
 
@@ -71,11 +72,15 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	options := []grpc.DialOption{
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
-			clientinterceptors.TracingInterceptor,
+			clientinterceptors.UnaryTracingInterceptor,
 			clientinterceptors.DurationInterceptor,
-			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PrometheusInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.RetryInterceptor(cliOpts.Retry),
+		),
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamTracingInterceptor,
 		),
 	}
 
@@ -96,7 +101,7 @@ func (c *client) dial(server string, opts ...ClientOption) error {
 				service = server[pos+1:]
 			}
 		}
-		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is alread started",
+		return fmt.Errorf("rpc dial: %s, error: %s, make sure rpc service %q is already started",
 			server, err.Error(), service)
 	}
 
@@ -122,6 +127,13 @@ func WithInsecure() ClientOption {
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
 		options.Timeout = timeout
+	}
+}
+
+// WithRetry returns a func to customize a ClientOptions with auto retry.
+func WithRetry() ClientOption {
+	return func(options *ClientOptions) {
+		options.Retry = true
 	}
 }
 

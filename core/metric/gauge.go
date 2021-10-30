@@ -20,7 +20,7 @@ type (
 		close() bool
 	}
 
-	promGuageVec struct {
+	promGaugeVec struct {
 		gauge *prom.GaugeVec
 	}
 )
@@ -39,7 +39,7 @@ func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 			Help:      cfg.Help,
 		}, cfg.Labels)
 	prom.MustRegister(vec)
-	gv := &promGuageVec{
+	gv := &promGaugeVec{
 		gauge: vec,
 	}
 	proc.AddShutdownListener(func() {
@@ -49,18 +49,18 @@ func NewGaugeVec(cfg *GaugeVecOpts) GaugeVec {
 	return gv
 }
 
-func (gv *promGuageVec) Inc(labels ...string) {
+func (gv *promGaugeVec) Inc(labels ...string) {
 	gv.gauge.WithLabelValues(labels...).Inc()
 }
 
-func (gv *promGuageVec) Add(v float64, lables ...string) {
-	gv.gauge.WithLabelValues(lables...).Add(v)
+func (gv *promGaugeVec) Add(v float64, labels ...string) {
+	gv.gauge.WithLabelValues(labels...).Add(v)
 }
 
-func (gv *promGuageVec) Set(v float64, lables ...string) {
-	gv.gauge.WithLabelValues(lables...).Set(v)
+func (gv *promGaugeVec) Set(v float64, labels ...string) {
+	gv.gauge.WithLabelValues(labels...).Set(v)
 }
 
-func (gv *promGuageVec) close() bool {
+func (gv *promGaugeVec) close() bool {
 	return prom.Unregister(gv.gauge)
 }

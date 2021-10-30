@@ -151,7 +151,7 @@ func (tw *TimingWheel) drainAll(fn func(key, value interface{})) {
 	}
 }
 
-func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos int, circle int) {
+func (tw *TimingWheel) getPositionAndCircle(d time.Duration) (pos, circle int) {
 	steps := int(d / tw.interval)
 	pos = (tw.tickedPos + steps) % tw.numSlots
 	circle = (steps - 1) / tw.numSlots

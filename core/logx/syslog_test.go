@@ -44,5 +44,5 @@ func captureOutput(f func()) string {
 func getContent(jsonStr string) string {
 	var entry logEntry
 	json.Unmarshal([]byte(jsonStr), &entry)
-	return entry.Content
+	return entry.Content.(string)
 }

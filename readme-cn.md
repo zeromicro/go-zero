@@ -4,16 +4,18 @@
 
 [English](readme.md) | 简体中文
 
-[![Go](https://github.com/tal-tech/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/tal-tech/go-zero/actions)
-[![Go Report Card](https://goreportcard.com/badge/github.com/tal-tech/go-zero)](https://goreportcard.com/report/github.com/tal-tech/go-zero)
+[![Go](https://github.com/zeromicro/go-zero/workflows/Go/badge.svg?branch=master)](https://github.com/zeromicro/go-zero/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
 [![goproxy](https://goproxy.cn/stats/github.com/tal-tech/go-zero/badges/download-count.svg)](https://goproxy.cn/stats/github.com/tal-tech/go-zero/badges/download-count.svg)
-[![codecov](https://codecov.io/gh/tal-tech/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/tal-tech/go-zero)
-[![Release](https://img.shields.io/github/v/release/tal-tech/go-zero.svg?style=flat-square)](https://github.com/tal-tech/go-zero)
+[![codecov](https://codecov.io/gh/zeromicro/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromicro/go-zero)
+[![Release](https://img.shields.io/github/v/release/zeromicro/go-zero.svg?style=flat-square)](https://github.com/zeromicro/go-zero)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**注意：为了满足开源基金会要求，go-zero 从好未来（tal-tech）组织下迁移至中立的 GitHub 组织（zeromicro）。**
 
 ## 0. go-zero 介绍
 
-go-zero 是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
+go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)）是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
 
 go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
 
@@ -26,7 +28,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 自动校验客户端请求参数合法性
 * 大量微服务治理和并发工具包
 
-<img src="https://gitee.com/kevwan/static/raw/master/doc/images/architecture.png" alt="架构图" width="1500" />
+![架构图](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/architecture.png)
 
 ## 1. go-zero 框架背景
 
@@ -50,9 +52,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 保持简单，第一原则
 * 弹性设计，面向故障编程
 * 工具大于约定和文档
-* 高可用
-* 高并发
-* 易扩展
+* 高可用、高并发、易扩展
 * 对业务开发友好，封装复杂度
 * 约束做一件事只有一种方式
 
@@ -78,7 +78,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 如下图，我们从多个层面保障了整体服务的高可用：
 
-![弹性设计](https://gitee.com/kevwan/static/raw/master/doc/images/resilience.jpg)
+![弹性设计](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience.jpg)
 
 觉得不错的话，别忘 **star** 👏
 
@@ -94,16 +94,20 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 0. 完整示例请查看
 
-    [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
+    [快速构建高并发微服务](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl.md)
 
-    [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
+    [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
 
 1. 安装 goctl 工具
 
     `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 ` 她 ` 来解放我们的双手👈
 
     ```shell
+    # Go 1.15 及之前版本
     GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
+    
+    # Go 1.16 及以后版本
+    go install github.com/tal-tech/go-zero/tools/goctl@latest
     ```
 
     确保 goctl 可执行
@@ -118,7 +122,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     go run greet.go -f etc/greet-api.yaml
     ```
 
-    默认侦听在 8888 端口（可以在配置文件里修改），可以通过 curl 请求：
+    默认侦听在 `8888` 端口（可以在配置文件里修改），可以通过 `curl` 请求：
 
     ```shell
     curl -i http://localhost:8888/from/you
@@ -129,17 +133,17 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
     ```http
     HTTP/1.1 200 OK
     Content-Type: application/json
-	Date: Thu, 22 Oct 2020 14:03:18 GMT
-	Content-Length: 14
+    Date: Thu, 22 Oct 2020 14:03:18 GMT
+    Content-Length: 14
 
-	{"message":""}
+    {"message":""}
     ```
 
     编写业务代码：
 
-      * api 文件定义了服务对外暴露的路由，可参考 [api 规范](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
-      * 可以在 servicecontext.go 里面传递依赖给 logic，比如 mysql, redis 等
-      * 在 api 定义的 get/post/put/delete 等请求对应的 logic 里增加业务处理逻辑
+      * api 文件定义了服务对外 HTTP 接口，可参考 [api 规范](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
+      * 可以在 `servicecontext.go` 里面传递依赖给 logic，比如 mysql, redis 等
+      * 在 api 定义的 `get/post/put/delete` 等请求对应的 logic 里增加业务处理逻辑
 
 3. 可以根据 api 文件生成前端需要的 Java, TypeScript, Dart, JavaScript 代码
 
@@ -151,7 +155,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 ## 6. Benchmark
 
-![benchmark](https://gitee.com/kevwan/static/raw/master/doc/images/benchmark.png)
+![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
@@ -159,22 +163,13 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
 * API 文档
 
-  [https://go-zero.dev/zh-hans/](https://zeromicro.github.io/go-zero)
-
-* 常见问题
-
-  * 因为 `etcd` 和 `grpc` 兼容性问题，请使用 `grpc@v1.29.1`
-
-    `google.golang.org/grpc v1.29.1`
-
-  * 因为 `protobuf` 兼容性问题，请使用 `protocol-gen@v1.3.2`
-
-    `go get -u github.com/golang/protobuf/protoc-gen-go@v1.3.2`
+  [https://go-zero.dev/cn/](https://go-zero.dev/cn/)
 
 * awesome 系列（更多文章见『微服务实践』公众号）
-  * [快速构建高并发微服务](https://github.com/tal-tech/zero-doc/blob/main/doc/shorturl.md)
-  * [快速构建高并发微服务 - 多 RPC 版](https://github.com/tal-tech/zero-doc/blob/main/docs/zero/bookstore.md)
-  * [goctl 使用帮助](https://github.com/tal-tech/zero-doc/blob/main/doc/goctl.md)
+
+  * [快速构建高并发微服务](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl.md)
+  * [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
+  * [goctl 使用帮助](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
   * [Examples](https://github.com/zeromicro/zero-examples)
   
 * 精选 `goctl` 插件
@@ -208,16 +203,52 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >17. 三七游戏
 >18. 成都创道夫科技有限公司
 >19. 联想Lenovo
+>20. 云犀
+>21. 高盈国际
+>22. 北京中科生活服务有限公司
+>23. Indochat 印尼艾希英
+>24. 数赞
+>25. 量冠科技
+>26. 杭州又拍云科技有限公司
+>27. 深圳市点购电子商务控股股份有限公司
+>28. 深圳市宁克沃德科技有限公司
+>29. 桂林优利特医疗电子有限公司
+>30. 成都智橙互动科技有限公司
+>31. 深圳市班班科技有限公司
+>32. 飞视（苏州）数字技术有限公司
+>33. 上海鲸思智能科技有限公司
+>34. 南宁宸升计算机科技有限公司
+>35. 秦皇岛2084team
+>36. 天翼云股份有限公司
+>37. 南京速优云信息科技有限公司
+>38. 北京小鸦科技有限公司
+>39. 深圳无边界技术有限公司
+>40. 马鞍山百助网络科技有限公司
+>41. 上海阿莫尔科技有限公司
+>42. 发明者量化
+>43. 济南超级盟网络科技有限公司
+>44. 苏州互盟信息存储技术有限公司
+>45. 成都艾途教育科技集团有限公司
+>46. 上海游族网络
 
-如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/tal-tech/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
+如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
-## 9. 微信公众号
+## 9. CNCF 云原生技术全景图
+
+<p float="left">
+<img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
+<img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
+</p>
+
+go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
+
+## 10. 微信公众号
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
-<img src="https://gitee.com/kevwan/static/raw/master/images/wechat-micro.jpg" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
-## 10. 微信交流群
+## 11. 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -225,8 +256,6 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 如果您发现 ***bug*** 请及时提 ***issue***，我们会尽快确认并修改。
 
-为了防止广告用户、识别技术同行，请 ***star*** 后加我时注明 **github** 当前 ***star*** 数，我再拉进 **go-zero** 群，感谢！
+加群之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力！🤝
 
-加我之前有劳点一下 ***star***，一个小小的 ***star*** 是作者们回答海量问题的动力🤝
-
-<img src="https://gitee.com/kevwan/static/raw/master/images/wechat.jpg" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />

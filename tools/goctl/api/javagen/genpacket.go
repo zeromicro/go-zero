@@ -204,10 +204,7 @@ func processUri(route spec.Route) string {
 			}
 		}
 	}
-	result := builder.String()
-	if strings.HasSuffix(result, " + \"") {
-		result = result[:len(result)-4]
-	}
+	result := strings.TrimSuffix(builder.String(), " + \"")
 	if strings.HasPrefix(result, "/") {
 		result = strings.TrimPrefix(result, "/")
 		result = "\"" + result

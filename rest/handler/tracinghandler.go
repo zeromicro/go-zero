@@ -3,24 +3,37 @@ package handler
 import (
 	"net/http"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/sysx"
 	"github.com/tal-tech/go-zero/core/trace"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-// TracingHandler returns a middleware that traces the request.
-func TracingHandler(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		carrier, err := trace.Extract(trace.HttpFormat, r.Header)
-		// ErrInvalidCarrier means no trace id was set in http header
-		if err != nil && err != trace.ErrInvalidCarrier {
-			logx.Error(err)
-		}
+// TracingHandler return a middleware that process the opentelemetry.
+func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		propagator := otel.GetTextMapPropagator()
+		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
-		ctx, span := trace.StartServerSpan(r.Context(), carrier, sysx.Hostname(), r.RequestURI)
-		defer span.Finish()
-		r = r.WithContext(ctx)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+			spanCtx, span := tracer.Start(
+				ctx,
+				path,
+				oteltrace.WithSpanKind(oteltrace.SpanKindServer),
+				oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(
+					serviceName, path, r)...),
+			)
+			defer span.End()
 
-		next.ServeHTTP(w, r)
-	})
+			// convenient for tracking error messages
+			sc := span.SpanContext()
+			if sc.HasTraceID() {
+				w.Header().Set(trace.TraceIdKey, sc.TraceID().String())
+			}
+
+			next.ServeHTTP(w, r.WithContext(spanCtx))
+		})
+	}
 }

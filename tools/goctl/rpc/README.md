@@ -134,15 +134,21 @@ USAGE:
 OPTIONS:
    --src value, -s value         the file path of the proto source file
    --proto_path value, -I value  native command of protoc, specify the directory in which to search for imports. [optional]
+   --go_opt value                native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]
    --dir value, -d value         the target path of the code
+   --style value                 the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
    --idea                        whether the command execution environment is from idea plugin. [optional]
+
 ```
 
 ### 参数说明
 
 * --src 必填，proto数据源，目前暂时支持单个proto文件生成
-* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --proto_path 可选，protoc原生子命令，用于指定proto import从何处查找，可指定多个路径,如`goctl rpc -I={path1} -I={path2} ...`
+  ,在没有import时可不填。当前proto路径不用指定，已经内置，`-I`的详细用法请参考`protoc -h`
+* --go_opt 可选，protoc-gen-go插件原生flag，用于指定go_package
 * --dir 可选，默认为proto文件所在目录，生成代码的目标目录
+* --style 可选，指定生成文件名的命名风格
 * --idea 可选，是否为idea插件中执行，终端执行可以忽略
 
 
@@ -156,12 +162,6 @@ OPTIONS:
 
 
 ### 注意事项
-
-* `google.golang.org/grpc`需要降级到 `v1.29.1`，且protoc-gen-go版本不能高于v1.3.2（see [https://github.com/grpc/grpc-go/issues/3347](https://github.com/grpc/grpc-go/issues/3347)）即
-  
-  ```shell script
-  replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
-  ```
 
 * proto不支持暂多文件同时生成
 * proto不支持外部依赖包引入，message不支持inline
@@ -226,40 +226,9 @@ service Greet {
 ## 常见问题解决(go mod工程)
 
 * 错误一:
+```text
+A required privilege is not held by the client.
+```
+这个问题只有goctl 版本在`goctl.exe version 1.2.1` 以后的 Windows操作系统出现，主要原因是goctl需要以管理员身份运行，这样才能将`goctl.exe` 创建一个 `ptocot-gen-gcotl`
+的符号链接。
 
-  ```golang
-  pb/xx.pb.go:220:7: undefined: grpc.ClientConnInterface
-  pb/xx.pb.go:224:11: undefined: grpc.SupportPackageIsVersion6
-  pb/xx.pb.go:234:5: undefined: grpc.ClientConnInterface
-  pb/xx.pb.go:237:24: undefined: grpc.ClientConnInterface
-  ```
-
-  解决方法：请将`protoc-gen-go`版本降至v1.3.2及一下
-
-* 错误二:
-
-  ```golang
-
-  # go.etcd.io/etcd/clientv3/balancer/picker
-  ../../../go/pkg/mod/go.etcd.io/etcd@v0.0.0-20200402134248-51bdeb39e698/clientv3/balancer/picker/err.go:25:9: cannot use &errPicker literal (type *errPicker) as type Picker in return argument:*errPicker does not implement Picker (wrong type for Pick method)
-    have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
-    want Pick(balancer.PickInfo) (balancer.PickResult, error)
-    ../../../go/pkg/mod/go.etcd.io/etcd@v0.0.0-20200402134248-51bdeb39e698/clientv3/balancer/picker/roundrobin_balanced.go:33:9: cannot use &rrBalanced literal (type *rrBalanced) as type Picker in return argument:
-    *rrBalanced does not implement Picker (wrong type for Pick method)
-		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
-    want Pick(balancer.PickInfo) (balancer.PickResult, error)
-    #github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c
-    ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:41:32: not enough arguments in call to base.NewBalancerBuilder
-	have (string, *p2cPickerBuilder)
-  want (string, base.PickerBuilder, base.Config)
-  ../../../go/pkg/mod/github.com/tal-tech/go-zero@v1.0.12/zrpc/internal/balancer/p2c/p2c.go:58:9: cannot use &p2cPicker literal (type *p2cPicker) as type balancer.Picker in return argument:
-	*p2cPicker does not implement balancer.Picker (wrong type for Pick method)
-		have Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error)
-		want Pick(balancer.PickInfo) (balancer.PickResult, error)
-  ```
-
-  解决方法：
-  
-    ```golang
-    replace google.golang.org/grpc => google.golang.org/grpc v1.29.1
-    ```

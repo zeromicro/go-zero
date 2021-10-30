@@ -3,15 +3,17 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
 	formKey           = "form"
 	pathKey           = "path"
+	headerKey         = "header"
 	emptyJson         = "{}"
 	maxMemory         = 32 << 20 // 32MB
 	maxBodyLen        = 8 << 20  // 8MB
@@ -20,8 +22,10 @@ const (
 )
 
 var (
-	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
-	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	formUnmarshaler   = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
+	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
+		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 )
 
 // Parse parses the request.
@@ -34,7 +38,25 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
+	if err := ParseHeaders(r, v); err != nil {
+		return err
+	}
+
 	return ParseJsonBody(r, v)
+}
+
+// ParseHeaders parses the headers request.
+func ParseHeaders(r *http.Request, v interface{}) error {
+	m := map[string]interface{}{}
+	for k, v := range r.Header {
+		if len(v) == 1 {
+			m[k] = v[0]
+		} else {
+			m[k] = v
+		}
+	}
+
+	return headerUnmarshaler.Unmarshal(m, v)
 }
 
 // ParseForm parses the form request.
@@ -97,7 +119,7 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 // ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
 func ParsePath(r *http.Request, v interface{}) error {
-	vars := context.Vars(r)
+	vars := pathvar.Vars(r)
 	m := make(map[string]interface{}, len(vars))
 	for k, v := range vars {
 		m[k] = v

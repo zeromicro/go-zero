@@ -286,7 +286,7 @@ func parseNumberRange(str string) (*numberRange, error) {
 	}, nil
 }
 
-func parseOption(fieldOpts *fieldOptions, fieldName string, option string) error {
+func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 	switch {
 	case option == stringOption:
 		fieldOpts.FromString = true

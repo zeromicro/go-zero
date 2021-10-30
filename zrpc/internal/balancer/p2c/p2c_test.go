@@ -11,7 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/mathx"
+	"github.com/tal-tech/go-zero/core/stringx"
 	"google.golang.org/grpc/balancer"
+	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/status"
@@ -23,8 +25,8 @@ func init() {
 
 func TestP2cPicker_PickNil(t *testing.T) {
 	builder := new(p2cPickerBuilder)
-	picker := builder.Build(nil)
-	_, _, err := picker.Pick(context.Background(), balancer.PickInfo{
+	picker := builder.Build(base.PickerBuildInfo{})
+	_, err := picker.Pick(balancer.PickInfo{
 		FullMethodName: "/",
 		Ctx:            context.Background(),
 	})
@@ -35,8 +37,14 @@ func TestP2cPicker_Pick(t *testing.T) {
 	tests := []struct {
 		name       string
 		candidates int
+		err        error
 		threshold  float64
 	}{
+		{
+			name:       "empty",
+			candidates: 0,
+			err:        balancer.ErrNoSubConnAvailable,
+		},
 		{
 			name:       "single",
 			candidates: 1,
@@ -61,28 +69,40 @@ func TestP2cPicker_Pick(t *testing.T) {
 
 			const total = 10000
 			builder := new(p2cPickerBuilder)
-			ready := make(map[resolver.Address]balancer.SubConn)
+			ready := make(map[balancer.SubConn]base.SubConnInfo)
 			for i := 0; i < test.candidates; i++ {
-				ready[resolver.Address{
-					Addr: strconv.Itoa(i),
-				}] = new(mockClientConn)
+				ready[mockClientConn{
+					id: stringx.Rand(),
+				}] = base.SubConnInfo{
+					Address: resolver.Address{
+						Addr: strconv.Itoa(i),
+					},
+				}
 			}
 
-			picker := builder.Build(ready)
+			picker := builder.Build(base.PickerBuildInfo{
+				ReadySCs: ready,
+			})
 			var wg sync.WaitGroup
 			wg.Add(total)
 			for i := 0; i < total; i++ {
-				_, done, err := picker.Pick(context.Background(), balancer.PickInfo{
+				result, err := picker.Pick(balancer.PickInfo{
 					FullMethodName: "/",
 					Ctx:            context.Background(),
 				})
-				assert.Nil(t, err)
+				assert.Equal(t, test.err, err)
+
+				if test.err != nil {
+					return
+				}
+
 				if i%100 == 0 {
 					err = status.Error(codes.DeadlineExceeded, "deadline")
 				}
+
 				go func() {
 					runtime.Gosched()
-					done(balancer.DoneInfo{
+					result.Done(balancer.DoneInfo{
 						Err: err,
 					})
 					wg.Done()
@@ -103,7 +123,10 @@ func TestP2cPicker_Pick(t *testing.T) {
 	}
 }
 
-type mockClientConn struct{}
+type mockClientConn struct {
+	// add random string member to avoid map key equality.
+	id string
+}
 
 func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
 }

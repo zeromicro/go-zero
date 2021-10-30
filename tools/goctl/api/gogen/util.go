@@ -70,7 +70,20 @@ func getParentPackage(dir string) (string, error) {
 		return "", err
 	}
 
-	return filepath.ToSlash(filepath.Join(projectCtx.Path, strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir))), nil
+	// fix https://github.com/zeromicro/go-zero/issues/1058
+	wd := projectCtx.WorkDir
+	d := projectCtx.Dir
+	same, err := ctlutil.SameFile(wd, d)
+	if err != nil {
+		return "", err
+	}
+
+	trim := strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir)
+	if same {
+		trim = strings.TrimPrefix(strings.ToLower(projectCtx.WorkDir), strings.ToLower(projectCtx.Dir))
+	}
+
+	return filepath.ToSlash(filepath.Join(projectCtx.Path, trim)), nil
 }
 
 func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {

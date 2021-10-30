@@ -12,7 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
-const logicTemplate = `package logic
+const logicTemplate = `package {{.pkgName}}
 
 import (
 	{{.imports}}
@@ -39,10 +39,10 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 }
 `
 
-func genLogic(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, g := range api.Service.Groups {
 		for _, r := range g.Routes {
-			err := genLogicByRoute(dir, cfg, g, r)
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
 			if err != nil {
 				return err
 			}
@@ -51,19 +51,14 @@ func genLogic(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	return nil
 }
 
-func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spec.Route) error {
+func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	logic := getLogicName(route)
 	goFile, err := format.FileNamingFormat(cfg.NamingFormat, logic)
 	if err != nil {
 		return err
 	}
 
-	parentPkg, err := getParentPackage(dir)
-	if err != nil {
-		return err
-	}
-
-	imports := genLogicImports(route, parentPkg)
+	imports := genLogicImports(route, rootPkg)
 	var responseString string
 	var returnString string
 	var requestString string
@@ -83,15 +78,17 @@ func genLogicByRoute(dir string, cfg *config.Config, group spec.Group, route spe
 		requestString = "req " + requestGoTypeName(route, typesPacket)
 	}
 
+	subDir := getLogicFolderPath(group, route)
 	return genFile(fileGenConfig{
 		dir:             dir,
-		subdir:          getLogicFolderPath(group, route),
+		subdir:          subDir,
 		filename:        goFile + ".go",
 		templateName:    "logicTemplate",
 		category:        category,
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
 		data: map[string]string{
+			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        strings.Title(logic),
 			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),

@@ -2,10 +2,15 @@ package serverinterceptors
 
 import (
 	"context"
+	"fmt"
+	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
@@ -24,7 +29,8 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 		go func() {
 			defer func() {
 				if p := recover(); p != nil {
-					panicChan <- p
+					// attach call stack to avoid missing in different goroutine
+					panicChan <- fmt.Sprintf("%+v\n\n%s", p, strings.TrimSpace(string(debug.Stack())))
 				}
 			}()
 
@@ -42,7 +48,14 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 			defer lock.Unlock()
 			return resp, err
 		case <-ctx.Done():
-			return nil, ctx.Err()
+			err := ctx.Err()
+
+			if err == context.Canceled {
+				err = status.Error(codes.Canceled, err.Error())
+			} else if err == context.DeadlineExceeded {
+				err = status.Error(codes.DeadlineExceeded, err.Error())
+			}
+			return nil, err
 		}
 	}
 }

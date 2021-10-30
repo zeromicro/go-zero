@@ -212,24 +212,40 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 // VisitBody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	if ctx.ID() == nil {
+		if v.debug {
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "()" is deprecated, if there has no request body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
+		}
 		return nil
 	}
 
-	idRxpr := v.newExprWithTerminalNode(ctx.ID())
-	if api.IsGolangKeyWord(idRxpr.Text()) {
-		v.panic(idRxpr, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", idRxpr.Text()))
+	idExpr := v.newExprWithTerminalNode(ctx.ID())
+	if api.IsGolangKeyWord(idExpr.Text()) {
+		v.panic(idExpr, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", idExpr.Text()))
 	}
 
 	return &Body{
 		Lp:   v.newExprWithToken(ctx.GetLp()),
 		Rp:   v.newExprWithToken(ctx.GetRp()),
-		Name: &Literal{Literal: idRxpr},
+		Name: &Literal{Literal: idExpr},
 	}
 }
 
 // VisitReplybody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	if ctx.DataType() == nil {
+		if v.debug {
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "returns ()" or "()" is deprecated, if there has no response body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
+		}
 		return nil
 	}
 

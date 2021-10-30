@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +16,8 @@ func TestAuthHandlerFailed(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	handler := Authorize("B63F477D-BBA3-4E52-96D3-C0034C27694A", WithUnauthorizedCallback(
 		func(w http.ResponseWriter, r *http.Request, err error) {
-			w.Header().Set("X-Test", "test")
+			assert.NotNil(t, err)
+			w.Header().Set("X-Test", err.Error())
 			w.WriteHeader(http.StatusUnauthorized)
 			_, err = w.Write([]byte("content"))
 			assert.Nil(t, err)

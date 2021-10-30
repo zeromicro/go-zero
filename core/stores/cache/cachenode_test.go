@@ -29,6 +29,7 @@ func init() {
 func TestCacheNode_DelCache(t *testing.T) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
+	store.Type = redis.ClusterType
 	defer clean()
 
 	cn := cacheNode{
@@ -49,13 +50,30 @@ func TestCacheNode_DelCache(t *testing.T) {
 	assert.Nil(t, cn.Del("first", "second"))
 }
 
+func TestCacheNode_DelCacheWithErrors(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	store.Type = redis.ClusterType
+	clean()
+
+	cn := cacheNode{
+		rds:            store,
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+	assert.Nil(t, cn.Del("third", "fourth"))
+}
+
 func TestCacheNode_InvalidCache(t *testing.T) {
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer s.Close()
 
 	cn := cacheNode{
-		rds:            redis.NewRedis(s.Addr(), redis.NodeType),
+		rds:            redis.New(s.Addr()),
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
@@ -78,7 +96,7 @@ func TestCacheNode_Take(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -105,7 +123,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -144,7 +162,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -171,7 +189,7 @@ func TestCacheNode_String(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
@@ -188,7 +206,7 @@ func TestCacheValueWithBigInt(t *testing.T) {
 	cn := cacheNode{
 		rds:            store,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),

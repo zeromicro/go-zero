@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/tal-tech/go-zero/rest/pathvar"
 )
 
 const (
@@ -105,19 +105,22 @@ func TestPatRouter(t *testing.T) {
 		t.Run(test.method+":"+test.path, func(t *testing.T) {
 			routed := false
 			router := NewRouter()
-			err := router.Handle(test.method, "/a/:b", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				routed = true
-				assert.Equal(t, 1, len(context.Vars(r)))
-			}))
+			err := router.Handle(test.method, "/a/:b", http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					routed = true
+					assert.Equal(t, 1, len(pathvar.Vars(r)))
+				}))
 			assert.Nil(t, err)
-			err = router.Handle(test.method, "/a/b/c", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				routed = true
-				assert.Nil(t, context.Vars(r))
-			}))
+			err = router.Handle(test.method, "/a/b/c", http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					routed = true
+					assert.Nil(t, pathvar.Vars(r))
+				}))
 			assert.Nil(t, err)
-			err = router.Handle(test.method, "/b/c", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				routed = true
-			}))
+			err = router.Handle(test.method, "/b/c", http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					routed = true
+				}))
 			assert.Nil(t, err)
 
 			w := new(mockedResponseWriter)

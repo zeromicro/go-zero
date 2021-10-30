@@ -47,7 +47,6 @@ type (
 		done     chan lang.PlaceholderType
 		rule     RotateRule
 		compress bool
-		keepDays int
 		// can't use threading.RoutineGroup because of cycle import
 		waitGroup sync.WaitGroup
 		closeOnce sync.Once

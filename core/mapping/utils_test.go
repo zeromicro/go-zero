@@ -210,6 +210,12 @@ func TestRepr(t *testing.T) {
 			"mockptr",
 		},
 		{
+			&mockOpacity{
+				val: 1,
+			},
+			"{1}",
+		},
+		{
 			true,
 			"true",
 		},

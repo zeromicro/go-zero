@@ -6,10 +6,11 @@ package internal
 
 import (
 	context "context"
-	gomock "github.com/golang/mock/gomock"
-	clientv3 "go.etcd.io/etcd/clientv3"
-	grpc "google.golang.org/grpc"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
+	clientv3 "go.etcd.io/etcd/client/v3"
+	grpc "google.golang.org/grpc"
 )
 
 // MockEtcdClient is a mock of EtcdClient interface

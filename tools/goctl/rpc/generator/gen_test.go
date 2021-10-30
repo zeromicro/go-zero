@@ -12,6 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/core/stringx"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 )
 
 var cfg = &conf.Config{
@@ -29,7 +30,6 @@ func TestRpcGenerate(t *testing.T) {
 	projectName := stringx.Rand()
 	g := NewRPCGenerator(dispatcher, cfg)
 
-	// case go path
 	src := filepath.Join(build.Default.GOPATH, "src")
 	_, err = os.Stat(src)
 	if err != nil {
@@ -41,41 +41,51 @@ func TestRpcGenerate(t *testing.T) {
 	defer func() {
 		_ = os.RemoveAll(srcDir)
 	}()
-	err = g.Generate("./test.proto", projectDir, []string{src})
+	common, err := filepath.Abs(".")
 	assert.Nil(t, err)
-	_, err = execx.Run("go test "+projectName, projectDir)
-	if err != nil {
-		assert.True(t, func() bool {
-			return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-		}())
-	}
+
+	// case go path
+	t.Run("GOPATH", func(t *testing.T) {
+		err = g.Generate("./test.proto", projectDir, []string{common}, "Mbase/common.proto=./base")
+		assert.Nil(t, err)
+		_, err = execx.Run("go test "+projectName, projectDir)
+		if err != nil {
+			assert.True(t, func() bool {
+				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
+			}())
+		}
+	})
 
 	// case go mod
-	workDir := t.TempDir()
-	name := filepath.Base(workDir)
-	_, err = execx.Run("go mod init "+name, workDir)
-	if err != nil {
-		logx.Error(err)
-		return
-	}
+	t.Run("GOMOD", func(t *testing.T) {
+		workDir := util.MustTempDir()
+		name := filepath.Base(workDir)
+		_, err = execx.Run("go mod init "+name, workDir)
+		if err != nil {
+			logx.Error(err)
+			return
+		}
 
-	projectDir = filepath.Join(workDir, projectName)
-	err = g.Generate("./test.proto", projectDir, []string{src})
-	assert.Nil(t, err)
-	_, err = execx.Run("go test "+projectName, projectDir)
-	if err != nil {
-		assert.True(t, func() bool {
-			return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-		}())
-	}
+		projectDir = filepath.Join(workDir, projectName)
+		err = g.Generate("./test.proto", projectDir, []string{common}, "Mbase/common.proto=./base")
+		assert.Nil(t, err)
+		_, err = execx.Run("go test "+projectName, projectDir)
+		if err != nil {
+			assert.True(t, func() bool {
+				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
+			}())
+		}
+	})
 
 	// case not in go mod and go path
-	err = g.Generate("./test.proto", projectDir, []string{src})
-	assert.Nil(t, err)
-	_, err = execx.Run("go test "+projectName, projectDir)
-	if err != nil {
-		assert.True(t, func() bool {
-			return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
-		}())
-	}
+	t.Run("OTHER", func(t *testing.T) {
+		err = g.Generate("./test.proto", projectDir, []string{common, src}, "Mbase/common.proto=./base")
+		assert.Nil(t, err)
+		_, err = execx.Run("go test "+projectName, projectDir)
+		if err != nil {
+			assert.True(t, func() bool {
+				return strings.Contains(err.Error(), "not in GOROOT") || strings.Contains(err.Error(), "cannot find package")
+			}())
+		}
+	})
 }

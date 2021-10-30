@@ -21,8 +21,10 @@ import (
 	{{.imports}}
 
 	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/tal-tech/go-zero/core/service"
 	"github.com/tal-tech/go-zero/zrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
@@ -37,6 +39,13 @@ func main() {
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.pkg}}.Register{{.service}}Server(grpcServer, srv)
+
+		switch c.Mode {
+		case service.DevMode,service.TestMode:
+			reflection.Register(grpcServer)
+		default:
+		}
+
 	})
 	defer s.Stop()
 
@@ -64,8 +73,13 @@ func (g *DefaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf
 		return err
 	}
 
+	etcFileName, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	if err != nil {
+		return err
+	}
+
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"serviceName": strings.ToLower(ctx.GetServiceName().ToCamel()),
+		"serviceName": etcFileName,
 		"imports":     strings.Join(imports, util.NL),
 		"pkg":         proto.PbPackage,
 		"serviceNew":  stringx.From(proto.Service.Name).ToCamel(),

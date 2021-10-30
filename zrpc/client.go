@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
@@ -15,6 +14,8 @@ var (
 	WithDialOption = internal.WithDialOption
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
+	// WithRetry is an alias of internal.WithRetry.
+	WithRetry = internal.WithRetry
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 	// WithInsecure is an alias of internal.WithInsecure.
@@ -59,30 +60,29 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
+	if c.Retry {
+		opts = append(opts, WithRetry())
+	}
 	opts = append(opts, options...)
 	if !c.HasSslVerify() {
 		opts = append(opts, WithInsecure())
 	}
 
-	var client Client
+	var target string
 	var err error
 	if len(c.Endpoints) > 0 {
-		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
-	} else if err = c.Etcd.Validate(); err == nil {
-		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
-	}
-	if err != nil {
-		return nil, err
+		target = internal.BuildDirectTarget(c.Endpoints)
+	} else if len(c.Target) > 0 {
+		target = c.Target
+	} else {
+		if err = c.Etcd.Validate(); err != nil {
+			return nil, err
+		}
+
+		target = internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
 	}
 
-	return &RpcClient{
-		client: client,
-	}, nil
-}
-
-// NewClientNoAuth returns a Client without authentication.
-func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
+	client, err := internal.NewClient(target, opts...)
 	if err != nil {
 		return nil, err
 	}

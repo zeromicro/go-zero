@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
@@ -50,7 +51,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
@@ -60,7 +61,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
 	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
-	if strings.ToLower(proto.Service.Name) == strings.ToLower(proto.GoPackage) {
+	if strings.EqualFold(proto.Service.Name, proto.GoPackage) {
 		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
 	}
 

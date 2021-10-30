@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
@@ -20,7 +22,10 @@ import (
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
-const slowThreshold = time.Millisecond * 500
+const (
+	limitBodyBytes = 1024
+	slowThreshold  = time.Millisecond * 500
+)
 
 type loggedResponseWriter struct {
 	w    http.ResponseWriter
@@ -147,16 +152,24 @@ func dumpRequest(r *http.Request) string {
 func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
-	buf.WriteString(fmt.Sprintf("%d - %s - %s - %s - %s",
-		code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
+	logger := logx.WithContext(r.Context())
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s - %s - %s",
+		r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
 	if duration > slowThreshold {
-		logx.WithContext(r.Context()).Slowf("[HTTP] %d - %s - %s - %s - slowcall(%s)",
-			code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
+		logger.Slowf("[HTTP] %s - %d - %s - %s - %s - slowcall(%s)",
+			r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
 	}
 
 	ok := isOkResponse(code)
 	if !ok {
-		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
+		fullReq := dumpRequest(r)
+		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
+		body, err := ioutil.ReadAll(limitReader)
+		if err != nil {
+			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
+		} else {
+			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
+		}
 	}
 
 	body := logs.Flush()
@@ -165,9 +178,9 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	}
 
 	if ok {
-		logx.WithContext(r.Context()).Info(buf.String())
+		logger.Info(buf.String())
 	} else {
-		logx.WithContext(r.Context()).Error(buf.String())
+		logger.Error(buf.String())
 	}
 }
 
@@ -175,11 +188,12 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
-	buf.WriteString(fmt.Sprintf("%d - %s - %s\n=> %s\n",
-		response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
+	logger := logx.WithContext(r.Context())
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
+		r.Method, response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
 	if duration > slowThreshold {
-		logx.WithContext(r.Context()).Slowf("[HTTP] %d - %s - slowcall(%s)\n=> %s\n",
-			response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
+		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n",
+			r.Method, response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
 	}
 
 	body := logs.Flush()
@@ -192,7 +206,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 		buf.WriteString(fmt.Sprintf("<= %s", respBuf))
 	}
 
-	logx.WithContext(r.Context()).Info(buf.String())
+	logger.Info(buf.String())
 }
 
 func isOkResponse(code int) bool {

@@ -33,7 +33,7 @@ const (
 `
 )
 
-func genDoc(api *spec.ApiSpec, dir string, filename string) error {
+func genDoc(api *spec.ApiSpec, dir, filename string) error {
 	fp, _, err := util.MaybeCreateFile(dir, "", filename)
 	if err != nil {
 		return err

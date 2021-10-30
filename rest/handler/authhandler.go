@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rest/token"
 )
@@ -112,11 +112,12 @@ func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback Un
 	} else {
 		detailAuthLog(r, noDetailReason)
 	}
+
+	writer.WriteHeader(http.StatusUnauthorized)
+
 	if callback != nil {
 		callback(writer, r, err)
 	}
-
-	writer.WriteHeader(http.StatusUnauthorized)
 }
 
 type guardedResponseWriter struct {

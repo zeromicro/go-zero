@@ -25,6 +25,7 @@ func init() {
 }
 
 func TestAdaptiveShedder(t *testing.T) {
+	DisableLog()
 	shedder := NewAdaptiveShedder(WithWindow(bucketDuration), WithBuckets(buckets), WithCpuThreshold(100))
 	var wg sync.WaitGroup
 	var drop int64

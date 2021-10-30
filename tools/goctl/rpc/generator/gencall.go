@@ -3,8 +3,10 @@ package generator
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
+	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/core/collection"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
@@ -16,8 +18,6 @@ import (
 const (
 	callTemplateText = `{{.head}}
 
-//go:generate mockgen -destination ./{{.name}}_mock.go -package {{.filePackage}} -source $GOFILE
-
 package {{.filePackage}}
 
 import (
@@ -26,6 +26,7 @@ import (
 	{{.package}}
 
 	"github.com/tal-tech/go-zero/zrpc"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -50,13 +51,13 @@ func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
 `
 
 	callInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
-{{end}}{{.method}}(ctx context.Context,in *{{.pbRequest}}) (*{{.pbResponse}},error)`
+{{end}}{{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error)`
 
 	callFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
-func (m *default{{.serviceName}}) {{.method}}(ctx context.Context,in *{{.pbRequest}}) (*{{.pbResponse}}, error) {
+func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error) {
 	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
-	return client.{{.method}}(ctx, in)
+	return client.{{.method}}(ctx{{if .hasReq}}, in{{end}}, opts...)
 }
 `
 )
@@ -79,7 +80,7 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		return err
 	}
 
-	iFunctions, err := g.getInterfaceFuncs(service)
+	iFunctions, err := g.getInterfaceFuncs(proto.PbPackage, service)
 	if err != nil {
 		return err
 	}
@@ -91,12 +92,15 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 
 	alias := collection.NewSet()
 	for _, item := range proto.Message {
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.Name), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.Name))))
+		msgName := getMessageName(*item.Message)
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
 	}
 
+	aliasKeys := alias.KeysStr()
+	sort.Strings(aliasKeys)
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":        callFilename,
-		"alias":       strings.Join(alias.KeysStr(), util.NL),
+		"alias":       strings.Join(aliasKeys, util.NL),
 		"head":        head,
 		"filePackage": dir.Base,
 		"package":     fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
@@ -107,8 +111,31 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	return err
 }
 
+func getMessageName(msg proto.Message) string {
+	list := []string{msg.Name}
+
+	for {
+		parent := msg.Parent
+		if parent == nil {
+			break
+		}
+
+		parentMsg, ok := parent.(*proto.Message)
+		if !ok {
+			break
+		}
+
+		tmp := []string{parentMsg.Name}
+		list = append(tmp, list...)
+		msg = *parentMsg
+	}
+
+	return strings.Join(list, "_")
+}
+
 func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
+
 	for _, rpc := range service.RPC {
 		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
 		if err != nil {
@@ -116,6 +143,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 		}
 
 		comment := parser.GetComment(rpc.Doc())
+		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
 		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
 			"serviceName":    stringx.From(service.Name).ToCamel(),
 			"rpcServiceName": parser.CamelCase(service.Name),
@@ -125,6 +153,9 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 			"pbResponse":     parser.CamelCase(rpc.ReturnsType),
 			"hasComment":     len(comment) > 0,
 			"comment":        comment,
+			"hasReq":         !rpc.StreamsRequest,
+			"notStream":      !rpc.StreamsRequest && !rpc.StreamsReturns,
+			"streamBody":     streamServer,
 		})
 		if err != nil {
 			return nil, err
@@ -132,10 +163,11 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 
 		functions = append(functions, buffer.String())
 	}
+
 	return functions, nil
 }
 
-func (g *DefaultGenerator) getInterfaceFuncs(service parser.Service) ([]string, error) {
+func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
@@ -145,13 +177,17 @@ func (g *DefaultGenerator) getInterfaceFuncs(service parser.Service) ([]string, 
 		}
 
 		comment := parser.GetComment(rpc.Doc())
+		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
 		buffer, err := util.With("interfaceFn").Parse(text).Execute(
 			map[string]interface{}{
 				"hasComment": len(comment) > 0,
 				"comment":    comment,
 				"method":     parser.CamelCase(rpc.Name),
+				"hasReq":     !rpc.StreamsRequest,
 				"pbRequest":  parser.CamelCase(rpc.RequestType),
+				"notStream":  !rpc.StreamsRequest && !rpc.StreamsReturns,
 				"pbResponse": parser.CamelCase(rpc.ReturnsType),
+				"streamBody": streamServer,
 			})
 		if err != nil {
 			return nil, err

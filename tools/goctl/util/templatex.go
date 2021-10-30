@@ -5,16 +5,17 @@ import (
 	goformat "go/format"
 	"io/ioutil"
 	"text/template"
+
+	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 )
 
 const regularPerm = 0o666
 
 // DefaultTemplate is a tool to provides the text/template operations
 type DefaultTemplate struct {
-	name     string
-	text     string
-	goFmt    bool
-	savePath string
+	name  string
+	text  string
+	goFmt bool
 }
 
 // With returns a instance of DefaultTemplate
@@ -54,12 +55,12 @@ func (t *DefaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 	tem, err := template.New(t.name).Parse(t.text)
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template parse error:", t.text)
 	}
 
 	buf := new(bytes.Buffer)
 	if err = tem.Execute(buf, data); err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "template execute error:", t.text)
 	}
 
 	if !t.goFmt {
@@ -68,7 +69,7 @@ func (t *DefaultTemplate) Execute(data interface{}) (*bytes.Buffer, error) {
 
 	formatOutput, err := goformat.Source(buf.Bytes())
 	if err != nil {
-		return nil, err
+		return nil, errorx.Wrap(err, "go format error:", buf.String())
 	}
 
 	buf.Reset()

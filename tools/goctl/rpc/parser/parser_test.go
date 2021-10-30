@@ -19,7 +19,7 @@ func TestDefaultProtoParse(t *testing.T) {
 	assert.Equal(t, "test", data.Package.Name)
 	assert.Equal(t, true, data.GoPackage == "go")
 	assert.Equal(t, true, data.PbPackage == "_go")
-	assert.Equal(t, []string{"TestMessage", "TestReply", "TestReq"}, func() []string {
+	assert.Equal(t, []string{"Inline", "Inner", "TestMessage", "TestReply", "TestReq"}, func() []string {
 		var list []string
 		for _, item := range data.Message {
 			list = append(list, item.Name)

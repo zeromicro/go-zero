@@ -15,7 +15,7 @@ type findOneCode struct {
 	cacheExtra             string
 }
 
-func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
+func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, error) {
 	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	var list []string
 	camelTableName := table.Name.ToCamel()
 	for _, key := range table.UniqueCacheKey {
-		in, paramJoinString, originalFieldString := convertJoin(key)
+		in, paramJoinString, originalFieldString := convertJoin(key, postgreSql)
 
 		output, err := t.Execute(map[string]interface{}{
 			"upperStartCamelObject":     camelTableName,
@@ -38,6 +38,7 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 			"lowerStartCamelField":      paramJoinString,
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             originalFieldString,
+			"postgreSql":                postgreSql,
 		})
 		if err != nil {
 			return nil, err
@@ -87,7 +88,8 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
-			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source()),
+			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
+			"postgreSql":            postgreSql,
 		})
 		if err != nil {
 			return nil, err
@@ -106,13 +108,17 @@ func genFindOneByField(table Table, withCache bool) (*findOneCode, error) {
 	}, nil
 }
 
-func convertJoin(key Key) (in, paramJoinString, originalFieldString string) {
+func convertJoin(key Key, postgreSql bool) (in, paramJoinString, originalFieldString string) {
 	var inJoin, paramJoin, argJoin Join
-	for _, f := range key.Fields {
+	for index, f := range key.Fields {
 		param := stringx.From(f.Name.ToCamel()).Untitle()
 		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 		paramJoin = append(paramJoin, param)
-		argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source())))
+		if postgreSql {
+			argJoin = append(argJoin, fmt.Sprintf("%s = $%d", wrapWithRawString(f.Name.Source(), postgreSql), index+1))
+		} else {
+			argJoin = append(argJoin, fmt.Sprintf("%s = ?", wrapWithRawString(f.Name.Source(), postgreSql)))
+		}
 	}
 	if len(inJoin) > 0 {
 		in = inJoin.With(", ").Source()

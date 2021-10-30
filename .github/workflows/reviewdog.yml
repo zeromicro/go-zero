@@ -1,0 +1,19 @@
+name: reviewdog
+on: [pull_request]
+jobs:
+  staticcheck:
+    name: runner / staticcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-staticcheck@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          # Change reviewdog reporter if you need [github-pr-check,github-check,github-pr-review].
+          reporter: github-pr-review
+          # Report all results.
+          filter_mode: nofilter
+          # Exit with 1 when it find at least one finding.
+          fail_on_error: true
+          # Set staticcheck flags
+          staticcheck_flags: -checks=inherit,-SA1019,-SA1029,-SA5008

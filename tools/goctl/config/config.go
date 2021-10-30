@@ -5,10 +5,8 @@ import (
 	"strings"
 )
 
-const (
-	// DefaultFormat defines a default naming style
-	DefaultFormat = "gozero"
-)
+// DefaultFormat defines a default naming style
+const DefaultFormat = "gozero"
 
 // Config defines the file naming style
 type Config struct {

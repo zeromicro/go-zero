@@ -18,8 +18,9 @@ type mockedClientConn struct {
 	state resolver.State
 }
 
-func (m *mockedClientConn) UpdateState(state resolver.State) {
+func (m *mockedClientConn) UpdateState(state resolver.State) error {
 	m.state = state
+	return nil
 }
 
 func (m *mockedClientConn) ReportError(err error) {

@@ -2,10 +2,13 @@ package tpl
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/errorx"
+	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
+	apinew "github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
 	mongogen "github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
@@ -19,6 +22,11 @@ const templateParentPath = "/"
 
 // GenTemplates writes the latest template text into file which is not exists
 func GenTemplates(ctx *cli.Context) error {
+	path := ctx.String("home")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	if err := errorx.Chain(
 		func() error {
 			return gogen.GenTemplates(ctx)
@@ -38,6 +46,12 @@ func GenTemplates(ctx *cli.Context) error {
 		func() error {
 			return mongogen.Templates(ctx)
 		},
+		func() error {
+			return apigen.GenTemplates(ctx)
+		},
+		func() error {
+			return apinew.GenTemplates(ctx)
+		},
 	); err != nil {
 		return err
 	}
@@ -47,14 +61,24 @@ func GenTemplates(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(dir),
+	abs, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Templates are generated in %s, %s\n", aurora.Green(abs),
 		aurora.Red("edit on your risk!"))
 
 	return nil
 }
 
 // CleanTemplates deletes all templates
-func CleanTemplates(_ *cli.Context) error {
+func CleanTemplates(ctx *cli.Context) error {
+	path := ctx.String("home")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	err := errorx.Chain(
 		func() error {
 			return gogen.Clean()
@@ -74,6 +98,12 @@ func CleanTemplates(_ *cli.Context) error {
 		func() error {
 			return mongogen.Clean()
 		},
+		func() error {
+			return apigen.Clean()
+		},
+		func() error {
+			return apinew.Clean()
+		},
 	)
 	if err != nil {
 		return err
@@ -86,7 +116,12 @@ func CleanTemplates(_ *cli.Context) error {
 // UpdateTemplates writes the latest template text into file,
 // it will delete the older templates if there are exists
 func UpdateTemplates(ctx *cli.Context) (err error) {
+	path := ctx.String("home")
 	category := ctx.String("category")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	defer func() {
 		if err == nil {
 			fmt.Println(aurora.Green(fmt.Sprintf("%s template are update!", category)).String())
@@ -105,6 +140,10 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 		return modelgen.Update()
 	case mongogen.Category():
 		return mongogen.Update()
+	case apigen.Category():
+		return apigen.Update()
+	case apinew.Category():
+		return apinew.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -113,8 +152,13 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 
 // RevertTemplates will overwrite the old template content with the new template
 func RevertTemplates(ctx *cli.Context) (err error) {
+	path := ctx.String("home")
 	category := ctx.String("category")
 	filename := ctx.String("name")
+	if len(path) != 0 {
+		util.RegisterGoctlHome(path)
+	}
+
 	defer func() {
 		if err == nil {
 			fmt.Println(aurora.Green(fmt.Sprintf("%s template are reverted!", filename)).String())
@@ -133,6 +177,10 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 		return modelgen.RevertTemplate(filename)
 	case mongogen.Category():
 		return mongogen.RevertTemplate(filename)
+	case apigen.Category():
+		return apigen.RevertTemplate(filename)
+	case apinew.Category():
+		return apinew.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

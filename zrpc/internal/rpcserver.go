@@ -14,7 +14,8 @@ type (
 	ServerOption func(options *rpcServerOptions)
 
 	rpcServerOptions struct {
-		metrics *stat.Metrics
+		metrics    *stat.Metrics
+		MaxRetries int
 	}
 
 	rpcServer struct {
@@ -38,7 +39,7 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 	}
 
 	return &rpcServer{
-		baseRpcServer: newBaseRpcServer(address, options.metrics),
+		baseRpcServer: newBaseRpcServer(address, &options),
 	}
 }
 
@@ -54,14 +55,18 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	}
 
 	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		serverinterceptors.UnaryTracingInterceptor(s.name),
-		serverinterceptors.UnaryCrashInterceptor(),
+		serverinterceptors.UnaryTracingInterceptor,
+		serverinterceptors.RetryInterceptor(s.maxRetries),
+		serverinterceptors.UnaryCrashInterceptor,
 		serverinterceptors.UnaryStatInterceptor(s.metrics),
-		serverinterceptors.UnaryPrometheusInterceptor(),
+		serverinterceptors.UnaryPrometheusInterceptor,
+		serverinterceptors.UnaryBreakerInterceptor,
 	}
 	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
 	streamInterceptors := []grpc.StreamServerInterceptor{
+		serverinterceptors.StreamTracingInterceptor,
 		serverinterceptors.StreamCrashInterceptor,
+		serverinterceptors.StreamBreakerInterceptor,
 	}
 	streamInterceptors = append(streamInterceptors, s.streamInterceptors...)
 	options := append(s.options, WithUnaryServerInterceptors(unaryInterceptors...),
@@ -82,5 +87,12 @@ func (s *rpcServer) Start(register RegisterFn) error {
 func WithMetrics(metrics *stat.Metrics) ServerOption {
 	return func(options *rpcServerOptions) {
 		options.metrics = metrics
+	}
+}
+
+// WithMaxRetries returns a func that sets a max retries to a Server.
+func WithMaxRetries(maxRetries int) ServerOption {
+	return func(options *rpcServerOptions) {
+		options.MaxRetries = maxRetries
 	}
 }

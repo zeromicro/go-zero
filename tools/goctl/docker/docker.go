@@ -11,7 +11,6 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -42,6 +41,12 @@ func DockerCommand(c *cli.Context) (err error) {
 	}()
 
 	goFile := c.String("go")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
 	}
@@ -122,7 +127,7 @@ func generateDockerfile(goFile string, port int, args ...string) error {
 	}
 	defer out.Close()
 
-	text, err := ctlutil.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
+	text, err := util.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
 	if err != nil {
 		return err
 	}

@@ -112,3 +112,12 @@ func FindProjectPath(loc string) (string, bool) {
 
 	return "", false
 }
+
+func isLink(name string) (bool, error) {
+	fi, err := os.Lstat(name)
+	if err != nil {
+		return false, err
+	}
+
+	return fi.Mode()&os.ModeSymlink != 0, nil
+}
