@@ -229,6 +229,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >43. 济南超级盟网络科技有限公司
 >44. 苏州互盟信息存储技术有限公司
 >45. 成都艾途教育科技集团有限公司
+>46. 上海游族网络
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
@@ -245,7 +246,7 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
-<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat-micro.jpg" alt="wechat" width="300" />
+<img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
 ## 11. 微信交流群
 

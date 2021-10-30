@@ -38,17 +38,19 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
+	serverOptions := []internal.ServerOption{internal.WithMetrics(metrics), internal.WithMaxRetries(c.MaxRetries)}
+
 	if c.HasEtcd() {
 		if c.Etcd.EnableAuth(){
-			server, err = internal.NewRpcPubServerWithEtcdAuth(c.Etcd.Hosts, c.Etcd.User, c.Etcd.Pass, c.Etcd.Key, c.ListenOn, internal.WithMetrics(metrics))
-		}else {
-			server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn, internal.WithMetrics(metrics))
+			server, err = internal.NewRpcPubServerWithEtcdAuth(c.Etcd.Hosts, c.Etcd.User, c.Etcd.Pass, c.Etcd.Key, c.ListenOn, )
+		} else {
+		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn, serverOptions...)
 		}
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, internal.WithMetrics(metrics))
+		server = internal.NewRpcServer(c.ListenOn, serverOptions...)
 	}
 
 	server.SetName(c.Name)
