@@ -18,10 +18,8 @@ var (
 	WithRetry = internal.WithRetry
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
-	// WithInsecure is an alias of internal.WithInsecure.
-	WithInsecure = internal.WithInsecure
-	// WithTlsClientFromUnilateralism is an alias of internal.WithTlsClientFromUnilateralism
-	WithTlsClientFromUnilateralism = internal.WithTlsClientFromUnilateralism
+	// WithTlsClientFromUnilateral is an alias of internal.WithTlsClientFromUnilateral
+	WithTlsClientFromUnilateral = internal.WithTlsClientFromUnilateral
 	// WithTlsClientFromMutual is an alias of internal.WithTlsClientFromMutual
 	WithTlsClientFromMutual = internal.WithTlsClientFromMutual
 )
@@ -64,9 +62,6 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		opts = append(opts, WithRetry())
 	}
 	opts = append(opts, options...)
-	if !c.HasSslVerify() {
-		opts = append(opts, WithInsecure())
-	}
 
 	var target string
 	var err error

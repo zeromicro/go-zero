@@ -36,6 +36,7 @@ type (
 	// A ClientOptions is a client options.
 	ClientOptions struct {
 		Timeout     time.Duration
+		Secure      bool
 		Retry       bool
 		DialOptions []grpc.DialOption
 	}
@@ -69,7 +70,12 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		opt(&cliOpts)
 	}
 
-	options := []grpc.DialOption{
+	var options []grpc.DialOption
+	if !cliOpts.Secure {
+		options = append([]grpc.DialOption(nil), grpc.WithInsecure())
+	}
+
+	options = append(options,
 		grpc.WithBlock(),
 		WithUnaryClientInterceptors(
 			clientinterceptors.UnaryTracingInterceptor,
@@ -82,7 +88,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
 		),
-	}
+	)
 
 	return append(options, cliOpts.DialOptions...)
 }
@@ -116,13 +122,6 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 	}
 }
 
-// WithInsecure returns a func to customize a ClientOptions with secure option.
-func WithInsecure() ClientOption {
-	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, grpc.WithInsecure())
-	}
-}
-
 // WithTimeout returns a func to customize a ClientOptions with given timeout.
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
@@ -144,13 +143,15 @@ func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientO
 	}
 }
 
-// WithTlsClientFromUnilateralism return a func to customize a ClientOptions Verify with Unilateralism authentication.
-func WithTlsClientFromUnilateralism(crt, domainName string) ClientOption {
+// WithTlsClientFromUnilateral return a func to customize a ClientOptions Verify with Unilateralism authentication.
+func WithTlsClientFromUnilateral(crt, domainName string) ClientOption {
 	return func(options *ClientOptions) {
 		c, err := credentials.NewClientTLSFromFile(crt, domainName)
 		if err != nil {
 			log.Fatalf("credentials.NewClientTLSFromFile err: %v", err)
 		}
+
+		options.Secure = true
 		options.DialOptions = append(options.DialOptions, grpc.WithTransportCredentials(c))
 	}
 }
@@ -162,6 +163,7 @@ func WithTlsClientFromMutual(crtFile, keyFile, caFile string) ClientOption {
 		if err != nil {
 			log.Fatalf("tls.LoadX509KeyPair err: %v", err)
 		}
+
 		certPool := x509.NewCertPool()
 		ca, err := ioutil.ReadFile(caFile)
 		if err != nil {
@@ -177,6 +179,8 @@ func WithTlsClientFromMutual(crtFile, keyFile, caFile string) ClientOption {
 			RootCAs:      certPool,
 		}
 
-		options.DialOptions = append(options.DialOptions, grpc.WithTransportCredentials(credentials.NewTLS(config)))
+		options.Secure = true
+		options.DialOptions = append(options.DialOptions,
+			grpc.WithTransportCredentials(credentials.NewTLS(config)))
 	}
 }
