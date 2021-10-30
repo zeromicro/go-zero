@@ -30,6 +30,7 @@ type (
 		Token     string          `json:",optional"`
 		Retry     bool            `json:",optional"` // grpc auto retry
 		Timeout   int64           `json:",default=2000"`
+		InsecureVerify bool            `json:",default=false"`
 	}
 )
 
@@ -71,4 +72,9 @@ func (sc RpcServerConf) Validate() error {
 // HasCredential checks if there is a credential in config.
 func (cc RpcClientConf) HasCredential() bool {
 	return len(cc.App) > 0 && len(cc.Token) > 0
+}
+
+//HasTls checks if there is a SSL in config.
+func (cc RpcClientConf) HasSslVerify() bool {
+	return cc.InsecureVerify
 }
