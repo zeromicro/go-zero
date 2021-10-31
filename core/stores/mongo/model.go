@@ -8,23 +8,15 @@ import (
 	"github.com/tal-tech/go-zero/core/breaker"
 )
 
-type (
-	options struct {
-		timeout time.Duration
-	}
-
-	// Option defines the method to customize a mongo model.
-	Option func(opts *options)
-
-	// A Model is a mongo model.
-	Model struct {
-		session    *concurrentSession
-		db         *mgo.Database
-		collection string
-		brk        breaker.Breaker
-		opts       []Option
-	}
-)
+// A Model is a mongo model.
+type Model struct {
+	session       *concurrentSession
+	db            *mgo.Database
+	collection    string
+	slowThreshold time.Duration
+	brk           breaker.Breaker
+	opts          []Option
+}
 
 // MustNewModel returns a Model, exits on errors.
 func MustNewModel(url, collection string, opts ...Option) *Model {
@@ -43,13 +35,19 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 		return nil, err
 	}
 
+	o := defaultOptions()
+	for _, opt := range opts {
+		opt(o)
+	}
+
 	return &Model{
 		session: session,
 		// If name is empty, the database name provided in the dialed URL is used instead
-		db:         session.DB(""),
-		collection: collection,
-		brk:        breaker.GetBreaker(url),
-		opts:       opts,
+		db:            session.DB(""),
+		collection:    collection,
+		slowThreshold: o.slowThreshold,
+		brk:           breaker.GetBreaker(url),
+		opts:          opts,
 	}, nil
 }
 
@@ -69,7 +67,7 @@ func (mm *Model) FindId(id interface{}) (Query, error) {
 
 // GetCollection returns a Collection with given session.
 func (mm *Model) GetCollection(session *mgo.Session) Collection {
-	return newCollection(mm.db.C(mm.collection).With(session), mm.brk)
+	return newCollection(mm.db.C(mm.collection).With(session), mm.slowThreshold, mm.brk)
 }
 
 // Insert inserts docs into mm.
@@ -176,6 +174,13 @@ func (mm *Model) query(fn func(c Collection) Query) (Query, error) {
 	defer mm.PutSession(session)
 
 	return fn(mm.GetCollection(session)), nil
+}
+
+// WithSlowThreshold customizes the slow threshold.
+func WithSlowThreshold(threshold time.Duration) Option {
+	return func(opts *options) {
+		opts.slowThreshold = threshold
+	}
 }
 
 // WithTimeout customizes an operation with given timeout.

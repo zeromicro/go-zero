@@ -57,9 +57,7 @@ func (cs *concurrentSession) putSession(session *mgo.Session) {
 }
 
 func (cs *concurrentSession) takeSession(opts ...Option) (*mgo.Session, error) {
-	o := &options{
-		timeout: defaultTimeout,
-	}
+	o := defaultOptions()
 	for _, opt := range opts {
 		opt(o)
 	}

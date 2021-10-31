@@ -67,11 +67,12 @@ func TestKeepPromise_keep(t *testing.T) {
 }
 
 func TestNewCollection(t *testing.T) {
+	o := defaultOptions()
 	col := newCollection(&mgo.Collection{
 		Database: nil,
 		Name:     "foo",
 		FullName: "bar",
-	}, breaker.GetBreaker("localhost"))
+	}, o.slowThreshold, breaker.GetBreaker("localhost"))
 	assert.Equal(t, "bar", col.(*decoratedCollection).name)
 }
 
