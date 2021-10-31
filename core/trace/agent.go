@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
@@ -19,17 +20,27 @@ const (
 	kindZipkin = "zipkin"
 )
 
-var once sync.Once
+var (
+	agents = make(map[string]lang.PlaceholderType)
+	lock   sync.Mutex
+)
 
 // StartAgent starts a opentelemetry agent.
 func StartAgent(c Config) {
-	once.Do(func() {
-		startAgent(c)
-	})
+	lock.Lock()
+	defer lock.Unlock()
+
+	_, ok := agents[c.Endpoint]
+	if ok {
+		return
+	}
+
+	agents[c.Endpoint] = lang.Placeholder
+	startAgent(c)
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
-	// Just support jaeger now, more for later
+	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
 	case kindJaeger:
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
