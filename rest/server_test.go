@@ -227,8 +227,10 @@ Port: 54321
 	var cnf RestConf
 	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
 
-	testConfig := []uint16{
-		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	testConfig := &tls.Config{
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+		},
 	}
 
 	testCases := []struct {
@@ -239,7 +241,7 @@ Port: 54321
 		{
 			c:    cnf,
 			opts: []RunOption{WithTLSConfig(testConfig)},
-			res:  &tls.Config{CipherSuites: testConfig},
+			res:  testConfig,
 		},
 		{
 			c:    cnf,

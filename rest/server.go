@@ -48,8 +48,8 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	server := &Server{
 		ngin: newEngine(c),
 		opts: runOptions{
-			start: func(srv *engine) error {
-				return srv.Start()
+			start: func(ng *engine) error {
+				return ng.Start()
 			},
 		},
 	}
@@ -171,8 +171,8 @@ func WithPriority() RouteOption {
 // WithRouter returns a RunOption that make server run with given router.
 func WithRouter(router httpx.Router) RunOption {
 	return func(server *Server) {
-		server.opts.start = func(srv *engine) error {
-			return srv.StartWithRouter(router)
+		server.opts.start = func(ng *engine) error {
+			return ng.StartWithRouter(router)
 		}
 	}
 }
@@ -187,26 +187,24 @@ func WithSignature(signature SignatureConf) RouteOption {
 	}
 }
 
-// WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
-func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
-	return func(engine *Server) {
-		engine.ngin.SetUnauthorizedCallback(callback)
+// WithTLSConfig returns a RunOption that with given tls config.
+func WithTLSConfig(cfg *tls.Config) RunOption {
+	return func(srv *Server) {
+		srv.ngin.setTlsConfig(cfg)
 	}
 }
 
-// WithTLSConfig returns a RunOption that with given tls config.
-func WithTLSConfig(cipherSuites []uint16) RunOption {
-	return func(engine *Server) {
-		engine.ngin.tlsConfig = &tls.Config{
-			CipherSuites: cipherSuites,
-		}
+// WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
+func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
+	return func(srv *Server) {
+		srv.ngin.SetUnauthorizedCallback(callback)
 	}
 }
 
 // WithUnsignedCallback returns a RunOption that with given unsigned callback set.
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
-	return func(engine *Server) {
-		engine.ngin.SetUnsignedCallback(callback)
+	return func(srv *Server) {
+		srv.ngin.SetUnsignedCallback(callback)
 	}
 }
 
