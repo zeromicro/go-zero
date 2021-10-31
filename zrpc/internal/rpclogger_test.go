@@ -58,11 +58,35 @@ func TestLoggerFatalln(t *testing.T) {
 	assert.Contains(t, builder.String(), content)
 }
 
+func TestLoggerInfo(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	logger := new(Logger)
+	logger.Info(content)
+	assert.Empty(t, builder.String())
+}
+
+func TestLoggerInfof(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	logger := new(Logger)
+	logger.Infof(content)
+	assert.Empty(t, builder.String())
+}
+
 func TestLoggerWarning(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
 	logger := new(Logger)
 	logger.Warning(content)
+	assert.Empty(t, builder.String())
+}
+
+func TestLoggerInfoln(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	logger := new(Logger)
+	logger.Infoln(content)
 	assert.Empty(t, builder.String())
 }
 
@@ -80,4 +104,12 @@ func TestLoggerWarningln(t *testing.T) {
 	logger := new(Logger)
 	logger.Warningln(content)
 	assert.Empty(t, builder.String())
+}
+
+func TestLogger_V(t *testing.T) {
+	logger := new(Logger)
+	// grpclog.fatalLog
+	assert.True(t, logger.V(3))
+	// grpclog.infoLog
+	assert.False(t, logger.V(0))
 }
