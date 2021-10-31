@@ -3,6 +3,8 @@ package redis
 import (
 	"errors"
 	"time"
+
+	"github.com/tal-tech/go-zero/core/conf"
 )
 
 var (
@@ -41,7 +43,7 @@ func (rc RedisConf) NewRedis() *Redis {
 		opts = append(opts, WithPass(rc.Pass))
 	}
 	if rc.SlowThreshold > 0 {
-		opts = append(opts, WithSlowThreshold(rc.SlowThreshold))
+		opts = append(opts, WithSlowThreshold(conf.CheckedDuration(rc.SlowThreshold)))
 	}
 	if rc.Tls {
 		opts = append(opts, WithTLS())
