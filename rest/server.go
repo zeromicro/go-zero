@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 
@@ -190,6 +191,15 @@ func WithSignature(signature SignatureConf) RouteOption {
 func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
 	return func(engine *Server) {
 		engine.ngin.SetUnauthorizedCallback(callback)
+	}
+}
+
+// WithTLSConfig returns a RunOption that with given tls config.
+func WithTLSConfig(cipherSuites []uint16) RunOption {
+	return func(engine *Server) {
+		engine.ngin.tlsConfig = &tls.Config{
+			CipherSuites: cipherSuites,
+		}
 	}
 }
 
