@@ -1,6 +1,11 @@
 package redis
 
-import "errors"
+import (
+	"errors"
+	"time"
+
+	"github.com/tal-tech/go-zero/core/conf"
+)
 
 var (
 	// ErrEmptyHost is an error that indicates no redis host is set.
@@ -14,10 +19,11 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
-		Tls  bool   `json:",default=false,options=true|false"`
+		Host          string
+		Type          string        `json:",default=node,options=node|cluster"`
+		Pass          string        `json:",optional"`
+		Tls           bool          `json:",default=false,options=true|false"`
+		SlowThreshold time.Duration `json:",default=100ms"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -35,6 +41,9 @@ func (rc RedisConf) NewRedis() *Redis {
 	}
 	if len(rc.Pass) > 0 {
 		opts = append(opts, WithPass(rc.Pass))
+	}
+	if rc.SlowThreshold > 0 {
+		opts = append(opts, WithSlowThreshold(conf.CheckedDuration(rc.SlowThreshold)))
 	}
 	if rc.Tls {
 		opts = append(opts, WithTLS())
