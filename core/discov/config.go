@@ -6,6 +6,13 @@ import "errors"
 type EtcdConf struct {
 	Hosts []string
 	Key   string
+	User  string `json:",optional"`
+	Pass  string `json:",optional"`
+}
+
+// HasAccount returns if account provided.
+func (c EtcdConf) HasAccount() bool {
+	return len(c.User) > 0 && len(c.Pass) > 0
 }
 
 // Validate validates c.

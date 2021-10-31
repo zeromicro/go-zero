@@ -33,6 +33,7 @@ func setMockClient(cli EtcdClient) func() {
 }
 
 func TestGetCluster(t *testing.T) {
+	AddAccount([]string{"first"}, "foo", "bar")
 	c1 := GetRegistry().getCluster([]string{"first"})
 	c2 := GetRegistry().getCluster([]string{"second"})
 	c3 := GetRegistry().getCluster([]string{"first"})

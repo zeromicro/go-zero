@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
@@ -72,6 +73,10 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	} else {
 		if err = c.Etcd.Validate(); err != nil {
 			return nil, err
+		}
+
+		if c.Etcd.HasAccount() {
+			discov.RegisterAccount(c.Etcd.Hosts, c.Etcd.User, c.Etcd.Pass)
 		}
 
 		target = internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
