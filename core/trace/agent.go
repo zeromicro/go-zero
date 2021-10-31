@@ -35,8 +35,12 @@ func StartAgent(c Config) {
 		return
 	}
 
+	// if error happens, let later calls run.
+	if err := startAgent(c); err != nil {
+		return
+	}
+
 	agents[c.Endpoint] = lang.Placeholder
-	startAgent(c)
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
@@ -51,7 +55,7 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	}
 }
 
-func startAgent(c Config) {
+func startAgent(c Config) error {
 	opts := []sdktrace.TracerProviderOption{
 		// Set the sampling rate based on the parent span to 100%
 		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(c.Sampler))),
@@ -63,7 +67,7 @@ func startAgent(c Config) {
 		exp, err := createExporter(c)
 		if err != nil {
 			logx.Error(err)
-			return
+			return err
 		}
 
 		// Always be sure to batch in production.
@@ -77,4 +81,6 @@ func startAgent(c Config) {
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		logx.Errorf("[otel] error: %v", err)
 	}))
+
+	return nil
 }
