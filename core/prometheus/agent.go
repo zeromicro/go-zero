@@ -23,11 +23,11 @@ func Enabled() bool {
 
 // StartAgent starts a prometheus agent.
 func StartAgent(c Config) {
-	once.Do(func() {
-		if len(c.Host) == 0 {
-			return
-		}
+	if len(c.Host) == 0 {
+		return
+	}
 
+	once.Do(func() {
 		enabled.Set(true)
 		threading.GoSafe(func() {
 			http.Handle(c.Path, promhttp.Handler())
