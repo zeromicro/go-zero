@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -216,4 +217,40 @@ func TestWithPriority(t *testing.T) {
 	var fr featuredRoutes
 	WithPriority()(&fr)
 	assert.True(t, fr.priority)
+}
+
+func TestWithTLSConfig(t *testing.T) {
+	const configYaml = `
+Name: foo
+Port: 54321
+`
+	var cnf RestConf
+	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+
+	testConfig := []uint16{
+		tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+	}
+
+	testCases := []struct {
+		c    RestConf
+		opts []RunOption
+		res  *tls.Config
+	}{
+		{
+			c:    cnf,
+			opts: []RunOption{WithTLSConfig(testConfig)},
+			res:  &tls.Config{CipherSuites: testConfig},
+		},
+		{
+			c:    cnf,
+			opts: []RunOption{WithUnsignedCallback(nil)},
+			res:  nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		srv, err := NewServer(testCase.c, testCase.opts...)
+		assert.Nil(t, err)
+		assert.Equal(t, srv.ngin.tlsConfig, testCase.res)
+	}
 }

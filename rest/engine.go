@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -30,6 +31,7 @@ type engine struct {
 	middlewares          []Middleware
 	shedder              load.Shedder
 	priorityShedder      load.Shedder
+	tlsConfig            *tls.Config
 }
 
 func newEngine(c RestConf) *engine {
@@ -70,7 +72,7 @@ func (s *engine) StartWithRouter(router httpx.Router) error {
 		return internal.StartHttp(s.conf.Host, s.conf.Port, router)
 	}
 
-	return internal.StartHttps(s.conf.Host, s.conf.Port, s.conf.CertFile, s.conf.KeyFile, router)
+	return internal.StartHttps(s.conf.Host, s.conf.Port, s.conf.CertFile, s.conf.KeyFile, s.tlsConfig, router)
 }
 
 func (s *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
