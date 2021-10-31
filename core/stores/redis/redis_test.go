@@ -1115,7 +1115,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			client.Close()
 		}
 	}()
-	fn(New(s.Addr(), WithTLS()))
+	fn(New(s.Addr(), WithTLS(), WithSlowThreshold(defaultSlowThreshold/2)))
 }
 
 func badType() Option {

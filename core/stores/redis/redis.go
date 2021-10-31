@@ -21,8 +21,7 @@ const (
 
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
-
-	slowThreshold = time.Millisecond * 100
+	defaultSlowThreshold = time.Millisecond * 100
 )
 
 // ErrNilNode is an error that indicates a nil redis node.
@@ -40,11 +39,12 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		tls  bool
-		brk  breaker.Breaker
+		Addr          string
+		Type          string
+		Pass          string
+		tls           bool
+		brk           breaker.Breaker
+		slowThreshold time.Duration
 	}
 
 	// RedisNode interface represents a redis node.
@@ -78,9 +78,10 @@ type (
 // New returns a Redis with given options.
 func New(addr string, opts ...Option) *Redis {
 	r := &Redis{
-		Addr: addr,
-		Type: NodeType,
-		brk:  breaker.NewBreaker(),
+		Addr:          addr,
+		Type:          NodeType,
+		brk:           breaker.NewBreaker(),
+		slowThreshold: defaultSlowThreshold,
 	}
 
 	for _, opt := range opts {
@@ -1762,6 +1763,13 @@ func Cluster() Option {
 func WithPass(pass string) Option {
 	return func(r *Redis) {
 		r.Pass = pass
+	}
+}
+
+// WithSlowThreshold sets the slow threshold.
+func WithSlowThreshold(threshold time.Duration) Option {
+	return func(r *Redis) {
+		r.slowThreshold = threshold
 	}
 }
 
