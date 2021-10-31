@@ -34,11 +34,6 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 		return nil, err
 	}
 
-	o := defaultOptions()
-	for _, opt := range opts {
-		opt(o)
-	}
-
 	return &Model{
 		session: session,
 		// If name is empty, the database name provided in the dialed URL is used instead
