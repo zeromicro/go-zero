@@ -10,13 +10,18 @@ We hope that the items listed below will inspire further engagement from the com
 
 ## 2021 Q3
 - [x] Support `goctl model pg` to support PostgreSQL code generation
-- [ ] Support `goctl mock` command to start a mocking server with given `.api` file
-- [ ] Adapt builtin tracing mechanism to opentracing solutions
+- [x] Adapt builtin tracing mechanism to opentracing solutions
 
 ## 2021 Q4
+- [x] Support `username/password` authentication in ETCD
+- [x] Support `SSL/TLS` in `zRPC`
+- [ ] Support `retry strategies` in `zRPC`
+- [ ] Support `TLS` in redis connections
+
+## 2022
+- [ ] Support `goctl mock` command to start a mocking server with given `.api` file
 - [ ] Add `httpx.Client` with governance, like circuit breaker etc.
 - [ ] Support `goctl doctor` command to report potential issues for given service
 - [ ] Support `context` in redis related methods for timeout and tracing
 - [ ] Support `context` in sql related methods for timeout and tracing
 - [ ] Support `context` in mongodb related methods for timeout and tracing
-- [ ] Support TLS in redis connections

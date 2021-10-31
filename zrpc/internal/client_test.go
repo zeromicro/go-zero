@@ -24,6 +24,13 @@ func TestWithTimeout(t *testing.T) {
 	assert.Equal(t, time.Second, options.Timeout)
 }
 
+func TestWithRetry(t *testing.T) {
+	var options ClientOptions
+	opt := WithRetry()
+	opt(&options)
+	assert.True(t, options.Retry)
+}
+
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
