@@ -11,7 +11,7 @@ import (
 	"github.com/tal-tech/go-zero/core/timex"
 )
 
-const slowThreshold = time.Millisecond * 500
+const defaultSlowThreshold = time.Millisecond * 500
 
 // ErrNotFound is an alias of mgo.ErrNotFound.
 var ErrNotFound = mgo.ErrNotFound
@@ -203,7 +203,7 @@ func (c *decoratedCollection) logDuration(method string, duration time.Duration,
 	if e != nil {
 		logx.Error(err)
 	} else if err != nil {
-		if duration > slowThreshold {
+		if duration > slowThreshold.Load() {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		} else {
@@ -211,7 +211,7 @@ func (c *decoratedCollection) logDuration(method string, duration time.Duration,
 				c.name, method, err.Error(), string(content))
 		}
 	} else {
-		if duration > slowThreshold {
+		if duration > slowThreshold.Load() {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
 				c.name, method, string(content))
 		} else {

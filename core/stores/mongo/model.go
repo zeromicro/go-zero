@@ -8,23 +8,14 @@ import (
 	"github.com/tal-tech/go-zero/core/breaker"
 )
 
-type (
-	options struct {
-		timeout time.Duration
-	}
-
-	// Option defines the method to customize a mongo model.
-	Option func(opts *options)
-
-	// A Model is a mongo model.
-	Model struct {
-		session    *concurrentSession
-		db         *mgo.Database
-		collection string
-		brk        breaker.Breaker
-		opts       []Option
-	}
-)
+// A Model is a mongo model.
+type Model struct {
+	session    *concurrentSession
+	db         *mgo.Database
+	collection string
+	brk        breaker.Breaker
+	opts       []Option
+}
 
 // MustNewModel returns a Model, exits on errors.
 func MustNewModel(url, collection string, opts ...Option) *Model {
