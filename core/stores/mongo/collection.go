@@ -32,10 +32,9 @@ type (
 	}
 
 	decoratedCollection struct {
-		name          string
-		collection    internal.MgoCollection
-		slowThreshold time.Duration
-		brk           breaker.Breaker
+		name       string
+		collection internal.MgoCollection
+		brk        breaker.Breaker
 	}
 
 	keepablePromise struct {
@@ -44,12 +43,11 @@ type (
 	}
 )
 
-func newCollection(collection *mgo.Collection, slow time.Duration, brk breaker.Breaker) Collection {
+func newCollection(collection *mgo.Collection, brk breaker.Breaker) Collection {
 	return &decoratedCollection{
-		name:          collection.FullName,
-		collection:    collection,
-		slowThreshold: slow,
-		brk:           brk,
+		name:       collection.FullName,
+		collection: collection,
+		brk:        brk,
 	}
 }
 
@@ -205,7 +203,7 @@ func (c *decoratedCollection) logDuration(method string, duration time.Duration,
 	if e != nil {
 		logx.Error(err)
 	} else if err != nil {
-		if duration > c.slowThreshold {
+		if duration > slowThreshold.Load() {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		} else {
@@ -213,7 +211,7 @@ func (c *decoratedCollection) logDuration(method string, duration time.Duration,
 				c.name, method, err.Error(), string(content))
 		}
 	} else {
-		if duration > c.slowThreshold {
+		if duration > slowThreshold.Load() {
 			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
 				c.name, method, string(content))
 		} else {
