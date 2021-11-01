@@ -95,6 +95,11 @@ func (rs *RpcServer) Stop() {
 	logx.Close()
 }
 
+// SetServerSlowThreshold sets the slow threshold on server side.
+func SetServerSlowThreshold(threshold time.Duration) {
+	serverinterceptors.SetSlowThreshold(threshold)
+}
+
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
 	if c.CpuThreshold > 0 {
 		shedder := load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))

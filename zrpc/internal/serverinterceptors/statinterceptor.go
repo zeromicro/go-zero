@@ -7,12 +7,20 @@ import (
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/timex"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )
 
-const serverSlowThreshold = time.Millisecond * 500
+const defaultSlowThreshold = time.Millisecond * 500
+
+var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+
+// SetSlowThreshold sets the slow threshold.
+func SetSlowThreshold(threshold time.Duration) {
+	slowThreshold.Set(threshold)
+}
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.
 func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
@@ -44,7 +52,7 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 	content, err := json.Marshal(req)
 	if err != nil {
 		logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
-	} else if duration > serverSlowThreshold {
+	} else if duration > slowThreshold.Load() {
 		logx.WithContext(ctx).WithDuration(duration).Slowf("[RPC] slowcall - %s - %s - %s",
 			addr, method, string(content))
 	} else {

@@ -108,6 +108,8 @@ func TestDepositServer_Deposit(t *testing.T) {
 		tarConfClient,
 		targetClient,
 	}
+	SetClientSlowThreshold(time.Second)
+
 	for _, tt := range tests {
 		tt := tt
 		for _, client := range clients {
