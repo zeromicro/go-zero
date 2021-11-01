@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"path"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rest/handler"
@@ -159,6 +160,22 @@ func WithNotAllowedHandler(handler http.Handler) RunOption {
 	rt := router.NewRouter()
 	rt.SetNotAllowedHandler(handler)
 	return WithRouter(rt)
+}
+
+// WithPrefix adds group as a prefix to the route paths.
+func WithPrefix(group string) RouteOption {
+	return func(r *featuredRoutes) {
+		var routes []Route
+		for _, rt := range r.routes {
+			p := path.Join(group, rt.Path)
+			routes = append(routes, Route{
+				Method:  rt.Method,
+				Path:    p,
+				Handler: rt.Handler,
+			})
+		}
+		r.routes = routes
+	}
 }
 
 // WithPriority returns a RunOption with priority.

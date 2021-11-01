@@ -213,6 +213,25 @@ func TestMultiMiddlewares(t *testing.T) {
 	}, m)
 }
 
+func TestWithPrefix(t *testing.T) {
+	fr := featuredRoutes{
+		routes: []Route{
+			{
+				Path: "/hello",
+			},
+			{
+				Path: "/world",
+			},
+		},
+	}
+	WithPrefix("/api")(&fr)
+	var vals []string
+	for _, r := range fr.routes {
+		vals = append(vals, r.Path)
+	}
+	assert.EqualValues(t, []string{"/api/hello", "/api/world"}, vals)
+}
+
 func TestWithPriority(t *testing.T) {
 	var fr featuredRoutes
 	WithPriority()(&fr)
