@@ -35,6 +35,7 @@ func TestServer_setupInterceptors(t *testing.T) {
 }
 
 func TestServer(t *testing.T) {
+	SetServerSlowThreshold(time.Second)
 	srv := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{

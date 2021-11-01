@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
 	"google.golang.org/grpc"
 )
 
@@ -100,4 +101,9 @@ func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 // Conn returns the underlying grpc.ClientConn.
 func (rc *RpcClient) Conn() *grpc.ClientConn {
 	return rc.client.Conn()
+}
+
+// SetClientSlowThreshold sets the slow threshold on client side.
+func SetClientSlowThreshold(threshold time.Duration) {
+	clientinterceptors.SetSlowThreshold(threshold)
 }

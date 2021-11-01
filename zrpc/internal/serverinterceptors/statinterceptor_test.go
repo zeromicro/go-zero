@@ -13,6 +13,12 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
 func TestUnaryStatInterceptor(t *testing.T) {
 	metrics := stat.NewMetrics("mock")
 	interceptor := UnaryStatInterceptor(metrics)
