@@ -9,6 +9,7 @@ import (
 	red "github.com/go-redis/redis"
 	"github.com/tal-tech/go-zero/core/breaker"
 	"github.com/tal-tech/go-zero/core/mapping"
+	"github.com/tal-tech/go-zero/core/syncx"
 )
 
 const (
@@ -24,8 +25,11 @@ const (
 	defaultSlowThreshold = time.Millisecond * 100
 )
 
-// ErrNilNode is an error that indicates a nil redis node.
-var ErrNilNode = errors.New("nil redis node")
+var (
+	// ErrNilNode is an error that indicates a nil redis node.
+	ErrNilNode    = errors.New("nil redis node")
+	slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+)
 
 type (
 	// Option defines the method to customize a Redis.
@@ -39,12 +43,11 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr          string
-		Type          string
-		Pass          string
-		tls           bool
-		brk           breaker.Breaker
-		slowThreshold time.Duration
+		Addr string
+		Type string
+		Pass string
+		tls  bool
+		brk  breaker.Breaker
 	}
 
 	// RedisNode interface represents a redis node.
@@ -78,10 +81,9 @@ type (
 // New returns a Redis with given options.
 func New(addr string, opts ...Option) *Redis {
 	r := &Redis{
-		Addr:          addr,
-		Type:          NodeType,
-		brk:           breaker.NewBreaker(),
-		slowThreshold: defaultSlowThreshold,
+		Addr: addr,
+		Type: NodeType,
+		brk:  breaker.NewBreaker(),
 	}
 
 	for _, opt := range opts {
@@ -1759,17 +1761,15 @@ func Cluster() Option {
 	}
 }
 
+// SetSlowThreshold sets the slow threshold.
+func SetSlowThreshold(threshold time.Duration) {
+	slowThreshold.Set(threshold)
+}
+
 // WithPass customizes the given Redis with given password.
 func WithPass(pass string) Option {
 	return func(r *Redis) {
 		r.Pass = pass
-	}
-}
-
-// WithSlowThreshold sets the slow threshold.
-func WithSlowThreshold(threshold time.Duration) Option {
-	return func(r *Redis) {
-		r.slowThreshold = threshold
 	}
 }
 

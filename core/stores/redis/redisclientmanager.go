@@ -32,7 +32,7 @@ func getClient(r *Redis) (*red.Client, error) {
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
 		})
-		store.WrapProcess(checkDuration(r.slowThreshold))
+		store.WrapProcess(checkDuration)
 		return store, nil
 	})
 	if err != nil {

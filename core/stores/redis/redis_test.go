@@ -1073,6 +1073,12 @@ func TestRedisGeo(t *testing.T) {
 	})
 }
 
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
 func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := New(client.Addr, WithPass("any")).Ping()
@@ -1115,7 +1121,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			client.Close()
 		}
 	}()
-	fn(New(s.Addr(), WithTLS(), WithSlowThreshold(defaultSlowThreshold/2)))
+	fn(New(s.Addr(), WithTLS()))
 }
 
 func badType() Option {
