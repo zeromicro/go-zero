@@ -53,7 +53,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	for _, logHandler := range handlers {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(slowThreshold + time.Millisecond*50)
+			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
 		}))
 
 		resp := httptest.NewRecorder()
@@ -98,6 +98,12 @@ func TestDetailedLogHandler_Hijack(t *testing.T) {
 	assert.NotPanics(t, func() {
 		writer.Hijack()
 	})
+}
+
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
 func BenchmarkLogHandler(b *testing.B) {
