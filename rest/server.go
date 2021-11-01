@@ -11,9 +11,6 @@ import (
 	"github.com/tal-tech/go-zero/rest/router"
 )
 
-// SetSlowThreshold sets the slow threshold.
-var SetSlowThreshold = handler.SetSlowThreshold
-
 type (
 	runOptions struct {
 		start func(*engine) error
