@@ -24,7 +24,7 @@ type Response {
 
 service {{.name}}-api {
   @handler {{.handler}}Handler
-  get /from/:name(Request) returns (Response);
+  get /from/:name(Request) returns (Response)
 }
 `
 
