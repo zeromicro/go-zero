@@ -17,6 +17,7 @@ type (
 	Option func(opts *options)
 )
 
+// SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
