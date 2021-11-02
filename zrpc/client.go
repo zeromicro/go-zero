@@ -14,6 +14,8 @@ import (
 var (
 	// WithDialOption is an alias of internal.WithDialOption.
 	WithDialOption = internal.WithDialOption
+	// WithNonBlock sets the dialing to be nonblock.
+	WithNonBlock = internal.WithNonBlock
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
 	// WithRetry is an alias of internal.WithRetry.
@@ -56,6 +58,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 			App:   c.App,
 			Token: c.Token,
 		})))
+	}
+	if c.NonBlock {
+		opts = append(opts, WithNonBlock())
 	}
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))

@@ -28,6 +28,7 @@ type (
 		Target    string          `json:",optional"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
+		NonBlock  bool            `json:",optional"`
 		Retry     bool            `json:",optional"` // grpc auto retry
 		Timeout   int64           `json:",default=2000"`
 	}
