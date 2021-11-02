@@ -20,12 +20,10 @@ var (
 	WithTimeout = internal.WithTimeout
 	// WithRetry is an alias of internal.WithRetry.
 	WithRetry = internal.WithRetry
+	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
+	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
-	// WithTlsClientFromUnilateral is an alias of internal.WithTlsClientFromUnilateral
-	WithTlsClientFromUnilateral = internal.WithTlsClientFromUnilateral
-	// WithTlsClientFromMutual is an alias of internal.WithTlsClientFromMutual
-	WithTlsClientFromMutual = internal.WithTlsClientFromMutual
 )
 
 type (
