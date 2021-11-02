@@ -3,12 +3,10 @@ package tsgen
 import (
 	"errors"
 	"fmt"
-	"path"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -34,13 +32,7 @@ func TsCommand(c *cli.Context) error {
 		return err
 	}
 
-	service := api.Service
-	for _, g := range service.Groups {
-		prefix := util.TrimSpace(g.GetAnnotation(spec.RoutePrefixKey))
-		for _, r := range g.Routes {
-			r.Path = path.Join(prefix, r.Path)
-		}
-	}
+	service := api.Service.JoinPrefix()
 	api.Service = service
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))

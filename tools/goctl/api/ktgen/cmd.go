@@ -2,11 +2,8 @@ package ktgen
 
 import (
 	"errors"
-	"path"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
@@ -30,13 +27,7 @@ func KtCommand(c *cli.Context) error {
 		return e
 	}
 
-	service := api.Service
-	for _, g := range service.Groups {
-		prefix := util.TrimSpace(g.GetAnnotation(spec.RoutePrefixKey))
-		for _, r := range g.Routes {
-			r.Path = path.Join(prefix, r.Path)
-		}
-	}
+	service := api.Service.JoinPrefix()
 	api.Service = service
 	e = genBase(dir, pkg, api)
 	if e != nil {
