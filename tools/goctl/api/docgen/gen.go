@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
@@ -42,14 +44,23 @@ func DocCommand(c *cli.Context) error {
 		return err
 	}
 
-	for _, path := range files {
-		api, err := parser.Parse(path)
+	for _, p := range files {
+		api, err := parser.Parse(p)
 		if err != nil {
-			return fmt.Errorf("parse file: %s, err: %s", path, err.Error())
+			return fmt.Errorf("parse file: %s, err: %s", p, err.Error())
 		}
 
-		err = genDoc(api, filepath.Dir(filepath.Join(outputDir, path[len(dir):])),
-			strings.Replace(path[len(filepath.Dir(path)):], ".api", ".md", 1))
+		service := api.Service
+		for _, g := range service.Groups {
+			prefix := util.TrimSpace(g.GetAnnotation(spec.RoutePrefixKey))
+			for _, r := range g.Routes {
+				r.Path = path.Join(prefix, r.Path)
+			}
+		}
+		api.Service = service
+
+		err = genDoc(api, filepath.Dir(filepath.Join(outputDir, p[len(dir):])),
+			strings.Replace(p[len(filepath.Dir(p)):], ".api", ".md", 1))
 		if err != nil {
 			return err
 		}
