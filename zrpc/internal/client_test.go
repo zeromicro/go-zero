@@ -31,6 +31,13 @@ func TestWithRetry(t *testing.T) {
 	assert.True(t, options.Retry)
 }
 
+func TestWithNonBlock(t *testing.T) {
+	var options ClientOptions
+	opt := WithNonBlock()
+	opt(&options)
+	assert.True(t, options.NonBlock)
+}
+
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
