@@ -38,6 +38,13 @@ func TestWithNonBlock(t *testing.T) {
 	assert.True(t, options.NonBlock)
 }
 
+func TestWithTransportCredentials(t *testing.T) {
+	var options ClientOptions
+	opt := WithTransportCredentials(nil)
+	opt(&options)
+	assert.Equal(t, 1, len(options.DialOptions))
+}
+
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
 	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
