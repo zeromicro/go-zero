@@ -110,8 +110,3 @@ func isGolangKeyword(s string) bool {
 	_, ok := goKeyword[s]
 	return ok
 }
-
-func TrimSpace(s string) string {
-	r := strings.NewReplacer(" ", "", "\t", "", "\r", "", "\n", "", "\r\n", "")
-	return r.Replace(s)
-}

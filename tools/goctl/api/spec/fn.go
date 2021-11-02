@@ -21,7 +21,7 @@ var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
 func (s Service) JoinPrefix() Service {
 	var groups []Group
 	for _, g := range s.Groups {
-		prefix := util.TrimSpace(g.GetAnnotation(RoutePrefixKey))
+		prefix := strings.TrimSpace(g.GetAnnotation(RoutePrefixKey))
 		var routes []Route
 		for _, r := range g.Routes {
 			r.Path = path.Join(prefix, r.Path)
