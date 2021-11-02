@@ -94,7 +94,7 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		}
 		if len(g.prefix) > 0 {
 			prefix = fmt.Sprintf(`
-rest.WithPrefix("/%s"),`, g.prefix)
+rest.WithPrefix("%s"),`, g.prefix)
 		}
 
 		var routes string
@@ -208,6 +208,8 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 		}
 		prefix := g.GetAnnotation(spec.RoutePrefixKey)
 		prefix = strings.TrimSpace(prefix)
+		prefix = strings.ReplaceAll(prefix, `"`, "")
+		prefix = path.Join("/", prefix)
 		groupedRoutes.prefix = prefix
 		routes = append(routes, groupedRoutes)
 	}

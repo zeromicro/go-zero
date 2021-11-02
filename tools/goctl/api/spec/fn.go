@@ -22,9 +22,10 @@ func (s Service) JoinPrefix() Service {
 	var groups []Group
 	for _, g := range s.Groups {
 		prefix := strings.TrimSpace(g.GetAnnotation(RoutePrefixKey))
+		prefix = strings.ReplaceAll(prefix, `"`, "")
 		var routes []Route
 		for _, r := range g.Routes {
-			r.Path = path.Join(prefix, r.Path)
+			r.Path = path.Join("/", prefix, r.Path)
 			routes = append(routes, r)
 		}
 		g.Routes = routes
