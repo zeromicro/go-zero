@@ -120,7 +120,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 		handler.MaxConns(ng.conf.MaxConns),
 		handler.BreakerHandler(route.Method, route.Path, metrics),
 		handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
-		handler.TimeoutHandler(time.Duration(ng.conf.Timeout)*time.Millisecond),
+		handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
 		handler.MaxBytesHandler(ng.conf.MaxBytes),
@@ -146,6 +146,14 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	}
 
 	return nil
+}
+
+func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
+	if timeout > 0 {
+		return timeout
+	}
+
+	return time.Duration(ng.conf.Timeout) * time.Millisecond
 }
 
 func (ng *engine) createMetrics() *stat.Metrics {
