@@ -19,6 +19,12 @@ type (
 	}
 )
 
+// NewSessionFromTx returns a Session with the given sql.Tx.
+// Use it with caution, it's provided for other ORM to interact with.
+func NewSessionFromTx(tx *sql.Tx) Session {
+	return txSession{Tx: tx}
+}
+
 func (t txSession) Exec(q string, args ...interface{}) (sql.Result, error) {
 	return exec(t.Tx, q, args...)
 }
