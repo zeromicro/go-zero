@@ -25,8 +25,7 @@ func DartCommand(c *cli.Context) error {
 		return err
 	}
 
-	service := api.Service.JoinPrefix()
-	api.Service = service
+	api.Service= api.Service.JoinPrefix()
 	if !strings.HasSuffix(dir, "/") {
 		dir = dir + "/"
 	}

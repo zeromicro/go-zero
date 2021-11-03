@@ -28,8 +28,7 @@ func JavaCommand(c *cli.Context) error {
 		return err
 	}
 
-	service := api.Service.JoinPrefix()
-	api.Service = service
+	api.Service= api.Service.JoinPrefix()
 	packetName := strings.TrimSuffix(api.Service.Name, "-api")
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genPacket(dir, packetName, api))

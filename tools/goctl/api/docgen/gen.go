@@ -48,9 +48,7 @@ func DocCommand(c *cli.Context) error {
 			return fmt.Errorf("parse file: %s, err: %s", p, err.Error())
 		}
 
-		service := api.Service.JoinPrefix()
-		api.Service = service
-
+		api.Service= api.Service.JoinPrefix()
 		err = genDoc(api, filepath.Dir(filepath.Join(outputDir, p[len(dir):])),
 			strings.Replace(p[len(filepath.Dir(p)):], ".api", ".md", 1))
 		if err != nil {
