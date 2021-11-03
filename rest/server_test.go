@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/conf"
@@ -236,6 +237,12 @@ func TestWithPriority(t *testing.T) {
 	var fr featuredRoutes
 	WithPriority()(&fr)
 	assert.True(t, fr.priority)
+}
+
+func TestWithTimeout(t *testing.T) {
+	var fr featuredRoutes
+	WithTimeout(time.Hour)(&fr)
+	assert.Equal(t, time.Hour, fr.timeout)
 }
 
 func TestWithTLSConfig(t *testing.T) {

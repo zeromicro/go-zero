@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"path"
+	"time"
 
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/rest/handler"
@@ -201,6 +202,13 @@ func WithSignature(signature SignatureConf) RouteOption {
 		r.signature.Strict = signature.Strict
 		r.signature.Expiry = signature.Expiry
 		r.signature.PrivateKeys = signature.PrivateKeys
+	}
+}
+
+// WithTimeout returns a RouteOption to set timeout with given value.
+func WithTimeout(timeout time.Duration) RouteOption {
+	return func(r *featuredRoutes) {
+		r.timeout = timeout
 	}
 }
 
