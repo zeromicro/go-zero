@@ -1,5 +1,7 @@
 package spec
 
+const RoutePrefixKey = "prefix"
+
 type (
 	// Doc describes document
 	Doc []string

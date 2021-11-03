@@ -33,7 +33,7 @@ func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	engine.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}}
 	)
 `
 )
@@ -54,6 +54,7 @@ type (
 		signatureEnabled bool
 		authName         string
 		middlewares      []string
+		prefix           string
 	}
 	route struct {
 		method  string
@@ -87,9 +88,13 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		if g.jwtEnabled {
 			jwt = fmt.Sprintf("\n rest.WithJwt(serverCtx.Config.%s.AccessSecret),", g.authName)
 		}
-		var signature string
+		var signature, prefix string
 		if g.signatureEnabled {
 			signature = "\n rest.WithSignature(serverCtx.Config.Signature),"
+		}
+		if len(g.prefix) > 0 {
+			prefix = fmt.Sprintf(`
+rest.WithPrefix("%s"),`, g.prefix)
 		}
 
 		var routes string
@@ -111,6 +116,7 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 			"routes":    routes,
 			"jwt":       jwt,
 			"signature": signature,
+			"prefix":    prefix,
 		}); err != nil {
 			return err
 		}
@@ -200,6 +206,11 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			groupedRoutes.middlewares = append(groupedRoutes.middlewares,
 				strings.Split(middleware, ",")...)
 		}
+		prefix := g.GetAnnotation(spec.RoutePrefixKey)
+		prefix = strings.TrimSpace(prefix)
+		prefix = strings.ReplaceAll(prefix, `"`, "")
+		prefix = path.Join("/", prefix)
+		groupedRoutes.prefix = prefix
 		routes = append(routes, groupedRoutes)
 	}
 

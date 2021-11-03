@@ -32,6 +32,7 @@ func TsCommand(c *cli.Context) error {
 		return err
 	}
 
+	api.Service = api.Service.JoinPrefix()
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
 	logx.Must(genComponents(dir, api))

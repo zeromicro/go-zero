@@ -2,6 +2,7 @@ package spec
 
 import (
 	"errors"
+	"path"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/stringx"
@@ -16,6 +17,23 @@ const (
 )
 
 var definedKeys = []string{bodyTagKey, formTagKey, pathTagKey}
+
+func (s Service) JoinPrefix() Service {
+	var groups []Group
+	for _, g := range s.Groups {
+		prefix := strings.TrimSpace(g.GetAnnotation(RoutePrefixKey))
+		prefix = strings.ReplaceAll(prefix, `"`, "")
+		var routes []Route
+		for _, r := range g.Routes {
+			r.Path = path.Join("/", prefix, r.Path)
+			routes = append(routes, r)
+		}
+		g.Routes = routes
+		groups = append(groups, g)
+	}
+	s.Groups = groups
+	return s
+}
 
 // Routes returns all routes in api service
 func (s Service) Routes() []Route {
