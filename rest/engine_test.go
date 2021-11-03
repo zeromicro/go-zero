@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/conf"
@@ -151,6 +152,41 @@ Verbose: true
 			})
 			assert.NotNil(t, ng.StartWithRouter(mockedRouter{}))
 		}
+	}
+}
+
+func TestEngine_checkedTimeout(t *testing.T) {
+	tests := []struct {
+		name    string
+		timeout time.Duration
+		expect  time.Duration
+	}{
+		{
+			name:   "not set",
+			expect: time.Second,
+		},
+		{
+			name:    "less",
+			timeout: time.Millisecond * 500,
+			expect:  time.Millisecond * 500,
+		},
+		{
+			name:    "equal",
+			timeout: time.Second,
+			expect:  time.Second,
+		},
+		{
+			name:    "more",
+			timeout: time.Millisecond * 1500,
+			expect:  time.Millisecond * 1500,
+		},
+	}
+
+	ng := newEngine(RestConf{
+		Timeout: 1000,
+	})
+	for _, test := range tests {
+		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout))
 	}
 }
 
