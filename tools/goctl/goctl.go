@@ -255,6 +255,10 @@ var commands = []cli.Command{
 				Name:  "home",
 				Usage: "the goctl home path of the template",
 			},
+			cli.StringFlag{
+				Name:  "version",
+				Usage: "the goctl builder golang image version",
+			},
 		},
 		Action: docker.DockerCommand,
 	},
