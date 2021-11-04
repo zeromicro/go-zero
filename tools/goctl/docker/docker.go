@@ -71,7 +71,7 @@ func DockerCommand(c *cli.Context) (err error) {
 		return err
 	}
 
-	if err := generateDockerfile(goFile, port, "-f", "etc/"+cfg); err != nil {
+	if err := generateDockerfile(goFile, port, version, "-f", "etc/"+cfg); err != nil {
 		return err
 	}
 
