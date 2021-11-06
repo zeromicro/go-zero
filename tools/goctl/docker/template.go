@@ -8,7 +8,7 @@ import (
 const (
 	category           = "docker"
 	dockerTemplateFile = "docker.tpl"
-	dockerTemplate     = `FROM golang:alpine AS builder
+	dockerTemplate     = `FROM golang:{{.Version}}alpine AS builder
 
 LABEL stage=gobuilder
 
