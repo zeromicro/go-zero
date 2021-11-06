@@ -207,10 +207,12 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				strings.Split(middleware, ",")...)
 		}
 		prefix := g.GetAnnotation(spec.RoutePrefixKey)
-		prefix = strings.TrimSpace(prefix)
 		prefix = strings.ReplaceAll(prefix, `"`, "")
-		prefix = path.Join("/", prefix)
-		groupedRoutes.prefix = prefix
+		prefix = strings.TrimSpace(prefix)
+		if len(prefix) > 0 {
+			prefix = path.Join("/", prefix)
+			groupedRoutes.prefix = prefix
+		}
 		routes = append(routes, groupedRoutes)
 	}
 
