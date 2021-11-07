@@ -150,7 +150,7 @@ Verbose: true
 					next.ServeHTTP(w, r)
 				}
 			})
-			assert.NotNil(t, ng.StartWithRouter(mockedRouter{}))
+			assert.NotNil(t, ng.Start(mockedRouter{}))
 		}
 	}
 }

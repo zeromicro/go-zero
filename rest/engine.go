@@ -14,7 +14,6 @@ import (
 	"github.com/tal-tech/go-zero/rest/handler"
 	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
-	"github.com/tal-tech/go-zero/rest/router"
 )
 
 // use 1000m to represent 100%
@@ -59,11 +58,7 @@ func (ng *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
 	ng.unsignedCallback = callback
 }
 
-func (ng *engine) Start() error {
-	return ng.StartWithRouter(router.NewRouter())
-}
-
-func (ng *engine) StartWithRouter(router httpx.Router) error {
+func (ng *engine) Start(router httpx.Router) error {
 	if err := ng.bindRoutes(router); err != nil {
 		return err
 	}
