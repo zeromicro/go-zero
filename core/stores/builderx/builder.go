@@ -8,34 +8,6 @@ import (
 
 const dbTag = "db"
 
-// FieldNames returns field names from given in.
-// deprecated: use RawFieldNames instead automatically while model generating after goctl version v1.1.0
-func FieldNames(in interface{}) []string {
-	out := make([]string, 0)
-	v := reflect.ValueOf(in)
-	if v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
-
-	// we only accept structs
-	if v.Kind() != reflect.Struct {
-		panic(fmt.Errorf("ToMap only accepts structs; got %T", v))
-	}
-
-	typ := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		// gets us a StructField
-		fi := typ.Field(i)
-		if tagv := fi.Tag.Get(dbTag); tagv != "" {
-			out = append(out, tagv)
-		} else {
-			out = append(out, fi.Name)
-		}
-	}
-
-	return out
-}
-
 // RawFieldNames converts golang struct field into slice string.
 func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 	out := make([]string, 0)

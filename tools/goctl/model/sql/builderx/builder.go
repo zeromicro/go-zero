@@ -4,9 +4,9 @@ import (
 	"github.com/tal-tech/go-zero/core/stores/builderx"
 )
 
-// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.FieldNames instead.
+// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.RawFieldNames instead.
 func FieldNames(in interface{}) []string {
-	return builderx.FieldNames(in)
+	return builderx.RawFieldNames(in)
 }
 
 // Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.RawFieldNames instead.
