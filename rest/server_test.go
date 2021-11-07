@@ -59,7 +59,7 @@ Port: 54321
 		var srv *Server
 		var err error
 		if test.fail {
-			srv, err = NewServer(test.c, test.opts...)
+			_, err = NewServer(test.c, test.opts...)
 			assert.NotNil(t, err)
 			continue
 		} else {
@@ -78,17 +78,20 @@ Port: 54321
 		}, WithJwt("thesecret"), WithSignature(SignatureConf{}),
 			WithJwtTransition("preivous", "thenewone"))
 
-		defer func() {
-			p := recover()
-			switch v := p.(type) {
-			case error:
-				assert.Equal(t, "foo", v.Error())
-			default:
-				t.Fail()
-			}
+		func() {
+			defer func() {
+				p := recover()
+				switch v := p.(type) {
+				case error:
+					assert.Equal(t, "foo", v.Error())
+				default:
+					t.Fail()
+				}
+			}()
+
+			srv.Start()
+			srv.Stop()
 		}()
-		srv.Start()
-		srv.Stop()
 	}
 }
 
