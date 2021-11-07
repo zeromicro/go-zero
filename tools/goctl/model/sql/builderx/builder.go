@@ -1,20 +1,20 @@
 package builderx
 
 import (
-	"github.com/tal-tech/go-zero/core/stores/builderx"
+	"github.com/tal-tech/go-zero/core/stores/builder"
 )
 
-// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.RawFieldNames instead.
+// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builder.RawFieldNames instead.
 func FieldNames(in interface{}) []string {
-	return builderx.RawFieldNames(in)
+	return builder.RawFieldNames(in)
 }
 
-// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.RawFieldNames instead.
+// Deprecated: Use github.com/tal-tech/go-zero/core/stores/builder.RawFieldNames instead.
 func RawFieldNames(in interface{}, postgresSql ...bool) []string {
-	return builderx.RawFieldNames(in, postgresSql...)
+	return builder.RawFieldNames(in, postgresSql...)
 }
 
 // Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.PostgreSqlJoin instead.
 func PostgreSqlJoin(elems []string) string {
-	return builderx.PostgreSqlJoin(elems)
+	return builder.PostgreSqlJoin(elems)
 }
