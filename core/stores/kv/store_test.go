@@ -667,10 +667,12 @@ func TestRedis_HyperLogLog(t *testing.T) {
 	assert.NotNil(t, err)
 
 	runOnCluster(t, func(cluster Store) {
-		_, err := cluster.Pfadd("key")
-		assert.NotNil(t, err)
-		_, err = cluster.Pfcount("key")
-		assert.NotNil(t, err)
+		ok, err := cluster.Pfadd("key", "value")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		val, err := cluster.Pfcount("key")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
 	})
 }
 
