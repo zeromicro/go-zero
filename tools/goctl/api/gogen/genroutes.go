@@ -27,12 +27,12 @@ import (
 	{{.importPackages}}
 )
 
-func RegisterHandlers(engine *rest.Server, serverCtx *svc.ServiceContext) {
+func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	{{.routesAdditions}}
 }
 `
 	routesAdditionTemplate = `
-	engine.AddRoutes(
+	server.AddRoutes(
 		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}}
 	)
 `

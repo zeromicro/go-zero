@@ -64,7 +64,7 @@ func (s *Server) AddRoutes(rs []Route, opts ...RouteOption) {
 	for _, opt := range opts {
 		opt(&r)
 	}
-	s.ngin.AddRoutes(r)
+	s.ngin.addRoutes(r)
 }
 
 // AddRoute adds given route into the Server.
@@ -76,7 +76,7 @@ func (s *Server) AddRoute(r Route, opts ...RouteOption) {
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
-	handleError(s.ngin.Start(s.router))
+	handleError(s.ngin.start(s.router))
 }
 
 // Stop stops the Server.
@@ -221,14 +221,14 @@ func WithTLSConfig(cfg *tls.Config) RunOption {
 // WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
 func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
 	return func(srv *Server) {
-		srv.ngin.SetUnauthorizedCallback(callback)
+		srv.ngin.setUnauthorizedCallback(callback)
 	}
 }
 
 // WithUnsignedCallback returns a RunOption that with given unsigned callback set.
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 	return func(srv *Server) {
-		srv.ngin.SetUnsignedCallback(callback)
+		srv.ngin.setUnsignedCallback(callback)
 	}
 }
 
