@@ -14,7 +14,6 @@ import (
 	"github.com/tal-tech/go-zero/rest/handler"
 	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
-	"github.com/tal-tech/go-zero/rest/router"
 )
 
 // use 1000m to represent 100%
@@ -47,37 +46,8 @@ func newEngine(c RestConf) *engine {
 	return srv
 }
 
-func (ng *engine) AddRoutes(r featuredRoutes) {
+func (ng *engine) addRoutes(r featuredRoutes) {
 	ng.routes = append(ng.routes, r)
-}
-
-func (ng *engine) SetUnauthorizedCallback(callback handler.UnauthorizedCallback) {
-	ng.unauthorizedCallback = callback
-}
-
-func (ng *engine) SetUnsignedCallback(callback handler.UnsignedCallback) {
-	ng.unsignedCallback = callback
-}
-
-func (ng *engine) Start() error {
-	return ng.StartWithRouter(router.NewRouter())
-}
-
-func (ng *engine) StartWithRouter(router httpx.Router) error {
-	if err := ng.bindRoutes(router); err != nil {
-		return err
-	}
-
-	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
-		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router)
-	}
-
-	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
-		ng.conf.KeyFile, router, func(srv *http.Server) {
-			if ng.tlsConfig != nil {
-				srv.TLSConfig = ng.tlsConfig
-			}
-		})
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
@@ -188,6 +158,14 @@ func (ng *engine) setTlsConfig(cfg *tls.Config) {
 	ng.tlsConfig = cfg
 }
 
+func (ng *engine) setUnauthorizedCallback(callback handler.UnauthorizedCallback) {
+	ng.unauthorizedCallback = callback
+}
+
+func (ng *engine) setUnsignedCallback(callback handler.UnsignedCallback) {
+	ng.unsignedCallback = callback
+}
+
 func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain alice.Chain) alice.Chain, error) {
 	if !signature.enabled {
 		return func(chain alice.Chain) alice.Chain {
@@ -226,6 +204,23 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain alic
 		return chain.Append(handler.ContentSecurityHandler(
 			decrypters, signature.Expiry, signature.Strict))
 	}, nil
+}
+
+func (ng *engine) start(router httpx.Router) error {
+	if err := ng.bindRoutes(router); err != nil {
+		return err
+	}
+
+	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
+		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router)
+	}
+
+	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
+		ng.conf.KeyFile, router, func(srv *http.Server) {
+			if ng.tlsConfig != nil {
+				srv.TLSConfig = ng.tlsConfig
+			}
+		})
 }
 
 func (ng *engine) use(middleware Middleware) {

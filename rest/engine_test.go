@@ -144,13 +144,13 @@ Verbose: true
 			var cnf RestConf
 			assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(yaml), &cnf))
 			ng := newEngine(cnf)
-			ng.AddRoutes(route)
+			ng.addRoutes(route)
 			ng.use(func(next http.HandlerFunc) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					next.ServeHTTP(w, r)
 				}
 			})
-			assert.NotNil(t, ng.StartWithRouter(mockedRouter{}))
+			assert.NotNil(t, ng.start(mockedRouter{}))
 		}
 	}
 }
