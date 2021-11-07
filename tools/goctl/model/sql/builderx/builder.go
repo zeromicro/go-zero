@@ -1,17 +1,16 @@
 package builderx
 
 import (
-	"github.com/go-xorm/builder"
 	"github.com/tal-tech/go-zero/core/stores/builderx"
 )
 
 // Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.NewEq instead.
-func NewEq(in interface{}) builder.Eq {
+func NewEq(in interface{}) builderx.Eq {
 	return builderx.NewEq(in)
 }
 
 // Deprecated: Use github.com/tal-tech/go-zero/core/stores/builderx.NewGt instead.
-func NewGt(in interface{}) builder.Gt {
+func NewGt(in interface{}) builderx.Gt {
 	return builderx.NewGt(ToMap(in))
 }
 
