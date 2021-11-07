@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/ClickHouse/clickhouse-go v1.5.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/alicebob/miniredis/v2 v2.14.1
+	github.com/alicebob/miniredis/v2 v2.16.0
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/fatih/color v1.9.0 // indirect
