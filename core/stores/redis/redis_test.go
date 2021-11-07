@@ -262,6 +262,7 @@ func TestRedis_HyperLogLog(t *testing.T) {
 		assert.True(t, ok)
 		val, err := r.Pfcount("key1")
 		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
 		ok, err = r.Pfadd("key2", "val2")
 		assert.Nil(t, err)
 		assert.True(t, ok)
