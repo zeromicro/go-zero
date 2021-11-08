@@ -40,12 +40,9 @@ func main() {
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.pkg}}.Register{{.service}}Server(grpcServer, srv)
 
-		switch c.Mode {
-		case service.DevMode,service.TestMode:
+		if c.Mode == service.DevMode || c.Mode == service.TestMode {
 			reflection.Register(grpcServer)
-		default:
 		}
-
 	})
 	defer s.Stop()
 
