@@ -90,7 +90,7 @@ As below, go-zero protects the system with couple layers and mechanisms:
 Run the following command under your project:
 
 ```shell
-go get -u github.com/tal-tech/go-zero
+go get -u github.com/zeromicro/go-zero
 ```
 
 ## 6. Quick Start
@@ -107,10 +107,10 @@ go get -u github.com/tal-tech/go-zero
 
    ```shell
    # for Go 1.15 and earlier
-   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl
+   GO111MODULE=on go get -u github.com/zeromicro/go-zero/tools/goctl
    
    # for Go 1.16 and later
-   go install github.com/tal-tech/go-zero/tools/goctl@latest
+   go install github.com/zeromicro/go-zero/tools/goctl@latest
    ```
 
    make sure goctl is executable.
