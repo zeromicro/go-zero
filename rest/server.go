@@ -99,7 +99,7 @@ func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 // WithCors returns a func to enable CORS for given origin, or default to all origins (*).
 func WithCors(origin ...string) RunOption {
 	return func(server *Server) {
-		server.router.SetNotAllowedHandler(cors.Handler(origin...))
+		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(origin...))
 		server.Use(cors.Middleware(origin...))
 	}
 }
