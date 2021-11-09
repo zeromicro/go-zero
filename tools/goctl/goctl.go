@@ -35,7 +35,10 @@ import (
 	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
 )
 
-const protocGenGoctl = "protoc-gen-goctl"
+const (
+	protocGenGoctl = "protoc-gen-goctl"
+	codeFailure    = 1
+)
 
 var commands = []cli.Command{
 	{
@@ -695,6 +698,6 @@ func main() {
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
-		os.Exit(1)
+		os.Exit(codeFailure)
 	}
 }
