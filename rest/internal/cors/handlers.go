@@ -52,13 +52,15 @@ func Middleware(origins ...string) func(http.HandlerFunc) http.HandlerFunc {
 
 func checkAndSetHeaders(w http.ResponseWriter, r *http.Request, origins []string) {
 	setVaryHeaders(w, r)
-	origin := r.Header.Get(originHeader)
-	if len(origins) > 0 {
-		if isOriginAllowed(origins, origin) {
-			setHeader(w, origin)
-		}
-	} else {
+
+	if len(origins) == 0 {
 		setHeader(w, allOrigins)
+		return
+	}
+
+	origin := r.Header.Get(originHeader)
+	if isOriginAllowed(origins, origin) {
+		setHeader(w, origin)
 	}
 }
 
