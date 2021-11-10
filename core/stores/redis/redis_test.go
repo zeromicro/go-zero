@@ -3,6 +3,7 @@ package redis
 import (
 	"crypto/tls"
 	"errors"
+	"github.com/tal-tech/go-zero/core/stringx"
 	"io"
 	"strconv"
 	"testing"
@@ -186,7 +187,7 @@ func TestRedis_Hscan(t *testing.T) {
 		key := "hash:test"
 		fieldsAndValues := make(map[string]string)
 		for i := 0; i < 1550; i++ {
-			fieldsAndValues["filed_"+strconv.Itoa(i)] = randomStr(i)
+			fieldsAndValues["filed_"+strconv.Itoa(i)] = stringx.Randn(i)
 		}
 		err := client.Hmset(key, fieldsAndValues)
 		assert.Nil(t, err)
@@ -550,7 +551,7 @@ func TestRedis_Sscan(t *testing.T) {
 		key := "list"
 		var list []string
 		for i := 0; i < 1550; i++ {
-			list = append(list, randomStr(i))
+			list = append(list, stringx.Randn(i))
 		}
 		lens, err := client.Sadd(key, list)
 		assert.Nil(t, err)
