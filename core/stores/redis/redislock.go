@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"github.com/tal-tech/go-zero/core/stringx"
 	"math/rand"
 	"strconv"
 	"sync/atomic"
@@ -9,10 +8,10 @@ import (
 
 	red "github.com/go-redis/redis"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 const (
-	letters     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	lockCommand = `if redis.call("GET", KEYS[1]) == ARGV[1] then
     redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2])
     return "OK"
