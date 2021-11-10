@@ -3,7 +3,6 @@ package redis
 import (
 	"crypto/tls"
 	"errors"
-	"github.com/tal-tech/go-zero/core/stringx"
 	"io"
 	"strconv"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	red "github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 func TestRedis_Exists(t *testing.T) {
