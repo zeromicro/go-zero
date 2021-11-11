@@ -77,7 +77,7 @@ func DockerCommand(c *cli.Context) (err error) {
 
 	projDir, ok := util.FindProjectPath(goFile)
 	if ok {
-		fmt.Printf("Hint: run \"docker build ...\" command in dir %q\n", projDir)
+		fmt.Printf("Hint: run \"docker build ...\" command in dir:\n    %s\n", projDir)
 	}
 
 	return nil
