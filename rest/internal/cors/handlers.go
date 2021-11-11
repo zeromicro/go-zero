@@ -79,14 +79,15 @@ func isOriginAllowed(allows []string, origin string) bool {
 }
 
 func setHeader(w http.ResponseWriter, origin string) {
-	w.Header().Set(allowOrigin, origin)
-	w.Header().Set(allowMethods, methods)
-	w.Header().Set(allowHeaders, allowHeadersVal)
-	w.Header().Set(exposeHeaders, exposeHeadersVal)
+	header := w.Header()
+	header.Set(allowOrigin, origin)
+	header.Set(allowMethods, methods)
+	header.Set(allowHeaders, allowHeadersVal)
+	header.Set(exposeHeaders, exposeHeadersVal)
 	if origin != allOrigins {
-		w.Header().Set(allowCredentials, allowTrue)
+		header.Set(allowCredentials, allowTrue)
 	}
-	w.Header().Set(maxAgeHeader, maxAgeHeaderVal)
+	header.Set(maxAgeHeader, maxAgeHeaderVal)
 }
 
 func setVaryHeaders(w http.ResponseWriter, r *http.Request) {
