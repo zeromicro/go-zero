@@ -120,11 +120,6 @@ func generateDockerfile(goFile string, port int, version string, args ...string)
 
 	if len(projPath) == 0 {
 		projPath = "."
-	} else {
-		pos := strings.IndexByte(projPath, os.PathSeparator)
-		if pos >= 0 {
-			projPath = projPath[pos+1:]
-		}
 	}
 
 	out, err := util.CreateIfNotExist(dockerfileName)
@@ -168,6 +163,12 @@ func getFilePath(file string) (string, error) {
 		projPath, err = util.PathFromGoSrc()
 		if err != nil {
 			return "", errors.New("no go.mod found, or not in GOPATH")
+		}
+
+		// ignore project root directory for GOPATH mode
+		pos := strings.IndexByte(projPath, os.PathSeparator)
+		if pos >= 0 {
+			projPath = projPath[pos+1:]
 		}
 	}
 
