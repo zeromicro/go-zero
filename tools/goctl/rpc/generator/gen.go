@@ -16,6 +16,14 @@ type RPCGenerator struct {
 	cfg *conf.Config
 }
 
+type ZRpcContext struct {
+	Src             string
+	ProtocCmd       string
+	ProtoGenGrpcDir string
+	ProtoGenGoDir   string
+	Output          string
+}
+
 // NewDefaultRPCGenerator wraps Generator with configure
 func NewDefaultRPCGenerator(style string) (*RPCGenerator, error) {
 	cfg, err := conf.NewConfig(style)

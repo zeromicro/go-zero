@@ -389,6 +389,43 @@ var commands = []cli.Command{
 				Action: rpc.RPCTemplate,
 			},
 			{
+				Name:        "protoc",
+				Usage:       "generate grpc code",
+				UsageText:   `example: goctl rpc protoc xx.proto --go_out=./pb --go-grpc=./pb --zrpc_out=.`,
+				Description: "for details, see https://go-zero.dev/cn/goctl-rpc.html",
+				Action:      rpc.ZRPC,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:   "go_out",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go-grpc_out",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go_opt",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go-grpc_opt",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:  "zrpc_out",
+						Usage: "the zrpc output directory",
+					},
+					cli.StringFlag{
+						Name:  "style",
+						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+					},
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
+			},
+			{
 				Name:  "proto",
 				Usage: `generate rpc from proto`,
 				Flags: []cli.Flag{
