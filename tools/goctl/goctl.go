@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -29,15 +29,7 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
-	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
-)
-
-const (
-	protocGenGoctl = "protoc-gen-goctl"
-	codeFailure    = 1
 )
 
 var commands = []cli.Command{
@@ -65,12 +57,6 @@ var commands = []cli.Command{
 				Name:   "new",
 				Usage:  "fast create api service",
 				Action: new.CreateServiceCommand,
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
-					},
-				},
 			},
 			{
 				Name:  "format",
@@ -258,10 +244,6 @@ var commands = []cli.Command{
 			cli.StringFlag{
 				Name:  "home",
 				Usage: "the goctl home path of the template",
-			},
-			cli.StringFlag{
-				Name:  "version",
-				Usage: "the goctl builder golang image version",
 			},
 		},
 		Action: docker.DockerCommand,
@@ -650,54 +632,17 @@ var commands = []cli.Command{
 	},
 }
 
-func init() {
-	err := linkProtocGenGoctl()
-	if err != nil {
-		console.Error("%+v", err)
-	}
-}
-
-func linkProtocGenGoctl() error {
-	path, err := env.LookPath("goctl")
-	if err != nil {
-		return err
-	}
-
-	dir := filepath.Dir(path)
-	ext := filepath.Ext(path)
-	target := filepath.Join(dir, protocGenGoctl)
-	if len(ext) > 0 {
-		target = target + ext
-	}
-	_, err = os.Lstat(target)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	if os.IsNotExist(err) {
-		return os.Symlink(path, target)
-	}
-	return nil
-}
-
 func main() {
 	logx.Disable()
 	load.Disable()
-
-	args := os.Args
-	pluginName := filepath.Base(args[0])
-	if pluginName == protocGenGoctl {
-		pluginCtl.Generate()
-		return
-	}
+	stat.DisableLog()
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
-
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
-		os.Exit(codeFailure)
 	}
 }
