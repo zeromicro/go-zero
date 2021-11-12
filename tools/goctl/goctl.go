@@ -8,7 +8,6 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/tools/goctl/api/apigen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/dartgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/docgen"
@@ -32,7 +31,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const codeFailure    = 1
+const codeFailure = 1
 
 var commands = []cli.Command{
 	{
@@ -59,6 +58,12 @@ var commands = []cli.Command{
 				Name:   "new",
 				Usage:  "fast create api service",
 				Action: new.CreateServiceCommand,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
 			},
 			{
 				Name:  "format",
@@ -246,6 +251,10 @@ var commands = []cli.Command{
 			cli.StringFlag{
 				Name:  "home",
 				Usage: "the goctl home path of the template",
+			},
+			cli.StringFlag{
+				Name:  "version",
+				Usage: "the goctl builder golang image version",
 			},
 		},
 		Action: docker.DockerCommand,
@@ -637,7 +646,6 @@ var commands = []cli.Command{
 func main() {
 	logx.Disable()
 	load.Disable()
-	stat.DisableLog()
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"
