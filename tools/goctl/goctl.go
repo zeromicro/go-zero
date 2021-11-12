@@ -32,6 +32,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+const codeFailure    = 1
+
 var commands = []cli.Command{
 	{
 		Name:   "upgrade",
@@ -641,8 +643,10 @@ func main() {
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
+
 	// cli already print error messages
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
+		os.Exit(codeFailure)
 	}
 }
