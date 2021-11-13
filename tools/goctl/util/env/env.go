@@ -11,11 +11,10 @@ import (
 )
 
 const (
-	bin               = "bin"
-	binGo             = "go"
-	binProtoc         = "protoc"
-	binProtocGenGo    = "protoc-gen-go"
-	binProtocGenGoctl = "protoc-gen-goctl"
+	bin            = "bin"
+	binGo          = "go"
+	binProtoc      = "protoc"
+	binProtocGenGo = "protoc-gen-go"
 )
 
 // LookUpGo searches an executable go in the directories
@@ -39,19 +38,11 @@ func LookUpProtoc() (string, error) {
 	return LookPath(xProtoc)
 }
 
-// Deprecated: LookUpProtocGenGo searches an executable protoc-gen-go in the directories
-// named by the PATH environment variable, use LookUpProtocGenGoctl instead.
+// LookUpProtocGenGo searches an executable protoc-gen-go in the directories
+// named by the PATH environment variable.
 func LookUpProtocGenGo() (string, error) {
 	suffix := getExeSuffix()
 	xProtocGenGo := binProtocGenGo + suffix
-	return LookPath(xProtocGenGo)
-}
-
-// LookUpProtocGenGoctl searches an executable protoc-gen-go in the directories
-// named by the PATH environment variable.
-func LookUpProtocGenGoctl() (string, error) {
-	suffix := getExeSuffix()
-	xProtocGenGo := binProtocGenGoctl + suffix
 	return LookPath(xProtocGenGo)
 }
 

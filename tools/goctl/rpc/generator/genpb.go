@@ -10,7 +10,6 @@ import (
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 )
 
 const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported; use 'protoc --go-grpc_out=...' to generate gRPC`
@@ -18,12 +17,6 @@ const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
 func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, goOptions ...string) error {
-	var useGoctl bool
-	_, err := env.LookUpProtocGenGoctl()
-	if err == nil {
-		useGoctl = true
-	}
-
 	dir := ctx.GetPb()
 	cw := new(bytes.Buffer)
 	directory, base := filepath.Split(proto.Src)
@@ -57,15 +50,10 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	}
 
 	cw.WriteString(" " + proto.Name)
-	outFlag := " --go_out"
-	if useGoctl {
-		outFlag = " --goctl_out"
-	}
-
 	if strings.Contains(proto.GoPackage, "/") {
-		cw.WriteString(outFlag + "=plugins=grpc:" + ctx.GetMain().Filename)
+		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetMain().Filename)
 	} else {
-		cw.WriteString(outFlag + "=plugins=grpc:" + dir.Filename)
+		cw.WriteString(" --go_out=plugins=grpc:" + dir.Filename)
 	}
 
 	// Compatible with version 1.4.0，github.com/golang/protobuf/protoc-gen-go@v1.4.0
@@ -78,6 +66,7 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 		}
 
 		optSet.AddStr(op)
+		cw.WriteString(" --go_opt=" + op)
 	}
 
 	var currentFileOpt string
@@ -93,13 +82,13 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 		currentFileOpt = " --go_opt=M" + base + "=."
 	}
 
-	if !optSet.Contains(currentFileOpt) && !useGoctl {
+	if !optSet.Contains(currentFileOpt) {
 		cw.WriteString(currentFileOpt)
 	}
 
 	command := cw.String()
 	g.log.Debug(command)
-	_, err = execx.Run(command, "")
+	_, err := execx.Run(command, "")
 	if err != nil {
 		if strings.Contains(err.Error(), googleProtocGenGoErr) {
 			return errors.New(`unsupported plugin protoc-gen-go which installed from the following source:

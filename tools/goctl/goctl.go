@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
@@ -29,16 +28,10 @@ import (
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
-	pluginCtl "github.com/zeromicro/protobuf/protoc-gen-go"
 )
 
-const (
-	protocGenGoctl = "protoc-gen-goctl"
-	codeFailure    = 1
-)
+const codeFailure = 1
 
 var commands = []cli.Command{
 	{
@@ -650,45 +643,9 @@ var commands = []cli.Command{
 	},
 }
 
-func init() {
-	err := linkProtocGenGoctl()
-	if err != nil {
-		console.Error("%+v", err)
-	}
-}
-
-func linkProtocGenGoctl() error {
-	path, err := env.LookPath("goctl")
-	if err != nil {
-		return err
-	}
-
-	dir := filepath.Dir(path)
-	ext := filepath.Ext(path)
-	target := filepath.Join(dir, protocGenGoctl)
-	if len(ext) > 0 {
-		target = target + ext
-	}
-	_, err = os.Lstat(target)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	if os.IsNotExist(err) {
-		return os.Symlink(path, target)
-	}
-	return nil
-}
-
 func main() {
 	logx.Disable()
 	load.Disable()
-
-	args := os.Args
-	pluginName := filepath.Base(args[0])
-	if pluginName == protocGenGoctl {
-		pluginCtl.Generate()
-		return
-	}
 
 	app := cli.NewApp()
 	app.Usage = "a cli tool to generate code"

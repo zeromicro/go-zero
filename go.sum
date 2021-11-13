@@ -405,8 +405,6 @@ github.com/zeromicro/antlr v0.0.1 h1:CQpIn/dc0pUjgGQ81y98s/NGOm2Hfru2NNio2I9mQgk
 github.com/zeromicro/antlr v0.0.1/go.mod h1:nfpjEwFR6Q4xGDJMcZnCL9tEfQRgszMwu3rDz2Z+p5M=
 github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348 h1:OhxL9tn28gDeJVzreIUiE5oVxZCjL3tBJ0XBNw8p5R8=
 github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348/go.mod h1:ISU/8NuPyEpl9pa17Py9TBPetMjtsiHrb9f5XGiYbo8=
-github.com/zeromicro/protobuf v0.0.0-20210921042113-636cd51f0c35 h1:LKLiozf78evAX4+82AHw/rG7TvefD7TJII7XB7Oip7o=
-github.com/zeromicro/protobuf v0.0.0-20210921042113-636cd51f0c35/go.mod h1:CJvyESptK/6uU5003fPJQ9Hmubl3vRuGqaLgzUU0R7Y=
 go.etcd.io/etcd/api/v3 v3.5.1 h1:v28cktvBq+7vGyJXF8G+rWJmj+1XUmMtqcLnH8hDocM=
 go.etcd.io/etcd/api/v3 v3.5.1/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
 go.etcd.io/etcd/client/pkg/v3 v3.5.1 h1:XIQcHCFSG53bJETYeRJtIxdLv2EWRGxcfzR8lSnTH4E=
