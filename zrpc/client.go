@@ -19,7 +19,9 @@ var (
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
 	// WithRetry is an alias of internal.WithRetry.
-	WithRetry = internal.WithRetry
+	// TODO: enable it in v1.2.4
+	// WithRetry = internal.WithRetry
+
 	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
 	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
@@ -63,9 +65,10 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
-	if c.Retry {
-		opts = append(opts, WithRetry())
-	}
+	// TODO: enable it in v1.2.4
+	// if c.Retry {
+	// 	opts = append(opts, WithRetry())
+	// }
 	opts = append(opts, options...)
 
 	var target string

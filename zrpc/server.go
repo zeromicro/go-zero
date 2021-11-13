@@ -38,7 +38,9 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
-	serverOptions := []internal.ServerOption{internal.WithMetrics(metrics), internal.WithMaxRetries(c.MaxRetries)}
+	// TODO: enable it in v1.2.4
+	// serverOptions := []internal.ServerOption{internal.WithMetrics(metrics), internal.WithMaxRetries(c.MaxRetries)}
+	serverOptions := []internal.ServerOption{internal.WithMetrics(metrics)}
 
 	if c.HasEtcd() {
 		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
