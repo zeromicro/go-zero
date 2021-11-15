@@ -12,7 +12,7 @@ var (
 	"github.com/tal-tech/go-zero/core/stores/sqlc"
 	"github.com/tal-tech/go-zero/core/stores/sqlx"
 	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/core/stores/builderx"
+	"github.com/tal-tech/go-zero/core/stores/builder"
 )
 `
 	// ImportsNoCache defines a import template for model in normal case
