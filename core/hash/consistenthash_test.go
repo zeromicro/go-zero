@@ -74,12 +74,12 @@ func TestConsistentHashIncrementalTransfer(t *testing.T) {
 		laterCh := create()
 		laterCh.AddWithWeight(node, 10*(i+1))
 
-		for i := 0; i < requestSize; i++ {
-			key, ok := laterCh.Get(requestSize + i)
+		for j := 0; j < requestSize; j++ {
+			key, ok := laterCh.Get(requestSize + j)
 			assert.True(t, ok)
 			assert.NotNil(t, key)
 			value := key.(string)
-			assert.True(t, value == keys[i] || value == node)
+			assert.True(t, value == keys[j] || value == node)
 		}
 	}
 }
