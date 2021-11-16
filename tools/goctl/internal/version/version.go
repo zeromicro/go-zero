@@ -6,14 +6,14 @@ import (
 )
 
 // BuildVersion is the version of goctl.
-const BuildVersion = "1.2.3"
+const BuildVersion = "1.2.3-cli"
+
+var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
 // GetGoctlVersion returns BuildVersion
 func GetGoctlVersion() string {
 	return BuildVersion
 }
-
-var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
 // IsVersionGreaterThan compares whether the current goctl version
 // is greater than the target version
