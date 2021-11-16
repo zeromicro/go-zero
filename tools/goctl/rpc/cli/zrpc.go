@@ -10,7 +10,6 @@ import (
 	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
 )
 
@@ -31,7 +30,6 @@ const (
 // for details please see package zprc_gen.
 func ZRPC(c *cli.Context) error {
 	args := c.Parent().Args()
-	fmt.Println(args)
 	protocArgs := removeGoctlFlag(args)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -43,7 +41,7 @@ func ZRPC(c *cli.Context) error {
 		return err
 	}
 	src := filepath.Dir(source)
-	goPackage, err := getGoPackage(source)
+	goPackage, protoPkg, err := getGoPackage(source)
 	if err != nil {
 		return err
 	}
@@ -70,7 +68,12 @@ func ZRPC(c *cli.Context) error {
 	if !filepath.IsAbs(zrpcOut) {
 		zrpcOut = filepath.Join(pwd, zrpcOut)
 	}
+
+	goOut = removePluginFlag(goOut)
 	goOut, err = parseOutOut(src, goOut, goOpt, goPackage)
+	if err != nil {
+		return err
+	}
 	// If grpcOut is not empty means that user generates grpc code by
 	// https://google.golang.org/protobuf/cmd/protoc-gen-go and
 	// https://google.golang.org/grpc/cmd/protoc-gen-go-grpc,
@@ -86,6 +89,28 @@ func ZRPC(c *cli.Context) error {
 		grpcOut = goOut
 	}
 
+	goOut, err = filepath.Abs(goOut)
+	if err != nil {
+		return err
+	}
+	grpcOut, err = filepath.Abs(grpcOut)
+	if err != nil {
+		return err
+	}
+	zrpcOut, err = filepath.Abs(zrpcOut)
+	if err != nil {
+		return err
+	}
+
+	if goOut == zrpcOut || grpcOut == zrpcOut {
+		recommendName := goPackage
+		if len(recommendName) == 0 {
+			recommendName = protoPkg
+		}
+		return fmt.Errorf("the zrpc and grpc output can not be the same, it is recommended to output grpc to the %q",
+			filepath.Join(goOut, recommendName))
+	}
+
 	var ctx generator.ZRpcContext
 	ctx.Src = source
 	ctx.ProtoGenGoDir = goOut
@@ -93,16 +118,11 @@ func ZRPC(c *cli.Context) error {
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
 
-	g, err := generator.NewDefaultRPCGenerator(style)
+	g, err := generator.NewDefaultRPCGenerator(style, generator.WithZRpcContext(&ctx))
 	if err != nil {
 		return err
 	}
-	err = g.Generate(src, zrpcOut, nil)
-	if err != nil {
-		return err
-	}
-	console.MarkDone()
-	return nil
+	return g.Generate(source, zrpcOut, nil)
 }
 
 // parseOutOut calculates the output place to grpc code, about to calculate logic for details
@@ -124,10 +144,10 @@ func parseOutOut(sourceDir, grpcOut, grpcOpt, goPackage string) (string, error) 
 	return grpcOut, nil
 }
 
-func getGoPackage(source string) (string, error) {
+func getGoPackage(source string) (string, string, error) {
 	r, err := os.Open(source)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer func() {
 		_ = r.Close()
@@ -136,17 +156,19 @@ func getGoPackage(source string) (string, error) {
 	parser := proto.NewParser(r)
 	set, err := parser.Parse()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	var goPackage string
+	var goPackage, protoPkg string
 	proto.Walk(set, proto.WithOption(func(option *proto.Option) {
 		if option.Name == "go_package" {
 			goPackage = option.Constant.Source
 		}
+	}), proto.WithPackage(func(p *proto.Package) {
+		protoPkg = p.Name
 	}))
 
-	return goPackage, nil
+	return goPackage, protoPkg, nil
 }
 
 func removeGoctlFlag(args []string) []string {
@@ -193,4 +215,14 @@ func getSourceProto(args []string, pwd string) (string, error) {
 	default:
 		return "", errMutilInput
 	}
+}
+
+func removePluginFlag(goOut string) string {
+	goOut = strings.ReplaceAll(goOut, "plugins=", "")
+	index := strings.LastIndex(goOut, ":")
+	if index < 0 {
+		return goOut
+	}
+
+	return goOut[index+1:]
 }

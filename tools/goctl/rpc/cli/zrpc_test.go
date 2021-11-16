@@ -85,3 +85,29 @@ func Test_RemoveGoctlFlag(t *testing.T) {
 		assert.Equal(t, e.expected, cmd)
 	}
 }
+
+func Test_RemovePluginFlag(t *testing.T) {
+	var testData = []test{
+		{
+			source:   strings.Fields("plugins=grpc:."),
+			expected: ".",
+		},
+		{
+			source:   strings.Fields("plugins=g1,g2:."),
+			expected: ".",
+		},
+		{
+			source:   strings.Fields("g1,g2:."),
+			expected: ".",
+		},
+		{
+			source:   strings.Fields("plugins=g1,g2:foo"),
+			expected: "foo",
+		},
+	}
+
+	for _, e := range testData {
+		data := removePluginFlag(e.source[0])
+		assert.Equal(t, e.expected, data)
+	}
+}
