@@ -51,7 +51,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcContext) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
@@ -100,10 +100,12 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config) (DirCont
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
 		Base:     filepath.Base(svcDir),
 	}
-	inner[pb] = Dir{
-		Filename: pbDir,
-		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
-		Base:     filepath.Base(pbDir),
+	if c == nil {
+		inner[pb] = Dir{
+			Filename: pbDir,
+			Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
+			Base:     filepath.Base(pbDir),
+		}
 	}
 	inner[call] = Dir{
 		Filename: callDir,

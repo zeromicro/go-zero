@@ -9,6 +9,7 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
+	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
 )
@@ -30,6 +31,7 @@ const (
 // for details please see package zprc_gen.
 func ZRPC(c *cli.Context) error {
 	args := c.Parent().Args()
+	fmt.Println(args)
 	protocArgs := removeGoctlFlag(args)
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -51,6 +53,13 @@ func ZRPC(c *cli.Context) error {
 	goOpt := c.String("go_opt")
 	grpcOpt := c.String("go-grpc_opt")
 	zrpcOut := c.String("zrpc_out")
+	style := c.String("style")
+	home := c.String("home")
+
+	if len(home) > 0 {
+		util.RegisterGoctlHome(home)
+	}
+
 	if len(goOut) == 0 {
 		return errInvalidGrpcOutput
 	}
@@ -83,6 +92,15 @@ func ZRPC(c *cli.Context) error {
 	ctx.ProtoGenGrpcDir = grpcOut
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
+
+	g, err := generator.NewDefaultRPCGenerator(style)
+	if err != nil {
+		return err
+	}
+	err = g.Generate(src, zrpcOut, nil)
+	if err != nil {
+		return err
+	}
 	console.MarkDone()
 	return nil
 }
@@ -132,8 +150,25 @@ func getGoPackage(source string) (string, error) {
 }
 
 func removeGoctlFlag(args []string) []string {
-	// TODO
-	return nil
+	var ret []string
+	var step int
+	for step < len(args) {
+		arg := args[step]
+		switch {
+		case arg == "--style", arg == "--home", arg == "--zrpc_out":
+			step += 2
+			continue
+		case strings.HasPrefix(arg, "--style="),
+			strings.HasPrefix(arg, "--home="),
+			strings.HasPrefix(arg, "--zrpc_out="):
+			step += 1
+			continue
+		}
+		step += 1
+		ret = append(ret, arg)
+	}
+
+	return ret
 }
 
 func getSourceProto(args []string, pwd string) (string, error) {

@@ -16,7 +16,10 @@ const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, goOptions ...string) error {
+func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, c *ZRpcContext,goOptions ...string) error {
+	if c != nil {
+		return g.genPbDirect(c)
+	}
 	dir := ctx.GetPb()
 	cw := new(bytes.Buffer)
 	directory, base := filepath.Split(proto.Src)
@@ -102,4 +105,8 @@ go get -u github.com/golang/protobuf/protoc-gen-go`)
 		return err
 	}
 	return nil
+}
+
+func (g *DefaultGenerator) genPbDirect(c *ZRpcContext) error {
+	panic("")
 }

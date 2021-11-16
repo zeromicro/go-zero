@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -49,5 +50,38 @@ func Test_GetSourceProto(t *testing.T) {
 		}
 
 		assert.Equal(t, d.expected, ret)
+	}
+}
+
+func Test_RemoveGoctlFlag(t *testing.T) {
+	var testData = []test{
+		{
+			source:   strings.Fields("protoc foo.proto --go_out=. --go_opt=bar --zrpc_out=. --style go-zero --home=foo"),
+			expected: "protoc foo.proto --go_out=. --go_opt=bar",
+		},
+		{
+			source:   strings.Fields("foo bar foo.proto"),
+			expected: "foo bar foo.proto",
+		},
+		{
+			source:   strings.Fields("protoc foo.proto --go_out . --style=go_zero --home ."),
+			expected: "protoc foo.proto --go_out .",
+		},
+		{
+			source:   strings.Fields(`protoc foo.proto --go_out . --style="go_zero" --home="."`),
+			expected: "protoc foo.proto --go_out .",
+		},
+		{
+			source:   strings.Fields(`protoc foo.proto --go_opt=. --zrpc_out . --style=goZero  --home=bar`),
+			expected: "protoc foo.proto --go_opt=.",
+		},
+		{
+			source:   strings.Fields(`protoc foo.proto --go_opt=. --zrpc_out="bar" --style=goZero  --home=bar`),
+			expected: "protoc foo.proto --go_opt=.",
+		},
+	}
+	for _, e := range testData {
+		cmd := strings.Join(removeGoctlFlag(e.source), " ")
+		assert.Equal(t, e.expected, cmd)
 	}
 }
