@@ -34,7 +34,7 @@ func Test_GetSourceProto(t *testing.T) {
 		},
 		{
 			source:      []string{"a.proto", "b.proto"},
-			expectedErr: errMutilInput,
+			expectedErr: errMultiInput,
 		},
 		{
 			source:      []string{"", "--go_out=."},
