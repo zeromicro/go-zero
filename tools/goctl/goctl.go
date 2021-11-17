@@ -355,8 +355,9 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:  "new",
-				Usage: `generate rpc demo service`,
+				Name:        "new",
+				Usage:       `generate rpc demo service`,
+				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
@@ -426,8 +427,9 @@ var commands = []cli.Command{
 				},
 			},
 			{
-				Name:  "proto",
-				Usage: `generate rpc from proto`,
+				Name:        "proto",
+				Usage:       `generate rpc from proto`,
+				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "src, s",
