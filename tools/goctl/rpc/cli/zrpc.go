@@ -71,11 +71,13 @@ func ZRPC(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	var isGoolePlugin = len(grpcOut) > 0
 	// If grpcOut is not empty means that user generates grpc code by
 	// https://google.golang.org/protobuf/cmd/protoc-gen-go and
 	// https://google.golang.org/grpc/cmd/protoc-gen-go-grpc,
 	// for details please see https://grpc.io/docs/languages/go/quickstart/
-	if len(grpcOut) > 0 {
+	if isGoolePlugin {
 		grpcOut, err = parseOutOut(src, grpcOut, grpcOpt, goPackage)
 		if err != nil {
 			return err
@@ -97,6 +99,10 @@ func ZRPC(c *cli.Context) error {
 	zrpcOut, err = filepath.Abs(zrpcOut)
 	if err != nil {
 		return err
+	}
+
+	if isGoolePlugin && grpcOut != goOut {
+		return fmt.Errorf("the --go_out and --go-grpc_out must be the same")
 	}
 
 	if goOut == zrpcOut || grpcOut == zrpcOut {
