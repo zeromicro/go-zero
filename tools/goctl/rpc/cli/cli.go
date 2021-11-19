@@ -72,7 +72,7 @@ func prepare() error {
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
 	console.Warning("deprecated: it will be removed in the feature, zrpc code generation please use %q instead",
-		"goclt rpc protoc")
+		"goctl rpc protoc")
 
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
