@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"io/ioutil"
+	path2 "path"
 	"path/filepath"
 	"strings"
 
@@ -239,6 +240,13 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 
 func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
+		var prefix string
+		if each.AtServer!=nil {
+			p := each.AtServer.Kv.Get("prefix")
+			if p != nil {
+				prefix = p.Text()
+			}
+		}
 		for _, r := range each.ServiceApi.ServiceRoute {
 			handler := r.GetHandler()
 			if !handler.IsNotNil() {
@@ -250,7 +258,7 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMa
 					nestedApi.LinePrefix, handler.Line(), handler.Column(), handler.Text())
 			}
 
-			path := fmt.Sprintf("%s://%s", r.Route.Method.Text(), r.Route.Path.Text())
+			path := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path2.Join(prefix, r.Route.Path.Text()))
 			if _, ok := mainRouteMap[path]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate route '%s'",
 					nestedApi.LinePrefix, r.Route.Method.Line(), r.Route.Method.Column(), r.Route.Method.Text()+" "+r.Route.Path.Text())
