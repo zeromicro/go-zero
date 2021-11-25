@@ -3,7 +3,7 @@ package ast
 import (
 	"fmt"
 	"io/ioutil"
-	path2 "path"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -114,13 +114,13 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	apiAstList = append(apiAstList, root)
 	for _, imp := range root.Import {
 		dir := filepath.Dir(p.src)
-		path := filepath.Join(dir, imp.Value.Text())
-		data, err := p.readContent(path)
+		imp := filepath.Join(dir, imp.Value.Text())
+		data, err := p.readContent(imp)
 		if err != nil {
 			return nil, err
 		}
 
-		nestedApi, err := p.invoke(path, data)
+		nestedApi, err := p.invoke(imp, data)
 		if err != nil {
 			return nil, err
 		}
@@ -197,8 +197,8 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 			if handler.IsNotNil() {
 				handlerName := handler.Text()
 				handlerMap[handlerName] = Holder
-				path := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
-				routeMap[path] = Holder
+				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
+				routeMap[route] = Holder
 			}
 		}
 
@@ -258,8 +258,8 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMa
 					nestedApi.LinePrefix, handler.Line(), handler.Column(), handler.Text())
 			}
 
-			path := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path2.Join(prefix, r.Route.Path.Text()))
-			if _, ok := mainRouteMap[path]; ok {
+			p := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path.Join(prefix, r.Route.Path.Text()))
+			if _, ok := mainRouteMap[p]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate route '%s'",
 					nestedApi.LinePrefix, r.Route.Method.Line(), r.Route.Method.Column(), r.Route.Method.Text()+" "+r.Route.Path.Text())
 			}
