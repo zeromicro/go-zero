@@ -310,3 +310,20 @@ Port: 54321
 	opt := WithCors("local")
 	opt(srv)
 }
+
+func TestWithCustomCors(t *testing.T) {
+	const configYaml = `
+Name: foo
+Port: 54321
+`
+	var cnf RestConf
+	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	rt := router.NewRouter()
+	srv, err := NewServer(cnf, WithRouter(rt))
+	assert.Nil(t, err)
+
+	opt := WithCustomCors(func(w http.ResponseWriter) {
+		w.Header().Set("foo", "bar")
+	}, "local")
+	opt(srv)
+}

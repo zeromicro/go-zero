@@ -23,9 +23,12 @@ const (
 
 // NotAllowedHandler handles cross domain not allowed requests.
 // At most one origin can be specified, other origins are ignored if given, default to be *.
-func NotAllowedHandler(origins ...string) http.Handler {
+func NotAllowedHandler(fn func(w http.ResponseWriter), origins ...string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		checkAndSetHeaders(w, r, origins)
+		if fn != nil {
+			fn(w)
+		}
 
 		if r.Method != http.MethodOptions {
 			w.WriteHeader(http.StatusNotFound)
@@ -36,10 +39,13 @@ func NotAllowedHandler(origins ...string) http.Handler {
 }
 
 // Middleware returns a middleware that adds CORS headers to the response.
-func Middleware(origins ...string) func(http.HandlerFunc) http.HandlerFunc {
+func Middleware(fn func(w http.ResponseWriter), origins ...string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			checkAndSetHeaders(w, r, origins)
+			if fn != nil {
+				fn(w)
+			}
 
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
