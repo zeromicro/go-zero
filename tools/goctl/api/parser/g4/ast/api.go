@@ -8,6 +8,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
+const prefixKey = "prefix"
+
 // Api describes syntax for api
 type Api struct {
 	LinePrefix string
@@ -52,7 +54,7 @@ func (v *ApiVisitor) acceptService(root, final *Api) {
 
 		var prefix string
 		if service.AtServer != nil {
-			p := service.AtServer.Kv.Get("prefix")
+			p := service.AtServer.Kv.Get(prefixKey)
 			if p != nil {
 				prefix = p.Text()
 			}

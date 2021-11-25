@@ -241,8 +241,8 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
 		var prefix string
-		if each.AtServer!=nil {
-			p := each.AtServer.Kv.Get("prefix")
+		if each.AtServer != nil {
+			p := each.AtServer.Kv.Get(prefixKey)
 			if p != nil {
 				prefix = p.Text()
 			}
