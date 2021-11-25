@@ -207,8 +207,8 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 	switch {
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		return u.processFieldStruct(field, value, mapValue, fullName)
-	case valueKind ==  reflect.Map && typeKind == reflect.Map:
-		return u.fillMap(field, value,  mapValue)
+	case valueKind == reflect.Map && typeKind == reflect.Map:
+		return u.fillMap(field, value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
 		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
