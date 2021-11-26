@@ -45,12 +45,12 @@ func NotAllowedHandler(fn func(w http.ResponseWriter), origins ...string) http.H
 }
 
 // Middleware returns a middleware that adds CORS headers to the response.
-func Middleware(fn func(w http.ResponseWriter), origins ...string) func(http.HandlerFunc) http.HandlerFunc {
+func Middleware(fn func(w http.Header), origins ...string) func(http.HandlerFunc) http.HandlerFunc {
 	return func(next http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			checkAndSetHeaders(w, r, origins)
 			if fn != nil {
-				fn(w)
+				fn(w.Header())
 			}
 
 			if r.Method == http.MethodOptions {
