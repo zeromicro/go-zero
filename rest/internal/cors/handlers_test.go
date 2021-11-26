@@ -114,8 +114,8 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 				r := httptest.NewRequest(method, "http://localhost", nil)
 				r.Header.Set(originHeader, test.reqOrigin)
 				w := httptest.NewRecorder()
-				handler := Middleware(func(w http.ResponseWriter) {
-					w.Header().Set("foo", "bar")
+				handler := Middleware(func(header http.Header) {
+					header.Set("foo", "bar")
 				}, test.origins...)(func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusOK)
 				})
