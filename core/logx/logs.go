@@ -217,7 +217,7 @@ func ErrorCaller(callDepth int, v ...interface{}) {
 
 // ErrorCallerf writes v with context in format into error log.
 func ErrorCallerf(callDepth int, format string, v ...interface{}) {
-	errorTextSync(fmt.Sprintf(format, v...), callDepth+callerInnerDepth)
+	errorTextSync(fmt.Errorf(format, v...).Error(), callDepth+callerInnerDepth)
 }
 
 // Errorf writes v with format into error log.
