@@ -40,7 +40,6 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	metrics := stat.NewMetrics(c.ListenOn)
 	serverOptions := []internal.ServerOption{
 		internal.WithMetrics(metrics),
-		internal.WithMaxRetries(c.MaxRetries),
 	}
 
 	if c.HasEtcd() {

@@ -102,7 +102,6 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:       "foo",
 			Token:     "bar",
 			Timeout:   1000,
-			Retry:     true,
 		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
