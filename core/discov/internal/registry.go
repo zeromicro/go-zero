@@ -44,6 +44,7 @@ func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
 // Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
 func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
 	c, exists := r.getCluster(endpoints)
+	// if exists, the existing values should be updated to the listener.
 	if exists {
 		kvs := c.getCurrent(key)
 		for _, kv := range kvs {
@@ -58,13 +59,13 @@ func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	c, ok := r.clusters[clusterKey]
-	if !ok {
+	c, exists = r.clusters[clusterKey]
+	if !exists {
 		c = newCluster(endpoints)
 		r.clusters[clusterKey] = c
 	}
 
-	return c, ok
+	return
 }
 
 type cluster struct {
