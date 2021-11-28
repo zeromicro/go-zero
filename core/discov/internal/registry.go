@@ -37,25 +37,35 @@ func GetRegistry() *Registry {
 
 // GetConn returns an etcd client connection associated with given endpoints.
 func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
-	return r.getCluster(endpoints).getClient()
+	c, _ := r.getCluster(endpoints)
+	return c.getClient()
 }
 
 // Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
 func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
-	return r.getCluster(endpoints).monitor(key, l)
+	c, exists := r.getCluster(endpoints)
+	// if exists, the existing values should be updated to the listener.
+	if exists {
+		kvs := c.getCurrent(key)
+		for _, kv := range kvs {
+			l.OnAdd(kv)
+		}
+	}
+
+	return c.monitor(key, l)
 }
 
-func (r *Registry) getCluster(endpoints []string) *cluster {
+func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	c, ok := r.clusters[clusterKey]
-	if !ok {
+	c, exists = r.clusters[clusterKey]
+	if !exists {
 		c = newCluster(endpoints)
 		r.clusters[clusterKey] = c
 	}
 
-	return c
+	return
 }
 
 type cluster struct {
@@ -92,6 +102,21 @@ func (c *cluster) getClient() (EtcdClient, error) {
 	}
 
 	return val.(EtcdClient), nil
+}
+
+func (c *cluster) getCurrent(key string) []KV {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	var kvs []KV
+	for k, v := range c.values[key] {
+		kvs = append(kvs, KV{
+			Key: k,
+			Val: v,
+		})
+	}
+
+	return kvs
 }
 
 func (c *cluster) handleChanges(key string, kvs []KV) {
@@ -197,14 +222,12 @@ func (c *cluster) load(cli EtcdClient, key string) {
 	}
 
 	var kvs []KV
-	c.lock.Lock()
 	for _, ev := range resp.Kvs {
 		kvs = append(kvs, KV{
 			Key: string(ev.Key),
 			Val: string(ev.Value),
 		})
 	}
-	c.lock.Unlock()
 
 	c.handleChanges(key, kvs)
 }
