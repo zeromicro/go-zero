@@ -11,6 +11,8 @@ const (
 	DirectScheme = "direct"
 	// DiscovScheme stands for discov scheme.
 	DiscovScheme = "discov"
+	// EtcdScheme stands for etcd scheme.
+	EtcdScheme = "etcd"
 	// KubernetesScheme stands for k8s scheme.
 	KubernetesScheme = "k8s"
 	// EndpointSepChar is the separator cha in endpoints.
@@ -23,16 +25,18 @@ var (
 	// EndpointSep is the separator string in endpoints.
 	EndpointSep = fmt.Sprintf("%c", EndpointSepChar)
 
-	dirBuilder directBuilder
-	disBuilder discovBuilder
-	k8sBuilder kubeBuilder
+	directResolverBuilder directBuilder
+	discovResolverBuilder discovBuilder
+	etcdResolverBuilder   etcdBuilder
+	k8sResolverBuilder    kubeBuilder
 )
 
 // RegisterResolver registers the direct and discov schemes to the resolver.
 func RegisterResolver() {
-	resolver.Register(&dirBuilder)
-	resolver.Register(&disBuilder)
-	resolver.Register(&k8sBuilder)
+	resolver.Register(&directResolverBuilder)
+	resolver.Register(&discovResolverBuilder)
+	resolver.Register(&etcdResolverBuilder)
+	resolver.Register(&k8sResolverBuilder)
 }
 
 type nopResolver struct {
