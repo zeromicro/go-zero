@@ -219,7 +219,6 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	}
 	p.SetState(120)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{

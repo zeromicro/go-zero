@@ -464,7 +464,6 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	}
 	p.SetState(105)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserSTRING {
 		{
