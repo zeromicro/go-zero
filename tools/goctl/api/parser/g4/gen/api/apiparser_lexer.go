@@ -1,5 +1,3 @@
-// Code generated from tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
-
 package api
 
 import (
@@ -10,10 +8,8 @@ import (
 )
 
 // Suppress unused import error
-var (
-	_ = fmt.Printf
-	_ = unicode.IsLetter
-)
+var _ = fmt.Printf
+var _ = unicode.IsLetter
 
 var serializedLexerAtn = []uint16{
 	3, 24715, 42794, 33075, 47597, 16764, 15335, 30598, 22884, 2, 25, 266,

@@ -1,5 +1,3 @@
-// Code generated from tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
-
 package api // ApiParser
 import "github.com/zeromicro/antlr"
 
