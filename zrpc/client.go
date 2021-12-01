@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/tal-tech/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 )
 
@@ -67,7 +68,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	var target string
 	var err error
 	if len(c.Endpoints) > 0 {
-		target = internal.BuildDirectTarget(c.Endpoints)
+		target = resolver.BuildDirectTarget(c.Endpoints)
 	} else if len(c.Target) > 0 {
 		target = c.Target
 	} else {
@@ -79,7 +80,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 			discov.RegisterAccount(c.Etcd.Hosts, c.Etcd.User, c.Etcd.Pass)
 		}
 
-		target = internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
+		target = resolver.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
 	}
 
 	client, err := internal.NewClient(target, opts...)

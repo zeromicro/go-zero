@@ -9,7 +9,7 @@ import (
 
 	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
-	"github.com/tal-tech/go-zero/zrpc/internal/resolver"
+	"github.com/tal-tech/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )
@@ -20,7 +20,7 @@ const (
 )
 
 func init() {
-	resolver.RegisterResolver()
+	resolver.Register()
 }
 
 type (
