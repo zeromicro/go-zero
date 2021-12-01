@@ -6,7 +6,7 @@ import (
 )
 
 // BuildVersion is the version of goctl.
-const BuildVersion = "1.2.3-cli"
+const BuildVersion = "1.2.4-cli"
 
 var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
@@ -24,7 +24,8 @@ func IsVersionGreaterThan(version, target string) bool {
 		return true
 	} else if versionNumber < targetVersionNumber {
 		return false
-	} else { // unchecked case, in normal, the goctl version does not contains suffix in release.
+	} else {
+		// unchecked case, in normal, the goctl version does not contain suffix in release.
 		return tag[versionTag] > tag[targetTag]
 	}
 }
