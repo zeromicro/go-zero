@@ -267,11 +267,8 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 		}
 	case *Literal:
 		lit := dataType.Literal.Text()
-		if api.IsGolangKeyWord(dataType.Literal.Text()) {
-			v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", dataType.Literal.Text()))
-		}
-		if api.IsBasicType(lit) {
-			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+		if api.IsGolangKeyWord(lit) {
+			v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit))
 		}
 	default:
 		v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
