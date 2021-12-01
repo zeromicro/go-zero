@@ -130,6 +130,7 @@ func onlyPrimitiveTypes(val string) bool {
 		if field == "map" {
 			continue
 		}
+		// ignore array dimension number, like [5]int
 		if _, err := strconv.Atoi(field); err == nil {
 			continue
 		}
