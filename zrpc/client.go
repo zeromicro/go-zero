@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
@@ -64,22 +63,9 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 	opts = append(opts, options...)
 
-	var target string
-	var err error
-	if len(c.Endpoints) > 0 {
-		target = internal.BuildDirectTarget(c.Endpoints)
-	} else if len(c.Target) > 0 {
-		target = c.Target
-	} else {
-		if err = c.Etcd.Validate(); err != nil {
-			return nil, err
-		}
-
-		if c.Etcd.HasAccount() {
-			discov.RegisterAccount(c.Etcd.Hosts, c.Etcd.User, c.Etcd.Pass)
-		}
-
-		target = internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key)
+	target, err := c.BuildTarget()
+	if err != nil {
+		return nil, err
 	}
 
 	client, err := internal.NewClient(target, opts...)

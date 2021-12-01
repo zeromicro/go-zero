@@ -1,4 +1,4 @@
-package resolver
+package internal
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/threading"
-	"github.com/tal-tech/go-zero/zrpc/internal/resolver/kube"
+	"github.com/tal-tech/go-zero/zrpc/resolver/internal/kube"
 	"google.golang.org/grpc/resolver"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/informers"
