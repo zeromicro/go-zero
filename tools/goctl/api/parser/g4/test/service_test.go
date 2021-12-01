@@ -174,7 +174,7 @@ func TestRoute(t *testing.T) {
 		assert.Error(t, err)
 
 		_, err = parser.Accept(fn, ` post /foo/bar returns (int)`)
-		assert.Error(t, err)
+		assert.Nil(t, err)
 
 		_, err = parser.Accept(fn, ` post /foo/bar returns (*int)`)
 		assert.Error(t, err)
