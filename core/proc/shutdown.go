@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/threading"
 )
 
 const (
@@ -81,7 +82,9 @@ func (lm *listenerManager) notifyListeners() {
 	lm.lock.Lock()
 	defer lm.lock.Unlock()
 
+	group := threading.NewRoutineGroup()
 	for _, listener := range lm.listeners {
-		listener()
+		group.RunSafe(listener)
 	}
+	group.Wait()
 }
