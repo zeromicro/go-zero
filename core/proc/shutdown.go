@@ -47,10 +47,10 @@ func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
 	logx.Info("Got signal SIGTERM, shutting down...")
-	wrapUpListeners.notifyListeners()
+	go wrapUpListeners.notifyListeners()
 
 	time.Sleep(wrapUpTime)
-	shutdownListeners.notifyListeners()
+	go shutdownListeners.notifyListeners()
 
 	time.Sleep(delayTimeBeforeForceQuit - wrapUpTime)
 	logx.Infof("Still alive after %v, going to force kill the process...", delayTimeBeforeForceQuit)
