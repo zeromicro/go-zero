@@ -182,14 +182,14 @@ func (p *p2cPicker) logStats() {
 }
 
 type subConn struct {
-	addr     resolver.Address
-	conn     balancer.SubConn
 	lag      uint64
 	inflight int64
 	success  uint64
 	requests int64
 	last     int64
 	pick     int64
+	addr     resolver.Address
+	conn     balancer.SubConn
 }
 
 func (c *subConn) healthy() bool {
