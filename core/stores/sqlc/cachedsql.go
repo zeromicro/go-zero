@@ -2,6 +2,7 @@ package sqlc
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/stores/cache"
@@ -52,6 +53,17 @@ func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedCon
 	return CachedConn{
 		db:    db,
 		cache: cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+	}
+}
+
+// NewConnWithCache returns a CachedConn with a custom cache.
+func NewConnWithCache(db sqlx.SqlConn, c cache.Cache) CachedConn {
+	if c == nil {
+		log.Fatal("Invalid cache component")
+	}
+	return CachedConn{
+		db:    db,
+		cache: c,
 	}
 }
 

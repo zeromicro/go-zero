@@ -52,6 +52,16 @@ func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option
 	})
 }
 
+// NewModelWithCache returns a Model with a custom cache.
+func NewModelWithCache(url, collection string, c cache.Cache) (*Model, error) {
+	if c == nil {
+		log.Fatal("Invalid cache component")
+	}
+	return createModel(url, collection, c, func(collection mongo.Collection) CachedCollection {
+		return newCollection(collection, c)
+	})
+}
+
 // Count returns the count of given query.
 func (mm *Model) Count(query interface{}) (int, error) {
 	return mm.executeInt(func(c CachedCollection) (int, error) {
