@@ -16,8 +16,8 @@ type Foo struct {
 }
 
 func TestDeferInt(t *testing.T) {
-	var i = 1
-	var s = "hello"
+	i := 1
+	s := "hello"
 	number := struct {
 		f float64
 	}{
@@ -208,6 +208,12 @@ func TestRepr(t *testing.T) {
 		{
 			newMockPtr(),
 			"mockptr",
+		},
+		{
+			&mockOpacity{
+				val: 1,
+			},
+			"{1}",
 		},
 		{
 			true,

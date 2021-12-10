@@ -74,12 +74,12 @@ func TestConsistentHashIncrementalTransfer(t *testing.T) {
 		laterCh := create()
 		laterCh.AddWithWeight(node, 10*(i+1))
 
-		for i := 0; i < requestSize; i++ {
-			key, ok := laterCh.Get(requestSize + i)
+		for j := 0; j < requestSize; j++ {
+			key, ok := laterCh.Get(requestSize + j)
 			assert.True(t, ok)
 			assert.NotNil(t, key)
 			value := key.(string)
-			assert.True(t, value == keys[i] || value == node)
+			assert.True(t, value == keys[j] || value == node)
 		}
 	}
 }
@@ -132,8 +132,8 @@ func TestConsistentHash_RemoveInterface(t *testing.T) {
 	assert.Equal(t, 1, len(ch.nodes))
 	node, ok := ch.Get(1)
 	assert.True(t, ok)
-	assert.Equal(t, key, node.(*MockNode).Addr)
-	assert.Equal(t, 2, node.(*MockNode).Id)
+	assert.Equal(t, key, node.(*mockNode).addr)
+	assert.Equal(t, 2, node.(*mockNode).id)
 }
 
 func getKeysBeforeAndAfterFailure(t *testing.T, prefix string, index int) (map[int]string, map[int]string) {
@@ -164,18 +164,18 @@ func getKeysBeforeAndAfterFailure(t *testing.T, prefix string, index int) (map[i
 	return keys, newKeys
 }
 
-type MockNode struct {
-	Addr string
-	Id   int
+type mockNode struct {
+	addr string
+	id   int
 }
 
-func newMockNode(addr string, id int) *MockNode {
-	return &MockNode{
-		Addr: addr,
-		Id:   id,
+func newMockNode(addr string, id int) *mockNode {
+	return &mockNode{
+		addr: addr,
+		id:   id,
 	}
 }
 
-func (n *MockNode) String() string {
-	return n.Addr
+func (n *mockNode) String() string {
+	return n.addr
 }

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package test;
+option go_package = "go";
+
+import "base.proto";
+
+message TestMessage{}
+message TestReq{}
+message TestReply{}
+message Inline {
+  message Inner{}
+}
+
+enum TestEnum {
+  unknown = 0;
+  male = 1;
+  female = 2;
+}
+
+service TestService{
+  rpc TestRpcOne (TestReq)returns(TestReply);
+}

@@ -7,12 +7,14 @@ import (
 	"github.com/tal-tech/go-zero/core/proc"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type (
-	PublisherOption func(client *Publisher)
+	// PubOption defines the method to customize a Publisher.
+	PubOption func(client *Publisher)
 
+	// A Publisher can be used to publish the value to an etcd cluster on the given key.
 	Publisher struct {
 		endpoints  []string
 		key        string
@@ -26,7 +28,11 @@ type (
 	}
 )
 
-func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption) *Publisher {
+// NewPublisher returns a Publisher.
+// endpoints is the hosts of the etcd cluster.
+// key:value are a pair to be published.
+// opts are used to customize the Publisher.
+func NewPublisher(endpoints []string, key, value string, opts ...PubOption) *Publisher {
 	publisher := &Publisher{
 		endpoints:  endpoints,
 		key:        key,
@@ -43,6 +49,7 @@ func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption
 	return publisher
 }
 
+// KeepAlive keeps key:value alive.
 func (p *Publisher) KeepAlive() error {
 	cli, err := internal.GetRegistry().GetConn(p.endpoints)
 	if err != nil {
@@ -61,14 +68,17 @@ func (p *Publisher) KeepAlive() error {
 	return p.keepAliveAsync(cli)
 }
 
+// Pause pauses the renewing of key:value.
 func (p *Publisher) Pause() {
 	p.pauseChan <- lang.Placeholder
 }
 
+// Resume resumes the renewing of key:value.
 func (p *Publisher) Resume() {
 	p.resumeChan <- lang.Placeholder
 }
 
+// Stop stops the renewing and revokes the registration.
 func (p *Publisher) Stop() {
 	p.quit.Close()
 }
@@ -135,7 +145,15 @@ func (p *Publisher) revoke(cli internal.EtcdClient) {
 	}
 }
 
-func WithId(id int64) PublisherOption {
+// WithPubEtcdAccount provides the etcd username/password.
+func WithPubEtcdAccount(user, pass string) PubOption {
+	return func(pub *Publisher) {
+		internal.AddAccount(pub.endpoints, user, pass)
+	}
+}
+
+// WithId customizes a Publisher with the id.
+func WithId(id int64) PubOption {
 	return func(publisher *Publisher) {
 		publisher.id = id
 	}

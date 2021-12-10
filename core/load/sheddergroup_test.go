@@ -13,3 +13,8 @@ func TestGroup(t *testing.T) {
 		assert.NotNil(t, limiter)
 	})
 }
+
+func TestShedderClose(t *testing.T) {
+	var nop nopCloser
+	assert.Nil(t, nop.Close())
+}

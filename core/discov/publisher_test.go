@@ -4,12 +4,15 @@ import (
 	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/discov/internal"
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
-	"go.etcd.io/etcd/clientv3"
+	"github.com/tal-tech/go-zero/core/stringx"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 func init() {
@@ -28,7 +31,8 @@ func TestPublisher_register(t *testing.T) {
 		ID: id,
 	}, nil)
 	cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), "thevalue", gomock.Any())
-	pub := NewPublisher(nil, "thekey", "thevalue")
+	pub := NewPublisher(nil, "thekey", "thevalue",
+		WithPubEtcdAccount(stringx.Rand(), "bar"))
 	_, err := pub.register(cli)
 	assert.Nil(t, err)
 }
@@ -111,6 +115,10 @@ func TestPublisher_keepAliveAsyncQuit(t *testing.T) {
 	defer ctrl.Finish()
 	const id clientv3.LeaseID = 1
 	cli := internal.NewMockEtcdClient(ctrl)
+	cli.EXPECT().ActiveConnection()
+	cli.EXPECT().Close()
+	defer cli.Close()
+	cli.ActiveConnection()
 	restore := setMockClient(cli)
 	defer restore()
 	cli.EXPECT().Ctx().AnyTimes()
@@ -147,4 +155,17 @@ func TestPublisher_keepAliveAsyncPause(t *testing.T) {
 	assert.Nil(t, pub.keepAliveAsync(cli))
 	pub.Pause()
 	wg.Wait()
+}
+
+func TestPublisher_Resume(t *testing.T) {
+	publisher := new(Publisher)
+	publisher.resumeChan = make(chan lang.PlaceholderType)
+	go func() {
+		publisher.Resume()
+	}()
+	go func() {
+		time.Sleep(time.Minute)
+		t.Fail()
+	}()
+	<-publisher.resumeChan
 }

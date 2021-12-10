@@ -1,48 +1,76 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/iox"
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/timex"
 	"github.com/tal-tech/go-zero/core/utils"
 	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
-const slowThreshold = time.Millisecond * 500
+const (
+	limitBodyBytes       = 1024
+	defaultSlowThreshold = time.Millisecond * 500
+)
 
-type LoggedResponseWriter struct {
+var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+
+type loggedResponseWriter struct {
 	w    http.ResponseWriter
 	r    *http.Request
 	code int
 }
 
-func (w *LoggedResponseWriter) Header() http.Header {
+func (w *loggedResponseWriter) Flush() {
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+func (w *loggedResponseWriter) Header() http.Header {
 	return w.w.Header()
 }
 
-func (w *LoggedResponseWriter) Write(bytes []byte) (int, error) {
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *loggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
+}
+
+func (w *loggedResponseWriter) Write(bytes []byte) (int, error) {
 	return w.w.Write(bytes)
 }
 
-func (w *LoggedResponseWriter) WriteHeader(code int) {
+func (w *loggedResponseWriter) WriteHeader(code int) {
 	w.w.WriteHeader(code)
 	w.code = code
 }
 
+// LogHandler returns a middleware that logs http request and response.
 func LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
-		lrw := LoggedResponseWriter{
+		lrw := loggedResponseWriter{
 			w:    w,
 			r:    r,
 			code: http.StatusOK,
@@ -56,36 +84,51 @@ func LogHandler(next http.Handler) http.Handler {
 	})
 }
 
-type DetailLoggedResponseWriter struct {
-	writer *LoggedResponseWriter
+type detailLoggedResponseWriter struct {
+	writer *loggedResponseWriter
 	buf    *bytes.Buffer
 }
 
-func newDetailLoggedResponseWriter(writer *LoggedResponseWriter, buf *bytes.Buffer) *DetailLoggedResponseWriter {
-	return &DetailLoggedResponseWriter{
+func newDetailLoggedResponseWriter(writer *loggedResponseWriter, buf *bytes.Buffer) *detailLoggedResponseWriter {
+	return &detailLoggedResponseWriter{
 		writer: writer,
 		buf:    buf,
 	}
 }
 
-func (w *DetailLoggedResponseWriter) Header() http.Header {
+func (w *detailLoggedResponseWriter) Flush() {
+	w.writer.Flush()
+}
+
+func (w *detailLoggedResponseWriter) Header() http.Header {
 	return w.writer.Header()
 }
 
-func (w *DetailLoggedResponseWriter) Write(bs []byte) (int, error) {
+// Hijack implements the http.Hijacker interface.
+// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
+func (w *detailLoggedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.writer.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
+}
+
+func (w *detailLoggedResponseWriter) Write(bs []byte) (int, error) {
 	w.buf.Write(bs)
 	return w.writer.Write(bs)
 }
 
-func (w *DetailLoggedResponseWriter) WriteHeader(code int) {
+func (w *detailLoggedResponseWriter) WriteHeader(code int) {
 	w.writer.WriteHeader(code)
 }
 
+// DetailedLogHandler returns a middleware that logs http request and response in details.
 func DetailedLogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		var buf bytes.Buffer
-		lrw := newDetailLoggedResponseWriter(&LoggedResponseWriter{
+		lrw := newDetailLoggedResponseWriter(&loggedResponseWriter{
 			w:    w,
 			r:    r,
 			code: http.StatusOK,
@@ -100,28 +143,41 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 	})
 }
 
+// SetSlowThreshold sets the slow threshold.
+func SetSlowThreshold(threshold time.Duration) {
+	slowThreshold.Set(threshold)
+}
+
 func dumpRequest(r *http.Request) string {
 	reqContent, err := httputil.DumpRequest(r, true)
 	if err != nil {
 		return err.Error()
-	} else {
-		return string(reqContent)
 	}
+
+	return string(reqContent)
 }
 
 func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
-	buf.WriteString(fmt.Sprintf("%d - %s - %s - %s - %s",
-		code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
-	if duration > slowThreshold {
-		logx.Slowf("[HTTP] %d - %s - %s - %s - slowcall(%s)",
-			code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
+	logger := logx.WithContext(r.Context())
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s - %s - %s",
+		r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
+	if duration > slowThreshold.Load() {
+		logger.Slowf("[HTTP] %s - %d - %s - %s - %s - slowcall(%s)",
+			r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
 	}
 
 	ok := isOkResponse(code)
 	if !ok {
-		buf.WriteString(fmt.Sprintf("\n%s", dumpRequest(r)))
+		fullReq := dumpRequest(r)
+		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
+		body, err := ioutil.ReadAll(limitReader)
+		if err != nil {
+			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
+		} else {
+			buf.WriteString(fmt.Sprintf("\n%s", string(body)))
+		}
 	}
 
 	body := logs.Flush()
@@ -130,21 +186,22 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	}
 
 	if ok {
-		logx.Info(buf.String())
+		logger.Info(buf.String())
 	} else {
-		logx.Error(buf.String())
+		logger.Error(buf.String())
 	}
 }
 
-func logDetails(r *http.Request, response *DetailLoggedResponseWriter, timer *utils.ElapsedTimer,
+func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *utils.ElapsedTimer,
 	logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
-	buf.WriteString(fmt.Sprintf("%d - %s - %s\n=> %s\n",
-		response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
-	if duration > slowThreshold {
-		logx.Slowf("[HTTP] %d - %s - slowcall(%s)\n=> %s\n",
-			response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
+	logger := logx.WithContext(r.Context())
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
+		r.Method, response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
+	if duration > defaultSlowThreshold {
+		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n",
+			r.Method, response.writer.code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
 	}
 
 	body := logs.Flush()
@@ -157,7 +214,7 @@ func logDetails(r *http.Request, response *DetailLoggedResponseWriter, timer *ut
 		buf.WriteString(fmt.Sprintf("<= %s", respBuf))
 	}
 
-	logx.Info(buf.String())
+	logger.Info(buf.String())
 }
 
 func isOkResponse(code int) bool {

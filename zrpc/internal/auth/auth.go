@@ -13,6 +13,7 @@ import (
 
 const defaultExpiration = 5 * time.Minute
 
+// An Authenticator is used to authenticate the rpc requests.
 type Authenticator struct {
 	store  *redis.Redis
 	key    string
@@ -20,6 +21,7 @@ type Authenticator struct {
 	strict bool
 }
 
+// NewAuthenticator returns an Authenticator.
 func NewAuthenticator(store *redis.Redis, key string, strict bool) (*Authenticator, error) {
 	cache, err := collection.NewCache(defaultExpiration)
 	if err != nil {
@@ -34,6 +36,7 @@ func NewAuthenticator(store *redis.Redis, key string, strict bool) (*Authenticat
 	}, nil
 }
 
+// Authenticate authenticates the given ctx.
 func (a *Authenticator) Authenticate(ctx context.Context) error {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
@@ -60,9 +63,9 @@ func (a *Authenticator) validate(app, token string) error {
 	if err != nil {
 		if a.strict {
 			return status.Error(codes.Internal, err.Error())
-		} else {
-			return nil
 		}
+
+		return nil
 	}
 
 	if token != expect {

@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package proc
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/tal-tech/go-zero/core/threading"
 )
 
 const (
@@ -24,14 +26,19 @@ var (
 	delayTimeBeforeForceQuit = waitTime
 )
 
+// AddShutdownListener adds fn as a shutdown listener.
+// The returned func can be used to wait for fn getting called.
 func AddShutdownListener(fn func()) (waitForCalled func()) {
 	return shutdownListeners.addListener(fn)
 }
 
+// AddWrapUpListener adds fn as a wrap up listener.
+// The returned func can be used to wait for fn getting called.
 func AddWrapUpListener(fn func()) (waitForCalled func()) {
 	return wrapUpListeners.addListener(fn)
 }
 
+// SetTimeToForceQuit sets the waiting time before force quitting.
 func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
@@ -40,10 +47,10 @@ func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
 	logx.Info("Got signal SIGTERM, shutting down...")
-	wrapUpListeners.notifyListeners()
+	go wrapUpListeners.notifyListeners()
 
 	time.Sleep(wrapUpTime)
-	shutdownListeners.notifyListeners()
+	go shutdownListeners.notifyListeners()
 
 	time.Sleep(delayTimeBeforeForceQuit - wrapUpTime)
 	logx.Infof("Still alive after %v, going to force kill the process...", delayTimeBeforeForceQuit)
@@ -75,7 +82,9 @@ func (lm *listenerManager) notifyListeners() {
 	lm.lock.Lock()
 	defer lm.lock.Unlock()
 
+	group := threading.NewRoutineGroup()
 	for _, listener := range lm.listeners {
-		listener()
+		group.RunSafe(listener)
 	}
+	group.Wait()
 }

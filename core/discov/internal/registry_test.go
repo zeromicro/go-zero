@@ -8,10 +8,11 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/contextx"
+	"github.com/tal-tech/go-zero/core/lang"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/stringx"
-	"go.etcd.io/etcd/clientv3"
-	"go.etcd.io/etcd/mvcc/mvccpb"
+	"go.etcd.io/etcd/api/v3/mvccpb"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var mockLock sync.Mutex
@@ -32,9 +33,10 @@ func setMockClient(cli EtcdClient) func() {
 }
 
 func TestGetCluster(t *testing.T) {
-	c1 := GetRegistry().getCluster([]string{"first"})
-	c2 := GetRegistry().getCluster([]string{"second"})
-	c3 := GetRegistry().getCluster([]string{"first"})
+	AddAccount([]string{"first"}, "foo", "bar")
+	c1, _ := GetRegistry().getCluster([]string{"first"})
+	c2, _ := GetRegistry().getCluster([]string{"second"})
+	c3, _ := GetRegistry().getCluster([]string{"first"})
 	assert.Equal(t, c1, c3)
 	assert.NotEqual(t, c1, c2)
 }
@@ -202,11 +204,13 @@ func TestClusterWatch_RespFailures(t *testing.T) {
 			restore := setMockClient(cli)
 			defer restore()
 			ch := make(chan clientv3.WatchResponse)
-			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
+			cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 			cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
 			c := new(cluster)
+			c.done = make(chan lang.PlaceholderType)
 			go func() {
 				ch <- resp
+				close(c.done)
 			}()
 			c.watch(cli, "any")
 		})
@@ -220,11 +224,13 @@ func TestClusterWatch_CloseChan(t *testing.T) {
 	restore := setMockClient(cli)
 	defer restore()
 	ch := make(chan clientv3.WatchResponse)
-	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch)
+	cli.EXPECT().Watch(gomock.Any(), "any/", gomock.Any()).Return(ch).AnyTimes()
 	cli.EXPECT().Ctx().Return(context.Background()).AnyTimes()
 	c := new(cluster)
+	c.done = make(chan lang.PlaceholderType)
 	go func() {
 		close(ch)
+		close(c.done)
 	}()
 	c.watch(cli, "any")
 }

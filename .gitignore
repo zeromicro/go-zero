@@ -4,15 +4,19 @@
 # Unignore all with extensions
 !*.*
 !**/Dockerfile
+!**/Makefile
 
 # Unignore all dirs
 !*/
 !api
 
+# ignore
 .idea
 **/.DS_Store
 **/logs
-!Makefile
+
+# for test purpose
+adhoc
 
 # gitlab ci
 .cache

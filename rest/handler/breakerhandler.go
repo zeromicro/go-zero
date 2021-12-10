@@ -14,6 +14,7 @@ import (
 
 const breakerSeparator = "://"
 
+// BreakerHandler returns a break circuit middleware.
 func BreakerHandler(method, path string, metrics *stat.Metrics) func(http.Handler) http.Handler {
 	brk := breaker.NewBreaker(breaker.WithName(strings.Join([]string{method, path}, breakerSeparator)))
 	return func(next http.Handler) http.Handler {

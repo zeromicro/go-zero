@@ -12,6 +12,7 @@ import (
 	"github.com/urfave/cli"
 )
 
+// JavaCommand the generate java code command entrance
 func JavaCommand(c *cli.Context) error {
 	apiFile := c.String("api")
 	dir := c.String("dir")
@@ -22,20 +23,13 @@ func JavaCommand(c *cli.Context) error {
 		return errors.New("missing -dir")
 	}
 
-	p, err := parser.NewParser(apiFile)
-	if err != nil {
-		return err
-	}
-	api, err := p.Parse()
+	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
 	}
 
-	packetName := api.Service.Name
-	if strings.HasSuffix(packetName, "-api") {
-		packetName = packetName[:len(packetName)-4]
-	}
-
+	api.Service = api.Service.JoinPrefix()
+	packetName := strings.TrimSuffix(api.Service.Name, "-api")
 	logx.Must(util.MkdirIfNotExist(dir))
 	logx.Must(genPacket(dir, packetName, api))
 	logx.Must(genComponents(dir, packetName, api))

@@ -2,6 +2,7 @@ package conf
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,12 +31,17 @@ type mapBasedProperties struct {
 	lock       sync.RWMutex
 }
 
-// Loads the properties into a properties configuration instance. May return the
-// configuration itself along with an error that indicates if there was a problem loading the configuration.
-func LoadProperties(filename string) (Properties, error) {
+// LoadProperties loads the properties into a properties configuration instance.
+// Returns an error that indicates if there was a problem loading the configuration.
+func LoadProperties(filename string, opts ...Option) (Properties, error) {
 	lines, err := iox.ReadTextLines(filename, iox.WithoutBlank(), iox.OmitWithPrefix("#"))
 	if err != nil {
-		return nil, nil
+		return nil, err
+	}
+
+	var opt options
+	for _, o := range opts {
+		o(&opt)
 	}
 
 	raw := make(map[string]string)
@@ -50,7 +56,11 @@ func LoadProperties(filename string) (Properties, error) {
 
 		key := strings.TrimSpace(pair[0])
 		value := strings.TrimSpace(pair[1])
-		raw[key] = value
+		if opt.env {
+			raw[key] = os.ExpandEnv(value)
+		} else {
+			raw[key] = value
+		}
 	}
 
 	return &mapBasedProperties{
@@ -87,7 +97,7 @@ func (config *mapBasedProperties) SetInt(key string, value int) {
 	config.lock.Unlock()
 }
 
-// Dumps the configuration internal map into a string.
+// ToString dumps the configuration internal map into a string.
 func (config *mapBasedProperties) ToString() string {
 	config.lock.RLock()
 	ret := fmt.Sprintf("%s", config.properties)
@@ -96,12 +106,12 @@ func (config *mapBasedProperties) ToString() string {
 	return ret
 }
 
-// Returns the error message.
+// Error returns the error message.
 func (configError *PropertyError) Error() string {
 	return configError.message
 }
 
-// Builds a new properties configuration structure
+// NewProperties builds a new properties configuration structure.
 func NewProperties() Properties {
 	return &mapBasedProperties{
 		properties: make(map[string]string),

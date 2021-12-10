@@ -1,16 +1,22 @@
 package rest
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type (
+	// Middleware defines the middleware method.
 	Middleware func(next http.HandlerFunc) http.HandlerFunc
 
+	// A Route is a http route.
 	Route struct {
 		Method  string
 		Path    string
 		Handler http.HandlerFunc
 	}
 
+	// RouteOption defines the method to customize a featured route.
 	RouteOption func(r *featuredRoutes)
 
 	jwtSetting struct {
@@ -25,6 +31,7 @@ type (
 	}
 
 	featuredRoutes struct {
+		timeout   time.Duration
 		priority  bool
 		jwt       jwtSetting
 		signature signatureSetting

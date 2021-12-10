@@ -1,6 +1,6 @@
-//go:generate mockgen -package internal -destination listener_mock.go -source listener.go Listener
 package internal
 
+// Listener interface wraps the OnUpdate method.
 type Listener interface {
-	OnUpdate(keys []string, values []string, newKey string)
+	OnUpdate(keys, values []string, newKey string)
 }

@@ -9,10 +9,13 @@ import (
 )
 
 func TestContextCancel(t *testing.T) {
-	c := context.WithValue(context.Background(), "key", "value")
+	type key string
+	var nameKey key = "name"
+	c := context.WithValue(context.Background(), nameKey, "value")
 	c1, cancel := context.WithCancel(c)
 	o := ValueOnlyFrom(c1)
-	c2, _ := context.WithCancel(o)
+	c2, cancel2 := context.WithCancel(o)
+	defer cancel2()
 	contexts := []context.Context{c1, c2}
 
 	for _, c := range contexts {
@@ -35,7 +38,8 @@ func TestContextCancel(t *testing.T) {
 }
 
 func TestContextDeadline(t *testing.T) {
-	c, _ := context.WithDeadline(context.Background(), time.Now().Add(10*time.Millisecond))
+	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(10*time.Millisecond))
+	cancel()
 	o := ValueOnlyFrom(c)
 	select {
 	case <-time.After(100 * time.Millisecond):
@@ -43,9 +47,11 @@ func TestContextDeadline(t *testing.T) {
 		t.Fatal("ValueOnlyContext: context should not have timed out")
 	}
 
-	c, _ = context.WithDeadline(context.Background(), time.Now().Add(10*time.Millisecond))
+	c, cancel = context.WithDeadline(context.Background(), time.Now().Add(10*time.Millisecond))
+	cancel()
 	o = ValueOnlyFrom(c)
-	c, _ = context.WithDeadline(o, time.Now().Add(20*time.Millisecond))
+	c, cancel = context.WithDeadline(o, time.Now().Add(20*time.Millisecond))
+	defer cancel()
 	select {
 	case <-time.After(100 * time.Millisecond):
 		t.Fatal("ValueOnlyContext+Deadline: context should have timed out")

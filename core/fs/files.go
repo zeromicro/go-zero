@@ -1,3 +1,4 @@
+//go:build linux || darwin
 // +build linux darwin
 
 package fs
@@ -7,6 +8,7 @@ import (
 	"syscall"
 )
 
+// CloseOnExec makes sure closing the file on process forking.
 func CloseOnExec(file *os.File) {
 	if file != nil {
 		syscall.CloseOnExec(int(file.Fd()))

@@ -10,23 +10,26 @@ import (
 	"google.golang.org/grpc"
 )
 
+// A RpcProxy is a rpc proxy.
 type RpcProxy struct {
 	backend     string
 	clients     map[string]Client
 	options     []internal.ClientOption
-	sharedCalls syncx.SharedCalls
+	sharedCalls syncx.SingleFlight
 	lock        sync.Mutex
 }
 
+// NewProxy returns a RpcProxy.
 func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
 		backend:     backend,
 		clients:     make(map[string]Client),
 		options:     opts,
-		sharedCalls: syncx.NewSharedCalls(),
+		sharedCalls: syncx.NewSingleFlight(),
 	}
 }
 
+// TakeConn returns a grpc.ClientConn.
 func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 	cred := auth.ParseCredential(ctx)
 	key := cred.App + "/" + cred.Token

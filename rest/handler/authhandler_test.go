@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"bufio"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +16,8 @@ func TestAuthHandlerFailed(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 	handler := Authorize("B63F477D-BBA3-4E52-96D3-C0034C27694A", WithUnauthorizedCallback(
 		func(w http.ResponseWriter, r *http.Request, err error) {
-			w.Header().Set("X-Test", "test")
+			assert.NotNil(t, err)
+			w.Header().Set("X-Test", err.Error())
 			w.WriteHeader(http.StatusUnauthorized)
 			_, err = w.Write([]byte("content"))
 			assert.Nil(t, err)
@@ -41,6 +44,10 @@ func TestAuthHandler(t *testing.T) {
 			w.Header().Set("X-Test", "test")
 			_, err := w.Write([]byte("content"))
 			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.True(t, ok)
+			flusher.Flush()
 		}))
 
 	resp := httptest.NewRecorder()
@@ -83,6 +90,26 @@ func TestAuthHandler_NilError(t *testing.T) {
 	})
 }
 
+func TestAuthHandler_Flush(t *testing.T) {
+	resp := httptest.NewRecorder()
+	handler := newGuardedResponseWriter(resp)
+	handler.Flush()
+	assert.True(t, resp.Flushed)
+}
+
+func TestAuthHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := newGuardedResponseWriter(resp)
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = newGuardedResponseWriter(mockedHijackable{resp})
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
 func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
@@ -96,4 +123,12 @@ func buildToken(secretKey string, payloads map[string]interface{}, seconds int64
 	token.Claims = claims
 
 	return token.SignedString([]byte(secretKey))
+}
+
+type mockedHijackable struct {
+	*httptest.ResponseRecorder
+}
+
+func (m mockedHijackable) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return nil, nil, nil
 }

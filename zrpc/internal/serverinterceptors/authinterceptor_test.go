@@ -4,9 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/alicebob/miniredis"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -46,13 +45,12 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	r := miniredis.NewMiniRedis()
-	assert.Nil(t, r.Start())
-	defer r.Close()
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			store := redis.NewRedis(r.Addr(), redis.NodeType)
 			if len(test.app) > 0 {
 				assert.Nil(t, store.Hset("apps", test.app, test.token))
 				defer store.Hdel("apps", test.app)
@@ -113,13 +111,12 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	r := miniredis.NewMiniRedis()
-	assert.Nil(t, r.Start())
-	defer r.Close()
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			store := redis.NewRedis(r.Addr(), redis.NodeType)
 			if len(test.app) > 0 {
 				assert.Nil(t, store.Hset("apps", test.app, test.token))
 				defer store.Hdel("apps", test.app)

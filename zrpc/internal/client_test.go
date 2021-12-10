@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -23,8 +24,33 @@ func TestWithTimeout(t *testing.T) {
 	assert.Equal(t, time.Second, options.Timeout)
 }
 
+func TestWithNonBlock(t *testing.T) {
+	var options ClientOptions
+	opt := WithNonBlock()
+	opt(&options)
+	assert.True(t, options.NonBlock)
+}
+
+func TestWithTransportCredentials(t *testing.T) {
+	var options ClientOptions
+	opt := WithTransportCredentials(nil)
+	opt(&options)
+	assert.Equal(t, 1, len(options.DialOptions))
+}
+
+func TestWithUnaryClientInterceptor(t *testing.T) {
+	var options ClientOptions
+	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+		return nil
+	})
+	opt(&options)
+	assert.Equal(t, 1, len(options.DialOptions))
+}
+
 func TestBuildDialOptions(t *testing.T) {
+	var c client
 	agent := grpc.WithUserAgent("chrome")
-	opts := buildDialOptions(WithDialOption(agent))
+	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }

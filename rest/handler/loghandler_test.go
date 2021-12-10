@@ -30,6 +30,10 @@ func TestLogHandler(t *testing.T) {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			_, err := w.Write([]byte("content"))
 			assert.Nil(t, err)
+
+			flusher, ok := w.(http.Flusher)
+			assert.True(t, ok)
+			flusher.Flush()
 		}))
 
 		resp := httptest.NewRecorder()
@@ -49,13 +53,57 @@ func TestLogHandlerSlow(t *testing.T) {
 	for _, logHandler := range handlers {
 		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(slowThreshold + time.Millisecond*50)
+			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
 		}))
 
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 		assert.Equal(t, http.StatusOK, resp.Code)
 	}
+}
+
+func TestLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &loggedResponseWriter{
+		w: resp,
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &loggedResponseWriter{
+		w: mockedHijackable{resp},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
+func TestDetailedLogHandler_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: resp,
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &detailLoggedResponseWriter{
+		writer: &loggedResponseWriter{
+			w: mockedHijackable{resp},
+		},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+}
+
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
 func BenchmarkLogHandler(b *testing.B) {

@@ -2,50 +2,52 @@ package internal
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"net/http"
 
+	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/proc"
 )
 
-func StartHttp(host string, port int, handler http.Handler) error {
-	addr := fmt.Sprintf("%s:%d", host, port)
-	server := buildHttpServer(addr, handler)
-	return StartServer(server)
+// StartOption defines the method to customize http.Server.
+type StartOption func(srv *http.Server)
+
+// StartHttp starts a http server.
+func StartHttp(host string, port int, handler http.Handler, opts ...StartOption) error {
+	return start(host, port, handler, func(srv *http.Server) error {
+		return srv.ListenAndServe()
+	}, opts...)
 }
 
-func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler) error {
-	addr := fmt.Sprintf("%s:%d", host, port)
-	if server, err := buildHttpsServer(addr, handler, certFile, keyFile); err != nil {
-		return err
-	} else {
-		return StartServer(server)
+// StartHttps starts a https server.
+func StartHttps(host string, port int, certFile, keyFile string, handler http.Handler,
+	opts ...StartOption) error {
+	return start(host, port, handler, func(srv *http.Server) error {
+		// certFile and keyFile are set in buildHttpsServer
+		return srv.ListenAndServeTLS(certFile, keyFile)
+	}, opts...)
+}
+
+func start(host string, port int, handler http.Handler, run func(srv *http.Server) error,
+	opts ...StartOption) (err error) {
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", host, port),
+		Handler: handler,
 	}
-}
+	for _, opt := range opts {
+		opt(server)
+	}
 
-func StartServer(srv *http.Server) error {
-	proc.AddWrapUpListener(func() {
-		srv.Shutdown(context.Background())
+	waitForCalled := proc.AddWrapUpListener(func() {
+		if e := server.Shutdown(context.Background()); err != nil {
+			logx.Error(e)
+		}
 	})
+	defer func() {
+		if err == http.ErrServerClosed {
+			waitForCalled()
+		}
+	}()
 
-	return srv.ListenAndServe()
-}
-
-func buildHttpServer(addr string, handler http.Handler) *http.Server {
-	return &http.Server{Addr: addr, Handler: handler}
-}
-
-func buildHttpsServer(addr string, handler http.Handler, certFile, keyFile string) (*http.Server, error) {
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	config := tls.Config{Certificates: []tls.Certificate{cert}}
-	return &http.Server{
-		Addr:      addr,
-		Handler:   handler,
-		TLSConfig: &config,
-	}, nil
+	return run(server)
 }

@@ -1,10 +1,12 @@
 package discov
 
 import (
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/discov/internal"
+	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 const (
@@ -197,4 +199,29 @@ func TestContainer(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestSubscriber(t *testing.T) {
+	sub := new(Subscriber)
+	Exclusive()(sub)
+	sub.items = newContainer(sub.exclusive)
+	var count int32
+	sub.AddListener(func() {
+		atomic.AddInt32(&count, 1)
+	})
+	sub.items.notifyChange()
+	assert.Empty(t, sub.Values())
+	assert.Equal(t, int32(1), atomic.LoadInt32(&count))
+}
+
+func TestWithSubEtcdAccount(t *testing.T) {
+	endpoints := []string{"localhost:2379"}
+	user := stringx.Rand()
+	WithSubEtcdAccount(user, "bar")(&Subscriber{
+		endpoints: endpoints,
+	})
+	account, ok := internal.GetAccount(endpoints)
+	assert.True(t, ok)
+	assert.Equal(t, user, account.User)
+	assert.Equal(t, "bar", account.Pass)
 }

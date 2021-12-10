@@ -14,44 +14,58 @@ import (
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/core/syncx"
 	"github.com/tal-tech/go-zero/core/threading"
-	"go.etcd.io/etcd/clientv3"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var (
-	registryInstance = Registry{
+	registry = Registry{
 		clusters: make(map[string]*cluster),
 	}
 	connManager = syncx.NewResourceManager()
 )
 
+// A Registry is a registry that manages the etcd client connections.
 type Registry struct {
 	clusters map[string]*cluster
 	lock     sync.Mutex
 }
 
+// GetRegistry returns a global Registry.
 func GetRegistry() *Registry {
-	return &registryInstance
+	return &registry
 }
 
-func (r *Registry) getCluster(endpoints []string) *cluster {
+// GetConn returns an etcd client connection associated with given endpoints.
+func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
+	c, _ := r.getCluster(endpoints)
+	return c.getClient()
+}
+
+// Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
+func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
+	c, exists := r.getCluster(endpoints)
+	// if exists, the existing values should be updated to the listener.
+	if exists {
+		kvs := c.getCurrent(key)
+		for _, kv := range kvs {
+			l.OnAdd(kv)
+		}
+	}
+
+	return c.monitor(key, l)
+}
+
+func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 	clusterKey := getClusterKey(endpoints)
 	r.lock.Lock()
 	defer r.lock.Unlock()
-	c, ok := r.clusters[clusterKey]
-	if !ok {
+	c, exists = r.clusters[clusterKey]
+	if !exists {
 		c = newCluster(endpoints)
 		r.clusters[clusterKey] = c
 	}
 
-	return c
-}
-
-func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
-	return r.getCluster(endpoints).getClient()
-}
-
-func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
-	return r.getCluster(endpoints).monitor(key, l)
+	return
 }
 
 type cluster struct {
@@ -88,6 +102,21 @@ func (c *cluster) getClient() (EtcdClient, error) {
 	}
 
 	return val.(EtcdClient), nil
+}
+
+func (c *cluster) getCurrent(key string) []KV {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	var kvs []KV
+	for k, v := range c.values[key] {
+		kvs = append(kvs, KV{
+			Key: k,
+			Val: v,
+		})
+	}
+
+	return kvs
 }
 
 func (c *cluster) handleChanges(key string, kvs []KV) {
@@ -193,14 +222,12 @@ func (c *cluster) load(cli EtcdClient, key string) {
 	}
 
 	var kvs []KV
-	c.lock.Lock()
 	for _, ev := range resp.Kvs {
 		kvs = append(kvs, KV{
 			Key: string(ev.Key),
 			Val: string(ev.Value),
 		})
 	}
-	c.lock.Unlock()
 
 	c.handleChanges(key, kvs)
 }
@@ -256,26 +283,34 @@ func (c *cluster) reload(cli EtcdClient) {
 }
 
 func (c *cluster) watch(cli EtcdClient, key string) {
+	for {
+		if c.watchStream(cli, key) {
+			return
+		}
+	}
+}
+
+func (c *cluster) watchStream(cli EtcdClient, key string) bool {
 	rch := cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
 	for {
 		select {
 		case wresp, ok := <-rch:
 			if !ok {
 				logx.Error("etcd monitor chan has been closed")
-				return
+				return false
 			}
 			if wresp.Canceled {
-				logx.Error("etcd monitor chan has been canceled")
-				return
+				logx.Errorf("etcd monitor chan has been canceled, error: %v", wresp.Err())
+				return false
 			}
 			if wresp.Err() != nil {
 				logx.Error(fmt.Sprintf("etcd monitor chan error: %v", wresp.Err()))
-				return
+				return false
 			}
 
 			c.handleWatchEvents(key, wresp.Events)
 		case <-c.done:
-			return
+			return true
 		}
 	}
 }
@@ -288,15 +323,22 @@ func (c *cluster) watchConnState(cli EtcdClient) {
 	watcher.watch(cli.ActiveConnection())
 }
 
+// DialClient dials an etcd cluster with given endpoints.
 func DialClient(endpoints []string) (EtcdClient, error) {
-	return clientv3.New(clientv3.Config{
+	cfg := clientv3.Config{
 		Endpoints:            endpoints,
 		AutoSyncInterval:     autoSyncInterval,
 		DialTimeout:          DialTimeout,
 		DialKeepAliveTime:    dialKeepAliveTime,
 		DialKeepAliveTimeout: DialTimeout,
 		RejectOldCluster:     true,
-	})
+	}
+	if account, ok := GetAccount(endpoints); ok {
+		cfg.Username = account.User
+		cfg.Password = account.Pass
+	}
+
+	return clientv3.New(cfg)
 }
 
 func getClusterKey(endpoints []string) string {

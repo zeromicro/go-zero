@@ -4,9 +4,11 @@ import (
 	"github.com/tal-tech/go-zero/core/discov"
 	"github.com/tal-tech/go-zero/core/service"
 	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/tal-tech/go-zero/zrpc/resolver"
 )
 
 type (
+	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
 		service.ServiceConf
 		ListenOn      string
@@ -14,21 +16,24 @@ type (
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
-		// pending forever is not allowed
-		// never set it to 0, if zero, the underlying will set to 2s automatically
+		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
 	}
 
+	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
 		Etcd      discov.EtcdConf `json:",optional"`
-		Endpoints []string        `json:",optional=!Etcd"`
+		Endpoints []string        `json:",optional"`
+		Target    string          `json:",optional"`
 		App       string          `json:",optional"`
 		Token     string          `json:",optional"`
-		Timeout   int64           `json:",optional"`
+		NonBlock  bool            `json:",optional"`
+		Timeout   int64           `json:",default=2000"`
 	}
 )
 
+// NewDirectClientConf returns a RpcClientConf.
 func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Endpoints: endpoints,
@@ -37,6 +42,7 @@ func NewDirectClientConf(endpoints []string, app, token string) RpcClientConf {
 	}
 }
 
+// NewEtcdClientConf returns a RpcClientConf.
 func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	return RpcClientConf{
 		Etcd: discov.EtcdConf{
@@ -48,20 +54,40 @@ func NewEtcdClientConf(hosts []string, key, app, token string) RpcClientConf {
 	}
 }
 
+// HasEtcd checks if there is etcd settings in config.
 func (sc RpcServerConf) HasEtcd() bool {
 	return len(sc.Etcd.Hosts) > 0 && len(sc.Etcd.Key) > 0
 }
 
+// Validate validates the config.
 func (sc RpcServerConf) Validate() error {
-	if sc.Auth {
-		if err := sc.Redis.Validate(); err != nil {
-			return err
-		}
+	if !sc.Auth {
+		return nil
 	}
 
-	return nil
+	return sc.Redis.Validate()
 }
 
+// BuildTarget builds the rpc target from the given config.
+func (cc RpcClientConf) BuildTarget() (string, error) {
+	if len(cc.Endpoints) > 0 {
+		return resolver.BuildDirectTarget(cc.Endpoints), nil
+	} else if len(cc.Target) > 0 {
+		return cc.Target, nil
+	}
+
+	if err := cc.Etcd.Validate(); err != nil {
+		return "", err
+	}
+
+	if cc.Etcd.HasAccount() {
+		discov.RegisterAccount(cc.Etcd.Hosts, cc.Etcd.User, cc.Etcd.Pass)
+	}
+
+	return resolver.BuildDiscovTarget(cc.Etcd.Hosts, cc.Etcd.Key), nil
+}
+
+// HasCredential checks if there is a credential in config.
 func (cc RpcClientConf) HasCredential() bool {
 	return len(cc.App) > 0 && len(cc.Token) > 0
 }

@@ -26,10 +26,13 @@ const (
 )
 
 var (
+	// ErrServiceOverloaded is returned by Shedder.Allow when the service is overloaded.
 	ErrServiceOverloaded = errors.New("service overloaded")
 
 	// default to be enabled
 	enabled = syncx.ForAtomicBool(true)
+	// default to be enabled
+	logEnabled = syncx.ForAtomicBool(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -37,15 +40,22 @@ var (
 )
 
 type (
+	// A Promise interface is returned by Shedder.Allow to let callers tell
+	// whether the processing request is successful or not.
 	Promise interface {
+		// Pass lets the caller tell that the call is successful.
 		Pass()
+		// Fail lets the caller tell that the call is failed.
 		Fail()
 	}
 
+	// Shedder is the interface that wraps the Allow method.
 	Shedder interface {
+		// Allow returns the Promise if allowed, otherwise ErrServiceOverloaded.
 		Allow() (Promise, error)
 	}
 
+	// ShedderOption lets caller customize the Shedder.
 	ShedderOption func(opts *shedderOptions)
 
 	shedderOptions struct {
@@ -67,10 +77,18 @@ type (
 	}
 )
 
+// Disable lets callers disable load shedding.
 func Disable() {
 	enabled.Set(false)
 }
 
+// DisableLog disables the stat logs for load shedding.
+func DisableLog() {
+	logEnabled.Set(false)
+}
+
+// NewAdaptiveShedder returns an adaptive shedder.
+// opts can be used to customize the Shedder.
 func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 	if !enabled.True() {
 		return newNopShedder()
@@ -97,6 +115,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 	}
 }
 
+// Allow implements Shedder.Allow.
 func (as *adaptiveShedder) Allow() (Promise, error) {
 	if as.shouldDrop() {
 		as.dropTime.Set(timex.Now())
@@ -156,7 +175,7 @@ func (as *adaptiveShedder) maxPass() int64 {
 }
 
 func (as *adaptiveShedder) minRt() float64 {
-	var result = defaultMinRt
+	result := defaultMinRt
 
 	as.rtCounter.Reduce(func(b *collection.Bucket) {
 		if b.Count <= 0 {
@@ -213,18 +232,21 @@ func (as *adaptiveShedder) systemOverloaded() bool {
 	return systemOverloadChecker(as.cpuThreshold)
 }
 
+// WithBuckets customizes the Shedder with given number of buckets.
 func WithBuckets(buckets int) ShedderOption {
 	return func(opts *shedderOptions) {
 		opts.buckets = buckets
 	}
 }
 
+// WithCpuThreshold customizes the Shedder with given cpu threshold.
 func WithCpuThreshold(threshold int64) ShedderOption {
 	return func(opts *shedderOptions) {
 		opts.cpuThreshold = threshold
 	}
 }
 
+// WithWindow customizes the Shedder with given
 func WithWindow(window time.Duration) ShedderOption {
 	return func(opts *shedderOptions) {
 		opts.window = window

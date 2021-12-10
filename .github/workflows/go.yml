@@ -15,7 +15,7 @@ jobs:
     - name: Set up Go 1.x
       uses: actions/setup-go@v2
       with:
-        go-version: ^1.13
+        go-version: ^1.14
       id: go
 
     - name: Check out code into the Go module directory
@@ -25,10 +25,14 @@ jobs:
       run: |
         go get -v -t -d ./...
 
+    - name: Lint
+      run: |
+        go vet -stdmethods=false $(go list ./...)
+        go install mvdan.cc/gofumpt@latest
+        test -z "$(gofumpt -s -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
+
     - name: Test
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
     - name: Codecov
-      uses: codecov/codecov-action@v1.0.6
-      with:
-        token: ${{secrets.CODECOV_TOKEN}}
+      uses: codecov/codecov-action@v2

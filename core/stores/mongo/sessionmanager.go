@@ -57,16 +57,14 @@ func (cs *concurrentSession) putSession(session *mgo.Session) {
 }
 
 func (cs *concurrentSession) takeSession(opts ...Option) (*mgo.Session, error) {
-	o := &options{
-		timeout: defaultTimeout,
-	}
+	o := defaultOptions()
 	for _, opt := range opts {
 		opt(o)
 	}
 
 	if err := cs.limit.Borrow(o.timeout); err != nil {
 		return nil, err
-	} else {
-		return cs.Copy(), nil
 	}
+
+	return cs.Copy(), nil
 }

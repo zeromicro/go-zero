@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/utils/io"
 )
 
 func TestUnmarshalYamlBytes(t *testing.T) {
@@ -16,6 +17,22 @@ func TestUnmarshalYamlBytes(t *testing.T) {
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, "liao", c.Name)
+}
+
+func TestUnmarshalYamlBytesErrorInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(`liao`)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
+}
+
+func TestUnmarshalYamlBytesEmptyInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(``)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
 
 func TestUnmarshalYamlBytesOptional(t *testing.T) {
@@ -502,49 +519,49 @@ func TestUnmarshalYamlBytesMap(t *testing.T) {
 func TestUnmarshalYamlBytesMapStruct(t *testing.T) {
 	var c struct {
 		Persons map[string]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1
+    ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 	assert.Equal(t, "kevin", c.Persons["first"].Name)
 }
 
 func TestUnmarshalYamlBytesMapStructPtr(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1
+    ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 	assert.Equal(t, "kevin", c.Persons["first"].Name)
 }
 
 func TestUnmarshalYamlBytesMapStructMissingPartial(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1`)
+    ID: 1`)
 
 	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
@@ -552,41 +569,41 @@ func TestUnmarshalYamlBytesMapStructMissingPartial(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructOptional(t *testing.T) {
 	var c struct {
 		Persons map[string]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-    Id: 1`)
+    ID: 1`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"].Id)
+	assert.Equal(t, 1, c.Persons["first"].ID)
 }
 
 func TestUnmarshalYamlBytesMapStructSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1
+  - ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 	assert.Equal(t, "kevin", c.Persons["first"][0].Name)
 }
 
 func TestUnmarshalYamlBytesMapEmptyStructSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
@@ -601,25 +618,25 @@ func TestUnmarshalYamlBytesMapEmptyStructSlice(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1
+  - ID: 1
     name: kevin`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 	assert.Equal(t, "kevin", c.Persons["first"][0].Name)
 }
 
 func TestUnmarshalYamlBytesMapEmptyStructPtrSlice(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
@@ -634,13 +651,13 @@ func TestUnmarshalYamlBytesMapEmptyStructPtrSlice(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSliceMissingPartial(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1`)
+  - ID: 1`)
 
 	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
@@ -648,17 +665,17 @@ func TestUnmarshalYamlBytesMapStructPtrSliceMissingPartial(t *testing.T) {
 func TestUnmarshalYamlBytesMapStructPtrSliceOptional(t *testing.T) {
 	var c struct {
 		Persons map[string][]*struct {
-			Id   int
+			ID   int
 			Name string `json:"name,optional"`
 		}
 	}
 	content := []byte(`Persons:
   first:
-  - Id: 1`)
+  - ID: 1`)
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, 1, len(c.Persons))
-	assert.Equal(t, 1, c.Persons["first"][0].Id)
+	assert.Equal(t, 1, c.Persons["first"][0].ID)
 }
 
 func TestUnmarshalYamlStructOptional(t *testing.T) {
@@ -917,4 +934,83 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 
 	err := UnmarshalYamlReader(reader, &v)
 	assert.NotNil(t, err)
+}
+
+func TestUnmarshalYamlBadReader(t *testing.T) {
+	var v struct {
+		Any string
+	}
+
+	err := UnmarshalYamlReader(new(badReader), &v)
+	assert.NotNil(t, err)
+}
+
+func TestUnmarshalYamlMapBool(t *testing.T) {
+	text := `machine:
+  node1: true
+  node2: true
+  node3: true
+`
+	var v struct {
+		Machine map[string]bool `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.True(t, v.Machine["node1"])
+	assert.True(t, v.Machine["node2"])
+	assert.True(t, v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapInt(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]int `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, 1, v.Machine["node1"])
+	assert.Equal(t, 2, v.Machine["node2"])
+	assert.Equal(t, 3, v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapByte(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]byte `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, byte(1), v.Machine["node1"])
+	assert.Equal(t, byte(2), v.Machine["node2"])
+	assert.Equal(t, byte(3), v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapRune(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]rune `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, rune(1), v.Machine["node1"])
+	assert.Equal(t, rune(2), v.Machine["node2"])
+	assert.Equal(t, rune(3), v.Machine["node3"])
+}
+
+type badReader struct{}
+
+func (b *badReader) Read(p []byte) (n int, err error) {
+	return 0, io.ErrLimitReached
 }

@@ -2,7 +2,6 @@ package breaker
 
 import (
 	"math"
-	"sync/atomic"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/collection"
@@ -21,7 +20,6 @@ const (
 // see Client-Side Throttling section in https://landing.google.com/sre/sre-book/chapters/handling-overload/
 type googleBreaker struct {
 	k     float64
-	state int32
 	stat  *collection.RollingWindow
 	proba *mathx.Proba
 }
@@ -32,7 +30,6 @@ func newGoogleBreaker() *googleBreaker {
 	return &googleBreaker{
 		stat:  st,
 		k:     k,
-		state: StateClosed,
 		proba: mathx.NewProba(),
 	}
 }
@@ -43,15 +40,9 @@ func (b *googleBreaker) accept() error {
 	// https://landing.google.com/sre/sre-book/chapters/handling-overload/#eq2101
 	dropRatio := math.Max(0, (float64(total-protection)-weightedAccepts)/float64(total+1))
 	if dropRatio <= 0 {
-		if atomic.LoadInt32(&b.state) == StateOpen {
-			atomic.CompareAndSwapInt32(&b.state, StateOpen, StateClosed)
-		}
 		return nil
 	}
 
-	if atomic.LoadInt32(&b.state) == StateClosed {
-		atomic.CompareAndSwapInt32(&b.state, StateClosed, StateOpen)
-	}
 	if b.proba.TrueOnProba(dropRatio) {
 		return ErrServiceUnavailable
 	}
@@ -73,9 +64,9 @@ func (b *googleBreaker) doReq(req func() error, fallback func(err error) error, 
 	if err := b.accept(); err != nil {
 		if fallback != nil {
 			return fallback(err)
-		} else {
-			return err
 		}
+
+		return err
 	}
 
 	defer func() {
@@ -103,7 +94,7 @@ func (b *googleBreaker) markFailure() {
 	b.stat.Add(0)
 }
 
-func (b *googleBreaker) history() (accepts int64, total int64) {
+func (b *googleBreaker) history() (accepts, total int64) {
 	b.stat.Reduce(func(b *collection.Bucket) {
 		accepts += int64(b.Sum)
 		total += b.Count

@@ -2,26 +2,24 @@ package zrpc
 
 import (
 	"log"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/load"
 	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/netx"
 	"github.com/tal-tech/go-zero/core/stat"
 	"github.com/tal-tech/go-zero/zrpc/internal"
 	"github.com/tal-tech/go-zero/zrpc/internal/auth"
 	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
+	"google.golang.org/grpc"
 )
 
-const envPodIp = "POD_IP"
-
+// A RpcServer is a rpc server.
 type RpcServer struct {
 	server   internal.Server
 	register internal.RegisterFn
 }
 
+// MustNewServer returns a RpcSever, exits on any error.
 func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
 	if err != nil {
@@ -31,6 +29,7 @@ func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	return server
 }
 
+// NewServer returns a RpcServer.
 func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error) {
 	var err error
 	if err = c.Validate(); err != nil {
@@ -39,14 +38,17 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
+	serverOptions := []internal.ServerOption{
+		internal.WithMetrics(metrics),
+	}
+
 	if c.HasEtcd() {
-		listenOn := figureOutListenOn(c.ListenOn)
-		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, listenOn, internal.WithMetrics(metrics))
+		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, internal.WithMetrics(metrics))
+		server = internal.NewRpcServer(c.ListenOn, serverOptions...)
 	}
 
 	server.SetName(c.Name)
@@ -65,6 +67,24 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	return rpcServer, nil
 }
 
+// AddOptions adds given options.
+func (rs *RpcServer) AddOptions(options ...grpc.ServerOption) {
+	rs.server.AddOptions(options...)
+}
+
+// AddStreamInterceptors adds given stream interceptors.
+func (rs *RpcServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
+	rs.server.AddStreamInterceptors(interceptors...)
+}
+
+// AddUnaryInterceptors adds given unary interceptors.
+func (rs *RpcServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInterceptor) {
+	rs.server.AddUnaryInterceptors(interceptors...)
+}
+
+// Start starts the RpcServer.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (rs *RpcServer) Start() {
 	if err := rs.server.Start(rs.register); err != nil {
 		logx.Error(err)
@@ -72,30 +92,14 @@ func (rs *RpcServer) Start() {
 	}
 }
 
+// Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
 	logx.Close()
 }
 
-func figureOutListenOn(listenOn string) string {
-	fields := strings.Split(listenOn, ":")
-	if len(fields) == 0 {
-		return listenOn
-	}
-
-	host := fields[0]
-	if len(host) > 0 && host != "0.0.0.0" {
-		return listenOn
-	}
-
-	ip := os.Getenv(envPodIp)
-	if len(ip) == 0 {
-		ip = netx.InternalIp()
-	}
-	if len(ip) == 0 {
-		return listenOn
-	} else {
-		return strings.Join(append([]string{ip}, fields[1:]...), ":")
-	}
+// SetServerSlowThreshold sets the slow threshold on server side.
+func SetServerSlowThreshold(threshold time.Duration) {
+	serverinterceptors.SetSlowThreshold(threshold)
 }
 
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
@@ -108,8 +112,6 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 		server.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
 			time.Duration(c.Timeout) * time.Millisecond))
 	}
-
-	server.AddUnaryInterceptors(serverinterceptors.UnaryTracingInterceptor(c.Name))
 
 	if c.Auth {
 		authenticator, err := auth.NewAuthenticator(c.Redis.NewRedis(), c.Redis.Key, c.StrictControl)

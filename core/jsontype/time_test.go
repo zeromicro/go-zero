@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -105,4 +106,21 @@ func TestMilliTime_UnmarshalJSON(t *testing.T) {
 			assert.Equal(t, s, string(s1))
 		})
 	}
+}
+
+func TestUnmarshalWithError(t *testing.T) {
+	var mt MilliTime
+	assert.NotNil(t, mt.UnmarshalJSON([]byte("hello")))
+}
+
+func TestSetBSON(t *testing.T) {
+	data, err := bson.Marshal(time.Now())
+	assert.Nil(t, err)
+
+	var raw bson.Raw
+	assert.Nil(t, bson.Unmarshal(data, &raw))
+
+	var mt MilliTime
+	assert.Nil(t, mt.SetBSON(raw))
+	assert.NotNil(t, mt.SetBSON(bson.Raw{}))
 }

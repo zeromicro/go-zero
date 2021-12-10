@@ -67,7 +67,3 @@ func TestSignalNoWait(t *testing.T) {
 func sleep(millisecond int) {
 	time.Sleep(time.Duration(millisecond) * time.Millisecond)
 }
-
-func currentTimeMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}

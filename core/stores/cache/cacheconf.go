@@ -1,5 +1,4 @@
 package cache
 
-import "github.com/tal-tech/go-zero/core/stores/internal"
-
-type CacheConf = internal.ClusterConf
+// CacheConf is an alias of ClusterConf.
+type CacheConf = ClusterConf

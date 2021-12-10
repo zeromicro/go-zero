@@ -594,6 +594,31 @@ func TestTimingWheel_ElapsedAndSetThenMove(t *testing.T) {
 	}
 }
 
+func TestMoveAndRemoveTask(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	tick := func(v int) {
+		for i := 0; i < v; i++ {
+			ticker.Tick()
+		}
+	}
+	var keys []int
+	tw, _ := newTimingWheelWithClock(testStep, 10, func(k, v interface{}) {
+		assert.Equal(t, "any", k)
+		assert.Equal(t, 3, v.(int))
+		keys = append(keys, v.(int))
+		ticker.Done()
+	}, ticker)
+	defer tw.Stop()
+	tw.SetTimer("any", 3, testStep*8)
+	tick(6)
+	tw.MoveTimer("any", testStep*7)
+	tick(3)
+	tw.RemoveTimer("any")
+	tick(30)
+	time.Sleep(time.Millisecond)
+	assert.Equal(t, 0, len(keys))
+}
+
 func BenchmarkTimingWheel(b *testing.B) {
 	b.ReportAllocs()
 

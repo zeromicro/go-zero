@@ -9,26 +9,30 @@ import (
 )
 
 type (
-	subOptions struct {
-		exclusive bool
-	}
+	// SubOption defines the method to customize a Subscriber.
+	SubOption func(sub *Subscriber)
 
-	SubOption func(opts *subOptions)
-
+	// A Subscriber is used to subscribe the given key on a etcd cluster.
 	Subscriber struct {
-		items *container
+		endpoints []string
+		exclusive bool
+		items     *container
 	}
 )
 
+// NewSubscriber returns a Subscriber.
+// endpoints is the hosts of the etcd cluster.
+// key is the key to subscribe.
+// opts are used to customize the Subscriber.
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
-	var subOpts subOptions
-	for _, opt := range opts {
-		opt(&subOpts)
-	}
-
 	sub := &Subscriber{
-		items: newContainer(subOpts.exclusive),
+		endpoints: endpoints,
 	}
+	for _, opt := range opts {
+		opt(sub)
+	}
+	sub.items = newContainer(sub.exclusive)
+
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items); err != nil {
 		return nil, err
 	}
@@ -36,19 +40,27 @@ func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscrib
 	return sub, nil
 }
 
+// AddListener adds listener to s.
 func (s *Subscriber) AddListener(listener func()) {
 	s.items.addListener(listener)
 }
 
+// Values returns all the subscription values.
 func (s *Subscriber) Values() []string {
 	return s.items.getValues()
 }
 
-// exclusive means that key value can only be 1:1,
+// Exclusive means that key value can only be 1:1,
 // which means later added value will remove the keys associated with the same value previously.
 func Exclusive() SubOption {
-	return func(opts *subOptions) {
-		opts.exclusive = true
+	return func(sub *Subscriber) {
+		sub.exclusive = true
+	}
+}
+
+func WithSubEtcdAccount(user, pass string) SubOption {
+	return func(sub *Subscriber) {
+		internal.AddAccount(sub.endpoints, user, pass)
 	}
 }
 
@@ -100,9 +112,9 @@ func (c *container) addKv(key, value string) ([]string, bool) {
 
 	if early {
 		return previous, true
-	} else {
-		return nil, false
 	}
+
+	return nil, false
 }
 
 func (c *container) addListener(listener func()) {
