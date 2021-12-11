@@ -76,7 +76,8 @@ var commonMysqlDataTypeMap2 = map[string]string{
 	// string
 	"char":       "string",
 	"varchar":    "string",
-	"binary":     "string",
+	"binary":     "string",	
+	"bytea":      "string",
 	"varbinary":  "string",
 	"tinytext":   "string",
 	"text":       "string",
