@@ -109,7 +109,7 @@ func (h *ConsistentHash) Get(v interface{}) (interface{}, bool) {
 	hash := h.hashFunc([]byte(repr(v)))
 	index := sort.Search(len(h.keys), func(i int) bool {
 		return h.keys[i] >= hash
-	}) % len(h.keys)
+	})
 
 	nodes := h.ring[h.keys[index]]
 	switch len(nodes) {
