@@ -94,7 +94,7 @@ func cleanMysql(dsn string) (err error) {
 	var dbs []string
 	for rows.Next() {
 		var name string
-		rows.Scan(&name)
+		_ = rows.Scan(&name)
 		dbs = append(dbs, name)
 	}
 	dbs = businessDbs(dbs)

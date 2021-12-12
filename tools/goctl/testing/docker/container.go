@@ -3,7 +3,6 @@ package docker
 import (
 	"bufio"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -35,7 +34,7 @@ func newContainer(cli *client.Client, name string, imgCfg *ImageCfg, dir string)
 		for _, p := range imgCfg.Ports {
 			arr := strings.Split(p, ":")
 			if len(arr) != 2 {
-				return nil, errors.New(fmt.Sprintf("wrong port: %v", p))
+				return nil, fmt.Errorf("wrong port: %v", p)
 			}
 			port[nat.Port(arr[1]+"/tcp")] = []nat.PortBinding{{
 				HostIP:   "127.0.0.1",
@@ -48,7 +47,7 @@ func newContainer(cli *client.Client, name string, imgCfg *ImageCfg, dir string)
 	for _, m := range mounts {
 		as := strings.Split(m, ":")
 		if len(as) != 2 {
-			return nil, errors.New(fmt.Sprintf("wrong volumn: %v", m))
+			return nil, fmt.Errorf("wrong volumn: %v", m)
 		}
 		path := filepath.Join(dir, as[0])
 		ms = append(ms, mount.Mount{
@@ -82,16 +81,6 @@ func newContainer(cli *client.Client, name string, imgCfg *ImageCfg, dir string)
 
 func (ct *container) start(c context.Context) error {
 	return ct.cli.ContainerStart(c, ct.name, types.ContainerStartOptions{})
-}
-
-func (ct *container) logs(c context.Context, follow bool) (io.ReadCloser, error) {
-	return ct.cli.ContainerLogs(c, ct.name, types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-		Follow:     follow,
-		Timestamps: true,
-		Details:    true,
-	})
 }
 
 func (ct *container) exec(c context.Context, cmd []string) error {

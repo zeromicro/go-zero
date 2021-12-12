@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -119,7 +118,7 @@ func (c *compose) runHooks() error {
 		for _, hook := range ct.hooks {
 			if len(hook.Custom) > 0 {
 				if hooks[hook.Custom] == nil {
-					return errors.New(fmt.Sprintf("can't find custom hook: %s", hook.Custom))
+					return fmt.Errorf("can't find custom hook: %s", hook.Custom)
 				}
 				fmt.Printf("\033[1;31;40m\nrun custom hook %s\033[0m\n", hook.Custom)
 				if err := hooks[hook.Custom](ct); err != nil {
