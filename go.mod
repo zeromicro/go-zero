@@ -6,7 +6,10 @@ require (
 	github.com/ClickHouse/clickhouse-go v1.5.1
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.16.0
+	github.com/containerd/containerd v1.5.8 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/docker/docker v20.10.11+incompatible // indirect
+	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/emicklei/proto v1.9.1
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/fatih/structtag v1.2.0
@@ -22,6 +25,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/openzipkin/zipkin-go v0.3.0 // indirect
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spaolacci/murmur3 v1.1.0

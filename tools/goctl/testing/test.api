@@ -1,0 +1,16 @@
+ type (
+ 	testReq {
+ 		Name string `form:"name"`
+ 	}
+
+ 	testResp {
+ 		Name string `json:"name"`
+ 	}
+ )
+
+ service test-api {
+ 	@server(
+ 		handler: TestHandler
+ 	)
+ 	get /test(testReq) returns(testResp)
+ }

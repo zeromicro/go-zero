@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package remote;
+
+option go_package = "remote";
+
+message Request {
+  string username = 1;
+  string password = 2;
+}
+
+message Response {
+  string name = 1;
+  string gender = 2;
+}
+
+service User {
+  rpc Login(Request)returns(Response);
+}

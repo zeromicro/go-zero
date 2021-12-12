@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  mysql:
+    image: mysql:5.6
+    ports:
+      - 13306:3306
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - TZ=Asia/Shanghai
+    command: [
+      '--character-set-server=utf8',
+      '--collation-server=utf8_unicode_ci'
+    ]
+    volumes:
+      - .:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--protocol=tcp"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+      start_period: 5s
+    hooks:
+      - custom: refresh_mysql
+  goctl:
+    image: goctl
+    hooks:
+      - cmd: ["./goctl", "-v"]
+      - cmd: ["./goctl", "--help"]
+      - cmd: ["./goctl", "api", "go", "-api", "./test/test.api", "-dir", "./test", "-style", "gozero"]
+      - cmd: ["./goctl", "rpc", "new", "new-rpc"]
+      - cmd: ["./goctl", "rpc", "proto", "-src", "./test-rpc/test.proto", "-dir", "./test-rpc"]
+      - cmd: ["./goctl", "model", "mysql", "datasource", "-url=root:@tcp(host.docker.internal:13306)/user", "-table=user", "-dir=./model"]
