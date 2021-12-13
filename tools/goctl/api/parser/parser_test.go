@@ -7,7 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 )
 
-var testApi = "// syntax doc\nsyntax = \"v1\" // syntax comment\n\n// type doc\ntype Request {\n\tName string `path:\"name,options=you|me\"`\n}\n\ntype Response {\n\tMessage string `json:\"message\"`\n}\n\n// service doc\nservice greet-api {\n\t// handler doc\n\t@handler GreetHandler // handler comment\n\tget /from/:name(Request) returns (Response);\n}"
+var testApi = "// syntax doc\nsyntax = \"v1\" // syntax comment\n\n// type doc\ntype Request {\n\tName string `path:\"name,options=you|me\"`\n}\n\ntype Response {\n\tMessage string `json:\"message\"`\n}\n\ntype Welcome {\n\tMessage string `json:\"message\"`\n}\n\n// service doc\nservice greet-api {\n\t// handler doc\n\t@handler GreetHandler // handler comment\n\tget /from/:name(Request) returns (Response);\n\n\t@handler WelcomeHandler\n\tget / returns (Welcome)\n}"
 
 func TestParseContent(t *testing.T) {
 	sp, err := ParseContent(testApi)
@@ -23,6 +23,10 @@ func TestParseContent(t *testing.T) {
 		if e.Handler == "GreetHandler" {
 			assert.Equal(t, spec.Doc{"// handler doc"}, e.HandlerDoc)
 			assert.Equal(t, spec.Doc{"// handler comment"}, e.HandlerComment)
+		}
+		if e.Handler == "WelcomeHandler" {
+			assert.Equal(t, "/", e.Path)
+			assert.Equal(t, "Welcome", e.ResponseType.Name())
 		}
 	}
 }

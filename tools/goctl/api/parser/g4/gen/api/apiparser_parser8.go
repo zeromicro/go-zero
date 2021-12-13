@@ -496,6 +496,7 @@ func (p *ApiParserParser) ServiceName() (localctx IServiceNameContext) {
 	p.EnterOuterAlt(localctx, 1)
 	p.SetState(322)
 	p.GetErrorHandler().Sync(p)
+	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
@@ -612,64 +613,72 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 39, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
-		p.SetState(341)
+		{
+			p.SetState(326)
+			p.Match(ApiParserParserT__10)
+		}
+
+	case 2:
+		p.EnterOuterAlt(localctx, 2)
+		p.SetState(342)
 		p.GetErrorHandler().Sync(p)
+		_la = p.GetTokenStream().LA(1)
 
 		for ok := true; ok; ok = _la == ApiParserParserT__10 || _la == ApiParserParserT__11 {
-			p.SetState(341)
+			p.SetState(342)
 			p.GetErrorHandler().Sync(p)
 
 			switch p.GetTokenStream().LA(1) {
 			case ApiParserParserT__10:
 				{
-					p.SetState(326)
+					p.SetState(327)
 					p.Match(ApiParserParserT__10)
 				}
 
 				{
-					p.SetState(327)
+					p.SetState(328)
 					p.Match(ApiParserParserID)
 				}
-				p.SetState(332)
+				p.SetState(333)
 				p.GetErrorHandler().Sync(p)
 				_la = p.GetTokenStream().LA(1)
 
 				for _la == ApiParserParserT__9 {
 					{
-						p.SetState(328)
+						p.SetState(329)
 						p.Match(ApiParserParserT__9)
 					}
 					{
-						p.SetState(329)
+						p.SetState(330)
 						p.Match(ApiParserParserID)
 					}
 
-					p.SetState(334)
+					p.SetState(335)
 					p.GetErrorHandler().Sync(p)
 					_la = p.GetTokenStream().LA(1)
 				}
 
 			case ApiParserParserT__11:
 				{
-					p.SetState(335)
+					p.SetState(336)
 					p.Match(ApiParserParserT__11)
 				}
 
 				{
-					p.SetState(336)
+					p.SetState(337)
 					p.Match(ApiParserParserID)
 				}
-				p.SetState(339)
+				p.SetState(340)
 				p.GetErrorHandler().Sync(p)
 				_la = p.GetTokenStream().LA(1)
 
 				if _la == ApiParserParserT__9 {
 					{
-						p.SetState(337)
+						p.SetState(338)
 						p.Match(ApiParserParserT__9)
 					}
 					{
-						p.SetState(338)
+						p.SetState(339)
 						p.Match(ApiParserParserID)
 					}
 
@@ -679,16 +688,9 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 				panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
 			}
 
-			p.SetState(343)
+			p.SetState(344)
 			p.GetErrorHandler().Sync(p)
 			_la = p.GetTokenStream().LA(1)
-		}
-
-	case 2:
-		p.EnterOuterAlt(localctx, 2)
-		{
-			p.SetState(345)
-			p.Match(ApiParserParserT__10)
 		}
 
 	}

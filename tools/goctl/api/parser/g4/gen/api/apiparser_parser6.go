@@ -398,6 +398,7 @@ func (p *ApiParserParser) AtServer() (localctx IAtServerContext) {
 	}
 	p.SetState(245)
 	p.GetErrorHandler().Sync(p)
+	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
