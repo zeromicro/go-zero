@@ -345,8 +345,6 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 	case ApiParserParserID:
 		p.SetState(277)
 		p.GetErrorHandler().Sync(p)
-		_la = p.GetTokenStream().LA(1)
-
 
 		for ok := true; ok; ok = _la == ApiParserParserID {
 			{

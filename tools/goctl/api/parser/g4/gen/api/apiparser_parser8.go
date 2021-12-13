@@ -557,8 +557,6 @@ func (p *ApiParserParser) ServiceName() (localctx IServiceNameContext) {
 	p.EnterOuterAlt(localctx, 1)
 	p.SetState(320)
 	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
-
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
@@ -687,8 +685,6 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 		p.EnterOuterAlt(localctx, 1)
 		p.SetState(339)
 		p.GetErrorHandler().Sync(p)
-		_la = p.GetTokenStream().LA(1)
-
 
 		for ok := true; ok; ok = _la == ApiParserParserT__11 || _la == ApiParserParserT__12 {
 			p.SetState(339)
