@@ -79,8 +79,10 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 }
 
 func (l *durationLogger) write(writer io.Writer, level string, val interface{}) {
-	l.Timestamp = getTimestamp()
-	l.Level = level
-	l.Content = val
-	outputJson(writer, l)
+	outputJson(writer, &durationLogger{
+		Timestamp: getTimestamp(),
+		Level:     level,
+		Content:   val,
+		Duration:  l.Duration,
+	})
 }

@@ -77,12 +77,16 @@ func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 }
 
 func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
-	l.Timestamp = getTimestamp()
-	l.Level = level
-	l.Content = val
-	l.Trace = traceIdFromContext(l.ctx)
-	l.Span = spanIdFromContext(l.ctx)
-	outputJson(writer, l)
+	outputJson(writer, &traceLogger{
+		logEntry: logEntry{
+			Timestamp: getTimestamp(),
+			Level:     level,
+			Duration:  l.Duration,
+			Content:   val,
+		},
+		Trace: traceIdFromContext(l.ctx),
+		Span:  spanIdFromContext(l.ctx),
+	})
 }
 
 // WithContext sets ctx to log, for keeping tracing information.
