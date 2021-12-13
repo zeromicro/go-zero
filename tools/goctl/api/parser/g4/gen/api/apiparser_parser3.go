@@ -10,6 +10,7 @@ import (
 // The apiparser_parser.go file was split into multiple files because it
 // was too large and caused a possible memory overflow during goctl installation.
 
+
 // ITypeLitBodyContext is an interface to support dynamic dispatch.
 type ITypeLitBodyContext interface {
 	antlr.ParserRuleContext
@@ -76,6 +77,7 @@ func (s *TypeLitBodyContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeLitBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -85,6 +87,9 @@ func (s *TypeLitBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) TypeLitBody() (localctx ITypeLitBodyContext) {
 	localctx = NewTypeLitBodyContext(p, p.GetParserRuleContext(), p.GetState())
@@ -116,6 +121,7 @@ func (p *ApiParserParser) TypeLitBody() (localctx ITypeLitBodyContext) {
 			p.TypeStruct()
 		}
 
+
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -125,8 +131,10 @@ func (p *ApiParserParser) TypeLitBody() (localctx ITypeLitBodyContext) {
 
 	}
 
+
 	return localctx
 }
+
 
 // ITypeBlockBodyContext is an interface to support dynamic dispatch.
 type ITypeBlockBodyContext interface {
@@ -194,6 +202,7 @@ func (s *TypeBlockBodyContext) ToStringTree(ruleNames []string, recog antlr.Reco
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeBlockBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -203,6 +212,9 @@ func (s *TypeBlockBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) TypeBlockBody() (localctx ITypeBlockBodyContext) {
 	localctx = NewTypeBlockBodyContext(p, p.GetParserRuleContext(), p.GetState())
@@ -234,6 +246,7 @@ func (p *ApiParserParser) TypeBlockBody() (localctx ITypeBlockBodyContext) {
 			p.TypeBlockStruct()
 		}
 
+
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -243,8 +256,10 @@ func (p *ApiParserParser) TypeBlockBody() (localctx ITypeBlockBodyContext) {
 
 	}
 
+
 	return localctx
 }
+
 
 // ITypeStructContext is an interface to support dynamic dispatch.
 type ITypeStructContext interface {
@@ -254,28 +269,30 @@ type ITypeStructContext interface {
 	GetParser() antlr.Parser
 
 	// GetStructName returns the structName token.
-	GetStructName() antlr.Token
+	GetStructName() antlr.Token 
 
 	// GetStructToken returns the structToken token.
-	GetStructToken() antlr.Token
+	GetStructToken() antlr.Token 
 
 	// GetLbrace returns the lbrace token.
-	GetLbrace() antlr.Token
+	GetLbrace() antlr.Token 
 
 	// GetRbrace returns the rbrace token.
-	GetRbrace() antlr.Token
+	GetRbrace() antlr.Token 
+
 
 	// SetStructName sets the structName token.
-	SetStructName(antlr.Token)
+	SetStructName(antlr.Token) 
 
 	// SetStructToken sets the structToken token.
-	SetStructToken(antlr.Token)
+	SetStructToken(antlr.Token) 
 
 	// SetLbrace sets the lbrace token.
-	SetLbrace(antlr.Token)
+	SetLbrace(antlr.Token) 
 
 	// SetRbrace sets the rbrace token.
-	SetRbrace(antlr.Token)
+	SetRbrace(antlr.Token) 
+
 
 	// IsTypeStructContext differentiates from other interfaces.
 	IsTypeStructContext()
@@ -283,11 +300,11 @@ type ITypeStructContext interface {
 
 type TypeStructContext struct {
 	*antlr.BaseParserRuleContext
-	parser      antlr.Parser
-	structName  antlr.Token
+	parser antlr.Parser
+	structName antlr.Token
 	structToken antlr.Token
-	lbrace      antlr.Token
-	rbrace      antlr.Token
+	lbrace antlr.Token
+	rbrace antlr.Token
 }
 
 func NewEmptyTypeStructContext() *TypeStructContext {
@@ -320,6 +337,7 @@ func (s *TypeStructContext) GetLbrace() antlr.Token { return s.lbrace }
 
 func (s *TypeStructContext) GetRbrace() antlr.Token { return s.rbrace }
 
+
 func (s *TypeStructContext) SetStructName(v antlr.Token) { s.structName = v }
 
 func (s *TypeStructContext) SetStructToken(v antlr.Token) { s.structToken = v }
@@ -327,6 +345,7 @@ func (s *TypeStructContext) SetStructToken(v antlr.Token) { s.structToken = v }
 func (s *TypeStructContext) SetLbrace(v antlr.Token) { s.lbrace = v }
 
 func (s *TypeStructContext) SetRbrace(v antlr.Token) { s.rbrace = v }
+
 
 func (s *TypeStructContext) AllID() []antlr.TerminalNode {
 	return s.GetTokens(ApiParserParserID)
@@ -367,6 +386,7 @@ func (s *TypeStructContext) ToStringTree(ruleNames []string, recog antlr.Recogni
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -377,10 +397,14 @@ func (s *TypeStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
+
+
+
 func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 	localctx = NewTypeStructContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 28, ApiParserParserRULE_typeStruct)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -413,6 +437,7 @@ func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	if _la == ApiParserParserID {
 		{
 			p.SetState(155)
@@ -441,6 +466,7 @@ func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 				p.Field()
 			}
 
+
 		}
 		p.SetState(164)
 		p.GetErrorHandler().Sync(p)
@@ -454,8 +480,11 @@ func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 		localctx.(*TypeStructContext).rbrace = _m
 	}
 
+
+
 	return localctx
 }
+
 
 // ITypeAliasContext is an interface to support dynamic dispatch.
 type ITypeAliasContext interface {
@@ -465,16 +494,18 @@ type ITypeAliasContext interface {
 	GetParser() antlr.Parser
 
 	// GetAlias returns the alias token.
-	GetAlias() antlr.Token
+	GetAlias() antlr.Token 
 
 	// GetAssign returns the assign token.
-	GetAssign() antlr.Token
+	GetAssign() antlr.Token 
+
 
 	// SetAlias sets the alias token.
-	SetAlias(antlr.Token)
+	SetAlias(antlr.Token) 
 
 	// SetAssign sets the assign token.
-	SetAssign(antlr.Token)
+	SetAssign(antlr.Token) 
+
 
 	// IsTypeAliasContext differentiates from other interfaces.
 	IsTypeAliasContext()
@@ -483,7 +514,7 @@ type ITypeAliasContext interface {
 type TypeAliasContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	alias  antlr.Token
+	alias antlr.Token
 	assign antlr.Token
 }
 
@@ -513,9 +544,11 @@ func (s *TypeAliasContext) GetAlias() antlr.Token { return s.alias }
 
 func (s *TypeAliasContext) GetAssign() antlr.Token { return s.assign }
 
+
 func (s *TypeAliasContext) SetAlias(v antlr.Token) { s.alias = v }
 
 func (s *TypeAliasContext) SetAssign(v antlr.Token) { s.assign = v }
+
 
 func (s *TypeAliasContext) DataType() IDataTypeContext {
 	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
@@ -539,6 +572,7 @@ func (s *TypeAliasContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -549,10 +583,14 @@ func (s *TypeAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
+
+
+
 func (p *ApiParserParser) TypeAlias() (localctx ITypeAliasContext) {
 	localctx = NewTypeAliasContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 30, ApiParserParserRULE_typeAlias)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -583,6 +621,7 @@ func (p *ApiParserParser) TypeAlias() (localctx ITypeAliasContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	if _la == ApiParserParserT__0 {
 		{
 			p.SetState(169)
@@ -598,8 +637,11 @@ func (p *ApiParserParser) TypeAlias() (localctx ITypeAliasContext) {
 		p.DataType()
 	}
 
+
+
 	return localctx
 }
+
 
 // ITypeBlockStructContext is an interface to support dynamic dispatch.
 type ITypeBlockStructContext interface {
@@ -609,28 +651,30 @@ type ITypeBlockStructContext interface {
 	GetParser() antlr.Parser
 
 	// GetStructName returns the structName token.
-	GetStructName() antlr.Token
+	GetStructName() antlr.Token 
 
 	// GetStructToken returns the structToken token.
-	GetStructToken() antlr.Token
+	GetStructToken() antlr.Token 
 
 	// GetLbrace returns the lbrace token.
-	GetLbrace() antlr.Token
+	GetLbrace() antlr.Token 
 
 	// GetRbrace returns the rbrace token.
-	GetRbrace() antlr.Token
+	GetRbrace() antlr.Token 
+
 
 	// SetStructName sets the structName token.
-	SetStructName(antlr.Token)
+	SetStructName(antlr.Token) 
 
 	// SetStructToken sets the structToken token.
-	SetStructToken(antlr.Token)
+	SetStructToken(antlr.Token) 
 
 	// SetLbrace sets the lbrace token.
-	SetLbrace(antlr.Token)
+	SetLbrace(antlr.Token) 
 
 	// SetRbrace sets the rbrace token.
-	SetRbrace(antlr.Token)
+	SetRbrace(antlr.Token) 
+
 
 	// IsTypeBlockStructContext differentiates from other interfaces.
 	IsTypeBlockStructContext()

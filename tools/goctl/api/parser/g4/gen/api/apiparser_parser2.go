@@ -24,6 +24,7 @@ func (s *ImportValueContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *ImportValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -33,6 +34,9 @@ func (s *ImportValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) ImportValue() (localctx IImportValueContext) {
 	localctx = NewImportValueContext(p, p.GetParserRuleContext(), p.GetState())
@@ -61,8 +65,11 @@ func (p *ApiParserParser) ImportValue() (localctx IImportValueContext) {
 		p.Match(ApiParserParserSTRING)
 	}
 
+
+
 	return localctx
 }
+
 
 // IInfoSpecContext is an interface to support dynamic dispatch.
 type IInfoSpecContext interface {
@@ -72,22 +79,24 @@ type IInfoSpecContext interface {
 	GetParser() antlr.Parser
 
 	// GetInfoToken returns the infoToken token.
-	GetInfoToken() antlr.Token
+	GetInfoToken() antlr.Token 
 
 	// GetLp returns the lp token.
-	GetLp() antlr.Token
+	GetLp() antlr.Token 
 
 	// GetRp returns the rp token.
-	GetRp() antlr.Token
+	GetRp() antlr.Token 
+
 
 	// SetInfoToken sets the infoToken token.
-	SetInfoToken(antlr.Token)
+	SetInfoToken(antlr.Token) 
 
 	// SetLp sets the lp token.
-	SetLp(antlr.Token)
+	SetLp(antlr.Token) 
 
 	// SetRp sets the rp token.
-	SetRp(antlr.Token)
+	SetRp(antlr.Token) 
+
 
 	// IsInfoSpecContext differentiates from other interfaces.
 	IsInfoSpecContext()
@@ -95,10 +104,10 @@ type IInfoSpecContext interface {
 
 type InfoSpecContext struct {
 	*antlr.BaseParserRuleContext
-	parser    antlr.Parser
+	parser antlr.Parser
 	infoToken antlr.Token
-	lp        antlr.Token
-	rp        antlr.Token
+	lp antlr.Token
+	rp antlr.Token
 }
 
 func NewEmptyInfoSpecContext() *InfoSpecContext {
@@ -129,11 +138,13 @@ func (s *InfoSpecContext) GetLp() antlr.Token { return s.lp }
 
 func (s *InfoSpecContext) GetRp() antlr.Token { return s.rp }
 
+
 func (s *InfoSpecContext) SetInfoToken(v antlr.Token) { s.infoToken = v }
 
 func (s *InfoSpecContext) SetLp(v antlr.Token) { s.lp = v }
 
 func (s *InfoSpecContext) SetRp(v antlr.Token) { s.rp = v }
+
 
 func (s *InfoSpecContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -170,6 +181,7 @@ func (s *InfoSpecContext) ToStringTree(ruleNames []string, recog antlr.Recognize
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *InfoSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -180,10 +192,14 @@ func (s *InfoSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
+
+
+
 func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	localctx = NewInfoSpecContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 16, ApiParserParserRULE_infoSpec)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -202,7 +218,7 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p, "info")
+	match(p,"info")
 	{
 		p.SetState(117)
 
@@ -226,6 +242,7 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 			p.KvLit()
 		}
 
+
 		p.SetState(122)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
@@ -238,8 +255,11 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 		localctx.(*InfoSpecContext).rp = _m
 	}
 
+
+
 	return localctx
 }
+
 
 // ITypeSpecContext is an interface to support dynamic dispatch.
 type ITypeSpecContext interface {
@@ -307,6 +327,7 @@ func (s *TypeSpecContext) ToStringTree(ruleNames []string, recog antlr.Recognize
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -316,6 +337,9 @@ func (s *TypeSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) TypeSpec() (localctx ITypeSpecContext) {
 	localctx = NewTypeSpecContext(p, p.GetParserRuleContext(), p.GetState())
@@ -347,6 +371,7 @@ func (p *ApiParserParser) TypeSpec() (localctx ITypeSpecContext) {
 			p.TypeLit()
 		}
 
+
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -356,8 +381,10 @@ func (p *ApiParserParser) TypeSpec() (localctx ITypeSpecContext) {
 
 	}
 
+
 	return localctx
 }
+
 
 // ITypeLitContext is an interface to support dynamic dispatch.
 type ITypeLitContext interface {
@@ -367,10 +394,12 @@ type ITypeLitContext interface {
 	GetParser() antlr.Parser
 
 	// GetTypeToken returns the typeToken token.
-	GetTypeToken() antlr.Token
+	GetTypeToken() antlr.Token 
+
 
 	// SetTypeToken sets the typeToken token.
-	SetTypeToken(antlr.Token)
+	SetTypeToken(antlr.Token) 
+
 
 	// IsTypeLitContext differentiates from other interfaces.
 	IsTypeLitContext()
@@ -378,7 +407,7 @@ type ITypeLitContext interface {
 
 type TypeLitContext struct {
 	*antlr.BaseParserRuleContext
-	parser    antlr.Parser
+	parser antlr.Parser
 	typeToken antlr.Token
 }
 
@@ -406,7 +435,9 @@ func (s *TypeLitContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *TypeLitContext) GetTypeToken() antlr.Token { return s.typeToken }
 
+
 func (s *TypeLitContext) SetTypeToken(v antlr.Token) { s.typeToken = v }
+
 
 func (s *TypeLitContext) TypeLitBody() ITypeLitBodyContext {
 	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeLitBodyContext)(nil)).Elem(), 0)
@@ -430,6 +461,7 @@ func (s *TypeLitContext) ToStringTree(ruleNames []string, recog antlr.Recognizer
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -439,6 +471,9 @@ func (s *TypeLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) TypeLit() (localctx ITypeLitContext) {
 	localctx = NewTypeLitContext(p, p.GetParserRuleContext(), p.GetState())
@@ -461,7 +496,7 @@ func (p *ApiParserParser) TypeLit() (localctx ITypeLitContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p, "type")
+	match(p,"type")
 	{
 		p.SetState(131)
 
@@ -474,8 +509,11 @@ func (p *ApiParserParser) TypeLit() (localctx ITypeLitContext) {
 		p.TypeLitBody()
 	}
 
+
+
 	return localctx
 }
+
 
 // ITypeBlockContext is an interface to support dynamic dispatch.
 type ITypeBlockContext interface {
@@ -485,22 +523,24 @@ type ITypeBlockContext interface {
 	GetParser() antlr.Parser
 
 	// GetTypeToken returns the typeToken token.
-	GetTypeToken() antlr.Token
+	GetTypeToken() antlr.Token 
 
 	// GetLp returns the lp token.
-	GetLp() antlr.Token
+	GetLp() antlr.Token 
 
 	// GetRp returns the rp token.
-	GetRp() antlr.Token
+	GetRp() antlr.Token 
+
 
 	// SetTypeToken sets the typeToken token.
-	SetTypeToken(antlr.Token)
+	SetTypeToken(antlr.Token) 
 
 	// SetLp sets the lp token.
-	SetLp(antlr.Token)
+	SetLp(antlr.Token) 
 
 	// SetRp sets the rp token.
-	SetRp(antlr.Token)
+	SetRp(antlr.Token) 
+
 
 	// IsTypeBlockContext differentiates from other interfaces.
 	IsTypeBlockContext()
@@ -508,10 +548,10 @@ type ITypeBlockContext interface {
 
 type TypeBlockContext struct {
 	*antlr.BaseParserRuleContext
-	parser    antlr.Parser
+	parser antlr.Parser
 	typeToken antlr.Token
-	lp        antlr.Token
-	rp        antlr.Token
+	lp antlr.Token
+	rp antlr.Token
 }
 
 func NewEmptyTypeBlockContext() *TypeBlockContext {
@@ -542,11 +582,13 @@ func (s *TypeBlockContext) GetLp() antlr.Token { return s.lp }
 
 func (s *TypeBlockContext) GetRp() antlr.Token { return s.rp }
 
+
 func (s *TypeBlockContext) SetTypeToken(v antlr.Token) { s.typeToken = v }
 
 func (s *TypeBlockContext) SetLp(v antlr.Token) { s.lp = v }
 
 func (s *TypeBlockContext) SetRp(v antlr.Token) { s.rp = v }
+
 
 func (s *TypeBlockContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -583,6 +625,7 @@ func (s *TypeBlockContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeBlockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -593,10 +636,14 @@ func (s *TypeBlockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
+
+
+
 func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	localctx = NewTypeBlockContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 22, ApiParserParserRULE_typeBlock)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -615,7 +662,7 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p, "type")
+	match(p,"type")
 	{
 		p.SetState(135)
 
@@ -634,11 +681,13 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	for _la == ApiParserParserID {
 		{
 			p.SetState(137)
 			p.TypeBlockBody()
 		}
+
 
 		p.SetState(142)
 		p.GetErrorHandler().Sync(p)
@@ -651,6 +700,8 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 
 		localctx.(*TypeBlockContext).rp = _m
 	}
+
+
 
 	return localctx
 }

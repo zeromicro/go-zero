@@ -1,6 +1,5 @@
 package api // ApiParser
 import "github.com/zeromicro/antlr"
-
 // A complete Visitor for a parse tree produced by ApiParserParser.
 type ApiParserVisitor interface {
 	antlr.ParseTreeVisitor
@@ -115,4 +114,5 @@ type ApiParserVisitor interface {
 
 	// Visit a parse tree produced by ApiParserParser#path.
 	VisitPath(ctx *PathContext) interface{}
+
 }
