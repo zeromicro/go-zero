@@ -78,7 +78,7 @@ service A-api {
   @server(
     handler: NoResponseHandler
   )
-  get /greet/get(Request) returns
+  get /greet/get(Request)
 }
 `
 
