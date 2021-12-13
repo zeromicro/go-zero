@@ -12,11 +12,11 @@ import (
 
 type TypeBlockStructContext struct {
 	*antlr.BaseParserRuleContext
-	parser      antlr.Parser
-	structName  antlr.Token
+	parser antlr.Parser
+	structName antlr.Token
 	structToken antlr.Token
-	lbrace      antlr.Token
-	rbrace      antlr.Token
+	lbrace antlr.Token
+	rbrace antlr.Token
 }
 
 func NewEmptyTypeBlockStructContext() *TypeBlockStructContext {
@@ -49,6 +49,7 @@ func (s *TypeBlockStructContext) GetLbrace() antlr.Token { return s.lbrace }
 
 func (s *TypeBlockStructContext) GetRbrace() antlr.Token { return s.rbrace }
 
+
 func (s *TypeBlockStructContext) SetStructName(v antlr.Token) { s.structName = v }
 
 func (s *TypeBlockStructContext) SetStructToken(v antlr.Token) { s.structToken = v }
@@ -56,6 +57,7 @@ func (s *TypeBlockStructContext) SetStructToken(v antlr.Token) { s.structToken =
 func (s *TypeBlockStructContext) SetLbrace(v antlr.Token) { s.lbrace = v }
 
 func (s *TypeBlockStructContext) SetRbrace(v antlr.Token) { s.rbrace = v }
+
 
 func (s *TypeBlockStructContext) AllID() []antlr.TerminalNode {
 	return s.GetTokens(ApiParserParserID)
@@ -96,6 +98,7 @@ func (s *TypeBlockStructContext) ToStringTree(ruleNames []string, recog antlr.Re
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -106,10 +109,14 @@ func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) interfac
 	}
 }
 
+
+
+
 func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	localctx = NewTypeBlockStructContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 32, ApiParserParserRULE_typeBlockStruct)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -142,6 +149,7 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	if _la == ApiParserParserID {
 		{
 			p.SetState(176)
@@ -170,6 +178,7 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 				p.Field()
 			}
 
+
 		}
 		p.SetState(185)
 		p.GetErrorHandler().Sync(p)
@@ -183,8 +192,11 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 		localctx.(*TypeBlockStructContext).rbrace = _m
 	}
 
+
+
 	return localctx
 }
+
 
 // ITypeBlockAliasContext is an interface to support dynamic dispatch.
 type ITypeBlockAliasContext interface {
@@ -194,16 +206,18 @@ type ITypeBlockAliasContext interface {
 	GetParser() antlr.Parser
 
 	// GetAlias returns the alias token.
-	GetAlias() antlr.Token
+	GetAlias() antlr.Token 
 
 	// GetAssign returns the assign token.
-	GetAssign() antlr.Token
+	GetAssign() antlr.Token 
+
 
 	// SetAlias sets the alias token.
-	SetAlias(antlr.Token)
+	SetAlias(antlr.Token) 
 
 	// SetAssign sets the assign token.
-	SetAssign(antlr.Token)
+	SetAssign(antlr.Token) 
+
 
 	// IsTypeBlockAliasContext differentiates from other interfaces.
 	IsTypeBlockAliasContext()
@@ -212,7 +226,7 @@ type ITypeBlockAliasContext interface {
 type TypeBlockAliasContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	alias  antlr.Token
+	alias antlr.Token
 	assign antlr.Token
 }
 
@@ -242,9 +256,11 @@ func (s *TypeBlockAliasContext) GetAlias() antlr.Token { return s.alias }
 
 func (s *TypeBlockAliasContext) GetAssign() antlr.Token { return s.assign }
 
+
 func (s *TypeBlockAliasContext) SetAlias(v antlr.Token) { s.alias = v }
 
 func (s *TypeBlockAliasContext) SetAssign(v antlr.Token) { s.assign = v }
+
 
 func (s *TypeBlockAliasContext) DataType() IDataTypeContext {
 	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
@@ -268,6 +284,7 @@ func (s *TypeBlockAliasContext) ToStringTree(ruleNames []string, recog antlr.Rec
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *TypeBlockAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -278,10 +295,14 @@ func (s *TypeBlockAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface
 	}
 }
 
+
+
+
 func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	localctx = NewTypeBlockAliasContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 34, ApiParserParserRULE_typeBlockAlias)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -312,6 +333,7 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	if _la == ApiParserParserT__0 {
 		{
 			p.SetState(190)
@@ -327,8 +349,11 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 		p.DataType()
 	}
 
+
+
 	return localctx
 }
+
 
 // IFieldContext is an interface to support dynamic dispatch.
 type IFieldContext interface {
@@ -396,6 +421,7 @@ func (s *FieldContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) 
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *FieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -405,6 +431,9 @@ func (s *FieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) Field() (localctx IFieldContext) {
 	localctx = NewFieldContext(p, p.GetParserRuleContext(), p.GetState())
@@ -441,6 +470,7 @@ func (p *ApiParserParser) Field() (localctx IFieldContext) {
 			p.NormalField()
 		}
 
+
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -450,8 +480,10 @@ func (p *ApiParserParser) Field() (localctx IFieldContext) {
 
 	}
 
+
 	return localctx
 }
+
 
 // INormalFieldContext is an interface to support dynamic dispatch.
 type INormalFieldContext interface {
@@ -461,16 +493,18 @@ type INormalFieldContext interface {
 	GetParser() antlr.Parser
 
 	// GetFieldName returns the fieldName token.
-	GetFieldName() antlr.Token
+	GetFieldName() antlr.Token 
 
 	// GetTag returns the tag token.
-	GetTag() antlr.Token
+	GetTag() antlr.Token 
+
 
 	// SetFieldName sets the fieldName token.
-	SetFieldName(antlr.Token)
+	SetFieldName(antlr.Token) 
 
 	// SetTag sets the tag token.
-	SetTag(antlr.Token)
+	SetTag(antlr.Token) 
+
 
 	// IsNormalFieldContext differentiates from other interfaces.
 	IsNormalFieldContext()
@@ -478,9 +512,9 @@ type INormalFieldContext interface {
 
 type NormalFieldContext struct {
 	*antlr.BaseParserRuleContext
-	parser    antlr.Parser
+	parser antlr.Parser
 	fieldName antlr.Token
-	tag       antlr.Token
+	tag antlr.Token
 }
 
 func NewEmptyNormalFieldContext() *NormalFieldContext {
@@ -509,9 +543,11 @@ func (s *NormalFieldContext) GetFieldName() antlr.Token { return s.fieldName }
 
 func (s *NormalFieldContext) GetTag() antlr.Token { return s.tag }
 
+
 func (s *NormalFieldContext) SetFieldName(v antlr.Token) { s.fieldName = v }
 
 func (s *NormalFieldContext) SetTag(v antlr.Token) { s.tag = v }
+
 
 func (s *NormalFieldContext) DataType() IDataTypeContext {
 	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
@@ -539,6 +575,7 @@ func (s *NormalFieldContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *NormalFieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -548,6 +585,9 @@ func (s *NormalFieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	localctx = NewNormalFieldContext(p, p.GetParserRuleContext(), p.GetState())
@@ -585,6 +625,7 @@ func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	p.SetState(204)
 	p.GetErrorHandler().Sync(p)
 
+
 	if p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 16, p.GetParserRuleContext()) == 1 {
 		{
 			p.SetState(203)
@@ -594,10 +635,14 @@ func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 			localctx.(*NormalFieldContext).tag = _m
 		}
 
+
 	}
+
+
 
 	return localctx
 }
+
 
 // IAnonymousFiledContext is an interface to support dynamic dispatch.
 type IAnonymousFiledContext interface {
@@ -607,10 +652,12 @@ type IAnonymousFiledContext interface {
 	GetParser() antlr.Parser
 
 	// GetStar returns the star token.
-	GetStar() antlr.Token
+	GetStar() antlr.Token 
+
 
 	// SetStar sets the star token.
-	SetStar(antlr.Token)
+	SetStar(antlr.Token) 
+
 
 	// IsAnonymousFiledContext differentiates from other interfaces.
 	IsAnonymousFiledContext()

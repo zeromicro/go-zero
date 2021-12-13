@@ -13,7 +13,7 @@ import (
 type AnonymousFiledContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	star   antlr.Token
+	star antlr.Token
 }
 
 func NewEmptyAnonymousFiledContext() *AnonymousFiledContext {
@@ -40,7 +40,9 @@ func (s *AnonymousFiledContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *AnonymousFiledContext) GetStar() antlr.Token { return s.star }
 
+
 func (s *AnonymousFiledContext) SetStar(v antlr.Token) { s.star = v }
+
 
 func (s *AnonymousFiledContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -54,6 +56,7 @@ func (s *AnonymousFiledContext) ToStringTree(ruleNames []string, recog antlr.Rec
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *AnonymousFiledContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -64,10 +67,14 @@ func (s *AnonymousFiledContext) Accept(visitor antlr.ParseTreeVisitor) interface
 	}
 }
 
+
+
+
 func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 	localctx = NewAnonymousFiledContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 40, ApiParserParserRULE_anonymousFiled)
 	var _la int
+
 
 	defer func() {
 		p.ExitRule()
@@ -90,6 +97,7 @@ func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
+
 	if _la == ApiParserParserT__5 {
 		{
 			p.SetState(206)
@@ -105,8 +113,11 @@ func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 		p.Match(ApiParserParserID)
 	}
 
+
+
 	return localctx
 }
+
 
 // IDataTypeContext is an interface to support dynamic dispatch.
 type IDataTypeContext interface {
@@ -116,16 +127,18 @@ type IDataTypeContext interface {
 	GetParser() antlr.Parser
 
 	// GetInter returns the inter token.
-	GetInter() antlr.Token
+	GetInter() antlr.Token 
 
 	// GetTime returns the time token.
-	GetTime() antlr.Token
+	GetTime() antlr.Token 
+
 
 	// SetInter sets the inter token.
-	SetInter(antlr.Token)
+	SetInter(antlr.Token) 
 
 	// SetTime sets the time token.
-	SetTime(antlr.Token)
+	SetTime(antlr.Token) 
+
 
 	// IsDataTypeContext differentiates from other interfaces.
 	IsDataTypeContext()
@@ -134,8 +147,8 @@ type IDataTypeContext interface {
 type DataTypeContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	inter  antlr.Token
-	time   antlr.Token
+	inter antlr.Token
+	time antlr.Token
 }
 
 func NewEmptyDataTypeContext() *DataTypeContext {
@@ -164,9 +177,11 @@ func (s *DataTypeContext) GetInter() antlr.Token { return s.inter }
 
 func (s *DataTypeContext) GetTime() antlr.Token { return s.time }
 
+
 func (s *DataTypeContext) SetInter(v antlr.Token) { s.inter = v }
 
 func (s *DataTypeContext) SetTime(v antlr.Token) { s.time = v }
+
 
 func (s *DataTypeContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -224,6 +239,7 @@ func (s *DataTypeContext) ToStringTree(ruleNames []string, recog antlr.Recognize
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *DataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -233,6 +249,9 @@ func (s *DataTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 	localctx = NewDataTypeContext(p, p.GetParserRuleContext(), p.GetState())
@@ -265,6 +284,7 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 			p.Match(ApiParserParserID)
 		}
 
+
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -272,12 +292,14 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 			p.MapType()
 		}
 
+
 	case 3:
 		p.EnterOuterAlt(localctx, 3)
 		{
 			p.SetState(214)
 			p.ArrayType()
 		}
+
 
 	case 4:
 		p.EnterOuterAlt(localctx, 4)
@@ -289,6 +311,7 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 			localctx.(*DataTypeContext).inter = _m
 		}
 
+
 	case 5:
 		p.EnterOuterAlt(localctx, 5)
 		{
@@ -299,12 +322,14 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 			localctx.(*DataTypeContext).time = _m
 		}
 
+
 	case 6:
 		p.EnterOuterAlt(localctx, 6)
 		{
 			p.SetState(217)
 			p.PointerType()
 		}
+
 
 	case 7:
 		p.EnterOuterAlt(localctx, 7)
@@ -315,8 +340,10 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 
 	}
 
+
 	return localctx
 }
+
 
 // IPointerTypeContext is an interface to support dynamic dispatch.
 type IPointerTypeContext interface {
@@ -326,10 +353,12 @@ type IPointerTypeContext interface {
 	GetParser() antlr.Parser
 
 	// GetStar returns the star token.
-	GetStar() antlr.Token
+	GetStar() antlr.Token 
+
 
 	// SetStar sets the star token.
-	SetStar(antlr.Token)
+	SetStar(antlr.Token) 
+
 
 	// IsPointerTypeContext differentiates from other interfaces.
 	IsPointerTypeContext()
@@ -338,7 +367,7 @@ type IPointerTypeContext interface {
 type PointerTypeContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	star   antlr.Token
+	star antlr.Token
 }
 
 func NewEmptyPointerTypeContext() *PointerTypeContext {
@@ -365,7 +394,9 @@ func (s *PointerTypeContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *PointerTypeContext) GetStar() antlr.Token { return s.star }
 
+
 func (s *PointerTypeContext) SetStar(v antlr.Token) { s.star = v }
+
 
 func (s *PointerTypeContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -379,6 +410,7 @@ func (s *PointerTypeContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *PointerTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -388,6 +420,9 @@ func (s *PointerTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) PointerType() (localctx IPointerTypeContext) {
 	localctx = NewPointerTypeContext(p, p.GetParserRuleContext(), p.GetState())
@@ -423,8 +458,11 @@ func (p *ApiParserParser) PointerType() (localctx IPointerTypeContext) {
 		p.Match(ApiParserParserID)
 	}
 
+
+
 	return localctx
 }
+
 
 // IMapTypeContext is an interface to support dynamic dispatch.
 type IMapTypeContext interface {
@@ -434,34 +472,38 @@ type IMapTypeContext interface {
 	GetParser() antlr.Parser
 
 	// GetMapToken returns the mapToken token.
-	GetMapToken() antlr.Token
+	GetMapToken() antlr.Token 
 
 	// GetLbrack returns the lbrack token.
-	GetLbrack() antlr.Token
+	GetLbrack() antlr.Token 
 
 	// GetKey returns the key token.
-	GetKey() antlr.Token
+	GetKey() antlr.Token 
 
 	// GetRbrack returns the rbrack token.
-	GetRbrack() antlr.Token
+	GetRbrack() antlr.Token 
+
 
 	// SetMapToken sets the mapToken token.
-	SetMapToken(antlr.Token)
+	SetMapToken(antlr.Token) 
 
 	// SetLbrack sets the lbrack token.
-	SetLbrack(antlr.Token)
+	SetLbrack(antlr.Token) 
 
 	// SetKey sets the key token.
-	SetKey(antlr.Token)
+	SetKey(antlr.Token) 
 
 	// SetRbrack sets the rbrack token.
-	SetRbrack(antlr.Token)
+	SetRbrack(antlr.Token) 
+
 
 	// GetValue returns the value rule contexts.
 	GetValue() IDataTypeContext
 
+
 	// SetValue sets the value rule contexts.
 	SetValue(IDataTypeContext)
+
 
 	// IsMapTypeContext differentiates from other interfaces.
 	IsMapTypeContext()
@@ -469,12 +511,12 @@ type IMapTypeContext interface {
 
 type MapTypeContext struct {
 	*antlr.BaseParserRuleContext
-	parser   antlr.Parser
+	parser antlr.Parser
 	mapToken antlr.Token
-	lbrack   antlr.Token
-	key      antlr.Token
-	rbrack   antlr.Token
-	value    IDataTypeContext
+	lbrack antlr.Token
+	key antlr.Token
+	rbrack antlr.Token
+	value IDataTypeContext 
 }
 
 func NewEmptyMapTypeContext() *MapTypeContext {
@@ -507,6 +549,7 @@ func (s *MapTypeContext) GetKey() antlr.Token { return s.key }
 
 func (s *MapTypeContext) GetRbrack() antlr.Token { return s.rbrack }
 
+
 func (s *MapTypeContext) SetMapToken(v antlr.Token) { s.mapToken = v }
 
 func (s *MapTypeContext) SetLbrack(v antlr.Token) { s.lbrack = v }
@@ -515,9 +558,12 @@ func (s *MapTypeContext) SetKey(v antlr.Token) { s.key = v }
 
 func (s *MapTypeContext) SetRbrack(v antlr.Token) { s.rbrack = v }
 
+
 func (s *MapTypeContext) GetValue() IDataTypeContext { return s.value }
 
+
 func (s *MapTypeContext) SetValue(v IDataTypeContext) { s.value = v }
+
 
 func (s *MapTypeContext) AllID() []antlr.TerminalNode {
 	return s.GetTokens(ApiParserParserID)
@@ -545,6 +591,7 @@ func (s *MapTypeContext) ToStringTree(ruleNames []string, recog antlr.Recognizer
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
+
 func (s *MapTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -554,6 +601,9 @@ func (s *MapTypeContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
+
+
+
 
 func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	localctx = NewMapTypeContext(p, p.GetParserRuleContext(), p.GetState())
@@ -576,7 +626,7 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p, "map")
+	match(p,"map")
 	{
 		p.SetState(226)
 
@@ -611,8 +661,11 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 
 		var _x = p.DataType()
 
+
 		localctx.(*MapTypeContext).value = _x
 	}
+
+
 
 	return localctx
 }

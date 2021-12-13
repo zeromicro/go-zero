@@ -71,9 +71,10 @@ type Route struct {
 
 // Body describes request,response body ast for api syntax
 type Body struct {
-	Lp   Expr
-	Rp   Expr
-	Name DataType
+	ReturnExpr Expr
+	Lp         Expr
+	Rp         Expr
+	Name       DataType
 }
 
 // VisitServiceSpec implements from api.BaseApiParserVisitor
@@ -175,7 +176,7 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
-// VisitRoute implements from api.BaseApiParserVisitor
+// serVisitRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	var route Route
 	path := ctx.Path()
@@ -193,15 +194,11 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	if ctx.GetResponse() != nil {
 		reply := ctx.GetResponse().Accept(v)
 		if reply != nil {
-			route.Reply = reply.(*Body)
+			resp := reply.(*Body)
+			route.ReturnToken = resp.ReturnExpr
+			resp.ReturnExpr = nil
+			route.Reply = resp
 		}
-	}
-	if ctx.GetReturnToken() != nil {
-		returnExpr := v.newExprWithToken(ctx.GetReturnToken())
-		if ctx.GetReturnToken().GetText() != "returns" {
-			v.panic(returnExpr, fmt.Sprintf("expecting returns, found input '%s'", ctx.GetReturnToken().GetText()))
-		}
-		route.ReturnToken = returnExpr
 	}
 
 	route.DocExpr = v.getDoc(ctx)
@@ -249,6 +246,14 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 		return nil
 	}
 
+	var returnExpr Expr
+	if ctx.GetReturnToken() != nil {
+		returnExpr = v.newExprWithToken(ctx.GetReturnToken())
+		if ctx.GetReturnToken().GetText() != "returns" {
+			v.panic(returnExpr, fmt.Sprintf("expecting returns, found input '%s'", ctx.GetReturnToken().GetText()))
+		}
+	}
+
 	dt := ctx.DataType().Accept(v).(DataType)
 	if dt == nil {
 		return nil
@@ -275,9 +280,10 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	}
 
 	return &Body{
-		Lp:   v.newExprWithToken(ctx.GetLp()),
-		Rp:   v.newExprWithToken(ctx.GetRp()),
-		Name: dt,
+		ReturnExpr: returnExpr,
+		Lp:         v.newExprWithToken(ctx.GetLp()),
+		Rp:         v.newExprWithToken(ctx.GetRp()),
+		Name:       dt,
 	}
 }
 

@@ -1,3 +1,5 @@
+// Code generated from /Users/bytedance/keson/workspace/go-zero/tools/goctl/api/parser/g4/ApiParser.g4 by ANTLR 4.9.1. DO NOT EDIT.
+
 package api // ApiParser
 import "github.com/zeromicro/antlr"
 

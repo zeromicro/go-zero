@@ -21,7 +21,7 @@ type (
 	// ApiVisitor wraps api.BaseApiParserVisitor to call methods which has prefix Visit to
 	// visit node from the api syntax
 	ApiVisitor struct {
-		api.BaseApiParserVisitor
+		*api.BaseApiParserVisitor
 		debug    bool
 		log      console.Console
 		prefix   string
