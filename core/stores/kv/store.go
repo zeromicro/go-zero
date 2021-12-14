@@ -36,7 +36,10 @@ type (
 		Hvals(key string) ([]string, error)
 		Incr(key string) (int64, error)
 		Incrby(key string, increment int64) (int64, error)
+		Decr(key string) (int64, error)
+		Decrby(key string, increment int64) (int64, error)
 		Llen(key string) (int, error)
+		Lindex(key string, index int64) (string, error)
 		Lpop(key string) (string, error)
 		Lpush(key string, values ...interface{}) (int, error)
 		Lrange(key string, start, stop int) ([]string, error)
@@ -294,6 +297,24 @@ func (cs clusterStore) Incrby(key string, increment int64) (int64, error) {
 	return node.Incrby(key, increment)
 }
 
+func (cs clusterStore) Decr(key string) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Decr(key)
+}
+
+func (cs clusterStore) Decrby(key string, increment int64) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Decrby(key, increment)
+}
+
 func (cs clusterStore) Llen(key string) (int, error) {
 	node, err := cs.getRedis(key)
 	if err != nil {
@@ -301,6 +322,15 @@ func (cs clusterStore) Llen(key string) (int, error) {
 	}
 
 	return node.Llen(key)
+}
+
+func (cs clusterStore) Lindex(key string, index int64) (string, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return "", err
+	}
+
+	return node.Lindex(key, index)
 }
 
 func (cs clusterStore) Lpop(key string) (string, error) {
