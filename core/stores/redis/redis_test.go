@@ -14,6 +14,32 @@ import (
 	"github.com/tal-tech/go-zero/core/stringx"
 )
 
+func TestRedis_Decr(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decr("a")
+		assert.NotNil(t, err)
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decrby("a", 2)
+		assert.NotNil(t, err)
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
+
 func TestRedis_Exists(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := New(client.Addr, badType()).Exists("a")
