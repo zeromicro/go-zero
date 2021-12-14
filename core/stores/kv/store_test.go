@@ -17,6 +17,36 @@ var (
 	s2, _ = miniredis.Run()
 )
 
+func TestRedis_Decr(t *testing.T) {
+	store := clusterStore{dispatcher: hash.NewConsistentHash()}
+	_, err := store.Decr("a")
+	assert.NotNil(t, err)
+
+	runOnCluster(t, func(client Store) {
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	store := clusterStore{dispatcher: hash.NewConsistentHash()}
+	_, err := store.Incrby("a", 2)
+	assert.NotNil(t, err)
+
+	runOnCluster(t, func(client Store) {
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
+
 func TestRedis_Exists(t *testing.T) {
 	store := clusterStore{dispatcher: hash.NewConsistentHash()}
 	_, err := store.Exists("foo")
@@ -205,21 +235,6 @@ func TestRedis_Incr(t *testing.T) {
 	})
 }
 
-func TestRedis_Decr(t *testing.T) {
-	store := clusterStore{dispatcher: hash.NewConsistentHash()}
-	_, err := store.Decr("a")
-	assert.NotNil(t, err)
-
-	runOnCluster(t, func(client Store) {
-		val, err := client.Decr("a")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(-1), val)
-		val, err = client.Decr("a")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(-2), val)
-	})
-}
-
 func TestRedis_IncrBy(t *testing.T) {
 	store := clusterStore{dispatcher: hash.NewConsistentHash()}
 	_, err := store.Incrby("a", 2)
@@ -232,21 +247,6 @@ func TestRedis_IncrBy(t *testing.T) {
 		val, err = client.Incrby("a", 3)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(5), val)
-	})
-}
-
-func TestRedis_DecrBy(t *testing.T) {
-	store := clusterStore{dispatcher: hash.NewConsistentHash()}
-	_, err := store.Incrby("a", 2)
-	assert.NotNil(t, err)
-
-	runOnCluster(t, func(client Store) {
-		val, err := client.Decrby("a", 2)
-		assert.Nil(t, err)
-		assert.Equal(t, int64(-2), val)
-		val, err = client.Decrby("a", 3)
-		assert.Nil(t, err)
-		assert.Equal(t, int64(-5), val)
 	})
 }
 
