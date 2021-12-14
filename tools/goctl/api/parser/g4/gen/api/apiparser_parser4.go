@@ -12,15 +12,15 @@ import (
 
 type TypeBlockStructContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
-	structName antlr.Token
+	parser      antlr.Parser
+	structName  antlr.Token
 	structToken antlr.Token
-	lbrace antlr.Token
-	rbrace antlr.Token
+	lbrace      antlr.Token
+	rbrace      antlr.Token
 }
 
 func NewEmptyTypeBlockStructContext() *TypeBlockStructContext {
-	var p = new(TypeBlockStructContext)
+	p := new(TypeBlockStructContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_typeBlockStruct
 	return p
@@ -29,7 +29,7 @@ func NewEmptyTypeBlockStructContext() *TypeBlockStructContext {
 func (*TypeBlockStructContext) IsTypeBlockStructContext() {}
 
 func NewTypeBlockStructContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *TypeBlockStructContext {
-	var p = new(TypeBlockStructContext)
+	p := new(TypeBlockStructContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -49,7 +49,6 @@ func (s *TypeBlockStructContext) GetLbrace() antlr.Token { return s.lbrace }
 
 func (s *TypeBlockStructContext) GetRbrace() antlr.Token { return s.rbrace }
 
-
 func (s *TypeBlockStructContext) SetStructName(v antlr.Token) { s.structName = v }
 
 func (s *TypeBlockStructContext) SetStructToken(v antlr.Token) { s.structToken = v }
@@ -57,7 +56,6 @@ func (s *TypeBlockStructContext) SetStructToken(v antlr.Token) { s.structToken =
 func (s *TypeBlockStructContext) SetLbrace(v antlr.Token) { s.lbrace = v }
 
 func (s *TypeBlockStructContext) SetRbrace(v antlr.Token) { s.rbrace = v }
-
 
 func (s *TypeBlockStructContext) AllID() []antlr.TerminalNode {
 	return s.GetTokens(ApiParserParserID)
@@ -68,8 +66,8 @@ func (s *TypeBlockStructContext) ID(i int) antlr.TerminalNode {
 }
 
 func (s *TypeBlockStructContext) AllField() []IFieldContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IFieldContext)(nil)).Elem())
-	var tst = make([]IFieldContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IFieldContext)(nil)).Elem())
+	tst := make([]IFieldContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -81,7 +79,7 @@ func (s *TypeBlockStructContext) AllField() []IFieldContext {
 }
 
 func (s *TypeBlockStructContext) Field(i int) IFieldContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IFieldContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IFieldContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -98,7 +96,6 @@ func (s *TypeBlockStructContext) ToStringTree(ruleNames []string, recog antlr.Re
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -109,14 +106,10 @@ func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) interfac
 	}
 }
 
-
-
-
 func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	localctx = NewTypeBlockStructContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 32, ApiParserParserRULE_typeBlockStruct)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -141,7 +134,7 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	{
 		p.SetState(175)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockStructContext).structName = _m
 	}
@@ -149,21 +142,19 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserID {
 		{
 			p.SetState(176)
 
-			var _m = p.Match(ApiParserParserID)
+			_m := p.Match(ApiParserParserID)
 
 			localctx.(*TypeBlockStructContext).structToken = _m
 		}
-
 	}
 	{
 		p.SetState(179)
 
-		var _m = p.Match(ApiParserParserT__3)
+		_m := p.Match(ApiParserParserT__3)
 
 		localctx.(*TypeBlockStructContext).lbrace = _m
 	}
@@ -177,8 +168,6 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 				p.SetState(180)
 				p.Field()
 			}
-
-
 		}
 		p.SetState(185)
 		p.GetErrorHandler().Sync(p)
@@ -187,16 +176,13 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	{
 		p.SetState(186)
 
-		var _m = p.Match(ApiParserParserT__4)
+		_m := p.Match(ApiParserParserT__4)
 
 		localctx.(*TypeBlockStructContext).rbrace = _m
 	}
 
-
-
 	return localctx
 }
-
 
 // ITypeBlockAliasContext is an interface to support dynamic dispatch.
 type ITypeBlockAliasContext interface {
@@ -206,18 +192,16 @@ type ITypeBlockAliasContext interface {
 	GetParser() antlr.Parser
 
 	// GetAlias returns the alias token.
-	GetAlias() antlr.Token 
+	GetAlias() antlr.Token
 
 	// GetAssign returns the assign token.
-	GetAssign() antlr.Token 
-
+	GetAssign() antlr.Token
 
 	// SetAlias sets the alias token.
-	SetAlias(antlr.Token) 
+	SetAlias(antlr.Token)
 
 	// SetAssign sets the assign token.
-	SetAssign(antlr.Token) 
-
+	SetAssign(antlr.Token)
 
 	// IsTypeBlockAliasContext differentiates from other interfaces.
 	IsTypeBlockAliasContext()
@@ -226,12 +210,12 @@ type ITypeBlockAliasContext interface {
 type TypeBlockAliasContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	alias antlr.Token
+	alias  antlr.Token
 	assign antlr.Token
 }
 
 func NewEmptyTypeBlockAliasContext() *TypeBlockAliasContext {
-	var p = new(TypeBlockAliasContext)
+	p := new(TypeBlockAliasContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_typeBlockAlias
 	return p
@@ -240,7 +224,7 @@ func NewEmptyTypeBlockAliasContext() *TypeBlockAliasContext {
 func (*TypeBlockAliasContext) IsTypeBlockAliasContext() {}
 
 func NewTypeBlockAliasContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *TypeBlockAliasContext {
-	var p = new(TypeBlockAliasContext)
+	p := new(TypeBlockAliasContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -256,14 +240,12 @@ func (s *TypeBlockAliasContext) GetAlias() antlr.Token { return s.alias }
 
 func (s *TypeBlockAliasContext) GetAssign() antlr.Token { return s.assign }
 
-
 func (s *TypeBlockAliasContext) SetAlias(v antlr.Token) { s.alias = v }
 
 func (s *TypeBlockAliasContext) SetAssign(v antlr.Token) { s.assign = v }
 
-
 func (s *TypeBlockAliasContext) DataType() IDataTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -284,7 +266,6 @@ func (s *TypeBlockAliasContext) ToStringTree(ruleNames []string, recog antlr.Rec
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *TypeBlockAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -295,14 +276,10 @@ func (s *TypeBlockAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface
 	}
 }
 
-
-
-
 func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	localctx = NewTypeBlockAliasContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 34, ApiParserParserRULE_typeBlockAlias)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -325,7 +302,7 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	{
 		p.SetState(189)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockAliasContext).alias = _m
 	}
@@ -333,27 +310,22 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserT__0 {
 		{
 			p.SetState(190)
 
-			var _m = p.Match(ApiParserParserT__0)
+			_m := p.Match(ApiParserParserT__0)
 
 			localctx.(*TypeBlockAliasContext).assign = _m
 		}
-
 	}
 	{
 		p.SetState(193)
 		p.DataType()
 	}
 
-
-
 	return localctx
 }
-
 
 // IFieldContext is an interface to support dynamic dispatch.
 type IFieldContext interface {
@@ -372,7 +344,7 @@ type FieldContext struct {
 }
 
 func NewEmptyFieldContext() *FieldContext {
-	var p = new(FieldContext)
+	p := new(FieldContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_field
 	return p
@@ -381,7 +353,7 @@ func NewEmptyFieldContext() *FieldContext {
 func (*FieldContext) IsFieldContext() {}
 
 func NewFieldContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *FieldContext {
-	var p = new(FieldContext)
+	p := new(FieldContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -394,7 +366,7 @@ func NewFieldContext(parser antlr.Parser, parent antlr.ParserRuleContext, invoki
 func (s *FieldContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *FieldContext) NormalField() INormalFieldContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*INormalFieldContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*INormalFieldContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -404,7 +376,7 @@ func (s *FieldContext) NormalField() INormalFieldContext {
 }
 
 func (s *FieldContext) AnonymousFiled() IAnonymousFiledContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAnonymousFiledContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAnonymousFiledContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -421,7 +393,6 @@ func (s *FieldContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) 
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *FieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -431,9 +402,6 @@ func (s *FieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) Field() (localctx IFieldContext) {
 	localctx = NewFieldContext(p, p.GetParserRuleContext(), p.GetState())
@@ -470,7 +438,6 @@ func (p *ApiParserParser) Field() (localctx IFieldContext) {
 			p.NormalField()
 		}
 
-
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -480,10 +447,8 @@ func (p *ApiParserParser) Field() (localctx IFieldContext) {
 
 	}
 
-
 	return localctx
 }
-
 
 // INormalFieldContext is an interface to support dynamic dispatch.
 type INormalFieldContext interface {
@@ -493,18 +458,16 @@ type INormalFieldContext interface {
 	GetParser() antlr.Parser
 
 	// GetFieldName returns the fieldName token.
-	GetFieldName() antlr.Token 
+	GetFieldName() antlr.Token
 
 	// GetTag returns the tag token.
-	GetTag() antlr.Token 
-
+	GetTag() antlr.Token
 
 	// SetFieldName sets the fieldName token.
-	SetFieldName(antlr.Token) 
+	SetFieldName(antlr.Token)
 
 	// SetTag sets the tag token.
-	SetTag(antlr.Token) 
-
+	SetTag(antlr.Token)
 
 	// IsNormalFieldContext differentiates from other interfaces.
 	IsNormalFieldContext()
@@ -512,13 +475,13 @@ type INormalFieldContext interface {
 
 type NormalFieldContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
+	parser    antlr.Parser
 	fieldName antlr.Token
-	tag antlr.Token
+	tag       antlr.Token
 }
 
 func NewEmptyNormalFieldContext() *NormalFieldContext {
-	var p = new(NormalFieldContext)
+	p := new(NormalFieldContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_normalField
 	return p
@@ -527,7 +490,7 @@ func NewEmptyNormalFieldContext() *NormalFieldContext {
 func (*NormalFieldContext) IsNormalFieldContext() {}
 
 func NewNormalFieldContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *NormalFieldContext {
-	var p = new(NormalFieldContext)
+	p := new(NormalFieldContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -543,14 +506,12 @@ func (s *NormalFieldContext) GetFieldName() antlr.Token { return s.fieldName }
 
 func (s *NormalFieldContext) GetTag() antlr.Token { return s.tag }
 
-
 func (s *NormalFieldContext) SetFieldName(v antlr.Token) { s.fieldName = v }
 
 func (s *NormalFieldContext) SetTag(v antlr.Token) { s.tag = v }
 
-
 func (s *NormalFieldContext) DataType() IDataTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -575,7 +536,6 @@ func (s *NormalFieldContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *NormalFieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -585,9 +545,6 @@ func (s *NormalFieldContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	localctx = NewNormalFieldContext(p, p.GetParserRuleContext(), p.GetState())
@@ -614,7 +571,7 @@ func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	{
 		p.SetState(201)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*NormalFieldContext).fieldName = _m
 	}
@@ -625,24 +582,18 @@ func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	p.SetState(204)
 	p.GetErrorHandler().Sync(p)
 
-
 	if p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 16, p.GetParserRuleContext()) == 1 {
 		{
 			p.SetState(203)
 
-			var _m = p.Match(ApiParserParserRAW_STRING)
+			_m := p.Match(ApiParserParserRAW_STRING)
 
 			localctx.(*NormalFieldContext).tag = _m
 		}
-
-
 	}
-
-
 
 	return localctx
 }
-
 
 // IAnonymousFiledContext is an interface to support dynamic dispatch.
 type IAnonymousFiledContext interface {
@@ -652,12 +603,10 @@ type IAnonymousFiledContext interface {
 	GetParser() antlr.Parser
 
 	// GetStar returns the star token.
-	GetStar() antlr.Token 
-
+	GetStar() antlr.Token
 
 	// SetStar sets the star token.
-	SetStar(antlr.Token) 
-
+	SetStar(antlr.Token)
 
 	// IsAnonymousFiledContext differentiates from other interfaces.
 	IsAnonymousFiledContext()

@@ -10,7 +10,6 @@ import (
 // The apiparser_parser.go file was split into multiple files because it
 // was too large and caused a possible memory overflow during goctl installation.
 
-
 // IServiceRouteContext is an interface to support dynamic dispatch.
 type IServiceRouteContext interface {
 	antlr.ParserRuleContext
@@ -28,7 +27,7 @@ type ServiceRouteContext struct {
 }
 
 func NewEmptyServiceRouteContext() *ServiceRouteContext {
-	var p = new(ServiceRouteContext)
+	p := new(ServiceRouteContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_serviceRoute
 	return p
@@ -37,7 +36,7 @@ func NewEmptyServiceRouteContext() *ServiceRouteContext {
 func (*ServiceRouteContext) IsServiceRouteContext() {}
 
 func NewServiceRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ServiceRouteContext {
-	var p = new(ServiceRouteContext)
+	p := new(ServiceRouteContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -50,7 +49,7 @@ func NewServiceRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext,
 func (s *ServiceRouteContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ServiceRouteContext) Route() IRouteContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IRouteContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IRouteContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -60,7 +59,7 @@ func (s *ServiceRouteContext) Route() IRouteContext {
 }
 
 func (s *ServiceRouteContext) AtServer() IAtServerContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -70,7 +69,7 @@ func (s *ServiceRouteContext) AtServer() IAtServerContext {
 }
 
 func (s *ServiceRouteContext) AtHandler() IAtHandlerContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtHandlerContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtHandlerContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -80,7 +79,7 @@ func (s *ServiceRouteContext) AtHandler() IAtHandlerContext {
 }
 
 func (s *ServiceRouteContext) AtDoc() IAtDocContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtDocContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtDocContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -97,7 +96,6 @@ func (s *ServiceRouteContext) ToStringTree(ruleNames []string, recog antlr.Recog
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *ServiceRouteContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -108,14 +106,10 @@ func (s *ServiceRouteContext) Accept(visitor antlr.ParseTreeVisitor) interface{}
 	}
 }
 
-
-
-
 func (p *ApiParserParser) ServiceRoute() (localctx IServiceRouteContext) {
 	localctx = NewServiceRouteContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 56, ApiParserParserRULE_serviceRoute)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -138,13 +132,11 @@ func (p *ApiParserParser) ServiceRoute() (localctx IServiceRouteContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserATDOC {
 		{
 			p.SetState(263)
 			p.AtDoc()
 		}
-
 	}
 	p.SetState(268)
 	p.GetErrorHandler().Sync(p)
@@ -156,14 +148,11 @@ func (p *ApiParserParser) ServiceRoute() (localctx IServiceRouteContext) {
 			p.AtServer()
 		}
 
-
 	case ApiParserParserATHANDLER:
 		{
 			p.SetState(267)
 			p.AtHandler()
 		}
-
-
 
 	default:
 		panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
@@ -173,11 +162,8 @@ func (p *ApiParserParser) ServiceRoute() (localctx IServiceRouteContext) {
 		p.Route()
 	}
 
-
-
 	return localctx
 }
-
 
 // IAtDocContext is an interface to support dynamic dispatch.
 type IAtDocContext interface {
@@ -187,18 +173,16 @@ type IAtDocContext interface {
 	GetParser() antlr.Parser
 
 	// GetLp returns the lp token.
-	GetLp() antlr.Token 
+	GetLp() antlr.Token
 
 	// GetRp returns the rp token.
-	GetRp() antlr.Token 
-
+	GetRp() antlr.Token
 
 	// SetLp sets the lp token.
-	SetLp(antlr.Token) 
+	SetLp(antlr.Token)
 
 	// SetRp sets the rp token.
-	SetRp(antlr.Token) 
-
+	SetRp(antlr.Token)
 
 	// IsAtDocContext differentiates from other interfaces.
 	IsAtDocContext()
@@ -207,12 +191,12 @@ type IAtDocContext interface {
 type AtDocContext struct {
 	*antlr.BaseParserRuleContext
 	parser antlr.Parser
-	lp antlr.Token
-	rp antlr.Token
+	lp     antlr.Token
+	rp     antlr.Token
 }
 
 func NewEmptyAtDocContext() *AtDocContext {
-	var p = new(AtDocContext)
+	p := new(AtDocContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_atDoc
 	return p
@@ -221,7 +205,7 @@ func NewEmptyAtDocContext() *AtDocContext {
 func (*AtDocContext) IsAtDocContext() {}
 
 func NewAtDocContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AtDocContext {
-	var p = new(AtDocContext)
+	p := new(AtDocContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -237,11 +221,9 @@ func (s *AtDocContext) GetLp() antlr.Token { return s.lp }
 
 func (s *AtDocContext) GetRp() antlr.Token { return s.rp }
 
-
 func (s *AtDocContext) SetLp(v antlr.Token) { s.lp = v }
 
 func (s *AtDocContext) SetRp(v antlr.Token) { s.rp = v }
-
 
 func (s *AtDocContext) ATDOC() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserATDOC, 0)
@@ -252,8 +234,8 @@ func (s *AtDocContext) STRING() antlr.TerminalNode {
 }
 
 func (s *AtDocContext) AllKvLit() []IKvLitContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
-	var tst = make([]IKvLitContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
+	tst := make([]IKvLitContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -265,7 +247,7 @@ func (s *AtDocContext) AllKvLit() []IKvLitContext {
 }
 
 func (s *AtDocContext) KvLit(i int) IKvLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -282,7 +264,6 @@ func (s *AtDocContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) 
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *AtDocContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -293,14 +274,10 @@ func (s *AtDocContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
-
-
-
 func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 	localctx = NewAtDocContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 58, ApiParserParserRULE_atDoc)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -327,16 +304,14 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserT__1 {
 		{
 			p.SetState(273)
 
-			var _m = p.Match(ApiParserParserT__1)
+			_m := p.Match(ApiParserParserT__1)
 
 			localctx.(*AtDocContext).lp = _m
 		}
-
 	}
 	p.SetState(282)
 	p.GetErrorHandler().Sync(p)
@@ -352,21 +327,16 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 				p.KvLit()
 			}
 
-
 			p.SetState(279)
 			p.GetErrorHandler().Sync(p)
 			_la = p.GetTokenStream().LA(1)
 		}
-
-
 
 	case ApiParserParserSTRING:
 		{
 			p.SetState(281)
 			p.Match(ApiParserParserSTRING)
 		}
-
-
 
 	default:
 		panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
@@ -375,23 +345,18 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserT__2 {
 		{
 			p.SetState(284)
 
-			var _m = p.Match(ApiParserParserT__2)
+			_m := p.Match(ApiParserParserT__2)
 
 			localctx.(*AtDocContext).rp = _m
 		}
-
 	}
-
-
 
 	return localctx
 }
-
 
 // IAtHandlerContext is an interface to support dynamic dispatch.
 type IAtHandlerContext interface {
@@ -410,7 +375,7 @@ type AtHandlerContext struct {
 }
 
 func NewEmptyAtHandlerContext() *AtHandlerContext {
-	var p = new(AtHandlerContext)
+	p := new(AtHandlerContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_atHandler
 	return p
@@ -419,7 +384,7 @@ func NewEmptyAtHandlerContext() *AtHandlerContext {
 func (*AtHandlerContext) IsAtHandlerContext() {}
 
 func NewAtHandlerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AtHandlerContext {
-	var p = new(AtHandlerContext)
+	p := new(AtHandlerContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -447,7 +412,6 @@ func (s *AtHandlerContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *AtHandlerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -457,9 +421,6 @@ func (s *AtHandlerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) AtHandler() (localctx IAtHandlerContext) {
 	localctx = NewAtHandlerContext(p, p.GetParserRuleContext(), p.GetState())
@@ -491,11 +452,8 @@ func (p *ApiParserParser) AtHandler() (localctx IAtHandlerContext) {
 		p.Match(ApiParserParserID)
 	}
 
-
-
 	return localctx
 }
-
 
 // IRouteContext is an interface to support dynamic dispatch.
 type IRouteContext interface {
@@ -505,12 +463,10 @@ type IRouteContext interface {
 	GetParser() antlr.Parser
 
 	// GetHttpMethod returns the httpMethod token.
-	GetHttpMethod() antlr.Token 
-
+	GetHttpMethod() antlr.Token
 
 	// SetHttpMethod sets the httpMethod token.
-	SetHttpMethod(antlr.Token) 
-
+	SetHttpMethod(antlr.Token)
 
 	// GetRequest returns the request rule contexts.
 	GetRequest() IBodyContext
@@ -518,13 +474,11 @@ type IRouteContext interface {
 	// GetResponse returns the response rule contexts.
 	GetResponse() IReplybodyContext
 
-
 	// SetRequest sets the request rule contexts.
 	SetRequest(IBodyContext)
 
 	// SetResponse sets the response rule contexts.
 	SetResponse(IReplybodyContext)
-
 
 	// IsRouteContext differentiates from other interfaces.
 	IsRouteContext()
@@ -532,14 +486,14 @@ type IRouteContext interface {
 
 type RouteContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
+	parser     antlr.Parser
 	httpMethod antlr.Token
-	request IBodyContext 
-	response IReplybodyContext 
+	request    IBodyContext
+	response   IReplybodyContext
 }
 
 func NewEmptyRouteContext() *RouteContext {
-	var p = new(RouteContext)
+	p := new(RouteContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_route
 	return p
@@ -548,7 +502,7 @@ func NewEmptyRouteContext() *RouteContext {
 func (*RouteContext) IsRouteContext() {}
 
 func NewRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RouteContext {
-	var p = new(RouteContext)
+	p := new(RouteContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -562,22 +516,18 @@ func (s *RouteContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *RouteContext) GetHttpMethod() antlr.Token { return s.httpMethod }
 
-
 func (s *RouteContext) SetHttpMethod(v antlr.Token) { s.httpMethod = v }
-
 
 func (s *RouteContext) GetRequest() IBodyContext { return s.request }
 
 func (s *RouteContext) GetResponse() IReplybodyContext { return s.response }
 
-
 func (s *RouteContext) SetRequest(v IBodyContext) { s.request = v }
 
 func (s *RouteContext) SetResponse(v IReplybodyContext) { s.response = v }
 
-
 func (s *RouteContext) Path() IPathContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IPathContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IPathContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -591,7 +541,7 @@ func (s *RouteContext) ID() antlr.TerminalNode {
 }
 
 func (s *RouteContext) Body() IBodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IBodyContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IBodyContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -601,7 +551,7 @@ func (s *RouteContext) Body() IBodyContext {
 }
 
 func (s *RouteContext) Replybody() IReplybodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IReplybodyContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IReplybodyContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -618,7 +568,6 @@ func (s *RouteContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) 
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *RouteContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -629,14 +578,10 @@ func (s *RouteContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	}
 }
 
-
-
-
 func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	localctx = NewRouteContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 62, ApiParserParserRULE_route)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -659,7 +604,7 @@ func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	{
 		p.SetState(291)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*RouteContext).httpMethod = _m
 	}
@@ -671,36 +616,28 @@ func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserT__1 {
 		{
 			p.SetState(293)
 
-			var _x = p.Body()
-
+			_x := p.Body()
 
 			localctx.(*RouteContext).request = _x
 		}
-
 	}
 	p.SetState(297)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-
 	if _la == ApiParserParserT__9 {
 		{
 			p.SetState(296)
 
-			var _x = p.Replybody()
-
+			_x := p.Replybody()
 
 			localctx.(*RouteContext).response = _x
 		}
-
 	}
-
-
 
 	return localctx
 }
