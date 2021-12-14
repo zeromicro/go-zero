@@ -246,7 +246,7 @@ func TestRedis_DecrBy(t *testing.T) {
 		assert.Equal(t, int64(-2), val)
 		val, err = client.Decrby("a", 3)
 		assert.Nil(t, err)
-		assert.Equal(t, int64(5), val)
+		assert.Equal(t, int64(-5), val)
 	})
 }
 
