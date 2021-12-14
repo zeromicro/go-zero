@@ -1,4 +1,3 @@
-
 package api // ApiParser
 import "github.com/zeromicro/antlr"
 

@@ -18,13 +18,11 @@ func (s *SyntaxLitContext) GetAssign() antlr.Token { return s.assign }
 
 func (s *SyntaxLitContext) GetVersion() antlr.Token { return s.version }
 
-
 func (s *SyntaxLitContext) SetSyntaxToken(v antlr.Token) { s.syntaxToken = v }
 
 func (s *SyntaxLitContext) SetAssign(v antlr.Token) { s.assign = v }
 
 func (s *SyntaxLitContext) SetVersion(v antlr.Token) { s.version = v }
-
 
 func (s *SyntaxLitContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
@@ -42,7 +40,6 @@ func (s *SyntaxLitContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *SyntaxLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -52,9 +49,6 @@ func (s *SyntaxLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	localctx = NewSyntaxLitContext(p, p.GetParserRuleContext(), p.GetState())
@@ -77,18 +71,18 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p,"syntax")
+	match(p, "syntax")
 	{
 		p.SetState(88)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*SyntaxLitContext).syntaxToken = _m
 	}
 	{
 		p.SetState(89)
 
-		var _m = p.Match(ApiParserParserT__0)
+		_m := p.Match(ApiParserParserT__0)
 
 		localctx.(*SyntaxLitContext).assign = _m
 	}
@@ -96,16 +90,13 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	{
 		p.SetState(91)
 
-		var _m = p.Match(ApiParserParserSTRING)
+		_m := p.Match(ApiParserParserSTRING)
 
 		localctx.(*SyntaxLitContext).version = _m
 	}
 
-
-
 	return localctx
 }
-
 
 // IImportSpecContext is an interface to support dynamic dispatch.
 type IImportSpecContext interface {
@@ -124,7 +115,7 @@ type ImportSpecContext struct {
 }
 
 func NewEmptyImportSpecContext() *ImportSpecContext {
-	var p = new(ImportSpecContext)
+	p := new(ImportSpecContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importSpec
 	return p
@@ -133,7 +124,7 @@ func NewEmptyImportSpecContext() *ImportSpecContext {
 func (*ImportSpecContext) IsImportSpecContext() {}
 
 func NewImportSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportSpecContext {
-	var p = new(ImportSpecContext)
+	p := new(ImportSpecContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -146,7 +137,7 @@ func NewImportSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, i
 func (s *ImportSpecContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportSpecContext) ImportLit() IImportLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportLitContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportLitContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -156,7 +147,7 @@ func (s *ImportSpecContext) ImportLit() IImportLitContext {
 }
 
 func (s *ImportSpecContext) ImportBlock() IImportBlockContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -173,7 +164,6 @@ func (s *ImportSpecContext) ToStringTree(ruleNames []string, recog antlr.Recogni
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *ImportSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -183,9 +173,6 @@ func (s *ImportSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) ImportSpec() (localctx IImportSpecContext) {
 	localctx = NewImportSpecContext(p, p.GetParserRuleContext(), p.GetState())
@@ -217,7 +204,6 @@ func (p *ApiParserParser) ImportSpec() (localctx IImportSpecContext) {
 			p.ImportLit()
 		}
 
-
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
@@ -227,10 +213,8 @@ func (p *ApiParserParser) ImportSpec() (localctx IImportSpecContext) {
 
 	}
 
-
 	return localctx
 }
-
 
 // IImportLitContext is an interface to support dynamic dispatch.
 type IImportLitContext interface {
@@ -242,10 +226,8 @@ type IImportLitContext interface {
 	// GetImportToken returns the importToken token.
 	GetImportToken() antlr.Token
 
-
 	// SetImportToken sets the importToken token.
 	SetImportToken(antlr.Token)
-
 
 	// IsImportLitContext differentiates from other interfaces.
 	IsImportLitContext()
@@ -253,12 +235,12 @@ type IImportLitContext interface {
 
 type ImportLitContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
+	parser      antlr.Parser
 	importToken antlr.Token
 }
 
 func NewEmptyImportLitContext() *ImportLitContext {
-	var p = new(ImportLitContext)
+	p := new(ImportLitContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importLit
 	return p
@@ -267,7 +249,7 @@ func NewEmptyImportLitContext() *ImportLitContext {
 func (*ImportLitContext) IsImportLitContext() {}
 
 func NewImportLitContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportLitContext {
-	var p = new(ImportLitContext)
+	p := new(ImportLitContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -281,12 +263,10 @@ func (s *ImportLitContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportLitContext) GetImportToken() antlr.Token { return s.importToken }
 
-
 func (s *ImportLitContext) SetImportToken(v antlr.Token) { s.importToken = v }
 
-
 func (s *ImportLitContext) ImportValue() IImportValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -307,7 +287,6 @@ func (s *ImportLitContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *ImportLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -317,9 +296,6 @@ func (s *ImportLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) ImportLit() (localctx IImportLitContext) {
 	localctx = NewImportLitContext(p, p.GetParserRuleContext(), p.GetState())
@@ -342,11 +318,11 @@ func (p *ApiParserParser) ImportLit() (localctx IImportLitContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p,"import")
+	match(p, "import")
 	{
 		p.SetState(98)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*ImportLitContext).importToken = _m
 	}
@@ -355,11 +331,8 @@ func (p *ApiParserParser) ImportLit() (localctx IImportLitContext) {
 		p.ImportValue()
 	}
 
-
-
 	return localctx
 }
-
 
 // IImportBlockContext is an interface to support dynamic dispatch.
 type IImportBlockContext interface {
@@ -371,10 +344,8 @@ type IImportBlockContext interface {
 	// GetImportToken returns the importToken token.
 	GetImportToken() antlr.Token
 
-
 	// SetImportToken sets the importToken token.
 	SetImportToken(antlr.Token)
-
 
 	// IsImportBlockContext differentiates from other interfaces.
 	IsImportBlockContext()
@@ -382,12 +353,12 @@ type IImportBlockContext interface {
 
 type ImportBlockContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
+	parser      antlr.Parser
 	importToken antlr.Token
 }
 
 func NewEmptyImportBlockContext() *ImportBlockContext {
-	var p = new(ImportBlockContext)
+	p := new(ImportBlockContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importBlock
 	return p
@@ -396,7 +367,7 @@ func NewEmptyImportBlockContext() *ImportBlockContext {
 func (*ImportBlockContext) IsImportBlockContext() {}
 
 func NewImportBlockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportBlockContext {
-	var p = new(ImportBlockContext)
+	p := new(ImportBlockContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -410,17 +381,15 @@ func (s *ImportBlockContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportBlockContext) GetImportToken() antlr.Token { return s.importToken }
 
-
 func (s *ImportBlockContext) SetImportToken(v antlr.Token) { s.importToken = v }
-
 
 func (s *ImportBlockContext) ID() antlr.TerminalNode {
 	return s.GetToken(ApiParserParserID, 0)
 }
 
 func (s *ImportBlockContext) AllImportBlockValue() []IImportBlockValueContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem())
-	var tst = make([]IImportBlockValueContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem())
+	tst := make([]IImportBlockValueContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -432,7 +401,7 @@ func (s *ImportBlockContext) AllImportBlockValue() []IImportBlockValueContext {
 }
 
 func (s *ImportBlockContext) ImportBlockValue(i int) IImportBlockValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -449,7 +418,6 @@ func (s *ImportBlockContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *ImportBlockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -460,14 +428,10 @@ func (s *ImportBlockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} 
 	}
 }
 
-
-
-
 func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	localctx = NewImportBlockContext(p, p.GetParserRuleContext(), p.GetState())
 	p.EnterRule(localctx, 10, ApiParserParserRULE_importBlock)
 	var _la int
-
 
 	defer func() {
 		p.ExitRule()
@@ -486,11 +450,11 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	match(p,"import")
+	match(p, "import")
 	{
 		p.SetState(102)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*ImportBlockContext).importToken = _m
 	}
@@ -507,7 +471,6 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 			p.ImportBlockValue()
 		}
 
-
 		p.SetState(107)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
@@ -517,11 +480,8 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 		p.Match(ApiParserParserT__2)
 	}
 
-
-
 	return localctx
 }
-
 
 // IImportBlockValueContext is an interface to support dynamic dispatch.
 type IImportBlockValueContext interface {
@@ -540,7 +500,7 @@ type ImportBlockValueContext struct {
 }
 
 func NewEmptyImportBlockValueContext() *ImportBlockValueContext {
-	var p = new(ImportBlockValueContext)
+	p := new(ImportBlockValueContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importBlockValue
 	return p
@@ -549,7 +509,7 @@ func NewEmptyImportBlockValueContext() *ImportBlockValueContext {
 func (*ImportBlockValueContext) IsImportBlockValueContext() {}
 
 func NewImportBlockValueContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportBlockValueContext {
-	var p = new(ImportBlockValueContext)
+	p := new(ImportBlockValueContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -562,7 +522,7 @@ func NewImportBlockValueContext(parser antlr.Parser, parent antlr.ParserRuleCont
 func (s *ImportBlockValueContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportBlockValueContext) ImportValue() IImportValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -579,7 +539,6 @@ func (s *ImportBlockValueContext) ToStringTree(ruleNames []string, recog antlr.R
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-
 func (s *ImportBlockValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
@@ -589,9 +548,6 @@ func (s *ImportBlockValueContext) Accept(visitor antlr.ParseTreeVisitor) interfa
 		return t.VisitChildren(s)
 	}
 }
-
-
-
 
 func (p *ApiParserParser) ImportBlockValue() (localctx IImportBlockValueContext) {
 	localctx = NewImportBlockValueContext(p, p.GetParserRuleContext(), p.GetState())
@@ -619,11 +575,8 @@ func (p *ApiParserParser) ImportBlockValue() (localctx IImportBlockValueContext)
 		p.ImportValue()
 	}
 
-
-
 	return localctx
 }
-
 
 // IImportValueContext is an interface to support dynamic dispatch.
 type IImportValueContext interface {
@@ -642,7 +595,7 @@ type ImportValueContext struct {
 }
 
 func NewEmptyImportValueContext() *ImportValueContext {
-	var p = new(ImportValueContext)
+	p := new(ImportValueContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importValue
 	return p
@@ -651,7 +604,7 @@ func NewEmptyImportValueContext() *ImportValueContext {
 func (*ImportValueContext) IsImportValueContext() {}
 
 func NewImportValueContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportValueContext {
-	var p = new(ImportValueContext)
+	p := new(ImportValueContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 

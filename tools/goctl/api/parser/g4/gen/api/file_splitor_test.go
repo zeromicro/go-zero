@@ -28,7 +28,7 @@ func TestFileSplitor(t *testing.T) {
 	buffer := bytes.NewBuffer(nil)
 
 	for {
-		var fn, part = "apiparser_parser0.go", "main"
+		fn, part := "apiparser_parser0.go", "main"
 		if files > 0 {
 			fn = fmt.Sprintf("apiparser_parser%d.go", files)
 			part = fmt.Sprintf("%d", files)
