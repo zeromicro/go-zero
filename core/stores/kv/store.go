@@ -16,6 +16,8 @@ var ErrNoRedisNode = errors.New("no redis node")
 type (
 	// Store interface represents a KV store.
 	Store interface {
+		Decr(key string) (int64, error)
+		Decrby(key string, increment int64) (int64, error)
 		Del(keys ...string) (int, error)
 		Eval(script, key string, args ...interface{}) (interface{}, error)
 		Exists(key string) (bool, error)
@@ -37,6 +39,7 @@ type (
 		Incr(key string) (int64, error)
 		Incrby(key string, increment int64) (int64, error)
 		Llen(key string) (int, error)
+		Lindex(key string, index int64) (string, error)
 		Lpop(key string) (string, error)
 		Lpush(key string, values ...interface{}) (int, error)
 		Lrange(key string, start, stop int) ([]string, error)
@@ -100,6 +103,24 @@ func NewStore(c KvConf) Store {
 	return clusterStore{
 		dispatcher: dispatcher,
 	}
+}
+
+func (cs clusterStore) Decr(key string) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Decr(key)
+}
+
+func (cs clusterStore) Decrby(key string, increment int64) (int64, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return 0, err
+	}
+
+	return node.Decrby(key, increment)
 }
 
 func (cs clusterStore) Del(keys ...string) (int, error) {
@@ -301,6 +322,15 @@ func (cs clusterStore) Llen(key string) (int, error) {
 	}
 
 	return node.Llen(key)
+}
+
+func (cs clusterStore) Lindex(key string, index int64) (string, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return "", err
+	}
+
+	return node.Lindex(key, index)
 }
 
 func (cs clusterStore) Lpop(key string) (string, error) {
