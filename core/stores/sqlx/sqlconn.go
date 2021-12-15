@@ -93,7 +93,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 
 // NewSqlConnFromDB returns a SqlConn with the given sql.DB.
 // Use it with caution, it's provided for other ORM to interact with.
-func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) *commonSqlConn {
+func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		connProv: func() (*sql.DB, error) {
 			return db, nil
