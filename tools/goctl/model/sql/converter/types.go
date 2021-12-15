@@ -7,7 +7,7 @@ import (
 	"github.com/zeromicro/ddl-parser/parser"
 )
 
-var commonMysqlDataTypeMap = map[int]string{
+var commonMysqlDataTypeMapInt = map[int]string{
 	// For consistency, all integer types are converted to int64
 	// number
 	parser.Bool:      "int64",
@@ -53,7 +53,7 @@ var commonMysqlDataTypeMap = map[int]string{
 	parser.TinyBlob:   "string",
 }
 
-var commonMysqlDataTypeMap2 = map[string]string{
+var commonMysqlDataTypeMapString = map[string]string{
 	// For consistency, all integer types are converted to int64
 	// number
 	"bool":      "int64",
@@ -67,7 +67,7 @@ var commonMysqlDataTypeMap2 = map[string]string{
 	"float":     "float64",
 	"double":    "float64",
 	"decimal":   "float64",
-	// date&time
+	// date & time
 	"date":      "time.Time",
 	"datetime":  "time.Time",
 	"timestamp": "time.Time",
@@ -76,7 +76,7 @@ var commonMysqlDataTypeMap2 = map[string]string{
 	// string
 	"char":       "string",
 	"varchar":    "string",
-	"binary":     "string",	
+	"binary":     "string",
 	"bytea":      "string",
 	"varbinary":  "string",
 	"tinytext":   "string",
@@ -95,7 +95,7 @@ var commonMysqlDataTypeMap2 = map[string]string{
 
 // ConvertDataType converts mysql column type into golang type
 func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMap[dataBaseType]
+	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %v", dataBaseType)
 	}
@@ -105,7 +105,7 @@ func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
 
 // ConvertStringDataType converts mysql column type into golang type
 func ConvertStringDataType(dataBaseType string, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMap2[strings.ToLower(dataBaseType)]
+	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
 	}
