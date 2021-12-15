@@ -15,5 +15,3 @@ require (
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348
 )
-
-replace github.com/tal-tech/go-zero => ../..
