@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 )
@@ -20,7 +21,7 @@ func (e env) string() string {
 		w.WriteString(fmt.Sprintf("%s = %q\n", k, v))
 	}
 
-	return w.String()
+	return strings.TrimSuffix(w.String(),"\n")
 }
 
 func getEnv() env {
@@ -28,5 +29,6 @@ func getEnv() env {
 	e[os] = runtime.GOOS
 	e[arch] = runtime.GOARCH
 	e[goctlVersion] = version.BuildVersion
+	e[goctlVersion] = runtime.Version()
 	return e
 }

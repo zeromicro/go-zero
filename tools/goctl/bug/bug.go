@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/urfave/cli"
 )
 
@@ -20,6 +21,7 @@ const (
 	os           = "OS"
 	arch         = "ARCH"
 	goctlVersion = "GOCTL_VERSION"
+	goVersion    = "GO_VERSION"
 )
 
 var openCmd = map[string]string{
@@ -29,9 +31,9 @@ var openCmd = map[string]string{
 
 func Action(_ *cli.Context) error {
 	env := getEnv()
-	content := fmt.Sprintf(issueTemplate, "<pre>\n"+env.string()+"</pre>")
+	content := fmt.Sprintf(issueTemplate, version.BuildVersion, env.string())
 	content = url.QueryEscape(content)
-	url := fmt.Sprintf("https://github.com/zeromicro/go-zero/issues/new?title=TODO&body=%s", content)
+	url := fmt.Sprintf("https://github.com/zeromicro/go-zero/issues/new?body=%s", content)
 
 	goos := runtime.GOOS
 	var cmd string

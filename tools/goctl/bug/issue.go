@@ -1,39 +1,42 @@
 package bug
 
 const issueTemplate=`
-<!-- Please submit an issue order by the following template. Thanks! -->
+<!-- Please answer these questions before submitting your issue. Thanks! -->
 
-**Describe the bug**
-<!-- A clear and concise description of what the bug is. -->
+### What category of issue (<code>goctl</code> or <code>sdk</code>)?
 
-**To Reproduce**
-<!-- Steps to reproduce the behavior, if applicable: -->
+### What type of issue (<code>feature</code>|<code>bug</code>|<code>suggestion</code>)?
 
-1. The code is
+### What version of Goctl are you using (<code>goctl --version</code>)?
 
-	<pre>
-	
-	</pre>
-
-2. The error is
-
-	<pre>
-	
-	</pre>
-
-**Expected behavior**
-<!-- A clear and concise description of what you expected to happen. -->
-
-**Screenshots**
-<!-- If applicable, add screenshots to help explain your problem. -->
-
-**Environments (please complete the following information):**
-<!--  - OS: [e.g. Linux]
- - go-zero version [e.g. 1.2.1]
- - goctl version [e.g. 1.2.1, optional] -->
+<pre>
+$ goctl --version
 %s
+</pre>
 
-**More description**
-<!-- Add any other context about the problem here. -->
+### Does this issue reproduce with the latest release?
+
+
+### What operating system and processor architecture are you using ?
+<pre>
+%s
+</pre>
+
+### What did you do?
+
+<!--
+If possible, provide a recipe for reproducing the error.
+A complete runnable program is good.
+A link on play.golang.org is best.
+-->
+
+
+
+### What did you expect to see?
+
+
+
+### What did you see instead?
+
 
 `
