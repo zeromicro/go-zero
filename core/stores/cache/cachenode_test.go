@@ -53,8 +53,8 @@ func TestCacheNode_DelCache(t *testing.T) {
 func TestCacheNode_DelCacheWithErrors(t *testing.T) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
+	defer clean()
 	store.Type = redis.ClusterType
-	clean()
 
 	cn := cacheNode{
 		rds:            store,
