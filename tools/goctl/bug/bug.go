@@ -1,55 +1,49 @@
 package bug
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
 	"os/exec"
 	"runtime"
 
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/urfave/cli"
 )
 
-type env map[string]string
+const (
+	windows = "windows"
+	darwin  = "darwin"
 
-func (e env) string() string {
-	if e == nil {
-		return ""
-	}
-	w := bytes.NewBuffer(nil)
-	for k, v := range e {
-		w.WriteString(fmt.Sprintf("%s = %q\n", k, v))
-	}
-	return w.String()
+	windowsOpen = "start"
+	darwinOpen  = "open"
+	linuxOpen   = "xdg-open"
+
+	os           = "OS"
+	arch         = "ARCH"
+	goctlVersion = "GOCTL_VERSION"
+)
+
+var openCmd = map[string]string{
+	windows: windowsOpen,
+	darwin:  darwinOpen,
 }
 
 func Action(_ *cli.Context) error {
 	env := getEnv()
 	content := fmt.Sprintf(issueTemplate, "<pre>\n"+env.string()+"</pre>")
-	content= url.QueryEscape(content)
+	content = url.QueryEscape(content)
 	url := fmt.Sprintf("https://github.com/zeromicro/go-zero/issues/new?title=TODO&body=%s", content)
-	os := runtime.GOOS
+
+	goos := runtime.GOOS
 	var cmd string
 	var args []string
-	switch os {
-	case "windows":
-		cmd = "cmd"
+	cmd, ok := openCmd[goos]
+	if !ok {
+		cmd = linuxOpen
+	}
+	if goos == windows {
 		args = []string{"/c", "start"}
-	case "darwin":
-		cmd = "open"
-	default:
-		cmd = "xdg-open"
 	}
 
 	args = append(args, url)
 	return exec.Command(cmd, args...).Start()
-}
-
-func getEnv() env {
-	e := make(env)
-	e["OS"] = runtime.GOOS
-	e["ARCH"] = runtime.GOARCH
-	e["GOCTL_VERSION"] = version.BuildVersion
-	return e
 }
