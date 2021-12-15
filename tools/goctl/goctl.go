@@ -37,7 +37,7 @@ const codeFailure = 1
 var commands = []cli.Command{
 	{
 		Name:   "bug",
-		Usage:  "report bug",
+		Usage:  "report a bug",
 		Action: bug.Action,
 	},
 	{
