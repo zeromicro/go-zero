@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"database/sql"
+	"fmt"
 	"io"
 	"testing"
 
@@ -14,6 +15,16 @@ const mockedDatasource = "sqlmock"
 
 func init() {
 	logx.Disable()
+}
+
+func TestClose(t *testing.T) {
+	conn := NewMysql("root:password@tcp(localhost:3306)/db?charset=utf8mb4&parseTime=true")
+	db, _ := conn.RawDB()
+	db.Close()
+	conn = NewMysql("root:password@tcp(localhost:3306)/db?charset=utf8mb4&parseTime=true")
+	if _, err := conn.Exec("select 1"); err != nil {
+		fmt.Println(err.Error())
+	}
 }
 
 func TestOldClose(t *testing.T) {

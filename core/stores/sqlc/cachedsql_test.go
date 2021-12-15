@@ -577,6 +577,10 @@ func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error
 	return nil, nil
 }
 
+func (db dummySqlConn) DBClose(server string) error {
+	return nil
+}
+
 func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
 	return nil, nil
 }
