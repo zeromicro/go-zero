@@ -37,7 +37,7 @@ func TestNewClose(t *testing.T) {
 	err := conn.DBClose(mockedDatasource)
 	assert.Nil(t, err)
 	conn = NewMysql(mockedDatasource)
-	mock = buildConn()
+	_ = buildConn()
 	db, err := conn.RawDB()
 	err = db.Ping()
 	assert.Nil(t, err)
