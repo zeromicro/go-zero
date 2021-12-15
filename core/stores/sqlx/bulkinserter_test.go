@@ -51,6 +51,10 @@ func (c *mockedConn) Transact(func(session Session) error) error {
 	panic("should not called")
 }
 
+func (c *mockedConn) DBClose(key string) error {
+	panic("should not called")
+}
+
 func TestBulkInserter(t *testing.T) {
 	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		var conn mockedConn

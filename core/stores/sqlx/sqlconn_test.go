@@ -16,6 +16,33 @@ func init() {
 	logx.Disable()
 }
 
+func TestOldClose(t *testing.T) {
+	mock := buildConn()
+	mock.ExpectClose()
+	mock.ExpectExec("select 1").WillReturnResult(nil)
+	conn := NewMysql(mockedDatasource)
+	db, err := conn.RawDB()
+	assert.Nil(t, err)
+	assert.Nil(t, db.Close())
+	conn = NewMysql(mockedDatasource)
+	_, err = conn.Exec("select 1")
+	assert.NotNil(t, err)
+}
+
+func TestNewClose(t *testing.T) {
+	mock := buildConn()
+	mock.ExpectClose()
+
+	conn := NewMysql(mockedDatasource)
+	err := conn.DBClose(mockedDatasource)
+	assert.Nil(t, err)
+	conn = NewMysql(mockedDatasource)
+	mock = buildConn()
+	db, err := conn.RawDB()
+	err = db.Ping()
+	assert.Nil(t, err)
+}
+
 func TestSqlConn(t *testing.T) {
 	mock := buildConn()
 	mock.ExpectExec("any")

@@ -68,3 +68,9 @@ func (manager *ResourceManager) GetResource(key string, create func() (io.Closer
 
 	return val.(io.Closer), nil
 }
+
+func (manager *ResourceManager) DeleteDBServer(key string) {
+	manager.lock.Lock()
+	defer manager.lock.Unlock()
+	delete(manager.resources, key)
+}

@@ -27,6 +27,7 @@ type (
 		// RawDB is for other ORM to operate with, use it with caution.
 		RawDB() (*sql.DB, error)
 		Transact(func(session Session) error) error
+		DBClose(server string) error
 	}
 
 	// SqlOption defines the method to customize a sql connection.
@@ -92,7 +93,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 
 // NewSqlConnFromDB returns a SqlConn with the given sql.DB.
 // Use it with caution, it's provided for other ORM to interact with.
-func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
+func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) *commonSqlConn {
 	conn := &commonSqlConn{
 		connProv: func() (*sql.DB, error) {
 			return db, nil
@@ -108,6 +109,21 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	}
 
 	return conn
+}
+
+func (db *commonSqlConn) DBClose(server string) error {
+	conn, err := db.RawDB()
+	if err != nil {
+		return err
+	}
+
+	err = conn.Close()
+	if err != nil {
+		return err
+	}
+
+	connManager.DeleteDBServer(server)
+	return nil
 }
 
 func (db *commonSqlConn) Exec(q string, args ...interface{}) (result sql.Result, err error) {
