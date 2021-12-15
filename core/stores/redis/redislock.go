@@ -88,7 +88,7 @@ func (rl *RedisLock) Release() (bool, error) {
 	return reply == 1, nil
 }
 
-// SetExpire sets the expire.
+// SetExpire sets the expiration.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
 }
