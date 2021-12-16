@@ -238,6 +238,36 @@ func (s *Redis) BlpopEx(redisNode RedisNode, key string) (string, bool, error) {
 	return vals[1], true, nil
 }
 
+// Decr is the implementation of redis decr command.
+func (s *Redis) Decr(key string) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.Decr(key).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// Decrby is the implementation of redis decrby command.
+func (s *Redis) Decrby(key string, increment int64) (val int64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.DecrBy(key, increment).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Del deletes keys.
 func (s *Redis) Del(keys ...string) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
@@ -760,6 +790,21 @@ func (s *Redis) Llen(key string) (val int, err error) {
 
 		val = int(v)
 		return nil
+	}, acceptable)
+
+	return
+}
+
+// Lindex is the implementation of redis lindex command.
+func (s *Redis) Lindex(key string, index int64) (val string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.LIndex(key, index).Result()
+		return err
 	}, acceptable)
 
 	return

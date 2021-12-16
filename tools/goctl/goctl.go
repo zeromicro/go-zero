@@ -18,6 +18,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
+	"github.com/tal-tech/go-zero/tools/goctl/bug"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
@@ -34,6 +35,11 @@ import (
 const codeFailure = 1
 
 var commands = []cli.Command{
+	{
+		Name:   "bug",
+		Usage:  "report a bug",
+		Action: bug.Action,
+	},
 	{
 		Name:   "upgrade",
 		Usage:  "upgrade goctl to latest version",
