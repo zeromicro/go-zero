@@ -2,7 +2,6 @@ package sqlc
 
 import (
 	"database/sql"
-	"log"
 	"time"
 
 	"github.com/tal-tech/go-zero/core/stores/cache"
@@ -40,31 +39,24 @@ type (
 	}
 )
 
-// NewNodeConn returns a CachedConn with a redis node cache.
-func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
-	return CachedConn{
-		db:    db,
-		cache: cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
-	}
-}
-
 // NewConn returns a CachedConn with a redis cluster cache.
 func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
-	return CachedConn{
-		db:    db,
-		cache: cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
-	}
+	cc := cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, cc)
 }
 
 // NewConnWithCache returns a CachedConn with a custom cache.
 func NewConnWithCache(db sqlx.SqlConn, c cache.Cache) CachedConn {
-	if c == nil {
-		log.Fatal("Invalid cache component")
-	}
 	return CachedConn{
 		db:    db,
 		cache: c,
 	}
+}
+
+// NewNodeConn returns a CachedConn with a redis node cache.
+func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
+	c := cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, c)
 }
 
 // DelCache deletes cache with keys.

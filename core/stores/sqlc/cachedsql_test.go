@@ -562,6 +562,18 @@ func TestQueryRowNoCache(t *testing.T) {
 	assert.True(t, ran)
 }
 
+func TestNewConnWithCache(t *testing.T) {
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	var conn trackedConn
+	c := NewConnWithCache(&conn, cache.NewNode(r, exclusiveCalls, stats, sql.ErrNoRows))
+	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	assert.Nil(t, err)
+	assert.True(t, conn.execValue)
+}
+
 func resetStats() {
 	atomic.StoreUint64(&stats.Total, 0)
 	atomic.StoreUint64(&stats.Hit, 0)
