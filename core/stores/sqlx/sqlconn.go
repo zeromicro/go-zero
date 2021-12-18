@@ -25,6 +25,7 @@ type (
 	SqlConn interface {
 		Session
 		// RawDB is for other ORM to operate with, use it with caution.
+		// Notice: don't close it.
 		RawDB() (*sql.DB, error)
 		Transact(func(session Session) error) error
 	}
