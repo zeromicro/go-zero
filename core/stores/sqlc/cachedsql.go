@@ -41,10 +41,8 @@ type (
 
 // NewConn returns a CachedConn with a redis cluster cache.
 func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
-	return CachedConn{
-		db:    db,
-		cache: cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
-	}
+	cc := cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, cc)
 }
 
 // NewConnWithCache returns a CachedConn with a custom cache.
@@ -57,10 +55,8 @@ func NewConnWithCache(db sqlx.SqlConn, c cache.Cache) CachedConn {
 
 // NewNodeConn returns a CachedConn with a redis node cache.
 func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
-	return CachedConn{
-		db:    db,
-		cache: cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
-	}
+	c := cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, c)
 }
 
 // DelCache deletes cache with keys.

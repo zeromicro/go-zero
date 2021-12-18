@@ -39,9 +39,7 @@ func MustNewModel(url, collection string, c cache.CacheConf, opts ...cache.Optio
 // NewModel returns a Model with a cache cluster.
 func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
 	c := cache.New(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
-	return createModel(url, collection, c, func(collection mongo.Collection) CachedCollection {
-		return newCollection(collection, c)
-	})
+	return NewModelWithCache(url, collection, c)
 }
 
 // NewModelWithCache returns a Model with a custom cache.
@@ -54,9 +52,7 @@ func NewModelWithCache(url, collection string, c cache.Cache) (*Model, error) {
 // NewNodeModel returns a Model with a cache node.
 func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
 	c := cache.NewNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
-	return createModel(url, collection, c, func(collection mongo.Collection) CachedCollection {
-		return newCollection(collection, c)
-	})
+	return NewModelWithCache(url, collection, c)
 }
 
 // Count returns the count of given query.
