@@ -126,6 +126,59 @@ func TestMap(t *testing.T) {
 	}
 }
 
+func TestMapStream(t *testing.T) {
+	tests := []struct {
+		mapper MapFunc
+		expect int
+	}{
+		{
+			mapper: func(item interface{}, writer Writer) {
+				v := item.(int)
+				writer.Write(v * v)
+			},
+			expect: 30,
+		},
+		{
+			mapper: func(item interface{}, writer Writer) {
+				v := item.(int)
+				if v%2 == 0 {
+					return
+				}
+				writer.Write(v * v)
+			},
+			expect: 10,
+		},
+		{
+			mapper: func(item interface{}, writer Writer) {
+				v := item.(int)
+				if v%2 == 0 {
+					panic(v)
+				}
+				writer.Write(v * v)
+			},
+			expect: 10,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(stringx.Rand(), func(t *testing.T) {
+			stream := MapStream(func(source chan<- interface{}) {
+				for i := 1; i < 5; i++ {
+					source <- i
+				}
+			}, test.mapper, WithWorkers(-1))
+
+			var result int
+			stream.ForEach(func(v interface{}) {
+				result += v.(int)
+
+			})
+
+			assert.Equal(t, test.expect, result)
+		})
+	}
+}
+
 func TestMapReduce(t *testing.T) {
 	tests := []struct {
 		mapper      MapperFunc
@@ -204,7 +257,7 @@ func TestMapReduce(t *testing.T) {
 
 func TestMapReduceWithReduerWriteMoreThanOnce(t *testing.T) {
 	assert.Panics(t, func() {
-		MapReduce(func(source chan<- interface{}) {
+		_, _ = MapReduce(func(source chan<- interface{}) {
 			for i := 0; i < 10; i++ {
 				source <- i
 			}
@@ -425,7 +478,7 @@ func BenchmarkMapReduce(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		MapReduce(func(input chan<- interface{}) {
+		_, _ = MapReduce(func(input chan<- interface{}) {
 			for j := 0; j < 2; j++ {
 				input <- int64(j)
 			}

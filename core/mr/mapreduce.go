@@ -3,6 +3,7 @@ package mr
 import (
 	"errors"
 	"fmt"
+	"github.com/tal-tech/go-zero/core/fx"
 	"sync"
 
 	"github.com/tal-tech/go-zero/core/errorx"
@@ -98,6 +99,11 @@ func Map(generate GenerateFunc, mapper MapFunc, opts ...Option) chan interface{}
 	go executeMappers(mapper, source, collector, done.Done(), options.workers)
 
 	return collector
+}
+
+// MapStream maps all elements generated from given generate func, and returns a fx.Stream.
+func MapStream(generate GenerateFunc, mapper MapFunc, opts ...Option) fx.Stream {
+	return fx.Range(Map(generate, mapper, opts...))
 }
 
 // MapReduce maps all elements generated from given generate func,
