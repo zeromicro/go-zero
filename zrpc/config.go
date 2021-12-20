@@ -19,7 +19,7 @@ type (
 		// setting 0 means no timeout
 		Timeout           int64 `json:",default=2000"`
 		CpuThreshold      int64 `json:",default=900,range=[0:1000]"`
-		BallastObjectSize int   `json:",default=2147483648"` // default 2GB
+		BallastObjectSize int   `json:",default=2147483648,range=[0:]"` // default 2GB
 
 	}
 

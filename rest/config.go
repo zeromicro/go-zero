@@ -40,6 +40,6 @@ type (
 		Timeout           int64         `json:",default=3000"`
 		CpuThreshold      int64         `json:",default=900,range=[0:1000]"`
 		Signature         SignatureConf `json:",optional"`
-		BallastObjectSize int           `json:",default=2147483648"` // default 2GB
+		BallastObjectSize int           `json:",default=2147483648,range=[0:]"` // default 2GB
 	}
 )

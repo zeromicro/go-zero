@@ -60,8 +60,12 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	rpcServer := &RpcServer{
 		server:   server,
 		register: register,
-		ballast:  make([]byte, c.BallastObjectSize),
 	}
+
+	// allocate a block of memory to alter GC behaviour.
+	// https://github.com/golang/go/issues/23044
+	rpcServer.startBallast(c.BallastObjectSize)
+
 	if err = c.SetUp(); err != nil {
 		return nil, err
 	}
@@ -96,7 +100,7 @@ func (rs *RpcServer) Start() {
 
 // Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
-	logx.Close()
+	_ = logx.Close()
 }
 
 // SetServerSlowThreshold sets the slow threshold on server side.

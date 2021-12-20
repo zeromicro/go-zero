@@ -46,10 +46,13 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	}
 
 	server := &Server{
-		ngin:    newEngine(c),
-		router:  router.NewRouter(),
-		ballast: make([]byte, c.BallastObjectSize),
+		ngin:   newEngine(c),
+		router: router.NewRouter(),
 	}
+
+	// allocate a block of memory to alter GC behaviour.
+	// https://github.com/golang/go/issues/23044
+	server.startBallast(c.BallastObjectSize)
 
 	for _, opt := range opts {
 		opt(server)
@@ -83,7 +86,7 @@ func (s *Server) Start() {
 
 // Stop stops the Server.
 func (s *Server) Stop() {
-	logx.Close()
+	_ = logx.Close()
 }
 
 // Use adds the given middleware in the Server.
