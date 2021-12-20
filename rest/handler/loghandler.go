@@ -185,7 +185,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 		buf.WriteString(fmt.Sprintf("\n%s", body))
 	}
 
-	if ok {
+	if ok || r.Context().Err() == context.Canceled  {
 		logger.Info(buf.String())
 	} else {
 		logger.Error(buf.String())
