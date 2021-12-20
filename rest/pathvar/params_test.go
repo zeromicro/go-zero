@@ -1,7 +1,6 @@
 package pathvar
 
 import (
-	"context"
 	"net/http"
 	"strings"
 	"testing"
@@ -16,7 +15,7 @@ func TestVars(t *testing.T) {
 	}
 	r, err := http.NewRequest(http.MethodGet, "/", nil)
 	assert.Nil(t, err)
-	r = r.WithContext(context.WithValue(context.Background(), pathVars, expect))
+	r = WithVars(r, expect)
 	assert.EqualValues(t, expect, Vars(r))
 }
 
