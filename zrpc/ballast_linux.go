@@ -3,6 +3,6 @@
 
 package zrpc
 
-func (rs *Server) startBallast(size int) {
+func (rs *RpcServer) startBallast(size int) {
 	rs.ballast = make([]byte, size)
 }
