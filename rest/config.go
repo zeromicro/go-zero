@@ -37,8 +37,9 @@ type (
 		MaxConns int    `json:",default=10000"`
 		MaxBytes int64  `json:",default=1048576"`
 		// milliseconds
-		Timeout      int64         `json:",default=3000"`
-		CpuThreshold int64         `json:",default=900,range=[0:1000]"`
-		Signature    SignatureConf `json:",optional"`
+		Timeout           int64         `json:",default=3000"`
+		CpuThreshold      int64         `json:",default=900,range=[0:1000]"`
+		Signature         SignatureConf `json:",optional"`
+		BallastObjectSize int           `json:",default=2147483648"` // default 2GB
 	}
 )

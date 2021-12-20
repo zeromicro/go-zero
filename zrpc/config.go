@@ -17,8 +17,10 @@ type (
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
 		// setting 0 means no timeout
-		Timeout      int64 `json:",default=2000"`
-		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		Timeout           int64 `json:",default=2000"`
+		CpuThreshold      int64 `json:",default=900,range=[0:1000]"`
+		BallastObjectSize int   `json:",default=2147483648"` // default 2GB
+
 	}
 
 	// A RpcClientConf is a rpc client config.

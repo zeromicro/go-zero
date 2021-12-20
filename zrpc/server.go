@@ -17,6 +17,7 @@ import (
 type RpcServer struct {
 	server   internal.Server
 	register internal.RegisterFn
+	ballast  []byte
 }
 
 // MustNewServer returns a RpcSever, exits on any error.
@@ -59,6 +60,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	rpcServer := &RpcServer{
 		server:   server,
 		register: register,
+		ballast:  make([]byte, c.BallastObjectSize),
 	}
 	if err = c.SetUp(); err != nil {
 		return nil, err

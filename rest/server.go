@@ -20,8 +20,9 @@ type (
 
 	// A Server is a http server.
 	Server struct {
-		ngin   *engine
-		router httpx.Router
+		ngin    *engine
+		router  httpx.Router
+		ballast []byte
 	}
 )
 
@@ -45,8 +46,9 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 	}
 
 	server := &Server{
-		ngin:   newEngine(c),
-		router: router.NewRouter(),
+		ngin:    newEngine(c),
+		router:  router.NewRouter(),
+		ballast: make([]byte, c.BallastObjectSize),
 	}
 
 	for _, opt := range opts {
