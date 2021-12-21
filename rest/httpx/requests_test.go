@@ -196,12 +196,13 @@ Content-Disposition: form-data; name="age"
 }
 
 func TestParseJsonBody(t *testing.T) {
-	var v struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}
 
 	t.Run("has body", func(t *testing.T) {
+
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
 
 		body := `{"name":"kevin", "age": 18}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
@@ -214,6 +215,11 @@ func TestParseJsonBody(t *testing.T) {
 	})
 
 	t.Run("hasn't body", func(t *testing.T) {
+
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
 
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
 		assert.Nil(t, Parse(r, &v))
