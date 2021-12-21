@@ -217,8 +217,8 @@ func TestParseJsonBody(t *testing.T) {
 	t.Run("hasn't body", func(t *testing.T) {
 
 		var v struct {
-			Name string `json:"name"`
-			Age  int    `json:"age"`
+			Name string `json:"name,optional"`
+			Age  int    `json:"age,optional"`
 		}
 
 		r := httptest.NewRequest(http.MethodGet, "/", nil)
