@@ -25,6 +25,8 @@ var (
 	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
 	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
 		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
+
+	emptyMap = map[string]interface{}{}
 )
 
 // Parse parses the request.
@@ -111,7 +113,7 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
-	return nil
+	return mapping.UnmarshalJsonMap(emptyMap, v)
 }
 
 // ParsePath parses the symbols reside in url path.
