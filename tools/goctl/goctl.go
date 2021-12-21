@@ -67,6 +67,10 @@ var commands = []cli.Command{
 						Name:  "home",
 						Usage: "the goctl home path of the template",
 					},
+					cli.StringFlag{
+						Name:  "style",
+						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+					},
 				},
 			},
 			{

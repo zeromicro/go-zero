@@ -36,6 +36,10 @@ func CreateServiceCommand(c *cli.Context) error {
 		dirName = "greet"
 	}
 
+	dirStyle := c.String("style")
+	if len(dirStyle) == 0 {
+		dirStyle = conf.DefaultFormat
+	}
 	if strings.Contains(dirName, "-") {
 		return errors.New("api new command service name not support strikethrough, because this will used by function name")
 	}
@@ -78,6 +82,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, conf.DefaultFormat)
+	err = gogen.DoGenProject(apiFilePath, abs, dirStyle)
 	return err
 }
