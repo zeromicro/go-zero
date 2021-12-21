@@ -14,7 +14,6 @@ const (
 	formKey           = "form"
 	pathKey           = "path"
 	headerKey         = "header"
-	emptyJson         = "{}"
 	maxMemory         = 32 << 20 // 32MB
 	maxBodyLen        = 8 << 20  // 8MB
 	separator         = ";"
@@ -109,11 +108,10 @@ func ParseJsonBody(r *http.Request, v interface{}) error {
 	var reader io.Reader
 	if withJsonBody(r) {
 		reader = io.LimitReader(r.Body, maxBodyLen)
-	} else {
-		reader = strings.NewReader(emptyJson)
+		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
-	return mapping.UnmarshalJsonReader(reader, v)
+	return nil
 }
 
 // ParsePath parses the symbols reside in url path.
