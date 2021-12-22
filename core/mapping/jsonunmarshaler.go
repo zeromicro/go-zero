@@ -15,6 +15,11 @@ func UnmarshalJsonBytes(content []byte, v interface{}) error {
 	return unmarshalJsonBytes(content, v, jsonUnmarshaler)
 }
 
+// UnmarshalJsonMap unmarshals content from m into v.
+func UnmarshalJsonMap(m map[string]interface{}, v interface{}) error {
+	return jsonUnmarshaler.Unmarshal(m, v)
+}
+
 // UnmarshalJsonReader unmarshals content from reader into v.
 func UnmarshalJsonReader(reader io.Reader, v interface{}) error {
 	return unmarshalJsonReader(reader, v, jsonUnmarshaler)
