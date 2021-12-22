@@ -14,6 +14,8 @@ var jsonUnmarshaler = NewUnmarshaler(jsonTagKey)
 func UnmarshalJsonBytes(content []byte, v interface{}) error {
 	return unmarshalJsonBytes(content, v, jsonUnmarshaler)
 }
+
+// UnmarshalJsonMap unmarshals content from m into v.
 func UnmarshalJsonMap(m map[string]interface{}, v interface{}) error {
 	return jsonUnmarshaler.Unmarshal(m, v)
 }
