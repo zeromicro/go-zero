@@ -89,6 +89,8 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case <-ctx.Done():
 		tw.mu.Lock()
 		defer tw.mu.Unlock()
+		// there isn't any user-defined middleware before TimoutHandler,
+		// so we can guarantee that cancelation in biz related code won't come here.
 		if errors.Is(ctx.Err(), context.Canceled) {
 			w.WriteHeader(statusClientClosedRequest)
 		} else {
