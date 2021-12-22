@@ -21,7 +21,7 @@ func (e env) string() string {
 		w.WriteString(fmt.Sprintf("%s = %q\n", k, v))
 	}
 
-	return strings.TrimSuffix(w.String(),"\n")
+	return strings.TrimSuffix(w.String(), "\n")
 }
 
 func getEnv() env {
