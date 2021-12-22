@@ -196,18 +196,38 @@ Content-Disposition: form-data; name="age"
 }
 
 func TestParseJsonBody(t *testing.T) {
-	var v struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}
 
-	body := `{"name":"kevin", "age": 18}`
-	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-	r.Header.Set(ContentType, ApplicationJson)
+	t.Run("has body", func(t *testing.T) {
 
-	assert.Nil(t, Parse(r, &v))
-	assert.Equal(t, "kevin", v.Name)
-	assert.Equal(t, 18, v.Age)
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		body := `{"name":"kevin", "age": 18}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, ApplicationJson)
+
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, "kevin", v.Name)
+		assert.Equal(t, 18, v.Age)
+
+	})
+
+	t.Run("hasn't body", func(t *testing.T) {
+
+		var v struct {
+			Name string `json:"name,optional"`
+			Age  int    `json:"age,optional"`
+		}
+
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, "", v.Name)
+		assert.Equal(t, 0, v.Age)
+
+	})
+
 }
 
 func TestParseRequired(t *testing.T) {
