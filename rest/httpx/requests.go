@@ -25,8 +25,6 @@ var (
 	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
 	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
 		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
-
-	emptyMap = map[string]interface{}{}
 )
 
 // Parse parses the request.
@@ -107,13 +105,12 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
-	var reader io.Reader
 	if withJsonBody(r) {
-		reader = io.LimitReader(r.Body, maxBodyLen)
+		reader := io.LimitReader(r.Body, maxBodyLen)
 		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
-	return mapping.UnmarshalJsonMap(emptyMap, v)
+	return mapping.UnmarshalJsonMap(nil, v)
 }
 
 // ParsePath parses the symbols reside in url path.

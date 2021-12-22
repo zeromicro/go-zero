@@ -1,6 +1,6 @@
 package bug
 
-const issueTemplate=`
+const issueTemplate = `
 <!-- Please answer these questions before submitting your issue. Thanks! -->
 
 ### What category of issue (<code>goctl</code> or <code>sdk</code>)?
