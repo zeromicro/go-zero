@@ -49,6 +49,5 @@ func TestRedisLock(t *testing.T) {
 		firstAcquire, err = firstLock.Acquire()
 		assert.Nil(t, err)
 		assert.True(t, firstAcquire)
-
 	})
 }

@@ -16,9 +16,7 @@ const (
 else
     return 0
 end`
-	randomLen       = 16
-	tolerance       = 500 // milliseconds
-	millisPerSecond = 1000
+	randomLen = 16
 )
 
 // A RedisLock is a redis lock.
@@ -51,7 +49,7 @@ func (rl *RedisLock) Acquire() (bool, error) {
 	}
 
 	seconds := atomic.LoadUint32(&rl.seconds)
-	ok, err := rl.store.SetnxEx(rl.key, rl.id, int(seconds))
+	ok, err := rl.store.SetnxEx(rl.key, rl.id, int(seconds+1)) // +1s for tolerance
 	if err == red.Nil {
 		atomic.AddInt32(&rl.count, -1)
 		return false, nil
@@ -65,7 +63,6 @@ func (rl *RedisLock) Acquire() (bool, error) {
 	}
 
 	return true, nil
-
 }
 
 // Release releases the lock.
