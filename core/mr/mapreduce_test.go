@@ -1,6 +1,7 @@
 package mr
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -408,6 +409,50 @@ func TestMapReduceWithoutReducerWrite(t *testing.T) {
 	})
 	assert.Equal(t, ErrReduceNoOutput, err)
 	assert.Nil(t, res)
+}
+
+func TestMapReduceVoidPanicInReducer(t *testing.T) {
+	const message = "foo"
+	var done syncx.AtomicBool
+	err := MapReduceVoid(func(source chan<- interface{}) {
+		for i := 0; i < defaultWorkers*2; i++ {
+			source <- i
+		}
+		done.Set(true)
+	}, func(item interface{}, writer Writer, cancel func(error)) {
+		i := item.(int)
+		writer.Write(i)
+	}, func(pipe <-chan interface{}, cancel func(error)) {
+		panic(message)
+	}, WithWorkers(1))
+	assert.NotNil(t, err)
+	assert.Equal(t, message, err.Error())
+	assert.True(t, done.True())
+}
+
+func TestMapReduceWithContext(t *testing.T) {
+	var done syncx.AtomicBool
+	var result []int
+	ctx, cancel := context.WithCancel(context.Background())
+	err := MapReduceVoid(func(source chan<- interface{}) {
+		for i := 0; i < defaultWorkers*2; i++ {
+			source <- i
+		}
+		done.Set(true)
+	}, func(item interface{}, writer Writer, c func(error)) {
+		i := item.(int)
+		if i == defaultWorkers/2 {
+			cancel()
+		}
+		writer.Write(i)
+	}, func(pipe <-chan interface{}, cancel func(error)) {
+		for item := range pipe {
+			i := item.(int)
+			result = append(result, i)
+		}
+	}, WithContext(ctx))
+	assert.NotNil(t, err)
+	assert.Equal(t, ErrReduceNoOutput, err)
 }
 
 func BenchmarkMapReduce(b *testing.B) {
