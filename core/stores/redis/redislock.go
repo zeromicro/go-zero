@@ -2,7 +2,6 @@ package redis
 
 import (
 	"math/rand"
-	"strconv"
 	"sync/atomic"
 	"time"
 
@@ -12,12 +11,6 @@ import (
 )
 
 const (
-	lockCommand = `if redis.call("GET", KEYS[1]) == ARGV[1] then
-    redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2])
-    return "OK"
-else
-    return redis.call("SET", KEYS[1], ARGV[1], "NX", "PX", ARGV[2])
-end`
 	delCommand = `if redis.call("GET", KEYS[1]) == ARGV[1] then
     return redis.call("DEL", KEYS[1])
 else
@@ -32,6 +25,7 @@ end`
 type RedisLock struct {
 	store   *Redis
 	seconds uint32
+	count   int32
 	key     string
 	id      string
 }
@@ -51,30 +45,36 @@ func NewRedisLock(store *Redis, key string) *RedisLock {
 
 // Acquire acquires the lock.
 func (rl *RedisLock) Acquire() (bool, error) {
-	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.Eval(lockCommand, []string{rl.key}, []string{
-		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
-	})
-	if err == red.Nil {
-		return false, nil
-	} else if err != nil {
-		logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
-		return false, err
-	} else if resp == nil {
-		return false, nil
-	}
-
-	reply, ok := resp.(string)
-	if ok && reply == "OK" {
+	newCount := atomic.AddInt32(&rl.count, 1)
+	if newCount > 1 {
 		return true, nil
 	}
 
-	logx.Errorf("Unknown reply when acquiring lock for %s: %v", rl.key, resp)
-	return false, nil
+	seconds := atomic.LoadUint32(&rl.seconds)
+	ok, err := rl.store.SetnxEx(rl.key, rl.id, int(seconds))
+	if err == red.Nil {
+		atomic.AddInt32(&rl.count, -1)
+		return false, nil
+	} else if err != nil {
+		atomic.AddInt32(&rl.count, -1)
+		logx.Errorf("Error on acquiring lock for %s, %s", rl.key, err.Error())
+		return false, err
+	} else if !ok {
+		atomic.AddInt32(&rl.count, -1)
+		return false, nil
+	}
+
+	return true, nil
+
 }
 
 // Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
+	newCount := atomic.AddInt32(&rl.count, -1)
+	if newCount > 0 {
+		return true, nil
+	}
+
 	resp, err := rl.store.Eval(delCommand, []string{rl.key}, []string{rl.id})
 	if err != nil {
 		return false, err
