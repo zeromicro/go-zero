@@ -27,6 +27,13 @@ func DoWithTimeout(fn func() error, timeout time.Duration, opts ...DoOption) err
 	ctx, cancel := context.WithTimeout(parentCtx, timeout)
 	defer cancel()
 
+	// check ctx
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	// create channel with buffer size 1 to avoid goroutine leak
 	done := make(chan error, 1)
 	panicChan := make(chan interface{}, 1)
