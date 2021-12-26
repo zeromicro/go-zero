@@ -36,6 +36,7 @@ type (
 
 	// Field describes a table field
 	Field struct {
+		NameOriginal    string
 		Name            stringx.String
 		DataType        string
 		Comment         string
@@ -47,6 +48,19 @@ type (
 	KeyType int
 )
 
+func parseNameOriginal(ts []*parser.Table) (nameOriginals [][]string) {
+	var columns []string
+
+	for _, t := range ts {
+		columns = []string{}
+		for _, c := range t.Columns {
+			columns = append(columns, c.Name)
+		}
+		nameOriginals = append(nameOriginals, columns)
+	}
+	return
+}
+
 // Parse parses ddl into golang structure
 func Parse(filename, database string) ([]*Table, error) {
 	p := parser.NewParser()
@@ -55,6 +69,8 @@ func Parse(filename, database string) ([]*Table, error) {
 		return nil, err
 	}
 
+	nameOriginals := parseNameOriginal(ts)
+
 	tables := GetSafeTables(ts)
 	indexNameGen := func(column ...string) string {
 		return strings.Join(column, "_")
@@ -62,7 +78,7 @@ func Parse(filename, database string) ([]*Table, error) {
 
 	prefix := filepath.Base(filename)
 	var list []*Table
-	for _, e := range tables {
+	for indexTable, e := range tables {
 		columns := e.Columns
 
 		var (
@@ -120,9 +136,10 @@ func Parse(filename, database string) ([]*Table, error) {
 
 		var fields []*Field
 		// sort
-		for _, c := range columns {
+		for indexColumn, c := range columns {
 			field, ok := fieldM[c.Name]
 			if ok {
+				field.NameOriginal = nameOriginals[indexTable][indexColumn]
 				fields = append(fields, field)
 			}
 		}
