@@ -41,3 +41,26 @@ func TestWithCancel(t *testing.T) {
 	}, time.Second, WithContext(ctx))
 	assert.Equal(t, ErrCanceled, err)
 }
+
+func TestDoWithTimeout(t *testing.T) {
+
+	t.Run("cancel", func(t *testing.T) {
+		ctx, cancelFunc := context.WithCancel(context.Background())
+		cancelFunc()
+		err := DoWithTimeout(func() error {
+			return nil
+		}, time.Minute, WithContext(ctx))
+		assert.ErrorIs(t, context.Canceled, err)
+	})
+
+	t.Run("deadlineExceeded", func(t *testing.T) {
+		ctx, cancelFunc := context.WithTimeout(context.Background(), time.Millisecond)
+		defer cancelFunc()
+		time.Sleep(time.Second * 2)
+		err := DoWithTimeout(func() error {
+			return nil
+		}, time.Minute, WithContext(ctx))
+		assert.ErrorIs(t, context.DeadlineExceeded, err)
+	})
+
+}
