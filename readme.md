@@ -221,7 +221,7 @@ go get -u github.com/tal-tech/go-zero
 
 ## 9. Chat group
 
-Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-ulzixfgi-NAkZjq856TewLY2KQSxHCw
+Join the chat via https://join.slack.com/t/go-zero/shared_invite/zt-10ruju779-BE4y6lQNB_R21samtyKTgA
 
 ## 10. Cloud Native Landscape
 
