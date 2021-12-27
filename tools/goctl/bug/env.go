@@ -29,6 +29,6 @@ func getEnv() env {
 	e[os] = runtime.GOOS
 	e[arch] = runtime.GOARCH
 	e[goctlVersion] = version.BuildVersion
-	e[goctlVersion] = runtime.Version()
+	e[goVersion] = runtime.Version()
 	return e
 }
