@@ -95,12 +95,30 @@ func GetGitHome() (string, error) {
 
 // GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome
 func GetTemplateDir(category string) (string, error) {
-	goctlHome, err := GetGoctlHome()
+	home, err := GetGoctlHome()
 	if err != nil {
 		return "", err
 	}
+	if home == goctlHome {
+		// backward compatible, it will be removed in the feature
+		// backward compatible start
+		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
+		fs, _ := ioutil.ReadDir(beforeTemplateDir)
+		var hasContent bool
+		for _, e := range fs {
+			if e.Size() > 0 {
+				hasContent = true
+			}
+		}
+		if hasContent {
+			return beforeTemplateDir, nil
+		}
+		// backward compatible end
 
-	return filepath.Join(goctlHome, version.GetGoctlVersion(), category), nil
+		return filepath.Join(home, category), nil
+	}
+
+	return filepath.Join(home, version.GetGoctlVersion(), category), nil
 }
 
 // InitTemplates creates template files GoctlHome where could get it by GetGoctlHome
