@@ -148,6 +148,14 @@ func TestParseSegments(t *testing.T) {
 			input:  `foo,bar,options=[baz\,qux]`,
 			expect: []string{"foo", "bar", `options=[baz\,qux]`},
 		},
+		{
+			input:  `foo\,bar,options=[baz,qux],default=baz`,
+			expect: []string{`foo,bar`, "options=[baz,qux]", "default=baz"},
+		},
+		{
+			input:  `foo\,bar,options=[baz,qux, quux],default=[qux, baz]`,
+			expect: []string{`foo,bar`, "options=[baz,qux, quux]", "default=[qux, baz]"},
+		},
 	}
 
 	for _, test := range tests {
