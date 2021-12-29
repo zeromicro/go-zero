@@ -367,8 +367,8 @@ func parseOptions(val string) []string {
 func parseSegments(val string) []string {
 	var segments []string
 	var escaped, grouped bool
-
 	var buf strings.Builder
+
 	for _, ch := range val {
 		if escaped {
 			buf.WriteRune(ch)
@@ -381,7 +381,10 @@ func parseSegments(val string) []string {
 			if grouped {
 				buf.WriteRune(ch)
 			} else {
-				segments = append(segments, buf.String())
+				// need to trim spaces, but we cannot ignore empty string,
+				// because the first segment stands for the key might be empty.
+				// if ignored, the later tag will be used as the key.
+				segments = append(segments, strings.TrimSpace(buf.String()))
 				buf.Reset()
 			}
 		case escapeChar:
@@ -401,9 +404,10 @@ func parseSegments(val string) []string {
 		}
 	}
 
-	last := buf.String()
+	last := strings.TrimSpace(buf.String())
+	// ignore last empty string
 	if len(last) > 0 {
-		segments = append(segments, buf.String())
+		segments = append(segments, last)
 	}
 
 	return segments

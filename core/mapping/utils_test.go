@@ -100,6 +100,19 @@ func TestParseSegments(t *testing.T) {
 			expect: []string{},
 		},
 		{
+			input:  ",",
+			expect: []string{""},
+		},
+		{
+			input:  "foo,",
+			expect: []string{"foo"},
+		},
+		{
+			input: ",foo",
+			// the first empty string cannot be ignored, it's the key.
+			expect: []string{"", "foo"},
+		},
+		{
 			input:  "foo",
 			expect: []string{"foo"},
 		},

@@ -218,6 +218,16 @@ func TestUnmarshalIntSliceWithDefault(t *testing.T) {
 	assert.ElementsMatch(t, []int{1, 2, 3}, in.Ints)
 }
 
+func TestUnmarshalIntSliceWithDefaultHasSpaces(t *testing.T) {
+	type inner struct {
+		Ints []int `key:"ints,default=[1, 2, 3]"`
+	}
+
+	var in inner
+	assert.Nil(t, UnmarshalKey(nil, &in))
+	assert.ElementsMatch(t, []int{1, 2, 3}, in.Ints)
+}
+
 func TestUnmarshalFloatSliceWithDefault(t *testing.T) {
 	type inner struct {
 		Floats []float32 `key:"floats,default=[1.1,2.2,3.3]"`
@@ -231,6 +241,16 @@ func TestUnmarshalFloatSliceWithDefault(t *testing.T) {
 func TestUnmarshalStringSliceWithDefault(t *testing.T) {
 	type inner struct {
 		Strs []string `key:"strs,default=[foo,bar,woo]"`
+	}
+
+	var in inner
+	assert.Nil(t, UnmarshalKey(nil, &in))
+	assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, in.Strs)
+}
+
+func TestUnmarshalStringSliceWithDefaultHasSpaces(t *testing.T) {
+	type inner struct {
+		Strs []string `key:"strs,default=[foo, bar, woo]"`
 	}
 
 	var in inner
@@ -2576,6 +2596,19 @@ func TestUnmarshalJsonReaderPtrArray(t *testing.T) {
 	err := UnmarshalJsonReader(reader, &res)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(res.B))
+}
+
+func TestUnmarshalJsonWithoutKey(t *testing.T) {
+	payload := `{"A": "1", "B": "2"}`
+	var res struct {
+		A string `json:""`
+		B string `json:","`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, "1", res.A)
+	assert.Equal(t, "2", res.B)
 }
 
 func BenchmarkDefaultValue(b *testing.B) {
