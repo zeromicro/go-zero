@@ -44,6 +44,13 @@ func DockerCommand(c *cli.Context) (err error) {
 	goFile := c.String("go")
 	home := c.String("home")
 	version := c.String("version")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 
 	if len(version) > 0 {
 		version = version + "-"
