@@ -17,6 +17,7 @@ import (
 const (
 	NL       = "\n"
 	goctlDir = ".goctl"
+	gitDir   = ".git"
 )
 
 var goctlHome string
@@ -80,6 +81,16 @@ func GetGoctlHome() (string, error) {
 		return "", err
 	}
 	return filepath.Join(home, goctlDir), nil
+}
+
+// GetGitHome returns the git home of goctl.
+func GetGitHome() (string, error) {
+	goctlH, err := GetGoctlHome()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(goctlH, gitDir), nil
 }
 
 // GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome

@@ -26,7 +26,13 @@ func RPC(c *cli.Context) error {
 	protoImportPath := c.StringSlice("proto_path")
 	goOptions := c.StringSlice("go_opt")
 	home := c.String("home")
-
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
 	}
@@ -73,7 +79,13 @@ func RPCNew(c *cli.Context) error {
 	}
 	style := c.String("style")
 	home := c.String("home")
-
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
 	}
@@ -102,7 +114,13 @@ func RPCNew(c *cli.Context) error {
 func RPCTemplate(c *cli.Context) error {
 	protoFile := c.String("o")
 	home := c.String("home")
-
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
 	}

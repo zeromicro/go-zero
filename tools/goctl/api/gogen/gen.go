@@ -31,6 +31,13 @@ func GoCommand(c *cli.Context) error {
 	dir := c.String("dir")
 	namingStyle := c.String("style")
 	home := c.String("home")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 
 	if len(home) > 0 {
 		util.RegisterGoctlHome(home)
