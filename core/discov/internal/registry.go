@@ -337,6 +337,9 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 		cfg.Username = account.User
 		cfg.Password = account.Pass
 	}
+	if tlsCfg, ok := GetTLS(endpoints); ok {
+		cfg.TLS = tlsCfg
+	}
 
 	return clientv3.New(cfg)
 }
