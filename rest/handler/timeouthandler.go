@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/internal"
 )
 
@@ -91,12 +92,14 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer tw.mu.Unlock()
 		// there isn't any user-defined middleware before TimoutHandler,
 		// so we can guarantee that cancelation in biz related code won't come here.
-		if errors.Is(ctx.Err(), context.Canceled) {
-			w.WriteHeader(statusClientClosedRequest)
-		} else {
-			w.WriteHeader(http.StatusServiceUnavailable)
-		}
-		io.WriteString(w, h.errorBody())
+		httpx.Error(w, ctx.Err(), func(w http.ResponseWriter, err error) {
+			if errors.Is(err, context.Canceled) {
+				w.WriteHeader(statusClientClosedRequest)
+			} else {
+				w.WriteHeader(http.StatusServiceUnavailable)
+			}
+			io.WriteString(w, h.errorBody())
+		})
 		tw.timedOut = true
 	}
 }

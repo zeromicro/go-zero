@@ -52,7 +52,6 @@ func ApiCommand(c *cli.Context) error {
 	}
 	defer fp.Close()
 
-
 	home := c.String("home")
 	remote := c.String("remote")
 	if len(remote) > 0 {
