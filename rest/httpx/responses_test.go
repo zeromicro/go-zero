@@ -95,6 +95,18 @@ func TestError(t *testing.T) {
 	}
 }
 
+func TestErrorWithHandler(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Error(&w, errors.New("foo"), func(w http.ResponseWriter, err error) {
+		http.Error(w, err.Error(), 499)
+	})
+	assert.Equal(t, 499, w.code)
+	assert.True(t, w.hasBody)
+	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
+}
+
 func TestOk(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
