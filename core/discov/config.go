@@ -20,7 +20,7 @@ func (c EtcdConf) HasAccount() bool {
 
 // HasTLS returns if TLS CertFile/CertKeyFile/TrustedCAFile are provided.
 func (c EtcdConf) HasTLS() bool {
-	return len(c.CertKeyFile) > 0 && len(c.CertKeyFile) > 0 && len(c.TrustedCAFile) > 0
+	return len(c.CertFile) > 0 && len(c.CertKeyFile) > 0 && len(c.TrustedCAFile) > 0
 }
 
 // Validate validates c.
