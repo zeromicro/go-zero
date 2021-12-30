@@ -85,7 +85,7 @@ func (cc RpcClientConf) BuildTarget() (string, error) {
 	}
 	if cc.Etcd.HasTLS() {
 		if err := discov.RegisterTLS(cc.Etcd.Hosts, cc.Etcd.CertFile, cc.Etcd.CertKeyFile,
-			cc.Etcd.TrustedCAFile); err != nil {
+			cc.Etcd.CACertFile); err != nil {
 			return "", err
 		}
 	}

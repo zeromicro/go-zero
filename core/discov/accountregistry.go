@@ -7,7 +7,7 @@ func RegisterAccount(endpoints []string, user, pass string) {
 	internal.AddAccount(endpoints, user, pass)
 }
 
-// RegisterTLS registers the CertFile/CertKeyFile/TrustedCAFile to the given etcd.
+// RegisterTLS registers the CertFile/CertKeyFile/CACertFile to the given etcd.
 func RegisterTLS(endpoints []string, certFile, certKeyFile, caFile string) error {
 	return internal.AddTLS(endpoints, certFile, certKeyFile, caFile)
 }

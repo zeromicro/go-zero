@@ -66,7 +66,7 @@ func WithSubEtcdAccount(user, pass string) SubOption {
 	}
 }
 
-// WithSubEtcdTLS provides the etcd CertFile/CertKeyFile/TrustedCAFile.
+// WithSubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
 func WithSubEtcdTLS(certFile, certKeyFile, caFile string) SubOption {
 	return func(sub *Subscriber) {
 		logx.Must(RegisterTLS(sub.endpoints, certFile, certKeyFile, caFile))
