@@ -7,17 +7,19 @@ import (
 	"sync"
 )
 
-type Account struct {
-	User string
-	Pass string
-}
-
 var (
 	accounts   = make(map[string]Account)
 	tlsConfigs = make(map[string]*tls.Config)
 	lock       sync.RWMutex
 )
 
+// Account holds the username/password for an etcd cluster.
+type Account struct {
+	User string
+	Pass string
+}
+
+// AddAccount adds the username/password for the given etcd cluster.
 func AddAccount(endpoints []string, user, pass string) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -52,6 +54,7 @@ func AddTLS(endpoints []string, certFile, certKeyFile, caFile string) error {
 	return nil
 }
 
+// GetAccount gets the username/password for the given etcd cluster.
 func GetAccount(endpoints []string) (Account, bool) {
 	lock.RLock()
 	defer lock.RUnlock()

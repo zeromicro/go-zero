@@ -371,6 +371,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 	return fieldM, nil
 }
 
+// GetSafeTables escapes the golang keywords from sql tables.
 func GetSafeTables(tables []*parser.Table) []*parser.Table {
 	var list []*parser.Table
 	for _, t := range tables {
@@ -381,6 +382,7 @@ func GetSafeTables(tables []*parser.Table) []*parser.Table {
 	return list
 }
 
+// GetSafeTable escapes the golang keywords from sql table.
 func GetSafeTable(table *parser.Table) *parser.Table {
 	table.Name = su.EscapeGolangKeyword(table.Name)
 	for _, c := range table.Columns {
