@@ -96,6 +96,7 @@ func isNumber(r rune) bool {
 	return '0' <= r && r <= '9'
 }
 
+// EscapeGolangKeyword escapes the golang keywords.
 func EscapeGolangKeyword(s string) string {
 	if !isGolangKeyword(s) {
 		return s

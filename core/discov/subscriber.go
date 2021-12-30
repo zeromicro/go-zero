@@ -58,6 +58,7 @@ func Exclusive() SubOption {
 	}
 }
 
+// WithSubEtcdAccount customizes the Subscriber with given etcd username/password.
 func WithSubEtcdAccount(user, pass string) SubOption {
 	return func(sub *Subscriber) {
 		internal.AddAccount(sub.endpoints, user, pass)

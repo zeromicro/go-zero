@@ -1,4 +1,5 @@
-package api // ApiParser
+package api
+
 import (
 	"fmt"
 	"reflect"
