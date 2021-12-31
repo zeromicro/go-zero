@@ -7,11 +7,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/handler"
-	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/cors"
-	"github.com/tal-tech/go-zero/rest/router"
+	"github.com/z-micro/go-zero/core/logx"
+	"github.com/z-micro/go-zero/rest/handler"
+	"github.com/z-micro/go-zero/rest/httpx"
+	"github.com/z-micro/go-zero/rest/internal/cors"
+	"github.com/z-micro/go-zero/rest/router"
 )
 
 type (

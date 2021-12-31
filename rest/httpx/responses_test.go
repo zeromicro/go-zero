@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/logx"
 )
 
 type message struct {
@@ -37,7 +37,7 @@ func TestError(t *testing.T) {
 			input:         body,
 			expectHasBody: true,
 			expectBody:    body,
-			expectCode:    http.StatusBadRequest,
+			expectCode:    http.StatusInternalServerError,
 		},
 		{
 			name:  "customized error handler return string",
@@ -103,6 +103,18 @@ func TestErrorWithHandler(t *testing.T) {
 		http.Error(w, err.Error(), 499)
 	})
 	assert.Equal(t, 499, w.code)
+	assert.True(t, w.hasBody)
+	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
+}
+
+func TestFailWithHandler(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Fail(&w, errors.New("foo"), func(w http.ResponseWriter, err error) {
+		http.Error(w, err.Error(), 400)
+	})
+	assert.Equal(t, 400, w.code)
 	assert.True(t, w.hasBody)
 	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
 }

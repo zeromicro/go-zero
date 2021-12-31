@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"unicode"
 
-	"github.com/zeromicro/antlr"
+	"github.com/z-micro/antlr"
 )
 
 // Suppress unused import error

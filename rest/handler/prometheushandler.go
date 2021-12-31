@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/metric"
-	"github.com/tal-tech/go-zero/core/prometheus"
-	"github.com/tal-tech/go-zero/core/timex"
-	"github.com/tal-tech/go-zero/rest/internal/security"
+	"github.com/z-micro/go-zero/core/metric"
+	"github.com/z-micro/go-zero/core/prometheus"
+	"github.com/z-micro/go-zero/core/timex"
+	"github.com/z-micro/go-zero/rest/internal/security"
 )
 
 const serverNamespace = "http_server"

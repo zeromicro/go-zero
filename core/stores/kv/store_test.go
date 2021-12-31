@@ -6,10 +6,10 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/z-micro/go-zero/core/hash"
+	"github.com/z-micro/go-zero/core/stores/cache"
+	"github.com/z-micro/go-zero/core/stores/redis"
+	"github.com/z-micro/go-zero/core/stringx"
 )
 
 var (

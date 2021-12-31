@@ -1,6 +1,6 @@
 package api // ApiParser
 
-import "github.com/zeromicro/antlr"
+import "github.com/z-micro/antlr"
 
 // ApiParserVisitor is a complete Visitor for a parse tree produced by ApiParserParser.
 type ApiParserVisitor interface {

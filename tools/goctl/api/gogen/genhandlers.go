@@ -5,12 +5,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/z-micro/go-zero/tools/goctl/api/spec"
+	"github.com/z-micro/go-zero/tools/goctl/config"
+	"github.com/z-micro/go-zero/tools/goctl/internal/version"
+	"github.com/z-micro/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util/format"
+	"github.com/z-micro/go-zero/tools/goctl/vars"
 )
 
 const (
@@ -20,7 +20,7 @@ const (
 import (
 	"net/http"
 
-	{{if .After1_1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
+	{{if .After1_1_10}}"github.com/z-micro/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
@@ -28,7 +28,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		{{if .HasRequest}}var req types.{{.RequestType}}
 		if err := httpx.Parse(r, &req); err != nil {
-			httpx.Error(w, err)
+			httpx.Fail(w, err)
 			return
 		}
 

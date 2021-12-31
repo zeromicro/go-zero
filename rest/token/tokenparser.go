@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/golang-jwt/jwt/request"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/z-micro/go-zero/core/timex"
 )
 
 const claimHistoryResetDuration = time.Hour * 24

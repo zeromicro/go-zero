@@ -1,10 +1,11 @@
-package api // ApiParser
+package api
+
 import (
 	"fmt"
 	"reflect"
 	"strconv"
 
-	"github.com/zeromicro/antlr"
+	"github.com/z-micro/antlr"
 )
 
 // Suppress unused import errors

@@ -6,14 +6,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	su "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/zeromicro/ddl-parser/parser"
+	"github.com/z-micro/go-zero/core/collection"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/converter"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/model"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/util"
+	su "github.com/z-micro/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util/console"
+	"github.com/z-micro/go-zero/tools/goctl/util/stringx"
+	"github.com/z-micro/ddl-parser/parser"
 )
 
 const timeImport = "time.Time"
@@ -371,6 +371,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 	return fieldM, nil
 }
 
+// GetSafeTables escapes the golang keywords from sql tables.
 func GetSafeTables(tables []*parser.Table) []*parser.Table {
 	var list []*parser.Table
 	for _, t := range tables {
@@ -381,6 +382,7 @@ func GetSafeTables(tables []*parser.Table) []*parser.Table {
 	return list
 }
 
+// GetSafeTable escapes the golang keywords from sql table.
 func GetSafeTable(table *parser.Table) *parser.Table {
 	table.Name = su.EscapeGolangKeyword(table.Name)
 	for _, c := range table.Columns {

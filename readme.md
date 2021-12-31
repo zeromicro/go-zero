@@ -1,4 +1,79 @@
-<img align="right" width="150px" src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/go-zero.png">
+# Update
+Fork from [go-zero v1.2.4](https://github.com/zeromicro/go-zero)  and change:
+
+1. remove suported k8s based service discovery.
+2. add fail response for httpx.
+2. minor bug fixes and improvements.
+
+# Install
+
+## 1. install goctl
+
+- download&install
+
+  ```shell
+  # Go 1.15 and before
+  $ go get -u github.com/z-micro/go-zero/tools/goctl@cli
+  
+  # Go 1.16 and later
+  $ go install github.com/z-micro/go-zero/tools/goctl@cli
+  ```
+
+- verification
+
+  ```shell
+  $ goctl -v
+  ```
+
+  ```shell
+    goctl version 1.2.5 windows/amd64
+  ```
+
+## 2. install protoc
+
+- download [protobuf release](https://github.com/protocolbuffers/protobuf/releases)
+
+- decompression
+
+  ```
+  protoc-3.14.0-osx-x86_64.zip
+  ```
+
+  ```shell
+  $ cd protoc-3.14.0-osx-x86_64/bin
+  ```
+
+- the binary file move to `GOPATH/bin`
+
+  ```shell
+  $ mv protoc $GOPATH/bin
+  ```
+
+- verification
+
+  ```shell
+  $ protoc --version
+  ```
+
+  ```shell
+    libprotoc 3.14.0
+  ```
+
+## 3. install protoc-gen-go
+
+- download&install [protoc-gen-go](https://github.com/z-micro/protobuf)
+
+  ```shell
+  # Go 1.15 and before
+  $ go get -u github.com/z-micro/protobuf/protoc-gen-go@v1.3.6
+  
+  # Go 1.16 and later
+  $ go install github.com/z-micro/protobuf/protoc-gen-go@v1.3.6
+  ```
+
+
+
+<img align="right" width="150px" src="https://gitee.com/kevwan/static/raw/master/doc/images/go-zero.png">
 
 # go-zero
 

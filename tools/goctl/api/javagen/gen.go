@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/core/logx"
+	"github.com/z-micro/go-zero/tools/goctl/api/parser"
+	"github.com/z-micro/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

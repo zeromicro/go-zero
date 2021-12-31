@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	red "github.com/go-redis/redis"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/z-micro/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/mapping"
+	"github.com/z-micro/go-zero/core/timex"
 )
 
 func checkDuration(proc func(red.Cmder) error) func(red.Cmder) error {

@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/z-micro/go-zero/tools/goctl/util/env"
 )
 
 func CloneIntoGitHome(url string) (dir string, err error) {

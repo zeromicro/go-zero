@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/globalsign/mgo"
-	"github.com/tal-tech/go-zero/core/breaker"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stores/mongo/internal"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/z-micro/go-zero/core/breaker"
+	"github.com/z-micro/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/stores/mongo/internal"
+	"github.com/z-micro/go-zero/core/timex"
 )
 
 const defaultSlowThreshold = time.Millisecond * 500

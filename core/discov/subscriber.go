@@ -4,8 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/tal-tech/go-zero/core/discov/internal"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/z-micro/go-zero/core/discov/internal"
+	"github.com/z-micro/go-zero/core/syncx"
 )
 
 type (
@@ -58,6 +58,7 @@ func Exclusive() SubOption {
 	}
 }
 
+// WithSubEtcdAccount customizes the Subscriber with given etcd username/password.
 func WithSubEtcdAccount(user, pass string) SubOption {
 	return func(sub *Subscriber) {
 		internal.AddAccount(sub.endpoints, user, pass)

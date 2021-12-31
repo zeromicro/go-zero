@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/zrpc/internal/mock"
+	"github.com/z-micro/go-zero/core/stat"
+	"github.com/z-micro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
 )
 
