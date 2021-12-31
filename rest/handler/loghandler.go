@@ -14,13 +14,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/iox"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/timex"
-	"github.com/tal-tech/go-zero/core/utils"
-	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/z-micro/go-zero/core/iox"
+	"github.com/z-micro/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/syncx"
+	"github.com/z-micro/go-zero/core/timex"
+	"github.com/z-micro/go-zero/core/utils"
+	"github.com/z-micro/go-zero/rest/httpx"
+	"github.com/z-micro/go-zero/rest/internal"
 )
 
 const (

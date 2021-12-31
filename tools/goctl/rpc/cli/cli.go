@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/z-micro/go-zero/tools/goctl/rpc/generator"
+	"github.com/z-micro/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util/env"
 	"github.com/urfave/cli"
 )
 

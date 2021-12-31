@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/justinas/alice"
-	"github.com/tal-tech/go-zero/core/codec"
-	"github.com/tal-tech/go-zero/core/load"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/rest/handler"
-	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/z-micro/go-zero/core/codec"
+	"github.com/z-micro/go-zero/core/load"
+	"github.com/z-micro/go-zero/core/stat"
+	"github.com/z-micro/go-zero/rest/handler"
+	"github.com/z-micro/go-zero/rest/httpx"
+	"github.com/z-micro/go-zero/rest/internal"
 )
 
 // use 1000m to represent 100%

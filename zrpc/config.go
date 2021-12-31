@@ -1,10 +1,10 @@
 package zrpc
 
 import (
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/core/service"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/zrpc/resolver"
+	"github.com/z-micro/go-zero/core/discov"
+	"github.com/z-micro/go-zero/core/service"
+	"github.com/z-micro/go-zero/core/stores/redis"
+	"github.com/z-micro/go-zero/zrpc/resolver"
 )
 
 type (

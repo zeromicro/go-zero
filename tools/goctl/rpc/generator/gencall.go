@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/emicklei/proto"
-	"github.com/tal-tech/go-zero/core/collection"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/z-micro/go-zero/core/collection"
+	conf "github.com/z-micro/go-zero/tools/goctl/config"
+	"github.com/z-micro/go-zero/tools/goctl/rpc/parser"
+	"github.com/z-micro/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util/format"
+	"github.com/z-micro/go-zero/tools/goctl/util/stringx"
 )
 
 const (
@@ -25,7 +25,7 @@ import (
 
 	{{.package}}
 
-	"github.com/tal-tech/go-zero/zrpc"
+	"github.com/z-micro/go-zero/zrpc"
 	"google.golang.org/grpc"
 )
 

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/z-micro/go-zero/core/stringx"
 )
 
 func TestRedisLock(t *testing.T) {

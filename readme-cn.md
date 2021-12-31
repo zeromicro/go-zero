@@ -1,3 +1,79 @@
+# 更新内容
+
+Fork from [go-zero v1.2.4](https://github.com/zeromicro/go-zero)  and change:
+
+1. 去除k8s服务发现的支持。
+2. 为httpx添加失败响应。
+4. 错误修复和小改进。
+
+# 环境搭建
+
+## 1. goctl安装
+
+- download&install
+
+  ```shell
+  # Go 1.15 及之前版本
+  $ get -u github.com/z-micro/go-zero/tools/goctl@cli
+  
+  # Go 1.16 及以后版本
+  $ go install github.com/z-micro/go-zero/tools/goctl@cli
+  ```
+
+- 安装结果验证
+
+  ```shell
+  $ goctl -v
+  ```
+
+  ```shell
+    goctl version 1.2.5 windows/amd64
+  ```
+
+## 2. protoc安装
+
+- 下载 [protobuf release](https://github.com/protocolbuffers/protobuf/releases)
+
+- 解压`protoc-3.14.0-osx-x86_64.zip`并进入`protoc-3.14.0-osx-x86_64`
+
+  ```
+  protoc-3.14.0-osx-x86_64.zip
+  ```
+
+  ```shell
+  $ cd protoc-3.14.0-osx-x86_64/bin
+  ```
+
+- 将启动的`protoc`二进制文件移动到被添加到环境变量的任意path下，如`$GOPATH/bin`
+
+  ```shell
+  $ mv protoc $GOPATH/bin
+  ```
+
+- 安装结果验证
+
+  ```shell
+  $ protoc --version
+  ```
+
+  ```shell
+    libprotoc 3.14.0
+  ```
+
+## 3. protoc-gen-go安装
+
+- download&install [protoc-gen-go](https://github.com/z-micro/protobuf)
+
+  ```shell
+  # Go 1.15 及之前版本
+  $ go get -u github.com/z-micro/protobuf/protoc-gen-go@v1.3.6
+  
+  # Go 1.16 及以后版本
+  $ go install github.com/z-micro/protobuf/protoc-gen-go@v1.3.6
+  ```
+
+
+
 <img align="right" width="150px" src="https://gitee.com/kevwan/static/raw/master/doc/images/go-zero.png">
 
 # go-zero
@@ -232,9 +308,9 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >46. 上海游族网络
 >47. 深信服
 >48. 中免日上科技互联有限公司
->48. ECLOUDVALLEY TECHNOLOGY (HK) LIMITED
->48. 馨科智（深圳）科技有限公司
->48. 成都松珀科技有限公司
+>49. ECLOUDVALLEY TECHNOLOGY (HK) LIMITED
+>50. 馨科智（深圳）科技有限公司
+>51. 成都松珀科技有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

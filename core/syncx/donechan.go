@@ -3,7 +3,7 @@ package syncx
 import (
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/z-micro/go-zero/core/lang"
 )
 
 // A DoneChan is used as a channel that can be closed multiple times and wait for done.

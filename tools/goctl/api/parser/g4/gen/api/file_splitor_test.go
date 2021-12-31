@@ -37,7 +37,7 @@ func TestFileSplitor(t *testing.T) {
 		buffer.Reset()
 		if files > 0 {
 			buffer.WriteString(fmt.Sprintf(`package api
-import "github.com/zeromicro/antlr"
+import "github.com/z-micro/antlr"
 
 // Part %s
 // The apiparser_parser.go file was split into multiple files because it

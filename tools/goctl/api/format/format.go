@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/errorx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/core/errorx"
+	"github.com/z-micro/go-zero/tools/goctl/api/parser"
+	"github.com/z-micro/go-zero/tools/goctl/api/util"
+	ctlutil "github.com/z-micro/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

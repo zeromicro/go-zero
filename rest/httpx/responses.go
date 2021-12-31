@@ -5,18 +5,48 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/logx"
 )
 
 var (
 	errorHandler func(error) (int, interface{})
+	failHandler func(error) (int, interface{})
 	lock         sync.RWMutex
 )
 
-// Error writes err into w.
+// Error writes HTTP 500 err into w.
 func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
 	lock.RLock()
 	handler := errorHandler
+	lock.RUnlock()
+
+	if handler == nil {
+		if len(fns) > 0 {
+			fns[0](w, err)
+		} else {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	code, body := handler(err)
+	if body == nil {
+		w.WriteHeader(code)
+		return
+	}
+
+	e, ok := body.(error)
+	if ok {
+		http.Error(w, e.Error(), code)
+	} else {
+		WriteJson(w, code, body)
+	}
+}
+
+// Fail writes HTTP 400 bad request into w.
+func Fail(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
+	lock.RLock()
+	handler := failHandler
 	lock.RUnlock()
 
 	if handler == nil {
@@ -57,6 +87,13 @@ func SetErrorHandler(handler func(error) (int, interface{})) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandler = handler
+}
+
+// SetFailHandler sets the fail handler, which is called on calling Fail.
+func SetFailHandler(handler func(error) (int, interface{})) {
+	lock.Lock()
+	defer lock.Unlock()
+	failHandler = handler
 }
 
 // WriteJson writes v as json string into w with code.

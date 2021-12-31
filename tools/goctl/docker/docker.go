@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 

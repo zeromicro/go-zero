@@ -6,14 +6,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	su "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
-	"github.com/zeromicro/ddl-parser/parser"
+	"github.com/z-micro/go-zero/core/collection"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/converter"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/model"
+	"github.com/z-micro/go-zero/tools/goctl/model/sql/util"
+	su "github.com/z-micro/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/util/console"
+	"github.com/z-micro/go-zero/tools/goctl/util/stringx"
+	"github.com/z-micro/ddl-parser/parser"
 )
 
 const timeImport = "time.Time"

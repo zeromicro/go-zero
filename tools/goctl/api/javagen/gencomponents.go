@@ -10,10 +10,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/core/stringx"
+	"github.com/z-micro/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/z-micro/go-zero/tools/goctl/api/util"
+	"github.com/z-micro/go-zero/tools/goctl/util"
 )
 
 const (

@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/utils/io"
 )
 
 func TestUnmarshalYamlBytes(t *testing.T) {
@@ -936,15 +935,6 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestUnmarshalYamlBadReader(t *testing.T) {
-	var v struct {
-		Any string
-	}
-
-	err := UnmarshalYamlReader(new(badReader), &v)
-	assert.NotNil(t, err)
-}
-
 func TestUnmarshalYamlMapBool(t *testing.T) {
 	text := `machine:
   node1: true
@@ -1007,10 +997,4 @@ func TestUnmarshalYamlMapRune(t *testing.T) {
 	assert.Equal(t, rune(1), v.Machine["node1"])
 	assert.Equal(t, rune(2), v.Machine["node2"])
 	assert.Equal(t, rune(3), v.Machine["node3"])
-}
-
-type badReader struct{}
-
-func (b *badReader) Read(p []byte) (n int, err error) {
-	return 0, io.ErrLimitReached
 }

@@ -5,7 +5,7 @@ import (
 	"path"
 	"sort"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/z-micro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 const prefixKey = "prefix"

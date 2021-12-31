@@ -3,8 +3,8 @@ package internal
 import (
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/z-micro/go-zero/core/discov"
+	"github.com/z-micro/go-zero/core/logx"
 	"google.golang.org/grpc/resolver"
 )
 

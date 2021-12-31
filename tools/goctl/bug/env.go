@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
+	"github.com/z-micro/go-zero/tools/goctl/internal/version"
 )
 
 type env map[string]string
@@ -29,6 +29,6 @@ func getEnv() env {
 	e[os] = runtime.GOOS
 	e[arch] = runtime.GOARCH
 	e[goctlVersion] = version.BuildVersion
-	e[goVersion] = runtime.Version()
+	e[goctlVersion] = runtime.Version()
 	return e
 }

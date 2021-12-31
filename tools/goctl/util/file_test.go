@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
+	"github.com/z-micro/go-zero/tools/goctl/internal/version"
 )
 
 func TestGetTemplateDir(t *testing.T) {

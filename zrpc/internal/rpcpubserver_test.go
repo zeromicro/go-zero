@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/netx"
+	"github.com/z-micro/go-zero/core/netx"
 )
 
 func TestFigureOutListenOn(t *testing.T) {

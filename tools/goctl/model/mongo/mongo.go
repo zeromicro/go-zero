@@ -5,9 +5,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
-	file "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/z-micro/go-zero/tools/goctl/config"
+	"github.com/z-micro/go-zero/tools/goctl/model/mongo/generate"
+	file "github.com/z-micro/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
 )
 
