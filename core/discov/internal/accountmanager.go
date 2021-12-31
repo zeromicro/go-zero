@@ -30,6 +30,7 @@ func AddAccount(endpoints []string, user, pass string) {
 	}
 }
 
+// AddTLS adds the tls cert files for the given etcd cluster.
 func AddTLS(endpoints []string, certFile, certKeyFile, caFile string) error {
 	cert, err := tls.LoadX509KeyPair(certFile, certKeyFile)
 	if err != nil {
@@ -63,6 +64,7 @@ func GetAccount(endpoints []string) (Account, bool) {
 	return account, ok
 }
 
+// GetTLS gets the tls config for the given etcd cluster.
 func GetTLS(endpoints []string) (*tls.Config, bool) {
 	lock.RLock()
 	defer lock.RUnlock()
