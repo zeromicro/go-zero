@@ -426,6 +426,24 @@ func TestStream_AllMach(t *testing.T) {
 	)
 }
 
+func TestStream_NoneMatch(t *testing.T) {
+	assetEqual(
+		t, true, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			return false
+		}),
+	)
+	assetEqual(
+		t, false, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			return true
+		}),
+	)
+	assetEqual(
+		t, true, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			return item.(int) == 4
+		}),
+	)
+}
+
 func TestConcat(t *testing.T) {
 	a1 := []interface{}{1, 2, 3}
 	a2 := []interface{}{4, 5, 6}

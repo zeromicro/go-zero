@@ -280,6 +280,19 @@ func (s Stream) Merge() Stream {
 	return Range(source)
 }
 
+// NoneMatch returns whether all elements of this stream don't match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then true is returned and the predicate is not evaluated.
+func (s Stream) NoneMatch(predicate func(item interface{}) bool) bool {
+	for item := range s.source {
+		if predicate(item) {
+			return false
+		}
+	}
+
+	return true
+}
+
 // Parallel applies the given ParallelFunc to each item concurrently with given number of workers.
 func (s Stream) Parallel(fn ParallelFunc, opts ...Option) {
 	s.Walk(func(item interface{}, pipe chan<- interface{}) {
@@ -465,14 +478,14 @@ func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 	return Range(pipe)
 }
 
-// UnlimitedWorkers lets the caller to use as many workers as the tasks.
+// UnlimitedWorkers lets the caller use as many workers as the tasks.
 func UnlimitedWorkers() Option {
 	return func(opts *rxOptions) {
 		opts.unlimitedWorkers = true
 	}
 }
 
-// WithWorkers lets the caller to customize the concurrent workers.
+// WithWorkers lets the caller customize the concurrent workers.
 func WithWorkers(workers int) Option {
 	return func(opts *rxOptions) {
 		if workers < minWorkers {
