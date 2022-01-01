@@ -439,7 +439,7 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 }
 
 func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
-	pipe := make(chan interface{}, defaultWorkers)
+	pipe := make(chan interface{}, option.workers)
 
 	go func() {
 		var wg sync.WaitGroup
