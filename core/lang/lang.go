@@ -4,8 +4,8 @@ package lang
 var Placeholder PlaceholderType
 
 type (
-	// GenericType can be used to hold any type.
-	GenericType = interface{}
+	// AnyType can be used to hold any type.
+	AnyType = interface{}
 	// PlaceholderType represents a placeholder type.
 	PlaceholderType = struct{}
 )
