@@ -14,8 +14,10 @@ We hope that the items listed below will inspire further engagement from the com
 
 ## 2021 Q4
 - [x] Support `username/password` authentication in ETCD
+- [x] Support `SSL/TLS` in ETCD
 - [x] Support `SSL/TLS` in `zRPC`
 - [x] Support `TLS` in redis connections
+- [x] Support `goctl bug` to report bugs conveniently
 
 ## 2022
 - [ ] Support `goctl mock` command to start a mocking server with given `.api` file
