@@ -312,6 +312,7 @@ func (s Stream) Merge() Stream {
 func (s Stream) NoneMatch(predicate func(item interface{}) bool) bool {
 	for item := range s.source {
 		if predicate(item) {
+			// make sure the former goroutine not block, and current func returns fast.
 			go drain(s.source)
 			return false
 		}
