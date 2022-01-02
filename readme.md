@@ -107,10 +107,10 @@ go get -u github.com/tal-tech/go-zero
 
    ```shell
    # for Go 1.15 and earlier
-   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl@cli
+   GO111MODULE=on go get -u github.com/tal-tech/go-zero/tools/goctl@latest
    
    # for Go 1.16 and later
-   go install github.com/tal-tech/go-zero/tools/goctl@cli
+   go install github.com/tal-tech/go-zero/tools/goctl@latest
    ```
 
    make sure goctl is executable.
