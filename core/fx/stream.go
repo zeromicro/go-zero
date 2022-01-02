@@ -203,7 +203,7 @@ func (s Stream) Filter(fn FilterFunc, opts ...Option) Stream {
 // First returns the first item, nil if no items.
 func (s Stream) First() interface{} {
 	for item := range s.source {
-		// make sure the former goroutine not block.
+		// make sure the former goroutine not block, and current func returns fast.
 		go drain(s.source)
 		return item
 	}
