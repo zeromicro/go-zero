@@ -567,5 +567,5 @@ func runCheckedTest(t *testing.T, fn func(t *testing.T)) {
 	fn(t)
 	// let scheduler schedule first
 	time.Sleep(time.Millisecond)
-	assert.Equal(t, goroutines, runtime.NumGoroutine())
+	assert.True(t, runtime.NumGoroutine() <= goroutines)
 }
