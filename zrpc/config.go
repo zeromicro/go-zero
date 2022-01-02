@@ -83,6 +83,12 @@ func (cc RpcClientConf) BuildTarget() (string, error) {
 	if cc.Etcd.HasAccount() {
 		discov.RegisterAccount(cc.Etcd.Hosts, cc.Etcd.User, cc.Etcd.Pass)
 	}
+	if cc.Etcd.HasTLS() {
+		if err := discov.RegisterTLS(cc.Etcd.Hosts, cc.Etcd.CertFile, cc.Etcd.CertKeyFile,
+			cc.Etcd.CACertFile, cc.Etcd.InsecureSkipVerify); err != nil {
+			return "", err
+		}
+	}
 
 	return resolver.BuildDiscovTarget(cc.Etcd.Hosts, cc.Etcd.Key), nil
 }
