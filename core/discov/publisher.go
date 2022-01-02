@@ -160,8 +160,8 @@ func WithPubEtcdAccount(user, pass string) PubOption {
 }
 
 // WithPubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
-func WithPubEtcdTLS(certFile, certKeyFile, caFile string) PubOption {
+func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) PubOption {
 	return func(pub *Publisher) {
-		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile))
+		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }
