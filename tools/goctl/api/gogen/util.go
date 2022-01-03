@@ -12,8 +12,8 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 type fileGenConfig struct {

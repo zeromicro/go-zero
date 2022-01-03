@@ -11,6 +11,7 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -57,14 +58,14 @@ func DockerCommand(c *cli.Context) (err error) {
 	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
 	}
 
-	if !util.FileExists(goFile) {
+	if !pathx.FileExists(goFile) {
 		return fmt.Errorf("file %q not found", goFile)
 	}
 
@@ -82,7 +83,7 @@ func DockerCommand(c *cli.Context) (err error) {
 		return err
 	}
 
-	projDir, ok := util.FindProjectPath(goFile)
+	projDir, ok := pathx.FindProjectPath(goFile)
 	if ok {
 		fmt.Printf("Hint: run \"docker build ...\" command in dir:\n    %s\n", projDir)
 	}
@@ -129,13 +130,13 @@ func generateDockerfile(goFile string, port int, version string, args ...string)
 		projPath = "."
 	}
 
-	out, err := util.CreateIfNotExist(dockerfileName)
+	out, err := pathx.CreateIfNotExist(dockerfileName)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	text, err := util.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
+	text, err := pathx.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func generateDockerfile(goFile string, port int, version string, args ...string)
 		Chinese:   offset == cstOffset,
 		GoRelPath: projPath,
 		GoFile:    goFile,
-		ExeFile:   util.FileNameWithoutExt(filepath.Base(goFile)),
+		ExeFile:   pathx.FileNameWithoutExt(filepath.Base(goFile)),
 		HasPort:   port > 0,
 		Port:      port,
 		Argument:  builder.String(),
@@ -165,9 +166,9 @@ func getFilePath(file string) (string, error) {
 		return "", err
 	}
 
-	projPath, ok := util.FindGoModPath(filepath.Join(wd, file))
+	projPath, ok := pathx.FindGoModPath(filepath.Join(wd, file))
 	if !ok {
-		projPath, err = util.PathFromGoSrc()
+		projPath, err = pathx.PathFromGoSrc()
 		if err != nil {
 			return "", errors.New("no go.mod found, or not in GOPATH")
 		}

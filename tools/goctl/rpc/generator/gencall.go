@@ -12,6 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -85,7 +86,7 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		return err
 	}
 
-	text, err := util.LoadTemplate(category, callTemplateFile, callTemplateText)
+	text, err := pathx.LoadTemplate(category, callTemplateFile, callTemplateText)
 	if err != nil {
 		return err
 	}
@@ -100,13 +101,13 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	sort.Strings(aliasKeys)
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":        callFilename,
-		"alias":       strings.Join(aliasKeys, util.NL),
+		"alias":       strings.Join(aliasKeys, pathx.NL),
 		"head":        head,
 		"filePackage": dir.Base,
 		"package":     fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
 		"serviceName": stringx.From(service.Name).ToCamel(),
-		"functions":   strings.Join(functions, util.NL),
-		"interface":   strings.Join(iFunctions, util.NL),
+		"functions":   strings.Join(functions, pathx.NL),
+		"interface":   strings.Join(iFunctions, pathx.NL),
 	}, filename, true)
 	return err
 }
@@ -137,7 +138,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
-		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
+		text, err := pathx.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +172,7 @@ func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Se
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
-		text, err := util.LoadTemplate(category, callInterfaceFunctionTemplateFile, callInterfaceFunctionTemplate)
+		text, err := pathx.LoadTemplate(category, callInterfaceFunctionTemplateFile, callInterfaceFunctionTemplate)
 		if err != nil {
 			return nil, err
 		}

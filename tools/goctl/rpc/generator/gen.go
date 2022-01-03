@@ -5,9 +5,9 @@ import (
 
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 // RPCGenerator defines a generator and configure
@@ -42,7 +42,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}

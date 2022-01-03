@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
 	file "github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -26,7 +27,7 @@ func Action(ctx *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(tp) == 0 {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -62,12 +62,12 @@ func Category() string {
 
 // Clean deletes all template files
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates creates template files if not exists
 func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }
 
 // RevertTemplate recovers the delete template files
@@ -77,7 +77,7 @@ func RevertTemplate(name string) error {
 		return fmt.Errorf("%s: no such file name", name)
 	}
 
-	return util.CreateTemplate(category, name, content)
+	return pathx.CreateTemplate(category, name, content)
 }
 
 // Update provides template clean and init
@@ -87,5 +87,5 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }

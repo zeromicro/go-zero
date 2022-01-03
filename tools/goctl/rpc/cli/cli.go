@@ -9,6 +9,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -34,7 +35,7 @@ func RPC(c *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(src) == 0 {
@@ -87,7 +88,7 @@ func RPCNew(c *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	protoName := rpcname + ".proto"
@@ -122,7 +123,7 @@ func RPCTemplate(c *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(protoFile) == 0 {

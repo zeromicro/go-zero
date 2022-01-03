@@ -5,10 +5,11 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func genNew(table Table, withCache, postgreSql bool) (string, error) {
-	text, err := util.LoadTemplate(category, modelNewTemplateFile, template.New)
+	text, err := pathx.LoadTemplate(category, modelNewTemplateFile, template.New)
 	if err != nil {
 		return "", err
 	}

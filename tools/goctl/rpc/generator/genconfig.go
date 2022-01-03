@@ -7,8 +7,8 @@ import (
 
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 const configTemplate = `package config
@@ -32,11 +32,11 @@ func (g *DefaultGenerator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.C
 	}
 
 	fileName := filepath.Join(dir.Filename, configFilename+".go")
-	if util.FileExists(fileName) {
+	if pathx.FileExists(fileName) {
 		return nil
 	}
 
-	text, err := util.LoadTemplate(category, configTemplateFileFile, configTemplate)
+	text, err := pathx.LoadTemplate(category, configTemplateFileFile, configTemplate)
 	if err != nil {
 		return err
 	}

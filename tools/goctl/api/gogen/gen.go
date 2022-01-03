@@ -18,6 +18,7 @@ import (
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -40,7 +41,7 @@ func GoCommand(c *cli.Context) error {
 	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
@@ -64,7 +65,7 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
-	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(pathx.MkdirIfNotExist(dir))
 	rootPkg, err := getParentPackage(dir)
 	if err != nil {
 		return err

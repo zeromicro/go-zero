@@ -9,10 +9,11 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func CloneIntoGitHome(url string) (dir string, err error) {
-	gitHome, err := GetGitHome()
+	gitHome, err := pathx.GetGitHome()
 	if err != nil {
 		return "", err
 	}

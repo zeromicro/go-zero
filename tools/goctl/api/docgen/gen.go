@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -28,7 +28,7 @@ func DocCommand(c *cli.Context) error {
 		}
 	}
 
-	if !util.FileExists(dir) {
+	if !pathx.FileExists(dir) {
 		return fmt.Errorf("dir %s not exsit", dir)
 	}
 

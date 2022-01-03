@@ -3,7 +3,7 @@ package gogen
 import (
 	"fmt"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -33,12 +33,12 @@ func Category() string {
 
 // Clean cleans the generated deployment files.
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates generates api template files.
 func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }
 
 // RevertTemplate reverts the given template file to the default value.
@@ -47,7 +47,7 @@ func RevertTemplate(name string) error {
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
-	return util.CreateTemplate(category, name, content)
+	return pathx.CreateTemplate(category, name, content)
 }
 
 // Update updates the template files to the templates built in current goctl.
@@ -57,5 +57,5 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func TestParsePlainText(t *testing.T) {
