@@ -13,7 +13,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util/pathx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 type fileGenConfig struct {
@@ -41,7 +41,7 @@ func genFile(c fileGenConfig) error {
 	if len(c.category) == 0 || len(c.templateFile) == 0 {
 		text = c.builtinTemplate
 	} else {
-		text, err = ctlutil.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
+		text, err = pathx.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func getParentPackage(dir string) (string, error) {
 	// fix https://github.com/zeromicro/go-zero/issues/1058
 	wd := projectCtx.WorkDir
 	d := projectCtx.Dir
-	same, err := ctlutil.SameFile(wd, d)
+	same, err := pathx.SameFile(wd, d)
 	if err != nil {
 		return "", err
 	}
