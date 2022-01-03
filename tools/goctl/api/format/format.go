@@ -14,7 +14,7 @@ import (
 	"github.com/tal-tech/go-zero/core/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util/pathx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -124,7 +124,7 @@ func apiFormat(data string, filename ...string) (string, error) {
 			newLineCount++
 		} else {
 			if preLine == rightBrace {
-				builder.WriteString(ctlutil.NL)
+				builder.WriteString(pathx.NL)
 			}
 			newLineCount = 0
 		}
@@ -152,7 +152,7 @@ func apiFormat(data string, filename ...string) (string, error) {
 			}
 		}
 		util.WriteIndent(&builder, tapCount)
-		builder.WriteString(line + ctlutil.NL)
+		builder.WriteString(line + pathx.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
 			tapCount++
 		}
@@ -168,10 +168,10 @@ func formatGoTypeDef(line string, scanner *bufio.Scanner, builder *strings.Build
 	if strings.HasPrefix(noCommentLine, "type") && (strings.HasSuffix(noCommentLine, leftParenthesis) ||
 		strings.HasSuffix(noCommentLine, leftBrace)) {
 		var typeBuilder strings.Builder
-		typeBuilder.WriteString(mayInsertStructKeyword(line, &tokenCount) + ctlutil.NL)
+		typeBuilder.WriteString(mayInsertStructKeyword(line, &tokenCount) + pathx.NL)
 		for scanner.Scan() {
 			noCommentLine := util.RemoveComment(scanner.Text())
-			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + ctlutil.NL)
+			typeBuilder.WriteString(mayInsertStructKeyword(scanner.Text(), &tokenCount) + pathx.NL)
 			if noCommentLine == rightBrace || noCommentLine == rightParenthesis {
 				tokenCount--
 			}
