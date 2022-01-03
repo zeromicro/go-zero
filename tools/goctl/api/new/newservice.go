@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -49,7 +50,7 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}
@@ -74,10 +75,10 @@ func CreateServiceCommand(c *cli.Context) error {
 	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
-	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
 	if err != nil {
 		return err
 	}

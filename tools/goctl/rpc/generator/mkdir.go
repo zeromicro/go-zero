@@ -6,8 +6,8 @@ import (
 
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -111,7 +111,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config) (DirCont
 		Base:     filepath.Base(callDir),
 	}
 	for _, v := range inner {
-		err := util.MkdirIfNotExist(v.Filename)
+		err := pathx.MkdirIfNotExist(v.Filename)
 		if err != nil {
 			return nil, err
 		}

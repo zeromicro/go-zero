@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 // Context defines the model generation data what they needs
@@ -39,7 +40,7 @@ func generateModel(ctx *Context) error {
 			return err
 		}
 
-		text, err := util.LoadTemplate(category, modelTemplateFile, template.Text)
+		text, err := pathx.LoadTemplate(category, modelTemplateFile, template.Text)
 		if err != nil {
 			return err
 		}
@@ -58,7 +59,7 @@ func generateModel(ctx *Context) error {
 }
 
 func generateError(ctx *Context) error {
-	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
+	text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
 	if err != nil {
 		return err
 	}

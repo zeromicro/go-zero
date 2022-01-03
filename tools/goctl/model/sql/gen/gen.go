@@ -16,6 +16,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -62,7 +63,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 
 	dir = dirAbs
 	pkg := filepath.Base(dirAbs)
-	err = util.MkdirIfNotExist(dir)
+	err = pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +135,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 
 	g.dir = dirAbs
 	g.pkg = filepath.Base(dirAbs)
-	err = util.MkdirIfNotExist(dirAbs)
+	err = pathx.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
 	}
@@ -148,7 +149,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 
 		name := util.SafeString(modelFilename) + ".go"
 		filename := filepath.Join(dirAbs, name)
-		if util.FileExists(filename) {
+		if pathx.FileExists(filename) {
 			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
@@ -165,7 +166,7 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 	}
 
 	filename := filepath.Join(dirAbs, varFilename+".go")
-	text, err := util.LoadTemplate(category, errTemplateFile, template.Error)
+	text, err := pathx.LoadTemplate(category, errTemplateFile, template.Error)
 	if err != nil {
 		return err
 	}
@@ -261,7 +262,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 	var list []string
 	list = append(list, insertCodeMethod, findOneCodeMethod, ret.findOneInterfaceMethod, updateCodeMethod, deleteCodeMethod)
-	typesCode, err := genTypes(table, strings.Join(modelutil.TrimStringSlice(list), util.NL), withCache)
+	typesCode, err := genTypes(table, strings.Join(modelutil.TrimStringSlice(list), pathx.NL), withCache)
 	if err != nil {
 		return "", err
 	}
@@ -292,7 +293,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 }
 
 func (g *defaultGenerator) executeModel(code *code) (*bytes.Buffer, error) {
-	text, err := util.LoadTemplate(category, modelTemplateFile, template.Model)
+	text, err := pathx.LoadTemplate(category, modelTemplateFile, template.Model)
 	if err != nil {
 		return nil, err
 	}

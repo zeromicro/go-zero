@@ -14,6 +14,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -110,7 +111,7 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 
 	modelFile := util.Title(ty.Name()) + ".java"
 	filename := path.Join(dir, modelDir, modelFile)
-	if err := util.RemoveOrQuit(filename); err != nil {
+	if err := pathx.RemoveOrQuit(filename); err != nil {
 		return err
 	}
 
@@ -270,7 +271,7 @@ func (c *componentsContext) buildConstructor() (string, string, error) {
 		writeIndent(&constructorSetter, 2)
 		constructorSetter.WriteString(fmt.Sprintf("this.%s = %s;", pn, util.Untitle(member.Name)))
 		if index != len(c.members)-1 {
-			constructorSetter.WriteString(util.NL)
+			constructorSetter.WriteString(pathx.NL)
 		}
 	}
 	return params.String(), constructorSetter.String(), nil

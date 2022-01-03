@@ -6,6 +6,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func genFields(fields []*parser.Field) (string, error) {
@@ -29,7 +30,7 @@ func genField(field *parser.Field) (string, error) {
 		return "", err
 	}
 
-	text, err := util.LoadTemplate(category, fieldTemplateFile, template.Field)
+	text, err := pathx.LoadTemplate(category, fieldTemplateFile, template.Field)
 	if err != nil {
 		return "", err
 	}

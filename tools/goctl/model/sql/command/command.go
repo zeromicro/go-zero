@@ -15,6 +15,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
 	file "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -50,7 +51,7 @@ func MysqlDDL(ctx *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 	cfg, err := config.NewConfig(style)
 	if err != nil {
@@ -76,7 +77,7 @@ func MySqlDataSource(ctx *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	pattern := strings.TrimSpace(ctx.String(flagTable))
@@ -105,7 +106,7 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 		}
 	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(schema) == 0 {

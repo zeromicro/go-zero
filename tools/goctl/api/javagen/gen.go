@@ -8,7 +8,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/core/logx"
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -30,7 +30,7 @@ func JavaCommand(c *cli.Context) error {
 
 	api.Service = api.Service.JoinPrefix()
 	packetName := strings.TrimSuffix(api.Service.Name, "-api")
-	logx.Must(util.MkdirIfNotExist(dir))
+	logx.Must(pathx.MkdirIfNotExist(dir))
 	logx.Must(genPacket(dir, packetName, api))
 	logx.Must(genComponents(dir, packetName, api))
 

@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -122,10 +123,10 @@ func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) err
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, fmt.Sprintf("\"%s\"",
-		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
-	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
+		pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
+	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if len(route.RequestTypeName()) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
 
 	currentVersion := version.GetGoctlVersion()

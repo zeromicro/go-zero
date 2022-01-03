@@ -3,12 +3,13 @@ package gen
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
 func genFindOne(table Table, withCache, postgreSql bool) (string, string, error) {
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
+	text, err := pathx.LoadTemplate(category, findOneTemplateFile, template.FindOne)
 	if err != nil {
 		return "", "", err
 	}
@@ -30,7 +31,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 		return "", "", err
 	}
 
-	text, err = util.LoadTemplate(category, findOneMethodTemplateFile, template.FindOneMethod)
+	text, err = pathx.LoadTemplate(category, findOneMethodTemplateFile, template.FindOneMethod)
 	if err != nil {
 		return "", "", err
 	}

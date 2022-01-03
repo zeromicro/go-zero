@@ -11,8 +11,8 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 
@@ -151,7 +151,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 
 func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 	importSet := collection.NewSet()
-	importSet.AddStr(fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
+	importSet.AddStr(fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
 			folder := route.GetAnnotation(groupProperty)
@@ -161,7 +161,7 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), util.JoinPackages(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), pathx.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()

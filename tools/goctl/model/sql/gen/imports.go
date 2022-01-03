@@ -3,11 +3,12 @@ package gen
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func genImports(withCache, timeImport bool) (string, error) {
 	if withCache {
-		text, err := util.LoadTemplate(category, importsTemplateFile, template.Imports)
+		text, err := pathx.LoadTemplate(category, importsTemplateFile, template.Imports)
 		if err != nil {
 			return "", err
 		}
@@ -22,7 +23,7 @@ func genImports(withCache, timeImport bool) (string, error) {
 		return buffer.String(), nil
 	}
 
-	text, err := util.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
+	text, err := pathx.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
 	if err != nil {
 		return "", err
 	}

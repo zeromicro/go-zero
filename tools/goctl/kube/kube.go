@@ -7,6 +7,7 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -50,7 +51,7 @@ func DeploymentCommand(c *cli.Context) error {
 	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	// 0 to disable the nodePort type
@@ -58,12 +59,12 @@ func DeploymentCommand(c *cli.Context) error {
 		return errors.New("nodePort should be between 30000 and 32767")
 	}
 
-	text, err := util.LoadTemplate(category, deployTemplateFile, deploymentTemplate)
+	text, err := pathx.LoadTemplate(category, deployTemplateFile, deploymentTemplate)
 	if err != nil {
 		return err
 	}
 
-	out, err := util.CreateIfNotExist(c.String("o"))
+	out, err := pathx.CreateIfNotExist(c.String("o"))
 	if err != nil {
 		return err
 	}
@@ -102,12 +103,12 @@ func Category() string {
 
 // Clean cleans the generated deployment files.
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates generates the deployment template files.
 func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, map[string]string{
+	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
 		jobTemplateFile:    jobTmeplate,
 	})
@@ -115,7 +116,7 @@ func GenTemplates(_ *cli.Context) error {
 
 // RevertTemplate reverts the given template file to the default value.
 func RevertTemplate(name string) error {
-	return util.CreateTemplate(category, name, deploymentTemplate)
+	return pathx.CreateTemplate(category, name, deploymentTemplate)
 }
 
 // Update updates the template files to the templates built in current goctl.
@@ -125,7 +126,7 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, map[string]string{
+	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
 		jobTemplateFile:    jobTmeplate,
 	})

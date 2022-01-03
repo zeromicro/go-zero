@@ -9,8 +9,8 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	"github.com/tal-tech/go-zero/tools/goctl/config"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/vars"
 )
 

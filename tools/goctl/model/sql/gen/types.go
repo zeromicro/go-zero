@@ -3,6 +3,7 @@ package gen
 import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func genTypes(table Table, methods string, withCache bool) (string, error) {
@@ -12,7 +13,7 @@ func genTypes(table Table, methods string, withCache bool) (string, error) {
 		return "", err
 	}
 
-	text, err := util.LoadTemplate(category, typesTemplateFile, template.Types)
+	text, err := pathx.LoadTemplate(category, typesTemplateFile, template.Types)
 	if err != nil {
 		return "", err
 	}

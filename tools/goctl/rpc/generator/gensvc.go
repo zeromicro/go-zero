@@ -8,6 +8,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 const svcTemplate = `package svc
@@ -35,7 +36,7 @@ func (g *DefaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 	}
 
 	fileName := filepath.Join(dir.Filename, svcFilename+".go")
-	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
+	text, err := pathx.LoadTemplate(category, svcTemplateFile, svcTemplate)
 	if err != nil {
 		return err
 	}
