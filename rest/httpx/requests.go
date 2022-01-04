@@ -128,3 +128,7 @@ func ParsePath(r *http.Request, v interface{}) error {
 func withJsonBody(r *http.Request) bool {
 	return r.ContentLength > 0 && strings.Contains(r.Header.Get(ContentType), ApplicationJson)
 }
+
+func FullPath(r *http.Request) string {
+	return r.Context().Value("fullpath").(string)
+}
