@@ -65,7 +65,7 @@ func TestDefaultProtoParse_Option(t *testing.T) {
 	p := NewDefaultProtoParser()
 	data, err := p.Parse("./test_option.proto")
 	assert.Nil(t, err)
-	assert.Equal(t, "github.com/tal-tech/go-zero", data.GoPackage)
+	assert.Equal(t, "github.com/zeromicro/go-zero", data.GoPackage)
 	assert.Equal(t, "go_zero", data.PbPackage)
 }
 

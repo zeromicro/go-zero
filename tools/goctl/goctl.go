@@ -149,7 +149,7 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.StringFlag{
 						Name: "home",
@@ -259,7 +259,7 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 				},
 				Action: plugin.PluginCommand,
@@ -405,7 +405,7 @@ var commands = []cli.Command{
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.BoolFlag{
 						Name:  "idea",
@@ -469,7 +469,7 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.BoolFlag{
 						Name:  "idea",
@@ -513,7 +513,7 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "cache, c",
@@ -563,7 +563,7 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "idea",
@@ -615,7 +615,7 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "idea",
@@ -655,7 +655,7 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.StringFlag{
 						Name: "home",
