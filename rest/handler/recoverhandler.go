@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/tal-tech/go-zero/rest/internal"
+	"github.com/zeromicro/go-zero/rest/internal"
 )
 
 // RecoverHandler returns a middleware that recovers if panic happens.

@@ -21,7 +21,7 @@ const (
 import (
 	"net/http"
 
-	{{if .After1_1_10}}"github.com/tal-tech/go-zero/rest/httpx"{{end}}
+	{{if .After1_1_10}}"github.com/zeromicro/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
