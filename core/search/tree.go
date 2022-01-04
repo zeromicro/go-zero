@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	colon = ':'
-	slash = '/'
+	colon     = ':'
+	slash     = '/'
+	slashPath = "/"
 )
 
 var (
@@ -46,8 +47,9 @@ type (
 
 	// A Result is a search result from tree.
 	Result struct {
-		Item   interface{}
-		Params map[string]string
+		Item     interface{}
+		FullPath string
+		Params   map[string]string
 	}
 )
 
@@ -98,6 +100,7 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 
 	for i := range route {
 		if route[i] != slash {
+			result.FullPath += slashPath
 			continue
 		}
 
@@ -107,6 +110,7 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 			if !r.found || !t.next(v, route[i+1:], result) {
 				return false
 			}
+			result.FullPath += k
 			if r.named {
 				addParam(result, r.key, r.value)
 			}
@@ -118,6 +122,7 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	return n.forEach(func(k string, v *node) bool {
 		if r := match(k, route); r.found && v.item != nil {
 			result.Item = v.item
+			result.FullPath += k
 			if r.named {
 				addParam(result, r.key, r.value)
 			}

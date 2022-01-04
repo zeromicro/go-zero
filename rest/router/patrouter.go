@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"path"
@@ -63,7 +64,8 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if len(result.Params) > 0 {
 				r = pathvar.WithVars(r, result.Params)
 			}
-			result.Item.(http.Handler).ServeHTTP(w, r)
+
+			result.Item.(http.Handler).ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "fullpath", result.FullPath)))
 			return
 		}
 	}
