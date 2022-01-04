@@ -129,6 +129,7 @@ func withJsonBody(r *http.Request) bool {
 	return r.ContentLength > 0 && strings.Contains(r.Header.Get(ContentType), ApplicationJson)
 }
 
+//FullPath get fullpath in router
 func FullPath(r *http.Request) string {
 	return r.Context().Value("fullpath").(string)
 }
