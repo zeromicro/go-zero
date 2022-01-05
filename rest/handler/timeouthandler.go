@@ -118,6 +118,9 @@ type timeoutWriter struct {
 
 var _ http.Pusher = (*timeoutWriter)(nil)
 
+// Header returns the underline temporary http.Header.
+func (tw *timeoutWriter) Header() http.Header { return tw.h }
+
 // Push implements the Pusher interface.
 func (tw *timeoutWriter) Push(target string, opts *http.PushOptions) error {
 	if pusher, ok := tw.w.(http.Pusher); ok {
@@ -126,8 +129,8 @@ func (tw *timeoutWriter) Push(target string, opts *http.PushOptions) error {
 	return http.ErrNotSupported
 }
 
-func (tw *timeoutWriter) Header() http.Header { return tw.h }
-
+// Write writes the data to the connection as part of an HTTP reply.
+// Timeout and multiple header written are guarded.
 func (tw *timeoutWriter) Write(p []byte) (int, error) {
 	tw.mu.Lock()
 	defer tw.mu.Unlock()
