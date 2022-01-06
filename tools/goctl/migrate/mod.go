@@ -1,4 +1,4 @@
-package refactor
+package migrate
 
 import (
 	"errors"
@@ -28,7 +28,7 @@ func editMod(version string, verbose bool) error {
 		return nil
 	}
 
-	latest, err := getLatest(goZeroMod)
+	latest, err := getLatest(goZeroMod, verbose)
 	if err != nil {
 		return err
 	}

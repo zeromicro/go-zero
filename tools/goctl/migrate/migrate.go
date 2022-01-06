@@ -1,4 +1,4 @@
-package refactor
+package migrate
 
 import (
 	"bytes"
