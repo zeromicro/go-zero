@@ -14,6 +14,7 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348
+	golang.org/x/tools v0.1.2
 )
 
 require (
@@ -32,6 +33,7 @@ require (
 	go.opentelemetry.io/otel v1.1.0 // indirect
 	go.opentelemetry.io/otel/trace v1.1.0 // indirect
 	go.uber.org/automaxprocs v1.4.0 // indirect
+	golang.org/x/sys v0.0.0-20211106132015-ebca88c72f68 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

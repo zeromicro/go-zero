@@ -26,6 +26,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
+	"github.com/tal-tech/go-zero/tools/goctl/refactor"
 	rpc "github.com/tal-tech/go-zero/tools/goctl/rpc/cli"
 	"github.com/tal-tech/go-zero/tools/goctl/tpl"
 	"github.com/tal-tech/go-zero/tools/goctl/upgrade"
@@ -44,6 +45,22 @@ var commands = []cli.Command{
 		Name:   "upgrade",
 		Usage:  "upgrade goctl to latest version",
 		Action: upgrade.Upgrade,
+	},
+	{
+		Name:        "migrate",
+		Usage:       "migrate from tal-tech to zeromicro",
+		Description: "migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
+		Action:      refactor.Refactor,
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "verbose, v",
+				Usage: "verbose enables extra logging",
+			},
+			cli.StringFlag{
+				Name:  "version",
+				Usage: "the target release version of github.com/zeromicro/go-zero to refactor",
+			},
+		},
 	},
 	{
 		Name:  "api",
