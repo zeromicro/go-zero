@@ -50,7 +50,7 @@ var commands = []cli.Command{
 		Name:        "migrate",
 		Usage:       "migrate from tal-tech to zeromicro",
 		Description: "migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
-		Action:      refactor.Refactor,
+		Action:      refactor.Migrate,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "verbose, v",

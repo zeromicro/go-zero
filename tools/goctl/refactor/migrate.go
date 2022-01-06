@@ -23,7 +23,7 @@ const zeromicroVersion = "1.3.0"
 
 var fset = token.NewFileSet()
 
-func Refactor(c *cli.Context) error {
+func Migrate(c *cli.Context) error {
 	verbose := c.Bool("verbose")
 	version := c.String("version")
 	if len(version) == 0 {
