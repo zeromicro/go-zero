@@ -12,7 +12,7 @@ import (
 	"github.com/tal-tech/go-zero/core/stringx"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 var cfg = &conf.Config{
@@ -58,7 +58,7 @@ func TestRpcGenerate(t *testing.T) {
 
 	// case go mod
 	t.Run("GOMOD", func(t *testing.T) {
-		workDir := util.MustTempDir()
+		workDir := pathx.MustTempDir()
 		name := filepath.Base(workDir)
 		_, err = execx.Run("go mod init "+name, workDir)
 		if err != nil {

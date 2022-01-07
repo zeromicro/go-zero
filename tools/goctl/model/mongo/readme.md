@@ -65,7 +65,7 @@ type User struct {
       "context"
   
       "github.com/globalsign/mgo/bson"
-      cachec "github.com/tal-tech/go-zero/core/stores/cache"
+      cachec "github.com/zeromicro/go-zero/core/stores/cache"
       "github.com/tal-tech/go-zero/core/stores/mongoc"
   )
   

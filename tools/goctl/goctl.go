@@ -18,10 +18,12 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/new"
 	"github.com/tal-tech/go-zero/tools/goctl/api/tsgen"
 	"github.com/tal-tech/go-zero/tools/goctl/api/validate"
+	"github.com/tal-tech/go-zero/tools/goctl/bug"
 	"github.com/tal-tech/go-zero/tools/goctl/docker"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/errorx"
 	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
 	"github.com/tal-tech/go-zero/tools/goctl/kube"
+	"github.com/tal-tech/go-zero/tools/goctl/migrate"
 	"github.com/tal-tech/go-zero/tools/goctl/model/mongo"
 	model "github.com/tal-tech/go-zero/tools/goctl/model/sql/command"
 	"github.com/tal-tech/go-zero/tools/goctl/plugin"
@@ -35,9 +37,30 @@ const codeFailure = 1
 
 var commands = []cli.Command{
 	{
+		Name:   "bug",
+		Usage:  "report a bug",
+		Action: bug.Action,
+	},
+	{
 		Name:   "upgrade",
 		Usage:  "upgrade goctl to latest version",
 		Action: upgrade.Upgrade,
+	},
+	{
+		Name:        "migrate",
+		Usage:       "migrate from tal-tech to zeromicro",
+		Description: "migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
+		Action:      migrate.Migrate,
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "verbose, v",
+				Usage: "verbose enables extra logging",
+			},
+			cli.StringFlag{
+				Name:  "version",
+				Usage: "the target release version of github.com/zeromicro/go-zero to refactor",
+			},
+		},
 	},
 	{
 		Name:  "api",
@@ -48,8 +71,15 @@ var commands = []cli.Command{
 				Usage: "the output api file",
 			},
 			cli.StringFlag{
-				Name:  "home",
-				Usage: "the goctl home path of the template",
+				Name: "home",
+				Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+					"if they are, --remote has higher priority",
+			},
+			cli.StringFlag{
+				Name: "remote",
+				Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+					"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+					"https://github.com/zeromicro/go-zero-template directory structure",
 			},
 		},
 		Action: apigen.ApiCommand,
@@ -60,8 +90,19 @@ var commands = []cli.Command{
 				Action: new.CreateServiceCommand,
 				Flags: []cli.Flag{
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "style",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]",
 					},
 				},
 			},
@@ -125,11 +166,18 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: gogen.GoCommand,
@@ -228,7 +276,7 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 				},
 				Action: plugin.PluginCommand,
@@ -249,8 +297,15 @@ var commands = []cli.Command{
 				Value: 0,
 			},
 			cli.StringFlag{
-				Name:  "home",
-				Usage: "the goctl home path of the template",
+				Name: "home",
+				Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+					"if they are, --remote has higher priority",
+			},
+			cli.StringFlag{
+				Name: "remote",
+				Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+					"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+					"https://github.com/zeromicro/go-zero-template directory structure",
 			},
 			cli.StringFlag{
 				Name:  "version",
@@ -342,8 +397,15 @@ var commands = []cli.Command{
 						Value: 10,
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: kube.DeploymentCommand,
@@ -361,15 +423,22 @@ var commands = []cli.Command{
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.BoolFlag{
 						Name:  "idea",
 						Usage: "whether the command execution environment is from idea plugin. [optional]",
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: rpc.RPCNew,
@@ -383,8 +452,15 @@ var commands = []cli.Command{
 						Usage: "the target path of proto",
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time," +
+							" if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: rpc.RPCTemplate,
@@ -449,15 +525,22 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.BoolFlag{
 						Name:  "idea",
 						Usage: "whether the command execution environment is from idea plugin. [optional]",
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: rpc.RPC,
@@ -486,7 +569,7 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "cache, c",
@@ -501,8 +584,15 @@ var commands = []cli.Command{
 								Usage: "the name of database [optional]",
 							},
 							cli.StringFlag{
-								Name:  "home",
-								Usage: "the goctl home path of the template",
+								Name: "home",
+								Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority",
+							},
+							cli.StringFlag{
+								Name: "remote",
+								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+									"https://github.com/zeromicro/go-zero-template directory structure",
 							},
 						},
 						Action: model.MysqlDDL,
@@ -529,15 +619,22 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "idea",
 								Usage: "for idea plugin [optional]",
 							},
 							cli.StringFlag{
-								Name:  "home",
-								Usage: "the goctl home path of the template",
+								Name: "home",
+								Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority",
+							},
+							cli.StringFlag{
+								Name: "remote",
+								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+									"https://github.com/zeromicro/go-zero-template directory structure",
 							},
 						},
 						Action: model.MySqlDataSource,
@@ -574,15 +671,22 @@ var commands = []cli.Command{
 							},
 							cli.StringFlag{
 								Name:  "style",
-								Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 							},
 							cli.BoolFlag{
 								Name:  "idea",
 								Usage: "for idea plugin [optional]",
 							},
 							cli.StringFlag{
-								Name:  "home",
-								Usage: "the goctl home path of the template",
+								Name: "home",
+								Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority",
+							},
+							cli.StringFlag{
+								Name: "remote",
+								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+									"https://github.com/zeromicro/go-zero-template directory structure",
 							},
 						},
 						Action: model.PostgreSqlDataSource,
@@ -607,11 +711,18 @@ var commands = []cli.Command{
 					},
 					cli.StringFlag{
 						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
 					},
 					cli.StringFlag{
-						Name:  "home",
-						Usage: "the goctl home path of the template",
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time," +
+							" if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 				},
 				Action: mongo.Action,

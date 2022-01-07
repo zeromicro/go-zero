@@ -7,11 +7,10 @@ import (
 	"github.com/zeromicro/ddl-parser/parser"
 )
 
-var commonMysqlDataTypeMap = map[int]string{
+var commonMysqlDataTypeMapInt = map[int]string{
 	// For consistency, all integer types are converted to int64
 	// number
-	parser.Bool:      "int64",
-	parser.Boolean:   "int64",
+	parser.Bit:       "byte",
 	parser.TinyInt:   "int64",
 	parser.SmallInt:  "int64",
 	parser.MediumInt: "int64",
@@ -29,6 +28,10 @@ var commonMysqlDataTypeMap = map[int]string{
 	parser.Float8:    "float64",
 	parser.Double:    "float64",
 	parser.Decimal:   "float64",
+	parser.Dec:       "float64",
+	parser.Fixed:     "float64",
+	parser.Numeric:   "float64",
+	parser.Real:      "float64",
 	// date&time
 	parser.Date:      "time.Time",
 	parser.DateTime:  "time.Time",
@@ -36,65 +39,93 @@ var commonMysqlDataTypeMap = map[int]string{
 	parser.Time:      "string",
 	parser.Year:      "int64",
 	// string
-	parser.Char:       "string",
-	parser.VarChar:    "string",
-	parser.Binary:     "string",
-	parser.VarBinary:  "string",
-	parser.TinyText:   "string",
-	parser.Text:       "string",
-	parser.MediumText: "string",
-	parser.LongText:   "string",
-	parser.Enum:       "string",
-	parser.Set:        "string",
-	parser.Json:       "string",
-	parser.Blob:       "string",
-	parser.LongBlob:   "string",
-	parser.MediumBlob: "string",
-	parser.TinyBlob:   "string",
+	parser.Char:            "string",
+	parser.VarChar:         "string",
+	parser.NVarChar:        "string",
+	parser.NChar:           "string",
+	parser.Character:       "string",
+	parser.LongVarChar:     "string",
+	parser.LineString:      "string",
+	parser.MultiLineString: "string",
+	parser.Binary:          "string",
+	parser.VarBinary:       "string",
+	parser.TinyText:        "string",
+	parser.Text:            "string",
+	parser.MediumText:      "string",
+	parser.LongText:        "string",
+	parser.Enum:            "string",
+	parser.Set:             "string",
+	parser.Json:            "string",
+	parser.Blob:            "string",
+	parser.LongBlob:        "string",
+	parser.MediumBlob:      "string",
+	parser.TinyBlob:        "string",
+	// bool
+	parser.Bool:    "bool",
+	parser.Boolean: "bool",
 }
 
-var commonMysqlDataTypeMap2 = map[string]string{
+var commonMysqlDataTypeMapString = map[string]string{
 	// For consistency, all integer types are converted to int64
+	// bool
+	"bool":    "bool",
+	"boolean": "bool",
 	// number
-	"bool":      "int64",
-	"boolean":   "int64",
 	"tinyint":   "int64",
 	"smallint":  "int64",
 	"mediumint": "int64",
 	"int":       "int64",
+	"int1":      "int64",
+	"int2":      "int64",
+	"int3":      "int64",
+	"int4":      "int64",
+	"int8":      "int64",
 	"integer":   "int64",
 	"bigint":    "int64",
 	"float":     "float64",
+	"float4":    "float64",
+	"float8":    "float64",
 	"double":    "float64",
 	"decimal":   "float64",
-	// date&time
+	"dec":       "float64",
+	"fixed":     "float64",
+	"real":      "float64",
+	"bit":       "byte",
+	// date & time
 	"date":      "time.Time",
 	"datetime":  "time.Time",
 	"timestamp": "time.Time",
 	"time":      "string",
 	"year":      "int64",
 	// string
-	"char":       "string",
-	"varchar":    "string",
-	"binary":     "string",
-	"varbinary":  "string",
-	"tinytext":   "string",
-	"text":       "string",
-	"mediumtext": "string",
-	"longtext":   "string",
-	"enum":       "string",
-	"set":        "string",
-	"json":       "string",
-	"jsonb":      "string",
-	"blob":       "string",
-	"longblob":   "string",
-	"mediumblob": "string",
-	"tinyblob":   "string",
+	"linestring":      "string",
+	"multilinestring": "string",
+	"nvarchar":        "string",
+	"nchar":           "string",
+	"char":            "string",
+	"character":       "string",
+	"varchar":         "string",
+	"binary":          "string",
+	"bytea":           "string",
+	"longvarbinary":   "string",
+	"varbinary":       "string",
+	"tinytext":        "string",
+	"text":            "string",
+	"mediumtext":      "string",
+	"longtext":        "string",
+	"enum":            "string",
+	"set":             "string",
+	"json":            "string",
+	"jsonb":           "string",
+	"blob":            "string",
+	"longblob":        "string",
+	"mediumblob":      "string",
+	"tinyblob":        "string",
 }
 
 // ConvertDataType converts mysql column type into golang type
 func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMap[dataBaseType]
+	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %v", dataBaseType)
 	}
@@ -104,7 +135,7 @@ func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
 
 // ConvertStringDataType converts mysql column type into golang type
 func ConvertStringDataType(dataBaseType string, isDefaultNull bool) (string, error) {
-	tp, ok := commonMysqlDataTypeMap2[strings.ToLower(dataBaseType)]
+	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
 	}

@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 // see doc/sql-cache.md
@@ -39,20 +39,24 @@ type (
 	}
 )
 
-// NewNodeConn returns a CachedConn with a redis node cache.
-func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
+// NewConn returns a CachedConn with a redis cluster cache.
+func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
+	cc := cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, cc)
+}
+
+// NewConnWithCache returns a CachedConn with a custom cache.
+func NewConnWithCache(db sqlx.SqlConn, c cache.Cache) CachedConn {
 	return CachedConn{
 		db:    db,
-		cache: cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...),
+		cache: c,
 	}
 }
 
-// NewConn returns a CachedConn with a redis cluster cache.
-func NewConn(db sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) CachedConn {
-	return CachedConn{
-		db:    db,
-		cache: cache.New(c, exclusiveCalls, stats, sql.ErrNoRows, opts...),
-	}
+// NewNodeConn returns a CachedConn with a redis node cache.
+func NewNodeConn(db sqlx.SqlConn, rds *redis.Redis, opts ...cache.Option) CachedConn {
+	c := cache.NewNode(rds, exclusiveCalls, stats, sql.ErrNoRows, opts...)
+	return NewConnWithCache(db, c)
 }
 
 // DelCache deletes cache with keys.

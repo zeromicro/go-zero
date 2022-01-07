@@ -63,11 +63,11 @@ serviceApi:     {match(p,"service")}serviceToken=ID serviceName lbrace='{' servi
 serviceRoute:   atDoc? (atServer|atHandler) route;
 atDoc:          ATDOC lp='('? ((kvLit+)|STRING) rp=')'?;
 atHandler:      ATHANDLER ID;
-route:          {checkHttpMethod(p)}httpMethod=ID path request=body? returnToken=ID? response=replybody?;
+route:          {checkHTTPMethod(p)}httpMethod=ID path request=body? response=replybody?;
 body:           lp='(' (ID)? rp=')';
-replybody:      lp='(' dataType? rp=')';
+replybody:      returnToken='returns' lp='(' dataType? rp=')';
 // kv
 kvLit:          key=ID {checkKeyValue(p)}value=LINE_VALUE;
 
 serviceName:    (ID '-'?)+;
-path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+;
+path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+ | '/';

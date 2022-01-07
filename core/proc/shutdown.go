@@ -10,7 +10,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/threading"
 )
 
 const (
@@ -46,10 +47,10 @@ func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
 	logx.Info("Got signal SIGTERM, shutting down...")
-	wrapUpListeners.notifyListeners()
+	go wrapUpListeners.notifyListeners()
 
 	time.Sleep(wrapUpTime)
-	shutdownListeners.notifyListeners()
+	go shutdownListeners.notifyListeners()
 
 	time.Sleep(delayTimeBeforeForceQuit - wrapUpTime)
 	logx.Infof("Still alive after %v, going to force kill the process...", delayTimeBeforeForceQuit)
@@ -81,7 +82,9 @@ func (lm *listenerManager) notifyListeners() {
 	lm.lock.Lock()
 	defer lm.lock.Unlock()
 
+	group := threading.NewRoutineGroup()
 	for _, listener := range lm.listeners {
-		listener()
+		group.RunSafe(listener)
 	}
+	group.Wait()
 }

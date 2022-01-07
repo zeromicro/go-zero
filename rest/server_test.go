@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/router"
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/router"
 )
 
 func TestNewServer(t *testing.T) {
@@ -308,5 +308,24 @@ Port: 54321
 	assert.Nil(t, err)
 
 	opt := WithCors("local")
+	opt(srv)
+}
+
+func TestWithCustomCors(t *testing.T) {
+	const configYaml = `
+Name: foo
+Port: 54321
+`
+	var cnf RestConf
+	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	rt := router.NewRouter()
+	srv, err := NewServer(cnf, WithRouter(rt))
+	assert.Nil(t, err)
+
+	opt := WithCustomCors(func(header http.Header) {
+		header.Set("foo", "bar")
+	}, func(w http.ResponseWriter) {
+		w.WriteHeader(http.StatusOK)
+	}, "local")
 	opt(srv)
 }

@@ -11,8 +11,34 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	red "github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestRedis_Decr(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decr("a")
+		assert.NotNil(t, err)
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decrby("a", 2)
+		assert.NotNil(t, err)
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
 
 func TestRedis_Exists(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
@@ -295,6 +321,11 @@ func TestRedis_List(t *testing.T) {
 		val, err = client.Llen("key")
 		assert.Nil(t, err)
 		assert.Equal(t, 4, val)
+		_, err = New(client.Addr, badType()).Lindex("key", 1)
+		assert.NotNil(t, err)
+		value, err := client.Lindex("key", 0)
+		assert.Nil(t, err)
+		assert.Equal(t, "value2", value)
 		vals, err := client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)

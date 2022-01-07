@@ -2,6 +2,7 @@ package logx
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -240,6 +241,16 @@ func TestSetLevelWithDuration(t *testing.T) {
 	atomic.StoreUint32(&initialized, 1)
 	WithDuration(time.Second).Info(message)
 	assert.Equal(t, 0, writer.builder.Len())
+}
+
+func TestErrorfWithWrappedError(t *testing.T) {
+	SetLevel(ErrorLevel)
+	const message = "there"
+	writer := new(mockWriter)
+	errorLog = writer
+	atomic.StoreUint32(&initialized, 1)
+	Errorf("hello %w", errors.New(message))
+	assert.True(t, strings.Contains(writer.builder.String(), "hello there"))
 }
 
 func TestMustNil(t *testing.T) {

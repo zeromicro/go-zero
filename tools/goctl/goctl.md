@@ -11,7 +11,7 @@
 ### goctl 参数说明
 
   `goctl api [go/java/ts] [-api user/user.api] [-dir ./src]`
-  
+
   > api 后面接生成的语言，现支持go/java/typescript
   >
   > -api 自定义api所在路径
@@ -140,51 +140,49 @@ service user-api {
   `goctl api go -api user/user.api -dir user`
 
   ```Plain Text
-
-	.
-    ├── internal
-    │   ├── config
-    │   │   └── config.go
-    │   ├── handler
-    │   │   ├── pinghandler.go
-    │   │   ├── profile
-    │   │   │   ├── createprofilehandler.go
-    │   │   │   └── getprofilehandler.go
-    │   │   ├── routes.go
-    │   │   └── user
-    │   │       ├── createuserhandler.go
-    │   │       └── getuserhandler.go
-    │   ├── logic
-    │   │   ├── pinglogic.go
-    │   │   ├── profile
-    │   │   │   ├── createprofilelogic.go
-    │   │   │   └── getprofilelogic.go
-    │   │   └── user
-    │   │       ├── createuserlogic.go
-    │   │       └── getuserlogic.go
-    │   ├── svc
-    │   │   └── servicecontext.go
-    │   └── types
-    │       └── types.go
-    └── user.go
-
+  .
+  ├── internal
+  │   ├── config
+  │   │   └── config.go
+  │   ├── handler
+  │   │   ├── pinghandler.go
+  │   │   ├── profile
+  │   │   │   ├── createprofilehandler.go
+  │   │   │   └── getprofilehandler.go
+  │   │   ├── routes.go
+  │   │   └── user
+  │   │       ├── createuserhandler.go
+  │   │       └── getuserhandler.go
+  │   ├── logic
+  │   │   ├── pinglogic.go
+  │   │   ├── profile
+  │   │   │   ├── createprofilelogic.go
+  │   │   │   └── getprofilelogic.go
+  │   │   └── user
+  │   │       ├── createuserlogic.go
+  │   │       └── getuserlogic.go
+  │   ├── svc
+  │   │   └── servicecontext.go
+  │   └── types
+  │       └── types.go
+  └── user.go
   ```
 
   生成的代码可以直接跑，有几个地方需要改：
-  
+
 * 在`servicecontext.go`里面增加需要传递给logic的一些资源，比如mysql, redis，rpc等
 * 在定义的get/post/put/delete等请求的handler和logic里增加处理业务逻辑的代码
 
 #### 根据定义好的api文件生成java代码
 
 ```Plain Text
-    goctl api java -api user/user.api -dir ./src
+goctl api java -api user/user.api -dir ./src
 ```
 
 #### 根据定义好的api文件生成typescript代码
 
 ```Plain Text
-	goctl api ts -api user/user.api -dir ./src -webapi ***
+goctl api ts -api user/user.api -dir ./src -webapi ***
 ```
 
 ts需要指定webapi所在目录
@@ -192,5 +190,5 @@ ts需要指定webapi所在目录
 #### 根据定义好的api文件生成Dart代码
 
 ```Plain Text
-	goctl api dart -api user/user.api -dir ./src
+goctl api dart -api user/user.api -dir ./src
 ```

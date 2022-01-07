@@ -2,10 +2,13 @@ package ast
 
 import (
 	"fmt"
+	"path"
 	"sort"
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
+
+const prefixKey = "prefix"
 
 // Api describes syntax for api
 type Api struct {
@@ -49,8 +52,15 @@ func (v *ApiVisitor) acceptService(root, final *Api) {
 		}
 		v.duplicateServerItemCheck(service)
 
+		var prefix string
+		if service.AtServer != nil {
+			p := service.AtServer.Kv.Get(prefixKey)
+			if p != nil {
+				prefix = p.Text()
+			}
+		}
 		for _, route := range service.ServiceApi.ServiceRoute {
-			uniqueRoute := fmt.Sprintf("%s %s", route.Route.Method.Text(), route.Route.Path.Text())
+			uniqueRoute := fmt.Sprintf("%s %s", route.Route.Method.Text(), path.Join(prefix, route.Route.Path.Text()))
 			if _, ok := final.routeM[uniqueRoute]; ok {
 				v.panic(route.Route.Method, fmt.Sprintf("duplicate route '%s'", uniqueRoute))
 			}

@@ -24,13 +24,6 @@ func TestWithTimeout(t *testing.T) {
 	assert.Equal(t, time.Second, options.Timeout)
 }
 
-func TestWithRetry(t *testing.T) {
-	var options ClientOptions
-	opt := WithRetry()
-	opt(&options)
-	assert.True(t, options.Retry)
-}
-
 func TestWithNonBlock(t *testing.T) {
 	var options ClientOptions
 	opt := WithNonBlock()

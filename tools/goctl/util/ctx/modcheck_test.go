@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tal-tech/go-zero/core/stringx"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 func TestIsGoMod(t *testing.T) {
@@ -21,7 +21,7 @@ func TestIsGoMod(t *testing.T) {
 	}
 	projectName := stringx.Rand()
 	dir := filepath.Join(gp, "src", projectName)
-	err := util.MkdirIfNotExist(dir)
+	err := pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return
 	}
@@ -45,7 +45,7 @@ func TestIsGoModNot(t *testing.T) {
 	}
 	projectName := stringx.Rand()
 	dir := filepath.Join(gp, "src", projectName)
-	err := util.MkdirIfNotExist(dir)
+	err := pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return
 	}

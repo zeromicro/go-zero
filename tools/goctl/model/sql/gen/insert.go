@@ -7,6 +7,7 @@ import (
 	"github.com/tal-tech/go-zero/core/collection"
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -45,7 +46,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	}
 
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, insertTemplateFile, template.Insert)
+	text, err := pathx.LoadTemplate(category, insertTemplateFile, template.Insert)
 	if err != nil {
 		return "", "", err
 	}
@@ -67,7 +68,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	}
 
 	// interface method
-	text, err = util.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
+	text, err = pathx.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
 	if err != nil {
 		return "", "", err
 	}

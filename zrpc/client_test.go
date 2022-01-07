@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/zrpc/internal/mock"
+	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -96,20 +96,6 @@ func TestDepositServer_Deposit(t *testing.T) {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}),
 	)
-	retryClient := MustNewClient(
-		RpcClientConf{
-			Endpoints: []string{"foo"},
-			App:       "foo",
-			Token:     "bar",
-			Timeout:   1000,
-			Retry:     true,
-		},
-		WithDialOption(grpc.WithContextDialer(dialer())),
-		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
-			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-			return invoker(ctx, method, req, reply, cc, opts...)
-		}),
-	)
 	tarConfClient := MustNewClient(
 		RpcClientConf{
 			Target:  "foo",
@@ -134,7 +120,6 @@ func TestDepositServer_Deposit(t *testing.T) {
 	clients := []Client{
 		directClient,
 		nonBlockClient,
-		retryClient,
 		tarConfClient,
 		targetClient,
 	}

@@ -17,9 +17,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/iox"
-	"github.com/tal-tech/go-zero/core/sysx"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/iox"
+	"github.com/zeromicro/go-zero/core/sysx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -217,7 +217,7 @@ func ErrorCaller(callDepth int, v ...interface{}) {
 
 // ErrorCallerf writes v with context in format into error log.
 func ErrorCallerf(callDepth int, format string, v ...interface{}) {
-	errorTextSync(fmt.Sprintf(format, v...), callDepth+callerInnerDepth)
+	errorTextSync(fmt.Errorf(format, v...).Error(), callDepth+callerInnerDepth)
 }
 
 // Errorf writes v with format into error log.

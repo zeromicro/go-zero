@@ -51,6 +51,10 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorf(testlog)
 	assert.True(t, strings.Contains(buf.String(), traceKey))
 	assert.True(t, strings.Contains(buf.String(), spanKey))
+	buf.Reset()
+	l.WithDuration(time.Second).Errorv(testlog)
+	assert.True(t, strings.Contains(buf.String(), traceKey))
+	assert.True(t, strings.Contains(buf.String(), spanKey))
 }
 
 func TestTraceInfo(t *testing.T) {
@@ -72,6 +76,10 @@ func TestTraceInfo(t *testing.T) {
 	l.WithDuration(time.Second).Infof(testlog)
 	assert.True(t, strings.Contains(buf.String(), traceKey))
 	assert.True(t, strings.Contains(buf.String(), spanKey))
+	buf.Reset()
+	l.WithDuration(time.Second).Infov(testlog)
+	assert.True(t, strings.Contains(buf.String(), traceKey))
+	assert.True(t, strings.Contains(buf.String(), spanKey))
 }
 
 func TestTraceSlow(t *testing.T) {
@@ -91,6 +99,10 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(buf.String(), spanKey))
 	buf.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
+	assert.True(t, strings.Contains(buf.String(), traceKey))
+	assert.True(t, strings.Contains(buf.String(), spanKey))
+	buf.Reset()
+	l.WithDuration(time.Second).Slowv(testlog)
 	assert.True(t, strings.Contains(buf.String(), traceKey))
 	assert.True(t, strings.Contains(buf.String(), spanKey))
 }

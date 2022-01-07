@@ -7,7 +7,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -30,7 +30,7 @@ func genComponents(dir string, api *spec.ApiSpec) error {
 
 	outputFile := apiutil.ComponentName(api) + ".ts"
 	filename := path.Join(dir, outputFile)
-	if err := util.RemoveIfExist(filename); err != nil {
+	if err := pathx.RemoveIfExist(filename); err != nil {
 		return err
 	}
 

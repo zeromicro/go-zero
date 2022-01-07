@@ -6,6 +6,7 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -16,7 +17,7 @@ type findOneCode struct {
 }
 
 func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, error) {
-	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
+	text, err := pathx.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		list = append(list, output.String())
 	}
 
-	text, err = util.LoadTemplate(category, findOneByFieldMethodTemplateFile, template.FindOneByFieldMethod)
+	text, err = pathx.LoadTemplate(category, findOneByFieldMethodTemplateFile, template.FindOneByFieldMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +80,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	}
 
 	if withCache {
-		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
 		if err != nil {
 			return nil, err
 		}
@@ -96,15 +97,15 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		}
 
 		return &findOneCode{
-			findOneMethod:          strings.Join(list, util.NL),
-			findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+			findOneMethod:          strings.Join(list, pathx.NL),
+			findOneInterfaceMethod: strings.Join(listMethod, pathx.NL),
 			cacheExtra:             out.String(),
 		}, nil
 	}
 
 	return &findOneCode{
-		findOneMethod:          strings.Join(list, util.NL),
-		findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+		findOneMethod:          strings.Join(list, pathx.NL),
+		findOneInterfaceMethod: strings.Join(listMethod, pathx.NL),
 	}, nil
 }
 

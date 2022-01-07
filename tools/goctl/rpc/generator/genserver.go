@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 )
 
@@ -69,7 +70,7 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 		return err
 	}
 
-	text, err := util.LoadTemplate(category, serverTemplateFile, serverTemplate)
+	text, err := pathx.LoadTemplate(category, serverTemplateFile, serverTemplate)
 	if err != nil {
 		return err
 	}
@@ -86,8 +87,8 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 		"head":                head,
 		"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage, stringx.From(service.Name).ToCamel()),
 		"server":              stringx.From(service.Name).ToCamel(),
-		"imports":             strings.Join(imports.KeysStr(), util.NL),
-		"funcs":               strings.Join(funcList, util.NL),
+		"imports":             strings.Join(imports.KeysStr(), pathx.NL),
+		"funcs":               strings.Join(funcList, pathx.NL),
 		"notStream":           notStream,
 	}, serverFile, true)
 	return err
@@ -96,7 +97,7 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 func (g *DefaultGenerator) genFunctions(goPackage string, service parser.Service) ([]string, error) {
 	var functionList []string
 	for _, rpc := range service.RPC {
-		text, err := util.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)
+		text, err := pathx.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)
 		if err != nil {
 			return nil, err
 		}

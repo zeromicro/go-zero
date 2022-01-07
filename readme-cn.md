@@ -104,10 +104,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
     ```shell
     # Go 1.15 及之前版本
-    GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl
+    GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/go-zero/tools/goctl@latest
     
     # Go 1.16 及以后版本
-    go install github.com/tal-tech/go-zero/tools/goctl@latest
+    GOPROXY=https://goproxy.cn/,direct go install github.com/tal-tech/go-zero/tools/goctl@latest
     ```
 
     确保 goctl 可执行
@@ -141,7 +141,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/tal-tech/
 
     编写业务代码：
 
-      * api 文件定义了服务对外 HTTP 接口，可参考 [api 规范](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
+      * api 文件定义了服务对外 HTTP 接口，可参考 [api 规范](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/goctl-api.md)
       * 可以在 `servicecontext.go` 里面传递依赖给 logic，比如 mysql, redis 等
       * 在 api 定义的 `get/post/put/delete` 等请求对应的 logic 里增加业务处理逻辑
 
@@ -232,6 +232,9 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >46. 上海游族网络
 >47. 深信服
 >48. 中免日上科技互联有限公司
+>48. ECLOUDVALLEY TECHNOLOGY (HK) LIMITED
+>48. 馨科智（深圳）科技有限公司
+>48. 成都松珀科技有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

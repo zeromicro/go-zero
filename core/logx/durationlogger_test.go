@@ -23,6 +23,13 @@ func TestWithDurationErrorf(t *testing.T) {
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
 }
 
+func TestWithDurationErrorv(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).Errorv("foo")
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+}
+
 func TestWithDurationInfo(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
@@ -37,6 +44,13 @@ func TestWithDurationInfof(t *testing.T) {
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
 }
 
+func TestWithDurationInfov(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).Infov("foo")
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+}
+
 func TestWithDurationSlow(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
@@ -48,5 +62,12 @@ func TestWithDurationSlowf(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
 	WithDuration(time.Second).WithDuration(time.Hour).Slowf("foo")
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+}
+
+func TestWithDurationSlowv(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).WithDuration(time.Hour).Slowv("foo")
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
 }

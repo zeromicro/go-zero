@@ -10,6 +10,7 @@ import (
 	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
 	conf "github.com/tal-tech/go-zero/tools/goctl/config"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -36,6 +37,10 @@ func CreateServiceCommand(c *cli.Context) error {
 		dirName = "greet"
 	}
 
+	dirStyle := c.String("style")
+	if len(dirStyle) == 0 {
+		dirStyle = conf.DefaultFormat
+	}
 	if strings.Contains(dirName, "-") {
 		return errors.New("api new command service name not support strikethrough, because this will used by function name")
 	}
@@ -45,7 +50,7 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}
@@ -61,11 +66,19 @@ func CreateServiceCommand(c *cli.Context) error {
 	defer fp.Close()
 
 	home := c.String("home")
-	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
 	}
 
-	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if len(home) > 0 {
+		pathx.RegisterGoctlHome(home)
+	}
+
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
 	if err != nil {
 		return err
 	}
@@ -78,6 +91,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, conf.DefaultFormat)
+	err = gogen.DoGenProject(apiFilePath, abs, dirStyle)
 	return err
 }

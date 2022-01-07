@@ -7,12 +7,11 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/core/jsonx"
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 const (
@@ -25,15 +24,17 @@ var (
 	errValueNotSettable = errors.New("value is not settable")
 	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
-	cacheKeys           atomic.Value
-	cacheKeysLock       sync.Mutex
 	durationType        = reflect.TypeOf(time.Duration(0))
+	cacheKeys           map[string][]string
+	cacheKeysLock       sync.Mutex
+	defaultCache        map[string]interface{}
+	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]interface{}{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
 )
 
 type (
-	// A Unmarshaler is used to unmarshal with given tag key.
+	// Unmarshaler is used to unmarshal with given tag key.
 	Unmarshaler struct {
 		key  string
 		opts unmarshalOptions
@@ -46,12 +47,11 @@ type (
 		fromString   bool
 		canonicalKey func(key string) string
 	}
-
-	keyCache map[string][]string
 )
 
 func init() {
-	cacheKeys.Store(make(keyCache))
+	cacheKeys = make(map[string][]string)
+	defaultCache = make(map[string]interface{})
 }
 
 // NewUnmarshaler returns a Unmarshaler.
@@ -207,6 +207,8 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 	switch {
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		return u.processFieldStruct(field, value, mapValue, fullName)
+	case valueKind == reflect.Map && typeKind == reflect.Map:
+		return u.fillMap(field, value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
 		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
@@ -386,7 +388,13 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(field reflect.StructField, v
 		if derefedType == durationType {
 			return fillDurationValue(fieldKind, value, defaultValue)
 		}
-		return setValue(fieldKind, value, defaultValue)
+
+		switch fieldKind {
+		case reflect.Array, reflect.Slice:
+			return u.fillSliceWithDefault(derefedType, value, defaultValue)
+		default:
+			return setValue(fieldKind, value, defaultValue)
+		}
 	}
 
 	switch fieldKind {
@@ -500,7 +508,8 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 	return nil
 }
 
-func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind reflect.Kind, value interface{}) error {
+func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
+	baseKind reflect.Kind, value interface{}) error {
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case json.Number:
@@ -527,6 +536,28 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int, baseKind re
 		ithVal.Set(reflect.ValueOf(value))
 		return nil
 	}
+}
+
+func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value reflect.Value,
+	defaultValue string) error {
+	baseFieldType := Deref(derefedType.Elem())
+	baseFieldKind := baseFieldType.Kind()
+	defaultCacheLock.Lock()
+	slice, ok := defaultCache[defaultValue]
+	defaultCacheLock.Unlock()
+	if !ok {
+		if baseFieldKind == reflect.String {
+			slice = parseGroupedSegments(defaultValue)
+		} else if err := jsonx.UnmarshalFromString(defaultValue, &slice); err != nil {
+			return err
+		}
+
+		defaultCacheLock.Lock()
+		defaultCache[defaultValue] = slice
+		defaultCacheLock.Unlock()
+	}
+
+	return u.fillSlice(derefedType, value, slice)
 }
 
 func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue interface{}) (reflect.Value, error) {
@@ -584,6 +615,8 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 			targetValue.SetMapIndex(key, innerValue)
 		default:
 			switch v := keythData.(type) {
+			case bool:
+				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case string:
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case json.Number:
@@ -720,20 +753,6 @@ func getValueWithChainedKeys(m Valuer, keys []string) (interface{}, bool) {
 	return nil, false
 }
 
-func insertKeys(key string, cache []string) {
-	cacheKeysLock.Lock()
-	defer cacheKeysLock.Unlock()
-
-	keys := cacheKeys.Load().(keyCache)
-	// copy the contents into the new map, to guarantee the old map is immutable
-	newKeys := make(keyCache)
-	for k, v := range keys {
-		newKeys[k] = v
-	}
-	newKeys[key] = cache
-	cacheKeys.Store(newKeys)
-}
-
 func join(elem ...string) string {
 	var builder strings.Builder
 
@@ -764,15 +783,19 @@ func newTypeMismatchError(name string) error {
 }
 
 func readKeys(key string) []string {
-	cache := cacheKeys.Load().(keyCache)
-	if keys, ok := cache[key]; ok {
+	cacheKeysLock.Lock()
+	keys, ok := cacheKeys[key]
+	cacheKeysLock.Unlock()
+	if ok {
 		return keys
 	}
 
-	keys := strings.FieldsFunc(key, func(c rune) bool {
+	keys = strings.FieldsFunc(key, func(c rune) bool {
 		return c == delimiter
 	})
-	insertKeys(key, keys)
+	cacheKeysLock.Lock()
+	cacheKeys[key] = keys
+	cacheKeysLock.Unlock()
 
 	return keys
 }

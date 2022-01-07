@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/codec"
-	"github.com/tal-tech/go-zero/core/iox"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/core/codec"
+	"github.com/zeromicro/go-zero/core/iox"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 const (
@@ -119,15 +119,12 @@ func VerifySignature(r *http.Request, securityHeader *ContentSecurityHeader, tol
 	}, "\n")
 	actualSignature := codec.HmacBase64(securityHeader.Key, signContent)
 
-	passed := securityHeader.Signature == actualSignature
-	if !passed {
-		logx.Infof("signature different, expect: %s, actual: %s",
-			securityHeader.Signature, actualSignature)
-	}
-
-	if passed {
+	if securityHeader.Signature == actualSignature {
 		return httpx.CodeSignaturePass
 	}
+
+	logx.Infof("signature different, expect: %s, actual: %s",
+		securityHeader.Signature, actualSignature)
 
 	return httpx.CodeSignatureInvalidToken
 }
