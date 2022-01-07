@@ -500,6 +500,12 @@ var commands = []cli.Command{
 						Name:  "home",
 						Usage: "the goctl home path of the template",
 					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
 				},
 			},
 			{

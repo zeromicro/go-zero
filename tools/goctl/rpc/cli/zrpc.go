@@ -10,6 +10,7 @@ import (
 	"github.com/emicklei/proto"
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
@@ -52,9 +53,16 @@ func ZRPC(c *cli.Context) error {
 	zrpcOut := c.String("zrpc_out")
 	style := c.String("style")
 	home := c.String("home")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 	if len(goOut) == 0 {
 		return errInvalidGrpcOutput
