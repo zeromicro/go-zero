@@ -360,6 +360,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 		}
 
 		field := &Field{
+			NameOriginal:    each.Name,
 			Name:            stringx.From(each.Name),
 			DataType:        dt,
 			Comment:         each.Comment,
