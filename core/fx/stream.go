@@ -444,8 +444,7 @@ func (s Stream) Copy(streamParam map[string]int) (streamMap map[string]Stream) {
 	chans := make([]chan interface{}, 0, len(streamParam))
 	for name, bufferSize := range streamParam {
 		c := make(chan interface{}, bufferSize)
-		stream := Range(c)
-		streamMap[name] = stream
+		streamMap[name] = Range(c)
 		chans = append(chans, c)
 	}
 
