@@ -437,10 +437,9 @@ func (s Stream) Tail(n int64) Stream {
 
 // Copy returns multiple streams copied.
 // streamParam specifies the name and buffer size of the replicated stream.
-// The copied stream and the original stream must execute in parallel.
 func (s Stream) Copy(streamParam map[string]int) (streamMap map[string]Stream) {
-
 	streamMap = map[string]Stream{}
+
 	chans := make([]chan interface{}, 0, len(streamParam))
 	for name, bufferSize := range streamParam {
 		c := make(chan interface{}, bufferSize)
@@ -462,6 +461,7 @@ func (s Stream) Copy(streamParam map[string]int) (streamMap map[string]Stream) {
 			close(c)
 		}
 	}()
+
 	return
 }
 
