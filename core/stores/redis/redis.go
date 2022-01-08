@@ -93,8 +93,8 @@ func New(addr string, opts ...Option) *Redis {
 	return r
 }
 
-// Deprecated: use New instead, will be removed in v2.
 // NewRedis returns a Redis.
+// Deprecated: use New instead, will be removed in v2.
 func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 	var opts []Option
 	if redisType == ClusterType {
