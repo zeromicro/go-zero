@@ -569,3 +569,22 @@ func runCheckedTest(t *testing.T, fn func(t *testing.T)) {
 	time.Sleep(time.Millisecond)
 	assert.True(t, runtime.NumGoroutine() <= goroutines)
 }
+
+func TestStream_Copy(t *testing.T) {
+
+	copyStream := Just(1, 2, 3, 4, 5).Copy(map[string]int{
+		"a": 10,
+		"b": 10,
+	})
+	c := make(chan struct{})
+	go func() {
+		assert.Equal(t, 2, copyStream["a"].Filter(func(item interface{}) bool {
+			return item.(int)%2 == 0
+		}).Count())
+		<-c
+	}()
+	assert.Equal(t, 3, copyStream["b"].Filter(func(item interface{}) bool {
+		return item.(int)%2 != 0
+	}).Count())
+	c <- struct{}{}
+}

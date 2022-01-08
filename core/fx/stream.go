@@ -435,6 +435,37 @@ func (s Stream) Tail(n int64) Stream {
 	return Range(source)
 }
 
+// Copy returns multiple streams copied.
+// streamParam specifies the name and buffer size of the replicated stream.
+// The copied stream and the original stream must execute in parallel.
+func (s Stream) Copy(streamParam map[string]int) (streamMap map[string]Stream) {
+
+	streamMap = map[string]Stream{}
+	chans := make([]chan interface{}, 0, len(streamParam))
+	for name, bufferSize := range streamParam {
+		c := make(chan interface{}, bufferSize)
+		stream := Range(c)
+		streamMap[name] = stream
+		chans = append(chans, c)
+	}
+
+	sort.Slice(chans, func(i, j int) bool {
+		return cap(chans[i]) > cap(chans[j])
+	})
+
+	go func() {
+		for v := range s.source {
+			for _, c := range chans {
+				c <- v
+			}
+		}
+		for _, c := range chans {
+			close(c)
+		}
+	}()
+	return
+}
+
 // Walk lets the callers handle each item, the caller may write zero, one or more items base on the given item.
 func (s Stream) Walk(fn WalkFunc, opts ...Option) Stream {
 	option := buildOptions(opts...)
