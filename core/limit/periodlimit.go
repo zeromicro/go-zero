@@ -112,7 +112,7 @@ func (h *PeriodLimit) calcExpireSeconds() int {
 
 // Align returns a func to customize a PeriodLimit with alignment.
 // For example, if we want to limit end users with 5 sms verification messages every day,
-// we need to align with the local timezone.
+// we need to align with the local timezone and the start of the day.
 func Align() PeriodOption {
 	return func(l *PeriodLimit) {
 		l.align = true
