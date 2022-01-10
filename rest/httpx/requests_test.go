@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/rest/pathvar"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func TestParseForm(t *testing.T) {

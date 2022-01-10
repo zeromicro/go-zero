@@ -7,9 +7,9 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis"
-	"github.com/tal-tech/go-zero/core/breaker"
-	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
@@ -93,8 +93,8 @@ func New(addr string, opts ...Option) *Redis {
 	return r
 }
 
-// Deprecated: use New instead, will be removed in v2.
 // NewRedis returns a Redis.
+// Deprecated: use New instead, will be removed in v2.
 func NewRedis(redisAddr, redisType string, redisPass ...string) *Redis {
 	var opts []Option
 	if redisType == ClusterType {

@@ -22,7 +22,7 @@ import (
 
 	{{.imports}}
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type {{.logicName}} struct {
