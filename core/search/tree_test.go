@@ -131,10 +131,10 @@ func TestStrictSearch(t *testing.T) {
 func TestPathRouteSearchFullPath(t *testing.T) {
 	routes := []mockedRoute{
 		{"/api/:user/:age", 1},
-		{"/api/:layer", 2},
+		{"/", 2},
 		{"/api/:user/:age/:name", 3},
 	}
-	query := "/api/:user/:age/:name"
+	query := "/"
 
 	tree := NewTree()
 	for _, r := range routes {
@@ -144,7 +144,7 @@ func TestPathRouteSearchFullPath(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		result, ok := tree.Search(query)
 		assert.True(t, ok)
-		assert.Equal(t, 3, result.Item.(int))
+		assert.Equal(t, 2, result.Item.(int))
 		assert.Equal(t, query, result.FullPath)
 	}
 }

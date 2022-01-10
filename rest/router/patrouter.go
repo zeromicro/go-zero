@@ -1,13 +1,13 @@
 package router
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"path"
 	"strings"
 
 	"github.com/tal-tech/go-zero/core/search"
+	"github.com/tal-tech/go-zero/rest/fullpath"
 	"github.com/tal-tech/go-zero/rest/httpx"
 	"github.com/tal-tech/go-zero/rest/pathvar"
 )
@@ -65,7 +65,7 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				r = pathvar.WithVars(r, result.Params)
 			}
 
-			result.Item.(http.Handler).ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "fullpath", result.FullPath)))
+			result.Item.(http.Handler).ServeHTTP(w, fullpath.WithFullPath(r, result.FullPath))
 			return
 		}
 	}

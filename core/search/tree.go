@@ -244,6 +244,10 @@ func newNode(item interface{}) *node {
 
 func getFullPath(pathRoute []string) string {
 	var fullPath string
+	if len(pathRoute) == 0 {
+		return slashPath
+	}
+
 	for i := len(pathRoute) - 1; i >= 0; i-- {
 		fullPath += slashPath + pathRoute[i]
 	}
