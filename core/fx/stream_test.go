@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/stringx"
+	"go.uber.org/goleak"
 )
 
 func TestBuffer(t *testing.T) {
@@ -563,9 +564,6 @@ func equal(t *testing.T, stream Stream, data []interface{}) {
 }
 
 func runCheckedTest(t *testing.T, fn func(t *testing.T)) {
-	goroutines := runtime.NumGoroutine()
+	defer goleak.VerifyNone(t)
 	fn(t)
-	// let scheduler schedule first
-	time.Sleep(time.Millisecond)
-	assert.True(t, runtime.NumGoroutine() <= goroutines)
 }

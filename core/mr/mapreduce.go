@@ -160,13 +160,18 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 		mapper(item, w, cancel)
 	}, source, collector, done, options.workers)
 
-	value, ok := <-output
-	if err := retErr.Load(); err != nil {
-		return nil, err
-	} else if ok {
-		return value, nil
-	} else {
-		return nil, ErrReduceNoOutput
+	select {
+	case <-options.ctx.Done():
+		cancel(context.DeadlineExceeded)
+		return nil, context.DeadlineExceeded
+	case value, ok := <-output:
+		if err := retErr.Load(); err != nil {
+			return nil, err
+		} else if ok {
+			return value, nil
+		} else {
+			return nil, ErrReduceNoOutput
+		}
 	}
 }
 
