@@ -47,9 +47,10 @@ type (
 
 	// A Result is a search result from tree.
 	Result struct {
-		Item     interface{}
-		FullPath string
-		Params   map[string]string
+		Item      interface{}
+		pathRoute []string
+		FullPath  string
+		Params    map[string]string
 	}
 )
 
@@ -89,6 +90,7 @@ func (t *Tree) Search(route string) (Result, bool) {
 
 	var result Result
 	ok := t.next(t.root, route[1:], &result)
+	result.FullPath = getFullPath(result.pathRoute)
 	return result, ok
 }
 
@@ -100,7 +102,6 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 
 	for i := range route {
 		if route[i] != slash {
-			result.FullPath += slashPath
 			continue
 		}
 
@@ -110,11 +111,10 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 			if !r.found || !t.next(v, route[i+1:], result) {
 				return false
 			}
-			result.FullPath += k
 			if r.named {
 				addParam(result, r.key, r.value)
 			}
-
+			result.pathRoute = append(result.pathRoute, k)
 			return true
 		})
 	}
@@ -122,11 +122,10 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	return n.forEach(func(k string, v *node) bool {
 		if r := match(k, route); r.found && v.item != nil {
 			result.Item = v.item
-			result.FullPath += k
 			if r.named {
 				addParam(result, r.key, r.value)
 			}
-
+			result.pathRoute = append(result.pathRoute, k)
 			return true
 		}
 
@@ -241,4 +240,12 @@ func newNode(item interface{}) *node {
 			make(map[string]*node),
 		},
 	}
+}
+
+func getFullPath(pathRoute []string) string {
+	var fullPath string
+	for i := len(pathRoute) - 1; i >= 0; i-- {
+		fullPath += slashPath + pathRoute[i]
+	}
+	return fullPath
 }

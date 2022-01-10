@@ -128,6 +128,27 @@ func TestStrictSearch(t *testing.T) {
 	}
 }
 
+func TestPathRouteSearchFullPath(t *testing.T) {
+	routes := []mockedRoute{
+		{"/api/:user/:age", 1},
+		{"/api/:layer", 2},
+		{"/api/:user/:age/:name", 3},
+	}
+	query := "/api/:user/:age/:name"
+
+	tree := NewTree()
+	for _, r := range routes {
+		tree.Add(r.route, r.value)
+	}
+
+	for i := 0; i < 1000; i++ {
+		result, ok := tree.Search(query)
+		assert.True(t, ok)
+		assert.Equal(t, 3, result.Item.(int))
+		assert.Equal(t, query, result.FullPath)
+	}
+}
+
 func TestStrictSearchSibling(t *testing.T) {
 	routes := []mockedRoute{
 		{"/api/:user/profile/name", 1},
