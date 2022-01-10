@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/core/syncx"
+	"go.uber.org/goleak"
 )
 
 var errDummy = errors.New("dummy")
@@ -22,6 +23,8 @@ func init() {
 }
 
 func TestFinish(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var total uint32
 	err := Finish(func() error {
 		atomic.AddUint32(&total, 2)
@@ -39,14 +42,20 @@ func TestFinish(t *testing.T) {
 }
 
 func TestFinishNone(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	assert.Nil(t, Finish())
 }
 
 func TestFinishVoidNone(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	FinishVoid()
 }
 
 func TestFinishErr(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var total uint32
 	err := Finish(func() error {
 		atomic.AddUint32(&total, 2)
@@ -63,6 +72,8 @@ func TestFinishErr(t *testing.T) {
 }
 
 func TestFinishVoid(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var total uint32
 	FinishVoid(func() {
 		atomic.AddUint32(&total, 2)
@@ -76,6 +87,8 @@ func TestFinishVoid(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	tests := []struct {
 		mapper MapFunc
 		expect int
@@ -128,6 +141,8 @@ func TestMap(t *testing.T) {
 }
 
 func TestMapReduce(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	tests := []struct {
 		mapper      MapperFunc
 		reducer     ReducerFunc
@@ -204,6 +219,8 @@ func TestMapReduce(t *testing.T) {
 }
 
 func TestMapReduceWithReduerWriteMoreThanOnce(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	assert.Panics(t, func() {
 		MapReduce(func(source chan<- interface{}) {
 			for i := 0; i < 10; i++ {
@@ -220,6 +237,8 @@ func TestMapReduceWithReduerWriteMoreThanOnce(t *testing.T) {
 }
 
 func TestMapReduceVoid(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var value uint32
 	tests := []struct {
 		mapper      MapperFunc
@@ -296,6 +315,8 @@ func TestMapReduceVoid(t *testing.T) {
 }
 
 func TestMapReduceVoidWithDelay(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var result []int
 	err := MapReduceVoid(func(source chan<- interface{}) {
 		source <- 0
@@ -319,6 +340,8 @@ func TestMapReduceVoidWithDelay(t *testing.T) {
 }
 
 func TestMapVoid(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	const tasks = 1000
 	var count uint32
 	MapVoid(func(source chan<- interface{}) {
@@ -333,6 +356,8 @@ func TestMapVoid(t *testing.T) {
 }
 
 func TestMapReducePanic(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	v, err := MapReduce(func(source chan<- interface{}) {
 		source <- 0
 		source <- 1
@@ -350,6 +375,8 @@ func TestMapReducePanic(t *testing.T) {
 }
 
 func TestMapReduceVoidCancel(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var result []int
 	err := MapReduceVoid(func(source chan<- interface{}) {
 		source <- 0
@@ -371,6 +398,8 @@ func TestMapReduceVoidCancel(t *testing.T) {
 }
 
 func TestMapReduceVoidCancelWithRemains(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var done syncx.AtomicBool
 	var result []int
 	err := MapReduceVoid(func(source chan<- interface{}) {
@@ -396,6 +425,8 @@ func TestMapReduceVoidCancelWithRemains(t *testing.T) {
 }
 
 func TestMapReduceWithoutReducerWrite(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	uids := []int{1, 2, 3}
 	res, err := MapReduce(func(source chan<- interface{}) {
 		for _, uid := range uids {
@@ -412,6 +443,8 @@ func TestMapReduceWithoutReducerWrite(t *testing.T) {
 }
 
 func TestMapReduceVoidPanicInReducer(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	const message = "foo"
 	var done syncx.AtomicBool
 	err := MapReduceVoid(func(source chan<- interface{}) {
@@ -431,6 +464,8 @@ func TestMapReduceVoidPanicInReducer(t *testing.T) {
 }
 
 func TestMapReduceWithContext(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
 	var done syncx.AtomicBool
 	var result []int
 	ctx, cancel := context.WithCancel(context.Background())
@@ -452,7 +487,7 @@ func TestMapReduceWithContext(t *testing.T) {
 		}
 	}, WithContext(ctx))
 	assert.NotNil(t, err)
-	assert.Equal(t, ErrReduceNoOutput, err)
+	assert.Equal(t, context.DeadlineExceeded, err)
 }
 
 func BenchmarkMapReduce(b *testing.B) {
