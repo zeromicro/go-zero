@@ -85,8 +85,8 @@ func (lim *TokenLimiter) Allow() bool {
 }
 
 // AllowN reports whether n events may happen at time now.
-// Use this method if you intend to drop / skip events that exceed the rate rate.
-// Otherwise use Reserve or Wait.
+// Use this method if you intend to drop / skip events that exceed the rate.
+// Otherwise, use Reserve or Wait.
 func (lim *TokenLimiter) AllowN(now time.Time, n int) bool {
 	return lim.reserveN(now, n)
 }
