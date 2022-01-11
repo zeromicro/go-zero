@@ -180,7 +180,7 @@ func MapReduceVoid(generate GenerateFunc, mapper MapperFunc, reducer VoidReducer
 	_, err := MapReduce(generate, mapper, func(input <-chan interface{}, writer Writer, cancel func(error)) {
 		reducer(input, cancel)
 	}, opts...)
-	if errors.Is(ErrReduceNoOutput, err) {
+	if errors.Is(err, ErrReduceNoOutput) {
 		return nil
 	}
 
