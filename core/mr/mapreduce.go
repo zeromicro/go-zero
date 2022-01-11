@@ -69,7 +69,6 @@ func Finish(fns ...func() error) error {
 			cancel(err)
 		}
 	}, func(pipe <-chan interface{}, cancel func(error)) {
-		drain(pipe)
 	}, WithWorkers(len(fns)))
 }
 
@@ -180,10 +179,11 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 func MapReduceVoid(generate GenerateFunc, mapper MapperFunc, reducer VoidReducerFunc, opts ...Option) error {
 	_, err := MapReduce(generate, mapper, func(input <-chan interface{}, writer Writer, cancel func(error)) {
 		reducer(input, cancel)
-		// We need to write a placeholder to let MapReduce to continue on reducer done,
-		// otherwise, all goroutines are waiting. The placeholder will be discarded by MapReduce.
-		writer.Write(lang.Placeholder)
 	}, opts...)
+	if errors.Is(ErrReduceNoOutput, err) {
+		return nil
+	}
+
 	return err
 }
 
