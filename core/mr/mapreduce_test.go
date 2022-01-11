@@ -86,6 +86,54 @@ func TestFinishVoid(t *testing.T) {
 	assert.Equal(t, uint32(10), atomic.LoadUint32(&total))
 }
 
+func TestForEach(t *testing.T) {
+	const tasks = 1000
+
+	t.Run("all", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		var count uint32
+		ForEach(func(source chan<- interface{}) {
+			for i := 0; i < tasks; i++ {
+				source <- i
+			}
+		}, func(item interface{}) {
+			atomic.AddUint32(&count, 1)
+		}, WithWorkers(-1))
+
+		assert.Equal(t, tasks, int(count))
+	})
+
+	t.Run("odd", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		var count uint32
+		ForEach(func(source chan<- interface{}) {
+			for i := 0; i < tasks; i++ {
+				source <- i
+			}
+		}, func(item interface{}) {
+			if item.(int)%2 == 0 {
+				atomic.AddUint32(&count, 1)
+			}
+		})
+
+		assert.Equal(t, tasks/2, int(count))
+	})
+
+	t.Run("all", func(t *testing.T) {
+		defer goleak.VerifyNone(t)
+
+		ForEach(func(source chan<- interface{}) {
+			for i := 0; i < tasks; i++ {
+				source <- i
+			}
+		}, func(item interface{}) {
+			panic("foo")
+		})
+	})
+}
+
 func TestMap(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
@@ -344,7 +392,7 @@ func TestMapVoid(t *testing.T) {
 
 	const tasks = 1000
 	var count uint32
-	MapVoid(func(source chan<- interface{}) {
+	ForEach(func(source chan<- interface{}) {
 		for i := 0; i < tasks; i++ {
 			source <- i
 		}

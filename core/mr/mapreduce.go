@@ -24,12 +24,12 @@ var (
 )
 
 type (
+	// ForEachFunc is used to do element processing, but no output.
+	ForEachFunc func(item interface{})
 	// GenerateFunc is used to let callers send elements into source.
 	GenerateFunc func(source chan<- interface{})
 	// MapFunc is used to do element processing and write the output to writer.
 	MapFunc func(item interface{}, writer Writer)
-	// VoidMapFunc is used to do element processing, but no output.
-	VoidMapFunc func(item interface{})
 	// MapperFunc is used to do element processing and write the output to writer,
 	// use cancel func to cancel the processing.
 	MapperFunc func(item interface{}, writer Writer, cancel func(error))
@@ -69,7 +69,6 @@ func Finish(fns ...func() error) error {
 			cancel(err)
 		}
 	}, func(pipe <-chan interface{}, cancel func(error)) {
-		drain(pipe)
 	}, WithWorkers(len(fns)))
 }
 
@@ -79,7 +78,7 @@ func FinishVoid(fns ...func()) {
 		return
 	}
 
-	MapVoid(func(source chan<- interface{}) {
+	ForEach(func(source chan<- interface{}) {
 		for _, fn := range fns {
 			source <- fn
 		}
@@ -87,6 +86,13 @@ func FinishVoid(fns ...func()) {
 		fn := item.(func())
 		fn()
 	}, WithWorkers(len(fns)))
+}
+
+// ForEach maps all elements from given generate but no output.
+func ForEach(generate GenerateFunc, mapper ForEachFunc, opts ...Option) {
+	drain(Map(generate, func(item interface{}, writer Writer) {
+		mapper(item)
+	}, opts...))
 }
 
 // Map maps all elements generated from given generate func, and returns an output channel.
@@ -106,11 +112,11 @@ func Map(generate GenerateFunc, mapper MapFunc, opts ...Option) chan interface{}
 func MapReduce(generate GenerateFunc, mapper MapperFunc, reducer ReducerFunc,
 	opts ...Option) (interface{}, error) {
 	source := buildSource(generate)
-	return MapReduceWithSource(source, mapper, reducer, opts...)
+	return MapReduceChan(source, mapper, reducer, opts...)
 }
 
-// MapReduceWithSource maps all elements from source, and reduce the output elements with given reducer.
-func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer ReducerFunc,
+// MapReduceChan maps all elements from source, and reduce the output elements with given reducer.
+func MapReduceChan(source <-chan interface{}, mapper MapperFunc, reducer ReducerFunc,
 	opts ...Option) (interface{}, error) {
 	options := buildOptions(opts...)
 	output := make(chan interface{})
@@ -180,18 +186,12 @@ func MapReduceWithSource(source <-chan interface{}, mapper MapperFunc, reducer R
 func MapReduceVoid(generate GenerateFunc, mapper MapperFunc, reducer VoidReducerFunc, opts ...Option) error {
 	_, err := MapReduce(generate, mapper, func(input <-chan interface{}, writer Writer, cancel func(error)) {
 		reducer(input, cancel)
-		// We need to write a placeholder to let MapReduce to continue on reducer done,
-		// otherwise, all goroutines are waiting. The placeholder will be discarded by MapReduce.
-		writer.Write(lang.Placeholder)
 	}, opts...)
-	return err
-}
+	if errors.Is(err, ErrReduceNoOutput) {
+		return nil
+	}
 
-// MapVoid maps all elements from given generate but no output.
-func MapVoid(generate GenerateFunc, mapper VoidMapFunc, opts ...Option) {
-	drain(Map(generate, func(item interface{}, writer Writer) {
-		mapper(item)
-	}, opts...))
+	return err
 }
 
 // WithContext customizes a mapreduce processing accepts a given ctx.
