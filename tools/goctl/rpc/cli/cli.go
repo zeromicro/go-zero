@@ -8,15 +8,20 @@ import (
 
 	"github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
 	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/tal-tech/go-zero/tools/goctl/util/env"
 	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 
+// Deprecated: use ZRPC instead.
 // RPC is to generate rpc service code from a proto file by specifying a proto file using flag src,
 // you can specify a target folder for code generation, when the proto file has import, you can specify
 // the import search directory through the proto_path command, for specific usage, please refer to protoc -h
 func RPC(c *cli.Context) error {
+	console.Warning("deprecated: use %q instead, for the details see %q",
+		"goctl rpc protoc", "goctl rpc protoc --help")
+
 	if err := prepare(); err != nil {
 		return err
 	}
@@ -73,6 +78,9 @@ func prepare() error {
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
+	console.Warning("deprecated: it will be removed in the feature, zrpc code generation please use %q instead",
+		"goctl rpc protoc")
+
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {

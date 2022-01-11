@@ -27,6 +27,7 @@ import (
 
 type {{.server}}Server struct {
 	svcCtx *svc.ServiceContext
+	{{.unimplementedServer}}
 }
 
 func New{{.server}}Server(svcCtx *svc.ServiceContext) *{{.server}}Server {
@@ -83,11 +84,12 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 	}
 
 	err = util.With("server").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"head":      head,
-		"server":    stringx.From(service.Name).ToCamel(),
-		"imports":   strings.Join(imports.KeysStr(), pathx.NL),
-		"funcs":     strings.Join(funcList, pathx.NL),
-		"notStream": notStream,
+		"head":                head,
+		"unimplementedServer": fmt.Sprintf("%s.Unimplemented%sServer", proto.PbPackage, stringx.From(service.Name).ToCamel()),
+		"server":              stringx.From(service.Name).ToCamel(),
+		"imports":             strings.Join(imports.KeysStr(), pathx.NL),
+		"funcs":               strings.Join(funcList, pathx.NL),
+		"notStream":           notStream,
 	}, serverFile, true)
 	return err
 }

@@ -417,8 +417,9 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:  "new",
-				Usage: `generate rpc demo service`,
+				Name:        "new",
+				Usage:       `generate rpc demo service`,
+				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
@@ -465,8 +466,52 @@ var commands = []cli.Command{
 				Action: rpc.RPCTemplate,
 			},
 			{
-				Name:  "proto",
-				Usage: `generate rpc from proto`,
+				Name:        "protoc",
+				Usage:       "generate grpc code",
+				UsageText:   `example: goctl rpc protoc xx.proto --go_out=./pb --go-grpc=./pb --zrpc_out=.`,
+				Description: "for details, see https://go-zero.dev/cn/goctl-rpc.html",
+				Action:      rpc.ZRPC,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:   "go_out",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go-grpc_out",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go_opt",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:   "go-grpc_opt",
+						Hidden: true,
+					},
+					cli.StringFlag{
+						Name:  "zrpc_out",
+						Usage: "the zrpc output directory",
+					},
+					cli.StringFlag{
+						Name:  "style",
+						Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
+					},
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+				},
+			},
+			{
+				Name:        "proto",
+				Usage:       `generate rpc from proto`,
+				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "src, s",
