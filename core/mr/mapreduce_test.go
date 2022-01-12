@@ -266,6 +266,19 @@ func TestMapReduce(t *testing.T) {
 	}
 }
 
+func TestMapReducePanicBothMapperAndReducer(t *testing.T) {
+	defer goleak.VerifyNone(t)
+
+	_, _ = MapReduce(func(source chan<- interface{}) {
+		source <- 0
+		source <- 1
+	}, func(item interface{}, writer Writer, cancel func(error)) {
+		panic("foo")
+	}, func(pipe <-chan interface{}, writer Writer, cancel func(error)) {
+		panic("bar")
+	})
+}
+
 func TestMapReduceWithReduerWriteMoreThanOnce(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
