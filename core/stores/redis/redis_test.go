@@ -361,6 +361,11 @@ func TestRedis_List(t *testing.T) {
 		vals, err = client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
+		err = client.Ltrim("key", 0, 1)
+		assert.Nil(t, err)
+		vals, err = client.Lrange("key", 0, 10)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []string{"value2", "value3"}, vals)
 	})
 }
 
