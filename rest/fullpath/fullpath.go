@@ -9,7 +9,8 @@ type contextKey string
 
 var fullpathVars = contextKey("fullpathCtx")
 
-// FullPath returns fullpath from given r.
+// FullPath returns a matched route full path from given r.
+// If fullpath is not found, returns empty string.
 func FullPath(r *http.Request) string {
 	vars, ok := r.Context().Value(fullpathVars).(string)
 	if ok {
