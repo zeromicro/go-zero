@@ -225,37 +225,24 @@ func executeMappers(mapper MapFunc, input <-chan interface{}, collector chan<- i
 		wg.Wait()
 		close(collector)
 	}()
-
-	pool := make(chan lang.PlaceholderType, workers)
-	writer := newGuardedWriter(collector, done)
-	for {
-		select {
-		case <-done:
-			return
-		default:
-			
-		}
-		select {
-		case <-done:
-			return
-		case pool <- lang.Placeholder:
-			item, ok := <-input
-			if !ok {
-				<-pool
+	wg.Add(workers)
+	writer := newGuardedWriter(collector,done)
+	outputFunc := func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-done:
 				return
+			case v, ok := <-input:
+				if !ok {
+					return
+				}
+				mapper(v, writer)
 			}
-
-			wg.Add(1)
-			// better to safely run caller defined method
-			threading.GoSafe(func() {
-				defer func() {
-					wg.Done()
-					<-pool
-				}()
-
-				mapper(item, writer)
-			})
 		}
+	}
+	for i := 0; i < workers; i++ {
+		go outputFunc()
 	}
 }
 
