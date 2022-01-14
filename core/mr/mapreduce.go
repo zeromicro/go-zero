@@ -278,10 +278,6 @@ func (gw guardedWriter) Write(v interface{}) {
 	case <-gw.done:
 		return
 	default:
-	}
-	select {
-	case <-gw.done:
-		return
-	case gw.channel <- v:
+		gw.channel <- v
 	}
 }
