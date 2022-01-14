@@ -232,6 +232,12 @@ func executeMappers(mapper MapFunc, input <-chan interface{}, collector chan<- i
 		select {
 		case <-done:
 			return
+		default:
+			
+		}
+		select {
+		case <-done:
+			return
 		case pool <- lang.Placeholder:
 			item, ok := <-input
 			if !ok {
@@ -285,6 +291,10 @@ func (gw guardedWriter) Write(v interface{}) {
 	case <-gw.done:
 		return
 	default:
-		gw.channel <- v
+	}
+	select {
+	case <-gw.done:
+		return
+	case gw.channel <- v:
 	}
 }
