@@ -34,7 +34,6 @@ end
 
 local delta = math.max(0, now-last_refreshed)
 local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
-filled_tokens = math.floor(filled_tokens)
 local allowed = filled_tokens >= requested
 if allowed then
     local new_tokens = filled_tokens - requested
@@ -50,7 +49,7 @@ return allowed`
 
 // A TokenLimiter controls how frequently events are allowed to happen with in one second.
 type TokenLimiter struct {
-	rate           int
+	rate           float64
 	burst          int
 	store          *redis.Redis
 	tokenKey       string
@@ -68,7 +67,7 @@ func NewTokenLimiter(rate, burst int, store *redis.Redis, key string) *TokenLimi
 	timestampKey := fmt.Sprintf(timestampFormat, key)
 
 	return &TokenLimiter{
-		rate:          rate,
+		rate:          float64(rate) / 1000,
 		burst:         burst,
 		store:         store,
 		tokenKey:      tokenKey,
@@ -95,7 +94,6 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
-	rate := float64(lim.rate) / 1000
 	timestamp := now.UnixNano() / int64(time.Millisecond)
 	resp, err := lim.store.Eval(
 		script,
@@ -104,7 +102,7 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 			lim.timestampKey,
 		},
 		[]string{
-			strconv.FormatFloat(rate, 'f', 10, 64),
+			strconv.FormatFloat(lim.rate, 'f', 10, 64),
 			strconv.Itoa(lim.burst),
 			strconv.FormatInt(timestamp, 10),
 			strconv.Itoa(n),
