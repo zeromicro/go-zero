@@ -34,14 +34,13 @@ end
 
 local delta = math.max(0, now-last_refreshed)
 local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
+filled_tokens = math.floor(filled_tokens)
 local allowed = filled_tokens >= requested
-local new_tokens = filled_tokens
 if allowed then
-    new_tokens = filled_tokens - requested
+    local new_tokens = filled_tokens - requested
+	redis.call("setex", KEYS[1], ttl, new_tokens)
+	redis.call("setex", KEYS[2], ttl, now)
 end
-
-redis.call("setex", KEYS[1], ttl, new_tokens)
-redis.call("setex", KEYS[2], ttl, now)
 
 return allowed`
 	tokenFormat     = "{%s}.tokens"
@@ -96,6 +95,8 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
+	rate := float64(lim.rate) / 1000
+	timestamp := now.UnixNano() / int64(time.Millisecond)
 	resp, err := lim.store.Eval(
 		script,
 		[]string{
@@ -103,9 +104,9 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 			lim.timestampKey,
 		},
 		[]string{
-			strconv.Itoa(lim.rate),
+			strconv.FormatFloat(rate, 'f', 10, 64),
 			strconv.Itoa(lim.burst),
-			strconv.FormatInt(now.Unix(), 10),
+			strconv.FormatInt(timestamp, 10),
 			strconv.Itoa(n),
 		})
 	// redis allowed == false
