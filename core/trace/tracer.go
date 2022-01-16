@@ -10,7 +10,7 @@ import (
 )
 
 // assert that metadataSupplier implements the TextMapCarrier interface
-var _ propagation.TextMapCarrier = new(metadataSupplier)
+var _ propagation.TextMapCarrier = (*metadataSupplier)(nil)
 
 type metadataSupplier struct {
 	metadata *metadata.MD
