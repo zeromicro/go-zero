@@ -120,7 +120,5 @@ func WithResetDuration(duration time.Duration) ParseOption {
 }
 
 func newParser() *jwt.Parser {
-	return &jwt.Parser{
-		UseJSONNumber: true,
-	}
+	return jwt.NewParser(jwt.WithJSONNumber())
 }
