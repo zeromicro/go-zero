@@ -80,7 +80,7 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 
 func (l *durationLogger) write(writer io.Writer, level string, val interface{}) {
 	switch encoding {
-	case consoleEncodingType:
+	case plainEncodingType:
 		writeConsoleAny(writer, level, val, l.Duration)
 	default:
 		outputJson(writer, &durationLogger{

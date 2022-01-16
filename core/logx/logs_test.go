@@ -146,7 +146,7 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		old := encoding
-		encoding = consoleEncodingType
+		encoding = plainEncodingType
 		defer func() {
 			encoding = old
 		}()
@@ -160,7 +160,7 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		old := encoding
-		encoding = consoleEncodingType
+		encoding = plainEncodingType
 		defer func() {
 			encoding = old
 		}()
@@ -174,7 +174,7 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		old := encoding
-		encoding = consoleEncodingType
+		encoding = plainEncodingType
 		defer func() {
 			encoding = old
 		}()
@@ -188,7 +188,7 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		old := encoding
-		encoding = consoleEncodingType
+		encoding = plainEncodingType
 		defer func() {
 			encoding = old
 		}()
@@ -204,7 +204,7 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		old := encoding
-		encoding = consoleEncodingType
+		encoding = plainEncodingType
 		defer func() {
 			encoding = old
 		}()

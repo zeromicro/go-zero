@@ -81,7 +81,7 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 	spanID := spanIdFromContext(l.ctx)
 
 	switch encoding {
-	case consoleEncodingType:
+	case plainEncodingType:
 		writeConsoleAny(writer, level, val, l.Duration, traceID, spanID)
 	default:
 		outputJson(writer, &traceLogger{

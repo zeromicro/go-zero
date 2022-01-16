@@ -34,11 +34,11 @@ const (
 
 const (
 	jsonEncodingType = iota
-	consoleEncodingType
+	plainEncodingType
 
-	consoleEncoding    = "console"
-	jsonEncoding       = "json"
-	consoleEncodingSep = '\t'
+	jsonEncoding     = "json"
+	plainEncoding    = "plain"
+	plainEncodingSep = '\t'
 )
 
 const (
@@ -136,8 +136,8 @@ func SetUp(c LogConf) error {
 		timeFormat = c.TimeFormat
 	}
 	switch c.Encoding {
-	case consoleEncoding:
-		encoding = consoleEncodingType
+	case plainEncoding:
+		encoding = plainEncodingType
 	default:
 		encoding = jsonEncodingType
 	}
@@ -425,7 +425,7 @@ func infoTextSync(msg string) {
 
 func outputAny(writer io.Writer, level string, val interface{}) {
 	switch encoding {
-	case consoleEncodingType:
+	case plainEncodingType:
 		writeConsoleAny(writer, level, val)
 	default:
 		info := logEntry{
@@ -439,7 +439,7 @@ func outputAny(writer io.Writer, level string, val interface{}) {
 
 func outputText(writer io.Writer, level, msg string) {
 	switch encoding {
-	case consoleEncodingType:
+	case plainEncodingType:
 		writeConsoleText(writer, level, msg)
 	default:
 		info := logEntry{
@@ -603,13 +603,13 @@ func writeConsoleAny(writer io.Writer, level string, val interface{}, fields ...
 	default:
 		var buf bytes.Buffer
 		buf.WriteString(getTimestamp())
-		buf.WriteByte(consoleEncodingSep)
+		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(level)
 		for _, item := range fields {
-			buf.WriteByte(consoleEncodingSep)
+			buf.WriteByte(plainEncodingSep)
 			buf.WriteString(item)
 		}
-		buf.WriteByte(consoleEncodingSep)
+		buf.WriteByte(plainEncodingSep)
 		if err := json.NewEncoder(&buf).Encode(val); err != nil {
 			log.Println(err.Error())
 			return
@@ -629,13 +629,13 @@ func writeConsoleAny(writer io.Writer, level string, val interface{}, fields ...
 func writeConsoleText(writer io.Writer, level, msg string, fields ...string) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
-	buf.WriteByte(consoleEncodingSep)
+	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
 	for _, item := range fields {
-		buf.WriteByte(consoleEncodingSep)
+		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(item)
 	}
-	buf.WriteByte(consoleEncodingSep)
+	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(msg)
 	buf.WriteByte('\n')
 	if atomic.LoadUint32(&initialized) == 0 || writer == nil {

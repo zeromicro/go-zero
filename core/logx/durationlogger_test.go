@@ -39,7 +39,7 @@ func TestWithDurationInfo(t *testing.T) {
 
 func TestWithDurationInfoConsole(t *testing.T) {
 	old := encoding
-	encoding = consoleEncodingType
+	encoding = plainEncodingType
 	defer func() {
 		encoding = old
 	}()
