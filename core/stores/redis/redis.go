@@ -880,6 +880,18 @@ func (s *Redis) Lrem(key string, count int, value string) (val int, err error) {
 	return
 }
 
+// Ltrim is the implementation of redis ltrim command.
+func (s *Redis) Ltrim(key string, start, stop int64) error {
+	return s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		return conn.LTrim(key, start, stop).Err()
+	}, acceptable)
+}
+
 // Mget is the implementation of redis mget command.
 func (s *Redis) Mget(keys ...string) (val []string, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
