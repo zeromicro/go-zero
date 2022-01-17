@@ -18,8 +18,8 @@ const (
 	// KEYS[2] as timestamp_key
 	script = `local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
-local now = tonumber(ARGV[3])
-local requested = tonumber(ARGV[4])
+local requested = tonumber(ARGV[3])
+local now = tonumber(redis.call("time")[1])
 local fill_time = capacity/rate
 local ttl = math.floor(fill_time*2)
 local last_tokens = tonumber(redis.call("get", KEYS[1]))
@@ -81,19 +81,19 @@ func NewTokenLimiter(rate, burst int, store *redis.Redis, key string) *TokenLimi
 
 // Allow is shorthand for AllowN(time.Now(), 1).
 func (lim *TokenLimiter) Allow() bool {
-	return lim.AllowN(time.Now(), 1)
+	return lim.AllowN(1)
 }
 
 // AllowN reports whether n events may happen at time now.
 // Use this method if you intend to drop / skip events that exceed the rate.
 // Otherwise, use Reserve or Wait.
-func (lim *TokenLimiter) AllowN(now time.Time, n int) bool {
-	return lim.reserveN(now, n)
+func (lim *TokenLimiter) AllowN(n int) bool {
+	return lim.reserveN(n)
 }
 
-func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
+func (lim *TokenLimiter) reserveN(n int) bool {
 	if atomic.LoadUint32(&lim.redisAlive) == 0 {
-		return lim.rescueLimiter.AllowN(now, n)
+		return lim.rescueLimiter.AllowN(time.Now(), n)
 	}
 
 	resp, err := lim.store.Eval(
@@ -105,7 +105,6 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 		[]string{
 			strconv.Itoa(lim.rate),
 			strconv.Itoa(lim.burst),
-			strconv.FormatInt(now.Unix(), 10),
 			strconv.Itoa(n),
 		})
 	// redis allowed == false
@@ -115,14 +114,14 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 	} else if err != nil {
 		logx.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		lim.startMonitor()
-		return lim.rescueLimiter.AllowN(now, n)
+		return lim.rescueLimiter.AllowN(time.Now(), n)
 	}
 
 	code, ok := resp.(int64)
 	if !ok {
 		logx.Errorf("fail to eval redis script: %v, use in-process limiter for rescue", resp)
 		lim.startMonitor()
-		return lim.rescueLimiter.AllowN(now, n)
+		return lim.rescueLimiter.AllowN(time.Now(), n)
 	}
 
 	// redis allowed == true
