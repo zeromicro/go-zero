@@ -160,9 +160,9 @@ func dumpRequest(r *http.Request) string {
 func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
-	logger := logx.WithContext(r.Context())
-	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s - %s - %s",
-		r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration)))
+	logger := logx.WithContext(r.Context()).WithDuration(duration)
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s - %s",
+		r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 	if duration > slowThreshold.Load() {
 		logger.Slowf("[HTTP] %s - %d - %s - %s - %s - slowcall(%s)",
 			r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))

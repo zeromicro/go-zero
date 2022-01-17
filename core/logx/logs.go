@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,15 @@ const (
 	ErrorLevel
 	// SevereLevel only log severe messages
 	SevereLevel
+)
+
+const (
+	jsonEncodingType = iota
+	plainEncodingType
+
+	jsonEncoding     = "json"
+	plainEncoding    = "plain"
+	plainEncodingSep = '\t'
 )
 
 const (
@@ -65,6 +75,7 @@ var (
 	timeFormat   = "2006-01-02T15:04:05.000Z07"
 	writeConsole bool
 	logLevel     uint32
+	encoding     = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
 	infoLog     io.WriteCloser
@@ -123,6 +134,12 @@ func MustSetup(c LogConf) {
 func SetUp(c LogConf) error {
 	if len(c.TimeFormat) > 0 {
 		timeFormat = c.TimeFormat
+	}
+	switch c.Encoding {
+	case plainEncoding:
+		encoding = plainEncodingType
+	default:
+		encoding = jsonEncodingType
 	}
 
 	switch c.Mode {
@@ -407,21 +424,31 @@ func infoTextSync(msg string) {
 }
 
 func outputAny(writer io.Writer, level string, val interface{}) {
-	info := logEntry{
-		Timestamp: getTimestamp(),
-		Level:     level,
-		Content:   val,
+	switch encoding {
+	case plainEncodingType:
+		writePlainAny(writer, level, val)
+	default:
+		info := logEntry{
+			Timestamp: getTimestamp(),
+			Level:     level,
+			Content:   val,
+		}
+		outputJson(writer, info)
 	}
-	outputJson(writer, info)
 }
 
 func outputText(writer io.Writer, level, msg string) {
-	info := logEntry{
-		Timestamp: getTimestamp(),
-		Level:     level,
-		Content:   msg,
+	switch encoding {
+	case plainEncodingType:
+		writePlainText(writer, level, msg)
+	default:
+		info := logEntry{
+			Timestamp: getTimestamp(),
+			Level:     level,
+			Content:   msg,
+		}
+		outputJson(writer, info)
 	}
-	outputJson(writer, info)
 }
 
 func outputError(writer io.Writer, msg string, callDepth int) {
@@ -562,6 +589,62 @@ func stackSync(msg string) {
 func statSync(msg string) {
 	if shallLogStat() && shallLog(InfoLevel) {
 		outputText(statLog, levelStat, msg)
+	}
+}
+
+func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
+	switch v := val.(type) {
+	case string:
+		writePlainText(writer, level, v, fields...)
+	case error:
+		writePlainText(writer, level, v.Error(), fields...)
+	case fmt.Stringer:
+		writePlainText(writer, level, v.String(), fields...)
+	default:
+		var buf bytes.Buffer
+		buf.WriteString(getTimestamp())
+		buf.WriteByte(plainEncodingSep)
+		buf.WriteString(level)
+		for _, item := range fields {
+			buf.WriteByte(plainEncodingSep)
+			buf.WriteString(item)
+		}
+		buf.WriteByte(plainEncodingSep)
+		if err := json.NewEncoder(&buf).Encode(val); err != nil {
+			log.Println(err.Error())
+			return
+		}
+		buf.WriteByte('\n')
+		if atomic.LoadUint32(&initialized) == 0 || writer == nil {
+			log.Println(buf.String())
+			return
+		}
+
+		if _, err := writer.Write(buf.Bytes()); err != nil {
+			log.Println(err.Error())
+		}
+	}
+}
+
+func writePlainText(writer io.Writer, level, msg string, fields ...string) {
+	var buf bytes.Buffer
+	buf.WriteString(getTimestamp())
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(level)
+	for _, item := range fields {
+		buf.WriteByte(plainEncodingSep)
+		buf.WriteString(item)
+	}
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(msg)
+	buf.WriteByte('\n')
+	if atomic.LoadUint32(&initialized) == 0 || writer == nil {
+		log.Println(buf.String())
+		return
+	}
+
+	if _, err := writer.Write(buf.Bytes()); err != nil {
+		log.Println(err.Error())
 	}
 }
 

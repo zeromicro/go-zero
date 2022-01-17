@@ -37,6 +37,19 @@ func TestWithDurationInfo(t *testing.T) {
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
 }
 
+func TestWithDurationInfoConsole(t *testing.T) {
+	old := encoding
+	encoding = plainEncodingType
+	defer func() {
+		encoding = old
+	}()
+
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).Info("foo")
+	assert.True(t, strings.Contains(builder.String(), "ms"), builder.String())
+}
+
 func TestWithDurationInfof(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
