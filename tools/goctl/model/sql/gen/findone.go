@@ -26,6 +26,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 			"cacheKey":                  table.PrimaryCacheKey.KeyExpression,
 			"cacheKeyVariable":          table.PrimaryCacheKey.KeyLeft,
 			"postgreSql":                postgreSql,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err
@@ -42,6 +43,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 			"upperStartCamelObject":     camel,
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
 			"dataType":                  table.PrimaryKey.DataType,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err

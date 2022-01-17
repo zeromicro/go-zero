@@ -31,6 +31,7 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 		"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 		"withCache":             withCache,
 		"postgreSql":            postgreSql,
+		"data":                  table,
 	})
 	if err != nil {
 		return "", err

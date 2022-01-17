@@ -58,6 +58,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) 
 			"originalPrimaryKey":    wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"expressionValues":      strings.Join(expressionValues, ", "),
 			"postgreSql":            postgreSql,
+			"data":                  table,
 		})
 	if err != nil {
 		return "", "", nil
@@ -73,6 +74,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) 
 		Parse(text).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
+			"data":                  table,
 		})
 	if err != nil {
 		return "", "", nil

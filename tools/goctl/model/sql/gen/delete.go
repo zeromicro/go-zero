@@ -38,6 +38,7 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
 			"postgreSql":                postgreSql,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err
@@ -54,6 +55,7 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 		Execute(map[string]interface{}{
 			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
 			"dataType":                  table.PrimaryKey.DataType,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err
