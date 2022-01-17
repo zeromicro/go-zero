@@ -111,6 +111,17 @@ func getAuths(api *spec.ApiSpec) []string {
 	return authNames.KeysStr()
 }
 
+func getJwtTrans(api *spec.ApiSpec) []string {
+	jwtTransList := collection.NewSet()
+	for _, g := range api.Service.Groups {
+		jt := g.GetAnnotation(jwtTransKey)
+		if len(jt) > 0 {
+			jwtTransList.Add(jt)
+		}
+	}
+	return jwtTransList.KeysStr()
+}
+
 func getMiddleware(api *spec.ApiSpec) []string {
 	result := collection.NewSet()
 	for _, g := range api.Service.Groups {
