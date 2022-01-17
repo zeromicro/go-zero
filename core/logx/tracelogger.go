@@ -82,7 +82,7 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 
 	switch encoding {
 	case plainEncodingType:
-		writeConsoleAny(writer, level, val, l.Duration, traceID, spanID)
+		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
 	default:
 		outputJson(writer, &traceLogger{
 			logEntry: logEntry{

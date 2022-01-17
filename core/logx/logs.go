@@ -426,7 +426,7 @@ func infoTextSync(msg string) {
 func outputAny(writer io.Writer, level string, val interface{}) {
 	switch encoding {
 	case plainEncodingType:
-		writeConsoleAny(writer, level, val)
+		writePlainAny(writer, level, val)
 	default:
 		info := logEntry{
 			Timestamp: getTimestamp(),
@@ -440,7 +440,7 @@ func outputAny(writer io.Writer, level string, val interface{}) {
 func outputText(writer io.Writer, level, msg string) {
 	switch encoding {
 	case plainEncodingType:
-		writeConsoleText(writer, level, msg)
+		writePlainText(writer, level, msg)
 	default:
 		info := logEntry{
 			Timestamp: getTimestamp(),
@@ -592,14 +592,14 @@ func statSync(msg string) {
 	}
 }
 
-func writeConsoleAny(writer io.Writer, level string, val interface{}, fields ...string) {
+func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
 	switch v := val.(type) {
 	case string:
-		writeConsoleText(writer, level, v, fields...)
+		writePlainText(writer, level, v, fields...)
 	case error:
-		writeConsoleText(writer, level, v.Error(), fields...)
+		writePlainText(writer, level, v.Error(), fields...)
 	case fmt.Stringer:
-		writeConsoleText(writer, level, v.String(), fields...)
+		writePlainText(writer, level, v.String(), fields...)
 	default:
 		var buf bytes.Buffer
 		buf.WriteString(getTimestamp())
@@ -626,7 +626,7 @@ func writeConsoleAny(writer io.Writer, level string, val interface{}, fields ...
 	}
 }
 
-func writeConsoleText(writer io.Writer, level, msg string, fields ...string) {
+func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
