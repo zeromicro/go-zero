@@ -76,6 +76,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 
 	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]interface{}{
 		"upperStartCamelObject": camel,
+		"data":                  table,
 	})
 	if err != nil {
 		return "", "", err
