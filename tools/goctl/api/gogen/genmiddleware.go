@@ -45,6 +45,8 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			subdir:          middlewareDir,
 			filename:        filename + ".go",
 			templateName:    "contextTemplate",
+			category:        category,
+			templateFile:    middlewareImplementCodeFile,
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
 				"name": strings.Title(name),

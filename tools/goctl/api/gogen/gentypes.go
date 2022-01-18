@@ -63,8 +63,8 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		subdir:          typesDir,
 		filename:        typeFilename,
 		templateName:    "typesTemplate",
-		category:        "",
-		templateFile:    "",
+		category:        category,
+		templateFile:    typesTemplateFile,
 		builtinTemplate: typesTemplate,
 		data: map[string]interface{}{
 			"types":        val,
