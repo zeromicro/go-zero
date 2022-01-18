@@ -178,7 +178,7 @@ type Response struct {
 
 @server(
 	jwt: Auth
-	jwtTrans: Trans
+	jwtTransition: Trans
 	middleware: TokenValidate
 )
 service A-api {
