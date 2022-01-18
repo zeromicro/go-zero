@@ -73,7 +73,12 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		return err
 	}
 
-	gt := template.Must(template.New("groupTemplate").Parse(routesAdditionTemplate))
+	templateText, err := pathx.LoadTemplate(category, routesAdditionTemplateFile, routesAdditionTemplate)
+	if err != nil {
+		return err
+	}
+
+	gt := template.Must(template.New("groupTemplate").Parse(templateText))
 	for _, g := range groups {
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
@@ -139,8 +144,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 		subdir:          handlerDir,
 		filename:        routeFilename,
 		templateName:    "routesTemplate",
-		category:        "",
-		templateFile:    "",
+		category:        category,
+		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
 		data: map[string]string{
 			"importPackages":  genRouteImports(rootPkg, api),
