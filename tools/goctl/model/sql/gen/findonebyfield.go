@@ -40,6 +40,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             originalFieldString,
 			"postgreSql":                postgreSql,
+			"data":                      table,
 		})
 		if err != nil {
 			return nil, err
@@ -71,6 +72,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"upperStartCamelObject": camelTableName,
 			"upperField":            key.FieldNameJoin.Camel().With("").Source(),
 			"in":                    in,
+			"data":                  table,
 		})
 		if err != nil {
 			return nil, err
@@ -91,6 +93,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"postgreSql":            postgreSql,
+			"data":                  table,
 		})
 		if err != nil {
 			return nil, err
