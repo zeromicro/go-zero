@@ -72,6 +72,11 @@ func (s *Server) AddRoute(r Route, opts ...RouteOption) {
 	s.AddRoutes([]Route{r}, opts...)
 }
 
+// Router returns the router of the Server.
+func (s *Server) Router() httpx.Router {
+	return s.router
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
