@@ -31,6 +31,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			sc := span.SpanContext()
 			if sc.HasTraceID() {
 				w.Header().Set(trace.TraceIdKey, sc.TraceID().String())
+				r.Header.Set("x-trace-id-temp", sc.TraceID().String())
 			}
 
 			next.ServeHTTP(w, r.WithContext(spanCtx))
