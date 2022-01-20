@@ -112,7 +112,8 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 	// Lua boolean false -> r Nil bulk reply
 	if err == redis.Nil {
 		return false
-	} else if err != nil {
+	}
+	if err != nil {
 		logx.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		lim.startMonitor()
 		return lim.rescueLimiter.AllowN(now, n)

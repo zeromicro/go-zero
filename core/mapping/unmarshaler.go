@@ -742,7 +742,9 @@ func getValueWithChainedKeys(m Valuer, keys []string) (interface{}, bool) {
 	if len(keys) == 1 {
 		v, ok := m.Value(keys[0])
 		return v, ok
-	} else if len(keys) > 1 {
+	}
+
+	if len(keys) > 1 {
 		if v, ok := m.Value(keys[0]); ok {
 			if nextm, ok := v.(map[string]interface{}); ok {
 				return getValueWithChainedKeys(MapValuer(nextm), keys[1:])
