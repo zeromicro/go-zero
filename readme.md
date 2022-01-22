@@ -14,7 +14,7 @@ English | [简体中文](readme-cn.md)
 
 ## 0. what is go-zero
 
-go-zero (listed in CNCF Landscape: [https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design, and has been serving sites with tens of millions users for years.
+go-zero (listed in CNCF Landscape: [https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
 
 go-zero contains simple API description syntax and code generation tool called `goctl`. You can generate Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript from .api files with `goctl`.
 
@@ -23,7 +23,7 @@ Advantages of go-zero:
 * improve the stability of the services with tens of millions of daily active users
 * builtin chained timeout control, concurrency control, rate limit, adaptive circuit breaker, adaptive load shedding, even no configuration needed
 * builtin middlewares also can be integrated into your frameworks
-* simple API syntax, one command to generate couple of different languages
+* simple API syntax, one command to generate a couple of different languages
 * auto validate the request parameters from clients
 * plenty of builtin microservice management and concurrent toolkits
 
@@ -31,7 +31,7 @@ Advantages of go-zero:
 
 ## 1. Backgrounds of go-zero
 
-At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After researches and comparison, we chose to:
+At the beginning of 2018, we decided to re-design our system, from monolithic architecture with Java+MongoDB to microservice architecture. After research and comparison, we chose to:
 
 * Golang based
   * great performance
@@ -40,13 +40,13 @@ At the beginning of 2018, we decided to re-design our system, from monolithic ar
   * extreme deployment experience
   * less server resource consumption
 * Self-designed microservice architecture
-  * I have rich experience on designing microservice architectures
-  * easy to location the problems
+  * I have rich experience in designing microservice architectures
+  * easy to locate the problems
   * easy to extend the features
 
 ## 2. Design considerations on go-zero
 
-By designing the microservice architecture, we expected to ensure the stability, as well as the productivity. And from just the beginning, we have the following design principles:
+By designing the microservice architecture, we expected to ensure stability, as well as productivity. And from just the beginning, we have the following design principles:
 
 * keep it simple
 * high availability
@@ -56,7 +56,7 @@ By designing the microservice architecture, we expected to ensure the stability,
 * try best to be friendly to the business logic development, encapsulate the complexity
 * one thing, one way
 
-After almost half a year, we finished the transfer from monolithic system to microservice system, and deployed on August 2018. The new system guaranteed the business growth, and the system stability.
+After almost half a year, we finished the transfer from a monolithic system to microservice system and deployed on August 2018. The new system guaranteed business growth and system stability.
 
 ## 3. The implementation and features of go-zero
 
@@ -69,21 +69,21 @@ go-zero is a web and rpc framework that integrates lots of engineering practices
 * high performance
 * failure-oriented programming, resilience design
 * builtin service discovery, load balancing
-* builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto trigger, auto recover
+* builtin concurrency control, adaptive circuit breaker, adaptive load shedding, auto-trigger, auto recover
 * auto validation of API request parameters
 * chained timeout control
 * auto management of data caching
-* call tracing, metrics and monitoring
+* call tracing, metrics, and monitoring
 * high concurrency protected
 
-As below, go-zero protects the system with couple layers and mechanisms:
+As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
 ## 4. Future development plans of go-zero
 
-* auto generate API mock server, make the client debugging easier
-* auto generate the simple integration test for the server side just from the .api files
+* auto-generate API mock server, make the client debugging easier
+* auto-generate the simple integration test for the server-side just from the .api files
 
 ## 5. Installation
 
@@ -103,7 +103,7 @@ go get -u github.com/tal-tech/go-zero
 
 1. install goctl
 
-   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve the productivity, and make our lives easier.
+   `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
 
    ```shell
    # for Go 1.15 and earlier
@@ -134,13 +134,13 @@ go get -u github.com/tal-tech/go-zero
    }
    ```
    
-   the .api files also can be generate by goctl, like below:
+   the .api files also can be generated by goctl, like below:
 
    ```shell
    goctl api -o greet.api
    ```
    
-3. generate the go server side code
+3. generate the go server-side code
 
    ```shell
    goctl api go -api greet.api -dir greet
@@ -177,7 +177,7 @@ go get -u github.com/tal-tech/go-zero
    go run greet.go -f etc/greet-api.yaml
    ```
 
-   by default, it’s listening on port 8888, while it can be changed in configuration file.
+   by default, it’s listening on port 8888, while it can be changed in the configuration file.
 
    you can check it by curl:
 
@@ -185,7 +185,7 @@ go get -u github.com/tal-tech/go-zero
    curl -i http://localhost:8888/greet/from/you
    ```
 
-   the response looks like:
+   the response looks like below:
 
    ```http
    HTTP/1.1 200 OK
@@ -195,10 +195,10 @@ go get -u github.com/tal-tech/go-zero
 
 4. Write the business logic code
 
-    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds etc.
-    * add the logic code in logic package according to .api file
+    * the dependencies can be passed into the logic within servicecontext.go, like mysql, reds, etc.
+    * add the logic code in a logic package according to .api file
 
-5. Generate code like Java, TypeScript, Dart, JavaScript etc. just from the api file
+5. Generate code like Java, TypeScript, Dart, JavaScript, etc. just from the api file
 
    ```shell
    goctl api java -api greet.api -dir greet
