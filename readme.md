@@ -41,7 +41,7 @@ At the beginning of 2018, we decided to re-design our system, from monolithic ar
   * less server resource consumption
 * Self-designed microservice architecture
   * I have rich experience on designing microservice architectures
-  * easy to location the problems
+  * easy to locate the problems
   * easy to extend the features
 
 ## 2. Design considerations on go-zero
