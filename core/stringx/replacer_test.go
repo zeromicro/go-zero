@@ -50,3 +50,27 @@ func TestReplacer_ReplaceMultiMatches(t *testing.T) {
 	}
 	assert.Equal(t, "零一23四五一23四五", NewReplacer(mapping).Replace("零一二三四五一二三四五"))
 }
+
+func TestReplacer_ReplaceJumpToFail(t *testing.T) {
+	mapping := map[string]string{
+		"bcdf": "1235",
+		"cde":  "234",
+	}
+	assert.Equal(t, "ab234fg", NewReplacer(mapping).Replace("abcdefg"))
+}
+
+func TestReplacer_ReplaceJumpToFailEnding(t *testing.T) {
+	mapping := map[string]string{
+		"bcdf": "1235",
+		"cdef": "2345",
+	}
+	assert.Equal(t, "ab2345", NewReplacer(mapping).Replace("abcdef"))
+}
+
+func TestReplacer_ReplaceEmpty(t *testing.T) {
+	mapping := map[string]string{
+		"bcdf": "1235",
+		"cdef": "2345",
+	}
+	assert.Equal(t, "", NewReplacer(mapping).Replace(""))
+}

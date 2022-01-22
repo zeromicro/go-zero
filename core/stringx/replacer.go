@@ -28,6 +28,7 @@ func NewReplacer(mapping map[string]string) Replacer {
 	return rep
 }
 
+// Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
 	var builder strings.Builder
 	var start int
@@ -50,12 +51,17 @@ func (r *replacer) Replace(text string) string {
 				start = i + 1
 				continue
 			} else {
+				curDepth := cur.depth
 				cur = cur.fail
-				if child, ok = cur.children[chars[i]]; !ok {
+				child, ok = cur.children[chars[i]]
+				if !ok {
 					builder.WriteString(string(chars[start : i+1]))
 					start = i + 1
 					continue
 				}
+
+				failDepth := cur.depth
+				builder.WriteString(string(chars[start : start+curDepth-failDepth]))
 				cur = child
 			}
 
@@ -63,6 +69,10 @@ func (r *replacer) Replace(text string) string {
 				val := string(chars[i+1-cur.depth : i+1])
 				builder.WriteString(r.mapping[val])
 				builder.WriteString(string(chars[i+1:]))
+				if i+1 >= size {
+					return builder.String()
+				}
+
 				chars = []rune(builder.String())
 				size = len(chars)
 				builder.Reset()
