@@ -14,7 +14,7 @@ func TestTrieSimple(t *testing.T) {
 	output, keywords, found := trie.Filter("abcd")
 	assert.True(t, found)
 	assert.Equal(t, "a***", output)
-	assert.EqualValues(t, []string{"bc", "cd"}, keywords)
+	assert.ElementsMatch(t, []string{"bc", "cd"}, keywords)
 }
 
 func TestTrie(t *testing.T) {

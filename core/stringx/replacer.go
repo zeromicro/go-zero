@@ -48,6 +48,7 @@ func (r *replacer) Replace(text string) string {
 				cur = child
 			} else if cur == r.node {
 				builder.WriteRune(chars[i])
+				// cur already points to root, set start only
 				start = i + 1
 				continue
 			} else {
@@ -55,13 +56,18 @@ func (r *replacer) Replace(text string) string {
 				cur = cur.fail
 				child, ok = cur.children[chars[i]]
 				if !ok {
-					builder.WriteString(string(chars[start : i+1]))
+					// write this path
+					builder.WriteString(string(chars[i-curDepth : i+1]))
+					// go to root
+					cur = r.node
 					start = i + 1
 					continue
 				}
 
 				failDepth := cur.depth
+				// write path before jump
 				builder.WriteString(string(chars[start : start+curDepth-failDepth]))
+				start += curDepth - failDepth
 				cur = child
 			}
 
@@ -69,7 +75,8 @@ func (r *replacer) Replace(text string) string {
 				val := string(chars[i+1-cur.depth : i+1])
 				builder.WriteString(r.mapping[val])
 				builder.WriteString(string(chars[i+1:]))
-				if i+1 >= size {
+				// only matching this path, all previous paths are done
+				if start >= i+1-cur.depth && i+1 >= size {
 					return builder.String()
 				}
 
