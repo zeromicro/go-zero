@@ -2,8 +2,8 @@ package stringx
 
 type node struct {
 	children map[rune]*node
-	depth    int
 	fail     *node
+	depth    int
 	end      bool
 }
 
