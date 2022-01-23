@@ -9,7 +9,7 @@ type (
 	}
 
 	replacer struct {
-		node
+		*node
 		mapping map[string]string
 	}
 )
@@ -17,58 +17,81 @@ type (
 // NewReplacer returns a Replacer.
 func NewReplacer(mapping map[string]string) Replacer {
 	rep := &replacer{
+		node:    new(node),
 		mapping: mapping,
 	}
 	for k := range mapping {
 		rep.add(k)
 	}
+	rep.build()
 
 	return rep
 }
 
+// Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
 	var builder strings.Builder
+	var start int
 	chars := []rune(text)
 	size := len(chars)
-	start := -1
 
-	for i := 0; i < size; i++ {
-		child, ok := r.children[chars[i]]
-		if !ok {
-			builder.WriteRune(chars[i])
-			continue
+	for start < size {
+		cur := r.node
+
+		if start > 0 {
+			builder.WriteString(string(chars[:start]))
 		}
 
-		if start < 0 {
-			start = i
-		}
-		end := -1
-		if child.end {
-			end = i + 1
-		}
+		for i := start; i < size; i++ {
+			child, ok := cur.children[chars[i]]
+			if ok {
+				cur = child
+			} else if cur == r.node {
+				builder.WriteRune(chars[i])
+				// cur already points to root, set start only
+				start = i + 1
+				continue
+			} else {
+				curDepth := cur.depth
+				cur = cur.fail
+				child, ok = cur.children[chars[i]]
+				if !ok {
+					// write this path
+					builder.WriteString(string(chars[i-curDepth : i+1]))
+					// go to root
+					cur = r.node
+					start = i + 1
+					continue
+				}
 
-		j := i + 1
-		for ; j < size; j++ {
-			grandchild, ok := child.children[chars[j]]
-			if !ok {
+				failDepth := cur.depth
+				// write path before jump
+				builder.WriteString(string(chars[start : start+curDepth-failDepth]))
+				start += curDepth - failDepth
+				cur = child
+			}
+
+			if cur.end {
+				val := string(chars[i+1-cur.depth : i+1])
+				builder.WriteString(r.mapping[val])
+				builder.WriteString(string(chars[i+1:]))
+				// only matching this path, all previous paths are done
+				if start >= i+1-cur.depth && i+1 >= size {
+					return builder.String()
+				}
+
+				chars = []rune(builder.String())
+				size = len(chars)
+				builder.Reset()
 				break
 			}
-
-			child = grandchild
-			if child.end {
-				end = j + 1
-				i = j
-			}
 		}
 
-		if end > 0 {
-			i = j - 1
-			builder.WriteString(r.mapping[string(chars[start:end])])
-		} else {
-			builder.WriteRune(chars[i])
+		if !cur.end {
+			builder.WriteString(string(chars[start:]))
+			return builder.String()
 		}
-		start = -1
 	}
 
-	return builder.String()
+	return string(chars)
 }
