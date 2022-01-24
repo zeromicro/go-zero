@@ -240,11 +240,15 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 
 func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
-		var prefix string
+		var prefix, group string
 		if each.AtServer != nil {
 			p := each.AtServer.Kv.Get(prefixKey)
 			if p != nil {
 				prefix = p.Text()
+			}
+			g := each.AtServer.Kv.Get(groupKey)
+			if p != nil {
+				group = g.Text()
 			}
 		}
 		for _, r := range each.ServiceApi.ServiceRoute {
@@ -253,9 +257,13 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMa
 				return fmt.Errorf("%s handler not exist near line %d", nestedApi.LinePrefix, r.Route.Method.Line())
 			}
 
-			if _, ok := mainHandlerMap[handler.Text()]; ok {
+			handlerKey := handler.Text()
+			if len(group) > 0 {
+				handlerKey = fmt.Sprintf("%s/%s", group, handler.Text())
+			}
+			if _, ok := mainHandlerMap[handlerKey]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate handler '%s'",
-					nestedApi.LinePrefix, handler.Line(), handler.Column(), handler.Text())
+					nestedApi.LinePrefix, handler.Line(), handler.Column(), handlerKey)
 			}
 
 			p := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path.Join(prefix, r.Route.Path.Text()))
