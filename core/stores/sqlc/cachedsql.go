@@ -138,3 +138,8 @@ func (cc CachedConn) SetCache(key string, v interface{}) error {
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 	return cc.db.Transact(fn)
 }
+
+// returns the underlying sql.DB.
+func (cc CachedConn) RawDB() (*sql.DB, error) {
+	return cc.db.RawDB()
+}
