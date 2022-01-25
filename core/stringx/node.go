@@ -47,7 +47,6 @@ func (n *node) add(word string) {
 }
 
 func (n *node) build() {
-	n.fail = n
 	n.id = 0
 	idx++
 	var nodes []*node
@@ -61,18 +60,16 @@ func (n *node) build() {
 		for key, child := range nd.children {
 			nodes = append(nodes, child)
 			cur := nd
-			for {
+			for cur != nil {
+				if cur.fail == nil {
+					child.fail = n
+					break
+				}
 				if fail, ok := cur.fail.children[key]; ok {
 					child.fail = fail
 					break
 				}
-				if cur == n {
-					break
-				}
 				cur = cur.fail
-			}
-			if child.fail == nil {
-				child.fail = n
 			}
 		}
 	}
