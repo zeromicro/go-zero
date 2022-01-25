@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/urfave/cli"
 )
 

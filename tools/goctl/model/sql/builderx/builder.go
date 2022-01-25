@@ -1,7 +1,7 @@
 package builderx
 
 import (
-	"github.com/tal-tech/go-zero/core/stores/builder"
+	"github.com/zeromicro/go-zero/core/stores/builder"
 )
 
 // Deprecated: Use github.com/zeromicro/go-zero/core/stores/builder.RawFieldNames instead.

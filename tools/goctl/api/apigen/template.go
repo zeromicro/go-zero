@@ -3,7 +3,7 @@ package apigen
 import (
 	"fmt"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
 )
 

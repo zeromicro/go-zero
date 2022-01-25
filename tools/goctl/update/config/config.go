@@ -1,6 +1,6 @@
 package config
 
-import "github.com/tal-tech/go-zero/core/logx"
+import "github.com/zeromicro/go-zero/core/logx"
 
 // Config defines a service configure for goctl update
 type Config struct {

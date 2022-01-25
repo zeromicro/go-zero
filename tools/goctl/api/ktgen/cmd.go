@@ -3,7 +3,7 @@ package ktgen
 import (
 	"errors"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/urfave/cli"
 )
 
