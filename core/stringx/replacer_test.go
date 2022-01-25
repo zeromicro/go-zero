@@ -83,7 +83,7 @@ func TestReplacer_ReplaceEmpty(t *testing.T) {
 	assert.Equal(t, "", NewReplacer(mapping).Replace(""))
 }
 
-func TestFuzzCase1(t *testing.T) {
+func TestFuzzReplacerCase1(t *testing.T) {
 	keywords := map[string]string{
 		"yQyJykiqoh":     "xw",
 		"tgN70z":         "Q2P",
@@ -115,7 +115,7 @@ func TestFuzzCase1(t *testing.T) {
 	}
 }
 
-func TestFuzzCase2(t *testing.T) {
+func TestFuzzReplacerCase2(t *testing.T) {
 	keywords := map[string]string{
 		"dmv2SGZvq9Yz":   "TE",
 		"rCL5DRI9uFP8":   "hvsc8",

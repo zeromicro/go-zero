@@ -36,31 +36,29 @@ func (n *node) add(word string) {
 }
 
 func (n *node) build() {
-	n.fail = n
+	var nodes []*node
 	for _, child := range n.children {
 		child.fail = n
-		n.buildNode(child)
+		nodes = append(nodes, child)
 	}
-}
-
-func (n *node) buildNode(nd *node) {
-	if nd.children == nil {
-		return
-	}
-
-	var fifo []*node
-	for key, child := range nd.children {
-		fifo = append(fifo, child)
-
-		if fail, ok := nd.fail.children[key]; ok {
-			child.fail = fail
-		} else {
-			child.fail = n
+	for len(nodes) > 0 {
+		nd := nodes[0]
+		nodes = nodes[1:]
+		for key, child := range nd.children {
+			nodes = append(nodes, child)
+			cur := nd
+			for cur != nil {
+				if cur.fail == nil {
+					child.fail = n
+					break
+				}
+				if fail, ok := cur.fail.children[key]; ok {
+					child.fail = fail
+					break
+				}
+				cur = cur.fail
+			}
 		}
-	}
-
-	for _, val := range fifo {
-		n.buildNode(val)
 	}
 }
 
@@ -73,27 +71,28 @@ func (n *node) find(chars []rune) []scope {
 		child, ok := cur.children[chars[i]]
 		if ok {
 			cur = child
-		} else if cur == n {
-			continue
 		} else {
-			cur = cur.fail
-			if child, ok = cur.children[chars[i]]; !ok {
+			for cur != n {
+				cur = cur.fail
+				if child, ok = cur.children[chars[i]]; ok {
+					cur = child
+					break
+				}
+			}
+
+			if child == nil {
 				continue
 			}
-			cur = child
 		}
 
-		if child.end {
-			scopes = append(scopes, scope{
-				start: i + 1 - child.depth,
-				stop:  i + 1,
-			})
-		}
-		if child.fail != n && child.fail.end {
-			scopes = append(scopes, scope{
-				start: i + 1 - child.fail.depth,
-				stop:  i + 1,
-			})
+		for child != n {
+			if child.end {
+				scopes = append(scopes, scope{
+					start: i + 1 - child.depth,
+					stop:  i + 1,
+				})
+			}
+			child = child.fail
 		}
 	}
 
