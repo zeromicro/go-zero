@@ -1,16 +1,10 @@
 package stringx
 
-import "fmt"
-
-var idx = 1
-
 type node struct {
 	children map[rune]*node
 	fail     *node
 	depth    int
 	end      bool
-	word     string
-	id       int
 }
 
 func (n *node) add(word string) {
@@ -25,8 +19,6 @@ func (n *node) add(word string) {
 		if nd.children == nil {
 			child := new(node)
 			child.depth = i + 1
-			child.id = idx
-			idx++
 			nd.children = map[rune]*node{char: child}
 			nd = child
 		} else if child, ok := nd.children[char]; ok {
@@ -35,20 +27,15 @@ func (n *node) add(word string) {
 		} else {
 			child := new(node)
 			child.depth = i + 1
-			child.id = idx
-			idx++
 			nd.children[char] = child
 			nd = child
 		}
 	}
 
-	nd.word = word
 	nd.end = true
 }
 
 func (n *node) build() {
-	n.id = 0
-	idx++
 	var nodes []*node
 	for _, child := range n.children {
 		child.fail = n
@@ -110,24 +97,4 @@ func (n *node) find(chars []rune) []scope {
 	}
 
 	return scopes
-}
-
-func (n *node) print() {
-	fmt.Println("/")
-	printNode(n)
-}
-
-func printNode(nd *node) {
-	for k, v := range nd.children {
-		for i := 0; i < v.depth; i++ {
-			fmt.Print(" ")
-		}
-		fmt.Printf("%c,%d,%d", k, v.id, v.fail.id)
-		if v.end {
-			fmt.Printf(",%t\n", v.end)
-		} else {
-			fmt.Println()
-		}
-		printNode(v)
-	}
 }

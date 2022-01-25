@@ -42,7 +42,6 @@ func TestFuzzNodeCase1(t *testing.T) {
 		n.add(key)
 	}
 	n.build()
-	n.print()
 	assert.ElementsMatch(t, scopes, n.find([]rune("Z05Y02iFD2bCKFazHtrx2uJs1WToEanlKVWKieaSWeKgmnUXV0ZjOKbSo0clAYTtkRr4k9hI")))
 }
 
@@ -170,7 +169,6 @@ func TestFuzzNodeCase3(t *testing.T) {
 		n.add(key)
 	}
 	n.build()
-	n.print()
 	assert.ElementsMatch(t, scopes, n.find([]rune("WpKjIyIUckuK6Uh")))
 }
 
