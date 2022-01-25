@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/urfave/cli"
 )
 

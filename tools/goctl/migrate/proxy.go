@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
 var defaultProxy = "https://goproxy.cn"

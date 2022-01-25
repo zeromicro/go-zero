@@ -36,11 +36,11 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     	"strings"
     	"time"
     
-    	"github.com/tal-tech/go-zero/core/stores/cache"
-    	"github.com/tal-tech/go-zero/core/stores/sqlc"
-    	"github.com/tal-tech/go-zero/core/stores/sqlx"
-    	"github.com/tal-tech/go-zero/core/stringx"
-    	"github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+    	"github.com/zeromicro/go-zero/core/stores/cache"
+    	"github.com/zeromicro/go-zero/core/stores/sqlc"
+    	"github.com/zeromicro/go-zero/core/stores/sqlx"
+    	"github.com/zeromicro/go-zero/core/stringx"
+    	"github.com/zeromicro/go-zero/tools/goctl/model/sql/builderx"
     )
     
     var (
@@ -261,7 +261,7 @@ OPTIONS:
     OPTIONS:
        --src value, -s value  the path or path globbing patterns of the ddl
        --dir value, -d value  the target dir
-       --style value          the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
+       --style value          the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]
        --cache, -c            generate code with cache [optional]
        --idea                 for idea plugin [optional]
        --database, -db        the name of database [optional]
@@ -287,7 +287,7 @@ OPTIONS:
        --table value, -t value  the table or table globbing patterns in the database
        --cache, -c              generate code with cache [optional]
        --dir value, -d value    the target dir
-       --style value            the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
+       --style value            the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]
        --idea                   for idea plugin [optional]
 
 
