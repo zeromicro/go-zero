@@ -62,7 +62,7 @@ func rewriteImport(verbose bool) error {
 		time.Sleep(200 * time.Millisecond)
 	}
 
-	var doneChan = syncx.NewDoneChan()
+	doneChan := syncx.NewDoneChan()
 	defer func() {
 		doneChan.Close()
 	}()
@@ -168,7 +168,7 @@ func rewriteFile(pkgs map[string]*ast.Package, verbose bool) error {
 func writeFile(pkgs []*ast.Package, verbose bool) error {
 	for _, pkg := range pkgs {
 		for filename, file := range pkg.Files {
-			var w = bytes.NewBuffer(nil)
+			w := bytes.NewBuffer(nil)
 			err := format.Node(w, fset, file)
 			if err != nil {
 				return fmt.Errorf("[rewriteImport] format file %s error: %+v", filename, err)
@@ -243,27 +243,31 @@ func refactorBuilderx(deprecated, replacement string, fn func(allow bool)) {
 Deprecated package: %q
 Replacement package: %q
 It's recommended to use the replacement package, do you want to replace?
-[input 'Y' for yes, 'N' for no]:`, deprecated, replacement)
+[input 'Y' for yes, 'N' for no]: `, deprecated, replacement)
 
 	if runtime.GOOS != vars.OsWindows {
 		msg = aurora.Yellow(msg).String()
 	}
 	fmt.Print(msg)
-	var in string
+
 	for {
+		var in string
 		fmt.Scanln(&in)
 		if len(in) == 0 {
 			console.Warning("nothing input, please try again [input 'Y' for yes, 'N' for no]:")
 			continue
 		}
+
 		if strings.EqualFold(in, "Y") {
 			fn(true)
 			return
-		} else if strings.EqualFold(in, "N") {
+		}
+
+		if strings.EqualFold(in, "N") {
 			fn(false)
 			return
-		} else {
-			console.Warning("invalid input, please try again [input 'Y' for yes, 'N' for no]:")
 		}
+
+		console.Warning("invalid input, please try again [input 'Y' for yes, 'N' for no]:")
 	}
 }
