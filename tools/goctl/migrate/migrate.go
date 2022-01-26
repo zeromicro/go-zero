@@ -50,7 +50,9 @@ func Migrate(c *cli.Context) error {
 		return err
 	}
 
-	console.Success("[OK] refactor finish, execute %q on project root to check status.", "go test -race ./...")
+	if verbose {
+		console.Success("[OK] refactor finish, execute %q on project root to check status.", "go test -race ./...")
+	}
 	return nil
 }
 
@@ -115,7 +117,9 @@ migrate failed, reason: "User Canceled"`)
 		return err
 	}
 
-	console.Info("start to write files ... ")
+	if verbose {
+		console.Info("start to write files ... ")
+	}
 	return writeFile(final, verbose)
 }
 
