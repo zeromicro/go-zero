@@ -12,7 +12,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 )
 
-const deprecatedGoZeroMod = "github.com/zeromicro/go-zero"
+const deprecatedGoZeroMod = "github.com/tal-tech/go-zero"
+
+const deprecatedBuilderx = "github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+const replacementBuilderx = "github.com/zeromicro/go-zero/core/stores/builder"
 const goZeroMod = "github.com/zeromicro/go-zero"
 
 var errInvalidGoMod = errors.New("it's only working for go module")
