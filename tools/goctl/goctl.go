@@ -6,6 +6,7 @@ import (
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
@@ -30,7 +31,6 @@ import (
 	rpc "github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/tpl"
 	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
-	"github.com/urfave/cli"
 )
 
 const codeFailure = 1
@@ -58,7 +58,7 @@ var commands = []cli.Command{
 			},
 			cli.StringFlag{
 				Name:  "version",
-				Usage: "the target release version of github.com/zeromicro/go-zero to refactor",
+				Usage: "the target release version of github.com/zeromicro/go-zero to migrate",
 			},
 		},
 	},
