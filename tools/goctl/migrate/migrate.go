@@ -12,14 +12,17 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const zeromicroVersion = "1.3.0"
@@ -232,11 +235,16 @@ func replacePkg(file *ast.File) {
 }
 
 func refactorBuilderx(deprecated, replacement string, fn func(allow bool)) {
-	console.Warning(`Detects a deprecated package in the source code,
+	msg := fmt.Sprintf(`Detects a deprecated package in the source code,
 Deprecated package: %q
 Replacement package: %q
 It's recommended to use the replacement package, do you want to replace?
 [input 'Y' for yes, 'N' for no]:`, deprecated, replacement)
+
+	if runtime.GOOS != vars.OsWindows {
+		msg = aurora.Yellow(msg).String()
+	}
+	fmt.Print(msg)
 	var in string
 	for {
 		fmt.Scanln(&in)
