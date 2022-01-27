@@ -27,7 +27,16 @@ import (
 
 const zeromicroVersion = "1.3.0"
 
-var fset = token.NewFileSet()
+const (
+	confirmUnknown = iota
+	confirmAll
+	confirmIgnore
+)
+
+var (
+	fset            = token.NewFileSet()
+	builderxConfirm = confirmUnknown
+)
 
 func Migrate(c *cli.Context) error {
 	verbose := c.Bool("verbose")
@@ -133,7 +142,7 @@ func rewriteFile(pkgs map[string]*ast.Package, verbose bool) error {
 				}
 
 				if verbose {
-					console.Debug("[...] migrate %q ... ", filepath.Base(filename))
+					console.Debug("[...] migrating %q ... ", filepath.Base(filename))
 				}
 
 				if strings.Contains(imp.Path.Value, deprecatedBuilderx) {
@@ -179,7 +188,7 @@ func writeFile(pkgs []*ast.Package, verbose bool) error {
 				return fmt.Errorf("[rewriteImport] write file %s error: %+v", filename, err)
 			}
 			if verbose {
-				console.Success("[OK] migrate %q success ", filepath.Base(filename))
+				console.Success("[OK] migrated %q successfully", filepath.Base(filename))
 			}
 		}
 	}
@@ -239,11 +248,21 @@ func replacePkg(file *ast.File) {
 }
 
 func refactorBuilderx(deprecated, replacement string, fn func(allow bool)) {
+	switch builderxConfirm {
+	case confirmAll:
+		fn(true)
+		return
+	case confirmIgnore:
+		fn(false)
+		return
+	}
+
 	msg := fmt.Sprintf(`Detects a deprecated package in the source code,
 Deprecated package: %q
 Replacement package: %q
 It's recommended to use the replacement package, do you want to replace?
-[input 'Y' for yes, 'N' for no]: `, deprecated, replacement)
+['Y' for yes, 'N' for no, 'A' for all, 'I' for ignore]: `,
+		deprecated, replacement)
 
 	if runtime.GOOS != vars.OsWindows {
 		msg = aurora.Yellow(msg).String()
@@ -253,21 +272,23 @@ It's recommended to use the replacement package, do you want to replace?
 	for {
 		var in string
 		fmt.Scanln(&in)
-		if len(in) == 0 {
-			console.Warning("nothing input, please try again [input 'Y' for yes, 'N' for no]:")
-			continue
-		}
-
-		if strings.EqualFold(in, "Y") {
+		switch {
+		case strings.EqualFold(in, "Y"):
 			fn(true)
 			return
-		}
-
-		if strings.EqualFold(in, "N") {
+		case strings.EqualFold(in, "N"):
 			fn(false)
 			return
+		case strings.EqualFold(in, "A"):
+			fn(true)
+			builderxConfirm = confirmAll
+			return
+		case strings.EqualFold(in, "I"):
+			fn(false)
+			builderxConfirm = confirmIgnore
+			return
+		default:
+			console.Warning("['Y' for yes, 'N' for no, 'A' for all, 'I' for ignore]: ")
 		}
-
-		console.Warning("invalid input, please try again [input 'Y' for yes, 'N' for no]:")
 	}
 }
