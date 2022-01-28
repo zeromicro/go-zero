@@ -29,6 +29,9 @@ const (
 	penalty         = int64(math.MaxInt32)
 	pickTimes       = 3
 	logInterval     = time.Minute
+	consulTags = "consul_tags"
+	xTagPrefix = "x-"
+	requestTag = "x-tag"
 )
 
 var emptyPickResult balancer.PickResult
@@ -51,6 +54,7 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 			addr:    connInfo.Address,
 			conn:    conn,
 			success: initSuccess,
+			tag: b.splitConnTags(connInfo.Address.Attributes.Value(consulTags)),
 		})
 	}
 
@@ -59,6 +63,20 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		r:     rand.New(rand.NewSource(time.Now().UnixNano())),
 		stamp: syncx.NewAtomicDuration(),
 	}
+}
+
+func (b *p2cPickerBuilder) splitConnTags(tags interface{})string{
+	tagsStr,ok := tags.(string)
+	if !ok {
+		return ""
+	}
+	tagList := strings.Split(tagsStr,",")
+	for _, v := range tagList {
+		if strings.HasPrefix(v,xTagPrefix){
+			return v
+		}
+	}
+	return ""
 }
 
 func newBuilder() balancer.Builder {
@@ -75,25 +93,26 @@ type p2cPicker struct {
 func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
-
+	// choose the same tag conn
+	nowConn := p.filterConnFromTags(info)
 	var chosen *subConn
-	switch len(p.conns) {
+	switch len(nowConn) {
 	case 0:
 		return emptyPickResult, balancer.ErrNoSubConnAvailable
 	case 1:
-		chosen = p.choose(p.conns[0], nil)
+		chosen = p.choose(nowConn[0], nil)
 	case 2:
-		chosen = p.choose(p.conns[0], p.conns[1])
+		chosen = p.choose(nowConn[0], nowConn[1])
 	default:
 		var node1, node2 *subConn
 		for i := 0; i < pickTimes; i++ {
-			a := p.r.Intn(len(p.conns))
-			b := p.r.Intn(len(p.conns) - 1)
+			a := p.r.Intn(len(nowConn))
+			b := p.r.Intn(len(nowConn) - 1)
 			if b >= a {
 				b++
 			}
-			node1 = p.conns[a]
-			node2 = p.conns[b]
+			node1 = nowConn[a]
+			node2 = nowConn[b]
 			if node1.healthy() && node2.healthy() {
 				break
 			}
@@ -109,6 +128,32 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 		SubConn: chosen.conn,
 		Done:    p.buildDoneFunc(chosen),
 	}, nil
+}
+
+func  (p *p2cPicker) filterConnFromTags(info balancer.PickInfo) []*subConn{
+	callTag := info.Ctx.Value(requestTag)
+	if callTag == nil {
+		return p.conns
+	}
+
+	cTag,ok := callTag.(string)
+	if !ok {
+		return p.conns
+	}
+	nowPick := make([]*subConn,0,len(p.conns))
+	defaultConns := make([]*subConn,0,len(p.conns))
+	for _,v := range p.conns {
+		if v.tag == cTag {
+			nowPick = append(nowPick,v)
+		}
+		if v.tag == "" {
+			defaultConns = append(defaultConns,v)
+		}
+	}
+	if len(nowPick) >0 {
+		return nowPick
+	}
+	return p.conns
 }
 
 func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
@@ -188,6 +233,7 @@ type subConn struct {
 	requests int64
 	last     int64
 	pick     int64
+	tag    	 string
 	addr     resolver.Address
 	conn     balancer.SubConn
 }
