@@ -548,6 +548,10 @@ var commands = []cli.Command{
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
+					cli.StringFlag{
+						Name: "bin_path",
+						Usage: "Specify the installation path of [protoc] and [protoc-gen-go], eg --bin_path=/home/go/bin. [optional]",
+					},
 				},
 				Action: rpc.RPC,
 			},

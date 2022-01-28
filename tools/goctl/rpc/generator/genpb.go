@@ -17,7 +17,7 @@ const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported
 
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
-func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, c *ZRpcContext, goOptions ...string) error {
+func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, c *ZRpcContext, binPath string, goOptions ...string) error {
 	if c != nil {
 		return g.genPbDirect(c)
 	}
@@ -27,7 +27,11 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	cw := new(bytes.Buffer)
 	directory, base := filepath.Split(proto.Src)
 	directory = filepath.Clean(directory)
-	cw.WriteString("protoc ")
+	if binPath != "" {
+		cw.WriteString(binPath + "protoc ")
+	}else{
+		cw.WriteString("protoc ")
+	}
 	protoImportPathSet := collection.NewSet()
 	isSamePackage := true
 	for _, ip := range protoImportPath {
@@ -56,6 +60,11 @@ func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto
 	}
 
 	cw.WriteString(" " + proto.Name)
+
+	if binPath != ""{
+		cw.WriteString(" --plugin=protoc-gen-go=" + binPath + "protoc-gen-go")
+	}
+
 	if strings.Contains(proto.GoPackage, "/") {
 		cw.WriteString(" --go_out=plugins=grpc:" + ctx.GetMain().Filename)
 	} else {
