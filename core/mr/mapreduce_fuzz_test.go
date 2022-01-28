@@ -27,11 +27,7 @@ func FuzzMapReduce(f *testing.F) {
 		genIdx := rand.Int63n(n)
 		mapperIdx := rand.Int63n(n)
 		reducerIdx := rand.Int63n(n)
-
-		var sum int64
-		for i := int64(0); i < n; i++ {
-			sum += i * i
-		}
+		squareSum := (n - 1) * n * (2*n - 1) / 6
 
 		fn := func() (interface{}, error) {
 			defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
@@ -76,7 +72,7 @@ func FuzzMapReduce(f *testing.F) {
 		} else {
 			val, err := fn()
 			assert.Nil(t, err)
-			assert.Equal(t, sum, val.(int64))
+			assert.Equal(t, squareSum, val.(int64))
 		}
 	})
 }
