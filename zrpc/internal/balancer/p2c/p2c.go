@@ -29,9 +29,9 @@ const (
 	penalty         = int64(math.MaxInt32)
 	pickTimes       = 3
 	logInterval     = time.Minute
-	consulTags = "consul_tags"
-	xTagPrefix = "x-"
-	requestTag = "x-tag"
+	consulTags 		= "consul_tags"
+	xTagPrefix 		= "x-"
+	requestTag 		= "x-tag"
 )
 
 var emptyPickResult balancer.PickResult
@@ -131,19 +131,12 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 }
 
 func  (p *p2cPicker) filterConnFromTags(info balancer.PickInfo) []*subConn{
-	callTag := info.Ctx.Value(requestTag)
-	if callTag == nil {
-		return p.conns
-	}
-
-	cTag,ok := callTag.(string)
-	if !ok {
-		return p.conns
-	}
-	nowPick := make([]*subConn,0,len(p.conns))
+	callTag := p.getRequestTag(info.Ctx.Value(requestTag))
+	// no tag means release
 	defaultConns := make([]*subConn,0,len(p.conns))
+	nowPick := make([]*subConn,0,len(p.conns))
 	for _,v := range p.conns {
-		if v.tag == cTag {
+		if v.tag == callTag {
 			nowPick = append(nowPick,v)
 		}
 		if v.tag == "" {
@@ -153,7 +146,19 @@ func  (p *p2cPicker) filterConnFromTags(info balancer.PickInfo) []*subConn{
 	if len(nowPick) >0 {
 		return nowPick
 	}
-	return p.conns
+	return defaultConns
+}
+
+func (p *p2cPicker) getRequestTag(tag interface{}) string{
+	if tag == nil {
+		return ""
+	}
+
+	cTag,ok := tag.(string)
+	if !ok {
+		return ""
+	}
+	return cTag
 }
 
 func (p *p2cPicker) buildDoneFunc(c *subConn) func(info balancer.DoneInfo) {
