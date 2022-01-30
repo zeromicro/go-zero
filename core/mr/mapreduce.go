@@ -289,8 +289,10 @@ func drain(channel <-chan interface{}) {
 
 func executeMappers(mCtx mapperContext) {
 	var wg sync.WaitGroup
-	pc := &onceChan{channel: make(chan interface{})}
+	pc := &onceChan{channel: make(chan interface{}, 1)}
 	defer func() {
+		wg.Wait()
+
 		// in case panic happens when processing last item, for loop not handling it.
 		select {
 		case r := <-pc.channel:
@@ -298,7 +300,6 @@ func executeMappers(mCtx mapperContext) {
 		default:
 		}
 
-		wg.Wait()
 		close(mCtx.collector)
 		drain(mCtx.source)
 	}()
