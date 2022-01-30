@@ -289,32 +289,20 @@ func drain(channel <-chan interface{}) {
 
 func executeMappers(mCtx mapperContext) {
 	var wg sync.WaitGroup
-	pc := &onceChan{channel: make(chan interface{})}
 	defer func() {
-		// in case panic happens when processing last item, for loop not handling it.
-		select {
-		case r := <-pc.channel:
-			mCtx.panicChan.write(r)
-		default:
-		}
-
 		wg.Wait()
 		close(mCtx.collector)
 		drain(mCtx.source)
 	}()
 
+	var failed int32
 	pool := make(chan lang.PlaceholderType, mCtx.workers)
 	writer := newGuardedWriter(mCtx.ctx, mCtx.collector, mCtx.doneChan)
-	for {
+	for atomic.LoadInt32(&failed) == 0 {
 		select {
 		case <-mCtx.ctx.Done():
 			return
 		case <-mCtx.doneChan:
-			return
-		case r := <-pc.channel:
-			// make sure this method quit ASAP,
-			// without this case branch, all the items from source will be consumed.
-			mCtx.panicChan.write(r)
 			return
 		case pool <- lang.Placeholder:
 			item, ok := <-mCtx.source
@@ -327,7 +315,8 @@ func executeMappers(mCtx mapperContext) {
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
-						pc.write(r)
+						atomic.AddInt32(&failed, 1)
+						mCtx.panicChan.write(r)
 					}
 					wg.Done()
 					<-pool

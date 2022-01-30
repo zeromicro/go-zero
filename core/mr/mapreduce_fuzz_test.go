@@ -18,9 +18,9 @@ import (
 func FuzzMapReduce(f *testing.F) {
 	rand.Seed(time.Now().UnixNano())
 
-	f.Add(int64(10), runtime.NumCPU())
-	f.Fuzz(func(t *testing.T, n int64, workers int) {
-		n = n%5000 + 5000
+	f.Add(uint(10), uint(runtime.NumCPU()))
+	f.Fuzz(func(t *testing.T, num uint, workers uint) {
+		n := int64(num)%5000 + 5000
 		genPanic := rand.Intn(100) == 0
 		mapperPanic := rand.Intn(100) == 0
 		reducerPanic := rand.Intn(100) == 0
@@ -56,7 +56,7 @@ func FuzzMapReduce(f *testing.F) {
 					idx++
 				}
 				writer.Write(total)
-			}, WithWorkers(workers%50+runtime.NumCPU()))
+			}, WithWorkers(int(workers)%50+runtime.NumCPU()/2))
 		}
 
 		if genPanic || mapperPanic || reducerPanic {
