@@ -16,7 +16,8 @@
 **/logs
 
 # for test purpose
-adhoc
+**/adhoc
+**/testdata
 
 # gitlab ci
 .cache
