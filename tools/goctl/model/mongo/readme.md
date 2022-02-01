@@ -66,7 +66,7 @@ type User struct {
   
       "github.com/globalsign/mgo/bson"
       cachec "github.com/zeromicro/go-zero/core/stores/cache"
-      "github.com/tal-tech/go-zero/core/stores/mongoc"
+      "github.com/zeromicro/go-zero/core/stores/mongoc"
   )
   
   type UserModel interface {
