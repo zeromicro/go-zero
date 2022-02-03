@@ -468,7 +468,7 @@ var commands = []cli.Command{
 			{
 				Name:        "protoc",
 				Usage:       "generate grpc code",
-				UsageText:   `example: goctl rpc protoc xx.proto --go_out=./pb --go-grpc=./pb --zrpc_out=.`,
+				UsageText:   `example: goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.`,
 				Description: "for details, see https://go-zero.dev/cn/goctl-rpc.html",
 				Action:      rpc.ZRPC,
 				Flags: []cli.Flag{
