@@ -7,32 +7,50 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-    name: Build
+  test-linux:
+    name: Linux
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+        id: go
 
-    - name: Set up Go 1.x
-      uses: actions/setup-go@v2
-      with:
-        go-version: ^1.15
-      id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
 
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
 
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
+      - name: Lint
+        run: |
+          go vet -stdmethods=false $(go list ./...)
+          go install mvdan.cc/gofumpt@latest
+          test -z "$(gofumpt -s -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
 
-    - name: Lint
-      run: |
-        go vet -stdmethods=false $(go list ./...)
-        go install mvdan.cc/gofumpt@latest
-        test -z "$(gofumpt -s -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
+      - name: Test
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
-    - name: Test
-      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+      - name: Codecov
+        uses: codecov/codecov-action@v2
 
-    - name: Codecov
-      uses: codecov/codecov-action@v2
+  test-win:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+
+      - name: Test
+        run: |
+          go mod verify
+          go mod download
+          go test -v -race ./...
+          cd tools/goctl && go build -v goctl.go
