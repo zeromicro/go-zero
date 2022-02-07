@@ -14,13 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const defaultCompletionFilename = "goctl_autocomplete"
-const (
-	magic = 1 << iota
-	flagZsh
-	flagBash
-)
-
 func Completion(c *cli.Context) error {
 	goos := runtime.GOOS
 	if goos == vars.OsWindows {
