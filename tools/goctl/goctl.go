@@ -20,6 +20,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
+	"github.com/zeromicro/go-zero/tools/goctl/completion"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
@@ -797,13 +798,29 @@ var commands = []cli.Command{
 			},
 		},
 	},
+	{
+		Name:   "completion",
+		Usage:  "generation completion script, it only works for unix-like OS",
+		Action: completion.Completion,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "name, n",
+				Usage: "the filename of auto complete script, default is [goctl_autocomplete]",
+			},
+		},
+	},
 }
 
 func main() {
 	logx.Disable()
 	load.Disable()
 
+	cli.BashCompletionFlag = cli.BoolFlag{
+		Name:   completion.BashCompletionFlag,
+		Hidden: true,
+	}
 	app := cli.NewApp()
+	app.EnableBashCompletion = true
 	app.Usage = "a cli tool to generate code"
 	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
