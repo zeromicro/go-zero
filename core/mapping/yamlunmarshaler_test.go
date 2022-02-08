@@ -926,14 +926,18 @@ func TestUnmarshalYamlBytesError(t *testing.T) {
 }
 
 func TestUnmarshalYamlReaderError(t *testing.T) {
-	payload := `abcd: cdef`
-	reader := strings.NewReader(payload)
 	var v struct {
 		Any string
 	}
 
+	reader := strings.NewReader(`abcd: cdef`)
 	err := UnmarshalYamlReader(reader, &v)
 	assert.NotNil(t, err)
+
+	reader = strings.NewReader("chenquan")
+	err = UnmarshalYamlReader(reader, &v)
+	assert.ErrorIs(t, err, ErrUnsupportedType)
+
 }
 
 func TestUnmarshalYamlBadReader(t *testing.T) {
@@ -1011,6 +1015,6 @@ func TestUnmarshalYamlMapRune(t *testing.T) {
 
 type badReader struct{}
 
-func (b *badReader) Read(p []byte) (n int, err error) {
+func (b *badReader) Read(_ []byte) (n int, err error) {
 	return 0, io.ErrLimitReached
 }
