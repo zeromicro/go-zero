@@ -26,7 +26,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 		total   = 100
 		quota   = 5
 	)
-	l := NewPeriodLimit(seconds, quota, redis.NewRedis(s.Addr(), redis.NodeType), "periodlimit")
+	l := NewPeriodLimit(seconds, quota, redis.New(s.Addr()), "periodlimit")
 	s.Close()
 	val, err := l.Take("first")
 	assert.NotNil(t, err)
