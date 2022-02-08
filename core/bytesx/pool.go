@@ -39,16 +39,19 @@ func Free(buf []byte) {
 
 func getOrCreatePool(c int) *sync.Pool {
 	pool, _ := singleFlight.Do(strconv.Itoa(c), func() (interface{}, error) {
-		if pool, ok := bytesPoolMap.Load(c); !ok {
+		pool, ok := bytesPoolMap.Load(c)
+
+		if !ok {
 			p := &sync.Pool{New: func() interface{} {
 				s := make([]byte, 0, c)
 				return &s
 			}}
 			bytesPoolMap.Store(c, p)
 			return p, nil
-		} else {
-			return pool, nil
 		}
+
+		return pool, nil
 	})
+
 	return pool.(*sync.Pool)
 }
