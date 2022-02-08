@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -9,7 +10,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis"
+	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -964,13 +965,14 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.NotNil(t, err)
 		client.Zadd("second", 2, "aa")
 		client.Zadd("third", 3, "bbb")
-		val, err = client.Zunionstore("union", ZStore{
+		val, err = client.Zunionstore("union", &ZStore{
+			Keys:      []string{"second", "third"},
 			Weights:   []float64{1, 2},
 			Aggregate: "SUM",
-		}, "second", "third")
+		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).Zunionstore("union", ZStore{})
+		_, err = New(client.Addr, badType()).Zunionstore("union", &ZStore{})
 		assert.NotNil(t, err)
 		vals, err = client.Zrange("union", 0, 10000)
 		assert.Nil(t, err)
@@ -988,9 +990,9 @@ func TestRedis_Pipelined(t *testing.T) {
 		}))
 		err := client.Pipelined(
 			func(pipe Pipeliner) error {
-				pipe.Incr("pipelined_counter")
-				pipe.Expire("pipelined_counter", time.Hour)
-				pipe.ZAdd("zadd", Z{Score: 12, Member: "zadd"})
+				pipe.Incr(context.Background(), "pipelined_counter")
+				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
+				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)
@@ -1187,6 +1189,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(timeout time.Duration, keys ...string) *red.StringSliceCmd {
-	return red.NewStringSliceCmd("foo", "bar")
+func (n mockedNode) BLPop(ctx context.Context, timeout time.Duration, keys ...string) *red.StringSliceCmd {
+	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

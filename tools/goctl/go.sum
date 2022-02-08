@@ -360,8 +360,8 @@ github.com/zeromicro/antlr v0.0.1 h1:CQpIn/dc0pUjgGQ81y98s/NGOm2Hfru2NNio2I9mQgk
 github.com/zeromicro/antlr v0.0.1/go.mod h1:nfpjEwFR6Q4xGDJMcZnCL9tEfQRgszMwu3rDz2Z+p5M=
 github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348 h1:OhxL9tn28gDeJVzreIUiE5oVxZCjL3tBJ0XBNw8p5R8=
 github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348/go.mod h1:ISU/8NuPyEpl9pa17Py9TBPetMjtsiHrb9f5XGiYbo8=
-github.com/zeromicro/go-zero v1.3.0-beta h1:jNwtjGzAV6PSklpXbLCmQph7BzfH7abcUIOG9odWMsM=
-github.com/zeromicro/go-zero v1.3.0-beta/go.mod h1:Hy4o1VFAt32lXaQMbaBhoFeZjA/rJqJ4PTGNdGsURcc=
+github.com/zeromicro/go-zero v1.3.0 h1:Eyn36yBtR043sm4YKmxR6eS3UA/GtZDktQ+UqIJ3Lm0=
+github.com/zeromicro/go-zero v1.3.0/go.mod h1:Hy4o1VFAt32lXaQMbaBhoFeZjA/rJqJ4PTGNdGsURcc=
 go.etcd.io/etcd/api/v3 v3.5.1/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
 go.etcd.io/etcd/client/pkg/v3 v3.5.1/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v3 v3.5.1/go.mod h1:OnjH4M8OnAotwaB2l9bVgZzRFKru7/ZMoS46OtKyd3Q=
