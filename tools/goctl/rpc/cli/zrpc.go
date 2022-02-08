@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/emicklei/proto"
+	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/urfave/cli"
 )
 
 var (
@@ -75,18 +75,18 @@ func ZRPC(c *cli.Context) error {
 	}
 
 	goOut = removePluginFlag(goOut)
-	goOut, err = parseOutOut(src, goOut, goOpt, goPackage)
+	goOut, err = parseOut(src, goOut, goOpt, goPackage)
 	if err != nil {
 		return err
 	}
 
-	var isGoolePlugin = len(grpcOut) > 0
+	var isGooglePlugin = len(grpcOut) > 0
 	// If grpcOut is not empty means that user generates grpc code by
 	// https://google.golang.org/protobuf/cmd/protoc-gen-go and
 	// https://google.golang.org/grpc/cmd/protoc-gen-go-grpc,
 	// for details please see https://grpc.io/docs/languages/go/quickstart/
-	if isGoolePlugin {
-		grpcOut, err = parseOutOut(src, grpcOut, grpcOpt, goPackage)
+	if isGooglePlugin {
+		grpcOut, err = parseOut(src, grpcOut, grpcOpt, goPackage)
 		if err != nil {
 			return err
 		}
@@ -109,7 +109,7 @@ func ZRPC(c *cli.Context) error {
 		return err
 	}
 
-	if isGoolePlugin && grpcOut != goOut {
+	if isGooglePlugin && grpcOut != goOut {
 		return fmt.Errorf("the --go_out and --go-grpc_out must be the same")
 	}
 
@@ -136,9 +136,9 @@ func ZRPC(c *cli.Context) error {
 	return g.Generate(source, zrpcOut, nil)
 }
 
-// parseOutOut calculates the output place to grpc code, about to calculate logic for details
+// parseOut calculates the output place to grpc code, about to calculate logic for details
 // please see https://developers.google.com/protocol-buffers/docs/reference/go-generated#invocation.
-func parseOutOut(sourceDir, grpcOut, grpcOpt, goPackage string) (string, error) {
+func parseOut(sourceDir, grpcOut, grpcOpt, goPackage string) (string, error) {
 	if !filepath.IsAbs(grpcOut) {
 		grpcOut = filepath.Join(sourceDir, grpcOut)
 	}
