@@ -3,7 +3,7 @@ package redis
 import (
 	"fmt"
 
-	red "github.com/go-redis/redis"
+	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

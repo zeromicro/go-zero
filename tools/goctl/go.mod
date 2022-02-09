@@ -13,5 +13,5 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v0.0.0-20210712021150-63520aca7348
-	github.com/zeromicro/go-zero v1.3.0-beta
+	github.com/zeromicro/go-zero v1.3.0
 )
