@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
 const (

@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
@@ -15,7 +16,6 @@ import (
 	modelgen "github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
 	rpcgen "github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/urfave/cli"
 )
 
 const templateParentPath = "/"

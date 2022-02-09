@@ -8,7 +8,6 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis/v8"
-
 	"github.com/stretchr/testify/assert"
 )
 

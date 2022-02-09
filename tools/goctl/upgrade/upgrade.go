@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
 // Upgrade gets the latest goctl by

@@ -3,9 +3,9 @@ package gen
 import (
 	"fmt"
 
+	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/urfave/cli"
 )
 
 const (
