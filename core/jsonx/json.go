@@ -51,5 +51,5 @@ func unmarshalUseNumber(decoder *json.Decoder, v interface{}) error {
 }
 
 func formatError(v string, err error) error {
-	return fmt.Errorf("string: `%s`, error: `%s`", v, err.Error())
+	return fmt.Errorf("string: `%s`, error: `%w`", v, err)
 }
