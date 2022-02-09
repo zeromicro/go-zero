@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-// ErrExceedFileSize indicates that the file size is exceeded.
-var ErrExceedFileSize = errors.New("exceed file size")
+// errExceedFileSize indicates that the file size is exceeded.
+var errExceedFileSize = errors.New("exceed file size")
 
 // A RangeReader is used to read a range of content from a file.
 type RangeReader struct {
@@ -32,7 +32,7 @@ func (rr *RangeReader) Read(p []byte) (n int, err error) {
 	}
 
 	if rr.stop < rr.start || rr.start >= stat.Size() {
-		return 0, ErrExceedFileSize
+		return 0, errExceedFileSize
 	}
 
 	if rr.stop-rr.start < int64(len(p)) {

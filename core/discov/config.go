@@ -3,10 +3,10 @@ package discov
 import "errors"
 
 var (
-	// ErrEmptyEtcdHosts indicates that etcd hosts are empty.
-	ErrEmptyEtcdHosts = errors.New("empty etcd hosts")
-	// ErrEmptyEtcdKey indicates that etcd key are empty.
-	ErrEmptyEtcdKey = errors.New("empty etcd key")
+	// errEmptyEtcdHosts indicates that etcd hosts are empty.
+	errEmptyEtcdHosts = errors.New("empty etcd hosts")
+	// errEmptyEtcdKey indicates that etcd key are empty.
+	errEmptyEtcdKey = errors.New("empty etcd key")
 )
 
 // EtcdConf is the config item with the given key on etcd.
@@ -34,9 +34,9 @@ func (c EtcdConf) HasTLS() bool {
 // Validate validates c.
 func (c EtcdConf) Validate() error {
 	if len(c.Hosts) == 0 {
-		return ErrEmptyEtcdHosts
+		return errEmptyEtcdHosts
 	} else if len(c.Key) == 0 {
-		return ErrEmptyEtcdKey
+		return errEmptyEtcdKey
 	} else {
 		return nil
 	}
