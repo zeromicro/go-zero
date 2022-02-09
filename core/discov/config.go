@@ -5,7 +5,7 @@ import "errors"
 var (
 	// errEmptyEtcdHosts indicates that etcd hosts are empty.
 	errEmptyEtcdHosts = errors.New("empty etcd hosts")
-	// errEmptyEtcdKey indicates that etcd key are empty.
+	// errEmptyEtcdKey indicates that etcd key is empty.
 	errEmptyEtcdKey = errors.New("empty etcd key")
 )
 
