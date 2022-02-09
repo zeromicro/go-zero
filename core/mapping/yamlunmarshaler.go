@@ -3,10 +3,8 @@ package mapping
 import (
 	"encoding/json"
 	"errors"
-	"io"
-	"io/ioutil"
-
 	"gopkg.in/yaml.v2"
+	"io"
 )
 
 // To make .json & .yaml consistent, we just use json as the tag key.
@@ -43,12 +41,18 @@ func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 }
 
 func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
-	content, err := ioutil.ReadAll(reader)
-	if err != nil {
+	var res interface{}
+	if err := yaml.NewDecoder(reader).Decode(&res); err != nil {
 		return err
 	}
 
-	return unmarshalYamlBytes(content, v, unmarshaler)
+	out := cleanupMapValue(res)
+
+	if m, ok := out.(map[string]interface{}); ok {
+		return unmarshaler.Unmarshal(m, v)
+	}
+
+	return ErrUnsupportedType
 }
 
 // yamlUnmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
