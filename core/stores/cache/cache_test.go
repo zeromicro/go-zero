@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -15,6 +16,8 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
+
+var _ Cache = (*mockedNode)(nil)
 
 type mockedNode struct {
 	vals        map[string][]byte
@@ -58,7 +61,7 @@ func (mc *mockedNode) Set(key string, v interface{}) error {
 	return nil
 }
 
-func (mc *mockedNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
+func (mc *mockedNode) SetWithExpire(key string, v interface{}, _ time.Duration) error {
 	return mc.Set(key, v)
 }
 
@@ -78,6 +81,30 @@ func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v int
 	return mc.Take(v, key, func(v interface{}) error {
 		return query(v, 0)
 	})
+}
+
+func (mc *mockedNode) DelCtx(_ context.Context, keys ...string) error {
+	return mc.Del(keys...)
+}
+
+func (mc *mockedNode) GetCtx(_ context.Context, key string, v interface{}) error {
+	return mc.Get(key, v)
+}
+
+func (mc *mockedNode) SetCtx(_ context.Context, key string, v interface{}) error {
+	return mc.Set(key, v)
+}
+
+func (mc *mockedNode) SetWithExpireCtx(_ context.Context, key string, v interface{}, expire time.Duration) error {
+	return mc.SetWithExpire(key, v, expire)
+}
+
+func (mc *mockedNode) TakeCtx(_ context.Context, v interface{}, key string, query func(v interface{}) error) error {
+	return mc.Take(v, key, query)
+}
+
+func (mc *mockedNode) TakeWithExpireCtx(_ context.Context, v interface{}, key string, query func(v interface{}, expire time.Duration) error) error {
+	return mc.TakeWithExpire(v, key, query)
 }
 
 func TestCache_SetDel(t *testing.T) {
