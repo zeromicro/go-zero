@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
+	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/urfave/cli"
 )
 
 const (

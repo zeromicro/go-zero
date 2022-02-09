@@ -1,8 +1,8 @@
 package docker
 
 import (
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (

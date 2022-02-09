@@ -3,8 +3,9 @@ package mapping
 import (
 	"encoding/json"
 	"errors"
-	"gopkg.in/yaml.v2"
 	"io"
+
+	"gopkg.in/yaml.v2"
 )
 
 // To make .json & .yaml consistent, we just use json as the tag key.
@@ -25,45 +26,6 @@ func UnmarshalYamlBytes(content []byte, v interface{}) error {
 // UnmarshalYamlReader unmarshals content from reader into v.
 func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
 	return unmarshalYamlReader(reader, v, yamlUnmarshaler)
-}
-
-func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {
-	var o interface{}
-	if err := yamlUnmarshal(content, &o); err != nil {
-		return err
-	}
-
-	if m, ok := o.(map[string]interface{}); ok {
-		return unmarshaler.Unmarshal(m, v)
-	}
-
-	return ErrUnsupportedType
-}
-
-func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
-	var res interface{}
-	if err := yaml.NewDecoder(reader).Decode(&res); err != nil {
-		return err
-	}
-
-	out := cleanupMapValue(res)
-
-	if m, ok := out.(map[string]interface{}); ok {
-		return unmarshaler.Unmarshal(m, v)
-	}
-
-	return ErrUnsupportedType
-}
-
-// yamlUnmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
-func yamlUnmarshal(in []byte, out interface{}) error {
-	var res interface{}
-	if err := yaml.Unmarshal(in, &res); err != nil {
-		return err
-	}
-
-	*out.(*interface{}) = cleanupMapValue(res)
-	return nil
 }
 
 func cleanupInterfaceMap(in map[interface{}]interface{}) map[string]interface{} {
@@ -99,4 +61,41 @@ func cleanupMapValue(v interface{}) interface{} {
 	default:
 		return Repr(v)
 	}
+}
+
+func unmarshal(unmarshaler *Unmarshaler, o interface{}, v interface{}) error {
+	if m, ok := o.(map[string]interface{}); ok {
+		return unmarshaler.Unmarshal(m, v)
+	}
+
+	return ErrUnsupportedType
+}
+
+func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {
+	var o interface{}
+	if err := yamlUnmarshal(content, &o); err != nil {
+		return err
+	}
+
+	return unmarshal(unmarshaler, o, v)
+}
+
+func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
+	var res interface{}
+	if err := yaml.NewDecoder(reader).Decode(&res); err != nil {
+		return err
+	}
+
+	return unmarshal(unmarshaler, cleanupMapValue(res), v)
+}
+
+// yamlUnmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
+func yamlUnmarshal(in []byte, out interface{}) error {
+	var res interface{}
+	if err := yaml.Unmarshal(in, &res); err != nil {
+		return err
+	}
+
+	*out.(*interface{}) = cleanupMapValue(res)
+	return nil
 }
