@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -132,7 +133,7 @@ func (cc cacheCluster) GetCtx(ctx context.Context, key string, v interface{}) er
 
 // IsNotFound checks if the given error is the defined errNotFound.
 func (cc cacheCluster) IsNotFound(err error) bool {
-	return err == cc.errNotFound
+	return errors.Is(err, cc.errNotFound)
 }
 
 // Set sets the cache with key and v, using c.expiry.

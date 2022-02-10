@@ -107,7 +107,7 @@ func (c cacheNode) GetCtx(ctx context.Context, key string, v interface{}) error 
 
 // IsNotFound checks if the given error is the defined errNotFound.
 func (c cacheNode) IsNotFound(err error) bool {
-	return err == c.errNotFound
+	return errors.Is(err, c.errNotFound)
 }
 
 // Set sets the cache with key and v, using c.expiry.

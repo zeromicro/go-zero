@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -48,7 +49,7 @@ func (mc *mockedNode) Get(key string, v interface{}) error {
 }
 
 func (mc *mockedNode) IsNotFound(err error) bool {
-	return err == mc.errNotFound
+	return errors.Is(err, mc.errNotFound)
 }
 
 func (mc *mockedNode) Set(key string, v interface{}) error {
