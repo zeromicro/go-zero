@@ -14,7 +14,6 @@ type traceLogger struct {
 	logEntry
 	Trace string `json:"trace,omitempty"`
 	Span  string `json:"span,omitempty"`
-	ctx   context.Context
 }
 
 func (l *traceLogger) Error(v ...interface{}) {
@@ -77,12 +76,9 @@ func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 }
 
 func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
-	traceID := traceIdFromContext(l.ctx)
-	spanID := spanIdFromContext(l.ctx)
-
 	switch encoding {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
+		writePlainAny(writer, level, val, l.Duration, l.Trace, l.Span)
 	default:
 		outputJson(writer, &traceLogger{
 			logEntry: logEntry{
@@ -91,8 +87,8 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 				Duration:  l.Duration,
 				Content:   val,
 			},
-			Trace: traceID,
-			Span:  spanID,
+			Trace: l.Trace,
+			Span:  l.Span,
 		})
 	}
 }
@@ -100,7 +96,8 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 // WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
 	return &traceLogger{
-		ctx: ctx,
+		Trace: traceIdFromContext(ctx),
+		Span:  spanIdFromContext(ctx),
 	}
 }
 
