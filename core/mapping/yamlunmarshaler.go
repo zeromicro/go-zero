@@ -13,7 +13,7 @@ const yamlTagKey = "json"
 
 var (
 	// ErrUnsupportedType is an error that indicates the config format is not supported.
-	ErrUnsupportedType = errors.New("only map-like configs are suported")
+	ErrUnsupportedType = errors.New("only map-like configs are supported")
 
 	yamlUnmarshaler = NewUnmarshaler(yamlTagKey)
 )
