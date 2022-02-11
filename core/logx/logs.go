@@ -72,7 +72,7 @@ var (
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 
-	timeFormat   = "2006-01-02T15:04:05.000Z07"
+	timeFormat   = "2006-01-02T15:04:05.000Z07:00"
 	writeConsole bool
 	logLevel     uint32
 	encoding     = jsonEncodingType
