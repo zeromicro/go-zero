@@ -27,7 +27,7 @@ require (
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/goleak v1.1.12
 	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
-	google.golang.org/grpc v1.43.0
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.1.2
@@ -44,8 +44,8 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/openzipkin/zipkin-go v0.4.0 // indirect
-	golang.org/x/net v0.0.0-20220114011407-0dd24b26b47d // indirect
-	golang.org/x/sys v0.0.0-20220111092808-5a964db01320 // indirect
-	google.golang.org/genproto v0.0.0-20220112215332-a9c7c0acf9f2 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	google.golang.org/genproto v0.0.0-20220211171837-173942840c17 // indirect
 	k8s.io/klog/v2 v2.40.1 // indirect
 )
