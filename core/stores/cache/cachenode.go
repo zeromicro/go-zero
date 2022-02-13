@@ -72,7 +72,6 @@ func (c cacheNode) DelCtx(ctx context.Context, keys ...string) error {
 	}
 
 	logger := logx.WithContext(ctx)
-
 	if len(keys) > 1 && c.rds.Type == redis.ClusterType {
 		for _, key := range keys {
 			if _, err := c.rds.DelCtx(ctx, key); err != nil {
@@ -80,24 +79,22 @@ func (c cacheNode) DelCtx(ctx context.Context, keys ...string) error {
 				c.asyncRetryDelCache(key)
 			}
 		}
-	} else {
-		if _, err := c.rds.DelCtx(ctx, keys...); err != nil {
-			logger.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
-			c.asyncRetryDelCache(keys...)
-		}
+	} else if _, err := c.rds.DelCtx(ctx, keys...); err != nil {
+		logger.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
+		c.asyncRetryDelCache(keys...)
 	}
 
 	return nil
 }
 
 // Get gets the cache with key and fills into v.
-func (c cacheNode) Get(key string, v interface{}) error {
-	return c.GetCtx(context.Background(), key, v)
+func (c cacheNode) Get(key string, val interface{}) error {
+	return c.GetCtx(context.Background(), key, val)
 }
 
 // GetCtx gets the cache with key and fills into v.
-func (c cacheNode) GetCtx(ctx context.Context, key string, v interface{}) error {
-	err := c.doGetCache(ctx, key, v)
+func (c cacheNode) GetCtx(ctx context.Context, key string, val interface{}) error {
+	err := c.doGetCache(ctx, key, val)
 	if err == errPlaceholder {
 		return c.errNotFound
 	}
@@ -111,23 +108,23 @@ func (c cacheNode) IsNotFound(err error) bool {
 }
 
 // Set sets the cache with key and v, using c.expiry.
-func (c cacheNode) Set(key string, v interface{}) error {
-	return c.SetCtx(context.Background(), key, v)
+func (c cacheNode) Set(key string, val interface{}) error {
+	return c.SetCtx(context.Background(), key, val)
 }
 
 // SetCtx sets the cache with key and v, using c.expiry.
-func (c cacheNode) SetCtx(ctx context.Context, key string, v interface{}) error {
-	return c.SetWithExpireCtx(ctx, key, v, c.aroundDuration(c.expiry))
+func (c cacheNode) SetCtx(ctx context.Context, key string, val interface{}) error {
+	return c.SetWithExpireCtx(ctx, key, val, c.aroundDuration(c.expiry))
 }
 
 // SetWithExpire sets the cache with key and v, using given expire.
-func (c cacheNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
-	return c.SetWithExpireCtx(context.Background(), key, v, expire)
+func (c cacheNode) SetWithExpire(key string, val interface{}, expire time.Duration) error {
+	return c.SetWithExpireCtx(context.Background(), key, val, expire)
 }
 
 // SetWithExpireCtx sets the cache with key and v, using given expire.
-func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, v interface{}, expire time.Duration) error {
-	data, err := jsonx.Marshal(v)
+func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error {
+	data, err := jsonx.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -142,30 +139,29 @@ func (c cacheNode) String() string {
 
 // Take takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (c cacheNode) Take(v interface{}, key string, query func(v interface{}) error) error {
-	return c.TakeCtx(context.Background(), v, key, query)
+func (c cacheNode) Take(val interface{}, key string, query func(val interface{}) error) error {
+	return c.TakeCtx(context.Background(), val, key, query)
 }
 
 // TakeCtx takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (c cacheNode) TakeCtx(ctx context.Context, v interface{}, key string, query func(v interface{}) error) error {
-	return c.doTake(ctx, v, key, query, func(v interface{}) error {
+func (c cacheNode) TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error {
+	return c.doTake(ctx, val, key, query, func(v interface{}) error {
 		return c.SetCtx(ctx, key, v)
 	})
 }
 
 // TakeWithExpire takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (c cacheNode) TakeWithExpire(v interface{}, key string, query func(v interface{},
-	expire time.Duration) error) error {
-	return c.TakeWithExpireCtx(context.Background(), v, key, query)
+func (c cacheNode) TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+	return c.TakeWithExpireCtx(context.Background(), val, key, query)
 }
 
 // TakeWithExpireCtx takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (c cacheNode) TakeWithExpireCtx(ctx context.Context, v interface{}, key string, query func(v interface{}, expire time.Duration) error) error {
+func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
 	expire := c.aroundDuration(c.expiry)
-	return c.doTake(ctx, v, key, func(v interface{}) error {
+	return c.doTake(ctx, val, key, func(v interface{}) error {
 		return query(v, expire)
 	}, func(v interface{}) error {
 		return c.SetWithExpireCtx(ctx, key, v, expire)
@@ -204,10 +200,9 @@ func (c cacheNode) doGetCache(ctx context.Context, key string, v interface{}) er
 	return c.processCache(ctx, key, data, v)
 }
 
-func (c cacheNode) doTake(ctx context.Context, v interface{}, key string, query func(v interface{}) error,
-	cacheVal func(v interface{}) error) error {
+func (c cacheNode) doTake(ctx context.Context, v interface{}, key string,
+	query func(v interface{}) error, cacheVal func(v interface{}) error) error {
 	logger := logx.WithContext(ctx)
-
 	val, fresh, err := c.barrier.DoEx(key, func() (interface{}, error) {
 		if err := c.doGetCache(ctx, key, v); err != nil {
 			if err == errPlaceholder {
@@ -252,8 +247,6 @@ func (c cacheNode) doTake(ctx context.Context, v interface{}, key string, query 
 }
 
 func (c cacheNode) processCache(ctx context.Context, key, data string, v interface{}) error {
-	logger := logx.WithContext(ctx)
-
 	err := jsonx.Unmarshal([]byte(data), v)
 	if err == nil {
 		return nil
@@ -261,6 +254,7 @@ func (c cacheNode) processCache(ctx context.Context, key, data string, v interfa
 
 	report := fmt.Sprintf("unmarshal cache, node: %s, key: %s, value: %s, error: %v",
 		c.rds.Addr, key, data, err)
+	logger := logx.WithContext(ctx)
 	logger.Error(report)
 	stat.Report(report)
 	if _, e := c.rds.DelCtx(ctx, key); e != nil {
