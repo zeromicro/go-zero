@@ -20,31 +20,32 @@ type (
 		// DelCtx deletes cached values with keys.
 		DelCtx(ctx context.Context, keys ...string) error
 		// Get gets the cache with key and fills into v.
-		Get(key string, v interface{}) error
+		Get(key string, val interface{}) error
 		// GetCtx gets the cache with key and fills into v.
-		GetCtx(ctx context.Context, key string, v interface{}) error
+		GetCtx(ctx context.Context, key string, val interface{}) error
 		// IsNotFound checks if the given error is the defined errNotFound.
 		IsNotFound(err error) bool
 		// Set sets the cache with key and v, using c.expiry.
-		Set(key string, v interface{}) error
+		Set(key string, val interface{}) error
 		// SetCtx sets the cache with key and v, using c.expiry.
-		SetCtx(ctx context.Context, key string, v interface{}) error
+		SetCtx(ctx context.Context, key string, val interface{}) error
 		// SetWithExpire sets the cache with key and v, using given expire.
-		SetWithExpire(key string, v interface{}, expire time.Duration) error
+		SetWithExpire(key string, val interface{}, expire time.Duration) error
 		// SetWithExpireCtx sets the cache with key and v, using given expire.
-		SetWithExpireCtx(ctx context.Context, key string, v interface{}, expire time.Duration) error
+		SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error
 		// Take takes the result from cache first, if not found,
 		// query from DB and set cache using c.expiry, then return the result.
-		Take(v interface{}, key string, query func(v interface{}) error) error
+		Take(val interface{}, key string, query func(val interface{}) error) error
 		// TakeCtx takes the result from cache first, if not found,
 		// query from DB and set cache using c.expiry, then return the result.
-		TakeCtx(ctx context.Context, v interface{}, key string, query func(v interface{}) error) error
+		TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error
 		// TakeWithExpire takes the result from cache first, if not found,
 		// query from DB and set cache using given expire, then return the result.
-		TakeWithExpire(v interface{}, key string, query func(v interface{}, expire time.Duration) error) error
+		TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error
 		// TakeWithExpireCtx takes the result from cache first, if not found,
 		// query from DB and set cache using given expire, then return the result.
-		TakeWithExpireCtx(ctx context.Context, v interface{}, key string, query func(v interface{}, expire time.Duration) error) error
+		TakeWithExpireCtx(ctx context.Context, val interface{}, key string,
+			query func(val interface{}, expire time.Duration) error) error
 	}
 
 	cacheCluster struct {
@@ -117,18 +118,18 @@ func (cc cacheCluster) DelCtx(ctx context.Context, keys ...string) error {
 }
 
 // Get gets the cache with key and fills into v.
-func (cc cacheCluster) Get(key string, v interface{}) error {
-	return cc.GetCtx(context.Background(), key, v)
+func (cc cacheCluster) Get(key string, val interface{}) error {
+	return cc.GetCtx(context.Background(), key, val)
 }
 
 // GetCtx gets the cache with key and fills into v.
-func (cc cacheCluster) GetCtx(ctx context.Context, key string, v interface{}) error {
+func (cc cacheCluster) GetCtx(ctx context.Context, key string, val interface{}) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).GetCtx(ctx, key, v)
+	return c.(Cache).GetCtx(ctx, key, val)
 }
 
 // IsNotFound checks if the given error is the defined errNotFound.
@@ -137,66 +138,65 @@ func (cc cacheCluster) IsNotFound(err error) bool {
 }
 
 // Set sets the cache with key and v, using c.expiry.
-func (cc cacheCluster) Set(key string, v interface{}) error {
-	return cc.SetCtx(context.Background(), key, v)
+func (cc cacheCluster) Set(key string, val interface{}) error {
+	return cc.SetCtx(context.Background(), key, val)
 }
 
 // SetCtx sets the cache with key and v, using c.expiry.
-func (cc cacheCluster) SetCtx(ctx context.Context, key string, v interface{}) error {
+func (cc cacheCluster) SetCtx(ctx context.Context, key string, val interface{}) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).SetCtx(ctx, key, v)
+	return c.(Cache).SetCtx(ctx, key, val)
 }
 
 // SetWithExpire sets the cache with key and v, using given expire.
-func (cc cacheCluster) SetWithExpire(key string, v interface{}, expire time.Duration) error {
-	return cc.SetWithExpireCtx(context.Background(), key, v, expire)
+func (cc cacheCluster) SetWithExpire(key string, val interface{}, expire time.Duration) error {
+	return cc.SetWithExpireCtx(context.Background(), key, val, expire)
 }
 
 // SetWithExpireCtx sets the cache with key and v, using given expire.
-func (cc cacheCluster) SetWithExpireCtx(ctx context.Context, key string, v interface{}, expire time.Duration) error {
+func (cc cacheCluster) SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).SetWithExpireCtx(ctx, key, v, expire)
+	return c.(Cache).SetWithExpireCtx(ctx, key, val, expire)
 }
 
 // Take takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (cc cacheCluster) Take(v interface{}, key string, query func(v interface{}) error) error {
-	return cc.TakeCtx(context.Background(), v, key, query)
+func (cc cacheCluster) Take(val interface{}, key string, query func(val interface{}) error) error {
+	return cc.TakeCtx(context.Background(), val, key, query)
 }
 
 // TakeCtx takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (cc cacheCluster) TakeCtx(ctx context.Context, v interface{}, key string, query func(v interface{}) error) error {
+func (cc cacheCluster) TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).TakeCtx(ctx, v, key, query)
+	return c.(Cache).TakeCtx(ctx, val, key, query)
 }
 
 // TakeWithExpire takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (cc cacheCluster) TakeWithExpire(v interface{}, key string,
-	query func(v interface{}, expire time.Duration) error) error {
-	return cc.TakeWithExpireCtx(context.Background(), v, key, query)
+func (cc cacheCluster) TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+	return cc.TakeWithExpireCtx(context.Background(), val, key, query)
 }
 
 // TakeWithExpireCtx takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (cc cacheCluster) TakeWithExpireCtx(ctx context.Context, v interface{}, key string, query func(v interface{}, expire time.Duration) error) error {
+func (cc cacheCluster) TakeWithExpireCtx(ctx context.Context, val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
 	c, ok := cc.dispatcher.Get(key)
 	if !ok {
 		return cc.errNotFound
 	}
 
-	return c.(Cache).TakeWithExpireCtx(ctx, v, key, query)
+	return c.(Cache).TakeWithExpireCtx(ctx, val, key, query)
 }
