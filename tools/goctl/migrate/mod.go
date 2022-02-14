@@ -12,10 +12,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 )
 
-const deprecatedGoZeroMod = "github.com/tal-tech/go-zero"
-const deprecatedBuilderx = "github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
-const replacementBuilderx = "github.com/zeromicro/go-zero/core/stores/builder"
-const goZeroMod = "github.com/zeromicro/go-zero"
+const (
+	deprecatedGoZeroMod = "github.com/tal-tech/go-zero"
+	deprecatedBuilderx  = "github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
+	replacementBuilderx = "github.com/zeromicro/go-zero/core/stores/builder"
+	goZeroMod           = "github.com/zeromicro/go-zero"
+)
 
 var errInvalidGoMod = errors.New("it's only working for go module")
 
@@ -38,11 +40,13 @@ func editMod(version string, verbose bool) error {
 	if !stringx.Contains(latest, version) {
 		return fmt.Errorf("release version %q is not found", version)
 	}
+
 	mod := fmt.Sprintf("%s@%s", goZeroMod, version)
 	err = removeRequire(deprecatedGoZeroMod, verbose)
 	if err != nil {
 		return err
 	}
+
 	return addRequire(mod, verbose)
 }
 
