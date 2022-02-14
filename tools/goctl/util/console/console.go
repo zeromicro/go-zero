@@ -50,22 +50,22 @@ func (c *colorConsole) Info(format string, a ...interface{}) {
 
 func (c *colorConsole) Debug(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	println(aurora.Blue(msg))
+	println(aurora.BrightCyan(msg))
 }
 
 func (c *colorConsole) Success(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	println(aurora.Green(msg))
+	println(aurora.BrightGreen(msg))
 }
 
 func (c *colorConsole) Warning(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	println(aurora.Yellow(msg))
+	println(aurora.BrightYellow(msg))
 }
 
 func (c *colorConsole) Error(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	println(aurora.Red(msg))
+	println(aurora.BrightRed(msg))
 }
 
 func (c *colorConsole) Fatalln(format string, a ...interface{}) {
@@ -95,7 +95,7 @@ func (i *ideaConsole) Info(format string, a ...interface{}) {
 
 func (i *ideaConsole) Debug(format string, a ...interface{}) {
 	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.Blue(msg))
+	fmt.Println(aurora.BrightCyan(msg))
 }
 
 func (i *ideaConsole) Success(format string, a ...interface{}) {
