@@ -1,6 +1,7 @@
 package sqlc
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -568,7 +569,7 @@ func TestNewConnWithCache(t *testing.T) {
 	defer clean()
 
 	var conn trackedConn
-	c := NewConnWithCache(&conn, cache.NewNode(r, exclusiveCalls, stats, sql.ErrNoRows))
+	c := NewConnWithCache(&conn, cache.NewNode(r, singleFlights, stats, sql.ErrNoRows))
 	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
@@ -585,6 +586,30 @@ type dummySqlConn struct {
 	queryRow func(interface{}, string, ...interface{}) error
 }
 
+func (d dummySqlConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return nil, nil
+}
+
+func (d dummySqlConn) PrepareCtx(ctx context.Context, query string) (sqlx.StmtSession, error) {
+	return nil, nil
+}
+
+func (d dummySqlConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
+	return nil
+}
+
 func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return nil, nil
 }
@@ -594,6 +619,10 @@ func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
 }
 
 func (d dummySqlConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+	return d.QueryRowCtx(context.Background(), v, query, args...)
+}
+
+func (d dummySqlConn) QueryRowCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
 	if d.queryRow != nil {
 		return d.queryRow(v, query, args...)
 	}
@@ -628,13 +657,21 @@ type trackedConn struct {
 }
 
 func (c *trackedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return c.ExecCtx(context.Background(), query, args...)
+}
+
+func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	c.execValue = true
-	return c.dummySqlConn.Exec(query, args...)
+	return c.dummySqlConn.ExecCtx(ctx, query, args...)
 }
 
 func (c *trackedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+	return c.QueryRowsCtx(context.Background(), v, query, args...)
+}
+
+func (c *trackedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
 	c.queryRowsValue = true
-	return c.dummySqlConn.QueryRows(v, query, args...)
+	return c.dummySqlConn.QueryRowsCtx(ctx, v, query, args...)
 }
 
 func (c *trackedConn) RawDB() (*sql.DB, error) {
@@ -642,6 +679,12 @@ func (c *trackedConn) RawDB() (*sql.DB, error) {
 }
 
 func (c *trackedConn) Transact(fn func(session sqlx.Session) error) error {
+	return c.TransactCtx(context.Background(), func(_ context.Context, session sqlx.Session) error {
+		return fn(session)
+	})
+}
+
+func (c *trackedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	c.transactValue = true
-	return c.dummySqlConn.Transact(fn)
+	return c.dummySqlConn.TransactCtx(ctx, fn)
 }
