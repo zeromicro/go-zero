@@ -125,13 +125,13 @@ func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 	defer func() {
 		if p := recover(); p != nil {
 			if e := tx.Rollback(); e != nil {
-				err = fmt.Errorf("recover from %#v, rollback failed: %s", p, e)
+				err = fmt.Errorf("recover from %#v, rollback failed: %w", p, e)
 			} else {
 				err = fmt.Errorf("recoveer from %#v", p)
 			}
 		} else if err != nil {
 			if e := tx.Rollback(); e != nil {
-				err = fmt.Errorf("transaction failed: %s, rollback failed: %s", err, e)
+				err = fmt.Errorf("transaction failed: %s, rollback failed: %w", err, e)
 			}
 		} else {
 			err = tx.Commit()
