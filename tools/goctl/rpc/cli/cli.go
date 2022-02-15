@@ -33,6 +33,7 @@ func RPC(c *cli.Context) error {
 	goOptions := c.StringSlice("go_opt")
 	home := c.String("home")
 	remote := c.String("remote")
+	binPath := c.String("bin_path")
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote)
 		if len(repo) > 0 {
@@ -56,7 +57,7 @@ func RPC(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(src, out, protoImportPath, goOptions...)
+	return g.Generate(src, out, protoImportPath, binPath, goOptions...)
 }
 
 func prepare() error {
@@ -89,6 +90,7 @@ func RPCNew(c *cli.Context) error {
 	style := c.String("style")
 	home := c.String("home")
 	remote := c.String("remote")
+	binPath := c.String("bin_path")
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote)
 		if len(repo) > 0 {
@@ -116,7 +118,7 @@ func RPCNew(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(src, filepath.Dir(src), nil)
+	return g.Generate(src, filepath.Dir(src), nil, binPath)
 }
 
 // RPCTemplate is the entry for generate rpc template

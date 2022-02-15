@@ -54,6 +54,7 @@ func ZRPC(c *cli.Context) error {
 	style := c.String("style")
 	home := c.String("home")
 	remote := c.String("remote")
+	binPath := c.String("bin_path")
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote)
 		if len(repo) > 0 {
@@ -133,7 +134,7 @@ func ZRPC(c *cli.Context) error {
 		return err
 	}
 
-	return g.Generate(source, zrpcOut, nil)
+	return g.Generate(source, zrpcOut, nil, binPath)
 }
 
 // parseOut calculates the output place to grpc code, about to calculate logic for details
