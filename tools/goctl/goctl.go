@@ -408,6 +408,10 @@ var commands = []cli.Command{
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
+					cli.StringFlag{
+						Name:     "serviceAccount",
+						Usage:    "the serviceAccount of deployment",
+					},
 				},
 				Action: kube.DeploymentCommand,
 			},

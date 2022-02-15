@@ -17,7 +17,8 @@ spec:
     metadata:
       labels:
         app: {{.Name}}
-    spec:
+    spec:{{if .ServiceAccount}}
+      serviceAccountName: {{.ServiceAccount}}{{end}}
       containers:
       - name: {{.Name}}
         image: {{.Image}}
