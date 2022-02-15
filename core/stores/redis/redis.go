@@ -2358,7 +2358,7 @@ func WithTLS() Option {
 }
 
 func acceptable(err error) bool {
-	return err == nil || err == red.Nil
+	return err == nil || err == red.Nil || err == context.Canceled
 }
 
 func getRedis(r *Redis) (RedisNode, error) {
