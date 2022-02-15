@@ -26,8 +26,8 @@ type {{.logic}} struct {
 	svcCtx *svc.ServiceContext
 }
 
-func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) {{.logic}} {
-	return {{.logic}}{
+func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
+	return &{{.logic}}{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
@@ -73,7 +73,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		returnString = "return nil"
 	}
 	if len(route.RequestTypeName()) > 0 {
-		requestString = "req " + requestGoTypeName(route, typesPacket)
+		requestString = "req *" + requestGoTypeName(route, typesPacket)
 	}
 
 	subDir := getLogicFolderPath(group, route)

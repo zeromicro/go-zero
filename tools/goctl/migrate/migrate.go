@@ -22,7 +22,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const zeromicroVersion = "1.3.0"
+const zeromicroVersion = "v1.3.0"
 
 const (
 	confirmUnknown = iota
@@ -57,8 +57,10 @@ func Migrate(c *cli.Context) error {
 	}
 
 	if verbose {
-		console.Success("[OK] refactor finish, execute %q on project root to check status.", "go test -race ./...")
+		console.Success("[OK] refactor finish, execute %q on project root to check status.",
+			"go test -race ./...")
 	}
+
 	return nil
 }
 
