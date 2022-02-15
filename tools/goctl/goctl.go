@@ -409,8 +409,8 @@ var commands = []cli.Command{
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 					cli.StringFlag{
-						Name:     "serviceAccount",
-						Usage:    "the serviceAccount of deployment",
+						Name:  "serviceAccount",
+						Usage: "the ServiceAccount for the deployment",
 					},
 				},
 				Action: kube.DeploymentCommand,
