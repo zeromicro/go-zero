@@ -20,9 +20,9 @@ We hope that the items listed below will inspire further engagement from the com
 - [x] Support `goctl bug` to report bugs conveniently
 
 ## 2022
-- [ ] Support `goctl mock` command to start a mocking server with given `.api` file
-- [ ] Add `httpx.Client` with governance, like circuit breaker etc.
-- [ ] Support `goctl doctor` command to report potential issues for given service
 - [x] Support `context` in redis related methods for timeout and tracing
 - [x] Support `context` in sql related methods for timeout and tracing
 - [ ] Support `context` in mongodb related methods for timeout and tracing
+- [ ] Add `httpx.Client` with governance, like circuit breaker etc.
+- [ ] Support `goctl doctor` command to report potential issues for given service
+- [ ] Support `goctl mock` command to start a mocking server with given `.api` file
