@@ -139,10 +139,10 @@ func (cc CachedConn) QueryRowCtx(ctx context.Context, v interface{}, key string,
 // QueryRowIndex unmarshals into v with given key.
 func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary interface{}) string,
 	indexQuery IndexQueryFn, primaryQuery PrimaryQueryFn) error {
-	indexQueryCtx := func(ctx context.Context, conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	indexQueryCtx := func(_ context.Context, conn sqlx.SqlConn, v interface{}) (interface{}, error) {
 		return indexQuery(conn, v)
 	}
-	primaryQueryCtx := func(ctx context.Context, conn sqlx.SqlConn, v, primary interface{}) error {
+	primaryQueryCtx := func(_ context.Context, conn sqlx.SqlConn, v, primary interface{}) error {
 		return primaryQuery(conn, v, primary)
 	}
 
@@ -215,7 +215,7 @@ func (cc CachedConn) SetCacheCtx(ctx context.Context, key string, val interface{
 
 // Transact runs given fn in transaction mode.
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
-	fnCtx := func(ctx context.Context, session sqlx.Session) error {
+	fnCtx := func(_ context.Context, session sqlx.Session) error {
 		return fn(session)
 	}
 	return cc.TransactCtx(context.Background(), fnCtx)
