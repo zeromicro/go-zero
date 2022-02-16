@@ -164,12 +164,12 @@ func writeFile(pkgs []*ast.Package, verbose bool) error {
 			w := bytes.NewBuffer(nil)
 			err := format.Node(w, fset, file)
 			if err != nil {
-				return fmt.Errorf("[rewriteImport] format file %s error: %+v", filename, err)
+				return fmt.Errorf("[rewriteImport] format file %s error: %w", filename, err)
 			}
 
 			err = ioutil.WriteFile(filename, w.Bytes(), os.ModePerm)
 			if err != nil {
-				return fmt.Errorf("[rewriteImport] write file %s error: %+v", filename, err)
+				return fmt.Errorf("[rewriteImport] write file %s error: %w", filename, err)
 			}
 			if verbose {
 				console.Success("[OK] migrated %q successfully", filepath.Base(filename))

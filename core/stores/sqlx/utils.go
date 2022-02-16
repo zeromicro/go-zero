@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
@@ -111,9 +112,9 @@ func logInstanceError(datasource string, err error) {
 	logx.Errorf("Error on getting sql instance of %s: %v", datasource, err)
 }
 
-func logSqlError(stmt string, err error) {
+func logSqlError(ctx context.Context, stmt string, err error) {
 	if err != nil && err != ErrNotFound {
-		logx.Errorf("stmt: %s, error: %s", stmt, err.Error())
+		logx.WithContext(ctx).Errorf("stmt: %s, error: %s", stmt, err.Error())
 	}
 }
 
