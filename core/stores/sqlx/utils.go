@@ -66,6 +66,8 @@ func format(query string, args ...interface{}) (string, error) {
 
 			writeValue(&b, args[argIndex])
 			argIndex++
+		case ':':
+			fallthrough
 		case '$':
 			var j int
 			for j = i + 1; j < bytes; j++ {
@@ -81,8 +83,8 @@ func format(query string, args ...interface{}) (string, error) {
 				}
 
 				// index starts from 1 for pg
-				if index > argIndex {
-					argIndex = index
+				if index > 0 {
+					argIndex++
 				}
 				index--
 				if index < 0 || numArgs <= index {
