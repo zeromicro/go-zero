@@ -608,39 +608,230 @@ var commands = []cli.Command{
 						},
 						Action: model.MysqlDDL,
 					},
+					{
+						Name:  "datasource",
+						Usage: `generate model from datasource`,
+						Flags: []cli.Flag{
+							cli.StringFlag{
+								Name:  "url",
+								Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
+							},
+							cli.StringFlag{
+								Name:  "table, t",
+								Usage: `the table or table globbing patterns in the database`,
+							},
+							cli.BoolFlag{
+								Name:  "cache, c",
+								Usage: "generate code with cache [optional]",
+							},
+							cli.StringFlag{
+								Name:  "dir, d",
+								Usage: "the target dir",
+							},
+							cli.StringFlag{
+								Name:  "style",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
+							},
+							cli.BoolFlag{
+								Name:  "idea",
+								Usage: "for idea plugin [optional]",
+							},
+							cli.StringFlag{
+								Name: "home",
+								Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority",
+							},
+							cli.StringFlag{
+								Name: "remote",
+								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+									"https://github.com/zeromicro/go-zero-template directory structure",
+							},
+						},
+						Action: model.MySqlDataSource,
+					},
 				},
-				{
-					Name:  "pg",
-					Usage: `generate postgresql model`,
-					Subcommands: []cli.Command{
-						{
-							Name:  "datasource",
-							Usage: `generate model from datasource`,
-							Flags: []cli.Flag{
-								cli.StringFlag{
-									Name:  "url",
-									Usage: `the data source of database,like "postgres://root:password@127.0.0.1:54332/database?sslmode=disable"`,
-								},
-								cli.StringFlag{
-									Name:  "table, t",
-									Usage: `the table or table globbing patterns in the database`,
-								},
-								cli.StringFlag{
-									Name:  "schema, s",
-									Usage: `the table schema, default is [public]`,
-								},
-								cli.BoolFlag{
-									Name:  "cache, c",
-									Usage: "generate code with cache [optional]",
-								},
-								cli.StringFlag{
-									Name:  "dir, d",
-									Usage: "the target dir",
-								},
-								cli.StringFlag{
-									Name:  "style",
-									Usage: "the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]",
-								},
-								cli.BoolFlag{
-									Name:  "idea",
-									Usage: "for idea plugin [optional]",
+			},
+			{
+				Name:  "pg",
+				Usage: `generate postgresql model`,
+				Subcommands: []cli.Command{
+					{
+						Name:  "datasource",
+						Usage: `generate model from datasource`,
+						Flags: []cli.Flag{
+							cli.StringFlag{
+								Name:  "url",
+								Usage: `the data source of database,like "postgres://root:password@127.0.0.1:54332/database?sslmode=disable"`,
+							},
+							cli.StringFlag{
+								Name:  "table, t",
+								Usage: `the table or table globbing patterns in the database`,
+							},
+							cli.StringFlag{
+								Name:  "schema, s",
+								Usage: `the table schema, default is [public]`,
+							},
+							cli.BoolFlag{
+								Name:  "cache, c",
+								Usage: "generate code with cache [optional]",
+							},
+							cli.StringFlag{
+								Name:  "dir, d",
+								Usage: "the target dir",
+							},
+							cli.StringFlag{
+								Name:  "style",
+								Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
+							},
+							cli.BoolFlag{
+								Name:  "idea",
+								Usage: "for idea plugin [optional]",
+							},
+							cli.StringFlag{
+								Name: "home",
+								Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority",
+							},
+							cli.StringFlag{
+								Name: "remote",
+								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+									"https://github.com/zeromicro/go-zero-template directory structure",
+							},
+						},
+						Action: model.PostgreSqlDataSource,
+					},
+				},
+			},
+			{
+				Name:  "mongo",
+				Usage: `generate mongo model`,
+				Flags: []cli.Flag{
+					cli.StringSliceFlag{
+						Name:  "type, t",
+						Usage: "specified model type name",
+					},
+					cli.BoolFlag{
+						Name:  "cache, c",
+						Usage: "generate code with cache [optional]",
+					},
+					cli.StringFlag{
+						Name:  "dir, d",
+						Usage: "the target dir",
+					},
+					cli.StringFlag{
+						Name:  "style",
+						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
+					},
+					cli.StringFlag{
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time," +
+							" if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+				},
+				Action: mongo.Action,
+			},
+		},
+	},
+	{
+		Name:  "template",
+		Usage: "template operation",
+		Subcommands: []cli.Command{
+			{
+				Name:  "init",
+				Usage: "initialize the all templates(force update)",
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
+				Action: tpl.GenTemplates,
+			},
+			{
+				Name:  "clean",
+				Usage: "clean the all cache templates",
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
+				Action: tpl.CleanTemplates,
+			},
+			{
+				Name:  "update",
+				Usage: "update template of the target category to the latest",
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "category,c",
+						Usage: "the category of template, enum [api,rpc,model,docker,kube]",
+					},
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
+				Action: tpl.UpdateTemplates,
+			},
+			{
+				Name:  "revert",
+				Usage: "revert the target template to the latest",
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "category,c",
+						Usage: "the category of template, enum [api,rpc,model,docker,kube]",
+					},
+					cli.StringFlag{
+						Name:  "name,n",
+						Usage: "the target file name of template",
+					},
+					cli.StringFlag{
+						Name:  "home",
+						Usage: "the goctl home path of the template",
+					},
+				},
+				Action: tpl.RevertTemplates,
+			},
+		},
+	},
+	{
+		Name:   "completion",
+		Usage:  "generation completion script, it only works for unix-like OS",
+		Action: completion.Completion,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "name, n",
+				Usage: "the filename of auto complete script, default is [goctl_autocomplete]",
+			},
+		},
+	},
+}
+
+func main() {
+	logx.Disable()
+	load.Disable()
+
+	cli.BashCompletionFlag = cli.BoolFlag{
+		Name:   completion.BashCompletionFlag,
+		Hidden: true,
+	}
+	app := cli.NewApp()
+	app.EnableBashCompletion = true
+	app.Usage = "a cli tool to generate code"
+	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
+	app.Commands = commands
+
+	// cli already print error messages
+	if err := app.Run(os.Args); err != nil {
+		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
+		os.Exit(codeFailure)
+	}
+}
