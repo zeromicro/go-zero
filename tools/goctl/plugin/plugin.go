@@ -13,11 +13,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const pluginArg = "_plugin"
@@ -73,7 +73,7 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 	apiPath := c.String("api")
 
 	var transferData Plugin
-	if len(apiPath) > 0 && util.FileExists(apiPath) {
+	if len(apiPath) > 0 && pathx.FileExists(apiPath) {
 		api, err := parser.Parse(apiPath)
 		if err != nil {
 			return nil, err

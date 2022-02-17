@@ -1,14 +1,14 @@
 package docker
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
 	category           = "docker"
 	dockerTemplateFile = "docker.tpl"
-	dockerTemplate     = `FROM golang:alpine AS builder
+	dockerTemplate     = `FROM golang:{{.Version}}alpine AS builder
 
 LABEL stage=gobuilder
 
@@ -43,7 +43,7 @@ CMD ["./{{.ExeFile}}"{{.Argument}}]
 
 // Clean deletes all templates files
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates creates docker template files
@@ -58,7 +58,7 @@ func Category() string {
 
 // RevertTemplate recovers the deleted template files
 func RevertTemplate(name string) error {
-	return util.CreateTemplate(category, name, dockerTemplate)
+	return pathx.CreateTemplate(category, name, dockerTemplate)
 }
 
 // Update deletes and creates new template files
@@ -72,7 +72,7 @@ func Update() error {
 }
 
 func initTemplate() error {
-	return util.InitTemplates(category, map[string]string{
+	return pathx.InitTemplates(category, map[string]string{
 		dockerTemplateFile: dockerTemplate,
 	})
 }

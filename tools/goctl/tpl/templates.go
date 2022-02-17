@@ -5,15 +5,17 @@ import (
 	"path/filepath"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/errorx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
-	"github.com/tal-tech/go-zero/tools/goctl/docker"
-	"github.com/tal-tech/go-zero/tools/goctl/kube"
-	mongogen "github.com/tal-tech/go-zero/tools/goctl/model/mongo/generate"
-	modelgen "github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
-	rpcgen "github.com/tal-tech/go-zero/tools/goctl/rpc/generator"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/core/errorx"
+	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
+	apinew "github.com/zeromicro/go-zero/tools/goctl/api/new"
+	"github.com/zeromicro/go-zero/tools/goctl/docker"
+	"github.com/zeromicro/go-zero/tools/goctl/kube"
+	mongogen "github.com/zeromicro/go-zero/tools/goctl/model/mongo/generate"
+	modelgen "github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
+	rpcgen "github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const templateParentPath = "/"
@@ -22,7 +24,7 @@ const templateParentPath = "/"
 func GenTemplates(ctx *cli.Context) error {
 	path := ctx.String("home")
 	if len(path) != 0 {
-		util.RegisterGoctlHome(path)
+		pathx.RegisterGoctlHome(path)
 	}
 
 	if err := errorx.Chain(
@@ -44,11 +46,17 @@ func GenTemplates(ctx *cli.Context) error {
 		func() error {
 			return mongogen.Templates(ctx)
 		},
+		func() error {
+			return apigen.GenTemplates(ctx)
+		},
+		func() error {
+			return apinew.GenTemplates(ctx)
+		},
 	); err != nil {
 		return err
 	}
 
-	dir, err := util.GetTemplateDir(templateParentPath)
+	dir, err := pathx.GetTemplateDir(templateParentPath)
 	if err != nil {
 		return err
 	}
@@ -68,7 +76,7 @@ func GenTemplates(ctx *cli.Context) error {
 func CleanTemplates(ctx *cli.Context) error {
 	path := ctx.String("home")
 	if len(path) != 0 {
-		util.RegisterGoctlHome(path)
+		pathx.RegisterGoctlHome(path)
 	}
 
 	err := errorx.Chain(
@@ -90,6 +98,12 @@ func CleanTemplates(ctx *cli.Context) error {
 		func() error {
 			return mongogen.Clean()
 		},
+		func() error {
+			return apigen.Clean()
+		},
+		func() error {
+			return apinew.Clean()
+		},
 	)
 	if err != nil {
 		return err
@@ -105,7 +119,7 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 	path := ctx.String("home")
 	category := ctx.String("category")
 	if len(path) != 0 {
-		util.RegisterGoctlHome(path)
+		pathx.RegisterGoctlHome(path)
 	}
 
 	defer func() {
@@ -126,6 +140,10 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 		return modelgen.Update()
 	case mongogen.Category():
 		return mongogen.Update()
+	case apigen.Category():
+		return apigen.Update()
+	case apinew.Category():
+		return apinew.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -138,7 +156,7 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 	category := ctx.String("category")
 	filename := ctx.String("name")
 	if len(path) != 0 {
-		util.RegisterGoctlHome(path)
+		pathx.RegisterGoctlHome(path)
 	}
 
 	defer func() {
@@ -159,6 +177,10 @@ func RevertTemplates(ctx *cli.Context) (err error) {
 		return modelgen.RevertTemplate(filename)
 	case mongogen.Category():
 		return mongogen.RevertTemplate(filename)
+	case apigen.Category():
+		return apigen.RevertTemplate(filename)
+	case apinew.Category():
+		return apinew.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

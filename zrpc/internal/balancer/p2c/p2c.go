@@ -9,10 +9,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/timex"
-	"github.com/tal-tech/go-zero/zrpc/internal/codes"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/zrpc/internal/codes"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
@@ -182,14 +182,14 @@ func (p *p2cPicker) logStats() {
 }
 
 type subConn struct {
-	addr     resolver.Address
-	conn     balancer.SubConn
 	lag      uint64
 	inflight int64
 	success  uint64
 	requests int64
 	last     int64
 	pick     int64
+	addr     resolver.Address
+	conn     balancer.SubConn
 }
 
 func (c *subConn) healthy() bool {

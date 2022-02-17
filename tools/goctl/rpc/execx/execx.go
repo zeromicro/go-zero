@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 // Run provides the execution of shell scripts in golang,
@@ -39,10 +39,10 @@ func Run(arg, dir string, in ...*bytes.Buffer) (string, error) {
 	err := cmd.Run()
 	if err != nil {
 		if stderr.Len() > 0 {
-			return "", errors.New(strings.TrimSuffix(stderr.String(), util.NL))
+			return "", errors.New(strings.TrimSuffix(stderr.String(), pathx.NL))
 		}
 		return "", err
 	}
 
-	return strings.TrimSuffix(stdout.String(), util.NL), nil
+	return strings.TrimSuffix(stdout.String(), pathx.NL), nil
 }

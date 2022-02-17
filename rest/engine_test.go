@@ -4,9 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/conf"
 )
 
 func TestNewEngine(t *testing.T) {
@@ -143,14 +144,49 @@ Verbose: true
 			var cnf RestConf
 			assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(yaml), &cnf))
 			ng := newEngine(cnf)
-			ng.AddRoutes(route)
+			ng.addRoutes(route)
 			ng.use(func(next http.HandlerFunc) http.HandlerFunc {
 				return func(w http.ResponseWriter, r *http.Request) {
 					next.ServeHTTP(w, r)
 				}
 			})
-			assert.NotNil(t, ng.StartWithRouter(mockedRouter{}))
+			assert.NotNil(t, ng.start(mockedRouter{}))
 		}
+	}
+}
+
+func TestEngine_checkedTimeout(t *testing.T) {
+	tests := []struct {
+		name    string
+		timeout time.Duration
+		expect  time.Duration
+	}{
+		{
+			name:   "not set",
+			expect: time.Second,
+		},
+		{
+			name:    "less",
+			timeout: time.Millisecond * 500,
+			expect:  time.Millisecond * 500,
+		},
+		{
+			name:    "equal",
+			timeout: time.Second,
+			expect:  time.Second,
+		},
+		{
+			name:    "more",
+			timeout: time.Millisecond * 1500,
+			expect:  time.Millisecond * 1500,
+		},
+	}
+
+	ng := newEngine(RestConf{
+		Timeout: 1000,
+	})
+	for _, test := range tests {
+		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout))
 	}
 }
 

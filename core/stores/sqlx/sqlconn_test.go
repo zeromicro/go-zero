@@ -7,7 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 const mockedDatasource = "sqlmock"
@@ -21,12 +21,15 @@ func TestSqlConn(t *testing.T) {
 	mock.ExpectExec("any")
 	mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"foo"}))
 	conn := NewMysql(mockedDatasource)
+	db, err := conn.RawDB()
+	assert.Nil(t, err)
+	rawConn := NewSqlConnFromDB(db, withMysqlAcceptable())
 	badConn := NewMysql("badsql")
-	_, err := conn.Exec("any", "value")
+	_, err = conn.Exec("any", "value")
 	assert.NotNil(t, err)
 	_, err = badConn.Exec("any", "value")
 	assert.NotNil(t, err)
-	_, err = conn.Prepare("any")
+	_, err = rawConn.Prepare("any")
 	assert.NotNil(t, err)
 	_, err = badConn.Prepare("any")
 	assert.NotNil(t, err)

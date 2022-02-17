@@ -5,9 +5,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat/internal"
-	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stat/internal"
+	"github.com/zeromicro/go-zero/core/threading"
 )
 
 const (
@@ -38,7 +38,9 @@ func init() {
 					atomic.StoreInt64(&cpuUsage, usage)
 				})
 			case <-allTicker.C:
-				printUsage()
+				if logEnabled.True() {
+					printUsage()
+				}
 			}
 		}
 	}()

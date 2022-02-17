@@ -5,9 +5,10 @@
 package mongo
 
 import (
+	reflect "reflect"
+
 	bson "github.com/globalsign/mgo/bson"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockIter is a mock of Iter interface

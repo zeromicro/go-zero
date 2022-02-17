@@ -3,28 +3,32 @@ package generator
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/emicklei/proto"
+	"github.com/zeromicro/go-zero/core/collection"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const (
 	callTemplateText = `{{.head}}
-
 
 package {{.filePackage}}
 
 import (
 	"context"
 
-	{{.package}}
+	{{.pbPackage}}
+	{{if ne .pbPackage .protoGoPackage}}{{.protoGoPackage}}{{end}}
 
-	"github.com/tal-tech/go-zero/zrpc"
+	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc"
 )
 
 type (
@@ -49,13 +53,13 @@ func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
 `
 
 	callInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
-{{end}}{{.method}}(ctx context.Context{{if .hasReq}},in *{{.pbRequest}}{{end}}) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error)`
+{{end}}{{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error)`
 
 	callFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
-func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}},in *{{.pbRequest}}{{end}}) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error) {
+func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error) {
 	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
-	return client.{{.method}}(ctx,{{if .hasReq}} in{{end}})
+	return client.{{.method}}(ctx{{if .hasReq}}, in{{end}}, opts...)
 }
 `
 )
@@ -83,33 +87,60 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		return err
 	}
 
-	text, err := util.LoadTemplate(category, callTemplateFile, callTemplateText)
+	text, err := pathx.LoadTemplate(category, callTemplateFile, callTemplateText)
 	if err != nil {
 		return err
 	}
 
 	alias := collection.NewSet()
 	for _, item := range proto.Message {
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(item.Name), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(item.Name))))
+		msgName := getMessageName(*item.Message)
+		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
 	}
 
+	aliasKeys := alias.KeysStr()
+	sort.Strings(aliasKeys)
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"name":        callFilename,
-		"alias":       strings.Join(alias.KeysStr(), util.NL),
-		"head":        head,
-		"filePackage": dir.Base,
-		"package":     fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
-		"serviceName": stringx.From(service.Name).ToCamel(),
-		"functions":   strings.Join(functions, util.NL),
-		"interface":   strings.Join(iFunctions, util.NL),
+		"name":           callFilename,
+		"alias":          strings.Join(aliasKeys, pathx.NL),
+		"head":           head,
+		"filePackage":    dir.Base,
+		"pbPackage":      fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
+		"protoGoPackage": fmt.Sprintf(`"%s"`, ctx.GetProtoGo().Package),
+		"serviceName":    stringx.From(service.Name).ToCamel(),
+		"functions":      strings.Join(functions, pathx.NL),
+		"interface":      strings.Join(iFunctions, pathx.NL),
 	}, filename, true)
 	return err
 }
 
+func getMessageName(msg proto.Message) string {
+	list := []string{msg.Name}
+
+	for {
+		parent := msg.Parent
+		if parent == nil {
+			break
+		}
+
+		parentMsg, ok := parent.(*proto.Message)
+		if !ok {
+			break
+		}
+
+		tmp := []string{parentMsg.Name}
+		list = append(tmp, list...)
+		msg = *parentMsg
+	}
+
+	return strings.Join(list, "_")
+}
+
 func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
 	functions := make([]string, 0)
+
 	for _, rpc := range service.RPC {
-		text, err := util.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
+		text, err := pathx.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
 		if err != nil {
 			return nil, err
 		}
@@ -135,6 +166,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 
 		functions = append(functions, buffer.String())
 	}
+
 	return functions, nil
 }
 
@@ -142,7 +174,7 @@ func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Se
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
-		text, err := util.LoadTemplate(category, callInterfaceFunctionTemplateFile, callInterfaceFunctionTemplate)
+		text, err := pathx.LoadTemplate(category, callInterfaceFunctionTemplateFile, callInterfaceFunctionTemplate)
 		if err != nil {
 			return nil, err
 		}

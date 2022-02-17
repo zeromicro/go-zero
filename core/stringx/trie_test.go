@@ -6,6 +6,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestTrieSimple(t *testing.T) {
+	trie := NewTrie([]string{
+		"bc",
+		"cd",
+	})
+	output, keywords, found := trie.Filter("abcd")
+	assert.True(t, found)
+	assert.Equal(t, "a***", output)
+	assert.ElementsMatch(t, []string{"bc", "cd"}, keywords)
+}
+
 func TestTrie(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -14,11 +25,11 @@ func TestTrie(t *testing.T) {
 		found    bool
 	}{
 		{
-			input:  "日本AV演员兼电视、电影演员。苍井空AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演",
+			input:  "日本AV演员兼电视、电影演员。无名氏AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演",
 			output: "日本****兼电视、电影演员。*****女优是xx出道, ******们最精彩的表演是******表演",
 			keywords: []string{
 				"AV演员",
-				"苍井空",
+				"无名氏",
 				"AV",
 				"日本AV女优",
 				"AV演员色情",
@@ -89,7 +100,7 @@ func TestTrie(t *testing.T) {
 		"一不",
 		"AV",
 		"AV演员",
-		"苍井空",
+		"无名氏",
 		"AV演员色情",
 		"日本AV女优",
 	})
@@ -144,21 +155,4 @@ func TestTrieNested(t *testing.T) {
 	}, keywords)
 	assert.True(t, ok)
 	assert.Equal(t, "零########九十", output)
-}
-
-func BenchmarkTrie(b *testing.B) {
-	b.ReportAllocs()
-
-	trie := NewTrie([]string{
-		"A",
-		"AV",
-		"AV演员",
-		"苍井空",
-		"AV演员色情",
-		"日本AV女优",
-	})
-
-	for i := 0; i < b.N; i++ {
-		trie.Filter("日本AV演员兼电视、电影演员。苍井空AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演")
-	}
 }

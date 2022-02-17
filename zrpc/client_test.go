@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/zrpc/internal/mock"
+	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -64,7 +65,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 			2000.00,
 			nil,
 			codes.DeadlineExceeded,
-			fmt.Sprintf("context deadline exceeded"),
+			"context deadline exceeded",
 		},
 	}
 
@@ -74,6 +75,33 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:       "foo",
 			Token:     "bar",
 			Timeout:   1000,
+		},
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	nonBlockClient := MustNewClient(
+		RpcClientConf{
+			Endpoints: []string{"foo"},
+			App:       "foo",
+			Token:     "bar",
+			Timeout:   1000,
+			NonBlock:  true,
+		},
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	tarConfClient := MustNewClient(
+		RpcClientConf{
+			Target:  "foo",
+			App:     "foo",
+			Token:   "bar",
+			Timeout: 1000,
 		},
 		WithDialOption(grpc.WithInsecure()),
 		WithDialOption(grpc.WithContextDialer(dialer())),
@@ -91,11 +119,18 @@ func TestDepositServer_Deposit(t *testing.T) {
 	assert.Nil(t, err)
 	clients := []Client{
 		directClient,
+		nonBlockClient,
+		tarConfClient,
 		targetClient,
 	}
+	SetClientSlowThreshold(time.Second)
+
 	for _, tt := range tests {
+		tt := tt
 		for _, client := range clients {
+			client := client
 			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
 				cli := mock.NewDepositServiceClient(client.Conn())
 				request := &mock.DepositRequest{Amount: tt.amount}
 				response, err := cli.Deposit(context.Background(), request)
@@ -118,4 +153,40 @@ func TestDepositServer_Deposit(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestNewClientWithError(t *testing.T) {
+	_, err := NewClient(
+		RpcClientConf{
+			App:     "foo",
+			Token:   "bar",
+			Timeout: 1000,
+		},
+		WithDialOption(grpc.WithInsecure()),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	assert.NotNil(t, err)
+
+	_, err = NewClient(
+		RpcClientConf{
+			Etcd: discov.EtcdConf{
+				Hosts: []string{"localhost:2379"},
+				Key:   "mock",
+			},
+			App:     "foo",
+			Token:   "bar",
+			Timeout: 1,
+		},
+		WithDialOption(grpc.WithInsecure()),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+			return invoker(ctx, method, req, reply, cc, opts...)
+		}),
+	)
+	assert.NotNil(t, err)
 }

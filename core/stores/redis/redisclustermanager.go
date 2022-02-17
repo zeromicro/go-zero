@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"io"
 
-	red "github.com/go-redis/redis"
-	"github.com/tal-tech/go-zero/core/syncx"
+	red "github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 var clusterManager = syncx.NewResourceManager()
@@ -25,7 +25,7 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
 		})
-		store.WrapProcess(process)
+		store.AddHook(durationHook)
 
 		return store, nil
 	})

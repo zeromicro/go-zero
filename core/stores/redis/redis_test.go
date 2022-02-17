@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -9,9 +10,37 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis"
+	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestRedis_Decr(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decr("a")
+		assert.NotNil(t, err)
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decrby("a", 2)
+		assert.NotNil(t, err)
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
 
 func TestRedis_Exists(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
@@ -186,7 +215,7 @@ func TestRedis_Hscan(t *testing.T) {
 		key := "hash:test"
 		fieldsAndValues := make(map[string]string)
 		for i := 0; i < 1550; i++ {
-			fieldsAndValues["filed_"+strconv.Itoa(i)] = randomStr(i)
+			fieldsAndValues["filed_"+strconv.Itoa(i)] = stringx.Randn(i)
 		}
 		err := client.Hmset(key, fieldsAndValues)
 		assert.Nil(t, err)
@@ -256,13 +285,24 @@ func TestRedis_Keys(t *testing.T) {
 func TestRedis_HyperLogLog(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
-		r := New(client.Addr, badType())
-		_, err := r.Pfadd("key1")
-		assert.NotNil(t, err)
-		_, err = r.Pfcount("*")
-		assert.NotNil(t, err)
-		err = r.Pfmerge("*")
-		assert.NotNil(t, err)
+		r := New(client.Addr)
+		ok, err := r.Pfadd("key1", "val1")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		val, err := r.Pfcount("key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		ok, err = r.Pfadd("key2", "val2")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		val, err = r.Pfcount("key2")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+		err = r.Pfmerge("key1", "key2")
+		assert.Nil(t, err)
+		val, err = r.Pfcount("key1")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(2), val)
 	})
 }
 
@@ -283,6 +323,11 @@ func TestRedis_List(t *testing.T) {
 		val, err = client.Llen("key")
 		assert.Nil(t, err)
 		assert.Equal(t, 4, val)
+		_, err = New(client.Addr, badType()).Lindex("key", 1)
+		assert.NotNil(t, err)
+		value, err := client.Lindex("key", 0)
+		assert.Nil(t, err)
+		assert.Equal(t, "value2", value)
 		vals, err := client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)
@@ -318,6 +363,11 @@ func TestRedis_List(t *testing.T) {
 		vals, err = client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
+		err = client.Ltrim("key", 0, 1)
+		assert.Nil(t, err)
+		vals, err = client.Lrange("key", 0, 10)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []string{"value2", "value3"}, vals)
 	})
 }
 
@@ -539,7 +589,7 @@ func TestRedis_Sscan(t *testing.T) {
 		key := "list"
 		var list []string
 		for i := 0; i < 1550; i++ {
-			list = append(list, randomStr(i))
+			list = append(list, stringx.Randn(i))
 		}
 		lens, err := client.Sadd(key, list)
 		assert.Nil(t, err)
@@ -915,13 +965,14 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.NotNil(t, err)
 		client.Zadd("second", 2, "aa")
 		client.Zadd("third", 3, "bbb")
-		val, err = client.Zunionstore("union", ZStore{
+		val, err = client.Zunionstore("union", &ZStore{
+			Keys:      []string{"second", "third"},
 			Weights:   []float64{1, 2},
 			Aggregate: "SUM",
-		}, "second", "third")
+		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).Zunionstore("union", ZStore{})
+		_, err = New(client.Addr, badType()).Zunionstore("union", &ZStore{})
 		assert.NotNil(t, err)
 		vals, err = client.Zrange("union", 0, 10000)
 		assert.Nil(t, err)
@@ -939,9 +990,9 @@ func TestRedis_Pipelined(t *testing.T) {
 		}))
 		err := client.Pipelined(
 			func(pipe Pipeliner) error {
-				pipe.Incr("pipelined_counter")
-				pipe.Expire("pipelined_counter", time.Hour)
-				pipe.ZAdd("zadd", Z{Score: 12, Member: "zadd"})
+				pipe.Incr(context.Background(), "pipelined_counter")
+				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
+				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)
@@ -963,7 +1014,7 @@ func TestRedis_Pipelined(t *testing.T) {
 func TestRedisString(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
-		_, err := getRedis(NewRedis(client.Addr, ClusterType))
+		_, err := getRedis(New(client.Addr, Cluster()))
 		assert.Nil(t, err)
 		assert.Equal(t, client.Addr, client.String())
 		assert.NotNil(t, New(client.Addr, badType()).Ping())
@@ -1073,14 +1124,22 @@ func TestRedisGeo(t *testing.T) {
 	})
 }
 
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
 func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := NewRedis(client.Addr, NodeType, "any").Ping()
+		err := New(client.Addr, WithPass("any")).Ping()
 		assert.NotNil(t, err)
 	})
 }
 
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
+	logx.Disable()
+
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer func() {
@@ -1095,10 +1154,12 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 			client.Close()
 		}
 	}()
-	fn(NewRedis(s.Addr(), NodeType))
+	fn(New(s.Addr()))
 }
 
 func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
+	logx.Disable()
+
 	s, err := miniredis.RunTLS(&tls.Config{
 		Certificates:       make([]tls.Certificate, 1),
 		InsecureSkipVerify: true,
@@ -1128,6 +1189,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(timeout time.Duration, keys ...string) *red.StringSliceCmd {
-	return red.NewStringSliceCmd("foo", "bar")
+func (n mockedNode) BLPop(ctx context.Context, timeout time.Duration, keys ...string) *red.StringSliceCmd {
+	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

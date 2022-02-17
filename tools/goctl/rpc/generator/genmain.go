@@ -5,11 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const mainTemplate = `package main
@@ -20,9 +21,11 @@ import (
 
 	{{.imports}}
 
-	"github.com/tal-tech/go-zero/core/conf"
-	"github.com/tal-tech/go-zero/zrpc"
+	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
@@ -37,6 +40,10 @@ func main() {
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		{{.pkg}}.Register{{.service}}Server(grpcServer, srv)
+
+		if c.Mode == service.DevMode || c.Mode == service.TestMode {
+			reflection.Register(grpcServer)
+		}
 	})
 	defer s.Stop()
 
@@ -59,7 +66,7 @@ func (g *DefaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf
 	remoteImport := fmt.Sprintf(`"%v"`, ctx.GetServer().Package)
 	configImport := fmt.Sprintf(`"%v"`, ctx.GetConfig().Package)
 	imports = append(imports, configImport, pbImport, remoteImport, svcImport)
-	text, err := util.LoadTemplate(category, mainTemplateFile, mainTemplate)
+	text, err := pathx.LoadTemplate(category, mainTemplateFile, mainTemplate)
 	if err != nil {
 		return err
 	}
@@ -71,7 +78,7 @@ func (g *DefaultGenerator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf
 
 	return util.With("main").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"serviceName": etcFileName,
-		"imports":     strings.Join(imports, util.NL),
+		"imports":     strings.Join(imports, pathx.NL),
 		"pkg":         proto.PbPackage,
 		"serviceNew":  stringx.From(proto.Service.Name).ToCamel(),
 		"service":     parser.CamelCase(proto.Service.Name),

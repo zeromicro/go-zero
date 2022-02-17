@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/timex"
-	"github.com/tal-tech/go-zero/core/trace/tracespec"
+	"github.com/zeromicro/go-zero/core/timex"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type traceLogger struct {
@@ -18,38 +18,56 @@ type traceLogger struct {
 }
 
 func (l *traceLogger) Error(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
 	}
 }
 
 func (l *traceLogger) Errorf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
 	}
 }
 
+func (l *traceLogger) Errorv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(errorLog, levelError, v)
+	}
+}
+
 func (l *traceLogger) Info(v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprint(v...))
 	}
 }
 
 func (l *traceLogger) Infof(format string, v ...interface{}) {
-	if shouldLog(InfoLevel) {
+	if shallLog(InfoLevel) {
 		l.write(infoLog, levelInfo, fmt.Sprintf(format, v...))
 	}
 }
 
+func (l *traceLogger) Infov(v interface{}) {
+	if shallLog(InfoLevel) {
+		l.write(infoLog, levelInfo, v)
+	}
+}
+
 func (l *traceLogger) Slow(v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprint(v...))
 	}
 }
 
 func (l *traceLogger) Slowf(format string, v ...interface{}) {
-	if shouldLog(ErrorLevel) {
+	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprintf(format, v...))
+	}
+}
+
+func (l *traceLogger) Slowv(v interface{}) {
+	if shallLog(ErrorLevel) {
+		l.write(slowLog, levelSlow, v)
 	}
 }
 
@@ -58,13 +76,25 @@ func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
-func (l *traceLogger) write(writer io.Writer, level, content string) {
-	l.Timestamp = getTimestamp()
-	l.Level = level
-	l.Content = content
-	l.Trace = traceIdFromContext(l.ctx)
-	l.Span = spanIdFromContext(l.ctx)
-	outputJson(writer, l)
+func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
+	traceID := traceIdFromContext(l.ctx)
+	spanID := spanIdFromContext(l.ctx)
+
+	switch encoding {
+	case plainEncodingType:
+		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
+	default:
+		outputJson(writer, &traceLogger{
+			logEntry: logEntry{
+				Timestamp: getTimestamp(),
+				Level:     level,
+				Duration:  l.Duration,
+				Content:   val,
+			},
+			Trace: traceID,
+			Span:  spanID,
+		})
+	}
 }
 
 // WithContext sets ctx to log, for keeping tracing information.
@@ -75,19 +105,19 @@ func WithContext(ctx context.Context) Logger {
 }
 
 func spanIdFromContext(ctx context.Context) string {
-	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
-	if !ok {
-		return ""
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanCtx.HasSpanID() {
+		return spanCtx.SpanID().String()
 	}
 
-	return t.SpanId()
+	return ""
 }
 
 func traceIdFromContext(ctx context.Context) string {
-	t, ok := ctx.Value(tracespec.TracingKey).(tracespec.Trace)
-	if !ok {
-		return ""
+	spanCtx := trace.SpanContextFromContext(ctx)
+	if spanCtx.HasTraceID() {
+		return spanCtx.TraceID().String()
 	}
 
-	return t.TraceId()
+	return ""
 }

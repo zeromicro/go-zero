@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/httpx"
 )
 
 // LogContext is a context key.
@@ -54,12 +54,12 @@ func (lc *LogCollector) takeAll() []string {
 
 // Error logs the given v along with r in error log.
 func Error(r *http.Request, v ...interface{}) {
-	logx.ErrorCaller(1, format(r, v...))
+	logx.WithContext(r.Context()).Error(format(r, v...))
 }
 
 // Errorf logs the given v with format along with r in error log.
 func Errorf(r *http.Request, format string, v ...interface{}) {
-	logx.ErrorCaller(1, formatf(r, format, v...))
+	logx.WithContext(r.Context()).Error(formatf(r, format, v...))
 }
 
 // Info logs the given v along with r in access log.

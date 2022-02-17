@@ -1,18 +1,18 @@
 package discov
 
 import (
-	"github.com/tal-tech/go-zero/core/discov/internal"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/proc"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/zeromicro/go-zero/core/discov/internal"
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/threading"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type (
-	// PublisherOption defines the method to customize a Publisher.
-	PublisherOption func(client *Publisher)
+	// PubOption defines the method to customize a Publisher.
+	PubOption func(client *Publisher)
 
 	// A Publisher can be used to publish the value to an etcd cluster on the given key.
 	Publisher struct {
@@ -32,7 +32,7 @@ type (
 // endpoints is the hosts of the etcd cluster.
 // key:value are a pair to be published.
 // opts are used to customize the Publisher.
-func NewPublisher(endpoints []string, key, value string, opts ...PublisherOption) *Publisher {
+func NewPublisher(endpoints []string, key, value string, opts ...PubOption) *Publisher {
 	publisher := &Publisher{
 		endpoints:  endpoints,
 		key:        key,
@@ -146,8 +146,22 @@ func (p *Publisher) revoke(cli internal.EtcdClient) {
 }
 
 // WithId customizes a Publisher with the id.
-func WithId(id int64) PublisherOption {
+func WithId(id int64) PubOption {
 	return func(publisher *Publisher) {
 		publisher.id = id
+	}
+}
+
+// WithPubEtcdAccount provides the etcd username/password.
+func WithPubEtcdAccount(user, pass string) PubOption {
+	return func(pub *Publisher) {
+		RegisterAccount(pub.endpoints, user, pass)
+	}
+}
+
+// WithPubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
+func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) PubOption {
+	return func(pub *Publisher) {
+		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }

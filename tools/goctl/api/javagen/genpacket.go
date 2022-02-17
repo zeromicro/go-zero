@@ -6,10 +6,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 const packetTemplate = `package com.xhb.logic.http.packet.{{.packet}};
@@ -204,10 +204,7 @@ func processUri(route spec.Route) string {
 			}
 		}
 	}
-	result := builder.String()
-	if strings.HasSuffix(result, " + \"") {
-		result = result[:len(result)-4]
-	}
+	result := strings.TrimSuffix(builder.String(), " + \"")
 	if strings.HasPrefix(result, "/") {
 		result = strings.TrimPrefix(result, "/")
 		result = "\"" + result

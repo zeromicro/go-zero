@@ -3,17 +3,17 @@ package httpx
 import (
 	"io"
 	"net/http"
+	"net/textproto"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/mapping"
-	"github.com/tal-tech/go-zero/rest/internal/context"
+	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 const (
 	formKey           = "form"
 	pathKey           = "path"
 	headerKey         = "header"
-	emptyJson         = "{}"
 	maxMemory         = 32 << 20 // 32MB
 	maxBodyLen        = 8 << 20  // 8MB
 	separator         = ";"
@@ -23,7 +23,8 @@ const (
 var (
 	formUnmarshaler   = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler   = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues())
+	headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
+		mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
 )
 
 // Parse parses the request.
@@ -47,7 +48,6 @@ func Parse(r *http.Request, v interface{}) error {
 func ParseHeaders(r *http.Request, v interface{}) error {
 	m := map[string]interface{}{}
 	for k, v := range r.Header {
-		k = strings.ToLower(k)
 		if len(v) == 1 {
 			m[k] = v[0]
 		} else {
@@ -105,20 +105,18 @@ func ParseHeader(headerValue string) map[string]string {
 
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
-	var reader io.Reader
 	if withJsonBody(r) {
-		reader = io.LimitReader(r.Body, maxBodyLen)
-	} else {
-		reader = strings.NewReader(emptyJson)
+		reader := io.LimitReader(r.Body, maxBodyLen)
+		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
-	return mapping.UnmarshalJsonReader(reader, v)
+	return mapping.UnmarshalJsonMap(nil, v)
 }
 
 // ParsePath parses the symbols reside in url path.
 // Like http://localhost/bag/:name
 func ParsePath(r *http.Request, v interface{}) error {
-	vars := context.Vars(r)
+	vars := pathvar.Vars(r)
 	m := make(map[string]interface{}, len(vars))
 	for k, v := range vars {
 		m[k] = v

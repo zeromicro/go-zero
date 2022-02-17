@@ -39,5 +39,5 @@ service A-api {
 func TestFormat(t *testing.T) {
 	r, err := apiFormat(notFormattedStr)
 	assert.Nil(t, err)
-	assert.Equal(t, r, formattedStr)
+	assert.Equal(t, formattedStr, r)
 }

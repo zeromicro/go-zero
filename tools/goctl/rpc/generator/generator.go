@@ -1,8 +1,8 @@
 package generator
 
 import (
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 )
 
 // Generator defines a generator interface to describe how to generate rpc service
@@ -15,5 +15,5 @@ type Generator interface {
 	GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error
 	GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Config) error
 	GenSvc(ctx DirContext, proto parser.Proto, cfg *conf.Config) error
-	GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, cfg *conf.Config, goOptions ...string) error
+	GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, cfg *conf.Config, c *ZRpcContext, goOptions ...string) error
 }

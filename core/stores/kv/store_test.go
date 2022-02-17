@@ -6,16 +6,46 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 var (
 	s1, _ = miniredis.Run()
 	s2, _ = miniredis.Run()
 )
+
+func TestRedis_Decr(t *testing.T) {
+	store := clusterStore{dispatcher: hash.NewConsistentHash()}
+	_, err := store.Decr("a")
+	assert.NotNil(t, err)
+
+	runOnCluster(t, func(client Store) {
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	store := clusterStore{dispatcher: hash.NewConsistentHash()}
+	_, err := store.Incrby("a", 2)
+	assert.NotNil(t, err)
+
+	runOnCluster(t, func(client Store) {
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
 
 func TestRedis_Exists(t *testing.T) {
 	store := clusterStore{dispatcher: hash.NewConsistentHash()}
@@ -234,6 +264,8 @@ func TestRedis_List(t *testing.T) {
 	assert.NotNil(t, err)
 	_, err = store.Lrem("key", 0, "val")
 	assert.NotNil(t, err)
+	_, err = store.Lindex("key", 0)
+	assert.NotNil(t, err)
 
 	runOnCluster(t, func(client Store) {
 		val, err := client.Lpush("key", "value1", "value2")
@@ -245,6 +277,9 @@ func TestRedis_List(t *testing.T) {
 		val, err = client.Llen("key")
 		assert.Nil(t, err)
 		assert.Equal(t, 4, val)
+		value, err := client.Lindex("key", 0)
+		assert.Nil(t, err)
+		assert.Equal(t, "value2", value)
 		vals, err := client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)
@@ -667,10 +702,12 @@ func TestRedis_HyperLogLog(t *testing.T) {
 	assert.NotNil(t, err)
 
 	runOnCluster(t, func(cluster Store) {
-		_, err := cluster.Pfadd("key")
-		assert.NotNil(t, err)
-		_, err = cluster.Pfcount("key")
-		assert.NotNil(t, err)
+		ok, err := cluster.Pfadd("key", "value")
+		assert.Nil(t, err)
+		assert.True(t, ok)
+		val, err := cluster.Pfcount("key")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
 	})
 }
 

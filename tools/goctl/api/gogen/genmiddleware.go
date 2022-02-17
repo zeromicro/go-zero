@@ -3,9 +3,9 @@ package gogen
 import (
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
 var middlewareImplementCode = `
@@ -45,6 +45,8 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			subdir:          middlewareDir,
 			filename:        filename + ".go",
 			templateName:    "contextTemplate",
+			category:        category,
+			templateFile:    middlewareImplementCodeFile,
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
 				"name": strings.Title(name),

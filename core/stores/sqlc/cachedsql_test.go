@@ -1,6 +1,7 @@
 package sqlc
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -16,13 +17,13 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/fx"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/core/fx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
 func init() {
@@ -286,7 +287,7 @@ func TestStatCacheFails(t *testing.T) {
 	log.SetOutput(ioutil.Discard)
 	defer log.SetOutput(os.Stdout)
 
-	r := redis.NewRedis("localhost:59999", redis.NodeType)
+	r := redis.New("localhost:59999")
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 20; i++ {
@@ -485,7 +486,7 @@ func TestCachedConnExecDropCache(t *testing.T) {
 		value = "any"
 	)
 	var conn trackedConn
-	c := NewNodeConn(&conn, redis.NewRedis(r.Addr(), redis.NodeType), cache.WithExpiry(time.Second*30))
+	c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
 	assert.Nil(t, c.SetCache(key, value))
 	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
 		return conn.Exec("delete from user_table where id='kevin'")
@@ -503,7 +504,7 @@ func TestCachedConnExecDropCache(t *testing.T) {
 func TestCachedConnExecDropCacheFailed(t *testing.T) {
 	const key = "user"
 	var conn trackedConn
-	r := redis.NewRedis("anyredis:8888", redis.NodeType)
+	r := redis.New("anyredis:8888")
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
 	_, err := c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
 		return conn.Exec("delete from user_table where id='kevin'")
@@ -562,6 +563,18 @@ func TestQueryRowNoCache(t *testing.T) {
 	assert.True(t, ran)
 }
 
+func TestNewConnWithCache(t *testing.T) {
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	var conn trackedConn
+	c := NewConnWithCache(&conn, cache.NewNode(r, singleFlights, stats, sql.ErrNoRows))
+	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	assert.Nil(t, err)
+	assert.True(t, conn.execValue)
+}
+
 func resetStats() {
 	atomic.StoreUint64(&stats.Total, 0)
 	atomic.StoreUint64(&stats.Hit, 0)
@@ -573,6 +586,30 @@ type dummySqlConn struct {
 	queryRow func(interface{}, string, ...interface{}) error
 }
 
+func (d dummySqlConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return nil, nil
+}
+
+func (d dummySqlConn) PrepareCtx(ctx context.Context, query string) (sqlx.StmtSession, error) {
+	return nil, nil
+}
+
+func (d dummySqlConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (d dummySqlConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
+	return nil
+}
+
 func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return nil, nil
 }
@@ -582,6 +619,10 @@ func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
 }
 
 func (d dummySqlConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+	return d.QueryRowCtx(context.Background(), v, query, args...)
+}
+
+func (d dummySqlConn) QueryRowCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
 	if d.queryRow != nil {
 		return d.queryRow(v, query, args...)
 	}
@@ -600,6 +641,10 @@ func (d dummySqlConn) QueryRowsPartial(v interface{}, query string, args ...inte
 	return nil
 }
 
+func (d dummySqlConn) RawDB() (*sql.DB, error) {
+	return nil, nil
+}
+
 func (d dummySqlConn) Transact(func(session sqlx.Session) error) error {
 	return nil
 }
@@ -612,16 +657,34 @@ type trackedConn struct {
 }
 
 func (c *trackedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return c.ExecCtx(context.Background(), query, args...)
+}
+
+func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	c.execValue = true
-	return c.dummySqlConn.Exec(query, args...)
+	return c.dummySqlConn.ExecCtx(ctx, query, args...)
 }
 
 func (c *trackedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+	return c.QueryRowsCtx(context.Background(), v, query, args...)
+}
+
+func (c *trackedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
 	c.queryRowsValue = true
-	return c.dummySqlConn.QueryRows(v, query, args...)
+	return c.dummySqlConn.QueryRowsCtx(ctx, v, query, args...)
+}
+
+func (c *trackedConn) RawDB() (*sql.DB, error) {
+	return nil, nil
 }
 
 func (c *trackedConn) Transact(fn func(session sqlx.Session) error) error {
+	return c.TransactCtx(context.Background(), func(_ context.Context, session sqlx.Session) error {
+		return fn(session)
+	})
+}
+
+func (c *trackedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	c.transactValue = true
-	return c.dummySqlConn.Transact(fn)
+	return c.dummySqlConn.TransactCtx(ctx, fn)
 }

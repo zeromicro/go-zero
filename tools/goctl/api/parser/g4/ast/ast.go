@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/antlr"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
 
 type (
@@ -21,7 +21,7 @@ type (
 	// ApiVisitor wraps api.BaseApiParserVisitor to call methods which has prefix Visit to
 	// visit node from the api syntax
 	ApiVisitor struct {
-		api.BaseApiParserVisitor
+		*api.BaseApiParserVisitor
 		debug    bool
 		log      console.Console
 		prefix   string
@@ -104,6 +104,7 @@ func (v *ApiVisitor) newExprWithTerminalNode(node antlr.TerminalNode) *defaultEx
 	if node == nil {
 		return nil
 	}
+
 	token := node.GetSymbol()
 	return v.newExprWithToken(token)
 }
@@ -132,6 +133,7 @@ func (v *ApiVisitor) newExprWithText(text string, line, column, start, stop int)
 	instance.column = column
 	instance.start = start
 	instance.stop = stop
+
 	return instance
 }
 
@@ -193,11 +195,7 @@ func (e *defaultExpr) Stop() int {
 
 func (e *defaultExpr) Equal(expr Expr) bool {
 	if e == nil {
-		if expr != nil {
-			return false
-		}
-
-		return true
+		return expr == nil
 	}
 
 	if expr == nil {
@@ -252,8 +250,7 @@ func EqualDoc(spec1, spec2 Spec) bool {
 }
 
 func (v *ApiVisitor) getDoc(t TokenStream) []Expr {
-	list := v.getHiddenTokensToLeft(t, api.COMEMNTS, false)
-	return list
+	return v.getHiddenTokensToLeft(t, api.COMEMNTS, false)
 }
 
 func (v *ApiVisitor) getComment(t TokenStream) Expr {
@@ -277,13 +274,9 @@ func (v *ApiVisitor) getComment(t TokenStream) Expr {
 func (v *ApiVisitor) getHiddenTokensToLeft(t TokenStream, channel int, containsCommentOfDefaultChannel bool) []Expr {
 	ct := t.GetParser().GetTokenStream().(*antlr.CommonTokenStream)
 	tokens := ct.GetHiddenTokensToLeft(t.GetStart().GetTokenIndex(), channel)
-	var tmp []antlr.Token
-	for _, each := range tokens {
-		tmp = append(tmp, each)
-	}
 
 	var list []Expr
-	for _, each := range tmp {
+	for _, each := range tokens {
 		if !containsCommentOfDefaultChannel {
 			index := each.GetTokenIndex() - 1
 

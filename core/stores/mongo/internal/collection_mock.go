@@ -5,9 +5,10 @@
 package internal
 
 import (
+	reflect "reflect"
+
 	mgo "github.com/globalsign/mgo"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
 // MockMgoCollection is a mock of MgoCollection interface

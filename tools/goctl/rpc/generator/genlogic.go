@@ -5,12 +5,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/core/collection"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const (
@@ -21,7 +22,7 @@ import (
 
 	{{.imports}}
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type {{.logicName}} struct {
@@ -67,14 +68,14 @@ func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *con
 		imports := collection.NewSet()
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
-		text, err := util.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
+		text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
 		if err != nil {
 			return err
 		}
 		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 			"logicName": fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions": functions,
-			"imports":   strings.Join(imports.KeysStr(), util.NL),
+			"imports":   strings.Join(imports.KeysStr(), pathx.NL),
 		}, filename, false)
 		if err != nil {
 			return err
@@ -85,7 +86,7 @@ func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *con
 
 func (g *DefaultGenerator) genLogicFunction(serviceName, goPackage string, rpc *parser.RPC) (string, error) {
 	functions := make([]string, 0)
-	text, err := util.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
+	text, err := pathx.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
 	if err != nil {
 		return "", err
 	}
@@ -111,5 +112,5 @@ func (g *DefaultGenerator) genLogicFunction(serviceName, goPackage string, rpc *
 	}
 
 	functions = append(functions, buffer.String())
-	return strings.Join(functions, util.NL), nil
+	return strings.Join(functions, pathx.NL), nil
 }

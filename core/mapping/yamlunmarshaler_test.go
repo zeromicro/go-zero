@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"k8s.io/utils/io"
 )
 
 func TestUnmarshalYamlBytes(t *testing.T) {
@@ -16,6 +17,22 @@ func TestUnmarshalYamlBytes(t *testing.T) {
 
 	assert.Nil(t, UnmarshalYamlBytes(content, &c))
 	assert.Equal(t, "liao", c.Name)
+}
+
+func TestUnmarshalYamlBytesErrorInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(`liao`)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
+}
+
+func TestUnmarshalYamlBytesEmptyInput(t *testing.T) {
+	var c struct {
+		Name string
+	}
+	content := []byte(``)
+	assert.NotNil(t, UnmarshalYamlBytes(content, &c))
 }
 
 func TestUnmarshalYamlBytesOptional(t *testing.T) {
@@ -909,12 +926,95 @@ func TestUnmarshalYamlBytesError(t *testing.T) {
 }
 
 func TestUnmarshalYamlReaderError(t *testing.T) {
-	payload := `abcd: cdef`
-	reader := strings.NewReader(payload)
 	var v struct {
 		Any string
 	}
 
+	reader := strings.NewReader(`abcd: cdef`)
 	err := UnmarshalYamlReader(reader, &v)
 	assert.NotNil(t, err)
+
+	reader = strings.NewReader("chenquan")
+	err = UnmarshalYamlReader(reader, &v)
+	assert.ErrorIs(t, err, ErrUnsupportedType)
+
+}
+
+func TestUnmarshalYamlBadReader(t *testing.T) {
+	var v struct {
+		Any string
+	}
+
+	err := UnmarshalYamlReader(new(badReader), &v)
+	assert.NotNil(t, err)
+}
+
+func TestUnmarshalYamlMapBool(t *testing.T) {
+	text := `machine:
+  node1: true
+  node2: true
+  node3: true
+`
+	var v struct {
+		Machine map[string]bool `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.True(t, v.Machine["node1"])
+	assert.True(t, v.Machine["node2"])
+	assert.True(t, v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapInt(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]int `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, 1, v.Machine["node1"])
+	assert.Equal(t, 2, v.Machine["node2"])
+	assert.Equal(t, 3, v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapByte(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]byte `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, byte(1), v.Machine["node1"])
+	assert.Equal(t, byte(2), v.Machine["node2"])
+	assert.Equal(t, byte(3), v.Machine["node3"])
+}
+
+func TestUnmarshalYamlMapRune(t *testing.T) {
+	text := `machine:
+  node1: 1
+  node2: 2
+  node3: 3
+`
+	var v struct {
+		Machine map[string]rune `json:"machine,optional"`
+	}
+	reader := strings.NewReader(text)
+	assert.Nil(t, UnmarshalYamlReader(reader, &v))
+	assert.Equal(t, rune(1), v.Machine["node1"])
+	assert.Equal(t, rune(2), v.Machine["node2"])
+	assert.Equal(t, rune(3), v.Machine["node3"])
+}
+
+type badReader struct{}
+
+func (b *badReader) Read(_ []byte) (n int, err error) {
+	return 0, io.ErrLimitReached
 }

@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mathx"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mathx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
@@ -34,7 +34,7 @@ type (
 		expire         time.Duration
 		timingWheel    *TimingWheel
 		lruCache       lru
-		barrier        syncx.SharedCalls
+		barrier        syncx.SingleFlight
 		unstableExpiry mathx.Unstable
 		stats          *cacheStat
 	}
@@ -46,7 +46,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 		data:           make(map[string]interface{}),
 		expire:         expire,
 		lruCache:       emptyLruCache,
-		barrier:        syncx.NewSharedCalls(),
+		barrier:        syncx.NewSingleFlight(),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 	}
 

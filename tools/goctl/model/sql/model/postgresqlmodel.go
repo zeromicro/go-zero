@@ -4,19 +4,18 @@ import (
 	"database/sql"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-var (
-	p2m = map[string]string{
-		"int8":    "bigint",
-		"numeric": "bigint",
-		"float8":  "double",
-		"float4":  "float",
-		"int2":    "smallint",
-		"int4":    "integer",
-	}
-)
+var p2m = map[string]string{
+	"int8":        "bigint",
+	"numeric":     "bigint",
+	"float8":      "double",
+	"float4":      "float",
+	"int2":        "smallint",
+	"int4":        "integer",
+	"timestamptz": "timestamp",
+}
 
 // PostgreSqlModel gets table information from information_schema、pg_catalog
 type PostgreSqlModel struct {
@@ -173,7 +172,7 @@ func (m *PostgreSqlModel) getIndex(schema, table string) (map[string][]*DbIndex,
 	if err != nil {
 		return nil, err
 	}
-	var index = make(map[string][]*DbIndex)
+	index := make(map[string][]*DbIndex)
 	for _, e := range indexes {
 		if e.IsPrimary.Bool {
 			index[e.ColumnName.String] = append(index[e.ColumnName.String], &DbIndex{

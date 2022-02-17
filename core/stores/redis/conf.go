@@ -17,7 +17,7 @@ type (
 		Host string
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
-		Tls  bool   `json:",default=false,options=true|false"`
+		Tls  bool   `json:",optional"`
 	}
 
 	// A RedisKeyConf is a redis config with key.

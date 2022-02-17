@@ -1,6 +1,6 @@
 package stringx
 
-import "github.com/tal-tech/go-zero/core/lang"
+import "github.com/zeromicro/go-zero/core/lang"
 
 const defaultMask = '*'
 
@@ -39,6 +39,8 @@ func NewTrie(words []string, opts ...TrieOption) Trie {
 		n.add(word)
 	}
 
+	n.build()
+
 	return n
 }
 
@@ -48,7 +50,7 @@ func (n *trieNode) Filter(text string) (sentence string, keywords []string, foun
 		return text, nil, false
 	}
 
-	scopes := n.findKeywordScopes(chars)
+	scopes := n.find(chars)
 	keywords = n.collectKeywords(chars, scopes)
 
 	for _, match := range scopes {
@@ -65,7 +67,7 @@ func (n *trieNode) FindKeywords(text string) []string {
 		return nil
 	}
 
-	scopes := n.findKeywordScopes(chars)
+	scopes := n.find(chars)
 	return n.collectKeywords(chars, scopes)
 }
 
@@ -83,48 +85,6 @@ func (n *trieNode) collectKeywords(chars []rune, scopes []scope) []string {
 	}
 
 	return keywords
-}
-
-func (n *trieNode) findKeywordScopes(chars []rune) []scope {
-	var scopes []scope
-	size := len(chars)
-	start := -1
-
-	for i := 0; i < size; i++ {
-		child, ok := n.children[chars[i]]
-		if !ok {
-			continue
-		}
-
-		if start < 0 {
-			start = i
-		}
-		if child.end {
-			scopes = append(scopes, scope{
-				start: start,
-				stop:  i + 1,
-			})
-		}
-
-		for j := i + 1; j < size; j++ {
-			grandchild, ok := child.children[chars[j]]
-			if !ok {
-				break
-			}
-
-			child = grandchild
-			if child.end {
-				scopes = append(scopes, scope{
-					start: start,
-					stop:  j + 1,
-				})
-			}
-		}
-
-		start = -1
-	}
-
-	return scopes
 }
 
 func (n *trieNode) replaceWithAsterisk(chars []rune, start, stop int) {

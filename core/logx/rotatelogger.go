@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/fs"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/fs"
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -47,7 +47,6 @@ type (
 		done     chan lang.PlaceholderType
 		rule     RotateRule
 		compress bool
-		keepDays int
 		// can't use threading.RoutineGroup because of cycle import
 		waitGroup sync.WaitGroup
 		closeOnce sync.Once

@@ -4,14 +4,11 @@ syntax = "proto3";
 package test;
 
 import "base/common.proto";
-import "google/protobuf/any.proto";
-
 option go_package = "github.com/test";
 
 message Req {
   string in = 1;
   common.User user = 2;
-  google.protobuf.Any object = 4;
 }
 
 message Reply {

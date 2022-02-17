@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -31,6 +31,7 @@ type Docker struct {
 	HasPort   bool
 	Port      int
 	Argument  string
+	Version   string
 }
 
 // DockerCommand provides the entry for goctl docker
@@ -43,22 +44,34 @@ func DockerCommand(c *cli.Context) (err error) {
 
 	goFile := c.String("go")
 	home := c.String("home")
+	version := c.String("version")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
+
+	if len(version) > 0 {
+		version = version + "-"
+	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(goFile) == 0 {
 		return errors.New("-go can't be empty")
 	}
 
-	if !util.FileExists(goFile) {
+	if !pathx.FileExists(goFile) {
 		return fmt.Errorf("file %q not found", goFile)
 	}
 
 	port := c.Int("port")
 	if _, err := os.Stat(etcDir); os.IsNotExist(err) {
-		return generateDockerfile(goFile, port)
+		return generateDockerfile(goFile, port, version)
 	}
 
 	cfg, err := findConfig(goFile, etcDir)
@@ -66,13 +79,13 @@ func DockerCommand(c *cli.Context) (err error) {
 		return err
 	}
 
-	if err := generateDockerfile(goFile, port, "-f", "etc/"+cfg); err != nil {
+	if err := generateDockerfile(goFile, port, version, "-f", "etc/"+cfg); err != nil {
 		return err
 	}
 
-	projDir, ok := util.FindProjectPath(goFile)
+	projDir, ok := pathx.FindProjectPath(goFile)
 	if ok {
-		fmt.Printf("Hint: run \"docker build ...\" command in dir %q\n", projDir)
+		fmt.Printf("Hint: run \"docker build ...\" command in dir:\n    %s\n", projDir)
 	}
 
 	return nil
@@ -107,7 +120,7 @@ func findConfig(file, dir string) (string, error) {
 	return files[0], nil
 }
 
-func generateDockerfile(goFile string, port int, args ...string) error {
+func generateDockerfile(goFile string, port int, version string, args ...string) error {
 	projPath, err := getFilePath(filepath.Dir(goFile))
 	if err != nil {
 		return err
@@ -115,20 +128,15 @@ func generateDockerfile(goFile string, port int, args ...string) error {
 
 	if len(projPath) == 0 {
 		projPath = "."
-	} else {
-		pos := strings.IndexByte(projPath, os.PathSeparator)
-		if pos >= 0 {
-			projPath = projPath[pos+1:]
-		}
 	}
 
-	out, err := util.CreateIfNotExist(dockerfileName)
+	out, err := pathx.CreateIfNotExist(dockerfileName)
 	if err != nil {
 		return err
 	}
 	defer out.Close()
 
-	text, err := ctlutil.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
+	text, err := pathx.LoadTemplate(category, dockerTemplateFile, dockerTemplate)
 	if err != nil {
 		return err
 	}
@@ -144,10 +152,11 @@ func generateDockerfile(goFile string, port int, args ...string) error {
 		Chinese:   offset == cstOffset,
 		GoRelPath: projPath,
 		GoFile:    goFile,
-		ExeFile:   util.FileNameWithoutExt(filepath.Base(goFile)),
+		ExeFile:   pathx.FileNameWithoutExt(filepath.Base(goFile)),
 		HasPort:   port > 0,
 		Port:      port,
 		Argument:  builder.String(),
+		Version:   version,
 	})
 }
 
@@ -157,11 +166,17 @@ func getFilePath(file string) (string, error) {
 		return "", err
 	}
 
-	projPath, ok := util.FindGoModPath(filepath.Join(wd, file))
+	projPath, ok := pathx.FindGoModPath(filepath.Join(wd, file))
 	if !ok {
-		projPath, err = util.PathFromGoSrc()
+		projPath, err = pathx.PathFromGoSrc()
 		if err != nil {
 			return "", errors.New("no go.mod found, or not in GOPATH")
+		}
+
+		// ignore project root directory for GOPATH mode
+		pos := strings.IndexByte(projPath, os.PathSeparator)
+		if pos >= 0 {
+			projPath = projPath[pos+1:]
 		}
 	}
 

@@ -3,11 +3,12 @@ package logx
 import (
 	"os"
 	"path/filepath"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/fs"
+	"github.com/zeromicro/go-zero/core/fs"
 )
 
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
@@ -97,7 +98,13 @@ func TestRotateLoggerRotate(t *testing.T) {
 		}()
 	}
 	err = logger.rotate()
-	assert.Nil(t, err)
+	switch v := err.(type) {
+	case *os.LinkError:
+		// avoid rename error on docker container
+		assert.Equal(t, syscall.EXDEV, v.Err)
+	default:
+		assert.Nil(t, err)
+	}
 }
 
 func TestRotateLoggerWrite(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	xrate "golang.org/x/time/rate"
 )
 
@@ -85,8 +85,8 @@ func (lim *TokenLimiter) Allow() bool {
 }
 
 // AllowN reports whether n events may happen at time now.
-// Use this method if you intend to drop / skip events that exceed the rate rate.
-// Otherwise use Reserve or Wait.
+// Use this method if you intend to drop / skip events that exceed the rate.
+// Otherwise, use Reserve or Wait.
 func (lim *TokenLimiter) AllowN(now time.Time, n int) bool {
 	return lim.reserveN(now, n)
 }
@@ -112,7 +112,8 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 	// Lua boolean false -> r Nil bulk reply
 	if err == redis.Nil {
 		return false
-	} else if err != nil {
+	}
+	if err != nil {
 		logx.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		lim.startMonitor()
 		return lim.rescueLimiter.AllowN(now, n)

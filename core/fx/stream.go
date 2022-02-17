@@ -4,9 +4,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/threading"
 )
 
 const (
@@ -90,6 +90,8 @@ func Range(source <-chan interface{}) Stream {
 func (s Stream) AllMach(predicate func(item interface{}) bool) bool {
 	for item := range s.source {
 		if !predicate(item) {
+			// make sure the former goroutine not block, and current func returns fast.
+			go drain(s.source)
 			return false
 		}
 	}
@@ -103,6 +105,8 @@ func (s Stream) AllMach(predicate func(item interface{}) bool) bool {
 func (s Stream) AnyMach(predicate func(item interface{}) bool) bool {
 	for item := range s.source {
 		if predicate(item) {
+			// make sure the former goroutine not block, and current func returns fast.
+			go drain(s.source)
 			return true
 		}
 	}
@@ -186,8 +190,7 @@ func (s Stream) Distinct(fn KeyFunc) Stream {
 
 // Done waits all upstreaming operations to be done.
 func (s Stream) Done() {
-	for range s.source {
-	}
+	drain(s.source)
 }
 
 // Filter filters the items by the given FilterFunc.
@@ -199,9 +202,22 @@ func (s Stream) Filter(fn FilterFunc, opts ...Option) Stream {
 	}, opts...)
 }
 
+// First returns the first item, nil if no items.
+func (s Stream) First() interface{} {
+	for item := range s.source {
+		// make sure the former goroutine not block, and current func returns fast.
+		go drain(s.source)
+		return item
+	}
+
+	return nil
+}
+
 // ForAll handles the streaming elements from the source and no later streams.
 func (s Stream) ForAll(fn ForAllFunc) {
 	fn(s.source)
+	// avoid goroutine leak on fn not consuming all items.
+	go drain(s.source)
 }
 
 // ForEach seals the Stream with the ForEachFunc on each item, no successive operations.
@@ -246,17 +262,27 @@ func (s Stream) Head(n int64) Stream {
 			}
 			if n == 0 {
 				// let successive method go ASAP even we have more items to skip
-				// why we don't just break the loop, because if break,
-				// this former goroutine will block forever, which will cause goroutine leak.
 				close(source)
+				// why we don't just break the loop, and drain to consume all items.
+				// because if breaks, this former goroutine will block forever,
+				// which will cause goroutine leak.
+				drain(s.source)
 			}
 		}
+		// not enough items in s.source, but we need to let successive method to go ASAP.
 		if n > 0 {
 			close(source)
 		}
 	}()
 
 	return Range(source)
+}
+
+// Last returns the last item, or nil if no items.
+func (s Stream) Last() (item interface{}) {
+	for item = range s.source {
+	}
+	return
 }
 
 // Map converts each item to another corresponding item, which means it's a 1:1 model.
@@ -278,6 +304,21 @@ func (s Stream) Merge() Stream {
 	close(source)
 
 	return Range(source)
+}
+
+// NoneMatch returns whether all elements of this stream don't match the provided predicate.
+// May not evaluate the predicate on all elements if not necessary for determining the result.
+// If the stream is empty then true is returned and the predicate is not evaluated.
+func (s Stream) NoneMatch(predicate func(item interface{}) bool) bool {
+	for item := range s.source {
+		if predicate(item) {
+			// make sure the former goroutine not block, and current func returns fast.
+			go drain(s.source)
+			return false
+		}
+	}
+
+	return true
 }
 
 // Parallel applies the given ParallelFunc to each item concurrently with given number of workers.
@@ -411,15 +452,12 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 		var wg sync.WaitGroup
 		pool := make(chan lang.PlaceholderType, option.workers)
 
-		for {
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
 			pool <- lang.Placeholder
-			item, ok := <-s.source
-			if !ok {
-				<-pool
-				break
-			}
-
 			wg.Add(1)
+
 			// better to safely run caller defined method
 			threading.GoSafe(func() {
 				defer func() {
@@ -427,7 +465,7 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 					<-pool
 				}()
 
-				fn(item, pipe)
+				fn(val, pipe)
 			})
 		}
 
@@ -439,22 +477,19 @@ func (s Stream) walkLimited(fn WalkFunc, option *rxOptions) Stream {
 }
 
 func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
-	pipe := make(chan interface{}, defaultWorkers)
+	pipe := make(chan interface{}, option.workers)
 
 	go func() {
 		var wg sync.WaitGroup
 
-		for {
-			item, ok := <-s.source
-			if !ok {
-				break
-			}
-
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
 			wg.Add(1)
 			// better to safely run caller defined method
 			threading.GoSafe(func() {
 				defer wg.Done()
-				fn(item, pipe)
+				fn(val, pipe)
 			})
 		}
 
@@ -465,14 +500,14 @@ func (s Stream) walkUnlimited(fn WalkFunc, option *rxOptions) Stream {
 	return Range(pipe)
 }
 
-// UnlimitedWorkers lets the caller to use as many workers as the tasks.
+// UnlimitedWorkers lets the caller use as many workers as the tasks.
 func UnlimitedWorkers() Option {
 	return func(opts *rxOptions) {
 		opts.unlimitedWorkers = true
 	}
 }
 
-// WithWorkers lets the caller to customize the concurrent workers.
+// WithWorkers lets the caller customize the concurrent workers.
 func WithWorkers(workers int) Option {
 	return func(opts *rxOptions) {
 		if workers < minWorkers {
@@ -483,6 +518,7 @@ func WithWorkers(workers int) Option {
 	}
 }
 
+// buildOptions returns a rxOptions with given customizations.
 func buildOptions(opts ...Option) *rxOptions {
 	options := newOptions()
 	for _, opt := range opts {
@@ -492,6 +528,13 @@ func buildOptions(opts ...Option) *rxOptions {
 	return options
 }
 
+// drain drains the given channel.
+func drain(channel <-chan interface{}) {
+	for range channel {
+	}
+}
+
+// newOptions returns a default rxOptions.
 func newOptions() *rxOptions {
 	return &rxOptions{
 		workers: defaultWorkers,

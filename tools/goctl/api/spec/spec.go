@@ -1,5 +1,8 @@
 package spec
 
+// RoutePrefixKey is the prefix keyword for the routes.
+const RoutePrefixKey = "prefix"
+
 type (
 	// Doc describes document
 	Doc []string

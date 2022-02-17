@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"testing"
@@ -57,7 +58,7 @@ func TestStmt_exec(t *testing.T) {
 		test := test
 		fns := []func(args ...interface{}) (sql.Result, error){
 			func(args ...interface{}) (sql.Result, error) {
-				return exec(&mockedSessionConn{
+				return exec(context.Background(), &mockedSessionConn{
 					lastInsertId: test.lastInsertId,
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
@@ -65,7 +66,7 @@ func TestStmt_exec(t *testing.T) {
 				}, test.query, args...)
 			},
 			func(args ...interface{}) (sql.Result, error) {
-				return execStmt(&mockedStmtConn{
+				return execStmt(context.Background(), &mockedStmtConn{
 					lastInsertId: test.lastInsertId,
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
@@ -137,7 +138,7 @@ func TestStmt_query(t *testing.T) {
 		test := test
 		fns := []func(args ...interface{}) error{
 			func(args ...interface{}) error {
-				return query(&mockedSessionConn{
+				return query(context.Background(), &mockedSessionConn{
 					err:   test.err,
 					delay: test.delay,
 				}, func(rows *sql.Rows) error {
@@ -145,7 +146,7 @@ func TestStmt_query(t *testing.T) {
 				}, test.query, args...)
 			},
 			func(args ...interface{}) error {
-				return queryStmt(&mockedStmtConn{
+				return queryStmt(context.Background(), &mockedStmtConn{
 					err:   test.err,
 					delay: test.delay,
 				}, func(rows *sql.Rows) error {
@@ -171,6 +172,12 @@ func TestStmt_query(t *testing.T) {
 	}
 }
 
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
+}
+
 type mockedSessionConn struct {
 	lastInsertId int64
 	rowsAffected int64
@@ -179,8 +186,12 @@ type mockedSessionConn struct {
 }
 
 func (m *mockedSessionConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return m.ExecContext(context.Background(), query, args...)
+}
+
+func (m *mockedSessionConn) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	if m.delay {
-		time.Sleep(slowThreshold + time.Millisecond)
+		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
 	return mockedResult{
 		lastInsertId: m.lastInsertId,
@@ -189,8 +200,12 @@ func (m *mockedSessionConn) Exec(query string, args ...interface{}) (sql.Result,
 }
 
 func (m *mockedSessionConn) Query(query string, args ...interface{}) (*sql.Rows, error) {
+	return m.QueryContext(context.Background(), query, args...)
+}
+
+func (m *mockedSessionConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	if m.delay {
-		time.Sleep(slowThreshold + time.Millisecond)
+		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
 
 	err := errMockedPlaceholder
@@ -208,8 +223,12 @@ type mockedStmtConn struct {
 }
 
 func (m *mockedStmtConn) Exec(args ...interface{}) (sql.Result, error) {
+	return m.ExecContext(context.Background(), args...)
+}
+
+func (m *mockedStmtConn) ExecContext(_ context.Context, _ ...interface{}) (sql.Result, error) {
 	if m.delay {
-		time.Sleep(slowThreshold + time.Millisecond)
+		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
 	return mockedResult{
 		lastInsertId: m.lastInsertId,
@@ -218,8 +237,12 @@ func (m *mockedStmtConn) Exec(args ...interface{}) (sql.Result, error) {
 }
 
 func (m *mockedStmtConn) Query(args ...interface{}) (*sql.Rows, error) {
+	return m.QueryContext(context.Background(), args...)
+}
+
+func (m *mockedStmtConn) QueryContext(_ context.Context, _ ...interface{}) (*sql.Rows, error) {
 	if m.delay {
-		time.Sleep(slowThreshold + time.Millisecond)
+		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
 
 	err := errMockedPlaceholder

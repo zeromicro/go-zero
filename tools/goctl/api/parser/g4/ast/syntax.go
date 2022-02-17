@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 // SyntaxExpr describes syntax for api

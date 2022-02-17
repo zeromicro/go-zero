@@ -20,6 +20,11 @@ func TestMd5(t *testing.T) {
 	assert.Equal(t, md5Digest, actual)
 }
 
+func TestMd5Hex(t *testing.T) {
+	actual := Md5Hex([]byte(text))
+	assert.Equal(t, md5Digest, actual)
+}
+
 func BenchmarkHashFnv(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		h := fnv.New32()

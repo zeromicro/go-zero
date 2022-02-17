@@ -4,10 +4,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 	server   = "server"
 	svc      = "svc"
 	pb       = "pb"
+	protoGo  = "proto-go"
 	call     = "call"
 )
 
@@ -33,6 +35,7 @@ type (
 		GetServer() Dir
 		GetSvc() Dir
 		GetPb() Dir
+		GetProtoGo() Dir
 		GetMain() Dir
 		GetServiceName() stringx.String
 	}
@@ -50,7 +53,7 @@ type (
 	}
 )
 
-func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
+func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcContext) (DirContext, error) {
 	inner := make(map[string]Dir)
 	etcDir := filepath.Join(ctx.WorkDir, "etc")
 	internalDir := filepath.Join(ctx.WorkDir, "internal")
@@ -59,8 +62,14 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 	serverDir := filepath.Join(internalDir, "server")
 	svcDir := filepath.Join(internalDir, "svc")
 	pbDir := filepath.Join(ctx.WorkDir, proto.GoPackage)
+	protoGoDir := pbDir
+	if c != nil {
+		pbDir = c.ProtoGenGrpcDir
+		protoGoDir = c.ProtoGenGoDir
+	}
+
 	callDir := filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name).ToCamel()))
-	if strings.ToLower(proto.Service.Name) == strings.ToLower(proto.GoPackage) {
+	if strings.EqualFold(proto.Service.Name, proto.GoPackage) {
 		callDir = filepath.Join(ctx.WorkDir, strings.ToLower(stringx.From(proto.Service.Name+"_client").ToCamel()))
 	}
 
@@ -99,18 +108,26 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto) (DirContext, error) {
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
 		Base:     filepath.Base(svcDir),
 	}
+
 	inner[pb] = Dir{
 		Filename: pbDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
 		Base:     filepath.Base(pbDir),
 	}
+
+	inner[protoGo] = Dir{
+		Filename: protoGoDir,
+		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(protoGoDir, ctx.Dir))),
+		Base:     filepath.Base(protoGoDir),
+	}
+
 	inner[call] = Dir{
 		Filename: callDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(callDir, ctx.Dir))),
 		Base:     filepath.Base(callDir),
 	}
 	for _, v := range inner {
-		err := util.MkdirIfNotExist(v.Filename)
+		err := pathx.MkdirIfNotExist(v.Filename)
 		if err != nil {
 			return nil, err
 		}
@@ -152,6 +169,10 @@ func (d *defaultDirContext) GetSvc() Dir {
 
 func (d *defaultDirContext) GetPb() Dir {
 	return d.inner[pb]
+}
+
+func (d *defaultDirContext) GetProtoGo() Dir {
+	return d.inner[protoGo]
 }
 
 func (d *defaultDirContext) GetMain() Dir {

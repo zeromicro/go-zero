@@ -7,11 +7,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -31,6 +31,8 @@ var (
 
 	// default to be enabled
 	enabled = syncx.ForAtomicBool(true)
+	// default to be enabled
+	logEnabled = syncx.ForAtomicBool(true)
 	// make it a variable for unit test
 	systemOverloadChecker = func(cpuThreshold int64) bool {
 		return stat.CpuUsage() >= cpuThreshold
@@ -78,6 +80,11 @@ type (
 // Disable lets callers disable load shedding.
 func Disable() {
 	enabled.Set(false)
+}
+
+// DisableLog disables the stat logs for load shedding.
+func DisableLog() {
+	logEnabled.Set(false)
 }
 
 // NewAdaptiveShedder returns an adaptive shedder.

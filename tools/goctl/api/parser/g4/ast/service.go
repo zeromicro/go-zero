@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 // Service describes service for api syntax
@@ -71,9 +71,10 @@ type Route struct {
 
 // Body describes request,response body ast for api syntax
 type Body struct {
-	Lp   Expr
-	Rp   Expr
-	Name DataType
+	ReturnExpr Expr
+	Lp         Expr
+	Rp         Expr
+	Name       DataType
 }
 
 // VisitServiceSpec implements from api.BaseApiParserVisitor
@@ -175,7 +176,7 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
-// VisitRoute implements from api.BaseApiParserVisitor
+// serVisitRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	var route Route
 	path := ctx.Path()
@@ -193,15 +194,11 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	if ctx.GetResponse() != nil {
 		reply := ctx.GetResponse().Accept(v)
 		if reply != nil {
-			route.Reply = reply.(*Body)
+			resp := reply.(*Body)
+			route.ReturnToken = resp.ReturnExpr
+			resp.ReturnExpr = nil
+			route.Reply = resp
 		}
-	}
-	if ctx.GetReturnToken() != nil {
-		returnExpr := v.newExprWithToken(ctx.GetReturnToken())
-		if ctx.GetReturnToken().GetText() != "returns" {
-			v.panic(returnExpr, fmt.Sprintf("expecting returns, found input '%s'", ctx.GetReturnToken().GetText()))
-		}
-		route.ReturnToken = returnExpr
 	}
 
 	route.DocExpr = v.getDoc(ctx)
@@ -212,25 +209,49 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 // VisitBody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 	if ctx.ID() == nil {
+		if v.debug {
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "()" is deprecated, if there has no request body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
+		}
 		return nil
 	}
 
-	idRxpr := v.newExprWithTerminalNode(ctx.ID())
-	if api.IsGolangKeyWord(idRxpr.Text()) {
-		v.panic(idRxpr, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", idRxpr.Text()))
+	idExpr := v.newExprWithTerminalNode(ctx.ID())
+	if api.IsGolangKeyWord(idExpr.Text()) {
+		v.panic(idExpr, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", idExpr.Text()))
 	}
 
 	return &Body{
 		Lp:   v.newExprWithToken(ctx.GetLp()),
 		Rp:   v.newExprWithToken(ctx.GetRp()),
-		Name: &Literal{Literal: idRxpr},
+		Name: &Literal{Literal: idExpr},
 	}
 }
 
 // VisitReplybody implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 	if ctx.DataType() == nil {
+		if v.debug {
+			msg := fmt.Sprintf(
+				`%s line %d:  expr "returns ()" or "()" is deprecated, if there has no response body, please omit it`,
+				v.prefix,
+				ctx.GetStart().GetLine(),
+			)
+			v.log.Warning(msg)
+		}
 		return nil
+	}
+
+	var returnExpr Expr
+	if ctx.GetReturnToken() != nil {
+		returnExpr = v.newExprWithToken(ctx.GetReturnToken())
+		if ctx.GetReturnToken().GetText() != "returns" {
+			v.panic(returnExpr, fmt.Sprintf("expecting returns, found input '%s'", ctx.GetReturnToken().GetText()))
+		}
 	}
 
 	dt := ctx.DataType().Accept(v).(DataType)
@@ -251,20 +272,18 @@ func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
 		}
 	case *Literal:
 		lit := dataType.Literal.Text()
-		if api.IsGolangKeyWord(dataType.Literal.Text()) {
-			v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", dataType.Literal.Text()))
-		}
-		if api.IsBasicType(lit) {
-			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+		if api.IsGolangKeyWord(lit) {
+			v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit))
 		}
 	default:
 		v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
 	}
 
 	return &Body{
-		Lp:   v.newExprWithToken(ctx.GetLp()),
-		Rp:   v.newExprWithToken(ctx.GetRp()),
-		Name: dt,
+		ReturnExpr: returnExpr,
+		Lp:         v.newExprWithToken(ctx.GetLp()),
+		Rp:         v.newExprWithToken(ctx.GetRp()),
+		Name:       dt,
 	}
 }
 

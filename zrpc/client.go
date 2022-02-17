@@ -4,17 +4,21 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"google.golang.org/grpc"
 )
 
 var (
 	// WithDialOption is an alias of internal.WithDialOption.
 	WithDialOption = internal.WithDialOption
+	// WithNonBlock sets the dialing to be nonblock.
+	WithNonBlock = internal.WithNonBlock
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
+	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
+	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
@@ -50,30 +54,21 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 			Token: c.Token,
 		})))
 	}
+	if c.NonBlock {
+		opts = append(opts, WithNonBlock())
+	}
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
+
 	opts = append(opts, options...)
 
-	var client Client
-	var err error
-	if len(c.Endpoints) > 0 {
-		client, err = internal.NewClient(internal.BuildDirectTarget(c.Endpoints), opts...)
-	} else if err = c.Etcd.Validate(); err == nil {
-		client, err = internal.NewClient(internal.BuildDiscovTarget(c.Etcd.Hosts, c.Etcd.Key), opts...)
-	}
+	target, err := c.BuildTarget()
 	if err != nil {
 		return nil, err
 	}
 
-	return &RpcClient{
-		client: client,
-	}, nil
-}
-
-// NewClientNoAuth returns a Client without authentication.
-func NewClientNoAuth(c discov.EtcdConf, opts ...ClientOption) (Client, error) {
-	client, err := internal.NewClient(internal.BuildDiscovTarget(c.Hosts, c.Key), opts...)
+	client, err := internal.NewClient(target, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -91,4 +86,9 @@ func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 // Conn returns the underlying grpc.ClientConn.
 func (rc *RpcClient) Conn() *grpc.ClientConn {
 	return rc.client.Conn()
+}
+
+// SetClientSlowThreshold sets the slow threshold on client side.
+func SetClientSlowThreshold(threshold time.Duration) {
+	clientinterceptors.SetSlowThreshold(threshold)
 }

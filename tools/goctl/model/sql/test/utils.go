@@ -7,22 +7,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mapping"
 )
 
 // ErrNotFound is the alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
-
-func desensitize(datasource string) string {
-	// remove account
-	pos := strings.LastIndex(datasource, "@")
-	if 0 <= pos && pos+1 < len(datasource) {
-		datasource = datasource[pos+1:]
-	}
-
-	return datasource
-}
 
 func escape(input string) string {
 	var b strings.Builder

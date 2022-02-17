@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"testing"
@@ -26,7 +27,15 @@ func (mt *mockTx) Exec(q string, args ...interface{}) (sql.Result, error) {
 	return nil, nil
 }
 
+func (mt *mockTx) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return nil, nil
+}
+
 func (mt *mockTx) Prepare(query string) (StmtSession, error) {
+	return nil, nil
+}
+
+func (mt *mockTx) PrepareCtx(ctx context.Context, query string) (StmtSession, error) {
 	return nil, nil
 }
 
@@ -34,7 +43,15 @@ func (mt *mockTx) QueryRow(v interface{}, q string, args ...interface{}) error {
 	return nil
 }
 
+func (mt *mockTx) QueryRowCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
 func (mt *mockTx) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
+	return nil
+}
+
+func (mt *mockTx) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
 	return nil
 }
 
@@ -42,7 +59,15 @@ func (mt *mockTx) QueryRows(v interface{}, q string, args ...interface{}) error 
 	return nil
 }
 
+func (mt *mockTx) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
 func (mt *mockTx) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
+	return nil
+}
+
+func (mt *mockTx) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
 	return nil
 }
 
@@ -59,18 +84,20 @@ func beginMock(mock *mockTx) beginnable {
 
 func TestTransactCommit(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(nil, beginMock(mock), func(Session) error {
-		return nil
-	})
+	err := transactOnConn(context.Background(), nil, beginMock(mock),
+		func(context.Context, Session) error {
+			return nil
+		})
 	assert.Equal(t, mockCommit, mock.status)
 	assert.Nil(t, err)
 }
 
 func TestTransactRollback(t *testing.T) {
 	mock := &mockTx{}
-	err := transactOnConn(nil, beginMock(mock), func(Session) error {
-		return errors.New("rollback")
-	})
+	err := transactOnConn(context.Background(), nil, beginMock(mock),
+		func(context.Context, Session) error {
+			return errors.New("rollback")
+		})
 	assert.Equal(t, mockRollback, mock.status)
 	assert.NotNil(t, err)
 }

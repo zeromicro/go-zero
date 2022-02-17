@@ -3,33 +3,54 @@ package generator
 import (
 	"path/filepath"
 
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 // RPCGenerator defines a generator and configure
 type RPCGenerator struct {
 	g   Generator
 	cfg *conf.Config
+	ctx *ZRpcContext
+}
+
+type RPCGeneratorOption func(g *RPCGenerator)
+
+type ZRpcContext struct {
+	Src             string
+	ProtocCmd       string
+	ProtoGenGrpcDir string
+	ProtoGenGoDir   string
+	Output          string
 }
 
 // NewDefaultRPCGenerator wraps Generator with configure
-func NewDefaultRPCGenerator(style string) (*RPCGenerator, error) {
+func NewDefaultRPCGenerator(style string, options ...RPCGeneratorOption) (*RPCGenerator, error) {
 	cfg, err := conf.NewConfig(style)
 	if err != nil {
 		return nil, err
 	}
-	return NewRPCGenerator(NewDefaultGenerator(), cfg), nil
+	return NewRPCGenerator(NewDefaultGenerator(), cfg, options...), nil
 }
 
 // NewRPCGenerator creates an instance for RPCGenerator
-func NewRPCGenerator(g Generator, cfg *conf.Config) *RPCGenerator {
-	return &RPCGenerator{
+func NewRPCGenerator(g Generator, cfg *conf.Config, options ...RPCGeneratorOption) *RPCGenerator {
+	out := &RPCGenerator{
 		g:   g,
 		cfg: cfg,
+	}
+	for _, opt := range options {
+		opt(out)
+	}
+	return out
+}
+
+func WithZRpcContext(c *ZRpcContext) RPCGeneratorOption {
+	return func(g *RPCGenerator) {
+		g.ctx = c
 	}
 }
 
@@ -42,7 +63,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}
@@ -63,7 +84,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto)
+	dirCtx, err := mkdir(projectCtx, proto, g.cfg, g.ctx)
 	if err != nil {
 		return err
 	}
@@ -73,7 +94,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.cfg, goOptions...)
+	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.cfg, g.ctx, goOptions...)
 	if err != nil {
 		return err
 	}

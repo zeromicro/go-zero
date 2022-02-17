@@ -19,7 +19,7 @@ func TestDefaultProtoParse(t *testing.T) {
 	assert.Equal(t, "test", data.Package.Name)
 	assert.Equal(t, true, data.GoPackage == "go")
 	assert.Equal(t, true, data.PbPackage == "_go")
-	assert.Equal(t, []string{"TestMessage", "TestReply", "TestReq"}, func() []string {
+	assert.Equal(t, []string{"Inline", "Inner", "TestMessage", "TestReply", "TestReq"}, func() []string {
 		var list []string
 		for _, item := range data.Message {
 			list = append(list, item.Name)
@@ -65,7 +65,7 @@ func TestDefaultProtoParse_Option(t *testing.T) {
 	p := NewDefaultProtoParser()
 	data, err := p.Parse("./test_option.proto")
 	assert.Nil(t, err)
-	assert.Equal(t, "github.com/tal-tech/go-zero", data.GoPackage)
+	assert.Equal(t, "github.com/zeromicro/go-zero", data.GoPackage)
 	assert.Equal(t, "go_zero", data.PbPackage)
 }
 

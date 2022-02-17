@@ -7,10 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
-	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
-	"github.com/tal-tech/go-zero/zrpc/internal/resolver"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
+	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 )
 
 func init() {
-	resolver.RegisterResolver()
+	resolver.Register()
 }
 
 type (
@@ -30,7 +31,9 @@ type (
 
 	// A ClientOptions is a client options.
 	ClientOptions struct {
+		NonBlock    bool
 		Timeout     time.Duration
+		Secure      bool
 		DialOptions []grpc.DialOption
 	}
 
@@ -63,17 +66,27 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		opt(&cliOpts)
 	}
 
-	options := []grpc.DialOption{
-		grpc.WithInsecure(),
-		grpc.WithBlock(),
+	var options []grpc.DialOption
+	if !cliOpts.Secure {
+		options = append([]grpc.DialOption(nil), grpc.WithInsecure())
+	}
+
+	if !cliOpts.NonBlock {
+		options = append(options, grpc.WithBlock())
+	}
+
+	options = append(options,
 		WithUnaryClientInterceptors(
-			clientinterceptors.TracingInterceptor,
+			clientinterceptors.UnaryTracingInterceptor,
 			clientinterceptors.DurationInterceptor,
-			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.PrometheusInterceptor,
+			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
 		),
-	}
+		WithStreamClientInterceptors(
+			clientinterceptors.StreamTracingInterceptor,
+		),
+	)
 
 	return append(options, cliOpts.DialOptions...)
 }
@@ -107,10 +120,25 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 	}
 }
 
+// WithNonBlock sets the dialing to be nonblock.
+func WithNonBlock() ClientOption {
+	return func(options *ClientOptions) {
+		options.NonBlock = true
+	}
+}
+
 // WithTimeout returns a func to customize a ClientOptions with given timeout.
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
 		options.Timeout = timeout
+	}
+}
+
+// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
+func WithTransportCredentials(creds credentials.TransportCredentials) ClientOption {
+	return func(options *ClientOptions) {
+		options.Secure = true
+		options.DialOptions = append(options.DialOptions, grpc.WithTransportCredentials(creds))
 	}
 }
 

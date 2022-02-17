@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/zrpc/internal"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 )
 
@@ -15,7 +15,7 @@ type RpcProxy struct {
 	backend     string
 	clients     map[string]Client
 	options     []internal.ClientOption
-	sharedCalls syncx.SharedCalls
+	sharedCalls syncx.SingleFlight
 	lock        sync.Mutex
 }
 
@@ -25,7 +25,7 @@ func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 		backend:     backend,
 		clients:     make(map[string]Client),
 		options:     opts,
-		sharedCalls: syncx.NewSharedCalls(),
+		sharedCalls: syncx.NewSingleFlight(),
 	}
 }
 

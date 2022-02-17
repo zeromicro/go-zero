@@ -1,73 +1,83 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
-const slowThreshold = time.Millisecond * 500
+const defaultSlowThreshold = time.Millisecond * 500
 
-func exec(conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
+var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+
+// SetSlowThreshold sets the slow threshold.
+func SetSlowThreshold(threshold time.Duration) {
+	slowThreshold.Set(threshold)
+}
+
+func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
 	stmt, err := format(q, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	startTime := timex.Now()
-	result, err := conn.Exec(q, args...)
+	result, err := conn.ExecContext(ctx, q, args...)
 	duration := timex.Since(startTime)
-	if duration > slowThreshold {
-		logx.WithDuration(duration).Slowf("[SQL] exec: slowcall - %s", stmt)
+	if duration > slowThreshold.Load() {
+		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] exec: slowcall - %s", stmt)
 	} else {
-		logx.WithDuration(duration).Infof("sql exec: %s", stmt)
+		logx.WithContext(ctx).WithDuration(duration).Infof("sql exec: %s", stmt)
 	}
 	if err != nil {
-		logSqlError(stmt, err)
+		logSqlError(ctx, stmt, err)
 	}
 
 	return result, err
 }
 
-func execStmt(conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
+func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
 	stmt, err := format(q, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	startTime := timex.Now()
-	result, err := conn.Exec(args...)
+	result, err := conn.ExecContext(ctx, args...)
 	duration := timex.Since(startTime)
-	if duration > slowThreshold {
-		logx.WithDuration(duration).Slowf("[SQL] execStmt: slowcall - %s", stmt)
+	if duration > slowThreshold.Load() {
+		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] execStmt: slowcall - %s", stmt)
 	} else {
-		logx.WithDuration(duration).Infof("sql execStmt: %s", stmt)
+		logx.WithContext(ctx).WithDuration(duration).Infof("sql execStmt: %s", stmt)
 	}
 	if err != nil {
-		logSqlError(stmt, err)
+		logSqlError(ctx, stmt, err)
 	}
 
 	return result, err
 }
 
-func query(conn sessionConn, scanner func(*sql.Rows) error, q string, args ...interface{}) error {
+func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
+	q string, args ...interface{}) error {
 	stmt, err := format(q, args...)
 	if err != nil {
 		return err
 	}
 
 	startTime := timex.Now()
-	rows, err := conn.Query(q, args...)
+	rows, err := conn.QueryContext(ctx, q, args...)
 	duration := timex.Since(startTime)
-	if duration > slowThreshold {
-		logx.WithDuration(duration).Slowf("[SQL] query: slowcall - %s", stmt)
+	if duration > slowThreshold.Load() {
+		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] query: slowcall - %s", stmt)
 	} else {
-		logx.WithDuration(duration).Infof("sql query: %s", stmt)
+		logx.WithContext(ctx).WithDuration(duration).Infof("sql query: %s", stmt)
 	}
 	if err != nil {
-		logSqlError(stmt, err)
+		logSqlError(ctx, stmt, err)
 		return err
 	}
 	defer rows.Close()
@@ -75,22 +85,23 @@ func query(conn sessionConn, scanner func(*sql.Rows) error, q string, args ...in
 	return scanner(rows)
 }
 
-func queryStmt(conn stmtConn, scanner func(*sql.Rows) error, q string, args ...interface{}) error {
+func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error,
+	q string, args ...interface{}) error {
 	stmt, err := format(q, args...)
 	if err != nil {
 		return err
 	}
 
 	startTime := timex.Now()
-	rows, err := conn.Query(args...)
+	rows, err := conn.QueryContext(ctx, args...)
 	duration := timex.Since(startTime)
-	if duration > slowThreshold {
-		logx.WithDuration(duration).Slowf("[SQL] queryStmt: slowcall - %s", stmt)
+	if duration > slowThreshold.Load() {
+		logx.WithContext(ctx).WithDuration(duration).Slowf("[SQL] queryStmt: slowcall - %s", stmt)
 	} else {
-		logx.WithDuration(duration).Infof("sql queryStmt: %s", stmt)
+		logx.WithContext(ctx).WithDuration(duration).Infof("sql queryStmt: %s", stmt)
 	}
 	if err != nil {
-		logSqlError(stmt, err)
+		logSqlError(ctx, stmt, err)
 		return err
 	}
 	defer rows.Close()

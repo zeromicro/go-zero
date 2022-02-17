@@ -3,12 +3,13 @@ package ast
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/antlr"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
 
 type (
@@ -113,13 +114,13 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	apiAstList = append(apiAstList, root)
 	for _, imp := range root.Import {
 		dir := filepath.Dir(p.src)
-		path := filepath.Join(dir, imp.Value.Text())
-		data, err := p.readContent(path)
+		imp := filepath.Join(dir, imp.Value.Text())
+		data, err := p.readContent(imp)
 		if err != nil {
 			return nil, err
 		}
 
-		nestedApi, err := p.invoke(path, data)
+		nestedApi, err := p.invoke(imp, data)
 		if err != nil {
 			return nil, err
 		}
@@ -196,8 +197,8 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 			if handler.IsNotNil() {
 				handlerName := handler.Text()
 				handlerMap[handlerName] = Holder
-				path := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
-				routeMap[path] = Holder
+				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
+				routeMap[route] = Holder
 			}
 		}
 
@@ -239,19 +240,34 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 
 func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
 	for _, each := range nestedApi.Service {
+		var prefix, group string
+		if each.AtServer != nil {
+			p := each.AtServer.Kv.Get(prefixKey)
+			if p != nil {
+				prefix = p.Text()
+			}
+			g := each.AtServer.Kv.Get(groupKey)
+			if p != nil {
+				group = g.Text()
+			}
+		}
 		for _, r := range each.ServiceApi.ServiceRoute {
 			handler := r.GetHandler()
 			if !handler.IsNotNil() {
 				return fmt.Errorf("%s handler not exist near line %d", nestedApi.LinePrefix, r.Route.Method.Line())
 			}
 
-			if _, ok := mainHandlerMap[handler.Text()]; ok {
+			handlerKey := handler.Text()
+			if len(group) > 0 {
+				handlerKey = fmt.Sprintf("%s/%s", group, handler.Text())
+			}
+			if _, ok := mainHandlerMap[handlerKey]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate handler '%s'",
-					nestedApi.LinePrefix, handler.Line(), handler.Column(), handler.Text())
+					nestedApi.LinePrefix, handler.Line(), handler.Column(), handlerKey)
 			}
 
-			path := fmt.Sprintf("%s://%s", r.Route.Method.Text(), r.Route.Path.Text())
-			if _, ok := mainRouteMap[path]; ok {
+			p := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path.Join(prefix, r.Route.Path.Text()))
+			if _, ok := mainRouteMap[p]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate route '%s'",
 					nestedApi.LinePrefix, r.Route.Method.Line(), r.Route.Method.Column(), r.Route.Method.Text()+" "+r.Route.Path.Text())
 			}

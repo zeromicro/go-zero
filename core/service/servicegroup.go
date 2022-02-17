@@ -3,9 +3,9 @@ package service
 import (
 	"log"
 
-	"github.com/tal-tech/go-zero/core/proc"
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/core/threading"
+	"github.com/zeromicro/go-zero/core/proc"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/threading"
 )
 
 type (
@@ -26,6 +26,7 @@ type (
 	}
 
 	// A ServiceGroup is a group of services.
+	// Attention: the starting order of the added services is not guaranteed.
 	ServiceGroup struct {
 		services []Service
 		stopOnce func()
@@ -41,7 +42,8 @@ func NewServiceGroup() *ServiceGroup {
 
 // Add adds service into sg.
 func (sg *ServiceGroup) Add(service Service) {
-	sg.services = append(sg.services, service)
+	// push front, stop with reverse order.
+	sg.services = append([]Service{service}, sg.services...)
 }
 
 // Start starts the ServiceGroup.

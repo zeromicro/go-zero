@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 // projectFromGoPath is used to find the main module and project file path
@@ -21,10 +21,20 @@ func projectFromGoPath(workDir string) (*ProjectContext, error) {
 		return nil, err
 	}
 
+	workDir, err := pathx.ReadLink(workDir)
+	if err != nil {
+		return nil, err
+	}
+
 	buildContext := build.Default
 	goPath := buildContext.GOPATH
+	goPath, err = pathx.ReadLink(goPath)
+	if err != nil {
+		return nil, err
+	}
+
 	goSrc := filepath.Join(goPath, "src")
-	if !util.FileExists(goSrc) {
+	if !pathx.FileExists(goSrc) {
 		return nil, errModuleCheck
 	}
 

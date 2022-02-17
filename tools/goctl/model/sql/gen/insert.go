@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 func genInsert(table Table, withCache, postgreSql bool) (string, string, error) {
 	keySet := collection.NewSet()
 	keyVariableSet := collection.NewSet()
+	keySet.AddStr(table.PrimaryCacheKey.DataKeyExpression)
+	keyVariableSet.AddStr(table.PrimaryCacheKey.KeyLeft)
 	for _, key := range table.UniqueCacheKey {
 		keySet.AddStr(key.DataKeyExpression)
 		keyVariableSet.AddStr(key.KeyLeft)
@@ -43,7 +46,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	}
 
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, insertTemplateFile, template.Insert)
+	text, err := pathx.LoadTemplate(category, insertTemplateFile, template.Insert)
 	if err != nil {
 		return "", "", err
 	}
@@ -59,19 +62,21 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 			"expressionValues":      strings.Join(expressionValues, ", "),
 			"keys":                  strings.Join(keySet.KeysStr(), "\n"),
 			"keyValues":             strings.Join(keyVariableSet.KeysStr(), ", "),
+			"data":                  table,
 		})
 	if err != nil {
 		return "", "", err
 	}
 
 	// interface method
-	text, err = util.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
+	text, err = pathx.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
 	if err != nil {
 		return "", "", err
 	}
 
 	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]interface{}{
 		"upperStartCamelObject": camel,
+		"data":                  table,
 	})
 	if err != nil {
 		return "", "", err

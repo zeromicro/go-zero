@@ -3,7 +3,7 @@ package generator
 import (
 	"os/exec"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
 
 // DefaultGenerator defines the environment needs of rpc service generation

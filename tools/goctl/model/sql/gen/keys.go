@@ -5,8 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 // Key describes cache key
@@ -50,7 +51,7 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 	return primaryKey, uniqueKey
 }
 
-func genCacheKey(db stringx.String, table stringx.String, in []*parser.Field) Key {
+func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	var (
 		varLeftJoin, varRightJon, fieldNameJoin Join
 		varLeft, varRight, varExpression        string
@@ -59,9 +60,16 @@ func genCacheKey(db stringx.String, table stringx.String, in []*parser.Field) Ke
 		keyLeft, keyRight, dataKeyRight, keyExpression, dataKeyExpression string
 	)
 
-	varLeftJoin = append(varLeftJoin, "cache", db.Source(), table.Source())
-	varRightJon = append(varRightJon, "cache", db.Source(), table.Source())
-	keyLeftJoin = append(keyLeftJoin, db.Source(), table.Source())
+	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
+	if len(dbName) > 0 {
+		varLeftJoin = append(varLeftJoin, "cache", dbName, tableName)
+		varRightJon = append(varRightJon, "cache", dbName, tableName)
+		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
+	} else {
+		varLeftJoin = append(varLeftJoin, "cache", tableName)
+		varRightJon = append(varRightJon, "cache", tableName)
+		keyLeftJoin = append(keyLeftJoin, tableName)
+	}
 
 	for _, each := range in {
 		varLeftJoin = append(varLeftJoin, each.Name.Source())
@@ -75,11 +83,11 @@ func genCacheKey(db stringx.String, table stringx.String, in []*parser.Field) Ke
 	varLeftJoin = append(varLeftJoin, "prefix")
 	keyLeftJoin = append(keyLeftJoin, "key")
 
-	varLeft = varLeftJoin.Camel().With("").Untitle()
+	varLeft = util.SafeString(varLeftJoin.Camel().With("").Untitle())
 	varRight = fmt.Sprintf(`"%s"`, varRightJon.Camel().Untitle().With(":").Source()+":")
 	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
 
-	keyLeft = keyLeftJoin.Camel().With("").Untitle()
+	keyLeft = util.SafeString(keyLeftJoin.Camel().With("").Untitle())
 	keyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, keyRightJoin.With(", ").Source())
 	dataKeyRight = fmt.Sprintf(`fmt.Sprintf("%s%s", %s, %s)`, "%s", keyRightArgJoin.With(":").Source(), varLeft, dataRightJoin.With(", ").Source())
 	keyExpression = fmt.Sprintf("%s := %s", keyLeft, keyRight)

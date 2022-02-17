@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type message struct {
@@ -25,17 +25,19 @@ func TestError(t *testing.T) {
 	)
 
 	tests := []struct {
-		name         string
-		input        string
-		errorHandler func(error) (int, interface{})
-		expectBody   string
-		expectCode   int
+		name          string
+		input         string
+		errorHandler  func(error) (int, interface{})
+		expectHasBody bool
+		expectBody    string
+		expectCode    int
 	}{
 		{
-			name:       "default error handler",
-			input:      body,
-			expectBody: body,
-			expectCode: http.StatusBadRequest,
+			name:          "default error handler",
+			input:         body,
+			expectHasBody: true,
+			expectBody:    body,
+			expectCode:    http.StatusBadRequest,
 		},
 		{
 			name:  "customized error handler return string",
@@ -43,8 +45,9 @@ func TestError(t *testing.T) {
 			errorHandler: func(err error) (int, interface{}) {
 				return http.StatusForbidden, err.Error()
 			},
-			expectBody: wrappedBody,
-			expectCode: http.StatusForbidden,
+			expectHasBody: true,
+			expectBody:    wrappedBody,
+			expectCode:    http.StatusForbidden,
 		},
 		{
 			name:  "customized error handler return error",
@@ -52,8 +55,19 @@ func TestError(t *testing.T) {
 			errorHandler: func(err error) (int, interface{}) {
 				return http.StatusForbidden, err
 			},
-			expectBody: body,
-			expectCode: http.StatusForbidden,
+			expectHasBody: true,
+			expectBody:    body,
+			expectCode:    http.StatusForbidden,
+		},
+		{
+			name:  "customized error handler return nil",
+			input: body,
+			errorHandler: func(err error) (int, interface{}) {
+				return http.StatusForbidden, nil
+			},
+			expectHasBody: false,
+			expectBody:    "",
+			expectCode:    http.StatusForbidden,
 		},
 	}
 
@@ -75,9 +89,22 @@ func TestError(t *testing.T) {
 			}
 			Error(&w, errors.New(test.input))
 			assert.Equal(t, test.expectCode, w.code)
+			assert.Equal(t, test.expectHasBody, w.hasBody)
 			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
 		})
 	}
+}
+
+func TestErrorWithHandler(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Error(&w, errors.New("foo"), func(w http.ResponseWriter, err error) {
+		http.Error(w, err.Error(), 499)
+	})
+	assert.Equal(t, 499, w.code)
+	assert.True(t, w.hasBody)
+	assert.Equal(t, "foo", strings.TrimSpace(w.builder.String()))
 }
 
 func TestOk(t *testing.T) {
@@ -122,6 +149,7 @@ func TestWriteJsonLessWritten(t *testing.T) {
 type tracedResponseWriter struct {
 	headers     map[string][]string
 	builder     strings.Builder
+	hasBody     bool
 	code        int
 	lessWritten bool
 	timeout     bool
@@ -140,6 +168,8 @@ func (w *tracedResponseWriter) Write(bytes []byte) (n int, err error) {
 	if w.lessWritten {
 		n -= 1
 	}
+	w.hasBody = true
+
 	return
 }
 

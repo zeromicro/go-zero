@@ -6,16 +6,17 @@ import (
 	"strings"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stores/postgres"
-	"github.com/tal-tech/go-zero/core/stores/sqlx"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/gen"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	file "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/postgres"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
+	file "github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -28,6 +29,7 @@ const (
 	flagStyle    = "style"
 	flagDatabase = "database"
 	flagSchema   = "schema"
+	flagHome     = "home"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -40,17 +42,23 @@ func MysqlDDL(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	database := ctx.String(flagDatabase)
-	home := ctx.String("home")
-
+	home := ctx.String(flagHome)
+	remote := ctx.String("remote")
+	if len(remote) > 0 {
+		repo, _ := file.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 
-	return fromDDl(src, dir, cfg, cache, idea, database)
+	return fromDDL(src, dir, cfg, cache, idea, database)
 }
 
 // MySqlDataSource generates model code from datasource
@@ -61,9 +69,15 @@ func MySqlDataSource(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	home := ctx.String("home")
-
+	remote := ctx.String("remote")
+	if len(remote) > 0 {
+		repo, _ := file.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	pattern := strings.TrimSpace(ctx.String(flagTable))
@@ -84,9 +98,15 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	style := ctx.String(flagStyle)
 	schema := ctx.String(flagSchema)
 	home := ctx.String("home")
-
+	remote := ctx.String("remote")
+	if len(remote) > 0 {
+		repo, _ := file.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 	if len(home) > 0 {
-		file.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	if len(schema) == 0 {
@@ -102,7 +122,7 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea)
 }
 
-func fromDDl(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
+func fromDDL(src, dir string, cfg *config.Config, cache, idea bool, database string) error {
 	log := console.NewConsole(idea)
 	src = strings.TrimSpace(src)
 	if len(src) == 0 {

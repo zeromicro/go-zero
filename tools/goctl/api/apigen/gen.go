@@ -8,14 +8,15 @@ import (
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const apiTemplate = `
 syntax = "v1"
 
-info(
+info (
 	title: // TODO: add title
 	desc: // TODO: add description
 	author: "{{.gitUser}}"
@@ -46,19 +47,38 @@ func ApiCommand(c *cli.Context) error {
 		return errors.New("missing -o")
 	}
 
-	fp, err := util.CreateIfNotExist(apiFile)
+	fp, err := pathx.CreateIfNotExist(apiFile)
 	if err != nil {
 		return err
 	}
 	defer fp.Close()
 
-	baseName := util.FileNameWithoutExt(filepath.Base(apiFile))
+	home := c.String("home")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
+
+	if len(home) > 0 {
+		pathx.RegisterGoctlHome(home)
+	}
+
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if err != nil {
+		return err
+	}
+
+	baseName := pathx.FileNameWithoutExt(filepath.Base(apiFile))
 	if strings.HasSuffix(strings.ToLower(baseName), "-api") {
 		baseName = baseName[:len(baseName)-4]
 	} else if strings.HasSuffix(strings.ToLower(baseName), "api") {
 		baseName = baseName[:len(baseName)-3]
 	}
-	t := template.Must(template.New("etcTemplate").Parse(apiTemplate))
+
+	t := template.Must(template.New("etcTemplate").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"gitUser":     getGitName(),
 		"gitEmail":    getGitEmail(),

@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 // TsCommand provides the entry to generate typescript codes
@@ -32,7 +32,8 @@ func TsCommand(c *cli.Context) error {
 		return err
 	}
 
-	logx.Must(util.MkdirIfNotExist(dir))
+	api.Service = api.Service.JoinPrefix()
+	logx.Must(pathx.MkdirIfNotExist(dir))
 	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
 	logx.Must(genComponents(dir, api))
 

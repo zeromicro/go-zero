@@ -4,21 +4,20 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/tal-tech/go-zero/core/discov/internal"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/discov/internal"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 type (
-	subOptions struct {
-		exclusive bool
-	}
-
 	// SubOption defines the method to customize a Subscriber.
-	SubOption func(opts *subOptions)
+	SubOption func(sub *Subscriber)
 
 	// A Subscriber is used to subscribe the given key on a etcd cluster.
 	Subscriber struct {
-		items *container
+		endpoints []string
+		exclusive bool
+		items     *container
 	}
 )
 
@@ -27,14 +26,14 @@ type (
 // key is the key to subscribe.
 // opts are used to customize the Subscriber.
 func NewSubscriber(endpoints []string, key string, opts ...SubOption) (*Subscriber, error) {
-	var subOpts subOptions
-	for _, opt := range opts {
-		opt(&subOpts)
-	}
-
 	sub := &Subscriber{
-		items: newContainer(subOpts.exclusive),
+		endpoints: endpoints,
 	}
+	for _, opt := range opts {
+		opt(sub)
+	}
+	sub.items = newContainer(sub.exclusive)
+
 	if err := internal.GetRegistry().Monitor(endpoints, key, sub.items); err != nil {
 		return nil, err
 	}
@@ -55,8 +54,22 @@ func (s *Subscriber) Values() []string {
 // Exclusive means that key value can only be 1:1,
 // which means later added value will remove the keys associated with the same value previously.
 func Exclusive() SubOption {
-	return func(opts *subOptions) {
-		opts.exclusive = true
+	return func(sub *Subscriber) {
+		sub.exclusive = true
+	}
+}
+
+// WithSubEtcdAccount provides the etcd username/password.
+func WithSubEtcdAccount(user, pass string) SubOption {
+	return func(sub *Subscriber) {
+		RegisterAccount(sub.endpoints, user, pass)
+	}
+}
+
+// WithSubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
+func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) SubOption {
+	return func(sub *Subscriber) {
+		logx.Must(RegisterTLS(sub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }
 

@@ -90,6 +90,82 @@ func TestParseKeyAndOptionWithTagAndOption(t *testing.T) {
 	assert.True(t, options.FromString)
 }
 
+func TestParseSegments(t *testing.T) {
+	tests := []struct {
+		input  string
+		expect []string
+	}{
+		{
+			input:  "",
+			expect: []string{},
+		},
+		{
+			input:  ",",
+			expect: []string{""},
+		},
+		{
+			input:  "foo,",
+			expect: []string{"foo"},
+		},
+		{
+			input: ",foo",
+			// the first empty string cannot be ignored, it's the key.
+			expect: []string{"", "foo"},
+		},
+		{
+			input:  "foo",
+			expect: []string{"foo"},
+		},
+		{
+			input:  "foo,bar",
+			expect: []string{"foo", "bar"},
+		},
+		{
+			input:  "foo,bar,baz",
+			expect: []string{"foo", "bar", "baz"},
+		},
+		{
+			input:  "foo,options=a|b",
+			expect: []string{"foo", "options=a|b"},
+		},
+		{
+			input:  "foo,bar,default=[baz,qux]",
+			expect: []string{"foo", "bar", "default=[baz,qux]"},
+		},
+		{
+			input:  "foo,bar,options=[baz,qux]",
+			expect: []string{"foo", "bar", "options=[baz,qux]"},
+		},
+		{
+			input:  `foo\,bar,options=[baz,qux]`,
+			expect: []string{`foo,bar`, "options=[baz,qux]"},
+		},
+		{
+			input:  `foo,bar,options=\[baz,qux]`,
+			expect: []string{"foo", "bar", "options=[baz", "qux]"},
+		},
+		{
+			input:  `foo,bar,options=[baz\,qux]`,
+			expect: []string{"foo", "bar", `options=[baz\,qux]`},
+		},
+		{
+			input:  `foo\,bar,options=[baz,qux],default=baz`,
+			expect: []string{`foo,bar`, "options=[baz,qux]", "default=baz"},
+		},
+		{
+			input:  `foo\,bar,options=[baz,qux, quux],default=[qux, baz]`,
+			expect: []string{`foo,bar`, "options=[baz,qux, quux]", "default=[qux, baz]"},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.input, func(t *testing.T) {
+			assert.ElementsMatch(t, test.expect, parseSegments(test.input))
+		})
+	}
+}
+
 func TestValidatePtrWithNonPtr(t *testing.T) {
 	var foo string
 	rve := reflect.ValueOf(foo)
@@ -208,6 +284,12 @@ func TestRepr(t *testing.T) {
 		{
 			newMockPtr(),
 			"mockptr",
+		},
+		{
+			&mockOpacity{
+				val: 1,
+			},
+			"{1}",
 		},
 		{
 			true,

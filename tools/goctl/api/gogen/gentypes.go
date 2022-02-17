@@ -7,11 +7,11 @@ import (
 	"path"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
 const (
@@ -63,8 +63,8 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		subdir:          typesDir,
 		filename:        typeFilename,
 		templateName:    "typesTemplate",
-		category:        "",
-		templateFile:    "",
+		category:        category,
+		templateFile:    typesTemplateFile,
 		builtinTemplate: typesTemplate,
 		data: map[string]interface{}{
 			"types":        val,

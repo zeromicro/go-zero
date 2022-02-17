@@ -5,31 +5,36 @@ import (
 	"path"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const handlerTemplate = `package handler
+const (
+	defaultLogicPackage = "logic"
+	handlerTemplate     = `package {{.PkgName}}
 
 import (
 	"net/http"
 
+	{{if .After1_1_10}}"github.com/zeromicro/go-zero/rest/httpx"{{end}}
 	{{.ImportPackages}}
 )
 
-func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
+func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		{{if .HasRequest}}var req types.{{.RequestType}}
 		if err := httpx.Parse(r, &req); err != nil {
 			httpx.Error(w, err)
 			return
-		}{{end}}
+		}
 
-		l := logic.New{{.LogicType}}(r.Context(), ctx)
-		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}req{{end}})
+		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		if err != nil {
 			httpx.Error(w, err)
 		} else {
@@ -38,27 +43,45 @@ func {{.HandlerName}}(ctx *svc.ServiceContext) http.HandlerFunc {
 	}
 }
 `
+)
 
 type handlerInfo struct {
+	PkgName        string
 	ImportPackages string
 	HandlerName    string
 	RequestType    string
+	LogicName      string
 	LogicType      string
 	Call           string
 	HasResp        bool
 	HasRequest     bool
+	After1_1_10    bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
 	handler := getHandlerName(route)
-	if getHandlerFolderPath(group, route) != handlerDir {
+	handlerPath := getHandlerFolderPath(group, route)
+	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
+	logicName := defaultLogicPackage
+	if handlerPath != handlerDir {
 		handler = strings.Title(handler)
+		logicName = pkgName
+	}
+	parentPkg, err := getParentPackage(dir)
+	if err != nil {
+		return err
 	}
 
+	goctlVersion := version.GetGoctlVersion()
+	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
+	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		ImportPackages: genHandlerImports(group, route, rootPkg),
+		PkgName:        pkgName,
+		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
+		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
+		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
@@ -100,12 +123,17 @@ func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) err
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, fmt.Sprintf("\"%s\"",
-		util.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
-	imports = append(imports, fmt.Sprintf("\"%s\"", util.JoinPackages(parentPkg, contextDir)))
+		pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
+	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if len(route.RequestTypeName()) > 0 {
-		imports = append(imports, fmt.Sprintf("\"%s\"\n", util.JoinPackages(parentPkg, typesDir)))
+		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
+
+	currentVersion := version.GetGoctlVersion()
+	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
+	if !version.IsVersionGreaterThan(currentVersion, "1.1.10") {
+		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
+	}
 
 	return strings.Join(imports, "\n\t")
 }
@@ -126,6 +154,7 @@ func getHandlerFolderPath(group spec.Group, route spec.Route) string {
 			return handlerDir
 		}
 	}
+
 	folder = strings.TrimPrefix(folder, "/")
 	folder = strings.TrimSuffix(folder, "/")
 	return path.Join(handlerDir, folder)

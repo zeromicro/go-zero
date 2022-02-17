@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
@@ -34,4 +35,10 @@ func TestDurationInterceptor(t *testing.T) {
 			assert.Equal(t, test.err, err)
 		})
 	}
+}
+
+func TestSetSlowThreshold(t *testing.T) {
+	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
+	SetSlowThreshold(time.Second)
+	assert.Equal(t, time.Second, slowThreshold.Load())
 }

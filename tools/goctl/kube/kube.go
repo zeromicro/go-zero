@@ -6,8 +6,9 @@ import (
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -20,30 +21,38 @@ const (
 
 // Deployment describes the k8s deployment yaml
 type Deployment struct {
-	Name        string
-	Namespace   string
-	Image       string
-	Secret      string
-	Replicas    int
-	Revisions   int
-	Port        int
-	NodePort    int
-	UseNodePort bool
-	RequestCpu  int
-	RequestMem  int
-	LimitCpu    int
-	LimitMem    int
-	MinReplicas int
-	MaxReplicas int
+	Name           string
+	Namespace      string
+	Image          string
+	Secret         string
+	Replicas       int
+	Revisions      int
+	Port           int
+	NodePort       int
+	UseNodePort    bool
+	RequestCpu     int
+	RequestMem     int
+	LimitCpu       int
+	LimitMem       int
+	MinReplicas    int
+	MaxReplicas    int
+	ServiceAccount string
 }
 
 // DeploymentCommand is used to generate the kubernetes deployment yaml files.
 func DeploymentCommand(c *cli.Context) error {
 	nodePort := c.Int("nodePort")
 	home := c.String("home")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 
 	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+		pathx.RegisterGoctlHome(home)
 	}
 
 	// 0 to disable the nodePort type
@@ -51,12 +60,12 @@ func DeploymentCommand(c *cli.Context) error {
 		return errors.New("nodePort should be between 30000 and 32767")
 	}
 
-	text, err := util.LoadTemplate(category, deployTemplateFile, deploymentTemplate)
+	text, err := pathx.LoadTemplate(category, deployTemplateFile, deploymentTemplate)
 	if err != nil {
 		return err
 	}
 
-	out, err := util.CreateIfNotExist(c.String("o"))
+	out, err := pathx.CreateIfNotExist(c.String("o"))
 	if err != nil {
 		return err
 	}
@@ -64,21 +73,22 @@ func DeploymentCommand(c *cli.Context) error {
 
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
 	err = t.Execute(out, Deployment{
-		Name:        c.String("name"),
-		Namespace:   c.String("namespace"),
-		Image:       c.String("image"),
-		Secret:      c.String("secret"),
-		Replicas:    c.Int("replicas"),
-		Revisions:   c.Int("revisions"),
-		Port:        c.Int("port"),
-		NodePort:    nodePort,
-		UseNodePort: nodePort > 0,
-		RequestCpu:  c.Int("requestCpu"),
-		RequestMem:  c.Int("requestMem"),
-		LimitCpu:    c.Int("limitCpu"),
-		LimitMem:    c.Int("limitMem"),
-		MinReplicas: c.Int("minReplicas"),
-		MaxReplicas: c.Int("maxReplicas"),
+		Name:           c.String("name"),
+		Namespace:      c.String("namespace"),
+		Image:          c.String("image"),
+		Secret:         c.String("secret"),
+		Replicas:       c.Int("replicas"),
+		Revisions:      c.Int("revisions"),
+		Port:           c.Int("port"),
+		NodePort:       nodePort,
+		UseNodePort:    nodePort > 0,
+		RequestCpu:     c.Int("requestCpu"),
+		RequestMem:     c.Int("requestMem"),
+		LimitCpu:       c.Int("limitCpu"),
+		LimitMem:       c.Int("limitMem"),
+		MinReplicas:    c.Int("minReplicas"),
+		MaxReplicas:    c.Int("maxReplicas"),
+		ServiceAccount: c.String("serviceAccount"),
 	})
 	if err != nil {
 		return err
@@ -95,12 +105,12 @@ func Category() string {
 
 // Clean cleans the generated deployment files.
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates generates the deployment template files.
 func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, map[string]string{
+	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
 		jobTemplateFile:    jobTmeplate,
 	})
@@ -108,7 +118,7 @@ func GenTemplates(_ *cli.Context) error {
 
 // RevertTemplate reverts the given template file to the default value.
 func RevertTemplate(name string) error {
-	return util.CreateTemplate(category, name, deploymentTemplate)
+	return pathx.CreateTemplate(category, name, deploymentTemplate)
 }
 
 // Update updates the template files to the templates built in current goctl.
@@ -118,7 +128,7 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, map[string]string{
+	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
 		jobTemplateFile:    jobTmeplate,
 	})

@@ -4,12 +4,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/load"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
-	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
+	"github.com/zeromicro/go-zero/core/load"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/zrpc/internal"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
 )
 
@@ -38,13 +38,17 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 
 	var server internal.Server
 	metrics := stat.NewMetrics(c.ListenOn)
+	serverOptions := []internal.ServerOption{
+		internal.WithMetrics(metrics),
+	}
+
 	if c.HasEtcd() {
-		server, err = internal.NewRpcPubServer(c.Etcd.Hosts, c.Etcd.Key, c.ListenOn, internal.WithMetrics(metrics))
+		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, internal.WithMetrics(metrics))
+		server = internal.NewRpcServer(c.ListenOn, serverOptions...)
 	}
 
 	server.SetName(c.Name)
@@ -91,6 +95,11 @@ func (rs *RpcServer) Start() {
 // Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
 	logx.Close()
+}
+
+// SetServerSlowThreshold sets the slow threshold on server side.
+func SetServerSlowThreshold(threshold time.Duration) {
+	serverinterceptors.SetSlowThreshold(threshold)
 }
 
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {

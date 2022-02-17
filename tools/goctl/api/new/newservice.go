@@ -7,10 +7,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
 	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const apiTemplate = `
@@ -24,7 +25,7 @@ type Response {
 
 service {{.name}}-api {
   @handler {{.handler}}Handler
-  get /from/:name(Request) returns (Response);
+  get /from/:name(Request) returns (Response)
 }
 `
 
@@ -36,6 +37,10 @@ func CreateServiceCommand(c *cli.Context) error {
 		dirName = "greet"
 	}
 
+	dirStyle := c.String("style")
+	if len(dirStyle) == 0 {
+		dirStyle = conf.DefaultFormat
+	}
 	if strings.Contains(dirName, "-") {
 		return errors.New("api new command service name not support strikethrough, because this will used by function name")
 	}
@@ -45,7 +50,7 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}
@@ -59,7 +64,26 @@ func CreateServiceCommand(c *cli.Context) error {
 	}
 
 	defer fp.Close()
-	t := template.Must(template.New("template").Parse(apiTemplate))
+
+	home := c.String("home")
+	remote := c.String("remote")
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
+
+	if len(home) > 0 {
+		pathx.RegisterGoctlHome(home)
+	}
+
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if err != nil {
+		return err
+	}
+
+	t := template.Must(template.New("template").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"name":    dirName,
 		"handler": strings.Title(dirName),
@@ -67,6 +91,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, conf.DefaultFormat)
+	err = gogen.DoGenProject(apiFilePath, abs, dirStyle)
 	return err
 }

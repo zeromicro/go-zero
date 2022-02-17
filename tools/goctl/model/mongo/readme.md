@@ -65,8 +65,8 @@ type User struct {
       "context"
   
       "github.com/globalsign/mgo/bson"
-      cachec "github.com/tal-tech/go-zero/core/stores/cache"
-      "github.com/tal-tech/go-zero/core/stores/mongoc"
+      cachec "github.com/zeromicro/go-zero/core/stores/cache"
+      "github.com/zeromicro/go-zero/core/stores/mongoc"
   )
   
   type UserModel interface {
@@ -196,7 +196,7 @@ OPTIONS:
    --type value, -t value  specified model type name
    --cache, -c             generate code with cache [optional]
    --dir value, -d value   the target dir
-   --style value           the file naming format, see [https://github.com/tal-tech/go-zero/tree/master/tools/goctl/config/readme.md]
+   --style value           the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]
 
 ```
 

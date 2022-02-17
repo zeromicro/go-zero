@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 type (
@@ -155,8 +154,6 @@ func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) interface{} {
 	var st TypeStruct
 	st.Name = v.newExprWithToken(ctx.GetStructName())
 
-	if util.UnExport(ctx.GetStructName().GetText()) {
-	}
 	if ctx.GetStructToken() != nil {
 		structExpr := v.newExprWithToken(ctx.GetStructToken())
 		structTokenText := ctx.GetStructToken().GetText()
