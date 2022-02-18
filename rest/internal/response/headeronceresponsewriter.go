@@ -7,21 +7,26 @@ import (
 	"net/http"
 )
 
+// HeaderOnceResponseWriter is a http.ResponseWriter implementation
+// that only the first WriterHeader takes effect.
 type HeaderOnceResponseWriter struct {
 	w           http.ResponseWriter
 	wroteHeader bool
 }
 
+// NewHeaderOnceResponseWriter returns a HeaderOnceResponseWriter.
 func NewHeaderOnceResponseWriter(w http.ResponseWriter) http.ResponseWriter {
 	return &HeaderOnceResponseWriter{w: w}
 }
 
+// Flush flushes the response writer.
 func (w *HeaderOnceResponseWriter) Flush() {
 	if flusher, ok := w.w.(http.Flusher); ok {
 		flusher.Flush()
 	}
 }
 
+// Header returns the http header.
 func (w *HeaderOnceResponseWriter) Header() http.Header {
 	return w.w.Header()
 }
@@ -36,10 +41,12 @@ func (w *HeaderOnceResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error)
 	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
+// Write writes bytes into w.
 func (w *HeaderOnceResponseWriter) Write(bytes []byte) (int, error) {
 	return w.w.Write(bytes)
 }
 
+// WriteHeader writes code into w, and not sealing the writer.
 func (w *HeaderOnceResponseWriter) WriteHeader(code int) {
 	if w.wroteHeader {
 		return
