@@ -67,9 +67,7 @@ func format(query string, args ...interface{}) (string, error) {
 
 			writeValue(&b, args[argIndex])
 			argIndex++
-		case ':':
-			fallthrough
-		case '$':
+		case ':', '$':
 			var j int
 			for j = i + 1; j < bytes; j++ {
 				char := query[j]
