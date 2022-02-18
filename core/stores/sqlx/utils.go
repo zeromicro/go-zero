@@ -81,10 +81,20 @@ func format(query string, args ...interface{}) (string, error) {
 					return "", err
 				}
 
-				// index starts from 1 for pg or oracle
-				if index > 0 {
-					argIndex++
+				switch ch {
+				case '$':
+					// index starts from 1 for pg
+					// pg argIndex will not always go up
+					if index > argIndex {
+						argIndex = index
+					}
+				case ':':
+					// index starts from 1 for oracle
+					if index > 0 {
+						argIndex++
+					}
 				}
+				
 				index--
 				if index < 0 || numArgs <= index {
 					return "", fmt.Errorf("error: wrong index %d in sql", index)
