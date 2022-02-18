@@ -14,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
 // use 1000m to represent 100%
@@ -169,7 +170,9 @@ func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 			h = chain.Then(http.NotFoundHandler())
 		}
 
-		h.ServeHTTP(w, r)
+		cw := response.NewHeaderOnceResponseWriter(w)
+		h.ServeHTTP(cw, r)
+		cw.WriteHeader(http.StatusNotFound)
 	})
 }
 

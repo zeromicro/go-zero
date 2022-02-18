@@ -1,4 +1,4 @@
-package security
+package response
 
 import (
 	"net/http"
@@ -30,4 +30,21 @@ func TestWithCodeResponseWriter(t *testing.T) {
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
 	assert.Equal(t, "test", resp.Header().Get("X-Test"))
 	assert.Equal(t, "content", resp.Body.String())
+}
+
+func TestWithCodeResponseWriter_Hijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+	writer := &WithCodeResponseWriter{
+		Writer: resp,
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &WithCodeResponseWriter{
+		Writer: mockedHijackable{resp},
+	}
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
 }
