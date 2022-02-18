@@ -81,7 +81,7 @@ func format(query string, args ...interface{}) (string, error) {
 					return "", err
 				}
 
-				// index starts from 1 for pg
+				// index starts from 1 for pg or oracle
 				if index > 0 {
 					argIndex++
 				}
