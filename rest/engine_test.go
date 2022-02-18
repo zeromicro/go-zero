@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -188,6 +191,48 @@ func TestEngine_checkedTimeout(t *testing.T) {
 	for _, test := range tests {
 		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout))
 	}
+}
+
+func TestEngine_notFoundHandler(t *testing.T) {
+	ng := newEngine(RestConf{
+		Timeout: 1000,
+	})
+	ts := httptest.NewServer(ng.notFoundHandler(nil))
+	defer ts.Close()
+
+	client := ts.Client()
+	err := func(ctx context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+		assert.Nil(t, err)
+		res, err := client.Do(req)
+		assert.Nil(t, err)
+		return res.Body.Close()
+	}(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func TestEngine_notFoundHandlerNotNil(t *testing.T) {
+	ng := newEngine(RestConf{
+		Timeout: 1000,
+	})
+	var called int32
+	ts := httptest.NewServer(ng.notFoundHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&called, 1)
+	})))
+	defer ts.Close()
+
+	client := ts.Client()
+	err := func(ctx context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+		assert.Nil(t, err)
+		res, err := client.Do(req)
+		assert.Nil(t, err)
+		return res.Body.Close()
+	}(context.Background())
+
+	assert.Nil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
 type mockedRouter struct{}
