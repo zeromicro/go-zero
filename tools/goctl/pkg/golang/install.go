@@ -7,10 +7,8 @@ import (
 
 func Install(git string) error {
 	cmd := exec.Command("go", "install", git)
-	env := append([]string{
-		"GO111MODULE", "on",
-		"GOPROXY", "https://goproxy.cn,direct",
-	}, os.Environ()...)
+	env := os.Environ()
+	env = append(env, "GO111MODULE=on", "GOPROXY=https://goproxy.cn,direct")
 	cmd.Env = env
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

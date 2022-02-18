@@ -47,6 +47,10 @@ func check(install, force bool) error {
 	var pending = true
 	console.Info("[goctl-env]: preparing to check env")
 	defer func() {
+		if p := recover(); p != nil {
+			console.Error("%+v", p)
+			return
+		}
 		if pending {
 			console.Success("\n[goctl-env]: congratulations! your goctl environment is ready!")
 		} else {
