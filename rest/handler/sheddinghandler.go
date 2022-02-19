@@ -8,7 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/rest/httpx"
-	"github.com/zeromicro/go-zero/rest/internal/security"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
 const serviceType = "api"
@@ -41,7 +41,7 @@ func SheddingHandler(shedder load.Shedder, metrics *stat.Metrics) func(http.Hand
 				return
 			}
 
-			cw := &security.WithCodeResponseWriter{Writer: w}
+			cw := &response.WithCodeResponseWriter{Writer: w}
 			defer func() {
 				if cw.Code == http.StatusServiceUnavailable {
 					promise.Fail()

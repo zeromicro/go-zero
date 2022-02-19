@@ -49,6 +49,7 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 		router: router.NewRouter(),
 	}
 
+	opts = append([]RunOption{WithNotFoundHandler(nil)}, opts...)
 	for _, opt := range opts {
 		opt(server)
 	}
@@ -163,7 +164,8 @@ func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 // WithNotFoundHandler returns a RunOption with not found handler set to given handler.
 func WithNotFoundHandler(handler http.Handler) RunOption {
 	return func(server *Server) {
-		server.router.SetNotFoundHandler(handler)
+		notFoundHandler := server.ngin.notFoundHandler(handler)
+		server.router.SetNotFoundHandler(notFoundHandler)
 	}
 }
 

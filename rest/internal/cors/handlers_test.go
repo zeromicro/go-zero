@@ -1,8 +1,6 @@
 package cors
 
 import (
-	"bufio"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -130,49 +128,4 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 			})
 		}
 	}
-}
-
-func TestGuardedResponseWriter_Flush(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	handler := NotAllowedHandler(func(w http.ResponseWriter) {
-		w.Header().Set("X-Test", "test")
-		w.WriteHeader(http.StatusServiceUnavailable)
-		_, err := w.Write([]byte("content"))
-		assert.Nil(t, err)
-
-		flusher, ok := w.(http.Flusher)
-		assert.True(t, ok)
-		flusher.Flush()
-	}, "foo.com")
-
-	resp := httptest.NewRecorder()
-	handler.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
-	assert.Equal(t, "test", resp.Header().Get("X-Test"))
-	assert.Equal(t, "content", resp.Body.String())
-}
-
-func TestGuardedResponseWriter_Hijack(t *testing.T) {
-	resp := httptest.NewRecorder()
-	writer := &guardedResponseWriter{
-		w: resp,
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = &guardedResponseWriter{
-		w: mockedHijackable{resp},
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-}
-
-type mockedHijackable struct {
-	*httptest.ResponseRecorder
-}
-
-func (m mockedHijackable) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return nil, nil, nil
 }

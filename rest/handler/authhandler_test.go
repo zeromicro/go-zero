@@ -90,26 +90,6 @@ func TestAuthHandler_NilError(t *testing.T) {
 	})
 }
 
-func TestAuthHandler_Flush(t *testing.T) {
-	resp := httptest.NewRecorder()
-	handler := newGuardedResponseWriter(resp)
-	handler.Flush()
-	assert.True(t, resp.Flushed)
-}
-
-func TestAuthHandler_Hijack(t *testing.T) {
-	resp := httptest.NewRecorder()
-	writer := newGuardedResponseWriter(resp)
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = newGuardedResponseWriter(mockedHijackable{resp})
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-}
-
 func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)

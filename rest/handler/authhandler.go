@@ -1,15 +1,14 @@
 package handler
 
 import (
-	"bufio"
 	"context"
 	"errors"
-	"net"
 	"net/http"
 	"net/http/httputil"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 	"github.com/zeromicro/go-zero/rest/token"
 )
 
@@ -105,7 +104,7 @@ func detailAuthLog(r *http.Request, reason string) {
 }
 
 func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback UnauthorizedCallback) {
-	writer := newGuardedResponseWriter(w)
+	writer := response.NewHeaderOnceResponseWriter(w)
 
 	if err != nil {
 		detailAuthLog(r, err.Error())
@@ -120,48 +119,4 @@ func unauthorized(w http.ResponseWriter, r *http.Request, err error, callback Un
 
 	// if user not setting HTTP header, we set header with 401
 	writer.WriteHeader(http.StatusUnauthorized)
-}
-
-type guardedResponseWriter struct {
-	writer      http.ResponseWriter
-	wroteHeader bool
-}
-
-func newGuardedResponseWriter(w http.ResponseWriter) *guardedResponseWriter {
-	return &guardedResponseWriter{
-		writer: w,
-	}
-}
-
-func (grw *guardedResponseWriter) Flush() {
-	if flusher, ok := grw.writer.(http.Flusher); ok {
-		flusher.Flush()
-	}
-}
-
-func (grw *guardedResponseWriter) Header() http.Header {
-	return grw.writer.Header()
-}
-
-// Hijack implements the http.Hijacker interface.
-// This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
-func (grw *guardedResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	if hijacked, ok := grw.writer.(http.Hijacker); ok {
-		return hijacked.Hijack()
-	}
-
-	return nil, nil, errors.New("server doesn't support hijacking")
-}
-
-func (grw *guardedResponseWriter) Write(body []byte) (int, error) {
-	return grw.writer.Write(body)
-}
-
-func (grw *guardedResponseWriter) WriteHeader(statusCode int) {
-	if grw.wroteHeader {
-		return
-	}
-
-	grw.wroteHeader = true
-	grw.writer.WriteHeader(statusCode)
 }
