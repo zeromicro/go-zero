@@ -6,6 +6,8 @@ import (
 	"unicode"
 )
 
+var WhiteSpace = []rune{'\n', '\t', '\f', '\v', ' '}
+
 // String  provides for converting the source text into other spell case,like lower,snake,camel
 type String struct {
 	source string
@@ -113,4 +115,25 @@ func (s String) splitBy(fn func(r rune) bool, remove bool) []string {
 		list = append(list, buffer.String())
 	}
 	return list
+}
+
+func ContainsAny(s string, runes ...rune) bool {
+	if len(runes) == 0 {
+		return true
+	}
+	tmp := make(map[rune]struct{}, len(runes))
+	for _, r := range runes {
+		tmp[r] = struct{}{}
+	}
+
+	for _, r := range s {
+		if _, ok := tmp[r]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsWhiteSpace(s string) bool {
+	return ContainsAny(s, WhiteSpace...)
 }

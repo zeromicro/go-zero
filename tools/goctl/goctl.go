@@ -22,6 +22,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/completion"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
+	"github.com/zeromicro/go-zero/tools/goctl/env"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
@@ -46,6 +47,33 @@ var commands = []cli.Command{
 		Name:   "upgrade",
 		Usage:  "upgrade goctl to latest version",
 		Action: upgrade.Upgrade,
+	},
+	{
+		Name: "env",
+		Flags: []cli.Flag{
+			cli.StringSliceFlag{
+				Name:  "write, w",
+				Usage: "edit goctl env",
+			},
+		},
+		Subcommands: []cli.Command{
+			{
+				Name:  "check",
+				Usage: "detect goctl env and dependency tools",
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "install, i",
+						Usage: "install dependencies if not found",
+					},
+					cli.BoolFlag{
+						Name:  "force, f",
+						Usage: "silent installation of non-existent dependencies",
+					},
+				},
+				Action: env.Check,
+			},
+		},
+		Action: env.Action,
 	},
 	{
 		Name:        "migrate",
@@ -829,7 +857,7 @@ func main() {
 	app.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	app.Commands = commands
 
-	// cli already print error messages
+	// cli already print error messages.
 	if err := app.Run(os.Args); err != nil {
 		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
 		os.Exit(codeFailure)
