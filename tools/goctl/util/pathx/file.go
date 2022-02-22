@@ -3,6 +3,7 @@ package pathx
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,22 +14,23 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
-// NL defines a new line
+// NL defines a new line.
 const (
 	NL              = "\n"
 	goctlDir        = ".goctl"
 	gitDir          = ".git"
 	autoCompleteDir = ".auto_complete"
+	cacheDir        = "cache"
 )
 
 var goctlHome string
 
-// RegisterGoctlHome register goctl home path
+// RegisterGoctlHome register goctl home path.
 func RegisterGoctlHome(home string) {
 	goctlHome = home
 }
 
-// CreateIfNotExist creates a file if it is not exists
+// CreateIfNotExist creates a file if it is not exists.
 func CreateIfNotExist(file string) (*os.File, error) {
 	_, err := os.Stat(file)
 	if !os.IsNotExist(err) {
@@ -38,7 +40,7 @@ func CreateIfNotExist(file string) (*os.File, error) {
 	return os.Create(file)
 }
 
-// RemoveIfExist deletes the specified file if it is exists
+// RemoveIfExist deletes the specified file if it is exists.
 func RemoveIfExist(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -47,7 +49,7 @@ func RemoveIfExist(filename string) error {
 	return os.Remove(filename)
 }
 
-// RemoveOrQuit deletes the specified file if read a permit command from stdin
+// RemoveOrQuit deletes the specified file if read a permit command from stdin.
 func RemoveOrQuit(filename string) error {
 	if !FileExists(filename) {
 		return nil
@@ -60,23 +62,29 @@ func RemoveOrQuit(filename string) error {
 	return os.Remove(filename)
 }
 
-// FileExists returns true if the specified file is exists
+// FileExists returns true if the specified file is exists.
 func FileExists(file string) bool {
 	_, err := os.Stat(file)
 	return err == nil
 }
 
-// FileNameWithoutExt returns a file name without suffix
+// FileNameWithoutExt returns a file name without suffix.
 func FileNameWithoutExt(file string) string {
 	return strings.TrimSuffix(file, filepath.Ext(file))
 }
 
-// GetGoctlHome returns the path value of the goctl home where Join $HOME with .goctl
+// GetGoctlHome returns the path value of the goctl, the default path is ~/.goctl, if the path has
+// been set by calling the RegisterGoctlHome method, the user-defined path refers to.
 func GetGoctlHome() (string, error) {
 	if len(goctlHome) != 0 {
 		return goctlHome, nil
 	}
 
+	return GetDefaultGoctlHome()
+}
+
+// GetDefaultGoctlHome returns the path value of the goctl home where Join $HOME with .goctl.
+func GetDefaultGoctlHome() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -104,7 +112,17 @@ func GetAutoCompleteHome() (string, error) {
 	return filepath.Join(goctlH, autoCompleteDir), nil
 }
 
-// GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome
+// GetCacheDir returns the cache dit of goctl.
+func GetCacheDir() (string, error) {
+	goctlH, err := GetGoctlHome()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(goctlH, cacheDir), nil
+}
+
+// GetTemplateDir returns the category path value in GoctlHome where could get it by GetGoctlHome.
 func GetTemplateDir(category string) (string, error) {
 	home, err := GetGoctlHome()
 	if err != nil {
@@ -112,7 +130,7 @@ func GetTemplateDir(category string) (string, error) {
 	}
 	if home == goctlHome {
 		// backward compatible, it will be removed in the feature
-		// backward compatible start
+		// backward compatible start.
 		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
 		fs, _ := ioutil.ReadDir(beforeTemplateDir)
 		var hasContent bool
@@ -124,7 +142,7 @@ func GetTemplateDir(category string) (string, error) {
 		if hasContent {
 			return beforeTemplateDir, nil
 		}
-		// backward compatible end
+		// backward compatible end.
 
 		return filepath.Join(home, category), nil
 	}
@@ -132,7 +150,7 @@ func GetTemplateDir(category string) (string, error) {
 	return filepath.Join(home, version.GetGoctlVersion(), category), nil
 }
 
-// InitTemplates creates template files GoctlHome where could get it by GetGoctlHome
+// InitTemplates creates template files GoctlHome where could get it by GetGoctlHome.
 func InitTemplates(category string, templates map[string]string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -152,7 +170,7 @@ func InitTemplates(category string, templates map[string]string) error {
 	return nil
 }
 
-// CreateTemplate writes template into file even it is exists
+// CreateTemplate writes template into file even it is exists.
 func CreateTemplate(category, name, content string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -161,7 +179,7 @@ func CreateTemplate(category, name, content string) error {
 	return createTemplate(filepath.Join(dir, name), content, true)
 }
 
-// Clean deletes all templates and removes the parent directory
+// Clean deletes all templates and removes the parent directory.
 func Clean(category string) error {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -170,7 +188,7 @@ func Clean(category string) error {
 	return os.RemoveAll(dir)
 }
 
-// LoadTemplate gets template content by the specified file
+// LoadTemplate gets template content by the specified file.
 func LoadTemplate(category, file, builtin string) (string, error) {
 	dir, err := GetTemplateDir(category)
 	if err != nil {
@@ -223,7 +241,7 @@ func createTemplate(file, content string, force bool) error {
 	return err
 }
 
-// MustTempDir creates a temporary directory
+// MustTempDir creates a temporary directory.
 func MustTempDir() string {
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
@@ -231,4 +249,26 @@ func MustTempDir() string {
 	}
 
 	return dir
+}
+
+func Copy(src, dest string) error {
+	f, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dir := filepath.Dir(dest)
+	err = MkdirIfNotExist(dir)
+	if err != nil {
+		return err
+	}
+	w, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	w.Chmod(os.ModePerm)
+	defer w.Close()
+	_, err = io.Copy(w, f)
+	return err
 }

@@ -18,12 +18,16 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+			spanName := path
+			if len(spanName) == 0 {
+				spanName = r.URL.Path
+			}
 			spanCtx, span := tracer.Start(
 				ctx,
-				path,
+				spanName,
 				oteltrace.WithSpanKind(oteltrace.SpanKindServer),
 				oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(
-					serviceName, path, r)...),
+					serviceName, spanName, r)...),
 			)
 			defer span.End()
 

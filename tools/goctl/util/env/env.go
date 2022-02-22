@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	bin            = "bin"
-	binGo          = "go"
-	binProtoc      = "protoc"
-	binProtocGenGo = "protoc-gen-go"
+	bin                = "bin"
+	binGo              = "go"
+	binProtoc          = "protoc"
+	binProtocGenGo     = "protoc-gen-go"
+	binProtocGenGrpcGo = "protoc-gen-go-grpc"
 )
 
 // LookUpGo searches an executable go in the directories
@@ -44,6 +45,14 @@ func LookUpProtocGenGo() (string, error) {
 	suffix := getExeSuffix()
 	xProtocGenGo := binProtocGenGo + suffix
 	return LookPath(xProtocGenGo)
+}
+
+// LookUpProtocGenGoGrpc searches an executable protoc-gen-go-grpc in the directories
+// named by the PATH environment variable.
+func LookUpProtocGenGoGrpc() (string, error) {
+	suffix := getExeSuffix()
+	xProtocGenGoGrpc := binProtocGenGrpcGo + suffix
+	return LookPath(xProtocGenGoGrpc)
 }
 
 // LookPath searches for an executable named file in the

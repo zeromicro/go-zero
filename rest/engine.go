@@ -14,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
 // use 1000m to represent 100%
@@ -152,6 +153,27 @@ func (ng *engine) getShedder(priority bool) load.Shedder {
 	}
 
 	return ng.shedder
+}
+
+// notFoundHandler returns a middleware that handles 404 not found requests.
+func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		chain := alice.New(
+			handler.TracingHandler(ng.conf.Name, ""),
+			ng.getLogHandler(),
+		)
+
+		var h http.Handler
+		if next != nil {
+			h = chain.Then(next)
+		} else {
+			h = chain.Then(http.NotFoundHandler())
+		}
+
+		cw := response.NewHeaderOnceResponseWriter(w)
+		h.ServeHTTP(cw, r)
+		cw.WriteHeader(http.StatusNotFound)
+	})
 }
 
 func (ng *engine) setTlsConfig(cfg *tls.Config) {

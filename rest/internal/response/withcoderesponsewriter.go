@@ -1,7 +1,8 @@
-package security
+package response
 
 import (
 	"bufio"
+	"errors"
 	"net"
 	"net/http"
 )
@@ -27,7 +28,11 @@ func (w *WithCodeResponseWriter) Header() http.Header {
 // Hijack implements the http.Hijacker interface.
 // This expands the Response to fulfill http.Hijacker if the underlying http.ResponseWriter supports it.
 func (w *WithCodeResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return w.Writer.(http.Hijacker).Hijack()
+	if hijacked, ok := w.Writer.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 // Write writes bytes into w.
