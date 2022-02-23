@@ -114,13 +114,16 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	apiAstList = append(apiAstList, root)
 	for _, imp := range root.Import {
 		dir := filepath.Dir(p.src)
-		imp := filepath.Join(dir, imp.Value.Text())
-		data, err := p.readContent(imp)
+		impPath := strings.ReplaceAll(imp.Value.Text(), "\"", "")
+		if !filepath.IsAbs(impPath) {
+			impPath = filepath.Join(dir, impPath)
+		}
+		data, err := p.readContent(impPath)
 		if err != nil {
 			return nil, err
 		}
 
-		nestedApi, err := p.invoke(imp, data)
+		nestedApi, err := p.invoke(impPath, data)
 		if err != nil {
 			return nil, err
 		}
