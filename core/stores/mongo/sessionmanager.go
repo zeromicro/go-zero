@@ -1,12 +1,14 @@
 package mongo
 
 import (
+	"context"
 	"io"
 	"time"
 
-	"github.com/globalsign/mgo"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
+	"go.mongodb.org/mongo-driver/mongo"
+	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -17,25 +19,24 @@ const (
 var sessionManager = syncx.NewResourceManager()
 
 type concurrentSession struct {
-	*mgo.Session
+	*mongo.Client
 	limit syncx.TimeoutLimit
 }
 
 func (cs *concurrentSession) Close() error {
-	cs.Session.Close()
-	return nil
+	return cs.Client.Disconnect(context.Background())
 }
 
 func getConcurrentSession(url string) (*concurrentSession, error) {
 	val, err := sessionManager.GetResource(url, func() (io.Closer, error) {
-		mgoSession, err := mgo.Dial(url)
+		cli, err := mongo.Connect(context.Background(), mopt.Client().ApplyURI(url))
 		if err != nil {
 			return nil, err
 		}
 
 		concurrentSess := &concurrentSession{
-			Session: mgoSession,
-			limit:   syncx.NewTimeoutLimit(defaultConcurrency),
+			Client: cli,
+			limit:  syncx.NewTimeoutLimit(defaultConcurrency),
 		}
 
 		return concurrentSess, nil
@@ -47,16 +48,16 @@ func getConcurrentSession(url string) (*concurrentSession, error) {
 	return val.(*concurrentSession), nil
 }
 
-func (cs *concurrentSession) putSession(session *mgo.Session) {
+func (cs *concurrentSession) putSession(session mongo.Session) {
 	if err := cs.limit.Return(); err != nil {
 		logx.Error(err)
 	}
 
 	// anyway, we need to close the session
-	session.Close()
+	session.EndSession(context.Background())
 }
 
-func (cs *concurrentSession) takeSession(opts ...Option) (*mgo.Session, error) {
+func (cs *concurrentSession) takeSession(opts ...Option) (mongo.Session, error) {
 	o := defaultOptions()
 	for _, opt := range opts {
 		opt(o)
@@ -66,5 +67,5 @@ func (cs *concurrentSession) takeSession(opts ...Option) (*mgo.Session, error) {
 		return nil, err
 	}
 
-	return cs.Copy(), nil
+	return cs.Client.StartSession()
 }
