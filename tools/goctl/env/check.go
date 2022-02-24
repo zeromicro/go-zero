@@ -44,7 +44,7 @@ func Check(ctx *cli.Context) error {
 }
 
 func check(install, force bool) error {
-	var pending = true
+	pending := true
 	console.Info("[goctl-env]: preparing to check env")
 	defer func() {
 		if p := recover(); p != nil {

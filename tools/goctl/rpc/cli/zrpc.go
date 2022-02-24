@@ -80,7 +80,7 @@ func ZRPC(c *cli.Context) error {
 		return err
 	}
 
-	var isGooglePlugin = len(grpcOut) > 0
+	isGooglePlugin := len(grpcOut) > 0
 	// If grpcOut is not empty means that user generates grpc code by
 	// https://google.golang.org/protobuf/cmd/protoc-gen-go and
 	// https://google.golang.org/grpc/cmd/protoc-gen-go-grpc,

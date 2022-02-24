@@ -9,8 +9,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
-var defaultProxy = "https://goproxy.cn"
-var defaultProxies = []string{defaultProxy}
+var (
+	defaultProxy   = "https://goproxy.cn"
+	defaultProxies = []string{defaultProxy}
+)
 
 func goProxy() []string {
 	wd, err := os.Getwd()

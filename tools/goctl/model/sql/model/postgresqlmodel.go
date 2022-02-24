@@ -108,6 +108,7 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 	if err != nil {
 		return nil, err
 	}
+
 	var list []*Column
 	for _, e := range in {
 		var dft interface{}
@@ -120,7 +121,7 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 			isNullAble = "NO"
 		}
 
-		extra := ""
+		var extra string
 		// when identity is true, the column is auto increment
 		if e.IdentityIncrement.Int32 == 1 {
 			extra = "auto_increment"
@@ -178,6 +179,7 @@ func (m *PostgreSqlModel) getIndex(schema, table string) (map[string][]*DbIndex,
 	if err != nil {
 		return nil, err
 	}
+
 	index := make(map[string][]*DbIndex)
 	for _, e := range indexes {
 		if e.IsPrimary.Bool {
@@ -199,6 +201,7 @@ func (m *PostgreSqlModel) getIndex(schema, table string) (map[string][]*DbIndex,
 			SeqInIndex: int(e.IndexSort.Int32),
 		})
 	}
+
 	return index, nil
 }
 
