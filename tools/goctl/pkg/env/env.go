@@ -143,5 +143,5 @@ func WriteEnv(kv []string) error {
 		return err
 	}
 	envFile := filepath.Join(defaultGoctlHome, envFileDir)
-	return ioutil.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0777)
+	return ioutil.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
 }

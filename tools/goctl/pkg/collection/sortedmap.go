@@ -9,8 +9,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-var ErrInvalidKVExpression = errors.New(`invalid key-value expression`)
-var ErrInvalidKVS = errors.New("the length of kv must be a even number")
+var (
+	ErrInvalidKVExpression = errors.New(`invalid key-value expression`)
+	ErrInvalidKVS          = errors.New("the length of kv must be a even number")
+)
 
 type KV []interface{}
 
@@ -193,7 +195,7 @@ func (m *SortedMap) Copy() *SortedMap {
 }
 
 func (m *SortedMap) Format() []string {
-	var format = make([]string, 0)
+	format := make([]string, 0)
 	m.Range(func(key, value interface{}) {
 		format = append(format, fmt.Sprintf("%s=%s", key, value))
 	})

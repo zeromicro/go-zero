@@ -937,7 +937,6 @@ func TestUnmarshalYamlReaderError(t *testing.T) {
 	reader = strings.NewReader("chenquan")
 	err = UnmarshalYamlReader(reader, &v)
 	assert.ErrorIs(t, err, ErrUnsupportedType)
-
 }
 
 func TestUnmarshalYamlBadReader(t *testing.T) {
