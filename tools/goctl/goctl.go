@@ -690,7 +690,7 @@ var commands = []cli.Command{
 						Flags: []cli.Flag{
 							cli.StringFlag{
 								Name:  "url",
-								Usage: `the data source of database,like "postgres://root:password@127.0.0.1:54332/database?sslmode=disable"`,
+								Usage: `the data source of database,like "postgres://root:password@127.0.0.1:5432/database?sslmode=disable"`,
 							},
 							cli.StringFlag{
 								Name:  "table, t",

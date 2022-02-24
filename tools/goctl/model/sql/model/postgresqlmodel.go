@@ -120,9 +120,15 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 			isNullAble = "NO"
 		}
 
-		extra := "auto_increment"
-		if e.IdentityIncrement.Int32 != 1 {
-			extra = ""
+		extra := ""
+		// when identity is true, the column is auto increment
+		if e.IdentityIncrement.Int32 == 1 {
+			extra = "auto_increment"
+		}
+
+		// when type is serial, it's auto_increment. and the default value is tablename_columnname_seq
+		if strings.Contains(e.ColumnDefault.String, table+"_"+e.Field.String+"_seq") {
+			extra = "auto_increment"
 		}
 
 		if len(index[e.Field.String]) > 0 {
