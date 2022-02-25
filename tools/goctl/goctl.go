@@ -49,11 +49,12 @@ var commands = []cli.Command{
 		Action: upgrade.Upgrade,
 	},
 	{
-		Name: "env",
+		Name:  "env",
+		Usage: "check or edit goctl environment",
 		Flags: []cli.Flag{
 			cli.StringSliceFlag{
 				Name:  "write, w",
-				Usage: "edit goctl env",
+				Usage: "edit goctl environment",
 			},
 		},
 		Subcommands: []cli.Command{
