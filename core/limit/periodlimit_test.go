@@ -65,3 +65,13 @@ func testPeriodLimit(t *testing.T, opts ...PeriodOption) {
 	assert.Equal(t, 1, hitQuota)
 	assert.Equal(t, total-quota, overQuota)
 }
+
+func TestQuotaFull(t *testing.T) {
+	s, err := miniredis.Run()
+	assert.Nil(t, err)
+
+	l := NewPeriodLimit(1, 1, redis.New(s.Addr()), "periodlimit")
+	val, err := l.Take("first")
+	assert.Nil(t, err)
+	assert.Equal(t, HitQuota, val)
+}
