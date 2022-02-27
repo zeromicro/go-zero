@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/mongo/internal"
 	"github.com/zeromicro/go-zero/core/stringx"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var errDummy = errors.New("dummy")
@@ -67,7 +68,7 @@ func TestKeepPromise_keep(t *testing.T) {
 }
 
 func TestNewCollection(t *testing.T) {
-	col := newCollection(&mgo.Collection{
+	col := newCollection(&mongo.Collection{
 		Database: nil,
 		Name:     "foo",
 		FullName: "bar",

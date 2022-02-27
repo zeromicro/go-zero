@@ -38,7 +38,7 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 	return &Model{
 		session: session,
 		// If name is empty, the database name provided in the dialed URL is used instead
-		db:         session.DB(""),
+		db:         session.Client.Database(""),
 		collection: collection,
 		brk:        breaker.GetBreaker(url),
 		opts:       opts,
@@ -61,7 +61,7 @@ func (mm *Model) FindId(id interface{}) (Query, error) {
 
 // GetCollection returns a Collection with given session.
 func (mm *Model) GetCollection(session mongo.Session) Collection {
-	return newCollection(mm.db.C(mm.collection).With(session), mm.brk)
+	return newCollection(mm.db.Collection(mm.collection), mm.brk)
 }
 
 // Insert inserts docs into mm.
