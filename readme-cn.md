@@ -13,7 +13,15 @@
 
 > ***缩短从需求到上线的距离***
 
-**注意：为了满足开源基金会要求，go-zero 从好未来（tal-tech）组织下迁移至中立的 GitHub 组织（zeromicro）。**
+**为了满足开源基金会要求，go-zero 从好未来（tal-tech）组织下迁移至中立的 GitHub 组织（zeromicro）。**
+
+> ***注意：***
+>
+> 从 v1.3.0 版本升级请执行以下命令：
+> 
+> GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
+> 
+> goctl migrate —verbose —version v1.3.0
 
 ## 0. go-zero 介绍
 
