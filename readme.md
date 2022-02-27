@@ -13,7 +13,7 @@ English | [简体中文](readme-cn.md)
 
 **Note: To meet the requirements of Open Source Foundation, we moved go-zero from tal-tech to zeromicro (a neutral GitHub organization).**
 
-> Important!
+> ***Important!***
 > 
 > To upgrade from previous versions, run the following commands.
 > 
