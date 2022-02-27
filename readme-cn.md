@@ -17,7 +17,7 @@
 
 > ***注意：***
 >
-> 从 v1.3.0 版本升级请执行以下命令：
+> 从 v1.3.0 之前版本升级请执行以下命令：
 > 
 > GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
 > 
