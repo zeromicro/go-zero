@@ -13,6 +13,14 @@ English | [简体中文](readme-cn.md)
 
 **Note: To meet the requirements of Open Source Foundation, we moved go-zero from tal-tech to zeromicro (a neutral GitHub organization).**
 
+> Important!
+> 
+> To upgrade from previous versions, run the following commands.
+> 
+> `go install github.com/zeromicro/go-zero/tools/goctl@latest`
+> 
+> `goctl migrate —verbose —version v1.3.0`
+
 ## 0. what is go-zero
 
 go-zero (listed in CNCF Landscape: [https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)) is a web and rpc framework with lots of builtin engineering practices. It’s born to ensure the stability of the busy services with resilience design and has been serving sites with tens of millions of users for years.
