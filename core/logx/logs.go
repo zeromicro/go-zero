@@ -33,7 +33,7 @@ const (
 )
 
 const (
-	jsonEncodingType uint32 = iota
+	jsonEncodingType = iota
 	plainEncodingType
 
 	jsonEncoding     = "json"
@@ -75,7 +75,7 @@ var (
 	timeFormat   = "2006-01-02T15:04:05.000Z07:00"
 	writeConsole bool
 	logLevel     uint32
-	encoding     = jsonEncodingType
+	encoding     uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
 	infoLog     io.WriteCloser
@@ -137,9 +137,9 @@ func SetUp(c LogConf) error {
 	}
 	switch c.Encoding {
 	case plainEncoding:
-		setEncoding(plainEncodingType)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 	default:
-		setEncoding(jsonEncodingType)
+		atomic.StoreUint32(&encoding, jsonEncodingType)
 	}
 
 	switch c.Mode {
@@ -424,7 +424,7 @@ func infoTextSync(msg string) {
 }
 
 func outputAny(writer io.Writer, level string, val interface{}) {
-	switch encoding {
+	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val)
 	default:
@@ -438,7 +438,7 @@ func outputAny(writer io.Writer, level string, val interface{}) {
 }
 
 func outputText(writer io.Writer, level, msg string) {
-	switch encoding {
+	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainText(writer, level, msg)
 	default:
@@ -665,8 +665,4 @@ func (lw logWriter) Close() error {
 func (lw logWriter) Write(data []byte) (int, error) {
 	lw.logger.Print(string(data))
 	return len(data), nil
-}
-
-func setEncoding(encodingType uint32) {
-	atomic.StoreUint32(&encoding, encodingType)
 }

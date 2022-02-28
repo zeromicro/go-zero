@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
@@ -80,7 +81,7 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
 	traceID := traceIdFromContext(l.ctx)
 	spanID := spanIdFromContext(l.ctx)
 
-	switch encoding {
+	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
 	default:

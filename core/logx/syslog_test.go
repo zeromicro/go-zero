@@ -29,9 +29,9 @@ func TestRedirector(t *testing.T) {
 }
 
 func captureOutput(f func()) string {
-	atomic.StoreUint32(&initialized, 1)
 	writer := new(mockWriter)
 	infoLog = writer
+	atomic.StoreUint32(&initialized, 1)
 
 	prevLevel := atomic.LoadUint32(&logLevel)
 	SetLevel(InfoLevel)
@@ -44,5 +44,9 @@ func captureOutput(f func()) string {
 func getContent(jsonStr string) string {
 	var entry logEntry
 	json.Unmarshal([]byte(jsonStr), &entry)
-	return entry.Content.(string)
+	val, ok := entry.Content.(string)
+	if ok {
+		return val
+	}
+	return ""
 }

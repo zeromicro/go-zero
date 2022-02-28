@@ -3,6 +3,7 @@ package logx
 import (
 	"fmt"
 	"io"
+	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
@@ -79,7 +80,7 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 }
 
 func (l *durationLogger) write(writer io.Writer, level string, val interface{}) {
-	switch encoding {
+	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val, l.Duration)
 	default:
