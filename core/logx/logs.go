@@ -33,7 +33,7 @@ const (
 )
 
 const (
-	jsonEncodingType = iota
+	jsonEncodingType uint32 = iota
 	plainEncodingType
 
 	jsonEncoding     = "json"
@@ -137,9 +137,9 @@ func SetUp(c LogConf) error {
 	}
 	switch c.Encoding {
 	case plainEncoding:
-		encoding = plainEncodingType
+		setEncoding(plainEncodingType)
 	default:
-		encoding = jsonEncodingType
+		setEncoding(jsonEncodingType)
 	}
 
 	switch c.Mode {
@@ -665,4 +665,8 @@ func (lw logWriter) Close() error {
 func (lw logWriter) Write(data []byte) (int, error) {
 	lw.logger.Print(string(data))
 	return len(data), nil
+}
+
+func setEncoding(encodingType uint32) {
+	atomic.StoreUint32(&encoding, encodingType)
 }
