@@ -83,10 +83,10 @@ func TestTraceInfo(t *testing.T) {
 }
 
 func TestTraceInfoConsole(t *testing.T) {
-	old := encoding
-	setEncoding(jsonEncodingType)
+	old := atomic.LoadUint32(&encoding)
+	atomic.StoreUint32(&encoding, jsonEncodingType)
 	defer func() {
-		setEncoding(old)
+		atomic.StoreUint32(&encoding, old)
 	}()
 
 	var buf mockWriter

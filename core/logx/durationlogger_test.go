@@ -3,6 +3,7 @@ package logx
 import (
 	"log"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -38,10 +39,10 @@ func TestWithDurationInfo(t *testing.T) {
 }
 
 func TestWithDurationInfoConsole(t *testing.T) {
-	old := encoding
-	encoding = plainEncodingType
+	old := atomic.LoadUint32(&encoding)
+	atomic.StoreUint32(&encoding, plainEncodingType)
 	defer func() {
-		encoding = old
+		atomic.StoreUint32(&encoding, old)
 	}()
 
 	var builder strings.Builder

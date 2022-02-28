@@ -356,8 +356,8 @@ github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da h1:NimzV1aGyq29m5u
 github.com/yuin/gopher-lua v0.0.0-20200816102855-ee81675732da/go.mod h1:E1AXubJBdNmFERAOucpDIxNzeGfLzg0mYh+UfMWdChA=
 github.com/zeromicro/antlr v0.0.1 h1:CQpIn/dc0pUjgGQ81y98s/NGOm2Hfru2NNio2I9mQgk=
 github.com/zeromicro/antlr v0.0.1/go.mod h1:nfpjEwFR6Q4xGDJMcZnCL9tEfQRgszMwu3rDz2Z+p5M=
-github.com/zeromicro/ddl-parser v1.0.2 h1:bHmxTh8+unNAQoIiCwBdzS49ho6Bb9E0/KrH1HqUwqo=
-github.com/zeromicro/ddl-parser v1.0.2/go.mod h1:ISU/8NuPyEpl9pa17Py9TBPetMjtsiHrb9f5XGiYbo8=
+github.com/zeromicro/ddl-parser v1.0.3 h1:hFecpbt0oPQMhHAbqG1tz78MUepHUnOkFJp1dvRBFyc=
+github.com/zeromicro/ddl-parser v1.0.3/go.mod h1:ISU/8NuPyEpl9pa17Py9TBPetMjtsiHrb9f5XGiYbo8=
 github.com/zeromicro/go-zero v1.3.0 h1:Eyn36yBtR043sm4YKmxR6eS3UA/GtZDktQ+UqIJ3Lm0=
 github.com/zeromicro/go-zero v1.3.0/go.mod h1:Hy4o1VFAt32lXaQMbaBhoFeZjA/rJqJ4PTGNdGsURcc=
 go.etcd.io/etcd/api/v3 v3.5.1/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=

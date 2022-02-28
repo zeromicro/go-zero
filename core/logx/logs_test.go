@@ -145,10 +145,10 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 	doTestStructedLogConsole(t, func(writer io.WriteCloser) {
 		infoLog = writer
 	}, func(v ...interface{}) {
-		old := encoding
-		encoding = plainEncodingType
+		old := atomic.LoadUint32(&encoding)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
-			encoding = old
+			atomic.StoreUint32(&encoding, old)
 		}()
 
 		Infov(v)
@@ -159,10 +159,10 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 	doTestStructedLogConsole(t, func(writer io.WriteCloser) {
 		infoLog = writer
 	}, func(v ...interface{}) {
-		old := encoding
-		encoding = plainEncodingType
+		old := atomic.LoadUint32(&encoding)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
-			encoding = old
+			atomic.StoreUint32(&encoding, old)
 		}()
 
 		Infov(fmt.Sprint(v...))
@@ -173,10 +173,10 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 	doTestStructedLogConsole(t, func(writer io.WriteCloser) {
 		infoLog = writer
 	}, func(v ...interface{}) {
-		old := encoding
-		encoding = plainEncodingType
+		old := atomic.LoadUint32(&encoding)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
-			encoding = old
+			atomic.StoreUint32(&encoding, old)
 		}()
 
 		Infov(errors.New(fmt.Sprint(v...)))
@@ -187,10 +187,10 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 	doTestStructedLogConsole(t, func(writer io.WriteCloser) {
 		infoLog = writer
 	}, func(v ...interface{}) {
-		old := encoding
-		encoding = plainEncodingType
+		old := atomic.LoadUint32(&encoding)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
-			encoding = old
+			atomic.StoreUint32(&encoding, old)
 		}()
 
 		Infov(ValStringer{
@@ -203,10 +203,10 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	doTestStructedLogConsole(t, func(writer io.WriteCloser) {
 		infoLog = writer
 	}, func(v ...interface{}) {
-		old := encoding
-		encoding = plainEncodingType
+		old := atomic.LoadUint32(&encoding)
+		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
-			encoding = old
+			atomic.StoreUint32(&encoding, old)
 		}()
 
 		Info(fmt.Sprint(v...))
