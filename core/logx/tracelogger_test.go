@@ -84,9 +84,9 @@ func TestTraceInfo(t *testing.T) {
 
 func TestTraceInfoConsole(t *testing.T) {
 	old := encoding
-	encoding = plainEncodingType
+	setEncoding(jsonEncodingType)
 	defer func() {
-		encoding = old
+		setEncoding(old)
 	}()
 
 	var buf mockWriter
