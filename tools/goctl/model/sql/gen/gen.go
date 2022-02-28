@@ -223,7 +223,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.UniqueCacheKey = uniqueKey
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 
-	importsCode, err := genImports(withCache, in.ContainsTime(), table)
+	importsCode, err := genImports(withCache, in.ContainsTime(), table, g.isPostgreSql)
 	if err != nil {
 		return "", err
 	}
