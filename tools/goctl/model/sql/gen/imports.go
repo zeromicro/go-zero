@@ -6,7 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-func genImports(withCache, timeImport bool, table Table, postgreSql bool) (string, error) {
+func genImports(withCache, timeImport bool, table Table) (string, error) {
 	if withCache {
 		text, err := pathx.LoadTemplate(category, importsTemplateFile, template.Imports)
 		if err != nil {
@@ -23,18 +23,10 @@ func genImports(withCache, timeImport bool, table Table, postgreSql bool) (strin
 
 		return buffer.String(), nil
 	}
-	var text string
-	var err error
-	if postgreSql {
-		text, err = pathx.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCachePg)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		text, err = pathx.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
-		if err != nil {
-			return "", err
-		}
+
+	text, err := pathx.LoadTemplate(category, importsWithNoCacheTemplateFile, template.ImportsNoCache)
+	if err != nil {
+		return "", err
 	}
 
 	buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
