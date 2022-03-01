@@ -46,19 +46,9 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	}
 
 	camel := table.Name.ToCamel()
-	var text string
-	var err error
-	// if database is postgresql
-	if postgreSql {
-		text, err = pathx.LoadTemplate(category, insertTemplateFile, template.InsertPg)
-		if err != nil {
-			return "", "", err
-		}
-	} else {
-		text, err = pathx.LoadTemplate(category, insertTemplateFile, template.Insert)
-		if err != nil {
-			return "", "", err
-		}
+	text, err := pathx.LoadTemplate(category, insertTemplateFile, template.Insert)
+	if err != nil {
+		return "", "", err
 	}
 
 	output, err := util.With("insert").
@@ -79,17 +69,9 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	}
 
 	// interface method
-	// if database is postgresql
-	if postgreSql {
-		text, err = pathx.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethodPg)
-		if err != nil {
-			return "", "", err
-		}
-	} else {
-		text, err = pathx.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
-		if err != nil {
-			return "", "", err
-		}
+	text, err = pathx.LoadTemplate(category, insertTemplateMethodFile, template.InsertMethod)
+	if err != nil {
+		return "", "", err
 	}
 
 	insertMethodOutput, err := util.With("insertMethod").Parse(text).Execute(map[string]interface{}{
