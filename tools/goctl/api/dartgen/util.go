@@ -34,18 +34,12 @@ func pathToFuncName(path string) string {
 	return util.ToLower(camel[:1]) + camel[1:]
 }
 
-func tagGet(tag, k string) string {
-	tags, err := spec.Parse(tag)
+func getPropertyFromMember(member spec.Member) string {
+	name, err := member.GetPropertyName()
 	if err != nil {
-		panic(k + " not exist")
+		panic(fmt.Sprintf("cannot get property name of %q", member.Name))
 	}
-
-	v, err := tags.Get(k)
-	if err != nil {
-		panic(k + " value not exist")
-	}
-
-	return v.Name
+	return name
 }
 
 func isDirectType(s string) bool {
