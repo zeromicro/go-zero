@@ -3,12 +3,12 @@ package dartgen
 import "text/template"
 
 var funcMap = template.FuncMap{
-	"tagGet":          tagGet,
-	"isDirectType":    isDirectType,
-	"isClassListType": isClassListType,
-	"getCoreType":     getCoreType,
-	"pathToFuncName":  pathToFuncName,
-	"lowCamelCase":    lowCamelCase,
+	"getPropertyFromMember": getPropertyFromMember,
+	"isDirectType":          isDirectType,
+	"isClassListType":       isClassListType,
+	"getCoreType":           getCoreType,
+	"pathToFuncName":        pathToFuncName,
+	"lowCamelCase":          lowCamelCase,
 }
 
 const (

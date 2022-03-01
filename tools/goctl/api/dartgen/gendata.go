@@ -19,12 +19,12 @@ class {{.Name}}{
 	});
 	factory {{.Name}}.fromJson(Map<String,dynamic> m) {
 		return {{.Name}}({{range .Members}}
-			{{lowCamelCase .Name}}: {{if isDirectType .Type.Name}}m['{{tagGet .Tag "json"}}']{{else if isClassListType .Type.Name}}(m['{{tagGet .Tag "json"}}'] as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)){{else}}{{.Type.Name}}.fromJson(m['{{tagGet .Tag "json"}}']){{end}},{{end}}
+			{{lowCamelCase .Name}}: {{if isDirectType .Type.Name}}m['{{getPropertyFromMember .}}']{{else if isClassListType .Type.Name}}(m['{{getPropertyFromMember .}}'] as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)){{else}}{{.Type.Name}}.fromJson(m['{{getPropertyFromMember .}}']){{end}},{{end}}
 		);
 	}
 	Map<String,dynamic> toJson() {
 		return { {{range .Members}}
-			'{{tagGet .Tag "json"}}': {{if isDirectType .Type.Name}}{{lowCamelCase .Name}}{{else if isClassListType .Type.Name}}{{lowCamelCase .Name}}.map((i) => i.toJson()){{else}}{{lowCamelCase .Name}}.toJson(){{end}},{{end}}
+			'{{getPropertyFromMember .}}': {{if isDirectType .Type.Name}}{{lowCamelCase .Name}}{{else if isClassListType .Type.Name}}{{lowCamelCase .Name}}.map((i) => i.toJson()){{else}}{{lowCamelCase .Name}}.toJson(){{end}},{{end}}
 		};
 	}
 }
