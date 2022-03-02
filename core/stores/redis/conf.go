@@ -18,6 +18,7 @@ type (
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
 		Tls  bool   `json:",default=false,options=true|false"`
+		Db   int    `json:",default=0"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -38,6 +39,9 @@ func (rc RedisConf) NewRedis() *Redis {
 	}
 	if rc.Tls {
 		opts = append(opts, WithTLS())
+	}
+	if rc.Db > 0 {
+		opts = append(opts, WithDb(rc.Db))
 	}
 
 	return New(rc.Host, opts...)
