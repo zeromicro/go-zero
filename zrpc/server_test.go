@@ -101,6 +101,21 @@ func TestServer_HasEtcd(t *testing.T) {
 	srv.Stop()
 }
 
+func TestServer_StartFailed(t *testing.T) {
+	srv := MustNewServer(RpcServerConf{
+		ServiceConf: service.ServiceConf{
+			Log: logx.LogConf{
+				ServiceName: "foo",
+				Mode:        "console",
+			},
+		},
+		ListenOn: "localhost:aaa",
+	}, func(server *grpc.Server) {
+	})
+
+	assert.Panics(t, srv.Start)
+}
+
 type mockedServer struct {
 	unaryInterceptors  []grpc.UnaryServerInterceptor
 	streamInterceptors []grpc.StreamServerInterceptor
