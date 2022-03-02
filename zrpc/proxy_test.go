@@ -64,3 +64,9 @@ func TestProxy(t *testing.T) {
 		})
 	}
 }
+
+func TestRpcProxy_TakeConnNewClientFailed(t *testing.T) {
+	proxy := NewProxy("foo", WithDialOption(grpc.WithInsecure()), WithDialOption(grpc.WithBlock()))
+	_, err := proxy.TakeConn(context.Background())
+	assert.NotNil(t, err)
+}

@@ -12,8 +12,8 @@ var (
 	ErrNotFound = mgo.ErrNotFound
 
 	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
-	sharedCalls = syncx.NewSingleFlight()
-	stats       = cache.NewStat("mongoc")
+	singleFlight = syncx.NewSingleFlight()
+	stats        = cache.NewStat("mongoc")
 )
 
 type (
