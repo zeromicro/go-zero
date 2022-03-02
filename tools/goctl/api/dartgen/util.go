@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -32,6 +33,10 @@ func pathToFuncName(path string) string {
 
 	camel := util.ToCamelCase(path)
 	return util.ToLower(camel[:1]) + camel[1:]
+}
+
+func getBaseName(str string) string {
+	return path.Base(str)
 }
 
 func getPropertyFromMember(member spec.Member) string {
