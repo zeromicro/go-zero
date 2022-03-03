@@ -16,11 +16,11 @@ English | [简体中文](readme-cn.md)
 
 > ***Important!***
 > 
-> To upgrade from previous versions, run the following commands.
+> To upgrade from versions eariler than v1.3.0, run the following commands.
 > 
 > `go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.0`
+> `goctl migrate —verbose —version v1.3.1`
 
 ## 0. what is go-zero
 
