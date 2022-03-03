@@ -19,9 +19,9 @@
 >
 > 从 v1.3.0 之前版本升级请执行以下命令：
 > 
-> GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
+> `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> goctl migrate —verbose —version v1.3.1
+> `goctl migrate —verbose —version v1.3.1`
 
 ## 0. go-zero 介绍
 
