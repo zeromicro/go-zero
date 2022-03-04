@@ -36,7 +36,7 @@ func TestServer_setupInterceptors(t *testing.T) {
 
 func TestServer(t *testing.T) {
 	SetServerSlowThreshold(time.Second)
-	srv := MustNewServer(RpcServerConf{
+	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				ServiceName: "foo",
@@ -52,11 +52,11 @@ func TestServer(t *testing.T) {
 		CpuThreshold:  0,
 	}, func(server *grpc.Server) {
 	})
-	srv.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	srv.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	srv.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
-	go srv.Start()
-	srv.Stop()
+	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	go svr.Start()
+	svr.Stop()
 }
 
 func TestServerError(t *testing.T) {
@@ -79,7 +79,7 @@ func TestServerError(t *testing.T) {
 }
 
 func TestServer_HasEtcd(t *testing.T) {
-	srv := MustNewServer(RpcServerConf{
+	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				ServiceName: "foo",
@@ -94,15 +94,15 @@ func TestServer_HasEtcd(t *testing.T) {
 		Redis: redis.RedisKeyConf{},
 	}, func(server *grpc.Server) {
 	})
-	srv.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	srv.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	srv.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
-	go srv.Start()
-	srv.Stop()
+	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	go svr.Start()
+	svr.Stop()
 }
 
 func TestServer_StartFailed(t *testing.T) {
-	srv := MustNewServer(RpcServerConf{
+	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				ServiceName: "foo",
@@ -113,7 +113,7 @@ func TestServer_StartFailed(t *testing.T) {
 	}, func(server *grpc.Server) {
 	})
 
-	assert.Panics(t, srv.Start)
+	assert.Panics(t, svr.Start)
 }
 
 type mockedServer struct {

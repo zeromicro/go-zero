@@ -101,7 +101,7 @@ func TestStreamTracingInterceptor_GrpcFormat(t *testing.T) {
 	stream := mockedServerStream{ctx: ctx}
 	err := StreamTracingInterceptor(nil, &stream, &grpc.StreamServerInfo{
 		FullMethod: "/foo",
-	}, func(srv interface{}, stream grpc.ServerStream) error {
+	}, func(svr interface{}, stream grpc.ServerStream) error {
 		defer wg.Done()
 		atomic.AddInt32(&run, 1)
 		return nil
@@ -138,7 +138,7 @@ func TestStreamTracingInterceptor_FinishWithGrpcError(t *testing.T) {
 			stream := mockedServerStream{ctx: ctx}
 			err := StreamTracingInterceptor(nil, &stream, &grpc.StreamServerInfo{
 				FullMethod: "/foo",
-			}, func(srv interface{}, stream grpc.ServerStream) error {
+			}, func(svr interface{}, stream grpc.ServerStream) error {
 				defer wg.Done()
 				return test.err
 			})
@@ -175,7 +175,7 @@ func TestStreamTracingInterceptor_WithError(t *testing.T) {
 			stream := mockedServerStream{ctx: ctx}
 			err := StreamTracingInterceptor(nil, &stream, &grpc.StreamServerInfo{
 				FullMethod: "/foo",
-			}, func(srv interface{}, stream grpc.ServerStream) error {
+			}, func(svr interface{}, stream grpc.ServerStream) error {
 				defer wg.Done()
 				return test.err
 			})

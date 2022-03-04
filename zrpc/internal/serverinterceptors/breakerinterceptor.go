@@ -9,11 +9,11 @@ import (
 )
 
 // StreamBreakerInterceptor is an interceptor that acts as a circuit breaker.
-func StreamBreakerInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo,
+func StreamBreakerInterceptor(svr interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) (err error) {
 	breakerName := info.FullMethod
 	return breaker.DoWithAcceptable(breakerName, func() error {
-		return handler(srv, stream)
+		return handler(svr, stream)
 	}, codes.Acceptable)
 }
 

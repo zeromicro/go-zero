@@ -65,7 +65,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			stream := mockedStream{ctx: ctx}
-			err = interceptor(nil, stream, nil, func(srv interface{}, stream grpc.ServerStream) error {
+			err = interceptor(nil, stream, nil, func(_ interface{}, _ grpc.ServerStream) error {
 				return nil
 			})
 			if test.hasError {

@@ -35,16 +35,16 @@ type engine struct {
 }
 
 func newEngine(c RestConf) *engine {
-	srv := &engine{
+	svr := &engine{
 		conf: c,
 	}
 	if c.CpuThreshold > 0 {
-		srv.shedder = load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
-		srv.priorityShedder = load.NewAdaptiveShedder(load.WithCpuThreshold(
+		svr.shedder = load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
+		svr.priorityShedder = load.NewAdaptiveShedder(load.WithCpuThreshold(
 			(c.CpuThreshold + topCpuUsage) >> 1))
 	}
 
-	return srv
+	return svr
 }
 
 func (ng *engine) addRoutes(r featuredRoutes) {
@@ -238,9 +238,9 @@ func (ng *engine) start(router httpx.Router) error {
 	}
 
 	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
-		ng.conf.KeyFile, router, func(srv *http.Server) {
+		ng.conf.KeyFile, router, func(svr *http.Server) {
 			if ng.tlsConfig != nil {
-				srv.TLSConfig = ng.tlsConfig
+				svr.TLSConfig = ng.tlsConfig
 			}
 		})
 }
