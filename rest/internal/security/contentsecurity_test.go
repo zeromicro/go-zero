@@ -151,6 +151,8 @@ func TestContentSecurity(t *testing.T) {
 				return
 			}
 
+			encrypted := test.mode != "0"
+			assert.Equal(t, encrypted, header.Encrypted())
 			assert.Equal(t, test.code, VerifySignature(r, header, time.Minute))
 		})
 	}
