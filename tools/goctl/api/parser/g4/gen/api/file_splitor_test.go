@@ -8,6 +8,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"log"
 	"os"
@@ -61,7 +62,12 @@ import "github.com/zeromicro/antlr"
 			}
 		}
 
-		err = ioutil.WriteFile(fp, buffer.Bytes(), os.ModePerm)
+		src, err := format.Source(buffer.Bytes())
+		if err != nil {
+			fmt.Printf("%+v\n", err)
+			break
+		}
+		err = ioutil.WriteFile(fp, src, os.ModePerm)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 		}
