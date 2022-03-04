@@ -225,22 +225,22 @@ func WithTimeout(timeout time.Duration) RouteOption {
 
 // WithTLSConfig returns a RunOption that with given tls config.
 func WithTLSConfig(cfg *tls.Config) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setTlsConfig(cfg)
+	return func(svr *Server) {
+		svr.ngin.setTlsConfig(cfg)
 	}
 }
 
 // WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
 func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setUnauthorizedCallback(callback)
+	return func(svr *Server) {
+		svr.ngin.setUnauthorizedCallback(callback)
 	}
 }
 
 // WithUnsignedCallback returns a RunOption that with given unsigned callback set.
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setUnsignedCallback(callback)
+	return func(svr *Server) {
+		svr.ngin.setUnsignedCallback(callback)
 	}
 }
 

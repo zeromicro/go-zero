@@ -90,14 +90,14 @@ func TestParseFullMethod(t *testing.T) {
 				semconv.RPCMethodKey.String("theMethod"),
 			},
 		}, {
-			fullMethod: "/pkg.srv",
-			name:       "pkg.srv",
+			fullMethod: "/pkg.svr",
+			name:       "pkg.svr",
 			attr:       []attribute.KeyValue(nil),
 		}, {
-			fullMethod: "/pkg.srv/",
-			name:       "pkg.srv/",
+			fullMethod: "/pkg.svr/",
+			name:       "pkg.svr/",
 			attr: []attribute.KeyValue{
-				semconv.RPCServiceKey.String("pkg.srv"),
+				semconv.RPCServiceKey.String("pkg.svr"),
 			},
 		},
 	}

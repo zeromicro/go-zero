@@ -15,7 +15,7 @@ func init() {
 
 func TestStreamCrashInterceptor(t *testing.T) {
 	err := StreamCrashInterceptor(nil, nil, nil, func(
-		srv interface{}, stream grpc.ServerStream) error {
+		svr interface{}, stream grpc.ServerStream) error {
 		panic("mock panic")
 	})
 	assert.NotNil(t, err)

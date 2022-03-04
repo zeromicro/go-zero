@@ -13,8 +13,7 @@ import (
 func TestStreamBreakerInterceptor(t *testing.T) {
 	err := StreamBreakerInterceptor(nil, nil, &grpc.StreamServerInfo{
 		FullMethod: "any",
-	}, func(
-		srv interface{}, stream grpc.ServerStream) error {
+	}, func(_ interface{}, _ grpc.ServerStream) error {
 		return status.New(codes.DeadlineExceeded, "any").Err()
 	})
 	assert.NotNil(t, err)
@@ -23,7 +22,7 @@ func TestStreamBreakerInterceptor(t *testing.T) {
 func TestUnaryBreakerInterceptor(t *testing.T) {
 	_, err := UnaryBreakerInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "any",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(_ context.Context, _ interface{}) (interface{}, error) {
 		return nil, status.New(codes.DeadlineExceeded, "any").Err()
 	})
 	assert.NotNil(t, err)

@@ -36,3 +36,8 @@ func TestError(t *testing.T) {
 	assert.True(t, strings.Contains(val, "third"))
 	assert.True(t, strings.Contains(val, "\n"))
 }
+
+func TestContextKey_String(t *testing.T) {
+	val := contextKey("foo")
+	assert.True(t, strings.Contains(val.String(), "foo"))
+}
