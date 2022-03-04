@@ -10,8 +10,8 @@ import (
 
 	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/vars"
 )
 
 func Completion(c *cli.Context) error {

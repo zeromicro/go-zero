@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"text/template"
 
-	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/internal/errorx"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 const regularPerm = 0o666

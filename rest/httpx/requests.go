@@ -6,8 +6,8 @@ import (
 	"net/textproto"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/mapping"
-	"github.com/zeromicro/go-zero/rest/pathvar"
+	"github.com/l306287405/go-zero/core/mapping"
+	"github.com/l306287405/go-zero/rest/pathvar"
 )
 
 const (

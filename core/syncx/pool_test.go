@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/l306287405/go-zero/core/lang"
 )
 
 const limit = 10

@@ -3,7 +3,7 @@ package prof
 import (
 	"testing"
 
-	"github.com/zeromicro/go-zero/core/utils"
+	"github.com/l306287405/go-zero/core/utils"
 )
 
 func TestProfiler(t *testing.T) {

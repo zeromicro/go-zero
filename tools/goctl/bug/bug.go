@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/l306287405/go-zero/tools/goctl/internal/version"
 )
 
 const (
@@ -33,7 +33,7 @@ func Action(_ *cli.Context) error {
 	env := getEnv()
 	content := fmt.Sprintf(issueTemplate, version.BuildVersion, env.string())
 	content = url.QueryEscape(content)
-	url := fmt.Sprintf("https://github.com/zeromicro/go-zero/issues/new?body=%s", content)
+	url := fmt.Sprintf("https://github.com/l306287405/go-zero/issues/new?body=%s", content)
 
 	goos := runtime.GOOS
 	var cmd string

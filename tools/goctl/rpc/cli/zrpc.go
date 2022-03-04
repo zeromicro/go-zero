@@ -9,9 +9,9 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/rpc/generator"
+	"github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 // projectFromGoPath is used to find the main module and project file path

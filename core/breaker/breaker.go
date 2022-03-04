@@ -6,11 +6,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/zeromicro/go-zero/core/mathx"
-	"github.com/zeromicro/go-zero/core/proc"
-	"github.com/zeromicro/go-zero/core/stat"
-	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/l306287405/go-zero/core/mathx"
+	"github.com/l306287405/go-zero/core/proc"
+	"github.com/l306287405/go-zero/core/stat"
+	"github.com/l306287405/go-zero/core/stringx"
+	"github.com/l306287405/go-zero/core/timex"
 )
 
 const (

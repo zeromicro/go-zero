@@ -4,10 +4,10 @@ import (
 	"errors"
 	"log"
 
-	"github.com/zeromicro/go-zero/core/errorx"
-	"github.com/zeromicro/go-zero/core/hash"
-	"github.com/zeromicro/go-zero/core/stores/cache"
-	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/l306287405/go-zero/core/errorx"
+	"github.com/l306287405/go-zero/core/hash"
+	"github.com/l306287405/go-zero/core/stores/cache"
+	"github.com/l306287405/go-zero/core/stores/redis"
 )
 
 // ErrNoRedisNode is an error that indicates no redis node.

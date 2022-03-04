@@ -5,7 +5,7 @@ import (
 	"io"
 
 	red "github.com/go-redis/redis/v8"
-	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/l306287405/go-zero/core/syncx"
 )
 
 var clusterManager = syncx.NewResourceManager()

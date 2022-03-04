@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/model/mongo/generate"
-	file "github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/config"
+	"github.com/l306287405/go-zero/tools/goctl/model/mongo/generate"
+	file "github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 // Action provides the entry for goctl mongo code generation.

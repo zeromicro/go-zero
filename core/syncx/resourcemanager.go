@@ -4,7 +4,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/zeromicro/go-zero/core/errorx"
+	"github.com/l306287405/go-zero/core/errorx"
 )
 
 // A ResourceManager is a manager that used to manage resources.

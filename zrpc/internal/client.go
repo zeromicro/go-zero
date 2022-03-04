@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
-	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"github.com/zeromicro/go-zero/zrpc/resolver"
+	"github.com/l306287405/go-zero/zrpc/internal/balancer/p2c"
+	"github.com/l306287405/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/l306287405/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

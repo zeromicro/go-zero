@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	"github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/util/stringx"
 )
 
 const rpcTemplateText = `syntax = "proto3";

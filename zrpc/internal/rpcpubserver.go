@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/discov"
-	"github.com/zeromicro/go-zero/core/netx"
+	"github.com/l306287405/go-zero/core/discov"
+	"github.com/l306287405/go-zero/core/netx"
 )
 
 const (

@@ -3,7 +3,7 @@ package clickhouse
 import (
 	// imports the driver, don't remove this comment, golint requires.
 	_ "github.com/ClickHouse/clickhouse-go"
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/l306287405/go-zero/core/stores/sqlx"
 )
 
 const clickHouseDriverName = "clickhouse"

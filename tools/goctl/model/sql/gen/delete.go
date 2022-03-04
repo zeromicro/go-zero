@@ -3,11 +3,11 @@ package gen
 import (
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	"github.com/l306287405/go-zero/core/collection"
+	"github.com/l306287405/go-zero/tools/goctl/model/sql/template"
+	"github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/util/stringx"
 )
 
 func genDelete(table Table, withCache, postgreSql bool) (string, string, error) {

@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/l306287405/go-zero/tools/goctl/api/spec"
 )
 
 const (

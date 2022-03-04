@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/l306287405/go-zero/core/logx"
 )
 
 func TestServiceConf(t *testing.T) {

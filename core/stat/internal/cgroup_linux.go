@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/iox"
-	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/l306287405/go-zero/core/iox"
+	"github.com/l306287405/go-zero/core/lang"
 )
 
 const cgroupDir = "/sys/fs/cgroup"

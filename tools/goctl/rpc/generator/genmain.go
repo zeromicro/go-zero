@@ -5,12 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
+	conf "github.com/l306287405/go-zero/tools/goctl/config"
+	"github.com/l306287405/go-zero/tools/goctl/rpc/parser"
+	"github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/format"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/util/stringx"
 )
 
 const mainTemplate = `package main
@@ -21,9 +21,9 @@ import (
 
 	{{.imports}}
 
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/core/service"
-	"github.com/zeromicro/go-zero/zrpc"
+	"github.com/l306287405/go-zero/core/conf"
+	"github.com/l306287405/go-zero/core/service"
+	"github.com/l306287405/go-zero/zrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

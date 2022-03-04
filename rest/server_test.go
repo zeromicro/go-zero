@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/rest/httpx"
-	"github.com/zeromicro/go-zero/rest/router"
+	"github.com/l306287405/go-zero/core/conf"
+	"github.com/l306287405/go-zero/rest/httpx"
+	"github.com/l306287405/go-zero/rest/router"
 )
 
 func TestNewServer(t *testing.T) {

@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/mathx"
-	"github.com/zeromicro/go-zero/core/stat"
-	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/l306287405/go-zero/core/collection"
+	"github.com/l306287405/go-zero/core/logx"
+	"github.com/l306287405/go-zero/core/mathx"
+	"github.com/l306287405/go-zero/core/stat"
+	"github.com/l306287405/go-zero/core/syncx"
 )
 
 const (

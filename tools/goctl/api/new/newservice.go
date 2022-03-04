@@ -8,10 +8,10 @@ import (
 	"text/template"
 
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/api/gogen"
+	conf "github.com/l306287405/go-zero/tools/goctl/config"
+	"github.com/l306287405/go-zero/tools/goctl/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 const apiTemplate = `

@@ -12,10 +12,10 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/core/errorx"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/api/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/core/errorx"
+	"github.com/l306287405/go-zero/tools/goctl/api/parser"
+	"github.com/l306287405/go-zero/tools/goctl/api/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 const (

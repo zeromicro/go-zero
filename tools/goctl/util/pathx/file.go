@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/l306287405/go-zero/tools/goctl/internal/version"
 )
 
 // NL defines a new line

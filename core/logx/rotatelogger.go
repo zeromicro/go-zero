@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/fs"
-	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/l306287405/go-zero/core/fs"
+	"github.com/l306287405/go-zero/core/lang"
+	"github.com/l306287405/go-zero/core/timex"
 )
 
 const (

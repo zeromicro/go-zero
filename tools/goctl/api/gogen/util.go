@@ -9,11 +9,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/api/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/core/collection"
+	"github.com/l306287405/go-zero/tools/goctl/api/spec"
+	"github.com/l306287405/go-zero/tools/goctl/api/util"
+	"github.com/l306287405/go-zero/tools/goctl/util/ctx"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 type fileGenConfig struct {
@@ -70,7 +70,7 @@ func getParentPackage(dir string) (string, error) {
 		return "", err
 	}
 
-	// fix https://github.com/zeromicro/go-zero/issues/1058
+	// fix https://github.com/l306287405/go-zero/issues/1058
 	wd := projectCtx.WorkDir
 	d := projectCtx.Dir
 	same, err := pathx.SameFile(wd, d)

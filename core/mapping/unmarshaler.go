@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/jsonx"
-	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/l306287405/go-zero/core/jsonx"
+	"github.com/l306287405/go-zero/core/lang"
+	"github.com/l306287405/go-zero/core/stringx"
 )
 
 const (

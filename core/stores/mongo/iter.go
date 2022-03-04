@@ -4,7 +4,7 @@ package mongo
 
 import (
 	"github.com/globalsign/mgo/bson"
-	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/l306287405/go-zero/core/breaker"
 )
 
 type (

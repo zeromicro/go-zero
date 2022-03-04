@@ -14,10 +14,10 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
-	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/l306287405/go-zero/tools/goctl/api/parser"
+	"github.com/l306287405/go-zero/tools/goctl/api/spec"
+	"github.com/l306287405/go-zero/tools/goctl/rpc/execx"
+	"github.com/l306287405/go-zero/tools/goctl/util/pathx"
 )
 
 const pluginArg = "_plugin"

@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/l306287405/go-zero/core/collection"
+	conf "github.com/l306287405/go-zero/tools/goctl/config"
+	"github.com/l306287405/go-zero/tools/goctl/rpc/execx"
+	"github.com/l306287405/go-zero/tools/goctl/rpc/parser"
 )
 
 const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported; use 'protoc --go-grpc_out=...' to generate gRPC`
