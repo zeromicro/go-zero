@@ -266,6 +266,14 @@ var commands = []cli.Command{
 						Name:  "api",
 						Usage: "the api file",
 					},
+					cli.BoolFlag{
+						Name:  "legacy",
+						Usage: "legacy generator for flutter v1",
+					},
+					cli.StringFlag{
+						Name:  "hostname",
+						Usage: "hostname of the server",
+					},
 				},
 				Action: dartgen.DartCommand,
 			},
