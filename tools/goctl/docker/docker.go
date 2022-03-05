@@ -46,8 +46,9 @@ func DockerCommand(c *cli.Context) (err error) {
 	home := c.String("home")
 	version := c.String("version")
 	remote := c.String("remote")
+	branch := c.String("branch")
 	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote)
+		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}
