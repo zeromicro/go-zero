@@ -30,6 +30,8 @@ const (
 	flagDatabase = "database"
 	flagSchema   = "schema"
 	flagHome     = "home"
+	flagRemote   = "remote"
+	flagBranch   = "branch"
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -43,9 +45,10 @@ func MysqlDDL(ctx *cli.Context) error {
 	style := ctx.String(flagStyle)
 	database := ctx.String(flagDatabase)
 	home := ctx.String(flagHome)
-	remote := ctx.String("remote")
+	remote := ctx.String(flagRemote)
+	branch := ctx.String(flagBranch)
 	if len(remote) > 0 {
-		repo, _ := file.CloneIntoGitHome(remote)
+		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}
@@ -68,10 +71,11 @@ func MySqlDataSource(ctx *cli.Context) error {
 	cache := ctx.Bool(flagCache)
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
-	home := ctx.String("home")
-	remote := ctx.String("remote")
+	home := ctx.String(flagHome)
+	remote := ctx.String(flagRemote)
+	branch := ctx.String(flagBranch)
 	if len(remote) > 0 {
-		repo, _ := file.CloneIntoGitHome(remote)
+		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}
@@ -97,10 +101,11 @@ func PostgreSqlDataSource(ctx *cli.Context) error {
 	idea := ctx.Bool(flagIdea)
 	style := ctx.String(flagStyle)
 	schema := ctx.String(flagSchema)
-	home := ctx.String("home")
-	remote := ctx.String("remote")
+	home := ctx.String(flagHome)
+	remote := ctx.String(flagRemote)
+	branch := ctx.String(flagBranch)
 	if len(remote) > 0 {
-		repo, _ := file.CloneIntoGitHome(remote)
+		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}

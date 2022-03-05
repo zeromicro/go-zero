@@ -20,8 +20,9 @@ func Action(ctx *cli.Context) error {
 	s := ctx.String("style")
 	home := ctx.String("home")
 	remote := ctx.String("remote")
+	branch := ctx.String("branch")
 	if len(remote) > 0 {
-		repo, _ := file.CloneIntoGitHome(remote)
+		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}

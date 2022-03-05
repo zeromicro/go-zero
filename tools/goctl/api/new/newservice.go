@@ -67,8 +67,9 @@ func CreateServiceCommand(c *cli.Context) error {
 
 	home := c.String("home")
 	remote := c.String("remote")
+	branch := c.String("branch")
 	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote)
+		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}

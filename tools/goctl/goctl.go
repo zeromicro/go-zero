@@ -111,6 +111,10 @@ var commands = []cli.Command{
 					"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 					"https://github.com/zeromicro/go-zero-template directory structure",
 			},
+			cli.StringFlag{
+				Name:  "branch",
+				Usage: "the branch of the remote repo, it does work with --remote",
+			},
 		},
 		Action: apigen.ApiCommand,
 		Subcommands: []cli.Command{
@@ -129,6 +133,10 @@ var commands = []cli.Command{
 						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 					cli.StringFlag{
 						Name:  "style",
@@ -208,6 +216,10 @@ var commands = []cli.Command{
 						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 				},
 				Action: gogen.GoCommand,
@@ -346,6 +358,10 @@ var commands = []cli.Command{
 					"https://github.com/zeromicro/go-zero-template directory structure",
 			},
 			cli.StringFlag{
+				Name:  "branch",
+				Usage: "the branch of the remote repo, it does work with --remote",
+			},
+			cli.StringFlag{
 				Name:  "version",
 				Usage: "the goctl builder golang image version",
 			},
@@ -446,6 +462,10 @@ var commands = []cli.Command{
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
 					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
+					},
+					cli.StringFlag{
 						Name:  "serviceAccount",
 						Usage: "the ServiceAccount for the deployment",
 					},
@@ -482,6 +502,10 @@ var commands = []cli.Command{
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
+					},
 				},
 				Action: rpc.RPCNew,
 			},
@@ -503,6 +527,10 @@ var commands = []cli.Command{
 						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 				},
 				Action: rpc.RPCTemplate,
@@ -548,6 +576,10 @@ var commands = []cli.Command{
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
 					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
+					},
 				},
 			},
 			{
@@ -589,6 +621,10 @@ var commands = []cli.Command{
 						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 				},
 				Action: rpc.RPC,
@@ -642,6 +678,10 @@ var commands = []cli.Command{
 									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 									"https://github.com/zeromicro/go-zero-template directory structure",
 							},
+							cli.StringFlag{
+								Name:  "branch",
+								Usage: "the branch of the remote repo, it does work with --remote",
+							},
 						},
 						Action: model.MysqlDDL,
 					},
@@ -683,6 +723,10 @@ var commands = []cli.Command{
 								Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 									"https://github.com/zeromicro/go-zero-template directory structure",
+							},
+							cli.StringFlag{
+								Name:  "branch",
+								Usage: "the branch of the remote repo, it does work with --remote",
 							},
 						},
 						Action: model.MySqlDataSource,
@@ -736,6 +780,10 @@ var commands = []cli.Command{
 									"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 									"https://github.com/zeromicro/go-zero-template directory structure",
 							},
+							cli.StringFlag{
+								Name:  "branch",
+								Usage: "the branch of the remote repo, it does work with --remote",
+							},
 						},
 						Action: model.PostgreSqlDataSource,
 					},
@@ -771,6 +819,10 @@ var commands = []cli.Command{
 						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
 							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
 							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 				},
 				Action: mongo.Action,
