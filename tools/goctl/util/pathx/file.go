@@ -75,12 +75,23 @@ func FileNameWithoutExt(file string) string {
 
 // GetGoctlHome returns the path value of the goctl, the default path is ~/.goctl, if the path has
 // been set by calling the RegisterGoctlHome method, the user-defined path refers to.
-func GetGoctlHome() (string, error) {
+func GetGoctlHome() (home string, err error) {
+	defer func() {
+		if err != nil {
+			return
+		}
+		info, err := os.Stat(home)
+		if err == nil && !info.IsDir() {
+			os.Rename(home, home+".old")
+			MkdirIfNotExist(home)
+		}
+	}()
 	if len(goctlHome) != 0 {
-		return goctlHome, nil
+		home = goctlHome
+		return
 	}
-
-	return GetDefaultGoctlHome()
+	home, err = GetDefaultGoctlHome()
+	return
 }
 
 // GetDefaultGoctlHome returns the path value of the goctl home where Join $HOME with .goctl.
