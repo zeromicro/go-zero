@@ -16,7 +16,7 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 {{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct
 {{end}}
-WORKDIR /build/zero
+WORKDIR /build
 
 ADD go.mod .
 ADD go.sum .
