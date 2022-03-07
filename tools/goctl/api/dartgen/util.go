@@ -128,11 +128,10 @@ func specTypeToDart(tp spec.Type) (string, error) {
 		}
 
 		s := getBaseType(valueType)
-		if len(s) == 0 {
-			return s, errors.New("unsupported primitive type " + tp.Name())
+		if len(s) != 0 {
+			return s, nil
 		}
-
-		return s, nil
+		return fmt.Sprintf("List<%s>", valueType), nil
 	case spec.InterfaceType:
 		return "Object", nil
 	case spec.PointerType:

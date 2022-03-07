@@ -43,7 +43,9 @@ class {{.Name}} {
 	{{end}}}{{end}});
 	factory {{.Name}}.fromJson(Map<String,dynamic> m) {
 		return {{.Name}}({{range .Members}}
-			{{lowCamelCase .Name}}: {{if isDirectType .Type.Name}}m['{{getPropertyFromMember .}}']{{else if isClassListType .Type.Name}}(m['{{getPropertyFromMember .}}'] as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)){{else}}{{.Type.Name}}.fromJson(m['{{getPropertyFromMember .}}']){{end}},{{end}}
+			{{lowCamelCase .Name}}: {{if isDirectType .Type.Name}}m['{{getPropertyFromMember .}}']
+			{{else if isClassListType .Type.Name}}(m['{{getPropertyFromMember .}}'] as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)).toList()
+			{{else}}{{.Type.Name}}.fromJson(m['{{getPropertyFromMember .}}']){{end}},{{end}}
 		);
 	}
 	Map<String,dynamic> toJson() {
