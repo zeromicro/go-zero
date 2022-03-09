@@ -542,20 +542,28 @@ var commands = []cli.Command{
 				Description: "for details, see https://go-zero.dev/cn/goctl-rpc.html",
 				Action:      rpc.ZRPC,
 				Flags: []cli.Flag{
-					cli.StringFlag{
+					cli.StringSliceFlag{
 						Name:   "go_out",
 						Hidden: true,
 					},
-					cli.StringFlag{
+					cli.StringSliceFlag{
 						Name:   "go-grpc_out",
 						Hidden: true,
 					},
-					cli.StringFlag{
+					cli.StringSliceFlag{
 						Name:   "go_opt",
 						Hidden: true,
 					},
-					cli.StringFlag{
+					cli.StringSliceFlag{
 						Name:   "go-grpc_opt",
+						Hidden: true,
+					},
+					cli.StringSliceFlag{
+						Name:   "plugin",
+						Hidden: true,
+					},
+					cli.StringSliceFlag{
+						Name:   "proto_path,I",
 						Hidden: true,
 					},
 					cli.StringFlag{

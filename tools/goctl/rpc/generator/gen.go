@@ -24,6 +24,9 @@ type ZRpcContext struct {
 	ProtocCmd       string
 	ProtoGenGrpcDir string
 	ProtoGenGoDir   string
+	IsGooglePlugin  bool
+	GoOutput        string
+	GrpcOutput      string
 	Output          string
 }
 

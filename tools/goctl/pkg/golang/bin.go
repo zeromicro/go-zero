@@ -11,10 +11,10 @@ import (
 // GoBin returns a path of GOBIN.
 func GoBin() string {
 	def := build.Default
-	goroot := os.Getenv("GOROOT")
+	goroot := os.Getenv("GOPATH")
 	bin := filepath.Join(goroot, "bin")
 	if !pathx.FileExists(bin) {
-		gopath := os.Getenv("GOPATH")
+		gopath := os.Getenv("GOROOT")
 		bin = filepath.Join(gopath, "bin")
 	}
 	if !pathx.FileExists(bin) {
