@@ -23,8 +23,11 @@ func Install(cacheDir string) (string, error) {
 }
 
 func Exists() bool {
-	_, err := env.LookUpProtocGenGo()
-	return err == nil
+	ver, err := Version()
+	if err != nil {
+		return false
+	}
+	return len(ver) > 0
 }
 
 // Version is used to get the version of the protoc-gen-go plugin. For older versions, protoc-gen-go does not support

@@ -40,10 +40,10 @@ var bins = []bin{
 func Check(ctx *cli.Context) error {
 	install := ctx.Bool("install")
 	force := ctx.Bool("force")
-	return check(install, force)
+	return Prepare(install, force)
 }
 
-func check(install, force bool) error {
+func Prepare(install, force bool) error {
 	pending := true
 	console.Info("[goctl-env]: preparing to check env")
 	defer func() {
@@ -56,8 +56,8 @@ func check(install, force bool) error {
 		} else {
 			console.Error(`
 [goctl-env]: check env finish, some dependencies is not found in PATH, you can execute
-command 'goctl env check --install' or 'goctl env install' to install it, for details, 
-please see 'goctl env check --help' or 'goctl env install --help'`)
+command 'goctl env check --install' to install it, for details, please execute command 
+'goctl env check --help'`)
 		}
 	}()
 	for _, e := range bins {

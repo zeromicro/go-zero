@@ -38,6 +38,7 @@ type (
 		GetProtoGo() Dir
 		GetMain() Dir
 		GetServiceName() stringx.String
+		SetPbDir(pbDir, grpcDir string)
 	}
 
 	// Dir defines a directory
@@ -50,6 +51,7 @@ type (
 	defaultDirContext struct {
 		inner       map[string]Dir
 		serviceName stringx.String
+		ctx         *ctx.ProjectContext
 	}
 )
 
@@ -134,9 +136,24 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 	}
 	serviceName := strings.TrimSuffix(proto.Name, filepath.Ext(proto.Name))
 	return &defaultDirContext{
+		ctx:         ctx,
 		inner:       inner,
 		serviceName: stringx.From(strings.ReplaceAll(serviceName, "-", "")),
 	}, nil
+}
+
+func (d *defaultDirContext) SetPbDir(pbDir, grpcDir string) {
+	d.inner[pb] = Dir{
+		Filename: pbDir,
+		Package:  filepath.ToSlash(filepath.Join(d.ctx.Path, strings.TrimPrefix(pbDir, d.ctx.Dir))),
+		Base:     filepath.Base(pbDir),
+	}
+
+	d.inner[protoGo] = Dir{
+		Filename: grpcDir,
+		Package:  filepath.ToSlash(filepath.Join(d.ctx.Path, strings.TrimPrefix(grpcDir, d.ctx.Dir))),
+		Base:     filepath.Base(grpcDir),
+	}
 }
 
 func (d *defaultDirContext) GetCall() Dir {

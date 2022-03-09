@@ -3,6 +3,8 @@ package generator
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +21,7 @@ const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
 func (g *DefaultGenerator) GenPb(ctx DirContext, protoImportPath []string, proto parser.Proto, _ *conf.Config, c *ZRpcContext, goOptions ...string) error {
 	if c != nil {
-		return g.genPbDirect(c)
+		return g.genPbDirect(ctx, c)
 	}
 
 	// deprecated: use genPbDirect instead.
@@ -110,13 +112,74 @@ go get -u github.com/golang/protobuf/protoc-gen-go`)
 	return nil
 }
 
-func (g *DefaultGenerator) genPbDirect(c *ZRpcContext) error {
-	g.log.Debug(c.ProtocCmd)
+func (g *DefaultGenerator) genPbDirect(ctx DirContext, c *ZRpcContext) error {
+	g.log.Debug("[command]: %s", c.ProtocCmd)
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
 	_, err = execx.Run(c.ProtocCmd, pwd)
-	return err
+	if err != nil {
+		return err
+	}
+	return g.setPbDir(ctx, c)
+}
+
+func (g *DefaultGenerator) setPbDir(ctx DirContext, c *ZRpcContext) error {
+	pbDir, err := findPbFile(c.GoOutput, false)
+	if err != nil {
+		return err
+	}
+	if len(pbDir) == 0 {
+		return fmt.Errorf("pg.go is not found under %q", c.GoOutput)
+	}
+	grpcDir, err := findPbFile(c.GrpcOutput, true)
+	if err != nil {
+		return err
+	}
+	if len(grpcDir) == 0 {
+		return fmt.Errorf("_grpc.pb.go is not found in %q", c.GrpcOutput)
+	}
+	if pbDir != grpcDir {
+		return fmt.Errorf("the pb.go and _grpc.pb.go must under the same dir: "+
+			"\n pb.go: %s\n_grpc.pb.go: %s", pbDir, grpcDir)
+	}
+	if pbDir == c.Output {
+		return fmt.Errorf("the output of pb.go and _grpc.pb.go must not be the same "+
+			"with --zrpc_out:\npb output: %s\nzrpc out: %s", pbDir, c.Output)
+	}
+	ctx.SetPbDir(pbDir, grpcDir)
+	return nil
+}
+
+const (
+	pbSuffix   = "pb.go"
+	grpcSuffix = "_grpc.pb.go"
+)
+
+func findPbFile(current string, grpc bool) (string, error) {
+	fileSystem := os.DirFS(current)
+	var ret string
+	err := fs.WalkDir(fileSystem, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		if strings.HasSuffix(path, pbSuffix) {
+			if grpc {
+				if strings.HasSuffix(path, grpcSuffix) {
+					ret = path
+					return os.ErrExist
+				}
+			} else if !strings.HasSuffix(path, grpcSuffix) {
+				ret = path
+				return os.ErrExist
+			}
+		}
+		return nil
+	})
+	if err == os.ErrExist {
+		return filepath.Dir(filepath.Join(current, ret)), nil
+	}
+	return "", err
 }

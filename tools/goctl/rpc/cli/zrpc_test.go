@@ -79,6 +79,10 @@ func Test_RemoveGoctlFlag(t *testing.T) {
 			source:   strings.Fields(`protoc foo.proto --go_opt=. --zrpc_out="bar" --style=goZero  --home=bar`),
 			expected: "protoc foo.proto --go_opt=.",
 		},
+		{
+			source:   strings.Fields(`protoc --go_opt=. --go-grpc_out=. --zrpc_out=. foo.proto`),
+			expected: "protoc --go_opt=. --go-grpc_out=. foo.proto",
+		},
 	}
 	for _, e := range testData {
 		cmd := strings.Join(removeGoctlFlag(e.source), " ")
