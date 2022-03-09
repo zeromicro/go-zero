@@ -13,6 +13,7 @@ type Request struct {
 }
 type Response struct {
   Message string ` + "`" + `json:"message"` + "`" + `
+  Students []Student ` + "`" + `json:"students"` + "`" + `
 }
 service A-api {
 @server(
@@ -26,7 +27,8 @@ handler: GreetHandler
 	Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
 }
 type Response {
-	Message string ` + "`" + `json:"message"` + "`" + `
+	Message  string    ` + "`" + `json:"message"` + "`" + `
+	Students []Student ` + "`" + `json:"students"` + "`" + `
 }
 service A-api {
 	@server(
@@ -37,7 +39,9 @@ service A-api {
 )
 
 func TestFormat(t *testing.T) {
-	r, err := apiFormat(notFormattedStr)
+	r, err := apiFormat(notFormattedStr, true)
 	assert.Nil(t, err)
 	assert.Equal(t, formattedStr, r)
+	_, err = apiFormat(notFormattedStr, false)
+	assert.Errorf(t, err, " line 7:13 can not found declaration 'Student' in context")
 }

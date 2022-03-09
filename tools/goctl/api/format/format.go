@@ -28,10 +28,11 @@ const (
 // GoFormatApi format api file
 func GoFormatApi(c *cli.Context) error {
 	useStdin := c.Bool("stdin")
+	skipCheckDeclare := c.Bool("declare")
 
 	var be errorx.BatchError
 	if useStdin {
-		if err := apiFormatByStdin(); err != nil {
+		if err := apiFormatByStdin(skipCheckDeclare); err != nil {
 			be.Add(err)
 		}
 	} else {
@@ -47,7 +48,7 @@ func GoFormatApi(c *cli.Context) error {
 
 		err = filepath.Walk(dir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
-				if err := ApiFormatByPath(path); err != nil {
+				if err := ApiFormatByPath(path, skipCheckDeclare); err != nil {
 					be.Add(util.WrapErr(err, fi.Name()))
 				}
 			}
@@ -64,13 +65,13 @@ func GoFormatApi(c *cli.Context) error {
 	return be.Err()
 }
 
-func apiFormatByStdin() error {
+func apiFormatByStdin(skipCheckDeclare bool) error {
 	data, err := ioutil.ReadAll(os.Stdin)
 	if err != nil {
 		return err
 	}
 
-	result, err := apiFormat(string(data))
+	result, err := apiFormat(string(data), skipCheckDeclare)
 	if err != nil {
 		return err
 	}
@@ -80,7 +81,7 @@ func apiFormatByStdin() error {
 }
 
 // ApiFormatByPath format api from file path
-func ApiFormatByPath(apiFilePath string) error {
+func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
 	data, err := ioutil.ReadFile(apiFilePath)
 	if err != nil {
 		return err
@@ -91,12 +92,12 @@ func ApiFormatByPath(apiFilePath string) error {
 		return err
 	}
 
-	result, err := apiFormat(string(data), abs)
+	result, err := apiFormat(string(data), skipCheckDeclare, abs)
 	if err != nil {
 		return err
 	}
 
-	_, err = parser.ParseContent(result, abs)
+	_, err = parser.ParseContentWithParserSkipCheckTypeDeclaration(result, abs)
 	if err != nil {
 		return err
 	}
@@ -104,8 +105,13 @@ func ApiFormatByPath(apiFilePath string) error {
 	return ioutil.WriteFile(apiFilePath, []byte(result), os.ModePerm)
 }
 
-func apiFormat(data string, filename ...string) (string, error) {
-	_, err := parser.ParseContent(data, filename...)
+func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, error) {
+	var err error
+	if skipCheckDeclare {
+		_, err = parser.ParseContentWithParserSkipCheckTypeDeclaration(data, filename...)
+	} else {
+		_, err = parser.ParseContent(data, filename...)
+	}
 	if err != nil {
 		return "", err
 	}

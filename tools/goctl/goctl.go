@@ -160,6 +160,10 @@ var commands = []cli.Command{
 						Name:  "stdin",
 						Usage: "use stdin to input api doc content, press \"ctrl + d\" to send EOF",
 					},
+					cli.BoolFlag{
+						Name:  "declare",
+						Usage: "use to skip check api types already declare",
+					},
 				},
 				Action: format.GoFormatApi,
 			},
