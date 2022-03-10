@@ -32,23 +32,24 @@ require (
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.20.12
-	k8s.io/apimachinery v0.20.12
-	k8s.io/client-go v0.20.12
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	k8s.io/api v0.22.5
+	k8s.io/apimachinery v0.22.5
+	k8s.io/client-go v0.22.5
+	k8s.io/utils v0.0.0-20210930125809-cb0fa318a74b
 )
 
 require (
+	github.com/containerd/containerd v1.6.1
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/openzipkin/zipkin-go v0.4.0 // indirect
+	github.com/sirupsen/logrus v1.8.1
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
+	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9
 	google.golang.org/genproto v0.0.0-20220228195345-15d65a4533f7 // indirect
 	k8s.io/klog/v2 v2.40.1 // indirect
 )

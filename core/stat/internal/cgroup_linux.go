@@ -1,17 +1,45 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/lang"
+	"golang.org/x/sys/unix"
 )
 
 const cgroupDir = "/sys/fs/cgroup"
+
+var (
+	isUnifiedOnce sync.Once
+	isUnified     bool
+	inUserNS      bool
+	nsOnce        sync.Once
+)
+
+// IsCgroup2UnifiedMode returns whether we are running in cgroup v2 unified mode.
+func IsCgroup2UnifiedMode() bool {
+	isUnifiedOnce.Do(func() {
+		var st unix.Statfs_t
+		err := unix.Statfs(cgroupDir, &st)
+		if err != nil {
+			if os.IsNotExist(err) && runningInUserNS() {
+				// ignore the "not found" error if running in userns
+				isUnified = false
+				return
+			}
+			panic(fmt.Sprintf("cannot statfs cgroup root: %s", err))
+		}
+		isUnified = st.Type == unix.CGROUP2_SUPER_MAGIC
+	})
+	return isUnified
+}
 
 type cgroup struct {
 	cgroups map[string]string
@@ -23,7 +51,7 @@ func (c *cgroup) acctUsageAllCpus() (uint64, error) {
 		return 0, err
 	}
 
-	return parseUint(string(data))
+	return parseUint(data)
 }
 
 func (c *cgroup) acctUsagePerCpu() ([]uint64, error) {
@@ -33,7 +61,7 @@ func (c *cgroup) acctUsagePerCpu() ([]uint64, error) {
 	}
 
 	var usage []uint64
-	for _, v := range strings.Fields(string(data)) {
+	for _, v := range strings.Fields(data) {
 		u, err := parseUint(v)
 		if err != nil {
 			return nil, err
@@ -51,7 +79,7 @@ func (c *cgroup) cpuQuotaUs() (int64, error) {
 		return 0, err
 	}
 
-	return strconv.ParseInt(string(data), 10, 64)
+	return strconv.ParseInt(data, 10, 64)
 }
 
 func (c *cgroup) cpuPeriodUs() (uint64, error) {
@@ -60,7 +88,7 @@ func (c *cgroup) cpuPeriodUs() (uint64, error) {
 		return 0, err
 	}
 
-	return parseUint(string(data))
+	return parseUint(data)
 }
 
 func (c *cgroup) cpus() ([]uint64, error) {
@@ -69,7 +97,7 @@ func (c *cgroup) cpus() ([]uint64, error) {
 		return nil, err
 	}
 
-	return parseUints(string(data))
+	return parseUints(data)
 }
 
 func currentCgroup() (*cgroup, error) {
@@ -165,4 +193,36 @@ func parseUints(val string) ([]uint64, error) {
 	}
 
 	return sets, nil
+}
+
+// runningInUserNS detects whether we are currently running in a user namespace.
+func runningInUserNS() bool {
+	nsOnce.Do(func() {
+		file, err := os.Open("/proc/self/uid_map")
+		if err != nil {
+			// This kernel-provided file only exists if user namespaces are supported
+			return
+		}
+		defer file.Close()
+
+		buf := bufio.NewReader(file)
+		l, _, err := buf.ReadLine()
+		if err != nil {
+			return
+		}
+
+		line := string(l)
+		var a, b, c int64
+		fmt.Sscanf(line, "%d %d %d", &a, &b, &c)
+
+		/*
+		 * We assume we are in the initial user namespace if we have a full
+		 * range - 4294967295 uids starting at uid 0.
+		 */
+		if a == 0 && b == 0 && c == 4294967295 {
+			return
+		}
+		inUserNS = true
+	})
+	return inUserNS
 }
