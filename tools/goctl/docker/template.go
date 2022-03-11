@@ -16,8 +16,8 @@ ENV CGO_ENABLED 0
 ENV GOOS linux
 {{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct
 {{end}}{{if .HasTimezone}}
-RUN apk update --no-cache && apk add --no-cache tzdata{{end}}
-
+RUN apk update --no-cache && apk add --no-cache tzdata
+{{end}}
 WORKDIR /build
 
 ADD go.mod .
