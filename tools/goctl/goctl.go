@@ -365,6 +365,11 @@ var commands = []cli.Command{
 				Name:  "version",
 				Usage: "the goctl builder golang image version",
 			},
+			cli.StringFlag{
+				Name:  "tz",
+				Usage: "the timezone of the container",
+				Value: "Asia/Shanghai",
+			},
 		},
 		Action: docker.DockerCommand,
 	},
