@@ -341,6 +341,10 @@ var commands = []cli.Command{
 				Name:  "go",
 				Usage: "the file that contains main function",
 			},
+			cli.BoolFlag{
+				Name:  "scratch",
+				Usage: "use scratch for the base docker image",
+			},
 			cli.IntFlag{
 				Name:  "port",
 				Usage: "the port to expose, default none",
