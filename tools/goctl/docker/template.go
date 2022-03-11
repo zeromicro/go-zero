@@ -28,9 +28,9 @@ COPY . .
 {{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 
-FROM alpine
+FROM {{if .Scratch}}scratch{{else}}alpine{{end}}
 
-RUN apk update --no-cache && apk add --no-cache ca-certificates
+{{if .Scratch}}COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt{{else}}RUN apk update --no-cache && apk add --no-cache ca-certificates{{end}}
 {{if .HasTimezone}}COPY --from=builder /usr/share/zoneinfo/{{.Timezone}} /usr/share/zoneinfo/{{.Timezone}}
 ENV TZ {{.Timezone}}
 {{end}}
