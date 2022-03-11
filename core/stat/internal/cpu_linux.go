@@ -24,7 +24,7 @@ var (
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
-	cpus, err := perCpuUsage()
+	cpus, err := cpuSets()
 	if err != nil {
 		logx.Error(err)
 		return
@@ -91,7 +91,7 @@ func RefreshCpu() uint64 {
 }
 
 func cpuQuota() (int64, error) {
-	cg, err := currentCgroup()
+	cg, err := currentCgroupV1()
 	if err != nil {
 		return 0, err
 	}
@@ -100,7 +100,7 @@ func cpuQuota() (int64, error) {
 }
 
 func cpuPeriod() (uint64, error) {
-	cg, err := currentCgroup()
+	cg, err := currentCgroupV1()
 	if err != nil {
 		return 0, err
 	}
@@ -109,21 +109,12 @@ func cpuPeriod() (uint64, error) {
 }
 
 func cpuSets() ([]uint64, error) {
-	cg, err := currentCgroup()
+	cg, err := currentCgroupV1()
 	if err != nil {
 		return nil, err
 	}
 
 	return cg.cpus()
-}
-
-func perCpuUsage() ([]uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return nil, err
-	}
-
-	return cg.acctUsagePerCpu()
 }
 
 func systemCpuUsage() (uint64, error) {
@@ -157,10 +148,10 @@ func systemCpuUsage() (uint64, error) {
 }
 
 func totalCpuUsage() (usage uint64, err error) {
-	var cg *cgroup
+	var cg cgroup
 	if cg, err = currentCgroup(); err != nil {
 		return
 	}
 
-	return cg.acctUsageAllCpus()
+	return cg.usageAllCpus()
 }
