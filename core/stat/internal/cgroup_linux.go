@@ -1,78 +1,129 @@
 package internal
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/lang"
+	"golang.org/x/sys/unix"
 )
 
-const cgroupDir = "/sys/fs/cgroup"
+const (
+	cgroupDir   = "/sys/fs/cgroup"
+	cpuStatFile = cgroupDir + "/cpu.stat"
+	cpusetFile  = cgroupDir + "/cpuset.cpus.effective"
+)
 
-type cgroup struct {
+var (
+	isUnifiedOnce sync.Once
+	isUnified     bool
+	inUserNS      bool
+	nsOnce        sync.Once
+)
+
+type cgroup interface {
+	cpuQuotaUs() (int64, error)
+	cpuPeriodUs() (uint64, error)
+	cpus() ([]uint64, error)
+	usageAllCpus() (uint64, error)
+}
+
+func currentCgroup() (cgroup, error) {
+	if isCgroup2UnifiedMode() {
+		return currentCgroupV2()
+	}
+
+	return currentCgroupV1()
+}
+
+type cgroupV1 struct {
 	cgroups map[string]string
 }
 
-func (c *cgroup) acctUsageAllCpus() (uint64, error) {
-	data, err := iox.ReadText(path.Join(c.cgroups["cpuacct"], "cpuacct.usage"))
-	if err != nil {
-		return 0, err
-	}
-
-	return parseUint(string(data))
-}
-
-func (c *cgroup) acctUsagePerCpu() ([]uint64, error) {
-	data, err := iox.ReadText(path.Join(c.cgroups["cpuacct"], "cpuacct.usage_percpu"))
-	if err != nil {
-		return nil, err
-	}
-
-	var usage []uint64
-	for _, v := range strings.Fields(string(data)) {
-		u, err := parseUint(v)
-		if err != nil {
-			return nil, err
-		}
-
-		usage = append(usage, u)
-	}
-
-	return usage, nil
-}
-
-func (c *cgroup) cpuQuotaUs() (int64, error) {
+func (c *cgroupV1) cpuQuotaUs() (int64, error) {
 	data, err := iox.ReadText(path.Join(c.cgroups["cpu"], "cpu.cfs_quota_us"))
 	if err != nil {
 		return 0, err
 	}
 
-	return strconv.ParseInt(string(data), 10, 64)
+	return strconv.ParseInt(data, 10, 64)
 }
 
-func (c *cgroup) cpuPeriodUs() (uint64, error) {
+func (c *cgroupV1) cpuPeriodUs() (uint64, error) {
 	data, err := iox.ReadText(path.Join(c.cgroups["cpu"], "cpu.cfs_period_us"))
 	if err != nil {
 		return 0, err
 	}
 
-	return parseUint(string(data))
+	return parseUint(data)
 }
 
-func (c *cgroup) cpus() ([]uint64, error) {
+func (c *cgroupV1) cpus() ([]uint64, error) {
 	data, err := iox.ReadText(path.Join(c.cgroups["cpuset"], "cpuset.cpus"))
 	if err != nil {
 		return nil, err
 	}
 
-	return parseUints(string(data))
+	return parseUints(data)
 }
 
-func currentCgroup() (*cgroup, error) {
+func (c *cgroupV1) usageAllCpus() (uint64, error) {
+	data, err := iox.ReadText(path.Join(c.cgroups["cpuacct"], "cpuacct.usage"))
+	if err != nil {
+		return 0, err
+	}
+
+	return parseUint(data)
+}
+
+type cgroupV2 struct {
+	cgroups map[string]string
+}
+
+func (c *cgroupV2) cpuQuotaUs() (int64, error) {
+	data, err := iox.ReadText(path.Join(cgroupDir, "cpu.cfs_quota_us"))
+	if err != nil {
+		return 0, err
+	}
+
+	return strconv.ParseInt(data, 10, 64)
+}
+
+func (c *cgroupV2) cpuPeriodUs() (uint64, error) {
+	data, err := iox.ReadText(path.Join(cgroupDir, "cpu.cfs_period_us"))
+	if err != nil {
+		return 0, err
+	}
+
+	return parseUint(data)
+}
+
+func (c *cgroupV2) cpus() ([]uint64, error) {
+	data, err := iox.ReadText(cpusetFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseUints(data)
+}
+
+func (c *cgroupV2) usageAllCpus() (uint64, error) {
+	usec, err := parseUint(c.cgroups["usage_usec"])
+	if err != nil {
+		return 0, err
+	}
+
+	return usec * uint64(time.Microsecond), nil
+}
+
+func currentCgroupV1() (cgroup, error) {
 	cgroupFile := fmt.Sprintf("/proc/%d/cgroup", os.Getpid())
 	lines, err := iox.ReadTextLines(cgroupFile, iox.WithoutBlank())
 	if err != nil {
@@ -100,9 +151,49 @@ func currentCgroup() (*cgroup, error) {
 		}
 	}
 
-	return &cgroup{
+	return &cgroupV1{
 		cgroups: cgroups,
 	}, nil
+}
+
+func currentCgroupV2() (cgroup, error) {
+	lines, err := iox.ReadTextLines(cpuStatFile, iox.WithoutBlank())
+	if err != nil {
+		return nil, err
+	}
+
+	cgroups := make(map[string]string)
+	for _, line := range lines {
+		cols := strings.Fields(line)
+		if len(cols) != 2 {
+			return nil, fmt.Errorf("invalid cgroupV2 line: %s", line)
+		}
+
+		cgroups[cols[0]] = cols[1]
+	}
+
+	return &cgroupV2{
+		cgroups: cgroups,
+	}, nil
+}
+
+// isCgroup2UnifiedMode returns whether we are running in cgroup v2 unified mode.
+func isCgroup2UnifiedMode() bool {
+	isUnifiedOnce.Do(func() {
+		var st unix.Statfs_t
+		err := unix.Statfs(cgroupDir, &st)
+		if err != nil {
+			if os.IsNotExist(err) && runningInUserNS() {
+				// ignore the "not found" error if running in userns
+				isUnified = false
+				return
+			}
+			panic(fmt.Sprintf("cannot statfs cgroup root: %s", err))
+		}
+		isUnified = st.Type == unix.CGROUP2_SUPER_MAGIC
+	})
+
+	return isUnified
 }
 
 func parseUint(s string) (uint64, error) {
@@ -165,4 +256,37 @@ func parseUints(val string) ([]uint64, error) {
 	}
 
 	return sets, nil
+}
+
+// runningInUserNS detects whether we are currently running in a user namespace.
+func runningInUserNS() bool {
+	nsOnce.Do(func() {
+		file, err := os.Open("/proc/self/uid_map")
+		if err != nil {
+			// This kernel-provided file only exists if user namespaces are supported
+			return
+		}
+		defer file.Close()
+
+		buf := bufio.NewReader(file)
+		l, _, err := buf.ReadLine()
+		if err != nil {
+			return
+		}
+
+		line := string(l)
+		var a, b, c int64
+		fmt.Sscanf(line, "%d %d %d", &a, &b, &c)
+
+		/*
+		 * We assume we are in the initial user namespace if we have a full
+		 * range - 4294967295 uids starting at uid 0.
+		 */
+		if a == 0 && b == 0 && c == 4294967295 {
+			return
+		}
+		inUserNS = true
+	})
+
+	return inUserNS
 }

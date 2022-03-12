@@ -24,7 +24,7 @@ var (
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
-	cpus, err := perCpuUsage()
+	cpus, err := cpuSets()
 	if err != nil {
 		logx.Error(err)
 		return
@@ -117,15 +117,6 @@ func cpuSets() ([]uint64, error) {
 	return cg.cpus()
 }
 
-func perCpuUsage() ([]uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return nil, err
-	}
-
-	return cg.acctUsagePerCpu()
-}
-
 func systemCpuUsage() (uint64, error) {
 	lines, err := iox.ReadTextLines("/proc/stat", iox.WithoutBlank())
 	if err != nil {
@@ -157,10 +148,10 @@ func systemCpuUsage() (uint64, error) {
 }
 
 func totalCpuUsage() (usage uint64, err error) {
-	var cg *cgroup
+	var cg cgroup
 	if cg, err = currentCgroup(); err != nil {
 		return
 	}
 
-	return cg.acctUsageAllCpus()
+	return cg.usageAllCpus()
 }
