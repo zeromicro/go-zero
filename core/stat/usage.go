@@ -1,7 +1,6 @@
 package stat
 
 import (
-	"fmt"
 	"runtime"
 	"sync/atomic"
 	"time"
@@ -22,7 +21,6 @@ const (
 var cpuUsage int64
 
 func init() {
-	fmt.Println(internal.IsCgroup2UnifiedMode())
 	go func() {
 		cpuTicker := time.NewTicker(cpuRefreshInterval)
 		defer cpuTicker.Stop()

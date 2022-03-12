@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/lang"
@@ -114,7 +115,12 @@ func (c *cgroupV2) cpus() ([]uint64, error) {
 }
 
 func (c *cgroupV2) usageAllCpus() (uint64, error) {
-	return parseUint(c.cgroups["usage_usec"])
+	usec, err := parseUint(c.cgroups["usage_usec"])
+	if err != nil {
+		return 0, err
+	}
+
+	return usec * uint64(time.Microsecond), nil
 }
 
 func currentCgroupV1() (cgroup, error) {

@@ -91,7 +91,7 @@ func RefreshCpu() uint64 {
 }
 
 func cpuQuota() (int64, error) {
-	cg, err := currentCgroupV1()
+	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
@@ -100,7 +100,7 @@ func cpuQuota() (int64, error) {
 }
 
 func cpuPeriod() (uint64, error) {
-	cg, err := currentCgroupV1()
+	cg, err := currentCgroup()
 	if err != nil {
 		return 0, err
 	}
@@ -109,7 +109,7 @@ func cpuPeriod() (uint64, error) {
 }
 
 func cpuSets() ([]uint64, error) {
-	cg, err := currentCgroupV1()
+	cg, err := currentCgroup()
 	if err != nil {
 		return nil, err
 	}
