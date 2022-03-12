@@ -19,7 +19,8 @@ type (
 		debug      bool
 		log        console.Console
 		antlr.DefaultErrorListener
-		src string
+		src                      string
+		skipCheckTypeDeclaration bool
 	}
 
 	// ParserOption defines an function with argument Parser
@@ -136,9 +137,11 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 		apiAstList = append(apiAstList, nestedApi)
 	}
 
-	err = p.checkTypeDeclaration(apiAstList)
-	if err != nil {
-		return nil, err
+	if !p.skipCheckTypeDeclaration {
+		err = p.checkTypeDeclaration(apiAstList)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	allApi := p.memberFill(apiAstList)
@@ -481,5 +484,11 @@ func WithParserDebug() ParserOption {
 func WithParserPrefix(prefix string) ParserOption {
 	return func(p *Parser) {
 		p.linePrefix = prefix
+	}
+}
+
+func WithParserSkipCheckTypeDeclaration() ParserOption {
+	return func(p *Parser) {
+		p.skipCheckTypeDeclaration = true
 	}
 }

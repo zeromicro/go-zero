@@ -86,7 +86,7 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
-	if err := apiformat.ApiFormatByPath(apiFile); err != nil {
+	if err := apiformat.ApiFormatByPath(apiFile, false); err != nil {
 		return err
 	}
 

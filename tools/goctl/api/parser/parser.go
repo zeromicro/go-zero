@@ -33,9 +33,13 @@ func Parse(filename string) (*spec.ApiSpec, error) {
 	return spec, nil
 }
 
-// ParseContent parses the api content
-func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
-	astParser := ast.NewParser()
+func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
+	var astParser *ast.Parser
+	if skipCheckTypeDeclaration {
+		astParser = ast.NewParser(ast.WithParserSkipCheckTypeDeclaration())
+	} else {
+		astParser = ast.NewParser()
+	}
 	ast, err := astParser.ParseContent(content, filename...)
 	if err != nil {
 		return nil, err
@@ -49,6 +53,16 @@ func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 	}
 
 	return spec, nil
+}
+
+// ParseContent parses the api content
+func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
+	return parseContent(content, false, filename...)
+}
+
+// ParseContentWithParserSkipCheckTypeDeclaration parses the api content with skip check type declaration
+func ParseContentWithParserSkipCheckTypeDeclaration(content string, filename ...string) (*spec.ApiSpec, error) {
+	return parseContent(content, true, filename...)
 }
 
 func (p parser) convert2Spec() error {
