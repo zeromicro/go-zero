@@ -23,6 +23,7 @@ func TestImportRegex(t *testing.T) {
 
 		{`"bar..api"`, false},
 		{`"//bar.api"`, false},
+		{`"/foo/foo_bar.api"`, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.value, func(t *testing.T) {
