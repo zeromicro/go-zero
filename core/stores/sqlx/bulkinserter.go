@@ -25,6 +25,7 @@ type (
 
 	// A BulkInserter is used to batch insert records.
 	// Postgresql is not supported yet, because of the sql is formated with symbol `$`.
+	// Oracle is not supported yet, because of the sql is formated with symbol `:`.
 	BulkInserter struct {
 		executor *executors.PeriodicalExecutor
 		inserter *dbInserter

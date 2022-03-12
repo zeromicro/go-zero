@@ -67,7 +67,7 @@ func format(query string, args ...interface{}) (string, error) {
 
 			writeValue(&b, args[argIndex])
 			argIndex++
-		case '$':
+		case ':', '$':
 			var j int
 			for j = i + 1; j < bytes; j++ {
 				char := query[j]
@@ -81,10 +81,11 @@ func format(query string, args ...interface{}) (string, error) {
 					return "", err
 				}
 
-				// index starts from 1 for pg
+				// index starts from 1 for pg or oracle
 				if index > argIndex {
 					argIndex = index
 				}
+				
 				index--
 				if index < 0 || numArgs <= index {
 					return "", fmt.Errorf("error: wrong index %d in sql", index)
