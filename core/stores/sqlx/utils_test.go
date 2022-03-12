@@ -97,18 +97,6 @@ func TestFormat(t *testing.T) {
 			args:   []interface{}{"133", false},
 			hasErr: true,
 		},
-		{
-			name:   "oracle error repeat args",
-			query:  "select name, age from users where bool=:1 and phone=:2 and phone2=:2",
-			args:   []interface{}{true, "133", "133"},
-			expect: "select name, age from users where bool=1 and phone='133' and phone2='133'",
-		},
-		{
-			name:   "oracle error repeat args",
-			query:  "select name, age from users where bool=:1 and phone=:2 and phone2=:2 and bool1=:1",
-			args:   []interface{}{true, "133", "133",true},
-			expect: "select name, age from users where bool=1 and phone='133' and phone2='133' and bool1=1",
-		},
 	}
 
 	for _, test := range tests {
