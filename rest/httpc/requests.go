@@ -1,6 +1,7 @@
 package httpc
 
 import (
+	"io"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -34,6 +35,26 @@ func Do(key string, r *http.Request, opts ...Option) (resp *http.Response, err e
 	}
 
 	return
+}
+
+// Get sends an HTTP GET request to the service assocated with the given key.
+func Get(key, url string, opts ...Option) (*http.Response, error) {
+	r, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return Do(key, r, opts...)
+}
+
+// Post sends an HTTP POST request to the service assocated with the given key.
+func Post(key, url, contentType string, body io.Reader, opts ...Option) (*http.Response, error) {
+	r, err := http.NewRequest(http.MethodPost, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	return Do(key, r, opts...)
 }
 
 func doRequest(key string, r *http.Request, opts ...Option) (resp *http.Response, err error) {
