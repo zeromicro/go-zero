@@ -32,11 +32,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			defer span.End()
 
 			// convenient for tracking error messages
-			sc := span.SpanContext()
-			if sc.HasTraceID() {
-				w.Header().Set(trace.TraceIdKey, sc.TraceID().String())
-			}
-
+			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
 			next.ServeHTTP(w, r.WithContext(spanCtx))
 		})
 	}
