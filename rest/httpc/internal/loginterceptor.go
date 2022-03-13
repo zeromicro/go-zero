@@ -20,7 +20,6 @@ func LogInterceptor(r *http.Request) (*http.Request, ResponseHandler) {
 		} else {
 			logger.Errorf("[HTTP] %d - %s %s/%s", resp.StatusCode, r.Method, r.Host, r.RequestURI)
 		}
-
 	}
 }
 
