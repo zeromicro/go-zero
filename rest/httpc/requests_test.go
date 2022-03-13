@@ -13,7 +13,9 @@ func TestDo(t *testing.T) {
 	}))
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
 	assert.Nil(t, err)
-	resp, err := Do("foo", req)
+	resp, err := Do("foo", req, func(cli *http.Client) {
+		cli.Transport = http.DefaultTransport
+	})
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }

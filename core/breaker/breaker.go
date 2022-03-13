@@ -171,7 +171,7 @@ func (lt loggedThrottle) allow() (Promise, error) {
 func (lt loggedThrottle) doReq(req func() error, fallback func(err error) error, acceptable Acceptable) error {
 	return lt.logError(lt.internalThrottle.doReq(req, fallback, func(err error) bool {
 		accept := acceptable(err)
-		if !accept {
+		if !accept && err != nil {
 			lt.errWin.add(err.Error())
 		}
 		return accept
