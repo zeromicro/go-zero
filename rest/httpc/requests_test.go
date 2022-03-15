@@ -13,9 +13,7 @@ func TestDo(t *testing.T) {
 	}))
 	_, err := Get("foo", "tcp://bad request")
 	assert.NotNil(t, err)
-	resp, err := Get("foo", svr.URL, func(cli *http.Client) {
-		cli.Transport = http.DefaultTransport
-	})
+	resp, err := Get("foo", svr.URL)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
