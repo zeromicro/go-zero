@@ -88,6 +88,8 @@ func TestCollection_Count(t *testing.T) {
 	}, cach)
 	assert.NotNil(t, c.Update("foo", "bar"))
 	assert.NotNil(t, c.UpdateId("foo", "bar"))
+	_, err = c.UpdateAll("foo", "bar")
+	assert.NotNil(t, err)
 	_, err = c.Upsert("foo", "bar")
 	assert.NotNil(t, err)
 }
@@ -258,6 +260,10 @@ func (c dummyConn) RemoveId(id interface{}) error {
 
 func (c dummyConn) Update(selector, update interface{}) error {
 	return c.updateErr
+}
+
+func (c dummyConn) UpdateAll(selector, update interface{}) (*mgo.ChangeInfo, error) {
+	return nil, c.updateErr
 }
 
 func (c dummyConn) UpdateId(id, update interface{}) error {

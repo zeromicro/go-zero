@@ -187,6 +187,18 @@ func (mm *Model) UpdateNoCache(selector, update interface{}) error {
 	})
 }
 
+func (mm *Model) UpdateAll(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
+		return c.UpdateAll(selector, update, keys...)
+	})
+}
+
+func (mm *Model) UpdateAllNoCache(selector, update interface{}) (*mgo.ChangeInfo, error) {
+	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
+		return c.UpdateAllNoCache(selector, update)
+	})
+}
+
 // UpdateId updates the record with given id, and delete cache with given keys.
 func (mm *Model) UpdateId(id, update interface{}, keys ...string) error {
 	return mm.execute(func(c CachedCollection) error {

@@ -27,6 +27,7 @@ type (
 		RemoveAll(selector interface{}) (*mgo.ChangeInfo, error)
 		RemoveId(id interface{}) error
 		Update(selector, update interface{}) error
+		UpdateAll(selector, update interface{}) (*mgo.ChangeInfo, error)
 		UpdateId(id, update interface{}) error
 		Upsert(selector, update interface{}) (*mgo.ChangeInfo, error)
 	}
@@ -169,6 +170,21 @@ func (c *decoratedCollection) Update(selector, update interface{}) (err error) {
 
 		return c.collection.Update(selector, update)
 	}, acceptable)
+}
+
+func (c *decoratedCollection) UpdateAll(selector, update interface{}) (info *mgo.ChangeInfo, err error) {
+	err = c.brk.DoWithAcceptable(func() error {
+		startTime := timex.Now()
+		defer func() {
+			duration := timex.Since(startTime)
+			c.logDuration("updateAll", duration, err, selector, update)
+		}()
+
+		info, err = c.collection.UpdateAll(selector, update)
+		return err
+	}, acceptable)
+
+	return
 }
 
 func (c *decoratedCollection) UpdateId(id, update interface{}) (err error) {

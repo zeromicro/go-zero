@@ -41,6 +41,8 @@ type (
 		SetCache(key string, v interface{}) error
 		Update(selector, update interface{}, keys ...string) error
 		UpdateNoCache(selector, update interface{}) error
+		UpdateAll(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error)
+		UpdateAllNoCache(selector, update interface{}) (*mgo.ChangeInfo, error)
 		UpdateId(id, update interface{}, keys ...string) error
 		UpdateIdNoCache(id, update interface{}) error
 		Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error)
@@ -163,6 +165,23 @@ func (c *cachedCollection) Update(selector, update interface{}, keys ...string) 
 	}
 
 	return c.DelCache(keys...)
+}
+
+func (c *cachedCollection) UpdateAll(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+	info, err := c.UpdateAllNoCache(selector, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.DelCache(keys...); err != nil {
+		return nil, err
+	}
+
+	return info, nil
+}
+
+func (c *cachedCollection) UpdateAllNoCache(selector, update interface{}) (*mgo.ChangeInfo, error) {
+	return c.collection.UpdateAll(selector, update)
 }
 
 func (c *cachedCollection) UpdateNoCache(selector, update interface{}) error {

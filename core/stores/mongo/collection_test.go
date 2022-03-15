@@ -2,8 +2,6 @@ package mongo
 
 import (
 	"errors"
-	"testing"
-
 	"github.com/globalsign/mgo"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -11,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/mongo/internal"
 	"github.com/zeromicro/go-zero/core/stringx"
+	"testing"
 )
 
 var errDummy = errors.New("dummy")
@@ -229,6 +228,23 @@ func TestCollectionUpdate(t *testing.T) {
 	assert.Equal(t, errDummy, err)
 	c.brk = new(dropBreaker)
 	err = c.Update(nil, nil)
+	assert.Equal(t, errDummy, err)
+}
+
+func TestCollectionUpdateAll(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	col := internal.NewMockMgoCollection(ctrl)
+	col.EXPECT().UpdateAll(gomock.Any(), gomock.Any()).Return(nil, errDummy)
+	c := decoratedCollection{
+		collection: col,
+		brk:        breaker.NewBreaker(),
+	}
+	_, err := c.UpdateAll(nil, nil)
+	assert.Equal(t, errDummy, err)
+	c.brk = new(dropBreaker)
+	_, err = c.UpdateAll(nil, nil)
 	assert.Equal(t, errDummy, err)
 }
 

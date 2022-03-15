@@ -115,6 +115,13 @@ func (mm *Model) Update(selector, update interface{}) error {
 	})
 }
 
+// UpdateAll update all with given selector and returns a mgo.ChangeInfo.
+func (mm *Model) UpdateAll(selector, update interface{}) (*mgo.ChangeInfo, error) {
+	return mm.change(func(c Collection) (*mgo.ChangeInfo, error) {
+		return c.UpdateAll(selector, update)
+	})
+}
+
 // UpdateId updates a record with given id.
 func (mm *Model) UpdateId(id, update interface{}) error {
 	return mm.execute(func(c Collection) error {
