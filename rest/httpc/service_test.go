@@ -20,13 +20,16 @@ func TestNamedService_Do(t *testing.T) {
 
 func TestNamedService_Get(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("foo", r.Header.Get("foo"))
 	}))
-	service := NewService("foo", func(cli *http.Client) {
-		cli.Transport = http.DefaultTransport
+	service := NewService("foo", func(r *http.Request) *http.Request {
+		r.Header.Set("foo", "bar")
+		return r
 	})
 	resp, err := service.Get(svr.URL)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "bar", resp.Header.Get("foo"))
 }
 
 func TestNamedService_Post(t *testing.T) {

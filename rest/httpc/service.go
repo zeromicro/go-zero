@@ -18,7 +18,7 @@ var interceptors = []internal.Interceptor{
 
 type (
 	// Option is used to customize the *http.Client.
-	Option func(cli *http.Client)
+	Option func(r *http.Request) *http.Request
 
 	// Service represents a remote HTTP service.
 	Service interface {
@@ -33,26 +33,23 @@ type (
 	namedService struct {
 		name string
 		cli  *http.Client
+		opts []Option
 	}
 )
 
 // NewService returns a remote service with the given name.
 // opts are used to customize the *http.Client.
 func NewService(name string, opts ...Option) Service {
-	var cli *http.Client
+	return NewServiceWithClient(name, http.DefaultClient, opts...)
+}
 
-	if len(opts) == 0 {
-		cli = http.DefaultClient
-	} else {
-		cli = &http.Client{}
-		for _, opt := range opts {
-			opt(cli)
-		}
-	}
-
+// NewServiceWithClient returns a remote service with the given name.
+// opts are used to customize the *http.Client.
+func NewServiceWithClient(name string, cli *http.Client, opts ...Option) Service {
 	return namedService{
 		name: name,
 		cli:  cli,
+		opts: opts,
 	}
 }
 
@@ -100,6 +97,10 @@ func (s namedService) Post(url, contentType string, body io.Reader) (*http.Respo
 }
 
 func (s namedService) doRequest(r *http.Request) (resp *http.Response, err error) {
+	for _, opt := range s.opts {
+		r = opt(r)
+	}
+
 	brk := breaker.GetBreaker(s.name)
 	err = brk.DoWithAcceptable(func() error {
 		resp, err = s.cli.Do(r)
