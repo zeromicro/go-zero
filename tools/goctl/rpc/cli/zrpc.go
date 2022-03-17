@@ -20,11 +20,6 @@ var (
 	errMultiInput        = errors.New("ZRPC: only one source is expected")
 )
 
-const (
-	optImport         = "import"
-	optSourceRelative = "source_relative"
-)
-
 // ZRPC generates grpc code directly by protoc and generates
 // zrpc code by goctl.
 func ZRPC(c *cli.Context) error {
@@ -61,7 +56,22 @@ func ZRPC(c *cli.Context) error {
 	if len(zrpcOut) == 0 {
 		return errInvalidZrpcOutput
 	}
-
+	goOutAbs, err := filepath.Abs(goOut)
+	if err != nil {
+		return err
+	}
+	grpcOutAbs, err := filepath.Abs(grpcOut)
+	if err != nil {
+		return err
+	}
+	err = pathx.MkdirIfNotExist(goOutAbs)
+	if err != nil {
+		return err
+	}
+	err = pathx.MkdirIfNotExist(grpcOutAbs)
+	if err != nil {
+		return err
+	}
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
