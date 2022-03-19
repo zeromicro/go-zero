@@ -79,9 +79,6 @@ func prepare() error {
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
-	console.Warning("deprecated: it will be removed in the feature, zrpc code generation please use %q instead",
-		"goctl rpc protoc")
-
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
@@ -113,7 +110,14 @@ func RPCNew(c *cli.Context) error {
 		return err
 	}
 
-	g, err := generator.NewDefaultRPCGenerator(style)
+	var ctx generator.ZRpcContext
+	ctx.Src = src
+	ctx.GoOutput = filepath.Dir(src)
+	ctx.GrpcOutput = filepath.Dir(src)
+	ctx.IsGooglePlugin = true
+	ctx.Output = filepath.Dir(src)
+	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+	g, err := generator.NewDefaultRPCGenerator(style, generator.WithZRpcContext(&ctx))
 	if err != nil {
 		return err
 	}

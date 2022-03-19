@@ -492,9 +492,8 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:        "new",
-				Usage:       `generate rpc demo service`,
-				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
+				Name:  "new",
+				Usage: `generate rpc demo service`,
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
