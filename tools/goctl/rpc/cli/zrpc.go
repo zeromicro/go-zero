@@ -107,11 +107,7 @@ func ZRPC(c *cli.Context) error {
 	ctx.IsGooglePlugin = isGooglePlugin
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
-	g, err := generator.NewDefaultRPCGenerator(style)
-	if err != nil {
-		return err
-	}
-
+	g := generator.NewGenerator(style)
 	return g.Generate(&ctx)
 }
 

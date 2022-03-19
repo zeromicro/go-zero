@@ -11,26 +11,19 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
-	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-var cfg = &conf.Config{
-	NamingFormat: "gozero",
-}
-
 func TestRpcGenerate(t *testing.T) {
 	_ = Clean()
-	dispatcher := NewDefaultGenerator()
-	err := dispatcher.Prepare()
+	g := NewGenerator("gozero")
+	err := g.Prepare()
 	if err != nil {
 		logx.Error(err)
 		return
 	}
 	projectName := stringx.Rand()
-	g := NewRPCGenerator(dispatcher, cfg)
-
 	src := filepath.Join(build.Default.GOPATH, "src")
 	_, err = os.Stat(src)
 	if err != nil {

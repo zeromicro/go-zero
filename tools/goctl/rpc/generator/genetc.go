@@ -23,7 +23,7 @@ Etcd:
 
 // GenEtc generates the yaml configuration file of the rpc service,
 // including host, port monitoring configuration items and etcd configuration
-func (g *DefaultGenerator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetEtc()
 	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
 	if err != nil {

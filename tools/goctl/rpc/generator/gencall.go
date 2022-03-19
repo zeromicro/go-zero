@@ -66,7 +66,7 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}},
 
 // GenCall generates the rpc client code, which is the entry point for the rpc service call.
 // It is a layer of encapsulation for the rpc client and shields the details in the pb.
-func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
@@ -151,7 +151,7 @@ func getMessageName(msg proto.Message) string {
 	return strings.Join(list, "_")
 }
 
-func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
+func (g *Generator) genFunction(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
@@ -189,7 +189,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service,
 	return functions, nil
 }
 
-func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
+func (g *Generator) getInterfaceFuncs(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
