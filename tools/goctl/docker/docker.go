@@ -28,7 +28,7 @@ type Docker struct {
 	GoRelPath   string
 	GoFile      string
 	ExeFile     string
-	Scratch     bool
+	BaseImage   string
 	HasPort     bool
 	Port        int
 	Argument    string
@@ -74,10 +74,10 @@ func DockerCommand(c *cli.Context) (err error) {
 		return fmt.Errorf("file %q not found", goFile)
 	}
 
-	scratch := c.Bool("scratch")
+	base := c.String("base")
 	port := c.Int("port")
 	if _, err := os.Stat(etcDir); os.IsNotExist(err) {
-		return generateDockerfile(goFile, scratch, port, version, timezone)
+		return generateDockerfile(goFile, base, port, version, timezone)
 	}
 
 	cfg, err := findConfig(goFile, etcDir)
@@ -85,7 +85,7 @@ func DockerCommand(c *cli.Context) (err error) {
 		return err
 	}
 
-	if err := generateDockerfile(goFile, scratch, port, version, timezone, "-f", "etc/"+cfg); err != nil {
+	if err := generateDockerfile(goFile, base, port, version, timezone, "-f", "etc/"+cfg); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func findConfig(file, dir string) (string, error) {
 	return files[0], nil
 }
 
-func generateDockerfile(goFile string, scratch bool, port int, version, timezone string, args ...string) error {
+func generateDockerfile(goFile, base string, port int, version, timezone string, args ...string) error {
 	projPath, err := getFilePath(filepath.Dir(goFile))
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func generateDockerfile(goFile string, scratch bool, port int, version, timezone
 		GoRelPath:   projPath,
 		GoFile:      goFile,
 		ExeFile:     pathx.FileNameWithoutExt(filepath.Base(goFile)),
-		Scratch:     scratch,
+		BaseImage:   base,
 		HasPort:     port > 0,
 		Port:        port,
 		Argument:    builder.String(),
