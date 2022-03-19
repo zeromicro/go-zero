@@ -10,8 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
-const googleProtocGenGoErr = `--go_out: protoc-gen-go: plugins are not supported; use 'protoc --go-grpc_out=...' to generate gRPC`
-
 // GenPb generates the pb.go file, which is a layer of packaging for protoc to generate gprc,
 // but the commands and flags in protoc are not completely joined in goctl. At present, proto_path(-I) is introduced
 func (g *Generator) GenPb(ctx DirContext, c *ZRpcContext) error {
