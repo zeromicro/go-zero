@@ -52,12 +52,12 @@ func RPCNew(c *cli.Context) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
-	g, err := generator.NewDefaultRPCGenerator(style, generator.WithZRpcContext(&ctx))
+	g, err := generator.NewDefaultRPCGenerator(style)
 	if err != nil {
 		return err
 	}
 
-	return g.Generate(src, filepath.Dir(src), nil)
+	return g.Generate(&ctx)
 }
 
 // RPCTemplate is the entry for generate rpc template

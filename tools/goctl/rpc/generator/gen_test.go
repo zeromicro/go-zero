@@ -1,6 +1,7 @@
 package generator
 
 import (
+	"fmt"
 	"go/build"
 	"os"
 	"path/filepath"
@@ -46,7 +47,15 @@ func TestRpcGenerate(t *testing.T) {
 
 	// case go path
 	t.Run("GOPATH", func(t *testing.T) {
-		err = g.Generate("./test.proto", projectDir, []string{common}, "Mbase/common.proto=./base")
+		ctx := &ZRpcContext{
+			Src:            "./test.proto",
+			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
+			IsGooglePlugin: true,
+			GoOutput:       projectDir,
+			GrpcOutput:     projectDir,
+			Output:         projectDir,
+		}
+		err = g.Generate(ctx)
 		assert.Nil(t, err)
 		_, err = execx.Run("go test "+projectName, projectDir)
 		if err != nil {
@@ -67,7 +76,15 @@ func TestRpcGenerate(t *testing.T) {
 		}
 
 		projectDir = filepath.Join(workDir, projectName)
-		err = g.Generate("./test.proto", projectDir, []string{common}, "Mbase/common.proto=./base")
+		ctx := &ZRpcContext{
+			Src:            "./test.proto",
+			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
+			IsGooglePlugin: true,
+			GoOutput:       projectDir,
+			GrpcOutput:     projectDir,
+			Output:         projectDir,
+		}
+		err = g.Generate(ctx)
 		assert.Nil(t, err)
 		_, err = execx.Run("go test "+projectName, projectDir)
 		if err != nil {
@@ -79,7 +96,15 @@ func TestRpcGenerate(t *testing.T) {
 
 	// case not in go mod and go path
 	t.Run("OTHER", func(t *testing.T) {
-		err = g.Generate("./test.proto", projectDir, []string{common, src}, "Mbase/common.proto=./base")
+		ctx := &ZRpcContext{
+			Src:            "./test.proto",
+			ProtocCmd:      fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s", common, projectDir, projectDir),
+			IsGooglePlugin: true,
+			GoOutput:       projectDir,
+			GrpcOutput:     projectDir,
+			Output:         projectDir,
+		}
+		err = g.Generate(ctx)
 		assert.Nil(t, err)
 		_, err = execx.Run("go test "+projectName, projectDir)
 		if err != nil {

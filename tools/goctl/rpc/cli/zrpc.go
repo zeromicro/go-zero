@@ -107,12 +107,12 @@ func ZRPC(c *cli.Context) error {
 	ctx.IsGooglePlugin = isGooglePlugin
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
-	g, err := generator.NewDefaultRPCGenerator(style, generator.WithZRpcContext(&ctx))
+	g, err := generator.NewDefaultRPCGenerator(style)
 	if err != nil {
 		return err
 	}
 
-	return g.Generate(source, zrpcOut, nil)
+	return g.Generate(&ctx)
 }
 
 func removeGoctlFlag(args []string) []string {

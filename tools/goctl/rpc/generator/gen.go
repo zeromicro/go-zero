@@ -14,10 +14,7 @@ import (
 type RPCGenerator struct {
 	g   Generator
 	cfg *conf.Config
-	ctx *ZRpcContext
 }
-
-type RPCGeneratorOption func(g *RPCGenerator)
 
 type ZRpcContext struct {
 	Src             string
@@ -31,37 +28,28 @@ type ZRpcContext struct {
 }
 
 // NewDefaultRPCGenerator wraps Generator with configure
-func NewDefaultRPCGenerator(style string, options ...RPCGeneratorOption) (*RPCGenerator, error) {
+func NewDefaultRPCGenerator(style string) (*RPCGenerator, error) {
 	cfg, err := conf.NewConfig(style)
 	if err != nil {
 		return nil, err
 	}
-	return NewRPCGenerator(NewDefaultGenerator(), cfg, options...), nil
+	return NewRPCGenerator(NewDefaultGenerator(), cfg), nil
 }
 
 // NewRPCGenerator creates an instance for RPCGenerator
-func NewRPCGenerator(g Generator, cfg *conf.Config, options ...RPCGeneratorOption) *RPCGenerator {
+func NewRPCGenerator(g Generator, cfg *conf.Config) *RPCGenerator {
 	out := &RPCGenerator{
 		g:   g,
 		cfg: cfg,
 	}
-	for _, opt := range options {
-		opt(out)
-	}
 	return out
-}
-
-func WithZRpcContext(c *ZRpcContext) RPCGeneratorOption {
-	return func(g *RPCGenerator) {
-		g.ctx = c
-	}
 }
 
 // Generate generates an rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
-func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, goOptions ...string) error {
-	abs, err := filepath.Abs(target)
+func (g *RPCGenerator) Generate(zctx *ZRpcContext) error {
+	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
 		return err
 	}
@@ -82,12 +70,12 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 	}
 
 	p := parser.NewDefaultProtoParser()
-	proto, err := p.Parse(src)
+	proto, err := p.Parse(zctx.Src)
 	if err != nil {
 		return err
 	}
 
-	dirCtx, err := mkdir(projectCtx, proto, g.cfg, g.ctx)
+	dirCtx, err := mkdir(projectCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
@@ -97,7 +85,7 @@ func (g *RPCGenerator) Generate(src, target string, protoImportPath []string, go
 		return err
 	}
 
-	err = g.g.GenPb(dirCtx, protoImportPath, proto, g.cfg, g.ctx, goOptions...)
+	err = g.g.GenPb(dirCtx, zctx)
 	if err != nil {
 		return err
 	}
