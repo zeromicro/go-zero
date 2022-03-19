@@ -48,17 +48,15 @@ func Completion(c *cli.Context) error {
 
 	flag := magic
 	err = ioutil.WriteFile(zshF, zsh, os.ModePerm)
-	if err != nil {
-		return err
+	if err == nil {
+		flag |= flagZsh
 	}
 
-	flag |= flagZsh
 	err = ioutil.WriteFile(bashF, bash, os.ModePerm)
-	if err != nil {
-		return err
+	if err == nil {
+		flag |= flagBash
 	}
 
-	flag |= flagBash
 	buffer.WriteString(aurora.BrightGreen("generation auto completion success!\n").String())
 	buffer.WriteString(aurora.BrightGreen("executes the following script to setting shell:\n").String())
 	switch flag {

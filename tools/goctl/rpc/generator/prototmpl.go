@@ -12,6 +12,7 @@ import (
 const rpcTemplateText = `syntax = "proto3";
 
 package {{.package}};
+option go_package="./{{.package}}";
 
 message Request {
   string ping = 1;

@@ -58,7 +58,7 @@ func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
 	callFunctionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
 func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error) {
-	client := {{.package}}.New{{.rpcServiceName}}Client(m.cli.Conn())
+	client := {{if .isCallPkgSameToGrpcPkg}}{{else}}{{.package}}.{{end}}New{{.rpcServiceName}}Client(m.cli.Conn())
 	return client.{{.method}}(ctx{{if .hasReq}}, in{{end}}, opts...)
 }
 `
@@ -66,10 +66,17 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}},
 
 // GenCall generates the rpc client code, which is the entry point for the rpc service call.
 // It is a layer of encapsulation for the rpc client and shields the details in the pb.
-func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
+	fmt.Printf(`
+call: %s
+pb: %s
+grpc: %s
+`, ctx.GetCall().Filename, ctx.GetPb().Filename, ctx.GetProtoGo().Filename)
+	isCallPkgSameToPbPkg := ctx.GetCall().Filename == ctx.GetPb().Filename
+	isCallPkgSameToGrpcPkg := ctx.GetCall().Filename == ctx.GetProtoGo().Filename
 
 	callFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name)
 	if err != nil {
@@ -77,12 +84,12 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	}
 
 	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
-	functions, err := g.genFunction(proto.PbPackage, service)
+	functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
 	if err != nil {
 		return err
 	}
 
-	iFunctions, err := g.getInterfaceFuncs(proto.PbPackage, service)
+	iFunctions, err := g.getInterfaceFuncs(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
 	if err != nil {
 		return err
 	}
@@ -93,11 +100,19 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 	}
 
 	alias := collection.NewSet()
-	for _, item := range proto.Message {
-		msgName := getMessageName(*item.Message)
-		alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+	if !isCallPkgSameToPbPkg {
+		for _, item := range proto.Message {
+			msgName := getMessageName(*item.Message)
+			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName), fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+		}
 	}
 
+	pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
+	protoGoPackage := fmt.Sprintf(`"%s"`, ctx.GetProtoGo().Package)
+	if isCallPkgSameToGrpcPkg {
+		pbPackage = ""
+		protoGoPackage = ""
+	}
 	aliasKeys := alias.KeysStr()
 	sort.Strings(aliasKeys)
 	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
@@ -105,8 +120,8 @@ func (g *DefaultGenerator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf
 		"alias":          strings.Join(aliasKeys, pathx.NL),
 		"head":           head,
 		"filePackage":    dir.Base,
-		"pbPackage":      fmt.Sprintf(`"%s"`, ctx.GetPb().Package),
-		"protoGoPackage": fmt.Sprintf(`"%s"`, ctx.GetProtoGo().Package),
+		"pbPackage":      pbPackage,
+		"protoGoPackage": protoGoPackage,
 		"serviceName":    stringx.From(service.Name).ToCamel(),
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),
@@ -136,7 +151,7 @@ func getMessageName(msg proto.Message) string {
 	return strings.Join(list, "_")
 }
 
-func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service) ([]string, error) {
+func (g *Generator) genFunction(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
@@ -147,18 +162,22 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 
 		comment := parser.GetComment(rpc.Doc())
 		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
+		if isCallPkgSameToGrpcPkg {
+			streamServer = fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
+		}
 		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
-			"serviceName":    stringx.From(service.Name).ToCamel(),
-			"rpcServiceName": parser.CamelCase(service.Name),
-			"method":         parser.CamelCase(rpc.Name),
-			"package":        goPackage,
-			"pbRequest":      parser.CamelCase(rpc.RequestType),
-			"pbResponse":     parser.CamelCase(rpc.ReturnsType),
-			"hasComment":     len(comment) > 0,
-			"comment":        comment,
-			"hasReq":         !rpc.StreamsRequest,
-			"notStream":      !rpc.StreamsRequest && !rpc.StreamsReturns,
-			"streamBody":     streamServer,
+			"serviceName":            stringx.From(service.Name).ToCamel(),
+			"rpcServiceName":         parser.CamelCase(service.Name),
+			"method":                 parser.CamelCase(rpc.Name),
+			"package":                goPackage,
+			"pbRequest":              parser.CamelCase(rpc.RequestType),
+			"pbResponse":             parser.CamelCase(rpc.ReturnsType),
+			"hasComment":             len(comment) > 0,
+			"comment":                comment,
+			"hasReq":                 !rpc.StreamsRequest,
+			"notStream":              !rpc.StreamsRequest && !rpc.StreamsReturns,
+			"streamBody":             streamServer,
+			"isCallPkgSameToGrpcPkg": isCallPkgSameToGrpcPkg,
 		})
 		if err != nil {
 			return nil, err
@@ -170,7 +189,7 @@ func (g *DefaultGenerator) genFunction(goPackage string, service parser.Service)
 	return functions, nil
 }
 
-func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Service) ([]string, error) {
+func (g *Generator) getInterfaceFuncs(goPackage string, service parser.Service, isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
 	for _, rpc := range service.RPC {
@@ -181,6 +200,9 @@ func (g *DefaultGenerator) getInterfaceFuncs(goPackage string, service parser.Se
 
 		comment := parser.GetComment(rpc.Doc())
 		streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
+		if isCallPkgSameToGrpcPkg {
+			streamServer = fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name), parser.CamelCase(rpc.Name), "Client")
+		}
 		buffer, err := util.With("interfaceFn").Parse(text).Execute(
 			map[string]interface{}{
 				"hasComment": len(comment) > 0,

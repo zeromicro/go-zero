@@ -4,84 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"runtime"
 
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
-
-// Deprecated: use ZRPC instead.
-// RPC is to generate rpc service code from a proto file by specifying a proto file using flag src,
-// you can specify a target folder for code generation, when the proto file has import, you can specify
-// the import search directory through the proto_path command, for specific usage, please refer to protoc -h
-func RPC(c *cli.Context) error {
-	console.Warning("deprecated: use %q instead, for the details see %q",
-		"goctl rpc protoc", "goctl rpc protoc --help")
-
-	if err := prepare(); err != nil {
-		return err
-	}
-
-	src := c.String("src")
-	out := c.String("dir")
-	style := c.String("style")
-	protoImportPath := c.StringSlice("proto_path")
-	goOptions := c.StringSlice("go_opt")
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote, branch)
-		if len(repo) > 0 {
-			home = repo
-		}
-	}
-	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
-	}
-
-	if len(src) == 0 {
-		return errors.New("missing -src")
-	}
-
-	if len(out) == 0 {
-		return errors.New("missing -dir")
-	}
-
-	g, err := generator.NewDefaultRPCGenerator(style)
-	if err != nil {
-		return err
-	}
-
-	return g.Generate(src, out, protoImportPath, goOptions...)
-}
-
-func prepare() error {
-	if !env.CanExec() {
-		return fmt.Errorf("%s: can not start new processes using os.StartProcess or exec.Command", runtime.GOOS)
-	}
-	if _, err := env.LookUpGo(); err != nil {
-		return err
-	}
-	if _, err := env.LookUpProtoc(); err != nil {
-		return err
-	}
-	if _, err := env.LookUpProtocGenGo(); err != nil {
-		return err
-	}
-	return nil
-}
 
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
-	console.Warning("deprecated: it will be removed in the feature, zrpc code generation please use %q instead",
-		"goctl rpc protoc")
-
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
@@ -113,12 +45,15 @@ func RPCNew(c *cli.Context) error {
 		return err
 	}
 
-	g, err := generator.NewDefaultRPCGenerator(style)
-	if err != nil {
-		return err
-	}
-
-	return g.Generate(src, filepath.Dir(src), nil)
+	var ctx generator.ZRpcContext
+	ctx.Src = src
+	ctx.GoOutput = filepath.Dir(src)
+	ctx.GrpcOutput = filepath.Dir(src)
+	ctx.IsGooglePlugin = true
+	ctx.Output = filepath.Dir(src)
+	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+	g := generator.NewGenerator(style)
+	return g.Generate(&ctx)
 }
 
 // RPCTemplate is the entry for generate rpc template

@@ -48,7 +48,7 @@ func (s *{{.server}}Server) {{.method}} ({{if .notStream}}ctx context.Context,{{
 )
 
 // GenServer generates rpc server file, which is an implementation of rpc server
-func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetServer()
 	logicImport := fmt.Sprintf(`"%v"`, ctx.GetLogic().Package)
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
@@ -94,7 +94,7 @@ func (g *DefaultGenerator) GenServer(ctx DirContext, proto parser.Proto, cfg *co
 	return err
 }
 
-func (g *DefaultGenerator) genFunctions(goPackage string, service parser.Service) ([]string, error) {
+func (g *Generator) genFunctions(goPackage string, service parser.Service) ([]string, error) {
 	var functionList []string
 	for _, rpc := range service.RPC {
 		text, err := pathx.LoadTemplate(category, serverFuncTemplateFile, functionTemplate)

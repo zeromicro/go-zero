@@ -492,9 +492,8 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:        "new",
-				Usage:       `generate rpc demo service`,
-				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
+				Name:  "new",
+				Usage: `generate rpc demo service`,
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
@@ -602,53 +601,6 @@ var commands = []cli.Command{
 						Usage: "the branch of the remote repo, it does work with --remote",
 					},
 				},
-			},
-			{
-				Name:        "proto",
-				Usage:       `generate rpc from proto`,
-				Description: aurora.Yellow(`deprecated: zrpc code generation use "goctl rpc protoc" instead, for the details see "goctl rpc protoc --help"`).String(),
-				Flags: []cli.Flag{
-					cli.StringFlag{
-						Name:  "src, s",
-						Usage: "the file path of the proto source file",
-					},
-					cli.StringSliceFlag{
-						Name:  "proto_path, I",
-						Usage: `native command of protoc, specify the directory in which to search for imports. [optional]`,
-					},
-					cli.StringSliceFlag{
-						Name:  "go_opt",
-						Usage: `native command of protoc-gen-go, specify the mapping from proto to go, eg --go_opt=proto_import=go_package_import. [optional]`,
-					},
-					cli.StringFlag{
-						Name:  "dir, d",
-						Usage: `the target path of the code`,
-					},
-					cli.StringFlag{
-						Name:  "style",
-						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
-					},
-					cli.BoolFlag{
-						Name:  "idea",
-						Usage: "whether the command execution environment is from idea plugin. [optional]",
-					},
-					cli.StringFlag{
-						Name: "home",
-						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time, " +
-							"if they are, --remote has higher priority",
-					},
-					cli.StringFlag{
-						Name: "remote",
-						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
-							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
-							"https://github.com/zeromicro/go-zero-template directory structure",
-					},
-					cli.StringFlag{
-						Name:  "branch",
-						Usage: "the branch of the remote repo, it does work with --remote",
-					},
-				},
-				Action: rpc.RPC,
 			},
 		},
 	},
