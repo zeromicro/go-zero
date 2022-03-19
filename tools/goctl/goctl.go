@@ -347,7 +347,7 @@ var commands = []cli.Command{
 			},
 			cli.StringFlag{
 				Name:  "base",
-				Usage: "the base image to build the docker image",
+				Usage: "the base image to build the docker image, default scratch",
 				Value: "scratch",
 			},
 			cli.IntFlag{
