@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -40,44 +41,44 @@ func init() {
 		log.Fatalln(err)
 	}
 	goctlEnv = sortedmap.New()
-	goctlEnv.SetKV(GoctlOS, runtime.GOOS)
-	goctlEnv.SetKV(GoctlArch, runtime.GOARCH)
+	goctlEnv.SetStringOr(GoctlOS, os.Getenv(GoctlOS), runtime.GOOS)
+	goctlEnv.SetStringOr(GoctlArch, os.Getenv(GoctlArch), runtime.GOARCH)
 	existsEnv := readEnv(defaultGoctlHome)
 	if existsEnv != nil {
 		goctlHome, ok := existsEnv.GetString(GoctlHome)
 		if ok && len(goctlHome) > 0 {
-			goctlEnv.SetKV(GoctlHome, goctlHome)
+			goctlEnv.SetStringOr(GoctlHome, os.Getenv(GoctlHome), goctlHome)
 		}
 		if debug := existsEnv.GetOr(GoctlDebug, "").(string); debug != "" {
 			if strings.EqualFold(debug, "true") || strings.EqualFold(debug, "false") {
-				goctlEnv.SetKV(GoctlDebug, debug)
+				goctlEnv.SetStringOr(GoctlDebug, os.Getenv(GoctlDebug), debug)
 			}
 		}
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
-			goctlEnv.SetKV(GoctlCache, value)
+			goctlEnv.SetStringOr(GoctlCache, os.Getenv(GoctlCache), value)
 		}
 	}
 	if !goctlEnv.HasKey(GoctlHome) {
-		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
+		goctlEnv.SetStringOr(GoctlHome, os.Getenv(GoctlHome), defaultGoctlHome)
 	}
 	if !goctlEnv.HasKey(GoctlDebug) {
-		goctlEnv.SetKV(GoctlDebug, "False")
+		goctlEnv.SetStringOr(GoctlDebug, os.Getenv(GoctlDebug), "false")
 	}
 
 	if !goctlEnv.HasKey(GoctlCache) {
 		cacheDir, _ := pathx.GetCacheDir()
-		goctlEnv.SetKV(GoctlCache, cacheDir)
+		goctlEnv.SetStringOr(GoctlCache, os.Getenv(GoctlCache), cacheDir)
 	}
 
-	goctlEnv.SetKV(GoctlVersion, version.BuildVersion)
+	goctlEnv.SetStringOr(GoctlVersion, os.Getenv(GoctlVersion), version.BuildVersion)
 	protocVer, _ := protoc.Version()
-	goctlEnv.SetKV(ProtocVersion, protocVer)
+	goctlEnv.SetStringOr(ProtocVersion, os.Getenv(ProtocVersion), protocVer)
 
 	protocGenGoVer, _ := protocgengo.Version()
-	goctlEnv.SetKV(ProtocGenGoVersion, protocGenGoVer)
+	goctlEnv.SetStringOr(ProtocGenGoVersion, os.Getenv(ProtocGenGoVersion), protocGenGoVer)
 
 	protocGenGoGrpcVer, _ := protocgengogrpc.Version()
-	goctlEnv.SetKV(ProtocGenGoGRPCVersion, protocGenGoGrpcVer)
+	goctlEnv.SetStringOr(ProtocGenGoGRPCVersion, os.Getenv(ProtocGenGoGRPCVersion), protocGenGoGrpcVer)
 }
 
 func Print() string {
@@ -86,6 +87,10 @@ func Print() string {
 
 func Get(key string) string {
 	return GetOr(key, "")
+}
+
+func Exists(key string) bool {
+	return goctlEnv.HasKey(key)
 }
 
 func GetOr(key string, def string) string {

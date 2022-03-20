@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -29,13 +29,13 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo"
 	model "github.com/zeromicro/go-zero/tools/goctl/model/sql/command"
+	goctlEnv "github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 	rpc "github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/tpl"
 	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
-
-const codeFailure = 1
 
 var commands = []cli.Command{
 	{
@@ -894,7 +894,11 @@ func main() {
 
 	// cli already print error messages.
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
-		os.Exit(codeFailure)
+		debug := goctlEnv.GetOr(goctlEnv.GoctlDebug, "false")
+		if strings.EqualFold(debug, "false") {
+			console.Fatalln("%+v", err)
+		} else {
+			console.Fatalln(errorx.Wrap(err).Error())
+		}
 	}
 }

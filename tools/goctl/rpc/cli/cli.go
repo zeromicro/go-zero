@@ -6,14 +6,17 @@ import (
 	"path/filepath"
 
 	"github.com/urfave/cli"
+	debug2 "github.com/zeromicro/go-zero/tools/goctl/pkg/debug"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
+	debug := console.NewDebugConsole(debug2.IsDebug())
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
@@ -52,7 +55,7 @@ func RPCNew(c *cli.Context) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
-	g := generator.NewGenerator(style)
+	g := generator.NewGenerator(style, debug)
 	return g.Generate(&ctx)
 }
 

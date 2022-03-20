@@ -15,14 +15,13 @@ type Generator struct {
 }
 
 // NewGenerator returns an instance of Generator
-func NewGenerator(style string) *Generator {
+func NewGenerator(style string, c console.Console) *Generator {
 	cfg, err := conf.NewConfig(style)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log := console.NewColorConsole()
 	return &Generator{
-		log: log,
+		log: c,
 		cfg: cfg,
 	}
 }

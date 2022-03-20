@@ -11,13 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
+	debug2 "github.com/zeromicro/go-zero/tools/goctl/pkg/debug"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestRpcGenerate(t *testing.T) {
 	_ = Clean()
-	g := NewGenerator("gozero")
+	debug := console.NewDebugConsole(debug2.IsDebug())
+	g := NewGenerator("gozero", debug)
 	err := g.Prepare()
 	if err != nil {
 		logx.Error(err)

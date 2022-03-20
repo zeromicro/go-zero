@@ -24,7 +24,8 @@ type (
 		Must(err error)
 	}
 
-	colorConsole struct{}
+	colorConsole   struct{}
+	disableConsole struct{}
 
 	// for idea log
 	ideaConsole struct{}
@@ -37,6 +38,22 @@ func NewConsole(idea bool) Console {
 	}
 	return NewColorConsole()
 }
+
+func NewDebugConsole(debug bool) Console {
+	if debug {
+		return NewColorConsole()
+	}
+	return &disableConsole{}
+}
+
+func (c *disableConsole) Success(format string, a ...interface{}) {}
+func (c *disableConsole) Info(format string, a ...interface{})    {}
+func (c *disableConsole) Debug(format string, a ...interface{})   {}
+func (c *disableConsole) Warning(format string, a ...interface{}) {}
+func (c *disableConsole) Error(format string, a ...interface{})   {}
+func (c *disableConsole) Fatalln(format string, a ...interface{}) {}
+func (c *disableConsole) MarkDone()                               {}
+func (c *disableConsole) Must(err error)                          {}
 
 // NewColorConsole returns an instance of colorConsole
 func NewColorConsole() Console {

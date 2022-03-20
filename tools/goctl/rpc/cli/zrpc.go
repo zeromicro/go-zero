@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
+	debug2 "github.com/zeromicro/go-zero/tools/goctl/pkg/debug"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -23,6 +25,7 @@ var (
 // ZRPC generates grpc code directly by protoc and generates
 // zrpc code by goctl.
 func ZRPC(c *cli.Context) error {
+	debug := console.NewDebugConsole(debug2.IsDebug())
 	args := c.Parent().Args()
 	protocArgs := removeGoctlFlag(args)
 	pwd, err := os.Getwd()
@@ -107,7 +110,7 @@ func ZRPC(c *cli.Context) error {
 	ctx.IsGooglePlugin = isGooglePlugin
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
-	g := generator.NewGenerator(style)
+	g := generator.NewGenerator(style, debug)
 	return g.Generate(&ctx)
 }
 

@@ -78,6 +78,13 @@ func (m *SortedMap) Set(kv KV) error {
 	return nil
 }
 
+func (m *SortedMap) SetStringOr(key, value, def string) {
+	if len(value) == 0 {
+		value = def
+	}
+	m.SetKV(key, value)
+}
+
 func (m *SortedMap) Get(key interface{}) (interface{}, bool) {
 	e, ok := m.keys[key]
 	if !ok {
