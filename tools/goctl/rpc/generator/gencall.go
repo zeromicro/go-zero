@@ -70,11 +70,6 @@ func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config
 	dir := ctx.GetCall()
 	service := proto.Service
 	head := util.GetHead(proto.Name)
-	fmt.Printf(`
-call: %s
-pb: %s
-grpc: %s
-`, ctx.GetCall().Filename, ctx.GetPb().Filename, ctx.GetProtoGo().Filename)
 	isCallPkgSameToPbPkg := ctx.GetCall().Filename == ctx.GetPb().Filename
 	isCallPkgSameToGrpcPkg := ctx.GetCall().Filename == ctx.GetProtoGo().Filename
 
