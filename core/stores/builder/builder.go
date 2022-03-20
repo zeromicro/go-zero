@@ -41,10 +41,25 @@ func RawFieldNames(in interface{}, postgresSql ...bool) []string {
 				out = append(out, fmt.Sprintf("`%s`", fi.Name))
 			}
 		default:
-			if pg {
-				out = append(out, tagv)
+			//get tag name with the tag opton, e.g.:
+			//`db:"id"`
+			//`db:"id,type=char,length=16"`
+			//`db:",type=char,length=16"`
+			if strings.Contains(tagv, ",") {
+				tagv = strings.TrimSpace(strings.Split(tagv, ",")[0])
+			}
+			if tagv != "" {
+				if pg {
+					out = append(out, tagv)
+				} else {
+					out = append(out, fmt.Sprintf("`%s`", tagv))
+				}
 			} else {
-				out = append(out, fmt.Sprintf("`%s`", tagv))
+				if pg {
+					out = append(out, fi.Name)
+				} else {
+					out = append(out, fmt.Sprintf("`%s`", fi.Name))
+				}
 			}
 		}
 	}
