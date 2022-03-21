@@ -14,6 +14,10 @@ import (
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
+	if c.NArg() == 0 {
+		cli.ShowCommandHelpAndExit(c, "new", 1)
+	}
+
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
