@@ -23,6 +23,10 @@ var (
 // ZRPC generates grpc code directly by protoc and generates
 // zrpc code by goctl.
 func ZRPC(c *cli.Context) error {
+	if c.NumFlags() == 0 {
+		cli.ShowCommandHelpAndExit(c, "protoc", 1)
+	}
+
 	args := c.Parent().Args()
 	protocArgs := removeGoctlFlag(args)
 	pwd, err := os.Getwd()
