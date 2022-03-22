@@ -11,6 +11,7 @@ const (
 	mega            = 1024 * 1024
 )
 
+// DisplayStats prints the goroutine, memory, GC stats with given interval, default to 5 seconds.
 func DisplayStats(interval ...time.Duration) {
 	duration := defaultInterval
 	for _, val := range interval {
