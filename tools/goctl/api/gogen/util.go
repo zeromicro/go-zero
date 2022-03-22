@@ -161,6 +161,22 @@ func responseGoTypeName(r spec.Route, pkg ...string) string {
 	return resp
 }
 
+func responseReturnGoTypeName(r spec.Route, pkg ...string) string {
+	if r.ResponseType == nil {
+		return ""
+	}
+
+	resp := golangExpr(r.ResponseType, pkg...)
+	switch r.ResponseType.(type) {
+	case spec.DefineStruct:
+		if !strings.HasPrefix(resp, "*") {
+			return "&" + resp
+		}
+	}
+
+	return resp
+}
+
 func requestGoTypeName(r spec.Route, pkg ...string) string {
 	if r.RequestType == nil {
 		return ""
