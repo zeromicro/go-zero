@@ -23,7 +23,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/completion"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
@@ -69,6 +68,10 @@ var commands = []cli.Command{
 					cli.BoolFlag{
 						Name:  "force, f",
 						Usage: "silent installation of non-existent dependencies",
+					},
+					cli.BoolFlag{
+						Name:  "verbose, v",
+						Usage: "enable log output",
 					},
 				},
 				Action: env.Check,
@@ -519,6 +522,10 @@ var commands = []cli.Command{
 						Name:  "branch",
 						Usage: "the branch of the remote repo, it does work with --remote",
 					},
+					cli.BoolFlag{
+						Name:  "verbose, v",
+						Usage: "enable log output",
+					},
 				},
 				Action: rpc.RPCNew,
 			},
@@ -600,6 +607,10 @@ var commands = []cli.Command{
 					cli.StringFlag{
 						Name:  "branch",
 						Usage: "the branch of the remote repo, it does work with --remote",
+					},
+					cli.BoolFlag{
+						Name:  "verbose, v",
+						Usage: "enable log output",
 					},
 				},
 			},
@@ -894,7 +905,7 @@ func main() {
 
 	// cli already print error messages.
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(aurora.Red(errorx.Wrap(err).Error()))
+		fmt.Println(aurora.Red(err.Error()))
 		os.Exit(codeFailure)
 	}
 }

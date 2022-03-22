@@ -42,6 +42,7 @@ func ZRPC(c *cli.Context) error {
 	home := c.String("home")
 	remote := c.String("remote")
 	branch := c.String("branch")
+	verbose := c.Bool("verbose")
 	if len(grpcOutList) == 0 {
 		return errInvalidGrpcOutput
 	}
@@ -107,7 +108,7 @@ func ZRPC(c *cli.Context) error {
 	ctx.IsGooglePlugin = isGooglePlugin
 	ctx.Output = zrpcOut
 	ctx.ProtocCmd = strings.Join(protocArgs, " ")
-	g := generator.NewGenerator(style)
+	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }
 
@@ -117,11 +118,13 @@ func removeGoctlFlag(args []string) []string {
 	for step < len(args) {
 		arg := args[step]
 		switch {
-		case arg == "--style", arg == "--home", arg == "--zrpc_out":
+		case arg == "--style", arg == "--home", arg == "--zrpc_out", arg == "--verbose", arg == "-v":
 			step += 2
 			continue
 		case strings.HasPrefix(arg, "--style="),
 			strings.HasPrefix(arg, "--home="),
+			strings.HasPrefix(arg, "--verbose="),
+			strings.HasPrefix(arg, "-v="),
 			strings.HasPrefix(arg, "--zrpc_out="):
 			step += 1
 			continue

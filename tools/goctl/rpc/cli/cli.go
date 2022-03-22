@@ -23,6 +23,7 @@ func RPCNew(c *cli.Context) error {
 	home := c.String("home")
 	remote := c.String("remote")
 	branch := c.String("branch")
+	verbose := c.Bool("verbose")
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -52,7 +53,7 @@ func RPCNew(c *cli.Context) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
-	g := generator.NewGenerator(style)
+	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }
 
