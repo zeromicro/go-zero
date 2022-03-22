@@ -24,7 +24,9 @@ type (
 		Must(err error)
 	}
 
-	colorConsole struct{}
+	colorConsole struct {
+		enable bool
+	}
 
 	// for idea log
 	ideaConsole struct{}
@@ -39,45 +41,75 @@ func NewConsole(idea bool) Console {
 }
 
 // NewColorConsole returns an instance of colorConsole
-func NewColorConsole() Console {
-	return &colorConsole{}
+func NewColorConsole(enable ...bool) Console {
+	logEnable := true
+	for _, e := range enable {
+		logEnable = e
+	}
+	return &colorConsole{
+		enable: logEnable,
+	}
 }
 
 func (c *colorConsole) Info(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	msg := fmt.Sprintf(format, a...)
 	fmt.Println(msg)
 }
 
 func (c *colorConsole) Debug(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	msg := fmt.Sprintf(format, a...)
 	println(aurora.BrightCyan(msg))
 }
 
 func (c *colorConsole) Success(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	msg := fmt.Sprintf(format, a...)
 	println(aurora.BrightGreen(msg))
 }
 
 func (c *colorConsole) Warning(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	msg := fmt.Sprintf(format, a...)
 	println(aurora.BrightYellow(msg))
 }
 
 func (c *colorConsole) Error(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	msg := fmt.Sprintf(format, a...)
 	println(aurora.BrightRed(msg))
 }
 
 func (c *colorConsole) Fatalln(format string, a ...interface{}) {
+	if !c.enable {
+		return
+	}
 	c.Error(format, a...)
 	os.Exit(1)
 }
 
 func (c *colorConsole) MarkDone() {
+	if !c.enable {
+		return
+	}
 	c.Success("Done.")
 }
 
 func (c *colorConsole) Must(err error) {
+	if !c.enable {
+		return
+	}
 	if err != nil {
 		c.Fatalln("%+v", err)
 	}
