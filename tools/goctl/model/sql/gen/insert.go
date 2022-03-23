@@ -55,7 +55,6 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 		Parse(text).
 		Execute(map[string]interface{}{
 			"withCache":             withCache,
-			"containsIndexCache":    table.ContainsUniqueCacheKey,
 			"upperStartCamelObject": camel,
 			"lowerStartCamelObject": stringx.From(camel).Untitle(),
 			"expression":            strings.Join(expressions, ", "),
