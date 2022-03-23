@@ -88,7 +88,7 @@ func Get(key string) string {
 	return GetOr(key, "")
 }
 
-func GetOr(key string, def string) string {
+func GetOr(key, def string) string {
 	return goctlEnv.GetStringOr(key, def)
 }
 

@@ -12,7 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-func CloneIntoGitHome(url string, branch string) (dir string, err error) {
+func CloneIntoGitHome(url, branch string) (dir string, err error) {
 	gitHome, err := pathx.GetGitHome()
 	if err != nil {
 		return "", err
