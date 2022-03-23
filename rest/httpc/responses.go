@@ -8,6 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
 )
 
+// Parse parses the response.
 func Parse(resp *http.Response, val interface{}) error {
 	if err := ParseHeaders(resp, val); err != nil {
 		return err
@@ -16,10 +17,12 @@ func Parse(resp *http.Response, val interface{}) error {
 	return ParseJsonBody(resp, val)
 }
 
+// ParseHeaders parses the rsponse headers.
 func ParseHeaders(resp *http.Response, val interface{}) error {
 	return encoding.ParseHeaders(resp.Header, val)
 }
 
+// ParseJsonBody parses the rsponse body, which should be in json content type.
 func ParseJsonBody(resp *http.Response, val interface{}) error {
 	if withJsonBody(resp) {
 		return mapping.UnmarshalJsonReader(resp.Body, val)

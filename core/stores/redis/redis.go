@@ -615,31 +615,6 @@ func (s *Redis) GetCtx(ctx context.Context, key string) (val string, err error) 
 	return
 }
 
-// GetSet is the implementation of redis getset command.
-func (s *Redis) GetSet(key, value string) (string, error) {
-	return s.GetSetCtx(context.Background(), key, value)
-}
-
-// GetSetCtx is the implementation of redis getset command.
-func (s *Redis) GetSetCtx(ctx context.Context, key, value string) (val string, err error) {
-	err = s.brk.DoWithAcceptable(func() error {
-		conn, err := getRedis(s)
-		if err != nil {
-			return err
-		}
-
-		if val, err = conn.GetSet(ctx, key, value).Result(); err == red.Nil {
-			return nil
-		} else if err != nil {
-			return err
-		} else {
-			return nil
-		}
-	}, acceptable)
-
-	return
-}
-
 // GetBit is the implementation of redis getbit command.
 func (s *Redis) GetBit(key string, offset int64) (int, error) {
 	return s.GetBitCtx(context.Background(), key, offset)
@@ -660,6 +635,29 @@ func (s *Redis) GetBitCtx(ctx context.Context, key string, offset int64) (val in
 
 		val = int(v)
 		return nil
+	}, acceptable)
+
+	return
+}
+
+// GetSet is the implementation of redis getset command.
+func (s *Redis) GetSet(key, value string) (string, error) {
+	return s.GetSetCtx(context.Background(), key, value)
+}
+
+// GetSetCtx is the implementation of redis getset command.
+func (s *Redis) GetSetCtx(ctx context.Context, key, value string) (val string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		if val, err = conn.GetSet(ctx, key, value).Result(); err == red.Nil {
+			return nil
+		}
+
+		return err
 	}, acceptable)
 
 	return
