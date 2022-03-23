@@ -703,9 +703,9 @@ func TestRedis_Set(t *testing.T) {
 
 func TestRedis_GetSet(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		val, err := New(client.Addr, badType()).GetSet("hello", "world")
+		_, err := New(client.Addr, badType()).GetSet("hello", "world")
 		assert.NotNil(t, err)
-		val, err = client.GetSet("hello", "world")
+		val, err := client.GetSet("hello", "world")
 		assert.Nil(t, err)
 		assert.Equal(t, "", val)
 		val, err = client.Get("hello")
