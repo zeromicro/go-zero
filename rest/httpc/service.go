@@ -9,9 +9,6 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpc/internal"
 )
 
-// ContentType means Content-Type.
-const ContentType = "Content-Type"
-
 var interceptors = []internal.Interceptor{
 	internal.LogInterceptor,
 }
@@ -86,13 +83,13 @@ func (s namedService) Get(url string) (*http.Response, error) {
 }
 
 // Post sends an HTTP POST request to the service.
-func (s namedService) Post(url, contentType string, body io.Reader) (*http.Response, error) {
+func (s namedService) Post(url, ctype string, body io.Reader) (*http.Response, error) {
 	r, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
 		return nil, err
 	}
 
-	r.Header.Set(ContentType, contentType)
+	r.Header.Set(contentType, ctype)
 	return s.Do(r)
 }
 

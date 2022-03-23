@@ -1,0 +1,33 @@
+package httpc
+
+import (
+	"net/http"
+	"strings"
+
+	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/rest/internal/encoding"
+)
+
+func Parse(resp *http.Response, val interface{}) error {
+	if err := ParseHeaders(resp, val); err != nil {
+		return err
+	}
+
+	return ParseJsonBody(resp, val)
+}
+
+func ParseHeaders(resp *http.Response, val interface{}) error {
+	return encoding.ParseHeaders(resp.Header, val)
+}
+
+func ParseJsonBody(resp *http.Response, val interface{}) error {
+	if withJsonBody(resp) {
+		return mapping.UnmarshalJsonReader(resp.Body, val)
+	}
+
+	return mapping.UnmarshalJsonMap(nil, val)
+}
+
+func withJsonBody(r *http.Response) bool {
+	return r.ContentLength > 0 && strings.Contains(r.Header.Get(contentType), applicationJson)
+}

@@ -11,6 +11,7 @@ import (
 func TestLogInterceptor(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	}))
+	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
 	assert.Nil(t, err)
 	req, handler := LogInterceptor(req)
@@ -24,6 +25,7 @@ func TestLogInterceptorServerError(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}))
+	defer svr.Close()
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
 	assert.Nil(t, err)
 	req, handler := LogInterceptor(req)
