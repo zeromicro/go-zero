@@ -490,6 +490,29 @@ func TestRedis_SetExNx(t *testing.T) {
 	})
 }
 
+func TestRedis_Getset(t *testing.T) {
+	store := clusterStore{dispatcher: hash.NewConsistentHash()}
+	_, err := store.Getset("hello", "world")
+	assert.NotNil(t, err)
+
+	runOnCluster(t, func(client Store) {
+		val, err := client.Getset("hello", "world")
+		assert.Nil(t, err)
+		assert.Equal(t, "", val)
+		val, err = client.Get("hello")
+		assert.Nil(t, err)
+		assert.Equal(t, "world", val)
+		val, err = client.Getset("hello", "newworld")
+		assert.Nil(t, err)
+		assert.Equal(t, "world", val)
+		val, err = client.Get("hello")
+		assert.Nil(t, err)
+		assert.Equal(t, "newworld", val)
+		_, err = client.Del("hello")
+		assert.Nil(t, err)
+	})
+}
+
 func TestRedis_SetGetDelHashField(t *testing.T) {
 	store := clusterStore{dispatcher: hash.NewConsistentHash()}
 	err := store.Hset("key", "field", "value")

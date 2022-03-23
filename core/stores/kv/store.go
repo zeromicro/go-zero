@@ -54,6 +54,7 @@ type (
 		Setex(key, value string, seconds int) error
 		Setnx(key, value string) (bool, error)
 		SetnxEx(key, value string, seconds int) (bool, error)
+		Getset(key, value string) (string, error)
 		Sismember(key string, value interface{}) (bool, error)
 		Smembers(key string) ([]string, error)
 		Spop(key string) (string, error)
@@ -457,6 +458,15 @@ func (cs clusterStore) SetnxEx(key, value string, seconds int) (bool, error) {
 	}
 
 	return node.SetnxEx(key, value, seconds)
+}
+
+func (cs clusterStore) Getset(key, value string) (string, error) {
+	node, err := cs.getRedis(key)
+	if err != nil {
+		return "", err
+	}
+
+	return node.GetSet(key, value)
 }
 
 func (cs clusterStore) Sismember(key string, value interface{}) (bool, error) {
