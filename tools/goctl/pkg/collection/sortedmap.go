@@ -28,7 +28,7 @@ func New() *SortedMap {
 	}
 }
 
-func (m *SortedMap) SetExpression(expression string) (key interface{}, value interface{}, err error) {
+func (m *SortedMap) SetExpression(expression string) (key, value interface{}, err error) {
 	idx := strings.Index(expression, "=")
 	if idx == -1 {
 		return "", "", ErrInvalidKVExpression
@@ -86,7 +86,7 @@ func (m *SortedMap) Get(key interface{}) (interface{}, bool) {
 	return e.Value.(KV)[1], true
 }
 
-func (m *SortedMap) GetOr(key interface{}, dft interface{}) interface{} {
+func (m *SortedMap) GetOr(key, dft interface{}) interface{} {
 	e, ok := m.keys[key]
 	if !ok {
 		return dft

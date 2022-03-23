@@ -25,7 +25,7 @@ message Resp{}
 service Greeter {
   rpc greet(Req) returns (Resp);
 }
-`), 0666)
+`), 0o666)
 	if err != nil {
 		t.Log(err)
 		return

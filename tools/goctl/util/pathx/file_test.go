@@ -79,7 +79,7 @@ func TestGetGoctlHome(t *testing.T) {
 	t.Run("goctl_is_file", func(t *testing.T) {
 		tmpFile := filepath.Join(t.TempDir(), "a.tmp")
 		backupTempFile := tmpFile + ".old"
-		err := ioutil.WriteFile(tmpFile, nil, 0666)
+		err := ioutil.WriteFile(tmpFile, nil, 0o666)
 		if err != nil {
 			return
 		}
@@ -104,5 +104,4 @@ func TestGetGoctlHome(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, dir, home)
 	})
-
 }
