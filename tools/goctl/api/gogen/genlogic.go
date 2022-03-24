@@ -34,10 +34,10 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 	}
 }
 
-func (l *{{.logic}}) {{.function}}({{if .hasRequest}}req *{{.reqType}}{{end}}) {{.responseType}} {
+func (l *{{.logic}}) {{.function}}({{if .hasRequest}}req *{{.reqType}}{{end}}) {{if .hasResp}}(resp {{.respType}}, err error){{else}}(err error){{end}} {
 	// todo: add your logic here and delete this line
 
-	{{.returnString}}
+	return
 }
 `
 
@@ -64,11 +64,16 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	var responseString string
 	var returnString string
 	var requestString string
+
 	var hasRequest bool
 	var reqType string
+	var hasResp bool
+	var respType string
+
 	if len(route.ResponseTypeName()) > 0 {
-		resp := responseGoTypeName(route, typesPacket)
-		responseString = "(resp " + resp + ", err error)"
+		hasResp = true
+		respType = responseGoTypeName(route, typesPacket)
+		responseString = "(resp " + respType + ", err error)"
 		returnString = "return"
 	} else {
 		responseString = "error"
@@ -94,11 +99,14 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"imports":      imports,
 			"logic":        strings.Title(logic),
 			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-			"responseType": responseString,
-			"returnString": returnString,
-			"request":      requestString, // DEPRECATED: the request will be removed
-			"hasRequest":   hasRequest,
-			"reqType":      reqType,
+			"responseType": responseString, // DEPRECATED: the responseType will be remove
+			"returnString": returnString,   // DEPRECATED: the returnString will be removed
+			"request":      requestString,  // DEPRECATED: the request will be removed
+
+			"hasRequest": hasRequest,
+			"reqType":    reqType,
+			"hasResp":    hasResp,
+			"respType":   respType,
 		},
 	})
 }
