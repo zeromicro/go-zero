@@ -46,8 +46,8 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     var (
     	userFieldNames          = builderx.FieldNames(&User{})
     	userRows                = strings.Join(userFieldNames, ",")
-    	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), ",")
-    	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "create_time", "update_time"), "=?,") + "=?"
+    	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "id", "created_at", "updated_at"), ",")
+    	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "id", "created_at", "updated_at"), "=?,") + "=?"
     
     	cacheUserPrefix       = "cache:User:user:"
     	cacheUserNamePrefix   = "cache:User:name:"
@@ -79,8 +79,8 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     		Mobile     string    `db:"mobile"`   // 手机号
     		Gender     string    `db:"gender"`   // 男｜女｜未公开
     		Nickname   sql.NullString    `db:"nickname"` // 用户昵称
-    		CreateTime sql.NullTime `db:"create_time"`
-    		UpdateTime time.Time `db:"update_time"`
+    		CreatedAt sql.NullTime `db:"created_at"`
+    		UpdatedAt time.Time `db:"updated_at"`
     	}
     )
     
@@ -241,7 +241,7 @@ OPTIONS:
 
 * 默认规则
   
-  我们默认用户在建表时会创建createTime、updateTime字段(忽略大小写、下划线命名风格)且默认值均为`CURRENT_TIMESTAMP`，而updateTime支持`ON UPDATE CURRENT_TIMESTAMP`，对于这两个字段生成`insert`、`update`时会被移除，不在赋值范畴内，当然，如果你不需要这两个字段那也无大碍。
+  我们默认用户在建表时会创建CreatedAt、UpdatedAt字段(忽略大小写、下划线命名风格)且默认值均为`CURRENT_TIMESTAMP`，而UpdatedAt支持`ON UPDATE CURRENT_TIMESTAMP`，对于这两个字段生成`insert`、`update`时会被移除，不在赋值范畴内，当然，如果你不需要这两个字段那也无大碍。
 * 带缓存模式
   * ddl
 

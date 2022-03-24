@@ -17,7 +17,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-var source = "CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL,\n  `class` bigint NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
+var source = "CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL,\n  `class` bigint NOT NULL,\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,\n  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,\n  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`created_at`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"
 
 func TestCacheModel(t *testing.T) {
 	logx.Disable()
@@ -102,22 +102,22 @@ func TestWrapWithRawString(t *testing.T) {
 
 func TestFields(t *testing.T) {
 	type Student struct {
-		ID         int64           `db:"id"`
-		Name       string          `db:"name"`
-		Age        sql.NullInt64   `db:"age"`
-		Score      sql.NullFloat64 `db:"score"`
-		CreateTime time.Time       `db:"create_time"`
-		UpdateTime sql.NullTime    `db:"update_time"`
+		ID        int64           `db:"id"`
+		Name      string          `db:"name"`
+		Age       sql.NullInt64   `db:"age"`
+		Score     sql.NullFloat64 `db:"score"`
+		CreatedAt time.Time       `db:"created_at"`
+		UpdatedAt sql.NullTime    `db:"updated_at"`
 	}
 	var (
 		studentFieldNames          = builderx.RawFieldNames(&Student{})
 		studentRows                = strings.Join(studentFieldNames, ",")
-		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
-		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
+		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`created_at`", "`updated_at`"), ",")
+		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`created_at`", "`updated_at`"), "=?,") + "=?"
 	)
 
-	assert.Equal(t, []string{"`id`", "`name`", "`age`", "`score`", "`create_time`", "`update_time`"}, studentFieldNames)
-	assert.Equal(t, "`id`,`name`,`age`,`score`,`create_time`,`update_time`", studentRows)
+	assert.Equal(t, []string{"`id`", "`name`", "`age`", "`score`", "`created_at`", "`updated_at`"}, studentFieldNames)
+	assert.Equal(t, "`id`,`name`,`age`,`score`,`created_at`,`updated_at`", studentRows)
 	assert.Equal(t, "`name`,`age`,`score`", studentRowsExpectAutoSet)
 	assert.Equal(t, "`name`=?,`age`=?,`score`=?", studentRowsWithPlaceHolder)
 }

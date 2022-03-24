@@ -14,7 +14,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) 
 	expressionValues := make([]string, 0)
 	for _, field := range table.Fields {
 		camel := field.Name.ToCamel()
-		if camel == "CreateTime" || camel == "UpdateTime" {
+		if camel == "CreatedAt" || camel == "UpdatedAt" {
 			continue
 		}
 

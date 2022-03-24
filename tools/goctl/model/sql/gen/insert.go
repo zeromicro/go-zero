@@ -26,7 +26,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	var count int
 	for _, field := range table.Fields {
 		camel := field.Name.ToCamel()
-		if camel == "CreateTime" || camel == "UpdateTime" {
+		if camel == "CreatedAt" || camel == "UpdatedAt" {
 			continue
 		}
 

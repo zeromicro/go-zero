@@ -8,9 +8,9 @@ CREATE TABLE `user`
     `mobile`      varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '手机号',
     `gender`      char(5) COLLATE utf8mb4_general_ci      NOT NULL COMMENT '男｜女｜未公\r开',
     `nickname`    varchar(255) COLLATE utf8mb4_general_ci          DEFAULT '' COMMENT '用户昵称',
-    `type`    tinyint(1) COLLATE utf8mb4_general_ci          DEFAULT 0 COMMENT '用户类型',
-    `create_time` timestamp NULL,
-    `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `type`        tinyint(1) COLLATE utf8mb4_general_ci          DEFAULT 0 COMMENT '用户类型',
+    `created_at`  timestamp NULL,
+    `updated_at`  timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `name_index` (`name`),
     UNIQUE KEY `name_index2` (`name`),
@@ -24,11 +24,10 @@ CREATE TABLE `student`
     `id`    bigint                           NOT NULL,
     `class` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `name`  varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
-    `age`   tinyint                                   DEFAULT NULL,
-    `score` float(10, 0
-) DEFAULT NULL,
-  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` timestamp NULL DEFAULT NULL,
+    `age`   tinyint                          DEFAULT NULL,
+    `score` float(10, 0)                     DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `class_name_index` (`class`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

@@ -16,8 +16,8 @@ import (
 var (
 	studentFieldNames          = builderx.RawFieldNames(&Student{})
 	studentRows                = strings.Join(studentFieldNames, ",")
-	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
-	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
+	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`created_at`", "`updated_at`"), ",")
+	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`created_at`", "`updated_at`"), "=?,") + "=?"
 
 	cacheStudentIdPrefix        = "cache#student#id#"
 	cacheStudentClassNamePrefix = "cache#student#class#name#"
@@ -41,13 +41,13 @@ type (
 
 	// Student only for test
 	Student struct {
-		Id         int64           `db:"id"`
-		Class      string          `db:"class"`
-		Name       string          `db:"name"`
-		Age        sql.NullInt64   `db:"age"`
-		Score      sql.NullFloat64 `db:"score"`
-		CreateTime time.Time       `db:"create_time"`
-		UpdateTime sql.NullTime    `db:"update_time"`
+		Id        int64           `db:"id"`
+		Class     string          `db:"class"`
+		Name      string          `db:"name"`
+		Age       sql.NullInt64   `db:"age"`
+		Score     sql.NullFloat64 `db:"score"`
+		CreatedAt time.Time       `db:"created_at"`
+		UpdatedAt sql.NullTime    `db:"updated_at"`
 	}
 )
 

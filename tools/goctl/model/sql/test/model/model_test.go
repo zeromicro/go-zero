@@ -37,8 +37,8 @@ func TestStudentModel(t *testing.T) {
 		Float64: 100,
 		Valid:   true,
 	}
-	data.CreateTime = testTimeValue
-	data.UpdateTime = sql.NullTime{
+	data.CreatedAt = testTimeValue
+	data.UpdatedAt = sql.NullTime{
 		Time:  testTimeValue,
 		Valid: true,
 	}
@@ -64,7 +64,7 @@ func TestStudentModel(t *testing.T) {
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s", testTable)).
 			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "created_at", "updated_at"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel, redis *redis.Redis) {
 		result, err := m.FindOne(testInsertId)
 		assert.Nil(t, err)
@@ -96,7 +96,7 @@ func TestStudentModel(t *testing.T) {
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
 			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "created_at", "updated_at"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel, redis *redis.Redis) {
 		result, err := m.FindOne(testInsertId)
 		assert.Nil(t, err)
@@ -114,7 +114,7 @@ func TestStudentModel(t *testing.T) {
 	err = mockStudent(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
 			WithArgs(class, testUpdateName).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "create_time", "update_time"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "class", "name", "age", "score", "created_at", "updated_at"}).AddRow(testInsertId, data.Class, data.Name, data.Age, data.Score, testTimeValue, testTimeValue))
 	}, func(m StudentModel, redis *redis.Redis) {
 		result, err := m.FindOneByClassName(class, testUpdateName)
 		assert.Nil(t, err)
@@ -166,8 +166,8 @@ func TestUserModel(t *testing.T) {
 	data.Mobile = testMobile
 	data.Gender = testGender
 	data.Nickname = testNickname
-	data.CreateTime = testTimeValue
-	data.UpdateTime = testTimeValue
+	data.CreatedAt = testTimeValue
+	data.UpdatedAt = testTimeValue
 
 	err := mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectExec(fmt.Sprintf("insert into %s", testTable)).
@@ -190,7 +190,7 @@ func TestUserModel(t *testing.T) {
 	err = mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s", testTable)).
 			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "created_at", "updated_at"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
 	}, func(m UserModel) {
 		result, err := m.FindOne(testInsertId)
 		assert.Nil(t, err)
@@ -210,7 +210,7 @@ func TestUserModel(t *testing.T) {
 	err = mockUser(func(mock sqlmock.Sqlmock) {
 		mock.ExpectQuery(fmt.Sprintf("select (.+) from %s ", testTable)).
 			WithArgs(testInsertId).
-			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "create_time", "update_time"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
+			WillReturnRows(sqlmock.NewRows([]string{"id", "user", "name", "password", "mobile", "gender", "nickname", "created_at", "updated_at"}).AddRow(testInsertId, data.User, data.Name, data.Password, data.Mobile, data.Gender, data.Nickname, testTimeValue, testTimeValue))
 	}, func(m UserModel) {
 		result, err := m.FindOne(testInsertId)
 		assert.Nil(t, err)

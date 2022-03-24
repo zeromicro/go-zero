@@ -342,7 +342,7 @@ type Gender int // 不支持
 
 // 非struct token
 type Foo structure{ 
-  CreateTime time.Time // 不支持time.Time
+  CreatedAt time.Time // 不支持time.Time
 }
 
 // golang关键字 var

@@ -15,8 +15,8 @@ import (
 var (
 	userFieldNames          = builderx.RawFieldNames(&User{})
 	userRows                = strings.Join(userFieldNames, ",")
-	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
-	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
+	userRowsExpectAutoSet   = strings.Join(stringx.Remove(userFieldNames, "`id`", "`created_at`", "`updated_at`"), ",")
+	userRowsWithPlaceHolder = strings.Join(stringx.Remove(userFieldNames, "`id`", "`created_at`", "`updated_at`"), "=?,") + "=?"
 )
 
 type (
@@ -38,15 +38,15 @@ type (
 
 	// User defines an data structure for mysql
 	User struct {
-		ID         int64     `db:"id"`
-		User       string    `db:"user"`     // 用户
-		Name       string    `db:"name"`     // 用户名称
-		Password   string    `db:"password"` // 用户密码
-		Mobile     string    `db:"mobile"`   // 手机号
-		Gender     string    `db:"gender"`   // 男｜女｜未公开
-		Nickname   string    `db:"nickname"` // 用户昵称
-		CreateTime time.Time `db:"create_time"`
-		UpdateTime time.Time `db:"update_time"`
+		ID        int64     `db:"id"`
+		User      string    `db:"user"`     // 用户
+		Name      string    `db:"name"`     // 用户名称
+		Password  string    `db:"password"` // 用户密码
+		Mobile    string    `db:"mobile"`   // 手机号
+		Gender    string    `db:"gender"`   // 男｜女｜未公开
+		Nickname  string    `db:"nickname"` // 用户昵称
+		CreatedAt time.Time `db:"created_at"`
+		UpdatedAt time.Time `db:"updated_at"`
 	}
 )
 

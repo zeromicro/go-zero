@@ -56,12 +56,12 @@ func TestGenCacheKeys(t *testing.T) {
 			classField,
 			nameField,
 			{
-				Name:     stringx.From("createTime"),
+				Name:     stringx.From("CreatedAt"),
 				DataType: "time.Time",
 				Comment:  "创建时间",
 			},
 			{
-				Name:     stringx.From("updateTime"),
+				Name:     stringx.From("UpdatedAt"),
 				DataType: "time.Time",
 				Comment:  "更新时间",
 			},
@@ -151,12 +151,12 @@ func TestGenCacheKeys(t *testing.T) {
 				classField,
 				nameField,
 				{
-					Name:     stringx.From("createTime"),
+					Name:     stringx.From("CreatedAt"),
 					DataType: "time.Time",
 					Comment:  "创建时间",
 				},
 				{
-					Name:     stringx.From("updateTime"),
+					Name:     stringx.From("UpdatedAt"),
 					DataType: "time.Time",
 					Comment:  "更新时间",
 				},
