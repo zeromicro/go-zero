@@ -450,6 +450,12 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	refValue := reflect.ValueOf(mapValue)
 	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 
+	// support for empty slice
+	if !refValue.IsNil() && refValue.Len() == 0 {
+		value.Set(conv)
+		return nil
+	}
+
 	var valid bool
 	for i := 0; i < refValue.Len(); i++ {
 		ithValue := refValue.Index(i).Interface()

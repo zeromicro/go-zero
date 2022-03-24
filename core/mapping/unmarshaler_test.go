@@ -330,28 +330,34 @@ func TestUnmarshalFloat(t *testing.T) {
 
 func TestUnmarshalInt64Slice(t *testing.T) {
 	var v struct {
-		Ages []int64 `key:"ages"`
+		Ages  []int64 `key:"ages"`
+		Slice []int64 `key:"slice"`
 	}
 	m := map[string]interface{}{
-		"ages": []int64{1, 2},
+		"ages":  []int64{1, 2},
+		"slice": []interface{}{},
 	}
 
 	ast := assert.New(t)
 	ast.Nil(UnmarshalKey(m, &v))
 	ast.ElementsMatch([]int64{1, 2}, v.Ages)
+	ast.Equal([]int64{}, v.Slice)
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
 	var v struct {
-		Ages []int `key:"ages"`
+		Ages  []int `key:"ages"`
+		Slice []int `key:"slice"`
 	}
 	m := map[string]interface{}{
-		"ages": []int{1, 2},
+		"ages":  []int{1, 2},
+		"slice": []interface{}{},
 	}
 
 	ast := assert.New(t)
 	ast.Nil(UnmarshalKey(m, &v))
 	ast.ElementsMatch([]int{1, 2}, v.Ages)
+	ast.Equal([]int{}, v.Slice)
 }
 
 func TestUnmarshalString(t *testing.T) {
