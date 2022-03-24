@@ -34,7 +34,7 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 	}
 }
 
-func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
+func (l *{{.logic}}) {{.function}}({{if .hasRequest}}req *{{.reqType}}{{end}}) {{.responseType}} {
 	// todo: add your logic here and delete this line
 
 	{{.returnString}}
@@ -64,6 +64,8 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	var responseString string
 	var returnString string
 	var requestString string
+	var hasRequest bool
+	var reqType string
 	if len(route.ResponseTypeName()) > 0 {
 		resp := responseGoTypeName(route, typesPacket)
 		responseString = "(resp " + resp + ", err error)"
@@ -73,7 +75,9 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		returnString = "return nil"
 	}
 	if len(route.RequestTypeName()) > 0 {
-		requestString = "req *" + requestGoTypeName(route, typesPacket)
+		reqType = requestGoTypeName(route, typesPacket)
+		requestString = "req *" + reqType
+		hasRequest = true
 	}
 
 	subDir := getLogicFolderPath(group, route)
@@ -85,14 +89,16 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		category:        category,
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
-		data: map[string]string{
+		data: map[string]interface{}{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
 			"logic":        strings.Title(logic),
 			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
 			"responseType": responseString,
 			"returnString": returnString,
-			"request":      requestString,
+			"request":      requestString, // DEPRECATED: the request will be removed
+			"hasRequest":   hasRequest,
+			"reqType":      reqType,
 		},
 	})
 }
