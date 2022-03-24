@@ -198,6 +198,49 @@ func TestUnmarshalIntWithDefault(t *testing.T) {
 	assert.Equal(t, 1, in.Int)
 }
 
+func TestUnmarshalBoolSliceRequired(t *testing.T) {
+	type inner struct {
+		Bools []bool `key:"bools"`
+	}
+
+	var in inner
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{}, &in))
+}
+
+func TestUnmarshalBoolSliceNil(t *testing.T) {
+	type inner struct {
+		Bools []bool `key:"bools,optional"`
+	}
+
+	var in inner
+	assert.Nil(t, UnmarshalKey(map[string]interface{}{}, &in))
+	assert.Nil(t, in.Bools)
+}
+
+func TestUnmarshalBoolSliceNilExplicit(t *testing.T) {
+	type inner struct {
+		Bools []bool `key:"bools,optional"`
+	}
+
+	var in inner
+	assert.Nil(t, UnmarshalKey(map[string]interface{}{
+		"bools": nil,
+	}, &in))
+	assert.Nil(t, in.Bools)
+}
+
+func TestUnmarshalBoolSliceEmpty(t *testing.T) {
+	type inner struct {
+		Bools []bool `key:"bools,optional"`
+	}
+
+	var in inner
+	assert.Nil(t, UnmarshalKey(map[string]interface{}{
+		"bools": []bool{},
+	}, &in))
+	assert.Empty(t, in.Bools)
+}
+
 func TestUnmarshalBoolSliceWithDefault(t *testing.T) {
 	type inner struct {
 		Bools []bool `key:"bools,default=[true,false]"`
