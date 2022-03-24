@@ -29,25 +29,5 @@ func TestRedisLock(t *testing.T) {
 		endAcquire, err := secondLock.Acquire()
 		assert.Nil(t, err)
 		assert.True(t, endAcquire)
-
-		endAcquire, err = secondLock.Acquire()
-		assert.Nil(t, err)
-		assert.True(t, endAcquire)
-
-		release, err = secondLock.Release()
-		assert.Nil(t, err)
-		assert.True(t, release)
-
-		againAcquire, err = firstLock.Acquire()
-		assert.Nil(t, err)
-		assert.False(t, againAcquire)
-
-		release, err = secondLock.Release()
-		assert.Nil(t, err)
-		assert.True(t, release)
-
-		firstAcquire, err = firstLock.Acquire()
-		assert.Nil(t, err)
-		assert.True(t, firstAcquire)
 	})
 }
