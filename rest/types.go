@@ -36,5 +36,6 @@ type (
 		jwt       jwtSetting
 		signature signatureSetting
 		routes    []Route
+		maxBytes  int64
 	}
 )
