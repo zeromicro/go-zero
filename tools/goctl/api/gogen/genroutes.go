@@ -2,18 +2,18 @@ package gogen
 
 import (
 	"fmt"
-	"os"
-	"path"
-	"sort"
-	"strings"
-	"text/template"
-
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"os"
+	"path"
+	"sort"
+	"strconv"
+	"strings"
+	"text/template"
 )
 
 const (
@@ -23,7 +23,8 @@ const (
 package handler
 
 import (
-	"net/http"
+	"net/http"{{if eq .hasTimeout "true"}}
+	"time"{{end}}
 
 	{{.importPackages}}
 )
@@ -34,7 +35,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}
 	)
 `
 )
@@ -57,6 +58,10 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
+		maxBytes         string
+		maxBytesEnable   bool
+		timeout          string
+		timeoutEnable    bool
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
@@ -81,6 +86,7 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 	}
 
 	gt := template.Must(template.New("groupTemplate").Parse(templateText))
+	hasTimeout := false
 	for _, g := range groups {
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
@@ -110,6 +116,17 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 rest.WithPrefix("%s"),`, g.prefix)
 		}
 
+		var timeout string
+		if g.timeoutEnable {
+			hasTimeout = true
+			timeout = fmt.Sprintf("rest.WithTimeout(%s*time.Second),", g.timeout)
+		}
+
+		var maxBytes string
+		if g.maxBytesEnable {
+			maxBytes = fmt.Sprintf("rest.WithMaxBytes(%s),", g.maxBytes)
+		}
+
 		var routes string
 		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
@@ -130,6 +147,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"jwt":       jwt,
 			"signature": signature,
 			"prefix":    prefix,
+			"maxBytes":  maxBytes,
+			"timeout":   timeout,
 		}); err != nil {
 			return err
 		}
@@ -155,6 +174,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 		data: map[string]string{
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
+			"hasTimeout":      strconv.FormatBool(hasTimeout),
 		},
 	})
 }
@@ -203,6 +223,19 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				path:    r.Path,
 				handler: handler,
 			})
+		}
+		// 获取maxBytes
+		maxBytes := g.GetAnnotation("maxBytes")
+		if len(maxBytes) > 0 {
+			groupedRoutes.maxBytesEnable = true
+			groupedRoutes.maxBytes = maxBytes
+		}
+		// 获取timeout
+		timeout := g.GetAnnotation("timeout")
+
+		if len(timeout) > 0 {
+			groupedRoutes.timeoutEnable = true
+			groupedRoutes.timeout = timeout
 		}
 
 		jwt := g.GetAnnotation("jwt")
