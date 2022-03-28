@@ -2,18 +2,19 @@ package gogen
 
 import (
 	"fmt"
+	"os"
+	"path"
+	"sort"
+	"strings"
+	"text/template"
+	"time"
+
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
-	"os"
-	"path"
-	"sort"
-	"strconv"
-	"strings"
-	"text/template"
 )
 
 const (
@@ -23,8 +24,7 @@ const (
 package handler
 
 import (
-	"net/http"{{if eq .hasTimeout "true"}}
-	"time"{{end}}
+	"net/http"
 
 	{{.importPackages}}
 )
@@ -86,7 +86,6 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 	}
 
 	gt := template.Must(template.New("groupTemplate").Parse(templateText))
-	hasTimeout := false
 	for _, g := range groups {
 		var gbuilder strings.Builder
 		gbuilder.WriteString("[]rest.Route{")
@@ -118,8 +117,11 @@ rest.WithPrefix("%s"),`, g.prefix)
 
 		var timeout string
 		if g.timeoutEnable {
-			hasTimeout = true
-			timeout = fmt.Sprintf("rest.WithTimeout(%s*time.Second),", g.timeout)
+			duration, err := time.ParseDuration(g.timeout)
+			if err != nil {
+				panic(err)
+			}
+			timeout = fmt.Sprintf("rest.WithTimeout(%d),", duration)
 		}
 
 		var maxBytes string
@@ -174,7 +176,6 @@ rest.WithPrefix("%s"),`, g.prefix)
 		data: map[string]string{
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
-			"hasTimeout":      strconv.FormatBool(hasTimeout),
 		},
 	})
 }
