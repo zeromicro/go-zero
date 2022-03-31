@@ -35,7 +35,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}} {{.maxBytes}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}}
 	)
 `
 )
@@ -58,8 +58,6 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
-		maxBytes         string
-		maxBytesEnable   bool
 		timeout          string
 		timeoutEnable    bool
 		middlewares      []string
@@ -124,11 +122,6 @@ rest.WithPrefix("%s"),`, g.prefix)
 			timeout = fmt.Sprintf("rest.WithTimeout(%d),", duration)
 		}
 
-		var maxBytes string
-		if g.maxBytesEnable {
-			maxBytes = fmt.Sprintf("rest.WithMaxBytes(%s),", g.maxBytes)
-		}
-
 		var routes string
 		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
@@ -149,7 +142,6 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"jwt":       jwt,
 			"signature": signature,
 			"prefix":    prefix,
-			"maxBytes":  maxBytes,
 			"timeout":   timeout,
 		}); err != nil {
 			return err
@@ -225,13 +217,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				handler: handler,
 			})
 		}
-		// 获取maxBytes
-		maxBytes := g.GetAnnotation("maxBytes")
-		if len(maxBytes) > 0 {
-			groupedRoutes.maxBytesEnable = true
-			groupedRoutes.maxBytes = maxBytes
-		}
-		// 获取timeout
+
 		timeout := g.GetAnnotation("timeout")
 
 		if len(timeout) > 0 {
