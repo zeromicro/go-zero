@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -34,7 +35,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}}
 	)
 `
 )
@@ -57,6 +58,8 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
+		timeout          string
+		timeoutEnable    bool
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
@@ -110,6 +113,15 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 rest.WithPrefix("%s"),`, g.prefix)
 		}
 
+		var timeout string
+		if g.timeoutEnable {
+			duration, err := time.ParseDuration(g.timeout)
+			if err != nil {
+				panic(err)
+			}
+			timeout = fmt.Sprintf("rest.WithTimeout(%d),", duration)
+		}
+
 		var routes string
 		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
@@ -130,6 +142,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"jwt":       jwt,
 			"signature": signature,
 			"prefix":    prefix,
+			"timeout":   timeout,
 		}); err != nil {
 			return err
 		}
@@ -203,6 +216,13 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				path:    r.Path,
 				handler: handler,
 			})
+		}
+
+		timeout := g.GetAnnotation("timeout")
+
+		if len(timeout) > 0 {
+			groupedRoutes.timeoutEnable = true
+			groupedRoutes.timeout = timeout
 		}
 
 		jwt := g.GetAnnotation("jwt")

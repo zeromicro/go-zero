@@ -223,6 +223,13 @@ func WithTimeout(timeout time.Duration) RouteOption {
 	}
 }
 
+// WithMaxBytes returns a RouteOption to set maxBytes with given value.
+func WithMaxBytes(maxBytes int64) RouteOption {
+	return func(r *featuredRoutes) {
+		r.maxBytes = maxBytes
+	}
+}
+
 // WithTLSConfig returns a RunOption that with given tls config.
 func WithTLSConfig(cfg *tls.Config) RunOption {
 	return func(svr *Server) {
