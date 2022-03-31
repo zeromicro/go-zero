@@ -95,6 +95,13 @@ Port: 54321
 	}
 }
 
+func TestWithMaxBytes(t *testing.T) {
+	const maxBytes = 1000
+	var fr featuredRoutes
+	WithMaxBytes(maxBytes)(&fr)
+	assert.Equal(t, int64(maxBytes), fr.maxBytes)
+}
+
 func TestWithMiddleware(t *testing.T) {
 	m := make(map[string]string)
 	rt := router.NewRouter()

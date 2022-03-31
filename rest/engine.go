@@ -119,21 +119,20 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	return nil
 }
 
+func (ng *engine) checkedMaxBytes(bytes int64) int64 {
+	if bytes > 0 {
+		return bytes
+	}
+
+	return ng.conf.MaxBytes
+}
+
 func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
 	if timeout > 0 {
 		return timeout
 	}
 
 	return time.Duration(ng.conf.Timeout) * time.Millisecond
-}
-
-func (ng *engine) checkedMaxBytes(bytes int64) int64 {
-
-	if bytes > 0 {
-		return bytes
-	}
-
-	return ng.conf.MaxBytes
 }
 
 func (ng *engine) createMetrics() *stat.Metrics {
