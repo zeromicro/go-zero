@@ -24,7 +24,8 @@ const (
 package handler
 
 import (
-	"net/http"
+	"net/http"{{if .hasTimeout}}
+	"time"{{end}}
 
 	{{.importPackages}}
 )
@@ -38,6 +39,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}}
 	)
 `
+	timeoutThreshold = time.Millisecond
 )
 
 var mapping = map[string]string{
@@ -59,7 +61,6 @@ type (
 		signatureEnabled bool
 		authName         string
 		timeout          string
-		timeoutEnable    bool
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
@@ -83,6 +84,7 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		return err
 	}
 
+	var hasTimeout bool
 	gt := template.Must(template.New("groupTemplate").Parse(templateText))
 	for _, g := range groups {
 		var gbuilder strings.Builder
@@ -114,12 +116,19 @@ rest.WithPrefix("%s"),`, g.prefix)
 		}
 
 		var timeout string
-		if g.timeoutEnable {
+		if len(g.timeout) > 0 {
 			duration, err := time.ParseDuration(g.timeout)
 			if err != nil {
-				panic(err)
+				return err
 			}
-			timeout = fmt.Sprintf("rest.WithTimeout(%d),", duration)
+
+			// why we check this, maybe some users set value 1, it's 1ns, not 1s.
+			if duration < timeoutThreshold {
+				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
+			}
+
+			timeout = fmt.Sprintf("rest.WithTimeout(%d * time.Millisecond),", duration/time.Millisecond)
+			hasTimeout = true
 		}
 
 		var routes string
@@ -152,8 +161,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 	if err != nil {
 		return err
 	}
-	routeFilename = routeFilename + ".go"
 
+	routeFilename = routeFilename + ".go"
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
@@ -165,7 +174,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 		category:        category,
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
-		data: map[string]string{
+		data: map[string]interface{}{
+			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
 		},
@@ -184,7 +194,8 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), pathx.JoinPackages(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder),
+				pathx.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
@@ -218,12 +229,7 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 			})
 		}
 
-		timeout := g.GetAnnotation("timeout")
-
-		if len(timeout) > 0 {
-			groupedRoutes.timeoutEnable = true
-			groupedRoutes.timeout = timeout
-		}
+		groupedRoutes.timeout = g.GetAnnotation("timeout")
 
 		jwt := g.GetAnnotation("jwt")
 		if len(jwt) > 0 {

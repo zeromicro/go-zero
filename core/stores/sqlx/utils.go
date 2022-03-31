@@ -75,6 +75,7 @@ func format(query string, args ...interface{}) (string, error) {
 					break
 				}
 			}
+
 			if j > i+1 {
 				index, err := strconv.Atoi(query[i+1 : j])
 				if err != nil {
@@ -85,7 +86,7 @@ func format(query string, args ...interface{}) (string, error) {
 				if index > argIndex {
 					argIndex = index
 				}
-				
+
 				index--
 				if index < 0 || numArgs <= index {
 					return "", fmt.Errorf("error: wrong index %d in sql", index)
