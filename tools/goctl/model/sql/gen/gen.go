@@ -49,6 +49,11 @@ type (
 		deleteCode  string
 		cacheExtra  string
 	}
+
+	codeTuple struct {
+		modelCode       string
+		modelCustomCode string
+	}
 )
 
 // NewDefaultGenerator creates an instance for defaultGenerator
@@ -109,7 +114,7 @@ func (g *defaultGenerator) StartFromDDL(filename string, withCache bool, databas
 }
 
 func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache bool) error {
-	m := make(map[string]string)
+	m := make(map[string]*codeTuple)
 	for _, each := range tables {
 		table, err := parser.ConvertDataType(each)
 		if err != nil {
@@ -120,14 +125,21 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 		if err != nil {
 			return err
 		}
+		customCode, err := g.genModelCustom(*table)
+		if err != nil {
+			return err
+		}
 
-		m[table.Name.Source()] = code
+		m[table.Name.Source()] = &codeTuple{
+			modelCode:       code,
+			modelCustomCode: customCode,
+		}
 	}
 
 	return g.createFile(m)
 }
 
-func (g *defaultGenerator) createFile(modelList map[string]string) error {
+func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	dirAbs, err := filepath.Abs(g.dir)
 	if err != nil {
 		return err
@@ -140,20 +152,27 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 		return err
 	}
 
-	for tableName, code := range modelList {
+	for tableName, codes := range modelList {
 		tn := stringx.From(tableName)
 		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, fmt.Sprintf("%s_model", tn.Source()))
 		if err != nil {
 			return err
 		}
 
-		name := util.SafeString(modelFilename) + ".go"
+		name := util.SafeString(modelFilename) + "_gen.go"
 		filename := filepath.Join(dirAbs, name)
+		err = ioutil.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
+		if err != nil {
+			return err
+		}
+
+		name = util.SafeString(modelFilename) + ".go"
+		filename = filepath.Join(dirAbs, name)
 		if pathx.FileExists(filename) {
 			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
-		err = ioutil.WriteFile(filename, []byte(code), os.ModePerm)
+		err = ioutil.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -183,8 +202,8 @@ func (g *defaultGenerator) createFile(modelList map[string]string) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (map[string]string, error) {
-	m := make(map[string]string)
+func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (map[string]*codeTuple, error) {
+	m := make(map[string]*codeTuple)
 	tables, err := parser.Parse(filename, database)
 	if err != nil {
 		return nil, err
@@ -195,8 +214,15 @@ func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database 
 		if err != nil {
 			return nil, err
 		}
+		customCode, err := g.genModelCustom(*e)
+		if err != nil {
+			return nil, err
+		}
 
-		m[e.Name.Source()] = code
+		m[e.Name.Source()] = &codeTuple{
+			modelCode:       code,
+			modelCustomCode: customCode,
+		}
 	}
 
 	return m, nil
@@ -292,8 +318,27 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	return output.String(), nil
 }
 
+func (g *defaultGenerator) genModelCustom(in parser.Table) (string, error) {
+	text, err := pathx.LoadTemplate(category, modelCustomTemplateFile, template.ModelCustom)
+	if err != nil {
+		return "", err
+	}
+	t := util.With("model-custom").
+		Parse(text).
+		GoFmt(true)
+	output, err := t.Execute(map[string]interface{}{
+		"pkg":                   g.pkg,
+		"upperStartCamelObject": in.Name.ToCamel(),
+		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
+	})
+	if err != nil {
+		return "", err
+	}
+	return output.String(), nil
+}
+
 func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer, error) {
-	text, err := pathx.LoadTemplate(category, modelTemplateFile, template.Model)
+	text, err := pathx.LoadTemplate(category, modelGenTemplateFile, template.ModelGen)
 	if err != nil {
 		return nil, err
 	}

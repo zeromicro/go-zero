@@ -4,16 +4,19 @@ import (
 	"database/sql"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/builderx"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -120,4 +123,29 @@ func TestFields(t *testing.T) {
 	assert.Equal(t, "`id`,`name`,`age`,`score`,`create_time`,`update_time`", studentRows)
 	assert.Equal(t, "`name`,`age`,`score`", studentRowsExpectAutoSet)
 	assert.Equal(t, "`name`=?,`age`=?,`score`=?", studentRowsWithPlaceHolder)
+}
+
+func Test_genPublicModel(t *testing.T) {
+	var err error
+	dir := pathx.MustTempDir()
+	modelDir := path.Join(dir, "model")
+	err = os.MkdirAll(modelDir, 0777)
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	modelFilename := filepath.Join(modelDir, "foo.sql")
+	err = ioutil.WriteFile(modelFilename, []byte(source), 0777)
+	require.NoError(t, err)
+
+	g, err := NewDefaultGenerator(modelDir, &config.Config{
+		NamingFormat: config.DefaultFormat,
+	})
+	require.NoError(t, err)
+
+	tables, err := parser.Parse(modelFilename, "")
+	require.Equal(t, 1, len(tables))
+
+	code, err := g.genModelCustom(*tables[0])
+	assert.NoError(t, err)
+	assert.Equal(t, "package model\n\ntype TestUserModel interface {\n\ttestUserModel\n}\n", code)
 }
