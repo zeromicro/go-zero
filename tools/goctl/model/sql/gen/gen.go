@@ -20,16 +20,13 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-const (
-	pwd             = "."
-	createTableFlag = `(?m)^(?i)CREATE\s+TABLE` // ignore case
-)
+const pwd = "."
 
 type (
 	defaultGenerator struct {
-		// source string
-		dir string
 		console.Console
+		// source string
+		dir          string
 		pkg          string
 		cfg          *config.Config
 		isPostgreSql bool
@@ -48,6 +45,7 @@ type (
 		updateCode  string
 		deleteCode  string
 		cacheExtra  string
+		tableName   string
 	}
 
 	codeTuple struct {
@@ -154,7 +152,8 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 
 	for tableName, codes := range modelList {
 		tn := stringx.From(tableName)
-		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat, fmt.Sprintf("%s_model", tn.Source()))
+		modelFilename, err := format.FileNamingFormat(g.cfg.NamingFormat,
+			fmt.Sprintf("%s_model", tn.Source()))
 		if err != nil {
 			return err
 		}
@@ -202,7 +201,8 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (map[string]*codeTuple, error) {
+func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (
+	map[string]*codeTuple, error) {
 	m := make(map[string]*codeTuple)
 	tables, err := parser.Parse(filename, database)
 	if err != nil {
@@ -249,7 +249,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.UniqueCacheKey = uniqueKey
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 
-	importsCode, err := genImports(withCache, in.ContainsTime(), table)
+	importsCode, err := genImports(table, withCache, in.ContainsTime())
 	if err != nil {
 		return "", err
 	}
@@ -287,13 +287,19 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	}
 
 	var list []string
-	list = append(list, insertCodeMethod, findOneCodeMethod, ret.findOneInterfaceMethod, updateCodeMethod, deleteCodeMethod)
+	list = append(list, insertCodeMethod, findOneCodeMethod, ret.findOneInterfaceMethod,
+		updateCodeMethod, deleteCodeMethod)
 	typesCode, err := genTypes(table, strings.Join(modelutil.TrimStringSlice(list), pathx.NL), withCache)
 	if err != nil {
 		return "", err
 	}
 
 	newCode, err := genNew(table, withCache, g.isPostgreSql)
+	if err != nil {
+		return "", err
+	}
+
+	tableName, err := genTableName(table)
 	if err != nil {
 		return "", err
 	}
@@ -308,6 +314,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		updateCode:  updateCode,
 		deleteCode:  deleteCode,
 		cacheExtra:  ret.cacheExtra,
+		tableName:   tableName,
 	}
 
 	output, err := g.executeModel(table, code)
@@ -356,6 +363,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		"update":      code.updateCode,
 		"delete":      code.deleteCode,
 		"extraMethod": code.cacheExtra,
+		"tableName":   code.tableName,
 		"data":        table,
 	})
 	if err != nil {
