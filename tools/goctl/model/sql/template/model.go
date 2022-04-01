@@ -1,7 +1,15 @@
 package template
 
-// Model defines a template for model
-var Model = `package {{.pkg}}
+import (
+	"fmt"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+)
+
+// ModelGen defines a template for model
+var ModelGen = fmt.Sprintf(`%s
+
+package {{.pkg}}
 {{.imports}}
 {{.vars}}
 {{.types}}
@@ -11,4 +19,11 @@ var Model = `package {{.pkg}}
 {{.update}}
 {{.delete}}
 {{.extraMethod}}
-`
+`, util.DoNotEditHead)
+
+// ModelCustom defines a template for extension
+var ModelCustom = fmt.Sprintf(`package {{.pkg}}
+type {{.upperStartCamelObject}}Model interface {
+	{{.lowerStartCamelObject}}Model
+}
+`)

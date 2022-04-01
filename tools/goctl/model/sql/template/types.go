@@ -3,7 +3,7 @@ package template
 // Types defines a template for types in model
 var Types = `
 type (
-	{{.upperStartCamelObject}}Model interface{
+	{{.lowerStartCamelObject}}Model interface{
 		{{.method}}
 	}
 
