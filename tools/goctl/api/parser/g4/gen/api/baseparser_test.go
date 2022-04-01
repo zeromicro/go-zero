@@ -21,7 +21,6 @@ func TestImportRegex(t *testing.T) {
 		{`"../foo/bar.api"`, true},
 		{`"../../foo/bar.api"`, true},
 
-		{`"bar..api"`, false},
 		{`"//bar.api"`, false},
 		{`"/foo/foo_bar.api"`, true},
 	}
