@@ -118,14 +118,16 @@ func removeGoctlFlag(args []string) []string {
 	for step < len(args) {
 		arg := args[step]
 		switch {
-		case arg == "--style", arg == "--home", arg == "--zrpc_out", arg == "--verbose", arg == "-v":
+		case arg == "--style", arg == "--home", arg == "--zrpc_out", arg == "--verbose", arg == "-v", arg == "--remote", arg == "--branch":
 			step += 2
 			continue
 		case strings.HasPrefix(arg, "--style="),
 			strings.HasPrefix(arg, "--home="),
 			strings.HasPrefix(arg, "--verbose="),
 			strings.HasPrefix(arg, "-v="),
-			strings.HasPrefix(arg, "--zrpc_out="):
+			strings.HasPrefix(arg, "--zrpc_out="),
+			strings.HasPrefix(arg, "--remote="),
+			strings.HasPrefix(arg, "--branch="):
 			step += 1
 			continue
 		}
