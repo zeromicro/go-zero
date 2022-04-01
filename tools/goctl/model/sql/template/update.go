@@ -1,7 +1,8 @@
 package template
 
-// Update defines a template for generating update codes
-var Update = `
+const (
+	// Update defines a template for generating update codes
+	Update = `
 func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) error {
 	{{if .withCache}}{{.keys}}
     _, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
@@ -13,5 +14,6 @@ func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, dat
 }
 `
 
-// UpdateMethod defines an interface method template for generating update codes
-var UpdateMethod = `Update(ctx context.Context, data *{{.upperStartCamelObject}}) error`
+	// UpdateMethod defines an interface method template for generating update codes
+	UpdateMethod = `Update(ctx context.Context, data *{{.upperStartCamelObject}}) error`
+)

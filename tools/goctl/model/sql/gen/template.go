@@ -25,6 +25,7 @@ const (
 	modelGenTemplateFile                  = "model-gen.tpl"
 	modelCustomTemplateFile               = "model.tpl"
 	modelNewTemplateFile                  = "model-new.tpl"
+	tableNameTemplateFile                 = "table-name.tpl"
 	tagTemplateFile                       = "tag.tpl"
 	typesTemplateFile                     = "types.tpl"
 	updateTemplateFile                    = "update.tpl"
@@ -49,6 +50,7 @@ var templates = map[string]string{
 	modelGenTemplateFile:                  template.ModelGen,
 	modelCustomTemplateFile:               template.ModelCustom,
 	modelNewTemplateFile:                  template.New,
+	tableNameTemplateFile:                 template.TableName,
 	tagTemplateFile:                       template.Tag,
 	typesTemplateFile:                     template.Types,
 	updateTemplateFile:                    template.Update,
@@ -72,7 +74,7 @@ func GenTemplates(_ *cli.Context) error {
 	return pathx.InitTemplates(category, templates)
 }
 
-// RevertTemplate recovers the delete template files
+// RevertTemplate reverts the deleted template files
 func RevertTemplate(name string) error {
 	content, ok := templates[name]
 	if !ok {

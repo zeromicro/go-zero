@@ -1,7 +1,7 @@
 package template
 
-// Types defines a template for types in model
-var Types = `
+// Types defines a template for types in model.
+const Types = `
 type (
 	{{.lowerStartCamelObject}}Model interface{
 		{{.method}}
