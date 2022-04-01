@@ -2,6 +2,7 @@ package token
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -78,11 +79,61 @@ func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*
 	return token, nil
 }
 
+// ParseCustomToken parses token from given custom, with passed in secret and prevSecret.
+func (tp *TokenParser) ParseCustomToken(tokenString, secret, prevSecret string) (*jwt.Token, error) {
+	// strip bearer prefix in token string
+	if len(tokenString) > 6 && strings.ToUpper(tokenString[0:7]) == "BEARER " {
+		tokenString = tokenString[7:]
+	}
+
+	var token *jwt.Token
+	var err error
+
+	if len(prevSecret) > 0 {
+		count := tp.loadCount(secret)
+		prevCount := tp.loadCount(prevSecret)
+
+		var first, second string
+		if count > prevCount {
+			first = secret
+			second = prevSecret
+		} else {
+			first = prevSecret
+			second = secret
+		}
+
+		token, err = tp.doParseCustomToken(tokenString, first)
+		if err != nil {
+			token, err = tp.doParseCustomToken(tokenString, second)
+			if err != nil {
+				return nil, err
+			}
+
+			tp.incrementCount(second)
+		} else {
+			tp.incrementCount(first)
+		}
+	} else {
+		token, err = tp.doParseCustomToken(tokenString, secret)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return token, nil
+}
+
 func (tp *TokenParser) doParseToken(r *http.Request, secret string) (*jwt.Token, error) {
 	return request.ParseFromRequest(r, request.AuthorizationHeaderExtractor,
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(secret), nil
 		}, request.WithParser(newParser()))
+}
+
+func (tp *TokenParser) doParseCustomToken(tokenString, secret string) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(secret), nil
+	}, jwt.WithJSONNumber())
 }
 
 func (tp *TokenParser) incrementCount(secret string) {

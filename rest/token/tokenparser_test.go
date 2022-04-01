@@ -70,6 +70,61 @@ func TestTokenParser_Expired(t *testing.T) {
 	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
 }
 
+func TestCustomTokenParser(t *testing.T) {
+	const (
+		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
+		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	)
+	keys := []struct {
+		key     string
+		prevKey string
+	}{
+		{
+			key,
+			prevKey,
+		},
+		{
+			key,
+			"",
+		},
+	}
+
+	for _, pair := range keys {
+		token, err := buildToken(key, map[string]interface{}{
+			"key": "value",
+		}, 3600)
+		assert.Nil(t, err)
+
+		parser := NewTokenParser(WithResetDuration(time.Minute))
+		tok, err := parser.ParseCustomToken(token, pair.key, pair.prevKey)
+		assert.Nil(t, err)
+		assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+	}
+}
+
+func TestCustomTokenParser_Expired(t *testing.T) {
+	const (
+		key     = "14F17379-EB8F-411B-8F12-6929002DCA76"
+		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
+	)
+	token, err := buildToken(key, map[string]interface{}{
+		"key": "value",
+	}, 3600)
+	assert.Nil(t, err)
+
+	parser := NewTokenParser(WithResetDuration(time.Second))
+	tok, err := parser.ParseCustomToken(token, key, prevKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+	tok, err = parser.ParseCustomToken(token, key, prevKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+	parser.resetTime = timex.Now() - time.Hour
+	tok, err = parser.ParseCustomToken(token, key, prevKey)
+	assert.Nil(t, err)
+	assert.Equal(t, "value", tok.Claims.(jwt.MapClaims)["key"])
+}
+
 func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
