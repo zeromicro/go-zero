@@ -15,12 +15,15 @@ import (
 type (
 	// Parser provides api parsing capabilities
 	Parser struct {
-		linePrefix string
-		debug      bool
-		log        console.Console
 		antlr.DefaultErrorListener
+		linePrefix               string
+		debug                    bool
+		log                      console.Console
 		src                      string
 		skipCheckTypeDeclaration bool
+		handlerMap               map[string]PlaceHolder
+		routeMap                 map[string]PlaceHolder
+		typeMap                  map[string]PlaceHolder
 	}
 
 	// ParserOption defines an function with argument Parser
@@ -35,6 +38,9 @@ func NewParser(options ...ParserOption) *Parser {
 	for _, opt := range options {
 		opt(p)
 	}
+	p.handlerMap = make(map[string]PlaceHolder)
+	p.routeMap = make(map[string]PlaceHolder)
+	p.typeMap = make(map[string]PlaceHolder)
 
 	return p
 }
@@ -113,7 +119,27 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 
 	var apiAstList []*Api
 	apiAstList = append(apiAstList, root)
-	for _, imp := range root.Import {
+	p.storeVerificationInfo(root)
+	impApiAstList, err := p.invokeImportedApi(root.Import)
+	if err != nil {
+		return nil, err
+	}
+	apiAstList = append(apiAstList, impApiAstList...)
+
+	if !p.skipCheckTypeDeclaration {
+		err = p.checkTypeDeclaration(apiAstList)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	allApi := p.memberFill(apiAstList)
+	return allApi, nil
+}
+
+func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
+	var apiAstList []*Api
+	for _, imp := range imports {
 		dir := filepath.Dir(p.src)
 		impPath := strings.ReplaceAll(imp.Value.Text(), "\"", "")
 		if !filepath.IsAbs(impPath) {
@@ -129,23 +155,20 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 			return nil, err
 		}
 
-		err = p.valid(root, nestedApi)
+		err = p.valid(nestedApi)
 		if err != nil {
 			return nil, err
 		}
-
+		p.storeVerificationInfo(nestedApi)
 		apiAstList = append(apiAstList, nestedApi)
-	}
+		list, err := p.invokeImportedApi(nestedApi.Import)
+		apiAstList = append(apiAstList, list...)
 
-	if !p.skipCheckTypeDeclaration {
-		err = p.checkTypeDeclaration(apiAstList)
 		if err != nil {
 			return nil, err
 		}
 	}
-
-	allApi := p.memberFill(apiAstList)
-	return allApi, nil
+	return apiAstList, nil
 }
 
 func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
@@ -184,58 +207,40 @@ func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
 	return
 }
 
-func (p *Parser) valid(mainApi, nestedApi *Api) error {
-	err := p.nestedApiCheck(mainApi, nestedApi)
-	if err != nil {
-		return err
-	}
-
-	mainHandlerMap := make(map[string]PlaceHolder)
-	mainRouteMap := make(map[string]PlaceHolder)
-	mainTypeMap := make(map[string]PlaceHolder)
-
-	routeMap := func(list []*ServiceRoute) (map[string]PlaceHolder, map[string]PlaceHolder) {
-		handlerMap := make(map[string]PlaceHolder)
-		routeMap := make(map[string]PlaceHolder)
-
+// storeVerificationInfo stores information for verification
+func (p *Parser) storeVerificationInfo(api *Api) {
+	routeMap := func(list []*ServiceRoute) {
 		for _, g := range list {
 			handler := g.GetHandler()
 			if handler.IsNotNil() {
 				handlerName := handler.Text()
-				handlerMap[handlerName] = Holder
+				p.handlerMap[handlerName] = Holder
 				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
-				routeMap[route] = Holder
+				p.routeMap[route] = Holder
 			}
 		}
-
-		return handlerMap, routeMap
 	}
 
-	for _, each := range mainApi.Service {
-		h, r := routeMap(each.ServiceApi.ServiceRoute)
-
-		for k, v := range h {
-			mainHandlerMap[k] = v
-		}
-
-		for k, v := range r {
-			mainRouteMap[k] = v
-		}
+	for _, each := range api.Service {
+		routeMap(each.ServiceApi.ServiceRoute)
 	}
 
-	for _, each := range mainApi.Type {
-		mainTypeMap[each.NameExpr().Text()] = Holder
+	for _, each := range api.Type {
+		p.typeMap[each.NameExpr().Text()] = Holder
 	}
+}
+
+func (p *Parser) valid(nestedApi *Api) error {
 
 	// duplicate route check
-	err = p.duplicateRouteCheck(nestedApi, mainHandlerMap, mainRouteMap)
+	err := p.duplicateRouteCheck(nestedApi)
 	if err != nil {
 		return err
 	}
 
 	// duplicate type check
 	for _, each := range nestedApi.Type {
-		if _, ok := mainTypeMap[each.NameExpr().Text()]; ok {
+		if _, ok := p.typeMap[each.NameExpr().Text()]; ok {
 			return fmt.Errorf("%s line %d:%d duplicate type declaration '%s'",
 				nestedApi.LinePrefix, each.NameExpr().Line(), each.NameExpr().Column(), each.NameExpr().Text())
 		}
@@ -244,7 +249,7 @@ func (p *Parser) valid(mainApi, nestedApi *Api) error {
 	return nil
 }
 
-func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMap map[string]PlaceHolder) error {
+func (p *Parser) duplicateRouteCheck(nestedApi *Api) error {
 	for _, each := range nestedApi.Service {
 		var prefix, group string
 		if each.AtServer != nil {
@@ -267,13 +272,13 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMa
 			if len(group) > 0 {
 				handlerKey = fmt.Sprintf("%s/%s", group, handler.Text())
 			}
-			if _, ok := mainHandlerMap[handlerKey]; ok {
+			if _, ok := p.handlerMap[handlerKey]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate handler '%s'",
 					nestedApi.LinePrefix, handler.Line(), handler.Column(), handlerKey)
 			}
 
-			p := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path.Join(prefix, r.Route.Path.Text()))
-			if _, ok := mainRouteMap[p]; ok {
+			routeKey := fmt.Sprintf("%s://%s", r.Route.Method.Text(), path.Join(prefix, r.Route.Path.Text()))
+			if _, ok := p.routeMap[routeKey]; ok {
 				return fmt.Errorf("%s line %d:%d duplicate route '%s'",
 					nestedApi.LinePrefix, r.Route.Method.Line(), r.Route.Method.Column(), r.Route.Method.Text()+" "+r.Route.Path.Text())
 			}
