@@ -123,7 +123,7 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 		if err != nil {
 			return err
 		}
-		customCode, err := g.genModelCustom(*table)
+		customCode, err := g.genModelCustom(*table, withCache)
 		if err != nil {
 			return err
 		}
@@ -214,7 +214,7 @@ func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database 
 		if err != nil {
 			return nil, err
 		}
-		customCode, err := g.genModelCustom(*e)
+		customCode, err := g.genModelCustom(*e, withCache)
 		if err != nil {
 			return nil, err
 		}
@@ -325,22 +325,25 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	return output.String(), nil
 }
 
-func (g *defaultGenerator) genModelCustom(in parser.Table) (string, error) {
+func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (string, error) {
 	text, err := pathx.LoadTemplate(category, modelCustomTemplateFile, template.ModelCustom)
 	if err != nil {
 		return "", err
 	}
+
 	t := util.With("model-custom").
 		Parse(text).
 		GoFmt(true)
 	output, err := t.Execute(map[string]interface{}{
 		"pkg":                   g.pkg,
+		"withCache":             withCache,
 		"upperStartCamelObject": in.Name.ToCamel(),
 		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
 	})
 	if err != nil {
 		return "", err
 	}
+
 	return output.String(), nil
 }
 

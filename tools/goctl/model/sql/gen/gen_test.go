@@ -145,7 +145,7 @@ func Test_genPublicModel(t *testing.T) {
 	tables, err := parser.Parse(modelFilename, "")
 	require.Equal(t, 1, len(tables))
 
-	code, err := g.genModelCustom(*tables[0])
+	code, err := g.genModelCustom(*tables[0], false)
 	assert.NoError(t, err)
 	assert.Equal(t, "package model\n\ntype TestUserModel interface {\n\ttestUserModel\n}\n", code)
 }
