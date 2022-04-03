@@ -40,7 +40,7 @@ func NewServiceWithClient(name string, cli *http.Client, opts ...Option) Service
 }
 
 // DoRequest sends an HTTP request to the service.
-func (s namedService) DoRequest(r *http.Request) (resp *http.Response, err error) {
+func (s namedService) DoRequest(r *http.Request) (*http.Response, error) {
 	return request(r, s)
 }
 

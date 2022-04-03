@@ -27,7 +27,7 @@ func (c defaultClient) do(r *http.Request) (*http.Response, error) {
 	return http.DefaultClient.Do(r)
 }
 
-func request(r *http.Request, cli client) (resp *http.Response, err error) {
+func request(r *http.Request, cli client) (*http.Response, error) {
 	var respHandlers []internal.ResponseHandler
 	for _, interceptor := range interceptors {
 		var h internal.ResponseHandler
@@ -35,10 +35,10 @@ func request(r *http.Request, cli client) (resp *http.Response, err error) {
 		respHandlers = append(respHandlers, h)
 	}
 
-	resp, err = cli.do(r)
+	resp, err := cli.do(r)
 	for i := len(respHandlers) - 1; i >= 0; i-- {
 		respHandlers[i](resp, err)
 	}
 
-	return
+	return resp, err
 }
