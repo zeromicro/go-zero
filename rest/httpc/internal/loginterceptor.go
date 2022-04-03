@@ -16,9 +16,9 @@ func LogInterceptor(r *http.Request) (*http.Request, ResponseHandler) {
 		ctx := tc.Extract(r.Context(), propagation.HeaderCarrier(resp.Header))
 		logger := logx.WithContext(ctx).WithDuration(duration)
 		if isOkResponse(resp.StatusCode) {
-			logger.Infof("[HTTP] %d - %s %s/%s", resp.StatusCode, r.Method, r.Host, r.RequestURI)
+			logger.Infof("[HTTP] %d - %s %s", resp.StatusCode, r.Method, r.URL)
 		} else {
-			logger.Errorf("[HTTP] %d - %s %s/%s", resp.StatusCode, r.Method, r.Host, r.RequestURI)
+			logger.Errorf("[HTTP] %d - %s %s", resp.StatusCode, r.Method, r.URL)
 		}
 	}
 }
