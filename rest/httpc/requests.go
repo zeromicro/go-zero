@@ -38,7 +38,7 @@ func request(r *http.Request, cli client) (resp *http.Response, err error) {
 
 	resp, err = cli.do(r)
 	if err != nil {
-		logx.Errorf("[HTTP] %s %s/%s - %v", r.Method, r.Host, r.RequestURI, err)
+		logx.Errorf("[HTTP] %s %s - %v", r.Method, r.URL, err)
 		return
 	}
 
