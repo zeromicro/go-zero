@@ -14,7 +14,7 @@ func TestNamedService_Do(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
 	assert.Nil(t, err)
 	service := NewService("foo")
-	_, err = service.Do(req)
+	_, err = service.DoRequest(req)
 	// too many redirects
 	assert.NotNil(t, err)
 }
@@ -28,7 +28,9 @@ func TestNamedService_Get(t *testing.T) {
 		r.Header.Set("foo", "bar")
 		return r
 	})
-	resp, err := service.Get(svr.URL)
+	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
+	assert.Nil(t, err)
+	resp, err := service.DoRequest(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Equal(t, "bar", resp.Header.Get("foo"))
@@ -38,9 +40,10 @@ func TestNamedService_Post(t *testing.T) {
 	svr := httptest.NewServer(http.NotFoundHandler())
 	defer svr.Close()
 	service := NewService("foo")
-	_, err := service.Post("tcp://bad request", "application/json", nil)
-	assert.NotNil(t, err)
-	resp, err := service.Post(svr.URL, "application/json", nil)
+	req, err := http.NewRequest(http.MethodPost, svr.URL, nil)
+	assert.Nil(t, err)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := service.DoRequest(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
