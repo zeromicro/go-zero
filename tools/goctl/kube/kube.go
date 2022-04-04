@@ -1,6 +1,7 @@
 package kube
 
 import (
+	_ "embed"
 	"errors"
 	"fmt"
 	"text/template"
@@ -17,6 +18,13 @@ const (
 	jobTemplateFile    = "job.tpl"
 	basePort           = 30000
 	portLimit          = 32767
+)
+
+var (
+	//go:embed deployment.tpl
+	deploymentTemplate string
+	//go:embed job.tpl
+	jobTemplate string
 )
 
 // Deployment describes the k8s deployment yaml
@@ -113,7 +121,7 @@ func Clean() error {
 func GenTemplates(_ *cli.Context) error {
 	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
-		jobTemplateFile:    jobTmeplate,
+		jobTemplateFile:    jobTemplate,
 	})
 }
 
@@ -131,6 +139,6 @@ func Update() error {
 
 	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
-		jobTemplateFile:    jobTmeplate,
+		jobTemplateFile:    jobTemplate,
 	})
 }

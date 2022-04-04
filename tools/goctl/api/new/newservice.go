@@ -1,11 +1,12 @@
 package new
 
 import (
+	_ "embed"
 	"errors"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
@@ -14,20 +15,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const apiTemplate = `
-type Request {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
-}
-
-type Response {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service {{.name}}-api {
-  @handler {{.handler}}Handler
-  get /from/:name(Request) returns (Response)
-}
-`
+//go:embed api.tpl
+var apiTemplate string
 
 // CreateServiceCommand fast create service
 func CreateServiceCommand(c *cli.Context) error {
