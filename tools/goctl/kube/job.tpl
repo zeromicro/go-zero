@@ -1,6 +1,4 @@
-package kube
-
-var jobTmeplate = `apiVersion: batch/v1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{.Name}}
@@ -37,4 +35,3 @@ spec:
           - name: timezone
             hostPath:
               path: /usr/share/zoneinfo/Asia/Shanghai
-`
