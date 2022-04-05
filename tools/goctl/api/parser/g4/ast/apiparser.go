@@ -24,6 +24,9 @@ type (
 		handlerMap               map[string]PlaceHolder
 		routeMap                 map[string]PlaceHolder
 		typeMap                  map[string]PlaceHolder
+		fileMap                  map[string]PlaceHolder
+		importStatck             ImportStack
+		syntax                   *SyntaxExpr
 	}
 
 	// ParserOption defines an function with argument Parser
@@ -41,6 +44,7 @@ func NewParser(options ...ParserOption) *Parser {
 	p.handlerMap = make(map[string]PlaceHolder)
 	p.routeMap = make(map[string]PlaceHolder)
 	p.typeMap = make(map[string]PlaceHolder)
+	p.fileMap = make(map[string]PlaceHolder)
 
 	return p
 }
@@ -90,6 +94,7 @@ func (p *Parser) Parse(filename string) (*Api, error) {
 		return nil, err
 	}
 
+	p.importStatck.Push(p.src)
 	return p.parse(filename, data)
 }
 
@@ -106,6 +111,7 @@ func (p *Parser) ParseContent(content string, filename ...string) (*Api, error) 
 		p.src = abs
 	}
 
+	p.importStatck.Push(p.src)
 	return p.parse(f, content)
 }
 
@@ -120,6 +126,7 @@ func (p *Parser) parse(filename, content string) (*Api, error) {
 	var apiAstList []*Api
 	apiAstList = append(apiAstList, root)
 	p.storeVerificationInfo(root)
+	p.syntax = root.Syntax
 	impApiAstList, err := p.invokeImportedApi(root.Import)
 	if err != nil {
 		return nil, err
@@ -145,6 +152,16 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		if !filepath.IsAbs(impPath) {
 			impPath = filepath.Join(dir, impPath)
 		}
+		// import cycle check
+		if err := p.importStatck.Push(impPath); err != nil {
+			return nil, err
+		}
+		// ignore alread imported file
+		if p.alreadyImported(impPath) {
+			continue
+		}
+		p.fileMap[impPath] = PlaceHolder{}
+
 		data, err := p.readContent(impPath)
 		if err != nil {
 			return nil, err
@@ -162,6 +179,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		p.storeVerificationInfo(nestedApi)
 		apiAstList = append(apiAstList, nestedApi)
 		list, err := p.invokeImportedApi(nestedApi.Import)
+		p.importStatck.Pop()
 		apiAstList = append(apiAstList, list...)
 
 		if err != nil {
@@ -169,6 +187,11 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		}
 	}
 	return apiAstList, nil
+}
+
+func (p *Parser) alreadyImported(filename string) bool {
+	_, ok := p.fileMap[filename]
+	return ok
 }
 
 func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
@@ -231,6 +254,14 @@ func (p *Parser) storeVerificationInfo(api *Api) {
 }
 
 func (p *Parser) valid(nestedApi *Api) error {
+
+	if p.syntax != nil && nestedApi.Syntax != nil {
+		if p.syntax.Version.Text() != nestedApi.Syntax.Version.Text() {
+			syntaxToken := nestedApi.Syntax.Syntax
+			return fmt.Errorf("%s line %d:%d multiple syntax declaration, expecting syntax '%s', but found '%s'",
+				nestedApi.LinePrefix, syntaxToken.Line(), syntaxToken.Column(), p.syntax.Version.Text(), nestedApi.Syntax.Version.Text())
+		}
+	}
 
 	// duplicate route check
 	err := p.duplicateRouteCheck(nestedApi)
