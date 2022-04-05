@@ -116,6 +116,16 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     
     # Go 1.16 及以后版本
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
+
+    # docker for amd64 architecture
+    docker pull kevinwan/goctl
+    # run goctl like
+    docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
+
+    # docker for arm64 (M1) architecture
+    docker pull kevinwan/goctl:latest-arm64
+    # run goctl like
+    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
     ```
 
     确保 goctl 可执行
