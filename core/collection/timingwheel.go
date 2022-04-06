@@ -129,7 +129,7 @@ func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
 	}
 }
 
-// Stop stops tw.
+// Stop stops tw. No more actions after stopping a TimingWheel.
 func (tw *TimingWheel) Stop() {
 	close(tw.stopChannel)
 }
