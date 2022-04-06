@@ -40,10 +40,10 @@ func NewServiceGroup() *ServiceGroup {
 	return sg
 }
 
-// Add adds service into sg.
-func (sg *ServiceGroup) Add(service Service) {
+// Add adds services into sg.
+func (sg *ServiceGroup) Add(service ...Service) {
 	// push front, stop with reverse order.
-	sg.services = append([]Service{service}, sg.services...)
+	sg.services = append(service, sg.services...)
 }
 
 // Start starts the ServiceGroup.
