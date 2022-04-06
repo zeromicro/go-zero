@@ -47,14 +47,10 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		return err
 	}
 
-	goctlVersion := version.GetGoctlVersion()
-	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
-		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),
