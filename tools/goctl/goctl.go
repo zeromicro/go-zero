@@ -514,6 +514,14 @@ var commands = []cli.Command{
 				Name:  "new",
 				Usage: `generate rpc demo service`,
 				Flags: []cli.Flag{
+					cli.StringSliceFlag{
+						Name:   "go_opt",
+						Hidden: true,
+					},
+					cli.StringSliceFlag{
+						Name:   "go-grpc_opt",
+						Hidden: true,
+					},
 					cli.StringFlag{
 						Name:  "style",
 						Usage: "the file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]",
