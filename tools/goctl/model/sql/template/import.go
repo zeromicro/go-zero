@@ -1,6 +1,6 @@
 package template
 
-var (
+const (
 	// Imports defines a import template for model in cache case
 	Imports = `import (
 	"context"

@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"path/filepath"
 	"strings"
 
@@ -9,23 +10,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-const rpcTemplateText = `syntax = "proto3";
-
-package {{.package}};
-option go_package="./{{.package}}";
-
-message Request {
-  string ping = 1;
-}
-
-message Response {
-  string pong = 1;
-}
-
-service {{.serviceName}} {
-  rpc Ping(Request) returns(Response);
-}
-`
+//go:embed rpc.tpl
+var rpcTemplateText string
 
 // ProtoTmpl returns a sample of a proto file
 func ProtoTmpl(out string) error {

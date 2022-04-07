@@ -28,7 +28,6 @@ func TestTimingWheel_Drain(t *testing.T) {
 	ticker := timex.NewFakeTicker()
 	tw, _ := newTimingWheelWithClock(testStep, 10, func(k, v interface{}) {
 	}, ticker)
-	defer tw.Stop()
 	tw.SetTimer("first", 3, testStep*4)
 	tw.SetTimer("second", 5, testStep*7)
 	tw.SetTimer("third", 7, testStep*7)
@@ -56,6 +55,8 @@ func TestTimingWheel_Drain(t *testing.T) {
 	})
 	time.Sleep(time.Millisecond * 100)
 	assert.Equal(t, 0, count)
+	tw.Stop()
+	assert.Equal(t, ErrClosed, tw.Drain(func(key, value interface{}) {}))
 }
 
 func TestTimingWheel_SetTimerSoon(t *testing.T) {
@@ -102,6 +103,13 @@ func TestTimingWheel_SetTimerWrongDelay(t *testing.T) {
 	})
 }
 
+func TestTimingWheel_SetTimerAfterClose(t *testing.T) {
+	ticker := timex.NewFakeTicker()
+	tw, _ := newTimingWheelWithClock(testStep, 10, func(k, v interface{}) {}, ticker)
+	tw.Stop()
+	assert.Equal(t, ErrClosed, tw.SetTimer("any", 3, testStep))
+}
+
 func TestTimingWheel_MoveTimer(t *testing.T) {
 	run := syncx.NewAtomicBool()
 	ticker := timex.NewFakeTicker()
@@ -111,7 +119,6 @@ func TestTimingWheel_MoveTimer(t *testing.T) {
 		assert.Equal(t, 3, v.(int))
 		ticker.Done()
 	}, ticker)
-	defer tw.Stop()
 	tw.SetTimer("any", 3, testStep*4)
 	tw.MoveTimer("any", testStep*7)
 	tw.MoveTimer("any", -testStep)
@@ -125,6 +132,8 @@ func TestTimingWheel_MoveTimer(t *testing.T) {
 	}
 	assert.Nil(t, ticker.Wait(waitTime))
 	assert.True(t, run.True())
+	tw.Stop()
+	assert.Equal(t, ErrClosed, tw.MoveTimer("any", time.Millisecond))
 }
 
 func TestTimingWheel_MoveTimerSoon(t *testing.T) {
@@ -175,6 +184,7 @@ func TestTimingWheel_RemoveTimer(t *testing.T) {
 		ticker.Tick()
 	}
 	tw.Stop()
+	assert.Equal(t, ErrClosed, tw.RemoveTimer("any"))
 }
 
 func TestTimingWheel_SetTimer(t *testing.T) {

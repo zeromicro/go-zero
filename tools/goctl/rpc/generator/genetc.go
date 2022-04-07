@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -13,13 +14,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-const etcTemplate = `Name: {{.serviceName}}.rpc
-ListenOn: 127.0.0.1:8080
-Etcd:
-  Hosts:
-  - 127.0.0.1:2379
-  Key: {{.serviceName}}.rpc
-`
+//go:embed etc.tpl
+var etcTemplate string
 
 // GenEtc generates the yaml configuration file of the rpc service,
 // including host, port monitoring configuration items and etcd configuration

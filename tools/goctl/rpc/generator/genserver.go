@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -14,38 +15,16 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-const (
-	serverTemplate = `{{.head}}
-
-package server
-
-import (
-	{{if .notStream}}"context"{{end}}
-
-	{{.imports}}
-)
-
-type {{.server}}Server struct {
-	svcCtx *svc.ServiceContext
-	{{.unimplementedServer}}
-}
-
-func New{{.server}}Server(svcCtx *svc.ServiceContext) *{{.server}}Server {
-	return &{{.server}}Server{
-		svcCtx: svcCtx,
-	}
-}
-
-{{.funcs}}
-`
-	functionTemplate = `
+const functionTemplate = `
 {{if .hasComment}}{{.comment}}{{end}}
 func (s *{{.server}}Server) {{.method}} ({{if .notStream}}ctx context.Context,{{if .hasReq}} in {{.request}}{{end}}{{else}}{{if .hasReq}} in {{.request}},{{end}}stream {{.streamBody}}{{end}}) ({{if .notStream}}{{.response}},{{end}}error) {
 	l := logic.New{{.logicName}}({{if .notStream}}ctx,{{else}}stream.Context(),{{end}}s.svcCtx)
 	return l.{{.method}}({{if .hasReq}}in{{if .stream}} ,stream{{end}}{{else}}{{if .stream}}stream{{end}}{{end}})
 }
 `
-)
+
+//go:embed server.tpl
+var serverTemplate string
 
 // GenServer generates rpc server file, which is an implementation of rpc server
 func (g *Generator) GenServer(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {

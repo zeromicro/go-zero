@@ -1,17 +1,10 @@
 package httpc
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/breaker"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/rest/httpc/internal"
 )
-
-var interceptors = []internal.Interceptor{
-	internal.LogInterceptor,
-}
 
 type (
 	// Option is used to customize the *http.Client.
@@ -19,12 +12,8 @@ type (
 
 	// Service represents a remote HTTP service.
 	Service interface {
-		// Do sends an HTTP request to the service.
-		Do(r *http.Request) (*http.Response, error)
-		// Get sends an HTTP GET request to the service.
-		Get(url string) (*http.Response, error)
-		// Post sends an HTTP POST request to the service.
-		Post(url, contentType string, body io.Reader) (*http.Response, error)
+		// DoRequest sends a HTTP request to the service.
+		DoRequest(r *http.Request) (*http.Response, error)
 	}
 
 	namedService struct {
@@ -50,50 +39,12 @@ func NewServiceWithClient(name string, cli *http.Client, opts ...Option) Service
 	}
 }
 
-// Do sends an HTTP request to the service.
-func (s namedService) Do(r *http.Request) (resp *http.Response, err error) {
-	var respHandlers []internal.ResponseHandler
-	for _, interceptor := range interceptors {
-		var h internal.ResponseHandler
-		r, h = interceptor(r)
-		respHandlers = append(respHandlers, h)
-	}
-
-	resp, err = s.doRequest(r)
-	if err != nil {
-		logx.Errorf("[HTTP] %s %s/%s - %v", r.Method, r.Host, r.RequestURI, err)
-		return
-	}
-
-	for i := len(respHandlers) - 1; i >= 0; i-- {
-		respHandlers[i](resp)
-	}
-
-	return
+// DoRequest sends an HTTP request to the service.
+func (s namedService) DoRequest(r *http.Request) (*http.Response, error) {
+	return request(r, s)
 }
 
-// Get sends an HTTP GET request to the service.
-func (s namedService) Get(url string) (*http.Response, error) {
-	r, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.Do(r)
-}
-
-// Post sends an HTTP POST request to the service.
-func (s namedService) Post(url, ctype string, body io.Reader) (*http.Response, error) {
-	r, err := http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		return nil, err
-	}
-
-	r.Header.Set(contentType, ctype)
-	return s.Do(r)
-}
-
-func (s namedService) doRequest(r *http.Request) (resp *http.Response, err error) {
+func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
 	for _, opt := range s.opts {
 		r = opt(r)
 	}

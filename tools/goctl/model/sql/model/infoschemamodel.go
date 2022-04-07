@@ -6,7 +6,6 @@ import (
 
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
-	su "github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 const indexPri = "PRIMARY"
@@ -145,15 +144,14 @@ func (m *InformationSchemaModel) FindIndex(db, table, column string) ([]*DbIndex
 // Convert converts column data into Table
 func (c *ColumnData) Convert() (*Table, error) {
 	var table Table
-	table.Table = su.EscapeGolangKeyword(c.Table)
-	table.Db = su.EscapeGolangKeyword(c.Db)
+	table.Table = c.Table
+	table.Db = c.Db
 	table.Columns = c.Columns
 	table.UniqueIndex = map[string][]*Column{}
 	table.NormalIndex = map[string][]*Column{}
 
 	m := make(map[string][]*Column)
 	for _, each := range c.Columns {
-		each.Name = su.EscapeGolangKeyword(each.Name)
 		each.Comment = util.TrimNewLine(each.Comment)
 		if each.Index != nil {
 			m[each.Index.IndexName] = append(m[each.Index.IndexName], each)
