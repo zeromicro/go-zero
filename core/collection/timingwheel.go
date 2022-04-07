@@ -2,6 +2,7 @@ package collection
 
 import (
 	"container/list"
+	"errors"
 	"fmt"
 	"time"
 
@@ -11,6 +12,11 @@ import (
 )
 
 const drainWorkers = 8
+
+var (
+	ErrClosed   = errors.New("TimingWheel is closed already")
+	ErrArgument = errors.New("incorrect task argument")
+)
 
 type (
 	// Execute defines the method to execute the task.
@@ -89,43 +95,63 @@ func newTimingWheelWithClock(interval time.Duration, numSlots int, execute Execu
 }
 
 // Drain drains all items and executes them.
-func (tw *TimingWheel) Drain(fn func(key, value interface{})) {
-	tw.drainChannel <- fn
+func (tw *TimingWheel) Drain(fn func(key, value interface{})) error {
+	select {
+	case tw.drainChannel <- fn:
+		return nil
+	case <-tw.stopChannel:
+		return ErrClosed
+	}
 }
 
 // MoveTimer moves the task with the given key to the given delay.
-func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) {
+func (tw *TimingWheel) MoveTimer(key interface{}, delay time.Duration) error {
 	if delay <= 0 || key == nil {
-		return
+		return ErrArgument
 	}
 
-	tw.moveChannel <- baseEntry{
+	select {
+	case tw.moveChannel <- baseEntry{
 		delay: delay,
 		key:   key,
+	}:
+		return nil
+	case <-tw.stopChannel:
+		return ErrClosed
 	}
 }
 
 // RemoveTimer removes the task with the given key.
-func (tw *TimingWheel) RemoveTimer(key interface{}) {
+func (tw *TimingWheel) RemoveTimer(key interface{}) error {
 	if key == nil {
-		return
+		return ErrArgument
 	}
 
-	tw.removeChannel <- key
+	select {
+	case tw.removeChannel <- key:
+		return nil
+	case <-tw.stopChannel:
+		return ErrClosed
+	}
 }
 
 // SetTimer sets the task value with the given key to the delay.
-func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) {
+func (tw *TimingWheel) SetTimer(key, value interface{}, delay time.Duration) error {
 	if delay <= 0 || key == nil {
-		return
+		return ErrArgument
 	}
 
-	tw.setChannel <- timingEntry{
+	select {
+	case tw.setChannel <- timingEntry{
 		baseEntry: baseEntry{
 			delay: delay,
 			key:   key,
 		},
 		value: value,
+	}:
+		return nil
+	case <-tw.stopChannel:
+		return ErrClosed
 	}
 }
 
