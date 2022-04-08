@@ -156,7 +156,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		if err := p.importStatck.push(impPath); err != nil {
 			return nil, err
 		}
-		// ignore alread imported file
+		// ignore already imported file
 		if p.alreadyImported(impPath) {
 			continue
 		}
