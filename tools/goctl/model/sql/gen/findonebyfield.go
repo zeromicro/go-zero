@@ -82,7 +82,8 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	}
 
 	if withCache {
-		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile,
+			template.FindOneByFieldExtraMethod)
 		if err != nil {
 			return nil, err
 		}
