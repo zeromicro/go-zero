@@ -59,6 +59,10 @@ func RPCNew(c *cli.Context) error {
 
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(c *cli.Context) error {
+	if c.NumFlags() == 0 {
+		cli.ShowCommandHelpAndExit(c, "template", 1)
+	}
+
 	protoFile := c.String("o")
 	home := c.String("home")
 	remote := c.String("remote")
