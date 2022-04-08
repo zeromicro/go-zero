@@ -9,7 +9,7 @@ import (
 func TestMarshal(t *testing.T) {
 	v := struct {
 		Name      string `path:"name"`
-		Address   string `json:"address"`
+		Address   string `json:"address,options=[beijing,shanghai]"`
 		Age       int    `json:"age"`
 		Anonymous bool
 	}{
@@ -38,13 +38,24 @@ func TestMarshal_BadOptions(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestMarshal_NotInOptions(t *testing.T) {
+	v := struct {
+		Name string `json:"name,options=[a,b]"`
+	}{
+		Name: "kevin",
+	}
+
+	_, err := Marshal(v)
+	assert.NotNil(t, err)
+}
+
 func TestMarshal_Nested(t *testing.T) {
 	type address struct {
 		Country string `json:"country"`
 		City    string `json:"city"`
 	}
 	v := struct {
-		Name    string  `json:"name"`
+		Name    string  `json:"name,options=[kevin,wan]"`
 		Address address `json:"address"`
 	}{
 		Name: "kevin",
