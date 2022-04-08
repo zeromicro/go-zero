@@ -25,7 +25,7 @@ type (
 		routeMap                 map[string]PlaceHolder
 		typeMap                  map[string]PlaceHolder
 		fileMap                  map[string]PlaceHolder
-		importStatck             ImportStack
+		importStatck             importStack
 		syntax                   *SyntaxExpr
 	}
 
@@ -94,7 +94,7 @@ func (p *Parser) Parse(filename string) (*Api, error) {
 		return nil, err
 	}
 
-	p.importStatck.Push(p.src)
+	p.importStatck.push(p.src)
 	return p.parse(filename, data)
 }
 
@@ -111,7 +111,7 @@ func (p *Parser) ParseContent(content string, filename ...string) (*Api, error) 
 		p.src = abs
 	}
 
-	p.importStatck.Push(p.src)
+	p.importStatck.push(p.src)
 	return p.parse(f, content)
 }
 
@@ -153,7 +153,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 			impPath = filepath.Join(dir, impPath)
 		}
 		// import cycle check
-		if err := p.importStatck.Push(impPath); err != nil {
+		if err := p.importStatck.push(impPath); err != nil {
 			return nil, err
 		}
 		// ignore alread imported file
@@ -179,7 +179,7 @@ func (p *Parser) invokeImportedApi(imports []*ImportExpr) ([]*Api, error) {
 		p.storeVerificationInfo(nestedApi)
 		apiAstList = append(apiAstList, nestedApi)
 		list, err := p.invokeImportedApi(nestedApi.Import)
-		p.importStatck.Pop()
+		p.importStatck.pop()
 		apiAstList = append(apiAstList, list...)
 
 		if err != nil {

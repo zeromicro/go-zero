@@ -2,12 +2,13 @@ package ast
 
 import "errors"
 
+// ErrImportCycleNotAllowed defines an error for circular importing
 var ErrImportCycleNotAllowed = errors.New("import cycle not allowed")
 
-// ImportStack a stack of import paths
-type ImportStack []string
+// importStack a stack of import paths
+type importStack []string
 
-func (s *ImportStack) Push(p string) error {
+func (s *importStack) push(p string) error {
 	for _, x := range *s {
 		if x == p {
 			return ErrImportCycleNotAllowed
@@ -17,17 +18,6 @@ func (s *ImportStack) Push(p string) error {
 	return nil
 }
 
-func (s *ImportStack) Pop() {
+func (s *importStack) pop() {
 	*s = (*s)[0 : len(*s)-1]
-}
-
-func (s *ImportStack) Copy() []string {
-	return append([]string{}, *s...)
-}
-
-func (s *ImportStack) Top() string {
-	if len(*s) == 0 {
-		return ""
-	}
-	return (*s)[len(*s)-1]
 }
