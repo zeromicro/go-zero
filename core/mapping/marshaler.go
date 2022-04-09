@@ -123,6 +123,7 @@ func validateOptions(value reflect.Value, opt *fieldOptions) error {
 	for i := range opt.Options {
 		if opt.Options[i] == val {
 			found = true
+			break
 		}
 	}
 	if !found {
