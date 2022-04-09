@@ -102,7 +102,7 @@ func TestDo_BadRequest(t *testing.T) {
 	_, err = Do(context.Background(), http.MethodGet, "/nodes/:key", val3)
 	assert.NotNil(t, err)
 
-	_, err = Do(nil, http.MethodGet, "/nodes", nil)
+	_, err = Do(context.Background(), "\n", "rtmp://nodes", nil)
 	assert.NotNil(t, err)
 
 	val4 := struct {
