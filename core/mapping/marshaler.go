@@ -29,10 +29,13 @@ func Marshal(val interface{}) (map[string]map[string]interface{}, error) {
 	return ret, nil
 }
 
-func getTag(field reflect.StructField) (tag string, ok bool) {
-	tag, _, ok = strings.Cut(string(field.Tag), tagKVSeparator)
-	tag = strings.TrimSpace(tag)
-	return
+func getTag(field reflect.StructField) (string, bool) {
+	tag := string(field.Tag)
+	if i := strings.Index(tag, tagKVSeparator); i >= 0 {
+		return strings.TrimSpace(tag[:i]), true
+	}
+
+	return strings.TrimSpace(tag), false
 }
 
 func processMember(field reflect.StructField, value reflect.Value,
