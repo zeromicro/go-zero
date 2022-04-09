@@ -97,10 +97,6 @@ func (u *Unmarshaler) unmarshalWithFullName(m Valuer, v interface{}, fullName st
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {
 		field := rte.Field(i)
-		if usingDifferentKeys(u.key, field) {
-			continue
-		}
-
 		if err := u.processField(field, rve.Field(i), m, fullName); err != nil {
 			return err
 		}
