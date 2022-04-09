@@ -11,6 +11,8 @@ const (
 	tagKVSeparator = ":"
 )
 
+// Marshal marshals the given val and returns the map that contains the fields.
+// optional=another is not implemented, and it's hard to implement and not common used.
 func Marshal(val interface{}) (map[string]map[string]interface{}, error) {
 	ret := make(map[string]map[string]interface{})
 	tp := reflect.TypeOf(val)
@@ -36,13 +38,13 @@ func getTag(field reflect.StructField) (tag string, ok bool) {
 func processMember(field reflect.StructField, value reflect.Value,
 	collector map[string]map[string]interface{}) error {
 	var key string
+	var opt *fieldOptions
 	var err error
 	tag, ok := getTag(field)
 	if !ok {
 		tag = emptyTag
 		key = field.Name
 	} else {
-		var opt *fieldOptions
 		key, opt, err = parseKeyAndOptions(tag, field)
 		if err != nil {
 			return err
@@ -53,12 +55,17 @@ func processMember(field reflect.StructField, value reflect.Value,
 		}
 	}
 
+	val := value.Interface()
+	if opt != nil && opt.FromString {
+		val = fmt.Sprint(val)
+	}
+
 	m, ok := collector[tag]
 	if ok {
-		m[key] = value.Interface()
+		m[key] = val
 	} else {
 		m = map[string]interface{}{
-			key: value.Interface(),
+			key: val,
 		}
 	}
 	collector[tag] = m
@@ -79,6 +86,12 @@ func validate(field reflect.StructField, value reflect.Value, opt *fieldOptions)
 
 	if len(opt.Options) > 0 {
 		if err := validateOptions(value, opt); err != nil {
+			return err
+		}
+	}
+
+	if opt.Range != nil {
+		if err := validateRange(value, opt); err != nil {
 			return err
 		}
 	}
@@ -111,6 +124,48 @@ func validateOptions(value reflect.Value, opt *fieldOptions) error {
 	}
 	if !found {
 		return fmt.Errorf("field %q not in options", val)
+	}
+
+	return nil
+}
+
+func validateRange(value reflect.Value, opt *fieldOptions) error {
+	var val float64
+	switch v := value.Interface().(type) {
+	case int:
+		val = float64(v)
+	case int8:
+		val = float64(v)
+	case int16:
+		val = float64(v)
+	case int32:
+		val = float64(v)
+	case int64:
+		val = float64(v)
+	case uint:
+		val = float64(v)
+	case uint8:
+		val = float64(v)
+	case uint16:
+		val = float64(v)
+	case uint32:
+		val = float64(v)
+	case uint64:
+		val = float64(v)
+	case float32:
+		val = float64(v)
+	case float64:
+		val = v
+	default:
+		return fmt.Errorf("unknown support type for range %q", value.Type().String())
+	}
+
+	// validates [left, right], [left, right), (left, right], (left, right)
+	if val < opt.Range.left ||
+		(!opt.Range.leftInclude && val == opt.Range.left) ||
+		val > opt.Range.right ||
+		(!opt.Range.rightInclude && val == opt.Range.right) {
+		return fmt.Errorf("%v out of range", value.Interface())
 	}
 
 	return nil

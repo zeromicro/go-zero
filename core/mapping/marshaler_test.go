@@ -27,6 +27,28 @@ func TestMarshal(t *testing.T) {
 	assert.True(t, m[emptyTag]["Anonymous"].(bool))
 }
 
+func TestMarshal_OptionalPtr(t *testing.T) {
+	var val = 1
+	v := struct {
+		Age *int `json:"age"`
+	}{
+		Age: &val,
+	}
+
+	m, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, *m["json"]["age"].(*int))
+}
+
+func TestMarshal_OptionalPtrNil(t *testing.T) {
+	v := struct {
+		Age *int `json:"age"`
+	}{}
+
+	_, err := Marshal(v)
+	assert.NotNil(t, err)
+}
+
 func TestMarshal_BadOptions(t *testing.T) {
 	v := struct {
 		Name string `json:"name,options"`
@@ -93,4 +115,96 @@ func TestMarshal_SliceNil(t *testing.T) {
 
 	_, err := Marshal(v)
 	assert.NotNil(t, err)
+}
+
+func TestMarshal_Range(t *testing.T) {
+	v := struct {
+		Int     int     `json:"int,range=[1:3]"`
+		Int8    int8    `json:"int8,range=[1:3)"`
+		Int16   int16   `json:"int16,range=(1:3]"`
+		Int32   int32   `json:"int32,range=(1:3)"`
+		Int64   int64   `json:"int64,range=(1:3)"`
+		Uint    uint    `json:"uint,range=[1:3]"`
+		Uint8   uint8   `json:"uint8,range=[1:3)"`
+		Uint16  uint16  `json:"uint16,range=(1:3]"`
+		Uint32  uint32  `json:"uint32,range=(1:3)"`
+		Uint64  uint64  `json:"uint64,range=(1:3)"`
+		Float32 float32 `json:"float32,range=(1:3)"`
+		Float64 float64 `json:"float64,range=(1:3)"`
+	}{
+		Int:     1,
+		Int8:    1,
+		Int16:   2,
+		Int32:   2,
+		Int64:   2,
+		Uint:    1,
+		Uint8:   1,
+		Uint16:  2,
+		Uint32:  2,
+		Uint64:  2,
+		Float32: 2,
+		Float64: 2,
+	}
+
+	m, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, m["json"]["int"].(int))
+	assert.Equal(t, int8(1), m["json"]["int8"].(int8))
+	assert.Equal(t, int16(2), m["json"]["int16"].(int16))
+	assert.Equal(t, int32(2), m["json"]["int32"].(int32))
+	assert.Equal(t, int64(2), m["json"]["int64"].(int64))
+	assert.Equal(t, uint(1), m["json"]["uint"].(uint))
+	assert.Equal(t, uint8(1), m["json"]["uint8"].(uint8))
+	assert.Equal(t, uint16(2), m["json"]["uint16"].(uint16))
+	assert.Equal(t, uint32(2), m["json"]["uint32"].(uint32))
+	assert.Equal(t, uint64(2), m["json"]["uint64"].(uint64))
+	assert.Equal(t, float32(2), m["json"]["float32"].(float32))
+	assert.Equal(t, float64(2), m["json"]["float64"].(float64))
+}
+
+func TestMarshal_RangeOut(t *testing.T) {
+	tests := []interface{}{
+		struct {
+			Int int `json:"int,range=[1:3]"`
+		}{
+			Int: 4,
+		},
+		struct {
+			Int int `json:"int,range=(1:3]"`
+		}{
+			Int: 1,
+		},
+		struct {
+			Int int `json:"int,range=[1:3)"`
+		}{
+			Int: 3,
+		},
+		struct {
+			Int int `json:"int,range=(1:3)"`
+		}{
+			Int: 3,
+		},
+		struct {
+			Bool bool `json:"bool,range=(1:3)"`
+		}{
+			Bool: true,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := Marshal(test)
+		assert.NotNil(t, err)
+	}
+}
+
+func TestMarshal_FromString(t *testing.T) {
+	v := struct {
+		Age int `json:"age,string"`
+	}{
+		Age: 10,
+	}
+
+	m, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, "10", m["json"]["age"].(string))
 }
