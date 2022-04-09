@@ -59,6 +59,7 @@ func (s String) Title() string {
 
 // ToCamel converts the input text into camel case
 func (s String) ToCamel() string {
+	s.source = strings.ReplaceAll(s.source, "-", "_")
 	list := s.splitBy(func(r rune) bool {
 		return r == '_'
 	}, true)
