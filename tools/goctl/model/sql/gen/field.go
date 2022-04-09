@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
@@ -38,7 +39,7 @@ func genField(table Table, field *parser.Field) (string, error) {
 	output, err := util.With("types").
 		Parse(text).
 		Execute(map[string]interface{}{
-			"name":       field.Name.ToCamel(),
+			"name":       stringx.From(field.Name.ReplaceAll("-", "_")).ToCamel(),
 			"type":       field.DataType,
 			"tag":        tag,
 			"hasComment": field.Comment != "",

@@ -30,7 +30,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	expressionValues := make([]string, 0)
 	var count int
 	for _, field := range table.Fields {
-		camel := field.Name.ToCamel()
+		camel := stringx.From(field.Name.ReplaceAll("-", "_")).ToCamel()
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
