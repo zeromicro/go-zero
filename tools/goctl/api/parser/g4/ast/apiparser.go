@@ -253,7 +253,7 @@ func (p *Parser) duplicateRouteCheck(nestedApi *Api, mainHandlerMap, mainRouteMa
 				prefix = p.Text()
 			}
 			g := each.AtServer.Kv.Get(groupKey)
-			if p != nil {
+			if g != nil {
 				group = g.Text()
 			}
 		}
