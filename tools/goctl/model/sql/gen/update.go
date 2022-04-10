@@ -14,7 +14,7 @@ import (
 func genUpdate(table Table, withCache, postgreSql bool) (string, string, error) {
 	expressionValues := make([]string, 0)
 	for _, field := range table.Fields {
-		camel := stringx.From(field.Name.ReplaceAll("-", "_")).ToCamel()
+		camel := util.SafeString(field.Name.ToCamel())
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
