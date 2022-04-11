@@ -1,4 +1,4 @@
-package mgo
+package mongox
 
 import (
 	"log"
@@ -90,7 +90,7 @@ func (mm *Model) Remove(selector interface{}) error {
 	})
 }
 
-// RemoveAll removes all with given selector and returns a mgo.ChangeInfo.
+// RemoveAll removes all with given selector and returns a mongox.ChangeInfo.
 func (mm *Model) RemoveAll(selector interface{}) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c Collection) (*mgo.ChangeInfo, error) {
 		return c.RemoveAll(selector)
@@ -123,7 +123,7 @@ func (mm *Model) UpdateId(id, update interface{}) error {
 	})
 }
 
-// Upsert upserts a record with given selector, and returns a mgo.ChangeInfo.
+// Upsert upserts a record with given selector, and returns a mongox.ChangeInfo.
 func (mm *Model) Upsert(selector, update interface{}) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c Collection) (*mgo.ChangeInfo, error) {
 		return c.Upsert(selector, update)

@@ -2,13 +2,13 @@
 // Source: iter.go
 
 // Package mongo is a generated GoMock package.
-package mgo
+package mongox
 
 import (
-	reflect "reflect"
+	"reflect"
 
-	bson "github.com/globalsign/mgo/bson"
-	gomock "github.com/golang/mock/gomock"
+	"github.com/golang/mock/gomock"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // MockIter is a mock of Iter interface

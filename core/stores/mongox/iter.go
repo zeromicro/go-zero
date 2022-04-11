@@ -1,10 +1,10 @@
 //go:generate mockgen -package mongo -destination iter_mock.go -source iter.go Iter
 
-package mgo
+package mongox
 
 import (
-	"github.com/globalsign/mgo/bson"
 	"github.com/zeromicro/go-zero/core/breaker"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type (

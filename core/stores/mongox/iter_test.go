@@ -1,4 +1,4 @@
-package mgo
+package mongox
 
 import (
 	"errors"
@@ -15,7 +15,7 @@ import (
 func TestClosableIter_Close(t *testing.T) {
 	errs := []error{
 		nil,
-		mgo.ErrNotFound,
+		ErrNotFound,
 	}
 
 	for _, err := range errs {

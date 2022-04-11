@@ -4,7 +4,7 @@ package internal
 
 import "github.com/globalsign/mgo"
 
-// MgoCollection interface represents a mgo collection.
+// MgoCollection interface represents a mongox collection.
 type MgoCollection interface {
 	Find(query interface{}) *mgo.Query
 	FindId(id interface{}) *mgo.Query
