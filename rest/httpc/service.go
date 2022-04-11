@@ -1,6 +1,7 @@
 package httpc
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -12,6 +13,8 @@ type (
 
 	// Service represents a remote HTTP service.
 	Service interface {
+		// Do sends an HTTP request with the given arguments and returns an HTTP response.
+		Do(ctx context.Context, method, url string, data interface{}) (*http.Response, error)
 		// DoRequest sends a HTTP request to the service.
 		DoRequest(r *http.Request) (*http.Response, error)
 	}
@@ -37,6 +40,16 @@ func NewServiceWithClient(name string, cli *http.Client, opts ...Option) Service
 		cli:  cli,
 		opts: opts,
 	}
+}
+
+// Do sends an HTTP request with the given arguments and returns an HTTP response.
+func (s namedService) Do(ctx context.Context, method, url string, data interface{}) (*http.Response, error) {
+	req, err := buildRequest(ctx, method, url, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.DoRequest(req)
 }
 
 // DoRequest sends an HTTP request to the service.
