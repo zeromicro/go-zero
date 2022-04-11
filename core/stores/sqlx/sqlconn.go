@@ -3,6 +3,8 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"unsafe"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -69,6 +71,11 @@ type (
 
 	connProvider func() (*sql.DB, error)
 
+	DialProvider struct {
+		Logic  interface{}
+		GetDSN func(driverName, datasource string) (string, error)
+	}
+
 	sessionConn interface {
 		Exec(query string, args ...interface{}) (sql.Result, error)
 		ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
@@ -90,9 +97,16 @@ type (
 )
 
 // NewSqlConn returns a SqlConn with given driver name and datasource.
-func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
+func NewSqlConn(driverName, datasource string, dialProvider DialProvider, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
 		connProv: func() (*sql.DB, error) {
+			if unsafe.Sizeof(dialProvider.Logic) != 0 {
+				dsn, err := dialProvider.GetDSN(driverName, datasource)
+				if err != nil {
+					return nil, err
+				}
+				return getSqlConn(driverName, dsn)
+			}
 			return getSqlConn(driverName, datasource)
 		},
 		onError: func(err error) {
@@ -102,6 +116,9 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 		brk:     breaker.NewBreaker(),
 	}
 	for _, opt := range opts {
+		if fmt.Sprintf("%T", opt) == "DialProvider" {
+			continue
+		}
 		opt(conn)
 	}
 
