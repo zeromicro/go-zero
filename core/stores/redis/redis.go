@@ -1293,7 +1293,10 @@ func (s *Redis) PingCtx(ctx context.Context) (val bool) {
 }
 
 // Pipelined lets fn execute pipelined commands.
-func (s *Redis) Pipelined(fn func(Pipeliner) error) error {
+func (s *Redis) Pipelined(fn func(Pipeliner) error, ctx ...context.Context) error {
+	if len(ctx) > 0 {
+		return s.PipelinedCtx(ctx[0], fn)
+	}
 	return s.PipelinedCtx(context.Background(), fn)
 }
 
