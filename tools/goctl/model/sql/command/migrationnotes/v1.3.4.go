@@ -9,7 +9,6 @@ import (
 )
 
 func migrateBefore1_3_4(ctx *cli.Context) error {
-	// TODO: Hard-coded arguments should be eliminated
 	dir := ctx.String("dir")
 	style := ctx.String("style")
 	ok, err := needShow1_3_4(dir, style)
