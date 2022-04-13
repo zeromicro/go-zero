@@ -1,4 +1,4 @@
-package mongox
+package mon
 
 import "strings"
 

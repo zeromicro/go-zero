@@ -1,4 +1,4 @@
-package mongox
+package mon
 
 import (
 	"context"
@@ -35,13 +35,14 @@ type (
 		Drop(ctx context.Context) error
 		EstimatedDocumentCount(ctx context.Context, opts ...*mopt.EstimatedDocumentCountOptions) (int64, error)
 		Find(ctx context.Context, filter interface{}, opts ...*mopt.FindOptions) (*mongo.Cursor, error)
-		FindOne(ctx context.Context, filter interface{}, opts ...*mopt.FindOneOptions) *mongo.SingleResult
-		FindOneAndDelete(ctx context.Context, filter interface{},
-			opts ...*mopt.FindOneAndDeleteOptions) *mongo.SingleResult
+		FindOne(ctx context.Context, filter interface{}, opts ...*mopt.FindOneOptions) (
+			*mongo.SingleResult, error)
+		FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*mopt.FindOneAndDeleteOptions) (
+			*mongo.SingleResult, error)
 		FindOneAndReplace(ctx context.Context, filter interface{}, replacement interface{},
-			opts ...*mopt.FindOneAndReplaceOptions) *mongo.SingleResult
+			opts ...*mopt.FindOneAndReplaceOptions) (*mongo.SingleResult, error)
 		FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{},
-			opts ...*mopt.FindOneAndUpdateOptions) *mongo.SingleResult
+			opts ...*mopt.FindOneAndUpdateOptions) (*mongo.SingleResult, error)
 		Indexes() mongo.IndexView
 		InsertMany(ctx context.Context, documents []interface{}, opts ...*mopt.InsertManyOptions) (
 			*mongo.InsertManyResult, error)
@@ -192,8 +193,7 @@ func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
 }
 
 func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
-	opts ...*mopt.FindOneOptions) (res *mongo.SingleResult) {
-	var err error
+	opts ...*mopt.FindOneOptions) (res *mongo.SingleResult, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -208,8 +208,7 @@ func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
 }
 
 func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter interface{},
-	opts ...*mopt.FindOneAndDeleteOptions) (res *mongo.SingleResult) {
-	var err error
+	opts ...*mopt.FindOneAndDeleteOptions) (res *mongo.SingleResult, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -224,8 +223,8 @@ func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter inter
 }
 
 func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter interface{},
-	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) (res *mongo.SingleResult) {
-	var err error
+	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) (
+	res *mongo.SingleResult, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -239,9 +238,8 @@ func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter inte
 	return
 }
 
-func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter interface{},
-	update interface{}, opts ...*mopt.FindOneAndUpdateOptions) (res *mongo.SingleResult) {
-	var err error
+func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{},
+	opts ...*mopt.FindOneAndUpdateOptions) (res *mongo.SingleResult, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {

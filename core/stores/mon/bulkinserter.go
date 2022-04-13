@@ -1,11 +1,12 @@
-package mongox
+package mon
 
 import (
+	"context"
 	"time"
 
-	"github.com/globalsign/mgo"
 	"github.com/zeromicro/go-zero/core/executors"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -15,7 +16,7 @@ const (
 
 type (
 	// ResultHandler is a handler that used to handle results.
-	ResultHandler func(*mgo.BulkResult, error)
+	ResultHandler func(*mongo.InsertManyResult, error)
 
 	// A BulkInserter is used to insert bulk of mongo records.
 	BulkInserter struct {
@@ -25,11 +26,9 @@ type (
 )
 
 // NewBulkInserter returns a BulkInserter.
-func NewBulkInserter(session *mgo.Session, dbName string, collectionNamer func() string) *BulkInserter {
+func NewBulkInserter(coll *mongo.Collection) *BulkInserter {
 	inserter := &dbInserter{
-		session:         session,
-		dbName:          dbName,
-		collectionNamer: collectionNamer,
+		collection: coll,
 	}
 
 	return &BulkInserter{
@@ -56,11 +55,9 @@ func (bi *BulkInserter) SetResultHandler(handler ResultHandler) {
 }
 
 type dbInserter struct {
-	session         *mgo.Session
-	dbName          string
-	collectionNamer func() string
-	documents       []interface{}
-	resultHandler   ResultHandler
+	collection    *mongo.Collection
+	documents     []interface{}
+	resultHandler ResultHandler
 }
 
 func (in *dbInserter) AddTask(doc interface{}) bool {
@@ -74,10 +71,7 @@ func (in *dbInserter) Execute(objs interface{}) {
 		return
 	}
 
-	bulk := in.session.DB(in.dbName).C(in.collectionNamer()).Bulk()
-	bulk.Insert(docs...)
-	bulk.Unordered()
-	result, err := bulk.Run()
+	result, err := in.collection.InsertMany(context.Background(), docs)
 	if in.resultHandler != nil {
 		in.resultHandler(result, err)
 	} else if err != nil {
