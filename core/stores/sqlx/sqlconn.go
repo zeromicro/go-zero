@@ -3,8 +3,6 @@ package sqlx
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"unsafe"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -67,14 +65,14 @@ type (
 		beginTx  beginnable
 		brk      breaker.Breaker
 		accept   func(error) bool
+		GetDSN   dsnProvider
 	}
 
-	connProvider func() (*sql.DB, error)
+	// use alias to export commonSqlConn
+	CommonSqlConn = commonSqlConn
 
-	DialProvider struct {
-		Logic  interface{}
-		GetDSN func(driverName, datasource string) (string, error)
-	}
+	connProvider func(*commonSqlConn) (*sql.DB, error)
+	dsnProvider  func(driverName, datasource string) (string, error)
 
 	sessionConn interface {
 		Exec(query string, args ...interface{}) (sql.Result, error)
@@ -97,15 +95,15 @@ type (
 )
 
 // NewSqlConn returns a SqlConn with given driver name and datasource.
-func NewSqlConn(driverName, datasource string, dialProvider DialProvider, opts ...SqlOption) SqlConn {
+func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
-			if unsafe.Sizeof(dialProvider.Logic) != 0 {
-				dsn, err := dialProvider.GetDSN(driverName, datasource)
+		connProv: func(sqlConn *commonSqlConn) (*sql.DB, error) {
+			if sqlConn.GetDSN != nil {
+				updatedDS, err := sqlConn.GetDSN(driverName, datasource)
 				if err != nil {
 					return nil, err
 				}
-				return getSqlConn(driverName, dsn)
+				return getSqlConn(driverName, updatedDS)
 			}
 			return getSqlConn(driverName, datasource)
 		},
@@ -116,9 +114,6 @@ func NewSqlConn(driverName, datasource string, dialProvider DialProvider, opts .
 		brk:     breaker.NewBreaker(),
 	}
 	for _, opt := range opts {
-		if fmt.Sprintf("%T", opt) == "DialProvider" {
-			continue
-		}
 		opt(conn)
 	}
 
@@ -129,7 +124,7 @@ func NewSqlConn(driverName, datasource string, dialProvider DialProvider, opts .
 // Use it with caution, it's provided for other ORM to interact with.
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
+		connProv: func(sqlConn *commonSqlConn) (*sql.DB, error) {
 			return db, nil
 		},
 		onError: func(err error) {
@@ -153,7 +148,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interfac
 	result sql.Result, err error) {
 	err = db.brk.DoWithAcceptable(func() error {
 		var conn *sql.DB
-		conn, err = db.connProv()
+		conn, err = db.connProv(db)
 		if err != nil {
 			db.onError(err)
 			return err
@@ -173,7 +168,7 @@ func (db *commonSqlConn) Prepare(query string) (stmt StmtSession, err error) {
 func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt StmtSession, err error) {
 	err = db.brk.DoWithAcceptable(func() error {
 		var conn *sql.DB
-		conn, err = db.connProv()
+		conn, err = db.connProv(db)
 		if err != nil {
 			db.onError(err)
 			return err
@@ -239,7 +234,7 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{},
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
-	return db.connProv()
+	return db.connProv(db)
 }
 
 func (db *commonSqlConn) Transact(fn func(Session) error) error {
@@ -267,7 +262,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	q string, args ...interface{}) error {
 	var qerr error
 	return db.brk.DoWithAcceptable(func() error {
-		conn, err := db.connProv()
+		conn, err := db.connProv(db)
 		if err != nil {
 			db.onError(err)
 			return err

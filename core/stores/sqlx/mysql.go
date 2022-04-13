@@ -8,9 +8,9 @@ const (
 )
 
 // NewMysql returns a mysql connection.
-func NewMysql(datasource string, dialProvider DialProvider, opts ...SqlOption) SqlConn {
+func NewMysql(datasource string, opts ...SqlOption) SqlConn {
 	opts = append(opts, withMysqlAcceptable())
-	return NewSqlConn(mysqlDriverName, datasource, dialProvider, opts...)
+	return NewSqlConn(mysqlDriverName, datasource, opts...)
 }
 
 func mysqlAcceptable(err error) bool {
