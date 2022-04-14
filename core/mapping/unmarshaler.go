@@ -271,6 +271,10 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructFi
 			return err
 		}
 
+		if iValue < 0 {
+			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
+		}
+
 		value.SetUint(uint64(iValue))
 	case reflect.Float32, reflect.Float64:
 		fValue, err := v.Float64()
@@ -727,10 +731,10 @@ func fillWithSameType(field reflect.StructField, value reflect.Value, mapValue i
 	if field.Type.Kind() == reflect.Ptr {
 		baseType := Deref(field.Type)
 		target := reflect.New(baseType).Elem()
-		target.Set(reflect.ValueOf(mapValue))
+		setSameKindValue(baseType, target, mapValue)
 		value.Set(target.Addr())
 	} else {
-		value.Set(reflect.ValueOf(mapValue))
+		setSameKindValue(field.Type, value, mapValue)
 	}
 
 	return nil
@@ -804,4 +808,12 @@ func readKeys(key string) []string {
 	cacheKeysLock.Unlock()
 
 	return keys
+}
+
+func setSameKindValue(targetType reflect.Type, target reflect.Value, value interface{}) {
+	if reflect.ValueOf(value).Type().AssignableTo(targetType) {
+		target.Set(reflect.ValueOf(value))
+	} else {
+		target.Set(reflect.ValueOf(value).Convert(targetType))
+	}
 }
