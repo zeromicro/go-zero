@@ -73,6 +73,40 @@ func TestDo(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
 
+func TestDo_Ptr(t *testing.T) {
+	type Data struct {
+		Key    string `path:"key"`
+		Value  int    `form:"value"`
+		Header string `header:"X-Header"`
+		Body   string `json:"body"`
+	}
+
+	rt := router.NewRouter()
+	err := rt.Handle(http.MethodPost, "/nodes/:key",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var req Data
+			assert.Nil(t, httpx.Parse(r, &req))
+			assert.Equal(t, "foo", req.Key)
+			assert.Equal(t, 10, req.Value)
+			assert.Equal(t, "my-header", req.Header)
+			assert.Equal(t, "my body", req.Body)
+		}))
+	assert.Nil(t, err)
+
+	svr := httptest.NewServer(http.HandlerFunc(rt.ServeHTTP))
+	defer svr.Close()
+
+	data := &Data{
+		Key:    "foo",
+		Value:  10,
+		Header: "my-header",
+		Body:   "my body",
+	}
+	resp, err := Do(context.Background(), http.MethodPost, svr.URL+"/nodes/:key", data)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
 func TestDo_BadRequest(t *testing.T) {
 	_, err := Do(context.Background(), http.MethodPost, ":/nodes/:key", nil)
 	assert.NotNil(t, err)

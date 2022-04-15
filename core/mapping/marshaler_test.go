@@ -27,6 +27,27 @@ func TestMarshal(t *testing.T) {
 	assert.True(t, m[emptyTag]["Anonymous"].(bool))
 }
 
+func TestMarshal_Ptr(t *testing.T) {
+	v := &struct {
+		Name      string `path:"name"`
+		Address   string `json:"address,options=[beijing,shanghai]"`
+		Age       int    `json:"age"`
+		Anonymous bool
+	}{
+		Name:      "kevin",
+		Address:   "shanghai",
+		Age:       20,
+		Anonymous: true,
+	}
+
+	m, err := Marshal(v)
+	assert.Nil(t, err)
+	assert.Equal(t, "kevin", m["path"]["name"])
+	assert.Equal(t, "shanghai", m["json"]["address"])
+	assert.Equal(t, 20, m["json"]["age"].(int))
+	assert.True(t, m[emptyTag]["Anonymous"].(bool))
+}
+
 func TestMarshal_OptionalPtr(t *testing.T) {
 	var val = 1
 	v := struct {
@@ -63,6 +84,26 @@ func TestMarshal_BadOptions(t *testing.T) {
 func TestMarshal_NotInOptions(t *testing.T) {
 	v := struct {
 		Name string `json:"name,options=[a,b]"`
+	}{
+		Name: "kevin",
+	}
+
+	_, err := Marshal(v)
+	assert.NotNil(t, err)
+}
+
+func TestMarshal_NotInOptionsOptional(t *testing.T) {
+	v := struct {
+		Name string `json:"name,options=[a,b],optional"`
+	}{}
+
+	_, err := Marshal(v)
+	assert.Nil(t, err)
+}
+
+func TestMarshal_NotInOptionsOptionalWrongValue(t *testing.T) {
+	v := struct {
+		Name string `json:"name,options=[a,b],optional"`
 	}{
 		Name: "kevin",
 	}

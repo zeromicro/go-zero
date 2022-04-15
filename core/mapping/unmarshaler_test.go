@@ -987,6 +987,43 @@ func TestUnmarshalWithStringOptionsCorrect(t *testing.T) {
 	ast.Equal("2", in.Correct)
 }
 
+func TestUnmarshalOptionsOptional(t *testing.T) {
+	type inner struct {
+		Value         string `key:"value,options=first|second,optional"`
+		OptionalValue string `key:"optional_value,options=first|second,optional"`
+		Foo           string `key:"foo,options=[bar,baz]"`
+		Correct       string `key:"correct,options=1|2"`
+	}
+	m := map[string]interface{}{
+		"value":   "first",
+		"foo":     "bar",
+		"correct": "2",
+	}
+
+	var in inner
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &in))
+	ast.Equal("first", in.Value)
+	ast.Equal("", in.OptionalValue)
+	ast.Equal("bar", in.Foo)
+	ast.Equal("2", in.Correct)
+}
+
+func TestUnmarshalOptionsOptionalWrongValue(t *testing.T) {
+	type inner struct {
+		Value         string `key:"value,options=first|second,optional"`
+		OptionalValue string `key:"optional_value,options=first|second,optional"`
+		WrongValue    string `key:"wrong_value,options=first|second,optional"`
+	}
+	m := map[string]interface{}{
+		"value":       "first",
+		"wrong_value": "third",
+	}
+
+	var in inner
+	assert.NotNil(t, UnmarshalKey(m, &in))
+}
+
 func TestUnmarshalStringOptionsWithStringOptionsNotString(t *testing.T) {
 	type inner struct {
 		Value   string `key:"value,options=first|second"`
