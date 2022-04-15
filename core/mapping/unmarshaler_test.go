@@ -991,15 +991,13 @@ func TestUnmarshalOptionsOptional(t *testing.T) {
 	type inner struct {
 		Value         string `key:"value,options=first|second,optional"`
 		OptionalValue string `key:"optional_value,options=first|second,optional"`
-		WrongValue    string `key:"wrong_value,options=first|second,optional"`
 		Foo           string `key:"foo,options=[bar,baz]"`
 		Correct       string `key:"correct,options=1|2"`
 	}
 	m := map[string]interface{}{
-		"value":       "first",
-		"wrong_value": "third",
-		"foo":         "bar",
-		"correct":     "2",
+		"value":   "first",
+		"foo":     "bar",
+		"correct": "2",
 	}
 
 	var in inner
