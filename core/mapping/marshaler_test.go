@@ -92,6 +92,26 @@ func TestMarshal_NotInOptions(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestMarshal_NotInOptionsOptional(t *testing.T) {
+	v := struct {
+		Name string `json:"name,options=[a,b],optional"`
+	}{}
+
+	_, err := Marshal(v)
+	assert.Nil(t, err)
+}
+
+func TestMarshal_NotInOptionsOptionalWrongValue(t *testing.T) {
+	v := struct {
+		Name string `json:"name,options=[a,b],optional"`
+	}{
+		Name: "kevin",
+	}
+
+	_, err := Marshal(v)
+	assert.NotNil(t, err)
+}
+
 func TestMarshal_Nested(t *testing.T) {
 	type address struct {
 		Country string `json:"country"`

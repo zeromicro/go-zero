@@ -93,6 +93,10 @@ func validate(field reflect.StructField, value reflect.Value, opt *fieldOptions)
 		return nil
 	}
 
+	if opt.Optional && value.IsZero() {
+		return nil
+	}
+
 	if len(opt.Options) > 0 {
 		if err := validateOptions(value, opt); err != nil {
 			return err
