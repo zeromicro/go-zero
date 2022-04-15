@@ -12,3 +12,7 @@ func TestSetSlowThreshold(t *testing.T) {
 	SetSlowThreshold(time.Second)
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
+
+func TestDefaultOptions(t *testing.T) {
+	assert.Equal(t, defaultTimeout, defaultOptions().timeout)
+}
