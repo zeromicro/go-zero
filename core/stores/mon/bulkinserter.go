@@ -26,13 +26,18 @@ type (
 )
 
 // NewBulkInserter returns a BulkInserter.
-func NewBulkInserter(coll *mongo.Collection) *BulkInserter {
+func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
 	inserter := &dbInserter{
 		collection: coll,
 	}
 
+	duration := flushInterval
+	if len(interval) > 0 {
+		duration = interval[0]
+	}
+
 	return &BulkInserter{
-		executor: executors.NewPeriodicalExecutor(flushInterval, inserter),
+		executor: executors.NewPeriodicalExecutor(duration, inserter),
 		inserter: inserter,
 	}
 }

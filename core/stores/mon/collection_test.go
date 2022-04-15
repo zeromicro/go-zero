@@ -155,58 +155,32 @@ func TestCollection_Distinct(t *testing.T) {
 			Collection: mt.Coll,
 			brk:        breaker.NewBreaker(),
 		}
-		ns := mt.Coll.Database().Name() + "." + mt.Coll.Name()
-		res := mtest.CreateCursorResponse(1, ns, mtest.FirstBatch, bson.D{{"_id", 1}},
-			bson.D{{"_id", 2}})
-		mt.AddMockResponses(res)
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"values", []int{1}}})
 		resp, err := c.Distinct(context.Background(), "foo", bson.D{})
 		assert.Nil(t, err)
-		assert.NotNil(t, resp)
+		assert.Equal(t, 1, len(resp))
 		c.brk = new(dropBreaker)
 		_, err = c.Distinct(context.Background(), "foo", bson.D{{"foo", 1}})
 		assert.Equal(t, errDummy, err)
 	})
 }
 
-func TestCollection_DistinctMore(t *testing.T) {
+func TestCollection_EstimatedDocumentCount(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
 
-	mt.Run("distinct", func(mt *mtest.T) {
-		all := []interface{}{int32(1), int32(2), int32(3), int32(4), int32(5)}
-		last3 := []interface{}{int32(3), int32(4), int32(5)}
-		testCases := []struct {
-			name     string
-			filter   bson.D
-			opts     *mopt.DistinctOptions
-			expected []interface{}
-		}{
-			{"no options", bson.D{}, nil, all},
-			{"filter", bson.D{{"x", bson.D{{"$gt", 2}}}}, nil, last3},
-			{"options", bson.D{}, mopt.Distinct().SetMaxTime(5000000000), all},
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
 		}
-		for _, tc := range testCases {
-			mt.Run(tc.name, func(mt *mtest.T) {
-				var docs []bson.D
-				for i := 1; i <= 5; i++ {
-					docs = append(docs, bson.D{{"x", int32(i)}})
-				}
-
-				// _, err := mt.Coll.InsertMany(context.Background(), docs)
-				// assert.Nil(mt, err, "InsertMany error for initial data: %v", err)
-
-				// mt.AddMockResponses(mtest.CreateCursorResponse(
-				// 	1,
-				// 	mt.Coll.Database().Name()+"."+mt.Coll.Name(),
-				// 	mtest.FirstBatch,
-				// 	docs...,
-				// ))
-				mt.AddMockResponses(docs...)
-				res, err := mt.Coll.Distinct(context.Background(), "x", tc.filter, tc.opts)
-				assert.Nil(mt, err, "Distinct error: %v", err)
-				assert.Equal(mt, tc.expected, res, "expected result %v, got %v", tc.expected, res)
-			})
-		}
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"n", 1}})
+		res, err := c.EstimatedDocumentCount(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), res)
+		c.brk = new(dropBreaker)
+		_, err = c.EstimatedDocumentCount(context.Background())
+		assert.Equal(t, errDummy, err)
 	})
 }
 
@@ -291,6 +265,28 @@ func TestCollectionFindOne(t *testing.T) {
 	})
 }
 
+func TestCollection_FindOneAndDelete(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
+		}
+		filter := bson.D{{"x", 1}}
+		ns := mt.Coll.Database().Name() + "." + mt.Coll.Name()
+		aggRes := mtest.CreateCursorResponse(1, ns, mtest.FirstBatch)
+		mt.AddMockResponses(aggRes)
+		res, err := c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
+		assert.Equal(t, mongo.ErrNoDocuments, err)
+		assert.NotNil(t, res)
+		c.brk = new(dropBreaker)
+		_, err = c.FindOneAndDelete(context.Background(), bson.D{{"foo", "bar"}})
+		assert.Equal(t, errDummy, err)
+	})
+}
+
 func TestCollection_FindOneAndReplace(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
@@ -300,35 +296,41 @@ func TestCollection_FindOneAndReplace(t *testing.T) {
 			Collection: mt.Coll,
 			brk:        breaker.NewBreaker(),
 		}
-		find := mtest.CreateCursorResponse(
-			1,
-			"DBName.CollectionName",
-			mtest.FirstBatch,
-			bson.D{
-				{"_id", primitive.NewObjectID()},
-				{"name", "John"},
-			})
-		getMore := mtest.CreateCursorResponse(
-			1,
-			"DBName.CollectionName",
-			mtest.NextBatch,
-			bson.D{
-				{"_id", primitive.NewObjectID()},
-				{"name", "Mary"},
-			})
-		killCursors := mtest.CreateCursorResponse(
-			0,
-			"DBName.CollectionName",
-			mtest.NextBatch)
-		mt.AddMockResponses(find, getMore, killCursors)
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"value", bson.D{
+			{"_id", primitive.NewObjectID()},
+		}}})
 		filter := bson.D{{"x", 1}}
-		replacement := bson.D{{"name", "foo"}}
+		replacement := bson.D{{"x", 2}}
 		opts := mopt.FindOneAndReplace().SetUpsert(true)
 		resp, err := c.FindOneAndReplace(context.Background(), filter, replacement, opts)
 		assert.Nil(t, err)
 		assert.NotNil(t, resp)
 		c.brk = new(dropBreaker)
 		_, err = c.FindOneAndReplace(context.Background(), filter, replacement, opts)
+		assert.Equal(t, errDummy, err)
+	})
+}
+
+func TestCollection_FindOneAndUpdate(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
+		}
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"value", bson.D{
+			{"_id", primitive.NewObjectID()},
+		}}})
+		filter := bson.D{{"x", 1}}
+		update := bson.D{{"$x", 2}}
+		opts := mopt.FindOneAndUpdate().SetUpsert(true)
+		resp, err := c.FindOneAndUpdate(context.Background(), filter, update, opts)
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
+		c.brk = new(dropBreaker)
+		_, err = c.FindOneAndUpdate(context.Background(), filter, update, opts)
 		assert.Equal(t, errDummy, err)
 	})
 }
@@ -352,7 +354,30 @@ func TestCollectionInsert(t *testing.T) {
 	})
 }
 
-func TestCollectionRemove(t *testing.T) {
+func TestCollection_InsertMany(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
+		}
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{"ok", 1}}...))
+		res, err := c.InsertMany(context.Background(), []interface{}{
+			bson.D{{"foo", "bar"}},
+			bson.D{{"foo", "baz"}},
+		})
+		assert.Nil(t, err)
+		assert.NotNil(t, res)
+		assert.Equal(t, 2, len(res.InsertedIDs))
+		c.brk = new(dropBreaker)
+		_, err = c.InsertMany(context.Background(), []interface{}{bson.D{{"foo", "bar"}}})
+		assert.Equal(t, errDummy, err)
+	})
+}
+
+func TestCollection_Remove(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
 
@@ -390,7 +415,7 @@ func TestCollectionRemoveAll(t *testing.T) {
 	})
 }
 
-func TestCollection_FindOneAndDelete(t *testing.T) {
+func TestCollection_ReplaceOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
 
@@ -399,15 +424,12 @@ func TestCollection_FindOneAndDelete(t *testing.T) {
 			Collection: mt.Coll,
 			brk:        breaker.NewBreaker(),
 		}
-		filter := bson.D{{"x", 1}}
-		ns := mt.Coll.Database().Name() + "." + mt.Coll.Name()
-		aggRes := mtest.CreateCursorResponse(1, ns, mtest.FirstBatch)
-		mt.AddMockResponses(aggRes)
-		res, err := c.FindOneAndDelete(context.Background(), filter, mopt.FindOneAndDelete())
-		assert.Equal(t, mongo.ErrNoDocuments, err)
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{"ok", 1}}...))
+		res, err := c.ReplaceOne(context.Background(), bson.D{{"foo", "bar"}}, bson.D{{"foo", "baz"}})
+		assert.Nil(t, err)
 		assert.NotNil(t, res)
 		c.brk = new(dropBreaker)
-		_, err = c.FindOneAndDelete(context.Background(), bson.D{{"foo", "bar"}})
+		_, err = c.ReplaceOne(context.Background(), bson.D{{"foo", "bar"}}, bson.D{{"foo", "baz"}})
 		assert.Equal(t, errDummy, err)
 	})
 }
@@ -449,6 +471,27 @@ func TestCollectionUpdateId(t *testing.T) {
 		assert.NotNil(t, resp)
 		c.brk = new(dropBreaker)
 		_, err = c.UpdateByID(context.Background(), primitive.NewObjectID(),
+			bson.D{{"$set", bson.D{{"baz", "qux"}}}})
+		assert.Equal(t, errDummy, err)
+	})
+}
+
+func TestCollection_UpdateMany(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
+		}
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{"ok", 1}}...))
+		resp, err := c.UpdateMany(context.Background(), bson.D{{"foo", "bar"}},
+			bson.D{{"$set", bson.D{{"baz", "qux"}}}})
+		assert.Nil(t, err)
+		assert.NotNil(t, resp)
+		c.brk = new(dropBreaker)
+		_, err = c.UpdateMany(context.Background(), bson.D{{"foo", "bar"}},
 			bson.D{{"$set", bson.D{{"baz", "qux"}}}})
 		assert.Equal(t, errDummy, err)
 	})
