@@ -16,7 +16,13 @@ const (
 func Marshal(val interface{}) (map[string]map[string]interface{}, error) {
 	ret := make(map[string]map[string]interface{})
 	tp := reflect.TypeOf(val)
+	if tp.Kind() == reflect.Ptr {
+		tp = tp.Elem()
+	}
 	rv := reflect.ValueOf(val)
+	if rv.Kind() == reflect.Ptr {
+		rv = rv.Elem()
+	}
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
