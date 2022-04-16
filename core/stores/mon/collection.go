@@ -362,12 +362,7 @@ func (c *decoratedCollection) logDuration(method string, startTime time.Duration
 }
 
 func (c *decoratedCollection) logDurationSimple(method string, startTime time.Duration, err error) {
-	duration := timex.Since(startTime)
-	if err != nil {
-		logx.WithDuration(duration).Infof("mongo(%s) - %s - fail(%s)", c.name, method, err.Error())
-	} else {
-		logx.WithDuration(duration).Infof("mongo(%s) - %s - ok", c.name, method)
-	}
+	logDuration(c.name, method, startTime, err)
 }
 
 func (p keepablePromise) accept(err error) error {
