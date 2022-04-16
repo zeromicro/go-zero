@@ -144,7 +144,7 @@ func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
 			c.logDuration("DeleteOne", startTime, err, filter)
 		}()
 
-		res, err = c.Collection.DeleteMany(ctx, filter, opts...)
+		res, err = c.Collection.DeleteOne(ctx, filter, opts...)
 		return err
 	}, acceptable)
 	return

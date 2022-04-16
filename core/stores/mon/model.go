@@ -1,7 +1,9 @@
 package mon
 
 import (
+	"context"
 	"log"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -11,10 +13,10 @@ import (
 
 type Model struct {
 	Collection
-	collName string
-	cli      *mongo.Client
-	brk      breaker.Breaker
-	opts     []Option
+	name string
+	cli  *mongo.Client
+	brk  breaker.Breaker
+	opts []Option
 }
 
 // MustNewModel returns a Model, exits on errors.
@@ -36,9 +38,14 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 
 	brk := breaker.GetBreaker(uri)
 	coll := newCollection(cli.Database(db).Collection(collection), brk)
+	return newModel(strings.Join([]string{uri, collection}, "/"), cli, coll, brk, opts...)
+}
+
+func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Breaker,
+	opts ...Option) (*Model, error) {
 	return &Model{
+		name:       name,
 		Collection: coll,
-		collName:   collection,
 		cli:        cli,
 		brk:        brk,
 		opts:       opts,
@@ -49,11 +56,86 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 	err = m.brk.DoWithAcceptable(func() error {
 		starTime := timex.Now()
 		defer func() {
-			logDuration(m.collName, "StartSession", starTime, err)
+			logDuration(m.name, "StartSession", starTime, err)
 		}()
 
 		sess, err = m.cli.StartSession(opts...)
 		return err
 	}, acceptable)
 	return
+}
+
+func (m *Model) Aggregate(ctx context.Context, v, pipeline interface{}, opts ...*mopt.AggregateOptions) error {
+	cur, err := m.Collection.Aggregate(ctx, pipeline, opts...)
+	if err != nil {
+		return err
+	}
+
+	return cur.All(ctx, v)
+}
+
+func (m *Model) DeleteMany(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (int64, error) {
+	res, err := m.Collection.DeleteMany(ctx, filter, opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
+}
+
+func (m *Model) DeleteOne(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (int64, error) {
+	res, err := m.Collection.DeleteOne(ctx, filter, opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
+}
+
+func (m *Model) Find(ctx context.Context, v, filter interface{}, opts ...*mopt.FindOptions) error {
+	cur, err := m.Collection.Find(ctx, filter, opts...)
+	if err != nil {
+		return err
+	}
+
+	return cur.All(ctx, v)
+}
+
+func (m *Model) FindOne(ctx context.Context, v, filter interface{}, opts ...*mopt.FindOneOptions) error {
+	res, err := m.Collection.FindOne(ctx, filter, opts...)
+	if err != nil {
+		return err
+	}
+
+	return res.Decode(v)
+}
+
+func (m *Model) FindOneAndDelete(ctx context.Context, v, filter interface{},
+	opts ...*mopt.FindOneAndDeleteOptions) error {
+	res, err := m.Collection.FindOneAndDelete(ctx, filter, opts...)
+	if err != nil {
+		return err
+	}
+
+	return res.Decode(v)
+}
+
+func (m *Model) FindOneAndReplace(ctx context.Context, v, filter interface{}, replacement interface{},
+	opts ...*mopt.FindOneAndReplaceOptions) error {
+	res, err := m.Collection.FindOneAndReplace(ctx, filter, replacement, opts...)
+	if err != nil {
+		return err
+	}
+
+	return res.Decode(v)
+}
+
+func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, update interface{},
+	opts ...*mopt.FindOneAndUpdateOptions) error {
+	res, err := m.Collection.FindOneAndUpdate(ctx, filter, update, opts...)
+	if err != nil {
+		return err
+	}
+
+	return res.Decode(v)
 }
