@@ -65,7 +65,8 @@ type (
 // NewTimingWheel returns a TimingWheel.
 func NewTimingWheel(interval time.Duration, numSlots int, execute Execute) (*TimingWheel, error) {
 	if interval <= 0 || numSlots <= 0 || execute == nil {
-		return nil, fmt.Errorf("interval: %v, slots: %d, execute: %p", interval, numSlots, execute)
+		return nil, fmt.Errorf("interval: %v, slots: %d, execute: %p",
+			interval, numSlots, execute)
 	}
 
 	return newTimingWheelWithClock(interval, numSlots, execute, timex.NewTicker(interval))
