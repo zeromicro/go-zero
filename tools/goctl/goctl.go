@@ -137,9 +137,10 @@ var commands = []cli.Command{
 		Action: apigen.ApiCommand,
 		Subcommands: []cli.Command{
 			{
-				Name:   "new",
-				Usage:  "fast create api service",
-				Action: new.CreateServiceCommand,
+				Name:      "new",
+				Usage:     "fast create api service",
+				UsageText: "example: goctl api new [options] server_name",
+				Action:    new.CreateServiceCommand,
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name: "home",
