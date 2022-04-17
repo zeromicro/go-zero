@@ -99,9 +99,11 @@ func (h hook) spanStart(ctx context.Context) context.Context {
 
 func (h hook) spanEnd(ctx context.Context) {
 	spanVal := ctx.Value(spanKey)
-	if spanVal != nil {
-		if span, ok := spanVal.(tracestd.Span); ok {
-			span.End()
-		}
+	if spanVal == nil {
+		return
+	}
+
+	if span, ok := spanVal.(tracestd.Span); ok {
+		span.End()
 	}
 }
