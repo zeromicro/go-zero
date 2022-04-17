@@ -139,7 +139,7 @@ var commands = []cli.Command{
 			{
 				Name:      "new",
 				Usage:     "fast create api service",
-				UsageText: "example: goctl api new [options] server_name",
+				UsageText: "example: goctl api new [options] service-name",
 				Action:    new.CreateServiceCommand,
 				Flags: []cli.Flag{
 					cli.StringFlag{
@@ -514,7 +514,7 @@ var commands = []cli.Command{
 			{
 				Name:      "new",
 				Usage:     `generate rpc demo service`,
-				UsageText: "example: goctl rpc new [options] service_name",
+				UsageText: "example: goctl rpc new [options] service-name",
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
