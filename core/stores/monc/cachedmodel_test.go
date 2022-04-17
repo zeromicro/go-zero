@@ -3,6 +3,7 @@ package monc
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
@@ -14,6 +15,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
+
+func TestNewModel(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		_, err := newModel("foo", mt.DB.Name(), mt.Coll.Name(), nil)
+		assert.NotNil(mt, err)
+	})
+}
 
 func TestModel_DelCache(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
@@ -544,10 +555,25 @@ func createModel(t *testing.T, mt *mtest.T) *Model {
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 	mon.Inject(mt.Name(), mt.Client)
-	return MustNewNodeModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), redis.New(s.Addr()))
+	if atomic.AddInt32(&index, 1)%2 == 0 {
+		return MustNewNodeModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), redis.New(s.Addr()))
+	} else {
+		return MustNewModel(mt.Name(), mt.DB.Name(), mt.Coll.Name(), cache.CacheConf{
+			cache.NodeConf{
+				RedisConf: redis.RedisConf{
+					Host: s.Addr(),
+					Type: redis.NodeType,
+				},
+				Weight: 100,
+			},
+		})
+	}
 }
 
-var errMocked = errors.New("mocked error")
+var (
+	errMocked = errors.New("mocked error")
+	index     int32
+)
 
 type mockedCache struct {
 	cache.Cache
