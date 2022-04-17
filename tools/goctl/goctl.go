@@ -511,8 +511,9 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:  "new",
-				Usage: `generate rpc demo service`,
+				Name:      "new",
+				Usage:     `generate rpc demo service`,
+				UsageText: "example: goctl rpc new [options] service_name",
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
