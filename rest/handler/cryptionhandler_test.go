@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -115,4 +116,19 @@ func TestCryptionHandler_Hijack(t *testing.T) {
 	assert.NotPanics(t, func() {
 		writer.Hijack()
 	})
+}
+
+func TestCryptionHandler_ContentTooLong(t *testing.T) {
+	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	}))
+	svr := httptest.NewServer(handler)
+	defer svr.Close()
+
+	body := make([]byte, maxBytes+1)
+	rand.Read(body)
+	req, err := http.NewRequest(http.MethodPost, svr.URL, bytes.NewReader(body))
+	assert.Nil(t, err)
+	resp, err := http.DefaultClient.Do(req)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 }

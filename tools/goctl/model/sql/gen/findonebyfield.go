@@ -59,7 +59,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	for _, key := range table.UniqueCacheKey {
 		var inJoin, paramJoin Join
 		for _, f := range key.Fields {
-			param := stringx.From(f.Name.ToCamel()).Untitle()
+			param := util.EscapeGolangKeyword(stringx.From(f.Name.ToCamel()).Untitle())
 			inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 			paramJoin = append(paramJoin, param)
 		}
@@ -82,7 +82,8 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	}
 
 	if withCache {
-		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile,
+			template.FindOneByFieldExtraMethod)
 		if err != nil {
 			return nil, err
 		}
@@ -115,7 +116,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 func convertJoin(key Key, postgreSql bool) (in, paramJoinString, originalFieldString string) {
 	var inJoin, paramJoin, argJoin Join
 	for index, f := range key.Fields {
-		param := stringx.From(f.Name.ToCamel()).Untitle()
+		param := util.EscapeGolangKeyword(stringx.From(f.Name.ToCamel()).Untitle())
 		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 		paramJoin = append(paramJoin, param)
 		if postgreSql {

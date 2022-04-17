@@ -18,7 +18,7 @@ COPY . .
 RUN go build -ldflags="-s -w" -o /app/goctl ./goctl.go
 
 
-FROM alpine
+FROM golang:alpine
 
 RUN apk update --no-cache && apk add --no-cache protoc
 
@@ -29,6 +29,6 @@ COPY --from=builder /go/bin/protoc-gen-go-grpc /usr/bin/protoc-gen-go-grpc
 ENV TZ Asia/Shanghai
 
 WORKDIR /app
-COPY --from=builder /app/goctl /app/goctl
+COPY --from=builder /app/goctl /usr/bin/goctl
 
-CMD ["./goctl"]
+CMD ["goctl"]

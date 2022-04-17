@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 
@@ -11,20 +12,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const svcTemplate = `package svc
-
-import {{.imports}}
-
-type ServiceContext struct {
-	Config config.Config
-}
-
-func NewServiceContext(c config.Config) *ServiceContext {
-	return &ServiceContext{
-		Config:c,
-	}
-}
-`
+//go:embed svc.tpl
+var svcTemplate string
 
 // GenSvc generates the servicecontext.go file, which is the resource dependency of a service,
 // such as rpc dependency, model dependency, etc.

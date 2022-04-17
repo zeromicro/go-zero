@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	_ "embed"
 	"fmt"
 	"strings"
 
@@ -11,27 +12,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const (
-	contextFilename = "service_context"
-	contextTemplate = `package svc
+const contextFilename = "service_context"
 
-import (
-	{{.configImport}}
-)
-
-type ServiceContext struct {
-	Config {{.config}}
-	{{.middleware}}
-}
-
-func NewServiceContext(c {{.config}}) *ServiceContext {
-	return &ServiceContext{
-		Config: c, 
-		{{.middlewareAssignment}}
-	}
-}
-`
-)
+//go:embed svc.tpl
+var contextTemplate string
 
 func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)

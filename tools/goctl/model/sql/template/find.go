@@ -1,7 +1,8 @@
 package template
 
-// FindOne defines find row by id.
-var FindOne = `
+const (
+	// FindOne defines find row by id.
+	FindOne = `
 func (m *default{{.upperStartCamelObject}}Model) FindOne(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
@@ -30,8 +31,8 @@ func (m *default{{.upperStartCamelObject}}Model) FindOne(ctx context.Context, {{
 }
 `
 
-// FindOneByField defines find row by field.
-var FindOneByField = `
+	// FindOneByField defines find row by field.
+	FindOneByField = `
 func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}(ctx context.Context, {{.in}}) (*{{.upperStartCamelObject}}, error) {
 	{{if .withCache}}{{.cacheKey}}
 	var resp {{.upperStartCamelObject}}
@@ -64,8 +65,8 @@ func (m *default{{.upperStartCamelObject}}Model) FindOneBy{{.upperField}}(ctx co
 }{{end}}
 `
 
-// FindOneByFieldExtraMethod defines find row by field with extras.
-var FindOneByFieldExtraMethod = `
+	// FindOneByFieldExtraMethod defines find row by field with extras.
+	FindOneByFieldExtraMethod = `
 func (m *default{{.upperStartCamelObject}}Model) formatPrimary(primary interface{}) string {
 	return fmt.Sprintf("%s%v", {{.primaryKeyLeft}}, primary)
 }
@@ -76,8 +77,9 @@ func (m *default{{.upperStartCamelObject}}Model) queryPrimary(ctx context.Contex
 }
 `
 
-// FindOneMethod defines find row method.
-var FindOneMethod = `FindOne(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)`
+	// FindOneMethod defines find row method.
+	FindOneMethod = `FindOne(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) (*{{.upperStartCamelObject}}, error)`
 
-// FindOneByFieldMethod defines find row by field method.
-var FindOneByFieldMethod = `FindOneBy{{.upperField}}(ctx context.Context, {{.in}}) (*{{.upperStartCamelObject}}, error) `
+	// FindOneByFieldMethod defines find row by field method.
+	FindOneByFieldMethod = `FindOneBy{{.upperField}}(ctx context.Context, {{.in}}) (*{{.upperStartCamelObject}}, error) `
+)

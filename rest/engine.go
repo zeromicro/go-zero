@@ -94,7 +94,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 		handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
 		handler.RecoverHandler,
 		handler.MetricHandler(metrics),
-		handler.MaxBytesHandler(ng.conf.MaxBytes),
+		handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
 		handler.GunzipHandler,
 	)
 	chain = ng.appendAuthHandler(fr, chain, verifier)
@@ -117,6 +117,14 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	}
 
 	return nil
+}
+
+func (ng *engine) checkedMaxBytes(bytes int64) int64 {
+	if bytes > 0 {
+		return bytes
+	}
+
+	return ng.conf.MaxBytes
 }
 
 func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {

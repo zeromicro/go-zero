@@ -137,6 +137,13 @@ func WithJwtTransition(secret, prevSecret string) RouteOption {
 	}
 }
 
+// WithMaxBytes returns a RouteOption to set maxBytes with the given value.
+func WithMaxBytes(maxBytes int64) RouteOption {
+	return func(r *featuredRoutes) {
+		r.maxBytes = maxBytes
+	}
+}
+
 // WithMiddlewares adds given middlewares to given routes.
 func WithMiddlewares(ms []Middleware, rs ...Route) []Route {
 	for i := len(ms) - 1; i >= 0; i-- {

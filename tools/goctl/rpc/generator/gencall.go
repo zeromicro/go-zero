@@ -1,6 +1,7 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 	"sort"
@@ -17,41 +18,6 @@ import (
 )
 
 const (
-	callTemplateText = `{{.head}}
-
-package {{.filePackage}}
-
-import (
-	"context"
-
-	{{.pbPackage}}
-	{{if ne .pbPackage .protoGoPackage}}{{.protoGoPackage}}{{end}}
-
-	"github.com/zeromicro/go-zero/zrpc"
-	"google.golang.org/grpc"
-)
-
-type (
-	{{.alias}}
-
-	{{.serviceName}} interface {
-		{{.interface}}
-	}
-
-	default{{.serviceName}} struct {
-		cli zrpc.Client
-	}
-)
-
-func New{{.serviceName}}(cli zrpc.Client) {{.serviceName}} {
-	return &default{{.serviceName}}{
-		cli: cli,
-	}
-}
-
-{{.functions}}
-`
-
 	callInterfaceFunctionTemplate = `{{if .hasComment}}{{.comment}}
 {{end}}{{.method}}(ctx context.Context{{if .hasReq}}, in *{{.pbRequest}}{{end}}, opts ...grpc.CallOption) ({{if .notStream}}*{{.pbResponse}}, {{else}}{{.streamBody}},{{end}} error)`
 
@@ -63,6 +29,9 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}},
 }
 `
 )
+
+//go:embed call.tpl
+var callTemplateText string
 
 // GenCall generates the rpc client code, which is the entry point for the rpc service call.
 // It is a layer of encapsulation for the rpc client and shields the details in the pb.

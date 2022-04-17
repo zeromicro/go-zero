@@ -45,6 +45,10 @@ func DockerCommand(c *cli.Context) (err error) {
 		}
 	}()
 
+	if c.NumFlags() == 0 {
+		cli.ShowCommandHelpAndExit(c, "docker", 1)
+	}
+
 	goFile := c.String("go")
 	home := c.String("home")
 	version := c.String("version")

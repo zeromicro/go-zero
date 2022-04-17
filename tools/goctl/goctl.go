@@ -58,6 +58,21 @@ var commands = []cli.Command{
 		},
 		Subcommands: []cli.Command{
 			{
+				Name:   "install",
+				Usage:  "goctl env installation",
+				Action: env.Install,
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name:  "force,f",
+						Usage: "silent installation of non-existent dependencies",
+					},
+					cli.BoolFlag{
+						Name:  "verbose, v",
+						Usage: "enable log output",
+					},
+				},
+			},
+			{
 				Name:  "check",
 				Usage: "detect goctl env and dependency tools",
 				Flags: []cli.Flag{
@@ -122,9 +137,10 @@ var commands = []cli.Command{
 		Action: apigen.ApiCommand,
 		Subcommands: []cli.Command{
 			{
-				Name:   "new",
-				Usage:  "fast create api service",
-				Action: new.CreateServiceCommand,
+				Name:      "new",
+				Usage:     "fast create api service",
+				UsageText: "example: goctl api new [options] service-name",
+				Action:    new.CreateServiceCommand,
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name: "home",
@@ -496,8 +512,9 @@ var commands = []cli.Command{
 		Usage: "generate rpc code",
 		Subcommands: []cli.Command{
 			{
-				Name:  "new",
-				Usage: `generate rpc demo service`,
+				Name:      "new",
+				Usage:     `generate rpc demo service`,
+				UsageText: "example: goctl rpc new [options] service-name",
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "style",
