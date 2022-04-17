@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -68,7 +69,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 	var options []grpc.DialOption
 	if !cliOpts.Secure {
-		options = append([]grpc.DialOption(nil), grpc.WithInsecure())
+		options = append([]grpc.DialOption(nil), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	if !cliOpts.NonBlock {
