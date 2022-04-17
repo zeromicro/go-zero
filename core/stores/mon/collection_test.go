@@ -354,7 +354,7 @@ func TestCollection_FindOneAndUpdate(t *testing.T) {
 	})
 }
 
-func TestCollectionInsert(t *testing.T) {
+func TestCollection_InsertOne(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
 

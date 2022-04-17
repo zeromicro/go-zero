@@ -78,8 +78,8 @@ func newModel(uri, db, collection string, c cache.Cache) (*Model, error) {
 }
 
 // DelCache deletes the cache with given keys.
-func (mm *Model) DelCache(keys ...string) error {
-	return mm.cache.Del(keys...)
+func (mm *Model) DelCache(ctx context.Context, keys ...string) error {
+	return mm.cache.DelCtx(ctx, keys...)
 }
 
 // DeleteOne deletes the document with given filter, and remove it from cache.
@@ -90,7 +90,7 @@ func (mm *Model) DeleteOne(ctx context.Context, key string, filter interface{},
 		return 0, err
 	}
 
-	if err := mm.cache.DelCtx(ctx, key); err != nil {
+	if err := mm.DelCache(ctx, key); err != nil {
 		return 0, err
 	}
 
@@ -124,7 +124,7 @@ func (mm *Model) FindOneAndDelete(ctx context.Context, key string, v, filter int
 		return err
 	}
 
-	return mm.cache.DelCtx(ctx, key)
+	return mm.DelCache(ctx, key)
 }
 
 // FindOneAndDeleteNoCache deletes the document with given filter, and unmarshals it into v.
@@ -140,7 +140,7 @@ func (mm *Model) FindOneAndReplace(ctx context.Context, key string, v, filter in
 		return err
 	}
 
-	return mm.cache.DelCtx(ctx, key)
+	return mm.DelCache(ctx, key)
 }
 
 // FindOneAndReplaceNoCache replaces the document with given filter with replacement, and unmarshals it into v.
@@ -156,7 +156,7 @@ func (mm *Model) FindOneAndUpdate(ctx context.Context, key string, v, filter int
 		return err
 	}
 
-	return mm.cache.DelCtx(ctx, key)
+	return mm.DelCache(ctx, key)
 }
 
 // FindOneAndUpdateNoCache updates the document with given filter with update, and unmarshals it into v.
@@ -178,7 +178,7 @@ func (mm *Model) InsertOne(ctx context.Context, key string, document interface{}
 		return nil, err
 	}
 
-	if err = mm.cache.DelCtx(ctx, key); err != nil {
+	if err = mm.DelCache(ctx, key); err != nil {
 		return nil, err
 	}
 
@@ -199,7 +199,7 @@ func (mm *Model) ReplaceOne(ctx context.Context, key string, filter interface{},
 		return nil, err
 	}
 
-	if err = mm.cache.DelCtx(ctx, key); err != nil {
+	if err = mm.DelCache(ctx, key); err != nil {
 		return nil, err
 	}
 
@@ -225,7 +225,7 @@ func (mm *Model) UpdateByID(ctx context.Context, key string, id interface{}, upd
 		return nil, err
 	}
 
-	if err = mm.cache.DelCtx(ctx, key); err != nil {
+	if err = mm.DelCache(ctx, key); err != nil {
 		return nil, err
 	}
 
@@ -246,7 +246,7 @@ func (mm *Model) UpdateMany(ctx context.Context, keys []string, filter interface
 		return nil, err
 	}
 
-	if err = mm.cache.DelCtx(ctx, keys...); err != nil {
+	if err = mm.DelCache(ctx, keys...); err != nil {
 		return nil, err
 	}
 
@@ -267,7 +267,7 @@ func (mm *Model) UpdateOne(ctx context.Context, key string, filter interface{}, 
 		return nil, err
 	}
 
-	if err = mm.cache.DelCtx(ctx, key); err != nil {
+	if err = mm.DelCache(ctx, key); err != nil {
 		return nil, err
 	}
 
