@@ -1,20 +1,30 @@
 package monc
 
 import (
+	"context"
 	"log"
 
-	"github.com/globalsign/mgo"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/mon"
-	"github.com/zeromicro/go-zero/core/stores/mongo"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"go.mongodb.org/mongo-driver/mongo"
+	mopt "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+var (
+	// ErrNotFound is an alias of mgo.ErrNotFound.
+	ErrNotFound = mongo.ErrNoDocuments
+
+	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
+	singleFlight = syncx.NewSingleFlight()
+	stats        = cache.NewStat("monc")
 )
 
 // A Model is a mongo model that built with cache capability.
 type Model struct {
-	*mongo.Model
-	cache              cache.Cache
-	generateCollection func(*mgo.Session) CachedCollection
+	*mon.Model
+	cache cache.Cache
 }
 
 // MustNewModel returns a Model with a cache cluster, exists on errors.
@@ -39,225 +49,23 @@ func MustNewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cach
 
 // NewModel returns a Model with a cache cluster.
 func NewModel(uri, db, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
-	c := cache.New(conf, singleFlight, stats, mgo.ErrNotFound, opts...)
+	c := cache.New(conf, singleFlight, stats, mongo.ErrNoDocuments, opts...)
 	return NewModelWithCache(uri, db, collection, c)
 }
 
 // NewModelWithCache returns a Model with a custom cache.
 func NewModelWithCache(uri, db, collection string, c cache.Cache) (*Model, error) {
-	return createModel(uri, collection, c, func(collection mongo.Collection) CachedCollection {
-		return newCollection(collection, c)
-	})
+	return newModel(uri, db, collection, c)
 }
 
 // NewNodeModel returns a Model with a cache node.
-func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
-	c := cache.NewNode(rds, singleFlight, stats, mgo.ErrNotFound, opts...)
-	return NewModelWithCache(url, collection, c)
+func NewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
+	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
+	return NewModelWithCache(uri, db, collection, c)
 }
 
-// Count returns the count of given query.
-func (mm *Model) Count(query interface{}) (int, error) {
-	return mm.executeInt(func(c CachedCollection) (int, error) {
-		return c.Count(query)
-	})
-}
-
-// DelCache deletes the cache with given keys.
-func (mm *Model) DelCache(keys ...string) error {
-	return mm.cache.Del(keys...)
-}
-
-// GetCache unmarshal the cache into v with given key.
-func (mm *Model) GetCache(key string, v interface{}) error {
-	return mm.cache.Get(key, v)
-}
-
-// GetCollection returns a cache collection.
-func (mm *Model) GetCollection(session *mgo.Session) CachedCollection {
-	return mm.generateCollection(session)
-}
-
-// FindAllNoCache finds all records without cache.
-func (mm *Model) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.FindAllNoCache(v, query, opts...)
-	})
-}
-
-// FindOne unmarshals a record into v with given key and query.
-func (mm *Model) FindOne(v interface{}, key string, query interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.FindOne(v, key, query)
-	})
-}
-
-// FindOneNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneNoCache(v, query interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.FindOneNoCache(v, query)
-	})
-}
-
-// FindOneId unmarshals a record into v with query.
-func (mm *Model) FindOneId(v interface{}, key string, id interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.FindOneId(v, key, id)
-	})
-}
-
-// FindOneIdNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneIdNoCache(v, id interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.FindOneIdNoCache(v, id)
-	})
-}
-
-// Insert inserts docs.
-func (mm *Model) Insert(docs ...interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.Insert(docs...)
-	})
-}
-
-// Pipe returns a mongo pipe with given pipeline.
-func (mm *Model) Pipe(pipeline interface{}) (mongo.Pipe, error) {
-	return mm.pipe(func(c CachedCollection) mongo.Pipe {
-		return c.Pipe(pipeline)
-	})
-}
-
-// Remove removes a record with given selector, and remove it from cache with given keys.
-func (mm *Model) Remove(selector interface{}, keys ...string) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.Remove(selector, keys...)
-	})
-}
-
-// RemoveNoCache removes a record with given selector.
-func (mm *Model) RemoveNoCache(selector interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.RemoveNoCache(selector)
-	})
-}
-
-// RemoveAll removes all records with given selector, and removes cache with given keys.
-func (mm *Model) RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error) {
-	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
-		return c.RemoveAll(selector, keys...)
-	})
-}
-
-// RemoveAllNoCache removes all records with given selector, and returns a mgo.ChangeInfo.
-func (mm *Model) RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error) {
-	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
-		return c.RemoveAllNoCache(selector)
-	})
-}
-
-// RemoveId removes a record with given id, and removes cache with given keys.
-func (mm *Model) RemoveId(id interface{}, keys ...string) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.RemoveId(id, keys...)
-	})
-}
-
-// RemoveIdNoCache removes a record with given id.
-func (mm *Model) RemoveIdNoCache(id interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.RemoveIdNoCache(id)
-	})
-}
-
-// SetCache sets the cache with given key and value.
-func (mm *Model) SetCache(key string, v interface{}) error {
-	return mm.cache.Set(key, v)
-}
-
-// Update updates the record with given selector, and delete cache with given keys.
-func (mm *Model) Update(selector, update interface{}, keys ...string) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.Update(selector, update, keys...)
-	})
-}
-
-// UpdateNoCache updates the record with given selector.
-func (mm *Model) UpdateNoCache(selector, update interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.UpdateNoCache(selector, update)
-	})
-}
-
-// UpdateId updates the record with given id, and delete cache with given keys.
-func (mm *Model) UpdateId(id, update interface{}, keys ...string) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.UpdateId(id, update, keys...)
-	})
-}
-
-// UpdateIdNoCache updates the record with given id.
-func (mm *Model) UpdateIdNoCache(id, update interface{}) error {
-	return mm.execute(func(c CachedCollection) error {
-		return c.UpdateIdNoCache(id, update)
-	})
-}
-
-// Upsert upserts a record with given selector, and delete cache with given keys.
-func (mm *Model) Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error) {
-	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
-		return c.Upsert(selector, update, keys...)
-	})
-}
-
-// UpsertNoCache upserts a record with given selector.
-func (mm *Model) UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error) {
-	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
-		return c.UpsertNoCache(selector, update)
-	})
-}
-
-func (mm *Model) change(fn func(c CachedCollection) (*mgo.ChangeInfo, error)) (*mgo.ChangeInfo, error) {
-	session, err := mm.TakeSession()
-	if err != nil {
-		return nil, err
-	}
-	defer mm.PutSession(session)
-
-	return fn(mm.GetCollection(session))
-}
-
-func (mm *Model) execute(fn func(c CachedCollection) error) error {
-	session, err := mm.TakeSession()
-	if err != nil {
-		return err
-	}
-	defer mm.PutSession(session)
-
-	return fn(mm.GetCollection(session))
-}
-
-func (mm *Model) executeInt(fn func(c CachedCollection) (int, error)) (int, error) {
-	session, err := mm.TakeSession()
-	if err != nil {
-		return 0, err
-	}
-	defer mm.PutSession(session)
-
-	return fn(mm.GetCollection(session))
-}
-
-func (mm *Model) pipe(fn func(c CachedCollection) mongo.Pipe) (mongo.Pipe, error) {
-	session, err := mm.TakeSession()
-	if err != nil {
-		return nil, err
-	}
-	defer mm.PutSession(session)
-
-	return fn(mm.GetCollection(session)), nil
-}
-
-func createModel(uri, db, collection string, c cache.Cache,
-	create func(mongo.Collection) CachedCollection) (*Model, error) {
+// newModel returns a Model with the given cache.
+func newModel(uri, db, collection string, c cache.Cache) (*Model, error) {
 	model, err := mon.NewModel(uri, db, collection)
 	if err != nil {
 		return nil, err
@@ -266,9 +74,208 @@ func createModel(uri, db, collection string, c cache.Cache,
 	return &Model{
 		Model: model,
 		cache: c,
-		generateCollection: func(session *mgo.Session) CachedCollection {
-			collection := model.GetCollection(session)
-			return create(collection)
-		},
 	}, nil
+}
+
+// DelCache deletes the cache with given keys.
+func (mm *Model) DelCache(keys ...string) error {
+	return mm.cache.Del(keys...)
+}
+
+// DeleteOne deletes the document with given filter, and remove it from cache.
+func (mm *Model) DeleteOne(ctx context.Context, key string, filter interface{},
+	opts ...*mopt.DeleteOptions) (int64, error) {
+	val, err := mm.Model.DeleteOne(ctx, filter, opts...)
+	if err != nil {
+		return 0, err
+	}
+
+	if err := mm.cache.DelCtx(ctx, key); err != nil {
+		return 0, err
+	}
+
+	return val, nil
+}
+
+// DeleteOneNoCache deletes the document with given filter.
+func (mm *Model) DeleteOneNoCache(ctx context.Context, filter interface{},
+	opts ...*mopt.DeleteOptions) (int64, error) {
+	return mm.Model.DeleteOne(ctx, filter, opts...)
+}
+
+// FindOne unmarshals a record into v with given key and query.
+func (mm *Model) FindOne(ctx context.Context, key string, v, filter interface{},
+	opts ...*mopt.FindOneOptions) error {
+	return mm.cache.TakeCtx(ctx, v, key, func(v interface{}) error {
+		return mm.Model.FindOne(ctx, v, filter, opts...)
+	})
+}
+
+// FindOneNoCache unmarshals a record into v with query, without cache.
+func (mm *Model) FindOneNoCache(ctx context.Context, v, filter interface{},
+	opts ...*mopt.FindOneOptions) error {
+	return mm.Model.FindOne(ctx, v, filter, opts...)
+}
+
+// FindOneAndDelete deletes the document with given filter, and unmarshals it into v.
+func (mm *Model) FindOneAndDelete(ctx context.Context, key string, v, filter interface{},
+	opts ...*mopt.FindOneAndDeleteOptions) error {
+	if err := mm.Model.FindOneAndDelete(ctx, v, filter, opts...); err != nil {
+		return err
+	}
+
+	return mm.cache.DelCtx(ctx, key)
+}
+
+// FindOneAndDeleteNoCache deletes the document with given filter, and unmarshals it into v.
+func (mm *Model) FindOneAndDeleteNoCache(ctx context.Context, v, filter interface{},
+	opts ...*mopt.FindOneAndDeleteOptions) error {
+	return mm.Model.FindOneAndDelete(ctx, v, filter, opts...)
+}
+
+// FindOneAndReplace replaces the document with given filter with replacement, and unmarshals it into v.
+func (mm *Model) FindOneAndReplace(ctx context.Context, key string, v, filter interface{},
+	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) error {
+	if err := mm.Model.FindOneAndReplace(ctx, v, filter, replacement, opts...); err != nil {
+		return err
+	}
+
+	return mm.cache.DelCtx(ctx, key)
+}
+
+// FindOneAndReplaceNoCache replaces the document with given filter with replacement, and unmarshals it into v.
+func (mm *Model) FindOneAndReplaceNoCache(ctx context.Context, v, filter interface{},
+	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) error {
+	return mm.Model.FindOneAndReplace(ctx, v, filter, replacement, opts...)
+}
+
+// FindOneAndUpdate updates the document with given filter with update, and unmarshals it into v.
+func (mm *Model) FindOneAndUpdate(ctx context.Context, key string, v, filter interface{},
+	update interface{}, opts ...*mopt.FindOneAndUpdateOptions) error {
+	if err := mm.Model.FindOneAndUpdate(ctx, v, filter, update, opts...); err != nil {
+		return err
+	}
+
+	return mm.cache.DelCtx(ctx, key)
+}
+
+// FindOneAndUpdateNoCache updates the document with given filter with update, and unmarshals it into v.
+func (mm *Model) FindOneAndUpdateNoCache(ctx context.Context, v, filter interface{},
+	update interface{}, opts ...*mopt.FindOneAndUpdateOptions) error {
+	return mm.Model.FindOneAndUpdate(ctx, v, filter, update, opts...)
+}
+
+// GetCache unmarshal the cache into v with given key.
+func (mm *Model) GetCache(key string, v interface{}) error {
+	return mm.cache.Get(key, v)
+}
+
+// InsertOne inserts a single document into the collection, and remove the cache placeholder.
+func (mm *Model) InsertOne(ctx context.Context, key string, document interface{},
+	opts ...*mopt.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	res, err := mm.Model.InsertOne(ctx, document, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mm.cache.DelCtx(ctx, key); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// InsertOneNoCache inserts a single document into the collection.
+func (mm *Model) InsertOneNoCache(ctx context.Context, document interface{},
+	opts ...*mopt.InsertOneOptions) (*mongo.InsertOneResult, error) {
+	return mm.Model.InsertOne(ctx, document, opts...)
+}
+
+// ReplaceOne replaces a single document in the collection, and remove the cache.
+func (mm *Model) ReplaceOne(ctx context.Context, key string, filter interface{}, replacement interface{},
+	opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error) {
+	res, err := mm.Model.ReplaceOne(ctx, filter, replacement, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mm.cache.DelCtx(ctx, key); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// ReplaceOneNoCache replaces a single document in the collection.
+func (mm *Model) ReplaceOneNoCache(ctx context.Context, filter interface{}, replacement interface{},
+	opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error) {
+	return mm.Model.ReplaceOne(ctx, filter, replacement, opts...)
+}
+
+// SetCache sets the cache with given key and value.
+func (mm *Model) SetCache(key string, v interface{}) error {
+	return mm.cache.Set(key, v)
+}
+
+// UpdateByID updates the document with given id with update, and remove the cache.
+func (mm *Model) UpdateByID(ctx context.Context, key string, id interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	res, err := mm.Model.UpdateByID(ctx, id, update, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mm.cache.DelCtx(ctx, key); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// UpdateByIDNoCache updates the document with given id with update.
+func (mm *Model) UpdateByIDNoCache(ctx context.Context, id interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	return mm.Model.UpdateByID(ctx, id, update, opts...)
+}
+
+// UpdateMany updates the documents that match filter with update, and remove the cache.
+func (mm *Model) UpdateMany(ctx context.Context, keys []string, filter interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	res, err := mm.Model.UpdateMany(ctx, filter, update, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mm.cache.DelCtx(ctx, keys...); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// UpdateManyNoCache updates the documents that match filter with update.
+func (mm *Model) UpdateManyNoCache(ctx context.Context, filter interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	return mm.Model.UpdateMany(ctx, filter, update, opts...)
+}
+
+// UpdateOne updates the first document that matches filter with update, and remove the cache.
+func (mm *Model) UpdateOne(ctx context.Context, key string, filter interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	res, err := mm.Model.UpdateOne(ctx, filter, update, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = mm.cache.DelCtx(ctx, key); err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
+// UpdateOneNoCache updates the first document that matches filter with update.
+func (mm *Model) UpdateOneNoCache(ctx context.Context, filter interface{}, update interface{},
+	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
+	return mm.Model.UpdateOne(ctx, filter, update, opts...)
 }

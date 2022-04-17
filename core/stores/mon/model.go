@@ -36,20 +36,21 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 		return nil, err
 	}
 
+	name := strings.Join([]string{uri, collection}, "/")
 	brk := breaker.GetBreaker(uri)
 	coll := newCollection(cli.Database(db).Collection(collection), brk)
-	return newModel(strings.Join([]string{uri, collection}, "/"), cli, coll, brk, opts...)
+	return newModel(name, cli, coll, brk, opts...), nil
 }
 
 func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Breaker,
-	opts ...Option) (*Model, error) {
+	opts ...Option) *Model {
 	return &Model{
 		name:       name,
 		Collection: coll,
 		cli:        cli,
 		brk:        brk,
 		opts:       opts,
-	}, nil
+	}
 }
 
 func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, err error) {
@@ -70,6 +71,7 @@ func (m *Model) Aggregate(ctx context.Context, v, pipeline interface{}, opts ...
 	if err != nil {
 		return err
 	}
+	defer cur.Close(ctx)
 
 	return cur.All(ctx, v)
 }
@@ -97,6 +99,7 @@ func (m *Model) Find(ctx context.Context, v, filter interface{}, opts ...*mopt.F
 	if err != nil {
 		return err
 	}
+	defer cur.Close(ctx)
 
 	return cur.All(ctx, v)
 }

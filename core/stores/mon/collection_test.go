@@ -146,6 +146,25 @@ func TestCollection_CountDocuments(t *testing.T) {
 	})
 }
 
+func TestDecoratedCollection_DeleteMany(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+
+	mt.Run("test", func(mt *mtest.T) {
+		c := decoratedCollection{
+			Collection: mt.Coll,
+			brk:        breaker.NewBreaker(),
+		}
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
+		res, err := c.DeleteMany(context.Background(), bson.D{})
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), res.DeletedCount)
+		c.brk = new(dropBreaker)
+		_, err = c.DeleteMany(context.Background(), bson.D{{Key: "foo", Value: 1}})
+		assert.Equal(t, errDummy, err)
+	})
+}
+
 func TestCollection_Distinct(t *testing.T) {
 	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
 	defer mt.Close()
@@ -386,7 +405,7 @@ func TestCollection_Remove(t *testing.T) {
 			Collection: mt.Coll,
 			brk:        breaker.NewBreaker(),
 		}
-		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "ok", Value: 1}}...))
+		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "n", Value: 1}}...))
 		res, err := c.DeleteOne(context.Background(), bson.D{{Key: "foo", Value: "bar"}})
 		assert.Nil(t, err)
 		assert.NotNil(t, res)

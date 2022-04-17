@@ -14,12 +14,20 @@ const defaultTimeout = time.Second
 
 var clientManager = syncx.NewResourceManager()
 
+// ClosableClient wraps *mongo.Client and provides a Close method.
 type ClosableClient struct {
 	*mongo.Client
 }
 
+// Close disconnects the underlying *mongo.Client.
 func (cs *ClosableClient) Close() error {
 	return cs.Client.Disconnect(context.Background())
+}
+
+// Inject injects a *mongo.Client into the client manager.
+// Typically, this is used to inject a *mongo.Client for test purpose.
+func Inject(key string, client *mongo.Client) {
+	clientManager.Inject(key, &ClosableClient{client})
 }
 
 func getClient(url string) (*mongo.Client, error) {
