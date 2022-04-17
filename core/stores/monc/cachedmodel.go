@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	// ErrNotFound is an alias of mgo.ErrNotFound.
+	// ErrNotFound is an alias of mongo.ErrNoDocuments.
 	ErrNotFound = mongo.ErrNoDocuments
 
 	// can't use one SingleFlight per conn, because multiple conns may share the same cache key.
