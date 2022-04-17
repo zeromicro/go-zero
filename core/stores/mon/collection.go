@@ -19,43 +19,72 @@ var ErrNotFound = mongo.ErrNoDocuments
 
 type (
 	Collection interface {
+		// Aggregate executes an aggregation pipeline.
 		Aggregate(ctx context.Context, pipeline interface{}, opts ...*mopt.AggregateOptions) (
 			*mongo.Cursor, error)
+		// BulkWrite performs a bulk write operation.
 		BulkWrite(ctx context.Context, models []mongo.WriteModel, opts ...*mopt.BulkWriteOptions) (
 			*mongo.BulkWriteResult, error)
+		// Clone creates a copy of this collection with the same settings.
 		Clone(opts ...*mopt.CollectionOptions) (*mongo.Collection, error)
+		// CountDocuments returns the number of documents in the collection that match the filter.
 		CountDocuments(ctx context.Context, filter interface{}, opts ...*mopt.CountOptions) (int64, error)
+		// Database returns the database that this collection is a part of.
 		Database() *mongo.Database
+		// DeleteMany deletes documents from the collection that match the filter.
 		DeleteMany(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (
 			*mongo.DeleteResult, error)
+		// DeleteOne deletes at most one document from the collection that matches the filter.
 		DeleteOne(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (
 			*mongo.DeleteResult, error)
+		// Distinct returns a list of distinct values for the given key across the collection.
 		Distinct(ctx context.Context, fieldName string, filter interface{},
 			opts ...*mopt.DistinctOptions) ([]interface{}, error)
+		// Drop drops this collection from database.
 		Drop(ctx context.Context) error
+		// EstimatedDocumentCount returns an estimate of the count of documents in a collection
+		// using collection metadata.
 		EstimatedDocumentCount(ctx context.Context, opts ...*mopt.EstimatedDocumentCountOptions) (int64, error)
+		// Find finds the documents matching the provided filter.
 		Find(ctx context.Context, filter interface{}, opts ...*mopt.FindOptions) (*mongo.Cursor, error)
+		// FindOne returns up to one document that matches the provided filter.
 		FindOne(ctx context.Context, filter interface{}, opts ...*mopt.FindOneOptions) (
 			*mongo.SingleResult, error)
+		// FindOneAndDelete returns at most one document that matches the filter. If the filter
+		// matches multiple documents, only the first document is deleted.
 		FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*mopt.FindOneAndDeleteOptions) (
 			*mongo.SingleResult, error)
+		// FindOneAndReplace returns at most one document that matches the filter. If the filter
+		// matches multiple documents, FindOneAndReplace returns the first document in the
+		// collection that matches the filter.
 		FindOneAndReplace(ctx context.Context, filter interface{}, replacement interface{},
 			opts ...*mopt.FindOneAndReplaceOptions) (*mongo.SingleResult, error)
+		// FindOneAndUpdate returns at most one document that matches the filter. If the filter
+		// matches multiple documents, FindOneAndUpdate returns the first document in the
+		// collection that matches the filter.
 		FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{},
 			opts ...*mopt.FindOneAndUpdateOptions) (*mongo.SingleResult, error)
+		// Indexes returns the index view for this collection.
 		Indexes() mongo.IndexView
+		// InsertMany inserts the provided documents.
 		InsertMany(ctx context.Context, documents []interface{}, opts ...*mopt.InsertManyOptions) (
 			*mongo.InsertManyResult, error)
+		// InsertOne inserts the provided document.
 		InsertOne(ctx context.Context, document interface{}, opts ...*mopt.InsertOneOptions) (
 			*mongo.InsertOneResult, error)
+		// ReplaceOne replaces at most one document that matches the filter.
 		ReplaceOne(ctx context.Context, filter interface{}, replacement interface{},
 			opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error)
+		// UpdateByID updates a single document matching the provided filter.
 		UpdateByID(ctx context.Context, id interface{}, update interface{},
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
+		// UpdateMany updates the provided documents.
 		UpdateMany(ctx context.Context, filter interface{}, update interface{},
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
+		// UpdateOne updates a single document matching the provided filter.
 		UpdateOne(ctx context.Context, filter interface{}, update interface{},
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
+		// Watch returns a change stream cursor used to receive notifications of changes to the collection.
 		Watch(ctx context.Context, pipeline interface{}, opts ...*mopt.ChangeStreamOptions) (
 			*mongo.ChangeStream, error)
 	}

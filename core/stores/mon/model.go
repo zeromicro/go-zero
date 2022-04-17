@@ -11,6 +11,7 @@ import (
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Model is a mongodb store model that represents a collection.
 type Model struct {
 	Collection
 	name string
@@ -53,6 +54,7 @@ func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Break
 	}
 }
 
+// StartSession starts a new session.
 func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, err error) {
 	err = m.brk.DoWithAcceptable(func() error {
 		starTime := timex.Now()
@@ -66,6 +68,7 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 	return
 }
 
+// Aggregate executes an aggregation pipeline.
 func (m *Model) Aggregate(ctx context.Context, v, pipeline interface{}, opts ...*mopt.AggregateOptions) error {
 	cur, err := m.Collection.Aggregate(ctx, pipeline, opts...)
 	if err != nil {
@@ -76,6 +79,7 @@ func (m *Model) Aggregate(ctx context.Context, v, pipeline interface{}, opts ...
 	return cur.All(ctx, v)
 }
 
+// DeleteMany deletes documents that match the filter.
 func (m *Model) DeleteMany(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (int64, error) {
 	res, err := m.Collection.DeleteMany(ctx, filter, opts...)
 	if err != nil {
@@ -85,6 +89,7 @@ func (m *Model) DeleteMany(ctx context.Context, filter interface{}, opts ...*mop
 	return res.DeletedCount, nil
 }
 
+// DeleteOne deletes the first document that matches the filter.
 func (m *Model) DeleteOne(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (int64, error) {
 	res, err := m.Collection.DeleteOne(ctx, filter, opts...)
 	if err != nil {
@@ -94,6 +99,7 @@ func (m *Model) DeleteOne(ctx context.Context, filter interface{}, opts ...*mopt
 	return res.DeletedCount, nil
 }
 
+// Find finds documents that match the filter.
 func (m *Model) Find(ctx context.Context, v, filter interface{}, opts ...*mopt.FindOptions) error {
 	cur, err := m.Collection.Find(ctx, filter, opts...)
 	if err != nil {
@@ -104,6 +110,7 @@ func (m *Model) Find(ctx context.Context, v, filter interface{}, opts ...*mopt.F
 	return cur.All(ctx, v)
 }
 
+// FindOne finds the first document that matches the filter.
 func (m *Model) FindOne(ctx context.Context, v, filter interface{}, opts ...*mopt.FindOneOptions) error {
 	res, err := m.Collection.FindOne(ctx, filter, opts...)
 	if err != nil {
@@ -113,6 +120,7 @@ func (m *Model) FindOne(ctx context.Context, v, filter interface{}, opts ...*mop
 	return res.Decode(v)
 }
 
+// FindOneAndDelete finds a single document and deletes it.
 func (m *Model) FindOneAndDelete(ctx context.Context, v, filter interface{},
 	opts ...*mopt.FindOneAndDeleteOptions) error {
 	res, err := m.Collection.FindOneAndDelete(ctx, filter, opts...)
@@ -123,6 +131,7 @@ func (m *Model) FindOneAndDelete(ctx context.Context, v, filter interface{},
 	return res.Decode(v)
 }
 
+// FindOneAndReplace finds a single document and replaces it.
 func (m *Model) FindOneAndReplace(ctx context.Context, v, filter interface{}, replacement interface{},
 	opts ...*mopt.FindOneAndReplaceOptions) error {
 	res, err := m.Collection.FindOneAndReplace(ctx, filter, replacement, opts...)
@@ -133,6 +142,7 @@ func (m *Model) FindOneAndReplace(ctx context.Context, v, filter interface{}, re
 	return res.Decode(v)
 }
 
+// FindOneAndUpdate finds a single document and updates it.
 func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, update interface{},
 	opts ...*mopt.FindOneAndUpdateOptions) error {
 	res, err := m.Collection.FindOneAndUpdate(ctx, filter, update, opts...)
