@@ -19,6 +19,10 @@ var apiTemplate string
 
 // ApiCommand create api template file
 func ApiCommand(c *cli.Context) error {
+	if c.NumFlags() == 0 {
+		cli.ShowAppHelpAndExit(c, 1)
+	}
+
 	apiFile := c.String("o")
 	if len(apiFile) == 0 {
 		return errors.New("missing -o")
