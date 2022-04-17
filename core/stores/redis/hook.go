@@ -16,7 +16,7 @@ import (
 
 var (
 	startTimeKey = contextKey("startTime")
-	spanKey      = contextKey("spanKey")
+	spanKey      = contextKey("span")
 	durationHook = hook{tracer: otel.GetTracerProvider().Tracer(trace.TraceName)}
 )
 
@@ -93,7 +93,7 @@ func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
 }
 
 func (h hook) spanStart(ctx context.Context) context.Context {
-	ctx, span := h.tracer.Start(context.WithValue(ctx, startTimeKey, timex.Now()), "redis")
+	ctx, span := h.tracer.Start(ctx, "redis")
 	return context.WithValue(ctx, spanKey, span)
 }
 
