@@ -18,6 +18,7 @@ const defaultSlowThreshold = time.Millisecond * 500
 var ErrNotFound = mongo.ErrNoDocuments
 
 type (
+	// Collection defines a MongoDB collection.
 	Collection interface {
 		// Aggregate executes an aggregation pipeline.
 		Aggregate(ctx context.Context, pipeline interface{}, opts ...*mopt.AggregateOptions) (
