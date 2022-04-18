@@ -12,7 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
@@ -90,7 +89,6 @@ func TestModel_FindOne(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "foo", Value: "bar"},
 			})
 		mt.AddMockResponses(resp)
@@ -114,7 +112,6 @@ func TestModel_FindOneNoCache(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "foo", Value: "bar"},
 			})
 		mt.AddMockResponses(resp)

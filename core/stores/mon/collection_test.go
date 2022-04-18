@@ -134,7 +134,6 @@ func TestCollection_CountDocuments(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "n", Value: 1},
 			}))
 		res, err := c.CountDocuments(context.Background(), bson.D{})
@@ -221,7 +220,6 @@ func TestCollectionFind(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "John"},
 			})
 		getMore := mtest.CreateCursorResponse(
@@ -229,7 +227,6 @@ func TestCollectionFind(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "Mary"},
 			})
 		killCursors := mtest.CreateCursorResponse(
@@ -271,7 +268,6 @@ func TestCollectionFindOne(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "John"},
 			})
 		getMore := mtest.CreateCursorResponse(
@@ -279,7 +275,6 @@ func TestCollectionFindOne(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "Mary"},
 			})
 		killCursors := mtest.CreateCursorResponse(

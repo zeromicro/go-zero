@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
@@ -34,7 +33,6 @@ func TestModel_Aggregate(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "John"},
 			})
 		getMore := mtest.CreateCursorResponse(
@@ -42,7 +40,6 @@ func TestModel_Aggregate(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "Mary"},
 			})
 		killCursors := mtest.CreateCursorResponse(
@@ -107,7 +104,6 @@ func TestModel_Find(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "John"},
 			})
 		getMore := mtest.CreateCursorResponse(
@@ -115,7 +111,6 @@ func TestModel_Find(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "Mary"},
 			})
 		killCursors := mtest.CreateCursorResponse(
@@ -146,7 +141,6 @@ func TestModel_FindOne(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.FirstBatch,
 			bson.D{
-				{Key: "_id", Value: primitive.NewObjectID()},
 				{Key: "name", Value: "John"},
 			})
 		killCursors := mtest.CreateCursorResponse(
