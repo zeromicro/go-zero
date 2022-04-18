@@ -681,7 +681,7 @@ func (s *Redis) HdelCtx(ctx context.Context, key string, fields ...string) (val 
 			return err
 		}
 
-		val = v == 1
+		val = v >= 1
 		return nil
 	}, acceptable)
 
@@ -1219,7 +1219,7 @@ func (s *Redis) PfaddCtx(ctx context.Context, key string, values ...interface{})
 			return err
 		}
 
-		val = v == 1
+		val = v >= 1
 		return nil
 	}, acceptable)
 
