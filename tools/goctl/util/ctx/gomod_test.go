@@ -1,9 +1,11 @@
 package ctx
 
 import (
+	"bytes"
 	"go/build"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -35,4 +37,76 @@ func TestProjectFromGoMod(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, projectName, ctx.Path)
 	assert.Equal(t, dir, ctx.Dir)
+}
+
+func Test_getRealModule(t *testing.T) {
+	type args struct {
+		workDir string
+		execRun execx.RunFunc
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *Module
+		wantErr bool
+	}{
+		{
+			name: "single module",
+			args: args{
+				workDir: "/home/foo",
+				execRun: func(arg, dir string, in ...*bytes.Buffer) (string, error) {
+					return `{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.16"}`, nil
+				},
+			},
+			want: &Module{
+				Path:      "foo",
+				Dir:       "/home/foo",
+				GoMod:     "/home/foo/go.mod",
+				GoVersion: "go1.16",
+			},
+		},
+		{
+			name: "go work multiple modules",
+			args: args{
+				workDir: "/home/bar",
+				execRun: func(arg, dir string, in ...*bytes.Buffer) (string, error) {
+					return `
+					{
+						"Path":"foo",
+						"Dir":"/home/foo",
+						"GoMod":"/home/foo/go.mod",
+						"GoVersion":"go1.18"
+					}
+					{
+						"Path":"bar",
+						"Dir":"/home/bar",
+						"GoMod":"/home/bar/go.mod",
+						"GoVersion":"go1.18"
+					}`, nil
+				},
+			},
+			want: &Module{
+				Path:      "bar",
+				Dir:       "/home/bar",
+				GoMod:     "/home/bar/go.mod",
+				GoVersion: "go1.18",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := getRealModule(tt.args.workDir, tt.args.execRun)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getRealModule() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("getRealModule() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
