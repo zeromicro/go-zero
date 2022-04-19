@@ -11,14 +11,21 @@ import (
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Model is a mongodb store model that represents a collection.
-type Model struct {
-	Collection
-	name string
-	cli  *mongo.Client
-	brk  breaker.Breaker
-	opts []Option
-}
+type (
+	// Model is a mongodb store model that represents a collection.
+	Model struct {
+		Collection
+		name string
+		cli  *mongo.Client
+		brk  breaker.Breaker
+		opts []Option
+	}
+
+	warpSession struct {
+		mongo.Session
+		brk breaker.Breaker
+	}
+)
 
 // MustNewModel returns a Model, exits on errors.
 func MustNewModel(uri, db, collection string, opts ...Option) *Model {
@@ -153,4 +160,43 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, upd
 	}
 
 	return res.Decode(v)
+}
+
+func (w *warpSession) AbortTransaction(ctx context.Context) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
+	return w.brk.DoWithAcceptable(func() error {
+		return w.Session.AbortTransaction(ctx)
+	}, acceptable)
+}
+
+func (w *warpSession) CommitTransaction(ctx context.Context) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
+	return w.brk.DoWithAcceptable(func() error {
+		return w.Session.CommitTransaction(ctx)
+	}, acceptable)
+}
+
+func (w *warpSession) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) (interface{}, error), opts ...*mopt.TransactionOptions) (res interface{}, err error) {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
+	err = w.brk.DoWithAcceptable(func() error {
+		res, err = w.Session.WithTransaction(ctx, fn, opts...)
+		return err
+	}, acceptable)
+
+	return
+}
+
+func (w *warpSession) EndSession(ctx context.Context) {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+	_ = w.brk.DoWithAcceptable(func() error {
+		w.Session.EndSession(ctx)
+		return nil
+	}, acceptable)
 }

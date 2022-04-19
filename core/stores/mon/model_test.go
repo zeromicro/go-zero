@@ -18,6 +18,17 @@ func TestModel_StartSession(t *testing.T) {
 		m := createModel(mt)
 		sess, err := m.StartSession()
 		assert.Nil(t, err)
+
+		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (interface{}, error) {
+			_ = sessCtx.StartTransaction()
+			sessCtx.Client().Database("1")
+			sessCtx.EndSession(context.Background())
+			return nil, nil
+		})
+		assert.Nil(t, err)
+
+		assert.NoError(t, sess.CommitTransaction(context.Background()))
+		assert.Error(t, sess.AbortTransaction(context.Background()))
 		sess.EndSession(context.Background())
 	})
 }
