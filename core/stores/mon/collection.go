@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/x/mongo/driver/session"
 	"go.opentelemetry.io/otel"
 	tracesdk "go.opentelemetry.io/otel/trace"
 )
@@ -471,7 +472,11 @@ func (p keepablePromise) keep(err error) error {
 
 func acceptable(err error) bool {
 	return err == nil || err == mongo.ErrNoDocuments || err == mongo.ErrNilValue ||
-		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice
+		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice ||
+		// session err
+		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted || err == session.ErrTransactInProgress ||
+		err == session.ErrAbortAfterCommit || err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
+		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
 }
 
 func startSpan(ctx context.Context) (context.Context, tracesdk.Span) {

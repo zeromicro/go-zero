@@ -63,7 +63,7 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 		}()
 
 		session, seErr := m.cli.StartSession(opts...)
-		sess = &warpSession{Session: session}
+		sess = &warpSession{Session: session, brk: m.brk}
 
 		return seErr
 	}, acceptable)
