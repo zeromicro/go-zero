@@ -7,8 +7,6 @@ import (
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var _ mongo.Session = (*warpSession)(nil)
-
 type warpSession struct {
 	mongo.Session
 }
