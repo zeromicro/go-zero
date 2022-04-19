@@ -62,10 +62,10 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 			logDuration(m.name, "StartSession", starTime, err)
 		}()
 
-		session, seErr := m.cli.StartSession(opts...)
+		session, sessionErr := m.cli.StartSession(opts...)
 		sess = &warpSession{Session: session, brk: m.brk}
 
-		return seErr
+		return sessionErr
 	}, acceptable)
 	return
 }
