@@ -47,6 +47,8 @@ func TestResourceManager_GetResourceError(t *testing.T) {
 
 func TestResourceManager_Close(t *testing.T) {
 	manager := NewResourceManager()
+	defer manager.Close()
+
 	for i := 0; i < 10; i++ {
 		_, err := manager.GetResource("key", func() (io.Closer, error) {
 			return nil, errors.New("fail")
@@ -61,6 +63,8 @@ func TestResourceManager_Close(t *testing.T) {
 
 func TestResourceManager_UseAfterClose(t *testing.T) {
 	manager := NewResourceManager()
+	defer manager.Close()
+
 	_, err := manager.GetResource("key", func() (io.Closer, error) {
 		return nil, errors.New("fail")
 	})
@@ -71,4 +75,19 @@ func TestResourceManager_UseAfterClose(t *testing.T) {
 		})
 		assert.NotNil(t, err)
 	}
+}
+
+func TestResourceManager_Inject(t *testing.T) {
+	manager := NewResourceManager()
+	defer manager.Close()
+
+	manager.Inject("key", &dummyResource{
+		age: 10,
+	})
+
+	val, err := manager.GetResource("key", func() (io.Closer, error) {
+		return nil, nil
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, 10, val.(*dummyResource).age)
 }

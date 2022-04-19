@@ -68,3 +68,10 @@ func (manager *ResourceManager) GetResource(key string, create func() (io.Closer
 
 	return val.(io.Closer), nil
 }
+
+// Inject injects the resource associated with given key.
+func (manager *ResourceManager) Inject(key string, resource io.Closer) {
+	manager.lock.Lock()
+	manager.resources[key] = resource
+	manager.lock.Unlock()
+}
