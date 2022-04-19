@@ -122,7 +122,7 @@ func TestTimeoutWriteBadCode(t *testing.T) {
 func TestTimeoutClientClosed(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Minute)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(1000)
+		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
