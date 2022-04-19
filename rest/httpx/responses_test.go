@@ -146,6 +146,16 @@ func TestWriteJsonLessWritten(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.code)
 }
 
+func TestWriteJsonMarshalFailed(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	WriteJson(&w, http.StatusOK, map[string]interface{}{
+		"Data": complex(0, 0),
+	})
+	assert.Equal(t, http.StatusInternalServerError, w.code)
+}
+
 type tracedResponseWriter struct {
 	headers     map[string][]string
 	builder     strings.Builder
@@ -153,6 +163,7 @@ type tracedResponseWriter struct {
 	code        int
 	lessWritten bool
 	timeout     bool
+	wroteHeader bool
 }
 
 func (w *tracedResponseWriter) Header() http.Header {
@@ -174,5 +185,9 @@ func (w *tracedResponseWriter) Write(bytes []byte) (n int, err error) {
 }
 
 func (w *tracedResponseWriter) WriteHeader(code int) {
+	if w.wroteHeader {
+		return
+	}
+	w.wroteHeader = true
 	w.code = code
 }
