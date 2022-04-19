@@ -15,6 +15,10 @@ import (
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
 func RPCNew(c *cli.Context) error {
+	if c.NArg() == 0 {
+		cli.ShowCommandHelpAndExit(c, "new", 1)
+	}
+
 	rpcname := c.Args().First()
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
@@ -61,6 +65,10 @@ func RPCNew(c *cli.Context) error {
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(c *cli.Context) error {
 	console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+
+	if c.NumFlags() == 0 {
+		cli.ShowCommandHelpAndExit(c, "template", 1)
+	}
 
 	protoFile := c.String("o")
 	home := c.String("home")

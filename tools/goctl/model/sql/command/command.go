@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command/migrationnotes"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
@@ -38,6 +39,7 @@ var errNotMatched = errors.New("sql not matched")
 
 // MysqlDDL generates model code from ddl
 func MysqlDDL(ctx *cli.Context) error {
+	migrationnotes.BeforeCommands(ctx)
 	src := ctx.String(flagSrc)
 	dir := ctx.String(flagDir)
 	cache := ctx.Bool(flagCache)
@@ -66,6 +68,7 @@ func MysqlDDL(ctx *cli.Context) error {
 
 // MySqlDataSource generates model code from datasource
 func MySqlDataSource(ctx *cli.Context) error {
+	migrationnotes.BeforeCommands(ctx)
 	url := strings.TrimSpace(ctx.String(flagURL))
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)
@@ -95,6 +98,7 @@ func MySqlDataSource(ctx *cli.Context) error {
 
 // PostgreSqlDataSource generates model code from datasource
 func PostgreSqlDataSource(ctx *cli.Context) error {
+	migrationnotes.BeforeCommands(ctx)
 	url := strings.TrimSpace(ctx.String(flagURL))
 	dir := strings.TrimSpace(ctx.String(flagDir))
 	cache := ctx.Bool(flagCache)

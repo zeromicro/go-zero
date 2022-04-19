@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	_ "embed"
 	"fmt"
 	"path"
 	"strings"
@@ -14,36 +15,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const (
-	defaultLogicPackage = "logic"
-	handlerTemplate     = `package {{.PkgName}}
+const defaultLogicPackage = "logic"
 
-import (
-	"net/http"
-
-	{{if .After1_1_10}}"github.com/zeromicro/go-zero/rest/httpx"{{end}}
-	{{.ImportPackages}}
-)
-
-func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		{{if .HasRequest}}var req types.{{.RequestType}}
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.Error(w, err)
-			return
-		}
-
-		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
-		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
-		if err != nil {
-			httpx.Error(w, err)
-		} else {
-			{{if .HasResp}}httpx.OkJson(w, resp){{else}}httpx.Ok(w){{end}}
-		}
-	}
-}
-`
-)
+//go:embed handler.tpl
+var handlerTemplate string
 
 type handlerInfo struct {
 	PkgName        string
@@ -72,14 +47,10 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		return err
 	}
 
-	goctlVersion := version.GetGoctlVersion()
-	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	after1_1_10 := version.IsVersionGreaterThan(goctlVersion, "1.1.10")
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, parentPkg),
 		HandlerName:    handler,
-		After1_1_10:    after1_1_10,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),

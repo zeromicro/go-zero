@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	_ "embed"
 	"fmt"
 	"strconv"
 
@@ -12,11 +13,10 @@ import (
 const (
 	defaultPort = 8888
 	etcDir      = "etc"
-	etcTemplate = `Name: {{.serviceName}}
-Host: {{.host}}
-Port: {{.port}}
-`
 )
+
+//go:embed etc.tpl
+var etcTemplate string
 
 func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)

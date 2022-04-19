@@ -11,7 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
-	su "github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
@@ -64,14 +63,13 @@ func parseNameOriginal(ts []*parser.Table) (nameOriginals [][]string) {
 // Parse parses ddl into golang structure
 func Parse(filename, database string) ([]*Table, error) {
 	p := parser.NewParser()
-	ts, err := p.From(filename)
+	tables, err := p.From(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	nameOriginals := parseNameOriginal(ts)
+	nameOriginals := parseNameOriginal(tables)
 
-	tables := GetSafeTables(ts)
 	indexNameGen := func(column ...string) string {
 		return strings.Join(column, "_")
 	}
@@ -370,36 +368,4 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 		fieldM[each.Name] = field
 	}
 	return fieldM, nil
-}
-
-// GetSafeTables escapes the golang keywords from sql tables.
-func GetSafeTables(tables []*parser.Table) []*parser.Table {
-	var list []*parser.Table
-	for _, t := range tables {
-		table := GetSafeTable(t)
-		list = append(list, table)
-	}
-
-	return list
-}
-
-// GetSafeTable escapes the golang keywords from sql table.
-func GetSafeTable(table *parser.Table) *parser.Table {
-	table.Name = su.EscapeGolangKeyword(table.Name)
-	for _, c := range table.Columns {
-		c.Name = su.EscapeGolangKeyword(c.Name)
-	}
-
-	for _, e := range table.Constraints {
-		var uniqueKeys, primaryKeys []string
-		for _, u := range e.ColumnUniqueKey {
-			uniqueKeys = append(uniqueKeys, su.EscapeGolangKeyword(u))
-		}
-		for _, p := range e.ColumnPrimaryKey {
-			primaryKeys = append(primaryKeys, su.EscapeGolangKeyword(p))
-		}
-		e.ColumnUniqueKey = uniqueKeys
-		e.ColumnPrimaryKey = primaryKeys
-	}
-	return table
 }

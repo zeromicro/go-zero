@@ -98,13 +98,18 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 
 // Set sets value into c with key.
 func (c *Cache) Set(key string, value interface{}) {
+	c.SetWithExpire(key, value, c.expire)
+}
+
+// SetWithExpire sets value into c with key and expire with the given value.
+func (c *Cache) SetWithExpire(key string, value interface{}, expire time.Duration) {
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
 	c.lruCache.add(key)
 	c.lock.Unlock()
 
-	expiry := c.unstableExpiry.AroundDuration(c.expire)
+	expiry := c.unstableExpiry.AroundDuration(expire)
 	if ok {
 		c.timingWheel.MoveTimer(key, expiry)
 	} else {

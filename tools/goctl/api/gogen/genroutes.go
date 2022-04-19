@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -23,7 +24,8 @@ const (
 package handler
 
 import (
-	"net/http"
+	"net/http"{{if .hasTimeout}}
+	"time"{{end}}
 
 	{{.importPackages}}
 )
@@ -34,9 +36,10 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 `
 	routesAdditionTemplate = `
 	server.AddRoutes(
-		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}}
+		{{.routes}} {{.jwt}}{{.signature}} {{.prefix}} {{.timeout}}
 	)
 `
+	timeoutThreshold = time.Millisecond
 )
 
 var mapping = map[string]string{
@@ -57,6 +60,7 @@ type (
 		jwtEnabled       bool
 		signatureEnabled bool
 		authName         string
+		timeout          string
 		middlewares      []string
 		prefix           string
 		jwtTrans         string
@@ -80,6 +84,7 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 		return err
 	}
 
+	var hasTimeout bool
 	gt := template.Must(template.New("groupTemplate").Parse(templateText))
 	for _, g := range groups {
 		var gbuilder strings.Builder
@@ -110,6 +115,22 @@ func genRoutes(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error
 rest.WithPrefix("%s"),`, g.prefix)
 		}
 
+		var timeout string
+		if len(g.timeout) > 0 {
+			duration, err := time.ParseDuration(g.timeout)
+			if err != nil {
+				return err
+			}
+
+			// why we check this, maybe some users set value 1, it's 1ns, not 1s.
+			if duration < timeoutThreshold {
+				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
+			}
+
+			timeout = fmt.Sprintf("rest.WithTimeout(%d * time.Millisecond),", duration/time.Millisecond)
+			hasTimeout = true
+		}
+
 		var routes string
 		if len(g.middlewares) > 0 {
 			gbuilder.WriteString("\n}...,")
@@ -130,6 +151,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 			"jwt":       jwt,
 			"signature": signature,
 			"prefix":    prefix,
+			"timeout":   timeout,
 		}); err != nil {
 			return err
 		}
@@ -139,8 +161,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 	if err != nil {
 		return err
 	}
-	routeFilename = routeFilename + ".go"
 
+	routeFilename = routeFilename + ".go"
 	filename := path.Join(dir, handlerDir, routeFilename)
 	os.Remove(filename)
 
@@ -152,7 +174,8 @@ rest.WithPrefix("%s"),`, g.prefix)
 		category:        category,
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
-		data: map[string]string{
+		data: map[string]interface{}{
+			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),
 		},
@@ -171,7 +194,8 @@ func genRouteImports(parentPkg string, api *spec.ApiSpec) string {
 					continue
 				}
 			}
-			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder), pathx.JoinPackages(parentPkg, handlerDir, folder)))
+			importSet.AddStr(fmt.Sprintf("%s \"%s\"", toPrefix(folder),
+				pathx.JoinPackages(parentPkg, handlerDir, folder)))
 		}
 	}
 	imports := importSet.KeysStr()
@@ -204,6 +228,8 @@ func getRoutes(api *spec.ApiSpec) ([]group, error) {
 				handler: handler,
 			})
 		}
+
+		groupedRoutes.timeout = g.GetAnnotation("timeout")
 
 		jwt := g.GetAnnotation("jwt")
 		if len(jwt) > 0 {

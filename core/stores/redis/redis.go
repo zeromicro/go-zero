@@ -681,7 +681,7 @@ func (s *Redis) HdelCtx(ctx context.Context, key string, fields ...string) (val 
 			return err
 		}
 
-		val = v == 1
+		val = v >= 1
 		return nil
 	}, acceptable)
 
@@ -1219,7 +1219,7 @@ func (s *Redis) PfaddCtx(ctx context.Context, key string, values ...interface{})
 			return err
 		}
 
-		val = v == 1
+		val = v >= 1
 		return nil
 	}, acceptable)
 
@@ -1404,21 +1404,28 @@ func (s *Redis) ScanCtx(ctx context.Context, cursor uint64, match string, count 
 }
 
 // SetBit is the implementation of redis setbit command.
-func (s *Redis) SetBit(key string, offset int64, value int) error {
+func (s *Redis) SetBit(key string, offset int64, value int) (int, error) {
 	return s.SetBitCtx(context.Background(), key, offset, value)
 }
 
 // SetBitCtx is the implementation of redis setbit command.
-func (s *Redis) SetBitCtx(ctx context.Context, key string, offset int64, value int) error {
-	return s.brk.DoWithAcceptable(func() error {
+func (s *Redis) SetBitCtx(ctx context.Context, key string, offset int64, value int) (val int, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
 
-		_, err = conn.SetBit(ctx, key, offset, value).Result()
-		return err
+		v, err := conn.SetBit(ctx, key, offset, value).Result()
+		if err != nil {
+			return err
+		}
+
+		val = int(v)
+		return nil
 	}, acceptable)
+
+	return
 }
 
 // Sscan is the implementation of redis sscan command.

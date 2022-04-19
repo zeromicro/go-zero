@@ -194,6 +194,41 @@ func TestEngine_checkedTimeout(t *testing.T) {
 	}
 }
 
+func TestEngine_checkedMaxBytes(t *testing.T) {
+	tests := []struct {
+		name     string
+		maxBytes int64
+		expect   int64
+	}{
+		{
+			name:   "not set",
+			expect: 1000,
+		},
+		{
+			name:     "less",
+			maxBytes: 500,
+			expect:   500,
+		},
+		{
+			name:     "equal",
+			maxBytes: 1000,
+			expect:   1000,
+		},
+		{
+			name:     "more",
+			maxBytes: 1500,
+			expect:   1500,
+		},
+	}
+
+	ng := newEngine(RestConf{
+		MaxBytes: 1000,
+	})
+	for _, test := range tests {
+		assert.Equal(t, test.expect, ng.checkedMaxBytes(test.maxBytes))
+	}
+}
+
 func TestEngine_notFoundHandler(t *testing.T) {
 	logx.Disable()
 

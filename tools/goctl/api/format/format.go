@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/format"
 	"go/scanner"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -29,14 +30,14 @@ const (
 func GoFormatApi(c *cli.Context) error {
 	useStdin := c.Bool("stdin")
 	skipCheckDeclare := c.Bool("declare")
+	dir := c.String("dir")
 
 	var be errorx.BatchError
 	if useStdin {
-		if err := apiFormatByStdin(skipCheckDeclare); err != nil {
+		if err := apiFormatReader(os.Stdin, dir, skipCheckDeclare); err != nil {
 			be.Add(err)
 		}
 	} else {
-		dir := c.String("dir")
 		if len(dir) == 0 {
 			return errors.New("missing -dir")
 		}
@@ -65,13 +66,14 @@ func GoFormatApi(c *cli.Context) error {
 	return be.Err()
 }
 
-func apiFormatByStdin(skipCheckDeclare bool) error {
-	data, err := ioutil.ReadAll(os.Stdin)
+// apiFormatReader
+// filename is needed when there are `import` literals.
+func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) error {
+	data, err := ioutil.ReadAll(reader)
 	if err != nil {
 		return err
 	}
-
-	result, err := apiFormat(string(data), skipCheckDeclare)
+	result, err := apiFormat(string(data), skipCheckDeclare, filename)
 	if err != nil {
 		return err
 	}

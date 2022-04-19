@@ -53,8 +53,8 @@ func genCacheKeys(table parser.Table) (Key, []Key) {
 
 func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	var (
-		varLeftJoin, varRightJon, fieldNameJoin Join
-		varLeft, varRight, varExpression        string
+		varLeftJoin, varRightJoin, fieldNameJoin Join
+		varLeft, varRight, varExpression         string
 
 		keyLeftJoin, keyRightJoin, keyRightArgJoin, dataRightJoin         Join
 		keyLeft, keyRight, dataKeyRight, keyExpression, dataKeyExpression string
@@ -63,19 +63,19 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
 	if len(dbName) > 0 {
 		varLeftJoin = append(varLeftJoin, "cache", dbName, tableName)
-		varRightJon = append(varRightJon, "cache", dbName, tableName)
+		varRightJoin = append(varRightJoin, "cache", dbName, tableName)
 		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
 	} else {
 		varLeftJoin = append(varLeftJoin, "cache", tableName)
-		varRightJon = append(varRightJon, "cache", tableName)
+		varRightJoin = append(varRightJoin, "cache", tableName)
 		keyLeftJoin = append(keyLeftJoin, tableName)
 	}
 
 	for _, each := range in {
 		varLeftJoin = append(varLeftJoin, each.Name.Source())
-		varRightJon = append(varRightJon, each.Name.Source())
+		varRightJoin = append(varRightJoin, each.Name.Source())
 		keyLeftJoin = append(keyLeftJoin, each.Name.Source())
-		keyRightJoin = append(keyRightJoin, stringx.From(each.Name.ToCamel()).Untitle())
+		keyRightJoin = append(keyRightJoin, util.EscapeGolangKeyword(stringx.From(each.Name.ToCamel()).Untitle()))
 		keyRightArgJoin = append(keyRightArgJoin, "%v")
 		dataRightJoin = append(dataRightJoin, "data."+each.Name.ToCamel())
 		fieldNameJoin = append(fieldNameJoin, each.Name.Source())
@@ -84,7 +84,7 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	keyLeftJoin = append(keyLeftJoin, "key")
 
 	varLeft = util.SafeString(varLeftJoin.Camel().With("").Untitle())
-	varRight = fmt.Sprintf(`"%s"`, varRightJon.Camel().Untitle().With(":").Source()+":")
+	varRight = fmt.Sprintf(`"%s"`, varRightJoin.Camel().Untitle().With(":").Source()+":")
 	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
 
 	keyLeft = util.SafeString(keyLeftJoin.Camel().With("").Untitle())
