@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -59,6 +60,8 @@ func RPCNew(c *cli.Context) error {
 
 // RPCTemplate is the entry for generate rpc template
 func RPCTemplate(c *cli.Context) error {
+	console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+
 	protoFile := c.String("o")
 	home := c.String("home")
 	remote := c.String("remote")

@@ -101,8 +101,7 @@ var commands = []cli.Command{
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "o",
-				Usage: "output a sample .api file",
-				Value: "greet.api",
+				Usage: "output a sample api file",
 			},
 			cli.StringFlag{
 				Name: "home",
@@ -498,8 +497,7 @@ var commands = []cli.Command{
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "o",
-				Usage: "output a sample .proto file",
-				Value: "greet.proto",
+				Usage: "output a sample proto file",
 			},
 			cli.StringFlag{
 				Name: "home",
@@ -552,6 +550,32 @@ var commands = []cli.Command{
 					},
 				},
 				Action: rpc.RPCNew,
+			},
+			{
+				Name:  "template",
+				Usage: `generate proto template`,
+				Flags: []cli.Flag{
+					cli.StringFlag{
+						Name:  "out, o",
+						Usage: "the target path of proto (deprecated)",
+					},
+					cli.StringFlag{
+						Name: "home",
+						Usage: "the goctl home path of the template, --home and --remote cannot be set at the same time," +
+							" if they are, --remote has higher priority",
+					},
+					cli.StringFlag{
+						Name: "remote",
+						Usage: "the remote git repo of the template, --home and --remote cannot be set at the same time, " +
+							"if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the " +
+							"https://github.com/zeromicro/go-zero-template directory structure",
+					},
+					cli.StringFlag{
+						Name:  "branch",
+						Usage: "the branch of the remote repo, it does work with --remote",
+					},
+				},
+				Action: rpc.RPCTemplate,
 			},
 			{
 				Name:        "protoc",
