@@ -1,0 +1,4 @@
+service A-api {
+    @handler GreetHandler
+    post /greet/ping ()
+}

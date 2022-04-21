@@ -17,7 +17,6 @@
 
 # for test purpose
 **/adhoc
-**/testdata
 
 # gitlab ci
 .cache
