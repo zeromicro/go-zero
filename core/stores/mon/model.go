@@ -21,7 +21,7 @@ type (
 		opts []Option
 	}
 
-	warpSession struct {
+	wrapSession struct {
 		mongo.Session
 		brk breaker.Breaker
 	}
@@ -70,7 +70,7 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 		}()
 
 		session, sessionErr := m.cli.StartSession(opts...)
-		sess = &warpSession{Session: session, brk: m.brk}
+		sess = &wrapSession{Session: session, brk: m.brk}
 
 		return sessionErr
 	}, acceptable)
@@ -162,7 +162,7 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, upd
 	return res.Decode(v)
 }
 
-func (w *warpSession) AbortTransaction(ctx context.Context) error {
+func (w *wrapSession) AbortTransaction(ctx context.Context) error {
 	ctx, span := startSpan(ctx)
 	defer span.End()
 
@@ -171,7 +171,7 @@ func (w *warpSession) AbortTransaction(ctx context.Context) error {
 	}, acceptable)
 }
 
-func (w *warpSession) CommitTransaction(ctx context.Context) error {
+func (w *wrapSession) CommitTransaction(ctx context.Context) error {
 	ctx, span := startSpan(ctx)
 	defer span.End()
 
@@ -180,7 +180,7 @@ func (w *warpSession) CommitTransaction(ctx context.Context) error {
 	}, acceptable)
 }
 
-func (w *warpSession) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) (interface{}, error), opts ...*mopt.TransactionOptions) (res interface{}, err error) {
+func (w *wrapSession) WithTransaction(ctx context.Context, fn func(sessCtx mongo.SessionContext) (interface{}, error), opts ...*mopt.TransactionOptions) (res interface{}, err error) {
 	ctx, span := startSpan(ctx)
 	defer span.End()
 
@@ -192,7 +192,7 @@ func (w *warpSession) WithTransaction(ctx context.Context, fn func(sessCtx mongo
 	return
 }
 
-func (w *warpSession) EndSession(ctx context.Context) {
+func (w *wrapSession) EndSession(ctx context.Context) {
 	ctx, span := startSpan(ctx)
 	defer span.End()
 
