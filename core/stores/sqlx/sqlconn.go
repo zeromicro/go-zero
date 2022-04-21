@@ -301,13 +301,11 @@ func (s statement) Exec(args ...interface{}) (sql.Result, error) {
 	return s.ExecCtx(context.Background(), args...)
 }
 
-func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (result sql.Result, err error) {
+func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (sql.Result, error) {
 	ctx, span := startSpan(ctx)
 	defer span.End()
 
-	result, err = execStmt(ctx, s.stmt, s.query, args...)
-
-	return
+	return execStmt(ctx, s.stmt, s.query, args...)
 }
 
 func (s statement) QueryRow(v interface{}, args ...interface{}) error {

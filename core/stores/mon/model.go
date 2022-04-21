@@ -195,6 +195,7 @@ func (w *warpSession) WithTransaction(ctx context.Context, fn func(sessCtx mongo
 func (w *warpSession) EndSession(ctx context.Context) {
 	ctx, span := startSpan(ctx)
 	defer span.End()
+
 	_ = w.brk.DoWithAcceptable(func() error {
 		w.Session.EndSession(ctx)
 		return nil
