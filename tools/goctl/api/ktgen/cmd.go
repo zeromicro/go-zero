@@ -27,6 +27,11 @@ func KtCommand(c *cli.Context) error {
 		return e
 	}
 
+	e = api.Validate()
+	if e != nil {
+		return e
+	}
+
 	api.Service = api.Service.JoinPrefix()
 	e = genBase(dir, pkg, api)
 	if e != nil {

@@ -61,6 +61,11 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
+	err = api.Validate()
+	if err != nil {
+		return err
+	}
+
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err

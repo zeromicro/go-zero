@@ -1,6 +1,7 @@
 package parser
 
 import (
+	_ "embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,4 +26,14 @@ func TestParseContent(t *testing.T) {
 			assert.Equal(t, spec.Doc{"// handler comment"}, e.HandlerComment)
 		}
 	}
+}
+
+//go:embed emptyservice.api
+var emptyService string
+
+func TestMissingService(t *testing.T) {
+	sp, err := ParseContent(emptyService)
+	assert.Nil(t, err)
+	err = sp.Validate()
+	assert.Equal(t, spec.ErrMissingService, err)
 }
