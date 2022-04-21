@@ -28,11 +28,8 @@ func TestParseContent(t *testing.T) {
 	}
 }
 
-//go:embed emptyservice.api
-var emptyService string
-
 func TestMissingService(t *testing.T) {
-	sp, err := ParseContent(emptyService)
+	sp, err := ParseContent("")
 	assert.Nil(t, err)
 	err = sp.Validate()
 	assert.Equal(t, spec.ErrMissingService, err)
