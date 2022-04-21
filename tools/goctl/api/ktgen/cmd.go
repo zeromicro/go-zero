@@ -27,9 +27,8 @@ func KtCommand(c *cli.Context) error {
 		return e
 	}
 
-	e = api.Validate()
-	if e != nil {
-		return e
+	if err := api.Validate(); err != nil {
+		return err
 	}
 
 	api.Service = api.Service.JoinPrefix()

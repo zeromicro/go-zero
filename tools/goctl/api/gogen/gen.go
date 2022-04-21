@@ -61,8 +61,7 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
-	err = api.Validate()
-	if err != nil {
+	if err := api.Validate(); err != nil {
 		return err
 	}
 
