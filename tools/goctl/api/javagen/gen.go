@@ -28,6 +28,10 @@ func JavaCommand(c *cli.Context) error {
 		return err
 	}
 
+	if err := api.Validate(); err != nil {
+		return err
+	}
+
 	api.Service = api.Service.JoinPrefix()
 	packetName := strings.TrimSuffix(api.Service.Name, "-api")
 	logx.Must(pathx.MkdirIfNotExist(dir))

@@ -26,3 +26,10 @@ func TestParseContent(t *testing.T) {
 		}
 	}
 }
+
+func TestMissingService(t *testing.T) {
+	sp, err := ParseContent("")
+	assert.Nil(t, err)
+	err = sp.Validate()
+	assert.Equal(t, spec.ErrMissingService, err)
+}
