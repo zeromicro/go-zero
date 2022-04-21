@@ -70,9 +70,13 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 		}()
 
 		session, sessionErr := m.cli.StartSession(opts...)
+		if sessionErr != nil {
+			return sessionErr
+		}
+
 		sess = &wrapSession{Session: session, brk: m.brk}
 
-		return sessionErr
+		return nil
 	}, acceptable)
 	return
 }
