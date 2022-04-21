@@ -1,7 +1,6 @@
 package parser
 
 import (
-	_ "embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
