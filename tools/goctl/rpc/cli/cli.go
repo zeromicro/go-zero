@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
@@ -58,6 +59,17 @@ func RPCNew(c *cli.Context) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+
+	grpcOptList := c.StringSlice("go-grpc_opt")
+	if len(grpcOptList) > 0 {
+		ctx.ProtocCmd += " --go-grpc_opt=" + strings.Join(grpcOptList, ",")
+	}
+
+	goOptList := c.StringSlice("go_opt")
+	if len(goOptList) > 0 {
+		ctx.ProtocCmd += " --go_opt=" + strings.Join(goOptList, ",")
+	}
+
 	g := generator.NewGenerator(style, verbose)
 	return g.Generate(&ctx)
 }
