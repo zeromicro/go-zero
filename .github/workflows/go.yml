@@ -28,7 +28,7 @@ jobs:
         run: |
           go vet -stdmethods=false $(go list ./...)
           go install mvdan.cc/gofumpt@latest
-          test -z "$(gofumpt -s -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
+          test -z "$(gofumpt -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
 
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
