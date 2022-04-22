@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"regexp"
 
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
@@ -82,6 +83,11 @@ func isOriginAllowed(allows []string, origin string) bool {
 		}
 
 		if o == origin {
+			return true
+		}
+
+		reg := regexp.MustCompile(o)
+		if reg.MatchString(origin) {
 			return true
 		}
 	}
