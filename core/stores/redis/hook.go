@@ -14,6 +14,9 @@ import (
 	tracestd "go.opentelemetry.io/otel/trace"
 )
 
+// spanName is the span name of the redis calls.
+const spanName = "redis"
+
 var (
 	startTimeKey = contextKey("startTime")
 	spanKey      = contextKey("span")
@@ -28,11 +31,11 @@ type (
 )
 
 func (h hook) BeforeProcess(ctx context.Context, _ red.Cmder) (context.Context, error) {
-	return h.spanStart(context.WithValue(ctx, startTimeKey, timex.Now())), nil
+	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now())), nil
 }
 
 func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
-	h.spanEnd(ctx)
+	h.endSpan(ctx)
 
 	val := ctx.Value(startTimeKey)
 	if val == nil {
@@ -53,11 +56,11 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 }
 
 func (h hook) BeforeProcessPipeline(ctx context.Context, _ []red.Cmder) (context.Context, error) {
-	return h.spanStart(context.WithValue(ctx, startTimeKey, timex.Now())), nil
+	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now())), nil
 }
 
 func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error {
-	h.spanEnd(ctx)
+	h.endSpan(ctx)
 
 	if len(cmds) == 0 {
 		return nil
@@ -92,12 +95,12 @@ func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
 }
 
-func (h hook) spanStart(ctx context.Context) context.Context {
-	ctx, span := h.tracer.Start(ctx, "redis")
+func (h hook) startSpan(ctx context.Context) context.Context {
+	ctx, span := h.tracer.Start(ctx, spanName)
 	return context.WithValue(ctx, spanKey, span)
 }
 
-func (h hook) spanEnd(ctx context.Context) {
+func (h hook) endSpan(ctx context.Context) {
 	spanVal := ctx.Value(spanKey)
 	if spanVal == nil {
 		return

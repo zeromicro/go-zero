@@ -11,6 +11,9 @@ import (
 	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
+// spanName is used to identify the span name for the SQL execution.
+const spanName = "sql"
+
 // ErrNotFound is an alias of sql.ErrNoRows
 var ErrNotFound = sql.ErrNoRows
 
@@ -240,7 +243,6 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{},
 	return db.queryRows(ctx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
-
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
@@ -362,5 +364,5 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v interface{}, args 
 
 func startSpan(ctx context.Context) (context.Context, tracesdk.Span) {
 	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
-	return tracer.Start(ctx, "sql")
+	return tracer.Start(ctx, spanName)
 }

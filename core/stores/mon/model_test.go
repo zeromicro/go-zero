@@ -18,6 +18,7 @@ func TestModel_StartSession(t *testing.T) {
 		m := createModel(mt)
 		sess, err := m.StartSession()
 		assert.Nil(t, err)
+		defer sess.EndSession(context.Background())
 
 		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (interface{}, error) {
 			_ = sessCtx.StartTransaction()
@@ -26,10 +27,8 @@ func TestModel_StartSession(t *testing.T) {
 			return nil, nil
 		})
 		assert.Nil(t, err)
-
 		assert.NoError(t, sess.CommitTransaction(context.Background()))
 		assert.Error(t, sess.AbortTransaction(context.Background()))
-		sess.EndSession(context.Background())
 	})
 }
 
