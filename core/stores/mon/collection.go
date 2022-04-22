@@ -473,9 +473,10 @@ func (p keepablePromise) keep(err error) error {
 func acceptable(err error) bool {
 	return err == nil || err == mongo.ErrNoDocuments || err == mongo.ErrNilValue ||
 		err == mongo.ErrNilDocument || err == mongo.ErrNilCursor || err == mongo.ErrEmptySlice ||
-		// session err
-		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted || err == session.ErrTransactInProgress ||
-		err == session.ErrAbortAfterCommit || err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
+		// session errors
+		err == session.ErrSessionEnded || err == session.ErrNoTransactStarted ||
+		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
+		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
 		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
 }
 
