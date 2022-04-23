@@ -19,7 +19,6 @@ const spanName = "redis"
 
 var (
 	startTimeKey = contextKey("startTime")
-	spanKey      = contextKey("span")
 	durationHook = hook{tracer: otel.GetTracerProvider().Tracer(trace.TraceName)}
 )
 
@@ -96,17 +95,10 @@ func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
 }
 
 func (h hook) startSpan(ctx context.Context) context.Context {
-	ctx, span := h.tracer.Start(ctx, spanName)
-	return context.WithValue(ctx, spanKey, span)
+	ctx, _ = h.tracer.Start(ctx, spanName)
+	return ctx
 }
 
 func (h hook) endSpan(ctx context.Context) {
-	spanVal := ctx.Value(spanKey)
-	if spanVal == nil {
-		return
-	}
-
-	if span, ok := spanVal.(tracestd.Span); ok {
-		span.End()
-	}
+	tracestd.SpanFromContext(ctx).End()
 }
