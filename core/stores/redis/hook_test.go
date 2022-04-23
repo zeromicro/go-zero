@@ -10,6 +10,7 @@ import (
 	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
+	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 func TestHookProcessCase1(t *testing.T) {
@@ -32,7 +33,7 @@ func TestHookProcessCase1(t *testing.T) {
 
 	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background())))
 	assert.False(t, strings.Contains(buf.String(), "slow"))
-	assert.Equal(t, "redis", ctx.Value(spanKey).(interface{ Name() string }).Name())
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 }
 
 func TestHookProcessCase2(t *testing.T) {
@@ -52,7 +53,7 @@ func TestHookProcessCase2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "redis", ctx.Value(spanKey).(interface{ Name() string }).Name())
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
@@ -93,7 +94,7 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "redis", ctx.Value(spanKey).(interface{ Name() string }).Name())
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
 		red.NewCmd(context.Background()),
@@ -118,7 +119,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "redis", ctx.Value(spanKey).(interface{ Name() string }).Name())
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 

@@ -16,7 +16,11 @@ import (
 	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
-const defaultSlowThreshold = time.Millisecond * 500
+const (
+	defaultSlowThreshold = time.Millisecond * 500
+	// spanName is the span name of the mongo calls.
+	spanName = "mongo"
+)
 
 // ErrNotFound is an alias of mongo.ErrNoDocuments
 var ErrNotFound = mongo.ErrNoDocuments
@@ -482,5 +486,5 @@ func acceptable(err error) bool {
 
 func startSpan(ctx context.Context) (context.Context, tracesdk.Span) {
 	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
-	return tracer.Start(ctx, "mongo")
+	return tracer.Start(ctx, spanName)
 }
