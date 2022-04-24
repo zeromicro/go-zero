@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -24,9 +25,10 @@ var (
 )
 
 type patRouter struct {
-	trees      map[string]*search.Tree
-	notFound   http.Handler
-	notAllowed http.Handler
+	trees          map[string]*search.Tree
+	notFound       http.Handler
+	notAllowed     http.Handler
+	fileSystemTree *search.Tree
 }
 
 // NewRouter returns a httpx.Router.
@@ -68,6 +70,32 @@ func (pr *patRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if r.Method == http.MethodGet && pr.fileSystemTree != nil {
+		var fileSystemHandle interface{}
+
+		fileSystemSearchPath := reqPath
+		lastSlashIndex := strings.LastIndexByte(fileSystemSearchPath, '/')
+		for lastSlashIndex >= 0 {
+			if result, ok := pr.fileSystemTree.Search(fileSystemSearchPath); ok {
+				fileSystemHandle = result.Item
+				break
+			}
+			fileSystemSearchPath = fileSystemSearchPath[:lastSlashIndex]
+			lastSlashIndex = strings.LastIndexByte(fileSystemSearchPath, '/')
+		}
+
+		if fileSystemHandle == nil && fileSystemSearchPath == "" {
+			if result, ok := pr.fileSystemTree.Search("/"); ok {
+				fileSystemHandle = result.Item
+			}
+		}
+
+		if fileSystemHandle != nil {
+			fileSystemHandle.(http.Handler).ServeHTTP(w, r)
+			return
+		}
+	}
+
 	allows, ok := pr.methodsAllowed(r.Method, reqPath)
 	if !ok {
 		pr.handleNotFound(w, r)
@@ -88,6 +116,31 @@ func (pr *patRouter) SetNotFoundHandler(handler http.Handler) {
 
 func (pr *patRouter) SetNotAllowedHandler(handler http.Handler) {
 	pr.notAllowed = handler
+}
+
+func (pr *patRouter) SetFileSystemHandlerMap(handlerMap map[string]http.Handler) {
+	if len(handlerMap) > 0 {
+		tree := search.NewTree()
+		for k, v := range handlerMap {
+			if len(k) == 0 {
+				panic(fmt.Errorf("FileSystemHandlerMap key must not be empty"))
+			}
+			if k[0] != '/' {
+				panic(fmt.Errorf("FileSystemHandlerMap key must begin with '/' for %s", k))
+			}
+
+			cleanPath := path.Clean(k)
+			if cleanPath != k {
+				panic(fmt.Errorf("FileSystemHandlerMap key '%s' should be '%s'", k, cleanPath))
+			}
+
+			if err := tree.Add(cleanPath, v); err != nil {
+				panic(err)
+			}
+		}
+
+		pr.fileSystemTree = tree
+	}
 }
 
 func (pr *patRouter) handleNotFound(w http.ResponseWriter, r *http.Request) {

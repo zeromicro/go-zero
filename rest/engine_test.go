@@ -312,3 +312,6 @@ func (m mockedRouter) SetNotFoundHandler(handler http.Handler) {
 
 func (m mockedRouter) SetNotAllowedHandler(handler http.Handler) {
 }
+
+func (m mockedRouter) SetFileSystemHandlerMap(handlerMap map[string]http.Handler) {
+}

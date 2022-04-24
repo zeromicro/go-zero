@@ -8,4 +8,5 @@ type Router interface {
 	Handle(method, path string, handler http.Handler) error
 	SetNotFoundHandler(handler http.Handler)
 	SetNotAllowedHandler(handler http.Handler)
+	SetFileSystemHandlerMap(handlerMap map[string]http.Handler)
 }

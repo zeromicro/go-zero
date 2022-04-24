@@ -183,6 +183,13 @@ func WithNotAllowedHandler(handler http.Handler) RunOption {
 	}
 }
 
+// WithSetFileSystemHandlerMap returns a RunOption with file system handler map set to given handler.
+func WithSetFileSystemHandlerMap(handlerMap map[string]http.Handler) RunOption {
+	return func(server *Server) {
+		server.router.SetFileSystemHandlerMap(handlerMap)
+	}
+}
+
 // WithPrefix adds group as a prefix to the route paths.
 func WithPrefix(group string) RouteOption {
 	return func(r *featuredRoutes) {

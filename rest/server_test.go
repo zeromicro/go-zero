@@ -43,6 +43,10 @@ Port: 54321
 		},
 		{
 			c:    cnf,
+			opts: []RunOption{WithRouter(mockedRouter{}), WithSetFileSystemHandlerMap(nil)},
+		},
+		{
+			c:    cnf,
 			opts: []RunOption{WithNotFoundHandler(nil), WithRouter(mockedRouter{})},
 		},
 		{
