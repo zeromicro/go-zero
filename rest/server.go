@@ -251,6 +251,13 @@ func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
 	}
 }
 
+// WithRecoverCallback returns a RunOption that with given recover callback set.
+func WithRecoverCallback(callback handler.RecoverCallback) RunOption {
+	return func(svr *Server) {
+		svr.ngin.seRecoverCallback(callback)
+	}
+}
+
 func handleError(err error) {
 	// ErrServerClosed means the server is closed manually
 	if err == nil || err == http.ErrServerClosed {

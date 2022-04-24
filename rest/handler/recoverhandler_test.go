@@ -15,18 +15,46 @@ func init() {
 }
 
 func TestWithPanic(t *testing.T) {
-	handler := RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		panic("whatever")
-	}))
+	t.Run("no recoverCallback", func(t *testing.T) {
+		handler := RecoverHandler(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			panic("whatever")
+		}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
-	resp := httptest.NewRecorder()
-	handler.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusInternalServerError, resp.Code)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	})
+
+	t.Run("recoverCallback", func(t *testing.T) {
+		handler := RecoverHandler(func(w http.ResponseWriter, r *http.Request, recoverRes interface{}) {
+			w.WriteHeader(http.StatusBadRequest)
+		})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			panic("whatever")
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusBadRequest, resp.Code)
+	})
+
+	t.Run("recoverCallback panic", func(t *testing.T) {
+		handler := RecoverHandler(func(w http.ResponseWriter, r *http.Request, recoverRes interface{}) {
+			panic("any")
+		})(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			panic("whatever")
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		resp := httptest.NewRecorder()
+		handler.ServeHTTP(resp, req)
+		assert.Equal(t, http.StatusInternalServerError, resp.Code)
+	})
 }
 
 func TestWithoutPanic(t *testing.T) {
-	handler := RecoverHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := RecoverHandler(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)

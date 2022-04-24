@@ -28,6 +28,7 @@ type engine struct {
 	routes               []featuredRoutes
 	unauthorizedCallback handler.UnauthorizedCallback
 	unsignedCallback     handler.UnsignedCallback
+	recoverCallback      handler.RecoverCallback
 	middlewares          []Middleware
 	shedder              load.Shedder
 	priorityShedder      load.Shedder
@@ -92,7 +93,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 		handler.BreakerHandler(route.Method, route.Path, metrics),
 		handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
 		handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
-		handler.RecoverHandler,
+		handler.RecoverHandler(ng.recoverCallback),
 		handler.MetricHandler(metrics),
 		handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
 		handler.GunzipHandler,
@@ -194,6 +195,10 @@ func (ng *engine) setUnauthorizedCallback(callback handler.UnauthorizedCallback)
 
 func (ng *engine) setUnsignedCallback(callback handler.UnsignedCallback) {
 	ng.unsignedCallback = callback
+}
+
+func (ng *engine) seRecoverCallback(callback handler.RecoverCallback) {
+	ng.recoverCallback = callback
 }
 
 func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain alice.Chain) alice.Chain, error) {
