@@ -2,6 +2,7 @@ package cors
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
@@ -81,7 +82,7 @@ func isOriginAllowed(allows []string, origin string) bool {
 			return true
 		}
 
-		if o == origin {
+		if strings.HasSuffix(origin, o) {
 			return true
 		}
 	}
