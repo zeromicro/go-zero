@@ -1,6 +1,7 @@
 package parser
 
 import (
+	_ "embed"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -30,9 +31,12 @@ func TestParseSelect(t *testing.T) {
 	assert.Equal(t, 0, len(tables))
 }
 
+//go:embed testdata/user.sql
+var user string
+
 func TestParseCreateTable(t *testing.T) {
 	sqlFile := filepath.Join(pathx.MustTempDir(), "tmp.sql")
-	err := ioutil.WriteFile(sqlFile, []byte("CREATE TABLE `test_user` (\n  `id` bigint NOT NULL AUTO_INCREMENT,\n  `mobile` varchar(255) COLLATE utf8mb4_bin NOT NULL comment '手\\t机  号',\n  `class` bigint NOT NULL comment '班级',\n  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL comment '姓\n  名',\n  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP comment '创建\\r时间',\n  `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  UNIQUE KEY `mobile_unique` (`mobile`),\n  UNIQUE KEY `class_name_unique` (`class`,`name`),\n  KEY `create_index` (`create_time`),\n  KEY `name_index` (`name`)\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;"), 0o777)
+	err := ioutil.WriteFile(sqlFile, []byte(user), 0o777)
 	assert.Nil(t, err)
 
 	tables, err := Parse(sqlFile, "go_zero")

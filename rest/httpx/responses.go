@@ -61,12 +61,16 @@ func SetErrorHandler(handler func(error) (int, interface{})) {
 
 // WriteJson writes v as json string into w with code.
 func WriteJson(w http.ResponseWriter, code int, v interface{}) {
+	bs, err := json.Marshal(v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set(ContentType, ApplicationJson)
 	w.WriteHeader(code)
 
-	if bs, err := json.Marshal(v); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else if n, err := w.Write(bs); err != nil {
+	if n, err := w.Write(bs); err != nil {
 		// http.ErrHandlerTimeout has been handled by http.TimeoutHandler,
 		// so it's ignored here.
 		if err != http.ErrHandlerTimeout {

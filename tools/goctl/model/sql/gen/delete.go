@@ -1,6 +1,7 @@
 package gen
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/collection"
@@ -19,6 +20,10 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 		keySet.AddStr(key.DataKeyExpression)
 		keyVariableSet.AddStr(key.KeyLeft)
 	}
+	keys := keySet.KeysStr()
+	sort.Strings(keys)
+	keyVars := keyVariableSet.KeysStr()
+	sort.Strings(keyVars)
 
 	camel := table.Name.ToCamel()
 	text, err := pathx.LoadTemplate(category, deleteTemplateFile, template.Delete)
@@ -34,9 +39,9 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 			"containsIndexCache":        table.ContainsUniqueCacheKey,
 			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),
 			"dataType":                  table.PrimaryKey.DataType,
-			"keys":                      strings.Join(keySet.KeysStr(), "\n"),
+			"keys":                      strings.Join(keys, "\n"),
 			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
-			"keyValues":                 strings.Join(keyVariableSet.KeysStr(), ", "),
+			"keyValues":                 strings.Join(keyVars, ", "),
 			"postgreSql":                postgreSql,
 			"data":                      table,
 		})

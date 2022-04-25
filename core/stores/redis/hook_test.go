@@ -9,9 +9,18 @@ import (
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	ztrace "github.com/zeromicro/go-zero/core/trace"
+	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 func TestHookProcessCase1(t *testing.T) {
+	ztrace.StartAgent(ztrace.Config{
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
+	})
+
 	writer := log.Writer()
 	var buf strings.Builder
 	log.SetOutput(&buf)
@@ -24,9 +33,17 @@ func TestHookProcessCase1(t *testing.T) {
 
 	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background())))
 	assert.False(t, strings.Contains(buf.String(), "slow"))
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 }
 
 func TestHookProcessCase2(t *testing.T) {
+	ztrace.StartAgent(ztrace.Config{
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
+	})
+
 	writer := log.Writer()
 	var buf strings.Builder
 	log.SetOutput(&buf)
@@ -36,11 +53,14 @@ func TestHookProcessCase2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
 	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background(), "foo", "bar")))
 	assert.True(t, strings.Contains(buf.String(), "slow"))
+	assert.True(t, strings.Contains(buf.String(), "trace"))
+	assert.True(t, strings.Contains(buf.String(), "span"))
 }
 
 func TestHookProcessCase3(t *testing.T) {
@@ -74,6 +94,7 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
 		red.NewCmd(context.Background()),
@@ -82,6 +103,13 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 }
 
 func TestHookProcessPipelineCase2(t *testing.T) {
+	ztrace.StartAgent(ztrace.Config{
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
+	})
+
 	writer := log.Writer()
 	var buf strings.Builder
 	log.SetOutput(&buf)
@@ -91,6 +119,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	assert.Equal(t, "redis", tracesdk.SpanFromContext(ctx).(interface{ Name() string }).Name())
 
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
@@ -98,6 +127,8 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 		red.NewCmd(context.Background(), "foo", "bar"),
 	}))
 	assert.True(t, strings.Contains(buf.String(), "slow"))
+	assert.True(t, strings.Contains(buf.String(), "trace"))
+	assert.True(t, strings.Contains(buf.String(), "span"))
 }
 
 func TestHookProcessPipelineCase3(t *testing.T) {

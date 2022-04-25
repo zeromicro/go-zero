@@ -20,11 +20,12 @@ var apiTemplate string
 
 // CreateServiceCommand fast create service
 func CreateServiceCommand(c *cli.Context) error {
+	if c.NArg() == 0 {
+		cli.ShowCommandHelpAndExit(c, "new", 1)
+	}
+
 	args := c.Args()
 	dirName := args.First()
-	if len(dirName) == 0 {
-		dirName = "greet"
-	}
 
 	dirStyle := c.String("style")
 	if len(dirStyle) == 0 {

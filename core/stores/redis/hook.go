@@ -9,23 +9,33 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/trace"
+	"go.opentelemetry.io/otel"
+	tracestd "go.opentelemetry.io/otel/trace"
 )
+
+// spanName is the span name of the redis calls.
+const spanName = "redis"
 
 var (
 	startTimeKey = contextKey("startTime")
-	durationHook = hook{}
+	durationHook = hook{tracer: otel.GetTracerProvider().Tracer(trace.TraceName)}
 )
 
 type (
 	contextKey string
-	hook       struct{}
+	hook       struct {
+		tracer tracestd.Tracer
+	}
 )
 
 func (h hook) BeforeProcess(ctx context.Context, _ red.Cmder) (context.Context, error) {
-	return context.WithValue(ctx, startTimeKey, timex.Now()), nil
+	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now())), nil
 }
 
 func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
+	h.endSpan(ctx)
+
 	val := ctx.Value(startTimeKey)
 	if val == nil {
 		return nil
@@ -45,10 +55,12 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 }
 
 func (h hook) BeforeProcessPipeline(ctx context.Context, _ []red.Cmder) (context.Context, error) {
-	return context.WithValue(ctx, startTimeKey, timex.Now()), nil
+	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now())), nil
 }
 
 func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error {
+	h.endSpan(ctx)
+
 	if len(cmds) == 0 {
 		return nil
 	}
@@ -80,4 +92,13 @@ func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
 		buf.WriteString(mapping.Repr(arg))
 	}
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
+}
+
+func (h hook) startSpan(ctx context.Context) context.Context {
+	ctx, _ = h.tracer.Start(ctx, spanName)
+	return ctx
+}
+
+func (h hook) endSpan(ctx context.Context) {
+	tracestd.SpanFromContext(ctx).End()
 }

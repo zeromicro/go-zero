@@ -1,13 +1,15 @@
 package parser
 
 import (
+	_ "embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
-var testApi = "// syntax doc\nsyntax = \"v1\" // syntax comment\n\n// type doc\ntype Request {\n\tName string `path:\"name,options=you|me\"`\n}\n\ntype Response {\n\tMessage string `json:\"message\"`\n}\n\n// service doc\nservice greet-api {\n\t// handler doc\n\t@handler GreetHandler // handler comment\n\tget /from/:name(Request) returns (Response);\n}"
+//go:embed testdata/test.api
+var testApi string
 
 func TestParseContent(t *testing.T) {
 	sp, err := ParseContent(testApi)
@@ -25,4 +27,11 @@ func TestParseContent(t *testing.T) {
 			assert.Equal(t, spec.Doc{"// handler comment"}, e.HandlerComment)
 		}
 	}
+}
+
+func TestMissingService(t *testing.T) {
+	sp, err := ParseContent("")
+	assert.Nil(t, err)
+	err = sp.Validate()
+	assert.Equal(t, spec.ErrMissingService, err)
 }

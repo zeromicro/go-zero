@@ -79,6 +79,19 @@ func TestTimeoutPanic(t *testing.T) {
 	})
 }
 
+func TestTimeoutWebsocket(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Millisecond)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(time.Millisecond * 10)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req.Header.Set(headerUpgrade, valueWebsocket)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
 func TestTimeoutWroteHeaderTwice(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Minute)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +122,7 @@ func TestTimeoutWriteBadCode(t *testing.T) {
 func TestTimeoutClientClosed(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Minute)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(1000)
+		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)

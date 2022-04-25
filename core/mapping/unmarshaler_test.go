@@ -987,6 +987,43 @@ func TestUnmarshalWithStringOptionsCorrect(t *testing.T) {
 	ast.Equal("2", in.Correct)
 }
 
+func TestUnmarshalOptionsOptional(t *testing.T) {
+	type inner struct {
+		Value         string `key:"value,options=first|second,optional"`
+		OptionalValue string `key:"optional_value,options=first|second,optional"`
+		Foo           string `key:"foo,options=[bar,baz]"`
+		Correct       string `key:"correct,options=1|2"`
+	}
+	m := map[string]interface{}{
+		"value":   "first",
+		"foo":     "bar",
+		"correct": "2",
+	}
+
+	var in inner
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &in))
+	ast.Equal("first", in.Value)
+	ast.Equal("", in.OptionalValue)
+	ast.Equal("bar", in.Foo)
+	ast.Equal("2", in.Correct)
+}
+
+func TestUnmarshalOptionsOptionalWrongValue(t *testing.T) {
+	type inner struct {
+		Value         string `key:"value,options=first|second,optional"`
+		OptionalValue string `key:"optional_value,options=first|second,optional"`
+		WrongValue    string `key:"wrong_value,options=first|second,optional"`
+	}
+	m := map[string]interface{}{
+		"value":       "first",
+		"wrong_value": "third",
+	}
+
+	var in inner
+	assert.NotNil(t, UnmarshalKey(m, &in))
+}
+
 func TestUnmarshalStringOptionsWithStringOptionsNotString(t *testing.T) {
 	type inner struct {
 		Value   string `key:"value,options=first|second"`
@@ -2658,6 +2695,86 @@ func TestUnmarshalJsonWithoutKey(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "1", res.A)
 	assert.Equal(t, "2", res.B)
+}
+
+func TestUnmarshalJsonUintNegative(t *testing.T) {
+	payload := `{"a": -1}`
+	var res struct {
+		A uint `json:"a"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.NotNil(t, err)
+}
+
+func TestUnmarshalJsonDefinedInt(t *testing.T) {
+	type Int int
+	var res struct {
+		A Int `json:"a"`
+	}
+	payload := `{"a": -1}`
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, Int(-1), res.A)
+}
+
+func TestUnmarshalJsonDefinedString(t *testing.T) {
+	type String string
+	var res struct {
+		A String `json:"a"`
+	}
+	payload := `{"a": "foo"}`
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, String("foo"), res.A)
+}
+
+func TestUnmarshalJsonDefinedStringPtr(t *testing.T) {
+	type String string
+	var res struct {
+		A *String `json:"a"`
+	}
+	payload := `{"a": "foo"}`
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, String("foo"), *res.A)
+}
+
+func TestUnmarshalJsonReaderComplex(t *testing.T) {
+	type (
+		MyInt      int
+		MyTxt      string
+		MyTxtArray []string
+
+		Req struct {
+			MyInt      MyInt      `json:"my_int"` // int.. ok
+			MyTxtArray MyTxtArray `json:"my_txt_array"`
+			MyTxt      MyTxt      `json:"my_txt"` // but string is not assignable
+			Int        int        `json:"int"`
+			Txt        string     `json:"txt"`
+		}
+	)
+	body := `{
+  "my_int": 100,
+  "my_txt_array": [
+    "a",
+    "b"
+  ],
+  "my_txt": "my_txt",
+  "int": 200,
+  "txt": "txt"
+}`
+	var req Req
+	err := UnmarshalJsonReader(strings.NewReader(body), &req)
+	assert.Nil(t, err)
+	assert.Equal(t, MyInt(100), req.MyInt)
+	assert.Equal(t, MyTxt("my_txt"), req.MyTxt)
+	assert.EqualValues(t, MyTxtArray([]string{"a", "b"}), req.MyTxtArray)
+	assert.Equal(t, 200, req.Int)
+	assert.Equal(t, "txt", req.Txt)
 }
 
 func BenchmarkDefaultValue(b *testing.B) {

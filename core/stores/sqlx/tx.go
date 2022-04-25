@@ -31,6 +31,9 @@ func (t txSession) Exec(q string, args ...interface{}) (sql.Result, error) {
 }
 
 func (t txSession) ExecCtx(ctx context.Context, q string, args ...interface{}) (sql.Result, error) {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	return exec(ctx, t.Tx, q, args...)
 }
 
@@ -39,6 +42,9 @@ func (t txSession) Prepare(q string) (StmtSession, error) {
 }
 
 func (t txSession) PrepareCtx(ctx context.Context, q string) (StmtSession, error) {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	stmt, err := t.Tx.PrepareContext(ctx, q)
 	if err != nil {
 		return nil, err
@@ -55,6 +61,9 @@ func (t txSession) QueryRow(v interface{}, q string, args ...interface{}) error 
 }
 
 func (t txSession) QueryRowCtx(ctx context.Context, v interface{}, q string, args ...interface{}) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
@@ -66,6 +75,9 @@ func (t txSession) QueryRowPartial(v interface{}, q string, args ...interface{})
 
 func (t txSession) QueryRowPartialCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
@@ -76,6 +88,9 @@ func (t txSession) QueryRows(v interface{}, q string, args ...interface{}) error
 }
 
 func (t txSession) QueryRowsCtx(ctx context.Context, v interface{}, q string, args ...interface{}) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
@@ -87,6 +102,9 @@ func (t txSession) QueryRowsPartial(v interface{}, q string, args ...interface{}
 
 func (t txSession) QueryRowsPartialCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) error {
+	ctx, span := startSpan(ctx)
+	defer span.End()
+
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)

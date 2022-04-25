@@ -12,6 +12,9 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
+// RunFunc defines a function type of Run function
+type RunFunc func(string, string, ...*bytes.Buffer) (string, error)
+
 // Run provides the execution of shell scripts in golang,
 // which can support macOS, Windows, and Linux operating systems.
 // Other operating systems are currently not supported

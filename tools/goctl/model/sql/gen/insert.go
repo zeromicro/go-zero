@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/collection"
@@ -20,12 +21,16 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 		keySet.AddStr(key.DataKeyExpression)
 		keyVariableSet.AddStr(key.KeyLeft)
 	}
+	keys := keySet.KeysStr()
+	sort.Strings(keys)
+	keyVars := keyVariableSet.KeysStr()
+	sort.Strings(keyVars)
 
 	expressions := make([]string, 0)
 	expressionValues := make([]string, 0)
 	var count int
 	for _, field := range table.Fields {
-		camel := field.Name.ToCamel()
+		camel := util.SafeString(field.Name.ToCamel())
 		if camel == "CreateTime" || camel == "UpdateTime" {
 			continue
 		}
@@ -59,8 +64,8 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 			"lowerStartCamelObject": stringx.From(camel).Untitle(),
 			"expression":            strings.Join(expressions, ", "),
 			"expressionValues":      strings.Join(expressionValues, ", "),
-			"keys":                  strings.Join(keySet.KeysStr(), "\n"),
-			"keyValues":             strings.Join(keyVariableSet.KeysStr(), ", "),
+			"keys":                  strings.Join(keys, "\n"),
+			"keyValues":             strings.Join(keyVars, ", "),
 			"data":                  table,
 		})
 	if err != nil {

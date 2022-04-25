@@ -1,9 +1,9 @@
 type Request {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + `
+  Name string `path:"name,options=you|me"`
 }
 
 type Response {
-  Message string ` + "`" + `json:"message"` + "`" + `
+  Message string `json:"message"`
 }
 
 service {{.name}}-api {
