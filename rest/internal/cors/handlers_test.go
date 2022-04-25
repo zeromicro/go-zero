@@ -32,6 +32,12 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 			expect:    "http://local",
 		},
 		{
+			name:      "allow sub origins",
+			origins:   []string{"local", "remote"},
+			reqOrigin: "sub.local",
+			expect:    "sub.local",
+		},
+		{
 			name:      "allow all origins",
 			reqOrigin: "http://local",
 			expect:    "*",
