@@ -11,7 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
-var errUnbalancedEscape = errors.New("error: no char after escape char")
+var errUnbalancedEscape = errors.New("no char after escape char")
 
 func desensitize(datasource string) string {
 	// remove account
