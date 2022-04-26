@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -9,6 +10,8 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 )
+
+var errUnbalancedEscape = errors.New("no char after escape char")
 
 func desensitize(datasource string) string {
 	// remove account
@@ -95,6 +98,30 @@ func format(query string, args ...interface{}) (string, error) {
 				writeValue(&b, args[index])
 				i = j - 1
 			}
+		case '\'', '"', '`':
+			b.WriteByte(ch)
+			for j := i + 1; j < bytes; j++ {
+				cur := query[j]
+				b.WriteByte(cur)
+
+				switch cur {
+				case '\\':
+					j++
+					if j >= bytes {
+						return "", errUnbalancedEscape
+					}
+
+					b.WriteByte(query[j])
+				case '\'', '"', '`':
+					if cur == ch {
+						i = j
+						goto end
+					}
+				}
+			}
+
+		end:
+			break
 		default:
 			b.WriteByte(ch)
 		}
