@@ -275,7 +275,7 @@ func Infov(v interface{}) {
 	infoAnySync(v)
 }
 
-// Must checks if err is nil, otherwise logs the err and exits.
+// Must checks if err is nil, otherwise logs the error and exits.
 func Must(err error) {
 	if err != nil {
 		msg := formatWithCaller(err.Error(), 3)
