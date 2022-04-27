@@ -32,7 +32,7 @@ func TestDirectBuilder_Build(t *testing.T) {
 			}
 			var b directBuilder
 			cc := new(mockedClientConn)
-			target := fmt.Sprintf("%s/%s", DirectScheme, strings.Join(servers, ","))
+			target := fmt.Sprintf("%s:///%s", DirectScheme, strings.Join(servers, ","))
 			uri, err := url.Parse(target)
 			assert.Nil(t, err)
 			_, err = b.Build(resolver.Target{
@@ -40,7 +40,6 @@ func TestDirectBuilder_Build(t *testing.T) {
 			}, cc, resolver.BuildOptions{})
 			assert.Nil(t, err)
 			size := mathx.MinInt(test, subsetSize)
-			fmt.Println(cc.state.Addresses)
 			assert.Equal(t, size, len(cc.state.Addresses))
 			m := make(map[string]lang.PlaceholderType)
 			for _, each := range cc.state.Addresses {

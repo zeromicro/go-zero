@@ -38,10 +38,10 @@ func TestGetAuthority(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			url, err := url.Parse(test.url)
+			uri, err := url.Parse(test.url)
 			assert.Nil(t, err)
 			target := resolver.Target{
-				URL: *url,
+				URL: *uri,
 			}
 			assert.Equal(t, test.want, GetAuthority(target))
 		})
@@ -78,10 +78,10 @@ func TestGetEndpoints(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			url, err := url.Parse(test.url)
+			uri, err := url.Parse(test.url)
 			assert.Nil(t, err)
 			target := resolver.Target{
-				URL: *url,
+				URL: *uri,
 			}
 			assert.Equal(t, test.want, GetEndpoints(target))
 		})
