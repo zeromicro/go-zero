@@ -1298,8 +1298,9 @@ func (s *Redis) Pipelined(fn func(Pipeliner) error) error {
 }
 
 // PipelinedCtx lets fn execute pipelined commands.
-func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) (err error) {
-	err = s.brk.DoWithAcceptable(func() error {
+// Results need to be retrieved by calling Pipeline.Exec()
+func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) error {
+	return s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
@@ -1308,8 +1309,6 @@ func (s *Redis) PipelinedCtx(ctx context.Context, fn func(Pipeliner) error) (err
 		_, err = conn.Pipelined(ctx, fn)
 		return err
 	}, acceptable)
-
-	return
 }
 
 // Rpop is the implementation of redis rpop command.
