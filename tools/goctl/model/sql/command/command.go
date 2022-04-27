@@ -97,9 +97,9 @@ func MySqlDataSource(ctx *cli.Context) error {
 	return fromMysqlDataSource(url, dir, patterns, cfg, cache, idea)
 }
 
-type Patterns map[string]struct{}
+type patterns map[string]struct{}
 
-func (p Patterns) Match(s string) bool {
+func (p patterns) Match(s string) bool {
 	for v := range p {
 		match, err := filepath.Match(v, s)
 		if err != nil {
@@ -113,7 +113,7 @@ func (p Patterns) Match(s string) bool {
 	return false
 }
 
-func (p Patterns) list() []string {
+func (p patterns) list() []string {
 	var ret []string
 	for v := range p {
 		ret = append(ret, v)
@@ -121,8 +121,8 @@ func (p Patterns) list() []string {
 	return ret
 }
 
-func parseTableList(tableValue []string) Patterns {
-	tablePattern := make(Patterns)
+func parseTableList(tableValue []string) patterns {
+	tablePattern := make(patterns)
 	for _, v := range tableValue {
 		fields := strings.FieldsFunc(v, func(r rune) bool {
 			return r == ','
@@ -200,7 +200,7 @@ func fromDDL(src, dir string, cfg *config.Config, cache, idea bool, database str
 	return nil
 }
 
-func fromMysqlDataSource(url, dir string, patterns Patterns, cfg *config.Config, cache, idea bool) error {
+func fromMysqlDataSource(url, dir string, patterns patterns, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
