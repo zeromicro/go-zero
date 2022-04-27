@@ -9,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
 
@@ -36,7 +37,7 @@ func TestProxy(t *testing.T) {
 		},
 	}
 
-	proxy := NewProxy("foo", WithDialOption(grpc.WithInsecure()),
+	proxy := NewProxy("foo", WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		WithDialOption(grpc.WithContextDialer(dialer())))
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -66,7 +67,8 @@ func TestProxy(t *testing.T) {
 }
 
 func TestRpcProxy_TakeConnNewClientFailed(t *testing.T) {
-	proxy := NewProxy("foo", WithDialOption(grpc.WithInsecure()), WithDialOption(grpc.WithBlock()))
+	proxy := NewProxy("foo", WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		WithDialOption(grpc.WithBlock()))
 	_, err := proxy.TakeConn(context.Background())
 	assert.NotNil(t, err)
 }

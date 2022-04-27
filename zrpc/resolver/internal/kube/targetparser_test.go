@@ -1,6 +1,7 @@
 package kube
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,17 +11,13 @@ import (
 func TestParseTarget(t *testing.T) {
 	tests := []struct {
 		name   string
-		input  resolver.Target
+		input  string
 		expect Service
 		hasErr bool
 	}{
 		{
-			name: "normal case",
-			input: resolver.Target{
-				Scheme:    "k8s",
-				Authority: "ns1",
-				Endpoint:  "my-svc:8080",
-			},
+			name:  "normal case",
+			input: "k8s://ns1/my-svc:8080",
 			expect: Service{
 				Namespace: "ns1",
 				Name:      "my-svc",
@@ -28,12 +25,8 @@ func TestParseTarget(t *testing.T) {
 			},
 		},
 		{
-			name: "normal case",
-			input: resolver.Target{
-				Scheme:    "k8s",
-				Authority: "",
-				Endpoint:  "my-svc:8080",
-			},
+			name:  "normal case",
+			input: "k8s:///my-svc:8080",
 			expect: Service{
 				Namespace: defaultNamespace,
 				Name:      "my-svc",
@@ -41,37 +34,27 @@ func TestParseTarget(t *testing.T) {
 			},
 		},
 		{
-			name: "no port",
-			input: resolver.Target{
-				Scheme:    "k8s",
-				Authority: "ns1",
-				Endpoint:  "my-svc:",
-			},
+			name:   "no port",
+			input:  "k8s://ns1/my-svc:",
 			hasErr: true,
 		},
 		{
-			name: "no port, no colon",
-			input: resolver.Target{
-				Scheme:    "k8s",
-				Authority: "ns1",
-				Endpoint:  "my-svc",
-			},
+			name:   "no port, no colon",
+			input:  "k8s://ns1/my-svc",
 			hasErr: true,
 		},
 		{
-			name: "bad port",
-			input: resolver.Target{
-				Scheme:    "k8s",
-				Authority: "ns1",
-				Endpoint:  "my-svc:800a",
-			},
+			name:   "bad port",
+			input:  "k8s://ns1/my-svc:800a",
 			hasErr: true,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			svc, err := ParseTarget(test.input)
+			uri, err := url.Parse(test.input)
+			assert.Nil(t, err)
+			svc, err := ParseTarget(resolver.Target{URL: *uri})
 			if test.hasErr {
 				assert.NotNil(t, err)
 			} else {

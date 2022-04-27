@@ -3,15 +3,16 @@ package internal
 import (
 	"strings"
 
+	"github.com/zeromicro/go-zero/zrpc/resolver/internal/targets"
 	"google.golang.org/grpc/resolver"
 )
 
 type directBuilder struct{}
 
-func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, opts resolver.BuildOptions) (
+func (d *directBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ resolver.BuildOptions) (
 	resolver.Resolver, error) {
 	var addrs []resolver.Address
-	endpoints := strings.FieldsFunc(target.Endpoint, func(r rune) bool {
+	endpoints := strings.FieldsFunc(targets.GetEndpoints(target), func(r rune) bool {
 		return r == EndpointSepChar
 	})
 
