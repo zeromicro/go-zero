@@ -100,28 +100,23 @@ func format(query string, args ...interface{}) (string, error) {
 			}
 		case '\'', '"', '`':
 			b.WriteByte(ch)
+
 			for j := i + 1; j < bytes; j++ {
 				cur := query[j]
 				b.WriteByte(cur)
 
-				switch cur {
-				case '\\':
+				if cur == '\\' {
 					j++
 					if j >= bytes {
 						return "", errUnbalancedEscape
 					}
 
 					b.WriteByte(query[j])
-				case '\'', '"', '`':
-					if cur == ch {
-						i = j
-						goto end
-					}
+				} else if cur == ch {
+					i = j
+					break
 				}
 			}
-
-		end:
-			break
 		default:
 			b.WriteByte(ch)
 		}
