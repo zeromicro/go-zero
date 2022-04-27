@@ -41,7 +41,7 @@ type (
 	AuthorizeOption func(opts *AuthorizeOptions)
 )
 
-// Authorize returns an authorize middleware.
+// Authorize returns an authorization middleware.
 func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.Handler {
 	var authOpts AuthorizeOptions
 	for _, opt := range opts {
