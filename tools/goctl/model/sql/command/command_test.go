@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -85,4 +87,31 @@ func TestFromDDl(t *testing.T) {
 	fromDDL("go-zero")
 	_ = os.Remove(filename)
 	fromDDL("1gozero")
+}
+
+func Test_parseTableList(t *testing.T) {
+	testData := []string{"foo", "b*", "bar", "back_up", "foo,bar,b*"}
+	patterns := parseTableList(testData)
+	actual := patterns.list()
+	expected := []string{"foo", "b*", "bar", "back_up"}
+	sort.Slice(actual, func(i, j int) bool {
+		return actual[i] > actual[j]
+	})
+	sort.Slice(expected, func(i, j int) bool {
+		return expected[i] > expected[j]
+	})
+	assert.Equal(t, strings.Join(expected, ","), strings.Join(actual, ","))
+
+	matchTestData := map[string]bool{
+		"foo":     true,
+		"bar":     true,
+		"back_up": true,
+		"bit":     true,
+		"ab":      false,
+		"b":       true,
+	}
+	for v, expected := range matchTestData {
+		actual := patterns.Match(v)
+		assert.Equal(t, expected, actual)
+	}
 }

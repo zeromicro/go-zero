@@ -725,7 +725,7 @@ var commands = []cli.Command{
 								Name:  "url",
 								Usage: `the data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`,
 							},
-							cli.StringFlag{
+							cli.StringSliceFlag{
 								Name:  "table, t",
 								Usage: `the table or table globbing patterns in the database`,
 							},

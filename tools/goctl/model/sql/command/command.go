@@ -87,13 +87,51 @@ func MySqlDataSource(ctx *cli.Context) error {
 		pathx.RegisterGoctlHome(home)
 	}
 
-	pattern := strings.TrimSpace(ctx.String(flagTable))
+	tableValue := ctx.StringSlice(flagTable)
+	patterns := parseTableList(tableValue)
 	cfg, err := config.NewConfig(style)
 	if err != nil {
 		return err
 	}
 
-	return fromMysqlDataSource(url, pattern, dir, cfg, cache, idea)
+	return fromMysqlDataSource(url, dir, patterns, cfg, cache, idea)
+}
+
+type Patterns map[string]struct{}
+
+func (p Patterns) Match(s string) bool {
+	for v := range p {
+		match, err := filepath.Match(v, s)
+		if err != nil {
+			console.Error("%+v", err)
+			continue
+		}
+		if match {
+			return true
+		}
+	}
+	return false
+}
+
+func (p Patterns) list() []string {
+	var ret []string
+	for v := range p {
+		ret = append(ret, v)
+	}
+	return ret
+}
+
+func parseTableList(tableValue []string) Patterns {
+	tablePattern := make(Patterns)
+	for _, v := range tableValue {
+		fields := strings.FieldsFunc(v, func(r rune) bool {
+			return r == ','
+		})
+		for _, f := range fields {
+			tablePattern[f] = struct{}{}
+		}
+	}
+	return tablePattern
 }
 
 // PostgreSqlDataSource generates model code from datasource
@@ -162,14 +200,14 @@ func fromDDL(src, dir string, cfg *config.Config, cache, idea bool, database str
 	return nil
 }
 
-func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, idea bool) error {
+func fromMysqlDataSource(url, dir string, patterns Patterns, cfg *config.Config, cache, idea bool) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of mysql, but nothing found")
 		return nil
 	}
 
-	if len(pattern) == 0 {
+	if len(patterns) == 0 {
 		log.Error("%v", "expected table or table globbing patterns, but nothing found")
 		return nil
 	}
@@ -191,12 +229,7 @@ func fromMysqlDataSource(url, pattern, dir string, cfg *config.Config, cache, id
 
 	matchTables := make(map[string]*model.Table)
 	for _, item := range tables {
-		match, err := filepath.Match(pattern, item)
-		if err != nil {
-			return err
-		}
-
-		if !match {
+		if !patterns.Match(item) {
 			continue
 		}
 
