@@ -10,7 +10,7 @@ const (
 	slash           = "/"
 	colon           = ':'
 	contentType     = "Content-Type"
-	applicationJson = "application/json"
+	applicationJson = "application/json; charset=utf-8"
 )
 
 // ErrGetWithBody indicates that GET request with body.
