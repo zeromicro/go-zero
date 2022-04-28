@@ -3,14 +3,12 @@ package httpc
 import "errors"
 
 const (
-	pathKey         = "path"
-	formKey         = "form"
-	headerKey       = "header"
-	jsonKey         = "json"
-	slash           = "/"
-	colon           = ':'
-	contentType     = "Content-Type"
-	applicationJson = "application/json; charset=utf-8"
+	pathKey   = "path"
+	formKey   = "form"
+	headerKey = "header"
+	jsonKey   = "json"
+	slash     = "/"
+	colon     = ':'
 )
 
 // ErrGetWithBody indicates that GET request with body.

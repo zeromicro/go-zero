@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 )
 
 // Parse parses the response.
@@ -32,5 +33,5 @@ func ParseJsonBody(resp *http.Response, val interface{}) error {
 }
 
 func withJsonBody(r *http.Response) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(contentType), applicationJson)
+	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
 }

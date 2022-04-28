@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
@@ -204,7 +205,7 @@ func TestParseJsonBody(t *testing.T) {
 
 		body := `{"name":"kevin", "age": 18}`
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-		r.Header.Set(ContentType, ApplicationJson)
+		r.Header.Set(ContentType, header.JsonContentType)
 
 		assert.Nil(t, Parse(r, &v))
 		assert.Equal(t, "kevin", v.Name)
@@ -267,7 +268,7 @@ func TestParseHeaders(t *testing.T) {
 	request.Header.Add("addrs", "addr2")
 	request.Header.Add("X-Forwarded-For", "10.0.10.11")
 	request.Header.Add("x-real-ip", "10.0.11.10")
-	request.Header.Add("Accept", "application/json")
+	request.Header.Add("Accept", header.JsonContentType)
 	err = ParseHeaders(request, &v)
 	if err != nil {
 		t.Fatal(err)
@@ -277,7 +278,7 @@ func TestParseHeaders(t *testing.T) {
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
 	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
 	assert.Equal(t, "10.0.11.10", v.XRealIP)
-	assert.Equal(t, "application/json", v.Accept)
+	assert.Equal(t, header.JsonContentType, v.Accept)
 }
 
 func TestParseHeaders_Error(t *testing.T) {

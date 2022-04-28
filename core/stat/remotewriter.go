@@ -39,7 +39,7 @@ func (rw *RemoteWriter) Write(report *StatReport) error {
 	client := &http.Client{
 		Timeout: httpTimeout,
 	}
-	resp, err := client.Post(rw.endpoint, jsonContentType, bytes.NewBuffer(bs))
+	resp, err := client.Post(rw.endpoint, jsonContentType, bytes.NewReader(bs))
 	if err != nil {
 		return err
 	}
