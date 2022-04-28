@@ -2,7 +2,7 @@ package httpx
 
 const (
 	// ApplicationJson means application/json.
-	ApplicationJson = "application/json"
+	ApplicationJson = "application/json; charset=utf-8"
 	// ContentEncoding means Content-Encoding.
 	ContentEncoding = "Content-Encoding"
 	// ContentSecurity means X-Content-Security.
