@@ -15,9 +15,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
-const (
-	contentLength = "Content-Length"
-)
+const contentLength = "Content-Length"
 
 type mockedResponseWriter struct {
 	code int

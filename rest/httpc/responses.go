@@ -33,5 +33,5 @@ func ParseJsonBody(resp *http.Response, val interface{}) error {
 }
 
 func withJsonBody(r *http.Response) bool {
-	return r.ContentLength > 0 && strings.Contains(r.Header.Get(contentType), header.ApplicationJson)
+	return r.ContentLength > 0 && strings.Contains(r.Header.Get(header.ContentType), header.ApplicationJson)
 }
