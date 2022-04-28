@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
@@ -27,7 +28,7 @@ func TestDoRequest_NotFound(t *testing.T) {
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodPost, svr.URL, nil)
 	assert.Nil(t, err)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(header.ContentType, header.JsonContentType)
 	resp, err := DoRequest(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
