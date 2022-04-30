@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -36,8 +37,10 @@ func TestTraceError(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
+	l := WithContext(context.Background())
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l := WithContext(ctx).(*traceLogger)
+	l = l.WithContext(nil)
+	l = l.WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Error(testlog)
 	validate(t, buf.String(), true, true)
@@ -46,7 +49,13 @@ func TestTraceError(t *testing.T) {
 	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
+	fmt.Println(buf.String())
 	validate(t, buf.String(), true, true)
+	buf.Reset()
+	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
+	validate(t, buf.String(), true, true)
+	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
+	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
 }
 
 func TestTraceInfo(t *testing.T) {
@@ -59,7 +68,7 @@ func TestTraceInfo(t *testing.T) {
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l := WithContext(ctx).(*traceLogger)
+	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
 	validate(t, buf.String(), true, true)
@@ -69,6 +78,11 @@ func TestTraceInfo(t *testing.T) {
 	buf.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, buf.String(), true, true)
+	buf.Reset()
+	l.WithDuration(time.Second).Infow(testlog, Field("foo", "bar"))
+	validate(t, buf.String(), true, true)
+	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
+	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
 }
 
 func TestTraceInfoConsole(t *testing.T) {
@@ -87,7 +101,7 @@ func TestTraceInfoConsole(t *testing.T) {
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l := WithContext(ctx).(*traceLogger)
+	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
 	validate(t, buf.String(), true, true)
@@ -109,7 +123,7 @@ func TestTraceSlow(t *testing.T) {
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l := WithContext(ctx).(*traceLogger)
+	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Slow(testlog)
 	assert.True(t, strings.Contains(buf.String(), traceKey))
@@ -120,13 +134,18 @@ func TestTraceSlow(t *testing.T) {
 	buf.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
 	validate(t, buf.String(), true, true)
+	buf.Reset()
+	l.WithDuration(time.Second).Sloww(testlog, Field("foo", "bar"))
+	validate(t, buf.String(), true, true)
+	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
+	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
 }
 
 func TestTraceWithoutContext(t *testing.T) {
 	var buf mockWriter
 	atomic.StoreUint32(&initialized, 1)
 	infoLog = newLogWriter(log.New(&buf, "", flags))
-	l := WithContext(context.Background()).(*traceLogger)
+	l := WithContext(context.Background())
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
 	validate(t, buf.String(), false, false)

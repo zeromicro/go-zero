@@ -117,6 +117,14 @@ func TestStructedLogErrorv(t *testing.T) {
 	})
 }
 
+func TestStructedLogErrorw(t *testing.T) {
+	doTestStructedLog(t, levelError, func(writer io.WriteCloser) {
+		errorLog = writer
+	}, func(v ...interface{}) {
+		Errorw(fmt.Sprint(v...), Field("foo", "bar"))
+	})
+}
+
 func TestStructedLogInfo(t *testing.T) {
 	doTestStructedLog(t, levelInfo, func(writer io.WriteCloser) {
 		infoLog = writer
@@ -138,6 +146,14 @@ func TestStructedLogInfov(t *testing.T) {
 		infoLog = writer
 	}, func(v ...interface{}) {
 		Infov(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogInfow(t *testing.T) {
+	doTestStructedLog(t, levelInfo, func(writer io.WriteCloser) {
+		infoLog = writer
+	}, func(v ...interface{}) {
+		Infow(fmt.Sprint(v...), Field("foo", "bar"))
 	})
 }
 
@@ -234,6 +250,14 @@ func TestStructedLogSlowv(t *testing.T) {
 		slowLog = writer
 	}, func(v ...interface{}) {
 		Slowv(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogSloww(t *testing.T) {
+	doTestStructedLog(t, levelSlow, func(writer io.WriteCloser) {
+		slowLog = writer
+	}, func(v ...interface{}) {
+		Sloww(fmt.Sprint(v...), Field("foo", time.Second))
 	})
 }
 

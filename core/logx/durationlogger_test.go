@@ -1,6 +1,7 @@
 package logx
 
 import (
+	"context"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -8,6 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 func TestWithDurationError(t *testing.T) {
@@ -29,6 +32,15 @@ func TestWithDurationErrorv(t *testing.T) {
 	log.SetOutput(&builder)
 	WithDuration(time.Second).Errorv("foo")
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+}
+
+func TestWithDurationErrorw(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).Errorw("foo", Field("foo", "bar"))
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "foo"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "bar"), builder.String())
 }
 
 func TestWithDurationInfo(t *testing.T) {
@@ -65,6 +77,33 @@ func TestWithDurationInfov(t *testing.T) {
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
 }
 
+func TestWithDurationInfow(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).Infow("foo", Field("foo", "bar"))
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "foo"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "bar"), builder.String())
+}
+
+func TestWithDurationWithContextInfow(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+
+	otp := otel.GetTracerProvider()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
+	WithDuration(time.Second).WithContext(ctx).Infow("foo", Field("foo", "bar"))
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "foo"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "bar"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "trace"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "span"), builder.String())
+}
+
 func TestWithDurationSlow(t *testing.T) {
 	var builder strings.Builder
 	log.SetOutput(&builder)
@@ -84,4 +123,13 @@ func TestWithDurationSlowv(t *testing.T) {
 	log.SetOutput(&builder)
 	WithDuration(time.Second).WithDuration(time.Hour).Slowv("foo")
 	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+}
+
+func TestWithDurationSloww(t *testing.T) {
+	var builder strings.Builder
+	log.SetOutput(&builder)
+	WithDuration(time.Second).WithDuration(time.Hour).Sloww("foo", Field("foo", "bar"))
+	assert.True(t, strings.Contains(builder.String(), "duration"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "foo"), builder.String())
+	assert.True(t, strings.Contains(builder.String(), "bar"), builder.String())
 }

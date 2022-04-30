@@ -120,7 +120,13 @@ func TestRotateLoggerWrite(t *testing.T) {
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
 	}
-	logger.write([]byte(`foo`))
+	logger.Write([]byte(`foo`))
 	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(dateFormat)
-	logger.write([]byte(`bar`))
+	logger.Write([]byte(`bar`))
+	logger.Close()
+	logger.Write([]byte(`baz`))
+}
+
+func TestLogWriterClose(t *testing.T) {
+	assert.Nil(t, newLogWriter(nil).Close())
 }
