@@ -13,11 +13,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-const (
-	traceKey = "trace"
-	spanKey  = "span"
-)
-
 func TestTraceLog(t *testing.T) {
 	var buf mockWriter
 	atomic.StoreUint32(&initialized, 1)
@@ -27,7 +22,7 @@ func TestTraceLog(t *testing.T) {
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
+	WithContext(ctx).(*traceLogger).writeValue(&buf, levelInfo, testlog)
 	assert.True(t, strings.Contains(buf.String(), traceKey))
 	assert.True(t, strings.Contains(buf.String(), spanKey))
 }

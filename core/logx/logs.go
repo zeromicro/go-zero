@@ -3,75 +3,24 @@ package logx
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
-	"runtime"
 	"runtime/debug"
-	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/sysx"
-	"github.com/zeromicro/go-zero/core/timex"
 )
 
-const (
-	// InfoLevel logs everything
-	InfoLevel = iota
-	// ErrorLevel includes errors, slows, stacks
-	ErrorLevel
-	// SevereLevel only log severe messages
-	SevereLevel
-)
-
-const (
-	jsonEncodingType = iota
-	plainEncodingType
-
-	jsonEncoding     = "json"
-	plainEncoding    = "plain"
-	plainEncodingSep = '\t'
-)
-
-const (
-	accessFilename = "access.log"
-	errorFilename  = "error.log"
-	severeFilename = "severe.log"
-	slowFilename   = "slow.log"
-	statFilename   = "stat.log"
-
-	consoleMode = "console"
-	volumeMode  = "volume"
-
-	levelAlert  = "alert"
-	levelInfo   = "info"
-	levelError  = "error"
-	levelSevere = "severe"
-	levelFatal  = "fatal"
-	levelSlow   = "slow"
-	levelStat   = "stat"
-
-	backupFileDelimiter = "-"
-	callerInnerDepth    = 5
-	flags               = 0x0
-)
+const callerDepth = 4
 
 var (
-	// ErrLogPathNotSet is an error that indicates the log path is not set.
-	ErrLogPathNotSet = errors.New("log path must be set")
-	// ErrLogNotInitialized is an error that log is not initialized.
-	ErrLogNotInitialized = errors.New("log not initialized")
-	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
-	ErrLogServiceNameNotSet = errors.New("log service name must be set")
-
 	timeFormat   = "2006-01-02T15:04:05.000Z07:00"
 	writeConsole bool
 	logLevel     uint32
@@ -95,8 +44,11 @@ type (
 		Timestamp string      `json:"@timestamp"`
 		Level     string      `json:"level"`
 		Duration  string      `json:"duration,omitempty"`
+		Caller    string      `json:"caller,omitempty"`
 		Content   interface{} `json:"content"`
 	}
+
+	logEntryWithFields map[string]interface{}
 
 	logOptions struct {
 		gzipEnabled           bool
@@ -104,22 +56,14 @@ type (
 		keepDays              int
 	}
 
+	// LogField is a key-value pair that will be added to the log entry.
+	LogField struct {
+		Key   string
+		Value interface{}
+	}
+
 	// LogOption defines the method to customize the logging.
 	LogOption func(options *logOptions)
-
-	// A Logger represents a logger.
-	Logger interface {
-		Error(...interface{})
-		Errorf(string, ...interface{})
-		Errorv(interface{})
-		Info(...interface{})
-		Infof(string, ...interface{})
-		Infov(interface{})
-		Slow(...interface{})
-		Slowf(string, ...interface{})
-		Slowv(interface{})
-		WithDuration(time.Duration) Logger
-	}
 )
 
 // MustSetup sets up logging with given config c. It exits on error.
@@ -155,7 +99,7 @@ func SetUp(c LogConf) error {
 
 // Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
-	outputText(errorLog, levelAlert, v)
+	outputLiteral(errorLog, levelAlert, v)
 }
 
 // Close closes the logging.
@@ -224,22 +168,12 @@ func DisableStat() {
 
 // Error writes v into error log.
 func Error(v ...interface{}) {
-	ErrorCaller(1, v...)
-}
-
-// ErrorCaller writes v with context into error log.
-func ErrorCaller(callDepth int, v ...interface{}) {
-	errorTextSync(fmt.Sprint(v...), callDepth+callerInnerDepth)
-}
-
-// ErrorCallerf writes v with context in format into error log.
-func ErrorCallerf(callDepth int, format string, v ...interface{}) {
-	errorTextSync(fmt.Errorf(format, v...).Error(), callDepth+callerInnerDepth)
+	errorTextSync(fmt.Sprint(v...))
 }
 
 // Errorf writes v with format into error log.
 func Errorf(format string, v ...interface{}) {
-	ErrorCallerf(1, format, v...)
+	errorTextSync(fmt.Errorf(format, v...).Error())
 }
 
 // ErrorStack writes v along with call stack into error log.
@@ -260,6 +194,21 @@ func Errorv(v interface{}) {
 	errorAnySync(v)
 }
 
+// Errorw writes msg along with fields into error log.
+func Errorw(msg string, fields ...LogField) {
+	errorFieldsSync(msg, fields...)
+}
+
+// Field returns a LogField for the given key and value.
+func Field(key string, value interface{}) LogField {
+	switch val := value.(type) {
+	case time.Duration:
+		return LogField{Key: key, Value: fmt.Sprint(val)}
+	default:
+		return LogField{Key: key, Value: val}
+	}
+}
+
 // Info writes v into access log.
 func Info(v ...interface{}) {
 	infoTextSync(fmt.Sprint(v...))
@@ -275,14 +224,21 @@ func Infov(v interface{}) {
 	infoAnySync(v)
 }
 
+// Infow writes msg along with fields into access log.
+func Infow(msg string, fields ...LogField) {
+	infoFieldsSync(msg, fields...)
+}
+
 // Must checks if err is nil, otherwise logs the error and exits.
 func Must(err error) {
-	if err != nil {
-		msg := formatWithCaller(err.Error(), 3)
-		log.Print(msg)
-		outputText(severeLog, levelFatal, msg)
-		os.Exit(1)
+	if err == nil {
+		return
 	}
+
+	msg := err.Error()
+	log.Print(msg)
+	outputLiteral(severeLog, levelFatal, msg)
+	os.Exit(1)
 }
 
 // SetLevel sets the logging level. It can be used to suppress some logs.
@@ -313,6 +269,11 @@ func Slowf(format string, v ...interface{}) {
 // Slowv writes v into slow log with json content.
 func Slowv(v interface{}) {
 	slowAnySync(v)
+}
+
+// Sloww writes msg along with fields into slow log.
+func Sloww(msg string, fields ...LogField) {
+	slowFieldsSync(msg, fields...)
 }
 
 // Stat writes v into stat log.
@@ -346,6 +307,29 @@ func WithGzip() LogOption {
 	}
 }
 
+func buildFields(fields ...LogField) []string {
+	var items []string
+
+	for _, field := range fields {
+		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
+	}
+
+	return items
+}
+
+func buildLogEntryWithFields(fields ...LogField) logEntryWithFields {
+	if len(fields) == 0 {
+		return nil
+	}
+
+	entry := make(logEntryWithFields)
+	for _, field := range fields {
+		entry[field.Key] = field.Value
+	}
+
+	return entry
+}
+
 func createOutput(path string) (io.WriteCloser, error) {
 	if len(path) == 0 {
 		return nil, ErrLogPathNotSet
@@ -361,48 +345,16 @@ func errorAnySync(v interface{}) {
 	}
 }
 
-func errorTextSync(msg string, callDepth int) {
+func errorFieldsSync(content string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		outputError(errorLog, msg, callDepth)
+		outputLiteral(errorLog, levelError, content, fields...)
 	}
 }
 
-func formatWithCaller(msg string, callDepth int) string {
-	var buf strings.Builder
-
-	caller := getCaller(callDepth)
-	if len(caller) > 0 {
-		buf.WriteString(caller)
-		buf.WriteByte(' ')
+func errorTextSync(msg string) {
+	if shallLog(ErrorLevel) {
+		outputLiteral(errorLog, levelError, msg)
 	}
-
-	buf.WriteString(msg)
-
-	return buf.String()
-}
-
-func getCaller(callDepth int) string {
-	var buf strings.Builder
-
-	_, file, line, ok := runtime.Caller(callDepth)
-	if ok {
-		short := file
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				short = file[i+1:]
-				break
-			}
-		}
-		buf.WriteString(short)
-		buf.WriteByte(':')
-		buf.WriteString(strconv.Itoa(line))
-	}
-
-	return buf.String()
-}
-
-func getTimestamp() string {
-	return timex.Time().Format(timeFormat)
 }
 
 func handleOptions(opts []LogOption) {
@@ -417,43 +369,52 @@ func infoAnySync(val interface{}) {
 	}
 }
 
+func infoFieldsSync(content string, fields ...LogField) {
+	if shallLog(InfoLevel) {
+		outputLiteral(infoLog, levelInfo, content, fields...)
+	}
+}
+
 func infoTextSync(msg string) {
 	if shallLog(InfoLevel) {
-		outputText(infoLog, levelInfo, msg)
+		outputLiteral(infoLog, levelInfo, msg)
 	}
 }
 
-func outputAny(writer io.Writer, level string, val interface{}) {
+func outputAny(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
+
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val)
+		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
-		info := logEntry{
-			Timestamp: getTimestamp(),
-			Level:     level,
-			Content:   val,
+		entry := make(logEntryWithFields)
+		for _, field := range fields {
+			entry[field.Key] = field.Value
 		}
-		outputJson(writer, info)
+		entry[timestampKey] = getTimestamp()
+		entry[levelKey] = level
+		entry[contentKey] = val
+		outputJson(writer, entry)
 	}
 }
 
-func outputText(writer io.Writer, level, msg string) {
+func outputLiteral(writer io.Writer, level, content string, fields ...LogField) {
+	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
+
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainText(writer, level, msg)
+		writePlainAny(writer, level, content, buildFields(fields...)...)
 	default:
-		info := logEntry{
-			Timestamp: getTimestamp(),
-			Level:     level,
-			Content:   msg,
+		entry := make(logEntryWithFields)
+		for _, field := range fields {
+			entry[field.Key] = field.Value
 		}
-		outputJson(writer, info)
+		entry[timestampKey] = getTimestamp()
+		entry[levelKey] = level
+		entry[contentKey] = content
+		outputJson(writer, entry)
 	}
-}
-
-func outputError(writer io.Writer, msg string, callDepth int) {
-	content := formatWithCaller(msg, callDepth)
-	outputText(writer, levelError, content)
 }
 
 func outputJson(writer io.Writer, info interface{}) {
@@ -556,7 +517,7 @@ func setupWithVolume(c LogConf) error {
 
 func severeSync(msg string) {
 	if shallLog(SevereLevel) {
-		outputText(severeLog, levelSevere, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+		outputLiteral(severeLog, levelSevere, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
@@ -574,21 +535,27 @@ func slowAnySync(v interface{}) {
 	}
 }
 
+func slowFieldsSync(content string, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		outputLiteral(slowLog, levelSlow, content, fields...)
+	}
+}
+
 func slowTextSync(msg string) {
 	if shallLog(ErrorLevel) {
-		outputText(slowLog, levelSlow, msg)
+		outputLiteral(slowLog, levelSlow, msg)
 	}
 }
 
 func stackSync(msg string) {
 	if shallLog(ErrorLevel) {
-		outputText(stackLog, levelError, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+		outputLiteral(stackLog, levelError, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
 func statSync(msg string) {
 	if shallLogStat() && shallLog(InfoLevel) {
-		outputText(statLog, levelStat, msg)
+		outputLiteral(statLog, levelStat, msg)
 	}
 }
 
@@ -605,14 +572,15 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 		buf.WriteString(getTimestamp())
 		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(level)
-		for _, item := range fields {
-			buf.WriteByte(plainEncodingSep)
-			buf.WriteString(item)
-		}
 		buf.WriteByte(plainEncodingSep)
 		if err := json.NewEncoder(&buf).Encode(val); err != nil {
 			log.Println(err.Error())
 			return
+		}
+
+		for _, item := range fields {
+			buf.WriteByte(plainEncodingSep)
+			buf.WriteString(item)
 		}
 		buf.WriteByte('\n')
 		if atomic.LoadUint32(&initialized) == 0 || writer == nil {
@@ -631,12 +599,12 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(msg)
 	for _, item := range fields {
 		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(item)
 	}
-	buf.WriteByte(plainEncodingSep)
-	buf.WriteString(msg)
 	buf.WriteByte('\n')
 	if atomic.LoadUint32(&initialized) == 0 || writer == nil {
 		log.Println(buf.String())

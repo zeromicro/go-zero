@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
@@ -13,26 +12,30 @@ import (
 
 type traceLogger struct {
 	logEntry
-	Trace string `json:"trace,omitempty"`
-	Span  string `json:"span,omitempty"`
-	ctx   context.Context
+	ctx context.Context
 }
 
 func (l *traceLogger) Error(v ...interface{}) {
 	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
+		l.write(errorLog, levelError, fmt.Sprint(v...))
 	}
 }
 
 func (l *traceLogger) Errorf(format string, v ...interface{}) {
 	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
+		l.write(errorLog, levelError, fmt.Sprintf(format, v...))
 	}
 }
 
 func (l *traceLogger) Errorv(v interface{}) {
 	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, v)
+	}
+}
+
+func (l *traceLogger) Errorw(msg string, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		l.write(errorLog, levelError, msg, fields...)
 	}
 }
 
@@ -54,6 +57,12 @@ func (l *traceLogger) Infov(v interface{}) {
 	}
 }
 
+func (l *traceLogger) Infow(msg string, fields ...LogField) {
+	if shallLog(InfoLevel) {
+		l.write(infoLog, levelInfo, msg, fields...)
+	}
+}
+
 func (l *traceLogger) Slow(v ...interface{}) {
 	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprint(v...))
@@ -72,30 +81,39 @@ func (l *traceLogger) Slowv(v interface{}) {
 	}
 }
 
+func (l *traceLogger) Sloww(msg string, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		l.write(slowLog, levelSlow, msg, fields...)
+	}
+}
+
+func (l *traceLogger) WithContext(ctx context.Context) Logger {
+	if ctx == nil {
+		return l
+	}
+
+	l.ctx = ctx
+	return l
+}
+
 func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
 }
 
-func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
-	traceID := traceIdFromContext(l.ctx)
-	spanID := spanIdFromContext(l.ctx)
-
-	switch atomic.LoadUint32(&encoding) {
-	case plainEncodingType:
-		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
-	default:
-		outputJson(writer, &traceLogger{
-			logEntry: logEntry{
-				Timestamp: getTimestamp(),
-				Level:     level,
-				Duration:  l.Duration,
-				Content:   val,
-			},
-			Trace: traceID,
-			Span:  spanID,
-		})
+func (l *traceLogger) write(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	if len(l.Duration) > 0 {
+		fields = append(fields, Field(durationKey, l.Duration))
 	}
+	traceID := traceIdFromContext(l.ctx)
+	if len(traceID) > 0 {
+		fields = append(fields, Field(traceKey, traceID))
+	}
+	spanID := spanIdFromContext(l.ctx)
+	if len(spanID) > 0 {
+		fields = append(fields, Field(spanKey, spanID))
+	}
+	outputAny(writer, level, val, fields...)
 }
 
 // WithContext sets ctx to log, for keeping tracing information.

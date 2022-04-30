@@ -3,13 +3,11 @@ package logx
 import (
 	"fmt"
 	"io"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
+	"golang.org/x/net/context"
 )
-
-const durationCallerDepth = 3
 
 type durationLogger logEntry
 
@@ -22,19 +20,25 @@ func WithDuration(d time.Duration) Logger {
 
 func (l *durationLogger) Error(v ...interface{}) {
 	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
+		l.write(errorLog, levelError, fmt.Sprint(v...))
 	}
 }
 
 func (l *durationLogger) Errorf(format string, v ...interface{}) {
 	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
+		l.write(errorLog, levelError, fmt.Sprintf(format, v...))
 	}
 }
 
 func (l *durationLogger) Errorv(v interface{}) {
 	if shallLog(ErrorLevel) {
 		l.write(errorLog, levelError, v)
+	}
+}
+
+func (l *durationLogger) Errorw(msg string, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		l.write(errorLog, levelError, msg, fields...)
 	}
 }
 
@@ -56,6 +60,12 @@ func (l *durationLogger) Infov(v interface{}) {
 	}
 }
 
+func (l *durationLogger) Infow(msg string, fields ...LogField) {
+	if shallLog(InfoLevel) {
+		l.write(infoLog, levelInfo, msg, fields...)
+	}
+}
+
 func (l *durationLogger) Slow(v ...interface{}) {
 	if shallLog(ErrorLevel) {
 		l.write(slowLog, levelSlow, fmt.Sprint(v...))
@@ -74,21 +84,27 @@ func (l *durationLogger) Slowv(v interface{}) {
 	}
 }
 
+func (l *durationLogger) Sloww(msg string, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		l.write(slowLog, levelSlow, msg, fields...)
+	}
+}
+
+func (l *durationLogger) WithContext(ctx context.Context) Logger {
+	return &traceLogger{
+		ctx: ctx,
+		logEntry: logEntry{
+			Duration: l.Duration,
+		},
+	}
+}
+
 func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
 }
 
-func (l *durationLogger) write(writer io.Writer, level string, val interface{}) {
-	switch atomic.LoadUint32(&encoding) {
-	case plainEncodingType:
-		writePlainAny(writer, level, val, l.Duration)
-	default:
-		outputJson(writer, &durationLogger{
-			Timestamp: getTimestamp(),
-			Level:     level,
-			Content:   val,
-			Duration:  l.Duration,
-		})
-	}
+func (l *durationLogger) write(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	fields = append(fields, Field(durationKey, l.Duration))
+	outputAny(writer, level, val, fields...)
 }
