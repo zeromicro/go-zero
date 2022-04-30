@@ -224,3 +224,60 @@ func BenchmarkSearchTree(b *testing.B) {
 		tree.Search(query)
 	}
 }
+
+func TestFuzzyMatching(t *testing.T) {
+	routes := []mockedRoute{
+		{"/book/*", 1},
+		{"/user/list/:name/:age/*", 2},
+	}
+	tests := []struct {
+		query    string
+		expect   int
+		params   map[string]string
+		contains bool
+	}{
+		{
+			query:    "/book/get/1",
+			expect:   1,
+			contains: true,
+		},
+		{
+			query:    "/book/list",
+			expect:   1,
+			contains: true,
+		},
+		{
+			query:  "/user/list/jack/18/get",
+			expect: 2,
+			params: map[string]string{
+				"name": "jack",
+				"age":  "18",
+			},
+			contains: true,
+		},
+		{
+			query:  "/user/list/jack/18/get?times=10",
+			expect: 2,
+			params: map[string]string{
+				"name": "jack",
+				"age":  "18",
+			},
+			contains: true,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.query, func(t *testing.T) {
+			tree := NewTree()
+			for _, r := range routes {
+				tree.Add(r.route, r.value)
+			}
+			result, ok := tree.Search(test.query)
+			assert.Equal(t, test.contains, ok)
+			if ok {
+				actual := result.Item.(int)
+				assert.EqualValues(t, test.params, result.Params)
+				assert.Equal(t, test.expect, actual)
+			}
+		})
+	}
+}
