@@ -39,7 +39,8 @@ func TestTraceError(t *testing.T) {
 
 	l := WithContext(context.Background())
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l = l.WithContext(nil)
+	var nilCtx context.Context
+	l = l.WithContext(nilCtx)
 	l = l.WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Error(testlog)
