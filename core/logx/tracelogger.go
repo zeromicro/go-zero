@@ -113,7 +113,7 @@ func (l *traceLogger) write(writer io.Writer, level string, val interface{}, fie
 	if len(spanID) > 0 {
 		fields = append(fields, Field(spanKey, spanID))
 	}
-	outputAny(writer, level, val, fields...)
+	output(writer, level, val, fields...)
 }
 
 // WithContext sets ctx to log, for keeping tracing information.

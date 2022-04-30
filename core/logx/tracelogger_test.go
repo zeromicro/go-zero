@@ -2,6 +2,7 @@ package logx
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -22,9 +23,8 @@ func TestTraceLog(t *testing.T) {
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	WithContext(ctx).(*traceLogger).writeValue(&buf, levelInfo, testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
+	validate(t, buf.String(), true, true)
 }
 
 func TestTraceError(t *testing.T) {
@@ -40,16 +40,13 @@ func TestTraceError(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Error(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Errorf(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 }
 
 func TestTraceInfo(t *testing.T) {
@@ -65,16 +62,13 @@ func TestTraceInfo(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 }
 
 func TestTraceInfoConsole(t *testing.T) {
@@ -96,16 +90,13 @@ func TestTraceInfoConsole(t *testing.T) {
 	l := WithContext(ctx).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceIdFromContext(ctx)))
-	assert.True(t, strings.Contains(buf.String(), spanIdFromContext(ctx)))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceIdFromContext(ctx)))
-	assert.True(t, strings.Contains(buf.String(), spanIdFromContext(ctx)))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceIdFromContext(ctx)))
-	assert.True(t, strings.Contains(buf.String(), spanIdFromContext(ctx)))
+	validate(t, buf.String(), true, true)
 }
 
 func TestTraceSlow(t *testing.T) {
@@ -125,12 +116,10 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(buf.String(), spanKey))
 	buf.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 	buf.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), true, true)
 }
 
 func TestTraceWithoutContext(t *testing.T) {
@@ -140,10 +129,20 @@ func TestTraceWithoutContext(t *testing.T) {
 	l := WithContext(context.Background()).(*traceLogger)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	assert.False(t, strings.Contains(buf.String(), traceKey))
-	assert.False(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), false, false)
 	buf.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	assert.False(t, strings.Contains(buf.String(), traceKey))
-	assert.False(t, strings.Contains(buf.String(), spanKey))
+	validate(t, buf.String(), false, false)
+}
+
+func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(body), &val))
+	assert.Equal(t, expectedTrace, len(val.Trace) > 0)
+	assert.Equal(t, expectedSpan, len(val.Span) > 0)
+}
+
+type mockValue struct {
+	Trace string `json:"trace"`
+	Span  string `json:"span"`
 }

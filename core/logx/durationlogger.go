@@ -106,5 +106,5 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 
 func (l *durationLogger) write(writer io.Writer, level string, val interface{}, fields ...LogField) {
 	fields = append(fields, Field(durationKey, l.Duration))
-	outputAny(writer, level, val, fields...)
+	output(writer, level, val, fields...)
 }
