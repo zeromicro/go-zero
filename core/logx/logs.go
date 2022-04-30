@@ -1,7 +1,6 @@
 package logx
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -537,7 +537,7 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 	case fmt.Stringer:
 		writePlainText(writer, level, v.String(), fields...)
 	default:
-		var buf bytes.Buffer
+		var buf strings.Builder
 		buf.WriteString(getTimestamp())
 		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(level)
@@ -557,14 +557,14 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 			return
 		}
 
-		if _, err := writer.Write(buf.Bytes()); err != nil {
+		if _, err := fmt.Fprint(writer, buf.String()); err != nil {
 			log.Println(err.Error())
 		}
 	}
 }
 
 func writePlainText(writer io.Writer, level, msg string, fields ...string) {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
@@ -580,7 +580,7 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 		return
 	}
 
-	if _, err := writer.Write(buf.Bytes()); err != nil {
+	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
 		log.Println(err.Error())
 	}
 }
