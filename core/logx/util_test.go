@@ -18,7 +18,7 @@ func TestGetTimestamp(t *testing.T) {
 	ts := getTimestamp()
 	tm, err := time.Parse(timeFormat, ts)
 	assert.Nil(t, err)
-	assert.True(t, time.Now().Sub(tm) < time.Minute)
+	assert.True(t, time.Since(tm) < time.Minute)
 }
 
 func BenchmarkGetCaller(b *testing.B) {
