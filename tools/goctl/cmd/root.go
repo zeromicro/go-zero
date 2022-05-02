@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
@@ -10,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
 	"github.com/zeromicro/go-zero/tools/goctl/model"
@@ -20,11 +22,13 @@ import (
 
 const codeFailure = 1
 
-var rootCmd = &cobra.Command{
-	Use:   "goctl",
-	Short: "a cli tool to generate go-zero code",
-	Long:  "a cli tool to generate api, zrpc, model code",
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "goctl",
+		Short: "A cli tool to generate go-zero code",
+		Long:  "A cli tool to generate api, zrpc, model code",
+	}
+)
 
 // Execute executes the given command
 func Execute() {
@@ -35,9 +39,9 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
 	rootCmd.AddCommand(api.Cmd)
 	rootCmd.AddCommand(bug.Cmd)
-	// rootCmd.AddCommand(completion.Cmd)
 	rootCmd.AddCommand(docker.Cmd)
 	rootCmd.AddCommand(kube.Cmd)
 	rootCmd.AddCommand(env.Cmd)

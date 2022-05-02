@@ -7,8 +7,8 @@ var (
 	stringVarVersion string
 	Cmd              = &cobra.Command{
 		Use:   "migrate",
-		Short: "migrate from tal-tech to zeromicro",
-		Long: "migrate is a transition command to help users migrate their " +
+		Short: "Migrate from tal-tech to zeromicro",
+		Long: "Migrate is a transition command to help users migrate their " +
 			"projects from tal-tech to zeromicro version",
 		RunE: migrate,
 	}
@@ -16,7 +16,7 @@ var (
 
 func init() {
 	Cmd.Flags().BoolVarP(&boolVarVerbose, "verbose", "v",
-		false, "verbose enables extra logging")
+		false, "Verbose enables extra logging")
 	Cmd.Flags().StringVar(&stringVarVersion, "version", defaultMigrateVersion,
-		"the target release version of github.com/zeromicro/go-zero to migrate")
+		"The target release version of github.com/zeromicro/go-zero to migrate")
 }

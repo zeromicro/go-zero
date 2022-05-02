@@ -11,17 +11,17 @@ var (
 	// Cmd describes the command
 	Cmd = &cobra.Command{
 		Use:   "env",
-		Short: "check or edit goctl environment",
+		Short: "Check or edit goctl environment",
 		RunE:  write,
 	}
 	installCmd = &cobra.Command{
 		Use:   "install",
-		Short: "goctl env installation",
+		Short: "Goctl env installation",
 		RunE:  install,
 	}
 	checkCmd = &cobra.Command{
 		Use:   "check",
-		Short: "detect goctl env and dependency tools",
+		Short: "Detect goctl env and dependency tools",
 		RunE:  check,
 	}
 )
@@ -29,16 +29,16 @@ var (
 func init() {
 	// The root command flags
 	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue,
-		"write", "w", nil, "edit goctl environment")
+		"write", "w", nil, "Edit goctl environment")
 	Cmd.PersistentFlags().BoolVarP(&boolVarForce,
 		"force", "f", false,
-		"silent installation of non-existent dependencies")
+		"Silent installation of non-existent dependencies")
 	Cmd.PersistentFlags().BoolVarP(&boolVarVerbose,
-		"verbose", "v", false, "enable log output")
+		"verbose", "v", false, "Enable log output")
 
 	// The sub-command flags
 	checkCmd.Flags().BoolVarP(&boolVarInstall, "install", "i",
-		false, "install dependencies if not found")
+		false, "Install dependencies if not found")
 
 	// Add sub-command
 	Cmd.AddCommand(installCmd)
