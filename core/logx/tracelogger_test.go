@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -16,22 +15,25 @@ import (
 )
 
 func TestTraceLog(t *testing.T) {
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
+	SetLevel(InfoLevel)
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
 	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	WithContext(ctx).(*traceLogger).write(&buf, levelInfo, testlog)
-	validate(t, buf.String(), true, true)
+	WithContext(ctx).Info(testlog)
+	validate(t, w.String(), true, true)
 }
 
 func TestTraceError(t *testing.T) {
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
-	errorLog = newLogWriter(log.New(&buf, "", flags))
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
@@ -44,25 +46,26 @@ func TestTraceError(t *testing.T) {
 	l = l.WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Error(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorf(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
-	fmt.Println(buf.String())
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	fmt.Println(w.String())
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
-	validate(t, buf.String(), true, true)
-	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
-	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
 func TestTraceInfo(t *testing.T) {
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
-	infoLog = newLogWriter(log.New(&buf, "", flags))
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
@@ -72,18 +75,18 @@ func TestTraceInfo(t *testing.T) {
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Infow(testlog, Field("foo", "bar"))
-	validate(t, buf.String(), true, true)
-	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
-	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
 func TestTraceInfoConsole(t *testing.T) {
@@ -93,9 +96,10 @@ func TestTraceInfoConsole(t *testing.T) {
 		atomic.StoreUint32(&encoding, old)
 	}()
 
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
-	infoLog = newLogWriter(log.New(&buf, "", flags))
+	w := new(mockWriter)
+	o := writer.Swap(w)
+	defer writer.Store(o)
+
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
@@ -105,19 +109,20 @@ func TestTraceInfoConsole(t *testing.T) {
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
-	validate(t, buf.String(), true, true)
+	validate(t, w.String(), true, true)
 }
 
 func TestTraceSlow(t *testing.T) {
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
-	slowLog = newLogWriter(log.New(&buf, "", flags))
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
@@ -127,32 +132,34 @@ func TestTraceSlow(t *testing.T) {
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Slow(testlog)
-	assert.True(t, strings.Contains(buf.String(), traceKey))
-	assert.True(t, strings.Contains(buf.String(), spanKey))
-	buf.Reset()
+	assert.True(t, strings.Contains(w.String(), traceKey))
+	assert.True(t, strings.Contains(w.String(), spanKey))
+	w.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	fmt.Println("buf:", w.String())
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
-	validate(t, buf.String(), true, true)
-	buf.Reset()
+	validate(t, w.String(), true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Sloww(testlog, Field("foo", "bar"))
-	validate(t, buf.String(), true, true)
-	assert.True(t, strings.Contains(buf.String(), "foo"), buf.String())
-	assert.True(t, strings.Contains(buf.String(), "bar"), buf.String())
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
 func TestTraceWithoutContext(t *testing.T) {
-	var buf mockWriter
-	atomic.StoreUint32(&initialized, 1)
-	infoLog = newLogWriter(log.New(&buf, "", flags))
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
 	l := WithContext(context.Background())
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
-	validate(t, buf.String(), false, false)
-	buf.Reset()
+	validate(t, w.String(), false, false)
+	w.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
-	validate(t, buf.String(), false, false)
+	validate(t, w.String(), false, false)
 }
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {

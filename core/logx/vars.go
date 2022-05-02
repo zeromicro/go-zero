@@ -55,8 +55,6 @@ const (
 var (
 	// ErrLogPathNotSet is an error that indicates the log path is not set.
 	ErrLogPathNotSet = errors.New("log path must be set")
-	// ErrLogNotInitialized is an error that log is not initialized.
-	ErrLogNotInitialized = errors.New("log not initialized")
 	// ErrLogServiceNameNotSet is an error that indicates that the service name is not set.
 	ErrLogServiceNameNotSet = errors.New("log service name must be set")
 )

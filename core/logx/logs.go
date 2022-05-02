@@ -1,42 +1,29 @@
 package logx
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
 	"runtime/debug"
-	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/sysx"
 )
 
-const callerDepth = 4
+const callerDepth = 5
 
 var (
-	timeFormat   = "2006-01-02T15:04:05.000Z07:00"
-	writeConsole bool
-	logLevel     uint32
-	encoding     uint32 = jsonEncodingType
+	timeFormat = "2006-01-02T15:04:05.000Z07:00"
+	logLevel   uint32
+	encoding   uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
-	infoLog     io.WriteCloser
-	errorLog    io.WriteCloser
-	severeLog   io.WriteCloser
-	slowLog     io.WriteCloser
-	statLog     io.WriteCloser
-	stackLog    io.Writer
 
-	once        sync.Once
-	initialized uint32
-	options     logOptions
+	options logOptions
+	writer  = new(atomicWriter)
 )
 
 type (
@@ -66,82 +53,15 @@ type (
 	LogOption func(options *logOptions)
 )
 
-// MustSetup sets up logging with given config c. It exits on error.
-func MustSetup(c LogConf) {
-	Must(SetUp(c))
-}
-
-// SetUp sets up the logx. If already set up, just return nil.
-// we allow SetUp to be called multiple times, because for example
-// we need to allow different service frameworks to initialize logx respectively.
-// the same logic for SetUp
-func SetUp(c LogConf) error {
-	if len(c.TimeFormat) > 0 {
-		timeFormat = c.TimeFormat
-	}
-	switch c.Encoding {
-	case plainEncoding:
-		atomic.StoreUint32(&encoding, plainEncodingType)
-	default:
-		atomic.StoreUint32(&encoding, jsonEncodingType)
-	}
-
-	switch c.Mode {
-	case consoleMode:
-		setupWithConsole(c)
-		return nil
-	case volumeMode:
-		return setupWithVolume(c)
-	default:
-		return setupWithFiles(c)
-	}
-}
-
 // Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
-	output(errorLog, levelAlert, v)
+	getWriter().Alert(v)
 }
 
 // Close closes the logging.
 func Close() error {
-	if writeConsole {
-		return nil
-	}
-
-	if atomic.LoadUint32(&initialized) == 0 {
-		return ErrLogNotInitialized
-	}
-
-	atomic.StoreUint32(&initialized, 0)
-
-	if infoLog != nil {
-		if err := infoLog.Close(); err != nil {
-			return err
-		}
-	}
-
-	if errorLog != nil {
-		if err := errorLog.Close(); err != nil {
-			return err
-		}
-	}
-
-	if severeLog != nil {
-		if err := severeLog.Close(); err != nil {
-			return err
-		}
-	}
-
-	if slowLog != nil {
-		if err := slowLog.Close(); err != nil {
-			return err
-		}
-	}
-
-	if statLog != nil {
-		if err := statLog.Close(); err != nil {
-			return err
-		}
+	if w := writer.Swap(nil); w != nil {
+		return w.(io.Closer).Close()
 	}
 
 	return nil
@@ -149,16 +69,7 @@ func Close() error {
 
 // Disable disables the logging.
 func Disable() {
-	once.Do(func() {
-		atomic.StoreUint32(&initialized, 1)
-
-		infoLog = iox.NopCloser(ioutil.Discard)
-		errorLog = iox.NopCloser(ioutil.Discard)
-		severeLog = iox.NopCloser(ioutil.Discard)
-		slowLog = iox.NopCloser(ioutil.Discard)
-		statLog = iox.NopCloser(ioutil.Discard)
-		stackLog = ioutil.Discard
-	})
+	writer.Store(nopWriter{})
 }
 
 // DisableStat disables the stat logs.
@@ -237,13 +148,61 @@ func Must(err error) {
 
 	msg := err.Error()
 	log.Print(msg)
-	output(severeLog, levelFatal, msg)
+	getWriter().Severe(msg)
 	os.Exit(1)
+}
+
+// MustSetup sets up logging with given config c. It exits on error.
+func MustSetup(c LogConf) {
+	Must(SetUp(c))
+}
+
+// Reset clears the writer and resets the log level.
+func Reset() {
+	SetLevel(InfoLevel)
+	writer.Store(nil)
 }
 
 // SetLevel sets the logging level. It can be used to suppress some logs.
 func SetLevel(level uint32) {
 	atomic.StoreUint32(&logLevel, level)
+}
+
+// SetWriter sets the logging writer. It can be used to customize the logging.
+// Call Reset before calling SetWriter again.
+func SetWriter(w Writer) {
+	if writer.Load() == nil {
+		writer.Store(w)
+	}
+}
+
+// SetUp sets up the logx. If already set up, just return nil.
+// we allow SetUp to be called multiple times, because for example
+// we need to allow different service frameworks to initialize logx respectively.
+// the same logic for SetUp
+func SetUp(c LogConf) error {
+	setupLogLevel(c)
+
+	if len(c.TimeFormat) > 0 {
+		timeFormat = c.TimeFormat
+	}
+
+	switch c.Encoding {
+	case plainEncoding:
+		atomic.StoreUint32(&encoding, plainEncodingType)
+	default:
+		atomic.StoreUint32(&encoding, jsonEncodingType)
+	}
+
+	switch c.Mode {
+	case consoleMode:
+		setupWithConsole()
+		return nil
+	case volumeMode:
+		return setupWithVolume(c)
+	default:
+		return setupWithFiles(c)
+	}
 }
 
 // Severe writes v into severe log.
@@ -307,16 +266,6 @@ func WithGzip() LogOption {
 	}
 }
 
-func buildFields(fields ...LogField) []string {
-	var items []string
-
-	for _, field := range fields {
-		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
-	}
-
-	return items
-}
-
 func createOutput(path string) (io.WriteCloser, error) {
 	if len(path) == 0 {
 		return nil, ErrLogPathNotSet
@@ -328,20 +277,30 @@ func createOutput(path string) (io.WriteCloser, error) {
 
 func errorAnySync(v interface{}) {
 	if shallLog(ErrorLevel) {
-		output(errorLog, levelError, v)
+		getWriter().Error(v)
 	}
 }
 
 func errorFieldsSync(content string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		output(errorLog, levelError, content, fields...)
+		getWriter().Error(content, fields...)
 	}
 }
 
 func errorTextSync(msg string) {
 	if shallLog(ErrorLevel) {
-		output(errorLog, levelError, msg)
+		getWriter().Error(msg)
 	}
+}
+
+func getWriter() Writer {
+	w := writer.Load()
+	if w == nil {
+		w = newConsoleWriter()
+		writer.Store(w)
+	}
+
+	return w.(Writer)
 }
 
 func handleOptions(opts []LogOption) {
@@ -352,37 +311,19 @@ func handleOptions(opts []LogOption) {
 
 func infoAnySync(val interface{}) {
 	if shallLog(InfoLevel) {
-		output(infoLog, levelInfo, val)
+		getWriter().Info(val)
 	}
 }
 
 func infoFieldsSync(content string, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		output(infoLog, levelInfo, content, fields...)
+		getWriter().Info(content, fields...)
 	}
 }
 
 func infoTextSync(msg string) {
 	if shallLog(InfoLevel) {
-		output(infoLog, levelInfo, msg)
-	}
-}
-
-func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
-	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
-
-	switch atomic.LoadUint32(&encoding) {
-	case plainEncodingType:
-		writePlainAny(writer, level, val, buildFields(fields...)...)
-	default:
-		entry := make(logEntryWithFields)
-		for _, field := range fields {
-			entry[field.Key] = field.Value
-		}
-		entry[timestampKey] = getTimestamp()
-		entry[levelKey] = level
-		entry[contentKey] = val
-		writeJson(writer, entry)
+		getWriter().Info(msg)
 	}
 }
 
@@ -397,72 +338,18 @@ func setupLogLevel(c LogConf) {
 	}
 }
 
-func setupWithConsole(c LogConf) {
-	once.Do(func() {
-		atomic.StoreUint32(&initialized, 1)
-		writeConsole = true
-		setupLogLevel(c)
-
-		infoLog = newLogWriter(log.New(os.Stdout, "", flags))
-		errorLog = newLogWriter(log.New(os.Stderr, "", flags))
-		severeLog = newLogWriter(log.New(os.Stderr, "", flags))
-		slowLog = newLogWriter(log.New(os.Stderr, "", flags))
-		stackLog = newLessWriter(errorLog, options.logStackCooldownMills)
-		statLog = infoLog
-	})
+func setupWithConsole() {
+	writer.Store(newConsoleWriter())
 }
 
 func setupWithFiles(c LogConf) error {
-	var opts []LogOption
-	var err error
-
-	if len(c.Path) == 0 {
-		return ErrLogPathNotSet
+	w, err := newFileWriter(c)
+	if err != nil {
+		return err
 	}
 
-	opts = append(opts, WithCooldownMillis(c.StackCooldownMillis))
-	if c.Compress {
-		opts = append(opts, WithGzip())
-	}
-	if c.KeepDays > 0 {
-		opts = append(opts, WithKeepDays(c.KeepDays))
-	}
-
-	accessFile := path.Join(c.Path, accessFilename)
-	errorFile := path.Join(c.Path, errorFilename)
-	severeFile := path.Join(c.Path, severeFilename)
-	slowFile := path.Join(c.Path, slowFilename)
-	statFile := path.Join(c.Path, statFilename)
-
-	once.Do(func() {
-		atomic.StoreUint32(&initialized, 1)
-		handleOptions(opts)
-		setupLogLevel(c)
-
-		if infoLog, err = createOutput(accessFile); err != nil {
-			return
-		}
-
-		if errorLog, err = createOutput(errorFile); err != nil {
-			return
-		}
-
-		if severeLog, err = createOutput(severeFile); err != nil {
-			return
-		}
-
-		if slowLog, err = createOutput(slowFile); err != nil {
-			return
-		}
-
-		if statLog, err = createOutput(statFile); err != nil {
-			return
-		}
-
-		stackLog = newLessWriter(errorLog, options.logStackCooldownMills)
-	})
-
-	return err
+	writer.Store(w)
+	return nil
 }
 
 func setupWithVolume(c LogConf) error {
@@ -476,7 +363,7 @@ func setupWithVolume(c LogConf) error {
 
 func severeSync(msg string) {
 	if shallLog(SevereLevel) {
-		output(severeLog, levelSevere, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+		getWriter().Severe(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
@@ -490,116 +377,30 @@ func shallLogStat() bool {
 
 func slowAnySync(v interface{}) {
 	if shallLog(ErrorLevel) {
-		output(slowLog, levelSlow, v)
+		getWriter().Slow(v)
 	}
 }
 
 func slowFieldsSync(content string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		output(slowLog, levelSlow, content, fields...)
+		getWriter().Slow(content, fields...)
 	}
 }
 
 func slowTextSync(msg string) {
 	if shallLog(ErrorLevel) {
-		output(slowLog, levelSlow, msg)
+		getWriter().Slow(msg)
 	}
 }
 
 func stackSync(msg string) {
 	if shallLog(ErrorLevel) {
-		output(stackLog, levelError, fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
+		getWriter().Stack(fmt.Sprintf("%s\n%s", msg, string(debug.Stack())))
 	}
 }
 
 func statSync(msg string) {
 	if shallLogStat() && shallLog(InfoLevel) {
-		output(statLog, levelStat, msg)
+		getWriter().Stat(msg)
 	}
-}
-
-func writeJson(writer io.Writer, info interface{}) {
-	if content, err := json.Marshal(info); err != nil {
-		log.Println(err.Error())
-	} else if atomic.LoadUint32(&initialized) == 0 || writer == nil {
-		log.Println(string(content))
-	} else {
-		writer.Write(append(content, '\n'))
-	}
-}
-
-func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
-	switch v := val.(type) {
-	case string:
-		writePlainText(writer, level, v, fields...)
-	case error:
-		writePlainText(writer, level, v.Error(), fields...)
-	case fmt.Stringer:
-		writePlainText(writer, level, v.String(), fields...)
-	default:
-		var buf strings.Builder
-		buf.WriteString(getTimestamp())
-		buf.WriteByte(plainEncodingSep)
-		buf.WriteString(level)
-		buf.WriteByte(plainEncodingSep)
-		if err := json.NewEncoder(&buf).Encode(val); err != nil {
-			log.Println(err.Error())
-			return
-		}
-
-		for _, item := range fields {
-			buf.WriteByte(plainEncodingSep)
-			buf.WriteString(item)
-		}
-		buf.WriteByte('\n')
-		if atomic.LoadUint32(&initialized) == 0 || writer == nil {
-			log.Println(buf.String())
-			return
-		}
-
-		if _, err := fmt.Fprint(writer, buf.String()); err != nil {
-			log.Println(err.Error())
-		}
-	}
-}
-
-func writePlainText(writer io.Writer, level, msg string, fields ...string) {
-	var buf strings.Builder
-	buf.WriteString(getTimestamp())
-	buf.WriteByte(plainEncodingSep)
-	buf.WriteString(level)
-	buf.WriteByte(plainEncodingSep)
-	buf.WriteString(msg)
-	for _, item := range fields {
-		buf.WriteByte(plainEncodingSep)
-		buf.WriteString(item)
-	}
-	buf.WriteByte('\n')
-	if atomic.LoadUint32(&initialized) == 0 || writer == nil {
-		log.Println(buf.String())
-		return
-	}
-
-	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
-		log.Println(err.Error())
-	}
-}
-
-type logWriter struct {
-	logger *log.Logger
-}
-
-func newLogWriter(logger *log.Logger) logWriter {
-	return logWriter{
-		logger: logger,
-	}
-}
-
-func (lw logWriter) Close() error {
-	return nil
-}
-
-func (lw logWriter) Write(data []byte) (int, error) {
-	lw.logger.Print(string(data))
-	return len(data), nil
 }
