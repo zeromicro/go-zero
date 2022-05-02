@@ -158,3 +158,32 @@ func TestDo_BadRequest(t *testing.T) {
 	_, err = Do(context.Background(), http.MethodPost, "/nodes/:val", val5)
 	assert.NotNil(t, err)
 }
+
+func TestDo_Json(t *testing.T) {
+	type Data struct {
+		Key    string   `path:"key"`
+		Value  int      `form:"value"`
+		Header string   `header:"X-Header"`
+		Body   chan int `json:"body"`
+	}
+
+	rt := router.NewRouter()
+	err := rt.Handle(http.MethodPost, "/nodes/:key",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var req Data
+			assert.Nil(t, httpx.Parse(r, &req))
+		}))
+	assert.Nil(t, err)
+
+	svr := httptest.NewServer(http.HandlerFunc(rt.ServeHTTP))
+	defer svr.Close()
+
+	data := Data{
+		Key:    "foo",
+		Value:  10,
+		Header: "my-header",
+		Body:   make(chan int),
+	}
+	_, err = Do(context.Background(), http.MethodPost, svr.URL+"/nodes/:key", data)
+	assert.NotNil(t, err)
+}
