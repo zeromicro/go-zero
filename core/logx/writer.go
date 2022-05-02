@@ -39,16 +39,17 @@ type (
 	}
 )
 
-func newConsoleWriter() Writer {
-	outLog := newLogWriter(log.New(os.Stdout, "", flags))
-	errLog := newLogWriter(log.New(os.Stderr, "", flags))
+// NewWriter creates a new Writer with the given io.Writer.
+func NewWriter(w io.Writer) Writer {
+	lw := newLogWriter(log.New(w, "", flags))
+
 	return &concreteWriter{
-		infoLog:   outLog,
-		errorLog:  errLog,
-		severeLog: errLog,
-		slowLog:   errLog,
-		stackLog:  newLessWriter(errLog, options.logStackCooldownMills),
-		statLog:   outLog,
+		infoLog:   lw,
+		errorLog:  lw,
+		severeLog: lw,
+		slowLog:   lw,
+		statLog:   lw,
+		stackLog:  lw,
 	}
 }
 
@@ -70,6 +71,19 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	w.writer = v
 	w.lock.Unlock()
 	return old
+}
+
+func newConsoleWriter() Writer {
+	outLog := newLogWriter(log.New(os.Stdout, "", flags))
+	errLog := newLogWriter(log.New(os.Stderr, "", flags))
+	return &concreteWriter{
+		infoLog:   outLog,
+		errorLog:  errLog,
+		severeLog: errLog,
+		slowLog:   errLog,
+		stackLog:  newLessWriter(errLog, options.logStackCooldownMills),
+		statLog:   outLog,
+	}
 }
 
 func newFileWriter(c LogConf) (Writer, error) {

@@ -10,6 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewWriter(t *testing.T) {
+	const literal = "foo bar"
+	var buf bytes.Buffer
+	w := NewWriter(&buf)
+	w.Info(literal)
+	assert.Contains(t, buf.String(), literal)
+}
+
 func TestConsoleWriter(t *testing.T) {
 	var buf bytes.Buffer
 	w := newConsoleWriter()

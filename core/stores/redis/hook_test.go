@@ -9,6 +9,7 @@ import (
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
 	tracesdk "go.opentelemetry.io/otel/trace"
 )
@@ -44,10 +45,8 @@ func TestHookProcessCase2(t *testing.T) {
 		Sampler:  1.0,
 	})
 
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w, restore := injectLog()
+	defer restore()
 
 	ctx, err := durationHook.BeforeProcess(context.Background(), nil)
 	if err != nil {
@@ -58,9 +57,9 @@ func TestHookProcessCase2(t *testing.T) {
 	time.Sleep(slowThreshold.Load() + time.Millisecond)
 
 	assert.Nil(t, durationHook.AfterProcess(ctx, red.NewCmd(context.Background(), "foo", "bar")))
-	assert.True(t, strings.Contains(buf.String(), "slow"))
-	assert.True(t, strings.Contains(buf.String(), "trace"))
-	assert.True(t, strings.Contains(buf.String(), "span"))
+	assert.True(t, strings.Contains(w.String(), "slow"))
+	assert.True(t, strings.Contains(w.String(), "trace"))
+	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
 func TestHookProcessCase3(t *testing.T) {
@@ -110,10 +109,8 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 		Sampler:  1.0,
 	})
 
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w, restore := injectLog()
+	defer restore()
 
 	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), nil)
 	if err != nil {
@@ -126,34 +123,30 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
 		red.NewCmd(context.Background(), "foo", "bar"),
 	}))
-	assert.True(t, strings.Contains(buf.String(), "slow"))
-	assert.True(t, strings.Contains(buf.String(), "trace"))
-	assert.True(t, strings.Contains(buf.String(), "span"))
+	assert.True(t, strings.Contains(w.String(), "slow"))
+	assert.True(t, strings.Contains(w.String(), "trace"))
+	assert.True(t, strings.Contains(w.String(), "span"))
 }
 
 func TestHookProcessPipelineCase3(t *testing.T) {
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w, restore := injectLog()
+	defer restore()
 
 	assert.Nil(t, durationHook.AfterProcessPipeline(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	}))
-	assert.True(t, buf.Len() == 0)
+	assert.True(t, len(w.String()) == 0)
 }
 
 func TestHookProcessPipelineCase4(t *testing.T) {
-	writer := log.Writer()
-	var buf strings.Builder
-	log.SetOutput(&buf)
-	defer log.SetOutput(writer)
+	w, restore := injectLog()
+	defer restore()
 
 	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
 	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{
 		red.NewCmd(context.Background()),
 	}))
-	assert.True(t, buf.Len() == 0)
+	assert.True(t, len(w.String()) == 0)
 }
 
 func TestHookProcessPipelineCase5(t *testing.T) {
@@ -165,4 +158,16 @@ func TestHookProcessPipelineCase5(t *testing.T) {
 	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
 	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, nil))
 	assert.True(t, buf.Len() == 0)
+}
+
+func injectLog() (r *strings.Builder, restore func()) {
+	var buf strings.Builder
+	w := logx.NewWriter(&buf)
+	o := logx.Reset()
+	logx.SetWriter(w)
+
+	return &buf, func() {
+		logx.Reset()
+		logx.SetWriter(o)
+	}
 }

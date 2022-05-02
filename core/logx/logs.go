@@ -158,9 +158,9 @@ func MustSetup(c LogConf) {
 }
 
 // Reset clears the writer and resets the log level.
-func Reset() {
+func Reset() Writer {
 	SetLevel(InfoLevel)
-	writer.Store(nil)
+	return writer.Swap(nil)
 }
 
 // SetLevel sets the logging level. It can be used to suppress some logs.
