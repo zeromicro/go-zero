@@ -339,7 +339,7 @@ func setupLogLevel(c LogConf) {
 }
 
 func setupWithConsole() {
-	writer.Store(newConsoleWriter())
+	SetWriter(newConsoleWriter())
 }
 
 func setupWithFiles(c LogConf) error {
@@ -348,7 +348,7 @@ func setupWithFiles(c LogConf) error {
 		return err
 	}
 
-	writer.Store(w)
+	SetWriter(w)
 	return nil
 }
 
