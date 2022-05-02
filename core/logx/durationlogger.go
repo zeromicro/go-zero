@@ -1,11 +1,11 @@
 package logx
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
-	"golang.org/x/net/context"
 )
 
 // WithDuration returns a Logger which logs the given duration.
