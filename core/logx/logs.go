@@ -300,7 +300,7 @@ func getWriter() Writer {
 		writer.Store(w)
 	}
 
-	return w.(Writer)
+	return w
 }
 
 func handleOptions(opts []LogOption) {
