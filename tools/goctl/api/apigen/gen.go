@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -17,13 +17,20 @@ import (
 //go:embed api.tpl
 var apiTemplate string
 
-// ApiCommand create api template file
-func ApiCommand(c *cli.Context) error {
-	if c.NumFlags() == 0 {
-		cli.ShowAppHelpAndExit(c, 1)
-	}
+var (
+	// VarStringOutput describes the output.
+	VarStringOutput string
+	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
+)
 
-	apiFile := c.String("o")
+// CreateApiTemplate create api template file
+func CreateApiTemplate(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringOutput
 	if len(apiFile) == 0 {
 		return errors.New("missing -o")
 	}
@@ -34,18 +41,15 @@ func ApiCommand(c *cli.Context) error {
 	}
 	defer fp.Close()
 
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote, branch)
+	if len(VarStringRemote) > 0 {
+		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
 		if len(repo) > 0 {
-			home = repo
+			VarStringHome = repo
 		}
 	}
 
-	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
+	if len(VarStringHome) > 0 {
+		pathx.RegisterGoctlHome(VarStringHome)
 	}
 
 	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)

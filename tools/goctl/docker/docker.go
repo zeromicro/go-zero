@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -37,24 +37,20 @@ type Docker struct {
 	Timezone    string
 }
 
-// DockerCommand provides the entry for goctl docker
-func DockerCommand(c *cli.Context) (err error) {
+// dockerCommand provides the entry for goctl docker
+func dockerCommand(_ *cobra.Command, _ []string) (err error) {
 	defer func() {
 		if err == nil {
 			fmt.Println(aurora.Green("Done."))
 		}
 	}()
 
-	if c.NumFlags() == 0 {
-		cli.ShowCommandHelpAndExit(c, "docker", 1)
-	}
-
-	goFile := c.String("go")
-	home := c.String("home")
-	version := c.String("version")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	timezone := c.String("tz")
+	goFile := varStringGo
+	home := varStringHome
+	version := varStringVersion
+	remote := varStringRemote
+	branch := varStringBranch
+	timezone := varStringTZ
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -78,8 +74,8 @@ func DockerCommand(c *cli.Context) (err error) {
 		return fmt.Errorf("file %q not found", goFile)
 	}
 
-	base := c.String("base")
-	port := c.Int("port")
+	base := varStringBase
+	port := varIntPort
 	if _, err := os.Stat(etcDir); os.IsNotExist(err) {
 		return generateDockerfile(goFile, base, port, version, timezone)
 	}

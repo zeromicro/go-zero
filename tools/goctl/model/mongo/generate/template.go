@@ -3,7 +3,6 @@ package generate
 import (
 	"fmt"
 
-	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -30,7 +29,7 @@ func Clean() error {
 }
 
 // Templates initializes the mongo templates.
-func Templates(_ *cli.Context) error {
+func Templates() error {
 	return pathx.InitTemplates(category, templates)
 }
 

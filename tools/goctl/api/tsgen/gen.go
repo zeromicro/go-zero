@@ -5,19 +5,32 @@ import (
 	"fmt"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+var (
+	// VarStringDir describes a directory.
+	VarStringDir string
+	// VarStringAPI describes an API file.
+	VarStringAPI string
+	// VarStringWebAPI describes a web API file.
+	VarStringWebAPI string
+	// VarStringCaller describes a caller.
+	VarStringCaller string
+	// VarBoolUnWrap describes whether wrap or not.
+	VarBoolUnWrap bool
+)
+
 // TsCommand provides the entry to generate typescript codes
-func TsCommand(c *cli.Context) error {
-	apiFile := c.String("api")
-	dir := c.String("dir")
-	webAPI := c.String("webapi")
-	caller := c.String("caller")
-	unwrapAPI := c.Bool("unwrap")
+func TsCommand(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringAPI
+	dir := VarStringDir
+	webAPI := VarStringWebAPI
+	caller := VarStringCaller
+	unwrapAPI := VarBoolUnWrap
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}

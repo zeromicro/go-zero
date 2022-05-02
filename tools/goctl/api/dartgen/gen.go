@@ -5,17 +5,28 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 )
 
+var (
+	// VarStringDir describes the directory.
+	VarStringDir string
+	// VarStringAPI defines the API.
+	VarStringAPI string
+	// VarStringLegacy describes whether legacy.
+	VarStringLegacy bool
+	// VarStringHostname defines the hostname.
+	VarStringHostname string
+)
+
 // DartCommand create dart network request code
-func DartCommand(c *cli.Context) error {
-	apiFile := c.String("api")
-	dir := c.String("dir")
-	isLegacy := c.Bool("legacy")
-	hostname := c.String("hostname")
+func DartCommand(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringAPI
+	dir := VarStringDir
+	isLegacy := VarStringLegacy
+	hostname := VarStringHostname
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}

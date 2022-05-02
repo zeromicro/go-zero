@@ -9,18 +9,18 @@ import (
 	"runtime"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-func Completion(c *cli.Context) error {
+func completion(cmd *cobra.Command, _ []string) error {
 	goos := runtime.GOOS
 	if goos == vars.OsWindows {
 		return fmt.Errorf("%q: only support unix-like OS", goos)
 	}
 
-	name := c.String("name")
+	name := varStringName
 	if len(name) == 0 {
 		name = defaultCompletionFilename
 	}

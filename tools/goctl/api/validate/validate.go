@@ -5,13 +5,16 @@ import (
 	"fmt"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 )
 
+// VarStringAPI describes an API.
+var VarStringAPI string
+
 // GoValidateApi verifies whether the api has a syntax error
-func GoValidateApi(c *cli.Context) error {
-	apiFile := c.String("api")
+func GoValidateApi(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringAPI
 
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
