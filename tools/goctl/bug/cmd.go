@@ -2,7 +2,7 @@ package bug
 
 import "github.com/spf13/cobra"
 
-// Cmd describes the command to run.
+// Cmd describes a bug command.
 var Cmd = &cobra.Command{
 	Use:   "bug",
 	Short: "Report a bug",

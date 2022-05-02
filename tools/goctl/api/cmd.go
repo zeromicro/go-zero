@@ -16,6 +16,7 @@ import (
 )
 
 var (
+	// Cmd describes a api command.
 	Cmd = &cobra.Command{
 		Use:   "api",
 		Short: "Generate api related files",
@@ -172,5 +173,4 @@ func init() {
 	Cmd.AddCommand(pluginCmd)
 	Cmd.AddCommand(tsCmd)
 	Cmd.AddCommand(validateCmd)
-
 }

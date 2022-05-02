@@ -5,7 +5,8 @@ import "github.com/spf13/cobra"
 var (
 	boolVarVerbose   bool
 	stringVarVersion string
-	Cmd              = &cobra.Command{
+	// Cmd describes a migrate command.
+	Cmd = &cobra.Command{
 		Use:   "migrate",
 		Short: "Migrate from tal-tech to zeromicro",
 		Long: "Migrate is a transition command to help users migrate their " +

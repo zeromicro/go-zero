@@ -8,7 +8,8 @@ var (
 	varStringHome     string
 	varStringCategory string
 	varStringName     string
-	Cmd               = &cobra.Command{
+	// Cmd describes a template command.
+	Cmd = &cobra.Command{
 		Use:   "template",
 		Short: "Template operation",
 	}

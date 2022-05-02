@@ -11,7 +11,9 @@ var (
 	varStringBranch  string
 	varStringVersion string
 	varStringTZ      string
-	Cmd              = &cobra.Command{
+
+	// Cmd describes a docker command.
+	Cmd = &cobra.Command{
 		Use:   "docker",
 		Short: "Generate Dockerfile",
 		RunE:  dockerCommand,

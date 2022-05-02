@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// Cmd describes a rpc command.
 	Cmd = &cobra.Command{
 		Use:   "rpc",
 		Short: "Generate rpc code",

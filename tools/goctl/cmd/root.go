@@ -22,13 +22,11 @@ import (
 
 const codeFailure = 1
 
-var (
-	rootCmd = &cobra.Command{
-		Use:   "goctl",
-		Short: "A cli tool to generate go-zero code",
-		Long:  "A cli tool to generate api, zrpc, model code",
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:   "goctl",
+	Short: "A cli tool to generate go-zero code",
+	Long:  "A cli tool to generate api, zrpc, model code",
+}
 
 // Execute executes the given command
 func Execute() {

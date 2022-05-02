@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// Cmd describes a model command.
 	Cmd = &cobra.Command{
 		Use:   "model",
 		Short: "Generate model code",

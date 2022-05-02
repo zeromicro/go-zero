@@ -22,7 +22,9 @@ var (
 	varStringRemote         string
 	varStringBranch         string
 	varStringServiceAccount string
-	Cmd                     = &cobra.Command{
+
+	// Cmd describes a kube command.
+	Cmd = &cobra.Command{
 		Use:   "kube",
 		Short: "Generate kubernetes files",
 		RunE:  deploymentCommand,
