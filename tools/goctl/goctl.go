@@ -215,7 +215,7 @@ var commands = []cli.Command{
 			},
 			{
 				Name:  "go",
-				Usage: "generate go files for provided api in yaml file",
+				Usage: "generate go files for provided api in api file",
 				Flags: []cli.Flag{
 					cli.StringFlag{
 						Name:  "dir",
