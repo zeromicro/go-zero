@@ -27,12 +27,12 @@ var (
 	Cmd = &cobra.Command{
 		Use:   "kube",
 		Short: "Generate kubernetes files",
-		RunE:  deploymentCommand,
 	}
 
 	deployCmd = &cobra.Command{
 		Use:   "deploy",
 		Short: "Generate deployment yaml file",
+		RunE:  deploymentCommand,
 	}
 )
 
