@@ -120,7 +120,14 @@ func TestRotateLoggerWrite(t *testing.T) {
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
 	}
+	// the following write calls cannot be changed to Write, because of DATA RACE.
 	logger.write([]byte(`foo`))
 	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(dateFormat)
 	logger.write([]byte(`bar`))
+	logger.Close()
+	logger.write([]byte(`baz`))
+}
+
+func TestLogWriterClose(t *testing.T) {
+	assert.Nil(t, newLogWriter(nil).Close())
 }
