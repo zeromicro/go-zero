@@ -304,8 +304,8 @@ func Test_logDuration(t *testing.T) {
 
 	buf.Reset()
 	c.logDuration("foo", slowThreshold.Load()+time.Millisecond, nil)
-	assert.Contains(t, buf.String(), "bar")
-	assert.NotContains(t, buf.String(), "slowcall")
+	assert.Contains(t, buf.String(), "foo")
+	assert.Contains(t, buf.String(), "slowcall")
 }
 
 type mockPromise struct {
