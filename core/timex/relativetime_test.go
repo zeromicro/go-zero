@@ -15,11 +15,18 @@ func TestRelativeTime(t *testing.T) {
 	assert.True(t, Since(now) > 0)
 }
 
-func TestRelativeTime_Time(t *testing.T) {
-	diff := time.Until(Time())
-	if diff > 0 {
-		assert.True(t, diff < time.Second)
-	} else {
-		assert.True(t, -diff < time.Second)
+func BenchmarkTimeSince(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_ = time.Since(time.Now())
+	}
+}
+
+func BenchmarkTimexSince(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		_ = Since(Now())
 	}
 }

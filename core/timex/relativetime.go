@@ -15,8 +15,3 @@ func Now() time.Duration {
 func Since(d time.Duration) time.Duration {
 	return time.Since(initTime) - d
 }
-
-// Time returns current time, the same as time.Now().
-func Time() time.Time {
-	return initTime.Add(Now())
-}

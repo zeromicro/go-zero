@@ -15,7 +15,6 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/sysx"
-	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -47,7 +46,7 @@ func Report(msg string) {
 	if fn != nil {
 		reported := lessExecutor.DoOrDiscard(func() {
 			var builder strings.Builder
-			fmt.Fprintf(&builder, "%s\n", timex.Time().Format(timeFormat))
+			fmt.Fprintf(&builder, "%s\n", time.Now().Format(timeFormat))
 			if len(clusterName) > 0 {
 				fmt.Fprintf(&builder, "cluster: %s\n", clusterName)
 			}

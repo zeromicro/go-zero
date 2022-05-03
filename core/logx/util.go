@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
-
-	"github.com/zeromicro/go-zero/core/timex"
+	"time"
 )
 
 func getCaller(callDepth int) string {
@@ -18,7 +17,7 @@ func getCaller(callDepth int) string {
 }
 
 func getTimestamp() string {
-	return timex.Time().Format(timeFormat)
+	return time.Now().Format(timeFormat)
 }
 
 func prettyCaller(file string, line int) string {
