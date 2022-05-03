@@ -133,17 +133,17 @@ var (
 		},
 		{
 			IsDir: true,
-			Path:  "model/rpc/new",
+			Path:  "rpc/new",
 			Cmd:   "goctl rpc new greet",
 		},
 		{
 			IsDir: true,
-			Path:  "model/rpc/template",
+			Path:  "rpc/template",
 			Cmd:   "goctl rpc template --o greet.proto",
 		},
 		{
 			IsDir: true,
-			Path:  "model/rpc/protoc",
+			Path:  "rpc/protoc",
 			Cmd:   "goctl rpc template --o greet.proto && goctl rpc protoc greet.proto --go_out=. --go-grpc_out=. --zrpc_out=.",
 		},
 	}
