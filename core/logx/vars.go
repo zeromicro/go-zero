@@ -4,7 +4,7 @@ import "errors"
 
 const (
 	// InfoLevel logs everything
-	InfoLevel = iota
+	InfoLevel uint32 = iota
 	// ErrorLevel includes errors, slows, stacks
 	ErrorLevel
 	// SevereLevel only log severe messages
