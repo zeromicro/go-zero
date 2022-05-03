@@ -75,6 +75,12 @@ func TestLogDuration(t *testing.T) {
 			}),
 			req: "foo",
 		},
+		{
+			name:     "timeout",
+			ctx:      context.Background(),
+			req:      "foo",
+			duration: slowThreshold.Load() + time.Second,
+		},
 	}
 
 	for _, test := range tests {
