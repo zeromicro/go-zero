@@ -27,7 +27,7 @@ func TestHookProcessCase1(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(writer)
 
-	ctx, err := durationHook.BeforeProcess(context.Background(), nil)
+	ctx, err := durationHook.BeforeProcess(context.Background(), red.NewCmd(context.Background()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +48,7 @@ func TestHookProcessCase2(t *testing.T) {
 	w, restore := injectLog()
 	defer restore()
 
-	ctx, err := durationHook.BeforeProcess(context.Background(), nil)
+	ctx, err := durationHook.BeforeProcess(context.Background(), red.NewCmd(context.Background()))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(writer)
 
-	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), nil)
+	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{red.NewCmd(context.Background())})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 	w, restore := injectLog()
 	defer restore()
 
-	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), nil)
+	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{red.NewCmd(context.Background())})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestHookProcessPipelineCase5(t *testing.T) {
 	defer log.SetOutput(writer)
 
 	ctx := context.WithValue(context.Background(), startTimeKey, "foo")
-	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, nil))
+	assert.Nil(t, durationHook.AfterProcessPipeline(ctx, []red.Cmder{red.NewCmd(context.Background())}))
 	assert.True(t, buf.Len() == 0)
 }
 
