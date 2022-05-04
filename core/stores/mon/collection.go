@@ -8,12 +8,9 @@ import (
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
-	"github.com/zeromicro/go-zero/core/trace"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/session"
-	"go.opentelemetry.io/otel"
-	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -120,8 +117,10 @@ func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection
 
 func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline interface{},
 	opts ...*mopt.AggregateOptions) (cur *mongo.Cursor, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "Aggregate")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		starTime := timex.Now()
@@ -132,13 +131,16 @@ func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline interface{
 		cur, err = c.Collection.Aggregate(ctx, pipeline, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.WriteModel,
 	opts ...*mopt.BulkWriteOptions) (res *mongo.BulkWriteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "BulkWrite")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -149,13 +151,16 @@ func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.Writ
 		res, err = c.Collection.BulkWrite(ctx, models, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) CountDocuments(ctx context.Context, filter interface{},
 	opts ...*mopt.CountOptions) (count int64, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "CountDocuments")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -166,13 +171,16 @@ func (c *decoratedCollection) CountDocuments(ctx context.Context, filter interfa
 		count, err = c.Collection.CountDocuments(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) DeleteMany(ctx context.Context, filter interface{},
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "DeleteMany")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -183,13 +191,16 @@ func (c *decoratedCollection) DeleteMany(ctx context.Context, filter interface{}
 		res, err = c.Collection.DeleteMany(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "DeleteOne")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -200,13 +211,16 @@ func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
 		res, err = c.Collection.DeleteOne(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, filter interface{},
 	opts ...*mopt.DistinctOptions) (val []interface{}, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "Distinct")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -217,13 +231,16 @@ func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, fi
 		val, err = c.Collection.Distinct(ctx, fieldName, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
 	opts ...*mopt.EstimatedDocumentCountOptions) (val int64, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "EstimatedDocumentCount")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -234,13 +251,16 @@ func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
 		val, err = c.Collection.EstimatedDocumentCount(ctx, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOptions) (cur *mongo.Cursor, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "Find")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -251,13 +271,16 @@ func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
 		cur, err = c.Collection.Find(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOneOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "FindOne")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -269,13 +292,16 @@ func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOneAndDeleteOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "FindOneAndDelete")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -287,14 +313,17 @@ func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter inter
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter interface{},
 	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) (
 	res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "FindOneAndReplace")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -306,13 +335,16 @@ func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter inte
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.FindOneAndUpdateOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "FindOneAndUpdate")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -324,13 +356,16 @@ func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter inter
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) InsertMany(ctx context.Context, documents []interface{},
 	opts ...*mopt.InsertManyOptions) (res *mongo.InsertManyResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "InsertMany")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -341,13 +376,16 @@ func (c *decoratedCollection) InsertMany(ctx context.Context, documents []interf
 		res, err = c.Collection.InsertMany(ctx, documents, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) InsertOne(ctx context.Context, document interface{},
 	opts ...*mopt.InsertOneOptions) (res *mongo.InsertOneResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "InsertOne")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -358,13 +396,16 @@ func (c *decoratedCollection) InsertOne(ctx context.Context, document interface{
 		res, err = c.Collection.InsertOne(ctx, document, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter interface{}, replacement interface{},
 	opts ...*mopt.ReplaceOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "ReplaceOne")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -375,13 +416,16 @@ func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter interface{}
 		res, err = c.Collection.ReplaceOne(ctx, filter, replacement, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateByID(ctx context.Context, id interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "UpdateByID")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -392,13 +436,16 @@ func (c *decoratedCollection) UpdateByID(ctx context.Context, id interface{}, up
 		res, err = c.Collection.UpdateByID(ctx, id, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateMany(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "UpdateMany")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -409,13 +456,16 @@ func (c *decoratedCollection) UpdateMany(ctx context.Context, filter interface{}
 		res, err = c.Collection.UpdateMany(ctx, filter, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, "UpdateOne")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
@@ -426,6 +476,7 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter interface{},
 		res, err = c.Collection.UpdateOne(ctx, filter, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
@@ -482,9 +533,4 @@ func acceptable(err error) bool {
 		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
 		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
 		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
-}
-
-func startSpan(ctx context.Context) (context.Context, tracesdk.Span) {
-	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
-	return tracer.Start(ctx, spanName)
 }

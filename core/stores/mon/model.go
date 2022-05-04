@@ -170,21 +170,30 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, upd
 }
 
 func (w *wrappedSession) AbortTransaction(ctx context.Context) error {
-	ctx, span := startSpan(ctx)
+	ctx, span := startSpan(ctx, "AbortTransaction")
 	defer span.End()
 
-	return w.brk.DoWithAcceptable(func() error {
+	err := w.brk.DoWithAcceptable(func() error {
 		return w.Session.AbortTransaction(ctx)
 	}, acceptable)
+
+	span.RecordError(err)
+
+	return err
 }
 
 func (w *wrappedSession) CommitTransaction(ctx context.Context) error {
-	ctx, span := startSpan(ctx)
+	ctx, span := startSpan(ctx, "CommitTransaction")
 	defer span.End()
 
-	return w.brk.DoWithAcceptable(func() error {
+	err := w.brk.DoWithAcceptable(func() error {
 		return w.Session.CommitTransaction(ctx)
 	}, acceptable)
+
+	span.RecordError(err)
+
+	return err
+
 }
 
 func (w *wrappedSession) WithTransaction(
@@ -192,7 +201,7 @@ func (w *wrappedSession) WithTransaction(
 	fn func(sessCtx mongo.SessionContext) (interface{}, error),
 	opts ...*mopt.TransactionOptions,
 ) (res interface{}, err error) {
-	ctx, span := startSpan(ctx)
+	ctx, span := startSpan(ctx, "WithTransaction")
 	defer span.End()
 
 	err = w.brk.DoWithAcceptable(func() error {
@@ -200,11 +209,13 @@ func (w *wrappedSession) WithTransaction(
 		return err
 	}, acceptable)
 
+	span.RecordError(err)
+
 	return
 }
 
 func (w *wrappedSession) EndSession(ctx context.Context) {
-	ctx, span := startSpan(ctx)
+	ctx, span := startSpan(ctx, "EndSession")
 	defer span.End()
 
 	_ = w.brk.DoWithAcceptable(func() error {
