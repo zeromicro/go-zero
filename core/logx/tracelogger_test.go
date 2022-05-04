@@ -25,7 +25,9 @@ func TestTraceLog(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
 	WithContext(ctx).Info(testlog)
 	validate(t, w.String(), true, true)
 }
@@ -34,14 +36,17 @@ func TestTraceError(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
 	defer writer.Store(old)
+
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	l := WithContext(context.Background())
-	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
 	var nilCtx context.Context
+	l := WithContext(context.Background())
 	l = l.WithContext(nilCtx)
 	l = l.WithContext(ctx)
 	SetLevel(InfoLevel)
@@ -71,9 +76,11 @@ func TestTraceInfo(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
-	l := WithContext(ctx)
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
 	SetLevel(InfoLevel)
+	l := WithContext(ctx)
 	l.WithDuration(time.Second).Info(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
@@ -90,11 +97,8 @@ func TestTraceInfo(t *testing.T) {
 }
 
 func TestTraceInfoConsole(t *testing.T) {
-	old := atomic.LoadUint32(&encoding)
-	atomic.StoreUint32(&encoding, jsonEncodingType)
-	defer func() {
-		atomic.StoreUint32(&encoding, old)
-	}()
+	old := atomic.SwapUint32(&encoding, jsonEncodingType)
+	defer atomic.StoreUint32(&encoding, old)
 
 	w := new(mockWriter)
 	o := writer.Swap(w)
@@ -105,7 +109,9 @@ func TestTraceInfoConsole(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Info(testlog)
@@ -128,7 +134,9 @@ func TestTraceSlow(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, _ := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.WithDuration(time.Second).Slow(testlog)
@@ -164,9 +172,9 @@ func TestTraceWithoutContext(t *testing.T) {
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
-	assert.Nil(t, json.Unmarshal([]byte(body), &val))
-	assert.Equal(t, expectedTrace, len(val.Trace) > 0)
-	assert.Equal(t, expectedSpan, len(val.Span) > 0)
+	assert.Nil(t, json.Unmarshal([]byte(body), &val), body)
+	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
+	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }
 
 type mockValue struct {
