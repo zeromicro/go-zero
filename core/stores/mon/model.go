@@ -169,56 +169,63 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, upd
 	return res.Decode(v)
 }
 
-func (w *wrappedSession) AbortTransaction(ctx context.Context) error {
+// AbortTransaction implements the mongo.Session interface.
+func (w *wrappedSession) AbortTransaction(ctx context.Context) (err error) {
 	ctx, span := startSpan(ctx, "AbortTransaction")
-	defer span.End()
+	defer func() {
+		endSpan(span, err)
+	}()
 
-	err := w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptable(func() error {
 		return w.Session.AbortTransaction(ctx)
 	}, acceptable)
 
-	span.RecordError(err)
-
-	return err
+	return
 }
 
-func (w *wrappedSession) CommitTransaction(ctx context.Context) error {
+// CommitTransaction implements the mongo.Session interface.
+func (w *wrappedSession) CommitTransaction(ctx context.Context) (err error) {
 	ctx, span := startSpan(ctx, "CommitTransaction")
-	defer span.End()
+	defer func() {
+		endSpan(span, err)
+	}()
 
-	err := w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptable(func() error {
 		return w.Session.CommitTransaction(ctx)
 	}, acceptable)
 
-	span.RecordError(err)
-
-	return err
+	return
 
 }
 
+// WithTransaction implements the mongo.Session interface.
 func (w *wrappedSession) WithTransaction(
 	ctx context.Context,
 	fn func(sessCtx mongo.SessionContext) (interface{}, error),
 	opts ...*mopt.TransactionOptions,
 ) (res interface{}, err error) {
 	ctx, span := startSpan(ctx, "WithTransaction")
-	defer span.End()
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = w.brk.DoWithAcceptable(func() error {
 		res, err = w.Session.WithTransaction(ctx, fn, opts...)
 		return err
 	}, acceptable)
 
-	span.RecordError(err)
-
 	return
 }
 
+// EndSession implements the mongo.Session interface.
 func (w *wrappedSession) EndSession(ctx context.Context) {
+	var err error
 	ctx, span := startSpan(ctx, "EndSession")
-	defer span.End()
+	defer func() {
+		endSpan(span, err)
+	}()
 
-	_ = w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptable(func() error {
 		w.Session.EndSession(ctx)
 		return nil
 	}, acceptable)
