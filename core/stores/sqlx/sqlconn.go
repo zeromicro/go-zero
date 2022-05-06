@@ -321,9 +321,8 @@ func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (result sql
 	defer func() {
 		endSpan(span, err)
 	}()
-	result, err = execStmt(ctx, s.stmt, s.query, args...)
 
-	return
+	return execStmt(ctx, s.stmt, s.query, args...)
 }
 
 func (s statement) QueryRow(v interface{}, args ...interface{}) error {
