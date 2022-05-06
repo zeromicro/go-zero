@@ -24,7 +24,8 @@ import (
 const (
 	codeFailure = 1
 	dash        = "-"
-	doubleDash  = dash + dash
+	doubleDash  = "--"
+	assign      = "="
 )
 
 var rootCmd = &cobra.Command{
@@ -44,30 +45,44 @@ func Execute() {
 
 func supportGoStdFlag(args []string) []string {
 	copyArgs := append([]string(nil), args...)
-	parentCmd, _, err := rootCmd.Traverse(args[:0])
-	if err != nil {
+	parentCmd, _, err := rootCmd.Traverse(args[:1])
+	if err != nil { // ignore it to let cobra handle the error.
 		return copyArgs
 	}
 
 	for idx, arg := range copyArgs[0:] {
 		parentCmd, _, err = parentCmd.Traverse([]string{arg})
-		if err != nil {
+		if err != nil { // ignore it to let cobra handle the error.
 			break
 		}
 		if !strings.HasPrefix(arg, dash) {
 			continue
 		}
 
-		f := parentCmd.Flag(strings.ReplaceAll(arg, dash, ""))
+		flagExpr := strings.TrimPrefix(arg, doubleDash)
+		flagExpr = strings.TrimPrefix(flagExpr, dash)
+		flagName, flagValue := flagExpr, ""
+		assignIndex := strings.Index(flagExpr, assign)
+		if assignIndex > 0 {
+			flagName = flagExpr[:assignIndex]
+			flagValue = flagExpr[assignIndex:]
+		}
+
+		f := parentCmd.Flag(flagName)
 		if f == nil {
 			continue
 		}
-		if f.Shorthand == arg {
+		if f.Shorthand == flagName {
 			continue
 		}
-		copyArgs[idx] = doubleDash + f.Name
-	}
 
+		goStyleFlag := doubleDash + f.Name
+		if assignIndex > 0 {
+			goStyleFlag += flagValue
+		}
+
+		copyArgs[idx] = goStyleFlag
+	}
 	return copyArgs
 }
 
