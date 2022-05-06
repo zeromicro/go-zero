@@ -22,7 +22,7 @@ RestfulConf struct {
 Port: 8080
 LogMode: console
 # you can use env settings
-MaxBytes: $(MAX_BYTES)
+MaxBytes: ${MAX_BYTES}
 ```
 
 3. Load the config from a file:
