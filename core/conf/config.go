@@ -11,13 +11,13 @@ import (
 )
 
 var loaders = map[string]func([]byte, interface{}) error{
-	".json": LoadConfigFromJsonBytes,
-	".yaml": LoadConfigFromYamlBytes,
-	".yml":  LoadConfigFromYamlBytes,
+	".json": LoadFromJsonBytes,
+	".yaml": LoadFromYamlBytes,
+	".yml":  LoadFromYamlBytes,
 }
 
-// LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
-func LoadConfig(file string, v interface{}, opts ...Option) error {
+// Load loads config into v from file, .json, .yaml and .yml are acceptable.
+func Load(file string, v interface{}, opts ...Option) error {
 	content, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
@@ -40,14 +40,31 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 	return loader(content, v)
 }
 
-// LoadConfigFromJsonBytes loads config into v from content json bytes.
-func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
+// LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
+// Deprecated: use Load instead.
+func LoadConfig(file string, v interface{}, opts ...Option) error {
+	return Load(file, v, opts...)
+}
+
+// LoadFromJsonBytes loads config into v from content json bytes.
+func LoadFromJsonBytes(content []byte, v interface{}) error {
 	return mapping.UnmarshalJsonBytes(content, v)
 }
 
-// LoadConfigFromYamlBytes loads config into v from content yaml bytes.
-func LoadConfigFromYamlBytes(content []byte, v interface{}) error {
+// LoadConfigFromJsonBytes loads config into v from content json bytes.
+// Deprecated: use LoadFromJsonBytes instead.
+func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
+	return LoadFromJsonBytes(content, v)
+}
+
+func LoadFromYamlBytes(content []byte, v interface{}) error {
 	return mapping.UnmarshalYamlBytes(content, v)
+}
+
+// LoadConfigFromYamlBytes loads config into v from content yaml bytes.
+// Deprecated: use LoadFromYamlBytes instead.
+func LoadConfigFromYamlBytes(content []byte, v interface{}) error {
+	return LoadFromYamlBytes(content, v)
 }
 
 // MustLoad loads config into v from path, exits on error.
