@@ -24,7 +24,7 @@ const (
 type kubeBuilder struct{}
 
 func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
-	opts resolver.BuildOptions) (resolver.Resolver, error) {
+	_ resolver.BuildOptions) (resolver.Resolver, error) {
 	svc, err := kube.ParseTarget(target)
 	if err != nil {
 		return nil, err

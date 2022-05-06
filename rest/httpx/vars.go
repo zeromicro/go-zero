@@ -1,14 +1,16 @@
 package httpx
 
+import "github.com/zeromicro/go-zero/rest/internal/header"
+
 const (
-	// ApplicationJson means application/json.
-	ApplicationJson = "application/json"
 	// ContentEncoding means Content-Encoding.
 	ContentEncoding = "Content-Encoding"
 	// ContentSecurity means X-Content-Security.
 	ContentSecurity = "X-Content-Security"
 	// ContentType means Content-Type.
-	ContentType = "Content-Type"
+	ContentType = header.ContentType
+	// JsonContentType means application/json.
+	JsonContentType = header.JsonContentType
 	// KeyField means key.
 	KeyField = "key"
 	// SecretField means secret.

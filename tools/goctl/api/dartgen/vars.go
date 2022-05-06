@@ -58,7 +58,7 @@ Future _apiRequest(String method, String path, dynamic data,
       r = await client.getUrl(Uri.parse('https://' + serverHost + path));
     }
 
-    r.headers.set('Content-Type', 'application/json');
+    r.headers.set('Content-Type', 'application/json; charset=utf-8');
     if (tokens != null) {
       r.headers.set('Authorization', tokens.accessToken);
     }
@@ -149,7 +149,7 @@ Future _apiRequest(String method, String path, dynamic data,
 				r = await client.getUrl(Uri.parse('https://' + serverHost + path));
 			}
 
-			r.headers.set('Content-Type', 'application/json');
+			r.headers.set('Content-Type', 'application/json; charset=utf-8');
 			if (tokens != null) {
 				r.headers.set('Authorization', tokens.accessToken);
 			}

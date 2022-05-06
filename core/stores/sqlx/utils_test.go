@@ -97,6 +97,30 @@ func TestFormat(t *testing.T) {
 			args:   []interface{}{"133", false},
 			hasErr: true,
 		},
+		{
+			name:   "select with date",
+			query:  "select * from user where date='2006-01-02 15:04:05' and name=:1",
+			args:   []interface{}{"foo"},
+			expect: "select * from user where date='2006-01-02 15:04:05' and name='foo'",
+		},
+		{
+			name:   "select with date and escape",
+			query:  `select * from user where date=' 2006-01-02 15:04:05 \'' and name=:1`,
+			args:   []interface{}{"foo"},
+			expect: `select * from user where date=' 2006-01-02 15:04:05 \'' and name='foo'`,
+		},
+		{
+			name:   "select with date and bad arg",
+			query:  `select * from user where date='2006-01-02 15:04:05 \'' and name=:a`,
+			args:   []interface{}{"foo"},
+			hasErr: true,
+		},
+		{
+			name:   "select with date and escape error",
+			query:  `select * from user where date='2006-01-02 15:04:05 \`,
+			args:   []interface{}{"foo"},
+			hasErr: true,
+		},
 	}
 
 	for _, test := range tests {
@@ -108,6 +132,7 @@ func TestFormat(t *testing.T) {
 			if test.hasErr {
 				assert.NotNil(t, err)
 			} else {
+				assert.Nil(t, err)
 				assert.Equal(t, test.expect, actual)
 			}
 		})

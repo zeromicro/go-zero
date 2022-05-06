@@ -88,7 +88,7 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 	assert.Equal(t, miniredis.ErrKeyNotFound, err)
 }
 
-func TestCacheNode_Take(t *testing.T) {
+func TestCacheNode_SetWithExpire(t *testing.T) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
 	defer clean()
@@ -100,8 +100,18 @@ func TestCacheNode_Take(t *testing.T) {
 		lock:           new(sync.Mutex),
 		unstableExpiry: mathx.NewUnstable(expiryDeviation),
 		stat:           NewStat("any"),
-		errNotFound:    errTestNotFound,
+		errNotFound:    errors.New("any"),
 	}
+	assert.NotNil(t, cn.SetWithExpire("key", make(chan int), time.Second))
+}
+
+func TestCacheNode_Take(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	cn := NewNode(store, syncx.NewSingleFlight(), NewStat("any"), errTestNotFound,
+		WithExpiry(time.Second), WithNotFoundExpiry(time.Second))
 	var str string
 	err = cn.Take(&str, "any", func(v interface{}) error {
 		*v.(*string) = "value"

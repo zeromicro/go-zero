@@ -3,73 +3,79 @@ package logx
 import (
 	"context"
 	"fmt"
-	"io"
-	"sync/atomic"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/timex"
 	"go.opentelemetry.io/otel/trace"
 )
 
+// WithContext sets ctx to log, for keeping tracing information.
+func WithContext(ctx context.Context) Logger {
+	return &traceLogger{
+		ctx: ctx,
+	}
+}
+
 type traceLogger struct {
 	logEntry
-	Trace string `json:"trace,omitempty"`
-	Span  string `json:"span,omitempty"`
-	ctx   context.Context
+	ctx context.Context
 }
 
 func (l *traceLogger) Error(v ...interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprint(v...), durationCallerDepth))
-	}
+	l.err(fmt.Sprint(v...))
 }
 
 func (l *traceLogger) Errorf(format string, v ...interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, formatWithCaller(fmt.Sprintf(format, v...), durationCallerDepth))
-	}
+	l.err(fmt.Sprintf(format, v...))
 }
 
 func (l *traceLogger) Errorv(v interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(errorLog, levelError, v)
-	}
+	l.err(fmt.Sprint(v))
+}
+
+func (l *traceLogger) Errorw(msg string, fields ...LogField) {
+	l.err(msg, fields...)
 }
 
 func (l *traceLogger) Info(v ...interface{}) {
-	if shallLog(InfoLevel) {
-		l.write(infoLog, levelInfo, fmt.Sprint(v...))
-	}
+	l.info(fmt.Sprint(v...))
 }
 
 func (l *traceLogger) Infof(format string, v ...interface{}) {
-	if shallLog(InfoLevel) {
-		l.write(infoLog, levelInfo, fmt.Sprintf(format, v...))
-	}
+	l.info(fmt.Sprintf(format, v...))
 }
 
 func (l *traceLogger) Infov(v interface{}) {
-	if shallLog(InfoLevel) {
-		l.write(infoLog, levelInfo, v)
-	}
+	l.info(v)
+}
+
+func (l *traceLogger) Infow(msg string, fields ...LogField) {
+	l.info(msg, fields...)
 }
 
 func (l *traceLogger) Slow(v ...interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(slowLog, levelSlow, fmt.Sprint(v...))
-	}
+	l.slow(fmt.Sprint(v...))
 }
 
 func (l *traceLogger) Slowf(format string, v ...interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(slowLog, levelSlow, fmt.Sprintf(format, v...))
-	}
+	l.slow(fmt.Sprintf(format, v...))
 }
 
 func (l *traceLogger) Slowv(v interface{}) {
-	if shallLog(ErrorLevel) {
-		l.write(slowLog, levelSlow, v)
+	l.slow(v)
+}
+
+func (l *traceLogger) Sloww(msg string, fields ...LogField) {
+	l.slow(msg, fields...)
+}
+
+func (l *traceLogger) WithContext(ctx context.Context) Logger {
+	if ctx == nil {
+		return l
 	}
+
+	l.ctx = ctx
+	return l
 }
 
 func (l *traceLogger) WithDuration(duration time.Duration) Logger {
@@ -77,31 +83,37 @@ func (l *traceLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
-func (l *traceLogger) write(writer io.Writer, level string, val interface{}) {
+func (l *traceLogger) buildFields(fields ...LogField) []LogField {
+	if len(l.Duration) > 0 {
+		fields = append(fields, Field(durationKey, l.Duration))
+	}
 	traceID := traceIdFromContext(l.ctx)
+	if len(traceID) > 0 {
+		fields = append(fields, Field(traceKey, traceID))
+	}
 	spanID := spanIdFromContext(l.ctx)
+	if len(spanID) > 0 {
+		fields = append(fields, Field(spanKey, spanID))
+	}
 
-	switch atomic.LoadUint32(&encoding) {
-	case plainEncodingType:
-		writePlainAny(writer, level, val, l.Duration, traceID, spanID)
-	default:
-		outputJson(writer, &traceLogger{
-			logEntry: logEntry{
-				Timestamp: getTimestamp(),
-				Level:     level,
-				Duration:  l.Duration,
-				Content:   val,
-			},
-			Trace: traceID,
-			Span:  spanID,
-		})
+	return fields
+}
+
+func (l *traceLogger) err(v interface{}, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		getWriter().Error(v, l.buildFields(fields...)...)
 	}
 }
 
-// WithContext sets ctx to log, for keeping tracing information.
-func WithContext(ctx context.Context) Logger {
-	return &traceLogger{
-		ctx: ctx,
+func (l *traceLogger) info(v interface{}, fields ...LogField) {
+	if shallLog(InfoLevel) {
+		getWriter().Info(v, l.buildFields(fields...)...)
+	}
+}
+
+func (l *traceLogger) slow(v interface{}, fields ...LogField) {
+	if shallLog(ErrorLevel) {
+		getWriter().Slow(v, l.buildFields(fields...)...)
 	}
 }
 

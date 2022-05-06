@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/rest/httpc/internal"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 )
 
 var interceptors = []internal.Interceptor{
@@ -98,7 +99,7 @@ func buildRequest(ctx context.Context, method, url string, data interface{}) (*h
 	req.URL.RawQuery = buildFormQuery(u, val[formKey])
 	fillHeader(req, val[headerKey])
 	if hasJsonBody {
-		req.Header.Set(contentType, applicationJson)
+		req.Header.Set(header.ContentType, header.JsonContentType)
 	}
 
 	return req, nil

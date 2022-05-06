@@ -25,7 +25,7 @@ suspend fun apiRequest(
         requestMethod = method
         doInput = true
         if (method == "POST" || method == "PUT" || method == "PATCH") {
-            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("Content-Type", "application/json; charset=utf-8")
             doOutput = true
             val data = when (body) {
                 is String -> {

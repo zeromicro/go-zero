@@ -29,16 +29,16 @@ func TestRedirector(t *testing.T) {
 }
 
 func captureOutput(f func()) string {
-	writer := new(mockWriter)
-	infoLog = writer
-	atomic.StoreUint32(&initialized, 1)
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
 
 	prevLevel := atomic.LoadUint32(&logLevel)
 	SetLevel(InfoLevel)
 	f()
 	SetLevel(prevLevel)
 
-	return writer.builder.String()
+	return w.builder.String()
 }
 
 func getContent(jsonStr string) string {

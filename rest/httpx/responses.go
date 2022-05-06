@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 )
 
 var (
@@ -67,7 +68,7 @@ func WriteJson(w http.ResponseWriter, code int, v interface{}) {
 		return
 	}
 
-	w.Header().Set(ContentType, ApplicationJson)
+	w.Header().Set(ContentType, header.JsonContentType)
 	w.WriteHeader(code)
 
 	if n, err := w.Write(bs); err != nil {

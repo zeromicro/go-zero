@@ -10,7 +10,10 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-const httpTimeout = time.Second * 5
+const (
+	httpTimeout     = time.Second * 5
+	jsonContentType = "application/json; charset=utf-8"
+)
 
 // ErrWriteFailed is an error that indicates failed to submit a StatReport.
 var ErrWriteFailed = errors.New("submit failed")
@@ -36,7 +39,7 @@ func (rw *RemoteWriter) Write(report *StatReport) error {
 	client := &http.Client{
 		Timeout: httpTimeout,
 	}
-	resp, err := client.Post(rw.endpoint, "application/json", bytes.NewBuffer(bs))
+	resp, err := client.Post(rw.endpoint, jsonContentType, bytes.NewReader(bs))
 	if err != nil {
 		return err
 	}

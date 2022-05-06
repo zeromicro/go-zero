@@ -3,7 +3,9 @@ package mon
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -565,6 +567,44 @@ func TestCollection_UpdateMany(t *testing.T) {
 			bson.D{{Key: "$set", Value: bson.D{{Key: "baz", Value: "qux"}}}})
 		assert.Equal(t, errDummy, err)
 	})
+}
+
+func Test_DecoratedCollectionLogDuration(t *testing.T) {
+	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
+	defer mt.Close()
+	c := decoratedCollection{
+		Collection: mt.Coll,
+		brk:        breaker.NewBreaker(),
+	}
+
+	var buf strings.Builder
+	w := logx.NewWriter(&buf)
+	o := logx.Reset()
+	logx.SetWriter(w)
+
+	defer func() {
+		logx.Reset()
+		logx.SetWriter(o)
+	}()
+
+	buf.Reset()
+	c.logDuration("foo", time.Millisecond, nil, "bar")
+	assert.Contains(t, buf.String(), "foo")
+	assert.Contains(t, buf.String(), "bar")
+
+	buf.Reset()
+	c.logDuration("foo", time.Millisecond, errors.New("bar"), make(chan int))
+	assert.Contains(t, buf.String(), "bar")
+
+	buf.Reset()
+	c.logDuration("foo", slowThreshold.Load()+time.Millisecond, errors.New("bar"))
+	assert.Contains(t, buf.String(), "foo")
+	assert.Contains(t, buf.String(), "slowcall")
+
+	buf.Reset()
+	c.logDuration("foo", slowThreshold.Load()+time.Millisecond, nil)
+	assert.Contains(t, buf.String(), "foo")
+	assert.Contains(t, buf.String(), "slowcall")
 }
 
 type mockPromise struct {

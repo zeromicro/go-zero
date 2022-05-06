@@ -123,7 +123,8 @@ func (c cacheNode) SetWithExpire(key string, val interface{}, expire time.Durati
 }
 
 // SetWithExpireCtx sets the cache with key and v, using given expire.
-func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error {
+func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val interface{},
+	expire time.Duration) error {
 	data, err := jsonx.Marshal(val)
 	if err != nil {
 		return err
@@ -145,7 +146,8 @@ func (c cacheNode) Take(val interface{}, key string, query func(val interface{})
 
 // TakeCtx takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (c cacheNode) TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error {
+func (c cacheNode) TakeCtx(ctx context.Context, val interface{}, key string,
+	query func(val interface{}) error) error {
 	return c.doTake(ctx, val, key, query, func(v interface{}) error {
 		return c.SetCtx(ctx, key, v)
 	})
@@ -153,13 +155,15 @@ func (c cacheNode) TakeCtx(ctx context.Context, val interface{}, key string, que
 
 // TakeWithExpire takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (c cacheNode) TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+func (c cacheNode) TakeWithExpire(val interface{}, key string, query func(val interface{},
+	expire time.Duration) error) error {
 	return c.TakeWithExpireCtx(context.Background(), val, key, query)
 }
 
 // TakeWithExpireCtx takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string,
+	query func(val interface{}, expire time.Duration) error) error {
 	expire := c.aroundDuration(c.expiry)
 	return c.doTake(ctx, val, key, func(v interface{}) error {
 		return query(v, expire)
@@ -239,7 +243,11 @@ func (c cacheNode) doTake(ctx context.Context, v interface{}, key string,
 		return nil
 	}
 
-	// got the result from previous ongoing query
+	// got the result from previous ongoing query.
+	// why not call IncrementTotal at the beginning of this function?
+	// because a shared error is returned, and we don't want to count.
+	// for example, if the db is down, the query will be failed, we count
+	// the shared errors with one db failure.
 	c.stat.IncrementTotal()
 	c.stat.IncrementHit()
 

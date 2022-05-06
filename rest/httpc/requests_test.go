@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
@@ -27,7 +28,7 @@ func TestDoRequest_NotFound(t *testing.T) {
 	defer svr.Close()
 	req, err := http.NewRequest(http.MethodPost, svr.URL, nil)
 	assert.Nil(t, err)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set(header.ContentType, header.JsonContentType)
 	resp, err := DoRequest(req)
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -155,5 +156,34 @@ func TestDo_BadRequest(t *testing.T) {
 		Another: 2,
 	}
 	_, err = Do(context.Background(), http.MethodPost, "/nodes/:val", val5)
+	assert.NotNil(t, err)
+}
+
+func TestDo_Json(t *testing.T) {
+	type Data struct {
+		Key    string   `path:"key"`
+		Value  int      `form:"value"`
+		Header string   `header:"X-Header"`
+		Body   chan int `json:"body"`
+	}
+
+	rt := router.NewRouter()
+	err := rt.Handle(http.MethodPost, "/nodes/:key",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var req Data
+			assert.Nil(t, httpx.Parse(r, &req))
+		}))
+	assert.Nil(t, err)
+
+	svr := httptest.NewServer(http.HandlerFunc(rt.ServeHTTP))
+	defer svr.Close()
+
+	data := Data{
+		Key:    "foo",
+		Value:  10,
+		Header: "my-header",
+		Body:   make(chan int),
+	}
+	_, err = Do(context.Background(), http.MethodPost, svr.URL+"/nodes/:key", data)
 	assert.NotNil(t, err)
 }

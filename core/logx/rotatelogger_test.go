@@ -75,10 +75,7 @@ func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
 	logger, err := NewLogger(filename, new(DailyRotateRule), true)
 	assert.Nil(t, err)
 	if len(filename) > 0 {
-		defer func() {
-			os.Remove(filename)
-			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
-		}()
+		defer os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 	}
 	logger.maybeCompressFile(filename)
 	_, err = os.Stat(filename)
@@ -92,7 +89,6 @@ func TestRotateLoggerRotate(t *testing.T) {
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {
-			os.Remove(filename)
 			os.Remove(logger.getBackupFilename())
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
@@ -115,12 +111,18 @@ func TestRotateLoggerWrite(t *testing.T) {
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {
-			os.Remove(filename)
 			os.Remove(logger.getBackupFilename())
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
 	}
+	// the following write calls cannot be changed to Write, because of DATA RACE.
 	logger.write([]byte(`foo`))
 	rule.rotatedTime = time.Now().Add(-time.Hour * 24).Format(dateFormat)
 	logger.write([]byte(`bar`))
+	logger.Close()
+	logger.write([]byte(`baz`))
+}
+
+func TestLogWriterClose(t *testing.T) {
+	assert.Nil(t, newLogWriter(nil).Close())
 }
