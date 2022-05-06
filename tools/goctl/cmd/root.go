@@ -21,7 +21,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
 )
 
-const codeFailure = 1
+const (
+	codeFailure = 1
+	dash        = "-"
+	doubleDash  = dash + dash
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "goctl",
@@ -45,28 +49,25 @@ func supportGoStdFlag(args []string) []string {
 		return copyArgs
 	}
 
-	for idx, arg := range copyArgs {
-		if idx == 0 {
-			continue
-		}
-
+	for idx, arg := range copyArgs[0:] {
 		parentCmd, _, err = parentCmd.Traverse([]string{arg})
 		if err != nil {
 			break
 		}
-		if !strings.HasPrefix(arg, "-") {
+		if !strings.HasPrefix(arg, dash) {
 			continue
 		}
 
-		f := parentCmd.Flag(strings.ReplaceAll(arg, "-", ""))
+		f := parentCmd.Flag(strings.ReplaceAll(arg, dash, ""))
 		if f == nil {
 			continue
 		}
 		if f.Shorthand == arg {
 			continue
 		}
-		copyArgs[idx] = "--" + f.Name
+		copyArgs[idx] = doubleDash + f.Name
 	}
+
 	return copyArgs
 }
 
