@@ -72,11 +72,9 @@ func (t txSession) QueryRowCtx(ctx context.Context, v interface{}, q string, arg
 		endSpan(span, err)
 	}()
 
-	err = query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
-
-	return
 }
 
 func (t txSession) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
@@ -90,11 +88,9 @@ func (t txSession) QueryRowPartialCtx(ctx context.Context, v interface{}, q stri
 		endSpan(span, err)
 	}()
 
-	err = query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
-
-	return
 }
 
 func (t txSession) QueryRows(v interface{}, q string, args ...interface{}) error {
@@ -107,10 +103,9 @@ func (t txSession) QueryRowsCtx(ctx context.Context, v interface{}, q string, ar
 		endSpan(span, err)
 	}()
 
-	err = query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
-	return
 }
 
 func (t txSession) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
@@ -124,11 +119,10 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v interface{}, q str
 		endSpan(span, err)
 	}()
 
-	err = query(ctx, t.Tx, func(rows *sql.Rows) error {
+	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
 
-	return
 }
 
 func begin(db *sql.DB) (trans, error) {
