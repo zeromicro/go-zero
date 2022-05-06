@@ -292,7 +292,7 @@ func compressLogFile(file string) {
 	start := time.Now()
 	Infof("compressing log file: %s", file)
 	if err := gzipFile(file); err != nil {
-		Errorf("compress error: %s", err)
+		ErrorStackf("compress error: %s", err)
 	} else {
 		Infof("compressed log file: %s, took %s", file, time.Since(start))
 	}

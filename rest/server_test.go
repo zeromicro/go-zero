@@ -21,7 +21,7 @@ Name: foo
 Port: 54321
 `
 	var cnf RestConf
-	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
 
 	tests := []struct {
 		c    RestConf
@@ -271,7 +271,7 @@ Name: foo
 Port: 54321
 `
 	var cnf RestConf
-	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
 
 	testConfig := &tls.Config{
 		CipherSuites: []uint16{
@@ -309,7 +309,7 @@ Name: foo
 Port: 54321
 `
 	var cnf RestConf
-	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
 	rt := router.NewRouter()
 	svr, err := NewServer(cnf, WithRouter(rt))
 	assert.Nil(t, err)
@@ -324,7 +324,7 @@ Name: foo
 Port: 54321
 `
 	var cnf RestConf
-	assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(configYaml), &cnf))
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
 	rt := router.NewRouter()
 	svr, err := NewServer(cnf, WithRouter(rt))
 	assert.Nil(t, err)

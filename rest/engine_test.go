@@ -146,7 +146,7 @@ Verbose: true
 	for _, yaml := range yamls {
 		for _, route := range routes {
 			var cnf RestConf
-			assert.Nil(t, conf.LoadConfigFromYamlBytes([]byte(yaml), &cnf))
+			assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
 			ng := newEngine(cnf)
 			ng.addRoutes(route)
 			ng.use(func(next http.HandlerFunc) http.HandlerFunc {
@@ -300,15 +300,15 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 
 type mockedRouter struct{}
 
-func (m mockedRouter) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
 }
 
-func (m mockedRouter) Handle(method, path string, handler http.Handler) error {
+func (m mockedRouter) Handle(_, _ string, _ http.Handler) error {
 	return errors.New("foo")
 }
 
-func (m mockedRouter) SetNotFoundHandler(handler http.Handler) {
+func (m mockedRouter) SetNotFoundHandler(_ http.Handler) {
 }
 
-func (m mockedRouter) SetNotAllowedHandler(handler http.Handler) {
+func (m mockedRouter) SetNotAllowedHandler(_ http.Handler) {
 }
