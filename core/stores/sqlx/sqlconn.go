@@ -201,11 +201,9 @@ func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v interface{}, q strin
 		endSpan(span, err)
 	}()
 
-	err = db.queryRows(ctx, func(rows *sql.Rows) error {
+	return db.queryRows(ctx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
-
-	return
 }
 
 func (db *commonSqlConn) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
@@ -219,11 +217,9 @@ func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v interface{},
 		endSpan(span, err)
 	}()
 
-	err = db.queryRows(ctx, func(rows *sql.Rows) error {
+	return db.queryRows(ctx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
-
-	return
 }
 
 func (db *commonSqlConn) QueryRows(v interface{}, q string, args ...interface{}) error {
@@ -237,11 +233,9 @@ func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v interface{}, q stri
 		endSpan(span, err)
 	}()
 
-	err = db.queryRows(ctx, func(rows *sql.Rows) error {
+	return db.queryRows(ctx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
-
-	return
 }
 
 func (db *commonSqlConn) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
@@ -255,11 +249,9 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{},
 		endSpan(span, err)
 	}()
 
-	err = db.queryRows(ctx, func(rows *sql.Rows) error {
+	return db.queryRows(ctx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
-
-	return
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
@@ -278,11 +270,9 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
+	return db.brk.DoWithAcceptable(func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
-
-	return
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
@@ -302,7 +292,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}()
 
 	var qerr error
-	err = db.brk.DoWithAcceptable(func() error {
+	return db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
 			db.onError(err)
@@ -316,8 +306,6 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}, func(err error) bool {
 		return qerr == err || db.acceptable(err)
 	})
-
-	return
 }
 
 func (s statement) Close() error {
@@ -348,11 +336,10 @@ func (s statement) QueryRowCtx(ctx context.Context, v interface{}, args ...inter
 		endSpan(span, err)
 	}()
 
-	err = queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, s.query, args...)
 
-	return
 }
 
 func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
@@ -365,10 +352,9 @@ func (s statement) QueryRowPartialCtx(ctx context.Context, v interface{}, args .
 		endSpan(span, err)
 	}()
 
-	err = queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, s.query, args...)
-	return
 }
 
 func (s statement) QueryRows(v interface{}, args ...interface{}) error {
@@ -381,11 +367,9 @@ func (s statement) QueryRowsCtx(ctx context.Context, v interface{}, args ...inte
 		endSpan(span, err)
 	}()
 
-	err = queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, s.query, args...)
-
-	return
 }
 
 func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
@@ -398,9 +382,7 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v interface{}, args 
 		endSpan(span, err)
 	}()
 
-	err = queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
+	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
-
-	return
 }

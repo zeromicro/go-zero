@@ -1,6 +1,7 @@
 package mon
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -50,12 +51,12 @@ func Test_logDuration(t *testing.T) {
 	}()
 
 	buf.Reset()
-	logDuration("foo", "bar", time.Millisecond, nil)
+	logDuration(context.Background(), "foo", "bar", time.Millisecond, nil)
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
 
 	buf.Reset()
-	logDuration("foo", "bar", time.Millisecond, errors.New("bar"))
+	logDuration(context.Background(), "foo", "bar", time.Millisecond, errors.New("bar"))
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
 	assert.Contains(t, buf.String(), "fail")

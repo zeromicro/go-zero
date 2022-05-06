@@ -588,21 +588,21 @@ func Test_DecoratedCollectionLogDuration(t *testing.T) {
 	}()
 
 	buf.Reset()
-	c.logDuration("foo", time.Millisecond, nil, "bar")
+	c.logDuration(context.Background(), "foo", time.Millisecond, nil, "bar")
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "bar")
 
 	buf.Reset()
-	c.logDuration("foo", time.Millisecond, errors.New("bar"), make(chan int))
+	c.logDuration(context.Background(), "foo", time.Millisecond, errors.New("bar"), make(chan int))
 	assert.Contains(t, buf.String(), "bar")
 
 	buf.Reset()
-	c.logDuration("foo", slowThreshold.Load()+time.Millisecond, errors.New("bar"))
+	c.logDuration(context.Background(), "foo", slowThreshold.Load()+time.Millisecond, errors.New("bar"))
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "slowcall")
 
 	buf.Reset()
-	c.logDuration("foo", slowThreshold.Load()+time.Millisecond, nil)
+	c.logDuration(context.Background(), "foo", slowThreshold.Load()+time.Millisecond, nil)
 	assert.Contains(t, buf.String(), "foo")
 	assert.Contains(t, buf.String(), "slowcall")
 }
@@ -630,15 +630,15 @@ func (d *dropBreaker) Allow() (breaker.Promise, error) {
 	return nil, errDummy
 }
 
-func (d *dropBreaker) Do(req func() error) error {
+func (d *dropBreaker) Do(_ func() error) error {
 	return nil
 }
 
-func (d *dropBreaker) DoWithAcceptable(req func() error, acceptable breaker.Acceptable) error {
+func (d *dropBreaker) DoWithAcceptable(_ func() error, _ breaker.Acceptable) error {
 	return errDummy
 }
 
-func (d *dropBreaker) DoWithFallback(req func() error, fallback func(err error) error) error {
+func (d *dropBreaker) DoWithFallback(_ func() error, _ func(err error) error) error {
 	return nil
 }
 
