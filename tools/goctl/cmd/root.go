@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
@@ -30,10 +31,43 @@ var rootCmd = &cobra.Command{
 
 // Execute executes the given command
 func Execute() {
+	os.Args = supportGoStdFlag(os.Args)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(aurora.Red(err.Error()))
 		os.Exit(codeFailure)
 	}
+}
+
+func supportGoStdFlag(args []string) []string {
+	copyArgs := append([]string(nil), args...)
+	parentCmd, _, err := rootCmd.Traverse(args[:0])
+	if err != nil {
+		return copyArgs
+	}
+
+	for idx, arg := range copyArgs {
+		if idx == 0 {
+			continue
+		}
+
+		parentCmd, _, err = parentCmd.Traverse([]string{arg})
+		if err != nil {
+			break
+		}
+		if !strings.HasPrefix(arg, "-") {
+			continue
+		}
+
+		f := parentCmd.Flag(strings.ReplaceAll(arg, "-", ""))
+		if f == nil {
+			continue
+		}
+		if f.Shorthand == arg {
+			continue
+		}
+		copyArgs[idx] = "--" + f.Name
+	}
+	return copyArgs
 }
 
 func init() {
