@@ -75,10 +75,7 @@ func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
 	logger, err := NewLogger(filename, new(DailyRotateRule), true)
 	assert.Nil(t, err)
 	if len(filename) > 0 {
-		defer func() {
-			os.Remove(filename)
-			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
-		}()
+		defer os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 	}
 	logger.maybeCompressFile(filename)
 	_, err = os.Stat(filename)
@@ -92,7 +89,6 @@ func TestRotateLoggerRotate(t *testing.T) {
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {
-			os.Remove(filename)
 			os.Remove(logger.getBackupFilename())
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
@@ -115,7 +111,6 @@ func TestRotateLoggerWrite(t *testing.T) {
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {
-			os.Remove(filename)
 			os.Remove(logger.getBackupFilename())
 			os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 		}()
