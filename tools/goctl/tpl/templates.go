@@ -109,7 +109,7 @@ func cleanTemplates(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Printf("%s\n", aurora.Green("template are clean!"))
+	fmt.Printf("%s\n", aurora.Green("templates are cleaned!"))
 	return nil
 }
 
