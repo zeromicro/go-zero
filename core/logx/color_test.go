@@ -13,7 +13,7 @@ func TestWithColor(t *testing.T) {
 	defer atomic.StoreUint32(&encoding, old)
 
 	output := WithColor("hello", color.BgBlue)
-	assert.Equal(t, color.BgBlue+"hello"+color.Reset, output)
+	assert.Equal(t, "hello", output)
 
 	atomic.StoreUint32(&encoding, jsonEncodingType)
 	output = WithColor("hello", color.BgBlue)
@@ -25,7 +25,7 @@ func TestWithColorPadding(t *testing.T) {
 	defer atomic.StoreUint32(&encoding, old)
 
 	output := WithColorPadding("hello", color.BgBlue)
-	assert.Equal(t, color.BgBlue+" hello "+color.Reset, output)
+	assert.Equal(t, " hello ", output)
 
 	atomic.StoreUint32(&encoding, jsonEncodingType)
 	output = WithColorPadding("hello", color.BgBlue)

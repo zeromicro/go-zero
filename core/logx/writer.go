@@ -256,23 +256,23 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 }
 
 func wrapLevelWithColor(level string) string {
-	var colour string
+	var colour color.Color
 	switch level {
 	case levelAlert:
-		colour = color.Red
+		colour = color.FgRed
 	case levelError:
-		colour = color.Magenta
+		colour = color.FgMagenta
 	case levelFatal:
-		colour = color.Red
+		colour = color.FgRed
 	case levelInfo:
-		colour = color.Green
+		colour = color.FgGreen
 	case levelSlow:
-		colour = color.Yellow
+		colour = color.FgYellow
 	case levelStat:
-		colour = color.Blue
+		colour = color.FgBlue
 	}
 
-	if len(colour) == 0 {
+	if colour == color.NoColor {
 		return level
 	}
 

@@ -1,50 +1,73 @@
 package color
 
+import "github.com/fatih/color"
+
 const (
-	// Reset restores the default terminal foreground and background colors.
-	Reset = "\033[0m"
+	// NoColor is no color for both foreground and background.
+	NoColor Color = iota
+	// FgBlack is the foreground color black.
+	FgBlack
+	// FgRed is the foreground color red.
+	FgRed
+	// FgGreen is the foreground color green.
+	FgGreen
+	// FgYellow is the foreground color yellow.
+	FgYellow
+	// FgBlue is the foreground color blue.
+	FgBlue
+	// FgMagenta is the foreground color magenta.
+	FgMagenta
+	// FgCyan is the foreground color cyan.
+	FgCyan
+	// FgWhite is the foreground color white.
+	FgWhite
 
-	// Black is the color code for foreground black.
-	Black = "\033[97;30m"
-	// Red is the color code for foreground red.
-	Red = "\033[97;31m"
-	// Green is the color code for foreground green.
-	Green = "\033[97;32m"
-	// Yellow is the color code for foreground yellow.
-	Yellow = "\033[97;33m"
-	// Blue is the color code for foreground blue.
-	Blue = "\033[97;34m"
-	// Magenta is the color code for foreground magenta.
-	Magenta = "\033[97;35m"
-	// Cyan is the color code for foreground cyan.
-	Cyan = "\033[97;36m"
-	// White is the color code for foreground white.
-	White = "\033[97;37m"
-
-	// BgBlack is the color code for background black.
-	BgBlack = "\033[97;40m"
-	// BgRed is the color code for background red.
-	BgRed = "\033[97;41m"
-	// BgGreen is the color code for background green.
-	BgGreen = "\033[97;42m"
-	// BgYellow is the color code for background yellow.
-	BgYellow = "\033[97;43m"
-	// BgBlue is the color code for background blue.
-	BgBlue = "\033[97;44m"
-	// BgMagenta is the color code for background magenta.
-	BgMagenta = "\033[97;45m"
-	// BgCyan is the color code for background cyan.
-	BgCyan = "\033[97;46m"
-	// BgWhite is the color code for background white.
-	BgWhite = "\033[97;47m"
+	// BgBlack is the background color black.
+	BgBlack
+	// BgRed is the background color red.
+	BgRed
+	// BgGreen is the background color green.
+	BgGreen
+	// BgYellow is the background color yellow.
+	BgYellow
+	// BgBlue is the background color blue.
+	BgBlue
+	// BgMagenta is the background color magenta.
+	BgMagenta
+	// BgCyan is the background color cyan.
+	BgCyan
+	// BgWhite is the background color white.
+	BgWhite
 )
 
+var colors = map[Color][]color.Attribute{
+	FgBlack:   {color.FgBlack, color.Bold},
+	FgRed:     {color.FgRed, color.Bold},
+	FgGreen:   {color.FgGreen, color.Bold},
+	FgYellow:  {color.FgYellow, color.Bold},
+	FgBlue:    {color.FgBlue, color.Bold},
+	FgMagenta: {color.FgMagenta, color.Bold},
+	FgCyan:    {color.FgCyan, color.Bold},
+	FgWhite:   {color.FgWhite, color.Bold},
+	BgBlack:   {color.BgBlack, color.Bold},
+	BgRed:     {color.BgRed, color.Bold},
+	BgGreen:   {color.BgGreen, color.Bold},
+	BgYellow:  {color.BgYellow, color.FgHiBlack, color.Bold},
+	BgBlue:    {color.BgBlue, color.Bold},
+	BgMagenta: {color.BgMagenta, color.Bold},
+	BgCyan:    {color.BgCyan, color.Bold},
+	BgWhite:   {color.BgWhite, color.FgHiBlack, color.Bold},
+}
+
+type Color uint32
+
 // WithColor returns a string with the given color applied.
-func WithColor(text, color string) string {
-	return color + text + Reset
+func WithColor(text string, colour Color) string {
+	c := color.New(colors[colour]...)
+	return c.Sprint(text)
 }
 
 // WithColorPadding returns a string with the given color applied with leading and trailing spaces.
-func WithColorPadding(text, color string) string {
-	return color + " " + text + " " + Reset
+func WithColorPadding(text string, colour Color) string {
+	return WithColor(" "+text+" ", colour)
 }

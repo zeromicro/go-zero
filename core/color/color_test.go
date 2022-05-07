@@ -8,12 +8,10 @@ import (
 
 func TestWithColor(t *testing.T) {
 	output := WithColor("Hello", BgRed)
-	expected := BgRed + "Hello" + Reset
-	assert.Equal(t, expected, output)
+	assert.Equal(t, "Hello", output)
 }
 
 func TestWithColorPadding(t *testing.T) {
 	output := WithColorPadding("Hello", BgRed)
-	expected := BgRed + " Hello " + Reset
-	assert.Equal(t, expected, output)
+	assert.Equal(t, " Hello ", output)
 }
