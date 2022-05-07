@@ -191,11 +191,11 @@ func getStatusCode(code int) string {
 	case code >= http.StatusOK && code < http.StatusMultipleChoices:
 		colour = color.BgGreen
 	case code >= http.StatusMultipleChoices && code < http.StatusBadRequest:
-		colour = color.BgWhite
+		colour = color.BgBlue
 	case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
-		colour = color.BgYellow
+		colour = color.BgMagenta
 	default:
-		colour = color.BgRed
+		colour = color.BgYellow
 	}
 
 	return logx.WithColorPadding(strconv.Itoa(code), colour)
