@@ -91,6 +91,7 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 
 		return nil
 	}, acceptable)
+
 	return
 }
 
@@ -211,7 +212,6 @@ func (w *wrappedSession) CommitTransaction(ctx context.Context) (err error) {
 
 		return w.Session.CommitTransaction(ctx)
 	}, acceptable)
-
 }
 
 // WithTransaction implements the mongo.Session interface.

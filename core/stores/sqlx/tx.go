@@ -122,7 +122,6 @@ func (t txSession) QueryRowsPartialCtx(ctx context.Context, v interface{}, q str
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
-
 }
 
 func begin(db *sql.DB) (trans, error) {
