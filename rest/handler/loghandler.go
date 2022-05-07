@@ -171,7 +171,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
 		wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 	if duration > slowThreshold.Load() {
-		logger.Slowf("[HTTP] %s - %s - %s %s - %s - slowcall(%s)",
+		logger.Slowf("[HTTP] %s - %s - %s %s - %s - %s",
 			wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
 			logx.WithColor(fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), color.FgYellow))
 	}
@@ -209,7 +209,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
 		r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
 	if duration > defaultSlowThreshold {
-		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n", r.Method, code, r.RemoteAddr,
+		logger.Slowf("[HTTP] %s - %d - %s - %s\n=> %s\n", r.Method, code, r.RemoteAddr,
 			logx.WithColor(fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), color.FgYellow),
 			dumpRequest(r))
 	}

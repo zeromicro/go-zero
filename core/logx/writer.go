@@ -261,15 +261,15 @@ func wrapLevelWithColor(level string) string {
 	case levelAlert:
 		colour = color.FgRed
 	case levelError:
-		colour = color.FgMagenta
+		colour = color.FgRed
 	case levelFatal:
 		colour = color.FgRed
 	case levelInfo:
-		colour = color.FgGreen
+		colour = color.FgBlue
 	case levelSlow:
 		colour = color.FgYellow
 	case levelStat:
-		colour = color.FgBlue
+		colour = color.FgGreen
 	}
 
 	if colour == color.NoColor {
