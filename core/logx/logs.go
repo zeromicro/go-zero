@@ -168,16 +168,6 @@ func Infow(msg string, fields ...LogField) {
 	infoFieldsSync(msg, fields...)
 }
 
-// IsJsonEncoding returns true if the encoding is json.
-func IsJsonEncoding() bool {
-	return atomic.LoadUint32(&encoding) == jsonEncodingType
-}
-
-// IsPlainEncoding returns true if the encoding is plain text.
-func IsPlainEncoding() bool {
-	return atomic.LoadUint32(&encoding) == plainEncodingType
-}
-
 // Must checks if err is nil, otherwise logs the error and exits.
 func Must(err error) {
 	if err == nil {
