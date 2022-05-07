@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -18,18 +17,22 @@ import (
 //go:embed api.tpl
 var apiTemplate string
 
+var (
+	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
+	// VarStringStyle describes the style of output files.
+	VarStringStyle string
+)
+
 // CreateServiceCommand fast create service
-func CreateServiceCommand(c *cli.Context) error {
-	if c.NArg() == 0 {
-		cli.ShowCommandHelpAndExit(c, "new", 1)
-	}
-
-	args := c.Args()
-	dirName := args.First()
-
-	dirStyle := c.String("style")
-	if len(dirStyle) == 0 {
-		dirStyle = conf.DefaultFormat
+func CreateServiceCommand(args []string) error {
+	dirName := args[0]
+	if len(VarStringStyle) == 0 {
+		VarStringStyle = conf.DefaultFormat
 	}
 	if strings.Contains(dirName, "-") {
 		return errors.New("api new command service name not support strikethrough, because this will used by function name")
@@ -55,18 +58,15 @@ func CreateServiceCommand(c *cli.Context) error {
 
 	defer fp.Close()
 
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	if len(remote) > 0 {
-		repo, _ := util.CloneIntoGitHome(remote, branch)
+	if len(VarStringRemote) > 0 {
+		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
 		if len(repo) > 0 {
-			home = repo
+			VarStringHome = repo
 		}
 	}
 
-	if len(home) > 0 {
-		pathx.RegisterGoctlHome(home)
+	if len(VarStringHome) > 0 {
+		pathx.RegisterGoctlHome(VarStringHome)
 	}
 
 	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
@@ -82,6 +82,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, dirStyle)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle)
 	return err
 }

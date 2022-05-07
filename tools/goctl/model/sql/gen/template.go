@@ -3,7 +3,6 @@ package gen
 import (
 	"fmt"
 
-	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -70,7 +69,7 @@ func Clean() error {
 }
 
 // GenTemplates creates template files if not exists
-func GenTemplates(_ *cli.Context) error {
+func GenTemplates() error {
 	return pathx.InitTemplates(category, templates)
 }
 

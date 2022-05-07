@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
@@ -29,7 +29,7 @@ var openCmd = map[string]string{
 	darwin:  darwinOpen,
 }
 
-func Action(_ *cli.Context) error {
+func runE(_ *cobra.Command, _ []string) error {
 	env := getEnv()
 	content := fmt.Sprintf(issueTemplate, version.BuildVersion, env.string())
 	content = url.QueryEscape(content)

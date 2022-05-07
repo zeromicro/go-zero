@@ -6,30 +6,57 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+var (
+	// VarStringOutput describes the output.
+	VarStringOutput string
+	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
+	// VarStringSliceGoOut describes the go output.
+	VarStringSliceGoOut []string
+	// VarStringSliceGoGRPCOut describes the grpc output.
+	VarStringSliceGoGRPCOut []string
+	// VarStringSlicePlugin describes the protoc plugin.
+	VarStringSlicePlugin []string
+	// VarStringSliceProtoPath describes the proto path.
+	VarStringSliceProtoPath []string
+	// VarStringSliceGoOpt describes the go options.
+	VarStringSliceGoOpt []string
+	// VarStringSliceGoGRPCOpt describes the grpc options.
+	VarStringSliceGoGRPCOpt []string
+	// VarStringStyle describes the style of output files.
+	VarStringStyle string
+	// VarStringZRPCOut describes the zRPC output.
+	VarStringZRPCOut string
+	// VarBoolIdea describes whether idea or not
+	VarBoolIdea bool
+	// VarBoolVerbose describes whether verbose.
+	VarBoolVerbose bool
+)
+
 // RPCNew is to generate rpc greet service, this greet service can speed
 // up your understanding of the zrpc service structure
-func RPCNew(c *cli.Context) error {
-	if c.NArg() == 0 {
-		cli.ShowCommandHelpAndExit(c, "new", 1)
-	}
-
-	rpcname := c.Args().First()
+func RPCNew(_ *cobra.Command, args []string) error {
+	rpcname := args[0]
 	ext := filepath.Ext(rpcname)
 	if len(ext) > 0 {
 		return fmt.Errorf("unexpected ext: %s", ext)
 	}
-	style := c.String("style")
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	verbose := c.Bool("verbose")
+	style := VarStringStyle
+	home := VarStringHome
+	remote := VarStringRemote
+	branch := VarStringBranch
+	verbose := VarBoolVerbose
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -60,12 +87,12 @@ func RPCNew(c *cli.Context) error {
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 
-	grpcOptList := c.StringSlice("go-grpc_opt")
+	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
 		ctx.ProtocCmd += " --go-grpc_opt=" + strings.Join(grpcOptList, ",")
 	}
 
-	goOptList := c.StringSlice("go_opt")
+	goOptList := VarStringSliceGoOpt
 	if len(goOptList) > 0 {
 		ctx.ProtocCmd += " --go_opt=" + strings.Join(goOptList, ",")
 	}
@@ -75,17 +102,12 @@ func RPCNew(c *cli.Context) error {
 }
 
 // RPCTemplate is the entry for generate rpc template
-func RPCTemplate(c *cli.Context) error {
+func RPCTemplate(_ *cobra.Command, _ []string) error {
 	console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
-
-	if c.NumFlags() == 0 {
-		cli.ShowCommandHelpAndExit(c, "template", 1)
-	}
-
-	protoFile := c.String("o")
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
+	protoFile := VarStringOutput
+	home := VarStringHome
+	remote := VarStringRemote
+	branch := VarStringBranch
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {

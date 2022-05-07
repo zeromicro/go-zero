@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -48,11 +48,11 @@ type Deployment struct {
 }
 
 // DeploymentCommand is used to generate the kubernetes deployment yaml files.
-func DeploymentCommand(c *cli.Context) error {
-	nodePort := c.Int("nodePort")
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
+func deploymentCommand(_ *cobra.Command, _ []string) error {
+	nodePort := varIntNodePort
+	home := varStringHome
+	remote := varStringRemote
+	branch := varStringBranch
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -74,7 +74,7 @@ func DeploymentCommand(c *cli.Context) error {
 		return err
 	}
 
-	out, err := pathx.CreateIfNotExist(c.String("o"))
+	out, err := pathx.CreateIfNotExist(varStringO)
 	if err != nil {
 		return err
 	}
@@ -82,22 +82,22 @@ func DeploymentCommand(c *cli.Context) error {
 
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
 	err = t.Execute(out, Deployment{
-		Name:           c.String("name"),
-		Namespace:      c.String("namespace"),
-		Image:          c.String("image"),
-		Secret:         c.String("secret"),
-		Replicas:       c.Int("replicas"),
-		Revisions:      c.Int("revisions"),
-		Port:           c.Int("port"),
+		Name:           varStringName,
+		Namespace:      varStringNamespace,
+		Image:          varStringImage,
+		Secret:         varStringSecret,
+		Replicas:       varIntReplicas,
+		Revisions:      varIntRevisions,
+		Port:           varIntPort,
 		NodePort:       nodePort,
 		UseNodePort:    nodePort > 0,
-		RequestCpu:     c.Int("requestCpu"),
-		RequestMem:     c.Int("requestMem"),
-		LimitCpu:       c.Int("limitCpu"),
-		LimitMem:       c.Int("limitMem"),
-		MinReplicas:    c.Int("minReplicas"),
-		MaxReplicas:    c.Int("maxReplicas"),
-		ServiceAccount: c.String("serviceAccount"),
+		RequestCpu:     varIntRequestCpu,
+		RequestMem:     varIntRequestMem,
+		LimitCpu:       varIntLimitCpu,
+		LimitMem:       varIntLimitMem,
+		MinReplicas:    varIntMinReplicas,
+		MaxReplicas:    varIntMaxReplicas,
+		ServiceAccount: varStringServiceAccount,
 	})
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func Clean() error {
 }
 
 // GenTemplates generates the deployment template files.
-func GenTemplates(_ *cli.Context) error {
+func GenTemplates() error {
 	return pathx.InitTemplates(category, map[string]string{
 		deployTemplateFile: deploymentTemplate,
 		jobTemplateFile:    jobTemplate,

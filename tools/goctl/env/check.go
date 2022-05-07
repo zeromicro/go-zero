@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protoc"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengo"
@@ -37,11 +37,8 @@ var bins = []bin{
 	},
 }
 
-func Check(ctx *cli.Context) error {
-	install := ctx.Bool("install")
-	force := ctx.Bool("force")
-	verbose := ctx.Bool("verbose")
-	return Prepare(install, force, verbose)
+func check(_ *cobra.Command, _ []string) error {
+	return Prepare(boolVarInstall, boolVarForce, boolVarVerbose)
 }
 
 func Prepare(install, force, verbose bool) error {

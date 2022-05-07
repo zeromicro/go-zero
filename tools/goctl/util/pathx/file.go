@@ -2,6 +2,8 @@ package pathx
 
 import (
 	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -282,4 +284,20 @@ func Copy(src, dest string) error {
 	defer w.Close()
 	_, err = io.Copy(w, f)
 	return err
+}
+
+func Hash(file string) (string, error) {
+	f, err := os.Open(file)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = f.Close()
+	}()
+	hash := md5.New()
+	_, err = io.Copy(hash, f)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }
