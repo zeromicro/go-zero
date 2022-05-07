@@ -31,7 +31,7 @@ func (t txSession) Exec(q string, args ...interface{}) (sql.Result, error) {
 }
 
 func (t txSession) ExecCtx(ctx context.Context, q string, args ...interface{}) (result sql.Result, err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "Exec")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -46,7 +46,7 @@ func (t txSession) Prepare(q string) (StmtSession, error) {
 }
 
 func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSession, err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "Prepare")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -67,7 +67,7 @@ func (t txSession) QueryRow(v interface{}, q string, args ...interface{}) error 
 }
 
 func (t txSession) QueryRowCtx(ctx context.Context, v interface{}, q string, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRow")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -83,7 +83,7 @@ func (t txSession) QueryRowPartial(v interface{}, q string, args ...interface{})
 
 func (t txSession) QueryRowPartialCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRowPartial")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -98,7 +98,7 @@ func (t txSession) QueryRows(v interface{}, q string, args ...interface{}) error
 }
 
 func (t txSession) QueryRowsCtx(ctx context.Context, v interface{}, q string, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRows")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -114,7 +114,7 @@ func (t txSession) QueryRowsPartial(v interface{}, q string, args ...interface{}
 
 func (t txSession) QueryRowsPartialCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRowsPartial")
 	defer func() {
 		endSpan(span, err)
 	}()

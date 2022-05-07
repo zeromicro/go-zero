@@ -11,15 +11,15 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var sqlAttributeKey = attribute.Key("sql.statement")
+var sqlAttributeKey = attribute.Key("sql.method")
 
-func startSpan(ctx context.Context, sql string) (context.Context, oteltrace.Span) {
+func startSpan(ctx context.Context, method string) (context.Context, oteltrace.Span) {
 	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 	start, span := tracer.Start(ctx,
 		spanName,
 		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
 	)
-	span.SetAttributes(sqlAttributeKey.String(sql))
+	span.SetAttributes(sqlAttributeKey.String(method))
 
 	return start, span
 }

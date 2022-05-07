@@ -137,7 +137,7 @@ func (db *commonSqlConn) Exec(q string, args ...interface{}) (result sql.Result,
 
 func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interface{}) (
 	result sql.Result, err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "Exec")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -162,7 +162,7 @@ func (db *commonSqlConn) Prepare(query string) (stmt StmtSession, err error) {
 }
 
 func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt StmtSession, err error) {
-	ctx, span := startSpan(ctx, query)
+	ctx, span := startSpan(ctx, "Prepare")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -196,7 +196,7 @@ func (db *commonSqlConn) QueryRow(v interface{}, q string, args ...interface{}) 
 
 func (db *commonSqlConn) QueryRowCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRow")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -212,7 +212,7 @@ func (db *commonSqlConn) QueryRowPartial(v interface{}, q string, args ...interf
 
 func (db *commonSqlConn) QueryRowPartialCtx(ctx context.Context, v interface{},
 	q string, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRowPartial")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -228,7 +228,7 @@ func (db *commonSqlConn) QueryRows(v interface{}, q string, args ...interface{})
 
 func (db *commonSqlConn) QueryRowsCtx(ctx context.Context, v interface{}, q string,
 	args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRows")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -244,7 +244,7 @@ func (db *commonSqlConn) QueryRowsPartial(v interface{}, q string, args ...inter
 
 func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{},
 	q string, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
+	ctx, span := startSpan(ctx, "QueryRowsPartial")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -265,7 +265,7 @@ func (db *commonSqlConn) Transact(fn func(Session) error) error {
 }
 
 func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) (err error) {
-	ctx, span := startSpan(ctx, "transact")
+	ctx, span := startSpan(ctx, "Transact")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -286,11 +286,6 @@ func (db *commonSqlConn) acceptable(err error) bool {
 
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, q)
-	defer func() {
-		endSpan(span, err)
-	}()
-
 	var qerr error
 	return db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
@@ -317,7 +312,7 @@ func (s statement) Exec(args ...interface{}) (sql.Result, error) {
 }
 
 func (s statement) ExecCtx(ctx context.Context, args ...interface{}) (result sql.Result, err error) {
-	ctx, span := startSpan(ctx, s.query)
+	ctx, span := startSpan(ctx, "Exec")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -330,7 +325,7 @@ func (s statement) QueryRow(v interface{}, args ...interface{}) error {
 }
 
 func (s statement) QueryRowCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, s.query)
+	ctx, span := startSpan(ctx, "QueryRow")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -346,7 +341,7 @@ func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
 }
 
 func (s statement) QueryRowPartialCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, s.query)
+	ctx, span := startSpan(ctx, "QueryRowPartial")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -361,7 +356,7 @@ func (s statement) QueryRows(v interface{}, args ...interface{}) error {
 }
 
 func (s statement) QueryRowsCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, s.query)
+	ctx, span := startSpan(ctx, "QueryRows")
 	defer func() {
 		endSpan(span, err)
 	}()
@@ -376,7 +371,7 @@ func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
 }
 
 func (s statement) QueryRowsPartialCtx(ctx context.Context, v interface{}, args ...interface{}) (err error) {
-	ctx, span := startSpan(ctx, s.query)
+	ctx, span := startSpan(ctx, "QueryRowsPartial")
 	defer func() {
 		endSpan(span, err)
 	}()
