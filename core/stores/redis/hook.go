@@ -74,7 +74,12 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 
 	batchError := errorx.BatchError{}
 	for _, cmd := range cmds {
-		batchError.Add(cmd.Err())
+		err := cmd.Err()
+		if err == nil {
+			continue
+		}
+
+		batchError.Add(err)
 	}
 	h.endSpan(ctx, batchError.Err())
 
