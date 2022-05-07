@@ -223,13 +223,13 @@ func SetUp(c LogConf) error {
 	}
 
 	switch c.Mode {
-	case consoleMode:
-		setupWithConsole()
-		return nil
+	case fileMode:
+		return setupWithFiles(c)
 	case volumeMode:
 		return setupWithVolume(c)
 	default:
-		return setupWithFiles(c)
+		setupWithConsole()
+		return nil
 	}
 }
 

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/zeromicro/go-zero/core/color"
 )
 
 type (
@@ -239,6 +241,7 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
+		level = wrapLevelWithColor(level)
 		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
 		entry := make(logEntryWithFields)
@@ -250,6 +253,30 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 		entry[contentKey] = val
 		writeJson(writer, entry)
 	}
+}
+
+func wrapLevelWithColor(level string) string {
+	var colour color.Color
+	switch level {
+	case levelAlert:
+		colour = color.FgRed
+	case levelError:
+		colour = color.FgRed
+	case levelFatal:
+		colour = color.FgRed
+	case levelInfo:
+		colour = color.FgBlue
+	case levelSlow:
+		colour = color.FgYellow
+	case levelStat:
+		colour = color.FgGreen
+	}
+
+	if colour == color.NoColor {
+		return level
+	}
+
+	return color.WithColorPadding(level, colour)
 }
 
 func writeJson(writer io.Writer, info interface{}) {

@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,11 +12,16 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
 func TestNewServer(t *testing.T) {
+	writer := logx.Reset()
+	defer logx.SetWriter(writer)
+	logx.SetWriter(logx.NewWriter(ioutil.Discard))
+
 	const configYaml = `
 Name: foo
 Port: 54321
@@ -31,7 +37,6 @@ Port: 54321
 		{
 			c:    RestConf{},
 			opts: []RunOption{WithRouter(mockedRouter{}), WithCors()},
-			fail: true,
 		},
 		{
 			c:    cnf,

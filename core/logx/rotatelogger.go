@@ -210,6 +210,12 @@ func (l *RotateLogger) maybeCompressFile(file string) {
 			ErrorStack(r)
 		}
 	}()
+
+	if _, err := os.Stat(file); err != nil {
+		// file not exists or other error, ignore compression
+		return
+	}
+
 	compressLogFile(file)
 }
 
@@ -292,7 +298,7 @@ func compressLogFile(file string) {
 	start := time.Now()
 	Infof("compressing log file: %s", file)
 	if err := gzipFile(file); err != nil {
-		ErrorStackf("compress error: %s", err)
+		Errorf("compress error: %s", err)
 	} else {
 		Infof("compressed log file: %s, took %s", file, time.Since(start))
 	}
