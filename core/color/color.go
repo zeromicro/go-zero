@@ -49,14 +49,14 @@ var colors = map[Color][]color.Attribute{
 	FgMagenta: {color.FgMagenta, color.Bold},
 	FgCyan:    {color.FgCyan, color.Bold},
 	FgWhite:   {color.FgWhite, color.Bold},
-	BgBlack:   {color.BgBlack, color.Bold},
-	BgRed:     {color.BgRed, color.Bold},
-	BgGreen:   {color.BgGreen, color.Bold},
-	BgYellow:  {color.BgYellow, color.FgHiBlack, color.Bold},
-	BgBlue:    {color.BgBlue, color.Bold},
-	BgMagenta: {color.BgMagenta, color.Bold},
-	BgCyan:    {color.BgCyan, color.Bold},
-	BgWhite:   {color.BgWhite, color.FgHiBlack, color.Bold},
+	BgBlack:   {color.BgBlack, color.FgHiWhite, color.Bold},
+	BgRed:     {color.BgRed, color.FgHiWhite, color.Bold},
+	BgGreen:   {color.BgGreen, color.FgHiWhite, color.Bold},
+	BgYellow:  {color.BgYellow, color.FgHiWhite, color.Bold},
+	BgBlue:    {color.BgBlue, color.FgHiWhite, color.Bold},
+	BgMagenta: {color.BgMagenta, color.FgHiWhite, color.Bold},
+	BgCyan:    {color.BgCyan, color.FgHiWhite, color.Bold},
+	BgWhite:   {color.BgWhite, color.FgHiBlue, color.Bold},
 }
 
 type Color uint32
