@@ -210,6 +210,12 @@ func (l *RotateLogger) maybeCompressFile(file string) {
 			ErrorStack(r)
 		}
 	}()
+
+	if _, err := os.Stat(file); err != nil {
+		// file not exists or other error, ignore compression
+		return
+	}
+
 	compressLogFile(file)
 }
 

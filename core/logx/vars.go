@@ -28,6 +28,7 @@ const (
 	statFilename   = "stat.log"
 
 	consoleMode = "console"
+	fileMode    = "file"
 	volumeMode  = "volume"
 
 	levelAlert  = "alert"

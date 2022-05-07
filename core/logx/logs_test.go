@@ -621,6 +621,18 @@ func TestWithKeepDays(t *testing.T) {
 	assert.Equal(t, 1, opt.keepDays)
 }
 
+func TestEncodingCheck(t *testing.T) {
+	old := atomic.SwapUint32(&encoding, jsonEncodingType)
+	defer atomic.StoreUint32(&encoding, old)
+
+	assert.True(t, IsJsonEncoding())
+	assert.False(t, IsPlainEncoding())
+
+	atomic.StoreUint32(&encoding, plainEncodingType)
+	assert.False(t, IsJsonEncoding())
+	assert.True(t, IsPlainEncoding())
+}
+
 func BenchmarkCopyByteSliceAppend(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var buf []byte

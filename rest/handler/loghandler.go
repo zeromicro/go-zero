@@ -11,9 +11,11 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/color"
 	"github.com/zeromicro/go-zero/core/iox"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -157,15 +159,63 @@ func dumpRequest(r *http.Request) string {
 	return string(reqContent)
 }
 
+func getMethod(method string) string {
+	var colour string
+	switch method {
+	case http.MethodGet:
+		colour = color.BgBlue
+	case http.MethodPost:
+		colour = color.BgCyan
+	case http.MethodPut:
+		colour = color.BgYellow
+	case http.MethodDelete:
+		colour = color.BgRed
+	case http.MethodPatch:
+		colour = color.BgGreen
+	case http.MethodHead:
+		colour = color.BgMagenta
+	case http.MethodOptions:
+		colour = color.BgWhite
+	}
+
+	if len(colour) == 0 {
+		return method
+	}
+
+	return logx.WithColorPadding(method, colour)
+}
+
+func getStatusCode(code int) string {
+	var colour string
+	switch {
+	case code >= http.StatusOK && code < http.StatusMultipleChoices:
+		colour = color.BgGreen
+	case code >= http.StatusMultipleChoices && code < http.StatusBadRequest:
+		colour = color.BgWhite
+	case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
+		colour = color.BgYellow
+	default:
+		colour = color.BgRed
+	}
+
+	return logx.WithColorPadding(strconv.Itoa(code), colour)
+}
+
+func isOkResponse(code int) bool {
+	// not server error
+	return code < http.StatusInternalServerError
+}
+
 func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *internal.LogCollector) {
 	var buf bytes.Buffer
 	duration := timer.Duration()
 	logger := logx.WithContext(r.Context()).WithDuration(duration)
-	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s - %s",
-		r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
+	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
+		getStatusCode(code), getMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 	if duration > slowThreshold.Load() {
-		logger.Slowf("[HTTP] %s - %d - %s - %s - %s - slowcall(%s)",
-			r.Method, code, r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(), timex.ReprOfDuration(duration))
+		logger.Slowf("[HTTP] %s - %s - %s %s - %s - slowcall(%s)",
+			getStatusCode(code), getMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
+			logx.WithColor(fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), color.Yellow))
 	}
 
 	ok := isOkResponse(code)
@@ -201,8 +251,9 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %d - %s - %s\n=> %s\n",
 		r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r)))
 	if duration > defaultSlowThreshold {
-		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n",
-			r.Method, code, r.RemoteAddr, timex.ReprOfDuration(duration), dumpRequest(r))
+		logger.Slowf("[HTTP] %s - %d - %s - slowcall(%s)\n=> %s\n", r.Method, code, r.RemoteAddr,
+			logx.WithColor(fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)), color.Yellow),
+			dumpRequest(r))
 	}
 
 	body := logs.Flush()
@@ -220,9 +271,4 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	} else {
 		logger.Error(buf.String())
 	}
-}
-
-func isOkResponse(code int) bool {
-	// not server error
-	return code < http.StatusInternalServerError
 }
