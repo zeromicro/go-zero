@@ -52,11 +52,11 @@ var colors = map[Color][]color.Attribute{
 	BgBlack:   {color.BgBlack, color.FgHiWhite, color.Bold},
 	BgRed:     {color.BgRed, color.FgHiWhite, color.Bold},
 	BgGreen:   {color.BgGreen, color.FgHiWhite, color.Bold},
-	BgYellow:  {color.BgYellow, color.FgHiWhite, color.Bold},
+	BgYellow:  {color.BgHiYellow, color.FgHiBlack, color.Bold},
 	BgBlue:    {color.BgBlue, color.FgHiWhite, color.Bold},
 	BgMagenta: {color.BgMagenta, color.FgHiWhite, color.Bold},
 	BgCyan:    {color.BgCyan, color.FgHiWhite, color.Bold},
-	BgWhite:   {color.BgWhite, color.FgHiBlue, color.Bold},
+	BgWhite:   {color.BgHiWhite, color.FgHiBlack, color.Bold},
 }
 
 type Color uint32
