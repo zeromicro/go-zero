@@ -6,6 +6,7 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -71,8 +72,11 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 		return nil
 	}
 
-	err := cmds[0].Err()
-	h.endSpan(ctx, err)
+	batchError := errorx.BatchError{}
+	for _, cmd := range cmds {
+		batchError.Add(cmd.Err())
+	}
+	h.endSpan(ctx, batchError.Err())
 
 	val := ctx.Value(startTimeKey)
 	if val == nil {
