@@ -241,7 +241,6 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		level = wrapLevelWithColor(level)
 		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
 		entry := make(logEntryWithFields)
@@ -290,6 +289,8 @@ func writeJson(writer io.Writer, info interface{}) {
 }
 
 func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
+	level = wrapLevelWithColor(level)
+
 	switch v := val.(type) {
 	case string:
 		writePlainText(writer, level, v, fields...)
