@@ -124,18 +124,27 @@ func TestWritePlainAny(t *testing.T) {
 	assert.Contains(t, buf.String(), "foo")
 
 	buf.Reset()
-	writePlainAny(nil, levelInfo, make(chan int))
+	writePlainAny(nil, levelError, make(chan int))
 	assert.Contains(t, buf.String(), "unsupported type")
-	writePlainAny(nil, levelInfo, 100)
+	writePlainAny(nil, levelSlow, 100)
 	assert.Contains(t, buf.String(), "100")
 
 	buf.Reset()
-	writePlainAny(hardToWriteWriter{}, levelInfo, 100)
+	writePlainAny(hardToWriteWriter{}, levelStat, 100)
 	assert.Contains(t, buf.String(), "write error")
 
 	buf.Reset()
-	writePlainAny(hardToWriteWriter{}, levelInfo, "foo")
+	writePlainAny(hardToWriteWriter{}, levelSevere, "foo")
 	assert.Contains(t, buf.String(), "write error")
+
+	buf.Reset()
+	writePlainAny(hardToWriteWriter{}, levelAlert, "foo")
+	assert.Contains(t, buf.String(), "write error")
+
+	buf.Reset()
+	writePlainAny(hardToWriteWriter{}, levelFatal, "foo")
+	assert.Contains(t, buf.String(), "write error")
+
 }
 
 type mockedEntry struct {
