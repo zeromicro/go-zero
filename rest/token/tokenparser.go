@@ -78,10 +78,14 @@ func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*
 	return token, nil
 }
 
-func (tp *TokenParser) doParseToken(r *http.Request, secret string) (*jwt.Token, error) {
+func (tp *TokenParser) doParseToken(r *http.Request, secret interface{}) (*jwt.Token, error) {
 	return request.ParseFromRequest(r, request.AuthorizationHeaderExtractor,
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
+			if secretByte, ok := secret.(string); ok {
+				return []byte(secretByte), nil
+			} else {
+				return secret, nil
+			}
 		}, request.WithParser(newParser()))
 }
 
