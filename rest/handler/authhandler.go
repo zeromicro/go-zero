@@ -31,7 +31,7 @@ var (
 type (
 	// A AuthorizeOptions is authorize options.
 	AuthorizeOptions struct {
-		PrevSecret string
+		PrevSecret interface{}
 		Callback   UnauthorizedCallback
 	}
 
@@ -42,7 +42,7 @@ type (
 )
 
 // Authorize returns an authorization middleware.
-func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.Handler {
+func Authorize(secret interface{}, opts ...AuthorizeOption) func(http.Handler) http.Handler {
 	var authOpts AuthorizeOptions
 	for _, opt := range opts {
 		opt(&authOpts)
@@ -84,7 +84,7 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 }
 
 // WithPrevSecret returns an AuthorizeOption with setting previous secret.
-func WithPrevSecret(secret string) AuthorizeOption {
+func WithPrevSecret(secret interface{}) AuthorizeOption {
 	return func(opts *AuthorizeOptions) {
 		opts.PrevSecret = secret
 	}

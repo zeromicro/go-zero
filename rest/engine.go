@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"time"
 
 	"github.com/justinas/alice"
@@ -54,7 +55,15 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chain alice.Chain,
 	verifier func(alice.Chain) alice.Chain) alice.Chain {
 	if fr.jwt.enabled {
-		if len(fr.jwt.prevSecret) == 0 {
+		//check prevSecret whether exists,if only can be string or pointer
+		var hasPreSecret bool
+		if prevSecretStr, ok := fr.jwt.prevSecret.(string); ok && len(prevSecretStr) > 0 {
+			hasPreSecret = true
+		}
+		if reflect.ValueOf(fr.jwt.prevSecret).Kind() == reflect.Ptr && fr.jwt.prevSecret != nil {
+			hasPreSecret = true
+		}
+		if hasPreSecret {
 			chain = chain.Append(handler.Authorize(fr.jwt.secret,
 				handler.WithUnauthorizedCallback(ng.unauthorizedCallback)))
 		} else {

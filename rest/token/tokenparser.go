@@ -2,6 +2,7 @@ package token
 
 import (
 	"net/http"
+	"reflect"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -40,15 +41,21 @@ func NewTokenParser(opts ...ParseOption) *TokenParser {
 }
 
 // ParseToken parses token from given r, with passed in secret and prevSecret.
-func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret string) (*jwt.Token, error) {
+func (tp *TokenParser) ParseToken(r *http.Request, secret, prevSecret interface{}) (*jwt.Token, error) {
 	var token *jwt.Token
 	var err error
-
-	if len(prevSecret) > 0 {
+	var hasPreSecret bool
+	if prevSecretStr, ok := prevSecret.(string); ok && len(prevSecretStr) > 0 {
+		hasPreSecret = true
+	}
+	if reflect.ValueOf(prevSecret).Kind() == reflect.Ptr && prevSecret != nil {
+		hasPreSecret = true
+	}
+	if hasPreSecret {
 		count := tp.loadCount(secret)
 		prevCount := tp.loadCount(prevSecret)
 
-		var first, second string
+		var first, second interface{}
 		if count > prevCount {
 			first = secret
 			second = prevSecret
@@ -89,7 +96,7 @@ func (tp *TokenParser) doParseToken(r *http.Request, secret interface{}) (*jwt.T
 		}, request.WithParser(newParser()))
 }
 
-func (tp *TokenParser) incrementCount(secret string) {
+func (tp *TokenParser) incrementCount(secret interface{}) {
 	now := timex.Now()
 	if tp.resetTime+tp.resetDuration < now {
 		tp.history.Range(func(key, value interface{}) bool {
@@ -107,7 +114,7 @@ func (tp *TokenParser) incrementCount(secret string) {
 	}
 }
 
-func (tp *TokenParser) loadCount(secret string) uint64 {
+func (tp *TokenParser) loadCount(secret interface{}) uint64 {
 	value, ok := tp.history.Load(secret)
 	if ok {
 		return *value.(*uint64)
