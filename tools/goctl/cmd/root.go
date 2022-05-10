@@ -16,6 +16,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
 	"github.com/zeromicro/go-zero/tools/goctl/model"
+	"github.com/zeromicro/go-zero/tools/goctl/quickstart"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc"
 	"github.com/zeromicro/go-zero/tools/goctl/tpl"
 	"github.com/zeromicro/go-zero/tools/goctl/upgrade"
@@ -87,7 +88,8 @@ func supportGoStdFlag(args []string) []string {
 }
 
 func init() {
-	rootCmd.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
+	rootCmd.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion,
+		runtime.GOOS, runtime.GOARCH)
 	rootCmd.AddCommand(api.Cmd)
 	rootCmd.AddCommand(bug.Cmd)
 	rootCmd.AddCommand(docker.Cmd)
@@ -95,6 +97,7 @@ func init() {
 	rootCmd.AddCommand(env.Cmd)
 	rootCmd.AddCommand(model.Cmd)
 	rootCmd.AddCommand(migrate.Cmd)
+	rootCmd.AddCommand(quickstart.Cmd)
 	rootCmd.AddCommand(rpc.Cmd)
 	rootCmd.AddCommand(tpl.Cmd)
 	rootCmd.AddCommand(upgrade.Cmd)
