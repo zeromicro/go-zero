@@ -12,12 +12,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+const baseDir = "greet"
+
 var (
 	log        = console.NewColorConsole(true)
 	projectDir string
 )
-
-const baseDir = "greet"
 
 func cleanWorkSpace(projectDir string) {
 	var command string

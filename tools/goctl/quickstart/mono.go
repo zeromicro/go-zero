@@ -18,7 +18,7 @@ var (
 	svcContent string
 	//go:embed idl/apilogic.tpl
 	apiLogicContent string
-	//go:embed idl/apietc.yaml
+	//go:embed idl/api.yaml
 	apiEtcContent string
 
 	apiWorkDir string

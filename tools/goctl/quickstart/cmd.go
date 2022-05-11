@@ -21,5 +21,5 @@ var (
 func init() {
 	Cmd.Flags().StringVarP(&varStringServiceType,
 		"service-type", "t", "mono",
-		"specify the service type, supported value: [mono, micro]")
+		"specify the service type, supported values: [mono, micro]")
 }
