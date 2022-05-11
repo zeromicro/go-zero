@@ -6,7 +6,7 @@ import (
     "github.com/zeromicro/go-zero/core/logx"
     "greet/api/internal/svc"
     "greet/api/internal/types"
-{{if .callRPC}}"greet/rpc/greet"
+    {{if .callRPC}}"greet/rpc/greet"
 {{end}}
 )
 
