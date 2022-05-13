@@ -30,20 +30,26 @@ func (t txSession) Exec(q string, args ...interface{}) (sql.Result, error) {
 	return t.ExecCtx(context.Background(), q, args...)
 }
 
-func (t txSession) ExecCtx(ctx context.Context, q string, args ...interface{}) (sql.Result, error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+func (t txSession) ExecCtx(ctx context.Context, q string, args ...interface{}) (result sql.Result, err error) {
+	ctx, span := startSpan(ctx, "Exec")
+	defer func() {
+		endSpan(span, err)
+	}()
 
-	return exec(ctx, t.Tx, q, args...)
+	result, err = exec(ctx, t.Tx, q, args...)
+
+	return
 }
 
 func (t txSession) Prepare(q string) (StmtSession, error) {
 	return t.PrepareCtx(context.Background(), q)
 }
 
-func (t txSession) PrepareCtx(ctx context.Context, q string) (StmtSession, error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+func (t txSession) PrepareCtx(ctx context.Context, q string) (stmtSession StmtSession, err error) {
+	ctx, span := startSpan(ctx, "Prepare")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	stmt, err := t.Tx.PrepareContext(ctx, q)
 	if err != nil {
@@ -60,9 +66,11 @@ func (t txSession) QueryRow(v interface{}, q string, args ...interface{}) error 
 	return t.QueryRowCtx(context.Background(), v, q, args...)
 }
 
-func (t txSession) QueryRowCtx(ctx context.Context, v interface{}, q string, args ...interface{}) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+func (t txSession) QueryRowCtx(ctx context.Context, v interface{}, q string, args ...interface{}) (err error) {
+	ctx, span := startSpan(ctx, "QueryRow")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
@@ -74,9 +82,11 @@ func (t txSession) QueryRowPartial(v interface{}, q string, args ...interface{})
 }
 
 func (t txSession) QueryRowPartialCtx(ctx context.Context, v interface{}, q string,
-	args ...interface{}) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	args ...interface{}) (err error) {
+	ctx, span := startSpan(ctx, "QueryRowPartial")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
@@ -87,9 +97,11 @@ func (t txSession) QueryRows(v interface{}, q string, args ...interface{}) error
 	return t.QueryRowsCtx(context.Background(), v, q, args...)
 }
 
-func (t txSession) QueryRowsCtx(ctx context.Context, v interface{}, q string, args ...interface{}) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+func (t txSession) QueryRowsCtx(ctx context.Context, v interface{}, q string, args ...interface{}) (err error) {
+	ctx, span := startSpan(ctx, "QueryRows")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
@@ -101,9 +113,11 @@ func (t txSession) QueryRowsPartial(v interface{}, q string, args ...interface{}
 }
 
 func (t txSession) QueryRowsPartialCtx(ctx context.Context, v interface{}, q string,
-	args ...interface{}) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	args ...interface{}) (err error) {
+	ctx, span := startSpan(ctx, "QueryRowsPartial")
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return query(ctx, t.Tx, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
