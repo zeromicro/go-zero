@@ -6,12 +6,14 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
 var loaders = map[string]func([]byte, interface{}) error{
 	".json": LoadFromJsonBytes,
+	".toml": LoadFromTomlBytes,
 	".yaml": LoadFromYamlBytes,
 	".yml":  LoadFromYamlBytes,
 }
@@ -23,7 +25,7 @@ func Load(file string, v interface{}, opts ...Option) error {
 		return err
 	}
 
-	loader, ok := loaders[path.Ext(file)]
+	loader, ok := loaders[strings.ToLower(path.Ext(file))]
 	if !ok {
 		return fmt.Errorf("unrecognized file type: %s", file)
 	}
@@ -57,6 +59,12 @@ func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
 	return LoadFromJsonBytes(content, v)
 }
 
+// LoadFromTomlBytes loads config into v from content toml bytes.
+func LoadFromTomlBytes(content []byte, v interface{}) error {
+	return mapping.UnmarshalTomlBytes(content, v)
+}
+
+// LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v interface{}) error {
 	return mapping.UnmarshalYamlBytes(content, v)
 }
@@ -69,7 +77,7 @@ func LoadConfigFromYamlBytes(content []byte, v interface{}) error {
 
 // MustLoad loads config into v from path, exits on error.
 func MustLoad(path string, v interface{}, opts ...Option) {
-	if err := LoadConfig(path, v, opts...); err != nil {
+	if err := Load(path, v, opts...); err != nil {
 		log.Fatalf("error: config file %s, %s", path, err.Error())
 	}
 }
