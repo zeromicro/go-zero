@@ -6,8 +6,8 @@ import (
     "github.com/zeromicro/go-zero/core/logx"
     "greet/api/internal/svc"
     "greet/api/internal/types"
-    {{if .callRPC}}"greet/rpc/greet"
-{{end}}
+{{if .callRPC}}    "greet/rpc/greet"
+{{else}}{{- end -}}
 )
 
 type PingLogic struct {
@@ -24,10 +24,10 @@ func NewPingLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PingLogic {
     }
 }
 
-func (l *PingLogic) Ping() (resp *types.Resp, err error) {
-    {{if .callRPC}}if _, err = l.svcCtx.GreetRpc.Ping(l.ctx, &greet.Placeholder{});err !=nil {
+func (l *PingLogic) Ping() (resp *types.Resp, err error) { {{if .callRPC }}
+    if _, err = l.svcCtx.GreetRpc.Ping(l.ctx, &greet.Placeholder{});err !=nil {
         return
-    }{{end}}
+    }{{else}}{{end}}
     resp = new(types.Resp)
     resp.Msg = "pong"
 
