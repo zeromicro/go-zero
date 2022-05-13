@@ -6,8 +6,8 @@ import (
     "github.com/zeromicro/go-zero/core/logx"
     "greet/api/internal/svc"
     "greet/api/internal/types"
-    {{if .callRPC}}"greet/rpc/greet"
-{{end}}
+{{if .callRPC}}    "greet/rpc/greet"
+{{else}}{{- end -}}
 )
 
 type PingLogic struct {
