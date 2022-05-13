@@ -333,7 +333,6 @@ func (s statement) QueryRowCtx(ctx context.Context, v interface{}, args ...inter
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, s.query, args...)
-
 }
 
 func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
