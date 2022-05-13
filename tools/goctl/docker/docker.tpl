@@ -16,6 +16,9 @@ COPY . .
 {{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
 {{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
+RUN GRPC_HEALTH_PROBE_VERSION=v0.4.10 && \
+    wget -qO /bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
+    chmod +x /bin/grpc_health_probe
 
 FROM {{.BaseImage}}
 
@@ -26,6 +29,7 @@ ENV TZ {{.Timezone}}
 WORKDIR /app
 COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}{{if .Argument}}
 COPY --from=builder /app/etc /app/etc{{end}}
+COPY --from=builder /bin/grpc_health_probe /bin/grpc_health_probe
 {{if .HasPort}}
 EXPOSE {{.Port}}
 {{end}}

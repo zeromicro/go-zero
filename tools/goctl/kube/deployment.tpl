@@ -27,13 +27,13 @@ spec:
         ports:
         - containerPort: {{.Port}}
         readinessProbe:
-          tcpSocket:
-            port: {{.Port}}
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:{{.Port}}"]
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
-          tcpSocket:
-            port: {{.Port}}
+          exec:
+            command: ["/bin/grpc_health_probe", "-addr=:{{.Port}}"]
           initialDelaySeconds: 15
           periodSeconds: 20
         resources:
