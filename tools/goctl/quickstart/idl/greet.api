@@ -6,5 +6,5 @@ type resp {
 
 service greet {
     @handler ping
-    post /ping returns (resp)
+    get /ping returns (resp)
 }

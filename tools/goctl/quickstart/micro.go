@@ -10,16 +10,13 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const (
-	rpcEtcContent = `Name: greet.rpc
-ListenOn: 127.0.0.1:8080
-`
-	protoName = "greet.proto"
-)
+const protoName = "greet.proto"
 
 var (
 	//go:embed idl/greet.proto
 	protocContent string
+	//go:embed idl/rpc.yaml
+	rpcEtcContent string
 
 	zRPCWorkDir string
 )
