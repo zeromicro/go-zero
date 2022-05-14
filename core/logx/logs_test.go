@@ -462,7 +462,7 @@ func TestStructedLogWithDuration(t *testing.T) {
 
 	WithDuration(time.Second).Info(message)
 	var entry logEntry
-	if err := json.Unmarshal([]byte(w.builder.String()), &entry); err != nil {
+	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
 	assert.Equal(t, levelInfo, entry.Level)
@@ -515,7 +515,7 @@ func TestErrorfWithWrappedError(t *testing.T) {
 	defer writer.Store(old)
 
 	Errorf("hello %w", errors.New(message))
-	assert.True(t, strings.Contains(w.builder.String(), "hello there"))
+	assert.True(t, strings.Contains(w.String(), "hello there"))
 }
 
 func TestMustNil(t *testing.T) {
