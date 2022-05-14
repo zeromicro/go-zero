@@ -7,11 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -19,7 +19,6 @@ const (
 	dockerfileName = "Dockerfile"
 	etcDir         = "etc"
 	yamlEtx        = ".yaml"
-	cstOffset      = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
 
 // Docker describes a dockerfile
@@ -152,10 +151,9 @@ func generateDockerfile(goFile, base string, port int, version, timezone string,
 		builder.WriteString(`, "` + arg + `"`)
 	}
 
-	_, offset := time.Now().Zone()
 	t := template.Must(template.New("dockerfile").Parse(text))
 	return t.Execute(out, Docker{
-		Chinese:     offset == cstOffset,
+		Chinese:     env.InChina(),
 		GoRelPath:   projPath,
 		GoFile:      goFile,
 		ExeFile:     pathx.FileNameWithoutExt(filepath.Base(goFile)),

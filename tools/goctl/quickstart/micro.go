@@ -67,7 +67,7 @@ func (m micro) start() {
 	goModTidy(projectDir)
 	sg := service.NewServiceGroup()
 	sg.Add(serviceImpl{func() {
-		log.Debug(">> Ready to start an zRPC server...")
+		log.Debug(">> Ready to start a zRPC server...")
 		goStart(zRPCWorkDir)
 	}})
 	sg.Add(serviceImpl{func() {

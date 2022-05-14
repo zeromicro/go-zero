@@ -73,7 +73,7 @@ func (m mono) start() {
 	if !m.callRPC {
 		goModTidy(projectDir)
 	}
-	log.Debug(">> Ready to start an api server...")
-	log.Debug(">> Try to execute 'curl --request POST http://127.0.0.1:8888/ping' after service startup...")
+	log.Debug(">> Ready to start an API server...")
+	log.Debug(">> Run 'curl -X POST http://127.0.0.1:8888/ping' after service startup...")
 	goStart(apiWorkDir)
 }
