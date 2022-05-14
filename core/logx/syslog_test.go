@@ -38,7 +38,7 @@ func captureOutput(f func()) string {
 	f()
 	SetLevel(prevLevel)
 
-	return w.builder.String()
+	return w.String()
 }
 
 func getContent(jsonStr string) string {
