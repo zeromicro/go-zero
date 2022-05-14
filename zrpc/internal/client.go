@@ -131,6 +131,13 @@ func WithNonBlock() ClientOption {
 	}
 }
 
+// WithStreamClientInterceptor returns a func to customize a ClientOptions with given interceptor.
+func WithStreamClientInterceptor(interceptor grpc.StreamClientInterceptor) ClientOption {
+	return func(options *ClientOptions) {
+		options.DialOptions = append(options.DialOptions, WithStreamClientInterceptors(interceptor))
+	}
+}
+
 // WithTimeout returns a func to customize a ClientOptions with given timeout.
 func WithTimeout(timeout time.Duration) ClientOption {
 	return func(options *ClientOptions) {
