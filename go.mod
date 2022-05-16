@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero
 go 1.16
 
 require (
-	github.com/ClickHouse/clickhouse-go v1.5.4
+	github.com/ClickHouse/clickhouse-go/v2 v2.0.14
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.21.0
 	github.com/fatih/color v1.13.0
@@ -51,6 +51,5 @@ require (
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
 	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
-	google.golang.org/protobuf v1.28.0
 	k8s.io/klog/v2 v2.40.1 // indirect
 )
