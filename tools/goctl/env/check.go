@@ -83,7 +83,7 @@ command 'goctl env check --install' to install it, for details, please execute c
 				install()
 				continue
 			}
-			log.Info("[goctl-env]: do you want to install %q [y: YES, n: No]", e.name)
+			console.Info("[goctl-env]: do you want to install %q [y: YES, n: No]", e.name)
 			for {
 				var in string
 				fmt.Scanln(&in)
@@ -94,10 +94,10 @@ command 'goctl env check --install' to install it, for details, please execute c
 					brk = true
 				case strings.EqualFold(in, "n"):
 					pending = false
-					log.Info("[goctl-env]: %q installation is ignored", e.name)
+					console.Info("[goctl-env]: %q installation is ignored", e.name)
 					brk = true
 				default:
-					log.Error("[goctl-env]: invalid input, input 'y' for yes, 'n' for no")
+					console.Error("[goctl-env]: invalid input, input 'y' for yes, 'n' for no")
 				}
 				if brk {
 					break
