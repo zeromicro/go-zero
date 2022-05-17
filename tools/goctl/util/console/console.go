@@ -175,7 +175,7 @@ func println(msg interface{}) {
 	fmt.Println(msg)
 }
 
-var defaultConsole = new(colorConsole)
+var defaultConsole = &colorConsole{enable: true}
 
 func Success(format string, a ...interface{}) {
 	defaultConsole.Success(format, a...)
