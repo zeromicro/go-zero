@@ -20,7 +20,7 @@ const (
 local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])
-local fill_time = capacity/rate
+local fill_time = capacity / (rate * 1000)
 local ttl = math.floor(fill_time*2)
 local last_tokens = tonumber(redis.call("get", KEYS[1]))
 if last_tokens == nil then
@@ -35,13 +35,11 @@ end
 local delta = math.max(0, now-last_refreshed)
 local filled_tokens = math.min(capacity, last_tokens+(delta*rate))
 local allowed = filled_tokens >= requested
-local new_tokens = filled_tokens
 if allowed then
-    new_tokens = filled_tokens - requested
+    local new_tokens = filled_tokens - requested
+	redis.call("setex", KEYS[1], ttl, new_tokens)
+	redis.call("setex", KEYS[2], ttl, now)
 end
-
-redis.call("setex", KEYS[1], ttl, new_tokens)
-redis.call("setex", KEYS[2], ttl, now)
 
 return allowed`
 	tokenFormat     = "{%s}.tokens"
@@ -51,7 +49,7 @@ return allowed`
 
 // A TokenLimiter controls how frequently events are allowed to happen with in one second.
 type TokenLimiter struct {
-	rate           int
+	rate           float64
 	burst          int
 	store          *redis.Redis
 	tokenKey       string
@@ -69,7 +67,7 @@ func NewTokenLimiter(rate, burst int, store *redis.Redis, key string) *TokenLimi
 	timestampKey := fmt.Sprintf(timestampFormat, key)
 
 	return &TokenLimiter{
-		rate:          rate,
+		rate:          float64(rate) / 1000,
 		burst:         burst,
 		store:         store,
 		tokenKey:      tokenKey,
@@ -96,6 +94,7 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
+	timestamp := now.UnixNano() / int64(time.Millisecond)
 	resp, err := lim.store.Eval(
 		script,
 		[]string{
@@ -103,9 +102,9 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 			lim.timestampKey,
 		},
 		[]string{
-			strconv.Itoa(lim.rate),
+			strconv.FormatFloat(lim.rate, 'f', 10, 64),
 			strconv.Itoa(lim.burst),
-			strconv.FormatInt(now.Unix(), 10),
+			strconv.FormatInt(timestamp, 10),
 			strconv.Itoa(n),
 		})
 	// redis allowed == false
