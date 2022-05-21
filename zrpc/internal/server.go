@@ -1,9 +1,14 @@
 package internal
 
 import (
+	"time"
+
 	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
+
+const defaultConnectionIdleDuration = time.Minute * 5
 
 type (
 	// RegisterFn defines the method to register a server.
@@ -31,6 +36,9 @@ func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcS
 	return &baseRpcServer{
 		address: address,
 		metrics: rpcServerOpts.metrics,
+		options: []grpc.ServerOption{grpc.KeepaliveParams(keepalive.ServerParameters{
+			MaxConnectionIdle: defaultConnectionIdleDuration,
+		})},
 	}
 }
 
