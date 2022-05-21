@@ -298,6 +298,37 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
+func TestEngine_withTimeout(t *testing.T) {
+	logx.Disable()
+
+	tests := []struct {
+		name    string
+		timeout int64
+	}{
+		{
+			name: "not set",
+		},
+		{
+			name:    "set",
+			timeout: 1000,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			ng := newEngine(RestConf{Timeout: test.timeout})
+			svr := &http.Server{}
+			ng.withTimeout()(svr)
+
+			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*4/5, svr.ReadTimeout)
+			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
+			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*9/10, svr.WriteTimeout)
+			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
+		})
+	}
+}
+
 type mockedRouter struct{}
 
 func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
