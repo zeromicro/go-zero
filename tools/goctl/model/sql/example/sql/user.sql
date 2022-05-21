@@ -29,6 +29,5 @@ CREATE TABLE `student`
 ) DEFAULT NULL,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`type`) USING BTREE,
-  UNIQUE KEY `class_name_index` (`class`,`name`)
+  PRIMARY KEY (`type`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
