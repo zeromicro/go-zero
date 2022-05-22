@@ -69,15 +69,18 @@ func supportGoStdFlag(args []string) []string {
 			flagValue = flagExpr[assignIndex:]
 		}
 
-		f := parentCmd.Flag(flagName)
-		if f == nil {
-			continue
-		}
-		if f.Shorthand == flagName {
-			continue
+		if !isBuiltin(flagName) {
+			// The method Flag can only match the user custom flags.
+			f := parentCmd.Flag(flagName)
+			if f == nil {
+				continue
+			}
+			if f.Shorthand == flagName {
+				continue
+			}
 		}
 
-		goStyleFlag := doubleDash + f.Name
+		goStyleFlag := doubleDash + flagName
 		if assignIndex > 0 {
 			goStyleFlag += flagValue
 		}
@@ -87,8 +90,13 @@ func supportGoStdFlag(args []string) []string {
 	return copyArgs
 }
 
+func isBuiltin(name string) bool {
+	return name == "version" || name == "help"
+}
+
 func init() {
-	rootCmd.Version = fmt.Sprintf("%s %s/%s", version.BuildVersion,
+	rootCmd.Version = fmt.Sprintf(
+		"%s %s/%s", version.BuildVersion,
 		runtime.GOOS, runtime.GOARCH)
 	rootCmd.AddCommand(api.Cmd)
 	rootCmd.AddCommand(bug.Cmd)
