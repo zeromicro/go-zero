@@ -491,7 +491,6 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 }
 
 func (p *Parser) readContent(filename string) (string, error) {
-	filename = strings.ReplaceAll(filename, `"`, "")
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return "", err
