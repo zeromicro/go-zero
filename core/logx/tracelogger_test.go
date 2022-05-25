@@ -18,7 +18,11 @@ func TestTraceLog(t *testing.T) {
 	SetLevel(InfoLevel)
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -35,7 +39,11 @@ func TestTraceLog(t *testing.T) {
 func TestTraceError(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -49,7 +57,7 @@ func TestTraceError(t *testing.T) {
 	l := WithContext(context.Background())
 	l = l.WithContext(nilCtx)
 	l = l.WithContext(ctx)
-	SetLevel(InfoLevel)
+	SetLevel(ErrorLevel)
 	l.WithDuration(time.Second).Error(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
@@ -61,6 +69,7 @@ func TestTraceError(t *testing.T) {
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
+	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
@@ -69,7 +78,11 @@ func TestTraceError(t *testing.T) {
 func TestTraceInfo(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -102,7 +115,11 @@ func TestTraceInfoConsole(t *testing.T) {
 
 	w := new(mockWriter)
 	o := writer.Swap(w)
-	defer writer.Store(o)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(o)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -127,7 +144,11 @@ func TestTraceInfoConsole(t *testing.T) {
 func TestTraceSlow(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -159,7 +180,11 @@ func TestTraceSlow(t *testing.T) {
 func TestTraceWithoutContext(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	l := WithContext(context.Background())
 	SetLevel(InfoLevel)
