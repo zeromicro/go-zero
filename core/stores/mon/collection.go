@@ -3,6 +3,7 @@ package mon
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -507,13 +508,23 @@ func (c *decoratedCollection) logDuration(ctx context.Context, method string, st
 
 	content, e := json.Marshal(docs)
 	if e != nil {
-		logger.Error(e)
-	} else if err != nil {
+		var errStr string
+		if err != nil {
+			errStr = fmt.Sprintf("json marshal err:%s, fail:%s", e, err)
+		} else {
+			errStr = fmt.Sprintf("json marshal err:%s", err)
+		}
+
+		logger.Error(errStr)
+		return
+	}
+
+	if err != nil {
 		if duration > slowThreshold.Load() {
 			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		} else {
-			logger.Infof("mongo(%s) - %s - fail(%s) - %s",
+			logger.Errorf("mongo(%s) - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		}
 	} else {
