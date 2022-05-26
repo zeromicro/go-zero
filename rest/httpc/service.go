@@ -15,7 +15,7 @@ type (
 	Service interface {
 		// Do sends an HTTP request with the given arguments and returns an HTTP response.
 		Do(ctx context.Context, method, url string, data interface{}) (*http.Response, error)
-		// DoRequest sends a HTTP request to the service.
+		// DoRequest sends an HTTP request to the service.
 		DoRequest(r *http.Request) (*http.Response, error)
 	}
 

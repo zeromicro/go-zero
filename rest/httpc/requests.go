@@ -150,15 +150,17 @@ func fillPath(u *nurl.URL, val map[string]interface{}) error {
 }
 
 func request(r *http.Request, cli client) (*http.Response, error) {
-	var respHandlers []internal.ResponseHandler
-	for _, interceptor := range interceptors {
+	size := len(interceptors)
+	var respHandlers = make([]internal.ResponseHandler, size)
+	for i, interceptor := range interceptors {
 		var h internal.ResponseHandler
 		r, h = interceptor(r)
-		respHandlers = append(respHandlers, h)
+		respHandlers[i] = h
 	}
 
 	resp, err := cli.do(r)
-	for i := len(respHandlers) - 1; i >= 0; i-- {
+
+	for i := size - 1; i >= 0; i-- {
 		respHandlers[i](resp, err)
 	}
 
