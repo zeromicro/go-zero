@@ -510,9 +510,9 @@ func (c *decoratedCollection) logDuration(ctx context.Context, method string, st
 	if e != nil {
 		var errStr string
 		if err != nil {
-			errStr = fmt.Sprintf("fail(json marshal err:%s, err:%s)", e, err)
+			errStr = fmt.Sprintf("fail(json marshal err:%s, err:%s)", e.Error(), err.Error())
 		} else {
-			errStr = fmt.Sprintf("fail(json marshal err:%s)", err)
+			errStr = fmt.Sprintf("fail(json marshal err:%s)", err.Error())
 		}
 
 		logger.Error("mongo(%s) - %s - %s", c.name, method, errStr)
