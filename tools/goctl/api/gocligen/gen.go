@@ -74,10 +74,6 @@ func DoGenProject(apiFile, dir, style string) error {
 	logx.Must(genHandleResponse(dir, cfg))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 
-	//if err := backupAndSweep(apiFile); err != nil {
-	//	return err
-	//}
-
 	if err := apiformat.ApiFormatByPath(apiFile, false); err != nil {
 		return err
 	}
