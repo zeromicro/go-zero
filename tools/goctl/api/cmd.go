@@ -6,6 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gocligen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/javagen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/ktgen"
@@ -45,6 +46,12 @@ var (
 		Use:   "go",
 		Short: "Generate go files for provided api in yaml file",
 		RunE:  gogen.GoCommand,
+	}
+
+	goCliCmd = &cobra.Command{
+		Use:   "gocli",
+		Short: "Generate go files for provided client`s sdk",
+		RunE:  gocligen.GoCliCommand,
 	}
 
 	newCmd = &cobra.Command{
@@ -129,6 +136,12 @@ func init() {
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "gozero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
+	goCliCmd.Flags().StringVar(&gocligen.VarStringDir, "dir", "", "The target dir")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringAPI, "api", "", "The api file")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringHome, "home", "", "The goctl home path of "+
+		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
+		"has higher priority")
+
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
 	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
 
@@ -167,6 +180,7 @@ func init() {
 	Cmd.AddCommand(docCmd)
 	Cmd.AddCommand(formatCmd)
 	Cmd.AddCommand(goCmd)
+	Cmd.AddCommand(goCliCmd)
 	Cmd.AddCommand(javaCmd)
 	Cmd.AddCommand(ktCmd)
 	Cmd.AddCommand(newCmd)
