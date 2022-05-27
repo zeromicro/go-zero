@@ -1,11 +1,10 @@
 on:
-  release:
-    types: [ created ]
-
+  push:
+    tags:
+      - "tools/goctl/*"
 jobs:
   releases-matrix:
     name: Release goctl binary
-    if: startsWith(github.ref, 'refs/tags/tools/goctl/')
     runs-on: ubuntu-latest
     strategy:
       matrix:
