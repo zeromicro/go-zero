@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestProjectFromGoPath(t *testing.T) {
@@ -19,7 +19,7 @@ func TestProjectFromGoPath(t *testing.T) {
 	}
 	projectName := stringx.Rand()
 	dir := filepath.Join(gp, "src", projectName)
-	err := util.MkdirIfNotExist(dir)
+	err := pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return
 	}
@@ -41,7 +41,7 @@ func TestProjectFromGoPathNotInGoSrc(t *testing.T) {
 	}
 	projectName := stringx.Rand()
 	dir := filepath.Join(gp, "src", projectName)
-	err := util.MkdirIfNotExist(dir)
+	err := pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return
 	}

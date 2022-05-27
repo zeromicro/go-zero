@@ -6,13 +6,16 @@ import (
 	"sync/atomic"
 	"time"
 
-	red "github.com/go-redis/redis"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stringx"
+	red "github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 const (
-	lockCommand = `if redis.call("GET", KEYS[1]) == ARGV[1] then
+	randomLen       = 16
+	tolerance       = 500 // milliseconds
+	millisPerSecond = 1000
+	lockCommand     = `if redis.call("GET", KEYS[1]) == ARGV[1] then
     redis.call("SET", KEYS[1], ARGV[1], "PX", ARGV[2])
     return "OK"
 else
@@ -23,9 +26,6 @@ end`
 else
     return 0
 end`
-	randomLen       = 16
-	tolerance       = 500 // milliseconds
-	millisPerSecond = 1000
 )
 
 // A RedisLock is a redis lock.
@@ -88,7 +88,7 @@ func (rl *RedisLock) Release() (bool, error) {
 	return reply == 1, nil
 }
 
-// SetExpire sets the expire.
+// SetExpire sets the expiration.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
 }

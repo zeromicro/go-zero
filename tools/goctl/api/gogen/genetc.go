@@ -1,22 +1,22 @@
 package gogen
 
 import (
+	_ "embed"
 	"fmt"
 	"strconv"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
 const (
 	defaultPort = 8888
 	etcDir      = "etc"
-	etcTemplate = `Name: {{.serviceName}}
-Host: {{.host}}
-Port: {{.port}}
-`
 )
+
+//go:embed etc.tpl
+var etcTemplate string
 
 func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)

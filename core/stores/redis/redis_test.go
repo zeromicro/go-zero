@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"io"
@@ -9,10 +10,37 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis"
+	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestRedis_Decr(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decr("a")
+		assert.NotNil(t, err)
+		val, err := client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-1), val)
+		val, err = client.Decr("a")
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+	})
+}
+
+func TestRedis_DecrBy(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).Decrby("a", 2)
+		assert.NotNil(t, err)
+		val, err := client.Decrby("a", 2)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-2), val)
+		val, err = client.Decrby("a", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, int64(-5), val)
+	})
+}
 
 func TestRedis_Exists(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
@@ -295,6 +323,11 @@ func TestRedis_List(t *testing.T) {
 		val, err = client.Llen("key")
 		assert.Nil(t, err)
 		assert.Equal(t, 4, val)
+		_, err = New(client.Addr, badType()).Lindex("key", 1)
+		assert.NotNil(t, err)
+		value, err := client.Lindex("key", 0)
+		assert.Nil(t, err)
+		assert.Equal(t, "value2", value)
 		vals, err := client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)
@@ -330,6 +363,11 @@ func TestRedis_List(t *testing.T) {
 		vals, err = client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
+		err = client.Ltrim("key", 0, 1)
+		assert.Nil(t, err)
+		vals, err = client.Lrange("key", 0, 10)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []string{"value2", "value3"}, vals)
 	})
 }
 
@@ -349,30 +387,33 @@ func TestRedis_Mget(t *testing.T) {
 
 func TestRedis_SetBit(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := New(client.Addr, badType()).SetBit("key", 1, 1)
+		_, err := New(client.Addr, badType()).SetBit("key", 1, 1)
 		assert.NotNil(t, err)
-		err = client.SetBit("key", 1, 1)
+		val, err := client.SetBit("key", 1, 1)
 		assert.Nil(t, err)
+		assert.Equal(t, 0, val)
 	})
 }
 
 func TestRedis_GetBit(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := client.SetBit("key", 2, 1)
+		val, err := client.SetBit("key", 2, 1)
 		assert.Nil(t, err)
+		assert.Equal(t, 0, val)
 		_, err = New(client.Addr, badType()).GetBit("key", 2)
 		assert.NotNil(t, err)
-		val, err := client.GetBit("key", 2)
+		v, err := client.GetBit("key", 2)
 		assert.Nil(t, err)
-		assert.Equal(t, 1, val)
+		assert.Equal(t, 1, v)
 	})
 }
 
 func TestRedis_BitCount(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		for i := 0; i < 11; i++ {
-			err := client.SetBit("key", int64(i), 1)
+			val, err := client.SetBit("key", int64(i), 1)
 			assert.Nil(t, err)
+			assert.Equal(t, 0, val)
 		}
 
 		_, err := New(client.Addr, badType()).BitCount("key", 0, -1)
@@ -663,6 +704,28 @@ func TestRedis_Set(t *testing.T) {
 	})
 }
 
+func TestRedis_GetSet(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := New(client.Addr, badType()).GetSet("hello", "world")
+		assert.NotNil(t, err)
+		val, err := client.GetSet("hello", "world")
+		assert.Nil(t, err)
+		assert.Equal(t, "", val)
+		val, err = client.Get("hello")
+		assert.Nil(t, err)
+		assert.Equal(t, "world", val)
+		val, err = client.GetSet("hello", "newworld")
+		assert.Nil(t, err)
+		assert.Equal(t, "world", val)
+		val, err = client.Get("hello")
+		assert.Nil(t, err)
+		assert.Equal(t, "newworld", val)
+		ret, err := client.Del("hello")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, ret)
+	})
+}
+
 func TestRedis_SetGetDel(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := New(client.Addr, badType()).Set("hello", "world")
@@ -927,13 +990,14 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.NotNil(t, err)
 		client.Zadd("second", 2, "aa")
 		client.Zadd("third", 3, "bbb")
-		val, err = client.Zunionstore("union", ZStore{
+		val, err = client.Zunionstore("union", &ZStore{
+			Keys:      []string{"second", "third"},
 			Weights:   []float64{1, 2},
 			Aggregate: "SUM",
-		}, "second", "third")
+		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).Zunionstore("union", ZStore{})
+		_, err = New(client.Addr, badType()).Zunionstore("union", &ZStore{})
 		assert.NotNil(t, err)
 		vals, err = client.Zrange("union", 0, 10000)
 		assert.Nil(t, err)
@@ -951,9 +1015,9 @@ func TestRedis_Pipelined(t *testing.T) {
 		}))
 		err := client.Pipelined(
 			func(pipe Pipeliner) error {
-				pipe.Incr("pipelined_counter")
-				pipe.Expire("pipelined_counter", time.Hour)
-				pipe.ZAdd("zadd", Z{Score: 12, Member: "zadd"})
+				pipe.Incr(context.Background(), "pipelined_counter")
+				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
+				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)
@@ -1099,6 +1163,8 @@ func TestRedis_WithPass(t *testing.T) {
 }
 
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
+	logx.Disable()
+
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer func() {
@@ -1117,6 +1183,8 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 }
 
 func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
+	logx.Disable()
+
 	s, err := miniredis.RunTLS(&tls.Config{
 		Certificates:       make([]tls.Certificate, 1),
 		InsecureSkipVerify: true,
@@ -1146,6 +1214,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(timeout time.Duration, keys ...string) *red.StringSliceCmd {
-	return red.NewStringSliceCmd("foo", "bar")
+func (n mockedNode) BLPop(ctx context.Context, timeout time.Duration, keys ...string) *red.StringSliceCmd {
+	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

@@ -13,11 +13,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const pluginArg = "_plugin"
@@ -30,19 +30,30 @@ type Plugin struct {
 	Dir         string
 }
 
+var (
+	// VarStringPlugin describes a plugin.
+	VarStringPlugin string
+	// VarStringDir describes a directory.
+	VarStringDir string
+	// VarStringAPI describes an API file.
+	VarStringAPI string
+	// VarStringStyle describes a style.
+	VarStringStyle string
+)
+
 // PluginCommand is the entry of goctl api plugin
-func PluginCommand(c *cli.Context) error {
+func PluginCommand(_ *cobra.Command, _ []string) error {
 	ex, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
 
-	plugin := c.String("plugin")
+	plugin := VarStringPlugin
 	if len(plugin) == 0 {
 		return errors.New("missing plugin")
 	}
 
-	transferData, err := prepareArgs(c)
+	transferData, err := prepareArgs()
 	if err != nil {
 		return err
 	}
@@ -69,11 +80,11 @@ func PluginCommand(c *cli.Context) error {
 	return nil
 }
 
-func prepareArgs(c *cli.Context) ([]byte, error) {
-	apiPath := c.String("api")
+func prepareArgs() ([]byte, error) {
+	apiPath := VarStringAPI
 
 	var transferData Plugin
-	if len(apiPath) > 0 && util.FileExists(apiPath) {
+	if len(apiPath) > 0 && pathx.FileExists(apiPath) {
 		api, err := parser.Parse(apiPath)
 		if err != nil {
 			return nil, err
@@ -88,13 +99,13 @@ func prepareArgs(c *cli.Context) ([]byte, error) {
 	}
 
 	transferData.ApiFilePath = absApiFilePath
-	dirAbs, err := filepath.Abs(c.String("dir"))
+	dirAbs, err := filepath.Abs(VarStringDir)
 	if err != nil {
 		return nil, err
 	}
 
 	transferData.Dir = dirAbs
-	transferData.Style = c.String("style")
+	transferData.Style = VarStringStyle
 	data, err := json.Marshal(transferData)
 	if err != nil {
 		return nil, err

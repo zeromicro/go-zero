@@ -7,11 +7,11 @@ import (
 	"path"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/rest/handler"
-	"github.com/tal-tech/go-zero/rest/httpx"
-	"github.com/tal-tech/go-zero/rest/internal/cors"
-	"github.com/tal-tech/go-zero/rest/router"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/handler"
+	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal/cors"
+	"github.com/zeromicro/go-zero/rest/router"
 )
 
 type (
@@ -49,6 +49,7 @@ func NewServer(c RestConf, opts ...RunOption) (*Server, error) {
 		router: router.NewRouter(),
 	}
 
+	opts = append([]RunOption{WithNotFoundHandler(nil)}, opts...)
 	for _, opt := range opts {
 		opt(server)
 	}
@@ -136,6 +137,13 @@ func WithJwtTransition(secret, prevSecret string) RouteOption {
 	}
 }
 
+// WithMaxBytes returns a RouteOption to set maxBytes with the given value.
+func WithMaxBytes(maxBytes int64) RouteOption {
+	return func(r *featuredRoutes) {
+		r.maxBytes = maxBytes
+	}
+}
+
 // WithMiddlewares adds given middlewares to given routes.
 func WithMiddlewares(ms []Middleware, rs ...Route) []Route {
 	for i := len(ms) - 1; i >= 0; i-- {
@@ -163,7 +171,8 @@ func WithMiddleware(middleware Middleware, rs ...Route) []Route {
 // WithNotFoundHandler returns a RunOption with not found handler set to given handler.
 func WithNotFoundHandler(handler http.Handler) RunOption {
 	return func(server *Server) {
-		server.router.SetNotFoundHandler(handler)
+		notFoundHandler := server.ngin.notFoundHandler(handler)
+		server.router.SetNotFoundHandler(notFoundHandler)
 	}
 }
 
@@ -223,22 +232,22 @@ func WithTimeout(timeout time.Duration) RouteOption {
 
 // WithTLSConfig returns a RunOption that with given tls config.
 func WithTLSConfig(cfg *tls.Config) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setTlsConfig(cfg)
+	return func(svr *Server) {
+		svr.ngin.setTlsConfig(cfg)
 	}
 }
 
 // WithUnauthorizedCallback returns a RunOption that with given unauthorized callback set.
 func WithUnauthorizedCallback(callback handler.UnauthorizedCallback) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setUnauthorizedCallback(callback)
+	return func(svr *Server) {
+		svr.ngin.setUnauthorizedCallback(callback)
 	}
 }
 
 // WithUnsignedCallback returns a RunOption that with given unsigned callback set.
 func WithUnsignedCallback(callback handler.UnsignedCallback) RunOption {
-	return func(srv *Server) {
-		srv.ngin.setUnsignedCallback(callback)
+	return func(svr *Server) {
+		svr.ngin.setUnsignedCallback(callback)
 	}
 }
 

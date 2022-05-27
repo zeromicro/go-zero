@@ -1,37 +1,21 @@
 package gogen
 
 import (
+	_ "embed"
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const (
-	contextFilename = "service_context"
-	contextTemplate = `package svc
+const contextFilename = "service_context"
 
-import (
-	{{.configImport}}
-)
-
-type ServiceContext struct {
-	Config {{.config}}
-	{{.middleware}}
-}
-
-func NewServiceContext(c {{.config}}) *ServiceContext {
-	return &ServiceContext{
-		Config: c, 
-		{{.middlewareAssignment}}
-	}
-}
-`
-)
+//go:embed svc.tpl
+var contextTemplate string
 
 func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
@@ -50,9 +34,9 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
 	}
 
-	configImport := "\"" + ctlutil.JoinPackages(rootPkg, configDir) + "\""
+	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""
 	if len(middlewareStr) > 0 {
-		configImport += "\n\t\"" + ctlutil.JoinPackages(rootPkg, middlewareDir) + "\""
+		configImport += "\n\t\"" + pathx.JoinPackages(rootPkg, middlewareDir) + "\""
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 

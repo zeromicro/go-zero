@@ -15,11 +15,11 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/mongo"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/mongo"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 )
 
 const dummyCount = 10
@@ -34,7 +34,7 @@ func TestCollection_Count(t *testing.T) {
 	assert.Nil(t, err)
 	defer clean()
 
-	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
+	cach := cache.NewNode(r, singleFlight, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 	val, err := c.Count("any")
 	assert.Nil(t, err)
@@ -98,7 +98,7 @@ func TestStat(t *testing.T) {
 	assert.Nil(t, err)
 	defer clean()
 
-	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
+	cach := cache.NewNode(r, singleFlight, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	for i := 0; i < 10; i++ {
@@ -121,7 +121,7 @@ func TestStatCacheFails(t *testing.T) {
 	defer log.SetOutput(os.Stdout)
 
 	r := redis.New("localhost:59999")
-	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
+	cach := cache.NewNode(r, singleFlight, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach)
 
 	for i := 0; i < 20; i++ {
@@ -142,7 +142,7 @@ func TestStatDbFails(t *testing.T) {
 	assert.Nil(t, err)
 	defer clean()
 
-	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
+	cach := cache.NewNode(r, singleFlight, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	for i := 0; i < 20; i++ {
@@ -164,7 +164,7 @@ func TestStatFromMemory(t *testing.T) {
 	assert.Nil(t, err)
 	defer clean()
 
-	cach := cache.NewNode(r, sharedCalls, stats, mgo.ErrNotFound)
+	cach := cache.NewNode(r, singleFlight, stats, mgo.ErrNotFound)
 	c := newCollection(dummyConn{}, cach).(*cachedCollection)
 
 	var all sync.WaitGroup

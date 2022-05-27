@@ -7,20 +7,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestGenTemplates(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
 }
 
 func TestRevertTemplate(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
-	fp, err := util.GetTemplateDir(category)
+	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {
 		return
 	}
@@ -59,9 +59,9 @@ func TestRevertTemplate(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
-	fp, err := util.GetTemplateDir(category)
+	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {
 		return
 	}
@@ -78,9 +78,9 @@ func TestClean(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
-	fp, err := util.GetTemplateDir(category)
+	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {
 		return
 	}

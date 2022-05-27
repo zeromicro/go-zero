@@ -1,33 +1,23 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const svcTemplate = `package svc
-
-import {{.imports}}
-
-type ServiceContext struct {
-	Config config.Config
-}
-
-func NewServiceContext(c config.Config) *ServiceContext {
-	return &ServiceContext{
-		Config:c,
-	}
-}
-`
+//go:embed svc.tpl
+var svcTemplate string
 
 // GenSvc generates the servicecontext.go file, which is the resource dependency of a service,
 // such as rpc dependency, model dependency, etc.
-func (g *DefaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetSvc()
 	svcFilename, err := format.FileNamingFormat(cfg.NamingFormat, "service_context")
 	if err != nil {
@@ -35,7 +25,7 @@ func (g *DefaultGenerator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 	}
 
 	fileName := filepath.Join(dir.Filename, svcFilename+".go")
-	text, err := util.LoadTemplate(category, svcTemplateFile, svcTemplate)
+	text, err := pathx.LoadTemplate(category, svcTemplateFile, svcTemplate)
 	if err != nil {
 		return err
 	}

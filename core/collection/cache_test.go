@@ -18,7 +18,7 @@ func TestCacheSet(t *testing.T) {
 	assert.Nil(t, err)
 
 	cache.Set("first", "first element")
-	cache.Set("second", "second element")
+	cache.SetWithExpire("second", "second element", time.Second*3)
 
 	value, ok := cache.Get("first")
 	assert.True(t, ok)

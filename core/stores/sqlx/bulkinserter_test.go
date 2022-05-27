@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"strconv"
@@ -8,7 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type mockedConn struct {
@@ -17,10 +18,38 @@ type mockedConn struct {
 	execErr error
 }
 
-func (c *mockedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (c *mockedConn) ExecCtx(_ context.Context, query string, args ...interface{}) (sql.Result, error) {
 	c.query = query
 	c.args = args
 	return nil, c.execErr
+}
+
+func (c *mockedConn) PrepareCtx(ctx context.Context, query string) (StmtSession, error) {
+	panic("implement me")
+}
+
+func (c *mockedConn) QueryRowCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	panic("implement me")
+}
+
+func (c *mockedConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	panic("implement me")
+}
+
+func (c *mockedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	panic("implement me")
+}
+
+func (c *mockedConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+	panic("implement me")
+}
+
+func (c *mockedConn) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) error {
+	panic("should not called")
+}
+
+func (c *mockedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+	return c.ExecCtx(context.Background(), query, args...)
 }
 
 func (c *mockedConn) Prepare(query string) (StmtSession, error) {

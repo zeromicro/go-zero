@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/discov"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/service"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/serverinterceptors"
+	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/service"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc/internal"
+	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
 )
 
@@ -36,14 +36,14 @@ func TestServer_setupInterceptors(t *testing.T) {
 
 func TestServer(t *testing.T) {
 	SetServerSlowThreshold(time.Second)
-	srv := MustNewServer(RpcServerConf{
+	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				ServiceName: "foo",
 				Mode:        "console",
 			},
 		},
-		ListenOn:      ":8080",
+		ListenOn:      "localhost:8080",
 		Etcd:          discov.EtcdConf{},
 		Auth:          false,
 		Redis:         redis.RedisKeyConf{},
@@ -52,11 +52,11 @@ func TestServer(t *testing.T) {
 		CpuThreshold:  0,
 	}, func(server *grpc.Server) {
 	})
-	srv.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	srv.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	srv.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
-	go srv.Start()
-	srv.Stop()
+	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	go svr.Start()
+	svr.Stop()
 }
 
 func TestServerError(t *testing.T) {
@@ -67,7 +67,7 @@ func TestServerError(t *testing.T) {
 				Mode:        "console",
 			},
 		},
-		ListenOn: ":8080",
+		ListenOn: "localhost:8080",
 		Etcd: discov.EtcdConf{
 			Hosts: []string{"localhost"},
 		},
@@ -79,14 +79,14 @@ func TestServerError(t *testing.T) {
 }
 
 func TestServer_HasEtcd(t *testing.T) {
-	srv := MustNewServer(RpcServerConf{
+	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
 				ServiceName: "foo",
 				Mode:        "console",
 			},
 		},
-		ListenOn: ":8080",
+		ListenOn: "localhost:8080",
 		Etcd: discov.EtcdConf{
 			Hosts: []string{"notexist"},
 			Key:   "any",
@@ -94,11 +94,26 @@ func TestServer_HasEtcd(t *testing.T) {
 		Redis: redis.RedisKeyConf{},
 	}, func(server *grpc.Server) {
 	})
-	srv.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	srv.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	srv.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
-	go srv.Start()
-	srv.Stop()
+	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	go svr.Start()
+	svr.Stop()
+}
+
+func TestServer_StartFailed(t *testing.T) {
+	svr := MustNewServer(RpcServerConf{
+		ServiceConf: service.ServiceConf{
+			Log: logx.LogConf{
+				ServiceName: "foo",
+				Mode:        "console",
+			},
+		},
+		ListenOn: "localhost:aaa",
+	}, func(server *grpc.Server) {
+	})
+
+	assert.Panics(t, svr.Start)
 }
 
 type mockedServer struct {

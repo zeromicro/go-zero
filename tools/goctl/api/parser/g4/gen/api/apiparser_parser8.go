@@ -41,7 +41,7 @@ type BodyContext struct {
 }
 
 func NewEmptyBodyContext() *BodyContext {
-	var p = new(BodyContext)
+	p := new(BodyContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_body
 	return p
@@ -50,7 +50,7 @@ func NewEmptyBodyContext() *BodyContext {
 func (*BodyContext) IsBodyContext() {}
 
 func NewBodyContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *BodyContext {
-	var p = new(BodyContext)
+	p := new(BodyContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -115,27 +115,26 @@ func (p *ApiParserParser) Body() (localctx IBodyContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(302)
+		p.SetState(299)
 
-		var _m = p.Match(ApiParserParserT__1)
+		_m := p.Match(ApiParserParserT__1)
 
 		localctx.(*BodyContext).lp = _m
 	}
-	p.SetState(304)
+	p.SetState(301)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserID {
 		{
-			p.SetState(303)
+			p.SetState(300)
 			p.Match(ApiParserParserID)
 		}
-
 	}
 	{
-		p.SetState(306)
+		p.SetState(303)
 
-		var _m = p.Match(ApiParserParserT__2)
+		_m := p.Match(ApiParserParserT__2)
 
 		localctx.(*BodyContext).rp = _m
 	}
@@ -150,11 +149,17 @@ type IReplybodyContext interface {
 	// GetParser returns the parser.
 	GetParser() antlr.Parser
 
+	// GetReturnToken returns the returnToken token.
+	GetReturnToken() antlr.Token
+
 	// GetLp returns the lp token.
 	GetLp() antlr.Token
 
 	// GetRp returns the rp token.
 	GetRp() antlr.Token
+
+	// SetReturnToken sets the returnToken token.
+	SetReturnToken(antlr.Token)
 
 	// SetLp sets the lp token.
 	SetLp(antlr.Token)
@@ -168,13 +173,14 @@ type IReplybodyContext interface {
 
 type ReplybodyContext struct {
 	*antlr.BaseParserRuleContext
-	parser antlr.Parser
-	lp     antlr.Token
-	rp     antlr.Token
+	parser      antlr.Parser
+	returnToken antlr.Token
+	lp          antlr.Token
+	rp          antlr.Token
 }
 
 func NewEmptyReplybodyContext() *ReplybodyContext {
-	var p = new(ReplybodyContext)
+	p := new(ReplybodyContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_replybody
 	return p
@@ -183,7 +189,7 @@ func NewEmptyReplybodyContext() *ReplybodyContext {
 func (*ReplybodyContext) IsReplybodyContext() {}
 
 func NewReplybodyContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ReplybodyContext {
-	var p = new(ReplybodyContext)
+	p := new(ReplybodyContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -195,16 +201,20 @@ func NewReplybodyContext(parser antlr.Parser, parent antlr.ParserRuleContext, in
 
 func (s *ReplybodyContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *ReplybodyContext) GetReturnToken() antlr.Token { return s.returnToken }
+
 func (s *ReplybodyContext) GetLp() antlr.Token { return s.lp }
 
 func (s *ReplybodyContext) GetRp() antlr.Token { return s.rp }
+
+func (s *ReplybodyContext) SetReturnToken(v antlr.Token) { s.returnToken = v }
 
 func (s *ReplybodyContext) SetLp(v antlr.Token) { s.lp = v }
 
 func (s *ReplybodyContext) SetRp(v antlr.Token) { s.rp = v }
 
 func (s *ReplybodyContext) DataType() IDataTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -254,27 +264,33 @@ func (p *ApiParserParser) Replybody() (localctx IReplybodyContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(308)
+		p.SetState(305)
 
-		var _m = p.Match(ApiParserParserT__1)
+		_m := p.Match(ApiParserParserT__9)
+
+		localctx.(*ReplybodyContext).returnToken = _m
+	}
+	{
+		p.SetState(306)
+
+		_m := p.Match(ApiParserParserT__1)
 
 		localctx.(*ReplybodyContext).lp = _m
 	}
-	p.SetState(310)
+	p.SetState(308)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if ((_la)&-(0x1f+1)) == 0 && ((1<<uint(_la))&((1<<ApiParserParserT__5)|(1<<ApiParserParserT__6)|(1<<ApiParserParserT__7)|(1<<ApiParserParserINTERFACE)|(1<<ApiParserParserID))) != 0 {
 		{
-			p.SetState(309)
+			p.SetState(307)
 			p.DataType()
 		}
-
 	}
 	{
-		p.SetState(312)
+		p.SetState(310)
 
-		var _m = p.Match(ApiParserParserT__2)
+		_m := p.Match(ApiParserParserT__2)
 
 		localctx.(*ReplybodyContext).rp = _m
 	}
@@ -313,7 +329,7 @@ type KvLitContext struct {
 }
 
 func NewEmptyKvLitContext() *KvLitContext {
-	var p = new(KvLitContext)
+	p := new(KvLitContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_kvLit
 	return p
@@ -322,7 +338,7 @@ func NewEmptyKvLitContext() *KvLitContext {
 func (*KvLitContext) IsKvLitContext() {}
 
 func NewKvLitContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *KvLitContext {
-	var p = new(KvLitContext)
+	p := new(KvLitContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -390,17 +406,17 @@ func (p *ApiParserParser) KvLit() (localctx IKvLitContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(314)
+		p.SetState(312)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*KvLitContext).key = _m
 	}
 	checkKeyValue(p)
 	{
-		p.SetState(316)
+		p.SetState(314)
 
-		var _m = p.Match(ApiParserParserLINE_VALUE)
+		_m := p.Match(ApiParserParserLINE_VALUE)
 
 		localctx.(*KvLitContext).value = _m
 	}
@@ -425,7 +441,7 @@ type ServiceNameContext struct {
 }
 
 func NewEmptyServiceNameContext() *ServiceNameContext {
-	var p = new(ServiceNameContext)
+	p := new(ServiceNameContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_serviceName
 	return p
@@ -434,7 +450,7 @@ func NewEmptyServiceNameContext() *ServiceNameContext {
 func (*ServiceNameContext) IsServiceNameContext() {}
 
 func NewServiceNameContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ServiceNameContext {
-	var p = new(ServiceNameContext)
+	p := new(ServiceNameContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -494,27 +510,26 @@ func (p *ApiParserParser) ServiceName() (localctx IServiceNameContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(322)
+	p.SetState(320)
 	p.GetErrorHandler().Sync(p)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
-			p.SetState(318)
+			p.SetState(316)
 			p.Match(ApiParserParserID)
 		}
-		p.SetState(320)
+		p.SetState(318)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 
-		if _la == ApiParserParserT__9 {
+		if _la == ApiParserParserT__10 {
 			{
-				p.SetState(319)
-				p.Match(ApiParserParserT__9)
+				p.SetState(317)
+				p.Match(ApiParserParserT__10)
 			}
-
 		}
 
-		p.SetState(324)
+		p.SetState(322)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 	}
@@ -539,7 +554,7 @@ type PathContext struct {
 }
 
 func NewEmptyPathContext() *PathContext {
-	var p = new(PathContext)
+	p := new(PathContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_path
 	return p
@@ -548,7 +563,7 @@ func NewEmptyPathContext() *PathContext {
 func (*PathContext) IsPathContext() {}
 
 func NewPathContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *PathContext {
-	var p = new(PathContext)
+	p := new(PathContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -607,69 +622,69 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 		}
 	}()
 
-	p.SetState(346)
+	p.SetState(344)
 	p.GetErrorHandler().Sync(p)
-	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 39, p.GetParserRuleContext()) {
+	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 38, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
-		p.SetState(341)
+		p.SetState(339)
 		p.GetErrorHandler().Sync(p)
 
-		for ok := true; ok; ok = _la == ApiParserParserT__10 || _la == ApiParserParserT__11 {
-			p.SetState(341)
+		for ok := true; ok; ok = _la == ApiParserParserT__11 || _la == ApiParserParserT__12 {
+			p.SetState(339)
 			p.GetErrorHandler().Sync(p)
 
 			switch p.GetTokenStream().LA(1) {
-			case ApiParserParserT__10:
-				{
-					p.SetState(326)
-					p.Match(ApiParserParserT__10)
-				}
-
-				{
-					p.SetState(327)
-					p.Match(ApiParserParserID)
-				}
-				p.SetState(332)
-				p.GetErrorHandler().Sync(p)
-				_la = p.GetTokenStream().LA(1)
-
-				for _la == ApiParserParserT__9 {
-					{
-						p.SetState(328)
-						p.Match(ApiParserParserT__9)
-					}
-					{
-						p.SetState(329)
-						p.Match(ApiParserParserID)
-					}
-
-					p.SetState(334)
-					p.GetErrorHandler().Sync(p)
-					_la = p.GetTokenStream().LA(1)
-				}
-
 			case ApiParserParserT__11:
 				{
-					p.SetState(335)
+					p.SetState(324)
 					p.Match(ApiParserParserT__11)
 				}
 
 				{
-					p.SetState(336)
+					p.SetState(325)
 					p.Match(ApiParserParserID)
 				}
-				p.SetState(339)
+				p.SetState(330)
 				p.GetErrorHandler().Sync(p)
 				_la = p.GetTokenStream().LA(1)
 
-				if _la == ApiParserParserT__9 {
+				for _la == ApiParserParserT__10 {
 					{
-						p.SetState(337)
-						p.Match(ApiParserParserT__9)
+						p.SetState(326)
+						p.Match(ApiParserParserT__10)
 					}
 					{
-						p.SetState(338)
+						p.SetState(327)
+						p.Match(ApiParserParserID)
+					}
+
+					p.SetState(332)
+					p.GetErrorHandler().Sync(p)
+					_la = p.GetTokenStream().LA(1)
+				}
+
+			case ApiParserParserT__12:
+				{
+					p.SetState(333)
+					p.Match(ApiParserParserT__12)
+				}
+
+				{
+					p.SetState(334)
+					p.Match(ApiParserParserID)
+				}
+				p.SetState(337)
+				p.GetErrorHandler().Sync(p)
+				_la = p.GetTokenStream().LA(1)
+
+				if _la == ApiParserParserT__10 {
+					{
+						p.SetState(335)
+						p.Match(ApiParserParserT__10)
+					}
+					{
+						p.SetState(336)
 						p.Match(ApiParserParserID)
 					}
 
@@ -679,7 +694,7 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 				panic(antlr.NewNoViableAltException(p, nil, nil, nil, nil, nil))
 			}
 
-			p.SetState(343)
+			p.SetState(341)
 			p.GetErrorHandler().Sync(p)
 			_la = p.GetTokenStream().LA(1)
 		}
@@ -687,8 +702,8 @@ func (p *ApiParserParser) Path() (localctx IPathContext) {
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(345)
-			p.Match(ApiParserParserT__10)
+			p.SetState(343)
+			p.Match(ApiParserParserT__11)
 		}
 
 	}

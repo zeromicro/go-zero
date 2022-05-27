@@ -8,7 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/rest/pathvar"
+	"github.com/zeromicro/go-zero/rest/internal/header"
+	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
 func TestParseForm(t *testing.T) {
@@ -196,18 +197,32 @@ Content-Disposition: form-data; name="age"
 }
 
 func TestParseJsonBody(t *testing.T) {
-	var v struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}
+	t.Run("has body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
 
-	body := `{"name":"kevin", "age": 18}`
-	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
-	r.Header.Set(ContentType, ApplicationJson)
+		body := `{"name":"kevin", "age": 18}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
 
-	assert.Nil(t, Parse(r, &v))
-	assert.Equal(t, "kevin", v.Name)
-	assert.Equal(t, 18, v.Age)
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, "kevin", v.Name)
+		assert.Equal(t, 18, v.Age)
+	})
+
+	t.Run("hasn't body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name,optional"`
+			Age  int    `json:"age,optional"`
+		}
+
+		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		assert.Nil(t, Parse(r, &v))
+		assert.Equal(t, "", v.Name)
+		assert.Equal(t, 0, v.Age)
+	})
 }
 
 func TestParseRequired(t *testing.T) {
@@ -253,7 +268,7 @@ func TestParseHeaders(t *testing.T) {
 	request.Header.Add("addrs", "addr2")
 	request.Header.Add("X-Forwarded-For", "10.0.10.11")
 	request.Header.Add("x-real-ip", "10.0.11.10")
-	request.Header.Add("Accept", "application/json")
+	request.Header.Add("Accept", header.JsonContentType)
 	err = ParseHeaders(request, &v)
 	if err != nil {
 		t.Fatal(err)
@@ -263,7 +278,7 @@ func TestParseHeaders(t *testing.T) {
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
 	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
 	assert.Equal(t, "10.0.11.10", v.XRealIP)
-	assert.Equal(t, "application/json", v.Accept)
+	assert.Equal(t, header.JsonContentType, v.Accept)
 }
 
 func TestParseHeaders_Error(t *testing.T) {

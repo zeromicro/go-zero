@@ -6,14 +6,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/converter"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/model"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/util"
-	su "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/console"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
 	"github.com/zeromicro/ddl-parser/parser"
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 const timeImport = "time.Time"
@@ -36,6 +35,7 @@ type (
 
 	// Field describes a table field
 	Field struct {
+		NameOriginal    string
 		Name            stringx.String
 		DataType        string
 		Comment         string
@@ -47,30 +47,41 @@ type (
 	KeyType int
 )
 
+func parseNameOriginal(ts []*parser.Table) (nameOriginals [][]string) {
+	var columns []string
+
+	for _, t := range ts {
+		columns = []string{}
+		for _, c := range t.Columns {
+			columns = append(columns, c.Name)
+		}
+		nameOriginals = append(nameOriginals, columns)
+	}
+	return
+}
+
 // Parse parses ddl into golang structure
 func Parse(filename, database string) ([]*Table, error) {
 	p := parser.NewParser()
-	ts, err := p.From(filename)
+	tables, err := p.From(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	tables := GetSafeTables(ts)
+	nameOriginals := parseNameOriginal(tables)
 	indexNameGen := func(column ...string) string {
 		return strings.Join(column, "_")
 	}
 
 	prefix := filepath.Base(filename)
 	var list []*Table
-	for _, e := range tables {
-		columns := e.Columns
-
+	for indexTable, e := range tables {
 		var (
+			primaryColumn    string
 			primaryColumnSet = collection.NewSet()
-
-			primaryColumn string
-			uniqueKeyMap  = make(map[string][]string)
-			normalKeyMap  = make(map[string][]string)
+			uniqueKeyMap     = make(map[string][]string)
+			normalKeyMap     = make(map[string][]string)
+			columns          = e.Columns
 		)
 
 		for _, column := range columns {
@@ -120,9 +131,10 @@ func Parse(filename, database string) ([]*Table, error) {
 
 		var fields []*Field
 		// sort
-		for _, c := range columns {
+		for indexColumn, c := range columns {
 			field, ok := fieldM[c.Name]
 			if ok {
+				field.NameOriginal = nameOriginals[indexTable][indexColumn]
 				fields = append(fields, field)
 			}
 		}
@@ -343,6 +355,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 		}
 
 		field := &Field{
+			NameOriginal:    each.Name,
 			Name:            stringx.From(each.Name),
 			DataType:        dt,
 			Comment:         each.Comment,
@@ -352,34 +365,4 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 		fieldM[each.Name] = field
 	}
 	return fieldM, nil
-}
-
-func GetSafeTables(tables []*parser.Table) []*parser.Table {
-	var list []*parser.Table
-	for _, t := range tables {
-		table := GetSafeTable(t)
-		list = append(list, table)
-	}
-
-	return list
-}
-
-func GetSafeTable(table *parser.Table) *parser.Table {
-	table.Name = su.EscapeGolangKeyword(table.Name)
-	for _, c := range table.Columns {
-		c.Name = su.EscapeGolangKeyword(c.Name)
-	}
-
-	for _, e := range table.Constraints {
-		var uniqueKeys, primaryKeys []string
-		for _, u := range e.ColumnUniqueKey {
-			uniqueKeys = append(uniqueKeys, su.EscapeGolangKeyword(u))
-		}
-		for _, p := range e.ColumnPrimaryKey {
-			primaryKeys = append(primaryKeys, su.EscapeGolangKeyword(p))
-		}
-		e.ColumnUniqueKey = uniqueKeys
-		e.ColumnPrimaryKey = primaryKeys
-	}
-	return table
 }

@@ -2,14 +2,14 @@ package errorx
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 )
 
-var errorFormat = `goctl: generation error: %+v
-goctl version: %s
+var errorFormat = `goctl error: %+v
+goctl env:
+%s
 %s`
 
 // GoctlError represents a goctl error.
@@ -20,8 +20,7 @@ type GoctlError struct {
 
 func (e *GoctlError) Error() string {
 	detail := wrapMessage(e.message...)
-	v := fmt.Sprintf("%s %s/%s", version.BuildVersion, runtime.GOOS, runtime.GOARCH)
-	return fmt.Sprintf(errorFormat, e.err, v, detail)
+	return fmt.Sprintf(errorFormat, e.err, env.Print(), detail)
 }
 
 // Wrap wraps an error with goctl version and message.

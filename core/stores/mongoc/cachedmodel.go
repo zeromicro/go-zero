@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/globalsign/mgo"
-	"github.com/tal-tech/go-zero/core/stores/cache"
-	"github.com/tal-tech/go-zero/core/stores/mongo"
-	"github.com/tal-tech/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stores/cache"
+	"github.com/zeromicro/go-zero/core/stores/mongo"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 // A Model is a mongo model that built with cache capability.
@@ -36,20 +36,23 @@ func MustNewModel(url, collection string, c cache.CacheConf, opts ...cache.Optio
 	return model
 }
 
-// NewNodeModel returns a Model with a cache node.
-func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
-	c := cache.NewNode(rds, sharedCalls, stats, mgo.ErrNotFound, opts...)
+// NewModel returns a Model with a cache cluster.
+func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
+	c := cache.New(conf, singleFlight, stats, mgo.ErrNotFound, opts...)
+	return NewModelWithCache(url, collection, c)
+}
+
+// NewModelWithCache returns a Model with a custom cache.
+func NewModelWithCache(url, collection string, c cache.Cache) (*Model, error) {
 	return createModel(url, collection, c, func(collection mongo.Collection) CachedCollection {
 		return newCollection(collection, c)
 	})
 }
 
-// NewModel returns a Model with a cache cluster.
-func NewModel(url, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
-	c := cache.New(conf, sharedCalls, stats, mgo.ErrNotFound, opts...)
-	return createModel(url, collection, c, func(collection mongo.Collection) CachedCollection {
-		return newCollection(collection, c)
-	})
+// NewNodeModel returns a Model with a cache node.
+func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
+	c := cache.NewNode(rds, singleFlight, stats, mgo.ErrNotFound, opts...)
+	return NewModelWithCache(url, collection, c)
 }
 
 // Count returns the count of given query.

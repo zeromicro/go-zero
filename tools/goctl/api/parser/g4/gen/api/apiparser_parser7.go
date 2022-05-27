@@ -27,7 +27,7 @@ type ServiceRouteContext struct {
 }
 
 func NewEmptyServiceRouteContext() *ServiceRouteContext {
-	var p = new(ServiceRouteContext)
+	p := new(ServiceRouteContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_serviceRoute
 	return p
@@ -36,7 +36,7 @@ func NewEmptyServiceRouteContext() *ServiceRouteContext {
 func (*ServiceRouteContext) IsServiceRouteContext() {}
 
 func NewServiceRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ServiceRouteContext {
-	var p = new(ServiceRouteContext)
+	p := new(ServiceRouteContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -49,7 +49,7 @@ func NewServiceRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext,
 func (s *ServiceRouteContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ServiceRouteContext) Route() IRouteContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IRouteContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IRouteContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -59,7 +59,7 @@ func (s *ServiceRouteContext) Route() IRouteContext {
 }
 
 func (s *ServiceRouteContext) AtServer() IAtServerContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -69,7 +69,7 @@ func (s *ServiceRouteContext) AtServer() IAtServerContext {
 }
 
 func (s *ServiceRouteContext) AtHandler() IAtHandlerContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtHandlerContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtHandlerContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -79,7 +79,7 @@ func (s *ServiceRouteContext) AtHandler() IAtHandlerContext {
 }
 
 func (s *ServiceRouteContext) AtDoc() IAtDocContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtDocContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtDocContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -137,7 +137,6 @@ func (p *ApiParserParser) ServiceRoute() (localctx IServiceRouteContext) {
 			p.SetState(263)
 			p.AtDoc()
 		}
-
 	}
 	p.SetState(268)
 	p.GetErrorHandler().Sync(p)
@@ -197,7 +196,7 @@ type AtDocContext struct {
 }
 
 func NewEmptyAtDocContext() *AtDocContext {
-	var p = new(AtDocContext)
+	p := new(AtDocContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_atDoc
 	return p
@@ -206,7 +205,7 @@ func NewEmptyAtDocContext() *AtDocContext {
 func (*AtDocContext) IsAtDocContext() {}
 
 func NewAtDocContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AtDocContext {
-	var p = new(AtDocContext)
+	p := new(AtDocContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -235,8 +234,8 @@ func (s *AtDocContext) STRING() antlr.TerminalNode {
 }
 
 func (s *AtDocContext) AllKvLit() []IKvLitContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
-	var tst = make([]IKvLitContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
+	tst := make([]IKvLitContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -248,7 +247,7 @@ func (s *AtDocContext) AllKvLit() []IKvLitContext {
 }
 
 func (s *AtDocContext) KvLit(i int) IKvLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -309,11 +308,10 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 		{
 			p.SetState(273)
 
-			var _m = p.Match(ApiParserParserT__1)
+			_m := p.Match(ApiParserParserT__1)
 
 			localctx.(*AtDocContext).lp = _m
 		}
-
 	}
 	p.SetState(282)
 	p.GetErrorHandler().Sync(p)
@@ -351,11 +349,10 @@ func (p *ApiParserParser) AtDoc() (localctx IAtDocContext) {
 		{
 			p.SetState(284)
 
-			var _m = p.Match(ApiParserParserT__2)
+			_m := p.Match(ApiParserParserT__2)
 
 			localctx.(*AtDocContext).rp = _m
 		}
-
 	}
 
 	return localctx
@@ -378,7 +375,7 @@ type AtHandlerContext struct {
 }
 
 func NewEmptyAtHandlerContext() *AtHandlerContext {
-	var p = new(AtHandlerContext)
+	p := new(AtHandlerContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_atHandler
 	return p
@@ -387,7 +384,7 @@ func NewEmptyAtHandlerContext() *AtHandlerContext {
 func (*AtHandlerContext) IsAtHandlerContext() {}
 
 func NewAtHandlerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AtHandlerContext {
-	var p = new(AtHandlerContext)
+	p := new(AtHandlerContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -468,14 +465,8 @@ type IRouteContext interface {
 	// GetHttpMethod returns the httpMethod token.
 	GetHttpMethod() antlr.Token
 
-	// GetReturnToken returns the returnToken token.
-	GetReturnToken() antlr.Token
-
 	// SetHttpMethod sets the httpMethod token.
 	SetHttpMethod(antlr.Token)
-
-	// SetReturnToken sets the returnToken token.
-	SetReturnToken(antlr.Token)
 
 	// GetRequest returns the request rule contexts.
 	GetRequest() IBodyContext
@@ -495,15 +486,14 @@ type IRouteContext interface {
 
 type RouteContext struct {
 	*antlr.BaseParserRuleContext
-	parser      antlr.Parser
-	httpMethod  antlr.Token
-	request     IBodyContext
-	returnToken antlr.Token
-	response    IReplybodyContext
+	parser     antlr.Parser
+	httpMethod antlr.Token
+	request    IBodyContext
+	response   IReplybodyContext
 }
 
 func NewEmptyRouteContext() *RouteContext {
-	var p = new(RouteContext)
+	p := new(RouteContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_route
 	return p
@@ -512,7 +502,7 @@ func NewEmptyRouteContext() *RouteContext {
 func (*RouteContext) IsRouteContext() {}
 
 func NewRouteContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RouteContext {
-	var p = new(RouteContext)
+	p := new(RouteContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -526,11 +516,7 @@ func (s *RouteContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *RouteContext) GetHttpMethod() antlr.Token { return s.httpMethod }
 
-func (s *RouteContext) GetReturnToken() antlr.Token { return s.returnToken }
-
 func (s *RouteContext) SetHttpMethod(v antlr.Token) { s.httpMethod = v }
-
-func (s *RouteContext) SetReturnToken(v antlr.Token) { s.returnToken = v }
 
 func (s *RouteContext) GetRequest() IBodyContext { return s.request }
 
@@ -541,7 +527,7 @@ func (s *RouteContext) SetRequest(v IBodyContext) { s.request = v }
 func (s *RouteContext) SetResponse(v IReplybodyContext) { s.response = v }
 
 func (s *RouteContext) Path() IPathContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IPathContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IPathContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -550,16 +536,12 @@ func (s *RouteContext) Path() IPathContext {
 	return t.(IPathContext)
 }
 
-func (s *RouteContext) AllID() []antlr.TerminalNode {
-	return s.GetTokens(ApiParserParserID)
-}
-
-func (s *RouteContext) ID(i int) antlr.TerminalNode {
-	return s.GetToken(ApiParserParserID, i)
+func (s *RouteContext) ID() antlr.TerminalNode {
+	return s.GetToken(ApiParserParserID, 0)
 }
 
 func (s *RouteContext) Body() IBodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IBodyContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IBodyContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -569,7 +551,7 @@ func (s *RouteContext) Body() IBodyContext {
 }
 
 func (s *RouteContext) Replybody() IReplybodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IReplybodyContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IReplybodyContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -622,7 +604,7 @@ func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	{
 		p.SetState(291)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*RouteContext).httpMethod = _m
 	}
@@ -632,44 +614,29 @@ func (p *ApiParserParser) Route() (localctx IRouteContext) {
 	}
 	p.SetState(294)
 	p.GetErrorHandler().Sync(p)
+	_la = p.GetTokenStream().LA(1)
 
-	if p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 28, p.GetParserRuleContext()) == 1 {
+	if _la == ApiParserParserT__1 {
 		{
 			p.SetState(293)
 
-			var _x = p.Body()
+			_x := p.Body()
 
 			localctx.(*RouteContext).request = _x
 		}
-
 	}
 	p.SetState(297)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-	if _la == ApiParserParserID {
+	if _la == ApiParserParserT__9 {
 		{
 			p.SetState(296)
 
-			var _m = p.Match(ApiParserParserID)
-
-			localctx.(*RouteContext).returnToken = _m
-		}
-
-	}
-	p.SetState(300)
-	p.GetErrorHandler().Sync(p)
-	_la = p.GetTokenStream().LA(1)
-
-	if _la == ApiParserParserT__1 {
-		{
-			p.SetState(299)
-
-			var _x = p.Replybody()
+			_x := p.Replybody()
 
 			localctx.(*RouteContext).response = _x
 		}
-
 	}
 
 	return localctx

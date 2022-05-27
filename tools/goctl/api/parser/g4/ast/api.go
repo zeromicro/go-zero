@@ -5,10 +5,13 @@ import (
 	"path"
 	"sort"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
-const prefixKey = "prefix"
+const (
+	prefixKey = "prefix"
+	groupKey  = "group"
+)
 
 // Api describes syntax for api
 type Api struct {
@@ -52,11 +55,15 @@ func (v *ApiVisitor) acceptService(root, final *Api) {
 		}
 		v.duplicateServerItemCheck(service)
 
-		var prefix string
+		var prefix, group string
 		if service.AtServer != nil {
 			p := service.AtServer.Kv.Get(prefixKey)
 			if p != nil {
 				prefix = p.Text()
+			}
+			g := service.AtServer.Kv.Get(groupKey)
+			if g != nil {
+				group = g.Text()
 			}
 		}
 		for _, route := range service.ServiceApi.ServiceRoute {
@@ -92,10 +99,14 @@ func (v *ApiVisitor) acceptService(root, final *Api) {
 				v.panic(handlerExpr, "mismatched handler")
 			}
 
-			if _, ok := final.handlerM[handlerExpr.Text()]; ok {
+			handlerKey := handlerExpr.Text()
+			if len(group) > 0 {
+				handlerKey = fmt.Sprintf("%s/%s", group, handlerExpr.Text())
+			}
+			if _, ok := final.handlerM[handlerKey]; ok {
 				v.panic(handlerExpr, fmt.Sprintf("duplicate handler '%s'", handlerExpr.Text()))
 			}
-			final.handlerM[handlerExpr.Text()] = Holder
+			final.handlerM[handlerKey] = Holder
 		}
 		final.Service = append(final.Service, service)
 	}

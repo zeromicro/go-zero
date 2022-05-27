@@ -1,7 +1,9 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
@@ -9,12 +11,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/errorx"
-	"github.com/tal-tech/go-zero/core/hash"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/errorx"
+	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
+
+var _ Cache = (*mockedNode)(nil)
 
 type mockedNode struct {
 	vals        map[string][]byte
@@ -22,6 +26,10 @@ type mockedNode struct {
 }
 
 func (mc *mockedNode) Del(keys ...string) error {
+	return mc.DelCtx(context.Background(), keys...)
+}
+
+func (mc *mockedNode) DelCtx(_ context.Context, keys ...string) error {
 	var be errorx.BatchError
 
 	for _, key := range keys {
@@ -35,21 +43,29 @@ func (mc *mockedNode) Del(keys ...string) error {
 	return be.Err()
 }
 
-func (mc *mockedNode) Get(key string, v interface{}) error {
+func (mc *mockedNode) Get(key string, val interface{}) error {
+	return mc.GetCtx(context.Background(), key, val)
+}
+
+func (mc *mockedNode) GetCtx(ctx context.Context, key string, val interface{}) error {
 	bs, ok := mc.vals[key]
 	if ok {
-		return json.Unmarshal(bs, v)
+		return json.Unmarshal(bs, val)
 	}
 
 	return mc.errNotFound
 }
 
 func (mc *mockedNode) IsNotFound(err error) bool {
-	return err == mc.errNotFound
+	return errors.Is(err, mc.errNotFound)
 }
 
-func (mc *mockedNode) Set(key string, v interface{}) error {
-	data, err := json.Marshal(v)
+func (mc *mockedNode) Set(key string, val interface{}) error {
+	return mc.SetCtx(context.Background(), key, val)
+}
+
+func (mc *mockedNode) SetCtx(ctx context.Context, key string, val interface{}) error {
+	data, err := json.Marshal(val)
 	if err != nil {
 		return err
 	}
@@ -58,25 +74,37 @@ func (mc *mockedNode) Set(key string, v interface{}) error {
 	return nil
 }
 
-func (mc *mockedNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
-	return mc.Set(key, v)
+func (mc *mockedNode) SetWithExpire(key string, val interface{}, expire time.Duration) error {
+	return mc.SetWithExpireCtx(context.Background(), key, val, expire)
 }
 
-func (mc *mockedNode) Take(v interface{}, key string, query func(v interface{}) error) error {
+func (mc *mockedNode) SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error {
+	return mc.Set(key, val)
+}
+
+func (mc *mockedNode) Take(val interface{}, key string, query func(val interface{}) error) error {
+	return mc.TakeCtx(context.Background(), val, key, query)
+}
+
+func (mc *mockedNode) TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error {
 	if _, ok := mc.vals[key]; ok {
-		return mc.Get(key, v)
+		return mc.GetCtx(ctx, key, val)
 	}
 
-	if err := query(v); err != nil {
+	if err := query(val); err != nil {
 		return err
 	}
 
-	return mc.Set(key, v)
+	return mc.SetCtx(ctx, key, val)
 }
 
-func (mc *mockedNode) TakeWithExpire(v interface{}, key string, query func(v interface{}, expire time.Duration) error) error {
-	return mc.Take(v, key, func(v interface{}) error {
-		return query(v, 0)
+func (mc *mockedNode) TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+	return mc.TakeWithExpireCtx(context.Background(), val, key, query)
+}
+
+func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+	return mc.Take(val, key, func(val interface{}) error {
+		return query(val, 0)
 	})
 }
 
@@ -113,18 +141,18 @@ func TestCache_SetDel(t *testing.T) {
 		}
 	}
 	for i := 0; i < total; i++ {
-		var v int
-		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &v))
-		assert.Equal(t, i, v)
+		var val int
+		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &val))
+		assert.Equal(t, i, val)
 	}
 	assert.Nil(t, c.Del())
 	for i := 0; i < total; i++ {
 		assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
 	}
 	for i := 0; i < total; i++ {
-		var v int
-		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &v)))
-		assert.Equal(t, 0, v)
+		var val int
+		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &val)))
+		assert.Equal(t, 0, val)
 	}
 }
 
@@ -151,18 +179,18 @@ func TestCache_OneNode(t *testing.T) {
 		}
 	}
 	for i := 0; i < total; i++ {
-		var v int
-		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &v))
-		assert.Equal(t, i, v)
+		var val int
+		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &val))
+		assert.Equal(t, i, val)
 	}
 	assert.Nil(t, c.Del())
 	for i := 0; i < total; i++ {
 		assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
 	}
 	for i := 0; i < total; i++ {
-		var v int
-		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &v)))
-		assert.Equal(t, 0, v)
+		var val int
+		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &val)))
+		assert.Equal(t, 0, val)
 	}
 }
 
@@ -202,9 +230,9 @@ func TestCache_Balance(t *testing.T) {
 	assert.True(t, entropy > .95, fmt.Sprintf("entropy should be greater than 0.95, but got %.2f", entropy))
 
 	for i := 0; i < total; i++ {
-		var v int
-		assert.Nil(t, c.Get(strconv.Itoa(i), &v))
-		assert.Equal(t, i, v)
+		var val int
+		assert.Nil(t, c.Get(strconv.Itoa(i), &val))
+		assert.Equal(t, i, val)
 	}
 
 	for i := 0; i < total/10; i++ {
@@ -216,14 +244,14 @@ func TestCache_Balance(t *testing.T) {
 	for i := 0; i < total/10; i++ {
 		var val int
 		if i%2 == 0 {
-			assert.Nil(t, c.Take(&val, strconv.Itoa(i*10), func(v interface{}) error {
-				*v.(*int) = i
+			assert.Nil(t, c.Take(&val, strconv.Itoa(i*10), func(val interface{}) error {
+				*val.(*int) = i
 				count++
 				return nil
 			}))
 		} else {
-			assert.Nil(t, c.TakeWithExpire(&val, strconv.Itoa(i*10), func(v interface{}, expire time.Duration) error {
-				*v.(*int) = i
+			assert.Nil(t, c.TakeWithExpire(&val, strconv.Itoa(i*10), func(val interface{}, expire time.Duration) error {
+				*val.(*int) = i
 				count++
 				return nil
 			}))
@@ -244,10 +272,10 @@ func TestCacheNoNode(t *testing.T) {
 	assert.NotNil(t, c.Get("foo", nil))
 	assert.NotNil(t, c.Set("foo", nil))
 	assert.NotNil(t, c.SetWithExpire("foo", nil, time.Second))
-	assert.NotNil(t, c.Take(nil, "foo", func(v interface{}) error {
+	assert.NotNil(t, c.Take(nil, "foo", func(val interface{}) error {
 		return nil
 	}))
-	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(v interface{}, duration time.Duration) error {
+	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(val interface{}, duration time.Duration) error {
 		return nil
 	}))
 }
@@ -255,8 +283,8 @@ func TestCacheNoNode(t *testing.T) {
 func calcEntropy(m map[int]int, total int) float64 {
 	var entropy float64
 
-	for _, v := range m {
-		proba := float64(v) / float64(total)
+	for _, val := range m {
+		proba := float64(val) / float64(total)
 		entropy -= proba * math.Log2(proba)
 	}
 

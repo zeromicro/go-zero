@@ -1,13 +1,16 @@
 package test
 
 import (
-	"io/ioutil"
+	_ "embed"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/ast"
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
+
+//go:embed apis/test.api
+var testApi string
 
 var parser = ast.NewParser(ast.WithParserPrefix("test.api"), ast.WithParserDebug())
 
@@ -15,10 +18,8 @@ func TestApi(t *testing.T) {
 	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
 		return p.Api().Accept(visitor)
 	}
-	content, err := ioutil.ReadFile("./apis/test.api")
-	assert.Nil(t, err)
 
-	v, err := parser.Accept(fn, string(content))
+	v, err := parser.Accept(fn, testApi)
 	assert.Nil(t, err)
 	api := v.(*ast.Api)
 	body := &ast.Body{

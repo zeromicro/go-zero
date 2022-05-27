@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/zrpc/resolver/internal"
+	"github.com/zeromicro/go-zero/zrpc/resolver/internal"
 )
 
 // BuildDirectTarget returns a string that represents the given endpoints with direct schema.

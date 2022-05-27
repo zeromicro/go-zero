@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -87,26 +87,6 @@ func TestAuthHandler_NilError(t *testing.T) {
 	resp := httptest.NewRecorder()
 	assert.NotPanics(t, func() {
 		unauthorized(resp, req, nil, nil)
-	})
-}
-
-func TestAuthHandler_Flush(t *testing.T) {
-	resp := httptest.NewRecorder()
-	handler := newGuardedResponseWriter(resp)
-	handler.Flush()
-	assert.True(t, resp.Flushed)
-}
-
-func TestAuthHandler_Hijack(t *testing.T) {
-	resp := httptest.NewRecorder()
-	writer := newGuardedResponseWriter(resp)
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = newGuardedResponseWriter(mockedHijackable{resp})
-	assert.NotPanics(t, func() {
-		writer.Hijack()
 	})
 }
 

@@ -1,22 +1,24 @@
 package template
 
-// Delete defines a delete template
-var Delete = `
-func (m *default{{.upperStartCamelObject}}Model) Delete({{.lowerStartCamelPrimaryKey}} {{.dataType}}) error {
-	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne({{.lowerStartCamelPrimaryKey}})
+const (
+	// Delete defines a delete template
+	Delete = `
+func (m *default{{.upperStartCamelObject}}Model) Delete(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) error {
+	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne(ctx, {{.lowerStartCamelPrimaryKey}})
 	if err!=nil{
 		return err
-	}{{end}}
+	}
 
-	{{.keys}}
-    _, err {{if .containsIndexCache}}={{else}}:={{end}} m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+{{end}}	{{.keys}}
+    _, err {{if .containsIndexCache}}={{else}}:={{end}} m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table)
-		return conn.Exec(query, {{.lowerStartCamelPrimaryKey}})
+		return conn.ExecCtx(ctx, query, {{.lowerStartCamelPrimaryKey}})
 	}, {{.keyValues}}){{else}}query := fmt.Sprintf("delete from %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table)
-		_,err:=m.conn.Exec(query, {{.lowerStartCamelPrimaryKey}}){{end}}
+		_,err:=m.conn.ExecCtx(ctx, query, {{.lowerStartCamelPrimaryKey}}){{end}}
 	return err
 }
 `
 
-// DeleteMethod defines a delete template for interface method
-var DeleteMethod = `Delete({{.lowerStartCamelPrimaryKey}} {{.dataType}}) error`
+	// DeleteMethod defines a delete template for interface method
+	DeleteMethod = `Delete(ctx context.Context, {{.lowerStartCamelPrimaryKey}} {{.dataType}}) error`
+)

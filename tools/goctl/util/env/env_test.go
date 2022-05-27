@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 func TestLookUpGo(t *testing.T) {
@@ -19,7 +19,7 @@ func TestLookUpGo(t *testing.T) {
 		return
 	}
 
-	assert.True(t, util.FileExists(xGo))
+	assert.True(t, pathx.FileExists(xGo))
 	output, errOutput, err := execCommand(xGo, "version")
 	if err != nil {
 		return
@@ -37,7 +37,7 @@ func TestLookUpProtoc(t *testing.T) {
 		return
 	}
 
-	assert.True(t, util.FileExists(xProtoc))
+	assert.True(t, pathx.FileExists(xProtoc))
 	output, errOutput, err := execCommand(xProtoc, "--version")
 	if err != nil {
 		return
@@ -54,7 +54,7 @@ func TestLookUpProtocGenGo(t *testing.T) {
 	if err != nil {
 		return
 	}
-	assert.True(t, util.FileExists(xProtocGenGo))
+	assert.True(t, pathx.FileExists(xProtocGenGo))
 }
 
 func TestLookPath(t *testing.T) {
@@ -62,7 +62,7 @@ func TestLookPath(t *testing.T) {
 	if err != nil {
 		return
 	}
-	assert.True(t, util.FileExists(xGo))
+	assert.True(t, pathx.FileExists(xGo))
 }
 
 func TestCanExec(t *testing.T) {

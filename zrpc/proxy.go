@@ -4,28 +4,28 @@ import (
 	"context"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/syncx"
-	"github.com/tal-tech/go-zero/zrpc/internal"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/zrpc/internal"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 )
 
 // A RpcProxy is a rpc proxy.
 type RpcProxy struct {
-	backend     string
-	clients     map[string]Client
-	options     []internal.ClientOption
-	sharedCalls syncx.SingleFlight
-	lock        sync.Mutex
+	backend      string
+	clients      map[string]Client
+	options      []internal.ClientOption
+	singleFlight syncx.SingleFlight
+	lock         sync.Mutex
 }
 
 // NewProxy returns a RpcProxy.
 func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 	return &RpcProxy{
-		backend:     backend,
-		clients:     make(map[string]Client),
-		options:     opts,
-		sharedCalls: syncx.NewSingleFlight(),
+		backend:      backend,
+		clients:      make(map[string]Client),
+		options:      opts,
+		singleFlight: syncx.NewSingleFlight(),
 	}
 }
 
@@ -33,7 +33,7 @@ func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 	cred := auth.ParseCredential(ctx)
 	key := cred.App + "/" + cred.Token
-	val, err := p.sharedCalls.Do(key, func() (interface{}, error) {
+	val, err := p.singleFlight.Do(key, func() (interface{}, error) {
 		p.lock.Lock()
 		client, ok := p.clients[key]
 		p.lock.Unlock()

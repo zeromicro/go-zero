@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/executors"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/stringx"
+	"github.com/zeromicro/go-zero/core/executors"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 const (
@@ -25,6 +25,7 @@ type (
 
 	// A BulkInserter is used to batch insert records.
 	// Postgresql is not supported yet, because of the sql is formated with symbol `$`.
+	// Oracle is not supported yet, because of the sql is formated with symbol `:`.
 	BulkInserter struct {
 		executor *executors.PeriodicalExecutor
 		inserter *dbInserter

@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 var testTypes = `
@@ -19,7 +19,7 @@ func TestDo(t *testing.T) {
 	cfg, err := config.NewConfig(config.DefaultFormat)
 	assert.Nil(t, err)
 
-	tempDir := util.MustTempDir()
+	tempDir := pathx.MustTempDir()
 	typesfile := filepath.Join(tempDir, "types.go")
 	err = ioutil.WriteFile(typesfile, []byte(testTypes), 0o666)
 	assert.Nil(t, err)

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stat"
 )
 
 func TestMetricHandler(t *testing.T) {

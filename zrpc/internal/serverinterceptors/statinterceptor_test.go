@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )
@@ -74,6 +74,12 @@ func TestLogDuration(t *testing.T) {
 				Addr: addrs[0],
 			}),
 			req: "foo",
+		},
+		{
+			name:     "timeout",
+			ctx:      context.Background(),
+			req:      "foo",
+			duration: slowThreshold.Load() + time.Second,
 		},
 	}
 

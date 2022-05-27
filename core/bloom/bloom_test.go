@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 )
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {

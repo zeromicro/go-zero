@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func TestGenTemplates(t *testing.T) {
-	err := util.InitTemplates(category, templates)
+	err := pathx.InitTemplates(category, templates)
 	assert.Nil(t, err)
-	dir, err := util.GetTemplateDir(category)
+	dir, err := pathx.GetTemplateDir(category)
 	assert.Nil(t, err)
 	file := filepath.Join(dir, "model-new.tpl")
 	data, err := ioutil.ReadFile(file)
@@ -23,10 +23,10 @@ func TestGenTemplates(t *testing.T) {
 
 func TestRevertTemplate(t *testing.T) {
 	name := "model-new.tpl"
-	err := util.InitTemplates(category, templates)
+	err := pathx.InitTemplates(category, templates)
 	assert.Nil(t, err)
 
-	dir, err := util.GetTemplateDir(category)
+	dir, err := pathx.GetTemplateDir(category)
 	assert.Nil(t, err)
 
 	file := filepath.Join(dir, name)
@@ -34,7 +34,7 @@ func TestRevertTemplate(t *testing.T) {
 	assert.Nil(t, err)
 
 	modifyData := string(data) + "modify"
-	err = util.CreateTemplate(category, name, modifyData)
+	err = pathx.CreateTemplate(category, name, modifyData)
 	assert.Nil(t, err)
 
 	data, err = ioutil.ReadFile(file)
@@ -51,12 +51,12 @@ func TestRevertTemplate(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	name := "model-new.tpl"
-	err := util.InitTemplates(category, templates)
+	err := pathx.InitTemplates(category, templates)
 	assert.Nil(t, err)
 
 	assert.Nil(t, Clean())
 
-	dir, err := util.GetTemplateDir(category)
+	dir, err := pathx.GetTemplateDir(category)
 	assert.Nil(t, err)
 
 	file := filepath.Join(dir, name)
@@ -66,10 +66,10 @@ func TestClean(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	name := "model-new.tpl"
-	err := util.InitTemplates(category, templates)
+	err := pathx.InitTemplates(category, templates)
 	assert.Nil(t, err)
 
-	dir, err := util.GetTemplateDir(category)
+	dir, err := pathx.GetTemplateDir(category)
 	assert.Nil(t, err)
 
 	file := filepath.Join(dir, name)
@@ -77,7 +77,7 @@ func TestUpdate(t *testing.T) {
 	assert.Nil(t, err)
 
 	modifyData := string(data) + "modify"
-	err = util.CreateTemplate(category, name, modifyData)
+	err = pathx.CreateTemplate(category, name, modifyData)
 	assert.Nil(t, err)
 
 	data, err = ioutil.ReadFile(file)

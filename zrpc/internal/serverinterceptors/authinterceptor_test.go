@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stores/redis/redistest"
-	"github.com/tal-tech/go-zero/zrpc/internal/auth"
+	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -65,7 +65,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 			})
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 			stream := mockedStream{ctx: ctx}
-			err = interceptor(nil, stream, nil, func(srv interface{}, stream grpc.ServerStream) error {
+			err = interceptor(nil, stream, nil, func(_ interface{}, _ grpc.ServerStream) error {
 				return nil
 			})
 			if test.hasError {

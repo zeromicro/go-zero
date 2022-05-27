@@ -3,9 +3,8 @@ package gen
 import (
 	"fmt"
 
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -22,8 +21,10 @@ const (
 	importsWithNoCacheTemplateFile        = "import-no-cache.tpl"
 	insertTemplateFile                    = "insert.tpl"
 	insertTemplateMethodFile              = "interface-insert.tpl"
-	modelTemplateFile                     = "model.tpl"
+	modelGenTemplateFile                  = "model-gen.tpl"
+	modelCustomTemplateFile               = "model.tpl"
 	modelNewTemplateFile                  = "model-new.tpl"
+	tableNameTemplateFile                 = "table-name.tpl"
 	tagTemplateFile                       = "tag.tpl"
 	typesTemplateFile                     = "types.tpl"
 	updateTemplateFile                    = "update.tpl"
@@ -45,8 +46,10 @@ var templates = map[string]string{
 	importsWithNoCacheTemplateFile:        template.ImportsNoCache,
 	insertTemplateFile:                    template.Insert,
 	insertTemplateMethodFile:              template.InsertMethod,
-	modelTemplateFile:                     template.Model,
+	modelGenTemplateFile:                  template.ModelGen,
+	modelCustomTemplateFile:               template.ModelCustom,
 	modelNewTemplateFile:                  template.New,
+	tableNameTemplateFile:                 template.TableName,
 	tagTemplateFile:                       template.Tag,
 	typesTemplateFile:                     template.Types,
 	updateTemplateFile:                    template.Update,
@@ -62,22 +65,22 @@ func Category() string {
 
 // Clean deletes all template files
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates creates template files if not exists
-func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, templates)
+func GenTemplates() error {
+	return pathx.InitTemplates(category, templates)
 }
 
-// RevertTemplate recovers the delete template files
+// RevertTemplate reverts the deleted template files
 func RevertTemplate(name string) error {
 	content, ok := templates[name]
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
 
-	return util.CreateTemplate(category, name, content)
+	return pathx.CreateTemplate(category, name, content)
 }
 
 // Update provides template clean and init
@@ -87,5 +90,5 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }

@@ -1,11 +1,13 @@
 package dartgen
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 )
 
-const varTemplate = `import 'dart:convert';
+const (
+	varTemplate = `import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/tokens.dart';
 
@@ -40,21 +42,59 @@ Future<Tokens> getTokens() async {
 }
 `
 
-func genVars(dir string) error {
+	varTemplateV2 = `import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../data/tokens.dart';
+
+const String _tokenKey = 'tokens';
+
+/// Saves tokens
+Future<bool> setTokens(Tokens tokens) async {
+  var sp = await SharedPreferences.getInstance();
+  return await sp.setString(_tokenKey, jsonEncode(tokens.toJson()));
+}
+
+/// remove tokens
+Future<bool> removeTokens() async {
+  var sp = await SharedPreferences.getInstance();
+  return sp.remove(_tokenKey);
+}
+
+/// Reads tokens
+Future<Tokens?> getTokens() async {
+  try {
+    var sp = await SharedPreferences.getInstance();
+    var str = sp.getString('tokens');
+    if (str.isEmpty) {
+      return null;
+    }
+    return Tokens.fromJson(jsonDecode(str));
+  } catch (e) {
+    print(e);
+    return null;
+  }
+}`
+)
+
+func genVars(dir string, isLegacy bool, hostname string) error {
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return err
 	}
 
 	if !fileExists(dir + "vars.dart") {
-		err = ioutil.WriteFile(dir+"vars.dart", []byte(`const serverHost='demo-crm.xiaoheiban.cn';`), 0o644)
+		err = ioutil.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s';`, hostname)), 0o644)
 		if err != nil {
 			return err
 		}
 	}
 
 	if !fileExists(dir + "kv.dart") {
-		err = ioutil.WriteFile(dir+"kv.dart", []byte(varTemplate), 0o644)
+		tpl := varTemplateV2
+		if isLegacy {
+			tpl = varTemplate
+		}
+		err = ioutil.WriteFile(dir+"kv.dart", []byte(tpl), 0o644)
 		if err != nil {
 			return err
 		}

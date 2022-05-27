@@ -3,21 +3,30 @@ package ktgen
 import (
 	"errors"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 )
 
-// KtCommand the generate kotlin code command entrance
-func KtCommand(c *cli.Context) error {
-	apiFile := c.String("api")
+var (
+	// VarStringDir describes a directory.
+	VarStringDir string
+	// VarStringAPI describes an API.
+	VarStringAPI string
+	// VarStringPKG describes a package.
+	VarStringPKG string
+)
+
+// KtCommand generates kotlin code command entrance
+func KtCommand(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringAPI
 	if apiFile == "" {
 		return errors.New("missing -api")
 	}
-	dir := c.String("dir")
+	dir := VarStringDir
 	if dir == "" {
 		return errors.New("missing -dir")
 	}
-	pkg := c.String("pkg")
+	pkg := VarStringPKG
 	if pkg == "" {
 		return errors.New("missing -pkg")
 	}
@@ -25,6 +34,10 @@ func KtCommand(c *cli.Context) error {
 	api, e := parser.Parse(apiFile)
 	if e != nil {
 		return e
+	}
+
+	if err := api.Validate(); err != nil {
+		return err
 	}
 
 	api.Service = api.Service.JoinPrefix()

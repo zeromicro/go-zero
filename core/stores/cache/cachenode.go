@@ -1,18 +1,19 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/core/logx"
-	"github.com/tal-tech/go-zero/core/mathx"
-	"github.com/tal-tech/go-zero/core/stat"
-	"github.com/tal-tech/go-zero/core/stores/redis"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/jsonx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mathx"
+	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
@@ -61,30 +62,39 @@ func NewNode(rds *redis.Redis, barrier syncx.SingleFlight, st *Stat,
 
 // Del deletes cached values with keys.
 func (c cacheNode) Del(keys ...string) error {
+	return c.DelCtx(context.Background(), keys...)
+}
+
+// DelCtx deletes cached values with keys.
+func (c cacheNode) DelCtx(ctx context.Context, keys ...string) error {
 	if len(keys) == 0 {
 		return nil
 	}
 
+	logger := logx.WithContext(ctx)
 	if len(keys) > 1 && c.rds.Type == redis.ClusterType {
 		for _, key := range keys {
-			if _, err := c.rds.Del(key); err != nil {
-				logx.Errorf("failed to clear cache with key: %q, error: %v", key, err)
+			if _, err := c.rds.DelCtx(ctx, key); err != nil {
+				logger.Errorf("failed to clear cache with key: %q, error: %v", key, err)
 				c.asyncRetryDelCache(key)
 			}
 		}
-	} else {
-		if _, err := c.rds.Del(keys...); err != nil {
-			logx.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
-			c.asyncRetryDelCache(keys...)
-		}
+	} else if _, err := c.rds.DelCtx(ctx, keys...); err != nil {
+		logger.Errorf("failed to clear cache with keys: %q, error: %v", formatKeys(keys), err)
+		c.asyncRetryDelCache(keys...)
 	}
 
 	return nil
 }
 
 // Get gets the cache with key and fills into v.
-func (c cacheNode) Get(key string, v interface{}) error {
-	err := c.doGetCache(key, v)
+func (c cacheNode) Get(key string, val interface{}) error {
+	return c.GetCtx(context.Background(), key, val)
+}
+
+// GetCtx gets the cache with key and fills into v.
+func (c cacheNode) GetCtx(ctx context.Context, key string, val interface{}) error {
+	err := c.doGetCache(ctx, key, val)
 	if err == errPlaceholder {
 		return c.errNotFound
 	}
@@ -94,22 +104,33 @@ func (c cacheNode) Get(key string, v interface{}) error {
 
 // IsNotFound checks if the given error is the defined errNotFound.
 func (c cacheNode) IsNotFound(err error) bool {
-	return err == c.errNotFound
+	return errors.Is(err, c.errNotFound)
 }
 
 // Set sets the cache with key and v, using c.expiry.
-func (c cacheNode) Set(key string, v interface{}) error {
-	return c.SetWithExpire(key, v, c.aroundDuration(c.expiry))
+func (c cacheNode) Set(key string, val interface{}) error {
+	return c.SetCtx(context.Background(), key, val)
+}
+
+// SetCtx sets the cache with key and v, using c.expiry.
+func (c cacheNode) SetCtx(ctx context.Context, key string, val interface{}) error {
+	return c.SetWithExpireCtx(ctx, key, val, c.aroundDuration(c.expiry))
 }
 
 // SetWithExpire sets the cache with key and v, using given expire.
-func (c cacheNode) SetWithExpire(key string, v interface{}, expire time.Duration) error {
-	data, err := jsonx.Marshal(v)
+func (c cacheNode) SetWithExpire(key string, val interface{}, expire time.Duration) error {
+	return c.SetWithExpireCtx(context.Background(), key, val, expire)
+}
+
+// SetWithExpireCtx sets the cache with key and v, using given expire.
+func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val interface{},
+	expire time.Duration) error {
+	data, err := jsonx.Marshal(val)
 	if err != nil {
 		return err
 	}
 
-	return c.rds.Setex(key, string(data), int(expire.Seconds()))
+	return c.rds.SetexCtx(ctx, key, string(data), int(expire.Seconds()))
 }
 
 // String returns a string that represents the cacheNode.
@@ -119,21 +140,35 @@ func (c cacheNode) String() string {
 
 // Take takes the result from cache first, if not found,
 // query from DB and set cache using c.expiry, then return the result.
-func (c cacheNode) Take(v interface{}, key string, query func(v interface{}) error) error {
-	return c.doTake(v, key, query, func(v interface{}) error {
-		return c.Set(key, v)
+func (c cacheNode) Take(val interface{}, key string, query func(val interface{}) error) error {
+	return c.TakeCtx(context.Background(), val, key, query)
+}
+
+// TakeCtx takes the result from cache first, if not found,
+// query from DB and set cache using c.expiry, then return the result.
+func (c cacheNode) TakeCtx(ctx context.Context, val interface{}, key string,
+	query func(val interface{}) error) error {
+	return c.doTake(ctx, val, key, query, func(v interface{}) error {
+		return c.SetCtx(ctx, key, v)
 	})
 }
 
 // TakeWithExpire takes the result from cache first, if not found,
 // query from DB and set cache using given expire, then return the result.
-func (c cacheNode) TakeWithExpire(v interface{}, key string, query func(v interface{},
+func (c cacheNode) TakeWithExpire(val interface{}, key string, query func(val interface{},
 	expire time.Duration) error) error {
+	return c.TakeWithExpireCtx(context.Background(), val, key, query)
+}
+
+// TakeWithExpireCtx takes the result from cache first, if not found,
+// query from DB and set cache using given expire, then return the result.
+func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string,
+	query func(val interface{}, expire time.Duration) error) error {
 	expire := c.aroundDuration(c.expiry)
-	return c.doTake(v, key, func(v interface{}) error {
+	return c.doTake(ctx, val, key, func(v interface{}) error {
 		return query(v, expire)
 	}, func(v interface{}) error {
-		return c.SetWithExpire(key, v, expire)
+		return c.SetWithExpireCtx(ctx, key, v, expire)
 	})
 }
 
@@ -148,9 +183,9 @@ func (c cacheNode) asyncRetryDelCache(keys ...string) {
 	}, keys...)
 }
 
-func (c cacheNode) doGetCache(key string, v interface{}) error {
+func (c cacheNode) doGetCache(ctx context.Context, key string, v interface{}) error {
 	c.stat.IncrementTotal()
-	data, err := c.rds.Get(key)
+	data, err := c.rds.GetCtx(ctx, key)
 	if err != nil {
 		c.stat.IncrementMiss()
 		return err
@@ -166,13 +201,14 @@ func (c cacheNode) doGetCache(key string, v interface{}) error {
 		return errPlaceholder
 	}
 
-	return c.processCache(key, data, v)
+	return c.processCache(ctx, key, data, v)
 }
 
-func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) error,
-	cacheVal func(v interface{}) error) error {
+func (c cacheNode) doTake(ctx context.Context, v interface{}, key string,
+	query func(v interface{}) error, cacheVal func(v interface{}) error) error {
+	logger := logx.WithContext(ctx)
 	val, fresh, err := c.barrier.DoEx(key, func() (interface{}, error) {
-		if err := c.doGetCache(key, v); err != nil {
+		if err := c.doGetCache(ctx, key, v); err != nil {
 			if err == errPlaceholder {
 				return nil, c.errNotFound
 			} else if err != c.errNotFound {
@@ -183,8 +219,8 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 			}
 
 			if err = query(v); err == c.errNotFound {
-				if err = c.setCacheWithNotFound(key); err != nil {
-					logx.Error(err)
+				if err = c.setCacheWithNotFound(ctx, key); err != nil {
+					logger.Error(err)
 				}
 
 				return nil, c.errNotFound
@@ -194,7 +230,7 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 			}
 
 			if err = cacheVal(v); err != nil {
-				logx.Error(err)
+				logger.Error(err)
 			}
 		}
 
@@ -207,14 +243,18 @@ func (c cacheNode) doTake(v interface{}, key string, query func(v interface{}) e
 		return nil
 	}
 
-	// got the result from previous ongoing query
+	// got the result from previous ongoing query.
+	// why not call IncrementTotal at the beginning of this function?
+	// because a shared error is returned, and we don't want to count.
+	// for example, if the db is down, the query will be failed, we count
+	// the shared errors with one db failure.
 	c.stat.IncrementTotal()
 	c.stat.IncrementHit()
 
 	return jsonx.Unmarshal(val.([]byte), v)
 }
 
-func (c cacheNode) processCache(key, data string, v interface{}) error {
+func (c cacheNode) processCache(ctx context.Context, key, data string, v interface{}) error {
 	err := jsonx.Unmarshal([]byte(data), v)
 	if err == nil {
 		return nil
@@ -222,10 +262,11 @@ func (c cacheNode) processCache(key, data string, v interface{}) error {
 
 	report := fmt.Sprintf("unmarshal cache, node: %s, key: %s, value: %s, error: %v",
 		c.rds.Addr, key, data, err)
-	logx.Error(report)
+	logger := logx.WithContext(ctx)
+	logger.Error(report)
 	stat.Report(report)
-	if _, e := c.rds.Del(key); e != nil {
-		logx.Errorf("delete invalid cache, node: %s, key: %s, value: %s, error: %v",
+	if _, e := c.rds.DelCtx(ctx, key); e != nil {
+		logger.Errorf("delete invalid cache, node: %s, key: %s, value: %s, error: %v",
 			c.rds.Addr, key, data, e)
 	}
 
@@ -233,6 +274,6 @@ func (c cacheNode) processCache(key, data string, v interface{}) error {
 	return c.errNotFound
 }
 
-func (c cacheNode) setCacheWithNotFound(key string) error {
-	return c.rds.Setex(key, notFoundPlaceholder, int(c.aroundDuration(c.notFoundExpiry).Seconds()))
+func (c cacheNode) setCacheWithNotFound(ctx context.Context, key string) error {
+	return c.rds.SetexCtx(ctx, key, notFoundPlaceholder, int(c.aroundDuration(c.notFoundExpiry).Seconds()))
 }

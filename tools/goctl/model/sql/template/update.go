@@ -1,17 +1,24 @@
 package template
 
-// Update defines a template for generating update codes
-var Update = `
-func (m *default{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelObject}}) error {
-	{{if .withCache}}{{.keys}}
-    _, err := m.Exec(func(conn sqlx.SqlConn) (result sql.Result, err error) {
+const (
+	// Update defines a template for generating update codes
+	Update = `
+func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, {{if .containsIndexCache}}newData{{else}}data{{end}} *{{.upperStartCamelObject}}) error {
+	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne(ctx, newData.{{.upperStartCamelPrimaryKey}})
+	if err!=nil{
+		return err
+	}
+
+{{end}}	{{.keys}}
+    _, {{if .containsIndexCache}}err{{else}}err:{{end}}= m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
-		return conn.Exec(query, {{.expressionValues}})
+		return conn.ExecCtx(ctx, query, {{.expressionValues}})
 	}, {{.keyValues}}){{else}}query := fmt.Sprintf("update %s set %s where {{.originalPrimaryKey}} = {{if .postgreSql}}$1{{else}}?{{end}}", m.table, {{.lowerStartCamelObject}}RowsWithPlaceHolder)
-    _,err:=m.conn.Exec(query, {{.expressionValues}}){{end}}
+    _,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
 	return err
 }
 `
 
-// UpdateMethod defines an interface method template for generating update codes
-var UpdateMethod = `Update(data *{{.upperStartCamelObject}}) error`
+	// UpdateMethod defines an interface method template for generating update codes
+	UpdateMethod = `Update(ctx context.Context, newData *{{.upperStartCamelObject}}) error`
+)

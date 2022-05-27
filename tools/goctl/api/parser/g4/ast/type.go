@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/parser/g4/gen/api"
+	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
 type (
@@ -648,19 +648,19 @@ func (s *TypeStruct) Equal(dt interface{}) bool {
 		return false
 	}
 
-	var expected, acual []*TypeField
+	var expected, actual []*TypeField
 	expected = append(expected, s.Fields...)
-	acual = append(acual, v.Fields...)
+	actual = append(actual, v.Fields...)
 
 	sort.Slice(expected, func(i, j int) bool {
 		return expected[i].DataType.Expr().Line() < expected[j].DataType.Expr().Line()
 	})
-	sort.Slice(acual, func(i, j int) bool {
-		return acual[i].DataType.Expr().Line() < acual[j].DataType.Expr().Line()
+	sort.Slice(actual, func(i, j int) bool {
+		return actual[i].DataType.Expr().Line() < actual[j].DataType.Expr().Line()
 	})
 
 	for index, each := range expected {
-		ac := acual[index]
+		ac := actual[index]
 		if !each.Equal(ac) {
 			return false
 		}

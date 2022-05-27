@@ -4,8 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/tal-tech/go-zero/core/jsonx"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
 // IsGoMod is used to determine whether workDir is a go module project through command `go list -json -m`
@@ -17,16 +16,10 @@ func IsGoMod(workDir string) (bool, error) {
 		return false, err
 	}
 
-	data, err := execx.Run("go list -json -m", workDir)
-	if err != nil {
+	data, err := execx.Run("go list -m -f '{{.GoMod}}'", workDir)
+	if err != nil || len(data) == 0 {
 		return false, nil
 	}
 
-	var m Module
-	err = jsonx.Unmarshal([]byte(data), &m)
-	if err != nil {
-		return false, err
-	}
-
-	return len(m.GoMod) > 0, nil
+	return true, nil
 }

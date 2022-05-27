@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/internal/header"
 )
 
 var (
@@ -14,13 +15,17 @@ var (
 )
 
 // Error writes err into w.
-func Error(w http.ResponseWriter, err error) {
+func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
 	lock.RLock()
 	handler := errorHandler
 	lock.RUnlock()
 
 	if handler == nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		if len(fns) > 0 {
+			fns[0](w, err)
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 
@@ -57,12 +62,16 @@ func SetErrorHandler(handler func(error) (int, interface{})) {
 
 // WriteJson writes v as json string into w with code.
 func WriteJson(w http.ResponseWriter, code int, v interface{}) {
-	w.Header().Set(ContentType, ApplicationJson)
+	bs, err := json.Marshal(v)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set(ContentType, header.JsonContentType)
 	w.WriteHeader(code)
 
-	if bs, err := json.Marshal(v); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else if n, err := w.Write(bs); err != nil {
+	if n, err := w.Write(bs); err != nil {
 		// http.ErrHandlerTimeout has been handled by http.TimeoutHandler,
 		// so it's ignored here.
 		if err != http.ErrHandlerTimeout {

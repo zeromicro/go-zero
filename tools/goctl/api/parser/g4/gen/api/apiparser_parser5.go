@@ -17,7 +17,7 @@ type AnonymousFiledContext struct {
 }
 
 func NewEmptyAnonymousFiledContext() *AnonymousFiledContext {
-	var p = new(AnonymousFiledContext)
+	p := new(AnonymousFiledContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_anonymousFiled
 	return p
@@ -26,7 +26,7 @@ func NewEmptyAnonymousFiledContext() *AnonymousFiledContext {
 func (*AnonymousFiledContext) IsAnonymousFiledContext() {}
 
 func NewAnonymousFiledContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AnonymousFiledContext {
-	var p = new(AnonymousFiledContext)
+	p := new(AnonymousFiledContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -94,11 +94,10 @@ func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 		{
 			p.SetState(206)
 
-			var _m = p.Match(ApiParserParserT__5)
+			_m := p.Match(ApiParserParserT__5)
 
 			localctx.(*AnonymousFiledContext).star = _m
 		}
-
 	}
 	{
 		p.SetState(209)
@@ -139,7 +138,7 @@ type DataTypeContext struct {
 }
 
 func NewEmptyDataTypeContext() *DataTypeContext {
-	var p = new(DataTypeContext)
+	p := new(DataTypeContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_dataType
 	return p
@@ -148,7 +147,7 @@ func NewEmptyDataTypeContext() *DataTypeContext {
 func (*DataTypeContext) IsDataTypeContext() {}
 
 func NewDataTypeContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *DataTypeContext {
-	var p = new(DataTypeContext)
+	p := new(DataTypeContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -173,7 +172,7 @@ func (s *DataTypeContext) ID() antlr.TerminalNode {
 }
 
 func (s *DataTypeContext) MapType() IMapTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IMapTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IMapTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -183,7 +182,7 @@ func (s *DataTypeContext) MapType() IMapTypeContext {
 }
 
 func (s *DataTypeContext) ArrayType() IArrayTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IArrayTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IArrayTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -197,7 +196,7 @@ func (s *DataTypeContext) INTERFACE() antlr.TerminalNode {
 }
 
 func (s *DataTypeContext) PointerType() IPointerTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IPointerTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IPointerTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -207,7 +206,7 @@ func (s *DataTypeContext) PointerType() IPointerTypeContext {
 }
 
 func (s *DataTypeContext) TypeStruct() ITypeStructContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeStructContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*ITypeStructContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -284,7 +283,7 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 		{
 			p.SetState(215)
 
-			var _m = p.Match(ApiParserParserINTERFACE)
+			_m := p.Match(ApiParserParserINTERFACE)
 
 			localctx.(*DataTypeContext).inter = _m
 		}
@@ -294,7 +293,7 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 		{
 			p.SetState(216)
 
-			var _m = p.Match(ApiParserParserT__6)
+			_m := p.Match(ApiParserParserT__6)
 
 			localctx.(*DataTypeContext).time = _m
 		}
@@ -342,7 +341,7 @@ type PointerTypeContext struct {
 }
 
 func NewEmptyPointerTypeContext() *PointerTypeContext {
-	var p = new(PointerTypeContext)
+	p := new(PointerTypeContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_pointerType
 	return p
@@ -351,7 +350,7 @@ func NewEmptyPointerTypeContext() *PointerTypeContext {
 func (*PointerTypeContext) IsPointerTypeContext() {}
 
 func NewPointerTypeContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *PointerTypeContext {
-	var p = new(PointerTypeContext)
+	p := new(PointerTypeContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -413,7 +412,7 @@ func (p *ApiParserParser) PointerType() (localctx IPointerTypeContext) {
 	{
 		p.SetState(221)
 
-		var _m = p.Match(ApiParserParserT__5)
+		_m := p.Match(ApiParserParserT__5)
 
 		localctx.(*PointerTypeContext).star = _m
 	}
@@ -478,7 +477,7 @@ type MapTypeContext struct {
 }
 
 func NewEmptyMapTypeContext() *MapTypeContext {
-	var p = new(MapTypeContext)
+	p := new(MapTypeContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_mapType
 	return p
@@ -487,7 +486,7 @@ func NewEmptyMapTypeContext() *MapTypeContext {
 func (*MapTypeContext) IsMapTypeContext() {}
 
 func NewMapTypeContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *MapTypeContext {
-	var p = new(MapTypeContext)
+	p := new(MapTypeContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -528,7 +527,7 @@ func (s *MapTypeContext) ID(i int) antlr.TerminalNode {
 }
 
 func (s *MapTypeContext) DataType() IDataTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -580,14 +579,14 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	{
 		p.SetState(226)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*MapTypeContext).mapToken = _m
 	}
 	{
 		p.SetState(227)
 
-		var _m = p.Match(ApiParserParserT__7)
+		_m := p.Match(ApiParserParserT__7)
 
 		localctx.(*MapTypeContext).lbrack = _m
 	}
@@ -595,21 +594,21 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	{
 		p.SetState(229)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*MapTypeContext).key = _m
 	}
 	{
 		p.SetState(230)
 
-		var _m = p.Match(ApiParserParserT__8)
+		_m := p.Match(ApiParserParserT__8)
 
 		localctx.(*MapTypeContext).rbrack = _m
 	}
 	{
 		p.SetState(231)
 
-		var _x = p.DataType()
+		_x := p.DataType()
 
 		localctx.(*MapTypeContext).value = _x
 	}

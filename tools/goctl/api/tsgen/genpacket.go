@@ -1,26 +1,24 @@
 package tsgen
 
 import (
+	_ "embed"
 	"fmt"
 	"path"
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	apiutil "github.com/tal-tech/go-zero/tools/goctl/api/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const (
-	handlerTemplate = `{{.imports}}
-
-{{.apis}}
-`
-)
+//go:embed handler.tpl
+var handlerTemplate string
 
 func genHandler(dir, webAPI, caller string, api *spec.ApiSpec, unwrapAPI bool) error {
 	filename := strings.Replace(api.Service.Name, "-api", "", 1) + ".ts"
-	if err := util.RemoveIfExist(path.Join(dir, filename)); err != nil {
+	if err := pathx.RemoveIfExist(path.Join(dir, filename)); err != nil {
 		return err
 	}
 	fp, created, err := apiutil.MaybeCreateFile(dir, "", filename)
@@ -46,11 +44,11 @@ func genHandler(dir, webAPI, caller string, api *spec.ApiSpec, unwrapAPI bool) e
 
 	if len(api.Types) != 0 {
 		if len(imports) > 0 {
-			imports += util.NL
+			imports += pathx.NL
 		}
 		outputFile := apiutil.ComponentName(api)
 		imports += fmt.Sprintf(`import * as components from "%s"`, "./"+outputFile)
-		imports += fmt.Sprintf(`%sexport * from "%s"`, util.NL, "./"+outputFile)
+		imports += fmt.Sprintf(`%sexport * from "%s"`, pathx.NL, "./"+outputFile)
 	}
 
 	apis, err := genAPI(api, caller)

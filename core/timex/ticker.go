@@ -4,8 +4,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/lang"
 )
+
+// errTimeout indicates a timeout.
+var errTimeout = errors.New("timeout")
 
 type (
 	// Ticker interface wraps the Chan and Stop methods.
@@ -64,13 +67,13 @@ func (ft *fakeTicker) Stop() {
 }
 
 func (ft *fakeTicker) Tick() {
-	ft.c <- Time()
+	ft.c <- time.Now()
 }
 
 func (ft *fakeTicker) Wait(d time.Duration) error {
 	select {
 	case <-time.After(d):
-		return errors.New("timeout")
+		return errTimeout
 	case <-ft.done:
 		return nil
 	}

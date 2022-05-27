@@ -9,11 +9,11 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	"github.com/tal-tech/go-zero/tools/goctl/api/spec"
-	"github.com/tal-tech/go-zero/tools/goctl/api/util"
-	ctlutil "github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 type fileGenConfig struct {
@@ -41,7 +41,7 @@ func genFile(c fileGenConfig) error {
 	if len(c.category) == 0 || len(c.templateFile) == 0 {
 		text = c.builtinTemplate
 	} else {
-		text, err = ctlutil.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
+		text, err = pathx.LoadTemplate(c.category, c.templateFile, c.builtinTemplate)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func getParentPackage(dir string) (string, error) {
 	// fix https://github.com/zeromicro/go-zero/issues/1058
 	wd := projectCtx.WorkDir
 	d := projectCtx.Dir
-	same, err := ctlutil.SameFile(wd, d)
+	same, err := pathx.SameFile(wd, d)
 	if err != nil {
 		return "", err
 	}
@@ -109,6 +109,17 @@ func getAuths(api *spec.ApiSpec) []string {
 		}
 	}
 	return authNames.KeysStr()
+}
+
+func getJwtTrans(api *spec.ApiSpec) []string {
+	jwtTransList := collection.NewSet()
+	for _, g := range api.Service.Groups {
+		jt := g.GetAnnotation(jwtTransKey)
+		if len(jt) > 0 {
+			jwtTransList.Add(jt)
+		}
+	}
+	return jwtTransList.KeysStr()
 }
 
 func getMiddleware(api *spec.ApiSpec) []string {

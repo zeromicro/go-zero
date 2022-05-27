@@ -6,16 +6,25 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
-	"github.com/tal-tech/go-zero/tools/goctl/vars"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const (
-	bin            = "bin"
-	binGo          = "go"
-	binProtoc      = "protoc"
-	binProtocGenGo = "protoc-gen-go"
+	bin                = "bin"
+	binGo              = "go"
+	binProtoc          = "protoc"
+	binProtocGenGo     = "protoc-gen-go"
+	binProtocGenGrpcGo = "protoc-gen-go-grpc"
+	cstOffset          = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
+
+// InChina returns whether the current time is in China Standard Time.
+func InChina() bool {
+	_, offset := time.Now().Zone()
+	return offset == cstOffset
+}
 
 // LookUpGo searches an executable go in the directories
 // named by the GOROOT/bin or PATH environment variable.
@@ -44,6 +53,14 @@ func LookUpProtocGenGo() (string, error) {
 	suffix := getExeSuffix()
 	xProtocGenGo := binProtocGenGo + suffix
 	return LookPath(xProtocGenGo)
+}
+
+// LookUpProtocGenGoGrpc searches an executable protoc-gen-go-grpc in the directories
+// named by the PATH environment variable.
+func LookUpProtocGenGoGrpc() (string, error) {
+	suffix := getExeSuffix()
+	xProtocGenGoGrpc := binProtocGenGrpcGo + suffix
+	return LookPath(xProtocGenGoGrpc)
 }
 
 // LookPath searches for an executable named file in the

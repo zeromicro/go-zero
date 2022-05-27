@@ -41,7 +41,7 @@ type ArrayTypeContext struct {
 }
 
 func NewEmptyArrayTypeContext() *ArrayTypeContext {
-	var p = new(ArrayTypeContext)
+	p := new(ArrayTypeContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_arrayType
 	return p
@@ -50,7 +50,7 @@ func NewEmptyArrayTypeContext() *ArrayTypeContext {
 func (*ArrayTypeContext) IsArrayTypeContext() {}
 
 func NewArrayTypeContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ArrayTypeContext {
-	var p = new(ArrayTypeContext)
+	p := new(ArrayTypeContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -71,7 +71,7 @@ func (s *ArrayTypeContext) SetLbrack(v antlr.Token) { s.lbrack = v }
 func (s *ArrayTypeContext) SetRbrack(v antlr.Token) { s.rbrack = v }
 
 func (s *ArrayTypeContext) DataType() IDataTypeContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IDataTypeContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -122,14 +122,14 @@ func (p *ApiParserParser) ArrayType() (localctx IArrayTypeContext) {
 	{
 		p.SetState(233)
 
-		var _m = p.Match(ApiParserParserT__7)
+		_m := p.Match(ApiParserParserT__7)
 
 		localctx.(*ArrayTypeContext).lbrack = _m
 	}
 	{
 		p.SetState(234)
 
-		var _m = p.Match(ApiParserParserT__8)
+		_m := p.Match(ApiParserParserT__8)
 
 		localctx.(*ArrayTypeContext).rbrack = _m
 	}
@@ -158,7 +158,7 @@ type ServiceSpecContext struct {
 }
 
 func NewEmptyServiceSpecContext() *ServiceSpecContext {
-	var p = new(ServiceSpecContext)
+	p := new(ServiceSpecContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_serviceSpec
 	return p
@@ -167,7 +167,7 @@ func NewEmptyServiceSpecContext() *ServiceSpecContext {
 func (*ServiceSpecContext) IsServiceSpecContext() {}
 
 func NewServiceSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ServiceSpecContext {
-	var p = new(ServiceSpecContext)
+	p := new(ServiceSpecContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -180,7 +180,7 @@ func NewServiceSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, 
 func (s *ServiceSpecContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ServiceSpecContext) ServiceApi() IServiceApiContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IServiceApiContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IServiceApiContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -190,7 +190,7 @@ func (s *ServiceSpecContext) ServiceApi() IServiceApiContext {
 }
 
 func (s *ServiceSpecContext) AtServer() IAtServerContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IAtServerContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -248,7 +248,6 @@ func (p *ApiParserParser) ServiceSpec() (localctx IServiceSpecContext) {
 			p.SetState(237)
 			p.AtServer()
 		}
-
 	}
 	{
 		p.SetState(240)
@@ -289,7 +288,7 @@ type AtServerContext struct {
 }
 
 func NewEmptyAtServerContext() *AtServerContext {
-	var p = new(AtServerContext)
+	p := new(AtServerContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_atServer
 	return p
@@ -298,7 +297,7 @@ func NewEmptyAtServerContext() *AtServerContext {
 func (*AtServerContext) IsAtServerContext() {}
 
 func NewAtServerContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *AtServerContext {
-	var p = new(AtServerContext)
+	p := new(AtServerContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -323,8 +322,8 @@ func (s *AtServerContext) ATSERVER() antlr.TerminalNode {
 }
 
 func (s *AtServerContext) AllKvLit() []IKvLitContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
-	var tst = make([]IKvLitContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
+	tst := make([]IKvLitContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -336,7 +335,7 @@ func (s *AtServerContext) AllKvLit() []IKvLitContext {
 }
 
 func (s *AtServerContext) KvLit(i int) IKvLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -392,7 +391,7 @@ func (p *ApiParserParser) AtServer() (localctx IAtServerContext) {
 	{
 		p.SetState(243)
 
-		var _m = p.Match(ApiParserParserT__1)
+		_m := p.Match(ApiParserParserT__1)
 
 		localctx.(*AtServerContext).lp = _m
 	}
@@ -412,7 +411,7 @@ func (p *ApiParserParser) AtServer() (localctx IAtServerContext) {
 	{
 		p.SetState(249)
 
-		var _m = p.Match(ApiParserParserT__2)
+		_m := p.Match(ApiParserParserT__2)
 
 		localctx.(*AtServerContext).rp = _m
 	}
@@ -458,7 +457,7 @@ type ServiceApiContext struct {
 }
 
 func NewEmptyServiceApiContext() *ServiceApiContext {
-	var p = new(ServiceApiContext)
+	p := new(ServiceApiContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_serviceApi
 	return p
@@ -467,7 +466,7 @@ func NewEmptyServiceApiContext() *ServiceApiContext {
 func (*ServiceApiContext) IsServiceApiContext() {}
 
 func NewServiceApiContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ServiceApiContext {
-	var p = new(ServiceApiContext)
+	p := new(ServiceApiContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -492,7 +491,7 @@ func (s *ServiceApiContext) SetLbrace(v antlr.Token) { s.lbrace = v }
 func (s *ServiceApiContext) SetRbrace(v antlr.Token) { s.rbrace = v }
 
 func (s *ServiceApiContext) ServiceName() IServiceNameContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IServiceNameContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IServiceNameContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -506,8 +505,8 @@ func (s *ServiceApiContext) ID() antlr.TerminalNode {
 }
 
 func (s *ServiceApiContext) AllServiceRoute() []IServiceRouteContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IServiceRouteContext)(nil)).Elem())
-	var tst = make([]IServiceRouteContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IServiceRouteContext)(nil)).Elem())
+	tst := make([]IServiceRouteContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -519,7 +518,7 @@ func (s *ServiceApiContext) AllServiceRoute() []IServiceRouteContext {
 }
 
 func (s *ServiceApiContext) ServiceRoute(i int) IServiceRouteContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IServiceRouteContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IServiceRouteContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -572,7 +571,7 @@ func (p *ApiParserParser) ServiceApi() (localctx IServiceApiContext) {
 	{
 		p.SetState(252)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*ServiceApiContext).serviceToken = _m
 	}
@@ -583,7 +582,7 @@ func (p *ApiParserParser) ServiceApi() (localctx IServiceApiContext) {
 	{
 		p.SetState(254)
 
-		var _m = p.Match(ApiParserParserT__3)
+		_m := p.Match(ApiParserParserT__3)
 
 		localctx.(*ServiceApiContext).lbrace = _m
 	}
@@ -604,7 +603,7 @@ func (p *ApiParserParser) ServiceApi() (localctx IServiceApiContext) {
 	{
 		p.SetState(261)
 
-		var _m = p.Match(ApiParserParserT__4)
+		_m := p.Match(ApiParserParserT__4)
 
 		localctx.(*ServiceApiContext).rbrace = _m
 	}

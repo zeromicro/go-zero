@@ -13,9 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tal-tech/go-zero/core/fs"
-	"github.com/tal-tech/go-zero/core/lang"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/zeromicro/go-zero/core/fs"
+	"github.com/zeromicro/go-zero/core/lang"
 )
 
 const (
@@ -211,6 +210,12 @@ func (l *RotateLogger) maybeCompressFile(file string) {
 			ErrorStack(r)
 		}
 	}()
+
+	if _, err := os.Stat(file); err != nil {
+		// file not exists or other error, ignore compression
+		return
+	}
+
 	compressLogFile(file)
 }
 
@@ -290,12 +295,12 @@ func (l *RotateLogger) write(v []byte) {
 }
 
 func compressLogFile(file string) {
-	start := timex.Now()
+	start := time.Now()
 	Infof("compressing log file: %s", file)
 	if err := gzipFile(file); err != nil {
 		Errorf("compress error: %s", err)
 	} else {
-		Infof("compressed log file: %s, took %s", file, timex.Since(start))
+		Infof("compressed log file: %s, took %s", file, time.Since(start))
 	}
 }
 

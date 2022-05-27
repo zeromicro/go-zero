@@ -871,3 +871,50 @@ func TestUnmarshalReaderError(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.True(t, strings.Contains(err.Error(), payload))
 }
+
+func TestUnmarshalMap(t *testing.T) {
+	t.Run("nil map and valid", func(t *testing.T) {
+		var m map[string]interface{}
+		var v struct {
+			Any string `json:",optional"`
+		}
+
+		err := UnmarshalJsonMap(m, &v)
+		assert.Nil(t, err)
+		assert.True(t, len(v.Any) == 0)
+	})
+
+	t.Run("empty map but not valid", func(t *testing.T) {
+		m := map[string]interface{}{}
+		var v struct {
+			Any string
+		}
+
+		err := UnmarshalJsonMap(m, &v)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("empty map and valid", func(t *testing.T) {
+		m := map[string]interface{}{}
+		var v struct {
+			Any string `json:",optional"`
+		}
+
+		err := UnmarshalJsonMap(m, &v)
+		assert.Nil(t, err)
+		assert.True(t, len(v.Any) == 0)
+	})
+
+	t.Run("valid map", func(t *testing.T) {
+		m := map[string]interface{}{
+			"Any": "foo",
+		}
+		var v struct {
+			Any string
+		}
+
+		err := UnmarshalJsonMap(m, &v)
+		assert.Nil(t, err)
+		assert.Equal(t, "foo", v.Any)
+	})
+}

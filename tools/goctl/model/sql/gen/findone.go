@@ -1,14 +1,15 @@
 package gen
 
 import (
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 func genFindOne(table Table, withCache, postgreSql bool) (string, string, error) {
 	camel := table.Name.ToCamel()
-	text, err := util.LoadTemplate(category, findOneTemplateFile, template.FindOne)
+	text, err := pathx.LoadTemplate(category, findOneTemplateFile, template.FindOne)
 	if err != nil {
 		return "", "", err
 	}
@@ -20,17 +21,18 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 			"upperStartCamelObject":     camel,
 			"lowerStartCamelObject":     stringx.From(camel).Untitle(),
 			"originalPrimaryKey":        wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
-			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
+			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),
 			"dataType":                  table.PrimaryKey.DataType,
 			"cacheKey":                  table.PrimaryCacheKey.KeyExpression,
 			"cacheKeyVariable":          table.PrimaryCacheKey.KeyLeft,
 			"postgreSql":                postgreSql,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err
 	}
 
-	text, err = util.LoadTemplate(category, findOneMethodTemplateFile, template.FindOneMethod)
+	text, err = pathx.LoadTemplate(category, findOneMethodTemplateFile, template.FindOneMethod)
 	if err != nil {
 		return "", "", err
 	}
@@ -39,8 +41,9 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 		Parse(text).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
-			"lowerStartCamelPrimaryKey": stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle(),
+			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),
 			"dataType":                  table.PrimaryKey.DataType,
+			"data":                      table,
 		})
 	if err != nil {
 		return "", "", err

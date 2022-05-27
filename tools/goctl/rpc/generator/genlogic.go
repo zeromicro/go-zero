@@ -1,55 +1,33 @@
 package generator
 
 import (
+	_ "embed"
 	"fmt"
 	"path/filepath"
 	"strings"
 
-	"github.com/tal-tech/go-zero/core/collection"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/rpc/parser"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/format"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/core/collection"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
-const (
-	logicTemplate = `package logic
-
-import (
-	"context"
-
-	{{.imports}}
-
-	"github.com/tal-tech/go-zero/core/logx"
-)
-
-type {{.logicName}} struct {
-	ctx    context.Context
-	svcCtx *svc.ServiceContext
-	logx.Logger
-}
-
-func New{{.logicName}}(ctx context.Context,svcCtx *svc.ServiceContext) *{{.logicName}} {
-	return &{{.logicName}}{
-		ctx:    ctx,
-		svcCtx: svcCtx,
-		Logger: logx.WithContext(ctx),
-	}
-}
-{{.functions}}
-`
-	logicFunctionTemplate = `{{if .hasComment}}{{.comment}}{{end}}
+const logicFunctionTemplate = `{{if .hasComment}}{{.comment}}{{end}}
 func (l *{{.logicName}}) {{.method}} ({{if .hasReq}}in {{.request}}{{if .stream}},stream {{.streamBody}}{{end}}{{else}}stream {{.streamBody}}{{end}}) ({{if .hasReply}}{{.response}},{{end}} error) {
 	// todo: add your logic here and delete this line
 	
 	return {{if .hasReply}}&{{.responseType}}{},{{end}} nil
 }
 `
-)
+
+//go:embed logic.tpl
+var logicTemplate string
 
 // GenLogic generates the logic file of the rpc service, which corresponds to the RPC definition items in proto.
-func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	service := proto.Service.Service.Name
 	for _, rpc := range proto.Service.RPC {
@@ -67,14 +45,14 @@ func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *con
 		imports := collection.NewSet()
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
 		imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
-		text, err := util.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
+		text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
 		if err != nil {
 			return err
 		}
 		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 			"logicName": fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions": functions,
-			"imports":   strings.Join(imports.KeysStr(), util.NL),
+			"imports":   strings.Join(imports.KeysStr(), pathx.NL),
 		}, filename, false)
 		if err != nil {
 			return err
@@ -83,9 +61,9 @@ func (g *DefaultGenerator) GenLogic(ctx DirContext, proto parser.Proto, cfg *con
 	return nil
 }
 
-func (g *DefaultGenerator) genLogicFunction(serviceName, goPackage string, rpc *parser.RPC) (string, error) {
+func (g *Generator) genLogicFunction(serviceName, goPackage string, rpc *parser.RPC) (string, error) {
 	functions := make([]string, 0)
-	text, err := util.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
+	text, err := pathx.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
 	if err != nil {
 		return "", err
 	}
@@ -111,5 +89,5 @@ func (g *DefaultGenerator) genLogicFunction(serviceName, goPackage string, rpc *
 	}
 
 	functions = append(functions, buffer.String())
-	return strings.Join(functions, util.NL), nil
+	return strings.Join(functions, pathx.NL), nil
 }

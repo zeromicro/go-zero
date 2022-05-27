@@ -3,27 +3,34 @@ package gogen
 import (
 	"fmt"
 
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
-	category            = "api"
-	configTemplateFile  = "config.tpl"
-	contextTemplateFile = "context.tpl"
-	etcTemplateFile     = "etc.tpl"
-	handlerTemplateFile = "handler.tpl"
-	logicTemplateFile   = "logic.tpl"
-	mainTemplateFile    = "main.tpl"
+	category                    = "api"
+	configTemplateFile          = "config.tpl"
+	contextTemplateFile         = "context.tpl"
+	etcTemplateFile             = "etc.tpl"
+	handlerTemplateFile         = "handler.tpl"
+	logicTemplateFile           = "logic.tpl"
+	mainTemplateFile            = "main.tpl"
+	middlewareImplementCodeFile = "middleware.tpl"
+	routesTemplateFile          = "routes.tpl"
+	routesAdditionTemplateFile  = "route-addition.tpl"
+	typesTemplateFile           = "types.tpl"
 )
 
 var templates = map[string]string{
-	configTemplateFile:  configTemplate,
-	contextTemplateFile: contextTemplate,
-	etcTemplateFile:     etcTemplate,
-	handlerTemplateFile: handlerTemplate,
-	logicTemplateFile:   logicTemplate,
-	mainTemplateFile:    mainTemplate,
+	configTemplateFile:          configTemplate,
+	contextTemplateFile:         contextTemplate,
+	etcTemplateFile:             etcTemplate,
+	handlerTemplateFile:         handlerTemplate,
+	logicTemplateFile:           logicTemplate,
+	mainTemplateFile:            mainTemplate,
+	middlewareImplementCodeFile: middlewareImplementCode,
+	routesTemplateFile:          routesTemplate,
+	routesAdditionTemplateFile:  routesAdditionTemplate,
+	typesTemplateFile:           typesTemplate,
 }
 
 // Category returns the category of the api files.
@@ -33,12 +40,12 @@ func Category() string {
 
 // Clean cleans the generated deployment files.
 func Clean() error {
-	return util.Clean(category)
+	return pathx.Clean(category)
 }
 
 // GenTemplates generates api template files.
-func GenTemplates(_ *cli.Context) error {
-	return util.InitTemplates(category, templates)
+func GenTemplates() error {
+	return pathx.InitTemplates(category, templates)
 }
 
 // RevertTemplate reverts the given template file to the default value.
@@ -47,7 +54,7 @@ func RevertTemplate(name string) error {
 	if !ok {
 		return fmt.Errorf("%s: no such file name", name)
 	}
-	return util.CreateTemplate(category, name, content)
+	return pathx.CreateTemplate(category, name, content)
 }
 
 // Update updates the template files to the templates built in current goctl.
@@ -57,5 +64,5 @@ func Update() error {
 		return err
 	}
 
-	return util.InitTemplates(category, templates)
+	return pathx.InitTemplates(category, templates)
 }

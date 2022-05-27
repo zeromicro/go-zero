@@ -73,6 +73,54 @@ func TestFormat(t *testing.T) {
 			args:   []interface{}{"133", false},
 			hasErr: true,
 		},
+		{
+			name:   "oracle normal",
+			query:  "select name, age from users where bool=:1 and phone=:2",
+			args:   []interface{}{true, "133"},
+			expect: "select name, age from users where bool=1 and phone='133'",
+		},
+		{
+			name:   "oracle normal reverse",
+			query:  "select name, age from users where bool=:2 and phone=:1",
+			args:   []interface{}{"133", false},
+			expect: "select name, age from users where bool=0 and phone='133'",
+		},
+		{
+			name:   "oracle error not number",
+			query:  "select name, age from users where bool=:a and phone=:1",
+			args:   []interface{}{"133", false},
+			hasErr: true,
+		},
+		{
+			name:   "oracle error more args",
+			query:  "select name, age from users where bool=:2 and phone=:1 and nickname=:3",
+			args:   []interface{}{"133", false},
+			hasErr: true,
+		},
+		{
+			name:   "select with date",
+			query:  "select * from user where date='2006-01-02 15:04:05' and name=:1",
+			args:   []interface{}{"foo"},
+			expect: "select * from user where date='2006-01-02 15:04:05' and name='foo'",
+		},
+		{
+			name:   "select with date and escape",
+			query:  `select * from user where date=' 2006-01-02 15:04:05 \'' and name=:1`,
+			args:   []interface{}{"foo"},
+			expect: `select * from user where date=' 2006-01-02 15:04:05 \'' and name='foo'`,
+		},
+		{
+			name:   "select with date and bad arg",
+			query:  `select * from user where date='2006-01-02 15:04:05 \'' and name=:a`,
+			args:   []interface{}{"foo"},
+			hasErr: true,
+		},
+		{
+			name:   "select with date and escape error",
+			query:  `select * from user where date='2006-01-02 15:04:05 \`,
+			args:   []interface{}{"foo"},
+			hasErr: true,
+		},
 	}
 
 	for _, test := range tests {
@@ -84,6 +132,7 @@ func TestFormat(t *testing.T) {
 			if test.hasErr {
 				assert.NotNil(t, err)
 			} else {
+				assert.Nil(t, err)
 				assert.Equal(t, test.expect, actual)
 			}
 		})

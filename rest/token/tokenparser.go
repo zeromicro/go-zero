@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/golang-jwt/jwt"
-	"github.com/golang-jwt/jwt/request"
-	"github.com/tal-tech/go-zero/core/timex"
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v4/request"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const claimHistoryResetDuration = time.Hour * 24
@@ -120,7 +120,5 @@ func WithResetDuration(duration time.Duration) ParseOption {
 }
 
 func newParser() *jwt.Parser {
-	return &jwt.Parser{
-		UseJSONNumber: true,
-	}
+	return jwt.NewParser(jwt.WithJSONNumber())
 }

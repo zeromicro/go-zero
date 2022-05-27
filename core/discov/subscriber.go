@@ -4,8 +4,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/tal-tech/go-zero/core/discov/internal"
-	"github.com/tal-tech/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/discov/internal"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 type (
@@ -58,9 +59,17 @@ func Exclusive() SubOption {
 	}
 }
 
+// WithSubEtcdAccount provides the etcd username/password.
 func WithSubEtcdAccount(user, pass string) SubOption {
 	return func(sub *Subscriber) {
-		internal.AddAccount(sub.endpoints, user, pass)
+		RegisterAccount(sub.endpoints, user, pass)
+	}
+}
+
+// WithSubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
+func WithSubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) SubOption {
+	return func(sub *Subscriber) {
+		logx.Must(RegisterTLS(sub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }
 

@@ -3,10 +3,6 @@ package syncx
 import "sync"
 
 type (
-	// SharedCalls is an alias of SingleFlight.
-	// Deprecated: use SingleFlight.
-	SharedCalls = SingleFlight
-
 	// SingleFlight lets the concurrent calls with the same key to share the call result.
 	// For example, A called F, before it's done, B called F. Then B would not execute F,
 	// and shared the result returned by F which called by A.
@@ -35,12 +31,6 @@ func NewSingleFlight() SingleFlight {
 	return &flightGroup{
 		calls: make(map[string]*call),
 	}
-}
-
-// NewSharedCalls returns a SingleFlight.
-// Deprecated: use NewSingleFlight.
-func NewSharedCalls() SingleFlight {
-	return NewSingleFlight()
 }
 
 func (g *flightGroup) Do(key string, fn func() (interface{}, error)) (interface{}, error) {

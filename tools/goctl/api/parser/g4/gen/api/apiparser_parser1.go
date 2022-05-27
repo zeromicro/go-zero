@@ -75,14 +75,14 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	{
 		p.SetState(88)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*SyntaxLitContext).syntaxToken = _m
 	}
 	{
 		p.SetState(89)
 
-		var _m = p.Match(ApiParserParserT__0)
+		_m := p.Match(ApiParserParserT__0)
 
 		localctx.(*SyntaxLitContext).assign = _m
 	}
@@ -90,7 +90,7 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	{
 		p.SetState(91)
 
-		var _m = p.Match(ApiParserParserSTRING)
+		_m := p.Match(ApiParserParserSTRING)
 
 		localctx.(*SyntaxLitContext).version = _m
 	}
@@ -115,7 +115,7 @@ type ImportSpecContext struct {
 }
 
 func NewEmptyImportSpecContext() *ImportSpecContext {
-	var p = new(ImportSpecContext)
+	p := new(ImportSpecContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importSpec
 	return p
@@ -124,7 +124,7 @@ func NewEmptyImportSpecContext() *ImportSpecContext {
 func (*ImportSpecContext) IsImportSpecContext() {}
 
 func NewImportSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportSpecContext {
-	var p = new(ImportSpecContext)
+	p := new(ImportSpecContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -137,7 +137,7 @@ func NewImportSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, i
 func (s *ImportSpecContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportSpecContext) ImportLit() IImportLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportLitContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportLitContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -147,7 +147,7 @@ func (s *ImportSpecContext) ImportLit() IImportLitContext {
 }
 
 func (s *ImportSpecContext) ImportBlock() IImportBlockContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -240,7 +240,7 @@ type ImportLitContext struct {
 }
 
 func NewEmptyImportLitContext() *ImportLitContext {
-	var p = new(ImportLitContext)
+	p := new(ImportLitContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importLit
 	return p
@@ -249,7 +249,7 @@ func NewEmptyImportLitContext() *ImportLitContext {
 func (*ImportLitContext) IsImportLitContext() {}
 
 func NewImportLitContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportLitContext {
-	var p = new(ImportLitContext)
+	p := new(ImportLitContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -266,7 +266,7 @@ func (s *ImportLitContext) GetImportToken() antlr.Token { return s.importToken }
 func (s *ImportLitContext) SetImportToken(v antlr.Token) { s.importToken = v }
 
 func (s *ImportLitContext) ImportValue() IImportValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -322,7 +322,7 @@ func (p *ApiParserParser) ImportLit() (localctx IImportLitContext) {
 	{
 		p.SetState(98)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*ImportLitContext).importToken = _m
 	}
@@ -358,7 +358,7 @@ type ImportBlockContext struct {
 }
 
 func NewEmptyImportBlockContext() *ImportBlockContext {
-	var p = new(ImportBlockContext)
+	p := new(ImportBlockContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importBlock
 	return p
@@ -367,7 +367,7 @@ func NewEmptyImportBlockContext() *ImportBlockContext {
 func (*ImportBlockContext) IsImportBlockContext() {}
 
 func NewImportBlockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportBlockContext {
-	var p = new(ImportBlockContext)
+	p := new(ImportBlockContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -388,8 +388,8 @@ func (s *ImportBlockContext) ID() antlr.TerminalNode {
 }
 
 func (s *ImportBlockContext) AllImportBlockValue() []IImportBlockValueContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem())
-	var tst = make([]IImportBlockValueContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem())
+	tst := make([]IImportBlockValueContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -401,7 +401,7 @@ func (s *ImportBlockContext) AllImportBlockValue() []IImportBlockValueContext {
 }
 
 func (s *ImportBlockContext) ImportBlockValue(i int) IImportBlockValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportBlockValueContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -454,7 +454,7 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	{
 		p.SetState(102)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*ImportBlockContext).importToken = _m
 	}
@@ -500,7 +500,7 @@ type ImportBlockValueContext struct {
 }
 
 func NewEmptyImportBlockValueContext() *ImportBlockValueContext {
-	var p = new(ImportBlockValueContext)
+	p := new(ImportBlockValueContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importBlockValue
 	return p
@@ -509,7 +509,7 @@ func NewEmptyImportBlockValueContext() *ImportBlockValueContext {
 func (*ImportBlockValueContext) IsImportBlockValueContext() {}
 
 func NewImportBlockValueContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportBlockValueContext {
-	var p = new(ImportBlockValueContext)
+	p := new(ImportBlockValueContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -522,7 +522,7 @@ func NewImportBlockValueContext(parser antlr.Parser, parent antlr.ParserRuleCont
 func (s *ImportBlockValueContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *ImportBlockValueContext) ImportValue() IImportValueContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IImportValueContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -595,7 +595,7 @@ type ImportValueContext struct {
 }
 
 func NewEmptyImportValueContext() *ImportValueContext {
-	var p = new(ImportValueContext)
+	p := new(ImportValueContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_importValue
 	return p
@@ -604,7 +604,7 @@ func NewEmptyImportValueContext() *ImportValueContext {
 func (*ImportValueContext) IsImportValueContext() {}
 
 func NewImportValueContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ImportValueContext {
-	var p = new(ImportValueContext)
+	p := new(ImportValueContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 

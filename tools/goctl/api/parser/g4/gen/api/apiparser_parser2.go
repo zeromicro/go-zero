@@ -102,7 +102,7 @@ type InfoSpecContext struct {
 }
 
 func NewEmptyInfoSpecContext() *InfoSpecContext {
-	var p = new(InfoSpecContext)
+	p := new(InfoSpecContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_infoSpec
 	return p
@@ -111,7 +111,7 @@ func NewEmptyInfoSpecContext() *InfoSpecContext {
 func (*InfoSpecContext) IsInfoSpecContext() {}
 
 func NewInfoSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *InfoSpecContext {
-	var p = new(InfoSpecContext)
+	p := new(InfoSpecContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -140,8 +140,8 @@ func (s *InfoSpecContext) ID() antlr.TerminalNode {
 }
 
 func (s *InfoSpecContext) AllKvLit() []IKvLitContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
-	var tst = make([]IKvLitContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*IKvLitContext)(nil)).Elem())
+	tst := make([]IKvLitContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -153,7 +153,7 @@ func (s *InfoSpecContext) AllKvLit() []IKvLitContext {
 }
 
 func (s *InfoSpecContext) KvLit(i int) IKvLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*IKvLitContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -206,14 +206,14 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	{
 		p.SetState(117)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*InfoSpecContext).infoToken = _m
 	}
 	{
 		p.SetState(118)
 
-		var _m = p.Match(ApiParserParserT__1)
+		_m := p.Match(ApiParserParserT__1)
 
 		localctx.(*InfoSpecContext).lp = _m
 	}
@@ -233,7 +233,7 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	{
 		p.SetState(124)
 
-		var _m = p.Match(ApiParserParserT__2)
+		_m := p.Match(ApiParserParserT__2)
 
 		localctx.(*InfoSpecContext).rp = _m
 	}
@@ -258,7 +258,7 @@ type TypeSpecContext struct {
 }
 
 func NewEmptyTypeSpecContext() *TypeSpecContext {
-	var p = new(TypeSpecContext)
+	p := new(TypeSpecContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_typeSpec
 	return p
@@ -267,7 +267,7 @@ func NewEmptyTypeSpecContext() *TypeSpecContext {
 func (*TypeSpecContext) IsTypeSpecContext() {}
 
 func NewTypeSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *TypeSpecContext {
-	var p = new(TypeSpecContext)
+	p := new(TypeSpecContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -280,7 +280,7 @@ func NewTypeSpecContext(parser antlr.Parser, parent antlr.ParserRuleContext, inv
 func (s *TypeSpecContext) GetParser() antlr.Parser { return s.parser }
 
 func (s *TypeSpecContext) TypeLit() ITypeLitContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeLitContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*ITypeLitContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -290,7 +290,7 @@ func (s *TypeSpecContext) TypeLit() ITypeLitContext {
 }
 
 func (s *TypeSpecContext) TypeBlock() ITypeBlockContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeBlockContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*ITypeBlockContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -383,7 +383,7 @@ type TypeLitContext struct {
 }
 
 func NewEmptyTypeLitContext() *TypeLitContext {
-	var p = new(TypeLitContext)
+	p := new(TypeLitContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_typeLit
 	return p
@@ -392,7 +392,7 @@ func NewEmptyTypeLitContext() *TypeLitContext {
 func (*TypeLitContext) IsTypeLitContext() {}
 
 func NewTypeLitContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *TypeLitContext {
-	var p = new(TypeLitContext)
+	p := new(TypeLitContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -409,7 +409,7 @@ func (s *TypeLitContext) GetTypeToken() antlr.Token { return s.typeToken }
 func (s *TypeLitContext) SetTypeToken(v antlr.Token) { s.typeToken = v }
 
 func (s *TypeLitContext) TypeLitBody() ITypeLitBodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeLitBodyContext)(nil)).Elem(), 0)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*ITypeLitBodyContext)(nil)).Elem(), 0)
 
 	if t == nil {
 		return nil
@@ -465,7 +465,7 @@ func (p *ApiParserParser) TypeLit() (localctx ITypeLitContext) {
 	{
 		p.SetState(131)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*TypeLitContext).typeToken = _m
 	}
@@ -515,7 +515,7 @@ type TypeBlockContext struct {
 }
 
 func NewEmptyTypeBlockContext() *TypeBlockContext {
-	var p = new(TypeBlockContext)
+	p := new(TypeBlockContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = ApiParserParserRULE_typeBlock
 	return p
@@ -524,7 +524,7 @@ func NewEmptyTypeBlockContext() *TypeBlockContext {
 func (*TypeBlockContext) IsTypeBlockContext() {}
 
 func NewTypeBlockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *TypeBlockContext {
-	var p = new(TypeBlockContext)
+	p := new(TypeBlockContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -553,8 +553,8 @@ func (s *TypeBlockContext) ID() antlr.TerminalNode {
 }
 
 func (s *TypeBlockContext) AllTypeBlockBody() []ITypeBlockBodyContext {
-	var ts = s.GetTypedRuleContexts(reflect.TypeOf((*ITypeBlockBodyContext)(nil)).Elem())
-	var tst = make([]ITypeBlockBodyContext, len(ts))
+	ts := s.GetTypedRuleContexts(reflect.TypeOf((*ITypeBlockBodyContext)(nil)).Elem())
+	tst := make([]ITypeBlockBodyContext, len(ts))
 
 	for i, t := range ts {
 		if t != nil {
@@ -566,7 +566,7 @@ func (s *TypeBlockContext) AllTypeBlockBody() []ITypeBlockBodyContext {
 }
 
 func (s *TypeBlockContext) TypeBlockBody(i int) ITypeBlockBodyContext {
-	var t = s.GetTypedRuleContext(reflect.TypeOf((*ITypeBlockBodyContext)(nil)).Elem(), i)
+	t := s.GetTypedRuleContext(reflect.TypeOf((*ITypeBlockBodyContext)(nil)).Elem(), i)
 
 	if t == nil {
 		return nil
@@ -619,14 +619,14 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	{
 		p.SetState(135)
 
-		var _m = p.Match(ApiParserParserID)
+		_m := p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockContext).typeToken = _m
 	}
 	{
 		p.SetState(136)
 
-		var _m = p.Match(ApiParserParserT__1)
+		_m := p.Match(ApiParserParserT__1)
 
 		localctx.(*TypeBlockContext).lp = _m
 	}
@@ -647,7 +647,7 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	{
 		p.SetState(143)
 
-		var _m = p.Match(ApiParserParserT__2)
+		_m := p.Match(ApiParserParserT__2)
 
 		localctx.(*TypeBlockContext).rp = _m
 	}

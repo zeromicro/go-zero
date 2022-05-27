@@ -1,41 +1,39 @@
 package new
 
 import (
+	_ "embed"
 	"errors"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
-	"github.com/tal-tech/go-zero/tools/goctl/api/gogen"
-	conf "github.com/tal-tech/go-zero/tools/goctl/config"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/urfave/cli"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
+	conf "github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-const apiTemplate = `
-type Request {
-  Name string ` + "`" + `path:"name,options=you|me"` + "`" + ` 
-}
+//go:embed api.tpl
+var apiTemplate string
 
-type Response {
-  Message string ` + "`" + `json:"message"` + "`" + `
-}
-
-service {{.name}}-api {
-  @handler {{.handler}}Handler
-  get /from/:name(Request) returns (Response)
-}
-`
+var (
+	// VarStringHome describes the goctl home.
+	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the git branch.
+	VarStringBranch string
+	// VarStringStyle describes the style of output files.
+	VarStringStyle string
+)
 
 // CreateServiceCommand fast create service
-func CreateServiceCommand(c *cli.Context) error {
-	args := c.Args()
-	dirName := args.First()
-	if len(dirName) == 0 {
-		dirName = "greet"
+func CreateServiceCommand(args []string) error {
+	dirName := args[0]
+	if len(VarStringStyle) == 0 {
+		VarStringStyle = conf.DefaultFormat
 	}
-
 	if strings.Contains(dirName, "-") {
 		return errors.New("api new command service name not support strikethrough, because this will used by function name")
 	}
@@ -45,7 +43,7 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = util.MkdirIfNotExist(abs)
+	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
 	}
@@ -60,12 +58,18 @@ func CreateServiceCommand(c *cli.Context) error {
 
 	defer fp.Close()
 
-	home := c.String("home")
-	if len(home) > 0 {
-		util.RegisterGoctlHome(home)
+	if len(VarStringRemote) > 0 {
+		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
+		if len(repo) > 0 {
+			VarStringHome = repo
+		}
 	}
 
-	text, err := util.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	if len(VarStringHome) > 0 {
+		pathx.RegisterGoctlHome(VarStringHome)
+	}
+
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
 	if err != nil {
 		return err
 	}
@@ -78,6 +82,6 @@ func CreateServiceCommand(c *cli.Context) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, conf.DefaultFormat)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle)
 	return err
 }

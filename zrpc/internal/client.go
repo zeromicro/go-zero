@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tal-tech/go-zero/zrpc/internal/balancer/p2c"
-	"github.com/tal-tech/go-zero/zrpc/internal/clientinterceptors"
-	"github.com/tal-tech/go-zero/zrpc/resolver"
+	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
+	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -48,7 +49,10 @@ type (
 // NewClient returns a Client.
 func NewClient(target string, opts ...ClientOption) (Client, error) {
 	var cli client
-	opts = append([]ClientOption{WithDialOption(grpc.WithBalancerName(p2c.Name))}, opts...)
+
+	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name)
+	balancerOpt := WithDialOption(grpc.WithDefaultServiceConfig(svcCfg))
+	opts = append([]ClientOption{balancerOpt}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
 	}
@@ -68,7 +72,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 	var options []grpc.DialOption
 	if !cliOpts.Secure {
-		options = append([]grpc.DialOption(nil), grpc.WithInsecure())
+		options = append([]grpc.DialOption(nil), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	if !cliOpts.NonBlock {
@@ -124,6 +128,13 @@ func WithDialOption(opt grpc.DialOption) ClientOption {
 func WithNonBlock() ClientOption {
 	return func(options *ClientOptions) {
 		options.NonBlock = true
+	}
+}
+
+// WithStreamClientInterceptor returns a func to customize a ClientOptions with given interceptor.
+func WithStreamClientInterceptor(interceptor grpc.StreamClientInterceptor) ClientOption {
+	return func(options *ClientOptions) {
+		options.DialOptions = append(options.DialOptions, WithStreamClientInterceptors(interceptor))
 	}
 }
 

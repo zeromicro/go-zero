@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tal-tech/go-zero/tools/goctl/model/sql/template"
-	"github.com/tal-tech/go-zero/tools/goctl/util"
-	"github.com/tal-tech/go-zero/tools/goctl/util/stringx"
+	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
 
 type findOneCode struct {
@@ -16,7 +17,7 @@ type findOneCode struct {
 }
 
 func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, error) {
-	text, err := util.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
+	text, err := pathx.LoadTemplate(category, findOneByFieldTemplateFile, template.FindOneByField)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +40,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"upperStartCamelPrimaryKey": table.PrimaryKey.Name.ToCamel(),
 			"originalField":             originalFieldString,
 			"postgreSql":                postgreSql,
+			"data":                      table,
 		})
 		if err != nil {
 			return nil, err
@@ -47,7 +49,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 		list = append(list, output.String())
 	}
 
-	text, err = util.LoadTemplate(category, findOneByFieldMethodTemplateFile, template.FindOneByFieldMethod)
+	text, err = pathx.LoadTemplate(category, findOneByFieldMethodTemplateFile, template.FindOneByFieldMethod)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +59,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	for _, key := range table.UniqueCacheKey {
 		var inJoin, paramJoin Join
 		for _, f := range key.Fields {
-			param := stringx.From(f.Name.ToCamel()).Untitle()
+			param := util.EscapeGolangKeyword(stringx.From(f.Name.ToCamel()).Untitle())
 			inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 			paramJoin = append(paramJoin, param)
 		}
@@ -70,6 +72,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"upperStartCamelObject": camelTableName,
 			"upperField":            key.FieldNameJoin.Camel().With("").Source(),
 			"in":                    in,
+			"data":                  table,
 		})
 		if err != nil {
 			return nil, err
@@ -79,7 +82,8 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 	}
 
 	if withCache {
-		text, err := util.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile, template.FindOneByFieldExtraMethod)
+		text, err := pathx.LoadTemplate(category, findOneByFieldExtraMethodTemplateFile,
+			template.FindOneByFieldExtraMethod)
 		if err != nil {
 			return nil, err
 		}
@@ -90,28 +94,29 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),
 			"originalPrimaryField":  wrapWithRawString(table.PrimaryKey.Name.Source(), postgreSql),
 			"postgreSql":            postgreSql,
+			"data":                  table,
 		})
 		if err != nil {
 			return nil, err
 		}
 
 		return &findOneCode{
-			findOneMethod:          strings.Join(list, util.NL),
-			findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+			findOneMethod:          strings.Join(list, pathx.NL),
+			findOneInterfaceMethod: strings.Join(listMethod, pathx.NL),
 			cacheExtra:             out.String(),
 		}, nil
 	}
 
 	return &findOneCode{
-		findOneMethod:          strings.Join(list, util.NL),
-		findOneInterfaceMethod: strings.Join(listMethod, util.NL),
+		findOneMethod:          strings.Join(list, pathx.NL),
+		findOneInterfaceMethod: strings.Join(listMethod, pathx.NL),
 	}, nil
 }
 
 func convertJoin(key Key, postgreSql bool) (in, paramJoinString, originalFieldString string) {
 	var inJoin, paramJoin, argJoin Join
 	for index, f := range key.Fields {
-		param := stringx.From(f.Name.ToCamel()).Untitle()
+		param := util.EscapeGolangKeyword(stringx.From(f.Name.ToCamel()).Untitle())
 		inJoin = append(inJoin, fmt.Sprintf("%s %s", param, f.DataType))
 		paramJoin = append(paramJoin, param)
 		if postgreSql {

@@ -1,0 +1,36 @@
+info(
+    title: doc title
+desc: ">
+doc description first part,
+doc description second part<"
+version: 1.0
+)
+
+// TODO: test
+// {
+type Request struct {  // TODO: test
+                       // TODO
+    Name string `path:"name,options=you|me"`   // }
+} // TODO: test
+
+// TODO: test
+type Response struct {
+    Message string `json:"message"`
+}
+
+@server(
+    // C0
+    group: greet/s1
+)
+    // C1
+service A-api {
+    // C2
+    @server( // C3
+        handler: GreetHandler
+    )
+    get /greet/from/:name(Request) returns (Response)   // hello
+
+    // C4
+    @handler NoResponseHandler  // C5
+    get /greet/get(Request)
+}
