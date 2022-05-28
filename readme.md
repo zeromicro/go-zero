@@ -91,10 +91,9 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-## 4. Future development plans of go-zero
+## 4. The simplified architecture that we use with go-zero
 
-* auto-generate API mock server, make the client debugging easier
-* auto-generate the simple integration test for the server-side just from the .api files
+<img width="973" alt="image" src="https://user-images.githubusercontent.com/1918356/170813500-035e13f0-9775-4dc5-a33f-cd9d389219d1.png">
 
 ## 5. Installation
 
