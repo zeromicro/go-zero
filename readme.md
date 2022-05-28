@@ -121,6 +121,9 @@ go get -u github.com/zeromicro/go-zero
    
    # for Go 1.16 and later
    go install github.com/zeromicro/go-zero/tools/goctl@latest
+   
+   # For Mac
+   brew install goctl
 
    # docker for amd64 architecture
    docker pull kevinwan/goctl
