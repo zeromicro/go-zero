@@ -3,11 +3,9 @@ package gocligen
 import (
 	"errors"
 	"fmt"
-	"os"
-	"path"
-
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -17,23 +15,34 @@ import (
 )
 
 var (
-	tmpDir = path.Join(os.TempDir(), "goctl")
 	// VarStringDir describes the directory.
 	VarStringDir string
 	// VarStringAPI describes the API.
 	VarStringAPI string
 	// VarStringHome describes the go home.
 	VarStringHome string
+	// VarStringRemote describes the remote git repository.
+	VarStringRemote string
+	// VarStringBranch describes the branch.
+	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
 )
 
-// GoCliCommand gen go cli project files from command line
+// GoCliCommand gen go cli project files from command line.
 func GoCliCommand(_ *cobra.Command, _ []string) error {
 	apiFile := VarStringAPI
 	dir := VarStringDir
 	home := VarStringHome
 	namingStyle := VarStringStyle
+	remote := VarStringRemote
+	branch := VarStringBranch
+	if len(remote) > 0 {
+		repo, _ := util.CloneIntoGitHome(remote, branch)
+		if len(repo) > 0 {
+			home = repo
+		}
+	}
 
 	if len(home) > 0 {
 		pathx.RegisterGoctlHome(home)

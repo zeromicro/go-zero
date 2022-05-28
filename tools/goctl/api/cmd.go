@@ -141,6 +141,14 @@ func init() {
 	goCliCmd.Flags().StringVar(&gocligen.VarStringHome, "home", "", "The goctl home path of "+
 		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
 		"has higher priority")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringRemote, "remote", "", "The remote git repo "+
+		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
+		" has higher priority\n\tThe git repo directory must be consistent with the "+
+		"https://github.com/zeromicro/go-zero-template directory structure")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringBranch, "branch", "master", "The branch of "+
+		"the remote repo, it does work with --remote")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringStyle, "style", "gozero", "The file naming format,"+
+		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
 	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")

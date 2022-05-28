@@ -49,6 +49,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		requestString   string
 		returnErrString string
 		method          string
+		httpRequest     string
 	)
 
 	if len(route.ResponseTypeName()) > 0 {
@@ -66,6 +67,9 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 	if len(route.RequestTypeName()) > 0 {
 		requestString = "req *" + requestGoTypeName(route, typesPacket)
+		httpRequest = "req"
+	} else {
+		httpRequest = "nil"
 	}
 	switch route.Method {
 	case "get":
@@ -94,6 +98,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"returnString":    returnString,
 			"returnErrString": returnErrString,
 			"request":         requestString,
+			"httpRequest":     httpRequest,
 			"method":          method,
 			"route":           route.Path,
 		},
@@ -118,7 +123,7 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	imports = append(imports, `"context"`)
 	imports = append(imports, `"fmt"`)
 	imports = append(imports, `"net/http"`)
-	imports = append(imports, `"strings"`+"\n")
+	imports = append(imports, `"net/url"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handleResponseDir)))
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
