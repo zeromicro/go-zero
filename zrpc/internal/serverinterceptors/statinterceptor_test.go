@@ -30,17 +30,6 @@ func TestUnaryStatInterceptor(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestUnaryStatInterceptor_crash(t *testing.T) {
-	metrics := stat.NewMetrics("mock")
-	interceptor := UnaryStatInterceptor(metrics)
-	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
-		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
-		panic("error")
-	})
-	assert.NotNil(t, err)
-}
-
 func TestLogDuration(t *testing.T) {
 	addrs, err := net.InterfaceAddrs()
 	assert.Nil(t, err)
