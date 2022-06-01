@@ -98,6 +98,10 @@ func TestRotateLoggerRotate(t *testing.T) {
 	case *os.LinkError:
 		// avoid rename error on docker container
 		assert.Equal(t, syscall.EXDEV, v.Err)
+	case *os.PathError:
+		// ignore remove error for tests,
+		// files are cleaned in GitHub actions.
+		assert.Equal(t, "remove", v.Op)
 	default:
 		assert.Nil(t, err)
 	}
