@@ -80,6 +80,7 @@ func DoGenProject(apiFile, dir, style string) error {
 	}
 
 	logx.Must(genTypes(dir, cfg, api))
+	logx.Must(genClientContext(dir, cfg, api))
 	logx.Must(genHandleResponse(dir, cfg))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 

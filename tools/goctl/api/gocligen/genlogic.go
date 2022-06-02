@@ -15,7 +15,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 //go:embed logic.tpl
@@ -58,11 +57,11 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 
 		respTypeName := getGoTypeName(resp)
 		returnString = fmt.Sprintf(
-			"var data = &%s{}\n\terr = handleresponse.HandleResponse(resp, data)\n\treturn data, err", respTypeName)
+			"var data = &%s{}\n\terr = cc.HandleResponse(resp, data)\n\treturn data, err", respTypeName)
 		returnErrString = "return nil, err"
 	} else {
 		responseString = "error"
-		returnString = "return handleresponse.HandleResponse(resp, nil)"
+		returnString = "return cc.HandleResponse(resp, nil)"
 		returnErrString = "return nil"
 	}
 	if len(route.RequestTypeName()) > 0 {
@@ -121,14 +120,11 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, `"context"`)
-	imports = append(imports, `"fmt"`)
-	imports = append(imports, `"net/http"`)
-	imports = append(imports, `"net/url"`+"\n")
-	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handleResponseDir)))
+	imports = append(imports, `"fmt"`+"\n")
+	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, clientContextDir)))
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpc\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }
 

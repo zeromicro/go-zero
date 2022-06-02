@@ -10,7 +10,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
-const handleResponseFile = "handleresponse"
+const (
+	handleResponsePackage = "svc"
+	handleResponseFile    = "handleresponse"
+)
 
 //go:embed handleresponse.tpl
 var handleResponseTemplate string
@@ -36,7 +39,7 @@ func genHandleResponse(dir string, cfg *config.Config) error {
 		templateFile:    handleResponseTemplateFile,
 		builtinTemplate: handleResponseTemplate,
 		data: map[string]interface{}{
-			"pkgName": handleResponseFile,
+			"pkgName": handleResponsePackage,
 			"imports": genHandleResponseImports(),
 		},
 	})
@@ -48,5 +51,6 @@ func genHandleResponseImports() string {
 	imports = append(imports, `"errors"`)
 	imports = append(imports, `"io/ioutil"`)
 	imports = append(imports, `"net/http"`)
+	imports = append(imports, `"reflect"`)
 	return strings.Join(imports, "\n\t")
 }

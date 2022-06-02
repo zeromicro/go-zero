@@ -6,5 +6,6 @@ const (
 	typesDir          = parent + typesPacket
 	groupProperty     = "group"
 	logicDir          = parent + "logic"
-	handleResponseDir = parent + "handleresponse"
+	handleResponseDir = parent + "svc"
+	clientContextDir  = parent + "svc"
 )
