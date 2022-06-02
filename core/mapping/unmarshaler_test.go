@@ -2789,3 +2789,14 @@ func BenchmarkDefaultValue(b *testing.B) {
 		}
 	}
 }
+
+func TestUnmarshalJsonReaderArray(t *testing.T) {
+	payload := "{\"id\": 123}"
+	var res struct {
+		ID []string   `json:"id"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(res.ID))
+}
