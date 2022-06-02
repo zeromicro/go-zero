@@ -1,0 +1,28 @@
+on:
+  push:
+    tags:
+      - "tools/goctl/*"
+jobs:
+  releases-matrix:
+    name: Release goctl binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, linux/arm64,
+        # windows/386, windows/amd64, windows/arm64, darwin/amd64, darwin/arm64
+        goos: [ linux, windows, darwin ]
+        goarch: [ "386", amd64, arm64 ]
+        exclude:
+          - goarch: "386"
+            goos: darwin
+    steps:
+      - uses: actions/checkout@v2
+      - uses: zeromicro/go-zero-release-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://dl.google.com/go/go1.17.5.linux-amd64.tar.gz"
+          project_path: "tools/goctl"
+          binary_name: "goctl"
+          extra_files: tools/goctl/goctl.md

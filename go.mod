@@ -1,9 +1,9 @@
 module github.com/zeromicro/go-zero
 
-go 1.15
+go 1.16
 
 require (
-	github.com/ClickHouse/clickhouse-go v1.5.4
+	github.com/ClickHouse/clickhouse-go/v2 v2.0.14
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.21.0
 	github.com/fatih/color v1.13.0
@@ -14,7 +14,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/justinas/alice v1.2.0
-	github.com/lib/pq v1.10.4
+	github.com/lib/pq v1.10.6
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.0.1
 	github.com/prometheus/client_golang v1.12.2
@@ -31,15 +31,16 @@ require (
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/goleak v1.1.12
 	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32
-	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11
-	google.golang.org/grpc v1.46.0
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306
+	google.golang.org/grpc v1.46.2
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.20.12
-	k8s.io/apimachinery v0.20.12
-	k8s.io/client-go v0.20.12
-	k8s.io/utils v0.0.0-20201110183641-67b214c5f920
+	k8s.io/api v0.22.9
+	k8s.io/apimachinery v0.22.9
+	k8s.io/client-go v0.22.9
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )
 
 require (
@@ -50,9 +51,6 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220421235706-1d1ef9303861 // indirect
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
-	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220422154200-b37d22cd5731 // indirect
-	google.golang.org/protobuf v1.28.0
 	k8s.io/klog/v2 v2.40.1 // indirect
 )
