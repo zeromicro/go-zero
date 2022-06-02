@@ -69,6 +69,7 @@ func (f *Filter) Exists(data []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return isSet, nil
 }
 
