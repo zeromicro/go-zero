@@ -2791,7 +2791,7 @@ func BenchmarkDefaultValue(b *testing.B) {
 }
 
 func TestUnmarshalJsonReaderArray(t *testing.T) {
-	payload := "{\"id\": [123]}"
+	payload := "{\"id\": 123}"
 	var res struct {
 		ID []string   `json:"id"`
 	}
