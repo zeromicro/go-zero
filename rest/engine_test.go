@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/justinas/alice"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -251,10 +250,7 @@ func TestEngine_checkedChain(t *testing.T) {
 		}
 	}
 
-	chain := alice.New(middleware1(), middleware2())
-	chains := WithChain(&chain)
-
-	server := MustNewServer(RestConf{}, chains)
+	server := MustNewServer(RestConf{}, WithChain(middleware1(), middleware2()))
 	server.router = chainRouter{}
 	server.AddRoutes(
 		[]Route{

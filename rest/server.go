@@ -239,9 +239,13 @@ func WithTLSConfig(cfg *tls.Config) RunOption {
 }
 
 // WithChain returns a RunOption that with given chain config.
-func WithChain(chain *alice.Chain) RunOption {
+func WithChain(middlewares ...func(http.Handler) http.Handler) RunOption {
 	return func(svr *Server) {
-		svr.ngin.setChainConfig(chain)
+		chain := alice.New()
+		for _, middleware := range middlewares {
+			chain = chain.Append(middleware)
+		}
+		svr.ngin.setChainConfig(&chain)
 	}
 }
 
