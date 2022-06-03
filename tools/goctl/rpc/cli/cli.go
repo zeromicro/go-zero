@@ -42,6 +42,10 @@ var (
 	VarBoolIdea bool
 	// VarBoolVerbose describes whether verbose.
 	VarBoolVerbose bool
+	// VarBoolGroup describes whether group.
+	VarBoolGroup bool
+	// VarBoolCompatible describes whether compatible.
+	VarBoolCompatible bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed

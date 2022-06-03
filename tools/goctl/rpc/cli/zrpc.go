@@ -95,6 +95,8 @@ func ZRPC(_ *cobra.Command, args []string) error {
 	}
 
 	var ctx generator.ZRpcContext
+	ctx.Group = VarBoolGroup
+	ctx.Compatible = VarBoolCompatible
 	ctx.Src = source
 	ctx.GoOutput = goOut
 	ctx.GrpcOutput = grpcOut
