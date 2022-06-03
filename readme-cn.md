@@ -94,7 +94,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 ## 4. 我们使用 go-zero 的基本架构图
 
-<img width="973" alt="image" src="https://user-images.githubusercontent.com/1918356/170813549-f6a40438-c8c3-4c66-9348-bb85f96b91f5.png">
+<img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880582-11a86658-41c3-466c-95e7-7b1220eecc52.png">
 
 觉得不错的话，别忘 **star** 👏
 
