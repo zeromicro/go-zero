@@ -93,7 +93,7 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ## 4. The simplified architecture that we use with go-zero
 
-<img width="973" alt="image" src="https://user-images.githubusercontent.com/1918356/170813500-035e13f0-9775-4dc5-a33f-cd9d389219d1.png">
+<img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
 ## 5. Installation
 
