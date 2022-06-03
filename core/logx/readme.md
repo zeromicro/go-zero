@@ -121,14 +121,13 @@ func (w *KafkaWriter) Write(p []byte) (n int, err error) {
 }
 
 func main() {
-  func main() {
 	pusher := kq.NewPusher([]string{"localhost:9092"}, "go-zero")
 	defer pusher.Close()
 
 	writer := logx.NewWriter(NewKafkaWriter(pusher))
 	logx.SetWriter(writer)
   
-  // more code
+	// more code
 }
 ```
 
@@ -170,8 +169,8 @@ func (l *SensitiveLogger) Info(msg interface{}, fields ...logx.LogField) {
 }
 
 func main() {
-  // setup logx to make sure originalWriter not nil,
-  // the injected writer is only for filtering, like a middleware.
+	// setup logx to make sure originalWriter not nil,
+	// the injected writer is only for filtering, like a middleware.
 
 	originalWriter := logx.Reset()
 	writer := NewSensitiveLogger(originalWriter)
@@ -183,7 +182,7 @@ func main() {
 		Message:  "bar",
 	})
   
-  // more code
+	// more code
 }
 ```
 
