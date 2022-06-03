@@ -3,7 +3,6 @@ package logx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -65,11 +64,9 @@ func TestTraceError(t *testing.T) {
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
-	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
-	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
@@ -165,7 +162,6 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), spanKey))
 	w.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	fmt.Println("buf:", w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
