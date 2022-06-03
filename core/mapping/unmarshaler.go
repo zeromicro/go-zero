@@ -496,17 +496,20 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	return nil
 }
 
-func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value, mapValue interface{}) error {
+func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
+	mapValue interface{}) error {
 	var slice []interface{}
 	switch v := mapValue.(type) {
-	case json.Number:
+	case fmt.Stringer:
 		if err := jsonx.UnmarshalFromString(v.String(), &slice); err != nil {
 			return err
 		}
-	default:
-		if err := jsonx.UnmarshalFromString(mapValue.(string), &slice); err != nil {
+	case string:
+		if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
 			return err
 		}
+	default:
+		return errUnsupportedType
 	}
 
 	baseFieldType := Deref(fieldType.Elem())
