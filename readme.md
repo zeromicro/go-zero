@@ -235,7 +235,7 @@ go get -u github.com/zeromicro/go-zero
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. Documents (adding)
+## 8. Documents
 
 * [Documents](https://go-zero.dev/en/)
 * [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
