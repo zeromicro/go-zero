@@ -507,7 +507,7 @@ func (c *decoratedCollection) logDuration(ctx context.Context, method string, st
 
 	content, e := json.Marshal(docs)
 	if e != nil {
-		logger.Error(err)
+		logger.Error(e)
 	} else if err != nil {
 		if duration > slowThreshold.Load() {
 			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
