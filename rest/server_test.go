@@ -390,6 +390,10 @@ GET /foo/:bar/baz
 	r, w, err := os.Pipe()
 	assert.Nil(t, err)
 	os.Stdout = w
+	defer func() {
+		os.Stdout = old
+	}()
+
 	svr.PrintRoutes()
 	ch := make(chan string)
 
@@ -400,7 +404,6 @@ GET /foo/:bar/baz
 	}()
 
 	w.Close()
-	os.Stdout = old
 	out := <-ch
 	assert.Equal(t, expect, out)
 }
