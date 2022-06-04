@@ -57,6 +57,12 @@ func TestRotateLoggerGetBackupFilename(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFile(t *testing.T) {
+	old := os.Stdout
+	os.Stdout = os.NewFile(0, os.DevNull)
+	defer func() {
+		os.Stdout = old
+	}()
+
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
 	if len(filename) > 0 {
@@ -70,6 +76,12 @@ func TestRotateLoggerMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
+	old := os.Stdout
+	os.Stdout = os.NewFile(0, os.DevNull)
+	defer func() {
+		os.Stdout = old
+	}()
+
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
 	logger, err := NewLogger(filename, new(DailyRotateRule), true)
