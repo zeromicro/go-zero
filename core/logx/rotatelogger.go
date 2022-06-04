@@ -328,5 +328,9 @@ func gzipFile(file string) error {
 		return err
 	}
 
-	return os.Remove(file)
+	// ignore errors on remove, it most happens on unit tests,
+	// it caused lots of troubles on GitHub actions.
+	// and even on production, remove errors are not important.
+	_ = os.Remove(file)
+	return nil
 }
