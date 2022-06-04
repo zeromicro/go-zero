@@ -350,7 +350,7 @@ func TestServer_PrintRoutes(t *testing.T) {
 Name: foo
 Port: 54321
 `
-		expect = `routes:
+		expect = `Routes:
   GET /bar
   GET /foo
   GET /foo/:bar

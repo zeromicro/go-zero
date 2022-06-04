@@ -196,7 +196,7 @@ func (ng *engine) print() {
 
 	sort.Strings(routes)
 
-	fmt.Println("routes:")
+	fmt.Println("Routes:")
 	for _, route := range routes {
 		fmt.Printf("  %s\n", route)
 	}
