@@ -10,7 +10,7 @@ import (
 
 func TestDefaultProtoParse(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test.proto")
+	data, err := p.Parse("./test.proto", true)
 	assert.Nil(t, err)
 	assert.Equal(t, "base.proto", func() string {
 		ip := data.Import[0]
@@ -19,17 +19,22 @@ func TestDefaultProtoParse(t *testing.T) {
 	assert.Equal(t, "test", data.Package.Name)
 	assert.Equal(t, true, data.GoPackage == "go")
 	assert.Equal(t, true, data.PbPackage == "_go")
-	assert.Equal(t, []string{"Inline", "Inner", "TestMessage", "TestReply", "TestReq"}, func() []string {
-		var list []string
-		for _, item := range data.Message {
-			list = append(list, item.Name)
-		}
-		sort.Strings(list)
-		return list
-	}())
+	assert.Equal(t, []string{"Inline", "Inner", "TestMessage", "TestReply", "TestReq"},
+		func() []string {
+			var list []string
+			for _, item := range data.Message {
+				list = append(list, item.Name)
+			}
+			sort.Strings(list)
+			return list
+		}())
 
 	assert.Equal(t, true, func() bool {
-		s := data.Service
+		if len(data.Service) != 1 {
+			return false
+		}
+
+		s := data.Service[0]
 		if s.Name != "TestService" {
 			return false
 		}
@@ -41,7 +46,7 @@ func TestDefaultProtoParse(t *testing.T) {
 
 func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_request.proto")
+	_, err := p.Parse("./test_invalid_request.proto", true)
 	assert.True(t, true, func() bool {
 		return strings.Contains(err.Error(), "request type must defined in")
 	}())
@@ -49,7 +54,7 @@ func TestDefaultProtoParseCaseInvalidRequestType(t *testing.T) {
 
 func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./test_invalid_response.proto")
+	_, err := p.Parse("./test_invalid_response.proto", true)
 	assert.True(t, true, func() bool {
 		return strings.Contains(err.Error(), "response type must defined in")
 	}())
@@ -57,13 +62,13 @@ func TestDefaultProtoParseCaseInvalidResponseType(t *testing.T) {
 
 func TestDefaultProtoParseError(t *testing.T) {
 	p := NewDefaultProtoParser()
-	_, err := p.Parse("./nil.proto")
+	_, err := p.Parse("./nil.proto", true)
 	assert.NotNil(t, err)
 }
 
 func TestDefaultProtoParse_Option(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test_option.proto")
+	data, err := p.Parse("./test_option.proto", true)
 	assert.Nil(t, err)
 	assert.Equal(t, "github.com/zeromicro/go-zero", data.GoPackage)
 	assert.Equal(t, "go_zero", data.PbPackage)
@@ -71,7 +76,7 @@ func TestDefaultProtoParse_Option(t *testing.T) {
 
 func TestDefaultProtoParse_Option2(t *testing.T) {
 	p := NewDefaultProtoParser()
-	data, err := p.Parse("./test_option2.proto")
+	data, err := p.Parse("./test_option2.proto", true)
 	assert.Nil(t, err)
 	assert.Equal(t, "stream", data.GoPackage)
 	assert.Equal(t, "stream", data.PbPackage)

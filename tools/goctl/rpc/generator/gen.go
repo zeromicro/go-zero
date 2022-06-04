@@ -18,9 +18,15 @@ type ZRpcContext struct {
 	GoOutput        string
 	GrpcOutput      string
 	Output          string
+	Group           bool
+	// Compatible tells the generator whether to generate in compatibility mode. Only a single rpc
+	// service is allowed in compatibility mode, and the name of the client file directory of zrpc
+	// is taken from the service name of proto. If it is not in compatibility mode, the generation
+	// of multiple rpc services is supported and supported rpc grouping.
+	Compatible bool
 }
 
-// Generate generates an rpc service, through the proto file,
+// Generate generates a rpc service, through the proto file,
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
@@ -45,7 +51,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	}
 
 	p := parser.NewDefaultProtoParser()
-	proto, err := p.Parse(zctx.Src)
+	proto, err := p.Parse(zctx.Src, zctx.Compatible)
 	if err != nil {
 		return err
 	}
