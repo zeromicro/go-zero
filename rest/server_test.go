@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -340,4 +342,68 @@ Port: 54321
 		w.WriteHeader(http.StatusOK)
 	}, "local")
 	opt(svr)
+}
+
+func TestServer_PrintRoutes(t *testing.T) {
+	const (
+		configYaml = `
+Name: foo
+Port: 54321
+`
+		expect = `GET /bar
+GET /foo
+GET /foo/:bar
+GET /foo/:bar/baz
+`
+	)
+
+	var cnf RestConf
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
+
+	svr, err := NewServer(cnf)
+	assert.Nil(t, err)
+
+	svr.AddRoutes([]Route{
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/bar",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo/:bar",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo/:bar/baz",
+			Handler: http.NotFound,
+		},
+	})
+
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	assert.Nil(t, err)
+	os.Stdout = w
+	defer func() {
+		os.Stdout = old
+	}()
+
+	svr.PrintRoutes()
+	ch := make(chan string)
+
+	go func() {
+		var buf strings.Builder
+		io.Copy(&buf, r)
+		ch <- buf.String()
+	}()
+
+	w.Close()
+	out := <-ch
+	assert.Equal(t, expect, out)
 }
