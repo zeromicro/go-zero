@@ -1184,6 +1184,14 @@ func TestUnmarshalWithJsonNumberOptionsIncorrect(t *testing.T) {
 	assert.NotNil(t, UnmarshalKey(m, &in))
 }
 
+func TestUnmarshaler_UnmarshalIntOptions(t *testing.T) {
+	var val struct {
+		Sex int `json:"sex,options=0|1"`
+	}
+	input := []byte(`{"sex": 2}`)
+	assert.NotNil(t, UnmarshalJsonBytes(input, &val))
+}
+
 func TestUnmarshalWithUintOptionsCorrect(t *testing.T) {
 	type inner struct {
 		Value  string `key:"value,options=first|second"`
