@@ -58,11 +58,11 @@ func init() {
 			"--home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	newCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "",
 		"The remote git repo of the template, "+
-			"--home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo "+
-			"directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
+			"--home and --remote cannot be set at the same time, if they are, --remote has higher "+
+			"priority\n\tThe git repo directory must be consistent with the "+
+			"https://github.com/zeromicro/go-zero-template directory structure")
 	newCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
-		"The branch of the remote repo, it "+
-			"does work with --remote")
+		"The branch of the remote repo, it does work with --remote")
 	newCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
 	newCmd.Flags().MarkHidden("go_opt")
 	newCmd.Flags().MarkHidden("go-grpc_opt")
@@ -76,18 +76,18 @@ func init() {
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSlicePlugin, "plugin", nil, "")
 	protocCmd.Flags().StringSliceVarP(&cli.VarStringSliceProtoPath, "proto_path", "I", nil, "")
 	protocCmd.Flags().StringVar(&cli.VarStringZRPCOut, "zrpc_out", "", "The zrpc output directory")
-	protocCmd.Flags().StringVar(&cli.VarStringStyle, "style", "gozero",
-		"The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
+	protocCmd.Flags().StringVar(&cli.VarStringStyle, "style", "gozero", "The file "+
+		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
 	protocCmd.Flags().StringVar(&cli.VarStringHome, "home", "",
 		"The goctl home path of the template, "+
 			"--home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	protocCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "",
 		"The remote git repo of the template, "+
-			"--home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo "+
-			"directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
+			"--home and --remote cannot be set at the same time, if they are, --remote has higher "+
+			"priority\n\tThe git repo directory must be consistent with the "+
+			"https://github.com/zeromicro/go-zero-template directory structure")
 	protocCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
-		"The branch of the remote repo, it "+
-			"does work with --remote")
+		"The branch of the remote repo, it does work with --remote")
 	protocCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
 	protocCmd.Flags().MarkHidden("go_out")
 	protocCmd.Flags().MarkHidden("go-grpc_out")
@@ -97,12 +97,15 @@ func init() {
 	protocCmd.Flags().MarkHidden("proto_path")
 
 	templateCmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "Output a sample proto file")
-	templateCmd.Flags().StringVar(&cli.VarStringHome, "home", "",
-		"The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	templateCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "",
-		"The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	templateCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
-		"The branch of the remote repo, it does work with --remote")
+	templateCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home"+
+		" path of the template, --home and --remote cannot be set at the same time, if they are, "+
+		"--remote has higher priority")
+	templateCmd.Flags().StringVar(&cli.VarStringRemote, "remote", "", "The remote "+
+		"git repo of the template, --home and --remote cannot be set at the same time, if they are, "+
+		"--remote has higher priority\n\tThe git repo directory must be consistent with the "+
+		"https://github.com/zeromicro/go-zero-template directory structure")
+	templateCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "", "The branch"+
+		" of the remote repo, it does work with --remote")
 
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)
