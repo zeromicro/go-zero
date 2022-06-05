@@ -94,6 +94,10 @@ func ZRPC(_ *cobra.Command, args []string) error {
 		return err
 	}
 
+	if VarBoolCompatible {
+		VarBoolGroup = false
+	}
+
 	var ctx generator.ZRpcContext
 	ctx.Group = VarBoolGroup
 	ctx.Compatible = VarBoolCompatible

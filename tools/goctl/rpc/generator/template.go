@@ -9,6 +9,7 @@ import (
 const (
 	category                          = "rpc"
 	callTemplateFile                  = "call.tpl"
+	invokeTemplateFile                = "invoke.tpl"
 	callInterfaceFunctionTemplateFile = "call-interface-func.tpl"
 	callFunctionTemplateFile          = "call-func.tpl"
 	configTemplateFileFile            = "config.tpl"
@@ -23,18 +24,17 @@ const (
 )
 
 var templates = map[string]string{
-	callTemplateFile:                  callTemplateText,
-	callInterfaceFunctionTemplateFile: callInterfaceFunctionTemplate,
-	callFunctionTemplateFile:          callFunctionTemplate,
-	configTemplateFileFile:            configTemplate,
-	etcTemplateFileFile:               etcTemplate,
-	logicTemplateFileFile:             logicTemplate,
-	logicFuncTemplateFileFile:         logicFunctionTemplate,
-	mainTemplateFile:                  mainTemplate,
-	serverTemplateFile:                serverTemplate,
-	serverFuncTemplateFile:            functionTemplate,
-	svcTemplateFile:                   svcTemplate,
-	rpcTemplateFile:                   rpcTemplateText,
+	callTemplateFile:          callTemplateText,
+	invokeTemplateFile:        invokeTemplateText,
+	configTemplateFileFile:    configTemplate,
+	etcTemplateFileFile:       etcTemplate,
+	logicTemplateFileFile:     logicTemplate,
+	logicFuncTemplateFileFile: logicFunctionTemplate,
+	mainTemplateFile:          mainTemplate,
+	serverTemplateFile:        serverTemplate,
+	serverFuncTemplateFile:    functionTemplate,
+	svcTemplateFile:           svcTemplate,
+	rpcTemplateFile:           rpcTemplateText,
 }
 
 // GenTemplates is the entry for command goctl template,

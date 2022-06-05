@@ -46,7 +46,7 @@ type (
 		Base            string
 		Filename        string
 		Package         string
-		GetChildPackage func(childPath string) string
+		GetChildPackage func(childPath string) (string, error)
 	}
 
 	defaultDirContext struct {
@@ -73,11 +73,17 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		protoGoDir = c.ProtoGenGoDir
 	}
 
-	getChildPackage := func(parent, childPath string) string {
+	getChildPackage := func(parent, childPath string) (string, error) {
 		child := strings.TrimPrefix(childPath, parent)
-		abs := filepath.Join(parent, child)
-		return filepath.ToSlash(filepath.Join(ctx.Path,
-			strings.TrimPrefix(abs, ctx.Dir)))
+		abs := filepath.Join(parent, strings.ToLower(child))
+		if c.Group {
+			if err := pathx.MkdirIfNotExist(abs); err != nil {
+				return "", err
+			}
+		}
+		childPath = strings.TrimPrefix(abs, ctx.Dir)
+		pkg := filepath.Join(ctx.Path, childPath)
+		return filepath.ToSlash(pkg), nil
 	}
 
 	if c.Compatible {
@@ -92,7 +98,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 			Package: filepath.ToSlash(filepath.Join(ctx.Path,
 				strings.TrimPrefix(callDir, ctx.Dir))),
 			Base: filepath.Base(callDir),
-			GetChildPackage: func(childPath string) string {
+			GetChildPackage: func(childPath string) (string, error) {
 				return getChildPackage(callDir, childPath)
 			},
 		}
@@ -102,7 +108,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 			Package: filepath.ToSlash(filepath.Join(ctx.Path,
 				strings.TrimPrefix(clientDir, ctx.Dir))),
 			Base: filepath.Base(clientDir),
-			GetChildPackage: func(childPath string) string {
+			GetChildPackage: func(childPath string) (string, error) {
 				return getChildPackage(clientDir, childPath)
 			},
 		}
@@ -113,7 +119,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Package: filepath.ToSlash(filepath.Join(ctx.Path,
 			strings.TrimPrefix(ctx.WorkDir, ctx.Dir))),
 		Base: filepath.Base(ctx.WorkDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(ctx.WorkDir, childPath)
 		},
 	}
@@ -121,7 +127,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: etcDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(etcDir, ctx.Dir))),
 		Base:     filepath.Base(etcDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(etcDir, childPath)
 		},
 	}
@@ -130,7 +136,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Package: filepath.ToSlash(filepath.Join(ctx.Path,
 			strings.TrimPrefix(internalDir, ctx.Dir))),
 		Base: filepath.Base(internalDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(internalDir, childPath)
 		},
 	}
@@ -138,7 +144,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: configDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(configDir, ctx.Dir))),
 		Base:     filepath.Base(configDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(configDir, childPath)
 		},
 	}
@@ -146,7 +152,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: logicDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(logicDir, ctx.Dir))),
 		Base:     filepath.Base(logicDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(logicDir, childPath)
 		},
 	}
@@ -154,7 +160,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: serverDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(serverDir, ctx.Dir))),
 		Base:     filepath.Base(serverDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(serverDir, childPath)
 		},
 	}
@@ -162,7 +168,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: svcDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(svcDir, ctx.Dir))),
 		Base:     filepath.Base(svcDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(svcDir, childPath)
 		},
 	}
@@ -171,7 +177,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Filename: pbDir,
 		Package:  filepath.ToSlash(filepath.Join(ctx.Path, strings.TrimPrefix(pbDir, ctx.Dir))),
 		Base:     filepath.Base(pbDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(pbDir, childPath)
 		},
 	}
@@ -181,7 +187,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		Package: filepath.ToSlash(filepath.Join(ctx.Path,
 			strings.TrimPrefix(protoGoDir, ctx.Dir))),
 		Base: filepath.Base(protoGoDir),
-		GetChildPackage: func(childPath string) string {
+		GetChildPackage: func(childPath string) (string, error) {
 			return getChildPackage(protoGoDir, childPath)
 		},
 	}

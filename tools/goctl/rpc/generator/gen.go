@@ -81,22 +81,22 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenLogic(dirCtx, proto, g.cfg)
+	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenServer(dirCtx, proto, g.cfg)
+	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenMain(dirCtx, proto, g.cfg)
+	err = g.GenMain(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenCall(dirCtx, proto, g.cfg)
+	err = g.GenCall(dirCtx, proto, g.cfg, zctx)
 
 	console.NewColorConsole().MarkDone()
 
