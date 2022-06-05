@@ -253,6 +253,10 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructFi
 		return err
 	}
 
+	if err := validateValueInOptions(opts.options(), v); err != nil {
+		return err
+	}
+
 	if fieldKind == reflect.Ptr {
 		value = value.Elem()
 	}

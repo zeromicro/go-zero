@@ -1170,6 +1170,20 @@ func TestUnmarshalWithIntOptionsIncorrect(t *testing.T) {
 	assert.NotNil(t, UnmarshalKey(m, &in))
 }
 
+func TestUnmarshalWithJsonNumberOptionsIncorrect(t *testing.T) {
+	type inner struct {
+		Value     string `key:"value,options=first|second"`
+		Incorrect int    `key:"incorrect,options=1|2"`
+	}
+	m := map[string]interface{}{
+		"value":     "first",
+		"incorrect": json.Number("3"),
+	}
+
+	var in inner
+	assert.NotNil(t, UnmarshalKey(m, &in))
+}
+
 func TestUnmarshalWithUintOptionsCorrect(t *testing.T) {
 	type inner struct {
 		Value  string `key:"value,options=first|second"`
