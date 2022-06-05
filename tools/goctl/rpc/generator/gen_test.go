@@ -40,7 +40,6 @@ func TestRpcGenerate(t *testing.T) {
 	// case go path
 	t.Run("GOPATH", func(t *testing.T) {
 		ctx := &ZRpcContext{
-			Compatible: true,
 			Src:        "./test.proto",
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),
@@ -72,7 +71,6 @@ func TestRpcGenerate(t *testing.T) {
 
 		projectDir = filepath.Join(workDir, projectName)
 		ctx := &ZRpcContext{
-			Compatible: true,
 			Src:        "./test.proto",
 			ProtocCmd: fmt.Sprintf("protoc -I=%s test.proto --go_out=%s --go_opt=Mbase/common.proto=./base --go-grpc_out=%s",
 				common, projectDir, projectDir),
