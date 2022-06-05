@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -193,6 +194,22 @@ func TestTraceWithoutContext(t *testing.T) {
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
+	dec := json.NewDecoder(strings.NewReader(body))
+
+	for {
+		var doc mockValue
+		err := dec.Decode(&doc)
+		if err == io.EOF {
+			// all done
+			break
+		}
+		if err != nil {
+			continue
+		}
+
+		val = doc
+	}
+
 	assert.Nil(t, json.Unmarshal([]byte(body), &val), body)
 	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
