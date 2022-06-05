@@ -33,7 +33,7 @@ func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Confi
 		return g.genLogicInCompatibility(ctx, proto, cfg)
 	}
 
-	return g.genLogic(ctx, proto, cfg)
+	return g.genLogicGroup(ctx, proto, cfg)
 }
 
 func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
@@ -73,7 +73,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	return nil
 }
 
-func (g *Generator) genLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	for _, item := range proto.Service {
 		serviceName := item.Name

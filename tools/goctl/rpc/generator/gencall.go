@@ -41,10 +41,10 @@ func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config
 		return g.genCallInCompatibility(ctx, proto, cfg)
 	}
 
-	return g.genCall(ctx, proto, cfg)
+	return g.genCallGroup(ctx, proto, cfg)
 }
 
-func (g *Generator) genCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
+func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
 	head := util.GetHead(proto.Name)
 	for _, service := range proto.Service {
