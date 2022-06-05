@@ -210,7 +210,6 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 		val = doc
 	}
 
-	assert.Nil(t, json.Unmarshal([]byte(body), &val), body)
 	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }

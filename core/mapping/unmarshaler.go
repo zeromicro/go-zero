@@ -231,7 +231,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 			return u.processFieldPrimitiveWithJSONNumber(field, value, v, opts, fullName)
 		default:
 			if typeKind == valueKind {
-				if err := validateValueInOptions(opts.options(), mapValue); err != nil {
+				if err := validateValueInOptions(mapValue, opts.options()); err != nil {
 					return err
 				}
 
@@ -253,7 +253,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructFi
 		return err
 	}
 
-	if err := validateValueInOptions(opts.options(), v); err != nil {
+	if err := validateValueInOptions(v, opts.options()); err != nil {
 		return err
 	}
 
