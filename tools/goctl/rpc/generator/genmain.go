@@ -43,22 +43,17 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 			remoteImport string
 			serverPkg    string
 		)
-		if c.Compatible {
+		if !c.Multiple {
 			serverPkg = "server"
 			remoteImport = fmt.Sprintf(`"%v"`, ctx.GetServer().Package)
 		} else {
-			if !c.Group {
-				serverPkg = "server"
-				remoteImport = fmt.Sprintf(`"%v"`, ctx.GetServer().Package)
-			} else {
-				childPkg, err := ctx.GetServer().GetChildPackage(e.Name)
-				if err != nil {
-					return err
-				}
-
-				serverPkg = filepath.Base(childPkg + "Server")
-				remoteImport = fmt.Sprintf(`%s "%v"`, serverPkg, childPkg)
+			childPkg, err := ctx.GetServer().GetChildPackage(e.Name)
+			if err != nil {
+				return err
 			}
+
+			serverPkg = filepath.Base(childPkg + "Server")
+			remoteImport = fmt.Sprintf(`%s "%v"`, serverPkg, childPkg)
 		}
 		imports = append(imports, remoteImport)
 		serviceNames = append(serviceNames, MainServiceTemplateData{

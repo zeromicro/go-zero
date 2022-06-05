@@ -29,11 +29,11 @@ var logicTemplate string
 // GenLogic generates the logic file of the rpc service, which corresponds to the RPC definition items in proto.
 func (g *Generator) GenLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config,
 	c *ZRpcContext) error {
-	if c.Compatible {
+	if !c.Multiple {
 		return g.genLogicInCompatibility(ctx, proto, cfg)
 	}
 
-	return g.genLogic(ctx, proto, cfg, c)
+	return g.genLogic(ctx, proto, cfg)
 }
 
 func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
@@ -73,8 +73,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 	return nil
 }
 
-func (g *Generator) genLogic(ctx DirContext, proto parser.Proto,
-	cfg *conf.Config, c *ZRpcContext) error {
+func (g *Generator) genLogic(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetLogic()
 	for _, item := range proto.Service {
 		serviceName := item.Name
@@ -87,33 +86,21 @@ func (g *Generator) genLogic(ctx DirContext, proto parser.Proto,
 				packageName   string
 			)
 
-			if c.Group {
-				logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
-				childPkg,err:=dir.GetChildPackage(serviceName)
-				if err != nil {
-					return err
-				}
-
-				serviceDir := filepath.Base(childPkg)
-				nameJoin := fmt.Sprintf("%s_logic", serviceName)
-				packageName = strings.ToLower(stringx.From(nameJoin).ToCamel())
-				logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
-				if err != nil {
-					return err
-				}
-				filename = filepath.Join(dir.Filename, serviceDir, logicFilename+".go")
-			} else {
-				logicName = fmt.Sprintf("%s%sLogic", stringx.From(serviceName).ToCamel(),
-					stringx.From(rpc.Name).ToCamel())
-				packageName = "logic"
-				logicFilename, err = format.FileNamingFormat(cfg.NamingFormat,
-					serviceName+"_"+rpc.Name+"_logic")
-				if err != nil {
-					return err
-				}
-				filename = filepath.Join(dir.Filename, logicFilename+".go")
+			logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
+			childPkg, err := dir.GetChildPackage(serviceName)
+			if err != nil {
+				return err
 			}
 
+			serviceDir := filepath.Base(childPkg)
+			nameJoin := fmt.Sprintf("%s_logic", serviceName)
+			packageName = strings.ToLower(stringx.From(nameJoin).ToCamel())
+			logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
+			if err != nil {
+				return err
+			}
+
+			filename = filepath.Join(dir.Filename, serviceDir, logicFilename+".go")
 			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, logicName, rpc)
 			if err != nil {
 				return err

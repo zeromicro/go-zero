@@ -23,7 +23,7 @@ func NewDefaultProtoParser() *DefaultProtoParser {
 
 // Parse provides to parse the proto file into a golang structure,
 // which is convenient for subsequent rpc generation and use
-func (p *DefaultProtoParser) Parse(src string, compatible ...bool) (Proto, error) {
+func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) {
 	var ret Proto
 
 	abs, err := filepath.Abs(src)
@@ -74,7 +74,7 @@ func (p *DefaultProtoParser) Parse(src string, compatible ...bool) (Proto, error
 			}
 		}),
 	)
-	if err = serviceList.validate(abs, compatible...); err != nil {
+	if err = serviceList.validate(abs, multiple...); err != nil {
 		return ret, err
 	}
 

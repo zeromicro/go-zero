@@ -76,7 +76,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 	getChildPackage := func(parent, childPath string) (string, error) {
 		child := strings.TrimPrefix(childPath, parent)
 		abs := filepath.Join(parent, strings.ToLower(child))
-		if c.Group {
+		if c.Multiple {
 			if err := pathx.MkdirIfNotExist(abs); err != nil {
 				return "", err
 			}
@@ -86,7 +86,7 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, _ *conf.Config, c *ZRpcC
 		return filepath.ToSlash(pkg), nil
 	}
 
-	if c.Compatible {
+	if !c.Multiple {
 		callDir := filepath.Join(ctx.WorkDir,
 			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
 		if strings.EqualFold(proto.Service[0].Name, filepath.Base(proto.GoPackage)) {

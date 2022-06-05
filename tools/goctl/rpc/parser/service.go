@@ -21,17 +21,17 @@ type (
 	}
 )
 
-func (s Services) validate(filename string, compatibleOpt ...bool) error {
+func (s Services) validate(filename string, multipleOpt ...bool) error {
 	if len(s) == 0 {
 		return errors.New("rpc service not found")
 	}
 
-	var compatible bool
-	for _, c := range compatibleOpt {
-		compatible = c
+	var multiple bool
+	for _, c := range multipleOpt {
+		multiple = c
 	}
 
-	if compatible && len(s) > 1 {
+	if !multiple && len(s) > 1 {
 		return errors.New("only one service expected")
 	}
 

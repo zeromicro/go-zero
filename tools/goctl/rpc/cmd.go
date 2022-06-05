@@ -67,10 +67,8 @@ func init() {
 	newCmd.Flags().MarkHidden("go_opt")
 	newCmd.Flags().MarkHidden("go-grpc_opt")
 
-	protocCmd.Flags().BoolVarP(&cli.VarBoolGroup, "group", "g", false,
-		"Generate zrpc with group style or not")
-	protocCmd.Flags().BoolVarP(&cli.VarBoolCompatible, "compatible", "c", false,
-		"Generate zrpc code in compatibility mode")
+	protocCmd.Flags().BoolVarP(&cli.VarBoolMultiple, "multiple", "m", false,
+		"Generated in multiple rpc service mode")
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSliceGoOut, "go_out", nil, "")
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSliceGoGRPCOut, "go-grpc_out", nil, "")
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSliceGoOpt, "go_opt", nil, "")

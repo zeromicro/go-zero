@@ -30,58 +30,61 @@ func (m *default{{.serviceName}}) {{.method}}(ctx context.Context{{if .hasReq}},
 `
 )
 
-var (
-	//go:embed call.tpl
-	callTemplateText string
-
-	//go:embed invoke.tpl
-	invokeTemplateText string
-)
+//go:embed call.tpl
+var callTemplateText string
 
 // GenCall generates the rpc client code, which is the entry point for the rpc service call.
 // It is a layer of encapsulation for the rpc client and shields the details in the pb.
 func (g *Generator) GenCall(ctx DirContext, proto parser.Proto, cfg *conf.Config,
 	c *ZRpcContext) error {
-	if c.Compatible {
+	if !c.Multiple {
 		return g.genCallInCompatibility(ctx, proto, cfg)
 	}
 
-	return g.genCall(ctx, proto, cfg, c)
+	return g.genCall(ctx, proto, cfg)
 }
 
-func (g *Generator) genCall(ctx DirContext, proto parser.Proto, cfg *conf.Config,
-	c *ZRpcContext) error {
+func (g *Generator) genCall(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
 	dir := ctx.GetCall()
+	head := util.GetHead(proto.Name)
 	for _, service := range proto.Service {
-		head := util.GetHead(proto.Name)
-
-		var (
-			filename               string
-			isCallPkgSameToGrpcPkg bool
-		)
+		childPkg, err := dir.GetChildPackage(service.Name)
+		if err != nil {
+			return err
+		}
 
 		callFilename, err := format.FileNamingFormat(cfg.NamingFormat, service.Name)
 		if err != nil {
 			return err
 		}
 
-		childPkg, err := dir.GetChildPackage(service.Name)
-		if err != nil {
-			return err
-		}
-
 		childDir := filepath.Base(childPkg)
-		if c.Group {
-			filename = filepath.Join(dir.Filename, childDir, fmt.Sprintf("%s.go", callFilename))
-			isCallPkgSameToGrpcPkg = childDir == ctx.GetProtoGo().Filename
-		} else {
-			filename = filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
-			isCallPkgSameToGrpcPkg = dir.Filename == ctx.GetProtoGo().Filename
-		}
+		filename := filepath.Join(dir.Filename, childDir, fmt.Sprintf("%s.go", callFilename))
+		isCallPkgSameToPbPkg := childDir == ctx.GetProtoGo().Filename
+		isCallPkgSameToGrpcPkg := childDir == ctx.GetProtoGo().Filename
 
-		text, err := pathx.LoadTemplate(category, invokeTemplateFile, invokeTemplateText)
+		functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
 		if err != nil {
 			return err
+		}
+
+		iFunctions, err := g.getInterfaceFuncs(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
+		if err != nil {
+			return err
+		}
+
+		text, err := pathx.LoadTemplate(category, callTemplateFile, callTemplateText)
+		if err != nil {
+			return err
+		}
+
+		alias := collection.NewSet()
+		if !isCallPkgSameToPbPkg {
+			for _, item := range proto.Message {
+				msgName := getMessageName(*item.Message)
+				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+			}
 		}
 
 		pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
@@ -91,15 +94,18 @@ func (g *Generator) genCall(ctx DirContext, proto parser.Proto, cfg *conf.Config
 			protoGoPackage = ""
 		}
 
+		aliasKeys := alias.KeysStr()
+		sort.Strings(aliasKeys)
 		if err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-			"head":                   head,
-			"filePackage":            dir.Base,
-			"pbPackage":              pbPackage,
-			"protoGoPackage":         protoGoPackage,
-			"serviceName":            stringx.From(service.Name).ToCamel(),
-			"rpcServiceName":         parser.CamelCase(service.Name),
-			"package":                proto.PbPackage,
-			"isCallPkgSameToGrpcPkg": isCallPkgSameToGrpcPkg,
+			"name":           callFilename,
+			"alias":          strings.Join(aliasKeys, pathx.NL),
+			"head":           head,
+			"filePackage":    dir.Base,
+			"pbPackage":      pbPackage,
+			"protoGoPackage": protoGoPackage,
+			"serviceName":    stringx.From(service.Name).ToCamel(),
+			"functions":      strings.Join(functions, pathx.NL),
+			"interface":      strings.Join(iFunctions, pathx.NL),
 		}, filename, true); err != nil {
 			return err
 		}
@@ -153,7 +159,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 	aliasKeys := alias.KeysStr()
 	sort.Strings(aliasKeys)
-	err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+	return util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 		"name":           callFilename,
 		"alias":          strings.Join(aliasKeys, pathx.NL),
 		"head":           head,
@@ -164,7 +170,6 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),
 	}, filename, true)
-	return err
 }
 
 func getMessageName(msg proto.Message) string {
