@@ -151,12 +151,17 @@ func generateDockerfile(goFile, base string, port int, version, timezone string,
 		builder.WriteString(`, "` + arg + `"`)
 	}
 
+	absGoPath, err := filepath.Abs(goFile)
+	if err != nil {
+		return err
+	}
+
 	t := template.Must(template.New("dockerfile").Parse(text))
 	return t.Execute(out, Docker{
 		Chinese:     env.InChina(),
 		GoRelPath:   projPath,
 		GoFile:      goFile,
-		ExeFile:     pathx.FileNameWithoutExt(filepath.Base(goFile)),
+		ExeFile:     filepath.Base(absGoPath),
 		BaseImage:   base,
 		HasPort:     port > 0,
 		Port:        port,

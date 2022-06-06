@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	Cmd.Flags().StringVar(&varStringGo, "go", "", "The file that contains main function")
+	Cmd.Flags().StringVar(&varStringGo, "go", ".", "The directory that contains main function")
 	Cmd.Flags().StringVar(&varStringBase, "base", "scratch", "The base image to build the docker image, default scratch")
 	Cmd.Flags().IntVar(&varIntPort, "port", 0, "The port to expose, default none")
 	Cmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")

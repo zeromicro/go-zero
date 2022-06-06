@@ -103,7 +103,8 @@ func Reverse(s string) string {
 	return string(runes)
 }
 
-// Substr returns runes between start and stop [start, stop) regardless of the chars are ascii or utf8.
+// Substr returns runes between start and stop [start, stop)
+// regardless of the chars are ascii or utf8.
 func Substr(str string, start, stop int) (string, error) {
 	rs := []rune(str)
 	length := len(rs)

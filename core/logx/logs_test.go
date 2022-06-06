@@ -709,7 +709,6 @@ func put(b []byte) {
 func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...interface{})) {
 	const message = "hello there"
 	write(message)
-	fmt.Println(w.String())
 	var entry logEntry
 	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
