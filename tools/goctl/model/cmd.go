@@ -85,7 +85,7 @@ func init() {
 
 	mysqlCmd.AddCommand(datasourceCmd)
 	mysqlCmd.AddCommand(ddlCmd)
-	mysqlCmd.AddCommand(pgCmd)
 	Cmd.AddCommand(mysqlCmd)
 	Cmd.AddCommand(mongoCmd)
+	Cmd.AddCommand(pgCmd)
 }
