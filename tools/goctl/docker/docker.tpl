@@ -15,7 +15,7 @@ ADD go.sum .
 RUN go mod download
 COPY . .
 {{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
-{{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}
+{{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoRelPath}}/{{.GoFile}}
 
 
 FROM {{.BaseImage}}
