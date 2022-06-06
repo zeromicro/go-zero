@@ -73,7 +73,7 @@ from (
                 a.atttypmod   AS lengthvar,
                 a.attnotnull  AS not_null,
                 b.description AS comment
-         FROM pg_class c,
+         FROM pg_class c LEFT JOIN pg_namespace n ON c.relnamespace = n.oid,
               pg_attribute a
                   LEFT OUTER JOIN pg_description b ON a.attrelid = b.objoid AND a.attnum = b.objsubid,
               pg_type t
@@ -81,12 +81,13 @@ from (
            and a.attnum > 0
            and a.attrelid = c.oid
            and a.atttypid = t.oid
+           and n.nspname = $2
          ORDER BY a.attnum) AS t
          left join information_schema.columns AS c on t.relname = c.table_name 
-		and t.field = c.column_name and c.table_schema = $2`
+		and t.field = c.column_name and c.table_schema = $3`
 
 	var reply []*PostgreColumn
-	err := m.conn.QueryRowsPartial(&reply, querySql, table, schema)
+	err := m.conn.QueryRowsPartial(&reply, querySql, table, schema, schema)
 	if err != nil {
 		return nil, err
 	}
