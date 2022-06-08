@@ -46,10 +46,10 @@ package {{.pkg}}
 {{.vars}}
 {{.types}}
 {{.new}}
-{{.insert}}
-{{.find}}
-{{.update}}
 {{.delete}}
+{{.find}}
+{{.insert}}
+{{.update}}
 {{.extraMethod}}
 {{.tableName}}
 `, util.DoNotEditHead)

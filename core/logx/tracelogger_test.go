@@ -3,7 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"io"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -18,7 +18,11 @@ func TestTraceLog(t *testing.T) {
 	SetLevel(InfoLevel)
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -35,7 +39,11 @@ func TestTraceLog(t *testing.T) {
 func TestTraceError(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -49,7 +57,7 @@ func TestTraceError(t *testing.T) {
 	l := WithContext(context.Background())
 	l = l.WithContext(nilCtx)
 	l = l.WithContext(ctx)
-	SetLevel(InfoLevel)
+	SetLevel(ErrorLevel)
 	l.WithDuration(time.Second).Error(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
@@ -57,7 +65,6 @@ func TestTraceError(t *testing.T) {
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
-	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
@@ -69,7 +76,11 @@ func TestTraceError(t *testing.T) {
 func TestTraceInfo(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -102,7 +113,11 @@ func TestTraceInfoConsole(t *testing.T) {
 
 	w := new(mockWriter)
 	o := writer.Swap(w)
-	defer writer.Store(o)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(o)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -127,7 +142,11 @@ func TestTraceInfoConsole(t *testing.T) {
 func TestTraceSlow(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	otp := otel.GetTracerProvider()
 	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
@@ -144,7 +163,6 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), spanKey))
 	w.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	fmt.Println("buf:", w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
@@ -159,7 +177,11 @@ func TestTraceSlow(t *testing.T) {
 func TestTraceWithoutContext(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
-	defer writer.Store(old)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
 
 	l := WithContext(context.Background())
 	SetLevel(InfoLevel)
@@ -172,7 +194,22 @@ func TestTraceWithoutContext(t *testing.T) {
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
-	assert.Nil(t, json.Unmarshal([]byte(body), &val), body)
+	dec := json.NewDecoder(strings.NewReader(body))
+
+	for {
+		var doc mockValue
+		err := dec.Decode(&doc)
+		if err == io.EOF {
+			// all done
+			break
+		}
+		if err != nil {
+			continue
+		}
+
+		val = doc
+	}
+
 	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/justinas/alice"
@@ -182,6 +183,23 @@ func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 		h.ServeHTTP(cw, r)
 		cw.WriteHeader(http.StatusNotFound)
 	})
+}
+
+func (ng *engine) print() {
+	var routes []string
+
+	for _, fr := range ng.routes {
+		for _, route := range fr.routes {
+			routes = append(routes, fmt.Sprintf("%s %s", route.Method, route.Path))
+		}
+	}
+
+	sort.Strings(routes)
+
+	fmt.Println("Routes:")
+	for _, route := range routes {
+		fmt.Printf("  %s\n", route)
+	}
 }
 
 func (ng *engine) setTlsConfig(cfg *tls.Config) {
