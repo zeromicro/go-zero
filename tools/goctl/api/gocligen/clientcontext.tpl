@@ -53,7 +53,7 @@ func checkHost(host string) (string, error) {
 		return "", err
 	}
 	if u.Scheme == "" {
-		u.Scheme = "http"
+		host = "http://" + host
 	}
-	return u.Host, nil
+	return host, nil
 }
