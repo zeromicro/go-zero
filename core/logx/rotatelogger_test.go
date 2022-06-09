@@ -57,6 +57,12 @@ func TestRotateLoggerGetBackupFilename(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFile(t *testing.T) {
+	old := os.Stdout
+	os.Stdout = os.NewFile(0, os.DevNull)
+	defer func() {
+		os.Stdout = old
+	}()
+
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
 	if len(filename) > 0 {
@@ -70,6 +76,12 @@ func TestRotateLoggerMayCompressFile(t *testing.T) {
 }
 
 func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
+	old := os.Stdout
+	os.Stdout = os.NewFile(0, os.DevNull)
+	defer func() {
+		os.Stdout = old
+	}()
+
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
 	logger, err := NewLogger(filename, new(DailyRotateRule), true)
@@ -98,6 +110,10 @@ func TestRotateLoggerRotate(t *testing.T) {
 	case *os.LinkError:
 		// avoid rename error on docker container
 		assert.Equal(t, syscall.EXDEV, v.Err)
+	case *os.PathError:
+		// ignore remove error for tests,
+		// files are cleaned in GitHub actions.
+		assert.Equal(t, "remove", v.Op)
 	default:
 		assert.Nil(t, err)
 	}

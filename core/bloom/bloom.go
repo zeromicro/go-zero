@@ -69,11 +69,8 @@ func (f *Filter) Exists(data []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if !isSet {
-		return false, nil
-	}
 
-	return true, nil
+	return isSet, nil
 }
 
 func (f *Filter) getLocations(data []byte) []uint {

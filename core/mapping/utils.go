@@ -592,16 +592,16 @@ func validateNumberRange(fv float64, nr *numberRange) error {
 	return nil
 }
 
-func validateValueInOptions(options []string, value interface{}) error {
+func validateValueInOptions(val interface{}, options []string) error {
 	if len(options) > 0 {
-		switch v := value.(type) {
+		switch v := val.(type) {
 		case string:
 			if !stringx.Contains(options, v) {
 				return fmt.Errorf(`error: value "%s" is not defined in options "%v"`, v, options)
 			}
 		default:
 			if !stringx.Contains(options, Repr(v)) {
-				return fmt.Errorf(`error: value "%v" is not defined in options "%v"`, value, options)
+				return fmt.Errorf(`error: value "%v" is not defined in options "%v"`, val, options)
 			}
 		}
 	}

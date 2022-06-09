@@ -65,7 +65,7 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 	}
 
 	dir = dirAbs
-	pkg := filepath.Base(dirAbs)
+	pkg := util.SafeString(filepath.Base(dirAbs))
 	err = pathx.MkdirIfNotExist(dir)
 	if err != nil {
 		return nil, err

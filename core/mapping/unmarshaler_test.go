@@ -1170,6 +1170,28 @@ func TestUnmarshalWithIntOptionsIncorrect(t *testing.T) {
 	assert.NotNil(t, UnmarshalKey(m, &in))
 }
 
+func TestUnmarshalWithJsonNumberOptionsIncorrect(t *testing.T) {
+	type inner struct {
+		Value     string `key:"value,options=first|second"`
+		Incorrect int    `key:"incorrect,options=1|2"`
+	}
+	m := map[string]interface{}{
+		"value":     "first",
+		"incorrect": json.Number("3"),
+	}
+
+	var in inner
+	assert.NotNil(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshaler_UnmarshalIntOptions(t *testing.T) {
+	var val struct {
+		Sex int `json:"sex,options=0|1"`
+	}
+	input := []byte(`{"sex": 2}`)
+	assert.NotNil(t, UnmarshalJsonBytes(input, &val))
+}
+
 func TestUnmarshalWithUintOptionsCorrect(t *testing.T) {
 	type inner struct {
 		Value  string `key:"value,options=first|second"`
@@ -2775,6 +2797,36 @@ func TestUnmarshalJsonReaderComplex(t *testing.T) {
 	assert.EqualValues(t, MyTxtArray([]string{"a", "b"}), req.MyTxtArray)
 	assert.Equal(t, 200, req.Int)
 	assert.Equal(t, "txt", req.Txt)
+}
+
+func TestUnmarshalJsonReaderArrayBool(t *testing.T) {
+	payload := `{"id": false}`
+	var res struct {
+		ID []string `json:"id"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.NotNil(t, err)
+}
+
+func TestUnmarshalJsonReaderArrayInt(t *testing.T) {
+	payload := `{"id": 123}`
+	var res struct {
+		ID []string `json:"id"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.NotNil(t, err)
+}
+
+func TestUnmarshalJsonReaderArrayString(t *testing.T) {
+	payload := `{"id": "123"}`
+	var res struct {
+		ID []string `json:"id"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.NotNil(t, err)
 }
 
 func BenchmarkDefaultValue(b *testing.B) {

@@ -7,6 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 type (
@@ -71,9 +72,15 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		WithStreamServerInterceptors(streamInterceptors...))
 	server := grpc.NewServer(options...)
 	register(server)
-	// we need to make sure all others are wrapped up
+
+	// register the health check service
+	grpc_health_v1.RegisterHealthServer(server, s.health)
+	s.health.Resume()
+
+	// we need to make sure all others are wrapped up,
 	// so we do graceful stop at shutdown phase instead of wrap up phase
 	waitForCalled := proc.AddWrapUpListener(func() {
+		s.health.Shutdown()
 		server.GracefulStop()
 	})
 	defer waitForCalled()

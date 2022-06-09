@@ -15,6 +15,8 @@ var (
 	WithDialOption = internal.WithDialOption
 	// WithNonBlock sets the dialing to be nonblock.
 	WithNonBlock = internal.WithNonBlock
+	// WithStreamClientInterceptor is an alias of internal.WithStreamClientInterceptor.
+	WithStreamClientInterceptor = internal.WithStreamClientInterceptor
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
 	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.

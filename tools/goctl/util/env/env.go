@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
@@ -16,7 +17,14 @@ const (
 	binProtoc          = "protoc"
 	binProtocGenGo     = "protoc-gen-go"
 	binProtocGenGrpcGo = "protoc-gen-go-grpc"
+	cstOffset          = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
+
+// InChina returns whether the current time is in China Standard Time.
+func InChina() bool {
+	_, offset := time.Now().Zone()
+	return offset == cstOffset
+}
 
 // LookUpGo searches an executable go in the directories
 // named by the GOROOT/bin or PATH environment variable.

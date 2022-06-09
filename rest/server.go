@@ -73,6 +73,11 @@ func (s *Server) AddRoute(r Route, opts ...RouteOption) {
 	s.AddRoutes([]Route{r}, opts...)
 }
 
+// PrintRoutes prints the added routes to stdout.
+func (s *Server) PrintRoutes() {
+	s.ngin.print()
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.

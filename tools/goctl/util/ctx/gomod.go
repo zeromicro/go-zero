@@ -13,6 +13,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+const goModuleWithoutGoFiles = "command-line-arguments"
+
+var errInvalidGoMod = errors.New("invalid go module")
+
 // Module contains the relative data of go module,
 // which is the result of the command go list
 type Module struct {
@@ -21,6 +25,13 @@ type Module struct {
 	Dir       string
 	GoMod     string
 	GoVersion string
+}
+
+func (m *Module) validate() error {
+	if m.Path == goModuleWithoutGoFiles || m.Dir == "" {
+		return errInvalidGoMod
+	}
+	return nil
 }
 
 // projectFromGoMod is used to find the go module and project file path
@@ -41,6 +52,9 @@ func projectFromGoMod(workDir string) (*ProjectContext, error) {
 
 	m, err := getRealModule(workDir, execx.Run)
 	if err != nil {
+		return nil, err
+	}
+	if err := m.validate(); err != nil {
 		return nil, err
 	}
 
