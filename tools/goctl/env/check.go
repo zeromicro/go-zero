@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protoc"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengo"
@@ -37,11 +37,8 @@ var bins = []bin{
 	},
 }
 
-func Check(ctx *cli.Context) error {
-	install := ctx.Bool("install")
-	force := ctx.Bool("force")
-	verbose := ctx.Bool("verbose")
-	return Prepare(install, force, verbose)
+func check(_ *cobra.Command, _ []string) error {
+	return Prepare(boolVarInstall, boolVarForce, boolVarVerbose)
 }
 
 func Prepare(install, force, verbose bool) error {
@@ -86,7 +83,7 @@ command 'goctl env check --install' to install it, for details, please execute c
 				install()
 				continue
 			}
-			log.Info("[goctl-env]: do you want to install %q [y: YES, n: No]", e.name)
+			console.Info("[goctl-env]: do you want to install %q [y: YES, n: No]", e.name)
 			for {
 				var in string
 				fmt.Scanln(&in)
@@ -97,10 +94,10 @@ command 'goctl env check --install' to install it, for details, please execute c
 					brk = true
 				case strings.EqualFold(in, "n"):
 					pending = false
-					log.Info("[goctl-env]: %q installation is ignored", e.name)
+					console.Info("[goctl-env]: %q installation is ignored", e.name)
 					brk = true
 				default:
-					log.Error("[goctl-env]: invalid input, input 'y' for yes, 'n' for no")
+					console.Error("[goctl-env]: invalid input, input 'y' for yes, 'n' for no")
 				}
 				if brk {
 					break

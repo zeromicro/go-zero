@@ -12,13 +12,13 @@ import (
 
 func TestGenTemplates(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
 }
 
 func TestRevertTemplate(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
 	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {
@@ -59,7 +59,7 @@ func TestRevertTemplate(t *testing.T) {
 
 func TestClean(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
 	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {
@@ -78,7 +78,7 @@ func TestClean(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	_ = Clean()
-	err := GenTemplates(nil)
+	err := GenTemplates()
 	assert.Nil(t, err)
 	fp, err := pathx.GetTemplateDir(category)
 	if err != nil {

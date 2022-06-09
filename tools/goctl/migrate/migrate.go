@@ -16,13 +16,13 @@ import (
 	"time"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const zeromicroVersion = "v1.3.0"
+const defaultMigrateVersion = "v1.3.0"
 
 const (
 	confirmUnknown = iota
@@ -35,28 +35,26 @@ var (
 	builderxConfirm = confirmUnknown
 )
 
-func Migrate(c *cli.Context) error {
-	verbose := c.Bool("verbose")
-	version := c.String("version")
-	if len(version) == 0 {
-		version = zeromicroVersion
+func migrate(_ *cobra.Command, _ []string) error {
+	if len(stringVarVersion) == 0 {
+		stringVarVersion = defaultMigrateVersion
 	}
-	err := editMod(version, verbose)
+	err := editMod(stringVarVersion, boolVarVerbose)
 	if err != nil {
 		return err
 	}
 
-	err = rewriteImport(verbose)
+	err = rewriteImport(boolVarVerbose)
 	if err != nil {
 		return err
 	}
 
-	err = tidy(verbose)
+	err = tidy(boolVarVerbose)
 	if err != nil {
 		return err
 	}
 
-	if verbose {
+	if boolVarVerbose {
 		console.Success("[OK] refactor finish, execute %q on project root to check status.",
 			"go test -race ./...")
 	}

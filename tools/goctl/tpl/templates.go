@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
@@ -20,37 +20,37 @@ import (
 
 const templateParentPath = "/"
 
-// GenTemplates writes the latest template text into file which is not exists
-func GenTemplates(ctx *cli.Context) error {
-	path := ctx.String("home")
+// genTemplates writes the latest template text into file which is not exists
+func genTemplates(_ *cobra.Command, _ []string) error {
+	path := varStringHome
 	if len(path) != 0 {
 		pathx.RegisterGoctlHome(path)
 	}
 
 	if err := errorx.Chain(
 		func() error {
-			return gogen.GenTemplates(ctx)
+			return gogen.GenTemplates()
 		},
 		func() error {
-			return modelgen.GenTemplates(ctx)
+			return modelgen.GenTemplates()
 		},
 		func() error {
-			return rpcgen.GenTemplates(ctx)
+			return rpcgen.GenTemplates()
 		},
 		func() error {
-			return docker.GenTemplates(ctx)
+			return docker.GenTemplates()
 		},
 		func() error {
-			return kube.GenTemplates(ctx)
+			return kube.GenTemplates()
 		},
 		func() error {
-			return mongogen.Templates(ctx)
+			return mongogen.Templates()
 		},
 		func() error {
-			return apigen.GenTemplates(ctx)
+			return apigen.GenTemplates()
 		},
 		func() error {
-			return apinew.GenTemplates(ctx)
+			return apinew.GenTemplates()
 		},
 	); err != nil {
 		return err
@@ -72,9 +72,9 @@ func GenTemplates(ctx *cli.Context) error {
 	return nil
 }
 
-// CleanTemplates deletes all templates
-func CleanTemplates(ctx *cli.Context) error {
-	path := ctx.String("home")
+// cleanTemplates deletes all templates
+func cleanTemplates(_ *cobra.Command, _ []string) error {
+	path := varStringHome
 	if len(path) != 0 {
 		pathx.RegisterGoctlHome(path)
 	}
@@ -109,15 +109,15 @@ func CleanTemplates(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("%s\n", aurora.Green("template are clean!"))
+	fmt.Printf("%s\n", aurora.Green("templates are cleaned!"))
 	return nil
 }
 
-// UpdateTemplates writes the latest template text into file,
+// updateTemplates writes the latest template text into file,
 // it will delete the older templates if there are exists
-func UpdateTemplates(ctx *cli.Context) (err error) {
-	path := ctx.String("home")
-	category := ctx.String("category")
+func updateTemplates(_ *cobra.Command, _ []string) (err error) {
+	path := varStringHome
+	category := varStringCategory
 	if len(path) != 0 {
 		pathx.RegisterGoctlHome(path)
 	}
@@ -150,11 +150,11 @@ func UpdateTemplates(ctx *cli.Context) (err error) {
 	}
 }
 
-// RevertTemplates will overwrite the old template content with the new template
-func RevertTemplates(ctx *cli.Context) (err error) {
-	path := ctx.String("home")
-	category := ctx.String("category")
-	filename := ctx.String("name")
+// revertTemplates will overwrite the old template content with the new template
+func revertTemplates(_ *cobra.Command, _ []string) (err error) {
+	path := varStringHome
+	category := varStringCategory
+	filename := varStringName
 	if len(path) != 0 {
 		pathx.RegisterGoctlHome(path)
 	}

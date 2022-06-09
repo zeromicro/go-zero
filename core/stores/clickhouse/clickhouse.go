@@ -2,7 +2,7 @@ package clickhouse
 
 import (
 	// imports the driver, don't remove this comment, golint requires.
-	_ "github.com/ClickHouse/clickhouse-go"
+	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 

@@ -8,8 +8,11 @@ English | [简体中文](readme-cn.md)
 [![codecov](https://codecov.io/gh/zeromicro/go-zero/branch/master/graph/badge.svg)](https://codecov.io/gh/zeromicro/go-zero)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zeromicro/go-zero)](https://goreportcard.com/report/github.com/zeromicro/go-zero)
 [![Release](https://img.shields.io/github/v/release/zeromicro/go-zero.svg?style=flat-square)](https://github.com/zeromicro/go-zero)
+[![Go Reference](https://pkg.go.dev/badge/github.com/zeromicro/go-zero.svg)](https://pkg.go.dev/github.com/zeromicro/go-zero)
+[![Awesome Go](https://cdn.rawgit.com/sindresorhus/awesome/d7305f38d29fed78fa85652e3a63e154dd8e8829/media/badge.svg)](https://github.com/avelino/awesome-go)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Discord](https://img.shields.io/discord/794530774463414292?label=chat&logo=discord)](https://discord.gg/4JQvC5A4Fe)
+
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
 > ***Important!***
@@ -18,7 +21,7 @@ English | [简体中文](readme-cn.md)
 > 
 > `go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.3`
+> `goctl migrate —verbose —version v1.3.4`
 
 ## 0. what is go-zero
 
@@ -88,10 +91,9 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-## 4. Future development plans of go-zero
+## 4. The simplified architecture that we use with go-zero
 
-* auto-generate API mock server, make the client debugging easier
-* auto-generate the simple integration test for the server-side just from the .api files
+<img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
 ## 5. Installation
 
@@ -119,6 +121,9 @@ go get -u github.com/zeromicro/go-zero
    
    # for Go 1.16 and later
    go install github.com/zeromicro/go-zero/tools/goctl@latest
+   
+   # For Mac
+   brew install goctl
 
    # docker for amd64 architecture
    docker pull kevinwan/goctl
@@ -230,7 +235,7 @@ go get -u github.com/zeromicro/go-zero
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. Documents (adding)
+## 8. Documents
 
 * [Documents](https://go-zero.dev/en/)
 * [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)

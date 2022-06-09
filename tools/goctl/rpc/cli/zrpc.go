@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -16,37 +16,26 @@ var (
 	errInvalidGrpcOutput = errors.New("ZRPC: missing --go-grpc_out")
 	errInvalidGoOutput   = errors.New("ZRPC: missing --go_out")
 	errInvalidZrpcOutput = errors.New("ZRPC: missing zrpc output, please use --zrpc_out to specify the output")
-	errInvalidInput      = errors.New("ZRPC: missing source")
-	errMultiInput        = errors.New("ZRPC: only one source is expected")
 )
 
 // ZRPC generates grpc code directly by protoc and generates
 // zrpc code by goctl.
-func ZRPC(c *cli.Context) error {
-	if c.NumFlags() == 0 {
-		cli.ShowCommandHelpAndExit(c, "protoc", 1)
-	}
-
-	args := c.Parent().Args()
-	protocArgs := removeGoctlFlag(args)
+func ZRPC(_ *cobra.Command, args []string) error {
+	protocArgs := wrapProtocCmd("protoc", args)
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	source, err := getSourceProto(c.Args(), pwd)
-	if err != nil {
-		return err
-	}
-
-	grpcOutList := c.StringSlice("go-grpc_out")
-	goOutList := c.StringSlice("go_out")
-	zrpcOut := c.String("zrpc_out")
-	style := c.String("style")
-	home := c.String("home")
-	remote := c.String("remote")
-	branch := c.String("branch")
-	verbose := c.Bool("verbose")
+	source := args[0]
+	grpcOutList := VarStringSliceGoGRPCOut
+	goOutList := VarStringSliceGoOut
+	zrpcOut := VarStringZRPCOut
+	style := VarStringStyle
+	home := VarStringHome
+	remote := VarStringRemote
+	branch := VarStringBranch
+	verbose := VarBoolVerbose
 	if len(grpcOutList) == 0 {
 		return errInvalidGrpcOutput
 	}
@@ -116,64 +105,25 @@ func ZRPC(c *cli.Context) error {
 	return g.Generate(&ctx)
 }
 
-func removeGoctlFlag(args []string) []string {
-	var ret []string
-	var step int
-	for step < len(args) {
-		arg := args[step]
-		switch {
-		case arg == "--style", arg == "--home",
-			arg == "--zrpc_out", arg == "--verbose",
-			arg == "-v", arg == "--remote",
-			arg == "--branch":
-			step += 2
-			continue
-		case strings.HasPrefix(arg, "--style="),
-			strings.HasPrefix(arg, "--home="),
-			strings.HasPrefix(arg, "--verbose="),
-			strings.HasPrefix(arg, "-v="),
-			strings.HasPrefix(arg, "--remote="),
-			strings.HasPrefix(arg, "--branch="),
-			strings.HasPrefix(arg, "--zrpc_out="):
-			step += 1
-			continue
-		}
-		step += 1
-		ret = append(ret, arg)
+func wrapProtocCmd(name string, args []string) []string {
+	ret := append([]string{name}, args...)
+	for _, protoPath := range VarStringSliceProtoPath {
+		ret = append(ret, "--proto_path", protoPath)
 	}
-
+	for _, goOpt := range VarStringSliceGoOpt {
+		ret = append(ret, "--go_opt", goOpt)
+	}
+	for _, goGRPCOpt := range VarStringSliceGoGRPCOpt {
+		ret = append(ret, "--go-grpc_opt", goGRPCOpt)
+	}
+	for _, goOut := range VarStringSliceGoOut {
+		ret = append(ret, "--go_out", goOut)
+	}
+	for _, goGRPCOut := range VarStringSliceGoGRPCOut {
+		ret = append(ret, "--go-grpc_out", goGRPCOut)
+	}
+	for _, plugin := range VarStringSlicePlugin {
+		ret = append(ret, "--plugin="+plugin)
+	}
 	return ret
-}
-
-func getSourceProto(args []string, pwd string) (string, error) {
-	var source []string
-	for _, p := range args {
-		if strings.HasSuffix(p, ".proto") {
-			source = append(source, p)
-		}
-	}
-
-	switch len(source) {
-	case 0:
-		return "", errInvalidInput
-	case 1:
-		isAbs := filepath.IsAbs(source[0])
-		if isAbs {
-			return source[0], nil
-		}
-
-		abs := filepath.Join(pwd, source[0])
-		return abs, nil
-	default:
-		return "", errMultiInput
-	}
-}
-
-func removePluginFlag(goOut string) string {
-	goOut = strings.ReplaceAll(goOut, "plugins=", "")
-	index := strings.LastIndex(goOut, ":")
-	if index < 0 {
-		return goOut
-	}
-	return goOut[index+1:]
 }

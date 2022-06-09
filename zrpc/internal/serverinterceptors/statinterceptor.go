@@ -26,10 +26,6 @@ func SetSlowThreshold(threshold time.Duration) {
 func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (resp interface{}, err error) {
-		defer handleCrash(func(r interface{}) {
-			err = toPanicError(r)
-		})
-
 		startTime := timex.Now()
 		defer func() {
 			duration := timex.Since(startTime)

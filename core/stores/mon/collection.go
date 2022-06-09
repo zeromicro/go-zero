@@ -8,18 +8,35 @@ import (
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/timex"
-	"github.com/zeromicro/go-zero/core/trace"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/x/mongo/driver/session"
-	"go.opentelemetry.io/otel"
-	tracesdk "go.opentelemetry.io/otel/trace"
 )
 
 const (
 	defaultSlowThreshold = time.Millisecond * 500
 	// spanName is the span name of the mongo calls.
 	spanName = "mongo"
+
+	// mongodb method names
+	aggregate              = "Aggregate"
+	bulkWrite              = "BulkWrite"
+	countDocuments         = "CountDocuments"
+	deleteMany             = "DeleteMany"
+	deleteOne              = "DeleteOne"
+	distinct               = "Distinct"
+	estimatedDocumentCount = "EstimatedDocumentCount"
+	find                   = "Find"
+	findOne                = "FindOne"
+	findOneAndDelete       = "FindOneAndDelete"
+	findOneAndReplace      = "FindOneAndReplace"
+	findOneAndUpdate       = "FindOneAndUpdate"
+	insertMany             = "InsertMany"
+	insertOne              = "InsertOne"
+	replaceOne             = "ReplaceOne"
+	updateByID             = "UpdateByID"
+	updateMany             = "UpdateMany"
+	updateOne              = "UpdateOne"
 )
 
 // ErrNotFound is an alias of mongo.ErrNoDocuments
@@ -120,341 +137,411 @@ func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection
 
 func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline interface{},
 	opts ...*mopt.AggregateOptions) (cur *mongo.Cursor, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, aggregate)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		starTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("Aggregate", starTime, err)
+			c.logDurationSimple(ctx, aggregate, starTime, err)
 		}()
 
 		cur, err = c.Collection.Aggregate(ctx, pipeline, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.WriteModel,
 	opts ...*mopt.BulkWriteOptions) (res *mongo.BulkWriteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, bulkWrite)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("BulkWrite", startTime, err)
+			c.logDurationSimple(ctx, bulkWrite, startTime, err)
 		}()
 
 		res, err = c.Collection.BulkWrite(ctx, models, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) CountDocuments(ctx context.Context, filter interface{},
 	opts ...*mopt.CountOptions) (count int64, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, countDocuments)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("CountDocuments", startTime, err)
+			c.logDurationSimple(ctx, countDocuments, startTime, err)
 		}()
 
 		count, err = c.Collection.CountDocuments(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) DeleteMany(ctx context.Context, filter interface{},
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, deleteMany)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("DeleteMany", startTime, err)
+			c.logDurationSimple(ctx, deleteMany, startTime, err)
 		}()
 
 		res, err = c.Collection.DeleteMany(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, deleteOne)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("DeleteOne", startTime, err, filter)
+			c.logDuration(ctx, deleteOne, startTime, err, filter)
 		}()
 
 		res, err = c.Collection.DeleteOne(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, filter interface{},
 	opts ...*mopt.DistinctOptions) (val []interface{}, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, distinct)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("Distinct", startTime, err)
+			c.logDurationSimple(ctx, distinct, startTime, err)
 		}()
 
 		val, err = c.Collection.Distinct(ctx, fieldName, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
 	opts ...*mopt.EstimatedDocumentCountOptions) (val int64, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, estimatedDocumentCount)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("EstimatedDocumentCount", startTime, err)
+			c.logDurationSimple(ctx, estimatedDocumentCount, startTime, err)
 		}()
 
 		val, err = c.Collection.EstimatedDocumentCount(ctx, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOptions) (cur *mongo.Cursor, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, find)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("Find", startTime, err, filter)
+			c.logDuration(ctx, find, startTime, err, filter)
 		}()
 
 		cur, err = c.Collection.Find(ctx, filter, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOneOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, findOne)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("FindOne", startTime, err, filter)
+			c.logDuration(ctx, findOne, startTime, err, filter)
 		}()
 
 		res = c.Collection.FindOne(ctx, filter, opts...)
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter interface{},
 	opts ...*mopt.FindOneAndDeleteOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, findOneAndDelete)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("FindOneAndDelete", startTime, err, filter)
+			c.logDuration(ctx, findOneAndDelete, startTime, err, filter)
 		}()
 
 		res = c.Collection.FindOneAndDelete(ctx, filter, opts...)
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter interface{},
 	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) (
 	res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, findOneAndReplace)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("FindOneAndReplace", startTime, err, filter, replacement)
+			c.logDuration(ctx, findOneAndReplace, startTime, err, filter, replacement)
 		}()
 
 		res = c.Collection.FindOneAndReplace(ctx, filter, replacement, opts...)
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.FindOneAndUpdateOptions) (res *mongo.SingleResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, findOneAndUpdate)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("FindOneAndUpdate", startTime, err, filter, update)
+			c.logDuration(ctx, findOneAndUpdate, startTime, err, filter, update)
 		}()
 
 		res = c.Collection.FindOneAndUpdate(ctx, filter, update, opts...)
 		err = res.Err()
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) InsertMany(ctx context.Context, documents []interface{},
 	opts ...*mopt.InsertManyOptions) (res *mongo.InsertManyResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, insertMany)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("InsertMany", startTime, err)
+			c.logDurationSimple(ctx, insertMany, startTime, err)
 		}()
 
 		res, err = c.Collection.InsertMany(ctx, documents, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) InsertOne(ctx context.Context, document interface{},
 	opts ...*mopt.InsertOneOptions) (res *mongo.InsertOneResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, insertOne)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("InsertOne", startTime, err, document)
+			c.logDuration(ctx, insertOne, startTime, err, document)
 		}()
 
 		res, err = c.Collection.InsertOne(ctx, document, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter interface{}, replacement interface{},
 	opts ...*mopt.ReplaceOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, replaceOne)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("ReplaceOne", startTime, err, filter, replacement)
+			c.logDuration(ctx, replaceOne, startTime, err, filter, replacement)
 		}()
 
 		res, err = c.Collection.ReplaceOne(ctx, filter, replacement, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateByID(ctx context.Context, id interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, updateByID)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("UpdateByID", startTime, err, id, update)
+			c.logDuration(ctx, updateByID, startTime, err, id, update)
 		}()
 
 		res, err = c.Collection.UpdateByID(ctx, id, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateMany(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, updateMany)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDurationSimple("UpdateMany", startTime, err)
+			c.logDurationSimple(ctx, updateMany, startTime, err)
 		}()
 
 		res, err = c.Collection.UpdateMany(ctx, filter, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
 func (c *decoratedCollection) UpdateOne(ctx context.Context, filter interface{}, update interface{},
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, updateOne)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
-			c.logDuration("UpdateOne", startTime, err, filter, update)
+			c.logDuration(ctx, updateOne, startTime, err, filter, update)
 		}()
 
 		res, err = c.Collection.UpdateOne(ctx, filter, update, opts...)
 		return err
 	}, acceptable)
+
 	return
 }
 
-func (c *decoratedCollection) logDuration(method string, startTime time.Duration, err error,
-	docs ...interface{}) {
+func (c *decoratedCollection) logDuration(ctx context.Context, method string,
+	startTime time.Duration, err error, docs ...interface{}) {
 	duration := timex.Since(startTime)
-	content, e := json.Marshal(docs)
-	if e != nil {
-		logx.Error(err)
+	logger := logx.WithContext(ctx).WithDuration(duration)
+
+	content, jerr := json.Marshal(docs)
+	// jerr should not be non-nil, but we don't care much on this,
+	// if non-nil, we just log without docs.
+	if jerr != nil {
+		if err != nil {
+			if duration > slowThreshold.Load() {
+				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s)", c.name, method, err.Error())
+			} else {
+				logger.Infof("mongo(%s) - %s - fail(%s)", c.name, method, err.Error())
+			}
+		} else {
+			if duration > slowThreshold.Load() {
+				logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok", c.name, method)
+			} else {
+				logger.Infof("mongo(%s) - %s - ok", c.name, method)
+			}
+		}
 	} else if err != nil {
 		if duration > slowThreshold.Load() {
-			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
+			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		} else {
-			logx.WithDuration(duration).Infof("mongo(%s) - %s - fail(%s) - %s",
+			logger.Infof("mongo(%s) - %s - fail(%s) - %s",
 				c.name, method, err.Error(), string(content))
 		}
 	} else {
 		if duration > slowThreshold.Load() {
-			logx.WithDuration(duration).Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
+			logger.Slowf("[MONGO] mongo(%s) - slowcall - %s - ok - %s",
 				c.name, method, string(content))
 		} else {
-			logx.WithDuration(duration).Infof("mongo(%s) - %s - ok - %s", c.name, method, string(content))
+			logger.Infof("mongo(%s) - %s - ok - %s", c.name, method, string(content))
 		}
 	}
 }
 
-func (c *decoratedCollection) logDurationSimple(method string, startTime time.Duration, err error) {
-	logDuration(c.name, method, startTime, err)
+func (c *decoratedCollection) logDurationSimple(ctx context.Context, method string, startTime time.Duration, err error) {
+	logDuration(ctx, c.name, method, startTime, err)
 }
 
 func (p keepablePromise) accept(err error) error {
@@ -482,9 +569,4 @@ func acceptable(err error) bool {
 		err == session.ErrTransactInProgress || err == session.ErrAbortAfterCommit ||
 		err == session.ErrAbortTwice || err == session.ErrCommitAfterAbort ||
 		err == session.ErrUnackWCUnsupported || err == session.ErrSnapshotTransaction
-}
-
-func startSpan(ctx context.Context) (context.Context, tracesdk.Span) {
-	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
-	return tracer.Start(ctx, spanName)
 }

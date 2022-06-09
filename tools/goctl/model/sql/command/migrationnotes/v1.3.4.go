@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-
-	"github.com/urfave/cli"
 )
 
-func migrateBefore1_3_4(ctx *cli.Context) error {
-	dir := ctx.String("dir")
-	style := ctx.String("style")
+func migrateBefore1_3_4(dir, style string) error {
 	ok, err := needShow1_3_4(dir, style)
 	if err != nil {
 		return err

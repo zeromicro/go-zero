@@ -3,7 +3,6 @@ package docker
 import (
 	_ "embed"
 
-	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -21,7 +20,7 @@ func Clean() error {
 }
 
 // GenTemplates creates docker template files
-func GenTemplates(_ *cli.Context) error {
+func GenTemplates() error {
 	return initTemplate()
 }
 

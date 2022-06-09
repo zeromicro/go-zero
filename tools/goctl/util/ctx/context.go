@@ -2,7 +2,6 @@ package ctx
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -32,7 +31,6 @@ func Prepare(workDir string) (*ProjectContext, error) {
 	if err == nil {
 		return ctx, nil
 	}
-	fmt.Printf("get project context from workdir[%s] failed: %s\n", workDir, err)
 
 	name := filepath.Base(workDir)
 	_, err = execx.Run("go mod init "+name, workDir)

@@ -1,14 +1,13 @@
 package migrationnotes
 
 import (
-	"github.com/urfave/cli"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
 // BeforeCommands run before comamnd run to show some migration notes
-func BeforeCommands(ctx *cli.Context) error {
-	if err := migrateBefore1_3_4(ctx); err != nil {
+func BeforeCommands(dir, style string) error {
+	if err := migrateBefore1_3_4(dir, style); err != nil {
 		return err
 	}
 	return nil

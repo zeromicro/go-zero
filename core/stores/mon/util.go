@@ -1,6 +1,7 @@
 package mon
 
 import (
+	"context"
 	"strings"
 	"time"
 
@@ -15,11 +16,12 @@ func FormatAddr(hosts []string) string {
 	return strings.Join(hosts, mongoAddrSep)
 }
 
-func logDuration(name, method string, startTime time.Duration, err error) {
+func logDuration(ctx context.Context, name, method string, startTime time.Duration, err error) {
 	duration := timex.Since(startTime)
+	logger := logx.WithContext(ctx).WithDuration(duration)
 	if err != nil {
-		logx.WithDuration(duration).Infof("mongo(%s) - %s - fail(%s)", name, method, err.Error())
+		logger.Infof("mongo(%s) - %s - fail(%s)", name, method, err.Error())
 	} else {
-		logx.WithDuration(duration).Infof("mongo(%s) - %s - ok", name, method)
+		logger.Infof("mongo(%s) - %s - ok", name, method)
 	}
 }

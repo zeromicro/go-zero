@@ -6,16 +6,23 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
-	"github.com/urfave/cli"
+	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+var (
+	// VarStringDir describes a directory.
+	VarStringDir string
+	// VarStringAPI describes an API.
+	VarStringAPI string
+)
+
 // JavaCommand generates java code command entrance.
-func JavaCommand(c *cli.Context) error {
-	apiFile := c.String("api")
-	dir := c.String("dir")
+func JavaCommand(_ *cobra.Command, _ []string) error {
+	apiFile := VarStringAPI
+	dir := VarStringDir
 	if len(apiFile) == 0 {
 		return errors.New("missing -api")
 	}

@@ -11,6 +11,14 @@ import (
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const (
+	startSession      = "StartSession"
+	abortTransaction  = "AbortTransaction"
+	commitTransaction = "CommitTransaction"
+	withTransaction   = "WithTransaction"
+	endSession        = "EndSession"
+)
+
 type (
 	// Model is a mongodb store model that represents a collection.
 	Model struct {
@@ -23,7 +31,8 @@ type (
 
 	wrappedSession struct {
 		mongo.Session
-		brk breaker.Breaker
+		name string
+		brk  breaker.Breaker
 	}
 )
 
@@ -66,7 +75,7 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 	err = m.brk.DoWithAcceptable(func() error {
 		starTime := timex.Now()
 		defer func() {
-			logDuration(m.name, "StartSession", starTime, err)
+			logDuration(context.Background(), m.name, startSession, starTime, err)
 		}()
 
 		session, sessionErr := m.cli.StartSession(opts...)
@@ -76,11 +85,13 @@ func (m *Model) StartSession(opts ...*mopt.SessionOptions) (sess mongo.Session, 
 
 		sess = &wrappedSession{
 			Session: session,
+			name:    m.name,
 			brk:     m.brk,
 		}
 
 		return nil
 	}, acceptable)
+
 	return
 }
 
@@ -169,33 +180,57 @@ func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, upd
 	return res.Decode(v)
 }
 
-func (w *wrappedSession) AbortTransaction(ctx context.Context) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+// AbortTransaction implements the mongo.Session interface.
+func (w *wrappedSession) AbortTransaction(ctx context.Context) (err error) {
+	ctx, span := startSpan(ctx, abortTransaction)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return w.brk.DoWithAcceptable(func() error {
+		starTime := timex.Now()
+		defer func() {
+			logDuration(ctx, w.name, abortTransaction, starTime, err)
+		}()
+
 		return w.Session.AbortTransaction(ctx)
 	}, acceptable)
 }
 
-func (w *wrappedSession) CommitTransaction(ctx context.Context) error {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+// CommitTransaction implements the mongo.Session interface.
+func (w *wrappedSession) CommitTransaction(ctx context.Context) (err error) {
+	ctx, span := startSpan(ctx, commitTransaction)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	return w.brk.DoWithAcceptable(func() error {
+		starTime := timex.Now()
+		defer func() {
+			logDuration(ctx, w.name, commitTransaction, starTime, err)
+		}()
+
 		return w.Session.CommitTransaction(ctx)
 	}, acceptable)
 }
 
+// WithTransaction implements the mongo.Session interface.
 func (w *wrappedSession) WithTransaction(
 	ctx context.Context,
 	fn func(sessCtx mongo.SessionContext) (interface{}, error),
 	opts ...*mopt.TransactionOptions,
 ) (res interface{}, err error) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	ctx, span := startSpan(ctx, withTransaction)
+	defer func() {
+		endSpan(span, err)
+	}()
 
 	err = w.brk.DoWithAcceptable(func() error {
+		starTime := timex.Now()
+		defer func() {
+			logDuration(ctx, w.name, withTransaction, starTime, err)
+		}()
+
 		res, err = w.Session.WithTransaction(ctx, fn, opts...)
 		return err
 	}, acceptable)
@@ -203,11 +238,20 @@ func (w *wrappedSession) WithTransaction(
 	return
 }
 
+// EndSession implements the mongo.Session interface.
 func (w *wrappedSession) EndSession(ctx context.Context) {
-	ctx, span := startSpan(ctx)
-	defer span.End()
+	var err error
+	ctx, span := startSpan(ctx, endSession)
+	defer func() {
+		endSpan(span, err)
+	}()
 
-	_ = w.brk.DoWithAcceptable(func() error {
+	err = w.brk.DoWithAcceptable(func() error {
+		starTime := timex.Now()
+		defer func() {
+			logDuration(ctx, w.name, endSession, starTime, err)
+		}()
+
 		w.Session.EndSession(ctx)
 		return nil
 	}, acceptable)
