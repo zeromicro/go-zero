@@ -3,25 +3,26 @@ package kube
 import "github.com/spf13/cobra"
 
 var (
-	varStringName           string
-	varStringNamespace      string
-	varStringImage          string
-	varStringSecret         string
-	varIntRequestCpu        int
-	varIntRequestMem        int
-	varIntLimitCpu          int
-	varIntLimitMem          int
-	varStringO              string
-	varIntReplicas          int
-	varIntRevisions         int
-	varIntPort              int
-	varIntNodePort          int
-	varIntMinReplicas       int
-	varIntMaxReplicas       int
-	varStringHome           string
-	varStringRemote         string
-	varStringBranch         string
-	varStringServiceAccount string
+	varStringName            string
+	varStringNamespace       string
+	varStringImage           string
+	varStringSecret          string
+	varIntRequestCpu         int
+	varIntRequestMem         int
+	varIntLimitCpu           int
+	varIntLimitMem           int
+	varStringO               string
+	varIntReplicas           int
+	varIntRevisions          int
+	varIntPort               int
+	varIntNodePort           int
+	varIntMinReplicas        int
+	varIntMaxReplicas        int
+	varStringHome            string
+	varStringRemote          string
+	varStringBranch          string
+	varStringServiceAccount  string
+	varStringImagePullPolicy string
 
 	// Cmd describes a kube command.
 	Cmd = &cobra.Command{
@@ -52,6 +53,7 @@ func init() {
 	deployCmd.Flags().IntVar(&varIntNodePort, "nodePort", 0, "The nodePort of the deployment to expose")
 	deployCmd.Flags().IntVar(&varIntMinReplicas, "minReplicas", 3, "The min replicas to deploy")
 	deployCmd.Flags().IntVar(&varIntMaxReplicas, "maxReplicas", 10, "The max replicas to deploy")
+	deployCmd.Flags().StringVar(&varStringImagePullPolicy, "imagePullPolicy", "", "Image pull policy. One of Always, Never, IfNotPresent")
 
 	deployCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template, "+
 		"--home and --remote cannot be set at the same time, if they are, --remote has higher priority")

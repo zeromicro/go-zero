@@ -20,7 +20,8 @@ spec:
       containers:
       - name: {{.Name}}
         image: {{.Image}}
-        lifecycle:
+        {{if .ImagePullPolicy}}imagePullPolicy: {{.ImagePullPolicy}}
+        {{end}}lifecycle:
           preStop:
             exec:
               command: ["sh","-c","sleep 5"]
