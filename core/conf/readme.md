@@ -3,7 +3,7 @@
 1. Define a config structure, like below:
 
 ```go
-RestfulConf struct {
+type RestfulConf struct {
 	Host         string        `json:",default=0.0.0.0"`
 	Port         int
 	LogMode      string        `json:",options=[file,console]"
