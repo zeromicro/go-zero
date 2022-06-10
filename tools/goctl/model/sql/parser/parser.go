@@ -17,6 +17,8 @@ import (
 
 const timeImport = "time.Time"
 
+var decimalImport = []string{"decimal.Decimal", "decimal.NullDecimal"}
+
 type (
 	// Table describes a mysql table
 	Table struct {
@@ -262,8 +264,18 @@ func (t *Table) ContainsTime() bool {
 	}
 	return false
 }
+func (t *Table) ContainsDecimal() bool {
+	for _, item := range t.Fields {
+		for _, t := range decimalImport {
+			if item.DataType == t {
+				return true
+			}
+		}
 
-// ConvertDataType converts mysql data type into golang data type
+	}
+	return false
+}
+
 func ConvertDataType(table *model.Table) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
 	primaryDataType, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull)

@@ -25,8 +25,9 @@ CREATE TABLE `student`
     `class` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `name`  varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `age`   tinyint                                   DEFAULT NULL,
-    `score` float(10, 0
-) DEFAULT NULL,
+    `score` float(10, 0) DEFAULT NULL,
+    `money_nullable` decimal(18, 10) DEFAULT NULL,
+    `money_notnull` decimal(18, 10) NOT NULL,
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`type`) USING BTREE

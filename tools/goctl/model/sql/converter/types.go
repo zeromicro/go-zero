@@ -27,7 +27,7 @@ var commonMysqlDataTypeMapInt = map[int]string{
 	parser.Float4:    "float64",
 	parser.Float8:    "float64",
 	parser.Double:    "float64",
-	parser.Decimal:   "float64",
+	parser.Decimal:   "decimal.Decimal",
 	parser.Dec:       "float64",
 	parser.Fixed:     "float64",
 	parser.Numeric:   "float64",
@@ -86,7 +86,7 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"float4":    "float64",
 	"float8":    "float64",
 	"double":    "float64",
-	"decimal":   "float64",
+	"decimal":   "decimal.Decimal",
 	"dec":       "float64",
 	"fixed":     "float64",
 	"real":      "float64",
@@ -161,6 +161,8 @@ func mayConvertNullType(goDataType string, isDefaultNull bool) string {
 		return "sql.NullString"
 	case "time.Time":
 		return "sql.NullTime"
+	case "decimal.Decimal":
+		return "decimal.NullDecimal"
 	default:
 		return goDataType
 	}

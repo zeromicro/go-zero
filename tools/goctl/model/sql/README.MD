@@ -350,32 +350,32 @@ OPTIONS:
 
 # 类型转换规则
 
-| mysql dataType | golang dataType | golang Null dataType |
-|----------------|-----------------|----------------------------------------|
-| bool           | int64           | sql.NullInt64                          |
-| boolean        | int64           | sql.NullInt64                          |
-| tinyint        | int64           | sql.NullInt64                          |
-| smallint       | int64           | sql.NullInt64                          |
-| mediumint      | int64           | sql.NullInt64                          |
-| int            | int64           | sql.NullInt64                          |
-| integer        | int64           | sql.NullInt64                          |
-| bigint         | int64           | sql.NullInt64                          |
-| float          | float64         | sql.NullFloat64                        |
-| double         | float64         | sql.NullFloat64                        |
-| decimal        | float64         | sql.NullFloat64                        |
-| date           | time.Time       | sql.NullTime                           |
-| datetime       | time.Time       | sql.NullTime                           |
-| timestamp      | time.Time       | sql.NullTime                           |
-| time           | string          | sql.NullString                         |
-| year           | time.Time       | sql.NullInt64                          |
-| char           | string          | sql.NullString                         |
-| varchar        | string          | sql.NullString                         |
-| binary         | string          | sql.NullString                         |
-| varbinary      | string          | sql.NullString                         |
-| tinytext       | string          | sql.NullString                         |
-| text           | string          | sql.NullString                         |
-| mediumtext     | string          | sql.NullString                         |
-| longtext       | string          | sql.NullString                         |
-| enum           | string          | sql.NullString                         |
-| set            | string          | sql.NullString                         |
-| json           | string          | sql.NullString                         |
+| mysql dataType | golang dataType                                | golang Null dataType                                |
+|----------------|------------------------------------------------|-----------------------------------------------------|
+| bool           | int64                                          | sql.NullInt64                                       |
+| boolean        | int64                                          | sql.NullInt64                                       |
+| tinyint        | int64                                          | sql.NullInt64                                       |
+| smallint       | int64                                          | sql.NullInt64                                       |
+| mediumint      | int64                                          | sql.NullInt64                                       |
+| int            | int64                                          | sql.NullInt64                                       |
+| integer        | int64                                          | sql.NullInt64                                       |
+| bigint         | int64                                          | sql.NullInt64                                       |
+| float          | float64                                        | sql.NullFloat64                                     |
+| double         | float64                                        | sql.NullFloat64                                     |
+| decimal        | decimal.Decimal(github.com/shopspring/decimal) | decimal.NullDecimal(github.com/shopspring/decimal)  |
+| date           | time.Time                                      | sql.NullTime                                        |
+| datetime       | time.Time                                      | sql.NullTime                                        |
+| timestamp      | time.Time                                      | sql.NullTime                                        |
+| time           | string                                         | sql.NullString                                      |
+| year           | time.Time                                      | sql.NullInt64                                       |
+| char           | string                                         | sql.NullString                                      |
+| varchar        | string                                         | sql.NullString                                      |
+| binary         | string                                         | sql.NullString                                      |
+| varbinary      | string                                         | sql.NullString                                      |
+| tinytext       | string                                         | sql.NullString                                      |
+| text           | string                                         | sql.NullString                                      |
+| mediumtext     | string                                         | sql.NullString                                      |
+| longtext       | string                                         | sql.NullString                                      |
+| enum           | string                                         | sql.NullString                                      |
+| set            | string                                         | sql.NullString                                      |
+| json           | string                                         | sql.NullString                                      |
