@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type message struct {
@@ -93,6 +95,16 @@ func TestError(t *testing.T) {
 			assert.Equal(t, test.expectBody, strings.TrimSpace(w.builder.String()))
 		})
 	}
+}
+
+func TestErrorWithGrpcError(t *testing.T) {
+	w := tracedResponseWriter{
+		headers: make(map[string][]string),
+	}
+	Error(&w, status.Error(codes.Unavailable, "foo"))
+	assert.Equal(t, http.StatusServiceUnavailable, w.code)
+	assert.True(t, w.hasBody)
+	assert.True(t, strings.Contains(w.builder.String(), "foo"))
 }
 
 func TestErrorWithHandler(t *testing.T) {
