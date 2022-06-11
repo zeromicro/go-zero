@@ -4,8 +4,6 @@ import (
 	{{.imports}}
 )
 
-var ErrRequestFail = errors.New("http request fail")
-
 type CodeError struct {
 	Status int
 	Desc   string
@@ -40,7 +38,10 @@ func (cc *ClientContext) HandleResponse(resp *http.Response, val interface{}) er
 			}
 			return e
 		}
-		return ErrRequestFail
+        return &CodeError{
+			Status: resp.StatusCode,
+			Desc:   string(body),
+		}
 	}
 
 	if err := json.Unmarshal(body, val); err != nil {
