@@ -36,6 +36,3 @@ fi
 rm -f $buildFile
 console_green "PASS"
 docker image rm -f $image > /dev/null 2>&1
-
-
-
