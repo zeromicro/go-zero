@@ -8,6 +8,7 @@ import (
 )
 
 // CodeFromGrpcError converts the gRPC error to an HTTP status code.
+// See: https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
 func CodeFromGrpcError(err error) int {
 	code := status.Code(err)
 	switch code {
