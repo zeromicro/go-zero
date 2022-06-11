@@ -48,7 +48,6 @@ func genHandleResponse(dir string, cfg *config.Config) error {
 func genHandleResponseImports() string {
 	var imports []string
 	imports = append(imports, `"encoding/json"`)
-	imports = append(imports, `"errors"`)
 	imports = append(imports, `"fmt"`)
 	imports = append(imports, `"io/ioutil"`)
 	imports = append(imports, `"net/http"`)
