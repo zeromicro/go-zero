@@ -1,12 +1,12 @@
 package model
 
 import (
-    "errors"
+	"errors"
 
-    "github.com/zeromicro/go-zero/core/stores/mon"
+	"github.com/zeromicro/go-zero/core/stores/mon"
 )
 
 var (
-    ErrNotFound        = mon.ErrNotFound
-    ErrInvalidObjectId = errors.New("invalid objectId")
+	ErrNotFound        = mon.ErrNotFound
+	ErrInvalidObjectId = errors.New("invalid objectId")
 )
