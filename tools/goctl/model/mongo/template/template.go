@@ -2,10 +2,20 @@ package template
 
 import _ "embed"
 
-// Text provides the default template for model to generate.
-//go:embed model.tpl
-var Text string
+var (
+	// ModelText provides the default template for model to generate.
+	//go:embed model.tpl
+	ModelText string
 
-// Error provides the default template for error definition in mongo code generation.
-//go:embed error.tpl
-var Error string
+	// ModelCustomText provides the default template for model to generate.
+	//go:embed model_custom.tpl
+	ModelCustomText string
+
+	// ModelTypesText provides the default template for model to generate.
+	//go:embed types.tpl
+	ModelTypesText string
+
+	// Error provides the default template for error definition in mongo code generation.
+	//go:embed error.tpl
+	Error string
+)
