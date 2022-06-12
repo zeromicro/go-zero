@@ -38,12 +38,14 @@ func Action(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}
 	}
+	
 	if len(home) > 0 {
 		pathx.RegisterGoctlHome(home)
 	}
@@ -59,6 +61,10 @@ func Action(_ *cobra.Command, _ []string) error {
 
 	a, err := filepath.Abs(o)
 	if err != nil {
+		return err
+	}
+
+	if err = pathx.MkdirIfNotExist(a); err != nil {
 		return err
 	}
 
