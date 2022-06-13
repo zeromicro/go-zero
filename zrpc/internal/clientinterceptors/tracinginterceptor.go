@@ -26,9 +26,7 @@ func UnaryTracingInterceptor(ctx context.Context, method string, req, reply inte
 	defer span.End()
 
 	ztrace.MessageSent.Event(ctx, 1, req)
-
 	err := invoker(ctx, method, req, reply, cc, opts...)
-	// fix: https://github.com/zeromicro/go-zero/issues/1954
 	ztrace.MessageReceived.Event(ctx, 1, reply)
 	if err != nil {
 		s, ok := status.FromError(err)
