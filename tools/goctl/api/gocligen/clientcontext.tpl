@@ -15,7 +15,7 @@ var (
 	ErrHostInvalid = errors.New("host is invalid")
 )
 
-func NewClientContext(cli *http.Client, host string) (*ClientContext, error) {
+func NewClientContext(cli httpc.Service, host string) (*ClientContext, error) {
 	if len(host) == 0 {
 		return nil, ErrHostEmpty
 	}
@@ -23,11 +23,8 @@ func NewClientContext(cli *http.Client, host string) (*ClientContext, error) {
 	if err != nil {
 		return nil, ErrHostInvalid
 	}
-    if cli == nil {
-		cli = http.DefaultClient
-	}
 	return &ClientContext{
-		Service: httpc.NewServiceWithClient("{{.service}}", cli),
+		Service: cli,
 		host:    host,
 	}, nil
 }

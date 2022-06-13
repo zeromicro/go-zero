@@ -3,7 +3,6 @@ package gocligen
 import (
 	_ "embed"
 	"fmt"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -72,13 +71,13 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 	switch route.Method {
 	case "get":
-		method = http.MethodGet
+		method = "http.MethodGet"
 	case "post":
-		method = http.MethodPost
+		method = "http.MethodPost"
 	case "put":
-		method = http.MethodPut
+		method = "http.MethodPut"
 	case "delete":
-		method = http.MethodDelete
+		method = "http.MethodDelete"
 	}
 
 	return genFile(fileGenConfig{
@@ -120,6 +119,7 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
 	imports = append(imports, `"context"`)
+	imports = append(imports, `"net/http"`)
 	imports = append(imports, `"fmt"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, clientContextDir)))
 	if shallImportTypesPackage(route) {
