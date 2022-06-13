@@ -15,7 +15,9 @@ type RestfulConf struct {
 }
 ```
 
-2. Write the yaml or json config file:
+2. Write the yaml, toml or json config file:
+
+- yaml example
 
 ```yaml
 # most fields are optional or have default values
@@ -23,6 +25,16 @@ Port: 8080
 LogMode: console
 # you can use env settings
 MaxBytes: ${MAX_BYTES}
+```
+
+- toml example
+
+```toml
+# most fields are optional or have default values
+Port = 8_080
+LogMode = "console"
+# you can use env settings
+MaxBytes = "${MAX_BYTES}"
 ```
 
 3. Load the config from a file:
