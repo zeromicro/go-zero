@@ -11,6 +11,7 @@ require (
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
+	github.com/withfig/autocomplete-tools/integrations/cobra v0.0.0-20220612192618-e5d7d8e71f63
 	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v1.0.3
 	github.com/zeromicro/go-zero v1.3.4
