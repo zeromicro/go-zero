@@ -23,7 +23,7 @@ type (
 // The first returned reader needs to be read first, because the content
 // read from it will be written to the underlying buffer of the second reader.
 func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,string) {
-	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-upload")
+	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-body")
 	tee := io.TeeReader(reader, f)
 	return ioutil.NopCloser(tee), ioutil.NopCloser(f),f.Name()
 }
