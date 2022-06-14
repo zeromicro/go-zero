@@ -2,7 +2,6 @@ package iox
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 	"io/ioutil"
 	"os"
@@ -23,10 +22,10 @@ type (
 // DupReadCloser returns two io.ReadCloser that read from the first will be written to the second.
 // The first returned reader needs to be read first, because the content
 // read from it will be written to the underlying buffer of the second reader.
-func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser) {
-	var buf bytes.Buffer
-	tee := io.TeeReader(reader, &buf)
-	return ioutil.NopCloser(tee), ioutil.NopCloser(&buf)
+func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,string) {
+	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-upload")
+	tee := io.TeeReader(reader, f)
+	return ioutil.NopCloser(tee), ioutil.NopCloser(f),f.Name()
 }
 
 // KeepSpace customizes the reading functions to keep leading and tailing spaces.

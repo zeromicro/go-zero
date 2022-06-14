@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -79,7 +80,9 @@ func LogHandler(next http.Handler) http.Handler {
 		}
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
+		var tempFileName string
+		r.Body, dup,tempFileName = iox.DupReadCloser(r.Body)
+		defer os.Remove(tempFileName)
 		next.ServeHTTP(&lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
 		r.Body = dup
 		logBrief(r, lrw.code, timer, logs)
@@ -137,7 +140,9 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		}, &buf)
 
 		var dup io.ReadCloser
-		r.Body, dup = iox.DupReadCloser(r.Body)
+		var tempFileName string
+		r.Body, dup,tempFileName = iox.DupReadCloser(r.Body)
+		defer os.Remove(tempFileName)
 		logs := new(internal.LogCollector)
 		next.ServeHTTP(lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
 		r.Body = dup
