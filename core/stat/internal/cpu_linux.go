@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/iox"
@@ -22,8 +23,10 @@ var (
 	cores     uint64
 )
 
+var initonce sync.Once
+
 // if /proc not present, ignore the cpu calculation, like wsl linux
-func init() {
+func initialize() {
 	cpus, err := cpuSets()
 	if err != nil {
 		logx.Error(err)
@@ -69,6 +72,7 @@ func init() {
 
 // RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
+	initonce.Do(initialize)
 	total, err := totalCpuUsage()
 	if err != nil {
 		return 0
