@@ -25,7 +25,8 @@ type (
 func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,string) {
 	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-body")
 	tee := io.TeeReader(reader, f)
-	return ioutil.NopCloser(tee), ioutil.NopCloser(f),f.Name()
+	readTempFile,_:=os.Open(f.Name())
+	return ioutil.NopCloser(tee), ioutil.NopCloser(readTempFile),f.Name()
 }
 
 // KeepSpace customizes the reading functions to keep leading and tailing spaces.
