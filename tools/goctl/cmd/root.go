@@ -117,7 +117,6 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.LocalFlags().FlagUsages()
 	rootCmd.AddCommand(api.Cmd)
 	rootCmd.AddCommand(bug.Cmd)
 	rootCmd.AddCommand(docker.Cmd)
