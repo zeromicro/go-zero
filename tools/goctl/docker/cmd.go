@@ -3,6 +3,7 @@ package docker
 import "github.com/spf13/cobra"
 
 var (
+	varExeName       string
 	varStringGo      string
 	varStringBase    string
 	varIntPort       int
@@ -21,6 +22,7 @@ var (
 )
 
 func init() {
+	Cmd.Flags().StringVar(&varExeName, "exe", "", "The executable name in the built image")
 	Cmd.Flags().StringVar(&varStringGo, "go", "", "The file that contains main function")
 	Cmd.Flags().StringVar(&varStringBase, "base", "scratch", "The base image to build the docker image, default scratch")
 	Cmd.Flags().IntVar(&varIntPort, "port", 0, "The port to expose, default none")
