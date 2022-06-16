@@ -1,4 +1,4 @@
 package template
 
 // Tag defines a tag template text
-const Tag = "`db:\"{{.field}}\"`"
+const Tag = "`db:\"{{.field}}\"` `comment:\"{{.comment}}\"`"
