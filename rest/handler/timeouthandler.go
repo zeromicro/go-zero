@@ -22,6 +22,7 @@ const (
 	reason                    = "Request Timeout"
 	headerUpgrade             = "Upgrade"
 	valueWebsocket            = "websocket"
+	valueServerSentEvents     = "sse"
 )
 
 // TimeoutHandler returns the handler with given timeout.
@@ -54,7 +55,7 @@ func (h *timeoutHandler) errorBody() string {
 }
 
 func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(headerUpgrade) == valueWebsocket {
+	if r.Header.Get(headerUpgrade) == valueWebsocket || r.Header.Get(headerUpgrade) == valueServerSentEvents {
 		h.handler.ServeHTTP(w, r)
 		return
 	}
