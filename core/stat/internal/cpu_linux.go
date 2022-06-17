@@ -22,7 +22,8 @@ var (
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
-	preSystem, err := systemCpuUsage()
+	var err error
+	preSystem, err = systemCpuUsage()
 	if err != nil {
 		logx.Error(err)
 		return
