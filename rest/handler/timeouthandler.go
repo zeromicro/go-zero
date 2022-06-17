@@ -21,7 +21,9 @@ const (
 	statusClientClosedRequest = 499
 	reason                    = "Request Timeout"
 	headerUpgrade             = "Upgrade"
+	headerSSE                 = "SSE"
 	valueWebsocket            = "websocket"
+	valueSSE                  = "true"
 )
 
 // TimeoutHandler returns the handler with given timeout.
@@ -54,7 +56,7 @@ func (h *timeoutHandler) errorBody() string {
 }
 
 func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(headerUpgrade) == valueWebsocket {
+	if r.Header.Get(headerUpgrade) == valueWebsocket || r.Header.Get(headerSSE) == valueSSE {
 		h.handler.ServeHTTP(w, r)
 		return
 	}
