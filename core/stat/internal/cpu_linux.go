@@ -18,43 +18,11 @@ const (
 var (
 	preSystem uint64
 	preTotal  uint64
-	quota     float64
-	cores     uint64
 )
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
-	cpus, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	cores = uint64(len(cpus))
-	sets, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	quota = float64(len(sets))
-	cq, err := cpuQuota()
-	if err == nil {
-		if cq != -1 {
-			period, err := cpuPeriod()
-			if err != nil {
-				logx.Error(err)
-				return
-			}
-
-			limit := float64(cq) / float64(period)
-			if limit < quota {
-				quota = limit
-			}
-		}
-	}
-
-	preSystem, err = systemCpuUsage()
+	preSystem, err := systemCpuUsage()
 	if err != nil {
 		logx.Error(err)
 		return
