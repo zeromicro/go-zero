@@ -82,7 +82,7 @@ func RefreshCpu() uint64 {
 	cpuDelta := total - preTotal
 	systemDelta := system - preSystem
 	if cpuDelta > 0 && systemDelta > 0 {
-		usage = uint64(float64(cpuDelta*cores*1e3) / (float64(systemDelta) * quota))
+		usage = uint64(float64(cpuDelta*1e3) / float64(systemDelta))
 	}
 	preSystem = system
 	preTotal = total
