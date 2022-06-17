@@ -8,7 +8,7 @@ import (
 // Acceptable checks if given error is acceptable.
 func Acceptable(err error) bool {
 	switch status.Code(err) {
-	case codes.DeadlineExceeded, codes.Internal, codes.Unavailable, codes.DataLoss:
+	case codes.DeadlineExceeded, codes.Internal, codes.Unavailable, codes.DataLoss, codes.Unimplemented:
 		return false
 	default:
 		return true
