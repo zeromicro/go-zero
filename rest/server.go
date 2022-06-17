@@ -121,7 +121,7 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 }
 
 // WithJwt returns a func to enable jwt authentication in given route.
-func WithJwt(secret string) RouteOption {
+func WithJwt(secret interface{}) RouteOption {
 	return func(r *featuredRoutes) {
 		validateSecret(secret)
 		r.jwt.enabled = true
@@ -131,7 +131,7 @@ func WithJwt(secret string) RouteOption {
 
 // WithJwtTransition returns a func to enable jwt authentication as well as jwt secret transition.
 // Which means old and new jwt secrets work together for a period.
-func WithJwtTransition(secret, prevSecret string) RouteOption {
+func WithJwtTransition(secret interface{}, prevSecret interface{}) RouteOption {
 	return func(r *featuredRoutes) {
 		// why not validate prevSecret, because prevSecret is an already used one,
 		// even it not meet our requirement, we still need to allow the transition.
@@ -266,8 +266,10 @@ func handleError(err error) {
 	panic(err)
 }
 
-func validateSecret(secret string) {
-	if len(secret) < 8 {
-		panic("secret's length can't be less than 8")
+func validateSecret(secret interface{}) {
+	if secretStr, ok := secret.(string); ok {
+		if len(secretStr) < 8 {
+			panic("secret's length can't be less than 8")
+		}
 	}
 }

@@ -21,8 +21,8 @@ type (
 
 	jwtSetting struct {
 		enabled    bool
-		secret     string
-		prevSecret string
+		secret     interface{}
+		prevSecret interface{}
 	}
 
 	signatureSetting struct {
