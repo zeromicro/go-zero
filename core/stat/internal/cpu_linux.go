@@ -59,33 +59,6 @@ func RefreshCpu() uint64 {
 	return usage
 }
 
-func cpuQuota() (int64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return 0, err
-	}
-
-	return cg.cpuQuotaUs()
-}
-
-func cpuPeriod() (uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return 0, err
-	}
-
-	return cg.cpuPeriodUs()
-}
-
-func cpuSets() ([]uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return nil, err
-	}
-
-	return cg.cpus()
-}
-
 func systemCpuUsage() (uint64, error) {
 	lines, err := iox.ReadTextLines("/proc/stat", iox.WithoutBlank())
 	if err != nil {
