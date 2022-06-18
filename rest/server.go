@@ -95,10 +95,10 @@ func (s *Server) Use(middleware Middleware) {
 	s.ngin.use(middleware)
 }
 
-// DisableBuiltinMiddlewares returns a RunOption that disables the builtin middlewares.
-func DisableBuiltinMiddlewares() RunOption {
+// DisableDefaultMiddlewares returns a RunOption that disables the builtin middlewares.
+func DisableDefaultMiddlewares() RunOption {
 	return func(svr *Server) {
-		svr.ngin.noBuiltinMiddlewares = true
+		svr.ngin.disableDefaultMiddlewares = true
 	}
 }
 

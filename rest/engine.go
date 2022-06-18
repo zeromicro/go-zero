@@ -25,15 +25,15 @@ const topCpuUsage = 1000
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
 type engine struct {
-	conf                 RestConf
-	routes               []featuredRoutes
-	unauthorizedCallback handler.UnauthorizedCallback
-	unsignedCallback     handler.UnsignedCallback
-	noBuiltinMiddlewares bool
-	middlewares          []Middleware
-	shedder              load.Shedder
-	priorityShedder      load.Shedder
-	tlsConfig            *tls.Config
+	conf                      RestConf
+	routes                    []featuredRoutes
+	unauthorizedCallback      handler.UnauthorizedCallback
+	unsignedCallback          handler.UnsignedCallback
+	disableDefaultMiddlewares bool
+	middlewares               []Middleware
+	shedder                   load.Shedder
+	priorityShedder           load.Shedder
+	tlsConfig                 *tls.Config
 }
 
 func newEngine(c RestConf) *engine {
@@ -87,7 +87,7 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	var chain alice.Chain
-	if !ng.noBuiltinMiddlewares {
+	if !ng.disableDefaultMiddlewares {
 		chain = alice.New(
 			handler.TracingHandler(ng.conf.Name, route.Path),
 			ng.getLogHandler(),
