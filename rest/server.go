@@ -7,6 +7,7 @@ import (
 	"path"
 	"time"
 
+	"github.com/justinas/alice"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
@@ -239,6 +240,17 @@ func WithTimeout(timeout time.Duration) RouteOption {
 func WithTLSConfig(cfg *tls.Config) RunOption {
 	return func(svr *Server) {
 		svr.ngin.setTlsConfig(cfg)
+	}
+}
+
+// WithChain returns a RunOption that with given chain config.
+func WithChain(middlewares ...func(http.Handler) http.Handler) RunOption {
+	return func(svr *Server) {
+		chain := alice.New()
+		for _, middleware := range middlewares {
+			chain = chain.Append(middleware)
+		}
+		svr.ngin.setChainConfig(&chain)
 	}
 }
 

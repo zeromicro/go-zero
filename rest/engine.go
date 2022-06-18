@@ -33,6 +33,7 @@ type engine struct {
 	shedder              load.Shedder
 	priorityShedder      load.Shedder
 	tlsConfig            *tls.Config
+	chain                *alice.Chain
 }
 
 func newEngine(c RestConf) *engine {
@@ -85,19 +86,25 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
-	chain := alice.New(
-		handler.TracingHandler(ng.conf.Name, route.Path),
-		ng.getLogHandler(),
-		handler.PrometheusHandler(route.Path),
-		handler.MaxConns(ng.conf.MaxConns),
-		handler.BreakerHandler(route.Method, route.Path, metrics),
-		handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
-		handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
-		handler.RecoverHandler,
-		handler.MetricHandler(metrics),
-		handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
-		handler.GunzipHandler,
-	)
+	var chain alice.Chain
+	if ng.chain == nil {
+		chain = alice.New(
+			handler.TracingHandler(ng.conf.Name, route.Path),
+			ng.getLogHandler(),
+			handler.PrometheusHandler(route.Path),
+			handler.MaxConns(ng.conf.MaxConns),
+			handler.BreakerHandler(route.Method, route.Path, metrics),
+			handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
+			handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
+			handler.RecoverHandler,
+			handler.MetricHandler(metrics),
+			handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
+			handler.GunzipHandler,
+		)
+	} else {
+		chain = *ng.chain
+	}
+
 	chain = ng.appendAuthHandler(fr, chain, verifier)
 
 	for _, middleware := range ng.middlewares {
@@ -204,6 +211,10 @@ func (ng *engine) print() {
 
 func (ng *engine) setTlsConfig(cfg *tls.Config) {
 	ng.tlsConfig = cfg
+}
+
+func (ng *engine) setChainConfig(chain *alice.Chain) {
+	ng.chain = chain
 }
 
 func (ng *engine) setUnauthorizedCallback(callback handler.UnauthorizedCallback) {
