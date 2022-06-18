@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/router"
 )
@@ -100,6 +101,18 @@ Port: 54321
 			svr.Stop()
 		}()
 	}
+}
+
+func TestNewServerError(t *testing.T) {
+	_, err := NewServer(RestConf{
+		ServiceConf: service.ServiceConf{
+			Log: logx.LogConf{
+				// file mode, no path specified
+				Mode: "file",
+			},
+		},
+	})
+	assert.NotNil(t, err)
 }
 
 func TestWithMaxBytes(t *testing.T) {
@@ -320,6 +333,7 @@ Port: 54321
 	rt := router.NewRouter()
 	svr, err := NewServer(cnf, WithRouter(rt))
 	assert.Nil(t, err)
+	defer svr.Stop()
 
 	opt := WithCors("local")
 	opt(svr)
@@ -407,4 +421,17 @@ Port: 54321
 	w.Close()
 	out := <-ch
 	assert.Equal(t, expect, out)
+}
+
+func TestHandleError(t *testing.T) {
+	assert.NotPanics(t, func() {
+		handleError(nil)
+		handleError(http.ErrServerClosed)
+	})
+}
+
+func TestValidateSecret(t *testing.T) {
+	assert.Panics(t, func() {
+		validateSecret("short")
+	})
 }

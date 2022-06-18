@@ -25,15 +25,15 @@ const topCpuUsage = 1000
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
 type engine struct {
-	conf                 RestConf
-	routes               []featuredRoutes
-	unauthorizedCallback handler.UnauthorizedCallback
-	unsignedCallback     handler.UnsignedCallback
-	middlewares          []Middleware
-	shedder              load.Shedder
-	priorityShedder      load.Shedder
-	tlsConfig            *tls.Config
-	chain                *alice.Chain
+	conf                      RestConf
+	routes                    []featuredRoutes
+	unauthorizedCallback      handler.UnauthorizedCallback
+	unsignedCallback          handler.UnsignedCallback
+	disableDefaultMiddlewares bool
+	middlewares               []Middleware
+	shedder                   load.Shedder
+	priorityShedder           load.Shedder
+	tlsConfig                 *tls.Config
 }
 
 func newEngine(c RestConf) *engine {
@@ -87,7 +87,7 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain alice.Chain) alice.Chain) error {
 	var chain alice.Chain
-	if ng.chain == nil {
+	if !ng.disableDefaultMiddlewares {
 		chain = alice.New(
 			handler.TracingHandler(ng.conf.Name, route.Path),
 			ng.getLogHandler(),
@@ -101,15 +101,12 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 			handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
 			handler.GunzipHandler,
 		)
-	} else {
-		chain = *ng.chain
 	}
-
-	chain = ng.appendAuthHandler(fr, chain, verifier)
 
 	for _, middleware := range ng.middlewares {
 		chain = chain.Append(convertMiddleware(middleware))
 	}
+	chain = ng.appendAuthHandler(fr, chain, verifier)
 	handle := chain.ThenFunc(route.Handler)
 
 	return router.Handle(route.Method, route.Path, handle)
@@ -211,10 +208,6 @@ func (ng *engine) print() {
 
 func (ng *engine) setTlsConfig(cfg *tls.Config) {
 	ng.tlsConfig = cfg
-}
-
-func (ng *engine) setChainConfig(chain *alice.Chain) {
-	ng.chain = chain
 }
 
 func (ng *engine) setUnauthorizedCallback(callback handler.UnauthorizedCallback) {

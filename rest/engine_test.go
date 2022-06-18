@@ -250,7 +250,9 @@ func TestEngine_checkedChain(t *testing.T) {
 		}
 	}
 
-	server := MustNewServer(RestConf{}, WithChain(middleware1(), middleware2()))
+	server := MustNewServer(RestConf{}, DisableDefaultMiddlewares())
+	server.Use(ToMiddleware(middleware1()))
+	server.Use(ToMiddleware(middleware2()))
 	server.router = chainRouter{}
 	server.AddRoutes(
 		[]Route{
