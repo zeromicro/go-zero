@@ -87,7 +87,7 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
 	route Route, verifier func(chain.Chain) chain.Chain) error {
 	chn := ng.chain
-	if ng.chain == nil {
+	if chn == nil {
 		chn = chain.New(
 			handler.TracingHandler(ng.conf.Name, route.Path),
 			ng.getLogHandler(),
