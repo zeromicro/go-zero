@@ -229,46 +229,6 @@ func TestEngine_checkedMaxBytes(t *testing.T) {
 	}
 }
 
-func TestEngine_checkedChain(t *testing.T) {
-	var called int32
-	middleware1 := func() func(http.Handler) http.Handler {
-		return func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				atomic.AddInt32(&called, 1)
-				next.ServeHTTP(w, r)
-				atomic.AddInt32(&called, 1)
-			})
-		}
-	}
-	middleware2 := func() func(http.Handler) http.Handler {
-		return func(next http.Handler) http.Handler {
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				atomic.AddInt32(&called, 1)
-				next.ServeHTTP(w, r)
-				atomic.AddInt32(&called, 1)
-			})
-		}
-	}
-
-	server := MustNewServer(RestConf{}, DisableDefaultMiddlewares())
-	server.Use(ToMiddleware(middleware1()))
-	server.Use(ToMiddleware(middleware2()))
-	server.router = chainRouter{}
-	server.AddRoutes(
-		[]Route{
-			{
-				Method: http.MethodGet,
-				Path:   "/",
-				Handler: func(_ http.ResponseWriter, _ *http.Request) {
-					atomic.AddInt32(&called, 1)
-				},
-			},
-		},
-	)
-	server.ngin.bindRoutes(chainRouter{})
-	assert.Equal(t, int32(5), atomic.LoadInt32(&called))
-}
-
 func TestEngine_notFoundHandler(t *testing.T) {
 	logx.Disable()
 
@@ -374,7 +334,7 @@ type mockedRouter struct{}
 func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
 }
 
-func (m mockedRouter) Handle(_, _ string, _ http.Handler) error {
+func (m mockedRouter) Handle(_, _ string, handler http.Handler) error {
 	return errors.New("foo")
 }
 
@@ -382,20 +342,4 @@ func (m mockedRouter) SetNotFoundHandler(_ http.Handler) {
 }
 
 func (m mockedRouter) SetNotAllowedHandler(_ http.Handler) {
-}
-
-type chainRouter struct{}
-
-func (c chainRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
-}
-
-func (c chainRouter) Handle(_, _ string, handler http.Handler) error {
-	handler.ServeHTTP(nil, nil)
-	return nil
-}
-
-func (c chainRouter) SetNotFoundHandler(_ http.Handler) {
-}
-
-func (c chainRouter) SetNotAllowedHandler(_ http.Handler) {
 }
