@@ -95,7 +95,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 			handler.MaxConns(ng.conf.MaxConns),
 			handler.BreakerHandler(route.Method, route.Path, metrics),
 			handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
-			handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
+			handler.TimeoutHandler(ng.checkedTimeout(fr.timeout, fr.ignoreTimeout)),
 			handler.RecoverHandler,
 			handler.MetricHandler(metrics),
 			handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
@@ -132,14 +132,18 @@ func (ng *engine) checkedMaxBytes(bytes int64) int64 {
 	return ng.conf.MaxBytes
 }
 
-func (ng *engine) checkedTimeout(timeout time.Duration) time.Duration {
+func (ng *engine) checkedTimeout(timeout time.Duration, ignoreTimeout bool) time.Duration {
+	if ignoreTimeout {
+		// ignore timeout
+		return 0
+	}
+
 	if timeout > 0 {
 		return timeout
 	}
 
 	return time.Duration(ng.conf.Timeout) * time.Millisecond
 }
-
 func (ng *engine) createMetrics() *stat.Metrics {
 	var metrics *stat.Metrics
 

@@ -190,7 +190,42 @@ func TestEngine_checkedTimeout(t *testing.T) {
 		Timeout: 1000,
 	})
 	for _, test := range tests {
-		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout))
+		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout, false))
+	}
+}
+
+func TestEngine_checkedTimeout_ignoreTimeout(t *testing.T) {
+	tests := []struct {
+		name    string
+		timeout time.Duration
+		expect  time.Duration
+	}{
+		{
+			name:   "not set",
+			expect: 0,
+		},
+		{
+			name:    "less",
+			timeout: time.Millisecond * 500,
+			expect:  0,
+		},
+		{
+			name:    "equal",
+			timeout: time.Second,
+			expect:  0,
+		},
+		{
+			name:    "more",
+			timeout: time.Millisecond * 1500,
+			expect:  0,
+		},
+	}
+
+	ng := newEngine(RestConf{
+		Timeout: 1000,
+	})
+	for _, test := range tests {
+		assert.Equal(t, test.expect, ng.checkedTimeout(test.timeout, true))
 	}
 }
 
@@ -265,7 +300,7 @@ func TestEngine_checkedChain(t *testing.T) {
 			},
 		},
 	)
-	server.ngin.bindRoutes(chainRouter{})
+	_ = server.ngin.bindRoutes(chainRouter{})
 	assert.Equal(t, int32(5), atomic.LoadInt32(&called))
 }
 

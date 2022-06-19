@@ -87,7 +87,7 @@ func (s *Server) Start() {
 
 // Stop stops the Server.
 func (s *Server) Stop() {
-	logx.Close()
+	_ = logx.Close()
 }
 
 // Use adds the given middleware in the Server.
@@ -124,6 +124,13 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
 		server.Use(cors.Middleware(middlewareFn, origin...))
+	}
+}
+
+// WithIgnoreTimeout returns a RunOption to ignore the timeout.
+func WithIgnoreTimeout() RouteOption {
+	return func(r *featuredRoutes) {
+		r.ignoreTimeout = true
 	}
 }
 

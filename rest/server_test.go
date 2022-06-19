@@ -114,6 +114,11 @@ func TestNewServerError(t *testing.T) {
 	})
 	assert.NotNil(t, err)
 }
+func TestWithIgnoreTimeout(t *testing.T) {
+	var fr featuredRoutes
+	WithIgnoreTimeout()(&fr)
+	assert.True(t, fr.ignoreTimeout)
+}
 
 func TestWithMaxBytes(t *testing.T) {
 	const maxBytes = 1000
@@ -414,11 +419,11 @@ Port: 54321
 
 	go func() {
 		var buf strings.Builder
-		io.Copy(&buf, r)
+		_, _ = io.Copy(&buf, r)
 		ch <- buf.String()
 	}()
 
-	w.Close()
+	_ = w.Close()
 	out := <-ch
 	assert.Equal(t, expect, out)
 }
