@@ -15,6 +15,8 @@ English | [简体中文](readme-cn.md)
 
 <a href="https://www.producthunt.com/posts/go-zero?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-go&#0045;zero" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=334030&theme=light" alt="go&#0045;zero - A&#0032;web&#0032;&#0038;&#0032;rpc&#0032;framework&#0032;written&#0032;in&#0032;Go&#0046; | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 
+<a href="https://www.buymeacoffee.com/kevwan"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=kevwan&button_colour=40DCA5&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" /></a>
+
 > ***Important!***
 > 
 > To upgrade from versions eariler than v1.3.0, run the following commands.
