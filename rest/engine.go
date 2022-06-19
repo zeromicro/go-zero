@@ -145,6 +145,7 @@ func (ng *engine) checkedTimeout(timeout time.Duration, ignoreTimeout bool) time
 
 	return time.Duration(ng.conf.Timeout) * time.Millisecond
 }
+
 func (ng *engine) createMetrics() *stat.Metrics {
 	var metrics *stat.Metrics
 
