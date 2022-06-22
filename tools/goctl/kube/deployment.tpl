@@ -21,11 +21,7 @@ spec:
       - name: {{.Name}}
         image: {{.Image}}
         {{if .ImagePullPolicy}}imagePullPolicy: {{.ImagePullPolicy}}
-        {{end}}lifecycle:
-          preStop:
-            exec:
-              command: ["sh","-c","sleep 5"]
-        ports:
+        {{end}}ports:
         - containerPort: {{.Port}}
         readinessProbe:
           tcpSocket:
