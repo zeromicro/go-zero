@@ -60,6 +60,20 @@ func Deref(t reflect.Type) reflect.Type {
 	return t
 }
 
+// DerefVal dereferences a value, if pointer value nil set new a value, returns is not a ptr element value.
+func DerefVal(v reflect.Value) reflect.Value {
+	for {
+		if v.Kind() != reflect.Ptr {
+			break
+		}
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+	return v
+}
+
 // Repr returns the string representation of v.
 func Repr(v interface{}) string {
 	if v == nil {
@@ -477,6 +491,7 @@ func setValue(kind reflect.Kind, value reflect.Value, str string) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}
+	value = DerefVal(value)
 
 	v, err := convertType(kind, str)
 	if err != nil {
