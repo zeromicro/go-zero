@@ -98,17 +98,32 @@ func TestReadTextLines(t *testing.T) {
 func TestDupReadCloser(t *testing.T) {
 	input := "hello"
 	reader := ioutil.NopCloser(bytes.NewBufferString(input))
-	r1, r2,tempFileName := DupReadCloser(reader)
+	r1, r2 := DupReadCloser(reader)
 	verify := func(r io.Reader) {
 		output, err := ioutil.ReadAll(r)
 		assert.Nil(t, err)
 		t.Logf("output=%s\n",string(output))
 		assert.Equal(t, input, string(output))
 	}
-	defer os.Remove(tempFileName)
+	verify(r1)
+	verify(r2)
+}
+
+
+
+func TestDupReadCloserForLargeFile(t *testing.T) {
+	input := "hello"
+	reader := ioutil.NopCloser(bytes.NewBufferString(input))
+	r1, r2,err,close := DupReadCloserForLargeFile(reader)
+	assert.Nil(t, err)
+	verify := func(r io.Reader) {
+		output, err := ioutil.ReadAll(r)
+		assert.Nil(t, err)
+		assert.Equal(t, input, string(output))
+	}
+	defer close()
 
 	verify(r1)
-	t.Logf("verify r1 ...")
 	verify(r2)
 }
 

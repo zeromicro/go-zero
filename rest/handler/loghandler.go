@@ -11,7 +11,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httputil"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -69,7 +68,7 @@ func (w *loggedResponseWriter) WriteHeader(code int) {
 }
 
 // LogHandler returns a middleware that logs http request and response.
-func LogHandler(next http.Handler) http.Handler {
+func  LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
@@ -80,9 +79,7 @@ func LogHandler(next http.Handler) http.Handler {
 		}
 
 		var dup io.ReadCloser
-		var tempFileName string
-		r.Body, dup,tempFileName = iox.DupReadCloser(r.Body)
-		defer os.Remove(tempFileName)
+		r.Body, dup = iox.DupReadCloser(r.Body)
 		next.ServeHTTP(&lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
 		r.Body = dup
 		logBrief(r, lrw.code, timer, logs)
@@ -140,9 +137,16 @@ func DetailedLogHandler(next http.Handler) http.Handler {
 		}, &buf)
 
 		var dup io.ReadCloser
-		var tempFileName string
-		r.Body, dup,tempFileName = iox.DupReadCloser(r.Body)
-		defer os.Remove(tempFileName)
+		var err error
+		var closeFunc func()error
+		r.Body, dup,err,closeFunc = iox.DupReadCloserForLargeFile(r.Body)
+		if err != nil {
+			logx.WithContext(r.Context()).Errorf("[http] read temp file error, %s - %s - %s - %s",
+				r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer closeFunc()
 		logs := new(internal.LogCollector)
 		next.ServeHTTP(lrw, r.WithContext(context.WithValue(r.Context(), internal.LogContext, logs)))
 		r.Body = dup

@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -132,9 +131,7 @@ func VerifySignature(r *http.Request, securityHeader *ContentSecurityHeader, tol
 
 func computeBodySignature(r *http.Request) string {
 	var dup io.ReadCloser
-	var tempFileName string
-	r.Body, dup,tempFileName = iox.DupReadCloser(r.Body)
-	defer os.Remove(tempFileName)
+	r.Body, dup = iox.DupReadCloser(r.Body)
 	sha := sha256.New()
 	io.Copy(sha, r.Body)
 	r.Body = dup
