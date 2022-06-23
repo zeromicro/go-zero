@@ -68,7 +68,7 @@ func (w *loggedResponseWriter) WriteHeader(code int) {
 }
 
 // LogHandler returns a middleware that logs http request and response.
-func  LogHandler(next http.Handler) http.Handler {
+func LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timer := utils.NewElapsedTimer()
 		logs := new(internal.LogCollector)
