@@ -102,7 +102,6 @@ func TestDupReadCloser(t *testing.T) {
 	verify := func(r io.Reader) {
 		output, err := ioutil.ReadAll(r)
 		assert.Nil(t, err)
-		t.Logf("output=%s\n",string(output))
 		assert.Equal(t, input, string(output))
 	}
 	verify(r1)
