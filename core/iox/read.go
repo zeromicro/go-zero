@@ -32,7 +32,7 @@ func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser) {
 // DupReadCloserForLargeFile returns two io.ReadCloser that read from the first will be written to the second.
 // The first returned reader needs to be read first, because the content
 // read from it will be written to the underlying buffer of the second reader.
-// the third returned close func , After the caller finishes using reader, close the temporary file
+// the fourth returned close func , After the caller finishes using reader, close the temporary file
 func DupReadCloserForLargeFile(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,error,func()error) {
 	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-body")
 	tee := io.TeeReader(reader, f)
