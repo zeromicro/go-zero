@@ -237,7 +237,7 @@ go get -u github.com/zeromicro/go-zero
 
 ## 8. Documents
 
-* [Documents](https://go-zero.dev/en/)
+* [Documents](https://go-zero.dev/)
 * [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
