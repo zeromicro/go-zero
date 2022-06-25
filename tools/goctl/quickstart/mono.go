@@ -23,9 +23,11 @@ var (
 	apiEtcContent string
 
 	apiWorkDir string
+	rpcWorkDir string
 )
 
 func initAPIFlags() error {
+	rpcWorkDir = filepath.Join(projectDir, "rpc")
 	apiWorkDir = filepath.Join(projectDir, "api")
 	if err := pathx.MkdirIfNotExist(apiWorkDir); err != nil {
 		return err
@@ -59,31 +61,36 @@ func (m mono) createAPIProject() {
 	etcFile := filepath.Join(apiWorkDir, "etc", "greet.yaml")
 	logx.Must(ioutil.WriteFile(etcFile, []byte(apiEtcContent), 0666))
 	logicFile := filepath.Join(apiWorkDir, "internal", "logic", "pinglogic.go")
+	svcFile := filepath.Join(apiWorkDir, "internal", "svc", "servicecontext.go")
+	configPath := filepath.Join(apiWorkDir, "internal", "config")
 	svcPath := filepath.Join(apiWorkDir, "internal", "svc")
 	typesPath := filepath.Join(apiWorkDir, "internal", "types")
 	svcPkg, err := golang.GetParentPackage(svcPath)
 	logx.Must(err)
 	typesPkg, err := golang.GetParentPackage(typesPath)
 	logx.Must(err)
+	configPkg, err := golang.GetParentPackage(configPath)
+	logx.Must(err)
+
+	var rpcClientPkg string
 	if m.callRPC {
-		rpcClientPath := filepath.Join(apiWorkDir, "rpc", "greet")
-		rpcClientPkg, err := golang.GetParentPackage(rpcClientPath)
+		rpcClientPath := filepath.Join(rpcWorkDir, "greet")
+		rpcClientPkg, err = golang.GetParentPackage(rpcClientPath)
 		logx.Must(err)
-		logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
-			"svcPkg":       svcPkg,
-			"typesPkg":     typesPkg,
-			"rpcClientPkg": rpcClientPkg,
-			"callRPC":      m.callRPC,
-		}, logicFile, true))
-		svcFile := filepath.Join(apiWorkDir, "internal", "svc", "servicecontext.go")
-		logx.Must(ioutil.WriteFile(svcFile, []byte(svcContent), 0666))
-	} else {
-		logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
-			"svcPkg":   svcPkg,
-			"typesPkg": typesPkg,
-			"callRPC":  m.callRPC,
-		}, logicFile, true))
 	}
+
+	logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
+		"svcPkg":       svcPkg,
+		"typesPkg":     typesPkg,
+		"rpcClientPkg": rpcClientPkg,
+		"callRPC":      m.callRPC,
+	}, logicFile, true))
+
+	logx.Must(util.With("svc").Parse(svcContent).SaveTo(map[string]interface{}{
+		"rpcClientPkg": rpcClientPkg,
+		"configPkg":    configPkg,
+		"callRPC":      m.callRPC,
+	}, svcFile, true))
 }
 
 func (m mono) start() {
