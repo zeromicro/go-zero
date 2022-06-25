@@ -42,7 +42,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-	parentPkg, err := getParentPackage(dir)
+	parentPkg, err := pathx.GetParentPackage(dir)
 	if err != nil {
 		return err
 	}

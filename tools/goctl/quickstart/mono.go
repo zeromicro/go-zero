@@ -1,12 +1,15 @@
 package quickstart
 
 import (
+	"bytes"
 	_ "embed"
+	"html/template"
 	"io/ioutil"
 	"path/filepath"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -59,13 +62,34 @@ func (m mono) createAPIProject() {
 	logx.Must(ioutil.WriteFile(etcFile, []byte(apiEtcContent), 0666))
 	logicFile := filepath.Join(apiWorkDir, "internal", "logic", "pinglogic.go")
 
-	logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]bool{
+	t := template.Must(template.New("logic").Parse(apiLogicContent))
+	buffer := new(bytes.Buffer)
+	var relPath string
+	var err error
+	if _, ok := pathx.FindGoModPath("."); ok {
+		relPath, err = pathx.GetParentPackage(".")
+		logx.Must(err)
+		if len(relPath) > 0 {
+			relPath += "/"
+		}
+	}
+	logx.Must(t.Execute(buffer, map[string]interface{}{
+		"relPath": relPath,
+	}))
+	val := golang.FormatCode(buffer.String())
+	logx.Must(util.With("logic").Parse(val).SaveTo(map[string]bool{
 		"callRPC": m.callRPC,
 	}, logicFile, true))
 
 	if m.callRPC {
+		t = template.Must(template.New("svc").Parse(svcContent))
+		buffer = new(bytes.Buffer)
+		logx.Must(t.Execute(buffer, map[string]interface{}{
+			"relPath": relPath,
+		}))
+		val = golang.FormatCode(buffer.String())
 		svcFile := filepath.Join(apiWorkDir, "internal", "svc", "servicecontext.go")
-		logx.Must(ioutil.WriteFile(svcFile, []byte(svcContent), 0666))
+		logx.Must(ioutil.WriteFile(svcFile, []byte(val), 0666))
 	}
 }
 

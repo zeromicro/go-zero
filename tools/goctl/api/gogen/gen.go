@@ -85,7 +85,7 @@ func DoGenProject(apiFile, dir, style string) error {
 	}
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
-	rootPkg, err := getParentPackage(dir)
+	rootPkg, err := pathx.GetParentPackage(dir)
 	if err != nil {
 		return err
 	}
