@@ -67,7 +67,7 @@ func (m mono) createAPIProject() {
 	var relPath string
 	var err error
 	if _, ok := pathx.FindGoModPath("."); ok {
-		relPath, err = pathx.GetParentPackage(".")
+		relPath, err = golang.GetParentPackage(".")
 		logx.Must(err)
 		if len(relPath) > 0 {
 			relPath += "/"
