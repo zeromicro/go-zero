@@ -1,9 +1,7 @@
 package quickstart
 
 import (
-	"bytes"
 	_ "embed"
-	"html/template"
 	"io/ioutil"
 	"path/filepath"
 
@@ -61,35 +59,30 @@ func (m mono) createAPIProject() {
 	etcFile := filepath.Join(apiWorkDir, "etc", "greet.yaml")
 	logx.Must(ioutil.WriteFile(etcFile, []byte(apiEtcContent), 0666))
 	logicFile := filepath.Join(apiWorkDir, "internal", "logic", "pinglogic.go")
-
-	t := template.Must(template.New("logic").Parse(apiLogicContent))
-	buffer := new(bytes.Buffer)
-	var relPath string
-	var err error
-	if _, ok := pathx.FindGoModPath("."); ok {
-		relPath, err = golang.GetParentPackage(".")
-		logx.Must(err)
-		if len(relPath) > 0 {
-			relPath += "/"
-		}
-	}
-	logx.Must(t.Execute(buffer, map[string]interface{}{
-		"relPath": relPath,
-	}))
-	val := golang.FormatCode(buffer.String())
-	logx.Must(util.With("logic").Parse(val).SaveTo(map[string]bool{
-		"callRPC": m.callRPC,
-	}, logicFile, true))
-
+	svcPath := filepath.Join(apiWorkDir, "internal", "svc")
+	typesPath := filepath.Join(apiWorkDir, "internal", "types")
+	svcPkg, err := golang.GetParentPackage(svcPath)
+	logx.Must(err)
+	typesPkg, err := golang.GetParentPackage(typesPath)
+	logx.Must(err)
 	if m.callRPC {
-		t = template.Must(template.New("svc").Parse(svcContent))
-		buffer = new(bytes.Buffer)
-		logx.Must(t.Execute(buffer, map[string]interface{}{
-			"relPath": relPath,
-		}))
-		val = golang.FormatCode(buffer.String())
+		rpcClientPath := filepath.Join(apiWorkDir, "rpc", "greet")
+		rpcClientPkg, err := golang.GetParentPackage(rpcClientPath)
+		logx.Must(err)
+		logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
+			"svcPkg":       svcPkg,
+			"typesPkg":     typesPkg,
+			"rpcClientPkg": rpcClientPkg,
+			"callRPC":      m.callRPC,
+		}, logicFile, true))
 		svcFile := filepath.Join(apiWorkDir, "internal", "svc", "servicecontext.go")
-		logx.Must(ioutil.WriteFile(svcFile, []byte(val), 0666))
+		logx.Must(ioutil.WriteFile(svcFile, []byte(svcContent), 0666))
+	} else {
+		logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
+			"svcPkg":   svcPkg,
+			"typesPkg": typesPkg,
+			"callRPC":  m.callRPC,
+		}, logicFile, true))
 	}
 }
 
