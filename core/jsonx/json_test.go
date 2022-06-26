@@ -85,3 +85,16 @@ func TestUnmarshalFromReaderError(t *testing.T) {
 	err := UnmarshalFromReader(strings.NewReader(s), &v)
 	assert.NotNil(t, err)
 }
+
+func TestMarshalToString(t *testing.T) {
+	var v = struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}{
+		Name: "John",
+		Age:  30,
+	}
+	toString, err := MarshalToString(v)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"name":"John","age":30}`, toString)
+}
