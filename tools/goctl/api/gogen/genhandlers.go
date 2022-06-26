@@ -9,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -42,7 +43,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-	parentPkg, err := getParentPackage(dir)
+	parentPkg, err := golang.GetParentPackage(dir)
 	if err != nil {
 		return err
 	}
