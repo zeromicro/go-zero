@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -154,15 +155,44 @@ func callParamsForRoute(route spec.Route, group spec.Group) string {
 	return pathForRoute(route, group)
 }
 
+func findMemberByTagName(members []spec.Member, paramName string) *spec.Member {
+	for _, member := range members {
+		var tag string
+		var err error
+		if tag, err = member.GetPropertyName(); err != nil {
+			return nil
+		}
+		if tag == paramName {
+			return &member
+		}
+	}
+	return nil
+}
+
 func pathForRoute(route spec.Route, group spec.Group) string {
+	// for es6, replace route path :Id to ${params.Id}
+	if ds, ok := route.RequestType.(spec.DefineStruct); ok {
+		reg := regexp.MustCompile(`:\w+`)
+		params := reg.FindStringSubmatch(route.Path)
+		for _, param := range params {
+			member := findMemberByTagName(ds.Members, param[1:])
+			if member != nil {
+				route.Path = strings.Replace(route.Path, param, "${params."+member.Name+"}", -1)
+			}
+		}
+	}
+
 	prefix := group.GetAnnotation(pathPrefix)
 	if len(prefix) == 0 {
-		return "\"" + route.Path + "\""
+		// " -> `, for es6 template string
+		return "`" + route.Path + "`"
 	}
 
 	prefix = strings.TrimPrefix(prefix, `"`)
 	prefix = strings.TrimSuffix(prefix, `"`)
-	return fmt.Sprintf(`"%s/%s"`, prefix, strings.TrimPrefix(route.Path, "/"))
+
+	// " -> `, for es6 template string
+	return fmt.Sprintf("`%s/%s`", prefix, strings.TrimPrefix(route.Path, "/"))
 }
 
 func pathHasParams(route spec.Route) bool {
