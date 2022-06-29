@@ -19,7 +19,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.1
 	github.com/prometheus/client_golang v1.12.2
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/stretchr/testify v1.7.5
+	github.com/stretchr/testify v1.8.0
 	go.etcd.io/etcd/api/v3 v3.5.4
 	go.etcd.io/etcd/client/v3 v3.5.4
 	go.mongodb.org/mongo-driver v1.9.1
