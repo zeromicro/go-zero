@@ -16,7 +16,7 @@ mongo的生成不同于mysql，mysql可以从scheme_information库中读取到�
 
 ## 使用示例
 为 User 生成 mongo model
-```bahs
+```bash
 $ goctl model mongo -t User -c --dir .
 ```
 
