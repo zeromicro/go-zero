@@ -27,14 +27,16 @@
 
 ## 0. go-zero 介绍
 
-go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)）是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
+go-zero（收录于 CNCF 云原生技术全景图：[https://landscape.cncf.io/?selected=go-zero](https://landscape.cncf.io/?selected=go-zero)
+是一个集成了多种工程实践的 Web 和 RPC 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
 
-go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
+go-zero 包含极简的 API 定义和生成工具 `goctl`，可以根据定义的 API 文件一键生成 Go、iOS、Android、Kotlin、Dart、
+TypeScript、JavaScript 代码，并可直接运行。
 
 使用 go-zero 的好处：
 
 * 轻松获得支撑千万日活服务的稳定性
-* 内建级联超时控制、限流、自适应熔断、自适应降载等微服务治理能力，无需配置和额外代码
+* 内建级联超时控制、限流、自适应熔断、自适应降载等微服务治理能力，无需额外配置或编码
 * 微服务治理中间件可无缝集成到其它现有框架使用
 * 极简的 API 描述，一键生成各端代码
 * 自动校验客户端请求参数合法性
@@ -68,15 +70,16 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 * 对业务开发友好，封装复杂度
 * 约束做一件事只有一种方式
 
-我们经历不到半年时间，彻底完成了从 `Java+MongoDB` 到 `Golang+MySQL` 为主的微服务体系迁移，并于 18 年 8 月底完全上线，稳定保障了业务后续迅速增长，确保了整个服务的高可用。
+我们经历不到半年时间，彻底完成了从 `Java+MongoDB` 到 `Golang+MySQL` 为主的微服务体系迁移，
+并于 2018 年 8 月底完全上线，稳定保障了业务后续迅速增长，确保了整个服务的高可用。
 
 ## 3. go-zero 项目实现和特点
 
-go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有如下主要特点：
+go-zero 是一个集成了多种工程实践的包含 Web 和 RPC 框架，有如下主要特点：
 
 * 强大的工具支持，尽可能少的代码编写
 * 极简的接口
-* 完全兼容 net/http
+* 完全兼容 `net/http`
 * 支持中间件，方便扩展
 * 高性能
 * 面向故障编程，弹性设计
@@ -98,7 +101,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 觉得不错的话，别忘 **star** 👏
 
-## 5. Installation
+## 5. 安装
 
 在项目目录下通过如下命令安装：
 
@@ -106,75 +109,76 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero
 ```
 
-## 6. Quick Start
+## 6. 快速入门
 
 0. 完整示例请查看
 
-    [快速构建高并发微服务](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl.md)
+   [快速构建高并发微服务](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl.md)
 
-    [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
+   [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
 
 1. 安装 goctl 工具
 
-    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
+   `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。
+   其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
-    ```shell
-    # Go 1.15 及之前版本
-    GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-    
-    # Go 1.16 及以后版本
-    GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    
-    # For Mac
-    brew install goctl
+   ```shell
+   # Go 1.15 及之前版本
+   GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
+   
+   # Go 1.16 及以后版本
+   GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
+   
+   # Mac 系统
+   brew install goctl
 
-    # docker for amd64 architecture
-    docker pull kevinwan/goctl
-    # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
+   # amd64 系统上 Docker 环境
+   docker pull kevinwan/goctl
+   # 运行 goctl
+   docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
 
-    # docker for arm64 (M1) architecture
-    docker pull kevinwan/goctl:latest-arm64
-    # run goctl like
-    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
-    ```
+   # arm64 (M1) 系统上的 Docker 环境
+   docker pull kevinwan/goctl:latest-arm64
+   # 运行 goctl
+   docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
+   ```
 
-    确保 goctl 可执行
+   确保 `goctl` 文件可执行。
 
-2. 快速生成 api 服务
+2. 快速生成 API 服务
 
-    ```shell
-    goctl api new greet
-    cd greet
-    go mod init
-    go mod tidy
-    go run greet.go -f etc/greet-api.yaml
-    ```
+   ```shell
+   goctl api new greet
+   cd greet
+   go mod init
+   go mod tidy
+   go run greet.go -f etc/greet-api.yaml
+   ```
 
-    默认侦听在 `8888` 端口（可以在配置文件里修改），可以通过 `curl` 请求：
+   默认侦听在 `8888` 端口（可以在配置文件里修改），可以通过 `curl` 请求：
 
-    ```shell
-    curl -i http://localhost:8888/from/you
-    ```
+   ```shell
+   curl -i http://localhost:8888/from/you
+   ```
 
-    返回如下：
+   返回如下：
 
-    ```http
-    HTTP/1.1 200 OK
-    Content-Type: application/json
-    Date: Thu, 22 Oct 2020 14:03:18 GMT
-    Content-Length: 14
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Date: Thu, 22 Oct 2020 14:03:18 GMT
+   Content-Length: 14
 
-    {"message":""}
-    ```
+   {"message":""}
+   ```
 
-    编写业务代码：
+   编写业务代码：
 
-      * api 文件定义了服务对外 HTTP 接口，可参考 [api 规范](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/goctl-api.md)
-      * 可以在 `servicecontext.go` 里面传递依赖给 logic，比如 mysql, redis 等
-      * 在 api 定义的 `get/post/put/delete` 等请求对应的 logic 里增加业务处理逻辑
+   * API 文件定义了服务对外 HTTP 接口，可参考 [API 规范](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/goctl-api.md)
+   * 可以在 `servicecontext.go` 里面传递依赖给后端逻辑，比如 MySQL、Redis 等
+   * 在 API 定义的 `get/post/put/delete` 等请求对应的逻辑中完成业务处理
 
-3. 可以根据 api 文件生成前端需要的 Java, TypeScript, Dart, JavaScript 代码
+3. 可以根据 API 文件生成前端需要的 Java, TypeScript, Dart, JavaScript 代码
 
     ```shell
     goctl api java -api greet.api -dir greet
@@ -182,11 +186,11 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ...
     ```
 
-## 7. Benchmark
+## 7. 基准测试
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
-[测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
+测试代码见[这里](https://github.com/smallnest/go-web-framework-benchmark)。
 
 ## 8. 文档
 
@@ -199,19 +203,20 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
   * [快速构建高并发微服务](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl.md)
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
-  * [Examples](https://github.com/zeromicro/zero-examples)
+  * [示例](https://github.com/zeromicro/zero-examples)
   
 * 精选 `goctl` 插件
 
   | 插件    | 用途  |
   | ------------- |:-------------|
-  | [goctl-swagger](https://github.com/zeromicro/goctl-swagger) | 一键生成 `api` 的 `swagger` 文档 |
-  | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
-  | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
+  | [goctl-swagger](https://github.com/zeromicro/goctl-swagger) | 一键生成 API 的 Swagger 文档 |
+  | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 Java (android) 端 HTTP 客户端请求代码 |
+  | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 API 里同一个 `group` 里的 `handler` 到一个 go 文件 |
 
 ## 9. go-zero 用户
 
-go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
+go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等。
+目前为止，已使用 go-zero 的公司包括但不限于：
 
 >1. 好未来
 >2. 上海晓信信息科技有限公司（晓黑板）
@@ -288,7 +293,8 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >73. 武汉沃柒科技有限公司(茄椒)
 >74. 驭势科技
 
-如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
+如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602)
+登记，仅仅为了推广，不做其它用途。
 
 ## 10. CNCF 云原生技术全景图
 
@@ -297,7 +303,7 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 <img src="https://landscape.cncf.io/images/right-logo.svg" width="200"/>
 </p>
 
-go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
+go-zero 收录在 [CNCF 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
 
 ## 11. 微信公众号
 
@@ -322,3 +328,4 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 如果觉得项目有帮助，可以请作者喝杯咖啡 🍹
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/sponsor.png" alt="wechat" width="300" />
+
