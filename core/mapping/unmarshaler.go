@@ -534,8 +534,10 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	baseKind reflect.Kind, value interface{}) error {
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
-	case json.Number:
+	case fmt.Stringer:
 		return setValue(baseKind, ithVal, v.String())
+	case string:
+		return setValue(baseKind, ithVal, v)
 	default:
 		// don't need to consider the difference between int, int8, int16, int32, int64,
 		// uint, uint8, uint16, uint32, uint64, because they're handled as json.Number.
