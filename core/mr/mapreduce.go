@@ -376,9 +376,7 @@ type onceChan struct {
 }
 
 func (oc *onceChan) write(val interface{}) {
-	if atomic.AddInt32(&oc.wrote, 1) > 1 {
-		return
+	if atomic.CompareAndSwapInt32(&oc.wrote, 0, 1) {
+		oc.channel <- val
 	}
-
-	oc.channel <- val
 }
