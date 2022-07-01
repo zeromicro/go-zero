@@ -91,14 +91,15 @@ func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) err
 }
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
-	var imports []string
-	imports = append(imports, fmt.Sprintf("\"%s\"",
-		pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))))
-	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
+	imports := []string{
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, getLogicFolderPath(group, route))),
+		fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)),
+	}
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
 	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
+
 	return strings.Join(imports, "\n\t")
 }
 
@@ -107,6 +108,7 @@ func getHandlerBaseName(route spec.Route) (string, error) {
 	handler = strings.TrimSpace(handler)
 	handler = strings.TrimSuffix(handler, "handler")
 	handler = strings.TrimSuffix(handler, "Handler")
+
 	return handler, nil
 }
 
@@ -121,6 +123,7 @@ func getHandlerFolderPath(group spec.Group, route spec.Route) string {
 
 	folder = strings.TrimPrefix(folder, "/")
 	folder = strings.TrimSuffix(folder, "/")
+
 	return path.Join(handlerDir, folder)
 }
 
