@@ -31,7 +31,6 @@ type handlerInfo struct {
 	Call           string
 	HasResp        bool
 	HasRequest     bool
-	After1_1_10    bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
