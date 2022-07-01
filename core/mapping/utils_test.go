@@ -100,7 +100,7 @@ func TestDerefValInt(t *testing.T) {
 
 	for _, each := range cases {
 		t.Run(each.t.String(), func(t *testing.T) {
-			assert.Equal(t, each.expect, DerefVal(each.t).Kind())
+			assert.Equal(t, each.expect, ensureValue(each.t).Kind())
 		})
 	}
 }
