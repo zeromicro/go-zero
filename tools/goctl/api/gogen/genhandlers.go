@@ -8,7 +8,6 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -99,13 +98,7 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-
-	currentVersion := version.GetGoctlVersion()
-	// todo(anqiansong): This will be removed after a certain number of production versions of goctl (probably 5)
-	if !version.IsVersionGreaterThan(currentVersion, "1.1.10") {
-		imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
-	}
-
+	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }
 
