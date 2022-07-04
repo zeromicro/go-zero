@@ -60,10 +60,13 @@ func ParseForm(r *http.Request, v interface{}) error {
 	}
 
 	params := make(map[string]interface{}, len(r.Form))
-	for name := range r.Form {
-		formValue := r.Form.Get(name)
-		if len(formValue) > 0 {
-			params[name] = formValue
+	for name,value := range r.Form {
+		if len(value) == 1 {
+			if len(value[0]) > 0 {
+				params[name] = value[0]
+			}
+		}else{
+			params[name] = value
 		}
 	}
 

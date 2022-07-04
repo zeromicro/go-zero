@@ -27,6 +27,39 @@ func TestParseForm(t *testing.T) {
 	assert.Equal(t, 3.4, v.Percent)
 }
 
+func TestParseFormArray_String(t *testing.T) {
+	var v struct {
+		Name    []string  `form:"name"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&name=18&name=3.4", nil)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, []string{"hello", "18", "3.4"}, v.Name)
+}
+
+func TestParseFormArray_Error(t *testing.T) {
+	var v struct {
+		Name   string  `form:"name"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&name=18&name=3.4", nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, Parse(r, &v))
+}
+
+func TestParseFormArray_Int(t *testing.T) {
+	var v struct {
+		Name    []int  `form:"name"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=1&name=2&name=3", nil)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(r, &v))
+	assert.Equal(t, []int{1, 2, 3}, v.Name)
+}
+
+
 func TestParseForm_Error(t *testing.T) {
 	var v struct {
 		Name string `form:"name"`
