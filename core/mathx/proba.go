@@ -21,9 +21,6 @@ func NewProba() *Proba {
 }
 
 // TrueOnProba checks if true on given probability.
-func (p *Proba) TrueOnProba(proba float64) (truth bool) {
-	p.lock.Lock()
-	truth = p.r.Float64() < proba
-	p.lock.Unlock()
-	return
+func (p *Proba) TrueOnProba(proba float64) bool {
+	return p.r.Float64() < proba
 }
