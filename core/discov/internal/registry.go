@@ -191,9 +191,11 @@ func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
 				})
 			}
 		case clientv3.EventTypeDelete:
+			c.lock.Lock()
 			if vals, ok := c.values[key]; ok {
 				delete(vals, string(ev.Kv.Key))
 			}
+			c.lock.Unlock()
 			for _, l := range listeners {
 				l.OnDelete(KV{
 					Key: string(ev.Kv.Key),

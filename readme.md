@@ -261,5 +261,4 @@ If you like or are using this project to learn or start your solution, please gi
 
 ## Buy me a coffee
 
-<a href="https://www.buymeacoffee.com/kevwan"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=kevwan&button_colour=40DCA5&font_colour=ffffff&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" /></a>
-
+<a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
