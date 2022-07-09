@@ -18,12 +18,14 @@ import (
 var markdownTemplate string
 
 func genDoc(api *spec.ApiSpec, dir, filename string) error {
+	if len(api.Service.Routes()) == 0 {
+		return nil
+	}
 	fp, _, err := util.MaybeCreateFile(dir, "", filename)
 	if err != nil {
 		return err
 	}
 	defer fp.Close()
-
 	var builder strings.Builder
 	for index, route := range api.Service.Routes() {
 		routeComment := route.JoinedDoc()
