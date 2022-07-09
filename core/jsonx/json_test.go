@@ -20,6 +20,22 @@ func TestMarshal(t *testing.T) {
 	assert.Equal(t, `{"name":"John","age":30}`, string(bs))
 }
 
+func TestMarshalToString(t *testing.T) {
+	var v = struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}{
+		Name: "John",
+		Age:  30,
+	}
+	toString, err := MarshalToString(v)
+	assert.Nil(t, err)
+	assert.Equal(t, `{"name":"John","age":30}`, toString)
+
+	_, err = MarshalToString(make(chan int))
+	assert.NotNil(t, err)
+}
+
 func TestUnmarshal(t *testing.T) {
 	const s = `{"name":"John","age":30}`
 	var v struct {
@@ -84,17 +100,4 @@ func TestUnmarshalFromReaderError(t *testing.T) {
 	}
 	err := UnmarshalFromReader(strings.NewReader(s), &v)
 	assert.NotNil(t, err)
-}
-
-func TestMarshalToString(t *testing.T) {
-	var v = struct {
-		Name string `json:"name"`
-		Age  int    `json:"age"`
-	}{
-		Name: "John",
-		Age:  30,
-	}
-	toString, err := MarshalToString(v)
-	assert.Nil(t, err)
-	assert.Equal(t, `{"name":"John","age":30}`, toString)
 }

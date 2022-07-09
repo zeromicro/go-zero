@@ -97,6 +97,11 @@ func (rs *RpcServer) Stop() {
 	logx.Close()
 }
 
+// DontLogContentForMethod disable logging content for given method.
+func DontLogContentForMethod(method string) {
+	serverinterceptors.DontLogContentForMethod(method)
+}
+
 // SetServerSlowThreshold sets the slow threshold on server side.
 func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
