@@ -6,7 +6,7 @@ package model
 ){{else}}import "github.com/zeromicro/go-zero/core/stores/mon"{{end}}
 
 {{if .Easy}}
-    const {{.Type}}CollectionName = "{{.snakeType}}"
+const {{.Type}}CollectionName = "{{.snakeType}}"
 {{end}}
 
 var _ {{.Type}}Model = (*custom{{.Type}}Model)(nil)
@@ -30,11 +30,9 @@ type (
     return &custom{{.Type}}Model{
         default{{.Type}}Model: newDefault{{.Type}}Model(conn),
     }
-}
-{{else}}func New{{.Type}}Model(url, db, collection string{{if .Cache}}, c cache.CacheConf{{end}}) {{.Type}}Model {
+}{{else}}func New{{.Type}}Model(url, db, collection string{{if .Cache}}, c cache.CacheConf{{end}}) {{.Type}}Model {
     conn := {{if .Cache}}monc{{else}}mon{{end}}.MustNewModel(url, db, collection{{if .Cache}}, c{{end}})
     return &custom{{.Type}}Model{
         default{{.Type}}Model: newDefault{{.Type}}Model(conn),
     }
 }{{end}}
-
