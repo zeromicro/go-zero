@@ -53,3 +53,12 @@ func unmarshalUseNumber(decoder *json.Decoder, v interface{}) error {
 func formatError(v string, err error) error {
 	return fmt.Errorf("string: `%s`, error: `%w`", v, err)
 }
+
+// MarshalToString marshals v into string.
+func MarshalToString(v interface{}) (string, error) {
+	data, err := Marshal(v)
+	if err != nil {
+		return "", formatError(string(data), err)
+	}
+	return string(data), nil
+}
