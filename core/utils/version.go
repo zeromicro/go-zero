@@ -37,7 +37,6 @@ func CompareVersions(v1, op, v2 string) bool {
 func compare(v1, v2 string) int {
 	v1, v2 = replacer.Replace(v1), replacer.Replace(v2)
 	fields1, fields2 := strings.Split(v1, "."), strings.Split(v2, ".")
-
 	ver1, ver2 := strsToInts(fields1), strsToInts(fields2)
 	ver1len, ver2len := len(ver1), len(ver2)
 	shorter := mathx.MinInt(ver1len, ver2len)
