@@ -1,5 +1,7 @@
+// Code generated from C:/Users/keson/GolandProjects/go-zero/tools/goctl/api/parser/g4\ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
+
 package api // ApiParser
-import "github.com/zeromicro/antlr"
+import "github.com/antlr/antlr4/runtime/Go/antlr"
 
 type BaseApiParserVisitor struct {
 	*antlr.BaseParseTreeVisitor
@@ -150,5 +152,9 @@ func (v *BaseApiParserVisitor) VisitServiceName(ctx *ServiceNameContext) interfa
 }
 
 func (v *BaseApiParserVisitor) VisitPath(ctx *PathContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseApiParserVisitor) VisitPathItem(ctx *PathItemContext) interface{} {
 	return v.VisitChildren(ctx)
 }
