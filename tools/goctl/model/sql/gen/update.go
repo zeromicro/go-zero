@@ -12,9 +12,10 @@ import (
 )
 
 func genUpdate(table Table, withCache, postgreSql bool) (
-	string, string, error) {
+	string, string, error,
+) {
 	expressionValues := make([]string, 0)
-	var pkg = "data."
+	pkg := "data."
 	if table.ContainsUniqueCacheKey {
 		pkg = "newData."
 	}

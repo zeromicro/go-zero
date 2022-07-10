@@ -35,7 +35,7 @@ func initAPIFlags() error {
 
 	apiFilename := filepath.Join(apiWorkDir, "greet.api")
 	apiBytes := []byte(apiContent)
-	if err := ioutil.WriteFile(apiFilename, apiBytes, 0666); err != nil {
+	if err := ioutil.WriteFile(apiFilename, apiBytes, 0o666); err != nil {
 		return err
 	}
 
@@ -59,7 +59,7 @@ func (m mono) createAPIProject() {
 	log.Debug(">> Generating quickstart api project...")
 	logx.Must(gogen.GoCommand(nil, nil))
 	etcFile := filepath.Join(apiWorkDir, "etc", "greet.yaml")
-	logx.Must(ioutil.WriteFile(etcFile, []byte(apiEtcContent), 0666))
+	logx.Must(ioutil.WriteFile(etcFile, []byte(apiEtcContent), 0o666))
 	logicFile := filepath.Join(apiWorkDir, "internal", "logic", "pinglogic.go")
 	svcFile := filepath.Join(apiWorkDir, "internal", "svc", "servicecontext.go")
 	configPath := filepath.Join(apiWorkDir, "internal", "config")
