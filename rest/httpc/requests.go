@@ -11,6 +11,7 @@ import (
 	nurl "net/url"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/trace"
@@ -51,8 +52,17 @@ type (
 	defaultClient struct{}
 )
 
-func (c defaultClient) do(r *http.Request) (*http.Response, error) {
-	return http.DefaultClient.Do(r)
+func (c defaultClient) do(r *http.Request) (resp *http.Response, err error) {
+	url := r.URL
+	brk := breaker.GetBreaker(url.Scheme + url.Host + "/" + url.Path)
+	err = brk.DoWithAcceptable(func() error {
+		resp, err = http.DefaultClient.Do(r)
+		return err
+	}, func(err error) bool {
+		return err == nil && resp.StatusCode < http.StatusInternalServerError
+	})
+
+	return
 }
 
 func buildFormQuery(u *nurl.URL, val map[string]interface{}) string {
