@@ -38,7 +38,7 @@ func initRPCProto() error {
 
 	protoFilename := filepath.Join(zrpcWorkDir, protoName)
 	rpcBytes := []byte(protocContent)
-	return ioutil.WriteFile(protoFilename, rpcBytes, 0666)
+	return ioutil.WriteFile(protoFilename, rpcBytes, 0o666)
 }
 
 type micro struct{}
@@ -55,7 +55,7 @@ func (m micro) mustStartRPCProject() {
 	arg := "goctl rpc protoc " + protoName + " --go_out=. --go-grpc_out=. --zrpc_out=. --verbose"
 	execCommand(zrpcWorkDir, arg)
 	etcFile := filepath.Join(zrpcWorkDir, "etc", "greet.yaml")
-	logx.Must(ioutil.WriteFile(etcFile, []byte(rpcEtcContent), 0666))
+	logx.Must(ioutil.WriteFile(etcFile, []byte(rpcEtcContent), 0o666))
 }
 
 func (m micro) start() {

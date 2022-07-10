@@ -254,7 +254,6 @@ func (p *Parser) storeVerificationInfo(api *Api) {
 }
 
 func (p *Parser) valid(nestedApi *Api) error {
-
 	if p.syntax != nil && nestedApi.Syntax != nil {
 		if p.syntax.Version.Text() != nestedApi.Syntax.Version.Text() {
 			syntaxToken := nestedApi.Syntax.Syntax
