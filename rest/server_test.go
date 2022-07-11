@@ -425,6 +425,56 @@ Port: 54321
 	assert.Equal(t, expect, out)
 }
 
+func TestServer_Routes(t *testing.T) {
+	const (
+		configYaml = `
+Name: foo
+Port: 54321
+`
+		expect = `GET /foo GET /bar GET /foo/:bar GET /foo/:bar/baz`
+	)
+
+	var cnf RestConf
+	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
+
+	svr, err := NewServer(cnf)
+	assert.Nil(t, err)
+
+	svr.AddRoutes([]Route{
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/bar",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo/:bar",
+			Handler: http.NotFound,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/foo/:bar/baz",
+			Handler: http.NotFound,
+		},
+	})
+
+	routes := svr.Routes()
+	var buf strings.Builder
+	for i := 0; i < len(routes); i++ {
+		buf.WriteString(routes[i].Method)
+		buf.WriteString(" ")
+		buf.WriteString(routes[i].Path)
+		buf.WriteString(" ")
+	}
+
+	assert.Equal(t, expect, strings.Trim(buf.String(), " "))
+}
+
 func TestHandleError(t *testing.T) {
 	assert.NotPanics(t, func() {
 		handleError(nil)
