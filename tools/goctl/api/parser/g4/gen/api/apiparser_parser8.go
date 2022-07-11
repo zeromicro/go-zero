@@ -404,6 +404,14 @@ func NewPathItemContext(parser antlr.Parser, parent antlr.ParserRuleContext, inv
 
 func (s *PathItemContext) GetParser() antlr.Parser { return s.parser }
 
+func (s *PathItemContext) AllID() []antlr.TerminalNode {
+	return s.GetTokens(ApiParserParserID)
+}
+
+func (s *PathItemContext) ID(i int) antlr.TerminalNode {
+	return s.GetToken(ApiParserParserID, i)
+}
+
 func (s *PathItemContext) AllLetterOrDigit() []antlr.TerminalNode {
 	return s.GetTokens(ApiParserParserLetterOrDigit)
 }
@@ -456,10 +464,17 @@ func (p *ApiParserParser) PathItem() (localctx IPathItemContext) {
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
-	for ok := true; ok; ok = _la == ApiParserParserLetterOrDigit {
+	for ok := true; ok; ok = _la == ApiParserParserID || _la == ApiParserParserLetterOrDigit {
 		{
 			p.SetState(348)
-			p.Match(ApiParserParserLetterOrDigit)
+			_la = p.GetTokenStream().LA(1)
+
+			if !(_la == ApiParserParserID || _la == ApiParserParserLetterOrDigit) {
+				p.GetErrorHandler().RecoverInline(p)
+			} else {
+				p.GetErrorHandler().ReportMatch(p)
+				p.Consume()
+			}
 		}
 
 		p.SetState(351)
