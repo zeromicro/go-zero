@@ -79,13 +79,15 @@ func (s *Server) PrintRoutes() {
 	s.ngin.print()
 }
 
-// Routes returns the Http routers which are registered in the engine
+// Routes returns the HTTP routers that registered in the server.
 func (s *Server) Routes() []Route {
-	routers := make([]Route, len(s.ngin.routes))
+	var routes []Route
+
 	for _, r := range s.ngin.routes {
-		routers = append(routers, r.routes...)
+		routes = append(routes, r.routes...)
 	}
-	return routers
+
+	return routes
 }
 
 // Start starts the Server.
