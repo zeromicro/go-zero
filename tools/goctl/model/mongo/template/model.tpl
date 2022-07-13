@@ -32,8 +32,8 @@ func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) err
     if data.ID.IsZero() {
         data.ID = primitive.NewObjectID()
     }
-    if data.CreatedAt.IsZero() {
-        data.CreatedAt = time.Now()
+    if data.CreateAt.IsZero() {
+        data.CreateAt = time.Now()
     }
 
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
