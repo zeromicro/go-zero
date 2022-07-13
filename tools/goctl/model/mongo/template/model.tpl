@@ -29,10 +29,11 @@ func newDefault{{.Type}}Model(conn {{if .Cache}}*monc.Model{{else}}*mon.Model{{e
 
 
 func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) error {
-    if !data.ID.IsZero() {
+    if data.ID.IsZero() {
         data.ID = primitive.NewObjectID()
-        data.CreateAt = time.Now()
-        data.UpdateAt = time.Now()
+    }
+    if data.CreatedAt.IsZero() {
+        data.CreatedAt = time.Now()
     }
 
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
