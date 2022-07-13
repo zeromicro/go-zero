@@ -11,65 +11,65 @@ import (
 
 // WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
-	return &traceLogger{
+	return &contextLogger{
 		ctx: ctx,
 	}
 }
 
-type traceLogger struct {
+type contextLogger struct {
 	logEntry
 	ctx context.Context
 }
 
-func (l *traceLogger) Error(v ...interface{}) {
+func (l *contextLogger) Error(v ...interface{}) {
 	l.err(fmt.Sprint(v...))
 }
 
-func (l *traceLogger) Errorf(format string, v ...interface{}) {
+func (l *contextLogger) Errorf(format string, v ...interface{}) {
 	l.err(fmt.Sprintf(format, v...))
 }
 
-func (l *traceLogger) Errorv(v interface{}) {
+func (l *contextLogger) Errorv(v interface{}) {
 	l.err(fmt.Sprint(v))
 }
 
-func (l *traceLogger) Errorw(msg string, fields ...LogField) {
+func (l *contextLogger) Errorw(msg string, fields ...LogField) {
 	l.err(msg, fields...)
 }
 
-func (l *traceLogger) Info(v ...interface{}) {
+func (l *contextLogger) Info(v ...interface{}) {
 	l.info(fmt.Sprint(v...))
 }
 
-func (l *traceLogger) Infof(format string, v ...interface{}) {
+func (l *contextLogger) Infof(format string, v ...interface{}) {
 	l.info(fmt.Sprintf(format, v...))
 }
 
-func (l *traceLogger) Infov(v interface{}) {
+func (l *contextLogger) Infov(v interface{}) {
 	l.info(v)
 }
 
-func (l *traceLogger) Infow(msg string, fields ...LogField) {
+func (l *contextLogger) Infow(msg string, fields ...LogField) {
 	l.info(msg, fields...)
 }
 
-func (l *traceLogger) Slow(v ...interface{}) {
+func (l *contextLogger) Slow(v ...interface{}) {
 	l.slow(fmt.Sprint(v...))
 }
 
-func (l *traceLogger) Slowf(format string, v ...interface{}) {
+func (l *contextLogger) Slowf(format string, v ...interface{}) {
 	l.slow(fmt.Sprintf(format, v...))
 }
 
-func (l *traceLogger) Slowv(v interface{}) {
+func (l *contextLogger) Slowv(v interface{}) {
 	l.slow(v)
 }
 
-func (l *traceLogger) Sloww(msg string, fields ...LogField) {
+func (l *contextLogger) Sloww(msg string, fields ...LogField) {
 	l.slow(msg, fields...)
 }
 
-func (l *traceLogger) WithContext(ctx context.Context) Logger {
+func (l *contextLogger) WithContext(ctx context.Context) Logger {
 	if ctx == nil {
 		return l
 	}
@@ -78,40 +78,49 @@ func (l *traceLogger) WithContext(ctx context.Context) Logger {
 	return l
 }
 
-func (l *traceLogger) WithDuration(duration time.Duration) Logger {
+func (l *contextLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
 }
 
-func (l *traceLogger) buildFields(fields ...LogField) []LogField {
+func (l *contextLogger) buildFields(fields ...LogField) []LogField {
 	if len(l.Duration) > 0 {
 		fields = append(fields, Field(durationKey, l.Duration))
 	}
+
 	traceID := traceIdFromContext(l.ctx)
 	if len(traceID) > 0 {
 		fields = append(fields, Field(traceKey, traceID))
 	}
+
 	spanID := spanIdFromContext(l.ctx)
 	if len(spanID) > 0 {
 		fields = append(fields, Field(spanKey, spanID))
 	}
 
+	val := l.ctx.Value(fieldsContextKey)
+	if val != nil {
+		if arr, ok := val.([]LogField); ok {
+			fields = append(fields, arr...)
+		}
+	}
+
 	return fields
 }
 
-func (l *traceLogger) err(v interface{}, fields ...LogField) {
+func (l *contextLogger) err(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Error(v, l.buildFields(fields...)...)
 	}
 }
 
-func (l *traceLogger) info(v interface{}, fields ...LogField) {
+func (l *contextLogger) info(v interface{}, fields ...LogField) {
 	if shallLog(InfoLevel) {
 		getWriter().Info(v, l.buildFields(fields...)...)
 	}
 }
 
-func (l *traceLogger) slow(v interface{}, fields ...LogField) {
+func (l *contextLogger) slow(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Slow(v, l.buildFields(fields...)...)
 	}

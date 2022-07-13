@@ -192,6 +192,25 @@ func TestTraceWithoutContext(t *testing.T) {
 	validate(t, w.String(), false, false)
 }
 
+func TestLogWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	l := WithContext(ctx)
+	SetLevel(InfoLevel)
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
+}
+
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
 	dec := json.NewDecoder(strings.NewReader(body))
@@ -217,4 +236,5 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 type mockValue struct {
 	Trace string `json:"trace"`
 	Span  string `json:"span"`
+	Foo   string `json:"foo"`
 }
