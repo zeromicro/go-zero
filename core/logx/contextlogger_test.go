@@ -50,7 +50,7 @@ func TestTraceError(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo1").Start(context.Background(), "bar")
 	defer span.End()
 
 	var nilCtx context.Context
@@ -67,9 +67,9 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Errorw(testlog, Field("foo1", "bar"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "foo1"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
@@ -87,7 +87,7 @@ func TestTraceInfo(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo1").Start(context.Background(), "bar")
 	defer span.End()
 
 	SetLevel(InfoLevel)
@@ -101,9 +101,9 @@ func TestTraceInfo(t *testing.T) {
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Infow(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Infow(testlog, Field("foo1", "bar"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "foo1"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
@@ -153,7 +153,7 @@ func TestTraceSlow(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("foo1").Start(context.Background(), "bar")
 	defer span.End()
 
 	l := WithContext(ctx)
@@ -168,9 +168,9 @@ func TestTraceSlow(t *testing.T) {
 	l.WithDuration(time.Second).Slowv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Sloww(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Sloww(testlog, Field("foo1", "bar"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "foo1"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
