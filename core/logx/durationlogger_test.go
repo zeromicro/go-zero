@@ -12,6 +12,31 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
+func TestWithDurationGlobalFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	durLogger := WithDuration(time.Second)
+	durLogger.Info(testlog)
+	assert.True(t, strings.Contains(w.String(), "duration"), w.String())
+
+	// test fieldLogger is set foo1 bar
+	w.Reset()
+	fieldLogger := durLogger.WithFields(Field("foo1", "bar"))
+	fieldLogger.Infof(testlog)
+	assert.True(t, strings.Contains(w.String(), "duration"), w.String())
+	assert.True(t, strings.Contains(w.String(), "foo1"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
+
+	// test fieldLogger not modify ctxLogger
+	w.Reset()
+	durLogger.Info(testlog)
+	assert.True(t, strings.Contains(w.String(), "duration"), w.String())
+	assert.False(t, strings.Contains(w.String(), "foo1"), w.String())
+	assert.False(t, strings.Contains(w.String(), "bar"), w.String())
+}
+
 func TestWithDurationError(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)

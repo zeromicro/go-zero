@@ -14,6 +14,44 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
+func TestGlobalFieldsLogWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	ctxLogger := WithContext(ctx)
+	SetLevel(InfoLevel)
+
+	var val1 mockValue
+	var val2 mockValue
+	var val3 mockValue
+	ctxLogger.Info(testlog)
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val1))
+	assert.Equal(t, "bar", val1.Foo)
+	assert.Equal(t, "", val1.Field)
+
+	fieldLogger := ctxLogger.WithFields(Field("field", "value"))
+
+	// test fieldLogger is set foo bar
+	w.Reset()
+	fieldLogger.Info(testlog)
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val2))
+	assert.Equal(t, "bar", val2.Foo)
+	assert.Equal(t, "value", val2.Field)
+
+	// test fieldLogger not modify ctxLogger
+	w.Reset()
+	ctxLogger.Info(testlog)
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val3))
+	assert.Equal(t, "bar", val3.Foo)
+	assert.Equal(t, "", val3.Field)
+}
+
 func TestTraceLog(t *testing.T) {
 	SetLevel(InfoLevel)
 	w := new(mockWriter)
@@ -237,4 +275,5 @@ type mockValue struct {
 	Trace string `json:"trace"`
 	Span  string `json:"span"`
 	Foo   string `json:"foo"`
+	Field string `json:"field,omitempty"`
 }

@@ -83,7 +83,23 @@ func (l *contextLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
+func (l *contextLogger) WithFields(fields ...LogField) Logger {
+
+	entry := l.logEntry
+	entry.fields = fields
+
+	return &contextLogger{
+		ctx:      l.ctx,
+		logEntry: entry,
+	}
+}
+
 func (l *contextLogger) buildFields(fields ...LogField) []LogField {
+
+	if len(l.fields) > 0 {
+		fields = append(l.fields, fields...)
+	}
+
 	if len(l.Duration) > 0 {
 		fields = append(fields, Field(durationKey, l.Duration))
 	}

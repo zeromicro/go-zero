@@ -79,23 +79,36 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
+func (l *durationLogger) WithFields(fields ...LogField) Logger {
+	return &durationLogger{
+		Duration: l.Duration,
+		fields:   fields,
+	}
+}
+
+func (l *durationLogger) buildFields(fields ...LogField) []LogField {
+
+	if len(l.fields) > 0 {
+		fields = append(l.fields, fields...)
+	}
+
+	return append(fields, Field(durationKey, l.Duration))
+}
+
 func (l *durationLogger) err(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Error(v, fields...)
+		getWriter().Error(v, l.buildFields(fields...)...)
 	}
 }
 
 func (l *durationLogger) info(v interface{}, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Info(v, fields...)
+		getWriter().Info(v, l.buildFields(fields...)...)
 	}
 }
 
 func (l *durationLogger) slow(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Slow(v, fields...)
+		getWriter().Slow(v, l.buildFields(fields...)...)
 	}
 }

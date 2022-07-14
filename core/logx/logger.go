@@ -35,4 +35,6 @@ type Logger interface {
 	WithContext(context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
 	WithDuration(time.Duration) Logger
+	// WithFields returns a new logger with the given fields.
+	WithFields(fields ...LogField) Logger
 }

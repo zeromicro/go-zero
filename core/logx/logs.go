@@ -33,6 +33,9 @@ type (
 		Duration  string      `json:"duration,omitempty"`
 		Caller    string      `json:"caller,omitempty"`
 		Content   interface{} `json:"content"`
+
+		// context global fields
+		fields []LogField
 	}
 
 	logEntryWithFields map[string]interface{}
