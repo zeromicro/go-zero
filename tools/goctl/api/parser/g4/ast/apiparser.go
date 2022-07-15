@@ -232,20 +232,27 @@ func (p *Parser) invoke(linePrefix, content string) (v *Api, err error) {
 
 // storeVerificationInfo stores information for verification
 func (p *Parser) storeVerificationInfo(api *Api) {
-	routeMap := func(list []*ServiceRoute) {
+	routeMap := func(list []*ServiceRoute, prefix string) {
 		for _, g := range list {
 			handler := g.GetHandler()
 			if handler.IsNotNil() {
 				handlerName := handler.Text()
 				p.handlerMap[handlerName] = Holder
-				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), g.Route.Path.Text())
+				route := fmt.Sprintf("%s://%s", g.Route.Method.Text(), path.Join(prefix, g.Route.Path.Text()))
 				p.routeMap[route] = Holder
 			}
 		}
 	}
 
 	for _, each := range api.Service {
-		routeMap(each.ServiceApi.ServiceRoute)
+		var prefix string
+		if each.AtServer != nil {
+			pExp := each.AtServer.Kv.Get(prefixKey)
+			if pExp != nil {
+				prefix = pExp.Text()
+			}
+		}
+		routeMap(each.ServiceApi.ServiceRoute, prefix)
 	}
 
 	for _, each := range api.Type {
