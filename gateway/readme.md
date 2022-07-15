@@ -25,12 +25,18 @@ Name: demo-gateway
 Host: localhost
 Port: 8888
 Upstreams:
-  - Target: etcd://localhost:2379/hello.rpc
+  - Grpc:
+      Etcd:
+        Hosts:
+        - localhost:2379
+        Key: hello.rpc
     ProtoSet: hello.pb
     Mapping:
       - Path: /pingHello
         Method: hello.Hello/Ping
-  - Target: etcd://localhost:2379/world.rpc
+  - Grpc:
+      Endpoints:
+        - localhost:8081
     Mapping:
       - Path: /pingWorld
         Method: world.World/Ping
