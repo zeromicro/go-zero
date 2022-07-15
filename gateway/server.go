@@ -50,14 +50,18 @@ func (s *Server) build() error {
 		}
 	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
 		upstream := item.(Upstream)
-		zcli, err := zrpc.NewClientWithTarget(upstream.Target)
+		cli, err := zrpc.NewClientWithTarget(upstream.Target)
 		if err != nil {
 			cancel(err)
+			return
 		}
 
-		cli := grpc_reflection_v1alpha.NewServerReflectionClient(zcli.Conn())
-		client := grpcreflect.NewClient(context.Background(), cli)
-		source := grpcurl.DescriptorSourceFromServer(context.Background(), client)
+		source, err := s.createDescriptorSource(cli, upstream)
+		if err != nil {
+			cancel(err)
+			return
+		}
+
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
 		unmarshaler := jsonpb.Unmarshaler{AnyResolver: resolver, AllowUnknownFields: true}
 		for _, mapping := range upstream.Mapping {
@@ -73,7 +77,7 @@ func (s *Server) build() error {
 					rp := grpcurl.NewJSONRequestParserWithUnmarshaler(r.Body, unmarshaler)
 					ctx, can := context.WithTimeout(r.Context(), s.timeout)
 					defer can()
-					if err := grpcurl.InvokeRPC(ctx, source, zcli.Conn(), mapping.Method,
+					if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), mapping.Method,
 						nil, handler, rp.Next); err != nil {
 						httpx.Error(w, err)
 					}
@@ -86,4 +90,22 @@ func (s *Server) build() error {
 			s.svr.AddRoute(route)
 		}
 	})
+}
+
+func (s *Server) createDescriptorSource(cli zrpc.Client, upstream Upstream) (grpcurl.DescriptorSource, error) {
+	var source grpcurl.DescriptorSource
+	var err error
+
+	if len(upstream.ProtoSet) > 0 {
+		source, err = grpcurl.DescriptorSourceFromProtoSets(upstream.ProtoSet)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		refCli := grpc_reflection_v1alpha.NewServerReflectionClient(cli.Conn())
+		client := grpcreflect.NewClient(context.Background(), refCli)
+		source = grpcurl.DescriptorSourceFromServer(context.Background(), client)
+	}
+
+	return source, nil
 }

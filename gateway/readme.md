@@ -26,6 +26,7 @@ Host: localhost
 Port: 8888
 Upstreams:
   - Target: etcd://localhost:2379/hello.rpc
+    ProtoSet: hello.pb
     Mapping:
       - Path: /pingHello
         Method: hello.Hello/Ping

@@ -17,8 +17,10 @@ type (
 	// Upstream is the configuration for upstream.
 	Upstream struct {
 		// Target is the target of upstream, like etcd://localhost:2379/hello.rpc
-		Target  string
-		Mapping []struct {
+		Target string
+		// ProtoSet is the file of proto set, like hello.pb
+		ProtoSet string `json:",optional"`
+		Mapping  []struct {
 			// Path is the HTTP path.
 			Path string
 			// Method is the gRPC method, with format of package.service/method
