@@ -50,12 +50,7 @@ func (s *Server) build() error {
 		}
 	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
 		upstream := item.(Upstream)
-		cli, err := zrpc.NewClientWithTarget(upstream.Target)
-		if err != nil {
-			cancel(err)
-			return
-		}
-
+		cli := zrpc.MustNewClient(upstream.Grpc)
 		source, err := s.createDescriptorSource(cli, upstream)
 		if err != nil {
 			cancel(err)

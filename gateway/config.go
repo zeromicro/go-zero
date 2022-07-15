@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/zrpc"
 )
 
 type (
@@ -16,8 +17,8 @@ type (
 
 	// Upstream is the configuration for upstream.
 	Upstream struct {
-		// Target is the target of upstream, like etcd://localhost:2379/hello.rpc
-		Target string
+		// Grpc is the target of upstream.
+		Grpc zrpc.RpcClientConf
 		// ProtoSet is the file of proto set, like hello.pb
 		ProtoSet string `json:",optional"`
 		Mapping  []struct {
