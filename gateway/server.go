@@ -16,12 +16,14 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
+// Server is a gateway server.
 type Server struct {
 	svr       *rest.Server
 	upstreams []Upstream
 	timeout   time.Duration
 }
 
+// MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf) *Server {
 	return &Server{
 		svr:       rest.MustNewServer(c.RestConf),
@@ -30,11 +32,13 @@ func MustNewServer(c GatewayConf) *Server {
 	}
 }
 
+// Start starts the gateway server.
 func (s *Server) Start() {
 	logx.Must(s.build())
 	s.svr.Start()
 }
 
+// Stop stops the gateway server.
 func (s *Server) Stop() {
 	s.svr.Stop()
 }
