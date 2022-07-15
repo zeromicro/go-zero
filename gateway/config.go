@@ -1,6 +1,10 @@
 package gateway
 
-import "github.com/zeromicro/go-zero/rest"
+import (
+	"time"
+
+	"github.com/zeromicro/go-zero/rest"
+)
 
 type (
 	Upstream struct {
@@ -14,5 +18,6 @@ type (
 	GatewayConf struct {
 		rest.RestConf
 		Upstreams []Upstream
+		Timeout   time.Duration `json:",default=5s"`
 	}
 )

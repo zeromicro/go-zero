@@ -3,25 +3,32 @@ package gateway
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mr"
 	"github.com/zeromicro/go-zero/rest"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
+const loadTimeout = time.Second * 30
+
 type Server struct {
 	svr       *rest.Server
 	upstreams []Upstream
+	timeout   time.Duration
 }
 
 func MustNewServer(c GatewayConf) *Server {
 	return &Server{
 		svr:       rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
+		timeout:   c.Timeout,
 	}
 }
 
@@ -35,10 +42,15 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) build() error {
-	for _, upstream := range s.upstreams {
+	return mr.MapReduceVoid(func(source chan<- interface{}) {
+		for _, upstream := range s.upstreams {
+			source <- upstream
+		}
+	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
+		upstream := item.(Upstream)
 		zcli, err := zrpc.NewClientWithTarget(upstream.Target)
 		if err != nil {
-			return err
+			cancel(err)
 		}
 
 		cli := grpc_reflection_v1alpha.NewServerReflectionClient(zcli.Conn())
@@ -47,20 +59,29 @@ func (s *Server) build() error {
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
 		unmarshaler := jsonpb.Unmarshaler{AnyResolver: resolver, AllowUnknownFields: true}
 		for _, mapping := range upstream.Mapping {
-			s.svr.AddRoute(rest.Route{
+			writer.Write(rest.Route{
 				Method: http.MethodPost,
 				Path:   mapping.Path,
 				Handler: func(w http.ResponseWriter, r *http.Request) {
 					handler := &grpcurl.DefaultEventHandler{
-						Out:       w,
-						Formatter: grpcurl.NewJSONFormatter(true, grpcurl.AnyResolverFromDescriptorSource(source)),
+						Out: w,
+						Formatter: grpcurl.NewJSONFormatter(true,
+							grpcurl.AnyResolverFromDescriptorSource(source)),
 					}
 					rp := grpcurl.NewJSONRequestParserWithUnmarshaler(r.Body, unmarshaler)
-					grpcurl.InvokeRPC(context.Background(), source, zcli.Conn(), mapping.Method, nil, handler, rp.Next)
+					ctx, can := context.WithTimeout(r.Context(), s.timeout)
+					defer can()
+					if err := grpcurl.InvokeRPC(ctx, source, zcli.Conn(), mapping.Method,
+						nil, handler, rp.Next); err != nil {
+						httpx.Error(w, err)
+					}
 				},
 			})
 		}
-	}
-
-	return nil
+	}, func(pipe <-chan interface{}, cancel func(error)) {
+		for item := range pipe {
+			route := item.(rest.Route)
+			s.svr.AddRoute(route)
+		}
+	})
 }
