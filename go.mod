@@ -7,12 +7,15 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.22.0
 	github.com/fatih/color v1.13.0
+	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
+	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
+	github.com/jhump/protoreflect v1.12.0
 	github.com/justinas/alice v1.2.0
 	github.com/lib/pq v1.10.6
 	github.com/olekukonko/tablewriter v0.0.5
@@ -44,9 +47,7 @@ require (
 )
 
 require (
-	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/google/gofuzz v1.2.0 // indirect
-	github.com/jhump/protoreflect v1.12.0
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	go.uber.org/atomic v1.9.0 // indirect

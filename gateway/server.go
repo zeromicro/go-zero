@@ -16,8 +16,6 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
-const loadTimeout = time.Second * 30
-
 type Server struct {
 	svr       *rest.Server
 	upstreams []Upstream
