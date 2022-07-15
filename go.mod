@@ -44,7 +44,9 @@ require (
 )
 
 require (
+	github.com/fullstorydev/grpcurl v1.8.6
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/jhump/protoreflect v1.12.0
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
