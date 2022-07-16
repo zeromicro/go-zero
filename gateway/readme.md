@@ -32,13 +32,15 @@ Upstreams:
         Key: hello.rpc
     ProtoSet: hello.pb
     Mapping:
-      - Path: /pingHello
-        Method: hello.Hello/Ping
+      - Method: get
+        Path: /pingHello/:ping
+        Rpc: hello.Hello/Ping
   - Grpc:
       Endpoints:
         - localhost:8081
     Mapping:
-      - Path: /pingWorld
-        Method: world.World/Ping
+      - Method: post
+        Path: /pingWorld
+        Rpc: world.World/Ping
 ```
 

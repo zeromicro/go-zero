@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/fullstorydev/grpcurl"
@@ -19,7 +20,7 @@ import (
 // Server is a gateway server.
 type Server struct {
 	svr       *rest.Server
-	upstreams []Upstream
+	upstreams []upstream
 	timeout   time.Duration
 }
 
@@ -45,38 +46,24 @@ func (s *Server) Stop() {
 
 func (s *Server) build() error {
 	return mr.MapReduceVoid(func(source chan<- interface{}) {
-		for _, upstream := range s.upstreams {
-			source <- upstream
+		for _, up := range s.upstreams {
+			source <- up
 		}
 	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
-		upstream := item.(Upstream)
-		cli := zrpc.MustNewClient(upstream.Grpc)
-		source, err := s.createDescriptorSource(cli, upstream)
+		up := item.(upstream)
+		cli := zrpc.MustNewClient(up.Grpc)
+		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {
 			cancel(err)
 			return
 		}
 
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
-		unmarshaler := jsonpb.Unmarshaler{AnyResolver: resolver, AllowUnknownFields: true}
-		for _, mapping := range upstream.Mapping {
+		for _, m := range up.Mapping {
 			writer.Write(rest.Route{
-				Method: http.MethodPost,
-				Path:   mapping.Path,
-				Handler: func(w http.ResponseWriter, r *http.Request) {
-					handler := &grpcurl.DefaultEventHandler{
-						Out: w,
-						Formatter: grpcurl.NewJSONFormatter(true,
-							grpcurl.AnyResolverFromDescriptorSource(source)),
-					}
-					rp := grpcurl.NewJSONRequestParserWithUnmarshaler(r.Body, unmarshaler)
-					ctx, can := context.WithTimeout(r.Context(), s.timeout)
-					defer can()
-					if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), mapping.Method,
-						nil, handler, rp.Next); err != nil {
-						httpx.Error(w, err)
-					}
-				},
+				Method:  strings.ToUpper(m.Method),
+				Path:    m.Path,
+				Handler: s.buildHandler(source, resolver, cli, m),
 			})
 		}
 	}, func(pipe <-chan interface{}, cancel func(error)) {
@@ -87,12 +74,35 @@ func (s *Server) build() error {
 	})
 }
 
-func (s *Server) createDescriptorSource(cli zrpc.Client, upstream Upstream) (grpcurl.DescriptorSource, error) {
+func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
+	cli zrpc.Client, m mapping) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler := &grpcurl.DefaultEventHandler{
+			Out: w,
+			Formatter: grpcurl.NewJSONFormatter(true,
+				grpcurl.AnyResolverFromDescriptorSource(source)),
+		}
+		parser, err := newRequestParser(r, resolver)
+		if err != nil {
+			httpx.Error(w, err)
+			return
+		}
+
+		ctx, can := context.WithTimeout(r.Context(), s.timeout)
+		defer can()
+		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.Rpc, buildHeaders(r.Header),
+			handler, parser.Next); err != nil {
+			httpx.Error(w, err)
+		}
+	}
+}
+
+func (s *Server) createDescriptorSource(cli zrpc.Client, up upstream) (grpcurl.DescriptorSource, error) {
 	var source grpcurl.DescriptorSource
 	var err error
 
-	if len(upstream.ProtoSet) > 0 {
-		source, err = grpcurl.DescriptorSourceFromProtoSets(upstream.ProtoSet)
+	if len(up.ProtoSet) > 0 {
+		source, err = grpcurl.DescriptorSourceFromProtoSets(up.ProtoSet)
 		if err != nil {
 			return nil, err
 		}
