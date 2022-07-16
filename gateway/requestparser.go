@@ -10,6 +10,15 @@ import (
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
+func buildJsonRequestParser(v interface{}, resolver jsonpb.AnyResolver) (grpcurl.RequestParser, error) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+		return nil, err
+	}
+
+	return grpcurl.NewJSONRequestParser(&buf, resolver), nil
+}
+
 func newRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.RequestParser, error) {
 	vars := pathvar.Vars(r)
 	if len(vars) == 0 {
@@ -17,12 +26,7 @@ func newRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 	}
 
 	if r.ContentLength == 0 {
-		var buf bytes.Buffer
-		if err := json.NewEncoder(&buf).Encode(vars); err != nil {
-			return nil, err
-		}
-
-		return grpcurl.NewJSONRequestParser(&buf, resolver), nil
+		return buildJsonRequestParser(vars, resolver)
 	}
 
 	m := make(map[string]interface{})
@@ -34,10 +38,5 @@ func newRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 		m[k] = v
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(m); err != nil {
-		return nil, err
-	}
-
-	return grpcurl.NewJSONRequestParser(&buf, resolver), nil
+	return buildJsonRequestParser(m, resolver)
 }

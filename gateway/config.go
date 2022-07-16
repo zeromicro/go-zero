@@ -24,6 +24,7 @@ type (
 		// Rpc is the gRPC rpc method, with format of package.service/method
 		Rpc string
 	}
+
 	// upstream is the configuration for upstream.
 	upstream struct {
 		// Grpc is the target of upstream.
