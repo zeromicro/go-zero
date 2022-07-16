@@ -46,3 +46,10 @@ func TestNewRequestParserWithVarsWithWrongBody(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }
+
+func TestNewRequestParserWithForm(t *testing.T) {
+	req := httptest.NewRequest("GET", "/val?a=b", nil)
+	parser, err := newRequestParser(req, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, parser)
+}

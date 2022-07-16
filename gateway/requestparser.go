@@ -7,12 +7,14 @@ import (
 
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
-func buildJsonRequestParser(v interface{}, resolver jsonpb.AnyResolver) (grpcurl.RequestParser, error) {
+func buildJsonRequestParser(m map[string]interface{}, resolver jsonpb.AnyResolver) (
+	grpcurl.RequestParser, error) {
 	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+	if err := json.NewEncoder(&buf).Encode(m); err != nil {
 		return nil, err
 	}
 
@@ -21,12 +23,20 @@ func buildJsonRequestParser(v interface{}, resolver jsonpb.AnyResolver) (grpcurl
 
 func newRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.RequestParser, error) {
 	vars := pathvar.Vars(r)
-	if len(vars) == 0 {
+	params, err := httpx.GetFormValues(r)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range vars {
+		params[k] = v
+	}
+	if len(params) == 0 {
 		return grpcurl.NewJSONRequestParser(r.Body, resolver), nil
 	}
 
 	if r.ContentLength == 0 {
-		return buildJsonRequestParser(vars, resolver)
+		return buildJsonRequestParser(params, resolver)
 	}
 
 	m := make(map[string]interface{})
@@ -34,7 +44,7 @@ func newRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 		return nil, err
 	}
 
-	for k, v := range vars {
+	for k, v := range params {
 		m[k] = v
 	}
 
