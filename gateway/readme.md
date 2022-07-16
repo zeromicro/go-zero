@@ -30,6 +30,7 @@ Upstreams:
         Hosts:
         - localhost:2379
         Key: hello.rpc
+    # protoset mode
     ProtoSet: hello.pb
     Mapping:
       - Method: get
@@ -38,9 +39,18 @@ Upstreams:
   - Grpc:
       Endpoints:
         - localhost:8081
+    # reflection mode, no ProtoSet settings
     Mapping:
       - Method: post
         Path: /pingWorld
         Rpc: world.World/Ping
+```
+
+## Generate ProtoSet files
+
+- example command
+
+```shell
+protoc --descriptor_set_out=hello.pb hello.proto
 ```
 
