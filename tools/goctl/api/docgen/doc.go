@@ -18,6 +18,10 @@ import (
 var markdownTemplate string
 
 func genDoc(api *spec.ApiSpec, dir, filename string) error {
+	if len(api.Service.Routes()) == 0 {
+		return nil
+	}
+
 	fp, _, err := util.MaybeCreateFile(dir, "", filename)
 	if err != nil {
 		return err
@@ -59,6 +63,7 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 
 		builder.Write(tmplBytes.Bytes())
 	}
+
 	_, err = fp.WriteString(strings.Replace(builder.String(), "&#34;", `"`, -1))
 	return err
 }

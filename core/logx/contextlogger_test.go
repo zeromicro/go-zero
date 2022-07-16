@@ -3,7 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"io"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -65,11 +65,9 @@ func TestTraceError(t *testing.T) {
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorv(testlog)
-	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
-	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
 	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
@@ -165,7 +163,6 @@ func TestTraceSlow(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), spanKey))
 	w.Reset()
 	l.WithDuration(time.Second).Slowf(testlog)
-	fmt.Println("buf:", w.String())
 	validate(t, w.String(), true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
@@ -195,9 +192,43 @@ func TestTraceWithoutContext(t *testing.T) {
 	validate(t, w.String(), false, false)
 }
 
+func TestLogWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	l := WithContext(ctx)
+	SetLevel(InfoLevel)
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
+}
+
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
-	assert.Nil(t, json.Unmarshal([]byte(body), &val), body)
+	dec := json.NewDecoder(strings.NewReader(body))
+
+	for {
+		var doc mockValue
+		err := dec.Decode(&doc)
+		if err == io.EOF {
+			// all done
+			break
+		}
+		if err != nil {
+			continue
+		}
+
+		val = doc
+	}
+
 	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }
@@ -205,4 +236,5 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 type mockValue struct {
 	Trace string `json:"trace"`
 	Span  string `json:"span"`
+	Foo   string `json:"foo"`
 }

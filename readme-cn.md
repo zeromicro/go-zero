@@ -23,7 +23,7 @@
 > 
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.3`
+> `goctl migrate —verbose —version v1.3.5`
 
 ## 0. go-zero 介绍
 
@@ -92,9 +92,13 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 
 ![弹性设计](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience.jpg)
 
+## 4. 我们使用 go-zero 的基本架构图
+
+<img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880582-11a86658-41c3-466c-95e7-7b1220eecc52.png">
+
 觉得不错的话，别忘 **star** 👏
 
-## 4. Installation
+## 5. Installation
 
 在项目目录下通过如下命令安装：
 
@@ -102,7 +106,7 @@ go-zero 是一个集成了各种工程实践的包含 web 和 rpc 框架，有�
 GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero
 ```
 
-## 5. Quick Start
+## 6. Quick Start
 
 0. 完整示例请查看
 
@@ -112,7 +116,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 1. 安装 goctl 工具
 
-    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 ` 她 ` 来解放我们的双手👈
+    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
     ```shell
     # Go 1.15 及之前版本
@@ -120,6 +124,9 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     
     # Go 1.16 及以后版本
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
+    
+    # For Mac
+    brew install goctl
 
     # docker for amd64 architecture
     docker pull kevinwan/goctl
@@ -175,13 +182,13 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ...
     ```
 
-## 6. Benchmark
+## 7. Benchmark
 
 ![benchmark](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/benchmark.png)
 
 [测试代码见这里](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 7. 文档
+## 8. 文档
 
 * API 文档
 
@@ -202,7 +209,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
   | [goctl-android](https://github.com/zeromicro/goctl-android) | 生成 `java (android)` 端 `http client` 请求代码 |
   | [goctl-go-compact](https://github.com/zeromicro/goctl-go-compact) | 合并 `api` 里同一个 `group` 里的 `handler` 到一个 `go` 文件 |
 
-## 8. go-zero 用户
+## 9. go-zero 用户
 
 go-zero 已被许多公司用于生产部署，接入场景如在线教育、电商业务、游戏、区块链等，目前为止，已使用 go-zero 的公司包括但不限于：
 
@@ -271,10 +278,19 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >63. 上海芯果科技有限公司(好特卖)
 >64. 成都高鹿科技有限公司
 >65. 飞视（苏州）数字技术有限公司
+>66. 上海幻析信息科技有限公司
+>67. 统信软件技术有限公司
+>68. 得物
+>69. 鼎翰文化股份有限公司
+>70. 茶码纹化（云南）科技发展有限公司
+>71. 湖南度思信息技术有限公司
+>72. 深圳圆度
+>73. 武汉沃柒科技有限公司(茄椒)
+>74. 驭势科技
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 
-## 9. CNCF 云原生技术全景图
+## 10. CNCF 云原生技术全景图
 
 <p float="left">
 <img src="https://landscape.cncf.io/images/left-logo.svg" width="150"/>&nbsp;&nbsp;&nbsp;
@@ -283,13 +299,13 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 
 go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape.cncf.io/?selected=go-zero)。
 
-## 10. 微信公众号
+## 11. 微信公众号
 
 `go-zero` 相关文章和视频都会在 `微服务实践` 公众号整理呈现，欢迎扫码关注 👏
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/zeromicro.jpg" alt="wechat" width="600" />
 
-## 11. 微信交流群
+## 12. 微信交流群
 
 如果文档中未能覆盖的任何疑问，欢迎您在群里提出，我们会尽快答复。
 
@@ -301,7 +317,7 @@ go-zero 收录在 [CNCF Cloud Native 云原生技术全景图](https://landscape
 
 <img src="https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/wechat.jpg" alt="wechat" width="300" />
 
-## 12. 赞助一下👍
+## 13. 赞助一下👍
 
 如果觉得项目有帮助，可以请作者喝杯咖啡 🍹
 

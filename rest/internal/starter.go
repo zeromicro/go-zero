@@ -39,7 +39,7 @@ func start(host string, port int, handler http.Handler, run func(svr *http.Serve
 	}
 
 	waitForCalled := proc.AddWrapUpListener(func() {
-		if e := server.Shutdown(context.Background()); err != nil {
+		if e := server.Shutdown(context.Background()); e != nil {
 			logx.Error(e)
 		}
 	})

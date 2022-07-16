@@ -51,8 +51,8 @@ func PathFromGoSrc() (string, error) {
 	return dir[len(parent)+1:], nil
 }
 
-// FindGoModPath returns the path in project where has file go.mod, it maybe return empty string if
-// there is no go.mod file in project
+// FindGoModPath returns the path in project where has file go.mod,
+// it returns empty string if there is no go.mod file in project.
 func FindGoModPath(dir string) (string, bool) {
 	absDir, err := filepath.Abs(dir)
 	if err != nil {

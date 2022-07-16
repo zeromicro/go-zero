@@ -143,6 +143,23 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 	return key, &fieldOpts, nil
 }
 
+// ensureValue ensures nested members not to be nil.
+// If pointer value is nil, set to a new value.
+func ensureValue(v reflect.Value) reflect.Value {
+	for {
+		if v.Kind() != reflect.Ptr {
+			break
+		}
+
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+
+	return v
+}
+
 func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
 	numFields := tp.NumField()
 	for i := 0; i < numFields; i++ {
@@ -478,6 +495,7 @@ func setValue(kind reflect.Kind, value reflect.Value, str string) error {
 		return errValueNotSettable
 	}
 
+	value = ensureValue(value)
 	v, err := convertType(kind, str)
 	if err != nil {
 		return err
@@ -592,16 +610,16 @@ func validateNumberRange(fv float64, nr *numberRange) error {
 	return nil
 }
 
-func validateValueInOptions(options []string, value interface{}) error {
+func validateValueInOptions(val interface{}, options []string) error {
 	if len(options) > 0 {
-		switch v := value.(type) {
+		switch v := val.(type) {
 		case string:
 			if !stringx.Contains(options, v) {
 				return fmt.Errorf(`error: value "%s" is not defined in options "%v"`, v, options)
 			}
 		default:
 			if !stringx.Contains(options, Repr(v)) {
-				return fmt.Errorf(`error: value "%v" is not defined in options "%v"`, value, options)
+				return fmt.Errorf(`error: value "%v" is not defined in options "%v"`, val, options)
 			}
 		}
 	}

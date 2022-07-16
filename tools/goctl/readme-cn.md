@@ -1,12 +1,14 @@
-# goctl使用
+# goctl
 
-## goctl用途
+[English](readme.md) | 简体中文
+
+## goctl 用途
 
 * 定义api请求
 * 根据定义的api自动生成golang(后端), java(iOS & Android), typescript(web & 晓程序)，dart(flutter)
 * 生成MySQL CURD 详情见[goctl model模块](model/sql)
 
-## goctl使用说明
+## goctl 使用说明
 
 ### goctl 参数说明
 
@@ -21,50 +23,41 @@
 #### API 语法说明
 
 ```golang
-
-info(
-    title: doc title
-    desc: >
-    doc description first part,
-    doc description second part<
-    version: 1.0
-)
-
 type int userType
 
-type user struct {
+type user {
 	name string `json:"user"` // 用户姓名
 }
 
-type student struct {
+type student {
 	name string `json:"name"` // 学生姓名
 }
 
-type teacher struct {
+type teacher {
 }
 
 type (
-	address struct {
+	address {
 		city string `json:"city"` // 城市
 	}
 
-	innerType struct {
+	innerType {
 		image string `json:"image"`
 	}
 
-	createRequest struct {
+	createRequest {
 		innerType
 		name    string    `form:"name"`
 		age     int       `form:"age,optional"`
 		address []address `json:"address,optional"`
 	}
 
-	getRequest struct {
+	getRequest {
 		name string `path:"name"`
 		age  int    `form:"age,optional"`
 	}
 
-	getResponse struct {
+	getResponse {
 		code    int     `json:"code"`
 		desc    string  `json:"desc,omitempty"`
 		address address `json:"address"`
@@ -73,13 +66,6 @@ type (
 )
 
 service user-api {
-    @doc(
-        summary: user title
-        desc: >
-        user description first part,
-        user description second part,
-        user description second line
-    )
     @server(
         handler: GetUserHandler
         group: user
@@ -98,31 +84,22 @@ service user-api {
     group: profile
 )
 service user-api {
-    @doc(summary: user title)
-    @server(
-        handler: GetProfileHandler
-    )
+    @handler GetProfileHandler
     get /api/profile/:name(getRequest) returns(getResponse)
 
-    @server(
-        handler: CreateProfileHandler
-    )
+    @handler CreateProfileHandler
     post /api/profile/create(createRequest)
 }
 
 service user-api {
-    @doc(summary: desc in one line)
-    @server(
-        handler: PingHandler
-    )
+    @handler PingHandler
     head /api/ping()
 }
 ```
 
-1. info部分：描述了api基本信息，比如Auth，api是哪个用途。
-2. type部分：type类型声明和golang语法兼容。
+1. type部分：type类型声明和golang语法兼容。
 3. service部分：service代表一组服务，一个服务可以由多组名称相同的service组成，可以针对每一组service配置group属性来指定service生成所在子目录。
-   service里面包含api路由，比如上面第一组service的第一个路由，doc用来描述此路由的用途，GetProfileHandler表示处理这个路由的handler，
+   service里面包含api路由，比如上面第一组service的第一个路由，GetProfileHandler表示处理这个路由的handler，
    `get /api/profile/:name(getRequest) returns(getResponse)` 中get代表api的请求方式（get/post/put/delete）, `/api/profile/:name` 描述了路由path，`:name`通过
    请求getRequest里面的属性赋值，getResponse为返回的结构体，这两个类型都定义在2描述的类型中。
 
