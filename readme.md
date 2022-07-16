@@ -21,7 +21,7 @@ English | [简体中文](readme-cn.md)
 > 
 > `go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.4`
+> `goctl migrate —verbose —version v1.3.5`
 
 ## 0. what is go-zero
 
