@@ -19,7 +19,7 @@ import (
 
 // Server is a gateway server.
 type Server struct {
-	svr       *rest.Server
+	*rest.Server
 	upstreams []upstream
 	timeout   time.Duration
 }
@@ -27,7 +27,7 @@ type Server struct {
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf) *Server {
 	return &Server{
-		svr:       rest.MustNewServer(c.RestConf),
+		Server:    rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
 		timeout:   c.Timeout,
 	}
@@ -36,12 +36,12 @@ func MustNewServer(c GatewayConf) *Server {
 // Start starts the gateway server.
 func (s *Server) Start() {
 	logx.Must(s.build())
-	s.svr.Start()
+	s.Server.Start()
 }
 
 // Stop stops the gateway server.
 func (s *Server) Stop() {
-	s.svr.Stop()
+	s.Server.Stop()
 }
 
 func (s *Server) build() error {
@@ -69,7 +69,7 @@ func (s *Server) build() error {
 	}, func(pipe <-chan interface{}, cancel func(error)) {
 		for item := range pipe {
 			route := item.(rest.Route)
-			s.svr.AddRoute(route)
+			s.Server.AddRoute(route)
 		}
 	})
 }
