@@ -105,7 +105,8 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 			return
 		}
 
-		ctx, can := context.WithTimeout(r.Context(), s.timeout)
+		timeout := internal.GetTimeout(r.Header, s.timeout)
+		ctx, can := context.WithTimeout(r.Context(), timeout)
 		defer can()
 		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.RpcPath, internal.BuildHeaders(r.Header),
 			handler, parser.Next); err != nil {
