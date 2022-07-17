@@ -11,8 +11,8 @@ const (
 	metadataPrefix       = "gateway-"
 )
 
-// BuildHeaders builds the headers for the gateway from HTTP headers.
-func BuildHeaders(header http.Header) []string {
+// ProcessHeaders builds the headers for the gateway from HTTP headers.
+func ProcessHeaders(header http.Header) []string {
 	var headers []string
 
 	for k, v := range header {

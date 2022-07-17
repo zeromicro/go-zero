@@ -19,20 +19,31 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
-// Server is a gateway server.
-type Server struct {
-	*rest.Server
-	upstreams []upstream
-	timeout   time.Duration
-}
+type (
+	// Server is a gateway server.
+	Server struct {
+		*rest.Server
+		upstreams     []upstream
+		timeout       time.Duration
+		processHeader func(http.Header) []string
+	}
+
+	// Option defines the method to customize Server.
+	Option func(svr *Server)
+)
 
 // MustNewServer creates a new gateway server.
-func MustNewServer(c GatewayConf) *Server {
-	return &Server{
+func MustNewServer(c GatewayConf, opts ...Option) *Server {
+	svr := &Server{
 		Server:    rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
 		timeout:   c.Timeout,
 	}
+	for _, opt := range opts {
+		opt(svr)
+	}
+
+	return svr
 }
 
 // Start starts the gateway server.
@@ -120,7 +131,7 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		defer can()
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
-		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, internal.BuildHeaders(r.Header),
+		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
 		}
@@ -143,4 +154,21 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up upstream) (grpcurl.D
 	}
 
 	return source, nil
+}
+
+func (s *Server) prepareMetadata(header http.Header) []string {
+	vals := internal.ProcessHeaders(header)
+	if s.processHeader != nil {
+		vals = append(vals, s.processHeader(header)...)
+	}
+
+	return vals
+}
+
+// WithHeaderProcessor sets a processor to process request headers.
+// The returned headers are used as metadata to invoke the RPC.
+func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
+	return func(s *Server) {
+		s.processHeader = processHeader
+	}
 }
