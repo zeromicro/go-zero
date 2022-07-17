@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mr"
+	"github.com/zeromicro/go-zero/gateway/internal"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
@@ -58,8 +60,23 @@ func (s *Server) build() error {
 			return
 		}
 
+		methods, err := internal.GetMethods(source)
+		if err != nil {
+			cancel(err)
+			return
+		}
+
+		methodSet := make(map[string]struct{})
+		for _, m := range methods {
+			methodSet[m] = struct{}{}
+		}
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
 		for _, m := range up.Mapping {
+			if _, ok := methodSet[m.RpcPath]; !ok {
+				cancel(fmt.Errorf("rpc method %s not found", m.RpcPath))
+				return
+			}
+
 			writer.Write(rest.Route{
 				Method:  strings.ToUpper(m.Method),
 				Path:    m.Path,
@@ -82,15 +99,16 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 			Formatter: grpcurl.NewJSONFormatter(true,
 				grpcurl.AnyResolverFromDescriptorSource(source)),
 		}
-		parser, err := newRequestParser(r, resolver)
+		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.Error(w, err)
 			return
 		}
 
-		ctx, can := context.WithTimeout(r.Context(), s.timeout)
+		timeout := internal.GetTimeout(r.Header, s.timeout)
+		ctx, can := context.WithTimeout(r.Context(), timeout)
 		defer can()
-		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.Rpc, buildHeaders(r.Header),
+		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.RpcPath, internal.BuildHeaders(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
 		}

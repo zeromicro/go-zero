@@ -1,4 +1,4 @@
-package gateway
+package internal
 
 import (
 	"net/http/httptest"
@@ -10,12 +10,12 @@ import (
 func TestBuildHeadersNoValue(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Add("a", "b")
-	assert.Nil(t, buildHeaders(req.Header))
+	assert.Nil(t, BuildHeaders(req.Header))
 }
 
 func TestBuildHeadersWithValues(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Add("grpc-metadata-a", "b")
 	req.Header.Add("grpc-metadata-b", "b")
-	assert.EqualValues(t, []string{"gateway-A:b", "gateway-B:b"}, buildHeaders(req.Header))
+	assert.EqualValues(t, []string{"gateway-A:b", "gateway-B:b"}, BuildHeaders(req.Header))
 }
