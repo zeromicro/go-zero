@@ -66,11 +66,21 @@ func (s *Server) build() error {
 			return
 		}
 
+		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
+		for _, m := range methods {
+			if len(m.HttpMethod) > 0 && len(m.HttpPath) > 0 {
+				writer.Write(rest.Route{
+					Method:  m.HttpMethod,
+					Path:    m.HttpPath,
+					Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
+				})
+			}
+		}
+
 		methodSet := make(map[string]struct{})
 		for _, m := range methods {
-			methodSet[m] = struct{}{}
+			methodSet[m.RpcPath] = struct{}{}
 		}
-		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
 		for _, m := range up.Mapping {
 			if _, ok := methodSet[m.RpcPath]; !ok {
 				cancel(fmt.Errorf("rpc method %s not found", m.RpcPath))
@@ -80,7 +90,7 @@ func (s *Server) build() error {
 			writer.Write(rest.Route{
 				Method:  strings.ToUpper(m.Method),
 				Path:    m.Path,
-				Handler: s.buildHandler(source, resolver, cli, m),
+				Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
 			})
 		}
 	}, func(pipe <-chan interface{}, cancel func(error)) {
@@ -92,7 +102,7 @@ func (s *Server) build() error {
 }
 
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
-	cli zrpc.Client, m mapping) func(http.ResponseWriter, *http.Request) {
+	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler := &grpcurl.DefaultEventHandler{
 			Out: w,
@@ -110,7 +120,7 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		defer can()
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
-		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.RpcPath, internal.BuildHeaders(r.Header),
+		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, internal.BuildHeaders(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
 		}
