@@ -12,7 +12,7 @@ const DefaultSelector = "defaultSelector"
 var (
 	_                           Selector = (*defaultSelector)(nil)
 	colorAttributeKey                    = attribute.Key("selector.color")
-	candidateColorsAttributeKey          = attribute.Key("selector.candidateColors")
+	candidateColorsAttributeKey          = attribute.Key("selector.clientColors")
 )
 
 func init() {
@@ -24,45 +24,29 @@ type defaultSelector struct{}
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	clientColorsVal, ok := ColorsFromContext(info.Ctx)
 	if !ok {
-		return d.getNoColorConns(conns)
+		return d.getNoColorsConns(conns)
 	}
-	clientColors := clientColorsVal.Colors()
+	var newConns []Conn
 
+	clientColors := clientColorsVal.Colors()
 	spanCtx := trace.SpanFromContext(info.Ctx)
 	spanCtx.SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
 
-	newConns := make([]Conn, 0, len(conns))
+	m := d.genColor2ConnsMap(conns)
 	for _, clientColor := range clientColors {
-		for _, conn := range conns {
-			address := conn.Address()
-			serverColorsVal := address.BalancerAttributes.Value("colors")
-			if serverColorsVal == nil {
-				continue
-			}
-			c, b := serverColorsVal.(*Colors)
-			if !b || c.Size() == 0 {
-				continue
-			}
-
-			serverColors := c.Colors()
-			for _, serverColor := range serverColors {
-				if clientColor == serverColor {
-					newConns = append(newConns, conn)
-				}
-			}
-
+		if v, yes := m[clientColor]; yes {
+			newConns = append(newConns, v...)
 		}
 
 		if len(newConns) != 0 {
 			spanCtx.SetAttributes(colorAttributeKey.String(clientColor))
-			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("candidateColors", clientColorsVal.String()))
-
+			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("clientColors", clientColorsVal.String()))
 			break
 		}
 	}
 
 	if len(newConns) == 0 {
-		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("candidateColors", clientColorsVal.String()))
+		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("clientColors", clientColorsVal.String()))
 	}
 
 	return newConns
@@ -72,17 +56,45 @@ func (d defaultSelector) Name() string {
 	return DefaultSelector
 }
 
-func (d defaultSelector) getNoColorConns(conns []Conn) []Conn {
+func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {
+	m := map[string][]Conn{}
+	for _, conn := range conns {
+		address := conn.Address()
+		serverColorsVal := address.BalancerAttributes.Value("colors")
+		if serverColorsVal == nil {
+			continue
+		}
+
+		var serverColors []string
+		switch c := serverColorsVal.(type) {
+		case *Colors:
+			serverColors = c.Colors()
+		}
+
+		for _, color := range serverColors {
+			m[color] = append(m[color], conn)
+		}
+	}
+
+	return m
+}
+
+func (d defaultSelector) getNoColorsConns(conns []Conn) []Conn {
 	var newConns []Conn
 	for _, conn := range conns {
 		address := conn.Address()
 		colorsVal := address.BalancerAttributes.Value("colors")
 		if colorsVal == nil {
-			newConns = append(newConns, conn)
+			continue
 		}
-		c, b := colorsVal.(*Colors)
-		if !b || c.Size() == 0 {
+
+		switch c := colorsVal.(type) {
+		case nil:
 			newConns = append(newConns, conn)
+		case *Colors:
+			if c.Size() == 0 {
+				newConns = append(newConns, conn)
+			}
 		}
 	}
 

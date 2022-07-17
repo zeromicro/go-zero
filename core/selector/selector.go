@@ -21,7 +21,6 @@ func Get(name string) (Selector, bool) {
 type (
 	Conn interface {
 		Address() resolver.Address
-		SubConn() balancer.SubConn
 	}
 
 	Selector interface {

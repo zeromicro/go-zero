@@ -56,9 +56,11 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	for conn, connInfo := range readySCs {
 		address := connInfo.Address
 		colorsVal := address.BalancerAttributes.Value("colors")
+
 		var colors []string
-		if colorsVal != nil {
-			colors = colorsVal.(*selector.Colors).Colors()
+		switch v := colorsVal.(type) {
+		case *selector.Colors:
+			colors = v.Colors()
 		}
 
 		conns = append(conns, &subConn{
@@ -98,13 +100,14 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	}
 
 	if slc, ok := p.getSelector(info.Ctx); ok {
+		selectorName := slc.Name()
+		spanCtx := trace.SpanFromContext(info.Ctx)
+		spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
+		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
+
 		selectedConns := slc.Select(connsCp, info)
 		if len(selectedConns) != 0 {
 			conns = selectedConns
-			selectorName := slc.Name()
-			spanCtx := trace.SpanFromContext(info.Ctx)
-			spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
-			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
 		}
 	} else {
 		conns = connsCp
@@ -241,10 +244,6 @@ type subConn struct {
 
 func (c *subConn) Address() resolver.Address {
 	return c.addr
-}
-
-func (c *subConn) SubConn() balancer.SubConn {
-	return c.conn
 }
 
 func (c *subConn) healthy() bool {
