@@ -25,33 +25,28 @@ func StreamSelectorInterceptor(defaultSelectorName string, defaultColors []strin
 }
 
 func injectionSelectorName(ctx context.Context, defaultSelectorName string, defaultColors []string) context.Context {
-	selectorName, ok := selector.SelectorFromContext(ctx)
-	if !ok && defaultSelectorName != "" {
+	selectorName := selector.SelectorFromContext(ctx)
+	if selectorName == "" {
 		selectorName = defaultSelectorName
-		ctx = selector.NewSelectorContext(ctx, selectorName)
 	}
-	if selectorName != "" {
-		ctx = appendToOutgoingContext(ctx, "selector", selectorName)
+	ctx = selector.NewSelectorContext(ctx, selectorName)
+	ctx = appendToOutgoingContext(ctx, "selector", selectorName)
+
+	colors := selector.ColorsFromContext(ctx).Colors()
+	if len(colors) == 0 {
+		colors = defaultColors
 	}
 
-	var colors []string
-	c, ok := selector.ColorsFromContext(ctx)
-	if !ok {
-		if len(defaultColors) != 0 {
-			colors = defaultColors
-			ctx = selector.NewColorsContext(ctx, colors...)
-		}
-	} else {
-		colors = c.Colors()
-	}
-	if len(colors) != 0 {
-		ctx = appendToOutgoingContext(ctx, "colors", colors...)
-	}
+	ctx = appendToOutgoingContext(ctx, "colors", colors...)
 
 	return ctx
 }
 
 func appendToOutgoingContext(ctx context.Context, key string, values ...string) context.Context {
+	if len(values) == 0 {
+		return ctx
+	}
+
 	md, b := metadata.FromOutgoingContext(ctx)
 	if !b {
 		md = metadata.MD{}

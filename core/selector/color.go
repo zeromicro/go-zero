@@ -58,6 +58,10 @@ func (c *Colors) Equal(o interface{}) bool {
 
 // Colors returns a color slice.
 func (c *Colors) Colors() []string {
+	if len(c.colors) == 0 {
+		return nil
+	}
+
 	cloneColors := make([]string, len(c.colors))
 	copy(cloneColors, c.colors)
 	return cloneColors
@@ -73,6 +77,10 @@ func (c *Colors) Size() int {
 	return len(c.colors)
 }
 
+func (c *Colors) Empty() bool {
+	return len(c.colors) == 0
+}
+
 // String returns a string representation.
 func (c *Colors) String() string {
 	return "[" + strings.Join(c.colors, ", ") + "]"
@@ -80,15 +88,19 @@ func (c *Colors) String() string {
 
 // NewColorsContext new a colors context.
 func NewColorsContext(ctx context.Context, colors ...string) context.Context {
+	if len(colors) == 0 {
+		return ctx
+	}
+
 	return context.WithValue(ctx, colorKey{}, NewColors(colors...))
 }
 
 // ColorsFromContext get the current colors from the context.
-func ColorsFromContext(ctx context.Context) (*Colors, bool) {
+func ColorsFromContext(ctx context.Context) *Colors {
 	value := ctx.Value(colorKey{})
 	if value == nil {
-		return nil, false
+		return &Colors{}
 	}
 
-	return value.(*Colors), true
+	return value.(*Colors)
 }

@@ -23,8 +23,8 @@ func init() {
 type defaultSelector struct{}
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
-	clientColorsVal, ok := ColorsFromContext(info.Ctx)
-	if !ok {
+	clientColorsVal := ColorsFromContext(info.Ctx)
+	if clientColorsVal.Empty() {
 		return d.getNoColorsConns(conns)
 	}
 

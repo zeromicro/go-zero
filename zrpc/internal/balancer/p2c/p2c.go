@@ -97,18 +97,13 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 		connsCp = append(connsCp, conn)
 	}
 
-	if slc, ok := p.getSelector(info.Ctx); ok {
-		selectorName := slc.Name()
-		spanCtx := trace.SpanFromContext(info.Ctx)
-		spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
-		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
+	slc := p.getSelector(info.Ctx)
+	selectorName := slc.Name()
+	spanCtx := trace.SpanFromContext(info.Ctx)
+	spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
+	logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
 
-		if selectedConns := slc.Select(connsCp, info); len(selectedConns) != 0 {
-			conns = selectedConns
-		}
-	} else {
-		conns = connsCp
-	}
+	conns = slc.Select(connsCp, info)
 
 	var chosen *subConn
 	switch len(conns) {
@@ -215,14 +210,8 @@ func (p *p2cPicker) logStats() {
 	logx.Statf("p2c - %s", strings.Join(stats, "; "))
 }
 
-func (p *p2cPicker) getSelector(ctx context.Context) (selector.Selector, bool) {
-	if selectorName, ok := selector.SelectorFromContext(ctx); ok {
-		if slc, exist := selector.Get(selectorName); exist {
-			return slc, true
-		}
-	}
-
-	return nil, false
+func (p *p2cPicker) getSelector(ctx context.Context) selector.Selector {
+	return selector.Get(selector.SelectorFromContext(ctx))
 }
 
 var _ selector.Conn = (*subConn)(nil)

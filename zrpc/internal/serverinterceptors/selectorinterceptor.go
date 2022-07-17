@@ -12,7 +12,6 @@ import (
 func UnarySelectorInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp interface{}, err error) {
 	ctx = extractMd(ctx)
-
 	return handler(ctx, req)
 }
 
@@ -20,7 +19,6 @@ func UnarySelectorInterceptor(ctx context.Context, req interface{}, _ *grpc.Unar
 func StreamSelectorInterceptor(svr interface{}, ss grpc.ServerStream, _ *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) error {
 	ctx := extractMd(ss.Context())
-
 	return handler(svr, &wrappedServerStream{ss: ss, ctx: ctx})
 }
 

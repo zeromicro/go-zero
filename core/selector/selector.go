@@ -16,9 +16,13 @@ func Register(selector Selector) {
 }
 
 // Get get a selector.
-func Get(name string) (Selector, bool) {
+func Get(name string) Selector {
 	selector, ok := selectorMap[name]
-	return selector, ok
+	if !ok {
+		return noneSelector{}
+	}
+
+	return selector
 }
 
 type (
@@ -42,15 +46,19 @@ type (
 
 // NewSelectorContext new a selector context.
 func NewSelectorContext(ctx context.Context, selectorName string) context.Context {
+	if selectorName == "" {
+		return ctx
+	}
+
 	return context.WithValue(ctx, selectKey{}, selectorName)
 }
 
 // SelectorFromContext get the current selector from the context.
-func SelectorFromContext(ctx context.Context) (string, bool) {
+func SelectorFromContext(ctx context.Context) string {
 	value := ctx.Value(selectKey{})
 	if value == nil {
-		return "", false
+		return ""
 	}
 
-	return value.(string), true
+	return value.(string)
 }
