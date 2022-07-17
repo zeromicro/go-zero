@@ -35,7 +35,7 @@ func extractMd(ctx context.Context) context.Context {
 
 	colorsVal := incomingMd.Get("colors")
 	if len(colorsVal) != 0 {
-		ctx = selector.NewColorContext(ctx, colorsVal...)
+		ctx = selector.NewColorsContext(ctx, colorsVal...)
 	}
 
 	return ctx

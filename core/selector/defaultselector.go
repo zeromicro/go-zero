@@ -1,16 +1,19 @@
 package selector
 
 import (
-	"strings"
-
 	"github.com/zeromicro/go-zero/core/logx"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/balancer"
 )
 
 const DefaultSelector = "defaultSelector"
 
-var _ Selector = (*defaultSelector)(nil)
+var (
+	_                           Selector = (*defaultSelector)(nil)
+	colorAttributeKey                    = attribute.Key("selector.color")
+	candidateColorsAttributeKey          = attribute.Key("selector.candidateColors")
+)
 
 func init() {
 	Register(defaultSelector{})
@@ -19,13 +22,16 @@ func init() {
 type defaultSelector struct{}
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
-	clientColorsVal, ok := ColorFromContext(info.Ctx)
+	clientColorsVal, ok := ColorsFromContext(info.Ctx)
 	if !ok {
 		return d.getNoColorConns(conns)
 	}
+	clientColors := clientColorsVal.Colors()
+
+	spanCtx := trace.SpanFromContext(info.Ctx)
+	spanCtx.SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
 
 	newConns := make([]Conn, 0, len(conns))
-	clientColors := clientColorsVal.Colors()
 	for _, clientColor := range clientColors {
 		for _, conn := range conns {
 			address := conn.Address()
@@ -48,12 +54,15 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 		}
 
 		if len(newConns) != 0 {
-			spanCtx := trace.SpanFromContext(info.Ctx)
-			spanCtx.SetAttributes(ColorAttributeKey.String(clientColor))
-			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("candidateColors", "["+strings.Join(clientColors, ", ")+"]"))
+			spanCtx.SetAttributes(colorAttributeKey.String(clientColor))
+			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("candidateColors", clientColorsVal.String()))
 
 			break
 		}
+	}
+
+	if len(newConns) == 0 {
+		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("candidateColors", clientColorsVal.String()))
 	}
 
 	return newConns

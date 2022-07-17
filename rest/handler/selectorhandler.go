@@ -15,7 +15,7 @@ func SelectorHandler(next http.Handler) http.Handler {
 		}
 
 		ctx := request.Context()
-		ctx = selector.NewColorContext(ctx, colors...)
+		ctx = selector.NewColorsContext(ctx, colors...)
 		next.ServeHTTP(writer, request.WithContext(ctx))
 	})
 }
