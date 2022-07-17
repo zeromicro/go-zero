@@ -1,6 +1,8 @@
 package discov
 
 import (
+	"strings"
+
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -25,6 +27,7 @@ type (
 		quit       *syncx.DoneChan
 		pauseChan  chan lang.PlaceholderType
 		resumeChan chan lang.PlaceholderType
+		colors     []string
 	}
 )
 
@@ -134,7 +137,13 @@ func (p *Publisher) register(client internal.EtcdClient) (clientv3.LeaseID, erro
 	} else {
 		p.fullKey = makeEtcdKey(p.key, int64(lease))
 	}
-	_, err = client.Put(client.Ctx(), p.fullKey, p.value, clientv3.WithLease(lease))
+
+	value := p.value
+	if len(p.colors) != 0 {
+		value = value + "@" + strings.Join(p.colors, ",")
+	}
+
+	_, err = client.Put(client.Ctx(), p.fullKey, value, clientv3.WithLease(lease))
 
 	return lease, err
 }
@@ -163,5 +172,11 @@ func WithPubEtcdAccount(user, pass string) PubOption {
 func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) PubOption {
 	return func(pub *Publisher) {
 		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
+	}
+}
+
+func WithPubEtcdColors(colors ...string) PubOption {
+	return func(client *Publisher) {
+		client.colors = colors
 	}
 }

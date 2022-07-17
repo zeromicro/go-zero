@@ -25,6 +25,9 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string, opts ...ServerOption
 			pubOpts = append(pubOpts, discov.WithPubEtcdTLS(etcd.CertFile, etcd.CertKeyFile,
 				etcd.CACertFile, etcd.InsecureSkipVerify))
 		}
+		if etcd.HasColors() {
+			pubOpts = append(pubOpts, discov.WithPubEtcdColors(etcd.Colors...))
+		}
 		pubClient := discov.NewPublisher(etcd.Hosts, etcd.Key, pubListenOn, pubOpts...)
 		return pubClient.KeepAlive()
 	}

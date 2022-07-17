@@ -13,12 +13,13 @@ var (
 type EtcdConf struct {
 	Hosts              []string
 	Key                string
-	User               string `json:",optional"`
-	Pass               string `json:",optional"`
-	CertFile           string `json:",optional"`
-	CertKeyFile        string `json:",optional=CertFile"`
-	CACertFile         string `json:",optional=CertFile"`
-	InsecureSkipVerify bool   `json:",optional"`
+	User               string   `json:",optional"`
+	Pass               string   `json:",optional"`
+	CertFile           string   `json:",optional"`
+	CertKeyFile        string   `json:",optional=CertFile"`
+	CACertFile         string   `json:",optional=CertFile"`
+	InsecureSkipVerify bool     `json:",optional"`
+	Colors             []string `json:",optional"`
 }
 
 // HasAccount returns if account provided.
@@ -40,4 +41,8 @@ func (c EtcdConf) Validate() error {
 	} else {
 		return nil
 	}
+}
+
+func (c EtcdConf) HasColors() bool {
+	return len(c.Colors) != 0
 }

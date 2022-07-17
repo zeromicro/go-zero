@@ -32,10 +32,12 @@ type (
 
 	// A ClientOptions is a client options.
 	ClientOptions struct {
-		NonBlock    bool
-		Timeout     time.Duration
-		Secure      bool
-		DialOptions []grpc.DialOption
+		NonBlock     bool
+		Timeout      time.Duration
+		Secure       bool
+		DialOptions  []grpc.DialOption
+		selectorName string
+		colors       []string
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -86,9 +88,11 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.UnarySelectorInterceptor(cliOpts.selectorName, cliOpts.colors),
 		),
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
+			clientinterceptors.StreamSelectorInterceptor(cliOpts.selectorName, cliOpts.colors),
 		),
 	)
 
@@ -157,5 +161,17 @@ func WithTransportCredentials(creds credentials.TransportCredentials) ClientOpti
 func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))
+	}
+}
+
+func WithSelector(selectorName string) ClientOption {
+	return func(options *ClientOptions) {
+		options.selectorName = selectorName
+	}
+}
+
+func WithColor(colors ...string) ClientOption {
+	return func(options *ClientOptions) {
+		options.colors = colors
 	}
 }

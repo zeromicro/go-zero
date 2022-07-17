@@ -1,6 +1,7 @@
 package p2c
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/rand"
@@ -10,9 +11,12 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/selector"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/zrpc/internal/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
@@ -31,7 +35,10 @@ const (
 	logInterval     = time.Minute
 )
 
-var emptyPickResult balancer.PickResult
+var (
+	emptyPickResult      balancer.PickResult
+	selectorAttributeKey = attribute.Key("selector.name")
+)
 
 func init() {
 	balancer.Register(newBuilder())
@@ -47,10 +54,18 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 
 	var conns []*subConn
 	for conn, connInfo := range readySCs {
+		address := connInfo.Address
+		colorsVal := address.BalancerAttributes.Value("colors")
+		var colors []string
+		if colorsVal != nil {
+			colors = colorsVal.(*selector.Colors).Colors()
+		}
+
 		conns = append(conns, &subConn{
 			addr:    connInfo.Address,
 			conn:    conn,
 			success: initSuccess,
+			colors:  colors,
 		})
 	}
 
@@ -76,24 +91,43 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	var conns []selector.Conn
+	connsCp := make([]selector.Conn, 0, len(conns))
+	for _, conn := range p.conns {
+		connsCp = append(connsCp, conn)
+	}
+
+	if slc, ok := p.getSelector(info.Ctx); ok {
+		selectedConns := slc.Select(connsCp, info)
+		if len(selectedConns) != 0 {
+			conns = selectedConns
+			selectorName := slc.Name()
+			spanCtx := trace.SpanFromContext(info.Ctx)
+			spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
+			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
+		}
+	} else {
+		conns = connsCp
+	}
+
 	var chosen *subConn
-	switch len(p.conns) {
+	switch len(conns) {
 	case 0:
 		return emptyPickResult, balancer.ErrNoSubConnAvailable
 	case 1:
-		chosen = p.choose(p.conns[0], nil)
+		chosen = p.choose(conns[0].(*subConn), nil)
 	case 2:
-		chosen = p.choose(p.conns[0], p.conns[1])
+		chosen = p.choose(conns[0].(*subConn), conns[1].(*subConn))
 	default:
 		var node1, node2 *subConn
 		for i := 0; i < pickTimes; i++ {
-			a := p.r.Intn(len(p.conns))
-			b := p.r.Intn(len(p.conns) - 1)
+			a := p.r.Intn(len(conns))
+			b := p.r.Intn(len(conns) - 1)
 			if b >= a {
 				b++
 			}
-			node1 = p.conns[a]
-			node2 = p.conns[b]
+			node1 = conns[a].(*subConn)
+			node2 = conns[b].(*subConn)
 			if node1.healthy() && node2.healthy() {
 				break
 			}
@@ -181,6 +215,18 @@ func (p *p2cPicker) logStats() {
 	logx.Statf("p2c - %s", strings.Join(stats, "; "))
 }
 
+func (p *p2cPicker) getSelector(ctx context.Context) (selector.Selector, bool) {
+	if selectorName, ok := selector.SelectorFromContext(ctx); ok {
+		if slc, exist := selector.Get(selectorName); exist {
+			return slc, true
+		}
+	}
+
+	return nil, false
+}
+
+var _ selector.Conn = (*subConn)(nil)
+
 type subConn struct {
 	lag      uint64
 	inflight int64
@@ -190,6 +236,15 @@ type subConn struct {
 	pick     int64
 	addr     resolver.Address
 	conn     balancer.SubConn
+	colors   []string
+}
+
+func (c *subConn) Address() resolver.Address {
+	return c.addr
+}
+
+func (c *subConn) SubConn() balancer.SubConn {
+	return c.conn
 }
 
 func (c *subConn) healthy() bool {

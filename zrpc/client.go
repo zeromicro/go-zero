@@ -62,6 +62,12 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
+	if c.Etcd.HasColors() {
+		opts = append(opts, internal.WithColor(c.Etcd.Colors...))
+	}
+	if c.Selector != "" {
+		opts = append(opts, internal.WithSelector(c.Selector))
+	}
 
 	opts = append(opts, options...)
 
