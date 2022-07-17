@@ -31,6 +31,8 @@ type (
 		Grpc zrpc.RpcClientConf
 		// ProtoSet is the file of proto set, like hello.pb
 		ProtoSet string `json:",optional"`
-		Mapping  []mapping
+		// Mapping is the mapping between gateway routes and upstream rpc methods.
+		// Keep it blank if annotations are added in rpc methods.
+		Mapping []mapping `json:",optional"`
 	}
 )

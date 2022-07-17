@@ -25,5 +25,9 @@ func TestGetMethods(t *testing.T) {
 	assert.Nil(t, err)
 	methods, err := GetMethods(source)
 	assert.Nil(t, err)
-	assert.EqualValues(t, []string{"hello.Hello/Ping"}, methods)
+	assert.EqualValues(t, []Method{
+		{
+			RpcPath: "hello.Hello/Ping",
+		},
+	}, methods)
 }
