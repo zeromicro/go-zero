@@ -175,6 +175,7 @@ func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 	}
 }
 
+// WithPubEtcdColors  returns a func to customize a set of colors.
 func WithPubEtcdColors(colors ...string) PubOption {
 	return func(client *Publisher) {
 		client.colors = colors

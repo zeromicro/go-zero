@@ -5,26 +5,22 @@ import (
 	"strings"
 )
 
+// Colors represents a set of route colors.
 type Colors struct {
 	colors []string
 }
 
+// NewColors new a Colors.
 func NewColors(colors ...string) *Colors {
 	return &Colors{colors: append([]string(nil), colors...)}
 }
 
+// Add adds a set of colors.
 func (c *Colors) Add(colors ...string) {
 	c.colors = append(c.colors, colors...)
 }
 
-func (c *Colors) Range(f func(color string) bool) {
-	for _, color := range c.colors {
-		if !f(color) {
-			break
-		}
-	}
-}
-
+// Equal returns whether c and o are equivalent.
 func (c *Colors) Equal(o interface{}) bool {
 	var colors *Colors
 	switch v := o.(type) {
@@ -49,28 +45,34 @@ func (c *Colors) Equal(o interface{}) bool {
 	return true
 }
 
+// Colors returns a color slice.
 func (c *Colors) Colors() []string {
 	cloneColors := make([]string, len(c.colors))
 	copy(cloneColors, c.colors)
 	return cloneColors
 }
 
+// Clone clones a Colors.
 func (c *Colors) Clone() *Colors {
 	return &Colors{colors: c.Colors()}
 }
 
+// Size returns size of the color group.
 func (c *Colors) Size() int {
 	return len(c.colors)
 }
 
+// String returns a string representation.
 func (c *Colors) String() string {
 	return "[" + strings.Join(c.colors, ", ") + "]"
 }
 
+// NewColorsContext new a colors context.
 func NewColorsContext(ctx context.Context, colors ...string) context.Context {
 	return context.WithValue(ctx, colorKey{}, NewColors(colors...))
 }
 
+// ColorsFromContext get the current colors from the context.
 func ColorsFromContext(ctx context.Context) (*Colors, bool) {
 	value := ctx.Value(colorKey{})
 	if value == nil {

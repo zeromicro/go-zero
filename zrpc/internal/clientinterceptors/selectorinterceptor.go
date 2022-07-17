@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// UnarySelectorInterceptor returns an interceptor that can inject selector and colors.
 func UnarySelectorInterceptor(defaultSelectorName string, defaultColors []string) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		ctx = injectionSelectorName(ctx, defaultSelectorName, defaultColors)
@@ -15,6 +16,7 @@ func UnarySelectorInterceptor(defaultSelectorName string, defaultColors []string
 	}
 }
 
+// StreamSelectorInterceptor returns an interceptor that can inject selector and colors.
 func StreamSelectorInterceptor(defaultSelectorName string, defaultColors []string) grpc.StreamClientInterceptor {
 	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
 		ctx = injectionSelectorName(ctx, defaultSelectorName, defaultColors)
@@ -24,16 +26,14 @@ func StreamSelectorInterceptor(defaultSelectorName string, defaultColors []strin
 
 func injectionSelectorName(ctx context.Context, defaultSelectorName string, defaultColors []string) context.Context {
 	selectorName, ok := selector.SelectorFromContext(ctx)
-	if !ok {
-		if defaultSelectorName != "" {
-			selectorName = defaultSelectorName
-			ctx = selector.NewSelectorContext(ctx, selectorName)
-		}
+	if !ok && defaultSelectorName != "" {
+		selectorName = defaultSelectorName
+		ctx = selector.NewSelectorContext(ctx, selectorName)
 	}
-
 	if selectorName != "" {
 		ctx = appendToOutgoingContext(ctx, "selector", selectorName)
 	}
+
 	var colors []string
 	c, ok := selector.ColorsFromContext(ctx)
 	if !ok {
@@ -44,7 +44,6 @@ func injectionSelectorName(ctx context.Context, defaultSelectorName string, defa
 	} else {
 		colors = c.Colors()
 	}
-
 	if len(colors) != 0 {
 		ctx = appendToOutgoingContext(ctx, "colors", colors...)
 	}

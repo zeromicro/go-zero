@@ -43,6 +43,7 @@ func (c EtcdConf) Validate() error {
 	}
 }
 
+// HasColors return ture if Colors exists
 func (c EtcdConf) HasColors() bool {
 	return len(c.Colors) != 0
 }

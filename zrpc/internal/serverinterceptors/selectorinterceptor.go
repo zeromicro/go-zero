@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+// UnarySelectorInterceptor returns an interceptor that can get the selector and colors.
 func UnarySelectorInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp interface{}, err error) {
 	ctx = extractMd(ctx)
@@ -15,6 +16,7 @@ func UnarySelectorInterceptor(ctx context.Context, req interface{}, _ *grpc.Unar
 	return handler(ctx, req)
 }
 
+// StreamSelectorInterceptor returns an interceptor that can get the selector and colors.
 func StreamSelectorInterceptor(svr interface{}, ss grpc.ServerStream, _ *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) error {
 	ctx := extractMd(ss.Context())

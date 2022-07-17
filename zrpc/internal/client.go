@@ -164,12 +164,14 @@ func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientO
 	}
 }
 
+// WithSelector returns a func to customize a selector.
 func WithSelector(selectorName string) ClientOption {
 	return func(options *ClientOptions) {
 		options.selectorName = selectorName
 	}
 }
 
+// WithColor returns a func to customize a set of colors.
 func WithColor(colors ...string) ClientOption {
 	return func(options *ClientOptions) {
 		options.colors = colors

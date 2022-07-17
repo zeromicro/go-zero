@@ -19,6 +19,7 @@ func init() {
 	Register(defaultSelector{})
 }
 
+// defaultSelector a default selector.
 type defaultSelector struct{}
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
