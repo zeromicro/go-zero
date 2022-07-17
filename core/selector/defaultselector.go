@@ -27,12 +27,12 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	if !ok {
 		return d.getNoColorsConns(conns)
 	}
-	var newConns []Conn
 
 	clientColors := clientColorsVal.Colors()
 	spanCtx := trace.SpanFromContext(info.Ctx)
 	spanCtx.SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
 
+	var newConns []Conn
 	m := d.genColor2ConnsMap(conns)
 	for _, clientColor := range clientColors {
 		if v, yes := m[clientColor]; yes {
@@ -67,8 +67,7 @@ func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {
 		}
 
 		var serverColors []string
-		switch c := serverColorsVal.(type) {
-		case *Colors:
+		if c, ok := serverColorsVal.(*Colors); ok && c != nil {
 			serverColors = c.Colors()
 		}
 
@@ -88,14 +87,13 @@ func (d defaultSelector) getNoColorsConns(conns []Conn) []Conn {
 		if colorsVal == nil {
 			continue
 		}
+		c, ok := colorsVal.(*Colors)
+		if !ok {
+			continue
+		}
 
-		switch c := colorsVal.(type) {
-		case nil:
+		if c != nil || c.Size() == 0 {
 			newConns = append(newConns, conn)
-		case *Colors:
-			if c.Size() == 0 {
-				newConns = append(newConns, conn)
-			}
 		}
 	}
 

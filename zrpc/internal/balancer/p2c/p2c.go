@@ -54,12 +54,10 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 
 	var conns []*subConn
 	for conn, connInfo := range readySCs {
+		var colors []string
 		address := connInfo.Address
 		colorsVal := address.BalancerAttributes.Value("colors")
-
-		var colors []string
-		switch v := colorsVal.(type) {
-		case *selector.Colors:
+		if v, ok := colorsVal.(*selector.Colors); ok && v != nil {
 			colors = v.Colors()
 		}
 
@@ -105,8 +103,7 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 		spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
 		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
 
-		selectedConns := slc.Select(connsCp, info)
-		if len(selectedConns) != 0 {
+		if selectedConns := slc.Select(connsCp, info); len(selectedConns) != 0 {
 			conns = selectedConns
 		}
 	} else {

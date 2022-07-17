@@ -22,6 +22,13 @@ func (c *Colors) Add(colors ...string) {
 
 // Equal returns whether c and o are equivalent.
 func (c *Colors) Equal(o interface{}) bool {
+	if c == nil && o == nil {
+		return true
+	}
+	if c == nil || o == nil {
+		return false
+	}
+
 	var colors *Colors
 	switch v := o.(type) {
 	case *Colors:
@@ -29,6 +36,10 @@ func (c *Colors) Equal(o interface{}) bool {
 	case Colors:
 		colors = &v
 	default:
+		return false
+	}
+
+	if colors == nil {
 		return false
 	}
 
