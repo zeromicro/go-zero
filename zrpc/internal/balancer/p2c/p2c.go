@@ -54,18 +54,10 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 
 	var conns []*subConn
 	for conn, connInfo := range readySCs {
-		var colors []string
-		address := connInfo.Address
-		colorsVal := address.BalancerAttributes.Value("colors")
-		if v, ok := colorsVal.(*selector.Colors); ok && v != nil {
-			colors = v.Colors()
-		}
-
 		conns = append(conns, &subConn{
 			addr:    connInfo.Address,
 			conn:    conn,
 			success: initSuccess,
-			colors:  colors,
 		})
 	}
 
@@ -225,7 +217,6 @@ type subConn struct {
 	pick     int64
 	addr     resolver.Address
 	conn     balancer.SubConn
-	colors   []string
 }
 
 func (c *subConn) Address() resolver.Address {
