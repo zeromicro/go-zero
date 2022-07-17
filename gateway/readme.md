@@ -35,7 +35,7 @@ Upstreams:
     Mapping:
       - Method: get
         Path: /pingHello/:ping
-        Rpc: hello.Hello/Ping
+        RpcPath: hello.Hello/Ping
   - Grpc:
       Endpoints:
         - localhost:8081
@@ -43,7 +43,7 @@ Upstreams:
     Mapping:
       - Method: post
         Path: /pingWorld
-        Rpc: world.World/Ping
+        RpcPath: world.World/Ping
 ```
 
 ## Generate ProtoSet files

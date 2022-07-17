@@ -1,4 +1,4 @@
-package gateway
+package internal
 
 import (
 	"fmt"
@@ -11,7 +11,8 @@ const (
 	metadataPrefix       = "gateway-"
 )
 
-func buildHeaders(header http.Header) []string {
+// BuildHeaders builds the headers for the gateway from HTTP headers.
+func BuildHeaders(header http.Header) []string {
 	var headers []string
 
 	for k, v := range header {

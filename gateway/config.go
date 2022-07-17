@@ -21,8 +21,8 @@ type (
 		Method string
 		// Path is the HTTP path.
 		Path string
-		// Rpc is the gRPC rpc method, with format of package.service/method
-		Rpc string
+		// RpcPath is the gRPC rpc method, with format of package.service/method
+		RpcPath string
 	}
 
 	// upstream is the configuration for upstream.
