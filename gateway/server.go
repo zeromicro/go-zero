@@ -108,6 +108,8 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		timeout := internal.GetTimeout(r.Header, s.timeout)
 		ctx, can := context.WithTimeout(r.Context(), timeout)
 		defer can()
+
+		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.RpcPath, internal.BuildHeaders(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
