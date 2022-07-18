@@ -21,15 +21,18 @@ type (
 		Method string
 		// Path is the HTTP path.
 		Path string
-		// Rpc is the gRPC rpc method, with format of package.service/method
-		Rpc string
+		// RpcPath is the gRPC rpc method, with format of package.service/method
+		RpcPath string
 	}
+
 	// upstream is the configuration for upstream.
 	upstream struct {
 		// Grpc is the target of upstream.
 		Grpc zrpc.RpcClientConf
 		// ProtoSet is the file of proto set, like hello.pb
 		ProtoSet string `json:",optional"`
-		Mapping  []mapping
+		// Mapping is the mapping between gateway routes and upstream rpc methods.
+		// Keep it blank if annotations are added in rpc methods.
+		Mapping []mapping `json:",optional"`
 	}
 )

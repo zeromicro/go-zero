@@ -2,6 +2,7 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -11,37 +12,49 @@ import (
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mr"
+	"github.com/zeromicro/go-zero/gateway/internal"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
-// Server is a gateway server.
-type Server struct {
-	svr       *rest.Server
-	upstreams []upstream
-	timeout   time.Duration
-}
+type (
+	// Server is a gateway server.
+	Server struct {
+		*rest.Server
+		upstreams     []upstream
+		timeout       time.Duration
+		processHeader func(http.Header) []string
+	}
+
+	// Option defines the method to customize Server.
+	Option func(svr *Server)
+)
 
 // MustNewServer creates a new gateway server.
-func MustNewServer(c GatewayConf) *Server {
-	return &Server{
-		svr:       rest.MustNewServer(c.RestConf),
+func MustNewServer(c GatewayConf, opts ...Option) *Server {
+	svr := &Server{
+		Server:    rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
 		timeout:   c.Timeout,
 	}
+	for _, opt := range opts {
+		opt(svr)
+	}
+
+	return svr
 }
 
 // Start starts the gateway server.
 func (s *Server) Start() {
 	logx.Must(s.build())
-	s.svr.Start()
+	s.Server.Start()
 }
 
 // Stop stops the gateway server.
 func (s *Server) Stop() {
-	s.svr.Stop()
+	s.Server.Stop()
 }
 
 func (s *Server) build() error {
@@ -58,39 +71,67 @@ func (s *Server) build() error {
 			return
 		}
 
+		methods, err := internal.GetMethods(source)
+		if err != nil {
+			cancel(err)
+			return
+		}
+
 		resolver := grpcurl.AnyResolverFromDescriptorSource(source)
+		for _, m := range methods {
+			if len(m.HttpMethod) > 0 && len(m.HttpPath) > 0 {
+				writer.Write(rest.Route{
+					Method:  m.HttpMethod,
+					Path:    m.HttpPath,
+					Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
+				})
+			}
+		}
+
+		methodSet := make(map[string]struct{})
+		for _, m := range methods {
+			methodSet[m.RpcPath] = struct{}{}
+		}
 		for _, m := range up.Mapping {
+			if _, ok := methodSet[m.RpcPath]; !ok {
+				cancel(fmt.Errorf("rpc method %s not found", m.RpcPath))
+				return
+			}
+
 			writer.Write(rest.Route{
 				Method:  strings.ToUpper(m.Method),
 				Path:    m.Path,
-				Handler: s.buildHandler(source, resolver, cli, m),
+				Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
 			})
 		}
 	}, func(pipe <-chan interface{}, cancel func(error)) {
 		for item := range pipe {
 			route := item.(rest.Route)
-			s.svr.AddRoute(route)
+			s.Server.AddRoute(route)
 		}
 	})
 }
 
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
-	cli zrpc.Client, m mapping) func(http.ResponseWriter, *http.Request) {
+	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		handler := &grpcurl.DefaultEventHandler{
 			Out: w,
 			Formatter: grpcurl.NewJSONFormatter(true,
 				grpcurl.AnyResolverFromDescriptorSource(source)),
 		}
-		parser, err := newRequestParser(r, resolver)
+		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.Error(w, err)
 			return
 		}
 
-		ctx, can := context.WithTimeout(r.Context(), s.timeout)
+		timeout := internal.GetTimeout(r.Header, s.timeout)
+		ctx, can := context.WithTimeout(r.Context(), timeout)
 		defer can()
-		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), m.Rpc, buildHeaders(r.Header),
+
+		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
+		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
 		}
@@ -113,4 +154,21 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up upstream) (grpcurl.D
 	}
 
 	return source, nil
+}
+
+func (s *Server) prepareMetadata(header http.Header) []string {
+	vals := internal.ProcessHeaders(header)
+	if s.processHeader != nil {
+		vals = append(vals, s.processHeader(header)...)
+	}
+
+	return vals
+}
+
+// WithHeaderProcessor sets a processor to process request headers.
+// The returned headers are used as metadata to invoke the RPC.
+func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
+	return func(s *Server) {
+		s.processHeader = processHeader
+	}
 }
