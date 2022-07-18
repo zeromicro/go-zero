@@ -171,8 +171,8 @@ func WithSelector(selectorName string) ClientOption {
 	}
 }
 
-// WithColor returns a func to customize a set of colors.
-func WithColor(colors ...string) ClientOption {
+// WithColors returns a func to customize a set of colors.
+func WithColors(colors ...string) ClientOption {
 	return func(options *ClientOptions) {
 		options.colors = colors
 	}

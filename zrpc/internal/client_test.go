@@ -65,3 +65,17 @@ func TestBuildDialOptions(t *testing.T) {
 	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }
+
+func TestWithSelector(t *testing.T) {
+	var options ClientOptions
+	opt := WithSelector("defaultSelector")
+	opt(&options)
+	assert.Equal(t, "defaultSelector", options.selectorName)
+}
+
+func TestWithColor(t *testing.T) {
+	var options ClientOptions
+	opt := WithColors("v1", "v2")
+	opt(&options)
+	assert.Equal(t, []string{"v1", "v2"}, options.colors)
+}
