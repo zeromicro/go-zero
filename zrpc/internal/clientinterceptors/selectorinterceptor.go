@@ -36,7 +36,7 @@ func injectionSelectorName(ctx context.Context, defaultSelectorName string, defa
 	if len(colors) == 0 {
 		colors = defaultColors
 	}
-
+	ctx = selector.NewColorsContext(ctx, colors...)
 	ctx = appendToOutgoingContext(ctx, "colors", colors...)
 
 	return ctx

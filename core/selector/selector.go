@@ -40,7 +40,6 @@ type (
 		Name() string
 	}
 
-	colorKey  struct{}
 	selectKey struct{}
 )
 

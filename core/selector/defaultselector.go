@@ -23,16 +23,12 @@ func init() {
 type defaultSelector struct{}
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
+	var newConns []Conn
 	clientColorsVal := ColorsFromContext(info.Ctx)
-	if clientColorsVal.Empty() {
-		return d.getNoColorsConns(conns)
-	}
-
 	clientColors := clientColorsVal.Colors()
 	spanCtx := trace.SpanFromContext(info.Ctx)
 	spanCtx.SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
 
-	var newConns []Conn
 	m := d.genColor2ConnsMap(conns)
 	for _, clientColor := range clientColors {
 		if v, yes := m[clientColor]; yes {
@@ -47,6 +43,7 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	}
 
 	if len(newConns) == 0 {
+		newConns = d.getNoColorsConns(conns)
 		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("clientColors", clientColorsVal.String()))
 	}
 
@@ -62,18 +59,16 @@ func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {
 	for _, conn := range conns {
 		address := conn.Address()
 		serverColorsVal := address.BalancerAttributes.Value("colors")
-		if serverColorsVal == nil {
-			continue
+
+		switch v := serverColorsVal.(type) {
+		case *Colors:
+			if v != nil {
+				for _, color := range v.Colors() {
+					m[color] = append(m[color], conn)
+				}
+			}
 		}
 
-		var serverColors []string
-		if c, ok := serverColorsVal.(*Colors); ok && c != nil {
-			serverColors = c.Colors()
-		}
-
-		for _, color := range serverColors {
-			m[color] = append(m[color], conn)
-		}
 	}
 
 	return m
@@ -84,17 +79,14 @@ func (d defaultSelector) getNoColorsConns(conns []Conn) []Conn {
 	for _, conn := range conns {
 		address := conn.Address()
 		colorsVal := address.BalancerAttributes.Value("colors")
-		if colorsVal == nil {
-			continue
-		}
-		c, ok := colorsVal.(*Colors)
-		if !ok {
-			continue
-		}
 
-		if c != nil || c.Size() == 0 {
-			newConns = append(newConns, conn)
+		switch v := colorsVal.(type) {
+		case *Colors:
+			if v != nil || v.Size() != 0 {
+				continue
+			}
 		}
+		newConns = append(newConns, conn)
 	}
 
 	return newConns

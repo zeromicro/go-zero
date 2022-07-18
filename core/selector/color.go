@@ -5,10 +5,13 @@ import (
 	"strings"
 )
 
-// Colors represents a set of route colors.
-type Colors struct {
-	colors []string
-}
+type (
+	// Colors represents a set of colors.
+	Colors struct {
+		colors []string
+	}
+	colorKey struct{}
+)
 
 // NewColors new a Colors.
 func NewColors(colors ...string) *Colors {
@@ -72,11 +75,12 @@ func (c *Colors) Clone() *Colors {
 	return &Colors{colors: c.Colors()}
 }
 
-// Size returns size of the color group.
+// Size returns size of the colors.
 func (c *Colors) Size() int {
 	return len(c.colors)
 }
 
+// Empty return ture if the length of colors is 0.
 func (c *Colors) Empty() bool {
 	return len(c.colors) == 0
 }
