@@ -41,6 +41,9 @@ type (
 		gzipEnabled           bool
 		logStackCooldownMills int
 		keepDays              int
+		maxBackups            int
+		maxSize               int
+		rotationRule          LogRotationRuleType
 	}
 
 	// LogField is a key-value pair that will be added to the log entry.
@@ -294,13 +297,43 @@ func WithGzip() LogOption {
 	}
 }
 
+// WithMaxBackups customizes how many log files backups will be kept.
+func WithMaxBackups(count int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxBackups = count
+	}
+}
+
+// WithMaxSize customizes how much space the writing log file can take up.
+func WithMaxSize(size int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxSize = size
+	}
+}
+
+// WithLogRotationRuleType customizes which log rotation rule to use.
+func WithLogRotationRuleType(r LogRotationRuleType) LogOption {
+	return func(opts *logOptions) {
+		opts.rotationRule = r
+	}
+}
+
 func createOutput(path string) (io.WriteCloser, error) {
 	if len(path) == 0 {
 		return nil, ErrLogPathNotSet
 	}
 
-	return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
-		options.gzipEnabled), options.gzipEnabled)
+	switch options.rotationRule {
+	case LogRotationRuleTypeDaily:
+		return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.gzipEnabled), options.gzipEnabled)
+	case LogRotationRuleTypeSizeLimit:
+		return NewLogger(path, NewSizeLimitRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.maxSize, options.maxBackups, options.gzipEnabled), options.gzipEnabled)
+	default:
+		return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.gzipEnabled), options.gzipEnabled)
+	}
 }
 
 func errorAnySync(v interface{}) {
