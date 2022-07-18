@@ -15,48 +15,21 @@ type (
 
 // NewColors new a Colors.
 func NewColors(colors ...string) *Colors {
-	return &Colors{colors: append([]string(nil), colors...)}
+	c := &Colors{colors: make([]string, 0, len(colors))}
+	c.Add(colors...)
+
+	return c
 }
 
 // Add adds a set of colors.
 func (c *Colors) Add(colors ...string) {
-	c.colors = append(c.colors, colors...)
-}
-
-// Equal returns whether c and o are equivalent.
-func (c *Colors) Equal(o interface{}) bool {
-	if c == nil && o == nil {
-		return true
-	}
-	if c == nil || o == nil {
-		return false
-	}
-
-	var colors *Colors
-	switch v := o.(type) {
-	case *Colors:
-		colors = v
-	case Colors:
-		colors = &v
-	default:
-		return false
-	}
-
-	if colors == nil {
-		return false
-	}
-
-	if len(colors.colors) != len(c.colors) {
-		return false
-	}
-
-	for i := 0; i < len(c.colors); i++ {
-		if c.colors[i] != colors.colors[i] {
-			return false
+	for _, color := range colors {
+		if color == "" {
+			continue
 		}
-	}
 
-	return true
+		c.colors = append(c.colors, color)
+	}
 }
 
 // Colors returns a color slice.

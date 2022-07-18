@@ -54,6 +54,13 @@ func appendToOutgoingContext(ctx context.Context, key string, values ...string) 
 		md = md.Copy()
 	}
 
-	md.Set(key, values...)
+	for _, value := range values {
+		if value == "" {
+			continue
+		}
+
+		md.Append(key, value)
+	}
+
 	return metadata.NewOutgoingContext(ctx, md)
 }

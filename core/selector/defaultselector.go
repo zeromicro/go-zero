@@ -82,7 +82,7 @@ func (d defaultSelector) getNoColorsConns(conns []Conn) []Conn {
 
 		switch v := colorsVal.(type) {
 		case *Colors:
-			if v != nil || v.Size() != 0 {
+			if v != nil || !v.Empty() {
 				continue
 			}
 		}
