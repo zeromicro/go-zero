@@ -13,6 +13,16 @@ func Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
+// MarshalToString marshals v into a string.
+func MarshalToString(v interface{}) (string, error) {
+	data, err := Marshal(v)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
+}
+
 // Unmarshal unmarshals data bytes into v.
 func Unmarshal(data []byte, v interface{}) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))

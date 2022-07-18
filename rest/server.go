@@ -79,6 +79,17 @@ func (s *Server) PrintRoutes() {
 	s.ngin.print()
 }
 
+// Routes returns the HTTP routers that registered in the server.
+func (s *Server) Routes() []Route {
+	var routes []Route
+
+	for _, r := range s.ngin.routes {
+		routes = append(routes, r.routes...)
+	}
+
+	return routes
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.

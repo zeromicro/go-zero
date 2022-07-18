@@ -19,6 +19,8 @@ var (
 	VarStringDir string
 	// VarBoolCache describes whether cache is enabled.
 	VarBoolCache bool
+	// VarBoolEasy  describes whether to generate Collection Name in the code for easy declare.
+	VarBoolEasy bool
 	// VarStringStyle describes the style.
 	VarStringStyle string
 	// VarStringHome describes the goctl home.
@@ -33,19 +35,20 @@ var (
 func Action(_ *cobra.Command, _ []string) error {
 	tp := VarStringSliceType
 	c := VarBoolCache
+	easy := VarBoolEasy
 	o := strings.TrimSpace(VarStringDir)
 	s := VarStringStyle
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
-	
+
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
 			home = repo
 		}
 	}
-	
+
 	if len(home) > 0 {
 		pathx.RegisterGoctlHome(home)
 	}
@@ -71,6 +74,7 @@ func Action(_ *cobra.Command, _ []string) error {
 	return generate.Do(&generate.Context{
 		Types:  tp,
 		Cache:  c,
+		Easy:   easy,
 		Output: a,
 		Cfg:    cfg,
 	})
