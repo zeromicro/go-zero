@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	kindJaeger = "jaeger"
-	kindZipkin = "zipkin"
+	kindJaeger     = "jaeger"
+	kindZipkin     = "zipkin"
+	kindSkywalking = "skywalking"
 )
 
 var (
@@ -50,6 +51,8 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
+	case kindSkywalking:
+		return NewSkywalking(c.Endpoint, c.Name)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
