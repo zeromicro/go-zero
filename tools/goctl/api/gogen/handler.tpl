@@ -3,8 +3,8 @@ package {{.PkgName}}
 import (
 	"net/http"
 
+	"github.com/zeromicro/go-zero/rest/httpx"
 	{{.ImportPackages}}
-	{{.ImportHttpxPackage}}
 )
 
 func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {

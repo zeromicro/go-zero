@@ -12,7 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const defaultLogicPackage = "logic"
@@ -48,16 +47,15 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		PkgName:            pkgName,
-		ImportPackages:     genHandlerImports(group, route, parentPkg),
-		ImportHttpxPackage: fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL),
-		HandlerName:        handler,
-		RequestType:        util.Title(route.RequestTypeName()),
-		LogicName:          logicName,
-		LogicType:          strings.Title(getLogicName(route)),
-		Call:               strings.Title(strings.TrimSuffix(handler, "Handler")),
-		HasResp:            len(route.ResponseTypeName()) > 0,
-		HasRequest:         len(route.RequestTypeName()) > 0,
+		PkgName:        pkgName,
+		ImportPackages: genHandlerImports(group, route, parentPkg),
+		HandlerName:    handler,
+		RequestType:    util.Title(route.RequestTypeName()),
+		LogicName:      logicName,
+		LogicType:      strings.Title(getLogicName(route)),
+		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
+		HasResp:        len(route.ResponseTypeName()) > 0,
+		HasRequest:     len(route.RequestTypeName()) > 0,
 	})
 }
 
