@@ -434,7 +434,7 @@ func getNowDate() string {
 }
 
 func getNowDateInRFC3339Format() string {
-	return time.Now().Add((-24*60 + 5) * time.Minute).Format(rfc3339DateFormat)
+	return time.Now().Format(rfc3339DateFormat)
 }
 
 func gzipFile(file string) error {
