@@ -21,15 +21,16 @@ const defaultLogicPackage = "logic"
 var handlerTemplate string
 
 type handlerInfo struct {
-	PkgName        string
-	ImportPackages string
-	HandlerName    string
-	RequestType    string
-	LogicName      string
-	LogicType      string
-	Call           string
-	HasResp        bool
-	HasRequest     bool
+	PkgName            string
+	ImportPackages     string
+	ImportHttpxPackage string
+	HandlerName        string
+	RequestType        string
+	LogicName          string
+	LogicType          string
+	Call               string
+	HasResp            bool
+	HasRequest         bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -47,15 +48,16 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
-		PkgName:        pkgName,
-		ImportPackages: genHandlerImports(group, route, parentPkg),
-		HandlerName:    handler,
-		RequestType:    util.Title(route.RequestTypeName()),
-		LogicName:      logicName,
-		LogicType:      strings.Title(getLogicName(route)),
-		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
-		HasResp:        len(route.ResponseTypeName()) > 0,
-		HasRequest:     len(route.RequestTypeName()) > 0,
+		PkgName:            pkgName,
+		ImportPackages:     genHandlerImports(group, route, parentPkg),
+		ImportHttpxPackage: fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL),
+		HandlerName:        handler,
+		RequestType:        util.Title(route.RequestTypeName()),
+		LogicName:          logicName,
+		LogicType:          strings.Title(getLogicName(route)),
+		Call:               strings.Title(strings.TrimSuffix(handler, "Handler")),
+		HasResp:            len(route.ResponseTypeName()) > 0,
+		HasRequest:         len(route.RequestTypeName()) > 0,
 	})
 }
 
@@ -99,7 +101,6 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 
 	return strings.Join(imports, "\n\t")
 }
