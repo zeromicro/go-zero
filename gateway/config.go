@@ -11,12 +11,12 @@ type (
 	// GatewayConf is the configuration for gateway.
 	GatewayConf struct {
 		rest.RestConf
-		Upstreams []upstream
+		Upstreams []Upstream
 		Timeout   time.Duration `json:",default=5s"`
 	}
 
-	// mapping is a mapping between a gateway route and a upstream rpc method.
-	mapping struct {
+	// RouteMapping is a mapping between a gateway route and an upstream rpc method.
+	RouteMapping struct {
 		// Method is the HTTP method, like GET, POST, PUT, DELETE.
 		Method string
 		// Path is the HTTP path.
@@ -25,14 +25,14 @@ type (
 		RpcPath string
 	}
 
-	// upstream is the configuration for upstream.
-	upstream struct {
-		// Grpc is the target of upstream.
+	// Upstream is the configuration for an upstream.
+	Upstream struct {
+		// Grpc is the target of the upstream.
 		Grpc zrpc.RpcClientConf
 		// ProtoSet is the file of proto set, like hello.pb
 		ProtoSet string `json:",optional"`
-		// Mapping is the mapping between gateway routes and upstream rpc methods.
+		// Mapping is the mapping between gateway routes and Upstream rpc methods.
 		// Keep it blank if annotations are added in rpc methods.
-		Mapping []mapping `json:",optional"`
+		Mapping []RouteMapping `json:",optional"`
 	}
 )
