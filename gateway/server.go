@@ -23,7 +23,7 @@ type (
 	// Server is a gateway server.
 	Server struct {
 		*rest.Server
-		upstreams     []upstream
+		upstreams     []Upstream
 		timeout       time.Duration
 		processHeader func(http.Header) []string
 	}
@@ -63,7 +63,7 @@ func (s *Server) build() error {
 			source <- up
 		}
 	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
-		up := item.(upstream)
+		up := item.(Upstream)
 		cli := zrpc.MustNewClient(up.Grpc)
 		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {
@@ -138,7 +138,7 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 	}
 }
 
-func (s *Server) createDescriptorSource(cli zrpc.Client, up upstream) (grpcurl.DescriptorSource, error) {
+func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.DescriptorSource, error) {
 	var source grpcurl.DescriptorSource
 	var err error
 
