@@ -1,7 +1,5 @@
 package logx
 
-import "fmt"
-
 type LogRotationRuleType int
 
 const (
@@ -29,19 +27,7 @@ type LogConf struct {
 	// Only take effect when RotationRuleType is `LogRotationRuleTypeSizeLimit`
 	MaxSize int `json:",default=0"`
 	// RotationRuleType represents the type of log rotation rule. Default is DailyRotateRule.
-	RotationRuleType LogRotationRuleType `json:",default=LogRotationRuleTypeDaily,options=[LogRotationRuleTypeDaily,LogRotationRuleTypeSizeLimit]"`
-}
-
-func (t *LogRotationRuleType) UnmarshalText(b []byte) error {
-	switch string(b) {
-	case "LogRotationRuleTypeDaily":
-		*t = LogRotationRuleTypeDaily
-	case "LogRotationRuleTypeSizeLimit":
-		*t = LogRotationRuleTypeSizeLimit
-	case "":
-		*t = LogRotationRuleTypeDaily
-	default:
-		return fmt.Errorf("invalid option of RotationRuleType: %v", b)
-	}
-	return nil
+	// 0: LogRotationRuleTypeDaily
+	// 1: LogRotationRuleTypeSizeLimit
+	RotationRuleType LogRotationRuleType `json:",default=0,options=[0,1]"`
 }

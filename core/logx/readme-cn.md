@@ -19,7 +19,7 @@ type LogConf struct {
 	StackCooldownMillis int                 `json:",default=100"`
 	MaxBackups          int                 `json:",default=0"`
 	MaxSize             int                 `json:",default=0"`
-	RotationRuleType    LogRotationRuleType `json:",default=LogRotationRuleTypeDaily,options=[LogRotationRuleTypeDaily,LogRotationRuleTypeSizeLimit]"`
+	RotationRuleType    LogRotationRuleType `json:",default=0,options=[0,1]"`
 }
 ```
 
@@ -42,9 +42,9 @@ type LogConf struct {
 - `StackCooldownMillis`：多少毫秒后再次写入堆栈跟踪。用来避免堆栈跟踪日志过多
 - `MaxBackups`: 多少个日志文件备份将被保存。0代表所有备份都被保存。当`RotationRuleType`被设置为`LogRotationRuleTypeSizeLimit`时才会起作用。注意：`KeepDays`选项的优先级会比`MaxBackups`高，即使`MaxBackups`被设置为0，当达到`KeepDays`上限时备份文件同样会被删除。
 - `MaxSize`: 当前被写入的日志文件最大可占用多少空间。0代表没有上限。单位为`MB`。当`RotationRuleType`被设置为`LogRotationRuleTypeSizeLimit`时才会起作用。
-- `RotationRuleType`: 日志轮转策略类型。默认为`LogRotationRuleTypeDaily`（按天轮转）。
-  - `LogRotationRuleTypeDaily`: 按天轮转。
-  - `LogRotationRuleTypeSizeLimit`: 按日志大小轮转。
+- `RotationRuleType`: 日志轮转策略类型。默认为`LogRotationRuleTypeDaily`（按天轮转）（整形数值0）。
+  - `LogRotationRuleTypeDaily`（整形数值0）: 按天轮转。
+  - `LogRotationRuleTypeSizeLimit`（整形数值1）: 按日志大小轮转。
 
 
 ## 打印日志方法
