@@ -1,6 +1,7 @@
 package limit
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"time"
@@ -74,7 +75,12 @@ func NewPeriodLimit(period, quota int, limitStore *redis.Redis, keyPrefix string
 
 // Take requests a permit, it returns the permit state.
 func (h *PeriodLimit) Take(key string) (int, error) {
-	resp, err := h.limitStore.Eval(periodScript, []string{h.keyPrefix + key}, []string{
+	return h.TakeCtx(context.Background(), key)
+}
+
+// TakeCtx requests a permit with context, it returns the permit state.
+func (h *PeriodLimit) TakeCtx(ctx context.Context, key string) (int, error) {
+	resp, err := h.limitStore.EvalCtx(ctx, periodScript, []string{h.keyPrefix + key}, []string{
 		strconv.Itoa(h.quota),
 		strconv.Itoa(h.calcExpireSeconds()),
 	})

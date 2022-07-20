@@ -66,7 +66,7 @@ func (l *durationLogger) Sloww(msg string, fields ...LogField) {
 }
 
 func (l *durationLogger) WithContext(ctx context.Context) Logger {
-	return &traceLogger{
+	return &contextLogger{
 		ctx: ctx,
 		logEntry: logEntry{
 			Duration: l.Duration,

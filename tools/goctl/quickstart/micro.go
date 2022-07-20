@@ -17,8 +17,7 @@ var (
 	protocContent string
 	//go:embed idl/rpc.yaml
 	rpcEtcContent string
-
-	zRPCWorkDir string
+	zrpcWorkDir   string
 )
 
 type serviceImpl struct {
@@ -32,14 +31,14 @@ func (s serviceImpl) Start() {
 func (s serviceImpl) Stop() {}
 
 func initRPCProto() error {
-	zRPCWorkDir = filepath.Join(projectDir, "rpc")
-	if err := pathx.MkdirIfNotExist(zRPCWorkDir); err != nil {
+	zrpcWorkDir = filepath.Join(projectDir, "rpc")
+	if err := pathx.MkdirIfNotExist(zrpcWorkDir); err != nil {
 		return err
 	}
 
-	protoFilename := filepath.Join(zRPCWorkDir, protoName)
+	protoFilename := filepath.Join(zrpcWorkDir, protoName)
 	rpcBytes := []byte(protocContent)
-	return ioutil.WriteFile(protoFilename, rpcBytes, 0666)
+	return ioutil.WriteFile(protoFilename, rpcBytes, 0o666)
 }
 
 type micro struct{}
@@ -54,9 +53,9 @@ func (m micro) mustStartRPCProject() {
 	logx.Must(initRPCProto())
 	log.Debug(">> Generating quickstart zRPC project...")
 	arg := "goctl rpc protoc " + protoName + " --go_out=. --go-grpc_out=. --zrpc_out=. --verbose"
-	execCommand(zRPCWorkDir, arg)
-	etcFile := filepath.Join(zRPCWorkDir, "etc", "greet.yaml")
-	logx.Must(ioutil.WriteFile(etcFile, []byte(rpcEtcContent), 0666))
+	execCommand(zrpcWorkDir, arg)
+	etcFile := filepath.Join(zrpcWorkDir, "etc", "greet.yaml")
+	logx.Must(ioutil.WriteFile(etcFile, []byte(rpcEtcContent), 0o666))
 }
 
 func (m micro) start() {
@@ -65,7 +64,7 @@ func (m micro) start() {
 	sg := service.NewServiceGroup()
 	sg.Add(serviceImpl{func() {
 		log.Debug(">> Ready to start a zRPC server...")
-		goStart(zRPCWorkDir)
+		goStart(zrpcWorkDir)
 	}})
 	sg.Add(serviceImpl{func() {
 		mono.start()

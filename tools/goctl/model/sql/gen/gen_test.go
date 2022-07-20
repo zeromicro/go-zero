@@ -131,12 +131,12 @@ func Test_genPublicModel(t *testing.T) {
 	var err error
 	dir := pathx.MustTempDir()
 	modelDir := path.Join(dir, "model")
-	err = os.MkdirAll(modelDir, 0777)
+	err = os.MkdirAll(modelDir, 0o777)
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
 	modelFilename := filepath.Join(modelDir, "foo.sql")
-	err = ioutil.WriteFile(modelFilename, []byte(source), 0777)
+	err = ioutil.WriteFile(modelFilename, []byte(source), 0o777)
 	require.NoError(t, err)
 
 	g, err := NewDefaultGenerator(modelDir, &config.Config{
