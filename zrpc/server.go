@@ -6,11 +6,13 @@ import (
 
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 // A RpcServer is a rpc server.
@@ -56,9 +58,15 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 		return nil, err
 	}
 
+	refRegister := func(grpcSvr *grpc.Server) {
+		register(grpcSvr)
+		if c.Mode == service.DevMode || c.Mode == service.TestMode {
+			reflection.Register(grpcSvr)
+		}
+	}
 	rpcServer := &RpcServer{
 		server:   server,
-		register: register,
+		register: refRegister,
 	}
 	if err = c.SetUp(); err != nil {
 		return nil, err
