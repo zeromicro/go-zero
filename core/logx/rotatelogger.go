@@ -227,26 +227,6 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 	return result
 }
 
-func (r *SizeLimitRotateRule) parseBackupTime(file string) (time.Time, error) {
-	if r.gzip {
-		file = file[:len(file)-len(gzipExt)]
-	}
-	file = file[:len(file)-len(filepath.Ext(file))]
-	s := strings.Split(file, r.delimiter)
-	var t string
-	if len(s) != 2 {
-		err := fmt.Errorf("Invalid backup log filename: %s", file)
-		Error(err)
-		return time.Time{}, err
-	}
-	tt, err := time.Parse(rfc3339DateFormat, t)
-	if err != nil {
-		Errorf("Failed to parse backup time from backup log file: %s", file)
-		return time.Time{}, err
-	}
-	return tt, nil
-}
-
 // NewLogger returns a RotateLogger with given filename and rule, etc.
 func NewLogger(filename string, rule RotateRule, compress bool) (*RotateLogger, error) {
 	l := &RotateLogger{
