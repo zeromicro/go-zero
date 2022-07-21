@@ -42,6 +42,8 @@ var (
 	VarBoolIdea bool
 	// VarBoolVerbose describes whether verbose.
 	VarBoolVerbose bool
+	// VarBoolMultiple describes whether support generating multiple rpc services or not.
+	VarBoolMultiple bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
