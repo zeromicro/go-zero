@@ -83,8 +83,7 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	var conns []selector.Conn
-	connsCp := make([]selector.Conn, 0, len(conns))
+	connsCp := make([]selector.Conn, 0, len(p.conns))
 	for _, conn := range p.conns {
 		connsCp = append(connsCp, conn)
 	}
@@ -95,7 +94,7 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
 	logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
 
-	conns = slc.Select(connsCp, info)
+	conns := slc.Select(connsCp, info)
 
 	var chosen *subConn
 	switch len(conns) {
