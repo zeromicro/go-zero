@@ -29,8 +29,8 @@ func TestNewSelectorContext(t *testing.T) {
 
 	ctx = NewSelectorContext(context.Background(), "")
 	assert.True(t, context.Background() == ctx)
-
 }
+
 func TestSelectorFromContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), selectKey{}, "defaultSelector")
 	assert.EqualValues(t, "defaultSelector", SelectorFromContext(ctx))

@@ -32,6 +32,11 @@ func (c EtcdConf) HasTLS() bool {
 	return len(c.CertFile) > 0 && len(c.CertKeyFile) > 0 && len(c.CACertFile) > 0
 }
 
+// HasColors return ture if Colors exists
+func (c EtcdConf) HasColors() bool {
+	return len(c.Colors) != 0
+}
+
 // Validate validates c.
 func (c EtcdConf) Validate() error {
 	if len(c.Hosts) == 0 {
@@ -41,9 +46,4 @@ func (c EtcdConf) Validate() error {
 	} else {
 		return nil
 	}
-}
-
-// HasColors return ture if Colors exists
-func (c EtcdConf) HasColors() bool {
-	return len(c.Colors) != 0
 }

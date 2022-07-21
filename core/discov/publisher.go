@@ -168,16 +168,16 @@ func WithPubEtcdAccount(user, pass string) PubOption {
 	}
 }
 
-// WithPubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
-func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) PubOption {
-	return func(pub *Publisher) {
-		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
-	}
-}
-
 // WithPubEtcdColors  returns a func to customize a set of colors.
 func WithPubEtcdColors(colors ...string) PubOption {
 	return func(client *Publisher) {
 		client.colors = colors
+	}
+}
+
+// WithPubEtcdTLS provides the etcd CertFile/CertKeyFile/CACertFile.
+func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify bool) PubOption {
+	return func(pub *Publisher) {
+		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }

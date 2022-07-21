@@ -22,6 +22,9 @@ func init() {
 // defaultSelector a default selector.
 type defaultSelector struct{}
 
+func (d defaultSelector) Name() string {
+	return DefaultSelector
+}
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	var newConns []Conn
 	clientColorsVal := ColorsFromContext(info.Ctx)
@@ -49,10 +52,6 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	}
 
 	return newConns
-}
-
-func (d defaultSelector) Name() string {
-	return DefaultSelector
 }
 
 func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {

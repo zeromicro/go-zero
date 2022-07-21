@@ -10,10 +10,23 @@ import (
 // selectorMap available selectors.
 var selectorMap = make(map[string]Selector)
 
-// Register registers a selector.
-func Register(selector Selector) {
-	selectorMap[selector.Name()] = selector
-}
+type (
+	// Conn represents a gRPC connection.
+	Conn interface {
+		// Address returns a server the client connects to.
+		Address() resolver.Address
+	}
+
+	// Selector represents a selector.
+	Selector interface {
+		// Name returns a selector name.
+		Name() string
+		// Select returns a callable connection
+		Select(conns []Conn, info balancer.PickInfo) []Conn
+	}
+
+	selectKey struct{}
+)
 
 // Get get a selector.
 func Get(name string) Selector {
@@ -25,23 +38,10 @@ func Get(name string) Selector {
 	return selector
 }
 
-type (
-	// Conn represents a gRPC connection.
-	Conn interface {
-		// Address returns a server the client connects to.
-		Address() resolver.Address
-	}
-
-	// Selector represents a selector.
-	Selector interface {
-		// Select returns a callable connection
-		Select(conns []Conn, info balancer.PickInfo) []Conn
-		// Name returns a selector name.
-		Name() string
-	}
-
-	selectKey struct{}
-)
+// Register registers a selector.
+func Register(selector Selector) {
+	selectorMap[selector.Name()] = selector
+}
 
 // NewSelectorContext new a selector context.
 func NewSelectorContext(ctx context.Context, selectorName string) context.Context {
