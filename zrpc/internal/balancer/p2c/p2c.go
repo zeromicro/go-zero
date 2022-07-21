@@ -52,7 +52,7 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
-	var conns []*subConn
+	var conns = make([]selector.Conn, 0, len(readySCs))
 	for conn, connInfo := range readySCs {
 		conns = append(conns, &subConn{
 			addr:    connInfo.Address,
@@ -73,7 +73,7 @@ func newBuilder() balancer.Builder {
 }
 
 type p2cPicker struct {
-	conns []*subConn
+	conns []selector.Conn
 	r     *rand.Rand
 	stamp *syncx.AtomicDuration
 	lock  sync.Mutex
@@ -83,10 +83,8 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
-	connsCp := make([]selector.Conn, 0, len(p.conns))
-	for _, conn := range p.conns {
-		connsCp = append(connsCp, conn)
-	}
+	connsCp := make([]selector.Conn, len(p.conns))
+	copy(connsCp, p.conns)
 
 	slc := p.getSelector(info.Ctx)
 	selectorName := slc.Name()
@@ -188,14 +186,14 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 }
 
 func (p *p2cPicker) logStats() {
-	var stats []string
-
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	stats := make([]string, 0, len(p.conns))
 	for _, conn := range p.conns {
+		c := conn.(*subConn)
 		stats = append(stats, fmt.Sprintf("conn: %s, load: %d, reqs: %d",
-			conn.addr.Addr, conn.load(), atomic.SwapInt64(&conn.requests, 0)))
+			c.addr.Addr, c.load(), atomic.SwapInt64(&c.requests, 0)))
 	}
 
 	logx.Statf("p2c - %s", strings.Join(stats, "; "))
