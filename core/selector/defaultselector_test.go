@@ -21,7 +21,6 @@ func (c mockConn) Address() resolver.Address {
 }
 
 func TestDefaultSelector_Select(t *testing.T) {
-
 	t.Run("server is dyed", func(t *testing.T) {
 		selector := defaultSelector{}
 

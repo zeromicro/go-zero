@@ -25,6 +25,7 @@ type defaultSelector struct{}
 func (d defaultSelector) Name() string {
 	return DefaultSelector
 }
+
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 	var newConns []Conn
 	clientColorsVal := ColorsFromContext(info.Ctx)
