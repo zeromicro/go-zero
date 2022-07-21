@@ -69,7 +69,6 @@ func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {
 				}
 			}
 		}
-
 	}
 
 	return m
