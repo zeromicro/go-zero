@@ -54,7 +54,7 @@ type (
 
 func (c defaultClient) do(r *http.Request) (resp *http.Response, err error) {
 	url := r.URL
-	brk := breaker.GetBreaker(url.Scheme + url.Host + "/" + url.Path)
+	brk := breaker.GetBreaker(url.Scheme + "://" + url.Host + "/" + url.Path)
 	err = brk.DoWithAcceptable(func() error {
 		resp, err = http.DefaultClient.Do(r)
 		return err
