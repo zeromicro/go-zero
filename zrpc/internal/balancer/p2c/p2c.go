@@ -191,9 +191,9 @@ func (p *p2cPicker) logStats() {
 
 	stats := make([]string, 0, len(p.conns))
 	for _, conn := range p.conns {
-		c := conn.(*subConn)
+		conn := conn.(*subConn)
 		stats = append(stats, fmt.Sprintf("conn: %s, load: %d, reqs: %d",
-			c.addr.Addr, c.load(), atomic.SwapInt64(&c.requests, 0)))
+			conn.addr.Addr, conn.load(), atomic.SwapInt64(&conn.requests, 0)))
 	}
 
 	logx.Statf("p2c - %s", strings.Join(stats, "; "))

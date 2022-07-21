@@ -27,7 +27,6 @@ func (d defaultSelector) Name() string {
 }
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
-	var newConns []Conn
 	clientColorsVal := ColorsFromContext(info.Ctx)
 	clientColors := clientColorsVal.Colors()
 	spanCtx := trace.SpanFromContext(info.Ctx)
@@ -40,6 +39,7 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 		return conns
 	}
 
+	newConns := make([]Conn, 0, len(conns))
 	for _, clientColor := range clientColors {
 		if v, yes := connMap[clientColor]; yes {
 			newConns = append(newConns, v...)
