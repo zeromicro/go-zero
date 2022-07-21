@@ -221,7 +221,7 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 			}
 		}
 
-		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull)
+		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull, column.DataType.Unsigned())
 		if err != nil {
 			return Primary{}, nil, err
 		}
@@ -269,7 +269,8 @@ func (t *Table) ContainsTime() bool {
 // ConvertDataType converts mysql data type into golang data type
 func ConvertDataType(table *model.Table) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
-	primaryDataType, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull)
+	isPrimaryUnsigned := strings.Contains(table.PrimaryKey.DbColumn.ColumnType, "unsigned")
+	primaryDataType, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned)
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +350,8 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 	fieldM := make(map[string]*Field)
 	for _, each := range table.Columns {
 		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
-		dt, err := converter.ConvertStringDataType(each.DataType, isDefaultNull)
+		isPrimaryUnsigned := strings.Contains(each.ColumnType, "unsigned")
+		dt, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned)
 		if err != nil {
 			return nil, err
 		}
