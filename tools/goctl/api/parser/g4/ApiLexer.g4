@@ -16,6 +16,10 @@ LINE_VALUE:         ':' [ \t]* (STRING|(~[\r\n"`]*));
 ID:         Letter LetterOrDigit*;
 
 
+LetterOrDigit
+    : Letter
+    | [0-9]
+    ;
 fragment ExponentPart
     : [eE] [+-]? Digits
     ;
@@ -35,10 +39,6 @@ fragment Digits
     : [0-9] ([0-9_]* [0-9])?
     ;
 
-fragment LetterOrDigit
-    : Letter
-    | [0-9]
-    ;
 fragment Letter
     : [a-zA-Z$_] // these are the "java letters" below 0x7F
     | ~[\u0000-\u007F\uD800-\uDBFF] // covers all characters above 0x7F which are not a surrogate
