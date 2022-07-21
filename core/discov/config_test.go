@@ -80,3 +80,31 @@ func TestEtcdConf_HasAccount(t *testing.T) {
 		assert.Equal(t, test.hasAccount, test.EtcdConf.HasAccount())
 	}
 }
+
+func TestEtcdConf_HasColors(t *testing.T) {
+	tests := []struct {
+		EtcdConf
+		hasColors bool
+	}{
+		{
+			EtcdConf: EtcdConf{
+				Colors: []string{"v1"},
+			},
+			hasColors: true,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Colors: []string{},
+			},
+			hasColors: false,
+		},
+		{
+			EtcdConf:  EtcdConf{},
+			hasColors: false,
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.hasColors, test.EtcdConf.HasColors())
+	}
+}

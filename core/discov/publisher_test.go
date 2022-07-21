@@ -169,3 +169,19 @@ func TestPublisher_Resume(t *testing.T) {
 	}()
 	<-publisher.resumeChan
 }
+
+func TestWithPubEtcdColors(t *testing.T) {
+	t.Run("has colors", func(t *testing.T) {
+		p := new(Publisher)
+		option := WithPubEtcdColors("v1", "v2")
+		option(p)
+		assert.Equal(t, []string{"v1", "v2"}, p.colors)
+	})
+
+	t.Run("no colors", func(t *testing.T) {
+		p := new(Publisher)
+		option := WithPubEtcdColors()
+		option(p)
+		assert.Len(t, p.colors, 0)
+	})
+}
