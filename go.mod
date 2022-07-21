@@ -54,6 +54,6 @@ require (
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220531201128-c960675eff93 // indirect
-	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8 // indirect
+	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
 	k8s.io/klog/v2 v2.40.1 // indirect
 )
