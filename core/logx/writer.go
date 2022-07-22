@@ -116,7 +116,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 		opts = append(opts, WithMaxSize(c.MaxSize))
 	}
 
-	opts = append(opts, WithLogRotationRuleType(c.RotationRuleType))
+	opts = append(opts, WithRotation(c.Rotation))
 
 	accessFile := path.Join(c.Path, accessFilename)
 	errorFile := path.Join(c.Path, errorFilename)
