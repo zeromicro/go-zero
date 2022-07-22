@@ -26,7 +26,7 @@ const (
 	defaultDirMode    = 0o755
 	defaultFileMode   = 0o600
 	gzipExt           = ".gz"
-	megabyte          = 1024 * 1024
+	megaBytes         = 1 << 20
 )
 
 // ErrLogFileClosed is an error that indicates the log file is already closed.
@@ -38,7 +38,7 @@ type (
 		BackupFileName() string
 		MarkRotated()
 		OutdatedFiles() []string
-		ShallRotate(currentSize, writeLen int) bool
+		ShallRotate(size int64) bool
 	}
 
 	// A RotateLogger is a Logger that can rotate log files with given rules.
@@ -51,10 +51,9 @@ type (
 		rule     RotateRule
 		compress bool
 		// can't use threading.RoutineGroup because of cycle import
-		waitGroup sync.WaitGroup
-		closeOnce sync.Once
-
-		currentSize int
+		waitGroup   sync.WaitGroup
+		closeOnce   sync.Once
+		currentSize int64
 	}
 
 	// A DailyRotateRule is a rule to daily rotate the log files.
@@ -69,7 +68,7 @@ type (
 	// SizeLimitRotateRule a rotation rule that make the log file rotated base on size
 	SizeLimitRotateRule struct {
 		DailyRotateRule
-		maxSize    int
+		maxSize    int64
 		maxBackups int
 	}
 )
@@ -133,7 +132,7 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 }
 
 // ShallRotate checks if the file should be rotated.
-func (r *DailyRotateRule) ShallRotate(currentSize, writeLen int) bool {
+func (r *DailyRotateRule) ShallRotate(_ int64) bool {
 	return len(r.rotatedTime) > 0 && getNowDate() != r.rotatedTime
 }
 
@@ -147,26 +146,14 @@ func NewSizeLimitRotateRule(filename, delimiter string, days, maxSize, maxBackup
 			days:        days,
 			gzip:        gzip,
 		},
-		maxSize:    maxSize,
+		maxSize:    int64(maxSize) * megaBytes,
 		maxBackups: maxBackups,
 	}
 }
 
-func (r *SizeLimitRotateRule) ShallRotate(currentSize, writeLen int) bool {
-	return r.maxSize > 0 && r.maxSize*megabyte < currentSize+writeLen
-}
-
-func (r *SizeLimitRotateRule) parseFilename(file string) (dir, logname, ext, prefix string) {
-	dir = filepath.Dir(r.filename)
-	logname = filepath.Base(r.filename)
-	ext = filepath.Ext(r.filename)
-	prefix = logname[:len(logname)-len(ext)]
-	return
-}
-
 func (r *SizeLimitRotateRule) BackupFileName() string {
 	dir := filepath.Dir(r.filename)
-	_, _, ext, prefix := r.parseFilename(r.filename)
+	prefix, ext := r.parseFilename()
 	timestamp := getNowDateInRFC3339Format()
 	return filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, timestamp, ext))
 }
@@ -176,17 +163,20 @@ func (r *SizeLimitRotateRule) MarkRotated() {
 }
 
 func (r *SizeLimitRotateRule) OutdatedFiles() []string {
+	dir := filepath.Dir(r.filename)
+	prefix, ext := r.parseFilename()
+
 	var pattern string
-	dir, _, ext, prefix := r.parseFilename(r.filename)
 	if r.gzip {
-		pattern = fmt.Sprintf("%s%s%s%s*%s%s", dir, string(filepath.Separator), prefix, r.delimiter, ext, gzipExt)
+		pattern = fmt.Sprintf("%s%s%s%s*%s%s", dir, string(filepath.Separator),
+			prefix, r.delimiter, ext, gzipExt)
 	} else {
-		pattern = fmt.Sprintf("%s%s%s%s*%s", dir, string(filepath.Separator), prefix, r.delimiter, ext)
+		pattern = fmt.Sprintf("%s%s%s%s*%s", dir, string(filepath.Separator),
+			prefix, r.delimiter, ext)
 	}
 
 	files, err := filepath.Glob(pattern)
 	if err != nil {
-		fmt.Printf("failed to delete outdated log files, error: %s\n", err)
 		Errorf("failed to delete outdated log files, error: %s", err)
 		return nil
 	}
@@ -206,17 +196,15 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 	// test if any too old backups
 	if r.days > 0 {
 		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(rfc3339DateFormat)
-		bf := filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, boundary, ext))
+		boundaryFile := filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, boundary, ext))
 		if r.gzip {
-			bf += gzipExt
+			boundaryFile += gzipExt
 		}
 		for _, f := range files {
-			if f < bf {
-				outdated[f] = lang.Placeholder
-			} else {
-				// Becase the filenames are sorted. No need to keep looping after the first ineligible item showing up.
+			if f >= boundaryFile {
 				break
 			}
+			outdated[f] = lang.Placeholder
 		}
 	}
 
@@ -225,6 +213,17 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 		result = append(result, k)
 	}
 	return result
+}
+
+func (r *SizeLimitRotateRule) ShallRotate(size int64) bool {
+	return r.maxSize > 0 && r.maxSize < size
+}
+
+func (r *SizeLimitRotateRule) parseFilename() (prefix, ext string) {
+	logName := filepath.Base(r.filename)
+	ext = filepath.Ext(r.filename)
+	prefix = logName[:len(logName)-len(ext)]
+	return
 }
 
 // NewLogger returns a RotateLogger with given filename and rule, etc.
@@ -385,7 +384,7 @@ func (l *RotateLogger) startWorker() {
 }
 
 func (l *RotateLogger) write(v []byte) {
-	if l.rule.ShallRotate(l.currentSize, len(v)) {
+	if l.rule.ShallRotate(l.currentSize + int64(len(v))) {
 		if err := l.rotate(); err != nil {
 			log.Println(err)
 		} else {
@@ -395,7 +394,7 @@ func (l *RotateLogger) write(v []byte) {
 	}
 	if l.fp != nil {
 		l.fp.Write(v)
-		l.currentSize += len(v)
+		l.currentSize += int64(len(v))
 	}
 }
 

@@ -21,9 +21,8 @@ var (
 	encoding   uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
-
-	options logOptions
-	writer  = new(atomicWriter)
+	options     logOptions
+	writer      = new(atomicWriter)
 )
 
 type (
@@ -43,7 +42,7 @@ type (
 		keepDays              int
 		maxBackups            int
 		maxSize               int
-		rotationRule          LogRotationRuleType
+		rotationRule          string
 	}
 
 	// LogField is a key-value pair that will be added to the log entry.
@@ -311,8 +310,8 @@ func WithMaxSize(size int) LogOption {
 	}
 }
 
-// WithLogRotationRuleType customizes which log rotation rule to use.
-func WithLogRotationRuleType(r LogRotationRuleType) LogOption {
+// WithRotation customizes which log rotation rule to use.
+func WithRotation(r string) LogOption {
 	return func(opts *logOptions) {
 		opts.rotationRule = r
 	}
@@ -324,10 +323,7 @@ func createOutput(path string) (io.WriteCloser, error) {
 	}
 
 	switch options.rotationRule {
-	case LogRotationRuleTypeDaily:
-		return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
-			options.gzipEnabled), options.gzipEnabled)
-	case LogRotationRuleTypeSizeLimit:
+	case sizeRotationRule:
 		return NewLogger(path, NewSizeLimitRotateRule(path, backupFileDelimiter, options.keepDays,
 			options.maxSize, options.maxBackups, options.gzipEnabled), options.gzipEnabled)
 	default:
