@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -18,11 +19,14 @@ import (
 )
 
 const (
-	dateFormat      = "2006-01-02"
-	hoursPerDay     = 24
-	bufferSize      = 100
-	defaultDirMode  = 0o755
-	defaultFileMode = 0o600
+	rfc3339DateFormat = time.RFC3339
+	dateFormat        = "2006-01-02"
+	hoursPerDay       = 24
+	bufferSize        = 100
+	defaultDirMode    = 0o755
+	defaultFileMode   = 0o600
+	gzipExt           = ".gz"
+	megabyte          = 1024 * 1024
 )
 
 // ErrLogFileClosed is an error that indicates the log file is already closed.
@@ -34,7 +38,7 @@ type (
 		BackupFileName() string
 		MarkRotated()
 		OutdatedFiles() []string
-		ShallRotate() bool
+		ShallRotate(currentSize, writeLen int) bool
 	}
 
 	// A RotateLogger is a Logger that can rotate log files with given rules.
@@ -49,6 +53,8 @@ type (
 		// can't use threading.RoutineGroup because of cycle import
 		waitGroup sync.WaitGroup
 		closeOnce sync.Once
+
+		currentSize int
 	}
 
 	// A DailyRotateRule is a rule to daily rotate the log files.
@@ -58,6 +64,13 @@ type (
 		delimiter   string
 		days        int
 		gzip        bool
+	}
+
+	// SizeLimitRotateRule a rotation rule that make the log file rotated base on size
+	SizeLimitRotateRule struct {
+		DailyRotateRule
+		maxSize    int
+		maxBackups int
 	}
 )
 
@@ -90,7 +103,7 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 
 	var pattern string
 	if r.gzip {
-		pattern = fmt.Sprintf("%s%s*.gz", r.filename, r.delimiter)
+		pattern = fmt.Sprintf("%s%s*%s", r.filename, r.delimiter, gzipExt)
 	} else {
 		pattern = fmt.Sprintf("%s%s*", r.filename, r.delimiter)
 	}
@@ -105,7 +118,7 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 	boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(dateFormat)
 	fmt.Fprintf(&buf, "%s%s%s", r.filename, r.delimiter, boundary)
 	if r.gzip {
-		buf.WriteString(".gz")
+		buf.WriteString(gzipExt)
 	}
 	boundaryFile := buf.String()
 
@@ -120,8 +133,98 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 }
 
 // ShallRotate checks if the file should be rotated.
-func (r *DailyRotateRule) ShallRotate() bool {
+func (r *DailyRotateRule) ShallRotate(currentSize, writeLen int) bool {
 	return len(r.rotatedTime) > 0 && getNowDate() != r.rotatedTime
+}
+
+// NewSizeLimitRotateRule returns the rotation rule with size limit
+func NewSizeLimitRotateRule(filename, delimiter string, days, maxSize, maxBackups int, gzip bool) RotateRule {
+	return &SizeLimitRotateRule{
+		DailyRotateRule: DailyRotateRule{
+			rotatedTime: getNowDateInRFC3339Format(),
+			filename:    filename,
+			delimiter:   delimiter,
+			days:        days,
+			gzip:        gzip,
+		},
+		maxSize:    maxSize,
+		maxBackups: maxBackups,
+	}
+}
+
+func (r *SizeLimitRotateRule) ShallRotate(currentSize, writeLen int) bool {
+	return r.maxSize > 0 && r.maxSize*megabyte < currentSize+writeLen
+}
+
+func (r *SizeLimitRotateRule) parseFilename(file string) (dir, logname, ext, prefix string) {
+	dir = filepath.Dir(r.filename)
+	logname = filepath.Base(r.filename)
+	ext = filepath.Ext(r.filename)
+	prefix = logname[:len(logname)-len(ext)]
+	return
+}
+
+func (r *SizeLimitRotateRule) BackupFileName() string {
+	dir := filepath.Dir(r.filename)
+	_, _, ext, prefix := r.parseFilename(r.filename)
+	timestamp := getNowDateInRFC3339Format()
+	return filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, timestamp, ext))
+}
+
+func (r *SizeLimitRotateRule) MarkRotated() {
+	r.rotatedTime = getNowDateInRFC3339Format()
+}
+
+func (r *SizeLimitRotateRule) OutdatedFiles() []string {
+	var pattern string
+	dir, _, ext, prefix := r.parseFilename(r.filename)
+	if r.gzip {
+		pattern = fmt.Sprintf("%s%s%s%s*%s%s", dir, string(filepath.Separator), prefix, r.delimiter, ext, gzipExt)
+	} else {
+		pattern = fmt.Sprintf("%s%s%s%s*%s", dir, string(filepath.Separator), prefix, r.delimiter, ext)
+	}
+
+	files, err := filepath.Glob(pattern)
+	if err != nil {
+		fmt.Printf("failed to delete outdated log files, error: %s\n", err)
+		Errorf("failed to delete outdated log files, error: %s", err)
+		return nil
+	}
+
+	sort.Strings(files)
+
+	outdated := make(map[string]lang.PlaceholderType)
+
+	// test if too many backups
+	if r.maxBackups > 0 && len(files) > r.maxBackups {
+		for _, f := range files[:len(files)-r.maxBackups] {
+			outdated[f] = lang.Placeholder
+		}
+		files = files[len(files)-r.maxBackups:]
+	}
+
+	// test if any too old backups
+	if r.days > 0 {
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(rfc3339DateFormat)
+		bf := filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, boundary, ext))
+		if r.gzip {
+			bf += gzipExt
+		}
+		for _, f := range files {
+			if f < bf {
+				outdated[f] = lang.Placeholder
+			} else {
+				// Becase the filenames are sorted. No need to keep looping after the first ineligible item showing up.
+				break
+			}
+		}
+	}
+
+	var result []string
+	for k := range outdated {
+		result = append(result, k)
+	}
+	return result
 }
 
 // NewLogger returns a RotateLogger with given filename and rule, etc.
@@ -282,15 +385,17 @@ func (l *RotateLogger) startWorker() {
 }
 
 func (l *RotateLogger) write(v []byte) {
-	if l.rule.ShallRotate() {
+	if l.rule.ShallRotate(l.currentSize, len(v)) {
 		if err := l.rotate(); err != nil {
 			log.Println(err)
 		} else {
 			l.rule.MarkRotated()
+			l.currentSize = 0
 		}
 	}
 	if l.fp != nil {
 		l.fp.Write(v)
+		l.currentSize += len(v)
 	}
 }
 
@@ -308,6 +413,10 @@ func getNowDate() string {
 	return time.Now().Format(dateFormat)
 }
 
+func getNowDateInRFC3339Format() string {
+	return time.Now().Format(rfc3339DateFormat)
+}
+
 func gzipFile(file string) error {
 	in, err := os.Open(file)
 	if err != nil {
@@ -315,7 +424,7 @@ func gzipFile(file string) error {
 	}
 	defer in.Close()
 
-	out, err := os.Create(fmt.Sprintf("%s.gz", file))
+	out, err := os.Create(fmt.Sprintf("%s%s", file, gzipExt))
 	if err != nil {
 		return err
 	}
