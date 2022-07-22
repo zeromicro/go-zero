@@ -51,7 +51,7 @@ func TestSizeLimitRotateRuleOutdatedFiles(t *testing.T) {
 
 func TestSizeLimitRotateRuleShallRotate(t *testing.T) {
 	var rule SizeLimitRotateRule
-	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(rfc3339DateFormat)
+	rule.rotatedTime = time.Now().Add(time.Hour * 24).Format(fileTimeFormat)
 	rule.maxSize = 0
 	assert.False(t, rule.ShallRotate(0))
 	rule.maxSize = 100

@@ -19,14 +19,14 @@ import (
 )
 
 const (
-	rfc3339DateFormat = time.RFC3339
-	dateFormat        = "2006-01-02"
-	hoursPerDay       = 24
-	bufferSize        = 100
-	defaultDirMode    = 0o755
-	defaultFileMode   = 0o600
-	gzipExt           = ".gz"
-	megaBytes         = 1 << 20
+	dateFormat      = "2006-01-02"
+	fileTimeFormat  = time.RFC3339
+	hoursPerDay     = 24
+	bufferSize      = 100
+	defaultDirMode  = 0o755
+	defaultFileMode = 0o600
+	gzipExt         = ".gz"
+	megaBytes       = 1 << 20
 )
 
 // ErrLogFileClosed is an error that indicates the log file is already closed.
@@ -195,7 +195,7 @@ func (r *SizeLimitRotateRule) OutdatedFiles() []string {
 
 	// test if any too old backups
 	if r.days > 0 {
-		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(rfc3339DateFormat)
+		boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(fileTimeFormat)
 		boundaryFile := filepath.Join(dir, fmt.Sprintf("%s%s%s%s", prefix, r.delimiter, boundary, ext))
 		if r.gzip {
 			boundaryFile += gzipExt
@@ -413,7 +413,7 @@ func getNowDate() string {
 }
 
 func getNowDateInRFC3339Format() string {
-	return time.Now().Format(rfc3339DateFormat)
+	return time.Now().Format(fileTimeFormat)
 }
 
 func gzipFile(file string) error {
