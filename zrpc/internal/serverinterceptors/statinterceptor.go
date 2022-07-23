@@ -64,15 +64,15 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 		} else {
 			logger.Infof("%s - %s - %s", addr, method)
 		}
-	}
-
-	content, err := json.Marshal(req)
-	if err != nil {
-		logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
-	} else if duration > slowThreshold.Load() {
-		logger.Slowf("[RPC] slowcall - %s - %s - %s",
-			addr, method, string(content))
 	} else {
-		logger.Infof("%s - %s - %s", addr, method, string(content))
+		content, err := json.Marshal(req)
+		if err != nil {
+			logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
+		} else if duration > slowThreshold.Load() {
+			logger.Slowf("[RPC] slowcall - %s - %s - %s",
+				addr, method, string(content))
+		} else {
+			logger.Infof("%s - %s - %s", addr, method, string(content))
+		}
 	}
 }
