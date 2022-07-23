@@ -224,6 +224,7 @@ func SetUp(c LogConf) error {
 		atomic.StoreUint32(&encoding, jsonEncodingType)
 	}
 
+	writer.Store(nil)
 	switch c.Mode {
 	case fileMode:
 		return setupWithFiles(c)
