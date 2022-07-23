@@ -11,24 +11,21 @@ import (
 )
 
 func TestUnarySelectorInterceptor(t *testing.T) {
-	t.Run("no select and colors", func(t *testing.T) {
+	t.Run("no selector", func(t *testing.T) {
 		_, err := UnarySelectorInterceptor(context.Background(), nil, nil, func(ctx context.Context, req interface{}) (interface{}, error) {
-			assert.Equal(t, "", selector.SelectorFromContext(ctx))
-			assert.Len(t, selector.ColorsFromContext(ctx).Colors(), 0)
+			assert.Equal(t, "", selector.FromContext(ctx))
 			return nil, nil
 		})
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("has select and colors", func(t *testing.T) {
+	t.Run("has selector", func(t *testing.T) {
 		ctx := metadata.NewIncomingContext(context.Background(), metadata.MD{
 			"selector": []string{selector.DefaultSelector},
-			"colors":   []string{"v1", "v2"},
 		})
 		_, err := UnarySelectorInterceptor(ctx, nil, nil, func(ctx context.Context, req interface{}) (interface{}, error) {
-			assert.Equal(t, selector.DefaultSelector, selector.SelectorFromContext(ctx))
-			assert.Equal(t, []string{"v1", "v2"}, selector.ColorsFromContext(ctx).Colors())
+			assert.Equal(t, selector.DefaultSelector, selector.FromContext(ctx))
 			return nil, nil
 		})
 
@@ -37,24 +34,21 @@ func TestUnarySelectorInterceptor(t *testing.T) {
 }
 
 func TestStreamSelectorInterceptor(t *testing.T) {
-	t.Run("no select and colors", func(t *testing.T) {
+	t.Run("no selector", func(t *testing.T) {
 		err := StreamSelectorInterceptor(nil, &mockedServerStream{ctx: context.Background()}, nil, func(srv interface{}, stream grpc.ServerStream) error {
-			assert.Equal(t, "", selector.SelectorFromContext(stream.Context()))
-			assert.Len(t, selector.ColorsFromContext(stream.Context()).Colors(), 0)
+			assert.Equal(t, "", selector.FromContext(stream.Context()))
 			return nil
 		})
 
 		assert.NoError(t, err)
 	})
 
-	t.Run("has select and colors", func(t *testing.T) {
+	t.Run("has selector", func(t *testing.T) {
 		ctx := metadata.NewIncomingContext(context.Background(), metadata.MD{
 			"selector": []string{selector.DefaultSelector},
-			"colors":   []string{"v1", "v2"},
 		})
 		err := StreamSelectorInterceptor(nil, &mockedServerStream{ctx: ctx}, nil, func(srv interface{}, stream grpc.ServerStream) error {
-			assert.Equal(t, selector.DefaultSelector, selector.SelectorFromContext(stream.Context()))
-			assert.Equal(t, []string{"v1", "v2"}, selector.ColorsFromContext(stream.Context()).Colors())
+			assert.Equal(t, selector.DefaultSelector, selector.FromContext(stream.Context()))
 			return nil
 		})
 

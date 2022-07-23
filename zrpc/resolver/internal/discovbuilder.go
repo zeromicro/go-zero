@@ -1,12 +1,12 @@
 package internal
 
 import (
+	"encoding/json"
 	"strings"
-	"unicode"
 
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/selector"
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/zrpc/resolver/internal/targets"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
@@ -33,10 +33,16 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ 
 			valSplit := strings.SplitN(val, "@", 2)
 			if len(valSplit) == 2 {
 				addr = valSplit[0]
-				colors := strings.FieldsFunc(valSplit[1], func(r rune) bool {
-					return r == ',' || unicode.IsSpace(r)
-				})
-				attrs = attrs.WithValue("colors", selector.NewColors(colors...))
+				//colors := strings.FieldsFunc(valSplit[1], func(r rune) bool {
+				//	return r == ',' || unicode.IsSpace(r)
+				//})
+				m := md.Metadata{}
+				err := json.Unmarshal([]byte(valSplit[1]), &m)
+				if err != nil {
+					logx.Error(err)
+				} else {
+					attrs = attrs.WithValue("metadata", m)
+				}
 			}
 
 			addrs = append(addrs, resolver.Address{

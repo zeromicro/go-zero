@@ -48,9 +48,9 @@ func TestPublisher_register(t *testing.T) {
 		cli.EXPECT().Grant(gomock.Any(), timeToLive).Return(&clientv3.LeaseGrantResponse{
 			ID: id,
 		}, nil)
-		cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), "thevalue@v1,v2", gomock.Any())
+		cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), `thevalue@{"colors":["v1"]}`, gomock.Any())
 		pub := NewPublisher(nil, "thekey", "thevalue",
-			WithPubEtcdAccount(stringx.Rand(), "bar"), WithPubEtcdColors("v1", "v2"))
+			WithPubEtcdAccount(stringx.Rand(), "bar"), WithPubEtcdMetadata(map[string][]string{"colors": {"v1"}}))
 		_, err := pub.register(cli)
 		assert.Nil(t, err)
 
@@ -190,18 +190,18 @@ func TestPublisher_Resume(t *testing.T) {
 	<-publisher.resumeChan
 }
 
-func TestWithPubEtcdColors(t *testing.T) {
-	t.Run("has colors", func(t *testing.T) {
+func TestWithPubEtcdMetadata(t *testing.T) {
+	t.Run("has metadata", func(t *testing.T) {
 		p := new(Publisher)
-		option := WithPubEtcdColors("v1", "v2")
+		option := WithPubEtcdMetadata(map[string][]string{"colors": {"v1"}})
 		option(p)
-		assert.Equal(t, []string{"v1", "v2"}, p.colors)
+		assert.EqualValues(t, map[string][]string{"colors": {"v1"}}, p.md)
 	})
 
-	t.Run("no colors", func(t *testing.T) {
+	t.Run("no metadata", func(t *testing.T) {
 		p := new(Publisher)
-		option := WithPubEtcdColors()
+		option := WithPubEtcdMetadata(map[string][]string{})
 		option(p)
-		assert.Len(t, p.colors, 0)
+		assert.Len(t, p.md, 0)
 	})
 }

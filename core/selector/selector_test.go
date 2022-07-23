@@ -24,15 +24,15 @@ func TestGet(t *testing.T) {
 }
 
 func TestNewSelectorContext(t *testing.T) {
-	ctx := NewSelectorContext(context.Background(), "defaultSelector")
+	ctx := NewContext(context.Background(), "defaultSelector")
 	assert.EqualValues(t, "defaultSelector", ctx.Value(selectKey{}))
 
-	ctx = NewSelectorContext(context.Background(), "")
+	ctx = NewContext(context.Background(), "")
 	assert.True(t, context.Background() == ctx)
 }
 
 func TestSelectorFromContext(t *testing.T) {
 	ctx := context.WithValue(context.Background(), selectKey{}, "defaultSelector")
-	assert.EqualValues(t, "defaultSelector", SelectorFromContext(ctx))
-	assert.EqualValues(t, "", SelectorFromContext(context.Background()))
+	assert.EqualValues(t, "defaultSelector", FromContext(ctx))
+	assert.EqualValues(t, "", FromContext(context.Background()))
 }

@@ -1,11 +1,13 @@
 package discov
 
 import (
-	"strings"
+	"encoding/json"
+	"log"
 
 	"github.com/zeromicro/go-zero/core/discov/internal"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/threading"
@@ -27,7 +29,7 @@ type (
 		quit       *syncx.DoneChan
 		pauseChan  chan lang.PlaceholderType
 		resumeChan chan lang.PlaceholderType
-		colors     []string
+		md         md.Metadata
 	}
 )
 
@@ -139,8 +141,12 @@ func (p *Publisher) register(client internal.EtcdClient) (clientv3.LeaseID, erro
 	}
 
 	value := p.value
-	if len(p.colors) != 0 {
-		value = value + "@" + strings.Join(p.colors, ",")
+	if len(p.md) != 0 {
+		mdJsoByte, err := json.Marshal(p.md)
+		if err != nil {
+			log.Panicln(err)
+		}
+		value = value + "@" + string(mdJsoByte)
 	}
 
 	_, err = client.Put(client.Ctx(), p.fullKey, value, clientv3.WithLease(lease))
@@ -168,10 +174,10 @@ func WithPubEtcdAccount(user, pass string) PubOption {
 	}
 }
 
-// WithPubEtcdColors  returns a func to customize a set of colors.
-func WithPubEtcdColors(colors ...string) PubOption {
+// WithPubEtcdMetadata  returns a func to customize a set of colors.
+func WithPubEtcdMetadata(m md.Metadata) PubOption {
 	return func(client *Publisher) {
-		client.colors = colors
+		client.md = m.Clone()
 	}
 }
 

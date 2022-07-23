@@ -81,20 +81,23 @@ func TestEtcdConf_HasAccount(t *testing.T) {
 	}
 }
 
-func TestEtcdConf_HasColors(t *testing.T) {
+func TestEtcdConf_HasMetadata(t *testing.T) {
 	tests := []struct {
 		EtcdConf
 		hasColors bool
 	}{
 		{
 			EtcdConf: EtcdConf{
-				Colors: []string{"v1"},
+				Metadata: []Metadata{{
+					Key:   "colors",
+					Value: []string{"vq"},
+				}},
 			},
 			hasColors: true,
 		},
 		{
 			EtcdConf: EtcdConf{
-				Colors: []string{},
+				Metadata: []Metadata{},
 			},
 			hasColors: false,
 		},
@@ -105,6 +108,6 @@ func TestEtcdConf_HasColors(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.hasColors, test.EtcdConf.HasColors())
+		assert.Equal(t, test.hasColors, test.EtcdConf.HasMetadata())
 	}
 }

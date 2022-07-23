@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
@@ -62,8 +63,12 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 	if c.Timeout > 0 {
 		opts = append(opts, WithTimeout(time.Duration(c.Timeout)*time.Millisecond))
 	}
-	if c.Etcd.HasColors() {
-		opts = append(opts, internal.WithColors(c.Etcd.Colors...))
+	if c.Etcd.HasMetadata() {
+		m := make(md.Metadata, len(c.Etcd.Metadata))
+		for _, metadata := range c.Etcd.Metadata {
+			m[metadata.Key] = append(m[metadata.Key], metadata.Value...)
+		}
+		opts = append(opts, internal.WithMetadata(m))
 	}
 	if c.Selector != "" {
 		opts = append(opts, internal.WithSelector(c.Selector))

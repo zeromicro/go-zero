@@ -43,8 +43,8 @@ func Register(selector Selector) {
 	selectorMap[selector.Name()] = selector
 }
 
-// NewSelectorContext new a selector context.
-func NewSelectorContext(ctx context.Context, selectorName string) context.Context {
+// NewContext new a selector context.
+func NewContext(ctx context.Context, selectorName string) context.Context {
 	if selectorName == "" {
 		return ctx
 	}
@@ -52,8 +52,8 @@ func NewSelectorContext(ctx context.Context, selectorName string) context.Contex
 	return context.WithValue(ctx, selectKey{}, selectorName)
 }
 
-// SelectorFromContext get the current selector from the context.
-func SelectorFromContext(ctx context.Context) string {
+// FromContext get the current selector from the context.
+func FromContext(ctx context.Context) string {
 	value := ctx.Value(selectKey{})
 	if value == nil {
 		return ""

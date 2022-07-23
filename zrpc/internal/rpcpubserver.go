@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/discov"
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/core/netx"
 )
 
@@ -25,8 +26,12 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string, opts ...ServerOption
 			pubOpts = append(pubOpts, discov.WithPubEtcdTLS(etcd.CertFile, etcd.CertKeyFile,
 				etcd.CACertFile, etcd.InsecureSkipVerify))
 		}
-		if etcd.HasColors() {
-			pubOpts = append(pubOpts, discov.WithPubEtcdColors(etcd.Colors...))
+		if etcd.HasMetadata() {
+			m := md.Metadata{}
+			for _, metadata := range etcd.Metadata {
+				m[metadata.Key] = append(m[metadata.Key], metadata.Value...)
+			}
+			pubOpts = append(pubOpts, discov.WithPubEtcdMetadata(m))
 		}
 		pubClient := discov.NewPublisher(etcd.Hosts, etcd.Key, pubListenOn, pubOpts...)
 		return pubClient.KeepAlive()

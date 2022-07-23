@@ -73,9 +73,9 @@ func TestWithSelector(t *testing.T) {
 	assert.Equal(t, "defaultSelector", options.selectorName)
 }
 
-func TestWithColor(t *testing.T) {
+func TestWithMetadata(t *testing.T) {
 	var options ClientOptions
-	opt := WithColors("v1", "v2")
+	opt := WithMetadata(map[string][]string{"a": {"a1"}})
 	opt(&options)
-	assert.Equal(t, []string{"v1", "v2"}, options.colors)
+	assert.EqualValues(t, map[string][]string{"a": {"a1"}}, options.md)
 }

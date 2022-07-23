@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
@@ -37,7 +38,7 @@ type (
 		Secure       bool
 		DialOptions  []grpc.DialOption
 		selectorName string
-		colors       []string
+		md           md.Metadata
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -88,11 +89,13 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
-			clientinterceptors.UnarySelectorInterceptor(cliOpts.selectorName, cliOpts.colors),
+			clientinterceptors.UnaryMdInterceptor(cliOpts.md),
+			clientinterceptors.UnarySelectorInterceptor(cliOpts.selectorName),
 		),
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
-			clientinterceptors.StreamSelectorInterceptor(cliOpts.selectorName, cliOpts.colors),
+			clientinterceptors.StreamMdInterceptor(cliOpts.md),
+			clientinterceptors.StreamSelectorInterceptor(cliOpts.selectorName),
 		),
 	)
 
@@ -171,9 +174,9 @@ func WithSelector(selectorName string) ClientOption {
 	}
 }
 
-// WithColors returns a func to customize a set of colors.
-func WithColors(colors ...string) ClientOption {
+// WithMetadata returns a func to customize a set of colors.
+func WithMetadata(m md.Metadata) ClientOption {
 	return func(options *ClientOptions) {
-		options.colors = colors
+		options.md = m
 	}
 }

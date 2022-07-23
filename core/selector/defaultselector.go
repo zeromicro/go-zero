@@ -2,6 +2,7 @@ package selector
 
 import (
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/md"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/balancer"
@@ -27,15 +28,15 @@ func (d defaultSelector) Name() string {
 }
 
 func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
-	clientColorsVal := ColorsFromContext(info.Ctx)
-	clientColors := clientColorsVal.Colors()
+
+	clientColors := md.ValuesFromContext(info.Ctx, "colors")
 	spanCtx := trace.SpanFromContext(info.Ctx)
-	spanCtx.SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
+	trace.SpanFromContext(info.Ctx).SetAttributes(candidateColorsAttributeKey.StringSlice(clientColors))
 
 	connMap := d.genColor2ConnsMap(conns)
 	if len(connMap) == 0 {
 		// There is no dyed connection on the server.
-		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("clientColors", clientColorsVal.String()))
+		logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("clientColors", clientColors))
 		return conns
 	}
 
@@ -47,7 +48,7 @@ func (d defaultSelector) Select(conns []Conn, info balancer.PickInfo) []Conn {
 
 		if len(newConns) != 0 {
 			spanCtx.SetAttributes(colorAttributeKey.String(clientColor))
-			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("clientColors", clientColorsVal.String()))
+			logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("color", clientColor), logx.Field("clientColors", clientColors))
 			break
 		}
 	}
@@ -59,14 +60,13 @@ func (d defaultSelector) genColor2ConnsMap(conns []Conn) map[string][]Conn {
 	m := map[string][]Conn{}
 	for _, conn := range conns {
 		address := conn.Address()
-		serverColorsVal := address.BalancerAttributes.Value("colors")
+		metadataVal := address.BalancerAttributes.Value("metadata")
 
-		switch v := serverColorsVal.(type) {
-		case *Colors:
-			if v != nil {
-				for _, color := range v.Colors() {
-					m[color] = append(m[color], conn)
-				}
+		switch metadata := metadataVal.(type) {
+		case md.Metadata:
+			colors := metadata.Values("colors")
+			for _, color := range colors {
+				m[color] = append(m[color], conn)
 			}
 		}
 	}

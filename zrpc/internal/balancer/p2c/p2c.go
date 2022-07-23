@@ -200,7 +200,7 @@ func (p *p2cPicker) logStats() {
 }
 
 func (p *p2cPicker) getSelector(ctx context.Context) selector.Selector {
-	return selector.Get(selector.SelectorFromContext(ctx))
+	return selector.Get(selector.FromContext(ctx))
 }
 
 var _ selector.Conn = (*subConn)(nil)
