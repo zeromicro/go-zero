@@ -60,9 +60,9 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 	_, ok = notLoggingContentMethods.Load(method)
 	if ok {
 		if duration > slowThreshold.Load() {
-			logger.Slowf("[RPC] slowcall - %s - %s - %s", addr, method)
+			logger.Slowf("[RPC] slowcall - %s - %s", addr, method)
 		} else {
-			logger.Infof("%s - %s - %s", addr, method)
+			logger.Infof("%s - %s", addr, method)
 		}
 	} else {
 		content, err := json.Marshal(req)
