@@ -69,8 +69,7 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 		if err != nil {
 			logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
 		} else if duration > slowThreshold.Load() {
-			logger.Slowf("[RPC] slowcall - %s - %s - %s",
-				addr, method, string(content))
+			logger.Slowf("[RPC] slowcall - %s - %s - %s", addr, method, string(content))
 		} else {
 			logger.Infof("%s - %s - %s", addr, method, string(content))
 		}
