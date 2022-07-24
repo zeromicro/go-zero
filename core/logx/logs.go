@@ -199,11 +199,8 @@ func SetLevel(level uint32) {
 }
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
-// Call Reset before calling SetWriter again.
 func SetWriter(w Writer) {
-	if writer.Load() == nil {
-		writer.Store(w)
-	}
+	writer.Store(w)
 }
 
 // SetUp sets up the logx. If already set up, just return nil.
