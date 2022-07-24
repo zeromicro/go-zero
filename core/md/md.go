@@ -87,16 +87,27 @@ func FromContext(ctx context.Context) Metadata {
 }
 
 // NewContext creates a new metadata context.
-func NewContext(ctx context.Context, carrier Carrier) context.Context {
-	md, err := carrier.Carrier()
+func NewContext(ctx context.Context, metadata Metadata) context.Context {
+	return context.WithValue(ctx, mdKey{}, metadata.Clone())
+}
+
+func ValuesFromContext(ctx context.Context, key string) []string {
+	return FromContext(ctx).Values(key)
+}
+
+func Extract(ctx context.Context, carrier Carrier) context.Context {
+	ctx, err := carrier.Extract(ctx)
 	if err != nil {
 		logx.WithContext(ctx).Error(err)
 		return ctx
 	}
 
-	return context.WithValue(ctx, mdKey{}, md)
+	return ctx
 }
 
-func ValuesFromContext(ctx context.Context, key string) []string {
-	return FromContext(ctx).Values(key)
+func Injection(ctx context.Context, carrier Carrier) {
+	err := carrier.Injection(ctx)
+	if err != nil {
+		logx.WithContext(ctx).Error(err)
+	}
 }

@@ -27,7 +27,7 @@ func extractMd(ctx context.Context) context.Context {
 	if !ok {
 		return ctx
 	}
-	ctx = md.NewContext(ctx, md.GRPCMetadataCarrier(incomingMd))
+	ctx = md.Extract(ctx, md.GRPCMetadataCarrier(incomingMd))
 
 	return ctx
 }

@@ -26,10 +26,10 @@ func StreamMdInterceptor(metadata md.Metadata) grpc.StreamClientInterceptor {
 	}
 }
 
-func injectionMd(ctx context.Context, metadata md.Metadata) context.Context {
+func injectionMd(ctx context.Context, defaultMetadata md.Metadata) context.Context {
 	m := md.FromContext(ctx)
 	m = m.Clone()
-	for key, values := range metadata {
+	for key, values := range defaultMetadata {
 		m.Append(key, values...)
 	}
 
@@ -40,6 +40,8 @@ func injectionMd(ctx context.Context, metadata md.Metadata) context.Context {
 	} else {
 		ctx = appendToOutgoingContext(ctx, "metadata", string(mdBytes))
 	}
+	grpcMd := metadata.MD{}
+	md.Injection(ctx, md.GRPCMetadataCarrier(grpcMd))
 
 	return ctx
 }

@@ -1,24 +1,24 @@
 package md
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHeaderCarrier_Carrier(t *testing.T) {
-	t.Run("has metadata", func(t *testing.T) {
-		carrier := HeaderCarrier(http.Header{"Colors": {"v1"}})
-		metadata, err := carrier.Carrier()
-		assert.NoError(t, err)
-		assert.Equal(t, Metadata{"colors": {"v1"}}, metadata)
-	})
+func TestHeaderCarrier_Extract(t *testing.T) {
+	carrier := HeaderCarrier(http.Header{"A": {"a1", "a2"}})
+	ctx, err := carrier.Extract(context.Background())
+	assert.NoError(t, err)
+	assert.EqualValues(t, map[string][]string{"a": {"a1", "a2"}}, FromContext(ctx))
+}
 
-	t.Run("no metadata", func(t *testing.T) {
-		carrier := HeaderCarrier(http.Header{})
-		metadata, err := carrier.Carrier()
-		assert.NoError(t, err)
-		assert.Equal(t, Metadata{}, metadata)
-	})
+func TestHeaderCarrier_Injection(t *testing.T) {
+	header := http.Header{}
+	carrier := HeaderCarrier(header)
+	err := carrier.Injection(NewContext(context.Background(), map[string][]string{"a": {"a1", "a2"}}))
+	assert.NoError(t, err)
+	assert.EqualValues(t, map[string][]string{"a": {"a1", "a2"}}, header)
 }
