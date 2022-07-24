@@ -106,6 +106,7 @@ Port: 54321
 }
 
 func TestNewServerError(t *testing.T) {
+	logx.Reset()
 	_, err := NewServer(RestConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
