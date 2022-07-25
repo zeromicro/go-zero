@@ -43,14 +43,14 @@ func TestGRPCMetadataCarrier_Extract(t *testing.T) {
 func TestGRPCMetadataCarrier_Injection(t *testing.T) {
 	t.Run("has metadata", func(t *testing.T) {
 		md := metadata.MD{}
-		err := GRPCMetadataCarrier(md).Injection(NewContext(context.Background(), Metadata{"a": {"a1", "a2"}}))
+		err := GRPCMetadataCarrier(md).Inject(NewContext(context.Background(), Metadata{"a": {"a1", "a2"}}))
 		assert.NoError(t, err)
 		assert.EqualValues(t, map[string][]string{"metadata": {`{"a":["a1","a2"]}`}}, md)
 	})
 
 	t.Run("no metadata", func(t *testing.T) {
 		md := metadata.MD{}
-		err := GRPCMetadataCarrier(md).Injection(NewContext(context.Background(), Metadata{}))
+		err := GRPCMetadataCarrier(md).Inject(NewContext(context.Background(), Metadata{}))
 		assert.NoError(t, err)
 		assert.EqualValues(t, map[string][]string{}, md)
 	})

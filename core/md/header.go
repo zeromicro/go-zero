@@ -21,7 +21,7 @@ func (h HeaderCarrier) Extract(ctx context.Context) (context.Context, error) {
 	return NewContext(ctx, metadata), nil
 }
 
-func (h HeaderCarrier) Injection(ctx context.Context) error {
+func (h HeaderCarrier) Inject(ctx context.Context) error {
 	metadata := FromContext(ctx)
 	for k, v := range metadata {
 		h[strings.ToLower(k)] = v

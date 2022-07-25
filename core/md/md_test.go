@@ -28,7 +28,7 @@ func (m *mockCarrier) Extract(ctx context.Context) (context.Context, error) {
 	return NewContext(ctx, metadata), m.err
 }
 
-func (m *mockCarrier) Injection(ctx context.Context) error {
+func (m *mockCarrier) Inject(ctx context.Context) error {
 	if m.err != nil {
 		return m.err
 	}
@@ -50,6 +50,7 @@ func TestMetadata_Append(t *testing.T) {
 	metadata.Append("b", "b1", "b2")
 	assert.EqualValues(t, map[string][]string{"a": {"a1", "a2"}, "b": {"b1", "b2"}}, metadata)
 }
+
 func TestMetadata_Keys(t *testing.T) {
 	metadata := Metadata{}
 	assert.Equal(t, []string(nil), metadata.Keys())
@@ -67,6 +68,7 @@ func TestMetadata_Set(t *testing.T) {
 	metadata.Set("A", "a1")
 	assert.EqualValues(t, map[string][]string{"a": {"a1"}}, metadata)
 }
+
 func TestMetadata_Get(t *testing.T) {
 	metadata := Metadata{}
 	assert.Len(t, metadata, 0)
@@ -157,13 +159,13 @@ func TestExtract(t *testing.T) {
 func TestInjection(t *testing.T) {
 	t.Run("no err", func(t *testing.T) {
 		m := map[string][]string{}
-		Injection(NewContext(context.Background(), Metadata{"a": {"a1"}}), &mockCarrier{md: m})
+		Inject(NewContext(context.Background(), Metadata{"a": {"a1"}}), &mockCarrier{md: m})
 		assert.Equal(t, map[string][]string{"a": {"a1"}}, m)
 	})
 
 	t.Run("no err", func(t *testing.T) {
 		m := map[string][]string{}
-		Injection(NewContext(context.Background(), Metadata{"a": {"a1"}}), &mockCarrier{md: m, err: errors.New("any")})
+		Inject(NewContext(context.Background(), Metadata{"a": {"a1"}}), &mockCarrier{md: m, err: errors.New("any")})
 		assert.Equal(t, map[string][]string{}, m)
 	})
 }

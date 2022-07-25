@@ -91,12 +91,14 @@ func NewContext(ctx context.Context, metadata Metadata) context.Context {
 	return context.WithValue(ctx, mdKey{}, metadata.Clone())
 }
 
+// ValuesFromContext Get the values of the specified key from the context.
 func ValuesFromContext(ctx context.Context, key string) []string {
 	return FromContext(ctx).Values(key)
 }
 
-func Extract(ctx context.Context, carrier Carrier) context.Context {
-	ctx, err := carrier.Extract(ctx)
+// Extract extracts metadata from Extractor and return a new context.
+func Extract(ctx context.Context, extractor Extractor) context.Context {
+	ctx, err := extractor.Extract(ctx)
 	if err != nil {
 		logx.WithContext(ctx).Error(err)
 		return ctx
@@ -105,8 +107,9 @@ func Extract(ctx context.Context, carrier Carrier) context.Context {
 	return ctx
 }
 
-func Injection(ctx context.Context, carrier Carrier) {
-	err := carrier.Injection(ctx)
+// Inject get metadata from context and inject into Injector.
+func Inject(ctx context.Context, injector Injector) {
+	err := injector.Inject(ctx)
 	if err != nil {
 		logx.WithContext(ctx).Error(err)
 	}

@@ -18,7 +18,7 @@ func TestHeaderCarrier_Extract(t *testing.T) {
 func TestHeaderCarrier_Injection(t *testing.T) {
 	header := http.Header{}
 	carrier := HeaderCarrier(header)
-	err := carrier.Injection(NewContext(context.Background(), map[string][]string{"a": {"a1", "a2"}}))
+	err := carrier.Inject(NewContext(context.Background(), map[string][]string{"a": {"a1", "a2"}}))
 	assert.NoError(t, err)
 	assert.EqualValues(t, map[string][]string{"a": {"a1", "a2"}}, header)
 }

@@ -47,7 +47,7 @@ func (g GRPCMetadataCarrier) extract() (Metadata, error) {
 	return m, nil
 }
 
-func (g GRPCMetadataCarrier) Injection(ctx context.Context) error {
+func (g GRPCMetadataCarrier) Inject(ctx context.Context) error {
 	md := FromContext(ctx)
 	if len(md) == 0 {
 		return nil

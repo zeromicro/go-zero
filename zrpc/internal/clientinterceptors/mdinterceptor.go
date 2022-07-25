@@ -41,7 +41,7 @@ func injectionMd(ctx context.Context, defaultMetadata md.Metadata) context.Conte
 		ctx = appendToOutgoingContext(ctx, "metadata", string(mdBytes))
 	}
 	grpcMd := metadata.MD{}
-	md.Injection(ctx, md.GRPCMetadataCarrier(grpcMd))
+	md.Inject(ctx, md.GRPCMetadataCarrier(grpcMd))
 
 	return ctx
 }
