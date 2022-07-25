@@ -63,15 +63,15 @@ func (w *atomicWriter) Load() Writer {
 
 func (w *atomicWriter) Store(v Writer) {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	w.writer = v
-	w.lock.Unlock()
 }
 
 func (w *atomicWriter) Swap(v Writer) Writer {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	old := w.writer
 	w.writer = v
-	w.lock.Unlock()
 	return old
 }
 
@@ -109,6 +109,14 @@ func newFileWriter(c LogConf) (Writer, error) {
 	if c.KeepDays > 0 {
 		opts = append(opts, WithKeepDays(c.KeepDays))
 	}
+	if c.MaxBackups > 0 {
+		opts = append(opts, WithMaxBackups(c.MaxBackups))
+	}
+	if c.MaxSize > 0 {
+		opts = append(opts, WithMaxSize(c.MaxSize))
+	}
+
+	opts = append(opts, WithRotation(c.Rotation))
 
 	accessFile := path.Join(c.Path, accessFilename)
 	errorFile := path.Join(c.Path, errorFilename)
