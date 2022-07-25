@@ -33,9 +33,7 @@ func (b *discovBuilder) Build(target resolver.Target, cc resolver.ClientConn, _ 
 			valSplit := strings.SplitN(val, "@", 2)
 			if len(valSplit) == 2 {
 				addr = valSplit[0]
-				//colors := strings.FieldsFunc(valSplit[1], func(r rune) bool {
-				//	return r == ',' || unicode.IsSpace(r)
-				//})
+
 				m := md.Metadata{}
 				err := json.Unmarshal([]byte(valSplit[1]), &m)
 				if err != nil {
