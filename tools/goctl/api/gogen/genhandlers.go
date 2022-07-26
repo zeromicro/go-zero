@@ -12,7 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const defaultLogicPackage = "logic"
@@ -21,15 +20,16 @@ const defaultLogicPackage = "logic"
 var handlerTemplate string
 
 type handlerInfo struct {
-	PkgName        string
-	ImportPackages string
-	HandlerName    string
-	RequestType    string
-	LogicName      string
-	LogicType      string
-	Call           string
-	HasResp        bool
-	HasRequest     bool
+	PkgName            string
+	ImportPackages     string
+	ImportHttpxPackage string
+	HandlerName        string
+	RequestType        string
+	LogicName          string
+	LogicType          string
+	Call               string
+	HasResp            bool
+	HasRequest         bool
 }
 
 func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
@@ -99,7 +99,6 @@ func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) str
 	if len(route.RequestTypeName()) > 0 {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
-	imports = append(imports, fmt.Sprintf("\"%s/rest/httpx\"", vars.ProjectOpenSourceURL))
 
 	return strings.Join(imports, "\n\t")
 }
