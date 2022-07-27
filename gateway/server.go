@@ -142,8 +142,8 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 	var source grpcurl.DescriptorSource
 	var err error
 
-	if len(up.ProtoSet) > 0 {
-		source, err = grpcurl.DescriptorSourceFromProtoSets(up.ProtoSet)
+	if len(up.ProtoSets) > 0 {
+		source, err = grpcurl.DescriptorSourceFromProtoSets(up.ProtoSets...)
 		if err != nil {
 			return nil, err
 		}
