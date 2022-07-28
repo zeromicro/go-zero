@@ -190,8 +190,6 @@ func MustSetup(c LogConf) {
 
 // Reset clears the writer and resets the log level.
 func Reset() Writer {
-	atomic.StoreUint32(&setupOnce, 0)
-	SetLevel(InfoLevel)
 	return writer.Swap(nil)
 }
 
