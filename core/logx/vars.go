@@ -15,9 +15,9 @@ const (
 	jsonEncodingType = iota
 	plainEncodingType
 
-	jsonEncoding     = "json"
 	plainEncoding    = "plain"
 	plainEncodingSep = '\t'
+	sizeRotationRule = "size"
 )
 
 const (
@@ -27,9 +27,8 @@ const (
 	slowFilename   = "slow.log"
 	statFilename   = "stat.log"
 
-	consoleMode = "console"
-	fileMode    = "file"
-	volumeMode  = "volume"
+	fileMode   = "file"
+	volumeMode = "volume"
 
 	levelAlert  = "alert"
 	levelInfo   = "info"

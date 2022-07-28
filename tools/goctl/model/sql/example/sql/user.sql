@@ -4,6 +4,7 @@ CREATE TABLE `user`
     `id`          bigint(10) NOT NULL AUTO_INCREMENT,
     `user`        varchar(50)                             NOT NULL DEFAULT '' COMMENT '用户',
     `name`        varchar(255) COLLATE utf8mb4_general_ci NULL COMMENT '用户\t名称',
+    `age`         tinyint(3) unsigned NOT NULL DEFAULT 0 COMMENT '年龄',
     `password`    varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '用户\n密码',
     `mobile`      varchar(255) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT '手机号',
     `gender`      char(5) COLLATE utf8mb4_general_ci      NOT NULL COMMENT '男｜女｜未公\r开',
@@ -21,7 +22,7 @@ CREATE TABLE `user`
 
 CREATE TABLE `student`
 (
-    `type`    bigint                           NOT NULL,
+    `type`    bigint                          NOT NULL,
     `class` varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `name`  varchar(255) COLLATE utf8mb4_bin NOT NULL DEFAULT '',
     `age`   tinyint                                   DEFAULT NULL,
