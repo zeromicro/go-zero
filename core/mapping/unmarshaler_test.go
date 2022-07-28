@@ -2681,7 +2681,7 @@ func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
 	assert.Equal(t, 2, len(res.B))
 }
 
-func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
+func TestUnmarshalJsonReaderPtrMultiArrayString(t *testing.T) {
 	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
 	var res struct {
 		A string      `json:"a"`
@@ -2694,8 +2694,58 @@ func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
 	assert.Equal(t, 2, len(res.B[0]))
 }
 
+func TestUnmarshalJsonReaderPtrMultiArrayString_Int(t *testing.T) {
+	payload := `{"a": "133", "b": [[11, 22], [33]]}`
+	var res struct {
+		A string      `json:"a"`
+		B [][]*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
+func TestUnmarshalJsonReaderPtrMultiArrayInt(t *testing.T) {
+	payload := `{"a": "133", "b": [[11, 22], [33]]}`
+	var res struct {
+		A string   `json:"a"`
+		B [][]*int `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
 func TestUnmarshalJsonReaderPtrArray(t *testing.T) {
 	payload := `{"a": "133", "b": ["add", "cccd", "eeee"]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrArray_Int(t *testing.T) {
+	payload := `{"a": "133", "b": [11, 22, 33]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrInt(t *testing.T) {
+	payload := `{"a": "133", "b": [11, 22, 33]}`
 	var res struct {
 		A string    `json:"a"`
 		B []*string `json:"b"`

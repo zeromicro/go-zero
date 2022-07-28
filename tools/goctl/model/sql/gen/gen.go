@@ -202,7 +202,8 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 
 // ret1: key-table name,value-code
 func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (
-	map[string]*codeTuple, error) {
+	map[string]*codeTuple, error,
+) {
 	m := make(map[string]*codeTuple)
 	tables, err := parser.Parse(filename, database)
 	if err != nil {

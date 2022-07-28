@@ -21,7 +21,7 @@ English | [简体中文](readme-cn.md)
 > 
 > `go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.4`
+> `goctl migrate —verbose —version v1.3.5`
 
 ## 0. what is go-zero
 
@@ -237,7 +237,7 @@ go get -u github.com/zeromicro/go-zero
 
 ## 8. Documents
 
-* [Documents](https://go-zero.dev/en/)
+* [Documents](https://go-zero.dev/)
 * [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
@@ -258,3 +258,7 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 ## Give a Star! ⭐
 
 If you like or are using this project to learn or start your solution, please give it a star. Thanks!
+
+## Buy me a coffee
+
+<a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

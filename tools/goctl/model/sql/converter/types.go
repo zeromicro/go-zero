@@ -7,6 +7,14 @@ import (
 	"github.com/zeromicro/ddl-parser/parser"
 )
 
+var unsignedTypeMap = map[string]string{
+	"int":   "uint",
+	"int8":  "uint8",
+	"int16": "uint16",
+	"in32t": "uint32",
+	"int64": "uint64",
+}
+
 var commonMysqlDataTypeMapInt = map[int]string{
 	// For consistency, all integer types are converted to int64
 	// number
@@ -124,27 +132,33 @@ var commonMysqlDataTypeMapString = map[string]string{
 }
 
 // ConvertDataType converts mysql column type into golang type
-func ConvertDataType(dataBaseType int, isDefaultNull bool) (string, error) {
+func ConvertDataType(dataBaseType int, isDefaultNull, unsigned bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %v", dataBaseType)
 	}
 
-	return mayConvertNullType(tp, isDefaultNull), nil
+	return mayConvertNullType(tp, isDefaultNull, unsigned), nil
 }
 
 // ConvertStringDataType converts mysql column type into golang type
-func ConvertStringDataType(dataBaseType string, isDefaultNull bool) (string, error) {
+func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
 	}
 
-	return mayConvertNullType(tp, isDefaultNull), nil
+	return mayConvertNullType(tp, isDefaultNull, unsigned), nil
 }
 
-func mayConvertNullType(goDataType string, isDefaultNull bool) string {
+func mayConvertNullType(goDataType string, isDefaultNull, unsigned bool) string {
 	if !isDefaultNull {
+		if unsigned {
+			ret, ok := unsignedTypeMap[goDataType]
+			if ok {
+				return ret
+			}
+		}
 		return goDataType
 	}
 
@@ -162,6 +176,12 @@ func mayConvertNullType(goDataType string, isDefaultNull bool) string {
 	case "time.Time":
 		return "sql.NullTime"
 	default:
+		if unsigned {
+			ret, ok := unsignedTypeMap[goDataType]
+			if ok {
+				return ret
+			}
+		}
 		return goDataType
 	}
 }

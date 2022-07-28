@@ -21,9 +21,8 @@ var (
 	encoding   uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
-
-	options logOptions
-	writer  = new(atomicWriter)
+	options     logOptions
+	writer      = new(atomicWriter)
 )
 
 type (
@@ -41,6 +40,9 @@ type (
 		gzipEnabled           bool
 		logStackCooldownMills int
 		keepDays              int
+		maxBackups            int
+		maxSize               int
+		rotationRule          string
 	}
 
 	// LogField is a key-value pair that will be added to the log entry.
@@ -197,11 +199,8 @@ func SetLevel(level uint32) {
 }
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
-// Call Reset before calling SetWriter again.
 func SetWriter(w Writer) {
-	if writer.Load() == nil {
-		writer.Store(w)
-	}
+	writer.Store(w)
 }
 
 // SetUp sets up the logx. If already set up, just return nil.
@@ -294,13 +293,40 @@ func WithGzip() LogOption {
 	}
 }
 
+// WithMaxBackups customizes how many log files backups will be kept.
+func WithMaxBackups(count int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxBackups = count
+	}
+}
+
+// WithMaxSize customizes how much space the writing log file can take up.
+func WithMaxSize(size int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxSize = size
+	}
+}
+
+// WithRotation customizes which log rotation rule to use.
+func WithRotation(r string) LogOption {
+	return func(opts *logOptions) {
+		opts.rotationRule = r
+	}
+}
+
 func createOutput(path string) (io.WriteCloser, error) {
 	if len(path) == 0 {
 		return nil, ErrLogPathNotSet
 	}
 
-	return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
-		options.gzipEnabled), options.gzipEnabled)
+	switch options.rotationRule {
+	case sizeRotationRule:
+		return NewLogger(path, NewSizeLimitRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.maxSize, options.maxBackups, options.gzipEnabled), options.gzipEnabled)
+	default:
+		return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.gzipEnabled), options.gzipEnabled)
+	}
 }
 
 func errorAnySync(v interface{}) {
