@@ -23,6 +23,7 @@ var (
 	disableStat uint32
 	options     logOptions
 	writer      = new(atomicWriter)
+	setupOnce   uint32
 )
 
 type (
@@ -189,7 +190,6 @@ func MustSetup(c LogConf) {
 
 // Reset clears the writer and resets the log level.
 func Reset() Writer {
-	SetLevel(InfoLevel)
 	return writer.Swap(nil)
 }
 
@@ -206,8 +206,13 @@ func SetWriter(w Writer) {
 // SetUp sets up the logx. If already set up, just return nil.
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
-// the same logic for SetUp
 func SetUp(c LogConf) error {
+	// Just ignore the subsequent SetUp calls.
+	// Because multiple services in one process might call SetUp respectively.
+	if !atomic.CompareAndSwapUint32(&setupOnce, 0, 1) {
+		return nil
+	}
+
 	setupLogLevel(c)
 
 	if len(c.TimeFormat) > 0 {
