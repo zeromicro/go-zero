@@ -102,18 +102,6 @@ func TestMetadata_Delete(t *testing.T) {
 	assert.EqualValues(t, map[string][]string{}, metadata)
 }
 
-func TestMetadata_Carrier(t *testing.T) {
-	metadata := Metadata{}
-	m, err := metadata.Carrier()
-	assert.NoError(t, err)
-	assert.Equal(t, metadata, m)
-
-	metadata = Metadata{"a": {"a1"}, "b": {}}
-	m, err = metadata.Carrier()
-	assert.NoError(t, err)
-	assert.Equal(t, metadata, m)
-}
-
 func TestMetadata_Clone(t *testing.T) {
 	metadata := Metadata{}
 	assert.Equal(t, metadata, metadata.Clone())

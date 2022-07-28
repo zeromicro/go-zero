@@ -8,8 +8,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-var _ Carrier = (*GRPCMetadataCarrier)(nil)
-
 // GRPCMetadataCarrier represents that the data in the metadata of grpc is converted into Metadata.
 type GRPCMetadataCarrier metadata.MD
 

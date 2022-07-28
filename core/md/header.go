@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-var _ Carrier = (*HeaderCarrier)(nil)
-
 // HeaderCarrier represents that the data in the header of http is converted into Metadata.
 type HeaderCarrier http.Header
 

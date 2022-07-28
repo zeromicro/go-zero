@@ -142,11 +142,11 @@ func (p *Publisher) register(client internal.EtcdClient) (clientv3.LeaseID, erro
 
 	value := p.value
 	if len(p.md) != 0 {
-		mdJsoByte, err := json.Marshal(p.md)
+		mdJsonBytes, err := json.Marshal(p.md)
 		if err != nil {
 			log.Panicln(err)
 		}
-		value = value + "@" + string(mdJsoByte)
+		value = value + "@" + string(mdJsonBytes)
 	}
 
 	_, err = client.Put(client.Ctx(), p.fullKey, value, clientv3.WithLease(lease))

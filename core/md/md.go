@@ -61,11 +61,6 @@ func (m Metadata) Delete(key string) {
 	delete(m, strings.ToLower(key))
 }
 
-// Carrier Implement the Carrier interface.
-func (m Metadata) Carrier() (Metadata, error) {
-	return m.Clone(), nil
-}
-
 // Clone clones a Metadata.
 func (m Metadata) Clone() Metadata {
 	md := make(Metadata, len(m))
