@@ -42,10 +42,10 @@ func TestRedisLock(t *testing.T) {
 	}
 
 	t.Run("normal", func(t *testing.T) {
-		testFn(nil)
+		runOnRedis(t, testFn(nil))
 	})
 
 	t.Run("withContext", func(t *testing.T) {
-		testFn(context.Background())
+		runOnRedis(t, testFn(context.Background()))
 	})
 }
