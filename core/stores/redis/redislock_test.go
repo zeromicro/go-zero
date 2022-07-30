@@ -14,18 +14,12 @@ func TestRedisLock(t *testing.T) {
 		return func(client *Redis) {
 			key := stringx.Rand()
 			firstLock := NewRedisLock(client, key)
-			if ctx != nil {
-				firstLock.WithContext(ctx)
-			}
 			firstLock.SetExpire(5)
 			firstAcquire, err := firstLock.Acquire()
 			assert.Nil(t, err)
 			assert.True(t, firstAcquire)
 
 			secondLock := NewRedisLock(client, key)
-			if ctx != nil {
-				secondLock.WithContext(ctx)
-			}
 			secondLock.SetExpire(5)
 			againAcquire, err := secondLock.Acquire()
 			assert.Nil(t, err)
@@ -47,5 +41,25 @@ func TestRedisLock(t *testing.T) {
 
 	t.Run("withContext", func(t *testing.T) {
 		runOnRedis(t, testFn(context.Background()))
+	})
+}
+
+func TestRedisLock_Expired(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		key := stringx.Rand()
+		redisLock := NewRedisLock(client, key)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := redisLock.AcquireCtx(ctx)
+		assert.NotNil(t, err)
+	})
+
+	runOnRedis(t, func(client *Redis) {
+		key := stringx.Rand()
+		redisLock := NewRedisLock(client, key)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		_, err := redisLock.ReleaseCtx(ctx)
+		assert.NotNil(t, err)
 	})
 }

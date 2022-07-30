@@ -36,7 +36,6 @@ type RedisLock struct {
 	seconds uint32
 	key     string
 	id      string
-	ctx     context.Context
 }
 
 func init() {
@@ -54,9 +53,13 @@ func NewRedisLock(store *Redis, key string) *RedisLock {
 
 // Acquire acquires the lock.
 func (rl *RedisLock) Acquire() (bool, error) {
-	rl.fillCtx()
+	return rl.AcquireCtx(context.Background())
+}
+
+// AcquireCtx acquires the lock with the given ctx.
+func (rl *RedisLock) AcquireCtx(ctx context.Context) (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.EvalCtx(rl.ctx, lockCommand, []string{rl.key}, []string{
+	resp, err := rl.store.EvalCtx(ctx, lockCommand, []string{rl.key}, []string{
 		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
 	})
 	if err == red.Nil {
@@ -79,8 +82,12 @@ func (rl *RedisLock) Acquire() (bool, error) {
 
 // Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
-	rl.fillCtx()
-	resp, err := rl.store.EvalCtx(rl.ctx, delCommand, []string{rl.key}, []string{rl.id})
+	return rl.ReleaseCtx(context.Background())
+}
+
+// ReleaseCtx releases the lock with the given ctx.
+func (rl *RedisLock) ReleaseCtx(ctx context.Context) (bool, error) {
+	resp, err := rl.store.EvalCtx(ctx, delCommand, []string{rl.key}, []string{rl.id})
 	if err != nil {
 		return false, err
 	}
@@ -96,15 +103,4 @@ func (rl *RedisLock) Release() (bool, error) {
 // SetExpire sets the expiration.
 func (rl *RedisLock) SetExpire(seconds int) {
 	atomic.StoreUint32(&rl.seconds, uint32(seconds))
-}
-
-// WithContext set context.
-func (rl *RedisLock) WithContext(ctx context.Context) {
-	rl.ctx = ctx
-}
-
-func (rl *RedisLock) fillCtx() {
-	if rl.ctx == nil {
-		rl.ctx = context.Background()
-	}
 }
