@@ -14,18 +14,12 @@ func TestRedisLock(t *testing.T) {
 		return func(client *Redis) {
 			key := stringx.Rand()
 			firstLock := NewRedisLock(client, key)
-			if ctx != nil {
-				firstLock.WithContext(ctx)
-			}
 			firstLock.SetExpire(5)
 			firstAcquire, err := firstLock.Acquire()
 			assert.Nil(t, err)
 			assert.True(t, firstAcquire)
 
 			secondLock := NewRedisLock(client, key)
-			if ctx != nil {
-				secondLock.WithContext(ctx)
-			}
 			secondLock.SetExpire(5)
 			againAcquire, err := secondLock.Acquire()
 			assert.Nil(t, err)
