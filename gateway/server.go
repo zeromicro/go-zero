@@ -16,6 +16,7 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
@@ -134,6 +135,11 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
+		}
+
+		st := handler.Status
+		if st.Code() != codes.OK {
+			httpx.Error(w, st.Err())
 		}
 	}
 }
