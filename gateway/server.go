@@ -14,7 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/core/mr"
 	"github.com/zeromicro/go-zero/gateway/internal"
 	"github.com/zeromicro/go-zero/rest"
-	"github.com/zeromicro/go-zero/rest/errcode"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc/codes"
@@ -138,9 +137,9 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 			httpx.Error(w, err)
 		}
 
-		status := handler.Status
-		if status.Code() != codes.OK {
-			w.WriteHeader(errcode.CodeFromGrpcError(status.Err()))
+		st := handler.Status
+		if st.Code() != codes.OK {
+			httpx.Error(w, st.Err())
 		}
 	}
 }
