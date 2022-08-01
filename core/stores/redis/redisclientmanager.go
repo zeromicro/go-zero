@@ -2,22 +2,25 @@ package redis
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 
 	red "github.com/go-redis/redis/v8"
+
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 const (
-	defaultDatabase = 0
-	maxRetries      = 3
-	idleConns       = 8
+	defaultDatabase uint = 0
+	maxRetries           = 3
+	idleConns            = 8
 )
 
 var clientManager = syncx.NewResourceManager()
 
 func getClient(r *Redis) (*red.Client, error) {
-	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
+	var key = fmt.Sprintf("%s:%d", r.Addr, r.db)
+	val, err := clientManager.GetResource(key, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
@@ -27,7 +30,7 @@ func getClient(r *Redis) (*red.Client, error) {
 		store := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           int(r.db),
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,

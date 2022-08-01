@@ -18,6 +18,8 @@ type (
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
 		Tls  bool   `json:",optional"`
+		// DB is the redis database. only used when type is node.
+		DB uint `json:",default=0"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -39,7 +41,7 @@ func (rc RedisConf) NewRedis() *Redis {
 	if rc.Tls {
 		opts = append(opts, WithTLS())
 	}
-
+	opts = append(opts, WithDB(rc.DB))
 	return New(rc.Host, opts...)
 }
 

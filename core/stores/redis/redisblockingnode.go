@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	red "github.com/go-redis/redis/v8"
+
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -22,7 +23,7 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 		client := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           int(r.db),
 			MaxRetries:   maxRetries,
 			PoolSize:     1,
 			MinIdleConns: 1,
