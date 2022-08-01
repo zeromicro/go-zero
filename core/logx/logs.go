@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -23,7 +24,7 @@ var (
 	disableStat uint32
 	options     logOptions
 	writer      = new(atomicWriter)
-	setupOnce   uint32
+	setupOnce   sync.Once
 )
 
 type (
@@ -206,35 +207,35 @@ func SetWriter(w Writer) {
 // SetUp sets up the logx. If already set up, just return nil.
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
-func SetUp(c LogConf) error {
+func SetUp(c LogConf) (err error) {
 	// Just ignore the subsequent SetUp calls.
 	// Because multiple services in one process might call SetUp respectively.
-	if !atomic.CompareAndSwapUint32(&setupOnce, 0, 1) {
-		return nil
-	}
+	// Need to wait for the first caller to complete the execution.
+	setupOnce.Do(func() {
+		setupLogLevel(c)
 
-	setupLogLevel(c)
+		if len(c.TimeFormat) > 0 {
+			timeFormat = c.TimeFormat
+		}
 
-	if len(c.TimeFormat) > 0 {
-		timeFormat = c.TimeFormat
-	}
+		switch c.Encoding {
+		case plainEncoding:
+			atomic.StoreUint32(&encoding, plainEncodingType)
+		default:
+			atomic.StoreUint32(&encoding, jsonEncodingType)
+		}
 
-	switch c.Encoding {
-	case plainEncoding:
-		atomic.StoreUint32(&encoding, plainEncodingType)
-	default:
-		atomic.StoreUint32(&encoding, jsonEncodingType)
-	}
+		switch c.Mode {
+		case fileMode:
+			err = setupWithFiles(c)
+		case volumeMode:
+			err = setupWithVolume(c)
+		default:
+			setupWithConsole()
+		}
+	})
 
-	switch c.Mode {
-	case fileMode:
-		return setupWithFiles(c)
-	case volumeMode:
-		return setupWithVolume(c)
-	default:
-		setupWithConsole()
-		return nil
-	}
+	return
 }
 
 // Severe writes v into severe log.
