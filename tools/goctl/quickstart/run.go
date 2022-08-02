@@ -20,9 +20,11 @@ func goModTidy(dir string) int {
 }
 
 func execCommand(dir string, arg string, envArgs ...string) int {
-	cmd := exec.Command("sh", "-c", arg)
+	var cmd *exec.Cmd
 	if runtime.GOOS == vars.OsWindows {
 		cmd = exec.Command("cmd.exe", "/c", arg)
+	} else {
+		cmd = exec.Command("sh", "-c", arg)
 	}
 	env := append([]string(nil), os.Environ()...)
 	env = append(env, envArgs...)
