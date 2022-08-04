@@ -26,7 +26,7 @@ func (cond *Cond) WaitWithTimeout(timeout time.Duration) (time.Duration, bool) {
 
 	begin := timex.Now()
 	select {
-	case <-cond.signal:
+	case cond.signal <- lang.Placeholder:
 		elapsed := timex.Since(begin)
 		remainTimeout := timeout - elapsed
 		return remainTimeout, true
@@ -37,13 +37,13 @@ func (cond *Cond) WaitWithTimeout(timeout time.Duration) (time.Duration, bool) {
 
 // Wait waits for signals.
 func (cond *Cond) Wait() {
-	<-cond.signal
+	cond.signal <- lang.Placeholder
 }
 
 // Signal wakes one goroutine waiting on c, if there is any.
 func (cond *Cond) Signal() {
 	select {
-	case cond.signal <- lang.Placeholder:
+	case <-cond.signal:
 	default:
 	}
 }
