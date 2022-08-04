@@ -1189,7 +1189,7 @@ func TestRedis_WithDB(t *testing.T) {
 	})
 
 	t.Run("db_default", func(t *testing.T) {
-		runOnRedis(t, func(client *Redis) {
+		runOnRedisWithDB(t, defaultDatabase, func(client *Redis) {
 			r := New(client.Addr)
 			ok := r.Ping()
 			assert.True(t, ok)
@@ -1204,7 +1204,7 @@ func TestRedis_WithDB(t *testing.T) {
 	})
 	for db := uint(0); db < uint(5); db++ {
 		t.Run(fmt.Sprintf("db%d", db), func(t *testing.T) {
-			runOnRedis(t, func(client *Redis) {
+			runOnRedisWithDB(t, db, func(client *Redis) {
 				r := New(client.Addr, WithDB(db))
 				ok := r.Ping()
 				assert.True(t, ok)
@@ -1220,13 +1220,14 @@ func TestRedis_WithDB(t *testing.T) {
 	}
 }
 
-func runOnRedis(t *testing.T, fn func(client *Redis)) {
+func runOnRedisWithDB(t *testing.T, db uint, fn func(client *Redis)) {
 	logx.Disable()
 
 	s, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+		var key = fmt.Sprintf("%s:%d", s.Addr(), db)
+		client, err := clientManager.GetResource(key, func() (io.Closer, error) {
 			return nil, errors.New("should already exist")
 		})
 		if err != nil {
@@ -1240,6 +1241,10 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	fn(New(s.Addr()))
 }
 
+func runOnRedis(t *testing.T, fn func(client *Redis)) {
+	runOnRedisWithDB(t, defaultDatabase, fn)
+}
+
 func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
@@ -1249,7 +1254,8 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 	})
 	assert.Nil(t, err)
 	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+		var key = fmt.Sprintf("%s:%d", s.Addr(), defaultDatabase)
+		client, err := clientManager.GetResource(key, func() (io.Closer, error) {
 			return nil, errors.New("should already exist")
 		})
 		if err != nil {
