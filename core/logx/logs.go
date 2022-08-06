@@ -355,16 +355,20 @@ func errorTextSync(msg string) {
 
 func getWriter() Writer {
 	var w Writer
-	writer.lock.Lock()
-	if writer.writer != nil {
+
+	writer.lock.RLock()
+	w = writer.writer
+	writer.lock.RUnlock()
+
+	if w == nil {
+		writer.lock.Lock()
+		if writer.writer == nil {
+			writer.writer = newConsoleWriter()
+		}
 		w = writer.writer
 		writer.lock.Unlock()
-		return w
 	}
 
-	w = newConsoleWriter()
-	writer.writer = w
-	writer.lock.Unlock()
 	return w
 }
 
