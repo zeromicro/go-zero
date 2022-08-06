@@ -93,7 +93,7 @@ func (s *Server) build() error {
 		for _, m := range methods {
 			methodSet[m.RpcPath] = struct{}{}
 		}
-		for _, m := range up.Mapping {
+		for _, m := range up.Mappings {
 			if _, ok := methodSet[m.RpcPath]; !ok {
 				cancel(fmt.Errorf("rpc method %s not found", m.RpcPath))
 				return
