@@ -28,11 +28,12 @@ Upstreams:
   - Grpc:
       Etcd:
         Hosts:
-        - localhost:2379
+          - localhost:2379
         Key: hello.rpc
     # protoset mode
-    ProtoSet: hello.pb
-    Mapping:
+    ProtoSets:
+      - hello.pb
+    Mappings:
       - Method: get
         Path: /pingHello/:ping
         RpcPath: hello.Hello/Ping
@@ -40,7 +41,7 @@ Upstreams:
       Endpoints:
         - localhost:8081
     # reflection mode, no ProtoSet settings
-    Mapping:
+    Mappings:
       - Method: post
         Path: /pingWorld
         RpcPath: world.World/Ping
@@ -48,9 +49,15 @@ Upstreams:
 
 ## Generate ProtoSet files
 
-- example command
+- example command without external imports
 
 ```shell
 protoc --descriptor_set_out=hello.pb hello.proto
+```
+
+- example command with external imports
+
+```shell
+protoc --include_imports --proto_path=. --descriptor_set_out=hello.pb hello.proto
 ```
 
