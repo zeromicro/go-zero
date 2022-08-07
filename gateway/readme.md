@@ -33,6 +33,7 @@ Upstreams:
     # protoset mode
     ProtoSets:
       - hello.pb
+    # Mappings can also be written in proto options
     Mappings:
       - Method: get
         Path: /pingHello/:ping
