@@ -8,13 +8,13 @@
 var configFile = flag.String("f", "config.yaml", "config file")
 
 func main() {
-	flag.Parse()
+    flag.Parse()
 
-	var c gateway.GatewayConf
-	conf.MustLoad(*configFile, &c)
-	gw := gateway.MustNewServer(c)
-	defer gw.Stop()
-	gw.Start()
+    var c gateway.GatewayConf
+    conf.MustLoad(*configFile, &c)
+    gw := gateway.MustNewServer(c)
+    defer gw.Stop()
+    gw.Start()
 }
 ```
 
@@ -60,4 +60,3 @@ protoc --descriptor_set_out=hello.pb hello.proto
 ```shell
 protoc --include_imports --proto_path=. --descriptor_set_out=hello.pb hello.proto
 ```
-
