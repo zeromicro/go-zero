@@ -27,6 +27,8 @@ type (
 
 	// Upstream is the configuration for an upstream.
 	Upstream struct {
+		// Name is the name of the upstream.
+		Name string `json:",optional"`
 		// Grpc is the target of the upstream.
 		Grpc zrpc.RpcClientConf
 		// ProtoSets is the file list of proto set, like [hello.pb].
