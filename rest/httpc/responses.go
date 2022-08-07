@@ -25,6 +25,8 @@ func ParseHeaders(resp *http.Response, val interface{}) error {
 
 // ParseJsonBody parses the response body, which should be in json content type.
 func ParseJsonBody(resp *http.Response, val interface{}) error {
+	defer resp.Body.Close()
+
 	if withJsonBody(resp) {
 		return mapping.UnmarshalJsonReader(resp.Body, val)
 	}
