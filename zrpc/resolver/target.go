@@ -15,6 +15,6 @@ func BuildDirectTarget(endpoints []string) string {
 
 // BuildDiscovTarget returns a string that represents the given endpoints with discov schema.
 func BuildDiscovTarget(endpoints []string, key string) string {
-	return fmt.Sprintf("%s://%s/%s", internal.DiscovScheme,
+	return fmt.Sprintf("%s://%s/%s", internal.EtcdScheme,
 		strings.Join(endpoints, internal.EndpointSep), key)
 }

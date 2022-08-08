@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"runtime/debug"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -21,9 +22,9 @@ var (
 	encoding   uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableStat uint32
-
-	options logOptions
-	writer  = new(atomicWriter)
+	options     logOptions
+	writer      = new(atomicWriter)
+	setupOnce   sync.Once
 )
 
 type (
@@ -41,6 +42,9 @@ type (
 		gzipEnabled           bool
 		logStackCooldownMills int
 		keepDays              int
+		maxBackups            int
+		maxSize               int
+		rotationRule          string
 	}
 
 	// LogField is a key-value pair that will be added to the log entry.
@@ -187,7 +191,6 @@ func MustSetup(c LogConf) {
 
 // Reset clears the writer and resets the log level.
 func Reset() Writer {
-	SetLevel(InfoLevel)
 	return writer.Swap(nil)
 }
 
@@ -197,40 +200,42 @@ func SetLevel(level uint32) {
 }
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
-// Call Reset before calling SetWriter again.
 func SetWriter(w Writer) {
-	if writer.Load() == nil {
-		writer.Store(w)
-	}
+	writer.Store(w)
 }
 
 // SetUp sets up the logx. If already set up, just return nil.
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
-// the same logic for SetUp
-func SetUp(c LogConf) error {
-	setupLogLevel(c)
+func SetUp(c LogConf) (err error) {
+	// Just ignore the subsequent SetUp calls.
+	// Because multiple services in one process might call SetUp respectively.
+	// Need to wait for the first caller to complete the execution.
+	setupOnce.Do(func() {
+		setupLogLevel(c)
 
-	if len(c.TimeFormat) > 0 {
-		timeFormat = c.TimeFormat
-	}
+		if len(c.TimeFormat) > 0 {
+			timeFormat = c.TimeFormat
+		}
 
-	switch c.Encoding {
-	case plainEncoding:
-		atomic.StoreUint32(&encoding, plainEncodingType)
-	default:
-		atomic.StoreUint32(&encoding, jsonEncodingType)
-	}
+		switch c.Encoding {
+		case plainEncoding:
+			atomic.StoreUint32(&encoding, plainEncodingType)
+		default:
+			atomic.StoreUint32(&encoding, jsonEncodingType)
+		}
 
-	switch c.Mode {
-	case fileMode:
-		return setupWithFiles(c)
-	case volumeMode:
-		return setupWithVolume(c)
-	default:
-		setupWithConsole()
-		return nil
-	}
+		switch c.Mode {
+		case fileMode:
+			err = setupWithFiles(c)
+		case volumeMode:
+			err = setupWithVolume(c)
+		default:
+			setupWithConsole()
+		}
+	})
+
+	return
 }
 
 // Severe writes v into severe log.
@@ -294,13 +299,40 @@ func WithGzip() LogOption {
 	}
 }
 
+// WithMaxBackups customizes how many log files backups will be kept.
+func WithMaxBackups(count int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxBackups = count
+	}
+}
+
+// WithMaxSize customizes how much space the writing log file can take up.
+func WithMaxSize(size int) LogOption {
+	return func(opts *logOptions) {
+		opts.maxSize = size
+	}
+}
+
+// WithRotation customizes which log rotation rule to use.
+func WithRotation(r string) LogOption {
+	return func(opts *logOptions) {
+		opts.rotationRule = r
+	}
+}
+
 func createOutput(path string) (io.WriteCloser, error) {
 	if len(path) == 0 {
 		return nil, ErrLogPathNotSet
 	}
 
-	return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
-		options.gzipEnabled), options.gzipEnabled)
+	switch options.rotationRule {
+	case sizeRotationRule:
+		return NewLogger(path, NewSizeLimitRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.maxSize, options.maxBackups, options.gzipEnabled), options.gzipEnabled)
+	default:
+		return NewLogger(path, DefaultRotateRule(path, backupFileDelimiter, options.keepDays,
+			options.gzipEnabled), options.gzipEnabled)
+	}
 }
 
 func errorAnySync(v interface{}) {

@@ -16,6 +16,7 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
@@ -58,6 +59,10 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) build() error {
+	if err := s.ensureUpstreamNames(); err != nil {
+		return err
+	}
+
 	return mr.MapReduceVoid(func(source chan<- interface{}) {
 		for _, up := range s.upstreams {
 			source <- up
@@ -67,13 +72,13 @@ func (s *Server) build() error {
 		cli := zrpc.MustNewClient(up.Grpc)
 		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {
-			cancel(err)
+			cancel(fmt.Errorf("%s: %w", up.Name, err))
 			return
 		}
 
 		methods, err := internal.GetMethods(source)
 		if err != nil {
-			cancel(err)
+			cancel(fmt.Errorf("%s: %w", up.Name, err))
 			return
 		}
 
@@ -92,9 +97,9 @@ func (s *Server) build() error {
 		for _, m := range methods {
 			methodSet[m.RpcPath] = struct{}{}
 		}
-		for _, m := range up.Mapping {
+		for _, m := range up.Mappings {
 			if _, ok := methodSet[m.RpcPath]; !ok {
-				cancel(fmt.Errorf("rpc method %s not found", m.RpcPath))
+				cancel(fmt.Errorf("%s: rpc method %s not found", up.Name, m.RpcPath))
 				return
 			}
 
@@ -135,6 +140,11 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)
 		}
+
+		st := handler.Status
+		if st.Code() != codes.OK {
+			httpx.Error(w, st.Err())
+		}
 	}
 }
 
@@ -142,8 +152,8 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 	var source grpcurl.DescriptorSource
 	var err error
 
-	if len(up.ProtoSet) > 0 {
-		source, err = grpcurl.DescriptorSourceFromProtoSets(up.ProtoSet)
+	if len(up.ProtoSets) > 0 {
+		source, err = grpcurl.DescriptorSourceFromProtoSets(up.ProtoSets...)
 		if err != nil {
 			return nil, err
 		}
@@ -154,6 +164,19 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 	}
 
 	return source, nil
+}
+
+func (s *Server) ensureUpstreamNames() error {
+	for _, up := range s.upstreams {
+		target, err := up.Grpc.BuildTarget()
+		if err != nil {
+			return err
+		}
+
+		up.Name = target
+	}
+
+	return nil
 }
 
 func (s *Server) prepareMetadata(header http.Header) []string {

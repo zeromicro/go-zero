@@ -1,4 +1,4 @@
-package logic
+package {{.packageName}}
 
 import (
 	"context"

@@ -603,8 +603,9 @@ func TestSetWriter(t *testing.T) {
 	SetWriter(nopWriter{})
 	assert.NotNil(t, writer.Load())
 	assert.True(t, writer.Load() == nopWriter{})
-	SetWriter(new(mockWriter))
-	assert.True(t, writer.Load() == nopWriter{})
+	mocked := new(mockWriter)
+	SetWriter(mocked)
+	assert.Equal(t, mocked, writer.Load())
 }
 
 func TestWithGzip(t *testing.T) {

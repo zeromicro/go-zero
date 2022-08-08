@@ -41,12 +41,12 @@ type keepAliveServer struct {
 	Server
 }
 
-func (ags keepAliveServer) Start(fn RegisterFn) error {
-	if err := ags.registerEtcd(); err != nil {
+func (s keepAliveServer) Start(fn RegisterFn) error {
+	if err := s.registerEtcd(); err != nil {
 		return err
 	}
 
-	return ags.Server.Start(fn)
+	return s.Server.Start(fn)
 }
 
 func figureOutListenOn(listenOn string) string {
