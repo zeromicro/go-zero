@@ -16,7 +16,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/router"
@@ -103,18 +102,6 @@ Port: 54321
 			svr.Stop()
 		}()
 	}
-}
-
-func TestNewServerError(t *testing.T) {
-	_, err := NewServer(RestConf{
-		ServiceConf: service.ServiceConf{
-			Log: logx.LogConf{
-				// file mode, no path specified
-				Mode: "file",
-			},
-		},
-	})
-	assert.NotNil(t, err)
 }
 
 func TestWithMaxBytes(t *testing.T) {
