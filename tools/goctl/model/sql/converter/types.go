@@ -11,7 +11,7 @@ var unsignedTypeMap = map[string]string{
 	"int":   "uint",
 	"int8":  "uint8",
 	"int16": "uint16",
-	"in32t": "uint32",
+	"int32": "uint32",
 	"int64": "uint64",
 }
 
