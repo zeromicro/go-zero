@@ -132,28 +132,28 @@ var commonMysqlDataTypeMapString = map[string]string{
 }
 
 // ConvertDataType converts mysql column type into golang type
-func ConvertDataType(dataBaseType int, isDefaultNull, unsigned bool) (string, error) {
+func ConvertDataType(dataBaseType int, isDefaultNull, unsigned, strict bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMapInt[dataBaseType]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %v", dataBaseType)
 	}
 
-	return mayConvertNullType(tp, isDefaultNull, unsigned), nil
+	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), nil
 }
 
 // ConvertStringDataType converts mysql column type into golang type
-func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned bool) (string, error) {
+func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (string, error) {
 	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
 	}
 
-	return mayConvertNullType(tp, isDefaultNull, unsigned), nil
+	return mayConvertNullType(tp, isDefaultNull, unsigned, strict), nil
 }
 
-func mayConvertNullType(goDataType string, isDefaultNull, unsigned bool) string {
+func mayConvertNullType(goDataType string, isDefaultNull, unsigned, strict bool) string {
 	if !isDefaultNull {
-		if unsigned {
+		if unsigned && strict {
 			ret, ok := unsignedTypeMap[goDataType]
 			if ok {
 				return ret
