@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
@@ -151,6 +152,14 @@ func writeValue(buf *strings.Builder, arg interface{}) {
 	case string:
 		buf.WriteByte('\'')
 		buf.WriteString(escape(v))
+		buf.WriteByte('\'')
+	case time.Time:
+		buf.WriteByte('\'')
+		buf.WriteString(v.String())
+		buf.WriteByte('\'')
+	case *time.Time:
+		buf.WriteByte('\'')
+		buf.WriteString(v.String())
 		buf.WriteByte('\'')
 	default:
 		buf.WriteString(mapping.Repr(v))
