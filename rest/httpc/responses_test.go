@@ -63,3 +63,23 @@ func TestParseNoBody(t *testing.T) {
 	assert.Nil(t, Parse(resp, &val))
 	assert.Equal(t, "bar", val.Foo)
 }
+
+func TestParseWithZeroValue(t *testing.T) {
+	var val struct {
+		Foo int `header:"foo"`
+		Bar int `json:"bar"`
+	}
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("foo", "0")
+		w.Header().Set(header.ContentType, header.JsonContentType)
+		w.Write([]byte(`{"bar":0}`))
+	}))
+	defer svr.Close()
+	req, err := http.NewRequest(http.MethodGet, svr.URL, nil)
+	assert.Nil(t, err)
+	resp, err := DoRequest(req)
+	assert.Nil(t, err)
+	assert.Nil(t, Parse(resp, &val))
+	assert.Equal(t, 0, val.Foo)
+	assert.Equal(t, 0, val.Bar)
+}
