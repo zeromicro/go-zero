@@ -178,6 +178,47 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
+func TestDisableLog(t *testing.T) {
+	assert.True(t, logSql.True())
+	assert.True(t, logSlowSql.True())
+	defer func() {
+		logSql.Set(true)
+		logSlowSql.Set(true)
+	}()
+
+	DisableLog()
+	assert.False(t, logSql.True())
+	assert.False(t, logSlowSql.True())
+}
+
+func TestDisableStmtLog(t *testing.T) {
+	assert.True(t, logSql.True())
+	assert.True(t, logSlowSql.True())
+	defer func() {
+		logSql.Set(true)
+		logSlowSql.Set(true)
+	}()
+
+	DisableStmtLog()
+	assert.False(t, logSql.True())
+	assert.True(t, logSlowSql.True())
+}
+
+func TestNilGuard(t *testing.T) {
+	assert.True(t, logSql.True())
+	assert.True(t, logSlowSql.True())
+	defer func() {
+		logSql.Set(true)
+		logSlowSql.Set(true)
+	}()
+
+	DisableLog()
+	guard := newGuard("any")
+	assert.Nil(t, guard.start("foo", "bar"))
+	guard.finish(context.Background(), nil)
+	assert.Equal(t, nilGuard{}, guard)
+}
+
 type mockedSessionConn struct {
 	lastInsertId int64
 	rowsAffected int64
