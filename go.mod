@@ -55,5 +55,8 @@ require (
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/net v0.0.0-20220531201128-c960675eff93 // indirect
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
+	gorm.io/driver/mysql v1.3.6
+	gorm.io/driver/postgres v1.3.9
+	gorm.io/gorm v1.23.8
 	k8s.io/klog/v2 v2.40.1 // indirect
 )
