@@ -1,6 +1,7 @@
 package gorm
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -30,7 +31,7 @@ func (g GORMConf) PostgresDSN() string {
 		g.Dbname, g.Port, g.Config)
 }
 
-func (g GORMConf) NewGORM() *gorm.DB {
+func (g GORMConf) NewGORM() (*gorm.DB, error) {
 	switch g.Type {
 	case "mysql":
 		return GormMysql(g)
@@ -41,9 +42,9 @@ func (g GORMConf) NewGORM() *gorm.DB {
 	}
 }
 
-func GormMysql(c GORMConf) *gorm.DB {
+func GormMysql(c GORMConf) (*gorm.DB, error) {
 	if c.Dbname == "" {
-		return nil
+		return nil, errors.New("database name cannot be nil")
 	}
 	mysqlConfig := mysql.Config{
 		DSN:                       c.MysqlDSN(),
@@ -54,29 +55,29 @@ func GormMysql(c GORMConf) *gorm.DB {
 		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
 	}
 	if db, err := gorm.Open(mysql.New(mysqlConfig), &gorm.Config{}); err != nil {
-		return nil
+		return nil, err
 	} else {
 		sqlDB, _ := db.DB()
 		sqlDB.SetMaxIdleConns(c.MaxIdleConn)
 		sqlDB.SetMaxOpenConns(c.MaxOpenConn)
-		return db
+		return db, nil
 	}
 }
 
-func GormPgSql(c GORMConf) *gorm.DB {
+func GormPgSql(c GORMConf) (*gorm.DB, error) {
 	if c.Dbname == "" {
-		return nil
+		return nil, errors.New("database name cannot be nil")
 	}
 	pgsqlConfig := postgres.Config{
 		DSN:                  c.PostgresDSN(),
 		PreferSimpleProtocol: false, // disables implicit prepared statement usage
 	}
 	if db, err := gorm.Open(postgres.New(pgsqlConfig), &gorm.Config{}); err != nil {
-		return nil
+		return nil, err
 	} else {
 		sqlDB, _ := db.DB()
 		sqlDB.SetMaxIdleConns(c.MaxIdleConn)
 		sqlDB.SetMaxOpenConns(c.MaxOpenConn)
-		return db
+		return db, nil
 	}
 }
