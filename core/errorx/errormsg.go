@@ -71,6 +71,11 @@ const (
 	// ZH_CN: 失败
 	Failed string = "common.failed"
 
+	// InitRunning
+	// EN: The initialization is running...
+	// ZH_CN: 正在初始化...
+	InitRunning string = "sys.init.initializeIsRunning"
+
 	// AlreadyInit
 	// EN: The database had been initialized
 	// ZH_CN: 数据库已被初始化
