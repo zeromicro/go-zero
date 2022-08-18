@@ -15,37 +15,38 @@ var unsignedTypeMap = map[string]string{
 	"int64": "uint64",
 }
 
+// Inspired by https://github.com/go-sql-driver/mysql/blob/master/fields.go#L140
 var commonMysqlDataTypeMapInt = map[int]string{
 	// For consistency, all integer types are converted to int64
 	// number
-	parser.Bit:       "byte",
-	parser.TinyInt:   "int64",
-	parser.SmallInt:  "int64",
-	parser.MediumInt: "int64",
-	parser.Int:       "int64",
-	parser.MiddleInt: "int64",
-	parser.Int1:      "int64",
-	parser.Int2:      "int64",
-	parser.Int3:      "int64",
-	parser.Int4:      "int64",
+	parser.Bit:       "sql.RawBytes",
+	parser.TinyInt:   "int8",
+	parser.SmallInt:  "int16",
+	parser.MediumInt: "int32",
+	parser.Int:       "int32",
+	parser.MiddleInt: "int32",
+	parser.Int1:      "int8",
+	parser.Int2:      "int16",
+	parser.Int3:      "int32",
+	parser.Int4:      "int32",
 	parser.Int8:      "int64",
-	parser.Integer:   "int64",
+	parser.Integer:   "int32",
 	parser.BigInt:    "int64",
-	parser.Float:     "float64",
-	parser.Float4:    "float64",
+	parser.Float:     "float32",
+	parser.Float4:    "float32",
 	parser.Float8:    "float64",
 	parser.Double:    "float64",
-	parser.Decimal:   "float64",
-	parser.Dec:       "float64",
-	parser.Fixed:     "float64",
-	parser.Numeric:   "float64",
-	parser.Real:      "float64",
+	parser.Decimal:   "sql.RawBytes",
+	parser.Dec:       "sql.RawBytes",
+	parser.Fixed:     "sql.RawBytes",
+	parser.Numeric:   "sql.RawBytes",
+	parser.Real:      "sql.RawBytes",
 	// date&time
 	parser.Date:      "time.Time",
 	parser.DateTime:  "time.Time",
 	parser.Timestamp: "time.Time",
-	parser.Time:      "string",
-	parser.Year:      "int64",
+	parser.Time:      "sql.RawBytes",
+	parser.Year:      "int16",
 	// string
 	parser.Char:            "string",
 	parser.VarChar:         "string",
@@ -57,54 +58,55 @@ var commonMysqlDataTypeMapInt = map[int]string{
 	parser.MultiLineString: "string",
 	parser.Binary:          "string",
 	parser.VarBinary:       "string",
-	parser.TinyText:        "string",
-	parser.Text:            "string",
-	parser.MediumText:      "string",
-	parser.LongText:        "string",
-	parser.Enum:            "string",
-	parser.Set:             "string",
-	parser.Json:            "string",
-	parser.Blob:            "string",
-	parser.LongBlob:        "string",
-	parser.MediumBlob:      "string",
-	parser.TinyBlob:        "string",
+	parser.TinyText:        "sql.RawBytes",
+	parser.Text:            "sql.RawBytes",
+	parser.MediumText:      "sql.RawBytes",
+	parser.LongText:        "sql.RawBytes",
+	parser.Enum:            "sql.RawBytes",
+	parser.Set:             "sql.RawBytes",
+	parser.Json:            "sql.RawBytes",
+	parser.Blob:            "sql.RawBytes",
+	parser.LongBlob:        "sql.RawBytes",
+	parser.MediumBlob:      "sql.RawBytes",
+	parser.TinyBlob:        "sql.RawBytes",
 	// bool
 	parser.Bool:    "bool",
 	parser.Boolean: "bool",
 }
 
+// Inspired by https://github.com/go-sql-driver/mysql/blob/master/fields.go#L140
 var commonMysqlDataTypeMapString = map[string]string{
 	// For consistency, all integer types are converted to int64
 	// bool
 	"bool":    "bool",
 	"boolean": "bool",
 	// number
-	"tinyint":   "int64",
-	"smallint":  "int64",
-	"mediumint": "int64",
-	"int":       "int64",
-	"int1":      "int64",
-	"int2":      "int64",
-	"int3":      "int64",
-	"int4":      "int64",
+	"tinyint":   "int8",
+	"smallint":  "int16",
+	"mediumint": "int32",
+	"int":       "int32",
+	"int1":      "int8",
+	"int2":      "int16",
+	"int3":      "int32",
+	"int4":      "int32",
 	"int8":      "int64",
-	"integer":   "int64",
+	"integer":   "int32",
 	"bigint":    "int64",
-	"float":     "float64",
-	"float4":    "float64",
+	"float":     "float32",
+	"float4":    "float32",
 	"float8":    "float64",
 	"double":    "float64",
-	"decimal":   "float64",
-	"dec":       "float64",
-	"fixed":     "float64",
-	"real":      "float64",
-	"bit":       "byte",
+	"decimal":   "sql.RawBytes",
+	"dec":       "sql.RawBytes",
+	"fixed":     "sql.RawBytes",
+	"real":      "sql.RawBytes",
+	"bit":       "sql.RawBytes",
 	// date & time
 	"date":      "time.Time",
 	"datetime":  "time.Time",
 	"timestamp": "time.Time",
-	"time":      "string",
-	"year":      "int64",
+	"time":      "sql.RawBytes",
+	"year":      "int16",
 	// string
 	"linestring":      "string",
 	"multilinestring": "string",
@@ -117,18 +119,18 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"bytea":           "string",
 	"longvarbinary":   "string",
 	"varbinary":       "string",
-	"tinytext":        "string",
-	"text":            "string",
-	"mediumtext":      "string",
-	"longtext":        "string",
-	"enum":            "string",
-	"set":             "string",
-	"json":            "string",
-	"jsonb":           "string",
-	"blob":            "string",
-	"longblob":        "string",
-	"mediumblob":      "string",
-	"tinyblob":        "string",
+	"tinytext":        "sql.RawBytes",
+	"text":            "sql.RawBytes",
+	"mediumtext":      "sql.RawBytes",
+	"longtext":        "sql.RawBytes",
+	"enum":            "sql.RawBytes",
+	"set":             "sql.RawBytes",
+	"json":            "sql.RawBytes",
+	"jsonb":           "sql.RawBytes",
+	"blob":            "sql.RawBytes",
+	"longblob":        "sql.RawBytes",
+	"mediumblob":      "sql.RawBytes",
+	"tinyblob":        "sql.RawBytes",
 }
 
 // ConvertDataType converts mysql column type into golang type
@@ -163,11 +165,10 @@ func mayConvertNullType(goDataType string, isDefaultNull, unsigned bool) string 
 	}
 
 	switch goDataType {
-	case "int64":
+	case "int8", "int16", "int32", "int64",
+		"uint8", "uint16", "uint32", "uint64":
 		return "sql.NullInt64"
-	case "int32":
-		return "sql.NullInt32"
-	case "float64":
+	case "float32", "float64":
 		return "sql.NullFloat64"
 	case "bool":
 		return "sql.NullBool"
