@@ -292,7 +292,7 @@ func writeJson(writer io.Writer, info interface{}) {
 	} else if writer == nil {
 		log.Println(string(content))
 	} else {
-		_, _ = writer.Write(append(content, '\n'))
+		writer.Write(append(content, '\n'))
 	}
 }
 
