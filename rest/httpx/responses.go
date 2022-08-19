@@ -52,10 +52,11 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 			// don't unwrap error and get status.Message(),
 			// it hides the rpc error headers.
 			WriteJson(w, errcode.CodeFromGrpcError(err), &SimpleMsg{Msg: status.Convert(err).Message()})
-		} else {
+		} else if _, ok := err.(*ApiError); ok {
 			WriteJson(w, err.(*ApiError).Code, &SimpleMsg{Msg: err.(*ApiError).Msg})
+		} else {
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-
 		return
 	}
 
