@@ -74,6 +74,11 @@ func writeType(writer io.Writer, tp spec.Type) error {
 		return fmt.Errorf("unspport struct type: %s", tp.Name())
 	}
 
+	// write doc for swagger
+	for _, v := range structType.Documents() {
+		fmt.Fprintf(writer, "\t%s\n", v)
+	}
+
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
 	for _, member := range structType.Members {
 		if member.IsInline {

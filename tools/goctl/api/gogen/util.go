@@ -58,6 +58,11 @@ func genFile(c fileGenConfig) error {
 }
 
 func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+	// write doc for swagger
+	for _, v := range tp.Documents() {
+		fmt.Fprintf(writer, "\t%s\n", v)
+	}
+
 	util.WriteIndent(writer, indent)
 	var err error
 	if len(comment) > 0 {

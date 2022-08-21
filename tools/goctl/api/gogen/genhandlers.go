@@ -23,6 +23,7 @@ type handlerInfo struct {
 	PkgName            string
 	ImportPackages     string
 	ImportHttpxPackage string
+	HandlerDoc         string
 	HandlerName        string
 	RequestType        string
 	LogicName          string
@@ -46,9 +47,17 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		return err
 	}
 
+	// write doc for swagger
+	var handlerDoc *strings.Builder
+	handlerDoc = &strings.Builder{}
+	for _, v := range route.HandlerDoc {
+		handlerDoc.WriteString(fmt.Sprintf("%s\n", v))
+	}
+
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, parentPkg),
+		HandlerDoc:     handlerDoc.String(),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
