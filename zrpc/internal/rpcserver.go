@@ -15,8 +15,8 @@ type (
 	ServerOption func(options *rpcServerOptions)
 
 	rpcServerOptions struct {
-		metrics      *stat.Metrics
-		healthSwitch bool
+		metrics *stat.Metrics
+		health  bool
 	}
 
 	rpcServer struct {
@@ -101,8 +101,8 @@ func WithMetrics(metrics *stat.Metrics) ServerOption {
 }
 
 // WithRpcHealth returns a func that sets rpc health switch to a Server.
-func WithRpcHealth(healthSwitch bool) ServerOption {
+func WithRpcHealth(health bool) ServerOption {
 	return func(options *rpcServerOptions) {
-		options.healthSwitch = healthSwitch
+		options.health = health
 	}
 }

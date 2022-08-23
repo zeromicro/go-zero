@@ -36,7 +36,7 @@ type (
 
 func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcServer {
 	var h *health.Server
-	if rpcServerOpts.healthSwitch {
+	if rpcServerOpts.health {
 		h = health.NewServer()
 	}
 	return &baseRpcServer{
