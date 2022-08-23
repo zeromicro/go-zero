@@ -63,15 +63,15 @@ func (w *atomicWriter) Load() Writer {
 
 func (w *atomicWriter) Store(v Writer) {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	w.writer = v
-	w.lock.Unlock()
 }
 
 func (w *atomicWriter) Swap(v Writer) Writer {
 	w.lock.Lock()
+	defer w.lock.Unlock()
 	old := w.writer
 	w.writer = v
-	w.lock.Unlock()
 	return old
 }
 
@@ -109,6 +109,14 @@ func newFileWriter(c LogConf) (Writer, error) {
 	if c.KeepDays > 0 {
 		opts = append(opts, WithKeepDays(c.KeepDays))
 	}
+	if c.MaxBackups > 0 {
+		opts = append(opts, WithMaxBackups(c.MaxBackups))
+	}
+	if c.MaxSize > 0 {
+		opts = append(opts, WithMaxSize(c.MaxSize))
+	}
+
+	opts = append(opts, WithRotation(c.Rotation))
 
 	accessFile := path.Join(c.Path, accessFilename)
 	errorFile := path.Join(c.Path, errorFilename)
@@ -299,29 +307,7 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 	case fmt.Stringer:
 		writePlainText(writer, level, v.String(), fields...)
 	default:
-		var buf strings.Builder
-		buf.WriteString(getTimestamp())
-		buf.WriteByte(plainEncodingSep)
-		buf.WriteString(level)
-		buf.WriteByte(plainEncodingSep)
-		if err := json.NewEncoder(&buf).Encode(val); err != nil {
-			log.Println(err.Error())
-			return
-		}
-
-		for _, item := range fields {
-			buf.WriteByte(plainEncodingSep)
-			buf.WriteString(item)
-		}
-		buf.WriteByte('\n')
-		if writer == nil {
-			log.Println(buf.String())
-			return
-		}
-
-		if _, err := fmt.Fprint(writer, buf.String()); err != nil {
-			log.Println(err.Error())
-		}
+		writePlainValue(writer, level, v, fields...)
 	}
 }
 
@@ -332,6 +318,32 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	buf.WriteString(level)
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(msg)
+	for _, item := range fields {
+		buf.WriteByte(plainEncodingSep)
+		buf.WriteString(item)
+	}
+	buf.WriteByte('\n')
+	if writer == nil {
+		log.Println(buf.String())
+		return
+	}
+
+	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
+		log.Println(err.Error())
+	}
+}
+
+func writePlainValue(writer io.Writer, level string, val interface{}, fields ...string) {
+	var buf strings.Builder
+	buf.WriteString(getTimestamp())
+	buf.WriteByte(plainEncodingSep)
+	buf.WriteString(level)
+	buf.WriteByte(plainEncodingSep)
+	if err := json.NewEncoder(&buf).Encode(val); err != nil {
+		log.Println(err.Error())
+		return
+	}
+
 	for _, item := range fields {
 		buf.WriteByte(plainEncodingSep)
 		buf.WriteString(item)

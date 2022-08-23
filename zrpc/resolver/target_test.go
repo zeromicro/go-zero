@@ -13,5 +13,5 @@ func TestBuildDirectTarget(t *testing.T) {
 
 func TestBuildDiscovTarget(t *testing.T) {
 	target := BuildDiscovTarget([]string{"localhost:123", "localhost:456"}, "foo")
-	assert.Equal(t, "discov://localhost:123,localhost:456/foo", target)
+	assert.Equal(t, "etcd://localhost:123,localhost:456/foo", target)
 }
