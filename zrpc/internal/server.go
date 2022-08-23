@@ -3,10 +3,11 @@ package internal
 import (
 	"time"
 
-	"github.com/zeromicro/go-zero/core/stat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/keepalive"
+
+	"github.com/zeromicro/go-zero/core/stat"
 )
 
 const defaultConnectionIdleDuration = time.Minute * 5
@@ -35,9 +36,13 @@ type (
 )
 
 func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcServer {
+	var h *health.Server
+	if rpcServerOpts.healthSwitch {
+		h = health.NewServer()
+	}
 	return &baseRpcServer{
 		address: address,
-		health:  health.NewServer(),
+		health:  h,
 		metrics: rpcServerOpts.metrics,
 		options: []grpc.ServerOption{grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: defaultConnectionIdleDuration,

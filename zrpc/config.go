@@ -19,6 +19,8 @@ type (
 		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		// grpc health check switch
+		HealthSwitch bool `json:",default=false"`
 	}
 
 	// A RpcClientConf is a rpc client config.
