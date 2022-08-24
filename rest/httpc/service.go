@@ -1,7 +1,9 @@
 package httpc
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/core/breaker"
@@ -10,6 +12,8 @@ import (
 type (
 	// Option is used to customize the *http.Client.
 	Option func(r *http.Request) *http.Request
+	// RetryFunc return true will retry the request.
+	RetryFunc func(resp *http.Response, err error) bool
 
 	// Service represents a remote HTTP service.
 	Service interface {
@@ -17,6 +21,8 @@ type (
 		Do(ctx context.Context, method, url string, data interface{}) (*http.Response, error)
 		// DoRequest sends a HTTP request to the service.
 		DoRequest(r *http.Request) (*http.Response, error)
+		// DoRequestWithRetry sends an HTTP request to the service with retry fucntion.
+		DoRequestWithRetry(r *http.Request, retryFunc RetryFunc, retryTimes int) (*http.Response, error)
 	}
 
 	namedService struct {
@@ -57,6 +63,20 @@ func (s namedService) DoRequest(r *http.Request) (*http.Response, error) {
 	return request(r, s)
 }
 
+// DoRequestWithRetry sends an HTTP request to the service with retry function.
+func (s namedService) DoRequestWithRetry(r *http.Request, retryFunc RetryFunc, retryTimes int) (resp *http.Response, err error) {
+	if retryTimes <= 0 {
+		retryTimes = 3
+	}
+	for i := 0; i < retryTimes+1; i++ {
+		resp, err = request(cloneReq(r), s)
+		if !retryFunc(cloneResp(resp), err) {
+			break
+		}
+	}
+	return resp, err
+}
+
 func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
 	for _, opt := range s.opts {
 		r = opt(r)
@@ -71,4 +91,32 @@ func (s namedService) do(r *http.Request) (resp *http.Response, err error) {
 	})
 
 	return
+}
+
+func cloneReq(req *http.Request) *http.Request {
+	if req == nil {
+		return nil
+	} else if req.Body == nil {
+		return req
+	}
+	r := *req
+	var b bytes.Buffer
+	b.ReadFrom(req.Body)
+	req.Body = io.NopCloser(&b)
+	r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
+	return &r
+}
+
+func cloneResp(resp *http.Response) *http.Response {
+	if resp == nil {
+		return nil
+	} else if resp.Body == nil {
+		return resp
+	}
+	r := *resp
+	var b bytes.Buffer
+	b.ReadFrom(resp.Body)
+	resp.Body = io.NopCloser(&b)
+	r.Body = io.NopCloser(bytes.NewReader(b.Bytes()))
+	return &r
 }
