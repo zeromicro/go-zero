@@ -18,42 +18,11 @@ const (
 var (
 	preSystem uint64
 	preTotal  uint64
-	quota     float64
-	cores     uint64
 )
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func init() {
-	cpus, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	cores = uint64(len(cpus))
-	sets, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
-
-	quota = float64(len(sets))
-	cq, err := cpuQuota()
-	if err == nil {
-		if cq != -1 {
-			period, err := cpuPeriod()
-			if err != nil {
-				logx.Error(err)
-				return
-			}
-
-			limit := float64(cq) / float64(period)
-			if limit < quota {
-				quota = limit
-			}
-		}
-	}
-
+	var err error
 	preSystem, err = systemCpuUsage()
 	if err != nil {
 		logx.Error(err)
@@ -82,39 +51,12 @@ func RefreshCpu() uint64 {
 	cpuDelta := total - preTotal
 	systemDelta := system - preSystem
 	if cpuDelta > 0 && systemDelta > 0 {
-		usage = uint64(float64(cpuDelta*cores*1e3) / (float64(systemDelta) * quota))
+		usage = uint64(float64(cpuDelta*1e3) / float64(systemDelta))
 	}
 	preSystem = system
 	preTotal = total
 
 	return usage
-}
-
-func cpuQuota() (int64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return 0, err
-	}
-
-	return cg.cpuQuotaUs()
-}
-
-func cpuPeriod() (uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return 0, err
-	}
-
-	return cg.cpuPeriodUs()
-}
-
-func cpuSets() ([]uint64, error) {
-	cg, err := currentCgroup()
-	if err != nil {
-		return nil, err
-	}
-
-	return cg.cpus()
 }
 
 func systemCpuUsage() (uint64, error) {
