@@ -21,9 +21,8 @@ var (
 	preTotal  uint64
 	quota     float64
 	cores     uint64
+	initOnce  sync.Once
 )
-
-var initonce sync.Once
 
 // if /proc not present, ignore the cpu calculation, like wsl linux
 func initialize() {
@@ -72,11 +71,13 @@ func initialize() {
 
 // RefreshCpu refreshes cpu usage and returns.
 func RefreshCpu() uint64 {
-	initonce.Do(initialize)
+	initOnce.Do(initialize)
+
 	total, err := totalCpuUsage()
 	if err != nil {
 		return 0
 	}
+
 	system, err := systemCpuUsage()
 	if err != nil {
 		return 0
