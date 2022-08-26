@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
 
+	fatihcolor "github.com/fatih/color"
 	"github.com/zeromicro/go-zero/core/color"
 )
 
@@ -76,8 +76,8 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 }
 
 func newConsoleWriter() Writer {
-	outLog := newLogWriter(log.New(os.Stdout, "", flags))
-	errLog := newLogWriter(log.New(os.Stderr, "", flags))
+	outLog := newLogWriter(log.New(fatihcolor.Output, "", flags))
+	errLog := newLogWriter(log.New(fatihcolor.Error, "", flags))
 	return &concreteWriter{
 		infoLog:   outLog,
 		errorLog:  errLog,
