@@ -27,6 +27,11 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		filename = strings.ReplaceAll(filename, "-api", "")
 	}
 
+	// system info for swagger
+	systemInfo := "//  System Name\n//\n//  Description ...\n//\n//  Schemes: http, https\n" +
+		"//  Host: localhost\n//  BasePath: /api\n//  Version: 0.0.1\n//  Contact: xxx@gmail.com\n" +
+		"//\n//  Consumes:\n//    - application/json\n//\n//  Produces:\n//    - application/json\n//\n// swagger:meta"
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          "",
@@ -38,6 +43,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]string{
 			"importPackages": genMainImports(rootPkg),
 			"serviceName":    configName,
+			"systemInfo":     systemInfo,
 		},
 	})
 }

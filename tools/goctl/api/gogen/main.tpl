@@ -1,3 +1,4 @@
+{{.systemInfo}}
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 )
 
 var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
+
 
 func main() {
 	flag.Parse()
