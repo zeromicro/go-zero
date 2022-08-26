@@ -57,9 +57,9 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
 	// write doc for swagger
-	for _, v := range tp.Documents() {
+	for _, v := range doc {
 		fmt.Fprintf(writer, "\t%s\n", v)
 	}
 
