@@ -8,6 +8,7 @@ import (
 const (
 	colon = ':'
 	slash = '/'
+	any   = '*'
 )
 
 var (
@@ -103,6 +104,10 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 
 		token := route[:i]
 		return n.forEach(func(k string, v *node) bool {
+			if []rune(k)[0] == any {
+				result.Item = v.item
+				return true
+			}
 			r := match(k, token)
 			if !r.found || !t.next(v, route[i+1:], result) {
 				return false
@@ -110,7 +115,6 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 			if r.named {
 				addParam(result, r.key, r.value)
 			}
-
 			return true
 		})
 	}
@@ -124,7 +128,10 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 
 			return true
 		}
-
+		if []rune(k)[0] == any {
+			result.Item = v.item
+			return true
+		}
 		return false
 	})
 }
