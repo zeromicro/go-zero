@@ -97,6 +97,48 @@ func TestNamingModel(t *testing.T) {
 	}())
 }
 
+func TestFolderName(t *testing.T) {
+	logx.Disable()
+	_ = Clean()
+
+	sqlFile := filepath.Join(pathx.MustTempDir(), "tmp.sql")
+	err := ioutil.WriteFile(sqlFile, []byte(source), 0o777)
+	assert.Nil(t, err)
+
+	dir, _ := filepath.Abs("./testmodel")
+	camelDir := filepath.Join(dir, "go-camel")
+	snakeDir := filepath.Join(dir, "go-snake")
+	defer func() {
+		_ = os.RemoveAll(dir)
+	}()
+	g, err := NewDefaultGenerator(camelDir, &config.Config{
+		NamingFormat: "GoZero",
+	})
+	assert.Nil(t, err)
+
+	pkg := g.pkg
+
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	assert.Nil(t, err)
+	assert.True(t, func() bool {
+		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
+		return err == nil
+	}())
+	assert.Equal(t, pkg, g.pkg)
+
+	g, err = NewDefaultGenerator(snakeDir, &config.Config{
+		NamingFormat: "go_zero",
+	})
+	assert.Nil(t, err)
+
+	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	assert.Nil(t, err)
+	assert.True(t, func() bool {
+		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))
+		return err == nil
+	}())
+}
+
 func TestWrapWithRawString(t *testing.T) {
 	assert.Equal(t, "``", wrapWithRawString("", false))
 	assert.Equal(t, "``", wrapWithRawString("``", false))
