@@ -144,7 +144,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	}
 
 	g.dir = dirAbs
-	g.pkg = filepath.Base(dirAbs)
+	g.pkg = util.SafeString(filepath.Base(dirAbs))
 	err = pathx.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
