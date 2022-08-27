@@ -599,6 +599,7 @@ func TestDisableStat(t *testing.T) {
 }
 
 func TestSetWriter(t *testing.T) {
+	atomic.StoreUint32(&disableLog, 0)
 	Reset()
 	SetWriter(nopWriter{})
 	assert.NotNil(t, writer.Load())
