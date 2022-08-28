@@ -67,6 +67,17 @@ func (w *atomicWriter) Store(v Writer) {
 	w.writer = v
 }
 
+func (w *atomicWriter) StoreIfNil(v Writer) Writer {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
+	if w.writer == nil {
+		w.writer = v
+	}
+
+	return w.writer
+}
+
 func (w *atomicWriter) Swap(v Writer) Writer {
 	w.lock.Lock()
 	defer w.lock.Unlock()
