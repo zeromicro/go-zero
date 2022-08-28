@@ -273,12 +273,36 @@ func TestMarshal_RangeIllegal(t *testing.T) {
 		}{
 			Int: 2,
 		},
+		struct {
+			Int int `json:"int,range=(2:2]"`
+		}{
+			Int: 2,
+		},
+		struct {
+			Int int `json:"int,range=(2:2)"`
+		}{
+			Int: 2,
+		},
+		struct {
+			Int int `json:"int,range=[2:2)"`
+		}{
+			Int: 2,
+		},
 	}
 
 	for _, test := range tests {
 		_, err := Marshal(test)
-		assert.Equal(t, err, errNumberRange)
+		assert.Equal(t, errNumberRange, err)
 	}
+
+	valid := struct {
+		Int int `json:"int,range=[2:2]"`
+	}{
+		Int: 2,
+	}
+	_, err := Marshal(valid)
+	assert.Equal(t, nil, err)
+
 }
 
 func TestMarshal_FromString(t *testing.T) {
