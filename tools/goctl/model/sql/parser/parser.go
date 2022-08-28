@@ -77,29 +77,34 @@ func Parse(filename, database string) ([]*Table, error) {
 	var list []*Table
 	for indexTable, e := range tables {
 		var (
-			primaryColumn    string
-			primaryColumnSet = collection.NewSet()
-			uniqueKeyMap     = make(map[string][]string)
-			normalKeyMap     = make(map[string][]string)
-			columns          = e.Columns
+			primaryColumn string
+			uniqueKeyMap  = make(map[string][]string)
+			normalKeyMap  = make(map[string][]string)
+			columns       = e.Columns
 		)
 
 		for _, column := range columns {
-			if column.Constraint != nil {
-				if column.Constraint.Primary {
-					primaryColumnSet.AddStr(column.Name)
-				}
-
-				if column.Constraint.Unique {
-					indexName := indexNameGen(column.Name, "unique")
-					uniqueKeyMap[indexName] = []string{column.Name}
-				}
-
-				if column.Constraint.Key {
-					indexName := indexNameGen(column.Name, "idx")
-					uniqueKeyMap[indexName] = []string{column.Name}
-				}
+			if column.Constraint == nil {
+				continue
 			}
+
+			if column.Constraint.Primary {
+				if primaryColumn != "" {
+					return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
+				}
+				primaryColumn = column.Name
+			}
+
+			if column.Constraint.Unique {
+				indexName := indexNameGen(column.Name, "unique")
+				uniqueKeyMap[indexName] = []string{column.Name}
+			}
+
+			if column.Constraint.Key {
+				indexName := indexNameGen(column.Name, "idx")
+				uniqueKeyMap[indexName] = []string{column.Name}
+			}
+
 		}
 
 		for _, e := range e.Constraints {
@@ -108,8 +113,10 @@ func Parse(filename, database string) ([]*Table, error) {
 			}
 
 			if len(e.ColumnPrimaryKey) == 1 {
+				if primaryColumn != "" {
+					return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
+				}
 				primaryColumn = e.ColumnPrimaryKey[0]
-				primaryColumnSet.AddStr(e.ColumnPrimaryKey[0])
 			}
 
 			if len(e.ColumnUniqueKey) > 0 {
@@ -118,10 +125,6 @@ func Parse(filename, database string) ([]*Table, error) {
 				indexName := indexNameGen(list...)
 				uniqueKeyMap[indexName] = e.ColumnUniqueKey
 			}
-		}
-
-		if primaryColumnSet.Count() > 1 {
-			return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
 		}
 
 		primaryKey, fieldM, err := convertColumns(columns, primaryColumn)
