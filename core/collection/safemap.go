@@ -94,3 +94,31 @@ func (m *SafeMap) Size() int {
 	m.lock.RUnlock()
 	return size
 }
+
+// Range calls f sequentially for each key and value present in the map.
+// If f returns false, range stops the iteration.
+// Range m .
+func (m *SafeMap) Range(f func(key, value interface{}) bool) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		for k, v := range m.dirtyOld {
+			if !f(k, v) {
+				break
+			}
+		}
+		wg.Done()
+	}()
+	go func() {
+		for k, v := range m.dirtyNew {
+			if !f(k, v) {
+				break
+			}
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
