@@ -20,10 +20,6 @@ import (
 
 var errDummy = errors.New("dummy")
 
-func init() {
-	logx.Disable()
-}
-
 func TestKeepPromise_accept(t *testing.T) {
 	p := new(mockPromise)
 	kp := keepablePromise{
