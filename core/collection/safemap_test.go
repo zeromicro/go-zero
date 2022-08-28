@@ -1,7 +1,7 @@
 package collection
 
 import (
-	"go.uber.org/atomic"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -115,8 +115,9 @@ func TestSafeMap_Range(t *testing.T) {
 		exception1 = 5
 		exception2 = 500
 	)
+
 	m := NewSafeMap()
-	m_new := NewSafeMap()
+	newMap := NewSafeMap()
 
 	for i := 0; i < size; i++ {
 		m.Set(i, i)
@@ -136,14 +137,13 @@ func TestSafeMap_Range(t *testing.T) {
 		}
 	}
 
-	count := atomic.Int32{}
+	var count int32
 	m.Range(func(k, v interface{}) bool {
-		count.Add(1)
-		m_new.Set(k, v)
+		atomic.AddInt32(&count, 1)
+		newMap.Set(k, v)
 		return true
 	})
-	assert.Equal(t, int(count.Load()), m.Size())
-	assert.Equal(t, m.dirtyNew, m_new.dirtyNew)
-	assert.Equal(t, m.dirtyOld, m_new.dirtyOld)
-
+	assert.Equal(t, int(atomic.LoadInt32(&count)), m.Size())
+	assert.Equal(t, m.dirtyNew, newMap.dirtyNew)
+	assert.Equal(t, m.dirtyOld, newMap.dirtyOld)
 }
