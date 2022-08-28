@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
+
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/builderx"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
@@ -40,7 +41,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	err = g.StartFromDDL(sqlFile, true, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(cacheDir, "TestUserModel.go"))
@@ -51,7 +52,7 @@ func TestCacheModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, false, "go_zero")
+	err = g.StartFromDDL(sqlFile, false, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(noCacheDir, "testusermodel.go"))
@@ -78,7 +79,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	err = g.StartFromDDL(sqlFile, true, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
@@ -89,7 +90,7 @@ func TestNamingModel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	err = g.StartFromDDL(sqlFile, true, false, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))
@@ -186,7 +187,7 @@ func Test_genPublicModel(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	tables, err := parser.Parse(modelFilename, "")
+	tables, err := parser.Parse(modelFilename, "", false)
 	require.Equal(t, 1, len(tables))
 
 	code, err := g.genModelCustom(*tables[0], false)
