@@ -281,6 +281,58 @@ func TestMarshal_RangeIllegal(t *testing.T) {
 	}
 }
 
+func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
+	tests := []struct {
+		name  string
+		value interface{}
+		err   error
+	}{
+		{
+			name: "left inclusive, right inclusive",
+			value: struct {
+				Int int `json:"int,range=[2:2]"`
+			}{
+				Int: 2,
+			},
+		},
+		{
+			name: "left inclusive, right exclusive",
+			value: struct {
+				Int int `json:"int,range=[2:2)"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+		{
+			name: "left exclusive, right inclusive",
+			value: struct {
+				Int int `json:"int,range=(2:2]"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+		{
+			name: "left exclusive, right exclusive",
+			value: struct {
+				Int int `json:"int,range=(2:2)"`
+			}{
+				Int: 2,
+			},
+			err: errNumberRange,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			_, err := Marshal(test.value)
+			assert.Equal(t, test.err, err)
+		})
+	}
+}
+
 func TestMarshal_FromString(t *testing.T) {
 	v := struct {
 		Age int `json:"age,string"`
