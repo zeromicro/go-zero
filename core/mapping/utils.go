@@ -311,6 +311,10 @@ func parseNumberRange(str string) (*numberRange, error) {
 		right = math.MaxFloat64
 	}
 
+	if left >= right {
+		return nil, errNumberRange
+	}
+
 	return &numberRange{
 		left:         left,
 		leftInclude:  leftInclude,

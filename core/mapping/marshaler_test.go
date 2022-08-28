@@ -261,6 +261,26 @@ func TestMarshal_RangeOut(t *testing.T) {
 	}
 }
 
+func TestMarshal_RangeIllegal(t *testing.T) {
+	tests := []interface{}{
+		struct {
+			Int int `json:"int,range=[3:1]"`
+		}{
+			Int: 2,
+		},
+		struct {
+			Int int `json:"int,range=(3:1]"`
+		}{
+			Int: 2,
+		},
+	}
+
+	for _, test := range tests {
+		_, err := Marshal(test)
+		assert.Equal(t, err, errNumberRange)
+	}
+}
+
 func TestMarshal_FromString(t *testing.T) {
 	v := struct {
 		Age int `json:"age,string"`
