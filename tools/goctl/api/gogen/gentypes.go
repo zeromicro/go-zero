@@ -21,7 +21,7 @@ const typesFile = "types"
 var typesTemplate string
 
 // BuildTypes gen types to string
-func BuildTypes(types []spec.Type) (string, error) {
+func BuildTypes(types []spec.Type, api *spec.ApiSpec) (string, error) {
 	var builder strings.Builder
 	first := true
 	for _, tp := range types {
@@ -30,7 +30,7 @@ func BuildTypes(types []spec.Type) (string, error) {
 		} else {
 			builder.WriteString("\n\n")
 		}
-		if err := writeType(&builder, tp); err != nil {
+		if err := writeType(&builder, tp, api); err != nil {
 			return "", apiutil.WrapErr(err, "Type "+tp.Name()+" generate error")
 		}
 	}
@@ -39,7 +39,7 @@ func BuildTypes(types []spec.Type) (string, error) {
 }
 
 func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	val, err := BuildTypes(api.Types)
+	val, err := BuildTypes(api.Types, api)
 	if err != nil {
 		return err
 	}
@@ -68,7 +68,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	})
 }
 
-func writeType(writer io.Writer, tp spec.Type) error {
+func writeType(writer io.Writer, tp spec.Type, api *spec.ApiSpec) error {
 	structType, ok := tp.(spec.DefineStruct)
 	if !ok {
 		return fmt.Errorf("unspport struct type: %s", tp.Name())
@@ -76,15 +76,7 @@ func writeType(writer io.Writer, tp spec.Type) error {
 
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
 	for _, member := range structType.Members {
-		if member.IsInline {
-			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
-				return err
-			}
-
-			continue
-		}
-
-		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1); err != nil {
+		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, 1, api); err != nil {
 			return err
 		}
 	}
