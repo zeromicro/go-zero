@@ -40,6 +40,7 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	metrics := stat.NewMetrics(c.ListenOn)
 	serverOptions := []internal.ServerOption{
 		internal.WithMetrics(metrics),
+		internal.WithRpcHealth(c.Health),
 	}
 
 	if c.HasEtcd() {
@@ -95,6 +96,11 @@ func (rs *RpcServer) Start() {
 // Stop stops the RpcServer.
 func (rs *RpcServer) Stop() {
 	logx.Close()
+}
+
+// DontLogContentForMethod disable logging content for given method.
+func DontLogContentForMethod(method string) {
+	serverinterceptors.DontLogContentForMethod(method)
 }
 
 // SetServerSlowThreshold sets the slow threshold on server side.

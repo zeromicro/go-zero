@@ -3,16 +3,15 @@ package gogen
 import (
 	"bytes"
 	"fmt"
-	goformat "go/format"
 	"io"
-	"path/filepath"
+	"os"
 	"strings"
 	"text/template"
 
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -54,47 +53,26 @@ func genFile(c fileGenConfig) error {
 		return err
 	}
 
-	code := formatCode(buffer.String())
+	code := golang.FormatCode(buffer.String())
 	_, err = fp.WriteString(code)
 	return err
 }
 
-func getParentPackage(dir string) (string, error) {
-	abs, err := filepath.Abs(dir)
-	if err != nil {
-		return "", err
-	}
-
-	projectCtx, err := ctx.Prepare(abs)
-	if err != nil {
-		return "", err
-	}
-
-	// fix https://github.com/zeromicro/go-zero/issues/1058
-	wd := projectCtx.WorkDir
-	d := projectCtx.Dir
-	same, err := pathx.SameFile(wd, d)
-	if err != nil {
-		return "", err
-	}
-
-	trim := strings.TrimPrefix(projectCtx.WorkDir, projectCtx.Dir)
-	if same {
-		trim = strings.TrimPrefix(strings.ToLower(projectCtx.WorkDir), strings.ToLower(projectCtx.Dir))
-	}
-
-	return filepath.ToSlash(filepath.Join(projectCtx.Path, trim)), nil
-}
-
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int, api *spec.ApiSpec) error {
 	util.WriteIndent(writer, indent)
 	var err error
-	if len(comment) > 0 {
-		comment = strings.TrimPrefix(comment, "//")
-		comment = "//" + comment
-		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+	var refPropertyName = tp.Name()
+	if isCustomType(refPropertyName) {
+		strs := getRefProperty(api, refPropertyName, name)
+		_, err = fmt.Fprintf(writer, "%s\n", strs)
 	} else {
-		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+		if len(comment) > 0 {
+			comment = strings.TrimPrefix(comment, "//")
+			comment = "//" + comment
+			_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+		} else {
+			_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+		}
 	}
 
 	return err
@@ -134,15 +112,6 @@ func getMiddleware(api *spec.ApiSpec) []string {
 	}
 
 	return result.KeysStr()
-}
-
-func formatCode(code string) string {
-	ret, err := goformat.Source([]byte(code))
-	if err != nil {
-		return code
-	}
-
-	return string(ret)
 }
 
 func responseGoTypeName(r spec.Route, pkg ...string) string {
@@ -218,4 +187,59 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	}
 
 	return ""
+}
+
+func isCustomType(t string) bool {
+	var builtinType = []string{"string", "bool", "int", "uint", "uint8", "uint16", "uint32", "uint64", "int8", "int16", "int32", "int64", "float32", "float64", "uintptr", "complex64", "complex128"}
+	var is bool = true
+	for _, v := range builtinType {
+		if t == v {
+			is = false
+			break
+		}
+	}
+	return is
+}
+
+// Generate nested types recursively
+func getRefProperty(api *spec.ApiSpec, refPropertyName string, name string) string {
+	var str string = ""
+	for _, t := range api.Types {
+		if strings.TrimLeft(refPropertyName, "*") == t.Name() {
+			switch tm := t.(type) {
+			case spec.DefineStruct:
+				for _, m := range tm.Members {
+					if isCustomType(m.Type.Name()) {
+						// recursive
+						str += getRefProperty(api, m.Type.Name(), m.Name)
+					} else {
+						if len(m.Comment) > 0 {
+							comment := strings.TrimPrefix(m.Comment, "//")
+							comment = "//" + comment
+							str += fmt.Sprintf("%s %s %s %s\n\t", m.Name, m.Type.Name(), m.Tag, comment)
+						} else {
+							str += fmt.Sprintf("%s %s %s\n\t", m.Name, m.Type.Name(), m.Tag)
+						}
+
+					}
+
+				}
+			}
+		}
+	}
+	if name == "" {
+		temp := `${str}`
+		return os.Expand(temp, func(k string) string {
+			return str
+		})
+	} else {
+		temp := `${name} struct {
+			${str}}`
+		return os.Expand(temp, func(k string) string {
+			return map[string]string{
+				"name": name,
+				"str":  str,
+			}[k]
+		})
+	}
 }

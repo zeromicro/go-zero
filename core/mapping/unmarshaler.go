@@ -231,7 +231,7 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 			return u.processFieldPrimitiveWithJSONNumber(field, value, v, opts, fullName)
 		default:
 			if typeKind == valueKind {
-				if err := validateValueInOptions(opts.options(), mapValue); err != nil {
+				if err := validateValueInOptions(mapValue, opts.options()); err != nil {
 					return err
 				}
 
@@ -250,6 +250,10 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructFi
 	typeKind := Deref(fieldType).Kind()
 
 	if err := validateJsonNumberRange(v, opts); err != nil {
+		return err
+	}
+
+	if err := validateValueInOptions(v, opts.options()); err != nil {
 		return err
 	}
 
@@ -496,10 +500,20 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	return nil
 }
 
-func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value, mapValue interface{}) error {
+func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
+	mapValue interface{}) error {
 	var slice []interface{}
-	if err := jsonx.UnmarshalFromString(mapValue.(string), &slice); err != nil {
-		return err
+	switch v := mapValue.(type) {
+	case fmt.Stringer:
+		if err := jsonx.UnmarshalFromString(v.String(), &slice); err != nil {
+			return err
+		}
+	case string:
+		if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
+			return err
+		}
+	default:
+		return errUnsupportedType
 	}
 
 	baseFieldType := Deref(fieldType.Elem())
@@ -520,8 +534,10 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	baseKind reflect.Kind, value interface{}) error {
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
-	case json.Number:
+	case fmt.Stringer:
 		return setValue(baseKind, ithVal, v.String())
+	case string:
+		return setValue(baseKind, ithVal, v)
 	default:
 		// don't need to consider the difference between int, int8, int16, int32, int64,
 		// uint, uint8, uint16, uint32, uint64, because they're handled as json.Number.

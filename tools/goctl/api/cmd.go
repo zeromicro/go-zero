@@ -102,9 +102,9 @@ func init() {
 		"higher priority")
 	Cmd.Flags().StringVar(&apigen.VarStringRemote, "remote", "", "The remote git repo of the"+
 		" template, --home and --remote cannot be set at the same time, if they are, --remote has higher"+
-		" priority\n\tThe git repo directory must be consistent with the"+
+		" priority\nThe git repo directory must be consistent with the"+
 		" https://github.com/zeromicro/go-zero-template directory structure")
-	Cmd.Flags().StringVar(&apigen.VarStringBranch, "branch", "master", "The branch of the "+
+	Cmd.Flags().StringVar(&apigen.VarStringBranch, "branch", "", "The branch of the "+
 		"remote repo, it does work with --remote")
 
 	dartCmd.Flags().StringVar(&dartgen.VarStringDir, "dir", "", "The target dir")
@@ -129,9 +129,9 @@ func init() {
 		"has higher priority")
 	goCmd.Flags().StringVar(&gogen.VarStringRemote, "remote", "", "The remote git repo "+
 		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\n\tThe git repo directory must be consistent with the "+
+		" has higher priority\nThe git repo directory must be consistent with the "+
 		"https://github.com/zeromicro/go-zero-template directory structure")
-	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "master", "The branch of "+
+	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "gozero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
@@ -164,7 +164,7 @@ func init() {
 		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
 		" has higher priority\n\tThe git repo directory must be consistent with the "+
 		"https://github.com/zeromicro/go-zero-template directory structure")
-	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "master", "The branch of "+
+	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
 	newCmd.Flags().StringVar(&new.VarStringStyle, "style", "gozero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")

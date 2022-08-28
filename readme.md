@@ -21,7 +21,7 @@ English | [简体中文](readme-cn.md)
 > 
 > `go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.3`
+> `goctl migrate —verbose —version v1.4.0`
 
 ## 0. what is go-zero
 
@@ -91,10 +91,9 @@ As below, go-zero protects the system with a couple of layers and mechanisms:
 
 ![Resilience](https://raw.githubusercontent.com/zeromicro/zero-doc/main/doc/images/resilience-en.png)
 
-## 4. Future development plans of go-zero
+## 4. The simplified architecture that we use with go-zero
 
-* auto-generate API mock server, make the client debugging easier
-* auto-generate the simple integration test for the server-side just from the .api files
+<img width="1067" alt="image" src="https://user-images.githubusercontent.com/1918356/171880372-5010d846-e8b1-4942-8fe2-e2bbb584f762.png">
 
 ## 5. Installation
 
@@ -122,6 +121,9 @@ go get -u github.com/zeromicro/go-zero
    
    # for Go 1.16 and later
    go install github.com/zeromicro/go-zero/tools/goctl@latest
+   
+   # For Mac
+   brew install goctl
 
    # docker for amd64 architecture
    docker pull kevinwan/goctl
@@ -233,9 +235,9 @@ go get -u github.com/zeromicro/go-zero
 
 [Checkout the test code](https://github.com/smallnest/go-web-framework-benchmark)
 
-## 8. Documents (adding)
+## 8. Documents
 
-* [Documents](https://go-zero.dev/en/)
+* [Documents](https://go-zero.dev/)
 * [Rapid development of microservice systems](https://github.com/zeromicro/zero-doc/blob/main/doc/shorturl-en.md)
 * [Rapid development of microservice systems - multiple RPCs](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore-en.md)
 * [Examples](https://github.com/zeromicro/zero-examples)
@@ -256,3 +258,9 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 ## Give a Star! ⭐
 
 If you like or are using this project to learn or start your solution, please give it a star. Thanks!
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zeromicro/go-zero&type=Date)](#go-zero)
+
+## Buy me a coffee
+
+<a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>

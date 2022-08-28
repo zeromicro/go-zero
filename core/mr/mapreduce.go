@@ -102,12 +102,12 @@ func ForEach(generate GenerateFunc, mapper ForEachFunc, opts ...Option) {
 	options := buildOptions(opts...)
 	panicChan := &onceChan{channel: make(chan interface{})}
 	source := buildSource(generate, panicChan)
-	collector := make(chan interface{}, options.workers)
+	collector := make(chan interface{})
 	done := make(chan lang.PlaceholderType)
 
 	go executeMappers(mapperContext{
 		ctx: options.ctx,
-		mapper: func(item interface{}, writer Writer) {
+		mapper: func(item interface{}, _ Writer) {
 			mapper(item)
 		},
 		source:    source,
@@ -212,6 +212,8 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		cancel(context.DeadlineExceeded)
 		return nil, context.DeadlineExceeded
 	case v := <-panicChan.channel:
+		// drain output here, otherwise for loop panic in defer
+		drain(output)
 		panic(v)
 	case v, ok := <-output:
 		if err := retErr.Load(); err != nil {
@@ -376,9 +378,7 @@ type onceChan struct {
 }
 
 func (oc *onceChan) write(val interface{}) {
-	if atomic.AddInt32(&oc.wrote, 1) > 1 {
-		return
+	if atomic.CompareAndSwapInt32(&oc.wrote, 0, 1) {
+		oc.channel <- val
 	}
-
-	oc.channel <- val
 }

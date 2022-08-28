@@ -35,13 +35,11 @@ func CompareVersions(v1, op, v2 string) bool {
 
 // return -1 if v1<v2, 0 if they are equal, and 1 if v1>v2
 func compare(v1, v2 string) int {
-	v1 = replacer.Replace(v1)
-	v2 = replacer.Replace(v2)
-	fields1 := strings.Split(v1, ".")
-	fields2 := strings.Split(v2, ".")
-	ver1 := strsToInts(fields1)
-	ver2 := strsToInts(fields2)
-	shorter := mathx.MinInt(len(ver1), len(ver2))
+	v1, v2 = replacer.Replace(v1), replacer.Replace(v2)
+	fields1, fields2 := strings.Split(v1, "."), strings.Split(v2, ".")
+	ver1, ver2 := strsToInts(fields1), strsToInts(fields2)
+	ver1len, ver2len := len(ver1), len(ver2)
+	shorter := mathx.MinInt(ver1len, ver2len)
 
 	for i := 0; i < shorter; i++ {
 		if ver1[i] == ver2[i] {
@@ -53,9 +51,9 @@ func compare(v1, v2 string) int {
 		}
 	}
 
-	if len(ver1) < len(ver2) {
+	if ver1len < ver2len {
 		return -1
-	} else if len(ver1) == len(ver2) {
+	} else if ver1len == ver2len {
 		return 0
 	} else {
 		return 1

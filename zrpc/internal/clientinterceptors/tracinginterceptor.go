@@ -26,9 +26,9 @@ func UnaryTracingInterceptor(ctx context.Context, method string, req, reply inte
 	defer span.End()
 
 	ztrace.MessageSent.Event(ctx, 1, req)
+	err := invoker(ctx, method, req, reply, cc, opts...)
 	ztrace.MessageReceived.Event(ctx, 1, reply)
-
-	if err := invoker(ctx, method, req, reply, cc, opts...); err != nil {
+	if err != nil {
 		s, ok := status.FromError(err)
 		if ok {
 			span.SetStatus(codes.Error, s.Message())
@@ -153,11 +153,8 @@ func (w *clientStream) sendStreamEvent(eventType streamEventType, err error) {
 }
 
 func startSpan(ctx context.Context, method, target string) (context.Context, trace.Span) {
-	var md metadata.MD
-	requestMetadata, ok := metadata.FromOutgoingContext(ctx)
-	if ok {
-		md = requestMetadata.Copy()
-	} else {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
 		md = metadata.MD{}
 	}
 	tr := otel.Tracer(ztrace.TraceName)

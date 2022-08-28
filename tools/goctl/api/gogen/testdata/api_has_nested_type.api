@@ -1,0 +1,48 @@
+import "./api_common.api"
+type Resp {
+	R1 string `json:"r1"`
+	R2 bool   `json:"r2"`
+	R3 Common `json:"r3"`
+}
+type CommonResponse {
+	Code    int    `json:"code"` // 100 | 200
+	Message string `json:"message"`
+	Common
+	Response Resp `json:"response"`
+}
+
+type LoginResponseDto {
+	Id          string `bson:"_id" json:"id"`
+	Name        string `json:"name"`
+	AccessToken string `json:"accessToken"`
+}
+
+type UserCreateDto {
+	Id string `json:"id"`
+}
+type LoginRequest {
+	Username string `json:"username,optional"` // user name is optional
+	Password string `json:"password,optional"`
+}
+type LoginResponse {
+	*CommonResponse
+	Result *LoginResponseDto `json:"result"`
+}
+
+type UserCreateRequest {
+	Username string `json:"username,optional"` // some dsada
+	Password string `json:"password,optional"`
+}
+
+type UserCreateResponse {
+	*CommonResponse
+	Result *UserCreateDto `json:"result"` // result
+}
+
+service user-api {
+	@handler UserHandler
+	post /user/signin(UserCreateRequest) returns (UserCreateResponse)
+	
+	@handler LoginHandler
+	post /user/login(LoginRequest) returns (LoginResponse)
+}

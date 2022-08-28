@@ -29,22 +29,23 @@ var (
 
 // Deployment describes the k8s deployment yaml
 type Deployment struct {
-	Name           string
-	Namespace      string
-	Image          string
-	Secret         string
-	Replicas       int
-	Revisions      int
-	Port           int
-	NodePort       int
-	UseNodePort    bool
-	RequestCpu     int
-	RequestMem     int
-	LimitCpu       int
-	LimitMem       int
-	MinReplicas    int
-	MaxReplicas    int
-	ServiceAccount string
+	Name            string
+	Namespace       string
+	Image           string
+	Secret          string
+	Replicas        int
+	Revisions       int
+	Port            int
+	NodePort        int
+	UseNodePort     bool
+	RequestCpu      int
+	RequestMem      int
+	LimitCpu        int
+	LimitMem        int
+	MinReplicas     int
+	MaxReplicas     int
+	ServiceAccount  string
+	ImagePullPolicy string
 }
 
 // DeploymentCommand is used to generate the kubernetes deployment yaml files.
@@ -82,22 +83,23 @@ func deploymentCommand(_ *cobra.Command, _ []string) error {
 
 	t := template.Must(template.New("deploymentTemplate").Parse(text))
 	err = t.Execute(out, Deployment{
-		Name:           varStringName,
-		Namespace:      varStringNamespace,
-		Image:          varStringImage,
-		Secret:         varStringSecret,
-		Replicas:       varIntReplicas,
-		Revisions:      varIntRevisions,
-		Port:           varIntPort,
-		NodePort:       nodePort,
-		UseNodePort:    nodePort > 0,
-		RequestCpu:     varIntRequestCpu,
-		RequestMem:     varIntRequestMem,
-		LimitCpu:       varIntLimitCpu,
-		LimitMem:       varIntLimitMem,
-		MinReplicas:    varIntMinReplicas,
-		MaxReplicas:    varIntMaxReplicas,
-		ServiceAccount: varStringServiceAccount,
+		Name:            varStringName,
+		Namespace:       varStringNamespace,
+		Image:           varStringImage,
+		Secret:          varStringSecret,
+		Replicas:        varIntReplicas,
+		Revisions:       varIntRevisions,
+		Port:            varIntPort,
+		NodePort:        nodePort,
+		UseNodePort:     nodePort > 0,
+		RequestCpu:      varIntRequestCpu,
+		RequestMem:      varIntRequestMem,
+		LimitCpu:        varIntLimitCpu,
+		LimitMem:        varIntLimitMem,
+		MinReplicas:     varIntMinReplicas,
+		MaxReplicas:     varIntMaxReplicas,
+		ServiceAccount:  varStringServiceAccount,
+		ImagePullPolicy: varStringImagePullPolicy,
 	})
 	if err != nil {
 		return err
