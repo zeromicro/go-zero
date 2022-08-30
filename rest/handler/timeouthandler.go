@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"path"
 	"runtime"
@@ -95,11 +97,9 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(tw.code)
 		w.Write(tw.wbuf.Bytes())
 	case <-ctx.Done():
-		tw.mu.Lock()
-		defer tw.mu.Unlock()
 		// there isn't any user-defined middleware before TimoutHandler,
 		// so we can guarantee that cancelation in biz related code won't come here.
-		httpx.Error(w, ctx.Err(), func(w http.ResponseWriter, err error) {
+		httpx.Error(tw, ctx.Err(), func(w http.ResponseWriter, err error) {
 			if errors.Is(err, context.Canceled) {
 				w.WriteHeader(statusClientClosedRequest)
 			} else {
@@ -107,7 +107,13 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			io.WriteString(w, h.errorBody())
 		})
+
+		tw.mu.Lock()
 		tw.timedOut = true
+		tw.mu.Unlock()
+
+		conn, _, _ := tw.Hijack()
+		conn.Close()
 	}
 }
 
@@ -124,6 +130,15 @@ type timeoutWriter struct {
 }
 
 var _ http.Pusher = (*timeoutWriter)(nil)
+
+// Hijack returns the network connection and readwriter
+func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	hijacker, ok := tw.w.(http.Hijacker)
+	if !ok {
+		return nil, nil, fmt.Errorf("%T is not a http.Hijacker", tw.w)
+	}
+	return hijacker.Hijack()
+}
 
 // Header returns the underline temporary http.Header.
 func (tw *timeoutWriter) Header() http.Header { return tw.h }
