@@ -264,7 +264,7 @@ func (ng *engine) start(router httpx.Router) error {
 	}
 
 	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
-		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, ng.withTimeout())
+		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, ng.withMaxTimeout())
 	}
 
 	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
@@ -272,25 +272,25 @@ func (ng *engine) start(router httpx.Router) error {
 			if ng.tlsConfig != nil {
 				svr.TLSConfig = ng.tlsConfig
 			}
-		}, ng.withTimeout())
+		}, ng.withMaxTimeout())
 }
 
 func (ng *engine) use(middleware Middleware) {
 	ng.middlewares = append(ng.middlewares, middleware)
 }
 
-func (ng *engine) withTimeout() internal.StartOption {
+func (ng *engine) withMaxTimeout() internal.StartOption {
 	return func(svr *http.Server) {
-		timeout := ng.conf.Timeout
+		timeout := ng.conf.MaxTimeout
 		if timeout > 0 {
-			// factor 0.8, to avoid clients send longer content-length than the actual content,
+			// factor 1.2, to avoid clients send longer content-length than the actual content,
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
-			// factor 0.9, to avoid clients not reading the response
+			svr.ReadTimeout = 6 * time.Duration(timeout) * time.Millisecond / 5
+			// factor 1.1, to avoid clients not reading the response
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.WriteTimeout = 9 * time.Duration(timeout) * time.Millisecond / 10
+			svr.WriteTimeout = 11 * time.Duration(timeout) * time.Millisecond / 10
 		}
 	}
 }

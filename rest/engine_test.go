@@ -298,32 +298,32 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
-func TestEngine_withTimeout(t *testing.T) {
+func TestEngine_withMaxTimeout(t *testing.T) {
 	logx.Disable()
 
 	tests := []struct {
-		name    string
-		timeout int64
+		name       string
+		maxTimeout int64
 	}{
 		{
 			name: "not set",
 		},
 		{
-			name:    "set",
-			timeout: 1000,
+			name:       "set",
+			maxTimeout: 1000,
 		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			ng := newEngine(RestConf{Timeout: test.timeout})
+			ng := newEngine(RestConf{MaxTimeout: test.maxTimeout})
 			svr := &http.Server{}
-			ng.withTimeout()(svr)
+			ng.withMaxTimeout()(svr)
 
-			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*4/5, svr.ReadTimeout)
+			assert.Equal(t, time.Duration(test.maxTimeout)*time.Millisecond*6/5, svr.ReadTimeout)
 			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
-			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*9/10, svr.WriteTimeout)
+			assert.Equal(t, time.Duration(test.maxTimeout)*time.Millisecond*11/10, svr.WriteTimeout)
 			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
 		})
 	}
