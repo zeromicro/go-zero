@@ -298,6 +298,91 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&called))
 }
 
+func TestEngine_calMaxTimeout(t *testing.T) {
+	tests := []struct {
+		name    string
+		timeout time.Duration
+		expect  time.Duration
+		routes  []featuredRoutes
+	}{
+		{
+			name:   "not set",
+			expect: time.Millisecond * 400,
+			routes: []featuredRoutes{
+				{
+					timeout: time.Millisecond * 200,
+				},
+				{
+					timeout: time.Millisecond * 300,
+				},
+				{
+					timeout: time.Millisecond * 400,
+				},
+			},
+		},
+		{
+			name:    "less",
+			timeout: time.Millisecond * 500,
+			expect:  time.Millisecond * 500,
+			routes: []featuredRoutes{
+				{
+					timeout: time.Millisecond * 200,
+				},
+				{
+					timeout: time.Millisecond * 300,
+				},
+				{
+					timeout: time.Millisecond * 500,
+				},
+			},
+		},
+		{
+			name:    "equal",
+			timeout: time.Second,
+			expect:  time.Second,
+			routes: []featuredRoutes{
+				{
+					timeout: time.Millisecond * 1000,
+				},
+				{
+					timeout: time.Millisecond * 1000,
+				},
+				{
+					timeout: time.Millisecond * 1000,
+				},
+			},
+		},
+		{
+			name:    "more",
+			timeout: time.Millisecond * 1500,
+			expect:  time.Millisecond * 2000,
+			routes: []featuredRoutes{
+				{
+					timeout: time.Millisecond * 1000,
+				},
+				{
+					timeout: time.Millisecond * 1500,
+				},
+				{
+					timeout: time.Millisecond * 2000,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		ng := newEngine(RestConf{
+			Timeout: int64(test.timeout / time.Millisecond),
+		})
+
+		for _, fr := range test.routes {
+			ng.addRoutes(fr)
+		}
+
+		assert.Equal(t, test.expect, ng.calMaxTimeout())
+	}
+}
+
 func TestEngine_withTimeout(t *testing.T) {
 	logx.Disable()
 

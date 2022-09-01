@@ -281,18 +281,30 @@ func (ng *engine) use(middleware Middleware) {
 
 func (ng *engine) withTimeout() internal.StartOption {
 	return func(svr *http.Server) {
-		timeout := ng.conf.Timeout
+		timeout := ng.calMaxTimeout()
 		if timeout > 0 {
 			// factor 0.8, to avoid clients send longer content-length than the actual content,
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
+			svr.ReadTimeout = timeout * 4 / 5
 			// factor 0.9, to avoid clients not reading the response
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.WriteTimeout = 9 * time.Duration(timeout) * time.Millisecond / 10
+			svr.WriteTimeout = timeout * 9 / 10
 		}
 	}
+}
+
+func (ng *engine) calMaxTimeout() time.Duration {
+	result := time.Duration(ng.conf.Timeout) * time.Millisecond
+
+	for _, fr := range ng.routes {
+		if fr.timeout > result {
+			result = fr.timeout
+		}
+	}
+
+	return result
 }
 
 func convertMiddleware(ware Middleware) func(http.Handler) http.Handler {
