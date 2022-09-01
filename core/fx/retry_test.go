@@ -40,3 +40,47 @@ func TestRetry(t *testing.T) {
 		return errors.New("any")
 	}, WithRetry(total)))
 }
+
+func TestErrHandler(t *testing.T) {
+	total := 2 * defaultRetryTimes
+	breakErr := errors.New("break here")
+	times := 0
+
+	err := DoWithRetry(func() error {
+		times++
+		if times > 1 {
+			return breakErr
+		}
+		return errors.New("common err")
+	},
+		WithRetry(total),
+		WithErrHandler(func(err error) bool {
+			return errors.Is(err, breakErr)
+		}),
+	)
+
+	assert.Equal(t, err.Error(), "common err\nbreak here")
+
+	times = 0
+	err = DoWithRetry(func() error {
+		return errors.New("common err")
+	}, WithRetry(2))
+
+	assert.Equal(t, err.Error(), "common err\ncommon err")
+
+	times = 0
+	err = DoWithRetry(func() error {
+		times++
+		if times > 1 {
+			return breakErr
+		}
+		return nil
+	},
+		WithRetry(total),
+		WithErrHandler(func(err error) bool {
+			return errors.Is(err, breakErr)
+		}),
+	)
+
+	assert.Nil(t, err)
+}
