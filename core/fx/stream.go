@@ -49,9 +49,37 @@ type (
 	}
 )
 
-// Concat returns a concatenated Stream.
+// Concat returns a Stream that concatenates two or more streams without interleaving them.
 func Concat(s Stream, others ...Stream) Stream {
 	return s.Concat(others...)
+}
+
+// Merge combines multiple streams into one by merging their emissions.
+func Merge(s Stream, others ...Stream) Stream {
+	source := make(chan interface{})
+
+	go func() {
+		group := threading.NewRoutineGroup()
+		group.Run(func() {
+			for item := range s.source {
+				source <- item
+			}
+		})
+
+		for _, each := range others {
+			each := each
+			group.Run(func() {
+				for item := range each.source {
+					source <- item
+				}
+			})
+		}
+
+		group.Wait()
+		close(source)
+	}()
+
+	return Range(source)
 }
 
 // From constructs a Stream from the given GenerateFunc.
@@ -132,29 +160,22 @@ func (s Stream) Buffer(n int) Stream {
 	return Range(source)
 }
 
-// Concat returns a Stream that concatenated other streams
+// Concat returns a Stream that concatenates other streams without interleaving them.
 func (s Stream) Concat(others ...Stream) Stream {
 	source := make(chan interface{})
 
 	go func() {
-		group := threading.NewRoutineGroup()
-		group.Run(func() {
-			for item := range s.source {
-				source <- item
-			}
-		})
+		defer close(source)
 
-		for _, each := range others {
-			each := each
-			group.Run(func() {
-				for item := range each.source {
-					source <- item
-				}
-			})
+		for item := range s.source {
+			source <- item
 		}
 
-		group.Wait()
-		close(source)
+		for _, each := range others {
+			for item := range each.source {
+				source <- item
+			}
+		}
 	}()
 
 	return Range(source)

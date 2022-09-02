@@ -301,7 +301,7 @@ func TestMap(t *testing.T) {
 	})
 }
 
-func TestMerge(t *testing.T) {
+func TestStream_Merge(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		Just(1, 2, 3, 4).Merge().ForEach(func(item interface{}) {
 			assert.ElementsMatch(t, []interface{}{1, 2, 3, 4}, item.([]interface{}))
@@ -464,6 +464,24 @@ func TestConcat(t *testing.T) {
 		for item := range stream.source {
 			items = append(items, item)
 		}
+		ints := make([]interface{}, 0)
+		ints = append(ints, a1...)
+		ints = append(ints, a2...)
+		assetEqual(t, ints, items)
+	})
+}
+
+func TestMerge(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		a1 := []interface{}{1, 2, 3}
+		a2 := []interface{}{4, 5, 6}
+		s1 := Just(a1...)
+		s2 := Just(a2...)
+		stream := Merge(s1, s2)
+		var items []interface{}
+		for item := range stream.source {
+			items = append(items, item)
+		}
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].(int) < items[j].(int)
 		})
@@ -493,9 +511,6 @@ func TestStream_Concat(t *testing.T) {
 		for item := range stream.source {
 			items = append(items, item)
 		}
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].(int) < items[j].(int)
-		})
 		assetEqual(t, []interface{}{1, 2, 3}, items)
 
 		just := Just(1)
