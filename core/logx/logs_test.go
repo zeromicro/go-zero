@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"reflect"
@@ -609,6 +609,75 @@ func TestSetWriter(t *testing.T) {
 	assert.Equal(t, mocked, writer.Load())
 }
 
+func TestSetUp_ServiceName(t *testing.T) {
+	setupOnce = sync.Once{}
+	MustSetup(LogConf{
+		ServiceName: "go-zero",
+		Mode:        "console",
+	})
+	w := new(mockWriter)
+	SetWriter(w)
+	Info()
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Infow("info")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Infof("info")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Infov("info")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Error()
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Errorw("error")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Errorf("error")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Errorv("error")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	ErrorStack()
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	ErrorStackf("errorStack")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Slow("slow")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Slowf("slow")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Slowv("slow")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Sloww("slow")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+
+	Alert("alert")
+	assert.True(t, w.Contains("go-zero"))
+	w.Reset()
+}
+
 func TestWithGzip(t *testing.T) {
 	fn := WithGzip()
 	var opt logOptions
@@ -649,7 +718,7 @@ func BenchmarkCopyByteSlice(b *testing.B) {
 		buf = make([]byte, len(s))
 		copy(buf, s)
 	}
-	fmt.Fprint(ioutil.Discard, buf)
+	_, _ = fmt.Fprint(io.Discard, buf)
 }
 
 func BenchmarkCopyOnWriteByteSlice(b *testing.B) {
@@ -658,7 +727,7 @@ func BenchmarkCopyOnWriteByteSlice(b *testing.B) {
 		size := len(s)
 		buf = s[:size:size]
 	}
-	fmt.Fprint(ioutil.Discard, buf)
+	_, _ = fmt.Fprint(io.Discard, buf)
 }
 
 func BenchmarkCacheByteSlice(b *testing.B) {
@@ -672,7 +741,7 @@ func BenchmarkCacheByteSlice(b *testing.B) {
 func BenchmarkLogs(b *testing.B) {
 	b.ReportAllocs()
 
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	for i := 0; i < b.N; i++ {
 		Info(i)
 	}
@@ -729,12 +798,15 @@ func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...interfa
 
 func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 	writer.Store(nil)
-	SetUp(LogConf{
+	// reset setupOnce
+	setupOnce = sync.Once{}
+
+	MustSetup(LogConf{
 		Mode:  mode,
 		Level: "error",
 		Path:  "/dev/null",
 	})
-	SetUp(LogConf{
+	MustSetup(LogConf{
 		Mode:  mode,
 		Level: "info",
 		Path:  "/dev/null",

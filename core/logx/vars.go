@@ -43,13 +43,14 @@ const (
 )
 
 const (
-	callerKey    = "caller"
-	contentKey   = "content"
-	durationKey  = "duration"
-	levelKey     = "level"
-	spanKey      = "span"
-	timestampKey = "@timestamp"
-	traceKey     = "trace"
+	serviceNameKey = "serviceName"
+	callerKey      = "caller"
+	contentKey     = "content"
+	durationKey    = "duration"
+	levelKey       = "level"
+	spanKey        = "span"
+	timestampKey   = "@timestamp"
+	traceKey       = "trace"
 )
 
 var (

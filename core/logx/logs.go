@@ -17,9 +17,10 @@ import (
 const callerDepth = 5
 
 var (
-	timeFormat = "2006-01-02T15:04:05.000Z07:00"
-	logLevel   uint32
-	encoding   uint32 = jsonEncodingType
+	serviceName = ""
+	timeFormat  = "2006-01-02T15:04:05.000Z07:00"
+	logLevel    uint32
+	encoding    uint32 = jsonEncodingType
 	// use uint32 for atomic operations
 	disableLog  uint32
 	disableStat uint32
@@ -221,6 +222,8 @@ func SetUp(c LogConf) (err error) {
 		if len(c.TimeFormat) > 0 {
 			timeFormat = c.TimeFormat
 		}
+
+		serviceName = c.ServiceName
 
 		switch c.Encoding {
 		case plainEncoding:
