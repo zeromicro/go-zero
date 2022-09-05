@@ -35,9 +35,13 @@ type (
 )
 
 func newBaseRpcServer(address string, rpcServerOpts *rpcServerOptions) *baseRpcServer {
+	var h *health.Server
+	if rpcServerOpts.health {
+		h = health.NewServer()
+	}
 	return &baseRpcServer{
 		address: address,
-		health:  health.NewServer(),
+		health:  h,
 		metrics: rpcServerOpts.metrics,
 		options: []grpc.ServerOption{grpc.KeepaliveParams(keepalive.ServerParameters{
 			MaxConnectionIdle: defaultConnectionIdleDuration,

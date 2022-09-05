@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	fatihcolor "github.com/fatih/color"
 
 	"github.com/zeromicro/go-zero/core/color"
 )
@@ -67,6 +68,17 @@ func (w *atomicWriter) Store(v Writer) {
 	w.writer = v
 }
 
+func (w *atomicWriter) StoreIfNil(v Writer) Writer {
+	w.lock.Lock()
+	defer w.lock.Unlock()
+
+	if w.writer == nil {
+		w.writer = v
+	}
+
+	return w.writer
+}
+
 func (w *atomicWriter) Swap(v Writer) Writer {
 	w.lock.Lock()
 	defer w.lock.Unlock()
@@ -81,9 +93,9 @@ func newConsoleWriter(c LogConf) Writer {
 		opts = append(opts, WithCallerSkip(c.CallerSkip))
 	}
 	handleOptions(opts)
-
-	outLog := newLogWriter(log.New(os.Stdout, "", flags))
-	errLog := newLogWriter(log.New(os.Stderr, "", flags))
+	
+	outLog := newLogWriter(log.New(fatihcolor.Output, "", flags))
+	errLog := newLogWriter(log.New(fatihcolor.Error, "", flags))
 	return &concreteWriter{
 		infoLog:   outLog,
 		errorLog:  errLog,

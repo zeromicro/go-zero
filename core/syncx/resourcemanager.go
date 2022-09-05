@@ -57,8 +57,8 @@ func (manager *ResourceManager) GetResource(key string, create func() (io.Closer
 		}
 
 		manager.lock.Lock()
+		defer manager.lock.Unlock()
 		manager.resources[key] = resource
-		manager.lock.Unlock()
 
 		return resource, nil
 	})
