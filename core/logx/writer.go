@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 
 	fatihcolor "github.com/fatih/color"
-
 	"github.com/zeromicro/go-zero/core/color"
 )
 
@@ -93,7 +92,7 @@ func newConsoleWriter(c LogConf) Writer {
 		opts = append(opts, WithCallerSkip(c.CallerSkip))
 	}
 	handleOptions(opts)
-	
+
 	outLog := newLogWriter(log.New(fatihcolor.Output, "", flags))
 	errLog := newLogWriter(log.New(fatihcolor.Error, "", flags))
 	return &concreteWriter{
