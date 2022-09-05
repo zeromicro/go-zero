@@ -20,7 +20,7 @@ func TestNewWriter(t *testing.T) {
 
 func TestConsoleWriter(t *testing.T) {
 	var buf bytes.Buffer
-	w := newConsoleWriter()
+	w := newConsoleWriter(LogConf{})
 	lw := newLogWriter(log.New(&buf, "", 0))
 	w.(*concreteWriter).errorLog = lw
 	w.Alert("foo bar 1")

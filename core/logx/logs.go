@@ -45,6 +45,7 @@ type (
 		maxBackups            int
 		maxSize               int
 		rotationRule          string
+		callerSkip            int
 	}
 
 	// LogField is a key-value pair that will be added to the log entry.
@@ -231,7 +232,7 @@ func SetUp(c LogConf) (err error) {
 		case volumeMode:
 			err = setupWithVolume(c)
 		default:
-			setupWithConsole()
+			setupWithConsole(c)
 		}
 	})
 
@@ -306,6 +307,13 @@ func WithMaxBackups(count int) LogOption {
 	}
 }
 
+// WithCallerSkip customizes caller skip.
+func WithCallerSkip(skip int) LogOption {
+	return func(opts *logOptions) {
+		opts.callerSkip = skip
+	}
+}
+
 // WithMaxSize customizes how much space the writing log file can take up.
 func WithMaxSize(size int) LogOption {
 	return func(opts *logOptions) {
@@ -356,7 +364,7 @@ func errorTextSync(msg string) {
 func getWriter() Writer {
 	w := writer.Load()
 	if w == nil {
-		w = newConsoleWriter()
+		w = newConsoleWriter(LogConf{})
 		writer.Store(w)
 	}
 
@@ -398,8 +406,8 @@ func setupLogLevel(c LogConf) {
 	}
 }
 
-func setupWithConsole() {
-	SetWriter(newConsoleWriter())
+func setupWithConsole(c LogConf) {
+	SetWriter(newConsoleWriter(c))
 }
 
 func setupWithFiles(c LogConf) error {

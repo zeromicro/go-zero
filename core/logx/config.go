@@ -22,5 +22,6 @@ type LogConf struct {
 	// RotationRuleType represents the type of log rotation rule. Default is `daily`.
 	// daily: daily rotation.
 	// size: size limited rotation.
-	Rotation string `json:",default=daily,options=[daily,size]"`
+	Rotation   string `json:",default=daily,options=[daily,size]"`
+	CallerSkip int    `json:",default=0"`
 }

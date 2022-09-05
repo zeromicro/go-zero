@@ -75,7 +75,13 @@ func (w *atomicWriter) Swap(v Writer) Writer {
 	return old
 }
 
-func newConsoleWriter() Writer {
+func newConsoleWriter(c LogConf) Writer {
+	var opts []LogOption
+	if c.CallerSkip > 0 {
+		opts = append(opts, WithCallerSkip(c.CallerSkip))
+	}
+	handleOptions(opts)
+
 	outLog := newLogWriter(log.New(os.Stdout, "", flags))
 	errLog := newLogWriter(log.New(os.Stderr, "", flags))
 	return &concreteWriter{
@@ -114,6 +120,9 @@ func newFileWriter(c LogConf) (Writer, error) {
 	}
 	if c.MaxSize > 0 {
 		opts = append(opts, WithMaxSize(c.MaxSize))
+	}
+	if c.CallerSkip > 0 {
+		opts = append(opts, WithCallerSkip(c.CallerSkip))
 	}
 
 	opts = append(opts, WithRotation(c.Rotation))
