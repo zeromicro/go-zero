@@ -21,6 +21,7 @@ func TestOtelHandler(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	for _, test := range []string{"", "bar"} {
 		t.Run(test, func(t *testing.T) {

@@ -3,6 +3,8 @@ package service
 import (
 	"log"
 
+	"github.com/zeromicro/go-zero/core/proc"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/prometheus"
@@ -56,6 +58,9 @@ func (sc ServiceConf) SetUp() error {
 		sc.Telemetry.Name = sc.Name
 	}
 	trace.StartAgent(sc.Telemetry)
+	proc.AddShutdownListener(func() {
+		trace.StopAgent()
+	})
 
 	if len(sc.MetricsUrl) > 0 {
 		stat.SetReportWriter(stat.NewRemoteWriter(sc.MetricsUrl))
