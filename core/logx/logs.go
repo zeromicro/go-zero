@@ -89,6 +89,7 @@ func Error(v ...interface{}) {
 	errorTextSync(0, fmt.Sprint(v...))
 }
 
+// ErrorCaller writes v into error log.
 func ErrorCaller(callDepth int, v ...interface{}) {
 	errorTextSync(callDepth, fmt.Sprint(v...))
 }
@@ -98,6 +99,7 @@ func Errorf(format string, v ...interface{}) {
 	errorTextSync(0, fmt.Errorf(format, v...).Error())
 }
 
+// ErrorCallerf writes v with format into error log.
 func ErrorCallerf(callDepth int, format string, v ...interface{}) {
 	errorTextSync(callDepth, fmt.Errorf(format, v...).Error())
 }
@@ -120,6 +122,7 @@ func Errorv(v interface{}) {
 	errorAnySync(0, v)
 }
 
+// ErrorCallerv writes v into error log with json content.
 func ErrorCallerv(callDepth int, v interface{}) {
 	errorAnySync(callDepth, v)
 }
@@ -129,6 +132,7 @@ func Errorw(msg string, fields ...LogField) {
 	errorFieldsSync(0, msg, fields...)
 }
 
+// ErrorCallerw writes msg along with fields into error log.
 func ErrorCallerw(callDepth int, msg string, fields ...LogField) {
 	errorFieldsSync(callDepth, msg, fields...)
 }
@@ -176,6 +180,7 @@ func Info(v ...interface{}) {
 	infoTextSync(0, fmt.Sprint(v...))
 }
 
+// InfoCaller writes v into access log.
 func InfoCaller(callDepth int, v ...interface{}) {
 	infoTextSync(callDepth, fmt.Sprint(v...))
 }
@@ -185,6 +190,7 @@ func Infof(format string, v ...interface{}) {
 	infoTextSync(0, fmt.Sprintf(format, v...))
 }
 
+// InfoCallerf writes v with format into access log.
 func InfoCallerf(callDepth int, format string, v ...interface{}) {
 	infoTextSync(callDepth, fmt.Sprintf(format, v...))
 }
@@ -194,6 +200,7 @@ func Infov(v interface{}) {
 	infoAnySync(0, v)
 }
 
+// InfoCallerv writes v into access log with json content.
 func InfoCallerv(callDepth int, v interface{}) {
 	infoAnySync(callDepth, v)
 }
@@ -203,6 +210,7 @@ func Infow(msg string, fields ...LogField) {
 	infoFieldsSync(0, msg, fields...)
 }
 
+// InfoCallerw writes msg along with fields into access log.
 func InfoCallerw(callDepth int, msg string, fields ...LogField) {
 	infoFieldsSync(callDepth, msg, fields...)
 }
@@ -290,6 +298,7 @@ func Slow(v ...interface{}) {
 	slowTextSync(0, fmt.Sprint(v...))
 }
 
+// SlowCaller writes v into slow log.
 func SlowCaller(callDepth int, v ...interface{}) {
 	slowTextSync(callDepth, fmt.Sprint(v...))
 }
@@ -299,6 +308,7 @@ func Slowf(format string, v ...interface{}) {
 	slowTextSync(0, fmt.Sprintf(format, v...))
 }
 
+// SlowCallerf writes v with format into slow log.
 func SlowCallerf(callDepth int, format string, v ...interface{}) {
 	slowTextSync(callDepth, fmt.Sprintf(format, v...))
 }
@@ -308,6 +318,7 @@ func Slowv(v interface{}) {
 	slowAnySync(0, v)
 }
 
+// SlowCallerv writes v into slow log with json content.
 func SlowCallerv(callDepth int, v interface{}) {
 	slowAnySync(callDepth, v)
 }
@@ -317,6 +328,7 @@ func Sloww(msg string, fields ...LogField) {
 	slowFieldsSync(0, msg, fields...)
 }
 
+// SlowCallerw writes msg along with fields into slow log.
 func SlowCallerw(callDepth int, msg string, fields ...LogField) {
 	slowFieldsSync(callDepth, msg, fields...)
 }
@@ -326,6 +338,7 @@ func Stat(v ...interface{}) {
 	statSync(0, fmt.Sprint(v...))
 }
 
+// StatCaller writes v into stat log.
 func StatCaller(callDepth int, v ...interface{}) {
 	statSync(callDepth, fmt.Sprint(v...))
 }
@@ -335,6 +348,7 @@ func Statf(format string, v ...interface{}) {
 	statSync(0, fmt.Sprintf(format, v...))
 }
 
+// StatCallerf writes v with format into stat log.
 func StatCallerf(callDepth int, format string, v ...interface{}) {
 	statSync(callDepth, fmt.Sprintf(format, v...))
 }
