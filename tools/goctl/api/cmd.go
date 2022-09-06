@@ -64,9 +64,10 @@ var (
 	}
 
 	javaCmd = &cobra.Command{
-		Use:   "java",
-		Short: "Generate java files for provided api in api file",
-		RunE:  javagen.JavaCommand,
+		Use:    "java",
+		Short:  "Generate java files for provided api in api file",
+		Hidden: true,
+		RunE:   javagen.JavaCommand,
 	}
 
 	ktCmd = &cobra.Command{

@@ -21,6 +21,7 @@ var (
 	logLevel   uint32
 	encoding   uint32 = jsonEncodingType
 	// use uint32 for atomic operations
+	disableLog  uint32
 	disableStat uint32
 	options     logOptions
 	writer      = new(atomicWriter)
@@ -73,6 +74,7 @@ func Close() error {
 
 // Disable disables the logging.
 func Disable() {
+	atomic.StoreUint32(&disableLog, 1)
 	writer.Store(nopWriter{})
 }
 
@@ -201,7 +203,9 @@ func SetLevel(level uint32) {
 
 // SetWriter sets the logging writer. It can be used to customize the logging.
 func SetWriter(w Writer) {
-	writer.Store(w)
+	if atomic.LoadUint32(&disableLog) == 0 {
+		writer.Store(w)
+	}
 }
 
 // SetUp sets up the logx. If already set up, just return nil.
@@ -356,8 +360,7 @@ func errorTextSync(msg string) {
 func getWriter() Writer {
 	w := writer.Load()
 	if w == nil {
-		w = newConsoleWriter()
-		writer.Store(w)
+		w = writer.StoreIfNil(newConsoleWriter())
 	}
 
 	return w

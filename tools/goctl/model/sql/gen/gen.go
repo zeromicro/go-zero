@@ -102,8 +102,8 @@ func newDefaultOption() Option {
 	}
 }
 
-func (g *defaultGenerator) StartFromDDL(filename string, withCache bool, database string) error {
-	modelList, err := g.genFromDDL(filename, withCache, database)
+func (g *defaultGenerator) StartFromDDL(filename string, withCache, strict bool, database string) error {
+	modelList, err := g.genFromDDL(filename, withCache, strict, database)
 	if err != nil {
 		return err
 	}
@@ -111,10 +111,10 @@ func (g *defaultGenerator) StartFromDDL(filename string, withCache bool, databas
 	return g.createFile(modelList)
 }
 
-func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache bool) error {
+func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.Table, withCache, strict bool) error {
 	m := make(map[string]*codeTuple)
 	for _, each := range tables {
-		table, err := parser.ConvertDataType(each)
+		table, err := parser.ConvertDataType(each, strict)
 		if err != nil {
 			return err
 		}
@@ -144,7 +144,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	}
 
 	g.dir = dirAbs
-	g.pkg = filepath.Base(dirAbs)
+	g.pkg = util.SafeString(filepath.Base(dirAbs))
 	err = pathx.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
@@ -201,11 +201,11 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 }
 
 // ret1: key-table name,value-code
-func (g *defaultGenerator) genFromDDL(filename string, withCache bool, database string) (
+func (g *defaultGenerator) genFromDDL(filename string, withCache, strict bool, database string) (
 	map[string]*codeTuple, error,
 ) {
 	m := make(map[string]*codeTuple)
-	tables, err := parser.Parse(filename, database)
+	tables, err := parser.Parse(filename, database, strict)
 	if err != nil {
 		return nil, err
 	}
