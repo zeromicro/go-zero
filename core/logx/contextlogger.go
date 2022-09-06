@@ -12,13 +12,15 @@ import (
 // WithContext sets ctx to log, for keeping tracing information.
 func WithContext(ctx context.Context) Logger {
 	return &contextLogger{
-		ctx: ctx,
+		ctx:               ctx,
+		defaultCallerSkip: 4,
 	}
 }
 
 type contextLogger struct {
 	logEntry
-	ctx context.Context
+	ctx               context.Context
+	defaultCallerSkip int
 }
 
 func (l *contextLogger) Error(v ...interface{}) {
@@ -78,6 +80,11 @@ func (l *contextLogger) WithContext(ctx context.Context) Logger {
 	return l
 }
 
+func (l *contextLogger) WithCallerDepth(callerDepth int) Logger {
+	l.CallerDepth = callerDepth
+	return l
+}
+
 func (l *contextLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
@@ -97,6 +104,8 @@ func (l *contextLogger) buildFields(fields ...LogField) []LogField {
 	if len(spanID) > 0 {
 		fields = append(fields, Field(spanKey, spanID))
 	}
+
+	fields = append(fields, Field(callerKey, getCaller(l.defaultCallerSkip+l.CallerDepth)))
 
 	val := l.ctx.Value(fieldsContextKey)
 	if val != nil {

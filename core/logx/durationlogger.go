@@ -11,11 +11,15 @@ import (
 // WithDuration returns a Logger which logs the given duration.
 func WithDuration(d time.Duration) Logger {
 	return &durationLogger{
-		Duration: timex.ReprOfDuration(d),
+		logEntry:          logEntry{Duration: timex.ReprOfDuration(d)},
+		defaultCallerSkip: 4,
 	}
 }
 
-type durationLogger logEntry
+type durationLogger struct {
+	logEntry
+	defaultCallerSkip int
+}
 
 func (l *durationLogger) Error(v ...interface{}) {
 	l.err(fmt.Sprint(v...))
@@ -74,6 +78,11 @@ func (l *durationLogger) WithContext(ctx context.Context) Logger {
 	}
 }
 
+func (l *durationLogger) WithCallerDepth(callerDepth int) Logger {
+	l.CallerDepth = callerDepth
+	return l
+}
+
 func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 	l.Duration = timex.ReprOfDuration(duration)
 	return l
@@ -81,21 +90,23 @@ func (l *durationLogger) WithDuration(duration time.Duration) Logger {
 
 func (l *durationLogger) err(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Error(v, fields...)
+		getWriter().Error(v, l.buildFields(fields...)...)
 	}
 }
 
 func (l *durationLogger) info(v interface{}, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Info(v, fields...)
+		getWriter().Info(v, l.buildFields(fields...)...)
 	}
 }
 
 func (l *durationLogger) slow(v interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		fields = append(fields, Field(durationKey, l.Duration))
-		getWriter().Slow(v, fields...)
+		getWriter().Slow(v, l.buildFields(fields...)...)
 	}
+}
+
+func (l *durationLogger) buildFields(fields ...LogField) []LogField {
+	return append(fields, Field(durationKey, l.Duration),
+		Field(callerKey, getCaller(l.defaultCallerSkip+l.CallerDepth)))
 }

@@ -35,4 +35,6 @@ type Logger interface {
 	WithContext(context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
 	WithDuration(time.Duration) Logger
+	// WithCallerDepth return a new logger with the given caller depth.
+	WithCallerDepth(int) Logger
 }
