@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -23,6 +24,7 @@ const (
 var (
 	agents = make(map[string]lang.PlaceholderType)
 	lock   sync.Mutex
+	tp     *sdktrace.TracerProvider
 )
 
 // StartAgent starts a opentelemetry agent.
@@ -41,6 +43,11 @@ func StartAgent(c Config) {
 	}
 
 	agents[c.Endpoint] = lang.Placeholder
+}
+
+// StopAgent shuts down the span processors in the order they were registered.
+func StopAgent() {
+	_ = tp.Shutdown(context.Background())
 }
 
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
@@ -74,7 +81,7 @@ func startAgent(c Config) error {
 		opts = append(opts, sdktrace.WithBatcher(exp))
 	}
 
-	tp := sdktrace.NewTracerProvider(opts...)
+	tp = sdktrace.NewTracerProvider(opts...)
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{}, propagation.Baggage{}))
