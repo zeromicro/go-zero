@@ -11,9 +11,8 @@ import (
 
 	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"github.com/zeromicro/go-zero/tools/goctl/util"
-
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 //go:embed markdown.tpl
