@@ -3,10 +3,9 @@ package service
 import (
 	"log"
 
-	"github.com/zeromicro/go-zero/core/proc"
-
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/trace"
