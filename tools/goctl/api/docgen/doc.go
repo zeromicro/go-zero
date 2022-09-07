@@ -4,7 +4,6 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
-	"go/format"
 	"html/template"
 	"strconv"
 	"strings"
@@ -36,12 +35,12 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 			routeComment = "N/A"
 		}
 
-		requestContent, err := buildDoc(route.RequestType, api)
+		requestContent, err := buildDoc(route.RequestType)
 		if err != nil {
 			return err
 		}
 
-		responseContent, err := buildDoc(route.ResponseType, api)
+		responseContent, err := buildDoc(route.ResponseType)
 		if err != nil {
 			return err
 		}
@@ -61,6 +60,7 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 		if err != nil {
 			return err
 		}
+
 		builder.Write(tmplBytes.Bytes())
 	}
 
@@ -68,7 +68,7 @@ func genDoc(api *spec.ApiSpec, dir, filename string) error {
 	return err
 }
 
-func buildDoc(route spec.Type, api *spec.ApiSpec) (string, error) {
+func buildDoc(route spec.Type) (string, error) {
 	if route == nil || len(route.Name()) == 0 {
 		return "", nil
 	}
@@ -78,15 +78,12 @@ func buildDoc(route spec.Type, api *spec.ApiSpec) (string, error) {
 	if definedType, ok := route.(spec.DefineStruct); ok {
 		associatedTypes(definedType, &tps)
 	}
-	value, err := gogen.BuildTypes(tps, api)
+	value, err := gogen.BuildTypes(tps)
 	if err != nil {
 		return "", err
 	}
-	formatted, err := format.Source([]byte(value))
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("\n\n```golang\n%s\n```\n", string(formatted)), nil
+
+	return fmt.Sprintf("\n\n```golang\n%s\n```\n", value), nil
 }
 
 func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {

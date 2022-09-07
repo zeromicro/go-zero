@@ -1,0 +1,16 @@
+ATDOC=1
+ATHANDLER=2
+INTERFACE=3
+ATSERVER=4
+WS=5
+COMMENT=6
+LINE_COMMENT=7
+STRING=8
+RAW_STRING=9
+LINE_VALUE=10
+ID=11
+LetterOrDigit=12
+'@doc'=1
+'@handler'=2
+'interface{}'=3
+'@server'=4
