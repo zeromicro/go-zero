@@ -2,8 +2,8 @@ package env
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -94,7 +94,7 @@ func GetOr(key, def string) string {
 
 func readEnv(goctlHome string) *sortedmap.SortedMap {
 	envFile := filepath.Join(goctlHome, envFileDir)
-	data, err := ioutil.ReadFile(envFile)
+	data, err := os.ReadFile(envFile)
 	if err != nil {
 		return nil
 	}
@@ -143,5 +143,5 @@ func WriteEnv(kv []string) error {
 		return err
 	}
 	envFile := filepath.Join(defaultGoctlHome, envFileDir)
-	return ioutil.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
+	return os.WriteFile(envFile, []byte(strings.Join(goctlEnv.Format(), "\n")), 0o777)
 }

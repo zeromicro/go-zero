@@ -151,7 +151,7 @@ func createTempFile(ext, text string) (string, error) {
 		return "", err
 	}
 
-	if err := ioutil.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err := os.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return "", err
 	}
 

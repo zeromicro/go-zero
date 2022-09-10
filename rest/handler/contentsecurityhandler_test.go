@@ -64,7 +64,7 @@ type requestSettings struct {
 }
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestContentSecurityHandler(t *testing.T) {
@@ -380,7 +380,7 @@ func createTempFile(body []byte) (string, error) {
 	}
 
 	tmpFile.Close()
-	err = ioutil.WriteFile(tmpFile.Name(), body, os.ModePerm)
+	err = os.WriteFile(tmpFile.Name(), body, os.ModePerm)
 	if err != nil {
 		return "", err
 	}

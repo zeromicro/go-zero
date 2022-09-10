@@ -22,7 +22,7 @@ func TestGetMethods(t *testing.T) {
 	assert.Nil(t, err)
 	b, err := base64.StdEncoding.DecodeString(b64pb)
 	assert.Nil(t, err)
-	assert.Nil(t, ioutil.WriteFile(tmpfile.Name(), b, os.ModeTemporary))
+	assert.Nil(t, os.WriteFile(tmpfile.Name(), b, os.ModeTemporary))
 	defer os.Remove(tmpfile.Name())
 
 	source, err := grpcurl.DescriptorSourceFromProtoSets(tmpfile.Name())
@@ -41,7 +41,7 @@ func TestGetMethodsWithAnnotations(t *testing.T) {
 	assert.Nil(t, err)
 	b, err := base64.StdEncoding.DecodeString(b64pbWithAnnotations)
 	assert.Nil(t, err)
-	assert.Nil(t, ioutil.WriteFile(tmpfile.Name(), b, os.ModeTemporary))
+	assert.Nil(t, os.WriteFile(tmpfile.Name(), b, os.ModeTemporary))
 	defer os.Remove(tmpfile.Name())
 
 	source, err := grpcurl.DescriptorSourceFromProtoSets(tmpfile.Name())

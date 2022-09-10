@@ -17,7 +17,7 @@ func TempFileWithText(text string) (*os.File, error) {
 		return nil, err
 	}
 
-	if err := ioutil.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err := os.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return nil, err
 	}
 
