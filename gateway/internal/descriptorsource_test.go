@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/base64"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
@@ -18,7 +17,7 @@ const (
 )
 
 func TestGetMethods(t *testing.T) {
-	tmpfile, err := ioutil.TempFile(os.TempDir(), hash.Md5Hex([]byte(b64pb)))
+	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(b64pb)))
 	assert.Nil(t, err)
 	b, err := base64.StdEncoding.DecodeString(b64pb)
 	assert.Nil(t, err)
@@ -37,7 +36,7 @@ func TestGetMethods(t *testing.T) {
 }
 
 func TestGetMethodsWithAnnotations(t *testing.T) {
-	tmpfile, err := ioutil.TempFile(os.TempDir(), hash.Md5Hex([]byte(b64pb)))
+	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(b64pb)))
 	assert.Nil(t, err)
 	b, err := base64.StdEncoding.DecodeString(b64pbWithAnnotations)
 	assert.Nil(t, err)

@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -374,7 +373,7 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 }
 
 func createTempFile(body []byte) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "go-unit-*.tmp")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "go-unit-*.tmp")
 	if err != nil {
 		return "", err
 	}
