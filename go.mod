@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero
 go 1.16
 
 require (
-	github.com/ClickHouse/clickhouse-go/v2 v2.2.0
+	github.com/ClickHouse/clickhouse-go/v2 v2.0.14
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/alicebob/miniredis/v2 v2.23.0
 	github.com/fatih/color v1.13.0
