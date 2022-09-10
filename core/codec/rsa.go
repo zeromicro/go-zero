@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"errors"
-	"io/ioutil"
+	"os"
 )
 
 var (
@@ -48,7 +48,7 @@ type (
 
 // NewRsaDecrypter returns a RsaDecrypter with the given file.
 func NewRsaDecrypter(file string) (RsaDecrypter, error) {
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}

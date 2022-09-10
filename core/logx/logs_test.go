@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"reflect"
@@ -649,7 +649,7 @@ func BenchmarkCopyByteSlice(b *testing.B) {
 		buf = make([]byte, len(s))
 		copy(buf, s)
 	}
-	fmt.Fprint(ioutil.Discard, buf)
+	fmt.Fprint(io.Discard, buf)
 }
 
 func BenchmarkCopyOnWriteByteSlice(b *testing.B) {
@@ -658,7 +658,7 @@ func BenchmarkCopyOnWriteByteSlice(b *testing.B) {
 		size := len(s)
 		buf = s[:size:size]
 	}
-	fmt.Fprint(ioutil.Discard, buf)
+	fmt.Fprint(io.Discard, buf)
 }
 
 func BenchmarkCacheByteSlice(b *testing.B) {
@@ -672,7 +672,7 @@ func BenchmarkCacheByteSlice(b *testing.B) {
 func BenchmarkLogs(b *testing.B) {
 	b.ReportAllocs()
 
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	for i := 0; i < b.N; i++ {
 		Info(i)
 	}

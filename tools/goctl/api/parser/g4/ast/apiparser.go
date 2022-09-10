@@ -2,7 +2,7 @@ package ast
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -498,7 +498,7 @@ func (p *Parser) checkType(linePrefix string, types map[string]TypeExpr, expr Da
 
 func (p *Parser) readContent(filename string) (string, error) {
 	filename = strings.ReplaceAll(filename, `"`, "")
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return "", err
 	}
