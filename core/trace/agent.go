@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -9,7 +10,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/zipkin"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -23,6 +23,7 @@ const (
 var (
 	agents = make(map[string]lang.PlaceholderType)
 	lock   sync.Mutex
+	tp     *sdktrace.TracerProvider
 )
 
 // StartAgent starts a opentelemetry agent.
@@ -43,6 +44,11 @@ func StartAgent(c Config) {
 	agents[c.Endpoint] = lang.Placeholder
 }
 
+// StopAgent shuts down the span processors in the order they were registered.
+func StopAgent() {
+	_ = tp.Shutdown(context.Background())
+}
+
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
@@ -59,7 +65,7 @@ func startAgent(c Config) error {
 	opts := []sdktrace.TracerProviderOption{
 		// Set the sampling rate based on the parent span to 100%
 		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(c.Sampler))),
-		// Record information about this application in an Resource.
+		// Record information about this application in a Resource.
 		sdktrace.WithResource(resource.NewSchemaless(semconv.ServiceNameKey.String(c.Name))),
 	}
 
@@ -74,10 +80,8 @@ func startAgent(c Config) error {
 		opts = append(opts, sdktrace.WithBatcher(exp))
 	}
 
-	tp := sdktrace.NewTracerProvider(opts...)
+	tp = sdktrace.NewTracerProvider(opts...)
 	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{}, propagation.Baggage{}))
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		logx.Errorf("[otel] error: %v", err)
 	}))

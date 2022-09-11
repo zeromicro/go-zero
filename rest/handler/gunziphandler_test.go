@@ -2,7 +2,7 @@ package handler
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,7 +19,7 @@ func TestGunzipHandler(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	handler := GunzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		assert.Nil(t, err)
 		assert.Equal(t, string(body), message)
 		wg.Done()
@@ -39,7 +39,7 @@ func TestGunzipHandler_NoGzip(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	handler := GunzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		assert.Nil(t, err)
 		assert.Equal(t, string(body), message)
 		wg.Done()

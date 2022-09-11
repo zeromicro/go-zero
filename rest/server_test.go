@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -25,7 +24,7 @@ import (
 func TestNewServer(t *testing.T) {
 	writer := logx.Reset()
 	defer logx.SetWriter(writer)
-	logx.SetWriter(logx.NewWriter(ioutil.Discard))
+	logx.SetWriter(logx.NewWriter(io.Discard))
 
 	const configYaml = `
 Name: foo

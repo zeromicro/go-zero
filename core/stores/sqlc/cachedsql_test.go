@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -284,7 +284,7 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 
 func TestStatCacheFails(t *testing.T) {
 	resetStats()
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stdout)
 
 	r := redis.New("localhost:59999")

@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 
 	"github.com/zeromicro/go-zero/core/conf"
@@ -28,7 +28,7 @@ func forChksumHandler(file string, next http.Handler) http.Handler {
 			return
 		}
 
-		content, err := ioutil.ReadFile(file)
+		content, err := os.ReadFile(file)
 		if err != nil {
 			logx.Error(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)

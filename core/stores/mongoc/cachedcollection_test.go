@@ -3,7 +3,7 @@ package mongoc
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -117,7 +117,7 @@ func TestStat(t *testing.T) {
 
 func TestStatCacheFails(t *testing.T) {
 	resetStats()
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 	defer log.SetOutput(os.Stdout)
 
 	r := redis.New("localhost:59999")

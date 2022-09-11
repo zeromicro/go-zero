@@ -1,7 +1,7 @@
 package fx
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"reflect"
@@ -238,7 +238,7 @@ func TestLast(t *testing.T) {
 
 func TestMap(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 
 		tests := []struct {
 			mapper MapFunc
