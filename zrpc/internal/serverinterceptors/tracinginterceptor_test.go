@@ -32,6 +32,8 @@ func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer trace.StopAgent()
+
 	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/package.TestService.GetUser",
 	}, func(ctx context.Context, req interface{}) (interface{}, error) {

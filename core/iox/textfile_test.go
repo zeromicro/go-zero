@@ -1,7 +1,6 @@
 package iox
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -13,7 +12,7 @@ func TestCountLines(t *testing.T) {
 2
 3
 4`
-	file, err := ioutil.TempFile(os.TempDir(), "test-")
+	file, err := os.CreateTemp(os.TempDir(), "test-")
 	if err != nil {
 		t.Fatal(err)
 	}

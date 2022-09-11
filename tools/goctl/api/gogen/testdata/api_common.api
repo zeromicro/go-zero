@@ -1,3 +1,0 @@
-type Common {
-	Some string `json:"some"` // some imported type
-}
