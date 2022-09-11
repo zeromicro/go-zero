@@ -11,14 +11,14 @@ import (
 // WithDuration returns a Logger which logs the given duration.
 func WithDuration(d time.Duration) Logger {
 	return &durationLogger{
-		logEntry:          logEntry{Duration: timex.ReprOfDuration(d)},
-		defaultCallerSkip: 4,
+		logEntry:    logEntry{Duration: timex.ReprOfDuration(d)},
+		callerDepth: 4,
 	}
 }
 
 type durationLogger struct {
 	logEntry
-	defaultCallerSkip int
+	callerDepth int
 }
 
 func (l *durationLogger) Error(v ...interface{}) {
@@ -79,7 +79,7 @@ func (l *durationLogger) WithContext(ctx context.Context) Logger {
 }
 
 func (l *durationLogger) WithCallerDepth(callerDepth int) Logger {
-	l.CallerDepth = callerDepth
+	l.callerDepth += callerDepth
 	return l
 }
 
@@ -108,5 +108,5 @@ func (l *durationLogger) slow(v interface{}, fields ...LogField) {
 
 func (l *durationLogger) buildFields(fields ...LogField) []LogField {
 	return append(fields, Field(durationKey, l.Duration),
-		Field(callerKey, getCaller(l.defaultCallerSkip+l.CallerDepth)))
+		Field(callerKey, getCaller(l.callerDepth)))
 }

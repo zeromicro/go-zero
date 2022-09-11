@@ -30,12 +30,11 @@ var (
 
 type (
 	logEntry struct {
-		Timestamp   string      `json:"@timestamp"`
-		Level       string      `json:"level"`
-		Duration    string      `json:"duration,omitempty"`
-		Caller      string      `json:"caller,omitempty"`
-		Content     interface{} `json:"content"`
-		CallerDepth int         `json:"callerDepth"`
+		Timestamp string      `json:"@timestamp"`
+		Level     string      `json:"level"`
+		Duration  string      `json:"duration,omitempty"`
+		Caller    string      `json:"caller,omitempty"`
+		Content   interface{} `json:"content"`
 	}
 
 	logEntryWithFields map[string]interface{}
