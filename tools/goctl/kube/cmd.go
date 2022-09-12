@@ -16,6 +16,7 @@ var (
 	varIntRevisions          int
 	varIntPort               int
 	varIntNodePort           int
+	varIntTargetPort         int
 	varIntMinReplicas        int
 	varIntMaxReplicas        int
 	varStringHome            string
@@ -51,6 +52,7 @@ func init() {
 	deployCmd.Flags().IntVar(&varIntRevisions, "revisions", 5, "The number of revision history to limit")
 	deployCmd.Flags().IntVar(&varIntPort, "port", 0, "The port of the deployment to listen on pod (required)")
 	deployCmd.Flags().IntVar(&varIntNodePort, "nodePort", 0, "The nodePort of the deployment to expose")
+	deployCmd.Flags().IntVar(&varIntTargetPort, "targetPort", 0, "The targetPort of the deployment, default to port")
 	deployCmd.Flags().IntVar(&varIntMinReplicas, "minReplicas", 3, "The min replicas to deploy")
 	deployCmd.Flags().IntVar(&varIntMaxReplicas, "maxReplicas", 10, "The max replicas to deploy")
 	deployCmd.Flags().StringVar(&varStringImagePullPolicy, "imagePullPolicy", "", "Image pull policy. One of Always, Never, IfNotPresent")
