@@ -31,14 +31,14 @@ type (
 		service.ServiceConf `mapstructure:",squash"`
 		Host     string `default:"0.0.0.0"`
 		Port     int
-		CertFile string //`json:",optional"`
-		KeyFile  string //`json:",optional"`
-		Verbose  bool   //`json:",optional"`
+		CertFile string `json:",optional"`
+		KeyFile  string `json:",optional"`
+		Verbose  bool   `json:",optional"`
 		MaxConns int    `default:"10000"`
 		MaxBytes int64  `default:"1048576"`
 		// milliseconds
 		Timeout      int64         `default:"3000"`
 		CpuThreshold int64         `default:"900" validate:"min=1,max=10"`
-		Signature    SignatureConf //`json:",optional"`
+		Signature    SignatureConf `json:",optional"`
 	}
 )
