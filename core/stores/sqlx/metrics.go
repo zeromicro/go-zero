@@ -1,8 +1,6 @@
 package sqlx
 
-import (
-	"github.com/zeromicro/go-zero/core/metric"
-)
+import "github.com/zeromicro/go-zero/core/metric"
 
 const namespace = "mysql_client"
 

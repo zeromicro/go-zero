@@ -1,8 +1,9 @@
 package metric
 
 import (
-	"github.com/zeromicro/go-zero/core/prometheus"
 	"testing"
+
+	"github.com/zeromicro/go-zero/core/prometheus"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
