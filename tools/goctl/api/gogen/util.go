@@ -57,9 +57,9 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int, api *spec.ApiSpec) error {
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
 	// write doc for swagger
-	for _, v := range tp.Documents() {
+	for _, v := range doc {
 		fmt.Fprintf(writer, "\t%s\n", v)
 	}
 
@@ -185,16 +185,4 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	}
 
 	return ""
-}
-
-func isCustomType(t string) bool {
-	var builtinType = []string{"string", "bool", "int", "uint", "uint8", "uint16", "uint32", "uint64", "int8", "int16", "int32", "int64", "float32", "float64", "uintptr", "complex64", "complex128"}
-	var is bool = true
-	for _, v := range builtinType {
-		if t == v {
-			is = false
-			break
-		}
-	}
-	return is
 }
