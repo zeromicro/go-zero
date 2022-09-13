@@ -38,7 +38,7 @@ type (
 		MaxBytes int64  `default:"1048576"`
 		// milliseconds
 		Timeout      int64         `default:"3000"`
-		CpuThreshold int64         `default:"900" validate:"min=1,max=10"`
+		CpuThreshold int64         `default:"900" validate:"min=0,max=1000"`
 		Signature    SignatureConf `json:",optional"`
 	}
 )
