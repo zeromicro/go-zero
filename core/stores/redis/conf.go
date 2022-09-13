@@ -15,15 +15,15 @@ type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
 		Host string
-		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
-		Tls  bool   `json:",optional"`
+		Type string `default:"node" validate:"oneof=node cluster"`
+		Pass string 
+		Tls  bool   
 	}
 
 	// A RedisKeyConf is a redis config with key.
 	RedisKeyConf struct {
-		RedisConf
-		Key string `json:",optional"`
+		RedisConf `mapstructure:",squash"`
+		Key string 
 	}
 )
 
