@@ -1,6 +1,7 @@
 package metric
 
 import (
+	"github.com/zeromicro/go-zero/core/prometheus"
 	"testing"
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
@@ -21,6 +22,7 @@ func TestNewCounterVec(t *testing.T) {
 }
 
 func TestCounterIncr(t *testing.T) {
+	startAgent()
 	counterVec := NewCounterVec(&CounterVecOpts{
 		Namespace: "http_client",
 		Subsystem: "call",
@@ -37,6 +39,7 @@ func TestCounterIncr(t *testing.T) {
 }
 
 func TestCounterAdd(t *testing.T) {
+	startAgent()
 	counterVec := NewCounterVec(&CounterVecOpts{
 		Namespace: "rpc_server",
 		Subsystem: "requests",
@@ -50,4 +53,12 @@ func TestCounterAdd(t *testing.T) {
 	cv.Add(22, "/Users", "500")
 	r := testutil.ToFloat64(cv.counter)
 	assert.Equal(t, float64(33), r)
+}
+
+func startAgent() {
+	prometheus.StartAgent(prometheus.Config{
+		Host: "127.0.0.1",
+		Port: 9101,
+		Path: "/metrics",
+	})
 }

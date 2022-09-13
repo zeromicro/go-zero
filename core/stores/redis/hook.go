@@ -9,7 +9,6 @@ import (
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
-	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.opentelemetry.io/otel"
@@ -57,11 +56,9 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 		logDuration(ctx, cmd, duration)
 	}
 
-	if prometheus.Enabled() {
-		metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
-		if msg := errFormat(err); len(msg) > 0 {
-			metricReqErr.Inc(cmd.Name(), msg)
-		}
+	metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
+	if msg := errFormat(err); len(msg) > 0 {
+		metricReqErr.Inc(cmd.Name(), msg)
 	}
 
 	return nil
@@ -106,11 +103,9 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 		logDuration(ctx, cmds[0], duration)
 	}
 
-	if prometheus.Enabled() {
-		metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
-		if msg := errFormat(batchError.Err()); len(msg) > 0 {
-			metricReqErr.Inc("Pipeline", msg)
-		}
+	metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
+	if msg := errFormat(batchError.Err()); len(msg) > 0 {
+		metricReqErr.Inc("Pipeline", msg)
 	}
 
 	return nil

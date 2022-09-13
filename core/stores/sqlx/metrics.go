@@ -1,9 +1,7 @@
 package sqlx
 
 import (
-	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/metric"
-	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
 const namespace = "mysql_client"
@@ -25,7 +23,3 @@ var (
 		Labels:    []string{"command", "error"},
 	})
 )
-
-func enableBrkErrMetric(err error) bool {
-	return err == breaker.ErrServiceUnavailable && prometheus.Enabled()
-}

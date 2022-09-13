@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
 )
@@ -137,9 +136,7 @@ func (e *realSqlGuard) finish(ctx context.Context, err error) {
 		logSqlError(ctx, e.stmt, err)
 	}
 
-	if prometheus.Enabled() {
-		metricReqDur.Observe(int64(duration/time.Millisecond), e.command)
-	}
+	metricReqDur.Observe(int64(duration/time.Millisecond), e.command)
 }
 
 func (e *realSqlGuard) start(q string, args ...interface{}) error {

@@ -154,7 +154,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interfac
 		return err
 	}, db.acceptable)
 
-	if enableBrkErrMetric(err) {
+	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Exec", "breaker")
 	}
 
@@ -191,7 +191,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		return nil
 	}, db.acceptable)
 
-	if enableBrkErrMetric(err) {
+	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Prepare", "breaker")
 	}
 
@@ -282,7 +282,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
 
-	if enableBrkErrMetric(err) {
+	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Transact", "breaker")
 	}
 
@@ -316,7 +316,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 		return qerr == err || db.acceptable(err)
 	})
 
-	if enableBrkErrMetric(err) {
+	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("queryRows", "breaker")
 	}
 
