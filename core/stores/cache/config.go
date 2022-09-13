@@ -8,7 +8,7 @@ type (
 
 	// A NodeConf is the config of a redis node that used as cache.
 	NodeConf struct {
-		redis.RedisConf
-		Weight int `json:",default=100"`
+		redis.RedisConf `mapstructure:",squash"`
+		Weight int `default:"100"`
 	}
 )
