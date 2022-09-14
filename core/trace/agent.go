@@ -3,7 +3,6 @@ package trace
 import (
 	"context"
 	"fmt"
-	"google.golang.org/grpc"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -15,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -60,7 +60,11 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindGrpc:
-		return otlptracegrpc.NewUnstarted(otlptracegrpc.WithInsecure(), otlptracegrpc.WithEndpoint(c.Endpoint), otlptracegrpc.WithDialOption(grpc.WithBlock())), nil
+		return otlptracegrpc.NewUnstarted(
+			otlptracegrpc.WithInsecure(),
+			otlptracegrpc.WithEndpoint(c.Endpoint),
+			otlptracegrpc.WithDialOption(grpc.WithBlock()),
+		), nil
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
