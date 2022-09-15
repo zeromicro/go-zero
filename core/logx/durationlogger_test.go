@@ -149,6 +149,14 @@ func TestWithDurationSlowv(t *testing.T) {
 	assert.True(t, strings.Contains(w.String(), "duration"), w.String())
 }
 
+func TestDurationLogger_WithCallerSkip(t *testing.T) {
+	l := WithDuration(time.Second).WithCallerSkip(0)
+	fields := l.(*durationLogger).buildFields()
+
+	assert.Equal(t, 2, len(fields))
+	assert.Equal(t, callerKey, fields[1].Key)
+}
+
 func TestWithDurationSloww(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)

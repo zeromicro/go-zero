@@ -211,6 +211,15 @@ func TestLogWithFields(t *testing.T) {
 	assert.Equal(t, "bar", val.Foo)
 }
 
+func TestLogWithCallerSkip(t *testing.T) {
+	l := WithContext(context.Background()).WithCallerSkip(0)
+
+	fields := l.(*contextLogger).buildFields()
+
+	assert.Equal(t, 1, len(fields))
+	assert.Equal(t, callerKey, fields[0].Key)
+}
+
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
 	dec := json.NewDecoder(strings.NewReader(body))
