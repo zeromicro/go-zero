@@ -10,7 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
-	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 const (
@@ -97,17 +96,21 @@ type (
 
 // NewBreaker returns a Breaker object.
 // opts can be used to customize the Breaker.
-func NewBreaker(opts ...Option) Breaker {
-	var b circuitBreaker
-	for _, opt := range opts {
-		opt(&b)
-	}
-	if len(b.name) == 0 {
-		b.name = stringx.Rand()
-	}
-	b.throttle = newLoggedThrottle(b.name, newGoogleBreaker())
+//func NewBreaker(opts ...Option) Breaker {
+//	var b circuitBreaker
+//	for _, opt := range opts {
+//		opt(&b)
+//	}
+//	if len(b.name) == 0 {
+//		b.name = stringx.Rand()
+//	}
+//	b.throttle = newLoggedThrottle(b.name, newGoogleBreaker())
+//
+//	return &b
+//}
 
-	return &b
+func NewBreaker(opts ...Option) Breaker {
+	return newNoOpBreaker()
 }
 
 func (cb *circuitBreaker) Allow() (Promise, error) {
