@@ -3,10 +3,13 @@ package trace
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"google.golang.org/grpc"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
+	"go.opentelemetry.io/contrib/propagators/aws/xray"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -14,13 +17,14 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"google.golang.org/grpc"
 )
 
 const (
 	kindJaeger = "jaeger"
 	kindZipkin = "zipkin"
 	kindGrpc   = "grpc"
+	kindStdout = "stdout"
+	kindXray   = "xray"
 )
 
 var (
@@ -52,6 +56,15 @@ func StopAgent() {
 	_ = tp.Shutdown(context.Background())
 }
 
+func createIDGenerator(c Config) sdktrace.IDGenerator {
+	switch c.IdGenerator {
+	case kindXray:
+		return xray.NewIDGenerator()
+	default:
+		return nil
+	}
+}
+
 func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
@@ -65,6 +78,8 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 			otlptracegrpc.WithEndpoint(c.Endpoint),
 			otlptracegrpc.WithDialOption(grpc.WithBlock()),
 		), nil
+	case kindStdout:
+		return stdouttrace.New(stdouttrace.WithPrettyPrint())
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
@@ -89,8 +104,20 @@ func startAgent(c Config) error {
 		opts = append(opts, sdktrace.WithBatcher(exp))
 	}
 
+	if len(c.IdGenerator) > 0 {
+		opts = append(opts, sdktrace.WithIDGenerator(createIDGenerator(c)))
+	}
 	tp = sdktrace.NewTracerProvider(opts...)
 	otel.SetTracerProvider(tp)
+	if len(c.Propagator) > 0 {
+		switch c.Propagator {
+		case kindXray:
+			otel.SetTextMapPropagator(xray.Propagator{})
+			//default: // propagation had been initialized
+			//	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
+			//		propagation.TraceContext{}, propagation.Baggage{}))
+		}
+	}
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
 		logx.Errorf("[otel] error: %v", err)
 	}))
