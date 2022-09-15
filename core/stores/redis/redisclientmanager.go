@@ -11,7 +11,7 @@ import (
 const (
 	defaultDatabase = 0
 	maxRetries      = 3
-	idleConns       = 8
+	idleConns       = 20
 )
 
 var clientManager = syncx.NewResourceManager()
