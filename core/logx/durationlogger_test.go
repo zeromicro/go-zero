@@ -154,6 +154,7 @@ func TestDurationLogger_WithCallerSkip(t *testing.T) {
 	fields := l.(*durationLogger).buildFields()
 
 	assert.Equal(t, 2, len(fields))
+	assert.Equal(t, durationKey, fields[0].Key)
 	assert.Equal(t, callerKey, fields[1].Key)
 }
 
