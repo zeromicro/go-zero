@@ -12,7 +12,7 @@ import (
 func WithDuration(d time.Duration) Logger {
 	return &durationLogger{
 		logEntry:    logEntry{Duration: timex.ReprOfDuration(d)},
-		callerDepth: 4,
+		callerDepth: callerDepth,
 	}
 }
 
@@ -78,8 +78,8 @@ func (l *durationLogger) WithContext(ctx context.Context) Logger {
 	}
 }
 
-func (l *durationLogger) WithCallerDepth(callerDepth int) Logger {
-	l.callerDepth += callerDepth
+func (l *durationLogger) WithCallerSkip(callerSkip int) Logger {
+	l.callerDepth += callerSkip
 	return l
 }
 

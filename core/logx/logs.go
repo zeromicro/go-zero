@@ -14,7 +14,10 @@ import (
 	"github.com/zeromicro/go-zero/core/sysx"
 )
 
-const callerDepth = 3
+const (
+	callerDepth        = 4
+	defaultCallerDepth = 6
+)
 
 var (
 	timeFormat = "2006-01-02T15:04:05.000Z07:00"
@@ -85,22 +88,12 @@ func DisableStat() {
 
 // Error writes v into error log.
 func Error(v ...interface{}) {
-	errorTextSync(0, fmt.Sprint(v...))
-}
-
-// ErrorCaller writes v into error log.
-func ErrorCaller(callDepth int, v ...interface{}) {
-	errorTextSync(callDepth, fmt.Sprint(v...))
+	errorTextSync(fmt.Sprint(v...))
 }
 
 // Errorf writes v with format into error log.
 func Errorf(format string, v ...interface{}) {
-	errorTextSync(0, fmt.Errorf(format, v...).Error())
-}
-
-// ErrorCallerf writes v with format into error log.
-func ErrorCallerf(callDepth int, format string, v ...interface{}) {
-	errorTextSync(callDepth, fmt.Errorf(format, v...).Error())
+	errorTextSync(fmt.Errorf(format, v...).Error())
 }
 
 // ErrorStack writes v along with call stack into error log.
@@ -118,22 +111,12 @@ func ErrorStackf(format string, v ...interface{}) {
 // Errorv writes v into error log with json content.
 // No call stack attached, because not elegant to pack the messages.
 func Errorv(v interface{}) {
-	errorAnySync(0, v)
-}
-
-// ErrorCallerv writes v into error log with json content.
-func ErrorCallerv(callDepth int, v interface{}) {
-	errorAnySync(callDepth, v)
+	errorAnySync(v)
 }
 
 // Errorw writes msg along with fields into error log.
 func Errorw(msg string, fields ...LogField) {
-	errorFieldsSync(0, msg, fields...)
-}
-
-// ErrorCallerw writes msg along with fields into error log.
-func ErrorCallerw(callDepth int, msg string, fields ...LogField) {
-	errorFieldsSync(callDepth, msg, fields...)
+	errorFieldsSync(msg, fields...)
 }
 
 // Field returns a LogField for the given key and value.
@@ -176,42 +159,22 @@ func Field(key string, value interface{}) LogField {
 
 // Info writes v into access log.
 func Info(v ...interface{}) {
-	infoTextSync(0, fmt.Sprint(v...))
-}
-
-// InfoCaller writes v into access log.
-func InfoCaller(callDepth int, v ...interface{}) {
-	infoTextSync(callDepth, fmt.Sprint(v...))
+	infoTextSync(fmt.Sprint(v...))
 }
 
 // Infof writes v with format into access log.
 func Infof(format string, v ...interface{}) {
-	infoTextSync(0, fmt.Sprintf(format, v...))
-}
-
-// InfoCallerf writes v with format into access log.
-func InfoCallerf(callDepth int, format string, v ...interface{}) {
-	infoTextSync(callDepth, fmt.Sprintf(format, v...))
+	infoTextSync(fmt.Sprintf(format, v...))
 }
 
 // Infov writes v into access log with json content.
 func Infov(v interface{}) {
-	infoAnySync(0, v)
-}
-
-// InfoCallerv writes v into access log with json content.
-func InfoCallerv(callDepth int, v interface{}) {
-	infoAnySync(callDepth, v)
+	infoAnySync(v)
 }
 
 // Infow writes msg along with fields into access log.
 func Infow(msg string, fields ...LogField) {
-	infoFieldsSync(0, msg, fields...)
-}
-
-// InfoCallerw writes msg along with fields into access log.
-func InfoCallerw(callDepth int, msg string, fields ...LogField) {
-	infoFieldsSync(callDepth, msg, fields...)
+	infoFieldsSync(msg, fields...)
 }
 
 // Must checks if err is nil, otherwise logs the error and exits.
@@ -294,62 +257,32 @@ func Severef(format string, v ...interface{}) {
 
 // Slow writes v into slow log.
 func Slow(v ...interface{}) {
-	slowTextSync(0, fmt.Sprint(v...))
-}
-
-// SlowCaller writes v into slow log.
-func SlowCaller(callDepth int, v ...interface{}) {
-	slowTextSync(callDepth, fmt.Sprint(v...))
+	slowTextSync(fmt.Sprint(v...))
 }
 
 // Slowf writes v with format into slow log.
 func Slowf(format string, v ...interface{}) {
-	slowTextSync(0, fmt.Sprintf(format, v...))
-}
-
-// SlowCallerf writes v with format into slow log.
-func SlowCallerf(callDepth int, format string, v ...interface{}) {
-	slowTextSync(callDepth, fmt.Sprintf(format, v...))
+	slowTextSync(fmt.Sprintf(format, v...))
 }
 
 // Slowv writes v into slow log with json content.
 func Slowv(v interface{}) {
-	slowAnySync(0, v)
-}
-
-// SlowCallerv writes v into slow log with json content.
-func SlowCallerv(callDepth int, v interface{}) {
-	slowAnySync(callDepth, v)
+	slowAnySync(v)
 }
 
 // Sloww writes msg along with fields into slow log.
 func Sloww(msg string, fields ...LogField) {
-	slowFieldsSync(0, msg, fields...)
-}
-
-// SlowCallerw writes msg along with fields into slow log.
-func SlowCallerw(callDepth int, msg string, fields ...LogField) {
-	slowFieldsSync(callDepth, msg, fields...)
+	slowFieldsSync(msg, fields...)
 }
 
 // Stat writes v into stat log.
 func Stat(v ...interface{}) {
-	statSync(0, fmt.Sprint(v...))
-}
-
-// StatCaller writes v into stat log.
-func StatCaller(callDepth int, v ...interface{}) {
-	statSync(callDepth, fmt.Sprint(v...))
+	statSync(fmt.Sprint(v...))
 }
 
 // Statf writes v with format into stat log.
 func Statf(format string, v ...interface{}) {
-	statSync(0, fmt.Sprintf(format, v...))
-}
-
-// StatCallerf writes v with format into stat log.
-func StatCallerf(callDepth int, format string, v ...interface{}) {
-	statSync(callDepth, fmt.Sprintf(format, v...))
+	statSync(fmt.Sprintf(format, v...))
 }
 
 // WithCooldownMillis customizes logging on writing call stack interval.
@@ -409,21 +342,21 @@ func createOutput(path string) (io.WriteCloser, error) {
 	}
 }
 
-func errorAnySync(callDepth int, v interface{}) {
+func errorAnySync(v interface{}) {
 	if shallLog(ErrorLevel) {
-		getWriter().Error(v, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Error(v)
 	}
 }
 
-func errorFieldsSync(callDepth int, content string, fields ...LogField) {
+func errorFieldsSync(content string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Error(content, append(fields, Field(callerKey, getCaller(callDepth+callerDepth)))...)
+		getWriter().Error(content, fields...)
 	}
 }
 
-func errorTextSync(callDepth int, msg string) {
+func errorTextSync(msg string) {
 	if shallLog(ErrorLevel) {
-		getWriter().Error(msg, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Error(msg)
 	}
 }
 
@@ -442,21 +375,21 @@ func handleOptions(opts []LogOption) {
 	}
 }
 
-func infoAnySync(callDepth int, val interface{}) {
+func infoAnySync(val interface{}) {
 	if shallLog(InfoLevel) {
-		getWriter().Info(val, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Info(val)
 	}
 }
 
-func infoFieldsSync(callDepth int, content string, fields ...LogField) {
+func infoFieldsSync(content string, fields ...LogField) {
 	if shallLog(InfoLevel) {
-		getWriter().Info(content, append(fields, Field(callerKey, getCaller(callDepth+callerDepth)))...)
+		getWriter().Info(content, fields...)
 	}
 }
 
-func infoTextSync(callDepth int, msg string) {
+func infoTextSync(msg string) {
 	if shallLog(InfoLevel) {
-		getWriter().Info(msg, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Info(msg)
 	}
 }
 
@@ -508,21 +441,21 @@ func shallLogStat() bool {
 	return atomic.LoadUint32(&disableStat) == 0
 }
 
-func slowAnySync(callDepth int, v interface{}) {
+func slowAnySync(v interface{}) {
 	if shallLog(ErrorLevel) {
-		getWriter().Slow(v, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Slow(v)
 	}
 }
 
-func slowFieldsSync(callDepth int, content string, fields ...LogField) {
+func slowFieldsSync(content string, fields ...LogField) {
 	if shallLog(ErrorLevel) {
-		getWriter().Slow(content, append(fields, Field(callerKey, getCaller(callDepth+callerDepth)))...)
+		getWriter().Slow(content, fields...)
 	}
 }
 
-func slowTextSync(callDepth int, msg string) {
+func slowTextSync(msg string) {
 	if shallLog(ErrorLevel) {
-		getWriter().Slow(msg, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Slow(msg)
 	}
 }
 
@@ -532,8 +465,8 @@ func stackSync(msg string) {
 	}
 }
 
-func statSync(callDepth int, msg string) {
+func statSync(msg string) {
 	if shallLogStat() && shallLog(InfoLevel) {
-		getWriter().Stat(msg, Field(callerKey, getCaller(callDepth+callerDepth)))
+		getWriter().Stat(msg)
 	}
 }

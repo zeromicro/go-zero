@@ -246,13 +246,40 @@ func (n nopWriter) Stat(_ interface{}, _ ...LogField) {
 }
 
 func buildFields(fields ...LogField) []string {
-	var items []string
+	var (
+		items       []string
+		existCaller bool
+	)
 
 	for _, field := range fields {
 		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
+		if field.Key == callerKey {
+			existCaller = true
+		}
+	}
+
+	if !existCaller {
+		items = append(items, fmt.Sprintf("%s=%v", callerKey, getCaller(defaultCallerDepth)))
 	}
 
 	return items
+}
+
+func buildEntry(level string, val interface{}, fields ...LogField) logEntryWithFields {
+	entry := make(logEntryWithFields)
+
+	for _, field := range fields {
+		entry[field.Key] = field.Value
+	}
+
+	if _, ok := entry[callerKey]; !ok {
+		entry[callerKey] = getCaller(defaultCallerDepth)
+	}
+
+	entry[timestampKey] = getTimestamp()
+	entry[levelKey] = level
+	entry[contentKey] = val
+	return entry
 }
 
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
@@ -260,14 +287,7 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 	case plainEncodingType:
 		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
-		entry := make(logEntryWithFields)
-		for _, field := range fields {
-			entry[field.Key] = field.Value
-		}
-		entry[timestampKey] = getTimestamp()
-		entry[levelKey] = level
-		entry[contentKey] = val
-		writeJson(writer, entry)
+		writeJson(writer, buildEntry(level, val, fields...))
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 func WithContext(ctx context.Context) Logger {
 	return &contextLogger{
 		ctx:         ctx,
-		callerDepth: 4,
+		callerDepth: callerDepth,
 	}
 }
 
@@ -80,8 +80,8 @@ func (l *contextLogger) WithContext(ctx context.Context) Logger {
 	return l
 }
 
-func (l *contextLogger) WithCallerDepth(callerDepth int) Logger {
-	l.callerDepth += callerDepth
+func (l *contextLogger) WithCallerSkip(callerSkip int) Logger {
+	l.callerDepth += callerSkip
 	return l
 }
 
