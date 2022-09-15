@@ -2,6 +2,12 @@ package breaker
 
 const noOpBreakerName = "nopBreaker"
 
+// NewBreaker returns a Breaker object.
+// opts can be used to customize the Breaker.
+func NewNoOpBreaker() Breaker {
+	return newNoOpBreaker()
+}
+
 type noOpBreaker struct{}
 
 func newNoOpBreaker() Breaker {

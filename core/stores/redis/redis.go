@@ -84,7 +84,8 @@ func New(addr string, opts ...Option) *Redis {
 	r := &Redis{
 		Addr: addr,
 		Type: NodeType,
-		brk:  breaker.NewBreaker(),
+		//brk:  breaker.NewBreaker(),
+		brk: breaker.NewNoOpBreaker(),
 	}
 
 	for _, opt := range opts {
