@@ -30,8 +30,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 	expressionValues := make([]string, 0)
 	var count int
 	for _, field := range table.Fields {
-		camel := util.SafeString(field.Name.ToCamel())
-		if camel == "CreateTime" || camel == "UpdateTime" || camel == "CreateAt" || camel == "UpdateAt" {
+		if field.StructField == "CreateTime" || field.StructField == "UpdateTime" || field.StructField == "CreateAt" || field.StructField == "UpdateAt" {
 			continue
 		}
 
@@ -47,7 +46,7 @@ func genInsert(table Table, withCache, postgreSql bool) (string, string, error) 
 		} else {
 			expressions = append(expressions, "?")
 		}
-		expressionValues = append(expressionValues, "data."+camel)
+		expressionValues = append(expressionValues, "data."+field.StructField)
 	}
 
 	camel := table.Name.ToCamel()
