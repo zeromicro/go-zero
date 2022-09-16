@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWithFields(t *testing.T) {
-	ctx := WithFields(context.Background(), Field("a", 1), Field("b", 2))
+func TestContextWithFields(t *testing.T) {
+	ctx := ContextWithFields(context.Background(), Field("a", 1), Field("b", 2))
 	vals := ctx.Value(fieldsContextKey)
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)
@@ -19,8 +19,8 @@ func TestWithFields(t *testing.T) {
 func TestWithFieldsAppend(t *testing.T) {
 	var dummyKey struct{}
 	ctx := context.WithValue(context.Background(), dummyKey, "dummy")
-	ctx = WithFields(ctx, Field("a", 1), Field("b", 2))
-	ctx = WithFields(ctx, Field("c", 3), Field("d", 4))
+	ctx = ContextWithFields(ctx, Field("a", 1), Field("b", 2))
+	ctx = ContextWithFields(ctx, Field("c", 3), Field("d", 4))
 	vals := ctx.Value(fieldsContextKey)
 	assert.NotNil(t, vals)
 	fields, ok := vals.([]LogField)

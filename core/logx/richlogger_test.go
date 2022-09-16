@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -33,6 +34,7 @@ func TestTraceLog(t *testing.T) {
 	defer span.End()
 
 	WithContext(ctx).Info(testlog)
+	fmt.Println(w.String())
 	validate(t, w.String(), true, true)
 }
 
@@ -201,7 +203,7 @@ func TestLogWithFields(t *testing.T) {
 		writer.Store(old)
 	}()
 
-	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	ctx := ContextWithFields(context.Background(), Field("foo", "bar"))
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.Info(testlog)

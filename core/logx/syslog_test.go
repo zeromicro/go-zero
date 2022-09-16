@@ -42,11 +42,18 @@ func captureOutput(f func()) string {
 }
 
 func getContent(jsonStr string) string {
-	var entry logEntry
+	var entry map[string]interface{}
 	json.Unmarshal([]byte(jsonStr), &entry)
-	val, ok := entry.Content.(string)
-	if ok {
-		return val
+
+	val, ok := entry[contentKey]
+	if !ok {
+		return ""
 	}
-	return ""
+
+	str, ok := val.(string)
+	if !ok {
+		return ""
+	}
+
+	return str
 }
