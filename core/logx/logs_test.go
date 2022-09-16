@@ -422,7 +422,6 @@ func TestStructedLogStat(t *testing.T) {
 	doTestStructedLog(t, levelStat, w, func(v ...interface{}) {
 		Stat(v...)
 	})
-	fmt.Println(w.String())
 }
 
 func TestStructedLogStatf(t *testing.T) {
