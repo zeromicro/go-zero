@@ -34,18 +34,10 @@ func WithDuration(d time.Duration) Logger {
 	}
 }
 
-// WithFields returns a Logger with given fields.
-func WithFields(fields ...LogField) Logger {
-	return &richLogger{
-		fields: fields,
-	}
-}
-
 type richLogger struct {
 	ctx        context.Context
 	duration   string
 	callerSkip int
-	fields     []LogField
 }
 
 func (l *richLogger) Error(v ...interface{}) {
@@ -115,13 +107,7 @@ func (l *richLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
-func (l *richLogger) WithFields(fields ...LogField) Logger {
-	l.fields = append(l.fields, fields...)
-	return l
-}
-
 func (l *richLogger) buildFields(fields ...LogField) []LogField {
-	fields = append(l.fields, fields...)
 	fields = append(fields, Field(callerKey, getCaller(callerDepth+l.callerSkip)))
 
 	if len(l.duration) > 0 {

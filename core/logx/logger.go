@@ -37,6 +37,4 @@ type Logger interface {
 	WithContext(ctx context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
 	WithDuration(d time.Duration) Logger
-	// WithFields returns a new logger with the given fields.
-	WithFields(fields ...LogField) Logger
 }

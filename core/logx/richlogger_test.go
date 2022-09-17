@@ -237,30 +237,6 @@ func TestLogWithCallerSkip(t *testing.T) {
 	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
-func TestWithFields(t *testing.T) {
-	w := new(mockWriter)
-	old := writer.Swap(w)
-	writer.lock.RLock()
-	defer func() {
-		writer.lock.RUnlock()
-		writer.Store(old)
-	}()
-
-	l := WithFields(Field("a", "b")).WithFields(Field("c", "d"))
-	p := func(v string) {
-		l.Info(v)
-	}
-
-	p(testlog)
-	var v struct {
-		A string `json:"a"`
-		C string `json:"c"`
-	}
-	assert.Nil(t, json.Unmarshal([]byte(w.String()), &v))
-	assert.Equal(t, "b", v.A, w.String())
-	assert.Equal(t, "d", v.C, w.String())
-}
-
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
 	dec := json.NewDecoder(strings.NewReader(body))

@@ -16,3 +16,9 @@ func ContextWithFields(ctx context.Context, fields ...LogField) context.Context 
 
 	return context.WithValue(ctx, fieldsContextKey, fields)
 }
+
+// WithFields returns a new logger with the given fields.
+// deprecated: use ContextWithFields instead.
+func WithFields(ctx context.Context, fields ...LogField) context.Context {
+	return ContextWithFields(ctx, fields...)
+}
