@@ -2,7 +2,7 @@ package sqlx
 
 import "github.com/zeromicro/go-zero/core/metric"
 
-const namespace = "mysql_client"
+const namespace = "sql_client"
 
 var (
 	metricReqDur = metric.NewHistogramVec(&metric.HistogramVecOpts{
