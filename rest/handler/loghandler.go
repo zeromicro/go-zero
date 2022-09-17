@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -180,7 +179,7 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	if !ok {
 		fullReq := dumpRequest(r)
 		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
-		body, err := ioutil.ReadAll(limitReader)
+		body, err := io.ReadAll(limitReader)
 		if err != nil {
 			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
 		} else {

@@ -1,7 +1,7 @@
 package fs
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -21,7 +21,7 @@ func TestTempFileWithText(t *testing.T) {
 	}
 	defer os.Remove(f.Name())
 
-	bs, err := ioutil.ReadAll(f)
+	bs, err := io.ReadAll(f)
 	assert.Nil(t, err)
 	if len(bs) != 4 {
 		t.Error("TempFileWithText returned wrong file size")
@@ -41,7 +41,7 @@ func TestTempFilenameWithText(t *testing.T) {
 	}
 	defer os.Remove(f)
 
-	bs, err := ioutil.ReadFile(f)
+	bs, err := os.ReadFile(f)
 	assert.Nil(t, err)
 	if len(bs) != 4 {
 		t.Error("TempFilenameWithText returned wrong file size")

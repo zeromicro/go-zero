@@ -2,7 +2,6 @@ package conf
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -20,7 +19,7 @@ var loaders = map[string]func([]byte, interface{}) error{
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
 func Load(file string, v interface{}, opts ...Option) error {
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
 	}

@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/base64"
-	"io/ioutil"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -22,7 +22,7 @@ const (
 var aesKey = []byte(`PdSgVkYp3s6v9y$B&E)H+MbQeThWmZq4`)
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestCryptionHandlerGet(t *testing.T) {
@@ -50,7 +50,7 @@ func TestCryptionHandlerPost(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodPost, "/any", &buf)
 	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		assert.Nil(t, err)
 		assert.Equal(t, reqText, string(body))
 

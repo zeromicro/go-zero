@@ -3,7 +3,7 @@ package mr
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"log"
 	"runtime"
 	"sync/atomic"
@@ -17,7 +17,7 @@ import (
 var errDummy = errors.New("dummy")
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestFinish(t *testing.T) {

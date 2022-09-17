@@ -23,6 +23,7 @@ func TestOpenTracingInterceptor(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer trace.StopAgent()
 
 	cc := new(grpc.ClientConn)
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.MD{})
