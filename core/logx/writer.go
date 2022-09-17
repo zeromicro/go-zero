@@ -256,13 +256,11 @@ func buildFields(fields ...LogField) []string {
 }
 
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
-	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
-
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
-		entry := make(logEntryWithFields)
+		entry := make(logEntry)
 		for _, field := range fields {
 			entry[field.Key] = field.Value
 		}
