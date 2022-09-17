@@ -26,10 +26,11 @@ type (
 	defaultGenerator struct {
 		console.Console
 		// source string
-		dir          string
-		pkg          string
-		cfg          *config.Config
-		isPostgreSql bool
+		dir           string
+		pkg           string
+		cfg           *config.Config
+		isPostgreSql  bool
+		ignoreColumns []string
 	}
 
 	// Option defines a function with argument defaultGenerator
@@ -82,14 +83,21 @@ func NewDefaultGenerator(dir string, cfg *config.Config, opt ...Option) (*defaul
 	return generator, nil
 }
 
-// WithConsoleOption creates a console option
+// WithConsoleOption creates a console option.
 func WithConsoleOption(c console.Console) Option {
 	return func(generator *defaultGenerator) {
 		generator.Console = c
 	}
 }
 
-// WithPostgreSql marks  defaultGenerator.isPostgreSql true
+// WithIgnoreColumns ignores the columns while insert or update rows.
+func WithIgnoreColumns(ignoreColumns []string) Option {
+	return func(generator *defaultGenerator) {
+		generator.ignoreColumns = ignoreColumns
+	}
+}
+
+// WithPostgreSql marks  defaultGenerator.isPostgreSql true.
 func WithPostgreSql() Option {
 	return func(generator *defaultGenerator) {
 		generator.isPostgreSql = true
@@ -235,6 +243,16 @@ type Table struct {
 	PrimaryCacheKey        Key
 	UniqueCacheKey         []Key
 	ContainsUniqueCacheKey bool
+	ignoreColumns          []string
+}
+
+func (t Table) isIgnoreColumns(columnName string) bool {
+	for _, v := range t.ignoreColumns {
+		if v == columnName {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, error) {
@@ -249,6 +267,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.PrimaryCacheKey = primaryKey
 	table.UniqueCacheKey = uniqueKey
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
+	table.ignoreColumns = g.ignoreColumns
 
 	importsCode, err := genImports(table, withCache, in.ContainsTime())
 	if err != nil {

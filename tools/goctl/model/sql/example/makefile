@@ -5,6 +5,10 @@ fromDDLWithCache:
 	goctl template clean
 	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/cache" -cache
 
+fromDDLWithCache:
+	goctl template clean
+	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/ignore_columns/cache" -cache -i 'gmt_create' -i 'gmt_modified'
+
 fromDDLWithCacheAndDb:
 	goctl template clean
 	goctl model mysql ddl -src="./sql/*.sql" -dir="./sql/model/cache_db" -database="1gozero" -cache
