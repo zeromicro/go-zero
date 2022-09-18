@@ -15,7 +15,7 @@ type (
 
 	// A SignatureConf is a signature config.
 	SignatureConf struct {
-		Strict      bool          `default="false"`
+		Strict      bool          `default:"false"`
 		Expiry      time.Duration `default:"1h"`
 		PrivateKeys []PrivateKeyConf
 	}
