@@ -27,15 +27,6 @@ func NewEventHandler(writer io.Writer, resolver jsonpb.AnyResolver) *EventHandle
 	}
 }
 
-func (h *EventHandler) OnResolveMethod(_ *desc.MethodDescriptor) {
-}
-
-func (h *EventHandler) OnSendHeaders(_ metadata.MD) {
-}
-
-func (h *EventHandler) OnReceiveHeaders(_ metadata.MD) {
-}
-
 func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 	if err := h.marshaler.Marshal(h.writer, message); err != nil {
 		logx.Error(err)
@@ -44,4 +35,13 @@ func (h *EventHandler) OnReceiveResponse(message proto.Message) {
 
 func (h *EventHandler) OnReceiveTrailers(status *status.Status, _ metadata.MD) {
 	h.Status = status
+}
+
+func (h *EventHandler) OnResolveMethod(_ *desc.MethodDescriptor) {
+}
+
+func (h *EventHandler) OnSendHeaders(_ metadata.MD) {
+}
+
+func (h *EventHandler) OnReceiveHeaders(_ metadata.MD) {
 }
