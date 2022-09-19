@@ -2,6 +2,7 @@ package httpx
 
 import (
 	"encoding/json"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"google.golang.org/grpc/status"
 	"net/http"
 	"sync"
@@ -16,29 +17,6 @@ var (
 	lock         sync.RWMutex
 )
 
-type SimpleMsg struct {
-	Msg string `json:"msg"`
-}
-
-// api error
-
-type ApiError struct {
-	Code int    `json:"code"`
-	Msg  string `json:"msg"`
-}
-
-func (e *ApiError) Error() string {
-	return e.Msg
-}
-
-func NewApiError(code int, msg string) error {
-	return &ApiError{Code: code, Msg: msg}
-}
-
-func NewApiErrorWithoutMsg(code int) error {
-	return &ApiError{Code: code, Msg: ""}
-}
-
 // Error writes err into w.
 func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, err error)) {
 	lock.RLock()
@@ -51,9 +29,9 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 		} else if errcode.IsGrpcError(err) {
 			// don't unwrap error and get status.Message(),
 			// it hides the rpc error headers.
-			WriteJson(w, errcode.CodeFromGrpcError(err), &SimpleMsg{Msg: status.Convert(err).Message()})
-		} else if _, ok := err.(*ApiError); ok {
-			WriteJson(w, err.(*ApiError).Code, &SimpleMsg{Msg: err.(*ApiError).Msg})
+			WriteJson(w, errcode.CodeFromGrpcError(err), &errorx.SimpleMsg{Msg: status.Convert(err).Message()})
+		} else if _, ok := err.(*errorx.ApiError); ok {
+			WriteJson(w, err.(*errorx.ApiError).Code, &errorx.SimpleMsg{Msg: err.(*errorx.ApiError).Msg})
 		} else {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
