@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
 	"github.com/zeromicro/go-zero/rest/internal/header"
@@ -23,6 +24,7 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	xValidator      = NewValidator()
 )
 
 // Parse parses the request.
@@ -39,7 +41,19 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	return ParseJsonBody(r, v)
+	if err := ParseJsonBody(r, v); err != nil {
+		return err
+	}
+
+	errs := xValidator.Validate(v, r.Header.Get("Accept-Language"))
+	if errs == "" {
+		return nil
+	}
+
+	return &errorx.ApiError{
+		Code: http.StatusBadRequest,
+		Msg:  errs,
+	}
 }
 
 // ParseHeaders parses the headers request.
