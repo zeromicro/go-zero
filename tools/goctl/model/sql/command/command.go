@@ -7,11 +7,11 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command/migrationnotes"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
