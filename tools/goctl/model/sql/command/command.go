@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -90,7 +91,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 		idea:          idea,
 		database:      database,
 		strict:        VarBoolStrict,
-		ignoreColumns: VarStringSliceIgnoreColumns,
+		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromDDL(arg)
 }
@@ -131,9 +132,20 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		cache:         cache,
 		idea:          idea,
 		strict:        VarBoolStrict,
-		ignoreColumns: VarStringSliceIgnoreColumns,
+		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromMysqlDataSource(arg)
+}
+
+func mergeColumns(columns []string) []string {
+	set := collection.NewSet()
+	for _, v := range columns {
+		fields := strings.FieldsFunc(v, func(r rune) bool {
+			return r == ','
+		})
+		set.AddStr(fields...)
+	}
+	return set.KeysStr()
 }
 
 type pattern map[string]struct{}
