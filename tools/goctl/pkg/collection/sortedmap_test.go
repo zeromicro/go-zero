@@ -224,7 +224,7 @@ func Test_SortedMap(t *testing.T) {
 
 	t.Run("Format", func(t *testing.T) {
 		format := sm.Format()
-		assert.Equal(t, []string{}, format)
+		assert.Empty(t, format)
 		sm.SetKV("foo1", "bar1")
 		sm.SetKV("foo2", "bar2")
 		sm.SetKV("foo3", "")

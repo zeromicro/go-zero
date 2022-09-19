@@ -467,7 +467,7 @@ func TestConcat(t *testing.T) {
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].(int) < items[j].(int)
 		})
-		ints := make([]interface{}, 0)
+		ints := make([]interface{}, 0, len(a1)+len(a2))
 		ints = append(ints, a1...)
 		ints = append(ints, a2...)
 		assetEqual(t, ints, items)
@@ -554,7 +554,7 @@ func assetEqual(t *testing.T, except, data interface{}) {
 }
 
 func equal(t *testing.T, stream Stream, data []interface{}) {
-	items := make([]interface{}, 0)
+	items := make([]interface{}, 0, len(stream.source))
 	for item := range stream.source {
 		items = append(items, item)
 	}

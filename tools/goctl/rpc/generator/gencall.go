@@ -196,7 +196,7 @@ func getMessageName(msg proto.Message) string {
 
 func (g *Generator) genFunction(goPackage string, service parser.Service,
 	isCallPkgSameToGrpcPkg bool) ([]string, error) {
-	functions := make([]string, 0)
+	functions := make([]string, 0, len(service.RPC))
 
 	for _, rpc := range service.RPC {
 		text, err := pathx.LoadTemplate(category, callFunctionTemplateFile, callFunctionTemplate)
@@ -237,7 +237,7 @@ func (g *Generator) genFunction(goPackage string, service parser.Service,
 
 func (g *Generator) getInterfaceFuncs(goPackage string, service parser.Service,
 	isCallPkgSameToGrpcPkg bool) ([]string, error) {
-	functions := make([]string, 0)
+	functions := make([]string, 0, len(service.RPC))
 
 	for _, rpc := range service.RPC {
 		text, err := pathx.LoadTemplate(category, callInterfaceFunctionTemplateFile,

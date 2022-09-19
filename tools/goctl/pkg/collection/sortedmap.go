@@ -129,7 +129,7 @@ func (m *SortedMap) HasValue(value interface{}) bool {
 }
 
 func (m *SortedMap) Keys() []interface{} {
-	keys := make([]interface{}, 0)
+	var keys []interface{}
 	next := m.kv.Front()
 	for next != nil {
 		keys = append(keys, next.Value.(KV)[0])
@@ -195,7 +195,7 @@ func (m *SortedMap) Copy() *SortedMap {
 }
 
 func (m *SortedMap) Format() []string {
-	format := make([]string, 0)
+	format := make([]string, 0, len(m.keys))
 	m.Range(func(key, value interface{}) {
 		format = append(format, fmt.Sprintf("%s=%s", key, value))
 	})
