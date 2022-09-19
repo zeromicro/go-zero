@@ -7,7 +7,7 @@ type LogConf struct {
 	Encoding            string `json:",default=json,options=[json,plain]"`
 	TimeFormat          string `json:",optional"`
 	Path                string `json:",default=logs"`
-	Level               string `json:",default=info,options=[info,error,severe]"`
+	Level               string `json:",default=info,options=[debug,info,error,severe]"`
 	Compress            bool   `json:",optional"`
 	KeepDays            int    `json:",optional"`
 	StackCooldownMillis int    `json:",default=100"`

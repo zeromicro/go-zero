@@ -3,8 +3,10 @@ package logx
 import "errors"
 
 const (
-	// InfoLevel logs everything
-	InfoLevel uint32 = iota
+	// DebugLevel logs everything
+	DebugLevel uint32 = iota
+	// InfoLevel does not include debugs
+	InfoLevel
 	// ErrorLevel includes errors, slows, stacks
 	ErrorLevel
 	// SevereLevel only log severe messages
@@ -37,6 +39,7 @@ const (
 	levelFatal  = "fatal"
 	levelSlow   = "slow"
 	levelStat   = "stat"
+	levelDebug  = "debug"
 
 	backupFileDelimiter = "-"
 	flags               = 0x0

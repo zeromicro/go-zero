@@ -31,6 +31,14 @@ type Logger interface {
 	Slowv(interface{})
 	// Sloww logs a message at slow level.
 	Sloww(string, ...LogField)
+	// Debug logs a message at info level.
+	Debug(...interface{})
+	// Debugf logs a message at info level.
+	Debugf(string, ...interface{})
+	// Debugv logs a message at info level.
+	Debugv(interface{})
+	// Debugw logs a message at info level.
+	Debugw(string, ...LogField)
 	// WithCallerSkip returns a new logger with the given caller skip.
 	WithCallerSkip(skip int) Logger
 	// WithContext returns a new logger with the given context.
