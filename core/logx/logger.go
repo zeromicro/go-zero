@@ -31,8 +31,10 @@ type Logger interface {
 	Slowv(interface{})
 	// Sloww logs a message at slow level.
 	Sloww(string, ...LogField)
+	// WithCallerSkip returns a new logger with the given caller skip.
+	WithCallerSkip(skip int) Logger
 	// WithContext returns a new logger with the given context.
-	WithContext(context.Context) Logger
+	WithContext(ctx context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
-	WithDuration(time.Duration) Logger
+	WithDuration(d time.Duration) Logger
 }

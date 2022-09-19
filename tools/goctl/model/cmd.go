@@ -93,6 +93,7 @@ func init() {
 	mongoCmd.Flags().StringVar(&mongo.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
 
 	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict", false, "Generate model in strict mode")
+	mysqlCmd.PersistentFlags().StringSliceVarP(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"}, "Ignore columns while creating or updating rows")
 
 	mysqlCmd.AddCommand(datasourceCmd)
 	mysqlCmd.AddCommand(ddlCmd)

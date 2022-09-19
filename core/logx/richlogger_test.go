@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -201,7 +202,7 @@ func TestLogWithFields(t *testing.T) {
 		writer.Store(old)
 	}()
 
-	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	ctx := ContextWithFields(context.Background(), Field("foo", "bar"))
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
 	l.Info(testlog)
@@ -209,6 +210,31 @@ func TestLogWithFields(t *testing.T) {
 	var val mockValue
 	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
 	assert.Equal(t, "bar", val.Foo)
+}
+
+func TestLogWithCallerSkip(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithCallerSkip(1).WithCallerSkip(0)
+	p := func(v string) {
+		l.Info(v)
+	}
+
+	file, line := getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
+
+	w.Reset()
+	l = WithCallerSkip(0).WithCallerSkip(1)
+	file, line = getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
