@@ -35,6 +35,12 @@ func (mw *mockWriter) Alert(v interface{}) {
 	output(&mw.builder, levelAlert, v)
 }
 
+func (mw *mockWriter) Debug(v interface{}, fields ...LogField) {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	output(&mw.builder, levelDebug, v, fields...)
+}
+
 func (mw *mockWriter) Error(v interface{}, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
@@ -209,6 +215,46 @@ func TestStructedLogAlert(t *testing.T) {
 
 	doTestStructedLog(t, levelAlert, w, func(v ...interface{}) {
 		Alert(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebug(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debug(v...)
+	})
+}
+
+func TestStructedLogDebugf(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebugv(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugv(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebugw(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugw(fmt.Sprint(v...), Field("foo", time.Second))
 	})
 }
 

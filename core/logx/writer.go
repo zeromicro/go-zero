@@ -18,6 +18,7 @@ type (
 	Writer interface {
 		Alert(v interface{})
 		Close() error
+		Debug(v interface{}, fields ...LogField)
 		Error(v interface{}, fields ...LogField)
 		Info(v interface{}, fields ...LogField)
 		Severe(v interface{})
@@ -194,6 +195,10 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
+func (w *concreteWriter) Debug(v interface{}, fields ...LogField) {
+	output(w.infoLog, levelDebug, v, fields...)
+}
+
 func (w *concreteWriter) Error(v interface{}, fields ...LogField) {
 	output(w.errorLog, levelError, v, fields...)
 }
@@ -225,6 +230,9 @@ func (n nopWriter) Alert(_ interface{}) {
 
 func (n nopWriter) Close() error {
 	return nil
+}
+
+func (n nopWriter) Debug(_ interface{}, _ ...LogField) {
 }
 
 func (n nopWriter) Error(_ interface{}, _ ...LogField) {
