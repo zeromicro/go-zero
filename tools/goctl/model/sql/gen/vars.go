@@ -2,9 +2,9 @@ package gen
 
 import (
 	"fmt"
-	"github.com/zeromicro/go-zero/core/collection"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
