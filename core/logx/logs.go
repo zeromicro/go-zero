@@ -64,6 +64,26 @@ func Close() error {
 	return nil
 }
 
+// Debug writes v into access log.
+func Debug(v ...interface{}) {
+	writeDebug(fmt.Sprint(v...))
+}
+
+// Debugf writes v with format into access log.
+func Debugf(format string, v ...interface{}) {
+	writeDebug(fmt.Sprintf(format, v...))
+}
+
+// Debugv writes v into access log with json content.
+func Debugv(v interface{}) {
+	writeDebug(v)
+}
+
+// Debugw writes msg along with fields into access log.
+func Debugw(msg string, fields ...LogField) {
+	writeDebug(msg, fields...)
+}
+
 // Disable disables the logging.
 func Disable() {
 	atomic.StoreUint32(&disableLog, 1)
@@ -264,26 +284,6 @@ func Sloww(msg string, fields ...LogField) {
 	writeSlow(msg, fields...)
 }
 
-// Debug writes v into access log.
-func Debug(v ...interface{}) {
-	writeDebug(fmt.Sprint(v...))
-}
-
-// Debugf writes v with format into access log.
-func Debugf(format string, v ...interface{}) {
-	writeDebug(fmt.Sprintf(format, v...))
-}
-
-// Debugv writes v into access log with json content.
-func Debugv(v interface{}) {
-	writeDebug(v)
-}
-
-// Debugw writes msg along with fields into access log.
-func Debugw(msg string, fields ...LogField) {
-	writeDebug(msg, fields...)
-}
-
 // Stat writes v into stat log.
 func Stat(v ...interface{}) {
 	writeStat(fmt.Sprint(v...))
@@ -414,6 +414,12 @@ func shallLogStat() bool {
 	return atomic.LoadUint32(&disableStat) == 0
 }
 
+func writeDebug(val interface{}, fields ...LogField) {
+	if shallLog(DebugLevel) {
+		getWriter().Debug(val, addCaller(fields...)...)
+	}
+}
+
 func writeError(val interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Error(val, addCaller(fields...)...)
@@ -435,12 +441,6 @@ func writeSevere(msg string) {
 func writeSlow(val interface{}, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Slow(val, addCaller(fields...)...)
-	}
-}
-
-func writeDebug(val interface{}, fields ...LogField) {
-	if shallLog(DebugLevel) {
-		getWriter().Debug(val, addCaller(fields...)...)
 	}
 }
 
