@@ -7,10 +7,11 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
+
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/postgres"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
-
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command/migrationnotes"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
@@ -50,6 +51,8 @@ var (
 	VarStringBranch string
 	// VarBoolStrict describes whether the strict mode is enabled.
 	VarBoolStrict bool
+	// VarStringSliceIgnoreColumns represents the columns which are ignored.
+	VarStringSliceIgnoreColumns []string
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -81,13 +84,14 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 	}
 
 	arg := ddlArg{
-		src:      src,
-		dir:      dir,
-		cfg:      cfg,
-		cache:    cache,
-		idea:     idea,
-		database: database,
-		strict:   VarBoolStrict,
+		src:           src,
+		dir:           dir,
+		cfg:           cfg,
+		cache:         cache,
+		idea:          idea,
+		database:      database,
+		strict:        VarBoolStrict,
+		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromDDL(arg)
 }
@@ -121,15 +125,27 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 	}
 
 	arg := dataSourceArg{
-		url:      url,
-		dir:      dir,
-		tablePat: patterns,
-		cfg:      cfg,
-		cache:    cache,
-		idea:     idea,
-		strict:   VarBoolStrict,
+		url:           url,
+		dir:           dir,
+		tablePat:      patterns,
+		cfg:           cfg,
+		cache:         cache,
+		idea:          idea,
+		strict:        VarBoolStrict,
+		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
 	}
 	return fromMysqlDataSource(arg)
+}
+
+func mergeColumns(columns []string) []string {
+	set := collection.NewSet()
+	for _, v := range columns {
+		fields := strings.FieldsFunc(v, func(r rune) bool {
+			return r == ','
+		})
+		set.AddStr(fields...)
+	}
+	return set.KeysStr()
 }
 
 type pattern map[string]struct{}
@@ -205,11 +221,12 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 }
 
 type ddlArg struct {
-	src, dir    string
-	cfg         *config.Config
-	cache, idea bool
-	database    string
-	strict      bool
+	src, dir      string
+	cfg           *config.Config
+	cache, idea   bool
+	database      string
+	strict        bool
+	ignoreColumns []string
 }
 
 func fromDDL(arg ddlArg) error {
@@ -228,7 +245,8 @@ func fromDDL(arg ddlArg) error {
 		return errNotMatched
 	}
 
-	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg, gen.WithConsoleOption(log))
+	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg,
+		gen.WithConsoleOption(log), gen.WithIgnoreColumns(arg.ignoreColumns))
 	if err != nil {
 		return err
 	}
@@ -244,11 +262,12 @@ func fromDDL(arg ddlArg) error {
 }
 
 type dataSourceArg struct {
-	url, dir    string
-	tablePat    pattern
-	cfg         *config.Config
-	cache, idea bool
-	strict      bool
+	url, dir      string
+	tablePat      pattern
+	cfg           *config.Config
+	cache, idea   bool
+	strict        bool
+	ignoreColumns []string
 }
 
 func fromMysqlDataSource(arg dataSourceArg) error {
@@ -301,7 +320,8 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 		return errors.New("no tables matched")
 	}
 
-	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg, gen.WithConsoleOption(log))
+	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg,
+		gen.WithConsoleOption(log), gen.WithIgnoreColumns(arg.ignoreColumns))
 	if err != nil {
 		return err
 	}
