@@ -24,7 +24,7 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	xValidator      = NewValidator()
+	XValidator      = NewValidator()
 )
 
 // Parse parses the request.
@@ -45,7 +45,7 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	errs := xValidator.Validate(v, r.Header.Get("Accept-Language"))
+	errs := XValidator.Validate(v, r.Header.Get("Accept-Language"))
 	if errs == "" {
 		return nil
 	}

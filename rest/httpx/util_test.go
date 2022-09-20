@@ -23,3 +23,28 @@ func TestGetRemoteAddrNoHeader(t *testing.T) {
 
 	assert.True(t, len(GetRemoteAddr(r)) == 0)
 }
+
+func TestValidator(t *testing.T) {
+	v := NewValidator()
+	type User struct {
+		Username string `validate:"required,alphanum,max=20"`
+		Password string `validate:"required,min=6,max=30"`
+	}
+	u := User{
+		Username: "admin",
+		Password: "1",
+	}
+	result := v.Validate(u, "en")
+	if result != "Password must be at least 6 characters in length " {
+		t.Error(result)
+	}
+
+	u = User{
+		Username: "admin",
+		Password: "123456",
+	}
+	result = v.Validate(u, "en")
+	if result != "" {
+		t.Error(result)
+	}
+}
