@@ -56,6 +56,11 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 		logDuration(ctx, cmd, duration)
 	}
 
+	metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
+	if msg := formatError(err); len(msg) > 0 {
+		metricReqErr.Inc(cmd.Name(), msg)
+	}
+
 	return nil
 }
 
@@ -98,7 +103,41 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 		logDuration(ctx, cmds[0], duration)
 	}
 
+	metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
+	if msg := formatError(batchError.Err()); len(msg) > 0 {
+		metricReqErr.Inc("Pipeline", msg)
+	}
+
 	return nil
+}
+
+func formatError(err error) string {
+	if err == nil || err == red.Nil {
+		return ""
+	}
+
+	es := err.Error()
+	switch {
+	case strings.HasPrefix(es, "read"):
+		return "read timeout"
+	case strings.HasPrefix(es, "dial"):
+		if strings.Contains(es, "connection refused") {
+			return "connection refused"
+		}
+		return "dial timeout"
+	case strings.HasPrefix(es, "write"):
+		return "write timeout"
+	case strings.Contains(es, "EOF"):
+		return "eof"
+	case strings.Contains(es, "reset"):
+		return "reset"
+	case strings.Contains(es, "broken"):
+		return "broken pipe"
+	case strings.Contains(es, "breaker"):
+		return "breaker"
+	default:
+		return "unexpected error"
+	}
 }
 
 func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {

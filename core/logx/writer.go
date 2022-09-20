@@ -18,6 +18,7 @@ type (
 	Writer interface {
 		Alert(v interface{})
 		Close() error
+		Debug(v interface{}, fields ...LogField)
 		Error(v interface{}, fields ...LogField)
 		Info(v interface{}, fields ...LogField)
 		Severe(v interface{})
@@ -194,6 +195,10 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
+func (w *concreteWriter) Debug(v interface{}, fields ...LogField) {
+	output(w.infoLog, levelDebug, v, fields...)
+}
+
 func (w *concreteWriter) Error(v interface{}, fields ...LogField) {
 	output(w.errorLog, levelError, v, fields...)
 }
@@ -227,6 +232,9 @@ func (n nopWriter) Close() error {
 	return nil
 }
 
+func (n nopWriter) Debug(_ interface{}, _ ...LogField) {
+}
+
 func (n nopWriter) Error(_ interface{}, _ ...LogField) {
 }
 
@@ -256,13 +264,11 @@ func buildFields(fields ...LogField) []string {
 }
 
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
-	fields = append(fields, Field(callerKey, getCaller(callerDepth)))
-
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val, buildFields(fields...)...)
 	default:
-		entry := make(logEntryWithFields)
+		entry := make(logEntry)
 		for _, field := range fields {
 			entry[field.Key] = field.Value
 		}

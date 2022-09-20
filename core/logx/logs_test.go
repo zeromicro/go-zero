@@ -35,6 +35,12 @@ func (mw *mockWriter) Alert(v interface{}) {
 	output(&mw.builder, levelAlert, v)
 }
 
+func (mw *mockWriter) Debug(v interface{}, fields ...LogField) {
+	mw.lock.Lock()
+	defer mw.lock.Unlock()
+	output(&mw.builder, levelDebug, v, fields...)
+}
+
 func (mw *mockWriter) Error(v interface{}, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
@@ -209,6 +215,46 @@ func TestStructedLogAlert(t *testing.T) {
 
 	doTestStructedLog(t, levelAlert, w, func(v ...interface{}) {
 		Alert(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebug(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debug(v...)
+	})
+}
+
+func TestStructedLogDebugf(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugf(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebugv(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugv(fmt.Sprint(v...))
+	})
+}
+
+func TestStructedLogDebugw(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	defer writer.Store(old)
+
+	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+		Debugw(fmt.Sprint(v...), Field("foo", time.Second))
 	})
 }
 
@@ -461,13 +507,13 @@ func TestStructedLogWithDuration(t *testing.T) {
 	defer writer.Store(old)
 
 	WithDuration(time.Second).Info(message)
-	var entry logEntry
+	var entry map[string]interface{}
 	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, levelInfo, entry.Level)
-	assert.Equal(t, message, entry.Content)
-	assert.Equal(t, "1000.0ms", entry.Duration)
+	assert.Equal(t, levelInfo, entry[levelKey])
+	assert.Equal(t, message, entry[contentKey])
+	assert.Equal(t, "1000.0ms", entry[durationKey])
 }
 
 func TestSetLevel(t *testing.T) {
@@ -531,6 +577,7 @@ func TestSetup(t *testing.T) {
 	MustSetup(LogConf{
 		ServiceName: "any",
 		Mode:        "console",
+		TimeFormat:  timeFormat,
 	})
 	MustSetup(LogConf{
 		ServiceName: "any",
@@ -553,7 +600,15 @@ func TestSetup(t *testing.T) {
 		Encoding:    plainEncoding,
 	})
 
+	defer os.RemoveAll("CD01CB7D-2705-4F3F-889E-86219BF56F10")
 	assert.NotNil(t, setupWithVolume(LogConf{}))
+	assert.Nil(t, setupWithVolume(LogConf{
+		ServiceName: "CD01CB7D-2705-4F3F-889E-86219BF56F10",
+	}))
+	assert.Nil(t, setupWithVolume(LogConf{
+		ServiceName: "CD01CB7D-2705-4F3F-889E-86219BF56F10",
+		Rotation:    sizeRotationRule,
+	}))
 	assert.NotNil(t, setupWithFiles(LogConf{}))
 	assert.Nil(t, setupWithFiles(LogConf{
 		ServiceName: "any",
@@ -583,6 +638,8 @@ func TestDisable(t *testing.T) {
 	var opt logOptions
 	WithKeepDays(1)(&opt)
 	WithGzip()(&opt)
+	WithMaxBackups(1)(&opt)
+	WithMaxSize(1024)(&opt)
 	assert.Nil(t, Close())
 	assert.Nil(t, Close())
 }
@@ -711,14 +768,16 @@ func put(b []byte) {
 func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...interface{})) {
 	const message = "hello there"
 	write(message)
-	var entry logEntry
+
+	var entry map[string]interface{}
 	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, level, entry.Level)
-	val, ok := entry.Content.(string)
+
+	assert.Equal(t, level, entry[levelKey])
+	val, ok := entry[contentKey]
 	assert.True(t, ok)
-	assert.True(t, strings.Contains(val, message))
+	assert.True(t, strings.Contains(val.(string), message))
 }
 
 func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...interface{})) {
