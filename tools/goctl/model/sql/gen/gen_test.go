@@ -13,11 +13,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/stringx"
 
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/builder"
+	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/builderx"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -158,7 +158,7 @@ func TestFields(t *testing.T) {
 		UpdateTime sql.NullTime    `db:"update_time"`
 	}
 	var (
-		studentFieldNames          = builderx.RawFieldNames(&Student{})
+		studentFieldNames          = builder.RawFieldNames(&Student{})
 		studentRows                = strings.Join(studentFieldNames, ",")
 		studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 		studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"
