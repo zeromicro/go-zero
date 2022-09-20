@@ -40,6 +40,22 @@ type richLogger struct {
 	fields     []LogField
 }
 
+func (l *richLogger) Debug(v ...interface{}) {
+	l.debug(fmt.Sprint(v...))
+}
+
+func (l *richLogger) Debugf(format string, v ...interface{}) {
+	l.debug(fmt.Sprintf(format, v...))
+}
+
+func (l *richLogger) Debugv(v interface{}) {
+	l.debug(v)
+}
+
+func (l *richLogger) Debugw(msg string, fields ...LogField) {
+	l.debug(msg, fields...)
+}
+
 func (l *richLogger) Error(v ...interface{}) {
 	l.err(fmt.Sprint(v...))
 }
@@ -133,6 +149,12 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 	}
 
 	return fields
+}
+
+func (l *richLogger) debug(v interface{}, fields ...LogField) {
+	if shallLog(DebugLevel) {
+		getWriter().Debug(v, l.buildFields(fields...)...)
+	}
 }
 
 func (l *richLogger) err(v interface{}, fields ...LogField) {

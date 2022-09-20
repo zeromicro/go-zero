@@ -37,6 +37,41 @@ func TestTraceLog(t *testing.T) {
 	validate(t, w.String(), true, true)
 }
 
+func TestTraceDebug(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	otp := otel.GetTracerProvider()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
+	l := WithContext(ctx)
+	SetLevel(DebugLevel)
+	l.WithDuration(time.Second).Debug(testlog)
+	assert.True(t, strings.Contains(w.String(), traceKey))
+	assert.True(t, strings.Contains(w.String(), spanKey))
+	w.Reset()
+	l.WithDuration(time.Second).Debugf(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugv(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugw(testlog, Field("foo", "bar"))
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
+}
+
 func TestTraceError(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
