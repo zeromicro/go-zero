@@ -51,29 +51,29 @@ func GetRemoteAddr(r *http.Request) string {
 }
 
 type Validator struct {
-	validator *validator.Validate
-	uni       *ut.UniversalTranslator
-	trans     map[string]ut.Translator
+	Validator *validator.Validate
+	Uni       *ut.UniversalTranslator
+	Trans     map[string]ut.Translator
 }
 
 func NewValidator() *Validator {
 	v := Validator{}
 	en := en_lang.New()
 	zh := zh_Hans.New()
-	v.uni = ut.New(zh, en, zh)
-	v.validator = validator.New()
-	enTrans, _ := v.uni.GetTranslator("en")
-	zhTrans, _ := v.uni.GetTranslator("zh")
-	v.trans = make(map[string]ut.Translator)
-	v.trans["en"] = enTrans
-	v.trans["zh"] = zhTrans
+	v.Uni = ut.New(zh, en, zh)
+	v.Validator = validator.New()
+	enTrans, _ := v.Uni.GetTranslator("en")
+	zhTrans, _ := v.Uni.GetTranslator("zh")
+	v.Trans = make(map[string]ut.Translator)
+	v.Trans["en"] = enTrans
+	v.Trans["zh"] = zhTrans
 
-	err := en_translations.RegisterDefaultTranslations(v.validator, enTrans)
+	err := en_translations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
 		logx.Errorw(logmessage.DatabaseError, logx.Field("Detail", err.Error()))
 		return nil
 	}
-	err = zh_translations.RegisterDefaultTranslations(v.validator, zhTrans)
+	err = zh_translations.RegisterDefaultTranslations(v.Validator, zhTrans)
 	if err != nil {
 		logx.Errorw(logmessage.DatabaseError, logx.Field("Detail", err.Error()))
 		return nil
@@ -83,14 +83,14 @@ func NewValidator() *Validator {
 }
 
 func (v *Validator) Validate(data interface{}, lang string) string {
-	err := v.validator.Struct(data)
+	err := v.Validator.Struct(data)
 	if err == nil {
 		return ""
 	}
 
 	errs, ok := err.(validator.ValidationErrors)
 	if ok {
-		transData := errs.Translate(v.trans[lang])
+		transData := errs.Translate(v.Trans[lang])
 		s := strings.Builder{}
 		for _, v := range transData {
 			s.WriteString(v)
