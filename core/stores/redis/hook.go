@@ -2,10 +2,13 @@ package redis
 
 import (
 	"context"
+	"io"
+	"net"
 	"strings"
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
@@ -116,24 +119,17 @@ func formatError(err error) string {
 		return ""
 	}
 
-	es := err.Error()
-	switch {
-	case strings.HasPrefix(es, "read"):
-		return "read timeout"
-	case strings.HasPrefix(es, "dial"):
-		if strings.Contains(es, "connection refused") {
-			return "connection refused"
-		}
-		return "dial timeout"
-	case strings.HasPrefix(es, "write"):
-		return "write timeout"
-	case strings.Contains(es, "EOF"):
+	opErr, ok := err.(*net.OpError)
+	if ok && opErr.Timeout() {
+		return "timeout"
+	}
+
+	switch err {
+	case io.EOF:
 		return "eof"
-	case strings.Contains(es, "reset"):
-		return "reset"
-	case strings.Contains(es, "broken"):
-		return "broken pipe"
-	case strings.Contains(es, "breaker"):
+	case context.DeadlineExceeded:
+		return "context deadline"
+	case breaker.ErrServiceUnavailable:
 		return "breaker"
 	default:
 		return "unexpected error"

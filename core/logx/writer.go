@@ -1,12 +1,12 @@
 package logx
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"path"
-	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -329,7 +329,7 @@ func writePlainAny(writer io.Writer, level string, val interface{}, fields ...st
 }
 
 func writePlainText(writer io.Writer, level, msg string, fields ...string) {
-	var buf strings.Builder
+	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
@@ -345,13 +345,14 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 		return
 	}
 
-	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
+	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
+
 }
 
 func writePlainValue(writer io.Writer, level string, val interface{}, fields ...string) {
-	var buf strings.Builder
+	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
 	buf.WriteString(level)
@@ -371,7 +372,7 @@ func writePlainValue(writer io.Writer, level string, val interface{}, fields ...
 		return
 	}
 
-	if _, err := fmt.Fprint(writer, buf.String()); err != nil {
+	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
 }
