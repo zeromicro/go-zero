@@ -30,35 +30,35 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 		}
 	}()
 
-	p.SetState(221)
+	p.SetState(227)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 18, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		isInterface(p)
 		{
-			p.SetState(214)
+			p.SetState(220)
 			p.Match(ApiParserParserID)
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(215)
+			p.SetState(221)
 			p.MapType()
 		}
 
 	case 3:
 		p.EnterOuterAlt(localctx, 3)
 		{
-			p.SetState(216)
+			p.SetState(222)
 			p.ArrayType()
 		}
 
 	case 4:
 		p.EnterOuterAlt(localctx, 4)
 		{
-			p.SetState(217)
+			p.SetState(223)
 
 			var _m = p.Match(ApiParserParserINTERFACE)
 
@@ -68,7 +68,7 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 	case 5:
 		p.EnterOuterAlt(localctx, 5)
 		{
-			p.SetState(218)
+			p.SetState(224)
 
 			var _m = p.Match(ApiParserParserT__6)
 
@@ -78,14 +78,14 @@ func (p *ApiParserParser) DataType() (localctx IDataTypeContext) {
 	case 6:
 		p.EnterOuterAlt(localctx, 6)
 		{
-			p.SetState(219)
+			p.SetState(225)
 			p.PointerType()
 		}
 
 	case 7:
 		p.EnterOuterAlt(localctx, 7)
 		{
-			p.SetState(220)
+			p.SetState(226)
 			p.TypeStruct()
 		}
 
@@ -187,7 +187,7 @@ func (p *ApiParserParser) PointerType() (localctx IPointerTypeContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(223)
+		p.SetState(229)
 
 		var _m = p.Match(ApiParserParserT__5)
 
@@ -195,7 +195,7 @@ func (p *ApiParserParser) PointerType() (localctx IPointerTypeContext) {
 	}
 	checkKeyword(p)
 	{
-		p.SetState(225)
+		p.SetState(231)
 		p.Match(ApiParserParserID)
 	}
 
@@ -354,14 +354,14 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "map")
 	{
-		p.SetState(228)
+		p.SetState(234)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*MapTypeContext).mapToken = _m
 	}
 	{
-		p.SetState(229)
+		p.SetState(235)
 
 		var _m = p.Match(ApiParserParserT__7)
 
@@ -369,21 +369,21 @@ func (p *ApiParserParser) MapType() (localctx IMapTypeContext) {
 	}
 	checkKey(p)
 	{
-		p.SetState(231)
+		p.SetState(237)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*MapTypeContext).key = _m
 	}
 	{
-		p.SetState(232)
+		p.SetState(238)
 
 		var _m = p.Match(ApiParserParserT__8)
 
 		localctx.(*MapTypeContext).rbrack = _m
 	}
 	{
-		p.SetState(233)
+		p.SetState(239)
 
 		var _x = p.DataType()
 
@@ -503,21 +503,21 @@ func (p *ApiParserParser) ArrayType() (localctx IArrayTypeContext) {
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(235)
+		p.SetState(241)
 
 		var _m = p.Match(ApiParserParserT__7)
 
 		localctx.(*ArrayTypeContext).lbrack = _m
 	}
 	{
-		p.SetState(236)
+		p.SetState(242)
 
 		var _m = p.Match(ApiParserParserT__8)
 
 		localctx.(*ArrayTypeContext).rbrack = _m
 	}
 	{
-		p.SetState(237)
+		p.SetState(243)
 		p.DataType()
 	}
 
@@ -622,19 +622,19 @@ func (p *ApiParserParser) ServiceSpec() (localctx IServiceSpecContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(240)
+	p.SetState(246)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserATSERVER {
 		{
-			p.SetState(239)
+			p.SetState(245)
 			p.AtServer()
 		}
 
 	}
 	{
-		p.SetState(242)
+		p.SetState(248)
 		p.ServiceApi()
 	}
 

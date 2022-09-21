@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 	"unicode"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
@@ -278,6 +279,25 @@ func (p parser) fillService() error {
 				route.AtDoc.Properties = properties
 				if astRoute.AtDoc.LineDoc != nil {
 					route.AtDoc.Text = astRoute.AtDoc.LineDoc.Text()
+				}
+			}
+			if astRoute.AtRespDoc != nil {
+				route.AtRespDocs = make([]spec.AtRespDoc, 0, len(astRoute.AtRespDoc))
+				for _, v := range astRoute.AtRespDoc {
+					respDoc := spec.AtRespDoc{
+						Code:    v.Code,
+						Comment: v.CommentExpr.Text(),
+					}
+					if v.Kv != nil {
+						respDoc.Kv = make(map[string]string)
+						for _, kv := range v.Kv {
+							respDoc.Kv[kv.Key.Text()] = strings.Trim(kv.Value.Text(), "\"")
+						}
+					}
+					if v.Reply != nil {
+						respDoc.ResponseType = p.astTypeToSpec(v.Reply.Name)
+					}
+					route.AtRespDocs = append(route.AtRespDocs, respDoc)
 				}
 			}
 

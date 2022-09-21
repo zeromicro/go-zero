@@ -126,19 +126,19 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkKeyword(p)
 	{
-		p.SetState(191)
+		p.SetState(197)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockAliasContext).alias = _m
 	}
-	p.SetState(193)
+	p.SetState(199)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserT__0 {
 		{
-			p.SetState(192)
+			p.SetState(198)
 
 			var _m = p.Match(ApiParserParserT__0)
 
@@ -147,7 +147,7 @@ func (p *ApiParserParser) TypeBlockAlias() (localctx ITypeBlockAliasContext) {
 
 	}
 	{
-		p.SetState(195)
+		p.SetState(201)
 		p.DataType()
 	}
 
@@ -250,25 +250,25 @@ func (p *ApiParserParser) Field() (localctx IFieldContext) {
 		}
 	}()
 
-	p.SetState(200)
+	p.SetState(206)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 15, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
-		p.SetState(197)
+		p.SetState(203)
 
 		if !(isNormal(p)) {
 			panic(antlr.NewFailedPredicateException(p, "isNormal(p)", ""))
 		}
 		{
-			p.SetState(198)
+			p.SetState(204)
 			p.NormalField()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(199)
+			p.SetState(205)
 			p.AnonymousFiled()
 		}
 
@@ -396,22 +396,22 @@ func (p *ApiParserParser) NormalField() (localctx INormalFieldContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkKeyword(p)
 	{
-		p.SetState(203)
+		p.SetState(209)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*NormalFieldContext).fieldName = _m
 	}
 	{
-		p.SetState(204)
+		p.SetState(210)
 		p.DataType()
 	}
-	p.SetState(206)
+	p.SetState(212)
 	p.GetErrorHandler().Sync(p)
 
 	if p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 16, p.GetParserRuleContext()) == 1 {
 		{
-			p.SetState(205)
+			p.SetState(211)
 
 			var _m = p.Match(ApiParserParserRAW_STRING)
 
@@ -516,13 +516,13 @@ func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 	}()
 
 	p.EnterOuterAlt(localctx, 1)
-	p.SetState(209)
+	p.SetState(215)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserT__5 {
 		{
-			p.SetState(208)
+			p.SetState(214)
 
 			var _m = p.Match(ApiParserParserT__5)
 
@@ -531,7 +531,7 @@ func (p *ApiParserParser) AnonymousFiled() (localctx IAnonymousFiledContext) {
 
 	}
 	{
-		p.SetState(211)
+		p.SetState(217)
 		p.Match(ApiParserParserID)
 	}
 

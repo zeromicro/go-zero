@@ -100,6 +100,12 @@ type ApiParserVisitor interface {
 	// Visit a parse tree produced by ApiParserParser#atHandler.
 	VisitAtHandler(ctx *AtHandlerContext) interface{}
 
+	// Visit a parse tree produced by ApiParserParser#atRespDoc.
+	VisitAtRespDoc(ctx *AtRespDocContext) interface{}
+
+	// Visit a parse tree produced by ApiParserParser#respDocCode.
+	VisitRespDocCode(ctx *RespDocCodeContext) interface{}
+
 	// Visit a parse tree produced by ApiParserParser#route.
 	VisitRoute(ctx *RouteContext) interface{}
 
@@ -111,6 +117,9 @@ type ApiParserVisitor interface {
 
 	// Visit a parse tree produced by ApiParserParser#kvLit.
 	VisitKvLit(ctx *KvLitContext) interface{}
+
+	// Visit a parse tree produced by ApiParserParser#respDocKvLit.
+	VisitRespDocKvLit(ctx *RespDocKvLitContext) interface{}
 
 	// Visit a parse tree produced by ApiParserParser#serviceName.
 	VisitServiceName(ctx *ServiceNameContext) interface{}

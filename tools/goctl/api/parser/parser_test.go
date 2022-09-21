@@ -26,6 +26,15 @@ func TestParseContent(t *testing.T) {
 			assert.Equal(t, spec.Doc{"// handler doc"}, e.HandlerDoc)
 			assert.Equal(t, spec.Doc{"// handler comment"}, e.HandlerComment)
 		}
+		for _, v := range e.AtRespDocs {
+			if v.Code == "400" {
+				assert.Equal(t, "数据库错误", v.Kv["2001"])
+				assert.Equal(t, "redis错误", v.Kv["2002"])
+			}
+			if v.Code == "500" {
+				assert.Equal(t, "ErrorResponse", v.ResponseType.Name())
+			}
+		}
 	}
 }
 

@@ -55,14 +55,14 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "syntax")
 	{
-		p.SetState(90)
+		p.SetState(96)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*SyntaxLitContext).syntaxToken = _m
 	}
 	{
-		p.SetState(91)
+		p.SetState(97)
 
 		var _m = p.Match(ApiParserParserT__0)
 
@@ -70,7 +70,7 @@ func (p *ApiParserParser) SyntaxLit() (localctx ISyntaxLitContext) {
 	}
 	checkVersion(p)
 	{
-		p.SetState(93)
+		p.SetState(99)
 
 		var _m = p.Match(ApiParserParserSTRING)
 
@@ -176,20 +176,20 @@ func (p *ApiParserParser) ImportSpec() (localctx IImportSpecContext) {
 		}
 	}()
 
-	p.SetState(97)
+	p.SetState(103)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 2, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(95)
+			p.SetState(101)
 			p.ImportLit()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(96)
+			p.SetState(102)
 			p.ImportBlock()
 		}
 
@@ -302,14 +302,14 @@ func (p *ApiParserParser) ImportLit() (localctx IImportLitContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "import")
 	{
-		p.SetState(100)
+		p.SetState(106)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*ImportLitContext).importToken = _m
 	}
 	{
-		p.SetState(101)
+		p.SetState(107)
 		p.ImportValue()
 	}
 
@@ -434,32 +434,32 @@ func (p *ApiParserParser) ImportBlock() (localctx IImportBlockContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "import")
 	{
-		p.SetState(104)
+		p.SetState(110)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*ImportBlockContext).importToken = _m
 	}
 	{
-		p.SetState(105)
+		p.SetState(111)
 		p.Match(ApiParserParserT__1)
 	}
-	p.SetState(107)
+	p.SetState(113)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserSTRING {
 		{
-			p.SetState(106)
+			p.SetState(112)
 			p.ImportBlockValue()
 		}
 
-		p.SetState(109)
+		p.SetState(115)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(111)
+		p.SetState(117)
 		p.Match(ApiParserParserT__2)
 	}
 
@@ -554,7 +554,7 @@ func (p *ApiParserParser) ImportBlockValue() (localctx IImportBlockValueContext)
 
 	p.EnterOuterAlt(localctx, 1)
 	{
-		p.SetState(113)
+		p.SetState(119)
 		p.ImportValue()
 	}
 
@@ -644,7 +644,7 @@ func (p *ApiParserParser) ImportValue() (localctx IImportValueContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkImportValue(p)
 	{
-		p.SetState(116)
+		p.SetState(122)
 		p.Match(ApiParserParserSTRING)
 	}
 

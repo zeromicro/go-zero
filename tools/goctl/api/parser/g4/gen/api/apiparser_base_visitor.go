@@ -129,6 +129,14 @@ func (v *BaseApiParserVisitor) VisitAtHandler(ctx *AtHandlerContext) interface{}
 	return v.VisitChildren(ctx)
 }
 
+func (v *BaseApiParserVisitor) VisitAtRespDoc(ctx *AtRespDocContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseApiParserVisitor) VisitRespDocCode(ctx *RespDocCodeContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
 func (v *BaseApiParserVisitor) VisitRoute(ctx *RouteContext) interface{} {
 	return v.VisitChildren(ctx)
 }
@@ -142,6 +150,10 @@ func (v *BaseApiParserVisitor) VisitReplybody(ctx *ReplybodyContext) interface{}
 }
 
 func (v *BaseApiParserVisitor) VisitKvLit(ctx *KvLitContext) interface{} {
+	return v.VisitChildren(ctx)
+}
+
+func (v *BaseApiParserVisitor) VisitRespDocKvLit(ctx *RespDocKvLitContext) interface{} {
 	return v.VisitChildren(ctx)
 }
 

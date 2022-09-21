@@ -82,6 +82,7 @@ type (
 		HandlerComment     Doc
 		Doc                Doc
 		Comment            Doc
+		AtRespDocs         []AtRespDoc
 	}
 
 	// Service describes api service
@@ -144,5 +145,13 @@ type (
 	AtDoc struct {
 		Properties map[string]string
 		Text       string
+	}
+
+	// AtRespDoc describes a response document for api grammar: @respdoc-xxx(...)
+	AtRespDoc struct {
+		Code         string
+		Kv           map[string]string
+		ResponseType Type
+		Comment      string
 	}
 )

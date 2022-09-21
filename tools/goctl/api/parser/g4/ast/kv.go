@@ -50,6 +50,44 @@ func (v *ApiVisitor) VisitKvLit(ctx *api.KvLitContext) interface{} {
 	return &kvExpr
 }
 
+// VisitRespDocKvLit implements from api.BaseApiParserVisitor
+func (v *ApiVisitor) VisitRespDocKvLit(ctx *api.RespDocKvLitContext) interface{} {
+	var kvExpr KvExpr
+
+	kvExpr.Key = v.newExprWithText(ctx.GetKey().GetText(), ctx.GetKey().GetStart().GetLine(),
+		ctx.GetKey().GetStart().GetColumn(), ctx.GetKey().GetStart().GetStart(), ctx.GetKey().GetStop().GetStop())
+	commentExpr := v.getComment(ctx)
+	if ctx.GetValue() != nil {
+		valueText := ctx.GetValue().GetText()
+		valueExpr := v.newExprWithToken(ctx.GetValue())
+		if strings.Contains(valueText, "//") {
+			if commentExpr == nil {
+				commentExpr = v.newExprWithToken(ctx.GetValue())
+				commentExpr.SetText("")
+			}
+
+			index := strings.Index(valueText, "//")
+			commentExpr.SetText(valueText[index:])
+			valueExpr.SetText(strings.TrimSpace(valueText[:index]))
+		} else if strings.Contains(valueText, "/*") {
+			if commentExpr == nil {
+				commentExpr = v.newExprWithToken(ctx.GetValue())
+				commentExpr.SetText("")
+			}
+
+			index := strings.Index(valueText, "/*")
+			commentExpr.SetText(valueText[index:])
+			valueExpr.SetText(strings.TrimSpace(valueText[:index]))
+		}
+
+		kvExpr.Value = valueExpr
+	}
+
+	kvExpr.DocExpr = v.getDoc(ctx)
+	kvExpr.CommentExpr = commentExpr
+	return &kvExpr
+}
+
 // Format provides a formatter for api command, now nothing to do
 func (k *KvExpr) Format() error {
 	// todo

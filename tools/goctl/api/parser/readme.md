@@ -404,14 +404,17 @@ service语法块用于定义api服务，包含服务名称，服务metadata，�
 serviceSpec:    atServer? serviceApi;
 atServer:       '@server' lp='(' kvLit+ rp=')';
 serviceApi:     {match(p,"service")}serviceToken=ID serviceName lbrace='{' serviceRoute* rbrace='}';
-serviceRoute:   atDoc? (atServer|atHandler) route;
+serviceRoute:   atDoc? (atServer|atHandler) atRespDoc* route;
 atDoc:          '@doc' lp='('? ((kvLit+)|STRING) rp=')'?;
 atHandler:      '@handler' ID;
+atRespDoc:      ATRESPDOC '-' code=respDocCode lp='(' ( respDocKvLit+|dataType) rp=')';
+respDocCode:    LetterOrDigit+;
 route:          {checkHttpMethod(p)}httpMethod=ID path request=body? returnToken=ID? response=replybody?;
 body:           lp='(' (ID)? rp=')';
 replybody:      lp='(' dataType? rp=')';
 // kv
 kvLit:          key=ID {checkKeyValue(p)}value=LINE_VALUE;
+respDocKvLit:   key=respDocCode {checkKeyValue(p)}value=LINE_VALUE;
 
 serviceName:    (ID '-'?)+;
 path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+;
@@ -426,7 +429,7 @@ path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+;
 >
 > serviceApi：包含了1到多个`serviceRoute`语法块
 >
-> serviceRoute：按照序列模式包含了`atDoc`,handler和`route`
+> serviceRoute：按照序列模式包含了`atDoc`,handler,`atRespDoc`和`route`
 >
 > atDoc：可选语法块，一个路由的key-value描述，其在解析后会传递到spec.Spec结构体，如果不关心传递到spec.Spec,
 > 推荐用单行注释替代。
@@ -436,6 +439,8 @@ path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+;
 >
 > atHandler：'@handler' 固定token，后接一个遵循正则`[_a-zA-Z][a-zA-Z_-]*`)的值，用于声明一个handler名称
 >
+> atRespDoc：api响应文档定义，语法块以 '@respdoc-'拼接 respDocCode 开始，必须由()包裹的struct、respDocKvLit
+> 
 > route：路由，有`httpMethod`、`path`、可选`request`、可选`response`组成，`httpMethod`是必须是小写。
 >
 > body：api请求体语法定义，必须要由()包裹的可选的ID值
@@ -444,6 +449,8 @@ path:           (('/' (ID ('-' ID)*))|('/:' (ID ('-' ID)?)))+;
 >
 > kvLit： 同info key-value
 >
+> respDocKvLit：同info key-value，区别在于key允许为纯数字
+> 
 > serviceName: 可以有多个'-'join的ID值
 >
 > path：api请求路径，必须以'/'或者'/:'开头，切不能以'/'结尾，中间可包含ID或者多个以'-'join的ID字符串
@@ -513,6 +520,15 @@ service foo-api{
   
   @doc "foo"
   @handler: bar
+  post /bar/:id (Foo)
+  
+  @doc "foo"
+  @handler: bar
+  @respdoc-400 (
+      2001: "用户电话号非法"
+      2002: "用户已存在"
+  ) // Error code list
+  @respdoc-500 (ErrorResponse) // Server Error
   post /bar/:id (Foo)
 }
 

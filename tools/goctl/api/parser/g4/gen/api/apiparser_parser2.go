@@ -121,35 +121,35 @@ func (p *ApiParserParser) InfoSpec() (localctx IInfoSpecContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "info")
 	{
-		p.SetState(119)
+		p.SetState(125)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*InfoSpecContext).infoToken = _m
 	}
 	{
-		p.SetState(120)
+		p.SetState(126)
 
 		var _m = p.Match(ApiParserParserT__1)
 
 		localctx.(*InfoSpecContext).lp = _m
 	}
-	p.SetState(122)
+	p.SetState(128)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	for ok := true; ok; ok = _la == ApiParserParserID {
 		{
-			p.SetState(121)
+			p.SetState(127)
 			p.KvLit()
 		}
 
-		p.SetState(124)
+		p.SetState(130)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(126)
+		p.SetState(132)
 
 		var _m = p.Match(ApiParserParserT__2)
 
@@ -255,20 +255,20 @@ func (p *ApiParserParser) TypeSpec() (localctx ITypeSpecContext) {
 		}
 	}()
 
-	p.SetState(130)
+	p.SetState(136)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 5, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(128)
+			p.SetState(134)
 			p.TypeLit()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(129)
+			p.SetState(135)
 			p.TypeBlock()
 		}
 
@@ -381,14 +381,14 @@ func (p *ApiParserParser) TypeLit() (localctx ITypeLitContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "type")
 	{
-		p.SetState(133)
+		p.SetState(139)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeLitContext).typeToken = _m
 	}
 	{
-		p.SetState(134)
+		p.SetState(140)
 		p.TypeLitBody()
 	}
 
@@ -535,35 +535,35 @@ func (p *ApiParserParser) TypeBlock() (localctx ITypeBlockContext) {
 	p.EnterOuterAlt(localctx, 1)
 	match(p, "type")
 	{
-		p.SetState(137)
+		p.SetState(143)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockContext).typeToken = _m
 	}
 	{
-		p.SetState(138)
+		p.SetState(144)
 
 		var _m = p.Match(ApiParserParserT__1)
 
 		localctx.(*TypeBlockContext).lp = _m
 	}
-	p.SetState(142)
+	p.SetState(148)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	for _la == ApiParserParserID {
 		{
-			p.SetState(139)
+			p.SetState(145)
 			p.TypeBlockBody()
 		}
 
-		p.SetState(144)
+		p.SetState(150)
 		p.GetErrorHandler().Sync(p)
 		_la = p.GetTokenStream().LA(1)
 	}
 	{
-		p.SetState(145)
+		p.SetState(151)
 
 		var _m = p.Match(ApiParserParserT__2)
 
@@ -669,20 +669,20 @@ func (p *ApiParserParser) TypeLitBody() (localctx ITypeLitBodyContext) {
 		}
 	}()
 
-	p.SetState(149)
+	p.SetState(155)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 7, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(147)
+			p.SetState(153)
 			p.TypeStruct()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(148)
+			p.SetState(154)
 			p.TypeAlias()
 		}
 

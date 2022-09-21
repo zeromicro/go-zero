@@ -5,6 +5,7 @@ ATDOC:              '@doc';
 ATHANDLER:          '@handler';
 INTERFACE:          'interface{}';
 ATSERVER:           '@server';
+ATRESPDOC:          '@respdoc';
 
 // Whitespace and comments
 WS:                 [ \t\r\n\u000C]+ -> channel(HIDDEN);

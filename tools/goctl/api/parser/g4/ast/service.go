@@ -39,6 +39,7 @@ type ServiceRoute struct {
 	AtServer  *AtServer
 	AtHandler *AtHandler
 	Route     *Route
+	AtRespDoc []*AtRespDoc
 }
 
 // AtDoc describes service comments ast for api syntax
@@ -66,6 +67,14 @@ type Route struct {
 	ReturnToken Expr
 	Reply       *Body
 	DocExpr     []Expr
+	CommentExpr Expr
+}
+
+// AtRespDoc describes response document ast for api syntax
+type AtRespDoc struct {
+	Code        string
+	Kv          []*KvExpr
+	Reply       *Body
 	CommentExpr Expr
 }
 
@@ -132,6 +141,10 @@ func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) interface{}
 	}
 
 	serviceRoute.Route = ctx.Route().Accept(v).(*Route)
+
+	for _, each := range ctx.AllAtRespDoc() {
+		serviceRoute.AtRespDoc = append(serviceRoute.AtRespDoc, each.Accept(v).(*AtRespDoc))
+	}
 	return &serviceRoute
 }
 
@@ -176,7 +189,53 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
-// serVisitRoute implements from api.BaseApiParserVisitor
+// VisitAtRespDoc implements from api.BaseApiParserVisitor
+func (v *ApiVisitor) VisitAtRespDoc(ctx *api.AtRespDocContext) interface{} {
+	var atRespItem AtRespDoc
+	if ctx.DataType() != nil {
+		dt := ctx.DataType().Accept(v).(DataType)
+		if dt == nil {
+			return nil
+		}
+
+		switch dataType := dt.(type) {
+		case *Array:
+			lit := dataType.Literal
+			switch lit.(type) {
+			case *Literal, *Pointer:
+				if api.IsGolangKeyWord(lit.Expr().Text()) {
+					v.panic(lit.Expr(), fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit.Expr().Text()))
+				}
+			default:
+				v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+			}
+		case *Literal:
+			lit := dataType.Literal.Text()
+			if api.IsGolangKeyWord(lit) {
+				v.panic(dataType.Literal, fmt.Sprintf("expecting 'ID', but found golang keyword '%s'", lit))
+			}
+		default:
+			v.panic(dt.Expr(), fmt.Sprintf("unsupport %s", dt.Expr().Text()))
+		}
+
+		atRespItem.Reply = &Body{
+			Lp:   v.newExprWithToken(ctx.GetLp()),
+			Rp:   v.newExprWithToken(ctx.GetRp()),
+			Name: dt,
+		}
+
+	} else {
+		for _, each := range ctx.AllRespDocKvLit() {
+			atRespItem.Kv = append(atRespItem.Kv, each.Accept(v).(*KvExpr))
+		}
+	}
+
+	atRespItem.Code = ctx.GetCode().GetText()
+	atRespItem.CommentExpr = v.getComment(ctx)
+	return &atRespItem
+}
+
+// VisitRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 	var route Route
 	path := ctx.Path()

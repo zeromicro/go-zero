@@ -60,14 +60,17 @@ arrayType:      lbrack='[' rbrack=']' dataType;
 serviceSpec:    atServer? serviceApi;
 atServer:       ATSERVER lp='(' kvLit+ rp=')';
 serviceApi:     {match(p,"service")}serviceToken=ID serviceName lbrace='{' serviceRoute* rbrace='}';
-serviceRoute:   atDoc? (atServer|atHandler) route;
+serviceRoute:   atDoc? (atServer|atHandler) atRespDoc* route;
 atDoc:          ATDOC lp='('? ((kvLit+)|STRING) rp=')'?;
 atHandler:      ATHANDLER ID;
+atRespDoc:      ATRESPDOC '-' code=respDocCode lp='(' ( respDocKvLit+|dataType) rp=')';
+respDocCode:    (ID|LetterOrDigit)+;
 route:          {checkHTTPMethod(p)}httpMethod=ID path request=body? response=replybody?;
 body:           lp='(' (ID)? rp=')';
 replybody:      returnToken='returns' lp='(' dataType? rp=')';
 // kv
 kvLit:          key=ID {checkKeyValue(p)}value=LINE_VALUE;
+respDocKvLit:   key=respDocCode {checkKeyValue(p)}value=LINE_VALUE;
 
 serviceName:    (ID '-'?)+;
 path:           (('/' (pathItem ('-' pathItem)*))|('/:' (pathItem ('-' pathItem)?)))+ | '/';

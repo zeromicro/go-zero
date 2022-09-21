@@ -9,10 +9,20 @@
     type Response {
         Message string `json:"message"`
     }
+    
+    type ErrorResponse {
+        Code string `json:"code"`
+        Message string `json:"message"`
+    }
 
     // service doc
     service greet-api {
         // handler doc
         @handler GreetHandler // handler comment
+        @respdoc-400 (
+            2001: "数据库错误"
+            2002: "redis错误"
+        ) // Error code list
+        @respdoc-500 (ErrorResponse) // Server Error
         get /from/:name(Request) returns (Response);
     }

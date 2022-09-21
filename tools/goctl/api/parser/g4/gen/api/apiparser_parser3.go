@@ -106,20 +106,20 @@ func (p *ApiParserParser) TypeBlockBody() (localctx ITypeBlockBodyContext) {
 		}
 	}()
 
-	p.SetState(153)
+	p.SetState(159)
 	p.GetErrorHandler().Sync(p)
 	switch p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 8, p.GetParserRuleContext()) {
 	case 1:
 		p.EnterOuterAlt(localctx, 1)
 		{
-			p.SetState(151)
+			p.SetState(157)
 			p.TypeBlockStruct()
 		}
 
 	case 2:
 		p.EnterOuterAlt(localctx, 2)
 		{
-			p.SetState(152)
+			p.SetState(158)
 			p.TypeBlockAlias()
 		}
 
@@ -285,19 +285,19 @@ func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkKeyword(p)
 	{
-		p.SetState(156)
+		p.SetState(162)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeStructContext).structName = _m
 	}
-	p.SetState(158)
+	p.SetState(164)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserID {
 		{
-			p.SetState(157)
+			p.SetState(163)
 
 			var _m = p.Match(ApiParserParserID)
 
@@ -306,30 +306,30 @@ func (p *ApiParserParser) TypeStruct() (localctx ITypeStructContext) {
 
 	}
 	{
-		p.SetState(160)
+		p.SetState(166)
 
 		var _m = p.Match(ApiParserParserT__3)
 
 		localctx.(*TypeStructContext).lbrace = _m
 	}
-	p.SetState(164)
+	p.SetState(170)
 	p.GetErrorHandler().Sync(p)
 	_alt = p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 10, p.GetParserRuleContext())
 
 	for _alt != 2 && _alt != antlr.ATNInvalidAltNumber {
 		if _alt == 1 {
 			{
-				p.SetState(161)
+				p.SetState(167)
 				p.Field()
 			}
 
 		}
-		p.SetState(166)
+		p.SetState(172)
 		p.GetErrorHandler().Sync(p)
 		_alt = p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 10, p.GetParserRuleContext())
 	}
 	{
-		p.SetState(167)
+		p.SetState(173)
 
 		var _m = p.Match(ApiParserParserT__4)
 
@@ -455,19 +455,19 @@ func (p *ApiParserParser) TypeAlias() (localctx ITypeAliasContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkKeyword(p)
 	{
-		p.SetState(170)
+		p.SetState(176)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeAliasContext).alias = _m
 	}
-	p.SetState(172)
+	p.SetState(178)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserT__0 {
 		{
-			p.SetState(171)
+			p.SetState(177)
 
 			var _m = p.Match(ApiParserParserT__0)
 
@@ -476,7 +476,7 @@ func (p *ApiParserParser) TypeAlias() (localctx ITypeAliasContext) {
 
 	}
 	{
-		p.SetState(174)
+		p.SetState(180)
 		p.DataType()
 	}
 
@@ -640,19 +640,19 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 	p.EnterOuterAlt(localctx, 1)
 	checkKeyword(p)
 	{
-		p.SetState(177)
+		p.SetState(183)
 
 		var _m = p.Match(ApiParserParserID)
 
 		localctx.(*TypeBlockStructContext).structName = _m
 	}
-	p.SetState(179)
+	p.SetState(185)
 	p.GetErrorHandler().Sync(p)
 	_la = p.GetTokenStream().LA(1)
 
 	if _la == ApiParserParserID {
 		{
-			p.SetState(178)
+			p.SetState(184)
 
 			var _m = p.Match(ApiParserParserID)
 
@@ -661,30 +661,30 @@ func (p *ApiParserParser) TypeBlockStruct() (localctx ITypeBlockStructContext) {
 
 	}
 	{
-		p.SetState(181)
+		p.SetState(187)
 
 		var _m = p.Match(ApiParserParserT__3)
 
 		localctx.(*TypeBlockStructContext).lbrace = _m
 	}
-	p.SetState(185)
+	p.SetState(191)
 	p.GetErrorHandler().Sync(p)
 	_alt = p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 13, p.GetParserRuleContext())
 
 	for _alt != 2 && _alt != antlr.ATNInvalidAltNumber {
 		if _alt == 1 {
 			{
-				p.SetState(182)
+				p.SetState(188)
 				p.Field()
 			}
 
 		}
-		p.SetState(187)
+		p.SetState(193)
 		p.GetErrorHandler().Sync(p)
 		_alt = p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 13, p.GetParserRuleContext())
 	}
 	{
-		p.SetState(188)
+		p.SetState(194)
 
 		var _m = p.Match(ApiParserParserT__4)
 
