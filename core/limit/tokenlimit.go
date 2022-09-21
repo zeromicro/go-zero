@@ -52,31 +52,16 @@ return allowed`
 )
 
 // A TokenLimiter controls how frequently events are allowed to happen with in one second.
-type (
-	TokenLimiter struct {
-		rate           int
-		burst          int
-		store          *redis.Redis
-		tokenKey       string
-		timestampKey   string
-		rescueLock     sync.Mutex
-		redisAlive     uint32
-		rescueLimiter  *xrate.Limiter
-		monitorStarted bool
-	}
-
-	tokenOption struct {
-		ctx context.Context
-	}
-
-	TokenOption func(*tokenOption)
-)
-
-// WithTokenCtx using context from incoming, or would be context.Background() as default
-func WithTokenCtx(ctx context.Context) TokenOption {
-	return func(option *tokenOption) {
-		option.ctx = ctx
-	}
+type TokenLimiter struct {
+	rate           int
+	burst          int
+	store          *redis.Redis
+	tokenKey       string
+	timestampKey   string
+	rescueLock     sync.Mutex
+	redisAlive     uint32
+	rescueLimiter  *xrate.Limiter
+	monitorStarted bool
 }
 
 // NewTokenLimiter returns a new TokenLimiter that allows events up to rate and permits
@@ -97,29 +82,33 @@ func NewTokenLimiter(rate, burst int, store *redis.Redis, key string) *TokenLimi
 }
 
 // Allow is shorthand for AllowN(time.Now(), 1).
-func (lim *TokenLimiter) Allow(options ...TokenOption) bool {
-	return lim.AllowN(time.Now(), 1, options...)
+func (lim *TokenLimiter) Allow() bool {
+	return lim.AllowN(time.Now(), 1)
+}
+
+// AllowCtx is shorthand for AllowNCtx(ctx,time.Now(), 1) with incoming context.
+func (lim *TokenLimiter) AllowCtx(ctx context.Context) bool {
+	return lim.AllowNCtx(ctx, time.Now(), 1)
 }
 
 // AllowN reports whether n events may happen at time now.
 // Use this method if you intend to drop / skip events that exceed the rate.
 // Otherwise, use Reserve or Wait.
-func (lim *TokenLimiter) AllowN(now time.Time, n int, options ...TokenOption) bool {
-	opt := lim.initOption()
-	for _, option := range options {
-		option(opt)
-	}
-	return lim.reserveN(now, n, opt)
+func (lim *TokenLimiter) AllowN(now time.Time, n int) bool {
+	return lim.reserveN(context.Background(), now, n)
 }
 
-func (lim *TokenLimiter) initOption() *tokenOption {
-	return &tokenOption{ctx: context.Background()}
+// AllowNCtx reports whether n events may happen at time now with incoming context.
+// Use this method if you intend to drop / skip events that exceed the rate.
+// Otherwise, use Reserve or Wait.
+func (lim *TokenLimiter) AllowNCtx(ctx context.Context, now time.Time, n int) bool {
+	return lim.reserveN(ctx, now, n)
 }
 
-func (lim *TokenLimiter) reserveN(now time.Time, n int, opt *tokenOption) bool {
+func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) bool {
 	select {
-	case <-opt.ctx.Done():
-		logx.Errorf("fail to use rate limiter: %s", opt.ctx.Err())
+	case <-ctx.Done():
+		logx.Errorf("fail to use rate limiter: %s", ctx.Err())
 		return false
 	default:
 	}
@@ -128,7 +117,7 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int, opt *tokenOption) bool {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
-	resp, err := lim.store.EvalCtx(opt.ctx,
+	resp, err := lim.store.EvalCtx(ctx,
 		script,
 		[]string{
 			lim.tokenKey,
@@ -145,10 +134,12 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int, opt *tokenOption) bool {
 	if err == redis.Nil {
 		return false
 	}
+
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 		logx.Errorf("fail to use rate limiter: %s", err)
 		return false
 	}
+
 	if err != nil {
 		logx.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		lim.startMonitor()

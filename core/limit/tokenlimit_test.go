@@ -29,12 +29,12 @@ func TestTokenLimit_WithCtx(t *testing.T) {
 	defer s.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	ok := l.Allow(WithTokenCtx(ctx))
+	ok := l.AllowCtx(ctx)
 	assert.True(t, ok)
 
 	cancel()
 	for i := 0; i < total; i++ {
-		ok := l.Allow(WithTokenCtx(ctx))
+		ok := l.AllowCtx(ctx)
 		assert.False(t, ok)
 		assert.False(t, l.monitorStarted)
 	}
