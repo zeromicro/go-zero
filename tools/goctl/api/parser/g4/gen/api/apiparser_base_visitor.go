@@ -1,4 +1,6 @@
-package api // ApiParser
+// Package api ApiParser
+package api
+
 import "github.com/zeromicro/antlr"
 
 type BaseApiParserVisitor struct {

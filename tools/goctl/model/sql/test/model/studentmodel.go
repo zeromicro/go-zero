@@ -30,7 +30,7 @@ type (
 		FindOne(id int64) (*Student, error)
 		FindOneByClassName(class, name string) (*Student, error)
 		Update(data Student) error
-		// only for test
+		// Delete only for test
 		Delete(id int64, className, studentName string) error
 	}
 
