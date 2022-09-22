@@ -38,8 +38,12 @@ type (
 
 	// A Pair is a key/pair set used in redis zset.
 	Pair struct {
-		Key   string
+		Key string
+		// Deprecated: Use ScoreFloat instead.
 		Score int64
+		// ScoreFloat a valid value but when IsFloat is true.
+		ScoreFloat float64
+		IsFloat    bool
 	}
 
 	// Redis defines a redis node/cluster. It is thread-safe.
@@ -1884,12 +1888,7 @@ func (s *Redis) ZaddsCtx(ctx context.Context, key string, ps ...Pair) (val int64
 			return err
 		}
 
-		var zs []*red.Z
-		for _, p := range ps {
-			z := &red.Z{Score: float64(p.Score), Member: p.Key}
-			zs = append(zs, z)
-		}
-
+		zs := toRedisZ(ps)
 		v, err := conn.ZAdd(ctx, key, zs...).Result()
 		if err != nil {
 			return err
@@ -1979,6 +1978,60 @@ func (s *Redis) ZincrbyCtx(ctx context.Context, key string, increment int64, fie
 	return
 }
 
+// ZpopmaxCtx is the implementation of redis zpopmin command.
+func (s *Redis) ZpopmaxCtx(ctx context.Context, key string, count ...int64) (
+	val []Pair, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.ZPopMax(ctx, key, count...).Result()
+		if err != nil {
+			return err
+		}
+		val = toPairs(v)
+
+		return nil
+	}, acceptable)
+
+	return
+}
+
+// Zpopmax is the implementation of redis zpopmin command.
+func (s *Redis) Zpopmax(key string, count ...int64) (
+	val []Pair, err error) {
+	return s.ZpopmaxCtx(context.Background(), key, count...)
+}
+
+// ZpopminCtx is the implementation of redis zpopmin command.
+func (s *Redis) ZpopminCtx(ctx context.Context, key string, count ...int64) (
+	val []Pair, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		v, err := conn.ZPopMin(ctx, key, count...).Result()
+		if err != nil {
+			return err
+		}
+		val = toPairs(v)
+
+		return nil
+	}, acceptable)
+
+	return
+}
+
+// Zpopmin is the implementation of redis zpopmin command.
+func (s *Redis) Zpopmin(key string, count ...int64) (
+	val []Pair, err error) {
+	return s.ZpopminCtx(context.Background(), key, count...)
+}
+
 // Zscore is the implementation of redis zscore command.
 func (s *Redis) Zscore(key, value string) (int64, error) {
 	return s.ZscoreCtx(context.Background(), key, value)
@@ -1986,22 +2039,32 @@ func (s *Redis) Zscore(key, value string) (int64, error) {
 
 // ZscoreCtx is the implementation of redis zscore command.
 func (s *Redis) ZscoreCtx(ctx context.Context, key, value string) (val int64, err error) {
+	v, err := s.ZscoreFloatCtx(ctx, key, value)
+	return int64(v), err
+}
+
+// ZscoreFloatCtx is the implementation of redis zscore command.
+func (s *Redis) ZscoreFloatCtx(ctx context.Context, key, value string) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
 			return err
 		}
 
-		v, err := conn.ZScore(ctx, key, value).Result()
+		val, err = conn.ZScore(ctx, key, value).Result()
 		if err != nil {
 			return err
 		}
 
-		val = int64(v)
 		return nil
 	}, acceptable)
 
 	return
+}
+
+// ZscoreFloat is the implementation of redis zscore command.
+func (s *Redis) ZscoreFloat(key, value string) (val float64, err error) {
+	return s.ZscoreFloatCtx(context.Background(), key, value)
 }
 
 // Zrank is the implementation of redis zrank command.
@@ -2418,16 +2481,21 @@ func toPairs(vals []red.Z) []Pair {
 		switch member := val.Member.(type) {
 		case string:
 			pairs[i] = Pair{
-				Key:   member,
-				Score: int64(val.Score),
+				Key:        member,
+				Score:      int64(val.Score),
+				IsFloat:    true,
+				ScoreFloat: val.Score,
 			}
 		default:
 			pairs[i] = Pair{
-				Key:   mapping.Repr(val.Member),
-				Score: int64(val.Score),
+				Key:        mapping.Repr(val.Member),
+				Score:      int64(val.Score),
+				IsFloat:    true,
+				ScoreFloat: val.Score,
 			}
 		}
 	}
+
 	return pairs
 }
 
@@ -2445,5 +2513,20 @@ func toStrings(vals []interface{}) []string {
 			}
 		}
 	}
+
 	return ret
+}
+
+func toRedisZ(ps []Pair) []*red.Z {
+	zs := make([]*red.Z, len(ps))
+	for i, p := range ps {
+		score := p.ScoreFloat
+		if !p.IsFloat {
+			score = float64(p.Score)
+		}
+
+		zs[i] = &red.Z{Score: score, Member: p.Key}
+	}
+
+	return zs
 }

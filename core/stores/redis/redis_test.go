@@ -846,12 +846,16 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value2",
-				Score: 6,
+				Key:        "value2",
+				Score:      6,
+				ScoreFloat: 6.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		rank, err := client.Zrank("key", "value2")
@@ -922,12 +926,16 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScores("key", 5, 8)
@@ -936,12 +944,16 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresAndLimit(
@@ -951,8 +963,10 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
@@ -964,12 +978,16 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresAndLimit(
@@ -979,8 +997,10 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
@@ -1080,12 +1100,16 @@ func TestRedisToPairs(t *testing.T) {
 	})
 	assert.EqualValues(t, []Pair{
 		{
-			Key:   "1",
-			Score: 1,
+			Key:        "1",
+			Score:      1,
+			ScoreFloat: 1.0,
+			IsFloat:    true,
 		},
 		{
-			Key:   "2",
-			Score: 2,
+			Key:        "2",
+			Score:      2,
+			ScoreFloat: 2.0,
+			IsFloat:    true,
 		},
 	}, pairs)
 }
@@ -1159,6 +1183,35 @@ func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		err := New(client.Addr, WithPass("any")).Ping()
 		assert.NotNil(t, err)
+	})
+}
+
+func TestZpop(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := client.ZaddFloat("key", 1, "one")
+		assert.NoError(t, err)
+		_, err = client.ZaddFloat("key", 2, "two")
+		assert.NoError(t, err)
+		_, err = client.ZaddFloat("key", 3, "three")
+		assert.NoError(t, err)
+		pairs, err := client.Zpopmax("key")
+		assert.NoError(t, err)
+		assert.EqualValues(t, []Pair{{
+			Key:        "three",
+			Score:      3.0,
+			ScoreFloat: 3.0,
+			IsFloat:    true,
+		}}, pairs)
+
+		pairs, err = client.Zpopmin("key")
+		assert.NoError(t, err)
+		assert.EqualValues(t, []Pair{{
+			Key:        "one",
+			Score:      1.0,
+			ScoreFloat: 1.0,
+			IsFloat:    true,
+		}}, pairs)
+
 	})
 }
 

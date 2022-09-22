@@ -582,8 +582,9 @@ func TestRedis_SortedSet(t *testing.T) {
 		Key:   "value2",
 		Score: 6,
 	}, redis.Pair{
-		Key:   "value3",
-		Score: 7,
+		Key:        "value3",
+		ScoreFloat: 7.0,
+		IsFloat:    true,
 	})
 	assert.NotNil(t, err)
 
