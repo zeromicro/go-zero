@@ -292,8 +292,6 @@ func wrapLevelWithColor(level string) string {
 		colour = color.FgBlue
 	case levelSlow:
 		colour = color.FgYellow
-	case levelDebug:
-		colour = color.FgYellow
 	case levelStat:
 		colour = color.FgGreen
 	}
