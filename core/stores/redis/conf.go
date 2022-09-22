@@ -16,8 +16,12 @@ type (
 	RedisConf struct {
 		Host string
 		Type string `json:",default=node,options=node|cluster"`
-		Pass string `json:",optional"`
-		Tls  bool   `json:",optional"`
+		// Use the specified Username to authenticate the current connection
+		// with one of the connections defined in the ACL list when connecting
+		// to a Redis 6.0 instance, or greater, that is using the Redis ACL system.
+		Username string `json:",optional"`
+		Pass     string `json:",optional"`
+		Tls      bool   `json:",optional"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
