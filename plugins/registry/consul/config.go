@@ -51,7 +51,7 @@ func (c Conf) NewClient() (*api.Client, error) {
 }
 
 // LoadYAMLConf load config from consul kv
-func LoadYAMLConf(client *api.Client, key string, v interface{}) {
+func LoadYAMLConf(client *api.Client, key string, v *interface{}) {
 	kv := client.KV()
 
 	data, _, err := kv.Get(key, nil)
@@ -60,7 +60,7 @@ func LoadYAMLConf(client *api.Client, key string, v interface{}) {
 }
 
 // LoadJSONConf load config from consul kv
-func LoadJSONConf(client *api.Client, key string, v interface{}) {
+func LoadJSONConf(client *api.Client, key string, v *interface{}) {
 	kv := client.KV()
 
 	data, _, err := kv.Get(key, nil)
