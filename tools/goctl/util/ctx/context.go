@@ -37,6 +37,7 @@ func Prepare(workDir string) (*ProjectContext, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return background(workDir)
 }
 

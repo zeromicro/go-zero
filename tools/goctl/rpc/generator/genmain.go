@@ -62,7 +62,6 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 			Pkg:       proto.PbPackage,
 		})
 	}
-
 	text, err := pathx.LoadTemplate(category, mainTemplateFile, mainTemplate)
 	if err != nil {
 		return err

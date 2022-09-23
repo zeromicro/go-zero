@@ -46,7 +46,8 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 	for _, item := range jwtTransNames {
 		jwtTransList = append(jwtTransList, fmt.Sprintf("%s %s", item, jwtTransTemplate))
 	}
-	authImportStr := fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL)
+	authImportStr := fmt.Sprintf("import (\n\"%s\"\n  \"%s/rest\"\n)", vars.RyanProjectOpenSourceURL+
+		"/simple-admin-tools/plugins/registry/consul", vars.ProjectOpenSourceURL)
 
 	return genFile(fileGenConfig{
 		dir:             dir,

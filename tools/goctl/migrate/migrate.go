@@ -22,7 +22,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const defaultMigrateVersion = "v1.3.0"
+const defaultMigrateVersion = "v1.4.1"
 
 const (
 	confirmUnknown = iota
@@ -36,10 +36,10 @@ var (
 )
 
 func migrate(_ *cobra.Command, _ []string) error {
-	if len(stringVarVersion) == 0 {
-		stringVarVersion = defaultMigrateVersion
+	if len(zeroVersion) == 0 {
+		zeroVersion = defaultMigrateVersion
 	}
-	err := editMod(stringVarVersion, boolVarVerbose)
+	err := editMod(zeroVersion, toolVersion, boolVarVerbose)
 	if err != nil {
 		return err
 	}

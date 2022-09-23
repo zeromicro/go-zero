@@ -1,9 +1,13 @@
 package config
 
-import {{.authImport}}
+{{.authImport}}
 
 type Config struct {
-	rest.RestConf
+	rest.RestConf `yaml:",inline"`
 	{{.auth}}
 	{{.jwtTrans}}
+}
+
+type ConsulConfig struct {
+	Consul consul.Conf
 }

@@ -53,6 +53,7 @@ func genMainImports(parentPkg string) string {
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, configDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, handlerDir)))
 	imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, contextDir)))
+	imports = append(imports, fmt.Sprintf("\"%s\"", "github.com/suyuan32/simple-admin-tools/plugins/registry/consul"))
 	imports = append(imports, fmt.Sprintf("\"%s/core/conf\"", vars.ProjectOpenSourceURL))
 	imports = append(imports, fmt.Sprintf("\"%s/rest\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
