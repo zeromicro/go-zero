@@ -2,7 +2,6 @@ package consul
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"testing"
 )
 
@@ -22,8 +21,6 @@ func TestLoadConf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	kv := client.KV()
-
 	type User struct {
 		Name string `json:"name" yaml:"Name"`
 		Age  string `json:"age" yaml:"Age"`
@@ -34,17 +31,8 @@ func TestLoadConf(t *testing.T) {
 	// Age: 18
 
 	// get config
-	pair, _, err := kv.Get("user", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Printf("KV: %v \n%s\n", pair.Key, pair.Value)
-
 	var u User
-	err = yaml.Unmarshal(pair.Value, &u)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	LoadYAMLConf(client, "core", &u)
 	fmt.Println(u)
+
 }

@@ -51,19 +51,19 @@ func (c Conf) NewClient() (*api.Client, error) {
 }
 
 // LoadYAMLConf load config from consul kv
-func LoadYAMLConf(client *api.Client, key string, v *interface{}) {
+func LoadYAMLConf(client *api.Client, key string, v interface{}) {
 	kv := client.KV()
 
 	data, _, err := kv.Get(key, nil)
-	err = yaml.Unmarshal(data.Value, &v)
+	err = yaml.Unmarshal(data.Value, v)
 	logx.Must(err)
 }
 
 // LoadJSONConf load config from consul kv
-func LoadJSONConf(client *api.Client, key string, v *interface{}) {
+func LoadJSONConf(client *api.Client, key string, v interface{}) {
 	kv := client.KV()
 
 	data, _, err := kv.Get(key, nil)
-	err = json.Unmarshal(data.Value, &v)
+	err = json.Unmarshal(data.Value, v)
 	logx.Must(err)
 }

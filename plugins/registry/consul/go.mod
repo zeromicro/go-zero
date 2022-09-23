@@ -24,4 +24,5 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/zeromicro/go-zero v1.4.1
 	golang.org/x/tools v0.1.8 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 )
