@@ -28,16 +28,16 @@ type (
 	//  }
 	// if with the name Conf, there will be two Conf inside Config.
 	RestConf struct {
-		service.ServiceConf
-		Host         string        `json:"host,default=0.0.0.0" yaml:"Host"`
-		Port         int           `json:"port" yaml:"Port"`
-		CertFile     string        `json:"certFile,optional" yaml:"CertFile"`
-		KeyFile      string        `json:"KeyFile,optional" yaml:"KeyFile"`
-		Verbose      bool          `json:"verbose,optional" yaml:"Verbose"`
-		MaxConns     int           `json:"maxConns,default=10000" yaml:"MaxConns"`
-		MaxBytes     int64         `json:"maxBytes,default=1048576" yaml:"MaxBytes"`
-		Timeout      int64         `json:"timeout,default=3000" yaml:"Timeout"` // milliseconds
-		CpuThreshold int64         `json:"cpuThreshold,default=900,range=[0:1000]" yaml:"CpuThreshold"`
-		Signature    SignatureConf `json:"signature,optional" yaml:"Signature"`
+		service.ServiceConf `yaml:",inline"`
+		Host                string        `json:"host,default=0.0.0.0" yaml:"Host"`
+		Port                int           `json:"port" yaml:"Port"`
+		CertFile            string        `json:"certFile,optional" yaml:"CertFile"`
+		KeyFile             string        `json:"KeyFile,optional" yaml:"KeyFile"`
+		Verbose             bool          `json:"verbose,optional" yaml:"Verbose"`
+		MaxConns            int           `json:"maxConns,default=10000" yaml:"MaxConns"`
+		MaxBytes            int64         `json:"maxBytes,default=1048576" yaml:"MaxBytes"`
+		Timeout             int64         `json:"timeout,default=3000" yaml:"Timeout"` // milliseconds
+		CpuThreshold        int64         `json:"cpuThreshold,default=900,range=[0:1000]" yaml:"CpuThreshold"`
+		Signature           SignatureConf `json:"signature,optional" yaml:"Signature"`
 	}
 )
