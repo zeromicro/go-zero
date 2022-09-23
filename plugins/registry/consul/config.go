@@ -2,6 +2,10 @@ package consul
 
 import (
 	"errors"
+	"github.com/zeromicro/go-zero/core/logx"
+	"gopkg.in/yaml.v2"
+
+	"github.com/hashicorp/consul/api"
 )
 
 const (
@@ -12,12 +16,13 @@ const (
 
 // Conf is the config item with the given key on etcd.
 type Conf struct {
-	Host  string
-	Key   string
-	Token string            `json:",optional"`
-	Tag   []string          `json:",optional"`
-	Meta  map[string]string `json:",optional"`
-	TTL   int               `json:"ttl,optional"`
+	Host     string
+	ListenOn string
+	Key      string
+	Token    string            `json:",optional"`
+	Tag      []string          `json:",optional"`
+	Meta     map[string]string `json:",optional"`
+	TTL      int               `json:"ttl,optional"`
 }
 
 // Validate validates c.
@@ -33,4 +38,25 @@ func (c Conf) Validate() error {
 	}
 
 	return nil
+}
+
+// NewClient create new client
+func (c Conf) NewClient() (*api.Client, error) {
+	client, err := api.NewClient(&api.Config{Scheme: "http", Address: c.Host, Token: c.Token})
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
+}
+
+// LoadConf load config from consul kv
+func (c Conf) LoadConf(key string, v interface{}) {
+	client, err := c.NewClient()
+	logx.Must(err)
+
+	kv := client.KV()
+
+	data, _, err := kv.Get(key, nil)
+	err = yaml.Unmarshal(data.Value, &v)
+	logx.Must(err)
 }

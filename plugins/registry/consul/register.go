@@ -15,8 +15,8 @@ import (
 )
 
 // RegisterService register service to consul
-func RegisterService(listenOn string, c Conf) error {
-	pubListenOn := figureOutListenOn(listenOn)
+func RegisterService(c Conf) error {
+	pubListenOn := figureOutListenOn(c.ListenOn)
 
 	host, ports, err := net.SplitHostPort(pubListenOn)
 	if err != nil {

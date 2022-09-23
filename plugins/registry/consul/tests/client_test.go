@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func TestCLient(t *testing.T) {
+func TestClient(t *testing.T) {
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, "round_robin")
 	conn, err := grpc.Dial("consul://127.0.0.1:8500/gozero?wait=14s&tag=public", grpc.WithInsecure(), grpc.WithDefaultServiceConfig(svcCfg))
 	if err != nil {
