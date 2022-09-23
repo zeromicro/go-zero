@@ -17,13 +17,13 @@ const (
 
 // Conf is the config item with the given key on etcd.
 type Conf struct {
-	Host     string            `json:"Host" yaml:"Host"`
-	ListenOn string            `json:"ListenOn" yaml:"ListenOn"`
-	Key      string            `json:"Key" yaml:"Key"`
-	Token    string            `json:"Token,optional" yaml:"Token"`
-	Tag      []string          `json:"Tag,optional" yaml:"Tag"`
-	Meta     map[string]string `json:"Meta,optional" yaml:"Meta"`
-	TTL      int               `json:"TTL,optional" yaml:"TTL"`
+	Host     string
+	ListenOn string
+	Key      string
+	Token    string            `json:",optional"`
+	Tag      []string          `json:",optional"`
+	Meta     map[string]string `json:",optional"`
+	TTL      int               `json:"ttl,optional"`
 }
 
 // Validate validates c.
