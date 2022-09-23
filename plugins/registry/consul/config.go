@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/zeromicro/go-zero/core/logx"
 	"gopkg.in/yaml.v2"
@@ -49,14 +50,20 @@ func (c Conf) NewClient() (*api.Client, error) {
 	return client, nil
 }
 
-// LoadConf load config from consul kv
-func (c Conf) LoadConf(key string, v interface{}) {
-	client, err := c.NewClient()
-	logx.Must(err)
-
+// LoadYAMLConf load config from consul kv
+func LoadYAMLConf(client *api.Client, key string, v interface{}) {
 	kv := client.KV()
 
 	data, _, err := kv.Get(key, nil)
 	err = yaml.Unmarshal(data.Value, &v)
+	logx.Must(err)
+}
+
+// LoadJSONConf load config from consul kv
+func LoadJSONConf(client *api.Client, key string, v interface{}) {
+	kv := client.KV()
+
+	data, _, err := kv.Get(key, nil)
+	err = json.Unmarshal(data.Value, &v)
 	logx.Must(err)
 }
