@@ -41,7 +41,7 @@ type (
 		Key string
 		// Deprecated: Use ScoreFloat instead.
 		Score int64
-		// ScoreFloat a valid value but when IsFloat is true.
+		// ScoreFloat is a valid value when IsFloat is true.
 		ScoreFloat float64
 		IsFloat    bool
 	}
