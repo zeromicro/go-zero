@@ -3,6 +3,7 @@ package redis
 import (
 	"crypto/tls"
 	"io"
+	"strings"
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -19,7 +20,7 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        []string{r.Addr},
+			Addrs:        strings.Split(r.Addr, ","),
 			Password:     r.Pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
