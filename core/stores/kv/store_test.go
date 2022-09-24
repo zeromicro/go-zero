@@ -655,63 +655,83 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Nil(t, err)
 		assert.EqualValues(t, []redis.Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrangebyscoreWithScores("key", 5, 8)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []redis.Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []redis.Pair{
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrevrangebyscoreWithScores("key", 5, 8)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []redis.Pair{
 			{
-				Key:   "value4",
-				Score: 8,
+				Key:        "value4",
+				Score:      8,
+				ScoreFloat: 8.0,
+				IsFloat:    true,
 			},
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []redis.Pair{
 			{
-				Key:   "value1",
-				Score: 5,
+				Key:        "value1",
+				Score:      5,
+				ScoreFloat: 5.0,
+				IsFloat:    true,
 			},
 		}, pairs)
 		rank, err = client.Zrevrank("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), rank)
 		val, err = client.Zadds("key", redis.Pair{
-			Key:   "value2",
-			Score: 6,
+			Key:        "value2",
+			Score:      6,
+			ScoreFloat: 6.0,
+			IsFloat:    true,
 		}, redis.Pair{
-			Key:   "value3",
-			Score: 7,
+			Key:        "value3",
+			Score:      7,
+			ScoreFloat: 7.0,
+			IsFloat:    true,
 		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), val)
