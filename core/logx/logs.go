@@ -26,6 +26,7 @@ var (
 	options     logOptions
 	writer      = new(atomicWriter)
 	setupOnce   sync.Once
+	LogMaxChars uint32
 )
 
 type (
@@ -213,6 +214,11 @@ func SetLevel(level uint32) {
 	atomic.StoreUint32(&logLevel, level)
 }
 
+// SetLogMaxChars sets the logging max chars. It can be used to single log printing
+func SetLogMaxChars(chars uint32) {
+	atomic.StoreUint32(&LogMaxChars, chars)
+}
+
 // SetWriter sets the logging writer. It can be used to customize the logging.
 func SetWriter(w Writer) {
 	if atomic.LoadUint32(&disableLog) == 0 {
@@ -229,6 +235,7 @@ func SetUp(c LogConf) (err error) {
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
 		setupLogLevel(c)
+		setLogMaxChars(c)
 
 		if len(c.TimeFormat) > 0 {
 			timeFormat = c.TimeFormat
@@ -381,6 +388,10 @@ func setupLogLevel(c LogConf) {
 	case levelSevere:
 		SetLevel(SevereLevel)
 	}
+}
+
+func setLogMaxChars(c LogConf) {
+	SetLogMaxChars(c.LogMaxChars)
 }
 
 func setupWithConsole() {

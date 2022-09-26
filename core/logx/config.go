@@ -10,6 +10,7 @@ type LogConf struct {
 	Level               string `json:",default=info,options=[debug,info,error,severe]"`
 	Compress            bool   `json:",optional"`
 	KeepDays            int    `json:",optional"`
+	LogMaxChars         uint32 `json:",default=500"`
 	StackCooldownMillis int    `json:",default=100"`
 	// MaxBackups represents how many backup log files will be kept. 0 means all files will be kept forever.
 	// Only take effect when RotationRuleType is `size`.
