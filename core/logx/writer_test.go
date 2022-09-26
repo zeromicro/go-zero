@@ -147,6 +147,15 @@ func TestWritePlainAny(t *testing.T) {
 
 }
 
+func TestLogMaxChars(t *testing.T) {
+	const chars = "你好logMax"
+	SetLogMaxChars(5)
+	var buf bytes.Buffer
+	w := NewWriter(&buf)
+	w.Info(chars)
+	assert.Contains(t, buf.String(), "你好log...")
+}
+
 type mockedEntry struct {
 	Level   string `json:"level"`
 	Content string `json:"content"`

@@ -138,6 +138,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 
 	handleOptions(opts)
 	setupLogLevel(c)
+	setLogMaxChars(c)
 
 	if infoLog, err = createOutput(accessFile); err != nil {
 		return nil, err
@@ -264,9 +265,15 @@ func buildFields(fields ...LogField) []string {
 }
 
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	content := val.(string)
+	runeStr := []rune(content)
+	maxChars := int(atomic.LoadUint32(&LogMaxChars))
+	if len(runeStr) > maxChars {
+		content = string(runeStr[0:maxChars]) + "..."
+	}
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, buildFields(fields...)...)
+		writePlainAny(writer, level, content, buildFields(fields...)...)
 	default:
 		entry := make(logEntry)
 		for _, field := range fields {
@@ -274,7 +281,7 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 		}
 		entry[timestampKey] = getTimestamp()
 		entry[levelKey] = level
-		entry[contentKey] = val
+		entry[contentKey] = content
 		writeJson(writer, entry)
 	}
 }
