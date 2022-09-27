@@ -7,26 +7,24 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type LogField = logx.LogField
+type (
+	LogConf  = logx.LogConf
+	LogField = logx.LogField
+)
+
+// AddGlobalFields adds global fields.
+func AddGlobalFields(fields ...LogField) {
+	logx.AddGlobalFields(fields...)
+}
 
 // Alert alerts v in alert level, and the message is written to error log.
-func Alert(ctx context.Context, v string) {
+func Alert(_ context.Context, v string) {
 	logx.Alert(v)
 }
 
 // Close closes the logging.
 func Close() error {
 	return logx.Close()
-}
-
-// Disable disables the logging.
-func Disable() {
-	logx.Disable()
-}
-
-// DisableStat disables the stat logs.
-func DisableStat() {
-	logx.DisableStat()
 }
 
 // Error writes v into error log.
@@ -46,7 +44,7 @@ func Errorv(ctx context.Context, v interface{}) {
 }
 
 // Errorw writes msg along with fields into error log.
-func Errorw(ctx context.Context, msg string, fields ...logx.LogField) {
+func Errorw(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Errorw(msg, fields...)
 }
 
@@ -94,7 +92,7 @@ func SetLevel(level uint32) {
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
 // the same logic for SetUp
-func SetUp(c logx.LogConf) error {
+func SetUp(c LogConf) error {
 	return logx.SetUp(c)
 }
 
@@ -118,6 +116,7 @@ func Sloww(ctx context.Context, msg string, fields ...LogField) {
 	getLogger(ctx).Sloww(msg, fields...)
 }
 
+// getLogger returns the logx.Logger with the given ctx and correct caller.
 func getLogger(ctx context.Context) logx.Logger {
 	return logx.WithContext(ctx).WithCallerSkip(1)
 }
