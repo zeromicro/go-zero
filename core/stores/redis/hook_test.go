@@ -21,6 +21,7 @@ func TestHookProcessCase1(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	writer := log.Writer()
 	var buf strings.Builder
@@ -44,6 +45,7 @@ func TestHookProcessCase2(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	w, restore := injectLog()
 	defer restore()
@@ -108,6 +110,7 @@ func TestHookProcessPipelineCase2(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	w, restore := injectLog()
 	defer restore()

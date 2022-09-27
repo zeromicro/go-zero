@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -171,16 +170,16 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
 		wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 	if duration > slowThreshold.Load() {
-		logger.Slowf("[HTTP] %s - %s - %s %s - %s - slowcall(%s)",
+		logger.Slowf("[HTTP] %s - %s %s - %s - %s - slowcall(%s)",
 			wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
-			fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)))
+			timex.ReprOfDuration(duration))
 	}
 
 	ok := isOkResponse(code)
 	if !ok {
 		fullReq := dumpRequest(r)
 		limitReader := io.LimitReader(strings.NewReader(fullReq), limitBodyBytes)
-		body, err := ioutil.ReadAll(limitReader)
+		body, err := io.ReadAll(limitReader)
 		if err != nil {
 			buf.WriteString(fmt.Sprintf("\n%s", fullReq))
 		} else {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command"
 )
@@ -77,6 +78,7 @@ func init() {
 	pgDatasourceCmd.Flags().StringVarP(&command.VarStringDir, "dir", "d", "", "The target dir")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringStyle, "style", "", "The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
 	pgDatasourceCmd.Flags().BoolVar(&command.VarBoolIdea, "idea", false, "For idea plugin [optional]")
+	pgDatasourceCmd.Flags().BoolVar(&command.VarBoolStrict, "strict", false, "Generate model in strict mode")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
@@ -89,6 +91,9 @@ func init() {
 	mongoCmd.Flags().StringVar(&mongo.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	mongoCmd.Flags().StringVar(&mongo.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
 	mongoCmd.Flags().StringVar(&mongo.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+
+	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict", false, "Generate model in strict mode")
+	mysqlCmd.PersistentFlags().StringSliceVarP(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"}, "Ignore columns while creating or updating rows")
 
 	mysqlCmd.AddCommand(datasourceCmd)
 	mysqlCmd.AddCommand(ddlCmd)

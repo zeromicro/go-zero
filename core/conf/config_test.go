@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -146,12 +145,12 @@ func TestConfigJsonEnv(t *testing.T) {
 }
 
 func createTempFile(ext, text string) (string, error) {
-	tmpfile, err := ioutil.TempFile(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
+	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
 		return "", err
 	}
 
-	if err := ioutil.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err := os.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return "", err
 	}
 

@@ -63,7 +63,7 @@ func cleanupMapValue(v interface{}) interface{} {
 	}
 }
 
-func unmarshal(unmarshaler *Unmarshaler, o interface{}, v interface{}) error {
+func unmarshal(unmarshaler *Unmarshaler, o, v interface{}) error {
 	if m, ok := o.(map[string]interface{}); ok {
 		return unmarshaler.Unmarshal(m, v)
 	}

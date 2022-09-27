@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -18,13 +17,14 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal/cors"
 	"github.com/zeromicro/go-zero/rest/router"
 )
 
 func TestNewServer(t *testing.T) {
 	writer := logx.Reset()
 	defer logx.SetWriter(writer)
-	logx.SetWriter(logx.NewWriter(ioutil.Discard))
+	logx.SetWriter(logx.NewWriter(io.Discard))
 
 	const configYaml = `
 Name: foo
@@ -514,4 +514,24 @@ func TestServer_WithChain(t *testing.T) {
 	assert.Nil(t, err)
 	rt.ServeHTTP(httptest.NewRecorder(), req)
 	assert.Equal(t, int32(5), atomic.LoadInt32(&called))
+}
+
+func TestServer_WithCors(t *testing.T) {
+	var called int32
+	middleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			atomic.AddInt32(&called, 1)
+			next.ServeHTTP(w, r)
+		})
+	}
+	r := router.NewRouter()
+	assert.Nil(t, r.Handle(http.MethodOptions, "/", middleware(http.NotFoundHandler())))
+
+	cr := &corsRouter{
+		Router:     r,
+		middleware: cors.Middleware(nil, "*"),
+	}
+	req := httptest.NewRequest(http.MethodOptions, "/", nil)
+	cr.ServeHTTP(httptest.NewRecorder(), req)
+	assert.Equal(t, int32(0), atomic.LoadInt32(&called))
 }

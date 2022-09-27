@@ -53,3 +53,16 @@ func TestNewRequestParserWithForm(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
 }
+
+func TestNewRequestParserWithBadForm(t *testing.T) {
+	req := httptest.NewRequest("GET", "/val?a%1=b", nil)
+	parser, err := NewRequestParser(req, nil)
+	assert.NotNil(t, err)
+	assert.Nil(t, parser)
+}
+
+func TestRequestParser_buildJsonRequestParser(t *testing.T) {
+	parser, err := buildJsonRequestParser(map[string]interface{}{"a": make(chan int)}, nil)
+	assert.NotNil(t, err)
+	assert.Nil(t, parser)
+}

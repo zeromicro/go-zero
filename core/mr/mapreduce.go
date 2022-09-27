@@ -212,6 +212,8 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		cancel(context.DeadlineExceeded)
 		return nil, context.DeadlineExceeded
 	case v := <-panicChan.channel:
+		// drain output here, otherwise for loop panic in defer
+		drain(output)
 		panic(v)
 	case v, ok := <-output:
 		if err := retErr.Load(); err != nil {

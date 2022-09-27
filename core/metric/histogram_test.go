@@ -21,6 +21,7 @@ func TestNewHistogramVec(t *testing.T) {
 }
 
 func TestHistogramObserve(t *testing.T) {
+	startAgent()
 	histogramVec := NewHistogramVec(&HistogramVecOpts{
 		Name:    "counts",
 		Help:    "rpc server requests duration(ms).",

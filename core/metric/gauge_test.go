@@ -21,6 +21,7 @@ func TestNewGaugeVec(t *testing.T) {
 }
 
 func TestGaugeInc(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "rpc_client2",
 		Subsystem: "requests",
@@ -37,6 +38,7 @@ func TestGaugeInc(t *testing.T) {
 }
 
 func TestGaugeAdd(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "rpc_client",
 		Subsystem: "request",
@@ -53,6 +55,7 @@ func TestGaugeAdd(t *testing.T) {
 }
 
 func TestGaugeSet(t *testing.T) {
+	startAgent()
 	gaugeVec := NewGaugeVec(&GaugeVecOpts{
 		Namespace: "http_client",
 		Subsystem: "request",

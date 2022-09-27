@@ -43,7 +43,7 @@ var (
 
 	goCmd = &cobra.Command{
 		Use:   "go",
-		Short: "Generate go files for provided api in yaml file",
+		Short: "Generate go files for provided api in api file",
 		RunE:  gogen.GoCommand,
 	}
 
@@ -64,9 +64,10 @@ var (
 	}
 
 	javaCmd = &cobra.Command{
-		Use:   "java",
-		Short: "Generate java files for provided api in api file",
-		RunE:  javagen.JavaCommand,
+		Use:    "java",
+		Short:  "Generate java files for provided api in api file",
+		Hidden: true,
+		RunE:   javagen.JavaCommand,
 	}
 
 	ktCmd = &cobra.Command{
