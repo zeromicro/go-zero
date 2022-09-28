@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -63,4 +65,40 @@ func TestWithFieldsAppend(t *testing.T) {
 		Field("c", 3),
 		Field("d", 4),
 	}, fields)
+}
+
+func BenchmarkAtomicValue(b *testing.B) {
+	b.ReportAllocs()
+
+	var container atomic.Value
+	vals := []LogField{
+		Field("a", "b"),
+		Field("c", "d"),
+		Field("e", "f"),
+	}
+	container.Store(&vals)
+
+	for i := 0; i < b.N; i++ {
+		val := container.Load()
+		if val != nil {
+			_ = *val.(*[]LogField)
+		}
+	}
+}
+
+func BenchmarkRWMutex(b *testing.B) {
+	b.ReportAllocs()
+
+	var lock sync.RWMutex
+	vals := []LogField{
+		Field("a", "b"),
+		Field("c", "d"),
+		Field("e", "f"),
+	}
+
+	for i := 0; i < b.N; i++ {
+		lock.RLock()
+		_ = vals
+		lock.RUnlock()
+	}
 }
