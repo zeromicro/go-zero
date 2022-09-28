@@ -107,7 +107,7 @@ func associatedTypes(tp spec.DefineStruct, tps *[]spec.Type) {
 }
 
 // buildTypes gen types to string
-func buildTypes(types []spec.Type, all []spec.Type) (string, error) {
+func buildTypes(types, all []spec.Type) (string, error) {
 	var builder strings.Builder
 	first := true
 	for _, tp := range types {

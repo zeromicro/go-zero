@@ -170,9 +170,9 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	buf.WriteString(fmt.Sprintf("[HTTP] %s - %s %s - %s - %s",
 		wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent()))
 	if duration > slowThreshold.Load() {
-		logger.Slowf("[HTTP] %s - %s - %s %s - %s - slowcall(%s)",
+		logger.Slowf("[HTTP] %s - %s %s - %s - %s - slowcall(%s)",
 			wrapStatusCode(code), wrapMethod(r.Method), r.RequestURI, httpx.GetRemoteAddr(r), r.UserAgent(),
-			fmt.Sprintf("slowcall(%s)", timex.ReprOfDuration(duration)))
+			timex.ReprOfDuration(duration))
 	}
 
 	ok := isOkResponse(code)
