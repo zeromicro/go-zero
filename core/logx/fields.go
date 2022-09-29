@@ -8,8 +8,6 @@ import (
 
 var (
 	fieldsContextKey contextKey
-	// we store *[]LogField as the value, because []LogField is not comparable,
-	// we need to use CompareAndSwap to compare the stored value.
 	globalFields     atomic.Value
 	globalFieldsLock sync.Mutex
 )
