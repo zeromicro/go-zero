@@ -467,6 +467,39 @@ func TestUnmarshalIntSliceFromString(t *testing.T) {
 	ast.Equal(2, v.Values[1])
 }
 
+func TestUnmarshalStringMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":"ascend","emptyStr":""}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(2, len(v.Sort))
+	ast.Equal("ascend", v.Sort["value"])
+	ast.Equal("", v.Sort["emptyStr"])
+}
+
+func TestUnmarshalStringSliceMapFromString(t *testing.T) {
+	var v struct {
+		Filter map[string][]string `key:"filter"`
+	}
+	m := map[string]interface{}{
+		"filter": `{"assignType":null,"status":["process","comment"],"rate":[]}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Filter))
+	ast.Equal([]string(nil), v.Filter["assignType"])
+	ast.Equal(2, len(v.Filter["status"]))
+	ast.Equal("process", v.Filter["status"][0])
+	ast.Equal("comment", v.Filter["status"][1])
+	ast.Equal(0, len(v.Filter["rate"]))
+}
+
 func TestUnmarshalStruct(t *testing.T) {
 	type address struct {
 		City          string `key:"city"`
