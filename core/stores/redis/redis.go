@@ -267,6 +267,31 @@ func (s *Redis) BlpopExCtx(ctx context.Context, node RedisNode, key string) (str
 	return vals[1], true, nil
 }
 
+// BlpopWithTimeout uses passed in redis connection to execute blpop command.
+// Control blocking query timeout
+func (s *Redis) BlpopWithTimeout(node RedisNode, timeout time.Duration, key string) (string, error) {
+	return s.BlpopWithTimeoutCtx(context.Background(), node, timeout, key)
+}
+
+// BlpopWithTimeoutCtx uses passed in redis connection to execute blpop command.
+// Control blocking query timeout
+func (s *Redis) BlpopWithTimeoutCtx(ctx context.Context, node RedisNode, timeout time.Duration, key string) (string, error) {
+	if node == nil {
+		return "", ErrNilNode
+	}
+
+	vals, err := node.BLPop(ctx, timeout, key).Result()
+	if err != nil {
+		return "", err
+	}
+
+	if len(vals) < 2 {
+		return "", fmt.Errorf("no value on key: %s", key)
+	}
+
+	return vals[1], nil
+}
+
 // Decr is the implementation of redis decr command.
 func (s *Redis) Decr(key string) (int64, error) {
 	return s.DecrCtx(context.Background(), key)
