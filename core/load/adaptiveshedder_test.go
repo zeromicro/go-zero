@@ -136,7 +136,7 @@ func TestAdaptiveShedderShouldDrop(t *testing.T) {
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
 		windows:         buckets,
-		dropTime:        syncx.NewAtomicDuration(),
+		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.NewAtomicBool(),
 	}
 	// cpu >=  800, inflight < maxPass
@@ -190,11 +190,11 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 		passCounter:     passCounter,
 		rtCounter:       rtCounter,
 		windows:         buckets,
-		dropTime:        syncx.NewAtomicDuration(),
+		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.ForAtomicBool(true),
 	}
 	assert.False(t, shedder.stillHot())
-	shedder.dropTime.Set(-coolOffDuration * 2)
+	shedder.overloadTime.Set(-coolOffDuration * 2)
 	assert.False(t, shedder.stillHot())
 }
 
