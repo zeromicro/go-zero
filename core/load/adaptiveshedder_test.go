@@ -13,6 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/core/mathx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/syncx"
+	"github.com/zeromicro/go-zero/core/timex"
 )
 
 const (
@@ -196,6 +197,9 @@ func TestAdaptiveShedderStillHot(t *testing.T) {
 	assert.False(t, shedder.stillHot())
 	shedder.overloadTime.Set(-coolOffDuration * 2)
 	assert.False(t, shedder.stillHot())
+	shedder.droppedRecently.Set(true)
+	shedder.overloadTime.Set(timex.Now())
+	assert.True(t, shedder.stillHot())
 }
 
 func BenchmarkAdaptiveShedder_Allow(b *testing.B) {

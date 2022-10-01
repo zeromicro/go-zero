@@ -22,7 +22,7 @@ const (
 	defaultMinRt        = float64(time.Second / time.Millisecond)
 	// moving average hyperparameter beta for calculating requests on the fly
 	flyingBeta      = 0.9
-	coolOffDuration = time.Second * 10
+	coolOffDuration = time.Second
 )
 
 var (
@@ -89,10 +89,10 @@ func DisableLog() {
 
 // NewAdaptiveShedder returns an adaptive shedder.
 // opts can be used to customize the Shedder.
-func NewAdaptiveShedder(opts ...ShedderOption) *adaptiveShedder {
-	// if !enabled.True() {
-	// 	return newNopShedder()
-	// }
+func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
+	if !enabled.True() {
+		return newNopShedder()
+	}
 
 	options := shedderOptions{
 		window:       defaultWindow,
@@ -113,10 +113,6 @@ func NewAdaptiveShedder(opts ...ShedderOption) *adaptiveShedder {
 		rtCounter: collection.NewRollingWindow(options.buckets, bucketDuration,
 			collection.IgnoreCurrentBucket()),
 	}
-}
-
-func (as *adaptiveShedder) Set(t int64) {
-	as.cpuThreshold = t
 }
 
 // Allow implements Shedder.Allow.
@@ -154,7 +150,6 @@ func (as *adaptiveShedder) highThru() bool {
 	avgFlying := as.avgFlying
 	as.avgFlyingLock.Unlock()
 	maxFlight := as.maxFlight()
-	// fmt.Printf("avg: %.2f, fly: %d, max: %d\n", avgFlying, as.flying, maxFlight)
 	return int64(avgFlying) > maxFlight && atomic.LoadInt64(&as.flying) > maxFlight
 }
 
