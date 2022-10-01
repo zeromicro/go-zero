@@ -226,20 +226,7 @@ func (s *Redis) Blpop(node RedisNode, key string) (string, error) {
 // BlpopCtx uses passed in redis connection to execute blocking queries.
 // Doesn't benefit from pooling redis connections of blocking queries
 func (s *Redis) BlpopCtx(ctx context.Context, node RedisNode, key string) (string, error) {
-	if node == nil {
-		return "", ErrNilNode
-	}
-
-	vals, err := node.BLPop(ctx, blockingQueryTimeout, key).Result()
-	if err != nil {
-		return "", err
-	}
-
-	if len(vals) < 2 {
-		return "", fmt.Errorf("no value on key: %s", key)
-	}
-
-	return vals[1], nil
+	return s.BlpopWithTimeoutCtx(ctx, node, blockingQueryTimeout, key)
 }
 
 // BlpopEx uses passed in redis connection to execute blpop command.
@@ -275,7 +262,8 @@ func (s *Redis) BlpopWithTimeout(node RedisNode, timeout time.Duration, key stri
 
 // BlpopWithTimeoutCtx uses passed in redis connection to execute blpop command.
 // Control blocking query timeout
-func (s *Redis) BlpopWithTimeoutCtx(ctx context.Context, node RedisNode, timeout time.Duration, key string) (string, error) {
+func (s *Redis) BlpopWithTimeoutCtx(ctx context.Context, node RedisNode, timeout time.Duration,
+	key string) (string, error) {
 	if node == nil {
 		return "", ErrNilNode
 	}
