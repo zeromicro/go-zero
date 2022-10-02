@@ -297,7 +297,8 @@ func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) bool {
 	var rch clientv3.WatchChan
 	if rev != 0 {
-		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix(), clientv3.WithRev(rev+1))
+		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix(),
+			clientv3.WithRev(rev+1))
 	} else {
 		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
 	}
@@ -342,6 +343,7 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 		DialKeepAliveTime:    dialKeepAliveTime,
 		DialKeepAliveTimeout: DialTimeout,
 		RejectOldCluster:     true,
+		PermitWithoutStream:  true,
 	}
 	if account, ok := GetAccount(endpoints); ok {
 		cfg.Username = account.User
