@@ -18,5 +18,3 @@ require (
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 )
-
-replace github.com/zeromicro/go-zero => github.com/a0v0/go-zero v1.4.1-0.20221002170449-fd3efd63680b
