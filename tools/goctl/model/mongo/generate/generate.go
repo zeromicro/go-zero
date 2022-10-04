@@ -97,7 +97,7 @@ func generateCustomModel(ctx *Context) error {
 
 func generateTypes(ctx *Context) error {
 	for _, t := range ctx.Types {
-		fn, err := format.FileNamingFormat(ctx.Cfg.NamingFormat, t+"types")
+		fn, err := format.FileNamingFormat(ctx.Cfg.NamingFormat, t+"_types")
 		if err != nil {
 			return err
 		}
