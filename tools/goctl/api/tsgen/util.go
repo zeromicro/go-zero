@@ -19,7 +19,7 @@ const (
 
 func writeProperty(writer io.Writer, member spec.Member, indent int) error {
 	writeIndent(writer, indent)
-	ty, err := goTypeToTs(member.Type, false)
+	ty, err := genTsType(member)
 	if err != nil {
 		return err
 	}
@@ -50,6 +50,19 @@ func writeIndent(writer io.Writer, indent int) {
 	for i := 0; i < indent; i++ {
 		fmt.Fprint(writer, "\t")
 	}
+}
+
+func genTsType(m spec.Member) (ty string, err error) {
+	ty, err = goTypeToTs(m.Type, false)
+	if enums := m.GetEnumOptions(); enums != nil {
+		if ty == "string" {
+			for i := range enums {
+				enums[i] = "'" + enums[i] + "'"
+			}
+		}
+		ty = strings.Join(enums, " | ")
+	}
+	return
 }
 
 func goTypeToTs(tp spec.Type, fromPacket bool) (string, error) {
