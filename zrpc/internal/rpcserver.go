@@ -25,10 +25,6 @@ type (
 	}
 )
 
-func init() {
-	InitLogger()
-}
-
 // NewRpcServer returns a Server.
 func NewRpcServer(address string, opts ...ServerOption) Server {
 	var options rpcServerOptions
