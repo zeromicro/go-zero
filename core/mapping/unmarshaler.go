@@ -205,6 +205,8 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 		return u.processFieldStruct(field, value, mapValue, fullName)
 	case valueKind == reflect.Map && typeKind == reflect.Map:
 		return u.fillMap(field, value, mapValue)
+	case valueKind == reflect.String && typeKind == reflect.Map:
+		return u.fillMapFromString(value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
 		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
@@ -439,6 +441,27 @@ func (u *Unmarshaler) fillMap(field reflect.StructField, value reflect.Value, ma
 	}
 
 	value.Set(targetValue)
+	return nil
+}
+
+func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue interface{}) error {
+	if !value.CanSet() {
+		return errValueNotSettable
+	}
+
+	switch v := mapValue.(type) {
+	case fmt.Stringer:
+		if err := jsonx.UnmarshalFromString(v.String(), value.Addr().Interface()); err != nil {
+			return err
+		}
+	case string:
+		if err := jsonx.UnmarshalFromString(v, value.Addr().Interface()); err != nil {
+			return err
+		}
+	default:
+		return errUnsupportedType
+	}
+
 	return nil
 }
 
