@@ -148,10 +148,10 @@ func getLogicName(route spec.Route) string {
 }
 
 func getHandlerDoc(route spec.Route) string {
-	comment := route.HandlerDoc
+	doc := strings.Join(e.HandlerDoc,"\n")
 	if len(comment) == 0 {
 		return ""
 	}
 
-	return fmt.Sprintf("// %s", comment)
+	return doc
 }
