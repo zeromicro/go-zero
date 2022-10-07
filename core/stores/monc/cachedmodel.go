@@ -57,6 +57,16 @@ func MustNewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cach
 	return model
 }
 
+// MustNewNodeModelWithClientOptions returns a Model with a cache node and client options, exists on errors.
+func MustNewNodeModelWithClientOptions(uri, db, collection string, rds *redis.Redis, cOpts *mopt.ClientOptions, opts ...cache.Option) *Model {
+	model, err := NewNodeModelWithClientOptions(uri, db, collection, rds, cOpts, opts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return model
+}
+
 // NewModel returns a Model with a cache cluster.
 func NewModel(uri, db, collection string, conf cache.CacheConf, opts ...cache.Option) (*Model, error) {
 	c := cache.New(conf, singleFlight, stats, mongo.ErrNoDocuments, opts...)
@@ -75,14 +85,20 @@ func NewModelWithCache(uri, db, collection string, c cache.Cache) (*Model, error
 }
 
 // NewModelWithCacheAndClientOption returns a Model with a custom cache and client option.
-func NewModelWithCacheAndClientOption(uri, db, collection string, clientOpts *mopt.ClientOptions, c cache.Cache) (*Model, error) {
-	return newModelWithClientOption(uri, db, collection, clientOpts, c)
+func NewModelWithCacheAndClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, c cache.Cache) (*Model, error) {
+	return newModelWithClientOption(uri, db, collection, cOpts, c)
 }
 
 // NewNodeModel returns a Model with a cache node.
 func NewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cache.Option) (*Model, error) {
 	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
 	return NewModelWithCache(uri, db, collection, c)
+}
+
+// NewNodeModelWithClientOptions returns a Model with a cache node and client options.
+func NewNodeModelWithClientOptions(uri, db, collection string, rds *redis.Redis, cOpts *mopt.ClientOptions, opts ...cache.Option) (*Model, error) {
+	c := cache.NewNode(rds, singleFlight, stats, mongo.ErrNoDocuments, opts...)
+	return NewModelWithCacheAndClientOption(uri, db, collection, cOpts, c)
 }
 
 // newModel returns a Model with the given cache.

@@ -46,7 +46,7 @@ func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 	return model
 }
 
-// MustNewModelWithClientOption returns a Model, exits on errors.
+// MustNewModelWithClientOption returns a Model with client options, exits on errors.
 func MustNewModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, opts ...Option) *Model {
 	model, err := NewModelWithClientOption(uri, db, collection, cOpts, opts...)
 	if err != nil {
@@ -69,7 +69,7 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	return newModel(name, cli, coll, brk, opts...), nil
 }
 
-// NewModelWithClientOption returns a Model with client option
+// NewModelWithClientOption returns a Model with client options
 func NewModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, opts ...Option) (*Model, error) {
 	cli, err := getClient(uri, cOpts)
 	if err != nil {
