@@ -114,7 +114,7 @@ func newModel(uri, db, collection string, c cache.Cache) (*Model, error) {
 	}, nil
 }
 
-// WithClientOption returns a Model with the given cache and ClientOption
+// newModelWithClientOption returns a Model with the given cache and client options
 func newModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, c cache.Cache) (*Model, error) {
 	model, err := mon.NewModelWithClientOption(uri, db, collection, cOpts)
 	if err != nil {
