@@ -37,6 +37,16 @@ func MustNewModel(uri, db, collection string, c cache.CacheConf, opts ...cache.O
 	return model
 }
 
+// MustNewModelWithClientOptions returns a Model with a cache cluster, exists on errors.
+func MustNewModelWithClientOptions(uri, db, collection string, c cache.CacheConf, clientOpts *mopt.ClientOptions, opts ...cache.Option) *Model {
+	model, err := NewModelWithClientOption(uri, db, collection, c, clientOpts, opts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return model
+}
+
 // MustNewNodeModel returns a Model with a cache node, exists on errors.
 func MustNewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cache.Option) *Model {
 	model, err := NewNodeModel(uri, db, collection, rds, opts...)
@@ -53,9 +63,20 @@ func NewModel(uri, db, collection string, conf cache.CacheConf, opts ...cache.Op
 	return NewModelWithCache(uri, db, collection, c)
 }
 
+// NewModelWithClientOption returns a Model with a cache cluster and client option.
+func NewModelWithClientOption(uri, db, collection string, conf cache.CacheConf, cOpts *mopt.ClientOptions, opts ...cache.Option) (*Model, error) {
+	c := cache.New(conf, singleFlight, stats, mongo.ErrNoDocuments, opts...)
+	return NewModelWithCacheAndClientOption(uri, db, collection, cOpts, c)
+}
+
 // NewModelWithCache returns a Model with a custom cache.
 func NewModelWithCache(uri, db, collection string, c cache.Cache) (*Model, error) {
 	return newModel(uri, db, collection, c)
+}
+
+// NewModelWithCacheAndClientOption returns a Model with a custom cache and client option.
+func NewModelWithCacheAndClientOption(uri, db, collection string, clientOpts *mopt.ClientOptions, c cache.Cache) (*Model, error) {
+	return newModelWithClientOption(uri, db, collection, clientOpts, c)
 }
 
 // NewNodeModel returns a Model with a cache node.
@@ -67,6 +88,19 @@ func NewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cache.Op
 // newModel returns a Model with the given cache.
 func newModel(uri, db, collection string, c cache.Cache) (*Model, error) {
 	model, err := mon.NewModel(uri, db, collection)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Model{
+		Model: model,
+		cache: c,
+	}, nil
+}
+
+// WithClientOption returns a Model with the given cache and ClientOption
+func newModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, c cache.Cache) (*Model, error) {
+	model, err := mon.NewModelWithClientOption(uri, db, collection, cOpts)
 	if err != nil {
 		return nil, err
 	}
