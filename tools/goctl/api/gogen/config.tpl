@@ -3,7 +3,7 @@ package config
 {{.authImport}}
 
 type Config struct {
-	rest.RestConf `yaml:",inline"`
+	rest.RestConf
 	{{.auth}}
 	{{.jwtTrans}}
 }

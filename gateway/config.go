@@ -11,8 +11,8 @@ type (
 	// GatewayConf is the configuration for gateway.
 	GatewayConf struct {
 		rest.RestConf
-		Upstreams []Upstream    `json:"upstreams" yaml:"Upstreams"`
-		Timeout   time.Duration `json:"timeout,default=5s" yaml:"Timeout"`
+		Upstreams []Upstream
+		Timeout   time.Duration `json:",default=5s"`
 	}
 
 	// RouteMapping is a mapping between a gateway route and an upstream rpc method.

@@ -26,12 +26,12 @@ const (
 
 // A ServiceConf is a service config.
 type ServiceConf struct {
-	Name       string            `json:"Name" yaml:"Name"`
-	Log        logx.LogConf      `json:"Log" yaml:"Log"`
-	Mode       string            `json:"Mode,default=pro,options=dev|test|rt|pre|pro" yaml:"Mode"`
-	MetricsUrl string            `json:"MetricsUrl,optional" yaml:"MetricsUrl"`
-	Prometheus prometheus.Config `json:"Prometheus,optional" yaml:"Prometheus"`
-	Telemetry  trace.Config      `json:"Telemetry,optional" yaml:"Telemetry"`
+	Name       string
+	Log        logx.LogConf
+	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro"`
+	MetricsUrl string            `json:",optional"`
+	Prometheus prometheus.Config `json:",optional"`
+	Telemetry  trace.Config      `json:",optional"`
 }
 
 // MustSetUp sets up the service, exits on error.

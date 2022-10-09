@@ -9,7 +9,7 @@ import (
 )
 
 // To make .json & .yaml consistent, we just use json as the tag key.
-const yamlTagKey = "yaml"
+const yamlTagKey = "json"
 
 var (
 	// ErrUnsupportedType is an error that indicates the config format is not supported.

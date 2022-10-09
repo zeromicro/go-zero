@@ -14,16 +14,16 @@ var (
 type (
 	// A RedisConf is a redis config.
 	RedisConf struct {
-		Host string `json:"Host" yaml:"Host"`
-		Type string `json:"Type,default=node,options=node|cluster" yaml:"Type"`
-		Pass string `json:"Pass,optional" yaml:"Pass"`
-		Tls  bool   `json:"Tls,optional" yaml:"Tls"`
+		Host string
+		Type string `json:",default=node,options=node|cluster"`
+		Pass string `json:",optional"`
+		Tls  bool   `json:",optional"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
 	RedisKeyConf struct {
-		RedisConf `yaml:",inline"`
-		Key       string `json:"key,optional" yaml:"key"`
+		RedisConf
+		Key string `json:",optional"`
 	}
 )
 

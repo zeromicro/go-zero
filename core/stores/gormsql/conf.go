@@ -10,17 +10,17 @@ import (
 )
 
 type GORMConf struct {
-	Type        string `json:"Type" yaml:"Type"`               // type of database: mysql, postgres
-	Path        string `json:"Path" yaml:"Path"`               // address
-	Port        int    `json:"Port" yaml:"Port"`               // port
-	Config      string `json:"Config" yaml:"Config"`           // extra config such as charset=utf8mb4&parseTime=True
-	Dbname      string `json:"DBName" yaml:"DBName"`           // database name
-	Username    string `json:"Username" yaml:"Username"`       // username
-	Password    string `json:"Password" yaml:"Password"`       // password
-	MaxIdleConn int    `json:"MaxIdleConn" yaml:"MaxIdleConn"` // the maximum number of connections in the idle connection pool
-	MaxOpenConn int    `json:"MaxOpenConn" yaml:"MaxOpenConn"` // the maximum number of open connections to the database
-	LogMode     string `json:"LogMode" yaml:"LogMode"`         // open gorm's global logger
-	LogZap      bool   `json:"LogZap" yaml:"LogZap"`
+	Type        string `json:"Type"`        // type of database: mysql, postgres
+	Path        string `json:"Path"`        // address
+	Port        int    `json:"Port"`        // port
+	Config      string `json:"Config"`      // extra config such as charset=utf8mb4&parseTime=True
+	Dbname      string `json:"DBName"`      // database name
+	Username    string `json:"Username"`    // username
+	Password    string `json:"Password"`    // password
+	MaxIdleConn int    `json:"MaxIdleConn"` // the maximum number of connections in the idle connection pool
+	MaxOpenConn int    `json:"MaxOpenConn"` // the maximum number of open connections to the database
+	LogMode     string `json:"LogMode"`     // open gorm's global logger
+	LogZap      bool   `json:"LogZap"`
 }
 
 func (g GORMConf) MysqlDSN() string {

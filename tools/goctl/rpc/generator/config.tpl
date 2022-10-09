@@ -6,6 +6,6 @@ import (
 )
 
 type Config struct {
-	zrpc.RpcServerConf `yaml:",inline"`
+	zrpc.RpcServerConf
 }
 

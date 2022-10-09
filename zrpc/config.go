@@ -10,26 +10,28 @@ import (
 type (
 	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
-		service.ServiceConf `yaml:",inline"`
-		ListenOn            string             `json:"ListenOn" yaml:"ListenOn"`
-		Etcd                discov.EtcdConf    `json:"Etcd,optional" yaml:"Etcd"`
-		Auth                bool               `json:"Auth,optional" yaml:"Auth"`
-		Redis               redis.RedisKeyConf `json:"Redis,optional" yaml:"Redis"`
-		StrictControl       bool               `json:"StrictControl,optional" yaml:"StrictControl"`
-		Timeout             int64              `json:"Timeout,default=2000" yaml:"Timeout"` // setting 0 means no timeout
-		CpuThreshold        int64              `json:"CpuThreshold,default=900,range=[0:1000]" yaml:"CpuThreshold"`
-		Health              bool               `json:"Health,default=true" yaml:"Health"` // grpc health check switch
+		service.ServiceConf
+		ListenOn      string
+		Etcd          discov.EtcdConf    `json:",optional"`
+		Auth          bool               `json:",optional"`
+		Redis         redis.RedisKeyConf `json:",optional"`
+		StrictControl bool               `json:",optional"`
+		// setting 0 means no timeout
+		Timeout      int64 `json:",default=2000"`
+		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		// grpc health check switch
+		Health bool `json:",default=true"`
 	}
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
-		Etcd      discov.EtcdConf `json:"Etcd,optional" yaml:"Etcd"`
-		Endpoints []string        `json:"Endpoints,optional" yaml:"Endpoints"`
-		Target    string          `json:"Target,optional" yaml:"Target"`
-		App       string          `json:"App,optional" yaml:"App"`
-		Token     string          `json:"Token,optional" yaml:"Token"`
-		NonBlock  bool            `json:"NonBlock,optional" yaml:"NonBlock"`
-		Timeout   int64           `json:"Timeout,default=2000" yaml:"Timeout"`
+		Etcd      discov.EtcdConf `json:",optional"`
+		Endpoints []string        `json:",optional"`
+		Target    string          `json:",optional"`
+		App       string          `json:",optional"`
+		Token     string          `json:",optional"`
+		NonBlock  bool            `json:",optional"`
+		Timeout   int64           `json:",default=2000"`
 	}
 )
 
