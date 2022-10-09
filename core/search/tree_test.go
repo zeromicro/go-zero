@@ -157,6 +157,47 @@ func TestAddDuplicate(t *testing.T) {
 	assert.Error(t, errDupItem, err)
 }
 
+func checkResult(t *testing.T, actual Result, item interface{}, params map[string]string) {
+	assert.Equal(t, item, actual.Item)
+	assert.Equal(t, params, actual.Params)
+}
+
+func TestCatchAll(t *testing.T) {
+	tree := NewTree()
+	err := tree.Add("/a/*c", 2)
+	assert.Nil(t, err)
+
+	r, ok := tree.Search("/a/b/c")
+	assert.True(t, ok)
+	checkResult(t, r, 2, map[string]string{"c": "b/c"})
+
+	r, ok = tree.Search("/a/bc")
+	assert.True(t, ok)
+	checkResult(t, r, 2, map[string]string{"c": "bc"})
+
+}
+
+func TestAddSlashAfterAsterisk(t *testing.T) {
+	tree := NewTree()
+	err := tree.Add("/a/*c/", 2)
+	assert.Error(t, err, errSlashAfterAsterisk)
+}
+
+func TestAddConflict(t *testing.T) {
+	tree := NewTree()
+	err := tree.Add("/a/*c", 2)
+	assert.Nil(t, err)
+
+	err = tree.Add("/a/*d", 2)
+	assert.Error(t, err, errConflictItem)
+
+	err = tree.Add("/a/:b", 2)
+	assert.Error(t, err, errConflictItem)
+
+	err = tree.Add("/a/b", 2)
+	assert.Error(t, err, errConflictItem)
+}
+
 func TestPlain(t *testing.T) {
 	tree := NewTree()
 	err := tree.Add("/a/b", 1)
