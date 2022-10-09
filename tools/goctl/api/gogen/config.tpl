@@ -7,7 +7,3 @@ type Config struct {
 	{{.auth}}
 	{{.jwtTrans}}
 }
-
-type ConsulConfig struct {
-	Consul consul.Conf
-}

@@ -9,7 +9,3 @@ type Config struct {
 	zrpc.RpcServerConf `yaml:",inline"`
 }
 
-type ConsulConfig struct {
-	Consul consul.Conf
-}
-
