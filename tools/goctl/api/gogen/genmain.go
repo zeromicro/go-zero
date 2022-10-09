@@ -29,8 +29,10 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 
 	// system info for swagger
 	systemInfo := "//  System Name\n//\n//  Description ...\n//\n//  Schemes: http, https\n" +
-		"//  Host: localhost\n//  BasePath: /api\n//  Version: 0.0.1\n//  Contact: xxx@gmail.com\n" +
-		"//\n//  Consumes:\n//    - application/json\n//\n//  Produces:\n//    - application/json\n//\n// swagger:meta"
+		"//  Host: localhost:9100\n//  BasePath: /\n//  Version: 0.0.1\n//  Contact: xxx@gmail.com\n" +
+		"//  SecurityDefinitions:\n//    Token:\n//      type: apiKey\n//      name: Authorization\n//" +
+		"      in: header\n//  Security:\n//      - Token: []\n" +
+		"//  Consumes:\n//    - application/json\n//\n//  Produces:\n//    - application/json\n//\n// swagger:meta"
 
 	return genFile(fileGenConfig{
 		dir:             dir,
