@@ -10,7 +10,7 @@ import (
 )
 
 type GORMConf struct {
-	Type        string `json:"Type" yaml:"Type"`               // type of database: mysql, postpres
+	Type        string `json:"Type" yaml:"Type"`               // type of database: mysql, postgres
 	Path        string `json:"Path" yaml:"Path"`               // address
 	Port        int    `json:"Port" yaml:"Port"`               // port
 	Config      string `json:"Config" yaml:"Config"`           // extra config such as charset=utf8mb4&parseTime=True

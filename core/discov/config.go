@@ -11,14 +11,14 @@ var (
 
 // EtcdConf is the config item with the given key on etcd.
 type EtcdConf struct {
-	Hosts              []string `json:"hosts" yaml:"Hosts"`
-	Key                string   `json:"key" yaml:"Key"`
-	User               string   `json:"user,optional" yaml:"User"`
-	Pass               string   `json:"pass,optional" yaml:"Pass"`
-	CertFile           string   `json:"certFile,optional" yaml:"CertFile"`
-	CertKeyFile        string   `json:"certKeyFile,optional=CertFile" yaml:"CertKeyFile"`
+	Hosts              []string `json:"Hosts" yaml:"Hosts"`
+	Key                string   `json:"Key" yaml:"Key"`
+	User               string   `json:"User,optional" yaml:"User"`
+	Pass               string   `json:"Pass,optional" yaml:"Pass"`
+	CertFile           string   `json:"CertFile,optional" yaml:"CertFile"`
+	CertKeyFile        string   `json:"CertKeyFile,optional=CertFile" yaml:"CertKeyFile"`
 	CACertFile         string   `json:"CACertFile,optional=CertFile" yaml:"CACertFile"`
-	InsecureSkipVerify bool     `json:"insecureSkipVerify,optional" yaml:"InsecureSkipVerify"`
+	InsecureSkipVerify bool     `json:"InsecureSkipVerify,optional" yaml:"InsecureSkipVerify"`
 }
 
 // HasAccount returns if account provided.

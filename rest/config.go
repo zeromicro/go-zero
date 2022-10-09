@@ -9,15 +9,21 @@ import (
 type (
 	// A PrivateKeyConf is a private key config.
 	PrivateKeyConf struct {
-		Fingerprint string
-		KeyFile     string
+		Fingerprint string `json:"Fingerprint,omitempty" yaml:"Fingerprint"`
+		KeyFile     string `json:"KeyFile,omitempty" yaml:"KeyFile"`
 	}
 
 	// A SignatureConf is a signature config.
 	SignatureConf struct {
-		Strict      bool          `json:",default=false"`
-		Expiry      time.Duration `json:",default=1h"`
-		PrivateKeys []PrivateKeyConf
+		Strict      bool             `json:"Strict,default=false" yaml:"Strict"`
+		Expiry      time.Duration    `json:"Expiry,default=1h" yaml:"Expiry"`
+		PrivateKeys []PrivateKeyConf `yaml:",inline"`
+	}
+
+	// AuthConf is a JWT config
+	AuthConf struct {
+		AccessSecret string `json:"AccessSecret" yaml:"AccessSecret"`
+		AccessExpire int64  `json:"AccessExpire" yaml:"AccessExpire"`
 	}
 
 	// A RestConf is a http service config.
@@ -29,15 +35,15 @@ type (
 	// if with the name Conf, there will be two Conf inside Config.
 	RestConf struct {
 		service.ServiceConf `yaml:",inline"`
-		Host                string        `json:"host,default=0.0.0.0" yaml:"Host"`
-		Port                int           `json:"port" yaml:"Port"`
-		CertFile            string        `json:"certFile,optional" yaml:"CertFile"`
+		Host                string        `json:"Host,default=0.0.0.0" yaml:"Host"`
+		Port                int           `json:"Port" yaml:"Port"`
+		CertFile            string        `json:"CertFile,optional" yaml:"CertFile"`
 		KeyFile             string        `json:"KeyFile,optional" yaml:"KeyFile"`
-		Verbose             bool          `json:"verbose,optional" yaml:"Verbose"`
-		MaxConns            int           `json:"maxConns,default=10000" yaml:"MaxConns"`
-		MaxBytes            int64         `json:"maxBytes,default=1048576" yaml:"MaxBytes"`
-		Timeout             int64         `json:"timeout,default=3000" yaml:"Timeout"` // milliseconds
-		CpuThreshold        int64         `json:"cpuThreshold,default=900,range=[0:1000]" yaml:"CpuThreshold"`
-		Signature           SignatureConf `json:"signature,optional" yaml:"Signature"`
+		Verbose             bool          `json:"Verbose,optional" yaml:"Verbose"`
+		MaxConns            int           `json:"MaxConns,default=10000" yaml:"MaxConns"`
+		MaxBytes            int64         `json:"MaxBytes,default=1048576" yaml:"MaxBytes"`
+		Timeout             int64         `json:"Timeout,default=3000" yaml:"Timeout"` // milliseconds
+		CpuThreshold        int64         `json:"CpuThreshold,default=900,range=[0:1000]" yaml:"CpuThreshold"`
+		Signature           SignatureConf `json:"Signature,optional" yaml:"Signature"`
 	}
 )
