@@ -49,7 +49,7 @@ type Deployment struct {
 	ImagePullPolicy string
 }
 
-// DeploymentCommand is used to generate the kubernetes deployment yaml files.
+// deploymentCommand is used to generate the kubernetes deployment yaml files.
 func deploymentCommand(_ *cobra.Command, _ []string) error {
 	nodePort := varIntNodePort
 	home := varStringHome

@@ -8,7 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 )
 
-// Upgrade gets the latest goctl by
+// upgrade gets the latest goctl by
 // go install github.com/zeromicro/go-zero/tools/goctl@latest
 func upgrade(_ *cobra.Command, _ []string) error {
 	cmd := `GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
