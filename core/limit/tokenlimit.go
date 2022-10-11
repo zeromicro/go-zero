@@ -106,13 +106,6 @@ func (lim *TokenLimiter) AllowNCtx(ctx context.Context, now time.Time, n int) bo
 }
 
 func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) bool {
-	select {
-	case <-ctx.Done():
-		logx.Errorf("fail to use rate limiter: %s", ctx.Err())
-		return false
-	default:
-	}
-
 	if atomic.LoadUint32(&lim.redisAlive) == 0 {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
@@ -134,12 +127,10 @@ func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) boo
 	if err == redis.Nil {
 		return false
 	}
-
 	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 		logx.Errorf("fail to use rate limiter: %s", err)
 		return false
 	}
-
 	if err != nil {
 		logx.Errorf("fail to use rate limiter: %s, use in-process limiter for rescue", err)
 		lim.startMonitor()
