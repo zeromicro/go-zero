@@ -25,9 +25,9 @@ var (
 	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
 	durationType        = reflect.TypeOf(time.Duration(0))
-	cacheKeys           map[string][]string
+	cacheKeys           = make(map[string][]string)
 	cacheKeysLock       sync.Mutex
-	defaultCache        map[string]interface{}
+	defaultCache        = make(map[string]interface{})
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]interface{}{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
@@ -48,11 +48,6 @@ type (
 		canonicalKey func(key string) string
 	}
 )
-
-func init() {
-	cacheKeys = make(map[string][]string)
-	defaultCache = make(map[string]interface{})
-}
 
 // NewUnmarshaler returns a Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {

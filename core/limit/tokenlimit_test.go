@@ -1,6 +1,7 @@
 package limit
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -13,6 +14,30 @@ import (
 
 func init() {
 	logx.Disable()
+}
+
+func TestTokenLimit_WithCtx(t *testing.T) {
+	s, err := miniredis.Run()
+	assert.Nil(t, err)
+
+	const (
+		total = 100
+		rate  = 5
+		burst = 10
+	)
+	l := NewTokenLimiter(rate, burst, redis.New(s.Addr()), "tokenlimit")
+	defer s.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	ok := l.AllowCtx(ctx)
+	assert.True(t, ok)
+
+	cancel()
+	for i := 0; i < total; i++ {
+		ok := l.AllowCtx(ctx)
+		assert.False(t, ok)
+		assert.False(t, l.monitorStarted)
+	}
 }
 
 func TestTokenLimit_Rescue(t *testing.T) {
