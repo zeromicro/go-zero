@@ -16,7 +16,7 @@ func genNew(table Table, withCache, postgreSql bool) (string, error) {
 
 	t := fmt.Sprintf(`"%s"`, wrapWithRawString(table.Name.Source(), postgreSql))
 	if postgreSql {
-		t = "`" + fmt.Sprintf(`"%s"."%s"`, table.Db.Source(), table.Name.Source()) + "`"
+		t = "`" + fmt.Sprintf(`"%s"`, table.Name.Source()) + "`"
 	}
 
 	output, err := util.With("new").
