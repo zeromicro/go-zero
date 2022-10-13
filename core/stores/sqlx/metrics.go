@@ -8,7 +8,7 @@ var (
 	metricReqDur = metric.NewHistogramVec(&metric.HistogramVecOpts{
 		Namespace: namespace,
 		Subsystem: "requests",
-		Name:      "durations_ms",
+		Name:      "duration_ms",
 		Help:      "mysql client requests duration(ms).",
 		Labels:    []string{"command"},
 		Buckets:   []float64{5, 10, 25, 50, 100, 250, 500, 1000, 2500},
