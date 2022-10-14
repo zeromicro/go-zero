@@ -139,7 +139,6 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 				filled = true
 				maybeNewValue(field, value)
 				indirectValue = reflect.Indirect(value)
-
 			}
 			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
 				return err

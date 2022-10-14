@@ -238,7 +238,7 @@ func TestEngine_notFoundHandler(t *testing.T) {
 
 	client := ts.Client()
 	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
@@ -261,7 +261,7 @@ func TestEngine_notFoundHandlerNotNil(t *testing.T) {
 
 	client := ts.Client()
 	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
@@ -285,8 +285,8 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 	defer ts.Close()
 
 	client := ts.Client()
-	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+	err := func(_ context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
