@@ -361,7 +361,6 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
-
 }
 
 func writePlainValue(writer io.Writer, level string, val interface{}, fields ...string) {
