@@ -60,8 +60,8 @@ type TokenLimiter struct {
 	timestampKey   string
 	rescueLock     sync.Mutex
 	redisAlive     uint32
-	rescueLimiter  *xrate.Limiter
 	monitorStarted bool
+	rescueLimiter  *xrate.Limiter
 }
 
 // NewTokenLimiter returns a new TokenLimiter that allows events up to rate and permits
