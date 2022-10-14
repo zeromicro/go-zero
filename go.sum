@@ -495,8 +495,8 @@ go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.0 h1:eyJ6njZmH16h9dOKCi7
 go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.11.0/go.mod h1:FnDp7XemjN3oZ3xGunnfOUTVwd2XcvLbtRAuOSU3oc8=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.0 h1:j2RFV0Qdt38XQ2Jvi4WIsQ56w8T7eSirYbMw19VXRDg=
 go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.0/go.mod h1:pILgiTEtrqvZpoiuGdblDgS5dbIaTgDrkIuKfEFkt+A=
-go.opentelemetry.io/otel/exporters/zipkin v1.10.0 h1:HcPAFsFpEBKF+G5NIOA+gBsxifd3Ej+wb+KsdBLa15E=
-go.opentelemetry.io/otel/exporters/zipkin v1.10.0/go.mod h1:HdfvgwcOoCB0+zzrTHycW6btjK0zNpkz2oTGO815SCI=
+go.opentelemetry.io/otel/exporters/zipkin v1.11.0 h1:v/Abo5REOWrCj4zcEIUHFZtXpsCVjrwZj28iyX2rHXE=
+go.opentelemetry.io/otel/exporters/zipkin v1.11.0/go.mod h1:unWnsLCMYfINP8ue0aXVrB/GYHoXNn/lbTnupvLekGQ=
 go.opentelemetry.io/otel/sdk v1.10.0/go.mod h1:vO06iKzD5baltJz1zarxMCNHFpUlUiOy4s65ECtn6kE=
 go.opentelemetry.io/otel/sdk v1.11.0 h1:ZnKIL9V9Ztaq+ME43IUi/eo22mNsb6a7tGfzaOWB5fo=
 go.opentelemetry.io/otel/sdk v1.11.0/go.mod h1:REusa8RsyKaq0OlyangWXaw97t2VogoO4SSEeKkSTAk=
