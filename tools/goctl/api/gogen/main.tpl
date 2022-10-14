@@ -3,21 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
-	
-	"github.com/num30/config"
+
 	{{.importPackages}}
 )
 
+var configFile = flag.String("f", "etc/{{.serviceName}}.yaml", "the config file")
+
 func main() {
-	var c cfg.Config
+	flag.Parse()
 
-	// search for config file in the etc folder without caring for the file extension
-	// Prority: flags > env > config file
-	err := config.NewConfReader("config").WithSearchDirs("etc", ".").Read(&c)
-	if err != nil {
-		log.Fatalf("error reading config: %v", err)
-	}
-
+	var c config.Config
+	conf.MustLoad(*configFile, &c)
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()
