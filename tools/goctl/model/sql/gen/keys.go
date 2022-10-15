@@ -62,9 +62,10 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 
 	dbName, tableName := util.SafeString(db.Source()), util.SafeString(table.Source())
 	if len(dbName) > 0 {
-		varLeftJoin = append(varLeftJoin, "cache", dbName, tableName)
-		varRightJoin = append(varRightJoin, "cache", dbName, tableName)
-		keyLeftJoin = append(keyLeftJoin, dbName, tableName)
+		// for multiple schemas
+		varLeftJoin = append(varLeftJoin, "cache", tableName)
+		varRightJoin = append(varRightJoin, "cache", "%s", tableName)
+		keyLeftJoin = append(keyLeftJoin, tableName)
 	} else {
 		varLeftJoin = append(varLeftJoin, "cache", tableName)
 		varRightJoin = append(varRightJoin, "cache", tableName)
@@ -84,7 +85,7 @@ func genCacheKey(db, table stringx.String, in []*parser.Field) Key {
 	keyLeftJoin = append(keyLeftJoin, "key")
 
 	varLeft = util.SafeString(varLeftJoin.Camel().With("").Untitle())
-	varRight = fmt.Sprintf(`"%s"`, varRightJoin.Camel().Untitle().With(":").Source()+":")
+	varRight = fmt.Sprintf(`"%s"`, varRightJoin.Lower().Untitle().With(":").Source()+":")
 	varExpression = fmt.Sprintf(`%s = %s`, varLeft, varRight)
 
 	keyLeft = util.SafeString(keyLeftJoin.Camel().With("").Untitle())
