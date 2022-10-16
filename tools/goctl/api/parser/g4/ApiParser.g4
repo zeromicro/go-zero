@@ -70,5 +70,5 @@ replybody:      returnToken='returns' lp='(' dataType? rp=')';
 kvLit:          key=ID {checkKeyValue(p)}value=LINE_VALUE;
 
 serviceName:    (ID '-'?)+;
-path:           (('/' (pathItem ('-' pathItem)*))|('/:' (pathItem ('-' pathItem)?)))+ | '/';
+path:           ((('/' (pathItem ('-' pathItem)*))|('/:' (pathItem ('-' pathItem)?)))+ ('/*' (pathItem ('-' pathItem)?))?) | '/';
 pathItem:       (ID|LetterOrDigit)+;
