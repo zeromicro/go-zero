@@ -29,8 +29,8 @@ linters:
     - bodyclose
     - depguard
     - dogsled
-    - dupl
-    - errcheck
+    # - dupl
+    # - errcheck
     - exportloopref
     - exhaustive
     - goconst
@@ -50,15 +50,15 @@ linters:
     - predeclared
     - revive
     - staticcheck
-    - stylecheck
+    # - stylecheck
     - thelper
-    - tparallel
+    # - tparallel
     - typecheck
     - unconvert
     - unparam
     - unused
     - whitespace
-    - wsl
+    # - wsl
 
 run:
   issues-exit-code: 1

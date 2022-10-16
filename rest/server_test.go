@@ -255,7 +255,7 @@ func TestWithPrefix(t *testing.T) {
 		},
 	}
 	WithPrefix("/api")(&fr)
-	var vals []string
+	vals := make([]string, 0, len(fr.routes))
 	for _, r := range fr.routes {
 		vals = append(vals, r.Path)
 	}
