@@ -115,7 +115,7 @@ func (h *EventHandler) Update(endpoints *v1.Endpoints) {
 }
 
 func (h *EventHandler) notify() {
-	var targets []string
+	targets := make([]string, 0, len(h.endpoints))
 
 	for k := range h.endpoints {
 		targets = append(targets, k)
