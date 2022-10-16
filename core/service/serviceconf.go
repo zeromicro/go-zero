@@ -28,7 +28,7 @@ const (
 type ServiceConf struct {
 	Name       string
 	Log        logx.LogConf
-	Mode       string            `default:"pro" validate:"oneof=dev test rt pre pro"`
+	Mode       string            `json:",default=pro,options=dev|test|rt|pre|pro" default:"pro" validate:"oneof=dev test rt pre pro"`
 	MetricsUrl string            `json:",optional"`
 	Prometheus prometheus.Config `json:",optional"`
 	Telemetry  trace.Config      `json:",optional"`
