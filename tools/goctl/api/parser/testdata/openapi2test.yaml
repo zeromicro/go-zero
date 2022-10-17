@@ -1,0 +1,48 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  description: 深信服HCI OpenAPI接口文档，DO NOT EDIT !
+  title: 深信服HCI OpenAPI接口文档
+
+paths:
+  /api/v1/test:
+    get:
+      description: test
+      operationId: getTestOperationId
+      tags:
+        - test
+      produces:
+        - application/json
+      parameters:
+        - name: field1
+          in: query
+          description: first field
+          type: integer
+        - name: field2
+          in: query
+          description: second field
+          type: integer
+        - name: field3
+          in: query
+          description: thrid field
+          type: integer
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/TestStruct'
+
+definitions:
+  TestStruct:
+    type: object
+    required:
+      - field2
+    properties:
+      field1:
+        type: integer
+        x-nullable: true
+      field2:
+        type: string
+      field3:
+        type: integer

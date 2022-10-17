@@ -43,7 +43,6 @@ type (
 
 	// Info describes info grammar block
 	Info struct {
-		// Deprecated: use Properties instead
 		Title string
 		// Deprecated: use Properties instead
 		Desc string
@@ -64,8 +63,10 @@ type (
 		Tag     string
 		Comment string
 		// 成员头顶注释说明
-		Docs     Doc
-		IsInline bool
+		Docs               Doc
+		IsInline           bool
+		IsRequired         bool
+		NotAllowEmptyValue bool
 	}
 
 	// Route describes api route
@@ -95,22 +96,47 @@ type (
 		Name() string
 		Comments() []string
 		Documents() []string
+		Nullable() bool
 	}
 
 	// DefineStruct describes api structure
 	DefineStruct struct {
-		RawName string
-		Members []Member
-		Docs    Doc
+		BaseType
+		Comment  string
+		Members  []Member
+		Docs     Doc
+		RawName  string
+		Required []string
 	}
 
 	// PrimitiveType describes the basic golang type, such as bool,int32,int64, ...
 	PrimitiveType struct {
+		BaseType
+
 		RawName string
+		Comment string
+
+		//number
+		Min          *float64
+		Max          *float64
+		MultipleOf   *float64
+		ExclusiveMin bool
+		ExclusiveMax bool
+
+		//string
+		MinLength uint64
+		MaxLength *uint64
+		Pattern   string
+		Format    string //
+
+		Enum []interface{}
 	}
 
 	// MapType describes a map for api
 	MapType struct {
+		BaseType
+
+		Comment string
 		RawName string
 		// only support the PrimitiveType
 		Key string
@@ -120,29 +146,49 @@ type (
 		// ArrayType:[]int、[]User、[]*User
 		// InterfaceType: interface{}
 		// Type
-		Value Type
+		Value       Type
+		MinItems    int64
+		MaxItems    int64
+		UniqueItems bool
 	}
 
 	// ArrayType describes a slice for api
 	ArrayType struct {
-		RawName string
-		Value   Type
+		BaseType
+
+		Comment     string
+		Value       Type
+		RawName     string
+		MinItems    uint64
+		MaxItems    *uint64
+		UniqueItems bool
 	}
 
 	// InterfaceType describes a interface for api
 	InterfaceType struct {
+		BaseType
+
 		RawName string
+		RawID   string
 	}
 
 	// PointerType describes a pointer for api
 	PointerType struct {
-		RawName string
-		Type    Type
+		BaseType
+
+		RawName    string
+		Type       Type
+		RawID      string
+		RefRawName string
 	}
 
 	// AtDoc describes a metadata for api grammar: @doc(...)
 	AtDoc struct {
 		Properties map[string]string
 		Text       string
+	}
+
+	BaseType struct {
+		RawNullable bool
 	}
 )
