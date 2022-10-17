@@ -47,7 +47,7 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
     }
 
     var data {{.Type}}
-    {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
+    {{if .Cache}}key := prefix{{.Type}}CacheKey + id{{end}}
     err = m.conn.FindOne(ctx, {{if .Cache}}key, {{end}}&data, bson.M{"_id": oid})
     switch err {
     case nil:
