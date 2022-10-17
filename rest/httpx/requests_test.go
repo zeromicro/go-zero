@@ -19,7 +19,7 @@ func TestParseForm(t *testing.T) {
 		Percent float64 `form:"percent,optional"`
 	}
 
-	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
 	assert.Nil(t, err)
 	assert.Nil(t, Parse(r, &v))
 	assert.Equal(t, "hello", v.Name)
@@ -33,7 +33,7 @@ func TestParseForm_Error(t *testing.T) {
 		Age  int    `form:"age"`
 	}
 
-	r := httptest.NewRequest(http.MethodGet, "/a?name=hello;", nil)
+	r := httptest.NewRequest(http.MethodGet, "/a?name=hello;", http.NoBody)
 	assert.NotNil(t, ParseForm(r, &v))
 }
 
@@ -82,7 +82,7 @@ func TestParsePath(t *testing.T) {
 		Age  int    `path:"age"`
 	}
 
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	r = pathvar.WithVars(r, map[string]string{
 		"name": "foo",
 		"age":  "18",
@@ -99,7 +99,7 @@ func TestParsePath_Error(t *testing.T) {
 		Age  int    `path:"age"`
 	}
 
-	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 	r = pathvar.WithVars(r, map[string]string{
 		"name": "foo",
 	})
@@ -138,7 +138,7 @@ func TestParseFormOutOfRange(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		r, err := http.NewRequest(http.MethodGet, test.url, nil)
+		r, err := http.NewRequest(http.MethodGet, test.url, http.NoBody)
 		assert.Nil(t, err)
 
 		err = Parse(r, &v)
@@ -218,7 +218,7 @@ func TestParseJsonBody(t *testing.T) {
 			Age  int    `json:"age,optional"`
 		}
 
-		r := httptest.NewRequest(http.MethodGet, "/", nil)
+		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		assert.Nil(t, Parse(r, &v))
 		assert.Equal(t, "", v.Name)
 		assert.Equal(t, 0, v.Age)
@@ -231,7 +231,7 @@ func TestParseRequired(t *testing.T) {
 		Percent float64 `form:"percent"`
 	}{}
 
-	r, err := http.NewRequest(http.MethodGet, "/a?name=hello", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
 	assert.Nil(t, err)
 	assert.NotNil(t, Parse(r, &v))
 }
@@ -241,7 +241,7 @@ func TestParseOptions(t *testing.T) {
 		Position int8 `form:"pos,options=1|2"`
 	}{}
 
-	r, err := http.NewRequest(http.MethodGet, "/a?pos=4", nil)
+	r, err := http.NewRequest(http.MethodGet, "/a?pos=4", http.NoBody)
 	assert.Nil(t, err)
 	assert.NotNil(t, Parse(r, &v))
 }
@@ -258,7 +258,7 @@ func TestParseHeaders(t *testing.T) {
 		XForwardedFor string   `header:"X-Forwarded-For,optional"`
 		AnonymousStruct
 	}{}
-	request, err := http.NewRequest("POST", "/", nil)
+	request, err := http.NewRequest("POST", "/", http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,13 +287,13 @@ func TestParseHeaders_Error(t *testing.T) {
 		Age  int    `header:"age"`
 	}{}
 
-	r := httptest.NewRequest("POST", "/", nil)
+	r := httptest.NewRequest("POST", "/", http.NoBody)
 	r.Header.Set("name", "foo")
 	assert.NotNil(t, Parse(r, &v))
 }
 
 func BenchmarkParseRaw(b *testing.B) {
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -318,7 +318,7 @@ func BenchmarkParseRaw(b *testing.B) {
 }
 
 func BenchmarkParseAuto(b *testing.B) {
-	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", nil)
+	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
 		b.Fatal(err)
 	}
