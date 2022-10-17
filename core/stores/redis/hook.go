@@ -2,10 +2,13 @@ package redis
 
 import (
 	"context"
+	"io"
+	"net"
 	"strings"
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
@@ -56,6 +59,11 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 		logDuration(ctx, cmd, duration)
 	}
 
+	metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
+	if msg := formatError(err); len(msg) > 0 {
+		metricReqErr.Inc(cmd.Name(), msg)
+	}
+
 	return nil
 }
 
@@ -98,7 +106,34 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 		logDuration(ctx, cmds[0], duration)
 	}
 
+	metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
+	if msg := formatError(batchError.Err()); len(msg) > 0 {
+		metricReqErr.Inc("Pipeline", msg)
+	}
+
 	return nil
+}
+
+func formatError(err error) string {
+	if err == nil || err == red.Nil {
+		return ""
+	}
+
+	opErr, ok := err.(*net.OpError)
+	if ok && opErr.Timeout() {
+		return "timeout"
+	}
+
+	switch err {
+	case io.EOF:
+		return "eof"
+	case context.DeadlineExceeded:
+		return "context deadline"
+	case breaker.ErrServiceUnavailable:
+		return "breaker"
+	default:
+		return "unexpected error"
+	}
 }
 
 func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {

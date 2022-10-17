@@ -17,7 +17,7 @@ import (
 const (
 	defaultBuckets = 50
 	defaultWindow  = time.Second * 5
-	// using 1000m notation, 900m is like 80%, keep it as var for unit test
+	// using 1000m notation, 900m is like 90%, keep it as var for unit test
 	defaultCpuThreshold = 900
 	defaultMinRt        = float64(time.Second / time.Millisecond)
 	// moving average hyperparameter beta for calculating requests on the fly
@@ -70,7 +70,7 @@ type (
 		flying          int64
 		avgFlying       float64
 		avgFlyingLock   syncx.SpinLock
-		dropTime        *syncx.AtomicDuration
+		overloadTime    *syncx.AtomicDuration
 		droppedRecently *syncx.AtomicBool
 		passCounter     *collection.RollingWindow
 		rtCounter       *collection.RollingWindow
@@ -106,7 +106,7 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 	return &adaptiveShedder{
 		cpuThreshold:    options.cpuThreshold,
 		windows:         int64(time.Second / bucketDuration),
-		dropTime:        syncx.NewAtomicDuration(),
+		overloadTime:    syncx.NewAtomicDuration(),
 		droppedRecently: syncx.NewAtomicBool(),
 		passCounter: collection.NewRollingWindow(options.buckets, bucketDuration,
 			collection.IgnoreCurrentBucket()),
@@ -118,7 +118,6 @@ func NewAdaptiveShedder(opts ...ShedderOption) Shedder {
 // Allow implements Shedder.Allow.
 func (as *adaptiveShedder) Allow() (Promise, error) {
 	if as.shouldDrop() {
-		as.dropTime.Set(timex.Now())
 		as.droppedRecently.Set(true)
 
 		return nil, ErrServiceOverloaded
@@ -215,21 +214,26 @@ func (as *adaptiveShedder) stillHot() bool {
 		return false
 	}
 
-	dropTime := as.dropTime.Load()
-	if dropTime == 0 {
+	overloadTime := as.overloadTime.Load()
+	if overloadTime == 0 {
 		return false
 	}
 
-	hot := timex.Since(dropTime) < coolOffDuration
-	if !hot {
-		as.droppedRecently.Set(false)
+	if timex.Since(overloadTime) < coolOffDuration {
+		return true
 	}
 
-	return hot
+	as.droppedRecently.Set(false)
+	return false
 }
 
 func (as *adaptiveShedder) systemOverloaded() bool {
-	return systemOverloadChecker(as.cpuThreshold)
+	if !systemOverloadChecker(as.cpuThreshold) {
+		return false
+	}
+
+	as.overloadTime.Set(timex.Now())
+	return true
 }
 
 // WithBuckets customizes the Shedder with given number of buckets.

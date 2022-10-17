@@ -16,6 +16,7 @@ type (
 
 	rpcServerOptions struct {
 		metrics *stat.Metrics
+		health  bool
 	}
 
 	rpcServer struct {
@@ -23,10 +24,6 @@ type (
 		*baseRpcServer
 	}
 )
-
-func init() {
-	InitLogger()
-}
 
 // NewRpcServer returns a Server.
 func NewRpcServer(address string, opts ...ServerOption) Server {
@@ -74,13 +71,17 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	register(server)
 
 	// register the health check service
-	grpc_health_v1.RegisterHealthServer(server, s.health)
-	s.health.Resume()
+	if s.health != nil {
+		grpc_health_v1.RegisterHealthServer(server, s.health)
+		s.health.Resume()
+	}
 
 	// we need to make sure all others are wrapped up,
 	// so we do graceful stop at shutdown phase instead of wrap up phase
 	waitForCalled := proc.AddWrapUpListener(func() {
-		s.health.Shutdown()
+		if s.health != nil {
+			s.health.Shutdown()
+		}
 		server.GracefulStop()
 	})
 	defer waitForCalled()
@@ -92,5 +93,12 @@ func (s *rpcServer) Start(register RegisterFn) error {
 func WithMetrics(metrics *stat.Metrics) ServerOption {
 	return func(options *rpcServerOptions) {
 		options.metrics = metrics
+	}
+}
+
+// WithRpcHealth returns a func that sets rpc health switch to a Server.
+func WithRpcHealth(health bool) ServerOption {
+	return func(options *rpcServerOptions) {
+		options.health = health
 	}
 }

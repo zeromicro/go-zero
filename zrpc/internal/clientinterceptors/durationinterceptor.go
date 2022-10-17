@@ -22,7 +22,7 @@ func DurationInterceptor(ctx context.Context, method string, req, reply interfac
 	start := timex.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	if err != nil {
-		logx.WithContext(ctx).WithDuration(timex.Since(start)).Infof("fail - %s - %v - %s",
+		logx.WithContext(ctx).WithDuration(timex.Since(start)).Errorf("fail - %s - %v - %s",
 			serverName, req, err.Error())
 	} else {
 		elapsed := timex.Since(start)

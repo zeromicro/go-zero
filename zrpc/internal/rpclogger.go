@@ -1,8 +1,6 @@
 package internal
 
 import (
-	"sync"
-
 	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/grpclog"
 )
@@ -10,16 +8,11 @@ import (
 // because grpclog.errorLog is not exported, we need to define our own.
 const errorLevel = 2
 
-var once sync.Once
-
 // A Logger is a rpc logger.
 type Logger struct{}
 
-// InitLogger initializes the rpc logger.
-func InitLogger() {
-	once.Do(func() {
-		grpclog.SetLoggerV2(new(Logger))
-	})
+func init() {
+	grpclog.SetLoggerV2(new(Logger))
 }
 
 // Error logs the given args into error log.

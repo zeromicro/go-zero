@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/justinas/alice"
 	"github.com/stretchr/testify/assert"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/rest/chain"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
@@ -21,10 +21,11 @@ func TestOtelHandler(t *testing.T) {
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
+	defer ztrace.StopAgent()
 
 	for _, test := range []string{"", "bar"} {
 		t.Run(test, func(t *testing.T) {
-			h := alice.New(TracingHandler("foo", test)).Then(
+			h := chain.New(TracingHandler("foo", test)).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 					spanCtx := trace.SpanContextFromContext(ctx)

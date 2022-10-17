@@ -1,6 +1,8 @@
 package limit
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"sync"
@@ -58,8 +60,8 @@ type TokenLimiter struct {
 	timestampKey   string
 	rescueLock     sync.Mutex
 	redisAlive     uint32
-	rescueLimiter  *xrate.Limiter
 	monitorStarted bool
+	rescueLimiter  *xrate.Limiter
 }
 
 // NewTokenLimiter returns a new TokenLimiter that allows events up to rate and permits
@@ -84,19 +86,31 @@ func (lim *TokenLimiter) Allow() bool {
 	return lim.AllowN(time.Now(), 1)
 }
 
+// AllowCtx is shorthand for AllowNCtx(ctx,time.Now(), 1) with incoming context.
+func (lim *TokenLimiter) AllowCtx(ctx context.Context) bool {
+	return lim.AllowNCtx(ctx, time.Now(), 1)
+}
+
 // AllowN reports whether n events may happen at time now.
 // Use this method if you intend to drop / skip events that exceed the rate.
 // Otherwise, use Reserve or Wait.
 func (lim *TokenLimiter) AllowN(now time.Time, n int) bool {
-	return lim.reserveN(now, n)
+	return lim.reserveN(context.Background(), now, n)
 }
 
-func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
+// AllowNCtx reports whether n events may happen at time now with incoming context.
+// Use this method if you intend to drop / skip events that exceed the rate.
+// Otherwise, use Reserve or Wait.
+func (lim *TokenLimiter) AllowNCtx(ctx context.Context, now time.Time, n int) bool {
+	return lim.reserveN(ctx, now, n)
+}
+
+func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) bool {
 	if atomic.LoadUint32(&lim.redisAlive) == 0 {
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
-	resp, err := lim.store.Eval(
+	resp, err := lim.store.EvalCtx(ctx,
 		script,
 		[]string{
 			lim.tokenKey,
@@ -111,6 +125,10 @@ func (lim *TokenLimiter) reserveN(now time.Time, n int) bool {
 	// redis allowed == false
 	// Lua boolean false -> r Nil bulk reply
 	if err == redis.Nil {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+		logx.Errorf("fail to use rate limiter: %s", err)
 		return false
 	}
 	if err != nil {

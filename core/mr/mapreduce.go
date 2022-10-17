@@ -145,7 +145,7 @@ func MapReduceChan(source <-chan interface{}, mapper MapperFunc, reducer Reducer
 	return mapReduceWithPanicChan(source, panicChan, mapper, reducer, opts...)
 }
 
-// MapReduceChan maps all elements from source, and reduce the output elements with given reducer.
+// mapReduceWithPanicChan maps all elements from source, and reduce the output elements with given reducer.
 func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapper MapperFunc,
 	reducer ReducerFunc, opts ...Option) (interface{}, error) {
 	options := buildOptions(opts...)
@@ -212,6 +212,8 @@ func mapReduceWithPanicChan(source <-chan interface{}, panicChan *onceChan, mapp
 		cancel(context.DeadlineExceeded)
 		return nil, context.DeadlineExceeded
 	case v := <-panicChan.channel:
+		// drain output here, otherwise for loop panic in defer
+		drain(output)
 		panic(v)
 	case v, ok := <-output:
 		if err := retErr.Load(); err != nil {

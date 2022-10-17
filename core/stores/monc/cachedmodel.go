@@ -192,7 +192,7 @@ func (mm *Model) InsertOneNoCache(ctx context.Context, document interface{},
 }
 
 // ReplaceOne replaces a single document in the collection, and remove the cache.
-func (mm *Model) ReplaceOne(ctx context.Context, key string, filter interface{}, replacement interface{},
+func (mm *Model) ReplaceOne(ctx context.Context, key string, filter, replacement interface{},
 	opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error) {
 	res, err := mm.Model.ReplaceOne(ctx, filter, replacement, opts...)
 	if err != nil {
@@ -207,7 +207,7 @@ func (mm *Model) ReplaceOne(ctx context.Context, key string, filter interface{},
 }
 
 // ReplaceOneNoCache replaces a single document in the collection.
-func (mm *Model) ReplaceOneNoCache(ctx context.Context, filter interface{}, replacement interface{},
+func (mm *Model) ReplaceOneNoCache(ctx context.Context, filter, replacement interface{},
 	opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error) {
 	return mm.Model.ReplaceOne(ctx, filter, replacement, opts...)
 }
@@ -218,7 +218,7 @@ func (mm *Model) SetCache(key string, v interface{}) error {
 }
 
 // UpdateByID updates the document with given id with update, and remove the cache.
-func (mm *Model) UpdateByID(ctx context.Context, key string, id interface{}, update interface{},
+func (mm *Model) UpdateByID(ctx context.Context, key string, id, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	res, err := mm.Model.UpdateByID(ctx, id, update, opts...)
 	if err != nil {
@@ -233,13 +233,13 @@ func (mm *Model) UpdateByID(ctx context.Context, key string, id interface{}, upd
 }
 
 // UpdateByIDNoCache updates the document with given id with update.
-func (mm *Model) UpdateByIDNoCache(ctx context.Context, id interface{}, update interface{},
+func (mm *Model) UpdateByIDNoCache(ctx context.Context, id, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	return mm.Model.UpdateByID(ctx, id, update, opts...)
 }
 
 // UpdateMany updates the documents that match filter with update, and remove the cache.
-func (mm *Model) UpdateMany(ctx context.Context, keys []string, filter interface{}, update interface{},
+func (mm *Model) UpdateMany(ctx context.Context, keys []string, filter, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	res, err := mm.Model.UpdateMany(ctx, filter, update, opts...)
 	if err != nil {
@@ -254,13 +254,13 @@ func (mm *Model) UpdateMany(ctx context.Context, keys []string, filter interface
 }
 
 // UpdateManyNoCache updates the documents that match filter with update.
-func (mm *Model) UpdateManyNoCache(ctx context.Context, filter interface{}, update interface{},
+func (mm *Model) UpdateManyNoCache(ctx context.Context, filter, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	return mm.Model.UpdateMany(ctx, filter, update, opts...)
 }
 
 // UpdateOne updates the first document that matches filter with update, and remove the cache.
-func (mm *Model) UpdateOne(ctx context.Context, key string, filter interface{}, update interface{},
+func (mm *Model) UpdateOne(ctx context.Context, key string, filter, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	res, err := mm.Model.UpdateOne(ctx, filter, update, opts...)
 	if err != nil {
@@ -275,7 +275,7 @@ func (mm *Model) UpdateOne(ctx context.Context, key string, filter interface{}, 
 }
 
 // UpdateOneNoCache updates the first document that matches filter with update.
-func (mm *Model) UpdateOneNoCache(ctx context.Context, filter interface{}, update interface{},
+func (mm *Model) UpdateOneNoCache(ctx context.Context, filter, update interface{},
 	opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error) {
 	return mm.Model.UpdateOne(ctx, filter, update, opts...)
 }

@@ -3,6 +3,7 @@ package internal
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/fullstorydev/grpcurl"
@@ -22,16 +23,18 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 	for k, v := range vars {
 		params[k] = v
 	}
-	if len(params) == 0 {
-		return grpcurl.NewJSONRequestParser(r.Body, resolver), nil
-	}
 
-	if r.ContentLength == 0 {
+	body, ok := getBody(r)
+	if !ok {
 		return buildJsonRequestParser(params, resolver)
 	}
 
+	if len(params) == 0 {
+		return grpcurl.NewJSONRequestParser(body, resolver), nil
+	}
+
 	m := make(map[string]interface{})
-	if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
+	if err := json.NewDecoder(body).Decode(&m); err != nil {
 		return nil, err
 	}
 
@@ -50,4 +53,29 @@ func buildJsonRequestParser(m map[string]interface{}, resolver jsonpb.AnyResolve
 	}
 
 	return grpcurl.NewJSONRequestParser(&buf, resolver), nil
+}
+
+func getBody(r *http.Request) (io.Reader, bool) {
+	if r.Body == nil {
+		return nil, false
+	}
+
+	if r.ContentLength == 0 {
+		return nil, false
+	}
+
+	if r.ContentLength > 0 {
+		return r.Body, true
+	}
+
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, r.Body); err != nil {
+		return nil, false
+	}
+
+	if buf.Len() > 0 {
+		return &buf, true
+	}
+
+	return nil, false
 }

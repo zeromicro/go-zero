@@ -115,7 +115,9 @@ func (r *DailyRotateRule) OutdatedFiles() []string {
 
 	var buf strings.Builder
 	boundary := time.Now().Add(-time.Hour * time.Duration(hoursPerDay*r.days)).Format(dateFormat)
-	fmt.Fprintf(&buf, "%s%s%s", r.filename, r.delimiter, boundary)
+	buf.WriteString(r.filename)
+	buf.WriteString(r.delimiter)
+	buf.WriteString(boundary)
 	if r.gzip {
 		buf.WriteString(gzipExt)
 	}

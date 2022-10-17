@@ -68,6 +68,24 @@ func (m *SafeMap) Get(key interface{}) (interface{}, bool) {
 	return val, ok
 }
 
+// Range calls f sequentially for each key and value present in the map.
+// If f returns false, range stops the iteration.
+func (m *SafeMap) Range(f func(key, val interface{}) bool) {
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for k, v := range m.dirtyOld {
+		if !f(k, v) {
+			return
+		}
+	}
+	for k, v := range m.dirtyNew {
+		if !f(k, v) {
+			return
+		}
+	}
+}
+
 // Set sets the value into m with the given key.
 func (m *SafeMap) Set(key, value interface{}) {
 	m.lock.Lock()

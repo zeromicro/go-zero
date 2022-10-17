@@ -182,7 +182,6 @@ func request(r *http.Request, cli client) (*http.Response, error) {
 	}
 
 	r = r.WithContext(ctx)
-	span.SetAttributes(semconv.HTTPClientAttributesFromHTTPRequest(r)...)
 	propagator.Inject(ctx, propagation.HeaderCarrier(r.Header))
 
 	resp, err := cli.do(r)

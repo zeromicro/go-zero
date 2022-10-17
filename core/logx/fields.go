@@ -1,13 +1,34 @@
 package logx
 
-import "context"
+import (
+	"context"
+	"sync"
+	"sync/atomic"
+)
 
-var fieldsContextKey contextKey
+var (
+	fieldsContextKey contextKey
+	globalFields     atomic.Value
+	globalFieldsLock sync.Mutex
+)
 
 type contextKey struct{}
 
-// WithFields returns a new context with the given fields.
-func WithFields(ctx context.Context, fields ...LogField) context.Context {
+// AddGlobalFields adds global fields.
+func AddGlobalFields(fields ...LogField) {
+	globalFieldsLock.Lock()
+	defer globalFieldsLock.Unlock()
+
+	old := globalFields.Load()
+	if old == nil {
+		globalFields.Store(append([]LogField(nil), fields...))
+	} else {
+		globalFields.Store(append(old.([]LogField), fields...))
+	}
+}
+
+// ContextWithFields returns a new context with the given fields.
+func ContextWithFields(ctx context.Context, fields ...LogField) context.Context {
 	if val := ctx.Value(fieldsContextKey); val != nil {
 		if arr, ok := val.([]LogField); ok {
 			return context.WithValue(ctx, fieldsContextKey, append(arr, fields...))
@@ -15,4 +36,10 @@ func WithFields(ctx context.Context, fields ...LogField) context.Context {
 	}
 
 	return context.WithValue(ctx, fieldsContextKey, fields)
+}
+
+// WithFields returns a new logger with the given fields.
+// deprecated: use ContextWithFields instead.
+func WithFields(ctx context.Context, fields ...LogField) context.Context {
+	return ContextWithFields(ctx, fields...)
 }
