@@ -13,7 +13,7 @@ import (
 {{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.lowerType}}:"{{end}}
 
 type {{.lowerType}}Model interface{
-    Insert(ctx context.Context,data *{{.Type}}) error
+    Insert(ctx context.Context,data *{{.Type}}) (*mongo.InsertOneResult, error)
     FindOne(ctx context.Context,id string) (*{{.Type}}, error)
     Update(ctx context.Context,data *{{.Type}}) error
     Delete(ctx context.Context,id string) error
@@ -28,7 +28,7 @@ func newDefault{{.Type}}Model(conn {{if .Cache}}*monc.Model{{else}}*mon.Model{{e
 }
 
 
-func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) error {
+func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) (*mongo.InsertOneResult, error) {
     if data.ID.IsZero() {
         data.ID = primitive.NewObjectID()
         data.CreateAt = time.Now()
@@ -36,8 +36,7 @@ func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) err
     }
 
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
-    _, err := m.conn.InsertOne(ctx, {{if .Cache}}key, {{end}} data)
-    return err
+    return m.conn.InsertOne(ctx, {{if .Cache}}key, {{end}} data)
 }
 
 func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Type}}, error) {
@@ -47,7 +46,7 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
     }
 
     var data {{.Type}}
-    {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
+    {{if .Cache}}key := prefix{{.Type}}CacheKey + id{{end}}
     err = m.conn.FindOne(ctx, {{if .Cache}}key, {{end}}&data, bson.M{"_id": oid})
     switch err {
     case nil:
