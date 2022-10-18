@@ -12,10 +12,12 @@ import (
 	"net/http/httputil"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/color"
 	"github.com/zeromicro/go-zero/core/iox"
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -29,7 +31,15 @@ const (
 	defaultSlowThreshold = time.Millisecond * 500
 )
 
-var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+var (
+	notLoggingContentUris sync.Map
+	slowThreshold         = syncx.ForAtomicDuration(defaultSlowThreshold)
+)
+
+// DontLogContentForPath disable logging content for given method.
+func DontLogContentForURI(method string) {
+	notLoggingContentUris.Store(method, lang.Placeholder)
+}
 
 type loggedResponseWriter struct {
 	w    http.ResponseWriter
@@ -193,7 +203,10 @@ func logBrief(r *http.Request, code int, timer *utils.ElapsedTimer, logs *intern
 	}
 
 	if ok {
-		logger.Info(buf.String())
+		_, ok := notLoggingContentUris.Load(r.RequestURI)
+		if !ok {
+			logger.Info(buf.String())
+		}
 	} else {
 		logger.Error(buf.String())
 	}
@@ -223,7 +236,10 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 	}
 
 	if isOkResponse(code) {
-		logger.Info(buf.String())
+		_, ok := notLoggingContentUris.Load(r.RequestURI)
+		if !ok {
+			logger.Info(buf.String())
+		}
 	} else {
 		logger.Error(buf.String())
 	}

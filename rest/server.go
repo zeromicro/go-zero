@@ -107,6 +107,11 @@ func (s *Server) Use(middleware Middleware) {
 	s.ngin.use(middleware)
 }
 
+// DontLogContentForURI disable logging content for given method.
+func DontLogContentForURI(method string) {
+	handler.DontLogContentForURI(method)
+}
+
 // ToMiddleware converts the given handler to a Middleware.
 func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 	return func(handle http.HandlerFunc) http.HandlerFunc {
