@@ -35,7 +35,7 @@ require (
 	go.uber.org/goleak v1.2.0
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8
 	golang.org/x/time v0.0.0-20220411224347-583f2d630306
-	google.golang.org/grpc v1.50.0
+	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 	gopkg.in/h2non/gock.v1 v1.1.2
