@@ -41,9 +41,9 @@ require (
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.22.9
-	k8s.io/apimachinery v0.22.9
+	k8s.io/apimachinery v0.25.3
 	k8s.io/client-go v0.22.9
-	k8s.io/utils v0.0.0-20220706174534-f6158b442e7c
+	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 )
 
 require (
@@ -53,7 +53,5 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/net v0.0.0-20220531201128-c960675eff93 // indirect
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
-	k8s.io/klog/v2 v2.40.1 // indirect
 )
