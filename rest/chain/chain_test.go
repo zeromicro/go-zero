@@ -86,7 +86,7 @@ func TestThenOrdersHandlersCorrectly(t *testing.T) {
 	chained := New(t1, t2, t3).Then(testApp)
 
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/", nil)
+	r, err := http.NewRequest("GET", "/", http.NoBody)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestAppendAddsHandlersCorrectly(t *testing.T) {
 	h := c.Then(testApp)
 
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("GET", "/", nil)
+	r, err := http.NewRequest("GET", "/", http.NoBody)
 	assert.Nil(t, err)
 
 	h.ServeHTTP(w, r)

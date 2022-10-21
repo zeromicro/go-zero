@@ -200,7 +200,7 @@ func (w *tracedResponseWriter) Write(bytes []byte) (n int, err error) {
 
 	n, err = w.builder.Write(bytes)
 	if w.lessWritten {
-		n -= 1
+		n--
 	}
 	w.hasBody = true
 
