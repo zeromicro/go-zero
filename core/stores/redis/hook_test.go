@@ -163,6 +163,17 @@ func TestHookProcessPipelineCase5(t *testing.T) {
 	assert.True(t, buf.Len() == 0)
 }
 
+func TestLogDuration(t *testing.T) {
+	w, restore := injectLog()
+	defer restore()
+
+	logDuration(context.Background(), []red.Cmder{red.NewCmd(context.Background(), "get", "foo")}, 1*time.Second)
+	assert.True(t, strings.Contains(w.String(), "get foo"))
+
+	logDuration(context.Background(), []red.Cmder{red.NewCmd(context.Background(), "get", "foo"), red.NewCmd(context.Background(), "set", "bar", 0)}, 1*time.Second)
+	assert.True(t, strings.Contains(w.String(), "get foo\\nset bar 0"))
+}
+
 func injectLog() (r *strings.Builder, restore func()) {
 	var buf strings.Builder
 	w := logx.NewWriter(&buf)
