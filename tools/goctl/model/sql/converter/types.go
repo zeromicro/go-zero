@@ -139,6 +139,7 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"longblob":        "string",
 	"mediumblob":      "string",
 	"tinyblob":        "string",
+	"ltree":           "[]byte",
 }
 
 // ConvertDataType converts mysql column type into golang type
