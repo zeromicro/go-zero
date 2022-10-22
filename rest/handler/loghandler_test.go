@@ -24,7 +24,7 @@ func TestLogHandler(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
 			w.Header().Set("X-Test", "test")
@@ -79,7 +79,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
 		}))
@@ -159,7 +159,7 @@ func TestWrapStatusCodeWithColor(t *testing.T) {
 func BenchmarkLogHandler(b *testing.B) {
 	b.ReportAllocs()
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
