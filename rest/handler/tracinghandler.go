@@ -2,13 +2,22 @@ package handler
 
 import (
 	"net/http"
+	"sync"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/trace"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
+
+var dontTracingSpanNames sync.Map
+
+// DontTracingSpanName disable tracing for the specified spanName.
+func DontTracingSpanName(spanName string) {
+	dontTracingSpanNames.Store(spanName, lang.Placeholder)
+}
 
 // TracingHandler return a middleware that process the opentelemetry.
 func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
@@ -17,11 +26,21 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				next.ServeHTTP(w, r)
+			}()
+
 			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 			spanName := path
 			if len(spanName) == 0 {
 				spanName = r.URL.Path
 			}
+
+			_, ok := dontTracingSpanNames.Load(spanName)
+			if ok {
+				return
+			}
+
 			spanCtx, span := tracer.Start(
 				ctx,
 				spanName,
@@ -33,7 +52,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 
 			// convenient for tracking error messages
 			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
-			next.ServeHTTP(w, r.WithContext(spanCtx))
+			r = r.WithContext(spanCtx)
 		})
 	}
 }
