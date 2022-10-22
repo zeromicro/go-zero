@@ -48,3 +48,37 @@ func TestValidator(t *testing.T) {
 		t.Error(result)
 	}
 }
+
+func TestParseAcceptLanguage(t *testing.T) {
+	data := []struct {
+		Str    string
+		Target string
+	}{
+		{
+			"zh",
+			"zh",
+		},
+		{
+			"zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,la;q=0.5,ja;q=0.4,id;q=0.3,fr;q=0.2",
+			"zh",
+		},
+		{
+			"zh-CN,zh;q=0.9",
+			"zh",
+		},
+		{
+			"en,zh;q=0.9",
+			"en",
+		},
+	}
+
+	for _, v := range data {
+		tmp, err := ParseAcceptLanguage(v.Str)
+		if err != nil {
+			t.Error(err)
+		}
+		if v.Target != tmp {
+			t.Error("parse error: ", v.Str)
+		}
+	}
+}

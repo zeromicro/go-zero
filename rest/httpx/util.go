@@ -1,7 +1,9 @@
 package httpx
 
 import (
+	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -69,12 +71,12 @@ func NewValidator() *Validator {
 
 	err := en_translations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
-		logx.Errorw("Register English translation fail", logx.Field("Detail", err.Error()))
+		logx.Errorw("register English translation failed", logx.Field("detail", err.Error()))
 		return nil
 	}
 	err = zh_translations.RegisterDefaultTranslations(v.Validator, zhTrans)
 	if err != nil {
-		logx.Errorw("Register Chinese translation fail", logx.Field("Detail", err.Error()))
+		logx.Errorw("register Chinese translation failed", logx.Field("detail", err.Error()))
 		return nil
 	}
 
@@ -87,9 +89,14 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 		return ""
 	}
 
+	parseLang, err := ParseAcceptLanguage(lang)
+	if err != nil {
+		return err.Error()
+	}
+
 	errs, ok := err.(validator.ValidationErrors)
 	if ok {
-		transData := errs.Translate(v.Trans[lang])
+		transData := errs.Translate(v.Trans[parseLang])
 		s := strings.Builder{}
 		for _, v := range transData {
 			s.WriteString(v)
@@ -104,4 +111,19 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 	}
 
 	return ""
+}
+
+func ParseAcceptLanguage(lang string) (string, error) {
+	rege := regexp.MustCompile("[a-pr-z]+")
+	extract := rege.FindAllString(lang, -1)
+	if extract == nil {
+		return "", errors.New("fail to parse accepted language")
+	}
+
+	targetLang := extract[0]
+	if targetLang == "zh-cn" || targetLang == "zh" || targetLang == "zh-tw" || targetLang == "zh-hk" {
+		targetLang = "zh"
+	}
+
+	return targetLang, nil
 }
