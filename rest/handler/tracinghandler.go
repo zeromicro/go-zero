@@ -12,11 +12,11 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var dontTracingSpanNames sync.Map
+var notTracingSpans sync.Map
 
-// DontTracingSpanName disable tracing for the specified spanName.
-func DontTracingSpanName(spanName string) {
-	dontTracingSpanNames.Store(spanName, lang.Placeholder)
+// DontTraceSpan disable tracing for the specified span name.
+func DontTraceSpan(spanName string) {
+	notTracingSpans.Store(spanName, lang.Placeholder)
 }
 
 // TracingHandler return a middleware that process the opentelemetry.
@@ -36,8 +36,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 				spanName = r.URL.Path
 			}
 
-			_, ok := dontTracingSpanNames.Load(spanName)
-			if ok {
+			if _, ok := notTracingSpans.Load(spanName); ok {
 				return
 			}
 
