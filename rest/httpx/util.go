@@ -3,8 +3,9 @@ package httpx
 import (
 	"errors"
 	"net/http"
-	"regexp"
 	"strings"
+
+	"golang.org/x/text/language"
 
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -17,6 +18,8 @@ import (
 )
 
 const xForwardedFor = "X-Forwarded-For"
+
+var supportLang map[string]string
 
 // GetFormValues returns the form values.
 func GetFormValues(r *http.Request) (map[string]interface{}, error) {
@@ -68,6 +71,12 @@ func NewValidator() *Validator {
 	v.Trans = make(map[string]ut.Translator)
 	v.Trans["en"] = enTrans
 	v.Trans["zh"] = zhTrans
+	// add support languages
+	supportLang = make(map[string]string)
+	supportLang["zh"] = "zh"
+	supportLang["zh-CN"] = "zh"
+	supportLang["en"] = "en"
+	supportLang["en-US"] = "en"
 
 	err := en_translations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
@@ -94,9 +103,11 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 		return err.Error()
 	}
 
+	targetLang := SelectLanguage(parseLang, supportLang)
+
 	errs, ok := err.(validator.ValidationErrors)
 	if ok {
-		transData := errs.Translate(v.Trans[parseLang])
+		transData := errs.Translate(v.Trans[targetLang])
 		s := strings.Builder{}
 		for _, v := range transData {
 			s.WriteString(v)
@@ -113,17 +124,30 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 	return ""
 }
 
-func ParseAcceptLanguage(lang string) (string, error) {
-	rege := regexp.MustCompile("[a-pr-z]+")
-	extract := rege.FindAllString(lang, -1)
-	if extract == nil {
-		return "", errors.New("fail to parse accepted language")
+func ParseAcceptLanguage(lang string) ([]string, error) {
+	tags, _, err := language.ParseAcceptLanguage(lang)
+	if err != nil {
+		return nil, errors.New("fail to parse accept language")
 	}
 
-	targetLang := extract[0]
-	if targetLang == "zh-cn" || targetLang == "zh" || targetLang == "zh-tw" || targetLang == "zh-hk" {
-		targetLang = "zh"
+	var langs []string
+	for _, v := range tags {
+		langs = append(langs, v.String())
 	}
 
-	return targetLang, nil
+	return langs, nil
+}
+
+func SelectLanguage(langs []string, supportLang map[string]string) string {
+	if langs == nil {
+		return "zh"
+	}
+
+	for _, v := range langs {
+		if val, ok := supportLang[v]; ok {
+			return val
+		}
+	}
+
+	return "zh"
 }
