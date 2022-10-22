@@ -149,7 +149,7 @@ func logDuration(ctx context.Context, cmds []red.Cmder, duration time.Duration) 
 			}
 			build.WriteString(mapping.Repr(arg))
 		}
-		buf.WriteString(mapping.Repr(build.String()))
+		buf.WriteString(build.String())
 	}
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
 }
