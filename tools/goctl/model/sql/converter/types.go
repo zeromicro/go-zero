@@ -159,7 +159,7 @@ func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict 
 		return "", fmt.Errorf("unsupported database type: %s", dataBaseType)
 	}
 
-	if isArray := strings.HasPrefix(dataBaseType, "_"); isArray {
+	if strings.HasPrefix(dataBaseType, "_") {
 		return tp, nil
 	}
 
