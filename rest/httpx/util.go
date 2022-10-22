@@ -12,7 +12,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	zh_translations "github.com/go-playground/validator/v10/translations/zh"
-	"github.com/suyuan32/simple-admin-core/common/logmessage"
 )
 
 const xForwardedFor = "X-Forwarded-For"
@@ -70,12 +69,12 @@ func NewValidator() *Validator {
 
 	err := en_translations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
-		logx.Errorw(logmessage.DatabaseError, logx.Field("Detail", err.Error()))
+		logx.Errorw("Register English translation fail", logx.Field("Detail", err.Error()))
 		return nil
 	}
 	err = zh_translations.RegisterDefaultTranslations(v.Validator, zhTrans)
 	if err != nil {
-		logx.Errorw(logmessage.DatabaseError, logx.Field("Detail", err.Error()))
+		logx.Errorw("Register Chinese translation fail", logx.Field("Detail", err.Error()))
 		return nil
 	}
 
