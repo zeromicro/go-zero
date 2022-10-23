@@ -28,6 +28,7 @@ type handlerInfo struct {
 	LogicName          string
 	LogicType          string
 	Call               string
+	HandlerComment     string
 	HasResp            bool
 	HasRequest         bool
 }
@@ -54,6 +55,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		LogicName:      logicName,
 		LogicType:      strings.Title(getLogicName(route)),
 		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
+		HandlerComment: getHandlerDoc(route),
 		HasResp:        len(route.ResponseTypeName()) > 0,
 		HasRequest:     len(route.RequestTypeName()) > 0,
 	})
@@ -143,4 +145,13 @@ func getLogicName(route spec.Route) string {
 	}
 
 	return handler + "Logic"
+}
+
+func getHandlerDoc(route spec.Route) string {
+	doc := strings.Join(e.HandlerDoc,"\n")
+	if len(comment) == 0 {
+		return ""
+	}
+
+	return doc
 }
