@@ -123,6 +123,11 @@ func (l *richLogger) WithDuration(duration time.Duration) Logger {
 	return l
 }
 
+func (l *richLogger) WithFields(fields ...LogField) Logger {
+	l.fields = append(l.fields, fields...)
+	return l
+}
+
 func (l *richLogger) buildFields(fields ...LogField) []LogField {
 	fields = append(l.fields, fields...)
 	fields = append(fields, Field(callerKey, getCaller(callerDepth+l.callerSkip)))
