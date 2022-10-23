@@ -16,11 +16,12 @@ func TestNopResolver(t *testing.T) {
 
 type mockedClientConn struct {
 	state resolver.State
+	err   error
 }
 
 func (m *mockedClientConn) UpdateState(state resolver.State) error {
 	m.state = state
-	return nil
+	return m.err
 }
 
 func (m *mockedClientConn) ReportError(err error) {
