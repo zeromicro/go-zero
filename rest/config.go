@@ -6,6 +6,8 @@ import (
 	"github.com/zeromicro/go-zero/core/service"
 )
 
+//@enhance
+
 type (
 	// A PrivateKeyConf is a private key config.
 	PrivateKeyConf struct {
@@ -18,6 +20,12 @@ type (
 		Strict      bool          `json:",default=false"`
 		Expiry      time.Duration `json:",default=1h"`
 		PrivateKeys []PrivateKeyConf
+	}
+
+	// AuthConf is a JWT config
+	AuthConf struct {
+		AccessSecret string `json:",optional"`
+		AccessExpire int64  `json:",optional"`
 	}
 
 	// A RestConf is a http service config.

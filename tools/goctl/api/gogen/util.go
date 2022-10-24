@@ -14,6 +14,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
+//@enhance
+
 type fileGenConfig struct {
 	dir             string
 	subdir          string
@@ -57,7 +59,12 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
+	// write doc for swagger
+	for _, v := range doc {
+		fmt.Fprintf(writer, "\t%s\n", v)
+	}
+
 	util.WriteIndent(writer, indent)
 	var err error
 	if len(comment) > 0 {

@@ -3,7 +3,7 @@ package trace
 // TraceName represents the tracing name.
 const TraceName = "go-zero"
 
-// A Config is a opentelemetry config.
+// A Config is a open-telemetry config.
 type Config struct {
 	Name     string  `json:",optional"`
 	Endpoint string  `json:",optional"`

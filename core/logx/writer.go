@@ -114,7 +114,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 		return nil, ErrLogPathNotSet
 	}
 
-	opts = append(opts, WithCooldownMillis(c.StackCooldownMillis))
+	opts = append(opts, WithCooldownMillis(c.StackCoolDownMillis))
 	if c.Compress {
 		opts = append(opts, WithGzip())
 	}

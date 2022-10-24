@@ -1,3 +1,4 @@
+{{.systemInfo}}
 package main
 
 import (
