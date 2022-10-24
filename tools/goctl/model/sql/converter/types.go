@@ -153,7 +153,8 @@ func ConvertDataType(dataBaseType int, isDefaultNull, unsigned, strict bool) (st
 }
 
 // ConvertStringDataType converts mysql column type into golang type
-func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (goType string, isPQArray bool, err error) {
+func ConvertStringDataType(dataBaseType string, isDefaultNull, unsigned, strict bool) (
+	goType string, isPQArray bool, err error) {
 	tp, ok := commonMysqlDataTypeMapString[strings.ToLower(dataBaseType)]
 	if !ok {
 		return "", false, fmt.Errorf("unsupported database type: %s", dataBaseType)
