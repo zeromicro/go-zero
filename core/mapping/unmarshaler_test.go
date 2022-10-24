@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -539,7 +540,7 @@ func TestUnmarshalStringMapFromUnsupportedType(t *testing.T) {
 func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 	var v struct {
 		sort  map[string]string  `key:"sort"`
-		psort *map[string]string `key:"sort"`
+		psort *map[string]string `key:"psort"`
 	}
 	m := map[string]interface{}{
 		"sort":  `{"value":"ascend","emptyStr":""}`,
