@@ -58,7 +58,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/net v0.0.0-20220531201128-c960675eff93 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.3.9

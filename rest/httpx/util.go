@@ -1,7 +1,6 @@
 package httpx
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
@@ -21,7 +20,17 @@ import (
 
 const xForwardedFor = "X-Forwarded-For"
 
-var supportLang map[string]string
+var (
+	enUSParseDash = language.MustParse("en-US")
+	zhCNParseDash = language.MustParse("zh-CN")
+)
+
+var matcher = language.NewMatcher([]language.Tag{
+	language.English, // The first language is used as fallback.
+	language.Chinese,
+	enUSParseDash,
+	zhCNParseDash,
+})
 
 // GetFormValues returns the form values.
 func GetFormValues(r *http.Request) (map[string]interface{}, error) {
@@ -73,12 +82,6 @@ func NewValidator() *Validator {
 	v.Trans = make(map[string]ut.Translator)
 	v.Trans["en"] = enTrans
 	v.Trans["zh"] = zhTrans
-	// add support languages
-	supportLang = make(map[string]string)
-	supportLang["zh"] = "zh"
-	supportLang["zh-CN"] = "zh"
-	supportLang["en"] = "en"
-	supportLang["en-US"] = "en"
 
 	err := enTranslations.RegisterDefaultTranslations(v.Validator, enTrans)
 
@@ -101,14 +104,10 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 		return ""
 	}
 
-	parseLang, err := ParseAcceptLanguage(lang)
-	if err != nil {
-		return err.Error()
-	}
-
-	targetLang := SelectLanguage(parseLang, supportLang)
+	targetLang := SelectLanguage(lang)
 
 	errs, ok := err.(validator.ValidationErrors)
+
 	if ok {
 		transData := errs.Translate(v.Trans[targetLang])
 		s := strings.Builder{}
@@ -127,28 +126,14 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 	return ""
 }
 
-func ParseAcceptLanguage(lang string) ([]string, error) {
-	tags, _, err := language.ParseAcceptLanguage(lang)
-	if err != nil {
-		return nil, errors.New("fail to parse accept language")
-	}
-	var langs = make([]string, len(tags))
-	for i, v := range tags {
-		langs[i] = v.String()
-	}
-	return langs, nil
-}
-
-func SelectLanguage(langs []string, supportLang map[string]string) string {
-	if langs == nil {
+func SelectLanguage(acceptLang string) string {
+	tag, _ := language.MatchStrings(matcher, acceptLang)
+	switch tag {
+	case language.Chinese, zhCNParseDash:
 		return "zh"
+	case language.English, enUSParseDash:
+		return "en"
+	default:
+		return "en"
 	}
-
-	for _, v := range langs {
-		if val, ok := supportLang[v]; ok {
-			return val
-		}
-	}
-
-	return "zh"
 }

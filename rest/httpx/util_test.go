@@ -1,6 +1,7 @@
 package httpx
 
 import (
+	"golang.org/x/text/language"
 	"net/http"
 	"strings"
 	"testing"
@@ -41,6 +42,11 @@ func TestValidator(t *testing.T) {
 		t.Error(result)
 	}
 
+	result2 := v.Validate(u, "zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,la;q=0.5,ja;q=0.4,id;q=0.3,fr;q=0.2")
+	if result2 != "Password长度必须至少为6个字符 " {
+		t.Error(result2)
+	}
+
 	u = User{
 		Username: "admin",
 		Password: "123456",
@@ -51,38 +57,25 @@ func TestValidator(t *testing.T) {
 	}
 }
 
-func TestParseAcceptLanguage(t *testing.T) {
-	data := []struct {
-		Str    string
-		Target []string
-	}{
-		{
-			"zh",
-			[]string{"zh"},
-		},
-		{
-			"zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,la;q=0.5,ja;q=0.4,id;q=0.3,fr;q=0.2",
-			[]string{"zh", "en", "en-US", "zh-CN", "zh-TW", "la", "ja", "id", "fr"},
-		},
-		{
-			"zh-cn,zh;q=0.9",
-			[]string{"zh-CN", "zh"},
-		},
-		{
-			"en,zh;q=0.9",
-			[]string{"en", "zh"},
-		},
+func TestGetLangFromHeader(t *testing.T) {
+	type GetLangTest struct {
+		get      string
+		expected language.Tag
 	}
-
-	for _, v := range data {
-		tmp, err := ParseAcceptLanguage(v.Str)
-		if err != nil {
-			t.Error(err)
-		}
-		for i := range tmp {
-			if v.Target[i] != tmp[i] {
-				t.Error("parse error: ", v.Str)
-			}
+	tests := []GetLangTest{
+		{"en", language.English},
+		{"en_US", enUSParseDash},
+		{"en-US", enUSParseDash},
+		{"zh", language.Chinese},
+		{"zh-CN", zhCNParseDash},
+		{"zh_CN", zhCNParseDash},
+		{"fr", language.English},
+		{"zh,en;q=0.9,en-US;q=0.8,zh-CN;q=0.7,zh-TW;q=0.6,la;q=0.5,ja;q=0.4,id;q=0.3,fr;q=0.2", language.Chinese},
+	}
+	for _, test := range tests {
+		tag, _ := language.MatchStrings(matcher, test.get)
+		if tag != test.expected {
+			t.Errorf("input: %v, got=%v, expected=%v\n", test.get, tag, test.expected)
 		}
 	}
 }
