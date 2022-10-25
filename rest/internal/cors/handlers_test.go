@@ -65,7 +65,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 		for _, method := range methods {
 			test := test
 			t.Run(test.name+"-handler", func(t *testing.T) {
-				r := httptest.NewRequest(method, "http://localhost", nil)
+				r := httptest.NewRequest(method, "http://localhost", http.NoBody)
 				r.Header.Set(originHeader, test.reqOrigin)
 				w := httptest.NewRecorder()
 				handler := NotAllowedHandler(nil, test.origins...)
@@ -78,7 +78,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 				assert.Equal(t, test.expect, w.Header().Get(allowOrigin))
 			})
 			t.Run(test.name+"-handler-custom", func(t *testing.T) {
-				r := httptest.NewRequest(method, "http://localhost", nil)
+				r := httptest.NewRequest(method, "http://localhost", http.NoBody)
 				r.Header.Set(originHeader, test.reqOrigin)
 				w := httptest.NewRecorder()
 				handler := NotAllowedHandler(func(w http.ResponseWriter) {
@@ -100,7 +100,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 		for _, method := range methods {
 			test := test
 			t.Run(test.name+"-middleware", func(t *testing.T) {
-				r := httptest.NewRequest(method, "http://localhost", nil)
+				r := httptest.NewRequest(method, "http://localhost", http.NoBody)
 				r.Header.Set(originHeader, test.reqOrigin)
 				w := httptest.NewRecorder()
 				handler := Middleware(nil, test.origins...)(func(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +115,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 				assert.Equal(t, test.expect, w.Header().Get(allowOrigin))
 			})
 			t.Run(test.name+"-middleware-custom", func(t *testing.T) {
-				r := httptest.NewRequest(method, "http://localhost", nil)
+				r := httptest.NewRequest(method, "http://localhost", http.NoBody)
 				r.Header.Set(originHeader, test.reqOrigin)
 				w := httptest.NewRecorder()
 				handler := Middleware(func(header http.Header) {

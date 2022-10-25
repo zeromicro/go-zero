@@ -105,7 +105,7 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id string) (*User, error
 	}
 
 	var data User
-	key := prefixUserCacheKey + data.ID.Hex()
+	key := prefixUserCacheKey + id
 	err = m.conn.FindOne(ctx, key, &data, bson.M{"_id": oid})
 	switch err {
 	case nil:

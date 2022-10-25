@@ -22,7 +22,7 @@ func TestTimeout(t *testing.T) {
 		time.Sleep(time.Minute)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
@@ -34,7 +34,7 @@ func TestWithinTimeout(t *testing.T) {
 		time.Sleep(time.Millisecond)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -48,7 +48,7 @@ func TestWithTimeoutTimedout(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
@@ -60,7 +60,7 @@ func TestWithoutTimeout(t *testing.T) {
 		time.Sleep(100 * time.Millisecond)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -72,7 +72,7 @@ func TestTimeoutPanic(t *testing.T) {
 		panic("foo")
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	assert.Panics(t, func() {
 		handler.ServeHTTP(resp, req)
@@ -85,7 +85,7 @@ func TestTimeoutWebsocket(t *testing.T) {
 		time.Sleep(time.Millisecond * 10)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	req.Header.Set(headerUpgrade, valueWebsocket)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
@@ -100,7 +100,7 @@ func TestTimeoutWroteHeaderTwice(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -112,7 +112,7 @@ func TestTimeoutWriteBadCode(t *testing.T) {
 		w.WriteHeader(1000)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	assert.Panics(t, func() {
 		handler.ServeHTTP(resp, req)
@@ -125,7 +125,7 @@ func TestTimeoutClientClosed(t *testing.T) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	ctx, cancel := context.WithCancel(context.Background())
 	req = req.WithContext(ctx)
 	cancel()

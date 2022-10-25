@@ -13,7 +13,7 @@ import (
 
 func TestInfo(t *testing.T) {
 	collector := new(LogCollector)
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	req = req.WithContext(context.WithValue(req.Context(), LogContext, collector))
 	Info(req, "first")
 	Infof(req, "second %s", "third")
@@ -35,7 +35,7 @@ func TestError(t *testing.T) {
 		logx.SetWriter(o)
 	}()
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	Error(req, "first")
 	Errorf(req, "second %s", "third")
 	val := buf.String()

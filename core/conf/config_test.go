@@ -105,7 +105,6 @@ d = "abcd!@#112"
 	assert.Equal(t, 1, val.B)
 	assert.Equal(t, "2", val.C)
 	assert.Equal(t, "abcd!@#112", val.D)
-
 }
 
 func TestConfigJsonEnv(t *testing.T) {

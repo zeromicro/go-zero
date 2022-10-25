@@ -26,6 +26,7 @@ type (
 		PrimaryKey  Primary
 		UniqueIndex map[string][]*Field
 		Fields      []*Field
+		ContainsPQ  bool
 	}
 
 	// Primary describes a primary key
@@ -42,6 +43,7 @@ type (
 		Comment         string
 		SeqInIndex      int
 		OrdinalPosition int
+		ContainsPQ      bool
 	}
 
 	// KeyType types alias of int
@@ -268,12 +270,13 @@ func (t *Table) ContainsTime() bool {
 func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
 	isPrimaryUnsigned := strings.Contains(table.PrimaryKey.DbColumn.ColumnType, "unsigned")
-	primaryDataType, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned, strict)
+	primaryDataType, containsPQ, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned, strict)
 	if err != nil {
 		return nil, err
 	}
 
 	var reply Table
+	reply.ContainsPQ = containsPQ
 	reply.UniqueIndex = map[string][]*Field{}
 	reply.Name = stringx.From(table.Table)
 	reply.Db = stringx.From(table.Db)
@@ -299,6 +302,9 @@ func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	}
 
 	for _, each := range fieldM {
+		if each.ContainsPQ {
+			reply.ContainsPQ = true
+		}
 		reply.Fields = append(reply.Fields, each)
 	}
 	sort.Slice(reply.Fields, func(i, j int) bool {
@@ -348,7 +354,7 @@ func getTableFields(table *model.Table, strict bool) (map[string]*Field, error) 
 	for _, each := range table.Columns {
 		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
 		isPrimaryUnsigned := strings.Contains(each.ColumnType, "unsigned")
-		dt, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned, strict)
+		dt, containsPQ, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned, strict)
 		if err != nil {
 			return nil, err
 		}
@@ -364,6 +370,7 @@ func getTableFields(table *model.Table, strict bool) (map[string]*Field, error) 
 			Comment:         each.Comment,
 			SeqInIndex:      columnSeqInIndex,
 			OrdinalPosition: each.OrdinalPosition,
+			ContainsPQ:      containsPQ,
 		}
 		fieldM[each.Name] = field
 	}
