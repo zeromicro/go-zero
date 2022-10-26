@@ -47,6 +47,7 @@ require (
 )
 
 require (
+	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/casbin/casbin/v2 v2.52.1
 	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/go-playground/locales v0.14.0
