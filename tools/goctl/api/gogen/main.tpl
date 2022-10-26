@@ -1,4 +1,5 @@
-//	System Name
+{{if .annotateWithSwagger }}
+//	{{.serviceName}}
 //
 //	Description: {{.serviceName}} service
 //
@@ -6,7 +7,6 @@
 //	Host: localhost:9100
 //	BasePath: /
 //	Version: 0.0.1
-//	Contact: waltcow@gmail.com
 //	SecurityDefinitions:
 //	  Token:
 //	    type: apiKey
@@ -20,7 +20,7 @@
 //	Produces:
 //	  - application/json
 //
-// swagger:meta
+// swagger:meta{{end}}
 package main
 
 import (

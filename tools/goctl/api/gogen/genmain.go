@@ -35,9 +35,10 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		category:        category,
 		templateFile:    mainTemplateFile,
 		builtinTemplate: mainTemplate,
-		data: map[string]string{
-			"importPackages": genMainImports(rootPkg),
-			"serviceName":    configName,
+		data: map[string]interface{}{
+			"importPackages":      genMainImports(rootPkg),
+			"serviceName":         configName,
+			"annotateWithSwagger": cfg.AnnotateWithSwagger,
 		},
 	})
 }

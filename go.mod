@@ -47,8 +47,6 @@ require (
 )
 
 require (
-	github.com/casbin/casbin/v2 v2.52.1
-	github.com/casbin/gorm-adapter/v3 v3.7.4
 	github.com/go-playground/locales v0.14.0
 	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.11.1
@@ -58,10 +56,7 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/text v0.4.0
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
-	gorm.io/driver/mysql v1.3.6
-	gorm.io/driver/postgres v1.3.9
-	gorm.io/gorm v1.23.8
 	k8s.io/klog/v2 v2.40.1 // indirect
 )

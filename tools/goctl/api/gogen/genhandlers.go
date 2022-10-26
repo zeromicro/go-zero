@@ -75,8 +75,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 			handlerDoc.WriteString(fmt.Sprintf(`// Responses:
 			//  200: %s
 			//
-			//
-			`, route.ResponseTypeName()))
+			//`, route.ResponseTypeName()))
 		}
 	}
 

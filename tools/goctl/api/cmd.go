@@ -118,7 +118,7 @@ func init() {
 
 	goCmd.Flags().StringVar(&gogen.VarStringDir, "dir", "", "The target dir")
 	goCmd.Flags().StringVar(&gogen.VarStringAPI, "api", "", "The api file")
-	goCmd.Flags().BoolVar(&gogen.VarBoolSwagger, "swagger", false, "Whether to generate swagger annotation")
+	goCmd.Flags().BoolVar(&gogen.VarBoolSwagger, "swagger", false, "generate swagger annotation")
 	goCmd.Flags().StringVar(&gogen.VarStringHome, "home", "", "The goctl home path of "+
 		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
 		"has higher priority")

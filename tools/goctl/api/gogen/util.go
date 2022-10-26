@@ -3,6 +3,7 @@ package gogen
 import (
 	"bytes"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"io"
 	"strings"
 	"text/template"
@@ -59,10 +60,11 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
-	// write doc for swagger
-	for _, v := range doc {
-		fmt.Fprintf(writer, "\t%s\n", v)
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int, config *config.Config) error {
+	if config.AnnotateWithSwagger {
+		for _, v := range doc {
+			fmt.Fprintf(writer, "\t%s\n", v)
+		}
 	}
 
 	util.WriteIndent(writer, indent)
