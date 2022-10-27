@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -65,6 +66,22 @@ func TestWithFieldsAppend(t *testing.T) {
 		Field("c", 3),
 		Field("d", 4),
 	}, fields)
+}
+
+func TestWithFieldsAppendCopy(t *testing.T) {
+	const count = 10
+	ctx := context.Background()
+	for i := 0; i < count; i++ {
+		ctx = ContextWithFields(ctx, Field(strconv.Itoa(i), 1))
+	}
+
+	af := Field("foo", 1)
+	bf := Field("bar", 2)
+	ctxa := ContextWithFields(ctx, af)
+	ctxb := ContextWithFields(ctx, bf)
+
+	assert.EqualValues(t, af, ctxa.Value(fieldsContextKey).([]LogField)[count])
+	assert.EqualValues(t, bf, ctxb.Value(fieldsContextKey).([]LogField)[count])
 }
 
 func BenchmarkAtomicValue(b *testing.B) {
