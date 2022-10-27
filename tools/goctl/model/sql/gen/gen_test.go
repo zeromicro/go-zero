@@ -119,7 +119,7 @@ func TestFolderName(t *testing.T) {
 
 	pkg := g.pkg
 
-	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	err = g.StartFromDDL(sqlFile, true, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(camelDir, "TestUserModel.go"))
@@ -132,7 +132,7 @@ func TestFolderName(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	err = g.StartFromDDL(sqlFile, true, "go_zero")
+	err = g.StartFromDDL(sqlFile, true, true, "go_zero")
 	assert.Nil(t, err)
 	assert.True(t, func() bool {
 		_, err := os.Stat(filepath.Join(snakeDir, "test_user_model.go"))

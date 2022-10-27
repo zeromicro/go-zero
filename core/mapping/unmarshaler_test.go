@@ -2,12 +2,15 @@ package mapping
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -465,6 +468,146 @@ func TestUnmarshalIntSliceFromString(t *testing.T) {
 	ast.Equal(2, len(v.Values))
 	ast.Equal(1, v.Values[0])
 	ast.Equal(2, v.Values[1])
+}
+
+func TestUnmarshalIntMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]int `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":12345,"zeroVal":0,"nullVal":null}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Sort))
+	ast.Equal(12345, v.Sort["value"])
+	ast.Equal(0, v.Sort["zeroVal"])
+	ast.Equal(0, v.Sort["nullVal"])
+}
+
+func TestUnmarshalBoolMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]bool `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":true,"zeroVal":false,"nullVal":null}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Sort))
+	ast.Equal(true, v.Sort["value"])
+	ast.Equal(false, v.Sort["zeroVal"])
+	ast.Equal(false, v.Sort["nullVal"])
+}
+
+type CustomStringer string
+
+type UnsupportedStringer string
+
+func (c CustomStringer) String() string {
+	return fmt.Sprintf("{%s}", string(c))
+}
+
+func TestUnmarshalStringMapFromStringer(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": CustomStringer(`"value":"ascend","emptyStr":""`),
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(2, len(v.Sort))
+	ast.Equal("ascend", v.Sort["value"])
+	ast.Equal("", v.Sort["emptyStr"])
+}
+
+func TestUnmarshalStringMapFromUnsupportedType(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": UnsupportedStringer(`{"value":"ascend","emptyStr":""}`),
+	}
+
+	ast := assert.New(t)
+	ast.NotNil(UnmarshalKey(m, &v))
+}
+
+func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
+	var v struct {
+		sort  map[string]string  `key:"sort"`
+		psort *map[string]string `key:"psort"`
+	}
+	m := map[string]interface{}{
+		"sort":  `{"value":"ascend","emptyStr":""}`,
+		"psort": `{"value":"ascend","emptyStr":""}`,
+	}
+
+	ast := assert.New(t)
+	ast.NotNil(UnmarshalKey(m, &v))
+}
+
+func TestUnmarshalStringMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":"ascend","emptyStr":""}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(2, len(v.Sort))
+	ast.Equal("ascend", v.Sort["value"])
+	ast.Equal("", v.Sort["emptyStr"])
+}
+
+func TestUnmarshalStructMapFromString(t *testing.T) {
+	var v struct {
+		Filter map[string]struct {
+			Field1 bool     `json:"field1"`
+			Field2 int64    `json:"field2,string"`
+			Field3 string   `json:"field3"`
+			Field4 *string  `json:"field4"`
+			Field5 []string `json:"field5"`
+		} `key:"filter"`
+	}
+	m := map[string]interface{}{
+		"filter": `{"obj":{"field1":true,"field2":"1573570455447539712","field3":"this is a string",
+			"field4":"this is a string pointer","field5":["str1","str2"]}}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(1, len(v.Filter))
+	ast.NotNil(v.Filter["obj"])
+	ast.Equal(true, v.Filter["obj"].Field1)
+	ast.Equal(int64(1573570455447539712), v.Filter["obj"].Field2)
+	ast.Equal("this is a string", v.Filter["obj"].Field3)
+	ast.Equal("this is a string pointer", *v.Filter["obj"].Field4)
+	ast.ElementsMatch([]string{"str1", "str2"}, v.Filter["obj"].Field5)
+}
+
+func TestUnmarshalStringSliceMapFromString(t *testing.T) {
+	var v struct {
+		Filter map[string][]string `key:"filter"`
+	}
+	m := map[string]interface{}{
+		"filter": `{"assignType":null,"status":["process","comment"],"rate":[]}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Filter))
+	ast.Equal([]string(nil), v.Filter["assignType"])
+	ast.Equal(2, len(v.Filter["status"]))
+	ast.Equal("process", v.Filter["status"][0])
+	ast.Equal("comment", v.Filter["status"][1])
+	ast.Equal(0, len(v.Filter["rate"]))
 }
 
 func TestUnmarshalStruct(t *testing.T) {
@@ -2877,6 +3020,24 @@ func TestUnmarshalJsonReaderArrayString(t *testing.T) {
 	reader := strings.NewReader(payload)
 	err := UnmarshalJsonReader(reader, &res)
 	assert.NotNil(t, err)
+}
+
+func TestGoogleUUID(t *testing.T) {
+	var val struct {
+		Uid  uuid.UUID  `json:"uid,optional"`
+		Uidp *uuid.UUID `json:"uidp,optional"`
+	}
+	assert.NoError(t, UnmarshalJsonBytes([]byte(`{
+	"uid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+	"uidp": "6ba7b810-9dad-11d1-80b4-00c04fd430c9"}`), &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c8", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c9", val.Uidp.String())
+	assert.NoError(t, UnmarshalJsonMap(map[string]interface{}{
+		"uid":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
+		"uidp": []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
+	}, &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c1", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 }
 
 func BenchmarkDefaultValue(b *testing.B) {

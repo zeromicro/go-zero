@@ -263,7 +263,18 @@ func buildFields(fields ...LogField) []string {
 	return items
 }
 
+func combineGlobalFields(fields []LogField) []LogField {
+	globals := globalFields.Load()
+	if globals == nil {
+		return fields
+	}
+
+	return append(globals.([]LogField), fields...)
+}
+
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	fields = combineGlobalFields(fields)
+
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
 		writePlainAny(writer, level, val, buildFields(fields...)...)
@@ -350,7 +361,6 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	if _, err := writer.Write(buf.Bytes()); err != nil {
 		log.Println(err.Error())
 	}
-
 }
 
 func writePlainValue(writer io.Writer, level string, val interface{}, fields ...string) {

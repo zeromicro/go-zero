@@ -1117,6 +1117,17 @@ func TestRedisBlpopEx(t *testing.T) {
 	})
 }
 
+func TestRedisBlpopWithTimeout(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		var node mockedNode
+		_, err := client.BlpopWithTimeout(nil, 10*time.Second, "foo")
+		assert.NotNil(t, err)
+		_, err = client.BlpopWithTimeout(node, 10*time.Second, "foo")
+		assert.NotNil(t, err)
+	})
+}
+
 func TestRedisGeo(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
