@@ -60,7 +60,7 @@ func TestDontTracingSpanName(t *testing.T) {
 		Sampler:  1.0,
 	})
 
-	DontTracingSpanName("bar")
+	DontTraceSpan("bar")
 
 	for _, test := range []string{"", "bar", "foo"} {
 		t.Run(test, func(t *testing.T) {

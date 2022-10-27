@@ -1,4 +1,26 @@
-{{.systemInfo}}
+{{if .annotateWithSwagger }}
+//	{{.serviceName}}
+//
+//	Description: {{.serviceName}} service
+//
+//	Schemes: http, https
+//	Host: localhost:9100
+//	BasePath: /
+//	Version: 0.0.1
+//	SecurityDefinitions:
+//	  Token:
+//	    type: apiKey
+//	    name: Authorization
+//	    in: header
+//	Security:
+//	    - Token: []
+//	Consumes:
+//	  - application/json
+//
+//	Produces:
+//	  - application/json
+//
+// swagger:meta{{end}}
 package main
 
 import (

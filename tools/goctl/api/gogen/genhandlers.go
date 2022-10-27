@@ -50,8 +50,33 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	// write doc for swagger
 	var handlerDoc *strings.Builder
 	handlerDoc = &strings.Builder{}
-	for _, v := range route.HandlerDoc {
-		handlerDoc.WriteString(fmt.Sprintf("%s\n", v))
+
+	if cfg.AnnotateWithSwagger {
+		handlerDoc.WriteString(fmt.Sprintf("// swagger:route %s %s %s %s \n", route.Method, route.Path, group.GetAnnotation("group"), strings.TrimSuffix(handler, "Handler")))
+		handlerDoc.WriteString("//\n")
+		handlerDoc.WriteString(fmt.Sprintf("// %s\n", route.AtDoc.Properties["summary"]))
+		handlerDoc.WriteString("//\n")
+		handlerDoc.WriteString(fmt.Sprintf("// %s\n", route.AtDoc.Properties["description"]))
+		handlerDoc.WriteString("//\n")
+
+		// HasRequest
+		if len(route.RequestTypeName()) > 0 {
+			handlerDoc.WriteString(fmt.Sprintf(`// Parameters:
+			//  + name: body
+			//    require: true
+			//    in: body
+			//    type: %s
+			//
+    		//
+			`, route.RequestTypeName()))
+		}
+		// HasResp
+		if len(route.ResponseTypeName()) > 0 {
+			handlerDoc.WriteString(fmt.Sprintf(`// Responses:
+			//  200: %s
+			//
+			//`, route.ResponseTypeName()))
+		}
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{

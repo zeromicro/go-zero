@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+//@enhance
+
 func TestGetRemoteAddr(t *testing.T) {
 	host := "8.8.8.8"
 	r, err := http.NewRequest(http.MethodGet, "/", strings.NewReader(""))
@@ -78,7 +80,7 @@ func TestParseAcceptLanguage(t *testing.T) {
 			t.Error(err)
 		}
 		for i := range tmp {
-			if v.Target[i] != tmp[i] {
+			if v.Target[i] != tmp {
 				t.Error("parse error: ", v.Str)
 			}
 		}

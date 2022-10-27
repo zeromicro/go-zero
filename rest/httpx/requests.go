@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
 
+// @enhance
 const (
 	formKey           = "form"
 	pathKey           = "path"
@@ -24,7 +25,7 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
-	XValidator      = NewValidator()
+	xValidator      = NewValidator()
 )
 
 // Parse parses the request.
@@ -45,15 +46,13 @@ func Parse(r *http.Request, v interface{}) error {
 		return err
 	}
 
-	errs := XValidator.Validate(v, r.Header.Get("Accept-Language"))
-	if errs == "" {
-		return nil
+	if errMsg := xValidator.Validate(v, r.Header.Get("Accept-Language")); errMsg != "" {
+		return &errorx.ApiError{
+			Code: http.StatusBadRequest,
+			Msg:  errMsg,
+		}
 	}
-
-	return &errorx.ApiError{
-		Code: http.StatusBadRequest,
-		Msg:  errs,
-	}
+	return nil
 }
 
 // ParseHeaders parses the headers request.

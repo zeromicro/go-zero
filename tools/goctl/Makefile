@@ -1,5 +1,8 @@
 build:
 	go build -ldflags="-s -w" goctl.go
+	mv goctl /Users/waltcow/go/bin/goctls
+	goctls template clean
+	goctls template init
 	$(if $(shell command -v upx), upx goctl)
 
 mac:

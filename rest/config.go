@@ -6,6 +6,8 @@ import (
 	"github.com/zeromicro/go-zero/core/service"
 )
 
+//@enhance
+
 type (
 	// A PrivateKeyConf is a private key config.
 	PrivateKeyConf struct {

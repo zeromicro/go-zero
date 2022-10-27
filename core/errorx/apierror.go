@@ -4,8 +4,6 @@ type SimpleMsg struct {
 	Msg string `json:"msg"`
 }
 
-// api error
-
 type ApiError struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`

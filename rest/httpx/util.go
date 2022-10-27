@@ -9,12 +9,12 @@ import (
 
 	"github.com/zeromicro/go-zero/core/logx"
 
-	en_lang "github.com/go-playground/locales/en"
-	"github.com/go-playground/locales/zh_Hans"
+	enLang "github.com/go-playground/locales/en"
+	zhLang "github.com/go-playground/locales/zh_Hans"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
-	en_translations "github.com/go-playground/validator/v10/translations/en"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
+	enTranslations "github.com/go-playground/validator/v10/translations/en"
+	zhTranslations "github.com/go-playground/validator/v10/translations/zh"
 )
 
 const xForwardedFor = "X-Forwarded-For"
@@ -62,8 +62,8 @@ type Validator struct {
 
 func NewValidator() *Validator {
 	v := Validator{}
-	en := en_lang.New()
-	zh := zh_Hans.New()
+	en := enLang.New()
+	zh := zhLang.New()
 	v.Uni = ut.New(zh, en, zh)
 	v.Validator = validator.New()
 	enTrans, _ := v.Uni.GetTranslator("en")
@@ -78,14 +78,15 @@ func NewValidator() *Validator {
 	supportLang["en"] = "en"
 	supportLang["en-US"] = "en"
 
-	err := en_translations.RegisterDefaultTranslations(v.Validator, enTrans)
+	err := enTranslations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
 		logx.Errorw("register English translation failed", logx.Field("detail", err.Error()))
 		return nil
 	}
-	err = zh_translations.RegisterDefaultTranslations(v.Validator, zhTrans)
+	err = zhTranslations.RegisterDefaultTranslations(v.Validator, zhTrans)
 	if err != nil {
 		logx.Errorw("register Chinese translation failed", logx.Field("detail", err.Error()))
+
 		return nil
 	}
 
@@ -98,14 +99,13 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 		return ""
 	}
 
-	parseLang, err := ParseAcceptLanguage(lang)
+	targetLang, err := ParseAcceptLanguage(lang)
 	if err != nil {
 		return err.Error()
 	}
 
-	targetLang := SelectLanguage(parseLang, supportLang)
-
 	errs, ok := err.(validator.ValidationErrors)
+
 	if ok {
 		transData := errs.Translate(v.Trans[targetLang])
 		s := strings.Builder{}
@@ -124,30 +124,17 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 	return ""
 }
 
-func ParseAcceptLanguage(lang string) ([]string, error) {
+func ParseAcceptLanguage(lang string) (string, error) {
 	tags, _, err := language.ParseAcceptLanguage(lang)
 	if err != nil {
-		return nil, errors.New("fail to parse accept language")
+		return "", errors.New("fail to parse accept language")
 	}
 
-	var langs []string
 	for _, v := range tags {
-		langs = append(langs, v.String())
-	}
-
-	return langs, nil
-}
-
-func SelectLanguage(langs []string, supportLang map[string]string) string {
-	if langs == nil {
-		return "zh"
-	}
-
-	for _, v := range langs {
-		if val, ok := supportLang[v]; ok {
-			return val
+		if val, ok := supportLang[v.String()]; ok {
+			return val, nil
 		}
 	}
 
-	return "zh"
+	return "zh", nil
 }
