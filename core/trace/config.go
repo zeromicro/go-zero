@@ -7,6 +7,6 @@ const TraceName = "go-zero"
 type Config struct {
 	Name     string  `json:",optional"`
 	Endpoint string  `json:",optional"`
-	Sampler  float64 `json:",default=1.0" default:"1.0"`
-	Batcher  string  `json:",default=jaeger,options=jaeger|zipkin|grpc" default:"jaeger" validate:"oneof=jaeger zipkin grpc"`
+	Sampler  float64 `json:",default=1.0"`
+	Batcher  string  `json:",default=jaeger,options=jaeger|zipkin|grpc"`
 }
