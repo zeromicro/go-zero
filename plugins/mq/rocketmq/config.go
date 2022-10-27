@@ -14,17 +14,17 @@ import (
 
 type ProducerConf struct {
 	NsResolver                 []string // resolver address e.g. 127.0.0.1:9876
-	GroupName                  string
-	Namespace                  string
-	InstanceName               string
-	MsgTimeOut                 int
-	DefaultTopicQueueNums      int
-	CreateTopicKey             string
-	CompressMsgBodyOverHowMuch int
-	CompressLevel              int
-	Retry                      int
-	AccessKey                  string
-	SecretKey                  string
+	GroupName                  string   `json:",optional"`
+	Namespace                  string   `json:",optional"`
+	InstanceName               string   `json:",optional"`
+	MsgTimeOut                 int      `json:",optional"`
+	DefaultTopicQueueNums      int      `json:",optional"`
+	CreateTopicKey             string   `json:",optional"`
+	CompressMsgBodyOverHowMuch int      `json:",optional"`
+	CompressLevel              int      `json:",optional"`
+	Retry                      int      `json:",optional"`
+	AccessKey                  string   `json:",optional"`
+	SecretKey                  string   `json:",optional"`
 }
 
 // Validate the configuration
