@@ -14,6 +14,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
+
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
@@ -39,8 +40,6 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
-	// VarBoolSwagger describes whether to generate swagger annotations.
-	VarBoolSwagger bool
 )
 
 // GoCommand gen go project files from command line
@@ -51,7 +50,6 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
-	swagger := VarBoolSwagger
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -69,11 +67,11 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 		return errors.New("missing -dir")
 	}
 
-	return DoGenProject(apiFile, dir, namingStyle, swagger)
+	return DoGenProject(apiFile, dir, namingStyle)
 }
 
 // DoGenProject gen go project files with api file
-func DoGenProject(apiFile, dir, style string, swagger bool) error {
+func DoGenProject(apiFile, dir, style string) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -88,8 +86,6 @@ func DoGenProject(apiFile, dir, style string, swagger bool) error {
 	if err != nil {
 		return err
 	}
-
-	cfg.AnnotateWithSwagger = swagger
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
 	rootPkg, err := golang.GetParentPackage(dir)

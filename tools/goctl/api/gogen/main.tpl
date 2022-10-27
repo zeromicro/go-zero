@@ -1,4 +1,3 @@
-{{if .annotateWithSwagger }}
 //	{{.serviceName}}
 //
 //	Description: {{.serviceName}} service
@@ -20,7 +19,7 @@
 //	Produces:
 //	  - application/json
 //
-// swagger:meta{{end}}
+// swagger:meta
 package main
 
 import (

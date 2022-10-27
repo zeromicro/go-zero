@@ -19,9 +19,6 @@ type Config struct {
 	// of each operating system file name.
 	// Note: NamingFormat is based on snake or camel string
 	NamingFormat string `yaml:"namingFormat"`
-
-	// Whether to generate the swagger annotation
-	AnnotateWithSwagger bool `yaml:"annotateWithSwagger"`
 }
 
 // NewConfig creates an instance for Config

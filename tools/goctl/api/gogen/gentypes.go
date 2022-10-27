@@ -75,24 +75,8 @@ func writeType(writer io.Writer, tp spec.Type, config *config.Config) error {
 	}
 
 	// write doc for swagger
-	if config.AnnotateWithSwagger {
-		stringBuilder := &strings.Builder{}
-		for _, v := range structType.Documents() {
-			stringBuilder.WriteString(fmt.Sprintf("\t%s\n", v))
-		}
-		if strings.HasSuffix(tp.Name(), "Resp") {
-			if stringBuilder.Len() > 0 {
-				fmt.Fprintf(writer, stringBuilder.String())
-			} else {
-				fmt.Fprintf(writer, "\t// The response data of %s \n", strings.TrimSuffix(tp.Name(), "Resp"))
-			}
-			fmt.Fprintf(writer, "\t// swagger:response %s\n", tp.Name())
-		} else {
-			if stringBuilder.Len() > 0 {
-				fmt.Fprintf(writer, stringBuilder.String())
-			}
-			fmt.Fprintf(writer, "\t// swagger:model %s\n", tp.Name())
-		}
+	for _, v := range structType.Documents() {
+		fmt.Fprintf(writer, "\t%s\n", v)
 	}
 
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
@@ -105,8 +89,7 @@ func writeType(writer io.Writer, tp spec.Type, config *config.Config) error {
 			continue
 		}
 
-		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, member.Docs, 1, config); err != nil {
-
+		if err := writeProperty(writer, member.Name, member.Tag, member.GetComment(), member.Type, member.Docs, 1); err != nil {
 			return err
 		}
 	}

@@ -82,6 +82,6 @@ func CreateServiceCommand(args []string) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, false)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle)
 	return err
 }

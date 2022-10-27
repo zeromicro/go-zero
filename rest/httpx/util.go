@@ -72,11 +72,7 @@ func NewValidator() *Validator {
 	v.Trans["en"] = enTrans
 	v.Trans["zh"] = zhTrans
 	// add support languages
-	supportLang = make(map[string]string)
-	supportLang["zh"] = "zh"
-	supportLang["zh-CN"] = "zh"
-	supportLang["en"] = "en"
-	supportLang["en-US"] = "en"
+	initSupportLanguages()
 
 	err := enTranslations.RegisterDefaultTranslations(v.Validator, enTrans)
 	if err != nil {
@@ -137,4 +133,12 @@ func ParseAcceptLanguage(lang string) (string, error) {
 	}
 
 	return "zh", nil
+}
+
+func initSupportLanguages() {
+	supportLang = make(map[string]string)
+	supportLang["zh"] = "zh"
+	supportLang["zh-CN"] = "zh"
+	supportLang["en"] = "en"
+	supportLang["en-US"] = "en"
 }

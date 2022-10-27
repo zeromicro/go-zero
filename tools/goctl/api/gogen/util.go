@@ -7,8 +7,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/zeromicro/go-zero/tools/goctl/config"
-
 	"github.com/zeromicro/go-zero/core/collection"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -16,8 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
-
-//@enhance
 
 type fileGenConfig struct {
 	dir             string
@@ -62,11 +58,10 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int, config *config.Config) error {
-	if config.AnnotateWithSwagger {
-		for _, v := range doc {
-			fmt.Fprintf(writer, "\t%s\n", v)
-		}
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
+	// write doc for swagger
+	for _, v := range doc {
+		fmt.Fprintf(writer, "\t%s\n", v)
 	}
 
 	util.WriteIndent(writer, indent)

@@ -51,32 +51,36 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	var handlerDoc *strings.Builder
 	handlerDoc = &strings.Builder{}
 
-	if cfg.AnnotateWithSwagger {
-		handlerDoc.WriteString(fmt.Sprintf("// swagger:route %s %s %s %s \n", route.Method, route.Path, group.GetAnnotation("group"), strings.TrimSuffix(handler, "Handler")))
-		handlerDoc.WriteString("//\n")
-		handlerDoc.WriteString(fmt.Sprintf("// %s\n", route.AtDoc.Properties["summary"]))
-		handlerDoc.WriteString("//\n")
-		handlerDoc.WriteString(fmt.Sprintf("// %s\n", route.AtDoc.Properties["description"]))
-		handlerDoc.WriteString("//\n")
+	handlerDoc.WriteString(fmt.Sprintf("// swagger:route %s %s %s %s \n", route.Method, route.Path, group.GetAnnotation("group"), strings.TrimSuffix(handler, "Handler")))
+	handlerDoc.WriteString("//\n")
+	handlerDoc.WriteString(fmt.Sprintf("%s\n", strings.Join(route.HandlerDoc, " ")))
+	handlerDoc.WriteString("//\n")
+	handlerDoc.WriteString(fmt.Sprintf("%s\n", strings.Join(route.HandlerDoc, " ")))
+	handlerDoc.WriteString("//\n")
 
-		// HasRequest
-		if len(route.RequestTypeName()) > 0 {
-			handlerDoc.WriteString(fmt.Sprintf(`// Parameters:
+	// HasRequest
+	if len(route.RequestTypeName()) > 0 {
+		var inVal string
+		if route.Method == "get" {
+			inVal = "query"
+		} else {
+			inVal = "body"
+		}
+
+		handlerDoc.WriteString(fmt.Sprintf(`// Parameters:
 			//  + name: body
 			//    require: true
-			//    in: body
+			//    in: %s
 			//    type: %s
 			//
-    		//
-			`, route.RequestTypeName()))
-		}
-		// HasResp
-		if len(route.ResponseTypeName()) > 0 {
-			handlerDoc.WriteString(fmt.Sprintf(`// Responses:
+			`, inVal, route.RequestTypeName()))
+	}
+	// HasResp
+	if len(route.ResponseTypeName()) > 0 {
+		handlerDoc.WriteString(fmt.Sprintf(`// Responses:
 			//  200: %s
-			//
-			//`, route.ResponseTypeName()))
-		}
+			//  401: SimpleMsg
+			//  500: SimpleMsg`, route.ResponseTypeName()))
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
