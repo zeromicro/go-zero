@@ -31,10 +31,10 @@ func AddGlobalFields(fields ...LogField) {
 func ContextWithFields(ctx context.Context, fields ...LogField) context.Context {
 	if val := ctx.Value(fieldsContextKey); val != nil {
 		if arr, ok := val.([]LogField); ok {
-			newFields := make([]LogField, 0, len(arr)+len(fields))
-			newFields = append(newFields, arr...)
-			newFields = append(newFields, fields...)
-			return context.WithValue(ctx, fieldsContextKey, newFields)
+			allFields := make([]LogField, 0, len(arr)+len(fields))
+			allFields = append(allFields, arr...)
+			allFields = append(allFields, fields...)
+			return context.WithValue(ctx, fieldsContextKey, allFields)
 		}
 	}
 
