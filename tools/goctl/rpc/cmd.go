@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"github.com/spf13/cobra"
-
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 )
 
