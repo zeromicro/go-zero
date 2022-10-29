@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
@@ -104,8 +105,10 @@ func RPCNew(_ *cobra.Command, args []string) error {
 }
 
 // RPCTemplate is the entry for generate rpc template
-func RPCTemplate(_ *cobra.Command, _ []string) error {
-	console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+func RPCTemplate(new bool) error {
+	if !new {
+		console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+	}
 	protoFile := VarStringOutput
 	home := VarStringHome
 	remote := VarStringRemote
