@@ -3,10 +3,12 @@ package gormsql
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type GORMConf struct {
@@ -20,7 +22,6 @@ type GORMConf struct {
 	MaxIdleConn int    `json:"MaxIdleConn"` // the maximum number of connections in the idle connection pool
 	MaxOpenConn int    `json:"MaxOpenConn"` // the maximum number of open connections to the database
 	LogMode     string `json:"LogMode"`     // open gorm's global logger
-	LogZap      bool   `json:"LogZap"`
 }
 
 func (g GORMConf) MysqlDSN() string {
@@ -53,9 +54,17 @@ func GormMysql(c GORMConf) (*gorm.DB, error) {
 		DisableDatetimePrecision:  true,  // disable datetime precision, which not supported before MySQL 5.6
 		DontSupportRenameIndex:    true,  // drop & create when rename index, rename index not supported before MySQL 5.7, MariaDB
 		DontSupportRenameColumn:   true,  // `change` when rename column, rename column not supported before MySQL 8, MariaDB
-		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
+		SkipInitializeWithVersion: false, // autoconfiguration based on currently MySQL version
 	}
-	if db, err := gorm.Open(mysql.New(mysqlConfig), &gorm.Config{}); err != nil {
+
+	if db, err := gorm.Open(mysql.New(mysqlConfig), &gorm.Config{
+		Logger: logger.New(gormWriter{}, logger.Config{
+			SlowThreshold:             1 * time.Second,
+			Colorful:                  false,
+			IgnoreRecordNotFoundError: false,
+			LogLevel:                  getLevel(c.LogMode),
+		}),
+	}); err != nil {
 		return nil, err
 	} else {
 		sqlDB, _ := db.DB()
@@ -73,7 +82,15 @@ func GormPgSql(c GORMConf) (*gorm.DB, error) {
 		DSN:                  c.PostgresDSN(),
 		PreferSimpleProtocol: false, // disables implicit prepared statement usage
 	}
-	if db, err := gorm.Open(postgres.New(pgsqlConfig), &gorm.Config{}); err != nil {
+
+	if db, err := gorm.Open(postgres.New(pgsqlConfig), &gorm.Config{
+		Logger: logger.New(gormWriter{}, logger.Config{
+			SlowThreshold:             1 * time.Second,
+			Colorful:                  false,
+			IgnoreRecordNotFoundError: false,
+			LogLevel:                  getLevel(c.LogMode),
+		}),
+	}); err != nil {
 		return nil, err
 	} else {
 		sqlDB, _ := db.DB()
@@ -81,4 +98,21 @@ func GormPgSql(c GORMConf) (*gorm.DB, error) {
 		sqlDB.SetMaxOpenConns(c.MaxOpenConn)
 		return db, nil
 	}
+}
+
+func getLevel(logMode string) logger.LogLevel {
+	var level logger.LogLevel
+	switch logMode {
+	case "info":
+		level = logger.Info
+	case "warn":
+		level = logger.Warn
+	case "error":
+		level = logger.Error
+	case "silent":
+		level = logger.Silent
+	default:
+		level = logger.Error
+	}
+	return level
 }
