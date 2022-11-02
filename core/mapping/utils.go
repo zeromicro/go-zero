@@ -15,6 +15,7 @@ import (
 
 const (
 	defaultOption      = "default"
+	inheritOption      = "inherit"
 	stringOption       = "string"
 	optionalOption     = "optional"
 	optionsOption      = "options"

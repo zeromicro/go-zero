@@ -70,7 +70,7 @@ func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 
 // Unmarshal unmarshals m into v.
 func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
-	return u.UnmarshalValuer(MapValuer(m), v)
+	return u.UnmarshalValuer(mapValuer(m), v)
 }
 
 // UnmarshalValuer unmarshals m into v.
@@ -93,7 +93,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m Valuer, v interface{}, fullName st
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {
 		field := rte.Field(i)
-		if err := u.processField(field, rve.Field(i), m, fullName); err != nil {
+		if err := u.processField(field, rve.Field(i), simpleValuer{current: m}, fullName); err != nil {
 			return err
 		}
 	}
@@ -102,7 +102,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m Valuer, v interface{}, fullName st
 }
 
 func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value reflect.Value,
-	m Valuer, fullName string) error {
+	m ValuerWithParent, fullName string) error {
 	key, options, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
-	key string, m Valuer, fullName string) error {
+	key string, m ValuerWithParent, fullName string) error {
 	var filled bool
 	var required int
 	var requiredFilled int
@@ -161,7 +161,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 }
 
 func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
-	m Valuer, fullName string) error {
+	m ValuerWithParent, fullName string) error {
 	maybeNewValue(field, value)
 	fieldType := Deref(field.Type)
 	indirectValue := reflect.Indirect(value)
@@ -175,7 +175,7 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 	return nil
 }
 
-func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Value, m Valuer,
+func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Value, m ValuerWithParent,
 	fullName string) error {
 	if usingDifferentKeys(u.key, field) {
 		return nil
@@ -299,7 +299,9 @@ func (u *Unmarshaler) processFieldStruct(field reflect.StructField, value reflec
 		return fmt.Errorf("error: field: %s, expect map[string]interface{}, actual %v", fullName, valueKind)
 	}
 
-	return u.processFieldStructWithMap(field, value, MapValuer(convertedValue), fullName)
+	return u.processFieldStructWithMap(field, value, &simpleValuer{
+		current: mapValuer(convertedValue),
+	}, fullName)
 }
 
 func (u *Unmarshaler) processFieldStructWithMap(field reflect.StructField, value reflect.Value,
@@ -342,7 +344,7 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 }
 
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
-	m Valuer, fullName string) error {
+	m ValuerWithParent, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -805,26 +807,30 @@ func fillWithSameType(field reflect.StructField, value reflect.Value, mapValue i
 }
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
-func getValue(m Valuer, key string) (interface{}, bool) {
+func getValue(m ValuerWithParent, key string) (interface{}, bool) {
 	keys := readKeys(key)
 	return getValueWithChainedKeys(m, keys)
 }
 
-func getValueWithChainedKeys(m Valuer, keys []string) (interface{}, bool) {
-	if len(keys) == 1 {
+func getValueWithChainedKeys(m ValuerWithParent, keys []string) (interface{}, bool) {
+	switch len(keys) {
+	case 0:
+		return nil, false
+	case 1:
 		v, ok := m.Value(keys[0])
 		return v, ok
-	}
-
-	if len(keys) > 1 {
+	default:
 		if v, ok := m.Value(keys[0]); ok {
 			if nextm, ok := v.(map[string]interface{}); ok {
-				return getValueWithChainedKeys(MapValuer(nextm), keys[1:])
+				return getValueWithChainedKeys(recursiveValuer{
+					current: mapValuer(nextm),
+					parent:  m,
+				}, keys[1:])
 			}
 		}
-	}
 
-	return nil, false
+		return nil, false
+	}
 }
 
 func join(elem ...string) string {
