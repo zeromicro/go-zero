@@ -109,7 +109,9 @@ var FindOneMethod string
 var FindOneByFieldMethod string
 
 // Field defines a filed template for types
-const Field = `{{.name}} {{.type}} {{.tag}} {{if .hasComment}}// {{.comment}}{{end}}`
+//
+//go:embed tpl/field.tpl
+var Field string
 
 // Error defines an error template
 //
