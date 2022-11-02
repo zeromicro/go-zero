@@ -1,8 +1,3 @@
-package template
-
-const (
-	// Update defines a template for generating update codes
-	Update = `
 func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, {{if .containsIndexCache}}newData{{else}}data{{end}} *{{.upperStartCamelObject}}) error {
 	{{if .withCache}}{{if .containsIndexCache}}data, err:=m.FindOne(ctx, newData.{{.upperStartCamelPrimaryKey}})
 	if err!=nil{
@@ -17,8 +12,3 @@ func (m *default{{.upperStartCamelObject}}Model) Update(ctx context.Context, {{i
     _,err:=m.conn.ExecCtx(ctx, query, {{.expressionValues}}){{end}}
 	return err
 }
-`
-
-	// UpdateMethod defines an interface method template for generating update codes
-	UpdateMethod = `Update(ctx context.Context, {{if .containsIndexCache}}newData{{else}}data{{end}} *{{.upperStartCamelObject}}) error`
-)
