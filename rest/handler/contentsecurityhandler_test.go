@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -64,7 +63,7 @@ type requestSettings struct {
 }
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestContentSecurityHandler(t *testing.T) {
@@ -374,13 +373,13 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 }
 
 func createTempFile(body []byte) (string, error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "go-unit-*.tmp")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "go-unit-*.tmp")
 	if err != nil {
 		return "", err
 	}
 
 	tmpFile.Close()
-	err = ioutil.WriteFile(tmpFile.Name(), body, os.ModePerm)
+	err = os.WriteFile(tmpFile.Name(), body, os.ModePerm)
 	if err != nil {
 		return "", err
 	}

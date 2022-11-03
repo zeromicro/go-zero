@@ -120,11 +120,6 @@ func (s *Server) build() error {
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
 	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		handler := &grpcurl.DefaultEventHandler{
-			Out: w,
-			Formatter: grpcurl.NewJSONFormatter(true,
-				grpcurl.AnyResolverFromDescriptorSource(source)),
-		}
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
 			httpx.Error(w, err)
@@ -136,6 +131,7 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		defer can()
 
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
+		handler := internal.NewEventHandler(w, resolver)
 		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.Error(w, err)

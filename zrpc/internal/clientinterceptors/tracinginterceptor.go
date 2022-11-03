@@ -153,11 +153,8 @@ func (w *clientStream) sendStreamEvent(eventType streamEventType, err error) {
 }
 
 func startSpan(ctx context.Context, method, target string) (context.Context, trace.Span) {
-	var md metadata.MD
-	requestMetadata, ok := metadata.FromOutgoingContext(ctx)
-	if ok {
-		md = requestMetadata.Copy()
-	} else {
+	md, ok := metadata.FromOutgoingContext(ctx)
+	if !ok {
 		md = metadata.MD{}
 	}
 	tr := otel.Tracer(ztrace.TraceName)

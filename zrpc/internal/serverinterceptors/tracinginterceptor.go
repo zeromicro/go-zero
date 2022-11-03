@@ -93,11 +93,8 @@ func (w *serverStream) SendMsg(m interface{}) error {
 }
 
 func startSpan(ctx context.Context, method string) (context.Context, trace.Span) {
-	var md metadata.MD
-	requestMetadata, ok := metadata.FromIncomingContext(ctx)
-	if ok {
-		md = requestMetadata.Copy()
-	} else {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
 		md = metadata.MD{}
 	}
 	bags, spanCtx := ztrace.Extract(ctx, otel.GetTextMapPropagator(), &md)

@@ -8,7 +8,7 @@
 `namingFormat`可以用于对生成代码的文件名称进行格式化，和日期格式化符（yyyy-MM-dd）类似，在代码生成时可以根据这些配置项的格式化符进行格式化。
 
 ## 格式化符(gozero)
-格式化符有`go`,`zero`组成，如常见的三种格式化风格你可以这样编写：
+格式化符由`go`,`zero`组成，如常见的三种格式化风格你可以这样编写：
 * lower: `gozero`
 * camel: `goZero`
 * snake: `go_zero`

@@ -14,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 {{else}}
+
 import "github.com/zeromicro/go-zero/core/stores/sqlx"
 {{end}}
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)

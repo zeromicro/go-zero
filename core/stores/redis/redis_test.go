@@ -810,7 +810,7 @@ func TestRedis_SetGetDelHashField(t *testing.T) {
 
 func TestRedis_SortedSet(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		ok, err := client.Zadd("key", 1, "value1")
+		ok, err := client.ZaddFloat("key", 1, "value1")
 		assert.Nil(t, err)
 		assert.True(t, ok)
 		ok, err = client.Zadd("key", 2, "value1")
@@ -988,8 +988,8 @@ func TestRedis_SortedSet(t *testing.T) {
 		assert.Equal(t, 0, len(pairs))
 		_, err = New(client.Addr, badType()).Zrevrank("key", "value")
 		assert.NotNil(t, err)
-		client.Zadd("second", 2, "aa")
-		client.Zadd("third", 3, "bbb")
+		_, _ = client.Zadd("second", 2, "aa")
+		_, _ = client.Zadd("third", 3, "bbb")
 		val, err = client.Zunionstore("union", &ZStore{
 			Keys:      []string{"second", "third"},
 			Weights:   []float64{1, 2},
@@ -1117,6 +1117,17 @@ func TestRedisBlpopEx(t *testing.T) {
 	})
 }
 
+func TestRedisBlpopWithTimeout(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		var node mockedNode
+		_, err := client.BlpopWithTimeout(nil, 10*time.Second, "foo")
+		assert.NotNil(t, err)
+		_, err = client.BlpopWithTimeout(node, 10*time.Second, "foo")
+		assert.NotNil(t, err)
+	})
+}
+
 func TestRedisGeo(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
@@ -1176,7 +1187,7 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 		}
 
 		if client != nil {
-			client.Close()
+			_ = client.Close()
 		}
 	}()
 	fn(New(s.Addr()))
@@ -1198,7 +1209,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 			t.Error(err)
 		}
 		if client != nil {
-			client.Close()
+			_ = client.Close()
 		}
 	}()
 	fn(New(s.Addr(), WithTLS()))
@@ -1214,6 +1225,6 @@ type mockedNode struct {
 	RedisNode
 }
 
-func (n mockedNode) BLPop(ctx context.Context, timeout time.Duration, keys ...string) *red.StringSliceCmd {
+func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
 	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }

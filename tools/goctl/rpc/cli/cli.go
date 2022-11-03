@@ -104,8 +104,10 @@ func RPCNew(_ *cobra.Command, args []string) error {
 }
 
 // RPCTemplate is the entry for generate rpc template
-func RPCTemplate(_ *cobra.Command, _ []string) error {
-	console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+func RPCTemplate(latest bool) error {
+	if !latest {
+		console.Warning("deprecated: goctl rpc template -o is deprecated and will be removed in the future, use goctl rpc -o instead")
+	}
 	protoFile := VarStringOutput
 	home := VarStringHome
 	remote := VarStringRemote

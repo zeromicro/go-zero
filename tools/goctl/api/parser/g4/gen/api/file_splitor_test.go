@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,7 +17,7 @@ import (
 
 func TestFileSplitor(t *testing.T) {
 	dir := "."
-	data, err := ioutil.ReadFile(filepath.Join(dir, "apiparser_parser.go"))
+	data, err := os.ReadFile(filepath.Join(dir, "apiparser_parser.go"))
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -67,7 +66,7 @@ import "github.com/zeromicro/antlr"
 			fmt.Printf("%+v\n", err)
 			break
 		}
-		err = ioutil.WriteFile(fp, src, os.ModePerm)
+		err = os.WriteFile(fp, src, os.ModePerm)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 		}

@@ -1,7 +1,7 @@
 package threading
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"testing"
 
@@ -14,7 +14,7 @@ func TestRoutineId(t *testing.T) {
 }
 
 func TestRunSafe(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 
 	i := 0
 

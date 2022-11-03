@@ -47,7 +47,7 @@ func TestPatRouterHandleErrors(t *testing.T) {
 		t.Run(test.method, func(t *testing.T) {
 			router := NewRouter()
 			err := router.Handle(test.method, test.path, nil)
-			assert.Error(t, ErrInvalidMethod, err)
+			assert.Equal(t, test.err, err)
 		})
 	}
 }

@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -15,7 +14,7 @@ import (
 )
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func TestLogHandler(t *testing.T) {
@@ -25,7 +24,7 @@ func TestLogHandler(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
 			w.Header().Set("X-Test", "test")
@@ -55,7 +54,7 @@ func TestLogHandlerVeryLong(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "http://localhost", &buf)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Context().Value(internal.LogContext).(*internal.LogCollector).Append("anything")
-		io.Copy(ioutil.Discard, r.Body)
+		io.Copy(io.Discard, r.Body)
 		w.Header().Set("X-Test", "test")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		_, err := w.Write([]byte("content"))
@@ -80,7 +79,7 @@ func TestLogHandlerSlow(t *testing.T) {
 	}
 
 	for _, logHandler := range handlers {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		handler := logHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			time.Sleep(defaultSlowThreshold + time.Millisecond*50)
 		}))
@@ -160,7 +159,7 @@ func TestWrapStatusCodeWithColor(t *testing.T) {
 func BenchmarkLogHandler(b *testing.B) {
 	b.ReportAllocs()
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	handler := LogHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))

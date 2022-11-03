@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -34,6 +35,41 @@ func TestTraceLog(t *testing.T) {
 
 	WithContext(ctx).Info(testlog)
 	validate(t, w.String(), true, true)
+}
+
+func TestTraceDebug(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	otp := otel.GetTracerProvider()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
+	l := WithContext(ctx)
+	SetLevel(DebugLevel)
+	l.WithDuration(time.Second).Debug(testlog)
+	assert.True(t, strings.Contains(w.String(), traceKey))
+	assert.True(t, strings.Contains(w.String(), spanKey))
+	w.Reset()
+	l.WithDuration(time.Second).Debugf(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugv(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugw(testlog, Field("foo", "bar"))
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
 func TestTraceError(t *testing.T) {
@@ -201,9 +237,51 @@ func TestLogWithFields(t *testing.T) {
 		writer.Store(old)
 	}()
 
-	ctx := WithFields(context.Background(), Field("foo", "bar"))
+	ctx := ContextWithFields(context.Background(), Field("foo", "bar"))
 	l := WithContext(ctx)
 	SetLevel(InfoLevel)
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
+}
+
+func TestLogWithCallerSkip(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithCallerSkip(1).WithCallerSkip(0)
+	p := func(v string) {
+		l.Info(v)
+	}
+
+	file, line := getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
+
+	w.Reset()
+	l = WithCallerSkip(0).WithCallerSkip(1)
+	file, line = getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestLoggerWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithContext(context.Background()).WithFields(Field("foo", "bar"))
 	l.Info(testlog)
 
 	var val mockValue

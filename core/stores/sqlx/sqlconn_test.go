@@ -17,7 +17,8 @@ func init() {
 }
 
 func TestSqlConn(t *testing.T) {
-	mock := buildConn()
+	mock, err := buildConn()
+	assert.Nil(t, err)
 	mock.ExpectExec("any")
 	mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"foo"}))
 	conn := NewMysql(mockedDatasource)
@@ -50,8 +51,8 @@ func TestSqlConn(t *testing.T) {
 	}))
 }
 
-func buildConn() (mock sqlmock.Sqlmock) {
-	connManager.GetResource(mockedDatasource, func() (io.Closer, error) {
+func buildConn() (mock sqlmock.Sqlmock, err error) {
+	_, err = connManager.GetResource(mockedDatasource, func() (io.Closer, error) {
 		var db *sql.DB
 		var err error
 		db, mock, err = sqlmock.New()

@@ -10,7 +10,9 @@ var (
 	Cmd = &cobra.Command{
 		Use:   "rpc",
 		Short: "Generate rpc code",
-		RunE:  cli.RPCTemplate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cli.RPCTemplate(true)
+		},
 	}
 
 	newCmd = &cobra.Command{
@@ -23,7 +25,9 @@ var (
 	templateCmd = &cobra.Command{
 		Use:   "template",
 		Short: "Generate proto template",
-		RunE:  cli.RPCTemplate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cli.RPCTemplate(false)
+		},
 	}
 
 	protocCmd = &cobra.Command{

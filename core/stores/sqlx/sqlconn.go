@@ -153,6 +153,9 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...interfac
 		result, err = exec(ctx, conn, q, args...)
 		return err
 	}, db.acceptable)
+	if err == breaker.ErrServiceUnavailable {
+		metricReqErr.Inc("Exec", "breaker")
+	}
 
 	return
 }
@@ -186,6 +189,9 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		}
 		return nil
 	}, db.acceptable)
+	if err == breaker.ErrServiceUnavailable {
+		metricReqErr.Inc("Prepare", "breaker")
+	}
 
 	return
 }
@@ -270,9 +276,14 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	return db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptable(func() error {
 		return transact(ctx, db, db.beginTx, fn)
 	}, db.acceptable)
+	if err == breaker.ErrServiceUnavailable {
+		metricReqErr.Inc("Transact", "breaker")
+	}
+
+	return
 }
 
 func (db *commonSqlConn) acceptable(err error) bool {
@@ -287,7 +298,7 @@ func (db *commonSqlConn) acceptable(err error) bool {
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) (err error) {
 	var qerr error
-	return db.brk.DoWithAcceptable(func() error {
+	err = db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
 			db.onError(err)
@@ -301,6 +312,11 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	}, func(err error) bool {
 		return qerr == err || db.acceptable(err)
 	})
+	if err == breaker.ErrServiceUnavailable {
+		metricReqErr.Inc("queryRows", "breaker")
+	}
+
+	return
 }
 
 func (s statement) Close() error {

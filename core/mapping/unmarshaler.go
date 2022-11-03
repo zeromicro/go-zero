@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,9 +26,9 @@ var (
 	errValueNotStruct   = errors.New("value type is not struct")
 	keyUnmarshaler      = NewUnmarshaler(defaultKeyName)
 	durationType        = reflect.TypeOf(time.Duration(0))
-	cacheKeys           map[string][]string
+	cacheKeys           = make(map[string][]string)
 	cacheKeysLock       sync.Mutex
-	defaultCache        map[string]interface{}
+	defaultCache        = make(map[string]interface{})
 	defaultCacheLock    sync.Mutex
 	emptyMap            = map[string]interface{}{}
 	emptyValue          = reflect.ValueOf(lang.Placeholder)
@@ -48,11 +49,6 @@ type (
 		canonicalKey func(key string) string
 	}
 )
-
-func init() {
-	cacheKeys = make(map[string][]string)
-	defaultCache = make(map[string]interface{})
-}
 
 // NewUnmarshaler returns a Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
@@ -144,7 +140,6 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 				filled = true
 				maybeNewValue(field, value)
 				indirectValue = reflect.Indirect(value)
-
 			}
 			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
 				return err
@@ -205,6 +200,8 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 		return u.processFieldStruct(field, value, mapValue, fullName)
 	case valueKind == reflect.Map && typeKind == reflect.Map:
 		return u.fillMap(field, value, mapValue)
+	case valueKind == reflect.String && typeKind == reflect.Map:
+		return u.fillMapFromString(value, mapValue)
 	case valueKind == reflect.String && typeKind == reflect.Slice:
 		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
@@ -325,6 +322,28 @@ func (u *Unmarshaler) processFieldStructWithMap(field reflect.StructField, value
 	return nil
 }
 
+func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, value reflect.Value,
+	mapValue interface{}) (bool, error) {
+	var tval encoding.TextUnmarshaler
+	var ok bool
+
+	if field.Type.Kind() == reflect.Ptr {
+		tval, ok = value.Interface().(encoding.TextUnmarshaler)
+	} else {
+		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+	}
+	if ok {
+		switch mv := mapValue.(type) {
+		case string:
+			return true, tval.UnmarshalText([]byte(mv))
+		case []byte:
+			return true, tval.UnmarshalText(mv)
+		}
+	}
+
+	return false, nil
+}
+
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m Valuer, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
@@ -355,7 +374,15 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 		return fmt.Errorf("field %s mustn't be nil", key)
 	}
 
+	if !value.CanSet() {
+		return fmt.Errorf("field %s is not settable", key)
+	}
+
 	maybeNewValue(field, value)
+
+	if yes, err := u.processFieldTextUnmarshaler(field, value, mapValue); yes {
+		return err
+	}
 
 	fieldKind := Deref(field.Type).Kind()
 	switch fieldKind {
@@ -442,6 +469,27 @@ func (u *Unmarshaler) fillMap(field reflect.StructField, value reflect.Value, ma
 	}
 
 	value.Set(targetValue)
+	return nil
+}
+
+func (u *Unmarshaler) fillMapFromString(value reflect.Value, mapValue interface{}) error {
+	if !value.CanSet() {
+		return errValueNotSettable
+	}
+
+	switch v := mapValue.(type) {
+	case fmt.Stringer:
+		if err := jsonx.UnmarshalFromString(v.String(), value.Addr().Interface()); err != nil {
+			return err
+		}
+	case string:
+		if err := jsonx.UnmarshalFromString(v, value.Addr().Interface()); err != nil {
+			return err
+		}
+	default:
+		return errUnsupportedType
+	}
+
 	return nil
 }
 

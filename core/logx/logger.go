@@ -7,6 +7,14 @@ import (
 
 // A Logger represents a logger.
 type Logger interface {
+	// Debug logs a message at info level.
+	Debug(...interface{})
+	// Debugf logs a message at info level.
+	Debugf(string, ...interface{})
+	// Debugv logs a message at info level.
+	Debugv(interface{})
+	// Debugw logs a message at info level.
+	Debugw(string, ...LogField)
 	// Error logs a message at error level.
 	Error(...interface{})
 	// Errorf logs a message at error level.
@@ -31,8 +39,12 @@ type Logger interface {
 	Slowv(interface{})
 	// Sloww logs a message at slow level.
 	Sloww(string, ...LogField)
+	// WithCallerSkip returns a new logger with the given caller skip.
+	WithCallerSkip(skip int) Logger
 	// WithContext returns a new logger with the given context.
-	WithContext(context.Context) Logger
+	WithContext(ctx context.Context) Logger
 	// WithDuration returns a new logger with the given duration.
-	WithDuration(time.Duration) Logger
+	WithDuration(d time.Duration) Logger
+	// WithFields returns a new logger with the given fields.
+	WithFields(fields ...LogField) Logger
 }
