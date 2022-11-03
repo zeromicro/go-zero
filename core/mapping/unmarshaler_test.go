@@ -2718,7 +2718,7 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 	assert.Equal(t, "1", c.Anything["id"])
 }
 
-func TestUnmarshalInherit(t *testing.T) {
+func TestUnmarshalInheritUseParent(t *testing.T) {
 	type (
 		discovery struct {
 			Host string `key:"host"`
@@ -2748,6 +2748,42 @@ func TestUnmarshalInherit(t *testing.T) {
 	assert.Equal(t, 8080, s.Discovery.Port)
 	assert.Equal(t, "localhost", s.Component.Discovery.Host)
 	assert.Equal(t, 8080, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritUseSelf(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"host": "remotehost",
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "remotehost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
 }
 
 func TestUnmarshalValuer(t *testing.T) {

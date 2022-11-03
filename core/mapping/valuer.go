@@ -19,6 +19,11 @@ type (
 		parent  ValuerWithParent
 	}
 
+	valueWithParent struct {
+		value  interface{}
+		parent ValuerWithParent
+	}
+
 	mapValuer       map[string]interface{}
 	simpleValuer    node
 	recursiveValuer node
