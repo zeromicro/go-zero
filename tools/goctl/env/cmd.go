@@ -8,7 +8,7 @@ var (
 	boolVarVerbose     bool
 	boolVarInstall     bool
 
-	// Cmd describes a env command.
+	// Cmd describes an env command.
 	Cmd = &cobra.Command{
 		Use:   "env",
 		Short: "Check or edit goctl environment",
