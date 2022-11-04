@@ -10,7 +10,7 @@ func (nopCloser) Close() error {
 	return nil
 }
 
-// NopCloser returns a io.WriteCloser that does nothing on calling Close.
+// NopCloser returns an io.WriteCloser that does nothing on calling Close.
 func NopCloser(w io.Writer) io.WriteCloser {
 	return nopCloser{w}
 }

@@ -129,7 +129,7 @@ type (
 		Value   Type
 	}
 
-	// InterfaceType describes a interface for api
+	// InterfaceType describes an interface for api
 	InterfaceType struct {
 		RawName string
 	}
