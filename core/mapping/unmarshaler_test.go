@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -36,6 +37,29 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 	var in inner
 	assert.Nil(t, UnmarshalKey(m, &in))
 	assert.True(t, in.Optional)
+}
+
+func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
+	type inner struct {
+		Name string `key:"name"`
+	}
+	m := map[string]interface{}{
+		"Name": "go-zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		first := true
+		return strings.Map(func(r rune) rune {
+			if first {
+				first = false
+				return unicode.ToTitle(r)
+			}
+			return r
+		}, s)
+	}))
+	assert.Nil(t, unmarshaler.Unmarshal(m, &in))
+	assert.Equal(t, "go-zero", in.Name)
 }
 
 func TestUnmarshalBool(t *testing.T) {
