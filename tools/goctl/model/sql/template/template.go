@@ -30,7 +30,11 @@ var TableName string
 var New string
 
 // Tag defines a tag template text
-const Tag = "`db:\"{{.field}}\"`"
+//
+//go:embed tpl/tag.tpl
+var Tag string
+
+//const Tag = "`db:\"{{.field}}\"`"
 
 // ModelCustom defines a template for extension
 //
