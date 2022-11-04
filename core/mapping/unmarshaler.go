@@ -351,19 +351,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		canonicalKey = u.opts.canonicalKey(key)
 	}
 
-	var valuer ValuerWithParent
-	if opts.inherit() {
-		valuer = recursiveValuer{
-			current: m,
-			parent:  m.Parent(),
-		}
-	} else {
-		valuer = simpleValuer{
-			current: m,
-			parent:  m.Parent(),
-		}
-	}
-
+	valuer := createValuer(m, opts)
 	mapValue, hasValue := getValue(valuer, canonicalKey)
 	if !hasValue {
 		return u.processNamedFieldWithoutValue(field, value, opts, fullName)
@@ -769,6 +757,20 @@ func WithStringValues() UnmarshalOption {
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
+	}
+}
+
+func createValuer(v ValuerWithParent, opts *fieldOptionsWithContext) ValuerWithParent {
+	if opts.inherit() {
+		return recursiveValuer{
+			current: v,
+			parent:  v.Parent(),
+		}
+	}
+
+	return simpleValuer{
+		current: v,
+		parent:  v.Parent(),
 	}
 }
 
