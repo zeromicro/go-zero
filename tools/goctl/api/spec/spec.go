@@ -19,7 +19,7 @@ type (
 		Comment Doc
 	}
 
-	// ApiSpec describes a api file
+	// ApiSpec describes an api file
 	ApiSpec struct {
 		Info    Info
 		Syntax  ApiSyntax
