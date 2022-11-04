@@ -2765,6 +2765,25 @@ func TestUnmarshalInheritPrimitiveUseSelf(t *testing.T) {
 	assert.Equal(t, "localhost:8888", s.Component.Discovery)
 }
 
+func TestUnmarshalInheritPrimitiveNotExist(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
 func TestUnmarshalInheritStructUseParent(t *testing.T) {
 	type (
 		discovery struct {
@@ -2831,6 +2850,29 @@ func TestUnmarshalInheritStructUseSelf(t *testing.T) {
 	assert.Equal(t, 8080, s.Discovery.Port)
 	assert.Equal(t, "remotehost", s.Component.Discovery.Host)
 	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructNotExist(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
 }
 
 func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
