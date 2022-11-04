@@ -258,7 +258,7 @@ func parseUints(val string) ([]uint64, error) {
 	return sets, nil
 }
 
-// runningInUserNS detects whether we are currently running in a user namespace.
+// runningInUserNS detects whether we are currently running in an user namespace.
 func runningInUserNS() bool {
 	nsOnce.Do(func() {
 		file, err := os.Open("/proc/self/uid_map")

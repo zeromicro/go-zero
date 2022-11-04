@@ -41,7 +41,7 @@ type (
 		opts unmarshalOptions
 	}
 
-	// UnmarshalOption defines the method to customize a Unmarshaler.
+	// UnmarshalOption defines the method to customize an Unmarshaler.
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
@@ -50,7 +50,7 @@ type (
 	}
 )
 
-// NewUnmarshaler returns a Unmarshaler.
+// NewUnmarshaler returns an Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	unmarshaler := Unmarshaler{
 		key: key,
@@ -724,14 +724,14 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	return key, optsWithContext, nil
 }
 
-// WithStringValues customizes a Unmarshaler with number values from strings.
+// WithStringValues customizes an Unmarshaler with number values from strings.
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
 	}
 }
 
-// WithCanonicalKeyFunc customizes a Unmarshaler with Canonical Key func
+// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
