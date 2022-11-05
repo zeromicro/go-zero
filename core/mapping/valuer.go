@@ -7,23 +7,23 @@ type (
 		Value(key string) (interface{}, bool)
 	}
 
-	// A ValuerWithParent defines a node that has a parent node.
-	ValuerWithParent interface {
+	// A valuerWithParent defines a node that has a parent node.
+	valuerWithParent interface {
 		Valuer
 		// Parent get the parent valuer for current node.
-		Parent() ValuerWithParent
+		Parent() valuerWithParent
 	}
 
 	// A node is a map that can use Value method to get values with given keys.
 	node struct {
 		current Valuer
-		parent  ValuerWithParent
+		parent  valuerWithParent
 	}
 
 	// A valueWithParent is used to wrap the value with its parent.
 	valueWithParent struct {
 		value  interface{}
-		parent ValuerWithParent
+		parent valuerWithParent
 	}
 
 	// mapValuer is a type for map to meet the Valuer interface.
@@ -47,7 +47,7 @@ func (sv simpleValuer) Value(key string) (interface{}, bool) {
 }
 
 // Parent get the parent valuer from sv.
-func (sv simpleValuer) Parent() ValuerWithParent {
+func (sv simpleValuer) Parent() valuerWithParent {
 	if sv.parent == nil {
 		return nil
 	}
@@ -73,7 +73,7 @@ func (rv recursiveValuer) Value(key string) (interface{}, bool) {
 }
 
 // Parent get the parent valuer from rv.
-func (rv recursiveValuer) Parent() ValuerWithParent {
+func (rv recursiveValuer) Parent() valuerWithParent {
 	if rv.parent == nil {
 		return nil
 	}

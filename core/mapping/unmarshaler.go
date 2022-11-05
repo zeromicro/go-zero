@@ -78,7 +78,7 @@ func (u *Unmarshaler) UnmarshalValuer(m Valuer, v interface{}) error {
 	return u.unmarshalWithFullName(simpleValuer{current: m}, v, "")
 }
 
-func (u *Unmarshaler) unmarshalWithFullName(m ValuerWithParent, v interface{}, fullName string) error {
+func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v interface{}, fullName string) error {
 	rv := reflect.ValueOf(v)
 	if err := ValidatePtr(&rv); err != nil {
 		return err
@@ -102,7 +102,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m ValuerWithParent, v interface{}, f
 }
 
 func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value reflect.Value,
-	m ValuerWithParent, fullName string) error {
+	m valuerWithParent, fullName string) error {
 	key, options, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
-	key string, m ValuerWithParent, fullName string) error {
+	key string, m valuerWithParent, fullName string) error {
 	var filled bool
 	var required int
 	var requiredFilled int
@@ -161,7 +161,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 }
 
 func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
-	m ValuerWithParent, fullName string) error {
+	m valuerWithParent, fullName string) error {
 	maybeNewValue(field, value)
 	fieldType := Deref(field.Type)
 	indirectValue := reflect.Indirect(value)
@@ -176,7 +176,7 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 }
 
 func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Value,
-	m ValuerWithParent, fullName string) error {
+	m valuerWithParent, fullName string) error {
 	if usingDifferentKeys(u.key, field) {
 		return nil
 	}
@@ -300,7 +300,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(field reflect.StructFi
 }
 
 func (u *Unmarshaler) processFieldStruct(field reflect.StructField, value reflect.Value,
-	m ValuerWithParent, fullName string) error {
+	m valuerWithParent, fullName string) error {
 	if field.Type.Kind() == reflect.Ptr {
 		baseType := Deref(field.Type)
 		target := reflect.New(baseType).Elem()
@@ -339,7 +339,7 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 }
 
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
-	m ValuerWithParent, fullName string) error {
+	m valuerWithParent, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -355,13 +355,6 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	mapValue, hasValue := getValue(valuer, canonicalKey)
 	if !hasValue {
 		return u.processNamedFieldWithoutValue(field, value, opts, fullName)
-	}
-
-	if field.Type.Kind() == reflect.Struct {
-		return u.processNamedFieldWithValue(field, value, valueWithParent{
-			value:  mapValue,
-			parent: valuer,
-		}, key, opts, fullName)
 	}
 
 	return u.processNamedFieldWithValue(field, value, valueWithParent{
@@ -760,7 +753,7 @@ func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	}
 }
 
-func createValuer(v ValuerWithParent, opts *fieldOptionsWithContext) ValuerWithParent {
+func createValuer(v valuerWithParent, opts *fieldOptionsWithContext) valuerWithParent {
 	if opts.inherit() {
 		return recursiveValuer{
 			current: v,
@@ -841,12 +834,12 @@ func fillWithSameType(field reflect.StructField, value reflect.Value, mapValue i
 }
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
-func getValue(m ValuerWithParent, key string) (interface{}, bool) {
+func getValue(m valuerWithParent, key string) (interface{}, bool) {
 	keys := readKeys(key)
 	return getValueWithChainedKeys(m, keys)
 }
 
-func getValueWithChainedKeys(m ValuerWithParent, keys []string) (interface{}, bool) {
+func getValueWithChainedKeys(m valuerWithParent, keys []string) (interface{}, bool) {
 	switch len(keys) {
 	case 0:
 		return nil, false
