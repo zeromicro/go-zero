@@ -1,8 +1,9 @@
 package mapping
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMapValuerWithInherit_Value(t *testing.T) {
@@ -19,9 +20,14 @@ func TestMapValuerWithInherit_Value(t *testing.T) {
 		current: mapValuer(input["component"].(map[string]interface{})),
 		parent: simpleValuer{
 			current: mapValuer(input),
-			parent:  nil,
 		},
 	}
+
 	val, ok := valuer.Value("discovery")
-	fmt.Println(val, ok)
+	assert.True(t, ok)
+
+	m, ok := val.(map[string]interface{})
+	assert.True(t, ok)
+	assert.Equal(t, "localhost", m["host"])
+	assert.Equal(t, 8080, m["port"])
 }

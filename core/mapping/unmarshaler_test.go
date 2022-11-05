@@ -11,7 +11,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
