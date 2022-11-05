@@ -387,10 +387,7 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 	fieldKind := Deref(field.Type).Kind()
 	switch fieldKind {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.Struct:
-		return u.processFieldNotFromString(field, value, valueWithParent{
-			value:  mapValue,
-			parent: vp.parent,
-		}, opts, fullName)
+		return u.processFieldNotFromString(field, value, vp, opts, fullName)
 	default:
 		if u.opts.fromString || opts.fromString() {
 			valueKind := reflect.TypeOf(mapValue).Kind()
@@ -409,10 +406,7 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 			return fillPrimitive(field.Type, value, mapValue, opts, fullName)
 		}
 
-		return u.processFieldNotFromString(field, value, valueWithParent{
-			value:  mapValue,
-			parent: vp.parent,
-		}, opts, fullName)
+		return u.processFieldNotFromString(field, value, vp, opts, fullName)
 	}
 }
 
