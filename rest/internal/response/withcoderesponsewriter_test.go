@@ -9,7 +9,7 @@ import (
 )
 
 func TestWithCodeResponseWriter(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cw := &WithCodeResponseWriter{Writer: w}
 

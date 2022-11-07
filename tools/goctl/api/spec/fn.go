@@ -154,6 +154,27 @@ func (m Member) IsTagMember(tagKey string) bool {
 	return false
 }
 
+// GetEnumOptions return a slice contains all enumeration options
+func (m Member) GetEnumOptions() []string {
+	if !m.IsBodyMember() {
+		return nil
+	}
+
+	tags := m.Tags()
+	for _, tag := range tags {
+		if tag.Key == bodyTagKey {
+			options := tag.Options
+			for _, option := range options {
+				if strings.Index(option, "options=") == 0 {
+					option = strings.TrimPrefix(option, "options=")
+					return strings.Split(option, "|")
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // GetBodyMembers returns all json fields
 func (t DefineStruct) GetBodyMembers() []Member {
 	var result []Member

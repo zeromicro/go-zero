@@ -4,6 +4,7 @@
 package stat
 
 import (
+	"os"
 	"strconv"
 	"sync/atomic"
 	"testing"
@@ -12,6 +13,9 @@ import (
 )
 
 func TestReport(t *testing.T) {
+	os.Setenv(clusterNameKey, "test-cluster")
+	defer os.Unsetenv(clusterNameKey)
+
 	var count int32
 	SetReporter(func(s string) {
 		atomic.AddInt32(&count, 1)

@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"encoding"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,7 +41,7 @@ type (
 		opts unmarshalOptions
 	}
 
-	// UnmarshalOption defines the method to customize a Unmarshaler.
+	// UnmarshalOption defines the method to customize an Unmarshaler.
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
@@ -49,7 +50,7 @@ type (
 	}
 )
 
-// NewUnmarshaler returns a Unmarshaler.
+// NewUnmarshaler returns an Unmarshaler.
 func NewUnmarshaler(key string, opts ...UnmarshalOption) *Unmarshaler {
 	unmarshaler := Unmarshaler{
 		key: key,
@@ -139,7 +140,6 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 				filled = true
 				maybeNewValue(field, value)
 				indirectValue = reflect.Indirect(value)
-
 			}
 			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
 				return err
@@ -319,6 +319,28 @@ func (u *Unmarshaler) processFieldStructWithMap(field reflect.StructField, value
 	return nil
 }
 
+func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, value reflect.Value,
+	mapValue interface{}) (bool, error) {
+	var tval encoding.TextUnmarshaler
+	var ok bool
+
+	if field.Type.Kind() == reflect.Ptr {
+		tval, ok = value.Interface().(encoding.TextUnmarshaler)
+	} else {
+		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
+	}
+	if ok {
+		switch mv := mapValue.(type) {
+		case string:
+			return true, tval.UnmarshalText([]byte(mv))
+		case []byte:
+			return true, tval.UnmarshalText(mv)
+		}
+	}
+
+	return false, nil
+}
+
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m Valuer, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
@@ -349,7 +371,15 @@ func (u *Unmarshaler) processNamedFieldWithValue(field reflect.StructField, valu
 		return fmt.Errorf("field %s mustn't be nil", key)
 	}
 
+	if !value.CanSet() {
+		return fmt.Errorf("field %s is not settable", key)
+	}
+
 	maybeNewValue(field, value)
+
+	if yes, err := u.processFieldTextUnmarshaler(field, value, mapValue); yes {
+		return err
+	}
 
 	fieldKind := Deref(field.Type).Kind()
 	switch fieldKind {
@@ -694,14 +724,14 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	return key, optsWithContext, nil
 }
 
-// WithStringValues customizes a Unmarshaler with number values from strings.
+// WithStringValues customizes an Unmarshaler with number values from strings.
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fromString = true
 	}
 }
 
-// WithCanonicalKeyFunc customizes a Unmarshaler with Canonical Key func
+// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f

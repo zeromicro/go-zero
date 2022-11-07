@@ -19,7 +19,7 @@ type (
 		Comment Doc
 	}
 
-	// ApiSpec describes a api file
+	// ApiSpec describes an api file
 	ApiSpec struct {
 		Info    Info
 		Syntax  ApiSyntax
@@ -129,7 +129,7 @@ type (
 		Value   Type
 	}
 
-	// InterfaceType describes a interface for api
+	// InterfaceType describes an interface for api
 	InterfaceType struct {
 		RawName string
 	}

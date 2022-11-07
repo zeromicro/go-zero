@@ -26,7 +26,7 @@ func init() {
 }
 
 func TestCryptionHandlerGet(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/any", nil)
+	req := httptest.NewRequest(http.MethodGet, "/any", http.NoBody)
 	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte(respText))
 		w.Header().Set("X-Test", "test")
@@ -80,7 +80,7 @@ func TestCryptionHandlerPostBadEncryption(t *testing.T) {
 }
 
 func TestCryptionHandlerWriteHeader(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/any", nil)
+	req := httptest.NewRequest(http.MethodGet, "/any", http.NoBody)
 	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
@@ -90,7 +90,7 @@ func TestCryptionHandlerWriteHeader(t *testing.T) {
 }
 
 func TestCryptionHandlerFlush(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/any", nil)
+	req := httptest.NewRequest(http.MethodGet, "/any", http.NoBody)
 	handler := CryptionHandler(aesKey)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(respText))
 		flusher, ok := w.(http.Flusher)

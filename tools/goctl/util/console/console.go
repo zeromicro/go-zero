@@ -115,7 +115,7 @@ func (c *colorConsole) Must(err error) {
 	}
 }
 
-// NewIdeaConsole returns a instance of ideaConsole
+// NewIdeaConsole returns an instance of ideaConsole
 func NewIdeaConsole() Console {
 	return &ideaConsole{}
 }

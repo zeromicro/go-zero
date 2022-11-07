@@ -272,6 +272,23 @@ func TestLogWithCallerSkip(t *testing.T) {
 	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestLoggerWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithContext(context.Background()).WithFields(Field("foo", "bar"))
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
+}
+
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	var val mockValue
 	dec := json.NewDecoder(strings.NewReader(body))

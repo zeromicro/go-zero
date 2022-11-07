@@ -8,7 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -537,10 +539,12 @@ func TestUnmarshalStringMapFromUnsupportedType(t *testing.T) {
 
 func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 	var v struct {
-		sort map[string]string `key:"sort"`
+		sort  map[string]string  `key:"sort"`
+		psort *map[string]string `key:"psort"`
 	}
 	m := map[string]interface{}{
-		"sort": `{"value":"ascend","emptyStr":""}`,
+		"sort":  `{"value":"ascend","emptyStr":""}`,
+		"psort": `{"value":"ascend","emptyStr":""}`,
 	}
 
 	ast := assert.New(t)
@@ -3016,6 +3020,24 @@ func TestUnmarshalJsonReaderArrayString(t *testing.T) {
 	reader := strings.NewReader(payload)
 	err := UnmarshalJsonReader(reader, &res)
 	assert.NotNil(t, err)
+}
+
+func TestGoogleUUID(t *testing.T) {
+	var val struct {
+		Uid  uuid.UUID  `json:"uid,optional"`
+		Uidp *uuid.UUID `json:"uidp,optional"`
+	}
+	assert.NoError(t, UnmarshalJsonBytes([]byte(`{
+	"uid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+	"uidp": "6ba7b810-9dad-11d1-80b4-00c04fd430c9"}`), &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c8", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c9", val.Uidp.String())
+	assert.NoError(t, UnmarshalJsonMap(map[string]interface{}{
+		"uid":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
+		"uidp": []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
+	}, &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c1", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 }
 
 func BenchmarkDefaultValue(b *testing.B) {
