@@ -2898,6 +2898,41 @@ func TestUnmarshalInheritStructNotExist(t *testing.T) {
 	}, &s))
 }
 
+func TestUnmarshalInheritStructUsePartial(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
 func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
 	type (
 		discovery struct {
@@ -2926,6 +2961,34 @@ func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
 			},
 		},
 	}, &s))
+}
+
+func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		middle struct {
+			Value component `key:"value"`
+		}
+		server struct {
+			Discovery string `key:"discovery"`
+			Middle    middle `key:"middle"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"middle": map[string]interface{}{
+			"value": map[string]interface{}{
+				"name": "test",
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
 }
 
 func TestUnmarshalValuer(t *testing.T) {

@@ -61,15 +61,30 @@ func (sv simpleValuer) Parent() valuerWithParent {
 // Value gets the value associated with the given key from rv,
 // and it will inherit the value from parent nodes.
 func (rv recursiveValuer) Value(key string) (interface{}, bool) {
-	if v, ok := rv.current.Value(key); ok {
-		return v, ok
+	val, ok := rv.current.Value(key)
+	if !ok {
+		if parent := rv.Parent(); parent != nil {
+			return parent.Value(key)
+		}
+
+		return nil, false
 	}
 
-	if parent := rv.Parent(); parent != nil {
-		return parent.Value(key)
+	if vm, ok := val.(map[string]interface{}); ok {
+		if parent := rv.Parent(); parent != nil {
+			pv, pok := parent.Value(key)
+			if pok {
+				if pm, ok := pv.(map[string]interface{}); ok {
+					for k, v := range vm {
+						pm[k] = v
+					}
+					return pm, true
+				}
+			}
+		}
 	}
 
-	return nil, false
+	return val, true
 }
 
 // Parent get the parent valuer from rv.
