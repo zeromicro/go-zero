@@ -20,8 +20,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 		pkg = "newData."
 	}
 	for _, field := range table.Fields {
-		camel := util.SafeString(field.Name.ToCamel())
-		if camel == "CreateTime" || camel == "UpdateTime" || camel == "CreateAt" || camel == "UpdateAt" {
+		if field.StructField == "CreateTime" || field.StructField == "UpdateTime" || field.StructField == "CreateAt" || field.StructField == "UpdateAt" {
 			continue
 		}
 
@@ -29,7 +28,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 			continue
 		}
 
-		expressionValues = append(expressionValues, pkg+camel)
+		expressionValues = append(expressionValues, pkg+field.StructField)
 	}
 
 	keySet := collection.NewSet()

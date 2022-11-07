@@ -38,7 +38,7 @@ func genField(table Table, field *parser.Field) (string, error) {
 	output, err := util.With("types").
 		Parse(text).
 		Execute(map[string]interface{}{
-			"name":       util.SafeString(field.Name.ToCamel()),
+			"name":       field.StructField,
 			"type":       field.DataType,
 			"tag":        tag,
 			"hasComment": field.Comment != "",

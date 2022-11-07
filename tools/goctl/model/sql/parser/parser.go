@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
+	goctlutil "github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/stringx"
 )
@@ -37,6 +38,7 @@ type (
 	Field struct {
 		NameOriginal    string
 		Name            stringx.String
+		StructField     string
 		DataType        string
 		Comment         string
 		SeqInIndex      int
@@ -238,6 +240,7 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 		field.Name = stringx.From(column.Name)
 		field.DataType = dataType
 		field.Comment = util.TrimNewLine(comment)
+		field.StructField = goctlutil.SafeString(field.Name.ToCamel())
 
 		if field.Name.Source() == primaryColumn {
 			primaryKey = Primary{
@@ -288,6 +291,7 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 			Comment:         table.PrimaryKey.Comment,
 			SeqInIndex:      seqInIndex,
 			OrdinalPosition: table.PrimaryKey.OrdinalPosition,
+			StructField:     goctlutil.SafeString(stringx.From(table.PrimaryKey.Name).ToCamel()),
 		},
 		AutoIncrement: strings.Contains(table.PrimaryKey.Extra, "auto_increment"),
 	}
@@ -363,6 +367,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 			Comment:         each.Comment,
 			SeqInIndex:      columnSeqInIndex,
 			OrdinalPosition: each.OrdinalPosition,
+			StructField:     goctlutil.SafeString(stringx.From(each.Name).ToCamel()),
 		}
 		fieldM[each.Name] = field
 	}
