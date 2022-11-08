@@ -12,7 +12,7 @@ type (
 	RpcServerConf struct {
 		service.ServiceConf
 		ListenOn      string
-		Etcd          discov.EtcdConf    `json:",optional"`
+		Etcd          discov.EtcdConf    `json:",optional,inherit"`
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
@@ -25,7 +25,7 @@ type (
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
-		Etcd      discov.EtcdConf `json:",optional"`
+		Etcd      discov.EtcdConf `json:",optional,inherit"`
 		Endpoints []string        `json:",optional"`
 		Target    string          `json:",optional"`
 		App       string          `json:",optional"`

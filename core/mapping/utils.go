@@ -15,6 +15,7 @@ import (
 
 const (
 	defaultOption      = "default"
+	inheritOption      = "inherit"
 	stringOption       = "string"
 	optionalOption     = "optional"
 	optionsOption      = "options"
@@ -335,6 +336,8 @@ func parseNumberRange(str string) (*numberRange, error) {
 
 func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 	switch {
+	case option == inheritOption:
+		fieldOpts.Inherit = true
 	case option == stringOption:
 		fieldOpts.FromString = true
 	case strings.HasPrefix(option, optionalOption):
