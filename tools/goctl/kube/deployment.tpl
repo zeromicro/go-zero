@@ -70,6 +70,21 @@ spec:
 
 ---
 
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{.Name}}
+  labels:
+    serviceMonitor: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: {{.Name}}-svc
+  endpoints:
+    - port: prometheus
+
+---
+
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

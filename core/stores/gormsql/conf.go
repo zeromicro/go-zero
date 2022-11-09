@@ -13,10 +13,10 @@ import (
 
 type GORMConf struct {
 	Type        string `json:"Type"`        // type of database: mysql, postgres
-	Path        string `json:"Path"`        // address
+	Host        string `json:"Host"`        // address
 	Port        int    `json:"Port"`        // port
 	Config      string `json:"Config"`      // extra config such as charset=utf8mb4&parseTime=True
-	Dbname      string `json:"DBName"`      // database name
+	DbName      string `json:"DBName"`      // database name
 	Username    string `json:"Username"`    // username
 	Password    string `json:"Password"`    // password
 	MaxIdleConn int    `json:"MaxIdleConn"` // the maximum number of connections in the idle connection pool
@@ -25,12 +25,12 @@ type GORMConf struct {
 }
 
 func (g GORMConf) MysqlDSN() string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", g.Username, g.Password, g.Path, g.Port, g.Dbname, g.Config)
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?%s", g.Username, g.Password, g.Host, g.Port, g.DbName, g.Config)
 }
 
 func (g GORMConf) PostgresDSN() string {
-	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d %s", g.Path, g.Username, g.Password,
-		g.Dbname, g.Port, g.Config)
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d %s", g.Host, g.Username, g.Password,
+		g.DbName, g.Port, g.Config)
 }
 
 func (g GORMConf) NewGORM() (*gorm.DB, error) {
@@ -45,7 +45,7 @@ func (g GORMConf) NewGORM() (*gorm.DB, error) {
 }
 
 func GormMysql(c GORMConf) (*gorm.DB, error) {
-	if c.Dbname == "" {
+	if c.DbName == "" {
 		return nil, errors.New("database name cannot be nil")
 	}
 	mysqlConfig := mysql.Config{
@@ -75,7 +75,7 @@ func GormMysql(c GORMConf) (*gorm.DB, error) {
 }
 
 func GormPgSql(c GORMConf) (*gorm.DB, error) {
-	if c.Dbname == "" {
+	if c.DbName == "" {
 		return nil, errors.New("database name cannot be nil")
 	}
 	pgsqlConfig := postgres.Config{

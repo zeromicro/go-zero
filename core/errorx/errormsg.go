@@ -56,10 +56,10 @@ const (
 	// ZH_CN: 获取信息失败
 	GetInfoFailed string = "common.getInfoFailed"
 
-	// TargetNotExist
+	// TargetNotFound
 	// EN: Target does not exist
 	// ZH_CN: 目标不存在
-	TargetNotExist string = "common.targetNotExist"
+	TargetNotFound string = "common.targetNotExist"
 
 	// Success
 	// EN: Successful
