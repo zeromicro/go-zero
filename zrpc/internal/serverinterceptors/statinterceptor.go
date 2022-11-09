@@ -3,8 +3,10 @@ package serverinterceptors
 import (
 	"context"
 	"encoding/json"
+	"sync"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -15,7 +17,15 @@ import (
 
 const defaultSlowThreshold = time.Millisecond * 500
 
-var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+var (
+	notLoggingContentMethods sync.Map
+	slowThreshold            = syncx.ForAtomicDuration(defaultSlowThreshold)
+)
+
+// DontLogContentForMethod disable logging content for given method.
+func DontLogContentForMethod(method string) {
+	notLoggingContentMethods.Store(method, lang.Placeholder)
+}
 
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
@@ -45,13 +55,21 @@ func logDuration(ctx context.Context, method string, req interface{}, duration t
 	if ok {
 		addr = client.Addr.String()
 	}
-	content, err := json.Marshal(req)
-	if err != nil {
-		logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
-	} else if duration > slowThreshold.Load() {
-		logx.WithContext(ctx).WithDuration(duration).Slowf("[RPC] slowcall - %s - %s - %s",
-			addr, method, string(content))
+
+	logger := logx.WithContext(ctx).WithDuration(duration)
+	_, ok = notLoggingContentMethods.Load(method)
+	if ok {
+		if duration > slowThreshold.Load() {
+			logger.Slowf("[RPC] slowcall - %s - %s", addr, method)
+		}
 	} else {
-		logx.WithContext(ctx).WithDuration(duration).Infof("%s - %s - %s", addr, method, string(content))
+		content, err := json.Marshal(req)
+		if err != nil {
+			logx.WithContext(ctx).Errorf("%s - %s", addr, err.Error())
+		} else if duration > slowThreshold.Load() {
+			logger.Slowf("[RPC] slowcall - %s - %s - %s", addr, method, string(content))
+		} else {
+			logger.Infof("%s - %s - %s", addr, method, string(content))
+		}
 	}
 }

@@ -213,7 +213,7 @@ func LoadTemplate(category, file, builtin string) (string, error) {
 		return builtin, nil
 	}
 
-	content, err := ioutil.ReadFile(file)
+	content, err := os.ReadFile(file)
 	if err != nil {
 		return "", err
 	}

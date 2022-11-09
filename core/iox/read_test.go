@@ -3,7 +3,6 @@ package iox
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -97,10 +96,10 @@ func TestReadTextLines(t *testing.T) {
 
 func TestDupReadCloser(t *testing.T) {
 	input := "hello"
-	reader := ioutil.NopCloser(bytes.NewBufferString(input))
+	reader := io.NopCloser(bytes.NewBufferString(input))
 	r1, r2 := DupReadCloser(reader)
 	verify := func(r io.Reader) {
-		output, err := ioutil.ReadAll(r)
+		output, err := io.ReadAll(r)
 		assert.Nil(t, err)
 		assert.Equal(t, input, string(output))
 	}
@@ -127,7 +126,7 @@ func TestDupReadCloserForLargeFile(t *testing.T) {
 }
 
 func TestReadBytes(t *testing.T) {
-	reader := ioutil.NopCloser(bytes.NewBufferString("helloworld"))
+	reader := io.NopCloser(bytes.NewBufferString("helloworld"))
 	buf := make([]byte, 5)
 	err := ReadBytes(reader, buf)
 	assert.Nil(t, err)
@@ -135,7 +134,7 @@ func TestReadBytes(t *testing.T) {
 }
 
 func TestReadBytesNotEnough(t *testing.T) {
-	reader := ioutil.NopCloser(bytes.NewBufferString("hell"))
+	reader := io.NopCloser(bytes.NewBufferString("hell"))
 	buf := make([]byte, 5)
 	err := ReadBytes(reader, buf)
 	assert.Equal(t, io.EOF, err)

@@ -1,7 +1,7 @@
 package threading
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 	"sync"
 	"sync/atomic"
@@ -25,7 +25,7 @@ func TestRoutineGroupRun(t *testing.T) {
 }
 
 func TestRoutingGroupRunSafe(t *testing.T) {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 
 	var count int32
 	group := NewRoutineGroup()

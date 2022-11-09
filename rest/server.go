@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
@@ -78,6 +79,17 @@ func (s *Server) PrintRoutes() {
 	s.ngin.print()
 }
 
+// Routes returns the HTTP routers that registered in the server.
+func (s *Server) Routes() []Route {
+	var routes []Route
+
+	for _, r := range s.ngin.routes {
+		routes = append(routes, r.routes...)
+	}
+
+	return routes
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
@@ -102,11 +114,19 @@ func ToMiddleware(handler func(next http.Handler) http.Handler) Middleware {
 	}
 }
 
+// WithChain returns a RunOption that uses the given chain to replace the default chain.
+// JWT auth middleware and the middlewares that added by svr.Use() will be appended.
+func WithChain(chn chain.Chain) RunOption {
+	return func(svr *Server) {
+		svr.ngin.chain = chn
+	}
+}
+
 // WithCors returns a func to enable CORS for given origin, or default to all origins (*).
 func WithCors(origin ...string) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(nil, origin...))
-		server.Use(cors.Middleware(nil, origin...))
+		server.router = newCorsRouter(server.router, nil, origin...)
 	}
 }
 
@@ -116,7 +136,7 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 	origin ...string) RunOption {
 	return func(server *Server) {
 		server.router.SetNotAllowedHandler(cors.NotAllowedHandler(notAllowedFn, origin...))
-		server.Use(cors.Middleware(middlewareFn, origin...))
+		server.router = newCorsRouter(server.router, middlewareFn, origin...)
 	}
 }
 
@@ -270,4 +290,20 @@ func validateSecret(secret string) {
 	if len(secret) < 8 {
 		panic("secret's length can't be less than 8")
 	}
+}
+
+type corsRouter struct {
+	httpx.Router
+	middleware Middleware
+}
+
+func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...string) httpx.Router {
+	return &corsRouter{
+		Router:     router,
+		middleware: cors.Middleware(headerFn, origins...),
+	}
+}
+
+func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	c.middleware(c.Router.ServeHTTP)(w, r)
 }

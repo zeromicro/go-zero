@@ -21,11 +21,7 @@ spec:
       - name: {{.Name}}
         image: {{.Image}}
         {{if .ImagePullPolicy}}imagePullPolicy: {{.ImagePullPolicy}}
-        {{end}}lifecycle:
-          preStop:
-            exec:
-              command: ["sh","-c","sleep 5"]
-        ports:
+        {{end}}ports:
         - containerPort: {{.Port}}
         readinessProbe:
           tcpSocket:
@@ -63,11 +59,12 @@ metadata:
   namespace: {{.Namespace}}
 spec:
   ports:
-    {{if .UseNodePort}}- nodePort: {{.NodePort}}
-      port: {{.Port}}
-      protocol: TCP
-      targetPort: {{.Port}}
-  type: NodePort{{else}}- port: {{.Port}}{{end}}
+  {{if .UseNodePort}}- nodePort: {{.NodePort}}
+    port: {{.Port}}
+    protocol: TCP
+    targetPort: {{.TargetPort}}
+  type: NodePort{{else}}- port: {{.Port}}
+    targetPort: {{.TargetPort}}{{end}}
   selector:
     app: {{.Name}}
 

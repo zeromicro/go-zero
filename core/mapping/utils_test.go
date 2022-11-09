@@ -15,7 +15,7 @@ type Foo struct {
 	StrWithTagAndOption string `key:"stringwithtag,string"`
 }
 
-func TestDeferInt(t *testing.T) {
+func TestDerefInt(t *testing.T) {
 	i := 1
 	s := "hello"
 	number := struct {
@@ -56,6 +56,51 @@ func TestDeferInt(t *testing.T) {
 	for _, each := range cases {
 		t.Run(each.t.String(), func(t *testing.T) {
 			assert.Equal(t, each.expect, Deref(each.t).Kind())
+		})
+	}
+}
+
+func TestDerefValInt(t *testing.T) {
+	i := 1
+	s := "hello"
+	number := struct {
+		f float64
+	}{
+		f: 6.4,
+	}
+	cases := []struct {
+		t      reflect.Value
+		expect reflect.Kind
+	}{
+		{
+			t:      reflect.ValueOf(i),
+			expect: reflect.Int,
+		},
+		{
+			t:      reflect.ValueOf(&i),
+			expect: reflect.Int,
+		},
+		{
+			t:      reflect.ValueOf(s),
+			expect: reflect.String,
+		},
+		{
+			t:      reflect.ValueOf(&s),
+			expect: reflect.String,
+		},
+		{
+			t:      reflect.ValueOf(number.f),
+			expect: reflect.Float64,
+		},
+		{
+			t:      reflect.ValueOf(&number.f),
+			expect: reflect.Float64,
+		},
+	}
+
+	for _, each := range cases {
+		t.Run(each.t.String(), func(t *testing.T) {
+			assert.Equal(t, each.expect, ensureValue(each.t).Kind())
 		})
 	}
 }

@@ -65,7 +65,7 @@ func Test_apiFormatReader_issue1721(t *testing.T) {
 	require.NoError(t, err)
 
 	filename := path.Join(subDir, "bar.api")
-	err = ioutil.WriteFile(filename, []byte(fmt.Sprintf(`import "%s"`, importedFilename)), 0644)
+	err = ioutil.WriteFile(filename, []byte(fmt.Sprintf(`import "%s"`, importedFilename)), 0o644)
 	require.NoError(t, err)
 
 	f, err := os.Open(filename)

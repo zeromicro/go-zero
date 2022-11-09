@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	// Cmd describes a api command.
+	// Cmd describes an api command.
 	Cmd = &cobra.Command{
 		Use:   "api",
 		Short: "Generate api related files",
@@ -43,7 +43,7 @@ var (
 
 	goCmd = &cobra.Command{
 		Use:   "go",
-		Short: "Generate go files for provided api in yaml file",
+		Short: "Generate go files for provided api in api file",
 		RunE:  gogen.GoCommand,
 	}
 
@@ -64,9 +64,10 @@ var (
 	}
 
 	javaCmd = &cobra.Command{
-		Use:   "java",
-		Short: "Generate java files for provided api in api file",
-		RunE:  javagen.JavaCommand,
+		Use:    "java",
+		Short:  "Generate java files for provided api in api file",
+		Hidden: true,
+		RunE:   javagen.JavaCommand,
 	}
 
 	ktCmd = &cobra.Command{
@@ -95,7 +96,7 @@ func init() {
 		"higher priority")
 	Cmd.Flags().StringVar(&apigen.VarStringRemote, "remote", "", "The remote git repo of the"+
 		" template, --home and --remote cannot be set at the same time, if they are, --remote has higher"+
-		" priority\n\tThe git repo directory must be consistent with the"+
+		" priority\nThe git repo directory must be consistent with the"+
 		" https://github.com/zeromicro/go-zero-template directory structure")
 	Cmd.Flags().StringVar(&apigen.VarStringBranch, "branch", "", "The branch of the "+
 		"remote repo, it does work with --remote")
@@ -122,7 +123,7 @@ func init() {
 		"has higher priority")
 	goCmd.Flags().StringVar(&gogen.VarStringRemote, "remote", "", "The remote git repo "+
 		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\n\tThe git repo directory must be consistent with the "+
+		" has higher priority\nThe git repo directory must be consistent with the "+
 		"https://github.com/zeromicro/go-zero-template directory structure")
 	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")

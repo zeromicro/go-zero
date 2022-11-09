@@ -15,6 +15,7 @@ import (
 
 const (
 	defaultOption      = "default"
+	inheritOption      = "inherit"
 	stringOption       = "string"
 	optionalOption     = "optional"
 	optionsOption      = "options"
@@ -141,6 +142,23 @@ func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fie
 	}
 
 	return key, &fieldOpts, nil
+}
+
+// ensureValue ensures nested members not to be nil.
+// If pointer value is nil, set to a new value.
+func ensureValue(v reflect.Value) reflect.Value {
+	for {
+		if v.Kind() != reflect.Ptr {
+			break
+		}
+
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+
+	return v
 }
 
 func implicitValueRequiredStruct(tag string, tp reflect.Type) (bool, error) {
@@ -294,6 +312,20 @@ func parseNumberRange(str string) (*numberRange, error) {
 		right = math.MaxFloat64
 	}
 
+	if left > right {
+		return nil, errNumberRange
+	}
+
+	// [2:2] valid
+	// [2:2) invalid
+	// (2:2] invalid
+	// (2:2) invalid
+	if left == right {
+		if !leftInclude || !rightInclude {
+			return nil, errNumberRange
+		}
+	}
+
 	return &numberRange{
 		left:         left,
 		leftInclude:  leftInclude,
@@ -304,6 +336,8 @@ func parseNumberRange(str string) (*numberRange, error) {
 
 func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 	switch {
+	case option == inheritOption:
+		fieldOpts.Inherit = true
 	case option == stringOption:
 		fieldOpts.FromString = true
 	case strings.HasPrefix(option, optionalOption):
@@ -478,6 +512,7 @@ func setValue(kind reflect.Kind, value reflect.Value, str string) error {
 		return errValueNotSettable
 	}
 
+	value = ensureValue(value)
 	v, err := convertType(kind, str)
 	if err != nil {
 		return err

@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/ddl-parser/parser"
 	"github.com/zeromicro/go-zero/core/collection"
+
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/converter"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/util"
@@ -25,6 +26,7 @@ type (
 		PrimaryKey  Primary
 		UniqueIndex map[string][]*Field
 		Fields      []*Field
+		ContainsPQ  bool
 	}
 
 	// Primary describes a primary key
@@ -41,6 +43,7 @@ type (
 		Comment         string
 		SeqInIndex      int
 		OrdinalPosition int
+		ContainsPQ      bool
 	}
 
 	// KeyType types alias of int
@@ -61,7 +64,7 @@ func parseNameOriginal(ts []*parser.Table) (nameOriginals [][]string) {
 }
 
 // Parse parses ddl into golang structure
-func Parse(filename, database string) ([]*Table, error) {
+func Parse(filename, database string, strict bool) ([]*Table, error) {
 	p := parser.NewParser()
 	tables, err := p.From(filename)
 	if err != nil {
@@ -124,7 +127,7 @@ func Parse(filename, database string) ([]*Table, error) {
 			return nil, fmt.Errorf("%s: unexpected join primary key", prefix)
 		}
 
-		primaryKey, fieldM, err := convertColumns(columns, primaryColumn)
+		primaryKey, fieldM, err := convertColumns(columns, primaryColumn, strict)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +193,7 @@ func checkDuplicateUniqueIndex(uniqueIndex map[string][]*Field, tableName string
 	}
 }
 
-func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, map[string]*Field, error) {
+func convertColumns(columns []*parser.Column, primaryColumn string, strict bool) (Primary, map[string]*Field, error) {
 	var (
 		primaryKey Primary
 		fieldM     = make(map[string]*Field)
@@ -219,7 +222,7 @@ func convertColumns(columns []*parser.Column, primaryColumn string) (Primary, ma
 			}
 		}
 
-		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull)
+		dataType, err := converter.ConvertDataType(column.DataType.Type(), isDefaultNull, column.DataType.Unsigned(), strict)
 		if err != nil {
 			return Primary{}, nil, err
 		}
@@ -264,14 +267,16 @@ func (t *Table) ContainsTime() bool {
 }
 
 // ConvertDataType converts mysql data type into golang data type
-func ConvertDataType(table *model.Table) (*Table, error) {
+func ConvertDataType(table *model.Table, strict bool) (*Table, error) {
 	isPrimaryDefaultNull := table.PrimaryKey.ColumnDefault == nil && table.PrimaryKey.IsNullAble == "YES"
-	primaryDataType, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull)
+	isPrimaryUnsigned := strings.Contains(table.PrimaryKey.DbColumn.ColumnType, "unsigned")
+	primaryDataType, containsPQ, err := converter.ConvertStringDataType(table.PrimaryKey.DataType, isPrimaryDefaultNull, isPrimaryUnsigned, strict)
 	if err != nil {
 		return nil, err
 	}
 
 	var reply Table
+	reply.ContainsPQ = containsPQ
 	reply.UniqueIndex = map[string][]*Field{}
 	reply.Name = stringx.From(table.Table)
 	reply.Db = stringx.From(table.Db)
@@ -291,12 +296,15 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 		AutoIncrement: strings.Contains(table.PrimaryKey.Extra, "auto_increment"),
 	}
 
-	fieldM, err := getTableFields(table)
+	fieldM, err := getTableFields(table, strict)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, each := range fieldM {
+		if each.ContainsPQ {
+			reply.ContainsPQ = true
+		}
 		reply.Fields = append(reply.Fields, each)
 	}
 	sort.Slice(reply.Fields, func(i, j int) bool {
@@ -341,11 +349,12 @@ func ConvertDataType(table *model.Table) (*Table, error) {
 	return &reply, nil
 }
 
-func getTableFields(table *model.Table) (map[string]*Field, error) {
+func getTableFields(table *model.Table, strict bool) (map[string]*Field, error) {
 	fieldM := make(map[string]*Field)
 	for _, each := range table.Columns {
 		isDefaultNull := each.ColumnDefault == nil && each.IsNullAble == "YES"
-		dt, err := converter.ConvertStringDataType(each.DataType, isDefaultNull)
+		isPrimaryUnsigned := strings.Contains(each.ColumnType, "unsigned")
+		dt, containsPQ, err := converter.ConvertStringDataType(each.DataType, isDefaultNull, isPrimaryUnsigned, strict)
 		if err != nil {
 			return nil, err
 		}
@@ -361,6 +370,7 @@ func getTableFields(table *model.Table) (map[string]*Field, error) {
 			Comment:         each.Comment,
 			SeqInIndex:      columnSeqInIndex,
 			OrdinalPosition: each.OrdinalPosition,
+			ContainsPQ:      containsPQ,
 		}
 		fieldM[each.Name] = field
 	}

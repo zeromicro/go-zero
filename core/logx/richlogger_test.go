@@ -3,6 +3,7 @@ package logx
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"strings"
 	"sync/atomic"
@@ -29,11 +30,46 @@ func TestTraceLog(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
 	defer span.End()
 
 	WithContext(ctx).Info(testlog)
 	validate(t, w.String(), true, true)
+}
+
+func TestTraceDebug(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	otp := otel.GetTracerProvider()
+	tp := sdktrace.NewTracerProvider(sdktrace.WithSampler(sdktrace.AlwaysSample()))
+	otel.SetTracerProvider(tp)
+	defer otel.SetTracerProvider(otp)
+
+	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	defer span.End()
+
+	l := WithContext(ctx)
+	SetLevel(DebugLevel)
+	l.WithDuration(time.Second).Debug(testlog)
+	assert.True(t, strings.Contains(w.String(), traceKey))
+	assert.True(t, strings.Contains(w.String(), spanKey))
+	w.Reset()
+	l.WithDuration(time.Second).Debugf(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugv(testlog)
+	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Debugw(testlog, Field("foo", "bar"))
+	validate(t, w.String(), true, true)
+	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
+	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
 }
 
 func TestTraceError(t *testing.T) {
@@ -50,7 +86,7 @@ func TestTraceError(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
 	defer span.End()
 
 	var nilCtx context.Context
@@ -67,10 +103,10 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Errorw(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Errorw(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
-	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
+	assert.True(t, strings.Contains(w.String(), "basket"), w.String())
+	assert.True(t, strings.Contains(w.String(), "ball"), w.String())
 }
 
 func TestTraceInfo(t *testing.T) {
@@ -87,7 +123,7 @@ func TestTraceInfo(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
 	defer span.End()
 
 	SetLevel(InfoLevel)
@@ -101,10 +137,10 @@ func TestTraceInfo(t *testing.T) {
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Infow(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Infow(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
-	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
+	assert.True(t, strings.Contains(w.String(), "basket"), w.String())
+	assert.True(t, strings.Contains(w.String(), "ball"), w.String())
 }
 
 func TestTraceInfoConsole(t *testing.T) {
@@ -124,7 +160,7 @@ func TestTraceInfoConsole(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
 	defer span.End()
 
 	l := WithContext(ctx)
@@ -153,7 +189,7 @@ func TestTraceSlow(t *testing.T) {
 	otel.SetTracerProvider(tp)
 	defer otel.SetTracerProvider(otp)
 
-	ctx, span := tp.Tracer("foo").Start(context.Background(), "bar")
+	ctx, span := tp.Tracer("trace-id").Start(context.Background(), "span-id")
 	defer span.End()
 
 	l := WithContext(ctx)
@@ -168,10 +204,10 @@ func TestTraceSlow(t *testing.T) {
 	l.WithDuration(time.Second).Slowv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
-	l.WithDuration(time.Second).Sloww(testlog, Field("foo", "bar"))
+	l.WithDuration(time.Second).Sloww(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
-	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
-	assert.True(t, strings.Contains(w.String(), "bar"), w.String())
+	assert.True(t, strings.Contains(w.String(), "basket"), w.String())
+	assert.True(t, strings.Contains(w.String(), "ball"), w.String())
 }
 
 func TestTraceWithoutContext(t *testing.T) {
@@ -190,6 +226,67 @@ func TestTraceWithoutContext(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Infof(testlog)
 	validate(t, w.String(), false, false)
+}
+
+func TestLogWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	ctx := ContextWithFields(context.Background(), Field("foo", "bar"))
+	l := WithContext(ctx)
+	SetLevel(InfoLevel)
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
+}
+
+func TestLogWithCallerSkip(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithCallerSkip(1).WithCallerSkip(0)
+	p := func(v string) {
+		l.Info(v)
+	}
+
+	file, line := getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
+
+	w.Reset()
+	l = WithCallerSkip(0).WithCallerSkip(1)
+	file, line = getFileLine()
+	p(testlog)
+	assert.True(t, w.Contains(fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestLoggerWithFields(t *testing.T) {
+	w := new(mockWriter)
+	old := writer.Swap(w)
+	writer.lock.RLock()
+	defer func() {
+		writer.lock.RUnlock()
+		writer.Store(old)
+	}()
+
+	l := WithContext(context.Background()).WithFields(Field("foo", "bar"))
+	l.Info(testlog)
+
+	var val mockValue
+	assert.Nil(t, json.Unmarshal([]byte(w.String()), &val))
+	assert.Equal(t, "bar", val.Foo)
 }
 
 func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
@@ -217,4 +314,5 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 type mockValue struct {
 	Trace string `json:"trace"`
 	Span  string `json:"span"`
+	Foo   string `json:"foo"`
 }

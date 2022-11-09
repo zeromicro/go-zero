@@ -3,6 +3,7 @@ package sqlx
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -137,4 +138,15 @@ func TestFormat(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestWriteValue(t *testing.T) {
+	var buf strings.Builder
+	tm := time.Now()
+	writeValue(&buf, &tm)
+	assert.Equal(t, "'"+tm.String()+"'", buf.String())
+
+	buf.Reset()
+	writeValue(&buf, tm)
+	assert.Equal(t, "'"+tm.String()+"'", buf.String())
 }

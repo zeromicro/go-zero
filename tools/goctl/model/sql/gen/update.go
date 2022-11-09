@@ -12,15 +12,16 @@ import (
 )
 
 func genUpdate(table Table, withCache, postgreSql bool) (
-	string, string, error) {
+	string, string, error,
+) {
 	expressionValues := make([]string, 0)
-	var pkg = "data."
+	pkg := "data."
 	if table.ContainsUniqueCacheKey {
 		pkg = "newData."
 	}
 	for _, field := range table.Fields {
 		camel := util.SafeString(field.Name.ToCamel())
-		if camel == "CreateTime" || camel == "UpdateTime" {
+		if table.isIgnoreColumns(field.Name.Source()) {
 			continue
 		}
 

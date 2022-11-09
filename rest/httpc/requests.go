@@ -7,13 +7,20 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptrace"
 	nurl "net/url"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/rest/httpc/internal"
 	"github.com/zeromicro/go-zero/rest/internal/header"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 var interceptors = []internal.Interceptor{
@@ -150,17 +157,46 @@ func fillPath(u *nurl.URL, val map[string]interface{}) error {
 }
 
 func request(r *http.Request, cli client) (*http.Response, error) {
-	var respHandlers []internal.ResponseHandler
-	for _, interceptor := range interceptors {
+	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
+	propagator := otel.GetTextMapPropagator()
+
+	spanName := r.URL.Path
+	ctx, span := tracer.Start(
+		r.Context(),
+		spanName,
+		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
+		oteltrace.WithAttributes(semconv.HTTPClientAttributesFromHTTPRequest(r)...),
+	)
+	defer span.End()
+
+	respHandlers := make([]internal.ResponseHandler, len(interceptors))
+	for i, interceptor := range interceptors {
 		var h internal.ResponseHandler
 		r, h = interceptor(r)
-		respHandlers = append(respHandlers, h)
+		respHandlers[i] = h
 	}
+
+	clientTrace := httptrace.ContextClientTrace(ctx)
+	if clientTrace != nil {
+		ctx = httptrace.WithClientTrace(ctx, clientTrace)
+	}
+
+	r = r.WithContext(ctx)
+	propagator.Inject(ctx, propagation.HeaderCarrier(r.Header))
 
 	resp, err := cli.do(r)
 	for i := len(respHandlers) - 1; i >= 0; i-- {
 		respHandlers[i](resp, err)
 	}
+
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+		return resp, err
+	}
+
+	span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(resp.StatusCode)...)
+	span.SetStatus(semconv.SpanStatusFromHTTPStatusCode(resp.StatusCode))
 
 	return resp, err
 }

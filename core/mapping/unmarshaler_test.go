@@ -2,11 +2,14 @@ package mapping
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+	"unicode"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -33,6 +36,29 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 	var in inner
 	assert.Nil(t, UnmarshalKey(m, &in))
 	assert.True(t, in.Optional)
+}
+
+func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
+	type inner struct {
+		Name string `key:"name"`
+	}
+	m := map[string]interface{}{
+		"Name": "go-zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		first := true
+		return strings.Map(func(r rune) rune {
+			if first {
+				first = false
+				return unicode.ToTitle(r)
+			}
+			return r
+		}, s)
+	}))
+	assert.Nil(t, unmarshaler.Unmarshal(m, &in))
+	assert.Equal(t, "go-zero", in.Name)
 }
 
 func TestUnmarshalBool(t *testing.T) {
@@ -465,6 +491,146 @@ func TestUnmarshalIntSliceFromString(t *testing.T) {
 	ast.Equal(2, len(v.Values))
 	ast.Equal(1, v.Values[0])
 	ast.Equal(2, v.Values[1])
+}
+
+func TestUnmarshalIntMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]int `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":12345,"zeroVal":0,"nullVal":null}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Sort))
+	ast.Equal(12345, v.Sort["value"])
+	ast.Equal(0, v.Sort["zeroVal"])
+	ast.Equal(0, v.Sort["nullVal"])
+}
+
+func TestUnmarshalBoolMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]bool `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":true,"zeroVal":false,"nullVal":null}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Sort))
+	ast.Equal(true, v.Sort["value"])
+	ast.Equal(false, v.Sort["zeroVal"])
+	ast.Equal(false, v.Sort["nullVal"])
+}
+
+type CustomStringer string
+
+type UnsupportedStringer string
+
+func (c CustomStringer) String() string {
+	return fmt.Sprintf("{%s}", string(c))
+}
+
+func TestUnmarshalStringMapFromStringer(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": CustomStringer(`"value":"ascend","emptyStr":""`),
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(2, len(v.Sort))
+	ast.Equal("ascend", v.Sort["value"])
+	ast.Equal("", v.Sort["emptyStr"])
+}
+
+func TestUnmarshalStringMapFromUnsupportedType(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": UnsupportedStringer(`{"value":"ascend","emptyStr":""}`),
+	}
+
+	ast := assert.New(t)
+	ast.NotNil(UnmarshalKey(m, &v))
+}
+
+func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
+	var v struct {
+		sort  map[string]string  `key:"sort"`
+		psort *map[string]string `key:"psort"`
+	}
+	m := map[string]interface{}{
+		"sort":  `{"value":"ascend","emptyStr":""}`,
+		"psort": `{"value":"ascend","emptyStr":""}`,
+	}
+
+	ast := assert.New(t)
+	ast.NotNil(UnmarshalKey(m, &v))
+}
+
+func TestUnmarshalStringMapFromString(t *testing.T) {
+	var v struct {
+		Sort map[string]string `key:"sort"`
+	}
+	m := map[string]interface{}{
+		"sort": `{"value":"ascend","emptyStr":""}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(2, len(v.Sort))
+	ast.Equal("ascend", v.Sort["value"])
+	ast.Equal("", v.Sort["emptyStr"])
+}
+
+func TestUnmarshalStructMapFromString(t *testing.T) {
+	var v struct {
+		Filter map[string]struct {
+			Field1 bool     `json:"field1"`
+			Field2 int64    `json:"field2,string"`
+			Field3 string   `json:"field3"`
+			Field4 *string  `json:"field4"`
+			Field5 []string `json:"field5"`
+		} `key:"filter"`
+	}
+	m := map[string]interface{}{
+		"filter": `{"obj":{"field1":true,"field2":"1573570455447539712","field3":"this is a string",
+			"field4":"this is a string pointer","field5":["str1","str2"]}}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(1, len(v.Filter))
+	ast.NotNil(v.Filter["obj"])
+	ast.Equal(true, v.Filter["obj"].Field1)
+	ast.Equal(int64(1573570455447539712), v.Filter["obj"].Field2)
+	ast.Equal("this is a string", v.Filter["obj"].Field3)
+	ast.Equal("this is a string pointer", *v.Filter["obj"].Field4)
+	ast.ElementsMatch([]string{"str1", "str2"}, v.Filter["obj"].Field5)
+}
+
+func TestUnmarshalStringSliceMapFromString(t *testing.T) {
+	var v struct {
+		Filter map[string][]string `key:"filter"`
+	}
+	m := map[string]interface{}{
+		"filter": `{"assignType":null,"status":["process","comment"],"rate":[]}`,
+	}
+
+	ast := assert.New(t)
+	ast.Nil(UnmarshalKey(m, &v))
+	ast.Equal(3, len(v.Filter))
+	ast.Equal([]string(nil), v.Filter["assignType"])
+	ast.Equal(2, len(v.Filter["status"]))
+	ast.Equal("process", v.Filter["status"][0])
+	ast.Equal("comment", v.Filter["status"][1])
+	ast.Equal(0, len(v.Filter["rate"]))
 }
 
 func TestUnmarshalStruct(t *testing.T) {
@@ -2575,6 +2741,256 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 	assert.Equal(t, "1", c.Anything["id"])
 }
 
+func TestUnmarshalInheritPrimitiveUseParent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveUseSelf(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name":      "test",
+			"discovery": "localhost:8888",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8888", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveNotExist(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUseParent(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8080, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelf(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"host": "remotehost",
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "remotehost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructNotExist(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUsePartial(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]string{
+				"host": "remotehost",
+			},
+		},
+	}, &s))
+}
+
+func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		middle struct {
+			Value component `key:"value"`
+		}
+		server struct {
+			Discovery string `key:"discovery"`
+			Middle    middle `key:"middle"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"middle": map[string]interface{}{
+			"value": map[string]interface{}{
+				"name": "test",
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
+}
+
 func TestUnmarshalValuer(t *testing.T) {
 	unmarshaler := NewUnmarshaler(jsonTagKey)
 	var foo string
@@ -2681,7 +3097,7 @@ func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
 	assert.Equal(t, 2, len(res.B))
 }
 
-func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
+func TestUnmarshalJsonReaderPtrMultiArrayString(t *testing.T) {
 	payload := `{"a": "133", "b": [["add", "cccd"], ["eeee"]]}`
 	var res struct {
 		A string      `json:"a"`
@@ -2694,8 +3110,58 @@ func TestUnmarshalJsonReaderPtrMultiArray(t *testing.T) {
 	assert.Equal(t, 2, len(res.B[0]))
 }
 
+func TestUnmarshalJsonReaderPtrMultiArrayString_Int(t *testing.T) {
+	payload := `{"a": "133", "b": [[11, 22], [33]]}`
+	var res struct {
+		A string      `json:"a"`
+		B [][]*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
+func TestUnmarshalJsonReaderPtrMultiArrayInt(t *testing.T) {
+	payload := `{"a": "133", "b": [[11, 22], [33]]}`
+	var res struct {
+		A string   `json:"a"`
+		B [][]*int `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(res.B))
+	assert.Equal(t, 2, len(res.B[0]))
+}
+
 func TestUnmarshalJsonReaderPtrArray(t *testing.T) {
 	payload := `{"a": "133", "b": ["add", "cccd", "eeee"]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrArray_Int(t *testing.T) {
+	payload := `{"a": "133", "b": [11, 22, 33]}`
+	var res struct {
+		A string    `json:"a"`
+		B []*string `json:"b"`
+	}
+	reader := strings.NewReader(payload)
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Nil(t, err)
+	assert.Equal(t, 3, len(res.B))
+}
+
+func TestUnmarshalJsonReaderPtrInt(t *testing.T) {
+	payload := `{"a": "133", "b": [11, 22, 33]}`
 	var res struct {
 		A string    `json:"a"`
 		B []*string `json:"b"`
@@ -2827,6 +3293,24 @@ func TestUnmarshalJsonReaderArrayString(t *testing.T) {
 	reader := strings.NewReader(payload)
 	err := UnmarshalJsonReader(reader, &res)
 	assert.NotNil(t, err)
+}
+
+func TestGoogleUUID(t *testing.T) {
+	var val struct {
+		Uid  uuid.UUID  `json:"uid,optional"`
+		Uidp *uuid.UUID `json:"uidp,optional"`
+	}
+	assert.NoError(t, UnmarshalJsonBytes([]byte(`{
+	"uid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+	"uidp": "6ba7b810-9dad-11d1-80b4-00c04fd430c9"}`), &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c8", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c9", val.Uidp.String())
+	assert.NoError(t, UnmarshalJsonMap(map[string]interface{}{
+		"uid":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
+		"uidp": []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
+	}, &val))
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c1", val.Uid.String())
+	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 }
 
 func BenchmarkDefaultValue(b *testing.B) {

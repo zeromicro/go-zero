@@ -35,6 +35,7 @@ func TestServer_setupInterceptors(t *testing.T) {
 }
 
 func TestServer(t *testing.T) {
+	DontLogContentForMethod("foo")
 	SetServerSlowThreshold(time.Second)
 	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
@@ -121,7 +122,7 @@ type mockedServer struct {
 	streamInterceptors []grpc.StreamServerInterceptor
 }
 
-func (m *mockedServer) AddOptions(options ...grpc.ServerOption) {
+func (m *mockedServer) AddOptions(_ ...grpc.ServerOption) {
 }
 
 func (m *mockedServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
@@ -132,9 +133,9 @@ func (m *mockedServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInte
 	m.unaryInterceptors = append(m.unaryInterceptors, interceptors...)
 }
 
-func (m *mockedServer) SetName(s string) {
+func (m *mockedServer) SetName(_ string) {
 }
 
-func (m *mockedServer) Start(register internal.RegisterFn) error {
+func (m *mockedServer) Start(_ internal.RegisterFn) error {
 	return nil
 }

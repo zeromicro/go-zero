@@ -237,8 +237,8 @@ func TestEngine_notFoundHandler(t *testing.T) {
 	defer ts.Close()
 
 	client := ts.Client()
-	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+	err := func(_ context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
@@ -260,8 +260,8 @@ func TestEngine_notFoundHandlerNotNil(t *testing.T) {
 	defer ts.Close()
 
 	client := ts.Client()
-	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+	err := func(_ context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
@@ -285,8 +285,8 @@ func TestEngine_notFoundHandlerNotNilWriteHeader(t *testing.T) {
 	defer ts.Close()
 
 	client := ts.Client()
-	err := func(ctx context.Context) error {
-		req, err := http.NewRequest("GET", ts.URL+"/bad", nil)
+	err := func(_ context.Context) error {
+		req, err := http.NewRequest("GET", ts.URL+"/bad", http.NoBody)
 		assert.Nil(t, err)
 		res, err := client.Do(req)
 		assert.Nil(t, err)
@@ -334,7 +334,7 @@ type mockedRouter struct{}
 func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
 }
 
-func (m mockedRouter) Handle(_, _ string, _ http.Handler) error {
+func (m mockedRouter) Handle(_, _ string, handler http.Handler) error {
 	return errors.New("foo")
 }
 

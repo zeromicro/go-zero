@@ -26,7 +26,7 @@ type (
 	// CacheOption defines the method to customize a Cache.
 	CacheOption func(cache *Cache)
 
-	// A Cache object is a in-memory cache.
+	// A Cache object is an in-memory cache.
 	Cache struct {
 		name           string
 		lock           sync.Mutex

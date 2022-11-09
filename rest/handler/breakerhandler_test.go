@@ -25,7 +25,7 @@ func TestBreakerHandlerAccept(t *testing.T) {
 		assert.Nil(t, err)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	req.Header.Set("X-Test", "test")
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
@@ -41,7 +41,7 @@ func TestBreakerHandlerFail(t *testing.T) {
 		w.WriteHeader(http.StatusBadGateway)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusBadGateway, resp.Code)
@@ -55,7 +55,7 @@ func TestBreakerHandler_4XX(t *testing.T) {
 	}))
 
 	for i := 0; i < 1000; i++ {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 	}
@@ -63,7 +63,7 @@ func TestBreakerHandler_4XX(t *testing.T) {
 	const tries = 100
 	var pass int
 	for i := 0; i < tries; i++ {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 		if resp.Code == http.StatusBadRequest {
@@ -82,14 +82,14 @@ func TestBreakerHandlerReject(t *testing.T) {
 	}))
 
 	for i := 0; i < 1000; i++ {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 	}
 
 	var drops int
 	for i := 0; i < 100; i++ {
-		req := httptest.NewRequest(http.MethodGet, "http://localhost", nil)
+		req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
 		resp := httptest.NewRecorder()
 		handler.ServeHTTP(resp, req)
 		if resp.Code == http.StatusServiceUnavailable {

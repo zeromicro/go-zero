@@ -49,22 +49,9 @@ func ParseHeaders(r *http.Request, v interface{}) error {
 
 // ParseForm parses the form request.
 func ParseForm(r *http.Request, v interface{}) error {
-	if err := r.ParseForm(); err != nil {
+	params, err := GetFormValues(r)
+	if err != nil {
 		return err
-	}
-
-	if err := r.ParseMultipartForm(maxMemory); err != nil {
-		if err != http.ErrNotMultipart {
-			return err
-		}
-	}
-
-	params := make(map[string]interface{}, len(r.Form))
-	for name := range r.Form {
-		formValue := r.Form.Get(name)
-		if len(formValue) > 0 {
-			params[name] = formValue
-		}
 	}
 
 	return formUnmarshaler.Unmarshal(params, v)
