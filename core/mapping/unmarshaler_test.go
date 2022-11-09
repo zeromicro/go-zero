@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -36,6 +36,29 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 	var in inner
 	assert.Nil(t, UnmarshalKey(m, &in))
 	assert.True(t, in.Optional)
+}
+
+func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
+	type inner struct {
+		Name string `key:"name"`
+	}
+	m := map[string]interface{}{
+		"Name": "go-zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		first := true
+		return strings.Map(func(r rune) rune {
+			if first {
+				first = false
+				return unicode.ToTitle(r)
+			}
+			return r
+		}, s)
+	}))
+	assert.Nil(t, unmarshaler.Unmarshal(m, &in))
+	assert.Equal(t, "go-zero", in.Name)
 }
 
 func TestUnmarshalBool(t *testing.T) {
@@ -2716,6 +2739,256 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 
 	assert.Nil(t, NewUnmarshaler("json").Unmarshal(m, &c))
 	assert.Equal(t, "1", c.Anything["id"])
+}
+
+func TestUnmarshalInheritPrimitiveUseParent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveUseSelf(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name":      "test",
+			"discovery": "localhost:8888",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8888", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveNotExist(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUseParent(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8080, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelf(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"host": "remotehost",
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "remotehost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructNotExist(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUsePartial(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]string{
+				"host": "remotehost",
+			},
+		},
+	}, &s))
+}
+
+func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		middle struct {
+			Value component `key:"value"`
+		}
+		server struct {
+			Discovery string `key:"discovery"`
+			Middle    middle `key:"middle"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"middle": map[string]interface{}{
+			"value": map[string]interface{}{
+				"name": "test",
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
 }
 
 func TestUnmarshalValuer(t *testing.T) {
