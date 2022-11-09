@@ -12,6 +12,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -338,11 +339,30 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 	return false, nil
 }
 
+func (u *Unmarshaler) processFieldWithEnvValue(field reflect.StructField, value reflect.Value,
+	envVal string, opts *fieldOptionsWithContext, fullName string) error {
+	switch field.Type.Kind() {
+	case reflect.String:
+		value.SetString(envVal)
+		return nil
+	default:
+		return u.processFieldPrimitiveWithJSONNumber(field, value,
+			json.Number(envVal), opts, fullName)
+	}
+}
+
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m valuerWithParent, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
+	}
+
+	if opts != nil && len(opts.EnvVar) > 0 {
+		envVal := proc.Env(opts.EnvVar)
+		if len(envVal) > 0 {
+			return u.processFieldWithEnvValue(field, value, envVal, opts, fullName)
+		}
 	}
 
 	fullName = join(fullName, key)
