@@ -80,8 +80,8 @@ func (rv recursiveValuer) Value(key string) (interface{}, bool) {
 		return val, true
 	}
 
-	pv, pok := parent.Value(key)
-	if !pok {
+	pv, ok := parent.Value(key)
+	if !ok {
 		return val, true
 	}
 
