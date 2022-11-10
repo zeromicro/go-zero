@@ -1,0 +1,5 @@
+@server(
+    foo: bar
+    bar: baz
+    baz: foo
+)

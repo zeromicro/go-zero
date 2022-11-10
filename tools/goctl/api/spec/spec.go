@@ -21,9 +21,9 @@ type (
 
 	// ApiSpec describes an api file
 	ApiSpec struct {
-		Info    Info
-		Syntax  ApiSyntax
-		Imports []Import
+		Info    Info      // Deprecated: useless expression
+		Syntax  ApiSyntax // Deprecated: useless expression
+		Imports []Import  // Deprecated: useless expression
 		Types   []Type
 		Service Service
 	}

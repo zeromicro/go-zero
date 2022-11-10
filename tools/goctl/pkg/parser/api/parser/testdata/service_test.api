@@ -1,0 +1,21 @@
+service foo {
+    @handler bar
+    get /ping
+}
+
+service bar {
+    @doc "bar"
+    @handler foo
+    get /foo/:bar (Foo)
+
+    @handler foo
+    get /foo/:bar returns (Foo)
+}
+
+service baz-api {
+    @handler foo
+    post /foo/:bar/foo-bar-baz (Foo) returns (*Bar)
+
+    @handler bar
+    post /foo ([]Foo) returns ([]*Bar)
+}
