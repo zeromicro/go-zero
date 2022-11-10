@@ -3186,6 +3186,34 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 	assert.Equal(t, float32(123.45), v.Age)
 }
 
+func TestUnmarshal_EnvDuration(t *testing.T) {
+	type Value struct {
+		D time.Duration `key:"age,env=TEST_NAME_DURATION"`
+	}
+
+	const envName = "TEST_NAME_DURATION"
+	os.Setenv(envName, "1s")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, time.Second, v.D)
+}
+
+func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
+	type Value struct {
+		D time.Duration `key:"age,env=TEST_NAME_BAD_DURATION"`
+	}
+
+	const envName = "TEST_NAME_BAD_DURATION"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NotNil(t, UnmarshalKey(emptyMap, &v))
+	fmt.Println(UnmarshalKey(emptyMap, &v))
+}
+
 func BenchmarkUnmarshalString(b *testing.B) {
 	type inner struct {
 		Value string `key:"value"`

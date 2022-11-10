@@ -147,6 +147,42 @@ func TestFirstN(t *testing.T) {
 	}
 }
 
+func TestJoin(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  []string
+		expect string
+	}{
+		{
+			name:   "all blanks",
+			input:  []string{"", ""},
+			expect: "",
+		},
+		{
+			name:   "two values",
+			input:  []string{"012", "abc"},
+			expect: "012.abc",
+		},
+		{
+			name:   "last blank",
+			input:  []string{"abc", ""},
+			expect: "abc",
+		},
+		{
+			name:   "first blank",
+			input:  []string{"", "abc"},
+			expect: "abc",
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expect, Join('.', test.input...))
+		})
+	}
+}
+
 func TestRemove(t *testing.T) {
 	cases := []struct {
 		input  []string

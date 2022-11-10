@@ -94,7 +94,8 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v interface{}, f
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {
 		field := rte.Field(i)
-		if err := u.processField(field, rve.Field(i), m, fullName); err != nil {
+		fieldName := stringx.Join(delimiter, fullName, field.Name)
+		if err := u.processField(field, rve.Field(i), m, fieldName); err != nil {
 			return err
 		}
 	}
@@ -130,7 +131,8 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 
 	for i := 0; i < fieldType.NumField(); i++ {
 		subField := fieldType.Field(i)
-		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fullName)
+		fieldName := stringx.Join(delimiter, fullName, subField.Name)
+		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fieldName)
 		if err != nil {
 			return err
 		}
@@ -142,7 +144,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 				maybeNewValue(field, value)
 				indirectValue = reflect.Indirect(value)
 			}
-			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
+			if err = u.processField(subField, indirectValue.Field(i), m, fieldName); err != nil {
 				return err
 			}
 		}
@@ -168,7 +170,9 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 	indirectValue := reflect.Indirect(value)
 
 	for i := 0; i < fieldType.NumField(); i++ {
-		if err := u.processField(fieldType.Field(i), indirectValue.Field(i), m, fullName); err != nil {
+		field := fieldType.Field(i)
+		fieldName := stringx.Join(delimiter, fullName, field.Name)
+		if err := u.processField(fieldType.Field(i), indirectValue.Field(i), m, fieldName); err != nil {
 			return err
 		}
 	}
@@ -341,13 +345,19 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 
 func (u *Unmarshaler) processFieldWithEnvValue(field reflect.StructField, value reflect.Value,
 	envVal string, opts *fieldOptionsWithContext, fullName string) error {
-	switch field.Type.Kind() {
+	fieldKind := field.Type.Kind()
+	switch fieldKind {
+	case durationType.Kind():
+		if err := fillDurationValue(fieldKind, value, envVal); err != nil {
+			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
+		}
+
+		return nil
 	case reflect.String:
 		value.SetString(envVal)
 		return nil
 	default:
-		return u.processFieldPrimitiveWithJSONNumber(field, value,
-			json.Number(envVal), opts, fullName)
+		return u.processFieldPrimitiveWithJSONNumber(field, value, json.Number(envVal), opts, fullName)
 	}
 }
 
