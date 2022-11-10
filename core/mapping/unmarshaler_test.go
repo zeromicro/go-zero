@@ -3202,7 +3202,7 @@ func TestUnmarshal_EnvDuration(t *testing.T) {
 
 func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
 	type Value struct {
-		D time.Duration `key:"age,env=TEST_NAME_BAD_DURATION"`
+		Duration time.Duration `key:"duration,env=TEST_NAME_BAD_DURATION"`
 	}
 
 	const envName = "TEST_NAME_BAD_DURATION"

@@ -93,9 +93,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v interface{}, f
 	rve := rv.Elem()
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {
-		field := rte.Field(i)
-		fieldName := stringx.Join(delimiter, fullName, field.Name)
-		if err := u.processField(field, rve.Field(i), m, fieldName); err != nil {
+		if err := u.processField(rte.Field(i), rve.Field(i), m, fullName); err != nil {
 			return err
 		}
 	}
@@ -131,8 +129,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 
 	for i := 0; i < fieldType.NumField(); i++ {
 		subField := fieldType.Field(i)
-		fieldName := stringx.Join(delimiter, fullName, subField.Name)
-		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fieldName)
+		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fullName)
 		if err != nil {
 			return err
 		}
@@ -144,7 +141,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 				maybeNewValue(field, value)
 				indirectValue = reflect.Indirect(value)
 			}
-			if err = u.processField(subField, indirectValue.Field(i), m, fieldName); err != nil {
+			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
 				return err
 			}
 		}
@@ -170,9 +167,7 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 	indirectValue := reflect.Indirect(value)
 
 	for i := 0; i < fieldType.NumField(); i++ {
-		field := fieldType.Field(i)
-		fieldName := stringx.Join(delimiter, fullName, field.Name)
-		if err := u.processField(fieldType.Field(i), indirectValue.Field(i), m, fieldName); err != nil {
+		if err := u.processField(fieldType.Field(i), indirectValue.Field(i), m, fullName); err != nil {
 			return err
 		}
 	}
@@ -368,6 +363,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		return err
 	}
 
+	fullName = join(fullName, key)
 	if opts != nil && len(opts.EnvVar) > 0 {
 		envVal := proc.Env(opts.EnvVar)
 		if len(envVal) > 0 {
@@ -375,7 +371,6 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 		}
 	}
 
-	fullName = join(fullName, key)
 	canonicalKey := key
 	if u.opts.canonicalKey != nil {
 		canonicalKey = u.opts.canonicalKey(key)
