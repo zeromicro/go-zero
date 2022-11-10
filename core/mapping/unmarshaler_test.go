@@ -2991,6 +2991,48 @@ func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
 	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
 }
 
+func TestUnmarshaler_InheritSequence(t *testing.T) {
+	var testConf = []byte(`
+Nacos:
+  NamespaceId: "123"
+RpcConf:
+  Nacos:
+    NamespaceId: "456"
+  Name: hello
+`)
+
+	type (
+		NacosConf struct {
+			NamespaceId string
+		}
+
+		RpcConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Name  string
+		}
+
+		Config1 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+
+		Config2 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+	)
+
+	var c1 Config1
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c1))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+
+	var c2 Config2
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c2))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+}
+
 func TestUnmarshalValuer(t *testing.T) {
 	unmarshaler := NewUnmarshaler(jsonTagKey)
 	var foo string
