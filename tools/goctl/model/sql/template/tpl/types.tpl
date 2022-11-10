@@ -1,7 +1,3 @@
-package template
-
-// Types defines a template for types in model.
-const Types = `
 type (
 	{{.lowerStartCamelObject}}Model interface{
 		{{.method}}
@@ -16,4 +12,3 @@ type (
 		{{.fields}}
 	}
 )
-`
