@@ -2,4 +2,6 @@
     foo: bar
     bar: baz
     baz: foo
+    qux: /v1
+    quux: /v1/v2
 )

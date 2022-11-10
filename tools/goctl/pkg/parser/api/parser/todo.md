@@ -18,6 +18,8 @@ type Foo {
 }
 ```
 
+3. Format cause comments missed
+
 # features
 The follows need more discussion.
 

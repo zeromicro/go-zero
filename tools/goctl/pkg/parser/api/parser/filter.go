@@ -16,6 +16,8 @@ func (b *filterBuilder) check(toks ...token.Token) {
 	for _, tok := range toks {
 		if _, ok := b.m[tok.Text]; ok {
 			b.errorManager.add(ast.DuplicateStmtError(tok.Position, "duplicate "+b.checkExprName))
+		} else {
+			b.m[tok.Text] = placeholder.PlaceHolder
 		}
 	}
 }

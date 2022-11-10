@@ -72,6 +72,7 @@ const (
 	INT        // 123
 	STRING     // "abc"
 	RAW_STRING // `abc`
+	PATH // `abc`
 	literal_end
 
 	operator_beg
@@ -152,6 +153,7 @@ var tokens = [...]string{
 	INT:        "INT",
 	STRING:     "STRING",
 	RAW_STRING: "RAW_STRING",
+	PATH: "PATH",
 
 	SUB:    "-",
 	MUL:    "*",

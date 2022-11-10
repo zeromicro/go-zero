@@ -2,12 +2,16 @@ package parser
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"path/filepath"
 	"reflect"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/scanner"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -31,9 +35,14 @@ type Parser struct {
 }
 
 func New(filename string, src interface{}, mode Mode) *Parser {
+	abs, err := filepath.Abs(filename)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	p := &Parser{
-		filename: filename,
-		s:        scanner.MustNewScanner(filename, src),
+		filename: abs,
+		s:        scanner.MustNewScanner(abs, src),
 		mode:     mode,
 	}
 
@@ -60,6 +69,10 @@ func (p *Parser) Parse() *ast.AST {
 		}
 	}
 
+	if pathx.FileExists(p.filename) {
+		code := api.Format()
+		_ = ioutil.WriteFile(p.filename, []byte(code), 0666)
+	}
 	return api
 }
 
@@ -977,11 +990,48 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	}
 	expr.Colon = p.curTok
 
-	// token IDENT
-	if !p.advanceIfPeekTokenIs(token.IDENT) {
-		return nil
+	var valueTok token.Token
+	if p.peekTokenIs(token.QUO) {
+		if !p.nextToken() {
+			return nil
+		}
+		slashTok := p.curTok
+		if !p.advanceIfPeekTokenIs(token.IDENT) {
+			return nil
+		}
+		idTok := p.curTok
+		valueTok = token.Token{
+			Text:     slashTok.Text + idTok.Text,
+			Position: slashTok.Position,
+		}
+	} else {
+		if !p.advanceIfPeekTokenIs(token.IDENT) {
+			return nil
+		}
+		valueTok = p.curTok
 	}
-	expr.Value = p.curTok
+
+	for {
+		if p.peekTokenIs(token.QUO) {
+			if !p.nextToken() {
+				return nil
+			}
+			slashTok := p.curTok
+			if !p.advanceIfPeekTokenIs(token.IDENT) {
+				return nil
+			}
+			idTok := p.curTok
+			valueTok = token.Token{
+				Text:     valueTok.Text + slashTok.Text + idTok.Text,
+				Position: valueTok.Position,
+			}
+		} else {
+			break
+		}
+	}
+
+	valueTok.Type = token.PATH
+	expr.Value = valueTok
 
 	return expr
 }

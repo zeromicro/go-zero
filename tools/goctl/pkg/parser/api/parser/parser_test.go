@@ -288,6 +288,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`foo: bar`,
 			`bar: baz`,
 			`baz: foo`,
+			`qux: /v1`,
+			`quux: /v1/v2`,
 		}
 		p := New("foo.api", atServerTestAPI, SkipComment)
 		result := p.parseForUintTest()
@@ -329,6 +331,11 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server( foo:bar bar: @`,
 			`@server("":foo)`,
 			`@server(foo:bar,baz)`,
+			`@server(foo:/`,
+			`@server(foo:/v`,
+			`@server(foo:/v1/`,
+			`@server(foo:/v1/v`,
+			`@server(foo:/v1/v2`,
 		}
 		for _, v := range testData {
 			p := New("foo.api", v, SkipComment)

@@ -37,7 +37,7 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 			return nil, ast.SyntaxError(v.Pos(), "expected literal type, got <%T>", v)
 		}
 		if !v.Key.CanEqual() {
-			return nil, ast.SyntaxError(v.Pos(), "map key <%T> must be equal data type",v)
+			return nil, ast.SyntaxError(v.Pos(), "map key <%T> must be equal data type", v)
 		}
 		value, err := a.astTypeToSpec(v.Value)
 		if err != nil {
@@ -247,9 +247,6 @@ func (a *Analyzer) fillTypes() error {
 }
 
 func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {
-	if expr == nil {
-		return nil
-	}
 	switch val := expr.DataType.(type) {
 	case *ast.StructDataType:
 		var members []spec.Member
@@ -323,7 +320,9 @@ func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
 		return nil, err
 	}
 
-	api, err := convert2API(ast)
+	var importManager = make(map[string]placeholder.Type)
+	importManager[ast.Filename]=placeholder.PlaceHolder
+	api, err := convert2API(ast, importManager)
 	if err != nil {
 		return nil, err
 	}
@@ -362,6 +361,7 @@ var kind = map[string]placeholder.Type{
 	"string":     placeholder.PlaceHolder,
 	"byte":       placeholder.PlaceHolder,
 	"rune":       placeholder.PlaceHolder,
+	"any":       placeholder.PlaceHolder,
 }
 
 func IsBaseType(text string) bool {

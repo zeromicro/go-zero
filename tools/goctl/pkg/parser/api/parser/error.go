@@ -21,5 +21,8 @@ func (e *errorManager) add(err error) {
 }
 
 func (e *errorManager) error() error {
+	if len(e.errors)==0{
+		return nil
+	}
 	return fmt.Errorf(strings.Join(e.errors, "\n"))
 }

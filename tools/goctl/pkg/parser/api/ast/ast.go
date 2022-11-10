@@ -28,8 +28,8 @@ type Expr interface {
 }
 
 type AST struct {
-	Filename string
-	Stmts    []Stmt
+	Filename      string
+	Stmts         []Stmt
 }
 
 func (a *AST) Format() string {

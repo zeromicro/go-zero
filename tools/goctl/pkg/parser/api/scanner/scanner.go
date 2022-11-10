@@ -434,10 +434,11 @@ func NewScanner(filename string, src interface{}) (*Scanner, error) {
 }
 
 func readData(filename string, src interface{}) ([]byte, error) {
-	if src == nil {
-		return ioutil.ReadFile(filename)
+	data, err := ioutil.ReadFile(filename)
+	if err == nil {
+		return data, nil
 	}
-	var data []byte
+
 	switch v := src.(type) {
 	case []byte:
 		data = append(data, v...)
