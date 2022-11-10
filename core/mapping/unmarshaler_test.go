@@ -3211,7 +3211,6 @@ func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
 
 	var v Value
 	assert.NotNil(t, UnmarshalKey(emptyMap, &v))
-	fmt.Println(UnmarshalKey(emptyMap, &v))
 }
 
 func BenchmarkUnmarshalString(b *testing.B) {
