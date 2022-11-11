@@ -75,8 +75,18 @@ func writeType(writer io.Writer, tp spec.Type, config *config.Config) error {
 	}
 
 	// write doc for swagger
+	swaggerStr := strings.Builder{}
 	for _, v := range structType.Documents() {
-		fmt.Fprintf(writer, "\t%s\n", v)
+		fmt.Fprintf(writer, "%s\n", v)
+		swaggerStr.WriteString(v)
+	}
+
+	if !strings.Contains(swaggerStr.String(), "swagger") {
+		if strings.HasSuffix(tp.Name(), "Req") || strings.HasSuffix(tp.Name(), "Info") {
+			fmt.Fprintf(writer, "// swagger:model %s \n", tp.Name())
+		} else if strings.HasSuffix(tp.Name(), "Resp") {
+			fmt.Fprintf(writer, "// swagger:response %s \n", tp.Name())
+		}
 	}
 
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
