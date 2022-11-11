@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	// Cmd describes a api command.
+	// Cmd describes an api command.
 	Cmd = &cobra.Command{
 		Use:   "api",
 		Short: "Generate api related files",

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -36,6 +36,29 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 	var in inner
 	assert.Nil(t, UnmarshalKey(m, &in))
 	assert.True(t, in.Optional)
+}
+
+func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
+	type inner struct {
+		Name string `key:"name"`
+	}
+	m := map[string]interface{}{
+		"Name": "go-zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		first := true
+		return strings.Map(func(r rune) rune {
+			if first {
+				first = false
+				return unicode.ToTitle(r)
+			}
+			return r
+		}, s)
+	}))
+	assert.Nil(t, unmarshaler.Unmarshal(m, &in))
+	assert.Equal(t, "go-zero", in.Name)
 }
 
 func TestUnmarshalBool(t *testing.T) {
@@ -2716,6 +2739,347 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 
 	assert.Nil(t, NewUnmarshaler("json").Unmarshal(m, &c))
 	assert.Equal(t, "1", c.Anything["id"])
+}
+
+func TestUnmarshalInheritPrimitiveUseParent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveUseSelf(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery string    `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"component": map[string]interface{}{
+			"name":      "test",
+			"discovery": "localhost:8888",
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8888", s.Component.Discovery)
+}
+
+func TestUnmarshalInheritPrimitiveNotExist(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUseParent(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8080, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelf(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"host": "remotehost",
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "remotehost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructNotExist(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"component": map[string]interface{}{
+			"name": "test",
+		},
+	}, &s))
+}
+
+func TestUnmarshalInheritStructUsePartial(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+			"port": 8080,
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]interface{}{
+				"port": 8888,
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost", s.Discovery.Host)
+	assert.Equal(t, 8080, s.Discovery.Port)
+	assert.Equal(t, "localhost", s.Component.Discovery.Host)
+	assert.Equal(t, 8888, s.Component.Discovery.Port)
+}
+
+func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
+	type (
+		discovery struct {
+			Host string `key:"host"`
+			Port int    `key:"port"`
+		}
+		component struct {
+			Name      string    `key:"name"`
+			Discovery discovery `key:"discovery,inherit"`
+		}
+		server struct {
+			Discovery discovery `key:"discovery"`
+			Component component `key:"component"`
+		}
+	)
+
+	var s server
+	assert.NotNil(t, UnmarshalKey(map[string]interface{}{
+		"discovery": map[string]interface{}{
+			"host": "localhost",
+		},
+		"component": map[string]interface{}{
+			"name": "test",
+			"discovery": map[string]string{
+				"host": "remotehost",
+			},
+		},
+	}, &s))
+}
+
+func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
+	type (
+		component struct {
+			Name      string `key:"name"`
+			Discovery string `key:"discovery,inherit"`
+		}
+		middle struct {
+			Value component `key:"value"`
+		}
+		server struct {
+			Discovery string `key:"discovery"`
+			Middle    middle `key:"middle"`
+		}
+	)
+
+	var s server
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"discovery": "localhost:8080",
+		"middle": map[string]interface{}{
+			"value": map[string]interface{}{
+				"name": "test",
+			},
+		},
+	}, &s))
+	assert.Equal(t, "localhost:8080", s.Discovery)
+	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
+}
+
+func TestUnmarshaler_InheritSequence(t *testing.T) {
+	var testConf = []byte(`
+Nacos:
+  NamespaceId: "123"
+RpcConf:
+  Nacos:
+    NamespaceId: "456"
+  Name: hello
+`)
+
+	type (
+		NacosConf struct {
+			NamespaceId string
+		}
+
+		RpcConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Name  string
+		}
+
+		Config1 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+
+		Config2 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+	)
+
+	var c1 Config1
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c1))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+
+	var c2 Config2
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c2))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+}
+
+func TestUnmarshaler_InheritNested(t *testing.T) {
+	var testConf = []byte(`
+Nacos:
+  Value1: "123"
+Server:
+  Nacos:
+    Value2: "456"
+  Rpc:
+    Nacos:
+      Value3: "789"
+    Name: hello
+`)
+
+	type (
+		NacosConf struct {
+			Value1 string `json:",optional"`
+			Value2 string `json:",optional"`
+			Value3 string `json:",optional"`
+		}
+
+		RpcConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Name  string
+		}
+
+		ServerConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Rpc   RpcConf
+		}
+
+		Config struct {
+			Server ServerConf
+			Nacos  NacosConf
+		}
+	)
+
+	var c Config
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c))
+	assert.Equal(t, "123", c.Nacos.Value1)
+	assert.Empty(t, c.Nacos.Value2)
+	assert.Empty(t, c.Nacos.Value3)
+	assert.Equal(t, "123", c.Server.Nacos.Value1)
+	assert.Equal(t, "456", c.Server.Nacos.Value2)
+	assert.Empty(t, c.Nacos.Value3)
+	assert.Equal(t, "123", c.Server.Rpc.Nacos.Value1)
+	assert.Equal(t, "456", c.Server.Rpc.Nacos.Value2)
+	assert.Equal(t, "789", c.Server.Rpc.Nacos.Value3)
 }
 
 func TestUnmarshalValuer(t *testing.T) {

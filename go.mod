@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.2.0
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/alicebob/miniredis/v2 v2.23.0
+	github.com/alicebob/miniredis/v2 v2.23.1
 	github.com/fatih/color v1.13.0
 	github.com/fullstorydev/grpcurl v1.8.7
 	github.com/globalsign/mgo v0.0.0-20181015135952-eeefdecb41b8
@@ -15,7 +15,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
-	github.com/jhump/protoreflect v1.13.0
+	github.com/jhump/protoreflect v1.14.0
 	github.com/lib/pq v1.10.7
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.0.5
@@ -24,7 +24,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	go.etcd.io/etcd/api/v3 v3.5.5
 	go.etcd.io/etcd/client/v3 v3.5.5
-	go.mongodb.org/mongo-driver v1.10.3
+	go.mongodb.org/mongo-driver v1.11.0
 	go.opentelemetry.io/otel v1.11.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.11.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.0

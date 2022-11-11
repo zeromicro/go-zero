@@ -29,7 +29,7 @@ var (
 	tp     *sdktrace.TracerProvider
 )
 
-// StartAgent starts a opentelemetry agent.
+// StartAgent starts an opentelemetry agent.
 func StartAgent(c Config) {
 	lock.Lock()
 	defer lock.Unlock()
