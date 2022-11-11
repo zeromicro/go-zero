@@ -3188,7 +3188,7 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 
 func TestUnmarshal_EnvDuration(t *testing.T) {
 	type Value struct {
-		D time.Duration `key:"age,env=TEST_NAME_DURATION"`
+		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
 	}
 
 	const envName = "TEST_NAME_DURATION"
@@ -3197,7 +3197,7 @@ func TestUnmarshal_EnvDuration(t *testing.T) {
 
 	var v Value
 	assert.NoError(t, UnmarshalKey(emptyMap, &v))
-	assert.Equal(t, time.Second, v.D)
+	assert.Equal(t, time.Second, v.Duration)
 }
 
 func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
