@@ -14,9 +14,18 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			httpx.Error(w, err)
 			return
 		}
+		if err := req.Validate(); err != nil {
+		    httpx.Error(w, err)
+            return
+		}
 
 		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
+		{{if .HasResp}}if err := resp.Validate(); err != nil {
+            httpx.Error(w, err)
+            return
+        }
+        {{end}}
 		if err != nil {
 			httpx.Error(w, err)
 		} else {

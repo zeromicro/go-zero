@@ -105,8 +105,10 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
-	if err := apiformat.ApiFormatByPath(apiFile, false); err != nil {
-		return err
+	if parser.NeedReformatSchemaContent(api) {
+		if err := apiformat.ApiFormatByPath(apiFile, false); err != nil {
+			return err
+		}
 	}
 
 	fmt.Println(aurora.Green("Done."))

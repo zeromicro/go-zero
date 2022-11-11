@@ -1,0 +1,168 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  description: 深信服HCI OpenAPI接口文档，DO NOT EDIT !
+  title: 深信服HCI OpenAPI接口文档
+
+paths:
+  /api/v1/gettest/{field1}:
+    get:
+      operationId: testGetOperationId
+      tags:
+        - test
+      parameters:
+        - name: field1
+          in: path
+          description: first field
+          required: true
+          schema:
+            type: string
+            description: test
+        - name: field2
+          in: query
+          description: second field
+          allowEmptyValue: true
+          schema:
+            type: string
+            description: test
+        - name: field3
+          in: query
+          description: third field
+          schema:
+            type: string
+            description: test
+        - name: field4
+          in: query
+          description: fourth field
+          schema:
+            type: string
+            description: test
+      description: get test api
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/testGetOperationIdOutput'
+          description: OK
+  /api/v1/posttest:
+    post:
+      operationId: postGetOperationId
+      tags:
+        - test
+      x-hci-versions:
+        - HCI6320
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postGetOperationIdInput'
+      description: test
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/postGetOperationIdOutput'
+          description: OK
+components:
+  schemas:
+    testGetOperationIdOutput:
+      type: object
+      description: test
+      properties:
+        field1:
+          type: string
+          description: first field
+          nullable: true
+        field2:
+          type: string
+          description: second field
+          pattern: .*
+          minLength: 1
+          maxLength: 5
+        field3:
+          type: integer
+          description: third field
+          maximum: 5
+          minimum: 1
+          multipleOf: 2
+    postGetOperationIdInput:
+      type: object
+      description: test
+      properties:
+        field1:
+          $ref: '#/components/schemas/postGetOperationIdInputSub'
+        field2:
+          type: string
+          description: second field
+          enum:
+            - desc
+            - asc
+          nullable: true
+        field3:
+          type: array
+          description: third field
+          maxItems: 5
+          minItems: 1
+          items:
+            type: array
+            maxItems: 5
+            minItems: 1
+            items:
+              type: object
+              x-typename: objectXXX
+              properties:
+                field1:
+                  type: string
+                  minLength: 1
+                  maxLength: 5
+                  pattern: .*
+        field4:
+          $ref: '#/components/schemas/postGetOperationIdInputSub'
+    postGetOperationIdInputSub:
+      type: object
+      properties:
+        field1:
+          type: integer
+
+    postGetOperationIdOutput:
+      type: object
+      description: test
+      properties:
+        field1:
+          type: boolean
+          description: first field
+        field2:
+          type: array
+          maxItems: 5
+          minItems: 1
+          items:
+            type: object
+            properties:
+              field1:
+                type: string
+                minLength: 1
+                maxLength: 5
+                pattern: .*
+
+        field3:
+          type: object
+          description: third field
+          properties:
+            field1:
+              type: string
+              minLength: 1
+              maxLength: 5
+              pattern: .*
+        field4:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              field1:
+                type: string
+                minLength: 1
+                maxLength: 5
+                pattern: .*

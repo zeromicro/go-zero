@@ -1,8 +1,10 @@
 package parser
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"unicode"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
@@ -10,27 +12,30 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
+type parserInterface interface {
+	parse() (*spec.ApiSpec, error)
+}
+
 type parser struct {
 	ast  *ast.Api
 	spec *spec.ApiSpec
 }
 
+// NeedReformatSchemaContent schema 中定义的内容是否需要reformat
+func NeedReformatSchemaContent(spec *spec.ApiSpec) bool {
+	if strings.HasPrefix(spec.Syntax.Version, openApi) {
+		return false
+	}
+	return true
+}
+
 // Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
-	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
-	ast, err := astParser.Parse(filename)
+	parser, err := newParse(context.Background(), filename)
 	if err != nil {
 		return nil, err
 	}
-
-	spec := new(spec.ApiSpec)
-	p := parser{ast: ast, spec: spec}
-	err = p.convert2Spec()
-	if err != nil {
-		return nil, err
-	}
-
-	return spec, nil
+	return parser.parse()
 }
 
 func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
@@ -63,6 +68,32 @@ func ParseContent(content string, filename ...string) (*spec.ApiSpec, error) {
 // ParseContentWithParserSkipCheckTypeDeclaration parses the api content with skip check type declaration
 func ParseContentWithParserSkipCheckTypeDeclaration(content string, filename ...string) (*spec.ApiSpec, error) {
 	return parseContent(content, true, filename...)
+}
+
+func newParse(ctx context.Context, filename string) (parserInterface, error) {
+	if strings.HasSuffix(filename, ".api") {
+		astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
+		ast, err := astParser.Parse(filename)
+		if err != nil {
+			return nil, err
+		}
+		return parser{ast: ast, spec: &spec.ApiSpec{}}, nil
+	} else if strings.HasSuffix(filename, ".yaml") {
+		parser, err := newOpenApi3Parser(ctx, filename)
+		if err == nil {
+			return parser, nil
+		}
+		return newOpenApi2Parser(filename)
+	}
+	return nil, fmt.Errorf("un expect file type: %s", filename)
+}
+
+func (p parser) parse() (*spec.ApiSpec, error) {
+	if err := p.convert2Spec(); err != nil {
+		return nil, err
+	}
+
+	return p.spec, nil
 }
 
 func (p parser) convert2Spec() error {

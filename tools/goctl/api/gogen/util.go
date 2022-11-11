@@ -57,15 +57,23 @@ func genFile(c fileGenConfig) error {
 	return err
 }
 
-func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int) error {
+func requiredTypeName(name string, isRequired bool, nullable bool) string {
+	if isRequired || nullable {
+		return fmt.Sprintf("*%s", name)
+	}
+	return name
+}
+
+func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, indent int, isRequired bool) error {
 	util.WriteIndent(writer, indent)
 	var err error
+	typeName := requiredTypeName(tp.Name(), isRequired, tp.Nullable())
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")
 		comment = "//" + comment
-		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), typeName, tag, comment)
 	} else {
-		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), typeName, tag)
 	}
 
 	return err

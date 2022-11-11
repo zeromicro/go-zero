@@ -7,7 +7,7 @@ func (t PrimitiveType) Name() string {
 
 // Comments returns the comments of struct
 func (t PrimitiveType) Comments() []string {
-	return nil
+	return []string{t.Comment}
 }
 
 // Documents returns the documents of struct
@@ -22,7 +22,7 @@ func (t DefineStruct) Name() string {
 
 // Comments returns the comments of struct
 func (t DefineStruct) Comments() []string {
-	return nil
+	return []string{t.Comment}
 }
 
 // Documents returns the documents of struct
@@ -52,7 +52,7 @@ func (t ArrayType) Name() string {
 
 // Comments returns the comments of struct
 func (t ArrayType) Comments() []string {
-	return nil
+	return []string{t.Comment}
 }
 
 // Documents returns the documents of struct
@@ -88,4 +88,8 @@ func (t InterfaceType) Comments() []string {
 // Documents returns the documents of struct
 func (t InterfaceType) Documents() []string {
 	return nil
+}
+
+func (t BaseType) Nullable() bool {
+	return t.RawNullable
 }
