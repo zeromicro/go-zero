@@ -12,6 +12,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -92,8 +93,7 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v interface{}, f
 	rve := rv.Elem()
 	numFields := rte.NumField()
 	for i := 0; i < numFields; i++ {
-		field := rte.Field(i)
-		if err := u.processField(field, rve.Field(i), m, fullName); err != nil {
+		if err := u.processField(rte.Field(i), rve.Field(i), m, fullName); err != nil {
 			return err
 		}
 	}
@@ -338,6 +338,24 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 	return false, nil
 }
 
+func (u *Unmarshaler) processFieldWithEnvValue(field reflect.StructField, value reflect.Value,
+	envVal string, opts *fieldOptionsWithContext, fullName string) error {
+	fieldKind := field.Type.Kind()
+	switch fieldKind {
+	case durationType.Kind():
+		if err := fillDurationValue(fieldKind, value, envVal); err != nil {
+			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
+		}
+
+		return nil
+	case reflect.String:
+		value.SetString(envVal)
+		return nil
+	default:
+		return u.processFieldPrimitiveWithJSONNumber(field, value, json.Number(envVal), opts, fullName)
+	}
+}
+
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m valuerWithParent, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
@@ -346,6 +364,13 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	fullName = join(fullName, key)
+	if opts != nil && len(opts.EnvVar) > 0 {
+		envVal := proc.Env(opts.EnvVar)
+		if len(envVal) > 0 {
+			return u.processFieldWithEnvValue(field, value, envVal, opts, fullName)
+		}
+	}
+
 	canonicalKey := key
 	if u.opts.canonicalKey != nil {
 		canonicalKey = u.opts.canonicalKey(key)

@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -3087,6 +3088,129 @@ func TestUnmarshalValuer(t *testing.T) {
 	var foo string
 	err := unmarshaler.UnmarshalValuer(nil, foo)
 	assert.NotNil(t, err)
+}
+
+func TestUnmarshal_EnvString(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
+	}
+
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, envVal, v.Name)
+}
+
+func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
+	}
+
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"name": "local value",
+	}, &v))
+	assert.Equal(t, envVal, v.Name)
+}
+
+func TestUnmarshal_EnvInt(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
+	}
+
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, 123, v.Age)
+}
+
+func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
+	}
+
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18,
+	}, &v))
+	assert.Equal(t, 123, v.Age)
+}
+
+func TestUnmarshal_EnvFloat(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"name,env=TEST_NAME_FLOAT"`
+	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"age,env=TEST_NAME_FLOAT"`
+	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18.5,
+	}, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvDuration(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
+	}
+
+	const envName = "TEST_NAME_DURATION"
+	os.Setenv(envName, "1s")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, time.Second, v.Duration)
+}
+
+func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_BAD_DURATION"`
+	}
+
+	const envName = "TEST_NAME_BAD_DURATION"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NotNil(t, UnmarshalKey(emptyMap, &v))
 }
 
 func BenchmarkUnmarshalString(b *testing.B) {

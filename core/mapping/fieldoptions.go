@@ -13,6 +13,7 @@ type (
 		Optional   bool
 		Options    []string
 		Default    string
+		EnvVar     string
 		Range      *numberRange
 	}
 
@@ -106,5 +107,6 @@ func (o *fieldOptions) toOptionsWithContext(key string, m Valuer, fullName strin
 		Optional:   optional,
 		Options:    o.Options,
 		Default:    o.Default,
+		EnvVar:     o.EnvVar,
 	}, nil
 }
