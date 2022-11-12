@@ -3186,6 +3186,47 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 	assert.Equal(t, float32(123.45), v.Age)
 }
 
+func TestUnmarshal_EnvBoolTrue(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_TRUE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_TRUE"
+	os.Setenv(envName, "true")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.True(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolFalse(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_FALSE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_FALSE"
+	os.Setenv(envName, "false")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.False(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolBad(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_BAD"`
+	}
+
+	const envName = "TEST_NAME_BOOL_BAD"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
 func TestUnmarshal_EnvDuration(t *testing.T) {
 	type Value struct {
 		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`

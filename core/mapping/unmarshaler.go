@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -342,6 +343,14 @@ func (u *Unmarshaler) processFieldWithEnvValue(field reflect.StructField, value 
 	envVal string, opts *fieldOptionsWithContext, fullName string) error {
 	fieldKind := field.Type.Kind()
 	switch fieldKind {
+	case reflect.Bool:
+		val, err := strconv.ParseBool(envVal)
+		if err != nil {
+			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
+		}
+
+		value.SetBool(val)
+		return nil
 	case durationType.Kind():
 		if err := fillDurationValue(fieldKind, value, envVal); err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
