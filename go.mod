@@ -21,20 +21,21 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.5
 	github.com/prometheus/client_golang v1.13.0
 	github.com/spaolacci/murmur3 v1.1.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	go.etcd.io/etcd/api/v3 v3.5.5
 	go.etcd.io/etcd/client/v3 v3.5.5
 	go.mongodb.org/mongo-driver v1.11.0
-	go.opentelemetry.io/otel v1.11.0
-	go.opentelemetry.io/otel/exporters/jaeger v1.11.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.0
-	go.opentelemetry.io/otel/exporters/zipkin v1.11.0
-	go.opentelemetry.io/otel/sdk v1.11.0
-	go.opentelemetry.io/otel/trace v1.11.0
+	go.opentelemetry.io/otel v1.10.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.10.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.10.0
+	go.opentelemetry.io/otel/exporters/zipkin v1.10.0
+	go.opentelemetry.io/otel/sdk v1.10.0
+	go.opentelemetry.io/otel/trace v1.10.0
 	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/goleak v1.2.0
-	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8
-	golang.org/x/time v0.0.0-20220411224347-583f2d630306
+	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10
+	golang.org/x/time v0.2.0
+	google.golang.org/genproto v0.0.0-20221111202108-142d8a6fa32e
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
@@ -43,7 +44,7 @@ require (
 	k8s.io/api v0.22.9
 	k8s.io/apimachinery v0.22.9
 	k8s.io/client-go v0.22.9
-	k8s.io/utils v0.0.0-20220706174534-f6158b442e7c
+	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 )
 
 require (
@@ -53,7 +54,4 @@ require (
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/net v0.0.0-20220531201128-c960675eff93 // indirect
-	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
-	k8s.io/klog/v2 v2.40.1 // indirect
 )
