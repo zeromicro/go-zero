@@ -42,7 +42,7 @@ require (
 	gopkg.in/h2non/gock.v1 v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.22.9
-	k8s.io/apimachinery v0.22.9
+	k8s.io/apimachinery v0.25.4
 	k8s.io/client-go v0.22.9
 	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2
 )
