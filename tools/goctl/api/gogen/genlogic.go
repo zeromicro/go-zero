@@ -89,7 +89,8 @@ func getLogicFolderPath(group spec.Group, route spec.Route) string {
 
 func genLogicImports(route spec.Route, parentPkg string) string {
 	var imports []string
-	imports = append(imports, `"context"`+"\n")
+	imports = append(imports, `"context"`)
+	imports = append(imports, `"net/http"`+"\n")
 	imports = append(imports, fmt.Sprintf("\"%s\"", pathx.JoinPackages(parentPkg, contextDir)))
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))

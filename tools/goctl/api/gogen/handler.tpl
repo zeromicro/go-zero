@@ -17,7 +17,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r, svcCtx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		if err != nil {
 		    {{if .TransErr}}err = svcCtx.Trans.TransError(r.Header.Get("Accept-Language"), err){{end}}

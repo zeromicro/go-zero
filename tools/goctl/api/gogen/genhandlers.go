@@ -79,9 +79,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	// HasResp
 	if len(route.ResponseTypeName()) > 0 {
 		handlerDoc.WriteString(fmt.Sprintf(`// Responses:
-			//  200: %s
-			//  401: SimpleMsg
-			//  500: SimpleMsg`, route.ResponseTypeName()))
+			//  200: %s`, route.ResponseTypeName()))
 	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{

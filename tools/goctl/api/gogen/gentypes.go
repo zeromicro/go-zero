@@ -85,7 +85,7 @@ func writeType(writer io.Writer, tp spec.Type, config *config.Config) error {
 		if strings.HasSuffix(tp.Name(), "Req") || strings.HasSuffix(tp.Name(), "Info") {
 			fmt.Fprintf(writer, "// swagger:model %s \n", tp.Name())
 		} else if strings.HasSuffix(tp.Name(), "Resp") {
-			fmt.Fprintf(writer, "// swagger:response %s \n", tp.Name())
+			fmt.Fprintf(writer, "// swagger:model %s \n", tp.Name())
 		}
 	}
 

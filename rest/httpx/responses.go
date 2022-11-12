@@ -2,10 +2,12 @@ package httpx
 
 import (
 	"encoding/json"
-	"github.com/zeromicro/go-zero/core/errorx"
-	"google.golang.org/grpc/status"
 	"net/http"
 	"sync"
+
+	"google.golang.org/grpc/status"
+
+	"github.com/zeromicro/go-zero/core/errorx"
 
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/internal/errcode"
@@ -29,7 +31,10 @@ func Error(w http.ResponseWriter, err error, fns ...func(w http.ResponseWriter, 
 		} else if errcode.IsGrpcError(err) {
 			// don't unwrap error and get status.Message(),
 			// it hides the rpc error headers.
-			WriteJson(w, errcode.CodeFromGrpcError(err), &errorx.SimpleMsg{Msg: status.Convert(err).Message()})
+			statusError := status.Convert(err)
+			WriteJson(w, http.StatusOK, errorx.NewCodeError(int(statusError.Code()), statusError.Message()))
+		} else if _, ok := err.(*errorx.CodeError); ok {
+			WriteJson(w, http.StatusOK, err.(*errorx.CodeError).Data())
 		} else if _, ok := err.(*errorx.ApiError); ok {
 			WriteJson(w, err.(*errorx.ApiError).Code, &errorx.SimpleMsg{Msg: err.(*errorx.ApiError).Msg})
 		} else {
