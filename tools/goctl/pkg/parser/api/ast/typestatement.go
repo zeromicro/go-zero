@@ -1,6 +1,8 @@
 package ast
 
 import (
+	"bytes"
+	"fmt"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
@@ -22,12 +24,6 @@ func (t *TypeLiteralStmt) Pos() token.Position {
 	return t.Type.Position
 }
 
-func (t *TypeLiteralStmt) Format(prefix string) string {
-	w := NewWriter()
-	w.WriteWithWhiteSpaceInfix(prefix, t.Type, t.Expr.Format(noLead))
-	return w.String()
-}
-
 func (t *TypeLiteralStmt) stmtNode() {}
 func (t *TypeLiteralStmt) typeNode() {}
 
@@ -40,25 +36,6 @@ type TypeGroupStmt struct {
 
 func (t *TypeGroupStmt) Pos() token.Position {
 	return t.Type.Position
-}
-
-func (t *TypeGroupStmt) Format(prefix string) string {
-	w := NewWriter()
-	w.WriteWithWhiteSpaceInfix(prefix, t.Type, t.LParen)
-	if len(t.ExprList) > 0 {
-		w.NewLine()
-	}
-
-	for _, v := range t.ExprList {
-		w.Writeln(v.Format(prefix + indent))
-	}
-
-	if len(t.ExprList) > 0 {
-		w.Write(prefix, t.RParen)
-	} else {
-		w.Write(t.RParen)
-	}
-	return w.String()
 }
 
 func (t *TypeGroupStmt) stmtNode() {}
@@ -76,12 +53,6 @@ type TypeExpr struct {
 
 func (e *TypeExpr) Pos() token.Position {
 	return e.Name.Position
-}
-
-func (e *TypeExpr) Format(prefix string) string {
-	w := NewWriter()
-	w.WriteWithWhiteSpaceInfix(prefix, e.Name, e.Assign, e.DataType.Format(prefix))
-	return w.String()
 }
 
 func (e *TypeExpr) exprNode() {}
@@ -107,20 +78,6 @@ func (e *ElemExpr) Pos() token.Position {
 	return token.IllegalPosition
 }
 
-func (e *ElemExpr) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(prefix)
-	for idx, v := range e.Name {
-		w.Write(v)
-		if idx < len(e.Name)-1 {
-			w.Write(", ")
-		}
-	}
-
-	w.Write(whiteSpace, e.DataType.Format(prefix), whiteSpace, e.Tag)
-	return w.String()
-}
-
 func (e *ElemExpr) exprNode() {}
 
 /*******************Elem End********************/
@@ -128,45 +85,6 @@ func (e *ElemExpr) exprNode() {}
 /*******************ElemExprList Begin********************/
 
 type ElemExprList []*ElemExpr
-
-func (e ElemExprList) Format(prefix string) string {
-	if len(e) == 0 {
-		return ""
-	}
-	var list []ElemExprList
-	var elems ElemExprList
-	for _, v := range e {
-		if v.DataType.ContainsStruct() {
-			list = append(list, elems)
-			list = append(list, ElemExprList{v})
-			elems = ElemExprList{}
-			continue
-		}
-		elems = append(elems, v)
-	}
-	if len(elems) > 0 {
-		list = append(list, elems)
-	}
-
-	w := NewWriter()
-	for _, v := range list {
-		tw := w.UseTabWriter()
-		for _, val := range v {
-			var nameList []string
-			for _, n := range val.Name {
-				nameList = append(nameList, n.Text)
-			}
-			if _, ok := val.DataType.(*StructDataType); ok {
-				w.WriteWithWhiteSpaceInfixln(prefix, strings.Join(nameList, ", "), val.DataType.Format(prefix), val.Tag)
-			} else {
-				tw.WriteWithInfixIndentln(prefix, strings.Join(nameList, ", "), val.DataType.Format(prefix), val.Tag)
-			}
-		}
-		tw.Flush()
-	}
-
-	return w.String()
-}
 
 func (e ElemExprList) Pos() token.Position {
 	if len(e) > 0 {
@@ -196,7 +114,19 @@ type StructDataType struct {
 }
 
 func (t *StructDataType) RawText() string {
-	return t.Format("")
+	b := bytes.NewBuffer(nil)
+	b.WriteRune('{')
+	for _, v := range t.Elements {
+		b.WriteRune('\n')
+		var nameList []string
+		for _, n := range v.Name {
+			nameList = append(nameList, n.Text)
+		}
+		b.WriteString(fmt.Sprintf("%s %s %s", strings.Join(nameList, ", "), v.DataType.RawText(), v.Tag.Text))
+	}
+	b.WriteRune('\n')
+	b.WriteRune('}')
+	return b.String()
 }
 
 func (t *StructDataType) ContainsStruct() bool {
@@ -216,21 +146,6 @@ func (t *StructDataType) Pos() token.Position {
 	return t.LBrace.Position
 }
 
-func (t *StructDataType) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(t.LBrace)
-	if len(t.Elements) > 0 {
-		w.NewLine()
-	}
-	w.Write(t.Elements.Format(prefix + indent))
-	if len(t.Elements) > 0 {
-		w.Write(prefix, t.RBrace)
-	} else {
-		w.Write(t.RBrace)
-	}
-	return w.String()
-}
-
 func (t *StructDataType) exprNode()     {}
 func (t *StructDataType) dataTypeNode() {}
 
@@ -241,7 +156,7 @@ type SliceDataType struct {
 }
 
 func (t *SliceDataType) RawText() string {
-	return t.Format("")
+	return fmt.Sprintf("[]%s", t.DataType.RawText())
 }
 
 func (t *SliceDataType) ContainsStruct() bool {
@@ -256,12 +171,6 @@ func (t *SliceDataType) Pos() token.Position {
 	return t.LBrack.Position
 }
 
-func (t *SliceDataType) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(t.LBrack, t.RBrack, t.DataType.Format(prefix+indent))
-	return w.String()
-}
-
 func (t *SliceDataType) exprNode()     {}
 func (t *SliceDataType) dataTypeNode() {}
 
@@ -274,7 +183,7 @@ type MapDataType struct {
 }
 
 func (t *MapDataType) RawText() string {
-	return t.Format("")
+	return fmt.Sprintf("map[%s]%s", t.Key.RawText(), t.Value.RawText())
 }
 
 func (t *MapDataType) ContainsStruct() bool {
@@ -289,12 +198,6 @@ func (t *MapDataType) Pos() token.Position {
 	return t.Map.Position
 }
 
-func (t *MapDataType) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(t.Map, t.LBrack, t.Key.Format(prefix), t.RBrack, t.Value.Format(prefix))
-	return w.String()
-}
-
 func (t *MapDataType) exprNode()     {}
 func (t *MapDataType) dataTypeNode() {}
 
@@ -306,7 +209,7 @@ type ArrayDataType struct {
 }
 
 func (t *ArrayDataType) RawText() string {
-	return t.Format("")
+	return fmt.Sprintf("[%s]%s", t.Length.Text, t.DataType.RawText())
 }
 
 func (t *ArrayDataType) ContainsStruct() bool {
@@ -321,23 +224,15 @@ func (t *ArrayDataType) Pos() token.Position {
 	return t.LBrack.Position
 }
 
-func (t *ArrayDataType) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(t.LBrack, t.Length, t.RBrack, t.DataType.Format(prefix+indent))
-	return w.String()
-}
-
 func (t *ArrayDataType) exprNode()     {}
 func (t *ArrayDataType) dataTypeNode() {}
 
 type InterfaceDataType struct {
 	Interface token.Token
-	LBrace    token.Token
-	RBrace    token.Token
 }
 
 func (t *InterfaceDataType) RawText() string {
-	return t.Format("")
+	return t.Interface.Text
 }
 
 func (t *InterfaceDataType) ContainsStruct() bool {
@@ -352,12 +247,6 @@ func (t *InterfaceDataType) Pos() token.Position {
 	return t.Interface.Position
 }
 
-func (t *InterfaceDataType) Format(_ string) string {
-	w := NewWriter()
-	w.Write(t.Interface, t.LBrace, t.RBrace)
-	return w.String()
-}
-
 func (t *InterfaceDataType) exprNode() {}
 
 func (t *InterfaceDataType) dataTypeNode() {}
@@ -368,7 +257,7 @@ type PointerDataType struct {
 }
 
 func (t *PointerDataType) RawText() string {
-	return t.Format("")
+	return "*" + t.DataType.RawText()
 }
 
 func (t *PointerDataType) ContainsStruct() bool {
@@ -383,12 +272,6 @@ func (t *PointerDataType) Pos() token.Position {
 	return t.Star.Position
 }
 
-func (t *PointerDataType) Format(prefix string) string {
-	w := NewWriter()
-	w.Write(t.Star, t.DataType.Format(prefix+indent))
-	return w.String()
-}
-
 func (t *PointerDataType) exprNode()     {}
 func (t *PointerDataType) dataTypeNode() {}
 
@@ -397,17 +280,11 @@ type AnyDataType struct {
 }
 
 func (t *AnyDataType) RawText() string {
-	return t.Format("")
+	return t.Any.Text
 }
 
 func (t *AnyDataType) ContainsStruct() bool {
 	return false
-}
-
-func (t *AnyDataType) Format(_ string) string {
-	w := NewWriter()
-	w.Write(t.Any)
-	return w.String()
 }
 
 func (t *AnyDataType) Pos() token.Position {
@@ -430,7 +307,7 @@ type BaseDataType struct {
 }
 
 func (t *BaseDataType) RawText() string {
-	return t.Format("")
+	return t.Base.Text
 }
 
 func (t *BaseDataType) ContainsStruct() bool {
@@ -443,12 +320,6 @@ func (t *BaseDataType) CanEqual() bool {
 
 func (t *BaseDataType) Pos() token.Position {
 	return t.Base.Position
-}
-
-func (t *BaseDataType) Format(_ string) string {
-	w := NewWriter()
-	w.Write(t.Base)
-	return w.String()
 }
 
 func (t *BaseDataType) exprNode()     {}

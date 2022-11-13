@@ -2,7 +2,6 @@ package parser
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -11,7 +10,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/scanner"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
@@ -28,8 +26,9 @@ type Parser struct {
 	s        *scanner.Scanner
 	errors   []error
 
-	curTok  token.Token
-	peekTok token.Token
+	curTok   token.Token
+	peekTok  token.Token
+	TokenSet *token.Set
 
 	mode Mode
 }
@@ -44,6 +43,7 @@ func New(filename string, src interface{}, mode Mode) *Parser {
 		filename: abs,
 		s:        scanner.MustNewScanner(abs, src),
 		mode:     mode,
+		TokenSet: token.NewTokenSet(),
 	}
 
 	return p
@@ -69,10 +69,6 @@ func (p *Parser) Parse() *ast.AST {
 		}
 	}
 
-	if pathx.FileExists(p.filename) {
-		code := api.Format()
-		_ = ioutil.WriteFile(p.filename, []byte(code), 0666)
-	}
 	return api
 }
 
@@ -471,7 +467,7 @@ func (p *Parser) parseAtDocGroupStmt() ast.AtDocStmt {
 		}
 
 		stmt.Values = append(stmt.Values, expr)
-		if p.notExpectPeekToken(token.RPAREN, token.IDENT) {
+		if p.notExpectPeekToken(token.RPAREN, token.KEY) {
 			return nil
 		}
 	}
@@ -527,7 +523,7 @@ func (p *Parser) parseAtServerStmt() *ast.AtServerStmt {
 		}
 
 		stmt.Values = append(stmt.Values, expr)
-		if p.notExpectPeekToken(token.RPAREN, token.IDENT) {
+		if p.notExpectPeekToken(token.RPAREN, token.KEY) {
 			return nil
 		}
 	}
@@ -660,12 +656,12 @@ func (p *Parser) parseDataType() ast.DataType {
 			p.expectPeekToken(token.RBRACK, token.INT, token.ELLIPSIS)
 			return nil
 		}
-	case p.peekTokenIs(token.INTERFACE):
+	case p.peekTokenIs(token.ANY):
 		return p.parseInterfaceDataType()
 	case p.peekTokenIs(token.MUL):
 		return p.parsePointerDataType()
 	default:
-		p.expectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.INTERFACE, token.MUL, token.LBRACE)
+		p.expectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL, token.LBRACE)
 		return nil
 	}
 }
@@ -720,7 +716,7 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 	}
 	expr.Name = append(expr.Name, p.curTok)
 
-	if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.MAP, token.INTERFACE, token.MUL, token.LBRACE) {
+	if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL, token.LBRACE) {
 		return nil
 	}
 
@@ -770,7 +766,7 @@ func (p *Parser) parsePointerDataType() *ast.PointerDataType {
 	}
 	tp.Star = p.curTok
 
-	if p.notExpectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.INTERFACE, token.MUL) {
+	if p.notExpectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL) {
 		return nil
 	}
 	// DataType
@@ -789,19 +785,6 @@ func (p *Parser) parseInterfaceDataType() *ast.InterfaceDataType {
 		return nil
 	}
 	tp.Interface = p.curTok
-
-	// token '{'
-	if !p.advanceIfPeekTokenIs(token.LBRACE) {
-		return nil
-	}
-	tp.LBrace = p.curTok
-
-	// token '}'
-	if !p.advanceIfPeekTokenIs(token.RBRACE) {
-		return nil
-	}
-	tp.RBrace = p.curTok
-
 	return tp
 }
 
@@ -960,7 +943,7 @@ func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 		}
 
 		stmt.Values = append(stmt.Values, expr)
-		if p.notExpectPeekToken(token.RPAREN, token.IDENT) {
+		if p.notExpectPeekToken(token.RPAREN, token.KEY) {
 			return nil
 		}
 	}
@@ -978,17 +961,11 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	var expr = &ast.KVExpr{}
 
 	// token IDENT
-	if !p.advanceIfPeekTokenIs(token.IDENT, token.RPAREN) {
+	if !p.advanceIfPeekTokenIs(token.KEY, token.RPAREN) {
 		return nil
 	}
 
 	expr.Key = p.curTok
-
-	// token ':'
-	if !p.advanceIfPeekTokenIs(token.COLON) {
-		return nil
-	}
-	expr.Colon = p.curTok
 
 	var valueTok token.Token
 	if p.peekTokenIs(token.QUO) {
@@ -1040,17 +1017,10 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	var expr = &ast.KVExpr{}
 
 	// token IDENT
-	if !p.advanceIfPeekTokenIs(token.IDENT) {
+	if !p.advanceIfPeekTokenIs(token.KEY) {
 		return nil
 	}
-
 	expr.Key = p.curTok
-
-	// token ':'
-	if !p.advanceIfPeekTokenIs(token.COLON) {
-		return nil
-	}
-	expr.Colon = p.curTok
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
@@ -1251,6 +1221,7 @@ func (p *Parser) nextToken() bool {
 		p.errors = append(p.errors, err)
 		return false
 	}
+	p.TokenSet.Add(p.peekTok)
 
 	for p.mode == SkipComment &&
 		(p.peekTok.Type == token.COMMENT || p.peekTok.Type == token.DOCUMENT) {
@@ -1259,6 +1230,7 @@ func (p *Parser) nextToken() bool {
 			p.errors = append(p.errors, err)
 			return false
 		}
+		p.TokenSet.Add(p.peekTok)
 	}
 
 	return true

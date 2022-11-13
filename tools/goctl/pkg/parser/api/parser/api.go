@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -92,7 +91,8 @@ func (api *API) checkServiceStmt() error {
 	pathChecker := f.addCheckItem("path expression")
 	var serviceName = map[string]string{}
 	for _, v := range api.ServiceStmts {
-		name := strings.TrimSuffix(v.Name.Format(""), "-api")
+		//name := strings.TrimSuffix(v.Name.Format(""), "-api")
+		var name string
 		if sn, ok := serviceName[name]; ok {
 			if sn != name {
 				serviceNameChecker.errorManager.add(ast.SyntaxError(v.Name.Pos(), "multiple service name"))
@@ -103,7 +103,8 @@ func (api *API) checkServiceStmt() error {
 		var group = api.getAtServerValue(v.AtServerStmt, "prefix")
 		for _, item := range v.Routes {
 			handlerChecker.check(item.AtHandler.Name)
-			path := fmt.Sprintf("[%s]:%s", group, item.Route.Format(""))
+			//path := fmt.Sprintf("[%s]:%s", group, item.Route.Format(""))
+			var path = group
 			pathChecker.check(token.Token{
 				Text:     path,
 				Position: item.Route.Pos(),

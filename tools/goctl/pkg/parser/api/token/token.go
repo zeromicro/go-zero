@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 const (
@@ -14,15 +15,133 @@ const (
 	Any     = "any"
 )
 
+const (
+	_ CollectionFlag = iota << 1
+	NotIn
+	LeftIn
+	RightIn
+	AllIn
+)
+
 type Type int
+type CollectionFlag int
 
 var EofToken = Token{Type: EOF}
 var ErrorToken = Token{Type: error}
+var InitToken = Token{Type: token_bg, Position: Position{Line: 1}}
+
+type Set struct {
+	m    map[Token]int
+	list []Token
+}
+
+func NewTokenSet() *Set {
+	return &Set{
+		m:    map[Token]int{},
+		list: []Token{},
+	}
+}
+
+func (s *Set) Add(tok Token) {
+	if _, ok := s.m[tok]; ok {
+		return
+	}
+	s.list = append(s.list, tok)
+	s.m[tok] = len(s.list) - 1
+}
+
+func (s *Set) Between(left, right Token, flag CollectionFlag) []Token {
+	if len(s.list) == 0 {
+		return nil
+	}
+
+	var bg, end int
+	switch flag {
+	case NotIn:
+		bg = s.m[left] + 1
+		end = s.m[right]
+	case LeftIn:
+		bg = s.m[left]
+		end = s.m[right]
+	case RightIn:
+		bg = s.m[left] + 1
+		end = s.m[right] + 1
+	case AllIn:
+		bg = s.m[left]
+		end = s.m[right] + 1
+	}
+	validMaxIdx := len(s.list) - 1
+	if left.Type == 0 {
+		bg = 0
+	}
+	if bg > validMaxIdx {
+		bg = validMaxIdx
+	}
+	if end > validMaxIdx {
+		end = validMaxIdx
+	}
+	var list []Token
+	for idx := bg; idx < end; idx++ {
+		list = append(list, s.list[idx])
+	}
+	return list
+}
+
+func (s *Set) LineCommentAfter(tok Token) []Token {
+	idx := s.m[tok] + 1
+	if idx > len(s.list)-1 {
+		return nil
+	}
+
+	var list []Token
+	for i := idx; i < len(s.list); i++ {
+		t := s.list[i]
+		if !(t.IsDocument() || t.IsComment()) {
+			break
+		}
+		if t.Line() == tok.Line() {
+			list = append(list, t)
+		}
+	}
+
+	return list
+}
+
+func (s *Set) LastToken() Token {
+	if len(s.list) == 0 {
+		return EofToken
+	}
+	return s.list[len(s.list)-1]
+}
 
 type Token struct {
 	Type     Type
 	Text     string
 	Position Position
+}
+
+func (t Token) IsEmptyString() bool {
+	if t.Type != STRING && t.Type != RAW_STRING {
+		return false
+	}
+	text := util.TrimWhiteSpace(t.Text)
+	return text == `""` || text == "``"
+}
+
+func (t Token) IsComment() bool {
+	return t.IsType(COMMENT)
+}
+
+func (t Token) IsDocument() bool {
+	return t.IsType(DOCUMENT)
+}
+
+func (t Token) IsType(tp Type) bool {
+	return t.Type == tp
+}
+
+func (t Token) Line() int {
+	return t.Position.Line
 }
 
 func (t Token) String() string {
@@ -72,7 +191,8 @@ const (
 	INT        // 123
 	STRING     // "abc"
 	RAW_STRING // `abc`
-	PATH // `abc`
+	PATH       // `abc`
+	KEY        // `abc`
 	literal_end
 
 	operator_beg
@@ -131,6 +251,8 @@ const (
 	AT_DOC
 	AT_HANDLER
 	AT_SERVER
+	ANY
+
 	api_keyword_end
 	token_end
 )
@@ -153,7 +275,8 @@ var tokens = [...]string{
 	INT:        "INT",
 	STRING:     "STRING",
 	RAW_STRING: "RAW_STRING",
-	PATH: "PATH",
+	PATH:       "PATH",
+	KEY:        "KEY",
 
 	SUB:    "-",
 	MUL:    "*",
@@ -206,6 +329,7 @@ var tokens = [...]string{
 	AT_DOC:     "@doc",
 	AT_HANDLER: "@handler",
 	AT_SERVER:  "@server",
+	ANY:        "interface{}",
 }
 
 var HttpMethods = []interface{}{"get", "head", "post", "put", "patch", "delete", "connect", "options", "trace"}

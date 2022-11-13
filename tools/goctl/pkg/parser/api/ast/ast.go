@@ -7,13 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-type Formatter interface {
-	// Format formats Node into string, do not end with '\n'.
-	Format(prefix string) string
-}
-
 type Node interface {
-	Formatter
 	Pos() token.Position
 }
 
@@ -28,24 +22,19 @@ type Expr interface {
 }
 
 type AST struct {
-	Filename      string
-	Stmts         []Stmt
+	Filename     string
+	Stmts        []Stmt
+	readPosition int
 }
 
-func (a *AST) Format() string {
-	w := NewWriter()
-	for _, s := range a.Stmts {
-		w.Writeln(s.Format(noLead))
-		switch val := s.(type) {
-		case *SyntaxStmt, *TypeGroupStmt, *ServiceStmt, *InfoStmt:
-			w.NewLine()
-		case *TypeLiteralStmt:
-			if val.Expr.isStruct() {
-				w.NewLine()
-			}
-		}
+func (a *AST) NextStmt() Stmt {
+	if a.readPosition == len(a.Stmts) {
+		return nil
 	}
-	return w.String()
+	defer func() {
+		a.readPosition += 1
+	}()
+	return a.Stmts[a.readPosition]
 }
 
 func (a *AST) Print() {

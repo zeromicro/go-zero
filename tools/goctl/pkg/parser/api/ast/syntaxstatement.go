@@ -12,10 +12,4 @@ func (s *SyntaxStmt) Pos() token.Position {
 	return s.Syntax.Position
 }
 
-func (s *SyntaxStmt) Format(prefix string) string {
-	w := NewWriter()
-	w.WriteWithWhiteSpaceInfix(prefix, s.Syntax, s.Assign, s.Value)
-	return w.String()
-}
-
 func (s *SyntaxStmt) stmtNode() {}

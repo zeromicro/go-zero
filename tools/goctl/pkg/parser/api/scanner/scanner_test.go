@@ -569,6 +569,81 @@ func TestScanner_NextToken_ident(t *testing.T) {
 	}
 }
 
+func TestScanner_NextToken_Key(t *testing.T) {
+	var testData =[]token.Token{
+		{
+			Type:     token.IDENT,
+			Text:     "foo",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     1,
+				Column:   1,
+			},
+		},
+		{
+			Type:     token.KEY,
+			Text:     "foo:",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     2,
+				Column:   1,
+			},
+		},
+		{
+			Type:     token.KEY,
+			Text:     "bar:",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     3,
+				Column:   1,
+			},
+		},
+		{
+			Type:     token.COLON,
+			Text:     ":",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     3,
+				Column:   5,
+			},
+		},
+		{
+			Type:     token.INTERFACE,
+			Text:     "interface",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     4,
+				Column:   1,
+			},
+		},
+		{
+			Type:     token.ANY,
+			Text:     "interface{}",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     5,
+				Column:   1,
+			},
+		},
+		{
+			Type:     token.LBRACE,
+			Text:     "{",
+			Position: token.Position{
+				Filename: "foo.api",
+				Line:     5,
+				Column:   12,
+			},
+		},
+	}
+	s, err := NewScanner("foo.api", "foo\nfoo:\nbar::\ninterface\ninterface{}{")
+	assert.NoError(t, err)
+	for _, expected := range testData {
+		actual, err := s.NextToken()
+		assert.NoError(t, err)
+		assert.Equal(t, expected, actual)
+	}
+}
+
 func TestScanner_NextToken_int(t *testing.T) {
 	var testData = []token.Token{
 		{
@@ -810,14 +885,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(3, 5),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `title`,
+			Type:     token.KEY,
+			Text:     `title:`,
 			Position: position(4, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(4, 10),
 		},
 		{
 			Type:     token.STRING,
@@ -825,14 +895,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(4, 12),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `desc`,
+			Type:     token.KEY,
+			Text:     `desc:`,
 			Position: position(5, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(5, 9),
 		},
 		{
 			Type:     token.STRING,
@@ -840,14 +905,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(5, 11),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `author`,
+			Type:     token.KEY,
+			Text:     `author:`,
 			Position: position(6, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(6, 11),
 		},
 		{
 			Type:     token.STRING,
@@ -855,14 +915,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(6, 13),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `email`,
+			Type:     token.KEY,
+			Text:     `email:`,
 			Position: position(7, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(7, 10),
 		},
 		{
 			Type:     token.STRING,
@@ -870,14 +925,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(7, 12),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `version`,
+			Type:     token.KEY,
+			Text:     `version:`,
 			Position: position(8, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(8, 12),
 		},
 		{
 			Type:     token.STRING,
@@ -950,14 +1000,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(20, 8),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `jwt`,
+			Type:     token.KEY,
+			Text:     `jwt:`,
 			Position: position(21, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(21, 8),
 		},
 		{
 			Type:     token.IDENT,
@@ -965,14 +1010,9 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(21, 10),
 		},
 		{
-			Type:     token.IDENT,
-			Text:     `group`,
+			Type:     token.KEY,
+			Text:     `group:`,
 			Position: position(22, 5),
-		},
-		{
-			Type:     token.COLON,
-			Text:     `:`,
-			Position: position(22, 10),
 		},
 		{
 			Type:     token.IDENT,

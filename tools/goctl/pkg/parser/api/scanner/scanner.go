@@ -244,6 +244,24 @@ func (s *Scanner) scanIdent() token.Token {
 		s.readRune()
 	}
 
+	if s.ch == ':' {
+		s.readRune()
+		return token.Token{
+			Type:     token.KEY,
+			Text:     string(s.data[position:s.position]),
+			Position: s.newPosition(position),
+		}
+	}
+	if s.ch == '{' && s.peekRune() == '}' {
+		s.readRune()
+		s.readRune()
+		return token.Token{
+			Type:     token.ANY,
+			Text:     string(s.data[position:s.position]),
+			Position: s.newPosition(position),
+		}
+	}
+
 	ident := string(s.data[position:s.position])
 	tp, ok := token.LookupKeyword(ident)
 	if ok {

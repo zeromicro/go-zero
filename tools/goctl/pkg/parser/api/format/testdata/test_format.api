@@ -1,0 +1,10 @@
+import ("aa")//aaa
+import ("aaa"//aaa
+"bbb"//bbb
+"ccc")//ddd
+import
+("aaa")
+import /*aaa*/
+("aaa"
+"bbb"
+"ccc")
