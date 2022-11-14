@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -2991,11 +2992,266 @@ func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
 	assert.Equal(t, "localhost:8080", s.Middle.Value.Discovery)
 }
 
+func TestUnmarshaler_InheritSequence(t *testing.T) {
+	var testConf = []byte(`
+Nacos:
+  NamespaceId: "123"
+RpcConf:
+  Nacos:
+    NamespaceId: "456"
+  Name: hello
+`)
+
+	type (
+		NacosConf struct {
+			NamespaceId string
+		}
+
+		RpcConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Name  string
+		}
+
+		Config1 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+
+		Config2 struct {
+			RpcConf RpcConf
+			Nacos   NacosConf
+		}
+	)
+
+	var c1 Config1
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c1))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+
+	var c2 Config2
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c2))
+	assert.Equal(t, "123", c1.Nacos.NamespaceId)
+	assert.Equal(t, "456", c1.RpcConf.Nacos.NamespaceId)
+}
+
+func TestUnmarshaler_InheritNested(t *testing.T) {
+	var testConf = []byte(`
+Nacos:
+  Value1: "123"
+Server:
+  Nacos:
+    Value2: "456"
+  Rpc:
+    Nacos:
+      Value3: "789"
+    Name: hello
+`)
+
+	type (
+		NacosConf struct {
+			Value1 string `json:",optional"`
+			Value2 string `json:",optional"`
+			Value3 string `json:",optional"`
+		}
+
+		RpcConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Name  string
+		}
+
+		ServerConf struct {
+			Nacos NacosConf `json:",inherit"`
+			Rpc   RpcConf
+		}
+
+		Config struct {
+			Server ServerConf
+			Nacos  NacosConf
+		}
+	)
+
+	var c Config
+	assert.NoError(t, UnmarshalYamlBytes(testConf, &c))
+	assert.Equal(t, "123", c.Nacos.Value1)
+	assert.Empty(t, c.Nacos.Value2)
+	assert.Empty(t, c.Nacos.Value3)
+	assert.Equal(t, "123", c.Server.Nacos.Value1)
+	assert.Equal(t, "456", c.Server.Nacos.Value2)
+	assert.Empty(t, c.Nacos.Value3)
+	assert.Equal(t, "123", c.Server.Rpc.Nacos.Value1)
+	assert.Equal(t, "456", c.Server.Rpc.Nacos.Value2)
+	assert.Equal(t, "789", c.Server.Rpc.Nacos.Value3)
+}
+
 func TestUnmarshalValuer(t *testing.T) {
 	unmarshaler := NewUnmarshaler(jsonTagKey)
 	var foo string
 	err := unmarshaler.UnmarshalValuer(nil, foo)
 	assert.NotNil(t, err)
+}
+
+func TestUnmarshal_EnvString(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
+	}
+
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, envVal, v.Name)
+}
+
+func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
+	}
+
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"name": "local value",
+	}, &v))
+	assert.Equal(t, envVal, v.Name)
+}
+
+func TestUnmarshal_EnvInt(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
+	}
+
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, 123, v.Age)
+}
+
+func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
+	}
+
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18,
+	}, &v))
+	assert.Equal(t, 123, v.Age)
+}
+
+func TestUnmarshal_EnvFloat(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"name,env=TEST_NAME_FLOAT"`
+	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"age,env=TEST_NAME_FLOAT"`
+	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18.5,
+	}, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvBoolTrue(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_TRUE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_TRUE"
+	os.Setenv(envName, "true")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.True(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolFalse(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_FALSE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_FALSE"
+	os.Setenv(envName, "false")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.False(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolBad(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_BAD"`
+	}
+
+	const envName = "TEST_NAME_BOOL_BAD"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvDuration(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
+	}
+
+	const envName = "TEST_NAME_DURATION"
+	os.Setenv(envName, "1s")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, time.Second, v.Duration)
+}
+
+func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_BAD_DURATION"`
+	}
+
+	const envName = "TEST_NAME_BAD_DURATION"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NotNil(t, UnmarshalKey(emptyMap, &v))
 }
 
 func BenchmarkUnmarshalString(b *testing.B) {

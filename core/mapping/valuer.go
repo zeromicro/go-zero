@@ -70,21 +70,33 @@ func (rv recursiveValuer) Value(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	if vm, ok := val.(map[string]interface{}); ok {
-		if parent := rv.Parent(); parent != nil {
-			pv, pok := parent.Value(key)
-			if pok {
-				if pm, ok := pv.(map[string]interface{}); ok {
-					for k, v := range vm {
-						pm[k] = v
-					}
-					return pm, true
-				}
-			}
+	vm, ok := val.(map[string]interface{})
+	if !ok {
+		return val, true
+	}
+
+	parent := rv.Parent()
+	if parent == nil {
+		return val, true
+	}
+
+	pv, ok := parent.Value(key)
+	if !ok {
+		return val, true
+	}
+
+	pm, ok := pv.(map[string]interface{})
+	if !ok {
+		return val, true
+	}
+
+	for k, v := range pm {
+		if _, ok := vm[k]; !ok {
+			vm[k] = v
 		}
 	}
 
-	return val, true
+	return vm, true
 }
 
 // Parent get the parent valuer from rv.
