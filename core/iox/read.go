@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 )
