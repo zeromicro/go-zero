@@ -3,11 +3,12 @@ package iox
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
