@@ -19,7 +19,7 @@ type DefaultTemplate struct {
 	goFmt bool
 }
 
-// With returns a instance of DefaultTemplate
+// With returns an instance of DefaultTemplate
 func With(name string) *DefaultTemplate {
 	return &DefaultTemplate{
 		name: name,

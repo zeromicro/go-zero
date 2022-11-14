@@ -56,7 +56,7 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 
 	duration := timex.Since(start)
 	if duration > slowThreshold.Load() {
-		logDuration(ctx, cmd, duration)
+		logDuration(ctx, []red.Cmder{cmd}, duration)
 	}
 
 	metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
@@ -103,7 +103,7 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 
 	duration := timex.Since(start)
 	if duration > slowThreshold.Load()*time.Duration(len(cmds)) {
-		logDuration(ctx, cmds[0], duration)
+		logDuration(ctx, cmds, duration)
 	}
 
 	metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
@@ -136,13 +136,20 @@ func formatError(err error) string {
 	}
 }
 
-func logDuration(ctx context.Context, cmd red.Cmder, duration time.Duration) {
+func logDuration(ctx context.Context, cmds []red.Cmder, duration time.Duration) {
 	var buf strings.Builder
-	for i, arg := range cmd.Args() {
-		if i > 0 {
-			buf.WriteByte(' ')
+	for k, cmd := range cmds {
+		if k > 0 {
+			buf.WriteByte('\n')
 		}
-		buf.WriteString(mapping.Repr(arg))
+		var build strings.Builder
+		for i, arg := range cmd.Args() {
+			if i > 0 {
+				build.WriteByte(' ')
+			}
+			build.WriteString(mapping.Repr(arg))
+		}
+		buf.WriteString(build.String())
 	}
 	logx.WithContext(ctx).WithDuration(duration).Slowf("[REDIS] slowcall on executing: %s", buf.String())
 }

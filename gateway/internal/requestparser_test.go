@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -32,6 +33,14 @@ func TestNewRequestParserNoVarWithBody(t *testing.T) {
 	assert.NotNil(t, parser)
 }
 
+func TestNewRequestParserWithNegativeContentLength(t *testing.T) {
+	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"}`))
+	req.ContentLength = -1
+	parser, err := NewRequestParser(req, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, parser)
+}
+
 func TestNewRequestParserWithVarsWithBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/", strings.NewReader(`{"a": "b"}`))
 	req = pathvar.WithVars(req, map[string]string{"c": "d"})
@@ -49,7 +58,23 @@ func TestNewRequestParserWithVarsWithWrongBody(t *testing.T) {
 }
 
 func TestNewRequestParserWithForm(t *testing.T) {
+	req := httptest.NewRequest("GET", "/val?a=b", nil)
+	parser, err := NewRequestParser(req, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, parser)
+}
+
+func TestNewRequestParserWithNilBody(t *testing.T) {
 	req := httptest.NewRequest("GET", "/val?a=b", http.NoBody)
+	req.Body = nil
+	parser, err := NewRequestParser(req, nil)
+	assert.Nil(t, err)
+	assert.NotNil(t, parser)
+}
+
+func TestNewRequestParserWithBadBody(t *testing.T) {
+	req := httptest.NewRequest("GET", "/val?a=b", badBody{})
+	req.Body = badBody{}
 	parser, err := NewRequestParser(req, nil)
 	assert.Nil(t, err)
 	assert.NotNil(t, parser)
@@ -67,3 +92,8 @@ func TestRequestParser_buildJsonRequestParser(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }
+
+type badBody struct{}
+
+func (badBody) Read([]byte) (int, error) { return 0, errors.New("something bad") }
+func (badBody) Close() error             { return nil }
