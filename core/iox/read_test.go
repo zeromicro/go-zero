@@ -3,9 +3,9 @@ package iox
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -112,11 +112,11 @@ func TestDupReadCloser(t *testing.T) {
 
 func TestDupReadCloserForLargeFile(t *testing.T) {
 	input := "hello"
-	reader := ioutil.NopCloser(bytes.NewBufferString(input))
+	reader := io.NopCloser(bytes.NewBufferString(input))
 	r1, r2,err,close := DupReadCloserForLargeFile(reader)
 	assert.Nil(t, err)
 	verify := func(r io.Reader) {
-		output, err := ioutil.ReadAll(r)
+		output, err := io.ReadAll(r)
 		assert.Nil(t, err)
 		assert.Equal(t, input, string(output))
 	}

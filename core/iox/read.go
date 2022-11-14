@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 )
@@ -34,7 +33,7 @@ func DupReadCloser(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser) {
 // read from it will be written to the underlying buffer of the second reader.
 // the fourth returned close func , After the caller finishes using reader, close the temporary file
 func DupReadCloserForLargeFile(reader io.ReadCloser) (io.ReadCloser, io.ReadCloser,error,func()error) {
-	f,_:=ioutil.TempFile(os.TempDir(),"go-zero-body")
+	f,_:=os.CreateTemp(os.TempDir(),"go-zero-body")
 	tee := io.TeeReader(reader, f)
 	readTempFile,err:=os.Open(f.Name())
 	if err != nil {
@@ -43,7 +42,7 @@ func DupReadCloserForLargeFile(reader io.ReadCloser) (io.ReadCloser, io.ReadClos
 	closeFunc:= func()error {
 		return os.Remove(readTempFile.Name())
 	}
-	return ioutil.NopCloser(tee), ioutil.NopCloser(readTempFile),nil,closeFunc
+	return io.NopCloser(tee), io.NopCloser(readTempFile),nil,closeFunc
 }
 
 // KeepSpace customizes the reading functions to keep leading and tailing spaces.
