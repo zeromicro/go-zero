@@ -1,12 +1,12 @@
-// header
-info(/*aa*/
-    foo:"foo"
-    bar:"bar"// bb
-)
-// footer
-
-// ===
-info(/*aa*/
-    foo:"foo"
-    bar:"bar"// bb
-)// 0000
+// syntax
+syntax =
+"v1" // aaa
+// bbb
+info ( // cc
+ foo:"foo"
+ bar:"bar" )// ee
+/*
+ff
+*/
+import "aaa"// gg
+// hh

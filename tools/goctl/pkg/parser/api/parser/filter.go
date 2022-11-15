@@ -3,7 +3,6 @@ package parser
 import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 type filterBuilder struct {
@@ -12,12 +11,12 @@ type filterBuilder struct {
 	errorManager  *errorManager
 }
 
-func (b *filterBuilder) check(toks ...token.Token) {
-	for _, tok := range toks {
-		if _, ok := b.m[tok.Text]; ok {
-			b.errorManager.add(ast.DuplicateStmtError(tok.Position, "duplicate "+b.checkExprName))
+func (b *filterBuilder) check(nodes ...*ast.TokenNode) {
+	for _, node := range nodes {
+		if _, ok := b.m[node.Token.Text]; ok {
+			b.errorManager.add(ast.DuplicateStmtError(node.Pos(), "duplicate "+b.checkExprName))
 		} else {
-			b.m[tok.Text] = placeholder.PlaceHolder
+			b.m[node.Token.Text] = placeholder.PlaceHolder
 		}
 	}
 }

@@ -491,15 +491,15 @@ func (p *Parser) parseAtDocLiteralStmt() ast.AtDocStmt {
 
 func (p *Parser) parseAtHandlerStmt() *ast.AtHandlerStmt {
 	var stmt = &ast.AtHandlerStmt{}
-	stmt.AtHandler = p.curTok
+	stmt.AtHandler = p.getNode(p.curTok)
 
 	// token IDENT
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
-	stmt.Name = p.curTok
+	stmt.Name = p.getNode(p.curTok)
 
-	p.nodeSet.Append(stmt)
+	p.nodeSet.InsertAfter(stmt, stmt.Name)
 	return stmt
 }
 
@@ -611,14 +611,14 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
-	expr.Name = p.curTok
+	expr.Name = p.getNode(p.curTok)
 
 	// token '='
 	if p.peekTokenIs(token.ASSIGN) {
 		if !p.nextToken() {
 			return nil
 		}
-		expr.Assign = p.curTok
+		expr.Assign = p.getNode(p.curTok)
 	}
 
 	dt := p.parseDataType()
@@ -627,7 +627,7 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	}
 	expr.DataType = dt
 
-	p.nodeSet.Append(expr)
+	p.nodeSet.InsertAfter(expr, expr.DataType)
 	return expr
 }
 
@@ -893,34 +893,34 @@ func (p *Parser) parseImportStmt() ast.ImportStmt {
 
 func (p *Parser) parseImportLiteralStmt() ast.ImportStmt {
 	var stmt = &ast.ImportLiteralStmt{}
-	stmt.Import = p.curTok
+	stmt.Import = p.getNode(p.curTok)
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
-	stmt.Value = p.curTok
+	stmt.Value = p.getNode(p.curTok)
 
-	p.nodeSet.Append(stmt)
+	p.nodeSet.InsertAfter(stmt, stmt.Value)
 	return stmt
 }
 
 func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 	var stmt = &ast.ImportGroupStmt{}
-	stmt.Import = p.curTok
+	stmt.Import = p.getNode(p.curTok)
 
 	// token '('
 	if !p.advanceIfPeekTokenIs(token.LPAREN) { // assert: dead code
 		return nil
 	}
-	stmt.LParen = p.curTok
+	stmt.LParen = p.getNode(p.curTok)
 
 	// token STRING
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN) {
 		if !p.advanceIfPeekTokenIs(token.STRING) {
 			return nil
 		}
-		stmt.Values = append(stmt.Values, p.curTok)
+		stmt.Values = append(stmt.Values, p.getNode(p.curTok))
 
 		if p.notExpectPeekToken(token.RPAREN, token.STRING) {
 			return nil
@@ -931,9 +931,9 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
-	stmt.RParen = p.curTok
+	stmt.RParen = p.getNode(p.curTok)
 
-	p.nodeSet.Append(stmt)
+	p.nodeSet.InsertAfter(stmt, stmt.RParen)
 	return stmt
 }
 

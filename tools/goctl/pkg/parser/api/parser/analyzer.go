@@ -156,14 +156,14 @@ func (a *Analyzer) fillService() error {
 		for _, astRoute := range item.Routes {
 			route := spec.Route{
 				Method: astRoute.Route.Method.Text,
-				//Path:   astRoute.Route.Path.Format(""),
+				Path:   astRoute.Route.Path.Format(""),
 			}
 			if astRoute.AtDoc != nil {
 				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
 			}
 			if astRoute.AtHandler != nil {
 				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
-				route.Handler = astRoute.AtHandler.Name.Text
+				route.Handler = astRoute.AtHandler.Name.Token.Text
 			}
 
 			if astRoute.Route.Request != nil {
@@ -187,8 +187,7 @@ func (a *Analyzer) fillService() error {
 
 			group.Routes = append(group.Routes, route)
 
-			//name := item.Name.Format("")
-			var name string
+			name := item.Name.Format("")
 			if len(a.spec.Service.Name) > 0 && a.spec.Service.Name != name {
 				return ast.SyntaxError(item.Name.Pos(), "multiple service names defined <%s> and <%s>", name, a.spec.Service.Name)
 			}
@@ -259,7 +258,7 @@ func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {
 			members = append(members, m)
 		}
 		a.spec.Types = append(a.spec.Types, spec.DefineStruct{
-			RawName: expr.Name.Text,
+			RawName: expr.Name.Token.Text,
 			Members: members,
 		})
 		return nil
@@ -284,8 +283,7 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 	body := expr.Body
 	var tp spec.Type
 	var err error
-	//var rawText = body.Format("")
-	var rawText string
+	var rawText = body.Format("")
 	if IsBaseType(body.Value.Text) {
 		tp = spec.PrimitiveType{RawName: body.Value.Text}
 	} else {

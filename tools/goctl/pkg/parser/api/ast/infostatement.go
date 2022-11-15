@@ -11,19 +11,19 @@ type InfoStmt struct {
 	fw *Writer
 }
 
-func (i *InfoStmt) Format(prefix ...string) string {
+func (i *InfoStmt) Format(prefix ...string) (result string) {
 	if i.fw == nil {
-		return ""
+		return
 	}
 
 	p := peekOne(prefix)
 	i.fw.Skip(i)
 	if len(i.Values) == 0 {
 		i.fw.Skip(i.Info, i.LParen, i.RParen)
-		return ""
+		return
 	}
 
-	i.fw.WriteSpaceInfixBetween(p, i.Info, i.LParen)
+	i.fw.WriteInOneLine(p, i.Info, i.LParen)
 	var line = i.fw.lastWriteNode.End().Line
 	for _, kv := range i.Values {
 		i.fw.Skip(kv)
@@ -40,7 +40,7 @@ func (i *InfoStmt) Format(prefix ...string) string {
 	i.fw.Write(p, i.RParen)
 	i.fw.NewLine()
 
-	return ""
+	return
 }
 
 func (i *InfoStmt) End() token.Position {

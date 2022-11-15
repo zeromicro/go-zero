@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -79,7 +80,7 @@ func (api *API) checkInfoStmt() error {
 	f := newFilter()
 	b := f.addCheckItem("info key expression")
 	for _, v := range api.info.Values {
-		b.check(v.Key.Token)
+		b.check(v.Key)
 	}
 	return f.error()
 }
@@ -91,8 +92,7 @@ func (api *API) checkServiceStmt() error {
 	pathChecker := f.addCheckItem("path expression")
 	var serviceName = map[string]string{}
 	for _, v := range api.ServiceStmts {
-		//name := strings.TrimSuffix(v.Name.Format(""), "-api")
-		var name string
+		name := strings.TrimSuffix(v.Name.Format(""), "-api")
 		if sn, ok := serviceName[name]; ok {
 			if sn != name {
 				serviceNameChecker.errorManager.add(ast.SyntaxError(v.Name.Pos(), "multiple service name"))
@@ -103,12 +103,11 @@ func (api *API) checkServiceStmt() error {
 		var group = api.getAtServerValue(v.AtServerStmt, "prefix")
 		for _, item := range v.Routes {
 			handlerChecker.check(item.AtHandler.Name)
-			//path := fmt.Sprintf("[%s]:%s", group, item.Route.Format(""))
-			var path = group
-			pathChecker.check(token.Token{
+			path := fmt.Sprintf("[%s]:%s", group, item.Route.Format(""))
+			pathChecker.check(ast.NewTokenNode(token.Token{
 				Text:     path,
 				Position: item.Route.Pos(),
-			})
+			}))
 		}
 	}
 	return f.error()
@@ -135,10 +134,10 @@ func (api *API) checkTypeDeclareContext() error {
 	for _, v := range api.TypeStmt {
 		switch tp := v.(type) {
 		case *ast.TypeLiteralStmt:
-			typeMap[tp.Expr.Name.Text] = placeholder.PlaceHolder
+			typeMap[tp.Expr.Name.Token.Text] = placeholder.PlaceHolder
 		case *ast.TypeGroupStmt:
 			for _, v := range tp.ExprList {
-				typeMap[v.Name.Text] = placeholder.PlaceHolder
+				typeMap[v.Name.Token.Text] = placeholder.PlaceHolder
 			}
 		}
 	}
@@ -233,10 +232,10 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 	for _, imp := range imports {
 		switch val := imp.(type) {
 		case *ast.ImportLiteralStmt:
-			importValueSet[strings.ReplaceAll(val.Value.Text, `"`, "")] = val.Value
+			importValueSet[strings.ReplaceAll(val.Value.Token.Text, `"`, "")] = val.Value.Token
 		case *ast.ImportGroupStmt:
 			for _, v := range val.Values {
-				importValueSet[strings.ReplaceAll(v.Text, `"`, "")] = v
+				importValueSet[strings.ReplaceAll(v.Token.Text, `"`, "")] = v.Token
 			}
 		}
 	}

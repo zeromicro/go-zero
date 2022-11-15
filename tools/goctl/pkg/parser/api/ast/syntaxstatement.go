@@ -10,15 +10,15 @@ type SyntaxStmt struct {
 	fw *Writer
 }
 
-func (s *SyntaxStmt) Format(prefix ...string) string {
+func (s *SyntaxStmt) Format(prefix ...string) (result string) {
 	if s.fw == nil {
-		return ""
+		return
 	}
 
 	s.fw.Skip(s)
-	s.fw.WriteSpaceInfixBetween(peekOne(prefix), s.Syntax, s.Value)
+	s.fw.WriteInOneLine(peekOne(prefix), s.Syntax, s.Value)
 	s.fw.NewLine()
-	return ""
+	return
 }
 
 func (s *SyntaxStmt) End() token.Position {

@@ -59,7 +59,11 @@ func (a *AST) Format(w *Writer) {
 			stmt.fw = w
 			stmt.Format(NilIndent)
 		case *ImportGroupStmt:
+			stmt.fw = w
+			stmt.Format(NilIndent)
 		case *ImportLiteralStmt:
+			stmt.fw = w
+			stmt.Format(NilIndent)
 		case *InfoStmt:
 			stmt.fw = w
 			stmt.Format(NilIndent)

@@ -68,8 +68,8 @@ func (t *TypeGroupStmt) typeNode() {}
 /*******************TypeExpr Begin********************/
 
 type TypeExpr struct {
-	Name     token.Token
-	Assign   token.Token
+	Name     *TokenNode
+	Assign   *TokenNode
 	DataType DataType
 
 	fw *Writer
@@ -85,7 +85,7 @@ func (e *TypeExpr) End() token.Position {
 }
 
 func (e *TypeExpr) Pos() token.Position {
-	return e.Name.Position
+	return e.Name.Pos()
 }
 
 func (e *TypeExpr) exprNode() {}

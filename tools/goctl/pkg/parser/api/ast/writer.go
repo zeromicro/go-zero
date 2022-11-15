@@ -75,13 +75,6 @@ func (w *Writer) WriteSpaceInfix(prefix string, nodes ...Node) {
 			w.write(NilIndent, lineAfter...)
 		}
 	}()
-	var hasDoc = false
-	for _, e := range nodes {
-		if isComment(e) {
-			hasDoc = true
-			break
-		}
-	}
 
 	var one = nodes[0]
 	gaps := w.nodeSet.Between(w.lastWriteNode, one, NotIn)
@@ -91,7 +84,7 @@ func (w *Writer) WriteSpaceInfix(prefix string, nodes ...Node) {
 
 	_, _ = fmt.Fprint(w.tw, prefix)
 	for idx, node := range nodes {
-		if node.Pos().Line > w.lastWriteNode.End().Line && (idx == 0 || hasDoc) {
+		if node.Pos().Line > w.lastWriteNode.End().Line && w.lastWriteNode != initNode {
 			w.NewLine()
 		}
 		_, _ = fmt.Fprint(w.tw, node.Format())
@@ -107,6 +100,7 @@ func (w *Writer) WriteInOneLine(prefix string, nodes ...Node) {
 	if len(nodes) == 0 {
 		return
 	}
+
 	defer func() {
 		tail := nodes[len(nodes)-1]
 		lineAfter := w.nodeSet.LineCommentAfter(tail)
@@ -114,13 +108,14 @@ func (w *Writer) WriteInOneLine(prefix string, nodes ...Node) {
 			w.write(NilIndent, lineAfter...)
 		}
 	}()
+
 	var one = nodes[0]
 	gaps := w.nodeSet.Between(w.lastWriteNode, one, NotIn)
 	if len(gaps) > 0 {
 		w.write(NilIndent, gaps...)
 	}
 
-	var lastWriteToken = w.lastWriteNode
+	var lastWriteNode = w.lastWriteNode
 	var hasDocument = false
 	var list []string
 	for _, node := range nodes {
@@ -128,12 +123,16 @@ func (w *Writer) WriteInOneLine(prefix string, nodes ...Node) {
 			hasDocument = true
 		}
 		list = append(list, node.Format())
-		lastWriteToken = node
+		lastWriteNode = node
 	}
 	if !hasDocument {
+		one := nodes[0]
+		if one.Pos().Line > w.lastWriteNode.End().Line && w.lastWriteNode != initNode {
+			w.NewLine()
+		}
 		_, _ = fmt.Fprint(w.tw, prefix)
 		_, _ = fmt.Fprint(w.tw, strings.Join(list, WhiteSpace))
-		w.lastWriteNode = lastWriteToken
+		w.lastWriteNode = lastWriteNode
 		return
 	}
 
@@ -170,7 +169,7 @@ func (w *Writer) Write(prefix string, nodes ...Node) {
 		lastWriteToken = node
 	}
 	if inOneLine && len(list) > 0 {
-		if one.Pos().Line > w.lastWriteNode.End().Line {
+		if one.Pos().Line > w.lastWriteNode.End().Line && w.lastWriteNode != initNode {
 			w.NewLine()
 		}
 		_, _ = fmt.Fprint(w.tw, prefix)

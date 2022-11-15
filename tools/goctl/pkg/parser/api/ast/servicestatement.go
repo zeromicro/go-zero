@@ -140,8 +140,8 @@ func (s *ServiceNameExpr) Pos() token.Position {
 func (s *ServiceNameExpr) exprNode() {}
 
 type AtHandlerStmt struct {
-	AtHandler token.Token
-	Name      token.Token
+	AtHandler *TokenNode
+	Name      *TokenNode
 
 	fw *Writer
 }
@@ -152,11 +152,11 @@ func (a *AtHandlerStmt) Format(prefix ...string) string {
 }
 
 func (a *AtHandlerStmt) End() token.Position {
-	return a.Name.Position
+	return a.Name.End()
 }
 
 func (a *AtHandlerStmt) Pos() token.Position {
-	return a.AtHandler.Position
+	return a.AtHandler.Pos()
 }
 
 func (a *AtHandlerStmt) stmtNode() {}
