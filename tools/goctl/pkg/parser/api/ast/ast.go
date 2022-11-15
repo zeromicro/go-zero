@@ -61,6 +61,8 @@ func (a *AST) Format(w *Writer) {
 		case *ImportGroupStmt:
 		case *ImportLiteralStmt:
 		case *InfoStmt:
+			stmt.fw = w
+			stmt.Format(NilIndent)
 		case *ServiceStmt:
 		case *TypeGroupStmt:
 		case *TypeLiteralStmt:

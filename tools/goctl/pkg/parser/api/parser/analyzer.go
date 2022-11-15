@@ -95,7 +95,7 @@ func (a *Analyzer) convertAtDoc(atDoc ast.AtDocStmt) spec.AtDoc {
 func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
-		ret[v.Key.Text] = v.Value.Text
+		ret[v.Key.Token.Text] = v.Value.Token.Text
 	}
 	return ret
 }

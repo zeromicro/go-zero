@@ -939,13 +939,13 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 
 func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 	var stmt = &ast.InfoStmt{}
-	stmt.Info = p.curTok
+	stmt.Info = p.getNode(p.curTok)
 
 	// token '('
 	if !p.advanceIfPeekTokenIs(token.LPAREN) {
 		return nil
 	}
-	stmt.LParen = p.curTok
+	stmt.LParen = p.getNode(p.curTok)
 
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN) {
 		expr := p.parseKVExpression()
@@ -963,9 +963,9 @@ func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
-	stmt.RParen = p.curTok
+	stmt.RParen = p.getNode(p.curTok)
 
-	p.nodeSet.Append(stmt)
+	p.nodeSet.InsertAfter(stmt, stmt.RParen)
 	return stmt
 }
 
@@ -977,7 +977,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		return nil
 	}
 
-	expr.Key = p.curTok
+	expr.Key = ast.NewTokenNode(p.curTok)
 
 	var valueTok token.Token
 	if p.peekTokenIs(token.QUO) {
@@ -1020,9 +1020,9 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	}
 
 	valueTok.Type = token.PATH
-	expr.Value = valueTok
+	expr.Value = ast.NewTokenNode(valueTok)
 
-	p.nodeSet.Append(expr)
+	p.nodeSet.InsertAfter(expr, expr.Value)
 	return expr
 }
 
@@ -1033,14 +1033,14 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	if !p.advanceIfPeekTokenIs(token.KEY) {
 		return nil
 	}
-	expr.Key = p.curTok
+	expr.Key = p.getNode(p.curTok)
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
-	expr.Value = p.curTok
-	p.nodeSet.Append(expr)
+	expr.Value = p.getNode(p.curTok)
+	p.nodeSet.InsertAfter(expr, expr.Value)
 	return expr
 }
 

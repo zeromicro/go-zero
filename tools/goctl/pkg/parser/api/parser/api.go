@@ -79,7 +79,7 @@ func (api *API) checkInfoStmt() error {
 	f := newFilter()
 	b := f.addCheckItem("info key expression")
 	for _, v := range api.info.Values {
-		b.check(v.Key)
+		b.check(v.Key.Token)
 	}
 	return f.error()
 }
@@ -199,8 +199,8 @@ func (api *API) getAtServerValue(atServer *ast.AtServerStmt, key string) string 
 	}
 
 	for _, val := range atServer.Values {
-		if val.Key.Text == key {
-			return val.Value.Text
+		if val.Key.Token.Text == key {
+			return val.Value.Token.Text
 		}
 	}
 

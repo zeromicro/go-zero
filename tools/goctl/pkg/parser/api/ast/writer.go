@@ -8,6 +8,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 const NilIndent = ""
@@ -193,12 +194,19 @@ func (w *Writer) filterSkipNode(nodes []Node) []Node {
 }
 
 func (w *Writer) canSkip(node Node) bool {
-	_, ok := w.skip[node]
+	tokenNode, ok := node.(*TokenNode)
+	if ok && tokenNode.Token.IsType(token.EOF) {
+		return true
+	}
+	_, ok = w.skip[node]
 	return ok
 }
 
 func (w *Writer) write(prefix string, nodes ...Node) {
 	nodes = w.filterSkipNode(nodes)
+	if len(nodes) == 0 {
+		return
+	}
 	_, _ = fmt.Fprint(w.tw, prefix)
 	for idx, node := range nodes {
 		if node.Pos().Line > w.lastWriteNode.End().Line {

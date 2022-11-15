@@ -118,7 +118,7 @@ func (s *NodeSet) between(left, right Node, flag CollectionFlag, onlyComment boo
 
 	for i := bg; i < end; i++ {
 		if onlyComment {
-			if _, ok := s.list[i].(*CommentStmt); !ok {
+			if _, ok := s.list[i].(*CommentStmt); ok {
 				results = append(results, s.list[i])
 			}
 		} else {
@@ -149,9 +149,12 @@ func (s *NodeSet) LineCommentAfter(node Node) []Node {
 
 	var results []Node
 	for i := bgIdx; i < len(s.list); i++ {
-		line := s.list[i].(Node).Pos().Line
-		if line == node.End().Line {
-			results = append(results, s.list[i])
+		line := s.list[i].Pos().Line
+		_, ok := s.list[i].(*CommentStmt)
+		if ok {
+			if line == node.End().Line {
+				results = append(results, s.list[i])
+			}
 		}
 	}
 	return results

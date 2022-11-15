@@ -17,6 +17,7 @@ func (s *SyntaxStmt) Format(prefix ...string) string {
 
 	s.fw.Skip(s)
 	s.fw.WriteSpaceInfixBetween(peekOne(prefix), s.Syntax, s.Value)
+	s.fw.NewLine()
 	return ""
 }
 

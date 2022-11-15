@@ -1,0 +1,12 @@
+// header
+info(/*aa*/
+    foo:"foo"
+    bar:"bar"// bb
+)
+// footer
+
+// ===
+info(/*aa*/
+    foo:"foo"
+    bar:"bar"// bb
+)// 0000
