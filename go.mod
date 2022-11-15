@@ -47,8 +47,6 @@ require (
 )
 
 require (
-	ariga.io/entcache v0.1.0
-	entgo.io/ent v0.11.4
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/casbin/casbin/v2 v2.52.1
 	github.com/casbin/gorm-adapter/v3 v3.7.4
@@ -57,13 +55,12 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
-	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
-	github.com/pkg/errors v0.9.1
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/text v0.4.0
+	golang.org/x/tools v0.1.13-0.20220804200503-81c7dc4e4efa // indirect
 	google.golang.org/genproto v0.0.0-20220602131408-e326c6e8e9c8
 	gorm.io/driver/mysql v1.3.6
 	gorm.io/driver/postgres v1.3.9
