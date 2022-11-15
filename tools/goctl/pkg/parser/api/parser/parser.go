@@ -12,11 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-const (
-	All Mode = iota
-	SkipComment
-)
-
 const IDAPI = "api"
 
 type Mode int
@@ -26,24 +21,25 @@ type Parser struct {
 	s        *scanner.Scanner
 	errors   []error
 
-	curTok   token.Token
-	peekTok  token.Token
-	TokenSet *token.Set
+	curTok  token.Token
+	peekTok token.Token
+	nodeSet *ast.NodeSet
+	parsed  bool
 
-	mode Mode
+	tokenNode map[token.Token]*ast.TokenNode
 }
 
-func New(filename string, src interface{}, mode Mode) *Parser {
+func New(nodeSet *ast.NodeSet, filename string, src interface{}) *Parser {
 	abs, err := filepath.Abs(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	p := &Parser{
-		filename: abs,
-		s:        scanner.MustNewScanner(abs, src),
-		mode:     mode,
-		TokenSet: token.NewTokenSet(),
+		filename:  abs,
+		s:         scanner.MustNewScanner(abs, src),
+		nodeSet:   nodeSet,
+		tokenNode: make(map[token.Token]*ast.TokenNode),
 	}
 
 	return p
@@ -69,6 +65,7 @@ func (p *Parser) Parse() *ast.AST {
 		}
 	}
 
+	p.parsed = true
 	return api
 }
 
@@ -92,8 +89,6 @@ func (p *Parser) parseStmt() ast.Stmt {
 		return p.parseTypeStmt()
 	case token.AT_SERVER:
 		return p.parseService()
-	case token.COMMENT, token.DOCUMENT: // in All Mode
-		return p.parseComment()
 	default:
 		p.errors = append(p.errors, fmt.Errorf("%s unexpected token '%s'", p.curTok.Position.String(), p.peekTok.Text))
 		return nil
@@ -202,6 +197,7 @@ func (p *Parser) parseServiceItemStmt() *ast.ServiceItemStmt {
 	}
 	stmt.Route = route
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -256,6 +252,7 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 		stmt.Response = responseBodyStmt
 	}
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -279,6 +276,7 @@ func (p *Parser) parseBodyStmt() *ast.BodyStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -376,6 +374,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 		}
 	}
 
+	p.nodeSet.Append(expr)
 	return expr
 }
 
@@ -431,13 +430,8 @@ func (p *Parser) parseServiceNameExpr() *ast.ServiceNameExpr {
 		expr.API = p.curTok
 	}
 
+	p.nodeSet.Append(expr)
 	return expr
-}
-
-func (p *Parser) parseComment() *ast.CommentStmt {
-	var stmt = &ast.CommentStmt{}
-	stmt.Comment = p.curTok
-	return stmt
 }
 
 func (p *Parser) parseAtDocStmt() ast.AtDocStmt {
@@ -478,6 +472,7 @@ func (p *Parser) parseAtDocGroupStmt() ast.AtDocStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -490,6 +485,7 @@ func (p *Parser) parseAtDocLiteralStmt() ast.AtDocStmt {
 	}
 	stmt.Value = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -503,6 +499,7 @@ func (p *Parser) parseAtHandlerStmt() *ast.AtHandlerStmt {
 	}
 	stmt.Name = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -534,6 +531,7 @@ func (p *Parser) parseAtServerStmt() *ast.AtServerStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -559,6 +557,7 @@ func (p *Parser) parseTypeLiteralStmt() ast.TypeStmt {
 	}
 	stmt.Expr = expr
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -584,6 +583,7 @@ func (p *Parser) parseTypeGroupStmt() ast.TypeStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -627,6 +627,7 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	}
 	expr.DataType = dt
 
+	p.nodeSet.Append(expr)
 	return expr
 }
 
@@ -687,6 +688,7 @@ func (p *Parser) parseStructDataType() *ast.StructDataType {
 	}
 	tp.RBrace = p.curTok
 
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -747,6 +749,7 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 		expr.Tag = p.curTok
 	}
 
+	p.nodeSet.Append(expr)
 	return expr
 }
 
@@ -756,6 +759,7 @@ func (p *Parser) parseAnyDataType() *ast.AnyDataType {
 		return nil
 	}
 	tp.Any = p.curTok
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -776,6 +780,7 @@ func (p *Parser) parsePointerDataType() *ast.PointerDataType {
 	}
 	tp.DataType = dt
 
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -785,6 +790,7 @@ func (p *Parser) parseInterfaceDataType() *ast.InterfaceDataType {
 		return nil
 	}
 	tp.Interface = p.curTok
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -821,6 +827,7 @@ func (p *Parser) parseMapDataType() *ast.MapDataType {
 	}
 	tp.Value = dt
 
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -847,6 +854,7 @@ func (p *Parser) parseArrayDataType() *ast.ArrayDataType {
 	}
 	tp.DataType = dt
 
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -867,6 +875,7 @@ func (p *Parser) parseSliceDataType() *ast.SliceDataType {
 	}
 	tp.DataType = dt
 
+	p.nodeSet.Append(tp)
 	return tp
 }
 
@@ -892,6 +901,7 @@ func (p *Parser) parseImportLiteralStmt() ast.ImportStmt {
 	}
 	stmt.Value = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -923,6 +933,7 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -954,6 +965,7 @@ func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 	}
 	stmt.RParen = p.curTok
 
+	p.nodeSet.Append(stmt)
 	return stmt
 }
 
@@ -1010,6 +1022,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	valueTok.Type = token.PATH
 	expr.Value = valueTok
 
+	p.nodeSet.Append(expr)
 	return expr
 }
 
@@ -1027,26 +1040,27 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 		return nil
 	}
 	expr.Value = p.curTok
-
+	p.nodeSet.Append(expr)
 	return expr
 }
 
 func (p *Parser) parseSyntaxStmt() *ast.SyntaxStmt {
 	var stmt = &ast.SyntaxStmt{}
-	stmt.Syntax = p.curTok
+	stmt.Syntax = p.getNode(p.curTok)
 
 	// token '='
 	if !p.advanceIfPeekTokenIs(token.ASSIGN) {
 		return nil
 	}
-	stmt.Assign = p.curTok
+	stmt.Assign = p.getNode(p.curTok)
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
-	stmt.Value = p.curTok
+	stmt.Value = p.getNode(p.curTok)
 
+	p.nodeSet.InsertAfter(stmt, stmt.Value)
 	return stmt
 }
 
@@ -1216,24 +1230,33 @@ func (p *Parser) init() bool {
 func (p *Parser) nextToken() bool {
 	var err error
 	p.curTok = p.peekTok
+	if p.curTok.Valid() {
+		tokenNode := ast.NewTokenNode(p.curTok)
+		p.tokenNode[p.curTok] = tokenNode
+		p.nodeSet.Append(tokenNode)
+	}
+
 	p.peekTok, err = p.s.NextToken()
 	if err != nil {
 		p.errors = append(p.errors, err)
 		return false
 	}
-	p.TokenSet.Add(p.peekTok)
 
-	for p.mode == SkipComment &&
-		(p.peekTok.Type == token.COMMENT || p.peekTok.Type == token.DOCUMENT) {
+	for p.peekTok.Type == token.COMMENT || p.peekTok.Type == token.DOCUMENT {
+		p.nodeSet.Append(&ast.CommentStmt{Comment: p.peekTok})
 		p.peekTok, err = p.s.NextToken()
 		if err != nil {
 			p.errors = append(p.errors, err)
 			return false
 		}
-		p.TokenSet.Add(p.peekTok)
+
 	}
 
 	return true
+}
+
+func (p *Parser) getNode(tok token.Token) *ast.TokenNode {
+	return p.tokenNode[tok]
 }
 
 func isNil(v interface{}) bool {

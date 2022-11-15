@@ -11,6 +11,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
+func NewTestNodeSet() *ast.NodeSet {
+	return ast.NewNodeSet()
+}
+
 //go:embed testdata/comment_test.api
 var testCommentInput string
 
@@ -21,7 +25,7 @@ func TestParser_init(t *testing.T) {
 		"syntax/**/`",
 	}
 	for _, val := range testData {
-		p := New("test.api", val, SkipComment)
+		p := New(NewTestNodeSet(), "test.api", val)
 		val := p.init()
 		assert.False(t, val)
 	}
@@ -32,7 +36,7 @@ var testInput string
 
 func TestParser_Parse(t *testing.T) {
 	t.Run("valid", func(t *testing.T) { // EXPERIMENTAL: just for testing output formatter.
-		p := New("test.api", testInput, SkipComment)
+		p := New(NewTestNodeSet(), "test.api", testInput)
 		result := p.Parse()
 		assert.NotNil(t, result)
 		assert.True(t, p.hasNoErrors())
@@ -43,7 +47,7 @@ func TestParser_Parse(t *testing.T) {
 			"@",
 		}
 		for _, val := range testData {
-			p := New("test.api", val, SkipComment)
+			p := New(NewTestNodeSet(), "test.api", val)
 			p.Parse()
 			assertx.ErrorOrigin(t, val, p.errors...)
 		}
@@ -52,7 +56,7 @@ func TestParser_Parse(t *testing.T) {
 
 func TestParser_Parse_Mode(t *testing.T) {
 	t.Run("SkipComment", func(t *testing.T) {
-		p := New("foo.api", testCommentInput, SkipComment)
+		p := New(NewTestNodeSet(), "foo.api", testCommentInput)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		assert.Equal(t, 0, len(result.Stmts))
@@ -66,7 +70,7 @@ func TestParser_Parse_Mode(t *testing.T) {
 	//		`/*bar*/`,
 	//		`//baz`,
 	//	}
-	//	p := New("foo.api", testCommentInput, All)
+	//	p := New(NewTestNodeSet(),"foo.api", testCommentInput, All)
 	//	result := p.Parse()
 	//	for idx, v := range testData {
 	//		stmt := result.Stmts[idx]
@@ -102,7 +106,7 @@ func TestParser_Parse_syntaxStmt(t *testing.T) {
 	//		},
 	//	}
 	//	for _, v := range testData {
-	//		p := New("foo.aoi", v.input, SkipComment)
+	//		p := New(NewTestNodeSet(),"foo.aoi", v.input)
 	//		result := p.Parse()
 	//		assert.True(t, p.hasNoErrors())
 	//		assert.Equal(t, v.expected, result.Stmts[0].Format(""))
@@ -118,7 +122,7 @@ func TestParser_Parse_syntaxStmt(t *testing.T) {
 			`syntax == "v"`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -137,7 +141,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 	//		`email: "type email here"`,
 	//		`version: "type version here"`,
 	//	}
-	//	p := New("foo.api", infoTestAPI, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", infoTestAPI)
 	//	result := p.Parse()
 	//	assert.True(t, p.hasNoErrors())
 	//	stmt := result.Stmts[0]
@@ -149,7 +153,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 	//})
 
 	//t.Run("empty", func(t *testing.T) {
-	//	p := New("foo.api", "info ()", SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", "info ()")
 	//	result := p.Parse()
 	//	assert.True(t, p.hasNoErrors())
 	//	stmt := result.Stmts[0]
@@ -177,7 +181,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 			`info(123:"")`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -194,7 +198,7 @@ func TestParser_Parse_importLiteral(t *testing.T) {
 	//		`import "foo"`,
 	//		`import "bar"`,
 	//	}
-	//	p := New("foo.api", testImportLiteral, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", testImportLiteral)
 	//	result := p.Parse()
 	//	assert.True(t, p.hasNoErrors())
 	//	for idx, v := range testData {
@@ -215,7 +219,7 @@ func TestParser_Parse_importLiteral(t *testing.T) {
 			`import 好`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -232,7 +236,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 			`"foo"`,
 			`"bar"`,
 		}
-		p := New("foo.api", testImportGroup, SkipComment)
+		p := New(NewTestNodeSet(), "foo.api", testImportGroup)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -247,7 +251,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		p := New("foo.api", "import ()", SkipComment)
+		p := New(NewTestNodeSet(), "foo.api", "import ()")
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -272,7 +276,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 			`import ( "" 好)`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -291,7 +295,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 	//		`qux: /v1`,
 	//		`quux: /v1/v2`,
 	//	}
-	//	p := New("foo.api", atServerTestAPI, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", atServerTestAPI)
 	//	result := p.parseForUintTest()
 	//	assert.True(t, p.hasNoErrors())
 	//	stmt := result.Stmts[0]
@@ -303,7 +307,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 	//})
 
 	t.Run("empty", func(t *testing.T) {
-		p := New("foo.api", `@server()`, SkipComment)
+		p := New(NewTestNodeSet(), "foo.api", `@server()`)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -338,7 +342,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo:/v1/v2`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -351,7 +355,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server /*foo*/`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, All)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.Error(t, p.errors...)
 		}
@@ -369,7 +373,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 	//		`@handler _bar`,
 	//	}
 	//
-	//	p := New("foo.api", atHandlerTestAPI, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", atHandlerTestAPI)
 	//	result := p.parseForUintTest()
 	//	assert.True(t, p.hasNoErrors())
 	//	for idx, v := range testData {
@@ -390,7 +394,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 			`@handler ()`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -408,7 +412,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 	//		`@doc "bar"`,
 	//	}
 	//
-	//	p := New("foo.api", atDocLiteralTestAPI, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", atDocLiteralTestAPI)
 	//	result := p.parseForUintTest()
 	//	assert.True(t, p.hasNoErrors())
 	//	for idx, v := range testData {
@@ -428,7 +432,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 			`@doc |`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -446,7 +450,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 	//		`baz: ""`,
 	//	}
 	//
-	//	p := New("foo.api", atDocGroupTestAPI, SkipComment)
+	//	p := New(NewTestNodeSet(),"foo.api", atDocGroupTestAPI)
 	//	result := p.parseForUintTest()
 	//	assert.True(t, p.hasNoErrors())
 	//	stmt := result.Stmts[0]
@@ -468,7 +472,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 			`@doc( foo: )`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -668,7 +672,7 @@ func TestParser_Parse_service(t *testing.T) {
 			},
 		}
 
-		p := New("foo.api", serviceTestAPI, SkipComment)
+		p := New(NewTestNodeSet(), "foo.api", serviceTestAPI)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
@@ -734,7 +738,7 @@ func TestParser_Parse_service(t *testing.T) {
 			`service foo{ @handler foo get /ping (Foo) returns (Bar)]`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -748,7 +752,7 @@ func TestParser_Parse_service(t *testing.T) {
 			`@server() service fo`,
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			p.init()
 			_ = p.parseService()
 			assertx.ErrorOrigin(t, v, p.errors...)
@@ -779,7 +783,7 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			{input: "foo }", expected: "foo"},
 		}
 		for _, v := range testData {
-			p := New("foo.api", v.input, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v.input)
 			ok := p.nextToken()
 			assert.True(t, ok)
 			tokens := p.parsePathItem()
@@ -802,7 +806,7 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			"foo-barの",
 		}
 		for _, v := range testData {
-			p := New("foo.api", v, SkipComment)
+			p := New(NewTestNodeSet(), "foo.api", v)
 			ok := p.nextToken()
 			assert.True(t, ok)
 			p.parsePathItem()
@@ -1061,7 +1065,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			},
 		}
 		for _, val := range testData {
-			p := New("test.api", val.input, SkipComment)
+			p := New(NewTestNodeSet(), "test.api", val.input)
 			result := p.Parse()
 			assert.True(t, p.hasNoErrors())
 			assert.Equal(t, 1, len(result.Stmts))
@@ -1143,7 +1147,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			},
 		}
 		for _, val := range testData {
-			p := New("test.api", val.input, SkipComment)
+			p := New(NewTestNodeSet(), "test.api", val.input)
 			result := p.Parse()
 			assert.True(t, p.hasNoErrors())
 			assert.Equal(t, 1, len(result.Stmts))
@@ -1252,7 +1256,7 @@ func TestParser_Parse_parseTypeStmt_invalid(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		p := New("test.api", v, SkipComment)
+		p := New(NewTestNodeSet(), "test.api", v)
 		p.Parse()
 		assertx.ErrorOrigin(t, v, p.errors...)
 	}

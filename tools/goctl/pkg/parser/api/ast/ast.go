@@ -2,13 +2,14 @@ package ast
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 type Node interface {
 	Pos() token.Position
+	End() token.Position
+	Format(prefix ...string) string
 }
 
 type Stmt interface {
@@ -27,14 +28,45 @@ type AST struct {
 	readPosition int
 }
 
-func (a *AST) NextStmt() Stmt {
-	if a.readPosition == len(a.Stmts) {
-		return nil
-	}
+type TokenNode struct {
+	Token token.Token
+}
+
+func NewTokenNode(tok token.Token) *TokenNode {
+	return &TokenNode{Token: tok}
+}
+
+func (t *TokenNode) Format(...string) string {
+	return t.Token.Text
+}
+
+func (t *TokenNode) Pos() token.Position {
+	return t.Token.Position
+}
+
+func (t *TokenNode) End() token.Position {
+	return t.Token.Position
+}
+
+func (a *AST) Format(w *Writer) {
 	defer func() {
-		a.readPosition += 1
+		w.WriteTailGaps()
+		w.Flush()
 	}()
-	return a.Stmts[a.readPosition]
+	for _, e := range a.Stmts {
+		switch stmt := e.(type) {
+		case *SyntaxStmt:
+			stmt.fw = w
+			stmt.Format(NilIndent)
+		case *ImportGroupStmt:
+		case *ImportLiteralStmt:
+		case *InfoStmt:
+		case *ServiceStmt:
+		case *TypeGroupStmt:
+		case *TypeLiteralStmt:
+		case *RouteStmt:
+		}
+	}
 }
 
 func (a *AST) Print() {
@@ -49,14 +81,9 @@ func DuplicateStmtError(pos token.Position, msg string) error {
 	return fmt.Errorf("duplicate declaration: %s %s", pos.String(), msg)
 }
 
-func isNil(v interface{}) bool {
-	if v == nil {
-		return true
+func peekOne(list []string) string {
+	if len(list) == 0 {
+		return ""
 	}
-
-	vo := reflect.ValueOf(v)
-	if vo.Kind() == reflect.Ptr {
-		return vo.IsNil()
-	}
-	return false
+	return list[0]
 }

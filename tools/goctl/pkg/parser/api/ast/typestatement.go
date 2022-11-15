@@ -18,6 +18,17 @@ type TypeStmt interface {
 type TypeLiteralStmt struct {
 	Type token.Token
 	Expr *TypeExpr
+
+	fw *Writer
+}
+
+func (t *TypeLiteralStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *TypeLiteralStmt) End() token.Position {
+	return t.Expr.End()
 }
 
 func (t *TypeLiteralStmt) Pos() token.Position {
@@ -32,6 +43,17 @@ type TypeGroupStmt struct {
 	LParen   token.Token
 	ExprList []*TypeExpr
 	RParen   token.Token
+
+	fw *Writer
+}
+
+func (t *TypeGroupStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *TypeGroupStmt) End() token.Position {
+	return t.RParen.Position
 }
 
 func (t *TypeGroupStmt) Pos() token.Position {
@@ -49,6 +71,17 @@ type TypeExpr struct {
 	Name     token.Token
 	Assign   token.Token
 	DataType DataType
+
+	fw *Writer
+}
+
+func (e *TypeExpr) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (e *TypeExpr) End() token.Position {
+	return e.DataType.End()
 }
 
 func (e *TypeExpr) Pos() token.Position {
@@ -69,6 +102,20 @@ type ElemExpr struct {
 	Name     []token.Token
 	DataType DataType
 	Tag      token.Token
+
+	fw *Writer
+}
+
+func (e *ElemExpr) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (e *ElemExpr) End() token.Position {
+	if e.Tag.Valid() {
+		return e.Tag.Position
+	}
+	return e.DataType.End()
 }
 
 func (e *ElemExpr) Pos() token.Position {
@@ -111,6 +158,17 @@ type StructDataType struct {
 	LBrace   token.Token
 	Elements ElemExprList
 	RBrace   token.Token
+
+	fw *Writer
+}
+
+func (t *StructDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *StructDataType) End() token.Position {
+	return t.RBrace.Position
 }
 
 func (t *StructDataType) RawText() string {
@@ -153,6 +211,17 @@ type SliceDataType struct {
 	LBrack   token.Token
 	RBrack   token.Token
 	DataType DataType
+
+	fw *Writer
+}
+
+func (t *SliceDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *SliceDataType) End() token.Position {
+	return t.DataType.End()
 }
 
 func (t *SliceDataType) RawText() string {
@@ -180,6 +249,17 @@ type MapDataType struct {
 	Key    DataType
 	RBrack token.Token
 	Value  DataType
+
+	fw *Writer
+}
+
+func (t *MapDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *MapDataType) End() token.Position {
+	return t.Value.End()
 }
 
 func (t *MapDataType) RawText() string {
@@ -206,6 +286,17 @@ type ArrayDataType struct {
 	Length   token.Token
 	RBrack   token.Token
 	DataType DataType
+
+	fw *Writer
+}
+
+func (t *ArrayDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *ArrayDataType) End() token.Position {
+	return t.DataType.End()
 }
 
 func (t *ArrayDataType) RawText() string {
@@ -229,6 +320,17 @@ func (t *ArrayDataType) dataTypeNode() {}
 
 type InterfaceDataType struct {
 	Interface token.Token
+
+	fw *Writer
+}
+
+func (t *InterfaceDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *InterfaceDataType) End() token.Position {
+	return t.Interface.Position
 }
 
 func (t *InterfaceDataType) RawText() string {
@@ -254,6 +356,17 @@ func (t *InterfaceDataType) dataTypeNode() {}
 type PointerDataType struct {
 	Star     token.Token
 	DataType DataType
+
+	fw *Writer
+}
+
+func (t *PointerDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *PointerDataType) End() token.Position {
+	return t.DataType.End()
 }
 
 func (t *PointerDataType) RawText() string {
@@ -277,6 +390,17 @@ func (t *PointerDataType) dataTypeNode() {}
 
 type AnyDataType struct {
 	Any token.Token
+
+	fw *Writer
+}
+
+func (t *AnyDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *AnyDataType) End() token.Position {
+	return t.Any.Position
 }
 
 func (t *AnyDataType) RawText() string {
@@ -304,6 +428,17 @@ func (t *AnyDataType) CanEqual() bool {
 // string, int, uint, uintptr, byte, rune, any.
 type BaseDataType struct {
 	Base token.Token
+
+	fw *Writer
+}
+
+func (t *BaseDataType) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *BaseDataType) End() token.Position {
+	return t.Base.Position
 }
 
 func (t *BaseDataType) RawText() string {

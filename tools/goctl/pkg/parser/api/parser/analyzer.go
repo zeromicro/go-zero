@@ -316,14 +316,14 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 }
 
 func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
-	p := New(filename, src, SkipComment)
+	p := New(ast.NewNodeSet(), filename, src)
 	ast := p.Parse()
 	if err := p.CheckErrors(); err != nil {
 		return nil, err
 	}
 
 	var importManager = make(map[string]placeholder.Type)
-	importManager[ast.Filename]=placeholder.PlaceHolder
+	importManager[ast.Filename] = placeholder.PlaceHolder
 	api, err := convert2API(ast, importManager)
 	if err != nil {
 		return nil, err
@@ -363,7 +363,7 @@ var kind = map[string]placeholder.Type{
 	"string":     placeholder.PlaceHolder,
 	"byte":       placeholder.PlaceHolder,
 	"rune":       placeholder.PlaceHolder,
-	"any":       placeholder.PlaceHolder,
+	"any":        placeholder.PlaceHolder,
 }
 
 func IsBaseType(text string) bool {

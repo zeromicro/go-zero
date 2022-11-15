@@ -10,6 +10,17 @@ type ImportStmt interface {
 type ImportLiteralStmt struct {
 	Import token.Token
 	Value  token.Token
+
+	fw *Writer
+}
+
+func (i *ImportLiteralStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *ImportLiteralStmt) End() token.Position {
+	return i.Value.Position
 }
 
 func (i *ImportLiteralStmt) importNode() {}
@@ -25,6 +36,17 @@ type ImportGroupStmt struct {
 	LParen token.Token
 	Values []token.Token
 	RParen token.Token
+
+	nodeSet *NodeSet
+}
+
+func (i *ImportGroupStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *ImportGroupStmt) End() token.Position {
+	return i.RParen.Position
 }
 
 func (i *ImportGroupStmt) importNode() {}

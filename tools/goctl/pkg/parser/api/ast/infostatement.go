@@ -7,6 +7,17 @@ type InfoStmt struct {
 	LParen token.Token
 	Values []*KVExpr
 	RParen token.Token
+
+	fw *Writer
+}
+
+func (i *InfoStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *InfoStmt) End() token.Position {
+	return i.RParen.Position
 }
 
 func (i *InfoStmt) Pos() token.Position {

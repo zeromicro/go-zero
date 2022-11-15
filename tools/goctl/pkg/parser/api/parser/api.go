@@ -211,11 +211,11 @@ func (api *API) mergeAPI(in *API) error {
 	for k, v := range in.importManager {
 		api.importManager[k] = v
 	}
-	if api.Syntax.Value.Text != in.Syntax.Value.Text {
-		return ast.SyntaxError(in.Syntax.Value.Position,
+	if api.Syntax.Value.Format() != in.Syntax.Value.Format() {
+		return ast.SyntaxError(in.Syntax.Value.Pos(),
 			"multiple syntax value expression, expected <%s>, got <%s>",
-			api.Syntax.Value.Text,
-			in.Syntax.Value.Text,
+			api.Syntax.Value.Format(),
+			in.Syntax.Value.Format(),
 		)
 	}
 	api.TypeStmt = append(api.TypeStmt, in.TypeStmt...)
@@ -253,7 +253,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 			api.importManager[impPath] = placeholder.PlaceHolder
 		}
 
-		p := New(impPath, "", SkipComment)
+		p := New(ast.NewNodeSet(), impPath, "")
 		ast := p.Parse()
 		if err := p.CheckErrors(); err != nil {
 			return nil, err

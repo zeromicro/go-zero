@@ -7,6 +7,17 @@ type AtServerStmt struct {
 	LParen   token.Token
 	Values   []*KVExpr
 	RParen   token.Token
+
+	fw *Writer
+}
+
+func (a *AtServerStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AtServerStmt) End() token.Position {
+	return a.RParen.Position
 }
 
 func (a *AtServerStmt) Pos() token.Position {
@@ -23,6 +34,17 @@ type AtDocStmt interface {
 type AtDocLiteralStmt struct {
 	AtDoc token.Token
 	Value token.Token
+
+	fw *Writer
+}
+
+func (a *AtDocLiteralStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AtDocLiteralStmt) End() token.Position {
+	return a.Value.Position
 }
 
 func (a *AtDocLiteralStmt) atDocNode() {}
@@ -38,6 +60,17 @@ type AtDocGroupStmt struct {
 	LParen token.Token
 	Values []*KVExpr
 	RParen token.Token
+
+	fw *Writer
+}
+
+func (a *AtDocGroupStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AtDocGroupStmt) End() token.Position {
+	return a.RParen.Position
 }
 
 func (a *AtDocGroupStmt) atDocNode() {}
@@ -55,6 +88,17 @@ type ServiceStmt struct {
 	LBrace       token.Token
 	Routes       []*ServiceItemStmt
 	RBrace       token.Token
+
+	fw *Writer
+}
+
+func (s *ServiceStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *ServiceStmt) End() token.Position {
+	return s.RBrace.Position
 }
 
 func (s *ServiceStmt) Pos() token.Position {
@@ -70,6 +114,23 @@ type ServiceNameExpr struct {
 	ID     token.Token
 	Joiner token.Token // optional
 	API    token.Token // optional
+
+	fw *Writer
+}
+
+func (s *ServiceNameExpr) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *ServiceNameExpr) End() token.Position {
+	if s.API.Valid() {
+		return s.API.Position
+	}
+	if s.Joiner.Valid() {
+		return s.Joiner.Position
+	}
+	return s.ID.Position
 }
 
 func (s *ServiceNameExpr) Pos() token.Position {
@@ -81,6 +142,17 @@ func (s *ServiceNameExpr) exprNode() {}
 type AtHandlerStmt struct {
 	AtHandler token.Token
 	Name      token.Token
+
+	fw *Writer
+}
+
+func (a *AtHandlerStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *AtHandlerStmt) End() token.Position {
+	return a.Name.Position
 }
 
 func (a *AtHandlerStmt) Pos() token.Position {
@@ -93,6 +165,17 @@ type ServiceItemStmt struct {
 	AtDoc     AtDocStmt
 	AtHandler *AtHandlerStmt
 	Route     *RouteStmt
+
+	fw *Writer
+}
+
+func (s *ServiceItemStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s *ServiceItemStmt) End() token.Position {
+	return s.Route.End()
 }
 
 func (s *ServiceItemStmt) Pos() token.Position {
@@ -110,6 +193,26 @@ type RouteStmt struct {
 	Request  *BodyStmt
 	Returns  token.Token
 	Response *BodyStmt
+
+	fw *Writer
+}
+
+func (r *RouteStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (r *RouteStmt) End() token.Position {
+	if r.Response != nil {
+		return r.Response.End()
+	}
+	if r.Returns.Valid() {
+		return r.Returns.Position
+	}
+	if r.Request != nil {
+		return r.Request.End()
+	}
+	return r.Path.End()
 }
 
 func (r *RouteStmt) Pos() token.Position {
@@ -120,6 +223,20 @@ func (r *RouteStmt) stmtNode() {}
 
 type PathExpr struct {
 	Values []token.Token
+
+	fw *Writer
+}
+
+func (p *PathExpr) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (p *PathExpr) End() token.Position {
+	if len(p.Values) == 0 {
+		return token.Position{}
+	}
+	return p.Values[len(p.Values)-1].Position
 }
 
 func (p *PathExpr) Pos() token.Position {
@@ -135,6 +252,17 @@ type BodyStmt struct {
 	LParen token.Token
 	Body   *BodyExpr
 	RParen token.Token
+
+	fw *Writer
+}
+
+func (b *BodyStmt) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (b *BodyStmt) End() token.Position {
+	return b.RParen.Position
 }
 
 func (b *BodyStmt) Pos() token.Position {
@@ -148,6 +276,17 @@ type BodyExpr struct {
 	RBrack token.Token
 	Star   token.Token
 	Value  token.Token
+
+	fw *Writer
+}
+
+func (e *BodyExpr) End() token.Position {
+	return e.Value.Position
+}
+
+func (e *BodyExpr) Format(prefix ...string) string {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (e *BodyExpr) Pos() token.Position {

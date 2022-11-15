@@ -3,13 +3,29 @@ package ast
 import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
 type SyntaxStmt struct {
-	Syntax token.Token
-	Assign token.Token
-	Value  token.Token
+	Syntax *TokenNode
+	Assign *TokenNode
+	Value  *TokenNode
+
+	fw *Writer
+}
+
+func (s *SyntaxStmt) Format(prefix ...string) string {
+	if s.fw == nil {
+		return ""
+	}
+
+	s.fw.Skip(s)
+	s.fw.WriteSpaceInfixBetween(peekOne(prefix), s.Syntax, s.Value)
+	return ""
+}
+
+func (s *SyntaxStmt) End() token.Position {
+	return s.Value.End()
 }
 
 func (s *SyntaxStmt) Pos() token.Position {
-	return s.Syntax.Position
+	return s.Syntax.Pos()
 }
 
 func (s *SyntaxStmt) stmtNode() {}
