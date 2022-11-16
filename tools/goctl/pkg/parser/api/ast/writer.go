@@ -70,7 +70,7 @@ func (w *Writer) WriteSpaceInfix(prefix string, nodes ...Node) {
 
 	defer func() {
 		tail := nodes[len(nodes)-1]
-		lineAfter := w.nodeSet.LineCommentAfter(tail)
+		lineAfter := w.nodeSet.LineCommentAfter(tail,w.skip)
 		if len(lineAfter) > 0 {
 			w.write(NilIndent, lineAfter...)
 		}
@@ -95,6 +95,13 @@ func (w *Writer) WriteSpaceInfix(prefix string, nodes ...Node) {
 	}
 }
 
+func (w *Writer) WriteInOneLineBetween(prefix string, left,right Node) {
+	nodes := w.nodeSet.Between(left, right, AllIn)
+	if len(nodes) > 0 {
+		w.WriteInOneLine(prefix, nodes...)
+	}
+}
+
 func (w *Writer) WriteInOneLine(prefix string, nodes ...Node) {
 	nodes = w.filterSkipNode(nodes)
 	if len(nodes) == 0 {
@@ -103,7 +110,7 @@ func (w *Writer) WriteInOneLine(prefix string, nodes ...Node) {
 
 	defer func() {
 		tail := nodes[len(nodes)-1]
-		lineAfter := w.nodeSet.LineCommentAfter(tail)
+		lineAfter := w.nodeSet.LineCommentAfter(tail,w.skip)
 		if len(lineAfter) > 0 {
 			w.write(NilIndent, lineAfter...)
 		}
@@ -147,7 +154,7 @@ func (w *Writer) Write(prefix string, nodes ...Node) {
 
 	defer func() {
 		tail := nodes[len(nodes)-1]
-		lineAfter := w.nodeSet.LineCommentAfter(tail)
+		lineAfter := w.nodeSet.LineCommentAfter(tail,w.skip)
 		if len(lineAfter) > 0 {
 			w.write(NilIndent, lineAfter...)
 		}

@@ -10,22 +10,9 @@ type ImportStmt interface {
 type ImportLiteralStmt struct {
 	Import *TokenNode
 	Value  *TokenNode
-
-	fw *Writer
 }
 
 func (i *ImportLiteralStmt) Format(prefix ...string) (result string) {
-	if i.fw == nil {
-		return
-	}
-
-	i.fw.Skip(i)
-	if i.Value.Token.IsEmptyString() {
-		i.fw.Skip(i.Import, i.Value)
-		return
-	}
-
-	i.fw.WriteInOneLine(peekOne(prefix), i.Import, i.Value)
 	return
 }
 

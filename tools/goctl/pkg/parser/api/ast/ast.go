@@ -56,17 +56,67 @@ func (a *AST) Format(w *Writer) {
 	for _, e := range a.Stmts {
 		switch stmt := e.(type) {
 		case *SyntaxStmt:
-			stmt.fw = w
-			stmt.Format(NilIndent)
+			w.Skip(stmt)
+			w.WriteInOneLineBetween(NilIndent, stmt.Syntax, stmt.Value)
+			w.NewLine()
 		case *ImportGroupStmt:
-			stmt.fw = w
-			stmt.Format(NilIndent)
+			w.Skip(stmt)
+			var values []string
+			for _, v := range stmt.Values {
+				if v.Token.IsEmptyString() {
+					continue
+				}
+				values = append(values, v.Token.Text)
+			}
+			if len(values) == 0 {
+				w.Skip(stmt.Import, stmt.LParen, stmt.RParen)
+				continue
+			}
+			w.WriteInOneLineBetween(NilIndent, stmt.Import, stmt.LParen)
+			var line = w.lastWriteNode.End().Line
+			for _, v := range stmt.Values {
+				if v.Pos().Line == line {
+					w.NewLine()
+				}
+				w.Write(Indent, v)
+				line = v.End().Line
+			}
+			if stmt.RParen.Pos().Line == line {
+				w.NewLine()
+			}
+			w.Write(NilIndent, stmt.RParen)
+			w.NewLine()
 		case *ImportLiteralStmt:
-			stmt.fw = w
-			stmt.Format(NilIndent)
+			w.Skip(stmt)
+			if stmt.Value.Token.IsEmptyString() {
+				w.Skip(stmt.Import, stmt.Value)
+				return
+			}
+
+			w.WriteInOneLineBetween(NilIndent, stmt.Import, stmt.Value)
 		case *InfoStmt:
-			stmt.fw = w
-			stmt.Format(NilIndent)
+			w.Skip(stmt)
+			if len(stmt.Values) == 0 {
+				w.Skip(stmt.Info, stmt.LParen, stmt.RParen)
+				return
+			}
+
+			w.WriteInOneLine(NilIndent, stmt.Info, stmt.LParen)
+			var line = w.lastWriteNode.End().Line
+			for _, kv := range stmt.Values {
+				w.Skip(kv)
+				if kv.Pos().Line == line {
+					w.NewLine()
+				}
+				w.WriteBetween(Indent, kv.Key, kv.Value)
+				line = kv.Value.End().Line
+			}
+
+			if stmt.RParen.Pos().Line == line {
+				w.NewLine()
+			}
+			w.Write(NilIndent, stmt.RParen)
+			w.NewLine()
 		case *ServiceStmt:
 		case *TypeGroupStmt:
 		case *TypeLiteralStmt:

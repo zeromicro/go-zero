@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
@@ -137,7 +138,7 @@ func (s *NodeSet) CommentBetween(left, right Node, flag CollectionFlag) []Node {
 	return s.between(left, right, flag, true)
 }
 
-func (s *NodeSet) LineCommentAfter(node Node) []Node {
+func (s *NodeSet) LineCommentAfter(node Node,skip map[Node]placeholder.Type) []Node {
 	if len(s.list) == 0 {
 		return nil
 	}
@@ -149,12 +150,17 @@ func (s *NodeSet) LineCommentAfter(node Node) []Node {
 
 	var results []Node
 	for i := bgIdx; i < len(s.list); i++ {
+		if _,ok:=skip[s.list[i]];ok{
+			continue
+		}
 		line := s.list[i].Pos().Line
 		_, ok := s.list[i].(*CommentStmt)
 		if ok {
 			if line == node.End().Line {
 				results = append(results, s.list[i])
 			}
+		}else{
+			break
 		}
 	}
 	return results

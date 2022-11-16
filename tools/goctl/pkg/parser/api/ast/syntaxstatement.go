@@ -6,18 +6,9 @@ type SyntaxStmt struct {
 	Syntax *TokenNode
 	Assign *TokenNode
 	Value  *TokenNode
-
-	fw *Writer
 }
 
 func (s *SyntaxStmt) Format(prefix ...string) (result string) {
-	if s.fw == nil {
-		return
-	}
-
-	s.fw.Skip(s)
-	s.fw.WriteInOneLine(peekOne(prefix), s.Syntax, s.Value)
-	s.fw.NewLine()
 	return
 }
 
