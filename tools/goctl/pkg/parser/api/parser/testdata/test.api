@@ -1,7 +1,11 @@
-syntax = "v1"
+// aaaa
 
-info (
-    title:   "type title here"
+/*bb*/ syntax /*cc*/ = /*dd*/ "v1" /*syntax doc*/ // syntax stmt
+// bbb
+
+info ( // info stmt
+    title:   "type title here" // title expr
+    /*ee*/
     desc:    "type desc here"
     author:  "type author here"
     email:   "type email here"
@@ -147,4 +151,10 @@ service test {
     @handler barbaz
     post /bar/baz ([]*Foo) returns ([]int)
 }
+
+// terminal
+// terminal2
+/*
+kkk
+*/
 

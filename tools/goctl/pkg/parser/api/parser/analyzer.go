@@ -85,7 +85,7 @@ func (a *Analyzer) convertAtDoc(atDoc ast.AtDocStmt) spec.AtDoc {
 	var ret spec.AtDoc
 	switch val := atDoc.(type) {
 	case *ast.AtDocLiteralStmt:
-		ret.Text = val.Value.Text
+		ret.Text = val.Value.Token.Text
 	case *ast.AtDocGroupStmt:
 		ret.Properties = a.convertKV(val.Values)
 	}
@@ -104,17 +104,21 @@ func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 func (a *Analyzer) fieldToMember(field *ast.ElemExpr) (spec.Member, error) {
 	var name []string
 	for _, v := range field.Name {
-		name = append(name, v.Text)
+		name = append(name, v.Token.Text)
 	}
 	tp, err := a.astTypeToSpec(field.DataType)
 	if err != nil {
 		return spec.Member{}, err
 	}
-	return spec.Member{
+	m := spec.Member{
 		Name: strings.Join(name, ", "),
 		Type: tp,
-		Tag:  field.Tag.Text,
-	}, nil
+		Tag:  field.Tag.Token.Text,
+	}
+	if field.Tag != nil {
+		m.Tag = field.Tag.Token.Text
+	}
+	return m, nil
 }
 
 func (a *Analyzer) fillRouteType(route *spec.Route) error {
@@ -155,7 +159,7 @@ func (a *Analyzer) fillService() error {
 
 		for _, astRoute := range item.Routes {
 			route := spec.Route{
-				Method: astRoute.Route.Method.Text,
+				Method: astRoute.Route.Method.Token.Text,
 				Path:   astRoute.Route.Path.Format(""),
 			}
 			if astRoute.AtDoc != nil {
@@ -284,16 +288,16 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 	var tp spec.Type
 	var err error
 	var rawText = body.Format("")
-	if IsBaseType(body.Value.Text) {
-		tp = spec.PrimitiveType{RawName: body.Value.Text}
+	if IsBaseType(body.Value.Token.Text) {
+		tp = spec.PrimitiveType{RawName: body.Value.Token.Text}
 	} else {
-		tp, err = a.findDefinedType(body.Value.Text)
+		tp, err = a.findDefinedType(body.Value.Token.Text)
 		if err != nil {
 			return nil, err
 		}
 	}
-	if body.LBrack.Valid() {
-		if body.Star.Valid() {
+	if body.LBrack != nil {
+		if body.Star != nil {
 			return spec.PointerType{
 				RawName: rawText,
 				Type:    tp,
@@ -304,7 +308,7 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 			Value:   tp,
 		}, nil
 	}
-	if body.Star.Valid() {
+	if body.Star != nil {
 		return spec.PointerType{
 			RawName: rawText,
 			Type:    tp,
@@ -314,7 +318,7 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 }
 
 func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
-	p := New(ast.NewNodeSet(), filename, src)
+	p := New(filename, src)
 	ast := p.Parse()
 	if err := p.CheckErrors(); err != nil {
 		return nil, err

@@ -2,6 +2,8 @@ package ast
 
 import (
 	"fmt"
+	"io"
+	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
@@ -9,7 +11,7 @@ import (
 type Node interface {
 	Pos() token.Position
 	End() token.Position
-	Format(prefix ...string) string
+	Format(...string) string
 }
 
 type Stmt interface {
@@ -29,99 +31,108 @@ type AST struct {
 }
 
 type TokenNode struct {
-	Token token.Token
+	// HeadCommentGroup are the comments in prev lines.
+	HeadCommentGroup CommentGroup
+	Token            token.Token
+	// LeadingCommentGroup are the tail comments in same line.
+	LeadingCommentGroup CommentGroup
 }
 
 func NewTokenNode(tok token.Token) *TokenNode {
 	return &TokenNode{Token: tok}
 }
 
-func (t *TokenNode) Format(...string) string {
-	return t.Token.Text
+func (t *TokenNode) IsEmptyString() bool {
+	return t.Equal("")
+}
+
+func (t *TokenNode) IsZeroString() bool {
+	return t.Equal(`""`) || t.Equal("``")
+}
+
+func (t *TokenNode) Equal(s string) bool {
+	return t.Token.Text == s
+}
+
+func (t *TokenNode) SetLeadingCommentGroup(cg CommentGroup) {
+	t.LeadingCommentGroup = cg
+}
+
+func (t *TokenNode) HasLeadingCommentGroup() bool {
+	return t.LeadingCommentGroup.Valid()
+}
+
+func (t *TokenNode) HasHeadCommentGroup() bool {
+	return t.HeadCommentGroup.Valid()
+}
+
+func (t *TokenNode) PeekFirstLeadingComment() *CommentStmt {
+	if t.HasLeadingCommentGroup() {
+		return t.LeadingCommentGroup[0]
+	}
+	return nil
+}
+
+func (t *TokenNode) PeekFirstHeadComment() *CommentStmt {
+	if t.HasHeadCommentGroup() {
+		return t.HeadCommentGroup[0]
+	}
+	return nil
+}
+
+func (t *TokenNode) Format(prefix ...string) string {
+	p := peekOne(prefix)
+	var textList []string
+	for _, v := range t.HeadCommentGroup {
+		textList = append(textList, v.Format(p))
+	}
+
+	var tokenText = p + t.Token.Text
+	if t.HasLeadingCommentGroup() {
+		tokenText = tokenText + WhiteSpace
+	}
+	tokenText = tokenText + t.LeadingCommentGroup.Join(WhiteSpace)
+	textList = append(textList, tokenText)
+	return strings.Join(textList, NewLine)
 }
 
 func (t *TokenNode) Pos() token.Position {
+	if t.HasHeadCommentGroup() {
+		return t.PeekFirstHeadComment().Pos()
+	}
 	return t.Token.Position
 }
 
 func (t *TokenNode) End() token.Position {
+	if t.HasLeadingCommentGroup() {
+		return t.LeadingCommentGroup[len(t.LeadingCommentGroup)-1].End()
+	}
 	return t.Token.Position
 }
 
-func (a *AST) Format(w *Writer) {
-	defer func() {
-		w.WriteTailGaps()
-		w.Flush()
-	}()
+func (a *AST) Format(w io.Writer) {
+	fw := NewWriter(w)
+	defer fw.Flush()
 	for _, e := range a.Stmts {
-		switch stmt := e.(type) {
-		case *SyntaxStmt:
-			w.Skip(stmt)
-			w.WriteInOneLineBetween(NilIndent, stmt.Syntax, stmt.Value)
-			w.NewLine()
-		case *ImportGroupStmt:
-			w.Skip(stmt)
-			var values []string
-			for _, v := range stmt.Values {
-				if v.Token.IsEmptyString() {
-					continue
-				}
-				values = append(values, v.Token.Text)
-			}
-			if len(values) == 0 {
-				w.Skip(stmt.Import, stmt.LParen, stmt.RParen)
-				continue
-			}
-			w.WriteInOneLineBetween(NilIndent, stmt.Import, stmt.LParen)
-			var line = w.lastWriteNode.End().Line
-			for _, v := range stmt.Values {
-				if v.Pos().Line == line {
-					w.NewLine()
-				}
-				w.Write(Indent, v)
-				line = v.End().Line
-			}
-			if stmt.RParen.Pos().Line == line {
-				w.NewLine()
-			}
-			w.Write(NilIndent, stmt.RParen)
-			w.NewLine()
-		case *ImportLiteralStmt:
-			w.Skip(stmt)
-			if stmt.Value.Token.IsEmptyString() {
-				w.Skip(stmt.Import, stmt.Value)
-				return
-			}
-
-			w.WriteInOneLineBetween(NilIndent, stmt.Import, stmt.Value)
-		case *InfoStmt:
-			w.Skip(stmt)
-			if len(stmt.Values) == 0 {
-				w.Skip(stmt.Info, stmt.LParen, stmt.RParen)
-				return
-			}
-
-			w.WriteInOneLine(NilIndent, stmt.Info, stmt.LParen)
-			var line = w.lastWriteNode.End().Line
-			for _, kv := range stmt.Values {
-				w.Skip(kv)
-				if kv.Pos().Line == line {
-					w.NewLine()
-				}
-				w.WriteBetween(Indent, kv.Key, kv.Value)
-				line = kv.Value.End().Line
-			}
-
-			if stmt.RParen.Pos().Line == line {
-				w.NewLine()
-			}
-			w.Write(NilIndent, stmt.RParen)
-			w.NewLine()
-		case *ServiceStmt:
-		case *TypeGroupStmt:
-		case *TypeLiteralStmt:
-		case *RouteStmt:
+		if e.Format() == NilIndent {
+			continue
 		}
+
+		fw.Write(WithNode(e))
+		fw.NewLine()
+		//switch stmt := e.(type) {
+		//case *SyntaxStmt:
+		//case *ImportGroupStmt:
+		//	fw.Write(WithNode(stmt))
+		//case *ImportLiteralStmt:
+		//	fw.Write(WithNode(stmt))
+		//case *InfoStmt:
+		//case *ServiceStmt:
+		//case *TypeGroupStmt:
+		//case *TypeLiteralStmt:
+		//case *RouteStmt:
+		//case *CommentStmt:
+		//}
 	}
 }
 

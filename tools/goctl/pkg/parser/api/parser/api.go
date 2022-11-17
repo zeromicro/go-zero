@@ -165,12 +165,12 @@ func (api *API) checkTypeExprContext(declareContext map[string]placeholder.Type,
 	case *ast.ArrayDataType:
 		return api.checkTypeExprContext(declareContext, val.DataType)
 	case *ast.BaseDataType:
-		if IsBaseType(val.Base.Text) {
+		if IsBaseType(val.Base.Token.Text) {
 			return nil
 		}
-		_, ok := declareContext[val.Base.Text]
+		_, ok := declareContext[val.Base.Token.Text]
 		if !ok {
-			return ast.SyntaxError(val.Base.Position, "unresolved type <%s>", val.Base.Text)
+			return ast.SyntaxError(val.Base.Pos(), "unresolved type <%s>", val.Base.Token.Text)
 		}
 		return nil
 	case *ast.MapDataType:
@@ -252,7 +252,7 @@ func (api *API) parseImportedAPI(imports []ast.ImportStmt) ([]*API, error) {
 			api.importManager[impPath] = placeholder.PlaceHolder
 		}
 
-		p := New(ast.NewNodeSet(), impPath, "")
+		p := New(impPath, "")
 		ast := p.Parse()
 		if err := p.CheckErrors(); err != nil {
 			return nil, err

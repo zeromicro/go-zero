@@ -3,12 +3,10 @@ package ast
 import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
 type AtServerStmt struct {
-	AtServer token.Token
-	LParen   token.Token
+	AtServer *TokenNode
+	LParen   *TokenNode
 	Values   []*KVExpr
-	RParen   token.Token
-
-	fw *Writer
+	RParen   *TokenNode
 }
 
 func (a *AtServerStmt) Format(prefix ...string) string {
@@ -17,11 +15,11 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 }
 
 func (a *AtServerStmt) End() token.Position {
-	return a.RParen.Position
+	return a.RParen.End()
 }
 
 func (a *AtServerStmt) Pos() token.Position {
-	return a.AtServer.Position
+	return a.AtServer.Pos()
 }
 
 func (a *AtServerStmt) stmtNode() {}
@@ -32,10 +30,8 @@ type AtDocStmt interface {
 }
 
 type AtDocLiteralStmt struct {
-	AtDoc token.Token
-	Value token.Token
-
-	fw *Writer
+	AtDoc *TokenNode
+	Value *TokenNode
 }
 
 func (a *AtDocLiteralStmt) Format(prefix ...string) string {
@@ -44,24 +40,22 @@ func (a *AtDocLiteralStmt) Format(prefix ...string) string {
 }
 
 func (a *AtDocLiteralStmt) End() token.Position {
-	return a.Value.Position
+	return a.Value.End()
 }
 
 func (a *AtDocLiteralStmt) atDocNode() {}
 
 func (a *AtDocLiteralStmt) Pos() token.Position {
-	return a.AtDoc.Position
+	return a.AtDoc.Pos()
 }
 
 func (a *AtDocLiteralStmt) stmtNode() {}
 
 type AtDocGroupStmt struct {
-	AtDoc  token.Token
-	LParen token.Token
+	AtDoc  *TokenNode
+	LParen *TokenNode
 	Values []*KVExpr
-	RParen token.Token
-
-	fw *Writer
+	RParen *TokenNode
 }
 
 func (a *AtDocGroupStmt) Format(prefix ...string) string {
@@ -70,26 +64,24 @@ func (a *AtDocGroupStmt) Format(prefix ...string) string {
 }
 
 func (a *AtDocGroupStmt) End() token.Position {
-	return a.RParen.Position
+	return a.RParen.End()
 }
 
 func (a *AtDocGroupStmt) atDocNode() {}
 
 func (a *AtDocGroupStmt) Pos() token.Position {
-	return a.AtDoc.Position
+	return a.AtDoc.Pos()
 }
 
 func (a *AtDocGroupStmt) stmtNode() {}
 
 type ServiceStmt struct {
 	AtServerStmt *AtServerStmt
-	Service      token.Token
+	Service      *TokenNode
 	Name         *ServiceNameExpr
-	LBrace       token.Token
+	LBrace       *TokenNode
 	Routes       []*ServiceItemStmt
-	RBrace       token.Token
-
-	fw *Writer
+	RBrace       *TokenNode
 }
 
 func (s *ServiceStmt) Format(prefix ...string) string {
@@ -98,24 +90,20 @@ func (s *ServiceStmt) Format(prefix ...string) string {
 }
 
 func (s *ServiceStmt) End() token.Position {
-	return s.RBrace.Position
+	return s.RBrace.End()
 }
 
 func (s *ServiceStmt) Pos() token.Position {
 	if s.AtServerStmt != nil {
 		return s.AtServerStmt.Pos()
 	}
-	return s.Service.Position
+	return s.Service.Pos()
 }
 
 func (s *ServiceStmt) stmtNode() {}
 
 type ServiceNameExpr struct {
-	ID     token.Token
-	Joiner token.Token // optional
-	API    token.Token // optional
-
-	fw *Writer
+	Name *TokenNode
 }
 
 func (s *ServiceNameExpr) Format(prefix ...string) string {
@@ -124,17 +112,11 @@ func (s *ServiceNameExpr) Format(prefix ...string) string {
 }
 
 func (s *ServiceNameExpr) End() token.Position {
-	if s.API.Valid() {
-		return s.API.Position
-	}
-	if s.Joiner.Valid() {
-		return s.Joiner.Position
-	}
-	return s.ID.Position
+	return s.Name.End()
 }
 
 func (s *ServiceNameExpr) Pos() token.Position {
-	return s.ID.Position
+	return s.Name.Pos()
 }
 
 func (s *ServiceNameExpr) exprNode() {}
@@ -142,8 +124,6 @@ func (s *ServiceNameExpr) exprNode() {}
 type AtHandlerStmt struct {
 	AtHandler *TokenNode
 	Name      *TokenNode
-
-	fw *Writer
 }
 
 func (a *AtHandlerStmt) Format(prefix ...string) string {
@@ -165,8 +145,6 @@ type ServiceItemStmt struct {
 	AtDoc     AtDocStmt
 	AtHandler *AtHandlerStmt
 	Route     *RouteStmt
-
-	fw *Writer
 }
 
 func (s *ServiceItemStmt) Format(prefix ...string) string {
@@ -188,13 +166,11 @@ func (s *ServiceItemStmt) Pos() token.Position {
 func (s *ServiceItemStmt) stmtNode() {}
 
 type RouteStmt struct {
-	Method   token.Token
+	Method   *TokenNode
 	Path     *PathExpr
 	Request  *BodyStmt
-	Returns  token.Token
+	Returns  *TokenNode
 	Response *BodyStmt
-
-	fw *Writer
 }
 
 func (r *RouteStmt) Format(prefix ...string) string {
@@ -206,8 +182,8 @@ func (r *RouteStmt) End() token.Position {
 	if r.Response != nil {
 		return r.Response.End()
 	}
-	if r.Returns.Valid() {
-		return r.Returns.Position
+	if r.Returns != nil {
+		return r.Returns.Pos()
 	}
 	if r.Request != nil {
 		return r.Request.End()
@@ -216,15 +192,13 @@ func (r *RouteStmt) End() token.Position {
 }
 
 func (r *RouteStmt) Pos() token.Position {
-	return r.Method.Position
+	return r.Method.Pos()
 }
 
 func (r *RouteStmt) stmtNode() {}
 
 type PathExpr struct {
-	Values []token.Token
-
-	fw *Writer
+	Value *TokenNode
 }
 
 func (p *PathExpr) Format(prefix ...string) string {
@@ -233,27 +207,19 @@ func (p *PathExpr) Format(prefix ...string) string {
 }
 
 func (p *PathExpr) End() token.Position {
-	if len(p.Values) == 0 {
-		return token.Position{}
-	}
-	return p.Values[len(p.Values)-1].Position
+	return p.Value.End()
 }
 
 func (p *PathExpr) Pos() token.Position {
-	if len(p.Values) == 0 {
-		return token.Position{}
-	}
-	return p.Values[0].Position
+	return p.Value.Pos()
 }
 
 func (p *PathExpr) exprNode() {}
 
 type BodyStmt struct {
-	LParen token.Token
+	LParen *TokenNode
 	Body   *BodyExpr
-	RParen token.Token
-
-	fw *Writer
+	RParen *TokenNode
 }
 
 func (b *BodyStmt) Format(prefix ...string) string {
@@ -262,26 +228,24 @@ func (b *BodyStmt) Format(prefix ...string) string {
 }
 
 func (b *BodyStmt) End() token.Position {
-	return b.RParen.Position
+	return b.RParen.End()
 }
 
 func (b *BodyStmt) Pos() token.Position {
-	return b.LParen.Position
+	return b.LParen.Pos()
 }
 
 func (b *BodyStmt) stmtNode() {}
 
 type BodyExpr struct {
-	LBrack token.Token
-	RBrack token.Token
-	Star   token.Token
-	Value  token.Token
-
-	fw *Writer
+	LBrack *TokenNode
+	RBrack *TokenNode
+	Star   *TokenNode
+	Value  *TokenNode
 }
 
 func (e *BodyExpr) End() token.Position {
-	return e.Value.Position
+	return e.Value.End()
 }
 
 func (e *BodyExpr) Format(prefix ...string) string {
@@ -290,13 +254,13 @@ func (e *BodyExpr) Format(prefix ...string) string {
 }
 
 func (e *BodyExpr) Pos() token.Position {
-	if e.LBrack.Valid() {
-		return e.LBrack.Position
+	if e.LBrack != nil {
+		return e.LBrack.Pos()
 	}
-	if e.Star.Valid() {
-		return e.Star.Position
+	if e.Star != nil {
+		return e.Star.Pos()
 	}
-	return e.Value.Position
+	return e.Value.Pos()
 }
 
 func (e *BodyExpr) exprNode() {}

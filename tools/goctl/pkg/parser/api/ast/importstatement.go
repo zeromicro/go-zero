@@ -1,6 +1,8 @@
 package ast
 
-import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+import (
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+)
 
 type ImportStmt interface {
 	Stmt
@@ -12,8 +14,13 @@ type ImportLiteralStmt struct {
 	Value  *TokenNode
 }
 
-func (i *ImportLiteralStmt) Format(prefix ...string) (result string) {
-	return
+func (i *ImportLiteralStmt) Format(...string) (result string) {
+	if i.Value.IsZeroString() {
+		return ""
+	}
+	w := NewBufferWriter()
+	w.Write(WithNode(i.Import, i.Value), WithMode(ModeExpectInSameLine))
+	return w.String()
 }
 
 func (i *ImportLiteralStmt) End() token.Position {
@@ -33,13 +40,32 @@ type ImportGroupStmt struct {
 	LParen *TokenNode
 	Values []*TokenNode
 	RParen *TokenNode
-
-	fw *Writer
 }
 
-func (i *ImportGroupStmt) Format(prefix ...string) string {
-	//TODO implement me
-	panic("implement me")
+func (i *ImportGroupStmt) Format(...string) string {
+	var textList []string
+	for _, v := range i.Values {
+		if v.IsZeroString() {
+			continue
+		}
+		textList = append(textList, v.Format(Indent))
+	}
+	if len(textList) == 0 {
+		return ""
+	}
+
+	w := NewBufferWriter()
+	w.Write(WithNode(i.Import, i.LParen), WithMode(ModeExpectInSameLine))
+	w.NewLine()
+	for _, v := range i.Values {
+		if v.IsZeroString() {
+			continue
+		}
+		w.Write(WithNode(v), WithPrefix(Indent))
+		w.NewLine()
+	}
+	w.WriteText(i.RParen.Format())
+	return w.String()
 }
 
 func (i *ImportGroupStmt) End() token.Position {

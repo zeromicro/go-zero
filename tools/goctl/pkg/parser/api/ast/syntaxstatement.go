@@ -8,8 +8,10 @@ type SyntaxStmt struct {
 	Value  *TokenNode
 }
 
-func (s *SyntaxStmt) Format(prefix ...string) (result string) {
-	return
+func (s *SyntaxStmt) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	w.Write(WithNode(s.Syntax, s.Assign, s.Value), WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+	return w.String()
 }
 
 func (s *SyntaxStmt) End() token.Position {

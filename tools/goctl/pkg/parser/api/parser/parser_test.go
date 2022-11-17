@@ -25,7 +25,7 @@ func TestParser_init(t *testing.T) {
 		"syntax/**/`",
 	}
 	for _, val := range testData {
-		p := New(NewTestNodeSet(), "test.api", val)
+		p := New("test.api", val)
 		val := p.init()
 		assert.False(t, val)
 	}
@@ -36,7 +36,7 @@ var testInput string
 
 func TestParser_Parse(t *testing.T) {
 	t.Run("valid", func(t *testing.T) { // EXPERIMENTAL: just for testing output formatter.
-		p := New(NewTestNodeSet(), "test.api", testInput)
+		p := New("test.api", testInput)
 		result := p.Parse()
 		assert.NotNil(t, result)
 		assert.True(t, p.hasNoErrors())
@@ -47,7 +47,7 @@ func TestParser_Parse(t *testing.T) {
 			"@",
 		}
 		for _, val := range testData {
-			p := New(NewTestNodeSet(), "test.api", val)
+			p := New("test.api", val)
 			p.Parse()
 			assertx.ErrorOrigin(t, val, p.errors...)
 		}
@@ -56,7 +56,7 @@ func TestParser_Parse(t *testing.T) {
 
 func TestParser_Parse_Mode(t *testing.T) {
 	t.Run("SkipComment", func(t *testing.T) {
-		p := New(NewTestNodeSet(), "foo.api", testCommentInput)
+		p := New("foo.api", testCommentInput)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		assert.Equal(t, 0, len(result.Stmts))
@@ -70,7 +70,7 @@ func TestParser_Parse_Mode(t *testing.T) {
 			`/*bar*/`,
 			`//baz`,
 		}
-		p := New(NewTestNodeSet(),"foo.api", testCommentInput)
+		p := New("foo.api", testCommentInput)
 		result := p.Parse()
 		for idx, v := range testData {
 			stmt := result.Stmts[idx]
@@ -106,7 +106,7 @@ func TestParser_Parse_syntaxStmt(t *testing.T) {
 			},
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(),"foo.aoi", v.input)
+			p := New("foo.aoi", v.input)
 			result := p.Parse()
 			assert.True(t, p.hasNoErrors())
 			assert.Equal(t, v.expected, result.Stmts[0].Format(""))
@@ -122,7 +122,7 @@ func TestParser_Parse_syntaxStmt(t *testing.T) {
 			`syntax == "v"`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -133,34 +133,34 @@ func TestParser_Parse_syntaxStmt(t *testing.T) {
 var infoTestAPI string
 
 func TestParser_Parse_infoStmt(t *testing.T) {
-	//t.Run("valid", func(t *testing.T) {
-	//	var testData = []string{
-	//		`title: "type title here"`,
-	//		`desc: "type desc here"`,
-	//		`author: "type author here"`,
-	//		`email: "type email here"`,
-	//		`version: "type version here"`,
-	//	}
-	//	p := New(NewTestNodeSet(),"foo.api", infoTestAPI)
-	//	result := p.Parse()
-	//	assert.True(t, p.hasNoErrors())
-	//	stmt := result.Stmts[0]
-	//	infoStmt, ok := stmt.(*ast.InfoStmt)
-	//	assert.True(t, ok)
-	//	for idx, v := range testData {
-	//		assert.Equal(t, v, infoStmt.Values[idx].Format(""))
-	//	}
-	//})
+	t.Run("valid", func(t *testing.T) {
+		var testData = []string{
+			`title: "type title here"`,
+			`desc: "type desc here"`,
+			`author: "type author here"`,
+			`email: "type email here"`,
+			`version: "type version here"`,
+		}
+		p := New("foo.api", infoTestAPI)
+		result := p.Parse()
+		assert.True(t, p.hasNoErrors())
+		stmt := result.Stmts[0]
+		infoStmt, ok := stmt.(*ast.InfoStmt)
+		assert.True(t, ok)
+		for idx, v := range testData {
+			assert.Equal(t, v, infoStmt.Values[idx].Format(""))
+		}
+	})
 
-	//t.Run("empty", func(t *testing.T) {
-	//	p := New(NewTestNodeSet(),"foo.api", "info ()")
-	//	result := p.Parse()
-	//	assert.True(t, p.hasNoErrors())
-	//	stmt := result.Stmts[0]
-	//	infoStmt, ok := stmt.(*ast.InfoStmt)
-	//	assert.True(t, ok)
-	//	assert.Equal(t, "info ()", infoStmt.Format(""))
-	//})
+	t.Run("empty", func(t *testing.T) {
+		p := New("foo.api", "info ()")
+		result := p.Parse()
+		assert.True(t, p.hasNoErrors())
+		stmt := result.Stmts[0]
+		infoStmt, ok := stmt.(*ast.InfoStmt)
+		assert.True(t, ok)
+		assert.Equal(t, "info ()", infoStmt.Format(""))
+	})
 
 	t.Run("invalid", func(t *testing.T) {
 		var testData = []string{
@@ -181,7 +181,7 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 			`info(123:"")`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -198,7 +198,7 @@ func TestParser_Parse_importLiteral(t *testing.T) {
 			`import "foo"`,
 			`import "bar"`,
 		}
-		p := New(NewTestNodeSet(),"foo.api", testImportLiteral)
+		p := New("foo.api", testImportLiteral)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
@@ -219,7 +219,7 @@ func TestParser_Parse_importLiteral(t *testing.T) {
 			`import 好`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -236,7 +236,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 			`"foo"`,
 			`"bar"`,
 		}
-		p := New(NewTestNodeSet(), "foo.api", testImportGroup)
+		p := New("foo.api", testImportGroup)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -251,7 +251,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		p := New(NewTestNodeSet(), "foo.api", "import ()")
+		p := New("foo.api", "import ()")
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -276,7 +276,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 			`import ( "" 好)`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -295,7 +295,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`qux: /v1`,
 			`quux: /v1/v2`,
 		}
-		p := New(NewTestNodeSet(),"foo.api", atServerTestAPI)
+		p := New("foo.api", atServerTestAPI)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -307,15 +307,15 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 	})
 
 	t.Run("empty", func(t *testing.T) {
-		p := New(NewTestNodeSet(), "foo.api", `@server()`)
+		p := New("foo.api", `@server()`)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		atServerStmt, ok := stmt.(*ast.AtServerStmt)
 		assert.True(t, ok)
-		assert.Equal(t, token.AT_SERVER, atServerStmt.AtServer.Type)
-		assert.Equal(t, token.LPAREN, atServerStmt.LParen.Type)
-		assert.Equal(t, token.RPAREN, atServerStmt.RParen.Type)
+		assert.Equal(t, token.AT_SERVER, atServerStmt.AtServer.Token.Type)
+		assert.Equal(t, token.LPAREN, atServerStmt.LParen.Token.Type)
+		assert.Equal(t, token.RPAREN, atServerStmt.RParen.Token.Type)
 		assert.Equal(t, 0, len(atServerStmt.Values))
 	})
 
@@ -342,7 +342,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo:/v1/v2`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -355,7 +355,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server /*foo*/`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.Error(t, p.errors...)
 		}
@@ -373,7 +373,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 			`@handler _bar`,
 		}
 
-		p := New(NewTestNodeSet(),"foo.api", atHandlerTestAPI)
+		p := New("foo.api", atHandlerTestAPI)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
@@ -394,7 +394,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 			`@handler ()`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -412,7 +412,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 			`@doc "bar"`,
 		}
 
-		p := New(NewTestNodeSet(),"foo.api", atDocLiteralTestAPI)
+		p := New("foo.api", atDocLiteralTestAPI)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
@@ -432,7 +432,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 			`@doc |`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -450,7 +450,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 			`baz: ""`,
 		}
 
-		p := New(NewTestNodeSet(),"foo.api", atDocGroupTestAPI)
+		p := New("foo.api", atDocGroupTestAPI)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
@@ -472,7 +472,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 			`@doc( foo: )`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.parseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -487,11 +487,11 @@ func TestParser_Parse_service(t *testing.T) {
 		if expected.AtServerStmt == nil {
 			assert.Nil(t, actual.AtServerStmt)
 		}
-		assert.Equal(t, expected.Service.Type, actual.Service.Type)
-		assert.Equal(t, expected.Service.Text, actual.Service.Text)
+		assert.Equal(t, expected.Service.Token.Type, actual.Service.Token.Type)
+		assert.Equal(t, expected.Service.Token.Text, actual.Service.Token.Text)
 		assert.Equal(t, expected.Name.Format(""), actual.Name.Format(""))
-		assert.Equal(t, expected.LBrace.Type, actual.LBrace.Type)
-		assert.Equal(t, expected.RBrace.Text, actual.RBrace.Text)
+		assert.Equal(t, expected.LBrace.Token.Type, actual.LBrace.Token.Type)
+		assert.Equal(t, expected.RBrace.Token.Text, actual.RBrace.Token.Text)
 		assert.Equal(t, len(expected.Routes), len(actual.Routes))
 		for idx, v := range expected.Routes {
 			actualItem := actual.Routes[idx]
@@ -508,60 +508,59 @@ func TestParser_Parse_service(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var testData = []*ast.ServiceStmt{
 			{
-				Service: token.Token{Type: token.IDENT, Text: "service"},
+				Service: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "service"}),
 				Name: &ast.ServiceNameExpr{
-					ID: token.Token{Type: token.IDENT, Text: "foo"},
+					Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
 				},
-				LBrace: token.Token{Type: token.LBRACE, Text: "{"},
-				RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 				Routes: []*ast.ServiceItemStmt{
 					{
 						AtHandler: &ast.AtHandlerStmt{
 							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
-							Name:     ast.NewTokenNode( token.Token{Type: token.IDENT, Text: "bar"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
 						},
 						Route: &ast.RouteStmt{
-							Method: token.Token{Type: token.IDENT, Text: "get"},
-							Path: &ast.PathExpr{Values: []token.Token{
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "ping"},
-							}},
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{Value: ast.NewTokenNode(token.Token{
+								Type: token.PATH,
+								Text: "/ping",
+							})},
 						},
 					},
 				},
 			},
 			{
-				Service: token.Token{Type: token.IDENT, Text: "service"},
+				Service: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "service"}),
 				Name: &ast.ServiceNameExpr{
-					ID: token.Token{Type: token.IDENT, Text: "bar"},
+					Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
 				},
-				LBrace: token.Token{Type: token.LBRACE, Text: "{"},
-				RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 				Routes: []*ast.ServiceItemStmt{
 					{
 						AtDoc: &ast.AtDocLiteralStmt{
-							AtDoc: token.Token{Type: token.AT_DOC, Text: "@doc"},
-							Value: token.Token{Type: token.STRING, Text: `"bar"`},
+							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),
+							Value: ast.NewTokenNode(token.Token{Type: token.STRING, Text: `"bar"`}),
 						},
 						AtHandler: &ast.AtHandlerStmt{
 							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
 						},
 						Route: &ast.RouteStmt{
-							Method: token.Token{Type: token.IDENT, Text: "get"},
-							Path: &ast.PathExpr{Values: []token.Token{
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "foo"},
-								{Type: token.QUO, Text: "/"},
-								{Type: token.COLON, Text: ":"},
-								{Type: token.IDENT, Text: "bar"},
-							}},
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar",
+								}),
+							},
 							Request: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
-									Value: token.Token{Type: token.IDENT, Text: "Foo"},
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
 						},
 					},
@@ -571,35 +570,32 @@ func TestParser_Parse_service(t *testing.T) {
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
 						},
 						Route: &ast.RouteStmt{
-							Method: token.Token{Type: token.IDENT, Text: "get"},
-							Path: &ast.PathExpr{Values: []token.Token{
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "foo"},
-								{Type: token.QUO, Text: "/"},
-								{Type: token.COLON, Text: ":"},
-								{Type: token.IDENT, Text: "bar"},
-							}},
-							Returns: token.Token{Type: token.IDENT, Text: "returns"},
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar",
+								}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
 							Response: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
-									Value: token.Token{Type: token.IDENT, Text: "Foo"},
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
 						},
 					},
 				},
 			},
 			{
-				Service: token.Token{Type: token.IDENT, Text: "service"},
+				Service: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "service"}),
 				Name: &ast.ServiceNameExpr{
-					ID:     token.Token{Type: token.IDENT, Text: "baz"},
-					Joiner: token.Token{Type: token.SUB, Text: "-"},
-					API:    token.Token{Type: token.IDENT, Text: "api"},
+					Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "baz-api"}),
 				},
-				LBrace: token.Token{Type: token.LBRACE, Text: "{"},
-				RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 				Routes: []*ast.ServiceItemStmt{
 					{
 						AtHandler: &ast.AtHandlerStmt{
@@ -607,31 +603,28 @@ func TestParser_Parse_service(t *testing.T) {
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
 						},
 						Route: &ast.RouteStmt{
-							Method: token.Token{Type: token.IDENT, Text: "post"},
-							Path: &ast.PathExpr{Values: []token.Token{
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "foo"},
-								{Type: token.QUO, Text: "/"},
-								{Type: token.COLON, Text: ":"},
-								{Type: token.IDENT, Text: "bar"},
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "foo-bar-baz"},
-							}},
-							Request: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
-								Body: &ast.BodyExpr{
-									Value: token.Token{Type: token.IDENT, Text: "Foo"},
-								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "post"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar/foo-bar-baz",
+								}),
 							},
-							Returns: token.Token{Type: token.IDENT, Text: "returns"},
-							Response: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
-									Star:  token.Token{Type: token.MUL, Text: "*"},
-									Value: token.Token{Type: token.IDENT, Text: "Bar"},
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Star:  ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
 						},
 					},
@@ -641,30 +634,32 @@ func TestParser_Parse_service(t *testing.T) {
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
 						},
 						Route: &ast.RouteStmt{
-							Method: token.Token{Type: token.IDENT, Text: "post"},
-							Path: &ast.PathExpr{Values: []token.Token{
-								{Type: token.QUO, Text: "/"},
-								{Type: token.IDENT, Text: "foo"},
-							}},
-							Request: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
-								Body: &ast.BodyExpr{
-									LBrack: token.Token{Type: token.LBRACK, Text: "["},
-									RBrack: token.Token{Type: token.RBRACK, Text: "]"},
-									Value:  token.Token{Type: token.IDENT, Text: "Foo"},
-								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "post"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo",
+								}),
 							},
-							Returns: token.Token{Type: token.IDENT, Text: "returns"},
-							Response: &ast.BodyStmt{
-								LParen: token.Token{Type: token.LPAREN, Text: "("},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 								Body: &ast.BodyExpr{
-									LBrack: token.Token{Type: token.LBRACK, Text: "["},
-									RBrack: token.Token{Type: token.RBRACK, Text: "]"},
-									Star:   token.Token{Type: token.MUL, Text: "*"},
-									Value:  token.Token{Type: token.IDENT, Text: "Bar"},
+									LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+									RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+									Value:  ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 								},
-								RParen: token.Token{Type: token.RPAREN, Text: ")"},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+									RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+									Star:   ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+									Value:  ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
 						},
 					},
@@ -672,7 +667,7 @@ func TestParser_Parse_service(t *testing.T) {
 			},
 		}
 
-		p := New(NewTestNodeSet(), "foo.api", serviceTestAPI)
+		p := New("foo.api", serviceTestAPI)
 		result := p.Parse()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
@@ -738,7 +733,7 @@ func TestParser_Parse_service(t *testing.T) {
 			`service foo{ @handler foo get /ping (Foo) returns (Bar)]`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			_ = p.Parse()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
@@ -752,7 +747,7 @@ func TestParser_Parse_service(t *testing.T) {
 			`@server() service fo`,
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			p.init()
 			_ = p.parseService()
 			assertx.ErrorOrigin(t, v, p.errors...)
@@ -783,7 +778,7 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			{input: "foo }", expected: "foo"},
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v.input)
+			p := New("foo.api", v.input)
 			ok := p.nextToken()
 			assert.True(t, ok)
 			tokens := p.parsePathItem()
@@ -806,7 +801,7 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			"foo-barの",
 		}
 		for _, v := range testData {
-			p := New(NewTestNodeSet(), "foo.api", v)
+			p := New("foo.api", v)
 			ok := p.nextToken()
 			assert.True(t, ok)
 			p.parsePathItem()
@@ -831,11 +826,11 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Int int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 						DataType: &ast.BaseDataType{
-							Base: token.Token{Type: token.IDENT, Text: "int"},
+							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
 						},
 					},
 				},
@@ -843,11 +838,11 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Int interface{}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 						DataType: &ast.InterfaceDataType{
-							Interface: token.Token{Type: token.ANY, Text: "interface{}"},
+							Interface: ast.NewTokenNode(token.Token{Type: token.ANY, Text: "interface{}"}),
 						},
 					},
 				},
@@ -855,11 +850,11 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Int any",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 						DataType: &ast.AnyDataType{
-							Any: token.Token{Type: token.IDENT, Text: "any"},
+							Any: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "any"}),
 						},
 					},
 				},
@@ -867,12 +862,12 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Int = int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name:   ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 						Assign: ast.NewTokenNode(token.Token{Type: token.ASSIGN, Text: "="}),
 						DataType: &ast.BaseDataType{
-							Base: token.Token{Type: token.IDENT, Text: "int"},
+							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
 						},
 					},
 				},
@@ -880,14 +875,14 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Array [2]int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
 						DataType: &ast.ArrayDataType{
-							LBrack:   token.Token{Type: token.LBRACK, Text: "["},
-							Length:   token.Token{Type: token.INT, Text: "2"},
-							RBrack:   token.Token{Type: token.RBRACK, Text: "]"},
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Length:   ast.NewTokenNode(token.Token{Type: token.INT, Text: "2"}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
 				},
@@ -895,14 +890,14 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Array [...]int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
 						DataType: &ast.ArrayDataType{
-							LBrack:   token.Token{Type: token.LBRACK, Text: "["},
-							Length:   token.Token{Type: token.ELLIPSIS, Text: "..."},
-							RBrack:   token.Token{Type: token.RBRACK, Text: "]"},
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Length:   ast.NewTokenNode(token.Token{Type: token.ELLIPSIS, Text: "..."}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
 				},
@@ -910,15 +905,15 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Map map[string]int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Map"}),
 						DataType: &ast.MapDataType{
-							Map:    token.Token{Type: token.MAP, Text: "map"},
-							LBrack: token.Token{Type: token.LBRACK, Text: "["},
-							Key:    &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "string"}},
-							RBrack: token.Token{Type: token.RBRACK, Text: "]"},
-							Value:  &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							Map:    ast.NewTokenNode(token.Token{Type: token.MAP, Text: "map"}),
+							LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Key:    &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"})},
+							RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							Value:  &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
 				},
@@ -926,12 +921,12 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Pointer *int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Pointer"}),
 						DataType: &ast.PointerDataType{
-							Star:     token.Token{Type: token.MUL, Text: "*"},
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							Star:     ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
 				},
@@ -939,13 +934,13 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Slice []int",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Slice"}),
 						DataType: &ast.SliceDataType{
-							LBrack:   token.Token{Type: token.LBRACK, Text: "["},
-							RBrack:   token.Token{Type: token.RBRACK, Text: "]"},
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
 				},
@@ -953,12 +948,12 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Foo {}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 						DataType: &ast.StructDataType{
-							LBrace: token.Token{Type: token.LBRACE, Text: "{"},
-							RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 						},
 					},
 				},
@@ -966,20 +961,20 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Foo {Name string}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 						DataType: &ast.StructDataType{
-							LBrace: token.Token{Type: token.LBRACE, Text: "{"},
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 							Elements: ast.ElemExprList{
 								{
-									Name: []token.Token{{Type: token.IDENT, Text: "Name"}},
+									Name: []*ast.TokenNode{ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Name"})},
 									DataType: &ast.BaseDataType{
-										Base: token.Token{Type: token.IDENT, Text: "string"},
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
 									},
 								},
 							},
-							RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 						},
 					},
 				},
@@ -987,20 +982,23 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Foo {Name,Desc string}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 						DataType: &ast.StructDataType{
-							LBrace: token.Token{Type: token.LBRACE, Text: "{"},
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 							Elements: ast.ElemExprList{
 								{
-									Name: []token.Token{{Type: token.IDENT, Text: "Name"}, {Type: token.IDENT, Text: "Desc"}},
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+										{Token: token.Token{Type: token.IDENT, Text: "Desc"}},
+									},
 									DataType: &ast.BaseDataType{
-										Base: token.Token{Type: token.IDENT, Text: "string"},
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
 									},
 								},
 							},
-							RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 						},
 					},
 				},
@@ -1008,27 +1006,31 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Foo {Name string\n Age int `json:\"age\"`}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 						DataType: &ast.StructDataType{
-							LBrace: token.Token{Type: token.LBRACE, Text: "{"},
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 							Elements: ast.ElemExprList{
 								{
-									Name: []token.Token{{Type: token.IDENT, Text: "Name"}},
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+									},
 									DataType: &ast.BaseDataType{
-										Base: token.Token{Type: token.IDENT, Text: "string"},
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
 									},
 								},
 								{
-									Name: []token.Token{{Type: token.IDENT, Text: "Age"}},
-									DataType: &ast.BaseDataType{
-										Base: token.Token{Type: token.IDENT, Text: "int"},
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Age"}},
 									},
-									Tag: token.Token{Type: token.RAW_STRING, Text: "`json:\"age\"`"},
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
+									},
+									Tag: ast.NewTokenNode(token.Token{Type: token.RAW_STRING, Text: "`json:\"age\"`"}),
 								},
 							},
-							RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 						},
 					},
 				},
@@ -1036,36 +1038,40 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type Foo {Bar {Name string}}",
 				expected: &ast.TypeLiteralStmt{
-					Type: token.Token{Type: token.TYPE, Text: "type"},
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
 						DataType: &ast.StructDataType{
-							LBrace: token.Token{Type: token.LBRACE, Text: "{"},
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 							Elements: ast.ElemExprList{
 								{
-									Name: []token.Token{{Type: token.IDENT, Text: "Bar"}},
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Bar"}},
+									},
 									DataType: &ast.StructDataType{
-										LBrace: token.Token{Type: token.LBRACE, Text: "{"},
+										LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
 										Elements: ast.ElemExprList{
 											{
-												Name: []token.Token{{Type: token.IDENT, Text: "Name"}},
+												Name: []*ast.TokenNode{
+													{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+												},
 												DataType: &ast.BaseDataType{
-													Base: token.Token{Type: token.IDENT, Text: "string"},
+													Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
 												},
 											},
 										},
-										RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+										RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 									},
 								},
 							},
-							RBrace: token.Token{Type: token.RBRACE, Text: "}"},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
 						},
 					},
 				},
 			},
 		}
 		for _, val := range testData {
-			p := New(NewTestNodeSet(), "test.api", val.input)
+			p := New("test.api", val.input)
 			result := p.Parse()
 			assert.True(t, p.hasNoErrors())
 			assert.Equal(t, 1, len(result.Stmts))
@@ -1081,73 +1087,73 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			{
 				input: "type (Int int)",
 				expected: &ast.TypeGroupStmt{
-					Type:   token.Token{Type: token.TYPE, Text: "type"},
-					LParen: token.Token{Type: token.LPAREN, Text: "("},
+					Type:   ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 					ExprList: []*ast.TypeExpr{
 						{
 							Name:     ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
-					RParen: token.Token{Type: token.RPAREN, Text: ")"},
+					RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 				},
 			},
 			{
 				input: "type (Int = int)",
 				expected: &ast.TypeGroupStmt{
-					Type:   token.Token{Type: token.TYPE, Text: "type"},
-					LParen: token.Token{Type: token.LPAREN, Text: "("},
+					Type:   ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 					ExprList: []*ast.TypeExpr{
 						{
 							Name:     ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 							Assign:   ast.NewTokenNode(token.Token{Type: token.ASSIGN, Text: "="}),
-							DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},
-					RParen: token.Token{Type: token.RPAREN, Text: ")"},
+					RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 				},
 			},
 			{
 				input: "type (Array [2]int)",
 				expected: &ast.TypeGroupStmt{
-					Type:   token.Token{Type: token.TYPE, Text: "type"},
-					LParen: token.Token{Type: token.LPAREN, Text: "("},
+					Type:   ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 					ExprList: []*ast.TypeExpr{
 						{
 							Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
 							DataType: &ast.ArrayDataType{
-								LBrack:   token.Token{Type: token.LBRACK, Text: "["},
-								Length:   token.Token{Type: token.INT, Text: "2"},
-								RBrack:   token.Token{Type: token.RBRACK, Text: "]"},
-								DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+								LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+								Length:   ast.NewTokenNode(token.Token{Type: token.INT, Text: "2"}),
+								RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+								DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 							},
 						},
 					},
-					RParen: token.Token{Type: token.RPAREN, Text: ")"},
+					RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 				},
 			},
 			{
 				input: "type (Array [...]int)",
 				expected: &ast.TypeGroupStmt{
-					Type:   token.Token{Type: token.TYPE, Text: "type"},
-					LParen: token.Token{Type: token.LPAREN, Text: "("},
+					Type:   ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 					ExprList: []*ast.TypeExpr{
 						{
 							Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
 							DataType: &ast.ArrayDataType{
-								LBrack:   token.Token{Type: token.LBRACK, Text: "["},
-								Length:   token.Token{Type: token.ELLIPSIS, Text: "..."},
-								RBrack:   token.Token{Type: token.RBRACK, Text: "]"},
-								DataType: &ast.BaseDataType{Base: token.Token{Type: token.IDENT, Text: "int"}},
+								LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+								Length:   ast.NewTokenNode(token.Token{Type: token.ELLIPSIS, Text: "..."}),
+								RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+								DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 							},
 						},
 					},
-					RParen: token.Token{Type: token.RPAREN, Text: ")"},
+					RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 				},
 			},
 		}
 		for _, val := range testData {
-			p := New(NewTestNodeSet(), "test.api", val.input)
+			p := New("test.api", val.input)
 			result := p.Parse()
 			assert.True(t, p.hasNoErrors())
 			assert.Equal(t, 1, len(result.Stmts))
@@ -1256,7 +1262,7 @@ func TestParser_Parse_parseTypeStmt_invalid(t *testing.T) {
 	}
 
 	for _, v := range testData {
-		p := New(NewTestNodeSet(), "test.api", v)
+		p := New("test.api", v)
 		p.Parse()
 		assertx.ErrorOrigin(t, v, p.errors...)
 	}

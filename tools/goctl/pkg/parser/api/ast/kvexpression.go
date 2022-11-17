@@ -5,13 +5,12 @@ import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 type KVExpr struct {
 	Key   *TokenNode
 	Value *TokenNode
-
-	fw *Writer
 }
 
 func (i *KVExpr) Format(prefix ...string) string {
-	//TODO implement me
-	panic("implement me")
+	w := NewBufferWriter()
+	w.Write(WithNode(i.Key, i.Value), WithPrefix(prefix...), WithInfix(Indent), WithRawText())
+	return w.String()
 }
 
 func (i *KVExpr) End() token.Position {
