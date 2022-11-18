@@ -22,7 +22,7 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 		if v.Value.IsZeroString() {
 			continue
 		}
-		textList = append(textList, v.Format(peekOne(prefix)+Indent))
+		textList = append(textList, v.Format())
 	}
 	if len(textList) == 0 {
 		return ""
@@ -32,8 +32,11 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 	w.Write(WithNode(a.AtServer, a.LParen), WithPrefix(prefix...),
 		WithMode(ModeExpectInSameLine))
 	w.NewLine()
-	w.WriteText(strings.Join(textList, NewLine))
-	w.NewLine()
+	for _, v := range a.Values {
+		w.Write(WithNode(v.Key, v.Value), WithPrefix(peekOne(prefix)+Indent),
+			WithMode(ModeExpectInSameLine))
+		w.NewLine()
+	}
 	w.WriteText(a.RParen.Format(prefix...))
 	return w.String()
 }

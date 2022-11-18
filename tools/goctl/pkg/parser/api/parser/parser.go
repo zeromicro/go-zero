@@ -987,7 +987,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		return nil
 	}
 
-	expr.Key = ast.NewTokenNode(p.curTok)
+	expr.Key =p.curTokenNode()
 
 	var valueTok token.Token
 	var leadingCommentGroup ast.CommentGroup

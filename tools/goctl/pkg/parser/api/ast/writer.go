@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
@@ -26,12 +27,18 @@ const (
 type Option func(o *option)
 
 type option struct {
-	prefix          string
-	infix           string
-	mode            WriteMode
-	nodes           []Node
-	rawText         bool
-	onlyFirstPrefix bool
+	prefix  string
+	infix   string
+	mode    WriteMode
+	nodes   []Node
+	rawText bool
+}
+
+type tokenNodeOption func(o *tokenNodeOpt)
+type tokenNodeOpt struct {
+	prefix               string
+	ignoreHeadComment    bool
+	ignoreLeadingComment bool
 }
 
 type WriteMode int
@@ -39,6 +46,61 @@ type WriteMode int
 type Writer struct {
 	tw     *tabwriter.Writer
 	writer io.Writer
+}
+
+func transferTokenNode(node *TokenNode, opt ...tokenNodeOption) Node {
+	result := &TokenNode{}
+	var option = new(tokenNodeOpt)
+	for _, o := range opt {
+		o(option)
+	}
+	result.Token = token.Token{
+		Type:     node.Token.Type,
+		Text:     option.prefix + node.Token.Text,
+		Position: node.Token.Position,
+	}
+	if !option.ignoreHeadComment {
+		for _, v := range node.HeadCommentGroup {
+			result.HeadCommentGroup = append(result.HeadCommentGroup,
+				&CommentStmt{Comment: token.Token{
+					Type:     v.Comment.Type,
+					Text:     option.prefix + v.Comment.Text,
+					Position: v.Comment.Position,
+				}})
+		}
+	}
+	if !option.ignoreLeadingComment {
+		for _, v := range node.LeadingCommentGroup {
+			result.LeadingCommentGroup = append(result.LeadingCommentGroup, v)
+		}
+	}
+	return result
+}
+
+func ignoreHeadComment() tokenNodeOption {
+	return func(o *tokenNodeOpt) {
+		o.ignoreHeadComment = true
+	}
+}
+
+func ignoreLeadingComment() tokenNodeOption {
+	return func(o *tokenNodeOpt) {
+		o.ignoreLeadingComment = true
+	}
+}
+
+func withTokenNodePrefix(prefix ...string) tokenNodeOption {
+	return func(o *tokenNodeOpt) {
+		for _, p := range prefix {
+			o.prefix = p
+		}
+	}
+}
+
+func expectSameLine() Option {
+	return func(o *option) {
+		o.mode = ModeExpectInSameLine
+	}
 }
 
 func WithNode(nodes ...Node) Option {
@@ -64,12 +126,6 @@ func WithPrefix(prefix ...string) Option {
 func WithInfix(infix string) Option {
 	return func(o *option) {
 		o.infix = infix
-	}
-}
-
-func OnlyFirstNodePrefix() Option {
-	return func(o *option) {
-		o.onlyFirstPrefix = true
 	}
 }
 
@@ -151,11 +207,7 @@ func (w *Writer) write(opt *option) {
 			continue
 		}
 
-		//if opt.onlyFirstPrefix && idx == 0 {
-			textList = append(textList, node.Format(opt.prefix))
-		//} else {
-		//	textList = append(textList,node.Format())
-		//}
+		textList = append(textList, node.Format(opt.prefix))
 	}
 
 	if opt.rawText {

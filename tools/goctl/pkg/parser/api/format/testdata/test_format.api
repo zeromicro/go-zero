@@ -1,23 +1,5 @@
-
-// s1
-@server(// s2
-    jwt: Auth // s3
-    group: template // s4
-)
-service template {// s5
-// s61
-    @doc "example" // s7
-// s51
-@handler example // s6
-    // s8
-get /example/a/b/c (request) returns ([]response) // s9
-
-    @doc (// doc
-    foo:"foo" // fo
-    bar:"foobar" //bar
-    )
-    // s51
-    @handler example // s6
-    // s8
-    get /example/a/b/c (*request) returns ([]*response) // s9
-}
+// aa
+import "v1"
+// bb
+import // cc
+"v2"// dd

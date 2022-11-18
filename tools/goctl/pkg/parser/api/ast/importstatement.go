@@ -14,12 +14,13 @@ type ImportLiteralStmt struct {
 	Value  *TokenNode
 }
 
-func (i *ImportLiteralStmt) Format(...string) (result string) {
+func (i *ImportLiteralStmt) Format(prefix ...string) (result string) {
 	if i.Value.IsZeroString() {
 		return ""
 	}
 	w := NewBufferWriter()
-	w.Write(WithNode(i.Import, i.Value), WithMode(ModeExpectInSameLine))
+	importNode := transferTokenNode(i.Import, ignoreLeadingComment(), withTokenNodePrefix(prefix...))
+	w.Write(WithNode(importNode, i.Value), WithMode(ModeExpectInSameLine))
 	return w.String()
 }
 
@@ -42,7 +43,7 @@ type ImportGroupStmt struct {
 	RParen *TokenNode
 }
 
-func (i *ImportGroupStmt) Format(...string) string {
+func (i *ImportGroupStmt) Format(prefix ...string) string {
 	var textList []string
 	for _, v := range i.Values {
 		if v.IsZeroString() {
@@ -54,17 +55,16 @@ func (i *ImportGroupStmt) Format(...string) string {
 		return ""
 	}
 
+	importNode := transferTokenNode(i.Import, ignoreLeadingComment(), withTokenNodePrefix(prefix...))
 	w := NewBufferWriter()
-	w.Write(WithNode(i.Import, i.LParen), WithMode(ModeExpectInSameLine))
+	w.Write(WithNode(importNode, i.LParen), expectSameLine())
 	w.NewLine()
 	for _, v := range i.Values {
-		if v.IsZeroString() {
-			continue
-		}
-		w.Write(WithNode(v), WithPrefix(Indent))
+		node := transferTokenNode(v, withTokenNodePrefix(peekOne(prefix)+Indent))
+		w.Write(WithNode(node), expectSameLine())
 		w.NewLine()
 	}
-	w.WriteText(i.RParen.Format())
+	w.Write(WithNode(transferTokenNode(i.RParen, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 

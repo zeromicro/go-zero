@@ -119,7 +119,6 @@ func (a *AST) Format(w io.Writer) {
 		}
 
 		fw.Write(WithNode(e))
-		fw.NewLine()
 		//switch stmt := e.(type) {
 		//case *SyntaxStmt:
 		//case *ImportGroupStmt:
