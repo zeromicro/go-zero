@@ -11,9 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-func NewTestNodeSet() *ast.NodeSet {
-	return ast.NewNodeSet()
-}
 
 //go:embed testdata/comment_test.api
 var testCommentInput string

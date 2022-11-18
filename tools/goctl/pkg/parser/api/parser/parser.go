@@ -453,6 +453,7 @@ func (p *Parser) parseServiceNameExpr() *ast.ServiceNameExpr {
 		Position: pos,
 	})
 	node.SetLeadingCommentGroup(p.curTokenNode().LeadingCommentGroup)
+	expr.Name = node
 	return expr
 }
 
@@ -989,6 +990,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	expr.Key = ast.NewTokenNode(p.curTok)
 
 	var valueTok token.Token
+	var leadingCommentGroup ast.CommentGroup
 	if p.peekTokenIs(token.QUO) {
 		if !p.nextToken() {
 			return nil
@@ -1002,11 +1004,13 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			Text:     slashTok.Text + idTok.Text,
 			Position: slashTok.Position,
 		}
+		leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
 	} else {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
 		valueTok = p.curTok
+		leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
 	}
 
 	for {
@@ -1023,13 +1027,16 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 				Text:     valueTok.Text + slashTok.Text + idTok.Text,
 				Position: valueTok.Position,
 			}
+			leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
 		} else {
 			break
 		}
 	}
 
 	valueTok.Type = token.PATH
-	expr.Value = ast.NewTokenNode(valueTok)
+	node:=ast.NewTokenNode(valueTok)
+	node.SetLeadingCommentGroup(leadingCommentGroup)
+	expr.Value = node
 
 	return expr
 }

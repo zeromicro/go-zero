@@ -26,11 +26,12 @@ const (
 type Option func(o *option)
 
 type option struct {
-	prefix  string
-	infix   string
-	mode    WriteMode
-	nodes   []Node
-	rawText bool
+	prefix          string
+	infix           string
+	mode            WriteMode
+	nodes           []Node
+	rawText         bool
+	onlyFirstPrefix bool
 }
 
 type WriteMode int
@@ -63,6 +64,12 @@ func WithPrefix(prefix ...string) Option {
 func WithInfix(infix string) Option {
 	return func(o *option) {
 		o.infix = infix
+	}
+}
+
+func OnlyFirstNodePrefix() Option {
+	return func(o *option) {
+		o.onlyFirstPrefix = true
 	}
 }
 
@@ -140,11 +147,15 @@ func (w *Writer) write(opt *option) {
 			textList = append(textList, NewLine)
 		}
 		line = node.End().Line
-		if util.TrimWhiteSpace(node.Format(opt.prefix)) == "" {
+		if util.TrimWhiteSpace(node.Format()) == "" {
 			continue
 		}
 
-		textList = append(textList, node.Format(opt.prefix))
+		//if opt.onlyFirstPrefix && idx == 0 {
+			textList = append(textList, node.Format(opt.prefix))
+		//} else {
+		//	textList = append(textList,node.Format())
+		//}
 	}
 
 	if opt.rawText {

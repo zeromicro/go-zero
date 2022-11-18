@@ -9,7 +9,7 @@ type KVExpr struct {
 
 func (i *KVExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	w.Write(WithNode(i.Key, i.Value), WithPrefix(prefix...), WithInfix(Indent), WithRawText())
+	w.Write(WithNode(i.Key, i.Value), WithPrefix(prefix...), WithInfix(Indent))
 	return w.String()
 }
 
