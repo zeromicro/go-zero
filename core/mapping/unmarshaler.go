@@ -341,6 +341,10 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(field reflect.StructField, val
 
 func (u *Unmarshaler) processFieldWithEnvValue(field reflect.StructField, value reflect.Value,
 	envVal string, opts *fieldOptionsWithContext, fullName string) error {
+	if err := validateValueInOptions(envVal, opts.options()); err != nil {
+		return err
+	}
+
 	fieldKind := field.Type.Kind()
 	switch fieldKind {
 	case reflect.Bool:
