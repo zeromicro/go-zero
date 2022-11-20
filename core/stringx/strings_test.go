@@ -396,6 +396,61 @@ func TestTakeWithPriority(t *testing.T) {
 	}
 }
 
+func TestToCamelCase(t *testing.T) {
+	tests := []struct {
+		input  string
+		expect string
+	}{
+		{
+			input:  "",
+			expect: "",
+		},
+		{
+			input:  "A",
+			expect: "a",
+		},
+		{
+			input:  "a",
+			expect: "a",
+		},
+		{
+			input:  "hello_world",
+			expect: "hello_world",
+		},
+		{
+			input:  "Hello_world",
+			expect: "hello_world",
+		},
+		{
+			input:  "hello_World",
+			expect: "hello_World",
+		},
+		{
+			input:  "helloWorld",
+			expect: "helloWorld",
+		},
+		{
+			input:  "HelloWorld",
+			expect: "helloWorld",
+		},
+		{
+			input:  "hello World",
+			expect: "hello World",
+		},
+		{
+			input:  "Hello World",
+			expect: "hello World",
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.input, func(t *testing.T) {
+			assert.Equal(t, test.expect, ToCamelCase(test.input))
+		})
+	}
+}
+
 func TestUnion(t *testing.T) {
 	first := []string{
 		"one",

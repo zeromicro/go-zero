@@ -18,19 +18,19 @@ type parser struct {
 // Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
 	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
-	ast, err := astParser.Parse(filename)
+	parsedApi, err := astParser.Parse(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	spec := new(spec.ApiSpec)
-	p := parser{ast: ast, spec: spec}
+	apiSpec := new(spec.ApiSpec)
+	p := parser{ast: parsedApi, spec: apiSpec}
 	err = p.convert2Spec()
 	if err != nil {
 		return nil, err
 	}
 
-	return spec, nil
+	return apiSpec, nil
 }
 
 func parseContent(content string, skipCheckTypeDeclaration bool, filename ...string) (*spec.ApiSpec, error) {
@@ -40,19 +40,19 @@ func parseContent(content string, skipCheckTypeDeclaration bool, filename ...str
 	} else {
 		astParser = ast.NewParser()
 	}
-	ast, err := astParser.ParseContent(content, filename...)
+	parsedApi, err := astParser.ParseContent(content, filename...)
 	if err != nil {
 		return nil, err
 	}
 
-	spec := new(spec.ApiSpec)
-	p := parser{ast: ast, spec: spec}
+	apiSpec := new(spec.ApiSpec)
+	p := parser{ast: parsedApi, spec: apiSpec}
 	err = p.convert2Spec()
 	if err != nil {
 		return nil, err
 	}
 
-	return spec, nil
+	return apiSpec, nil
 }
 
 // ParseContent parses the api content
