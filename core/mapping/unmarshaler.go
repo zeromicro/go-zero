@@ -47,8 +47,8 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fromString   bool
-		canonicalKey func(key string) string
+		fromString     bool
+		canonicalKeyFn func(key string) string
 	}
 )
 
@@ -72,7 +72,7 @@ func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 
 // Unmarshal unmarshals m into v.
 func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
-	return u.UnmarshalValuer(mapValuer(m), v)
+	return u.UnmarshalValuer(u.wrapValuer(mapValuer(m)), v)
 }
 
 // UnmarshalValuer unmarshals m into v.
@@ -109,7 +109,7 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return err
 	}
 
-	if _, hasValue := getValue(m, key); hasValue {
+	if _, hasValue := u.getValue(m, key); hasValue {
 		return fmt.Errorf("fields of %s can't be wrapped inside, because it's anonymous", key)
 	}
 
@@ -135,7 +135,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 			return err
 		}
 
-		_, hasValue := getValue(m, fieldKey)
+		_, hasValue := u.getValue(m, fieldKey)
 		if hasValue {
 			if !filled {
 				filled = true
@@ -201,7 +201,7 @@ func (u *Unmarshaler) processFieldNotFromString(field reflect.StructField, value
 	case valueKind == reflect.Map && typeKind == reflect.Struct:
 		if mv, ok := mapValue.(map[string]interface{}); ok {
 			return u.processFieldStruct(field, value, &simpleValuer{
-				current: mapValuer(mv),
+				current: u.wrapValuer(mapValuer(mv)),
 				parent:  vp.parent,
 			}, fullName)
 		} else {
@@ -385,12 +385,12 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	}
 
 	canonicalKey := key
-	if u.opts.canonicalKey != nil {
-		canonicalKey = u.opts.canonicalKey(key)
+	if u.opts.canonicalKeyFn != nil {
+		canonicalKey = u.opts.canonicalKeyFn(key)
 	}
 
 	valuer := createValuer(m, opts)
-	mapValue, hasValue := getValue(valuer, canonicalKey)
+	mapValue, hasValue := u.getValue(valuer, canonicalKey)
 	if !hasValue {
 		return u.processNamedFieldWithoutValue(field, value, opts, fullName)
 	}
@@ -771,6 +771,17 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 	return key, optsWithContext, nil
 }
 
+func (u *Unmarshaler) wrapValuer(valuer Valuer) Valuer {
+	if u.opts.canonicalKeyFn == nil {
+		return valuer
+	}
+
+	return &canonicalValuer{
+		valuer:         valuer,
+		canonicalKeyFn: u.opts.canonicalKeyFn,
+	}
+}
+
 // WithStringValues customizes an Unmarshaler with number values from strings.
 func WithStringValues() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
@@ -781,7 +792,7 @@ func WithStringValues() UnmarshalOption {
 // WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
-		opt.canonicalKey = f
+		opt.canonicalKeyFn = f
 	}
 }
 
@@ -866,12 +877,12 @@ func fillWithSameType(field reflect.StructField, value reflect.Value, mapValue i
 }
 
 // getValue gets the value for the specific key, the key can be in the format of parentKey.childKey
-func getValue(m valuerWithParent, key string) (interface{}, bool) {
+func (u *Unmarshaler) getValue(m valuerWithParent, key string) (interface{}, bool) {
 	keys := readKeys(key)
-	return getValueWithChainedKeys(m, keys)
+	return u.getValueWithChainedKeys(m, keys)
 }
 
-func getValueWithChainedKeys(m valuerWithParent, keys []string) (interface{}, bool) {
+func (u *Unmarshaler) getValueWithChainedKeys(m valuerWithParent, keys []string) (interface{}, bool) {
 	switch len(keys) {
 	case 0:
 		return nil, false
@@ -881,8 +892,8 @@ func getValueWithChainedKeys(m valuerWithParent, keys []string) (interface{}, bo
 	default:
 		if v, ok := m.Value(keys[0]); ok {
 			if nextm, ok := v.(map[string]interface{}); ok {
-				return getValueWithChainedKeys(recursiveValuer{
-					current: mapValuer(nextm),
+				return u.getValueWithChainedKeys(recursiveValuer{
+					current: u.wrapValuer(mapValuer(nextm)),
 					parent:  m,
 				}, keys[1:])
 			}

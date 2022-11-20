@@ -81,6 +81,25 @@ d = "abcd!@#$112"
 	assert.Equal(t, "abcd!@#$112", val.D)
 }
 
+func TestConfigYaml(t *testing.T) {
+	text := []byte(`{"a": "foo", "B": "bar"}`)
+
+	var val1 struct {
+		A string `json:"a"`
+		B string `json:"b"`
+	}
+	var val2 struct {
+		A string
+		B string
+	}
+	assert.NoError(t, LoadFromJsonBytes(text, &val1))
+	assert.Equal(t, "foo", val1.A)
+	assert.Equal(t, "bar", val1.B)
+	assert.NoError(t, LoadFromJsonBytes(text, &val2))
+	assert.Equal(t, "foo", val2.A)
+	assert.Equal(t, "bar", val2.B)
+}
+
 func TestConfigTomlEnv(t *testing.T) {
 	text := `a = "foo"
 b = 1

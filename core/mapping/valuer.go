@@ -32,6 +32,11 @@ type (
 	simpleValuer node
 	// recursiveValuer is a type to get the value recursively from current and parent nodes.
 	recursiveValuer node
+	// canonicalValuer is a type to get the value from current node with leading char case-insensitive.
+	canonicalValuer struct {
+		valuer         Valuer
+		canonicalKeyFn func(key string) string
+	}
 )
 
 // Value gets the value assciated with the given key from mv.
@@ -109,4 +114,20 @@ func (rv recursiveValuer) Parent() valuerWithParent {
 		current: rv.parent,
 		parent:  rv.parent.Parent(),
 	}
+}
+
+// Value gets the value associated with the given key from cv.
+// It will get the value with the key for leading char case-insensitive.
+func (cv canonicalValuer) Value(key string) (interface{}, bool) {
+	val, ok := cv.valuer.Value(key)
+	if ok {
+		return val, true
+	}
+
+	if cv.canonicalKeyFn != nil {
+		key = cv.canonicalKeyFn(key)
+		return cv.valuer.Value(key)
+	}
+
+	return nil, false
 }

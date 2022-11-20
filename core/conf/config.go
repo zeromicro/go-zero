@@ -6,16 +6,33 @@ import (
 	"os"
 	"path"
 	"strings"
+	"unicode"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 
-var loaders = map[string]func([]byte, interface{}) error{
-	".json": LoadFromJsonBytes,
-	".toml": LoadFromTomlBytes,
-	".yaml": LoadFromYamlBytes,
-	".yml":  LoadFromYamlBytes,
-}
+var (
+	loaders = map[string]func([]byte, interface{}) error{
+		".json": LoadFromJsonBytes,
+		".toml": LoadFromTomlBytes,
+		".yaml": LoadFromYamlBytes,
+		".yml":  LoadFromYamlBytes,
+	}
+	caseInsensitiveKeyOption = mapping.WithCanonicalKeyFunc(func(s string) string {
+		for i, c := range s {
+			switch {
+			case c >= 'A' && c <= 'Z':
+				return string(unicode.ToLower(c)) + s[i+1:]
+			case c >= 'a' && c <= 'z':
+				return string(unicode.ToUpper(c)) + s[i+1:]
+			default:
+				return s
+			}
+		}
+
+		return ""
+	})
+)
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
 func Load(file string, v interface{}, opts ...Option) error {
@@ -49,7 +66,7 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalJsonBytes(content, v)
+	return mapping.UnmarshalJsonBytes(content, v, caseInsensitiveKeyOption)
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -60,12 +77,12 @@ func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
 
 // LoadFromTomlBytes loads config into v from content toml bytes.
 func LoadFromTomlBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalTomlBytes(content, v)
+	return mapping.UnmarshalTomlBytes(content, v, caseInsensitiveKeyOption)
 }
 
 // LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalYamlBytes(content, v)
+	return mapping.UnmarshalYamlBytes(content, v, caseInsensitiveKeyOption)
 }
 
 // LoadConfigFromYamlBytes loads config into v from content yaml bytes.

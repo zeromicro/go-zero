@@ -9,12 +9,12 @@ import (
 )
 
 // UnmarshalTomlBytes unmarshals TOML bytes into the given v.
-func UnmarshalTomlBytes(content []byte, v interface{}) error {
-	return UnmarshalTomlReader(bytes.NewReader(content), v)
+func UnmarshalTomlBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+	return UnmarshalTomlReader(bytes.NewReader(content), v, opts...)
 }
 
 // UnmarshalTomlReader unmarshals TOML from the given io.Reader into the given v.
-func UnmarshalTomlReader(r io.Reader, v interface{}) error {
+func UnmarshalTomlReader(r io.Reader, v interface{}, opts ...UnmarshalOption) error {
 	var val interface{}
 	if err := toml.NewDecoder(r).Decode(&val); err != nil {
 		return err
@@ -25,5 +25,5 @@ func UnmarshalTomlReader(r io.Reader, v interface{}) error {
 		return err
 	}
 
-	return UnmarshalJsonReader(&buf, v)
+	return UnmarshalJsonReader(&buf, v, opts...)
 }

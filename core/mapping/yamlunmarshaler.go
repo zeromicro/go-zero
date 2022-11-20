@@ -11,21 +11,17 @@ import (
 // To make .json & .yaml consistent, we just use json as the tag key.
 const yamlTagKey = "json"
 
-var (
-	// ErrUnsupportedType is an error that indicates the config format is not supported.
-	ErrUnsupportedType = errors.New("only map-like configs are supported")
-
-	yamlUnmarshaler = NewUnmarshaler(yamlTagKey)
-)
+// ErrUnsupportedType is an error that indicates the config format is not supported.
+var ErrUnsupportedType = errors.New("only map-like configs are supported")
 
 // UnmarshalYamlBytes unmarshals content into v.
-func UnmarshalYamlBytes(content []byte, v interface{}) error {
-	return unmarshalYamlBytes(content, v, yamlUnmarshaler)
+func UnmarshalYamlBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+	return unmarshalYamlBytes(content, v, getJsonUnmarshaler(opts...))
 }
 
 // UnmarshalYamlReader unmarshals content from reader into v.
-func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
-	return unmarshalYamlReader(reader, v, yamlUnmarshaler)
+func UnmarshalYamlReader(reader io.Reader, v interface{}, opts ...UnmarshalOption) error {
+	return unmarshalYamlReader(reader, v, getJsonUnmarshaler(opts...))
 }
 
 func cleanupInterfaceMap(in map[interface{}]interface{}) map[string]interface{} {
