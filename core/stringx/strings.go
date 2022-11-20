@@ -2,6 +2,7 @@ package stringx
 
 import (
 	"errors"
+	"unicode"
 
 	"github.com/zeromicro/go-zero/core/lang"
 )
@@ -163,6 +164,15 @@ func TakeWithPriority(fns ...func() string) string {
 		if len(val) > 0 {
 			return val
 		}
+	}
+
+	return ""
+}
+
+// ToCamelCase returns the string that converts the first letter to lowercase.
+func ToCamelCase(s string) string {
+	for i, v := range s {
+		return string(unicode.ToLower(v)) + s[i+1:]
 	}
 
 	return ""
