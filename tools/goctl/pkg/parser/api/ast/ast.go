@@ -13,6 +13,9 @@ type Node interface {
 	Pos() token.Position
 	End() token.Position
 	Format(...string) string
+	HasHeadCommentGroup() bool
+	HasLeadingCommentGroup() bool
+	CommentGroup() (head, leading CommentGroup)
 }
 
 type Stmt interface {
@@ -37,6 +40,10 @@ type TokenNode struct {
 	Token            token.Token
 	// LeadingCommentGroup are the tail comments in same line.
 	LeadingCommentGroup CommentGroup
+}
+
+func (t *TokenNode) CommentGroup() (head, leading CommentGroup) {
+	return t.HeadCommentGroup, t.LeadingCommentGroup
 }
 
 func NewTokenNode(tok token.Token) *TokenNode {
@@ -82,22 +89,6 @@ func (t *TokenNode) PeekFirstHeadComment() *CommentStmt {
 }
 
 func (t *TokenNode) Format(prefix ...string) string {
-	//p := peekOne(prefix)
-	//var textList []string
-	//for _, v := range t.HeadCommentGroup {
-	//	textList = append(textList, v.Format(p))
-	//}
-	//
-	//var tokenText = p + t.Token.Text
-	//if t.HasLeadingCommentGroup() {
-	//	if !util.IsEmptyStringOrWhiteSpace(t.PeekFirstLeadingComment().Format()) {
-	//		tokenText = tokenText + WhiteSpace + t.LeadingCommentGroup.Join(WhiteSpace)
-	//	}
-	//}
-	//
-	//textList = append(textList, tokenText)
-	//return strings.Join(textList, NewLine)
-
 	p := peekOne(prefix)
 	var textList []string
 	for _, v := range t.HeadCommentGroup {

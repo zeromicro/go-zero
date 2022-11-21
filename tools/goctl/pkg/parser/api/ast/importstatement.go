@@ -14,6 +14,18 @@ type ImportLiteralStmt struct {
 	Value  *TokenNode
 }
 
+func (i *ImportLiteralStmt) HasHeadCommentGroup() bool {
+	return i.Import.HasHeadCommentGroup()
+}
+
+func (i *ImportLiteralStmt) HasLeadingCommentGroup() bool {
+	return i.Value.HasLeadingCommentGroup()
+}
+
+func (i *ImportLiteralStmt) CommentGroup() (head, leading CommentGroup) {
+	return i.Import.HeadCommentGroup, i.Value.LeadingCommentGroup
+}
+
 func (i *ImportLiteralStmt) Format(prefix ...string) (result string) {
 	if i.Value.IsZeroString() {
 		return ""
@@ -41,6 +53,18 @@ type ImportGroupStmt struct {
 	LParen *TokenNode
 	Values []*TokenNode
 	RParen *TokenNode
+}
+
+func (i *ImportGroupStmt) HasHeadCommentGroup() bool {
+	return i.Import.HasHeadCommentGroup()
+}
+
+func (i *ImportGroupStmt) HasLeadingCommentGroup() bool {
+	return i.RParen.HasLeadingCommentGroup()
+}
+
+func (i *ImportGroupStmt) CommentGroup() (head, leading CommentGroup) {
+	return i.Import.HeadCommentGroup, i.RParen.LeadingCommentGroup
 }
 
 func (i *ImportGroupStmt) Format(prefix ...string) string {

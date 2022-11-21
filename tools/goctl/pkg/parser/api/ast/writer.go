@@ -356,11 +356,12 @@ func (w *Writer) write(opt *option) {
 	line := opt.nodes[0].End().Line
 	for idx, node := range opt.nodes {
 		tokenNode, ok := node.(*TokenNode)
+		mode:=opt.mode
 		if ok && (tokenNode.HasHeadCommentGroup() || tokenNode.HasLeadingCommentGroup()) && idx < len(opt.nodes)-1 {
-			opt.mode = ModeAuto
+			mode = ModeAuto
 		}
 
-		if opt.mode == ModeAuto && node.Pos().Line > line {
+		if mode == ModeAuto && node.Pos().Line > line {
 			textList = append(textList, NewLine)
 		}
 		line = node.End().Line

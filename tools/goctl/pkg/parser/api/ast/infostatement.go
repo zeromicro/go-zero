@@ -11,6 +11,18 @@ type InfoStmt struct {
 	RParen *TokenNode
 }
 
+func (i *InfoStmt) HasHeadCommentGroup() bool {
+	return i.Info.HasHeadCommentGroup()
+}
+
+func (i *InfoStmt) HasLeadingCommentGroup() bool {
+	return i.RParen.HasLeadingCommentGroup()
+}
+
+func (i *InfoStmt) CommentGroup() (head, leading CommentGroup) {
+	return i.Info.HeadCommentGroup, i.RParen.LeadingCommentGroup
+}
+
 func (i *InfoStmt) Format(prefix ...string) string {
 	if len(i.Values) == 0 {
 		return ""

@@ -32,6 +32,18 @@ type CommentStmt struct {
 	Comment token.Token
 }
 
+func (c *CommentStmt) HasHeadCommentGroup() bool {
+	return false
+}
+
+func (c *CommentStmt) HasLeadingCommentGroup() bool {
+	return false
+}
+
+func (c *CommentStmt) CommentGroup() (head, leading CommentGroup) {
+	return
+}
+
 func (c *CommentStmt) stmtNode() {}
 
 func (c *CommentStmt) Pos() token.Position {

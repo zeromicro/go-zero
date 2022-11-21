@@ -8,6 +8,18 @@ type SyntaxStmt struct {
 	Value  *TokenNode
 }
 
+func (s *SyntaxStmt) HasHeadCommentGroup() bool {
+	return s.Syntax.HasHeadCommentGroup()
+}
+
+func (s *SyntaxStmt) HasLeadingCommentGroup() bool {
+	return s.Value.HasLeadingCommentGroup()
+}
+
+func (s *SyntaxStmt) CommentGroup() (head, leading CommentGroup) {
+	return s.Syntax.HeadCommentGroup, s.Syntax.LeadingCommentGroup
+}
+
 func (s *SyntaxStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	syntaxNode := transferTokenNode(s.Syntax,

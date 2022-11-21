@@ -20,6 +20,19 @@ type TypeLiteralStmt struct {
 	Expr *TypeExpr
 }
 
+func (t *TypeLiteralStmt) HasHeadCommentGroup() bool {
+	return t.Type.HasHeadCommentGroup()
+}
+
+func (t *TypeLiteralStmt) HasLeadingCommentGroup() bool {
+	return t.Expr.HasLeadingCommentGroup()
+}
+
+func (t *TypeLiteralStmt) CommentGroup() (head, leading CommentGroup) {
+	_, leading = t.Expr.CommentGroup()
+	return t.Type.HeadCommentGroup, leading
+}
+
 func (t *TypeLiteralStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	w.Write(withNode(t.Type, t.Expr), withPrefix(prefix...), expectSameLine())
@@ -44,6 +57,18 @@ type TypeGroupStmt struct {
 	RParen   *TokenNode
 }
 
+func (t *TypeGroupStmt) HasHeadCommentGroup() bool {
+	return t.Type.HasHeadCommentGroup()
+}
+
+func (t *TypeGroupStmt) HasLeadingCommentGroup() bool {
+	return t.RParen.HasLeadingCommentGroup()
+}
+
+func (t *TypeGroupStmt) CommentGroup() (head, leading CommentGroup) {
+	return t.Type.HeadCommentGroup, t.RParen.LeadingCommentGroup
+}
+
 func (t *TypeGroupStmt) Format(prefix ...string) string {
 	if len(t.ExprList) == 0 {
 		return ""
@@ -53,7 +78,7 @@ func (t *TypeGroupStmt) Format(prefix ...string) string {
 	w.Write(withNode(typeNode, t.LParen), expectSameLine())
 	w.NewLine()
 	for _, e := range t.ExprList {
-		w.Write(withNode(e),withPrefix(peekOne(prefix)+Indent))
+		w.Write(withNode(e), withPrefix(peekOne(prefix)+Indent))
 		w.NewLine()
 	}
 	w.WriteText(t.RParen.Format(prefix...))
@@ -81,9 +106,22 @@ type TypeExpr struct {
 	DataType DataType
 }
 
+func (e *TypeExpr) HasHeadCommentGroup() bool {
+	return e.Name.HasHeadCommentGroup()
+}
+
+func (e *TypeExpr) HasLeadingCommentGroup() bool {
+	return e.DataType.HasLeadingCommentGroup()
+}
+
+func (e *TypeExpr) CommentGroup() (head, leading CommentGroup) {
+	_, leading = e.DataType.CommentGroup()
+	return e.Name.HeadCommentGroup, leading
+}
+
 func (e *TypeExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	nameNode:=transferTokenNode(e.Name,withTokenNodePrefix(prefix...))
+	nameNode := transferTokenNode(e.Name, withTokenNodePrefix(prefix...))
 	dataTypeNode := transfer2TokenNode(e.DataType, false, withTokenNodePrefix(prefix...))
 	if e.Assign != nil {
 		w.Write(withNode(nameNode, e.Assign, dataTypeNode), expectSameLine())
@@ -115,6 +153,26 @@ type ElemExpr struct {
 	Name     []*TokenNode
 	DataType DataType
 	Tag      *TokenNode
+}
+
+func (e *ElemExpr) HasHeadCommentGroup() bool {
+	return e.Name[0].HasHeadCommentGroup()
+}
+
+func (e *ElemExpr) HasLeadingCommentGroup() bool {
+	if e.Tag != nil {
+		return e.Tag.HasLeadingCommentGroup()
+	}
+	return e.DataType.HasLeadingCommentGroup()
+}
+
+func (e *ElemExpr) CommentGroup() (head, leading CommentGroup) {
+	if e.Tag != nil {
+		leading = e.Tag.LeadingCommentGroup
+	} else {
+		_, leading = e.DataType.CommentGroup()
+	}
+	return e.Name[0].HeadCommentGroup, leading
 }
 
 func (e *ElemExpr) Format(prefix ...string) string {
@@ -198,6 +256,18 @@ type AnyDataType struct {
 	isChild bool
 }
 
+func (t *AnyDataType) HasHeadCommentGroup() bool {
+	return t.Any.HasHeadCommentGroup()
+}
+
+func (t *AnyDataType) HasLeadingCommentGroup() bool {
+	return t.Any.HasLeadingCommentGroup()
+}
+
+func (t *AnyDataType) CommentGroup() (head, leading CommentGroup) {
+	return t.Any.HeadCommentGroup, t.Any.LeadingCommentGroup
+}
+
 func (t *AnyDataType) Format(prefix ...string) string {
 	return t.Any.Format(prefix...)
 }
@@ -232,6 +302,19 @@ type ArrayDataType struct {
 	RBrack   *TokenNode
 	DataType DataType
 	isChild  bool
+}
+
+func (t *ArrayDataType) HasHeadCommentGroup() bool {
+	return t.LBrack.HasHeadCommentGroup()
+}
+
+func (t *ArrayDataType) HasLeadingCommentGroup() bool {
+	return t.DataType.HasLeadingCommentGroup()
+}
+
+func (t *ArrayDataType) CommentGroup() (head, leading CommentGroup) {
+	_, leading = t.DataType.CommentGroup()
+	return t.LBrack.HeadCommentGroup, leading
 }
 
 func (t *ArrayDataType) Format(prefix ...string) string {
@@ -285,6 +368,18 @@ type BaseDataType struct {
 	isChild bool
 }
 
+func (t *BaseDataType) HasHeadCommentGroup() bool {
+	return t.Base.HasHeadCommentGroup()
+}
+
+func (t *BaseDataType) HasLeadingCommentGroup() bool {
+	return t.Base.HasLeadingCommentGroup()
+}
+
+func (t *BaseDataType) CommentGroup() (head, leading CommentGroup) {
+	return t.Base.HeadCommentGroup, t.Base.LeadingCommentGroup
+}
+
 func (t *BaseDataType) Format(prefix ...string) string {
 	return t.Base.Format(prefix...)
 }
@@ -315,6 +410,18 @@ func (t *BaseDataType) dataTypeNode() {}
 type InterfaceDataType struct {
 	Interface *TokenNode
 	isChild   bool
+}
+
+func (t *InterfaceDataType) HasHeadCommentGroup() bool {
+	return t.Interface.HasHeadCommentGroup()
+}
+
+func (t *InterfaceDataType) HasLeadingCommentGroup() bool {
+	return t.Interface.HasLeadingCommentGroup()
+}
+
+func (t *InterfaceDataType) CommentGroup() (head, leading CommentGroup) {
+	return t.Interface.HeadCommentGroup, t.Interface.LeadingCommentGroup
 }
 
 func (t *InterfaceDataType) Format(prefix ...string) string {
@@ -352,6 +459,19 @@ type MapDataType struct {
 	RBrack  *TokenNode
 	Value   DataType
 	isChild bool
+}
+
+func (t *MapDataType) HasHeadCommentGroup() bool {
+	return t.Map.HasHeadCommentGroup()
+}
+
+func (t *MapDataType) HasLeadingCommentGroup() bool {
+	return t.Value.HasLeadingCommentGroup()
+}
+
+func (t *MapDataType) CommentGroup() (head, leading CommentGroup) {
+	_, leading = t.Value.CommentGroup()
+	return t.Map.HeadCommentGroup, leading
 }
 
 func (t *MapDataType) Format(prefix ...string) string {
@@ -405,6 +525,19 @@ type PointerDataType struct {
 	isChild  bool
 }
 
+func (t *PointerDataType) HasHeadCommentGroup() bool {
+	return t.Star.HasHeadCommentGroup()
+}
+
+func (t *PointerDataType) HasLeadingCommentGroup() bool {
+	return t.DataType.HasLeadingCommentGroup()
+}
+
+func (t *PointerDataType) CommentGroup() (head, leading CommentGroup) {
+	_, leading = t.DataType.CommentGroup()
+	return t.Star.HeadCommentGroup, leading
+}
+
 func (t *PointerDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	star := transferTokenNode(t.Star, ignoreLeadingComment())
@@ -447,6 +580,19 @@ type SliceDataType struct {
 	isChild  bool
 }
 
+func (t *SliceDataType) HasHeadCommentGroup() bool {
+	return t.LBrack.HasHeadCommentGroup()
+}
+
+func (t *SliceDataType) HasLeadingCommentGroup() bool {
+	return t.DataType.HasLeadingCommentGroup()
+}
+
+func (t *SliceDataType) CommentGroup() (head, leading CommentGroup) {
+	_, leading = t.DataType.CommentGroup()
+	return t.LBrack.HeadCommentGroup, leading
+}
+
 func (t *SliceDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	lbrack := transferTokenNode(t.LBrack, ignoreLeadingComment())
@@ -485,6 +631,18 @@ type StructDataType struct {
 	Elements ElemExprList
 	RBrace   *TokenNode
 	isChild  bool
+}
+
+func (t *StructDataType) HasHeadCommentGroup() bool {
+	return t.LBrace.HasHeadCommentGroup()
+}
+
+func (t *StructDataType) HasLeadingCommentGroup() bool {
+	return t.RBrace.HasLeadingCommentGroup()
+}
+
+func (t *StructDataType) CommentGroup() (head, leading CommentGroup) {
+	return t.LBrace.HeadCommentGroup, t.RBrace.LeadingCommentGroup
 }
 
 func (t *StructDataType) Format(prefix ...string) string {
