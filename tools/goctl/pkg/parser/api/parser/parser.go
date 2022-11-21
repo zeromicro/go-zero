@@ -987,7 +987,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		return nil
 	}
 
-	expr.Key =p.curTokenNode()
+	expr.Key = p.curTokenNode()
 
 	var valueTok token.Token
 	var leadingCommentGroup ast.CommentGroup
@@ -1004,13 +1004,13 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			Text:     slashTok.Text + idTok.Text,
 			Position: slashTok.Position,
 		}
-		leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
+		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 	} else {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
 		valueTok = p.curTok
-		leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
+		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 	}
 
 	for {
@@ -1027,14 +1027,14 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 				Text:     valueTok.Text + slashTok.Text + idTok.Text,
 				Position: valueTok.Position,
 			}
-			leadingCommentGroup=p.curTokenNode().LeadingCommentGroup
+			leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 		} else {
 			break
 		}
 	}
 
 	valueTok.Type = token.PATH
-	node:=ast.NewTokenNode(valueTok)
+	node := ast.NewTokenNode(valueTok)
 	node.SetLeadingCommentGroup(leadingCommentGroup)
 	expr.Value = node
 
@@ -1344,12 +1344,18 @@ func (p *Parser) CheckErrors() error {
 	return fmt.Errorf(strings.Join(errors, "\n"))
 }
 
-/************************以下函数仅用于单元测试************************/
+func (p *Parser) appendStmt(stmt ...ast.Stmt) {
+	p.api.Stmts = append(p.api.Stmts, stmt...)
+}
+
 func (p *Parser) hasNoErrors() bool {
 	return len(p.errors) == 0
 }
 
-func (p *Parser) parseForUintTest() *ast.AST {
+/************************EXPERIMENTAL CODE BG************************/
+// The following code block are experimental, do not call it out of unit test.
+
+func (p *Parser) ParseForUintTest() *ast.AST {
 	api := &ast.AST{}
 	if !p.init() {
 		return nil
@@ -1382,6 +1388,4 @@ func (p *Parser) parseStmtForUniTest() ast.Stmt {
 	return nil
 }
 
-func (p *Parser) appendStmt(stmt ...ast.Stmt) {
-	p.api.Stmts = append(p.api.Stmts, stmt...)
-}
+/************************EXPERIMENTAL CODE END************************/

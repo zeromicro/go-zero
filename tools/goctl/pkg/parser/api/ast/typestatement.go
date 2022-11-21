@@ -53,7 +53,7 @@ func (t *TypeGroupStmt) Format(prefix ...string) string {
 	w.Write(withNode(typeNode, t.LParen), expectSameLine())
 	w.NewLine()
 	for _, e := range t.ExprList {
-		w.Write(withNode(e), withPrefix(peekOne(prefix)+Indent), expectIndentInfix())
+		w.Write(withNode(e),withPrefix(peekOne(prefix)+Indent))
 		w.NewLine()
 	}
 	w.WriteText(t.RParen.Format(prefix...))
@@ -83,11 +83,12 @@ type TypeExpr struct {
 
 func (e *TypeExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
+	nameNode:=transferTokenNode(e.Name,withTokenNodePrefix(prefix...))
 	dataTypeNode := transfer2TokenNode(e.DataType, false, withTokenNodePrefix(prefix...))
 	if e.Assign != nil {
-		w.Write(withNode(e.Name, e.Assign, dataTypeNode), expectSameLine())
+		w.Write(withNode(nameNode, e.Assign, dataTypeNode), expectSameLine())
 	} else {
-		w.Write(withNode(e.Name, dataTypeNode), expectSameLine())
+		w.Write(withNode(nameNode, dataTypeNode), expectSameLine())
 	}
 	return w.String()
 }

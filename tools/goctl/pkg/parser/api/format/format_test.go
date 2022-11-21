@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 type formatData struct {
@@ -18,10 +19,10 @@ type formatData struct {
 type formatResultConvert func(s string) string
 
 //go:embed testdata/test_type_struct_lit.api
-var testStructData string
+var testStructLitData string
 
 //go:embed testdata/expected_type_struct_lit.api
-var expectedStructData string
+var expectedStructLitData string
 
 func TestFormat_ImportLiteralStmt(t *testing.T) {
 	testRun(t, []formatData{
@@ -1074,11 +1075,124 @@ T // ee
 }`,
 			},
 			{
-				input:    testStructData,
-				expected: expectedStructData,
+				input:    testStructLitData,
+				expected: expectedStructLitData,
 				converter: func(s string) string {
 					return strings.ReplaceAll(s, "\t", "    ")
 				},
+			},
+		})
+	})
+}
+
+//go:embed testdata/test_type_struct_group.api
+var testStructGroupData string
+
+//go:embed testdata/expected_type_struct_group.api
+var expectedStructgroupData string
+
+func TestFormat_TypeGroupStmt(t *testing.T) {
+	testRun(t, []formatData{
+		{
+			input:    testStructGroupData,
+			expected: expectedStructgroupData,
+			converter: func(s string) string {
+				return strings.ReplaceAll(s, "\t", "    ")
+			},
+		},
+	})
+}
+
+func TestFormat_AtServerStmt(t *testing.T) {
+	testRunStmt(t, []formatData{
+		{
+			input:    `@server()`,
+			expected: ``,
+		},
+		{
+			input: `@server(foo:foo)`,
+			expected: `@server (
+	foo: foo
+)`,
+		},
+		{
+			input: `@server(foo:foo quux:quux)`,
+			expected: `@server (
+	foo:  foo
+	quux: quux
+)`,
+		},
+		{
+			input: `@server(
+foo:
+foo
+quux:
+quux
+)`,
+			expected: `@server (
+	foo:  foo
+	quux: quux
+)`,
+		},
+		{
+			input: `/*aa*/@server/*bb*/(/*cc*/foo:/**/foo /*dd*/quux:/**/quux/*ee*/)`,
+			expected: `/*aa*/
+@server /*bb*/ ( /*cc*/
+	foo:  foo /*dd*/
+	quux: quux /*ee*/
+)`,
+		},
+		{
+			input: `/*aa*/
+@server
+/*bb*/(// cc
+/*dd*/foo:/**/foo// ee
+/*ff*/quux:/**/quux// gg
+)`,
+			expected: `/*aa*/
+@server
+/*bb*/
+( // cc
+	/*dd*/
+	foo: foo // ee
+	/*ff*/
+	quux: quux // gg
+)`,
+		},
+	})
+}
+
+func TestFormat_AtDocStmt(t *testing.T) {
+	t.Run("AtDocLiteralStmt", func(t *testing.T) {
+		testRunStmt(t, []formatData{
+//			{
+//				input:     `@doc ""`,
+//				expected:  ``,
+//			},
+//			{
+//				input:     `@doc "foo"`,
+//				expected:  `@doc "foo"`,
+//			},
+//			{
+//				input:     `@doc 		"foo"`,
+//				expected:  `@doc "foo"`,
+//			},
+//			{
+//				input:     `@doc"foo"`,
+//				expected:  `@doc "foo"`,
+//			},
+//			{
+//				input:     `/*aa*/@doc/**/"foo"// bb`,
+//				expected:  `/*aa*/
+//@doc "foo" // bb`,
+//			},
+			{
+				input:     `/*aa*/
+/*bb*/@doc // cc
+"foo"// ee`,
+				expected:  `/*aa*/
+/*bb*/
+@doc "foo" // ee`,
 			},
 		})
 	})
@@ -1094,5 +1208,20 @@ func testRun(t *testing.T, testData []formatData) {
 			result = v.converter(result)
 		}
 		assert.Equal(t, v.expected, result)
+	}
+}
+
+func testRunStmt(t *testing.T, testData []formatData) {
+	for _, v := range testData {
+		p := parser.New("foo.api", v.input)
+		ast := p.ParseForUintTest()
+		assert.NoError(t, p.CheckErrors())
+		assert.True(t, len(ast.Stmts) > 0)
+		one := ast.Stmts[0]
+		actual := one.Format()
+		if v.converter != nil {
+			actual = v.converter(actual)
+		}
+		assert.Equal(t, v.expected, actual)
 	}
 }

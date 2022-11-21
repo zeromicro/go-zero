@@ -29,15 +29,14 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 	}
 
 	w := NewBufferWriter()
-	w.Write(withNode(a.AtServer, a.LParen), withPrefix(prefix...),
-		withMode(ModeExpectInSameLine))
+	w.Write(withNode(a.AtServer, a.LParen), withPrefix(prefix...), expectSameLine())
 	w.NewLine()
 	for _, v := range a.Values {
-		w.Write(withNode(v.Key, v.Value), withPrefix(peekOne(prefix)+Indent),
-			withMode(ModeExpectInSameLine))
+		node := transferTokenNode(v.Key, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment())
+		w.Write(withNode(node, v.Value), expectIndentInfix(), expectSameLine())
 		w.NewLine()
 	}
-	w.WriteText(a.RParen.Format(prefix...))
+	w.Write(withNode(transferTokenNode(a.RParen, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 
@@ -66,7 +65,9 @@ func (a *AtDocLiteralStmt) Format(prefix ...string) string {
 		return ""
 	}
 	w := NewBufferWriter()
-	w.WriteText(a.AtDoc.Format(prefix...) + WhiteSpace + a.Value.Format())
+	atDocNode := transferTokenNode(a.AtDoc, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	valueNode := transferTokenNode(a.Value, ignoreHeadComment())
+	w.Write(withNode(atDocNode, valueNode),expectSameLine())
 	return w.String()
 }
 

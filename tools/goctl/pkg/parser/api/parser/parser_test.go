@@ -292,7 +292,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`quux: /v1/v2`,
 		}
 		p := New("foo.api", atServerTestAPI)
-		result := p.parseForUintTest()
+		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		atServerStmt, ok := stmt.(*ast.AtServerStmt)
@@ -304,7 +304,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 
 	t.Run("empty", func(t *testing.T) {
 		p := New("foo.api", `@server()`)
-		result := p.parseForUintTest()
+		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		atServerStmt, ok := stmt.(*ast.AtServerStmt)
@@ -370,7 +370,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 		}
 
 		p := New("foo.api", atHandlerTestAPI)
-		result := p.parseForUintTest()
+		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
 			stmt := result.Stmts[idx]
@@ -391,7 +391,7 @@ func TestParser_Parse_atHandler(t *testing.T) {
 		}
 		for _, v := range testData {
 			p := New("foo.api", v)
-			_ = p.parseForUintTest()
+			_ = p.ParseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
 	})
@@ -409,7 +409,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 		}
 
 		p := New("foo.api", atDocLiteralTestAPI)
-		result := p.parseForUintTest()
+		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		for idx, v := range testData {
 			stmt := result.Stmts[idx]
@@ -429,7 +429,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 		}
 		for _, v := range testData {
 			p := New("foo.api", v)
-			_ = p.parseForUintTest()
+			_ = p.ParseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
 	})
@@ -446,7 +446,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 )`
 
 		p := New("foo.api", atDocGroupTestAPI)
-		result := p.parseForUintTest()
+		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		atDocLitStmt, _ := stmt.(*ast.AtDocGroupStmt)
@@ -465,7 +465,7 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 		}
 		for _, v := range testData {
 			p := New("foo.api", v)
-			_ = p.parseForUintTest()
+			_ = p.ParseForUintTest()
 			assertx.ErrorOrigin(t, v, p.errors...)
 		}
 	})
