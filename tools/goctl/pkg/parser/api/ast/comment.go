@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 type CommentGroup []*CommentStmt
@@ -14,7 +15,11 @@ func (cg CommentGroup) Join(sep string) string {
 	}
 	var list = make([]string, 0, len(cg))
 	for _, v := range cg {
-		list = append(list, v.Format(NilIndent))
+		comment := v.Format(NilIndent)
+		if util.IsEmptyStringOrWhiteSpace(comment) {
+			continue
+		}
+		list = append(list, comment)
 	}
 	return strings.Join(list, sep)
 }

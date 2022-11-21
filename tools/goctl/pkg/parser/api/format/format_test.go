@@ -3,15 +3,25 @@ package format
 import (
 	"bytes"
 	_ "embed"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 type formatData struct {
-	input    string
-	expected string
+	input     string
+	expected  string
+	converter formatResultConvert
 }
+
+type formatResultConvert func(s string) string
+
+//go:embed testdata/test_type_struct_lit.api
+var testStructData string
+
+//go:embed testdata/expected_type_struct_lit.api
+var expectedStructData string
 
 func TestFormat_ImportLiteralStmt(t *testing.T) {
 	testRun(t, []formatData{
@@ -48,20 +58,20 @@ func TestFormat_ImportGroupStmt(t *testing.T) {
 			expected: ``,
 		},
 		{
-			input:    `import("aa")`,
+			input: `import("aa")`,
 			expected: `import (
 	"aa"
 )`,
 		},
 		{
-			input:    `import(
+			input: `import(
 "aa")`,
 			expected: `import (
 	"aa"
 )`,
 		},
 		{
-			input:    `import(
+			input: `import(
 "aa"
 )`,
 			expected: `import (
@@ -69,14 +79,14 @@ func TestFormat_ImportGroupStmt(t *testing.T) {
 )`,
 		},
 		{
-			input:    `import("aa""bb")`,
+			input: `import("aa""bb")`,
 			expected: `import (
 	"aa"
 	"bb"
 )`,
 		},
 		{
-			input:    `/*aa*/import("aa""bb")`,
+			input: `/*aa*/import("aa""bb")`,
 			expected: `/*aa*/
 import (
 	"aa"
@@ -84,7 +94,7 @@ import (
 )`,
 		},
 		{
-			input:    `/*aa*/import("aa""bb")// bb`,
+			input: `/*aa*/import("aa""bb")// bb`,
 			expected: `/*aa*/
 import (
 	"aa"
@@ -92,7 +102,7 @@ import (
 ) // bb`,
 		},
 		{
-			input:    `/*aa*/import(// bb
+			input: `/*aa*/import(// bb
 "aa""bb")// cc`,
 			expected: `/*aa*/
 import ( // bb
@@ -101,7 +111,7 @@ import ( // bb
 ) // cc`,
 		},
 		{
-			input:    `import(// aa
+			input: `import(// aa
 "aa" // bb
 "bb" // cc
 )// dd`,
@@ -111,7 +121,7 @@ import ( // bb
 ) // dd`,
 		},
 		{
-			input:    `import (// aa
+			input: `import (// aa
 /*bb*/
 	"aa" // cc
 /*dd*/
@@ -127,11 +137,962 @@ import ( // bb
 	})
 }
 
+func TestFormat_InfoStmt(t *testing.T) {
+	testRun(t, []formatData{
+		{
+			input:    `info()`,
+			expected: ``,
+		},
+		{
+			input: `info(foo:"foo")`,
+			expected: `info (
+	foo: "foo"
+)`,
+		},
+		{
+			input: `info(foo:"foo" bar:"bar")`,
+			expected: `info (
+	foo: "foo"
+	bar: "bar"
+)`,
+		},
+		{
+			input: `info(foo:"foo" bar:"bar" quux:"quux")`,
+			expected: `info (
+	foo:  "foo"
+	bar:  "bar"
+	quux: "quux"
+)`,
+		},
+		{
+			input: `info(foo:"foo"
+bar: "bar")`,
+			expected: `info (
+	foo: "foo"
+	bar: "bar"
+)`,
+		},
+		{
+			input: `info(foo:"foo"// aa
+bar: "bar"// bb
+)`,
+			expected: `info (
+	foo: "foo" // aa
+	bar: "bar" // bb
+)`,
+		},
+		{
+			input: `info(// aa
+foo:"foo"// bb
+bar: "bar"// cc
+)`,
+			expected: `info ( // aa
+	foo: "foo" // bb
+	bar: "bar" // cc
+)`,
+		},
+		{
+			input: `/*aa*/info(// bb
+foo:"foo"// cc
+bar: "bar"// dd
+)`,
+			expected: `/*aa*/
+info ( // bb
+	foo: "foo" // cc
+	bar: "bar" // dd
+)`,
+		},
+		{
+			input: `/*aa*/
+info(// bb
+foo:"foo"// cc
+bar: "bar"// dd
+)// ee`,
+			expected: `/*aa*/
+info ( // bb
+	foo: "foo" // cc
+	bar: "bar" // dd
+) // ee`,
+		},
+		{
+			input: `/*aa*/
+info ( // bb
+	/*cc*/foo: "foo" // dd
+	/*ee*/bar: "bar" // ff
+) // gg`,
+			expected: `/*aa*/
+info ( // bb
+	/*cc*/
+	foo: "foo" // dd
+	/*ee*/
+	bar: "bar" // ff
+) // gg`,
+		},
+		{
+			input: `/*aa*/
+info/*xx*/( // bb
+	/*cc*/foo:/*xx*/ "foo" // dd
+	/*ee*/bar:/*xx*/ "bar" // ff
+) // gg`,
+			expected: `/*aa*/
+info ( // bb
+	/*cc*/
+	foo: "foo" // dd
+	/*ee*/
+	bar: "bar" // ff
+) // gg`,
+		},
+	})
+}
+
+func TestFormat_SyntaxStmt(t *testing.T) {
+	testRun(t, []formatData{
+		{
+			input:    `syntax="v1"`,
+			expected: `syntax = "v1"`,
+		},
+		{
+			input:    `syntax="v1"// aa`,
+			expected: `syntax = "v1" // aa`,
+		},
+		{
+			input: `syntax
+="v1"// aa`,
+			expected: `syntax = "v1" // aa`,
+		},
+		{
+			input: `syntax=
+"v1"// aa`,
+			expected: `syntax = "v1" // aa`,
+		},
+		{
+			input: `/*aa*/syntax="v1"// bb`,
+			expected: `/*aa*/
+syntax = "v1" // bb`,
+		},
+		{
+			input: `/*aa*/
+syntax="v1"// bb`,
+			expected: `/*aa*/
+syntax = "v1" // bb`,
+		},
+		{
+			input:    `syntax/*xx*/=/*xx*/"v1"// bb`,
+			expected: `syntax = "v1" // bb`,
+		},
+	})
+}
+
+func TestFormat_TypeLiteralStmt(t *testing.T) {
+	t.Run("any", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type Any any`,
+				expected: `type Any any`,
+			},
+			{
+				input: `type
+Any
+any
+`,
+				expected: `type Any any`,
+			},
+			{
+				input:    `type Any=any`,
+				expected: `type Any = any`,
+			},
+			{
+				input: `
+type
+Any
+=
+any
+`,
+				expected: `type Any = any`,
+			},
+			{
+				input: `type // aa
+Any  // bb
+any // cc
+`,
+				expected: `type // aa
+Any // bb
+any // cc`,
+			},
+			{
+				input: `
+type
+Any
+=
+any`,
+				expected: `type Any = any`,
+			},
+			{
+				input: `
+type
+Any
+=
+any
+`,
+				expected: `type Any = any`,
+			},
+			{
+				input:    `type Any any// aa`,
+				expected: `type Any any // aa`,
+			},
+			{
+				input:    `type Any=any// aa`,
+				expected: `type Any = any // aa`,
+			},
+			{
+				input:    `type Any any/*aa*/// bb`,
+				expected: `type Any any /*aa*/ // bb`,
+			},
+			{
+				input:    `type Any = any/*aa*/// bb`,
+				expected: `type Any = any /*aa*/ // bb`,
+			},
+			{
+				input:    `type Any/*aa*/ =/*bb*/ any/*cc*/// dd`,
+				expected: `type Any /*aa*/ = /*bb*/ any /*cc*/ // dd`,
+			},
+			{
+				input: `/*aa*/type Any any/*bb*/// cc`,
+				expected: `/*aa*/
+type Any any /*bb*/ // cc`,
+			},
+			{
+				input: `/*aa*/
+type 
+/*bb*/
+Any 
+/*cc*/
+any/*dd*/// ee`,
+				expected: `/*aa*/
+type
+/*bb*/
+Any
+/*cc*/
+any /*dd*/ // ee`,
+			},
+		})
+	})
+	t.Run("array", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type A [2]int`,
+				expected: `type A [2]int`,
+			},
+			{
+				input: `type
+A
+[2]int
+`,
+				expected: `type A [2]int`,
+			},
+			{
+				input:    `type A=[2]int`,
+				expected: `type A = [2]int`,
+			},
+			{
+				input: `type
+A
+=
+[2]int
+`,
+				expected: `type A = [2]int`,
+			},
+			{
+				input:    `type A [/*xx*/2/*xx*/]/*xx*/int// aa`,
+				expected: `type A [2]int // aa`,
+			},
+			{
+				input: `/*aa*/type/*bb*/A/*cc*/[/*xx*/2/*xx*/]/*xx*/int// dd`,
+				expected: `/*aa*/
+type /*bb*/ A /*cc*/ [2]int // dd`,
+			},
+			{
+				input: `/*aa*/type
+/*bb*/A
+/*cc*/[/*xx*/2/*xx*/]/*xx*/int// dd`,
+				expected: `/*aa*/
+type
+/*bb*/
+A
+/*cc*/
+[2]int // dd`,
+			},
+			{
+				input:    `type A [ 2 ] int`,
+				expected: `type A [2]int`,
+			},
+			{
+				input: `type A [
+2
+]
+int`,
+				expected: `type A [2]int`,
+			},
+			{
+				input: `type A [// aa
+2 // bb
+] // cc
+int`,
+				expected: `type A [2]int`,
+			},
+			{
+				input: `type A [// aa
+/*xx*/
+2 // bb
+/*xx*/
+] // cc
+/*xx*/
+int`,
+				expected: `type A [2]int`,
+			},
+			{
+				input:    `type A [...]int`,
+				expected: `type A [...]int`,
+			},
+			{
+				input:    `type A=[...]int`,
+				expected: `type A = [...]int`,
+			},
+			{
+				input:    `type A/*aa*/[/*xx*/.../*xx*/]/*xx*/int// bb`,
+				expected: `type A /*aa*/ [...]int // bb`,
+			},
+			{
+				input: `/*aa*/
+// bb
+type /*cc*/
+// dd
+A /*ee*/
+// ff
+[/*xx*/.../*xx*/]/*xx*/int// bb`,
+				expected: `/*aa*/
+// bb
+type /*cc*/
+// dd
+A /*ee*/
+// ff
+[...]int // bb`,
+			},
+			{
+				input:    `type A [2][2]int`,
+				expected: `type A [2][2]int`,
+			},
+			{
+				input:    `type A=[2][2]int`,
+				expected: `type A = [2][2]int`,
+			},
+			{
+				input:    `type A [2][]int`,
+				expected: `type A [2][]int`,
+			},
+			{
+				input:    `type A=[2][]int`,
+				expected: `type A = [2][]int`,
+			},
+		})
+	})
+	t.Run("base", func(t *testing.T) {
+		testRun(t, []formatData{
+			// base
+			{
+				input:    `type A int`,
+				expected: `type A int`,
+			},
+			{
+				input:    `type A =int`,
+				expected: `type A = int`,
+			},
+			{
+				input:    `type/*aa*/A/*bb*/ int// cc`,
+				expected: `type /*aa*/ A /*bb*/ int // cc`,
+			},
+			{
+				input:    `type/*aa*/A/*bb*/ =int// cc`,
+				expected: `type /*aa*/ A /*bb*/ = int // cc`,
+			},
+			{
+				input:    `type A int// aa`,
+				expected: `type A int // aa`,
+			},
+			{
+				input:    `type A=int// aa`,
+				expected: `type A = int // aa`,
+			},
+			{
+				input: `/*aa*/type A int`,
+				expected: `/*aa*/
+type A int`,
+			},
+			{
+				input: `/*aa*/type A = int`,
+				expected: `/*aa*/
+type A = int`,
+			},
+			{
+				input: `/*aa*/type/*bb*/ A/*cc*/ int// dd`,
+				expected: `/*aa*/
+type /*bb*/ A /*cc*/ int // dd`,
+			},
+			{
+				input: `/*aa*/type/*bb*/ A/*cc*/ = /*dd*/int// ee`,
+				expected: `/*aa*/
+type /*bb*/ A /*cc*/ = /*dd*/ int // ee`,
+			},
+			{
+				input: `/*aa*/
+type 
+/*bb*/
+A 
+/*cc*/
+int`,
+				expected: `/*aa*/
+type
+/*bb*/
+A
+/*cc*/
+int`,
+			},
+		})
+	})
+	t.Run("interface", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type any interface{}`,
+				expected: `type any interface{}`,
+			},
+			{
+				input:    `type any=interface{}`,
+				expected: `type any = interface{}`,
+			},
+			{
+				input: `type
+any
+interface{}
+`,
+				expected: `type any interface{}`,
+			},
+			{
+				input: `/*aa*/type /*bb*/any /*cc*/interface{} // dd`,
+				expected: `/*aa*/
+type /*bb*/ any /*cc*/ interface{} // dd`,
+			},
+			{
+				input: `/*aa*/type 
+/*bb*/any 
+/*cc*/interface{} // dd`,
+				expected: `/*aa*/
+type
+/*bb*/
+any
+/*cc*/
+interface{} // dd`,
+			},
+			{
+				input: `/*aa*/type 
+// bb
+any 
+// cc
+interface{} // dd`,
+				expected: `/*aa*/
+type
+// bb
+any
+// cc
+interface{} // dd`,
+			},
+		})
+	})
+	t.Run("map", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type M map[int]int`,
+				expected: `type M map[int]int`,
+			},
+			{
+				input:    `type M map [ int ] int`,
+				expected: `type M map[int]int`,
+			},
+			{
+				input:    `type M map [/*xx*/int/*xx*/]/*xx*/int // aa`,
+				expected: `type M map[int]int // aa`,
+			},
+			{
+				input: `/*aa*/type /*bb*/ M/*cc*/map[int]int // dd`,
+				expected: `/*aa*/
+type /*bb*/ M /*cc*/ map[int]int // dd`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+M // dd
+// ee
+map // ff
+[int]// gg
+// hh
+int // dd`,
+				expected: `/*aa*/
+type // bb
+// cc
+M // dd
+// ee
+map[int]int // dd`,
+			},
+			{
+				input:    `type M map[string][2]int // aa`,
+				expected: `type M map[string][2]int // aa`,
+			},
+			{
+				input:    `type M map[string]any`,
+				expected: `type M map[string]any`,
+			},
+			{
+				input:    `type M /*aa*/map/*xx*/[/*xx*/string/*xx*/]/*xx*/[/*xx*/2/*xx*/]/*xx*/int// bb`,
+				expected: `type M /*aa*/ map[string][2]int // bb`,
+			},
+			{
+				input: `type M /*aa*/
+// bb
+map/*xx*/
+//
+[/*xx*/
+//
+string/*xx*/
+//
+]/*xx*/
+//
+[/*xx*/
+//
+2/*xx*/
+//
+]/*xx*/
+//
+int// bb`,
+				expected: `type M /*aa*/
+// bb
+map[string][2]int // bb`,
+			},
+			{
+				input:    `type M map[int]map[string]int`,
+				expected: `type M map[int]map[string]int`,
+			},
+			{
+				input:    `type M map/*xx*/[/*xx*/int/*xx*/]/*xx*/map/*xx*/[/*xx*/string/*xx*/]/*xx*/int// aa`,
+				expected: `type M map[int]map[string]int // aa`,
+			},
+			{
+				input:    `type M map/*xx*/[/*xx*/map/*xx*/[/*xx*/string/*xx*/]/*xx*/int/*xx*/]/*xx*/string // aa`,
+				expected: `type M map[map[string]int]string // aa`,
+			},
+			{
+				input:    `type M map[[2]int]int`,
+				expected: `type M map[[2]int]int`,
+			},
+			{
+				input:    `type M map/*xx*/[/*xx*/[/*xx*/2/*xx*/]/*xx*/int/*xx*/]/*xx*/int// aa`,
+				expected: `type M map[[2]int]int // aa`,
+			},
+		})
+	})
+	t.Run("pointer", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type P *int`,
+				expected: `type P *int`,
+			},
+			{
+				input:    `type P=*int`,
+				expected: `type P = *int`,
+			},
+			{
+				input: `type 
+P 
+*int
+`,
+				expected: `type P *int`,
+			},
+			{
+				input: `/*aa*/type // bb
+/*cc*/
+P // dd
+/*ee*/
+*/*ff*/int // gg
+`,
+				expected: `/*aa*/
+type // bb
+/*cc*/
+P // dd
+/*ee*/
+*int // gg`,
+			},
+			{
+				input:    `type P *bool`,
+				expected: `type P *bool`,
+			},
+			{
+				input:    `type P *[2]int`,
+				expected: `type P *[2]int`,
+			},
+			{
+				input:    `type P=*[2]int`,
+				expected: `type P = *[2]int`,
+			},
+			{
+				input: `/*aa*/type /*bb*/P /*cc*/*/*xx*/[/*xx*/2/*xx*/]/*xx*/int // dd`,
+				expected: `/*aa*/
+type /*bb*/ P /*cc*/ *[2]int // dd`,
+			},
+			{
+				input:    `type P *[...]int`,
+				expected: `type P *[...]int`,
+			},
+			{
+				input:    `type P=*[...]int`,
+				expected: `type P = *[...]int`,
+			},
+			{
+				input: `/*aa*/type /*bb*/P /*cc*/*/*xx*/[/*xx*/.../*xx*/]/*xx*/int // dd`,
+				expected: `/*aa*/
+type /*bb*/ P /*cc*/ *[...]int // dd`,
+			},
+			{
+				input:    `type P *map[string]int`,
+				expected: `type P *map[string]int`,
+			},
+			{
+				input:    `type P=*map[string]int`,
+				expected: `type P = *map[string]int`,
+			},
+			{
+				input:    `type P /*aa*/*/*xx*/map/*xx*/[/*xx*/string/*xx*/]/*xx*/int// bb`,
+				expected: `type P /*aa*/ *map[string]int // bb`,
+			},
+			{
+				input:    `type P *interface{}`,
+				expected: `type P *interface{}`,
+			},
+			{
+				input:    `type P=*interface{}`,
+				expected: `type P = *interface{}`,
+			},
+			{
+				input:    `type P /*aa*/*/*xx*/interface{}// bb`,
+				expected: `type P /*aa*/ *interface{} // bb`,
+			},
+			{
+				input:    `type P *any`,
+				expected: `type P *any`,
+			},
+			{
+				input:    `type P=*any`,
+				expected: `type P = *any`,
+			},
+			{
+				input:    `type P *map[int][2]int`,
+				expected: `type P *map[int][2]int`,
+			},
+			{
+				input:    `type P=*map[int][2]int`,
+				expected: `type P = *map[int][2]int`,
+			},
+			{
+				input:    `type P /*aa*/*/*xx*/map/*xx*/[/*xx*/int/*xx*/]/*xx*/[/*xx*/2/*xx*/]/*xx*/int// bb`,
+				expected: `type P /*aa*/ *map[int][2]int // bb`,
+			},
+			{
+				input:    `type P *map[[2]int]int`,
+				expected: `type P *map[[2]int]int`,
+			},
+			{
+				input:    `type P=*map[[2]int]int`,
+				expected: `type P = *map[[2]int]int`,
+			},
+			{
+				input:    `type P /*aa*/*/*xx*/map/*xx*/[/*xx*/[/*xx*/2/*xx*/]/*xx*/int/*xx*/]/*xx*/int// bb`,
+				expected: `type P /*aa*/ *map[[2]int]int // bb`,
+			},
+		})
+
+	})
+
+	t.Run("slice", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type S []int`,
+				expected: `type S []int`,
+			},
+			{
+				input:    `type S=[]int`,
+				expected: `type S = []int`,
+			},
+			{
+				input: `type S	[	]	int	`,
+				expected: `type S []int`,
+			},
+			{
+				input: `type S	[ /*xx*/	]	/*xx*/ int	`,
+				expected: `type S []int`,
+			},
+			{
+				input:    `type S [][]int`,
+				expected: `type S [][]int`,
+			},
+			{
+				input:    `type S=[][]int`,
+				expected: `type S = [][]int`,
+			},
+			{
+				input: `type S	[	]	[	]	int`,
+				expected: `type S [][]int`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/[/*xx*/]/*xx*/int`,
+				expected: `type S [][]int`,
+			},
+			{
+				input: `type S [//
+]//
+[//
+]//
+int`,
+				expected: `type S [][]int`,
+			},
+			{
+				input:    `type S []map[string]int`,
+				expected: `type S []map[string]int`,
+			},
+			{
+				input:    `type S=[]map[string]int`,
+				expected: `type S = []map[string]int`,
+			},
+			{
+				input: `type S [	]	
+map	[	string	]	
+int`,
+				expected: `type S []map[string]int`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/map/*xx*/[/*xx*/string/*xx*/]/*xx*/int`,
+				expected: `type S []map[string]int`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+S// dd
+// ff
+/*gg*/[ // hh
+/*xx*/] // ii
+/*xx*/map// jj
+/*xx*/[/*xx*/string/*xx*/]/*xx*/int// mm`,
+				expected: `/*aa*/
+type // bb
+// cc
+S // dd
+// ff
+/*gg*/
+[]map[string]int // mm`,
+			},
+			{
+				input:    `type S []map[[2]int]int`,
+				expected: `type S []map[[2]int]int`,
+			},
+			{
+				input:    `type S=[]map[[2]int]int`,
+				expected: `type S = []map[[2]int]int`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/map/*xx*/[/*xx*/[/*xx*/2/*xx*/]/*xx*/int/*xx*/]/*xx*/int`,
+				expected: `type S []map[[2]int]int`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+/*dd*/S// ee
+// ff
+/*gg*/[//
+/*xx*/]//
+/*xx*/map//
+/*xx*/[//
+/*xx*/[//
+/*xx*/2//
+/*xx*/]//
+/*xx*/int//
+/*xx*/]//
+/*xx*/int // hh`,
+				expected: `/*aa*/
+type // bb
+// cc
+/*dd*/
+S // ee
+// ff
+/*gg*/
+[]map[[2]int]int // hh`,
+			},
+			{
+				input:    `type S []map[[2]int]map[int]string`,
+				expected: `type S []map[[2]int]map[int]string`,
+			},
+			{
+				input:    `type S=[]map[[2]int]map[int]string`,
+				expected: `type S = []map[[2]int]map[int]string`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/map/*xx*/[/*xx*/[/*xx*/2/*xx*/]/*xx*/int/*xx*/]/*xx*/map/*xx*/[/*xx*/int/*xx*/]/*xx*/string`,
+				expected: `type S []map[[2]int]map[int]string`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+/*dd*/S// ee
+/*ff*/[//
+/*xx*/]//
+/*xx*/map
+/*xx*/[//
+/*xx*/[//
+/*xx*/2//
+/*xx*/]//
+/*xx*/int//
+/*xx*/]//
+/*xx*/map//
+/*xx*/[//
+/*xx*/int//
+/*xx*/]//
+/*xx*/string// gg`,
+				expected: `/*aa*/
+type // bb
+// cc
+/*dd*/
+S // ee
+/*ff*/
+[]map[[2]int]map[int]string // gg`,
+			},
+			{
+				input:    `type S []*P`,
+				expected: `type S []*P`,
+			},
+			{
+				input:    `type S=[]*P`,
+				expected: `type S = []*P`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/*/*xx*/P`,
+				expected: `type S []*P`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+/*dd*/S// ee 
+/*ff*/[//
+/*xx*/]//
+/*xx*/*//
+/*xx*/P // gg`,
+				expected: `/*aa*/
+type // bb
+// cc
+/*dd*/
+S // ee
+/*ff*/
+[]*P // gg`,
+			},
+			{
+				input:    `type S []*[]int`,
+				expected: `type S []*[]int`,
+			},
+			{
+				input:    `type S=[]*[]int`,
+				expected: `type S = []*[]int`,
+			},
+			{
+				input:    `type S [/*xx*/]/*xx*/*/*xx*/[/*xx*/]/*xx*/int`,
+				expected: `type S []*[]int`,
+			},
+			{
+				input: `/*aa*/
+type // bb
+// cc
+/*dd*/S// ee
+/*ff*/[//
+/*xx*/]//
+/*xx*/*//
+/*xx*/[//
+/*xx*/]//
+/*xx*/int // gg`,
+				expected: `/*aa*/
+type // bb
+// cc
+/*dd*/
+S // ee
+/*ff*/
+[]*[]int // gg`,
+			},
+		})
+	})
+
+	t.Run("struct", func(t *testing.T) {
+		testRun(t, []formatData{
+			{
+				input:    `type T {}`,
+				expected: `type T {}`,
+			},
+			{
+				input: `type T 	{
+			}	`,
+				expected: `type T {}`,
+			},
+			{
+				input:    `type T={}`,
+				expected: `type T = {}`,
+			},
+			{
+				input:    `type T /*aa*/{/*xx*/}// cc`,
+				expected: `type T /*aa*/ {} // cc`,
+			},
+			{
+				input: `/*aa*/type// bb
+// cc
+/*dd*/T // ee
+/*ff*/{//
+/*xx*/}// cc`,
+				expected: `/*aa*/
+type // bb
+// cc
+/*dd*/
+T // ee
+/*ff*/
+{} // cc`,
+			},
+			{
+				input: `type T {
+			Name string
+			}`,
+				expected: `type T {
+	Name string
+}`,
+			},
+			{
+				input:    testStructData,
+				expected: expectedStructData,
+				converter: func(s string) string {
+					return strings.ReplaceAll(s, "\t", "    ")
+				},
+			},
+		})
+	})
+}
+
 func testRun(t *testing.T, testData []formatData) {
 	for _, v := range testData {
 		buffer := bytes.NewBuffer(nil)
 		err := Format([]byte(v.input), buffer)
 		assert.NoError(t, err)
-		assert.Equal(t, v.expected, buffer.String())
+		var result = buffer.String()
+		if v.converter != nil {
+			result = v.converter(result)
+		}
+		assert.Equal(t, v.expected, result)
 	}
 }

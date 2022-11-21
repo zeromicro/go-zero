@@ -29,12 +29,12 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 	}
 
 	w := NewBufferWriter()
-	w.Write(WithNode(a.AtServer, a.LParen), WithPrefix(prefix...),
-		WithMode(ModeExpectInSameLine))
+	w.Write(withNode(a.AtServer, a.LParen), withPrefix(prefix...),
+		withMode(ModeExpectInSameLine))
 	w.NewLine()
 	for _, v := range a.Values {
-		w.Write(WithNode(v.Key, v.Value), WithPrefix(peekOne(prefix)+Indent),
-			WithMode(ModeExpectInSameLine))
+		w.Write(withNode(v.Key, v.Value), withPrefix(peekOne(prefix)+Indent),
+			withMode(ModeExpectInSameLine))
 		w.NewLine()
 	}
 	w.WriteText(a.RParen.Format(prefix...))
@@ -140,8 +140,8 @@ func (s *ServiceStmt) Format(prefix ...string) string {
 		w.WriteText(s.AtServerStmt.Format(prefix...))
 		w.NewLine()
 	}
-	w.Write(WithNode(s.Service, s.Name, s.LBrace),
-		WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+	w.Write(withNode(s.Service, s.Name, s.LBrace),
+		withPrefix(prefix...), withMode(ModeExpectInSameLine))
 	w.NewLine()
 	var textList []string
 	for _, v := range s.Routes {
@@ -249,15 +249,15 @@ type RouteStmt struct {
 func (r *RouteStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	if r.Request == nil {
-		w.Write(WithNode(r.Method, r.Path), WithPrefix(prefix...),
-			WithMode(ModeExpectInSameLine))
+		w.Write(withNode(r.Method, r.Path), withPrefix(prefix...),
+			withMode(ModeExpectInSameLine))
 	} else if r.Returns == nil {
-		w.Write(WithNode(r.Method, r.Path, r.Request),
-			WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(r.Method, r.Path, r.Request),
+			withPrefix(prefix...), withMode(ModeExpectInSameLine))
 	} else {
-		w.Write(WithNode(r.Method, r.Path, r.Request,
-			r.Returns, r.Response), WithPrefix(prefix...),
-			WithMode(ModeExpectInSameLine))
+		w.Write(withNode(r.Method, r.Path, r.Request,
+			r.Returns, r.Response), withPrefix(prefix...),
+			withMode(ModeExpectInSameLine))
 	}
 	return w.String()
 }

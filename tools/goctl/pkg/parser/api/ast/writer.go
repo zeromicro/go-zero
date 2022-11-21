@@ -37,6 +37,7 @@ type option struct {
 type tokenNodeOption func(o *tokenNodeOpt)
 type tokenNodeOpt struct {
 	prefix               string
+	infix                string
 	ignoreHeadComment    bool
 	ignoreLeadingComment bool
 }
@@ -48,7 +49,147 @@ type Writer struct {
 	writer io.Writer
 }
 
-func transferTokenNode(node *TokenNode, opt ...tokenNodeOption) Node {
+func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *TokenNode {
+	option := new(tokenNodeOpt)
+	for _, o := range opt {
+		o(option)
+	}
+
+	var copyOpt =append([]tokenNodeOption(nil),opt...)
+	var tn *TokenNode
+	switch val := node.(type) {
+	case *AnyDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.Any, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.Any = tn
+	case *ArrayDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.LBrack, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.LBrack = tn
+	case *BaseDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.Base, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.Base = tn
+	case *InterfaceDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.Interface, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.Interface = tn
+	case *MapDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.Map, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.Map = tn
+	case *PointerDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.Star, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.Star = tn
+	case *SliceDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.LBrack, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.LBrack = tn
+	case *StructDataType:
+		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		tn = transferTokenNode(val.LBrace, copyOpt...)
+		if option.ignoreHeadComment {
+			tn.HeadCommentGroup = nil
+		}
+		if option.ignoreLeadingComment {
+			tn.LeadingCommentGroup = nil
+		}
+		val.isChild=isChild
+		val.LBrace = tn
+	default:
+	}
+
+	return &TokenNode{
+		Token: token.Token{
+			Text:     node.Format(option.prefix),
+			Position: node.Pos(),
+		},
+		LeadingCommentGroup: CommentGroup{
+			{
+				token.Token{Position: node.End()},
+			},
+		},
+	}
+}
+
+func transferNilInfixNode(nodes []*TokenNode, opt ...tokenNodeOption) *TokenNode {
+	result := &TokenNode{}
+	var option = new(tokenNodeOpt)
+	for _, o := range opt {
+		o(option)
+	}
+
+	var list []string
+	for _, n := range nodes {
+		list = append(list, n.Token.Text)
+	}
+
+	result.Token = token.Token{
+		Text:     option.prefix + strings.Join(list, option.infix),
+		Position: nodes[0].Pos(),
+	}
+
+	if !option.ignoreHeadComment {
+		result.HeadCommentGroup = nodes[0].HeadCommentGroup
+	}
+	if !option.ignoreLeadingComment {
+		result.LeadingCommentGroup = nodes[len(nodes)-1].LeadingCommentGroup
+	}
+
+	return result
+}
+
+func transferTokenNode(node *TokenNode, opt ...tokenNodeOption) *TokenNode {
 	result := &TokenNode{}
 	var option = new(tokenNodeOpt)
 	for _, o := range opt {
@@ -89,11 +230,24 @@ func ignoreLeadingComment() tokenNodeOption {
 	}
 }
 
+func ignoreComment() tokenNodeOption {
+	return func(o *tokenNodeOpt) {
+		o.ignoreHeadComment = true
+		o.ignoreLeadingComment = true
+	}
+}
+
 func withTokenNodePrefix(prefix ...string) tokenNodeOption {
 	return func(o *tokenNodeOpt) {
 		for _, p := range prefix {
 			o.prefix = p
 		}
+	}
+
+}
+func withTokenNodeInfix(infix string) tokenNodeOption {
+	return func(o *tokenNodeOpt) {
+		o.infix = infix
 	}
 }
 
@@ -103,19 +257,25 @@ func expectSameLine() Option {
 	}
 }
 
-func WithNode(nodes ...Node) Option {
+func expectIndentInfix() Option {
+	return func(o *option) {
+		o.infix = Indent
+	}
+}
+
+func withNode(nodes ...Node) Option {
 	return func(o *option) {
 		o.nodes = nodes
 	}
 }
 
-func WithMode(mode WriteMode) Option {
+func withMode(mode WriteMode) Option {
 	return func(o *option) {
 		o.mode = mode
 	}
 }
 
-func WithPrefix(prefix ...string) Option {
+func withPrefix(prefix ...string) Option {
 	return func(o *option) {
 		for _, p := range prefix {
 			o.prefix = p
@@ -123,13 +283,13 @@ func WithPrefix(prefix ...string) Option {
 	}
 }
 
-func WithInfix(infix string) Option {
+func withInfix(infix string) Option {
 	return func(o *option) {
 		o.infix = infix
 	}
 }
 
-func WithRawText() Option {
+func withRawText() Option {
 	return func(o *option) {
 		o.rawText = true
 	}
@@ -196,9 +356,10 @@ func (w *Writer) write(opt *option) {
 	line := opt.nodes[0].End().Line
 	for idx, node := range opt.nodes {
 		tokenNode, ok := node.(*TokenNode)
-		if ok && tokenNode.HasLeadingCommentGroup() && idx < len(opt.nodes)-1 {
+		if ok && (tokenNode.HasHeadCommentGroup() || tokenNode.HasLeadingCommentGroup()) && idx < len(opt.nodes)-1 {
 			opt.mode = ModeAuto
 		}
+
 		if opt.mode == ModeAuto && node.Pos().Line > line {
 			textList = append(textList, NewLine)
 		}
@@ -210,9 +371,12 @@ func (w *Writer) write(opt *option) {
 		textList = append(textList, node.Format(opt.prefix))
 	}
 
+	text := strings.Join(textList, opt.infix)
+	text = strings.ReplaceAll(text, " \n", "\n")
+	text = strings.ReplaceAll(text, "\n ", "\n")
 	if opt.rawText {
-		_, _ = fmt.Fprint(w.writer, strings.Join(textList, opt.infix))
+		_, _ = fmt.Fprint(w.writer, text)
 		return
 	}
-	_, _ = fmt.Fprint(w.tw, strings.Join(textList, opt.infix))
+	_, _ = fmt.Fprint(w.tw, text)
 }

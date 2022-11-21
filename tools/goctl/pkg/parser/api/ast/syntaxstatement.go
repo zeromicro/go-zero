@@ -10,7 +10,10 @@ type SyntaxStmt struct {
 
 func (s *SyntaxStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	w.Write(WithNode(s.Syntax, s.Assign, s.Value), WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+	syntaxNode := transferTokenNode(s.Syntax,
+		withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	assignNode := transferTokenNode(s.Assign, ignoreLeadingComment())
+	w.Write(withNode(syntaxNode, assignNode, s.Value), withPrefix(prefix...), expectSameLine())
 	return w.String()
 }
 

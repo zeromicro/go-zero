@@ -22,7 +22,7 @@ type TypeLiteralStmt struct {
 
 func (t *TypeLiteralStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	w.Write(WithNode(t.Type, t.Expr), WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+	w.Write(withNode(t.Type, t.Expr), withPrefix(prefix...), expectSameLine())
 	return w.String()
 }
 
@@ -49,10 +49,11 @@ func (t *TypeGroupStmt) Format(prefix ...string) string {
 		return ""
 	}
 	w := NewBufferWriter()
-	w.Write(WithNode(t.Type, t.LParen), WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+	typeNode := transferTokenNode(t.Type, withTokenNodePrefix(prefix...))
+	w.Write(withNode(typeNode, t.LParen), expectSameLine())
 	w.NewLine()
 	for _, e := range t.ExprList {
-		w.Write(WithNode(e), WithPrefix(peekOne(prefix)+Indent), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(e), withPrefix(peekOne(prefix)+Indent), expectIndentInfix())
 		w.NewLine()
 	}
 	w.WriteText(t.RParen.Format(prefix...))
@@ -82,12 +83,11 @@ type TypeExpr struct {
 
 func (e *TypeExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
+	dataTypeNode := transfer2TokenNode(e.DataType, false, withTokenNodePrefix(prefix...))
 	if e.Assign != nil {
-		w.Write(WithNode(e.Name, e.Assign, e.DataType),
-			WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(e.Name, e.Assign, dataTypeNode), expectSameLine())
 	} else {
-		w.Write(WithNode(e.Name, e.DataType),
-			WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(e.Name, dataTypeNode), expectSameLine())
 	}
 	return w.String()
 }
@@ -118,28 +118,33 @@ type ElemExpr struct {
 
 func (e *ElemExpr) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	var nameList []string
-	for _, n := range e.Name {
-		nameList = append(nameList, n.Token.Text)
+	var nameNodeList []*TokenNode
+	for idx, n := range e.Name {
+		if idx == 0 {
+			nameNodeList = append(nameNodeList,
+				transferTokenNode(n, ignoreLeadingComment()))
+		} else if idx < len(e.Name)-1 {
+			nameNodeList = append(nameNodeList,
+				transferTokenNode(n, ignoreLeadingComment(), ignoreHeadComment()))
+		} else {
+			nameNodeList = append(nameNodeList, transferTokenNode(n, ignoreHeadComment()))
+		}
 	}
 
-	var nameNode *TokenNode
-	if len(e.Name) == 1 {
-		nameNode = e.Name[0]
+	nameNode := transferNilInfixNode(nameNodeList,
+		withTokenNodePrefix(prefix...), withTokenNodeInfix(", "))
+
+	var dataTypeOption []tokenNodeOption
+	if e.DataType.ContainsStruct() {
+		dataTypeOption = append(dataTypeOption, withTokenNodePrefix(peekOne(prefix)+Indent))
 	} else {
-		nameNode = NewTokenNode(token.Token{
-			Type:     token.IDENT,
-			Text:     strings.Join(nameList, ", "),
-			Position: e.Name[0].Pos(),
-		})
+		dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
 	}
-
+	dataTypeNode := transfer2TokenNode(e.DataType, false, dataTypeOption...)
 	if e.Tag != nil {
-		w.Write(WithNode(nameNode, e.DataType, e.Tag),
-			WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectIndentInfix(), expectSameLine())
 	} else {
-		w.Write(WithNode(nameNode, e.DataType),
-			WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
+		w.Write(withNode(nameNode, dataTypeNode), expectIndentInfix(), expectSameLine())
 	}
 	return w.String()
 }
@@ -187,45 +192,352 @@ type DataType interface {
 	RawText() string
 }
 
+type AnyDataType struct {
+	Any     *TokenNode
+	isChild bool
+}
+
+func (t *AnyDataType) Format(prefix ...string) string {
+	return t.Any.Format(prefix...)
+}
+
+func (t *AnyDataType) End() token.Position {
+	return t.Any.End()
+}
+
+func (t *AnyDataType) RawText() string {
+	return t.Any.Token.Text
+}
+
+func (t *AnyDataType) ContainsStruct() bool {
+	return false
+}
+
+func (t *AnyDataType) Pos() token.Position {
+	return t.Any.Pos()
+}
+
+func (t *AnyDataType) exprNode() {}
+
+func (t *AnyDataType) dataTypeNode() {}
+
+func (t *AnyDataType) CanEqual() bool {
+	return true
+}
+
+type ArrayDataType struct {
+	LBrack   *TokenNode
+	Length   *TokenNode
+	RBrack   *TokenNode
+	DataType DataType
+	isChild  bool
+}
+
+func (t *ArrayDataType) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	lbrack := transferTokenNode(t.LBrack, ignoreLeadingComment())
+	lengthNode := transferTokenNode(t.Length, ignoreLeadingComment())
+	rbrack := transferTokenNode(t.RBrack, ignoreHeadComment())
+	var dataType *TokenNode
+	var options []tokenNodeOption
+	options = append(options, withTokenNodePrefix(prefix...))
+	if t.isChild {
+		options = append(options, ignoreComment())
+	} else {
+		options = append(options, ignoreHeadComment())
+	}
+
+	dataType = transfer2TokenNode(t.DataType, false, options...)
+	node := transferNilInfixNode([]*TokenNode{lbrack, lengthNode, rbrack, dataType})
+	w.Write(withNode(node))
+	return w.String()
+}
+
+func (t *ArrayDataType) End() token.Position {
+	return t.DataType.End()
+}
+
+func (t *ArrayDataType) RawText() string {
+	return ""
+}
+
+func (t *ArrayDataType) ContainsStruct() bool {
+	return t.DataType.ContainsStruct()
+}
+
+func (t *ArrayDataType) CanEqual() bool {
+	return t.DataType.CanEqual()
+}
+
+func (t *ArrayDataType) Pos() token.Position {
+	return t.LBrack.Pos()
+}
+
+func (t *ArrayDataType) exprNode()     {}
+func (t *ArrayDataType) dataTypeNode() {}
+
+// BaseDataType is a common id type which contains bool, uint8, uint16, uint32,
+// uint64, int8, int16, int32, int64, float32, float64, complex64, complex128,
+// string, int, uint, uintptr, byte, rune, any.
+type BaseDataType struct {
+	Base    *TokenNode
+	isChild bool
+}
+
+func (t *BaseDataType) Format(prefix ...string) string {
+	return t.Base.Format(prefix...)
+}
+
+func (t *BaseDataType) End() token.Position {
+	return t.Base.End()
+}
+
+func (t *BaseDataType) RawText() string {
+	return t.Base.Token.Text
+}
+
+func (t *BaseDataType) ContainsStruct() bool {
+	return false
+}
+
+func (t *BaseDataType) CanEqual() bool {
+	return true
+}
+
+func (t *BaseDataType) Pos() token.Position {
+	return t.Base.Pos()
+}
+
+func (t *BaseDataType) exprNode()     {}
+func (t *BaseDataType) dataTypeNode() {}
+
+type InterfaceDataType struct {
+	Interface *TokenNode
+	isChild   bool
+}
+
+func (t *InterfaceDataType) Format(prefix ...string) string {
+	return t.Interface.Format(prefix...)
+}
+
+func (t *InterfaceDataType) End() token.Position {
+	return t.Interface.End()
+}
+
+func (t *InterfaceDataType) RawText() string {
+	return t.Interface.Token.Text
+}
+
+func (t *InterfaceDataType) ContainsStruct() bool {
+	return false
+}
+
+func (t *InterfaceDataType) CanEqual() bool {
+	return true
+}
+
+func (t *InterfaceDataType) Pos() token.Position {
+	return t.Interface.Pos()
+}
+
+func (t *InterfaceDataType) exprNode() {}
+
+func (t *InterfaceDataType) dataTypeNode() {}
+
+type MapDataType struct {
+	Map     *TokenNode
+	LBrack  *TokenNode
+	Key     DataType
+	RBrack  *TokenNode
+	Value   DataType
+	isChild bool
+}
+
+func (t *MapDataType) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	mapNode := transferTokenNode(t.Map, ignoreLeadingComment())
+	lbrack := transferTokenNode(t.LBrack, ignoreLeadingComment())
+	rbrack := transferTokenNode(t.RBrack, ignoreComment())
+	var keyOption, valueOption []tokenNodeOption
+	keyOption = append(keyOption, ignoreComment())
+	valueOption = append(valueOption, withTokenNodePrefix(prefix...))
+
+	if t.isChild {
+		valueOption = append(valueOption, ignoreComment())
+	} else {
+		valueOption = append(valueOption, ignoreHeadComment())
+	}
+
+	keyDataType := transfer2TokenNode(t.Key, true, keyOption...)
+	valueDataType := transfer2TokenNode(t.Value, false, valueOption...)
+	node := transferNilInfixNode([]*TokenNode{mapNode, lbrack, keyDataType, rbrack, valueDataType})
+	w.Write(withNode(node))
+	return w.String()
+}
+
+func (t *MapDataType) End() token.Position {
+	return t.Value.End()
+}
+
+func (t *MapDataType) RawText() string {
+	return fmt.Sprintf("map[%s]%s", t.Key.RawText(), t.Value.RawText())
+}
+
+func (t *MapDataType) ContainsStruct() bool {
+	return t.Key.ContainsStruct() || t.Value.ContainsStruct()
+}
+
+func (t *MapDataType) CanEqual() bool {
+	return false
+}
+
+func (t *MapDataType) Pos() token.Position {
+	return t.Map.Pos()
+}
+
+func (t *MapDataType) exprNode()     {}
+func (t *MapDataType) dataTypeNode() {}
+
+type PointerDataType struct {
+	Star     *TokenNode
+	DataType DataType
+	isChild  bool
+}
+
+func (t *PointerDataType) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	star := transferTokenNode(t.Star, ignoreLeadingComment())
+	var dataTypeOption []tokenNodeOption
+	dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
+	dataTypeOption = append(dataTypeOption, ignoreHeadComment())
+	dataType := transfer2TokenNode(t.DataType, false, dataTypeOption...)
+	node := transferNilInfixNode([]*TokenNode{star, dataType})
+	w.Write(withNode(node))
+	return w.String()
+}
+
+func (t *PointerDataType) End() token.Position {
+	return t.DataType.End()
+}
+
+func (t *PointerDataType) RawText() string {
+	return "*" + t.DataType.RawText()
+}
+
+func (t *PointerDataType) ContainsStruct() bool {
+	return t.DataType.ContainsStruct()
+}
+
+func (t *PointerDataType) CanEqual() bool {
+	return t.DataType.CanEqual()
+}
+
+func (t *PointerDataType) Pos() token.Position {
+	return t.Star.Pos()
+}
+
+func (t *PointerDataType) exprNode()     {}
+func (t *PointerDataType) dataTypeNode() {}
+
+type SliceDataType struct {
+	LBrack   *TokenNode
+	RBrack   *TokenNode
+	DataType DataType
+	isChild  bool
+}
+
+func (t *SliceDataType) Format(prefix ...string) string {
+	w := NewBufferWriter()
+	lbrack := transferTokenNode(t.LBrack, ignoreLeadingComment())
+	rbrack := transferTokenNode(t.RBrack, ignoreHeadComment())
+	dataType := transfer2TokenNode(t.DataType, false, withTokenNodePrefix(prefix...), ignoreHeadComment())
+	node := transferNilInfixNode([]*TokenNode{lbrack, rbrack, dataType})
+	w.Write(withNode(node))
+	return w.String()
+}
+
+func (t *SliceDataType) End() token.Position {
+	return t.DataType.End()
+}
+
+func (t *SliceDataType) RawText() string {
+	return fmt.Sprintf("[]%s", t.DataType.RawText())
+}
+
+func (t *SliceDataType) ContainsStruct() bool {
+	return t.DataType.ContainsStruct()
+}
+
+func (t *SliceDataType) CanEqual() bool {
+	return false
+}
+
+func (t *SliceDataType) Pos() token.Position {
+	return t.LBrack.Pos()
+}
+
+func (t *SliceDataType) exprNode()     {}
+func (t *SliceDataType) dataTypeNode() {}
+
 type StructDataType struct {
 	LBrace   *TokenNode
 	Elements ElemExprList
 	RBrace   *TokenNode
+	isChild  bool
 }
 
 func (t *StructDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	if len(t.Elements) == 0 {
-		w.WriteText("{}")
+		lbrace := transferTokenNode(t.LBrace, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+		rbrace := transferTokenNode(t.RBrace, ignoreHeadComment())
+		brace := transferNilInfixNode([]*TokenNode{lbrace, rbrace})
+		w.Write(withNode(brace), expectSameLine())
 		return w.String()
 	}
 	w.WriteText(t.LBrace.Format(NilIndent))
 	w.NewLine()
 	for _, e := range t.Elements {
-		var nameList []string
-		for _, n := range e.Name {
-			nameList = append(nameList, n.Token.Text)
-		}
-
+		//w.Write(withNode(e), withPrefix(peekOne(prefix)+Indent))
 		var nameNode *TokenNode
-		if len(e.Name) == 1 {
-			nameNode = e.Name[0]
+		nameNode = transferTokenNode(e.Name[0], withTokenNodePrefix(peekOne(prefix)+Indent))
+		if len(e.Name) > 1 {
+			var nameNodeList []*TokenNode
+			for idx, n := range e.Name {
+				if idx == 0 {
+					nameNodeList = append(nameNodeList,
+						transferTokenNode(n, ignoreLeadingComment()))
+				} else if idx < len(e.Name)-1 {
+					nameNodeList = append(nameNodeList,
+						transferTokenNode(n, ignoreLeadingComment(), ignoreHeadComment()))
+				} else {
+					nameNodeList = append(nameNodeList, transferTokenNode(n, ignoreHeadComment()))
+				}
+			}
+
+			nameNode = transferNilInfixNode(nameNodeList,
+				withTokenNodePrefix(peekOne(prefix)+Indent), withTokenNodeInfix(", "))
+		}
+		var dataTypeOption []tokenNodeOption
+		if e.DataType.ContainsStruct() {
+			dataTypeOption = append(dataTypeOption, withTokenNodePrefix(peekOne(prefix)+Indent))
 		} else {
-			nameNode = NewTokenNode(token.Token{
-				Type:     token.IDENT,
-				Text:     strings.Join(nameList, ", "),
-				Position: e.Name[0].Pos(),
-			})
-			nameNode.HeadCommentGroup = e.Name[0].HeadCommentGroup
-			nameNode.LeadingCommentGroup = e.Name[len(e.Name)-1].LeadingCommentGroup
+			dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
 		}
 
+		dataTypeNode := transfer2TokenNode(e.DataType, false, dataTypeOption...)
 		if e.Tag != nil {
-			w.Write(WithNode(nameNode, e.DataType, e.Tag),
-				WithPrefix(peekOne(prefix)+Indent), WithMode(ModeExpectInSameLine))
+			if e.DataType.ContainsStruct() {
+				w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectSameLine())
+			} else {
+				w.Write(withNode(nameNode, e.DataType, e.Tag), expectIndentInfix(), expectSameLine())
+			}
 		} else {
-			w.Write(WithNode(nameNode, e.DataType),
-				WithPrefix(peekOne(prefix)+Indent), WithMode(ModeExpectInSameLine))
+			if e.DataType.ContainsStruct() {
+				w.Write(withNode(nameNode, dataTypeNode), expectSameLine())
+			} else {
+				w.Write(withNode(nameNode, e.DataType), expectIndentInfix(), expectSameLine())
+			}
 		}
 		w.NewLine()
 	}
@@ -272,258 +584,5 @@ func (t *StructDataType) Pos() token.Position {
 
 func (t *StructDataType) exprNode()     {}
 func (t *StructDataType) dataTypeNode() {}
-
-type SliceDataType struct {
-	LBrack   *TokenNode
-	RBrack   *TokenNode
-	DataType DataType
-}
-
-func (t *SliceDataType) Format(prefix ...string) string {
-	brackWriter := NewBufferWriter()
-	brackWriter.Write(WithNode(t.LBrack, t.RBrack),
-		WithInfix(NilIndent), WithMode(ModeExpectInSameLine))
-
-	w := NewBufferWriter()
-	w.WriteText(brackWriter.String() + t.DataType.Format(prefix...))
-	return w.String()
-}
-
-func (t *SliceDataType) End() token.Position {
-	return t.DataType.End()
-}
-
-func (t *SliceDataType) RawText() string {
-	return fmt.Sprintf("[]%s", t.DataType.RawText())
-}
-
-func (t *SliceDataType) ContainsStruct() bool {
-	return t.DataType.ContainsStruct()
-}
-
-func (t *SliceDataType) CanEqual() bool {
-	return false
-}
-
-func (t *SliceDataType) Pos() token.Position {
-	return t.LBrack.Pos()
-}
-
-func (t *SliceDataType) exprNode()     {}
-func (t *SliceDataType) dataTypeNode() {}
-
-type MapDataType struct {
-	Map    *TokenNode
-	LBrack *TokenNode
-	Key    DataType
-	RBrack *TokenNode
-	Value  DataType
-}
-
-func (t *MapDataType) Format(prefix ...string) string {
-	w1 := NewBufferWriter()
-	w1.Write(WithNode(t.Map, t.LBrack),
-		WithInfix(NilIndent), WithMode(ModeExpectInSameLine))
-
-	w := NewBufferWriter()
-	w.WriteText(w1.String() + strings.TrimPrefix(t.Key.Format(prefix...),peekOne(prefix)) +
-		t.RBrack.Format() + t.Value.Format(prefix...))
-	return w.String()
-}
-
-func (t *MapDataType) End() token.Position {
-	return t.Value.End()
-}
-
-func (t *MapDataType) RawText() string {
-	return fmt.Sprintf("map[%s]%s", t.Key.RawText(), t.Value.RawText())
-}
-
-func (t *MapDataType) ContainsStruct() bool {
-	return t.Key.ContainsStruct() || t.Value.ContainsStruct()
-}
-
-func (t *MapDataType) CanEqual() bool {
-	return false
-}
-
-func (t *MapDataType) Pos() token.Position {
-	return t.Map.Pos()
-}
-
-func (t *MapDataType) exprNode()     {}
-func (t *MapDataType) dataTypeNode() {}
-
-type ArrayDataType struct {
-	LBrack   *TokenNode
-	Length   *TokenNode
-	RBrack   *TokenNode
-	DataType DataType
-}
-
-func (t *ArrayDataType) Format(prefix ...string) string {
-	w1 := NewBufferWriter()
-	w1.Write(WithNode(t.LBrack, t.Length, t.RBrack),
-		WithInfix(NilIndent), WithMode(ModeExpectInSameLine))
-	w := NewBufferWriter()
-	w.WriteText(w1.String() + t.DataType.Format(prefix...))
-	return w.String()
-}
-
-func (t *ArrayDataType) End() token.Position {
-	return t.DataType.End()
-}
-
-func (t *ArrayDataType) RawText() string {
-	return ""
-}
-
-func (t *ArrayDataType) ContainsStruct() bool {
-	return t.DataType.ContainsStruct()
-}
-
-func (t *ArrayDataType) CanEqual() bool {
-	return t.DataType.CanEqual()
-}
-
-func (t *ArrayDataType) Pos() token.Position {
-	return t.LBrack.Pos()
-}
-
-func (t *ArrayDataType) exprNode()     {}
-func (t *ArrayDataType) dataTypeNode() {}
-
-type InterfaceDataType struct {
-	Interface *TokenNode
-}
-
-func (t *InterfaceDataType) Format(prefix ...string) string {
-	return t.Interface.Format(prefix...)
-}
-
-func (t *InterfaceDataType) End() token.Position {
-	return t.Interface.End()
-}
-
-func (t *InterfaceDataType) RawText() string {
-	return t.Interface.Token.Text
-}
-
-func (t *InterfaceDataType) ContainsStruct() bool {
-	return false
-}
-
-func (t *InterfaceDataType) CanEqual() bool {
-	return true
-}
-
-func (t *InterfaceDataType) Pos() token.Position {
-	return t.Interface.Pos()
-}
-
-func (t *InterfaceDataType) exprNode() {}
-
-func (t *InterfaceDataType) dataTypeNode() {}
-
-type PointerDataType struct {
-	Star     *TokenNode
-	DataType DataType
-}
-
-func (t *PointerDataType) Format(prefix ...string) string {
-	w := NewBufferWriter()
-	w.Write(WithNode(t.Star, t.DataType), WithInfix(NilIndent),
-		WithPrefix(prefix...), WithMode(ModeExpectInSameLine))
-	return w.String()
-}
-
-func (t *PointerDataType) End() token.Position {
-	return t.DataType.End()
-}
-
-func (t *PointerDataType) RawText() string {
-	return "*" + t.DataType.RawText()
-}
-
-func (t *PointerDataType) ContainsStruct() bool {
-	return t.DataType.ContainsStruct()
-}
-
-func (t *PointerDataType) CanEqual() bool {
-	return t.DataType.CanEqual()
-}
-
-func (t *PointerDataType) Pos() token.Position {
-	return t.Star.Pos()
-}
-
-func (t *PointerDataType) exprNode()     {}
-func (t *PointerDataType) dataTypeNode() {}
-
-type AnyDataType struct {
-	Any *TokenNode
-}
-
-func (t *AnyDataType) Format(prefix ...string) string {
-	return t.Any.Format(prefix...)
-}
-
-func (t *AnyDataType) End() token.Position {
-	return t.Any.End()
-}
-
-func (t *AnyDataType) RawText() string {
-	return t.Any.Token.Text
-}
-
-func (t *AnyDataType) ContainsStruct() bool {
-	return false
-}
-
-func (t *AnyDataType) Pos() token.Position {
-	return t.Any.Pos()
-}
-
-func (t *AnyDataType) exprNode() {}
-
-func (t *AnyDataType) dataTypeNode() {}
-
-func (t *AnyDataType) CanEqual() bool {
-	return true
-}
-
-// BaseDataType is a common id type which contains bool, uint8, uint16, uint32,
-// uint64, int8, int16, int32, int64, float32, float64, complex64, complex128,
-// string, int, uint, uintptr, byte, rune, any.
-type BaseDataType struct {
-	Base *TokenNode
-}
-
-func (t *BaseDataType) Format(prefix ...string) string {
-	return t.Base.Format(prefix...)
-}
-
-func (t *BaseDataType) End() token.Position {
-	return t.Base.End()
-}
-
-func (t *BaseDataType) RawText() string {
-	return t.Base.Token.Text
-}
-
-func (t *BaseDataType) ContainsStruct() bool {
-	return false
-}
-
-func (t *BaseDataType) CanEqual() bool {
-	return true
-}
-
-func (t *BaseDataType) Pos() token.Position {
-	return t.Base.Pos()
-}
-
-func (t *BaseDataType) exprNode()     {}
-func (t *BaseDataType) dataTypeNode() {}
 
 /*******************DataType End********************/

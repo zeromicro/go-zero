@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"strings"
-
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
@@ -13,7 +11,7 @@ type InfoStmt struct {
 	RParen *TokenNode
 }
 
-func (i *InfoStmt) Format(...string) string {
+func (i *InfoStmt) Format(prefix ...string) string {
 	if len(i.Values) == 0 {
 		return ""
 	}
@@ -29,11 +27,15 @@ func (i *InfoStmt) Format(...string) string {
 	}
 
 	w := NewBufferWriter()
-	w.Write(WithNode(i.Info, i.LParen))
+	infoNode := transferTokenNode(i.Info, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	w.Write(withNode(infoNode, i.LParen))
 	w.NewLine()
-	w.WriteText(strings.Join(textList,NewLine))
-	w.NewLine()
-	w.WriteText(i.RParen.Format())
+	for _, v := range i.Values {
+		node := transferTokenNode(v.Key, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment())
+		w.Write(withNode(node, v.Value), expectIndentInfix(), expectSameLine())
+		w.NewLine()
+	}
+	w.Write(withNode(transferTokenNode(i.RParen, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 type Node interface {
@@ -81,6 +82,22 @@ func (t *TokenNode) PeekFirstHeadComment() *CommentStmt {
 }
 
 func (t *TokenNode) Format(prefix ...string) string {
+	//p := peekOne(prefix)
+	//var textList []string
+	//for _, v := range t.HeadCommentGroup {
+	//	textList = append(textList, v.Format(p))
+	//}
+	//
+	//var tokenText = p + t.Token.Text
+	//if t.HasLeadingCommentGroup() {
+	//	if !util.IsEmptyStringOrWhiteSpace(t.PeekFirstLeadingComment().Format()) {
+	//		tokenText = tokenText + WhiteSpace + t.LeadingCommentGroup.Join(WhiteSpace)
+	//	}
+	//}
+	//
+	//textList = append(textList, tokenText)
+	//return strings.Join(textList, NewLine)
+
 	p := peekOne(prefix)
 	var textList []string
 	for _, v := range t.HeadCommentGroup {
@@ -88,10 +105,18 @@ func (t *TokenNode) Format(prefix ...string) string {
 	}
 
 	var tokenText = p + t.Token.Text
-	if t.HasLeadingCommentGroup() {
-		tokenText = tokenText + WhiteSpace
+	var validLeadingCommentGroup CommentGroup
+	for _, e := range t.LeadingCommentGroup {
+		if util.IsEmptyStringOrWhiteSpace(e.Comment.Text) {
+			continue
+		}
+		validLeadingCommentGroup = append(validLeadingCommentGroup, e)
 	}
-	tokenText = tokenText + t.LeadingCommentGroup.Join(WhiteSpace)
+
+	if len(validLeadingCommentGroup) > 0 {
+		tokenText = tokenText + WhiteSpace + t.LeadingCommentGroup.Join(WhiteSpace)
+	}
+
 	textList = append(textList, tokenText)
 	return strings.Join(textList, NewLine)
 }
@@ -118,13 +143,13 @@ func (a *AST) Format(w io.Writer) {
 			continue
 		}
 
-		fw.Write(WithNode(e))
+		fw.Write(withNode(e))
 		//switch stmt := e.(type) {
 		//case *SyntaxStmt:
 		//case *ImportGroupStmt:
-		//	fw.Write(WithNode(stmt))
+		//	fw.Write(withNode(stmt))
 		//case *ImportLiteralStmt:
-		//	fw.Write(WithNode(stmt))
+		//	fw.Write(withNode(stmt))
 		//case *InfoStmt:
 		//case *ServiceStmt:
 		//case *TypeGroupStmt:

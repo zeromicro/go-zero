@@ -20,7 +20,7 @@ func (i *ImportLiteralStmt) Format(prefix ...string) (result string) {
 	}
 	w := NewBufferWriter()
 	importNode := transferTokenNode(i.Import, ignoreLeadingComment(), withTokenNodePrefix(prefix...))
-	w.Write(WithNode(importNode, i.Value), WithMode(ModeExpectInSameLine))
+	w.Write(withNode(importNode, i.Value), withMode(ModeExpectInSameLine))
 	return w.String()
 }
 
@@ -57,14 +57,14 @@ func (i *ImportGroupStmt) Format(prefix ...string) string {
 
 	importNode := transferTokenNode(i.Import, ignoreLeadingComment(), withTokenNodePrefix(prefix...))
 	w := NewBufferWriter()
-	w.Write(WithNode(importNode, i.LParen), expectSameLine())
+	w.Write(withNode(importNode, i.LParen), expectSameLine())
 	w.NewLine()
 	for _, v := range i.Values {
 		node := transferTokenNode(v, withTokenNodePrefix(peekOne(prefix)+Indent))
-		w.Write(WithNode(node), expectSameLine())
+		w.Write(withNode(node), expectSameLine())
 		w.NewLine()
 	}
-	w.Write(WithNode(transferTokenNode(i.RParen, withTokenNodePrefix(prefix...))))
+	w.Write(withNode(transferTokenNode(i.RParen, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 

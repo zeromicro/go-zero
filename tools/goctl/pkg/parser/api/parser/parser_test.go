@@ -11,7 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-
 //go:embed testdata/comment_test.api
 var testCommentInput string
 
@@ -441,21 +440,17 @@ var atDocGroupTestAPI string
 
 func TestParser_Parse_atDocGroup(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		var testData = []string{
-			`foo: "foo"`,
-			`bar: "bar"`,
-			`baz: ""`,
-		}
+		var testData = `@doc (
+	foo: "foo"
+	bar: "bar"
+)`
 
 		p := New("foo.api", atDocGroupTestAPI)
 		result := p.parseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
-		atDocLitStmt, ok := stmt.(*ast.AtDocGroupStmt)
-		for idx, v := range testData {
-			assert.True(t, ok)
-			assert.Equal(t, v, atDocLitStmt.Values[idx].Format(""))
-		}
+		atDocLitStmt, _ := stmt.(*ast.AtDocGroupStmt)
+		assert.Equal(t, testData, atDocLitStmt.Format(""))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
