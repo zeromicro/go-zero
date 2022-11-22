@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"strings"
-
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
@@ -41,7 +39,8 @@ func (a *AtServerStmt) Format(prefix ...string) string {
 	}
 
 	w := NewBufferWriter()
-	w.Write(withNode(a.AtServer, a.LParen), withPrefix(prefix...), expectSameLine())
+	atServerNode := transferTokenNode(a.AtServer, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	w.Write(withNode(atServerNode, a.LParen), expectSameLine())
 	w.NewLine()
 	for _, v := range a.Values {
 		node := transferTokenNode(v.Key, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment())
@@ -143,7 +142,7 @@ func (a *AtDocGroupStmt) Format(prefix ...string) string {
 
 	w := NewBufferWriter()
 	atDocNode := transferTokenNode(a.AtDoc, withTokenNodePrefix(prefix...), ignoreLeadingComment())
-	w.Write(withNode(atDocNode, a.LParen))
+	w.Write(withNode(atDocNode, a.LParen), expectSameLine())
 	w.NewLine()
 	for _, v := range a.Values {
 		node := transferTokenNode(v.Key, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment())
@@ -197,19 +196,25 @@ func (s *ServiceStmt) CommentGroup() (head, leading CommentGroup) {
 func (s *ServiceStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	if s.AtServerStmt != nil {
-		w.WriteText(s.AtServerStmt.Format(prefix...))
+		text := s.AtServerStmt.Format()
+		if len(text) > 0 {
+			w.WriteText(text)
+			w.NewLine()
+		}
+	}
+	serviceNode := transferTokenNode(s.Service, withTokenNodePrefix(prefix...))
+	w.Write(withNode(serviceNode, s.Name, s.LBrace), expectSameLine())
+	if len(s.Routes) == 0 {
+		w.Write(withNode(transferTokenNode(s.RBrace, withTokenNodePrefix(prefix...))))
+		return w.String()
+	}
+	w.NewLine()
+	for _, route := range s.Routes {
+		routeNode := transfer2TokenNode(route, false, withTokenNodePrefix(peekOne(prefix)+Indent))
+		w.Write(withNode(routeNode))
 		w.NewLine()
 	}
-	w.Write(withNode(s.Service, s.Name, s.LBrace),
-		withPrefix(prefix...), withMode(ModeExpectInSameLine))
-	w.NewLine()
-	var textList []string
-	for _, v := range s.Routes {
-		textList = append(textList, v.Format(peekOne(prefix)+Indent))
-	}
-	w.WriteText(strings.Join(textList, NewLine))
-	w.NewLine()
-	w.WriteText(s.RBrace.Format(prefix...))
+	w.Write(withNode(transferTokenNode(s.RBrace, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 
@@ -242,9 +247,9 @@ func (s *ServiceNameExpr) CommentGroup() (head, leading CommentGroup) {
 	return s.Name.HeadCommentGroup, s.Name.LeadingCommentGroup
 }
 
-func (s *ServiceNameExpr) Format(prefix ...string) string {
+func (s *ServiceNameExpr) Format(...string) string {
 	w := NewBufferWriter()
-	w.WriteText(s.Name.Format(prefix...))
+	w.WriteText(s.Name.Format())
 	return w.String()
 }
 
@@ -328,7 +333,8 @@ func (s *ServiceItemStmt) Format(prefix ...string) string {
 	}
 	w.WriteText(s.AtHandler.Format(prefix...))
 	w.NewLine()
-	w.WriteText(s.Route.Format(prefix...))
+	routeNode := transfer2TokenNode(s.Route, false, withTokenNodePrefix(prefix...))
+	w.Write(withNode(routeNode))
 	return w.String()
 }
 
@@ -382,16 +388,20 @@ func (r *RouteStmt) CommentGroup() (head, leading CommentGroup) {
 
 func (r *RouteStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	if r.Request == nil {
-		w.Write(withNode(r.Method, r.Path), withPrefix(prefix...),
-			withMode(ModeExpectInSameLine))
-	} else if r.Returns == nil {
-		w.Write(withNode(r.Method, r.Path, r.Request),
-			withPrefix(prefix...), withMode(ModeExpectInSameLine))
+	methodNode := transferTokenNode(r.Method, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	if r.Response != nil {
+		r.Response.RParen = transferTokenNode(r.Response.RParen, ignoreHeadComment())
+		if r.Request != nil {
+			w.Write(withNode(methodNode, r.Path, r.Request, r.Returns, r.Response), expectSameLine())
+		} else {
+			w.Write(withNode(methodNode, r.Path, r.Returns, r.Response), expectSameLine())
+		}
+	} else if r.Request != nil {
+		r.Request.RParen = transferTokenNode(r.Request.RParen, ignoreHeadComment())
+		w.Write(withNode(methodNode, r.Path, r.Request), expectSameLine())
 	} else {
-		w.Write(withNode(r.Method, r.Path, r.Request,
-			r.Returns, r.Response), withPrefix(prefix...),
-			withMode(ModeExpectInSameLine))
+		pathNode := transferTokenNode(r.Path.Value, ignoreHeadComment())
+		w.Write(withNode(methodNode, pathNode), expectSameLine())
 	}
 	return w.String()
 }
@@ -432,7 +442,8 @@ func (p *PathExpr) CommentGroup() (head, leading CommentGroup) {
 }
 
 func (p *PathExpr) Format(prefix ...string) string {
-	return p.Value.Format(prefix...)
+	pathNode := transferTokenNode(p.Value, ignoreComment())
+	return pathNode.Format(prefix...)
 }
 
 func (p *PathExpr) End() token.Position {
@@ -463,8 +474,10 @@ func (b *BodyStmt) CommentGroup() (head, leading CommentGroup) {
 	return b.LParen.HeadCommentGroup, b.RParen.LeadingCommentGroup
 }
 
-func (b *BodyStmt) Format(prefix ...string) string {
-	return "(" + b.Body.Format() + ")"
+func (b *BodyStmt) Format(...string) string {
+	w := NewBufferWriter()
+	w.Write(withNode(b.LParen, b.Body, b.RParen), withInfix(NilIndent), expectSameLine())
+	return w.String()
 }
 
 func (b *BodyStmt) End() token.Position {
@@ -513,18 +526,22 @@ func (e *BodyExpr) End() token.Position {
 	return e.Value.End()
 }
 
-func (e *BodyExpr) Format(prefix ...string) string {
+func (e *BodyExpr) Format(...string) string {
 	w := NewBufferWriter()
 	if e.LBrack != nil {
+		lbrackNode := transferTokenNode(e.LBrack, ignoreComment())
+		rbrackNode := transferTokenNode(e.RBrack, ignoreComment())
 		if e.Star != nil {
-			w.WriteText(peekOne(prefix) + "[]*" + e.Value.Format(prefix...))
+			starNode := transferTokenNode(e.Star, ignoreComment())
+			w.Write(withNode(lbrackNode, rbrackNode, starNode, e.Value), withInfix(NilIndent), expectSameLine())
 		} else {
-			w.WriteText(peekOne(prefix) + "[]" + e.Value.Format(prefix...))
+			w.Write(withNode(lbrackNode, rbrackNode, e.Value), withInfix(NilIndent), expectSameLine())
 		}
 	} else if e.Star != nil {
-		w.WriteText(peekOne(prefix) + "*" + e.Value.Format(prefix...))
+		starNode := transferTokenNode(e.Star, ignoreComment())
+		w.Write(withNode(starNode, e.Value), withInfix(NilIndent), expectSameLine())
 	} else {
-		w.WriteText(peekOne(prefix) + e.Value.Format(prefix...))
+		w.Write(withNode(e.Value))
 	}
 	return w.String()
 }

@@ -51,12 +51,6 @@ func TestParser_Parse(t *testing.T) {
 }
 
 func TestParser_Parse_Mode(t *testing.T) {
-	t.Run("SkipComment", func(t *testing.T) {
-		p := New("foo.api", testCommentInput)
-		result := p.Parse()
-		assert.True(t, p.hasNoErrors())
-		assert.Equal(t, 0, len(result.Stmts))
-	})
 
 	t.Run("All", func(t *testing.T) {
 		var testData = []string{
@@ -130,12 +124,12 @@ var infoTestAPI string
 
 func TestParser_Parse_infoStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		var testData = []string{
-			`title: "type title here"`,
-			`desc: "type desc here"`,
-			`author: "type author here"`,
-			`email: "type email here"`,
-			`version: "type version here"`,
+		expected:=map[string]string{
+			"title:":`"type title here"`,
+			"desc:":`"type desc here"`,
+			"author:":`"type author here"`,
+			"email:":`"type email here"`,
+			"version:":`"type version here"`,
 		}
 		p := New("foo.api", infoTestAPI)
 		result := p.Parse()
@@ -143,9 +137,12 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 		stmt := result.Stmts[0]
 		infoStmt, ok := stmt.(*ast.InfoStmt)
 		assert.True(t, ok)
-		for idx, v := range testData {
-			assert.Equal(t, v, infoStmt.Values[idx].Format(""))
+		for _,stmt:=range infoStmt.Values{
+			actual:=stmt.Value.Token.Text
+			expectedValue:=expected[stmt.Key.Token.Text]
+			assert.Equal(t, expectedValue,actual)
 		}
+
 	})
 
 	t.Run("empty", func(t *testing.T) {
@@ -155,7 +152,10 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 		stmt := result.Stmts[0]
 		infoStmt, ok := stmt.(*ast.InfoStmt)
 		assert.True(t, ok)
-		assert.Equal(t, "info ()", infoStmt.Format(""))
+		assert.Equal(t, "info",infoStmt.Info.Token.Text)
+		assert.Equal(t, "(",infoStmt.LParen.Token.Text)
+		assert.Equal(t, ")",infoStmt.RParen.Token.Text)
+		assert.Equal(t, 0,len(infoStmt.Values))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -190,9 +190,9 @@ var testImportLiteral string
 func TestParser_Parse_importLiteral(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var testData = []string{
-			`import ""`,
-			`import "foo"`,
-			`import "bar"`,
+			`""`,
+			`"foo"`,
+			`"bar"`,
 		}
 		p := New("foo.api", testImportLiteral)
 		result := p.Parse()
@@ -201,7 +201,7 @@ func TestParser_Parse_importLiteral(t *testing.T) {
 			stmt := result.Stmts[idx]
 			importLit, ok := stmt.(*ast.ImportLiteralStmt)
 			assert.True(t, ok)
-			assert.Equal(t, v, importLit.Format(""))
+			assert.Equal(t, v, importLit.Value.Token.Text)
 		}
 	})
 	t.Run("invalid", func(t *testing.T) {
@@ -284,21 +284,23 @@ var atServerTestAPI string
 
 func TestParser_Parse_atServerStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		var testData = []string{
-			`foo: bar`,
-			`bar: baz`,
-			`baz: foo`,
-			`qux: /v1`,
-			`quux: /v1/v2`,
+		var expectedData = map[string]string{
+			"foo:":`bar`,
+			"bar:":`baz`,
+			"baz:":`foo`,
+			"qux:":`/v1`,
+			"quux:":`/v1/v2`,
 		}
+
 		p := New("foo.api", atServerTestAPI)
 		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		atServerStmt, ok := stmt.(*ast.AtServerStmt)
 		assert.True(t, ok)
-		for idx, v := range testData {
-			assert.Equal(t, v, atServerStmt.Values[idx].Format(""))
+		for _, v := range atServerStmt.Values {
+			expectedValue:=expectedData[v.Key.Token.Text]
+			assert.Equal(t, expectedValue,v.Value.Token.Text)
 		}
 	})
 
@@ -403,9 +405,9 @@ var atDocLiteralTestAPI string
 func TestParser_Parse_atDocLiteral(t *testing.T) {
 	t.Run("validLiteral", func(t *testing.T) {
 		var testData = []string{
-			`@doc ""`,
-			`@doc "foo"`,
-			`@doc "bar"`,
+			`""`,
+			`"foo"`,
+			`"bar"`,
 		}
 
 		p := New("foo.api", atDocLiteralTestAPI)
@@ -415,7 +417,7 @@ func TestParser_Parse_atDocLiteral(t *testing.T) {
 			stmt := result.Stmts[idx]
 			atDocLitStmt, ok := stmt.(*ast.AtDocLiteralStmt)
 			assert.True(t, ok)
-			assert.Equal(t, v, atDocLitStmt.Format(""))
+			assert.Equal(t, v, atDocLitStmt.Value.Token.Text)
 		}
 	})
 
@@ -443,14 +445,15 @@ func TestParser_Parse_atDocGroup(t *testing.T) {
 		var testData = `@doc (
 	foo: "foo"
 	bar: "bar"
+	baz: ""
 )`
 
 		p := New("foo.api", atDocGroupTestAPI)
 		result := p.ParseForUintTest()
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
-		atDocLitStmt, _ := stmt.(*ast.AtDocGroupStmt)
-		assert.Equal(t, testData, atDocLitStmt.Format(""))
+		atDocGroupStmt, _ := stmt.(*ast.AtDocGroupStmt)
+		assert.Equal(t, testData, atDocGroupStmt.Format(""))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -1083,7 +1086,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 					LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
 					ExprList: []*ast.TypeExpr{
 						{
-							Name:     ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+							Name:     ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
 							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
 						},
 					},

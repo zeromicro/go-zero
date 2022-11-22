@@ -49,7 +49,7 @@ type Writer struct {
 	writer io.Writer
 }
 
-func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *TokenNode {
+func transfer2TokenNode(node Node, isChild bool, opt ...tokenNodeOption) *TokenNode {
 	option := new(tokenNodeOpt)
 	for _, o := range opt {
 		o(option)

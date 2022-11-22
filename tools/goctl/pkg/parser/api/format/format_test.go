@@ -3,10 +3,12 @@ package format
 import (
 	"bytes"
 	_ "embed"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/assertx"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
@@ -1137,7 +1139,7 @@ quux
 		{
 			input: `/*aa*/@server/*bb*/(/*cc*/foo:/**/foo /*dd*/quux:/**/quux/*ee*/)`,
 			expected: `/*aa*/
-@server /*bb*/ ( /*cc*/
+@server ( /*cc*/
 	foo:  foo /*dd*/
 	quux: quux /*ee*/
 )`,
@@ -1329,6 +1331,121 @@ foo// ee`,
 @handler foo // ee`,
 		},
 	})
+}
+
+//go:embed testdata/test_service.api
+var testServiceData string
+
+//go:embed testdata/expected_service.api
+var expectedServiceData string
+
+func TestFormat_ServiceStmt(t *testing.T) {
+	testRun(t, []formatData{
+		{
+			input:    `service foo{}`,
+			expected: `service foo {}`,
+		},
+		{
+			input: `service foo	{	}`,
+			expected: `service foo {}`,
+		},
+		{
+			input: `@server()service foo	{	}`,
+			expected: `service foo {}`,
+		},
+		{
+			input: `@server(foo:foo quux:quux)service foo	{	}`,
+			expected: `@server (
+	foo:  foo
+	quux: quux
+)
+service foo {}`,
+		},
+		{
+			input: `service foo-api	{	}`,
+			expected: `service foo-api {}`,
+		},
+		{
+			input: `service foo-api	{
+@doc "foo"
+@handler foo
+post /ping
+}`,
+			expected: `service foo-api {
+	@doc "foo"
+	@handler foo
+	post /ping
+}`,
+		},
+		{
+			input: `service foo-api	{
+@doc(foo: "foo" bar: "bar")
+@handler foo
+post /ping
+}`,
+			expected: `service foo-api {
+	@doc (
+		foo: "foo"
+		bar: "bar"
+	)
+	@handler foo
+	post /ping
+}`,
+		},
+		{
+			input: `service foo-api	{
+@doc(foo: "foo" bar: "bar"
+quux: "quux"
+)
+@handler 	foo
+post 	/ping
+}`,
+			expected: `service foo-api {
+	@doc (
+		foo:  "foo"
+		bar:  "bar"
+		quux: "quux"
+	)
+	@handler foo
+	post /ping
+}`,
+		},
+		{
+			input: `service
+foo-api
+{
+@doc
+(foo: "foo" bar: "bar"
+quux: "quux"
+)
+@handler
+foo
+post
+/aa/:bb/cc-dd/ee
+}`,
+			expected: `service foo-api {
+	@doc (
+		foo:  "foo"
+		bar:  "bar"
+		quux: "quux"
+	)
+	@handler foo
+	post /aa/:bb/cc-dd/ee
+}`,
+		},
+		{
+			input:    testServiceData,
+			expected: expectedServiceData,
+			converter: func(s string) string {
+				return strings.ReplaceAll(s, "\t", "    ")
+			},
+		},
+	})
+}
+
+func TestFormat_error(t *testing.T) {
+	err := Format([]byte("aaa"), os.Stdout)
+	assertx.Error(t, err)
 }
 
 func testRun(t *testing.T, testData []formatData) {

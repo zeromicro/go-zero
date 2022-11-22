@@ -123,7 +123,7 @@ func (p *Parser) parseService() *ast.ServiceStmt {
 
 	// service item statements
 	routes := p.parseServiceItemsStmt()
-	if routes == nil {
+	if isNil(routes) {
 		return nil
 	}
 	stmt.Routes = routes

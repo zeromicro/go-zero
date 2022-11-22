@@ -244,6 +244,8 @@ func (s *Scanner) scanIdent() token.Token {
 		s.readRune()
 	}
 
+	ident := string(s.data[position:s.position])
+
 	if s.ch == ':' {
 		s.readRune()
 		return token.Token{
@@ -252,7 +254,8 @@ func (s *Scanner) scanIdent() token.Token {
 			Position: s.newPosition(position),
 		}
 	}
-	if s.ch == '{' && s.peekRune() == '}' {
+
+	if ident == "interface" && s.ch == '{' && s.peekRune() == '}' {
 		s.readRune()
 		s.readRune()
 		return token.Token{
@@ -262,7 +265,6 @@ func (s *Scanner) scanIdent() token.Token {
 		}
 	}
 
-	ident := string(s.data[position:s.position])
 	tp, ok := token.LookupKeyword(ident)
 	if ok {
 		return token.Token{
