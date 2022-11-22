@@ -142,11 +142,15 @@ func (a *AtDocGroupStmt) Format(prefix ...string) string {
 	}
 
 	w := NewBufferWriter()
-	w.WriteText(a.AtDoc.Format(prefix...) + WhiteSpace + a.LParen.Format())
+	atDocNode := transferTokenNode(a.AtDoc, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	w.Write(withNode(atDocNode, a.LParen))
 	w.NewLine()
-	w.WriteText(strings.Join(textList, NewLine))
-	w.NewLine()
-	w.WriteText(a.RParen.Format(prefix...))
+	for _, v := range a.Values {
+		node := transferTokenNode(v.Key, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment())
+		w.Write(withNode(node, v.Value), expectIndentInfix(), expectSameLine())
+		w.NewLine()
+	}
+	w.Write(withNode(transferTokenNode(a.RParen, withTokenNodePrefix(prefix...))))
 	return w.String()
 }
 
@@ -273,7 +277,9 @@ func (a *AtHandlerStmt) CommentGroup() (head, leading CommentGroup) {
 
 func (a *AtHandlerStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	w.WriteText(a.AtHandler.Format(prefix...) + WhiteSpace + a.Name.Format())
+	atDocNode := transferTokenNode(a.AtHandler, withTokenNodePrefix(prefix...), ignoreLeadingComment())
+	nameNode := transferTokenNode(a.Name, ignoreHeadComment())
+	w.Write(withNode(atDocNode, nameNode), expectSameLine())
 	return w.String()
 }
 

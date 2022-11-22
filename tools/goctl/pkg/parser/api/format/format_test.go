@@ -1199,10 +1199,135 @@ func TestFormat_AtDocStmt(t *testing.T) {
 	t.Run("AtDocGroupStmt", func(t *testing.T) {
 		testRunStmt(t, []formatData{
 			{
-				input:    ``,
+				input:    `@doc()`,
 				expected: ``,
 			},
+			{
+				input: `@doc(foo:"foo")`,
+				expected: `@doc (
+	foo: "foo"
+)`,
+			},
+			{
+				input: `@doc(foo:"foo" bar:"bar")`,
+				expected: `@doc (
+	foo: "foo"
+	bar: "bar"
+)`,
+			},
+			{
+				input: `@doc(foo:"foo" bar:"bar" quux:"quux")`,
+				expected: `@doc (
+	foo:  "foo"
+	bar:  "bar"
+	quux: "quux"
+)`,
+			},
+			{
+				input: `@doc(foo:"foo"
+bar: "bar")`,
+				expected: `@doc (
+	foo: "foo"
+	bar: "bar"
+)`,
+			},
+			{
+				input: `@doc(foo:"foo"// aa
+bar: "bar"// bb
+)`,
+				expected: `@doc (
+	foo: "foo" // aa
+	bar: "bar" // bb
+)`,
+			},
+			{
+				input: `@doc(// aa
+foo:"foo"// bb
+bar: "bar"// cc
+)`,
+				expected: `@doc ( // aa
+	foo: "foo" // bb
+	bar: "bar" // cc
+)`,
+			},
+			{
+				input: `/*aa*/@doc(// bb
+foo:"foo"// cc
+bar: "bar"// dd
+)`,
+				expected: `/*aa*/
+@doc ( // bb
+	foo: "foo" // cc
+	bar: "bar" // dd
+)`,
+			},
+			{
+				input: `/*aa*/
+@doc(// bb
+foo:"foo"// cc
+bar: "bar"// dd
+)// ee`,
+				expected: `/*aa*/
+@doc ( // bb
+	foo: "foo" // cc
+	bar: "bar" // dd
+) // ee`,
+			},
+			{
+				input: `/*aa*/
+@doc ( // bb
+	/*cc*/foo: "foo" // dd
+	/*ee*/bar: "bar" // ff
+) // gg`,
+				expected: `/*aa*/
+@doc ( // bb
+	/*cc*/
+	foo: "foo" // dd
+	/*ee*/
+	bar: "bar" // ff
+) // gg`,
+			},
+			{
+				input: `/*aa*/
+@doc/*xx*/( // bb
+	/*cc*/foo:/*xx*/ "foo" // dd
+	/*ee*/bar:/*xx*/ "bar" // ff
+) // gg`,
+				expected: `/*aa*/
+@doc ( // bb
+	/*cc*/
+	foo: "foo" // dd
+	/*ee*/
+	bar: "bar" // ff
+) // gg`,
+			},
 		})
+	})
+}
+
+func TestFormat_AtHandlerStmt(t *testing.T) {
+	testRunStmt(t, []formatData{
+		{
+			input:    `@handler foo`,
+			expected: `@handler foo`,
+		},
+		{
+			input: `@handler 		foo`,
+			expected: `@handler foo`,
+		},
+		{
+			input: `/*aa*/@handler/**/foo// bb`,
+			expected: `/*aa*/
+@handler foo // bb`,
+		},
+		{
+			input: `/*aa*/
+/*bb*/@handler // cc
+foo// ee`,
+			expected: `/*aa*/
+/*bb*/
+@handler foo // ee`,
+		},
 	})
 }
 
