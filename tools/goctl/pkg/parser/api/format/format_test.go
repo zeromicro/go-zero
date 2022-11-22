@@ -20,6 +20,19 @@ type formatData struct {
 
 type formatResultConvert func(s string) string
 
+//go:embed testdata/test_format.api
+var testFormatData []byte
+
+// EXPERIMENTAL: just for view format code.
+//func TestFormat(t *testing.T) {
+//	f, err := os.OpenFile("testdata/test_formated.api", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+//	if err != nil {
+//		return
+//	}
+//	defer f.Close()
+//	assert.NoError(t, Format(testFormatData,f))
+//}
+
 //go:embed testdata/test_type_struct_lit.api
 var testStructLitData string
 
@@ -833,11 +846,11 @@ type /*bb*/ P /*cc*/ *[...]int // dd`,
 				expected: `type S = []int`,
 			},
 			{
-				input: `type S	[	]	int	`,
+				input:    `type S	[	]	int	`,
 				expected: `type S []int`,
 			},
 			{
-				input: `type S	[ /*xx*/	]	/*xx*/ int	`,
+				input:    `type S	[ /*xx*/	]	/*xx*/ int	`,
 				expected: `type S []int`,
 			},
 			{
@@ -849,7 +862,7 @@ type /*bb*/ P /*cc*/ *[...]int // dd`,
 				expected: `type S = [][]int`,
 			},
 			{
-				input: `type S	[	]	[	]	int`,
+				input:    `type S	[	]	[	]	int`,
 				expected: `type S [][]int`,
 			},
 			{
@@ -1176,7 +1189,7 @@ func TestFormat_AtDocStmt(t *testing.T) {
 				expected: `@doc "foo"`,
 			},
 			{
-				input: `@doc 		"foo"`,
+				input:    `@doc 		"foo"`,
 				expected: `@doc "foo"`,
 			},
 			{
@@ -1314,7 +1327,7 @@ func TestFormat_AtHandlerStmt(t *testing.T) {
 			expected: `@handler foo`,
 		},
 		{
-			input: `@handler 		foo`,
+			input:    `@handler 		foo`,
 			expected: `@handler foo`,
 		},
 		{
@@ -1346,11 +1359,11 @@ func TestFormat_ServiceStmt(t *testing.T) {
 			expected: `service foo {}`,
 		},
 		{
-			input: `service foo	{	}`,
+			input:    `service foo	{	}`,
 			expected: `service foo {}`,
 		},
 		{
-			input: `@server()service foo	{	}`,
+			input:    `@server()service foo	{	}`,
 			expected: `service foo {}`,
 		},
 		{
@@ -1362,7 +1375,7 @@ func TestFormat_ServiceStmt(t *testing.T) {
 service foo {}`,
 		},
 		{
-			input: `service foo-api	{	}`,
+			input:    `service foo-api	{	}`,
 			expected: `service foo-api {}`,
 		},
 		{
@@ -1451,7 +1464,7 @@ func TestFormat_error(t *testing.T) {
 func testRun(t *testing.T, testData []formatData) {
 	for _, v := range testData {
 		buffer := bytes.NewBuffer(nil)
-		err := Format([]byte(v.input), buffer)
+		err := formatForUnitTest([]byte(v.input), buffer)
 		assert.NoError(t, err)
 		var result = buffer.String()
 		if v.converter != nil {

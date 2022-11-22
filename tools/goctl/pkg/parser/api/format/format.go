@@ -16,3 +16,14 @@ func Format(source []byte, w io.Writer) error {
 	result.Format(w)
 	return nil
 }
+
+func formatForUnitTest(source []byte, w io.Writer) error {
+	p := parser.New("", source)
+	result := p.Parse()
+	if err := p.CheckErrors(); err != nil {
+		return err
+	}
+
+	result.FormatForUnitTest(w)
+	return nil
+}

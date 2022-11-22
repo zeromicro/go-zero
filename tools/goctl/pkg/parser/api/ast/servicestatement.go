@@ -209,10 +209,12 @@ func (s *ServiceStmt) Format(prefix ...string) string {
 		return w.String()
 	}
 	w.NewLine()
-	for _, route := range s.Routes {
+	for idx, route := range s.Routes {
 		routeNode := transfer2TokenNode(route, false, withTokenNodePrefix(peekOne(prefix)+Indent))
 		w.Write(withNode(routeNode))
-		w.NewLine()
+		if idx<len(s.Routes)-1{
+			w.NewLine()
+		}
 	}
 	w.Write(withNode(transferTokenNode(s.RBrace, withTokenNodePrefix(prefix...))))
 	return w.String()
@@ -335,6 +337,7 @@ func (s *ServiceItemStmt) Format(prefix ...string) string {
 	w.NewLine()
 	routeNode := transfer2TokenNode(s.Route, false, withTokenNodePrefix(prefix...))
 	w.Write(withNode(routeNode))
+	w.NewLine()
 	return w.String()
 }
 

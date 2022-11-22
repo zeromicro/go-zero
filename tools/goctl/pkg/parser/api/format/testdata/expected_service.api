@@ -12,6 +12,7 @@ service foo { // foo
     @doc "example1"
     @handler example1 // handler declare
     get /path/example1 // no body
+
     @doc ( // doc group
         key1:   "value1"
         key11:  "value11"
@@ -19,12 +20,15 @@ service foo { // foo
     )
     @handler example2 // handler example2
     get /path/example2/:id // path arg
+
     @doc "example3"
     @handler example3
     get /path/example3/:id (Foo) // no response
+
     @doc "example4"
     @handler example4
     post /path/example4/a-b returns (Foo) // no request
+
     @doc "example5"
     @handler example5
     // example5

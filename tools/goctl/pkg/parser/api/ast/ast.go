@@ -134,25 +134,53 @@ func (t *TokenNode) End() token.Position {
 func (a *AST) Format(w io.Writer) {
 	fw := NewWriter(w)
 	defer fw.Flush()
+	for idx, e := range a.Stmts {
+		if e.Format() == NilIndent {
+			continue
+		}
+
+		fw.Write(withNode(e))
+		fw.NewLine()
+		switch stmt := e.(type) {
+		case *SyntaxStmt:
+			fw.NewLine()
+		case *ImportGroupStmt:
+			fw.NewLine()
+		case *ImportLiteralStmt:
+			fw.Write(withNode(stmt))
+			if idx < len(a.Stmts)-1 {
+				_, ok := a.Stmts[idx+1].(*ImportLiteralStmt)
+				if !ok {
+					fw.NewLine()
+				}
+			}
+		case *InfoStmt:
+			fw.NewLine()
+		case *ServiceStmt:
+			fw.NewLine()
+		case *TypeGroupStmt:
+			fw.NewLine()
+		case *TypeLiteralStmt:
+			if idx < len(a.Stmts)-1 {
+				_, ok := a.Stmts[idx+1].(*TypeLiteralStmt)
+				if !ok {
+					fw.NewLine()
+				}
+			}
+		case *CommentStmt:
+		}
+	}
+}
+
+func (a *AST) FormatForUnitTest(w io.Writer) {
+	fw := NewWriter(w)
+	defer fw.Flush()
 	for _, e := range a.Stmts {
 		if e.Format() == NilIndent {
 			continue
 		}
 
 		fw.Write(withNode(e))
-		//switch stmt := e.(type) {
-		//case *SyntaxStmt:
-		//case *ImportGroupStmt:
-		//	fw.Write(withNode(stmt))
-		//case *ImportLiteralStmt:
-		//	fw.Write(withNode(stmt))
-		//case *InfoStmt:
-		//case *ServiceStmt:
-		//case *TypeGroupStmt:
-		//case *TypeLiteralStmt:
-		//case *RouteStmt:
-		//case *CommentStmt:
-		//}
 	}
 }
 
