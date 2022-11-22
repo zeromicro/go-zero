@@ -55,11 +55,11 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		o(option)
 	}
 
-	var copyOpt =append([]tokenNodeOption(nil),opt...)
+	var copyOpt = append([]tokenNodeOption(nil), opt...)
 	var tn *TokenNode
 	switch val := node.(type) {
 	case *AnyDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.Any, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -67,10 +67,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.Any = tn
 	case *ArrayDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.LBrack, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -78,10 +78,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.LBrack = tn
 	case *BaseDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.Base, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -89,10 +89,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.Base = tn
 	case *InterfaceDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.Interface, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -100,10 +100,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.Interface = tn
 	case *MapDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.Map, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -111,10 +111,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.Map = tn
 	case *PointerDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.Star, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -122,10 +122,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.Star = tn
 	case *SliceDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.LBrack, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -133,10 +133,10 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.LBrack = tn
 	case *StructDataType:
-		copyOpt=append(copyOpt,withTokenNodePrefix(NilIndent))
+		copyOpt = append(copyOpt, withTokenNodePrefix(NilIndent))
 		tn = transferTokenNode(val.LBrace, copyOpt...)
 		if option.ignoreHeadComment {
 			tn.HeadCommentGroup = nil
@@ -144,12 +144,14 @@ func transfer2TokenNode(node DataType, isChild bool, opt ...tokenNodeOption) *To
 		if option.ignoreLeadingComment {
 			tn.LeadingCommentGroup = nil
 		}
-		val.isChild=isChild
+		val.isChild = isChild
 		val.LBrace = tn
 	default:
 	}
 
 	return &TokenNode{
+		headFlag:    node.HasHeadCommentGroup(),
+		leadingFlag: node.HasLeadingCommentGroup(),
 		Token: token.Token{
 			Text:     node.Format(option.prefix),
 			Position: node.Pos(),
@@ -355,9 +357,14 @@ func (w *Writer) write(opt *option) {
 	var textList []string
 	line := opt.nodes[0].End().Line
 	for idx, node := range opt.nodes {
-		tokenNode, ok := node.(*TokenNode)
-		mode:=opt.mode
-		if ok && (tokenNode.HasHeadCommentGroup() || tokenNode.HasLeadingCommentGroup()) && idx < len(opt.nodes)-1 {
+		mode := opt.mode
+		preIdx := idx - 1
+		var preNodeHasLeading bool
+		if preIdx > -1 && preIdx < len(opt.nodes) {
+			preNode := opt.nodes[preIdx]
+			preNodeHasLeading = preNode.HasLeadingCommentGroup()
+		}
+		if node.HasHeadCommentGroup() || preNodeHasLeading {
 			mode = ModeAuto
 		}
 

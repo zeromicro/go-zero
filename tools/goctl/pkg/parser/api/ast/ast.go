@@ -40,6 +40,11 @@ type TokenNode struct {
 	Token            token.Token
 	// LeadingCommentGroup are the tail comments in same line.
 	LeadingCommentGroup CommentGroup
+
+	// headFlag and leadingFlag is a comment flag only used in transfer another Node to TokenNode,
+	// headFlag's value is true do not represent HeadCommentGroup is not empty,
+	// leadingFlag's values is true do not represent LeadingCommentGroup is not empty.
+	headFlag, leadingFlag bool
 }
 
 func (t *TokenNode) CommentGroup() (head, leading CommentGroup) {
@@ -67,22 +72,22 @@ func (t *TokenNode) SetLeadingCommentGroup(cg CommentGroup) {
 }
 
 func (t *TokenNode) HasLeadingCommentGroup() bool {
-	return t.LeadingCommentGroup.Valid()
+	return t.LeadingCommentGroup.Valid() || t.leadingFlag
 }
 
 func (t *TokenNode) HasHeadCommentGroup() bool {
-	return t.HeadCommentGroup.Valid()
+	return t.HeadCommentGroup.Valid() || t.headFlag
 }
 
 func (t *TokenNode) PeekFirstLeadingComment() *CommentStmt {
-	if t.HasLeadingCommentGroup() {
+	if len(t.LeadingCommentGroup) > 0 {
 		return t.LeadingCommentGroup[0]
 	}
 	return nil
 }
 
 func (t *TokenNode) PeekFirstHeadComment() *CommentStmt {
-	if t.HasHeadCommentGroup() {
+	if len(t.HeadCommentGroup) > 0 {
 		return t.HeadCommentGroup[0]
 	}
 	return nil
@@ -113,14 +118,14 @@ func (t *TokenNode) Format(prefix ...string) string {
 }
 
 func (t *TokenNode) Pos() token.Position {
-	if t.HasHeadCommentGroup() {
+	if len(t.HeadCommentGroup) > 0 {
 		return t.PeekFirstHeadComment().Pos()
 	}
 	return t.Token.Position
 }
 
 func (t *TokenNode) End() token.Position {
-	if t.HasLeadingCommentGroup() {
+	if len(t.LeadingCommentGroup) > 0 {
 		return t.LeadingCommentGroup[len(t.LeadingCommentGroup)-1].End()
 	}
 	return t.Token.Position
