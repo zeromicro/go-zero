@@ -123,7 +123,7 @@ func (p *Parser) parseService() *ast.ServiceStmt {
 
 	// service item statements
 	routes := p.parseServiceItemsStmt()
-	if isNil(routes) {
+	if routes == nil {
 		return nil
 	}
 	stmt.Routes = routes
@@ -138,7 +138,7 @@ func (p *Parser) parseService() *ast.ServiceStmt {
 }
 
 func (p *Parser) parseServiceItemsStmt() []*ast.ServiceItemStmt {
-	var stmt []*ast.ServiceItemStmt
+	var stmt = make([]*ast.ServiceItemStmt, 0)
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RBRACE) {
 		item := p.parseServiceItemStmt()
 		if item == nil {

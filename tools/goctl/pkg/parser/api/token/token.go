@@ -84,6 +84,34 @@ func (t Token) Is(text ...string) bool {
 	return false
 }
 
+var KeywordType = []Type{
+	BREAK,
+	CASE,
+	CHAN,
+	CONST,
+	CONTINUE,
+	DEFAULT,
+	DEFER,
+	ELSE,
+	FALLTHROUGH,
+	FOR,
+	FUNC,
+	GO,
+	GOTO,
+	IF,
+	IMPORT,
+	INTERFACE,
+	MAP,
+	PACKAGE,
+	RANGE,
+	RETURN,
+	SELECT,
+	STRUCT,
+	SWITCH,
+	TYPE,
+	VAR,
+}
+
 const (
 	token_bg Type = iota
 	error

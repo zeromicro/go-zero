@@ -15,6 +15,8 @@ import (
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	apiF "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -55,8 +57,14 @@ func GoFormatApi(_ *cobra.Command, _ []string) error {
 
 		err = filepath.Walk(VarStringDir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
-				if err := ApiFormatByPath(path, VarBoolSkipCheckDeclare); err != nil {
-					be.Add(util.WrapErr(err, fi.Name()))
+				if env.UseExperimental() {
+					if err := apiF.File(path); err != nil {
+						be.Add(util.WrapErr(err, fi.Name()))
+					}
+				} else {
+					if err := ApiFormatByPath(path, VarBoolSkipCheckDeclare); err != nil {
+						be.Add(util.WrapErr(err, fi.Name()))
+					}
 				}
 			}
 			return nil

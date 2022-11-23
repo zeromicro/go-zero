@@ -161,12 +161,7 @@ func (a *AST) Format(w io.Writer) {
 		case *TypeGroupStmt:
 			fw.NewLine()
 		case *TypeLiteralStmt:
-			if idx < len(a.Stmts)-1 {
-				_, ok := a.Stmts[idx+1].(*TypeLiteralStmt)
-				if !ok {
-					fw.NewLine()
-				}
-			}
+			fw.NewLine()
 		case *CommentStmt:
 		}
 	}

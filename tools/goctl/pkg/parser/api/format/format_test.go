@@ -20,18 +20,10 @@ type formatData struct {
 
 type formatResultConvert func(s string) string
 
-//go:embed testdata/test_format.api
-var testFormatData []byte
-
 // EXPERIMENTAL: just for view format code.
-//func TestFormat(t *testing.T) {
-//	f, err := os.OpenFile("testdata/test_formated.api", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
-//	if err != nil {
-//		return
-//	}
-//	defer f.Close()
-//	assert.NoError(t, Format(testFormatData,f))
-//}
+func TestFormat(t *testing.T) {
+	assert.NoError(t, File("testdata/test_format.api"))
+}
 
 //go:embed testdata/test_type_struct_lit.api
 var testStructLitData string
@@ -1457,7 +1449,7 @@ post
 }
 
 func TestFormat_error(t *testing.T) {
-	err := Format([]byte("aaa"), os.Stdout)
+	err := Source([]byte("aaa"), os.Stdout)
 	assertx.Error(t, err)
 }
 
