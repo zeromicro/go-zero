@@ -82,7 +82,7 @@ func ParseHeader(headerValue string) map[string]string {
 // ParseJsonBody parses the post request which contains json in body.
 func ParseJsonBody(r *http.Request, v interface{}) error {
 	if withJsonBody(r) {
-		reader := io.LimitReader(r.Body, maxBodyLen)
+		reader,_ := io.ReadAll(r.Body)
 		return mapping.UnmarshalJsonReader(reader, v)
 	}
 
