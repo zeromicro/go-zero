@@ -8,11 +8,14 @@ import (
 )
 
 const (
-	Syntax  = "syntax"
-	Info    = "info"
-	Service = "service"
-	Returns = "returns"
-	Any     = "any"
+	Syntax        = "syntax"
+	Info          = "info"
+	Service       = "service"
+	Returns       = "returns"
+	Any           = "any"
+	TypeKeyword   = "type"
+	MapKeyword    = "map"
+	ImportKeyword = "import"
 )
 
 type Type int
@@ -24,6 +27,14 @@ type Token struct {
 	Type     Type
 	Text     string
 	Position Position
+}
+
+func (t Token) Fork(tp Type) Token {
+	return Token{
+		Type:     tp,
+		Text:     t.Text,
+		Position: t.Position,
+	}
 }
 
 func (t Token) IsEmptyString() bool {
@@ -84,32 +95,32 @@ func (t Token) Is(text ...string) bool {
 	return false
 }
 
-var KeywordType = []Type{
-	BREAK,
-	CASE,
-	CHAN,
-	CONST,
-	CONTINUE,
-	DEFAULT,
-	DEFER,
-	ELSE,
-	FALLTHROUGH,
-	FOR,
-	FUNC,
-	GO,
-	GOTO,
-	IF,
-	IMPORT,
-	INTERFACE,
-	MAP,
-	PACKAGE,
-	RANGE,
-	RETURN,
-	SELECT,
-	STRUCT,
-	SWITCH,
-	TYPE,
-	VAR,
+var KeywordType = []string{
+	"break",
+	"case",
+	"chan",
+	"const",
+	"continue",
+	"default",
+	"defer",
+	"else",
+	"fallthrough",
+	"for",
+	"func",
+	"go",
+	"goto",
+	"if",
+	"import",
+	"interface",
+	"map",
+	"package",
+	"range",
+	"return",
+	"select",
+	"struct",
+	"switch",
+	"type",
+	"var",
 }
 
 const (

@@ -479,7 +479,7 @@ func TestScanner_NextToken_ident(t *testing.T) {
 			},
 		},
 		{
-			Type: token.GO,
+			Type: token.IDENT,
 			Text: "go",
 			Position: token.Position{
 				Filename: "foo.api",
@@ -488,7 +488,7 @@ func TestScanner_NextToken_ident(t *testing.T) {
 			},
 		},
 		{
-			Type: token.FUNC,
+			Type: token.IDENT,
 			Text: "func",
 			Position: token.Position{
 				Filename: "foo.api",
@@ -608,7 +608,7 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.INTERFACE,
+			Type:     token.IDENT,
 			Text:     "interface",
 			Position: token.Position{
 				Filename: "foo.api",
@@ -940,7 +940,7 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(9, 1),
 		},
 		{
-			Type:     token.TYPE,
+			Type:     token.IDENT,
 			Text:     `type`,
 			Position: position(12, 1),
 		},
@@ -965,7 +965,7 @@ func TestScanner_NextToken(t *testing.T) {
 			Position: position(14, 1),
 		},
 		{
-			Type:     token.TYPE,
+			Type:     token.IDENT,
 			Text:     `type`,
 			Position: position(16, 1),
 		},
@@ -1229,7 +1229,7 @@ func TestScanner_NextToken_type(t *testing.T) {
 			},
 		},
 		{
-			Type: token.MAP,
+			Type: token.IDENT,
 			Text: "map",
 			Position: token.Position{
 				Filename: "foo.api",

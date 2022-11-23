@@ -237,7 +237,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 		assert.True(t, p.hasNoErrors())
 		stmt := result.Stmts[0]
 		importGroup, ok := stmt.(*ast.ImportGroupStmt)
-		assert.Equal(t, token.IMPORT, importGroup.Import.Token.Type)
+		assert.Equal(t, token.IDENT, importGroup.Import.Token.Type)
 		assert.Equal(t, token.LPAREN, importGroup.LParen.Token.Type)
 		assert.Equal(t, token.RPAREN, importGroup.RParen.Token.Type)
 		for idx, v := range testData {
@@ -253,7 +253,7 @@ func TestParser_Parse_importGroup(t *testing.T) {
 		stmt := result.Stmts[0]
 		importGroup, ok := stmt.(*ast.ImportGroupStmt)
 		assert.True(t, ok)
-		assert.Equal(t, token.IMPORT, importGroup.Import.Token.Type)
+		assert.Equal(t, token.IDENT, importGroup.Import.Token.Type)
 		assert.Equal(t, token.LPAREN, importGroup.LParen.Token.Type)
 		assert.Equal(t, token.RPAREN, importGroup.RParen.Token.Type)
 		assert.Equal(t, 0, len(importGroup.Values))
@@ -904,7 +904,7 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 					Expr: &ast.TypeExpr{
 						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Map"}),
 						DataType: &ast.MapDataType{
-							Map:    ast.NewTokenNode(token.Token{Type: token.MAP, Text: "map"}),
+							Map:    ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "map"}),
 							LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
 							Key:    &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"})},
 							RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
@@ -1254,6 +1254,8 @@ func TestParser_Parse_parseTypeStmt_invalid(t *testing.T) {
 		"type (Foo int\nBar)",
 		"type (Foo int\nBar string `)",
 		"type (())",
+		"type go int",
+		"type  A func",
 	}
 
 	for _, v := range testData {

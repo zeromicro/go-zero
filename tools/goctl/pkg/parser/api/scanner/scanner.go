@@ -265,15 +265,6 @@ func (s *Scanner) scanIdent() token.Token {
 		}
 	}
 
-	tp, ok := token.LookupKeyword(ident)
-	if ok {
-		return token.Token{
-			Type:     tp,
-			Text:     ident,
-			Position: s.newPosition(position),
-		}
-	}
-
 	return token.Token{
 		Type:     token.IDENT,
 		Text:     ident,

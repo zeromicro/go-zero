@@ -73,14 +73,14 @@ func (p *Parser) parseStmt() ast.Stmt {
 			return p.parseInfoStmt()
 		case p.curTok.Is(token.Service):
 			return p.parseService()
+		case p.curTok.Is(token.TypeKeyword):
+			return p.parseTypeStmt()
+		case p.curTok.Is(token.ImportKeyword):
+			return p.parseImportStmt()
 		default:
 			p.expectIdentError(p.curTok, token.Syntax, token.Info, token.Service, token.TYPE)
 			return nil
 		}
-	case token.IMPORT:
-		return p.parseImportStmt()
-	case token.TYPE:
-		return p.parseTypeStmt()
 	case token.AT_SERVER:
 		return p.parseService()
 	default:
@@ -628,6 +628,10 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
+	if p.curTokenIsKeyword() {
+		return nil
+	}
+
 	expr.Name = p.curTokenNode()
 
 	// token '='
@@ -654,15 +658,19 @@ func (p *Parser) parseDataType() ast.DataType {
 	case p.peekTokenIs(token.LBRACE):
 		return p.parseStructDataType()
 	case p.peekTokenIs(token.IDENT):
+		if p.peekTokenIs(token.MapKeyword) {
+			return p.parseMapDataType()
+		}
 		if !p.nextToken() {
+			return nil
+		}
+		if p.curTokenIsKeyword() {
 			return nil
 		}
 		node := p.curTokenNode()
 		baseDT := &ast.BaseDataType{Base: node}
 
 		return baseDT
-	case p.peekTokenIs(token.MAP):
-		return p.parseMapDataType()
 	case p.peekTokenIs(token.LBRACK):
 		if !p.nextToken() {
 			return nil
@@ -681,7 +689,7 @@ func (p *Parser) parseDataType() ast.DataType {
 	case p.peekTokenIs(token.MUL):
 		return p.parsePointerDataType()
 	default:
-		p.expectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL, token.LBRACE)
+		p.expectPeekToken(token.IDENT, token.LBRACK, token.ANY, token.MUL, token.LBRACE)
 		return nil
 	}
 }
@@ -734,9 +742,12 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
+	if p.curTokenIsKeyword() {
+		return nil
+	}
 	expr.Name = append(expr.Name, p.curTokenNode())
 
-	if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL, token.LBRACE) {
+	if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.ANY, token.MUL, token.LBRACE) {
 		return nil
 	}
 
@@ -745,6 +756,9 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 			return nil
 		}
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
+			return nil
+		}
+		if p.curTokenIsKeyword() {
 			return nil
 		}
 		expr.Name = append(expr.Name, p.curTokenNode())
@@ -787,7 +801,7 @@ func (p *Parser) parsePointerDataType() *ast.PointerDataType {
 	}
 	tp.Star = p.curTokenNode()
 
-	if p.notExpectPeekToken(token.IDENT, token.LBRACK, token.MAP, token.ANY, token.MUL) {
+	if p.notExpectPeekToken(token.IDENT, token.LBRACK, token.ANY, token.MUL) {
 		return nil
 	}
 	// DataType
@@ -1084,6 +1098,16 @@ func (p *Parser) curTokenIsNotEof() bool {
 
 func (p *Parser) curTokenIsNot(expected token.Type) bool {
 	return p.curTok.Type != expected
+}
+
+func (p *Parser) curTokenIsKeyword() bool {
+	tp, ok := token.LookupKeyword(p.curTok.Text)
+	if ok {
+		p.curTokenIs()
+		p.expectIdentError(p.curTok.Fork(tp), token.IDENT)
+		return true
+	}
+	return false
 }
 
 func (p *Parser) curTokenIs(expected ...interface{}) bool {

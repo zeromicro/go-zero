@@ -2,6 +2,8 @@ syntax = "v1"
 
 import "example_base1.api"
 import "example_base1.api"import "example_base1.api"
+import "example_base1.api"import "example_base1.api"
+import "example_base1.api"import "example_base1.api"
 import "example_base1.api"
 import (
 	"example_base2.api"
