@@ -28,6 +28,8 @@ type ZRpcContext struct {
 	Output string
 	// Multiple is the flag to indicate whether the proto file is generated in multiple mode.
 	Multiple bool
+	// Schema is the ent schema path
+	Schema string
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -88,6 +90,13 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	err = g.GenLogic(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
+	}
+
+	if zctx.Schema != "" {
+		err = g.GenEntLogic(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = g.GenServer(dirCtx, proto, g.cfg, zctx)

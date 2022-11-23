@@ -92,6 +92,7 @@ func init() {
 	protocCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
 		"The branch of the remote repo, it does work with --remote")
 	protocCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
+	protocCmd.Flags().StringVar(&cli.VarStringSchema, "schema", "", "The schema of the Ent")
 	protocCmd.Flags().MarkHidden("go_out")
 	protocCmd.Flags().MarkHidden("go-grpc_out")
 	protocCmd.Flags().MarkHidden("go_opt")

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
@@ -44,6 +45,8 @@ var (
 	VarBoolVerbose bool
 	// VarBoolMultiple describes whether support generating multiple rpc services or not.
 	VarBoolMultiple bool
+	// VarStringSchema describe the ent schema path
+	VarStringSchema string
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
