@@ -700,7 +700,7 @@ func (p *Parser) parseStructDataType() *ast.StructDataType {
 	}
 	tp.LBrace = p.curTokenNode()
 
-	if p.notExpectPeekToken(token.IDENT, token.RBRACE) {
+	if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 		return nil
 	}
 	// ElemExprList
@@ -721,7 +721,7 @@ func (p *Parser) parseStructDataType() *ast.StructDataType {
 func (p *Parser) parseElemExprList() ast.ElemExprList {
 	var list = make(ast.ElemExprList, 0)
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RBRACE, token.EOF) {
-		if p.notExpectPeekToken(token.IDENT, token.RBRACE) {
+		if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 			return nil
 		}
 		expr := p.parseElemExpr()
@@ -729,7 +729,7 @@ func (p *Parser) parseElemExprList() ast.ElemExprList {
 			return nil
 		}
 		list = append(list, expr)
-		if p.notExpectPeekToken(token.IDENT, token.RBRACE) {
+		if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 			return nil
 		}
 	}
@@ -739,38 +739,61 @@ func (p *Parser) parseElemExprList() ast.ElemExprList {
 
 func (p *Parser) parseElemExpr() *ast.ElemExpr {
 	var expr = &ast.ElemExpr{}
-	if !p.advanceIfPeekTokenIs(token.IDENT) {
+	if !p.advanceIfPeekTokenIs(token.IDENT, token.MUL) {
 		return nil
 	}
 	if p.curTokenIsKeyword() {
 		return nil
 	}
-	expr.Name = append(expr.Name, p.curTokenNode())
-
-	if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.ANY, token.MUL, token.LBRACE) {
-		return nil
-	}
-
-	for p.peekTokenIs(token.COMMA) {
-		if !p.nextToken() {
-			return nil
-		}
+	identNode := p.curTokenNode()
+	if p.curTokenIs(token.MUL) {
+		star := p.curTokenNode()
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
-		if p.curTokenIsKeyword() {
+		var dt ast.DataType
+		if p.curTokenIs(token.Any) {
+			dt = &ast.AnyDataType{Any: p.curTokenNode()}
+		} else {
+			dt = &ast.BaseDataType{Base: p.curTokenNode()}
+		}
+		expr.DataType = &ast.PointerDataType{
+			Star:     star,
+			DataType: dt,
+		}
+	} else if p.peekTok.Line() > identNode.Token.Line() || p.peekTokenIs(token.RAW_STRING) {
+		if p.curTokenIs(token.Any) {
+			expr.DataType = &ast.AnyDataType{Any: identNode}
+		} else {
+			expr.DataType = &ast.BaseDataType{Base: identNode}
+		}
+	} else {
+		expr.Name = append(expr.Name, identNode)
+		if p.notExpectPeekToken(token.COMMA, token.IDENT, token.LBRACK, token.ANY, token.MUL, token.LBRACE) {
 			return nil
 		}
-		expr.Name = append(expr.Name, p.curTokenNode())
+
+		for p.peekTokenIs(token.COMMA) {
+			if !p.nextToken() {
+				return nil
+			}
+			if !p.advanceIfPeekTokenIs(token.IDENT) {
+				return nil
+			}
+			if p.curTokenIsKeyword() {
+				return nil
+			}
+			expr.Name = append(expr.Name, p.curTokenNode())
+		}
+
+		dt := p.parseDataType()
+		if isNil(dt) {
+			return nil
+		}
+		expr.DataType = dt
 	}
 
-	dt := p.parseDataType()
-	if isNil(dt) {
-		return nil
-	}
-	expr.DataType = dt
-
-	if p.notExpectPeekToken(token.RAW_STRING, token.IDENT, token.RBRACE) {
+	if p.notExpectPeekToken(token.RAW_STRING, token.MUL, token.IDENT, token.RBRACE) {
 		return nil
 	}
 

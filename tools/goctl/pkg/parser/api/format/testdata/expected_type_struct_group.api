@@ -6,6 +6,8 @@ type (
         /*Name head2*/
         Name string `json:"name"` // name
         Age  int    `json:"age"` // age
+        Extra
+        Address string
         Hobby []{
             Name string // hobby.name
             Rate string

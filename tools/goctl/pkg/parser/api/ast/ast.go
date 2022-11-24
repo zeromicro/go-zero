@@ -171,11 +171,12 @@ func (a *AST) FormatForUnitTest(w io.Writer) {
 	fw := NewWriter(w)
 	defer fw.Flush()
 	for _, e := range a.Stmts {
-		if e.Format() == NilIndent {
+		text:=e.Format()
+		if text == NilIndent {
 			continue
 		}
 
-		fw.Write(withNode(e))
+		fw.WriteText(text)
 	}
 }
 

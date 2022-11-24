@@ -155,7 +155,14 @@ type ElemExpr struct {
 	Tag      *TokenNode
 }
 
+func (e *ElemExpr) IsAnonymous() bool {
+	return len(e.Name) == 0
+}
+
 func (e *ElemExpr) HasHeadCommentGroup() bool {
+	if e.IsAnonymous() {
+		return e.DataType.HasHeadCommentGroup()
+	}
 	return e.Name[0].HasHeadCommentGroup()
 }
 
@@ -171,6 +178,10 @@ func (e *ElemExpr) CommentGroup() (head, leading CommentGroup) {
 		leading = e.Tag.LeadingCommentGroup
 	} else {
 		_, leading = e.DataType.CommentGroup()
+	}
+	if e.IsAnonymous() {
+		head, _ := e.DataType.CommentGroup()
+		return head, leading
 	}
 	return e.Name[0].HeadCommentGroup, leading
 }
@@ -190,9 +201,6 @@ func (e *ElemExpr) Format(prefix ...string) string {
 		}
 	}
 
-	nameNode := transferNilInfixNode(nameNodeList,
-		withTokenNodePrefix(prefix...), withTokenNodeInfix(", "))
-
 	var dataTypeOption []tokenNodeOption
 	if e.DataType.ContainsStruct() {
 		dataTypeOption = append(dataTypeOption, withTokenNodePrefix(peekOne(prefix)+Indent))
@@ -200,10 +208,20 @@ func (e *ElemExpr) Format(prefix ...string) string {
 		dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
 	}
 	dataTypeNode := transfer2TokenNode(e.DataType, false, dataTypeOption...)
-	if e.Tag != nil {
-		w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectIndentInfix(), expectSameLine())
+	if len(nameNodeList) > 0 {
+		nameNode := transferNilInfixNode(nameNodeList,
+			withTokenNodePrefix(prefix...), withTokenNodeInfix(", "))
+		if e.Tag != nil {
+			w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectIndentInfix(), expectSameLine())
+		} else {
+			w.Write(withNode(nameNode, dataTypeNode), expectIndentInfix(), expectSameLine())
+		}
 	} else {
-		w.Write(withNode(nameNode, dataTypeNode), expectIndentInfix(), expectSameLine())
+		if e.Tag != nil {
+			w.Write(withNode(dataTypeNode, e.Tag), expectIndentInfix(), expectSameLine())
+		} else {
+			w.Write(withNode(dataTypeNode), expectIndentInfix(), expectSameLine())
+		}
 	}
 	return w.String()
 }
@@ -657,15 +675,12 @@ func (t *StructDataType) Format(prefix ...string) string {
 	w.WriteText(t.LBrace.Format(NilIndent))
 	w.NewLine()
 	for _, e := range t.Elements {
-		//w.Write(withNode(e), withPrefix(peekOne(prefix)+Indent))
-		var nameNode *TokenNode
-		nameNode = transferTokenNode(e.Name[0], withTokenNodePrefix(peekOne(prefix)+Indent))
-		if len(e.Name) > 1 {
-			var nameNodeList []*TokenNode
+		var nameNodeList []*TokenNode
+		if len(e.Name) > 0 {
 			for idx, n := range e.Name {
 				if idx == 0 {
 					nameNodeList = append(nameNodeList,
-						transferTokenNode(n, ignoreLeadingComment()))
+						transferTokenNode(n, withTokenNodePrefix(peekOne(prefix)+Indent), ignoreLeadingComment()))
 				} else if idx < len(e.Name)-1 {
 					nameNodeList = append(nameNodeList,
 						transferTokenNode(n, ignoreLeadingComment(), ignoreHeadComment()))
@@ -673,29 +688,42 @@ func (t *StructDataType) Format(prefix ...string) string {
 					nameNodeList = append(nameNodeList, transferTokenNode(n, ignoreHeadComment()))
 				}
 			}
-
-			nameNode = transferNilInfixNode(nameNodeList,
-				withTokenNodePrefix(peekOne(prefix)+Indent), withTokenNodeInfix(", "))
 		}
 		var dataTypeOption []tokenNodeOption
-		if e.DataType.ContainsStruct() {
+		if e.DataType.ContainsStruct() || e.IsAnonymous() {
 			dataTypeOption = append(dataTypeOption, withTokenNodePrefix(peekOne(prefix)+Indent))
 		} else {
 			dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
 		}
-
 		dataTypeNode := transfer2TokenNode(e.DataType, false, dataTypeOption...)
-		if e.Tag != nil {
-			if e.DataType.ContainsStruct() {
-				w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectSameLine())
+		if len(nameNodeList) > 0 {
+			nameNode := transferNilInfixNode(nameNodeList, withTokenNodeInfix(", "))
+			if e.Tag != nil {
+				if e.DataType.ContainsStruct() {
+					w.Write(withNode(nameNode, dataTypeNode, e.Tag), expectSameLine())
+				} else {
+					w.Write(withNode(nameNode, e.DataType, e.Tag), expectIndentInfix(), expectSameLine())
+				}
 			} else {
-				w.Write(withNode(nameNode, e.DataType, e.Tag), expectIndentInfix(), expectSameLine())
+				if e.DataType.ContainsStruct() {
+					w.Write(withNode(nameNode, dataTypeNode), expectSameLine())
+				} else {
+					w.Write(withNode(nameNode, e.DataType), expectIndentInfix(), expectSameLine())
+				}
 			}
 		} else {
-			if e.DataType.ContainsStruct() {
-				w.Write(withNode(nameNode, dataTypeNode), expectSameLine())
+			if e.Tag != nil {
+				if e.DataType.ContainsStruct() {
+					w.Write(withNode(dataTypeNode, e.Tag), expectSameLine())
+				} else {
+					w.Write(withNode(e.DataType, e.Tag), expectIndentInfix(), expectSameLine())
+				}
 			} else {
-				w.Write(withNode(nameNode, e.DataType), expectIndentInfix(), expectSameLine())
+				if e.DataType.ContainsStruct() {
+					w.Write(withNode(dataTypeNode), expectSameLine())
+				} else {
+					w.Write(withNode(dataTypeNode), expectIndentInfix(), expectSameLine())
+				}
 			}
 		}
 		w.NewLine()
