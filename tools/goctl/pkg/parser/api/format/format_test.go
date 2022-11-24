@@ -1082,6 +1082,22 @@ T // ee
 }`,
 			},
 			{
+				input: `type T {
+			Foo
+			}`,
+				expected: `type T {
+	Foo
+}`,
+			},
+			{
+				input: `type T {
+			*Foo
+			}`,
+				expected: `type T {
+	*Foo
+}`,
+			},
+			{
 				input:    testStructLitData,
 				expected: expectedStructLitData,
 				converter: func(s string) string {

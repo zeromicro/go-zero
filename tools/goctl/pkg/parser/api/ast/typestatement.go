@@ -558,9 +558,8 @@ func (t *PointerDataType) CommentGroup() (head, leading CommentGroup) {
 
 func (t *PointerDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	star := transferTokenNode(t.Star, ignoreLeadingComment())
+	star := transferTokenNode(t.Star, ignoreLeadingComment(),withTokenNodePrefix(prefix...))
 	var dataTypeOption []tokenNodeOption
-	dataTypeOption = append(dataTypeOption, withTokenNodePrefix(prefix...))
 	dataTypeOption = append(dataTypeOption, ignoreHeadComment())
 	dataType := transfer2TokenNode(t.DataType, false, dataTypeOption...)
 	node := transferNilInfixNode([]*TokenNode{star, dataType})

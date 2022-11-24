@@ -141,13 +141,12 @@ func (a *AST) Format(w io.Writer) {
 
 		fw.Write(withNode(e))
 		fw.NewLine()
-		switch stmt := e.(type) {
+		switch e.(type) {
 		case *SyntaxStmt:
 			fw.NewLine()
 		case *ImportGroupStmt:
 			fw.NewLine()
 		case *ImportLiteralStmt:
-			fw.Write(withNode(stmt))
 			if idx < len(a.Stmts)-1 {
 				_, ok := a.Stmts[idx+1].(*ImportLiteralStmt)
 				if !ok {
