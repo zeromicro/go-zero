@@ -1,6 +1,9 @@
 service foo {
     @handler bar
     get /ping
+
+    @handler bar
+    get /ping;
 }
 
 service bar {
@@ -8,14 +11,27 @@ service bar {
     @handler foo
     get /foo/:bar (Foo)
 
+    @doc "bar"
+    @handler foo
+    get /foo/:bar (Foo) returns ();
+
     @handler foo
     get /foo/:bar returns (Foo)
+
+    @handler foo
+    get /foo/:bar () returns (Foo);
 }
 
 service baz-api {
     @handler foo
     post /foo/:bar/foo-bar-baz (Foo) returns (*Bar)
 
+    @handler foo
+    post /foo/:bar/foo-bar-baz (Foo) returns (*Bar);
+
     @handler bar
     post /foo ([]Foo) returns ([]*Bar)
+
+    @handler bar
+    post /foo ([]Foo) returns ([]*Bar);
 }

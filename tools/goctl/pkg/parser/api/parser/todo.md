@@ -10,16 +10,6 @@ service foo{
 }
 ```
 
-2. Support anonymous struct field?
-```api
-type Bar{}
-type Foo {
-    Bar
-}
-```
-
-3. Format cause comments missed
-
 # features
 The follows need more discussion.
 

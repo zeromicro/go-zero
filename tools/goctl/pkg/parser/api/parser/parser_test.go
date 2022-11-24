@@ -124,12 +124,12 @@ var infoTestAPI string
 
 func TestParser_Parse_infoStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
-		expected:=map[string]string{
-			"title:":`"type title here"`,
-			"desc:":`"type desc here"`,
-			"author:":`"type author here"`,
-			"email:":`"type email here"`,
-			"version:":`"type version here"`,
+		expected := map[string]string{
+			"title:":   `"type title here"`,
+			"desc:":    `"type desc here"`,
+			"author:":  `"type author here"`,
+			"email:":   `"type email here"`,
+			"version:": `"type version here"`,
 		}
 		p := New("foo.api", infoTestAPI)
 		result := p.Parse()
@@ -137,10 +137,10 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 		stmt := result.Stmts[0]
 		infoStmt, ok := stmt.(*ast.InfoStmt)
 		assert.True(t, ok)
-		for _,stmt:=range infoStmt.Values{
-			actual:=stmt.Value.Token.Text
-			expectedValue:=expected[stmt.Key.Token.Text]
-			assert.Equal(t, expectedValue,actual)
+		for _, stmt := range infoStmt.Values {
+			actual := stmt.Value.Token.Text
+			expectedValue := expected[stmt.Key.Token.Text]
+			assert.Equal(t, expectedValue, actual)
 		}
 
 	})
@@ -152,10 +152,10 @@ func TestParser_Parse_infoStmt(t *testing.T) {
 		stmt := result.Stmts[0]
 		infoStmt, ok := stmt.(*ast.InfoStmt)
 		assert.True(t, ok)
-		assert.Equal(t, "info",infoStmt.Info.Token.Text)
-		assert.Equal(t, "(",infoStmt.LParen.Token.Text)
-		assert.Equal(t, ")",infoStmt.RParen.Token.Text)
-		assert.Equal(t, 0,len(infoStmt.Values))
+		assert.Equal(t, "info", infoStmt.Info.Token.Text)
+		assert.Equal(t, "(", infoStmt.LParen.Token.Text)
+		assert.Equal(t, ")", infoStmt.RParen.Token.Text)
+		assert.Equal(t, 0, len(infoStmt.Values))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -285,11 +285,11 @@ var atServerTestAPI string
 func TestParser_Parse_atServerStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var expectedData = map[string]string{
-			"foo:":`bar`,
-			"bar:":`baz`,
-			"baz:":`foo`,
-			"qux:":`/v1`,
-			"quux:":`/v1/v2`,
+			"foo:":  `bar`,
+			"bar:":  `baz`,
+			"baz:":  `foo`,
+			"qux:":  `/v1`,
+			"quux:": `/v1/v2`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
@@ -299,8 +299,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 		atServerStmt, ok := stmt.(*ast.AtServerStmt)
 		assert.True(t, ok)
 		for _, v := range atServerStmt.Values {
-			expectedValue:=expectedData[v.Key.Token.Text]
-			assert.Equal(t, expectedValue,v.Value.Token.Text)
+			expectedValue := expectedData[v.Key.Token.Text]
+			assert.Equal(t, expectedValue, v.Value.Token.Text)
 		}
 	})
 
@@ -523,6 +523,19 @@ func TestParser_Parse_service(t *testing.T) {
 							})},
 						},
 					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{Value: ast.NewTokenNode(token.Token{
+								Type: token.PATH,
+								Text: "/ping",
+							})},
+						},
+					},
 				},
 			},
 			{
@@ -560,6 +573,10 @@ func TestParser_Parse_service(t *testing.T) {
 						},
 					},
 					{
+						AtDoc: &ast.AtDocLiteralStmt{
+							AtDoc: ast.NewTokenNode(token.Token{Type: token.AT_DOC, Text: "@doc"}),
+							Value: ast.NewTokenNode(token.Token{Type: token.STRING, Text: `"bar"`}),
+						},
 						AtHandler: &ast.AtHandlerStmt{
 							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
 							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
@@ -571,6 +588,60 @@ func TestParser_Parse_service(t *testing.T) {
 									Type: token.PATH,
 									Text: "/foo/:bar",
 								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar",
+								}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "get"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar",
+								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
 							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
 							Response: &ast.BodyStmt{
@@ -618,6 +689,72 @@ func TestParser_Parse_service(t *testing.T) {
 								Body: &ast.BodyExpr{
 									Star:  ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
 									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "foo"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "post"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo/:bar/foo-bar-baz",
+								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									Star:  ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+									Value: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+						},
+					},
+					{
+						AtHandler: &ast.AtHandlerStmt{
+							AtHandler: ast.NewTokenNode(token.Token{Type: token.AT_HANDLER, Text: "@handler"}),
+							Name:      ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "bar"}),
+						},
+						Route: &ast.RouteStmt{
+							Method: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "post"}),
+							Path: &ast.PathExpr{
+								Value: ast.NewTokenNode(token.Token{
+									Type: token.PATH,
+									Text: "/foo",
+								}),
+							},
+							Request: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+									RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+									Value:  ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+								},
+								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
+							},
+							Returns: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "returns"}),
+							Response: &ast.BodyStmt{
+								LParen: ast.NewTokenNode(token.Token{Type: token.LPAREN, Text: "("}),
+								Body: &ast.BodyExpr{
+									LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+									RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+									Star:   ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+									Value:  ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
 								},
 								RParen: ast.NewTokenNode(token.Token{Type: token.RPAREN, Text: ")"}),
 							},
@@ -995,20 +1132,20 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
 									},
 									Tag: ast.NewTokenNode(token.Token{
-										Type:     token.RAW_STRING,
-										Text:     "`json:\"bar\"`",
+										Type: token.RAW_STRING,
+										Text: "`json:\"bar\"`",
 									}),
 								},
 								{
 									DataType: &ast.PointerDataType{
-										Star:     ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+										Star: ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
 										DataType: &ast.BaseDataType{
 											Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Baz"}),
 										},
 									},
 									Tag: ast.NewTokenNode(token.Token{
-										Type:     token.RAW_STRING,
-										Text:     "`json:\"baz\"`",
+										Type: token.RAW_STRING,
+										Text: "`json:\"baz\"`",
 									}),
 								},
 							},
@@ -1017,117 +1154,117 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 					},
 				},
 			},
-			//{
-			//	input: "type Foo {Name string}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				Elements: ast.ElemExprList{
-			//					{
-			//						Name: []*ast.TokenNode{ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Name"})},
-			//						DataType: &ast.BaseDataType{
-			//							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
-			//						},
-			//					},
-			//				},
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Foo {Name,Desc string}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				Elements: ast.ElemExprList{
-			//					{
-			//						Name: []*ast.TokenNode{
-			//							{Token: token.Token{Type: token.IDENT, Text: "Name"}},
-			//							{Token: token.Token{Type: token.IDENT, Text: "Desc"}},
-			//						},
-			//						DataType: &ast.BaseDataType{
-			//							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
-			//						},
-			//					},
-			//				},
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Foo {Name string\n Age int `json:\"age\"`}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				Elements: ast.ElemExprList{
-			//					{
-			//						Name: []*ast.TokenNode{
-			//							{Token: token.Token{Type: token.IDENT, Text: "Name"}},
-			//						},
-			//						DataType: &ast.BaseDataType{
-			//							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
-			//						},
-			//					},
-			//					{
-			//						Name: []*ast.TokenNode{
-			//							{Token: token.Token{Type: token.IDENT, Text: "Age"}},
-			//						},
-			//						DataType: &ast.BaseDataType{
-			//							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
-			//						},
-			//						Tag: ast.NewTokenNode(token.Token{Type: token.RAW_STRING, Text: "`json:\"age\"`"}),
-			//					},
-			//				},
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Foo {Bar {Name string}}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				Elements: ast.ElemExprList{
-			//					{
-			//						Name: []*ast.TokenNode{
-			//							{Token: token.Token{Type: token.IDENT, Text: "Bar"}},
-			//						},
-			//						DataType: &ast.StructDataType{
-			//							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//							Elements: ast.ElemExprList{
-			//								{
-			//									Name: []*ast.TokenNode{
-			//										{Token: token.Token{Type: token.IDENT, Text: "Name"}},
-			//									},
-			//									DataType: &ast.BaseDataType{
-			//										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
-			//									},
-			//								},
-			//							},
-			//							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//						},
-			//					},
-			//				},
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
+			{
+				input: "type Foo {Name string}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							Elements: ast.ElemExprList{
+								{
+									Name: []*ast.TokenNode{ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Name"})},
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
+									},
+								},
+							},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Foo {Name,Desc string}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							Elements: ast.ElemExprList{
+								{
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+										{Token: token.Token{Type: token.IDENT, Text: "Desc"}},
+									},
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
+									},
+								},
+							},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Foo {Name string\n Age int `json:\"age\"`}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							Elements: ast.ElemExprList{
+								{
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+									},
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
+									},
+								},
+								{
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Age"}},
+									},
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
+									},
+									Tag: ast.NewTokenNode(token.Token{Type: token.RAW_STRING, Text: "`json:\"age\"`"}),
+								},
+							},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Foo {Bar {Name string}}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							Elements: ast.ElemExprList{
+								{
+									Name: []*ast.TokenNode{
+										{Token: token.Token{Type: token.IDENT, Text: "Bar"}},
+									},
+									DataType: &ast.StructDataType{
+										LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+										Elements: ast.ElemExprList{
+											{
+												Name: []*ast.TokenNode{
+													{Token: token.Token{Type: token.IDENT, Text: "Name"}},
+												},
+												DataType: &ast.BaseDataType{
+													Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"}),
+												},
+											},
+										},
+										RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+									},
+								},
+							},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
 		}
 		for _, val := range testData {
 			p := New("test.api", val.input)

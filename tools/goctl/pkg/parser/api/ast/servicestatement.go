@@ -212,7 +212,7 @@ func (s *ServiceStmt) Format(prefix ...string) string {
 	for idx, route := range s.Routes {
 		routeNode := transfer2TokenNode(route, false, withTokenNodePrefix(peekOne(prefix)+Indent))
 		w.Write(withNode(routeNode))
-		if idx<len(s.Routes)-1{
+		if idx < len(s.Routes)-1 {
 			w.NewLine()
 		}
 	}
@@ -393,11 +393,20 @@ func (r *RouteStmt) Format(prefix ...string) string {
 	w := NewBufferWriter()
 	methodNode := transferTokenNode(r.Method, withTokenNodePrefix(prefix...), ignoreLeadingComment())
 	if r.Response != nil {
-		r.Response.RParen = transferTokenNode(r.Response.RParen, ignoreHeadComment())
-		if r.Request != nil {
-			w.Write(withNode(methodNode, r.Path, r.Request, r.Returns, r.Response), expectSameLine())
+		if r.Response.Body == nil {
+			r.Response.RParen = transferTokenNode(r.Response.RParen, ignoreHeadComment())
+			if r.Request != nil {
+				w.Write(withNode(methodNode, r.Path, r.Request), expectSameLine())
+			} else {
+				w.Write(withNode(methodNode, r.Path), expectSameLine())
+			}
 		} else {
-			w.Write(withNode(methodNode, r.Path, r.Returns, r.Response), expectSameLine())
+			r.Response.RParen = transferTokenNode(r.Response.RParen, ignoreHeadComment())
+			if r.Request != nil {
+				w.Write(withNode(methodNode, r.Path, r.Request, r.Returns, r.Response), expectSameLine())
+			} else {
+				w.Write(withNode(methodNode, r.Path, r.Returns, r.Response), expectSameLine())
+			}
 		}
 	} else if r.Request != nil {
 		r.Request.RParen = transferTokenNode(r.Request.RParen, ignoreHeadComment())
@@ -479,6 +488,9 @@ func (b *BodyStmt) CommentGroup() (head, leading CommentGroup) {
 
 func (b *BodyStmt) Format(...string) string {
 	w := NewBufferWriter()
+	if b.Body == nil {
+		return ""
+	}
 	w.Write(withNode(b.LParen, b.Body, b.RParen), withInfix(NilIndent), expectSameLine())
 	return w.String()
 }

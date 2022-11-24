@@ -212,6 +212,10 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 	if p.peekTokenIs(token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
 		return stmt
 	}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+		return stmt
+	}
 
 	if p.notExpectPeekToken(token.Returns, token.LPAREN) {
 		return nil
@@ -226,7 +230,7 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 		stmt.Request = requestBodyStmt
 	}
 
-	if p.notExpectPeekToken(token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
+	if p.notExpectPeekToken(token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE, token.SEMICOLON) {
 		return nil
 	}
 
@@ -244,6 +248,9 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 
 		stmt.Response = responseBodyStmt
 	}
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
 
 	return stmt
 }
@@ -255,6 +262,14 @@ func (p *Parser) parseBodyStmt() *ast.BodyStmt {
 		return nil
 	}
 	stmt.LParen = p.curTokenNode()
+	// token ')'
+	if p.peekTokenIs(token.RPAREN){
+		if !p.nextToken(){
+			return nil
+		}
+		stmt.RParen = p.curTokenNode()
+		return stmt
+	}
 
 	expr := p.parseBodyExpr()
 	if expr == nil {
@@ -338,7 +353,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 
 	var values []token.Token
 	for p.curTokenIsNotEof() &&
-		p.peekTokenIsNot(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
+		p.peekTokenIsNot(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER,token.SEMICOLON, token.RBRACE) {
 		// token '/'
 		if !p.advanceIfPeekTokenIs(token.QUO) {
 			return nil
@@ -372,7 +387,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 			return nil
 		}
 		values = append(values, pathTokens...)
-		if p.notExpectPeekToken(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
+		if p.notExpectPeekToken(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON,token.RBRACE) {
 			return nil
 		}
 	}
@@ -401,7 +416,7 @@ func (p *Parser) parsePathItem() []token.Token {
 	list = append(list, p.curTok)
 
 	for p.curTokenIsNotEof() &&
-		p.peekTokenIsNot(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE, token.EOF) {
+		p.peekTokenIsNot(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE, token.SEMICOLON,token.EOF) {
 		if p.peekTokenIs(token.SUB) {
 			if !p.nextToken() {
 				return nil
@@ -413,7 +428,7 @@ func (p *Parser) parsePathItem() []token.Token {
 			}
 			list = append(list, p.curTok)
 		} else {
-			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
+			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER,token.SEMICOLON, token.RBRACE) {
 				return list
 			}
 			if !p.advanceIfPeekTokenIs(token.IDENT) {

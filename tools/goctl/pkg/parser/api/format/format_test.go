@@ -1443,6 +1443,12 @@ quux: "quux"
 foo
 post
 /aa/:bb/cc-dd/ee
+
+@handler bar
+get /bar () returns (Bar);
+
+@handler baz
+get /bar (Baz) returns ();
 }`,
 			expected: `service foo-api {
 	@doc (
@@ -1452,6 +1458,12 @@ post
 	)
 	@handler foo
 	post /aa/:bb/cc-dd/ee
+
+	@handler bar
+	get /bar returns (Bar)
+
+	@handler baz
+	get /bar (Baz)
 }`,
 		},
 		{
