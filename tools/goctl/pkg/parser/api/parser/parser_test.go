@@ -290,6 +290,7 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"baz:":  `foo`,
 			"qux:":  `/v1`,
 			"quux:": `/v1/v2`,
+			"middleware:": `M1,M2`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
@@ -338,6 +339,8 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			`@server(foo:/v1/`,
 			`@server(foo:/v1/v`,
 			`@server(foo:/v1/v2`,
+			`@server(foo: m1,`,
+			`@server(foo: m1,)`,
 		}
 		for _, v := range testData {
 			p := New("foo.api", v)

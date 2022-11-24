@@ -4,4 +4,5 @@
     baz: foo
     qux: /v1
     quux: /v1/v2
+    middleware: M1,M2
 )

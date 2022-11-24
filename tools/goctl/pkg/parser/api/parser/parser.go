@@ -263,8 +263,8 @@ func (p *Parser) parseBodyStmt() *ast.BodyStmt {
 	}
 	stmt.LParen = p.curTokenNode()
 	// token ')'
-	if p.peekTokenIs(token.RPAREN){
-		if !p.nextToken(){
+	if p.peekTokenIs(token.RPAREN) {
+		if !p.nextToken() {
 			return nil
 		}
 		stmt.RParen = p.curTokenNode()
@@ -353,7 +353,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 
 	var values []token.Token
 	for p.curTokenIsNotEof() &&
-		p.peekTokenIsNot(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER,token.SEMICOLON, token.RBRACE) {
+		p.peekTokenIsNot(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 		// token '/'
 		if !p.advanceIfPeekTokenIs(token.QUO) {
 			return nil
@@ -387,7 +387,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 			return nil
 		}
 		values = append(values, pathTokens...)
-		if p.notExpectPeekToken(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON,token.RBRACE) {
+		if p.notExpectPeekToken(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 			return nil
 		}
 	}
@@ -416,7 +416,7 @@ func (p *Parser) parsePathItem() []token.Token {
 	list = append(list, p.curTok)
 
 	for p.curTokenIsNotEof() &&
-		p.peekTokenIsNot(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE, token.SEMICOLON,token.EOF) {
+		p.peekTokenIsNot(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.RBRACE, token.SEMICOLON, token.EOF) {
 		if p.peekTokenIs(token.SUB) {
 			if !p.nextToken() {
 				return nil
@@ -428,7 +428,7 @@ func (p *Parser) parsePathItem() []token.Token {
 			}
 			list = append(list, p.curTok)
 		} else {
-			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER,token.SEMICOLON, token.RBRACE) {
+			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 				return list
 			}
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
@@ -1063,6 +1063,32 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		}
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+		if p.peekTokenIs(token.COMMA){
+			for {
+				if p.peekTokenIs(token.COMMA) {
+					if !p.nextToken() {
+						return nil
+					}
+					slashTok := p.curTok
+					if !p.advanceIfPeekTokenIs(token.IDENT) {
+						return nil
+					}
+					idTok := p.curTok
+					valueTok = token.Token{
+						Text:     valueTok.Text + slashTok.Text + idTok.Text,
+						Position: valueTok.Position,
+					}
+					leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+				} else {
+					break
+				}
+			}
+			valueTok.Type = token.PATH
+			node := ast.NewTokenNode(valueTok)
+			node.SetLeadingCommentGroup(leadingCommentGroup)
+			expr.Value = node
+			return expr
+		}
 	}
 
 	for {
