@@ -13,7 +13,7 @@ import (
 // A FieldFilter may be provided to Fprint to control the output.
 type FieldFilter func(name string, value reflect.Value) bool
 
-// NotNilFilter returns true for field values that are not nil;
+// NotNilFilter returns true for field values that are not nil,
 // it returns false otherwise.
 func NotNilFilter(_ string, v reflect.Value) bool {
 	switch v.Kind() {
@@ -23,6 +23,7 @@ func NotNilFilter(_ string, v reflect.Value) bool {
 	return true
 }
 
+// Fprint prints the value of x to the writer w.
 func Fprint(w io.Writer, x interface{}, f FieldFilter) error {
 	return fprint(w, x, f)
 }
@@ -69,6 +70,7 @@ type printer struct {
 
 var prefixIndent = []byte(".  ")
 
+// Write implements io.Writer.
 func (p *printer) Write(data []byte) (n int, err error) {
 	var m int
 	for i, b := range data {

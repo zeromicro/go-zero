@@ -10,13 +10,17 @@ import (
 
 /*******************TypeStmt Begin********************/
 
+// TypeStmt is the interface for type statement.
 type TypeStmt interface {
 	Stmt
 	typeNode()
 }
 
+// TypeLiteralStmt is the type statement for type literal.
 type TypeLiteralStmt struct {
+	// Type is the type keyword.
 	Type *TokenNode
+	// Expr is the type expression.
 	Expr *TypeExpr
 }
 
@@ -50,11 +54,16 @@ func (t *TypeLiteralStmt) Pos() token.Position {
 func (t *TypeLiteralStmt) stmtNode() {}
 func (t *TypeLiteralStmt) typeNode() {}
 
+// TypeGroupStmt is the type statement for type group.
 type TypeGroupStmt struct {
-	Type     *TokenNode
-	LParen   *TokenNode
+	// Type is the type keyword.
+	Type *TokenNode
+	// LParen is the left parenthesis.
+	LParen *TokenNode
+	// ExprList is the type expression list.
 	ExprList []*TypeExpr
-	RParen   *TokenNode
+	// RParen is the right parenthesis.
+	RParen *TokenNode
 }
 
 func (t *TypeGroupStmt) HasHeadCommentGroup() bool {
@@ -100,9 +109,13 @@ func (t *TypeGroupStmt) typeNode() {}
 
 /*******************TypeExpr Begin********************/
 
+// TypeExpr is the type expression.
 type TypeExpr struct {
-	Name     *TokenNode
-	Assign   *TokenNode
+	// Name is the type name.
+	Name *TokenNode
+	// Assign is the assign operator.
+	Assign *TokenNode
+	// DataType is the data type.
 	DataType DataType
 }
 
@@ -149,12 +162,17 @@ func (e *TypeExpr) isStruct() bool {
 
 /*******************Elem Begin********************/
 
+// ElemExpr is the element expression.
 type ElemExpr struct {
-	Name     []*TokenNode
+	// Name is the field element name.
+	Name []*TokenNode
+	// DataType is the field data type.
 	DataType DataType
-	Tag      *TokenNode
+	// Tag is the field tag.
+	Tag *TokenNode
 }
 
+// IsAnonymous returns true if the element is anonymous.
 func (e *ElemExpr) IsAnonymous() bool {
 	return len(e.Name) == 0
 }
@@ -246,30 +264,28 @@ func (e *ElemExpr) exprNode() {}
 
 /*******************ElemExprList Begin********************/
 
+// ElemExprList is the element expression list.
 type ElemExprList []*ElemExpr
-
-func (e ElemExprList) Pos() token.Position {
-	if len(e) > 0 {
-		return e[0].Pos()
-	}
-	return token.IllegalPosition
-}
-
-func (e ElemExprList) exprNode() {}
 
 /*******************ElemExprList Begin********************/
 
 /*******************DataType Begin********************/
 
+// DataType represents the data type.
 type DataType interface {
 	Expr
 	dataTypeNode()
+	// CanEqual returns true if the data type can be equal.
 	CanEqual() bool
+	// ContainsStruct returns true if the data type contains struct.
 	ContainsStruct() bool
+	// RawText returns the raw text of the data type.
 	RawText() string
 }
 
+// AnyDataType is the any data type.
 type AnyDataType struct {
+	// Any is the any token node.
 	Any     *TokenNode
 	isChild bool
 }
@@ -314,10 +330,15 @@ func (t *AnyDataType) CanEqual() bool {
 	return true
 }
 
+// ArrayDataType is the array data type.
 type ArrayDataType struct {
-	LBrack   *TokenNode
-	Length   *TokenNode
-	RBrack   *TokenNode
+	// LB is the left bracket token node.
+	LBrack *TokenNode
+	// Len is the array length.
+	Length *TokenNode
+	// RB is the right bracket token node.
+	RBrack *TokenNode
+	// DataType is the array data type.
 	DataType DataType
 	isChild  bool
 }
@@ -382,6 +403,7 @@ func (t *ArrayDataType) dataTypeNode() {}
 // uint64, int8, int16, int32, int64, float32, float64, complex64, complex128,
 // string, int, uint, uintptr, byte, rune, any.
 type BaseDataType struct {
+	// Base is the base token node.
 	Base    *TokenNode
 	isChild bool
 }
@@ -425,7 +447,9 @@ func (t *BaseDataType) Pos() token.Position {
 func (t *BaseDataType) exprNode()     {}
 func (t *BaseDataType) dataTypeNode() {}
 
+// InterfaceDataType is the interface data type.
 type InterfaceDataType struct {
+	// Interface is the interface token node.
 	Interface *TokenNode
 	isChild   bool
 }
@@ -470,11 +494,17 @@ func (t *InterfaceDataType) exprNode() {}
 
 func (t *InterfaceDataType) dataTypeNode() {}
 
+// MapDataType is the map data type.
 type MapDataType struct {
-	Map     *TokenNode
-	LBrack  *TokenNode
-	Key     DataType
-	RBrack  *TokenNode
+	// Map is the map token node.
+	Map *TokenNode
+	// Lbrack is the left bracket token node.
+	LBrack *TokenNode
+	// Key is the map key data type.
+	Key DataType
+	// Rbrack is the right bracket token node.
+	RBrack *TokenNode
+	// Value is the map value data type.
 	Value   DataType
 	isChild bool
 }
@@ -537,8 +567,11 @@ func (t *MapDataType) Pos() token.Position {
 func (t *MapDataType) exprNode()     {}
 func (t *MapDataType) dataTypeNode() {}
 
+// PointerDataType is the pointer data type.
 type PointerDataType struct {
-	Star     *TokenNode
+	// Star is the star token node.
+	Star *TokenNode
+	// DataType is the pointer data type.
 	DataType DataType
 	isChild  bool
 }
@@ -558,7 +591,7 @@ func (t *PointerDataType) CommentGroup() (head, leading CommentGroup) {
 
 func (t *PointerDataType) Format(prefix ...string) string {
 	w := NewBufferWriter()
-	star := transferTokenNode(t.Star, ignoreLeadingComment(),withTokenNodePrefix(prefix...))
+	star := transferTokenNode(t.Star, ignoreLeadingComment(), withTokenNodePrefix(prefix...))
 	var dataTypeOption []tokenNodeOption
 	dataTypeOption = append(dataTypeOption, ignoreHeadComment())
 	dataType := transfer2TokenNode(t.DataType, false, dataTypeOption...)
@@ -590,9 +623,13 @@ func (t *PointerDataType) Pos() token.Position {
 func (t *PointerDataType) exprNode()     {}
 func (t *PointerDataType) dataTypeNode() {}
 
+// SliceDataType is the slice data type.
 type SliceDataType struct {
-	LBrack   *TokenNode
-	RBrack   *TokenNode
+	// Lbrack is the left bracket token node.
+	LBrack *TokenNode
+	// Rbrack is the right bracket token node.
+	RBrack *TokenNode
+	// DataType is the slice data type.
 	DataType DataType
 	isChild  bool
 }
@@ -643,11 +680,15 @@ func (t *SliceDataType) Pos() token.Position {
 func (t *SliceDataType) exprNode()     {}
 func (t *SliceDataType) dataTypeNode() {}
 
+// StructDataType is the structure data type.
 type StructDataType struct {
-	LBrace   *TokenNode
+	// Lbrace is the left brace token node.
+	LBrace *TokenNode
+	// Elements is the structure elements.
 	Elements ElemExprList
-	RBrace   *TokenNode
-	isChild  bool
+	// Rbrace is the right brace token node.
+	RBrace  *TokenNode
+	isChild bool
 }
 
 func (t *StructDataType) HasHeadCommentGroup() bool {

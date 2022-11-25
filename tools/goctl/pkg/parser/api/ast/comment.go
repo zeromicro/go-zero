@@ -7,8 +7,10 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
+// CommentGroup represents a list of comments.
 type CommentGroup []*CommentStmt
 
+// List returns the list of comments.
 func (cg CommentGroup) List() []string {
 	var list = make([]string, 0, len(cg))
 	for _, v := range cg {
@@ -21,10 +23,12 @@ func (cg CommentGroup) List() []string {
 	return list
 }
 
+// String joins and returns the comment text.
 func (cg CommentGroup) String() string {
 	return cg.Join(" ")
 }
 
+// Join joins the comments with the given separator.
 func (cg CommentGroup) Join(sep string) string {
 	if !cg.Valid() {
 		return ""
@@ -33,11 +37,14 @@ func (cg CommentGroup) Join(sep string) string {
 	return strings.Join(list, sep)
 }
 
+// Valid returns true if the comment is valid.
 func (cg CommentGroup) Valid() bool {
 	return len(cg) > 0
 }
 
+// CommentStmt represents a comment statement.
 type CommentStmt struct {
+	// Comment is the comment token.
 	Comment token.Token
 }
 

@@ -32,6 +32,8 @@ const (
 var missingInput = errors.New("missing input")
 
 type mode int
+
+// Scanner is a lexical scanner.
 type Scanner struct {
 	filename string
 	size     int
@@ -44,6 +46,7 @@ type Scanner struct {
 	lines []int
 }
 
+// NextToken returns the next token.
 func (s *Scanner) NextToken() (token.Token, error) {
 	s.skipWhiteSpace()
 	switch s.ch {
@@ -408,6 +411,7 @@ func (s *Scanner) isWhiteSpace(b rune) bool {
 	return b == ' ' || b == '\t' || b == '\r' || b == '\f' || b == '\v' || b == '\n'
 }
 
+// MustNewScanner returns a new scanner for the given filename and data.
 func MustNewScanner(filename string, src interface{}) *Scanner {
 	sc, err := NewScanner(filename, src)
 	if err != nil {
@@ -416,6 +420,7 @@ func MustNewScanner(filename string, src interface{}) *Scanner {
 	return sc
 }
 
+// NewScanner returns a new scanner for the given filename and data.
 func NewScanner(filename string, src interface{}) (*Scanner, error) {
 	data, err := readData(filename, src)
 	if err != nil {

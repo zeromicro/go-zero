@@ -20,7 +20,11 @@ const (
 
 const (
 	_ WriteMode = 1 << iota
+	// ModeAuto is the default mode, which will automatically
+	//determine whether to write a newline.
 	ModeAuto
+
+	// ModeExpectInSameLine will write in the same line.
 	ModeExpectInSameLine
 )
 
@@ -42,8 +46,10 @@ type tokenNodeOpt struct {
 	ignoreLeadingComment bool
 }
 
+// WriteMode is the mode of writing.
 type WriteMode int
 
+// Writer is the writer of ast.
 type Writer struct {
 	tw     *tabwriter.Writer
 	writer io.Writer
@@ -297,6 +303,7 @@ func withRawText() Option {
 	}
 }
 
+// NewWriter returns a new Writer.
 func NewWriter(writer io.Writer) *Writer {
 	return &Writer{
 		tw:     tabwriter.NewWriter(writer, 1, 8, 1, ' ', tabwriter.TabIndent),
@@ -304,6 +311,7 @@ func NewWriter(writer io.Writer) *Writer {
 	}
 }
 
+// NewBufferWriter returns a new buffer Writer.
 func NewBufferWriter() *Writer {
 	writer := bytes.NewBuffer(nil)
 	return &Writer{
@@ -312,6 +320,7 @@ func NewBufferWriter() *Writer {
 	}
 }
 
+// String returns the string of the buffer.
 func (w *Writer) String() string {
 	buffer, ok := w.writer.(*bytes.Buffer)
 	if !ok {
@@ -321,14 +330,17 @@ func (w *Writer) String() string {
 	return buffer.String()
 }
 
+// Flush flushes the buffer.
 func (w *Writer) Flush() {
 	_ = w.tw.Flush()
 }
 
+// NewLine writes a new line.
 func (w *Writer) NewLine() {
 	_, _ = fmt.Fprint(w.tw, NewLine)
 }
 
+// Write writes the node.
 func (w *Writer) Write(opts ...Option) {
 	if len(opts) == 0 {
 		return
@@ -345,6 +357,7 @@ func (w *Writer) Write(opts ...Option) {
 	w.write(opt)
 }
 
+// WriteText writes the text.
 func (w *Writer) WriteText(text string) {
 	_, _ = fmt.Fprintf(w.tw, text)
 }

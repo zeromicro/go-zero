@@ -9,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
 )
 
+// Analyzer analyzes the ast and converts it to spec.
 type Analyzer struct {
 	api  *API
 	spec *spec.ApiSpec
@@ -106,7 +107,7 @@ func (a *Analyzer) convertAtDoc(atDoc ast.AtDocStmt) spec.AtDoc {
 func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
-		key:=strings.TrimSuffix(v.Key.Token.Text,":")
+		key := strings.TrimSuffix(v.Key.Token.Text, ":")
 		ret[key] = v.Value.Token.Text
 	}
 	return ret
@@ -341,6 +342,7 @@ func (a *Analyzer) getType(expr *ast.BodyStmt) (spec.Type, error) {
 	return tp, nil
 }
 
+// Parse parses the given file and returns the parsed spec.
 func Parse(filename string, src interface{}) (*spec.ApiSpec, error) {
 	p := New(filename, src)
 	ast := p.Parse()
@@ -392,6 +394,7 @@ var kind = map[string]placeholder.Type{
 	"any":        placeholder.PlaceHolder,
 }
 
+// IsBaseType returns true if the given type is a base type.
 func IsBaseType(text string) bool {
 	_, ok := kind[text]
 	return ok

@@ -1,17 +1,19 @@
 package ast
 
-import (
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
-)
+import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
+// ImportStmt represents an import statement.
 type ImportStmt interface {
 	Stmt
 	importNode()
 }
 
+// ImportLiteralStmt represents an import literal statement.
 type ImportLiteralStmt struct {
+	// Import is the import token.
 	Import *TokenNode
-	Value  *TokenNode
+	// Value is the import value.
+	Value *TokenNode
 }
 
 func (i *ImportLiteralStmt) HasHeadCommentGroup() bool {
@@ -49,9 +51,13 @@ func (i *ImportLiteralStmt) Pos() token.Position {
 func (i *ImportLiteralStmt) stmtNode() {}
 
 type ImportGroupStmt struct {
+	// Import is the import token.
 	Import *TokenNode
+	// LParen is the left parenthesis token.
 	LParen *TokenNode
+	// Values is the import values.
 	Values []*TokenNode
+	// RParen is the right parenthesis token.
 	RParen *TokenNode
 }
 

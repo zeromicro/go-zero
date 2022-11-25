@@ -2,10 +2,14 @@ package ast
 
 import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
+// SyntaxStmt represents a syntax statement.
 type SyntaxStmt struct {
+	// Syntax is the syntax token.
 	Syntax *TokenNode
+	// Assign is the assign token.
 	Assign *TokenNode
-	Value  *TokenNode
+	// Value is the syntax value.
+	Value *TokenNode
 }
 
 func (s *SyntaxStmt) HasHeadCommentGroup() bool {

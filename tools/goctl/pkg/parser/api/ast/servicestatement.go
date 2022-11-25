@@ -1,14 +1,17 @@
 package ast
 
-import (
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
-)
+import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
+// AtServerStmt represents @server statement.
 type AtServerStmt struct {
+	// AtServer is the @server token.
 	AtServer *TokenNode
-	LParen   *TokenNode
-	Values   []*KVExpr
-	RParen   *TokenNode
+	// LParen is the left parenthesis token.
+	LParen *TokenNode
+	// Values is the key-value pairs.
+	Values []*KVExpr
+	// RParen is the right parenthesis token.
+	RParen *TokenNode
 }
 
 func (a *AtServerStmt) HasHeadCommentGroup() bool {

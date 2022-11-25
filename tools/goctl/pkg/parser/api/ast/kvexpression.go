@@ -2,8 +2,11 @@ package ast
 
 import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
+// KVExpr is a key value expression.
 type KVExpr struct {
-	Key   *TokenNode
+	// Key is the key of the key value expression.
+	Key *TokenNode
+	// Value is the value of the key value expression.
 	Value *TokenNode
 }
 

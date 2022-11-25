@@ -1,13 +1,16 @@
 package ast
 
-import (
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
-)
+import "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 
+// InfoStmt is the info statement.
 type InfoStmt struct {
-	Info   *TokenNode
+	// Info is the info keyword.
+	Info *TokenNode
+	// LParen is the left parenthesis.
 	LParen *TokenNode
+	// Values is the info values.
 	Values []*KVExpr
+	// RParen is the right parenthesis.
 	RParen *TokenNode
 }
 

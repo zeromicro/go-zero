@@ -9,35 +9,47 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
+// Node represents a node in the AST.
 type Node interface {
+	// Pos returns the position of the first character belonging to the node.
 	Pos() token.Position
+	// End returns the position of the first character immediately after the node.
 	End() token.Position
+	// Format returns the node's text after format.
 	Format(...string) string
+	// HasHeadCommentGroup returns true if the node has head comment group.
 	HasHeadCommentGroup() bool
+	// HasLeadingCommentGroup returns true if the node has leading comment group.
 	HasLeadingCommentGroup() bool
+	// CommentGroup returns the node's head comment group and leading comment group.
 	CommentGroup() (head, leading CommentGroup)
 }
 
+// Stmt represents a statement in the AST.
 type Stmt interface {
 	Node
 	stmtNode()
 }
 
+// Expr represents an expression in the AST.
 type Expr interface {
 	Node
 	exprNode()
 }
 
+// AST represents a parsed API file.
 type AST struct {
 	Filename     string
 	Stmts        []Stmt
 	readPosition int
 }
 
+// TokenNode represents a token node in the AST.
 type TokenNode struct {
 	// HeadCommentGroup are the comments in prev lines.
 	HeadCommentGroup CommentGroup
-	Token            token.Token
+	// Token is the token of the node.
+	Token token.Token
 	// LeadingCommentGroup are the tail comments in same line.
 	LeadingCommentGroup CommentGroup
 
@@ -47,26 +59,27 @@ type TokenNode struct {
 	headFlag, leadingFlag bool
 }
 
-func (t *TokenNode) CommentGroup() (head, leading CommentGroup) {
-	return t.HeadCommentGroup, t.LeadingCommentGroup
-}
-
+// NewTokenNode creates and returns a new TokenNode.
 func NewTokenNode(tok token.Token) *TokenNode {
 	return &TokenNode{Token: tok}
 }
 
+// IsEmptyString returns true if the node is empty string.
 func (t *TokenNode) IsEmptyString() bool {
 	return t.Equal("")
 }
 
+// IsZeroString returns true if the node is zero string.
 func (t *TokenNode) IsZeroString() bool {
 	return t.Equal(`""`) || t.Equal("``")
 }
 
+// Equal returns true if the node's text is equal to the given text.
 func (t *TokenNode) Equal(s string) bool {
 	return t.Token.Text == s
 }
 
+// SetLeadingCommentGroup sets the node's leading comment group.
 func (t *TokenNode) SetLeadingCommentGroup(cg CommentGroup) {
 	t.LeadingCommentGroup = cg
 }
@@ -79,6 +92,11 @@ func (t *TokenNode) HasHeadCommentGroup() bool {
 	return t.HeadCommentGroup.Valid() || t.headFlag
 }
 
+func (t *TokenNode) CommentGroup() (head, leading CommentGroup) {
+	return t.HeadCommentGroup, t.LeadingCommentGroup
+}
+
+// PeekFirstLeadingComment returns the first leading comment of the node.
 func (t *TokenNode) PeekFirstLeadingComment() *CommentStmt {
 	if len(t.LeadingCommentGroup) > 0 {
 		return t.LeadingCommentGroup[0]
@@ -86,6 +104,7 @@ func (t *TokenNode) PeekFirstLeadingComment() *CommentStmt {
 	return nil
 }
 
+// PeekFirstHeadComment returns the first head comment of the node.
 func (t *TokenNode) PeekFirstHeadComment() *CommentStmt {
 	if len(t.HeadCommentGroup) > 0 {
 		return t.HeadCommentGroup[0]
@@ -131,6 +150,7 @@ func (t *TokenNode) End() token.Position {
 	return t.Token.Position
 }
 
+// Format formats the AST.
 func (a *AST) Format(w io.Writer) {
 	fw := NewWriter(w)
 	defer fw.Flush()
@@ -166,11 +186,12 @@ func (a *AST) Format(w io.Writer) {
 	}
 }
 
+// FormatForUnitTest formats the AST for unit test.
 func (a *AST) FormatForUnitTest(w io.Writer) {
 	fw := NewWriter(w)
 	defer fw.Flush()
 	for _, e := range a.Stmts {
-		text:=e.Format()
+		text := e.Format()
 		if text == NilIndent {
 			continue
 		}
@@ -179,14 +200,17 @@ func (a *AST) FormatForUnitTest(w io.Writer) {
 	}
 }
 
+// Print prints the AST.
 func (a *AST) Print() {
 	_ = Print(a)
 }
 
+// SyntaxError represents a syntax error.
 func SyntaxError(pos token.Position, format string, v ...interface{}) error {
 	return fmt.Errorf("syntax error: %s %s", pos.String(), fmt.Sprintf(format, v...))
 }
 
+// DuplicateStmtError represents a duplicate statement error.
 func DuplicateStmtError(pos token.Position, msg string) error {
 	return fmt.Errorf("duplicate declaration: %s %s", pos.String(), msg)
 }

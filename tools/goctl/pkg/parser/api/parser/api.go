@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
+// API is the parsed api file.
 type API struct {
 	Filename      string
 	Syntax        *ast.SyntaxStmt

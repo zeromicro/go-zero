@@ -12,10 +12,9 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
-const IDAPI = "api"
+const idAPI = "api"
 
-type Mode int
-
+// Parser is the parser for api file.
 type Parser struct {
 	s      *scanner.Scanner
 	errors []error
@@ -28,6 +27,7 @@ type Parser struct {
 	node             map[token.Token]*ast.TokenNode
 }
 
+// New creates a new parser.
 func New(filename string, src interface{}) *Parser {
 	abs, err := filepath.Abs(filename)
 	if err != nil {
@@ -43,6 +43,7 @@ func New(filename string, src interface{}) *Parser {
 	return p
 }
 
+// Parse parses the api file.
 func (p *Parser) Parse() *ast.AST {
 	if !p.init() {
 		return nil
@@ -452,7 +453,7 @@ func (p *Parser) parseServiceNameExpr() *ast.ServiceNameExpr {
 		}
 
 		text += p.curTok.Text
-		if !p.expectPeekToken(IDAPI) {
+		if !p.expectPeekToken(idAPI) {
 			return nil
 		}
 		if !p.nextToken() {
@@ -1421,6 +1422,7 @@ func isNil(v interface{}) bool {
 	return false
 }
 
+// CheckErrors check parser errors.
 func (p *Parser) CheckErrors() error {
 	if len(p.errors) == 0 {
 		return nil
@@ -1443,6 +1445,7 @@ func (p *Parser) hasNoErrors() bool {
 /************************EXPERIMENTAL CODE BG************************/
 // The following code block are experimental, do not call it out of unit test.
 
+// ParseForUintTest parse the source code for unit test.
 func (p *Parser) ParseForUintTest() *ast.AST {
 	api := &ast.AST{}
 	if !p.init() {

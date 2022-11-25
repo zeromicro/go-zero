@@ -18,17 +18,23 @@ const (
 	ImportKeyword = "import"
 )
 
+// Type is the type of token.
 type Type int
 
+// EofToken is the end of file token.
 var EofToken = Token{Type: EOF}
+
+// ErrorToken is the error token.
 var ErrorToken = Token{Type: error}
 
+// Token is the token of a rune.
 type Token struct {
 	Type     Type
 	Text     string
 	Position Position
 }
 
+// Fork forks token for a given Type.
 func (t Token) Fork(tp Type) Token {
 	return Token{
 		Type:     tp,
@@ -37,6 +43,7 @@ func (t Token) Fork(tp Type) Token {
 	}
 }
 
+// IsEmptyString returns true if the token is empty string.
 func (t Token) IsEmptyString() bool {
 	if t.Type != STRING && t.Type != RAW_STRING {
 		return false
@@ -45,22 +52,27 @@ func (t Token) IsEmptyString() bool {
 	return text == `""` || text == "``"
 }
 
+// IsComment returns true if the token is comment.
 func (t Token) IsComment() bool {
 	return t.IsType(COMMENT)
 }
 
+// IsDocument returns true if the token is document.
 func (t Token) IsDocument() bool {
 	return t.IsType(DOCUMENT)
 }
 
+// IsType returns true if the token is the given type.
 func (t Token) IsType(tp Type) bool {
 	return t.Type == tp
 }
 
+// Line returns the line number of the token.
 func (t Token) Line() int {
 	return t.Position.Line
 }
 
+// String returns the string of the token.
 func (t Token) String() string {
 	if t == ErrorToken {
 		return t.Type.String()
@@ -68,24 +80,29 @@ func (t Token) String() string {
 	return fmt.Sprintf("%s %s %s", t.Position.String(), t.Type.String(), t.Text)
 }
 
+// Valid returns true if the token is valid.
 func (t Token) Valid() bool {
 	return t.Type != token_bg
 }
 
+// IsKeyword returns true if the token is keyword.
 func (t Token) IsKeyword() bool {
 	return golang_keyword_beg < t.Type && t.Type < golang_keyword_end
 }
 
+// IsBaseType returns true if the token is base type.
 func (t Token) IsBaseType() bool {
 	_, ok := baseDataType[t.Text]
 	return ok
 }
 
+// IsHttpMethod returns true if the token is http method.
 func (t Token) IsHttpMethod() bool {
 	_, ok := httpMethod[t.Text]
 	return ok
 }
 
+// Is returns true if the token text is one of the given list.
 func (t Token) Is(text ...string) bool {
 	for _, v := range text {
 		if t.Text == v {
@@ -95,33 +112,6 @@ func (t Token) Is(text ...string) bool {
 	return false
 }
 
-var KeywordType = []string{
-	"break",
-	"case",
-	"chan",
-	"const",
-	"continue",
-	"default",
-	"defer",
-	"else",
-	"fallthrough",
-	"for",
-	"func",
-	"go",
-	"goto",
-	"if",
-	"import",
-	"interface",
-	"map",
-	"package",
-	"range",
-	"return",
-	"select",
-	"struct",
-	"switch",
-	"type",
-	"var",
-}
 
 const (
 	token_bg Type = iota
@@ -202,6 +192,7 @@ const (
 	token_end
 )
 
+// String returns the string of the token type.
 func (t Type) String() string {
 	if t >= token_bg && t < token_end {
 		return tokens[t]
@@ -277,6 +268,7 @@ var tokens = [...]string{
 	ANY:        "interface{}",
 }
 
+// HttpMethods returns the http methods.
 var HttpMethods = []interface{}{"get", "head", "post", "put", "patch", "delete", "connect", "options", "trace"}
 
 var httpMethod = map[string]placeholder.Type{
@@ -348,11 +340,13 @@ var baseDataType = map[string]placeholder.Type{
 	"any":        placeholder.PlaceHolder,
 }
 
+// LookupKeyword returns the keyword type if the given ident is keyword.
 func LookupKeyword(ident string) (Type, bool) {
 	tp, ok := keywords[ident]
 	return tp, ok
 }
 
+// NewIllegalToken returns a new illegal token.
 func NewIllegalToken(b rune, pos Position) Token {
 	return Token{
 		Type:     ILLEGAL,
