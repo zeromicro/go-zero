@@ -8,9 +8,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// To make .json & .yaml consistent, we just use json as the tag key.
-const yamlTagKey = "json"
-
 // ErrUnsupportedType is an error that indicates the config format is not supported.
 var ErrUnsupportedType = errors.New("only map-like configs are supported")
 
