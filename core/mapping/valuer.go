@@ -124,10 +124,14 @@ func (cv canonicalValuer) Value(key string) (interface{}, bool) {
 		return val, true
 	}
 
-	if cv.canonicalKeyFn != nil {
-		key = cv.canonicalKeyFn(key)
-		return cv.valuer.Value(key)
+	if cv.canonicalKeyFn == nil {
+		return nil, false
 	}
 
-	return nil, false
+	newKey := cv.canonicalKeyFn(key)
+	if newKey == key {
+		return nil, false
+	}
+
+	return cv.valuer.Value(newKey)
 }

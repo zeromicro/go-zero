@@ -18,7 +18,7 @@ var (
 		".yaml": LoadFromYamlBytes,
 		".yml":  LoadFromYamlBytes,
 	}
-	caseInsensitiveKeyOption = mapping.WithCanonicalKeyFunc(func(s string) string {
+	firstCharCaseInsensitiveOption = mapping.WithCanonicalKeyFunc(func(s string) string {
 		for i, c := range s {
 			switch {
 			case c >= 'A' && c <= 'Z':
@@ -66,7 +66,7 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalJsonBytes(content, v, caseInsensitiveKeyOption)
+	return mapping.UnmarshalJsonBytes(content, v, firstCharCaseInsensitiveOption)
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -77,12 +77,12 @@ func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
 
 // LoadFromTomlBytes loads config into v from content toml bytes.
 func LoadFromTomlBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalTomlBytes(content, v, caseInsensitiveKeyOption)
+	return mapping.UnmarshalTomlBytes(content, v, firstCharCaseInsensitiveOption)
 }
 
 // LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v interface{}) error {
-	return mapping.UnmarshalYamlBytes(content, v, caseInsensitiveKeyOption)
+	return mapping.UnmarshalYamlBytes(content, v, firstCharCaseInsensitiveOption)
 }
 
 // LoadConfigFromYamlBytes loads config into v from content yaml bytes.
