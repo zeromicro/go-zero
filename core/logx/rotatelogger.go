@@ -299,6 +299,7 @@ func (l *RotateLogger) init() error {
 		if l.fp, err = os.OpenFile(l.filename, os.O_APPEND|os.O_WRONLY, defaultFileMode); err != nil {
 			return err
 		}
+
 		l.currentSize = fileInfo.Size()
 	}
 
