@@ -57,14 +57,8 @@ func GoFormatApi(_ *cobra.Command, _ []string) error {
 
 		err = filepath.Walk(VarStringDir, func(path string, fi os.FileInfo, errBack error) (err error) {
 			if strings.HasSuffix(path, ".api") {
-				if env.UseExperimental() {
-					if err := apiF.File(path); err != nil {
-						be.Add(util.WrapErr(err, fi.Name()))
-					}
-				} else {
-					if err := ApiFormatByPath(path, VarBoolSkipCheckDeclare); err != nil {
-						be.Add(util.WrapErr(err, fi.Name()))
-					}
+				if err := ApiFormatByPath(path, VarBoolSkipCheckDeclare); err != nil {
+					be.Add(util.WrapErr(err, fi.Name()))
 				}
 			}
 			return nil
@@ -98,6 +92,12 @@ func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) e
 
 // ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
+	if env.UseExperimental() {
+		if err := apiF.File(apiFilePath); err != nil {
+			return err
+		}
+	}
+
 	data, err := os.ReadFile(apiFilePath)
 	if err != nil {
 		return err
