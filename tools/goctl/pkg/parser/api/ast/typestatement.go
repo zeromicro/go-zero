@@ -1,10 +1,6 @@
 package ast
 
 import (
-	"bytes"
-	"fmt"
-	"strings"
-
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
@@ -381,7 +377,7 @@ func (t *ArrayDataType) End() token.Position {
 }
 
 func (t *ArrayDataType) RawText() string {
-	return ""
+	return t.Format("")
 }
 
 func (t *ArrayDataType) ContainsStruct() bool {
@@ -549,7 +545,7 @@ func (t *MapDataType) End() token.Position {
 }
 
 func (t *MapDataType) RawText() string {
-	return fmt.Sprintf("map[%s]%s", t.Key.RawText(), t.Value.RawText())
+	return t.Format("")
 }
 
 func (t *MapDataType) ContainsStruct() bool {
@@ -605,7 +601,7 @@ func (t *PointerDataType) End() token.Position {
 }
 
 func (t *PointerDataType) RawText() string {
-	return "*" + t.DataType.RawText()
+	return t.Format("")
 }
 
 func (t *PointerDataType) ContainsStruct() bool {
@@ -662,7 +658,7 @@ func (t *SliceDataType) End() token.Position {
 }
 
 func (t *SliceDataType) RawText() string {
-	return fmt.Sprintf("[]%s", t.DataType.RawText())
+	return t.Format("")
 }
 
 func (t *SliceDataType) ContainsStruct() bool {
@@ -777,19 +773,7 @@ func (t *StructDataType) End() token.Position {
 }
 
 func (t *StructDataType) RawText() string {
-	b := bytes.NewBuffer(nil)
-	b.WriteRune('{')
-	for _, v := range t.Elements {
-		b.WriteRune('\n')
-		var nameList []string
-		for _, n := range v.Name {
-			nameList = append(nameList, n.Token.Text)
-		}
-		b.WriteString(fmt.Sprintf("%s %s %s", strings.Join(nameList, ", "), v.DataType.RawText(), v.Tag.Token.Text))
-	}
-	b.WriteRune('\n')
-	b.WriteRune('}')
-	return b.String()
+	return t.Format("")
 }
 
 func (t *StructDataType) ContainsStruct() bool {
