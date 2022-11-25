@@ -25,7 +25,13 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 	}
 	switch v := (in).(type) {
 	case *ast.BaseDataType:
-		return spec.PrimitiveType{RawName: v.RawText()}, nil
+		raw := v.RawText()
+		if IsBaseType(raw) {
+			return spec.PrimitiveType{
+				RawName: raw,
+			}, nil
+		}
+		return spec.DefineStruct{RawName: raw}, nil
 	case *ast.AnyDataType:
 		return spec.PrimitiveType{RawName: v.RawText()}, nil
 	case *ast.StructDataType:
@@ -49,6 +55,11 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 			Value:   value,
 		}, nil
 	case *ast.PointerDataType:
+		raw := v.DataType.RawText()
+		if IsBaseType(raw) {
+			return spec.PointerType{RawName: v.RawText(), Type: spec.PrimitiveType{RawName: raw}}, nil
+		}
+
 		value, err := a.astTypeToSpec(v.DataType)
 		if err != nil {
 			return nil, err
@@ -95,25 +106,30 @@ func (a *Analyzer) convertAtDoc(atDoc ast.AtDocStmt) spec.AtDoc {
 func (a *Analyzer) convertKV(kv []*ast.KVExpr) map[string]string {
 	var ret = map[string]string{}
 	for _, v := range kv {
-		ret[v.Key.Token.Text] = v.Value.Token.Text
+		key:=strings.TrimSuffix(v.Key.Token.Text,":")
+		ret[key] = v.Value.Token.Text
 	}
 	return ret
 }
 
-// break changes: not support anonymous structure.
 func (a *Analyzer) fieldToMember(field *ast.ElemExpr) (spec.Member, error) {
 	var name []string
 	for _, v := range field.Name {
 		name = append(name, v.Token.Text)
 	}
+
 	tp, err := a.astTypeToSpec(field.DataType)
 	if err != nil {
 		return spec.Member{}, err
 	}
+
+	head, leading := field.CommentGroup()
 	m := spec.Member{
-		Name: strings.Join(name, ", "),
-		Type: tp,
-		Tag:  field.Tag.Token.Text,
+		Name:     strings.Join(name, ", "),
+		Type:     tp,
+		Docs:     head.List(),
+		Comment:  leading.String(),
+		IsInline: field.IsAnonymous(),
 	}
 	if field.Tag != nil {
 		m.Tag = field.Tag.Token.Text
@@ -158,9 +174,12 @@ func (a *Analyzer) fillService() error {
 		}
 
 		for _, astRoute := range item.Routes {
+			head, leading := astRoute.CommentGroup()
 			route := spec.Route{
-				Method: astRoute.Route.Method.Token.Text,
-				Path:   astRoute.Route.Path.Format(""),
+				Method:  astRoute.Route.Method.Token.Text,
+				Path:    astRoute.Route.Path.Format(""),
+				Doc:     head.List(),
+				Comment: leading.List(),
 			}
 			if astRoute.AtDoc != nil {
 				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
@@ -168,16 +187,19 @@ func (a *Analyzer) fillService() error {
 			if astRoute.AtHandler != nil {
 				route.AtDoc = a.convertAtDoc(astRoute.AtDoc)
 				route.Handler = astRoute.AtHandler.Name.Token.Text
+				head, leading := astRoute.AtHandler.CommentGroup()
+				route.HandlerDoc = head.List()
+				route.HandlerComment = leading.List()
 			}
 
-			if astRoute.Route.Request != nil {
+			if astRoute.Route.Request != nil && astRoute.Route.Request.Body != nil {
 				requestType, err := a.getType(astRoute.Route.Request)
 				if err != nil {
 					return err
 				}
 				route.RequestType = requestType
 			}
-			if astRoute.Route.Response != nil {
+			if astRoute.Route.Response != nil && astRoute.Route.Response.Body != nil {
 				responseType, err := a.getType(astRoute.Route.Response)
 				if err != nil {
 					return err
@@ -251,6 +273,7 @@ func (a *Analyzer) fillTypes() error {
 }
 
 func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {
+	head, _ := expr.CommentGroup()
 	switch val := expr.DataType.(type) {
 	case *ast.StructDataType:
 		var members []spec.Member
@@ -264,6 +287,7 @@ func (a *Analyzer) fillTypeExpr(expr *ast.TypeExpr) error {
 		a.spec.Types = append(a.spec.Types, spec.DefineStruct{
 			RawName: expr.Name.Token.Text,
 			Members: members,
+			Docs:    head.List(),
 		})
 		return nil
 	default:

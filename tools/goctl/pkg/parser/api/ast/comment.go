@@ -9,18 +9,27 @@ import (
 
 type CommentGroup []*CommentStmt
 
-func (cg CommentGroup) Join(sep string) string {
-	if !cg.Valid() {
-		return ""
-	}
+func (cg CommentGroup) List() []string {
 	var list = make([]string, 0, len(cg))
 	for _, v := range cg {
-		comment := v.Format(NilIndent)
+		comment := v.Comment.Text
 		if util.IsEmptyStringOrWhiteSpace(comment) {
 			continue
 		}
 		list = append(list, comment)
 	}
+	return list
+}
+
+func (cg CommentGroup) String() string {
+	return cg.Join(" ")
+}
+
+func (cg CommentGroup) Join(sep string) string {
+	if !cg.Valid() {
+		return ""
+	}
+	list := cg.List()
 	return strings.Join(list, sep)
 }
 

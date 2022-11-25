@@ -70,6 +70,7 @@ type (
 
 	// Route describes api route
 	Route struct {
+		// Deprecated: Use Service AtServer instead.
 		AtServerAnnotation Annotation
 		Method             string
 		Path               string
