@@ -1,11 +1,17 @@
 package config
 
 import (
-    "github.com/suyuan32/simple-admin-tools/plugins/registry/consul"
+{{if .isEnt}}   "github.com/suyuan32/simple-admin-core/pkg/config"
+{{end}}
+    "github.com/zeromicro/go-zero/core/stores/redis"
     "github.com/zeromicro/go-zero/zrpc"
+
 )
 
 type Config struct {
 	zrpc.RpcServerConf
+{{if .isEnt}}   DatabaseConf config.DatabaseConf
+    RedisConf    redis.RedisConf
+{{end}}
 }
 

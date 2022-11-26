@@ -117,7 +117,7 @@ func genEntLogicInCompatibility(schema, output, serviceName, style, modelName st
 			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", modelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n", protoMessage))
 			newProtoData.WriteString(protoDataString[serviceIndex : len(protoDataString)-2])
-			newProtoData.WriteString(fmt.Sprintf("\n\n  // %s management\n", modelName))
+			newProtoData.WriteString(fmt.Sprintf("\n  // %s management\n", modelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n}", protoFunctions))
 
 			err = os.WriteFile(protoFileName, []byte(newProtoData.String()), regularPerm)
@@ -201,21 +201,32 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 			listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint64(v.%s),\n", parser.CamelCase(v.Name),
 				parser.CamelCase(v.Name)))
 		} else {
+			nameCamelCase := parser.CamelCase(v.Name)
 			if i < (len(schema.Fields) - 1) {
 				if strings.Contains(v.Name, "at") {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),\n", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),\n", nameCamelCase,
+						nameCamelCase))
 				} else {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
+					if strings.Contains(nameCamelCase, "Uuid") {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
+							strings.Replace(nameCamelCase, "Uuid", "UUID", 1)))
+					} else {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
+							nameCamelCase))
+					}
 				}
 			} else {
 				if strings.Contains(v.Name, "at") {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),", nameCamelCase,
+						nameCamelCase))
 				} else {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
+					if strings.Contains(nameCamelCase, "Uuid") {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
+							strings.Replace(nameCamelCase, "Uuid", "UUID", 1)))
+					} else {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
+							nameCamelCase))
+					}
 				}
 			}
 		}
@@ -224,11 +235,12 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 	getListLogic := bytes.NewBufferString("")
 	getListLogicTmpl, err := template.New("getList").Parse(getListLogicTpl)
 	getListLogicTmpl.Execute(getListLogic, map[string]interface{}{
-		"predicateData": predicateData.String(),
-		"modelName":     schema.Name,
-		"listData":      listData.String(),
-		"serviceName":   serviceName,
-		"projectPath":   projectCtx.Path,
+		"predicateData":      predicateData.String(),
+		"modelName":          schema.Name,
+		"listData":           listData.String(),
+		"serviceName":        serviceName,
+		"projectPath":        projectCtx.Path,
+		"modelNameLowerCase": strings.ToLower(schema.Name),
 	})
 
 	data = append(data, &RpcLogicData{
@@ -250,16 +262,17 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 	})
 
 	batchDeleteLogic := bytes.NewBufferString("")
-	batchDeleteLogicTmpl, err := template.New("delete").Parse(batchDeleteLogicTpl)
+	batchDeleteLogicTmpl, err := template.New("batchDelete").Parse(batchDeleteLogicTpl)
 	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]interface{}{
-		"modelName":   schema.Name,
-		"serviceName": serviceName,
-		"projectPath": projectCtx.Path,
+		"modelName":          schema.Name,
+		"serviceName":        serviceName,
+		"projectPath":        projectCtx.Path,
+		"modelNameLowerCase": strings.ToLower(schema.Name),
 	})
 
 	data = append(data, &RpcLogicData{
 		LogicName: fmt.Sprintf("BatchDelete%sLogic", schema.Name),
-		LogicCode: deleteLogic.String(),
+		LogicCode: batchDeleteLogic.String(),
 	})
 
 	return data
@@ -283,13 +296,21 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 				if strings.Contains(v.Name, "at") {
 					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n", v.Name, index))
 				} else {
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", v.Info.Type.String(), v.Name, index))
+					typeName := v.Info.Type.String()
+					if typeName == "float32" || typeName == "float64" {
+						typeName = "float"
+					}
+					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", typeName, v.Name, index))
 				}
 			} else {
 				if strings.Contains(v.Name, "at") {
 					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n}\n\n", v.Name, index))
 				} else {
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", v.Info.Type.String(), v.Name, index))
+					typeName := v.Info.Type.String()
+					if typeName == "float32" || typeName == "float64" {
+						typeName = "float"
+					}
+					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", typeName, v.Name, index))
 				}
 			}
 			index++
@@ -301,7 +322,7 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 		schemaNameCamelCase, schemaNameCamelCase))
 
 	// List Request message
-	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
+	protoMessage.WriteString(fmt.Sprintf("message %sPageReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
 		schemaNameCamelCase))
 	count := 0
 	index = 3
@@ -310,11 +331,13 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
 			if i < (len(schema.Fields)-1) && count < (searchKeyNum-1) {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", v.Info.Type.String(), v.Name, index))
-			} else {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n", v.Info.Type.String(), v.Name, index))
 			}
 			index++
 			count++
+		}
+
+		if i == (len(schema.Fields) - 1) {
+			protoMessage.WriteString("}\n")
 		}
 	}
 

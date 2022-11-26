@@ -4,13 +4,13 @@ import (
 	"context"
 {{if .hasTime}}     "time"{{end}}
 
-	"github.com/suyuan32/simple-admin-core/pkg/i18n"
+	"{{.projectPath}}/ent"
+	"{{.projectPath}}/internal/svc"
+    "{{.projectPath}}/{{.serviceName}}"
+
+    "github.com/suyuan32/simple-admin-core/pkg/i18n"
 	"github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
 	"github.com/suyuan32/simple-admin-core/pkg/statuserr"
-	"{{.projectPath}}/pkg/ent"
-	"{{.projectPath}}/rpc/internal/svc"
-	"{{.projectPath}}/rpc/types/{{.serviceName}}"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

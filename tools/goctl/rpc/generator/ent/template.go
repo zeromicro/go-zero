@@ -19,4 +19,7 @@ var (
 
 	//go:embed proto.tpl
 	protoTpl string
+
+	//go:embed pagination.tmpl
+	PaginationTpl string
 )

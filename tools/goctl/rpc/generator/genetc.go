@@ -19,7 +19,7 @@ var etcTemplate string
 
 // GenEtc generates the yaml configuration file of the rpc service,
 // including host, port monitoring configuration items and etcd configuration
-func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *ZRpcContext) error {
 	dir := ctx.GetEtc()
 	etcFilename, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
 	if err != nil {
@@ -35,5 +35,6 @@ func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 
 	return util.With("etc").Parse(text).SaveTo(map[string]interface{}{
 		"serviceName": strings.ToLower(stringx.From(ctx.GetServiceName().Source()).ToCamel()),
+		"isEnt":       c.Ent,
 	}, fileName, false)
 }

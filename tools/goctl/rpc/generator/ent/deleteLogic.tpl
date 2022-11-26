@@ -3,13 +3,13 @@ package logic
 import (
 	"context"
 
+    "{{.projectPath}}/ent"
+    "{{.projectPath}}/internal/svc"
+    "{{.projectPath}}/{{.serviceName}}"
+
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
     "github.com/suyuan32/simple-admin-core/pkg/statuserr"
-    "{{.projectPath}}/pkg/ent"
-    "{{.projectPath}}/rpc/internal/svc"
-    "{{.projectPath}}/rpc/types/{{.serviceName}}"
-
     "github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,7 +27,7 @@ func NewDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-func (l *DeleteApiLogic) Delete{{.modelName}}(in *{{.serviceName}}.IDReq) (*{{.serviceName}}.BaseResp, error) {
+func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.serviceName}}.IDReq) (*{{.serviceName}}.BaseResp, error) {
 	err := l.svcCtx.DB.{{.modelName}}.DeleteOneID(in.Id).Exec(l.ctx)
 
 	if err != nil {

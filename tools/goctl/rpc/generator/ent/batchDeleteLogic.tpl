@@ -3,13 +3,14 @@ package logic
 import (
 	"context"
 
+    "{{.projectPath}}/ent"
+    "{{.projectPath}}/ent/{{.modelNameLowerCase}}"
+    "{{.projectPath}}/internal/svc"
+    "{{.projectPath}}/{{.serviceName}}"
+
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
     "github.com/suyuan32/simple-admin-core/pkg/statuserr"
-    "{{.projectPath}}/pkg/ent"
-    "{{.projectPath}}/rpc/internal/svc"
-    "{{.projectPath}}/rpc/types/{{.serviceName}}"
-
     "github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -27,8 +28,8 @@ func NewBatchDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceC
 	}
 }
 
-func (l *BatchDeleteApiLogic) BatchDelete{{.modelName}}(in *{{.serviceName}}.IDsReq) (*{{.serviceName}}.BaseResp, error) {
-	err := l.svcCtx.DB.{{.modelName}}.Delete().Where(token.IDIn(in.Ids)).Exec(l.ctx)
+func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.serviceName}}.IDsReq) (*{{.serviceName}}.BaseResp, error) {
+	_, err := l.svcCtx.DB.{{.modelName}}.Delete().Where({{.modelNameLowerCase}}.IDIn(in.Ids...)).Exec(l.ctx)
 
 	if err != nil {
 		switch {

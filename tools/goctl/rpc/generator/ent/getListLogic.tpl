@@ -3,13 +3,13 @@ package logic
 import (
 	"context"
 
-	"github.com/suyuan32/simple-admin-core/pkg/i18n"
-	"github.com/suyuan32/simple-admin-core/pkg/statuserr"
-	"{{.projectPath}}/pkg/ent/{{.modelNameLowerCase}}"
-	"{{.projectPath}}/pkg/ent/predicate"
-	"{{.projectPath}}/rpc/internal/svc"
-	"{{.projectPath}}/rpc/types/{{.serviceName}}"
+	"{{.projectPath}}/ent/{{.modelNameLowerCase}}"
+	"{{.projectPath}}/ent/predicate"
+	"{{.projectPath}}/internal/svc"
+    "{{.projectPath}}/{{.serviceName}}"
 
+    "github.com/suyuan32/simple-admin-core/pkg/i18n"
+	"github.com/suyuan32/simple-admin-core/pkg/statuserr"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 

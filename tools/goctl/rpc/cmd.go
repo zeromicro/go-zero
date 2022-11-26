@@ -74,6 +74,7 @@ func init() {
 	newCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
 		"The branch of the remote repo, it does work with --remote")
 	newCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
+	newCmd.Flags().BoolVar(&cli.VarBoolEnt, "Ent", true, "Whether use Ent in project")
 	newCmd.Flags().MarkHidden("go_opt")
 	newCmd.Flags().MarkHidden("go-grpc_opt")
 

@@ -1,8 +1,12 @@
 package generator
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
@@ -30,6 +34,8 @@ type ZRpcContext struct {
 	Multiple bool
 	// Schema is the ent schema path
 	Schema string
+	// Ent
+	Ent bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -67,7 +73,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenEtc(dirCtx, proto, g.cfg)
+	err = g.GenEtc(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
@@ -77,12 +83,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	err = g.GenConfig(dirCtx, proto, g.cfg)
+	err = g.GenConfig(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
 
-	err = g.GenSvc(dirCtx, proto, g.cfg)
+	err = g.GenSvc(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
 	}
@@ -103,6 +109,48 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	}
 
 	err = g.GenCall(dirCtx, proto, g.cfg, zctx)
+
+	err = g.GenMakefile(dirCtx, proto, g.cfg, zctx)
+	if err != nil {
+		return err
+	}
+
+	// generate ent
+	if zctx.Ent {
+		_, err := execx.Run(fmt.Sprintf("go run -mod=mod entgo.io/ent/cmd/ent init %s",
+			dirCtx.GetServiceName().ToCamel()), abs)
+		if err != nil {
+			return err
+		}
+
+		_, err = execx.Run("go mod tidy", abs)
+		if err != nil {
+			return err
+		}
+
+		_, err = execx.Run("go run -mod=mod entgo.io/ent/cmd/ent generate ./ent/schema", abs)
+		if err != nil {
+			return err
+		}
+
+		err = pathx.MkdirIfNotExist(filepath.Join(abs, "ent", "template"))
+		if err != nil {
+			return err
+		}
+
+		paginationTplPath := filepath.Join(abs, "ent", "template", "pagination.tmpl")
+		if !pathx.FileExists(paginationTplPath) {
+			err = os.WriteFile(paginationTplPath, []byte(ent.PaginationTpl), os.ModePerm)
+			if err != nil {
+				return err
+			}
+		}
+
+		_, err = execx.Run("make gen-rpc", abs)
+		if err != nil {
+			return err
+		}
+	}
 
 	console.NewColorConsole().MarkDone()
 
