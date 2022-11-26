@@ -19,7 +19,7 @@ var (
 	newCmd = &cobra.Command{
 		Use:   "new",
 		Short: "Generate rpc demo service",
-		Args:  cobra.ExactValidArgs(1),
+		Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE:  cli.RPCNew,
 	}
 
@@ -35,8 +35,14 @@ var (
 		Use:     "protoc",
 		Short:   "Generate grpc code",
 		Example: "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
-		Args:    cobra.ExactValidArgs(1),
+		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE:    cli.ZRPC,
+	}
+
+	entCmd = &cobra.Command{
+		Use:   "ent",
+		Short: "Generate Ent CRUD template",
+		RunE:  cli.EntCRUDLogic,
 	}
 )
 
@@ -92,7 +98,6 @@ func init() {
 	protocCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
 		"The branch of the remote repo, it does work with --remote")
 	protocCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
-	protocCmd.Flags().StringVar(&cli.VarStringSchema, "schema", "", "The schema of the Ent")
 	protocCmd.Flags().MarkHidden("go_out")
 	protocCmd.Flags().MarkHidden("go-grpc_out")
 	protocCmd.Flags().MarkHidden("go_opt")
@@ -111,7 +116,17 @@ func init() {
 	templateCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "", "The branch"+
 		" of the remote repo, it does work with --remote")
 
+	entCmd.Flags().StringVar(&cli.VarStringSchema, "schema", "", "The schema path of the Ent")
+	entCmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "The output path")
+	entCmd.Flags().StringVar(&cli.VarStringServiceName, "serviceName", "", "The service name")
+	entCmd.Flags().BoolVar(&cli.VarBoolMultiple, "multiple", false, "Generated in multiple rpc service mode")
+	entCmd.Flags().StringVar(&cli.VarStringStyle, "style", "go_zero", "The file name format style")
+	entCmd.Flags().StringVar(&cli.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
+		"if it is empty, generate codes for all models in schema directory")
+	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "searchKeyNum", 3, "The max number of search keys ")
+
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)
 	Cmd.AddCommand(templateCmd)
+	Cmd.AddCommand(entCmd)
 }

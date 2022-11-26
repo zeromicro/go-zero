@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero/tools/goctl
 go 1.16
 
 require (
-	entgo.io/ent v0.11.4 // indirect
+	entgo.io/ent v0.11.4
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/emicklei/proto v1.10.0
 	github.com/fatih/structtag v1.2.0

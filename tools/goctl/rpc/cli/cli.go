@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -47,6 +48,12 @@ var (
 	VarBoolMultiple bool
 	// VarStringSchema describe the ent schema path
 	VarStringSchema string
+	// VarStringServiceName describe the service name
+	VarStringServiceName string
+	// VarStringModelName describe which model for generating
+	VarStringModelName string
+	// VarIntSearchKeyNum describe the number of search keys
+	VarIntSearchKeyNum int
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -130,4 +137,14 @@ func RPCTemplate(latest bool) error {
 	}
 
 	return generator.ProtoTmpl(protoFile)
+}
+
+func EntCRUDLogic(_ *cobra.Command, args []string) error {
+	err := ent.GenEntLogic(VarStringSchema, VarStringOutput, VarStringServiceName, VarStringStyle, VarStringModelName,
+		VarBoolMultiple, VarIntSearchKeyNum)
+	if err != nil {
+		return err
+	}
+
+	return err
 }

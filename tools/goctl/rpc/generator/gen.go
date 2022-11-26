@@ -92,13 +92,6 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
-	if zctx.Schema != "" {
-		err = g.GenEntLogic(dirCtx, proto, g.cfg, zctx)
-		if err != nil {
-			return err
-		}
-	}
-
 	err = g.GenServer(dirCtx, proto, g.cfg, zctx)
 	if err != nil {
 		return err
