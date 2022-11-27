@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -44,6 +46,16 @@ var (
 	VarBoolVerbose bool
 	// VarBoolMultiple describes whether support generating multiple rpc services or not.
 	VarBoolMultiple bool
+	// VarStringSchema describe the ent schema path
+	VarStringSchema string
+	// VarStringServiceName describe the service name
+	VarStringServiceName string
+	// VarStringModelName describe which model for generating
+	VarStringModelName string
+	// VarIntSearchKeyNum describe the number of search keys
+	VarIntSearchKeyNum int
+	// VarBoolEnt describe whether the project use Ent
+	VarBoolEnt bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -88,6 +100,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+	ctx.Ent = VarBoolEnt
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
@@ -127,4 +140,14 @@ func RPCTemplate(latest bool) error {
 	}
 
 	return generator.ProtoTmpl(protoFile)
+}
+
+func EntCRUDLogic(_ *cobra.Command, args []string) error {
+	err := ent.GenEntLogic(VarStringSchema, VarStringOutput, VarStringServiceName, VarStringStyle, VarStringModelName,
+		VarBoolMultiple, VarIntSearchKeyNum)
+	if err != nil {
+		return err
+	}
+
+	return err
 }

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -17,7 +18,7 @@ var svcTemplate string
 
 // GenSvc generates the servicecontext.go file, which is the resource dependency of a service,
 // such as rpc dependency, model dependency, etc.
-func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *ZRpcContext) error {
 	dir := ctx.GetSvc()
 	svcFilename, err := format.FileNamingFormat(cfg.NamingFormat, "service_context")
 	if err != nil {
@@ -30,7 +31,15 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 		return err
 	}
 
+	imports := strings.Builder{}
+	imports.WriteString(fmt.Sprintf("\t\"%v\"\n", ctx.GetConfig().Package))
+	if c.Ent {
+		imports.WriteString(fmt.Sprintf("\t\"%s/ent\"\n\n", ctx.GetServiceName().Lower()))
+		imports.WriteString("\t\"github.com/zeromicro/go-zero/core/logx\"\n\t\"github.com/zeromicro/go-zero/core/stores/redis\"\n")
+	}
+
 	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
-		"imports": fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
+		"imports": imports.String(),
+		"isEnt":   c.Ent,
 	}, fileName, false)
 }

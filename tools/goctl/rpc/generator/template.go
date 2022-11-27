@@ -20,6 +20,8 @@ const (
 	serverFuncTemplateFile            = "server-func.tpl"
 	svcTemplateFile                   = "svc.tpl"
 	rpcTemplateFile                   = "template.tpl"
+	makefileTemplateFile              = "makefile.tpl"
+	dockerfileTemplateFile            = "dockerfile.tpl"
 )
 
 var templates = map[string]string{

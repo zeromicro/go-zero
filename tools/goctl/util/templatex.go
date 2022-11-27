@@ -3,7 +3,7 @@ package util
 import (
 	"bytes"
 	goformat "go/format"
-	"io/ioutil"
+	"os"
 	"text/template"
 
 	"github.com/zeromicro/go-zero/tools/goctl/internal/errorx"
@@ -49,7 +49,7 @@ func (t *DefaultTemplate) SaveTo(data interface{}, path string, forceUpdate bool
 		return err
 	}
 
-	return ioutil.WriteFile(path, output.Bytes(), regularPerm)
+	return os.WriteFile(path, output.Bytes(), regularPerm)
 }
 
 // Execute returns the codes after the template executed

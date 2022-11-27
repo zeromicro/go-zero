@@ -2,12 +2,13 @@ package generator
 
 import (
 	_ "embed"
-	"io/ioutil"
-	"os"
+	"fmt"
 	"path/filepath"
 
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
+	"github.com/zeromicro/go-zero/tools/goctl/util"
+	ctx2 "github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -19,7 +20,7 @@ var configTemplate string
 // which contains the zrpc.RpcServerConf configuration item by default.
 // You can specify the naming style of the target file name through config.Config. For details,
 // see https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/config.go
-func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config) error {
+func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *ZRpcContext) error {
 	dir := ctx.GetConfig()
 	configFilename, err := format.FileNamingFormat(cfg.NamingFormat, "config")
 	if err != nil {
@@ -36,5 +37,14 @@ func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config) 
 		return err
 	}
 
-	return ioutil.WriteFile(fileName, []byte(text), os.ModePerm)
+	projectCtx, err := ctx2.Prepare(ctx.GetMain().Base)
+	if err != nil {
+		return err
+	}
+
+	return util.With("config").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+		"imports":   fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
+		"isEnt":     c.Ent,
+		"goPackage": projectCtx.Path,
+	}, fileName, false)
 }
