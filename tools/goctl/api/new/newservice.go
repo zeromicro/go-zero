@@ -26,6 +26,12 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
+	// VarBoolErrorTranslate describes whether to translate error
+	VarBoolErrorTranslate bool
+	// VarBoolUseCasbin describe whether to use Casbin
+	VarBoolUseCasbin bool
+	// VarBoolUseI18n describe whether to use i18n
+	VarBoolUseI18n bool
 )
 
 // CreateServiceCommand fast create service
@@ -82,6 +88,6 @@ func CreateServiceCommand(args []string) error {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, false)
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, VarBoolErrorTranslate, VarBoolUseCasbin, VarBoolUseI18n)
 	return err
 }

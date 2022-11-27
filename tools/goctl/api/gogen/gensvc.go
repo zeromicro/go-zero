@@ -17,7 +17,7 @@ const contextFilename = "service_context"
 //go:embed svc.tpl
 var contextTemplate string
 
-func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, useCasbin, useI18n bool) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, contextFilename)
 	if err != nil {
 		return err
@@ -40,6 +40,10 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
+	if useI18n {
+		configImport += fmt.Sprintf("\n\ti18n2 \"%s/pkg/i18n", rootPkg)
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          contextDir,
@@ -48,11 +52,13 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		category:        category,
 		templateFile:    contextTemplateFile,
 		builtinTemplate: contextTemplate,
-		data: map[string]string{
+		data: map[string]interface{}{
 			"configImport":         configImport,
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"useCasbin":            useCasbin,
+			"useI18n":              useI18n,
 		},
 	})
 }

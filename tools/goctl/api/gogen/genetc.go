@@ -18,7 +18,7 @@ const (
 //go:embed etc.tpl
 var etcTemplate string
 
-func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec, useCasbin, useI18n bool) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)
 	if err != nil {
 		return err
@@ -36,10 +36,12 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		category:        category,
 		templateFile:    etcTemplateFile,
 		builtinTemplate: etcTemplate,
-		data: map[string]string{
+		data: map[string]interface{}{
 			"serviceName": service.Name,
 			"host":        host,
 			"port":        port,
+			"useCasbin":   useCasbin,
+			"useI18n":     useI18n,
 		},
 	})
 }

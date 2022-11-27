@@ -40,8 +40,12 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
-	// VarBoolErrorTranslate describes if translate error
+	// VarBoolErrorTranslate describes whether to translate error
 	VarBoolErrorTranslate bool
+	// VarBoolUseCasbin describe whether to use Casbin
+	VarBoolUseCasbin bool
+	// VarBoolUseI18n describe whether to use i18n
+	VarBoolUseI18n bool
 )
 
 // GoCommand gen go project files from command line
@@ -70,11 +74,11 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 		return errors.New("missing -dir")
 	}
 
-	return DoGenProject(apiFile, dir, namingStyle, transErr)
+	return DoGenProject(apiFile, dir, namingStyle, transErr, VarBoolUseCasbin, VarBoolUseI18n)
 }
 
 // DoGenProject gen go project files with api file
-func DoGenProject(apiFile, dir, style string, transErr bool) error {
+func DoGenProject(apiFile, dir, style string, transErr, useCasbin, useI18n bool) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -96,15 +100,21 @@ func DoGenProject(apiFile, dir, style string, transErr bool) error {
 		return err
 	}
 
-	logx.Must(genEtc(dir, cfg, api))
-	logx.Must(genConfig(dir, cfg, api))
+	logx.Must(genEtc(dir, cfg, api, useCasbin, useI18n))
+	logx.Must(genConfig(dir, cfg, api, useCasbin))
 	logx.Must(genMain(dir, rootPkg, cfg, api))
-	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
+	logx.Must(genServiceContext(dir, rootPkg, cfg, api, useCasbin, useI18n))
 	logx.Must(genTypes(dir, cfg, api))
 	logx.Must(genRoutes(dir, rootPkg, cfg, api))
 	logx.Must(genHandlers(dir, rootPkg, cfg, api, transErr))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
+	logx.Must(genDockerfile(dir, api))
+	logx.Must(genMakefile(dir, api))
+
+	if useCasbin {
+		logx.Must(genCasbin(dir, cfg, api))
+	}
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err

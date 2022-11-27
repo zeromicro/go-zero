@@ -130,7 +130,9 @@ func init() {
 		"the remote repo, it does work with --remote")
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
-	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "transErr", false, "Whether translate the error")
+	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
+	goCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
+	goCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
 
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
 	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
@@ -150,6 +152,8 @@ func init() {
 		"the remote repo, it does work with --remote")
 	newCmd.Flags().StringVar(&new.VarStringStyle, "style", "go_zero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
+	newCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
+	newCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
 	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")
