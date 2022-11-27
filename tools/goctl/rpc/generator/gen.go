@@ -115,6 +115,11 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		return err
 	}
 
+	err = g.GenDockerfile(dirCtx, proto, g.cfg, zctx)
+	if err != nil {
+		return err
+	}
+
 	// generate ent
 	if zctx.Ent {
 		_, err := execx.Run(fmt.Sprintf("go run -mod=mod entgo.io/ent/cmd/ent init %s",

@@ -18,7 +18,7 @@ func (g *Generator) GenMakefile(ctx DirContext, _ parser.Proto, cfg *conf.Config
 	dir := ctx.GetMain()
 
 	fileName := filepath.Join(dir.Filename, "Makefile")
-	text, err := pathx.LoadTemplate(category, makefileTemplate, makefileTemplate)
+	text, err := pathx.LoadTemplate(category, makefileTemplateFile, makefileTemplate)
 	if err != nil {
 		return err
 	}
