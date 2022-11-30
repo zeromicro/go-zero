@@ -4,8 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/zeromicro/go-zero/core/internal/types"
-	"gopkg.in/yaml.v2"
+	"github.com/zeromicro/go-zero/core/internal/encoding"
 )
 
 // To make .json & .yaml consistent, we just use json as the tag key.
@@ -20,47 +19,20 @@ var (
 
 // UnmarshalYamlBytes unmarshals content into v.
 func UnmarshalYamlBytes(content []byte, v interface{}) error {
-	return unmarshalYamlBytes(content, v, yamlUnmarshaler)
+	b, err := encoding.YamlToJson(content)
+	if err != nil {
+		return err
+	}
+
+	return unmarshalJsonBytes(b, v, yamlUnmarshaler)
 }
 
 // UnmarshalYamlReader unmarshals content from reader into v.
 func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
-	return unmarshalYamlReader(reader, v, yamlUnmarshaler)
-}
-
-func unmarshal(unmarshaler *Unmarshaler, o, v interface{}) error {
-	if m, ok := o.(map[string]interface{}); ok {
-		return unmarshaler.Unmarshal(m, v)
-	}
-
-	return ErrUnsupportedType
-}
-
-func unmarshalYamlBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {
-	var o interface{}
-	if err := yamlUnmarshal(content, &o); err != nil {
+	b, err := io.ReadAll(reader)
+	if err != nil {
 		return err
 	}
 
-	return unmarshal(unmarshaler, o, v)
-}
-
-func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
-	var res interface{}
-	if err := yaml.NewDecoder(reader).Decode(&res); err != nil {
-		return err
-	}
-
-	return unmarshal(unmarshaler, types.ToStringKeyMap(res), v)
-}
-
-// yamlUnmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
-func yamlUnmarshal(in []byte, out interface{}) error {
-	var res interface{}
-	if err := yaml.Unmarshal(in, &res); err != nil {
-		return err
-	}
-
-	*out.(*interface{}) = types.ToStringKeyMap(res)
-	return nil
+	return UnmarshalYamlBytes(b, v)
 }

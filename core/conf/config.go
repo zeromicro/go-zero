@@ -1,19 +1,15 @@
 package conf
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/pelletier/go-toml/v2"
-	"github.com/zeromicro/go-zero/core/internal/types"
+	"github.com/zeromicro/go-zero/core/internal/encoding"
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/mapping"
-	"gopkg.in/yaml.v2"
 )
 
 const distanceBetweenUpperAndLower = 32
@@ -73,34 +69,22 @@ func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
 
 // LoadFromTomlBytes loads config into v from content toml bytes.
 func LoadFromTomlBytes(content []byte, v interface{}) error {
-	var val interface{}
-	if err := toml.NewDecoder(bytes.NewReader(content)).Decode(&val); err != nil {
+	b, err := encoding.TomlToJson(content)
+	if err != nil {
 		return err
 	}
 
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		return err
-	}
-
-	return LoadFromJsonBytes(buf.Bytes(), v)
+	return LoadFromJsonBytes(b, v)
 }
 
 // LoadFromYamlBytes loads config into v from content yaml bytes.
 func LoadFromYamlBytes(content []byte, v interface{}) error {
-	var res interface{}
-	if err := yaml.Unmarshal(content, &res); err != nil {
+	b, err := encoding.YamlToJson(content)
+	if err != nil {
 		return err
 	}
 
-	res = types.ToStringKeyMap(res)
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(res); err != nil {
-		return err
-	}
-
-	return LoadFromJsonBytes(buf.Bytes(), v)
+	return LoadFromJsonBytes(b, v)
 }
 
 // LoadConfigFromYamlBytes loads config into v from content yaml bytes.
