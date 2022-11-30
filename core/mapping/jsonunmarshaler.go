@@ -16,13 +16,21 @@ func UnmarshalJsonBytes(content []byte, v interface{}) error {
 }
 
 // UnmarshalJsonMap unmarshals content from m into v.
-func UnmarshalJsonMap(m map[string]interface{}, v interface{}) error {
-	return jsonUnmarshaler.Unmarshal(m, v)
+func UnmarshalJsonMap(m map[string]interface{}, v interface{}, opts ...UnmarshalOption) error {
+	return getJsonUnmarshaler(opts...).Unmarshal(m, v)
 }
 
 // UnmarshalJsonReader unmarshals content from reader into v.
 func UnmarshalJsonReader(reader io.Reader, v interface{}) error {
 	return unmarshalJsonReader(reader, v, jsonUnmarshaler)
+}
+
+func getJsonUnmarshaler(opts ...UnmarshalOption) *Unmarshaler {
+	if len(opts) > 0 {
+		return NewUnmarshaler(jsonTagKey, opts...)
+	}
+
+	return jsonUnmarshaler
 }
 
 func unmarshalJsonBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {

@@ -1,10 +1,10 @@
 package mapping
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 
+	"github.com/zeromicro/go-zero/core/internal/types"
 	"gopkg.in/yaml.v2"
 )
 
@@ -26,41 +26,6 @@ func UnmarshalYamlBytes(content []byte, v interface{}) error {
 // UnmarshalYamlReader unmarshals content from reader into v.
 func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
 	return unmarshalYamlReader(reader, v, yamlUnmarshaler)
-}
-
-func cleanupInterfaceMap(in map[interface{}]interface{}) map[string]interface{} {
-	res := make(map[string]interface{})
-	for k, v := range in {
-		res[Repr(k)] = cleanupMapValue(v)
-	}
-	return res
-}
-
-func cleanupInterfaceNumber(in interface{}) json.Number {
-	return json.Number(Repr(in))
-}
-
-func cleanupInterfaceSlice(in []interface{}) []interface{} {
-	res := make([]interface{}, len(in))
-	for i, v := range in {
-		res[i] = cleanupMapValue(v)
-	}
-	return res
-}
-
-func cleanupMapValue(v interface{}) interface{} {
-	switch v := v.(type) {
-	case []interface{}:
-		return cleanupInterfaceSlice(v)
-	case map[interface{}]interface{}:
-		return cleanupInterfaceMap(v)
-	case bool, string:
-		return v
-	case int, uint, int8, uint8, int16, uint16, int32, uint32, int64, uint64, float32, float64:
-		return cleanupInterfaceNumber(v)
-	default:
-		return Repr(v)
-	}
 }
 
 func unmarshal(unmarshaler *Unmarshaler, o, v interface{}) error {
@@ -86,7 +51,7 @@ func unmarshalYamlReader(reader io.Reader, v interface{}, unmarshaler *Unmarshal
 		return err
 	}
 
-	return unmarshal(unmarshaler, cleanupMapValue(res), v)
+	return unmarshal(unmarshaler, types.ToStringKeyMap(res), v)
 }
 
 // yamlUnmarshal YAML to map[string]interface{} instead of map[interface{}]interface{}.
@@ -96,6 +61,6 @@ func yamlUnmarshal(in []byte, out interface{}) error {
 		return err
 	}
 
-	*out.(*interface{}) = cleanupMapValue(res)
+	*out.(*interface{}) = types.ToStringKeyMap(res)
 	return nil
 }
