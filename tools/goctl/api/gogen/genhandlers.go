@@ -117,10 +117,10 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 	})
 }
 
-func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, trans bool) error {
+func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) error {
 	for _, group := range api.Service.Groups {
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, cfg, group, route, trans); err != nil {
+			if err := genHandler(dir, rootPkg, cfg, group, route, g.TransErr); err != nil {
 				return err
 			}
 		}

@@ -88,6 +88,12 @@ var (
 		Short: "Generate ts files for provided api in api file",
 		RunE:  tsgen.TsCommand,
 	}
+
+	protoCmd = &cobra.Command{
+		Use:   "proto",
+		Short: "Generate CRUD template from proto file",
+		RunE:  gogen.GenCRUDLogicByProto,
+	}
 )
 
 func init() {
@@ -131,8 +137,8 @@ func init() {
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
-	goCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
-	goCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
+	goCmd.Flags().BoolVar(&gogen.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
+	goCmd.Flags().BoolVar(&gogen.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
 
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
 	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
@@ -154,6 +160,13 @@ func init() {
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 	newCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
 	newCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
+	newCmd.Flags().StringVar(&new.VarStringGoZeroVersion, "goZeroVersion", "",
+		"The go zero version used for migrate. e.g. v1.4.2")
+	newCmd.Flags().StringVar(&new.VarStringToolVersion, "toolVersion", "",
+		"The simple admin tool version version used for migrate. e.g. v0.0.9")
+	newCmd.Flags().StringVar(&new.VarModuleName, "moduleName", "",
+		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
+	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
 	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")
@@ -169,6 +182,16 @@ func init() {
 
 	validateCmd.Flags().StringVar(&validate.VarStringAPI, "api", "", "Validate target api file")
 
+	protoCmd.Flags().StringVar(&gogen.VarStringProto, "proto", "", "The proto path")
+	protoCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
+	protoCmd.Flags().StringVar(&gogen.VarStringServiceName, "serviceName", "", "The service name")
+	protoCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
+	protoCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
+		"if it is empty, generate codes for all models in schema directory")
+	protoCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "searchKeyNum", 3, "The max number of search keys ")
+	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpcName", "", "The rpc name in service context. e.g. CoreRpc")
+	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpcPackage", "", "The rpc name in service context. e.g. CoreRpc")
+
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)
 	Cmd.AddCommand(docCmd)
@@ -180,4 +203,5 @@ func init() {
 	Cmd.AddCommand(pluginCmd)
 	Cmd.AddCommand(tsCmd)
 	Cmd.AddCommand(validateCmd)
+	Cmd.AddCommand(protoCmd)
 }

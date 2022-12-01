@@ -32,6 +32,12 @@ var (
 	VarBoolUseCasbin bool
 	// VarBoolUseI18n describe whether to use i18n
 	VarBoolUseI18n bool
+	// VarStringGoZeroVersion describe the version of Go Zero
+	VarStringGoZeroVersion string
+	// VarStringToolVersion describe the version of Simple Admin Tools
+	VarStringToolVersion string
+	// VarModuleName describe the module name
+	VarModuleName string
 )
 
 // CreateServiceCommand fast create service
@@ -56,7 +62,13 @@ func CreateServiceCommand(args []string) error {
 
 	dirName = filepath.Base(filepath.Clean(abs))
 	filename := dirName + ".api"
-	apiFilePath := filepath.Join(abs, filename)
+	apiFilePath := filepath.Join(abs, "desc", filename)
+
+	err = pathx.MkdirIfNotExist(filepath.Join(abs, "desc"))
+	if err != nil {
+		return err
+	}
+
 	fp, err := os.Create(apiFilePath)
 	if err != nil {
 		return err
@@ -82,12 +94,38 @@ func CreateServiceCommand(args []string) error {
 
 	t := template.Must(template.New("template").Parse(text))
 	if err := t.Execute(fp, map[string]string{
-		"name":    dirName,
-		"handler": strings.Title(dirName),
+		"name": dirName,
 	}); err != nil {
 		return err
 	}
 
-	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, VarBoolErrorTranslate, VarBoolUseCasbin, VarBoolUseI18n)
+	err = os.WriteFile(filepath.Join(abs, "desc", "base.api"), []byte(baseApiTmpl), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	allApiFile, err := os.Create(filepath.Join(abs, "desc", "all.api"))
+	if err != nil {
+		return err
+	}
+	defer allApiFile.Close()
+
+	allTpl := template.Must(template.New("allApuTemplate").Parse(allApiTmpl))
+	if err := allTpl.Execute(allApiFile, map[string]string{
+		"name": dirName,
+	}); err != nil {
+		return err
+	}
+
+	genCtx := &gogen.GenContext{
+		GoZeroVersion: VarStringGoZeroVersion,
+		ToolVersion:   VarStringToolVersion,
+		UseCasbin:     VarBoolUseCasbin,
+		UseI18n:       VarBoolUseI18n,
+		TransErr:      VarBoolErrorTranslate,
+		ModuleName:    VarModuleName,
+	}
+
+	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, genCtx)
 	return err
 }

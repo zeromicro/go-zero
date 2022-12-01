@@ -15,8 +15,8 @@ publish-docker:
 	@printf $(GREEN)"[SUCCESS] publish docker successfully"
 
 gen-api:
-	goctls api go --api ./desc/{{.serviceName}}.api --dir ./ --transErr=true
-    swagger generate spec --output=./{{.serviceName}}.yml --scan-models
+	goctls api go --api ./desc/all.api --dir ./ --transErr=true
+	swagger generate spec --output=./{{.serviceName}}.yml --scan-models
 	@printf $(GREEN)"[SUCCESS] generate API successfully"
 
 gen-swagger:
@@ -27,3 +27,7 @@ serve-swagger:
 	lsof -i:36666 | awk 'NR!=1 {print $2}' | xargs killall -9 || true
 	@printf $(GREEN)"[SUCCESS] serve swagger-ui successfully"
 	swagger serve -F=swagger --port 36666 {{.serviceName}}.yml
+
+gen-rpc-ent-logic:
+	goctls api ent --schema=./ent/schema  --style=go_zero --multiple=false --serviceName=messaging --o=./ --model=$(model)
+	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"
