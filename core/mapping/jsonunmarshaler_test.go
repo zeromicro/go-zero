@@ -900,7 +900,9 @@ func TestUnmarshalMap(t *testing.T) {
 			Any string `json:",optional"`
 		}
 
-		err := UnmarshalJsonMap(m, &v)
+		err := UnmarshalJsonMap(m, &v, WithCanonicalKeyFunc(func(s string) string {
+			return s
+		}))
 		assert.Nil(t, err)
 		assert.True(t, len(v.Any) == 0)
 	})

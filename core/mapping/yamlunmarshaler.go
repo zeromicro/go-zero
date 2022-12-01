@@ -1,38 +1,27 @@
 package mapping
 
 import (
-	"errors"
 	"io"
 
 	"github.com/zeromicro/go-zero/core/internal/encoding"
 )
 
-// To make .json & .yaml consistent, we just use json as the tag key.
-const yamlTagKey = "json"
-
-var (
-	// ErrUnsupportedType is an error that indicates the config format is not supported.
-	ErrUnsupportedType = errors.New("only map-like configs are supported")
-
-	yamlUnmarshaler = NewUnmarshaler(yamlTagKey)
-)
-
 // UnmarshalYamlBytes unmarshals content into v.
-func UnmarshalYamlBytes(content []byte, v interface{}) error {
+func UnmarshalYamlBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
 	b, err := encoding.YamlToJson(content)
 	if err != nil {
 		return err
 	}
 
-	return unmarshalJsonBytes(b, v, yamlUnmarshaler)
+	return UnmarshalJsonBytes(b, v, opts...)
 }
 
 // UnmarshalYamlReader unmarshals content from reader into v.
-func UnmarshalYamlReader(reader io.Reader, v interface{}) error {
+func UnmarshalYamlReader(reader io.Reader, v interface{}, opts ...UnmarshalOption) error {
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		return err
 	}
 
-	return UnmarshalYamlBytes(b, v)
+	return UnmarshalYamlBytes(b, v, opts...)
 }

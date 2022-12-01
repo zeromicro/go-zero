@@ -1011,6 +1011,13 @@ func TestUnmarshalYamlMapRune(t *testing.T) {
 	assert.Equal(t, rune(3), v.Machine["node3"])
 }
 
+func TestUnmarshalYamlBadInput(t *testing.T) {
+	var v struct {
+		Any string
+	}
+	assert.Error(t, UnmarshalYamlBytes([]byte("':foo"), &v))
+}
+
 type badReader struct{}
 
 func (b *badReader) Read(_ []byte) (n int, err error) {

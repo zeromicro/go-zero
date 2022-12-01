@@ -11,8 +11,8 @@ const jsonTagKey = "json"
 var jsonUnmarshaler = NewUnmarshaler(jsonTagKey)
 
 // UnmarshalJsonBytes unmarshals content into v.
-func UnmarshalJsonBytes(content []byte, v interface{}) error {
-	return unmarshalJsonBytes(content, v, jsonUnmarshaler)
+func UnmarshalJsonBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+	return unmarshalJsonBytes(content, v, getJsonUnmarshaler(opts...))
 }
 
 // UnmarshalJsonMap unmarshals content from m into v.
@@ -21,8 +21,8 @@ func UnmarshalJsonMap(m map[string]interface{}, v interface{}, opts ...Unmarshal
 }
 
 // UnmarshalJsonReader unmarshals content from reader into v.
-func UnmarshalJsonReader(reader io.Reader, v interface{}) error {
-	return unmarshalJsonReader(reader, v, jsonUnmarshaler)
+func UnmarshalJsonReader(reader io.Reader, v interface{}, opts ...UnmarshalOption) error {
+	return unmarshalJsonReader(reader, v, getJsonUnmarshaler(opts...))
 }
 
 func getJsonUnmarshaler(opts ...UnmarshalOption) *Unmarshaler {
