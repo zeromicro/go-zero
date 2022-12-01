@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	ztrace "github.com/zeromicro/go-zero/core/internal/trace"
+	ztrace "github.com/zeromicro/go-zero/internal/trace"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc/peer"
