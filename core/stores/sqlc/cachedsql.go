@@ -137,6 +137,21 @@ func (cc CachedConn) QueryRowCtx(ctx context.Context, v interface{}, key string,
 	})
 }
 
+// QueryRowWithExpire unmarshals into v with given key, set expire duration and query func.
+func (cc CachedConn) QueryRowWithExpire(v interface{}, key string, expire time.Duration, query QueryFn) error {
+	queryCtx := func(_ context.Context, conn sqlx.SqlConn, v interface{}) error {
+		return query(conn, v)
+	}
+	return cc.QueryRowWithExpireCtx(context.Background(), v, key, expire, queryCtx)
+}
+
+// QueryRowWithExpireCtx unmarshals into v with given key, set expire duration and query func.
+func (cc CachedConn) QueryRowWithExpireCtx(ctx context.Context, v interface{}, key string, expire time.Duration, query QueryCtxFn) error {
+	return cc.cache.TakeWithSetExpireCtx(ctx, v, key, expire, func(val interface{}) error {
+		return query(ctx, cc.db, v)
+	})
+}
+
 // QueryRowIndex unmarshals into v with given key.
 func (cc CachedConn) QueryRowIndex(v interface{}, key string, keyer func(primary interface{}) string,
 	indexQuery IndexQueryFn, primaryQuery PrimaryQueryFn) error {

@@ -441,6 +441,36 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 	assert.False(t, ran)
 }
 
+func TestCachedConnQueryRowWithExpire(t *testing.T) {
+	r, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	var conn trackedConn
+	var user string
+	var ran bool
+	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
+	err = c.QueryRowWithExpire(&user, key, time.Second*10, func(conn sqlx.SqlConn, v interface{}) error {
+		ran = true
+		user = value
+		return nil
+	})
+
+	assert.Nil(t, err)
+	actualValue, err := r.Get(key)
+	assert.Nil(t, err)
+	var actual string
+	assert.Nil(t, json.Unmarshal([]byte(actualValue), &actual))
+	assert.Equal(t, value, actual)
+	assert.Equal(t, value, user)
+	assert.True(t, ran)
+
+}
+
 func TestQueryRowNotFound(t *testing.T) {
 	r, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)
