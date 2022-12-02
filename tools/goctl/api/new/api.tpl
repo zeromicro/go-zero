@@ -1,12 +1,11 @@
-type Request {
-  Name string `path:"name,options=you|me"`
-}
+import "base.api"
 
-type Response {
-  Message string `json:"message"`
-}
+@server(
+	group: base
+)
 
 service {{.name}} {
-  @handler {{.handler}}Handler
-  get /from/:name(Request) returns (Response)
+	// Initialize database | 初始化数据库
+	@handler initDatabase
+	get /init/database returns (BaseMsgResp)
 }

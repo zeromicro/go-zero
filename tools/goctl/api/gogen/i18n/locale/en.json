@@ -1,0 +1,17 @@
+{
+	"common": {
+		"success": "successfully",
+		"failed": "failed",
+		"updateSuccess": "Update successfully",
+		"updateFailed": "Update failed",
+		"createSuccess": "Create successfully",
+		"createFailed": "Create failed",
+		"deleteSuccess": "Delete successfully",
+		"deleteFailed": "Delete failed",
+		"changeStatusSuccess": "Change status successfully",
+		"changeStatusFailed": "Change status failed",
+		"targetNotExist": "Target does not exist",
+		"databaseError": "Database error",
+		"redisError": "Redis error"
+	}
+}

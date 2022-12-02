@@ -16,10 +16,12 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -40,8 +42,26 @@ var (
 	VarStringBranch string
 	// VarStringStyle describes the style of output files.
 	VarStringStyle string
-	// VarBoolErrorTranslate describes if translate error
+	// VarBoolErrorTranslate describes whether to translate error
 	VarBoolErrorTranslate bool
+	// VarBoolUseCasbin describe whether to use Casbin
+	VarBoolUseCasbin bool
+	// VarBoolUseI18n describe whether to use i18n
+	VarBoolUseI18n bool
+	// VarStringProto describe the proto file path
+	VarStringProto string
+	// VarStringServiceName describe the service name
+	VarStringServiceName string
+	// VarStringModelName describe which model for generating
+	VarStringModelName string
+	// VarIntSearchKeyNum describe the number of search keys
+	VarIntSearchKeyNum int
+	// VarStringOutput describes the output.
+	VarStringOutput string
+	// VarStringRpcName describes the rpc name in service context
+	VarStringRpcName string
+	// VarStringGrpcPbPackage describes the grpc package
+	VarStringGrpcPbPackage string
 )
 
 // GoCommand gen go project files from command line
@@ -52,7 +72,14 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
-	transErr := VarBoolErrorTranslate
+	genCtx := &GenContext{
+		GoZeroVersion: "",
+		ToolVersion:   "",
+		UseCasbin:     VarBoolUseCasbin,
+		UseI18n:       VarBoolUseI18n,
+		TransErr:      VarBoolErrorTranslate,
+		ModuleName:    "",
+	}
 	if len(remote) > 0 {
 		repo, _ := util.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -70,11 +97,21 @@ func GoCommand(_ *cobra.Command, _ []string) error {
 		return errors.New("missing -dir")
 	}
 
-	return DoGenProject(apiFile, dir, namingStyle, transErr)
+	return DoGenProject(apiFile, dir, namingStyle, genCtx)
+}
+
+// GenContext describes the data used for api file generation
+type GenContext struct {
+	GoZeroVersion string
+	ToolVersion   string
+	UseCasbin     bool
+	UseI18n       bool
+	TransErr      bool
+	ModuleName    string
 }
 
 // DoGenProject gen go project files with api file
-func DoGenProject(apiFile, dir, style string, transErr bool) error {
+func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -91,20 +128,45 @@ func DoGenProject(apiFile, dir, style string, transErr bool) error {
 	}
 
 	logx.Must(pathx.MkdirIfNotExist(dir))
+	if g.ModuleName != "" {
+		_, err = execx.Run("go mod init "+g.ModuleName, dir)
+		if err != nil {
+			return err
+		}
+	}
+
 	rootPkg, err := golang.GetParentPackage(dir)
 	if err != nil {
 		return err
 	}
 
-	logx.Must(genEtc(dir, cfg, api))
-	logx.Must(genConfig(dir, cfg, api))
+	logx.Must(genEtc(dir, cfg, api, g))
+	logx.Must(genConfig(dir, cfg, api, g.UseCasbin))
 	logx.Must(genMain(dir, rootPkg, cfg, api))
-	logx.Must(genServiceContext(dir, rootPkg, cfg, api))
+	logx.Must(genServiceContext(dir, rootPkg, cfg, api, g))
 	logx.Must(genTypes(dir, cfg, api))
 	logx.Must(genRoutes(dir, rootPkg, cfg, api))
-	logx.Must(genHandlers(dir, rootPkg, cfg, api, transErr))
+	logx.Must(genHandlers(dir, rootPkg, cfg, api, g))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
+	logx.Must(genDockerfile(dir, api))
+	logx.Must(genMakefile(dir, api))
+
+	if g.UseCasbin {
+		logx.Must(genCasbin(dir, cfg, api))
+	}
+
+	if g.UseI18n {
+		logx.Must(genI18n(dir))
+	}
+
+	if g.GoZeroVersion != "" && g.ToolVersion != "" {
+		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero-version %s --tool-version %s", g.GoZeroVersion, g.ToolVersion),
+			dir)
+		if err != nil {
+			return err
+		}
+	}
 
 	if err := backupAndSweep(apiFile); err != nil {
 		return err
@@ -172,4 +234,23 @@ func sweep() error {
 
 		return nil
 	})
+}
+
+func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
+	params := &proto.GenLogicByProtoContext{
+		ProtoDir:     VarStringProto,
+		OutputDir:    VarStringOutput,
+		ServiceName:  VarStringServiceName,
+		Style:        VarStringStyle,
+		ModelName:    VarStringModelName,
+		SearchKeyNum: VarIntSearchKeyNum,
+		RpcName:      VarStringRpcName,
+		GrpcPackage:  VarStringGrpcPbPackage,
+	}
+	err := proto.GenLogicByProto(params)
+	if err != nil {
+		return err
+	}
+
+	return err
 }

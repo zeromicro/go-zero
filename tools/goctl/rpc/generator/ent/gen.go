@@ -29,10 +29,21 @@ type RpcLogicData struct {
 	LogicCode string
 }
 
+type GenEntLogicContext struct {
+	Schema       string
+	Output       string
+	ServiceName  string
+	Style        string
+	ModelName    string
+	Multiple     bool
+	SearchKeyNum int
+	ModuleName   string
+}
+
 // GenEntLogic generates the ent CRUD logic files of the rpc service.
-func GenEntLogic(schema, output, serviceName, style, modelName string, multiple bool, searchKeyNum int) error {
-	if !multiple {
-		return genEntLogicInCompatibility(schema, output, serviceName, style, modelName, searchKeyNum)
+func GenEntLogic(g *GenEntLogicContext) error {
+	if !g.Multiple {
+		return genEntLogicInCompatibility(g)
 	}
 
 	return errors.New("does not support multiple")
@@ -40,15 +51,15 @@ func GenEntLogic(schema, output, serviceName, style, modelName string, multiple 
 	//return GenEntLogicGroup(ctx, proto, cfg)
 }
 
-func genEntLogicInCompatibility(schema, output, serviceName, style, modelName string, searchKeyNum int) error {
-	outputDir, err := filepath.Abs(output)
+func genEntLogicInCompatibility(g *GenEntLogicContext) error {
+	outputDir, err := filepath.Abs(g.Output)
 	if err != nil {
 		return err
 	}
 
 	logicDir := path.Join(outputDir, "internal/logic")
 
-	schemas, err := entc.LoadGraph(schema, &gen.Config{})
+	schemas, err := entc.LoadGraph(g.Schema, &gen.Config{})
 	if err != nil {
 		return err
 	}
@@ -64,12 +75,12 @@ func genEntLogicInCompatibility(schema, output, serviceName, style, modelName st
 	}
 
 	for _, s := range schemas.Schemas {
-		if modelName == s.Name || modelName == "" {
+		if g.ModelName == s.Name || g.ModelName == "" {
 			// generate logic file
-			rpcLogicData := GenCRUDData(serviceName, projectCtx, s, searchKeyNum)
+			rpcLogicData := GenCRUDData(g.ServiceName, projectCtx, s, g.SearchKeyNum)
 
 			for _, v := range rpcLogicData {
-				logicFilename, err := format.FileNamingFormat(style, v.LogicName)
+				logicFilename, err := format.FileNamingFormat(g.Style, v.LogicName)
 				if err != nil {
 					return err
 				}
@@ -86,12 +97,12 @@ func genEntLogicInCompatibility(schema, output, serviceName, style, modelName st
 			}
 
 			// generate proto file
-			protoMessage, protoFunctions, err := GenProtoData(s, searchKeyNum)
+			protoMessage, protoFunctions, err := GenProtoData(s, g.SearchKeyNum)
 			if err != nil {
 				return err
 			}
 
-			protoFileName := filepath.Join(outputDir, serviceName+".proto")
+			protoFileName := filepath.Join(outputDir, g.ServiceName+".proto")
 			if !pathx.FileExists(protoFileName) {
 				continue
 			}
@@ -114,10 +125,10 @@ func genEntLogicInCompatibility(schema, output, serviceName, style, modelName st
 				continue
 			}
 			newProtoData.WriteString(protoDataString[:serviceIndex])
-			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", modelName))
+			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", g.ModelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n", protoMessage))
 			newProtoData.WriteString(protoDataString[serviceIndex : len(protoDataString)-2])
-			newProtoData.WriteString(fmt.Sprintf("\n  // %s management\n", modelName))
+			newProtoData.WriteString(fmt.Sprintf("\n  // %s management\n", g.ModelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n}", protoFunctions))
 
 			err = os.WriteFile(protoFileName, []byte(newProtoData.String()), regularPerm)
@@ -151,8 +162,13 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", strings.ToUpper(v.Name),
 					parser.CamelCase(v.Name)))
 			} else {
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", parser.CamelCase(v.Name),
-					parser.CamelCase(v.Name)))
+				if v.Info.Type.String() == "int" {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(int(in.%s)).\n", parser.CamelCase(v.Name),
+						parser.CamelCase(v.Name)))
+				} else {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", parser.CamelCase(v.Name),
+						parser.CamelCase(v.Name)))
+				}
 			}
 		}
 	}
@@ -224,8 +240,13 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
 							strings.Replace(nameCamelCase, "Uuid", "UUID", 1)))
 					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
-							nameCamelCase))
+						if v.Info.Type.String() == "int" {
+							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tint64(v.%s),", nameCamelCase,
+								nameCamelCase))
+						} else {
+							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
+								nameCamelCase))
+						}
 					}
 				}
 			}
@@ -296,21 +317,16 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 				if strings.Contains(v.Name, "at") {
 					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n", v.Name, index))
 				} else {
-					typeName := v.Info.Type.String()
-					if typeName == "float32" || typeName == "float64" {
-						typeName = "float"
-					}
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", typeName, v.Name, index))
+					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", convertTypeToProtoType(v.Info.Type.String()),
+						v.Name, index))
 				}
 			} else {
 				if strings.Contains(v.Name, "at") {
 					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n}\n\n", v.Name, index))
 				} else {
-					typeName := v.Info.Type.String()
-					if typeName == "float32" || typeName == "float64" {
-						typeName = "float"
-					}
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", typeName, v.Name, index))
+
+					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", convertTypeToProtoType(v.Info.Type.String()),
+						v.Name, index))
 				}
 			}
 			index++
@@ -330,7 +346,8 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 	for i, v := range schema.Fields {
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
 			if i < (len(schema.Fields)-1) && count < (searchKeyNum-1) {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", v.Info.Type.String(), v.Name, index))
+				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", convertTypeToProtoType(v.Info.Type.String()),
+					v.Name, index))
 			}
 			index++
 			count++
@@ -353,6 +370,18 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 	}
 
 	return protoMessage.String(), protoRpcFunction.String(), nil
+}
+
+func convertTypeToProtoType(typeName string) string {
+	switch typeName {
+	case "float32":
+		typeName = "float"
+	case "float64":
+		typeName = "float"
+	case "int":
+		typeName = "int64"
+	}
+	return typeName
 }
 
 // Todo: in the future

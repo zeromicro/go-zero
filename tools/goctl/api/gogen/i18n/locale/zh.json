@@ -1,0 +1,17 @@
+{
+	"common": {
+		"success": "成功",
+		"failed": "失败",
+		"updateSuccess": "更新成功",
+		"updateFailed": "更新失败",
+		"createSuccess": "新建成功",
+		"createFailed": "新建失败",
+		"deleteSuccess": "删除成功",
+		"deleteFailed": "删除失败",
+		"changeStatusSuccess": "状态修改成功",
+		"changeStatusFailed": "状态修改失败",
+		"targetNotExist": "目标不存在",
+		"databaseError": "数据库错误",
+		"redisError": "Redis 错误"
+	}
+}

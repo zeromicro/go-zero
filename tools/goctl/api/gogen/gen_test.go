@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -276,7 +277,7 @@ func validateWithCamel(t *testing.T, api, camel string) {
 	assert.Nil(t, err)
 	err = initMod(dir)
 	assert.Nil(t, err)
-	err = DoGenProject(api, dir, camel, false)
+	err = DoGenProject(api, dir, camel, &GenContext{})
 	assert.Nil(t, err)
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if strings.HasSuffix(path, ".go") {

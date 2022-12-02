@@ -56,6 +56,12 @@ var (
 	VarIntSearchKeyNum int
 	// VarBoolEnt describe whether the project use Ent
 	VarBoolEnt bool
+	// VarStringModuleName describe the module name
+	VarStringModuleName string
+	// VarStringGoZeroVersion describe the version of Go Zero
+	VarStringGoZeroVersion string
+	// VarStringToolVersion describe the version of Simple Admin Tools
+	VarStringToolVersion string
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -101,6 +107,9 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 	ctx.Ent = VarBoolEnt
+	ctx.ModuleName = VarStringModuleName
+	ctx.GoZeroVersion = VarStringGoZeroVersion
+	ctx.ToolVersion = VarStringToolVersion
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
@@ -143,8 +152,17 @@ func RPCTemplate(latest bool) error {
 }
 
 func EntCRUDLogic(_ *cobra.Command, args []string) error {
-	err := ent.GenEntLogic(VarStringSchema, VarStringOutput, VarStringServiceName, VarStringStyle, VarStringModelName,
-		VarBoolMultiple, VarIntSearchKeyNum)
+	params := &ent.GenEntLogicContext{
+		Schema:       VarStringSchema,
+		Output:       VarStringOutput,
+		ServiceName:  VarStringServiceName,
+		Style:        VarStringStyle,
+		ModelName:    VarStringModelName,
+		Multiple:     VarBoolMultiple,
+		SearchKeyNum: VarIntSearchKeyNum,
+		ModuleName:   VarStringModuleName,
+	}
+	err := ent.GenEntLogic(params)
 	if err != nil {
 		return err
 	}
