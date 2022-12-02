@@ -36,6 +36,12 @@ type ZRpcContext struct {
 	Schema string
 	// Ent
 	Ent bool
+	// ModuleName is the module name in go mod
+	ModuleName string
+	// GoZeroVersion describe the version of Go Zero
+	GoZeroVersion string
+	// ToolVersion describe the version of Simple Admin Tools
+	ToolVersion string
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -55,6 +61,21 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	err = g.Prepare()
 	if err != nil {
 		return err
+	}
+
+	if zctx.ModuleName != "" {
+		_, err = execx.Run("go mod init "+zctx.ModuleName, abs)
+		if err != nil {
+			return err
+		}
+	}
+
+	if zctx.GoZeroVersion != "" && zctx.ToolVersion != "" {
+		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero-version %s --tool-version %s", zctx.GoZeroVersion, zctx.ToolVersion),
+			abs)
+		if err != nil {
+			return err
+		}
 	}
 
 	projectCtx, err := ctx.Prepare(abs)

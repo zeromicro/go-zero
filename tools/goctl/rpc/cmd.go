@@ -74,9 +74,15 @@ func init() {
 	newCmd.Flags().StringVar(&cli.VarStringBranch, "branch", "",
 		"The branch of the remote repo, it does work with --remote")
 	newCmd.Flags().BoolVarP(&cli.VarBoolVerbose, "verbose", "v", false, "Enable log output")
-	newCmd.Flags().BoolVar(&cli.VarBoolEnt, "Ent", true, "Whether use Ent in project")
+	newCmd.Flags().BoolVar(&cli.VarBoolEnt, "ent", true, "Whether use Ent in project")
 	newCmd.Flags().MarkHidden("go_opt")
 	newCmd.Flags().MarkHidden("go-grpc_opt")
+	newCmd.Flags().StringVar(&cli.VarStringModuleName, "moduleName", "",
+		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
+	newCmd.Flags().StringVar(&cli.VarStringGoZeroVersion, "goZeroVersion", "",
+		"The go zero version used for migrate. e.g. v1.4.2")
+	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "toolVersion", "",
+		"The simple admin tool version version used for migrate. e.g. v0.0.9")
 
 	protocCmd.Flags().BoolVarP(&cli.VarBoolMultiple, "multiple", "m", false,
 		"Generated in multiple rpc service mode")

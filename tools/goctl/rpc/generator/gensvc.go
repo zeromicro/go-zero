@@ -34,7 +34,7 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *
 	imports := strings.Builder{}
 	imports.WriteString(fmt.Sprintf("\t\"%v\"\n", ctx.GetConfig().Package))
 	if c.Ent {
-		imports.WriteString(fmt.Sprintf("\t\"%s/ent\"\n\n", ctx.GetServiceName().Lower()))
+		imports.WriteString(fmt.Sprintf("\t\"%s/ent\"\n\n", ctx.GetMain().Package))
 		imports.WriteString("\t\"github.com/zeromicro/go-zero/core/logx\"\n\t\"github.com/zeromicro/go-zero/core/stores/redis\"\n")
 	}
 

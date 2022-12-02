@@ -72,15 +72,19 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	}
 
 	// generate logic file
-	rpcLogicData := GenCRUDData(p, &protoData, projectCtx)
+	apiLogicData := GenCRUDData(p, &protoData, projectCtx)
 
-	for _, v := range rpcLogicData {
+	for _, v := range apiLogicData {
 		logicFilename, err := format.FileNamingFormat(p.Style, v.LogicName)
 		if err != nil {
 			return err
 		}
 
-		filename := filepath.Join(logicDir, logicFilename+".go")
+		filename := filepath.Join(logicDir, strings.ToLower(p.ModelName), logicFilename+".go")
+		if err = pathx.MkdirIfNotExist(filepath.Join(logicDir, strings.ToLower(p.ModelName))); err != nil {
+			return err
+		}
+
 		if pathx.FileExists(filename) {
 			continue
 		}

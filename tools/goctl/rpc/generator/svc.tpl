@@ -21,7 +21,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 
     rds := c.RedisConf.NewRedis()
     if !rds.Ping() {
-        logx.Error("Initialize redis failed")
+        logx.Error("initialize redis failed")
         return nil
     }
     
