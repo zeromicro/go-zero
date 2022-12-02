@@ -5,12 +5,20 @@ import (
 	"net"
 	"strings"
 
+	ztrace "github.com/zeromicro/go-zero/internal/trace"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc/peer"
 )
 
 const localhost = "127.0.0.1"
+
+var (
+	// SpanIDFromContext returns the span id from ctx.
+	SpanIDFromContext = ztrace.SpanIDFromContext
+	// TraceIDFromContext returns the trace id from ctx.
+	TraceIDFromContext = ztrace.TraceIDFromContext
+)
 
 // PeerFromCtx returns the peer from ctx.
 func PeerFromCtx(ctx context.Context) string {
