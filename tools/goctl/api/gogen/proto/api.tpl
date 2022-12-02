@@ -1,7 +1,38 @@
 import "base.api"
 
 type (
-{{.typeData}}
+    // The response data of {{.modelName}} information | {{.modelName}}信息
+    {{.modelName}}Info {
+        BaseInfo{{.infoData}}
+    }
+
+    // Create or update {{.modelName}} information request | 创建或更新{{.modelName}}信息
+    CreateOrUpdate{{.modelName}}Req {
+        // ID
+        // Required: true
+        Id            uint64 `json:"id"`{{.infoData}}
+    }
+
+    // The response data of {{.modelName}} list | {{.modelName}}列表数据
+    {{.modelName}}ListResp {
+        BaseDataInfo
+
+        // {{.modelName}} list data | API 列表数据
+        Data {{.modelName}}ListInfo `json:"data"`
+    }
+
+    // {{.modelName}} list data | {{.modelName}} 列表数据
+    {{.modelName}}ListInfo {
+        BaseListInfo
+
+        // The API list data | API列表数据
+        Data  []{{.modelName}}Info  `json:"data"`
+    }
+
+    // Get {{.modelName}} list request params | {{.modelName}}列表请求参数
+    {{.modelName}}ListReq {
+        PageInfo{{.listData}}
+    }
 )
 
 @server(

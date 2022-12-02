@@ -56,13 +56,19 @@ type PageInfo {
     PageSize  uint64    `json:"pageSize" validate:"number,max=100000"`
 }
 
-// Basic ID request | 基础id参数请求
+// Basic ID request | 基础ID参数请求
 type IDReq {
     // ID
     // Required: true
     Id  uint64 `json:"id" validate:"number"`
 }
 
+// Basic IDs request | 基础ID数组参数请求
+type IDsReq {
+    // IDs
+    // Required: true
+    Ids  []uint64 `json:"ids"`
+}
 
 // Basic ID request in path | 基础ID地址参数请求
 type IDPathReq {

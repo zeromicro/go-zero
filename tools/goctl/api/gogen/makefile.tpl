@@ -28,6 +28,6 @@ serve-swagger:
 	@printf $(GREEN)"[SUCCESS] serve swagger-ui successfully"
 	swagger serve -F=swagger --port 36666 {{.serviceName}}.yml
 
-gen-rpc-ent-logic:
-	goctls api ent --schema=./ent/schema  --style=go_zero --multiple=false --serviceName=messaging --searchKeyNum=3 --o=./ --model=$(model)
+gen-api-proto-logic:
+	goctls api proto --proto=$(proto)  --style=go_zero --multiple=false --serviceName={{.serviceName}} --searchKeyNum=3 --o=./ --model=$(model)
 	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"

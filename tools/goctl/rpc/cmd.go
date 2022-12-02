@@ -80,9 +80,9 @@ func init() {
 	newCmd.Flags().StringVar(&cli.VarStringModuleName, "moduleName", "",
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
 	newCmd.Flags().StringVar(&cli.VarStringGoZeroVersion, "goZeroVersion", "",
-		"The go zero version used for migrate. e.g. v1.4.2")
+		"The go zero version used for migration. e.g. v1.4.2")
 	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "toolVersion", "",
-		"The simple admin tool version version used for migrate. e.g. v0.0.9")
+		"The simple admin tool version version used for migration. e.g. v0.0.9")
 
 	protocCmd.Flags().BoolVarP(&cli.VarBoolMultiple, "multiple", "m", false,
 		"Generated in multiple rpc service mode")

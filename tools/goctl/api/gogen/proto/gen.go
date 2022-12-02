@@ -9,10 +9,12 @@ import (
 	"strings"
 	"text/template"
 
-	"entgo.io/ent/entc/load"
 	"github.com/emicklei/proto"
 	"github.com/zeromicro/go-zero/core/logx"
 
+	"github.com/iancoleman/strcase"
+
+	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -95,45 +97,39 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 		}
 	}
 
-	//// generate api file
-	//apiMessage, apiFunctions, err := GenApiData(s, searchKeyNum)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//apiFileName := filepath.Join(outputDir, serviceName+".api")
-	//if !pathx.FileExists(apiFileName) {
-	//	continue
-	//}
-	//
-	//apiFileData, err := os.ReadFile(apiFileName)
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//apiDataString := string(apiFileData)
-	//
-	//if strings.Contains(apiDataString, apiMessage) || strings.Contains(apiDataString, apiFunctions) {
-	//	continue
-	//}
-	//
-	//// generate new api file
-	//newProtoData := strings.Builder{}
-	//serviceIndex := strings.Index(apiDataString, "service")
-	//if serviceIndex == -1 {
-	//	continue
-	//}
-	//newProtoData.WriteString(apiDataString[:serviceIndex])
-	//newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", modelName))
-	//newProtoData.WriteString(fmt.Sprintf("%s\n", apiMessage))
-	//newProtoData.WriteString(apiDataString[serviceIndex : len(apiDataString)-2])
-	//newProtoData.WriteString(fmt.Sprintf("\n  // %s management\n", modelName))
-	//newProtoData.WriteString(fmt.Sprintf("%s\n}", apiFunctions))
-	//
-	//err = os.WriteFile(apiFileName, []byte(newProtoData.String()), regularPerm)
-	//if err != nil {
-	//	return err
-	//}
+	// generate api file
+	apiData, err := GenApiData(p, &protoData, projectCtx)
+	if err != nil {
+		return err
+	}
+
+	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strings.ToLower(p.ModelName)))
+
+	err = os.WriteFile(apiFilePath, []byte(apiData), regularPerm)
+	if err != nil {
+		return err
+	}
+
+	allApiFile := filepath.Join(workDir, "desc", "all.api")
+	allApiData, err := os.ReadFile(allApiFile)
+	if err != nil {
+		return err
+	}
+	allApiString := string(allApiData)
+
+	if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strings.ToLower(p.ModelName))) {
+		allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strings.ToLower(p.ModelName)))
+	}
+
+	err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)
+	if err != nil {
+		return err
+	}
+
+	_, err = execx.Run("make gen-api", workDir)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -252,79 +248,47 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 	return data
 }
 
-func GenApiData(schema *load.Schema, searchKeyNum int) (string, string, error) {
-	var protoMessage strings.Builder
-	schemaNameCamelCase := parser.CamelCase(schema.Name)
-	// info message
-	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  uint64 id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
-		schemaNameCamelCase))
-	index := 4
-	for i, v := range schema.Fields {
-		if v.Name == "id" || v.Name == "created_at" || v.Name == "updated_at" || v.Name == "deleted_at" {
-			continue
-		} else if v.Name == "status" {
-			protoMessage.WriteString(fmt.Sprintf("  uint64 %s = %d;\n", v.Name, index))
-			index++
-		} else {
-			if i < (len(schema.Fields) - 1) {
-				if strings.Contains(v.Name, "at") {
-					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n", v.Name, index))
-				} else {
-					typeName := v.Info.Type.String()
-					if typeName == "float32" || typeName == "float64" {
-						typeName = "float"
-					}
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", typeName, v.Name, index))
-				}
-			} else {
-				if strings.Contains(v.Name, "at") {
-					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n}\n\n", v.Name, index))
-				} else {
-					typeName := v.Info.Type.String()
-					if typeName == "float32" || typeName == "float64" {
-						typeName = "float"
-					}
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", typeName, v.Name, index))
-				}
-			}
-			index++
-		}
-	}
-
-	// List message
-	protoMessage.WriteString(fmt.Sprintf("message %sListResp {\n  uint64 total = 1;\n  repeated %sInfo data = 2;\n}\n\n",
-		schemaNameCamelCase, schemaNameCamelCase))
-
-	// List Request message
-	protoMessage.WriteString(fmt.Sprintf("message %sPageReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
-		schemaNameCamelCase))
+func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.ProjectContext) (string, error) {
+	infoData := strings.Builder{}
+	listData := strings.Builder{}
 	count := 0
-	index = 3
+	var data string
 
-	for i, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
-			if i < (len(schema.Fields)-1) && count < (searchKeyNum-1) {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", v.Info.Type.String(), v.Name, index))
+	for _, v := range p.Message {
+		if strings.Contains(v.Name, ctx.ModelName) {
+			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
+				for _, field := range v.Elements {
+					field.Accept(MessageVisitor{})
+					if protoField.Name == "id" || protoField.Name == "created_at" || protoField.Name == "updated_at" || protoField.Name == "deleted_at" {
+						continue
+					}
+					var structData string
+
+					structData += fmt.Sprintf("\n\n\t\t// %s\n\t\t%s  %s `json:\"%s\"`",
+						parser.CamelCase(protoField.Name),
+						parser.CamelCase(protoField.Name),
+						protoField.Type,
+						strcase.ToLowerCamel(protoField.Name))
+
+					infoData.WriteString(structData)
+
+					if count < ctx.SearchKeyNum && protoField.Type == "string" {
+						listData.WriteString(structData)
+					}
+				}
+
+				apiTemplateData := bytes.NewBufferString("")
+				apiTmpl, _ := template.New("apiTpl").Parse(apiTpl)
+				logx.Must(apiTmpl.Execute(apiTemplateData, map[string]interface{}{
+					"infoData":           infoData.String(),
+					"modelName":          ctx.ModelName,
+					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+					"listData":           listData.String(),
+					"serviceName":        ctx.ServiceName,
+				}))
+				data = apiTemplateData.String()
 			}
-			index++
-			count++
-		}
-
-		if i == (len(schema.Fields) - 1) {
-			protoMessage.WriteString("}\n")
 		}
 	}
-
-	protoRpcFunction := bytes.NewBufferString("")
-	protoTmpl, err := template.New("proto").Parse(apiTpl)
-	err = protoTmpl.Execute(protoRpcFunction, map[string]interface{}{
-		"modelName": schema.Name,
-	})
-
-	if err != nil {
-		logx.Error(err)
-		return "", "", err
-	}
-
-	return protoMessage.String(), protoRpcFunction.String(), nil
+	return data, nil
 }

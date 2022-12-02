@@ -1,7 +1,7 @@
 import "base.api"
 
 @server(
-	group: init
+	group: base
 )
 
 service {{.name}} {

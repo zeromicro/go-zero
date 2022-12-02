@@ -161,9 +161,9 @@ func init() {
 	newCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
 	newCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
 	newCmd.Flags().StringVar(&new.VarStringGoZeroVersion, "goZeroVersion", "",
-		"The go zero version used for migrate. e.g. v1.4.2")
+		"The go zero version used for migration. e.g. v1.4.2")
 	newCmd.Flags().StringVar(&new.VarStringToolVersion, "toolVersion", "",
-		"The simple admin tool version version used for migrate. e.g. v0.0.9")
+		"The simple admin tool version version used for migration. e.g. v0.0.9")
 	newCmd.Flags().StringVar(&new.VarModuleName, "moduleName", "",
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
 	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
