@@ -1,5 +1,5 @@
 Name: {{.serviceName}}.rpc
-ListenOn: 0.0.0.0:8080
+ListenOn: 0.0.0.0:{{.port}}
 {{if .isEnt}}
 DatabaseConf:
   Type: mysql

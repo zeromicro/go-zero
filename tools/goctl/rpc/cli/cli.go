@@ -62,6 +62,8 @@ var (
 	VarStringGoZeroVersion string
 	// VarStringToolVersion describe the version of Simple Admin Tools
 	VarStringToolVersion string
+	// VarIntServicePort describe the service port exposed
+	VarIntServicePort int
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -151,6 +153,7 @@ func RPCTemplate(latest bool) error {
 	return generator.ProtoTmpl(protoFile)
 }
 
+// EntCRUDLogic is used to generate CRUD code with Ent
 func EntCRUDLogic(_ *cobra.Command, args []string) error {
 	params := &ent.GenEntLogicContext{
 		Schema:       VarStringSchema,

@@ -9,7 +9,7 @@ import (
 //go:embed dockerfile.tpl
 var dockerfileTemplate string
 
-func genDockerfile(dir string, api *spec.ApiSpec) error {
+func genDockerfile(dir string, api *spec.ApiSpec, g *GenContext) error {
 	service := api.Service
 
 	return genFile(fileGenConfig{
@@ -22,6 +22,7 @@ func genDockerfile(dir string, api *spec.ApiSpec) error {
 		builtinTemplate: dockerfileTemplate,
 		data: map[string]string{
 			"serviceName": service.Name,
+			"port":        string(g.Port),
 		},
 	})
 }

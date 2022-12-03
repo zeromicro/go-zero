@@ -17,5 +17,5 @@ WORKDIR /home
 COPY --from=builder /home/{{.serviceName}}_rpc ./
 COPY --from=builder /home/etc/{{.serviceName}}.yaml ./
 
-EXPOSE 9101
+EXPOSE {{.port}}
 ENTRYPOINT ./{{.serviceName}}_rpc -f {{.serviceName}}.yaml

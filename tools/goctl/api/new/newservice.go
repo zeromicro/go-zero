@@ -38,6 +38,8 @@ var (
 	VarStringToolVersion string
 	// VarModuleName describe the module name
 	VarModuleName string
+	// VarIntServicePort describe the service port exposed
+	VarIntServicePort int
 )
 
 // CreateServiceCommand fast create service
@@ -124,6 +126,7 @@ func CreateServiceCommand(args []string) error {
 		UseI18n:       VarBoolUseI18n,
 		TransErr:      VarBoolErrorTranslate,
 		ModuleName:    VarModuleName,
+		Port:          VarIntServicePort,
 	}
 
 	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, genCtx)

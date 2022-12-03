@@ -3,7 +3,7 @@
 //	Description: {{.serviceName}} service
 //
 //	Schemes: http, https
-//	Host: localhost:9100
+//	Host: localhost:{{.port}}
 //	BasePath: /
 //	Version: 0.0.1
 //	SecurityDefinitions:

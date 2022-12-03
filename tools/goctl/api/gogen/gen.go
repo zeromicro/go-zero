@@ -108,6 +108,7 @@ type GenContext struct {
 	UseI18n       bool
 	TransErr      bool
 	ModuleName    string
+	Port          int
 }
 
 // DoGenProject gen go project files with api file
@@ -142,14 +143,14 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 
 	logx.Must(genEtc(dir, cfg, api, g))
 	logx.Must(genConfig(dir, cfg, api, g.UseCasbin))
-	logx.Must(genMain(dir, rootPkg, cfg, api))
+	logx.Must(genMain(dir, rootPkg, cfg, api, g))
 	logx.Must(genServiceContext(dir, rootPkg, cfg, api, g))
 	logx.Must(genTypes(dir, cfg, api))
 	logx.Must(genRoutes(dir, rootPkg, cfg, api))
 	logx.Must(genHandlers(dir, rootPkg, cfg, api, g))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
-	logx.Must(genDockerfile(dir, api))
+	logx.Must(genDockerfile(dir, api, g))
 	logx.Must(genMakefile(dir, api))
 
 	if g.UseCasbin {

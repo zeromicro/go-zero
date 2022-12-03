@@ -15,7 +15,7 @@ import (
 //go:embed main.tpl
 var mainTemplate string
 
-func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) error {
 	name := strings.ToLower(api.Service.Name)
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
 	if err != nil {
@@ -38,6 +38,7 @@ func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 		data: map[string]interface{}{
 			"importPackages": genMainImports(rootPkg),
 			"serviceName":    configName,
+			"port":           g.Port,
 		},
 	})
 }
