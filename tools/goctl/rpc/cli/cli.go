@@ -112,6 +112,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.ModuleName = VarStringModuleName
 	ctx.GoZeroVersion = VarStringGoZeroVersion
 	ctx.ToolVersion = VarStringToolVersion
+	ctx.Port = VarIntServicePort
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
