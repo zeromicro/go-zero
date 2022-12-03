@@ -125,7 +125,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 		tarConfClient,
 		targetClient,
 	}
-	DontLogContentForMethod("foo")
+	DontLogClientContentForMethod("foo")
 	SetClientSlowThreshold(time.Second)
 
 	for _, tt := range tests {
