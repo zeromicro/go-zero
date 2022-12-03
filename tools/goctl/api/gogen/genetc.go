@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
-	"strconv"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
@@ -11,8 +10,7 @@ import (
 )
 
 const (
-	defaultPort = 8888
-	etcDir      = "etc"
+	etcDir = "etc"
 )
 
 //go:embed etc.tpl
@@ -26,7 +24,7 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) er
 
 	service := api.Service
 	host := "0.0.0.0"
-	port := strconv.Itoa(defaultPort)
+	port := g.Port
 
 	return genFile(fileGenConfig{
 		dir:             dir,

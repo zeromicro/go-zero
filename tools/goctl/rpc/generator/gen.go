@@ -38,10 +38,12 @@ type ZRpcContext struct {
 	Ent bool
 	// ModuleName is the module name in go mod
 	ModuleName string
-	// GoZeroVersion describe the version of Go Zero
+	// GoZeroVersion describes the version of Go Zero
 	GoZeroVersion string
-	// ToolVersion describe the version of Simple Admin Tools
+	// ToolVersion describes the version of Simple Admin Tools
 	ToolVersion string
+	// Port describes the service port exposed
+	Port int
 }
 
 // Generate generates a rpc service, through the proto file,
