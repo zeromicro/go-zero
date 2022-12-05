@@ -3,7 +3,7 @@ package mapping
 import (
 	"io"
 
-	"github.com/zeromicro/go-zero/core/internal/encoding"
+	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
 // UnmarshalTomlBytes unmarshals TOML bytes into the given v.

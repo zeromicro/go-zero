@@ -7,9 +7,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/zeromicro/go-zero/core/internal/encoding"
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
 const distanceBetweenUpperAndLower = 32
