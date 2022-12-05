@@ -1,6 +1,7 @@
 package gogen
 
 import (
+	"context"
 	_ "embed"
 	"fmt"
 	"path"
@@ -8,10 +9,10 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"golang.org/x/sync/errgroup"
 )
 
 const defaultLogicPackage = "logic"
@@ -41,14 +42,10 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		handler = strings.Title(handler)
 		logicName = pkgName
 	}
-	parentPkg, err := golang.GetParentPackage(dir)
-	if err != nil {
-		return err
-	}
 
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
 		PkgName:        pkgName,
-		ImportPackages: genHandlerImports(group, route, parentPkg),
+		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
@@ -80,15 +77,17 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 }
 
 func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+	eg, _ := errgroup.WithContext(context.Background())
 	for _, group := range api.Service.Groups {
+		g := group
 		for _, route := range group.Routes {
-			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
-				return err
-			}
+			r := route
+			eg.Go(func() error {
+				return genHandler(dir, rootPkg, cfg, g, r)
+			})
 		}
 	}
-
-	return nil
+	return eg.Wait()
 }
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {
