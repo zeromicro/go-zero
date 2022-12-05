@@ -20,7 +20,7 @@ import (
 //go:embed logic.tpl
 var logicTemplate string
 
-func genLogics(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
+func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
 	eg, _ := errgroup.WithContext(context.Background())
 	for _, g := range api.Service.Groups {
 		group := g
