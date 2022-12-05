@@ -90,6 +90,11 @@ func (rc *RpcClient) Conn() *grpc.ClientConn {
 	return rc.client.Conn()
 }
 
+// DontLogClientContentForMethod disable logging content for given method.
+func DontLogClientContentForMethod(method string) {
+	clientinterceptors.DontLogContentForMethod(method)
+}
+
 // SetClientSlowThreshold sets the slow threshold on client side.
 func SetClientSlowThreshold(threshold time.Duration) {
 	clientinterceptors.SetSlowThreshold(threshold)

@@ -40,3 +40,27 @@ func TestString_Camel2Snake(t *testing.T) {
 	ret2 := From("测试Test_Data_test_data").ToSnake()
 	assert.Equal(t, "测试_test__data_test_data", ret2)
 }
+
+func TestTitle(t *testing.T) {
+	cases := []struct {
+		src  string
+		exec string
+	}{
+		{
+			src:  "hello world!",
+			exec: "Hello World!",
+		},
+		{
+			src:  "go zero",
+			exec: "Go Zero",
+		},
+		{
+			src:  "测试this is data",
+			exec: "测试This Is Data",
+		},
+	}
+	for _, c := range cases {
+		ret := From(c.src).Title()
+		assert.Equal(t, c.exec, ret)
+	}
+}
