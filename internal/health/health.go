@@ -112,9 +112,9 @@ func (p *comboHealthManager) verboseInfo() string {
 	var info string
 	for _, probe := range p.probes {
 		if probe.IsReady() {
-			info += probe.Name() + " is ready; "
+			info += probe.Name() + " is ready; \n"
 		} else {
-			info += probe.Name() + " is not ready; "
+			info += probe.Name() + " is not ready; \n"
 		}
 	}
 	return info

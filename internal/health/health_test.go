@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 
@@ -122,7 +123,7 @@ func TestCreateHttpHandler(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode)
 	content, _ := io.ReadAll(resp.Body)
-	assert.Equal(t, "Service Unavailable\n", string(content))
+	assert.True(t, strings.HasPrefix(string(content), "Service Unavailable"))
 	_ = resp.Body.Close()
 
 	hm.MarkReady()
