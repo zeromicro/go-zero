@@ -281,6 +281,37 @@ func TestToCamelCase(t *testing.T) {
 	}
 }
 
+func TestLoadFromJsonBytesError(t *testing.T) {
+	var val struct{}
+	assert.Error(t, LoadFromJsonBytes([]byte(`hello`), &val))
+}
+
+func TestLoadFromTomlBytesError(t *testing.T) {
+	var val struct{}
+	assert.Error(t, LoadFromTomlBytes([]byte(`hello`), &val))
+}
+
+func TestLoadFromYamlBytesError(t *testing.T) {
+	var val struct{}
+	assert.Error(t, LoadFromYamlBytes([]byte(`':hello`), &val))
+}
+
+func TestLoadFromYamlBytes(t *testing.T) {
+	input := []byte(`layer1:
+  layer2:
+    layer3: foo`)
+	var val struct {
+		Layer1 struct {
+			Layer2 struct {
+				Layer3 string
+			}
+		}
+	}
+
+	assert.NoError(t, LoadFromYamlBytes(input, &val))
+	assert.Equal(t, "foo", val.Layer1.Layer2.Layer3)
+}
+
 func createTempFile(ext, text string) (string, error) {
 	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
