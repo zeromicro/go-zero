@@ -15,7 +15,7 @@ func TestConfig_fillDefault(t *testing.T) {
 		{
 			"empty config should filled",
 			Config{},
-			Config{Port: defaultPort, EnableMetric: true, MetricPath: defaultMetricPath, HealthPath: defaultHealthPath},
+			Config{Port: 6470, EnableMetrics: true, MetricsPath: "/metrics", HealthPath: "/healthz"},
 		},
 		{
 			"non empty config should not filled",
@@ -25,7 +25,6 @@ func TestConfig_fillDefault(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.config.fillDefault()
 			assert.Equal(t, tt.expected, tt.config)
 		})
 	}

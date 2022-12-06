@@ -37,15 +37,15 @@ func NewServer(config *Config) *Server {
 
 func (s *Server) addRoutes() {
 	// route path, routes list
-	s.handleFunc("/", func(w http.ResponseWriter, request *http.Request) {
+	s.handleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
 		_ = json.NewEncoder(w).Encode(s.routes)
 	})
 	// health
 	s.handleFunc(s.config.HealthPath, health.CreateHttpHandler())
 
 	// metrics
-	if s.config.EnableMetric {
-		s.handleFunc(s.config.MetricPath, promhttp.Handler().ServeHTTP)
+	if s.config.EnableMetrics {
+		s.handleFunc(s.config.MetricsPath, promhttp.Handler().ServeHTTP)
 	}
 	// pprof
 	if s.config.EnablePprof {
@@ -78,7 +78,6 @@ func (s *Server) StartAsync() {
 // StartAgent start inner http server by config.
 func StartAgent(c Config) {
 	once.Do(func() {
-		c.fillDefault()
 		s := NewServer(&c)
 		s.StartAsync()
 	})

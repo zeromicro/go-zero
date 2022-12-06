@@ -13,7 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
 )
 
-const probNamePrefix = "zrpc"
+const probeNamePrefix = "zrpc"
 
 type (
 	// ServerOption defines the method to customize a rpcServerOptions.
@@ -43,7 +43,7 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 
 	return &rpcServer{
 		baseRpcServer: newBaseRpcServer(address, &options),
-		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probNamePrefix, address)),
+		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, address)),
 	}
 }
 

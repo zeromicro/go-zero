@@ -10,7 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/internal/health"
 )
 
-const probNamePrefix = "rest"
+const probeNamePrefix = "rest"
 
 // StartOption defines the method to customize http.Server.
 type StartOption func(svr *http.Server)
@@ -40,7 +40,7 @@ func start(host string, port int, handler http.Handler, run func(svr *http.Serve
 	for _, opt := range opts {
 		opt(server)
 	}
-	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s:%d", probNamePrefix, host, port))
+	healthManager := health.NewHealthManager(fmt.Sprintf("%s-%s:%d", probeNamePrefix, host, port))
 
 	waitForCalled := proc.AddWrapUpListener(func() {
 		healthManager.MarkNotReady()
