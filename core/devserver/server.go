@@ -78,7 +78,9 @@ func (s *Server) StartAsync() {
 // StartAgent start inner http server by config.
 func StartAgent(c Config) {
 	once.Do(func() {
-		s := NewServer(&c)
-		s.StartAsync()
+		if c.Enabled {
+			s := NewServer(&c)
+			s.StartAsync()
+		}
 	})
 }
