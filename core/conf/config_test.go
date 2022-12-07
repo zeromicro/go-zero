@@ -56,6 +56,22 @@ func TestConfigJson(t *testing.T) {
 	}
 }
 
+func TestLoadFromJsonBytesArray(t *testing.T) {
+	input := []byte(`{"users": [{"name": "foo"}, {"Name": "bar"}]}`)
+	var val struct {
+		Users []struct {
+			Name string
+		}
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	var expect []string
+	for _, user := range val.Users {
+		expect = append(expect, user.Name)
+	}
+	assert.EqualValues(t, []string{"foo", "bar"}, expect)
+}
+
 func TestConfigToml(t *testing.T) {
 	text := `a = "foo"
 b = 1

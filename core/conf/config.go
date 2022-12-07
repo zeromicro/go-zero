@@ -139,15 +139,25 @@ func toCamelCase(s string) string {
 	return buf.String()
 }
 
+func toCamelCaseInterface(v interface{}) interface{} {
+	switch vv := v.(type) {
+	case map[string]interface{}:
+		return toCamelCaseKeyMap(vv)
+	case []interface{}:
+		var arr []interface{}
+		for _, vvv := range vv {
+			arr = append(arr, toCamelCaseInterface(vvv))
+		}
+		return arr
+	default:
+		return v
+	}
+}
+
 func toCamelCaseKeyMap(m map[string]interface{}) map[string]interface{} {
 	res := make(map[string]interface{})
 	for k, v := range m {
-		vv, ok := v.(map[string]interface{})
-		if ok {
-			res[toCamelCase(k)] = toCamelCaseKeyMap(vv)
-		} else {
-			res[toCamelCase(k)] = v
-		}
+		res[toCamelCase(k)] = toCamelCaseInterface(v)
 	}
 
 	return res
