@@ -8,5 +8,5 @@ type Config struct {
 	MetricsPath   string `json:",default=/metrics"`
 	HealthPath    string `json:",default=/healthz"`
 	EnableMetrics bool   `json:",default=true"`
-	EnablePprof   bool   `json:",optional"`
+	EnablePprof   bool   `json:",default=true"`
 }
