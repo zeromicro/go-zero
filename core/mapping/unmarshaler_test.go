@@ -3563,6 +3563,14 @@ func TestGoogleUUID(t *testing.T) {
 	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 }
 
+func TestUnmarshalJsonReaderWithTypeMismatch(t *testing.T) {
+	var req struct {
+		Params map[string]string `json:"params"`
+	}
+	body := `{"params":{"a":{"a":123}}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {

@@ -746,7 +746,9 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 
 				targetValue.SetMapIndex(key, target.Elem())
 			default:
-				targetValue.SetMapIndex(key, keythValue)
+				if err := setMapIndex(targetValue, key, keythValue); err != nil {
+					return targetValue, err
+				}
 			}
 		}
 	}
@@ -937,6 +939,15 @@ func readKeys(key string) []string {
 	cacheKeysLock.Unlock()
 
 	return keys
+}
+
+func setMapIndex(targetMap, key, value reflect.Value) error {
+	if targetMap.MapIndex(key).Kind() != value.Kind() {
+		return errTypeMismatch
+	}
+
+	targetMap.SetMapIndex(key, value)
+	return nil
 }
 
 func setSameKindValue(targetType reflect.Type, target reflect.Value, value interface{}) {
