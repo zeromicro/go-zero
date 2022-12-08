@@ -57,7 +57,7 @@ func (s String) Title() string {
 	if s.IsEmptyOrSpace() {
 		return s.source
 	}
-	return cases.Title(language.English).String(s.source)
+	return cases.Title(language.English, cases.NoLower).String(s.source)
 }
 
 // ToCamel converts the input text into camel case
