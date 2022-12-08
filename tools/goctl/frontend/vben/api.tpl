@@ -4,10 +4,10 @@ import { BaseDataResp, BaseIdReq, BasePageReq, BaseResp, BaseIdsReq } from '/@/a
 import { {{.modelName}}Info, {{.modelName}}ListResp } from './model/{{.modelNameLowerCase}}Model';
 
 enum Api {
-  CreateOrUpdate{{.modelName}} = '/sys-api/{{.modelNameLowerCase}}/create_or_update',
-  Get{{.modelName}}List = '/sys-api/{{.modelNameLowerCase}}/list',
-  Delete{{.modelName}} = '/sys-api/{{.modelNameLowerCase}}/delete',
-  BatchDelete{{.modelName}} = '/sys-api/{{.modelNameLowerCase}}/batch_delete',
+  CreateOrUpdate{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/create_or_update',
+  Get{{.modelName}}List = '/{{.prefix}}/{{.modelNameLowerCase}}/list',
+  Delete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/delete',
+  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/batch_delete',
 }
 
 /**
@@ -43,7 +43,7 @@ export const delete{{.modelName}} = (params: BaseIdReq, mode: ErrorMessageMode =
 };
 
 /**
- *  @description: batch delete {{.modelNameLowerCase}}
+ *  @description: batch delete {{.modelNameLowerCase}}s
  */
 export const batchDelete{{.modelName}} = (params: BaseIdsReq, mode: ErrorMessageMode = 'modal') => {
   return defHttp.post<BaseResp>(

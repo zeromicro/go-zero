@@ -14,6 +14,7 @@ func genIndex(g *GenContext) error {
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"folderName":         g.FolderName,
 		"addButtonTitle":     fmt.Sprintf("{{ t('%s.%s.add%s') }}", g.FolderName, strings.ToLower(g.ModelName), g.ModelName),
+		"deleteButtonTitle":  "{{ t('common.delete') }}",
 	},
 		filepath.Join(g.ViewDir, "index.vue"), false); err != nil {
 		return err

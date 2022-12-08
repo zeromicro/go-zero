@@ -25,17 +25,20 @@ var (
 	VarStringApiPrefix string
 	// VarStringModelName describes the model name
 	VarStringModelName string
+	// VarStringSubFolder describes the sub folder name
+	VarStringSubFolder string
 )
 
 type GenContext struct {
-	ApiDir     string
-	ModelDir   string
-	ViewDir    string
-	Prefix     string
-	ModelName  string
-	LocaleDir  string
-	FolderName string
-	ApiSpec    *spec.ApiSpec
+	ApiDir        string
+	ModelDir      string
+	ViewDir       string
+	Prefix        string
+	ModelName     string
+	LocaleDir     string
+	FolderName    string
+	SubFolderName string
+	ApiSpec       *spec.ApiSpec
 }
 
 // GenCRUDLogic is used to generate CRUD file for simple admin backend UI
@@ -61,6 +64,12 @@ func GenCRUDLogic(_ *cobra.Command, _ []string) error {
 	viewOutputDir := filepath.Join(outputDir, "src/views", VarStringFolderName)
 	if err := pathx.MkdirIfNotExist(viewOutputDir); err != nil {
 		return err
+	}
+	if VarStringSubFolder != "" {
+		viewOutputDir = filepath.Join(viewOutputDir, VarStringSubFolder)
+		if err := pathx.MkdirIfNotExist(viewOutputDir); err != nil {
+			return err
+		}
 	}
 	localeDir := filepath.Join(outputDir, "src/locales/lang")
 

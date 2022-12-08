@@ -32,7 +32,7 @@ func genData(g *GenContext) error {
 				} else {
 					basicData.WriteString(fmt.Sprintf("\n  {\n    title: t('%s'),\n    dataIndex: '%s',\n    width: 100,\n  },",
 						strcase.ToCamel(val.Name), strcase.ToLowerCamel(val.Name)))
-					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    component: 'Input',\n    colProps: { span: 8 },\n  },",
+					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    component: 'Input',\n  },",
 						strcase.ToCamel(val.Name), strcase.ToLowerCamel(val.Name)))
 				}
 			}

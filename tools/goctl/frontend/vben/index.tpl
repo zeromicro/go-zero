@@ -1,6 +1,11 @@
 <template>
   <div>
     <BasicTable @register="registerTable">
+      <template #tableTitle>
+        <Button type="primary" danger v-if="showDeleteButton" @click="handleBatchDelete()">
+          {{.deleteButtonTitle}}
+        </Button>
+      </template>
       <template #toolbar>
         <a-button type="primary" @click="handleCreate">
           {{.addButtonTitle}}
@@ -32,8 +37,9 @@
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent } from 'vue';
-
+  import { createVNode, defineComponent, ref } from 'vue';
+  import { Button, Modal } from 'ant-design-vue';
+  import { ExclamationCircleOutlined } from '@ant-design/icons-vue/lib/icons';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
 
   import { useDrawer } from '/@/components/Drawer';
@@ -42,13 +48,16 @@
   import { useMessage } from '/@/hooks/web/useMessage';
 
   import { columns, searchFormSchema } from './{{.modelNameLowerCase}}.data';
-  import { get{{.modelName}}List, delete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
+  import { get{{.modelName}}List, delete{{.modelName}}, batchDelete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
 
   export default defineComponent({
     name: '{{.modelName}}Management',
-    components: { BasicTable, {{.modelName}}Drawer, TableAction },
+    components: { BasicTable, {{.modelName}}Drawer, TableAction, Button },
     setup() {
       const { t } = useI18n();
+      const selectedIds = ref<number[] | string[]>();
+      const showDeleteButton = ref<boolean>(false);
+
       const [registerDrawer, { openDrawer }] = useDrawer();
       const { notification } = useMessage();
       const [registerTable, { reload }] = useTable({
@@ -68,6 +77,18 @@
           title: t('common.action'),
           dataIndex: 'action',
           fixed: undefined,
+        },
+        rowKey: 'id',
+        rowSelection: {
+          type: 'checkbox',
+          onChange: (selectedRowKeys, _selectedRows) => {
+            selectedIds.value = selectedRowKeys;
+            if (selectedRowKeys.length > 0) {
+              showDeleteButton.value = true;
+            } else {
+              showDeleteButton.value = false;
+            }
+          },
         },
       });
 
@@ -94,6 +115,26 @@
         reload();
       }
 
+      async function handleBatchDelete() {
+        Modal.confirm({
+          title: t('common.deleteConfirm'),
+          icon: createVNode(ExclamationCircleOutlined),
+          async onOk() {
+            const result = await batchDelete{{.modelName}}(
+              { ids: selectedIds.value as number[] },
+              'modal',
+            );
+            if (result.code === 0) {
+              reload();
+              showDeleteButton.value = false;
+            }
+          },
+          onCancel() {
+            console.log('Cancel');
+          },
+        });
+      }
+
       function handleSuccess() {
         reload();
       }
@@ -106,6 +147,8 @@
         handleEdit,
         handleDelete,
         handleSuccess,
+        handleBatchDelete,
+        showDeleteButton,
       };
     },
   });
