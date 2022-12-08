@@ -110,11 +110,15 @@ func ErrorCtx(ctx context.Context, w http.ResponseWriter, err error, fns ...func
 		} else if errcode.IsGrpcError(err) {
 			// don't unwrap error and get status.Message(),
 			// it hides the rpc error headers.
-			http.Error(w, err.Error(), errcode.CodeFromGrpcError(err))
+			statusError := status.Convert(err)
+			WriteJson(w, http.StatusOK, errorx.NewCodeError(int(statusError.Code()), statusError.Message()))
+		} else if _, ok := err.(*errorx.CodeError); ok {
+			WriteJson(w, http.StatusOK, err.(*errorx.CodeError).Data())
+		} else if _, ok := err.(*errorx.ApiError); ok {
+			WriteJson(w, err.(*errorx.ApiError).Code, &errorx.SimpleMsg{Msg: err.(*errorx.ApiError).Msg})
 		} else {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
-
 		return
 	}
 
