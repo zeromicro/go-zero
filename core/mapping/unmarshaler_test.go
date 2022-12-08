@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -3089,91 +3090,249 @@ func TestUnmarshalValuer(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func BenchmarkUnmarshalString(b *testing.B) {
-	type inner struct {
-		Value string `key:"value"`
-	}
-	m := map[string]interface{}{
-		"value": "first",
+func TestUnmarshal_EnvString(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
 	}
 
-	for i := 0; i < b.N; i++ {
-		var in inner
-		if err := UnmarshalKey(m, &in); err != nil {
-			b.Fatal(err)
-		}
-	}
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, envVal, v.Name)
 }
 
-func BenchmarkUnmarshalStruct(b *testing.B) {
-	b.ReportAllocs()
-
-	m := map[string]interface{}{
-		"Ids": []map[string]interface{}{
-			{
-				"First":  1,
-				"Second": 2,
-			},
-		},
+func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_STRING"`
 	}
 
-	for i := 0; i < b.N; i++ {
-		var v struct {
-			Ids []struct {
-				First  int
-				Second int
-			}
-		}
-		if err := UnmarshalKey(m, &v); err != nil {
-			b.Fatal(err)
-		}
-	}
+	const (
+		envName = "TEST_NAME_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"name": "local value",
+	}, &v))
+	assert.Equal(t, envVal, v.Name)
 }
 
-func BenchmarkMapToStruct(b *testing.B) {
-	data := map[string]interface{}{
-		"valid": "1",
-		"age":   "5",
-		"name":  "liao",
-	}
-	type anonymous struct {
-		Valid bool
-		Age   int
-		Name  string
+func TestUnmarshal_EnvInt(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
 	}
 
-	for i := 0; i < b.N; i++ {
-		var an anonymous
-		if valid, ok := data["valid"]; ok {
-			an.Valid = valid == "1"
-		}
-		if age, ok := data["age"]; ok {
-			ages, _ := age.(string)
-			an.Age, _ = strconv.Atoi(ages)
-		}
-		if name, ok := data["name"]; ok {
-			names, _ := name.(string)
-			an.Name = names
-		}
-	}
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, 123, v.Age)
 }
 
-func BenchmarkUnmarshal(b *testing.B) {
-	data := map[string]interface{}{
-		"valid": "1",
-		"age":   "5",
-		"name":  "liao",
-	}
-	type anonymous struct {
-		Valid bool   `key:"valid,string"`
-		Age   int    `key:"age,string"`
-		Name  string `key:"name"`
+func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_INT"`
 	}
 
-	for i := 0; i < b.N; i++ {
-		var an anonymous
-		UnmarshalKey(data, &an)
+	const envName = "TEST_NAME_INT"
+	os.Setenv(envName, "123")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18,
+	}, &v))
+	assert.Equal(t, 123, v.Age)
+}
+
+func TestUnmarshal_EnvFloat(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"name,env=TEST_NAME_FLOAT"`
 	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
+	type Value struct {
+		Age float32 `key:"age,env=TEST_NAME_FLOAT"`
+	}
+
+	const envName = "TEST_NAME_FLOAT"
+	os.Setenv(envName, "123.45")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(map[string]interface{}{
+		"age": 18.5,
+	}, &v))
+	assert.Equal(t, float32(123.45), v.Age)
+}
+
+func TestUnmarshal_EnvBoolTrue(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_TRUE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_TRUE"
+	os.Setenv(envName, "true")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.True(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolFalse(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_FALSE"`
+	}
+
+	const envName = "TEST_NAME_BOOL_FALSE"
+	os.Setenv(envName, "false")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.False(t, v.Enable)
+}
+
+func TestUnmarshal_EnvBoolBad(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_BOOL_BAD"`
+	}
+
+	const envName = "TEST_NAME_BOOL_BAD"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvDuration(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
+	}
+
+	const envName = "TEST_NAME_DURATION"
+	os.Setenv(envName, "1s")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, time.Second, v.Duration)
+}
+
+func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_BAD_DURATION"`
+	}
+
+	const envName = "TEST_NAME_BAD_DURATION"
+	os.Setenv(envName, "bad")
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NotNil(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvWithOptions(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_ENV_OPTIONS_MATCH,options=[abc,123,xyz]"`
+	}
+
+	const (
+		envName = "TEST_NAME_ENV_OPTIONS_MATCH"
+		envVal  = "123"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.NoError(t, UnmarshalKey(emptyMap, &v))
+	assert.Equal(t, envVal, v.Name)
+}
+
+func TestUnmarshal_EnvWithOptionsWrongValueBool(t *testing.T) {
+	type Value struct {
+		Enable bool `key:"enable,env=TEST_NAME_ENV_OPTIONS_BOOL,options=[true]"`
+	}
+
+	const (
+		envName = "TEST_NAME_ENV_OPTIONS_BOOL"
+		envVal  = "false"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvWithOptionsWrongValueDuration(t *testing.T) {
+	type Value struct {
+		Duration time.Duration `key:"duration,env=TEST_NAME_ENV_OPTIONS_DURATION,options=[1s,2s,3s]"`
+	}
+
+	const (
+		envName = "TEST_NAME_ENV_OPTIONS_DURATION"
+		envVal  = "4s"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvWithOptionsWrongValueNumber(t *testing.T) {
+	type Value struct {
+		Age int `key:"age,env=TEST_NAME_ENV_OPTIONS_AGE,options=[18,19,20]"`
+	}
+
+	const (
+		envName = "TEST_NAME_ENV_OPTIONS_AGE"
+		envVal  = "30"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
+}
+
+func TestUnmarshal_EnvWithOptionsWrongValueString(t *testing.T) {
+	type Value struct {
+		Name string `key:"name,env=TEST_NAME_ENV_OPTIONS_STRING,options=[abc,123,xyz]"`
+	}
+
+	const (
+		envName = "TEST_NAME_ENV_OPTIONS_STRING"
+		envVal  = "this is a name"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
+
+	var v Value
+	assert.Error(t, UnmarshalKey(emptyMap, &v))
 }
 
 func TestUnmarshalJsonReaderMultiArray(t *testing.T) {
@@ -3414,5 +3573,92 @@ func BenchmarkDefaultValue(b *testing.B) {
 		if len(a.Strs) != 3 || len(a.Ints) != 3 {
 			b.Fatal("failed")
 		}
+	}
+}
+
+func BenchmarkUnmarshalString(b *testing.B) {
+	type inner struct {
+		Value string `key:"value"`
+	}
+	m := map[string]interface{}{
+		"value": "first",
+	}
+
+	for i := 0; i < b.N; i++ {
+		var in inner
+		if err := UnmarshalKey(m, &in); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkUnmarshalStruct(b *testing.B) {
+	b.ReportAllocs()
+
+	m := map[string]interface{}{
+		"Ids": []map[string]interface{}{
+			{
+				"First":  1,
+				"Second": 2,
+			},
+		},
+	}
+
+	for i := 0; i < b.N; i++ {
+		var v struct {
+			Ids []struct {
+				First  int
+				Second int
+			}
+		}
+		if err := UnmarshalKey(m, &v); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkMapToStruct(b *testing.B) {
+	data := map[string]interface{}{
+		"valid": "1",
+		"age":   "5",
+		"name":  "liao",
+	}
+	type anonymous struct {
+		Valid bool
+		Age   int
+		Name  string
+	}
+
+	for i := 0; i < b.N; i++ {
+		var an anonymous
+		if valid, ok := data["valid"]; ok {
+			an.Valid = valid == "1"
+		}
+		if age, ok := data["age"]; ok {
+			ages, _ := age.(string)
+			an.Age, _ = strconv.Atoi(ages)
+		}
+		if name, ok := data["name"]; ok {
+			names, _ := name.(string)
+			an.Name = names
+		}
+	}
+}
+
+func BenchmarkUnmarshal(b *testing.B) {
+	data := map[string]interface{}{
+		"valid": "1",
+		"age":   "5",
+		"name":  "liao",
+	}
+	type anonymous struct {
+		Valid bool   `key:"valid,string"`
+		Age   int    `key:"age,string"`
+		Name  string `key:"name"`
+	}
+
+	for i := 0; i < b.N; i++ {
+		var an anonymous
+		UnmarshalKey(data, &an)
 	}
 }

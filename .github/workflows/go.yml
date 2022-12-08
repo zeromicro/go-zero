@@ -1,0 +1,61 @@
+name: Go
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test-linux:
+    name: Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.16
+          check-latest: true
+          cache: true
+        id: go
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+
+      - name: Lint
+        run: |
+          go vet -stdmethods=false $(go list ./...)
+          go install mvdan.cc/gofumpt@latest
+          test -z "$(gofumpt -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
+
+      - name: Test
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Codecov
+        uses: codecov/codecov-action@v3
+
+  test-win:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v3
+
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v3
+        with:
+          # use 1.16 to guarantee Go 1.16 compatibility
+          go-version: 1.16
+          check-latest: true
+          cache: true
+
+      - name: Test
+        run: |
+          go mod verify
+          go mod download
+          go test -v -race ./...
+          cd tools/goctl && go build -v goctl.go

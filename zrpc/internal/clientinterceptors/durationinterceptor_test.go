@@ -24,6 +24,7 @@ func TestDurationInterceptor(t *testing.T) {
 			err:  errors.New("mock"),
 		},
 	}
+	DontLogContentForMethod("/foo")
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			cc := new(grpc.ClientConn)
