@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,7 @@ d = "abcd!@#$112"
 		C string `json:"c"`
 		D string `json:"d"`
 	}
-	assert.Nil(t, UnmarshalTomlBytes([]byte(input), &val))
+	assert.NoError(t, UnmarshalTomlReader(strings.NewReader(input), &val))
 	assert.Equal(t, "foo", val.A)
 	assert.Equal(t, 1, val.B)
 	assert.Equal(t, "${FOO}", val.C)
@@ -37,5 +38,12 @@ d = "abcd!@#$112"
 		C string `json:"c"`
 		D string `json:"d"`
 	}
-	assert.NotNil(t, UnmarshalTomlBytes([]byte(input), &val))
+	assert.Error(t, UnmarshalTomlReader(strings.NewReader(input), &val))
+}
+
+func TestUnmarshalTomlBadReader(t *testing.T) {
+	var val struct {
+		A string `json:"a"`
+	}
+	assert.Error(t, UnmarshalTomlReader(new(badReader), &val))
 }
