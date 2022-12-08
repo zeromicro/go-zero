@@ -88,7 +88,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 			return nil, err
 		}
 
-		out, err := util.With("findOneByFieldExtraMethod").Parse(text).Execute(map[string]interface{}{
+		out, err := util.With("findOneByFieldExtraMethod").Parse(text).AddFunc("hasField", hasField(table)).Execute(map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"primaryKeyLeft":        table.PrimaryCacheKey.VarLeft,
 			"lowerStartCamelObject": stringx.From(camelTableName).Untitle(),

@@ -92,3 +92,14 @@ func Update() error {
 
 	return pathx.InitTemplates(category, templates)
 }
+
+func hasField(table Table) func(string) bool {
+	return func(f string) bool {
+		for _, field := range table.Fields {
+			if f == field.NameOriginal {
+				return true
+			}
+		}
+		return false
+	}
+}

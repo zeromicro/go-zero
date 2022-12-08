@@ -353,6 +353,7 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 
 	t := util.With("model-custom").
 		Parse(text).
+		AddFunc("hasField", hasField(Table{Table: in})).
 		GoFmt(true)
 	output, err := t.Execute(map[string]interface{}{
 		"pkg":                   g.pkg,
@@ -374,6 +375,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 	}
 	t := util.With("model").
 		Parse(text).
+		AddFunc("hasField", hasField(table)).
 		GoFmt(true)
 	output, err := t.Execute(map[string]interface{}{
 		"pkg":         g.pkg,

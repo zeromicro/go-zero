@@ -16,6 +16,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 
 	output, err := util.With("findOne").
 		Parse(text).
+		AddFunc("hasField", hasField(table)).
 		Execute(map[string]interface{}{
 			"withCache":                 withCache,
 			"upperStartCamelObject":     camel,
@@ -39,6 +40,7 @@ func genFindOne(table Table, withCache, postgreSql bool) (string, string, error)
 
 	findOneMethod, err := util.With("findOneMethod").
 		Parse(text).
+		AddFunc("hasField", hasField(table)).
 		Execute(map[string]interface{}{
 			"upperStartCamelObject":     camel,
 			"lowerStartCamelPrimaryKey": util.EscapeGolangKeyword(stringx.From(table.PrimaryKey.Name.ToCamel()).Untitle()),

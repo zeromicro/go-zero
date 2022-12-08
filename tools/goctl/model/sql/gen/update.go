@@ -61,7 +61,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 		return "", "", err
 	}
 
-	output, err := util.With("update").Parse(text).Execute(
+	output, err := util.With("update").Parse(text).AddFunc("hasField", hasField(table)).Execute(
 		map[string]interface{}{
 			"withCache":             withCache,
 			"containsIndexCache":    table.ContainsUniqueCacheKey,
@@ -94,7 +94,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 		return "", "", err
 	}
 
-	updateMethodOutput, err := util.With("updateMethod").Parse(text).Execute(
+	updateMethodOutput, err := util.With("updateMethod").Parse(text).AddFunc("hasField", hasField(table)).Execute(
 		map[string]interface{}{
 			"upperStartCamelObject": camelTableName,
 			"data":                  table,

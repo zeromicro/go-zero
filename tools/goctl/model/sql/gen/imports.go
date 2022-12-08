@@ -13,7 +13,7 @@ func genImports(table Table, withCache, timeImport bool) (string, error) {
 			return "", err
 		}
 
-		buffer, err := util.With("import").Parse(text).Execute(map[string]interface{}{
+		buffer, err := util.With("import").Parse(text).AddFunc("hasField", hasField(table)).Execute(map[string]interface{}{
 			"time":       timeImport,
 			"containsPQ": table.ContainsPQ,
 			"data":       table,
