@@ -11,10 +11,12 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api"
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
+	"github.com/zeromicro/go-zero/tools/goctl/frontend"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
@@ -129,4 +131,5 @@ func init() {
 	rootCmd.AddCommand(tpl.Cmd)
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.AddCommand(frontend.Cmd)
 }
