@@ -284,7 +284,7 @@ func (l *RotateLogger) getBackupFilename() string {
 func (l *RotateLogger) init() error {
 	l.backup = l.rule.BackupFileName()
 
-	if _, err := os.Stat(l.filename); err != nil {
+	if fileInfo, err := os.Stat(l.filename); err != nil {
 		basePath := path.Dir(l.filename)
 		if _, err = os.Stat(basePath); err != nil {
 			if err = os.MkdirAll(basePath, defaultDirMode); err != nil {
@@ -295,8 +295,11 @@ func (l *RotateLogger) init() error {
 		if l.fp, err = os.Create(l.filename); err != nil {
 			return err
 		}
-	} else if l.fp, err = os.OpenFile(l.filename, os.O_APPEND|os.O_WRONLY, defaultFileMode); err != nil {
-		return err
+	} else {
+		if l.fp, err = os.OpenFile(l.filename, os.O_APPEND|os.O_WRONLY, defaultFileMode); err != nil {
+			return err
+		}
+		l.currentSize = fileInfo.Size()
 	}
 
 	fs.CloseOnExec(l.fp)

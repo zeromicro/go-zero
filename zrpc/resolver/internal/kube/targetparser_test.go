@@ -39,9 +39,12 @@ func TestParseTarget(t *testing.T) {
 			hasErr: true,
 		},
 		{
-			name:   "no port, no colon",
-			input:  "k8s://ns1/my-svc",
-			hasErr: true,
+			name:  "no port, no colon",
+			input: "k8s://ns1/my-svc",
+			expect: Service{
+				Namespace: "ns1",
+				Name:      "my-svc",
+			},
 		},
 		{
 			name:   "bad port",

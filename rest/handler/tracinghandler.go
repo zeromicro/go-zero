@@ -26,20 +26,17 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			defer func() {
-				next.ServeHTTP(w, r)
-			}()
-
-			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 			spanName := path
 			if len(spanName) == 0 {
 				spanName = r.URL.Path
 			}
 
 			if _, ok := notTracingSpans.Load(spanName); ok {
+				next.ServeHTTP(w, r)
 				return
 			}
 
+			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
 			spanCtx, span := tracer.Start(
 				ctx,
 				spanName,
@@ -51,7 +48,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 
 			// convenient for tracking error messages
 			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
-			r = r.WithContext(spanCtx)
+			next.ServeHTTP(w, r.WithContext(spanCtx))
 		})
 	}
 }

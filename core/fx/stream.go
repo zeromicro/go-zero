@@ -328,7 +328,7 @@ func (s Stream) Parallel(fn ParallelFunc, opts ...Option) {
 	}, opts...).Done()
 }
 
-// Reduce is a utility method to let the caller deal with the underlying channel.
+// Reduce is an utility method to let the caller deal with the underlying channel.
 func (s Stream) Reduce(fn ReduceFunc) (interface{}, error) {
 	return fn(s.source)
 }
