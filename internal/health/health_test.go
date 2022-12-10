@@ -54,7 +54,7 @@ func TestComboHealthManager(t *testing.T) {
 	})
 
 	t.Run("concurrent add probes", func(t *testing.T) {
-		chm2 := newComboHealthManager()
+		chm := newComboHealthManager()
 
 		var wg sync.WaitGroup
 		wg.Add(10)
@@ -62,28 +62,28 @@ func TestComboHealthManager(t *testing.T) {
 			go func() {
 				hm := NewHealthManager(probeName)
 				hm.MarkReady()
-				chm2.addProbe(hm)
+				chm.addProbe(hm)
 				wg.Done()
 			}()
 		}
 		wg.Wait()
-		assert.True(t, chm2.IsReady())
+		assert.True(t, chm.IsReady())
 	})
 
 	t.Run("markReady and markNotReady", func(t *testing.T) {
-		chm2 := newComboHealthManager()
+		chm := newComboHealthManager()
 
 		for i := 0; i < 10; i++ {
 			hm := NewHealthManager(probeName)
-			chm2.addProbe(hm)
+			chm.addProbe(hm)
 		}
-		assert.False(t, chm2.IsReady())
+		assert.False(t, chm.IsReady())
 
-		chm2.MarkReady()
-		assert.True(t, chm2.IsReady())
+		chm.MarkReady()
+		assert.True(t, chm.IsReady())
 
-		chm2.MarkNotReady()
-		assert.False(t, chm2.IsReady())
+		chm.MarkNotReady()
+		assert.False(t, chm.IsReady())
 	})
 }
 

@@ -29,7 +29,8 @@ func (b noOpBreaker) DoWithFallback(req func() error, fallback func(err error) e
 }
 
 func (b noOpBreaker) DoWithFallbackAcceptable(req func() error, fallback func(err error) error,
-	acceptable Acceptable) error {
+	acceptable Acceptable,
+) error {
 	return req()
 }
 
