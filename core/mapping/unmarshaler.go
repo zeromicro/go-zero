@@ -735,8 +735,16 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 		default:
 			switch v := keythData.(type) {
 			case bool:
+				if dereffedElemKind != reflect.Bool {
+					return emptyValue, errTypeMismatch
+				}
+
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case string:
+				if dereffedElemKind != reflect.String {
+					return emptyValue, errTypeMismatch
+				}
+
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case json.Number:
 				target := reflect.New(dereffedElemType)
@@ -746,6 +754,10 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 
 				targetValue.SetMapIndex(key, target.Elem())
 			default:
+				if dereffedElemKind != keythValue.Kind() {
+					return emptyValue, errTypeMismatch
+				}
+
 				targetValue.SetMapIndex(key, keythValue)
 			}
 		}

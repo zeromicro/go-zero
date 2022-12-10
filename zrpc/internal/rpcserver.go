@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"net"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
-
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/internal/health"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const probeNamePrefix = "zrpc"
@@ -25,25 +24,25 @@ type (
 	}
 
 	rpcServer struct {
-		name string
 		*baseRpcServer
+		name          string
 		healthManager health.Probe
 	}
 )
 
 // NewRpcServer returns a Server.
-func NewRpcServer(address string, opts ...ServerOption) Server {
+func NewRpcServer(addr string, opts ...ServerOption) Server {
 	var options rpcServerOptions
 	for _, opt := range opts {
 		opt(&options)
 	}
 	if options.metrics == nil {
-		options.metrics = stat.NewMetrics(address)
+		options.metrics = stat.NewMetrics(addr)
 	}
 
 	return &rpcServer{
-		baseRpcServer: newBaseRpcServer(address, &options),
-		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, address)),
+		baseRpcServer: newBaseRpcServer(addr, &options),
+		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, addr)),
 	}
 }
 

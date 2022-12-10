@@ -9,15 +9,12 @@ import (
 
 	"github.com/felixge/fgprof"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/internal/health"
 )
 
-var (
-	once sync.Once
-)
+var once sync.Once
 
 // Server is inner http server, expose some useful observability information of app.
 // For example health check, metrics and pprof.
@@ -68,7 +65,7 @@ func (s *Server) StartAsync() {
 	s.addRoutes()
 	threading.GoSafe(func() {
 		addr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
-		logx.Infof("Starting inner http server at %s", addr)
+		logx.Infof("Starting dev http server at %s", addr)
 		if err := http.ListenAndServe(addr, s.server); err != nil {
 			logx.Error(err)
 		}
