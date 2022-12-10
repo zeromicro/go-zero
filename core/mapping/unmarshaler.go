@@ -735,9 +735,17 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 		default:
 			switch v := keythData.(type) {
 			case bool:
-				targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				if dereffedElemKind == reflect.Bool {
+					targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				} else {
+					return emptyValue, errTypeMismatch
+				}
 			case string:
-				targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				if dereffedElemKind == reflect.String {
+					targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				} else {
+					return emptyValue, errTypeMismatch
+				}
 			case json.Number:
 				target := reflect.New(dereffedElemType)
 				if err := setValue(dereffedElemKind, target.Elem(), v.String()); err != nil {
@@ -746,8 +754,10 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 
 				targetValue.SetMapIndex(key, target.Elem())
 			default:
-				if err := setMapIndex(targetValue, key, keythValue); err != nil {
-					return targetValue, err
+				if dereffedElemKind == keythValue.Kind() {
+					targetValue.SetMapIndex(key, keythValue)
+				} else {
+					return emptyValue, errTypeMismatch
 				}
 			}
 		}
@@ -939,15 +949,6 @@ func readKeys(key string) []string {
 	cacheKeysLock.Unlock()
 
 	return keys
-}
-
-func setMapIndex(targetMap, key, value reflect.Value) error {
-	if targetMap.MapIndex(key).Kind() != value.Kind() {
-		return errTypeMismatch
-	}
-
-	targetMap.SetMapIndex(key, value)
-	return nil
 }
 
 func setSameKindValue(targetType reflect.Type, target reflect.Value, value interface{}) {
