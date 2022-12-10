@@ -3,6 +3,7 @@
     <BasicTable @register="registerTable">
       <template #tableTitle>
         <Button type="primary" danger v-if="showDeleteButton" @click="handleBatchDelete()">
+          <template #icon><DeleteOutlined /></template>
           {{.deleteButtonTitle}}
         </Button>
       </template>
@@ -39,7 +40,7 @@
 <script lang="ts">
   import { createVNode, defineComponent, ref } from 'vue';
   import { Button, Modal } from 'ant-design-vue';
-  import { ExclamationCircleOutlined } from '@ant-design/icons-vue/lib/icons';
+  import { ExclamationCircleOutlined, DeleteOutlined } from '@ant-design/icons-vue/lib/icons';
   import { BasicTable, useTable, TableAction } from '/@/components/Table';
 
   import { useDrawer } from '/@/components/Drawer';
@@ -52,7 +53,7 @@
 
   export default defineComponent({
     name: '{{.modelName}}Management',
-    components: { BasicTable, {{.modelName}}Drawer, TableAction, Button },
+    components: { BasicTable, {{.modelName}}Drawer, TableAction, Button, DeleteOutlined },
     setup() {
       const { t } = useI18n();
       const selectedIds = ref<number[] | string[]>();
