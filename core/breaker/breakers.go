@@ -30,8 +30,7 @@ func DoWithFallback(name string, req func() error, fallback func(err error) erro
 
 // DoWithFallbackAcceptable calls Breaker.DoWithFallbackAcceptable on the Breaker with given name.
 func DoWithFallbackAcceptable(name string, req func() error, fallback func(err error) error,
-	acceptable Acceptable,
-) error {
+	acceptable Acceptable) error {
 	return do(name, func(b Breaker) error {
 		return b.DoWithFallbackAcceptable(req, fallback, acceptable)
 	})

@@ -127,8 +127,7 @@ func (cb *circuitBreaker) DoWithFallback(req func() error, fallback func(err err
 }
 
 func (cb *circuitBreaker) DoWithFallbackAcceptable(req func() error, fallback func(err error) error,
-	acceptable Acceptable,
-) error {
+	acceptable Acceptable) error {
 	return cb.throttle.doReq(req, fallback, acceptable)
 }
 
