@@ -34,7 +34,6 @@ func initialize() {
 
 	cores = uint64(len(cpus))
 	quota = float64(len(cpus))
-
 	cq, err := cpuQuota()
 	if err == nil {
 		if cq != -1 {
