@@ -1,14 +1,19 @@
 package internal
 
 import (
+	"fmt"
 	"net"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/internal/health"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
 )
+
+const probeNamePrefix = "zrpc"
 
 type (
 	// ServerOption defines the method to customize a rpcServerOptions.
@@ -22,6 +27,7 @@ type (
 	rpcServer struct {
 		name string
 		*baseRpcServer
+		healthManager health.Probe
 	}
 )
 
@@ -37,6 +43,7 @@ func NewRpcServer(address string, opts ...ServerOption) Server {
 
 	return &rpcServer{
 		baseRpcServer: newBaseRpcServer(address, &options),
+		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, address)),
 	}
 }
 
@@ -75,6 +82,8 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		grpc_health_v1.RegisterHealthServer(server, s.health)
 		s.health.Resume()
 	}
+	s.healthManager.MarkReady()
+	health.AddProbe(s.healthManager)
 
 	// we need to make sure all others are wrapped up,
 	// so we do graceful stop at shutdown phase instead of wrap up phase
