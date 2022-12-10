@@ -33,13 +33,8 @@ func initialize() {
 	}
 
 	cores = uint64(len(cpus))
-	sets, err := cpuSets()
-	if err != nil {
-		logx.Error(err)
-		return
-	}
+	quota = float64(len(cpus))
 
-	quota = float64(len(sets))
 	cq, err := cpuQuota()
 	if err == nil {
 		if cq != -1 {
