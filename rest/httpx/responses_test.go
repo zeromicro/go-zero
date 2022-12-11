@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type message struct {
@@ -103,7 +104,7 @@ func TestErrorWithGrpcError(t *testing.T) {
 		headers: make(map[string][]string),
 	}
 	Error(&w, status.Error(codes.Unavailable, "foo"))
-	assert.Equal(t, http.StatusServiceUnavailable, w.code)
+	assert.Equal(t, http.StatusOK, w.code)
 	assert.True(t, w.hasBody)
 	assert.True(t, strings.Contains(w.builder.String(), "foo"))
 }
@@ -301,7 +302,7 @@ func TestErrorWithGrpcErrorCtx(t *testing.T) {
 		headers: make(map[string][]string),
 	}
 	ErrorCtx(context.Background(), &w, status.Error(codes.Unavailable, "foo"))
-	assert.Equal(t, http.StatusServiceUnavailable, w.code)
+	assert.Equal(t, http.StatusOK, w.code)
 	assert.True(t, w.hasBody)
 	assert.True(t, strings.Contains(w.builder.String(), "foo"))
 }
