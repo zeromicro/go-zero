@@ -1043,46 +1043,24 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.346,
 			},
 		}, pairs)
-		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloat("key", 0, -1)
+		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloat("key", 0, 20)
 		assert.NotNil(t, err)
-		pairs, err = client.ZrangebyscoreWithScoresByFloat("key", 0, -1)
+		pairs, err = client.ZrangebyscoreWithScoresByFloat("key", 0,20)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []PairFloat{
 			{
 				Key:   "value1",
 				Score: 10.345,
+			},
+			{
+				Key:   "value2",
+				Score: 10.346,
 			},
 		}, pairs)
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloatAndLimit(
 			"key", 10.1, 12.2, 1, 1)
 		assert.NotNil(t, err)
-		pairs, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 10.1, 12.2, 0, 1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
-			{
-				Key:   "value1",
-				Score: 10.345,
-			},
-		}, pairs)
-		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloat("key", 10, 12)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrevrangebyscoreWithScoresByFloat("key", 10, 12)
-		assert.NotNil(t, err)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
-			{
-					Key:   "value2",
-					Score: 10.346,
-			},
-			{
-					Key:   "value1",
-					Score: 10.345,
-			},
-		}, pairs)
-		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloatAndLimit(
-			"key", 10,12,0,1)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 10,12,0,1)
+		pairs, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 10.1, 12.2, 1, 1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []PairFloat{
 			{
@@ -1090,7 +1068,32 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.346,
 			},
 		}, pairs)
-		
+		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloat("key", 10, 12)
+		assert.NotNil(t, err)
+		pairs, err = client.ZrevrangebyscoreWithScoresByFloat("key", 10, 12)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []PairFloat{
+			{
+				Key:   "value2",
+				Score: 10.346,
+			},
+			{
+				Key:   "value1",
+				Score: 10.345,
+			},
+		}, pairs)
+		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloatAndLimit(
+			"key", 10, 12, 1, 1)
+		assert.NotNil(t, err)
+		pairs, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 10, 12, 1, 1)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []PairFloat{
+			{
+				Key:   "value1",
+				Score: 10.345,
+			},
+		}, pairs)
+
 	})
 }
 func TestRedis_Pipelined(t *testing.T) {
