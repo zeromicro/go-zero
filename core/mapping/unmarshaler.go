@@ -231,6 +231,9 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 		return u.fillSlice(fieldType, value, mapValue)
 	case typeKind == reflect.Map && valueKind == reflect.Map:
 		return u.fillMap(field, value, mapValue)
+	case typeKind == reflect.Interface:
+		value.Set(reflect.ValueOf(mapValue))
+		return nil
 	default:
 		switch v := mapValue.(type) {
 		case json.Number:
