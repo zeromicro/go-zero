@@ -55,8 +55,12 @@ func TestTitle(t *testing.T) {
 			exec: "Go Zero",
 		},
 		{
-			src:  "appSubmitOrderLogic",
-			exec: "AppSubmitOrderLogic",
+			src:  "goZero",
+			exec: "GoZero",
+		},
+		{
+			src:  "GoZero",
+			exec: "GoZero",
 		},
 		{
 			src:  "测试this is data",
