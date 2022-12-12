@@ -227,6 +227,9 @@ func (u *Unmarshaler) processFieldPrimitive(field reflect.StructField, value ref
 	valueKind := reflect.TypeOf(mapValue).Kind()
 
 	switch {
+	case typeKind == reflect.Interface && valueKind==reflect.Interface:
+		value.Set(reflect.ValueOf(mapValue))
+		return nil
 	case typeKind == reflect.Slice && valueKind == reflect.Slice:
 		return u.fillSlice(fieldType, value, mapValue)
 	case typeKind == reflect.Map && valueKind == reflect.Map:
