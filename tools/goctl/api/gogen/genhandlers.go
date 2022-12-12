@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"path"
@@ -12,7 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"golang.org/x/sync/errgroup"
 )
 
 const defaultLogicPackage = "logic"
@@ -77,17 +75,14 @@ func doGenToFile(dir, handler string, cfg *config.Config, group spec.Group,
 }
 
 func genHandlers(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
-	eg, _ := errgroup.WithContext(context.Background())
 	for _, group := range api.Service.Groups {
-		g := group
 		for _, route := range group.Routes {
-			r := route
-			eg.Go(func() error {
-				return genHandler(dir, rootPkg, cfg, g, r)
-			})
+			if err := genHandler(dir, rootPkg, cfg, group, route); err != nil {
+				return err
+			}
 		}
 	}
-	return eg.Wait()
+	return nil
 }
 
 func genHandlerImports(group spec.Group, route spec.Route, parentPkg string) string {

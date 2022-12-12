@@ -1,7 +1,6 @@
 package gogen
 
 import (
-	"context"
 	_ "embed"
 	"fmt"
 	"path"
@@ -14,24 +13,21 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
-	"golang.org/x/sync/errgroup"
 )
 
 //go:embed logic.tpl
 var logicTemplate string
 
 func genLogic(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec) error {
-	eg, _ := errgroup.WithContext(context.Background())
 	for _, g := range api.Service.Groups {
-		group := g
 		for _, r := range g.Routes {
-			route := r
-			eg.Go(func() error {
-				return genLogicByRoute(dir, rootPkg, cfg, group, route)
-			})
+			err := genLogicByRoute(dir, rootPkg, cfg, g, r)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	return eg.Wait()
+	return nil
 }
 
 func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, route spec.Route) error {
