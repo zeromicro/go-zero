@@ -3628,6 +3628,54 @@ func TestUnmarshalJsonReaderWithMismatchTypeBoolMap(t *testing.T) {
 	}, &req))
 }
 
+func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
+	input := []byte(`{
+  "order_id": "1234567",
+  "refund_reason": {
+    "reason_code": [
+      123,
+      234
+    ],
+    "desc": "not wanted",
+    "show_reason": [
+      {
+        "123": "not enough",
+        "234": "closed"
+      }
+    ]
+  },
+  "product_detail": {
+    "product_id": "123",
+    "sku_id": "123",
+    "name": "cake",
+    "actual_amount": 100
+  }
+}`)
+
+	type (
+		RefundReasonData struct {
+			ReasonCode []int               `json:"reason_code"`
+			Desc       string              `json:"desc"`
+			ShowReason []map[string]string `json:"show_reason"`
+		}
+
+		ProductDetailData struct {
+			ProductId    string `json:"product_id"`
+			SkuId        string `json:"sku_id"`
+			Name         string `json:"name"`
+			ActualAmount int    `json:"actual_amount"`
+		}
+		OrderApplyRefundReq struct {
+			OrderId       string            `json:"order_id"`
+			RefundReason  RefundReasonData  `json:"refund_reason,optional"`
+			ProductDetail ProductDetailData `json:"product_detail,optional"`
+		}
+	)
+
+	var req OrderApplyRefundReq
+	assert.NoError(t, UnmarshalJsonBytes(input, &req))
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
