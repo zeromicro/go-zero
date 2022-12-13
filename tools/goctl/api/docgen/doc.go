@@ -154,7 +154,7 @@ func writerMembers(writer io.Writer, tp spec.Type, all []spec.Type) error {
 		if member.IsInline {
 			inlineType := getTargetType(member.Type.Name())
 			if inlineType == nil {
-				if _, err := fmt.Fprintf(writer, "%s\n", cases.Title(language.English).String(member.Type.Name())); err != nil {
+				if _, err := fmt.Fprintf(writer, "%s\n", cases.Title(language.English, cases.NoLower).String(member.Type.Name())); err != nil {
 					return err
 				}
 			} else {
@@ -180,9 +180,9 @@ func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, in
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")
 		comment = "//" + comment
-		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", cases.Title(language.English).String(name), tp.Name(), tag, comment)
+		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", cases.Title(language.English, cases.NoLower).String(name), tp.Name(), tag, comment)
 	} else {
-		_, err = fmt.Fprintf(writer, "%s %s %s\n", cases.Title(language.English).String(name), tp.Name(), tag)
+		_, err = fmt.Fprintf(writer, "%s %s %s\n", cases.Title(language.English, cases.NoLower).String(name), tp.Name(), tag)
 	}
 
 	return err

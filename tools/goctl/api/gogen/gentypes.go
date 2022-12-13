@@ -95,7 +95,7 @@ func writeType(writer io.Writer, tp spec.Type, config *config.Config) error {
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
 	for _, member := range structType.Members {
 		if member.IsInline {
-			if _, err := fmt.Fprintf(writer, "%s\n", cases.Title(language.English).String(member.Type.Name())); err != nil {
+			if _, err := fmt.Fprintf(writer, "%s\n", cases.Title(language.English, cases.NoLower).String(member.Type.Name())); err != nil {
 				return err
 			}
 

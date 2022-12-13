@@ -34,7 +34,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
 		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
 		middlewareAssignment += fmt.Sprintf("%s: %s,\n", item,
-			fmt.Sprintf("middleware.New%s().%s", cases.Title(language.English).String(name), "Handle"))
+			fmt.Sprintf("middleware.New%s().%s", cases.Title(language.English, cases.NoLower).String(name), "Handle"))
 	}
 
 	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""

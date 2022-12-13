@@ -43,7 +43,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
 	logicName := defaultLogicPackage
 	if handlerPath != handlerDir {
-		handler = cases.Title(language.English).String(handler)
+		handler = cases.Title(language.English, cases.NoLower).String(handler)
 		logicName = pkgName
 	}
 	parentPkg, err := golang.GetParentPackage(dir)
@@ -92,8 +92,8 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
-		LogicType:      cases.Title(language.English).String(getLogicName(route)),
-		Call:           cases.Title(language.English).String(strings.TrimSuffix(handler, "Handler")),
+		LogicType:      cases.Title(language.English, cases.NoLower).String(getLogicName(route)),
+		Call:           cases.Title(language.English, cases.NoLower).String(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
 		HasRequest:     len(route.RequestTypeName()) > 0,
 		TransErr:       trans,

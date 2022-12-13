@@ -34,7 +34,7 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			templateFile:    middlewareImplementCodeFile,
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
-				"name": cases.Title(language.English).String(name),
+				"name": cases.Title(language.English, cases.NoLower).String(name),
 			},
 		})
 		if err != nil {
