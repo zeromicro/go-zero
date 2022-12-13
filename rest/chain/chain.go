@@ -37,35 +37,41 @@ func New(middlewares ...Middleware) Chain {
 
 // Append extends a chain, adding the specified middlewares as the last ones in the request flow.
 //
-//     c := chain.New(m1, m2)
-//     c.Append(m3, m4)
-//     // requests in c go m1 -> m2 -> m3 -> m4
+//	c := chain.New(m1, m2)
+//	c.Append(m3, m4)
+//	// requests in c go m1 -> m2 -> m3 -> m4
 func (c chain) Append(middlewares ...Middleware) Chain {
 	return chain{middlewares: join(c.middlewares, middlewares)}
 }
 
 // Prepend extends a chain by adding the specified chain as the first one in the request flow.
 //
-//     c := chain.New(m3, m4)
-//     c1 := chain.New(m1, m2)
-//     c.Prepend(c1)
-//     // requests in c go m1 -> m2 -> m3 -> m4
+//	c := chain.New(m3, m4)
+//	c1 := chain.New(m1, m2)
+//	c.Prepend(c1)
+//	// requests in c go m1 -> m2 -> m3 -> m4
 func (c chain) Prepend(middlewares ...Middleware) Chain {
 	return chain{middlewares: join(middlewares, c.middlewares)}
 }
 
 // Then chains the middleware and returns the final http.Handler.
-//     New(m1, m2, m3).Then(h)
+//
+//	New(m1, m2, m3).Then(h)
+//
 // is equivalent to:
-//     m1(m2(m3(h)))
+//
+//	m1(m2(m3(h)))
+//
 // When the request comes in, it will be passed to m1, then m2, then m3
 // and finally, the given handler
 // (assuming every middleware calls the following one).
 //
 // A chain can be safely reused by calling Then() several times.
-//     stdStack := chain.New(ratelimitHandler, csrfHandler)
-//     indexPipe = stdStack.Then(indexHandler)
-//     authPipe = stdStack.Then(authHandler)
+//
+//	stdStack := chain.New(ratelimitHandler, csrfHandler)
+//	indexPipe = stdStack.Then(indexHandler)
+//	authPipe = stdStack.Then(authHandler)
+//
 // Note that middlewares are called on every call to Then() or ThenFunc()
 // and thus several instances of the same middleware will be created
 // when a chain is reused in this way.
@@ -88,8 +94,9 @@ func (c chain) Then(h http.Handler) http.Handler {
 // a HandlerFunc instead of a Handler.
 //
 // The following two statements are equivalent:
-//     c.Then(http.HandlerFunc(fn))
-//     c.ThenFunc(fn)
+//
+//	c.Then(http.HandlerFunc(fn))
+//	c.ThenFunc(fn)
 //
 // ThenFunc provides all the guarantees of Then.
 func (c chain) ThenFunc(fn http.HandlerFunc) http.Handler {
