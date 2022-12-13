@@ -95,9 +95,9 @@ func (v *Validator) Validate(data interface{}, lang string) string {
 		return ""
 	}
 
-	targetLang, err := ParseAcceptLanguage(lang)
-	if err != nil {
-		return err.Error()
+	targetLang, parseErr := ParseAcceptLanguage(lang)
+	if parseErr != nil {
+		return parseErr.Error()
 	}
 
 	errs, ok := err.(validator.ValidationErrors)

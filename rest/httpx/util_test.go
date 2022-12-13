@@ -37,18 +37,14 @@ func TestValidator(t *testing.T) {
 		Password: "1",
 	}
 	result := v.Validate(u, "en")
-	if result != "Password must be at least 6 characters in length " {
-		t.Error(result)
-	}
+	assert.Equal(t, "Password must be at least 6 characters in length ", result)
 
 	u = User{
 		Username: "admin",
 		Password: "123456",
 	}
 	result = v.Validate(u, "en")
-	if result != "" {
-		t.Error(result)
-	}
+	assert.Equal(t, "", result)
 }
 
 func TestParseAcceptLanguage(t *testing.T) {
