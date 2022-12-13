@@ -113,6 +113,8 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.GoZeroVersion = VarStringGoZeroVersion
 	ctx.ToolVersion = VarStringToolVersion
 	ctx.Port = VarIntServicePort
+	ctx.MakeFile = true
+	ctx.DockerFile = true
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

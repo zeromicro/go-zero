@@ -44,6 +44,10 @@ type ZRpcContext struct {
 	ToolVersion string
 	// Port describes the service port exposed
 	Port int
+	// MakeFile describes whether generate makefile
+	MakeFile bool
+	// DockerFile describes whether generate dockerfile
+	DockerFile bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -133,14 +137,18 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 
 	err = g.GenCall(dirCtx, proto, g.cfg, zctx)
 
-	err = g.GenMakefile(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
+	if zctx.MakeFile {
+		err = g.GenMakefile(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = g.GenDockerfile(dirCtx, proto, g.cfg, zctx)
-	if err != nil {
-		return err
+	if zctx.DockerFile {
+		err = g.GenDockerfile(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
 	}
 
 	// generate ent
