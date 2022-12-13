@@ -1,11 +1,12 @@
 package generate
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -22,7 +23,7 @@ func TestDo(t *testing.T) {
 
 		tempDir := pathx.MustTempDir()
 		typesfile := filepath.Join(tempDir, "types.go")
-		err = ioutil.WriteFile(typesfile, []byte(testTypes), 0o666)
+		err = os.WriteFile(typesfile, []byte(testTypes), 0o666)
 		assert.Nil(t, err)
 
 		err = Do(&Context{
@@ -38,7 +39,7 @@ func TestDo(t *testing.T) {
 	t.Run("missing config", func(t *testing.T) {
 		tempDir := t.TempDir()
 		typesfile := filepath.Join(tempDir, "types.go")
-		err := ioutil.WriteFile(typesfile, []byte(testTypes), 0o666)
+		err := os.WriteFile(typesfile, []byte(testTypes), 0o666)
 		assert.Nil(t, err)
 
 		err = Do(&Context{
@@ -54,7 +55,7 @@ func TestDo(t *testing.T) {
 		cfg := &config.Config{NamingFormat: "foo"}
 		tempDir := t.TempDir()
 		typesfile := filepath.Join(tempDir, "types.go")
-		err := ioutil.WriteFile(typesfile, []byte(testTypes), 0o666)
+		err := os.WriteFile(typesfile, []byte(testTypes), 0o666)
 		assert.Nil(t, err)
 
 		err = Do(&Context{

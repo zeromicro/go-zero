@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -31,7 +34,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		middlewareStr += fmt.Sprintf("%s rest.Middleware\n", item)
 		name := strings.TrimSuffix(item, "Middleware") + "Middleware"
 		middlewareAssignment += fmt.Sprintf("%s: %s,\n", item,
-			fmt.Sprintf("middleware.New%s().%s", strings.Title(name), "Handle"))
+			fmt.Sprintf("middleware.New%s().%s", cases.Title(language.English).String(name), "Handle"))
 	}
 
 	configImport := "\"" + pathx.JoinPackages(rootPkg, configDir) + "\""

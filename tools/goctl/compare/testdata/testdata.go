@@ -2,7 +2,6 @@ package testdata
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -10,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/logrusorgru/aurora"
+
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -78,7 +78,7 @@ func mustGetTestData(baseDir string) (Files, Files) {
 			return data, nil
 		}
 
-		return data, ioutil.WriteFile(fp, []byte(data.Content), os.ModePerm)
+		return data, os.WriteFile(fp, []byte(data.Content), os.ModePerm)
 	}
 	oldDir := filepath.Join(baseDir, "old_fs")
 	newDir := filepath.Join(baseDir, "new_fs")

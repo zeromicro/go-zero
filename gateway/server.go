@@ -10,14 +10,15 @@ import (
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/jhump/protoreflect/grpcreflect"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mr"
 	"github.com/zeromicro/go-zero/gateway/internal"
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
 type (
@@ -155,7 +156,7 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 		}
 	} else {
 		refCli := grpc_reflection_v1alpha.NewServerReflectionClient(cli.Conn())
-		client := grpcreflect.NewClient(context.Background(), refCli)
+		client := grpcreflect.NewClientV1Alpha(context.Background(), refCli)
 		source = grpcurl.DescriptorSourceFromServer(context.Background(), client)
 	}
 

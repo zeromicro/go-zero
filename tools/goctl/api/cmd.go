@@ -52,7 +52,7 @@ var (
 		Use:     "new",
 		Short:   "Fast create api service",
 		Example: "goctl api new [options] service-name",
-		Args:    cobra.ExactValidArgs(1),
+		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return new.CreateServiceCommand(args)
 		},

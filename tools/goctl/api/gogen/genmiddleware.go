@@ -4,6 +4,9 @@ import (
 	_ "embed"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -31,7 +34,7 @@ func genMiddleware(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 			templateFile:    middlewareImplementCodeFile,
 			builtinTemplate: middlewareImplementCode,
 			data: map[string]string{
-				"name": strings.Title(name),
+				"name": cases.Title(language.English).String(name),
 			},
 		})
 		if err != nil {

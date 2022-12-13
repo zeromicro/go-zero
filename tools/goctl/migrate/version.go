@@ -2,7 +2,7 @@ package migrate
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -34,7 +34,7 @@ func getLatest(repo string, verbose bool) ([]string, error) {
 			continue
 		}
 		defer resp.Body.Close()
-		data, err := ioutil.ReadAll(resp.Body)
+		data, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log(err)
 			continue

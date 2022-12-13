@@ -8,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/iancoleman/strcase"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
@@ -64,8 +65,8 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 
 	name := strcase.ToCamel(title + "Api")
 	path := filepath.Join(dir, name+".kt")
-	api.Info.Title = name
-	api.Info.Desc = desc
+	api.Info.Properties["title"] = name
+	api.Info.Properties["desc"] = desc
 
 	e := os.MkdirAll(dir, 0o755)
 	if e != nil {

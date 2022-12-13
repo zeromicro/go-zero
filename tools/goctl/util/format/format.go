@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -100,7 +103,7 @@ func transferTo(in string, style style) string {
 	case lower:
 		return strings.ToLower(in)
 	case title:
-		return strings.Title(in)
+		return cases.Title(language.English).String(in)
 	default:
 		return in
 	}
@@ -148,7 +151,7 @@ func getStyle(flag string) (style, error) {
 		return lower, nil
 	case strings.ToUpper(compare):
 		return upper, nil
-	case strings.Title(compare):
+	case cases.Title(language.English).String(compare):
 		return title, nil
 	default:
 		return unknown, fmt.Errorf("unexpected format: %s", flag)

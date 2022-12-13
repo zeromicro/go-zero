@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/logrusorgru/aurora"
+
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
@@ -145,10 +145,14 @@ func GetTemplateDir(category string) (string, error) {
 		// backward compatible, it will be removed in the feature
 		// backward compatible start.
 		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
-		fs, _ := ioutil.ReadDir(beforeTemplateDir)
+		fs, _ := os.ReadDir(beforeTemplateDir)
 		var hasContent bool
 		for _, e := range fs {
-			if e.Size() > 0 {
+			info, err := e.Info()
+			if err != nil {
+				return "", err
+			}
+			if info.Size() > 0 {
 				hasContent = true
 			}
 		}
@@ -256,7 +260,7 @@ func createTemplate(file, content string, force bool) error {
 
 // MustTempDir creates a temporary directory.
 func MustTempDir() string {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	if err != nil {
 		log.Fatalln(err)
 	}

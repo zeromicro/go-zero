@@ -7,6 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
@@ -65,8 +68,8 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		data: map[string]string{
 			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
 			"imports":      imports,
-			"logic":        strings.Title(logic),
-			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
+			"logic":        cases.Title(language.English).String(logic),
+			"function":     cases.Title(language.English).String(strings.TrimSuffix(logic, "Logic")),
 			"responseType": responseString,
 			"returnString": returnString,
 			"request":      requestString,

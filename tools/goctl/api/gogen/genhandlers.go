@@ -6,6 +6,9 @@ import (
 	"path"
 	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/golang"
@@ -40,7 +43,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
 	logicName := defaultLogicPackage
 	if handlerPath != handlerDir {
-		handler = strings.Title(handler)
+		handler = cases.Title(language.English).String(handler)
 		logicName = pkgName
 	}
 	parentPkg, err := golang.GetParentPackage(dir)
@@ -89,8 +92,8 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
-		LogicType:      strings.Title(getLogicName(route)),
-		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
+		LogicType:      cases.Title(language.English).String(getLogicName(route)),
+		Call:           cases.Title(language.English).String(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
 		HasRequest:     len(route.RequestTypeName()) > 0,
 		TransErr:       trans,
