@@ -3,7 +3,6 @@ package gen
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -168,7 +167,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 
 		name := util.SafeString(modelFilename) + "_gen.go"
 		filename := filepath.Join(dirAbs, name)
-		err = ioutil.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
+		err = os.WriteFile(filename, []byte(codes.modelCode), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -179,7 +178,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 			g.Warning("%s already exists, ignored.", name)
 			continue
 		}
-		err = ioutil.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
+		err = os.WriteFile(filename, []byte(codes.modelCustomCode), os.ModePerm)
 		if err != nil {
 			return err
 		}

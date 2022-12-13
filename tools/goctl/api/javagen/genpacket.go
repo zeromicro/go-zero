@@ -8,6 +8,9 @@ import (
 	"text/template"
 
 	"github.com/zeromicro/go-zero/core/stringx"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -29,7 +32,7 @@ func genPacket(dir, packetName string, api *spec.ApiSpec) error {
 func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName string) error {
 	packet := route.Handler
 	packet = strings.Replace(packet, "Handler", "Packet", 1)
-	packet = strings.Title(packet)
+	packet = cases.Title(language.English).String(packet)
 	if !strings.HasSuffix(packet, "Packet") {
 		packet += "Packet"
 	}
@@ -206,9 +209,9 @@ func formString(route spec.Route) string {
 			if item.Type.Name() == "bool" {
 				name = strings.TrimPrefix(name, "Is")
 				name = strings.TrimPrefix(name, "is")
-				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.is%s()`, strcat, name, strings.Title(name)))
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.is%s()`, strcat, name, cases.Title(language.English).String(name)))
 			} else {
-				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.get%s()`, strcat, name, strings.Title(name)))
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.get%s()`, strcat, name, cases.Title(language.English).String(name)))
 			}
 		}
 		if len(keyValues) > 0 {

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -14,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -171,7 +171,7 @@ func downloadFile(filepath, url string) error {
 // NewPlugin returns contextual resources when written in other languages
 func NewPlugin() (*Plugin, error) {
 	var plugin Plugin
-	content, err := ioutil.ReadAll(os.Stdin)
+	content, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return nil, err
 	}

@@ -1,12 +1,12 @@
 package pathx
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
@@ -23,7 +23,7 @@ func TestGetTemplateDir(t *testing.T) {
 			return
 		}
 		tempFile := filepath.Join(dir, "bar.txt")
-		err = ioutil.WriteFile(tempFile, []byte("foo"), os.ModePerm)
+		err = os.WriteFile(tempFile, []byte("foo"), os.ModePerm)
 		if err != nil {
 			return
 		}
@@ -79,7 +79,7 @@ func TestGetGoctlHome(t *testing.T) {
 	t.Run("goctl_is_file", func(t *testing.T) {
 		tmpFile := filepath.Join(t.TempDir(), "a.tmp")
 		backupTempFile := tmpFile + ".old"
-		err := ioutil.WriteFile(tmpFile, nil, 0o666)
+		err := os.WriteFile(tmpFile, nil, 0o666)
 		if err != nil {
 			return
 		}

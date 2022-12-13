@@ -1,20 +1,20 @@
 package generator
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 func Test_findPbFile(t *testing.T) {
 	dir := t.TempDir()
 	protoFile := filepath.Join(dir, "greet.proto")
-	err := ioutil.WriteFile(protoFile, []byte(`
+	err := os.WriteFile(protoFile, []byte(`
 syntax = "proto3";
 
 package greet;
