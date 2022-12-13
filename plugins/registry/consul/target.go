@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
+
 	"github.com/zeromicro/go-zero/core/mapping"
 )
 

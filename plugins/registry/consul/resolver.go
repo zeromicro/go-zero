@@ -9,9 +9,10 @@ import (
 
 	"github.com/hashicorp/consul/api"
 	"github.com/jpillora/backoff"
-	"github.com/zeromicro/go-zero/core/logx"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
+
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 func init() {

@@ -1997,6 +1997,51 @@
 
 # 1.0.0 (2020/08/11)
 
+# 0.1.1 (2022/12/08)
+
+### Features
+
+- Merge latest code
+- feat: vben code generation via api file
+- chore: tidy go.sum (#2675)
+- chore: update deps (#2674)
+- wip: vben code generation
+- chore: upgrade dependencies (#2658)
+- Fixes #2603 bump goctl cobra version to macos completion help bug (#2656)
+- feature : responses whit context (#2637)
+- feat: add trace.SpanIDFromContext and trace.TraceIDFromContext (#2654)
+- replace strings.Title to cases.Title (#2650)
+- The default port is used when there is no port number for k8s (#2598)
+- feat: add stringx.ToCamelCase (#2622)
+- chore: update deps (#2621)
+- feat: validate value in options for mapping (#2616)
+- chore: update dependencies (#2594)
+- feat: support bool for env tag (#2593)
+- feat: support env tag in config (#2577)
+
+### Bug Fixes
+
+- fix: update ErrorCtx logic
+- fix: fix client side in zeromicro#2109 (zeromicro#2116) (#2659)
+- fix: log currentSize should not be 0 when file exists and size is not 0 (#2639)
+- fix(rest): fix issues#2628 (#2629)
+- fix: fix conflict with the import package name (#2610)
+
+# 0.1.0 (2022/12/03)
+
+### Features
+
+- feat: service port parameter
+- feat: service port parameter
+- feat: api crud generation by proto
+- feat: auto migrate for rpc generation
+- wip: api code generation
+- wip: api code generation
+
+### Bug Fixes
+
+- fix: optimize api url
+
 # 0.1.0-beta-1 (2022/11/27)
 
 # 0.1.0-beta (2022/12/03)
@@ -2354,6 +2399,53 @@
 - fix: bug in rest response
 - fix: error msg
 - fix: package name
+
+# tools/goctl/v1.4.3 (2022/12/13)
+
+### Features
+
+- Add more test (#2692)
+- feat: add dev server and health (#2665)
+- feat: accept camelcase for config keys (#2651)
+- chore: tidy go.sum (#2675)
+- chore: update deps (#2674)
+- chore: upgrade dependencies (#2658)
+- Fixes #2603 bump goctl cobra version to macos completion help bug (#2656)
+- feature : responses whit context (#2637)
+- feat: add trace.SpanIDFromContext and trace.TraceIDFromContext (#2654)
+- replace strings.Title to cases.Title (#2650)
+- The default port is used when there is no port number for k8s (#2598)
+- feat: add stringx.ToCamelCase (#2622)
+- chore: update deps (#2621)
+- feat: validate value in options for mapping (#2616)
+- chore: update dependencies (#2594)
+- feat: support bool for env tag (#2593)
+- feat: support env tag in config (#2577)
+- chore(deps): bump go.mongodb.org/mongo-driver from 1.10.3 to 1.11.0 (#2588)
+- chore(deps): bump github.com/alicebob/miniredis/v2 from 2.23.0 to 2.23.1 (#2587)
+- chore(deps): bump github.com/jhump/protoreflect from 1.13.0 to 1.14.0 (#2579)
+- feat: conf inherit (#2568)
+- Modify comment syntax error (#2572)
+- chore: update "DO NOT EDIT" format (#2559)
+- chore(action): enable cache dependency (#2549)
+- chore: add more tests (#2547)
+
+### Bug Fixes
+
+- fix: #2684 (#2693)
+- fix: Fix string.title (#2687)
+- fix: #2672 (#2681)
+- fix:Remove duplicate code (#2686)
+- fix: fix client side in zeromicro#2109 (zeromicro#2116) (#2659)
+- fix: log currentSize should not be 0 when file exists and size is not 0 (#2639)
+- fix(rest): fix issues#2628 (#2629)
+- fix: fix conflict with the import package name (#2610)
+- fix: inherit issue when parent after inherits (#2586)
+- fix(change model template file type): All model template variables ar… (#2573)
+- fix(goctl): Fix #2561 (#2562)
+- fix: potential slice append issue (#2560)
+- fix(goctl): fix redundant import (#2551)
+- typo(mapping): fix typo for key (#2548)
 
 # tools/goctl/v1.4.2 (2022/10/22)
 

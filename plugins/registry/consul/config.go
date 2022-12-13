@@ -3,8 +3,10 @@ package consul
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zeromicro/go-zero/core/logx"
+
 	"gopkg.in/yaml.v2"
+
+	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/hashicorp/consul/api"
 )
