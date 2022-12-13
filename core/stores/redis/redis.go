@@ -2033,7 +2033,7 @@ func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (val fl
 			return err
 		}
 		val, err = conn.ZScore(ctx, key, value).Result()
-		return nil
+		return err
 	}, acceptable)
 
 	return
