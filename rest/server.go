@@ -307,3 +307,8 @@ func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...s
 func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.middleware(c.Router.ServeHTTP)(w, r)
 }
+
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.ngin.bindRoutes(s.router)
+	s.router.ServeHTTP(w, r)
+}
