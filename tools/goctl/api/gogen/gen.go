@@ -109,6 +109,7 @@ type GenContext struct {
 	TransErr      bool
 	ModuleName    string
 	Port          int
+	UseGitlab     bool
 }
 
 // DoGenProject gen go project files with api file
@@ -167,6 +168,10 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if g.UseGitlab {
+		logx.Must(genGitlab(dir))
 	}
 
 	if err := backupAndSweep(apiFile); err != nil {

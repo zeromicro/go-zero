@@ -48,6 +48,8 @@ type ZRpcContext struct {
 	MakeFile bool
 	// DockerFile describes whether generate dockerfile
 	DockerFile bool
+	// Gitlab describes whether to use gitlab-ci
+	Gitlab bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -146,6 +148,13 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 
 	if zctx.DockerFile {
 		err = g.GenDockerfile(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	if zctx.Gitlab {
+		err = g.GenGitlab(dirCtx, proto, g.cfg, zctx)
 		if err != nil {
 			return err
 		}

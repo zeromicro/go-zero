@@ -84,6 +84,7 @@ func init() {
 	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "toolVersion", "",
 		"The simple admin tool version version used for migration. e.g. v0.0.9")
 	newCmd.Flags().IntVar(&cli.VarIntServicePort, "port", 9110, "The service port exposed")
+	newCmd.Flags().BoolVar(&cli.VarBoolGitlab, "gitlab", false, "Whether to use gitlab-ci")
 
 	protocCmd.Flags().BoolVarP(&cli.VarBoolMultiple, "multiple", "m", false,
 		"Generated in multiple rpc service mode")

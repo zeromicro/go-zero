@@ -46,24 +46,26 @@ var (
 	VarBoolVerbose bool
 	// VarBoolMultiple describes whether support generating multiple rpc services or not.
 	VarBoolMultiple bool
-	// VarStringSchema describe the ent schema path
+	// VarStringSchema describes the ent schema path
 	VarStringSchema string
-	// VarStringServiceName describe the service name
+	// VarStringServiceName describes the service name
 	VarStringServiceName string
-	// VarStringModelName describe which model for generating
+	// VarStringModelName describes which model for generating
 	VarStringModelName string
-	// VarIntSearchKeyNum describe the number of search keys
+	// VarIntSearchKeyNum describes the number of search keys
 	VarIntSearchKeyNum int
-	// VarBoolEnt describe whether the project use Ent
+	// VarBoolEnt describes whether the project use Ent
 	VarBoolEnt bool
-	// VarStringModuleName describe the module name
+	// VarStringModuleName describes the module name
 	VarStringModuleName string
-	// VarStringGoZeroVersion describe the version of Go Zero
+	// VarStringGoZeroVersion describes the version of Go Zero
 	VarStringGoZeroVersion string
-	// VarStringToolVersion describe the version of Simple Admin Tools
+	// VarStringToolVersion describes the version of Simple Admin Tools
 	VarStringToolVersion string
-	// VarIntServicePort describe the service port exposed
+	// VarIntServicePort describes the service port exposed
 	VarIntServicePort int
+	// VarBoolGitlab describes whether to use gitlab-ci
+	VarBoolGitlab bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -115,6 +117,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Port = VarIntServicePort
 	ctx.MakeFile = true
 	ctx.DockerFile = true
+	ctx.Gitlab = VarBoolGitlab
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {

@@ -40,6 +40,8 @@ var (
 	VarModuleName string
 	// VarIntServicePort describe the service port exposed
 	VarIntServicePort int
+	// VarBoolGitlab describes whether to use gitlab-ci
+	VarBoolGitlab bool
 )
 
 // CreateServiceCommand fast create service
@@ -127,6 +129,7 @@ func CreateServiceCommand(args []string) error {
 		TransErr:      VarBoolErrorTranslate,
 		ModuleName:    VarModuleName,
 		Port:          VarIntServicePort,
+		UseGitlab:     VarBoolGitlab,
 	}
 
 	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, genCtx)

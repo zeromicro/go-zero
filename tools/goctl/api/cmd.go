@@ -168,6 +168,7 @@ func init() {
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
 	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
 	newCmd.Flags().IntVar(&new.VarIntServicePort, "port", 9100, "The service port exposed")
+	newCmd.Flags().BoolVar(&new.VarBoolGitlab, "gitlab", false, "Whether to use gitlab CI/CD")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
 	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")

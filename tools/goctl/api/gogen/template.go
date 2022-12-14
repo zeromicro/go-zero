@@ -21,6 +21,7 @@ const (
 	dockerfileTemplateFile      = "dockerfile.tpl"
 	makefileTemplateFile        = "makefile.tpl"
 	authorityTemplateFile       = "authoritymiddleware.tpl"
+	gitlabTemplateFile          = "gitlab.tpl"
 )
 
 var templates = map[string]string{
