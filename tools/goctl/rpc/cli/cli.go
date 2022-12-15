@@ -66,6 +66,8 @@ var (
 	VarIntServicePort int
 	// VarBoolGitlab describes whether to use gitlab-ci
 	VarBoolGitlab bool
+	// VarStringGroupName describes whether to use group
+	VarStringGroupName string
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -170,6 +172,7 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		Multiple:     VarBoolMultiple,
 		SearchKeyNum: VarIntSearchKeyNum,
 		ModuleName:   VarStringModuleName,
+		GroupName:    VarStringGroupName,
 	}
 	err := ent.GenEntLogic(params)
 	if err != nil {

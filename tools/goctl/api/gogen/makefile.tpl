@@ -29,5 +29,5 @@ serve-swagger:
 	swagger serve -F=swagger --port 36666 {{.serviceName}}.yml
 
 gen-api-proto-logic:
-	goctls api proto --proto=$(proto)  --style=go_zero --multiple=false --serviceName={{.serviceName}} --searchKeyNum=3 --o=./ --model=$(model)
+	goctls api proto --proto=$(proto)  --style=go_zero --multiple=false --service_name={{.serviceName}} --search_key_num=3 --o=./ --model=$(model)
 	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"

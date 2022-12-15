@@ -136,7 +136,7 @@ func init() {
 		"the remote repo, it does work with --remote")
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
-	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
+	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "trans_err", false, "Whether to translate the error")
 	goCmd.Flags().BoolVar(&gogen.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
 	goCmd.Flags().BoolVar(&gogen.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
 
@@ -160,13 +160,13 @@ func init() {
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 	newCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
 	newCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
-	newCmd.Flags().StringVar(&new.VarStringGoZeroVersion, "goZeroVersion", "",
+	newCmd.Flags().StringVar(&new.VarStringGoZeroVersion, "go_zero_version", "",
 		"The go zero version used for migration. e.g. v1.4.2")
-	newCmd.Flags().StringVar(&new.VarStringToolVersion, "toolVersion", "",
+	newCmd.Flags().StringVar(&new.VarStringToolVersion, "tool_version", "",
 		"The simple admin tool version version used for migration. e.g. v0.0.9")
-	newCmd.Flags().StringVar(&new.VarModuleName, "moduleName", "",
+	newCmd.Flags().StringVar(&new.VarModuleName, "module_name", "",
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
-	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "transErr", false, "Whether to translate the error")
+	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "trans_err", false, "Whether to translate the error")
 	newCmd.Flags().IntVar(&new.VarIntServicePort, "port", 9100, "The service port exposed")
 	newCmd.Flags().BoolVar(&new.VarBoolGitlab, "gitlab", false, "Whether to use gitlab CI/CD")
 
@@ -186,13 +186,13 @@ func init() {
 
 	protoCmd.Flags().StringVar(&gogen.VarStringProto, "proto", "", "The proto path")
 	protoCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
-	protoCmd.Flags().StringVar(&gogen.VarStringServiceName, "serviceName", "", "The service name")
+	protoCmd.Flags().StringVar(&gogen.VarStringServiceName, "service_name", "", "The service name")
 	protoCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
 	protoCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
 		"if it is empty, generate codes for all models in schema directory")
-	protoCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "searchKeyNum", 3, "The max number of search keys ")
-	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpcName", "", "The rpc name in service context. e.g. CoreRpc")
-	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpcPackage", "", "The rpc name in service context. e.g. CoreRpc")
+	protoCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
+	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpc_name", "", "The rpc name in service context. e.g. CoreRpc")
+	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package", "", "The rpc name in service context. e.g. CoreRpc")
 
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)
