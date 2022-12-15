@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/collection"
+
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -47,7 +48,27 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 			return err
 		}
 
-		filename := filepath.Join(dir.Filename, logicFilename+".go")
+		var (
+			filename    string
+			groupName   string
+			packageName string
+		)
+
+		// group
+		groupName = GetGroupName(rpc)
+
+		if groupName == "" {
+			filename = filepath.Join(dir.Filename, logicFilename+".go")
+			packageName = "logic"
+		} else {
+			err = pathx.MkdirIfNotExist(filepath.Join(dir.Filename, groupName))
+			if err != nil {
+				return err
+			}
+			filename = filepath.Join(dir.Filename, groupName, logicFilename+".go")
+			packageName = groupName
+		}
+
 		functions, err := g.genLogicFunction(service, proto.PbPackage, logicName, rpc)
 		if err != nil {
 			return err
@@ -63,7 +84,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
 			"logicName":   fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions":   functions,
-			"packageName": "logic",
+			"packageName": packageName,
 			"imports":     strings.Join(imports.KeysStr(), pathx.NL),
 		}, filename, false)
 		if err != nil {

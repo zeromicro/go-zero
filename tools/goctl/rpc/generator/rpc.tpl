@@ -27,5 +27,6 @@ message PageInfoReq {
 }
 
 service {{.serviceName}} {
+  // group: base
   rpc initDatabase (Empty) returns (BaseResp);
 }

@@ -38,6 +38,7 @@ type GenEntLogicContext struct {
 	Multiple     bool
 	SearchKeyNum int
 	ModuleName   string
+	GroupName    string
 }
 
 // GenEntLogic generates the ent CRUD logic files of the rpc service.
@@ -77,7 +78,7 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 	for _, s := range schemas.Schemas {
 		if g.ModelName == s.Name || g.ModelName == "" {
 			// generate logic file
-			rpcLogicData := GenCRUDData(g.ServiceName, projectCtx, s, g.SearchKeyNum)
+			rpcLogicData := GenCRUDData(g.ServiceName, g.GroupName, projectCtx, s, g.SearchKeyNum)
 
 			for _, v := range rpcLogicData {
 				logicFilename, err := format.FileNamingFormat(g.Style, v.LogicName)
@@ -85,7 +86,18 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 					return err
 				}
 
-				filename := filepath.Join(logicDir, logicFilename+".go")
+				// group
+				var filename string
+				if g.GroupName != "" {
+					if err = pathx.MkdirIfNotExist(filepath.Join(logicDir, g.GroupName)); err != nil {
+						return err
+					}
+
+					filename = filepath.Join(logicDir, g.GroupName, logicFilename+".go")
+				} else {
+					filename = filepath.Join(logicDir, logicFilename+".go")
+				}
+
 				if pathx.FileExists(filename) {
 					continue
 				}
@@ -97,7 +109,7 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 			}
 
 			// generate proto file
-			protoMessage, protoFunctions, err := GenProtoData(s, g.SearchKeyNum)
+			protoMessage, protoFunctions, err := GenProtoData(s, g.SearchKeyNum, g.GroupName)
 			if err != nil {
 				return err
 			}
@@ -142,9 +154,15 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 	return nil
 }
 
-func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *load.Schema, searchKeyNum int) []*RpcLogicData {
+func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, schema *load.Schema, searchKeyNum int) []*RpcLogicData {
 	var data []*RpcLogicData
 	hasTime := false
+	var packageName string
+	if groupName != "" {
+		packageName = groupName
+	} else {
+		packageName = "logic"
+	}
 
 	setLogic := strings.Builder{}
 	for _, v := range schema.Fields {
@@ -182,6 +200,7 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 		"modelName":   schema.Name,
 		"serviceName": serviceName,
 		"projectPath": projectCtx.Path,
+		"packageName": packageName,
 	})
 
 	if err != nil {
@@ -262,6 +281,7 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 		"serviceName":        serviceName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
+		"packageName":        packageName,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -275,6 +295,7 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 		"modelName":   schema.Name,
 		"serviceName": serviceName,
 		"projectPath": projectCtx.Path,
+		"packageName": packageName,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -289,6 +310,7 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 		"serviceName":        serviceName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
+		"packageName":        packageName,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -299,7 +321,7 @@ func GenCRUDData(serviceName string, projectCtx *ctx.ProjectContext, schema *loa
 	return data
 }
 
-func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error) {
+func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (string, string, error) {
 	var protoMessage strings.Builder
 	schemaNameCamelCase := parser.CamelCase(schema.Name)
 	// info message
@@ -358,10 +380,16 @@ func GenProtoData(schema *load.Schema, searchKeyNum int) (string, string, error)
 		}
 	}
 
+	// group
+	if groupName != "" {
+		groupName = fmt.Sprintf("  // group: %s\n", groupName)
+	}
+
 	protoRpcFunction := bytes.NewBufferString("")
 	protoTmpl, err := template.New("proto").Parse(protoTpl)
 	err = protoTmpl.Execute(protoRpcFunction, map[string]interface{}{
 		"modelName": schema.Name,
+		"groupName": groupName,
 	})
 
 	if err != nil {

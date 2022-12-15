@@ -77,11 +77,11 @@ func init() {
 	newCmd.Flags().BoolVar(&cli.VarBoolEnt, "ent", true, "Whether use Ent in project")
 	newCmd.Flags().MarkHidden("go_opt")
 	newCmd.Flags().MarkHidden("go-grpc_opt")
-	newCmd.Flags().StringVar(&cli.VarStringModuleName, "moduleName", "",
+	newCmd.Flags().StringVar(&cli.VarStringModuleName, "module_name", "",
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
-	newCmd.Flags().StringVar(&cli.VarStringGoZeroVersion, "goZeroVersion", "",
+	newCmd.Flags().StringVar(&cli.VarStringGoZeroVersion, "go_zero_version", "",
 		"The go zero version used for migration. e.g. v1.4.2")
-	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "toolVersion", "",
+	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "tool_version", "",
 		"The simple admin tool version version used for migration. e.g. v0.0.9")
 	newCmd.Flags().IntVar(&cli.VarIntServicePort, "port", 9110, "The service port exposed")
 	newCmd.Flags().BoolVar(&cli.VarBoolGitlab, "gitlab", false, "Whether to use gitlab-ci")
@@ -127,12 +127,13 @@ func init() {
 
 	entCmd.Flags().StringVar(&cli.VarStringSchema, "schema", "", "The schema path of the Ent")
 	entCmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "The output path")
-	entCmd.Flags().StringVar(&cli.VarStringServiceName, "serviceName", "", "The service name")
+	entCmd.Flags().StringVar(&cli.VarStringServiceName, "service_name", "", "The service name")
 	entCmd.Flags().BoolVar(&cli.VarBoolMultiple, "multiple", false, "Generated in multiple rpc service mode")
 	entCmd.Flags().StringVar(&cli.VarStringStyle, "style", "go_zero", "The file name format style")
 	entCmd.Flags().StringVar(&cli.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
 		"if it is empty, generate codes for all models in schema directory")
-	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "searchKeyNum", 3, "The max number of search keys ")
+	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
+	entCmd.Flags().StringVar(&cli.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
 
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)
