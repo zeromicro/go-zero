@@ -20,21 +20,41 @@ func init() {
 }
 
 func TestPublisher_register(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	const id = 1
-	cli := internal.NewMockEtcdClient(ctrl)
-	restore := setMockClient(cli)
-	defer restore()
-	cli.EXPECT().Ctx().AnyTimes()
-	cli.EXPECT().Grant(gomock.Any(), timeToLive).Return(&clientv3.LeaseGrantResponse{
-		ID: id,
-	}, nil)
-	cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), "thevalue", gomock.Any())
-	pub := NewPublisher(nil, "thekey", "thevalue",
-		WithPubEtcdAccount(stringx.Rand(), "bar"))
-	_, err := pub.register(cli)
-	assert.Nil(t, err)
+	t.Run("no colors", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		const id = 1
+		cli := internal.NewMockEtcdClient(ctrl)
+		restore := setMockClient(cli)
+		defer restore()
+		cli.EXPECT().Ctx().AnyTimes()
+		cli.EXPECT().Grant(gomock.Any(), timeToLive).Return(&clientv3.LeaseGrantResponse{
+			ID: id,
+		}, nil)
+		cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), "thevalue", gomock.Any())
+		pub := NewPublisher(nil, "thekey", "thevalue",
+			WithPubEtcdAccount(stringx.Rand(), "bar"))
+		_, err := pub.register(cli)
+		assert.Nil(t, err)
+	})
+	t.Run("has colors", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		const id = 1
+		cli := internal.NewMockEtcdClient(ctrl)
+		restore := setMockClient(cli)
+		defer restore()
+		cli.EXPECT().Ctx().AnyTimes()
+		cli.EXPECT().Grant(gomock.Any(), timeToLive).Return(&clientv3.LeaseGrantResponse{
+			ID: id,
+		}, nil)
+		cli.EXPECT().Put(gomock.Any(), makeEtcdKey("thekey", id), `thevalue@{"colors":["v1"]}`, gomock.Any())
+		pub := NewPublisher(nil, "thekey", "thevalue",
+			WithPubEtcdAccount(stringx.Rand(), "bar"), WithPubEtcdMetadata(map[string][]string{"colors": {"v1"}}))
+		_, err := pub.register(cli)
+		assert.Nil(t, err)
+
+	})
 }
 
 func TestPublisher_registerWithId(t *testing.T) {
@@ -168,4 +188,20 @@ func TestPublisher_Resume(t *testing.T) {
 		t.Fail()
 	}()
 	<-publisher.resumeChan
+}
+
+func TestWithPubEtcdMetadata(t *testing.T) {
+	t.Run("has metadata", func(t *testing.T) {
+		p := new(Publisher)
+		option := WithPubEtcdMetadata(map[string][]string{"colors": {"v1"}})
+		option(p)
+		assert.EqualValues(t, map[string][]string{"colors": {"v1"}}, p.md)
+	})
+
+	t.Run("no metadata", func(t *testing.T) {
+		p := new(Publisher)
+		option := WithPubEtcdMetadata(map[string][]string{})
+		option(p)
+		assert.Len(t, p.md, 0)
+	})
 }

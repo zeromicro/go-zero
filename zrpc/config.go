@@ -32,6 +32,7 @@ type (
 		Token     string          `json:",optional"`
 		NonBlock  bool            `json:",optional"`
 		Timeout   int64           `json:",default=2000"`
+		Selector  string          `json:",optional"`
 	}
 )
 

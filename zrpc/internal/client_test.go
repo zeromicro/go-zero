@@ -65,3 +65,17 @@ func TestBuildDialOptions(t *testing.T) {
 	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
 }
+
+func TestWithSelector(t *testing.T) {
+	var options ClientOptions
+	opt := WithSelector("defaultSelector")
+	opt(&options)
+	assert.Equal(t, "defaultSelector", options.selectorName)
+}
+
+func TestWithMetadata(t *testing.T) {
+	var options ClientOptions
+	opt := WithMetadata(map[string][]string{"a": {"a1"}})
+	opt(&options)
+	assert.EqualValues(t, map[string][]string{"a": {"a1"}}, options.md)
+}

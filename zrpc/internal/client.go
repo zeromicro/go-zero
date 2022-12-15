@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/md"
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
@@ -32,10 +33,12 @@ type (
 
 	// A ClientOptions is a client options.
 	ClientOptions struct {
-		NonBlock    bool
-		Timeout     time.Duration
-		Secure      bool
-		DialOptions []grpc.DialOption
+		NonBlock     bool
+		Timeout      time.Duration
+		Secure       bool
+		DialOptions  []grpc.DialOption
+		selectorName string
+		md           md.Metadata
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -86,9 +89,13 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 			clientinterceptors.PrometheusInterceptor,
 			clientinterceptors.BreakerInterceptor,
 			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
+			clientinterceptors.UnaryMdInterceptor(cliOpts.md),
+			clientinterceptors.UnarySelectorInterceptor(cliOpts.selectorName),
 		),
 		WithStreamClientInterceptors(
 			clientinterceptors.StreamTracingInterceptor,
+			clientinterceptors.StreamMdInterceptor(cliOpts.md),
+			clientinterceptors.StreamSelectorInterceptor(cliOpts.selectorName),
 		),
 	)
 
@@ -157,5 +164,19 @@ func WithTransportCredentials(creds credentials.TransportCredentials) ClientOpti
 func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))
+	}
+}
+
+// WithSelector returns a func to customize a selector.
+func WithSelector(selectorName string) ClientOption {
+	return func(options *ClientOptions) {
+		options.selectorName = selectorName
+	}
+}
+
+// WithMetadata returns a func to customize a set of colors.
+func WithMetadata(m md.Metadata) ClientOption {
+	return func(options *ClientOptions) {
+		options.md = m
 	}
 }

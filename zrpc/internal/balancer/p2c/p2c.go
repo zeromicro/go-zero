@@ -1,6 +1,7 @@
 package p2c
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"math/rand"
@@ -10,9 +11,12 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/selector"
 	"github.com/zeromicro/go-zero/core/syncx"
 	"github.com/zeromicro/go-zero/core/timex"
 	"github.com/zeromicro/go-zero/zrpc/internal/codes"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/resolver"
@@ -31,7 +35,10 @@ const (
 	logInterval     = time.Minute
 )
 
-var emptyPickResult balancer.PickResult
+var (
+	emptyPickResult      balancer.PickResult
+	selectorAttributeKey = attribute.Key("selector.name")
+)
 
 func init() {
 	balancer.Register(newBuilder())
@@ -45,7 +52,7 @@ func (b *p2cPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 		return base.NewErrPicker(balancer.ErrNoSubConnAvailable)
 	}
 
-	var conns []*subConn
+	var conns = make([]selector.Conn, 0, len(readySCs))
 	for conn, connInfo := range readySCs {
 		conns = append(conns, &subConn{
 			addr:    connInfo.Address,
@@ -66,7 +73,7 @@ func newBuilder() balancer.Builder {
 }
 
 type p2cPicker struct {
-	conns []*subConn
+	conns []selector.Conn
 	r     *rand.Rand
 	stamp *syncx.AtomicDuration
 	lock  sync.Mutex
@@ -76,24 +83,35 @@ func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	connsCp := make([]selector.Conn, len(p.conns))
+	copy(connsCp, p.conns)
+
+	slc := p.getSelector(info.Ctx)
+	selectorName := slc.Name()
+	spanCtx := trace.SpanFromContext(info.Ctx)
+	spanCtx.SetAttributes(selectorAttributeKey.String(selectorName))
+	logx.WithContext(info.Ctx).Infow("flow dyeing", logx.Field("selector", selectorName))
+
+	conns := slc.Select(connsCp, info)
+
 	var chosen *subConn
-	switch len(p.conns) {
+	switch len(conns) {
 	case 0:
 		return emptyPickResult, balancer.ErrNoSubConnAvailable
 	case 1:
-		chosen = p.choose(p.conns[0], nil)
+		chosen = p.choose(conns[0].(*subConn), nil)
 	case 2:
-		chosen = p.choose(p.conns[0], p.conns[1])
+		chosen = p.choose(conns[0].(*subConn), conns[1].(*subConn))
 	default:
 		var node1, node2 *subConn
 		for i := 0; i < pickTimes; i++ {
-			a := p.r.Intn(len(p.conns))
-			b := p.r.Intn(len(p.conns) - 1)
+			a := p.r.Intn(len(conns))
+			b := p.r.Intn(len(conns) - 1)
 			if b >= a {
 				b++
 			}
-			node1 = p.conns[a]
-			node2 = p.conns[b]
+			node1 = conns[a].(*subConn)
+			node2 = conns[b].(*subConn)
 			if node1.healthy() && node2.healthy() {
 				break
 			}
@@ -168,18 +186,24 @@ func (p *p2cPicker) choose(c1, c2 *subConn) *subConn {
 }
 
 func (p *p2cPicker) logStats() {
-	var stats []string
-
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
+	stats := make([]string, 0, len(p.conns))
 	for _, conn := range p.conns {
+		conn := conn.(*subConn)
 		stats = append(stats, fmt.Sprintf("conn: %s, load: %d, reqs: %d",
 			conn.addr.Addr, conn.load(), atomic.SwapInt64(&conn.requests, 0)))
 	}
 
 	logx.Statf("p2c - %s", strings.Join(stats, "; "))
 }
+
+func (p *p2cPicker) getSelector(ctx context.Context) selector.Selector {
+	return selector.Get(selector.FromContext(ctx))
+}
+
+var _ selector.Conn = (*subConn)(nil)
 
 type subConn struct {
 	lag      uint64
@@ -190,6 +214,10 @@ type subConn struct {
 	pick     int64
 	addr     resolver.Address
 	conn     balancer.SubConn
+}
+
+func (c *subConn) Address() resolver.Address {
+	return c.addr
 }
 
 func (c *subConn) healthy() bool {

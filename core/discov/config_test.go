@@ -80,3 +80,34 @@ func TestEtcdConf_HasAccount(t *testing.T) {
 		assert.Equal(t, test.hasAccount, test.EtcdConf.HasAccount())
 	}
 }
+
+func TestEtcdConf_HasMetadata(t *testing.T) {
+	tests := []struct {
+		EtcdConf
+		hasColors bool
+	}{
+		{
+			EtcdConf: EtcdConf{
+				Metadata: []Metadata{{
+					Key:   "colors",
+					Value: []string{"vq"},
+				}},
+			},
+			hasColors: true,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Metadata: []Metadata{},
+			},
+			hasColors: false,
+		},
+		{
+			EtcdConf:  EtcdConf{},
+			hasColors: false,
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.hasColors, test.EtcdConf.HasMetadata())
+	}
+}
