@@ -1,3 +1,14 @@
+## v0.1.3 (2022-12-15)
+
+### New feature:
+
+- gitlab-ci.yml generating([`6757b0d`](https://github.com/suyuan32/simple-admin-tools/commit/6757b0d4c8beac379348e39c80c687e5ac5dcd10)) (by Ryan SU)
+
+### Bugs fixed:
+
+- optional gen makefile and dockerfile([`ebb8b01`](https://github.com/suyuan32/simple-admin-tools/commit/ebb8b01d402049928cc666404f2ffdf8ea749f32)) (by Ryan SU)
+- cases with no lower([`f9ba1da`](https://github.com/suyuan32/simple-admin-tools/commit/f9ba1da5a3e88e483dcf2491f3baea51ec3be9b1)) (by Ryan SU)
+
 ## v0.1.2 (2022-12-13)
 
 ### Bugs fixed:
