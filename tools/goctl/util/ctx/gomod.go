@@ -81,7 +81,8 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 		return nil, err
 	}
 	for _, m := range modules {
-		if strings.HasPrefix(workDir, m.Dir) {
+		realPath, err := filepath.EvalSymlinks(m.Dir)
+		if err == nil && strings.HasPrefix(workDir, realPath) {
 			return &m, nil
 		}
 	}
