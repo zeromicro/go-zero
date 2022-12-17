@@ -34,7 +34,7 @@ DatabaseConf:
   Username: # set your username
   Password: # set your password
   MaxOpenConn: 100
-  SSLMode: false
+  SSLMode: disable
   CacheTime: 5
 
 CasbinConf:
