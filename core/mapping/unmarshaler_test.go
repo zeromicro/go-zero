@@ -3665,6 +3665,7 @@ func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
 			Name         string `json:"name"`
 			ActualAmount int    `json:"actual_amount"`
 		}
+
 		OrderApplyRefundReq struct {
 			OrderId       string            `json:"order_id"`
 			RefundReason  RefundReasonData  `json:"refund_reason,optional"`

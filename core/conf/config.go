@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/jsonx"
@@ -19,6 +20,12 @@ var loaders = map[string]func([]byte, interface{}) error{
 	".toml": LoadFromTomlBytes,
 	".yaml": LoadFromYamlBytes,
 	".yml":  LoadFromYamlBytes,
+}
+
+type fieldInfo struct {
+	name     string
+	kind     reflect.Kind
+	children map[string]fieldInfo
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -58,7 +65,10 @@ func LoadFromJsonBytes(content []byte, v interface{}) error {
 		return err
 	}
 
-	return mapping.UnmarshalJsonMap(toCamelCaseKeyMap(m), v, mapping.WithCanonicalKeyFunc(toCamelCase))
+	finfo := buildFieldsInfo(reflect.TypeOf(v))
+	camelCaseKeyMap := toCamelCaseKeyMap(m, finfo)
+
+	return mapping.UnmarshalJsonMap(camelCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toCamelCase))
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -100,6 +110,48 @@ func MustLoad(path string, v interface{}, opts ...Option) {
 	}
 }
 
+func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+	tp = mapping.Deref(tp)
+
+	switch tp.Kind() {
+	case reflect.Struct:
+		return buildStructFieldsInfo(tp)
+	case reflect.Array, reflect.Slice:
+		return buildFieldsInfo(mapping.Deref(tp.Elem()))
+	default:
+		return nil
+	}
+}
+
+func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+	info := make(map[string]fieldInfo, tp.NumField())
+
+	for i := 0; i < tp.NumField(); i++ {
+		field := tp.Field(i)
+		name := field.Name
+		ccName := toCamelCase(name)
+		ft := mapping.Deref(field.Type)
+
+		var fields map[string]fieldInfo
+		switch ft.Kind() {
+		case reflect.Struct:
+			fields = buildFieldsInfo(ft)
+		case reflect.Array, reflect.Slice:
+			fields = buildFieldsInfo(ft.Elem())
+		case reflect.Map:
+			fields = buildFieldsInfo(ft.Elem())
+		}
+
+		info[ccName] = fieldInfo{
+			name:     name,
+			kind:     ft.Kind(),
+			children: fields,
+		}
+	}
+
+	return info
+}
+
 func toCamelCase(s string) string {
 	var buf strings.Builder
 	buf.Grow(len(s))
@@ -139,14 +191,14 @@ func toCamelCase(s string) string {
 	return buf.String()
 }
 
-func toCamelCaseInterface(v interface{}) interface{} {
+func toCamelCaseInterface(v interface{}, info map[string]fieldInfo) interface{} {
 	switch vv := v.(type) {
 	case map[string]interface{}:
-		return toCamelCaseKeyMap(vv)
+		return toCamelCaseKeyMap(vv, info)
 	case []interface{}:
 		var arr []interface{}
 		for _, vvv := range vv {
-			arr = append(arr, toCamelCaseInterface(vvv))
+			arr = append(arr, toCamelCaseInterface(vvv, info))
 		}
 		return arr
 	default:
@@ -154,10 +206,23 @@ func toCamelCaseInterface(v interface{}) interface{} {
 	}
 }
 
-func toCamelCaseKeyMap(m map[string]interface{}) map[string]interface{} {
+func toCamelCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[string]interface{} {
 	res := make(map[string]interface{})
+
 	for k, v := range m {
-		res[toCamelCase(k)] = toCamelCaseInterface(v)
+		ti, ok := info[k]
+		if ok {
+			res[k] = toCamelCaseInterface(v, ti.children)
+			continue
+		}
+
+		cck := toCamelCase(k)
+		ti, ok = info[cck]
+		if ok {
+			res[toCamelCase(k)] = toCamelCaseInterface(v, ti.children)
+		} else {
+			res[k] = v
+		}
 	}
 
 	return res

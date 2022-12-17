@@ -328,6 +328,49 @@ func TestLoadFromYamlBytes(t *testing.T) {
 	assert.Equal(t, "foo", val.Layer1.Layer2.Layer3)
 }
 
+func TestUnmarshalJsonBytesMap(t *testing.T) {
+	input := []byte(`{"foo":{"/mtproto.RPCTos": "bff.bff","bar":"baz"}}`)
+
+	var val struct {
+		Foo map[string]string
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.Equal(t, "bff.bff", val.Foo["/mtproto.RPCTos"])
+	assert.Equal(t, "baz", val.Foo["bar"])
+}
+
+func TestUnmarshalJsonBytesMapWithSliceElements(t *testing.T) {
+	input := []byte(`{"foo":{"/mtproto.RPCTos": ["bff.bff", "any"],"bar":["baz", "qux"]}}`)
+
+	var val struct {
+		Foo map[string][]string
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.EqualValues(t, []string{"bff.bff", "any"}, val.Foo["/mtproto.RPCTos"])
+	assert.EqualValues(t, []string{"baz", "qux"}, val.Foo["bar"])
+}
+
+func TestUnmarshalJsonBytesMapWithSliceOfStructs(t *testing.T) {
+	input := []byte(`{"foo":{
+	"/mtproto.RPCTos": [{"bar": "any"}],
+	"bar":[{"bar": "qux"}, {"bar": "ever"}]}}`)
+
+	var val struct {
+		Foo map[string][]struct {
+			Bar string
+		}
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.Equal(t, 1, len(val.Foo["/mtproto.RPCTos"]))
+	assert.Equal(t, "any", val.Foo["/mtproto.RPCTos"][0].Bar)
+	assert.Equal(t, 2, len(val.Foo["bar"]))
+	assert.Equal(t, "qux", val.Foo["bar"][0].Bar)
+	assert.Equal(t, "ever", val.Foo["bar"][1].Bar)
+}
+
 func createTempFile(ext, text string) (string, error) {
 	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
