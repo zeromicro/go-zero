@@ -15,7 +15,7 @@ type ServiceContext struct {
 func NewServiceContext(c config.Config) *ServiceContext {
 {{if .isEnt}}   db := ent.NewClient(
       ent.Log(logx.Info), // logger
-      ent.Driver(c.DatabaseConf.GetCacheDriver(c.RedisConf)),
+      ent.Driver(c.DatabaseConf.NewNoCacheDriver()),
       ent.Debug(), // debug mode
     )
 

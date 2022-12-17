@@ -176,9 +176,14 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 				hasTime = true
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(in.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
-			} else if v.Name == "uuid" || v.Name == "api" {
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", strings.ToUpper(v.Name),
-					parser.CamelCase(v.Name)))
+			} else if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
+				if v.Info.Type.String() == "int" {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(int(in.%s)).\n", convertSpecificNounToUpper(v.Name),
+						parser.CamelCase(v.Name)))
+				} else {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", convertSpecificNounToUpper(v.Name),
+						parser.CamelCase(v.Name)))
+				}
 			} else {
 				if v.Info.Type.String() == "int" {
 					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(int(in.%s)).\n", parser.CamelCase(v.Name),
@@ -220,7 +225,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
 			camelName := parser.CamelCase(v.Name)
 			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
-				camelName, strings.ToLower(schema.Name), camelName, camelName))
+				camelName, strings.ToLower(schema.Name), convertSpecificNounToUpper(v.Name), camelName))
 			count++
 		}
 	}
@@ -242,12 +247,17 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),\n", nameCamelCase,
 						nameCamelCase))
 				} else {
-					if strings.Contains(nameCamelCase, "Uuid") {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
-							strings.Replace(nameCamelCase, "Uuid", "UUID", 1)))
+					if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", parser.CamelCase(v.Name),
+							convertSpecificNounToUpper(v.Name)))
 					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
-							nameCamelCase))
+						if v.Info.Type.String() == "int" {
+							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tint64(v.%s),\n", nameCamelCase,
+								nameCamelCase))
+						} else {
+							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
+								nameCamelCase))
+						}
 					}
 				}
 			} else {
@@ -255,9 +265,9 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),", nameCamelCase,
 						nameCamelCase))
 				} else {
-					if strings.Contains(nameCamelCase, "Uuid") {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
-							strings.Replace(nameCamelCase, "Uuid", "UUID", 1)))
+					if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", parser.CamelCase(v.Name),
+							convertSpecificNounToUpper(v.Name)))
 					} else {
 						if v.Info.Type.String() == "int" {
 							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tint64(v.%s),", nameCamelCase,
@@ -398,18 +408,6 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	}
 
 	return protoMessage.String(), protoRpcFunction.String(), nil
-}
-
-func convertTypeToProtoType(typeName string) string {
-	switch typeName {
-	case "float32":
-		typeName = "float"
-	case "float64":
-		typeName = "float"
-	case "int":
-		typeName = "int64"
-	}
-	return typeName
 }
 
 // Todo: in the future
