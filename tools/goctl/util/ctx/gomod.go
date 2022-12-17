@@ -61,12 +61,7 @@ func projectFromGoMod(workDir string) (*ProjectContext, error) {
 	var ret ProjectContext
 	ret.WorkDir = workDir
 	ret.Name = filepath.Base(m.Dir)
-	dir, err := pathx.ReadLink(m.Dir)
-	if err != nil {
-		return nil, err
-	}
-
-	ret.Dir = dir
+	ret.Dir = m.Dir
 	ret.Path = m.Path
 	return &ret, nil
 }
@@ -81,8 +76,9 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 		return nil, err
 	}
 	for _, m := range modules {
-		realPath, err := filepath.EvalSymlinks(m.Dir)
+		realPath, err := pathx.ReadLink(m.Dir)
 		if err == nil && strings.HasPrefix(workDir, realPath) {
+			m.Dir = realPath
 			return &m, nil
 		}
 	}
