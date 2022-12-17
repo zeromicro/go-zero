@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"bufio"
+	"errors"
+	"net"
 	"net/http"
 	"sync"
 
@@ -28,6 +31,22 @@ func DontTraceSpan(spanName string) {
 type traceResponseWriter struct {
 	w    http.ResponseWriter
 	code int
+}
+
+// Flush implements the http.Flusher interface.
+func (w *traceResponseWriter) Flush() {
+	if flusher, ok := w.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Hijack implements the http.Hijacker interface.
+func (w *traceResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := w.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
 }
 
 func (w *traceResponseWriter) Header() http.Header {
@@ -82,7 +101,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 				Key:   traceKeyStatusCode,
 				Value: attribute.IntValue(trw.code),
 			})
-			if trw.code >= http.StatusInternalServerError {
+			if trw.code >= http.StatusBadRequest {
 				span.SetStatus(codes.Error, http.StatusText(trw.code))
 			} else {
 				span.SetStatus(codes.Ok, "")
