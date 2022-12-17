@@ -12,8 +12,7 @@ import (
 
 type ServiceContext struct {
 	Config {{.config}}
-	{{.middleware}}
-	{{if .useCasbin}}Casbin    *casbin.Enforcer
+	{{.middleware}}{{if .useCasbin}}Casbin    *casbin.Enforcer
 	Authority rest.Middleware{{end}}
 	{{if .useI18n}}Trans     *i18n.Translator{{end}}
 }
