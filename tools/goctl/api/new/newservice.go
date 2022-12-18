@@ -130,6 +130,8 @@ func CreateServiceCommand(args []string) error {
 		ModuleName:    VarModuleName,
 		Port:          VarIntServicePort,
 		UseGitlab:     VarBoolGitlab,
+		UseMakefile:   true,
+		UseDockerfile: true,
 	}
 
 	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, genCtx)

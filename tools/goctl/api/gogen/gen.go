@@ -110,6 +110,8 @@ type GenContext struct {
 	ModuleName    string
 	Port          int
 	UseGitlab     bool
+	UseMakefile   bool
+	UseDockerfile bool
 }
 
 // DoGenProject gen go project files with api file
@@ -151,8 +153,14 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	logx.Must(genHandlers(dir, rootPkg, cfg, api, g))
 	logx.Must(genLogic(dir, rootPkg, cfg, api))
 	logx.Must(genMiddleware(dir, cfg, api))
-	logx.Must(genDockerfile(dir, api, g))
-	logx.Must(genMakefile(dir, api))
+
+	if g.UseDockerfile {
+		logx.Must(genDockerfile(dir, api, g))
+	}
+
+	if g.UseMakefile {
+		logx.Must(genMakefile(dir, api))
+	}
 
 	if g.UseCasbin {
 		logx.Must(genCasbin(dir, cfg, api))
