@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/stringx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
@@ -33,20 +32,7 @@ func editMod(zeroVersion, toolVersion string, verbose bool) error {
 		return nil
 	}
 
-	latest, err := getLatest(goZeroMod, verbose)
-	if err != nil {
-		return err
-	}
-
-	if !stringx.Contains(latest, zeroVersion) {
-		return fmt.Errorf("release version %q is not found", zeroVersion)
-	}
-
 	mod := fmt.Sprintf("%s@%s", goZeroMod, zeroVersion)
-	err = removeRequire(deprecatedGoZeroMod, verbose)
-	if err != nil {
-		return err
-	}
 
 	err = addRequire(mod, verbose)
 	if err != nil {
@@ -99,19 +85,6 @@ func addReplace(mod string, verbose bool) error {
 	}
 
 	_, err = execx.Run("go mod edit -replace "+mod, wd)
-	return err
-}
-
-func removeRequire(mod string, verbose bool) error {
-	if verbose {
-		console.Info("remove require %s ...", mod)
-		time.Sleep(200 * time.Millisecond)
-	}
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	_, err = execx.Run("go mod edit -droprequire "+mod, wd)
 	return err
 }
 

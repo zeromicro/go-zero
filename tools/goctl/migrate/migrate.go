@@ -22,7 +22,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
-const defaultMigrateVersion = "v1.4.1"
+const defaultMigrateVersion = "v1.4.3"
 
 const (
 	confirmUnknown = iota

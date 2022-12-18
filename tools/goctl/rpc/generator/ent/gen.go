@@ -222,7 +222,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	predicateData.WriteString(fmt.Sprintf("\tvar predicates []predicate.%s\n", schema.Name))
 	count := 0
 	for _, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
+		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < searchKeyNum {
 			camelName := parser.CamelCase(v.Name)
 			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
 				camelName, strings.ToLower(schema.Name), convertSpecificNounToUpper(v.Name), camelName))
@@ -376,8 +376,8 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	index = 3
 
 	for i, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count <= searchKeyNum {
-			if i < (len(schema.Fields)-1) && count < (searchKeyNum-1) {
+		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < searchKeyNum {
+			if i < (len(schema.Fields)-1) && count < searchKeyNum {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", convertTypeToProtoType(v.Info.Type.String()),
 					v.Name, index))
 			}
