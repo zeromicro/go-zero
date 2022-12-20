@@ -34,7 +34,7 @@ typeSpec:       typeLit
 // eg: type Foo int
 typeLit:        {match(p,"type")}typeToken=ID  typeLitBody;
 // eg: type (...)
-typeBlock:      {match(p,"type")}typeToken=ID lp='(' typeBlockBody* rp=')';
+typeBlock:      {match(p,"type")}typeToken=ID lp='(' typeBlockBody+ rp=')';
 typeLitBody:    typeStruct|typeAlias;
 typeBlockBody:  typeBlockStruct|typeBlockAlias;
 typeStruct:     {checkKeyword(p)}structName=ID structToken=ID? lbrace='{'  field* rbrace='}';
