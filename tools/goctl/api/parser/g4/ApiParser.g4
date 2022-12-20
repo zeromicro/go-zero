@@ -3,7 +3,7 @@ grammar ApiParser;
 import ApiLexer;
 
 @lexer::members{
-    const COMEMNTS = 88
+    const COMMENTS = 88
 }
 
 api:            spec*;
