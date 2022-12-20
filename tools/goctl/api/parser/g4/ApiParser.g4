@@ -71,4 +71,4 @@ kvLit:          key=ID {checkKeyValue(p)}value=LINE_VALUE;
 
 serviceName:    (ID '-'?)+;
 path:           (('/' (pathItem ('-' pathItem)*))|('/:' (pathItem ('-' pathItem)?)))+ | '/';
-pathItem:       (ID|LetterOrDigit)+;
+pathItem:       LetterOrDigit+;
