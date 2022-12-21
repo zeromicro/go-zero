@@ -3563,6 +3563,119 @@ func TestGoogleUUID(t *testing.T) {
 	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 }
 
+func TestUnmarshalJsonReaderWithTypeMismatchBool(t *testing.T) {
+	var req struct {
+		Params map[string]bool `json:"params"`
+	}
+	body := `{"params":{"a":"123"}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithTypeMismatchString(t *testing.T) {
+	var req struct {
+		Params map[string]string `json:"params"`
+	}
+	body := `{"params":{"a":{"a":123}}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithMismatchType(t *testing.T) {
+	type Req struct {
+		Params map[string]string `json:"params"`
+	}
+
+	var req Req
+	body := `{"params":{"a":{"a":123}}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithMismatchTypeBool(t *testing.T) {
+	type Req struct {
+		Params map[string]bool `json:"params"`
+	}
+
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "int",
+			input: `{"params":{"a":123}}`,
+		},
+		{
+			name:  "int",
+			input: `{"params":{"a":"123"}}`,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			var req Req
+			assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(test.input), &req))
+		})
+	}
+}
+
+func TestUnmarshalJsonReaderWithMismatchTypeBoolMap(t *testing.T) {
+	var req struct {
+		Params map[string]string `json:"params"`
+	}
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonMap(map[string]interface{}{
+		"params": map[string]interface{}{
+			"a": true,
+		},
+	}, &req))
+}
+
+func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
+	input := []byte(`{
+  "order_id": "1234567",
+  "refund_reason": {
+    "reason_code": [
+      123,
+      234
+    ],
+    "desc": "not wanted",
+    "show_reason": [
+      {
+        "123": "not enough",
+        "234": "closed"
+      }
+    ]
+  },
+  "product_detail": {
+    "product_id": "123",
+    "sku_id": "123",
+    "name": "cake",
+    "actual_amount": 100
+  }
+}`)
+
+	type (
+		RefundReasonData struct {
+			ReasonCode []int               `json:"reason_code"`
+			Desc       string              `json:"desc"`
+			ShowReason []map[string]string `json:"show_reason"`
+		}
+
+		ProductDetailData struct {
+			ProductId    string `json:"product_id"`
+			SkuId        string `json:"sku_id"`
+			Name         string `json:"name"`
+			ActualAmount int    `json:"actual_amount"`
+		}
+		OrderApplyRefundReq struct {
+			OrderId       string            `json:"order_id"`
+			RefundReason  RefundReasonData  `json:"refund_reason,optional"`
+			ProductDetail ProductDetailData `json:"product_detail,optional"`
+		}
+	)
+
+	var req OrderApplyRefundReq
+	assert.NoError(t, UnmarshalJsonBytes(input, &req))
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
