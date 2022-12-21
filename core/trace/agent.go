@@ -60,11 +60,12 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindGrpc:
-		return otlptracegrpc.NewUnstarted(
+		return otlptracegrpc.New(
+			context.Background(),
 			otlptracegrpc.WithInsecure(),
 			otlptracegrpc.WithEndpoint(c.Endpoint),
 			otlptracegrpc.WithDialOption(grpc.WithBlock()),
-		), nil
+		)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
