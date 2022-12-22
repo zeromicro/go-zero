@@ -270,8 +270,6 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 
 If you like or are using this project to learn or start your solution, please give it a star. Thanks!
 
-[![Star History Chart](https://api.star-history.com/svg?repos=zeromicro/go-zero&type=Date)](#go-zero)
-
 ## Buy me a coffee
 
 <a href="https://www.buymeacoffee.com/kevwan" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
