@@ -3677,6 +3677,52 @@ func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
 	assert.NoError(t, UnmarshalJsonBytes(input, &req))
 }
 
+func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldOptional(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int `json:",optional"`
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {

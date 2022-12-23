@@ -371,6 +371,29 @@ func TestUnmarshalJsonBytesMapWithSliceOfStructs(t *testing.T) {
 	assert.Equal(t, "ever", val.Foo["bar"][1].Bar)
 }
 
+func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, LoadFromJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
 func createTempFile(ext, text string) (string, error) {
 	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {

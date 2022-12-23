@@ -376,56 +376,23 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return err
 	}
 
-	if _, hasValue := getValue(m, key); hasValue {
-		return fmt.Errorf("fields of %s can't be wrapped inside, because it's anonymous", key)
-	}
-
 	if options.optional() {
-		return u.processAnonymousFieldOptional(field.Type, value, key, m, fullName)
+		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
 	}
 
 	return u.processAnonymousFieldRequired(field, value, m, fullName)
 }
 
-func (u *Unmarshaler) processAnonymousFieldOptional(fieldType reflect.Type, value reflect.Value,
+func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
 	key string, m valuerWithParent, fullName string) error {
-	var filled bool
-	var required int
-	var requiredFilled int
-	var indirectValue reflect.Value
-	derefedFieldType := Deref(fieldType)
+	derefedFieldType := Deref(field.Type)
 
-	for i := 0; i < derefedFieldType.NumField(); i++ {
-		subField := derefedFieldType.Field(i)
-		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fullName)
-		if err != nil {
-			return err
-		}
-
-		_, hasValue := getValue(m, fieldKey)
-		if hasValue {
-			if !filled {
-				filled = true
-				maybeNewValue(fieldType, value)
-				indirectValue = reflect.Indirect(value)
-			}
-			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
-				return err
-			}
-		}
-		if !fieldOpts.optional() {
-			required++
-			if hasValue {
-				requiredFilled++
-			}
-		}
+	switch derefedFieldType.Kind() {
+	case reflect.Struct:
+		return u.processAnonymousStructFieldOptional(field, value, key, m, fullName)
+	default:
+		return u.processNamedField(field, value, m, fullName)
 	}
-
-	if filled && required != requiredFilled {
-		return fmt.Errorf("%s is not fully set", key)
-	}
-
-	return nil
 }
 
 func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
@@ -447,6 +414,47 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 		if err := u.processNamedField(field, indirectValue, m, fullName); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (u *Unmarshaler) processAnonymousStructFieldOptional(field reflect.StructField,
+	value reflect.Value, key string, m valuerWithParent, fullName string) error {
+	var filled bool
+	var required int
+	var requiredFilled int
+	var indirectValue reflect.Value
+	derefedFieldType := Deref(field.Type)
+
+	for i := 0; i < derefedFieldType.NumField(); i++ {
+		subField := derefedFieldType.Field(i)
+		fieldKey, fieldOpts, err := u.parseOptionsWithContext(subField, m, fullName)
+		if err != nil {
+			return err
+		}
+
+		_, hasValue := getValue(m, fieldKey)
+		if hasValue {
+			if !filled {
+				filled = true
+				maybeNewValue(field.Type, value)
+				indirectValue = reflect.Indirect(value)
+			}
+			if err = u.processField(subField, indirectValue.Field(i), m, fullName); err != nil {
+				return err
+			}
+		}
+		if !fieldOpts.optional() {
+			required++
+			if hasValue {
+				requiredFilled++
+			}
+		}
+	}
+
+	if filled && required != requiredFilled {
+		return fmt.Errorf("%s is not fully set", key)
 	}
 
 	return nil
