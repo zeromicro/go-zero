@@ -13,6 +13,14 @@ import (
 const serverNamespace = "http_server"
 
 var (
+	metricServerReqTotal = metric.NewCounterVec(&metric.CounterVecOpts{
+		Namespace: serverNamespace,
+		Subsystem: "requests",
+		Name:      "total",
+		Help:      "http server requests count.",
+		Labels:    []string{"path"},
+	})
+
 	metricServerReqDur = metric.NewHistogramVec(&metric.HistogramVecOpts{
 		Namespace: serverNamespace,
 		Subsystem: "requests",
@@ -35,6 +43,7 @@ var (
 func PrometheusHandler(path string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			metricServerReqTotal.Inc(path)
 			startTime := timex.Now()
 			cw := &response.WithCodeResponseWriter{Writer: w}
 			defer func() {
