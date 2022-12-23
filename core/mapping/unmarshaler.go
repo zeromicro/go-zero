@@ -384,7 +384,7 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return u.processAnonymousFieldOptional(field.Type, value, key, m, fullName)
 	}
 
-	return u.processAnonymousFieldRequired(field.Type, value, m, fullName)
+	return u.processAnonymousFieldRequired(field, value, m, fullName)
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(fieldType reflect.Type, value reflect.Value,
@@ -428,14 +428,23 @@ func (u *Unmarshaler) processAnonymousFieldOptional(fieldType reflect.Type, valu
 	return nil
 }
 
-func (u *Unmarshaler) processAnonymousFieldRequired(fieldType reflect.Type, value reflect.Value,
+func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
 	m valuerWithParent, fullName string) error {
+	fieldType := field.Type
 	maybeNewValue(fieldType, value)
 	derefedFieldType := Deref(fieldType)
 	indirectValue := reflect.Indirect(value)
 
-	for i := 0; i < derefedFieldType.NumField(); i++ {
-		if err := u.processField(derefedFieldType.Field(i), indirectValue.Field(i), m, fullName); err != nil {
+	switch derefedFieldType.Kind() {
+	case reflect.Struct:
+		for i := 0; i < derefedFieldType.NumField(); i++ {
+			if err := u.processField(derefedFieldType.Field(i), indirectValue.Field(i),
+				m, fullName); err != nil {
+				return err
+			}
+		}
+	default:
+		if err := u.processNamedField(field, indirectValue, m, fullName); err != nil {
 			return err
 		}
 	}

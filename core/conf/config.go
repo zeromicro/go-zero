@@ -124,13 +124,29 @@ func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 }
 
 func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
-	info := make(map[string]fieldInfo, tp.NumField())
+	info := make(map[string]fieldInfo)
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
 		name := field.Name
 		ccName := toCamelCase(name)
 		ft := mapping.Deref(field.Type)
+
+		// flatten anonymous fields
+		if field.Anonymous {
+			if ft.Kind() == reflect.Struct {
+				fields := buildFieldsInfo(ft)
+				for k, v := range fields {
+					info[k] = v
+				}
+			} else {
+				info[ccName] = fieldInfo{
+					name: name,
+					kind: ft.Kind(),
+				}
+			}
+			continue
+		}
 
 		var fields map[string]fieldInfo
 		switch ft.Kind() {
