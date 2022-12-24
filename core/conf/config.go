@@ -238,8 +238,7 @@ func toCamelCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[
 		}
 
 		cck := toCamelCase(k)
-		ti, ok = info[cck]
-		if ok {
+		if ti, ok = info[cck]; ok {
 			res[toCamelCase(k)] = toCamelCaseInterface(v, ti.children)
 		} else {
 			res[k] = v
