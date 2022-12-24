@@ -191,14 +191,19 @@ func toCamelCase(s string) string {
 		if isCap || isLow {
 			buf.WriteRune(v)
 			capNext = false
-		} else if v == ' ' || v == '\t' {
+			continue
+		}
+
+		switch v {
+		// '.' is used for chained keys, e.g. "grand.parent.child"
+		case ' ', '.', '\t':
 			buf.WriteRune(v)
 			capNext = false
 			boundary = true
-		} else if v == '_' {
+		case '_':
 			capNext = true
 			boundary = true
-		} else {
+		default:
 			buf.WriteRune(v)
 			capNext = true
 		}

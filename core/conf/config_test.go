@@ -284,6 +284,10 @@ func TestToCamelCase(t *testing.T) {
 			expect: "hello world fooBar",
 		},
 		{
+			input:  "Hello.World Foo_Bar",
+			expect: "hello.world fooBar",
+		},
+		{
 			input:  "你好 World Foo_Bar",
 			expect: "你好 world fooBar",
 		},
@@ -326,6 +330,18 @@ func TestLoadFromYamlBytes(t *testing.T) {
 
 	assert.NoError(t, LoadFromYamlBytes(input, &val))
 	assert.Equal(t, "foo", val.Layer1.Layer2.Layer3)
+}
+
+func TestLoadFromYamlBytesLayers(t *testing.T) {
+	input := []byte(`layer1:
+  layer2:
+    layer3: foo`)
+	var val struct {
+		Value string `json:"Layer1.Layer2.Layer3"`
+	}
+
+	assert.NoError(t, LoadFromYamlBytes(input, &val))
+	assert.Equal(t, "foo", val.Value)
 }
 
 func TestUnmarshalJsonBytesMap(t *testing.T) {
