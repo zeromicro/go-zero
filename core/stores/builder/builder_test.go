@@ -39,3 +39,33 @@ func TestFieldNamesWithTagOptions(t *testing.T) {
 		assert.Equal(t, expected, out)
 	})
 }
+
+type mockedUserWithDashTag struct {
+	ID       string `db:"id" json:"id,omitempty"`
+	UserName string `db:"user_name" json:"userName,omitempty"`
+	Mobile   string `db:"-" json:"mobile,omitempty"`
+}
+
+func TestFieldNamesWithDashTag(t *testing.T) {
+	t.Run("new", func(t *testing.T) {
+		var u mockedUserWithDashTag
+		out := RawFieldNames(&u)
+		expected := []string{"`id`", "`user_name`"}
+		assert.Equal(t, expected, out)
+	})
+}
+
+type mockedUserWithDashTagAndOptions struct {
+	ID       string `db:"id" json:"id,omitempty"`
+	UserName string `db:"user_name,type=varchar,length=255" json:"userName,omitempty"`
+	Mobile   string `db:"-,type=varchar,length=255" json:"mobile,omitempty"`
+}
+
+func TestFieldNamesWithDashTagAndOptions(t *testing.T) {
+	t.Run("new", func(t *testing.T) {
+		var u mockedUserWithDashTagAndOptions
+		out := RawFieldNames(&u)
+		expected := []string{"`id`", "`user_name`"}
+		assert.Equal(t, expected, out)
+	})
+}
