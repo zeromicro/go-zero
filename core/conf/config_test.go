@@ -284,6 +284,10 @@ func TestToCamelCase(t *testing.T) {
 			expect: "hello world fooBar",
 		},
 		{
+			input:  "Hello.World Foo_Bar",
+			expect: "hello.world fooBar",
+		},
+		{
 			input:  "你好 World Foo_Bar",
 			expect: "你好 world fooBar",
 		},
@@ -326,6 +330,84 @@ func TestLoadFromYamlBytes(t *testing.T) {
 
 	assert.NoError(t, LoadFromYamlBytes(input, &val))
 	assert.Equal(t, "foo", val.Layer1.Layer2.Layer3)
+}
+
+func TestLoadFromYamlBytesLayers(t *testing.T) {
+	input := []byte(`layer1:
+  layer2:
+    layer3: foo`)
+	var val struct {
+		Value string `json:"Layer1.Layer2.Layer3"`
+	}
+
+	assert.NoError(t, LoadFromYamlBytes(input, &val))
+	assert.Equal(t, "foo", val.Value)
+}
+
+func TestUnmarshalJsonBytesMap(t *testing.T) {
+	input := []byte(`{"foo":{"/mtproto.RPCTos": "bff.bff","bar":"baz"}}`)
+
+	var val struct {
+		Foo map[string]string
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.Equal(t, "bff.bff", val.Foo["/mtproto.RPCTos"])
+	assert.Equal(t, "baz", val.Foo["bar"])
+}
+
+func TestUnmarshalJsonBytesMapWithSliceElements(t *testing.T) {
+	input := []byte(`{"foo":{"/mtproto.RPCTos": ["bff.bff", "any"],"bar":["baz", "qux"]}}`)
+
+	var val struct {
+		Foo map[string][]string
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.EqualValues(t, []string{"bff.bff", "any"}, val.Foo["/mtproto.RPCTos"])
+	assert.EqualValues(t, []string{"baz", "qux"}, val.Foo["bar"])
+}
+
+func TestUnmarshalJsonBytesMapWithSliceOfStructs(t *testing.T) {
+	input := []byte(`{"foo":{
+	"/mtproto.RPCTos": [{"bar": "any"}],
+	"bar":[{"bar": "qux"}, {"bar": "ever"}]}}`)
+
+	var val struct {
+		Foo map[string][]struct {
+			Bar string
+		}
+	}
+
+	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.Equal(t, 1, len(val.Foo["/mtproto.RPCTos"]))
+	assert.Equal(t, "any", val.Foo["/mtproto.RPCTos"][0].Bar)
+	assert.Equal(t, 2, len(val.Foo["bar"]))
+	assert.Equal(t, "qux", val.Foo["bar"][0].Bar)
+	assert.Equal(t, "ever", val.Foo["bar"][1].Bar)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, LoadFromJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
 }
 
 func createTempFile(ext, text string) (string, error) {
