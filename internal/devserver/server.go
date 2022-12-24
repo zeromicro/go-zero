@@ -19,13 +19,13 @@ var once sync.Once
 // Server is inner http server, expose some useful observability information of app.
 // For example health check, metrics and pprof.
 type Server struct {
-	config *Config
+	config Config
 	server *http.ServeMux
 	routes []string
 }
 
 // NewServer returns a new inner http Server.
-func NewServer(config *Config) *Server {
+func NewServer(config Config) *Server {
 	return &Server{
 		config: config,
 		server: http.NewServeMux(),
@@ -76,7 +76,7 @@ func (s *Server) StartAsync() {
 func StartAgent(c Config) {
 	once.Do(func() {
 		if c.Enabled {
-			s := NewServer(&c)
+			s := NewServer(c)
 			s.StartAsync()
 		}
 	})
