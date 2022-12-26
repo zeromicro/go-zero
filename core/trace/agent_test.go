@@ -13,7 +13,6 @@ func TestStartAgent(t *testing.T) {
 	const (
 		endpoint1 = "localhost:1234"
 		endpoint2 = "remotehost:1234"
-		endpoint3 = "localhost:1235"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -30,12 +29,12 @@ func TestStartAgent(t *testing.T) {
 	}
 	c4 := Config{
 		Name:     "bla",
-		Endpoint: endpoint3,
+		Endpoint: endpoint1,
 		Batcher:  "otlp",
 	}
 	c5 := Config{
 		Name:     "grpc",
-		Endpoint: endpoint3,
+		Endpoint: endpoint1,
 		Batcher:  "grpc",
 	}
 
@@ -50,7 +49,7 @@ func TestStartAgent(t *testing.T) {
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 3, len(agents))
+	assert.Equal(t, 2, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
