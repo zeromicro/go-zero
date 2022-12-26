@@ -139,7 +139,7 @@ func (p *Publisher) keepAliveAsync(cli internal.EtcdClient) error {
 				p.revoke(cli)
 				select {
 				case <-p.resumeChan:
-					if err := p.KeepAlive(); err != nil {
+					if err := p.doKeepAlive(); err != nil {
 						logx.Errorf("etcd publisher KeepAlive: %s", err.Error())
 					}
 					return
@@ -199,4 +199,3 @@ func WithPubEtcdTLS(certFile, certKeyFile, caFile string, insecureSkipVerify boo
 		logx.Must(RegisterTLS(pub.endpoints, certFile, certKeyFile, caFile, insecureSkipVerify))
 	}
 }
-
