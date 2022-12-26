@@ -6,7 +6,7 @@ import "sync"
 type Ring struct {
 	elements []interface{}
 	index    int
-	lock     sync.Mutex
+	lock     sync.RWMutex
 }
 
 // NewRing returns a Ring object with the given size n.
@@ -31,8 +31,8 @@ func (r *Ring) Add(v interface{}) {
 
 // Take takes all items from r.
 func (r *Ring) Take() []interface{} {
-	r.lock.Lock()
-	defer r.lock.Unlock()
+	r.lock.RLock()
+	defer r.lock.RUnlock()
 
 	var size int
 	var start int
