@@ -13,8 +13,6 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-const distanceBetweenUpperAndLower = 32
-
 var loaders = map[string]func([]byte, interface{}) error{
 	".json": LoadFromJsonBytes,
 	".toml": LoadFromTomlBytes,
@@ -66,9 +64,9 @@ func LoadFromJsonBytes(content []byte, v interface{}) error {
 	}
 
 	finfo := buildFieldsInfo(reflect.TypeOf(v))
-	camelCaseKeyMap := toCamelCaseKeyMap(m, finfo)
+	lowerCaseKeyMap := toLowerCaseKeyMap(m, finfo)
 
-	return mapping.UnmarshalJsonMap(camelCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toCamelCase))
+	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -129,7 +127,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
 		name := field.Name
-		ccName := toCamelCase(name)
+		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
 
 		// flatten anonymous fields
@@ -140,7 +138,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 					info[k] = v
 				}
 			} else {
-				info[ccName] = fieldInfo{
+				info[lowerCaseName] = fieldInfo{
 					name: name,
 					kind: ft.Kind(),
 				}
@@ -158,7 +156,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 			fields = buildFieldsInfo(ft.Elem())
 		}
 
-		info[ccName] = fieldInfo{
+		info[lowerCaseName] = fieldInfo{
 			name:     name,
 			kind:     ft.Kind(),
 			children: fields,
@@ -168,58 +166,18 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 	return info
 }
 
-func toCamelCase(s string) string {
-	var buf strings.Builder
-	buf.Grow(len(s))
-	var capNext bool
-	boundary := true
-	for _, v := range s {
-		isCap := v >= 'A' && v <= 'Z'
-		isLow := v >= 'a' && v <= 'z'
-		if boundary && (isCap || isLow) {
-			if capNext {
-				if isLow {
-					v -= distanceBetweenUpperAndLower
-				}
-			} else {
-				if isCap {
-					v += distanceBetweenUpperAndLower
-				}
-			}
-			boundary = false
-		}
-		if isCap || isLow {
-			buf.WriteRune(v)
-			capNext = false
-			continue
-		}
-
-		switch v {
-		// '.' is used for chained keys, e.g. "grand.parent.child"
-		case ' ', '.', '\t':
-			buf.WriteRune(v)
-			capNext = false
-			boundary = true
-		case '_':
-			capNext = true
-			boundary = true
-		default:
-			buf.WriteRune(v)
-			capNext = true
-		}
-	}
-
-	return buf.String()
+func toLowerCase(s string) string {
+	return strings.ToLower(s)
 }
 
-func toCamelCaseInterface(v interface{}, info map[string]fieldInfo) interface{} {
+func toLowerCaseInterface(v interface{}, info map[string]fieldInfo) interface{} {
 	switch vv := v.(type) {
 	case map[string]interface{}:
-		return toCamelCaseKeyMap(vv, info)
+		return toLowerCaseKeyMap(vv, info)
 	case []interface{}:
 		var arr []interface{}
 		for _, vvv := range vv {
-			arr = append(arr, toCamelCaseInterface(vvv, info))
+			arr = append(arr, toLowerCaseInterface(vvv, info))
 		}
 		return arr
 	default:
@@ -227,19 +185,19 @@ func toCamelCaseInterface(v interface{}, info map[string]fieldInfo) interface{} 
 	}
 }
 
-func toCamelCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[string]interface{} {
+func toLowerCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[string]interface{} {
 	res := make(map[string]interface{})
 
 	for k, v := range m {
 		ti, ok := info[k]
 		if ok {
-			res[k] = toCamelCaseInterface(v, ti.children)
+			res[k] = toLowerCaseInterface(v, ti.children)
 			continue
 		}
 
-		cck := toCamelCase(k)
-		if ti, ok = info[cck]; ok {
-			res[toCamelCase(k)] = toCamelCaseInterface(v, ti.children)
+		lk := toLowerCase(k)
+		if ti, ok = info[lk]; ok {
+			res[lk] = toLowerCaseInterface(v, ti.children)
 		} else {
 			res[k] = v
 		}

@@ -237,23 +237,23 @@ func TestToCamelCase(t *testing.T) {
 		},
 		{
 			input:  "hello_world",
-			expect: "helloWorld",
+			expect: "hello_world",
 		},
 		{
 			input:  "Hello_world",
-			expect: "helloWorld",
+			expect: "hello_world",
 		},
 		{
 			input:  "hello_World",
-			expect: "helloWorld",
+			expect: "hello_world",
 		},
 		{
 			input:  "helloWorld",
-			expect: "helloWorld",
+			expect: "helloworld",
 		},
 		{
 			input:  "HelloWorld",
-			expect: "helloWorld",
+			expect: "helloworld",
 		},
 		{
 			input:  "hello World",
@@ -269,34 +269,34 @@ func TestToCamelCase(t *testing.T) {
 		},
 		{
 			input:  "Hello World foo_bar",
-			expect: "hello world fooBar",
+			expect: "hello world foo_bar",
 		},
 		{
 			input:  "Hello World foo_Bar",
-			expect: "hello world fooBar",
+			expect: "hello world foo_bar",
 		},
 		{
 			input:  "Hello World Foo_bar",
-			expect: "hello world fooBar",
+			expect: "hello world foo_bar",
 		},
 		{
 			input:  "Hello World Foo_Bar",
-			expect: "hello world fooBar",
+			expect: "hello world foo_bar",
 		},
 		{
 			input:  "Hello.World Foo_Bar",
-			expect: "hello.world fooBar",
+			expect: "hello.world foo_bar",
 		},
 		{
 			input:  "你好 World Foo_Bar",
-			expect: "你好 world fooBar",
+			expect: "你好 world foo_bar",
 		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.input, func(t *testing.T) {
-			assert.Equal(t, test.expect, toCamelCase(test.input))
+			assert.Equal(t, test.expect, toLowerCase(test.input))
 		})
 	}
 }
@@ -324,6 +324,22 @@ func TestLoadFromYamlBytes(t *testing.T) {
 		Layer1 struct {
 			Layer2 struct {
 				Layer3 string
+			}
+		}
+	}
+
+	assert.NoError(t, LoadFromYamlBytes(input, &val))
+	assert.Equal(t, "foo", val.Layer1.Layer2.Layer3)
+}
+
+func TestLoadFromYamlBytesTerm(t *testing.T) {
+	input := []byte(`layer1:
+  layer2:
+    tls_conf: foo`)
+	var val struct {
+		Layer1 struct {
+			Layer2 struct {
+				Layer3 string `json:"tls_conf"`
 			}
 		}
 	}
