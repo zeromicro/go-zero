@@ -13,8 +13,6 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-const distanceBetweenUpperAndLower = 32
-
 var loaders = map[string]func([]byte, interface{}) error{
 	".json": LoadFromJsonBytes,
 	".toml": LoadFromTomlBytes,
