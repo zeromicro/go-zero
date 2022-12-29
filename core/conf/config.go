@@ -127,7 +127,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
 		name := field.Name
-		ccName := toLowerCase(name)
+		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
 
 		// flatten anonymous fields
@@ -138,7 +138,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 					info[k] = v
 				}
 			} else {
-				info[ccName] = fieldInfo{
+				info[lowerCaseName] = fieldInfo{
 					name: name,
 					kind: ft.Kind(),
 				}
@@ -156,7 +156,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 			fields = buildFieldsInfo(ft.Elem())
 		}
 
-		info[ccName] = fieldInfo{
+		info[lowerCaseName] = fieldInfo{
 			name:     name,
 			kind:     ft.Kind(),
 			children: fields,
@@ -195,9 +195,9 @@ func toLowerCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[
 			continue
 		}
 
-		cck := toLowerCase(k)
-		if ti, ok = info[cck]; ok {
-			res[toLowerCase(k)] = toLowerCaseInterface(v, ti.children)
+		lk := toLowerCase(k)
+		if ti, ok = info[lk]; ok {
+			res[lk] = toLowerCaseInterface(v, ti.children)
 		} else {
 			res[k] = v
 		}
