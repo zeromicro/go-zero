@@ -1,3 +1,16 @@
+## v0.1.4 (2022-12-30)
+
+## v0.1.4-beta (2022-12-18)
+
+### Bugs fixed:
+
+- migrate version bug and search key num bug([`2e4e955`](https://github.com/suyuan32/simple-admin-tools/commit/2e4e955a27f94ab7d84e1012e270f47a8428d5fd)) (by Ryan SU)
+- only generate makefile and dockerfile when we create new api([`f5b7a26`](https://github.com/suyuan32/simple-admin-tools/commit/f5b7a2656312773816b48282916b2055d0c14345)) (by Ryan SU)
+- etc template([`a771bf8`](https://github.com/suyuan32/simple-admin-tools/commit/a771bf817527fd5e3b36d95bfa8755cb3d92da37)) (by Ryan SU)
+- makefile transErr and service context template([`d9570cd`](https://github.com/suyuan32/simple-admin-tools/commit/d9570cdeb502ccbe428e5e388d8f612b4b2437b7)) (by Ryan SU)
+- service context and ent format([`b9f1883`](https://github.com/suyuan32/simple-admin-tools/commit/b9f1883a2452a7013c0a48f09febd8d739c7d35d)) (by Ryan SU)
+- pagination template bug([`044cae8`](https://github.com/suyuan32/simple-admin-tools/commit/044cae8ecb56c1f51ec432ced8c704d2bbdf63dc)) (by Ryan SU)
+
 ## v0.1.3 (2022-12-15)
 
 ### New feature:
