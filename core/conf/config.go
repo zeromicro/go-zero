@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/jsonx"
@@ -12,13 +13,17 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-const distanceBetweenUpperAndLower = 32
-
 var loaders = map[string]func([]byte, interface{}) error{
 	".json": LoadFromJsonBytes,
 	".toml": LoadFromTomlBytes,
 	".yaml": LoadFromYamlBytes,
 	".yml":  LoadFromYamlBytes,
+}
+
+type fieldInfo struct {
+	name     string
+	kind     reflect.Kind
+	children map[string]fieldInfo
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -58,7 +63,10 @@ func LoadFromJsonBytes(content []byte, v interface{}) error {
 		return err
 	}
 
-	return mapping.UnmarshalJsonMap(toCamelCaseKeyMap(m), v, mapping.WithCanonicalKeyFunc(toCamelCase))
+	finfo := buildFieldsInfo(reflect.TypeOf(v))
+	lowerCaseKeyMap := toLowerCaseKeyMap(m, finfo)
+
+	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
 }
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
@@ -100,53 +108,76 @@ func MustLoad(path string, v interface{}, opts ...Option) {
 	}
 }
 
-func toCamelCase(s string) string {
-	var buf strings.Builder
-	buf.Grow(len(s))
-	var capNext bool
-	boundary := true
-	for _, v := range s {
-		isCap := v >= 'A' && v <= 'Z'
-		isLow := v >= 'a' && v <= 'z'
-		if boundary && (isCap || isLow) {
-			if capNext {
-				if isLow {
-					v -= distanceBetweenUpperAndLower
+func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+	tp = mapping.Deref(tp)
+
+	switch tp.Kind() {
+	case reflect.Struct:
+		return buildStructFieldsInfo(tp)
+	case reflect.Array, reflect.Slice:
+		return buildFieldsInfo(mapping.Deref(tp.Elem()))
+	default:
+		return nil
+	}
+}
+
+func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+	info := make(map[string]fieldInfo)
+
+	for i := 0; i < tp.NumField(); i++ {
+		field := tp.Field(i)
+		name := field.Name
+		lowerCaseName := toLowerCase(name)
+		ft := mapping.Deref(field.Type)
+
+		// flatten anonymous fields
+		if field.Anonymous {
+			if ft.Kind() == reflect.Struct {
+				fields := buildFieldsInfo(ft)
+				for k, v := range fields {
+					info[k] = v
 				}
 			} else {
-				if isCap {
-					v += distanceBetweenUpperAndLower
+				info[lowerCaseName] = fieldInfo{
+					name: name,
+					kind: ft.Kind(),
 				}
 			}
-			boundary = false
+			continue
 		}
-		if isCap || isLow {
-			buf.WriteRune(v)
-			capNext = false
-		} else if v == ' ' || v == '\t' {
-			buf.WriteRune(v)
-			capNext = false
-			boundary = true
-		} else if v == '_' {
-			capNext = true
-			boundary = true
-		} else {
-			buf.WriteRune(v)
-			capNext = true
+
+		var fields map[string]fieldInfo
+		switch ft.Kind() {
+		case reflect.Struct:
+			fields = buildFieldsInfo(ft)
+		case reflect.Array, reflect.Slice:
+			fields = buildFieldsInfo(ft.Elem())
+		case reflect.Map:
+			fields = buildFieldsInfo(ft.Elem())
+		}
+
+		info[lowerCaseName] = fieldInfo{
+			name:     name,
+			kind:     ft.Kind(),
+			children: fields,
 		}
 	}
 
-	return buf.String()
+	return info
 }
 
-func toCamelCaseInterface(v interface{}) interface{} {
+func toLowerCase(s string) string {
+	return strings.ToLower(s)
+}
+
+func toLowerCaseInterface(v interface{}, info map[string]fieldInfo) interface{} {
 	switch vv := v.(type) {
 	case map[string]interface{}:
-		return toCamelCaseKeyMap(vv)
+		return toLowerCaseKeyMap(vv, info)
 	case []interface{}:
 		var arr []interface{}
 		for _, vvv := range vv {
-			arr = append(arr, toCamelCaseInterface(vvv))
+			arr = append(arr, toLowerCaseInterface(vvv, info))
 		}
 		return arr
 	default:
@@ -154,10 +185,22 @@ func toCamelCaseInterface(v interface{}) interface{} {
 	}
 }
 
-func toCamelCaseKeyMap(m map[string]interface{}) map[string]interface{} {
+func toLowerCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[string]interface{} {
 	res := make(map[string]interface{})
+
 	for k, v := range m {
-		res[toCamelCase(k)] = toCamelCaseInterface(v)
+		ti, ok := info[k]
+		if ok {
+			res[k] = toLowerCaseInterface(v, ti.children)
+			continue
+		}
+
+		lk := toLowerCase(k)
+		if ti, ok = info[lk]; ok {
+			res[lk] = toLowerCaseInterface(v, ti.children)
+		} else {
+			res[k] = v
+		}
 	}
 
 	return res

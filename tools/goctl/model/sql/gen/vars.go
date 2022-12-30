@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/zeromicro/go-zero/core/collection"
@@ -43,7 +44,9 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 					set.AddStr(fmt.Sprintf("\"`%s`\"", c))
 				}
 			}
-			return strings.Join(set.KeysStr(), ", ")
+			list := set.KeysStr()
+			sort.Strings(list)
+			return strings.Join(list, ", ")
 		}(),
 	})
 	if err != nil {
