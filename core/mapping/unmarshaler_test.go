@@ -212,6 +212,24 @@ func TestUnmarshalIntPtr(t *testing.T) {
 	assert.Equal(t, 1, *in.Int)
 }
 
+func TestUnmarshalIntSliceOfPtr(t *testing.T) {
+	type inner struct {
+		Ints []*int `key:"ints"`
+	}
+	m := map[string]interface{}{
+		"ints": []int{1, 2, 3},
+	}
+
+	var in inner
+	assert.NoError(t, UnmarshalKey(m, &in))
+	assert.NotEmpty(t, in.Ints)
+	var ints []int
+	for _, i := range in.Ints {
+		ints = append(ints, *i)
+	}
+	assert.EqualValues(t, []int{1, 2, 3}, ints)
+}
+
 func TestUnmarshalIntWithDefault(t *testing.T) {
 	type inner struct {
 		Int int `key:"int,default=5"`
@@ -3665,6 +3683,7 @@ func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
 			Name         string `json:"name"`
 			ActualAmount int    `json:"actual_amount"`
 		}
+
 		OrderApplyRefundReq struct {
 			OrderId       string            `json:"order_id"`
 			RefundReason  RefundReasonData  `json:"refund_reason,optional"`
@@ -3674,6 +3693,130 @@ func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
 
 	var req OrderApplyRefundReq
 	assert.NoError(t, UnmarshalJsonBytes(input, &req))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldOptional(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int `json:",optional"`
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadTag(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int `json:",optional=123"`
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadValue(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": "3"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadTagInStruct(t *testing.T) {
+	type (
+		InnerConf struct {
+			Name string `json:",optional=123"`
+		}
+
+		Conf struct {
+			InnerConf `json:",optional"`
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldNotInOptions(t *testing.T) {
+	type (
+		InnerConf struct {
+			Name string `json:",options=[a,b]"`
+		}
+
+		Conf struct {
+			InnerConf `json:",optional"`
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
 }
 
 func BenchmarkDefaultValue(b *testing.B) {
