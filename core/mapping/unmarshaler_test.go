@@ -26,6 +26,13 @@ func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
 	assert.Equal(t, errValueNotStruct, err)
 }
 
+func TestUnmarshalValueNotSettable(t *testing.T) {
+	var s map[string]interface{}
+	content := []byte(`{"name":"xiaoming"}`)
+	err := UnmarshalJsonBytes(content, s)
+	assert.Equal(t, errValueNotSettable, err)
+}
+
 func TestUnmarshalWithoutTagName(t *testing.T) {
 	type inner struct {
 		Optional bool `key:",optional"`
