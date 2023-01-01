@@ -122,7 +122,7 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 	return func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
-			httpx.Error(w, err)
+			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
 
@@ -134,12 +134,12 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 		handler := internal.NewEventHandler(w, resolver)
 		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
-			httpx.Error(w, err)
+			httpx.ErrorCtx(r.Context(), w, err)
 		}
 
 		st := handler.Status
 		if st.Code() != codes.OK {
-			httpx.Error(w, st.Err())
+			httpx.ErrorCtx(r.Context(), w, st.Err())
 		}
 	}
 }

@@ -23,7 +23,14 @@ func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
 	var s map[string]interface{}
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, &s)
-	assert.Equal(t, errValueNotStruct, err)
+	assert.Equal(t, errTypeMismatch, err)
+}
+
+func TestUnmarshalValueNotSettable(t *testing.T) {
+	var s map[string]interface{}
+	content := []byte(`{"name":"xiaoming"}`)
+	err := UnmarshalJsonBytes(content, s)
+	assert.Equal(t, errValueNotSettable, err)
 }
 
 func TestUnmarshalWithoutTagName(t *testing.T) {
@@ -210,6 +217,24 @@ func TestUnmarshalIntPtr(t *testing.T) {
 	assert.Nil(t, UnmarshalKey(m, &in))
 	assert.NotNil(t, in.Int)
 	assert.Equal(t, 1, *in.Int)
+}
+
+func TestUnmarshalIntSliceOfPtr(t *testing.T) {
+	type inner struct {
+		Ints []*int `key:"ints"`
+	}
+	m := map[string]interface{}{
+		"ints": []int{1, 2, 3},
+	}
+
+	var in inner
+	assert.NoError(t, UnmarshalKey(m, &in))
+	assert.NotEmpty(t, in.Ints)
+	var ints []int
+	for _, i := range in.Ints {
+		ints = append(ints, *i)
+	}
+	assert.EqualValues(t, []int{1, 2, 3}, ints)
 }
 
 func TestUnmarshalIntWithDefault(t *testing.T) {
@@ -3561,6 +3586,244 @@ func TestGoogleUUID(t *testing.T) {
 	}, &val))
 	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c1", val.Uid.String())
 	assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
+}
+
+func TestUnmarshalJsonReaderWithTypeMismatchBool(t *testing.T) {
+	var req struct {
+		Params map[string]bool `json:"params"`
+	}
+	body := `{"params":{"a":"123"}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithTypeMismatchString(t *testing.T) {
+	var req struct {
+		Params map[string]string `json:"params"`
+	}
+	body := `{"params":{"a":{"a":123}}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithMismatchType(t *testing.T) {
+	type Req struct {
+		Params map[string]string `json:"params"`
+	}
+
+	var req Req
+	body := `{"params":{"a":{"a":123}}}`
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+}
+
+func TestUnmarshalJsonReaderWithMismatchTypeBool(t *testing.T) {
+	type Req struct {
+		Params map[string]bool `json:"params"`
+	}
+
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "int",
+			input: `{"params":{"a":123}}`,
+		},
+		{
+			name:  "int",
+			input: `{"params":{"a":"123"}}`,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			var req Req
+			assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(test.input), &req))
+		})
+	}
+}
+
+func TestUnmarshalJsonReaderWithMismatchTypeBoolMap(t *testing.T) {
+	var req struct {
+		Params map[string]string `json:"params"`
+	}
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonMap(map[string]interface{}{
+		"params": map[string]interface{}{
+			"a": true,
+		},
+	}, &req))
+}
+
+func TestUnmarshalJsonBytesSliceOfMaps(t *testing.T) {
+	input := []byte(`{
+  "order_id": "1234567",
+  "refund_reason": {
+    "reason_code": [
+      123,
+      234
+    ],
+    "desc": "not wanted",
+    "show_reason": [
+      {
+        "123": "not enough",
+        "234": "closed"
+      }
+    ]
+  },
+  "product_detail": {
+    "product_id": "123",
+    "sku_id": "123",
+    "name": "cake",
+    "actual_amount": 100
+  }
+}`)
+
+	type (
+		RefundReasonData struct {
+			ReasonCode []int               `json:"reason_code"`
+			Desc       string              `json:"desc"`
+			ShowReason []map[string]string `json:"show_reason"`
+		}
+
+		ProductDetailData struct {
+			ProductId    string `json:"product_id"`
+			SkuId        string `json:"sku_id"`
+			Name         string `json:"name"`
+			ActualAmount int    `json:"actual_amount"`
+		}
+
+		OrderApplyRefundReq struct {
+			OrderId       string            `json:"order_id"`
+			RefundReason  RefundReasonData  `json:"refund_reason,optional"`
+			ProductDetail ProductDetailData `json:"product_detail,optional"`
+		}
+	)
+
+	var req OrderApplyRefundReq
+	assert.NoError(t, UnmarshalJsonBytes(input, &req))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldOptional(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int `json:",optional"`
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.NoError(t, UnmarshalJsonBytes(input, &c))
+	assert.Equal(t, "hello", c.Name)
+	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadTag(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int `json:",optional=123"`
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": 3}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadValue(t *testing.T) {
+	type (
+		Int int
+
+		InnerConf struct {
+			Name string
+		}
+
+		Conf struct {
+			Int
+			InnerConf
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello", "Int": "3"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldBadTagInStruct(t *testing.T) {
+	type (
+		InnerConf struct {
+			Name string `json:",optional=123"`
+		}
+
+		Conf struct {
+			InnerConf `json:",optional"`
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
+}
+
+func TestUnmarshalJsonBytesWithAnonymousFieldNotInOptions(t *testing.T) {
+	type (
+		InnerConf struct {
+			Name string `json:",options=[a,b]"`
+		}
+
+		Conf struct {
+			InnerConf `json:",optional"`
+		}
+	)
+
+	var (
+		input = []byte(`{"Name": "hello"}`)
+		c     Conf
+	)
+	assert.Error(t, UnmarshalJsonBytes(input, &c))
 }
 
 func BenchmarkDefaultValue(b *testing.B) {

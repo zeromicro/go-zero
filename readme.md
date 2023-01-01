@@ -111,7 +111,7 @@ go install github.com/zeromicro/go-zero/tools/goctl@latest
 ```
 
 ```shell
-goctl migrate —verbose —version v1.4.0
+goctl migrate —verbose —version v1.4.3
 ```
 
 ##  Quick Start
@@ -269,8 +269,6 @@ go-zero enlisted in the [CNCF Cloud Native Landscape](https://landscape.cncf.io/
 ## Give a Star! ⭐
 
 If you like or are using this project to learn or start your solution, please give it a star. Thanks!
-
-[![Star History Chart](https://api.star-history.com/svg?repos=zeromicro/go-zero&type=Date)](#go-zero)
 
 ## Buy me a coffee
 

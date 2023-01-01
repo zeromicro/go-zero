@@ -223,6 +223,22 @@ func TestParseJsonBody(t *testing.T) {
 		assert.Equal(t, "", v.Name)
 		assert.Equal(t, 0, v.Age)
 	})
+
+	t.Run("array body", func(t *testing.T) {
+		var v []struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		body := `[{"name":"kevin", "age": 18}]`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		assert.NoError(t, ParseJsonBody(r, &v))
+		assert.Equal(t, 1, len(v))
+		assert.Equal(t, "kevin", v[0].Name)
+		assert.Equal(t, 18, v[0].Age)
+	})
 }
 
 func TestParseRequired(t *testing.T) {
