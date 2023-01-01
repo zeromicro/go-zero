@@ -71,8 +71,29 @@ func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 }
 
 // Unmarshal unmarshals m into v.
-func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
-	return u.UnmarshalValuer(mapValuer(m), v)
+func (u *Unmarshaler) Unmarshal(i interface{}, v interface{}) error {
+	valueType := reflect.TypeOf(v)
+	if valueType.Kind() != reflect.Ptr {
+		return errValueNotSettable
+	}
+
+	elemType := valueType.Elem()
+	switch iv := i.(type) {
+	case map[string]interface{}:
+		if elemType.Kind() != reflect.Struct {
+			return errTypeMismatch
+		}
+
+		return u.UnmarshalValuer(mapValuer(iv), v)
+	case []interface{}:
+		if elemType.Kind() != reflect.Slice {
+			return errTypeMismatch
+		}
+
+		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv)
+	default:
+		return errUnsupportedType
+	}
 }
 
 // UnmarshalValuer unmarshals m into v.
