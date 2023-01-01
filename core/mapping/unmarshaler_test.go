@@ -23,7 +23,7 @@ func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
 	var s map[string]interface{}
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, &s)
-	assert.Equal(t, errValueNotStruct, err)
+	assert.Equal(t, errTypeMismatch, err)
 }
 
 func TestUnmarshalValueNotSettable(t *testing.T) {

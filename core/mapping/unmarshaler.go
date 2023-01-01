@@ -81,7 +81,7 @@ func (u *Unmarshaler) Unmarshal(i interface{}, v interface{}) error {
 	switch iv := i.(type) {
 	case map[string]interface{}:
 		if elemType.Kind() != reflect.Struct {
-			return errValueNotStruct
+			return errTypeMismatch
 		}
 
 		return u.UnmarshalValuer(mapValuer(iv), v)
