@@ -90,6 +90,25 @@ func (s *Server) Routes() []Route {
 	return routes
 }
 
+// ServeHTTP is for test purpose, allow developer to do a unit test with
+// all defined router without starting an HTTP Server.
+//
+// For example:
+//
+//	server := MustNewServer(...)
+//	server.addRoute(...) // router a
+//	server.addRoute(...) // router b
+//	server.addRoute(...) // router c
+//
+//	r, _ := http.NewRequest(...)
+//	w := httptest.NewRecorder(...)
+//	server.ServeHTTP(w, r)
+//	// verify the response
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.ngin.bindRoutes(s.router)
+	s.router.ServeHTTP(w, r)
+}
+
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
@@ -306,9 +325,4 @@ func newCorsRouter(router httpx.Router, headerFn func(http.Header), origins ...s
 
 func (c *corsRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.middleware(c.Router.ServeHTTP)(w, r)
-}
-
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.ngin.bindRoutes(s.router)
-	s.router.ServeHTTP(w, r)
 }
