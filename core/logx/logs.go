@@ -229,7 +229,11 @@ func SetUp(c LogConf) (err error) {
 	// Need to wait for the first caller to complete the execution.
 	setupOnce.Do(func() {
 		setupLogLevel(c)
-
+		
+        if (c.DisableStat){
+		   DisableStat()
+		}
+		
 		if len(c.TimeFormat) > 0 {
 			timeFormat = c.TimeFormat
 		}
