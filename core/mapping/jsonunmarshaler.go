@@ -34,7 +34,7 @@ func getJsonUnmarshaler(opts ...UnmarshalOption) *Unmarshaler {
 }
 
 func unmarshalJsonBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {
-	var m map[string]interface{}
+	var m interface{}
 	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func unmarshalJsonBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 }
 
 func unmarshalJsonReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
-	var m map[string]interface{}
+	var m interface{}
 	if err := jsonx.UnmarshalFromReader(reader, &m); err != nil {
 		return err
 	}
