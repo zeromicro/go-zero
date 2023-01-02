@@ -287,10 +287,9 @@ func (ng *engine) withTimeout() internal.StartOption {
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
 			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
-			// factor 0.9, to avoid clients not reading the response
-			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
-			// which triggers the circuit breaker.
-			svr.WriteTimeout = 9 * time.Duration(timeout) * time.Millisecond / 10
+			// factor 1.1, to avoid servers don't have enough time to write responses.
+			// setting the factor less than 1.0 may lead clients not receiving the responses.
+			svr.WriteTimeout = 11 * time.Duration(timeout) * time.Millisecond / 10
 		}
 	}
 }
