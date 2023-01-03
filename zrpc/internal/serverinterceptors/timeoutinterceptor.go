@@ -14,10 +14,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var methodTimeout sync.Map
+
+// SetTimeoutForFullMethod set the specified timeout for given method.
+func SetTimeoutForFullMethod(fullMethod string, timeout time.Duration) {
+	methodTimeout.Store(fullMethod, timeout)
+}
+
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
 func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (any, error) {
+		timeout = getTimeoutByUnaryServerInfo(info, timeout)
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
@@ -58,4 +66,20 @@ func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor 
 			return nil, err
 		}
 	}
+}
+
+func getTimeoutByUnaryServerInfo(info *grpc.UnaryServerInfo, defaultTimeout time.Duration) time.Duration {
+	if ts, ok := info.Server.(TimeoutStrategy); ok {
+		return ts.GetTimeoutByFullMethod(info.FullMethod, defaultTimeout)
+	} else if v, ok := methodTimeout.Load(info.FullMethod); ok {
+		if t, ok := v.(time.Duration); ok {
+			return t
+		}
+	}
+
+	return defaultTimeout
+}
+
+type TimeoutStrategy interface {
+	GetTimeoutByFullMethod(fullMethod string, defaultTimeout time.Duration) time.Duration
 }

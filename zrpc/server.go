@@ -3,6 +3,7 @@ package zrpc
 import (
 	"time"
 
+	"google.golang.org/grpc"
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
@@ -10,7 +11,6 @@ import (
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 // A RpcServer is a rpc server.
@@ -105,6 +105,11 @@ func DontLogContentForMethod(method string) {
 // Deprecated: use ServerMiddlewaresConf.SlowThreshold instead.
 func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
+}
+
+// SetTimeoutForFullMethod set the specified timeout for given method.
+func SetTimeoutForFullMethod(fullMethod string, timeout time.Duration) {
+	serverinterceptors.SetTimeoutForFullMethod(fullMethod, timeout)
 }
 
 func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
