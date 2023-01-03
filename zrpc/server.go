@@ -4,13 +4,14 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 // A RpcServer is a rpc server.
@@ -106,6 +107,11 @@ func DontLogContentForMethod(method string) {
 // SetServerSlowThreshold sets the slow threshold on server side.
 func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
+}
+
+// SetTimeoutForFullMethod set the specified timeout for given method.
+func SetTimeoutForFullMethod(fullMethod string, timeout time.Duration) {
+	serverinterceptors.SetTimeoutForFullMethod(fullMethod, timeout)
 }
 
 func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
