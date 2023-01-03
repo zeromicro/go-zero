@@ -4,10 +4,11 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -98,4 +99,9 @@ func DontLogClientContentForMethod(method string) {
 // SetClientSlowThreshold sets the slow threshold on client side.
 func SetClientSlowThreshold(threshold time.Duration) {
 	clientinterceptors.SetSlowThreshold(threshold)
+}
+
+// WithTimeoutCallOption return a call option with given timeout.
+func WithTimeoutCallOption(timeout time.Duration) grpc.CallOption {
+	return clientinterceptors.WithTimeoutCallOption(timeout)
 }
