@@ -794,11 +794,7 @@ func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 		Mode:  mode,
 		Level: "error",
 		Path:  "/dev/null",
-	})
-	SetUp(LogConf{
-		Mode:  mode,
-		Level: "info",
-		Path:  "/dev/null",
+		Stat:  false,
 	})
 	const message = "hello there"
 	Info(message)
