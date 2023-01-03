@@ -11,13 +11,13 @@ import (
 func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-		timeout = getTimeoutByCallOptions(opts, timeout)
+		t := getTimeoutByCallOptions(opts, timeout)
 
-		if timeout <= 0 {
+		if t <= 0 {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
 
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		ctx, cancel := context.WithTimeout(ctx, t)
 		defer cancel()
 
 		return invoker(ctx, method, req, reply, cc, opts...)
