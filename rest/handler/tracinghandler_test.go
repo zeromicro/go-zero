@@ -64,6 +64,7 @@ func TestDontTracingSpan(t *testing.T) {
 	defer ztrace.StopAgent()
 
 	DontTraceSpan("bar")
+	defer notTracingSpans.Delete("bar")
 
 	for _, test := range []string{"", "bar", "foo"} {
 		t.Run(test, func(t *testing.T) {
