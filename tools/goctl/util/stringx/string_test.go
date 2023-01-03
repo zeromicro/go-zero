@@ -32,7 +32,7 @@ func TestString_IsEmptyOrSpace(t *testing.T) {
 		},
 		{
 			input: "		",
-			want: true,
+			want:  true,
 		},
 	}
 	for _, v := range cases {
