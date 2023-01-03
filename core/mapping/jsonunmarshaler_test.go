@@ -856,8 +856,7 @@ func TestUnmarshalBytesError(t *testing.T) {
 	}
 
 	err := UnmarshalJsonBytes([]byte(payload), &v)
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), payload))
+	assert.Equal(t, errTypeMismatch, err)
 }
 
 func TestUnmarshalReaderError(t *testing.T) {
@@ -867,9 +866,7 @@ func TestUnmarshalReaderError(t *testing.T) {
 		Any string
 	}
 
-	err := UnmarshalJsonReader(reader, &v)
-	assert.NotNil(t, err)
-	assert.True(t, strings.Contains(err.Error(), payload))
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(reader, &v))
 }
 
 func TestUnmarshalMap(t *testing.T) {
@@ -919,4 +916,17 @@ func TestUnmarshalMap(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, "foo", v.Any)
 	})
+}
+
+func TestUnmarshalJsonArray(t *testing.T) {
+	var v []struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	body := `[{"name":"kevin", "age": 18}]`
+	assert.NoError(t, UnmarshalJsonBytes([]byte(body), &v))
+	assert.Equal(t, 1, len(v))
+	assert.Equal(t, "kevin", v[0].Name)
+	assert.Equal(t, 18, v[0].Age)
 }

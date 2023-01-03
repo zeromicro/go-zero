@@ -71,8 +71,29 @@ func UnmarshalKey(m map[string]interface{}, v interface{}) error {
 }
 
 // Unmarshal unmarshals m into v.
-func (u *Unmarshaler) Unmarshal(m map[string]interface{}, v interface{}) error {
-	return u.UnmarshalValuer(mapValuer(m), v)
+func (u *Unmarshaler) Unmarshal(i interface{}, v interface{}) error {
+	valueType := reflect.TypeOf(v)
+	if valueType.Kind() != reflect.Ptr {
+		return errValueNotSettable
+	}
+
+	elemType := valueType.Elem()
+	switch iv := i.(type) {
+	case map[string]interface{}:
+		if elemType.Kind() != reflect.Struct {
+			return errTypeMismatch
+		}
+
+		return u.UnmarshalValuer(mapValuer(iv), v)
+	case []interface{}:
+		if elemType.Kind() != reflect.Slice {
+			return errTypeMismatch
+		}
+
+		return u.fillSlice(elemType, reflect.ValueOf(v).Elem(), iv)
+	default:
+		return errUnsupportedType
+	}
 }
 
 // UnmarshalValuer unmarshals m into v.
@@ -376,19 +397,51 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 		return err
 	}
 
-	if _, hasValue := getValue(m, key); hasValue {
-		return fmt.Errorf("fields of %s can't be wrapped inside, because it's anonymous", key)
-	}
-
 	if options.optional() {
-		return u.processAnonymousFieldOptional(field.Type, value, key, m, fullName)
+		return u.processAnonymousFieldOptional(field, value, key, m, fullName)
 	}
 
-	return u.processAnonymousFieldRequired(field.Type, value, m, fullName)
+	return u.processAnonymousFieldRequired(field, value, m, fullName)
 }
 
-func (u *Unmarshaler) processAnonymousFieldOptional(fieldType reflect.Type, value reflect.Value,
+func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
 	key string, m valuerWithParent, fullName string) error {
+	derefedFieldType := Deref(field.Type)
+
+	switch derefedFieldType.Kind() {
+	case reflect.Struct:
+		return u.processAnonymousStructFieldOptional(field.Type, value, key, m, fullName)
+	default:
+		return u.processNamedField(field, value, m, fullName)
+	}
+}
+
+func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
+	m valuerWithParent, fullName string) error {
+	fieldType := field.Type
+	maybeNewValue(fieldType, value)
+	derefedFieldType := Deref(fieldType)
+	indirectValue := reflect.Indirect(value)
+
+	switch derefedFieldType.Kind() {
+	case reflect.Struct:
+		for i := 0; i < derefedFieldType.NumField(); i++ {
+			if err := u.processField(derefedFieldType.Field(i), indirectValue.Field(i),
+				m, fullName); err != nil {
+				return err
+			}
+		}
+	default:
+		if err := u.processNamedField(field, indirectValue, m, fullName); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type,
+	value reflect.Value, key string, m valuerWithParent, fullName string) error {
 	var filled bool
 	var required int
 	var requiredFilled int
@@ -423,21 +476,6 @@ func (u *Unmarshaler) processAnonymousFieldOptional(fieldType reflect.Type, valu
 
 	if filled && required != requiredFilled {
 		return fmt.Errorf("%s is not fully set", key)
-	}
-
-	return nil
-}
-
-func (u *Unmarshaler) processAnonymousFieldRequired(fieldType reflect.Type, value reflect.Value,
-	m valuerWithParent, fullName string) error {
-	maybeNewValue(fieldType, value)
-	derefedFieldType := Deref(fieldType)
-	indirectValue := reflect.Indirect(value)
-
-	for i := 0; i < derefedFieldType.NumField(); i++ {
-		if err := u.processField(derefedFieldType.Field(i), indirectValue.Field(i), m, fullName); err != nil {
-			return err
-		}
 	}
 
 	return nil

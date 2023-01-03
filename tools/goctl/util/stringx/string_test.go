@@ -92,19 +92,19 @@ func TestString_Camel2Snake(t *testing.T) {
 	}{
 		{
 			input: "goZero",
-			want: "go_zero",
+			want:  "go_zero",
 		},
 		{
 			input: "Gozero",
-			want: "gozero",
+			want:  "gozero",
 		},
 		{
 			input: "GoZero",
-			want: "go_zero",
+			want:  "go_zero",
 		},
 		{
 			input: "Go_Zero",
-			want: "go__zero",
+			want:  "go__zero",
 		},
 	}
 	for _, c := range cases {
