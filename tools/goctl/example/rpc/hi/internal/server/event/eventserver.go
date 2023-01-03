@@ -6,7 +6,7 @@ package server
 import (
 	"context"
 
-	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hi/internal/logic/event"
+	eventlogic "github.com/zeromicro/go-zero/tools/goctl/example/rpc/hi/internal/logic/event"
 	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hi/internal/svc"
 	"github.com/zeromicro/go-zero/tools/goctl/example/rpc/hi/pb/hi"
 )
