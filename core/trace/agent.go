@@ -10,6 +10,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -17,9 +18,10 @@ import (
 )
 
 const (
-	kindJaeger = "jaeger"
-	kindZipkin = "zipkin"
-	kindGrpc   = "grpc"
+	kindJaeger   = "jaeger"
+	kindZipkin   = "zipkin"
+	kindGrpc     = "grpc"
+	kindOtlpHttp = "otlphttp"
 )
 
 var (
@@ -68,6 +70,13 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 			context.Background(),
 			otlptracegrpc.WithInsecure(),
 			otlptracegrpc.WithEndpoint(c.Endpoint),
+		)
+	case kindOtlpHttp:
+		// Not support flexible configuration now.
+		return otlptracehttp.New(
+			context.Background(),
+			otlptracehttp.WithInsecure(),
+			otlptracehttp.WithEndpoint(c.Endpoint),
 		)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
