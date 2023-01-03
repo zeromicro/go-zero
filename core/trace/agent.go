@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/zeromicro/go-zero/core/lang"
-	"github.com/zeromicro/go-zero/core/logx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -14,7 +12,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"google.golang.org/grpc"
+
+	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 const (
@@ -60,11 +60,15 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindGrpc:
+		// Always treat trace exporter as optional component, so we use nonblock here,
+		// otherwise this would slow down app start up even set a dial timeout here when
+		// endpoint can not reach.
+		// If the connection not dial success, the global otel ErrorHandler will catch error
+		// when reporting data like other exporters.
 		return otlptracegrpc.New(
 			context.Background(),
 			otlptracegrpc.WithInsecure(),
 			otlptracegrpc.WithEndpoint(c.Endpoint),
-			otlptracegrpc.WithDialOption(grpc.WithBlock()),
 		)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
