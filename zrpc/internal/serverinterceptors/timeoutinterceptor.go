@@ -24,9 +24,9 @@ func SetTimeoutForFullMethod(fullMethod string, timeout time.Duration) {
 func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (interface{}, error) {
-		timeout = getTimeoutByUnaryServerInfo(info, timeout)
+		t := getTimeoutByUnaryServerInfo(info, timeout)
 
-		ctx, cancel := context.WithTimeout(ctx, timeout)
+		ctx, cancel := context.WithTimeout(ctx, t)
 		defer cancel()
 
 		var resp interface{}

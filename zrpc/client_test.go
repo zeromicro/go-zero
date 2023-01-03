@@ -42,32 +42,37 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 
 func TestDepositServer_Deposit(t *testing.T) {
 	tests := []struct {
-		name    string
-		amount  float32
-		res     *mock.DepositResponse
-		errCode codes.Code
-		errMsg  string
+		name              string
+		amount            float32
+		timeoutCallOption time.Duration
+		res               *mock.DepositResponse
+		errCode           codes.Code
+		errMsg            string
 	}{
 		{
-			"invalid request with negative amount",
-			-1.11,
-			nil,
-			codes.InvalidArgument,
-			fmt.Sprintf("cannot deposit %v", -1.11),
+			name:    "invalid request with negative amount",
+			amount:  -1.11,
+			errCode: codes.InvalidArgument,
+			errMsg:  fmt.Sprintf("cannot deposit %v", -1.11),
 		},
 		{
-			"valid request with non negative amount",
-			0.00,
-			&mock.DepositResponse{Ok: true},
-			codes.OK,
-			"",
+			name:    "valid request with non negative amount",
+			res:     &mock.DepositResponse{Ok: true},
+			errCode: codes.OK,
 		},
 		{
-			"valid request with long handling time",
-			2000.00,
-			nil,
-			codes.DeadlineExceeded,
-			"context deadline exceeded",
+			name:    "valid request with long handling time",
+			amount:  2000.00,
+			errCode: codes.DeadlineExceeded,
+			errMsg:  "context deadline exceeded",
+		},
+		{
+			name:              "valid request with timeout call option",
+			amount:            2000.00,
+			timeoutCallOption: time.Second * 3,
+			res:               &mock.DepositResponse{Ok: true},
+			errCode:           codes.OK,
+			errMsg:            "",
 		},
 	}
 
@@ -135,9 +140,22 @@ func TestDepositServer_Deposit(t *testing.T) {
 			client := client
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
+
 				cli := mock.NewDepositServiceClient(client.Conn())
 				request := &mock.DepositRequest{Amount: tt.amount}
-				response, err := cli.Deposit(context.Background(), request)
+
+				var (
+					ctx      = context.Background()
+					response *mock.DepositResponse
+					err      error
+				)
+
+				if tt.timeoutCallOption > 0 {
+					response, err = cli.Deposit(ctx, request, WithTimeoutCallOption(tt.timeoutCallOption))
+				} else {
+					response, err = cli.Deposit(ctx, request)
+				}
+
 				if response != nil {
 					assert.True(t, len(response.String()) > 0)
 					if response.GetOk() != tt.res.GetOk() {
@@ -156,85 +174,6 @@ func TestDepositServer_Deposit(t *testing.T) {
 				}
 			})
 		}
-	}
-}
-
-func TestDepositServer_WithTimeoutCallOption(t *testing.T) {
-	tests := []struct {
-		name              string
-		amount            float32
-		timeoutCallOption time.Duration
-		res               *mock.DepositResponse
-		errCode           codes.Code
-		errMsg            string
-	}{
-		{
-			name:    "timeout without timeout call option",
-			amount:  2000.00,
-			errCode: codes.DeadlineExceeded,
-			errMsg:  "context deadline exceeded",
-		},
-		{
-			name:              "do not timeout with timeout call option",
-			amount:            2000.00,
-			timeoutCallOption: time.Second * 3,
-			res:               &mock.DepositResponse{Ok: true},
-			errCode:           codes.OK,
-			errMsg:            "",
-		},
-	}
-
-	client := MustNewClient(
-		RpcClientConf{
-			Endpoints: []string{"foo"},
-			App:       "foo",
-			Token:     "bar",
-			Timeout:   1000,
-		},
-		WithDialOption(grpc.WithContextDialer(dialer())),
-		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
-			cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
-			return invoker(ctx, method, req, reply, cc, opts...)
-		}),
-	)
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			cli := mock.NewDepositServiceClient(client.Conn())
-			request := &mock.DepositRequest{Amount: tt.amount}
-
-			var (
-				ctx      = context.Background()
-				response *mock.DepositResponse
-				err      error
-			)
-
-			if tt.timeoutCallOption > 0 {
-				response, err = cli.Deposit(ctx, request, WithTimeoutCallOption(tt.timeoutCallOption))
-			} else {
-				response, err = cli.Deposit(ctx, request)
-			}
-
-			if response != nil {
-				assert.True(t, len(response.String()) > 0)
-				if response.GetOk() != tt.res.GetOk() {
-					t.Error("response: expected", tt.res.GetOk(), "received", response.GetOk())
-				}
-			}
-			if err != nil {
-				if e, ok := status.FromError(err); ok {
-					if e.Code() != tt.errCode {
-						t.Error("error code: expected", codes.InvalidArgument, "received", e.Code())
-					}
-					if e.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", e.Message())
-					}
-				}
-			}
-		})
 	}
 }
 
