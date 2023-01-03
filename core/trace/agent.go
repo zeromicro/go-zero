@@ -20,7 +20,7 @@ import (
 const (
 	kindJaeger   = "jaeger"
 	kindZipkin   = "zipkin"
-	kindGrpc     = "grpc"
+	kindOtlpGrpc = "otlpgrpc"
 	kindOtlpHttp = "otlphttp"
 )
 
@@ -60,7 +60,7 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
-	case kindGrpc:
+	case kindOtlpGrpc:
 		// Always treat trace exporter as optional component, so we use nonblock here,
 		// otherwise this would slow down app start up even set a dial timeout here when
 		// endpoint can not reach.

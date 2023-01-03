@@ -37,7 +37,7 @@ func TestStartAgent(t *testing.T) {
 	c5 := Config{
 		Name:     "grpc",
 		Endpoint: endpoint3,
-		Batcher:  kindGrpc,
+		Batcher:  kindOtlpGrpc,
 	}
 	c6 := Config{
 		Name:     "otlphttp",
