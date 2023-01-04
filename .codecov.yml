@@ -1,3 +1,6 @@
-comment: false
+comment:
+  layout: "flags, files"
+  behavior: once
+  require_changes: true
 ignore:
   - "tools"
