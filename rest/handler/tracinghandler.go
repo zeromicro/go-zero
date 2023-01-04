@@ -17,9 +17,7 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-const (
-	traceKeyStatusCode = "http.status_code"
-)
+const traceKeyStatusCode = "http.status_code"
 
 var notTracingSpans sync.Map
 
