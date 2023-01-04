@@ -104,7 +104,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			if trw.code >= http.StatusBadRequest {
 				span.SetStatus(codes.Error, http.StatusText(trw.code))
 			} else {
-				span.SetStatus(codes.Ok, "")
+				span.SetStatus(codes.Ok, http.StatusText(trw.code))
 			}
 		})
 	}
