@@ -30,9 +30,16 @@ func Inject(key string, client *mongo.Client) {
 	clientManager.Inject(key, &ClosableClient{client})
 }
 
-func getClient(url string) (*mongo.Client, error) {
+// getClient connect to mongoDB server and return client to server
+func getClient(url string, clientOpts ...*mopt.ClientOptions) (*mongo.Client, error) {
 	val, err := clientManager.GetResource(url, func() (io.Closer, error) {
-		cli, err := mongo.Connect(context.Background(), mopt.Client().ApplyURI(url))
+		opt := mopt.Client().ApplyURI(url)
+		if len(clientOpts) > 0 {
+			// If clientOpts and options from URL has conflict, let options from URL win.
+			opt = mopt.MergeClientOptions(clientOpts[0], opt)
+		}
+		cli, err := mongo.Connect(context.Background(), opt)
+
 		if err != nil {
 			return nil, err
 		}

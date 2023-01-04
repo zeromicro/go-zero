@@ -46,9 +46,19 @@ func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 	return model
 }
 
+// MustNewModelWithClientOption returns a Model with client options, exits on errors.
+func MustNewModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, opts ...Option) *Model {
+	model, err := NewModelWithClientOption(uri, db, collection, cOpts, opts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return model
+}
+
 // NewModel returns a Model.
 func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
-	cli, err := getClient(uri)
+	cli, err := getClient(uri, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +69,18 @@ func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
 	return newModel(name, cli, coll, brk, opts...), nil
 }
 
+// NewModelWithClientOption returns a Model with client options
+func NewModelWithClientOption(uri, db, collection string, cOpts *mopt.ClientOptions, opts ...Option) (*Model, error) {
+	cli, err := getClient(uri, cOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	name := strings.Join([]string{uri, collection}, "/")
+	brk := breaker.GetBreaker(uri)
+	coll := newCollection(cli.Database(db).Collection(collection), brk)
+	return newModel(name, cli, coll, brk, opts...), nil
+}
 func newModel(name string, cli *mongo.Client, coll Collection, brk breaker.Breaker,
 	opts ...Option) *Model {
 	return &Model{
