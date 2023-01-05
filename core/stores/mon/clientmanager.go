@@ -37,7 +37,7 @@ func getClient(url string, opts ...Option) (*mongo.Client, error) {
 			opt(o)
 		}
 
-		cli, err := mongo.Connect(context.Background(), append(o.mgoOptions(), mopt.Client().ApplyURI(url))...)
+		cli, err := mongo.Connect(context.Background(), mopt.Client().ApplyURI(url), o)
 		if err != nil {
 			return nil, err
 		}

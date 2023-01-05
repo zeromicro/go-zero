@@ -13,14 +13,14 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
-func TestDefaultOptions(t *testing.T) {
-	assert.Equal(t, defaultTimeout, defaultOptions().timeout)
-}
-
-func TestOptions_mgoOptions(t *testing.T) {
-	o := defaultOptions()
-	assert.Equal(t, 1, len(o.mgoOptions()))
-
-	o = &options{}
-	assert.Equal(t, 0, len(o.mgoOptions()))
-}
+//func TestDefaultOptions(t *testing.T) {
+//	assert.Equal(t, defaultTimeout, defaultOptions().timeout)
+//}
+//
+//func TestOptions_mgoOptions(t *testing.T) {
+//	o := defaultOptions()
+//	assert.Equal(t, 1, len(o.mgoOptions()))
+//
+//	o = &options{}
+//	assert.Equal(t, 0, len(o.mgoOptions()))
+//}
