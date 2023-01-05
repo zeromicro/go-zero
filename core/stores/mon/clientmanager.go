@@ -30,9 +30,14 @@ func Inject(key string, client *mongo.Client) {
 	clientManager.Inject(key, &ClosableClient{client})
 }
 
-func getClient(url string) (*mongo.Client, error) {
+func getClient(url string, opts ...Option) (*mongo.Client, error) {
 	val, err := clientManager.GetResource(url, func() (io.Closer, error) {
-		cli, err := mongo.Connect(context.Background(), mopt.Client().ApplyURI(url))
+		o := &options{}
+		for _, opt := range opts {
+			opt(o)
+		}
+
+		cli, err := mongo.Connect(context.Background(), append(o.mgoOptions(), mopt.Client().ApplyURI(url))...)
 		if err != nil {
 			return nil, err
 		}

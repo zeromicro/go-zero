@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
+	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
@@ -26,4 +27,19 @@ func defaultOptions() *options {
 	return &options{
 		timeout: defaultTimeout,
 	}
+}
+
+// WithTimeout sets the timeout for the mongo client.
+func WithTimeout(timeout time.Duration) Option {
+	return func(opts *options) {
+		opts.timeout = timeout
+	}
+}
+
+func (opts *options) mgoOptions() []*mopt.ClientOptions {
+	var mOpts []*mopt.ClientOptions
+	if opts.timeout > 0 {
+		mOpts = append(mOpts, mopt.Client().SetTimeout(opts.timeout))
+	}
+	return mOpts
 }
