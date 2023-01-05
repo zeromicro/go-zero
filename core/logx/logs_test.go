@@ -529,9 +529,9 @@ func TestSetLevel(t *testing.T) {
 
 func TestSetLevelTwiceWithMode(t *testing.T) {
 	testModes := []string{
-		"mode",
 		"console",
 		"volumn",
+		"mode",
 	}
 	w := new(mockWriter)
 	old := writer.Swap(w)
@@ -791,9 +791,12 @@ func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...interfa
 func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 	writer.Store(nil)
 	SetUp(LogConf{
-		Mode:  mode,
-		Level: "error",
-		Path:  "/dev/null",
+		Mode:       mode,
+		Level:      "debug",
+		Path:       "/dev/null",
+		Encoding:   plainEncoding,
+		Stat:       false,
+		TimeFormat: time.RFC3339,
 	})
 	SetUp(LogConf{
 		Mode:  mode,

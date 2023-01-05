@@ -2,6 +2,7 @@ package spec_test
 
 import (
 	"fmt"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
 
