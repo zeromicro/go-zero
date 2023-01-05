@@ -48,7 +48,7 @@ func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 
 // NewModel returns a Model.
 func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
-	cli, err := getClient(uri)
+	cli, err := getClient(uri, opts...)
 	if err != nil {
 		return nil, err
 	}
