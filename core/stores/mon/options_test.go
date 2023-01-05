@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func TestSetSlowThreshold(t *testing.T) {
@@ -13,14 +14,8 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
-//func TestDefaultOptions(t *testing.T) {
-//	assert.Equal(t, defaultTimeout, defaultOptions().timeout)
-//}
-//
-//func TestOptions_mgoOptions(t *testing.T) {
-//	o := defaultOptions()
-//	assert.Equal(t, 1, len(o.mgoOptions()))
-//
-//	o = &options{}
-//	assert.Equal(t, 0, len(o.mgoOptions()))
-//}
+func TestWithTimeout(t *testing.T) {
+	opts := mopt.Client()
+	WithTimeout(time.Second)(opts)
+	assert.Equal(t, time.Second, *opts.Timeout)
+}
