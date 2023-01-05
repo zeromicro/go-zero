@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptrace"
 	nurl "net/url"
 	"strings"
 
@@ -174,11 +173,6 @@ func request(r *http.Request, cli client) (*http.Response, error) {
 		var h internal.ResponseHandler
 		r, h = interceptor(r)
 		respHandlers[i] = h
-	}
-
-	clientTrace := httptrace.ContextClientTrace(ctx)
-	if clientTrace != nil {
-		ctx = httptrace.WithClientTrace(ctx, clientTrace)
 	}
 
 	r = r.WithContext(ctx)
