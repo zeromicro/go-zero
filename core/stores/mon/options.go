@@ -7,6 +7,8 @@ import (
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
+const defaultTimeout = time.Second * 3
+
 var slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
 
 type (
@@ -21,7 +23,13 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-// WithTimeout sets the timeout for the mongo client.
+func defaultTimeoutOption() Option {
+	return func(opts *options) {
+		opts.SetTimeout(defaultTimeout)
+	}
+}
+
+// WithTimeout set the mon client operation timeout.
 func WithTimeout(timeout time.Duration) Option {
 	return func(opts *options) {
 		opts.SetTimeout(timeout)

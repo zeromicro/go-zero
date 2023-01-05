@@ -30,11 +30,17 @@ func Inject(key string, client *mongo.Client) {
 func getClient(url string, opts ...Option) (*mongo.Client, error) {
 	val, err := clientManager.GetResource(url, func() (io.Closer, error) {
 		o := mopt.Client().ApplyURI(url)
+		opts = append([]Option{defaultTimeoutOption()}, opts...)
 		for _, opt := range opts {
 			opt(o)
 		}
 
 		cli, err := mongo.Connect(context.Background(), o)
+		if err != nil {
+			return nil, err
+		}
+
+		err = cli.Ping(context.Background(), nil)
 		if err != nil {
 			return nil, err
 		}

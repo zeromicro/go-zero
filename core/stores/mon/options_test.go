@@ -14,6 +14,12 @@ func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
+func Test_defaultTimeoutOption(t *testing.T) {
+	opts := mopt.Client()
+	defaultTimeoutOption()(opts)
+	assert.Equal(t, defaultTimeout, *opts.Timeout)
+}
+
 func TestWithTimeout(t *testing.T) {
 	opts := mopt.Client()
 	WithTimeout(time.Second)(opts)
