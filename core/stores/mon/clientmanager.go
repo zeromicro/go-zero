@@ -3,14 +3,11 @@ package mon
 import (
 	"context"
 	"io"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
 	"go.mongodb.org/mongo-driver/mongo"
 	mopt "go.mongodb.org/mongo-driver/mongo/options"
 )
-
-const defaultTimeout = time.Second
 
 var clientManager = syncx.NewResourceManager()
 
