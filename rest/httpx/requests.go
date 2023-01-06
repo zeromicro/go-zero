@@ -47,10 +47,7 @@ func Parse(r *http.Request, v interface{}) error {
 	}
 
 	if errMsg := xValidator.Validate(v, r.Header.Get("Accept-Language")); errMsg != "" {
-		return &errorx.ApiError{
-			Code: http.StatusBadRequest,
-			Msg:  errMsg,
-		}
+		return errorx.NewCodeInvalidArgumentError(errMsg)
 	}
 	return nil
 }
