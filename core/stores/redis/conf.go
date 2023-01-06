@@ -9,6 +9,8 @@ var (
 	ErrEmptyType = errors.New("empty redis type")
 	// ErrEmptyKey is an error that indicates no redis key is set.
 	ErrEmptyKey = errors.New("empty redis key")
+	// ErrDBNum is an error that indicates redis error db num is set.
+	ErrDBNum = errors.New("error redis db num")
 )
 
 type (
@@ -18,6 +20,7 @@ type (
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
 		Tls  bool   `json:",optional"`
+		DB   int    `json:",default=0"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -39,6 +42,7 @@ func (rc RedisConf) NewRedis() *Redis {
 	if rc.Tls {
 		opts = append(opts, WithTLS())
 	}
+	opts = append(opts, WithDB(rc.DB))
 
 	return New(rc.Host, opts...)
 }
@@ -51,6 +55,9 @@ func (rc RedisConf) Validate() error {
 
 	if len(rc.Type) == 0 {
 		return ErrEmptyType
+	}
+	if rc.DB < 0 {
+		return ErrDBNum
 	}
 
 	return nil

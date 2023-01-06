@@ -24,6 +24,7 @@ const (
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
 	defaultSlowThreshold = time.Millisecond * 100
+	defaultDatabase      = 0
 )
 
 var (
@@ -49,6 +50,7 @@ type (
 		Pass string
 		tls  bool
 		brk  breaker.Breaker
+		db   int
 	}
 
 	// RedisNode interface represents a redis node.
@@ -84,6 +86,7 @@ func New(addr string, opts ...Option) *Redis {
 	r := &Redis{
 		Addr: addr,
 		Type: NodeType,
+		db:   defaultDatabase,
 		brk:  breaker.NewBreaker(),
 	}
 
@@ -2429,6 +2432,14 @@ func WithPass(pass string) Option {
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// WithDB customizes the given Redis with given db.
+// this parameter is valid only for node types.
+func WithDB(db int) Option {
+	return func(r *Redis) {
+		r.db = db
 	}
 }
 

@@ -40,6 +40,26 @@ func TestRedisConf(t *testing.T) {
 			},
 			ok: true,
 		},
+		{
+			name: "ok",
+			RedisConf: RedisConf{
+				Host: "localhost:6379",
+				Type: NodeType,
+				Pass: "",
+				DB:   10,
+			},
+			ok: true,
+		},
+		{
+			name: "ok",
+			RedisConf: RedisConf{
+				Host: "localhost:6379",
+				Type: NodeType,
+				Pass: "",
+				DB:   -1,
+			},
+			ok: false,
+		},
 	}
 
 	for _, test := range tests {

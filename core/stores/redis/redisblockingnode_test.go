@@ -16,4 +16,7 @@ func TestBlockingNode(t *testing.T) {
 	node, err = CreateBlockingNode(New(r.Addr(), Cluster()))
 	assert.Nil(t, err)
 	node.Close()
+	node, err = CreateBlockingNode(New(r.Addr(), WithDB(1)))
+	assert.Nil(t, err)
+	node.Close()
 }

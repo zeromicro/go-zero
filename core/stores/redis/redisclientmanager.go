@@ -9,9 +9,8 @@ import (
 )
 
 const (
-	defaultDatabase = 0
-	maxRetries      = 3
-	idleConns       = 8
+	maxRetries = 3
+	idleConns  = 8
 )
 
 var clientManager = syncx.NewResourceManager()
@@ -27,7 +26,7 @@ func getClient(r *Redis) (*red.Client, error) {
 		store := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           r.db,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
