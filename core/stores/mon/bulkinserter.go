@@ -25,30 +25,25 @@ type (
 	}
 )
 
-// Deprecated: NewBulkInserter returns a BulkInserter.
+// Deprecated. Use NewBatchInserter instead.
 func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
-	inserter := &dbInserter{
-		collection: coll,
-	}
-
-	duration := flushInterval
-	if len(interval) > 0 {
-		duration = interval[0]
-	}
-
-	return &BulkInserter{
-		executor: executors.NewPeriodicalExecutor(duration, inserter),
-		inserter: inserter,
-	}
+	return newBulkInserter(coll, interval...)
 }
 
 // NewBatchInserter returns a BulkInserter.
-func NewBatchInserter(coll Collection, interval ...time.Duration) *BulkInserter {
-	// When cloning, there is no possibility of failure at the bottom layer, so the error is not handled
-	cloneColl, _ := coll.Clone()
+func NewBatchInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
+	cloneColl, err := coll.Clone()
+	if err != nil {
+		return nil, err
+	}
 
+	return newBulkInserter(cloneColl, interval...), nil
+}
+
+// newBulkInserter returns a BulkInserter.
+func newBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
 	inserter := &dbInserter{
-		collection: cloneColl,
+		collection: coll,
 	}
 
 	duration := flushInterval

@@ -32,7 +32,8 @@ func TestBatchInserter(t *testing.T) {
 
 	mt.Run("test", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "ok", Value: 1}}...))
-		bulk := NewBatchInserter(createModel(mt).Collection)
+		bulk, err := NewBatchInserter(createModel(mt).Collection)
+		assert.Equal(t, err, nil)
 		bulk.SetResultHandler(func(result *mongo.InsertManyResult, err error) {
 			assert.Nil(t, err)
 			assert.Equal(t, 2, len(result.InsertedIDs))
