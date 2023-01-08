@@ -76,7 +76,8 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 
 	var options []grpc.DialOption
 	if !cliOpts.Secure {
-		options = append([]grpc.DialOption(nil), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		options = append([]grpc.DialOption(nil),
+			grpc.WithTransportCredentials(insecure.NewCredentials()))
 	}
 
 	if !cliOpts.NonBlock {
@@ -84,8 +85,8 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	}
 
 	options = append(options,
-		WithUnaryClientInterceptors(c.buildUnaryInterceptors(cliOpts.Timeout)...),
-		WithStreamClientInterceptors(c.buildStreamInterceptors()...),
+		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
+		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
 
 	return append(options, cliOpts.DialOptions...)
@@ -162,7 +163,8 @@ func WithNonBlock() ClientOption {
 // WithStreamClientInterceptor returns a func to customize a ClientOptions with given interceptor.
 func WithStreamClientInterceptor(interceptor grpc.StreamClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, WithStreamClientInterceptors(interceptor))
+		options.DialOptions = append(options.DialOptions,
+			grpc.WithChainStreamInterceptor(interceptor))
 	}
 }
 
@@ -184,6 +186,7 @@ func WithTransportCredentials(creds credentials.TransportCredentials) ClientOpti
 // WithUnaryClientInterceptor returns a func to customize a ClientOptions with given interceptor.
 func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientOption {
 	return func(options *ClientOptions) {
-		options.DialOptions = append(options.DialOptions, WithUnaryClientInterceptors(interceptor))
+		options.DialOptions = append(options.DialOptions,
+			grpc.WithChainUnaryInterceptor(interceptor))
 	}
 }
