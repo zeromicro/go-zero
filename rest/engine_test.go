@@ -18,15 +18,21 @@ func TestNewEngine(t *testing.T) {
 	yamls := []string{
 		`Name: foo
 Port: 54321
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
 CpuThreshold: 500
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
 CpuThreshold: 500
 Verbose: true
+Middlewares:
+  Log: false
 `,
 	}
 
