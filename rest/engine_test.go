@@ -31,8 +31,6 @@ Middlewares:
 Port: 54321
 CpuThreshold: 500
 Verbose: true
-Middlewares:
-  Log: false
 `,
 	}
 
