@@ -12,7 +12,7 @@ import (
 
 func TestRpcServer(t *testing.T) {
 	metrics := stat.NewMetrics("foo")
-	server := NewRpcServer("localhost:54321", WithMetrics(metrics))
+	server := NewRpcServer("localhost:54321", ServerMiddlewaresConf{}, WithMetrics(metrics))
 	server.SetName("mock")
 	var wg sync.WaitGroup
 	var grpcServer *grpc.Server
@@ -36,7 +36,7 @@ func TestRpcServer(t *testing.T) {
 }
 
 func TestRpcServer_WithBadAddress(t *testing.T) {
-	server := NewRpcServer("localhost:111111")
+	server := NewRpcServer("localhost:111111", ServerMiddlewaresConf{})
 	server.SetName("mock")
 	err := server.Start(func(server *grpc.Server) {
 		mock.RegisterDepositServiceServer(server, new(mock.DepositServer))

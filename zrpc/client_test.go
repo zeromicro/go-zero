@@ -76,6 +76,9 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:       "foo",
 			Token:     "bar",
 			Timeout:   1000,
+			Middlewares: ClientMiddlewaresConf{
+				Timeout: true,
+			},
 		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
@@ -90,6 +93,9 @@ func TestDepositServer_Deposit(t *testing.T) {
 			Token:     "bar",
 			Timeout:   1000,
 			NonBlock:  true,
+			Middlewares: ClientMiddlewaresConf{
+				Timeout: true,
+			},
 		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
@@ -103,6 +109,9 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:     "foo",
 			Token:   "bar",
 			Timeout: 1000,
+			Middlewares: ClientMiddlewaresConf{
+				Timeout: true,
+			},
 		},
 		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		WithDialOption(grpc.WithContextDialer(dialer())),

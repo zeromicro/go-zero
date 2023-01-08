@@ -54,8 +54,8 @@ func TestServer(t *testing.T) {
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }
@@ -96,8 +96,8 @@ func TestServer_HasEtcd(t *testing.T) {
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }

@@ -44,12 +44,12 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	if c.HasEtcd() {
-		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
+		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, c.Middlewares, serverOptions...)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, serverOptions...)
+		server = internal.NewRpcServer(c.ListenOn, c.Middlewares, serverOptions...)
 	}
 
 	server.SetName(c.Name)
