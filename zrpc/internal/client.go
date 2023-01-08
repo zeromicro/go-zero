@@ -42,13 +42,17 @@ type (
 	ClientOption func(options *ClientOptions)
 
 	client struct {
-		conn *grpc.ClientConn
+		conn        *grpc.ClientConn
+		middlewares ClientMiddlewaresConf
 	}
 )
 
 // NewClient returns a Client.
-func NewClient(target string, opts ...ClientOption) (Client, error) {
-	var cli client
+func NewClient(target string, middlewares ClientMiddlewaresConf,
+	opts ...ClientOption) (Client, error) {
+	cli := client{
+		middlewares: middlewares,
+	}
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name)
 	balancerOpt := WithDialOption(grpc.WithDefaultServiceConfig(svcCfg))
@@ -80,19 +84,43 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 	}
 
 	options = append(options,
-		WithUnaryClientInterceptors(
-			clientinterceptors.UnaryTracingInterceptor,
-			clientinterceptors.DurationInterceptor,
-			clientinterceptors.PrometheusInterceptor,
-			clientinterceptors.BreakerInterceptor,
-			clientinterceptors.TimeoutInterceptor(cliOpts.Timeout),
-		),
-		WithStreamClientInterceptors(
-			clientinterceptors.StreamTracingInterceptor,
-		),
+		WithUnaryClientInterceptors(c.buildUnaryInterceptors(cliOpts.Timeout)...),
+		WithStreamClientInterceptors(c.buildStreamInterceptors()...),
 	)
 
 	return append(options, cliOpts.DialOptions...)
+}
+
+func (c *client) buildStreamInterceptors() []grpc.StreamClientInterceptor {
+	var interceptors []grpc.StreamClientInterceptor
+
+	if c.middlewares.Trace {
+		interceptors = append(interceptors, clientinterceptors.StreamTracingInterceptor)
+	}
+
+	return interceptors
+}
+
+func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClientInterceptor {
+	var interceptors []grpc.UnaryClientInterceptor
+
+	if c.middlewares.Trace {
+		interceptors = append(interceptors, clientinterceptors.UnaryTracingInterceptor)
+	}
+	if c.middlewares.Duration {
+		interceptors = append(interceptors, clientinterceptors.DurationInterceptor)
+	}
+	if c.middlewares.Prometheus {
+		interceptors = append(interceptors, clientinterceptors.PrometheusInterceptor)
+	}
+	if c.middlewares.Breaker {
+		interceptors = append(interceptors, clientinterceptors.BreakerInterceptor)
+	}
+	if c.middlewares.Timeout {
+		interceptors = append(interceptors, clientinterceptors.TimeoutInterceptor(timeout))
+	}
+
+	return interceptors
 }
 
 func (c *client) dial(server string, opts ...ClientOption) error {

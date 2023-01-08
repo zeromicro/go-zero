@@ -14,7 +14,7 @@ func init() {
 }
 
 func TestStreamCrashInterceptor(t *testing.T) {
-	err := StreamCrashInterceptor(nil, nil, nil, func(
+	err := StreamRecoverInterceptor(nil, nil, nil, func(
 		svr interface{}, stream grpc.ServerStream) error {
 		panic("mock panic")
 	})
@@ -22,7 +22,7 @@ func TestStreamCrashInterceptor(t *testing.T) {
 }
 
 func TestUnaryCrashInterceptor(t *testing.T) {
-	_, err := UnaryCrashInterceptor(context.Background(), nil, nil,
+	_, err := UnaryRecoverInterceptor(context.Background(), nil, nil,
 		func(ctx context.Context, req interface{}) (interface{}, error) {
 			panic("mock panic")
 		})
