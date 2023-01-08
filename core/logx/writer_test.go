@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -157,9 +158,40 @@ func TestWritePlainAny(t *testing.T) {
 
 }
 
+func TestLogWithLimitContentLength(t *testing.T) {
+	maxLen := atomic.LoadUint32(&maxContentLength)
+	atomic.StoreUint32(&maxContentLength, 10)
+
+	t.Cleanup(func() {
+		atomic.StoreUint32(&maxContentLength, maxLen)
+	})
+
+	t.Run("alert", func(t *testing.T) {
+		var buf bytes.Buffer
+		w := NewWriter(&buf)
+		w.Info("1234567890")
+		var v1 mockedEntry
+		if err := json.Unmarshal(buf.Bytes(), &v1); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "1234567890", v1.Content)
+		assert.False(t, v1.Truncated)
+
+		buf.Reset()
+		var v2 mockedEntry
+		w.Info("12345678901")
+		if err := json.Unmarshal(buf.Bytes(), &v2); err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, "1234567890", v2.Content)
+		assert.True(t, v2.Truncated)
+	})
+}
+
 type mockedEntry struct {
-	Level   string `json:"level"`
-	Content string `json:"content"`
+	Level     string `json:"level"`
+	Content   string `json:"content"`
+	Truncated bool   `json:"truncated"`
 }
 
 type easyToCloseWriter struct{}
