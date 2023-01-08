@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+	"net"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,8 +62,62 @@ func TestWithUnaryClientInterceptor(t *testing.T) {
 }
 
 func TestBuildDialOptions(t *testing.T) {
-	var c client
+	c := client{
+		middlewares: ClientMiddlewaresConf{
+			Trace:      true,
+			Duration:   true,
+			Prometheus: true,
+			Breaker:    true,
+			Timeout:    true,
+		},
+	}
 	agent := grpc.WithUserAgent("chrome")
 	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
+}
+
+func TestClientDial(t *testing.T) {
+	server := grpc.NewServer()
+
+	go func() {
+		lis, err := net.Listen("tcp", "localhost:54321")
+		assert.NoError(t, err)
+		defer lis.Close()
+		server.Serve(lis)
+	}()
+
+	time.Sleep(time.Millisecond)
+
+	c, err := NewClient("localhost:54321", ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, c.Conn())
+	server.Stop()
+}
+
+func TestClientDialFail(t *testing.T) {
+	_, err := NewClient("localhost:54321", ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "localhost:54321"))
+
+	_, err = NewClient("localhost:54321/fail", ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "localhost:54321/fail"))
 }
