@@ -2038,6 +2038,27 @@ func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (val fl
 
 	return
 }
+// Zscan is the implementation of redis zscan command.
+func (s *Redis) Zscan(key string, cursor uint64, match string, count int64) (
+	keys []string, cur uint64, err error) {
+	return s.ZscanCtx(context.Background(), key, cursor, match, count)
+}
+
+// ZscanCtx is the implementation of redis zscan command.
+func (s *Redis) ZscanCtx(ctx context.Context, key string, cursor uint64, match string, count int64) (
+	keys []string, cur uint64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		keys, cur, err = conn.ZScan(ctx, key, cursor, match, count).Result()
+		return err
+	}, acceptable)
+
+	return
+}
 // Zrank is the implementation of redis zrank command.
 func (s *Redis) Zrank(key, field string) (int64, error) {
 	return s.ZrankCtx(context.Background(), key, field)

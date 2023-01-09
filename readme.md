@@ -154,7 +154,7 @@ goctl migrate —verbose —version v1.4.3
    ```go
    type (
      Request {
-       Name string `path:"name,options=you|me"` // parameters are auto validated
+       Name string `path:"name,options=[you,me]"` // parameters are auto validated
      }
    
      Response {
