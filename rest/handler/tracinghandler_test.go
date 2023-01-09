@@ -27,7 +27,7 @@ func TestOtelHandler(t *testing.T) {
 
 	for _, test := range []string{"", "bar"} {
 		t.Run(test, func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", test, nil)).Then(
+			h := chain.New(TracingHandler("foo", test)).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					assert.True(t, span.SpanContext().IsValid())
@@ -65,7 +65,7 @@ func TestDontTracingSpan(t *testing.T) {
 
 	for _, test := range []string{"", "bar", "foo"} {
 		t.Run(test, func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", test, []string{"bar"})).Then(
+			h := chain.New(TracingHandler("foo", test, WithTraceIgnorePaths([]string{"bar"}))).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					spanCtx := span.SpanContext()
@@ -110,7 +110,7 @@ func TestTraceResponseWriter(t *testing.T) {
 
 	for _, test := range []int{0, 200, 300, 400, 401, 500, 503} {
 		t.Run(strconv.Itoa(test), func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", "bar", nil)).Then(
+			h := chain.New(TracingHandler("foo", "bar")).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					spanCtx := span.SpanContext()

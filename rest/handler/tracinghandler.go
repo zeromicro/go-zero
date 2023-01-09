@@ -12,10 +12,25 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
+type (
+	// TracingOptions is TracingHandler options.
+	TracingOptions struct {
+		traceIgnorePaths []string
+	}
+
+	// TracingOption defines the method to customize an tracingOptions.
+	TracingOption func(options *TracingOptions)
+)
+
 // TracingHandler return a middleware that process the opentelemetry.
-func TracingHandler(serviceName, path string, traceIgnorePaths []string) func(http.Handler) http.Handler {
+func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.Handler) http.Handler {
+	var tracingOptions TracingOptions
+	for _, opt := range opts {
+		opt(&tracingOptions)
+	}
+
 	ignorePaths := collection.NewSet()
-	ignorePaths.AddStr(traceIgnorePaths...)
+	ignorePaths.AddStr(tracingOptions.traceIgnorePaths...)
 
 	return func(next http.Handler) http.Handler {
 		propagator := otel.GetTextMapPropagator()
@@ -51,5 +66,12 @@ func TracingHandler(serviceName, path string, traceIgnorePaths []string) func(ht
 			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
 			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
 		})
+	}
+}
+
+// WithTraceIgnorePaths specifies the traceIgnorePaths option for TracingHandler.
+func WithTraceIgnorePaths(traceIgnorePaths []string) TracingOption {
+	return func(options *TracingOptions) {
+		options.traceIgnorePaths = traceIgnorePaths
 	}
 }
