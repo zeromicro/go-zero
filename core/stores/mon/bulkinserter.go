@@ -25,13 +25,8 @@ type (
 	}
 )
 
-// Deprecated. Use NewBatchInserter instead.
-func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
-	return newBulkInserter(coll, interval...)
-}
-
-// NewBatchInserter returns a BulkInserter.
-func NewBatchInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
+// NewBulkInserter returns a BulkInserter.
+func NewBulkInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
 	cloneColl, err := coll.Clone()
 	if err != nil {
 		return nil, err
