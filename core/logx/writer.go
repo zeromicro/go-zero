@@ -278,6 +278,15 @@ func combineGlobalFields(fields []LogField) []LogField {
 }
 
 func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
+	// only truncate string content, don't know how to truncate the values of other types.
+	if v, ok := val.(string); ok {
+		maxLen := atomic.LoadUint32(&maxContentLength)
+		if maxLen > 0 && len(v) > int(maxLen) {
+			val = v[:maxLen]
+			fields = append(fields, truncatedField)
+		}
+	}
+
 	fields = combineGlobalFields(fields)
 
 	switch atomic.LoadUint32(&encoding) {

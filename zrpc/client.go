@@ -89,6 +89,7 @@ func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 		Breaker:    true,
 		Timeout:    true,
 	}
+
 	return internal.NewClient(target, middlewares, opts...)
 }
 
