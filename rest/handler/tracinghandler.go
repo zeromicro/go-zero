@@ -2,9 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"sync"
 
-	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 	"go.opentelemetry.io/otel"
@@ -13,15 +12,11 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var notTracingSpans sync.Map
-
-// DontTraceSpan disable tracing for the specified span name.
-func DontTraceSpan(spanName string) {
-	notTracingSpans.Store(spanName, lang.Placeholder)
-}
-
 // TracingHandler return a middleware that process the opentelemetry.
-func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
+func TracingHandler(serviceName, path string, traceIgnorePaths []string) func(http.Handler) http.Handler {
+	ignorePaths := collection.NewSet()
+	ignorePaths.AddStr(traceIgnorePaths...)
+
 	return func(next http.Handler) http.Handler {
 		propagator := otel.GetTextMapPropagator()
 		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
@@ -32,7 +27,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 				spanName = r.URL.Path
 			}
 
-			if _, ok := notTracingSpans.Load(spanName); ok {
+			if ignorePaths.Contains(spanName) {
 				next.ServeHTTP(w, r)
 				return
 			}
