@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -77,18 +78,22 @@ func TestBuildDialOptions(t *testing.T) {
 }
 
 func TestClientDial(t *testing.T) {
+	var addr string
+	var wg sync.WaitGroup
+	wg.Add(1)
 	server := grpc.NewServer()
 
 	go func() {
-		lis, err := net.Listen("tcp", "localhost:54321")
+		lis, err := net.Listen("tcp", "localhost:0")
 		assert.NoError(t, err)
 		defer lis.Close()
+		addr = lis.Addr().String()
+		wg.Done()
 		server.Serve(lis)
 	}()
 
-	time.Sleep(time.Millisecond)
-
-	c, err := NewClient("localhost:54321", ClientMiddlewaresConf{
+	wg.Wait()
+	c, err := NewClient(addr, ClientMiddlewaresConf{
 		Trace:      true,
 		Duration:   true,
 		Prometheus: true,
