@@ -14,68 +14,36 @@ type (
 		DoEx(key string, fn func() (interface{}, error)) (interface{}, bool, error)
 	}
 
-	call struct {
-		wg  sync.WaitGroup
-		val interface{}
-		err error
-	}
-
 	flightGroup struct {
-		calls map[string]*call
-		lock  sync.Mutex
+		calls sync.Map
 	}
 )
 
 // NewSingleFlight returns a SingleFlight.
 func NewSingleFlight() SingleFlight {
 	return &flightGroup{
-		calls: make(map[string]*call),
+		calls: sync.Map{},
 	}
 }
 
-func (g *flightGroup) Do(key string, fn func() (interface{}, error)) (interface{}, error) {
-	c, done := g.createCall(key)
-	if done {
-		return c.val, c.err
-	}
-
-	g.makeCall(c, key, fn)
-	return c.val, c.err
+func (g *flightGroup) Do(key string, fn func() (interface{}, error)) (val interface{}, err error) {
+	val, _, err = g.createCall(key, fn)
+	return
 }
 
 func (g *flightGroup) DoEx(key string, fn func() (interface{}, error)) (val interface{}, fresh bool, err error) {
-	c, done := g.createCall(key)
-	if done {
-		return c.val, false, c.err
+	val, fresh, err = g.createCall(key, fn)
+	return
+}
+
+func (g *flightGroup) createCall(key string, fn func() (interface{}, error)) (val interface{}, fresh bool, err error) {
+	val, err = fn()
+	if err != nil {
+		return
 	}
-
-	g.makeCall(c, key, fn)
-	return c.val, true, c.err
+	val, fresh = g.calls.LoadOrStore(key, val)
+	return
 }
 
-func (g *flightGroup) createCall(key string) (c *call, done bool) {
-	g.lock.Lock()
-	if c, ok := g.calls[key]; ok {
-		g.lock.Unlock()
-		c.wg.Wait()
-		return c, true
-	}
-
-	c = new(call)
-	c.wg.Add(1)
-	g.calls[key] = c
-	g.lock.Unlock()
-
-	return c, false
-}
-
-func (g *flightGroup) makeCall(c *call, key string, fn func() (interface{}, error)) {
-	defer func() {
-		g.lock.Lock()
-		delete(g.calls, key)
-		g.lock.Unlock()
-		c.wg.Done()
-	}()
-
-	c.val, c.err = fn()
-}
+//说明：sync.Map的原子操作，适用于读多很少，相比以前读写都使用mutex，性能会更好
+//测试用例部分过不了，所有操作需要先执行fn() 函数，，Kevin老师是否考虑使用sync.Map
