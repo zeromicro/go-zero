@@ -1203,6 +1203,13 @@ func TestRedis_WithPass(t *testing.T) {
 	})
 }
 
+func TestRedis_WithAcl(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		err := New(client.Addr, WithUsername("any"), WithPass("any")).Ping()
+		assert.NotNil(t, err)
+	})
+}
+
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
