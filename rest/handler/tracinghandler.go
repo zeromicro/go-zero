@@ -13,18 +13,18 @@ import (
 )
 
 type (
-	// TracingOptions is TracingHandler options.
-	TracingOptions struct {
+	// TracingOption defines the method to customize an tracingOptions.
+	TracingOption func(options *tracingOptions)
+
+	// tracingOptions is TracingHandler options.
+	tracingOptions struct {
 		traceIgnorePaths []string
 	}
-
-	// TracingOption defines the method to customize an tracingOptions.
-	TracingOption func(options *TracingOptions)
 )
 
 // TracingHandler return a middleware that process the opentelemetry.
 func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.Handler) http.Handler {
-	var tracingOptions TracingOptions
+	var tracingOptions tracingOptions
 	for _, opt := range opts {
 		opt(&tracingOptions)
 	}
@@ -71,7 +71,7 @@ func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.H
 
 // WithTraceIgnorePaths specifies the traceIgnorePaths option for TracingHandler.
 func WithTraceIgnorePaths(traceIgnorePaths []string) TracingOption {
-	return func(options *TracingOptions) {
+	return func(options *tracingOptions) {
 		options.traceIgnorePaths = traceIgnorePaths
 	}
 }
