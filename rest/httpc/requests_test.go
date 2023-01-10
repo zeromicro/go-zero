@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httptrace"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -205,12 +206,14 @@ func TestDo_WithClientHttpTrace(t *testing.T) {
 	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
 	defer svr.Close()
 
+	enter := false
 	_, err := Do(httptrace.WithClientTrace(context.Background(),
 		&httptrace.ClientTrace{
-			DNSStart: func(info httptrace.DNSStartInfo) {
-				assert.Equal(t, "localhost", info.Host)
+			GetConn: func(hostPort string) {
+				assert.Equal(t, "127.0.0.1", strings.Split(hostPort, ":")[0])
+				enter = true
 			},
 		}), http.MethodGet, svr.URL, nil)
 	assert.Nil(t, err)
-
+	assert.True(t, enter)
 }
