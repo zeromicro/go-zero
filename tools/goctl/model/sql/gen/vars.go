@@ -13,7 +13,7 @@ import (
 )
 
 func genVars(table Table, withCache, postgreSql bool) (string, error) {
-	keys := make([]string, 0)
+	keys := make([]string, 0, len(table.UniqueCacheKey)+1)
 	keys = append(keys, table.PrimaryCacheKey.VarExpression)
 	for _, v := range table.UniqueCacheKey {
 		keys = append(keys, v.VarExpression)

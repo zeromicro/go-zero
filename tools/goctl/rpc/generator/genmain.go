@@ -31,11 +31,11 @@ func (g *Generator) GenMain(ctx DirContext, proto parser.Proto, cfg *conf.Config
 	}
 
 	fileName := filepath.Join(ctx.GetMain().Filename, fmt.Sprintf("%v.go", mainFilename))
-	imports := make([]string, 0)
+
 	pbImport := fmt.Sprintf(`"%v"`, ctx.GetPb().Package)
 	svcImport := fmt.Sprintf(`"%v"`, ctx.GetSvc().Package)
 	configImport := fmt.Sprintf(`"%v"`, ctx.GetConfig().Package)
-	imports = append(imports, configImport, pbImport, svcImport)
+	imports := []string{configImport, pbImport, svcImport}
 
 	var serviceNames []MainServiceTemplateData
 	for _, e := range proto.Service {

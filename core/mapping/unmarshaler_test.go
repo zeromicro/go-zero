@@ -436,7 +436,7 @@ func TestUnmarshalInt64Slice(t *testing.T) {
 	ast := assert.New(t)
 	ast.Nil(UnmarshalKey(m, &v))
 	ast.ElementsMatch([]int64{1, 2}, v.Ages)
-	ast.Equal([]int64{}, v.Slice)
+	ast.Empty(v.Slice)
 }
 
 func TestUnmarshalIntSlice(t *testing.T) {
@@ -452,7 +452,7 @@ func TestUnmarshalIntSlice(t *testing.T) {
 	ast := assert.New(t)
 	ast.Nil(UnmarshalKey(m, &v))
 	ast.ElementsMatch([]int{1, 2}, v.Ages)
-	ast.Equal([]int{}, v.Slice)
+	ast.Empty(v.Slice)
 }
 
 func TestUnmarshalString(t *testing.T) {
@@ -471,7 +471,7 @@ func TestUnmarshalString(t *testing.T) {
 
 	var in inner
 	ast := assert.New(t)
-	ast.Nil(UnmarshalKey(m, &in))
+	ast.NoError(UnmarshalKey(m, &in))
 	ast.Equal("kevin", in.Name)
 	ast.Equal("namewithstring", in.NameStr)
 	ast.Empty(in.NotPresent)

@@ -284,7 +284,6 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	findCode := make([]string, 0)
 	findOneCode, findOneCodeMethod, err := genFindOne(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err
@@ -295,7 +294,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
-	findCode = append(findCode, findOneCode, ret.findOneMethod)
+	findCode := []string{findOneCode, ret.findOneMethod}
 	updateCode, updateCodeMethod, err := genUpdate(table, withCache, g.isPostgreSql)
 	if err != nil {
 		return "", err

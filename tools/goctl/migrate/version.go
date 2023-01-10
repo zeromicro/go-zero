@@ -43,5 +43,5 @@ func getLatest(repo string, verbose bool) ([]string, error) {
 		versions := strings.Fields(versionStr)
 		return versions, nil
 	}
-	return []string{}, nil
+	return nil, nil
 }

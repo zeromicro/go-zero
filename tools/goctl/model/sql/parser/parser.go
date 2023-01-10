@@ -50,17 +50,16 @@ type (
 	KeyType int
 )
 
-func parseNameOriginal(ts []*parser.Table) (nameOriginals [][]string) {
-	var columns []string
-
+func parseNameOriginal(ts []*parser.Table) [][]string {
+	nameOriginals := make([][]string, 0, len(ts))
 	for _, t := range ts {
-		columns = []string{}
+		columns := make([]string, 0, len(t.Columns))
 		for _, c := range t.Columns {
 			columns = append(columns, c.Name)
 		}
 		nameOriginals = append(nameOriginals, columns)
 	}
-	return
+	return nameOriginals
 }
 
 // Parse parses ddl into golang structure

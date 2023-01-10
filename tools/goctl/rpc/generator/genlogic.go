@@ -130,7 +130,6 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 	rpc *parser.RPC) (string,
 	error) {
-	functions := make([]string, 0)
 	text, err := pathx.LoadTemplate(category, logicFuncTemplateFileFile, logicFunctionTemplate)
 	if err != nil {
 		return "", err
@@ -156,6 +155,5 @@ func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 		return "", err
 	}
 
-	functions = append(functions, buffer.String())
-	return strings.Join(functions, pathx.NL), nil
+	return strings.Join([]string{buffer.String()}, pathx.NL), nil
 }
