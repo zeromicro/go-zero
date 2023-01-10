@@ -26,9 +26,14 @@ type (
 )
 
 // NewBulkInserter returns a BulkInserter.
-func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkInserter {
+func NewBulkInserter(coll Collection, interval ...time.Duration) (*BulkInserter, error) {
+	cloneColl, err := coll.Clone()
+	if err != nil {
+		return nil, err
+	}
+
 	inserter := &dbInserter{
-		collection: coll,
+		collection: cloneColl,
 	}
 
 	duration := flushInterval
@@ -39,7 +44,7 @@ func NewBulkInserter(coll *mongo.Collection, interval ...time.Duration) *BulkIns
 	return &BulkInserter{
 		executor: executors.NewPeriodicalExecutor(duration, inserter),
 		inserter: inserter,
-	}
+	}, nil
 }
 
 // Flush flushes the inserter, writes all pending records.

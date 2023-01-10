@@ -10,17 +10,18 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
-	"google.golang.org/grpc"
 )
 
 const (
-	kindJaeger = "jaeger"
-	kindZipkin = "zipkin"
-	kindGrpc   = "grpc"
+	kindJaeger   = "jaeger"
+	kindZipkin   = "zipkin"
+	kindOtlpGrpc = "otlpgrpc"
+	kindOtlpHttp = "otlphttp"
 )
 
 var (
@@ -59,12 +60,24 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
-	case kindGrpc:
-		return otlptracegrpc.NewUnstarted(
+	case kindOtlpGrpc:
+		// Always treat trace exporter as optional component, so we use nonblock here,
+		// otherwise this would slow down app start up even set a dial timeout here when
+		// endpoint can not reach.
+		// If the connection not dial success, the global otel ErrorHandler will catch error
+		// when reporting data like other exporters.
+		return otlptracegrpc.New(
+			context.Background(),
 			otlptracegrpc.WithInsecure(),
 			otlptracegrpc.WithEndpoint(c.Endpoint),
-			otlptracegrpc.WithDialOption(grpc.WithBlock()),
-		), nil
+		)
+	case kindOtlpHttp:
+		// Not support flexible configuration now.
+		return otlptracehttp.New(
+			context.Background(),
+			otlptracehttp.WithInsecure(),
+			otlptracehttp.WithEndpoint(c.Endpoint),
+		)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}

@@ -18,10 +18,14 @@ func TestNewEngine(t *testing.T) {
 	yamls := []string{
 		`Name: foo
 Port: 54321
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
 CpuThreshold: 500
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
@@ -323,7 +327,7 @@ func TestEngine_withTimeout(t *testing.T) {
 
 			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*4/5, svr.ReadTimeout)
 			assert.Equal(t, time.Duration(0), svr.ReadHeaderTimeout)
-			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*9/10, svr.WriteTimeout)
+			assert.Equal(t, time.Duration(test.timeout)*time.Millisecond*11/10, svr.WriteTimeout)
 			assert.Equal(t, time.Duration(0), svr.IdleTimeout)
 		})
 	}

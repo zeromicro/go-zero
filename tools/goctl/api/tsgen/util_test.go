@@ -1,9 +1,10 @@
 package tsgen
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
-	"testing"
 )
 
 func TestGenTsType(t *testing.T) {

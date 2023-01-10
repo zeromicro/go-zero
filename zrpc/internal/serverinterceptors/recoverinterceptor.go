@@ -10,8 +10,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// StreamCrashInterceptor catches panics in processing stream requests and recovers.
-func StreamCrashInterceptor(svr interface{}, stream grpc.ServerStream, _ *grpc.StreamServerInfo,
+// StreamRecoverInterceptor catches panics in processing stream requests and recovers.
+func StreamRecoverInterceptor(svr interface{}, stream grpc.ServerStream, _ *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) (err error) {
 	defer handleCrash(func(r interface{}) {
 		err = toPanicError(r)
@@ -20,8 +20,8 @@ func StreamCrashInterceptor(svr interface{}, stream grpc.ServerStream, _ *grpc.S
 	return handler(svr, stream)
 }
 
-// UnaryCrashInterceptor catches panics in processing unary requests and recovers.
-func UnaryCrashInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo,
+// UnaryRecoverInterceptor catches panics in processing unary requests and recovers.
+func UnaryRecoverInterceptor(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (resp interface{}, err error) {
 	defer handleCrash(func(r interface{}) {
 		err = toPanicError(r)

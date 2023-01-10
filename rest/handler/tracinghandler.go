@@ -6,6 +6,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
@@ -48,7 +49,12 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 
 			// convenient for tracking error messages
 			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
-			next.ServeHTTP(w, r.WithContext(spanCtx))
+
+			trw := &response.WithCodeResponseWriter{Writer: w, Code: http.StatusOK}
+			next.ServeHTTP(trw, r.WithContext(spanCtx))
+
+			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
+			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
 		})
 	}
 }
