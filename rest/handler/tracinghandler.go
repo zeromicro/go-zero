@@ -24,13 +24,13 @@ type (
 
 // TracingHandler return a middleware that process the opentelemetry.
 func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.Handler) http.Handler {
-	var tracingOptions tracingOptions
+	var tracingOpts tracingOptions
 	for _, opt := range opts {
-		opt(&tracingOptions)
+		opt(&tracingOpts)
 	}
 
 	ignorePaths := collection.NewSet()
-	ignorePaths.AddStr(tracingOptions.traceIgnorePaths...)
+	ignorePaths.AddStr(tracingOpts.traceIgnorePaths...)
 
 	return func(next http.Handler) http.Handler {
 		propagator := otel.GetTextMapPropagator()
