@@ -103,20 +103,27 @@ func TestUnmarshalBool(t *testing.T) {
 
 func TestUnmarshalDuration(t *testing.T) {
 	type inner struct {
-		Duration     time.Duration `key:"duration"`
-		LessDuration time.Duration `key:"less"`
-		MoreDuration time.Duration `key:"more"`
+		Duration       time.Duration   `key:"duration"`
+		LessDuration   time.Duration   `key:"less"`
+		MoreDuration   time.Duration   `key:"more"`
+		PtrDuration    *time.Duration  `key:"ptr"`
+		PtrPtrDuration **time.Duration `key:"ptrptr"`
 	}
 	m := map[string]interface{}{
 		"duration": "5s",
 		"less":     "100ms",
 		"more":     "24h",
+		"ptr":      "1h",
+		"ptrptr":   "2h",
 	}
 	var in inner
-	assert.Nil(t, UnmarshalKey(m, &in))
-	assert.Equal(t, time.Second*5, in.Duration)
-	assert.Equal(t, time.Millisecond*100, in.LessDuration)
-	assert.Equal(t, time.Hour*24, in.MoreDuration)
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.Equal(t, time.Second*5, in.Duration)
+		assert.Equal(t, time.Millisecond*100, in.LessDuration)
+		assert.Equal(t, time.Hour*24, in.MoreDuration)
+		assert.Equal(t, time.Hour, *in.PtrDuration)
+		assert.Equal(t, time.Hour*2, **in.PtrPtrDuration)
+	}
 }
 
 func TestUnmarshalDurationDefault(t *testing.T) {

@@ -509,7 +509,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 	case valueKind == reflect.String && typeKind == reflect.Slice:
 		return u.fillSliceFromString(fieldType, value, mapValue)
 	case valueKind == reflect.String && derefedFieldType == durationType:
-		return fillDurationValue(fieldType.Kind(), value, mapValue.(string))
+		return fillDurationValue(fieldType, value, mapValue.(string))
 	default:
 		return u.processFieldPrimitive(fieldType, value, mapValue, opts, fullName)
 	}
@@ -649,7 +649,7 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 		value.SetBool(val)
 		return nil
 	case durationType.Kind():
-		if err := fillDurationValue(fieldKind, value, envVal); err != nil {
+		if err := fillDurationValue(fieldType, value, envVal); err != nil {
 			return fmt.Errorf("unmarshal field %q with environment variable, %w", fullName, err)
 		}
 
@@ -763,12 +763,8 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 	derefedType := Deref(fieldType)
 	fieldKind := derefedType.Kind()
 	if defaultValue, ok := opts.getDefault(); ok {
-		if fieldType.Kind() == reflect.Ptr {
-			maybeNewValue(fieldType, value)
-			value = value.Elem()
-		}
 		if derefedType == durationType {
-			return fillDurationValue(fieldKind, value, defaultValue)
+			return fillDurationValue(fieldType, value, defaultValue)
 		}
 
 		switch fieldKind {
@@ -860,17 +856,13 @@ func createValuer(v valuerWithParent, opts *fieldOptionsWithContext) valuerWithP
 	}
 }
 
-func fillDurationValue(fieldKind reflect.Kind, value reflect.Value, dur string) error {
+func fillDurationValue(fieldType reflect.Type, value reflect.Value, dur string) error {
 	d, err := time.ParseDuration(dur)
 	if err != nil {
 		return err
 	}
 
-	if fieldKind == reflect.Ptr {
-		value.Elem().Set(reflect.ValueOf(d))
-	} else {
-		value.Set(reflect.ValueOf(d))
-	}
+	SetValue(fieldType, value, reflect.ValueOf(d))
 
 	return nil
 }
