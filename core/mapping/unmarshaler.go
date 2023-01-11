@@ -616,7 +616,13 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 	var ok bool
 
 	if fieldType.Kind() == reflect.Ptr {
-		tval, ok = value.Interface().(encoding.TextUnmarshaler)
+		if value.Elem().Kind() == reflect.Ptr {
+			target := reflect.New(Deref(fieldType))
+			SetValue(fieldType.Elem(), value, target)
+			tval, ok = target.Interface().(encoding.TextUnmarshaler)
+		} else {
+			tval, ok = value.Interface().(encoding.TextUnmarshaler)
+		}
 	} else {
 		tval, ok = value.Addr().Interface().(encoding.TextUnmarshaler)
 	}
