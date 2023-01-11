@@ -1,13 +1,5 @@
 syntax = "v1"
 
-info(
-    title: "base api"
-    desc: "base api"
-    author: "Ryan SU"
-    email: "yuansu.china.work@gmail.com"
-    version: "v1.0"
-)
-
 // The basic response with data | 基础带数据信息
 type BaseDataInfo {
     // Error code | 错误代码
@@ -39,6 +31,7 @@ type BaseMsgResp {
 }
 
 // The simplest message | 最简单的信息
+// swagger:response SimpleMsg
 type SimpleMsg {
     // Message | 信息
     Msg string `json:"msg"`
@@ -70,7 +63,8 @@ type IDsReq {
     Ids  []uint64 `json:"ids"`
 }
 
-// Basic ID request in path | 基础ID地址参数请求
+
+// Basic ID request | 基础ID地址参数请求
 type IDPathReq {
     // ID
     // Required: true
@@ -79,14 +73,21 @@ type IDPathReq {
 
 // Basic UUID request | 基础UUID参数请求
 type UUIDReq {
-    // UUID
+    // ID
     // Required: true
     // Max length: 36
-    UUID string `json:"UUID" validate:"len=36"`
+    Id string `json:"id" validate:"len=36"`
+}
+
+// Basic UUID array request | 基础UUID数组参数请求
+type UUIDsReq {
+    // Ids
+    // Required: true
+    // Max length: 36
+    Ids []string `json:"ids"`
 }
 
 // The base response data | 基础信息
-// swagger:model BaseInfo
 type BaseInfo {
     // ID
     Id        uint64    `json:"id"`
@@ -98,11 +99,34 @@ type BaseInfo {
     UpdatedAt int64     `json:"updatedAt,optional"`
 }
 
-// The request params of setting boolean status | 设置状态参数
+// The base UUID response data | 基础信息
+type BaseUUIDInfo {
+    // ID
+    Id        string    `json:"id"`
+
+    // Create date | 创建日期
+    CreatedAt int64     `json:"createdAt,optional"`
+
+    // Update date | 更新日期
+    UpdatedAt int64     `json:"updatedAt,optional"`
+}
+
+// The request params of setting status code | 设置状态参数
 type StatusCodeReq {
     // ID
     // Required: true
     Id     uint64  `json:"id" validate:"number"`
+
+    // Status code | 状态码
+    // Required: true
+    Status uint64  `json:"status" validate:"number"`
+}
+
+// The request params of setting status code by UUID | 根据UUID设置状态参数
+type StatusCodeUUIDReq {
+    // ID
+    // Required: true
+    Id  string  `json:"id"`
 
     // Status code | 状态码
     // Required: true
