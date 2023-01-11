@@ -3,6 +3,7 @@ syntax = "proto3";
 package {{.package}};
 option go_package="./{{.package}}";
 
+// base message
 message Empty {}
 
 message IDReq {
@@ -13,8 +14,12 @@ message IDsReq {
   repeated uint64 ids = 1;
 }
 
+message UUIDsReq {
+  repeated string ids = 1;
+}
+
 message UUIDReq {
-  string uuid = 1;
+  string id = 1;
 }
 
 message BaseResp {
@@ -24,6 +29,16 @@ message BaseResp {
 message PageInfoReq {
   uint64 page = 1;
   uint64 page_size = 2;
+}
+
+message StatusCodeReq {
+  uint64 id = 1;
+  uint64 status = 2;
+}
+
+message StatusCodeUUIDReq {
+  string id = 1;
+  uint64 status = 2;
 }
 
 service {{.serviceName}} {

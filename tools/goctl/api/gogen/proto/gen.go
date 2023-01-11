@@ -17,6 +17,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -152,7 +153,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
 				for _, field := range v.Elements {
 					field.Accept(MessageVisitor{})
-					if protoField.Name == "id" || protoField.Name == "created_at" || protoField.Name == "updated_at" || protoField.Name == "deleted_at" {
+					if entx.IsBaseProperty(protoField.Name) {
 						continue
 					}
 					setLogic.WriteString(fmt.Sprintf("\n\t\t\t%s: req.%s,", parser.CamelCase(protoField.Name),
@@ -259,7 +260,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.Pr
 			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
 				for _, field := range v.Elements {
 					field.Accept(MessageVisitor{})
-					if protoField.Name == "id" || protoField.Name == "created_at" || protoField.Name == "updated_at" || protoField.Name == "deleted_at" {
+					if entx.IsBaseProperty(protoField.Name) {
 						continue
 					}
 					var structData string

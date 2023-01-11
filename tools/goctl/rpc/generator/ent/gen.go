@@ -18,6 +18,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -49,7 +50,7 @@ func GenEntLogic(g *GenEntLogicContext) error {
 
 	return errors.New("does not support multiple")
 	// Todo: in the future may add this function
-	//return GenEntLogicGroup(ctx, proto, cfg)
+	// return GenEntLogicGroup(ctx, proto, cfg)
 }
 
 func genEntLogicInCompatibility(g *GenEntLogicContext) error {
@@ -149,7 +150,6 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 			}
 
 		}
-
 	}
 	return nil
 }
@@ -157,6 +157,9 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, schema *load.Schema, searchKeyNum int) []*RpcLogicData {
 	var data []*RpcLogicData
 	hasTime := false
+	hasUUID := false
+	// end string means whether to use \n
+	endString := ""
 	var packageName string
 	if groupName != "" {
 		packageName = groupName
@@ -166,28 +169,34 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 
 	setLogic := strings.Builder{}
 	for _, v := range schema.Fields {
-		if v.Name == "id" || v.Name == "created_at" || v.Name == "updated_at" || v.Name == "deleted_at" {
+		if entx.IsBaseProperty(v.Name) {
 			continue
 		} else if v.Name == "status" {
 			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uint8(in.%s)).\n", parser.CamelCase(v.Name),
 				parser.CamelCase(v.Name)))
 		} else {
-			if strings.Contains(v.Name, "at") {
+			if entx.IsTimeProperty(v.Name) {
 				hasTime = true
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(in.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
-			} else if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
-				if v.Info.Type.String() == "int" {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(int(in.%s)).\n", convertSpecificNounToUpper(v.Name),
-						parser.CamelCase(v.Name)))
+			} else if entx.IsUpperProperty(v.Name) {
+				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
+					if v.Info.Type.String() == "[16]byte" {
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+							parser.CamelCase(v.Name)))
+						hasUUID = true
+					} else {
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+							v.Info.Type.String(), parser.CamelCase(v.Name)))
+					}
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", convertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			} else {
-				if v.Info.Type.String() == "int" {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(int(in.%s)).\n", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
+				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+						v.Info.Type.String(), parser.CamelCase(v.Name)))
 				} else {
 					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", parser.CamelCase(v.Name),
 						parser.CamelCase(v.Name)))
@@ -201,6 +210,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	createLogicTmpl, err := template.New("createOrUpdate").Parse(createOrUpdateTpl)
 	err = createLogicTmpl.Execute(createLogic, map[string]interface{}{
 		"hasTime":     hasTime,
+		"hasUUID":     hasUUID,
 		"setLogic":    setLogic.String(),
 		"modelName":   schema.Name,
 		"serviceName": serviceName,
@@ -222,10 +232,11 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	predicateData.WriteString(fmt.Sprintf("\tvar predicates []predicate.%s\n", schema.Name))
 	count := 0
 	for _, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < searchKeyNum {
+		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") &&
+			count < searchKeyNum && !entx.IsBaseProperty(v.Name) {
 			camelName := parser.CamelCase(v.Name)
 			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
-				camelName, strings.ToLower(schema.Name), convertSpecificNounToUpper(v.Name), camelName))
+				camelName, strings.ToLower(schema.Name), entx.ConvertSpecificNounToUpper(v.Name), camelName))
 			count++
 		}
 	}
@@ -235,47 +246,37 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	listData := strings.Builder{}
 
 	for i, v := range schema.Fields {
-		if v.Name == "id" || v.Name == "created_at" || v.Name == "updated_at" || v.Name == "deleted_at" {
+		if entx.IsBaseProperty(v.Name) {
 			continue
-		} else if v.Name == "status" {
-			listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint64(v.%s),\n", parser.CamelCase(v.Name),
-				parser.CamelCase(v.Name)))
 		} else {
 			nameCamelCase := parser.CamelCase(v.Name)
+
 			if i < (len(schema.Fields) - 1) {
-				if strings.Contains(v.Name, "at") {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),\n", nameCamelCase,
-						nameCamelCase))
-				} else {
-					if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", parser.CamelCase(v.Name),
-							convertSpecificNounToUpper(v.Name)))
-					} else {
-						if v.Info.Type.String() == "int" {
-							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tint64(v.%s),\n", nameCamelCase,
-								nameCamelCase))
-						} else {
-							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,\n", nameCamelCase,
-								nameCamelCase))
-						}
-					}
-				}
+				endString = "\n"
 			} else {
-				if strings.Contains(v.Name, "at") {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),", nameCamelCase,
-						nameCamelCase))
+				endString = ""
+			}
+
+			if entx.IsUUIDType(v.Info.Type.String()) {
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
+					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
+			} else if v.Name == "status" {
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint64(v.%s),%s", nameCamelCase,
+					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
+			} else if entx.IsTimeProperty(v.Name) {
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
+					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
+			} else {
+				if entx.IsUpperProperty(v.Name) {
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+						entx.ConvertSpecificNounToUpper(v.Name), endString))
 				} else {
-					if strings.Contains(v.Name, "uuid") || strings.Contains(v.Name, "api") || strings.Contains(v.Name, "id") {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", parser.CamelCase(v.Name),
-							convertSpecificNounToUpper(v.Name)))
+					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+							entx.ConvertEntTypeToGotype(v.Info.Type.String()), nameCamelCase, endString))
 					} else {
-						if v.Info.Type.String() == "int" {
-							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tint64(v.%s),", nameCamelCase,
-								nameCamelCase))
-						} else {
-							listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,", nameCamelCase,
-								nameCamelCase))
-						}
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+							nameCamelCase, endString))
 					}
 				}
 			}
@@ -334,33 +335,36 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (string, string, error) {
 	var protoMessage strings.Builder
 	schemaNameCamelCase := parser.CamelCase(schema.Name)
+	// end string means whether to use \n
+	endString := ""
 	// info message
 	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  uint64 id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
 		schemaNameCamelCase))
 	index := 4
 	for i, v := range schema.Fields {
-		if v.Name == "id" || v.Name == "created_at" || v.Name == "updated_at" || v.Name == "deleted_at" {
+		if entx.IsBaseProperty(v.Name) {
 			continue
 		} else if v.Name == "status" {
 			protoMessage.WriteString(fmt.Sprintf("  uint64 %s = %d;\n", v.Name, index))
 			index++
 		} else {
 			if i < (len(schema.Fields) - 1) {
-				if strings.Contains(v.Name, "at") {
-					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n", v.Name, index))
-				} else {
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", convertTypeToProtoType(v.Info.Type.String()),
-						v.Name, index))
-				}
+				endString = "\n"
 			} else {
-				if strings.Contains(v.Name, "at") {
-					protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;\n}\n\n", v.Name, index))
-				} else {
-
-					protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n}\n\n", convertTypeToProtoType(v.Info.Type.String()),
-						v.Name, index))
-				}
+				endString = ""
 			}
+
+			if entx.IsTimeProperty(v.Name) {
+				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", v.Name, index, endString))
+			} else {
+				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
+					v.Name, index, endString))
+			}
+
+			if i == (len(schema.Fields) - 1) {
+				protoMessage.WriteString("\n}\n\n")
+			}
+
 			index++
 		}
 	}
@@ -378,7 +382,7 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	for i, v := range schema.Fields {
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < searchKeyNum {
 			if i < (len(schema.Fields)-1) && count < searchKeyNum {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", convertTypeToProtoType(v.Info.Type.String()),
+				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
 					v.Name, index))
 			}
 			index++
