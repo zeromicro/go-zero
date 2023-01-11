@@ -148,7 +148,6 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	}
 
 	baseType := fieldType.Elem()
-	baseKind := baseType.Kind()
 	dereffedBaseType := Deref(baseType)
 	dereffedBaseKind := dereffedBaseType.Kind()
 	refValue := reflect.ValueOf(mapValue)
@@ -177,11 +176,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 				return err
 			}
 
-			if baseKind == reflect.Ptr {
-				conv.Index(i).Set(target)
-			} else {
-				conv.Index(i).Set(target.Elem())
-			}
+			SetValue(fieldType.Elem(), conv.Index(i), target.Elem())
 		case reflect.Slice:
 			if err := u.fillSlice(dereffedBaseType, conv.Index(i), ithValue); err != nil {
 				return err
@@ -235,9 +230,9 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case fmt.Stringer:
-		return setValue(baseKind, ithVal, v.String())
+		return setValueFromString(baseKind, ithVal, v.String())
 	case string:
-		return setValue(baseKind, ithVal, v)
+		return setValueFromString(baseKind, ithVal, v)
 	case map[string]interface{}:
 		return u.fillMap(ithVal.Type(), ithVal, value)
 	default:
@@ -251,7 +246,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 
 			target := reflect.New(baseType).Elem()
 			target.Set(reflect.ValueOf(value))
-			ithVal.Set(target.Addr())
+			SetValue(ithVal.Type(), ithVal, target)
 			return nil
 		}
 
@@ -295,7 +290,6 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 
 	refValue := reflect.ValueOf(mapValue)
 	targetValue := reflect.MakeMapWithSize(mapType, refValue.Len())
-	fieldElemKind := elemType.Kind()
 	dereffedElemType := Deref(elemType)
 	dereffedElemKind := dereffedElemType.Kind()
 
@@ -322,11 +316,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 				return emptyValue, err
 			}
 
-			if fieldElemKind == reflect.Ptr {
-				targetValue.SetMapIndex(key, target)
-			} else {
-				targetValue.SetMapIndex(key, target.Elem())
-			}
+			SetMapIndexValue(elemType, targetValue, key, target.Elem())
 		case reflect.Map:
 			keythMap, ok := keythData.(map[string]interface{})
 			if !ok {
@@ -355,7 +345,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue inter
 				targetValue.SetMapIndex(key, reflect.ValueOf(v))
 			case json.Number:
 				target := reflect.New(dereffedElemType)
-				if err := setValue(dereffedElemKind, target.Elem(), v.String()); err != nil {
+				if err := setValueFromString(dereffedElemKind, target.Elem(), v.String()); err != nil {
 					return emptyValue, err
 				}
 
@@ -612,7 +602,7 @@ func (u *Unmarshaler) processFieldStruct(fieldType reflect.Type, value reflect.V
 			return err
 		}
 
-		value.Set(target.Addr())
+		SetValue(fieldType, value, target)
 	} else if err := u.unmarshalWithFullName(m, value.Addr().Interface(), fullName); err != nil {
 		return err
 	}
@@ -785,7 +775,7 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		case reflect.Array, reflect.Slice:
 			return u.fillSliceWithDefault(derefedType, value, defaultValue)
 		default:
-			return setValue(fieldKind, value, defaultValue)
+			return setValueFromString(fieldKind, value, defaultValue)
 		}
 	}
 
@@ -908,7 +898,7 @@ func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue interfa
 		if err := validateJsonNumberRange(v, opts); err != nil {
 			return err
 		}
-		return setValue(baseType.Kind(), value, v.String())
+		return setValueFromString(baseType.Kind(), value, v.String())
 	default:
 		return newTypeMismatchError(fullName)
 	}
@@ -928,7 +918,7 @@ func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue inte
 		baseType := Deref(fieldType)
 		target := reflect.New(baseType).Elem()
 		setSameKindValue(baseType, target, mapValue)
-		value.Set(target.Addr())
+		SetValue(fieldType, value, target)
 	} else {
 		setSameKindValue(fieldType, value, mapValue)
 	}

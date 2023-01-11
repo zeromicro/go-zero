@@ -3882,6 +3882,21 @@ func TestUnmarshalJsonBytesWithAnonymousFieldNotInOptions(t *testing.T) {
 	assert.Error(t, UnmarshalJsonBytes(input, &c))
 }
 
+func TestUnmarshalNestedPtr(t *testing.T) {
+	type inner struct {
+		Int **int `key:"int"`
+	}
+	m := map[string]interface{}{
+		"int": 1,
+	}
+
+	var in inner
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.NotNil(t, in.Int)
+		assert.Equal(t, 1, **in.Int)
+	}
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {

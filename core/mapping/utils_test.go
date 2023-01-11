@@ -237,7 +237,7 @@ func TestValidatePtrWithZeroValue(t *testing.T) {
 
 func TestSetValueNotSettable(t *testing.T) {
 	var i int
-	assert.NotNil(t, setValue(reflect.Int, reflect.ValueOf(i), "1"))
+	assert.NotNil(t, setValueFromString(reflect.Int, reflect.ValueOf(i), "1"))
 }
 
 func TestParseKeyAndOptionsErrors(t *testing.T) {
@@ -290,7 +290,7 @@ func TestSetValueFormatErrors(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.kind.String(), func(t *testing.T) {
-			err := setValue(test.kind, test.target, test.value)
+			err := setValueFromString(test.kind, test.target, test.value)
 			assert.NotEqual(t, errValueNotSettable, err)
 			assert.NotNil(t, err)
 		})

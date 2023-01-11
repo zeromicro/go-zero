@@ -25,7 +25,7 @@ const spanName = "redis"
 
 var (
 	startTimeKey          = contextKey("startTime")
-	durationHook          = hook{tracer: otel.GetTracerProvider().Tracer(trace.TraceName)}
+	durationHook          = hook{tracer: otel.Tracer(trace.TraceName)}
 	redisCmdsAttributeKey = attribute.Key("redis.cmds")
 )
 
