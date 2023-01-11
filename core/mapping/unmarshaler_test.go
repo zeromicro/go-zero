@@ -1354,9 +1354,10 @@ func TestUnmarshalStringOptionsWithStringOptionsPtr(t *testing.T) {
 	var in inner
 	unmarshaler := NewUnmarshaler(defaultKeyName, WithStringValues())
 	ast := assert.New(t)
-	ast.Nil(unmarshaler.Unmarshal(m, &in))
-	ast.True(*in.Value == "first")
-	ast.True(*in.Correct == 2)
+	if ast.NoError(unmarshaler.Unmarshal(m, &in)) {
+		ast.True(*in.Value == "first")
+		ast.True(*in.Correct == 2)
+	}
 }
 
 func TestUnmarshalStringOptionsWithStringOptionsIncorrect(t *testing.T) {
@@ -3663,31 +3664,36 @@ func TestUnmarshalJsonReaderArrayString(t *testing.T) {
 
 func TestGoogleUUID(t *testing.T) {
 	var val struct {
-		Uid   uuid.UUID   `json:"uid,optional"`
-		Uidp  *uuid.UUID  `json:"uidp,optional"`
-		Uidpp **uuid.UUID `json:"uidpp,optional"`
+		Uid    uuid.UUID    `json:"uid,optional"`
+		Uidp   *uuid.UUID   `json:"uidp,optional"`
+		Uidpp  **uuid.UUID  `json:"uidpp,optional"`
+		Uidppp ***uuid.UUID `json:"uidppp,optional"`
 	}
 
 	t.Run("bytes", func(t *testing.T) {
 		if assert.NoError(t, UnmarshalJsonBytes([]byte(`{
 			"uid": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
 			"uidp": "a0b3d4af-4232-4c7d-b722-7ae879620518",
-			"uidpp": "6ba7b810-9dad-11d1-80b4-00c04fd430c9"}`), &val)) {
+			"uidpp": "a0b3d4af-4232-4c7d-b722-7ae879620519",
+			"uidppp": "6ba7b810-9dad-11d1-80b4-00c04fd430c9"}`), &val)) {
 			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c8", val.Uid.String())
 			assert.Equal(t, "a0b3d4af-4232-4c7d-b722-7ae879620518", val.Uidp.String())
-			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c9", (*val.Uidpp).String())
+			assert.Equal(t, "a0b3d4af-4232-4c7d-b722-7ae879620519", (*val.Uidpp).String())
+			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c9", (**val.Uidppp).String())
 		}
 	})
 
 	t.Run("map", func(t *testing.T) {
 		if assert.NoError(t, UnmarshalJsonMap(map[string]interface{}{
-			"uid":   []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
-			"uidp":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
-			"uidpp": []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c3"),
+			"uid":    []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
+			"uidp":   []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
+			"uidpp":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c3"),
+			"uidppp": []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c4"),
 		}, &val)) {
 			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c1", val.Uid.String())
 			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c2", val.Uidp.String())
 			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c3", (*val.Uidpp).String())
+			assert.Equal(t, "6ba7b810-9dad-11d1-80b4-00c04fd430c4", (**val.Uidppp).String())
 		}
 	})
 }
