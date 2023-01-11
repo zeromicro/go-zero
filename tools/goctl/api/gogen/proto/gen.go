@@ -156,7 +156,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					if entx.IsBaseProperty(protoField.Name) {
 						continue
 					}
-					setLogic.WriteString(fmt.Sprintf("\n\t\t\t%s: req.%s,", parser.CamelCase(protoField.Name),
+					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protoField.Name),
 						parser.CamelCase(protoField.Name)))
 				}
 				createLogic := bytes.NewBufferString("")
@@ -265,7 +265,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 					}
 					var structData string
 
-					structData = fmt.Sprintf("\n\n\t\t// %s\n\t\t%s  %s `json:\"%s\"`",
+					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s\"`",
 						parser.CamelCase(protoField.Name),
 						parser.CamelCase(protoField.Name),
 						entx.ConvertProtoTypeToGoType(protoField.Type),
