@@ -545,8 +545,8 @@ func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflec
 
 func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type, value reflect.Value,
 	v json.Number, opts *fieldOptionsWithContext, fullName string) error {
-	fieldKind := fieldType.Kind()
-	typeKind := Deref(fieldType).Kind()
+	baseType := Deref(fieldType)
+	typeKind := baseType.Kind()
 
 	if err := validateJsonNumberRange(v, opts); err != nil {
 		return err
@@ -556,9 +556,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 		return err
 	}
 
-	if fieldKind == reflect.Ptr {
-		value = value.Elem()
-	}
+	target := reflect.New(Deref(fieldType)).Elem()
 
 	switch typeKind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -567,7 +565,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return err
 		}
 
-		value.SetInt(iValue)
+		target.SetInt(iValue)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		iValue, err := v.Int64()
 		if err != nil {
@@ -578,17 +576,19 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 			return fmt.Errorf("unmarshal %q with bad value %q", fullName, v.String())
 		}
 
-		value.SetUint(uint64(iValue))
+		target.SetUint(uint64(iValue))
 	case reflect.Float32, reflect.Float64:
 		fValue, err := v.Float64()
 		if err != nil {
 			return err
 		}
 
-		value.SetFloat(fValue)
+		target.SetFloat(fValue)
 	default:
 		return newTypeMismatchError(fullName)
 	}
+
+	SetValue(fieldType, value, target)
 
 	return nil
 }

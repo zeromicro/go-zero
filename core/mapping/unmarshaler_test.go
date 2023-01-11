@@ -263,12 +263,40 @@ func TestUnmarshalIntWithString(t *testing.T) {
 			Int int64 `key:"int,string"`
 		}
 		m := map[string]interface{}{
-			"int": json.Number("0"),
+			"int": json.Number("1"),
 		}
 
 		var in inner
 		assert.NoError(t, UnmarshalKey(m, &in))
-		assert.Equal(t, int64(0), in.Int)
+		assert.Equal(t, int64(1), in.Int)
+	})
+
+	t.Run("int with ptr", func(t *testing.T) {
+		type inner struct {
+			Int *int64 `key:"int"`
+		}
+		m := map[string]interface{}{
+			"int": json.Number("1"),
+		}
+
+		var in inner
+		if assert.NoError(t, UnmarshalKey(m, &in)) {
+			assert.Equal(t, int64(1), *in.Int)
+		}
+	})
+
+	t.Run("int with ptr of ptr", func(t *testing.T) {
+		type inner struct {
+			Int **int64 `key:"int"`
+		}
+		m := map[string]interface{}{
+			"int": json.Number("1"),
+		}
+
+		var in inner
+		if assert.NoError(t, UnmarshalKey(m, &in)) {
+			assert.Equal(t, int64(1), **in.Int)
+		}
 	})
 
 	t.Run("int with options", func(t *testing.T) {
@@ -276,12 +304,12 @@ func TestUnmarshalIntWithString(t *testing.T) {
 			Int int64 `key:"int,string,options=[0,1]"`
 		}
 		m := map[string]interface{}{
-			"int": json.Number("0"),
+			"int": json.Number("1"),
 		}
 
 		var in inner
 		assert.NoError(t, UnmarshalKey(m, &in))
-		assert.Equal(t, int64(0), in.Int)
+		assert.Equal(t, int64(1), in.Int)
 	})
 
 	t.Run("int with options", func(t *testing.T) {
@@ -305,7 +333,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 			}
 		)
 		m := map[string]interface{}{
-			"int": StrType("0"),
+			"int": StrType("1"),
 		}
 
 		var in inner
