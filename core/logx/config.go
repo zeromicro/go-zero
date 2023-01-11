@@ -8,7 +8,9 @@ type LogConf struct {
 	TimeFormat          string `json:",optional"`
 	Path                string `json:",default=logs"`
 	Level               string `json:",default=info,options=[debug,info,error,severe]"`
+	MaxContentLength    uint32 `json:",optional"`
 	Compress            bool   `json:",optional"`
+	Stat                bool   `json:",default=true"`
 	KeepDays            int    `json:",optional"`
 	StackCooldownMillis int    `json:",default=100"`
 	// MaxBackups represents how many backup log files will be kept. 0 means all files will be kept forever.

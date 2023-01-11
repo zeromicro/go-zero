@@ -26,12 +26,13 @@ type (
 	rpcServer struct {
 		*baseRpcServer
 		name          string
+		middlewares   ServerMiddlewaresConf
 		healthManager health.Probe
 	}
 )
 
 // NewRpcServer returns a Server.
-func NewRpcServer(addr string, opts ...ServerOption) Server {
+func NewRpcServer(addr string, middlewares ServerMiddlewaresConf, opts ...ServerOption) Server {
 	var options rpcServerOptions
 	for _, opt := range opts {
 		opt(&options)
@@ -42,6 +43,7 @@ func NewRpcServer(addr string, opts ...ServerOption) Server {
 
 	return &rpcServer{
 		baseRpcServer: newBaseRpcServer(addr, &options),
+		middlewares:   middlewares,
 		healthManager: health.NewHealthManager(fmt.Sprintf("%s-%s", probeNamePrefix, addr)),
 	}
 }
@@ -57,22 +59,12 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		return err
 	}
 
-	unaryInterceptors := []grpc.UnaryServerInterceptor{
-		serverinterceptors.UnaryTracingInterceptor,
-		serverinterceptors.UnaryCrashInterceptor,
-		serverinterceptors.UnaryStatInterceptor(s.metrics),
-		serverinterceptors.UnaryPrometheusInterceptor,
-		serverinterceptors.UnaryBreakerInterceptor,
-	}
+	unaryInterceptors := s.buildUnaryInterceptors()
 	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
-	streamInterceptors := []grpc.StreamServerInterceptor{
-		serverinterceptors.StreamTracingInterceptor,
-		serverinterceptors.StreamCrashInterceptor,
-		serverinterceptors.StreamBreakerInterceptor,
-	}
+	streamInterceptors := s.buildStreamInterceptors()
 	streamInterceptors = append(streamInterceptors, s.streamInterceptors...)
-	options := append(s.options, WithUnaryServerInterceptors(unaryInterceptors...),
-		WithStreamServerInterceptors(streamInterceptors...))
+	options := append(s.options, grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...))
 	server := grpc.NewServer(options...)
 	register(server)
 
@@ -95,6 +87,44 @@ func (s *rpcServer) Start(register RegisterFn) error {
 	defer waitForCalled()
 
 	return server.Serve(lis)
+}
+
+func (s *rpcServer) buildStreamInterceptors() []grpc.StreamServerInterceptor {
+	var interceptors []grpc.StreamServerInterceptor
+
+	if s.middlewares.Trace {
+		interceptors = append(interceptors, serverinterceptors.StreamTracingInterceptor)
+	}
+	if s.middlewares.Recover {
+		interceptors = append(interceptors, serverinterceptors.StreamRecoverInterceptor)
+	}
+	if s.middlewares.Breaker {
+		interceptors = append(interceptors, serverinterceptors.StreamBreakerInterceptor)
+	}
+
+	return interceptors
+}
+
+func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
+	var interceptors []grpc.UnaryServerInterceptor
+
+	if s.middlewares.Trace {
+		interceptors = append(interceptors, serverinterceptors.UnaryTracingInterceptor)
+	}
+	if s.middlewares.Recover {
+		interceptors = append(interceptors, serverinterceptors.UnaryRecoverInterceptor)
+	}
+	if s.middlewares.Stat {
+		interceptors = append(interceptors, serverinterceptors.UnaryStatInterceptor(s.metrics))
+	}
+	if s.middlewares.Prometheus {
+		interceptors = append(interceptors, serverinterceptors.UnaryPrometheusInterceptor)
+	}
+	if s.middlewares.Breaker {
+		interceptors = append(interceptors, serverinterceptors.UnaryBreakerInterceptor)
+	}
+
+	return interceptors
 }
 
 // WithMetrics returns a func that sets metrics to a Server.

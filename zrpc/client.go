@@ -70,7 +70,7 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 		return nil, err
 	}
 
-	client, err := internal.NewClient(target, opts...)
+	client, err := internal.NewClient(target, c.Middlewares, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,15 @@ func NewClient(c RpcClientConf, options ...ClientOption) (Client, error) {
 
 // NewClientWithTarget returns a Client with connecting to given target.
 func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
-	return internal.NewClient(target, opts...)
+	middlewares := ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	}
+
+	return internal.NewClient(target, middlewares, opts...)
 }
 
 // Conn returns the underlying grpc.ClientConn.

@@ -18,7 +18,7 @@ var (
 	newCmd = &cobra.Command{
 		Use:   "new",
 		Short: "Generate rpc demo service",
-		Args:  cobra.ExactValidArgs(1),
+		Args:  cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE:  cli.RPCNew,
 	}
 
@@ -34,7 +34,7 @@ var (
 		Use:     "protoc",
 		Short:   "Generate grpc code",
 		Example: "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
-		Args:    cobra.ExactValidArgs(1),
+		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE:    cli.ZRPC,
 	}
 )

@@ -14,7 +14,8 @@ const (
 )
 
 // NewRpcPubServer returns a Server.
-func NewRpcPubServer(etcd discov.EtcdConf, listenOn string, opts ...ServerOption) (Server, error) {
+func NewRpcPubServer(etcd discov.EtcdConf, listenOn string, middlewares ServerMiddlewaresConf,
+	opts ...ServerOption) (Server, error) {
 	registerEtcd := func() error {
 		pubListenOn := figureOutListenOn(listenOn)
 		var pubOpts []discov.PubOption
@@ -30,7 +31,7 @@ func NewRpcPubServer(etcd discov.EtcdConf, listenOn string, opts ...ServerOption
 	}
 	server := keepAliveServer{
 		registerEtcd: registerEtcd,
-		Server:       NewRpcServer(listenOn, opts...),
+		Server:       NewRpcServer(listenOn, middlewares, opts...),
 	}
 
 	return server, nil
