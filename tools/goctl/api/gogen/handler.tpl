@@ -15,7 +15,9 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		{{end}}l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+		ctx := context.WithValue(r.Context(), "go-zero-http-request", r)
+
+		{{end}}l := {{.LogicName}}.New{{.LogicType}}(ctx, svcCtx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
