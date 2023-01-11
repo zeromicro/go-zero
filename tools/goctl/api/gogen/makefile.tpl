@@ -27,7 +27,3 @@ serve-swagger:
 	lsof -i:36666 | awk 'NR!=1 {print $2}' | xargs killall -9 || true
 	@printf $(GREEN)"[SUCCESS] serve swagger-ui successfully"
 	swagger serve -F=swagger --port 36666 {{.serviceName}}.yml
-
-gen-api-proto-logic:
-	goctls api proto --proto=$(proto)  --style=go_zero --multiple=false --service_name={{.serviceName}} --search_key_num=3 --o=./ --model=$(model)
-	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"

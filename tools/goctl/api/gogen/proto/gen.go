@@ -99,7 +99,7 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	}
 
 	// generate api file
-	apiData, err := GenApiData(p, &protoData, projectCtx)
+	apiData, err := GenApiData(p, &protoData)
 	if err != nil {
 		return err
 	}
@@ -249,7 +249,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 	return data
 }
 
-func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.ProjectContext) (string, error) {
+func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	infoData := strings.Builder{}
 	listData := strings.Builder{}
 	count := 0
@@ -265,10 +265,10 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.Pr
 					}
 					var structData string
 
-					structData += fmt.Sprintf("\n\n\t\t// %s\n\t\t%s  %s `json:\"%s\"`",
+					structData = fmt.Sprintf("\n\n\t\t// %s\n\t\t%s  %s `json:\"%s\"`",
 						parser.CamelCase(protoField.Name),
 						parser.CamelCase(protoField.Name),
-						protoField.Type,
+						entx.ConvertProtoTypeToGoType(protoField.Type),
 						strcase.ToLowerCamel(protoField.Name))
 
 					infoData.WriteString(structData)

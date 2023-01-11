@@ -25,6 +25,17 @@ func ConvertEntTypeToProtoType(typeName string) string {
 	return typeName
 }
 
+// ConvertProtoTypeToGoType returns go type from proto type
+func ConvertProtoTypeToGoType(typeName string) string {
+	switch typeName {
+	case "float":
+		typeName = "float32"
+	case "double":
+		typeName = "float64"
+	}
+	return typeName
+}
+
 // ConvertSpecificNounToUpper is used to convert snack format to Ent format
 func ConvertSpecificNounToUpper(str string) string {
 	target := parser.CamelCase(str)
