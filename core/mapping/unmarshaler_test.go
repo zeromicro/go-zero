@@ -250,6 +250,34 @@ func TestUnmarshalIntWithDefault(t *testing.T) {
 	assert.Equal(t, 1, in.Int)
 }
 
+func TestUnmarshalIntWithString(t *testing.T) {
+	t.Run("int without options", func(t *testing.T) {
+		type inner struct {
+			Int int64 `key:"int,string"`
+		}
+		m := map[string]interface{}{
+			"int": json.Number("0"),
+		}
+
+		var in inner
+		assert.Nil(t, UnmarshalKey(m, &in))
+		assert.Equal(t, int64(0), in.Int)
+	})
+
+	t.Run("int with options", func(t *testing.T) {
+		type inner struct {
+			Int int64 `key:"int,string,options=[0,1]"`
+		}
+		m := map[string]interface{}{
+			"int": json.Number("0"),
+		}
+
+		var in inner
+		assert.Nil(t, UnmarshalKey(m, &in))
+		assert.Equal(t, int64(0), in.Int)
+	})
+}
+
 func TestUnmarshalBoolSliceRequired(t *testing.T) {
 	type inner struct {
 		Bools []bool `key:"bools"`

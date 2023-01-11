@@ -731,24 +731,41 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 		return u.processFieldNotFromString(fieldType, value, vp, opts, fullName)
 	default:
 		if u.opts.fromString || opts.fromString() {
-			valueKind := reflect.TypeOf(mapValue).Kind()
-			if valueKind != reflect.String {
-				return fmt.Errorf("error: the value in map is not string, but %s", valueKind)
-			}
-
-			options := opts.options()
-			if len(options) > 0 {
-				if !stringx.Contains(options, mapValue.(string)) {
-					return fmt.Errorf(`error: value "%s" for field "%s" is not defined in options "%v"`,
-						mapValue, key, options)
-				}
-			}
-
-			return fillPrimitive(fieldType, value, mapValue, opts, fullName)
+			return u.processNamedFieldWithValueFromString(fieldType, value, mapValue,
+				key, opts, fullName)
 		}
 
 		return u.processFieldNotFromString(fieldType, value, vp, opts, fullName)
 	}
+}
+
+func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Type, value reflect.Value,
+	mapValue interface{}, key string, opts *fieldOptionsWithContext, fullName string) error {
+	valueKind := reflect.TypeOf(mapValue).Kind()
+	if valueKind != reflect.String {
+		return fmt.Errorf("the value in map is not string, but %s", valueKind)
+	}
+
+	options := opts.options()
+	if len(options) > 0 {
+		var checkValue string
+		switch mt := mapValue.(type) {
+		case string:
+			checkValue = mt
+		case json.Number:
+			checkValue = mt.String()
+		default:
+			return fmt.Errorf("the value in map is not string or json.Number, but %s",
+				valueKind.String())
+		}
+
+		if !stringx.Contains(options, checkValue) {
+			return fmt.Errorf(`value "%s" for field "%s" is not defined in options "%v"`,
+				mapValue, key, options)
+		}
+	}
+
+	return fillPrimitive(fieldType, value, mapValue, opts, fullName)
 }
 
 func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, value reflect.Value,
