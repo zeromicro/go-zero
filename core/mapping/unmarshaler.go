@@ -752,7 +752,7 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 		switch mt := mapValue.(type) {
 		case string:
 			checkValue = mt
-		case json.Number:
+		case fmt.Stringer:
 			checkValue = mt.String()
 		default:
 			return fmt.Errorf("the value in map is not string or json.Number, but %s",
