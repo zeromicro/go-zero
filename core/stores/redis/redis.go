@@ -790,6 +790,28 @@ func (s *Redis) HincrbyCtx(ctx context.Context, key, field string, increment int
 	return
 }
 
+// HincrbyFloat is the implementation of redis hincrby command.
+func (s *Redis) HincrbyFloat(key, field string, increment float64) (float64, error) {
+	return s.HincrbyFloatCtx(context.Background(), key, field, increment)
+}
+
+// HincrbyFloatCtx is the implementation of redis hincrby command.
+func (s *Redis) HincrbyFloatCtx(ctx context.Context, key, field string, increment float64) (val float64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+		val, err = conn.HIncrByFloat(ctx, key, field, increment).Result()
+		if err != nil {
+			return err
+		}
+		return nil
+	}, acceptable)
+
+	return
+}
+
 // Hkeys is the implementation of redis hkeys command.
 func (s *Redis) Hkeys(key string) ([]string, error) {
 	return s.HkeysCtx(context.Background(), key)
@@ -980,7 +1002,6 @@ func (s *Redis) IncrCtx(ctx context.Context, key string) (val int64, err error) 
 
 	return
 }
-
 // Incrby is the implementation of redis incrby command.
 func (s *Redis) Incrby(key string, increment int64) (int64, error) {
 	return s.IncrbyCtx(context.Background(), key, increment)
@@ -1000,7 +1021,25 @@ func (s *Redis) IncrbyCtx(ctx context.Context, key string, increment int64) (val
 
 	return
 }
+// Incrby is the implementation of redis incrby command.
+func (s *Redis) IncrbyFloat(key string, increment float64) (float64, error) {
+	return s.IncrbyFloatCtx(context.Background(), key, increment)
+}
 
+// IncrbyFloatCtx is the implementation of redis incrby command.
+func (s *Redis) IncrbyFloatCtx(ctx context.Context, key string, increment float64) (val float64, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.IncrByFloat(ctx, key, increment).Result()
+		return err
+	}, acceptable)
+
+	return
+}
 // Keys is the implementation of redis keys command.
 func (s *Redis) Keys(pattern string) ([]string, error) {
 	return s.KeysCtx(context.Background(), pattern)
@@ -2020,12 +2059,13 @@ func (s *Redis) ZscoreCtx(ctx context.Context, key, value string) (val int64, er
 
 	return
 }
-// Zscore is the implementation of redis zscore command score by float.
+
+// ZscoreByFloat is the implementation of redis zscore command score by float.
 func (s *Redis) ZscoreByFloat(key, value string) (float64, error) {
 	return s.ZscoreByFloatCtx(context.Background(), key, value)
 }
 
-// ZscoreCtx is the implementation of redis zscore command score by float.
+// ZscoreByFloatCtx is the implementation of redis zscore command score by float.
 func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -2038,6 +2078,7 @@ func (s *Redis) ZscoreByFloatCtx(ctx context.Context, key, value string) (val fl
 
 	return
 }
+
 // Zscan is the implementation of redis zscan command.
 func (s *Redis) Zscan(key string, cursor uint64, match string, count int64) (
 	keys []string, cur uint64, err error) {
@@ -2059,6 +2100,7 @@ func (s *Redis) ZscanCtx(ctx context.Context, key string, cursor uint64, match s
 
 	return
 }
+
 // Zrank is the implementation of redis zrank command.
 func (s *Redis) Zrank(key, field string) (int64, error) {
 	return s.ZrankCtx(context.Background(), key, field)
@@ -2203,10 +2245,12 @@ func (s *Redis) ZrangeWithScoresCtx(ctx context.Context, key string, start, stop
 
 	return
 }
+
 // ZrangeWithScoresByFloat is the implementation of redis zrange command with scores by float64.
 func (s *Redis) ZrangeWithScoresByFloat(key string, start, stop int64) ([]PairFloat, error) {
 	return s.ZrangeWithScoresByFloatCtx(context.Background(), key, start, stop)
 }
+
 // ZrangeWithScoresByFloatCtx is the implementation of redis zrange command with scores by float64.
 func (s *Redis) ZrangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
 	val []PairFloat, err error) {
@@ -2227,6 +2271,7 @@ func (s *Redis) ZrangeWithScoresByFloatCtx(ctx context.Context, key string, star
 
 	return
 }
+
 // ZRevRangeWithScores is the implementation of redis zrevrange command with scores.
 func (s *Redis) ZRevRangeWithScores(key string, start, stop int64) ([]Pair, error) {
 	return s.ZRevRangeWithScoresCtx(context.Background(), key, start, stop)
@@ -2252,10 +2297,12 @@ func (s *Redis) ZRevRangeWithScoresCtx(ctx context.Context, key string, start, s
 
 	return
 }
+
 // ZRevRangeWithScoresByFloat is the implementation of redis zrevrange command with scores by float.
 func (s *Redis) ZRevRangeWithScoresByFloat(key string, start, stop int64) ([]PairFloat, error) {
 	return s.ZRevRangeWithScoresByFloatCtx(context.Background(), key, start, stop)
 }
+
 // ZRevRangeWithScoresByFloatCtx is the implementation of redis zrevrange command with scores by float.
 func (s *Redis) ZRevRangeWithScoresByFloatCtx(ctx context.Context, key string, start, stop int64) (
 	val []PairFloat, err error) {
@@ -2305,6 +2352,7 @@ func (s *Redis) ZrangebyscoreWithScoresCtx(ctx context.Context, key string, star
 
 	return
 }
+
 // ZrangebyscoreWithScoresByFloat is the implementation of redis zrangebyscore command with scores by float.
 func (s *Redis) ZrangebyscoreWithScoresByFloat(key string, start, stop float64) ([]PairFloat, error) {
 	return s.ZrangebyscoreWithScoresByFloatCtx(context.Background(), key, start, stop)
@@ -2320,8 +2368,8 @@ func (s *Redis) ZrangebyscoreWithScoresByFloatCtx(ctx context.Context, key strin
 		}
 
 		v, err := conn.ZRangeByScoreWithScores(ctx, key, &red.ZRangeBy{
-			Min: fmt.Sprintf("%v",start),
-			Max: fmt.Sprintf("%v",stop),
+			Min: fmt.Sprintf("%v", start),
+			Max: fmt.Sprintf("%v", stop),
 		}).Result()
 		if err != nil {
 			return err
@@ -2333,6 +2381,7 @@ func (s *Redis) ZrangebyscoreWithScoresByFloatCtx(ctx context.Context, key strin
 
 	return
 }
+
 // ZrangebyscoreWithScoresAndLimit is the implementation of redis zrangebyscore command
 // with scores and limit.
 func (s *Redis) ZrangebyscoreWithScoresAndLimit(key string, start, stop int64,
@@ -2370,6 +2419,7 @@ func (s *Redis) ZrangebyscoreWithScoresAndLimitCtx(ctx context.Context, key stri
 
 	return
 }
+
 // ZrangebyscoreWithScoresByFloatAndLimit is the implementation of redis zrangebyscore command
 // with scores by float and limit.
 func (s *Redis) ZrangebyscoreWithScoresByFloatAndLimit(key string, start, stop float64,
@@ -2392,8 +2442,8 @@ func (s *Redis) ZrangebyscoreWithScoresByFloatAndLimitCtx(ctx context.Context, k
 		}
 
 		v, err := conn.ZRangeByScoreWithScores(ctx, key, &red.ZRangeBy{
-			Min:    fmt.Sprintf("%v",start),
-			Max:    fmt.Sprintf("%v",stop),
+			Min:    fmt.Sprintf("%v", start),
+			Max:    fmt.Sprintf("%v", stop),
 			Offset: int64(page * size),
 			Count:  int64(size),
 		}).Result()
@@ -2407,6 +2457,7 @@ func (s *Redis) ZrangebyscoreWithScoresByFloatAndLimitCtx(ctx context.Context, k
 
 	return
 }
+
 // Zrevrange is the implementation of redis zrevrange command.
 func (s *Redis) Zrevrange(key string, start, stop int64) ([]string, error) {
 	return s.ZrevrangeCtx(context.Background(), key, start, stop)
@@ -2472,8 +2523,8 @@ func (s *Redis) ZrevrangebyscoreWithScoresByFloatCtx(ctx context.Context, key st
 		}
 
 		v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &red.ZRangeBy{
-			Min: fmt.Sprintf("%v",start),
-			Max: fmt.Sprintf("%v",stop),
+			Min: fmt.Sprintf("%v", start),
+			Max: fmt.Sprintf("%v", stop),
 		}).Result()
 		if err != nil {
 			return err
@@ -2485,6 +2536,7 @@ func (s *Redis) ZrevrangebyscoreWithScoresByFloatCtx(ctx context.Context, key st
 
 	return
 }
+
 // ZrevrangebyscoreWithScoresAndLimit is the implementation of redis zrevrangebyscore command
 // with scores and limit.
 func (s *Redis) ZrevrangebyscoreWithScoresAndLimit(key string, start, stop int64,
@@ -2545,8 +2597,8 @@ func (s *Redis) ZrevrangebyscoreWithScoresByFloatAndLimitCtx(ctx context.Context
 		}
 
 		v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &red.ZRangeBy{
-			Min:    fmt.Sprintf("%v",start),
-			Max:   fmt.Sprintf("%v",stop),
+			Min:    fmt.Sprintf("%v", start),
+			Max:    fmt.Sprintf("%v", stop),
 			Offset: int64(page * size),
 			Count:  int64(size),
 		}).Result()

@@ -1016,7 +1016,7 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 		val, err := client.ZscoreByFloat("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, 10.345, val)
-		client.ZaddFloat("key", 10.346, "value2")
+		_, _ = client.ZaddFloat("key", 10.346, "value2")
 		_, err = New(client.Addr, badType()).ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.NotNil(t, err)
 		pairs, err := client.ZRevRangeWithScoresByFloat("key", 0, -1)
@@ -1097,7 +1097,22 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 
 	})
 }
-
+func TestRedis_IncrbyFloat(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		incrVal, err := client.IncrbyFloat("key", 0.002)
+		assert.Nil(t, err)
+		assert.Equal(t, 0.002,incrVal)
+		incrVal2, err := client.IncrbyFloat("key", -0.001)
+		assert.Nil(t, err)
+		assert.Equal(t, 0.001,incrVal2)
+		hincrVal ,err := client.HincrbyFloat("hkey","i",0.002)
+		assert.Nil(t, err)
+		assert.Equal(t, 0.002,hincrVal)
+		hincrVal2 ,err := client.HincrbyFloat("hkey","i",-0.001)
+		assert.Nil(t, err)
+		assert.Equal(t, 0.001,hincrVal2)
+	})
+}
 func TestRedis_Pipelined(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.NotNil(t, New(client.Addr, badType()).Pipelined(func(pipeliner Pipeliner) error {
