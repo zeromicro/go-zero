@@ -33,8 +33,8 @@ func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.H
 	ignorePaths.AddStr(tracingOpts.traceIgnorePaths...)
 	traceHandler := func(checkIgnore bool) func(http.Handler) http.Handler {
 		return func(next http.Handler) http.Handler {
+			tracer := otel.Tracer(trace.TraceName)
 			propagator := otel.GetTextMapPropagator()
-			tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				spanName := path

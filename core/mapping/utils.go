@@ -56,7 +56,7 @@ type (
 
 // Deref dereferences a type, if pointer type, returns its element type.
 func Deref(t reflect.Type) reflect.Type {
-	if t.Kind() == reflect.Ptr {
+	for t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 
@@ -66,6 +66,16 @@ func Deref(t reflect.Type) reflect.Type {
 // Repr returns the string representation of v.
 func Repr(v interface{}) string {
 	return lang.Repr(v)
+}
+
+// SetValue sets target to value, pointers are processed automatically.
+func SetValue(tp reflect.Type, value, target reflect.Value) {
+	value.Set(convertTypeOfPtr(tp, target))
+}
+
+// SetMapIndexValue sets target to value at key position, pointers are processed automatically.
+func SetMapIndexValue(tp reflect.Type, value, key, target reflect.Value) {
+	value.SetMapIndex(key, convertTypeOfPtr(tp, target))
 }
 
 // ValidatePtr validates v if it's a valid pointer.
@@ -79,7 +89,7 @@ func ValidatePtr(v *reflect.Value) error {
 	return nil
 }
 
-func convertType(kind reflect.Kind, str string) (interface{}, error) {
+func convertTypeFromString(kind reflect.Kind, str string) (interface{}, error) {
 	switch kind {
 	case reflect.Bool:
 		switch strings.ToLower(str) {
@@ -116,6 +126,23 @@ func convertType(kind reflect.Kind, str string) (interface{}, error) {
 	default:
 		return nil, errUnsupportedType
 	}
+}
+
+func convertTypeOfPtr(tp reflect.Type, target reflect.Value) reflect.Value {
+	// keep the original value is a pointer
+	if tp.Kind() == reflect.Ptr && target.CanAddr() {
+		tp = tp.Elem()
+		target = target.Addr()
+	}
+
+	for tp.Kind() == reflect.Ptr {
+		p := reflect.New(target.Type())
+		p.Elem().Set(target)
+		target = p
+		tp = tp.Elem()
+	}
+
+	return target
 }
 
 func doParseKeyAndOptions(field reflect.StructField, value string) (string, *fieldOptions, error) {
@@ -476,13 +503,13 @@ func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v interfac
 	return nil
 }
 
-func setValue(kind reflect.Kind, value reflect.Value, str string) error {
+func setValueFromString(kind reflect.Kind, value reflect.Value, str string) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}
 
 	value = ensureValue(value)
-	v, err := convertType(kind, str)
+	v, err := convertTypeFromString(kind, str)
 	if err != nil {
 		return err
 	}
@@ -555,7 +582,7 @@ func validateAndSetValue(kind reflect.Kind, value reflect.Value, str string, opt
 		return errValueNotSettable
 	}
 
-	v, err := convertType(kind, str)
+	v, err := convertTypeFromString(kind, str)
 	if err != nil {
 		return err
 	}
