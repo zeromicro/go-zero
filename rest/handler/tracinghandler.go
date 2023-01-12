@@ -31,47 +31,50 @@ func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.H
 
 	ignorePaths := collection.NewSet()
 	ignorePaths.AddStr(tracingOpts.traceIgnorePaths...)
+	traceHandler := func(checkIgnore bool) func(http.Handler) http.Handler {
+		return func(next http.Handler) http.Handler {
+			propagator := otel.GetTextMapPropagator()
+			tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
-	return func(next http.Handler) http.Handler {
-		propagator := otel.GetTextMapPropagator()
-		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				spanName := path
+				if len(spanName) == 0 {
+					spanName = r.URL.Path
+				}
 
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			spanName := path
-			if len(spanName) == 0 {
-				spanName = r.URL.Path
-			}
+				if checkIgnore && ignorePaths.Contains(spanName) {
+					next.ServeHTTP(w, r)
+					return
+				}
 
-			if ignorePaths.Contains(spanName) {
-				next.ServeHTTP(w, r)
-				return
-			}
+				ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+				spanCtx, span := tracer.Start(
+					ctx,
+					spanName,
+					oteltrace.WithSpanKind(oteltrace.SpanKindServer),
+					oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(
+						serviceName, spanName, r)...),
+				)
+				defer span.End()
 
-			ctx := propagator.Extract(r.Context(), propagation.HeaderCarrier(r.Header))
-			spanCtx, span := tracer.Start(
-				ctx,
-				spanName,
-				oteltrace.WithSpanKind(oteltrace.SpanKindServer),
-				oteltrace.WithAttributes(semconv.HTTPServerAttributesFromHTTPRequest(
-					serviceName, spanName, r)...),
-			)
-			defer span.End()
+				// convenient for tracking error messages
+				propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
 
-			// convenient for tracking error messages
-			propagator.Inject(spanCtx, propagation.HeaderCarrier(w.Header()))
+				trw := &response.WithCodeResponseWriter{Writer: w, Code: http.StatusOK}
+				next.ServeHTTP(trw, r.WithContext(spanCtx))
 
-			trw := &response.WithCodeResponseWriter{Writer: w, Code: http.StatusOK}
-			next.ServeHTTP(trw, r.WithContext(spanCtx))
-
-			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
-			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
-		})
+				span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
+				span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
+			})
+		}
 	}
+	checkIgnore := ignorePaths.Count() > 0
+	return traceHandler(checkIgnore)
 }
 
 // WithTraceIgnorePaths specifies the traceIgnorePaths option for TracingHandler.
 func WithTraceIgnorePaths(traceIgnorePaths []string) TracingOption {
 	return func(options *tracingOptions) {
-		options.traceIgnorePaths = traceIgnorePaths
+		options.traceIgnorePaths = append(options.traceIgnorePaths, traceIgnorePaths...)
 	}
 }
