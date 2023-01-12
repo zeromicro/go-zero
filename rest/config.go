@@ -65,5 +65,7 @@ type (
 		Signature    SignatureConf `json:",optional"`
 		// There are default values for all the items in Middlewares.
 		Middlewares MiddlewaresConf
+		// TraceIgnorePaths is paths blacklist for trace middleware.
+		TraceIgnorePaths []string `json:",optional"`
 	}
 )
