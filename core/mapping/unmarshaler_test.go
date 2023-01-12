@@ -4115,6 +4115,20 @@ func TestUnmarshalNestedPtr(t *testing.T) {
 	}
 }
 
+func TestUnmarshalStructPtrOfPtr(t *testing.T) {
+	type inner struct {
+		Int int `key:"int"`
+	}
+	m := map[string]interface{}{
+		"int": 1,
+	}
+
+	in := new(inner)
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.Equal(t, 1, in.Int)
+	}
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {

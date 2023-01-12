@@ -77,7 +77,7 @@ func (u *Unmarshaler) Unmarshal(i interface{}, v interface{}) error {
 		return errValueNotSettable
 	}
 
-	elemType := valueType.Elem()
+	elemType := Deref(valueType)
 	switch iv := i.(type) {
 	case map[string]interface{}:
 		if elemType.Kind() != reflect.Struct {
@@ -818,15 +818,22 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v interface{}, f
 		return err
 	}
 
-	rte := reflect.TypeOf(v).Elem()
-	if rte.Kind() != reflect.Struct {
+	valueType := reflect.TypeOf(v)
+	baseType := Deref(valueType)
+	if baseType.Kind() != reflect.Struct {
 		return errValueNotStruct
 	}
 
-	rve := rv.Elem()
-	numFields := rte.NumField()
+	valElem := rv.Elem()
+	if valElem.Kind() == reflect.Ptr {
+		target := reflect.New(baseType).Elem()
+		SetValue(valueType.Elem(), valElem, target)
+		valElem = target
+	}
+
+	numFields := baseType.NumField()
 	for i := 0; i < numFields; i++ {
-		if err := u.processField(rte.Field(i), rve.Field(i), m, fullName); err != nil {
+		if err := u.processField(baseType.Field(i), valElem.Field(i), m, fullName); err != nil {
 			return err
 		}
 	}
