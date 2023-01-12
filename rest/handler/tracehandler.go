@@ -2,9 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"sync"
 
-	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 	"go.opentelemetry.io/otel"
@@ -13,18 +12,29 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var notTracingSpans sync.Map
+type (
+	// TraceOption defines the method to customize an traceOptions.
+	TraceOption func(options *traceOptions)
 
-// DontTraceSpan disable tracing for the specified span name.
-func DontTraceSpan(spanName string) {
-	notTracingSpans.Store(spanName, lang.Placeholder)
-}
+	// traceOptions is TraceHandler options.
+	traceOptions struct {
+		traceIgnorePaths []string
+	}
+)
 
-// TracingHandler return a middleware that process the opentelemetry.
-func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
+// TraceHandler return a middleware that process the opentelemetry.
+func TraceHandler(serviceName, path string, opts ...TraceOption) func(http.Handler) http.Handler {
+	var options traceOptions
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	ignorePaths := collection.NewSet()
+	ignorePaths.AddStr(options.traceIgnorePaths...)
+
 	return func(next http.Handler) http.Handler {
+		tracer := otel.Tracer(trace.TraceName)
 		propagator := otel.GetTextMapPropagator()
-		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			spanName := path
@@ -32,7 +42,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 				spanName = r.URL.Path
 			}
 
-			if _, ok := notTracingSpans.Load(spanName); ok {
+			if ignorePaths.Contains(spanName) {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -54,7 +64,15 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			next.ServeHTTP(trw, r.WithContext(spanCtx))
 
 			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
-			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
+			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(
+				trw.Code, oteltrace.SpanKindServer))
 		})
+	}
+}
+
+// WithTraceIgnorePaths specifies the traceIgnorePaths option for TraceHandler.
+func WithTraceIgnorePaths(traceIgnorePaths []string) TraceOption {
+	return func(options *traceOptions) {
+		options.traceIgnorePaths = append(options.traceIgnorePaths, traceIgnorePaths...)
 	}
 }

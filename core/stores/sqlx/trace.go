@@ -14,7 +14,7 @@ import (
 var sqlAttributeKey = attribute.Key("sql.method")
 
 func startSpan(ctx context.Context, method string) (context.Context, oteltrace.Span) {
-	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
+	tracer := otel.Tracer(trace.TraceName)
 	start, span := tracer.Start(ctx,
 		spanName,
 		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
