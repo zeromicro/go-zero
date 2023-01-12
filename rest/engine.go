@@ -118,7 +118,9 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 	chn := chain.New()
 
 	if ng.conf.Middlewares.Trace {
-		chn = chn.Append(handler.TracingHandler(ng.conf.Name, route.Path))
+		chn = chn.Append(handler.TracingHandler(ng.conf.Name,
+			route.Path,
+			handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)))
 	}
 	if ng.conf.Middlewares.Log {
 		chn = chn.Append(ng.getLogHandler())
@@ -202,7 +204,9 @@ func (ng *engine) getShedder(priority bool) load.Shedder {
 func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chn := chain.New(
-			handler.TracingHandler(ng.conf.Name, ""),
+			handler.TracingHandler(ng.conf.Name,
+				"",
+				handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)),
 			ng.getLogHandler(),
 		)
 
