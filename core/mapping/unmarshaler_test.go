@@ -1343,11 +1343,13 @@ func TestUnmarshalStringOptionsWithStringOptions(t *testing.T) {
 
 func TestUnmarshalStringOptionsWithStringOptionsPtr(t *testing.T) {
 	type inner struct {
-		Value   *string `key:"value,options=first|second"`
-		Correct *int    `key:"correct,options=1|2"`
+		Value   *string  `key:"value,options=first|second"`
+		ValueP  **string `key:"valuep,options=first|second"`
+		Correct *int     `key:"correct,options=1|2"`
 	}
 	m := map[string]interface{}{
 		"value":   "first",
+		"valuep":  "second",
 		"correct": "2",
 	}
 
@@ -1356,6 +1358,7 @@ func TestUnmarshalStringOptionsWithStringOptionsPtr(t *testing.T) {
 	ast := assert.New(t)
 	if ast.NoError(unmarshaler.Unmarshal(m, &in)) {
 		ast.True(*in.Value == "first")
+		ast.True(**in.ValueP == "second")
 		ast.True(*in.Correct == 2)
 	}
 }
