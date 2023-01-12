@@ -63,12 +63,9 @@ func TestDontTracingSpan(t *testing.T) {
 	})
 	defer ztrace.StopAgent()
 
-	DontTraceSpan("bar")
-	defer notTracingSpans.Delete("bar")
-
 	for _, test := range []string{"", "bar", "foo"} {
 		t.Run(test, func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", test)).Then(
+			h := chain.New(TracingHandler("foo", test, WithTraceIgnorePaths([]string{"bar"}))).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					spanCtx := span.SpanContext()

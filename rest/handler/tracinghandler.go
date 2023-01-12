@@ -2,9 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"sync"
 
-	"github.com/zeromicro/go-zero/core/lang"
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 	"go.opentelemetry.io/otel"
@@ -13,15 +12,26 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
-var notTracingSpans sync.Map
+type (
+	// TracingOption defines the method to customize an tracingOptions.
+	TracingOption func(options *tracingOptions)
 
-// DontTraceSpan disable tracing for the specified span name.
-func DontTraceSpan(spanName string) {
-	notTracingSpans.Store(spanName, lang.Placeholder)
-}
+	// tracingOptions is TracingHandler options.
+	tracingOptions struct {
+		traceIgnorePaths []string
+	}
+)
 
 // TracingHandler return a middleware that process the opentelemetry.
-func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
+func TracingHandler(serviceName, path string, opts ...TracingOption) func(http.Handler) http.Handler {
+	var tracingOpts tracingOptions
+	for _, opt := range opts {
+		opt(&tracingOpts)
+	}
+
+	ignorePaths := collection.NewSet()
+	ignorePaths.AddStr(tracingOpts.traceIgnorePaths...)
+
 	return func(next http.Handler) http.Handler {
 		propagator := otel.GetTextMapPropagator()
 		tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
@@ -32,7 +42,7 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 				spanName = r.URL.Path
 			}
 
-			if _, ok := notTracingSpans.Load(spanName); ok {
+			if ignorePaths.Contains(spanName) {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -56,5 +66,12 @@ func TracingHandler(serviceName, path string) func(http.Handler) http.Handler {
 			span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(trw.Code)...)
 			span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(trw.Code, oteltrace.SpanKindServer))
 		})
+	}
+}
+
+// WithTraceIgnorePaths specifies the traceIgnorePaths option for TracingHandler.
+func WithTraceIgnorePaths(traceIgnorePaths []string) TracingOption {
+	return func(options *tracingOptions) {
+		options.traceIgnorePaths = traceIgnorePaths
 	}
 }
