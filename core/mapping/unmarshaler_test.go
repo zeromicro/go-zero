@@ -3,6 +3,7 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -3388,7 +3389,8 @@ func TestUnmarshal_EnvString(t *testing.T) {
 		envName = "TEST_NAME_STRING"
 		envVal  = "this is a name"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3405,7 +3407,8 @@ func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
 		envName = "TEST_NAME_STRING"
 		envVal  = "this is a name"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
@@ -3420,8 +3423,12 @@ func TestUnmarshal_EnvInt(t *testing.T) {
 		Age int `key:"age,env=TEST_NAME_INT"`
 	}
 
-	const envName = "TEST_NAME_INT"
-	t.Setenv(envName, "123")
+	const (
+		envName = "TEST_NAME_INT"
+		envVal  = "123"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3434,8 +3441,12 @@ func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
 		Age int `key:"age,env=TEST_NAME_INT"`
 	}
 
-	const envName = "TEST_NAME_INT"
-	t.Setenv(envName, "123")
+	const (
+		envName = "TEST_NAME_INT"
+		envVal  = "123"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
@@ -3450,8 +3461,12 @@ func TestUnmarshal_EnvFloat(t *testing.T) {
 		Age float32 `key:"name,env=TEST_NAME_FLOAT"`
 	}
 
-	const envName = "TEST_NAME_FLOAT"
-	t.Setenv(envName, "123.45")
+	const (
+		envName = "TEST_NAME_FLOAT"
+		envVal  = "123.45"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3464,8 +3479,12 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 		Age float32 `key:"age,env=TEST_NAME_FLOAT"`
 	}
 
-	const envName = "TEST_NAME_FLOAT"
-	t.Setenv(envName, "123.45")
+	const (
+		envName = "TEST_NAME_FLOAT"
+		envVal  = "123.45"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
@@ -3480,8 +3499,12 @@ func TestUnmarshal_EnvBoolTrue(t *testing.T) {
 		Enable bool `key:"enable,env=TEST_NAME_BOOL_TRUE"`
 	}
 
-	const envName = "TEST_NAME_BOOL_TRUE"
-	t.Setenv(envName, "true")
+	const (
+		envName = "TEST_NAME_BOOL_TRUE"
+		envVal  = "true"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3494,8 +3517,12 @@ func TestUnmarshal_EnvBoolFalse(t *testing.T) {
 		Enable bool `key:"enable,env=TEST_NAME_BOOL_FALSE"`
 	}
 
-	const envName = "TEST_NAME_BOOL_FALSE"
-	t.Setenv(envName, "false")
+	const (
+		envName = "TEST_NAME_BOOL_FALSE"
+		envVal  = "false"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3508,8 +3535,12 @@ func TestUnmarshal_EnvBoolBad(t *testing.T) {
 		Enable bool `key:"enable,env=TEST_NAME_BOOL_BAD"`
 	}
 
-	const envName = "TEST_NAME_BOOL_BAD"
-	t.Setenv(envName, "bad")
+	const (
+		envName = "TEST_NAME_BOOL_BAD"
+		envVal  = "bad"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3520,8 +3551,12 @@ func TestUnmarshal_EnvDuration(t *testing.T) {
 		Duration time.Duration `key:"duration,env=TEST_NAME_DURATION"`
 	}
 
-	const envName = "TEST_NAME_DURATION"
-	t.Setenv(envName, "1s")
+	const (
+		envName = "TEST_NAME_DURATION"
+		envVal  = "1s"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3534,8 +3569,12 @@ func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
 		Duration time.Duration `key:"duration,env=TEST_NAME_BAD_DURATION"`
 	}
 
-	const envName = "TEST_NAME_BAD_DURATION"
-	t.Setenv(envName, "bad")
+	const (
+		envName = "TEST_NAME_BAD_DURATION"
+		envVal  = "bad"
+	)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3550,7 +3589,8 @@ func TestUnmarshal_EnvWithOptions(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_MATCH"
 		envVal  = "123"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3567,7 +3607,8 @@ func TestUnmarshal_EnvWithOptionsWrongValueBool(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_BOOL"
 		envVal  = "false"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3582,7 +3623,8 @@ func TestUnmarshal_EnvWithOptionsWrongValueDuration(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_DURATION"
 		envVal  = "4s"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3597,7 +3639,8 @@ func TestUnmarshal_EnvWithOptionsWrongValueNumber(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_AGE"
 		envVal  = "30"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3612,7 +3655,8 @@ func TestUnmarshal_EnvWithOptionsWrongValueString(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_STRING"
 		envVal  = "this is a name"
 	)
-	t.Setenv(envName, envVal)
+	os.Setenv(envName, envVal)
+	defer os.Unsetenv(envName)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
