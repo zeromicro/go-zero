@@ -9,8 +9,9 @@ import (
     "{{.projectPath}}/{{.serviceName}}"
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
-	"github.com/suyuan32/simple-admin-core/pkg/statuserr"
-	"github.com/zeromicro/go-zero/core/logx"
+    "github.com/suyuan32/simple-admin-core/pkg/statuserr"
+{{if .useUUID}}    "github.com/suyuan32/simple-admin-core/pkg/uuidx"
+{{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
 type Get{{.modelName}}ListLogic struct {
@@ -40,7 +41,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.serviceName}}.
 
 	for _, v := range result.List {
 		resp.Data = append(resp.Data, &{{.serviceName}}.{{.modelName}}Info{
-			Id:          v.ID,
+			Id:          v.ID{{if .useUUID}}.String(){{end}},
 			CreatedAt:   v.CreatedAt.UnixMilli(),
 {{.listData}}
 		})

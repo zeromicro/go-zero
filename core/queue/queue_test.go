@@ -52,7 +52,7 @@ func (c *mockedConsumer) Consume(string) error {
 	return nil
 }
 
-func (c *mockedConsumer) OnEvent(interface{}) {
+func (c *mockedConsumer) OnEvent(any) {
 	if atomic.AddInt32(&c.events, 1) <= consumers {
 		c.wait.Done()
 	}

@@ -46,6 +46,7 @@ type GenLogicByProtoContext struct {
 	SearchKeyNum int
 	RpcName      string
 	GrpcPackage  string
+	UseUUID      bool
 }
 
 func GenLogicByProto(p *GenLogicByProtoContext) error {
@@ -154,6 +155,9 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				for _, field := range v.Elements {
 					field.Accept(MessageVisitor{})
 					if entx.IsBaseProperty(protoField.Name) {
+						if protoField.Name == "id" && protoField.Type == "string" {
+							ctx.UseUUID = true
+						}
 						continue
 					}
 					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protoField.Name),
@@ -161,7 +165,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				}
 				createLogic := bytes.NewBufferString("")
 				createLogicTmpl, _ := template.New("createOrUpdate").Parse(createOrUpdateTpl)
-				logx.Must(createLogicTmpl.Execute(createLogic, map[string]interface{}{
+				logx.Must(createLogicTmpl.Execute(createLogic, map[string]any{
 					"setLogic":           setLogic.String(),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
@@ -169,6 +173,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -179,7 +184,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				// delete logic
 				deleteLogic := bytes.NewBufferString("")
 				deleteLogicTmpl, _ := template.New("delete").Parse(deleteLogicTpl)
-				logx.Must(deleteLogicTmpl.Execute(deleteLogic, map[string]interface{}{
+				logx.Must(deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 					"setLogic":           setLogic.String(),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
@@ -187,6 +192,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -197,7 +203,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				// batch delete logic
 				batchDeleteLogic := bytes.NewBufferString("")
 				batchDeleteLogicTmpl, _ := template.New("batchDelete").Parse(batchDeleteLogicTpl)
-				logx.Must(batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]interface{}{
+				logx.Must(batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
 					"setLogic":           setLogic.String(),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
@@ -205,6 +211,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -226,7 +233,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 
 				getListLogic := bytes.NewBufferString("")
 				getListLogicTmpl, _ := template.New("getList").Parse(getListLogicTpl)
-				logx.Must(getListLogicTmpl.Execute(getListLogic, map[string]interface{}{
+				logx.Must(getListLogicTmpl.Execute(getListLogic, map[string]any{
 					"setLogic":           strings.Replace(setLogic.String(), "req.", "v.", -1),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
@@ -235,6 +242,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
 					"searchKeys":         searchLogic.String(),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -280,12 +288,13 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 
 				apiTemplateData := bytes.NewBufferString("")
 				apiTmpl, _ := template.New("apiTpl").Parse(apiTpl)
-				logx.Must(apiTmpl.Execute(apiTemplateData, map[string]interface{}{
+				logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
 					"infoData":           infoData.String(),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"listData":           listData.String(),
 					"serviceName":        ctx.ServiceName,
+					"useUUID":            ctx.UseUUID,
 				}))
 				data = apiTemplateData.String()
 			}

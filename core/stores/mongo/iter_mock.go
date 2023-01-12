@@ -35,7 +35,7 @@ func (m *MockIter) EXPECT() *MockIterMockRecorder {
 }
 
 // All mocks base method
-func (m *MockIter) All(result interface{}) error {
+func (m *MockIter) All(result any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "All", result)
 	ret0, _ := ret[0].(error)
@@ -43,7 +43,7 @@ func (m *MockIter) All(result interface{}) error {
 }
 
 // All indicates an expected call of All
-func (mr *MockIterMockRecorder) All(result interface{}) *gomock.Call {
+func (mr *MockIterMockRecorder) All(result any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockIter)(nil).All), result)
 }
@@ -91,7 +91,7 @@ func (mr *MockIterMockRecorder) Err() *gomock.Call {
 }
 
 // For mocks base method
-func (m *MockIter) For(result interface{}, f func() error) error {
+func (m *MockIter) For(result any, f func() error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "For", result, f)
 	ret0, _ := ret[0].(error)
@@ -99,13 +99,13 @@ func (m *MockIter) For(result interface{}, f func() error) error {
 }
 
 // For indicates an expected call of For
-func (mr *MockIterMockRecorder) For(result, f interface{}) *gomock.Call {
+func (mr *MockIterMockRecorder) For(result, f any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "For", reflect.TypeOf((*MockIter)(nil).For), result, f)
 }
 
 // Next mocks base method
-func (m *MockIter) Next(result interface{}) bool {
+func (m *MockIter) Next(result any) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Next", result)
 	ret0, _ := ret[0].(bool)
@@ -113,7 +113,7 @@ func (m *MockIter) Next(result interface{}) bool {
 }
 
 // Next indicates an expected call of Next
-func (mr *MockIterMockRecorder) Next(result interface{}) *gomock.Call {
+func (mr *MockIterMockRecorder) Next(result any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Next", reflect.TypeOf((*MockIter)(nil).Next), result)
 }

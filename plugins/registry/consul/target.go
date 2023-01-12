@@ -45,7 +45,7 @@ func parseURL(rawURL url.URL) (target, error) {
 	}
 
 	var tgt target
-	params := make(map[string]interface{}, len(rawURL.Query()))
+	params := make(map[string]any, len(rawURL.Query()))
 	for name, value := range rawURL.Query() {
 		params[name] = value[0]
 	}

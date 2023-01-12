@@ -3,14 +3,14 @@ import "base.api"
 type (
     // The response data of {{.modelName}} information | {{.modelName}}信息
     {{.modelName}}Info {
-        BaseInfo{{.infoData}}
+        Base{{if .useUUID}}UUID{{end}}Info{{.infoData}}
     }
 
     // Create or update {{.modelName}} information request | 创建或更新{{.modelName}}信息
     CreateOrUpdate{{.modelName}}Req {
         // ID
         // Required: true
-        Id            uint64 `json:"id"`{{.infoData}}
+        Id    {{if .useUUID}}string{{else}}uint64{{end}}    `json:"id"`{{.infoData}}
     }
 
     // The response data of {{.modelName}} list | {{.modelName}}列表数据
@@ -48,7 +48,7 @@ service {{.serviceName}} {
 
     // Delete {{.modelName}} information | 删除{{.modelName}}信息
     @handler delete{{.modelName}}
-    post /{{.modelNameLowerCase}}/delete (IDReq) returns (BaseMsgResp)
+    post /{{.modelNameLowerCase}}/delete ({{if .useUUID}}UU{{end}}IDReq) returns (BaseMsgResp)
 
     // Get {{.modelName}} list | 获取{{.modelName}}列表
     @handler get{{.modelName}}List
@@ -56,5 +56,5 @@ service {{.serviceName}} {
 
     // Delete {{.modelName}} information | 删除{{.modelName}}信息
     @handler batchDelete{{.modelName}}
-    post /{{.modelNameLowerCase}}/batch_delete (IDsReq) returns (BaseMsgResp)
+    post /{{.modelNameLowerCase}}/batch_delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
 }

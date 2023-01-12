@@ -121,7 +121,7 @@ func (c *componentsContext) createComponent(dir, packetName string, ty spec.Type
 
 	buffer := new(bytes.Buffer)
 	t := template.Must(template.New("componentType").Parse(componentTemplate))
-	err = t.Execute(buffer, map[string]interface{}{
+	err = t.Execute(buffer, map[string]any{
 		"properties":        propertiesString,
 		"params":            params,
 		"constructorSetter": constructorSetter,

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/antlr"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 )
@@ -36,7 +37,7 @@ type (
 		Doc() []Expr
 		Comment() Expr
 		Format() error
-		Equal(v interface{}) bool
+		Equal(v any) bool
 	}
 
 	// Expr describes ast expression

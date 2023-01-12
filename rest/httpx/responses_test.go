@@ -31,7 +31,7 @@ func TestError(t *testing.T) {
 	tests := []struct {
 		name          string
 		input         string
-		errorHandler  func(error) (int, interface{})
+		errorHandler  func(error) (int, any)
 		expectHasBody bool
 		expectBody    string
 		expectCode    int
@@ -46,7 +46,7 @@ func TestError(t *testing.T) {
 		{
 			name:  "customized error handler return string",
 			input: body,
-			errorHandler: func(err error) (int, interface{}) {
+			errorHandler: func(err error) (int, any) {
 				return http.StatusForbidden, err.Error()
 			},
 			expectHasBody: true,
@@ -56,7 +56,7 @@ func TestError(t *testing.T) {
 		{
 			name:  "customized error handler return error",
 			input: body,
-			errorHandler: func(err error) (int, interface{}) {
+			errorHandler: func(err error) (int, any) {
 				return http.StatusForbidden, err
 			},
 			expectHasBody: true,
@@ -66,7 +66,7 @@ func TestError(t *testing.T) {
 		{
 			name:  "customized error handler return nil",
 			input: body,
-			errorHandler: func(err error) (int, interface{}) {
+			errorHandler: func(err error) (int, any) {
 				return http.StatusForbidden, nil
 			},
 			expectHasBody: false,
@@ -175,7 +175,7 @@ func TestWriteJsonMarshalFailed(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	WriteJson(&w, http.StatusOK, map[string]interface{}{
+	WriteJson(&w, http.StatusOK, map[string]any{
 		"Data": complex(0, 0),
 	})
 	assert.Equal(t, http.StatusInternalServerError, w.code)
@@ -226,7 +226,7 @@ func TestErrorCtx(t *testing.T) {
 	tests := []struct {
 		name            string
 		input           string
-		errorHandlerCtx func(context.Context, error) (int, interface{})
+		errorHandlerCtx func(context.Context, error) (int, any)
 		expectHasBody   bool
 		expectBody      string
 		expectCode      int
@@ -241,7 +241,7 @@ func TestErrorCtx(t *testing.T) {
 		{
 			name:  "customized error handler return string",
 			input: body,
-			errorHandlerCtx: func(ctx context.Context, err error) (int, interface{}) {
+			errorHandlerCtx: func(ctx context.Context, err error) (int, any) {
 				return http.StatusForbidden, err.Error()
 			},
 			expectHasBody: true,
@@ -251,7 +251,7 @@ func TestErrorCtx(t *testing.T) {
 		{
 			name:  "customized error handler return error",
 			input: body,
-			errorHandlerCtx: func(ctx context.Context, err error) (int, interface{}) {
+			errorHandlerCtx: func(ctx context.Context, err error) (int, any) {
 				return http.StatusForbidden, err
 			},
 			expectHasBody: true,
@@ -261,7 +261,7 @@ func TestErrorCtx(t *testing.T) {
 		{
 			name:  "customized error handler return nil",
 			input: body,
-			errorHandlerCtx: func(context.Context, error) (int, interface{}) {
+			errorHandlerCtx: func(context.Context, error) (int, any) {
 				return http.StatusForbidden, nil
 			},
 			expectHasBody: false,
@@ -323,7 +323,7 @@ func TestWriteJsonCtxMarshalFailed(t *testing.T) {
 	w := tracedResponseWriter{
 		headers: make(map[string][]string),
 	}
-	WriteJsonCtx(context.Background(), &w, http.StatusOK, map[string]interface{}{
+	WriteJsonCtx(context.Background(), &w, http.StatusOK, map[string]any{
 		"Data": complex(0, 0),
 	})
 	assert.Equal(t, http.StatusInternalServerError, w.code)

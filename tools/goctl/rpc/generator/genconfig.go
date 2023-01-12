@@ -42,7 +42,7 @@ func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config, 
 		return err
 	}
 
-	return util.With("config").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+	return util.With("config").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"imports":   fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
 		"isEnt":     c.Ent,
 		"goPackage": projectCtx.Path,

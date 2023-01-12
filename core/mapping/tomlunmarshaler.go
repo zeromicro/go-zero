@@ -7,7 +7,7 @@ import (
 )
 
 // UnmarshalTomlBytes unmarshals TOML bytes into the given v.
-func UnmarshalTomlBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalTomlBytes(content []byte, v any, opts ...UnmarshalOption) error {
 	b, err := encoding.TomlToJson(content)
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func UnmarshalTomlBytes(content []byte, v interface{}, opts ...UnmarshalOption) 
 }
 
 // UnmarshalTomlReader unmarshals TOML from the given io.Reader into the given v.
-func UnmarshalTomlReader(r io.Reader, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalTomlReader(r io.Reader, v any, opts ...UnmarshalOption) error {
 	b, err := io.ReadAll(r)
 	if err != nil {
 		return err

@@ -27,8 +27,8 @@ func NewBatchDelete{{.modelName}}Logic(r *http.Request, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(req *types.IDsReq) (resp *types.BaseMsgResp, err error) {
-	result, err := l.svcCtx.{{.rpcName}}Rpc.BatchDelete{{.modelName}}(l.ctx, &{{.rpcNameLowerCase}}.IDsReq{
+func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(req *types.{{if .useUUID}}UU{{end}}IDsReq) (resp *types.BaseMsgResp, err error) {
+	result, err := l.svcCtx.{{.rpcName}}Rpc.BatchDelete{{.modelName}}(l.ctx, &{{.rpcNameLowerCase}}.{{if .useUUID}}UU{{end}}IDsReq{
 		Ids: req.Ids,
 	})
 	if err != nil {

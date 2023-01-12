@@ -38,7 +38,7 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config, c *
 		imports.WriteString("\t\"github.com/zeromicro/go-zero/core/logx\"\n\t\"github.com/zeromicro/go-zero/core/stores/redis\"\n")
 	}
 
-	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"imports": imports.String(),
 		"isEnt":   c.Ent,
 	}, fileName, false)

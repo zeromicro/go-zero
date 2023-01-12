@@ -10,6 +10,6 @@ type gormWriter struct {
 	logger.Writer
 }
 
-func (l gormWriter) Printf(message string, data ...interface{}) {
+func (l gormWriter) Printf(message string, data ...any) {
 	logx.Errorf(message, data...)
 }

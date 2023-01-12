@@ -43,11 +43,11 @@ func (mc *mockedNode) DelCtx(_ context.Context, keys ...string) error {
 	return be.Err()
 }
 
-func (mc *mockedNode) Get(key string, val interface{}) error {
+func (mc *mockedNode) Get(key string, val any) error {
 	return mc.GetCtx(context.Background(), key, val)
 }
 
-func (mc *mockedNode) GetCtx(ctx context.Context, key string, val interface{}) error {
+func (mc *mockedNode) GetCtx(ctx context.Context, key string, val any) error {
 	bs, ok := mc.vals[key]
 	if ok {
 		return json.Unmarshal(bs, val)
@@ -60,11 +60,11 @@ func (mc *mockedNode) IsNotFound(err error) bool {
 	return errors.Is(err, mc.errNotFound)
 }
 
-func (mc *mockedNode) Set(key string, val interface{}) error {
+func (mc *mockedNode) Set(key string, val any) error {
 	return mc.SetCtx(context.Background(), key, val)
 }
 
-func (mc *mockedNode) SetCtx(ctx context.Context, key string, val interface{}) error {
+func (mc *mockedNode) SetCtx(ctx context.Context, key string, val any) error {
 	data, err := json.Marshal(val)
 	if err != nil {
 		return err
@@ -74,19 +74,19 @@ func (mc *mockedNode) SetCtx(ctx context.Context, key string, val interface{}) e
 	return nil
 }
 
-func (mc *mockedNode) SetWithExpire(key string, val interface{}, expire time.Duration) error {
+func (mc *mockedNode) SetWithExpire(key string, val any, expire time.Duration) error {
 	return mc.SetWithExpireCtx(context.Background(), key, val, expire)
 }
 
-func (mc *mockedNode) SetWithExpireCtx(ctx context.Context, key string, val interface{}, expire time.Duration) error {
+func (mc *mockedNode) SetWithExpireCtx(ctx context.Context, key string, val any, expire time.Duration) error {
 	return mc.Set(key, val)
 }
 
-func (mc *mockedNode) Take(val interface{}, key string, query func(val interface{}) error) error {
+func (mc *mockedNode) Take(val any, key string, query func(val any) error) error {
 	return mc.TakeCtx(context.Background(), val, key, query)
 }
 
-func (mc *mockedNode) TakeCtx(ctx context.Context, val interface{}, key string, query func(val interface{}) error) error {
+func (mc *mockedNode) TakeCtx(ctx context.Context, val any, key string, query func(val any) error) error {
 	if _, ok := mc.vals[key]; ok {
 		return mc.GetCtx(ctx, key, val)
 	}
@@ -98,12 +98,12 @@ func (mc *mockedNode) TakeCtx(ctx context.Context, val interface{}, key string, 
 	return mc.SetCtx(ctx, key, val)
 }
 
-func (mc *mockedNode) TakeWithExpire(val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
+func (mc *mockedNode) TakeWithExpire(val any, key string, query func(val any, expire time.Duration) error) error {
 	return mc.TakeWithExpireCtx(context.Background(), val, key, query)
 }
 
-func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key string, query func(val interface{}, expire time.Duration) error) error {
-	return mc.Take(val, key, func(val interface{}) error {
+func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val any, key string, query func(val any, expire time.Duration) error) error {
+	return mc.Take(val, key, func(val any) error {
 		return query(val, 0)
 	})
 }
@@ -244,13 +244,13 @@ func TestCache_Balance(t *testing.T) {
 	for i := 0; i < total/10; i++ {
 		var val int
 		if i%2 == 0 {
-			assert.Nil(t, c.Take(&val, strconv.Itoa(i*10), func(val interface{}) error {
+			assert.Nil(t, c.Take(&val, strconv.Itoa(i*10), func(val any) error {
 				*val.(*int) = i
 				count++
 				return nil
 			}))
 		} else {
-			assert.Nil(t, c.TakeWithExpire(&val, strconv.Itoa(i*10), func(val interface{}, expire time.Duration) error {
+			assert.Nil(t, c.TakeWithExpire(&val, strconv.Itoa(i*10), func(val any, expire time.Duration) error {
 				*val.(*int) = i
 				count++
 				return nil
@@ -272,10 +272,10 @@ func TestCacheNoNode(t *testing.T) {
 	assert.NotNil(t, c.Get("foo", nil))
 	assert.NotNil(t, c.Set("foo", nil))
 	assert.NotNil(t, c.SetWithExpire("foo", nil, time.Second))
-	assert.NotNil(t, c.Take(nil, "foo", func(val interface{}) error {
+	assert.NotNil(t, c.Take(nil, "foo", func(val any) error {
 		return nil
 	}))
-	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(val interface{}, duration time.Duration) error {
+	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(val any, duration time.Duration) error {
 		return nil
 	}))
 }

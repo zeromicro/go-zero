@@ -125,7 +125,7 @@ func TestPublisher_keepAliveAsyncQuit(t *testing.T) {
 	cli.EXPECT().KeepAlive(gomock.Any(), id)
 	var wg sync.WaitGroup
 	wg.Add(1)
-	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ interface{}) {
+	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
 		wg.Done()
 	})
 	pub := NewPublisher(nil, "thekey", "thevalue")
@@ -147,7 +147,7 @@ func TestPublisher_keepAliveAsyncPause(t *testing.T) {
 	pub := NewPublisher(nil, "thekey", "thevalue")
 	var wg sync.WaitGroup
 	wg.Add(1)
-	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ interface{}) {
+	cli.EXPECT().Revoke(gomock.Any(), id).Do(func(_, _ any) {
 		pub.Stop()
 		wg.Done()
 	})

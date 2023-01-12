@@ -39,6 +39,7 @@ type GenContext struct {
 	FolderName    string
 	SubFolderName string
 	ApiSpec       *spec.ApiSpec
+	UseUUID       bool
 }
 
 // GenCRUDLogic is used to generate CRUD file for simple admin backend UI
@@ -91,11 +92,11 @@ func GenCRUDLogic(_ *cobra.Command, _ []string) error {
 		FolderName: VarStringFolderName,
 	}
 
-	if err := genApi(genCtx); err != nil {
+	if err := genModel(genCtx); err != nil {
 		return err
 	}
 
-	if err := genModel(genCtx); err != nil {
+	if err := genApi(genCtx); err != nil {
 		return err
 	}
 

@@ -56,7 +56,7 @@ func NewNodeModel(url, collection string, rds *redis.Redis, opts ...cache.Option
 }
 
 // Count returns the count of given query.
-func (mm *Model) Count(query interface{}) (int, error) {
+func (mm *Model) Count(query any) (int, error) {
 	return mm.executeInt(func(c CachedCollection) (int, error) {
 		return c.Count(query)
 	})
@@ -68,7 +68,7 @@ func (mm *Model) DelCache(keys ...string) error {
 }
 
 // GetCache unmarshal the cache into v with given key.
-func (mm *Model) GetCache(key string, v interface{}) error {
+func (mm *Model) GetCache(key string, v any) error {
 	return mm.cache.Get(key, v)
 }
 
@@ -78,138 +78,138 @@ func (mm *Model) GetCollection(session *mgo.Session) CachedCollection {
 }
 
 // FindAllNoCache finds all records without cache.
-func (mm *Model) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
+func (mm *Model) FindAllNoCache(v, query any, opts ...QueryOption) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindAllNoCache(v, query, opts...)
 	})
 }
 
 // FindOne unmarshals a record into v with given key and query.
-func (mm *Model) FindOne(v interface{}, key string, query interface{}) error {
+func (mm *Model) FindOne(v any, key string, query any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOne(v, key, query)
 	})
 }
 
 // FindOneNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneNoCache(v, query interface{}) error {
+func (mm *Model) FindOneNoCache(v, query any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOneNoCache(v, query)
 	})
 }
 
 // FindOneId unmarshals a record into v with query.
-func (mm *Model) FindOneId(v interface{}, key string, id interface{}) error {
+func (mm *Model) FindOneId(v any, key string, id any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOneId(v, key, id)
 	})
 }
 
 // FindOneIdNoCache unmarshals a record into v with query, without cache.
-func (mm *Model) FindOneIdNoCache(v, id interface{}) error {
+func (mm *Model) FindOneIdNoCache(v, id any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.FindOneIdNoCache(v, id)
 	})
 }
 
 // Insert inserts docs.
-func (mm *Model) Insert(docs ...interface{}) error {
+func (mm *Model) Insert(docs ...any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.Insert(docs...)
 	})
 }
 
 // Pipe returns a mongo pipe with given pipeline.
-func (mm *Model) Pipe(pipeline interface{}) (mongo.Pipe, error) {
+func (mm *Model) Pipe(pipeline any) (mongo.Pipe, error) {
 	return mm.pipe(func(c CachedCollection) mongo.Pipe {
 		return c.Pipe(pipeline)
 	})
 }
 
 // Remove removes a record with given selector, and remove it from cache with given keys.
-func (mm *Model) Remove(selector interface{}, keys ...string) error {
+func (mm *Model) Remove(selector any, keys ...string) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.Remove(selector, keys...)
 	})
 }
 
 // RemoveNoCache removes a record with given selector.
-func (mm *Model) RemoveNoCache(selector interface{}) error {
+func (mm *Model) RemoveNoCache(selector any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.RemoveNoCache(selector)
 	})
 }
 
 // RemoveAll removes all records with given selector, and removes cache with given keys.
-func (mm *Model) RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+func (mm *Model) RemoveAll(selector any, keys ...string) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
 		return c.RemoveAll(selector, keys...)
 	})
 }
 
 // RemoveAllNoCache removes all records with given selector, and returns a mgo.ChangeInfo.
-func (mm *Model) RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error) {
+func (mm *Model) RemoveAllNoCache(selector any) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
 		return c.RemoveAllNoCache(selector)
 	})
 }
 
 // RemoveId removes a record with given id, and removes cache with given keys.
-func (mm *Model) RemoveId(id interface{}, keys ...string) error {
+func (mm *Model) RemoveId(id any, keys ...string) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.RemoveId(id, keys...)
 	})
 }
 
 // RemoveIdNoCache removes a record with given id.
-func (mm *Model) RemoveIdNoCache(id interface{}) error {
+func (mm *Model) RemoveIdNoCache(id any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.RemoveIdNoCache(id)
 	})
 }
 
 // SetCache sets the cache with given key and value.
-func (mm *Model) SetCache(key string, v interface{}) error {
+func (mm *Model) SetCache(key string, v any) error {
 	return mm.cache.Set(key, v)
 }
 
 // Update updates the record with given selector, and delete cache with given keys.
-func (mm *Model) Update(selector, update interface{}, keys ...string) error {
+func (mm *Model) Update(selector, update any, keys ...string) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.Update(selector, update, keys...)
 	})
 }
 
 // UpdateNoCache updates the record with given selector.
-func (mm *Model) UpdateNoCache(selector, update interface{}) error {
+func (mm *Model) UpdateNoCache(selector, update any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.UpdateNoCache(selector, update)
 	})
 }
 
 // UpdateId updates the record with given id, and delete cache with given keys.
-func (mm *Model) UpdateId(id, update interface{}, keys ...string) error {
+func (mm *Model) UpdateId(id, update any, keys ...string) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.UpdateId(id, update, keys...)
 	})
 }
 
 // UpdateIdNoCache updates the record with given id.
-func (mm *Model) UpdateIdNoCache(id, update interface{}) error {
+func (mm *Model) UpdateIdNoCache(id, update any) error {
 	return mm.execute(func(c CachedCollection) error {
 		return c.UpdateIdNoCache(id, update)
 	})
 }
 
 // Upsert upserts a record with given selector, and delete cache with given keys.
-func (mm *Model) Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+func (mm *Model) Upsert(selector, update any, keys ...string) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
 		return c.Upsert(selector, update, keys...)
 	})
 }
 
 // UpsertNoCache upserts a record with given selector.
-func (mm *Model) UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error) {
+func (mm *Model) UpsertNoCache(selector, update any) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c CachedCollection) (*mgo.ChangeInfo, error) {
 		return c.UpsertNoCache(selector, update)
 	})

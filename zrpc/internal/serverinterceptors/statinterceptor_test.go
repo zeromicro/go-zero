@@ -24,7 +24,7 @@ func TestUnaryStatInterceptor(t *testing.T) {
 	interceptor := UnaryStatInterceptor(metrics)
 	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		return nil, nil
 	})
 	assert.Nil(t, err)
@@ -38,7 +38,7 @@ func TestLogDuration(t *testing.T) {
 	tests := []struct {
 		name     string
 		ctx      context.Context
-		req      interface{}
+		req      any
 		duration time.Duration
 	}{
 		{
@@ -92,7 +92,7 @@ func TestLogDurationWithoutContent(t *testing.T) {
 	tests := []struct {
 		name     string
 		ctx      context.Context
-		req      interface{}
+		req      any
 		duration time.Duration
 	}{
 		{

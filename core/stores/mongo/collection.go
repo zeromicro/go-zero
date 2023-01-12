@@ -19,16 +19,16 @@ var ErrNotFound = mgo.ErrNotFound
 type (
 	// Collection interface represents a mongo connection.
 	Collection interface {
-		Find(query interface{}) Query
-		FindId(id interface{}) Query
-		Insert(docs ...interface{}) error
-		Pipe(pipeline interface{}) Pipe
-		Remove(selector interface{}) error
-		RemoveAll(selector interface{}) (*mgo.ChangeInfo, error)
-		RemoveId(id interface{}) error
-		Update(selector, update interface{}) error
-		UpdateId(id, update interface{}) error
-		Upsert(selector, update interface{}) (*mgo.ChangeInfo, error)
+		Find(query any) Query
+		FindId(id any) Query
+		Insert(docs ...any) error
+		Pipe(pipeline any) Pipe
+		Remove(selector any) error
+		RemoveAll(selector any) (*mgo.ChangeInfo, error)
+		RemoveId(id any) error
+		Update(selector, update any) error
+		UpdateId(id, update any) error
+		Upsert(selector, update any) (*mgo.ChangeInfo, error)
 	}
 
 	decoratedCollection struct {
@@ -51,7 +51,7 @@ func newCollection(collection *mgo.Collection, brk breaker.Breaker) Collection {
 	}
 }
 
-func (c *decoratedCollection) Find(query interface{}) Query {
+func (c *decoratedCollection) Find(query any) Query {
 	promise, err := c.brk.Allow()
 	if err != nil {
 		return rejectedQuery{}
@@ -70,7 +70,7 @@ func (c *decoratedCollection) Find(query interface{}) Query {
 	}
 }
 
-func (c *decoratedCollection) FindId(id interface{}) Query {
+func (c *decoratedCollection) FindId(id any) Query {
 	promise, err := c.brk.Allow()
 	if err != nil {
 		return rejectedQuery{}
@@ -89,7 +89,7 @@ func (c *decoratedCollection) FindId(id interface{}) Query {
 	}
 }
 
-func (c *decoratedCollection) Insert(docs ...interface{}) (err error) {
+func (c *decoratedCollection) Insert(docs ...any) (err error) {
 	return c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -101,7 +101,7 @@ func (c *decoratedCollection) Insert(docs ...interface{}) (err error) {
 	}, acceptable)
 }
 
-func (c *decoratedCollection) Pipe(pipeline interface{}) Pipe {
+func (c *decoratedCollection) Pipe(pipeline any) Pipe {
 	promise, err := c.brk.Allow()
 	if err != nil {
 		return rejectedPipe{}
@@ -120,7 +120,7 @@ func (c *decoratedCollection) Pipe(pipeline interface{}) Pipe {
 	}
 }
 
-func (c *decoratedCollection) Remove(selector interface{}) (err error) {
+func (c *decoratedCollection) Remove(selector any) (err error) {
 	return c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -132,7 +132,7 @@ func (c *decoratedCollection) Remove(selector interface{}) (err error) {
 	}, acceptable)
 }
 
-func (c *decoratedCollection) RemoveAll(selector interface{}) (info *mgo.ChangeInfo, err error) {
+func (c *decoratedCollection) RemoveAll(selector any) (info *mgo.ChangeInfo, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -147,7 +147,7 @@ func (c *decoratedCollection) RemoveAll(selector interface{}) (info *mgo.ChangeI
 	return
 }
 
-func (c *decoratedCollection) RemoveId(id interface{}) (err error) {
+func (c *decoratedCollection) RemoveId(id any) (err error) {
 	return c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -159,7 +159,7 @@ func (c *decoratedCollection) RemoveId(id interface{}) (err error) {
 	}, acceptable)
 }
 
-func (c *decoratedCollection) Update(selector, update interface{}) (err error) {
+func (c *decoratedCollection) Update(selector, update any) (err error) {
 	return c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -171,7 +171,7 @@ func (c *decoratedCollection) Update(selector, update interface{}) (err error) {
 	}, acceptable)
 }
 
-func (c *decoratedCollection) UpdateId(id, update interface{}) (err error) {
+func (c *decoratedCollection) UpdateId(id, update any) (err error) {
 	return c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -183,7 +183,7 @@ func (c *decoratedCollection) UpdateId(id, update interface{}) (err error) {
 	}, acceptable)
 }
 
-func (c *decoratedCollection) Upsert(selector, update interface{}) (info *mgo.ChangeInfo, err error) {
+func (c *decoratedCollection) Upsert(selector, update any) (info *mgo.ChangeInfo, err error) {
 	err = c.brk.DoWithAcceptable(func() error {
 		startTime := timex.Now()
 		defer func() {
@@ -198,7 +198,7 @@ func (c *decoratedCollection) Upsert(selector, update interface{}) (info *mgo.Ch
 	return
 }
 
-func (c *decoratedCollection) logDuration(method string, duration time.Duration, err error, docs ...interface{}) {
+func (c *decoratedCollection) logDuration(method string, duration time.Duration, err error, docs ...any) {
 	content, e := json.Marshal(docs)
 	if e != nil {
 		logx.Error(err)

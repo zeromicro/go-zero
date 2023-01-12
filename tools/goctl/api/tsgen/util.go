@@ -122,7 +122,7 @@ func primitiveType(tp string) (string, bool) {
 		return "boolean", true
 	case "[]byte":
 		return "Blob", true
-	case "interface{}":
+	case "any":
 		return "any", true
 	}
 	return "", false

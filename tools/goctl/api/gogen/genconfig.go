@@ -54,7 +54,7 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec, useCasbin bool
 		category:        category,
 		templateFile:    configTemplateFile,
 		builtinTemplate: configTemplate,
-		data: map[string]interface{}{
+		data: map[string]any{
 			"jwtTrans":  strings.Join(jwtTransList, "\n"),
 			"useCasbin": useCasbin,
 		},

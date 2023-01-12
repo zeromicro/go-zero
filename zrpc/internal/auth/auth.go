@@ -4,11 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/collection"
-	"github.com/zeromicro/go-zero/core/stores/redis"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/zeromicro/go-zero/core/collection"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
 const defaultExpiration = 5 * time.Minute
@@ -57,7 +58,7 @@ func (a *Authenticator) Authenticate(ctx context.Context) error {
 }
 
 func (a *Authenticator) validate(app, token string) error {
-	expect, err := a.cache.Take(app, func() (interface{}, error) {
+	expect, err := a.cache.Take(app, func() (any, error) {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {

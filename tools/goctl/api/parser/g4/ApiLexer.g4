@@ -3,7 +3,7 @@ lexer grammar ApiLexer;
 // Keywords
 ATDOC:              '@doc';
 ATHANDLER:          '@handler';
-INTERFACE:          'interface{}';
+INTERFACE:          'any';
 ATSERVER:           '@server';
 
 // Whitespace and comments

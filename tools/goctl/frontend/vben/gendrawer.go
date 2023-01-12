@@ -31,11 +31,12 @@ func genDrawer(g *GenContext) error {
 		}
 	}
 
-	if err := util.With("drawerTpl").Parse(drawerTpl).SaveTo(map[string]interface{}{
+	if err := util.With("drawerTpl").Parse(drawerTpl).SaveTo(map[string]any{
 		"modelName":          g.ModelName,
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"folderName":         g.FolderName,
 		"infoData":           infoData.String(),
+		"useUUID":            g.UseUUID,
 	},
 		filepath.Join(g.ViewDir, fmt.Sprintf("%sDrawer.vue", g.ModelName)), false); err != nil {
 		return err

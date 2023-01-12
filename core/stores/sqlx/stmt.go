@@ -34,7 +34,7 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
+func exec(ctx context.Context, conn sessionConn, q string, args ...any) (sql.Result, error) {
 	guard := newGuard("exec")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) 
 	return result, err
 }
 
-func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
+func execStmt(ctx context.Context, conn stmtConn, q string, args ...any) (sql.Result, error) {
 	guard := newGuard("execStmt")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{})
 }
 
 func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
-	q string, args ...interface{}) error {
+	q string, args ...any) error {
 	guard := newGuard("query")
 	if err := guard.start(q, args...); err != nil {
 		return err
@@ -76,7 +76,7 @@ func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 }
 
 func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error,
-	q string, args ...interface{}) error {
+	q string, args ...any) error {
 	guard := newGuard("queryStmt")
 	if err := guard.start(q, args...); err != nil {
 		return err
@@ -94,7 +94,7 @@ func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error
 
 type (
 	sqlGuard interface {
-		start(q string, args ...interface{}) error
+		start(q string, args ...any) error
 		finish(ctx context.Context, err error)
 	}
 
@@ -117,7 +117,7 @@ func newGuard(command string) sqlGuard {
 	return nilGuard{}
 }
 
-func (n nilGuard) start(_ string, _ ...interface{}) error {
+func (n nilGuard) start(_ string, _ ...any) error {
 	return nil
 }
 
@@ -139,7 +139,7 @@ func (e *realSqlGuard) finish(ctx context.Context, err error) {
 	metricReqDur.Observe(int64(duration/time.Millisecond), e.command)
 }
 
-func (e *realSqlGuard) start(q string, args ...interface{}) error {
+func (e *realSqlGuard) start(q string, args ...any) error {
 	stmt, err := format(q, args...)
 	if err != nil {
 		return err

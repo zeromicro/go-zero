@@ -1121,7 +1121,7 @@ func TestRedis_Zscan(t *testing.T) {
 }
 
 func TestRedisToStrings(t *testing.T) {
-	vals := toStrings([]interface{}{1, 2})
+	vals := toStrings([]any{1, 2})
 	assert.EqualValues(t, []string{"1", "2"}, vals)
 }
 

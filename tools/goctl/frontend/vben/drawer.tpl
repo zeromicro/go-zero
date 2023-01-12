@@ -55,11 +55,11 @@
       async function handleSubmit() {
         const values = await validate();
         setDrawerProps({ confirmLoading: true });
-        let id: number;
+        let id: {{if .useUUID}}string{{else}}number{{end}};
         if (unref(isUpdate)) {
-          id = Number(values['id']);
+          id = {{if .useUUID}}values['id'];{{else}}Number(values['id']);{{end}}
         } else {
-          id = 0;
+          id = {{if .useUUID}}''{{else}}0{{end}};
         }
         let params: {{.modelName}}Info = {
           id: id,{{.infoData}}

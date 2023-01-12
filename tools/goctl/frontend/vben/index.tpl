@@ -73,6 +73,7 @@
         showTableSetting: true,
         bordered: true,
         showIndexColumn: false,
+        clickToRowSelect: false,
         actionColumn: {
           width: 30,
           title: t('common.action'),
@@ -83,12 +84,8 @@
         rowSelection: {
           type: 'checkbox',
           onChange: (selectedRowKeys, _selectedRows) => {
-            selectedIds.value = selectedRowKeys;
-            if (selectedRowKeys.length > 0) {
-              showDeleteButton.value = true;
-            } else {
-              showDeleteButton.value = false;
-            }
+            selectedIds.value = selectedRowKeys as {{if .useUUID}}string[]{{else}}number[]{{end}};
+            showDeleteButton.value = selectedRowKeys.length > 0;
           },
         },
       });
@@ -113,7 +110,7 @@
           description: t(result.msg),
           duration: 3,
         });
-        reload();
+        await reload();
       }
 
       async function handleBatchDelete() {
@@ -122,12 +119,12 @@
           icon: createVNode(ExclamationCircleOutlined),
           async onOk() {
             const result = await batchDelete{{.modelName}}(
-              { ids: selectedIds.value as number[] },
+              { ids: selectedIds.value as {{if .useUUID}}string[]{{else}}number[]{{end}} },
               'modal',
             );
             if (result.code === 0) {
-              reload();
               showDeleteButton.value = false;
+              await reload();
             }
           },
           onCancel() {
@@ -136,8 +133,8 @@
         });
       }
 
-      function handleSuccess() {
-        reload();
+      async function handleSuccess() {
+        await reload();
       }
 
       return {

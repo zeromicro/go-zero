@@ -27,8 +27,8 @@ func NewDelete{{.modelName}}Logic(r *http.Request, svcCtx *svc.ServiceContext) *
 	}
 }
 
-func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(req *types.IDReq) (resp *types.BaseMsgResp, err error) {
-	result, err := l.svcCtx.{{.rpcName}}Rpc.Delete{{.modelName}}(l.ctx, &{{.rpcNameLowerCase}}.IDReq{
+func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(req *types.{{if .useUUID}}UU{{end}}IDReq) (resp *types.BaseMsgResp, err error) {
+	result, err := l.svcCtx.{{.rpcName}}Rpc.Delete{{.modelName}}(l.ctx, &{{.rpcNameLowerCase}}.{{if .useUUID}}UU{{end}}IDReq{
 		Id: req.Id,
 	})
 	if err != nil {

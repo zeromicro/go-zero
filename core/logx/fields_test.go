@@ -25,7 +25,7 @@ func TestAddGlobalFields(t *testing.T) {
 	AddGlobalFields(Field("a", "1"), Field("b", "2"))
 	AddGlobalFields(Field("c", "3"))
 	Info("world")
-	var m map[string]interface{}
+	var m map[string]any
 	assert.NoError(t, json.Unmarshal(buf.Bytes(), &m))
 	assert.Equal(t, "1", m["a"])
 	assert.Equal(t, "2", m["b"])

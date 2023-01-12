@@ -45,14 +45,14 @@ func NewModel(url, collection string, opts ...Option) (*Model, error) {
 }
 
 // Find finds a record with given query.
-func (mm *Model) Find(query interface{}) (Query, error) {
+func (mm *Model) Find(query any) (Query, error) {
 	return mm.query(func(c Collection) Query {
 		return c.Find(query)
 	})
 }
 
 // FindId finds a record with given id.
-func (mm *Model) FindId(id interface{}) (Query, error) {
+func (mm *Model) FindId(id any) (Query, error) {
 	return mm.query(func(c Collection) Query {
 		return c.FindId(id)
 	})
@@ -64,14 +64,14 @@ func (mm *Model) GetCollection(session *mgo.Session) Collection {
 }
 
 // Insert inserts docs into mm.
-func (mm *Model) Insert(docs ...interface{}) error {
+func (mm *Model) Insert(docs ...any) error {
 	return mm.execute(func(c Collection) error {
 		return c.Insert(docs...)
 	})
 }
 
 // Pipe returns a Pipe with given pipeline.
-func (mm *Model) Pipe(pipeline interface{}) (Pipe, error) {
+func (mm *Model) Pipe(pipeline any) (Pipe, error) {
 	return mm.pipe(func(c Collection) Pipe {
 		return c.Pipe(pipeline)
 	})
@@ -83,21 +83,21 @@ func (mm *Model) PutSession(session *mgo.Session) {
 }
 
 // Remove removes the records with given selector.
-func (mm *Model) Remove(selector interface{}) error {
+func (mm *Model) Remove(selector any) error {
 	return mm.execute(func(c Collection) error {
 		return c.Remove(selector)
 	})
 }
 
 // RemoveAll removes all with given selector and returns a mgo.ChangeInfo.
-func (mm *Model) RemoveAll(selector interface{}) (*mgo.ChangeInfo, error) {
+func (mm *Model) RemoveAll(selector any) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c Collection) (*mgo.ChangeInfo, error) {
 		return c.RemoveAll(selector)
 	})
 }
 
 // RemoveId removes a record with given id.
-func (mm *Model) RemoveId(id interface{}) error {
+func (mm *Model) RemoveId(id any) error {
 	return mm.execute(func(c Collection) error {
 		return c.RemoveId(id)
 	})
@@ -109,21 +109,21 @@ func (mm *Model) TakeSession() (*mgo.Session, error) {
 }
 
 // Update updates a record with given selector.
-func (mm *Model) Update(selector, update interface{}) error {
+func (mm *Model) Update(selector, update any) error {
 	return mm.execute(func(c Collection) error {
 		return c.Update(selector, update)
 	})
 }
 
 // UpdateId updates a record with given id.
-func (mm *Model) UpdateId(id, update interface{}) error {
+func (mm *Model) UpdateId(id, update any) error {
 	return mm.execute(func(c Collection) error {
 		return c.UpdateId(id, update)
 	})
 }
 
 // Upsert upserts a record with given selector, and returns a mgo.ChangeInfo.
-func (mm *Model) Upsert(selector, update interface{}) (*mgo.ChangeInfo, error) {
+func (mm *Model) Upsert(selector, update any) (*mgo.ChangeInfo, error) {
 	return mm.change(func(c Collection) (*mgo.ChangeInfo, error) {
 		return c.Upsert(selector, update)
 	})

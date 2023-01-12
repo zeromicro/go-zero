@@ -29,3 +29,5 @@ go.work.sum
 !OWNERS
 
 .github
+
+coverage.txt

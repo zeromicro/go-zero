@@ -34,13 +34,13 @@ type (
 	// LogField is a key-value pair that will be added to the log entry.
 	LogField struct {
 		Key   string
-		Value interface{}
+		Value any
 	}
 
 	// LogOption defines the method to customize the logging.
 	LogOption func(options *logOptions)
 
-	logEntry map[string]interface{}
+	logEntry map[string]any
 
 	logOptions struct {
 		gzipEnabled           bool
@@ -67,17 +67,17 @@ func Close() error {
 }
 
 // Debug writes v into access log.
-func Debug(v ...interface{}) {
+func Debug(v ...any) {
 	writeDebug(fmt.Sprint(v...))
 }
 
 // Debugf writes v with format into access log.
-func Debugf(format string, v ...interface{}) {
+func Debugf(format string, v ...any) {
 	writeDebug(fmt.Sprintf(format, v...))
 }
 
 // Debugv writes v into access log with json content.
-func Debugv(v interface{}) {
+func Debugv(v any) {
 	writeDebug(v)
 }
 
@@ -98,30 +98,30 @@ func DisableStat() {
 }
 
 // Error writes v into error log.
-func Error(v ...interface{}) {
+func Error(v ...any) {
 	writeError(fmt.Sprint(v...))
 }
 
 // Errorf writes v with format into error log.
-func Errorf(format string, v ...interface{}) {
+func Errorf(format string, v ...any) {
 	writeError(fmt.Errorf(format, v...).Error())
 }
 
 // ErrorStack writes v along with call stack into error log.
-func ErrorStack(v ...interface{}) {
+func ErrorStack(v ...any) {
 	// there is newline in stack string
 	writeStack(fmt.Sprint(v...))
 }
 
 // ErrorStackf writes v along with call stack in format into error log.
-func ErrorStackf(format string, v ...interface{}) {
+func ErrorStackf(format string, v ...any) {
 	// there is newline in stack string
 	writeStack(fmt.Sprintf(format, v...))
 }
 
 // Errorv writes v into error log with json content.
 // No call stack attached, because not elegant to pack the messages.
-func Errorv(v interface{}) {
+func Errorv(v any) {
 	writeError(v)
 }
 
@@ -131,7 +131,7 @@ func Errorw(msg string, fields ...LogField) {
 }
 
 // Field returns a LogField for the given key and value.
-func Field(key string, value interface{}) LogField {
+func Field(key string, value any) LogField {
 	switch val := value.(type) {
 	case error:
 		return LogField{Key: key, Value: val.Error()}
@@ -169,17 +169,17 @@ func Field(key string, value interface{}) LogField {
 }
 
 // Info writes v into access log.
-func Info(v ...interface{}) {
+func Info(v ...any) {
 	writeInfo(fmt.Sprint(v...))
 }
 
 // Infof writes v with format into access log.
-func Infof(format string, v ...interface{}) {
+func Infof(format string, v ...any) {
 	writeInfo(fmt.Sprintf(format, v...))
 }
 
 // Infov writes v into access log with json content.
-func Infov(v interface{}) {
+func Infov(v any) {
 	writeInfo(v)
 }
 
@@ -263,27 +263,27 @@ func SetUp(c LogConf) (err error) {
 }
 
 // Severe writes v into severe log.
-func Severe(v ...interface{}) {
+func Severe(v ...any) {
 	writeSevere(fmt.Sprint(v...))
 }
 
 // Severef writes v with format into severe log.
-func Severef(format string, v ...interface{}) {
+func Severef(format string, v ...any) {
 	writeSevere(fmt.Sprintf(format, v...))
 }
 
 // Slow writes v into slow log.
-func Slow(v ...interface{}) {
+func Slow(v ...any) {
 	writeSlow(fmt.Sprint(v...))
 }
 
 // Slowf writes v with format into slow log.
-func Slowf(format string, v ...interface{}) {
+func Slowf(format string, v ...any) {
 	writeSlow(fmt.Sprintf(format, v...))
 }
 
 // Slowv writes v into slow log with json content.
-func Slowv(v interface{}) {
+func Slowv(v any) {
 	writeSlow(v)
 }
 
@@ -293,12 +293,12 @@ func Sloww(msg string, fields ...LogField) {
 }
 
 // Stat writes v into stat log.
-func Stat(v ...interface{}) {
+func Stat(v ...any) {
 	writeStat(fmt.Sprint(v...))
 }
 
 // Statf writes v with format into stat log.
-func Statf(format string, v ...interface{}) {
+func Statf(format string, v ...any) {
 	writeStat(fmt.Sprintf(format, v...))
 }
 
@@ -422,19 +422,19 @@ func shallLogStat() bool {
 	return atomic.LoadUint32(&disableStat) == 0
 }
 
-func writeDebug(val interface{}, fields ...LogField) {
+func writeDebug(val any, fields ...LogField) {
 	if shallLog(DebugLevel) {
 		getWriter().Debug(val, addCaller(fields...)...)
 	}
 }
 
-func writeError(val interface{}, fields ...LogField) {
+func writeError(val any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Error(val, addCaller(fields...)...)
 	}
 }
 
-func writeInfo(val interface{}, fields ...LogField) {
+func writeInfo(val any, fields ...LogField) {
 	if shallLog(InfoLevel) {
 		getWriter().Info(val, addCaller(fields...)...)
 	}
@@ -446,7 +446,7 @@ func writeSevere(msg string) {
 	}
 }
 
-func writeSlow(val interface{}, fields ...LogField) {
+func writeSlow(val any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Slow(val, addCaller(fields...)...)
 	}

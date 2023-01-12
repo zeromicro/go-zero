@@ -22,7 +22,7 @@ const xForwardedFor = "X-Forwarded-For"
 var supportLang map[string]string
 
 // GetFormValues returns the form values.
-func GetFormValues(r *http.Request) (map[string]interface{}, error) {
+func GetFormValues(r *http.Request) (map[string]any, error) {
 	if err := r.ParseForm(); err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func GetFormValues(r *http.Request) (map[string]interface{}, error) {
 		}
 	}
 
-	params := make(map[string]interface{}, len(r.Form))
+	params := make(map[string]any, len(r.Form))
 	for name := range r.Form {
 		formValue := r.Form.Get(name)
 		if len(formValue) > 0 {
@@ -89,7 +89,7 @@ func NewValidator() *Validator {
 	return &v
 }
 
-func (v *Validator) Validate(data interface{}, lang string) string {
+func (v *Validator) Validate(data any, lang string) string {
 	err := v.Validator.Struct(data)
 	if err == nil {
 		return ""

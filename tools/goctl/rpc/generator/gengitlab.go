@@ -23,5 +23,5 @@ func (g *Generator) GenGitlab(ctx DirContext, _ parser.Proto, cfg *conf.Config, 
 		return err
 	}
 
-	return util.With("gitlab").Parse(text).SaveTo(map[string]interface{}{}, fileName, false)
+	return util.With("gitlab").Parse(text).SaveTo(map[string]any{}, fileName, false)
 }

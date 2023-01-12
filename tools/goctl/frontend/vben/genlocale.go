@@ -53,7 +53,7 @@ func genLocale(g *GenContext) error {
 	}
 
 	if !pathx.FileExists(enLocaleFileName) {
-		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]interface{}{
+		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]any{
 			"localeData": localeEnData.String(),
 		},
 			enLocaleFileName, false); err != nil {
@@ -78,7 +78,7 @@ func genLocale(g *GenContext) error {
 	}
 
 	if !pathx.FileExists(zhLocaleFileName) {
-		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]interface{}{
+		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]any{
 			"localeData": localeZhData.String(),
 		},
 			zhLocaleFileName, false); err != nil {

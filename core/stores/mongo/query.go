@@ -10,23 +10,23 @@ import (
 type (
 	// Query interface represents a mongo query.
 	Query interface {
-		All(result interface{}) error
-		Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error)
+		All(result any) error
+		Apply(change mgo.Change, result any) (*mgo.ChangeInfo, error)
 		Batch(n int) Query
 		Collation(collation *mgo.Collation) Query
 		Comment(comment string) Query
 		Count() (int, error)
-		Distinct(key string, result interface{}) error
-		Explain(result interface{}) error
-		For(result interface{}, f func() error) error
+		Distinct(key string, result any) error
+		Explain(result any) error
+		For(result any, f func() error) error
 		Hint(indexKey ...string) Query
 		Iter() Iter
 		Limit(n int) Query
 		LogReplay() Query
-		MapReduce(job *mgo.MapReduce, result interface{}) (*mgo.MapReduceInfo, error)
-		One(result interface{}) error
+		MapReduce(job *mgo.MapReduce, result any) (*mgo.MapReduceInfo, error)
+		One(result any) error
 		Prefetch(p float64) Query
-		Select(selector interface{}) Query
+		Select(selector any) Query
 		SetMaxScan(n int) Query
 		SetMaxTime(d time.Duration) Query
 		Skip(n int) Query
@@ -43,11 +43,11 @@ type (
 	rejectedQuery struct{}
 )
 
-func (q promisedQuery) All(result interface{}) error {
+func (q promisedQuery) All(result any) error {
 	return q.promise.keep(q.Query.All(result))
 }
 
-func (q promisedQuery) Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error) {
+func (q promisedQuery) Apply(change mgo.Change, result any) (*mgo.ChangeInfo, error) {
 	info, err := q.Query.Apply(change, result)
 	return info, q.promise.keep(err)
 }
@@ -78,15 +78,15 @@ func (q promisedQuery) Count() (int, error) {
 	return v, q.promise.keep(err)
 }
 
-func (q promisedQuery) Distinct(key string, result interface{}) error {
+func (q promisedQuery) Distinct(key string, result any) error {
 	return q.promise.keep(q.Query.Distinct(key, result))
 }
 
-func (q promisedQuery) Explain(result interface{}) error {
+func (q promisedQuery) Explain(result any) error {
 	return q.promise.keep(q.Query.Explain(result))
 }
 
-func (q promisedQuery) For(result interface{}, f func() error) error {
+func (q promisedQuery) For(result any, f func() error) error {
 	var ferr error
 	err := q.Query.For(result, func() error {
 		ferr = f()
@@ -127,12 +127,12 @@ func (q promisedQuery) LogReplay() Query {
 	}
 }
 
-func (q promisedQuery) MapReduce(job *mgo.MapReduce, result interface{}) (*mgo.MapReduceInfo, error) {
+func (q promisedQuery) MapReduce(job *mgo.MapReduce, result any) (*mgo.MapReduceInfo, error) {
 	info, err := q.Query.MapReduce(job, result)
 	return info, q.promise.keep(err)
 }
 
-func (q promisedQuery) One(result interface{}) error {
+func (q promisedQuery) One(result any) error {
 	return q.promise.keep(q.Query.One(result))
 }
 
@@ -143,7 +143,7 @@ func (q promisedQuery) Prefetch(p float64) Query {
 	}
 }
 
-func (q promisedQuery) Select(selector interface{}) Query {
+func (q promisedQuery) Select(selector any) Query {
 	return promisedQuery{
 		Query:   q.Query.Select(selector),
 		promise: q.promise,
@@ -192,11 +192,11 @@ func (q promisedQuery) Tail(timeout time.Duration) Iter {
 	}
 }
 
-func (q rejectedQuery) All(result interface{}) error {
+func (q rejectedQuery) All(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
-func (q rejectedQuery) Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error) {
+func (q rejectedQuery) Apply(change mgo.Change, result any) (*mgo.ChangeInfo, error) {
 	return nil, breaker.ErrServiceUnavailable
 }
 
@@ -216,15 +216,15 @@ func (q rejectedQuery) Count() (int, error) {
 	return 0, breaker.ErrServiceUnavailable
 }
 
-func (q rejectedQuery) Distinct(key string, result interface{}) error {
+func (q rejectedQuery) Distinct(key string, result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
-func (q rejectedQuery) Explain(result interface{}) error {
+func (q rejectedQuery) Explain(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
-func (q rejectedQuery) For(result interface{}, f func() error) error {
+func (q rejectedQuery) For(result any, f func() error) error {
 	return breaker.ErrServiceUnavailable
 }
 
@@ -244,11 +244,11 @@ func (q rejectedQuery) LogReplay() Query {
 	return q
 }
 
-func (q rejectedQuery) MapReduce(job *mgo.MapReduce, result interface{}) (*mgo.MapReduceInfo, error) {
+func (q rejectedQuery) MapReduce(job *mgo.MapReduce, result any) (*mgo.MapReduceInfo, error) {
 	return nil, breaker.ErrServiceUnavailable
 }
 
-func (q rejectedQuery) One(result interface{}) error {
+func (q rejectedQuery) One(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
@@ -256,7 +256,7 @@ func (q rejectedQuery) Prefetch(p float64) Query {
 	return q
 }
 
-func (q rejectedQuery) Select(selector interface{}) Query {
+func (q rejectedQuery) Select(selector any) Query {
 	return q
 }
 
