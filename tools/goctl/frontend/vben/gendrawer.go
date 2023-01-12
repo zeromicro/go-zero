@@ -36,6 +36,7 @@ func genDrawer(g *GenContext) error {
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"folderName":         g.FolderName,
 		"infoData":           infoData.String(),
+		"useUUID":            g.UseUUID,
 	},
 		filepath.Join(g.ViewDir, fmt.Sprintf("%sDrawer.vue", g.ModelName)), false); err != nil {
 		return err

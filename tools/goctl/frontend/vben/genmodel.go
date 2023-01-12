@@ -26,6 +26,9 @@ func genModel(g *GenContext) error {
 					tmpType, _ := val.Type.(spec.DefineStruct)
 					if tmpType.Name() == "BaseInfo" {
 						infoData.WriteString("  id: number;\n  createdAt?: number;\n")
+					} else if tmpType.Name() == "BaseUUIDInfo" {
+						infoData.WriteString("  id: string;\n  createdAt?: number;\n")
+						g.UseUUID = true
 					}
 				} else {
 					infoData.WriteString(fmt.Sprintf("  %s: %s;\n", strcase.ToLowerCamel(val.Name),

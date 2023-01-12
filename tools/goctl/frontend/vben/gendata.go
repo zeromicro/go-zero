@@ -60,6 +60,7 @@ func genData(g *GenContext) error {
 		"searchFormData": searchFormData.String(),
 		"formData":       formData.String(),
 		"useBaseInfo":    useBaseInfo,
+		"useUUID":        g.UseUUID,
 	},
 		filepath.Join(g.ViewDir, fmt.Sprintf("%s.data.ts", strings.ToLower(g.ModelName))), false); err != nil {
 		return err
