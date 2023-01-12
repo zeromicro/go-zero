@@ -11,7 +11,7 @@ import (
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
 	"github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
 	"github.com/suyuan32/simple-admin-core/pkg/statuserr"
-{{if .hasUUID}}	"github.com/suyuan32/simple-admin-core/pkg/uuidx"{{end}}
+{{if or .hasUUID .useUUID}}	"github.com/suyuan32/simple-admin-core/pkg/uuidx"{{end}}
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -30,7 +30,7 @@ func NewCreateOrUpdate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.Servi
 }
 
 func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.serviceName}}.{{.modelName}}Info) (*{{.serviceName}}.BaseResp, error) {
-    if in.Id == 0 {
+    if in.Id == {{if .useUUID}}""{{else}}0{{end}} {
         err := l.svcCtx.DB.{{.modelName}}.Create().
 {{.setLogic}}
 
@@ -47,7 +47,7 @@ func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.
 
         return &{{.serviceName}}.BaseResp{Msg: i18n.CreateSuccess}, nil
     } else {
-        err := l.svcCtx.DB.{{.modelName}}.UpdateOneID(in.Id).
+        err := l.svcCtx.DB.{{.modelName}}.UpdateOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id){{if .useUUID}}){{end}}.
 {{.setLogic}}
 
         if err != nil {

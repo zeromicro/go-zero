@@ -134,6 +134,7 @@ func init() {
 		"if it is empty, generate codes for all models in schema directory")
 	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
 	entCmd.Flags().StringVar(&cli.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
+	entCmd.Flags().BoolVar(&cli.VarBoolUUID, "uuid_pk", false, "Whether to use UUID as primary key")
 
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)

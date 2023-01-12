@@ -56,3 +56,11 @@ func ConvertEntTypeToGotype(prop string) string {
 	}
 	return prop
 }
+
+// ConvertIDType returns uuid type by uuid flag
+func ConvertIDType(useUUID bool) string {
+	if useUUID {
+		return "string"
+	}
+	return "uint64"
+}

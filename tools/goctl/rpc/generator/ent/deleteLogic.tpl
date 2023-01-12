@@ -9,8 +9,9 @@ import (
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
-    "github.com/suyuan32/simple-admin-core/pkg/statuserr"
-    "github.com/zeromicro/go-zero/core/logx"
+    "github.com/suyuan32/simple-admin-core/pkg/statuserr"{{if .useUUID}}
+    "github.com/suyuan32/simple-admin-core/pkg/uuidx"
+{{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
 type Delete{{.modelName}}Logic struct {
@@ -27,8 +28,8 @@ func NewDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.serviceName}}.IDReq) (*{{.serviceName}}.BaseResp, error) {
-	err := l.svcCtx.DB.{{.modelName}}.DeleteOneID(in.Id).Exec(l.ctx)
+func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.serviceName}}.{{if .useUUID}}UU{{end}}IDReq) (*{{.serviceName}}.BaseResp, error) {
+	err := l.svcCtx.DB.{{.modelName}}.DeleteOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id){{if .useUUID}}){{end}}.Exec(l.ctx)
 
 	if err != nil {
 		switch {

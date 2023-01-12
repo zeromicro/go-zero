@@ -40,6 +40,7 @@ type GenEntLogicContext struct {
 	SearchKeyNum int
 	ModuleName   string
 	GroupName    string
+	UseUUID      bool
 }
 
 // GenEntLogic generates the ent CRUD logic files of the rpc service.
@@ -79,7 +80,7 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 	for _, s := range schemas.Schemas {
 		if g.ModelName == s.Name || g.ModelName == "" {
 			// generate logic file
-			rpcLogicData := GenCRUDData(g.ServiceName, g.GroupName, projectCtx, s, g.SearchKeyNum)
+			rpcLogicData := GenCRUDData(g, projectCtx, s)
 
 			for _, v := range rpcLogicData {
 				logicFilename, err := format.FileNamingFormat(g.Style, v.LogicName)
@@ -110,7 +111,7 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 			}
 
 			// generate proto file
-			protoMessage, protoFunctions, err := GenProtoData(s, g.SearchKeyNum, g.GroupName)
+			protoMessage, protoFunctions, err := GenProtoData(s, g)
 			if err != nil {
 				return err
 			}
@@ -154,15 +155,15 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 	return nil
 }
 
-func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, schema *load.Schema, searchKeyNum int) []*RpcLogicData {
+func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
 	var data []*RpcLogicData
 	hasTime := false
 	hasUUID := false
 	// end string means whether to use \n
 	endString := ""
 	var packageName string
-	if groupName != "" {
-		packageName = groupName
+	if g.GroupName != "" {
+		packageName = g.GroupName
 	} else {
 		packageName = "logic"
 	}
@@ -213,9 +214,10 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 		"hasUUID":     hasUUID,
 		"setLogic":    setLogic.String(),
 		"modelName":   schema.Name,
-		"serviceName": serviceName,
+		"serviceName": g.ServiceName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
+		"useUUID":     g.UseUUID, // UUID primary key
 	})
 
 	if err != nil {
@@ -233,7 +235,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	count := 0
 	for _, v := range schema.Fields {
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") &&
-			count < searchKeyNum && !entx.IsBaseProperty(v.Name) {
+			count < g.SearchKeyNum && !entx.IsBaseProperty(v.Name) {
 			camelName := parser.CamelCase(v.Name)
 			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
 				camelName, strings.ToLower(schema.Name), entx.ConvertSpecificNounToUpper(v.Name), camelName))
@@ -289,10 +291,11 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
 		"listData":           listData.String(),
-		"serviceName":        serviceName,
+		"serviceName":        g.ServiceName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
+		"useUUID":            g.UseUUID,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -304,9 +307,10 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	deleteLogicTmpl, err := template.New("delete").Parse(deleteLogicTpl)
 	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":   schema.Name,
-		"serviceName": serviceName,
+		"serviceName": g.ServiceName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
+		"useUUID":     g.UseUUID,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -318,10 +322,11 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	batchDeleteLogicTmpl, err := template.New("batchDelete").Parse(batchDeleteLogicTpl)
 	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
 		"modelName":          schema.Name,
-		"serviceName":        serviceName,
+		"serviceName":        g.ServiceName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
+		"useUUID":            g.UseUUID,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -332,14 +337,14 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 	return data
 }
 
-func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (string, string, error) {
+func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, error) {
 	var protoMessage strings.Builder
 	schemaNameCamelCase := parser.CamelCase(schema.Name)
 	// end string means whether to use \n
 	endString := ""
 	// info message
-	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  uint64 id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
-		schemaNameCamelCase))
+	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  %s id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
+		schemaNameCamelCase, entx.ConvertIDType(g.UseUUID)))
 	index := 4
 	for i, v := range schema.Fields {
 		if entx.IsBaseProperty(v.Name) {
@@ -380,8 +385,8 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	index = 3
 
 	for i, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < searchKeyNum {
-			if i < (len(schema.Fields)-1) && count < searchKeyNum {
+		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < g.SearchKeyNum {
+			if i < (len(schema.Fields)-1) && count < g.SearchKeyNum {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
 					v.Name, index))
 			}
@@ -395,8 +400,11 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	}
 
 	// group
-	if groupName != "" {
+	var groupName string
+	if g.GroupName != "" {
 		groupName = fmt.Sprintf("  // group: %s\n", groupName)
+	} else {
+		groupName = ""
 	}
 
 	protoRpcFunction := bytes.NewBufferString("")
@@ -404,6 +412,7 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 	err = protoTmpl.Execute(protoRpcFunction, map[string]any{
 		"modelName": schema.Name,
 		"groupName": groupName,
+		"useUUID":   g.UseUUID,
 	})
 
 	if err != nil {

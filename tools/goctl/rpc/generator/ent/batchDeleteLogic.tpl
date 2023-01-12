@@ -10,8 +10,9 @@ import (
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
-    "github.com/suyuan32/simple-admin-core/pkg/statuserr"
-    "github.com/zeromicro/go-zero/core/logx"
+    "github.com/suyuan32/simple-admin-core/pkg/statuserr"{{if .useUUID}}
+     "github.com/suyuan32/simple-admin-core/pkg/uuidx"
+ {{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
 type BatchDelete{{.modelName}}Logic struct {
@@ -28,8 +29,8 @@ func NewBatchDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceC
 	}
 }
 
-func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.serviceName}}.IDsReq) (*{{.serviceName}}.BaseResp, error) {
-	_, err := l.svcCtx.DB.{{.modelName}}.Delete().Where({{.modelNameLowerCase}}.IDIn(in.Ids...)).Exec(l.ctx)
+func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.serviceName}}.{{if .useUUID}}UU{{end}}IDsReq) (*{{.serviceName}}.BaseResp, error) {
+	_, err := l.svcCtx.DB.{{.modelName}}.Delete().Where({{.modelNameLowerCase}}.IDIn({{if .useUUID}}uuidx.ParseUUIDSlice({{end}}in.Ids{{if .useUUID}}){{end}}...)).Exec(l.ctx)
 
 	if err != nil {
 		switch {
