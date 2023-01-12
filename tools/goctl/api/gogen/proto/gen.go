@@ -46,6 +46,7 @@ type GenLogicByProtoContext struct {
 	SearchKeyNum int
 	RpcName      string
 	GrpcPackage  string
+	UseUUID      bool
 }
 
 func GenLogicByProto(p *GenLogicByProtoContext) error {
@@ -154,6 +155,9 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				for _, field := range v.Elements {
 					field.Accept(MessageVisitor{})
 					if entx.IsBaseProperty(protoField.Name) {
+						if protoField.Name == "id" && protoField.Type == "string" {
+							ctx.UseUUID = true
+						}
 						continue
 					}
 					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protoField.Name),
@@ -169,6 +173,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -187,6 +192,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -205,6 +211,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -235,6 +242,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
 					"searchKeys":         searchLogic.String(),
+					"useUUID":            ctx.UseUUID,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -286,6 +294,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"listData":           listData.String(),
 					"serviceName":        ctx.ServiceName,
+					"useUUID":            ctx.UseUUID,
 				}))
 				data = apiTemplateData.String()
 			}
