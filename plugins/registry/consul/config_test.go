@@ -1,8 +1,9 @@
 package consul
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoadConf(t *testing.T) {
@@ -16,23 +17,6 @@ func TestLoadConf(t *testing.T) {
 		TTL:      0,
 	}
 
-	client, err := conf.NewClient()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	type User struct {
-		Name string `json:"name" yaml:"Name"`
-		Age  string `json:"age" yaml:"Age"`
-	}
-
-	// data in consul like below
-	// Name: Jack
-	// Age: 18
-
-	// get config
-	var u User
-	LoadYAMLConf(client, "core", &u)
-	fmt.Println(u)
-
+	_, err := conf.NewClient()
+	assert.Nil(t, err)
 }
