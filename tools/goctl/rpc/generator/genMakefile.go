@@ -23,7 +23,7 @@ func (g *Generator) GenMakefile(ctx DirContext, _ parser.Proto, cfg *conf.Config
 		return err
 	}
 
-	return util.With("makefile").Parse(text).SaveTo(map[string]interface{}{
+	return util.With("makefile").Parse(text).SaveTo(map[string]any{
 		"serviceName": ctx.GetServiceName().Lower(),
 		"isEnt":       c.Ent,
 	}, fileName, false)

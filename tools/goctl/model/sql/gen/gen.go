@@ -196,7 +196,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 		return err
 	}
 
-	err = util.With("vars").Parse(text).SaveTo(map[string]interface{}{
+	err = util.With("vars").Parse(text).SaveTo(map[string]any{
 		"pkg": g.pkg,
 	}, filename, false)
 	if err != nil {
@@ -353,7 +353,7 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 	t := util.With("model-custom").
 		Parse(text).
 		GoFmt(true)
-	output, err := t.Execute(map[string]interface{}{
+	output, err := t.Execute(map[string]any{
 		"pkg":                   g.pkg,
 		"withCache":             withCache,
 		"upperStartCamelObject": in.Name.ToCamel(),
@@ -374,7 +374,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 	t := util.With("model").
 		Parse(text).
 		GoFmt(true)
-	output, err := t.Execute(map[string]interface{}{
+	output, err := t.Execute(map[string]any{
 		"pkg":         g.pkg,
 		"imports":     code.importsCode,
 		"vars":        code.varsCode,

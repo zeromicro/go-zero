@@ -23,7 +23,7 @@ func (g *Generator) GenDockerfile(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 		return err
 	}
 
-	return util.With("dockerfile").Parse(text).SaveTo(map[string]interface{}{
+	return util.With("dockerfile").Parse(text).SaveTo(map[string]any{
 		"serviceName": ctx.GetServiceName().Lower(),
 		"port":        c.Port,
 	}, fileName, false)

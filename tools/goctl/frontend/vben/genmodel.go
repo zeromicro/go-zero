@@ -35,7 +35,7 @@ func genModel(g *GenContext) error {
 
 		}
 	}
-	if err := util.With("modelTpl").Parse(modelTpl).SaveTo(map[string]interface{}{
+	if err := util.With("modelTpl").Parse(modelTpl).SaveTo(map[string]any{
 		"modelName": g.ModelName,
 		"infoData":  infoData.String(),
 	},

@@ -80,14 +80,14 @@ func (m mono) createAPIProject() {
 		logx.Must(err)
 	}
 
-	logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]interface{}{
+	logx.Must(util.With("logic").Parse(apiLogicContent).SaveTo(map[string]any{
 		"svcPkg":       svcPkg,
 		"typesPkg":     typesPkg,
 		"rpcClientPkg": rpcClientPkg,
 		"callRPC":      m.callRPC,
 	}, logicFile, true))
 
-	logx.Must(util.With("svc").Parse(svcContent).SaveTo(map[string]interface{}{
+	logx.Must(util.With("svc").Parse(svcContent).SaveTo(map[string]any{
 		"rpcClientPkg": rpcClientPkg,
 		"configPkg":    configPkg,
 		"callRPC":      m.callRPC,

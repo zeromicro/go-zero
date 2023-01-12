@@ -69,7 +69,7 @@ func (h *timeoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h:   make(http.Header),
 		req: r,
 	}
-	panicChan := make(chan interface{}, 1)
+	panicChan := make(chan any, 1)
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {

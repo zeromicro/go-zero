@@ -20,7 +20,7 @@ const (
 )
 
 // UnaryTracingInterceptor returns a grpc.UnaryClientInterceptor for opentelemetry.
-func UnaryTracingInterceptor(ctx context.Context, method string, req, reply interface{},
+func UnaryTracingInterceptor(ctx context.Context, method string, req, reply any,
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	ctx, span := startSpan(ctx, method, cc.Target())
 	defer span.End()
@@ -118,7 +118,7 @@ func (w *clientStream) Header() (metadata.MD, error) {
 	return md, err
 }
 
-func (w *clientStream) RecvMsg(m interface{}) error {
+func (w *clientStream) RecvMsg(m any) error {
 	err := w.ClientStream.RecvMsg(m)
 	if err == nil && !w.desc.ServerStreams {
 		w.sendStreamEvent(receiveEndEvent, nil)
@@ -134,7 +134,7 @@ func (w *clientStream) RecvMsg(m interface{}) error {
 	return err
 }
 
-func (w *clientStream) SendMsg(m interface{}) error {
+func (w *clientStream) SendMsg(m any) error {
 	err := w.ClientStream.SendMsg(m)
 	w.sentMessageID++
 	ztrace.MessageSent.Event(w.Context(), w.sentMessageID, m)

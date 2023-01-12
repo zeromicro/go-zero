@@ -22,29 +22,29 @@ type (
 
 	// CachedCollection interface represents a mongo collection with cache.
 	CachedCollection interface {
-		Count(query interface{}) (int, error)
+		Count(query any) (int, error)
 		DelCache(keys ...string) error
-		FindAllNoCache(v, query interface{}, opts ...QueryOption) error
-		FindOne(v interface{}, key string, query interface{}) error
-		FindOneNoCache(v, query interface{}) error
-		FindOneId(v interface{}, key string, id interface{}) error
-		FindOneIdNoCache(v, id interface{}) error
-		GetCache(key string, v interface{}) error
-		Insert(docs ...interface{}) error
-		Pipe(pipeline interface{}) mongo.Pipe
-		Remove(selector interface{}, keys ...string) error
-		RemoveNoCache(selector interface{}) error
-		RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error)
-		RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error)
-		RemoveId(id interface{}, keys ...string) error
-		RemoveIdNoCache(id interface{}) error
-		SetCache(key string, v interface{}) error
-		Update(selector, update interface{}, keys ...string) error
-		UpdateNoCache(selector, update interface{}) error
-		UpdateId(id, update interface{}, keys ...string) error
-		UpdateIdNoCache(id, update interface{}) error
-		Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error)
-		UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error)
+		FindAllNoCache(v, query any, opts ...QueryOption) error
+		FindOne(v any, key string, query any) error
+		FindOneNoCache(v, query any) error
+		FindOneId(v any, key string, id any) error
+		FindOneIdNoCache(v, id any) error
+		GetCache(key string, v any) error
+		Insert(docs ...any) error
+		Pipe(pipeline any) mongo.Pipe
+		Remove(selector any, keys ...string) error
+		RemoveNoCache(selector any) error
+		RemoveAll(selector any, keys ...string) (*mgo.ChangeInfo, error)
+		RemoveAllNoCache(selector any) (*mgo.ChangeInfo, error)
+		RemoveId(id any, keys ...string) error
+		RemoveIdNoCache(id any) error
+		SetCache(key string, v any) error
+		Update(selector, update any, keys ...string) error
+		UpdateNoCache(selector, update any) error
+		UpdateId(id, update any, keys ...string) error
+		UpdateIdNoCache(id, update any) error
+		Upsert(selector, update any, keys ...string) (*mgo.ChangeInfo, error)
+		UpsertNoCache(selector, update any) (*mgo.ChangeInfo, error)
 	}
 
 	cachedCollection struct {
@@ -60,7 +60,7 @@ func newCollection(collection mongo.Collection, c cache.Cache) CachedCollection 
 	}
 }
 
-func (c *cachedCollection) Count(query interface{}) (int, error) {
+func (c *cachedCollection) Count(query any) (int, error) {
 	return c.collection.Find(query).Count()
 }
 
@@ -68,7 +68,7 @@ func (c *cachedCollection) DelCache(keys ...string) error {
 	return c.cache.Del(keys...)
 }
 
-func (c *cachedCollection) FindAllNoCache(v, query interface{}, opts ...QueryOption) error {
+func (c *cachedCollection) FindAllNoCache(v, query any, opts ...QueryOption) error {
 	q := c.collection.Find(query)
 	for _, opt := range opts {
 		q = opt(q)
@@ -76,43 +76,43 @@ func (c *cachedCollection) FindAllNoCache(v, query interface{}, opts ...QueryOpt
 	return q.All(v)
 }
 
-func (c *cachedCollection) FindOne(v interface{}, key string, query interface{}) error {
-	return c.cache.Take(v, key, func(v interface{}) error {
+func (c *cachedCollection) FindOne(v any, key string, query any) error {
+	return c.cache.Take(v, key, func(v any) error {
 		q := c.collection.Find(query)
 		return q.One(v)
 	})
 }
 
-func (c *cachedCollection) FindOneNoCache(v, query interface{}) error {
+func (c *cachedCollection) FindOneNoCache(v, query any) error {
 	q := c.collection.Find(query)
 	return q.One(v)
 }
 
-func (c *cachedCollection) FindOneId(v interface{}, key string, id interface{}) error {
-	return c.cache.Take(v, key, func(v interface{}) error {
+func (c *cachedCollection) FindOneId(v any, key string, id any) error {
+	return c.cache.Take(v, key, func(v any) error {
 		q := c.collection.FindId(id)
 		return q.One(v)
 	})
 }
 
-func (c *cachedCollection) FindOneIdNoCache(v, id interface{}) error {
+func (c *cachedCollection) FindOneIdNoCache(v, id any) error {
 	q := c.collection.FindId(id)
 	return q.One(v)
 }
 
-func (c *cachedCollection) GetCache(key string, v interface{}) error {
+func (c *cachedCollection) GetCache(key string, v any) error {
 	return c.cache.Get(key, v)
 }
 
-func (c *cachedCollection) Insert(docs ...interface{}) error {
+func (c *cachedCollection) Insert(docs ...any) error {
 	return c.collection.Insert(docs...)
 }
 
-func (c *cachedCollection) Pipe(pipeline interface{}) mongo.Pipe {
+func (c *cachedCollection) Pipe(pipeline any) mongo.Pipe {
 	return c.collection.Pipe(pipeline)
 }
 
-func (c *cachedCollection) Remove(selector interface{}, keys ...string) error {
+func (c *cachedCollection) Remove(selector any, keys ...string) error {
 	if err := c.RemoveNoCache(selector); err != nil {
 		return err
 	}
@@ -120,11 +120,11 @@ func (c *cachedCollection) Remove(selector interface{}, keys ...string) error {
 	return c.DelCache(keys...)
 }
 
-func (c *cachedCollection) RemoveNoCache(selector interface{}) error {
+func (c *cachedCollection) RemoveNoCache(selector any) error {
 	return c.collection.Remove(selector)
 }
 
-func (c *cachedCollection) RemoveAll(selector interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+func (c *cachedCollection) RemoveAll(selector any, keys ...string) (*mgo.ChangeInfo, error) {
 	info, err := c.RemoveAllNoCache(selector)
 	if err != nil {
 		return nil, err
@@ -137,11 +137,11 @@ func (c *cachedCollection) RemoveAll(selector interface{}, keys ...string) (*mgo
 	return info, nil
 }
 
-func (c *cachedCollection) RemoveAllNoCache(selector interface{}) (*mgo.ChangeInfo, error) {
+func (c *cachedCollection) RemoveAllNoCache(selector any) (*mgo.ChangeInfo, error) {
 	return c.collection.RemoveAll(selector)
 }
 
-func (c *cachedCollection) RemoveId(id interface{}, keys ...string) error {
+func (c *cachedCollection) RemoveId(id any, keys ...string) error {
 	if err := c.RemoveIdNoCache(id); err != nil {
 		return err
 	}
@@ -149,15 +149,15 @@ func (c *cachedCollection) RemoveId(id interface{}, keys ...string) error {
 	return c.DelCache(keys...)
 }
 
-func (c *cachedCollection) RemoveIdNoCache(id interface{}) error {
+func (c *cachedCollection) RemoveIdNoCache(id any) error {
 	return c.collection.RemoveId(id)
 }
 
-func (c *cachedCollection) SetCache(key string, v interface{}) error {
+func (c *cachedCollection) SetCache(key string, v any) error {
 	return c.cache.Set(key, v)
 }
 
-func (c *cachedCollection) Update(selector, update interface{}, keys ...string) error {
+func (c *cachedCollection) Update(selector, update any, keys ...string) error {
 	if err := c.UpdateNoCache(selector, update); err != nil {
 		return err
 	}
@@ -165,11 +165,11 @@ func (c *cachedCollection) Update(selector, update interface{}, keys ...string) 
 	return c.DelCache(keys...)
 }
 
-func (c *cachedCollection) UpdateNoCache(selector, update interface{}) error {
+func (c *cachedCollection) UpdateNoCache(selector, update any) error {
 	return c.collection.Update(selector, update)
 }
 
-func (c *cachedCollection) UpdateId(id, update interface{}, keys ...string) error {
+func (c *cachedCollection) UpdateId(id, update any, keys ...string) error {
 	if err := c.UpdateIdNoCache(id, update); err != nil {
 		return err
 	}
@@ -177,11 +177,11 @@ func (c *cachedCollection) UpdateId(id, update interface{}, keys ...string) erro
 	return c.DelCache(keys...)
 }
 
-func (c *cachedCollection) UpdateIdNoCache(id, update interface{}) error {
+func (c *cachedCollection) UpdateIdNoCache(id, update any) error {
 	return c.collection.UpdateId(id, update)
 }
 
-func (c *cachedCollection) Upsert(selector, update interface{}, keys ...string) (*mgo.ChangeInfo, error) {
+func (c *cachedCollection) Upsert(selector, update any, keys ...string) (*mgo.ChangeInfo, error) {
 	info, err := c.UpsertNoCache(selector, update)
 	if err != nil {
 		return nil, err
@@ -194,6 +194,6 @@ func (c *cachedCollection) Upsert(selector, update interface{}, keys ...string) 
 	return info, nil
 }
 
-func (c *cachedCollection) UpsertNoCache(selector, update interface{}) (*mgo.ChangeInfo, error) {
+func (c *cachedCollection) UpsertNoCache(selector, update any) (*mgo.ChangeInfo, error) {
 	return c.collection.Upsert(selector, update)
 }

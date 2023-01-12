@@ -10,12 +10,12 @@ import (
 type (
 	// Iter interface represents a mongo iter.
 	Iter interface {
-		All(result interface{}) error
+		All(result any) error
 		Close() error
 		Done() bool
 		Err() error
-		For(result interface{}, f func() error) error
-		Next(result interface{}) bool
+		For(result any, f func() error) error
+		Next(result any) bool
 		State() (int64, []bson.Raw)
 		Timeout() bool
 	}
@@ -34,7 +34,7 @@ type (
 	rejectedIter struct{}
 )
 
-func (i promisedIter) All(result interface{}) error {
+func (i promisedIter) All(result any) error {
 	return i.promise.keep(i.Iter.All(result))
 }
 
@@ -46,7 +46,7 @@ func (i promisedIter) Err() error {
 	return i.Iter.Err()
 }
 
-func (i promisedIter) For(result interface{}, f func() error) error {
+func (i promisedIter) For(result any, f func() error) error {
 	var ferr error
 	err := i.Iter.For(result, func() error {
 		ferr = f()
@@ -66,7 +66,7 @@ func (it *ClosableIter) Close() error {
 	return err
 }
 
-func (i rejectedIter) All(result interface{}) error {
+func (i rejectedIter) All(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
@@ -82,11 +82,11 @@ func (i rejectedIter) Err() error {
 	return breaker.ErrServiceUnavailable
 }
 
-func (i rejectedIter) For(result interface{}, f func() error) error {
+func (i rejectedIter) For(result any, f func() error) error {
 	return breaker.ErrServiceUnavailable
 }
 
-func (i rejectedIter) Next(result interface{}) bool {
+func (i rejectedIter) Next(result any) bool {
 	return false
 }
 

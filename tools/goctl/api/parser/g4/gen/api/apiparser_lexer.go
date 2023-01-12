@@ -155,7 +155,7 @@ var lexerModeNames = []string{
 
 var lexerLiteralNames = []string{
 	"", "'='", "'('", "')'", "'{'", "'}'", "'*'", "'time.Time'", "'['", "']'",
-	"'returns'", "'-'", "'/'", "'/:'", "'@doc'", "'@handler'", "'interface{}'",
+	"'returns'", "'-'", "'/'", "'/:'", "'@doc'", "'@handler'", "'any'",
 	"'@server'",
 }
 

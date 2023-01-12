@@ -10,7 +10,7 @@ const (
 
 // GetHead returns a code head string with source filename
 func GetHead(source string) string {
-	buffer, _ := With("head").Parse(headTemplate).Execute(map[string]interface{}{
+	buffer, _ := With("head").Parse(headTemplate).Execute(map[string]any{
 		"source": source,
 	})
 	return buffer.String()

@@ -33,7 +33,7 @@ func NewProxy(backend string, opts ...internal.ClientOption) *RpcProxy {
 func (p *RpcProxy) TakeConn(ctx context.Context) (*grpc.ClientConn, error) {
 	cred := auth.ParseCredential(ctx)
 	key := cred.App + "/" + cred.Token
-	val, err := p.singleFlight.Do(key, func() (interface{}, error) {
+	val, err := p.singleFlight.Do(key, func() (any, error) {
 		p.lock.Lock()
 		client, ok := p.clients[key]
 		p.lock.Unlock()

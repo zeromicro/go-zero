@@ -25,7 +25,7 @@ type fileGenConfig struct {
 	category        string
 	templateFile    string
 	builtinTemplate string
-	data            interface{}
+	data            any
 }
 
 func genFile(c fileGenConfig) error {

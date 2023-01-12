@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	errorHandler    func(error) (int, interface{})
-	errorHandlerCtx func(context.Context, error) (int, interface{})
+	errorHandler    func(error) (int, any)
+	errorHandlerCtx func(context.Context, error) (int, any)
 	lock            sync.RWMutex
 )
 
@@ -37,13 +37,13 @@ func ErrorCtx(ctx context.Context, w http.ResponseWriter, err error,
 	handlerCtx := errorHandlerCtx
 	lock.RUnlock()
 
-	var handler func(error) (int, interface{})
+	var handler func(error) (int, any)
 	if handlerCtx != nil {
-		handler = func(err error) (int, interface{}) {
+		handler = func(err error) (int, any) {
 			return handlerCtx(ctx, err)
 		}
 	}
-	writeJson := func(w http.ResponseWriter, code int, v interface{}) {
+	writeJson := func(w http.ResponseWriter, code int, v any) {
 		WriteJsonCtx(ctx, w, code, v)
 	}
 	doHandleError(w, err, handler, writeJson, fns...)
@@ -55,45 +55,45 @@ func Ok(w http.ResponseWriter) {
 }
 
 // OkJson writes v into w with 200 OK.
-func OkJson(w http.ResponseWriter, v interface{}) {
+func OkJson(w http.ResponseWriter, v any) {
 	WriteJson(w, http.StatusOK, v)
 }
 
 // OkJsonCtx writes v into w with 200 OK.
-func OkJsonCtx(ctx context.Context, w http.ResponseWriter, v interface{}) {
+func OkJsonCtx(ctx context.Context, w http.ResponseWriter, v any) {
 	WriteJsonCtx(ctx, w, http.StatusOK, v)
 }
 
 // SetErrorHandler sets the error handler, which is called on calling Error.
-func SetErrorHandler(handler func(error) (int, interface{})) {
+func SetErrorHandler(handler func(error) (int, any)) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandler = handler
 }
 
 // SetErrorHandlerCtx sets the error handler, which is called on calling Error.
-func SetErrorHandlerCtx(handlerCtx func(context.Context, error) (int, interface{})) {
+func SetErrorHandlerCtx(handlerCtx func(context.Context, error) (int, any)) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandlerCtx = handlerCtx
 }
 
 // WriteJson writes v as json string into w with code.
-func WriteJson(w http.ResponseWriter, code int, v interface{}) {
+func WriteJson(w http.ResponseWriter, code int, v any) {
 	if err := doWriteJson(w, code, v); err != nil {
 		logx.Error(err)
 	}
 }
 
 // WriteJsonCtx writes v as json string into w with code.
-func WriteJsonCtx(ctx context.Context, w http.ResponseWriter, code int, v interface{}) {
+func WriteJsonCtx(ctx context.Context, w http.ResponseWriter, code int, v any) {
 	if err := doWriteJson(w, code, v); err != nil {
 		logx.WithContext(ctx).Error(err)
 	}
 }
 
-func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, interface{}),
-	writeJson func(w http.ResponseWriter, code int, v interface{}),
+func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, any),
+	writeJson func(w http.ResponseWriter, code int, v any),
 	fns ...func(w http.ResponseWriter, err error)) {
 	if handler == nil {
 		if len(fns) > 0 {
@@ -127,7 +127,7 @@ func doHandleError(w http.ResponseWriter, err error, handler func(error) (int, i
 	}
 }
 
-func doWriteJson(w http.ResponseWriter, code int, v interface{}) error {
+func doWriteJson(w http.ResponseWriter, code int, v any) error {
 	bs, err := json.Marshal(v)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

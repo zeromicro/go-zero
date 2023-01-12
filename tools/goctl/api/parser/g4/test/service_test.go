@@ -9,7 +9,7 @@ import (
 )
 
 func TestBody(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.Body().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -33,7 +33,7 @@ func TestBody(t *testing.T) {
 }
 
 func TestRoute(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.Route().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -196,7 +196,7 @@ func TestRoute(t *testing.T) {
 }
 
 func TestAtHandler(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.AtHandler().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -236,7 +236,7 @@ func TestAtHandler(t *testing.T) {
 }
 
 func TestAtDoc(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.AtDoc().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -308,7 +308,7 @@ func TestAtDoc(t *testing.T) {
 }
 
 func TestServiceRoute(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.ServiceRoute().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -370,7 +370,7 @@ func TestServiceRoute(t *testing.T) {
 }
 
 func TestServiceApi(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.ServiceApi().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -452,7 +452,7 @@ func TestServiceApi(t *testing.T) {
 }
 
 func TestAtServer(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.AtServer().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -520,7 +520,7 @@ func TestAtServer(t *testing.T) {
 }
 
 func TestServiceSpec(t *testing.T) {
-	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, v *ast.ApiVisitor) any {
 		return p.ServiceSpec().Accept(v)
 	}
 	t.Run("normal", func(t *testing.T) {

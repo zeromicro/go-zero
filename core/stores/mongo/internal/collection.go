@@ -6,14 +6,14 @@ import "github.com/globalsign/mgo"
 
 // MgoCollection interface represents a mgo collection.
 type MgoCollection interface {
-	Find(query interface{}) *mgo.Query
-	FindId(id interface{}) *mgo.Query
-	Insert(docs ...interface{}) error
-	Pipe(pipeline interface{}) *mgo.Pipe
-	Remove(selector interface{}) error
-	RemoveAll(selector interface{}) (*mgo.ChangeInfo, error)
-	RemoveId(id interface{}) error
-	Update(selector, update interface{}) error
-	UpdateId(id, update interface{}) error
-	Upsert(selector, update interface{}) (*mgo.ChangeInfo, error)
+	Find(query any) *mgo.Query
+	FindId(id any) *mgo.Query
+	Insert(docs ...any) error
+	Pipe(pipeline any) *mgo.Pipe
+	Remove(selector any) error
+	RemoveAll(selector any) (*mgo.ChangeInfo, error)
+	RemoveId(id any) error
+	Update(selector, update any) error
+	UpdateId(id, update any) error
+	Upsert(selector, update any) (*mgo.ChangeInfo, error)
 }

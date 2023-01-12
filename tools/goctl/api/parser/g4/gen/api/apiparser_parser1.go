@@ -22,7 +22,7 @@ func (s *SyntaxLitContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *SyntaxLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *SyntaxLitContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitSyntaxLit(s)
@@ -146,7 +146,7 @@ func (s *ImportSpecContext) ToStringTree(ruleNames []string, recog antlr.Recogni
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ImportSpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ImportSpecContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitImportSpec(s)
@@ -269,7 +269,7 @@ func (s *ImportLitContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ImportLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ImportLitContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitImportLit(s)
@@ -400,7 +400,7 @@ func (s *ImportBlockContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ImportBlockContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ImportBlockContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitImportBlock(s)
@@ -522,7 +522,7 @@ func (s *ImportBlockValueContext) ToStringTree(ruleNames []string, recog antlr.R
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ImportBlockValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ImportBlockValueContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitImportBlockValue(s)
@@ -611,7 +611,7 @@ func (s *ImportValueContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ImportValueContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ImportValueContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitImportValue(s)

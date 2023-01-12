@@ -53,22 +53,22 @@ func (lc *LogCollector) takeAll() []string {
 }
 
 // Error logs the given v along with r in error log.
-func Error(r *http.Request, v ...interface{}) {
+func Error(r *http.Request, v ...any) {
 	logx.WithContext(r.Context()).Error(format(r, v...))
 }
 
 // Errorf logs the given v with format along with r in error log.
-func Errorf(r *http.Request, format string, v ...interface{}) {
+func Errorf(r *http.Request, format string, v ...any) {
 	logx.WithContext(r.Context()).Error(formatf(r, format, v...))
 }
 
 // Info logs the given v along with r in access log.
-func Info(r *http.Request, v ...interface{}) {
+func Info(r *http.Request, v ...any) {
 	appendLog(r, format(r, v...))
 }
 
 // Infof logs the given v with format along with r in access log.
-func Infof(r *http.Request, format string, v ...interface{}) {
+func Infof(r *http.Request, format string, v ...any) {
 	appendLog(r, formatf(r, format, v...))
 }
 
@@ -79,11 +79,11 @@ func appendLog(r *http.Request, message string) {
 	}
 }
 
-func format(r *http.Request, v ...interface{}) string {
+func format(r *http.Request, v ...any) string {
 	return formatWithReq(r, fmt.Sprint(v...))
 }
 
-func formatf(r *http.Request, format string, v ...interface{}) string {
+func formatf(r *http.Request, format string, v ...any) string {
 	return formatWithReq(r, fmt.Sprintf(format, v...))
 }
 

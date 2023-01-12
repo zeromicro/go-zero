@@ -29,7 +29,7 @@ func (mt *MilliTime) UnmarshalJSON(data []byte) error {
 }
 
 // GetBSON returns BSON base on mt.
-func (mt MilliTime) GetBSON() (interface{}, error) {
+func (mt MilliTime) GetBSON() (any, error) {
 	return mt.Time, nil
 }
 

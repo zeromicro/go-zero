@@ -150,7 +150,7 @@ func file_deposit_proto_rawDescGZIP() []byte {
 
 var (
 	file_deposit_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-	file_deposit_proto_goTypes  = []interface{}{
+	file_deposit_proto_goTypes  = []any{
 		(*DepositRequest)(nil),  // 0: mock.DepositRequest
 		(*DepositResponse)(nil), // 1: mock.DepositResponse
 	}
@@ -172,7 +172,7 @@ func file_deposit_proto_init() {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_deposit_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_deposit_proto_msgTypes[0].Exporter = func(v any, i int) any {
 			switch v := v.(*DepositRequest); i {
 			case 0:
 				return &v.state
@@ -184,7 +184,7 @@ func file_deposit_proto_init() {
 				return nil
 			}
 		}
-		file_deposit_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_deposit_proto_msgTypes[1].Exporter = func(v any, i int) any {
 			switch v := v.(*DepositResponse); i {
 			case 0:
 				return &v.state
@@ -267,7 +267,7 @@ func RegisterDepositServiceServer(s *grpc.Server, srv DepositServiceServer) {
 	s.RegisterService(&_DepositService_serviceDesc, srv)
 }
 
-func _DepositService_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _DepositService_Deposit_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(DepositRequest)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -279,7 +279,7 @@ func _DepositService_Deposit_Handler(srv interface{}, ctx context.Context, dec f
 		Server:     srv,
 		FullMethod: "/mock.DepositService/Deposit",
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(DepositServiceServer).Deposit(ctx, req.(*DepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)

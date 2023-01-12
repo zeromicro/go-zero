@@ -54,7 +54,7 @@ func genData(g *GenContext) error {
 		}
 	}
 
-	if err := util.With("dataTpl").Parse(dataTpl).SaveTo(map[string]interface{}{
+	if err := util.With("dataTpl").Parse(dataTpl).SaveTo(map[string]any{
 		"modelName":      g.ModelName,
 		"basicData":      basicData.String(),
 		"searchFormData": searchFormData.String(),

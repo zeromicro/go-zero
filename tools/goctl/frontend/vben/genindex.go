@@ -9,7 +9,7 @@ import (
 )
 
 func genIndex(g *GenContext) error {
-	if err := util.With("indexTpl").Parse(indexTpl).SaveTo(map[string]interface{}{
+	if err := util.With("indexTpl").Parse(indexTpl).SaveTo(map[string]any{
 		"modelName":          g.ModelName,
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"folderName":         g.FolderName,

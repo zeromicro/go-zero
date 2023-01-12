@@ -9,7 +9,7 @@ import (
 const dbTag = "db"
 
 // RawFieldNames converts golang struct field into slice string.
-func RawFieldNames(in interface{}, postgresSql ...bool) []string {
+func RawFieldNames(in any, postgresSql ...bool) []string {
 	out := make([]string, 0)
 	v := reflect.ValueOf(in)
 	if v.Kind() == reflect.Ptr {

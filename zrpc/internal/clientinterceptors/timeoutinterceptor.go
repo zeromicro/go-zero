@@ -9,7 +9,7 @@ import (
 
 // TimeoutInterceptor is an interceptor that controls timeout.
 func TimeoutInterceptor(timeout time.Duration) grpc.UnaryClientInterceptor {
-	return func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 		invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		if timeout <= 0 {
 			return invoker(ctx, method, req, reply, cc, opts...)

@@ -76,7 +76,7 @@ func (s *TypeBlockBodyContext) ToStringTree(ruleNames []string, recog antlr.Reco
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *TypeBlockBodyContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *TypeBlockBodyContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitTypeBlockBody(s)
@@ -249,7 +249,7 @@ func (s *TypeStructContext) ToStringTree(ruleNames []string, recog antlr.Recogni
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *TypeStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *TypeStructContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitTypeStruct(s)
@@ -421,7 +421,7 @@ func (s *TypeAliasContext) ToStringTree(ruleNames []string, recog antlr.Recogniz
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *TypeAliasContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *TypeAliasContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitTypeAlias(s)
@@ -604,7 +604,7 @@ func (s *TypeBlockStructContext) ToStringTree(ruleNames []string, recog antlr.Re
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *TypeBlockStructContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitTypeBlockStruct(s)

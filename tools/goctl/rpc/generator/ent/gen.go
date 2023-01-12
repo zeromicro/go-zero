@@ -208,7 +208,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 
 	createLogic := bytes.NewBufferString("")
 	createLogicTmpl, err := template.New("createOrUpdate").Parse(createOrUpdateTpl)
-	err = createLogicTmpl.Execute(createLogic, map[string]interface{}{
+	err = createLogicTmpl.Execute(createLogic, map[string]any{
 		"hasTime":     hasTime,
 		"hasUUID":     hasUUID,
 		"setLogic":    setLogic.String(),
@@ -285,7 +285,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 
 	getListLogic := bytes.NewBufferString("")
 	getListLogicTmpl, err := template.New("getList").Parse(getListLogicTpl)
-	getListLogicTmpl.Execute(getListLogic, map[string]interface{}{
+	getListLogicTmpl.Execute(getListLogic, map[string]any{
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
 		"listData":           listData.String(),
@@ -302,7 +302,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 
 	deleteLogic := bytes.NewBufferString("")
 	deleteLogicTmpl, err := template.New("delete").Parse(deleteLogicTpl)
-	deleteLogicTmpl.Execute(deleteLogic, map[string]interface{}{
+	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":   schema.Name,
 		"serviceName": serviceName,
 		"projectPath": projectCtx.Path,
@@ -316,7 +316,7 @@ func GenCRUDData(serviceName, groupName string, projectCtx *ctx.ProjectContext, 
 
 	batchDeleteLogic := bytes.NewBufferString("")
 	batchDeleteLogicTmpl, err := template.New("batchDelete").Parse(batchDeleteLogicTpl)
-	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]interface{}{
+	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
 		"modelName":          schema.Name,
 		"serviceName":        serviceName,
 		"projectPath":        projectCtx.Path,
@@ -401,7 +401,7 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 
 	protoRpcFunction := bytes.NewBufferString("")
 	protoTmpl, err := template.New("proto").Parse(protoTpl)
-	err = protoTmpl.Execute(protoRpcFunction, map[string]interface{}{
+	err = protoTmpl.Execute(protoRpcFunction, map[string]any{
 		"modelName": schema.Name,
 		"groupName": groupName,
 	})
@@ -456,7 +456,7 @@ func GenProtoData(schema *load.Schema, searchKeyNum int, groupName string) (stri
 //				return err
 //			}
 //
-//			if err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+//			if err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]any{
 //				"logicName":   logicName,
 //				"functions":   functions,
 //				"packageName": packageName,

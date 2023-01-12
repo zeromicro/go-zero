@@ -35,7 +35,7 @@ func (m *MockMgoCollection) EXPECT() *MockMgoCollectionMockRecorder {
 }
 
 // Find mocks base method
-func (m *MockMgoCollection) Find(query interface{}) *mgo.Query {
+func (m *MockMgoCollection) Find(query any) *mgo.Query {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Find", query)
 	ret0, _ := ret[0].(*mgo.Query)
@@ -43,13 +43,13 @@ func (m *MockMgoCollection) Find(query interface{}) *mgo.Query {
 }
 
 // Find indicates an expected call of Find
-func (mr *MockMgoCollectionMockRecorder) Find(query interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Find(query any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Find", reflect.TypeOf((*MockMgoCollection)(nil).Find), query)
 }
 
 // FindId mocks base method
-func (m *MockMgoCollection) FindId(id interface{}) *mgo.Query {
+func (m *MockMgoCollection) FindId(id any) *mgo.Query {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindId", id)
 	ret0, _ := ret[0].(*mgo.Query)
@@ -57,15 +57,15 @@ func (m *MockMgoCollection) FindId(id interface{}) *mgo.Query {
 }
 
 // FindId indicates an expected call of FindId
-func (mr *MockMgoCollectionMockRecorder) FindId(id interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) FindId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindId", reflect.TypeOf((*MockMgoCollection)(nil).FindId), id)
 }
 
 // Insert mocks base method
-func (m *MockMgoCollection) Insert(docs ...interface{}) error {
+func (m *MockMgoCollection) Insert(docs ...any) error {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{}
+	varargs := []any{}
 	for _, a := range docs {
 		varargs = append(varargs, a)
 	}
@@ -75,13 +75,13 @@ func (m *MockMgoCollection) Insert(docs ...interface{}) error {
 }
 
 // Insert indicates an expected call of Insert
-func (mr *MockMgoCollectionMockRecorder) Insert(docs ...interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Insert(docs ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockMgoCollection)(nil).Insert), docs...)
 }
 
 // Pipe mocks base method
-func (m *MockMgoCollection) Pipe(pipeline interface{}) *mgo.Pipe {
+func (m *MockMgoCollection) Pipe(pipeline any) *mgo.Pipe {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Pipe", pipeline)
 	ret0, _ := ret[0].(*mgo.Pipe)
@@ -89,13 +89,13 @@ func (m *MockMgoCollection) Pipe(pipeline interface{}) *mgo.Pipe {
 }
 
 // Pipe indicates an expected call of Pipe
-func (mr *MockMgoCollectionMockRecorder) Pipe(pipeline interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Pipe(pipeline any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Pipe", reflect.TypeOf((*MockMgoCollection)(nil).Pipe), pipeline)
 }
 
 // Remove mocks base method
-func (m *MockMgoCollection) Remove(selector interface{}) error {
+func (m *MockMgoCollection) Remove(selector any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remove", selector)
 	ret0, _ := ret[0].(error)
@@ -103,13 +103,13 @@ func (m *MockMgoCollection) Remove(selector interface{}) error {
 }
 
 // Remove indicates an expected call of Remove
-func (mr *MockMgoCollectionMockRecorder) Remove(selector interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Remove(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remove", reflect.TypeOf((*MockMgoCollection)(nil).Remove), selector)
 }
 
 // RemoveAll mocks base method
-func (m *MockMgoCollection) RemoveAll(selector interface{}) (*mgo.ChangeInfo, error) {
+func (m *MockMgoCollection) RemoveAll(selector any) (*mgo.ChangeInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveAll", selector)
 	ret0, _ := ret[0].(*mgo.ChangeInfo)
@@ -118,13 +118,13 @@ func (m *MockMgoCollection) RemoveAll(selector interface{}) (*mgo.ChangeInfo, er
 }
 
 // RemoveAll indicates an expected call of RemoveAll
-func (mr *MockMgoCollectionMockRecorder) RemoveAll(selector interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) RemoveAll(selector any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveAll", reflect.TypeOf((*MockMgoCollection)(nil).RemoveAll), selector)
 }
 
 // RemoveId mocks base method
-func (m *MockMgoCollection) RemoveId(id interface{}) error {
+func (m *MockMgoCollection) RemoveId(id any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RemoveId", id)
 	ret0, _ := ret[0].(error)
@@ -132,13 +132,13 @@ func (m *MockMgoCollection) RemoveId(id interface{}) error {
 }
 
 // RemoveId indicates an expected call of RemoveId
-func (mr *MockMgoCollectionMockRecorder) RemoveId(id interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) RemoveId(id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveId", reflect.TypeOf((*MockMgoCollection)(nil).RemoveId), id)
 }
 
 // Update mocks base method
-func (m *MockMgoCollection) Update(selector, update interface{}) error {
+func (m *MockMgoCollection) Update(selector, update any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", selector, update)
 	ret0, _ := ret[0].(error)
@@ -146,13 +146,13 @@ func (m *MockMgoCollection) Update(selector, update interface{}) error {
 }
 
 // Update indicates an expected call of Update
-func (mr *MockMgoCollectionMockRecorder) Update(selector, update interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Update(selector, update any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockMgoCollection)(nil).Update), selector, update)
 }
 
 // UpdateId mocks base method
-func (m *MockMgoCollection) UpdateId(id, update interface{}) error {
+func (m *MockMgoCollection) UpdateId(id, update any) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateId", id, update)
 	ret0, _ := ret[0].(error)
@@ -160,13 +160,13 @@ func (m *MockMgoCollection) UpdateId(id, update interface{}) error {
 }
 
 // UpdateId indicates an expected call of UpdateId
-func (mr *MockMgoCollectionMockRecorder) UpdateId(id, update interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) UpdateId(id, update any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateId", reflect.TypeOf((*MockMgoCollection)(nil).UpdateId), id, update)
 }
 
 // Upsert mocks base method
-func (m *MockMgoCollection) Upsert(selector, update interface{}) (*mgo.ChangeInfo, error) {
+func (m *MockMgoCollection) Upsert(selector, update any) (*mgo.ChangeInfo, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Upsert", selector, update)
 	ret0, _ := ret[0].(*mgo.ChangeInfo)
@@ -175,7 +175,7 @@ func (m *MockMgoCollection) Upsert(selector, update interface{}) (*mgo.ChangeInf
 }
 
 // Upsert indicates an expected call of Upsert
-func (mr *MockMgoCollectionMockRecorder) Upsert(selector, update interface{}) *gomock.Call {
+func (mr *MockMgoCollectionMockRecorder) Upsert(selector, update any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upsert", reflect.TypeOf((*MockMgoCollection)(nil).Upsert), selector, update)
 }

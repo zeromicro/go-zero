@@ -118,7 +118,7 @@ type (
 		// PointerType: *string、*User、
 		// MapType: map[${PrimitiveType}]interface、
 		// ArrayType:[]int、[]User、[]*User
-		// InterfaceType: interface{}
+		// InterfaceType: any
 		// Type
 		Value Type
 	}

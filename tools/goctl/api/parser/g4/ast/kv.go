@@ -15,7 +15,7 @@ type KvExpr struct {
 }
 
 // VisitKvLit implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitKvLit(ctx *api.KvLitContext) interface{} {
+func (v *ApiVisitor) VisitKvLit(ctx *api.KvLitContext) any {
 	var kvExpr KvExpr
 	kvExpr.Key = v.newExprWithToken(ctx.GetKey())
 	commentExpr := v.getComment(ctx)
@@ -57,7 +57,7 @@ func (k *KvExpr) Format() error {
 }
 
 // Equal compares whether the element literals in two KvExpr are equal
-func (k *KvExpr) Equal(v interface{}) bool {
+func (k *KvExpr) Equal(v any) bool {
 	if v == nil {
 		return false
 	}

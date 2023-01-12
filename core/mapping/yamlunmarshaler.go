@@ -7,7 +7,7 @@ import (
 )
 
 // UnmarshalYamlBytes unmarshals content into v.
-func UnmarshalYamlBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalYamlBytes(content []byte, v any, opts ...UnmarshalOption) error {
 	b, err := encoding.YamlToJson(content)
 	if err != nil {
 		return err
@@ -17,7 +17,7 @@ func UnmarshalYamlBytes(content []byte, v interface{}, opts ...UnmarshalOption) 
 }
 
 // UnmarshalYamlReader unmarshals content from reader into v.
-func UnmarshalYamlReader(reader io.Reader, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalYamlReader(reader io.Reader, v any, opts ...UnmarshalOption) error {
 	b, err := io.ReadAll(reader)
 	if err != nil {
 		return err

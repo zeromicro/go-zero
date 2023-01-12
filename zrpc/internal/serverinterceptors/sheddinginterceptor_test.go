@@ -47,7 +47,7 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 			interceptor := UnarySheddingInterceptor(shedder, metrics)
 			_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 				FullMethod: "/",
-			}, func(ctx context.Context, req interface{}) (interface{}, error) {
+			}, func(ctx context.Context, req any) (any, error) {
 				return nil, test.handleErr
 			})
 			assert.Equal(t, test.expect, err)

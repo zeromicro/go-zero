@@ -59,7 +59,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		category:        category,
 		templateFile:    contextTemplateFile,
 		builtinTemplate: contextTemplate,
-		data: map[string]interface{}{
+		data: map[string]any{
 			"configImport":         configImport,
 			"config":               "config.Config",
 			"middleware":           middlewareStr,

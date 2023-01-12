@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/zeromicro/go-zero/core/collection"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -174,7 +175,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 		category:        category,
 		templateFile:    routesTemplateFile,
 		builtinTemplate: routesTemplate,
-		data: map[string]interface{}{
+		data: map[string]any{
 			"hasTimeout":      hasTimeout,
 			"importPackages":  genRouteImports(rootPkg, api),
 			"routesAdditions": strings.TrimSpace(builder.String()),

@@ -28,7 +28,7 @@ func TestOpenTracingInterceptor(t *testing.T) {
 	cc := new(grpc.ClientConn)
 	ctx := metadata.NewOutgoingContext(context.Background(), metadata.MD{})
 	err := UnaryTracingInterceptor(ctx, "/ListUser", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			return nil
 		})
@@ -41,7 +41,7 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
@@ -58,7 +58,7 @@ func TestUnaryTracingInterceptor_WithError(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
@@ -195,7 +195,7 @@ func TestUnaryTracingInterceptor_GrpcFormat(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			atomic.AddInt32(&run, 1)
@@ -339,10 +339,10 @@ func (m *mockedClientStream) Context() context.Context {
 	return context.Background()
 }
 
-func (m *mockedClientStream) SendMsg(v interface{}) error {
+func (m *mockedClientStream) SendMsg(v any) error {
 	return m.err
 }
 
-func (m *mockedClientStream) RecvMsg(v interface{}) error {
+func (m *mockedClientStream) RecvMsg(v any) error {
 	return m.err
 }

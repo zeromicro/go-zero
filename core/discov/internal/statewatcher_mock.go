@@ -58,7 +58,7 @@ func (m *MocketcdConn) WaitForStateChange(ctx context.Context, sourceState conne
 }
 
 // WaitForStateChange indicates an expected call of WaitForStateChange
-func (mr *MocketcdConnMockRecorder) WaitForStateChange(ctx, sourceState interface{}) *gomock.Call {
+func (mr *MocketcdConnMockRecorder) WaitForStateChange(ctx, sourceState any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitForStateChange", reflect.TypeOf((*MocketcdConn)(nil).WaitForStateChange), ctx, sourceState)
 }

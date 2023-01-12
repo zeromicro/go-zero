@@ -64,11 +64,11 @@ func (s *Server) build() error {
 		return err
 	}
 
-	return mr.MapReduceVoid(func(source chan<- interface{}) {
+	return mr.MapReduceVoid(func(source chan<- any) {
 		for _, up := range s.upstreams {
 			source <- up
 		}
-	}, func(item interface{}, writer mr.Writer, cancel func(error)) {
+	}, func(item any, writer mr.Writer, cancel func(error)) {
 		up := item.(Upstream)
 		cli := zrpc.MustNewClient(up.Grpc)
 		source, err := s.createDescriptorSource(cli, up)
@@ -110,7 +110,7 @@ func (s *Server) build() error {
 				Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
 			})
 		}
-	}, func(pipe <-chan interface{}, cancel func(error)) {
+	}, func(pipe <-chan any, cancel func(error)) {
 		for item := range pipe {
 			route := item.(rest.Route)
 			s.Server.AddRoute(route)

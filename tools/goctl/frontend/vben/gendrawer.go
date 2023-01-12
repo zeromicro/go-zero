@@ -31,7 +31,7 @@ func genDrawer(g *GenContext) error {
 		}
 	}
 
-	if err := util.With("drawerTpl").Parse(drawerTpl).SaveTo(map[string]interface{}{
+	if err := util.With("drawerTpl").Parse(drawerTpl).SaveTo(map[string]any{
 		"modelName":          g.ModelName,
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"folderName":         g.FolderName,

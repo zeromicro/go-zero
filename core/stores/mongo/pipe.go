@@ -10,13 +10,13 @@ import (
 type (
 	// Pipe interface represents a mongo pipe.
 	Pipe interface {
-		All(result interface{}) error
+		All(result any) error
 		AllowDiskUse() Pipe
 		Batch(n int) Pipe
 		Collation(collation *mgo.Collation) Pipe
-		Explain(result interface{}) error
+		Explain(result any) error
 		Iter() Iter
-		One(result interface{}) error
+		One(result any) error
 		SetMaxTime(d time.Duration) Pipe
 	}
 
@@ -28,7 +28,7 @@ type (
 	rejectedPipe struct{}
 )
 
-func (p promisedPipe) All(result interface{}) error {
+func (p promisedPipe) All(result any) error {
 	return p.promise.keep(p.Pipe.All(result))
 }
 
@@ -47,7 +47,7 @@ func (p promisedPipe) Collation(collation *mgo.Collation) Pipe {
 	return p
 }
 
-func (p promisedPipe) Explain(result interface{}) error {
+func (p promisedPipe) Explain(result any) error {
 	return p.promise.keep(p.Pipe.Explain(result))
 }
 
@@ -58,7 +58,7 @@ func (p promisedPipe) Iter() Iter {
 	}
 }
 
-func (p promisedPipe) One(result interface{}) error {
+func (p promisedPipe) One(result any) error {
 	return p.promise.keep(p.Pipe.One(result))
 }
 
@@ -67,7 +67,7 @@ func (p promisedPipe) SetMaxTime(d time.Duration) Pipe {
 	return p
 }
 
-func (p rejectedPipe) All(result interface{}) error {
+func (p rejectedPipe) All(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
@@ -83,7 +83,7 @@ func (p rejectedPipe) Collation(collation *mgo.Collation) Pipe {
 	return p
 }
 
-func (p rejectedPipe) Explain(result interface{}) error {
+func (p rejectedPipe) Explain(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 
@@ -91,7 +91,7 @@ func (p rejectedPipe) Iter() Iter {
 	return rejectedIter{}
 }
 
-func (p rejectedPipe) One(result interface{}) error {
+func (p rejectedPipe) One(result any) error {
 	return breaker.ErrServiceUnavailable
 }
 

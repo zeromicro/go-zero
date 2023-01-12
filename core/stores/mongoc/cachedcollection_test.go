@@ -103,7 +103,7 @@ func TestStat(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		var str string
-		if err = c.cache.Take(&str, "name", func(v interface{}) error {
+		if err = c.cache.Take(&str, "name", func(v any) error {
 			*v.(*string) = "zero"
 			return nil
 		}); err != nil {
@@ -147,7 +147,7 @@ func TestStatDbFails(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err := c.cache.Take(&str, "name", func(v interface{}) error {
+		err := c.cache.Take(&str, "name", func(v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -173,7 +173,7 @@ func TestStatFromMemory(t *testing.T) {
 	wait.Add(4)
 	go func() {
 		var str string
-		if err := c.cache.Take(&str, "name", func(v interface{}) error {
+		if err := c.cache.Take(&str, "name", func(v any) error {
 			*v.(*string) = "zero"
 			return nil
 		}); err != nil {
@@ -188,7 +188,7 @@ func TestStatFromMemory(t *testing.T) {
 		go func() {
 			var str string
 			wait.Done()
-			if err := c.cache.Take(&str, "name", func(v interface{}) error {
+			if err := c.cache.Take(&str, "name", func(v any) error {
 				*v.(*string) = "zero"
 				return nil
 			}); err != nil {
@@ -200,7 +200,7 @@ func TestStatFromMemory(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go func() {
 			var str string
-			if err := c.cache.Take(&str, "name", func(v interface{}) error {
+			if err := c.cache.Take(&str, "name", func(v any) error {
 				*v.(*string) = "zero"
 				return nil
 			}); err != nil {
@@ -228,43 +228,43 @@ type dummyConn struct {
 	updateErr error
 }
 
-func (c dummyConn) Find(query interface{}) mongo.Query {
+func (c dummyConn) Find(query any) mongo.Query {
 	return dummyQuery{val: c.val}
 }
 
-func (c dummyConn) FindId(id interface{}) mongo.Query {
+func (c dummyConn) FindId(id any) mongo.Query {
 	return dummyQuery{val: c.val}
 }
 
-func (c dummyConn) Insert(docs ...interface{}) error {
+func (c dummyConn) Insert(docs ...any) error {
 	return nil
 }
 
-func (c dummyConn) Remove(selector interface{}) error {
+func (c dummyConn) Remove(selector any) error {
 	return c.removeErr
 }
 
-func (dummyConn) Pipe(pipeline interface{}) mongo.Pipe {
+func (dummyConn) Pipe(pipeline any) mongo.Pipe {
 	return nil
 }
 
-func (c dummyConn) RemoveAll(selector interface{}) (*mgo.ChangeInfo, error) {
+func (c dummyConn) RemoveAll(selector any) (*mgo.ChangeInfo, error) {
 	return nil, c.removeErr
 }
 
-func (c dummyConn) RemoveId(id interface{}) error {
+func (c dummyConn) RemoveId(id any) error {
 	return c.removeErr
 }
 
-func (c dummyConn) Update(selector, update interface{}) error {
+func (c dummyConn) Update(selector, update any) error {
 	return c.updateErr
 }
 
-func (c dummyConn) UpdateId(id, update interface{}) error {
+func (c dummyConn) UpdateId(id, update any) error {
 	return c.updateErr
 }
 
-func (c dummyConn) Upsert(selector, update interface{}) (*mgo.ChangeInfo, error) {
+func (c dummyConn) Upsert(selector, update any) (*mgo.ChangeInfo, error) {
 	return nil, c.updateErr
 }
 
@@ -272,11 +272,11 @@ type dummyQuery struct {
 	val string
 }
 
-func (d dummyQuery) All(result interface{}) error {
+func (d dummyQuery) All(result any) error {
 	return nil
 }
 
-func (d dummyQuery) Apply(change mgo.Change, result interface{}) (*mgo.ChangeInfo, error) {
+func (d dummyQuery) Apply(change mgo.Change, result any) (*mgo.ChangeInfo, error) {
 	return nil, nil
 }
 
@@ -284,23 +284,23 @@ func (d dummyQuery) Count() (int, error) {
 	return dummyCount, nil
 }
 
-func (d dummyQuery) Distinct(key string, result interface{}) error {
+func (d dummyQuery) Distinct(key string, result any) error {
 	return nil
 }
 
-func (d dummyQuery) Explain(result interface{}) error {
+func (d dummyQuery) Explain(result any) error {
 	return nil
 }
 
-func (d dummyQuery) For(result interface{}, f func() error) error {
+func (d dummyQuery) For(result any, f func() error) error {
 	return nil
 }
 
-func (d dummyQuery) MapReduce(job *mgo.MapReduce, result interface{}) (*mgo.MapReduceInfo, error) {
+func (d dummyQuery) MapReduce(job *mgo.MapReduce, result any) (*mgo.MapReduceInfo, error) {
 	return nil, nil
 }
 
-func (d dummyQuery) One(result interface{}) error {
+func (d dummyQuery) One(result any) error {
 	return json.Unmarshal([]byte(d.val), result)
 }
 
@@ -336,7 +336,7 @@ func (d dummyQuery) Prefetch(p float64) mongo.Query {
 	return d
 }
 
-func (d dummyQuery) Select(selector interface{}) mongo.Query {
+func (d dummyQuery) Select(selector any) mongo.Query {
 	return d
 }
 
