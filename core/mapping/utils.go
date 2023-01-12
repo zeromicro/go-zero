@@ -129,6 +129,12 @@ func convertTypeFromString(kind reflect.Kind, str string) (interface{}, error) {
 }
 
 func convertTypeOfPtr(tp reflect.Type, target reflect.Value) reflect.Value {
+	// keep the original value is a pointer
+	if tp.Kind() == reflect.Ptr && target.CanAddr() {
+		tp = tp.Elem()
+		target = target.Addr()
+	}
+
 	for tp.Kind() == reflect.Ptr {
 		p := reflect.New(target.Type())
 		p.Elem().Set(target)

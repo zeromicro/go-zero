@@ -884,7 +884,7 @@ func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue interfa
 		target := reflect.New(baseType).Elem()
 		switch mapValue.(type) {
 		case string, json.Number:
-			SetValue(fieldType.Elem(), value, target.Addr())
+			SetValue(fieldType, value, target)
 			value = target
 		}
 	}
