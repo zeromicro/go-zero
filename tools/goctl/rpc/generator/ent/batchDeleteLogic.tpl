@@ -10,8 +10,8 @@ import (
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
-    "github.com/suyuan32/simple-admin-core/pkg/statuserr"{{if .useUUID}}
-     "github.com/suyuan32/simple-admin-core/pkg/uuidx"
+    "github.com/suyuan32/simple-admin-core/pkg/statuserr"
+{{if .useUUID}}     "github.com/suyuan32/simple-admin-core/pkg/uuidx"
  {{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 

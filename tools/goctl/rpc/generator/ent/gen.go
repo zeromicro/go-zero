@@ -171,6 +171,9 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	setLogic := strings.Builder{}
 	for _, v := range schema.Fields {
 		if entx.IsBaseProperty(v.Name) {
+			if v.Name == "id" && entx.IsUUIDType(v.Info.Type.String()) {
+				g.UseUUID = true
+			}
 			continue
 		} else if v.Name == "status" {
 			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uint8(in.%s)).\n", parser.CamelCase(v.Name),
@@ -402,7 +405,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	// group
 	var groupName string
 	if g.GroupName != "" {
-		groupName = fmt.Sprintf("  // group: %s\n", groupName)
+		groupName = fmt.Sprintf("  // group: %s\n", g.GroupName)
 	} else {
 		groupName = ""
 	}

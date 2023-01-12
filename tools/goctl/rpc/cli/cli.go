@@ -68,8 +68,6 @@ var (
 	VarBoolGitlab bool
 	// VarStringGroupName describes whether to use group
 	VarStringGroupName string
-	// VarBoolUUID describes whether to use UUID as primary key
-	VarBoolUUID bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -175,7 +173,6 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		SearchKeyNum: VarIntSearchKeyNum,
 		ModuleName:   VarStringModuleName,
 		GroupName:    VarStringGroupName,
-		UseUUID:      VarBoolUUID,
 	}
 	err := ent.GenEntLogic(params)
 	if err != nil {
