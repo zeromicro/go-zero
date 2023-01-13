@@ -2530,8 +2530,8 @@ func (s *Redis) ZrevrangebyscoreWithScoresByFloatCtx(ctx context.Context, key st
 		}
 
 		v, err := conn.ZRevRangeByScoreWithScores(ctx, key, &red.ZRangeBy{
-			Min: fmt.Sprintf("%v", start),
-			Max: fmt.Sprintf("%v", stop),
+			Min: strconv.FormatFloat(start, 'f', -1, 64),
+			Max: strconv.FormatFloat(stop, 'f', -1, 64),
 		}).Result()
 		if err != nil {
 			return err
