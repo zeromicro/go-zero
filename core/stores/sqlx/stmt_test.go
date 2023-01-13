@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ func TestStmt_exec(t *testing.T) {
 		query        string
 		args         []interface{}
 		delay        bool
+		argsLen      bool
 		hasError     bool
 		err          error
 		lastInsertId int64
@@ -52,6 +54,18 @@ func TestStmt_exec(t *testing.T) {
 			lastInsertId: 1,
 			rowsAffected: 2,
 		},
+		{
+			name:  "expand slice and array arguments",
+			query: "select user from users where id (?) or name in (?) or phone in (?)",
+			args: []interface{}{
+				[]int{1, 2, 3},
+				[2]string{"a", "b"},
+				[]string{},
+			},
+			argsLen:      true,
+			lastInsertId: 6,
+			rowsAffected: 6,
+		},
 	}
 
 	for _, test := range tests {
@@ -63,6 +77,7 @@ func TestStmt_exec(t *testing.T) {
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
 					delay:        test.delay,
+					argsLen:      test.argsLen,
 				}, test.query, args...)
 			},
 			func(args ...interface{}) (sql.Result, error) {
@@ -71,6 +86,7 @@ func TestStmt_exec(t *testing.T) {
 					rowsAffected: test.rowsAffected,
 					err:          test.err,
 					delay:        test.delay,
+					argsLen:      test.argsLen,
 				}, test.query, args...)
 			},
 		}
@@ -224,6 +240,7 @@ type mockedSessionConn struct {
 	rowsAffected int64
 	err          error
 	delay        bool
+	argsLen      bool
 }
 
 func (m *mockedSessionConn) Exec(query string, args ...interface{}) (sql.Result, error) {
@@ -234,6 +251,14 @@ func (m *mockedSessionConn) ExecContext(ctx context.Context, query string, args 
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
+
+	if m.argsLen {
+		return mockedResult{
+			lastInsertId: int64(strings.Count(query, "?")),
+			rowsAffected: int64(len(args)),
+		}, m.err
+	}
+
 	return mockedResult{
 		lastInsertId: m.lastInsertId,
 		rowsAffected: m.rowsAffected,
@@ -261,16 +286,25 @@ type mockedStmtConn struct {
 	rowsAffected int64
 	err          error
 	delay        bool
+	argsLen      bool
 }
 
 func (m *mockedStmtConn) Exec(args ...interface{}) (sql.Result, error) {
 	return m.ExecContext(context.Background(), args...)
 }
 
-func (m *mockedStmtConn) ExecContext(_ context.Context, _ ...interface{}) (sql.Result, error) {
+func (m *mockedStmtConn) ExecContext(_ context.Context, args ...interface{}) (sql.Result, error) {
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
+
+	if m.argsLen {
+		return mockedResult{
+			lastInsertId: m.lastInsertId,
+			rowsAffected: int64(len(args)),
+		}, m.err
+	}
+
 	return mockedResult{
 		lastInsertId: m.lastInsertId,
 		rowsAffected: m.rowsAffected,
