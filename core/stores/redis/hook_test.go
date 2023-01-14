@@ -91,9 +91,9 @@ func TestHookProcessPipelineCase1(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(writer)
 
-	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{})
+	_, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{})
 	assert.NoError(t, err)
-	ctx, err = durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{
+	ctx, err := durationHook.BeforeProcessPipeline(context.Background(), []red.Cmder{
 		red.NewCmd(context.Background()),
 	})
 	assert.NoError(t, err)
