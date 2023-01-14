@@ -8,6 +8,7 @@ import (
     {{if .Cache}}"github.com/zeromicro/go-zero/core/stores/monc"{{else}}"github.com/zeromicro/go-zero/core/stores/mon"{{end}}
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/bson/primitive"
+    "go.mongodb.org/mongo-driver/mongo"
 )
 
 {{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.lowerType}}:"{{end}}
@@ -15,8 +16,8 @@ import (
 type {{.lowerType}}Model interface{
     Insert(ctx context.Context,data *{{.Type}}) error
     FindOne(ctx context.Context,id string) (*{{.Type}}, error)
-    Update(ctx context.Context,data *{{.Type}}) error
-    Delete(ctx context.Context,id string) error
+    Update(ctx context.Context,data *{{.Type}}) (*mongo.UpdateResult, error)
+    Delete(ctx context.Context,id string) (int64, error)
 }
 
 type default{{.Type}}Model struct {
@@ -59,19 +60,19 @@ func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Typ
     }
 }
 
-func (m *default{{.Type}}Model) Update(ctx context.Context, data *{{.Type}}) error {
+func (m *default{{.Type}}Model) Update(ctx context.Context, data *{{.Type}}) (*mongo.UpdateResult, error) {
     data.UpdateAt = time.Now()
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
-    _, err := m.conn.ReplaceOne(ctx, {{if .Cache}}key, {{end}}bson.M{"_id": data.ID}, data)
-    return err
+    res, err := m.conn.UpdateOne(ctx, {{if .Cache}}key, {{end}}bson.M{"_id": data.ID}, bson.M{"$set": data})
+    return res, err
 }
 
-func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) error {
+func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) (int64, error) {
     oid, err := primitive.ObjectIDFromHex(id)
     if err != nil {
-        return ErrInvalidObjectId
+        return 0, ErrInvalidObjectId
     }
 	{{if .Cache}}key := prefix{{.Type}}CacheKey +id{{end}}
-    _, err = m.conn.DeleteOne(ctx, {{if .Cache}}key, {{end}}bson.M{"_id": oid})
-	return err
+    res, err := m.conn.DeleteOne(ctx, {{if .Cache}}key, {{end}}bson.M{"_id": oid})
+	return res, err
 }
