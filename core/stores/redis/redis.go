@@ -1025,7 +1025,7 @@ func (s *Redis) IncrbyCtx(ctx context.Context, key string, increment int64) (val
 	return
 }
 
-// Incrby is the implementation of redis incrby command.
+// IncrbyFloat is the implementation of redis incrby command.
 func (s *Redis) IncrbyFloat(key string, increment float64) (float64, error) {
 	return s.IncrbyFloatCtx(context.Background(), key, increment)
 }

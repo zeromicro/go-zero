@@ -89,7 +89,9 @@ func TestRedis_Eval(t *testing.T) {
 func TestRedis_GeoHash(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := client.GeoHash("parent", "child1", "child2")
-		assert.NotNil(t, err)
+		assert.Error(t, err)
+		_, err = New(client.Addr, badType()).GeoHash("parent", "child1", "child2")
+		assert.Error(t, err)
 	})
 }
 
@@ -286,9 +288,13 @@ func TestRedis_HyperLogLog(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
 		r := New(client.Addr)
+		_, err := New(client.Addr, badType()).Pfadd("key1", "val1")
+		assert.Error(t, err)
 		ok, err := r.Pfadd("key1", "val1")
 		assert.Nil(t, err)
 		assert.True(t, ok)
+		_, err = New(client.Addr, badType()).Pfcount("key1")
+		assert.Error(t, err)
 		val, err := r.Pfcount("key1")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), val)
@@ -298,6 +304,8 @@ func TestRedis_HyperLogLog(t *testing.T) {
 		val, err = r.Pfcount("key2")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), val)
+		err = New(client.Addr, badType()).Pfmerge("key3", "key1", "key2")
+		assert.Error(t, err)
 		err = r.Pfmerge("key1", "key2")
 		assert.Nil(t, err)
 		val, err = r.Pfcount("key1")
@@ -363,6 +371,8 @@ func TestRedis_List(t *testing.T) {
 		vals, err = client.Lrange("key", 0, 10)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
+		err = New(client.Addr, badType()).Ltrim("key", 0, 1)
+		assert.Error(t, err)
 		err = client.Ltrim("key", 0, 1)
 		assert.Nil(t, err)
 		vals, err = client.Lrange("key", 0, 10)
@@ -1016,6 +1026,8 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 		val, err := client.ZscoreByFloat("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, 10.345, val)
+		_, err = New(client.Addr, badType()).ZscoreByFloat("key", "value1")
+		assert.Error(t, err)
 		_, _ = client.ZaddFloat("key", 10.346, "value2")
 		_, err = New(client.Addr, badType()).ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.NotNil(t, err)
@@ -1032,18 +1044,23 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 			},
 		}, pairs)
 
+		_, err = New(client.Addr, badType()).ZrangeWithScoresByFloat("key", 0, -1)
+		assert.Error(t, err)
+
 		pairs, err = client.ZrangeWithScoresByFloat("key", 0, -1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []FloatPair{
-			{
-				Key:   "value1",
-				Score: 10.345,
-			},
-			{
-				Key:   "value2",
-				Score: 10.346,
-			},
-		}, pairs)
+		if assert.NoError(t, err) {
+			assert.EqualValues(t, []FloatPair{
+				{
+					Key:   "value1",
+					Score: 10.345,
+				},
+				{
+					Key:   "value2",
+					Score: 10.346,
+				},
+			}, pairs)
+		}
+
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloat("key", 0, 20)
 		assert.NotNil(t, err)
 		pairs, err = client.ZrangebyscoreWithScoresByFloat("key", 0, 20)
@@ -1058,6 +1075,8 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.346,
 			},
 		}, pairs)
+		_, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 10.1, 12.2, 1, 0)
+		assert.NoError(t, err)
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloatAndLimit(
 			"key", 10.1, 12.2, 1, 1)
 		assert.NotNil(t, err)
@@ -1083,6 +1102,8 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.345,
 			},
 		}, pairs)
+		_, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 10, 12, 1, 0)
+		assert.NoError(t, err)
 		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloatAndLimit(
 			"key", 10, 12, 1, 1)
 		assert.NotNil(t, err)
@@ -1094,17 +1115,21 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.345,
 			},
 		}, pairs)
-
 	})
 }
+
 func TestRedis_IncrbyFloat(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		incrVal, err := client.IncrbyFloat("key", 0.002)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.002, incrVal)
+		_, err = New(client.Addr, badType()).IncrbyFloat("key", -0.001)
+		assert.Error(t, err)
 		incrVal2, err := client.IncrbyFloat("key", -0.001)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.001, incrVal2)
+		_, err = New(client.Addr, badType()).HincrbyFloat("hkey", "i", 0.002)
+		assert.Error(t, err)
 		hincrVal, err := client.HincrbyFloat("hkey", "i", 0.002)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.002, hincrVal)
@@ -1113,6 +1138,7 @@ func TestRedis_IncrbyFloat(t *testing.T) {
 		assert.Equal(t, 0.001, hincrVal2)
 	})
 }
+
 func TestRedis_Pipelined(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.NotNil(t, New(client.Addr, badType()).Pipelined(func(pipeliner Pipeliner) error {
@@ -1166,6 +1192,8 @@ func TestRedisEvalSha(t *testing.T) {
 		client.Ping()
 		scriptHash, err := client.ScriptLoad(`return redis.call("EXISTS", KEYS[1])`)
 		assert.Nil(t, err)
+		_, err = New(client.Addr, badType()).EvalSha(scriptHash, []string{"key1"})
+		assert.Error(t, err)
 		result, err := client.EvalSha(scriptHash, []string{"key1"})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), result)
@@ -1184,6 +1212,29 @@ func TestRedisToPairs(t *testing.T) {
 		},
 	})
 	assert.EqualValues(t, []Pair{
+		{
+			Key:   "1",
+			Score: 1,
+		},
+		{
+			Key:   "2",
+			Score: 2,
+		},
+	}, pairs)
+}
+
+func TestRedisToFloatPairs(t *testing.T) {
+	pairs := toFloatPairs([]red.Z{
+		{
+			Member: 1,
+			Score:  1,
+		},
+		{
+			Member: 2,
+			Score:  2,
+		},
+	})
+	assert.EqualValues(t, []FloatPair{
 		{
 			Key:   "1",
 			Score: 1,
@@ -1266,29 +1317,46 @@ func TestRedisBlpopWithTimeout(t *testing.T) {
 func TestRedisGeo(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		client.Ping()
-		geoLocation := []*GeoLocation{{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"}, {Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"}}
+		geoLocation := []*GeoLocation{{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"},
+			{Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"}}
 		v, err := client.GeoAdd("sicily", geoLocation...)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), v)
+		_, err = New(client.Addr, badType()).GeoDist("sicily", "Palermo", "Catania", "m")
+		assert.Error(t, err)
 		v2, err := client.GeoDist("sicily", "Palermo", "Catania", "m")
 		assert.Nil(t, err)
 		assert.Equal(t, 166274, int(v2))
 		// GeoHash not support
+		_, err = New(client.Addr, badType()).GeoPos("sicily", "Palermo", "Catania")
+		assert.Error(t, err)
 		v3, err := client.GeoPos("sicily", "Palermo", "Catania")
 		assert.Nil(t, err)
 		assert.Equal(t, int64(v3[0].Longitude), int64(13))
 		assert.Equal(t, int64(v3[0].Latitude), int64(38))
 		assert.Equal(t, int64(v3[1].Longitude), int64(15))
 		assert.Equal(t, int64(v3[1].Latitude), int64(37))
-		v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
+		_, err = New(client.Addr, badType()).GeoRadius("sicily", 15, 37,
+			&red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
+		assert.Error(t, err)
+		v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
+			WithDist: true,
+			Unit:     "km", Radius: 200,
+		})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(v4[0].Dist), int64(190))
 		assert.Equal(t, int64(v4[1].Dist), int64(56))
 		geoLocation2 := []*GeoLocation{{Longitude: 13.583333, Latitude: 37.316667, Name: "Agrigento"}}
+		_, err = New(client.Addr, badType()).GeoAdd("sicily", geoLocation2...)
+		assert.Error(t, err)
 		v5, err := client.GeoAdd("sicily", geoLocation2...)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), v5)
-		v6, err := client.GeoRadiusByMember("sicily", "Agrigento", &red.GeoRadiusQuery{Unit: "km", Radius: 100})
+		_, err = New(client.Addr, badType()).GeoRadiusByMember("sicily", "Agrigento",
+			&red.GeoRadiusQuery{Unit: "km", Radius: 100})
+		assert.Error(t, err)
+		v6, err := client.GeoRadiusByMember("sicily", "Agrigento",
+			&red.GeoRadiusQuery{Unit: "km", Radius: 100})
 		assert.Nil(t, err)
 		assert.Equal(t, v6[0].Name, "Agrigento")
 		assert.Equal(t, v6[1].Name, "Palermo")
