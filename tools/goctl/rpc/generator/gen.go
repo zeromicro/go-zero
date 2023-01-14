@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
@@ -11,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 type ZRpcContext struct {
@@ -191,9 +193,11 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 			}
 		}
 
-		_, err = execx.Run("make gen-rpc", abs)
-		if err != nil {
-			return err
+		if runtime.GOOS == vars.OsLinux {
+			_, err = execx.Run("make gen-rpc", abs)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/template"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const regularPerm = 0o666
@@ -128,9 +130,11 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 		return err
 	}
 
-	_, err = execx.Run("make gen-api", workDir)
-	if err != nil {
-		return err
+	if runtime.GOOS == vars.OsLinux {
+		_, err = execx.Run("make gen-api", workDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
