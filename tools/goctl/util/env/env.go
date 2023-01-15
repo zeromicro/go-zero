@@ -17,6 +17,7 @@ const (
 	binProtoc          = "protoc"
 	binProtocGenGo     = "protoc-gen-go"
 	binProtocGenGrpcGo = "protoc-gen-go-grpc"
+	binSwagger         = "swagger"
 	cstOffset          = 60 * 60 * 8 // 8 hours offset for Chinese Standard Time
 )
 
@@ -61,6 +62,14 @@ func LookUpProtocGenGoGrpc() (string, error) {
 	suffix := getExeSuffix()
 	xProtocGenGoGrpc := binProtocGenGrpcGo + suffix
 	return LookPath(xProtocGenGoGrpc)
+}
+
+// LookUpSwagger searches an executable go-swagger in the directories
+// named by the PATH environment variable.
+func LookUpSwagger() (string, error) {
+	suffix := getExeSuffix()
+	xSwagger := binSwagger + suffix
+	return LookPath(xSwagger)
 }
 
 // LookPath searches for an executable named file in the

@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/goswagger"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protoc"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengo"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/protocgengogrpc"
@@ -34,6 +36,11 @@ var bins = []bin{
 		name:   "protoc-gen-go-grpc",
 		exists: protocgengogrpc.Exists(),
 		get:    protocgengogrpc.Install,
+	},
+	{
+		name:   "go-swagger",
+		exists: goswagger.Exists(),
+		get:    goswagger.Install,
 	},
 }
 
