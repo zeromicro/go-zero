@@ -1129,65 +1129,105 @@ func TestRedis_SortedSet(t *testing.T) {
 		runOnRedisWithError(t, func(client *Redis) {
 			_, err := client.ZaddFloat("key", 1, "value")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zadds("key")
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zadds("key")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zcard("key")
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zcard("key")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zcount("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zcount("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zincrby("key", 1, "value")
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zincrby("key", 1, "value")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zscore("key", "value")
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zscore("key", "value")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zrem("key", "value")
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zrem("key", "value")
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zremrangebyscore("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zremrangebyscore("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.Zremrangebyrank("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zremrangebyrank("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangeWithScores("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangeWithScores("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangeWithScoresByFloat("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangeWithScoresByFloat("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZRevRangeWithScores("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZRevRangeWithScores("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZRevRangeWithScoresByFloat("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZRevRangeWithScoresByFloat("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangebyscoreWithScores("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScores("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangebyscoreWithScoresByFloat("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresByFloat("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrevrangebyscoreWithScores("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScores("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrevrangebyscoreWithScoresByFloat("key", 1, 2)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresByFloat("key", 1, 2)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
 			assert.Error(t, err)
+		})
 
-			_, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
 			assert.Error(t, err)
 		})
 	})
