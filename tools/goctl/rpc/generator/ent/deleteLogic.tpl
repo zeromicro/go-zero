@@ -5,7 +5,7 @@ import (
 
     "{{.projectPath}}/ent"
     "{{.projectPath}}/internal/svc"
-    "{{.projectPath}}/{{.serviceName}}"
+    "{{.projectPath}}/{{.projectName}}"
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
@@ -28,7 +28,7 @@ func NewDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.serviceName}}.{{if .useUUID}}UU{{end}}IDReq) (*{{.serviceName}}.BaseResp, error) {
+func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.projectName}}.{{if .useUUID}}UU{{end}}IDReq) (*{{.projectName}}.BaseResp, error) {
 	err := l.svcCtx.DB.{{.modelName}}.DeleteOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id){{if .useUUID}}){{end}}.Exec(l.ctx)
 
 	if err != nil {
@@ -42,5 +42,5 @@ func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.serviceName}}.{{
 		}
 	}
 
-	return &{{.serviceName}}.BaseResp{Msg: i18n.DeleteSuccess}, nil
+	return &{{.projectName}}.BaseResp{Msg: i18n.DeleteSuccess}, nil
 }

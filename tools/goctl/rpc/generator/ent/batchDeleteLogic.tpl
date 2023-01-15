@@ -6,7 +6,7 @@ import (
     "{{.projectPath}}/ent"
     "{{.projectPath}}/ent/{{.modelNameLowerCase}}"
     "{{.projectPath}}/internal/svc"
-    "{{.projectPath}}/{{.serviceName}}"
+    "{{.projectPath}}/{{.projectName}}"
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
     "github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
@@ -29,7 +29,7 @@ func NewBatchDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceC
 	}
 }
 
-func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.serviceName}}.{{if .useUUID}}UU{{end}}IDsReq) (*{{.serviceName}}.BaseResp, error) {
+func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.projectName}}.{{if .useUUID}}UU{{end}}IDsReq) (*{{.projectName}}.BaseResp, error) {
 	_, err := l.svcCtx.DB.{{.modelName}}.Delete().Where({{.modelNameLowerCase}}.IDIn({{if .useUUID}}uuidx.ParseUUIDSlice({{end}}in.Ids{{if .useUUID}}){{end}}...)).Exec(l.ctx)
 
 	if err != nil {
@@ -43,5 +43,5 @@ func (l *BatchDelete{{.modelName}}Logic) BatchDelete{{.modelName}}(in *{{.servic
 		}
 	}
 
-	return &{{.serviceName}}.BaseResp{Msg: i18n.DeleteSuccess}, nil
+	return &{{.projectName}}.BaseResp{Msg: i18n.DeleteSuccess}, nil
 }

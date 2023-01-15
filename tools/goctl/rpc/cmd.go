@@ -128,6 +128,7 @@ func init() {
 	entCmd.Flags().StringVar(&cli.VarStringSchema, "schema", "", "The schema path of the Ent")
 	entCmd.Flags().StringVar(&cli.VarStringOutput, "o", "", "The output path")
 	entCmd.Flags().StringVar(&cli.VarStringServiceName, "service_name", "", "The service name")
+	entCmd.Flags().StringVar(&cli.VarStringProjectName, "project_name", "", "The project name")
 	entCmd.Flags().BoolVar(&cli.VarBoolMultiple, "multiple", false, "Generated in multiple rpc service mode")
 	entCmd.Flags().StringVar(&cli.VarStringStyle, "style", "go_zero", "The file name format style")
 	entCmd.Flags().StringVar(&cli.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
