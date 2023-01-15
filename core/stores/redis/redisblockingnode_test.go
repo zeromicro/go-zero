@@ -16,6 +16,10 @@ func TestBlockingNode(t *testing.T) {
 		node, err := CreateBlockingNode(New(r.Addr()))
 		assert.NoError(t, err)
 		node.Close()
+		// close again to make sure it's safe
+		assert.NotPanics(t, func() {
+			node.Close()
+		})
 	})
 
 	t.Run("test blocking node with cluster", func(t *testing.T) {
@@ -26,6 +30,9 @@ func TestBlockingNode(t *testing.T) {
 		node, err := CreateBlockingNode(New(r.Addr(), Cluster()))
 		assert.NoError(t, err)
 		node.Close()
+		assert.NotPanics(t, func() {
+			node.Close()
+		})
 	})
 
 	t.Run("test blocking node with bad type", func(t *testing.T) {
