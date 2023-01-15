@@ -6,7 +6,7 @@ import (
 
 	"{{.projectPath}}/ent"
 	"{{.projectPath}}/internal/svc"
-    "{{.projectPath}}/{{.serviceName}}"
+    "{{.projectPath}}/{{.projectName}}"
 
     "github.com/suyuan32/simple-admin-core/pkg/i18n"
 	"github.com/suyuan32/simple-admin-core/pkg/msg/logmsg"
@@ -29,7 +29,7 @@ func NewCreateOrUpdate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.Servi
 	}
 }
 
-func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.serviceName}}.{{.modelName}}Info) (*{{.serviceName}}.BaseResp, error) {
+func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.projectName}}.{{.modelName}}Info) (*{{.projectName}}.BaseResp, error) {
     if in.Id == {{if .useUUID}}""{{else}}0{{end}} {
         err := l.svcCtx.DB.{{.modelName}}.Create().
 {{.setLogic}}
@@ -45,7 +45,7 @@ func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.
             }
         }
 
-        return &{{.serviceName}}.BaseResp{Msg: i18n.CreateSuccess}, nil
+        return &{{.projectName}}.BaseResp{Msg: i18n.CreateSuccess}, nil
     } else {
         err := l.svcCtx.DB.{{.modelName}}.UpdateOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id){{if .useUUID}}){{end}}.
 {{.setLogic}}
@@ -64,6 +64,6 @@ func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(in *{{.
             }
         }
 
-        return &{{.serviceName}}.BaseResp{Msg: i18n.UpdateSuccess}, nil
+        return &{{.projectName}}.BaseResp{Msg: i18n.UpdateSuccess}, nil
     }
 }

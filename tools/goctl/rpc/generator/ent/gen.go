@@ -3,7 +3,6 @@ package ent
 import (
 	"bytes"
 	_ "embed"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -14,6 +13,7 @@ import (
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/entc/load"
+	"github.com/iancoleman/strcase"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -21,6 +21,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/protox"
 )
 
 const regularPerm = 0o666
@@ -34,6 +35,7 @@ type GenEntLogicContext struct {
 	Schema       string
 	Output       string
 	ServiceName  string
+	ProjectName  string
 	Style        string
 	ModelName    string
 	Multiple     bool
@@ -45,22 +47,26 @@ type GenEntLogicContext struct {
 
 // GenEntLogic generates the ent CRUD logic files of the rpc service.
 func GenEntLogic(g *GenEntLogicContext) error {
-	if !g.Multiple {
-		return genEntLogicInCompatibility(g)
-	}
-
-	return errors.New("does not support multiple")
-	// Todo: in the future may add this function
-	// return GenEntLogicGroup(ctx, proto, cfg)
+	return genEntLogic(g)
 }
 
-func genEntLogicInCompatibility(g *GenEntLogicContext) error {
+func genEntLogic(g *GenEntLogicContext) error {
 	outputDir, err := filepath.Abs(g.Output)
 	if err != nil {
 		return err
 	}
 
-	logicDir := path.Join(outputDir, "internal/logic")
+	var logicDir string
+
+	if g.Multiple {
+		logicDir = path.Join(outputDir, "internal/logic", g.ServiceName)
+		err = pathx.MkdirIfNotExist(logicDir)
+		if err != nil {
+			return err
+		}
+	} else {
+		logicDir = path.Join(outputDir, "internal/logic")
+	}
 
 	schemas, err := entc.LoadGraph(g.Schema, &gen.Config{})
 	if err != nil {
@@ -116,7 +122,7 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 				return err
 			}
 
-			protoFileName := filepath.Join(outputDir, g.ServiceName+".proto")
+			protoFileName := filepath.Join(outputDir, g.ProjectName+".proto")
 			if !pathx.FileExists(protoFileName) {
 				continue
 			}
@@ -134,16 +140,17 @@ func genEntLogicInCompatibility(g *GenEntLogicContext) error {
 
 			// generate new proto file
 			newProtoData := strings.Builder{}
-			serviceIndex := strings.Index(protoDataString, "service")
-			if serviceIndex == -1 {
+			serviceBeginIndex, serviceEndIndex := protox.FindBeginEndOfService(protoDataString, strcase.ToCamel(g.ServiceName))
+			if serviceBeginIndex == -1 {
 				continue
 			}
-			newProtoData.WriteString(protoDataString[:serviceIndex])
+			newProtoData.WriteString(protoDataString[:serviceBeginIndex-2])
 			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", g.ModelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n", protoMessage))
-			newProtoData.WriteString(protoDataString[serviceIndex : len(protoDataString)-2])
-			newProtoData.WriteString(fmt.Sprintf("\n  // %s management\n", g.ModelName))
-			newProtoData.WriteString(fmt.Sprintf("%s\n}", protoFunctions))
+			newProtoData.WriteString(protoDataString[serviceBeginIndex-2 : serviceEndIndex-2])
+			newProtoData.WriteString(fmt.Sprintf("\n\n  // %s management\n", g.ModelName))
+			newProtoData.WriteString(fmt.Sprintf("%s\n", protoFunctions))
+			newProtoData.WriteString(protoDataString[serviceEndIndex-2:])
 
 			err = os.WriteFile(protoFileName, []byte(newProtoData.String()), regularPerm)
 			if err != nil {
@@ -217,7 +224,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"hasUUID":     hasUUID,
 		"setLogic":    setLogic.String(),
 		"modelName":   schema.Name,
-		"serviceName": g.ServiceName,
+		"projectName": g.ProjectName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
@@ -294,7 +301,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
 		"listData":           listData.String(),
-		"serviceName":        g.ServiceName,
+		"projectName":        g.ProjectName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
@@ -310,7 +317,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	deleteLogicTmpl, err := template.New("delete").Parse(deleteLogicTpl)
 	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":   schema.Name,
-		"serviceName": g.ServiceName,
+		"projectName": g.ProjectName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID,
@@ -325,7 +332,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	batchDeleteLogicTmpl, err := template.New("batchDelete").Parse(batchDeleteLogicTpl)
 	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
 		"modelName":          schema.Name,
-		"serviceName":        g.ServiceName,
+		"projectName":        g.ProjectName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
@@ -425,59 +432,3 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 
 	return protoMessage.String(), protoRpcFunction.String(), nil
 }
-
-// Todo: in the future
-//func GenEntLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.Config) error {
-//	dir := ctx.GetLogic()
-//	for _, item := range proto.Service {
-//		serviceName := item.Name
-//		for _, rpc := range item.RPC {
-//			var (
-//				err           error
-//				filename      string
-//				logicName     string
-//				logicFilename string
-//				packageName   string
-//			)
-//
-//			logicName = fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel())
-//			childPkg, err := dir.GetChildPackage(serviceName)
-//			if err != nil {
-//				return err
-//			}
-//
-//			serviceDir := filepath.Base(childPkg)
-//			nameJoin := fmt.Sprintf("%s_logic", serviceName)
-//			packageName = strings.ToLower(stringx.From(nameJoin).ToCamel())
-//			logicFilename, err = format.FileNamingFormat(cfg.NamingFormat, rpc.Name+"_logic")
-//			if err != nil {
-//				return err
-//			}
-//
-//			filename = filepath.Join(dir.Filename, serviceDir, logicFilename+".go")
-//			functions, err := g.genLogicFunction(serviceName, proto.PbPackage, logicName, rpc)
-//			if err != nil {
-//				return err
-//			}
-//
-//			imports := collection.NewSet()
-//			imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetSvc().Package))
-//			imports.AddStr(fmt.Sprintf(`"%v"`, ctx.GetPb().Package))
-//			text, err := pathx.LoadTemplate(category, logicTemplateFileFile, logicTemplate)
-//			if err != nil {
-//				return err
-//			}
-//
-//			if err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]any{
-//				"logicName":   logicName,
-//				"functions":   functions,
-//				"packageName": packageName,
-//				"imports":     strings.Join(imports.KeysStr(), pathx.NL),
-//			}, filename, false); err != nil {
-//				return err
-//			}
-//		}
-//	}
-//	return nil
-//}
-//

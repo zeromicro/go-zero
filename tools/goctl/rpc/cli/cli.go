@@ -50,6 +50,8 @@ var (
 	VarStringSchema string
 	// VarStringServiceName describes the service name
 	VarStringServiceName string
+	// VarStringProjectName describes the service name
+	VarStringProjectName string
 	// VarStringModelName describes which model for generating
 	VarStringModelName string
 	// VarIntSearchKeyNum describes the number of search keys
@@ -167,6 +169,7 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		Schema:       VarStringSchema,
 		Output:       VarStringOutput,
 		ServiceName:  VarStringServiceName,
+		ProjectName:  VarStringProjectName,
 		Style:        VarStringStyle,
 		ModelName:    VarStringModelName,
 		Multiple:     VarBoolMultiple,
@@ -174,6 +177,11 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		ModuleName:   VarStringModuleName,
 		GroupName:    VarStringGroupName,
 	}
+
+	if params.ProjectName == "" {
+		params.ProjectName = params.ServiceName
+	}
+
 	err := ent.GenEntLogic(params)
 	if err != nil {
 		return err

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	Name = "go-swagger"
+	Name = "swagger"
 	url  = "github.com/go-swagger/go-swagger/cmd/swagger@latest"
 )
 
