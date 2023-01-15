@@ -1897,15 +1897,15 @@ func (s *Redis) Zadd(key string, score int64, value string) (bool, error) {
 	return s.ZaddCtx(context.Background(), key, score, value)
 }
 
-// ZaddFloat is the implementation of redis zadd command.
-func (s *Redis) ZaddFloat(key string, score float64, value string) (bool, error) {
-	return s.ZaddFloatCtx(context.Background(), key, score, value)
-}
-
 // ZaddCtx is the implementation of redis zadd command.
 func (s *Redis) ZaddCtx(ctx context.Context, key string, score int64, value string) (
 	val bool, err error) {
 	return s.ZaddFloatCtx(ctx, key, float64(score), value)
+}
+
+// ZaddFloat is the implementation of redis zadd command.
+func (s *Redis) ZaddFloat(key string, score float64, value string) (bool, error) {
+	return s.ZaddFloatCtx(context.Background(), key, score, value)
 }
 
 // ZaddFloatCtx is the implementation of redis zadd command.
