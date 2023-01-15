@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/hash"
@@ -109,51 +110,85 @@ func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val interface{}, ke
 }
 
 func TestCache_SetDel(t *testing.T) {
-	const total = 1000
-	r1, clean1, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean1()
-	r2, clean2, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean2()
-	conf := ClusterConf{
-		{
-			RedisConf: redis.RedisConf{
-				Host: r1.Addr,
-				Type: redis.NodeType,
+	t.Run("test set del", func(t *testing.T) {
+		const total = 1000
+		r1, clean1, err := redistest.CreateRedis()
+		assert.Nil(t, err)
+		defer clean1()
+		r2, clean2, err := redistest.CreateRedis()
+		assert.Nil(t, err)
+		defer clean2()
+		conf := ClusterConf{
+			{
+				RedisConf: redis.RedisConf{
+					Host: r1.Addr,
+					Type: redis.NodeType,
+				},
+				Weight: 100,
 			},
-			Weight: 100,
-		},
-		{
-			RedisConf: redis.RedisConf{
-				Host: r2.Addr,
-				Type: redis.NodeType,
+			{
+				RedisConf: redis.RedisConf{
+					Host: r2.Addr,
+					Type: redis.NodeType,
+				},
+				Weight: 100,
 			},
-			Weight: 100,
-		},
-	}
-	c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
-	for i := 0; i < total; i++ {
-		if i%2 == 0 {
-			assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
-		} else {
-			assert.Nil(t, c.SetWithExpire(fmt.Sprintf("key/%d", i), i, 0))
 		}
-	}
-	for i := 0; i < total; i++ {
-		var val int
-		assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &val))
-		assert.Equal(t, i, val)
-	}
-	assert.Nil(t, c.Del())
-	for i := 0; i < total; i++ {
-		assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
-	}
-	for i := 0; i < total; i++ {
-		var val int
-		assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &val)))
-		assert.Equal(t, 0, val)
-	}
+		c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
+		for i := 0; i < total; i++ {
+			if i%2 == 0 {
+				assert.Nil(t, c.Set(fmt.Sprintf("key/%d", i), i))
+			} else {
+				assert.Nil(t, c.SetWithExpire(fmt.Sprintf("key/%d", i), i, 0))
+			}
+		}
+		for i := 0; i < total; i++ {
+			var val int
+			assert.Nil(t, c.Get(fmt.Sprintf("key/%d", i), &val))
+			assert.Equal(t, i, val)
+		}
+		assert.Nil(t, c.Del())
+		for i := 0; i < total; i++ {
+			assert.Nil(t, c.Del(fmt.Sprintf("key/%d", i)))
+		}
+		assert.Nil(t, c.Del("a", "b", "c"))
+		for i := 0; i < total; i++ {
+			var val int
+			assert.True(t, c.IsNotFound(c.Get(fmt.Sprintf("key/%d", i), &val)))
+			assert.Equal(t, 0, val)
+		}
+	})
+
+	t.Run("test set del error", func(t *testing.T) {
+		r1, err := miniredis.Run()
+		assert.NoError(t, err)
+		defer r1.Close()
+		r1.SetError("mock error")
+
+		r2, err := miniredis.Run()
+		assert.NoError(t, err)
+		defer r2.Close()
+		r2.SetError("mock error")
+
+		conf := ClusterConf{
+			{
+				RedisConf: redis.RedisConf{
+					Host: r1.Addr(),
+					Type: redis.NodeType,
+				},
+				Weight: 100,
+			},
+			{
+				RedisConf: redis.RedisConf{
+					Host: r2.Addr(),
+					Type: redis.NodeType,
+				},
+				Weight: 100,
+			},
+		}
+		c := New(conf, syncx.NewSingleFlight(), NewStat("mock"), errPlaceholder)
+		assert.NoError(t, c.Del("a", "b", "c"))
+	})
 }
 
 func TestCache_OneNode(t *testing.T) {
