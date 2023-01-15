@@ -62,6 +62,7 @@ func TestCacheNode_DelCache(t *testing.T) {
 			time.Millisecond, timingWheelSlots, func(key, value interface{}) {
 				clean(key, value)
 			}, ticker)
+		assert.NoError(t, err)
 		t.Cleanup(func() {
 			timingWheel = old
 		})
