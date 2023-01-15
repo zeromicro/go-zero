@@ -36,8 +36,7 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
-// FormatSql expand slice or array arguments
-func FormatSql(query string, args ...interface{}) (string, []interface{}) {
+func expandSliceOrArrayArgs(query string, args ...interface{}) (string, []interface{}) {
 	var n0, n1, j int
 	for _, arg := range args {
 		switch av := reflect.ValueOf(arg); av.Kind() {
@@ -99,7 +98,7 @@ func FormatSql(query string, args ...interface{}) (string, []interface{}) {
 }
 
 func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
-	q, args = FormatSql(q, args...)
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("exec")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -112,7 +111,7 @@ func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) 
 }
 
 func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
-	q, args = FormatSql(q, args...)
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("execStmt")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -126,7 +125,7 @@ func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{})
 
 func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) error {
-	q, args = FormatSql(q, args...)
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("query")
 	if err := guard.start(q, args...); err != nil {
 		return err
@@ -144,7 +143,7 @@ func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 
 func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) error {
-	q, args = FormatSql(q, args...)
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("queryStmt")
 	if err := guard.start(q, args...); err != nil {
 		return err
