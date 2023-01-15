@@ -1,0 +1,505 @@
+info(
+	title: 阳光作业
+	desc: 阳光作业相关api
+	author: anqiansong
+	email: anqiansong@xiaoheiban.cn
+)
+
+type TemplateListRequest {
+	Type            int    `json:"type,optional,options=0|1|2"` // 模板类型，0-全部，1-推荐模板，2-我的模板
+	Subject         string `json:"subject,optional"`            // 适用学科
+	ApplicableGrade string `json:"applicableGrade,optional"`    // 适用年级
+	TemplateType    int64  `json:"templateType,optional"`       // 模版类型 1-书面作业 2-建议完成
+}
+
+type TemplateListResponse {
+	Total int64       `json:"total"` // 模板总数
+	List  []*Template `json:"list"`  // 模板列表
+}
+
+type Template {
+	Id              int64    `json:"id"`                        // 学科名称
+	Subject         string   `json:"subject"`                   // 学科名称
+	ApplicableGrade string   `json:"applicableGrade"`           // 适用年级
+	Title           string   `json:"title"`                     // 模板名称
+	Description     string   `json:"description"`               // 模板描述
+	Audio           *Audio   `json:"audio,optional,omitempty"`  // 语音
+	Video           *Video   `json:"video,optional,omitempty"`  // 视频
+	Link            string   `json:"link,optional"`             // 链接
+	Images          []*Image `json:"images,optional,omitempty"` // 图片列表
+	UseCount        int64    `json:"useCount"`                  // 是否推荐给其他老师
+	Creator         *User    `json:"creator"`                   // 创建者
+	CreateTime      int64    `json:"createTime"`                // 创建时间
+	Recommend       bool     `json:"recommend"`                 // 是否为推荐模板
+	SuggestTime     int64    `json:"suggestTime,optional"`      // 建议时长，非必填
+	TemplateType    int64    `json:"templateType"`              // 模版类型 1为书面作业，2为建议完成
+}
+
+type Student {
+	Id     int64  `json:"id"`     // 学生id
+	Name   string `json:"name"`   // 学生姓名
+	Avatar string `json:"avatar"` // 学生头像
+}
+
+type TemplateDetailRequest {
+	Id int64 `path:"id"` // 模板id
+}
+
+type TaskPublishRequest {
+	Id              int64           `json:"id,optional"`              // 作业ID，当id不为空时为编辑作业，否则为新布置作业
+	Receivers       []*ReceiverItem `json:"receivers"`                // 接收人列表
+	Subject         string          `json:"subject"`                  // 适用学科
+	ApplicableGrade string          `json:"applicableGrade,optional"` // 适用年级
+	Title           string          `json:"title"`                    // 作业标题
+	Description     string          `json:"description"`              // 作业描述
+	Audio           *Audio          `json:"audio,optional"`           // 语音
+	Video           *Video          `json:"video,optional"`           // 视频
+	Link            string          `json:"link,optional"`            // 链接
+	Images          []*Image        `json:"images,optional"`          // 图片列表
+	Recommend       bool            `json:"recommend,optional"`       // 是否推荐给其他老师
+	AsTemplate      bool            `json:"asTemplate"`               // 是否保存为我的模板
+	EndTime         int64           `json:"endTime"`                  // 结束时间
+	TemplateId      int64           `json:"templateId,optional"`      // 模板id，非必填
+	TemplateType    int64           `json:"templateType"`             // 模版类型 1为书面作业，2为建议完成
+	SuggestTime     int64           `json:"suggestTime,optional"`     // 建议完成时长
+}
+
+type TemplateRequest {
+	Subject         string   `json:"subject"`              // 适用学科
+	ApplicableGrade string   `json:"applicableGrade"`      // 适用年级
+	Title           string   `json:"title"`                // 模板名称
+	Description     string   `json:"description"`          // 模板描述
+	Audio           *Audio   `json:"audio,optional"`       // 语音
+	Video           *Video   `json:"video,optional"`       // 视频
+	Link            string   `json:"link,optional"`        // 链接
+	Images          []*Image `json:"images,optional"`      // 图片列表
+	Recommend       bool     `json:"recommend"`            // 是否推荐给其他人
+	TemplateType    int64    `json:"templateType"`         // 模版类型 1为书面作业，2为建议完成
+	SuggestTime     int64    `json:"suggestTime,optional"` // 建议完成时长 单位为秒
+}
+
+type Image {
+	Original  string `json:"original,omitempty,optional"`  // 原始图片地址
+	Preview   string `json:"preview,omitempty,optional"`   // 预览图地址
+	Thumbnail string `json:"thumbnail,omitempty,optional"` // 缩略图地址
+	Size      int    `json:"size,omitempty,optional"`      // 图片文件大小
+	Height    int    `json:"height,omitempty,optional"`    // 图片高
+	Width     int    `json:"width,omitempty,optional"`     // 图片宽
+}
+
+type Audio {
+	Url           string `json:"url,omitempty,optional"`           // 语音地址
+	Duration      int    `json:"duration,omitempty,optional"`      // 语音时长
+	FileExtension string `json:"fileExtension,omitempty,optional"` // 语音文件名后缀
+	Size          int    `json:"size,omitempty,optional"`          // 语音文件大小
+	Name          string `json:"name,omitempty,optional"`          // 语音名称
+}
+
+type Video {
+	Title        string `json:"title,omitempty,optional"`
+	Desc         string `json:"desc,omitempty,optional"`
+	CoverUrl     string `json:"coverUrl,omitempty,optional"`
+	PlayUrl      string `json:"playUrl,omitempty,optional"`
+	PlayTime     int    `json:"playTime,omitempty,optional"`
+	MagicContext string `json:"magicContext,omitempty,optional"`
+	Type         string `json:"type,omitempty,optional"`
+	Height       int    `json:"height,omitempty,optional"`
+	Width        int    `json:"width,omitempty,optional"`
+}
+
+type ReceiverResponse {
+	List []*ReceiverResponseItem `json:"list"` // 接收人员列表
+}
+
+type ReceiverResponseItem {
+	ClassId    int64      `json:"classId"`
+	ClassName  string     `json:"className"`
+	ClassBadge string     `json:"classBadge"`
+	Students   []*Student `json:"students"`
+}
+
+type ReceiverItem {
+	ClassId    int64   `json:"classId"`    // 班级id
+	StudentIds []int64 `json:"studentIds"` // 学生id数组
+}
+
+type TaskListRequest {
+	Page         int    `json:"page,default=1"`      // 页码
+	PageSize     int    `json:"pageSize,default=10"` // 每页数据数量
+	ClassId      int64  `json:"classId,optional"`    // 班级id
+	Subject      string `json:"subject,optional"`    // 学科
+	HomeworkType int64  `json:"homeworkType"`        // 作业类型 1为书面作业 2为建议完成
+}
+
+type TaskListResponse {
+	Total int64   `json:"total"` // 作业总数
+	List  []*Task `json:"list"`  // 作业列表
+}
+
+type Task {
+	Id            int64  `json:"id"`                   // 作业id
+	Subject       string `json:"subject"`              // 学科
+	Title         string `json:"title"`                // 作业标题
+	Description   string `json:"description"`          // 作业描述
+	CreateTime    int64  `json:"createTime"`           // 创建时间时间戳，单位：秒
+	Creator       string `json:"creator"`              // 创建人
+	ReadCount     int64  `json:"readCount"`            // 阅读人数
+	CompleteCount int64  `json:"completeCount"`        // 提交人数
+	Total         int64  `json:"total"`                // 学生接收总人数
+	TemplateType  int64  `json:"templateType"`         // 模版类型 1为书面作业，2为建议完成
+	SuggestTime   int64  `json:"suggestTime,optional"` // 建议完成时长,单位为秒
+}
+
+type TaskRecallRequest {
+	Id int64 `path:"id"` // 作业id
+}
+
+type TaskDetailRequest {
+	Id int64 `path:"id"` // 作业id
+}
+
+type StudentTaskDetailResponse {
+	Subject           string             `json:"subject"`                     // 适用学科
+	ApplicableGrade   string             `json:"applicableGrade"`             // 适用年级
+	Title             string             `json:"title"`                       // 作业标题
+	Description       string             `json:"description"`                 // 作业描述
+	Audio             *Audio             `json:"audio,optional,omitempty"`    // 语音文件
+	Video             *Video             `json:"video,optional,omitempty"`    // 视频
+	Link              string             `json:"link,optional"`               // 链接
+	Images            []*Image           `json:"images,optional,omitempty"`   // 图片列表
+	Creator           *User              `json:"creator"`                     // 创建人
+	EndTime           int64              `json:"endTime"`                     // 结束时间时间戳，单位：秒
+	Upload            *StudentTaskUpload `json:"upload,omitempty"`            // 上传的作业
+	StudentTaskUpload *StudentTaskUpload `json:"studentTaskUpload,omitempty"` // 上传的作业
+	CreateTime        int64              `json:"createTime"`                  // 创建时间
+	State             int                `json:"state"`                       // 作业状态，0：未完成，1：已完成，2已结束
+	SuggestTime       int64              `json:"suggestTime,optional"`        // 建议时长，非必填
+	TemplateType      int64              `json:"templateType"`                // 模版类型 1为书面作业，2为建议完成
+	IsUpload          int64              `json:"isUpload"`                    // 上传按钮是否可见 1为可见 2为不可见
+}
+
+type User {
+	Name      string `json:"name"`                // 姓名
+	Avatar    string `json:"avatar"`              // 头像
+	ClassName string `json:"className,omitempty"` // 年级班级名称
+	Mobile    string `json:"mobile,omitempty"`    // 人员手机号
+}
+
+type TaskRemarkRequest {
+	StudentTaskId int64  `json:"studentTaskId"`                  // 学生任务ID
+	Remark        string `json:"remark"`                         // 备注
+	RemarkAudio   *Audio `json:"remarkAudio,optional,omitempty"` // 评论语音
+}
+
+type TaskDingRequest {
+	Id         int64   `json:"id"`  // 作业id
+	Sms        bool    `json:"sms"` // 是否短信提醒
+	StudentIds []int64 `json:"studentIds"`
+}
+
+type TaskDingResponse {
+	Success bool `json:"success"` // 提醒成功与否
+}
+
+type StudentTaskListRequest {
+	Page      int   `json:"page,default=1"`      // 页码，非必填，默认1
+	PageSize  int   `json:"pageSize,default=10"` // 每页数据数量
+	StudentId int64 `path:"studentId"`           // 学生id
+}
+
+type StudentTaskListResponse {
+	Total int64              `json:"total"` // 总数
+	List  []*StudentTaskItem `json:"list"`  // 学生作业列表
+}
+
+type StudentTaskItem {
+	Id           int64  `json:"id"`                   // 作业id
+	Subject      string `json:"subject"`              // 适用学科
+	Title        string `json:"title"`                // 标题
+	Description  string `json:"description"`          // 描述
+	CreateTime   int64  `json:"createTime"`           // 创建时间时间戳，单位：秒
+	Creator      string `json:"creator"`              // 创建人
+	State        int    `json:"state"`                // 作业状态，0：未完成，1：已完成，2已结束
+	SuggestTime  int64  `json:"suggestTime,optional"` // 建议时长，非必填
+	TemplateType int64  `json:"templateType"`         // 模版类型 1为书面作业，2为建议完成
+}
+
+type StudentTaskDetailRequest {
+	Id int64 `json:"id"` // 孩子作业id
+}
+
+type TaskDetailResponse {
+	Subject         string          `json:"subject"`         // 适用学科
+	ApplicableGrade string          `json:"applicableGrade"` // 适用年级
+	Title           string          `json:"title"`           // 标题
+	Description     string          `json:"description"`     // 描述
+	Audio           *Audio          `json:"audio,omitempty"` // 语音文件
+	Video           *Video          `json:"video,omitempty"` // 视频
+	Link            string          `json:"link,omitempty"`
+	Images          []*Image        `json:"images,omitempty"`         // 图片列表
+	Creator         *User           `json:"creator"`                  // 创建人
+	EndTime         int64           `json:"endTime"`                  // 结束时间
+	CompleteList    []*CompleteList `json:"completeList,omitempty"`   // 已提交人员列表
+	UnCompleteList  []*CompleteList `json:"unCompleteList,omitempty"` // 未提交人员列表
+	CreateTime      int64           `json:"createTime"`               // 学生上传作业内容
+	SuggestTime     int64           `json:"suggestTime,optional"`     // 建议时长，非必填
+	TemplateType    int64           `json:"templateType"`             // 模版类型 1为书面作业，2为建议完成
+}
+
+type StudentTaskUpload {
+	Time        int64    `json:"time"`                           // 完成耗时，单位：秒
+	Description string   `json:"description"`                    // 描述
+	Title       string   `json:"title,optional,omitempty"`       // 作业标题
+	Audio       *Audio   `json:"audio,optional,omitempty"`       // 语音文件
+	Video       *Video   `json:"video,optional,omitempty"`       // 视频
+	Link        string   `json:"link,optional"`                  // 链接
+	Images      []*Image `json:"images,optional,omitempty"`      // 图片列表
+	Remark      string   `json:"remark"`                         // 教师备注
+	RemarkAudio *Audio   `json:"remarkAudio,optional,omitempty"` // 教师评论语音文件
+}
+
+type StudentTaskUploadRequest {
+	Id          int64    `json:"id"`              // 作业id
+	Time        int64    `json:"time"`            // 完成时间耗时，单位：秒
+	Description string   `json:"description"`     // 描述
+	Audio       *Audio   `json:"audio,optional"`  // 语音文件
+	Video       *Video   `json:"video,optional"`  // 视频
+	Link        string   `json:"link,optional"`   // 链接
+	Images      []*Image `json:"images,optional"` // 图片列表
+}
+
+type SubjectResponse {
+	List []string `json:"list"` // 适用学科列表
+}
+
+type ApplicableGradeResponse {
+	List []string `json:"list"` // 适用年级列表
+}
+
+type CompleteList {
+	ClassName string          `json:"className"`
+	List      []*CompleteUser `json:"list"`
+}
+
+type CompleteUser {
+	Name          string          `json:"name"`          // 姓名
+	Avatar        string          `json:"avatar"`        // 头像
+	StudentTaskId int             `json:"studentTaskId"` // 作业学生绑定信息ID
+	StudentId     int64           `json:"studentId"`     // 学生ID
+	ParentMobile  []*ParentMobile `json:"parentMobile"`  // 手机号
+	UploadTime    int64           `json:"uploadTime"`    // 作业上传时间 单位为秒
+	IsRead        bool            `json:"isRead"`        // 是否已读
+}
+
+type ParentMobile {
+	Name   string `json:"name"`   // 家长称谓 比如 xxx爸爸
+	Mobile string `json:"mobile"` // 家长手机号
+}
+
+type StudentTaskCompleteDetailRequest {
+	StudentTaskId int `path:"studentTaskId"` // 学生作业任务 ID
+}
+
+type StudentTaskCompleteDetailResponse {
+	StudentTaskId     int                `json:"studentTaskId"`     // 学生作业任务 ID
+	Creator           *User              `json:"creator"`           // 上传人
+	StudentTaskUpload *StudentTaskUpload `json:"studentTaskUpload"` // 学生作业上传的内容
+}
+
+type SchoolResponse {
+	List []SchoolItem `json:"list"`
+}
+
+type SchoolItem {
+	Name     string `json:"name"`
+	CampusId int64  `json:"campusId"`
+}
+
+type ClassResponse {
+	List []GradeItem `json:"list"`
+}
+
+type GradeItem {
+	CampusGradeId   int64       `json:"campusGradeId"`
+	CampusGradeName string      `json:"campusGradeName"`
+	Classes         []ClassItem `json:"classes"`
+}
+
+type ClassItem {
+	CampusGradeId   int64  `json:"campusGradeId"`
+	CampusGradeName string `json:"campusGradeName"`
+	ClassId         int64  `json:"classId"`
+	ClassName       string `json:"className"`
+}
+
+type DefaultSubjectRequest {
+	ClassIds []int64 `json:"classIds"` // 班级ID列表
+}
+
+type DefaultSubjectResponse {
+	DefaultSubject string `json:"defaultSubject"` // 默认学科
+}
+
+type UserIdentityResponse {
+	EntryFlag int32 `json:"entryFlag"` // 0-无入口权限，1-教师身份，2-家长身份
+}
+
+@server(
+	host:0.0.0
+	port: 8080
+)
+service studenttask-api {
+	@doc(
+		summary: 新建模板
+	)
+	@server(
+		handler: TemplateHandler
+	)
+	post /studenttask/template/new(TemplateRequest)
+	
+	@doc(
+		summary: 模板列表
+	)
+	@server(
+		handler: TemplateListHandler
+	)
+	post /studenttask/template/list(TemplateListRequest) returns(TemplateListResponse)
+	
+	@doc(
+		summary: 模板详情
+	)
+	@server(
+		handler: TemplateDetailHandler
+	)
+	get /studenttask/template/:id(TemplateDetailRequest) returns(Template)
+	
+	@doc(
+		summary: 学生接收人员列表
+	)
+	@server(
+		handler: ReceiverHandler
+	)
+	get /studenttask/receiver/list() returns(ReceiverResponse)
+	
+	@doc(
+		summary: 使用学科列表
+	)
+	@server(
+		handler: SubjectListHandler
+	)
+	get /studenttask/subject/list() returns(SubjectResponse)
+	
+	@doc(
+		summary: 使用年级列表
+	)
+	@server(
+		handler: ApplicableGradeListHandler
+	)
+	get /studenttask/applicable/grade/list() returns(ApplicableGradeResponse)
+	
+	@doc(
+		summary: 布置作业
+	)
+	@server(
+		handler: TaskPublishHandler
+	)
+	post /studenttask/task/publish(TaskPublishRequest)
+	
+	@doc(
+		summary: 已布置的作业列表
+	)
+	@server(
+		handler: TaskListHandler
+	)
+	post /studenttask/task/list(TaskListRequest) returns(TaskListResponse)
+	
+	@doc(
+		summary: 撤回已布置的作业
+	)
+	@server(
+		handler: TaskRecallHandler
+	)
+	post /studenttask/task/recall/:id(TaskRecallRequest)
+	
+	@doc(
+		summary: 教师布置作业详情
+	)
+	@server(
+		handler: TaskDetailHandler
+	)
+	get /studenttask/task/detail/:id(TaskDetailRequest) returns(TaskDetailResponse)
+	
+	@doc(
+		summary: 教师对学生作业进行备注
+	)
+	@server(
+		handler: TaskRemarkHandler
+	)
+	post /studenttask/task/remark(TaskRemarkRequest)
+	
+	@doc(
+		summary: 对未提交人员进行晓叮当提醒
+	)
+	@server(
+		handler: TaskDingHandler
+	)
+	post /studenttask/task/ding(TaskDingRequest)
+	
+	@doc(
+		summary: 学生作业列表
+	)
+	@server(
+		handler: StudentTaskListHandler
+	)
+	post /studenttask/student/task/list/:studentId(StudentTaskListRequest) returns(StudentTaskListResponse)
+	
+	@doc(
+		summary: 学生作业详情
+	)
+	@server(
+		handler: StudentTaskDetailHandler
+	)
+	post /studenttask/student/task/detail(StudentTaskDetailRequest) returns(StudentTaskDetailResponse)
+	
+	@doc(
+		summary: 上传作业
+	)
+	@server(
+		handler: StudentTaskUploadHandler
+	)
+	post /studenttask/student/task/upload(StudentTaskUploadRequest)
+	
+	@doc(
+		summary: 教师端学生作业详情
+	)
+	@server(
+		handler: StudentTaskCompleteDetailHandler
+	)
+	get /studenttask/task/student-task-complete-detail/:studentTaskId(StudentTaskCompleteDetailRequest) returns(StudentTaskCompleteDetailResponse)
+	
+	@server(
+		handler:StudentTaskSchoolsHandler
+	)
+	get /studenttask/teacher/schools() returns(SchoolResponse)
+	
+	@server(
+		handler:ClassesHandler
+	)
+	get /studenttask/class/list() returns(ClassResponse)
+	
+	@doc(
+		summary: 获取默认学科
+	)
+	@server(
+		handler:DefaultSubjectHandler
+	)
+	post /studenttask/subject/default(DefaultSubjectRequest) returns(DefaultSubjectResponse)
+	
+	@doc(
+		summary: 获取用户在本模块内的角色信息，用于快捷方式身份判断
+	)
+	@server(
+		handler:UserIdentityHandler
+	)
+	get /studenttask/user-identity() returns(UserIdentityResponse)
+}

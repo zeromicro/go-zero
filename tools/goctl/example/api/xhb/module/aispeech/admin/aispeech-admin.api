@@ -1,0 +1,56 @@
+info(
+	title: aispeech-admin
+	desc: "goctl api go -api aispeech-admin.api -dir ./
+	这是aispeech-admin的API文档"
+	author: liuql
+)
+
+type CreateWordRequest {
+	Word string `json:"word"`
+	Type int64  `json:"type,range=[1:2]"` // 1-语文或数学；2-英语
+}
+
+type DelWordRequest {
+	Id string `path:"id"`
+}
+
+type WordListRequest {
+	Type int64 `form:"type,optional,range=[0:2]"` // 0-全部；1-语文或数学；2-英语
+}
+
+type WordInfo {
+	Id         string `json:"id,omitempty"`
+	Word       string `json:"word,omitempty"`
+	Type       int64  `json:"type,omitempty"` // 语言类型：1-语文或数学；2-英语
+	CreateTime int64  `json:"createTime,omitempty"`
+}
+
+type WordListResponse {
+	DataMap map[int64][]WordInfo `json:"dataMap"`
+}
+
+service aispeech {
+	@doc(
+		summary: 创建无效词
+	)
+	@server(
+		handler: CreateInvalidWord
+	)
+	post /aispeech/word/create (CreateWordRequest) returns
+	
+	@doc(
+		summary: 删除无效词
+	)
+	@server(
+		handler: DelInvalidWord
+	)
+	delete /aispeech/word/:id (DelWordRequest) returns
+	
+	@doc(
+		summary: 无效词列表
+	)
+	@server(
+		handler: InvalidWordList
+	)
+	get /aispeech/word (WordListRequest) returns (WordListResponse)
+}

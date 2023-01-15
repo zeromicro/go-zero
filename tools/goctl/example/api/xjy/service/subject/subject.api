@@ -1,0 +1,90 @@
+info(
+	title: 学科管理
+	desc: 学科管理api
+	author: 徐辰超
+	email: xuchenchao@xiaoheiban.cn
+)
+
+//所有学科
+
+type DytAllSubjectResponse {
+	List []*DytSubjectInfo `json:"list"`
+}
+
+type DytSubjectListRequest {
+	SubjectName string `json:"subjectName,optional"`         //学科名称
+	NowPage     int    `json:"nowPage,optional,default=1"`   //当前页
+	PageSize    int    `json:"pageSize,optional,default=10"` //页面展示数
+}
+
+type DytSubjectListResponse {
+	List      []*DytSubjectInfo `json:"list"`
+	TotalPage int               `json:"totalPage"`
+	Count     int               `json:"count"`
+	NowPage   int               `json:"nowPage"`
+}
+
+type DytSubjectInfo {
+	CampusSubjectId int64  `json:"campusSubjectId"`
+	CampusId        int64  `json:"campusId"`
+	SubjectName     string `json:"subjectName"`
+	Status          string `json:"status,omitempty"`
+	CreateTime      int64  `json:"createTime,omitempty"`
+	UpdateTime      int64  `json:"updateTime,omitempty"`
+	TeacherCount    int64  `json:"teacherCount,omitempty"`
+}
+
+type DytActSubjectRequest {
+	SubjectId   int64  `json:"subjectId,optional"` //科目id
+	SubjectName string `json:"subjectName"`        //学科名称
+	Status      int64  `json:"status,optional"`    //学科状态
+}
+
+type DytActSubjectResponse {
+	Successful bool `json:"successful"`
+}
+
+type DytDelSubjectRequest {
+	SubjectId int64 `path:"subjectId"` //科目id
+}
+
+type DytSubjectListsResponse {
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8081
+)
+service subject {
+	@doc(
+		summary: 所有学科
+	)
+	@server(
+		handler: AllSubjectHandler
+	)
+	get /subject/dyt/all-subject() returns(DytAllSubjectResponse)
+	
+	@doc(
+		summary: 学科列表
+	)
+	@server(
+		handler: DytSubjectListHandler
+	)
+	post /subject/dyt/subject-list(DytSubjectListRequest) returns(DytSubjectListsResponse)
+	
+	@doc(
+		summary: 新增或编辑学科
+	)
+	@server(
+		handler: DytActSubjectHandler
+	)
+	post /subject/dyt/act-subject(DytActSubjectRequest) returns(DytActSubjectResponse)
+	
+	@doc(
+		summary: 删除学科
+	)
+	@server(
+		handler: DytDelSubjectHandler
+	)
+	delete /subject/dyt/del-subject/:subjectId(DytDelSubjectRequest) returns(DytActSubjectResponse)
+}

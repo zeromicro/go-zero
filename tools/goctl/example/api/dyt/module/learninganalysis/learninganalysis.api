@@ -1,0 +1,943 @@
+info(
+	title: 学情分析API文档
+	version: 1.0
+)
+
+type DirectExamGradeInfoRequest {
+	ExamId    int64 `json:"examId"`    // 考试任务ID
+	ClassId   int64 `json:"classId"`   // 班级ID 0为所有班级
+	SubjectId int64 `json:"subjectId"` // 科目ID 0为所有科目 learningAnalysisSubjectId
+}
+
+type DirectExamGradeInfoResponse {
+	List          []*ExamGradeItem `json:"list"`          // 直接上传作业列表
+	ExamName      string           `json:"examName"`      // 考试任务名
+	CreateTime    int64            `json:"createTime"`    // 创建时间
+	Subject       []string         `json:"subject"`       // 学科
+	ClassName     []string         `json:"className"`     //可上传名称
+	KnowledgeList []*KnowledgeItem `json:"knowledgeList"` // 学生知识点列表
+	AttitudeList  []*AttitudeItem  `json:"attitudeList"`  // 学生学习态度或习惯列表
+}
+
+type DirectExamGradeEntryRequest {
+	ExamId        int64            `json:"examId"`        // 考试任务ID
+	ClassId       int64            `json:"classId"`       // 班级ID
+	SubjectId     int64            `json:"subjectId"`     // 科目ID learningAnalysisSubjectId
+	List          []*ExamGradeItem `json:"list"`          // 直接上传作业列表
+	KnowledgeList []*KnowledgeItem `json:"knowledgeList"` // 学生知识点列表
+	AttitudeList  []*AttitudeItem  `json:"attitudeList"`  // 学生学习态度或习惯列表
+}
+
+type ExamGradeItem {
+	StudentCode   string           `json:"studentCode"`
+	DataStudentId string           `json:"dataStudentId"` // 学生ID
+	StudentName   string           `json:"studentName"`   // 学生姓名
+	GradeClass    string           `json:"gradeClass"`    // 学生班级
+	KnowledgeList []*KnowledgeItem `json:"knowledgeList"` // 学生知识点列表
+	TotalScore    float64          `json:"totalScore"`    // 总分
+	AttitudeList  []*AttitudeItem  `json:"attitudeList"`  // 学生学习态度或习惯列表
+	Remark        string           `json:"remark"`        // 评语
+}
+
+type KnowledgeItem {
+	PointId       int64   `json:"pointId"`
+	ScoreId       int64   `json:"scoreId"`
+	KnowledgeName string  `json:"knowledgeName"` // 知识点名
+	MaxScore      int64   `json:"maxScore"`      // 分数上限
+	Score         float64 `json:"score"`         // 分数
+	OrderIndex    int64   `json:"order_index"`
+}
+
+type AttitudeItem {
+	PointId    int64   `json:"pointId"`
+	ScoreId    int64   `json:"scoreId"`
+	Name       string  `json:"name"`     // 学生学习态度或习惯名字
+	MaxScore   int64   `json:"maxScore"` // 分数上限
+	Score      float64 `json:"score"`    // 分数
+	OrderIndex int64   `json:"order_index"`
+}
+
+type NoticeTeacherRequest {
+	ExamId int64 `json:"examId"` // 考试任务ID
+}
+
+type StaticExamGradeInfoRequest {
+	ExamId    int64 `form:"examId"`    // 考试任务ID
+	SubjectId int64 `form:"subjectId"` // 学科ID,0为所有学科
+	ClassId   int64 `form:"classId"`   // 班级ID,0为所有班级
+	CampusId  int64 `form:"campusId"`  // 学校ID
+}
+
+type ExamGradeInfoRequest {
+	ExamId    int64 `json:"examId"`    // 考试任务ID
+	SubjectId int64 `json:"subjectId"` // 学科ID,0为所有学科
+	ClassId   int64 `json:"classId"`   // 班级ID,0为所有班级
+}
+
+type ExamGradeInfoResponse {
+	Create            int64                    `json:"create"`            // 创建与否 1为已经上传过 2为没有上传
+	ReportName        string                   `json:"reportName"`        // 报告名称
+	Status            int64                    `json:"status"`            // 发送与否 1为已经发送 2为没有发送
+	Subject           []string                 `json:"subject"`           // 学科
+	ClassName         []string                 `json:"className"`         //可上传名称
+	CreateTime        int64                    `json:"createTime"`        // 创建时间
+	StudentNum        int64                    `json:"studentNum"`        // 总人数
+	MaxScore          float64                  `json:"maxScore"`          // 最高分
+	MinScore          float64                  `json:"minScore"`          // 最低分
+	AverageScore      float64                  `json:"averageScore"`      // 平均分
+	ExcellentRate     float64                  `json:"excellentRate"`     // 第一档之上率
+	PassRate          float64                  `json:"passRate"`          // 最后一档之上率
+	TopFive           []*StudentGradeItem      `json:"topFive"`           // 前五名学生
+	LastFive          []*StudentGradeItem      `json:"lastFive"`          // 后五名学生
+	TotalScore        float64                  `json:"totalScore"`        // 总分
+	ScoreDistribution []*ScoreDistributionItem `json:"scoreDistribution"` // 成绩分布
+	ClassScoreList    []*ClassScoreItem        `json:"classScoreList"`    // 各班成绩
+	IsManager         int64                    `json:"isManager"`         // 是否为管理员 1为是管理员 2为不是管理员
+}
+
+type StudentGradeItem {
+	DataStudentId string  `json:"dataStudentId"` // 学生 ID
+	StudentName   string  `json:"studentName"`   // 学生姓名
+	Score         float64 `json:"score"`         // 学生成绩
+	ClassId       int64   `json:"classId"`       // 班级ID
+}
+
+type ScoreDistributionItem {
+	GradeName string  `json:"gradeName"` // 等地名
+	Count     int64   `json:"count"`     // 人数
+	Rate      float64 `json:"rate"`      // 比例
+}
+
+type ClassScoreItem {
+	AverageScore float64 `json:"averageScore"` // 平均分
+	MaxScore     float64 `json:"maxScore"`     // 最高分
+	MinScore     float64 `json:"minScore"`     // 最低分
+	FirstSigma   float64 `json:"firstSigma"`   // 上四位
+	MidSigma     float64 `json:"midSigma"`     // 中四位
+	LastSigma    float64 `json:"lastSigma"`    // 下四位
+	Upper        float64 `json:"upper"`
+	Lower        float64 `json:"lower"`
+	ClassName    string  `json:"className"` // 班级名
+	ClassId      int64   `json:"classId"`   // 班级ID
+	ClassNum     int64   `json:"classNum"`  // 排序用classNum
+}
+
+type StudentGradeListRequest {
+	ClassId int64 `json:"classId"` // 班级ID
+	ExamId  int64 `json:"examId"`  // 考试任务ID
+}
+
+type StudentGradeListResponse {
+	ExamGradeStudentList []*ExamGradeStudentListItem `json:"examGradeStudentList"` // 学生成绩列表
+	ReportName           string                      `json:"reportName"`           // 报告名称
+	Status               int64                       `json:"status"`               // 发送与否 1为已经发送 0为没有发送
+	CreateTime           int64                       `json:"createTime"`           // 创建时间
+	Subject              []SubjectItem               `json:"subject"`              // 学科
+	SubjectName          []string                    `json:"subjectName"`          // 学科名
+	ClassName            []string                    `json:"className"`            // 可上传名称
+}
+
+type ExamGradeStudentListItem {
+	Code          string              `json:"code"`
+	DataStudentId string              `json:"dataStudentId"` // 学生ID
+	StudentName   string              `json:"studentName"`   // 学生姓名
+	TotalScore    float64             `json:"totalScore"`    // 总分
+	Score         []*StudentScoreItem `json:"score"`         // 学生成绩
+}
+
+type StudentScoreItem {
+	SubjectName string  `json:"subjectName"` // 学科名
+	Score       float64 `json:"score"`       // 成绩
+}
+
+type ScoreItem {
+	KnowledgeList []*KnowledgeItem `json:"knowledgeList"`
+	AttitudeList  []*AttitudeItem  `json:"attitudeList"`
+}
+
+type ExamInfoListPdfRequest {
+	UrlList []*Url `json:"urlList"`
+	ExamId  int64  `json:"examId"`  // 考试任务ID
+	ClassId int64  `json:"classId"` // 班级ID
+}
+
+type ExamInfoPdfRequest {
+	Url    string `json:"url"`    // h5页面url
+	ExamId int64  `json:"examId"` // 考试ID
+}
+
+type Url {
+	WebUrl        string `json:"webUrl"`        // h5页面url
+	DataStudentId string `json:"dataStudentId"` // url中的学生ID
+}
+
+type PdfResponse {
+	DownUrl string `json:"downUrl"` // 下载文件oss地址
+}
+
+type GetExamNameListRequest {
+}
+
+type GetExamGradeNameListRequest {
+	ExamId int64 `form:"examId"` // 考试id
+}
+
+type GetExamGradeNameListResponse {
+	List []*GradeInfo `json:"list"`
+}
+
+type GradeInfo {
+	GradeId   int64  `json:"gradeId"`   // 年级id
+	GradeName string `json:"gradeName"` // 年级名称
+}
+
+type GetExamNameListResponse {
+	List []*ExamInfo `json:"list"` // 考试名称列表
+}
+
+type ExamInfo {
+	ExamId int64  `json:"examId"` // 考试id
+	Name   string `json:"name"`   // 考试名称
+}
+
+type GetExamSubjectRequest {
+	ExamId int64 `form:"examId"` // 考试id
+}
+
+type GetExamSubjectResponse {
+	List []*ExamSubject `json:"list"`
+}
+
+type ExamSubject {
+	SubjectName string `json:"subjectName"` // 学科名称
+	SubjectId   int64  `json:"subjectId"`   // 学科Id
+}
+
+type ExamSubjectPoint {
+	Name      string  `json:"name"`      // 名称
+	FullScore float64 `json:"fullScore"` // 知识点、学习态度与习惯满分
+}
+
+type ExamTaskSubject {
+	Id             int64              `json:"id"`                      // 学科id
+	SubjectPoints  []ExamSubjectPoint `json:"subjectPoints,optional"`  // 知识点,subjectPoints与attitudeHabits二者必填其一
+	AttitudeHabits []ExamSubjectPoint `json:"attitudeHabits,optional"` // 学习态度与习惯,subjectPoints与attitudeHabits二者必填其一
+}
+
+type GradeScore {
+	Name  string  `json:"name"`
+	Score float64 `json:"score"`
+}
+
+type GradeRanking {
+	Name  string `json:"name"`
+	Value int    `json:"value"`
+}
+
+type TaskTeacherItem {
+	TeacherId int64 `json:"teacherId"` //
+	ClassId   int64 `json:"classId"`   //
+	SubjectId int64 `json:"subjectId"` //
+}
+
+type ExamTaskNewRequest {
+	Name         string             `json:"name"`
+	Type         int                `json:"type"`                  // 考试类型，1-阶段考试，2-测验
+	ShowType     int                `json:"showType"`              // 显示类型，1-等第，2-分数
+	GradeType    int                `json:"gradeType"`             // 等第类型，1-分数，2-排名
+	GradeScore   []*GradeScore      `json:"gradeScore,optional"`   // 分数等第线
+	GradeRanking []*GradeRanking    `json:"gradeRanking,optional"` // 排名等第线
+	Subjects     []ExamTaskSubject  `json:"subjects"`              // 考试科目
+	Teachers     []*TaskTeacherItem `json:"teachers"`              // 任课教师列表
+}
+
+type ExamTaskNewResponse {
+	TaskId     int64 `json:"taskId"`     //
+	CreateTime int64 `json:"createTime"` //
+}
+
+type GradeResponse {
+	List []GradeScore `json:"list"`
+}
+
+type SubjectTeacher {
+	Id          int64  `json:"id"`          // 教师id
+	Name        string `json:"name"`        // 教师名称
+	SubjectId   int64  `json:"subjectId"`   // 学科id
+	SubjectName string `json:"subjectName"` // 学科名称
+}
+
+type GradeListRequest {
+	SubjectIds []int64 `json:"subjectIds"` //
+}
+
+type ClassItem {
+	Id       int64             `json:"id"`       // 班级id
+	Name     string            `json:"name"`     // 班级名称
+	Count    int64             `json:"count"`    // 学生人数
+	Subjects []*SubjectTeacher `json:"subjects"` //
+}
+
+type GradeListItem {
+	Name      string       `json:"name"`      // 年级名称
+	ClassList []*ClassItem `json:"classList"` // 班级列表
+}
+
+type GradeListResponse {
+	List []*GradeListItem `json:"list"` // 年级列表
+}
+
+type ExamTaskListRequest {
+	Page    int    `json:"page,optional"`    // 页码，非必填，默认1
+	Size    int    `json:"size,optional"`    // 每页返回数量，非必填，默认10
+	Keyword string `json:"keyword,optional"` //
+}
+
+type ExamTaskItem {
+	Id           int64    `json:"id"`           // 考试任务id
+	Name         string   `json:"name"`         // 考试任务名称
+	ClassNames   []string `json:"classNames"`   // 班级名称列表
+	SubjectNames []string `json:"subjectNames"` // 学科列表
+	CreateTime   int64    `json:"createTime"`   // 创建时间时间戳，单位：秒
+	State        int      `json:"state"`        // 发送状态，0-未发送，1-已发送
+	Upload       bool     `json:"upload"`       //
+	IsCreator    bool     `json:"isCreator"`    //
+}
+
+type ExamTaskListResponse {
+	Total int             `json:"total"` // 总数
+	List  []*ExamTaskItem `json:"list"`  // 考试列表
+}
+
+type ExamTaskDeleteRequest {
+	TaskId int64 `path:"taskId"` // 考试任务id
+}
+
+type ExamTaskSendRequest {
+	TaskId int64 `path:"taskId"` // 考试任务id
+}
+
+type ExamTaskSendResponseItem {
+	SubjectName string   `json:"subjectName"` //
+	ClassNames  []string `json:"classNames"`  //
+}
+
+type ExamTaskSendResponse {
+	List []*ExamTaskSendResponseItem `json:"list"` //
+}
+
+type ScoreTemplateDownloadRequest {
+	CampusId int64 `form:"campusId"`
+	TaskId   int64 `path:"taskId"` // 考试任务id
+}
+
+type GetCampusSettingsRequest {
+	CampusId int64 `form:"campusId"`
+}
+
+type GetCampusSettingsResponse {
+	TotalDashboard   bool     `json:"totalDashboard"`   // 仪表盘开关，0-关闭，1-开启
+	LearningAttitude bool     `json:"learningAttitude"` // 学习态度与习惯开关，0-关闭，1-开启
+	GradeList        []string `json:"gradeList"`        // 等第名称设置列表
+}
+
+type SaveCampusSettingsRequest {
+	TotalDashboard   bool     `json:"totalDashboard"`   // 仪表盘开关，0-关闭，1-开启
+	LearningAttitude bool     `json:"learningAttitude"` // 学习态度与习惯开关，0-关闭，1-开启
+	GradeList        []string `json:"gradeList"`        // 等第名称设置列表
+}
+
+type ExamClassSubjectListRequest {
+	LearningAnalysisExamId int64 `path:"learningAnalysisExamId"` // 考试 ID
+}
+
+type ExamClassSubjectListResponse {
+	ClassList []*ExamClassItem `json:"classList"` // 考试覆盖的班级列表
+}
+
+type ExamClassItem {
+	CampusGradeId int64               `json:"campusGradeId"` //
+	ClassId       int64               `json:"classId"`       // 班级 ID
+	ClassName     string              `json:"className"`     // 班级名称
+	ClassNum      int64               `json:"classNum"`      // 排序用classNum
+	SubjectList   []*ClassSubjectItem `json:"subjectList"`   // 学科列表
+}
+
+type ClassSubjectItem {
+	SubjectId     int64  `json:"subjectId"`     // 学科ID
+	SubjectName   string `json:"subjectName"`   // 学科名
+	ExamSubjectId int64  `json:"examSubjectId"` // 考试学科ID
+}
+
+type StudentSearchListRequest {
+	Name     string `form:"name,optional"`                // 学生名称
+	ClassId  int64  `form:"classId,optional"`             // 班级 ID
+	GradeId  int64  `form:"gradeId,optional"`             // 年级 ID
+	Page     int64  `form:"page,optional,default=1"`      // 当前第几页
+	PageSize int64  `form:"pageSize,optional,default=12"` // 页面大小
+}
+
+type StudentSearchListResponse {
+	Total       int64                       `json:"total"`       // 总过有多少学生
+	StudentList []*StudentPersonalGradeItem `json:"studentList"` // 学生列表
+}
+
+type StudentPersonalGradeItem {
+	StudentCode   string `json:"studentCode"`
+	DataStudentId string `json:"dataStudentId"` // 学生 ID
+	ClassId       int64  `json:"classId"`
+	Name          string `json:"name"`      // 名字
+	ClassName     string `json:"className"` // 班级名
+}
+
+type StudentExamTrendRequest {
+	StartTime     int64  `form:"startTime"`     // 筛选开始时间
+	EndTime       int64  `form:"endTime"`       // 筛选结束时间
+	Type          int    `form:"type"`          // 考试类型，1-阶段考试,2-测验,0-全部考试
+	DataStudentId string `form:"dataStudentId"` // 学生ID
+	ClassId       int64  `form:"classId"`       // 班级ID
+}
+
+type StudentExamTrendResponse {
+	StudentExamList []*StudentExamItem `json:"studentExamList"` // 学生成绩趋势数据列表
+}
+
+type StudentExamItem {
+	ExamId      int64   `json:"examId"`      // 考试 ID
+	Name        string  `json:"name"`        // 考试名称
+	ReleaseTime int64   `json:"releaseTime"` // 考试发布时间
+	TotalScore  float64 `json:"totalScore"`  // 学生总分数
+	AvgScore    float64 `json:"avgScore"`    // 年级平均分
+	MissExam    int64   `json:"missExam"`    // 是否缺考
+	Grade       string  `json:"grade"`       // 等第
+	ShowType    int     `json:"showType"`    // // 显示类型，1-等第，2-分数
+}
+
+type StudentExamListRequest {
+	Type          int    `form:"type"`          // 考试类型，1-阶段考试,2-测验,0-全部考试
+	DataStudentId string `form:"dataStudentId"` // 学生ID
+	ClassId       int64  `form:"classId"`
+}
+
+type StudentExamListResponse {
+	StudentExamList []*StudentExamItem `json:"studentExamList"` // 学生成绩趋势数据列表
+}
+
+type StudentExamGradeDetailsRequest {
+	DataStudentId string `form:"dataStudentId"` // 学生 ID
+	ExamId        int64  `form:"examId"`        // 考试 ID
+	ClassId       int64  `form:"classId"`
+}
+
+type StaticStudentExamGradeDetailsRequest {
+	CampusId      int64  `form:"campusId"`      // 校区 ID
+	DataStudentId string `form:"dataStudentId"` // 学生 ID
+	ExamId        int64  `form:"examId"`        // 考试 ID
+	ClassId       int64  `form:"classId"`
+}
+
+type StudentExamGradeDetailsResponse {
+	StudentName  string             `json:"studentName"`           // 学生名称
+	ExamName     string             `json:"examName"`              // 考试名称
+	Deleted      bool               `json:"deleted,default:false"` // 是否已被删除
+	FullScore    float64            `json:"fullScore"`             // 满分分数
+	TotalScore   float64            `json:"totalScore"`            // 学生总分数
+	CurrentGrade string             `json:"currentGrade"`          // 当前考试等第
+	ClassRanking float64            `json:"classRanking"`          // 班级超过百分比
+	GradeRanking float64            `json:"gradeRanking"`          // 年级超过百分比
+	ShowType     int                `json:"showType"`              // 显示类型，1-等第，2-分数
+	SubjectInfos []*SubjectInfoItem `json:"subjectInfos"`          // 学科详情
+}
+
+type SubjectInfoItem {
+	SubjectId            int64                   `json:"subjectId"`            //
+	SubjectName          string                  `json:"subjectName"`          // 学科名称
+	Remark               string                  `json:"remark"`               // 备注
+	Order                int64                   `json:"order"`                // 顺序
+	KnowledgePointList   []*KnowledgePointItem   `json:"knowledgePointList"`   // 学科知识点
+	LearningAttitudeList []*LearningAttitudeItem `json:"learningAttitudeList"` // 学科学习态度与习惯
+	StudentExamList      []*StudentExamItem      `json:"studentExamList"`      // 学生成绩趋势数据列表
+}
+
+type KnowledgePointItem {
+	OriginalAvgScore float64 `json:"originalAvgScore"` // 原始班级平均分
+	PercentAvgScore  float64 `json:"percentAvgScore"`  // 百分制平均分
+	OriginalScore    float64 `json:"originalScore"`    // 原始得分
+	PercentScore     float64 `json:"percentScore"`     // 百分制得分
+	Order            int64   `json:"order"`            // 顺序
+	Name             string  `json:"name"`             // 知识点名称
+	Grade            string  `json:"grade"`            // 等第
+}
+
+type LearningAttitudeItem {
+	Name             string  `json:"name"`             // 学习态度与习惯名称
+	OriginalAvgScore float64 `json:"originalAvgScore"` // 原始班级平均分
+	PercentAvgScore  float64 `json:"percentAvgScore"`  // 百分制平均分
+	OriginalScore    float64 `json:"originalScore"`    // 原始得分
+	PercentScore     float64 `json:"percentScore"`     // 百分制得分
+	Order            int64   `json:"order"`            // 顺序
+}
+
+type OverviewRequest {
+	ExamId    int64 `json:"examId"`    // 考试id
+	GradeId   int64 `json:"gradeId"`   // 年级id
+	SubjectId int64 `json:"subjectId"` // 学科id
+}
+
+type ExamClassroomRankingListResponse {
+	List []*ExamClassroomRanking `json:"list"`
+}
+
+type ExamClassroomRanking {
+	Sort          int64   `json:"sort"`          // 排名
+	AvgScore      float64 `json:"avgScore"`      // 班级平均分
+	ClassroomName string  `json:"classroomName"` // 班级
+	CompareLast   int64   `json:"compareLast"`   // 较上一次排名
+}
+
+type ExamClassroomAverageListResponse {
+	List []*ExamClassroomAverage `json:"list"`
+}
+
+type ExamClassroomAverage {
+	ClassroomId   int64   `json:"classroomId"`   // 班级id
+	ClassroomName string  `json:"classroomName"` // 班级名称
+	ClassroomNum  int64   `json:"classroomNum"`  // 班级号码
+	AvgScore      float64 `json:"avgScore"`      // 班级平均分
+}
+
+type ExamPointSelectResponse {
+	List []*ExamPoint `json:"list"`
+}
+
+type ExamPoint {
+	PointId   int64  `json:"pointId"`   // 知识点id
+	PointName string `json:"pointName"` // 知识点名称
+}
+
+type AttitudeAndHabitResponse {
+	List []*AttitudeAndHabit `json:"list"`
+}
+
+type AttitudeAndHabit {
+	Name  string  `json:"name"`  // 态度名称
+	Score float64 `json:"score"` // 分数
+}
+
+type ClassroomSubjectPointAvgListResponse {
+	List []*ClassroomSubjectPointAvg `json:"list"`
+}
+
+type ClassroomSubjectPointAvg {
+	ClassroomName string  `json:"classroomName"` // 班级名称
+	ClassroomId   int64   `json:"classroomId"`   // 班级id
+	ClassroomNum  int64   `json:"classroomNum"`  // 班级排名
+	AvgScore      float64 `json:"avgScore"`      // 班级平均分
+}
+
+type ClassroomSubjectPointAvgRequest {
+	ExamId         int64 `json:"examId"`         // 考试id
+	GradeId        int64 `json:"gradeId"`        // 班级id
+	SubjectId      int64 `json:"subjectId"`      // 学科id
+	SubjectPointId int64 `json:"subjectPointId"` // 知识点id
+}
+
+type ExamGlobalInfoResponse {
+	List []*ExamGlobalInfo `json:"list"`
+}
+
+type ExamGlobalInfo {
+	ClassroomId   int64   `json:"classroomId"`   // 班级id
+	ClassroomName string  `json:"classroomName"` // 班级名称
+	PassRate      float64 `json:"passRate"`      // 及格率
+	ExcellentRate float64 `json:"excellentRate"` // 优秀率
+	AvgScore      float64 `json:"avgScore"`      // 平均分
+	MaxScore      float64 `json:"maxScore"`      // 最高分
+	MinScore      float64 `json:"minScore"`      // 最低分
+	RealExamCount int64   `json:"realExamCount"` // 实考人数
+	LackExamCount int64   `json:"lackExamCount"` // 缺考人数
+	FullScore     float64 `json:"fullScore"`     // 缺考人数
+}
+
+type ExamClassroomScoreAnalysisResponse {
+	List []*ExamClassroomScoreAnalysis `json:"list"`
+}
+
+type ExamClassroomScoreAnalysis {
+	ClassroomName string   `json:"classroomName"` // 班级名称
+	Sort          int64    `json:"sort"`          // 排名
+	AvgScore      float64  `json:"avgScore"`      // 平均分
+	BestPoint     []string `json:"bestPoint"`     // 最好的排名
+	WorstPoint    []string `json:"worstPoint"`    // 最坏的排名
+}
+
+type SubjectItem {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type SubjectResponse {
+	List []SubjectItem `json:"list"`
+}
+
+type UploadScoreRequest {
+	TaskId int64 `form:"taskId"` //
+}
+
+type TipRow {
+	Index int    `json:"index"` //
+	Desc  string `json:"desc"`  //
+}
+
+type UploadScoreTip {
+	SheetName string    `json:"sheetName"` //
+	Rows      []*TipRow `json:"rows"`      //
+}
+
+type UploadScoreResponse {
+	List []*UploadScoreTip `json:"list"` //
+}
+
+type LatestExamTaskResponse {
+	ExamName string             `json:"examName"` //
+	ExamType int                `json:"examType"` //
+	ShowType int                `json:"showType"` //
+	Subjects []*ExamTaskSubject `json:"subjects"` //
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+	jwt:Auth
+)
+service learninganalysis-api {
+	@doc(
+		summary: 学生列表生成pdf
+	)
+	@server(
+		handler: ExamInfoListPdfHandler
+	)
+	post /learning-analysis/exam-list/pdf/generate(ExamInfoListPdfRequest) returns(PdfResponse)
+	
+	@doc(
+		summary: 成绩报告生成pdf
+	)
+	@server(
+		handler: ExamInfoPdfHandler
+	)
+	post /learning-analysis/exam-info/pdf/generate(ExamInfoPdfRequest) returns(PdfResponse)
+	
+	@doc(
+		summary: 获取直接录入成绩模版数据
+	)
+	@server(
+		handler: DirectExamGradeInfoHandler
+	)
+	post /learning-analysis/exam-grade-template(DirectExamGradeInfoRequest) returns(DirectExamGradeInfoResponse)
+	
+	@doc(
+		summary: 直接录入成绩
+	)
+	@server(
+		handler: DirectExamGradeEntryHandler
+	)
+	post /learning-analysis/direct-entry(DirectExamGradeEntryRequest)
+	
+	@doc(
+		summary: 通知老师上传成绩
+	)
+	@server(
+		handler: NoticeTeacherHandler
+	)
+	post /learning-analysis/notice(NoticeTeacherRequest)
+	
+	@doc(
+		summary: 学生成绩列表
+	)
+	@server(
+		handler: StudentGradeListHandler
+	)
+	post /learning-analysis/student/grade/list(StudentGradeListRequest) returns(StudentGradeListResponse)
+	
+	@doc(
+		summary: 获取考试列表
+	)
+	@server(
+		handler: ExamInfoListHandler
+	)
+	get /learning-analysis/exam-statistics/exam-list(GetExamNameListRequest) returns(GetExamNameListResponse)
+	
+	@doc(
+		summary: 获取考试年级列表
+	)
+	@server(
+		handler: ExamGradeInfoListHandler
+	)
+	get /learning-analysis/exam-statistics/exam-grade-list(GetExamGradeNameListRequest) returns(GetExamGradeNameListResponse)
+	
+	@doc(
+		summary: 获取学科列表
+	)
+	@server(
+		handler: ExamSubjectListHandler
+	)
+	get /learning-analysis/exam-statistics/exam-subject-list(GetExamSubjectRequest) returns(GetExamSubjectResponse)
+	
+	@doc(
+		summary: 新增考试任务
+	)
+	@server(
+		handler: ExamTaskNewHandler
+	)
+	post /learning-analysis/exam/task/new(ExamTaskNewRequest) returns(ExamTaskNewResponse)
+	
+	@doc(
+		summary: 获取等第列表
+	)
+	@server(
+		handler: GradeHandler
+	)
+	get /learning-analysis/exam/grade/list() returns(GradeResponse)
+	
+	@doc(
+		summary: 获取年级班级列表
+	)
+	@server(
+		handler: GradeListHandler
+	)
+	post /learning-analysis/grade/list(GradeListRequest) returns(GradeListResponse)
+	
+	@doc(
+		summary: 考试成绩列表
+	)
+	@server(
+		handler: ExamTaskListHandler
+	)
+	post /learning-analysis/exam/task/list(ExamTaskListRequest) returns(ExamTaskListResponse)
+	
+	@doc(
+		summary: 发送报告
+	)
+	@server(
+		handler: ExamTaskSendHandler
+	)
+	post /learning-analysis/exam/send/:taskId(ExamTaskSendRequest)
+	
+	@doc(
+		summary: 发送报告申请
+	)
+	@server(
+		handler: ExamTaskSendCheckHandler
+	)
+	post /learning-analysis/exam/send/check/:taskId(ExamTaskSendRequest) returns(ExamTaskSendResponse)
+	
+	@doc(
+		summary: 删除报告
+	)
+	@server(
+		handler: ExamTaskDeleteHandler
+	)
+	post /learning-analysis/exam/delete/:taskId(ExamTaskDeleteRequest)
+	
+	@doc(
+		summary: xlsx上传成绩
+	)
+	@server(
+		handler: ScoreUploadHandler
+	)
+	post /learning-analysis/exam/score/upload(UploadScoreRequest) returns(UploadScoreResponse)
+	
+	@doc(
+		summary: 全校学科列表
+	)
+	@server(
+		handler: SubjectHandler
+	)
+	get /learning-analysis/subject/list() returns(SubjectResponse)
+	
+	@doc(
+		summary: 指定考试指定用户的年级班级及学科列表
+	)
+	@server(
+		handler: ExamClassSubjectListHandler
+	)
+	get /learning-analysis/exam/class-subject-list/:learningAnalysisExamId(ExamClassSubjectListRequest) returns(ExamClassSubjectListResponse)
+	
+	@doc(
+		summary: 搜索学生列表
+	)
+	@server(
+		handler: StudentSearchListHandler
+	)
+	get /learning-analysis/search/students(StudentSearchListRequest) returns(StudentSearchListResponse)
+	
+	@doc(
+		summary: 学生考试成绩趋势列表
+	)
+	@server(
+		handler: StudentExamTrendHandler
+	)
+	get /learning-analysis/exam-trend/student(StudentExamTrendRequest) returns(StudentExamTrendResponse)
+	
+	@doc(
+		summary: 班级排行榜
+	)
+	@server(
+		handler: ClassroomExamRankingListHandler
+	)
+	post /learning-analysis/exam-statistics/classroom-ranking-list(OverviewRequest) returns(ExamClassroomRankingListResponse)
+	
+	@doc(
+		summary: 各班级平均分
+	)
+	@server(
+		handler: ClassroomExamAverageListHandler
+	)
+	post /learning-analysis/exam-statistics/classroom-average-list(OverviewRequest) returns(ExamClassroomAverageListResponse)
+	
+	@doc(
+		summary: 态度与习惯
+	)
+	@server(
+		handler: AttitudeAndHabitHandler
+	)
+	post /learning-analysis/exam-statistics/attitude-habit-list(OverviewRequest) returns(AttitudeAndHabitResponse)
+	
+	@doc(
+		summary: 各班知识点平均分
+	)
+	@server(
+		handler: ClassroomSubjectPointAvgHandler
+	)
+	post /learning-analysis/exam-subject-point-avg(ClassroomSubjectPointAvgRequest) returns(ClassroomSubjectPointAvgListResponse)
+	
+	@doc(
+		summary: 班级成绩分析
+	)
+	@server(
+		handler: ExamClassroomScoreAnalysisHandler
+	)
+	post /learning-analysis/exam-classroom-score-analysis(OverviewRequest) returns(ExamClassroomScoreAnalysisResponse)
+	
+	@doc(
+		summary: 总体数据情况
+	)
+	@server(
+		handler: ExamGlobalInfoHandler
+	)
+	post /learning-analysis/exam-global-info(OverviewRequest) returns(ExamGlobalInfoResponse)
+	
+	@doc(
+		summary: 获取最近一次考试任务
+	)
+	@server(
+		handler: LatestExamTaskHandler
+	)
+	get /learning-analysis/latest/exam/task() returns(LatestExamTaskResponse)
+	
+	@doc(
+		summary: 保存学情分析整校设置
+	)
+	@server(
+		handler: SaveCampusSettingsHandler
+	)
+	post /learning-analysis/campus-settings(SaveCampusSettingsRequest)
+	
+	@doc(
+		summary: 获取学情分析整校设置
+	)
+	@server(
+		handler: GetCampusSettingsHandler
+	)
+	get /learning-analysis/campus-settings() returns(GetCampusSettingsResponse)
+	
+	@doc(
+		summary: 考试报告
+	)
+	@server(
+		handler: ExamGradeInfoHandler
+	)
+	post /learning-analysis/exam-grade-info(ExamGradeInfoRequest) returns(ExamGradeInfoResponse)
+	
+	@doc(
+		summary: 学生考试成绩详情
+	)
+	@server(
+		handler: StudentExamGradeDetailsHandler
+	)
+	get /learning-analysis/exam-details/student(StudentExamGradeDetailsRequest) returns(StudentExamGradeDetailsResponse)
+	
+	@doc(
+		summary: 班级知识点筛选
+	)
+	@server(
+		handler: ExamPointSelectHandler
+	)
+	post /learning-analysis/exam-statistics/exam-point-select(OverviewRequest) returns(ExamPointSelectResponse)
+}
+
+service learninganalysis-api {
+	
+	@doc(
+		summary: 下载成绩录入模板
+	)
+	@server(
+		handler: ScoreTemplateDownloadHandler
+	)
+	get /learning-analysis/exam/template/download/:taskId(ScoreTemplateDownloadRequest)
+	
+	@doc(
+		summary: 学生考试成绩详情 （不需要auth）
+	)
+	@server(
+		handler: StaticStudentExamGradeDetailsHandler
+	)
+	get /learning-analysis/static/exam-details/student(StaticStudentExamGradeDetailsRequest) returns(StudentExamGradeDetailsResponse)
+	
+	@doc(
+		summary: 获取学情分析整校设置（不需要auth）
+	)
+	@server(
+		handler: StaticGetCampusSettingsHandler
+	)
+	get /learning-analysis/static/campus-settings(GetCampusSettingsRequest) returns(GetCampusSettingsResponse)
+	
+	@doc(
+		summary: 考试报告 （不需要auth）
+	)
+	@server(
+		handler: StaticExamGradeInfoHandler
+	)
+	get /learning-analysis/static/exam-grade-info(StaticExamGradeInfoRequest) returns(ExamGradeInfoResponse)
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+	jwt:XhbAuth
+)
+service learninganalysis-api {
+	@doc(
+		summary: 学生考试成绩详情 H5
+	)
+	@server(
+		handler: StudentExamGradeDetailsH5Handler
+	)
+	get /learning-analysis/h5/exam-details/student(StudentExamGradeDetailsRequest) returns(StudentExamGradeDetailsResponse)
+	
+	@doc(
+		summary: 学生已发送报告的考试列表 H5
+	)
+	@server(
+		handler: StudentExamListH5Handler
+	)
+	get /learning-analysis/h5/exam-list/student(StudentExamListRequest) returns(StudentExamListResponse)
+	
+	@doc(
+		summary: 获取学情分析整校设置 H5
+	)
+	@server(
+		handler: GetCampusSettingsH5Handler
+	)
+	get /learning-analysis/h5/campus-settings() returns(GetCampusSettingsResponse)
+}

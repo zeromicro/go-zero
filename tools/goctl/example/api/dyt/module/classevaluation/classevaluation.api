@@ -1,0 +1,2280 @@
+info(
+	title: "班级考核"
+	desc: "班级考核api-task indicator content"
+	author: "duzhongfa"
+	email: "duzhongfa@xiaoheiban.cn"
+)
+
+type EvaluationTaskListResponse {
+	List []*EvaluationTask `json:"list"` // 可评价任务列表 app端
+}
+
+type EvaluationTask {
+	TaskId           int64  `json:"taskId,omitempty"`          // 任务 Id
+	TaskName         string `json:"taskName,omitempty"`        // 任务名称
+	Avatar           string `json:"avatar,omitempty"`          // 任务图标
+	EvaluationTypes  []int  `json:"evaluationTypes,omitempty"` // 可评价的类型
+	Frequency        int64  `json:"frequency"`                 // 频次 0: 日， 1：周， 2：月
+	CalculationCycle int64  `json:"calculationCycle"`          // 计算周期  1: 日， 2：周， 3：月
+	CreateTime       int64  `json:"createTime,omitempty"`
+}
+
+type EvaluateGridRequest {
+	TaskId       int64 `json:"taskId,omitempty"`             // 任务 Id
+	EvaluateType int   `json:"evaluateType,omitempty"`       // 别评价对象类型 1：班级 2：地点  3：老师
+	StartTime    int64 `json:"startTime,omitempty,optional"` // 开始时间
+	EndTime      int64 `json:"endTime,omitempty,optional"`   // 结束时间
+}
+
+type EvaluateGridResponse {
+	IsManager        bool                   `json:"isManager"`
+	IsEvaluator      bool                   `json:"isEvaluator"`
+	Indicators       []*GridIndicator       `json:"indicators,omitempty"`
+	EvaluatedObjects []*GridEvaluatedObject `json:"evaluatedObjects,omitempty"`
+}
+
+type GridIndicator {
+	Id        int64                   `json:"id,omitempty"`                 // 指标 Id
+	Name      string                  `json:"name,omitempty,optional"`      // 指标名称
+	BaseScore int                     `json:"baseScore,omitempty,optional"` // 基础分数
+	Sort      int64                   `json:"sort,omitempty"`               // 排序
+	Contents  []*GridIndicatorContent `json:"contents,omitempty"`           // 指标内容
+}
+
+type GridIndicatorContent {
+	Id         int64  `json:"id,omitempty"`            // 内容 Id
+	Name       string `json:"name,omitempty,optional"` // 内容名称
+	SelectType int    `json:"selectType,omitempty"`    // 是否可多选 1：单选 2：多选
+}
+
+type GridEvaluatedObject {
+	Type        int                    `json:"type,omitempty,optional"`        // 被评价对象类型 1：班级 2：地点  3：老师
+	EvaluatedId int64                  `json:"evaluatedId,omitempty"`          // 被评价对象 1：班级 Id 2：地点 Id  3：老师 Id
+	DisplayName string                 `json:"displayName,omitempty,optional"` // 显示的名称
+	Pinyin      string                 `json:"pinyin,optional"`
+	IsEvaluator bool                   `json:"isEvaluator"`
+	Cells       []*GridEvaluatedStatus `json:"cells,omitempty"` // 评价状态
+}
+
+type GridEvaluatedStatus {
+	IndicatorId int64 `json:"indicatorId,omitempty"` // 对应 GridIndicator 中 Id
+	ContentId   int64 `json:"contentId,omitempty"`   // 对应 GridIndicatorContent 中 Id
+	Status      int   `json:"status,omitempty"`      // 评价的状态 0：不可评价  1：未评价  2： 已评价
+	HasScore    int   `json:"hasScore,omitempty"`    // 是否在评价周期之内有分数 0: 没有，  1： 有
+	Score       int   `json:"score,omitempty"`       // 已经评价分数
+	IsEvaluator int   `json:"is_evaluator"`          // 是否为评价者
+}
+
+type EvaluateAddLogRequestV3 {
+	DetailId        int64              `json:"detailId,optional"`        // 信息id
+	TaskId          int64              `json:"taskId"`                   // 任务id
+	IndicatorId     int64              `json:"indicatorId"`              // 指标id
+	ContentId       int64              `json:"contentId"`                // 内容id
+	EvaluateType    int64              `json:"evaluateType"`             // 评价类型
+	Objects         []*EvaluateObjects `json:"objects"`                  // 评价对象
+	Remark          *CommentDetail     `json:"remark,optional"`          // 评价内容
+	ContentItemList []*ContentItemInfo `json:"contentItemList,optional"` // 评价项列表
+	IsTellParent    int64              `json:"isTellParent,optional"`    // 是否通知家长 1 通知，0 不通知
+}
+
+type CommentDetail {
+	ImageViews      []*ImageRequest `json:"imageViews"`
+	VideoViews      *VideoRequest   `json:"videoViews"`
+	Comment         string          `json:"comment"`
+	RelatedTeachers []string        `json:"relatedTeachers,optional,omitempty"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,omitempty,optional"`
+	Preview   string `json:"preview,omitempty,optional"`
+	Thumbnail string `json:"thumbnail,omitempty,optional"`
+	Size      int    `json:"size,omitempty,optional"`
+	Height    int    `json:"height,omitempty,optional"`
+	Width     int    `json:"width,omitempty,optional"`
+}
+
+type VideoRequest {
+	Title        string `json:"title,omitempty,optional"`
+	Desc         string `json:"desc,omitempty,optional"`
+	CoverUrl     string `json:"coverUrl,omitempty,optional"`
+	PlayUrl      string `json:"playUrl,omitempty,optional"`
+	PlayTime     int    `json:"playTime,omitempty,optional"`
+	MagicContext string `json:"magicContext,omitempty,optional"`
+	Type         string `json:"type,omitempty,optional"`
+	Height       int    `json:"height,omitempty,optional"`
+	Width        int    `json:"width,omitempty,optional"`
+}
+
+type TaskListRequest {
+	TaskName         string `json:"taskName,optional"`            // 搜索关键字
+	NowPage          int64  `json:"nowPage,optional,default=1"`   // 当前页码
+	PageSize         int64  `json:"pageSize,optional,default=12"` // 每页条数
+	IsEdit           bool   `json:"isEdit,optional"`
+	NoEmptyIndicator bool   `json:"noEmptyIndicator,optional"` //true 不包含指标为空的任务， false 包含相关任务
+}
+
+type TaskListResponse {
+	Total    int64       `json:"total"`    // 总数量
+	TaskList []*TaskInfo `json:"taskList"` // 任务列表
+}
+
+type TaskInfo {
+	Id              int64  `json:"id"`              // 任务ID
+	TaskName        string `json:"taskName"`        // 任务名称
+	Indicators      string `json:"indicators"`      // 当前任务下评价指标
+	EvaluationTypes []int  `json:"evaluationTypes"` // 当前任务下包含的指标类型
+	SyncAppraisal   int64  `json:"syncAppraisal"`   // 是否同步学生评价 1同步 0不同步
+}
+
+type TaskConfigListResponse {
+	ConfigList []*ConfigInfo `json:"configList"` // 配置列表
+	Avatars    []string      `json:"avatars"`    // 任务图标列表
+}
+
+type ConfigInfo {
+	ConfigId          int64  `json:"configId"`          // 配置ID
+	ConfigTitle       string `json:"configTitle"`       // 配置信息
+	ConfigDescription string `json:"configDescription"` // 配置描述
+}
+
+type TaskViewRequest {
+	TaskId int64 `path:"taskId"` // 任务ID
+}
+
+type TaskViewResponse {
+	TaskId              int64                `json:"taskId"`        // 任务ID
+	TaskName            string               `json:"taskName"`      // 任务名称
+	CalCycle            int                  `json:"calCycle"`      // 计算周期 1.每月 2.每周 3.每天
+	IndicatorList       []*TaskIndicatorInfo `json:"indicatorList"` // 指标列表
+	ConfigIdList        []int64              `json:"configIdList"`  // 配置列表
+	Managers            []*TeacherInfo       `json:"managers"`      // 管理者列表
+	ClassIndicatorIds   []int64              `json:"classIndicatorIds"`
+	TeacherIndicatorIds []int64              `json:"teacherIndicatorIds"`
+	ScopeIndicatorIds   []int64              `json:"scopeIndicatorIds"`
+	Avatars             []string             `json:"avatars"`
+	CheckedAvatar       int64                `json:"checkedAvatar"`
+	Frequency           int64                `json:"frequency"` // 任务频次  0:日 1:周 2:月
+}
+
+type TaskIndicatorInfo {
+	IndicatorId   int64  `json:"indicatorId"`   // 指标ID
+	IndicatorName string `json:"indicatorName"` // 指标名称
+	BaseScore     int64  `json:"baseScore"`     // 基础分数
+	Sort          int64  `json:"sort,optional"`
+}
+
+type TeacherInfo {
+	TeacherId   int64  `json:"teacherId"`   // 老师ID
+	TeacherName string `json:"teacherName"` // 老师姓名
+}
+
+type TaskAddRequest {
+	TaskName      string               `json:"taskName"`           // 任务名称
+	CalCycle      int                  `json:"calCycle"`           // 计算周期 1.每月 2.每周 3.每天
+	IndicatorList []*TaskIndicatorInfo `json:"indicatorList"`      // 指标列表
+	ConfigIdList  []int64              `json:"configIdList"`       // 配置ID列表
+	Managers      []*TeacherInfo       `json:"managers,optional"`  // 管理者列表
+	Avatar        string               `json:"avatar,optional"`    // 任务图标
+	Frequency     int64                `json:"frequency,optional"` // 任务频次  0:日 1:周 2:月
+}
+
+type TaskEditRequest {
+	TaskId        int64                `json:"taskId"`                 // 任务ID
+	TaskName      string               `json:"taskName"`               // 任务名称
+	CalCycle      int                  `json:"calCycle"`               // 计算周期 1.每月 2.每周 3.每天
+	IndicatorList []*TaskIndicatorInfo `json:"indicatorList,optional"` // 指标列表
+	ConfigIdList  []int64              `json:"configIdList"`           // 配置ID列表
+	Managers      []*TeacherInfo       `json:"managers,optional"`      // 管理者列表
+	Avatar        string               `json:"avatar,optional"`        // 任务图标
+	Frequency     int64                `json:"frequency,optional"`     // 任务频次  0:日 1:周 2:月
+}
+
+type TaskDeleteRequest {
+	TaskId int64 `json:"taskId"` // 任务ID
+}
+
+type IndicatorSortUpdateRequest {
+	ChangeList []*SortChangeListItem `json:"changeList"`
+}
+
+type SortChangeListItem {
+	IndicatorId int64 `json:"indicatorId"`
+	Sort        int64 `json:"sort"`
+}
+
+type TaskIndicatorViewRequest {
+	TaskId      int64 `json:"taskId"`
+	IndicatorId int64 `json:"indicatorId"`
+}
+
+type TaskIndicatorViewResponse {
+	Indicator *EvaluateTaskIndicator `json:"indicator"`
+}
+
+type EvaluateTaskIndicator {
+	IndicatorId    int64                  `json:"indicatorId,optional"` // 新建则不传
+	IndicatorName  string                 `json:"indicatorName,optional"`
+	BaseScore      int64                  `json:"baseScore,optional"`
+	Status         int                    `json:"status,omitempty,optional"` // 不处理:0 insert:1 update:2 delete:3
+	EvaluateType   int                    `json:"evaluateType,optional"`     // 评价类型 1班级 2教师 3地点
+	EvaluateObject []*EvaluateObjectInfo  `json:"evaluateObject,optional"`   // 评价对象信息
+	Contents       []*EvaluateTaskContent `json:"contents,optional"`
+}
+
+type EvaluateObjectInfo {
+	OptionId        int64             `json:"optionId"`
+	EvaluatorView   []*ObjectNameInfo `json:"evaluatorView,optional"` // 评价人
+	EvaluatedView   []*ObjectNameInfo `json:"evaluatedView,optional"` // 被评价对象
+	Evaluator       []int64           `json:"evaluator"`              // 评价人
+	EvaluatedIds    []int64           `json:"evaluatedIds"`           // 被评价对象的id
+	EvaluateWeekDay []int64           `json:"evaluateWeekDay"`        // 被评价周日期  0-6
+	EvaluateTime    []*EvaluateTime   `json:"evaluateTime,optional"`
+	StopTime        int64             `json:"stopTime"`
+	Status          int64             `json:"status,optional"`     // 1 未开始 2 进行中 3已结束
+	CreateTime      int64             `json:"createTime,optional"` // 创建时间 需要时传
+}
+
+type ObjectNameInfo {
+	Id          int64  `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+type EvaluateTime {
+	Id        int64 `json:"id,optional"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	Status    int   `json:"status,omitempty,optional"` // 不处理:0 insert:1 update:2 delete:3
+}
+
+type EvaluateTaskContent {
+	Id              int64                      `json:"id,optional"`
+	ContentName     string                     `json:"contentName"`      // 指标内容名称
+	SelectType      int                        `json:"selectType"`       // 1 单选 2多选
+	Status          int                        `json:"status,omitempty"` // 不处理:0 insert:1 update:2 delete:3
+	ContentItemList []*EvaluateTaskContentItem `json:"contentItemList"`  // 评价项列表
+	Sort            int64                      `json:"sort"`             // 排序
+}
+
+type EvaluateTaskContentItem {
+	ItemId        int64  `json:"itemId,optional"`       // 评价项ID 新增时可为空 编辑时必填
+	ItemName      string `json:"itemName"`              // 评价项名称
+	ItemOrder     int64  `json:"itemOrder"`             // 排序 1，2，3...
+	ItemScoreType int64  `json:"itemScoreType"`         // 是否为固定分数 0 固定 1浮动
+	ItemScore     int64  `json:"itemScore,optional"`    // 评价项分值
+	ItemScoreMin  int64  `json:"itemScoreMin,optional"` // 评价项分值最小值
+	ItemScoreMax  int64  `json:"itemScoreMax,optional"` // 评价项分值最大值
+	IsDefault     int64  `json:"isDefault"`             // 是否默认 1 是 0 否
+	Status        int    `json:"status,omitempty"`      // 不处理:0 insert:1 update:2 delete:3
+}
+
+type ActContentRequest {
+	IndicatorId int64                `json:"indicatorId"` // 指标id
+	Content     *EvaluateTaskContent `json:"content"`     // 内容
+}
+
+type SortContentRequest {
+	ChangeList []*SortContent `json:"changList"` // 需要兑换顺序的列表
+}
+
+type SortContent {
+	ContentId int64 `json:"contentId"` // 内容id
+	Sort      int64 `json:"sort"`      // 排序id
+}
+
+type ActObjectRequest {
+	IndicatorId int64         `json:"indicatorId"` // 指标id
+	Object      *ObjectConfig `json:"object"`      // 评价关系
+}
+
+type ObjectConfig {
+	ObjectId        int64           `json:"objectId"`
+	EvaluateType    int             `json:"evaluateType,optional"` // 评价类型 1班级 2教师 3地点
+	Evaluator       []int64         `json:"evaluator"`             // 评价人
+	EvaluatedIds    []int64         `json:"evaluatedIds"`          // 被评价对象的id
+	EvaluateWeekDay []int64         `json:"evaluateWeekDay"`       // 被评价周日期  0-6
+	EvaluateTime    []*EvaluateTime `json:"evaluateTime,optional"` // 评价时间
+	Status          int             `json:"status,omitempty"`      // 不处理:0 insert:1 update:2 delete:3
+}
+
+type UpdateIndicatorRequest {
+	TaskId        int64  `json:"taskId"`        // 任务id
+	IndicatorId   int64  `json:"indicatorId"`   // 指标id'
+	IndicatorName string `json:"indicatorName"` // 指标名
+	EvaluateType  int    `json:"evaluateType"`  // 评价类型 1班级 2教师 3地点
+	BaseScore     int64  `json:"baseScore"`     // 分数
+}
+
+type UpsetTaskIndicatorRequest {
+	TaskId    int64                  `json:"taskId"`
+	Indicator *EvaluateTaskIndicator `json:"indicator"`
+}
+
+type UpsetTaskIndicatorResponse {
+	IndicatorId int64 `json:"indicatorId"`
+}
+
+type GetReportOptionsRequest {
+	TaskId int64 `form:"taskId"`
+}
+
+type GetReportOptionsResponse {
+	List []*ReportOption `json:"list"`
+}
+
+type ReportOption {
+	Id     int64  `json:"id,optional"` // 0:新建 非0:更新
+	TaskId int64  `json:"taskId"`      // 任务ID
+	Name   string `json:"name"`        // 名称
+
+	ReportConfig
+}
+
+type ReportConfig {
+	ClassGrades           []int64 `json:"classGrades"`           // 班级简表 年级列表
+	ClassIndicators       []int64 `json:"classIndicators"`       // 班级简表 指标列表
+	ClassDisplayContent   int64   `json:"classDisplayContent"`   // 班级简表 是否显示内容 0:显示 1:不显示
+	ClassSortType         int64   `json:"classSortType"`         // 班级简表 排序方式 0:按分数排序 1:按班级序号排序
+	ClassResultType       int64   `json:"classResultType"`       // 班级简表 结果展示 0:总分 1:平均分 2:等级
+	TeacherIndicators     []int64 `json:"teacherIndicators"`     // 教师简表 指标列表
+	TeacherDisplayContent int64   `json:"teacherDisplayContent"` // 教师简表 是否显示内容 0:显示 1:不显示
+	TeacherSortType       int64   `json:"teacherSortType"`       // 教师简表 排序方式 0:按分数排序 1:按班级序号排序
+	TeacherResultType     int64   `json:"teacherResultType"`     // 教师简表 结果展示 0:总分 1:平均分 2:等级
+	ScopeIndicators       []int64 `json:"scopeIndicators"`       // 地点简表 指标列表
+	ScopeDisplayContent   int64   `json:"scopeDisplayContent"`   // 地点简表 是否显示内容 0:显示 1:不显示
+	ScopeSortType         int64   `json:"scopeSortType"`         // 地点简表 排序方式 0:按分数排序 1:按班级序号排序
+	ScopeResultType       int64   `json:"scopeResultType"`       // 地点简表 结果展示 0:总分 1:平均分 2:等级
+}
+
+type GetTaskOptionRequest {
+	TaskId int64 `form:"taskId"`
+}
+
+type GetTaskOptionResponse {
+	ClassIndicators   []*TaskOptionInfo `json:"classIndicators"`
+	TeacherIndicators []*TaskOptionInfo `json:"teacherIndicators"`
+	ScopeIndicators   []*TaskOptionInfo `json:"scopeIndicators"`
+}
+
+type TaskOptionInfo {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type TaskIndicatorDataRequest {
+	TaskId       int64   `json:"taskId"`
+	IndicatorIds []int64 `json:"indicatorIds"` // 指标id 这里是数组 可以传多个指标id
+	StartTime    int64   `json:"startTime"`
+	EndTime      int64   `json:"endTime"`
+	SortType     int64   `json:"sortType"`     // 1 平均分升序2 平均分降序 3 总分升序 4 总分降序
+	EvaluateType int64   `json:"evaluateType"` // 班级 地点 老师
+}
+
+type TaskIndicatorDataResponse {
+	DataList  []*TaskIndicatorDataListItem `json:"dataList"`
+	BaseScore int64                        `json:"baseScore"`
+}
+
+type TaskIndicatorDataListItem {
+	EvaluateId        int64   `json:"id"`          // 被评价对象id 如老师id 班级id 如果是地点的话就填0
+	EvaluateName      string  `json:"name"`        // 被评价对象名 如地点名
+	EvaluateNum       int64   `json:"evaluateNum"` // 评价次数
+	EvaluateAvg       float64 `json:"evaluateAvg"`
+	EvaluateSum       int64   `json:"evaluateSum"`
+	EvaluateNoBaseSum int64   `json:"evaluateNoBaseSum"`
+	BaseScore         int64   `json:"baseScore"`
+	EvaluateLevelName string  `json:"evaluateLevelName"` // 评价等级名
+}
+
+type TaskIndicatorDataExportRequest {
+	TaskId       int64   `json:"taskId"`
+	IndicatorIds []int64 `json:"indicatorIds"` // 指标id 这里是数组 可以传多个指标id
+	StartTime    int64   `json:"startTime"`
+	EndTime      int64   `json:"endTime"`
+}
+
+type TaskIndicatorDataExportResponse {
+}
+
+type SimpleDataExcelExportRequest {
+	TaskId      int64 `json:"taskId"`
+	StartTime   int64 `json:"startTime"`
+	EndTime     int64 `json:"endTime"`
+	ClassData   bool  `json:"classData"`
+	TeacherData bool  `json:"teacherData"`
+	PlaceData   bool  `json:"placeData"`
+}
+
+type SimpleDataExcelConfigExportRequest {
+	TaskId    int64 `json:"taskId"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	ConfId    int64 `json:"confId"`
+}
+
+type TaskIndicatorDetailRequest {
+	TaskId        int64   `json:"taskId"`
+	IndicatorIds  []int64 `json:"indicatorIds"`
+	StartTime     int64   `json:"startTime"`
+	EndTime       int64   `json:"endTime"`
+	EvaluateType  int64   `json:"evaluateType"`  // 班级 地点 老师
+	EvaluatedId   int64   `json:"evaluatedId"`   // 被评价对象id
+	EvaluatedName string  `json:"evaluatedName"` // 被请假对象名
+}
+
+type TaskIndicatorDetailResponse {
+	EvaluatedId         int64                      `json:"evaluatedId"`
+	EvaluatedName       string                     `json:"evaluatedName"`
+	EvaluatedNum        int64                      `json:"evaluatedNum"` // 评价次数
+	EvaluatedAvg        float64                    `json:"evaluatedAvg"` // 评价平均分
+	EvaluatedSum        int64                      `json:"evaluatedSum"` // 评价总分
+	EvaluatedGradeName  string                     `json:"evaluatedGradeName"`
+	EvaluateNoBaseSum   int64                      `json:"evaluateNoBaseSum"`
+	BaseScore           int64                      `json:"baseScore"`
+	IndicatorDetailList []*IndicatorDetailListItem `json:"indicatorDetailList"` // 指标列表
+}
+
+type IndicatorDetailListItem {
+	IndicatorName              string                            `json:"indicatorName"`
+	IndicatorId                int64                             `json:"indicatorId"`
+	IndicatorAvg               float64                           `json:"indicatorAvg"`
+	IndicatorSum               int64                             `json:"indicatorSum"`
+	IndicatorNum               int64                             `json:"indicatorNum"`
+	IndicatorNoBaseSum         int64                             `json:"indicatorNoBaseSum"`
+	BaseScore                  int64                             `json:"baseScore"`
+	IndicatorContentDetailList []*IndicatorContentDetailListItem `json:"indicatorContentDetailList"` // 指标内容列表
+}
+
+type IndicatorContentDetailListItem {
+	IndicatorContentId       int64                           `json:"indicatorContentId"`
+	IndicatorContentName     string                          `json:"indicatorContentName"`
+	IndicatorContentNum      int64                           `json:"indicatorContentNum"`
+	IndicatorContentSum      int64                           `json:"indicatorContentSum"`
+	IndicatorContentItemList []*IndicatorContentItemListItem `json:"indicatorContentItemList"` // 指标项列表
+}
+
+type IndicatorContentItemListItem {
+	IndicatorContentItemId        int64  `json:"indicatorContentItemId"`
+	IndicatorContentItemName      string `json:"indicatorContentItemName"` // 指标项名
+	IndicatorContentItemNum       int64  `json:"indicatorContentItemNum"`  // 指标项次数
+	IndicatorContentItemSum       int64  `json:"indicatorContentItemSum"`  // 指标项总分
+	IndicatorContentItemScore     int64  `json:"indicatorContentItemScore"`
+	IndicatorContentItemScoreMax  int64  `json:"indicatorContentItemScoreMax"`
+	IndicatorContentItemScoreMin  int64  `json:"indicatorContentItemScoreMin"`
+	IndicatorContentItemScoreType int64  `json:"indicatorContentItemScoreType"`
+}
+
+type EvaluatedLogRequest {
+	StartTime     int64   `json:"startTime"` // 开始时间
+	EndTime       int64   `json:"endTime"`   // 结束时间
+	PageSize      int64   `json:"pageSize"`
+	NowPage       int64   `json:"nowPage"`
+	TaskId        int64   `json:"taskId"`       // 任务id
+	IndicatorIds  []int64 `json:"indicatorIds"` // 指标id
+	EvaluateType  int64   `json:"evaluateType"` // 评价对象类型
+	EvaluatedId   int64   `json:"evaluatedId"`
+	EvaluatedName string  `json:"evaluatedName"`
+}
+
+type RatingLogRequest {
+	StartTime  int64 `json:"startTime"` // 开始时间
+	EndTime    int64 `json:"endTime"`   // 结束时间
+	PageSize   int64 `json:"pageSize"`
+	NowPage    int64 `json:"nowPage"`
+	ConfigId   int64 `json:"configId"`   // 配置id
+	EvaluateId int64 `json:"evaluateId"` // 评价对象Id
+}
+
+type ReportTaskIndicatorDataRequest {
+	TaskId    int64 `json:"taskId"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+}
+
+type ReportTaskIndicatorDataResponse {
+	TaskName                  string                          `json:"taskName"`                  // 任务名
+	SchoolName                string                          `json:"schoolName"`                // 学校名
+	DataOutLine               *ReportTaskIndicatorDataOutline `json:"dataOutLine"`               // 概要
+	GradeSumScoreContrastList []*GradeScoreContrast           `json:"gradeSumScoreContrastList"` // 各个年级总分的分数对比
+	GradeAvgScoreContrastList []*GradeScoreContrast           `json:"gradeAvgScoreContrastList"` // 各个年级平均分的分数对比
+	GradeSumWorkDataList      []*GradeWorkData                `json:"gradeSumWorkDataList"`      // 各个年级总分的年级工作
+	GradeAvgWorkDataList      []*GradeWorkData                `json:"gradeAvgWorkDataList"`      // 各个年级平均分的年级工作
+	TeacherEvaluateData       []*TeacherEvaluateNum           `json:"teacherEvaluateData"`       // 老师评价详情
+}
+
+type ReportTaskIndicatorDataOutline {
+	StartTime             int64           `json:"startTime"`             // 开始时间
+	EndTime               int64           `json:"endTime"`               // 结束时间
+	EvaluateNum           int64           `json:"evaluateNum"`           // 评价次数
+	IndicatorNameList     []string        `json:"indicatorNameList"`     // 所有指标名
+	MaxNumIndicatorName   []string        `json:"maxNumIndicatorName"`   // 被评价次数最多的指标
+	IndicatorEvaluateList []*IndicatorNum `json:"indicatorEvaluateList"` // 每个指标被评价次数
+}
+
+type IndicatorNum {
+	IndicatorId   int64  `json:"indicatorId"`   // 指标id
+	IndicatorName string `json:"indicatorName"` // 指标名
+	EvaluateNum   int64  `json:"evaluateNum"`   // 评价次数
+}
+
+type GradeScoreContrast {
+	GradeId   int64   `json:"gradeId"`   // 年级id
+	GradeName string  `json:"gradeName"` // 年级名
+	PreScore  float64 `json:"preScore"`  // 上期分数
+	Score     float64 `json:"score"`     // 这期分数
+}
+
+type GradeWorkData {
+	GradeId                  int64                           `json:"gradeId"`                  // 年级id
+	GradeName                string                          `json:"gradeName"`                // 年级名
+	GradeClassScoreRank      []*GradeClassScoreItem          `json:"gradeClassScoreRank"`      // 年级班级分数排行
+	GradeClassImproveRank    []*GradeClassScoreItem          `json:"gradeClassImproveRank"`    // 年级班级分数提供排行
+	IndicatorDataList        []*IndicatorDataListItem        `json:"indicatorDataList"`        // 各个指标的详情
+	ClassIndicatorStatusList []*ClassIndicatorStatusListItem `json:"classIndicatorStatusList"` // 每个班级的指标与这期的指标
+}
+
+type GradeClassScoreItem {
+	ClassId     int64   `json:"classId"`     // 班级id
+	ClassName   string  `json:"className"`   // 班级名
+	Score       float64 `json:"score"`       // 分数
+	TeacherName string  `json:"teacherName"` //班主任  // 班主任
+}
+
+type IndicatorDataListItem {
+	IndicatorId    int64                  `json:"indicatorId"`    // 指标id
+	IndicatorName  string                 `json:"indicatorName"`  // 指标名
+	MaxScoreClass  []string               `json:"maxScoreClass"`  // 分数最大班级
+	MinScoreClass  []string               `json:"minScoreClass"`  // 分数最小班级
+	ScoreAvgLine   float64                `json:"scoreAvgLine"`   // 平均线
+	ClassScoreList []*GradeClassScoreItem `json:"classScoreList"` // 在当前指标中各个班级的得分情况
+}
+
+type ClassIndicatorStatusListItem {
+	ClassId                    int64                     `json:"classId"`                    // 班级id
+	ClassName                  string                    `json:"className"`                  // 班级名
+	Score                      float64                   `json:"score"`                      // 分数
+	ImproveScore               float64                   `json:"improveScore"`               // 与上期分数对比
+	ClassIndicatorContrastList []*ClassIndicatorContrast `json:"classIndicatorContrastList"` // 当前班级每个指标的进步情况
+}
+
+type ClassIndicatorContrast {
+	IndicatorId   int64   `json:"indicatorId"`   // 指标id
+	IndicatorName string  `json:"indicatorName"` // 指标名
+	Score         float64 `json:"score"`         // 分数
+}
+
+type TeacherEvaluateNum {
+	TeacherId   int64  `json:"teacherId"`   // 教师id
+	TeacherName string `json:"teacherName"` // 教师名
+	EvaluateNum int64  `json:"evaluateNum"` // 评价次数
+}
+
+type ClassTeacherRelationActRequest {
+	ClassId    int64   `json:"classId"`
+	TeacherIds []int64 `json:"teacherIds"`
+}
+
+type EvaluateLogDetailRequest {
+	EvaluateLogId int64 `path:"evaluateLogId"`
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"`
+}
+
+type IndicatorOptionRequest {
+	Id int64 `form:"id"`
+}
+
+type TeacherAuthResponse {
+	CampusAuth    bool `json:"campusAuth"`
+	EvaluatorAuth bool `json:"evaluatorAuth"`
+	ManageAuth    bool `json:"manageAuth"`
+	MangeFuncAuth bool `json:"manageFuncAuth"`
+	MangeTaskAuth bool `json:"manageTaskAuth"`
+}
+
+type EvaluateRecordGridRequest {
+	TaskId        int64   `json:"taskId"`        // 任务 Id
+	IndicatorIds  []int64 `json:"indicatorIds"`  // 指标 Id
+	EvaluatedType int     `json:"evaluatedType"` // 被评价对象类型 1：班级 2：老师 3：地点
+	StartTime     int64   `json:"startTime"`     // 开始时间
+	EndTime       int64   `json:"endTime"`       // 结束时间
+	SortType      int64   `json:"sortType"`      // 排序方式 1-分数由高到低排序 2-分数由低到高排序 3-班级序号排序/部门分组排序/地点管理顺序排序 4-学科分组排序
+}
+
+type EvaluateRecordGridResponse {
+	IsManager        bool               `json:"isManager"`
+	Indicators       []*GridIndicator   `json:"indicators,omitempty"`
+	EvaluatedObjects []*EvaluatedObject `json:"evaluatedObjects,omitempty"`
+}
+
+type EvaluatedObject {
+	Type        int                `json:"type"`                 // 被评价对象类型 1：班级 2：老师 3：地点
+	EvaluatedId int64              `json:"evaluatedId"`          // 被评价对象Id type-1：班级Id type-2：老师Id type-3：地点Id
+	DisplayName string             `json:"displayName"`          // 显示的名称
+	Sort        int                `json:"sort"`                 // 排序
+	SecondSort  int                `json:"secondSort,omitempty"` // 第二排序
+	Cells       []*EvaluatedStatus `json:"cells"`                // 评价状态
+	TotalScore  int64              `json:"totalScore"`           // 总分
+}
+
+type EvaluatedStatus {
+	IndicatorId int64 `json:"indicatorId"` // 对应 GridIndicator 中 Id
+	ContentId   int64 `json:"contentId"`   // 对应 GridIndicatorContent 中 Id
+	Score       int   `json:"score"`       // 已经评价分数
+}
+
+type EvaluatedObjectSummaryRequest {
+	TaskId        int64   `json:"taskId"`
+	IndicatorIds  []int64 `json:"indicatorIds"`
+	EvaluatedType int64   `json:"evaluatedType"`
+	ObjectId      int64   `json:"objectId"`
+	StartTime     int64   `json:"startTime"`
+	EndTime       int64   `json:"endTime"`
+}
+
+type EvaluatedObjectSummaryResponse {
+	ObjectId   int64        `json:"objectId"`   // 对象id
+	ObjectName string       `json:"objectName"` // 对象名称
+	TaskId     int64        `json:"taskId"`     // 任务id
+	TaskName   string       `json:"taskName"`   // 任务名称
+	OpScore    float64      `json:"opScore"`    // 评分
+	OpNumber   int64        `json:"opNumber"`   // 评价次数
+	Indicators []*Indicator `json:"indicators"`
+}
+
+type Indicator {
+	IndicatorId    int64       `json:"indicatorId"`    // 指标id
+	IndicatorName  string      `json:"indicatorName"`  // 指标
+	Contents       []*Contents `json:"contents"`       // 内容
+	IndicatorScore float64     `json:"indicatorScore"` // 指标分数
+}
+
+type EvaluatedObjectLogRequest {
+	StartTime   int64 `json:"startTime"` // 开始时间
+	EndTime     int64 `json:"endTime"`   // 结束时间
+	PageSize    int64 `json:"pageSize,optional"`
+	NowPage     int64 `json:"nowPage,optional"`
+	TaskId      int64 `json:"taskId"`      // 任务id
+	IndicatorId int64 `json:"indicatorId"` // 指标id
+	ContentId   int64 `json:"contentId"`   // 内容ID
+	ObjectId    int64 `json:"objectId"`    // 对象id
+}
+
+type EvaluatedObjectLogResponse {
+	Master        bool           `json:"master"` // 是否是管理员
+	IndicatorName string         `json:"indicatorName"`
+	ContentName   string         `json:"contentName"`
+	ObjectName    string         `json:"objectName"`
+	Count         int64          `json:"count"`
+	NowPage       int64          `json:"nowPage"` // 当前页数
+	LogList       []*LogListItem `json:"logList"`
+}
+
+type ClassTeacherRequest {
+	CampusGradeId int64 `json:"campusGradeId,optional"` // 年纪id
+}
+
+type ClassTeacherRelationListResponse {
+	List []*ClassTeacherRelation `json:"list"`
+}
+
+type ClassTeacherRelation {
+	CampusGradeId      int64   `json:"campusGradeId"`
+	CampusGradeName    string  `json:"campusGradeName"`
+	GradeId            int64   `json:"gradeId"`
+	ClassId            int64   `json:"classId"`
+	ClassName          string  `json:"className"`
+	ClassNum           int64   `json:"classNum"`
+	Sort               int64   `json:"sort"`
+	RelationTeachers   string  `json:"relationTeachers"`
+	RelationTeacherIds []int64 `json:"relationTeacherIds"`
+}
+
+type ScopeClassTeacherRequest {
+	TypeId int64 `json:"typeId,optional"`
+}
+
+type ScopeClassTeacherResponse {
+	List []*ScopeClassTeacher `json:"list"`
+}
+
+type ScopeClassTeacher {
+	TypeId       int64   `json:"typeId"`
+	TypeName     string  `json:"typeName"`
+	PlaceId      int64   `json:"placeId"`
+	PlaceName    string  `json:"placeName"`
+	ClassNames   string  `json:"className"`
+	TeacherNames string  `json:"teacherNames"`
+	ClassIds     []int64 `json:"classIds"`
+	TeacherIds   []int64 `json:"teacherIds"`
+	Sort         int64   `json:"sort"`
+}
+
+type ScopeClassTeacherAct {
+	PlaceIds   []int64 `json:"placeIds"`
+	ClassIds   []int64 `json:"classIds"`
+	TeacherIds []int64 `json:"teacherIds"`
+}
+
+type RatingConfigListRequest {
+	ConfigId int64 `json:"configId,optional"`
+}
+
+type RatingConfigListResponse {
+	Total int64           `json:"total"`
+	List  []*RatingConfig `json:"list"`
+}
+
+type RatingConfig {
+	ConfigId          int64               `json:"configId"`
+	Title             string              `json:"title"`
+	ObjectType        int                 `json:"objectType"`
+	RatingScope       int                 `json:"ratingScope"` // 班级评比范围 1：全校班级；2：年级内班级
+	RatingCycle       int                 `json:"ratingCycle"`
+	ScoringRule       int                 `json:"scoringRule"`
+	TaskConfig        []*RatingTaskConfig `json:"taskConfig"`
+	ObjectsIds        []int64             `json:"objectsIds"`
+	GradeConfig       *RatingGradeConfig  `json:"gradeConfig"`
+	ShowTeacherRating bool                `json:"showTeacherRating"`
+	PushResult        bool                `json:"pushResult"`
+	Status            bool                `json:"status"`
+	CreateTime        int64               `json:"createTime"`
+	UpdateTime        int64               `json:"updateTime"`
+}
+
+type RatingTaskConfig {
+	TaskId           int64                    `json:"taskId"`
+	TaskName         string                   `json:"taskName,optional"`
+	TaskImage        string                   `json:"taskImage,optional"`
+	CalculationCycle int64                    `json:"calculationCycle,optional"` // 计算周期  1: 月， 2：周， 3：日（0.1.7新增）
+	Frequency        int64                    `json:"frequency,optional"`        // 评价批次  0: 日， 1：周， 2：月（0.1.7新增）
+	Indicators       []*RatingIndicatorConfig `json:"indicators"`
+	Weight           float64                  `json:"weight"`
+}
+
+type RatingIndicatorConfig {
+	IndicatorId   int64   `json:"indicatorId"`
+	IndicatorName string  `json:"indicatorName,optional"`
+	BaseScore     int64   `json:"baseScore,optional"` // 基础分（0.1.7新增）
+	Weight        float64 `json:"weight"`
+}
+
+type RatingGradeConfig {
+	Type      int                        `json:"type"` // 0: 不使用 1：排名 2：百分比
+	Intervals []*RateGradeIntervalConfig `json:"intervals"`
+}
+
+type RateGradeIntervalConfig {
+	Left  int64  `json:"left"`
+	Right int64  `json:"right"`
+	Name  string `json:"name"`
+	Image string `json:"image"`
+}
+
+type RatingConfigGradeImagesResponse {
+	Images []string `json:"images"`
+}
+
+type RatingConfigAddRequest {
+	Title             string              `json:"title"`
+	ObjectType        int                 `json:"objectType"`
+	RatingScope       int                 `json:"ratingScope,optional"` // 班级评比范围 1：全校班级；2：年级内班级
+	RatingCycle       int                 `json:"ratingCycle"`
+	ScoringRule       int                 `json:"scoringRule"`
+	TaskConfig        []*RatingTaskConfig `json:"taskConfig"`
+	ObjectsIds        []int64             `json:"objectsIds"`
+	GradeConfig       *RatingGradeConfig  `json:"gradeConfig"`
+	ShowTeacherRating bool                `json:"showTeacherRating"`
+	PushResult        bool                `json:"pushResult"`
+}
+
+type RatingConfigAddResponse {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigEditRequest {
+	ConfigId          int64               `json:"configId"`
+	Title             string              `json:"title"`
+	ObjectType        int                 `json:"objectType"`
+	RatingScope       int                 `json:"ratingScope"` // 班级评比范围 1：全校班级；2：年级内班级
+	RatingCycle       int                 `json:"ratingCycle"`
+	ScoringRule       int                 `json:"scoringRule"`
+	TaskConfig        []*RatingTaskConfig `json:"taskConfig"`
+	ObjectsIds        []int64             `json:"objectsIds"`
+	GradeConfig       *RatingGradeConfig  `json:"gradeConfig"`
+	ShowTeacherRating bool                `json:"showTeacherRating"`
+	PushResult        bool                `json:"pushResult"`
+}
+
+type RatingConfigEditResponse {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigStopRequest {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigStopResponse {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigStartRequest {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigStartResponse {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigDelRequest {
+	ConfigId int64 `json:"configId"`
+}
+
+type RatingConfigDelResponse {
+	ConfigId int64 `json:"configId"`
+}
+
+type IndicatorOptionStopRequest {
+	IndicatorOptionId int64 `json:"indicatorOptionId"`
+}
+
+type UpsetReportOptionResponse {
+	Id int64 `json:"id"`
+}
+
+type DeleteReportOptionRequest {
+	Id int64 `form:"id"`
+}
+
+type DeleteReportOptionResponse {
+}
+
+type EvaluateIndicatorRequest {
+	TaskId int64 `path:"taskId"`
+}
+
+type EvaluateIndicatorResponse {
+	List []*EvaluateIndicator `json:"list"`
+}
+
+type EvaluateIndicator {
+	Id            int64  `json:"id"`
+	IndicatorName string `json:"indicatorName"` // 指标名称
+	EvaluateType  int64  `json:"evaluateType"`  // 评价类型 1 班级 2教师 3地点
+	Sort          int64  `json:"sort"`          // 排序
+}
+
+type EvaluateIndicatorContentRequestV2 {
+	TaskId      int64 `json:"taskId"`
+	IndicatorId int64 `json:"indicatorId"`
+	ObjectId    int64 `json:"objectId"`
+}
+
+type EvaluateIndicatorContentResponse {
+	List []*EvaluateIndicatorContent `json:"list"`
+}
+
+type EvaluateIndicatorContent {
+	Id          int64  `json:"id"`
+	ContentName string `json:"contentName"` // 指标内容名称
+	StuSelect   int64  `json:"stuSelect"`   // 是否可选学生 1 可选 0 不可选
+	SelectType  int64  `json:"selectType"`
+	Sort        int64  `json:"sort"` // 排序
+	IsEvaluate  bool   `json:"isEvaluate"`
+	HavScore    bool   `json:"havScore"`
+	Score       int64  `json:"score"`
+	CycleType   int64  `json:"cycleType"` // 周期类型 0: 日 1: 周 2: 月
+}
+
+type EvaluateObjectRequestV2 {
+	TaskId       int64 `json:"taskId"`       // 任务id
+	IndicatorId  int64 `json:"indicatorId"`  // 指标id
+	EvaluateType int64 `json:"evaluateType"` // 指标评价类型
+}
+
+type EvaluateObjectResponseV2 {
+	ClassObjects   []*ClassObject   `json:"classObjects"`   // 待评价的班级对象
+	TeacherObjects []*TeacherGroups `json:"teacherObjects"` // 待评价的教师对象
+	PlaceObjects   []*PlaceObject   `json:"scopeObjects"`   // 待评价的范围对象
+}
+
+type ClassObject {
+	CampusGradeId   int64        `json:"campusGradeId"`   // 年级id
+	GradeId         int64        `json:"gradeId"`         // 标准年级id
+	CampusGradeName string       `json:"campusGradeName"` // 年级名称
+	ClassList       []*ClassInfo `json:"classList"`       // 班级列表
+}
+
+type ClassInfo {
+	ClassId       int64  `json:"classId"`
+	ClassName     string `json:"className"`     // 班级姓名
+	ClassNum      int64  `json:"classNum"`      // 班级标准
+	CampusGradeId int64  `json:"campusGradeId"` // 班级年级
+	DisplayName   string `json:"displayName"`   // 展示名称
+	IsEvaluated   int64  `json:"isEvaluated"`   // 是否已评价
+}
+
+type TeacherGroups {
+	DepartmentId   int64            `json:"departmentId"`
+	DepartmentName string           `json:"departmentName"`
+	Teachers       []*TeacherObject `json:"teachers"`
+}
+
+type TeacherObject {
+	TeacherId    int64  `json:"teacherId"`
+	TeacherName  string `json:"teacherName"`  // 教师姓名
+	XhbUserToken string `json:"xhbUserToken"` // 教师晓黑板id
+	Avatar       string `json:"avatar"`       // 教师头像
+	PinYinName   string `json:"pinYinName"`   // 教师姓名拼音
+	IsEvaluated  int64  `json:"isEvaluated"`  // 是否已评价
+}
+
+type PlaceObject {
+	PlaceTypeId   int64        `json:"placeTypeId"`   // 地点类型
+	PlaceTypeName string       `json:"placeTypeName"` // 类型名称
+	PlaceInfos    []*PlaceInfo `json:"placeInfos"`
+}
+
+type PlaceInfo {
+	ScopeName     string `json:"scopeName"`     // 地点名称
+	IsEvaluated   int64  `json:"isEvaluated"`   // 是否已评价
+	PlaceId       int64  `json:"placeId"`       // 地点id
+	PlaceTypeId   int64  `json:"placeTypeId"`   // 地点类型
+	PlaceTypeName string `json:"placeTypeName"` // 类型名称
+	Sort          int64  `json:"sort"`
+}
+
+type AllEvaluateLogsRequest {
+	TaskId      int64   `json:"taskId"`               // 任务id
+	EvaluatorId int64   `json:"evaluatorId,optional"` // 评价人id
+	ObjectIds   []int64 `json:"objectIds,optional"`   // 被评价人
+	StartTime   int64   `json:"startTime"`            // 开始时间
+	EndTime     int64   `json:"endTime"`              // 结束时间
+	NowPage     int     `json:"nowPage"`
+	PageSize    int     `json:"pageSize"`
+}
+
+type AllEvaluateLogsResponse {
+	Total   int64        `json:"total"`   // 总计
+	NowPage int64        `json:"nowPage"` // 当前页
+	List    [][]*LogItem `json:"list"`
+}
+
+type LogItem {
+	Id              int64              `json:"id"`
+	TaskId          int64              `json:"taskId"`                  // 任务id
+	TaskName        string             `json:"taskName"`                // 任务名
+	Avatar          string             `json:"avatar"`                  // 图标
+	EvaluatedTime   int64              `json:"evaluatedTime"`           // 评价时间
+	EvaluatorName   string             `json:"evaluatorName"`           // 评价人名
+	EvaluateType    int                `json:"evaluateType"`            // 评价类型:1-班级;2-教师;3-地点
+	EvaluatedId     int64              `json:"evaluatedId"`             // 被评价人id
+	EvaluatedName   string             `json:"evaluatedName"`           // 被评价人名
+	IndicatorId     int64              `json:"indicatorId"`             // 指标id
+	IndicatorName   string             `json:"indicatorName"`           // 指标名
+	ContentId       int64              `json:"contentId"`               // 内容Id
+	ContentName     string             `json:"contentName"`             // 内容名
+	SelectType      int64              `json:"selectType"`              // 1单选 2多选
+	ContentItemId   int64              `json:"contentItemId"`           // 评价项id
+	ContentItemName string             `json:"contentItemName"`         // 评价项
+	Score           int64              `json:"score"`                   // 分数
+	RelTeachers     string             `json:"relTeachers,omitempty"`   // 相关教师姓名
+	RelTeacherIds   []int64            `json:"relTeacherIds,omitempty"` // 相关教师id
+	RelStudents     string             `json:"relStudents,omitempty"`   // 相关学生姓名
+	RelStudentIds   []int64            `json:"relStudentIds,omitempty"` // 相关学生id
+	RelClasses      []*ObjectClassInfo `json:"relClasses,omitempty"`    // 相关班级信息
+	Remark          *CommentDetail     `json:"remark,omitempty"`        // 评价内容
+}
+
+type RatingConfigItemRequest {
+}
+
+type RatingConfigItemsResponse {
+	Configs  []*RatingConfigItem `json:"configs"`
+	IsMaster bool                `json:"isMaster"` // 是否是功能管理员或任务管理员
+}
+
+type RatingConfigItem {
+	ConfigId    int64              `json:"configId"`
+	Title       string             `json:"title"`
+	Cycle       int64              `json:"cycle"`       // 评比周期 1：日 2：周 3：月
+	ScoringRule int64              `json:"scoringRule"` // 记分规则 1：总分 2：平均分
+	ObjectType  int                `json:"objectType"`  // 对象类型 1：班级 2：教师 3：地点
+	RatingScope int                `json:"ratingScope"` // 班级评比范围 1：全校班级；2：年级内班级
+	GradeConfig *RatingGradeConfig `json:"gradeConfig"` // 等第配置
+	CreateTime  int64              `json:"createTime"`
+}
+
+type DateCycle {
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+}
+
+type RatingConfigRuleRequest {
+	ConfigId  int64      `json:"configId"`
+	DateCycle *DateCycle `json:"dateCycle"`
+}
+
+type RatingConfigRuleResponse {
+	ConfigId    int64               `json:"configId"`
+	Title       string              `json:"title"`
+	ObjectType  int                 `json:"objectType"`  // 对象类型 1：班级 2：教师 3：地点
+	ScoringRule int64               `json:"scoringRule"` // 记分规则 1：总分 2：平均分
+	RatingCycle int                 `json:"ratingCycle"` // 评比周期 1：日 2：周 3：月（0.1.7新增）
+	TaskConfig  []*RatingTaskConfig `json:"taskConfig"`
+	ObjectsIds  []int64             `json:"objectsIds"`
+	ObjectTitle []string            `json:"objectTitle"`
+}
+
+type EvaluatedContentLogRequest {
+	StartTime   int64 `json:"startTime"`   // 开始时间
+	EndTime     int64 `json:"endTime"`     // 结束时间
+	TaskId      int64 `json:"taskId"`      // 任务id
+	IndicatorId int64 `json:"indicatorId"` // 指标id
+	ContentId   int64 `json:"contentId"`   // 内容ID
+	ObjectId    int64 `json:"objectId"`    // 对象ID
+}
+
+type EvaluatedLogResponse {
+	Master  bool           `json:"master"` // 是否是管理员
+	Count   int64          `json:"count"`  // 当前页数
+	NowPage int64          `json:"nowPage"`
+	LogList []*LogListItem `json:"logList"`
+}
+
+type LogListItem {
+	LogId                    int64              `json:"logId"`
+	TaskId                   int64              `json:"taskId"`
+	Master                   bool               `json:"master"`
+	EvaluatedTime            int64              `json:"evaluatedTime"`            // 评价时间
+	IsSelf                   bool               `json:"isSelf"`                   // 是否自己评价的
+	EvaluatorName            string             `json:"evaluatorName"`            // 评价人名
+	EvaluateType             int64              `json:"evaluateType"`             // 被评价类型  1班级 2教师 3地点
+	EvaluatedId              int64              `json:"evaluatedId"`              // 被评价对象id
+	EvaluatedName            string             `json:"evaluatedName"`            // 被评价人名
+	IndicatorId              int64              `json:"indicatorId"`              // 指标id
+	IndicatorName            string             `json:"indicatorName"`            // 指标名
+	ContentId                int64              `json:"contentId"`                // 内容Id
+	IndicatorContentName     string             `json:"indicatorContentName"`     // 指标内容名
+	ContentItemId            int64              `json:"contentItemId"`            // 评价项id
+	IndicatorContentItemName string             `json:"indicatorContentItemName"` // 评价项
+	RelTeachers              string             `json:"relTeachers"`              // 关联教师
+	RelTeacherIds            []int64            `json:"relTeacherIds"`            // 关联教师ids
+	RelStudents              string             `json:"relStudents"`              // 关联学生
+	RelStudentIds            []int64            `json:"relStudentIds"`            // 关联学生ids
+	RelClasses               []*ObjectClassInfo `json:"relClasses"`               // 关联班级
+	Comment                  *CommentDetail     `json:"comment"`                  // 评价内容
+	Score                    int64              `json:"score"`                    // 分数
+}
+
+type PlaceStudentRelationRequest {
+	PlaceId int64 `path:"placeId"`
+}
+
+type PlaceStudentRelationResponse {
+	List []*SingleStudentProfileData `json:"list,omitempty"`
+}
+
+type SingleStudentProfileData {
+	StudentProfileId int64  `json:"studentProfileId"`
+	Name             string `json:"name"`
+	Avatar           string `json:"avatar"`
+	Gender           int64  `json:"gender"`
+	Code             string `json:"code"`
+	IdNumber         string `json:"idNumber"`
+	ClassId          int64  `json:"classId"`
+	CampusGradeId    int64  `json:"campusGradeId"`
+	ClassName        string `json:"className"`
+	CampusGradeName  string `json:"campusGradeName"`
+}
+
+type EvaluateIndicatorContentItemRequest {
+	ContentId int64 `path:"contentId"`
+}
+
+type EvaluateIndicatorContentItemResponse {
+	List []*EvaluateIndicatorContentItem `json:"list"`
+}
+
+type EvaluateIndicatorContentItem {
+	Id          int64  `json:"id"`
+	ContentItem string `json:"contentItem"` // 指标内容评价项名称
+	ItemScore   int64  `json:"itemScore"`   // 评价项分数
+	MaxScore    int64  `json:"maxScore"`    // max
+	MinScore    int64  `json:"minScore"`    // minScore
+	Type        int    `json:"type"`        // type类型
+	Sort        int    `json:"sort"`        // 优先级排序
+}
+
+type EvaluateDetailRequest {
+	TaskId      int64 `json:"taskId"`
+	IndicatorId int64 `json:"indicatorId"`
+	ContentId   int64 `json:"contentId"`
+}
+
+type EvaluateDetailResponse {
+	PicturesForMobile int64   `json:"picturesForMobile"` // 是否可从相册中选取
+	RelationTeachers  int64   `json:"relationTeachers"`  // 是否可同步教师
+	RelationStudents  int64   `json:"relationStudents"`  // 是否可同步学生
+	RelationClasses   int64   `json:"relationClasses"`   // 是否可同步班级
+	ConfigRelations   []int64 `json:"configRelations"`   // 当前任务配置项
+}
+
+type EvaluateAddLogResponseV3 {
+	UpdateNewId int64 `json:"updateNewId,optional"` //update产生新的id
+}
+
+type EvaluateObjects {
+	ObjectId         int64   `json:"objectId"`                  // 被评价对象id
+	RelationTeachers []int64 `json:"relationTeachers,optional"` // 相关教师
+	RelationStudents []int64 `json:"relationStudents,optional"` // 相关学生
+	RelationClasses  []int64 `json:"relationClasses,optional"`  // 相关班级
+}
+
+type ContentItemInfo {
+	ContentItemId   int64  `json:"contentItemId"`   // 评价项id
+	ContentItemName string `json:"contentItemName"` // 评价项名称
+	ItemScore       int64  `json:"itemScore"`       // 评价项分值
+}
+
+type TasksContainsTypeRequest {
+	TaskIds []int64 `json:"taskIds"`
+}
+
+type TasksContainsTypeResponse {
+	TaskType    []*TaskContainsIndicatorType `json:"taskType"`
+	CurrentUser *ObjectInfo                  `json:"currentUser"`
+}
+
+type TaskContainsIndicatorType {
+	TaskId      int64                    `json:"taskId"`
+	ShowAllUser bool                     `json:"showAllUser"`
+	Indicators  []*IndicatorInfoWithType `json:"indicators"`
+}
+
+type IndicatorInfoWithType {
+	Type       int64                         `json:"type"` // class:1 teacher:2 scope:3
+	Indicators []*IndicatorInfoWithEvaluator `json:"indicators"`
+}
+
+type IndicatorInfoWithEvaluator {
+	IndicatorId int64         `json:"indicatorId"`
+	Name        string        `json:"name"`
+	BaseScore   int64         `json:"baseScore"`
+	Evaluators  []*ObjectInfo `json:"evaluators"`
+}
+
+type GetEvaluateNumRequest {
+	StartTime   int64   `json:"startTime"`
+	EndTime     int64   `json:"endTime"`
+	ContentIds  []int64 `json:"contentIds"`
+	ObjectIds   []int64 `json:"objectIds"`
+	TaskId      int64   `json:"taskId"`
+	IndicatorId int64   `json:"indicatorId"`
+	Evaluator   int64   `json:"evaluator"`
+}
+
+type GetEvaluateNumResponse {
+	EvaluateNum int64 `json:"evaluateNum"`
+}
+
+type GetEvaluateGridLogsHeaderRequest {
+	TaskId      int64 `json:"taskId"`
+	IndicatorId int64 `json:"indicatorId"`
+}
+
+type GetEvaluateGridLogsHeaderResponse {
+	Contents []*ContentInfo `json:"contents"`
+	Objects  []*ObjectInfo  `json:"objects"`
+}
+
+type ObjectInfo {
+	ObjectId   int64  `json:"objectId"`
+	ObjectType int    `json:"objectType"`
+	Name       string `json:"name"`
+	Avatar     string `json:"avatar"`
+}
+
+type ContentInfo {
+	Id          int64  `json:"id"`          // 指标内容ID
+	ContentName string `json:"contentName"` // 指标内容名称
+	StuSelect   int    `json:"stuSelect"`   // 是否可选学生 1可选 0不可选
+	SelectType  int64  `json:"selectType"`  // 1单选 2多选
+}
+
+type GetEvaluateGridLogsDataRequest {
+	TaskId      int64   `json:"taskId"`
+	IndicatorId int64   `json:"indicatorId"`
+	StartTime   int64   `json:"startTime"`
+	EndTime     int64   `json:"endTime"`
+	Evaluator   int64   `json:"evaluator"`
+	ContentIds  []int64 `json:"contentIds"`
+	ObjectIds   []int64 `json:"objectIds"`
+}
+
+type GetEvaluateGridLogsDataResponse {
+	CeilData [][]*GridCeilData `json:"ceilData"`
+}
+
+type GridCeilData {
+	ContentId int64 `json:"contentId"`
+	ObjectId  int64 `json:"objectId"`
+	Score     int64 `json:"score"`
+	IsOperate bool  `json:"isOperate"`
+	ShowScore bool  `json:"showScore"`
+}
+
+type GetRatingTaskDataRequest {
+	ConfigId    int64 `json:"configId"`
+	SortType    int64 `json:"sortType"`
+	StartTime   int64 `json:"startTime"`
+	EndTime     int64 `json:"endTime"`
+	ShowContent bool  `json:"showContent,optional"`
+}
+
+type RatingData {
+	ObjectType  int64   `json:"objectType"`     // 评价类型 1-班级 2-教师 3-地点
+	ObjectId    int64   `json:"objectId"`       // 被评价对象id
+	ObjectName  string  `json:"objectName"`     // 被评价对象名称
+	Grade       string  `json:"objectSuperior"` // 年级名；地点类型
+	TeacherName string  `json:"teacherName"`    // 被评价对象老师姓名
+	Sort        int     `json:"sort"`           // 排名
+	Level       string  `json:"level"`          // 等级名称
+	LevelImage  string  `json:"levelImage"`     // 等级图标
+	HighImage   string  `json:"highImage"`      // 海报用图片
+	Score       float64 `json:"score"`          // 总分；平均分
+	BaseScore   float64 `json:"baseScore"`      // 基础分
+	OpScore     float64 `json:"opScore"`        // 评分
+	OpNumber    int64   `json:"opNumber"`       // 评价次数
+}
+
+type GetGradeClassRatingResp {
+	List []*GetGradeClassRatingItem `json:"list"`
+}
+
+type GetGradeClassRatingItem {
+	GradeName string        `json:"gradeName"`
+	GradeId   int64         `json:"gradeId"`
+	Rating    []*RatingData `json:"rating"`
+}
+
+type ObjectRelationRequest {
+	PlaceIds []int64 `json:"placeIds,optional"`
+	ClassIds []int64 `json:"classIds,optional"`
+}
+
+type ObjectRelationResponse {
+	Classes  []*ObjectRelClasses  `json:"classes"`
+	Teachers []*ObjectRelTeachers `json:"teachers"`
+}
+
+type ObjectRelClasses {
+	ScopeName      string             `json:"scopeName"` // 被评价对象
+	ClassId        int64              `json:"classId"`
+	ObjectClassIds []int64            `json:"objectClassIds"`
+	ObjectClasses  []*ObjectClassInfo `json:"objectClasses"`
+}
+
+type ObjectRelTeachers {
+	ScopeName        string           `json:"scopeName"` // 被评价对象
+	ClassId          int64            `json:"classId"`
+	ObjectTeacherIds []int64          `json:"objectTeacherIds"`
+	ObjectTeachers   []*TeacherObject `json:"objectTeachers"`
+}
+
+type ObjectClassInfo {
+	ClassId       int64  `json:"classId"`
+	ClassName     string `json:"className"`
+	GradeName     string `json:"gradeName"`
+	CampusGradeId int64  `json:"campusGradeId"`
+}
+
+type EvaluateAuthorityRequest {
+	TaskId           int64 `json:"taskId"`
+	IndicatorId      int64 `json:"indicatorId"`
+	EvaluateObjectId int64 `json:"evaluateObjectId"`
+	StartTime        int64 `json:"startTime"`
+	EndTime          int64 `json:"endTime"`
+}
+
+type EvaluateAuthorityResponse {
+	Aut int64 `json:"aut"`
+}
+
+type GetRatingObjectDataRequest {
+	TaskId    int64 `json:"taskId"`
+	ConfigId  int64 `json:"configId"`
+	ObjectId  int64 `json:"objectId"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+}
+
+type GetRatingObjectDataResponse {
+	RatingObjectDetailData *RatingObjectTaskData `json:"ratingObjectDetailData"`
+}
+
+type RatingObjectTaskData {
+	TaskId         int64                  `json:"taskId"`
+	TeacherName    string                 `json:"teacherName"`
+	IndicatorsData []*RatingIndicatorData `json:"indicatorsData"`
+}
+
+type RatingIndicatorData {
+	IndicatorId   int64                `json:"indicatorId"`
+	IndicatorName string               `json:"indicatorName"`
+	Score         float64              `json:"score"`
+	OpNumber      int64                `json:"opNumber"`
+	ContentsData  []*RatingContentData `json:"contentsData"`
+}
+
+type RatingContentData {
+	ContentId        int64                    `json:"contentId"`
+	ContentName      string                   `json:"contentName"`
+	Score            int64                    `json:"score"`
+	OpNumber         int64                    `json:"opNumber"`
+	ContentItemsData []*RatingContentItemData `json:"contentItemsData"`
+}
+
+type RatingContentItemData {
+	ContentItemId   int64  `json:"contentItemId"`
+	ContentItemName string `json:"contentItemName"`
+	Type            int64  `json:"type"` // 0 : 固定分数 1: 区间分数
+	GradeName       string `json:"gradeName"`
+	FixScore        int64  `json:"fixScore"`
+	MinScore        int64  `json:"minScore"`
+	MaxScore        int64  `json:"maxScore"`
+	OpNumber        int64  `json:"opNumber"`
+	Score           int64  `json:"score"`
+}
+
+type EvaluateDetailActRequest {
+	DetailId int64 `path:"detailId"`
+}
+
+type DeleteEvaluateDetailsRequest {
+	DetailIds []int64 `json:"detailIds"`
+}
+
+type ClientCacheEffectRequest {
+	TaskId      int64 `json:"taskId"`
+	IndicatorId int64 `json:"indicatorId"`
+}
+
+type ClientCacheEffectResponse {
+	Effect        bool   `json:"effect"`
+	TaskName      string `json:"taskName"`
+	IndicatorName string `json:"indicatorName"`
+}
+
+type VoiceEvaluateRequest {
+	Text string `json:"text"`
+	Type int    `json:"type,optional"`
+}
+
+type VoiceEvaluateResponse {
+	TaskId                int64                           `json:"taskId"`                  // 任务 id
+	TaskName              string                          `json:"taskName,omitempty"`      // 任务名称
+	IndicatorId           int64                           `json:"indicatorId"`             // 指标 id
+	IndicatorName         string                          `json:"indicatorName,omitempty"` // 指标名称
+	ContentId             int64                           `json:"contentId"`               // 内容 id
+	ContentName           string                          `json:"contentName,omitempty"`   // 内容名称
+	EvaluateType          int                             `json:"evaluateType"`            // 评价类型
+	EvaluateId            int64                           `json:"evaluateId,omitempty"`    // 评价人 id
+	EvaluateName          string                          `json:"evaluateName,omitempty"`  // 评价人显示名称
+	EvaluateOptions       []*EvaluateOption               `json:"evaluateOptions,omitempty"`
+	ContentItem           []*EvaluateIndicatorContentItem `json:"contentItem,omitempty"`           // 评价项
+	SelectedContentItemId int                             `json:"selectedContentItemId,omitempty"` // 匹配到评价项的选项 -1：未匹配到
+	TeacherEvaluateCan    int                             `json:"teacherEvaluateCan"`              // 如果是老师类型 0 就代表今天不能评价 1代表可以
+}
+
+type EvaluateOption {
+	Id        int64  `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	ClassName string `json:"className,omitempty"`
+	Type      int    `json:"type,omitempty"`
+}
+
+type (
+	GradeClass {
+		GradeName  string           `json:"gradeName"`
+		GradeId    int64            `json:"gradeId"`
+		RatingData []*WebRatingData `json:"ratingData"` // 数据
+	}
+
+	GetWebRatingTaskGradeClassResp {
+		Indicators  []*Indicators      `json:"indicators"` // 表头
+		GradeClass  []*GradeClass      `json:"gradeClass"`
+		ScoringRule int64              `json:"scoringRule"` // 记分规则 1：总分 2：平均分
+		GradeConfig *RatingGradeConfig `json:"gradeConfig"` // 等第配置
+	}
+
+	GetWebRatingTaskDataResponse {
+		Indicators  []*Indicators      `json:"indicators"`  // 表头
+		RatingData  []*WebRatingData   `json:"ratingData"`  // 数据
+		ScoringRule int64              `json:"scoringRule"` // 记分规则 1：总分 2：平均分
+		GradeConfig *RatingGradeConfig `json:"gradeConfig"` // 等第配置
+	}
+
+	Indicators {
+		TaskId         int64       `json:"taskId"`         // 任务id
+		TaskName       string      `json:"taskName"`       // 任务
+		IndicatorId    int64       `json:"indicatorId"`    // 指标id
+		IndicatorName  string      `json:"indicatorName"`  // 指标
+		IndicatorScore float64     `json:"indicatorScore"` // 指标分数
+		BaseScore      float64     `json:"baseScore"`      // 基础分
+		Weight         float64     `json:"weight"`         // 系数；权重
+		Contents       []*Contents `json:"contents"`       // 内容
+		OpNumber       int64       `json:"opNumber"`
+	}
+
+	Contents {
+		ContentId    int64   `json:"contentId"`    // 内容id
+		ContentName  string  `json:"contentName"`  // 内容
+		ContentScore float64 `json:"contentScore"` // 内容分数
+		OpNumber     int64   `json:"opNumber"`     // 评价次数
+	}
+
+	WebRatingData {
+		ObjectId      int64          `json:"objectId"`    // 对象id
+		ObjectName    string         `json:"objectName"`  // 对象名称
+		ObjectSort    int64          `json:"-"`           // 班级；地点：排序用
+		GroupId       int64          `json:"-"`           // 年级id；地点类型id：排序用
+		SubjectId     int64          `json:"-,omitempty"` //学科id，教师类型，按学科排序用
+		Departments   []*Deparetment `json:"-,omitempty"` //教师类型，按部门排序用
+		DeparetmentId int64          `json:"-,omitempty"` //教师类型，按部门排序用
+		GroupSort     int64          `json:"-"`           // 标准年级id：排序用
+		Indicators    []*Indicators  `json:"indicators"`  // 指标
+		Score         float64        `json:"score"`       // 总分；平均分
+		Level         string         `json:"level"`       // 等级名称
+		LevelImage    string         `json:"levelImage"`  // 等级图标
+		Sort          int            `json:"sort"`        // 排名
+		BaseScore     float64        `json:"baseScore"`   // 基础分
+		OpScore       float64        `json:"opScore"`     // 评分
+		OpNumber      int64          `json:"opNumber"`    // 评价次数
+	}
+	Deparetment {
+		DepartmentId int64  `json:"-"`
+		Title        string `json:"-"`
+	}
+)
+
+type (
+	GetWebRatingObjectDataResponse {
+		ObjectId   int64         `json:"objectId"`   // 对象id
+		ObjectName string        `json:"objectName"` // 对象名称
+		ConfigId   int64         `json:"configId"`   // 评比配置id
+		ConfigName string        `json:"configName"` // 评比名称
+		Score      float64       `json:"score"`      // 总分；平均分
+		OpScore    float64       `json:"opScore"`    // 评分
+		OpNumber   int64         `json:"opNumber"`   // 评价次数
+		BaseScore  float64       `json:"baseScore"`  // 基础分
+		Indicators []*Indicators `json:"indicators"`
+	}
+)
+
+type (
+	WebRatingLogRequest {
+		StartTime   int64 `json:"startTime"` // 开始时间
+		EndTime     int64 `json:"endTime"`   // 结束时间
+		PageSize    int64 `json:"pageSize,optional"`
+		NowPage     int64 `json:"nowPage,optional"`
+		ConfigId    int64 `json:"configId"`    // 配置id
+		TaskId      int64 `json:"taskId"`      // 任务id
+		IndicatorId int64 `json:"indicatorId"` // 指标id
+		ContentId   int64 `json:"contentId"`   // 内容ID
+		ObjectId    int64 `json:"objectId"`    // 对象id
+	}
+)
+
+type InternalRatingTaskDataRequest {
+	CampusId    int64 `json:"campusId"`
+	ConfigId    int64 `json:"configId"`
+	SortType    int64 `json:"sortType"`
+	StartTime   int64 `json:"startTime"`
+	EndTime     int64 `json:"endTime"`
+	ShowContent bool  `json:"showContent,optional"`
+}
+
+type TaskListH5Request {
+	PageType int64 `json:"pageType,optional"` // 1 评价页 2 详情页
+}
+
+type BatchEvaluateTemplateRequest {
+	TaskId       int64 `path:"taskId"`       // 任务id
+	EvaluateType int64 `form:"evaluateType"` // 评价对象类型
+}
+
+type (
+	BatchEvaluateRequest {
+		TaskId       int64  `json:"taskId"`       // 任务id
+		Date         int64  `json:"date"`         // 日期
+		EvaluateType int64  `json:"evaluateType"` // 评价对象类型
+		FileUrl      string `json:"fileUrl"`      // 文件oss地址
+	}
+
+	ImportResponse {
+		TaskId int64 `json:"taskId"` // 生成asynctask服务的任务id
+	}
+)
+
+@server(
+	jwt: Auth
+	group: evaluate
+)
+service classevaluation-api {
+	@doc(
+		summary: "web端获取可评价任务列表"
+	)
+	@server(
+		handler: TaskEvaluateListHandler
+	)
+	get /classevaluation/do-task/list () returns (EvaluationTaskListResponse)
+	
+	@doc(
+		summary: "获取需要评价的表格"
+	)
+	@server(
+		handler: TaskEvaluateGridHandler
+	)
+	post /classevaluation/do-evaluate/grid (EvaluateGridRequest) returns (EvaluateGridResponse)
+	
+	@doc(
+		summary: "当前内容下所有评价项"
+	)
+	@server(
+		handler: TaskEvaluateItemListHandler
+	)
+	get /classevaluation/do-item/list/:contentId (EvaluateIndicatorContentItemRequest) returns (EvaluateIndicatorContentItemResponse)
+	
+	@doc(
+		summary: "删除指标任务清单"
+	)
+	@server(
+		handler: IndicatorOptionDelHandler
+	)
+	get /classevaluation/indicatorOption/del (IndicatorOptionRequest) returns (BoolResponse)
+	
+	@doc(
+		summary: "当前评价任务配置项展示"
+	)
+	@server(
+		handler: TaskEvaluateConfigListHandler
+	)
+	post /classevaluation/do-config/info (EvaluateDetailRequest) returns (EvaluateDetailResponse)
+	
+	@doc(
+		summary: "获取当前评价对象的关联关系"
+	)
+	@server(
+		handler: TaskEvaluateObjectRelationHandler
+	)
+	post /classevaluation/object-relation (ObjectRelationRequest) returns (ObjectRelationResponse)
+	
+	@doc(
+		summary: "新增评价"
+	)
+	@server(
+		handler: TaskEvaluateLogV3Handler
+	)
+	post /classevaluation/do-evaluate/upset (EvaluateAddLogRequestV3) returns (EvaluateAddLogResponseV3)
+	
+	@doc(
+		summary: "地点学生关联列表"
+	)
+	@server(
+		handler: PlaceStudentRelationHandler
+	)
+	get /classevaluation/place-relation/:placeId(PlaceStudentRelationRequest) returns(PlaceStudentRelationResponse)
+	
+	@doc(
+		summary: "评价内容记录"
+	)
+	@server(
+		handler: EvaluatedContentLogHandler
+	)
+	post /classevaluation/data/evaluated-content-log(EvaluatedContentLogRequest) returns(EvaluatedLogResponse)
+	
+	@doc(
+		summary: "删除评价"
+	)
+	@server(
+		handler: WebDeleteEvaluateLogHandler
+	)
+	delete /classevaluation/do-evaluate/delete/:detailId(EvaluateDetailActRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: "判断老师班级考核的权限"
+	)
+	@server(
+		handler: WebJudgeClassEvalAuthorityHandler
+	)
+	get /classevaluation/auth() returns(TeacherAuthResponse)
+	
+	@doc(
+		summary: "所有评价对象评价汇总表"
+	)
+	@server(
+		handler: EvaluateRecordGridHandler
+	)
+	post /classevaluation/evaluate-record/grid(EvaluateRecordGridRequest) returns(EvaluateRecordGridResponse)
+	
+	@doc(
+		summary: "单个评价对象评价内容汇总表"
+	)
+	@server(
+		handler: EvaluatedObjectSummaryHandler
+	)
+	post /classevaluation/evaluated-object/summary(EvaluatedObjectSummaryRequest) returns(EvaluatedObjectSummaryResponse)
+	
+	@doc(
+		summary: "单个评价对象评价记录"
+	)
+	@server(
+		handler: EvaluatedObjectLogHandler
+	)
+	post /classevaluation/evaluated-object/log(EvaluatedObjectLogRequest) returns(EvaluatedObjectLogResponse)
+}
+
+@server(
+	jwt: Auth
+	group: config
+)
+service classevaluation-api {
+	@doc(
+		summary: "评价任务列表"
+	)
+	@server(
+		handler: TaskListHandler
+	)
+	post /classevaluation/task/list (TaskListRequest) returns (TaskListResponse)
+	
+	@doc(
+		summary: "编辑任务时，返回指标 被拼接对象 grid"
+	)
+	@server(
+		handler: TaskIndicatorConfigGridHandler
+	)
+	post /classevaluation/task-indicator/config/grid(EvaluateGridRequest) returns(EvaluateGridResponse)
+	
+	@doc(
+		summary: "评价任务配置列表"
+	)
+	@server(
+		handler: TaskConfigListHandler
+	)
+	get /classevaluation/task/config-list() returns(TaskConfigListResponse)
+	
+	@doc(
+		summary: "查看评价任务"
+	)
+	@server(
+		handler: TaskViewHandler
+	)
+	get /classevaluation/task/view/:taskId(TaskViewRequest) returns(TaskViewResponse)
+	
+	@doc(
+		summary: "新增评价任务"
+	)
+	@server(
+		handler: TaskAddHandler
+	)
+	post /classevaluation/task/add(TaskAddRequest)
+	
+	@doc(
+		summary: "编辑评价任务"
+	)
+	@server(
+		handler: TaskEditHandler
+	)
+	post /classevaluation/task/edit(TaskEditRequest)
+	
+	@doc(
+		summary: "删除评价任务"
+	)
+	@server(
+		handler: TaskDeleteHandler
+	)
+	post /classevaluation/task/delete(TaskDeleteRequest)
+	
+	@doc(
+		summary: "查看任务指标"
+	)
+	@server(
+		handler: TaskIndicatorViewHandler
+	)
+	post /classevaluation/task-indicator/view(TaskIndicatorViewRequest) returns(TaskIndicatorViewResponse)
+	
+	@doc(
+		summary: "更新指标sort"
+	)
+	@server(
+		handler: IndicatorSortUpdateHandler
+	)
+	post /classevaluation/indicator/sort/update(IndicatorSortUpdateRequest)
+	
+	@doc(
+		summary: "编辑指标"
+	)
+	@server(
+		handler: IndicatorUpdateHandler
+	)
+	post /classevaluation/indicator/update(UpdateIndicatorRequest)
+	
+	@doc(
+		summary: "新增/删除指标"
+	)
+	@server(
+		handler: IndicatorUpsetHandler
+	)
+	post /classevaluation/indicator/upset(UpsetTaskIndicatorRequest) returns(UpsetTaskIndicatorResponse)
+	
+	@doc(
+		summary: "停止indicatorOption"
+	)
+	@server(
+		handler: IndicatorOptionStopHandler
+	)
+	post /classevaluation/indicator/option/stop(IndicatorOptionStopRequest)
+	
+	@doc(
+		summary: "新增/编辑/删除 评价内容"
+	)
+	@server(
+		handler: IndicatorContentActionHandler
+	)
+	post /classevaluation/content/act(ActContentRequest)
+	
+	@doc(
+		summary: "评价内容排序"
+	)
+	@server(
+		handler: IndicatorContentSortHandler
+	)
+	post /classevaluation/content/sort(SortContentRequest)
+	
+	@doc(
+		summary: "新增/编辑/删除 评价关系"
+	)
+	@server(
+		handler: IndicatorOptionActionHandler
+	)
+	post /classevaluation/object/act(ActObjectRequest)
+	
+	@doc(
+		summary: "班级-教师关联操作"
+	)
+	@server(
+		handler: ClassTeacherActionHandler
+	)
+	post /classevaluation/class-teacher/act(ClassTeacherRelationActRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: "班级-教师关联列表"
+	)
+	@server(
+		handler: ClassTeacherListHandler
+	)
+	post /classevaluation/class-teacher/list(ClassTeacherRequest) returns(ClassTeacherRelationListResponse)
+	
+	@doc(
+		summary: "地点-班级-教师关联列表"
+	)
+	@server(
+		handler: ScopeClassTeacherListHandler
+	)
+	post /classevaluation/scope-class-teacher/list(ScopeClassTeacherRequest) returns(ScopeClassTeacherResponse)
+	
+	@doc(
+		summary: "地点-班级-教师关联操作"
+	)
+	@server(
+		handler: ScopeClassTeacherActionHandler
+	)
+	post /classevaluation/scope-class-teacher/act(ScopeClassTeacherAct) returns(BoolResponse)
+}
+
+@server(
+	jwt: Auth
+	group: statistic
+)
+service classevaluation-api {
+	@doc(
+		summary: "获取报告配置列表"
+	)
+	@server(
+		handler: ReportOptionsHandler
+	)
+	get /classevaluation/get-report-options(GetReportOptionsRequest) returns(GetReportOptionsResponse)
+	
+	@doc(
+		summary: "新建/更新报告配置"
+	)
+	@server(
+		handler: ReportOptionUpsetHandler
+	)
+	post /classevaluation/upset-report-option(ReportOption) returns(UpsetReportOptionResponse)
+	
+	@doc(
+		summary: "删除报告配置"
+	)
+	@server(
+		handler: ReportOptionDeleteHandler
+	)
+	delete /classevaluation/delete-report-option(DeleteReportOptionRequest) returns(DeleteReportOptionResponse)
+	
+	@doc(
+		summary: "获取当前任务配置"
+	)
+	@server(
+		handler: TaskOptionHandler
+	)
+	get /classevaluation/get-task-option(GetTaskOptionRequest) returns(GetTaskOptionResponse)
+	
+	@doc(
+		summary: "获取指标数据汇总"
+	)
+	@server(
+		handler: TaskIndicatorDataHandler
+	)
+	post /classevaluation/task-indicator-data(TaskIndicatorDataRequest) returns(TaskIndicatorDataResponse)
+	
+	@doc(
+		summary: "获取指标数据导出"
+	)
+	@server(
+		handler: TaskExplicitDataExportHandler
+	)
+	post /classevaluation/task-indicator-data/export(TaskIndicatorDataExportRequest) returns(TaskIndicatorDataExportResponse)
+	
+	@doc(
+		summary: "简表导出"
+	)
+	@server(
+		handler: TaskSimpleDataExportHandler
+	)
+	post /classevaluation/simple-data-excel/export(SimpleDataExcelExportRequest)
+	
+	@doc(
+		summary: "获取指标数据详情"
+	)
+	@server(
+		handler: TaskIndicatorDetailHandler
+	)
+	post /classevaluation/task-indicator-detail(TaskIndicatorDetailRequest) returns(TaskIndicatorDetailResponse)
+	
+	@doc(
+		summary: "评价记录"
+	)
+	@server(
+		handler: EvaluatedLogHandler
+	)
+	post /classevaluation/data/evaluated-log(EvaluatedLogRequest) returns(EvaluatedLogResponse)
+	
+	@doc(
+		summary: "数据报告"
+	)
+	@server(
+		handler: ReportTaskIndicatorDataHandler
+	)
+	post /classevaluation/report-indicator-class(ReportTaskIndicatorDataRequest) returns(ReportTaskIndicatorDataResponse)
+	
+	@doc(
+		summary: "简表导出"
+	)
+	@server(
+		handler: SimpleDataExcelConfigExportHandler
+	)
+	post /classevaluation/simple-data-excel/export-conf(SimpleDataExcelConfigExportRequest)
+}
+
+@server(
+	jwt: Auth
+	group: rating
+)
+service classevaluation-api {
+	@doc(
+		summary: "评比配置列表"
+	)
+	@server(
+		handler: RatingConfigListHandler
+	)
+	post /classevaluation/ratingConfig/list(RatingConfigListRequest) returns(RatingConfigListResponse)
+	
+	@doc(
+		summary: "评比等级默认图标"
+	)
+	@server(
+		handler: RatingConfigGradeImagesHandler
+	)
+	get /classevaluation/ratingConfig/grade_images() returns(RatingConfigGradeImagesResponse)
+	
+	@doc(
+		summary: "评比配置新增"
+	)
+	@server(
+		handler: RatingConfigAddHandler
+	)
+	post /classevaluation/ratingConfig/add(RatingConfigAddRequest) returns(RatingConfigAddResponse)
+	
+	@doc(
+		summary: "评比配置编辑"
+	)
+	@server(
+		handler: RatingConfigEditHandler
+	)
+	post /classevaluation/ratingConfig/edit(RatingConfigEditRequest) returns(RatingConfigEditResponse)
+	
+	@doc(
+		summary: "评比配置停止"
+	)
+	@server(
+		handler: RatingConfigStopHandler
+	)
+	post /classevaluation/ratingConfig/stop(RatingConfigStopRequest) returns(RatingConfigStopResponse)
+	
+	@doc(
+		summary: "评比配置启用"
+	)
+	@server(
+		handler: RatingConfigStartHandler
+	)
+	post /classevaluation/ratingConfig/start(RatingConfigStartRequest) returns(RatingConfigStartResponse)
+	
+	@doc(
+		summary: "评比配置删除"
+	)
+	@server(
+		handler: RatingConfigDeleteHandler
+	)
+	post /classevaluation/ratingConfig/delete(RatingConfigDelRequest) returns(RatingConfigDelResponse)
+	
+	@doc(
+		summary: "web评比任务数据"
+	)
+	@server(
+		handler: GetWebRatingTaskDataHandler
+	)
+	post /classevaluation/rating-task-data(GetRatingTaskDataRequest) returns(GetWebRatingTaskDataResponse)
+	
+	@doc(
+		summary: "web评比对象详细数据"
+	)
+	@server(
+		handler: GetWebRatingObjectDataHandler
+	)
+	post /classevaluation/rating-object-data(GetRatingObjectDataRequest) returns(GetWebRatingObjectDataResponse)
+	
+	@doc(
+		summary: "web评价记录(评比)"
+	)
+	@server(
+		handler: WebRatingEvaluatedLogHandler
+	)
+	post /classevaluation/rating/evaluated-log(WebRatingLogRequest) returns(EvaluatedLogResponse)
+	
+	@doc(
+		summary: "评比导出"
+	)
+	@server(
+		handler: RatingExportHandler
+	)
+	post /classevaluation/rating/export(GetRatingTaskDataRequest)
+	
+	@doc(
+		summary: "web年级班级评比任务数据"
+	)
+	@server(
+		handler: GetWebRatingTaskGradeClassHandler
+	)
+	post /classevaluation/rating-task-data/gradeclass(GetRatingTaskDataRequest) returns(GetWebRatingTaskGradeClassResp)
+}
+
+@server(
+	jwt: XhbAuth
+	group: evaluate
+)
+service classevaluation-api {
+	@doc(
+		summary: "当前任务下可评价指标"
+	)
+	@server(
+		handler: DoIndicatorListHandler
+	)
+	get /classevaluation/h5/do-indicator/list/:taskId(EvaluateIndicatorRequest) returns(EvaluateIndicatorResponse)
+	
+	@doc(
+		summary: "当前指标下可评价内容"
+	)
+	@server(
+		handler: DoContentListV2Handler
+	)
+	post /classevaluation/h5/do-content/listv2(EvaluateIndicatorContentRequestV2) returns(EvaluateIndicatorContentResponse)
+	
+	@doc(
+		summary: "获取当前评价对象"
+	)
+	@server(
+		handler: DoTaskObjectV2Handler
+	)
+	post /classevaluation/h5/do-object/infov2(EvaluateObjectRequestV2) returns(EvaluateObjectResponseV2)
+	
+	@doc(
+		summary: "地点学生关联列表h5"
+	)
+	@server(
+		handler: PlaceStudentRelationH5Handler
+	)
+	get /classevaluation/h5/place-relation/:placeId(PlaceStudentRelationRequest) returns(PlaceStudentRelationResponse)
+	
+	@doc(
+		summary: "当前内容下所有评价项"
+	)
+	@server(
+		handler: DoContentItemListHandler
+	)
+	get /classevaluation/h5/do-item/list/:contentId(EvaluateIndicatorContentItemRequest) returns(EvaluateIndicatorContentItemResponse)
+	
+	@doc(
+		summary: "当前评价任务配置项展示"
+	)
+	@server(
+		handler: DoTaskConfigsHandler
+	)
+	post /classevaluation/h5/do-config/info(EvaluateDetailRequest) returns(EvaluateDetailResponse)
+	
+	@doc(
+		summary: "新增评价"
+	)
+	@server(
+		handler: UpSetEvaluateLogV3Handler
+	)
+	post /classevaluation/h5/do-evaluate/upset(EvaluateAddLogRequestV3) returns(EvaluateAddLogResponseV3)
+	
+	@doc(
+		summary: "获取当前评价对象的关联关系"
+	)
+	@server(
+		handler: ObjectRelationHandler
+	)
+	post /classevaluation/h5/object-relation(ObjectRelationRequest) returns(ObjectRelationResponse)
+	
+	@doc(
+		summary: "app端可评价任务列表"
+	)
+	@server(
+		handler: DoTaskListHandler
+	)
+	post /classevaluation/h5/do-task/list(TaskListH5Request) returns(EvaluationTaskListResponse)
+	
+	@doc(
+		summary: "评价内容记录"
+	)
+	@server(
+		handler: EvaluatedContentLogH5Handler
+	)
+	post /classevaluation/h5/data/evaluated-content-log(EvaluatedContentLogRequest) returns(EvaluatedLogResponse)
+	
+	@doc(
+		summary: "判断是否有权限评价"
+	)
+	@server(
+		handler: EvaluateAuthorityH5Handler
+	)
+	post /classevaluation/h5/evaluateAuthority(EvaluateAuthorityRequest) returns(EvaluateAuthorityResponse)
+	
+	@doc(
+		summary: "h5删除评价"
+	)
+	@server(
+		handler: DeleteEvaluateLogHandler
+	)
+	delete /classevaluation/h5/do-evaluate/delete/:detailId(EvaluateDetailActRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: "批量删除评价详情"
+	)
+	@server(
+		handler: DeleteEvaluateDetailsHandler
+	)
+	post /classevaluation/h5/do-evaluate/delete-details(DeleteEvaluateDetailsRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: "评价记录详情2.2.2"
+	)
+	@server(
+		handler: EvaluateRecordDetailHandler
+	)
+	get /classevaluation/h5/log/detail/:evaluateLogId(EvaluateLogDetailRequest) returns(LogListItem)
+	
+	@doc(
+		summary: "判断老师班级考核的权限"
+	)
+	@server(
+		handler: JudgeClassEvalAuthorityHandler
+	)
+	get /classevaluation/h5/auth() returns(TeacherAuthResponse)
+}
+
+@server(
+	jwt: XhbAuth
+	group: statistic
+)
+service classevaluation-api {
+	@doc(
+		summary: "所有评价记录"
+	)
+	@server(
+		handler: AllEvaluateLogsHandler
+	)
+	post /classevaluation/h5/logs/all(AllEvaluateLogsRequest) returns(AllEvaluateLogsResponse)
+	
+	@doc(
+		summary: "评价记录(评比)"
+	)
+	@server(
+		handler: EvaluatedLogH5Handler
+	)
+	post /classevaluation/h5/data/evaluated-log(RatingLogRequest) returns(EvaluatedLogResponse)
+	
+	@doc(
+		summary: "任务包含的评价类型"
+	)
+	@server(
+		handler: TasksContainsTypeHandler
+	)
+	post /classevaluation/h5/tasks-type-info(TasksContainsTypeRequest) returns(TasksContainsTypeResponse)
+	
+	@doc(
+		summary: "评价记录表头信息"
+	)
+	@server(
+		handler: GetEvaluateGridLogsHeaderHandler
+	)
+	post /classevaluation/h5/logs-grid-header(GetEvaluateGridLogsHeaderRequest) returns(GetEvaluateGridLogsHeaderResponse)
+	
+	@doc(
+		summary: "评价记录数据信息"
+	)
+	@server(
+		handler: GetEvaluateGridLogsDataHandler
+	)
+	post /classevaluation/h5/logs-grid-data(GetEvaluateGridLogsDataRequest) returns(GetEvaluateGridLogsDataResponse)
+	
+	@doc(
+		summary: "获得一段时间内评价次数"
+	)
+	@server(
+		handler: GetEvaluateNumHandler
+	)
+	post /classevaluation/h5/logs-grid-evaluate-num(GetEvaluateNumRequest) returns(GetEvaluateNumResponse)
+}
+
+@server(
+	jwt: XhbAuth
+	group: rating
+)
+service classevaluation-api {
+	@doc(
+		summary: "获取评比项"
+	)
+	@server(
+		handler: RatingConfigItemsHandler
+	)
+	post /classevaluation/h5/rating/items(RatingConfigItemRequest) returns(RatingConfigItemsResponse)
+	
+	@doc(
+		summary: "获取评比规则"
+	)
+	@server(
+		handler: RatingConfigRuleHandler
+	)
+	post /classevaluation/h5/rating/rule(RatingConfigRuleRequest) returns(RatingConfigRuleResponse)
+	
+	@doc(
+		summary: "获取评比任务数据"
+	)
+	@server(
+		handler: GetRatingTaskDataHandler
+	)
+	post /classevaluation/h5/rating-task-data(GetRatingTaskDataRequest)
+	
+	@doc(
+		summary: "获取年级班级评比任务数据"
+	)
+	@server(
+		handler: GetGradeClassRatingHandler
+	)
+	post /classevaluation/h5/rating-task-data/gradeclass(GetRatingTaskDataRequest) returns(GetGradeClassRatingResp)
+	
+	@doc(
+		summary: "获取评比对象详细数据"
+	)
+	@server(
+		handler: GetRatingObjectDataHandler
+	)
+	post /classevaluation/h5/rating-object-data(GetRatingObjectDataRequest) returns(GetRatingObjectDataResponse)
+}
+
+@server(
+	jwt: XhbAuth
+	group: config
+)
+service classevaluation-api {
+	@doc(
+		summary: "判断客户端的缓存是否有效"
+	)
+	@server(
+		handler: ClientCacheEffectHandler
+	)
+	post /classevaluation/h5/cache/effect(ClientCacheEffectRequest) returns(ClientCacheEffectResponse)
+}
+
+@server(
+	jwt: XhbAuth
+	group: voice
+)
+service classevaluation-api {
+	@doc(
+		summary: "语音评价"
+	)
+	@server(
+		handler: VoiceEvaluateHandler
+	)
+	post /classevaluation/h5/voice-evaluate(VoiceEvaluateRequest) returns(VoiceEvaluateResponse)
+}
+
+@server(
+	group: internalclassevaluation
+)
+service classevaluation-api {
+	@doc(
+		summary: "获取评比任务数据internal接口"
+	)
+	@server(
+		handler: InternalGetRatingTaskDataHandler
+	)
+	post /internal/classevaluation/rating-task-data(InternalRatingTaskDataRequest)
+}
+
+@server(
+	jwt: Auth
+	group: imports
+)
+service classevaluation-api {
+	@doc(
+		summary: "下载导入评价模板"
+	)
+	@server(
+		handler: BatchEvaluateTemplateHandler
+	)
+	get /classevaluation/batch/evaluate/template/:taskId(BatchEvaluateTemplateRequest)
+	
+	@doc(
+		summary: "导入评价"
+	)
+	@server(
+		handler: BatchEvaluateHandler
+	)
+	post /classevaluation/batch/evaluate(BatchEvaluateRequest) returns(ImportResponse)
+}

@@ -1,0 +1,747 @@
+type ClassroomView {
+	Id        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	BadgeId   string `json:"badgeId,omitempty"`
+	BadgeType string `json:"badgeType,omitempty"`
+	BgImage   string `json:"bgImage,omitempty"`
+}
+
+/*
+type: CLASSROOM 时 ,表示所有的老师和学生，receiverIds，additions都不存在
+type: NORMAL 时，表示所有的学生+部分老师/没有老师 receiverIds为空，additions为包含的老师列表
+type: OPTIONAL 时，表示选择的部分人，包含在receiverIds中
+*/
+type Receiver {
+	ClassroomId string   `json:"classroomId,optional"`
+	Type        string   `json:"type"` // 消息类型  整班:CLASSROOM NORMAL:老师 +学生 OPTIONAL:定向选择
+	ReceiverIds []string `json:"receiverIds,optional"`
+	Additions   []string `json:"additions,optional"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`
+	Preview   string `json:"preview,optional"`
+	Thumbnail string `json:"thumbnail,optional"`
+	Size      int    `json:"size,optional"`
+	Height    int    `json:"height,optional"`
+	Width     int    `json:"width,optional"`
+}
+
+type AudioRequest {
+	Id            string `json:"id"`
+	Duration      int    `json:"duration,optional"`
+	FileExtension string `json:"fileExtension,optional"`
+	Size          int    `json:"size,optional"`
+	Name          string `json:"name,optional"`
+}
+
+type VideoRequest {
+	Title        string `json:"title,optional"`
+	Desc         string `json:"desc,optional"`
+	CoverUrl     string `json:"coverUrl,optional"`
+	PlayUrl      string `json:"playUrl"`
+	PlayTime     int    `json:"playTime,optional"`
+	MagicContext string `json:"magicContext,optional"`
+	Type         string `json:"type,optional"`
+	Height       int    `json:"height,optional"`
+	Width        int    `json:"width,optional"`
+}
+
+type AttrsRequest {
+	Size string `json:"size,optional"`
+}
+
+type Receipt {
+	Total         int               `json:"total"`                   // 消息接收总数量
+	Receipted     int               `json:"receipted"`               // 已成功接收数量
+	Feedbacked    int               `json:"feedbacked,omitempty"`    // 已成功反馈数量
+	Attitude      string            `json:"attitude,omitempty"`      // 我发送的反馈
+	Received      bool              `json:"received,omitempty"`      // 我是否已经已收到此消息
+	IsObserver    bool              `json:"isObserver,omitempty"`    // 是否是观察者 ，主要用于是否展示小眼睛和参与人信息
+	PunchCardItem *PunchCardReceipt `json:"punchCardItem,omitempty"` // 打卡反馈情况
+	SurveyItem    *SurveyReceipt    `json:"surveyItem,omitempty"`
+}
+
+type SurveyReceipt {
+	JoinUsers  []string `json:"joinUsers"`  //参与人列表
+	JoinNumber int      `json:"joinNumber"` //参与人数目
+}
+
+type PunchCardReceipt {
+	TotalFamilyCount   int64    `json:"totalFamilyCount"`             // 需打卡总家庭数 （分母）
+	PunchedFamilyCount int64    `json:"punchedFamilyCount"`           // 打卡总家庭数 （分子）
+	TotalDays          int64    `json:"totalDays"`                    // 总周期天数
+	PassDays           int64    `json:"passDays"`                     // 已进行天数
+	TodayJoinUsers     []string `json:"todayJoinUsers,omitempty"`     // 今天打卡的人，最新的5个人  5.0.0 add
+	TodayJoinCount     int      `json:"todayJoinCount,omitempty"`     // 今日参加打卡的总人数  5.0.0 add
+	TotalNeedJoinCount int      `json:"totalNeedJoinCount,omitempty"` // 今日打卡总人数  5.0.0 add
+	Status             string   `json:"status,omitempty"`             // 打卡状态 "NoNeedPunchCard" 无需打卡, "PunchCarded" 已打卡,"UnPunchCard" 未打卡  5.0.0 add
+	TotalNatureDay     int64    `json:"totalNatureDay,omitempty"`     // 打卡自然日总天数
+	PassNatureDay      int64    `json:"passNatureDay"`                // 打卡已过去的日然日
+	FirstTaskPunchTime int64    `json:"firstTaskPunchTime,omitempty"` // 第一个task的打卡时间
+}
+
+type ImageView {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type AudioView {
+	Id            string `json:"id"`
+	Duration      int    `json:"duration,omitempty"`
+	FileExtension string `json:"fileExtension,omitempty"`
+	Size          int    `json:"size,omitempty"`
+	Name          string `json:"name,omitempty"`
+}
+
+type AttachmentView {
+	Id       string     `json:"id"`
+	Name     string     `json:"name,omitempty"`
+	MimeType string     `json:"mimeType,omitempty"`
+	Attrs    *AttrsView `json:"attrs,omitempty"`
+	Size     string     `json:"size,omitempty"` // 5.0.0 add
+}
+
+type AttrsView {
+	Size string `json:"size,omitempty"` // 5.0.0 after delete
+}
+
+type VideoView {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+type AttachmentRequest {
+	Id       string        `json:"id"`                // 网络文件id
+	Name     string        `json:"name,optional"`     // 显示名称
+	MimeType string        `json:"mimeType,optional"` // 附件mimeType
+	Attrs    *AttrsRequest `json:"attrs,optional"`    // 其他属性
+}
+
+type SimpleSenderView {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+type SchoolSenderView {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+type UserView {
+	Id          string `json:"id"`
+	Realname    string `json:"realname,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+	DisplayName string `json:"displayName"`
+}
+
+// 不再使用
+type ScheduleItemView {
+	Count       int          `json:"count"`
+	Ncount      int          `json:"ncount"`
+	LastMessage *MessageView `json:"lastMessage,omitempty"`
+}
+
+// 不再使用
+type SchedulesView {
+	Punchcard     *ScheduleItemView `json:"punchcard,omitempty"`
+	TimingMessage *ScheduleItemView `json:"timingmessage,omitempty"`
+}
+
+// 题库作业信息
+type TestPaperInfo {
+	Id    string `json:"id,optional"`    // 题库ID -- 好未来
+	Title string `json:"title,optional"` // 题库标题 -- 好未来
+}
+
+type HomeworkView {
+	Title           string                 `json:"title,omitempty"`
+	Content         string                 `json:"content,omitempty"`
+	Images          []*ImageView           `json:"images,omitempty"`
+	Audio           *AudioView             `json:"audio,omitempty"`
+	Video           *VideoView             `json:"video,omitempty"`
+	Attachments     []*AttachmentView      `json:"attachements,omitempty"`
+	Extras          map[string]interface{} `json:"extras,omitempty"`
+	From            string                 `json:"from,omitempty"`
+	JoinedUser      string                 `json:"joinUserId"`
+	Status          string                 `json:"status"`    // "Needless", 无需参加, "Joined" 已提交,"UnJoin" 未提交
+	SubStatus       string                 `json:"subStatus"` // "Review", 需订正, "Reviewed" 已订正,"Pass" 已通过
+	EndTime         int64                  `json:"endTime"`
+	Open            bool                   `json:"open"`                      // 成果是否互相可见
+	NeedJoin        bool                   `json:"needJoin"`                  // 是否需要家长参与上传作业
+	NeedSignature   bool                   `json:"needSignature"`             // 是否需要签名
+	SuggestDuration int64                  `json:"suggestDuration,omitempty"` // 建议时长
+	HomeworkType    string                 `json:"homeworkType"`              // COMMON 普通作业， TESTPAPER 题库作业
+	TestPaper       *TestPaperInfo         `json:"testPaper,optional"`        // 第三方题库作业信息
+	SubjectCategory string                 `json:"subjectCategory,optional"`  // 学课子分类
+	Grade           string                 `json:"grade,omitempty"`           // 年级
+	TextContent     string                 `json:"textContent,omitempty"`     // 朗读模板
+}
+
+type NoticeView {
+	Title       string                 `json:"title,omitempty"`
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`
+	From        string                 `json:"from,omitempty"`
+}
+
+type TopicView {
+	Title               string                 `json:"title,omitempty"`
+	Content             string                 `json:"content,omitempty"`
+	Images              []*ImageView           `json:"images,omitempty"`
+	Audio               *AudioView             `json:"audio,omitempty"`
+	Video               *VideoView             `json:"video,omitempty"`
+	Attachments         []*AttachmentView      `json:"attachements,omitempty"`
+	Extras              map[string]interface{} `json:"extras,omitempty"`
+	From                string                 `json:"from,omitempty"`
+	Id                  string                 `json:"id,omitempty"`
+	Open                bool                   `json:"open,omitempty"`       // 是否是开放式讨论
+	ExpireTime          int64                  `json:"expireTime,omitempty"` // 过期时间
+	Manager             *SimpleSenderView      `json:"manager,omitempty"`    // 管理者
+	Members             []*UserView            `json:"members,omitempty"`    // 参与者
+	Receivers           []string               `json:"receivers,omitempty"`
+	Classrooms          []string               `json:"classrooms,omitempty"`
+	Unread              int                    `json:"unread,omitempty"`
+	NoticeMessageUnread int                    `json:"noticeMessageUnread,omitempty"` // 未读通知数量
+	Available           bool                   `json:"available"`                     // 非可用状态的晓讨论,无法发言
+	DoNotDisturb        bool                   `json:"doNotDisturb"`                  // 是不是免打扰
+}
+
+type ActivityView {
+	Title       string                 `json:"title,omitempty"`
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`
+	From        string                 `json:"from,omitempty"`
+	Id          string                 `json:"id"`
+	/**
+	 * 是否开放式讨论
+	 * 开放式讨论: 消息对所有成员可见
+	 * 非开放式讨论: 成员仅能看到老师发送的消息, 互相不可见
+	 */
+	Open                bool              `json:"open,omitempty"`
+	ExpireTime          int64             `json:"expireTime,omitempty"` // 结束日期, 不填写代表永不过期
+	Manager             *SimpleSenderView `json:"manager,omitempty"`    // 管理员
+	Members             []*UserView       `json:"members,omitempty"`    // 成员
+	Receivers           []string          `json:"receivers,omitempty"`  // 接收人
+	Classrooms          []string          `json:"classrooms,omitempty"`
+	Unread              int               `json:"unread,omitempty"`              // 未读消息数量
+	NoticeMessageUnread int               `json:"noticeMessageUnread,omitempty"` // 未读通知数量
+	Available           bool              `json:"available"`                     // 是否处于可用状态
+	DoNotDisturb        bool              `json:"doNotDisturb"`                  // 是不是免打扰
+	Tag                 string            `json:"tag,omitempty"`                 // 标签
+	Participate         bool              `json:"participate,omitempty"`         // 是否参加活动
+	Expired             bool              `json:"expired,omitempty"`             // 是否过期
+	ClassroomView       *ClassroomView    `json:"classroomView,omitempty"`       // 所属班级
+}
+
+type ScoreNoticeView {
+	Id       string `json:"id"`
+	Title    string `json:"title,omitempty"`    // 考试名称
+	Subjects string `json:"subjects,omitempty"` // 考试科目
+	SubType  string `json:"subType,omitempty"`  // 消息子类型：成绩或者分析
+	Url      string `json:"url,omitempty"`      // 成绩链接
+}
+
+type SurveyOption {
+	Value  string              `json:"value,omitempty"`  //值
+	Image  *ImageView          `json:"image,omitempty"`  // 图片
+	Ratio  int                 `json:"ratio,omitempty"`  //选择比率(50%为50)
+	Voters []*SimpleSenderView `json:"voters,omitempty"` // 投票人
+}
+
+type SurveyView {
+	Title          string                   `json:"title,omitempty"`
+	Content        string                   `json:"content,omitempty"`
+	Images         []*ImageView             `json:"images,omitempty"`
+	Audio          *AudioView               `json:"audio,omitempty"`
+	Video          *VideoView               `json:"video,omitempty"`
+	Attachments    []*AttachmentView        `json:"attachements,omitempty"`
+	Extras         map[string]interface{}   `json:"extras,omitempty"`
+	From           string                   `json:"from,omitempty"`
+	Id             string                   `json:"id"`
+	Subject        string                   `json:"subject,omitempty"`        // 主题
+	MultiChoose    bool                     `json:"multiChoose,omitempty"`    // 是否多选
+	Anonymous      bool                     `json:"anonymous,omitempty"`      // 是否匿名
+	Open           bool                     `json:"open,omitempty"`           // 是否公开,即家长是否可以查看结果
+	MaxOptionalNum int                      `json:"maxOptionalNum,omitempty"` // 最多可选数量
+	ExpireTime     int64                    `json:"expireTime,omitempty"`     // 晓调查结束日期
+	Available      bool                     `json:"available,omitempty"`      // 是否处于可用状态
+	SurveyOptions  map[string]*SurveyOption `json:"surveyOptions,omitempty"`  //所有选项
+	VotersNumber   int                      `json:"votersNumber,omitempty"`   // 投票人数
+	Voted          []*SimpleSenderView      `json:"voted,omitempty"`          // 投票的人
+	Unvoted        []*SimpleSenderView      `json:"unvoted,omitempty"`        // 未投票的人
+}
+
+type PunchCardReceiptResult {
+	ResultNumber     int64 `json:"resultNumber,omitempty"`     // 老师/家长打卡成果数
+	TotalDays        int64 `json:"totalDays,omitempty"`        // 家长：总天数
+	JoinDays         int64 `json:"joinDays,omitempty"`         // 家长：参加天数
+	JoinPersons      int64 `json:"joinPersons,omitempty"`      // 老师：参与人数
+	TotalFamilyCount int64 `json:"totalFamilyCount,omitempty"` // 老师：所有家庭数
+}
+
+type PunchCardView {
+	Title          string                  `json:"title,omitempty"`
+	Content        string                  `json:"content,omitempty"`
+	Images         []*ImageView            `json:"images,omitempty"`
+	Audio          *AudioView              `json:"audio,omitempty"`
+	Video          *VideoView              `json:"video,omitempty"`
+	Attachments    []*AttachmentView       `json:"attachements,omitempty"`
+	Extras         map[string]interface{}  `json:"extras,omitempty"`
+	From           string                  `json:"from,omitempty"`
+	Open           bool                    `json:"open,omitempty"`
+	Tag            string                  `json:"tag,omitempty"`
+	Endtime        int64                   `json:"endTime,omitempty"`
+	RemindTime     string                  `json:"remindTime,omitempty"`
+	LastDays       int                     `json:"lastDays,omitempty"`      // 打卡周期天数
+	PunchcardWeek  []string                `json:"punchcardWeek,omitempty"` // 打卡频次
+	PunchcardId    string                  `json:"id"`
+	Result         *PunchCardReceiptResult `json:"result,omitempty"` // 结束时才有，打卡成果
+	IsForwardEnd   bool                    `json:"isForwardEnd"`
+	ForwardEndTime int64                   `json:"forwardEndTime"`
+	PunchType      string                  `json:"punchType"`           // 打卡类型
+	PunchStem      *PunchStemView          `json:"punchStem,omitempty"` // 题干相关
+	ReplenishDays  int                     `json:"replenishDays"`       // 设置可补卡天数
+}
+
+type PunchStemView {
+	Stem      string   `json:"stem"`      // 题干
+	BlankType string   `json:"blankType"` // 填空题类型 counter | timer
+	Options   []string `json:"options"`   // 选择题选项
+}
+
+type SurveyV2View {
+	Id         string `json:"id"`
+	Title      string `json:"title,omitempty"`
+	SubTitle   string `json:"subTitle,omitempty"`
+	Open       bool   `json:"open,omitempty"`       // 参与者是否可以查看结果
+	ExpireTime int64  `json:"expireTime,omitempty"` // 晓调查结束日期
+	Anonymous  bool   `json:"anonymous,omitempty"`  // 是否匿名
+	IsVoted    bool   `json:"isVoted,omitempty"`    // 是否已投票
+	Available  bool   `json:"available,omitempty"`  // 是否处于可用状态
+	CreateTime int64  `json:"createTime,omitempty"`
+	EndTime    int64  `json:"endTime,omitempty"` // 周期结束时间
+	From       string `json:"from,omitempty"`
+	VoteCount  int    `json:"voteCount,omitempty"`  // 投票人数
+	ReplyCount int    `json:"replyCount,omitempty"` // 题目总数
+	IsDaily    bool   `json:"isDaily,omitempty"`    // 是否是连续调查
+	IsModel    bool   `json:"isModel,omitempty"`    //是否为母模版
+}
+
+//小周刊文章
+type WeeklyArticle {
+	Url   string `json:"url,omitempty"`
+	Title string `json:"title,omitempty"`
+}
+
+//小周刊
+type WeeklyView {
+	Articles []*WeeklyArticle `json:"articles,omitempty"` //小周刊文章信息
+	Version  int              `json:"version,omitempty"`  //期刊号
+	Title    string           `json:"title,omitempty"`    //标题
+	Image    string           `json:"image,omitempty"`
+	Url      string           `json:"url,omitempty"`
+	History  string           `json:"history,omitempty"` //历史小周刊链接
+}
+
+//公告消息
+type PostView {
+	Title   string `json:"title,omitempty"`
+	Content string `json:"content,omitempty"`
+	Image   string `json:"image,omitempty"`
+	Url     string `json:"url,omitempty"`
+}
+
+//小程序卡片
+type AppletsView {
+	Type            string `json:"type,omitempty"`
+	Icon            string `json:"icon,omitempty"`
+	Title           string `json:"title,omitempty"`
+	Content         string `json:"content,omitempty"`
+	Url             string `json:"url,omitempty"`
+	ShowInClassroom bool   `json:"showInClassroom"` //是否在班级消息列表展示
+}
+
+//问卷调查
+type QuestionnaireView {
+	Title string `json:"title"`
+	Url   string `json:"url"`
+}
+
+//直播白板
+type WhiteBoard {
+	Token string `json:"token,omitempty"`
+	UUID  string `json:"uuid,omitempty"`
+}
+
+//直播
+type LiveView {
+	Title         string                 `json:"title,omitempty"`
+	Content       string                 `json:"content,omitempty"`
+	Images        []*ImageView           `json:"images,omitempty"`
+	Audio         *AudioView             `json:"audio,omitempty"`
+	Video         *VideoView             `json:"video,omitempty"`
+	Attachments   []*AttachmentView      `json:"attachements,omitempty"`
+	Extras        map[string]interface{} `json:"extras,omitempty"`
+	From          string                 `json:"from,omitempty"`
+	ClassroomList []string               `json:"classroomList"`
+	HasVideo      bool                   `json:"hasVideo"`
+	HasStat       bool                   `json:"hasStat"`
+	Subject       string                 `json:"subject"`
+	StartTime     int64                  `json:"startTime"`
+	EndTime       int64                  `json:"endTime"`
+	Status        int                    `json:"status"`     // 0:未开始 1:进行中 2:已结束
+	WhiteBoard    WhiteBoard             `json:"whiteBoard"` //白板信息
+}
+
+type AispeechCollectionView {
+	Title      string `json:"title,omitempty"`      // 标题
+	Content    string `json:"content,omitempty"`    // 内容
+	From       string `json:"from,omitempty"`       // 来源
+	JoinedUser string `json:"joinUser"`             // 已提交用户
+	EndTime    int64  `json:"endTime,omitempty"`    // 截止时间
+	CreateTime int64  `json:"createTime,omitempty"` // 创建时间
+	SubmitCnt  int64  `json:"submitCnt"`            // 提交数量
+	TotalCnt   int32  `json:"totalCnt,omitempty"`   // 总数量
+}
+
+type MessageView {
+	Id                     string                  `json:"id"`
+	Title                  string                  `json:"title,omitempty"`
+	Content                string                  `json:"content,omitempty"`
+	Images                 []*ImageView            `json:"images,omitempty"`
+	Audio                  *AudioView              `json:"audio,omitempty"`
+	Video                  *VideoView              `json:"video,omitempty"`
+	Attachments            []*AttachmentView       `json:"attachements,omitempty"` // 文档
+	Extras                 map[string]interface{}  `json:"extras,omitempty"`       // 附件相关信息，比如link
+	From                   string                  `json:"from,omitempty"`         // 来自哪里
+	Category               string                  `json:"category,omitempty"`     // 消息分类
+	Identifier             string                  `json:"identifier,omitempty"`   // 用户端的消息唯一id
+	CreateTime             int64                   `json:"createTime"`             // 创建时间
+	Sender                 *SimpleSenderView       `json:"sender,omitempty"`       // 消息发送者
+	School                 *SchoolSenderView       `json:"school,omitempty"`       // 整晓信息
+	DeliveryTime           int64                   `json:"deliveryTime,omitempty"` // 定时发送时间
+	Timestamp              int64                   `json:"timestamp"`              // 用于排序的时间
+	ClassroomView          *ClassroomView          `json:"classroom,omitempty"`    // 如果是班级消息会带上这个班级相关属性
+	NoticeView             *NoticeView             `json:"notice,omitempty"`       // 通知
+	TopicView              *TopicView              `json:"topic,omitempty"`        // 讨论
+	ActivityView           *ActivityView           `json:"activity,omitempty"`     // 活动
+	Receipt                *Receipt                `json:"receipt,omitempty"`
+	Observer               bool                    `json:"observer,omitempty"`
+	ReceiverId             string                  `json:"receiverId,omitempty"`
+	SenderId               string                  `json:"senderId,omitempty"`
+	ClassroomId            string                  `json:"classroomId,omitempty"`
+	ScoreNoticeView        *ScoreNoticeView        `json:"scoreNotice,omitempty"`            // 晓成绩
+	SurveyView             *SurveyView             `json:"survey,omitempty"`                 // 调查
+	PunchCardView          *PunchCardView          `json:"punchcard,omitempty"`              // 打卡
+	SurveyV2View           *SurveyV2View           `json:"surveyV2,omitempty"`               // 新版调查
+	WeeklyView             *WeeklyView             `json:"weekly,omitempty"`                 // 5.0.0 add
+	PostView               *PostView               `json:"post,omitempty"`                   // 5.0.0 add  公告
+	AppletsView            *AppletsView            `json:"applets,omitempty"`                // 5.0.0 add  小程序
+	QuestionnaireView      *QuestionnaireView      `json:"questionnaire,omitempty"`          // 5.0.05 add  问卷调查
+	LiveView               *LiveView               `json:"live,omitempty"`                   // 直播
+	HomeworkView           *HomeworkView           `json:"homeworkView,omitempty"`           // 作业
+	AispeechCollectionView *AispeechCollectionView `json:"aispeechCollectionView,omitempty"` // 口语集合
+	UnreadCount            int64                   `json:"unreadCount,omitempty"`            // 未读数字
+	IsTop                  bool                    `json:"isTop"`                            // 是否为置顶消息
+	IsParticipate          bool                    `json:"isParticipate"`                    // 是否参与
+	CampusId               int64                   `json:"campusId,omitempty"`               // 学校id, 通过此字段来判断是否是晓教云web发的消息
+}
+
+type TopMessageListView {
+	Total    int            `json:"total"`
+	Messages []*MessageView `json:"messages,omitempty"`
+}
+
+type Banner {
+	Image  string `json:"image,omitempty"`  // 北京图片
+	Url    string `json:"url,omitempty"`    // 跳转连接
+	Height int64  `json:"height,omitempty"` // 高度
+	Width  int64  `json:"width,omitempty"`  // 宽带
+	Type   string `json:"type,omitempty"`   // 类型
+}
+
+type UserMessagesV2Request {
+	Size      int   `json:"size,optional"`
+	Timestamp int64 `json:"timestamp,optional"`
+}
+
+type UserMessagesV2Response {
+	LastTimestamp int64               `json:"lastTimestamp,omitempty"`
+	HasMore       bool                `json:"hasMore"`
+	TotalSize     int                 `json:"totalSize"`
+	Messages      []*MessageView      `json:"messages,omitempty"`
+	Schedules     *SchedulesView      `json:"schedules,omitempty"`
+	TopMessages   *TopMessageListView `json:"topMessages,omitempty"`
+	BannerList    []*Banner           `json:"bannerList,omitempty"`
+}
+
+type UserMessagesChangeV2Request {
+	Timestamp int64 `json:"timestamp,optional"`
+}
+
+type Event {
+	ClassroomView *ClassroomView `json:"classroomView,omitempty"`
+	Members       []*UserView    `json:"members,omitempty"`
+	ClassroomId   string         `json:"classroomId,omitempty"`
+	Type          string         `json:"type"`
+	MessageView   *MessageView   `json:"messageView,omitempty"`
+	MessageId     string         `json:"messageId"`
+}
+
+type UserMessagesChangeV2Response {
+	Id                   string              `json:"id"`
+	HasMore              bool                `json:"hasMore"`
+	TotalSize            int                 `json:"totalSize"`
+	LastTimestamp        int64               `json:"lastTimestamp"`
+	CheckMessageId       string              `json:"checkMessageId,omitempty"`
+	ClassroomMemberWrong []string            `json:"classroomMemberWrong,omitempty"`
+	Events               []*Event            `json:"events,omitempty"`
+	Schedules            *SchedulesView      `json:"schedules,omitempty"`
+	TopMessages          *TopMessageListView `json:"topMessages,omitempty"`
+	BannerList           []*Banner           `json:"bannerList,omitempty"`
+}
+
+type ClassroomMessagesRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+	Size        int    `json:"size,optional"`
+	Timestamp   int64  `json:"timestamp,optional"`
+}
+
+type ClassroomMessagesResponse {
+	LastTimestamp int64               `json:"lastTimestamp,omitempty"`
+	HasMore       bool                `json:"hasMore"`
+	TotalSize     int                 `json:"totalSize"`
+	Messages      []*MessageView      `json:"messages,omitempty"`
+	Schedules     *SchedulesView      `json:"schedules,omitempty"`
+	TopMessages   *TopMessageListView `json:"topMessages,omitempty"`
+	BannerList    []*Banner           `json:"bannerList,omitempty"`
+}
+
+type MessageDetailsRequest {
+	MessageId string `path:"messageId"`
+}
+
+type WebReceiptedDetailRequest {
+	Token     string `path:"token"`
+	MessageId string `path:"messageId"`
+}
+
+type WebFamilyMemberView {
+	UserId      string `json:"userId,omitempty"`
+	IsReceipted bool   `json:"isReceipted,omitempty"` // 是否收到 这条消息
+	Attitude    string `json:"attitude,omitempty"`    // notice  APPROVED:点赞  OKAY:已阅 DOUBTED：疑问（新消息不再使用）
+	SpeakCount  int    `json:"speakCount,omitempty"`  // topic 发言数
+	IsJoined    bool   `json:"isJoined,omitempty"`
+	DisplayName string `json:"displayName,omitempty"` // 名称
+	Avatar      string `json:"avatar,omitempty"`      // 头像
+}
+
+type WebFamilyGroupMemberDetailView {
+	ChildName string                 `json:"childName,omitempty"` // 小孩名
+	Members   []*WebFamilyMemberView `json:"members,omitempty"`   // 家庭成员信息
+}
+
+type WebFamilyGroupMemberSimpleView {
+	ChildName string              `json:"childName,omitempty"`
+	Members   []*SimpleSenderView `json:"members,omitempty"`
+}
+
+type WebReceiptedDetailResponse {
+	Receipted      []*WebFamilyGroupMemberDetailView `json:"receiptedView,omitempty"`   // 已查看成员信息
+	UnReceipted    []*WebFamilyGroupMemberSimpleView `json:"unreceiptedView,omitempty"` // 未查看成员信息
+	FeedbackView   []*WebFamilyGroupMemberDetailView `json:"feedbackView,omitempty"`    // 已参与成员信息
+	UnFeedbackView []*WebFamilyGroupMemberSimpleView `json:"unfeedbackView,omitempty"`  // 未参与成员信息
+	ReceiptedNum   int64                             `json:"receiptedNum,omitempty"`    // 参与总数
+}
+
+type MessageRemoveRequest {
+	MessageId string `path:"messageId"`
+	Token     string `path:"token"`
+	Category  string `json:"category,optional"` //未使用
+}
+
+type MessageRemoveResponse {
+	Successful bool `json:"successful"`
+}
+
+type GetMessageReceiptV3Request {
+	Messages []string `json:"messages"`
+}
+
+type MessageReceiptedView {
+	MessageId     string            `json:"id"`                      // 消息ID
+	Total         int               `json:"total,omitempty"`         // 需要参与的总数
+	Receipted     int               `json:"receipted,omitempty"`     // 已查看人数
+	Feedback      int               `json:"feedbacked,omitempty"`    // 已参与人数
+	Attitude      string            `json:"attitude,omitempty"`      // 晓通知 APPROVED:点赞  OKAY:已阅 DOUBTED：疑问（新消息不再使用）
+	IsObserver    bool              `json:"isObserver,omitempty"`    // 是否是观察者 ，主要用于是否展示小眼睛和参与人信息
+	PunchCardItem *PunchCardReceipt `json:"punchCardItem,omitempty"` // 打卡参与信息
+	SurveyItem    *SurveyReceipt    `json:"surveyItem,omitempty"`    // 调查参与信息
+}
+
+type GetMessageReceiptV3Response {
+	Receipted []*MessageReceiptedView `json:"receipted,omitempty"` // 小眼睛详情
+}
+
+type UserCategorizedMessagesV2Request {
+	Size      int    `form:"size,optional"` // 最多10条
+	Category  string `form:"category"`      // TOPIC:晓讨论 SURVEY:晓调查 NOTICE:晓通知 LIVE:直播课堂 HOMEWORK:作业 ACTIVITY:活动 PUNCHCARD:打卡
+	Status    string `form:"status"`        // on 进行中,off 已结束
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type UserCategorizedMessagesV2Response {
+	LastTimestamp int64          `json:"lastTimestamp"` // 用于分页查的时间差，查下一页的时候带上
+	LastStatus    string         `json:"lastStatus"`    // 最后条数据状态，进行中还是已结束 on 进行中,off 已结束
+	HasMore       bool           `json:"hasMore"`       // 是不是还有下一页
+	TotalSize     int            `json:"totalSize"`     // 总数量
+	MessagesOn    []*MessageView `json:"messagesOn"`    // 进行中的消息
+	MessagesOff   []*MessageView `json:"messagesOff"`   // 已结束的消息
+}
+
+type TopMessageListRequest {
+	Token string `path:"token"`
+}
+
+type TopMessageListResponse {
+	Total    int            `json:"total"`
+	Messages []*MessageView `json:"messages,omitempty"`
+}
+
+type TopMessagePostRequest {
+	Token     string `path:"token"`
+	MessageId string `json:"messageId"`
+}
+
+type TopMessageOpResponse {
+}
+
+type TopMessageDeleteRequest {
+	MessageId string `json:"messageId"`
+	Token     string `path:"token"`
+}
+
+type MessageDetailV2Request {
+	MessageId string `path:"messageId"`
+}
+
+service portal-api {
+	@doc(
+		summary: 获取用户消息
+	)
+	@server(
+		handler: UserMessagesV2Handler
+	)
+	post /portal/user/messages/v2(UserMessagesV2Request) returns(UserMessagesV2Response)
+	
+	@doc(
+		summary: 获取消息增量
+	)
+	@server(
+		handler: UserMessagesChangeV2Handler
+	)
+	post /portal/user/messages/change/v2(UserMessagesChangeV2Request) returns(UserMessagesChangeV2Response)
+	
+	@doc(
+		summary: 获取班级消息列表
+	)
+	@server(
+		handler: ClassroomMessagesHandler
+	)
+	post /portal/classroom/messages/:token(ClassroomMessagesRequest) returns(ClassroomMessagesResponse)
+	
+	@doc(
+		summary: web端查看单个消息回执行情况
+	)
+	@server(
+		handler: WebReceiptedDetailHandler
+	)
+	get /portal/web/receipted/detail/:token/:messageId(WebReceiptedDetailRequest) returns(WebReceiptedDetailResponse)
+	
+	@doc(
+		summary: 删除或撤回消息
+	)
+	@server(
+		handler: MessageRemoveHandler
+	)
+	delete /message/remove/:token/:messageId(MessageRemoveRequest) returns(MessageRemoveResponse)
+	
+	@doc(
+		summary: 查看批量消息回执情况
+	)
+	@server(
+		handler: GetMessageReceiptV3Handler
+	)
+	post /portal/receipted/v2(GetMessageReceiptV3Request) returns(GetMessageReceiptV3Response)
+	
+	@doc(
+		summary: 消息分类
+	)
+	@server(
+		handler: UserCategorizedMessagesV2Handler
+	)
+	get /portal/v2/user/messages/categorized(UserCategorizedMessagesV2Request) returns(UserCategorizedMessagesV2Response)
+	
+	@doc(
+		summary: 置顶消息列表
+	)
+	@server(
+		handler: GetTopMessageHandler
+	)
+	get /portal/top/messages/:token(TopMessageListRequest) returns(TopMessageListResponse)
+	
+	@doc(
+		summary: 置顶消息添加
+	)
+	@server(
+		handler: AddTopMessageHandler
+	)
+	post /portal/top/messages/:token(TopMessagePostRequest) returns(TopMessageOpResponse)
+	
+	@doc(
+		summary: 置顶消息取消/删除
+	)
+	@server(
+		handler: DeleteTopMessageHandler
+	)
+	delete /portal/top/messages/:token(TopMessageDeleteRequest) returns(TopMessageOpResponse)
+	
+	@doc(
+		summary: 置顶消息取消/删除
+	)
+	@server(
+		handler: RemoveTopMessageHandler
+	)
+	post /portal/top/remove/messages/:token(TopMessageDeleteRequest) returns(TopMessageOpResponse)
+	
+	@doc(
+		summary: 获取单个历史消息内容
+	)
+	@server(
+		handler: GetMessageDetailHandler
+	)
+	get /portal/details/:messageId(MessageDetailV2Request) returns(MessageView)
+}

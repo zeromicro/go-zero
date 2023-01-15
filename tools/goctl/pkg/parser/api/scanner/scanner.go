@@ -39,8 +39,8 @@ type Scanner struct {
 	size     int
 
 	data         []rune
-	position     int // 当前字符位置
-	readPosition int // 当前读取位置（当前字符之后的位置）
+	position     int // current position in input (points to current char)
+	readPosition int // current reading position in input (after current char)
 	ch           rune
 
 	lines []int

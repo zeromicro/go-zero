@@ -1,0 +1,66 @@
+type NotifyRequest {
+	Token     string `path:"token"`
+	Size      int    `form:"size,optional"`
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type NotifyResponse {
+	HasMore       bool                `json:"hasMore"`       // 是否还有更多消息
+	TotalSize     int                 `json:"totalSize"`     // 总记录数
+	LastTimestamp int64               `json:"lastTimestamp"` // 本次获取的最后一条timestamp
+	SystemNotices []*SystemNoticeView `json:"systemNotices,omitempty"`
+}
+
+type SystemNoticeView {
+	Id             string `json:"id,omitempty"`             // id
+	SystemNoticeId string `json:"systemNoticeId,omitempty"` // systemNoticeId
+	UserId         string `json:"userId,omitempty"`         // 用户
+	Title          string `json:"title,omitempty"`          // 标题
+	Content        string `json:"content,omitempty"`        // 内容
+	Url            string `json:"url,omitempty"`            //链接
+	Type           string `json:"type,omitempty"`           // 类型
+	CreateTime     int64  `json:"createTime,omitempty"`     // 创建时间
+}
+
+type RemoveNotifyRequest {
+	Token          string `path:"token"`
+	SystemNoticeId string `path:"systemNoticeId"`
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"` // 是否成功应答
+}
+
+type ClearNotifyRequest {
+	Token string `path:"token"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service systemnotify-api {
+	@doc(
+		summary: 查找系统通知消息
+	)
+	@server(
+		handler: NotifyHandler
+	)
+	get /system/notice/:token(NotifyRequest) returns(NotifyResponse)
+	
+	@doc(
+		summary: 删除指定系统通知消息
+	)
+	@server(
+		handler: RemoveNotifyHandler
+	)
+	get /system/notice/remove/:token/:systemNoticeId(RemoveNotifyRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 清空系统通知消息
+	)
+	@server(
+		handler: ClearNotifyHandler
+	)
+	get /system/notice/clear/:token(ClearNotifyRequest) returns(BoolResponse)
+}

@@ -1,0 +1,25 @@
+type BlackMessageListRequest {
+	Token  string `path:"token"`
+	Cursor int64  `form:"cursor,optional"`
+	Limit  int    `form:"limit,optional"`
+}
+
+type BlackMessage {
+	MessageId string `json:"messageId,omitempty"`
+}
+
+type BlackMessageListResponse {
+	Cursor        int64           `json:"cursor"` // 游标
+	HaveNextPage  bool            `json:"haveNextPage"`
+	BlackMessages []*BlackMessage `json:"blackMessages,omitempty"`
+}
+
+service blackmessage-api {
+	@doc(
+		summary: 获取用户删除的消息列表
+	)
+	@server(
+		handler: blackMessageListHandler
+	)
+	get /message/blackmessage/list/:token(BlackMessageListRequest) returns(BlackMessageListResponse)
+}

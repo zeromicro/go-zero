@@ -1,0 +1,124 @@
+info(
+	title: doc title
+	desc: "goctl api go -api tip.api -dir ./
+	这是  开屏图和轮播图的API文档"
+	version: 1.0
+)
+
+type TipInfo {
+	Id          int64  `json:"id"`                   //Id
+	Name        string `json:"name"`                 // 名称
+	Position    int64  `json:"position"`             // 位置, 0:首页banner位, 1: 开屏广告位
+	TargetType  int64  `json:"targetType,optional"`  // 触达用户类型, 0账号类型，1标签，2token, 3手机号
+	AccountType string `json:"accountType,optional"` // 账号类型,可多选逗号分隔，TEACHER:教师，PARENT:家长 STUDENT：学生
+	TagName     string `json:"tagName,optional"`     // 标签名字
+	TagId       int64  `json:"tagId,optional"`       // 标签Id
+	TokenUrl    string `json:"tokenUrl,optional"`    // token用户的excel的url
+	PhoneUrl    string `json:"phoneUrl,optional"`    // phone的excel的url
+	ImageUrl    string `json:"imageUrl,optional"`    // 图片地址
+	RedirectUrl string `json:"redirectUrl,optional"` // 图片点击跳转链接地址
+	Weight      int64  `json:"weight"`               // 权重值,值越小，权重越高
+	Enable      bool   `json:"enable"`               // 启用/禁用
+	Editor      string `json:"editor"`               // 最后编辑人
+	UpdateTime  int64  `json:"updateTime"`           // 更新时间
+}
+
+type ListRequest {
+	Position int64  `json:"position,optional"`
+	Weight   int64  `json:"weight,optional"`
+	KeyWord  string `json:"keyWord,optional"`
+	PageSize int    `json:"pageSize,default=1,range=[1:200]"` // 分页数量
+	Page     int    `json:"page,default=1,range=[1:2000]"`    // 第几页
+}
+
+type ListResponse {
+	Count       int64      `json:"count"`
+	Total       int64      `json:"total"`
+	List        []*TipInfo `json:"list,optional"`
+	CurrentPage int        `json:"currentPage"`
+}
+
+type DetailRequest {
+	Id int64 `path:"id"`
+}
+
+type DetailResponse {
+	Data *TipInfo `json:"data"`
+}
+
+type RemoveRequest {
+	Id int64 `path:"id"`
+}
+
+type AddEditRequest {
+	Id          int64  `json:"id,optional"`          //Id
+	Name        string `json:"name"`                 // 名称
+	Position    int64  `json:"position"`             // 位置, 0:首页banner位, 1: 开屏广告位
+	TargetType  int64  `json:"targetType,optional"`  // 触达用户类型, 0账号类型，1标签，2token, 3手机号
+	AccountType string `json:"accountType,optional"` // 账号类型,可多选逗号分隔，TEACHER:教师，PARENT:家长 STUDENT：学生
+	TagName     string `json:"tagName,optional"`     // 标签名字
+	TagId       int64  `json:"tagId,optional"`       // 标签Id
+	TokenUrl    string `json:"tokenUrl,optional"`    // token用户的excel的url
+	PhoneUrl    string `json:"phoneUrl,optional"`    // phone的excel的url
+	ImageUrl    string `json:"imageUrl,optional"`    // 图片地址
+	RedirectUrl string `json:"redirectUrl,optional"` // 图片点击跳转链接地址
+	Weight      int64  `json:"weight"`               // 权重值,值越小，权重越高
+	Enable      bool   `json:"enable"`               // 启用/禁用
+}
+
+type StateRequest {
+	Id     int64 `json:"id"`
+	Enable bool  `json:"enable"`
+}
+
+type StateResponse {
+	Successful bool `json:"successful,omitempty"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 1052
+	pathPrefix: "/route/xhb"
+)
+service tip-api {
+	
+	@doc(
+		summary: 获取轮播图列表(新接口)
+	)
+	@server(
+		handler: getBannerList
+	)
+	post /tips/list(ListRequest) returns (ListResponse)
+	
+	@doc(
+		summary: 获取详情
+	)
+	@server(
+		handler: getDetail
+	)
+	get /tips/detail/:id(DetailRequest) returns (DetailResponse)
+	
+	@doc(
+		summary: 删除
+	)
+	@server(
+		handler: removeTip
+	)
+	delete /tips/:id(RemoveRequest)
+	
+	@doc(
+		summary: 添加/编辑
+	)
+	@server(
+		handler: addEdit
+	)
+	post /tips/add-or-edit(AddEditRequest)
+	
+	@doc(
+		summary: 启用/禁用
+	)
+	@server(
+		handler: setState
+	)
+	post /tips/setState(StateRequest) returns (StateResponse)
+}

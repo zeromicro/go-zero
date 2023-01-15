@@ -1,0 +1,35 @@
+type RemoveClassroomActivationRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+}
+
+type RemoveClassroomActivationResponse {
+	Code string `json:"code"`
+}
+
+type RemoveClassroomRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+	Code        string `json:"code,optional"`
+}
+
+type RemoveClassroomResponse {
+}
+
+service extend-api {
+	@doc(
+		summary: 解散班级生成验证码
+	)
+	@server(
+		handler: RemoveClassroomActivationHandler
+	)
+	post /classroom/remove/activation/:token(RemoveClassroomActivationRequest) returns(RemoveClassroomActivationResponse)
+	
+	@doc(
+		summary: 验证解散班级生成验证码
+	)
+	@server(
+		handler: RemoveClassroomHandler
+	)
+	delete /classroom/remove/:token/:classroomId(RemoveClassroomRequest) returns(RemoveClassroomResponse)
+}

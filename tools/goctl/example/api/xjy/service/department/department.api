@@ -1,0 +1,196 @@
+info(
+	title: 用户管理
+	desc: 用户管理api
+	author: fanlongteng
+	email: fanlongteng@xiaoheiban.cn
+)
+
+type DepartmentDyt { // 部门
+	DepartmentId int64  `json:"departmentId"` // 部门 ID
+	Title        string `json:"title"`        // 部门名称
+}
+
+type AddDepartmentDytRequest { // 添加部门
+	Title string `json:"title"` // 部门名称
+}
+
+type UpdateDepartmentDytRequest { // 更新部门信息
+	DepartmentId int64  `json:"departmentId"` // 部门 ID
+	Title        string `json:"title"`        // 部门名称
+}
+
+type BatchAddDepartmentDytRequest { // 批量添加部门
+	Titles []string `json:"titles"` // 部门名称数组
+}
+
+type ListDepartmentDytResponse { // 部门列表返回体
+	DepartmentList []*DepartmentDyt `json:"departmentList"` // 部门列表
+}
+
+type DelDepartmentDytRequest { // 删除部门
+	DepartmentId int64 `json:"departmentId"` // 部门 ID
+}
+
+type DepartmentMemberMetadataDyt { // 部门人员元数据
+	MemberId int64 `json:"memberId"` // 人员 ID (教师 ID)
+	IsMaster int   `json:"isMaster"` // 是否为负责人 ，0-否，1-是
+}
+
+type DepartmentMemberDyt { // 部门人员完整数据
+	MemberId           int64  `json:"memberId"`           // 人员 ID (教师 ID)
+	IsMaster           int    `json:"isMaster"`           // 是否为负责人 ，0-否，1-是
+	DepartmentMemberId int64  `json:"departmentMemberId"` // 部门人员 ID
+	Mobile             string `json:"mobile"`             // 手机号码
+	EncryptMobile      string `json:"encryptMobile"`      // 手机号码(带****)
+	Name               string `json:"name"`               // 名称
+	MainSubjectName    string `json:"mainSubjectName"`    // 主学科名称
+}
+
+type DepartmentMembersDytRequest {
+	KeyWord      string `form:"keyWord,optional"`    // 搜索关键字(教师名称)
+	Page         int    `form:"page,default=1"`      // 第几页
+	PageSize     int    `form:"pageSize,default=12"` // 每页显示数据数量
+	DepartmentId int64  `form:"departmentId"`        // 部门 ID
+}
+
+type DepartmentMembersDytResponse {
+	Total             int64                  `json:"total"`             // 总数量
+	DepartmentMembers []*DepartmentMemberDyt `json:"departmentMembers"` // 部门人员
+}
+
+type AddDepartmentMembersDytRequest {
+	DepartmentId int64                          `json:"departmentId"` // 部门 ID
+	Members      []*DepartmentMemberMetadataDyt `json:"members"`      // 部门人员
+}
+
+type UpdateDepartmentMemberDytRequest {
+	DepartmentMemberId int64 `json:"departmentMemberId"` // 部门-成员 ID (非教师 ID，部门-成员关系 ID)
+	IsMaster           int   `json:"isMaster"`           // 是否为负责人 ，0-否，1-是
+}
+
+type DelDepartmentMembersDytRequest {
+	DepartmentMemberIds []int64 `json:"departmentMemberIds"` // 部门成员 ID
+}
+
+type CampusTeachersDytRequest {
+	DepartmentId int64 `form:"departmentId"` // 部门 ID
+}
+type CampusTeachersDytResponse {
+	OutDepartmentTeachers []*TeacherInfoDyt `json:"outDepartmentTeachers"` // 教师信息列表
+}
+
+type TeacherInfoDyt {
+	TeacherId   int64  `json:"teacherId"`   // 教师信息 ID
+	TeacherName string `json:"teacherName"` // 教师名称
+}
+
+type DepartmentChildrenDytResponse {
+	Id       int64                            `json:"id"`       // 部门 ID
+	Name     string                           `json:"name"`     // 部门名称
+	Children []*DepartmentChildrenDytResponse `json:"children"` // 子节点
+}
+
+type UseDefaultDepartmentAskStatusDytResponse {
+	Asked bool `json:"asked"` // 是否已询问过
+}
+
+@server(
+	jwt: Auth
+)
+service department {
+	@doc(
+		summary: 添加部门
+	)
+	@server(
+		handler: DytDepartmentAddHandler
+	)
+	post /department/dyt/add(AddDepartmentDytRequest)
+	
+	@doc(
+		summary: 更新部门信息
+	)
+	@server(
+		handler: DytDepartmentUpdateHandler
+	)
+	post /department/dyt/update(UpdateDepartmentDytRequest)
+	
+	@doc(
+		summary: 批量添加部门信息
+	)
+	@server(
+		handler: DytDepartmentBatchAddHandler
+	)
+	post /department/dyt/batch-add(BatchAddDepartmentDytRequest)
+	
+	@doc(
+		summary: 获取部门列表
+	)
+	@server(
+		handler: DytDepartmentListHandler
+	)
+	get /department/dyt/list() returns(DepartmentChildrenDytResponse)
+	
+	@doc(
+		summary: 删除部门
+	)
+	@server(
+		handler: DytDepartmentDelHandler
+	)
+	post /department/dyt/del(DelDepartmentDytRequest)
+	
+	@doc(
+		summary: 部门人员列表（包含搜索）
+	)
+	@server(
+		handler: DytDepartmentMemberListHandler
+	)
+	get /department/dyt/member/list(DepartmentMembersDytRequest) returns(DepartmentMembersDytResponse)
+	
+	@doc(
+		summary: 新增部门人员
+	)
+	@server(
+		handler: DytDepartmentMemberAddHandler
+	)
+	post /department/dyt/member/add(AddDepartmentMembersDytRequest)
+	
+	@doc(
+		summary: 更新部门成员
+	)
+	@server(
+		handler: DytDepartmentMemberUpdateHandler
+	)
+	post /department/dyt/member/update(UpdateDepartmentMemberDytRequest)
+	
+	@doc(
+		summary: 删除部门成员
+	)
+	@server(
+		handler: DytDepartmentMemberDelHandler
+	)
+	post /department/dyt/member/del(DelDepartmentMembersDytRequest)
+	
+	@doc(
+		summary: 校区教师信息列表(除去本部门已存在的)
+	)
+	@server(
+		handler: DytCampusTeachersHandler
+	)
+	get /department/dyt/teachers(CampusTeachersDytRequest) returns(CampusTeachersDytResponse)
+	
+	@doc(
+		summary: 是否已询问过用户是否使用默认部门
+	)
+	@server(
+		handler: DytGetUseDefaultDepartmentsAskStatusHandler
+	)
+	get /department/dyt/get-ask() returns(UseDefaultDepartmentAskStatusDytResponse)
+	
+	@doc(
+		summary: 设置是否已询问过用户是否使用默认部门
+	)
+	@server(
+		handler: DytSetUseDefaultDepartmentsAskStatusHandler
+	)
+	post /department/dyt/set-ask()
+}

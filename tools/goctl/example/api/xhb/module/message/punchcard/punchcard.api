@@ -1,0 +1,619 @@
+type (
+	AppraisalPunchCardResultRequest {
+		CardPunchId string       `json:"punchCardId"`
+		ResultId    string       `json:"resultId"`
+		Type        string       `json:"type"` // Appraisal 评价, Delete 删除
+		Appraisal   []*Appraisal `json:"appraisal"`
+	}
+	
+	Appraisal {
+		RecordId    int64  `json:"recordId,optional"`  // 评价记录id，删除评价的时候用，评价的时候不传
+		Type        int32  `json:"type"`               // 评价类型
+		IndicatorId int64  `json:"indicatorId"`        // 教师评价指标
+		GradeName   string `json:"gradeName,optional"` // 等第
+		Score       int64  `json:"score,optional"`     // 教师评价分数
+	}
+	
+	DetailResultCellRequest {
+		Token       string `path:"token"`
+		ResultId    string `path:"resultId"`
+		CardPunchId string `form:"cardPunchId,optional"`
+		Version     string `json:"version,optional"`
+	}
+	DetailResultCellResponse {
+		Result *ResultResponse `json:"result"`
+	}
+	
+	ResultResponse {
+		Id         string `json:"id"`
+		CreateTime int64  `json:"createTime"`
+		Tag        string `json:"tag"`
+		ContentableView
+		Sender           *User      `json:"sender"`
+		Receivers        []string   `json:"receivers,omitempty"`
+		ClassroomId      string     `json:"classroomId,omitempty"`
+		Praiselist       []*User    `json:"praiseList,omitempty"`
+		CommentList      []*Comment `json:"commentList,omitempty"`
+		KeepDays         int        `json:"keepDays,omitempty"`
+		IsReplenish      bool       `json:"isReplenish,omitempty"`
+		MessageCreatorId string     `json:"messageCreatorId,omitempty"`
+		IsFamily         bool       `json:"isFamily"` // 结果详情与当前用户之前的关系  true - 家庭成员关系   false - 非家庭成员关系
+		// 576新增评价字段
+		IsAppraisal    bool              `json:"isAppraisal"`              // 是否已评价
+		AppraisalTotal int64             `json:"appraisalTotal,omitempty"` // 已评价的指标数
+		AppraisalScore int64             `json:"appraisalScore,omitempty"` // 已评价的指标分数
+		AppraisalList  []*AppraisalViews `json:"appraisalList,omitempty"`  // 评价列表
+		Honor          bool              `json:"honor"`                    // 是否上墙：true：上墙；false：未上墙
+	}
+	AppraisalViews {
+		TeacherId  string           `json:"teacherId,omitempty"`
+		Appraisals []*AppraisalView `json:"appraisals,omitempty"` // 评价详情
+	}
+	
+	AppraisalView {
+		RecordId        int64  `json:"recordId,omitempty"`    // 评价记录id,删除评价的时候使用
+		Type            int32  `json:"type,omitempty"`        // 评价类型
+		IndicatorId     int64  `json:"indicatorId,omitempty"` // 教师评价指标
+		GradeName       string `json:"gradeName,omitempty"`   // 等第名称
+		Score           int64  `json:"score,omitempty"`       // 教师评价分数
+		ColorGrade      int32  `json:"colorGrade,omitempty"`  // 颜色等级，1-加分最多，2-中等，3-加分最少，4-待改进
+		IndicatorName   string `json:"indicatorName,omitempty"`
+		IndicatorSuffix string `json:"indicatorSuffix,omitempty"`
+		MessageId       string `json:"messageId,omitempty"`
+		ResultId        string `json:"resultId,omitempty"`
+		MessageType     string `json:"messageType,omitempty"`
+		Icon            string `json:"icon,omitempty"`
+	}
+	
+	Image {
+		Original  string `json:"original,omitempty"`
+		Preview   string `json:"preview,omitempty"`
+		Thumbnail string `json:"thumbnail,omitempty"`
+		Size      int    `json:"size,omitempty"`
+		Height    int    `json:"height,omitempty"`
+		Width     int    `json:"width,omitempty"`
+	}
+	
+	Audio {
+		Id            string `json:"id,omitempty"`
+		Duration      int    `json:"duration,omitempty"`
+		FileExtension string `json:"fileExtension,omitempty"`
+		Size          int    `json:"size,omitempty"`
+		Name          string `json:"name,omitempty"`
+	}
+	
+	Video {
+		PlayUrl      string `json:"playUrl,omitempty"`
+		Title        string `json:"title,omitempty"`
+		Desc         string `json:"desc,omitempty"`
+		CoverUrl     string `json:"coverUrl,omitempty"`
+		PlayTime     int    `json:"playTime,omitempty"`
+		MagicContext string `json:"magicContext,omitempty"`
+		Type         string `json:"type,omitempty"`
+		Height       int    `json:"height,omitempty"`
+		Width        int    `json:"width,omitempty"`
+	}
+	
+	User {
+		Avatar      string `json:"avatar,omitempty"`
+		Id          string `json:"id,omitempty"`
+		DisplayName string `json:"displayName,omitempty"`
+		ChildName   string `json:"childName,omitempty"` //去称谓后的班级名称
+	}
+	
+	CommentCell {
+		Id        string   `json:"id"`
+		ResultId  string   `json:"resultId"`
+		Content   string   `json:"content"`
+		Timestamp int64    `json:"timestamp"`
+		Audio     *Audio   `json:"audio,omitempty"`
+		Images    []*Image `json:"images,omitempty"`
+	}
+	
+	Comment {
+		//评论列表
+		Comment     *CommentCell `json:"comment,omitempty"`
+		Sender      *User        `json:"sender,omitempty"`
+		BeReplyUser *User        `json:"beReplyUser,omitempty"`
+	}
+)
+
+type ChoiceXHBTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type ChoiceXHBTemplateResponse {
+	Id          string           `json:"id,omitempty"`
+	SenderId    string           `json:"senderId,omitempty"`
+	CreateTime  int64            `json:"createTime,omitempty"`
+	TimeStamp   int64            `json:"timestamp,omitempty"`
+	EndTime     int64            `json:"endTime,omitempty"`
+	Category    string           `json:"category,omitempty"`
+	ClassroomId string           `json:"classroomId,omitempty"`
+	Punchcard   PunchCardProfile `json:"punchcard,omitempty"`
+	CallbackApi string           `json:"callbackApi,omitempty"`
+}
+
+type PunchCardProfile {
+	Id            string                 `json:"id,omitempty"`
+	Title         string                 `json:"title,omitempty"`
+	Content       string                 `json:"content,omitempty"`
+	Images        []*ImageSt             `json:"images,omitempty"`
+	Video         *VideoSt               `json:"video,omitempty"`
+	Extras        map[string]interface{} `json:"extras,omitempty"`
+	Tag           string                 `json:"tag,omitempty"`
+	ClassroomId   string                 `json:"classroomId,omitempty"`
+	From          string                 `json:"from,omitempty"`
+	Open          bool                   `json:"open,omitempty"`
+	LastDays      int64                  `json:"lastDays,omitempty"`
+	PunchcardWeek []string               `json:"punchcardWeek,omitempty"`
+	RemindTime    string                 `json:"remindTime,omitempty"`
+	PunchType     string                 `json:"punchType,omitempty"`
+	PunchStem     *PunchStemView         `json:"punchStem,omitempty"`
+	Attachments   []*Attachment          `json:"attachements,omitempty"`
+}
+
+type ImageSt {
+	Original  string `json:"original,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Height    int64  `json:"height,omitempty"`
+	Width     int64  `json:"width,omitempty"`
+}
+
+type VideoSt {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+type PunchStemView {
+	BlankType string   `json:"blankType,omitempty"` // timer 计时式 | counter 计数式
+	Stem      string   `json:"stem,omitempty"`      // 题干
+	Options   []string `json:"options,omitempty"`   // 选择题选项
+}
+
+type Attachment {
+	// 网络文件id
+	Id string `bson:"_id" json:"id,omitempty"`
+	// 显示名称
+	Name string `bson:"name,omitempty" json:"name,omitempty"`
+	// 附件mimeType
+	MimeType string `bson:"mimeType,omitempty" json:"mimeType,omitempty"`
+	// 其他属性
+	Attrs *Attrs `bson:"attrs,omitempty" json:"attrs,omitempty"`
+}
+
+type Attrs {
+	// 大小
+	Size string `bson:"size,omitempty" json:"size,omitempty"`
+}
+
+type ModifyReplenishRequest {
+	Token       string `path:"token"`
+	CardPunchId string `path:"cardPunchId"`
+	Count       int    `json:"count"` // 补卡天数
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"`
+}
+
+type ReplenishJoinRequest {
+	CardPunchId string             `path:"cardPunchId"`
+	TaskId      string             `json:"taskId,optional"` // 新版本taskId必填，此处optional兼容老版本
+	PunchCard   *ReplenishJoinItem `json:"result,optional"`
+}
+
+type ReplenishJoinItem {
+	ContentableRequest
+}
+
+type ContentableRequest {
+	// 标题
+	Title string `json:"title,optional" filter:"badword"`
+	// 内容
+	Content string `json:"content,optional" filter:"badword"`
+	// 图片id列表, 需要先上传
+	Images []*ImageRequest `json:"images,optional"`
+	// 语音上传后的对象
+	Audio *AudioRequest `json:"audio,optional"`
+	// 上传后的视频
+	Video *VideoRequest `json:"video,optional"`
+	// 其他附件
+	Attachments []*AttachmentRequest `json:"attachements,optional"`
+	// 额外属性
+	Extras map[string]interface{} `json:"extras,optional"`
+}
+
+type ImageRequest {
+	// 原始图id
+	Original string `json:"original,optional" filter:"badImage"`
+	// 预览图
+	Preview string `json:"preview,optional"`
+	// 缩略图id
+	Thumbnail string `json:"thumbnail,optional"`
+	// 原图大小
+	Size int `json:"size,optional"`
+	// 高
+	Height int `json:"height,optional"`
+	// 宽
+	Width int `json:"width,optional"`
+}
+
+type AudioRequest {
+	// 语音文件id
+	Id string `json:"id" filter:"badAudio"`
+	// 持续时间
+	Duration int `json:"duration,optional"`
+	// 文件后缀名
+	FileExtension string `json:"fileExtension,optional"`
+	// 文件大小
+	Size int `json:"size,optional"`
+	// 显示名称
+	Name string `json:"name,optional"`
+}
+
+type VideoRequest {
+	// 视频标题
+	Title string `json:"title,optional"`
+	// 视频描述
+	Desc string `json:"desc,optional" filter:"badWord"`
+	// 视频封面url
+	CoverUrl string `json:"coverUrl,optional"`
+	// 视频url
+	PlayUrl string `json:"playUrl" filter:"badVideo"`
+	// 视频的播放时长
+	PlayTime int `json:"playTime,optional"`
+	// 视频回调标识字段[回调透传字段]
+	MagicContext string `json:"magicContext,optional"`
+	// 视频类型
+	Type string `json:"type,optional"`
+	// 视频高
+	Height int `json:"height,optional"`
+	// 视频宽
+	Width int `json:"width,optional"`
+}
+
+type AttachmentRequest {
+	// 网络文件id
+	Id string `json:"id,optional"`
+	// 显示名称
+	Name string `json:"name,optional"`
+	// 附件mimeType
+	MimeType string `json:"mimeType,optional"`
+	// 其他属性
+	Attrs *AttrsRequest `json:"attrs,optional"`
+}
+
+type AttrsRequest {
+	Size string `json:"size,optional"`
+}
+
+type ReplenishJoinResponse {
+	CardPunchId     string               `json:"id,omitempty"`
+	ReplenishResult *ReplenishResultView `json:"result,omitempty"`
+}
+
+type ReplenishResultView {
+	ResultId string `json:"id,omitempty"`
+	ContentableView
+	TaskId      string `json:"taskId,omitempty"`
+	SendId      string `json:"sendId,omitempty"`
+	Tag         string `json:"tag,omitempty"`
+	CreateTime  int64  `json:"createTime,omitempty"`
+	IsReplenish bool   `json:"isReplenish,omitempty"`
+}
+
+type (
+	SurveyReplenishJoinRequest {
+		CardPunchId string                  `path:"cardPunchId"`
+		TaskId      string                  `json:"taskId,optional"` // 新版本taskId必填，此处optional兼容老版本
+		Result      *PunchResultRequestItem `json:"result,optional"`
+	}
+	
+	SurveyReplenishJoinResponse {
+		ResultView *PunchResultView `json:"result,omitempty"`
+	}
+	
+	PunchResultRequestItem {
+		Value string `json:"value"` // 参与内容，选择题时填 index值 0,1,2....
+		ContentableRequest
+	}
+	
+	PunchResultView {
+		ResultId string `json:"resultId,omitempty"` // resultId
+		ContentableView
+		PunchCardId string `json:"punchCardId"`
+		ClassroomId string `json:"classroomId"`
+		CreateTime  int64  `json:"createTime,omitempty"`
+		IsReplenish bool   `json:"isReplenish,omitempty"`
+	}
+)
+
+type (
+	ReplenishShowRequest {
+		CardPunchId string `path:"cardPunchId"`
+	}
+	
+	ReplenishShowResponse {
+		IsShow         bool                 `json:"isShow"` // 是否显示入口
+		ReplenishTasks []*ReplenishTaskView `json:"replenishTasks,omitempty"`
+	}
+	
+	ReplenishTaskView {
+		TaskId string `json:"taskId,omitempty"`
+		Date   int64  `json:"date,omitempty"`
+	}
+)
+
+type (
+	HonorListRequest {
+		CardPunchId string `path:"cardPunchId"`
+		Token       string `path:"token"`
+		Myself      bool   `form:"myself"` // true:只看自己
+		Size        int    `form:"size,default=20"`
+		Timestamp   int64  `form:"timestamp,optional"`
+	}
+	
+	HonorListResponse {
+		MyNumber  int64             `json:"myNumber,omitempty"`
+		PunchCard *PunchCardProfile `json:"punchCard,omitempty"`
+		List      []*HonorItem      `json:"list,omitempty"`
+		Timestamp int64             `json:"timestamp,omitempty"`
+		HasMore   bool              `json:"hasMore"`
+	}
+	
+	HonorItem struct {
+		ResultId   string            `json:"resultId,omitempty"`
+		CreateTime  int64             `json:"createTime,omitempty"`
+		HonorTime  int64             `json:"honorTime,omitempty"`
+		Sender     *User             `json:"sender,omitempty"`
+		Content    *ContentableView  `json:"content,omitempty"`
+	}
+	
+	ContentableView {
+		// 标题
+		Title string `json:"title,omitempty"`
+		// 内容
+		Content string `json:"content,omitempty"`
+		// 图片id列表, 需要先上传
+		Images []*Image `json:"images,omitempty"`
+		// 语音上传后的对象
+		Audio *Audio `json:"audio,omitempty"`
+		// 上传后的视频
+		Video *Video `json:"video,omitempty"`
+		// 其他附件
+		Attachments []*Attachment `json:"attachements,omitempty"`
+		
+		Extras map[string]interface{} `json:"extras,omitempty"`
+		// 来自哪里
+		From string `json:"from,omitempty"`
+	}
+	
+	HonorUpdateRequest {
+		CardPunchId string   `path:"cardPunchId"`
+		ResultIds   []string `json:"resultIds"`
+		Enable      bool     `json:"enable"` // true:上墙；false: 取消上墙
+	}
+	
+	HonorPopUpRequest {
+		CardPunchId string `path:"cardPunchId"`
+	}
+	
+	HonorPopUpResponse {
+		PopUp     bool       `json:"popUp"` // true:弹出弹窗；false: 不弹弹窗
+		HonorItem *HonorItem `json:"honorItem,omitempty"`
+	}
+	
+	DetailResultRequest {
+		Token     string `path:"token,optional"`
+		TaskId    string `path:"taskId,optional"`
+		Timestamp int64  `json:"timestamp,optional"`
+		Size      int    `json:"size,optional"`
+		Version   string `json:"vesion,optional"`
+	}
+	
+	DetailResultView {
+		PagingView
+		Messages []*ResultResponse `json:"resultViews,omitempty"`
+	}
+	
+	PagingView {
+		// 是否还有更多消息
+		Id string `json:"id,omitempty"`
+		// 是否还有更多消息
+		HasMore bool `json:"hasMore"`
+		// 总记录数
+		TotalSize int `json:"totalSize"`
+		// 本次获取的最后一条timestamp
+		LastTimestamp int64 `json:"lastTimestamp"`
+	}
+	
+	ShieldPunchCardRequest {
+		Token       string `path:"token"`
+		ResultId    string `path:"resultId"`
+		CardPunchId string `json:"cardPunchId,optional"`
+		IsNotify    bool   `json:"isNotify"`
+		Content     string `json:"content"`
+		Version     string `json:"version,optional"`
+	}
+	
+	RecallResultRequest {
+		Token       string `path:"token"`
+		ResultId    string `path:"resultId"`
+		CardPunchId string `form:"cardPunchId,optional"`
+		Version     string `json:"version,optional"`
+	}
+	
+	AppraisalPunchCardResultResponse {
+	}
+	
+	AwardStudentListRequest struct {
+		CardPunchId string `path:"cardPunchId"`
+	}
+	
+	AwardStudentListResponse struct {
+		List  []*StudentItem `json:"list,omitempty"`
+	}
+	
+	StudentItem struct {
+		StudentBaseInfo    *StudentBaseView  `json:"studentBaseInfo,omitempty"`
+		IsFullAttendance   bool              `json:"isFullAttendance,omitempty"`  //是否全勤
+		IsReplenish        bool              `json:"isReplenish,omitempty"`  //是否补卡
+		IsHonor            bool              `json:"isHonor,omitempty"`   //是否优秀
+		PunchDays          int               `json:"punchDays,omitempty"`  //参与天数
+		HonorCount         int               `json:"honorCount,omitempty"` //优秀成果个数
+	}
+	
+	StudentBaseView struct {
+		Id                 string   `json:"id,omitempty"`
+		Name               string   `json:"name,omitempty"`
+		Avatar             string   `json:"avatar,omitempty"`
+		StudentNumber      string   `json:"studentNumber,omitempty"`
+	}
+	
+	AwardSlipRequest struct {
+		list []*SlipProfile `json:"list"`
+	}
+	
+	SlipProfile struct {
+		students[]      string         `json:"students"`
+		AwardId string `json:"awardId,optional"`
+		Content          string         `json:"content,optional"`
+		Images           []*Image       `json:"images,omitempty,optional"`
+		Extras           map[string]int `json:"extras,optional"`
+	}
+)
+
+@server(
+	jwt: Auth
+	signature: Auth
+	folder: punchcard
+)
+service punchcard-api {
+	@doc(
+		summary: 打卡评价(新增)
+	)
+	@server(
+		handler: AppraisalPunchCardResult
+	)
+	post /punchcard/appraisal(AppraisalPunchCardResultRequest) returns(AppraisalPunchCardResultResponse)
+	
+	@doc(
+		summary: 获取打卡成果(已存在，增加了评价相关字段)
+	)
+	@server(
+		handler: NewDetailResultCellHandler
+	)
+	post /punchcard/result/:token/:resultId(DetailResultCellRequest) returns(DetailResultCellResponse)
+	
+	@doc(
+		summary: 选用xhb模板
+	)
+	@server(
+		handler: ChoiceXHBTemplate
+	)
+	get /punchcard/xhbtemplate/:templateId (ChoiceXHBTemplateRequest) returns(ChoiceXHBTemplateResponse)
+	
+	@doc(
+		summary: 开启补卡功能
+	)
+	@server(
+		handler: NewPunchModifyReplenishHandler
+	)
+	post /punchcard/modify/replenish/:token/:cardPunchId (ModifyReplenishRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 补卡
+	)
+	@server(
+		handler: ReplenishJoin
+	)
+	post /punchcard/replenish/join/:cardPunchId (ReplenishJoinRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 调查式补卡
+	)
+	@server(
+		handler: SurveyReplenishJoin
+	)
+	post /punchcard/survey/replenish/join/:cardPunchId (SurveyReplenishJoinRequest) returns(SurveyReplenishJoinResponse)
+	
+	@doc(
+		summary: 是否显示补卡入口
+	)
+	@server(
+		handler: ReplenishShowHandler
+	)
+	get /punchcard/replenish/show/:cardPunchId (ReplenishShowRequest) returns(ReplenishShowResponse)
+	
+	@doc(
+		summary: 成果墙列表
+	)
+	@server(
+		handler: HonorListHandler
+	)
+	get /punchcard/honor/list/:token/:cardPunchId (HonorListRequest) returns(HonorListResponse)
+	
+	@doc(
+		summary: 上墙/取消上墙
+	)
+	@server(
+		handler: UpdateHonorHandler
+	)
+	post /punchcard/honor/update/:cardPunchId (HonorUpdateRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 成果墙弹窗
+	)
+	@server(
+		handler: PopUpHonorHandler
+	)
+	get /punchcard/honor/popup/:cardPunchId (HonorPopUpRequest) returns(HonorPopUpResponse)
+	
+	@doc(
+		summary: 查看打卡成果 （新增Honor字段表示是否上墙）
+	)
+	@server(
+		handler: DetailResultsHandler
+	)
+	post /punchcard/results/:token/:taskId (DetailResultRequest) returns(DetailResultView)
+	
+	@doc(
+		summary: 教师屏蔽打卡
+	)
+	@server(
+		handler: ShieldPunchCardHandler
+	)
+	post /punchcard/shield/:token/:resultId (ShieldPunchCardRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 家长撤回打卡
+	)
+	@server(
+		handler: RecallResultHandler
+	)
+	get /punchcard/parent/recall/:token/:resultId (RecallResultRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 获取学生列表（带打卡信息）
+	)
+	@server(
+		handler: AwardStudentListHandler
+	)
+	get /punchcard/award/student/list/:cardPunchId (AwardStudentListRequest) returns(AwardStudentListResponse)
+	
+	@doc(
+		summary: 发送私聊
+	)
+	@server(
+		handler: AwardSlipHandler
+	)
+	post /punchcard/slip/publish (AwardSlipRequest)
+}

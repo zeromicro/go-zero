@@ -1,0 +1,441 @@
+info(
+	title: doc title
+	version: 1.0
+)
+
+type SignatureListRequest {
+	StartTime  int64  `json:"startTime"`
+	EndTime    int64  `json:"endTime"`
+	SearchData string `json:"searchData"`
+	PageSize   int64  `json:"pageSize"`
+	NowPage    int64  `json:"nowPage"`
+}
+
+type SignatureListResponse {
+	Count   int64                `json:"count"`
+	NowPage int64                `json:"nowPage"`
+	List    []*SignatureListItem `json:"list"`
+}
+
+type SignatureListItem {
+	SignatureId int64  `json:"signatureId"`
+	Title       string `json:"title"`
+	PeopleNum   int64  `json:"peopleNum"`
+	SignNum     int64  `json:"signNum"`
+	TeacherName string `json:"teacherName"`
+	Time        int64  `json:"time"`
+}
+
+type SignatureExportRequest {
+	SignatureId int64 `json:"signatureId"`
+}
+
+type SignatureExportResponse {
+	List []*SignatureExportListItem `json:"list"`
+}
+
+type SignatureExportListItem {
+	PartName string          `json:"partName"`
+	PartList []*PartListItem `json:"partList"`
+}
+
+type PartListItem {
+	PartName string `json:"partName"`
+	FileName string `json:"fileName"`
+	FileUrl  string `json:"fileUrl"`
+}
+
+type SignatureInfoRequest {
+	SignatureId int64 `json:"signatureId"`
+}
+
+type SignatureInfoResponse {
+	Title          string                         `json:"title"`
+	Desc           string                         `json:"desc"`
+	DocPath        string                         `json:"docPath"`
+	FileName       string                         `json:"fileName"`
+	DepartmentList []*SignatureDepartmentListItem `json:"departmentList"`
+	GradeList      []*SignatureGradeListItem      `json:"gradeList"`
+}
+
+type SignatureDepartmentListItem {
+	Id        int64  `json:"id"`
+	Name      string `json:"name"`
+	PartType  int64  `json:"partType"`
+	PeopleNum int64  `json:"peopleNum"`
+	SignNum   int64  `json:"signNum"`
+}
+
+type SignatureGradeListItem {
+	GradeName     string                    `json:"gradeName"`
+	CampusGradeId int64                     `json:"campusGradeId"`
+	ClassList     []*SignatureClassListItem `json:"classList"`
+}
+
+type SignatureClassListItem {
+	Token         string `json:"token"`
+	Name          string `json:"name"`
+	CampusGradeId int64  `json:"campusGradeId"`
+	GradeId       int64  `json:"gradeId"`
+	GradeName     string `json:"gradeName"`
+	PartType      int64  `json:"partType"`
+	PeopleNum     int64  `json:"peopleNum"`
+	SignNum       int64  `json:"signNum"`
+}
+
+type SignatureGeneratePdfRequest {
+	DocPath string `json:"docPath"`
+}
+
+type SignatureGeneratePdfResponse {
+	TaskId string `json:"taskId"`
+}
+
+type SignatureGetGeneratePdfRequest {
+	TaskId string `json:"taskId"`
+}
+
+type SignatureGetGeneratePdfResponse {
+	Pdf    string `json:"pdf"`
+	PrePdf string `json:"prePdf"`
+}
+
+type SignatureAddRequest {
+	Title          string                `json:"title"`
+	Desc           string                `json:"desc"`
+	WordPath       string                `json:"wordPath"`
+	FileName       string                `json:"fileName"`
+	Pdf            string                `json:"pdf"`
+	PrePdf         string                `json:"prePdf"`
+	ClassTokens    []string              `json:"classTokens"`
+	DepartmentList []*DepartmentListItem `json:"departmentList"`
+}
+
+type DepartmentListItem {
+	DepartmentId int64   `json:"departmentId"`
+	IdType       int64   `json:"idType"`
+	TeacherIds   []int64 `json:"teacherIds"`
+}
+
+type SignatureAddResponse {
+}
+
+type SignatureReAddRequest {
+	SId            int64                 `json:"sId"`
+	Title          string                `json:"title"`
+	Desc           string                `json:"desc"`
+	WordPath       string                `json:"wordPath"`
+	FileName       string                `json:"fileName"`
+	Pdf            string                `json:"pdf"`
+	PrePdf         string                `json:"prePdf"`
+	ClassTokens    []string              `json:"classTokens"`
+	DepartmentList []*DepartmentListItem `json:"departmentList"`
+}
+
+type SignatureReAddResponse {
+}
+
+type SignatureDetailRequest {
+	Sid        int64  `json:"sId"`
+	PartId     int64  `json:"partId"`
+	ClassToken string `json:"classToken"`
+	PartType   int64  `json:"partType"`
+}
+
+type SignatureDetailResponse {
+	SignList    []*SignListItem `json:"signList"`
+	NotSignList []*SignListItem `json:"notSignList"`
+}
+
+type SignListItem {
+	Name   string   `json:"name"`
+	Tokens []string `json:"tokens"`
+}
+
+type SignRemindAllRequest {
+	SId int64 `json:"sId"`
+}
+
+type SignRemindAllResponse {
+}
+
+type SignRemindPeopleRequest {
+	SId      int64    `json:"sId"`
+	UserIds  []string `json:"userIds"`
+	PartType int64    `json:"partType"`
+}
+
+type SignRemindPeopleResponse {
+}
+
+type SignatureDoRequest {
+	Sid        int64  `json:"sId"`
+	ClassToken string `json:"classToken"`
+	SignType   int64  `json:"signType"`
+}
+
+type SignatureDoResponse {
+	WordPath string `json:"wordPath"`
+	IsSign   int64  `json:"isSign"`
+	SignPath string `json:"signPath"`
+}
+
+type SignatureSignRequest {
+	SId        int64  `json:"sId"`
+	SingPath   string `json:"singPath"`
+	ClassToken string `json:"classToken"`
+	SignType   int64  `json:"signType"`
+}
+
+type SignatureSignResponse {
+	SignPath string `json:"signPath"`
+}
+
+type SignatureDataRequest {
+	SignatureId int64 `json:"signatureId"`
+}
+
+type SignatureDataResponse {
+	Title              string                    `json:"title"`
+	Desc               string                    `json:"desc"`
+	Path               string                    `json:"path"`
+	FileName           string                    `json:"fileName"`
+	CampusGrades       []*CampusGradeListItem    `json:"campusGradeListItem"`
+	Departments        []*DataDepartmentListItem `json:"departments"`
+	UnSignCampusGrades []*CampusGradeListItem    `json:"unSignCampusGrades"`
+	UnSignDepartments  []*DataDepartmentListItem `json:"unSignDepartments"`
+}
+
+type CampusGradeListItem {
+	CampusGradeId int64            `json:"campusGradeId"`
+	GradeName     string           `json:"gradeName"`
+	ClassList     []*ClassListItem `json:"classListItem"`
+}
+
+type ClassListItem {
+	Telep         int64     `json:"telep"`
+	CampusGradeId int64     `json:"campusGradeId"`
+	GradeId       int64     `json:"gradeId"`
+	ClassId       int64     `json:"classId"`
+	ClassToken    string    `json:"classToken"`
+	ClassName     string    `json:"className"`
+	PeopleList    []*People `json:"peopleList"`
+}
+
+type DataDepartmentListItem {
+	PartId     int64     `json:"partId"`
+	PartName   string    `json:"partName"`
+	IdType     int64     `json:"idType"`
+	PeopleList []*People `json:"peopleList"`
+}
+
+type People {
+	Id     int64  `json:"id,omitempty"`
+	Name   string `json:"name"`
+	Token  string `json:"token,omitempty"`
+	Phone  string `json:"phone"`
+	Avatar string `json:"avatar"`
+}
+
+type SignatureDescInfoRequest {
+	Sid int64 `json:"sId"`
+}
+
+type SignatureDescInfoResponse {
+	FileName string `json:"fileName"`
+	Title    string `json:"title"`
+	Desc     string `json:"desc"`
+	PdfPath  string `json:"pdfPath"`
+}
+
+type SignatureReSendInfoRequest {
+	Sid int64 `json:"sId"`
+}
+
+type SignatureReSendInfoResponse {
+	Title          string                `json:"title"`
+	Desc           string                `json:"desc"`
+	WordPath       string                `json:"wordPath"`
+	FileName       string                `json:"fileName"`
+	Pdf            string                `json:"pdf"`
+	PrePdf         string                `json:"prePdf"`
+	ClassTokens    []string              `json:"classTokens"`
+	ClassIdList    []int64               `json:"classIdList"`
+	DepartmentList []*DepartmentListItem `json:"departmentList"`
+}
+
+type SignatureDelTaskRequest {
+	Sid int64 `json:"sId"`
+}
+
+type SignatureUserDataRequest {
+	UserName string `json:"userName"` // 学生名或者老师名
+	Token    string `json:"token"`    // 学生的班级token或者老师的个人token
+}
+
+type SignatureUserDataResponse {
+	UserDataList []*UserDataListItem `json:"userDataList"`
+}
+
+type UserDataListItem {
+	UserName string `json:"userName"` // 用户名字
+	Token    string `json:"token"`    // 用户token
+	Phone    string `json:"phone"`    // 用户手机
+	Avatar   string `json:"avatar"`   // 用户头像
+}
+
+type SignatureNoticeRequest {
+	Sms    bool     `json:"sms"`
+	Sid    int64    `json:"sid"`
+	Mobile []string `json:"mobile"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service signature-api {
+	@doc(
+		summary: 公告列表
+	)
+	@server(
+		handler: signatureListHandler
+	)
+	post /signature/list(SignatureListRequest) returns(SignatureListResponse)
+	
+	@doc(
+		summary: 批量下载
+	)
+	@server(
+		handler: signatureExportHandler
+	)
+	post /signature/export(SignatureExportRequest) returns(SignatureExportResponse)
+	
+	@doc(
+		summary: 查看公告详情
+	)
+	@server(
+		handler: signatureInfoHandler
+	)
+	post /signature/info(SignatureInfoRequest) returns(SignatureInfoResponse)
+	
+	@doc(
+		summary: 查看签名情况
+	)
+	@server(
+		handler: signatureDetailHandler
+	)
+	post /signature/detail(SignatureDetailRequest) returns(SignatureDetailResponse)
+	
+	@doc(
+		summary: 提醒所有人
+	)
+	@server(
+		handler: signRemindAllHandler
+	)
+	post /signature/remind-all(SignRemindAllRequest) returns(SignRemindAllResponse)
+	
+	@doc(
+		summary: 发短信提醒人
+	)
+	@server(
+		handler: signRemindPeopleHandler
+	)
+	post /signature/remind-people(SignRemindPeopleRequest) returns(SignRemindPeopleResponse)
+	
+	@doc(
+		summary: 增加公告
+	)
+	@server(
+		handler: signatureAddHandler
+	)
+	post /signature/add(SignatureAddRequest) returns(SignatureAddResponse)
+	
+	@doc(
+		summary: 重新编辑增加公告
+	)
+	@server(
+		handler: signatureReAddHandler
+	)
+	post /signature/re-add(SignatureReAddRequest) returns(SignatureReAddResponse)
+	
+	@doc(
+		summary: 预生成pdf
+	)
+	@server(
+		handler: SignatureGeneratePdfHandler
+	)
+	post /signature/generate/pdf(SignatureGeneratePdfRequest) returns(SignatureGeneratePdfResponse)
+	
+	@doc(
+		summary: 轮询获得生成的pdf
+	)
+	@server(
+		handler: SignatureGetGeneratePdfHandler
+	)
+	post /signature/generate/get-pdf(SignatureGetGeneratePdfRequest) returns(SignatureGetGeneratePdfResponse)
+	
+	@doc(
+		summary: 获得重新发送的pdf的基础信息
+	)
+	@server(
+		handler: SignatureReSendInfoHandler
+	)
+	post /signature/re-send/info(SignatureReSendInfoRequest) returns(SignatureReSendInfoResponse)
+	
+	@doc(
+		summary: 撤回签字回执任务
+	)
+	@server(
+		handler: SignatureDelTaskHandler
+	)
+	post /signature/del(SignatureDelTaskRequest)
+	
+	@doc(
+		summary: 查看公告签字情况
+	)
+	@server(
+		handler: signatureDoHandler
+	)
+	post /signature/h5/do(SignatureDoRequest) returns(SignatureDoResponse)
+	
+	@doc(
+		summary: 公告签名
+	)
+	@server(
+		handler: signatureSignHandler
+	)
+	post /signature/h5/sign(SignatureSignRequest) returns(SignatureSignResponse)
+	
+	@doc(
+		summary: 签名数据
+	)
+	@server(
+		handler: SignatureDataHandler
+	)
+	post /signature/h5/sig-data(SignatureDataRequest) returns(SignatureDataResponse)
+	
+	@doc(
+		summary: 公告基本信息
+	)
+	@server(
+		handler: SignatureDescInfoHandler
+	)
+	post /signature/h5/sig-desc(SignatureDescInfoRequest) returns(SignatureDescInfoResponse)
+	
+	@doc(
+		summary: 查询个人信息
+	)
+	@server(
+		handler: SignatureUserDataHandler
+	)
+	post /signature/h5/sig/user-data(SignatureUserDataRequest) returns(SignatureUserDataResponse)
+	
+	@doc(
+		summary: ding
+	)
+	@server(
+		handler: SignatureNoticeHandler
+	)
+	post /signature/h5/sig/notice(SignatureNoticeRequest)
+}

@@ -1,0 +1,344 @@
+info(
+	title:  "doc  title"
+	desc:  "goctl api go -api homeworkadmin.api -dir ./这是后台作业模板api文档"
+	version:  "1.0"
+)
+
+type TemplateListRequest {
+	Uid       int64  `form:"uid,optional"`
+	Title     string `form:"title,optional"`
+	ShowApp   int64  `form:"showApp,optional"`   // -1否 0默认  1 是
+	UseStatus int64  `form:"useStatus,optional"` // -1否 0默认  1 是
+	Page      int64  `form:"page,optional,default=1"`
+	PageSize  int64  `form:"pageSize,optional,default=10"`
+}
+
+type Link {
+	Image string `json:"image,optional"`
+	Title string `json:"title,optional"`
+	Url   string `json:"url,optional"`
+}
+
+type Video {
+	// 视频标题
+	Title string `json:"title,optional"`
+	// 视频描述
+	Desc string `json:"desc,optional"`
+	// 视频封面url
+	CoverUrl string `json:"coverUrl,optional"`
+	// 视频url
+	PlayUrl string `json:"playUrl"`
+	// 视频的播放时长
+	PlayTime int `json:"playTime,optional"`
+	// 视频回调标识字段[回调透传字段]
+	MagicContext string `json:"magicContext,optional"`
+	// 视频类型
+	Type string `json:"type,optional"`
+	// 视频高
+	Height int `json:"height,optional"`
+	// 视频宽
+	Width int `json:"width,optional"`
+}
+
+type Attachment {
+	// 网络文件id
+	Id string `json:"id,omitempty"`
+	// 显示名称
+	Name string `json:"name,omitempty"`
+	// 附件mimeType
+	MimeType string `json:"mimeType,omitempty"`
+	// 其他属性
+	Attrs *Attrs `json:"attrs,omitempty"`
+}
+
+type Attrs {
+	Size string `json:"size,omitempty"`
+}
+
+type TemplateView {
+	TemplateId     string        `json:"templateId,omitempty"`
+	TemplateName   string        `json:"templateName,omitempty"`
+	Content        string        `json:"content,omitempty"`
+	Cover          string        `json:"cover,omitempty"`
+	XhbTag         string        `json:"xhbTag,omitempty"`
+	XhbTagId       string        `json:"xhbTagId,omitempty"`
+	XjyTag         string        `json:"xjyTag,omitempty"`
+	XjyTagId       string        `json:"xjyTagId,omitempty"`
+	Links          []*Link       `json:"links,omitempty"`
+	Images         []string      `json:"images,omitempty"`
+	ClickCount     int64         `json:"clickCount,omitempty"`
+	UseCount       int64         `json:"useCount,omitempty"`
+	Uid            int64         `json:"uid,omitempty"`
+	Status         bool          `json:"status"`
+	CreateTime     int64         `json:"createTime,omitempty"`
+	UpdateTime     int64         `json:"updateTime,omitempty"`
+	TimeStamp      int64         `json:"timeStamp,omitempty"`
+	Video          *Video        `json:"video,optional,omitempty"`
+	DeliveryStatus string        `json:"deliveryStatus,omitempty"`
+	ResBagId       string        `json:"resBagId,optional"`
+	ShowApp        bool          `json:"showApp,optional"`
+	Attachments    []*Attachment `json:"attachments,optional"`
+}
+
+type TemplateListResponse {
+	TemplateList []*TemplateView `json:"templateList,omitempty"`
+	Page         *Page           `json:"page,omitempty"`
+}
+
+type AddTagRequest {
+	Name     string `json:"name"`
+	Subject  string `json:"subject"`
+	Location string `json:"location"`
+}
+
+type DeleteTagRequest {
+	TagId string `path:"tagId"`
+}
+
+type EmptyResponse {
+}
+
+type ActiveTagRequest {
+	TagId string `json:"tagId"`
+}
+
+type SortTagRequest {
+	TagId string `json:"tagId"`
+	IsUp  bool   `json:"isUp"`
+}
+
+type SortTagResponse {
+	Result bool  `json:"result"`
+	Uid    int64 `json:"uid"`
+}
+
+type GetAllTagRequestByLocation {
+	Location string `json:"location"`
+}
+
+type UpdateTagRequest {
+	TagId    string `json:"tagId"`
+	NewTag   string `json:"newTag"`
+	Location string `json:"location"`
+	Subject  string `json:"subject"`
+}
+
+type UpdateTagResponse {
+	Result bool   `json:"result"`
+	Uid    int64  `json:"uid"`
+	TagId  string `json:"tagId"`
+}
+
+type GetAllTagRequest {
+	// 页码 默认为1
+	Page int32 `json:"page,optional"`
+	// 每页记录数 默认为10
+	PageSize int32 `json:"pageSize,optional"`
+}
+
+type TagResponse {
+	TagId     string   `json:"tagId,omitempty"`
+	Name      string   `json:"name,omitempty"`
+	Index     int32    `json:"index,omitempty"`
+	Subject   string   `json:"subject,omitempty"`
+	Templates []string `json:"templates,omitempty"`
+	Status    bool     `json:"status"`
+	Location  string   `json:"location,omitempty"`
+}
+
+type AllTagResponse {
+	Lists []*Tag `json:"lists,omitempty"`
+}
+
+type Tag {
+	TagId string `json:"tagId,omitempty"`
+	Tag   string `json:"tag,omitempty"`
+}
+
+type Page {
+	Pages int `json:"pages,omitempty"`
+	Nums  int `json:"nums,omitempty"`
+}
+
+type TagList {
+	Tags  []*TagResponse `json:"tags,omitempty"`
+	Page  *Page          `json:"page,omitempty"`
+	Count int32          `json:"count,omitempty"`
+}
+
+type AddEditTemplateRequest {
+	TemplateId   string        `json:"templateId,optional"`
+	Name         string        `json:"name"`
+	Introduction string        `json:"introduction,optional"`
+	Cover        string        `json:"cover,optional"`
+	Images       []string      `json:"images,optional"` //图片
+	XhbTag       string        `json:"xhbTag,optional"`
+	XhbTagId     string        `json:"xhbTagId,optional"`
+	Links        []*Link       `json:"links,optional"`
+	UseCount     int64         `json:"useCount"`
+	Status       bool          `json:"status"`
+	TimeStamp    int64         `json:"timeStamp,optional"`
+	Video        *Video        `json:"video,optional,omitempty"`
+	Attachments  []*Attachment `json:"attachments,optional,omitempty"`
+	ShowApp      bool          `json:"showApp,optional"`
+}
+
+type DelTemplate {
+	Id string `path:"id"`
+}
+
+type ActiveTemplateRequest {
+	TemplateId  string `json:"template_id"`
+	ShowApp     bool   `json:"showApp,optional"`
+	ActiveState bool   `json:"activeState,optional"`
+}
+
+type ActiveTemplateResponse {
+	Uid        int64  `json:"uid,omitempty"`
+	TemplateId string `json:"template_id"`
+	Status     bool   `json:"status"`
+	ShowApp    bool   `json:"showApp,optional"`
+}
+type BatchUseRequest {
+	TemplateIds []string `json:"templateIds"`
+	UseStatus   bool     `json:"useStatus"`
+}
+type BatchUseResponse {
+	Desc string `json:"desc"`
+}
+
+type BatchShowRequest {
+	TemplateIds []string `json:"templateIds"`
+	ShowStatus  bool     `json:"showStatus"`
+}
+
+type BatchShowResponse {
+	Desc string `json:"desc"`
+}
+
+@server(
+	pathPrefix:  "/route/xhb"
+)
+service homework-admin {
+	@doc(
+		summary:  "添加tag"
+	)
+	@server(
+		handler: addTag
+	)
+	post /homework/tag/add(AddTagRequest) returns (EmptyResponse)
+	
+	@doc(
+		summary:  "更新tag"
+	)
+	@server(
+		handler: updateTag
+	)
+	post /homework/tag/update(UpdateTagRequest) returns (UpdateTagResponse)
+	
+	@doc(
+		summary:  "删除tag"
+	)
+	@server(
+		handler: delTag
+	)
+	delete /homework/tag/:tagId(DeleteTagRequest) returns (EmptyResponse)
+	
+	@doc(
+		summary:  "启用标签"
+	)
+	@server(
+		handler: activeTag
+	)
+	post /homework/tag/active(ActiveTagRequest) returns (EmptyResponse)
+	
+	@doc(
+		summary: "sort"
+	)
+	@server(
+		handler: sortTag
+	)
+	post /homework/tag/sort(SortTagRequest) returns (SortTagResponse)
+	
+	@doc(
+		summary:  "分页查询tag"
+	)
+	@server(
+		handler: getTagList
+	)
+	post /homework/tag/getlist(GetAllTagRequest) returns (TagList)
+	
+	@doc(
+		summary:  "获取所有tag"
+	)
+	@server(
+		handler: getAllTag
+	)
+	post /homework/tag/getalltag(GetAllTagRequestByLocation) returns (AllTagResponse)
+	
+	@doc(
+		summary:  "获取模板列表（分页）"
+	)
+	@server(
+		handler: templateList
+	)
+	get /homework/template/list(TemplateListRequest) returns (TemplateListResponse)
+	
+	@doc(
+		summary:  "添加模板"
+	)
+	@server(
+		handler: addTemplate
+	)
+	post /homework/template/add(AddEditTemplateRequest)returns (EmptyResponse)
+	
+	@doc(
+		summary:  "删除模板"
+	)
+	@server(
+		handler: delTemplate
+	)
+	
+	delete /homework/template/:id(DelTemplate) returns(EmptyResponse)
+	
+	@doc(
+		summary:  "启用、停用模板"
+	)
+	@server(
+		handler: activeTemplate
+	)
+	post /homework/template/active(ActiveTemplateRequest) returns(ActiveTemplateResponse)
+	
+	@doc(
+		summary:  "编辑模板"
+	)
+	@server(
+		handler: editTemplate
+	)
+	post /homework/template/edit(AddEditTemplateRequest) returns(EmptyResponse)
+	
+	@doc(
+		summary:  "模板详情"
+	)
+	@server(
+		handler: detail
+	)
+	get /homework/template/detail/:id(DelTemplate) returns(TemplateView)
+	
+	@doc(
+		summary:  "批量启用"
+	)
+	@server(
+		handler: batchUseHandler
+	)
+	post /homework/batch/use(BatchUseRequest) returns(BatchUseResponse)
+	
+	@doc(
+		summary:  "批量展示"
+	)
+	@server(
+		handler: batchShowHandler
+	)
+	post /homework/batch/show(BatchShowRequest) returns(BatchShowResponse)
+	
+}

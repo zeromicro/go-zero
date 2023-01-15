@@ -1,0 +1,54 @@
+info(
+	title: 德育包模板综合素质
+	desc: 德育包相关api
+	author: songguangyang
+	email: songguangyang@xiaoheiban.cn
+)
+
+type AddQualityRequest {
+	Theme   string `json:"theme"`   // 主题
+	Quality string `json:"quality"` // 素质名称
+}
+
+type AddQualityResponse {
+}
+
+type GetQualityListRequest {
+	KeyWord string `json:"keyWord,optional"` // 非必传 如果按照关键字搜索就传
+}
+
+type GetQualityListResponse {
+	ThemeQualitys []*ThemeQuality `json:"themeQualitys"`
+}
+
+type ThemeQuality {
+	ThemeName string     `json:"themeName"` // 主题名称
+	Qualitys  []*Quality `json:"qualitys"`  // 综合素质
+}
+
+type Quality {
+	Id          string `json:"id"`          // 综合素质id
+	QualityName string `json:"qualityName"` // 综合素质名称
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8080
+)
+service templatebook-api {
+	@doc(
+		summary: 新增素质
+	)
+	@server(
+		handler: AddQuality
+	)
+	post /controlpanel/messageTemplate/quality/add(AddQualityRequest) returns(AddQualityResponse)
+	
+	@doc(
+		summary: 获取素质列表
+	)
+	@server(
+		handler: GetQualityList
+	)
+	post /controlpanel/messageTemplate/quality/list(GetQualityListRequest) returns(GetQualityListResponse)
+}

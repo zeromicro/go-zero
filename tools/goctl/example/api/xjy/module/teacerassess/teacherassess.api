@@ -1,0 +1,920 @@
+info(
+	title: 班级考核二期
+	desc: 班级考核二期相关api
+	author: huleiyu
+	email: huleiyu@xiaoheiban.cn
+)
+
+type AddObjectRequest {
+	ObjectName        string  `json:"objectName"`              // 评价组名称
+	MondayTeachers    []int64 `json:"mondayTeachers,optional"` // 周一被评价教师id
+	TuesdayTeachers   []int64 `json:"tuesdayTeachers,optional"`
+	WednesdayTeachers []int64 `json:"wednesdayTeachers,optional"`
+	ThursdayTeachers  []int64 `json:"thursdayTeachers,optional"`
+	FridayTeachers    []int64 `json:"fridayTeachers,optional"`
+	SaturdayTeachers  []int64 `json:"saturdayTeachers,optional"`
+	SundayTeachers    []int64 `json:"sundayTeachers,optional"`
+	WeekTeachers      []int64 `json:"weekTeachers,optional"` // 固定评价组被评价教师id
+	Type              int64   `json:"type"`                  // 评价组类型。0-自定义评价组，1-固定评价组
+}
+
+type UpdateObjectRequest {
+	ObjectName        string  `json:"objectName"`              // 评价组名称
+	ObjectId          int64   `json:"objectId"`                // 评价组id
+	MondayTeachers    []int64 `json:"mondayTeachers,optional"` // 周一被评价教师id
+	TuesdayTeachers   []int64 `json:"tuesdayTeachers,optional"`
+	WednesdayTeachers []int64 `json:"wednesdayTeachers,optional"`
+	ThursdayTeachers  []int64 `json:"thursdayTeachers,optional"`
+	FridayTeachers    []int64 `json:"fridayTeachers,optional"`
+	SaturdayTeachers  []int64 `json:"saturdayTeachers,optional"`
+	SundayTeachers    []int64 `json:"sundayTeachers,optional"`
+	WeekTeachers      []int64 `json:"weekTeachers,optional"` // 固定评价组被评价教师id
+	Type              int64   `json:"type"`                  // 评价组类型。0-自定义评价组，1-固定评价组
+}
+
+type AddTaskRequest {
+	TaskName       string       `json:"taskName"`       // 评价任务名称
+	TaskTypeIdList []int64      `json:"taskTypeIdList"` // 指标名称id--原评价分类id
+	SyncStu        int64        `json:"syncStu"`        // 是否同步学生评价。0-不同步，1-同步
+	ClassList      []*TaskLevel `json:"classList"`      // 班级评价等级
+	TeacherList    []*TaskLevel `json:"teacherList"`    // 教师评价等级
+}
+
+type UpdateTaskRequest {
+	TaskId         int64        `json:"taskId"`         // 评价任务id
+	TaskName       string       `json:"taskName"`       // 评价任务名称
+	TaskTypeIdList []int64      `json:"taskTypeIdList"` // 指标名称id--原评价分类id
+	SyncStu        int64        `json:"syncStu"`        // 是否同步学生评价。0-不同步，1-同步
+	ClassList      []*TaskLevel `json:"classList"`      // 班级评价等级
+	TeacherList    []*TaskLevel `json:"teacherList"`    // 教师评价等级
+}
+
+type TaskLevel {
+	Id       int64  `json:"id,optional"`       // 评价等级id。编辑时传值
+	Name     string `json:"name"`              // 评价等级名称
+	GradeImg string `json:"gradeImg,optional"` // 评价等级图片
+	MaxAvg   int64  `json:"maxAvg"`            // 最大平均值
+	MaxEqual int64  `json:"maxEqual"`          // 是否等于最大平均值。0-不等于，1-等于0-1
+	MinAvg   int64  `json:"minAvg"`            // 最小平均值
+	MinEqual int64  `json:"minEqual"`          // 是否等于最小平均值。0-不等于，1-等于0-1
+}
+
+type AssessTaskInfoRequest {
+	TaskId int64 `json:"taskId"` // 评价任务id
+}
+
+type TaskInfoResponse {
+	TaskId           int64        `json:"taskId"`           // 评价任务id
+	TaskName         string       `json:"taskName"`         // 评价任务名称
+	TaskTypeNameList []string     `json:"taskTypeNameList"` // 指标名称--原评价分类名称
+	TaskTypeIds      string       `json:"taskTypeIds"`      // 指标名称id--原评价分类名称id。以;为分割
+	SyncStu          int64        `json:"syncStu"`          // 是否同步学生评价。0-不同步，1-同步
+	ClassList        []*TaskLevel `json:"classList"`        // 班级评价等级
+	TeacherList      []*TaskLevel `json:"teacherList"`      // 教师评价等级
+}
+
+type TaskTypeList {
+	List []*TaskType `json:"list"` // 教师可评价任务分类列表
+}
+
+type TaskType {
+	AssessTaskName string        `json:"assessTaskName"`    // 教师评价任务
+	AssessTaskId   int64         `json:"assessTaskId"`      // 教师评价任务id
+	TypeList       []*AssessType `json:"typeList"`          // 教师未评价分类列表
+	EvaluatedList  []*AssessType `json:"evaluatedTypeList"` // 教师未评价分类列表
+}
+
+type AssessType {
+	AssessTypeId       int64  `json:"assessTypeId"`       // 评价分类id
+	AssessTypeName     string `json:"assessTypeName"`     // 评价分类名称
+	AssessTeacherDayId int64  `json:"assessTeacherDayId"` // 教师评价日志id
+	IsAssess           int64  `json:"isAssess"`           // 当前分类是否已评价 1 已评价 2 未评价
+	AssessTime         int64  `json:"assessTime"`         // 评价时间
+	EvaluatedTargets   int64  `json:"evaluatedTargets"`   // 已评价的指标数量
+	TotalTargets       int64  `json:"totalTargets"`       // 总评价的指标数量
+}
+
+type AssessTeacherDataRequest {
+	TaskId    int64 `json:"taskId"` // 任务id
+	TypeId    int64 `json:"typeId"` // 评价分类id
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	IsAvg     int64 `json:"isAvg"` // 是否按照平均分排序
+}
+
+type AssessTeacherDataResponse {
+	AssessTypeList []*AssessTypeListItem        `json:"assessTypeList"` // 当前task 的所有type
+	List           []*AssessTeacherDataListItem `json:"list"`           // 老师数据汇总列表
+}
+
+type AssessTeacherDataListItem {
+	TeacherId         int64                    `json:"teacherId"`
+	TeacherName       string                   `json:"teacherName"`
+	TeacherAssessList []*TeacherAssessListItem `json:"teacherAssessList"` // 老师在不同的type 的 数据情况
+	TeacherScoreAvg   float64                  `json:"teacherScoreAvg"`
+	TeacherScoreSum   float64                  `json:"teacherScoreSum"`
+	TeacherLevelName  string                   `json:"teacherLevelName"`
+	TeacherLevelImg   string                   `json:"teacherLevelImg"`
+}
+
+type TeacherAssessListItem {
+	AssessTypeId   int64   `json:"assessTypeId"`
+	AssessTypeName string  `json:"assessTypeName"`
+	AssessTypeAvg  float64 `json:"assessTypeAvg"`
+	AssessTypeSum  float64 `json:"assessTypeSum"`
+}
+
+type TeacherDataTypeRequest {
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	TaskId    int64 `json:"taskId"`
+	TypeId    int64 `json:"typeId"`
+}
+
+type TeacherDataTypeResponse {
+	TypeId                int64                        `json:"typeId"`
+	TypeName              string                       `json:"typeName"`
+	TeacherTypeDataList   []*TeacherTypeDataListItem   `json:"teacherTypeDataList"` // 老师在此type里的数据汇总
+	TargetItemNames       []string                     `json:"targetItemNames"`
+	TeacherTargetDataList []*TeacherTargetDataListItem `json:"teacherTargetDataList"` // 老师在此type 下 不同的 target 的数据汇总
+}
+
+type TeacherTargetDataListItem {
+	TargetId               int64                         `json:"targetId"`
+	TargetName             string                        `json:"targetName"`
+	TeacherTargetScopeList []*TeacherTargetScopeListItem `json:"teacherTargetScopeList"`
+}
+
+type TeacherTargetScopeListItem {
+	ScopeName                string                     `json:"scopeName"` // 范围名
+	TargetItemNames          []string                   `json:"targetItemNames"`
+	ScopeTeacherTypeDataList []*TeacherTypeDataListItem `json:"scopeTeacherTypeDataList"`
+}
+
+type TeacherTypeDataListItem {
+	TeacherId      int64                 `json:"teacherId"`
+	TeacherName    string                `json:"teacherName"`
+	ScoreSum       float64               `json:"scoreSum"`
+	ScoreAvg       float64               `json:"scoreAvg"`
+	TypeTargetList []*TypeTargetListItem `json:"typeTargetList"`
+}
+
+type TypeTargetListItem {
+	TargetName string `json:"targetName"`
+	TargetNum  int64  `json:"targetNum"`
+}
+
+type TeacherRankDataRequest {
+	AssessTaskId int64 `json:"assessTaskId"`
+	TypeId       int64 `json:"typeId"`
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+	IsAvg        int64 `json:"isAvg"` // 是否按照平均分排序
+}
+
+type TeacherRanKDataResponse {
+	SelfData *TeacherData   `json:"selfData"` // 老师自己数据
+	List     []*TeacherData `json:"list"`     // 排行榜详情
+}
+
+type TeacherData {
+	TeacherName string  `json:"teacherName"`
+	TeacherId   int64   `json:"teacherId"`
+	Avatar      string  `json:"avatar"`
+	ScoreSum    float64 `json:"scoreSum"`
+	ScoreAvg    float64 `json:"scoreAvg"`
+}
+
+type TeacherTaskDetailDataRequest {
+	TeacherId    int64 `json:"teacherId"`
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+	AssessTaskId int64 `json:"assessTaskId"` // 任务id
+}
+
+type TeacherTaskDetailDataResponse {
+	List []*TypeDataListItem `json:"list"`
+}
+
+type TypeDataListItem {
+	TypeName   string                `json:"typeName"` // 类型名
+	TypeId     int64                 `json:"typeId"`
+	TypeScore  int64                 `json:"typeScore"`
+	TargetList []*TargetDataListItem `json:"targetList"`
+}
+
+type TargetDataListItem {
+	TargetName  string `json:"targetName"`  // 指标名
+	TargetScore int64  `json:"targetScore"` // 指标分
+}
+
+type TeacherTaskTypeTargetDetailRequest {
+	AssessTaskId int64 `json:"assessTaskId"`
+	TeacherId    int64 `json:"teacherId"`
+	TypeId       int64 `json:"typeId"`
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+}
+
+type TeacherTaskTypeTargetDetailResponse {
+	List []*TeacherTargetDetailListItem `json:"list"`
+}
+
+type TeacherTargetDetailListItem {
+	TargetId       int64                 `json:"targetId"`
+	TargetName     string                `json:"targetName"`
+	TargetItemList []*TargetItemListItem `json:"targetItemList"`
+}
+
+type TargetItemListItem {
+	TargetItemName  string `json:"targetItemName"`
+	TargetItemNum   int64  `json:"targetItemNum"`
+	TargetItemScore int64  `json:"targetItemScore"`
+}
+
+type AssessClassDataRequest {
+	TaskId    int64 `json:"taskId"`
+	TypeId    int64 `json:"typeId"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	IsAvg     int64 `json:"isAvg"` // 是否按照平均分排序
+}
+
+type AssessClassDataResponse {
+	AssessTypeList []*AssessTypeListItem      `json:"assessTypeList"` // 此任务的所有type
+	List           []*AssessClassDataListItem `json:"list"`           // class的数据情况
+}
+
+type AssessClassDataListItem {
+	ClassId         int64                  `json:"classId"`
+	ClassName       string                 `json:"className"`
+	ClassAssessList []*ClassAssessListItem `json:"classAssessList"`
+	ClassScoreAvg   float64                `json:"classScoreAvg"`
+	ClassScoreSum   float64                `json:"classScoreSum"`
+	ClassLevelName  string                 `json:"classLevelName"` // 平均分等级名
+	ClassLevelImg   string                 `json:"classLevelImg"`  // 平均分等级图片
+}
+
+type ClassAssessListItem {
+	AssessTypeId   int64   `json:"assessTypeId"`
+	AssessTypeName string  `json:"assessTypeName"`
+	AssessTypeAvg  float64 `json:"assessTypeAvg"`
+	AssessTypeSum  float64 `json:"assessTypeSum"`
+}
+
+type AssessTypeListItem {
+	TypeId   int64  `json:"typeId"`
+	TypeName string `json:"typeName"`
+}
+
+type ClassDataTypeRequest {
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	TaskId    int64 `json:"taskId"`
+	TypeId    int64 `json:"typeId"`
+}
+
+type ClassDataTypeResponse {
+	TypeId              int64                      `json:"typeId"`
+	TypeName            string                     `json:"typeName"`
+	TargetItemNames     []string                   `json:"targetItemNames"`
+	ClassTypeDataList   []*ClassTypeDataListItem   `json:"classTypeDataList"`
+	ClassTargetDataList []*ClassTargetDataListItem `json:"classTargetDataList"`
+}
+
+type ClassTargetDataListItem {
+	TargetId             int64                       `json:"targetId"`
+	TargetName           string                      `json:"targetName"`
+	ClassTargetScopeList []*ClassTargetScopeListItem `json:"classTargetScopeList"`
+}
+
+type ClassTargetScopeListItem {
+	ScopeName              string                   `json:"scopeName"`
+	TargetItemNames        []string                 `json:"targetItemNames"`
+	ScopeClassTypeDataList []*ClassTypeDataListItem `json:"scopeClassTypeDataList"`
+}
+
+type ClassTypeDataListItem {
+	ClassId        int64                 `json:"classId"`
+	ClassName      string                `json:"className"`
+	ScoreSum       float64               `json:"scoreSum"`
+	ScoreAvg       float64               `json:"scoreAvg"`
+	TypeTargetList []*TypeTargetListItem `json:"typeTargetList"`
+}
+
+type ClassAssessRankDataRequest {
+	AssessTaskId  int64 `json:"assessTaskId"`
+	TypeId        int64 `json:"typeId"`
+	StartTime     int64 `json:"startTime"`
+	EndTime       int64 `json:"endTime"`
+	IsAvg         int64 `json:"isAvg"`
+	CampusGradeId int64 `json:"campusGradeId"`
+}
+
+type ClassAssessRanKDataResponse {
+	List []*ClassAssessData `json:"list"`
+}
+
+type ClassAssessData {
+	ClassName      string  `json:"className"`
+	ClassId        int64   `json:"classId"`
+	Avatar         string  `json:"avatar"`
+	ScoreSum       float64 `json:"scoreSum"`
+	ScoreAvg       float64 `json:"scoreAvg"`
+	ClassLevelName string  `json:"classLevelName"`
+	ClassLevelImg  string  `json:"classLevelImg"`
+}
+
+type ClassTaskDetailDataRequest {
+	ClassId      int64 `json:"classId"`
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+	AssessTaskId int64 `json:"assessTaskId"`
+}
+
+type ClassTaskDetailDataResponse {
+	List []*TypeDataListItem `json:"list"`
+}
+
+type ClassTaskTypeTargetDetailRequest {
+	AssessTaskId int64 `json:"assessTaskId"`
+	ClassId      int64 `json:"classId"`
+	TypeId       int64 `json:"typeId"`
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+}
+
+type ClassTaskTypeTargetDetailResponse {
+	List []*TeacherTargetDetailListItem `json:"list"`
+}
+
+type ClassTargetDetailListItem {
+	TargetId       int64                 `json:"targetId"`
+	TargetName     string                `json:"targetName"`
+	TargetItemList []*TargetItemListItem `json:"targetItemList"`
+}
+
+type AssessStudentListRequest {
+	StudentName string `json:"studentName"` // 学生名字模糊搜索
+}
+
+type StudentInfo {
+	StudentProfileId int64  `json:"studentProfileId"` // 学生id
+	Name             string `json:"name"`             // 学生名字
+	Avatar           string `json:"avatar"`           // 头像
+	Gender           int64  `json:"gender"`           // 性别
+	Code             string `json:"code"`             // 学号
+	IdNumber         string `json:"idNumber"`         // 身份证号
+	ClassId          int64  `json:"classId"`          // 班机id
+	CampusId         int64  `json:"campusId"`         // 校区 id
+}
+
+type AssessStudentListResponse {
+	List []*StudentInfo `json:"list"`
+}
+
+type OtherAssessRequest {
+	StudentId int64 `json:"studentId"` // 学生id
+}
+
+type OtherAssessResponse {
+	StudentDetail    *StudentDetail      `json:"studentDetail"` // 学生信息详情
+	EvaluableContent []*EvaluableContent `json:"evaluableContent"`
+}
+
+type StudentDetail {
+	StudentId     int64  `json:"studentId"`     // 学生id
+	StudentName   string `json:"studentName"`   // 学术名字
+	StudentAvatar string `json:"studentAvatar"` // 学生头像
+	StudentGender int64  `json:"studentGender"` // 学生性别
+	StudentCode   string `json:"studentCode"`   // 学籍号
+	ClassInfo     string `json:"classInfo"`     // 班级信息
+}
+
+type EvaluableContent {
+	AssessTaskId   int64               `json:"assessTaskId"`   // 评价任务id
+	AssessTaskName string              `json:"assessTaskName"` // 评价任务名称
+	AssessTargets  []*AssessTargetNeed `json:"assessTargets"`  // 指标内容
+}
+
+type AssessTargetNeed {
+	AssessTargetId     int64             `json:"assessTargetId"`   // 内容id
+	AssessTargetName   string            `json:"assessTargetName"` // 内容名称
+	AssessTypeId       int64             `json:"assessTypeId"`     // 指标id
+	AssessTypeName     string            `json:"assessTypeName"`   // 指标名称
+	AssessTeacherDayId int64             `json:"assessTeacherDayId"`
+	ScopeFieldList     []*ScopeFieldInfo `json:"scopeFieldList"` // 范围信息
+}
+
+type ScopeFieldInfo {
+	ScopeName          string `json:"scopeName"`          // 评价范围名称
+	ScopeClassId       int64  `json:"scopeClassId"`       // 评价班级 id
+	AssessTypeDetailId int64  `json:"assessTypeDetailId"` // 所属评价分类id
+}
+
+type AssessTaskTypeSaveRequest {
+	AssessTeacherDayId int64        `json:"assessTeacherDayId"` // 教师每日评价id
+	IsAssess           int64        `json:"isAssess"`           // 是否已评价
+	AssessTypeId       int64        `json:"assessTypeId"`
+	AssessDetail       []*ActDetail `json:"assessDetail"`
+}
+
+type ActDetail {
+	ScopeName             string        `json:"scopeName"`    // 评价范围名称
+	ScopeClassId          int64         `json:"scopeClassId"` // 评价班级 id
+	TeacherId             int64         `json:"teacherId"`
+	AssessTargetId        int64         `json:"assessTargetId"`       // 评价内容id
+	AssessTargetItemName  string        `json:"assessTargetItemName"` // 评价内容名
+	AssessTargetItemId    int64         `json:"assessTargetItemId"`
+	AssessTargetItemScore int64         `json:"assessTargetItemScore"`
+	Remarks               *RemarkDetail `json:"remarks"`
+}
+
+type RemarkDetail {
+	StudentIds string          `json:"studentIds"`
+	ImageViews []*ImageRequest `json:"imageViews"`
+	VideoViews *VideoRequest   `json:"videoViews"`
+	Comment    string          `json:"comment"`
+}
+
+type ImageRequest {
+	Original  string `json:"original"`
+	Preview   string `json:"preview"`
+	Thumbnail string `json:"thumbnail"`
+	Size      int    `json:"size"`
+	Height    int    `json:"height"`
+	Width     int    `json:"width"`
+}
+
+type VideoRequest {
+	Title        string `json:"title"`        // 视频标题
+	Desc         string `json:"desc"`         // 视频描述
+	CoverUrl     string `json:"coverUrl"`     // 视频封面url
+	PlayUrl      string `json:"playUrl"`      // 视频url
+	PlayTime     int    `json:"playTime"`     // 视频的播放时长
+	MagicContext string `json:"magicContext"` // 视频回调标识字段[回调透传字段]
+	Type         string `json:"type"`         // 视频类型
+	Height       int    `json:"height"`       // 视频高
+	Width        int    `json:"width"`        // 视频宽
+}
+
+type GetObjectRequest {
+	ObjectName string `json:"objectName"`
+}
+
+type GetObjectResponse {
+	ObjectName        string         `json:"objectName"`
+	MondayTeachers    []*TeacherInfo `json:"mondayTeachers"`
+	TuesdayTeachers   []*TeacherInfo `json:"tuesdayTeachers"`
+	WednesdayTeachers []*TeacherInfo `json:"wednesdayTeachers"`
+	ThursdayTeachers  []*TeacherInfo `json:"thursdayTeachers"`
+	FridayTeachers    []*TeacherInfo `json:"fridayTeachers"`
+	SaturdayTeachers  []*TeacherInfo `json:"saturdayTeachers"`
+	SundayTeachers    []*TeacherInfo `json:"sundayTeachers"`
+	WeekTeachers      []*TeacherInfo `json:"weekTeachers"` // 固定评价组教师信息
+	Type              int64          `json:"type"`         // 评价组类型。0-自定义评价组，1-固定评价组
+}
+
+type TeacherInfo {
+	TeacherId   int64  `json:"teacherId"`
+	TeacherName string `json:"teacherName"`
+}
+
+type TeacherTaskDetailRequest {
+	StartTime    int64 `json:"startTime"`
+	EndTime      int64 `json:"endTime"`
+	AssessTaskId int64 `json:"assessTaskId"`
+	TeacherId    int64 `json:"teacherId"`
+}
+
+type TeacherTaskDetailResponse {
+	TeacherId   int64   `json:"teacherId"`
+	TeacherName string  `json:"teacherName"`
+	Avatar      string  `json:"avatar"`     // 头像
+	LevelName   string  `json:"levelName"`  // 等级名
+	LevelImg    string  `json:"levelImg"`   // 等级图标
+	ScoreAvg    float64 `json:"scoreAvg"`   // 平均分
+	ScoreSum    float64 `json:"scoreSum"`   // 总分
+	ScoreCount  int64   `json:"scoreCount"` // 排名
+}
+
+type TaskTypeRequest {
+	TaskId int64 `json:"taskId"`
+}
+
+type TaskTypeResponse {
+	List []*TaskTypeItem `json:"list"`
+}
+
+type TaskTypeItem {
+	TypeId   int64  `json:"typeId"`
+	TypeName string `json:"typeName"`
+}
+
+type OtherAssessDetailRequest {
+	StudentId   int64               `json:"studentId"`
+	StudentName string              `json:"studentName"`
+	AssessNeed  []*AssessNeedDetail `json:"assessNeed"`
+}
+
+type AssessNeedDetail {
+	AssessTaskId   int64               `json:"assessTaskId"`
+	AssessTaskName string              `json:"assessTaskName"`
+	TargetNeeds    []*TargetNeedDetail `json:"targetNeeds"`
+}
+
+type TargetNeedDetail {
+	AssessTargetId     int64             `json:"assessTargetId"`
+	AssessTypeId       int64             `json:"assessTypeId"`
+	AssessTeacherDayId int64             `json:"assessTeacherDayId"`
+	ScopeFieldList     []*ScopeFieldInfo `json:"scopeFieldList"`
+}
+
+type OtherAssessDetailResponse {
+	StudentDetail *StudentOtherDetail  `json:"studentDetail"`
+	AssessDetail  []*AssessOtherDetail `json:"assessDetail"`
+}
+
+type AssessOtherDetail {
+	AssessTaskId   int64              `json:"assessTaskId"`
+	AssessTaskName string             `json:"assessTaskName"`
+	AssessList     []*AssessOtherInfo `json:"assessList"`
+}
+
+type AssessOtherInfo {
+	ScopeName           string                     `json:"scopeName"`
+	ScopeClassId        int64                      `json:"scopeClassId"`
+	AssessTargetDetails []*AssessTargetOtherDetail `json:"assessTargetDetails"`
+}
+
+type AssessTargetOtherDetail {
+	AssessTargetId    int64               `json:"assessTargetId"`
+	AssessTargetName  string              `json:"assessTargetName"`
+	AssessTargetItems []*AssessTargetItem `json:"assessTargetItems"`
+	AtDayId           int64               `json:"atDayId"`
+	AssessTypeId      int64               `json:"assessTypeId"`
+	TeacherIds        []*TeacherInfo      `json:"teacherIds"`
+}
+
+type AssessTargetOtherInfo {
+	AssessTargetId    int64               `json:"assessTargetId"`
+	AssessTargetName  string              `json:"assessTargetName"`
+	AssessTargetItems []*AssessTargetItem `json:"assessTargetItems"`
+	AtDayId           int64               `json:"atDayId"`
+	AssessTypeId      int64               `json:"assessTypeId"`
+	TeacherIds        []*TeacherInfo      `json:"teacherIds"`
+	ScopeMapKey       string              `json:"scopeMapKey"`
+}
+
+type OtherAssessSaveRequest {
+	SaveRequests []*SaveRequest `json:"saveRequests"`
+}
+
+type SaveRequest {
+	AtDayId               int64              `json:"atDayId"`
+	AssessTypeId          int64              `json:"assessTypeId"`
+	ScopeClassId          int64              `json:"scopeClassId"`
+	ScopeName             string             `json:"scopeName"`
+	TeacherId             int64              `json:"teacherId"`
+	AssessTargetId        int64              `json:"assessTargetId"`
+	AssessTargetItemName  string             `json:"assessTargetItemName"`
+	AssessTargetItemId    int64              `json:"assessTargetItemId"`
+	AssessTargetItemScore int64              `json:"assessTargetItemScore"`
+	Remarks               *RemarkOtherDetail `json:"remarks"`
+}
+
+type RemarkOtherDetail {
+	StudentId   int64           `json:"studentId"`
+	StudentName string          `json:"studentName"`
+	ImageViews  []*ImageRequest `json:"imageViews"`
+	VideoViews  *VideoRequest   `json:"videoViews"`
+	Comment     string          `json:"comment"`
+}
+
+type ClassDataTypeV2Response {
+	TypeId              int64                        `json:"typeId"`
+	TypeName            string                       `json:"typeName"`
+	TargetItemNames     []string                     `json:"targetItemNames"`
+	ClassTypeDataList   []*ClassTypeDataListItem     `json:"classTypeDataList"`
+	ClassTargetDataList []*ClassTargetDataListItemV2 `json:"classTargetDataList"`
+}
+
+type ClassTargetDataListItemV2 {
+	TargetId            int64                    `json:"targetId"`
+	TargetName          string                   `json:"targetName"`
+	TargetItemNames     []string                 `json:"targetItemNames"`        // 评价指标命数组
+	ClassTargetDataList []*ClassTypeDataListItem `json:"scopeClassTypeDataList"` // 每个班级在 这个指标下面的情况
+}
+
+type AssessTargetUpdateRequest {
+	TargetId   int64                   `json:"targetId"`
+	CampusId   int64                   `json:"-,optional"`
+	TargetName string                  `json:"targetName"` // 新的指标名
+	StuType    int64                   `json:"stuType"`    // 是否可选学生是否可选学生
+	ItemList   []*TargetItem           `json:"itemList"`   // 这个指标下所有的item
+	ChangeList []*TargetItemNameChange `json:"changeList"` // 如果这个指标是被使用的,就必须传传这个数据修改名字的list
+}
+
+type TargetItem {
+	TargetItemName  string `json:"targetItemName"`
+	TargetItemScore int64  `json:"targetItemScore,optional"`
+}
+
+type TargetItemNameChange {
+	OldItemName string `json:"oldItemName"`
+	NewItemName string `json:"newItemName"`
+}
+
+type UpdateUseTypeRequest {
+	CampusId      int64          `json:"-,optional"` // 学校id
+	TypeName      string         `json:"typeName"`   // 当前的typename
+	TypeId        int64          `json:"typeId"`
+	AssessClasses []*AssessClass `json:"assessClasses"` // 新增的或者有修改的班级范围
+	AssessSites   []*AssessSite  `json:"assessSites"`   // 新增的或者有修改的自定义范围
+	Targets       []*OptTarget   `json:"targets"`       // 新增的targetId
+}
+
+type AssessClass {
+	ClassId      int64            `json:"classId"`  // 班级id
+	Operator     []int64          `json:"operator"` // 老师id
+	AssessObject *AddAssessObject `json:"assessObject,optional"`
+}
+
+type AssessObject {
+	AssessObjectId   int64  `json:"assessObjectId"` // 评价对象id
+	AssessObjectName string `json:"assessObjectName"`
+}
+
+type AssessSite {
+	SiteName     string           `json:"siteName"` // 自定义评价范围名
+	AssessObject *AddAssessObject `json:"assessObject"`
+	Operator     []int64          `json:"operator"`
+}
+
+type AddAssessObject {
+	AssessObjectId   int64  `json:"objectId"`
+	AssessObjectName string `json:"objectName"`
+}
+
+type OptTarget {
+	TargetId   int64  `json:"targetId"`
+	TargetName string `json:"targetName"`
+}
+
+type AssessTargetItem {
+	AssessTargetItemId    int64  `json:"assessTargetItemId"`
+	AssessTargetItemName  string `json:"assessTargetItemName"`
+	AssessTargetItemScore int64  `json:"assessTargetItemScore"`
+}
+
+type StudentOtherDetail {
+	StudentId   int64  `json:"studentId"`
+	StudentName string `json:"studentName"`
+}
+
+type MyAssessDetailRequest {
+}
+
+type AssessTaskTypeScanSaveRequest {
+}
+
+type BoolResponse {
+}
+
+@server(
+	host:0.0.0
+	port: 8080
+)
+service teacherassess-api {
+	@doc(
+		summary: 新增评价组
+	)
+	@server(
+		handler: AssessObjectAddHandler
+	)
+	post /teacherassess/object/add(AddObjectRequest)
+	
+	@doc(
+		summary: 编辑评价组
+	)
+	@server(
+		handler: AssessObjectUpdateHandler
+	)
+	post /teacherassess/object/update(UpdateObjectRequest)
+	
+	@doc(
+		summary: 评价任务信息
+	)
+	@server(
+		handler: AssessTaskInfoHandler
+	)
+	post /teacherassess/task/info(AssessTaskInfoRequest) returns(TaskInfoResponse)
+	
+	@doc(
+		summary: 新增评价任务
+	)
+	@server(
+		handler: AssessTaskAddHandler
+	)
+	post /teacherassess/task/add(AddTaskRequest)
+	
+	@doc(
+		summary: 编辑评价任务
+	)
+	@server(
+		handler: AssessTaskUpdateHandler
+	)
+	post /teacherassess/task/update(UpdateTaskRequest)
+	
+	@doc(
+		summary: 保存评价
+	)
+	@server(
+		handler: AssessTaskTypeSaveHandler
+	)
+	post /teacherassess/h5/task-type/save(AssessTaskTypeSaveRequest)
+	
+	@doc(
+		summary: 我的评价记录
+	)
+	@server(
+		handler: MyAssessDetailHandler
+	)
+	post /teacherassess/h5/task-type/self(MyAssessDetailRequest)
+	
+	@doc(
+		summary: 教师可评价列表
+	)
+	@server(
+		handler: TaskTypeList
+	)
+	get /teacherassess/h5/task-type/list() returns(TaskTypeList)
+	
+	@doc(
+		summary: pc端老师评价数据汇总
+	)
+	@server(
+		handler: AssessTeacherDataHandler
+	)
+	post /teacherassess/teacherAnalysis/assessTeacherData(AssessTeacherDataRequest) returns(AssessTeacherDataResponse)
+	
+	@doc(
+		summary: pc端老师评价assessType分析
+	)
+	@server(
+		handler: TeacherDataTypeHandler
+	)
+	post /teacherassess/teacherAnalysis/teacherDataType(TeacherDataTypeRequest) returns(TeacherDataTypeResponse)
+	
+	@doc(
+		summary: pc端班级评价数据汇总
+	)
+	@server(
+		handler: AssessClassDataHandler
+	)
+	post /teacherassess/classAnalysis/assessClassData(AssessClassDataRequest) returns(AssessClassDataResponse)
+	
+	@doc(
+		summary: pc端班级评价assessType分析
+	)
+	@server(
+		handler: ClassDataTypeHandler
+	)
+	post /teacherassess/classAnalysis/classDataType(ClassDataTypeRequest) returns(ClassDataTypeV2Response)
+	
+	@doc(
+		summary: h5端老师排行榜数据
+	)
+	@server(
+		handler: TeacherRankDataHandler
+	)
+	post /teacherassess/h5/teacherAnalysis/teacherRankData(TeacherRankDataRequest) returns(TeacherRanKDataResponse)
+	
+	@doc(
+		summary: h5端老师评价分类数据
+	)
+	@server(
+		handler: TeacherTaskTypeDetailHandler
+	)
+	post /teacherassess/h5/teacherAnalysis/teacherTaskTypeDetail(TeacherTaskDetailDataRequest) returns(TeacherTaskDetailDataResponse)
+	
+	@doc(
+		summary: h5端老师评价指标数据
+	)
+	@server(
+		handler: TeacherTaskTypeTargetDetailHandler
+	)
+	post /teacherassess/h5/teacherAnalysis/teacherTaskTypeTargetDetail(TeacherTaskTypeTargetDetailRequest) returns(TeacherTaskTypeTargetDetailResponse)
+	
+	@doc(
+		summary: h5端班级排行榜数据
+	)
+	@server(
+		handler: ClassRankDataHandler
+	)
+	post /teacherassess/h5/classAnalysis/classRankData(ClassAssessRankDataRequest) returns(ClassAssessRanKDataResponse)
+	
+	@doc(
+		summary: h5端班级评价分类数据
+	)
+	@server(
+		handler: ClassTaskTypeDetailHandler
+	)
+	post /teacherassess/h5/classAnalysis/classTaskTypeDetail(ClassTaskDetailDataRequest) returns(ClassTaskDetailDataResponse)
+	
+	@doc(
+		summary: h5端班级评价指标数据
+	)
+	@server(
+		handler: ClassTaskTypeTargetDetailHandler
+	)
+	post /teacherassess/h5/classAnalysis/classTaskTypeTargetDetail(ClassTaskTypeTargetDetailRequest) returns(ClassTaskTypeTargetDetailResponse)
+	
+	@doc(
+		summary: 学生列表
+	)
+	@server(
+		handler: AssessStudentListHandler
+	)
+	post /student/h5/list(AssessStudentListRequest) returns(AssessStudentListResponse)
+	
+	@doc(
+		summary: 扫描评价（通过二维码与 nfc 入口）
+	)
+	@server(
+		handler: AssessTaskTypeScanSaveHandler
+	)
+	post /teacherassess/h5/task-type/scan-save(AssessTaskTypeScanSaveRequest)
+	
+	@doc(
+		summary: 教师-学生可评价列表
+	)
+	@server(
+		handler: OtherAssessList
+	)
+	post /teacherassess/h5/otherassess/list(OtherAssessRequest) returns(OtherAssessResponse)
+	
+	@doc(
+		summary: 获取评价组信息
+	)
+	@server(
+		handler: ObjectInfoHandler
+	)
+	post /teacherassess/object/info(GetObjectRequest) returns(GetObjectResponse)
+	
+	@doc(
+		summary:老师某任务下面的评价详情
+	)
+	@server(
+		handler: TeacherTaskDetail
+	)
+	post /teacherassess/h5/teacherAnalysis/teachertaskdetail(TeacherTaskDetailRequest) returns(TeacherTaskDetailResponse)
+	
+	@doc(
+		summary:通过taskid获得typelist
+	)
+	@server(
+		handler: TaskTypeH5
+	)
+	post /teacherassess/h5/task/typelist(TaskTypeRequest) returns(TaskTypeResponse)
+	
+	@doc(
+		summary:通过taskid获得typelist
+	)
+	@server(
+		handler: TaskType
+	)
+	post /teacherassess/task/typelist(TaskTypeRequest) returns(TaskTypeResponse)
+	
+	@doc(
+		summary: 教师-学生评价页详情
+	)
+	@server(
+		handler: OtherAssessDetailHandler
+	)
+	post /teacherassess/h5/otherassess/detail(OtherAssessDetailRequest) returns(OtherAssessDetailResponse)
+	
+	@doc(
+		summary: 教师-学生评价保存
+	)
+	@server(
+		handler: OtherAssessSaveHandler
+	)
+	post /teacherassess/h5/otherassess/save(OtherAssessSaveRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 修改指标
+	)
+	@server(
+		handler: AssessTargetUpdate
+	)
+	post /teacherassess/target/update(AssessTargetUpdateRequest)
+	
+	@doc(
+		summary: 修改正在使用的type
+	)
+	@server(
+		handler: AssessTypeUseUpdate
+	)
+	post /teacherassess/type/update-use(UpdateUseTypeRequest)
+}

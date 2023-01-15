@@ -1,0 +1,58 @@
+info(
+	title:  "asynctask"
+	desc:   "asynctask"
+	author: "jiaweichuan"
+	email:  "jiaweichuan@xiaoheiban.cn"
+)
+
+type GetTaskStatusRequest {
+	TaskId int64 `json:"taskId"`
+}
+
+type Result {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type GetTaskStatusResponse {
+	State   string `json:"state"`
+	Results Result `json:"results"`
+}
+
+type GetErrorReportRequest {
+	TaskId int64 `json:"taskId"`
+}
+
+type GetErrorReportResponse {
+	Info       string        `json:"info"`
+	Report     string        `json:"report"`
+	ErrMessage []*ErrMessage `json:"errMessage,omitempty"` // optional
+}
+
+type ErrMessage {
+	Position string `json:"position,omitempty"` // 行列位置
+	ErrInfo  string `json:"errInfo,omitempty"`  // 错误详情
+	Suggest  string `json:"suggest,omitempty"`  // 建议
+}
+
+@server(
+	jwt: Auth
+)
+
+service asynctask-api {
+	@doc(
+		summary: 获取异步任务状态
+	)
+	@server(
+		handler: GetTaskStatusHandler
+	)
+	post /asynctask/get-task-status (GetTaskStatusRequest) returns (GetTaskStatusResponse)
+	
+	@doc(
+		summary: 获取相应任务的错误报告
+	)
+	@server(
+		handler: GetErrorReport
+	)
+	post /asynctask/get-error-report (GetErrorReportRequest) returns (GetErrorReportResponse)
+}

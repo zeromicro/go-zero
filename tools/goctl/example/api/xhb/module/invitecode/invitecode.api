@@ -1,0 +1,73 @@
+type AppointmentRequest {
+	Device      string `json:"device,optional"`
+	Token       string `json:"token,optional"`
+	School      string `json:"school"`
+	Name        string `json:"name"`
+	Position    string `json:"position,optional"`
+	Mobile      string `json:"mobile"`
+	Province    string `json:"province"`
+	City        string `json:"city"`
+	Remarks     string `json:"remarks,optional"`
+	Appointtype string `json:"appointtype,optional"`
+	Frompage    string `json:"frompage,optional"`
+}
+
+type IsApplyResponse {
+	Applied     bool   `json:"applied"`
+	ExpirTime   int64  `json:"expirTime,omitempty"`
+	ShareUrl    string `json:"shareurl,omitempty"`
+	Discription string `json:"discription,omitempty"` // ":"有效期至:2015年11月21日 14时45分",//邀请码有效期
+}
+
+type ShowappointRequest {
+	Type  string `form:"type,optional"`
+	Page  int    `path:"page"`
+	Order string `form:"order,optional"`
+}
+
+type Paginator {
+	Page      int         `json:"page"`
+	PageSize  int         `json:"pageSize"`
+	Total     int         `json:"total"`
+	TotalPage int         `json:"totalPage"`
+	More      bool        `json:"more"`
+	Data      interface{} `json:"data"`
+}
+
+type ShowappointResponse {
+	Paginator *Paginator `json:"paginator"`
+}
+
+type IsApplyRequest {
+	Mobile string `path:"mobile"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service invitecode-api {
+	@doc(
+		summary: 添加用户讲座申请
+	)
+	@server(
+		handler: AppointHandler
+	)
+	post /invitecode/appoint(AppointmentRequest) returns(IsApplyResponse)
+	
+	@doc(
+		summary: 分页获取申请讲座数据
+	)
+	@server(
+		handler: ShowappointHandler
+	)
+	get /invitecode/show/:page(ShowappointRequest) returns(ShowappointResponse)
+	
+	@doc(
+		summary: 教师申请讲座是否已经申请
+	)
+	@server(
+		handler: AppliedLectureHandler
+	)
+	get /invitecode/appliedLecture/:mobile(IsApplyRequest) returns(IsApplyResponse)
+}

@@ -1,0 +1,18 @@
+type CheckTextRequest {
+	Content string `json:"content"`
+}
+
+type CheckTextResponse {
+	Pass  bool     `json:"pass"`
+	Risks []string `json:"risks"`
+}
+
+service antispam-api {
+	@doc(
+		summary: 直播的聊天室鉴黄
+	)
+	@server(
+		handler: CheckTextHandler
+	)
+	post /antispam/check-text(CheckTextRequest) returns(CheckTextResponse)
+}

@@ -1,0 +1,348 @@
+type Receiver {
+	ClassroomId string   `json:"classroomId,optional"`
+	Type        string   `json:"type"` // 消息类型  整班 老师 学生 定向选择
+	ReceiverIds []string `json:"receiverIds,optional"`
+	Additions   []string `json:"additions,optional"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`
+	Preview   string `json:"preview,optional"`
+	Thumbnail string `json:"thumbnail,optional"`
+	Size      int    `json:"size,optional"`
+	Height    int    `json:"height,optional"`
+	Width     int    `json:"width,optional"`
+}
+
+type AudioRequest {
+	Id            string `json:"id,optional"`
+	Duration      int    `json:"duration,optional"`
+	FileExtension string `json:"fileExtension,optional"`
+	Size          int    `json:"size,optional"`
+	Name          string `json:"name,optional"`
+}
+
+type VideoRequest {
+	Title        string `json:"title,optional"`
+	Desc         string `json:"desc,optional"`
+	CoverUrl     string `json:"coverUrl,optional"`
+	PlayUrl      string `json:"playUrl"`
+	PlayTime     int    `json:"playTime,optional"`
+	MagicContext string `json:"magicContext,optional"`
+	Type         string `json:"type,optional"`
+	Height       int    `json:"height,optional"`
+	Width        int    `json:"width,optional"`
+}
+
+type AttachmentRequest {
+	Id       string        `json:"id,optional"`       // 网络文件id
+	Name     string        `json:"name,optional"`     // 显示名称
+	MimeType string        `json:"mimeType,optional"` // 附件mimeType
+	Attrs    *AttrsRequest `json:"attrs,optional"`    // 其他属性
+}
+
+type AttrsRequest {
+	Size string `json:"size,optional"`
+}
+
+type Image {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type Attachment {
+	Id       string `json:"id"`
+	Name     string `json:"name,omitempty"`
+	MimeType string `json:"mimeType,omitempty"`
+	Attrs    *Attrs `json:"attrs,omitempty"`
+	Size     string `json:"size,omitempty"` // 5.0.0 add
+}
+
+type Attrs {
+	Size string `json:"size,omitempty"` // 5.0.0 after delete
+}
+
+type UserView {
+	Id          string `json:"id"`
+	Realname    string `json:"realname,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+	DisplayName string `json:"displayName"`
+}
+
+type ClassroomView {
+	Id        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	BadgeId   string `json:"badgeId,omitempty"`
+	BadgeType string `json:"badgeType,omitempty"`
+	BgImage   string `json:"bgImage,omitempty"`
+}
+
+type NoticeView {
+	Title       string                 `json:"title,omitempty"`
+	Content     string                 `json:"content,omitempty"`
+	Images      []*Image               `json:"images,omitempty"`
+	Audio       *Audio                 `json:"audio,omitempty"`
+	Video       *Video                 `json:"video,omitempty"`
+	Attachments []*Attachment          `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`
+	From        string                 `json:"from,omitempty"`
+}
+
+type SurveyReceipt {
+	JoinUsers  []string `json:"joinUsers"`
+	JoinNumber int      `json:"joinNumber"`
+}
+
+type PunchCardReceipt {
+	TotalFamilyCount   int64    `json:"totalFamilyCount"`             // 需打卡总家庭数 （分母）
+	PunchedFamilyCount int64    `json:"punchedFamilyCount"`           // 打卡总家庭数 （分子）
+	TotalDays          int64    `json:"totalDays"`                    // 总周期天数
+	PassDays           int64    `json:"passDays"`                     // 已进行天数
+	TodayJoinUsers     []string `json:"todayJoinUsers,omitempty"`     // 今天打卡的人，最新的5个人  5.0.0 add
+	TodayJoinCount     int      `json:"todayJoinCount,omitempty"`     // 今日参加打卡的总人数  5.0.0 add
+	TotalNeedJoinCount int      `json:"totalNeedJoinCount,omitempty"` // 今日打卡总人数  5.0.0 add
+	Status             string   `json:"status,omitempty"`             // 打卡状态 "NoNeedPunchCard" 无需打卡, "PunchCarded" 已打卡,"UnPunchCard" 未打卡  5.0.0 add
+	TotalNatureDay     int64    `json:"totalNatureDay,omitempty"`     // 打卡自然日总天数
+	PassNatureDay      int64    `json:"passNatureDay"`                // 打卡已过去的日然日
+	FirstTaskPunchTime int64    `json:"firstTaskPunchTime,omitempty"` // 第一个task的打卡时间
+}
+
+type Receipt {
+	Total         int               `json:"total"`
+	Receipted     int               `json:"receipted"`
+	Feedbacked    int               `json:"feedbacked,omitempty"`
+	Attitude      string            `json:"attitude,omitempty"`
+	Received      bool              `json:"received,omitempty"`
+	IsObserver    bool              `json:"isObserver,omitempty"`
+	PunchCardItem *PunchCardReceipt `json:"punchCardItem,omitempty"` // 打卡反馈情况
+	SurveyItem    *SurveyReceipt    `json:"surveyItem,omitempty"`
+}
+
+type Notice {
+	Title              string                 `json:"title,omitempty,optional"`
+	Content            string                 `json:"content,omitempty,optional"`
+	Images             []ImageRequest         `json:"images,omitempty,optional"`
+	Audio              *AudioRequest          `json:"audio,omitempty,optional"`
+	Video              *VideoRequest          `json:"video,omitempty,optional"`
+	Attachments        []*AttachmentRequest   `json:"attachements,omitempty,optional"`
+	Extras             map[string]interface{} `json:"extras,omitempty,optional"`
+	Receivers          []*Receiver            `json:"receivers"`
+	FileUpload         bool                   `json:"fileUpload,optional"`
+	TemplateId         string                 `json:"templateId,optional"`
+	From               string                 `json:"from,optional"`                         // 来自哪里
+	InvisibleForSender bool                   `json:"invisibleForSender,omitempty,optional"` // 是否对发送者不可见:
+}
+
+type PublishNoticeRequest {
+	Token        string  `path:"token"`
+	DeliveryTime int64   `json:"deliveryTime,optional"`
+	Notice       *Notice `json:"notice"`
+	SchoolName   string  `json:"schoolName,optional"`
+	SchoolAvatar string  `json:"schoolAvatar,optional"`
+	PushTitle    string  `json:"pushTitle,optional"`
+	PushContent  string  `json:"pushContent,optional"`
+}
+
+type PublishNoticeMessageView {
+	Title         string                 `json:"title,omitempty"`
+	Content       string                 `json:"content,omitempty"`
+	Images        []*Image               `json:"images,omitempty"`
+	Audio         *Audio                 `json:"audio,omitempty"`
+	Video         *Video                 `json:"video,omitempty"`
+	Attachments   []*Attachment          `json:"attachements,omitempty"`
+	Extras        map[string]interface{} `json:"extras,omitempty"`
+	From          string                 `json:"from,omitempty"`
+	Id            string                 `json:"id,omitempty"`
+	SenderId      string                 `json:"senderId,omitempty"`
+	SenderView    *UserView              `json:"sender,omitempty"`
+	CreateTime    int64                  `json:"createTime,omitempty"`
+	Timestamp     int64                  `json:"timestamp,omitempty"`
+	Category      string                 `json:"category"`
+	ClassroomId   string                 `json:"classroomId,omitempty"`
+	ClassroomView *ClassroomView         `json:"classroom,omitempty"`
+	NoticeView    *NoticeView            `json:"notice,omitempty"` // 5.0 add
+	Receipt       *Receipt               `json:"receipt,omitempty"`
+}
+
+type PublishNoticeResponse {
+	Messages []*PublishNoticeMessageView `json:"messages,omitempty"`
+}
+
+type PraiseResultRequest {
+	Token     string `path:"token"`
+	MessageId string `path:"messageId"`
+}
+
+type UserPraise {
+	UserId     string `json:"userId"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type PraiseResultResponse {
+	IsPraise     bool          `json:"isPraise"`
+	PraiseNumber int           `json:"praiseNumber"`
+	PraiseUsers  []*UserPraise `json:"praiseUsers,omitempty"`
+}
+
+type PraiseRequest {
+	Token     string `path:"token"`
+	MessageId string `path:"messageId"`
+	IsPraise  bool   `json:"isPraise"`
+}
+
+type PraiseResponse {
+	Successful bool `json:"successful"`
+}
+
+type ChoiceXHBTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type ChoiceXHBTemplateResponse {
+	Id           string           `json:"id,omitempty"`
+	Content      string           `json:"content,omitempty"`
+	Images       []*ImageSt       `json:"images,omitempty"`
+	Video        *VideoSt         `json:"video,omitempty"`
+	Attachements *AttachementSt   `json:"attachements,omitempty"`
+	Extras       *ExtrasSt        `json:"extras,omitempty"`
+	SenderId     string           `json:"senderId,omitempty"`
+	Category     string           `json:"category,omitempty"`
+	CreateTime   int64            `json:"createTime,omitempty"`
+	Timestamp    string           `json:"timestamp,omitempty"`
+	ClassroomId  string           `json:"classroomId,omitempty"`
+	Identifier   string           `json:"identifier,omitempty"`
+	Sender       *SenderSt        `json:"sender,omitempty"`
+	Receipt      *ReceiptSt       `json:"receipt,omitempty"`
+	Notice       *ContentableView `json:"notice,omitempty"`
+	CallbackApi  string           `json:"callbackApi,omitempty"`
+}
+
+type ImageSt {
+	Original  string `json:"original,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Height    int64  `json:"height,omitempty"`
+	Width     int64  `json:"width,omitempty"`
+}
+
+type VideoSt {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+type AttachementSt {
+	Id       string `json:"id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	MimeType string `json:"mimeType,omitempty"`
+	Attrs    AttrSt `json:"attrs,omitempty"`
+}
+
+type AttrSt {
+	Size string `json:"size,omitempty"`
+}
+
+type ExtrasSt {
+	Link *LinkSt `json:"link,omitempty"`
+}
+
+type LinkSt {
+	Image      string `json:"image,omitempty"`
+	Periodical string `json:"periodical,omitempty"`
+	Title      string `json:"title,omitempty"`
+	Type       string `json:"type,omitempty"`
+	Url        string `json:"url,omitempty"`
+}
+
+type SenderSt {
+	Id          string `json:"id,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+type ReceiptSt {
+	Total     int64 `json:"total,omitempty"`
+	Receipted int64 `json:"receipted,omitempty"`
+}
+
+type ContentableView {
+	// 标题
+	Title string `json:"title,omitempty"`
+	// 内容
+	Content string `json:"content,omitempty"`
+	// 图片id列表, 需要先上传
+	Images []*Image `json:"images,omitempty"`
+	// 语音上传后的对象
+	Audio *Audio `json:"audio,omitempty"`
+	// 上传后的视频
+	Video *Video `json:"video,omitempty"`
+	// 其他附件
+	Attachments []*Attachment `json:"attachements,omitempty"`
+
+	Extras map[string]interface{} `json:"extras,omitempty"`
+	// 来自哪里
+	From string `json:"from,omitempty"`
+}
+
+type Audio {
+	Id            string `json:"id,omitempty"`
+	Duration      int    `json:"duration,omitempty"`
+	FileExtension string `json:"fileExtension,omitempty"`
+	Size          int    `json:"size,omitempty"`
+	Name          string `json:"name,omitempty"`
+}
+
+type Video {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+service notice-api {
+	@doc(
+		summary: 发送通知消息
+	)
+	@server(
+		handler: publishNoticeHandler
+	)
+	post /notice/publish/pack/:token(PublishNoticeRequest) returns(PublishNoticeResponse)
+	
+	@doc(
+		summary: 获取通知点赞
+	)
+	@server(
+		handler: PraiseResultHandler
+	)
+	get /notice/praiseResult/:token/:messageId(PraiseResultRequest) returns(PraiseResultResponse)
+	
+	@doc(
+		summary: 通知点赞
+	)
+	@server(
+		handler: PraiseHandler
+	)
+	post /notice/praise/:token/:messageId(PraiseRequest) returns(PraiseResponse)
+	
+	@doc(
+		summary: 选用xhb模板
+	)
+	@server(
+		handler: ChoiceXHBTemplate
+	)
+	get /notice/xhbtemplate/:templateId (ChoiceXHBTemplateRequest) returns(ChoiceXHBTemplateResponse)
+}

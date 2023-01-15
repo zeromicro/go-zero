@@ -1,0 +1,111 @@
+type GetAllCommentRequest {
+	Token string `path:"token"`
+	Type  string `path:"type"`
+}
+
+type AddCommentRequest {
+	Token   string `path:"token"`
+	Type    string `json:"type"`
+	Comment string `json:"comment"`
+}
+
+type EditCommentRequest {
+	Token string `path:"token"`
+	CommentSt
+}
+
+type DeleteCommentRequest {
+	Token string `path:"token"`
+	CommentSt
+}
+
+type DeleteAllCommentRequest {
+	Token string `path:"token"`
+	Type  string `json:"type"`
+}
+
+type CommentSt {
+	Id         string `json:"id"`         // 模板ID
+	CreateRole string `json:"createRole"` // 用户角色
+	Type       string `json:"type"`       // 模板类型 ACTIVITY-活动  PUNCHCARD-  DISCUSS- HOMEWORK-作业
+	Comment    string `json:"comment"`    // 模板内容
+	SortScore  int    `json:"-,optional"`
+}
+
+type CommentSaveSt {
+	Id         string `json:"id"`                  // 模板Id
+	CreateRole string `json:"createRole"`          // 角色 SYSTEM-系统  USER-用户
+	Type       string `json:"type"`                // 模板类型 ACTIVITY-活动  PUNCHCARD-  DISCUSS- HOMEWORK-作业
+	Comment    string `json:"comment"`             // 模板内容
+	SortScore  int    `json:"sortScore,optional"`  // 排序权重
+	DeleteFlag int    `json:"deleteFlag,optional"` // 是否删除  0或者不传表示不删除，1-表示需要删除
+}
+
+type SaveCommentRequest {
+	Token       string          `path:"token"`
+	CommentList []CommentSaveSt `json:"commentList"`
+}
+
+type AllCommentResponse {
+	Code int         `json:"code"`
+	Data []CommentSt `json:"data"`
+}
+
+type AddCommentResponse {
+	Code int       `json:"code"`
+	Data CommentSt `json:"data"`
+}
+
+type EditCommentResponse {
+	Code int `json:"code"`
+}
+
+service commenttemplate-api {
+	@doc(
+		summary: 获取所有评论模版
+	)
+	@server(
+		handler: GetAllComment
+	)
+	get /commentTemplate/getAllComment/:token/:type(GetAllCommentRequest) returns(AllCommentResponse)
+	
+	@doc(
+		summary: 新增模板
+	)
+	@server(
+		handler: AddComment
+	)
+	post /commentTemplate/addComment/:token(AddCommentRequest) returns(AddCommentResponse)
+	
+	@doc(
+		summary: 编辑评论模版
+	)
+	@server(
+		handler: EditComment
+	)
+	post /commentTemplate/editComment/:token(EditCommentRequest) returns(EditCommentResponse)
+	
+	@doc(
+		summary: 删除所有评论模板
+	)
+	@server(
+		handler: DeleteAllComment
+	)
+	post /commentTemplate/deleteAllComment/:token(DeleteAllCommentRequest) returns(EditCommentResponse)
+	
+	@doc(
+		summary: 删除评论模板
+	)
+	@server(
+		handler: DeleteComment
+	)
+	post /commentTemplate/deleteComment/:token(DeleteCommentRequest) returns(EditCommentResponse)
+	
+	@doc(
+		summary: 对模板的批量操作
+	)
+	@server(
+		handler: SaveComment
+	)
+	post /commentTemplate/save(SaveCommentRequest) returns(EditCommentResponse)
+}

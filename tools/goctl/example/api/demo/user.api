@@ -1,0 +1,44 @@
+info(
+	title: doc title
+	version: 1.0
+)
+
+type Address {
+	City string `json:"city"`
+}
+
+type createRequest {
+	Name    string    `form:"name"`
+	Age     int       `form:"age,optional"`
+	Address []Address `json:"address,optional"`
+}
+
+type getRequest {
+	Name string `path:"name"`
+	Age  int    `form:"age,optional"`
+}
+
+type getResponse {
+	Code    int     `json:"code"`
+	Desc    string  `json:"desc,omitempty"`
+	Address Address `json:"address"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service user-api {
+	@doc(
+		summary: user title
+	)
+	@server(
+		handler: GetUserHandler
+	)
+	get /api/users/user/:name(getRequest) returns(getResponse)
+	
+	@server(
+		handler: CreateUserHandler
+	)
+	post /api/users/create(createRequest)
+}

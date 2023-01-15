@@ -1,0 +1,752 @@
+info(
+	title: 晓成绩 app-v5.6.0&pc-v0.0.6
+	version: 1.0
+)
+
+type Comment {
+	Content string `json:"content,optional"`
+}
+
+type Student {
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	ClassNumber string `json:"classNumber"`
+	Pinyin      string `json:"Pinyin"`
+}
+
+// 模块 or 学科
+type Data {
+	Name  string  `json:"name"`                     // 学科名
+	Total float32 `json:"total,optional,omitempty"` // 比如语文总分150，此处传150
+	Ranks []Rank  `json:"ranks,optional"`           // 等第制传入的等第信息
+
+	// 学科总分,最高分,最低分,平均分,中位分
+	Max float32 `json:"max,optional"` // 响应体内容
+	Min float32 `json:"min,optional"` // 响应体内容
+	Avg float32 `json:"avg,optional"` // 响应体内容
+	Mid float32 `json:"mid,optional"` // 响应体内容
+
+	AttendNum int `json:"attendNum,optional"` // 响应体内容,参加考试的人数
+	TotalNum  int `json:"totalNum,optional"`  // 响应体内容,班级总人数
+
+	NoCalculate bool     `json:"noCalculate,optional"` // v4 不计入总分
+	Statistics  Analysis `json:"statistics,optional"`  //v4 统计数据，难度系数、不同等级人数等，考试详情的分析信息
+}
+
+//  模块 or 学科，总分非空
+type DataNoEmpty {
+	Name  string  `json:"name"`           // 学科名
+	Total float32 `json:"total,optional"` // 比如语文总分150，此处传150
+	Ranks []Rank  `json:"ranks,optional"` // 等第制传入的等第信息
+
+	// 学科总分,最高分,最低分,平均分,中位分
+	Max float32 `json:"max,optional"` // 响应体内容
+	Min float32 `json:"min,optional"` // 响应体内容
+	Avg float32 `json:"avg,optional"` // 响应体内容
+	Mid float32 `json:"mid,optional"` // 响应体内容
+
+	AttendNum int `json:"attendNum,optional"` // 响应体内容,参加考试的人数
+	TotalNum  int `json:"totalNum,optional"`  // 响应体内容,班级总人数
+}
+
+type Rank {
+	RankName  string  `json:"rankName,optional"`  // 等第名称
+	RankScore float32 `json:"rankScore,optional"` // 等第对应分数
+	PeopleNum int     `json:"peopleNum,optional"` // 计算出来的该等级人数
+}
+
+type ExamInfo {
+	Id              string  `json:"id,optional"`              // 考试id
+	Name            string  `json:"name"`                     // 考试名字
+	ClassId         string  `json:"classId"`                  // 班级id
+	ClassName       string  `json:"className,optional"`       // 响应体内容,班级名
+	TeacherId       string  `json:"teacherId"`                // 发布考试的教师id
+	MultiSubject    bool    `json:"multiSubject,optional"`    // 是否多学科, v3 默认传true
+	Mode            string  `json:"mode"`                     // SCORE_SYSTEM:分数制  RANK_SYSTEM:等第制  CUSTOM:自定义  v3 的mode是从两个页面获取的
+	Subject         string  `json:"subject"`                  // 单学科科目，多学科逗号分隔，自定义考试传其他
+	PushMode        string  `json:"pushMode"`                 // 仅保存：UNPUBLISHED 定时发送：TIMED_PUBLISHED 立即发送：PUBLISHED
+	IsDelayedPush   bool    `json:"isDelayedPush"`            // 是否定时发送
+	PushTime        int64   `json:"pushTime,optional"`        // 发送时间
+	IsOldVersion    int64   `json:"isOldVersion,optional"`    // 0:不是历史遗留数据 1:是历史遗留数据
+	Data            []Data  `json:"data,omitempty"`           // 模块 or 学科对应的分数段
+	TotalScore      Data    `json:"totalScore,optional"`      // 总分信息,录入时如未勾选总分等第可不传
+	ActiveTotalRank bool    `json:"activeTotalRank,optional"` // 启用总分等第
+	Comment         Comment `json:"comment,optional"`         // 集体评价
+	// 家长可查看
+	DisplayTotal    bool   `json:"displayTotal,optional"`
+	DisplayRank     bool   `json:"displayRank,optional"`
+	DisplayMax      bool   `json:"displayMax,optional"`
+	DisplayMin      bool   `json:"displayMin,optional"`
+	DisplayAvg      bool   `json:"displayAvg,optional"`
+	DisplayMid      bool   `json:"displayMid,optional"`
+	Editable        bool   `json:"editable,optional"`        // 响应体内容，是否可编辑，管理员永为true；任课老师只能编辑自己的考试
+	Deletable       bool   `json:"deletable,optional"`       // 响应体内容，是否可删除
+	Pushable        bool   `json:"pushable,optional"`        // 响应体内容，是否可发送
+	RecallAble      bool   `json:"recallAble,optional"`      // 响应体内容，是否可撤回
+	CreateTime      int64  `json:"createTime,optional"`      // 响应体内容
+	UpdateTime      int64  `json:"updateTime,optional"`      // 响应体内容
+	TagType         string `json:"tagType,optional"`         //v3 考试类型，也就是标签类型；之前的考试类型是由，MultiSubject和Mode共同决定的
+	TeacherShared   bool   `json:"teacherShared,optional"`   //v3 教师共享
+	SharedTeacherId string `json:"sharedTeacherId,optional"` //v3 发布并分享这次考试的老师用户id，参数不用传，只返回
+	TeacherName     string `json:"teacherName,optional"`     //v3 发布考试的老师姓名，参数不用传，只返回
+}
+
+type ExamInfoNoEmpty {
+	Id            string `json:"id,optional"`           // 考试id
+	Name          string `json:"name"`                  // 考试名字
+	ClassId       string `json:"classId"`               // 班级id
+	ClassName     string `json:"className,optional"`    // 响应体内容,班级名
+	TeacherId     string `json:"teacherId"`             // 发布考试的教师id
+	MultiSubject  bool   `json:"multiSubject,optional"` // 是否多学科
+	Mode          string `json:"mode"`                  // SCORE_SYSTEM:分数制  RANK_SYSTEM:等第制  CUSTOM:自定义
+	Subject       string `json:"subject"`               // 单学科科目，多学科逗号分隔，自定义考试传其他
+	PushMode      string `json:"pushMode"`              // 仅保存：UNPUBLISHED 定时发送：TIMED_PUBLISHED 立即发送：PUBLISHED
+	IsDelayedPush bool   `json:"isDelayedPush"`         // 是否定时发送
+	PushTime      int64  `json:"pushTime,optional"`     // 发送时间
+	IsOldVersion  int64  `json:"isOldVersion,optional"` // 0:不是历史遗留数据 1:是历史遗留数据
+
+	Data            []Data      `json:"data,omitempty"`           // 模块 or 学科对应的分数段
+	TotalScore      DataNoEmpty `json:"totalScore,optional"`      // 总分信息,录入时如未勾选总分等第可不传
+	ActiveTotalRank bool        `json:"activeTotalRank,optional"` // 启用总分等第
+
+	Comment Comment `json:"comment,optional"` // 集体评价
+
+	// 家长可查看
+	DisplayTotal bool `json:"displayTotal,optional"`
+	DisplayRank  bool `json:"displayRank,optional"`
+	DisplayMax   bool `json:"displayMax,optional"`
+	DisplayMin   bool `json:"displayMin,optional"`
+	DisplayAvg   bool `json:"displayAvg,optional"`
+	DisplayMid   bool `json:"displayMid,optional"`
+
+	Editable   bool `json:"editable,optional"`   // 响应体内容，是否可编辑，管理员永为true；任课老师只能编辑自己的考试
+	Deletable  bool `json:"deletable,optional"`  // 响应体内容，是否可删除
+	Pushable   bool `json:"pushable,optional"`   // 响应体内容，是否可发送
+	RecallAble bool `json:"recallAble,optional"` // 响应体内容，是否可撤回
+
+	CreateTime      int64  `json:"createTime,optional"`      // 响应体内容
+	UpdateTime      int64  `json:"updateTime,optional"`      // 响应体内容
+	SharedTeacherId string `json:"sharedTeacherId,optional"` //v3 发布并分享这次考试的老师用户id，参数不用传，只返回
+}
+
+type ClassroomView {
+	Id         string `json:"id"`
+	BadgeId    string `json:"badgeId"`
+	BadgeType  string `json:"badgeType"`
+	ClassNo    string `json:"classNo"`
+	ClassType  string `json:"classType"`
+	Code       string `json:"code"`
+	CreateTime string `json:"createTime"`
+	Name       string `json:"name"`
+	Grade      string `json:"grade"`
+	//examNum是晓成绩模块的数据
+	ExamNum int64 `json:"examNum"`
+}
+
+type (
+	ExamScore {
+		Id     string `json:"id"`
+		ExamId string `json:"examId"`
+
+		StudentId     string      `json:"studentId"`
+		StudentNumber string      `json:"studentNumber"`
+		StudentName   string      `json:"studentName"`
+		Items         []TableItem `json:"items"`
+
+		TotalScore    float32 `json:"totalScore"`
+		Rank          int64   `json:"rank,omitempty"`
+		TotalRankName string  `json:"totalRankName"`
+
+		Comment Comment `json:"comment"`
+
+		CreateTime int64 `json:"createTime,omitempty"`
+		UpdateTime int64 `json:"updateTime,omitempty"`
+	}
+	TableItem {
+		Name     string  `json:"name"`                        //表头
+		IsMissed bool    `json:"isMissed,optional,omitempty"` //是否缺考
+		Score    float32 `json:"score,optional"`              //对应的的得分
+		RankName string  `json:"rankName,optional"`           //等第名称
+	}
+
+	ExamScoreReq {
+		StudentId     string      `json:"studentId"`     //学生id
+		StudentNumber string      `json:"studentNumber"` //学号
+		StudentName   string      `json:"studentName"`   //姓名
+		Items         []TableItem `json:"items"`         //成绩列表内容
+		Comment       Comment     `json:"comment"`       //学生评语
+	}
+)
+
+type (
+	ExamScoreV2 {
+		Id     string `json:"id"`
+		ExamId string `json:"examId"`
+
+		StudentId     string        `json:"studentId"`
+		StudentNumber string        `json:"studentNumber"`
+		StudentName   string        `json:"studentName"`
+		Items         []TableItemV2 `json:"items"`
+
+		TotalScore    float32 `json:"totalScore"`
+		Rank          int64   `json:"rank,omitempty"`
+		TotalRankName string  `json:"totalRankName"`
+
+		Comment Comment `json:"comment"`
+
+		CreateTime int64 `json:"createTime,omitempty"`
+		UpdateTime int64 `json:"updateTime,omitempty"`
+	}
+	TableItemV2 {
+		Name     string  `json:"name"`                        //表头
+		IsMissed bool    `json:"isMissed,optional,omitempty"` //是否缺考
+		Score    string  `json:"score,optional,omitempty"`    //对应的的得分
+		RankName string  `json:"rankName,optional"`           //等第名称
+		Total    float32 `json:"total,optional,omitempty"`    //模块总分，比如语文总分150，request不用传，reponse里返回
+	}
+
+	ExamScoreReqV2 {
+		StudentId     string        `json:"studentId"`     //学生id
+		StudentNumber string        `json:"studentNumber"` //学号
+		StudentName   string        `json:"studentName"`   //姓名
+		Items         []TableItemV2 `json:"items"`         //成绩列表内容
+		Comment       Comment       `json:"comment"`       //学生评语
+	}
+)
+
+type (
+	ExamScoreV3 {
+		Id     string `json:"id"`
+		ExamId string `json:"examId"`
+
+		StudentId     string        `json:"studentId"`
+		StudentNumber string        `json:"studentNumber"`
+		StudentName   string        `json:"studentName"`
+		Items         []TableItemV3 `json:"items"`
+
+		TotalScore    float32 `json:"totalScore"`
+		Rank          int64   `json:"rank,omitempty"`
+		TotalRankName string  `json:"totalRankName"`
+
+		Comment Comment `json:"comment"`
+
+		CreateTime int64 `json:"createTime,omitempty"`
+		UpdateTime int64 `json:"updateTime,omitempty"`
+	}
+	TableItemV3 {
+		Name     string `json:"name"`                        //表头
+		IsMissed bool   `json:"isMissed,optional,omitempty"` //是否缺考
+		Score    string `json:"score,optional,omitempty"`    //对应的的得分
+		RankName string `json:"rankName,optional"`           //等第名称
+	}
+	TableSuggestion {
+		Location    string `json:"location"` //eg：1,all  all为一整行或者列
+		Description string `json:"description"`
+	}
+)
+
+type (
+	OldExamScore {
+		Id     string `json:"id"`
+		ExamId string `json:"examId"`
+
+		StudentId     string         `json:"studentId"`
+		StudentNumber string         `json:"studentNumber"`
+		StudentName   string         `json:"studentName"`
+		Items         []OldTableItem `json:"items"`
+
+		TotalScore    float32 `json:"totalScore"`
+		Rank          int64   `json:"rank"`
+		TotalRankName string  `json:"totalRankName"`
+
+		Comment Comment `json:"comment"`
+
+		CreateTime int64 `json:"createTime,omitempty"`
+		UpdateTime int64 `json:"updateTime,omitempty"`
+	}
+
+	OldTableItem {
+		Name     string `json:"name"`     //表头
+		Score    string `json:"score"`    //对应的的得分
+		RankName string `json:"rankName"` //等第名称
+	}
+)
+
+type (
+	GetClassListRequest {
+		Token string `path:"token,optional"`
+	}
+	GetClassListResponse {
+		Classrooms []*ClassroomView `json:"classrooms"`
+	}
+
+	GetClassExamsRequest {
+		Token         string `path:"token,optional"`
+		ClassId       string `json:"classId,optional"` // 如果是全部班级，就不传
+		Subject       string `json:"subject,optional"` // 如果是全部学科，就不传
+		StartTime     int64  `json:"startTime,optional"`
+		EndTime       int64  `json:"endTime,optional"`
+		Cursor        int64  `json:"cursor,optional"`
+		Limit         int    `json:"limit,optional"`
+		IncludeCustom bool   `json:"includeCustom,optional,default=true"` // 返回列表是否包含自定义考试,用法：考试列表传true，学生分析的地方传false
+		NoShared      bool   `json:"noShared,optional"`                   // 过滤其他老师分享的考试
+	}
+
+	GetClassExamsResponse {
+		Cursor       int64       `json:"cursor"` // 游标
+		HaveNextPage bool        `json:"haveNextPage"`
+		Exams        []*ExamInfo `json:"exams"`
+	}
+
+	GetStudentLastExamRequest {
+		Token         string `form:"token,optional"`
+		StudentId     string `form:"studentId"`
+		TeacherId     string `form:"teacherId"`
+		ClassId       string `form:"classId"` //
+		Cursor        int64  `form:"cursor"`  //考试的updateTime，如果不存在就传当前时间
+		CurrentExamId string `form:"currentExamId,optional"`
+	}
+
+	GetStudentLastExamResponse {
+		ExamName string `json:"examName"`
+		Rank     int64  `json:"rank"`
+		Exist    bool   `json:"exist"`
+	}
+
+	GetClassMembersRequest {
+		Token   string `path:"token,optional"`
+		ClassId string `json:"classId"`
+	}
+	GetClassMembersResponse {
+		Students []Student `json:"students"`
+	}
+
+	GetStudentExamsRequest {
+		Token     string   `path:"token,optional"`
+		StudentId string   `json:"studentId"`
+		ExamIds   []string `json:"examIds"`
+	}
+	GetStudentExamsResponse {
+		Exams []ExamResult `json:"exams"`
+	}
+	ExamResult {
+		ExamInfo  ExamInfo  `json:"examInfo"`
+		ExamScore ExamScore `json:"examScore"`
+	}
+
+	GetExamDetailRequest {
+		Token        string `path:"token,optional"`
+		ExamId       string `path:"examId"`       // 考试id
+		IsOldVersion int64  `path:"isOldVersion"` //0 不是历史遗留数据 1 是历史遗留数据
+	}
+	GetExamDetailResponse {
+		IsOldVersion int64           `json:"isOldVersion"` //是历史遗留数据
+		ExamInfo     ExamInfoNoEmpty `json:"examInfo"`
+		Scores       []ExamScore     `json:"scores"`
+		OldScores    []OldExamScore  `json:"oldScores"`
+	}
+	GetExamDetailResponseV2 {
+		IsOldVersion int64          `json:"isOldVersion"` //是历史遗留数据
+		ExamInfo     ExamInfo       `json:"examInfo"`
+		Scores       []ExamScoreV2  `json:"scores"`
+		OldScores    []OldExamScore `json:"oldScores"`
+	}
+
+	CancelExamRequest {
+		Token  string `path:"token,optional"`
+		ExamId string `path:"examId"`
+	}
+	CancelExamResponse {
+	}
+
+	CheckExamNameExistedRequest {
+		Token   string `path:"token,optional"`
+		ClassId string `form:"classId"`
+		Name    string `form:"name"`
+	}
+	CheckExamNameExistedResponse {
+		Exist bool `json:"exist"`
+	}
+
+	ExamAddRequest {
+		Token    string         `path:"token,optional"`
+		ExamInfo ExamInfo       `json:"examInfo"`
+		Scores   []ExamScoreReq `json:"scores"`
+	}
+	ExamAddRequestV2 {
+		Token    string           `path:"token,optional"`
+		ExamInfo ExamInfo         `json:"examInfo"`
+		Scores   []ExamScoreReqV2 `json:"scores"`
+	}
+	EmptyResponse {
+	}
+
+	RecallExamRequest {
+		Token   string   `path:"token,optional"`
+		ExamIds []string `json:"examIds"`
+	}
+	RecallExamResponse {
+	}
+
+	DelExamRequest {
+		Token   string   `path:"token,optional"`
+		ExamIds []string `json:"examIds"`
+	}
+	DelExamResponse {
+		FailedIds []string `json:"failedIds"`
+	}
+
+	GetTeacherModulesRequest {
+		Token   string `path:"token,optional"`
+		ClassId string `json:"classId"`
+		Subject string `json:"subject,optional"` // 单学科传学科名获取模块名，多学科传空字符串
+	}
+	GetTeacherModulesResponse {
+		Modules  []string `json:"modules"`
+		ExamInfo ExamInfo `json:"examInfo"`
+	}
+
+	ExamExcelParseRequest {
+		Token        string `path:"token,optional"`
+		FileName     string `form:"fileName,optional"`
+		File         string `form:"file,optional"`
+		ClassroomId  string `form:"classroomId"`       // 创建时选择的班级
+		MultiSubject bool   `form:"multiSubject"`      // 是否多学科
+		IsCustom     bool   `form:"isCustom,optional"` // 是否为自定义
+	}
+
+	ExamExcelParseRequestV3 {
+		Token       string `path:"token,optional"`
+		FileName    string `form:"fileName,optional"`
+		File        string `form:"file,optional"`
+		ClassroomId string `form:"classroomId"`       // 创建时选择的班级
+		IsCustom    bool   `form:"isCustom,optional"` // 是否为自定义
+	}
+
+	Warning {
+		Location    string `json:"location"`
+		Description string `json:"description"`
+		Suggestion  string `json:"suggestion"`
+	}
+
+	ExamExcelParseResponse {
+		Success  bool        `json:"success"`
+		Warnings []Warning   `json:"warnings"`
+		Scores   []ExamScore `json:"scores"`
+	}
+
+	ExamExcelParseResponseV2 {
+		Success  bool          `json:"success"`
+		Warnings []Warning     `json:"warnings"`
+		Scores   []ExamScoreV2 `json:"scores"`
+	}
+
+	ExamExcelParseResponseV3 {
+		Scores      []ExamScoreV3     `json:"scores"`
+		Suggestions []TableSuggestion `json:"suggestions"`
+	}
+
+	ExamExcelDownloadRequest {
+		Token        string `form:"token"`
+		FileName     string `form:"fileName"`
+		ClassroomId  string `form:"classroomId"`      // 创建时选择的班级
+		MultiSubject bool   `form:"multiSubject"`     //是否多学科 0：单学科 1：多学科
+		Subject      string `form:"subject,optional"` //单个学科的科目
+	}
+
+	ExamExcelDownloadRequestV3 {
+		Token       string `form:"token"`
+		FileName    string `form:"fileName"`
+		ClassroomId string `form:"classroomId"` // 创建时选择的班级
+		Subjects    string `form:"subjects"`    //添加的列，可以为学科或其他
+	}
+
+	ExamExcelExportRequest {
+		Token   string   `form:"token"`
+		ExamIds []string `json:"examIds"` //选中的考试成绩id
+	}
+
+	ExamExcelGetRequest {
+		Token   string `form:"token"`
+		ExamIds string `form:"examIds"` //选中的考试成绩id数组,用,拼接成字符串
+	}
+
+	SendExamResultRequest {
+		Token         string `path:"token,optional"`
+		ExamId        string `json:"examId"`            //
+		IsDelayedPush bool   `json:"isDelayedPush"`     // 是否定时发送
+		PushTime      int64  `json:"pushTime,optional"` // 发送时间
+	}
+	SendExamResultResponse {
+	}
+
+	TeacherExistExamRequest {
+		Token string `path:"token,optional"`
+	}
+	TeacherExistExamResponse {
+		Exist bool `json:"exist"` // 发布过考试
+	}
+
+	CalculateExamResponse {
+		IsOldVersion int64       `json:"isOldVersion"` //是历史遗留数据
+		ExamInfo     ExamInfo    `json:"examInfo"`
+		Scores       []ExamScore `json:"scores"`
+	}
+	CalculateExamResponseV2 {
+		IsOldVersion int64         `json:"isOldVersion"` //是历史遗留数据
+		ExamInfo     ExamInfo      `json:"examInfo"`
+		Scores       []ExamScoreV2 `json:"scores"`
+	}
+
+	GetExamSubjectsRequest {
+		Token   string `path:"token,optional"`
+		ClassId string `json:"classId,optional"`
+	}
+	GetExamSubjectsResponse {
+		Subjects []string `json:"subjects"`
+	}
+
+	GetTeacherSubjectRequest {
+		Token   string `path:"token,optional"`
+		ClassId string `path:"classId,optional"`
+	}
+	GetTeacherSubjectResponse {
+		Subject string `json:"subject"`
+	}
+
+	GetPopupsResp {
+		Show bool `json:"show"` //是否展示弹框
+	}
+)
+
+type PeopleDistribution { //人数 分布
+	Num      int     `json:"num"`
+	EndScore float32 `json:"endScore"`
+}
+
+type Analysis { //v4 考试详情的分析信息
+	LowScorePeople  int                  `json:"lowScorePeople"`        // 低分人数
+	PassScorePeople int                  `json:"passScorePeople"`       // 合格人数
+	HighScorePeople int                  `json:"highScorePeople"`       // 高分人数
+	DifficultyRatio float32              `json:"difficultyRatio"`       //难度系数
+	Distribution    []PeopleDistribution `json:"distribution,optional"` //得分人数分布
+}
+
+type CompareExamRequest { //v4 排名对比
+	Token         string `path:"token,optional"`
+	CurrentExamId string `form:"currentExamId"`
+	LastExamId    string `form:"lastExamId"`
+}
+
+type CompareExamResponse { //v4 排名对比
+	LastExamName string        `json:"lastExamName"` //上一次考试的名字
+	IncreaseTop  []CompareRank `json:"increaseTop"`  //进步前5
+	DecreaseTop  []CompareRank `json:"decreaseTop"`  //退步前5
+	PositiveTop  []CompareRank `json:"positiveTop"`  //前5
+	NegativeTop  []CompareRank `json:"negativeTop"`  //后5
+}
+
+type CompareRank { //v4 排名对比
+	CurrentRank   int64  `json:"currentRank"`
+	LastRank      int64  `json:"lastRank"`
+	RankDiff      int64  `json:"rankDiff"`
+	StudentId     string `json:"studentId"`
+	StudentNumber string `json:"studentNumber"`
+	StudentName   string `json:"studentName"`
+}
+
+@server(
+	jwt: Auth
+	signature: Auth
+	group: exam
+)
+service scorev2-api {
+	@doc("晓成绩】获取班级列表")
+	@server(
+		handler: GetClassListHandler
+	)
+	get /scorev2/classroom/list (GetClassListRequest) returns (GetClassListResponse)
+	
+	@doc("晓成绩】根据 班级/学科 获取考试列表")
+	@server(
+		handler: GetClassExamsHandler
+	)
+	post /scorev2/class/exam/list (GetClassExamsRequest) returns (GetClassExamsResponse)
+	
+	@doc("学生获取上一次分数制考试的信息")
+	@server(
+		handler: GetStudentLastExamHandler
+	)
+	get /scorev2/student/exam/last (GetStudentLastExamRequest) returns (GetStudentLastExamResponse)
+	
+	@doc("【晓成绩】获取班级成员学号")
+	@server(
+		handler: GetClassMembersHandler
+	)
+	post /scorev2/class/member (GetClassMembersRequest) returns (GetClassMembersResponse)
+	
+	@doc("学生分析-获取单个学生的考试列表")
+	@server(
+		handler: GetStudentExamsHandler
+	)
+	post /scorev2/student/exam/list (GetStudentExamsRequest) returns (GetStudentExamsResponse)
+	
+	@doc("判断老师发布过考试")
+	@server(
+		handler: TeacherExistExamHandler
+	)
+	get /scorev2/teacher/exam/exist (TeacherExistExamRequest) returns (TeacherExistExamResponse)
+	
+	@doc("考试详情-家长或老师查看考试详情")
+	@server(
+		handler: GetExamDetailHandler
+	)
+	get /scorev2/exam/detail/:examId/:isOldVersion (GetExamDetailRequest) returns (GetExamDetailResponse)
+	
+	@doc("取消考试的定时消息")
+	@server(
+		handler: CancelExamMessageHandler
+	)
+	post /scorev2/message/cancel/:examId (CancelExamRequest) returns (CancelExamResponse)
+	
+	@doc("发送考试成绩")
+	@server(
+		handler: SendExamMessageHandler
+	)
+	post /scorev2/message/send (SendExamResultRequest) returns (SendExamResultResponse)
+	
+	@doc("根据班级检查考试名是否存在")
+	@server(
+		handler: CheckExamNameHandler
+	)
+	get /scorev2/exam-name/existed (CheckExamNameExistedRequest) returns (CheckExamNameExistedResponse)
+	
+	@doc("快速录入考试信息")
+	@server(
+		handler: AddExamHandler
+	)
+	post /scorev2/exam/add (ExamAddRequest) returns (EmptyResponse)
+	
+	@doc("预览考试信息")
+	@server(
+		handler: CalculateExamHandler
+	)
+	post /scorev2/exam/calculate (ExamAddRequest) returns (CalculateExamResponse)
+	
+	@doc("修改考试信息")
+	@server(
+		handler: ModifyExamHandler
+	)
+	post /scorev2/exam/modify (ExamAddRequest) returns (EmptyResponse)
+	
+	@doc("撤回考试")
+	@server(
+		handler: RecallHandler
+	)
+	post /scorev2/exam/recall (RecallExamRequest) returns (RecallExamResponse)
+	
+	@doc("删除考试")
+	@server(
+		handler: DelExamHandler
+	)
+	post /scorev2/exam/del (DelExamRequest) returns (DelExamResponse)
+	
+	@doc("根据 教师/学科 获取对应的自定义模块,无自定义模块就返回默认模块")
+	@server(
+		handler: GetTeacherModulesHandler
+	)
+	post /scorev2/exam/teacher/modules (GetTeacherModulesRequest) returns (GetTeacherModulesResponse)
+	
+	@doc("考试成绩excel解析")
+	@server(
+		handler: ExcelParseHandler
+	)
+	post /scorev2/exam/excel/parse (ExamExcelParseRequest) returns (ExamExcelParseResponse)
+	
+	@doc("考试成绩excel解析v2")
+	@server(
+		handler: ExcelParseV2Handler
+	)
+	post /scorev2/exam/excel/parsev2 (ExamExcelParseRequest) returns (ExamExcelParseResponseV2)
+	
+	@doc("考试成绩excel解析v3")
+	@server(
+		handler: ExcelParseV3Handler
+	)
+	post /scorev2/exam/excel/parsev3 (ExamExcelParseRequestV3) returns (ExamExcelParseResponseV3)
+	
+	@doc("根据教师和班级获取考试学科")
+	@server(
+		handler: GetExamSubjectsHandler
+	)
+	post /scorev2/class/exam/subjects (GetExamSubjectsRequest) returns (GetExamSubjectsResponse)
+	
+	@doc("获取教师在班级任教学科")
+	@server(
+		handler: GetTeacherSubjectHandler
+	)
+	get /scorev2/teacher-subject/:classId (GetTeacherSubjectRequest) returns (GetTeacherSubjectResponse)
+	
+	@doc("成绩二期优化，app版本兼容")
+	@server(
+		handler: AddExamV2Handler
+	)
+	post /scorev2/exam/addv2 (ExamAddRequestV2) returns (EmptyResponse)
+	
+	@server(
+		handler: ModifyExamV2Handler
+	)
+	post /scorev2/exam/modifyv2 (ExamAddRequestV2) returns (EmptyResponse)
+	
+	@server(
+		handler: GetExamDetailV2Handler
+	)
+	get /scorev2/exam/detailv2/:examId/:isOldVersion (GetExamDetailRequest) returns (GetExamDetailResponseV2)
+	
+	@doc("score v4, 对比两次排名的接口")
+	@server(
+		handler: CompareExamHandler
+	)
+	get /scorev2/exam/compare (CompareExamRequest) returns (CompareExamResponse)
+	
+	@server(
+		handler: CalculateExamV2Handler
+	)
+	post /scorev2/exam/calculatev2 (ExamAddRequestV2) returns (CalculateExamResponseV2)
+}
+
+@server(
+	group: exam
+)
+service scorev2-api {
+	@doc("历次考试成绩excel导出get 请求")
+	@server(
+		handler: GetExamExcelHandler
+	)
+	get /scorev2/exam/excel/export (ExamExcelGetRequest) returns (EmptyResponse)
+	
+	@doc("考试成绩excel模版下载")
+	@server(
+		handler: ExcelDownloadHandler
+	)
+	get /scorev2/exam/excel/download (ExamExcelDownloadRequest) returns (EmptyResponse)
+	@doc("考试成绩excel模版下载")
+	@server(
+		handler: ExcelDownloadV3Handler
+	)
+	get /scorev2/exam/excel/download/v3 (ExamExcelDownloadRequestV3) returns (EmptyResponse)
+}
+
+@server(
+	group : popups
+	jwt: Auth
+)
+service scorev2-api {
+	@doc("获取弹框提示")
+	@handler GetPopupsHandler
+	get /scorev2/popups () returns (GetPopupsResp)
+	
+	@doc("更新用户点击状态")
+	@handler UpdatePopupsStatusHandler
+	put /scorev2/popups () returns (EmptyResponse)
+}

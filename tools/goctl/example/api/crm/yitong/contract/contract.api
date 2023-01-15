@@ -1,0 +1,623 @@
+info(
+	title: doc title
+	desc: "goctl api go -api contract.api -dir ./"
+	version: 1.0
+)
+
+type PayDetail {
+	Amounts int64 `json:"amounts"`
+	Date    int64 `json:"date"`
+}
+
+type ExpressDetails {
+	CampusSealFirst    bool           `json:"campusSealFirst"`    // 是否校方先盖章
+	CampusExpressInfo  *ExpressDetail `json:"campusExpressInfo"`  // 合同回寄地址
+	CompanyExpressInfo *ExpressDetail `json:"companyExpressInfo"` // 我司收件地址
+}
+
+type ExpressDetail {
+	ExpressId        int64  `json:"expressId,optional"`
+	ContractId       int64  `json:"contractId,optional"`
+	ReceiptType      string `json:"receiptType"`    // CAMPUS校方收；COMPANY公司收
+	ExpressType      int64  `json:"expressType"`    // 1、邮寄；2、自取/自送
+	RecipientName    string `json:"recipientName"`  // 收件人
+	RecipientPhone   string `json:"recipientPhone"` // 收件人联系方式
+	RecipientAddress string `json:"recipientAddress,optional"`
+	ExpressName      string `json:"expressName,optional"`
+	ExpressNumber    string `json:"expressNumber,optional"`
+	FirstExpressTime int64  `json:"firstExpressTime,optional"`
+	ExpressTime      int64  `json:"expressTime,optional"`
+}
+
+type InvoiceDetails {
+	TotalAmount   int64            `json:"totalAmount"` // 开票总额，放大100倍
+	InvoiceDetail []*InvoiceDetail `json:"invoiceDetail"`
+}
+
+type InvoiceDetail {
+	InvoiceId   int64  `json:"invoiceId"`   // 发票ID
+	ApplyDate   int64  `json:"applyDate"`   // 申请开票时间
+	Title       string `json:"title"`       // 开票抬头
+	Amount      int64  `json:"amount"`      // 金额，放大100倍
+	Status      string `json:"status"`      // 合同状态
+	FinanceDate int64  `json:"financeDate"` // 财务开票日期
+}
+
+type PaybackDetails {
+	TotalAmount   int64            `json:"totalAmount"`   // 回款总额，放大100倍
+	PaybackDetail []*PaybackDetail `json:"paybackDetail"` // 回款信息
+}
+
+type PaybackDetail {
+	Id     int64  `json:"id"`     // 回款Id
+	Remark string `json:"remark"` // 回款记录
+	Amount int64  `json:"amount"` // 回款金额，放大100倍
+	Date   int64  `json:"date"`   // 回款时期
+}
+
+type PaymentEditRequest {
+	PaymentId  int64   `json:"paymentId,range=[1:]"` // 回款Id
+	Content    string  `json:"content"`              // 回款内容
+	Amount     int64   `json:"amount"`               // 回款金额
+	Date       int64   `json:"date"`                 // 回款时间
+	InvoiceIds []int64 `json:"invoiceIds,optional"`  // 发票IDs
+}
+
+type PaymentDeleteRequest {
+	PaymentId int64 `json:"paymentId,range=[1:]"` // 回款Id
+}
+
+type PaymentResponse {
+	Desc string `json:"desc"` // 操作返回信息
+}
+
+type ExpressDetailRequest {
+	ContractId int64 `path:"contractId"` // 合同ID
+}
+
+type ExpressEditRequest {
+	ExpressId        int64  `json:"expressId"`        // 寄送ID
+	ContractId       int64  `json:"contractId"`       // 合同ID
+	ReceiptType      string `json:"receiptType"`      // CAMPUS: 合同回寄地址；COMPANY: 公司接收地址
+	ExpressType      int64  `json:"expressType"`      // 邮寄类型：1：邮寄；2：培训师送/取
+	RecipientName    string `json:"recipientName"`    // 接收人姓名
+	RecipientPhone   string `json:"recipientPhone"`   // 接收人联系方式
+	RecipientAddress string `json:"recipientAddress"` // 接收人联系地址
+}
+
+type ExpressCheckRequest {
+	ContractId int64 `json:"contractId"`
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"` // 是否成功应答
+}
+
+type ExpressSearchRequest {
+	ContractIds   []int64 `json:"contractIds,optional"`                       // 合同数字ID数组
+	ExpressNumber string  `json:"expressNumber,optional"`                     // 快递单号
+	TrainerId     int64   `json:"trainerId,optional"`                         // 培训师ID
+	ContractName  string  `json:"contractName,optional"`                      // 合同名字（模糊）
+	Page          int64   `json:"page,range=[1:],optional"`                   // 分页
+	PageSize      int64   `json:"pageSize,range=[1:200],default=20,optional"` // 分页size
+}
+
+type ExpressSearchResponse {
+	ExpressSearchData []*ExpressSearchData `json:"expressSearchData"` // 详细数据
+	Count             int64                `json:"count"`             // 总数
+	CurrentPage       int64                `json:"currentPage"`       // 当前第几页（无用）
+}
+
+type ExpressSearchData {
+	ContractId       int64           `json:"contractId"`       // 合同ID
+	CampusId         int64           `json:"campusId"`         // 学校ID
+	SignatoryName    string          `json:"signatoryName"`    // 签约方
+	TrainerName      string          `json:"trainerName"`      // 培训师
+	TrulyProductName string          `json:"trulyProductName"` // 项目名
+	ContractName     string          `json:"contractName"`     // 合同名
+	ExpressDetails   *ExpressDetails `json:"expressDetails"`   // 快递信息
+}
+
+type PropertyRequest {
+	ContractId    int64  `json:"contractId"`
+	TruelyProduct string `json:"truelyProduct"`
+}
+
+type PropertyResponse {
+	Data []*ContractKeyOptions `json:"data"`
+}
+
+type RulesOptions {
+	Required bool   `json:"required,optional"` // 是否必填
+	Type     string `json:"type,optional"`     // key对应值类型
+	Message  string `json:"message,optional"`  // 验证错误信息
+	Trigger  string `json:"trigger,optional"`  // 触发验证时机
+}
+
+type SelectOptions {
+	Id   int64  `json:"id"`   // id
+	Name string `json:"name"` // 展示名字
+}
+
+type TableHeaderOptions {
+	Prop  string `json:"prop"`  // 列绑定的属性值
+	Label string `json:"label"` // 列名
+}
+
+type ShowTypesOptions {
+	Select          int64                            `json:"select,optional"`          // 已选择
+	SelectOptions   []*SelectOptions                 `json:"selectOptions,optional"`   // 下拉选项
+	Radio           int64                            `json:"radio,optional"`           // 单选，已选择
+	RadioOptions    []*SelectOptions                 `json:"radioOptions,optional"`    // 单选项
+	CheckBox        []int64                          `json:"checkBox,optional"`        // 复选框，已选择
+	CheckBoxOptions []*SelectOptions                 `json:"checkBoxOptions,optional"` // 复选框选项
+	TableHeader     []*TableHeaderOptions            `json:"tableHeader,optional"`     // 表头信息
+	TableData       []map[string]*ContractKeyOptions `json:"tableData,optional"`       // 数据信息 一行信息
+	Module          []int64                          `json:"module,optional"`          // 已选择
+	ModuleOptions   []SelectOptions                  `json:"moduleOptions"`            // 模块选项
+}
+
+type PropertiesOptions {
+	PlaceHolder string            `json:"placeHolder,optional"` // 输入提示信息
+	Tip         string            `json:"tip,optional"`         // 属性提示信息
+	Options     *ShowTypesOptions `json:"options,optional"`     // showType类型定义的数据
+}
+
+type ContractKeyOptions {
+	Key         string             `json:"key"`                  // 属性key值
+	Label       string             `json:"label"`                // 属性名称
+	Type        string             `json:"type"`                 // 属性数据类型
+	Value       string             `json:"value,optional"`       // 属性值
+	ShowType    string             `json:"showType"`             // 属性展现方式
+	Unit        string             `json:"unit,optional"`        // 属性单位
+	Description string             `json:"description,optional"` // 属性描述信息
+	Default     string             `json:"default,optional"`     // 属性默认值
+	Rules       []*RulesOptions    `json:"rules,optional"`       // 对key值的验证规则
+	Format      string             `json:"format,optional"`      // format
+	Properties  *PropertiesOptions `json:"properties,optional"`  // 自定义属性
+	Operations  []string           `json:"operations"`           // 操作
+}
+
+type ContractDetailRequest {
+	ContractId int64 `json:"contractId"`
+}
+
+type ContractDetailsResponse {
+	BaseDetail     *BaseDetail           `json:"baseDetail"`     // 基本信息
+	ProductDetail  []*ContractKeyOptions `json:"productDetail"`  // 产品内容
+	PayDetails     *PayDetail            `json:"payDetails"`     // 付款信息
+	ExpressDetails *ExpressDetails       `json:"expressDetails"` // 寄送信息
+	FileLink       *UploadFileInfo       `json:"fileLink"`       // 文件链接
+	Remark         string                `json:"remark"`         // 备注
+	InvoiceDetails *InvoiceDetails       `json:"invoiceDetails"` // 发票信息
+	PaybackDetails *PaybackDetails       `json:"paybackDetails"` // 回款信息
+}
+
+type SiteCondition {
+	CampusId int64 `json:"campusId,optional"`
+	Hide     int64 `json:"hide,optional"`
+}
+
+type Site {
+	Id           int64  `json:"id,optional"`
+	CampusId     int64  `json:"campusId,optional"`     // 校区id
+	UserId       int64  `json:"userId,optional"`       // 用户id
+	Address      string `json:"address,optional"`      // 详细地址
+	Province     int64  `json:"province,optional"`     // 省id
+	City         int64  `json:"city,optional"`         // 市id
+	District     int64  `json:"district,optional"`     // 区id
+	Tag          string `json:"tag,optional"`          // 标签 INVOICE-发票 CONTRACT-合同 英文逗号连接/标签
+	DefaultValue int64  `json:"defaultValue,optional"` // 是否默认 0-非默认 1-默认
+	Hide         int64  `json:"hide,optional"`         // 是否隐藏 0-不隐藏 1-隐藏
+}
+
+type SiteDetailResponse {
+	Site     *Site  `json:"site"`
+	Province string `json:"province"`
+	City     string `json:"city"`
+	District string `json:"district"`
+	Address  string `json:"address"`
+}
+
+type ProjectList {
+	Name     string `json:"name"`
+	EName    string `json:"eName"`
+	Enabled  int64  `json:"enabled"`
+	Identity int64  `json:"identity"`
+}
+
+type ContractTemplate {
+	Id              int64  `json:"id"`
+	TrueProject     string `json:"trueProject"` // 项目名字
+	ProjectName     string `json:"projectName"`
+	TemplateName    string `json:"templateName"`    // 模版名字
+	FileLink        string `json:"fileLink"`        // 文件链接
+	TemplateContent string `json:"templateContent"` // 模版内容
+	Status          int    `json:"status"`          // 状态
+	UpdateTime      int64  `json:"updateTime"`      // 修改时间
+	Time            string `json:"time"`
+}
+
+type ContractTemplateListRequest {
+	TrueProject  string `json:"trueProject,optional"`
+	TemplateName string `json:"templateName,optional"`
+	Status       int    `json:"status,optional"`
+	NowPage      int    `json:"nowPage,optional,default=1"`
+	PageSize     int    `json:"pageSize,optional,default=10"`
+}
+
+type ContractTemplateListResponse {
+	Page      int                 `json:"page"`
+	AllPage   int                 `json:"allPage"`
+	Count     int                 `json:"count"`
+	Templates []*ContractTemplate `json:"templates"`
+}
+
+type PublicSeaSearchRequest {
+	CampusId     int64   `json:"campusId,optional"`
+	Name         string  `json:"name,optional"`                 // 名字
+	Province     string  `json:"province,optional"`             // 省
+	City         string  `json:"city,optional"`                 // 市
+	District     string  `json:"district,optional"`             // 区
+	Status       int64   `json:"status,optional,default=0"`     // 审核状态0 1 2 等待 审核 驳回
+	NextId       int64   `json:"next_id,optional,default=-1"`   // limit next id
+	PageSize     int64   `json:"page_size,optional,default=21"` // limit size
+	Page         int64   `json:"page,optional,default=0"`       // limit Page
+	IsPage       bool    `json:"is_page,optional"`              // 是否 next
+	IsXjy        int     `json:"is_xjy,optional"`               // 1:做了晓教云的校区，2:非晓教云校区
+	InviteCodes  string  `json:"invite_codes,optional"`
+	FollowXhb    string  `json:"follow_xhb,optional"` // 晓黑板讲座进度
+	IsCoact      bool    `json:"is_coact,optional"`   // 协助人搜索
+	MonthStarted []int64 `json:"month_started,optional"`
+	ReachedRate  []int64 `json:"reached_rate,optional"`
+}
+
+type Campus {
+	CampusId       int64   `json:"campus_id"`
+	Name           string  `json:"name,optional"`
+	NickName       string  `json:"nick_name,optional"`
+	Badge          string  `json:"badge,optional"`
+	Province       int64   `json:"province,optional"`
+	City           int64   `json:"city,optional"`
+	District       int64   `json:"district,optional"`
+	ProvinceString string  `json:"province_string,optional"`
+	CityString     string  `json:"city_string,optional"`
+	DistrictString string  `json:"district_string,optional"`
+	Longitude      float32 `json:"longitude,optional"`
+	Latitude       float32 `json:"latitude,optional"`
+	Address        string  `json:"address,optional"`
+	CampusManager  string  `json:"campus_manager,optional"`
+	Contact        string  `json:"contact,optional"`
+	ParentSchoolId int64   `json:"parent_school_id,optional"`
+	IsMain         bool    `json:"isMain,optional"`
+	TeacherNum     int64   `json:"teacher_num,optional"`
+	StudentNum     int64   `json:"student_num,optional"`
+	UpdateTime     string  `json:"update_time,optional"`
+	CreateTime     string  `json:"create_time,optional"`
+	Status         int     `json:"status,optional"`
+	DelFlag        int     `json:"del_flag,optional"`
+	BePrivate      bool    `json:"be_private,optional"`
+	SchoolProperty string  `json:"school_property,optional"`
+	SchoolType     string  `json:"school_type,optional"`
+	StudySection   string  `json:"study_section,optional"`
+	PeriodId       int64   `json:"period_id,optional"`
+	PioneerId      int64   `json:"pioneer_id,optional"` // 拓展人
+	CoactId        []int64 `json:"coact_id,optional"`
+}
+
+type School {
+	SchoolId       int64  `json:"school_id"`
+	Name           string `json:"name"`
+	NickName       string `json:"nick_name"`
+	Description    string `json:"description"`
+	SchoolProperty int    `json:"school_property"`
+	StudySection   string `json:"study_section"`
+	UpdateTime     string `json:"update_time"`
+	CreateTime     string `json:"create_time"`
+	HasMain        int    `json:"has_main"`
+	Status         int    `json:"status"`
+	DelFlag        int    `json:"del_flag"`
+}
+
+type Auth {
+	PrivateSea           bool   `json:"private_sea,default=false"`
+	SupervisorPrivateSea bool   `json:"supervisor_private_sea,default=false"`
+	KickSea              bool   `json:"kick_sea,default=false"`
+	CanEdit              bool   `json:"can_edit,default=false"`
+	SettleStatus         bool   `json:"settle_status,default=false"` // 是否已结算
+	XjyStatus            string `json:"xjy_status"`
+	XjyCode              string `json:"xjy_code"`
+}
+
+type NewCampusView {
+	School         *School `json:"school"`
+	Campus         *Campus `json:"campus"`
+	Auth           *Auth   `json:"auth"`
+	FollowUpName   string  `json:"follow_up_name"`
+	SupervisorName string  `json:"supervisor_name"`
+}
+
+type NewSearchNextResponse {
+	Campuses    []*NewCampusView `json:"campuses,omitempty"`
+	SumCount    int64            `json:"sum_count"`
+	NextId      int64            `json:"next_id"`
+	CampusLimit int64            `json:"campus_limit"`
+	XjyNum      int64            `json:"xjy_num"`
+}
+
+type BaseDetail {
+	ContractId           int64  `json:"contractId,optional"`              // 合同Id
+	ContractName         string `json:"contractName"`                     // 合同名称
+	ContractType         string `json:"contractType"`                     // 合同类型
+	CreateId             int64  `json:"createId,optional"`                // 创建人ID
+	FirstPartyType       string `json:"firstPartyType"`                   // 签约主体类型（英文）
+	FirstPartyTypeName   string `json:"firstPartyTypeName,optional"`      // 签约主体类型名（中文）
+	TruelyProduct        string `json:"truelyProduct"`                    // 项目类型（英文）
+	TruelyProductName    string `json:"truelyProductName,optional"`       // 项目类型（中文）
+	CampusId             int64  `json:"campusId"`                         // 学校I
+	CampusName           string `json:"campusName"`                       // 客户
+	SignatoryName        string `json:"signatoryName"`                    // 甲方
+	CampusAddress        string `json:"campusAddress,optional"`           // 学校地址
+	ContractTemplateId   int64  `json:"contractTemplateId"`               // 合同模板ID
+	ContractTemplateName string `json:"contractTemplateName,optional"`    // 合同模版名称
+	FirstPartyCampus     string `json:"firstPartyCampus,optional"`        // 甲方学校名
+	FirstPartyId         int64  `json:"firstPartyId"`                     // 甲方联系人ID
+	FirstPartyName       string `json:"firstPartyName"`                   // 甲方联系人
+	FirstPartyPhone      string `json:"firstPartyPhone"`                  // 甲方人联系方式
+	FirstPartyIdCard     string `json:"firstPartyIdCard,optional"`        // 甲方身份证
+	SecondPartyCampus    string `json:"secondPartyCampus,optional"`       // 乙方学校名
+	SecondPartyId        int64  `json:"secondPartyId"`                    // 乙方联系人ID
+	SecondPartyName      string `json:"secondPartyName,optional"`         // 乙方联系人
+	SecondMobilePhone    string `json:"secondMobilePhone,optional"`       // 乙方人联系方式
+	PartyExchange        bool   `json:"partyExchange,optional,default=1"` // 身份转换标识，默认晓信为乙方,1：不换，2：换
+	IsStandard           bool   `json:"isStandard,optional"`              // 是否标准合同
+	SignTime             int64  `json:"signTime,optional"`                // 签约时间
+	ContractNumber       string `json:"contractNumber,optional"`          // 合同编号（法务编号）
+	Formula              string `json:"formula,optional"`                 // 公式
+}
+
+type UploadFileInfo {
+	FileName string `json:"fileName,optional"` // 文件名称
+	FileLink string `json:"fileLink,optional"` // 文件地址
+	IsSystem bool   `json:"isSystem,optional"` // 是否为系统生成的附件true：是；false：否
+}
+
+type AddContractRequest {
+	Operation      string                `json:"operation"` // "VERIFY"：验证非标合同；"DRAFT": 保存草稿；"APPROVE": 提交审批
+	BaseDetail     *BaseDetail           `json:"baseDetail"`
+	ProductDetail  []*ContractKeyOptions `json:"productDetail"`
+	PayDetails     []*PayDetail          `json:"payDetails"`
+	ExpressDetails *ExpressDetails       `json:"expressDetails"`
+	FileInfo       *UploadFileInfo       `json:"fileInfo"`
+	Remark         string                `json:"remark"`
+}
+
+type AddContractResponse {
+	ContractId int64 `json:"contractId"`
+	IsStandard bool  `json:"isStandard"`
+}
+
+type BigDataPaymentListRequest {
+	StartTime int64 `json:"startTime"`                                  // 开始时间
+	EndTime   int64 `json:"endTime"`                                    // 结束时间
+	Page      int64 `json:"page,range=[1:1000],default=1,optional"`     // 第几页
+	PageSize  int64 `json:"pageSize,range=[1:200],default=20,optional"` // 一页几条
+}
+
+type ContractDetail {
+	SearchContractDetails []*SearchContractDetail `json:"searchContractDetails"` // 合同列表
+	Count                 int64                   `json:"count"`                 // 个数
+	Pages                 int64                   `json:"pages,omitempty"`       // 页数
+}
+
+type SearchContractDetail {
+	Id                 int64            `json:"id"`
+	Name               string           `json:"name"`
+	ApprovalString     string           `json:"approvalString"`
+	ApprovalStatus     int64            `json:"approvalStatus"`
+	ApprovalStatusName string           `json:"approvalStatusName"`
+	ContractState      string           `json:"contractState"`
+	TrainerName        string           `json:"trainerName"`
+	SupervisorName     string           `json:"supervisorName"`
+	Number             string           `json:"number"`
+	StartTime          string           `json:"startTime"`
+	EndTime            string           `json:"endTime"`
+	Emergency          int64            `json:"emergency"`
+	IsMyApproval       bool             `json:"isMyApproval,omitempty"`
+	CreateTime         string           `json:"createTime,omitempty"`
+	PaymentList        []*PaymentRecord `json:"paymentList"`
+	PayedAmount        int64            `json:"payedAmount"`            // 已回款金额
+	ApplyTime          string           `json:"applyTime"`              // 提交时间
+	ApplyTimeSort      int64            `json:"applyTimeSort,optional"` // 提交时间 排序
+	TrulyAmount        int64            `json:"trulyAmount"`            // 合同真实金额
+	PdfLink            string           `json:"pdfLink"`
+	DocLink            string           `json:"docLink"`
+	UpdateTime         int64            `json:"updateTime"`        // 更新时间
+	CampusExpressTime  int64            `json:"campusExpressTime"` // 校方首次盖章时间
+}
+
+type PaymentRecord {
+	Id         int64  `json:"id"`
+	CampusId   int64  `json:"campusId"`
+	ContractId int64  `json:"contractId"`
+	Content    string `json:"content"`
+	Amount     int64  `json:"amount"`
+	Date       int64  `json:"date"`
+	CreatorId  int64  `json:"creatorId"`
+	InvoiceIds string `json:"invoiceIds"`
+}
+
+type ContractStatus {
+	Id    int64  `json:"id"` //合同状态：-1:不限；0：草稿；1：通过；2：不通过；3：审批中；4：作废；5：删除；6：校方盖章寄出；7：我方盖章寄出；8：双方盖章归档；9：终止协议
+	Value string `json:"value"`
+}
+
+type ContractStatusRequest {
+	Id int `json:"id,optional"` //场景ID: 1.app；2.合同列表；3. 待校方审批；4.待我方归档
+}
+
+type ContractStatusResponse {
+	StatusMap map[int][]*ContractStatus `json:"statusMap"`
+}
+
+type TerminateAgreementRequest {
+	ContractId int64  `json:"contractId"`
+	Reason     string `json:"reason"`
+	Received   bool   `json:"received"`
+}
+
+type CancelContractRequest {
+	ContractId int64  `json:"contractId,optional"`
+	Remarks    string `json:"remarks,optional"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 2019
+	jwt: Auth
+)
+service contract {
+	@doc(
+		summary: PC端合同详情
+	)
+	@server(
+		handler: getContractDetail
+	)
+	post /contract/detail(ContractDetailRequest) returns(ContractDetailsResponse)
+	
+	@doc(
+		summary: 获取寄送信息
+	)
+	@server(
+		handler: getExpressDetail
+	)
+	get /contract/express/:contractId(ExpressDetailRequest) returns(ExpressDetails)
+	
+	@doc(
+		summary: 编辑寄送信息
+	)
+	@server(
+		handler: editExpress
+	)
+	post /contract/express/edit(ExpressEditRequest)
+	
+	@doc(
+		summary: 判断寄送信息是否可编辑
+	)
+	@server(
+		handler: checkExpress
+	)
+	post /contract/express/check(ExpressCheckRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 获取产品配置信息
+	)
+	@server(
+		handler: getProductProperty
+	)
+	post /contract/product/property(PropertyRequest) returns(PropertyResponse)
+	
+	@doc(
+		summary: 搜索寄送信息
+	)
+	@server(
+		handler: contractHandler
+	)
+	post /contract/express/search(ExpressSearchRequest) returns(ExpressSearchResponse)
+	
+	@doc(
+		summary: 回款编辑
+	)
+	@server(
+		handler: editPayment
+	)
+	post /contract/payment/edit(PaymentEditRequest) returns(PaymentResponse)
+	
+	@doc(
+		summary: 回款删除
+	)
+	@server(
+		handler: deletePayment
+	)
+	post /contract/payment/delete(PaymentDeleteRequest) returns(PaymentResponse)
+	
+	@doc(
+		summary: 通信地址列表
+	)
+	@server(
+		handler: siteList
+	)
+	post /contract/site/list(SiteCondition) returns(SiteDetailResponse)
+	
+	@doc(
+		summary: 项目类型列表
+	)
+	@server(
+		handler: getRealProjectList
+	)
+	get /contract/project/list() returns(ProjectList)
+	
+	@doc(
+		summary: 合同模板列表
+	)
+	@server(
+		handler: contractTemplateList
+	)
+	post /contract/template/list(ContractTemplateListRequest) returns(ContractTemplateListResponse)
+	
+	@doc(
+		summary: 客户
+	)
+	@server(
+		handler: privateSeaSearch
+	)
+	post /school/private-sea/search(PublicSeaSearchRequest) returns(NewSearchNextResponse)
+	
+	@doc(
+		summary: 新增/编辑合同
+	)
+	@server(
+		handler: addContract
+	)
+	post /contract/add(AddContractRequest) returns(AddContractResponse)
+	
+	@doc(
+		summary: app首页大数据-已回款列表-个人
+	)
+	@server(
+		handler: personPaymentList
+	)
+	post /contract/big-data/person-payment-list(BigDataPaymentListRequest) returns(ContractDetail)
+	
+	@doc(
+		summary: app首页大数据-已回款列表-团队
+	)
+	@server(
+		handler: teamPaymentList
+	)
+	post /contract/big-data/team-payment-list(BigDataPaymentListRequest) returns(ContractDetail)
+	
+	@doc(
+		summary: 合同状态列表
+	)
+	@server(
+		handler: contractStatusList
+	)
+	post /contract/status/list(ContractStatusRequest) returns(ContractStatusResponse)
+	
+	@doc(
+		summary: 终止协议
+	)
+	@server(
+		handler: terminateAgreement
+	)
+	post /contract/legal/terminate(TerminateAgreementRequest)
+	
+	@doc(
+		summary: 撤销为草稿
+	)
+	@server(
+		handler: cancelContract
+	)
+	post /contract/cancel(CancelContractRequest)
+}

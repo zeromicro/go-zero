@@ -1,0 +1,62 @@
+info(
+	title: 通用转发服务
+	version: 1.0
+)
+
+type (
+	GetTeacherAppraisalRightRequest {
+	}
+
+	GetTeacherAppraisalRightResponse {
+		ClassRights []*AppraisalRight `json:"classRights"`
+	}
+
+	AppraisalRight {
+		ClassId          string          `json:"classId"`
+		IsRankAccess     bool            `json:"isRankAccess"`     // 是否开启评价
+		DefaultIndicator map[string]bool `json:"defaultIndicator"` // 4个消息体是否有默认指标
+	}
+
+	GetAppraisalDetailRequest {
+		AppraisalIds []int64 `path:"appraisalIds"` // 评价id
+	}
+
+	GetAppraisalDetailResponse {
+		Total      int64        `json:"total"`                // 已评价的评价数
+		Score      int64        `json:"score"`                // 已评价的评价总分
+		Appraisals []*Appraisal `json:"appraisals,omitempty"` // 每个评价详情
+	}
+
+	Appraisal {
+		Type            int32  `json:"type,omitempty"`        // 评价类型
+		IndicatorId     int64  `json:"indicatorId,omitempty"` // 教师评价指标
+		GradeName       string `json:"gradeName,omitempty"`   // 等第名称
+		Score           int64  `json:"score,omitempty"`       // 教师评价分数
+		ColorGrade      int32  `json:"colorGrade,omitempty"`  // 颜色等级，1-加分最多，2-中等，3-加分最少，4-待改进
+		IndicatorName   string `json:"indicatorName,omitempty"`
+		IndicatorSuffix string `json:"indicatorSuffix,omitempty"`
+	}
+)
+
+@server(
+	jwt: Auth
+	signature: Auth
+	folder: dytforward
+)
+service forward-api {
+	@doc(
+		summary: 获取教师评价权限
+	)
+	@server(
+		handler: GetTeacherAppraisalRightHandler
+	)
+	get /forward/appraisal-right(GetTeacherAppraisalRightRequest) returns(GetTeacherAppraisalRightResponse)
+	
+	@doc(
+		summary: 根据评价id获取评价详情
+	)
+	@server(
+		handler: GetAppraisalDetailHandler
+	)
+	get /forward/appraisal-detail/:appraisalId(GetAppraisalDetailRequest) returns(GetAppraisalDetailResponse)
+}

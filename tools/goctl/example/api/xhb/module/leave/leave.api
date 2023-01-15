@@ -1,0 +1,474 @@
+info(
+	title: 学生请假
+	version: 1.0
+)
+
+type RecordRequest {
+	Style     string            `json:"style"`     // 请假原因
+	Desc      *LeaveDescRequest `json:"desc"`      // 情况说明
+	StartTime int64             `json:"startTime"` // 开始时间
+	EndTime   int64             `json:"endTime"`   // 结束时间
+}
+
+type XjyRecordRequest {
+	LeaveUserId  int64                 `json:"leaveUserId"`           // 请假人id
+	LeaveUser    string                `json:"leaveUser"`             // 请假人名字
+	Style        string                `json:"style"`                 // 请假类型(原因)
+	Desc         *LeaveDescRequest     `json:"desc,optional"`         // 情况说明
+	Feature      string                `json:"feature,optional"`      // 特征Recent新发|Pass既往
+	DiseaseTypes []*DiseaseTypeRequest `json:"diseaseTypes,optional"` // 病症分类
+	StartTime    int64                 `json:"startTime"`             // 开始时间
+	EndTime      int64                 `json:"endTime"`               // 结束时间
+}
+
+type LeaveApplyRequest {
+	ClassroomId          string         `path:"classroomId"`                   // 班级id
+	XjyStudentPunchLogId int64          `json:"xjyStudentPunchLogId,optional"` // 晓教云考勤任务记录ID
+	Record               *RecordRequest `json:"record"`                        // 请假记录
+}
+
+type LeaveApplyResponse {
+}
+
+type LeaveXjyApplyRequest {
+	ClassroomId          string            `path:"classroomId"`                   // 班级id
+	XjyStudentPunchLogId int64             `json:"xjyStudentPunchLogId,optional"` // 晓教云考勤任务记录ID
+	Record               *XjyRecordRequest `json:"record"`                        // 晓教云请假记录
+}
+
+type LeaveDescRequest {
+	Content string          `json:"content,optional"`
+	Images  []*ImageRequest `json:"images,optional"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`
+	Preview   string `json:"preview,optional"`
+	Thumbnail string `json:"thumbnail,optional"`
+	Size      int    `json:"size,optional"`
+	Height    int    `json:"height,optional"`
+	Width     int    `json:"width,optional"`
+}
+
+type DiseaseRequest {
+	DiseaseName string   `json:"diseaseName,optional"` // 二级分类名称
+	Comment     []string `json:"comment"`              // 三级分类
+}
+
+type DiseaseTypeRequest {
+	TypeName    string            `json:"typeName,optional"`    // 一级分类名称
+	DiseaseList []*DiseaseRequest `json:"diseaseList,optional"` // 二级分类
+}
+
+type DiseaseItem {
+	TypeName string   `json:"typeName"` // 病症分类名称
+	Items    []string `json:"items"`    // 选择的病症
+}
+
+type LeaveXjyApplyResponse {
+}
+
+type LeaveViewUserInfoRequest {
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+
+type LeaveViewUserInfoResponse {
+	CampusId int64       `json:"campusId"` // 晓教云校区ID
+	IsXjy    bool        `json:"isXjy"`    // 是否符合晓教云请假条件
+	XjyInfo  XjyUserInfo `json:"xjyInfo"`  // 晓教云相关信息，isXjy=true才有
+}
+
+type XjyUserInfo {
+	ChildUsers   []*StudentInfo `json:"childUsers"`   // 绑定的孩子信息
+	DiseaseTypes []*DiseaseType `json:"diseaseTypes"` // 病症分类
+}
+
+type StudentInfo {
+	LeaveUserId int64  `json:"leaveUserId"` // 学生id
+	LeaveUser   string `json:"leaveUser"`   // 学生姓名
+}
+
+type DiseaseType {
+	TypeName    string     `json:"typeName"`    // 一级分类名称
+	DiseaseList []*Disease `json:"diseaseList"` // 二级分类
+}
+
+type Disease {
+	DiseaseName string   `json:"diseaseName"` // 二级分类名称
+	Comment     []string `json:"comment"`     // 三级分类
+}
+
+type LeaveViewRecordRequest {
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+
+type LeaveViewRecordResponse {
+	LeaveRecords []*LeaveRecord `json:"leaveRecords"`
+}
+
+type LeaveViewXjyRecordRequest {
+	ClassroomId  string  `path:"classroomId"`  // 班级id
+	LeaveUserIds []int64 `json:"leaveUserIds"` // 绑定的孩子id
+}
+
+type LeaveViewXjyExportRecordRequest {
+	StartTime    int64    `json:"startTime,omitempty"`
+	EndTime      int64    `json:"endTime,omitempty"`
+	ClassroomIds []string `json:"classroomIds,omitempty"`
+}
+
+type LeaveViewXjyRecordResponse {
+	LeaveRecords []*LeaveRecord `json:"leaveRecords"`
+	Count        int            `json:"count"`
+}
+
+type LeaveRecord {
+	RecordId             string         `json:"recordId"`                       // 请假记录id
+	ClassroomId          string         `json:"classroomId"`                    // 班级id
+	LeaveUserId          int64          `json:"leaveUserId,omitempty"`          // 请假人id
+	LeaveUser            string         `json:"leaveUser,omitempty"`            // 请假人名字
+	ApplyUserId          string         `json:"applyUserId"`                    // 申请人id
+	ApplyUserView        *UserView      `json:"applyUserView,omitempty"`        // 申请人userView(h5会用到，客户端不会返回)
+	StartTime            int64          `json:"startTime"`                      // 请假开始时间
+	EndTime              int64          `json:"endTime"`                        // 请假结束时间
+	Timestamp            int64          `json:"timestamp"`                      // 请假提交时间
+	Style                string         `json:"style"`                          // 请假类型(原因)
+	Feature              string         `json:"feature"`                        // 特征Recent新发|Pass既往
+	Desc                 *LeaveDescView `json:"desc,omitempty"`                 // 情况说明
+	DiseaseItems         []*DiseaseItem `json:"diseaseItems,omitempty"`         // 选择病症
+	DiseaseTypes         []*DiseaseType `json:"diseaseTypes"`                   // 病症分类 （小教云用）
+	Status               string         `json:"status"`                         // 假条状态Unconfirmed待确认|Agree同意|Refuse拒绝
+	ApprovalDesc         string         `json:"approvalDesc"`                   // 审核描述
+	IsTeacherModify      bool           `json:"isTeacherModify"`                // 老师是否修改过
+	XjyStudentPunchLogId int64          `json:"xjyStudentPunchLogId,omitempty"` // 晓教云考勤任务记录ID
+	LeaveReplyList       []*LeaveReply  `json:"leaveReplyList,omitempty"`       // 家长补充请假信息
+}
+
+type UserView {
+	Id          string `json:"id"`
+	Avatar      string `json:"avatar,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	ChildName   string `json:"childName,omitempty"`
+}
+
+type LeaveDescView {
+	Content string       `json:"content,omitempty"`
+	Images  []*ImageView `json:"images,omitempty"`
+}
+
+type ImageView {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type RevokeRecordRequest {
+	RecordId string `path:"recordId"`
+}
+
+type RevokeRecordResponse {
+}
+
+type ReEditRecordRequest {
+	RecordId string         `path:"recordId"`
+	Record   *RecordRequest `json:"record"` // 晓黑板请假记录
+}
+
+type ReEditRecordResponse {
+}
+
+type ReEditXjyRecordRequest {
+	RecordId string            `path:"recordId"`
+	Record   *XjyRecordRequest `json:"record"` // 晓教云请假记录
+}
+
+type ReEditXjyRecordResponse {
+}
+
+type ViewLeaveRecordsRequest {
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+
+type ViewLeaveRecordsResponse {
+	UndoRecords []*LeaveRecord `json:"undoRecords,omitempty"`
+	DoneRecords []*LeaveRecord `json:"doneRecords,omitempty"`
+}
+
+type ApprovalRecordRequest {
+	RecordId      string `path:"recordId"`
+	ApproveStatus string `json:"approveStatus"` // 审批结果Agree同意|Refuse拒绝
+	Desc          string `json:"desc,optional"` // 说明
+}
+
+type ApprovalRecordResponse {
+}
+
+type ModifyLeaveTimeRequest {
+	RecordId  string `path:"recordId"`  // 请假记录id
+	StartTime int64  `json:"startTime"` // 请假开始时间
+	EndTime   int64  `json:"endTime"`   // 请假结束时间
+}
+
+type ModifyLeaveTimeResponse {
+}
+
+type RecordRemindRequest {
+	RecordId string `path:"recordId"` // 请假记录id
+}
+
+type RecordRemindResponse {
+}
+
+type ExportLeaveRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+
+type ExportLeaveResponse {
+}
+
+type LeaveDetailRecordRequest {
+	RecordId string `path:"recordId"` // 记录id
+}
+
+type LeaveDetailRecordResponse {
+	Record *LeaveRecord `json:"record,omitempty"`
+}
+
+type LeaveCheckRedRequest {
+	ClassroomId string `path:"classroomId"`
+}
+
+type CheckReadResponse {
+	HasUnread bool `json:"hasUnread"`
+}
+
+type InternalXjyRecordsByLimitRequest {
+	StartTime    int64    `json:"startTime"`
+	EndTime      int64    `json:"endTime"`
+	ClassroomIds []string `json:"classroomIds"`
+	LeaveUser    string   `json:"leaveUser,optional"`
+	Page         int      `json:"page,default=1"`
+	PageSize     int      `json:"pageSize,default=12"`
+}
+
+type InternalXjyRecordsByLeaveUserRequest {
+	StartTime    int64   `json:"startTime"`
+	EndTime      int64   `json:"endTime"`
+	LeaveUserIds []int64 `json:"leaveUserIds"`
+}
+
+type AddParentLeaveReplyRequest {
+	LeaveId string       `json:"leaveId"`
+	Comment string       `json:"comment,optional"`
+	Images  []*ImageView `json:"images,optional"`
+}
+
+type LeaveReply {
+	LeaveReplyId string       `json:"leaveReplyId"`
+	ReplyUser    string       `json:"replyUser"`
+	CreatorName  string       `json:"creatorName"`
+	Comment      string       `json:"comment,omitempty"`
+	Images       []*ImageView `json:"images"`
+	CreateTime   int64        `json:"createTime"`
+}
+
+type XjyDiseaseTypesRequest {
+	CampusId int64 `path:"campusId"`
+}
+
+type XjyDiseaseTypesResponse {
+	List []*DiseaseTypeBrief `json:"list"`
+	Top  []*DiseaseTypeBrief `json:"top"`
+}
+
+type DiseaseTypeBrief {
+	DiseaseTypeId   int64           `json:"diseaseTypeId"`
+	DiseaseTypeName string          `json:"diseaseTypeName"`
+	Children        []*DiseaseBrief `json:"children"`
+}
+
+type DiseaseBrief {
+	DiseaseId      int64    `json:"diseaseId"`
+	DiseaseName    string   `json:"diseaseName"`
+	DiseaseComment []string `json:"diseaseComment"`
+}
+
+@server(
+	jwt: Auth
+)
+service leave-api {
+	@doc(
+		summary: 晓黑板学生请假
+	)
+	@server(
+		handler: LeaveApplyHandler
+	)
+	post /leave/apply/:classroomId(LeaveApplyRequest) returns(LeaveApplyResponse)
+	
+	@doc(
+		summary: 晓教云学生请假
+	)
+	@server(
+		handler: LeaveXjyApplyHandler
+	)
+	post /leave/xjy/apply/:classroomId(LeaveXjyApplyRequest) returns(LeaveXjyApplyResponse)
+	
+	@doc(
+		summary: 获取请假人信息
+	)
+	@server(
+		handler: LeaveViewUserInfoHandler
+	)
+	get /leave/view/user-info/:classroomId(LeaveViewUserInfoRequest) returns(LeaveViewUserInfoResponse)
+	
+	@doc(
+		summary: 晓黑板请假记录列表
+	)
+	@server(
+		handler: LeaveViewRecordsHandler
+	)
+	get /leave/view/records/:classroomId(LeaveViewRecordRequest) returns(LeaveViewRecordResponse)
+	
+	@doc(
+		summary: 晓教云请假记录列表
+	)
+	@server(
+		handler: LeaveViewXjyRecordsHandler
+	)
+	post /leave/view/xjy/records/:classroomId(LeaveViewXjyRecordRequest) returns(LeaveViewXjyRecordResponse)
+	
+	@doc(
+		summary: 重新编辑晓黑板请假记录
+	)
+	@server(
+		handler: ReEditRecordHandler
+	)
+	post /leave/re-edit/record/:recordId(ReEditRecordRequest) returns(ReEditRecordResponse)
+	
+	@doc(
+		summary: 重新编辑晓教云请假记录
+	)
+	@server(
+		handler: ReEditXjyRecordHandler
+	)
+	post /leave/re-edit/xjy/record/:recordId(ReEditXjyRecordRequest) returns(ReEditXjyRecordResponse)
+	
+	@doc(
+		summary: 撤销请假记录
+	)
+	@server(
+		handler: RevokeRecordHandler
+	)
+	delete /leave/revoke/record/:recordId(RevokeRecordRequest) returns(RevokeRecordResponse)
+	
+	@doc(
+		summary: 请假记录提醒
+	)
+	@server(
+		handler: RecordRemindHandler
+	)
+	post /leave/record/remind/:recordId(RecordRemindRequest) returns(RecordRemindResponse)
+	
+	@doc(
+		summary: 教师查看请假条
+	)
+	@server(
+		handler: ViewLeaveRecordsHandler
+	)
+	get /leave/view/leave-records/:classroomId(ViewLeaveRecordsRequest) returns(ViewLeaveRecordsResponse)
+	
+	@doc(
+		summary: 教师审批请假条
+	)
+	@server(
+		handler: ApprovalRecordHandler
+	)
+	post /leave/approval/record/:recordId(ApprovalRecordRequest) returns(ApprovalRecordResponse)
+	
+	@doc(
+		summary: 教师修改请假时间
+	)
+	@server(
+		handler: ModifyLeaveTimeHandler
+	)
+	post /leave/modify/leave-time/:recordId(ModifyLeaveTimeRequest) returns(ModifyLeaveTimeResponse)
+	
+	@doc(
+		summary: 查看单条请假记录详情
+	)
+	@server(
+		handler: DetailRecordHandler
+	)
+	get /leave/detail/record/:recordId(LeaveDetailRecordRequest) returns(LeaveDetailRecordResponse)
+	
+	@doc(
+		summary: 请假未未读消息
+	)
+	@server(
+		handler: LeaveCheckRedHandler
+	)
+	get /leave/have/unread/:classroomId(LeaveCheckRedRequest) returns(CheckReadResponse)
+	
+	@doc(
+		summary: 家长回添加请假补充内容
+	)
+	@server(
+		handler: AddParentLeaveReply
+	)
+	post /leave/parent-leave-reply/add(AddParentLeaveReplyRequest) returns(LeaveReply)
+	
+	@doc(
+		summary: 获取晓教云全部病症信息
+	)
+	@server(
+		handler: XjyAllDiseaseTypes
+	)
+	get /leave/xjy/disease-types/all/:campusId(XjyDiseaseTypesRequest) returns(XjyDiseaseTypesResponse)
+	
+}
+
+service leave-api {
+	@doc(
+		summary: 导出请假记录
+	)
+	@server(
+		handler: ExportLeaveHandler
+	)
+	get /leave/export/:token/:classroomId(ExportLeaveRequest) returns(ExportLeaveResponse)
+	
+	@doc(
+		summary: 导出请假记录（无鉴权无是否在班级判断）
+	)
+	@server(
+		handler: LeaveViewXjyExportRecordsHandler
+	)
+	post /internal/leave/xjy/export-view(LeaveViewXjyExportRecordRequest) returns(LeaveViewXjyRecordResponse)
+	
+	@doc(
+		summary: 获取晓教云相关请假记录（有分页）
+	)
+	@server(
+		handler: InternalXjyRecordsByLimitHandler
+	)
+	post /internal/leave/xjy/records/limit(InternalXjyRecordsByLimitRequest) returns(LeaveViewXjyRecordResponse)
+	
+	@doc(
+		summary: 查看单条请假记录详情
+	)
+	@server(
+		handler: InternalDetailRecordHandler
+	)
+	get /internal/leave/detail/record/:recordId(LeaveDetailRecordRequest) returns(LeaveDetailRecordResponse)
+	
+	@doc(
+		summary: 根据leaverUserIds获取相关请假记录
+	)
+	@server(
+		handler: InternalXjyRecordsByLeaveUserHandler
+	)
+	post /internal/leave/xjy/records/leaver-user(InternalXjyRecordsByLeaveUserRequest) returns(LeaveViewXjyRecordResponse)
+}

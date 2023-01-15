@@ -1,0 +1,457 @@
+info(
+	title: 学生
+	desc: 学生相关api，大一统版本
+	author: Jancd
+	email: sergeychang@gmail.com
+)
+
+type AddStudentDytRequest {
+	CampusId    int64            `json:"-,optional"`
+	ClassId     int64            `json:"classId"`
+	Name        string           `json:"name"`
+	Avatar      []string         `json:"avatar,optional"` // 头像
+	Mobile      string           `json:"mobile,optional"`
+	StudentCode string           `json:"studentCode"` // 学号
+	IdNumber    string           `json:"idNumber,optional"`
+	Gender      int64            `json:"gender,default=0"` // 男0女1,其他2
+	Parents     []*AddParentDyt  `json:"parents,optional,omitempty"`
+	Places      []*PlacesInfoDyt `json:"places,optional,omitempty"`
+}
+
+type UpdateStudentDytRequest {
+	Id          int64                     `json:"id"`
+	CampusId    int64                     `json:"-,optional"`
+	ClassId     int64                     `json:"classId"`
+	Name        string                    `json:"name"`
+	Avatar      []string                  `json:"avatar,optional"`
+	Mobile      string                    `json:"mobile,optional"`
+	StudentCode string                    `json:"studentCode"`
+	IdNumber    string                    `json:"idNumber,optional"`
+	Gender      int64                     `json:"gender,default=0"` // 男0女1
+	Parents     []*ParentInfoDytForUpdate `json:"parents,optional,omitempty"`
+	Places      []*PlacesInfoDyt          `json:"places,optional,omitempty"`
+}
+
+type ParentInfoDytForUpdate {
+	RelationshipId int64    `json:"rId,optional"`
+	Relationship   string   `json:"relationship,optional"`
+	Mobile         string   `json:"mobile,optional"`
+	Avatar         []string `json:"avatar,optional"`
+}
+
+type ParentInfoDyt {
+	RelationshipId int64     `json:"rId,optional"`
+	Relationship   RoleAlias `json:"relationship,optional"`
+	Mobile         string    `json:"mobile,optional"`
+	Avatar         []string  `json:"avatar,optional"`
+}
+
+type AddParentDyt {
+	Relationship string   `json:"relationship,optional"`
+	Mobile       string   `json:"mobile,optional"`
+	Avatar       []string `json:"avatar,optional"`
+}
+
+type PlacesInfoDyt {
+	PlaceTypeId   int64  `json:"placeTypeId,optional,omitempty"`
+	PlaceId       int64  `json:"placeId,optional,omitempty"`
+	PlaceTypeName string `json:"placeTypeName,optional,omitempty"`
+	PlaceName     string `json:"placeName,optional,omitempty"`
+}
+
+type RoleAlias {
+	Alias string `json:"alias"`
+	Map   string `json:"map"`
+}
+
+type GetStudentInfoDytRequest {
+	Id int64 `path:"id"`
+}
+
+type DeleteStudentDytRequest {
+	Id int64 `path:"id"`
+}
+
+type GetStudentInfoDytResponse {
+	CampusId    int64            `json:"-"`
+	GradeId     int64            `json:"gradeId"`
+	ClassId     int64            `json:"classId"`
+	GradeClass  string           `json:"gradeClass"`
+	Name        string           `json:"name"`
+	Mobile      string           `json:"mobile"`
+	Avatar      []string         `json:"avatar"`
+	H5Url       string           `json:"h5Url"`
+	StudentCode string           `json:"studentCode"`
+	IdNumber    string           `json:"idNumber"`
+	Gender      int64            `json:"gender"`
+	Parents     []*ParentInfoDyt `json:"parents"`
+	Places      []*PlacesInfoDyt `json:"places"`
+}
+
+type GetParentsRoleResponse {
+	List []RoleAlias `json:"list"`
+}
+
+type GetStudentParentBindingListRequest {
+	ClassId     int64  `form:"classId"`
+	StudentName string `form:"studentName,optional"`
+}
+
+type StudentParentBindingListResponse {
+	StudentParentBindingList []*StudentParentBindingItem `json:"list"`
+}
+
+type StudentParentBindingItem {
+	ParentName    string   `json:"parentName"`
+	UserToken     string   `json:"userToken"`
+	StudentNames  []string `json:"studentNames"`
+	FaceEntryNum  int64    `json:"faceEntryNum"`
+	FaceTotalNum  int64    `json:"faceTotalNum"`
+	MaxRelationId int64    `json:"-"`
+}
+
+type StudentListRequest {
+	ClassId       int64  `json:"classId,optional"`
+	NowPage       int    `json:"nowPage,optional,default=1"`
+	PageSize      int    `json:"pageSize,optional,default=12"`
+	SearchType    int64  `json:"searchType,optional"` // 1-学生姓名，2-成长记录，3-学生编号，4-地点
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type StudentListResponse {
+	TotalPage   int            `json:"totalPage"`
+	Count       int64          `json:"count"`
+	NowPage     int            `json:"nowPage"`
+	StudentList []*StudentInfo `json:"studentList"`
+}
+
+type StudentInfo {
+	Id             int64  `json:"id"`
+	Name           string `json:"name"`
+	Gender         int64  `json:"gender"`
+	GradeClassName string `json:"className"`
+	StudentCode    string `json:"studentCode"`
+	H5Url          string `json:"url"`
+	Places         string `json:"places"`
+	ParentNum      int64  `json:"parentNum"`
+	FaceEntryNum   int64  `json:"faceEntryNum"`
+	FaceTotalNum   int64  `json:"faceTotalNum"`
+}
+
+type StudentQRCodeRequest {
+	ClassId       int64  `json:"classId,optional"`
+	NowPage       int    `json:"nowPage,optional,default=1"`
+	PageSize      int    `json:"pageSize,optional,default=12"`
+	SearchType    int64  `json:"searchType,optional"` // 1-学生姓名，2-成长记录，3-学生编号，4-地点
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type StudentQRCodeResponse {
+	TotalPage   int                  `json:"totalPage"`
+	Count       int64                `json:"count"`
+	NowPage     int                  `json:"nowPage"`
+	StudentList []*StudentQRCodeInfo `json:"studentList"`
+}
+
+type StudentQRCodeInfo {
+	Id             int64  `json:"id"`
+	Name           string `json:"name"`
+	Gender         int64  `json:"gender"`
+	GradeClassName string `json:"className"`
+	StudentCode    string `json:"studentCode"`
+	H5Url          string `json:"url"`
+	Places         string `json:"places"`
+	ParentNum      int64  `json:"parentNum"`
+	FaceEntryNum   int64  `json:"faceEntryNum"`
+	FaceTotalNum   int64  `json:"faceTotalNum"`
+}
+
+type StudentMiniProgramRequest {
+}
+
+type StudentMiniProgramResponse {
+	Url string `json:"url"`
+}
+
+type StudentImportURLRequest {
+}
+
+type StudentImportURLResponse {
+	Url string `json:"url"`
+}
+
+type StudentDelAllBindingRequest {
+	UserToken string `form:"userToken"`
+}
+
+type StudentDelAllBindingResponse {
+}
+
+type StudentBindingRelationRequest {
+	Code     string `json:"code,optional"`
+	IdNumber string `json:"idNumber,optional"`
+}
+
+type StudentBindingRelationResponse {
+	List []*BindRelationItem `json:"list"`
+}
+
+type BindRelationItem {
+	Role      string `json:"role"`
+	AliasName string `json:"aliasName"`
+	Bind      bool   `json:"bind"`
+	Disabled  bool   `json:"disabled"`
+}
+
+type StudentParentBindingInfoRequest {
+	UserToken string `form:"userToken"`
+}
+
+type StudentParentBindingInfoResponse {
+	ParentName   string                `json:"parentName"`
+	UserToken    string                `json:"userToken"`
+	Tel          string                `json:"Tel"`
+	Students     []*StudentBindingInfo `json:"Students"`
+	FacePhotos   []string              `json:"facePhotos"`
+	FaceTotalNum int64                 `json:"faceTotalNum"`
+}
+
+type StudentBindingInfo {
+	StudentProfileId    int64  `json:"studentProfileId"`
+	RelationId          int64  `json:"relationId"`
+	Name                string `json:"name"`
+	StudentNumber       string `json:"studentNumber"`
+	StudentIdCardNumber string `json:"studentIdCardNumber"`
+	Relation            string `json:"relation"`
+	ClassName           string `json:"className"`
+}
+
+type StudentDeleteRequest {
+	StudentId int64 `path:"studentId"`
+}
+
+type StudentDeleteResponse {
+}
+
+type StudentUpdateBindingRequest {
+	UserToken      string                      `json:"userToken"`
+	CampusId       int64                       `json:"-,optional"`
+	CurrentUserId  string                      `json:"-,optional"`
+	Tel            string                      `json:"tel"`
+	Students       []*StudentUpdateBindingInfo `json:"students"`
+	FacePhotos     []string                    `json:"facePhotos"`
+	DelRelationIds []int64                     `json:"delRelationIds"`
+}
+
+type StudentUpdateBindingInfo {
+	StudentProfileId int64  `json:"studentProfileId"`
+	StudentName      string `json:"studentName,optional"`
+	RelationId       int64  `json:"relationId,optional"`
+	Relation         string `json:"relation"`
+}
+
+type StudentUpdateBindingResponse {
+}
+
+type RosterImportRequest {
+	Url string `json:"url"`
+}
+
+type RosterImportResponse {
+	Successful bool   `json:"successful"`
+	Message    string `json:"message"`
+	Url        string `json:"url,omitempty"`
+	TaskId     int64  `json:"taskId"`
+}
+
+type RosterUpdateImportRequest {
+	Url string `json:"url"`
+}
+
+type RosterUpdateImportResponse {
+	Successful bool   `json:"successful"`
+	Message    string `json:"message"`
+	Url        string `json:"url,omitempty"`
+	TaskId     int64  `json:"taskId"`
+}
+
+type ImportTemplateRequest {
+	Code string `path:"code"` // 验证码
+}
+
+type UpdateImportTemplateRequest {
+	Code string `path:"code"` // 验证码
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8080
+	jwt: Auth
+)
+service student-api {
+	@doc(
+		summary: 添加学生
+	)
+	@server(
+		handler: AddStudentDytHandler
+	)
+	post /student/dyt/class/add(AddStudentDytRequest)
+	
+	@doc(
+		summary: 删除学生
+	)
+	@server(
+		handler: DeleteStudentDytHandler
+	)
+	delete /student/dyt/class/:id(DeleteStudentDytRequest)
+	
+	@doc(
+		summary: 更新学生信息
+	)
+	@server(
+		handler: UpdateStudentDytHandler
+	)
+	post /student/dyt/class/update(UpdateStudentDytRequest)
+	
+	@doc(
+		summary: 获取学生信息
+	)
+	@server(
+		handler: GetStudentInfoDytHandler
+	)
+	get /student/dyt/info/:id(GetStudentInfoDytRequest) returns(GetStudentInfoDytResponse)
+	
+	@doc(
+		summary: 获取家长身份列表
+	)
+	@server(
+		handler: GetParentsRoleDytHandler
+	)
+	get /student/dyt/parents/role-list() returns(GetParentsRoleResponse)
+	
+	@doc(
+		summary: 获取指定班级指定学生的家长绑定的学生和照片信息
+	)
+	@server(
+		handler: StudentParentBindingListHandler
+	)
+	get /student/dyt/student-parent-bindings(GetStudentParentBindingListRequest) returns(StudentParentBindingListResponse)
+	
+	@doc(
+		summary: 学生列表
+	)
+	@server(
+		handler: StudentListHandler
+	)
+	post /student/dyt/list(StudentListRequest) returns(StudentListResponse)
+	
+	@doc(
+		summary: 批量导出二维码
+	)
+	@server(
+		handler: StudentQRCodeHandler
+	)
+	post /student/dyt/qrcode/images(StudentQRCodeRequest) returns(StudentQRCodeResponse)
+	
+	@doc(
+		summary: 分享校园档案小程序
+	)
+	@server(
+		handler: StudentMiniProgramHandler
+	)
+	get /student/dyt/miniprogram/url(StudentMiniProgramRequest) returns(StudentMiniProgramResponse)
+	
+	@doc(
+		summary: 分享上传图片
+	)
+	@server(
+		handler: StudentImportURLHandler
+	)
+	get /student/dyt/miniprogram/import-url(StudentImportURLRequest) returns(StudentImportURLResponse)
+	
+	@doc(
+		summary: 获取绑定关系列表
+	)
+	@server(
+		handler: StudentBindingRelationHandler
+	)
+	post /student/dyt/bind/relation(StudentBindingRelationRequest) returns(StudentBindingRelationResponse)
+	
+	@doc(
+		summary: 删除该家长所有关系
+	)
+	@server(
+		handler: StudentDeleteRelationHandler
+	)
+	delete /student/dyt/student-parent-binding(StudentDelAllBindingRequest) returns(StudentDelAllBindingResponse)
+	
+	@doc(
+		summary: 获取指定的家长绑定的学生绑定详情
+	)
+	@server(
+		handler: StudentParentBindingInfoHandler
+	)
+	get /student/dyt/student-parent-binding/info(StudentParentBindingInfoRequest) returns(StudentParentBindingInfoResponse)
+	
+	@doc(
+		summary: 删除学生
+	)
+	@server(
+		handler: StudentDeleteHandler
+	)
+	delete /student/dyt/:studentId(StudentDeleteRequest) returns(StudentDeleteResponse)
+	
+	@doc(
+		summary: 更新学生与家长关系
+	)
+	@server(
+		handler: StudentUpdateBindingHandler
+	)
+	put /student/dyt/student-parent-binding(StudentUpdateBindingRequest) returns(StudentUpdateBindingResponse)
+	
+	@doc(
+		summary: send template sms code
+	)
+	@server(
+		handler: SendRosterTemplateCode
+	)
+	get /student/dyt/import/roster/send/sms()
+}
+
+@server(
+	jwt: Auth
+	folder:importroster
+)
+service student-api {
+	@doc(
+		summary: 学生花名册新增导入
+	)
+	@server(
+		handler: RosterImportHandler
+	)
+	post /student/dyt/rosterimport(RosterImportRequest) returns(RosterImportResponse)
+	
+	@doc(
+		summary: 学生花名册更新导入
+	)
+	@server(
+		handler: RosterUpdateImportHandler
+	)
+	post /student/dyt/update/rosterimport(RosterUpdateImportRequest) returns(RosterUpdateImportResponse)
+	
+	@doc(
+		summary: 学生花名册新增模板下载
+	)
+	@server(
+		handler: ImportTemplateHandler
+	)
+	get /student/dyt/import-template/:code(ImportTemplateRequest)
+	
+	@doc(
+		summary: 学生花名册更新模板下载
+	)
+	@server(
+		handler: UpdateImportTemplateHandler
+	)
+	get /student/dyt/update/import-template/:code(UpdateImportTemplateRequest)
+}

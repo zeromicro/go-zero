@@ -1,0 +1,141 @@
+info(
+	title: "晓奖状"
+	desc: "提供晓奖状通用接口"
+)
+
+type (
+	Awardee struct {
+		Id string `json:"id"`
+		Name string `json:"name"`
+	}
+	
+	Class struct {
+		ClassId string      `json:"classId"` // 班级Id
+		Awardees []Awardee  `json:"awardees"`// 获奖人
+	}
+	
+	AwardItem struct { //request
+		Title        string     `json:"title"`       // 获奖称号
+		Appellation  string     `json:"appellation"` // 称呼
+		Content      string     `json:"content"`     // 表彰内容
+		Date         int64      `json:"date,optional"`     // 颁奖日期
+		StyleImg     string     `json:"styleImg,optional"` // 奖状背景图
+		Module       string     `json:"module,optional"`   // 业务模块（PUNCHCARD-打卡）
+		EventId      string     `json:"eventId,optional"`  //事件id，比如打卡id、活动id
+		Classes      []Class    `json:"classes"`   // 班级
+	}
+	
+	Award struct { //response
+		Id           string `json:"id,omitempty"`
+		Title        string `json:"title,omitempty"`        // 获奖称号
+		Appellation  string `json:"appellation,omitempty"`  // 称呼
+		Content      string `json:"content,omitempty"`      // 表彰内容
+		Date         int64  `json:"date,omitempty"`         // 颁奖日期
+		StyleUrl     string `json:"styleUrl,omitempty"`     // 奖状样式图
+		Module       string `json:"module,omitempty"`       // 业务模块（PUNCHCARD-打卡）
+		EventId      string `json:"eventId,omitempty"`      //事件id，比如打卡id、活动id
+		BatchId      string `json:"batchId,omitempty"`      //批次id
+		ClassId      string `json:"classId,omitempty"`      // 班级ID
+		AwardeeId    string `json:"awardeeId,omitempty"`   // 获奖人ID
+		AwardeeName  string `json:"awardeeName,omitempty"` // 获奖人姓名
+		CreateTime   int64  `json:"createTime,omitempty"`
+		UpdateTime   int64  `json:"updateTime,omitempty"`
+	}
+	
+	AwardPublishRequest  struct {
+		Awards   []*AwardItem `json:"awards"`   // 奖状列表
+	}
+	
+	AwardPublishResponse  struct {
+		BatchId   string `json:"batchId"`
+	}
+	
+	AwardShareRequest struct {
+		BatchId   string   `form:"batchId"` //批次id
+	}
+	
+	AwardListResponse struct {
+		Total        int64       `json:"total"`  //总数
+		Cursor       int64       `json:"cursor"` // 游标
+		HaveNextPage bool        `json:"haveNextPage"`
+		Awards       []*Award    `json:"awards"`
+	}
+	
+	ChildrenAwardListRequest struct {
+		StudentId     string `form:"studentId"` //学生id
+		Cursor        int64  `form:"cursor,optional"`
+		Limit         int    `form:"limit"`
+	}
+	
+	GetAwardDetailRequest struct {
+		Id string `form:"id"` //奖状id
+	}
+	GetAwardDetailResponse struct {
+		Award
+	}
+	
+	ChildrenAwardReddotResponse struct {
+		List []*RedDot `json:"list"`
+	}
+	
+	RedDot struct {
+		AwardId   string `json:"awardId"`
+		AwardeeId string `json:"awardeeId"`
+	}
+)
+
+
+@server(
+	jwt: Auth
+	signature: Auth
+	folder: award
+)
+service award-api {
+	@doc(
+		summary: 颁发奖状
+	)
+	@server(
+		handler: PublishAward
+	)
+	post /award/publish(AwardPublishRequest) returns (AwardPublishResponse)
+	
+	@doc(
+		summary: 孩子表彰列表
+	)
+	@server(
+		handler: ChildrenAwardList
+	)
+	get /award/children/list(ChildrenAwardListRequest) returns (AwardListResponse)
+	
+	@doc(
+		summary: 获取小红点信息
+	)
+	@server(
+		handler: ChildAwardRedDots
+	)
+	get /award/children/reddots() returns (ChildrenAwardReddotResponse)
+}
+
+
+@server(
+	folder: award
+)
+service award-api {
+	
+	@doc(
+		summary: 查询奖状详情
+	)
+	@server(
+		handler:GetAwardDetail
+	)
+	get /award/detail (GetAwardDetailRequest) returns (GetAwardDetailResponse)
+	
+	@doc(
+		summary: h5分享奖状接口
+	)
+	@server(
+		handler: AwardShareList
+	)
+	get /award/share/list(AwardShareRequest) returns (AwardListResponse)
+	
+}
