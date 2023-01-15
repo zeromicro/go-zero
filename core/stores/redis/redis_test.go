@@ -959,11 +959,11 @@ func TestRedis_SortedSet(t *testing.T) {
 			assert.Equal(t, int64(2), val)
 			_, err = New(client.Addr, badType()).ZRevRangeWithScores("key", 1, 3)
 			assert.NotNil(t, err)
-			pairs, err := client.ZRevRangeWithScores("key", 1, 3)
+			_, err = client.ZRevRangeWithScores("key", 1, 3)
 			assert.Nil(t, err)
-			pairs, err = client.ZRevRangeWithScoresCtx(context.Background(), "key", 1, 3)
+			_, err = client.ZRevRangeWithScoresCtx(context.Background(), "key", 1, 3)
 			assert.Nil(t, err)
-			pairs, err = client.ZrevrangeWithScores("key", 1, 3)
+			pairs, err := client.ZrevrangeWithScores("key", 1, 3)
 			assert.Nil(t, err)
 			assert.EqualValues(t, []Pair{
 				{
@@ -1250,11 +1250,11 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 		_, _ = client.ZaddFloat("key", 10.346, "value2")
 		_, err = New(client.Addr, badType()).ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.NotNil(t, err)
-		pairs, err := client.ZRevRangeWithScoresByFloat("key", 0, -1)
+		_, err = client.ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.Nil(t, err)
-		pairs, err = client.ZRevRangeWithScoresByFloatCtx(context.Background(), "key", 0, -1)
+		_, err = client.ZRevRangeWithScoresByFloatCtx(context.Background(), "key", 0, -1)
 		assert.Nil(t, err)
-		pairs, err = client.ZrevrangeWithScoresByFloat("key", 0, -1)
+		pairs, err := client.ZrevrangeWithScoresByFloat("key", 0, -1)
 		assert.Nil(t, err)
 		assert.EqualValues(t, []FloatPair{
 			{
