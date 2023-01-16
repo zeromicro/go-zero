@@ -144,13 +144,13 @@ func genEntLogic(g *GenEntLogicContext) error {
 			if serviceBeginIndex == -1 {
 				continue
 			}
-			newProtoData.WriteString(protoDataString[:serviceBeginIndex-2])
+			newProtoData.WriteString(protoDataString[:serviceBeginIndex-1])
 			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", g.ModelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n", protoMessage))
-			newProtoData.WriteString(protoDataString[serviceBeginIndex-2 : serviceEndIndex-2])
+			newProtoData.WriteString(protoDataString[serviceBeginIndex-1 : serviceEndIndex-1])
 			newProtoData.WriteString(fmt.Sprintf("\n\n  // %s management\n", g.ModelName))
 			newProtoData.WriteString(fmt.Sprintf("%s\n", protoFunctions))
-			newProtoData.WriteString(protoDataString[serviceEndIndex-2:])
+			newProtoData.WriteString(protoDataString[serviceEndIndex-1:])
 
 			err = os.WriteFile(protoFileName, []byte(newProtoData.String()), regularPerm)
 			if err != nil {
