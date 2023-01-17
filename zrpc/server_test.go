@@ -28,6 +28,13 @@ func TestServer_setupInterceptors(t *testing.T) {
 		},
 		CpuThreshold: 10,
 		Timeout:      100,
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, new(stat.Metrics))
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(server.unaryInterceptors))
@@ -35,6 +42,7 @@ func TestServer_setupInterceptors(t *testing.T) {
 }
 
 func TestServer(t *testing.T) {
+	DontLogContentForMethod("foo")
 	SetServerSlowThreshold(time.Second)
 	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
@@ -50,11 +58,18 @@ func TestServer(t *testing.T) {
 		StrictControl: false,
 		Timeout:       0,
 		CpuThreshold:  0,
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }
@@ -73,6 +88,13 @@ func TestServerError(t *testing.T) {
 		},
 		Auth:  true,
 		Redis: redis.RedisKeyConf{},
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	assert.NotNil(t, err)
@@ -92,11 +114,18 @@ func TestServer_HasEtcd(t *testing.T) {
 			Key:   "any",
 		},
 		Redis: redis.RedisKeyConf{},
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }
@@ -110,6 +139,13 @@ func TestServer_StartFailed(t *testing.T) {
 			},
 		},
 		ListenOn: "localhost:aaa",
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 
@@ -121,7 +157,7 @@ type mockedServer struct {
 	streamInterceptors []grpc.StreamServerInterceptor
 }
 
-func (m *mockedServer) AddOptions(options ...grpc.ServerOption) {
+func (m *mockedServer) AddOptions(_ ...grpc.ServerOption) {
 }
 
 func (m *mockedServer) AddStreamInterceptors(interceptors ...grpc.StreamServerInterceptor) {
@@ -132,9 +168,9 @@ func (m *mockedServer) AddUnaryInterceptors(interceptors ...grpc.UnaryServerInte
 	m.unaryInterceptors = append(m.unaryInterceptors, interceptors...)
 }
 
-func (m *mockedServer) SetName(s string) {
+func (m *mockedServer) SetName(_ string) {
 }
 
-func (m *mockedServer) Start(register internal.RegisterFn) error {
+func (m *mockedServer) Start(_ internal.RegisterFn) error {
 	return nil
 }

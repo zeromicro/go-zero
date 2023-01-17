@@ -1,8 +1,11 @@
 package gen
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -32,6 +35,19 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 		"withCache":             withCache,
 		"postgreSql":            postgreSql,
 		"data":                  table,
+		"ignoreColumns": func() string {
+			var set = collection.NewSet()
+			for _, c := range table.ignoreColumns {
+				if postgreSql {
+					set.AddStr(fmt.Sprintf(`"%s"`, c))
+				} else {
+					set.AddStr(fmt.Sprintf("\"`%s`\"", c))
+				}
+			}
+			list := set.KeysStr()
+			sort.Strings(list)
+			return strings.Join(list, ", ")
+		}(),
 	})
 	if err != nil {
 		return "", err

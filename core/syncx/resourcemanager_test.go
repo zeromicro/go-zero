@@ -74,6 +74,12 @@ func TestResourceManager_UseAfterClose(t *testing.T) {
 			return nil, errors.New("fail")
 		})
 		assert.NotNil(t, err)
+
+		assert.Panics(t, func() {
+			_, err = manager.GetResource("key", func() (io.Closer, error) {
+				return &dummyResource{age: 123}, nil
+			})
+		})
 	}
 }
 

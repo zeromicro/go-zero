@@ -88,19 +88,7 @@ func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *sta
 	route Route, verifier func(chain.Chain) chain.Chain) error {
 	chn := ng.chain
 	if chn == nil {
-		chn = chain.New(
-			handler.TracingHandler(ng.conf.Name, route.Path),
-			ng.getLogHandler(),
-			handler.PrometheusHandler(route.Path),
-			handler.MaxConns(ng.conf.MaxConns),
-			handler.BreakerHandler(route.Method, route.Path, metrics),
-			handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
-			handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
-			handler.RecoverHandler,
-			handler.MetricHandler(metrics),
-			handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
-			handler.GunzipHandler,
-		)
+		chn = ng.buildChainWithNativeMiddlewares(fr, route, metrics)
 	}
 
 	chn = ng.appendAuthHandler(fr, chn, verifier)
@@ -123,6 +111,49 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 	}
 
 	return nil
+}
+
+func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route,
+	metrics *stat.Metrics) chain.Chain {
+	chn := chain.New()
+
+	if ng.conf.Middlewares.Trace {
+		chn = chn.Append(handler.TraceHandler(ng.conf.Name,
+			route.Path,
+			handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)))
+	}
+	if ng.conf.Middlewares.Log {
+		chn = chn.Append(ng.getLogHandler())
+	}
+	if ng.conf.Middlewares.Prometheus {
+		chn = chn.Append(handler.PrometheusHandler(route.Path))
+	}
+	if ng.conf.Middlewares.MaxConns {
+		chn = chn.Append(handler.MaxConnsHandler(ng.conf.MaxConns))
+	}
+	if ng.conf.Middlewares.Breaker {
+		chn = chn.Append(handler.BreakerHandler(route.Method, route.Path, metrics))
+	}
+	if ng.conf.Middlewares.Shedding {
+		chn = chn.Append(handler.SheddingHandler(ng.getShedder(fr.priority), metrics))
+	}
+	if ng.conf.Middlewares.Timeout {
+		chn = chn.Append(handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)))
+	}
+	if ng.conf.Middlewares.Recover {
+		chn = chn.Append(handler.RecoverHandler)
+	}
+	if ng.conf.Middlewares.Metrics {
+		chn = chn.Append(handler.MetricHandler(metrics))
+	}
+	if ng.conf.Middlewares.MaxBytes {
+		chn = chn.Append(handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)))
+	}
+	if ng.conf.Middlewares.Gunzip {
+		chn = chn.Append(handler.GunzipHandler)
+	}
+
+	return chn
 }
 
 func (ng *engine) checkedMaxBytes(bytes int64) int64 {
@@ -173,7 +204,9 @@ func (ng *engine) getShedder(priority bool) load.Shedder {
 func (ng *engine) notFoundHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chn := chain.New(
-			handler.TracingHandler(ng.conf.Name, ""),
+			handler.TraceHandler(ng.conf.Name,
+				"",
+				handler.WithTraceIgnorePaths(ng.conf.TraceIgnorePaths)),
 			ng.getLogHandler(),
 		)
 
@@ -287,10 +320,9 @@ func (ng *engine) withTimeout() internal.StartOption {
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
 			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
-			// factor 0.9, to avoid clients not reading the response
-			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
-			// which triggers the circuit breaker.
-			svr.WriteTimeout = 9 * time.Duration(timeout) * time.Millisecond / 10
+			// factor 1.1, to avoid servers don't have enough time to write responses.
+			// setting the factor less than 1.0 may lead clients not receiving the responses.
+			svr.WriteTimeout = 11 * time.Duration(timeout) * time.Millisecond / 10
 		}
 	}
 }

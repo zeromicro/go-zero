@@ -210,7 +210,7 @@ func (a *Api) Format() error {
 
 // Equal compares whether the element literals in two Api are equal
 func (a *Api) Equal(v interface{}) bool {
-	if v == nil {
+	if v == nil || a == nil {
 		return false
 	}
 

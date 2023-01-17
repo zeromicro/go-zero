@@ -4,32 +4,42 @@ import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/core/stores/redis"
+	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
 )
 
 type (
+	// ClientMiddlewaresConf defines whether to use client middlewares.
+	ClientMiddlewaresConf = internal.ClientMiddlewaresConf
+	// ServerMiddlewaresConf defines whether to use server middlewares.
+	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
+
 	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
 		service.ServiceConf
 		ListenOn      string
-		Etcd          discov.EtcdConf    `json:",optional"`
+		Etcd          discov.EtcdConf    `json:",optional,inherit"`
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
 		// setting 0 means no timeout
 		Timeout      int64 `json:",default=2000"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
+		// grpc health check switch
+		Health      bool `json:",default=true"`
+		Middlewares ServerMiddlewaresConf
 	}
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
-		Etcd      discov.EtcdConf `json:",optional"`
-		Endpoints []string        `json:",optional"`
-		Target    string          `json:",optional"`
-		App       string          `json:",optional"`
-		Token     string          `json:",optional"`
-		NonBlock  bool            `json:",optional"`
-		Timeout   int64           `json:",default=2000"`
+		Etcd        discov.EtcdConf `json:",optional,inherit"`
+		Endpoints   []string        `json:",optional"`
+		Target      string          `json:",optional"`
+		App         string          `json:",optional"`
+		Token       string          `json:",optional"`
+		NonBlock    bool            `json:",optional"`
+		Timeout     int64           `json:",default=2000"`
+		Middlewares ClientMiddlewaresConf
 	}
 )
 

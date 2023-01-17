@@ -125,6 +125,14 @@ func TestRoute(t *testing.T) {
 			},
 		}))
 
+		v, err = parser.Accept(fn, `post /1/2a/3b/4`)
+		assert.Nil(t, err)
+		route = v.(*ast.Route)
+		assert.True(t, route.Equal(&ast.Route{
+			Method: ast.NewTextExpr("post"),
+			Path:   ast.NewTextExpr("/1/2a/3b/4"),
+		}))
+
 		v, err = parser.Accept(fn, `post /foo/foo-bar/:bar`)
 		assert.Nil(t, err)
 		route = v.(*ast.Route)

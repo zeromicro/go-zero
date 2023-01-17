@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	// Cmd describes a api command.
+	// Cmd describes an api command.
 	Cmd = &cobra.Command{
 		Use:   "api",
 		Short: "Generate api related files",
@@ -43,7 +43,7 @@ var (
 
 	goCmd = &cobra.Command{
 		Use:   "go",
-		Short: "Generate go files for provided api in yaml file",
+		Short: "Generate go files for provided api in api file",
 		RunE:  gogen.GoCommand,
 	}
 
@@ -51,7 +51,7 @@ var (
 		Use:     "new",
 		Short:   "Fast create api service",
 		Example: "goctl api new [options] service-name",
-		Args:    cobra.ExactValidArgs(1),
+		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return new.CreateServiceCommand(args)
 		},
@@ -64,9 +64,10 @@ var (
 	}
 
 	javaCmd = &cobra.Command{
-		Use:   "java",
-		Short: "Generate java files for provided api in api file",
-		RunE:  javagen.JavaCommand,
+		Use:    "java",
+		Short:  "Generate java files for provided api in api file",
+		Hidden: true,
+		RunE:   javagen.JavaCommand,
 	}
 
 	ktCmd = &cobra.Command{

@@ -6,15 +6,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/stores/builder"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlc"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/core/stringx"
-	"github.com/zeromicro/go-zero/tools/goctl/model/sql/builderx"
 )
 
 var (
-	studentFieldNames          = builderx.RawFieldNames(&Student{})
+	studentFieldNames          = builder.RawFieldNames(&Student{})
 	studentRows                = strings.Join(studentFieldNames, ",")
 	studentRowsExpectAutoSet   = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), ",")
 	studentRowsWithPlaceHolder = strings.Join(stringx.Remove(studentFieldNames, "`id`", "`create_time`", "`update_time`"), "=?,") + "=?"

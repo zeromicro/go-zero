@@ -83,3 +83,58 @@ func TestLogDuration(t *testing.T) {
 		})
 	}
 }
+
+func TestLogDurationWithoutContent(t *testing.T) {
+	addrs, err := net.InterfaceAddrs()
+	assert.Nil(t, err)
+	assert.True(t, len(addrs) > 0)
+
+	tests := []struct {
+		name     string
+		ctx      context.Context
+		req      interface{}
+		duration time.Duration
+	}{
+		{
+			name: "normal",
+			ctx:  context.Background(),
+			req:  "foo",
+		},
+		{
+			name: "bad req",
+			ctx:  context.Background(),
+			req:  make(chan lang.PlaceholderType), // not marshalable
+		},
+		{
+			name:     "timeout",
+			ctx:      context.Background(),
+			req:      "foo",
+			duration: time.Second,
+		},
+		{
+			name: "timeout",
+			ctx: peer.NewContext(context.Background(), &peer.Peer{
+				Addr: addrs[0],
+			}),
+			req: "foo",
+		},
+		{
+			name:     "timeout",
+			ctx:      context.Background(),
+			req:      "foo",
+			duration: slowThreshold.Load() + time.Second,
+		},
+	}
+
+	DontLogContentForMethod("foo")
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.NotPanics(t, func() {
+				logDuration(test.ctx, "foo", test.req, test.duration)
+			})
+		})
+	}
+}

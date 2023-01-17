@@ -1,12 +1,14 @@
 package redis
 
 import (
+	"context"
 	"math/rand"
 	"strconv"
 	"sync/atomic"
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -51,8 +53,13 @@ func NewRedisLock(store *Redis, key string) *RedisLock {
 
 // Acquire acquires the lock.
 func (rl *RedisLock) Acquire() (bool, error) {
+	return rl.AcquireCtx(context.Background())
+}
+
+// AcquireCtx acquires the lock with the given ctx.
+func (rl *RedisLock) AcquireCtx(ctx context.Context) (bool, error) {
 	seconds := atomic.LoadUint32(&rl.seconds)
-	resp, err := rl.store.Eval(lockCommand, []string{rl.key}, []string{
+	resp, err := rl.store.EvalCtx(ctx, lockCommand, []string{rl.key}, []string{
 		rl.id, strconv.Itoa(int(seconds)*millisPerSecond + tolerance),
 	})
 	if err == red.Nil {
@@ -75,7 +82,12 @@ func (rl *RedisLock) Acquire() (bool, error) {
 
 // Release releases the lock.
 func (rl *RedisLock) Release() (bool, error) {
-	resp, err := rl.store.Eval(delCommand, []string{rl.key}, []string{rl.id})
+	return rl.ReleaseCtx(context.Background())
+}
+
+// ReleaseCtx releases the lock with the given ctx.
+func (rl *RedisLock) ReleaseCtx(ctx context.Context) (bool, error) {
+	resp, err := rl.store.EvalCtx(ctx, delCommand, []string{rl.key}, []string{rl.id})
 	if err != nil {
 		return false, err
 	}

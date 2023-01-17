@@ -48,7 +48,7 @@ func MustNewModel(uri, db, collection string, opts ...Option) *Model {
 
 // NewModel returns a Model.
 func NewModel(uri, db, collection string, opts ...Option) (*Model, error) {
-	cli, err := getClient(uri)
+	cli, err := getClient(uri, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (m *Model) FindOneAndDelete(ctx context.Context, v, filter interface{},
 }
 
 // FindOneAndReplace finds a single document and replaces it.
-func (m *Model) FindOneAndReplace(ctx context.Context, v, filter interface{}, replacement interface{},
+func (m *Model) FindOneAndReplace(ctx context.Context, v, filter, replacement interface{},
 	opts ...*mopt.FindOneAndReplaceOptions) error {
 	res, err := m.Collection.FindOneAndReplace(ctx, filter, replacement, opts...)
 	if err != nil {
@@ -170,7 +170,7 @@ func (m *Model) FindOneAndReplace(ctx context.Context, v, filter interface{}, re
 }
 
 // FindOneAndUpdate finds a single document and updates it.
-func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter interface{}, update interface{},
+func (m *Model) FindOneAndUpdate(ctx context.Context, v, filter, update interface{},
 	opts ...*mopt.FindOneAndUpdateOptions) error {
 	res, err := m.Collection.FindOneAndUpdate(ctx, filter, update, opts...)
 	if err != nil {

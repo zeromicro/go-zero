@@ -76,6 +76,13 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:       "foo",
 			Token:     "bar",
 			Timeout:   1000,
+			Middlewares: ClientMiddlewaresConf{
+				Trace:      true,
+				Duration:   true,
+				Prometheus: true,
+				Breaker:    true,
+				Timeout:    true,
+			},
 		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
@@ -90,6 +97,13 @@ func TestDepositServer_Deposit(t *testing.T) {
 			Token:     "bar",
 			Timeout:   1000,
 			NonBlock:  true,
+			Middlewares: ClientMiddlewaresConf{
+				Trace:      true,
+				Duration:   true,
+				Prometheus: true,
+				Breaker:    true,
+				Timeout:    true,
+			},
 		},
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
@@ -103,6 +117,13 @@ func TestDepositServer_Deposit(t *testing.T) {
 			App:     "foo",
 			Token:   "bar",
 			Timeout: 1000,
+			Middlewares: ClientMiddlewaresConf{
+				Trace:      true,
+				Duration:   true,
+				Prometheus: true,
+				Breaker:    true,
+				Timeout:    true,
+			},
 		},
 		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		WithDialOption(grpc.WithContextDialer(dialer())),
@@ -125,6 +146,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 		tarConfClient,
 		targetClient,
 	}
+	DontLogClientContentForMethod("foo")
 	SetClientSlowThreshold(time.Second)
 
 	for _, tt := range tests {

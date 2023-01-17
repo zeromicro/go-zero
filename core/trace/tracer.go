@@ -38,7 +38,7 @@ func (s *metadataSupplier) Keys() []string {
 	return out
 }
 
-// Inject injects the metadata into ctx.
+// Inject injects cross-cutting concerns from the ctx into the metadata.
 func Inject(ctx context.Context, p propagation.TextMapPropagator, metadata *metadata.MD) {
 	p.Inject(ctx, &metadataSupplier{
 		metadata: metadata,

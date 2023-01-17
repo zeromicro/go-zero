@@ -191,9 +191,11 @@ func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
 				})
 			}
 		case clientv3.EventTypeDelete:
+			c.lock.Lock()
 			if vals, ok := c.values[key]; ok {
 				delete(vals, string(ev.Kv.Key))
 			}
+			c.lock.Unlock()
 			for _, l := range listeners {
 				l.OnDelete(KV{
 					Key: string(ev.Kv.Key),
@@ -206,7 +208,7 @@ func (c *cluster) handleWatchEvents(key string, events []*clientv3.Event) {
 	}
 }
 
-func (c *cluster) load(cli EtcdClient, key string) {
+func (c *cluster) load(cli EtcdClient, key string) int64 {
 	var resp *clientv3.GetResponse
 	for {
 		var err error
@@ -230,6 +232,8 @@ func (c *cluster) load(cli EtcdClient, key string) {
 	}
 
 	c.handleChanges(key, kvs)
+
+	return resp.Header.Revision
 }
 
 func (c *cluster) monitor(key string, l UpdateListener) error {
@@ -242,9 +246,9 @@ func (c *cluster) monitor(key string, l UpdateListener) error {
 		return err
 	}
 
-	c.load(cli, key)
+	rev := c.load(cli, key)
 	c.watchGroup.Run(func() {
-		c.watch(cli, key)
+		c.watch(cli, key, rev)
 	})
 
 	return nil
@@ -276,22 +280,29 @@ func (c *cluster) reload(cli EtcdClient) {
 	for _, key := range keys {
 		k := key
 		c.watchGroup.Run(func() {
-			c.load(cli, k)
-			c.watch(cli, k)
+			rev := c.load(cli, k)
+			c.watch(cli, k, rev)
 		})
 	}
 }
 
-func (c *cluster) watch(cli EtcdClient, key string) {
+func (c *cluster) watch(cli EtcdClient, key string, rev int64) {
 	for {
-		if c.watchStream(cli, key) {
+		if c.watchStream(cli, key, rev) {
 			return
 		}
 	}
 }
 
-func (c *cluster) watchStream(cli EtcdClient, key string) bool {
-	rch := cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
+func (c *cluster) watchStream(cli EtcdClient, key string, rev int64) bool {
+	var rch clientv3.WatchChan
+	if rev != 0 {
+		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix(),
+			clientv3.WithRev(rev+1))
+	} else {
+		rch = cli.Watch(clientv3.WithRequireLeader(c.context(cli)), makeKeyPrefix(key), clientv3.WithPrefix())
+	}
+
 	for {
 		select {
 		case wresp, ok := <-rch:
@@ -332,6 +343,7 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 		DialKeepAliveTime:    dialKeepAliveTime,
 		DialKeepAliveTimeout: DialTimeout,
 		RejectOldCluster:     true,
+		PermitWithoutStream:  true,
 	}
 	if account, ok := GetAccount(endpoints); ok {
 		cfg.Username = account.User

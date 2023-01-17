@@ -15,7 +15,7 @@ type Foo struct {
 	StrWithTagAndOption string `key:"stringwithtag,string"`
 }
 
-func TestDeferInt(t *testing.T) {
+func TestDerefInt(t *testing.T) {
 	i := 1
 	s := "hello"
 	number := struct {
@@ -56,6 +56,51 @@ func TestDeferInt(t *testing.T) {
 	for _, each := range cases {
 		t.Run(each.t.String(), func(t *testing.T) {
 			assert.Equal(t, each.expect, Deref(each.t).Kind())
+		})
+	}
+}
+
+func TestDerefValInt(t *testing.T) {
+	i := 1
+	s := "hello"
+	number := struct {
+		f float64
+	}{
+		f: 6.4,
+	}
+	cases := []struct {
+		t      reflect.Value
+		expect reflect.Kind
+	}{
+		{
+			t:      reflect.ValueOf(i),
+			expect: reflect.Int,
+		},
+		{
+			t:      reflect.ValueOf(&i),
+			expect: reflect.Int,
+		},
+		{
+			t:      reflect.ValueOf(s),
+			expect: reflect.String,
+		},
+		{
+			t:      reflect.ValueOf(&s),
+			expect: reflect.String,
+		},
+		{
+			t:      reflect.ValueOf(number.f),
+			expect: reflect.Float64,
+		},
+		{
+			t:      reflect.ValueOf(&number.f),
+			expect: reflect.Float64,
+		},
+	}
+
+	for _, each := range cases {
+		t.Run(each.t.String(), func(t *testing.T) {
+			assert.Equal(t, each.expect, ensureValue(each.t).Kind())
 		})
 	}
 }
@@ -192,7 +237,7 @@ func TestValidatePtrWithZeroValue(t *testing.T) {
 
 func TestSetValueNotSettable(t *testing.T) {
 	var i int
-	assert.NotNil(t, setValue(reflect.Int, reflect.ValueOf(i), "1"))
+	assert.NotNil(t, setValueFromString(reflect.Int, reflect.ValueOf(i), "1"))
 }
 
 func TestParseKeyAndOptionsErrors(t *testing.T) {
@@ -245,133 +290,9 @@ func TestSetValueFormatErrors(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.kind.String(), func(t *testing.T) {
-			err := setValue(test.kind, test.target, test.value)
+			err := setValueFromString(test.kind, test.target, test.value)
 			assert.NotEqual(t, errValueNotSettable, err)
 			assert.NotNil(t, err)
 		})
 	}
-}
-
-func TestRepr(t *testing.T) {
-	var (
-		f32 float32 = 1.1
-		f64         = 2.2
-		i8  int8    = 1
-		i16 int16   = 2
-		i32 int32   = 3
-		i64 int64   = 4
-		u8  uint8   = 5
-		u16 uint16  = 6
-		u32 uint32  = 7
-		u64 uint64  = 8
-	)
-	tests := []struct {
-		v      interface{}
-		expect string
-	}{
-		{
-			nil,
-			"",
-		},
-		{
-			mockStringable{},
-			"mocked",
-		},
-		{
-			new(mockStringable),
-			"mocked",
-		},
-		{
-			newMockPtr(),
-			"mockptr",
-		},
-		{
-			&mockOpacity{
-				val: 1,
-			},
-			"{1}",
-		},
-		{
-			true,
-			"true",
-		},
-		{
-			false,
-			"false",
-		},
-		{
-			f32,
-			"1.1",
-		},
-		{
-			f64,
-			"2.2",
-		},
-		{
-			i8,
-			"1",
-		},
-		{
-			i16,
-			"2",
-		},
-		{
-			i32,
-			"3",
-		},
-		{
-			i64,
-			"4",
-		},
-		{
-			u8,
-			"5",
-		},
-		{
-			u16,
-			"6",
-		},
-		{
-			u32,
-			"7",
-		},
-		{
-			u64,
-			"8",
-		},
-		{
-			[]byte(`abcd`),
-			"abcd",
-		},
-		{
-			mockOpacity{val: 1},
-			"{1}",
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.expect, func(t *testing.T) {
-			assert.Equal(t, test.expect, Repr(test.v))
-		})
-	}
-}
-
-type mockStringable struct{}
-
-func (m mockStringable) String() string {
-	return "mocked"
-}
-
-type mockPtr struct{}
-
-func newMockPtr() *mockPtr {
-	return new(mockPtr)
-}
-
-func (m *mockPtr) String() string {
-	return "mockptr"
-}
-
-type mockOpacity struct {
-	val int
 }

@@ -75,7 +75,7 @@ func (t PointerType) Documents() []string {
 	return nil
 }
 
-// Name returns a interface string, Its fixed value is interface{}
+// Name returns an interface string, Its fixed value is interface{}
 func (t InterfaceType) Name() string {
 	return t.RawName
 }

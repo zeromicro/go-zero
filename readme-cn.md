@@ -23,7 +23,7 @@
 > 
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 > 
-> `goctl migrate —verbose —version v1.3.4`
+> `goctl migrate —verbose —version v1.4.3`
 
 ## 0. go-zero 介绍
 
@@ -116,7 +116,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
 
 1. 安装 goctl 工具
 
-    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 ` 她 ` 来解放我们的双手👈
+    `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
     ```shell
     # Go 1.15 及之前版本
@@ -287,6 +287,15 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >72. 深圳圆度
 >73. 武汉沃柒科技有限公司(茄椒)
 >74. 驭势科技
+>75. 叮当跳动
+>76. Keep
+>77. simba innovation
+>78. ZeroCMF
+>79. 安徽寻梦投资发展集团
+>80. 广州腾思信息科技有限公司
+>81. 广州机智云物联网科技有限公司
+>82. 厦门亿联网络技术股份有限公司
+>83. 北京麦芽田网络科技有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"strings"
 	"unicode"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 var WhiteSpace = []rune{'\n', '\t', '\f', '\v', ' '}
@@ -49,12 +52,12 @@ func (s String) Source() string {
 	return s.source
 }
 
-// Title calls the strings.Title
+// Title calls the cases.Title
 func (s String) Title() string {
 	if s.IsEmptyOrSpace() {
 		return s.source
 	}
-	return strings.Title(s.source)
+	return cases.Title(language.English, cases.NoLower).String(s.source)
 }
 
 // ToCamel converts the input text into camel case

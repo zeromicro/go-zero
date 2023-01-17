@@ -49,5 +49,4 @@ func needShow1_3_4(dir, style string) (bool, error) {
 		}
 	}
 	return false, nil
-
 }

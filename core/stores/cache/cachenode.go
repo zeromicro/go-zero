@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"math/rand"
 	"sync"
 	"time"
@@ -130,7 +131,7 @@ func (c cacheNode) SetWithExpireCtx(ctx context.Context, key string, val interfa
 		return err
 	}
 
-	return c.rds.SetexCtx(ctx, key, string(data), int(expire.Seconds()))
+	return c.rds.SetexCtx(ctx, key, string(data), int(math.Ceil(expire.Seconds())))
 }
 
 // String returns a string that represents the cacheNode.
@@ -275,5 +276,6 @@ func (c cacheNode) processCache(ctx context.Context, key, data string, v interfa
 }
 
 func (c cacheNode) setCacheWithNotFound(ctx context.Context, key string) error {
-	return c.rds.SetexCtx(ctx, key, notFoundPlaceholder, int(c.aroundDuration(c.notFoundExpiry).Seconds()))
+	seconds := int(math.Ceil(c.aroundDuration(c.notFoundExpiry).Seconds()))
+	return c.rds.SetexCtx(ctx, key, notFoundPlaceholder, seconds)
 }
