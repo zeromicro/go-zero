@@ -40,6 +40,16 @@ func TestRedisConf(t *testing.T) {
 			},
 			ok: true,
 		},
+		{
+			name: "ok",
+			RedisConf: RedisConf{
+				Host: "localhost:6379",
+				Type: ClusterType,
+				Pass: "pwd",
+				Tls:  true,
+			},
+			ok: true,
+		},
 	}
 
 	for _, test := range tests {
