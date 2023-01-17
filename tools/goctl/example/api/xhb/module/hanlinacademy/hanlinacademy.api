@@ -1,0 +1,362 @@
+type CategoryRequest {
+}
+
+type CategoryResponse {
+	List []*CategoryItem `json:"categoryItem,omitempty"`
+}
+
+type CategoryV2Response {
+	List interface{} `json:"list,omitempty"`
+}
+
+type CategoryItem {
+	SubjectId   int         `json:"subjectId,omitempty"`
+	SubjectName string      `json:"subjectName,omitempty"`
+	Books       []*BookItem `json:"books,omitempty"`
+}
+
+type BookItem {
+	Id        int    `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	Type      int    `json:"type,omitempty"`
+	GradeId   int    `json:"gradeId,omitempty"`
+	TermId    int    `json:"termId,omitempty"`
+	VersionId int    `json:"versionId,omitempty"`
+	Volume    string `json:"volume,omitempty"`
+	LevelId   int    `json:"levelId,omitempty"`
+	SubjectId int    `json:"subjectId,omitempty"`
+	Yn        int    `json:"yn,omitempty"`
+	Edition   string `json:"edition,omitempty"`
+	Print     string `json:"print,omitempty"`
+}
+
+type TextByBookIdRequest {
+	BookId   int `json:"bookId"`
+	Page     int `json:"page,optional"`
+	PageSize int `json:"pageSize,optional"`
+}
+
+type TextByBookIdResponse {
+	Total int            `json:"total"`
+	List  []*ConTextItem `json:"list"`
+}
+
+type ConTextItem {
+	Id            int    `json:"id,omitempty"`
+	TextId        string `json:"textId,omitempty"`
+	Title         string `json:"title,omitempty"`
+	Author        string `json:"author,omitempty"`
+	BookId        int    `json:"bookId,omitempty"`
+	BookName      string `json:"bookName,omitempty"`
+	ChapterId     string `json:"chapterId,omitempty"`
+	Context       string `json:"context,omitempty"`
+	AudioUrl      string `json:"audioUrl,omitempty"`
+	AudioDuration int64  `json:"audioDuration,omitempty"`
+	ImageUrl      string `json:"imageUrl,omitempty"`
+	TagId         int    `json:"tagId,omitempty"`
+	TagName       string `json:"tagName,omitempty"`
+	IsLastSub     bool   `json:"isLastSub,omitempty"` // 是否上一次读背文章  true-是  false-否
+}
+
+type TextByIdRequest {
+	Id string `path:"id"`
+}
+
+type TextByIdResponse {
+	TextData *ConTextItem `json:"textData,omitempty"`
+}
+
+type TextByHomeworkIdRequest {
+	HomeworkId string `path:"homeworkId"`
+}
+
+type TextByHomeworkIdResponse {
+	SubType  string       `json:"subType"` //recite-背诵  readLoud-朗读
+	Subject  string       `json:"subject"` // 语文  外语
+	TextData *ConTextItem `json:"textData,omitempty"`
+}
+
+type TextByIdV2Request {
+	Id string `path:"id"`
+}
+
+type TextByIdV2Response {
+	TextData *Text `json:"textData,omitempty"`
+}
+
+type Text {
+	TxtId         string    `json:"txtId"`
+	Title         string    `json:"title"`
+	Author        string    `json:"author"`
+	BookId        int       `json:"bookId"`
+	BookType      string    `json:"bookType"`
+	ChapterId     int       `json:"chapterId"`
+	Context       string    `json:"context"`
+	AudioUrl      string    `json:"audioUrl"`
+	AudioDuration int       `json:"audioDuration"`
+	ImageUrl      string    `json:"imageUrl"`
+	TagId         string    `json:"tagId"`
+	TagName       string    `json:"tagName"`
+	Status        int       `json:"status"`
+	ContentType   int       `json:"contentType"`
+	ParentId      string    `json:"parentId"`
+	OriginId      string    `json:"originId"`
+	ContentChild  []*TextL1 `json:"contentChild"`
+}
+
+type TextL1 {
+	TxtId         string    `json:"txtId"`
+	Title         string    `json:"title"`
+	Context       string    `json:"context"`
+	AudioUrl      string    `json:"audioUrl"`
+	AudioDuration int       `json:"audioDuration"`
+	ImageUrl      string    `json:"imageUrl"`
+	Status        int       `json:"status"`
+	ContentType   int       `json:"contentType"`
+	ParentId      string    `json:"parentId"`
+	OriginId      string    `json:"originId"`
+	ContentChild  []*TextL2 `json:"contentChild"`
+}
+
+type TextL2 {
+	TxtId         string `json:"txtId"`
+	Context       string `json:"context"`
+	AudioUrl      string `json:"audioUrl"`
+	AudioDuration int    `json:"audioDuration"`
+	ImageUrl      string `json:"imageUrl"`
+	Status        int    `json:"status"`
+	ContentType   int    `json:"contentType"`
+	ParentId      string `json:"parentId"`
+	OriginId      string `json:"originId"`
+}
+
+type TextByBookIdV2Request {
+	BookId  int    `json:"bookId"`
+	UseType string `json:"useType,optional"` // myself-自主练  homework-发布作业
+}
+
+type TextByBookIdV2Response {
+	BookId   int64        `json:"bookId"`
+	BookName string       `json:"bookName"`
+	List     []*Catalogue `json:"list"`
+}
+
+type Catalogue {
+	Title string      `json:"title,omitempty"`
+	Texts []*TextItem `json:"texts,omitempty"`
+}
+
+type BriefParagraph {
+	TxtId    string `json:"txtId"`
+	IsRecite int    `json:"isRecite"`
+}
+
+type TextItem {
+	TxtId      string            `json:"txtId,omitempty"`
+	Title      string            `json:"title,omitempty"`
+	ChapterId  string            `json:"chapterId,omitempty"`
+	LastUse    bool              `json:"lastUse"`
+	Paragraphs []*BriefParagraph `json:"paragraphs"`
+}
+
+type GetContextSnapshotRequest {
+	SnapshotId string `path:"snapshotId"`
+}
+
+type GetContextSnapshotResponse {
+	TextData *Text `json:"textData,omitempty"`
+}
+
+type ContextSnapshotCreateRequest {
+	TxtId    string `json:"txtId"`
+	Type     string `json:"type"`                               // myself-自主练   homework-作业
+	BookType string `json:"bookType,optional,default=official"` // official-课内 extra-课外
+}
+
+type ContextSnapshotCreateResponse {
+	SnapshotId string `json:"snapshotId"`
+	TextData   *Text  `json:"textData,omitempty"`
+}
+
+type GetExtracurricularLevelRequest {
+}
+
+type GetExtracurricularLevelResponse {
+	LevelList []*ExtraLevelItem `json:"levelList, omitempty"`
+}
+
+type ExtraLevelItem {
+	LevelId     int                 `json:"levelId, omitempty"`   // 学段 id
+	LevelName   string              `json:"levelName, omitempty"` // 学段名称
+	SubjectList []*ExtraSubjectItem `json:"subjectList, omitempty"`
+}
+
+type ExtraSubjectItem {
+	SubjectId   int    `json:"subjectId, omitempty"`   // 学科 id
+	SubjectName string `json:"subjectName, omitempty"` //学科名称
+}
+
+type PostExtracurricularBooksRequest {
+	LevelId   int `json:"levelId"`
+	SubjectId int `json:"subjectId, optional"`
+}
+
+type PostExtracurricularBooksResponse {
+	BookList []*ExtraBooksTagItem `json:"bookList, omitempty"` //书本列表
+}
+
+type ExtraBooksTagItem {
+	TagId        int64                          `json:"tagId, omitempty"`   // 标签 id
+	TagName      string                         `json:"tagName, omitempty"` //标签名称
+	BookItemList []*ExtraBooksPrimitiveBookItem `json:"bookItemList, omitempty"`
+}
+
+type ExtraBooksPrimitiveBookItem {
+	BookId      int64                             `json:"bookId, omitempty"`
+	BookName    string                            `json:"bookName, omitempty"`
+	Cover       string                            `json:"cover, omitempty"` // 课外书封面链接
+	DefaultView int64                             `json:"defaultView, omitempty"`
+	ActualView  int64                             `json:"actualView, omitempty"`
+	Publisher   string                            `json:"publisher, omitempty"`
+	Levels      []*LevelAndSubject                `json:"levels,omitempty"`
+	Tags        []*ExtraBooksPrimitiveBookTagItem `json:"tags, omitempty"`
+}
+
+type LevelAndSubject {
+	LevelId     int            `json:"levelId,omitempty"`
+	LevelName   string         `json:"levelName,omitempty"`
+	SubjectList []*SubjectItem `json:"subjectList,omitempty"`
+}
+
+type SubjectItem {
+	SubjectId   int    `json:"subjectId"`
+	SubjectName string `json:"subjectName"`
+}
+
+type ExtraBooksPrimitiveBookTagItem {
+	TagId   int64  `json:"tagId, omitempty"`   // 标签 id
+	TagName string `json:"tagName, omitempty"` //标签名称
+}
+
+type PostExtraBooksReviewRequest {
+	BookId     int64 `json:"bookId"`
+	ActualView int64 `json:"actualView"` //需要增加或者减少的 view cocunt
+}
+
+type PostExtraBooksReviewResponse {
+	Success bool `json:"success"`
+}
+
+type PostBatchBookInfoRequest {
+	BookIdList []int64 `json:"bookIdList"` // bookId 数组
+}
+
+type PostBatchBookInfoResponse {
+	BookItemList []*ExtraBooksPrimitiveBookItem `json:"bookItemList,omitempty"`
+}
+
+service hanlinacademy-api {
+	@doc(
+		summary: 层级分类信息
+	)
+	@server(
+		handler: GetCategoryHandler
+	)
+	get /hanlinacademy/category (CategoryRequest) returns (CategoryResponse)
+	
+	@doc(
+		summary: 层级分类信息
+	)
+	@server(
+		handler: GetCategoryV2Handler
+	)
+	get /hanlinacademy/category/v2 (CategoryRequest) returns (CategoryV2Response)
+	
+	@doc(
+		summary: 根据分类获取课文列表
+	)
+	@server(
+		handler: GetTextByBookIdHandler
+	)
+	post /hanlinacademy/context/list (TextByBookIdRequest) returns (TextByBookIdResponse)
+	
+	@doc(
+		summary: 根据分类获取课文列表(586版本)
+	)
+	@server(
+		handler: GetTextByBookIdV2Handler
+	)
+	post /hanlinacademy/context/list/v2 (TextByBookIdV2Request) returns (TextByBookIdV2Response)
+	
+	@doc(
+		summary: 根据课文ID获取课文详情
+	)
+	@server(
+		handler: GetTextByIdHandler
+	)
+	get /hanlinacademy/context/detail/:id (TextByIdRequest) returns (TextByIdResponse)
+	
+	@doc(
+		summary: 根据课文ID获取课文详情(586版本)
+	)
+	@server(
+		handler: GetTextByIdV2Handler
+	)
+	get /hanlinacademy/context/detail/v2/:id (TextByIdV2Request) returns (TextByIdV2Response)
+	
+	@doc(
+		summary: 根据作业ID获取课文详情
+	)
+	@server(
+		handler: GetTextByHomeworkIdHandler
+	)
+	get /hanlinacademy/context/byHomeworkId/:homeworkId (TextByHomeworkIdRequest) returns (TextByHomeworkIdResponse)
+	
+	@doc(
+		summary: 创建课文快照
+	)
+	@server(
+		handler: contextSnapshotCreateHandler
+	)
+	post /hanlinacademy/context/snapshot/create (ContextSnapshotCreateRequest) returns (ContextSnapshotCreateResponse)
+	
+	@doc(
+		summary: 获取课文快照(586版本)
+	)
+	@server(
+		handler: getContextSnapshotHandler
+	)
+	get /hanlinacademy/context/snapshot/:snapshotId (GetContextSnapshotRequest) returns (GetContextSnapshotResponse)
+	
+	@doc(
+		summary: 获取课外书学段学科列表
+	)
+	@server(
+		handler: getExtracurricularLevelHandler
+	)
+	get /hanlinacademy/resource/extracurricular/levels (GetExtracurricularLevelRequest) returns (GetExtracurricularLevelResponse)
+	
+	@doc(
+		summary: 根据学段学科获取课外书列表
+	)
+	@server(
+		handler: postExtracurricularBooksHandler
+	)
+	post /hanlinacademy/resource/extracurricular/books (PostExtracurricularBooksRequest) returns (PostExtracurricularBooksResponse)
+	
+	@doc(
+		summary: 更新课外书浏览次数
+	)
+	@server(
+		handler: postExtracurricularBookviewHandler
+	)
+	post /hanlinacademy/resource/extracurricular/bookview (PostExtraBooksReviewRequest) returns (PostExtraBooksReviewResponse)
+	
+	@doc(
+		summary: 根据 bookId 查询 book相关信息
+	)
+	@server(
+		handler: postBatchBookInfoHandler
+	)
+	post /hanlinacademy/resource/bookInfo (PostBatchBookInfoRequest) returns (PostBatchBookInfoResponse)
+}

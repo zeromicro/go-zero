@@ -1,0 +1,1315 @@
+info(
+	title: 德育包
+	desc: 德育包相关api
+	author: Jancd
+	email: sergeychang@gmail.com
+)
+
+type GetMonthStatByCampusResponse {
+}
+
+type StudentReportDetailsRequest {
+	StudentId int64 `form:"studentId"`           // 学生ID
+	StartTime int64 `form:"startTime"`           // 开始时间
+	EndTime   int64 `form:"endTime"`             // 结束时间
+	PageSize  int64 `form:"pageSize,default=10"` // 页面大小
+	Page      int64 `form:"page,default=1"`      // 页码
+}
+
+type StudentReportDetailsResponse {
+	StudentReportSummary      *StudentReportSummary               `json:"studentReportSummary,optional"` // 概要信息
+	Total                     int64                               `json:"total"`                         // 总数量
+	ActivityOrPunchResultList []*StudentActivityOrPunchResultItem `json:"activityOrPunchResultList"`     // 活动/打卡列表子项
+}
+
+type StudentReportSummary {
+	Month               int64  `json:"month"`               // 月份
+	Name                string `json:"name"`                // 姓名
+	ActivityAndPunchNum int64  `json:"activityAndPunchNum"` // 活动和打卡数量
+	DayNum              int64  `json:"dayNum"`              // 参与天数
+	ResultNum           int64  `json:"resultNum"`           // 成果数
+}
+
+type ClassReportDetailsRequest {
+	ClassId   int64 `form:"classId"`             // 班级ID
+	StartTime int64 `form:"startTime"`           // 开始时间
+	EndTime   int64 `form:"endTime"`             // 结束时间
+	PageSize  int64 `form:"pageSize,default=10"` // 页面大小
+	Page      int64 `form:"page,default=1"`      // 页码
+}
+
+type ClassReportDetailsResponse {
+	ClassReportSummary         *ClassReportSummary                `json:"classReportSummary,optional"` // 概要信息
+	Total                      int64                              `json:"total"`                       // 总数量
+	ActivityOrPunchReleaseList []*ClassActivityOrPunchReleaseItem `json:"activityOrPunchReleaseList"`  // 活动/打卡列表子项
+}
+
+type ClassReportSummary {
+	Month               int64   `json:"month"`               // 月份
+	Name                string  `json:"name"`                // 班级名称
+	Section             string  `json:"section"`             // 学段判断
+	ActivityAndPunchNum int64   `json:"activityAndPunchNum"` // 发布的打开和活动数量
+	ParticipationRate   float64 `json:"participationRate"`   // 参与率
+	ResultNum           int64   `json:"resultNum"`           // 成果数
+}
+
+type ClassActivityOrPunchReleaseItem {
+	Type              int64   `json:"type"`                    // 类型（1 打卡/ 2 活动）
+	Title             string  `json:"title"`                   // 标题
+	StartTime         int64   `json:"startTime"`               // 开始时间
+	ParticipationRate float64 `json:"participationRate"`       // 参与率
+	ResultNum         int64   `json:"resultNum"`               // 成果数
+	InteractiveNum    int64   `json:"interactiveNum,optional"` // 互动次数
+	ActivityOrPunchId string  `json:"activityOrPunchId"`       // 活动或打卡ID
+}
+
+type SchoolReportDetailsRequest {
+	CampusId  int64 `form:"campusId"`  // 学校ID
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+}
+
+type SchoolReportDetailsResponse {
+	Title                      string                        `json:"title"`                   // 标题
+	TermTitle                  string                        `json:"termTitle"`               // 学期报告文案
+	CountData                  *CountData                    `json:"countData"`               // 数量数据
+	SurveyResults              []*GradeSurvey                `json:"surveyResults"`           // 调查报告
+	ParticipationRateTrendList []*ParticipationRateTrendNode `json:"participationRateList"`   // 参与率趋势
+	MostActiveClassesList      []*ClassItem                  `json:"mostActiveClassesList"`   // 最活跃班级
+	MostInactiveClassesList    []*ClassItem                  `json:"mostInactiveClassesList"` // 最不活跃班级
+	StudentHonorWallList       []*StudentHonorWallItem       `json:"studentHonorWallList"`    // 学生荣誉墙
+	TeacherActiveList          []*TeacherActiveItem          `json:"teacherActiveList"`       // 教师活跃榜
+}
+
+type GradeSurvey {
+	GradeName string    `json:"gradeName"`
+	Surveys   []*Survey `json:"surveys"`
+}
+
+type Survey {
+	Title     string `json:"title"`     // 学期初比例
+	Option    string `json:"option"`    // 选项
+	TermStart int    `json:"termStart"` // 学期末比例
+	TermEnd   int    `json:"termEnd"`
+}
+
+type GetClassTermReportRequest {
+	CampusId  int   `path:"campusId"`
+	StartTime int64 `json:"startTime"`
+	EndTime   int64 `json:"endTime"`
+	ClassId   int64 `json:"classId"`
+}
+
+type CountData {
+	PublishSubjectNum int64   `json:"publishSubjectNum"` // 发布主题
+	ResultNum         int64   `json:"resultNum"`         // 成果数
+	ParticipationNum  int64   `json:"participationNum"`  // 参与人数
+	ParticipationRate float64 `json:"participationRate"` // 参与率
+	FullAttendance    int64   `json:"fullAttendance"`    // 全勤人数
+}
+
+type ProgressDirectionItemTheme {
+	Title      string  `json:"title"`      // 标题
+	Percentage float64 `json:"percentage"` // 百分比
+}
+
+type QualityDevelopmentDirectionItem {
+	Title    string   `json:"title"`    // 标题
+	Value    int64    `json:"value"`    // 值
+	FlagList []string `json:"flagList"` // 标签列表
+}
+
+type ClassItem {
+	GradeName  string  `json:"gradeName"`  // 年级名称
+	ClassName  string  `json:"className"`  // 班级名称
+	Percentage float64 `json:"percentage"` // 百分比
+}
+
+type ParticipationRateTrendNode {
+	Date                      int64   `json:"date"`                      // 日期
+	ActivityParticipationRate float64 `json:"activityParticipationRate"` // 活动参与率
+	PunchParticipationRate    float64 `json:"punchParticipationRate"`    // 打卡参与率
+}
+
+type StudentActivityOrPunchResultItem {
+	Type    int64    `json:"type"`                      // 类型（1 打卡/ 2 活动）
+	Title   string   `json:"title"`                     // 活动/打开标题
+	Content string   `json:"content"`                   // 内容
+	Time    int64    `json:"time"`                      // 时间戳
+	Audio   *Audio   `json:"audio,optional,omitempty"`  // 语音文件
+	Video   *Video   `json:"video,optional,omitempty"`  // 视频文件
+	Images  []*Image `json:"images,omitempty,optional"` // 图片
+}
+
+type Audio {
+	Url           string `json:"url,omitempty,optional"`           // 语音地址
+	Duration      int    `json:"duration,omitempty,optional"`      // 语音时长
+	FileExtension string `json:"fileExtension,omitempty,optional"` // 语音文件名后缀
+	Size          int    `json:"size,omitempty,optional"`          // 语音文件大小
+	Name          string `json:"name,omitempty,optional"`          // 语音名称
+}
+
+type Video {
+	Title        string `json:"title,omitempty,optional"`
+	Desc         string `json:"desc,omitempty,optional"`
+	CoverUrl     string `json:"coverUrl,omitempty,optional"`
+	PlayUrl      string `json:"playUrl,omitempty,optional"`
+	PlayTime     int    `json:"playTime,omitempty,optional"`
+	MagicContext string `json:"magicContext,omitempty,optional"`
+	Type         string `json:"type,omitempty,optional"`
+	Height       int    `json:"height,omitempty,optional"`
+	Width        int    `json:"width,omitempty,optional"`
+}
+
+type Image {
+	Original  string `json:"original,omitempty,optional"`  // 原始图片地址
+	Preview   string `json:"preview,omitempty,optional"`   // 预览图地址
+	Thumbnail string `json:"thumbnail,omitempty,optional"` // 缩略图地址
+	Size      int    `json:"size,omitempty,optional"`      // 图片文件大小
+	Height    int    `json:"height,omitempty,optional"`    // 图片高
+	Width     int    `json:"width,omitempty,optional"`     // 图片宽
+}
+
+type PunchMemberRequest {
+	PunchId   string `form:"punchId"`   // 打卡ID
+	ClassId   int64  `form:"classId"`   // 班级ID
+	StartTime int64  `form:"startTime"` // 开始时间
+	EndTime   int64  `form:"endTime"`   // 结束时间
+}
+
+type PunchMemberResponse {
+	PunchMemberList []*PunchMemberItem `json:"punchMemberList"` // 打卡成员列表
+}
+
+type PunchMemberItem {
+	StudentId        int64  `json:"studentId"`        // 学生ID
+	Name             string `json:"name"`             // 名称
+	Avatar           string `json:"avatar"`           // 头像
+	ParticipationNum int64  `json:"participationNum"` // 参与次数
+	Token            string `json:"token"`            // 用户 Token
+}
+
+type PosterRequest {
+	CampusId  int64  `form:"campusId,optional"` // 非必传字段
+	UserId    string `form:"userId,optional"`   // 非必传字段
+	Identity  int64  `form:"identity"`          // 1-校长 2-教师 3-家长
+	StudentId int64  `form:"studentId"`
+	ClassId   int64  `form:"classId"`
+}
+
+type PosterResponse {
+	UserId              string       `json:"userId"`
+	CampusId            int64        `json:"campusId"`
+	StudentId           int64        `json:"studentId"`
+	ClassId             int64        `json:"classId"`
+	ParticipationRate   int64        `json:"participationRate"` // 参与率
+	TimeInfo            int64        `json:"timeInfo"`
+	Avatar              string       `json:"avatar"`
+	ReceiverName        string       `json:"receiverName"`
+	Identity            int64        `json:"identity"`            // 1-校长 2-教师 3-家长
+	Achievement         *Achievement `json:"achievement"`         // 成果数据
+	InspireStudentCount int64        `json:"inspireStudentCount"` // 多少学生得到了进步
+	Activities          []string     `json:"activities"`          // 打卡或活动
+	GoodHabits          []string     `json:"goodHabits"`          // 养成习惯
+}
+
+type Achievement {
+	ClapCount        int64 `json:"clapTime"`         // 获赞次数
+	ActivityCount    int64 `json:"activityCount"`    // 活动或者打卡数
+	InsistDays       int64 `json:"insistDays"`       // 坚持天数
+	AchievementCount int64 `json:"achievementCount"` // 成果数
+}
+
+type AllGradesAndClasses {
+	CampusGradeId   int64        `json:"campusGradeId"`   // 年级campusGradeId
+	CampusGradeName string       `json:"campusGradeName"` // 年级别名
+	Classes         []*ClassInfo `json:"classes"`
+}
+
+type ClassInfo {
+	ClassId       int64  `json:"classId"`       // 晓教云班级id
+	ClassName     string `json:"className"`     // 班级名
+	XhbClassToken string `json:"xhbClassToken"` // 晓黑板班级token
+}
+
+type ClassListRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+}
+
+type CampusTermRequest {
+	CampusId int64 `form:"campusId,optional"`
+}
+
+type MonthInfo {
+	StartTime  int64 `json:"startTime"`  // 月份开始时间戳
+	EndTime    int64 `json:"endTime"`    // 月份结束时间戳
+	MonthCount int64 `json:"monthCount"` // 月份
+}
+
+type CampusTermResponse {
+	CurrentTerm *CampusTermItem   `json:"currentTerm"` // 当前学期信息
+	AllTerms    []*CampusTermItem `json:"allTerms"`    // 所有学期信息
+}
+
+type ClassHistoryListRequest {
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+	ClassId   int64 `form:"classId"`   // 班级ID
+}
+
+type ClassHistoryListResponse {
+	ClassHistoryReportList []*ClassHistoryReportItem `json:"classHistoryReportList"` // 班级历史月报列表
+}
+
+type ClassHistoryReportItem {
+	StartTime          int64               `json:"startTime"` // 开始时间
+	EndTime            int64               `json:"endTime"`   // 结束时间
+	ClassId            int64               `json:"classId"`   // 班级ID
+	ClassReportSummary *ClassReportSummary `json:"classReportSummary"`
+}
+
+type SchoolHistoryListRequest {
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+	CampusId  int64 `form:"campusId"`  // 学校ID
+}
+
+type SchoolHistoryListResponse {
+	SchoolHistoryReportList []*SchoolHistoryReportItem `json:"schoolHistoryReportList"` // 学校历史月报列表
+}
+
+type SchoolHistoryReportItem {
+	StartTime         int64   `json:"startTime"`         // 开始时间
+	EndTime           int64   `json:"endTime"`           // 结束时间
+	CampusId          int64   `json:"campusId"`          // 学校ID
+	SchoolName        string  `json:"schoolName"`        // 学校名称
+	PublishSubjectNum int64   `json:"publishSubjectNum"` // 发布主题数
+	ResultNum         int64   `json:"resultNum"`         // 成果数
+	ParticipationRate float64 `json:"participationRate"` // 参与率
+}
+
+type TemplatebookUserAuthRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+}
+
+type TemplatebookUserAuthResponse {
+	SchoolData int64 `json:"schoolData,optional"` // 查看全校数据:0-不允许，1-允许
+	ClassData  int64 `json:"classData,optional"`  // 查看班级数据:0-不允许，1-允许
+}
+
+type TemplateBookPdfRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+	Html     string `form:"html"`
+}
+
+type TemplateBookPdfResponse {
+	TaskId string `json:"taskId"`
+}
+
+type GetDataRequest {
+	CampusId  int   `path:"campusId"`  // 学校id
+	StartTime int64 `json:"startTime"` // 开始时间
+	EndTime   int64 `json:"endTime"`   // 结束时间
+}
+
+type StudentHonorWallItem {
+	Name              string `json:"name"`              // 姓名
+	GradeAndClassName string `json:"gradeAndClassName"` // 班级年级名称
+	Days              int    `json:"days"`              // 坚持天数
+	ResultNum         int    `json:"resultNum"`         // 参与成果数
+	InteractiveCount  int    `json:"interactiveCount"`  // 互动次数
+}
+
+type TeacherActiveItem {
+	Name              string  `json:"name"`              // 姓名
+	GradeAndClassName string  `json:"gradeAndClassName"` // 班级年级名称
+	Rate              float64 `json:"rate"`              // 学生参与率
+	ResultNum         int64   `json:"resultNum"`         // 累计成果
+	InteractiveCount  int     `json:"interactiveCount"`  // 互动次数
+}
+
+type ProgressDirectionResponse {
+	ProgressDirectionList []*ProgressDirectionItem `json:"progressDirectionItem"` // 进步方向
+}
+
+type ProgressDirectionItem {
+	GradeName                  string                        `json:"gradeName"`                  // 年级名称
+	XjyGradeId                 int64                         `json:"-"`                          // 年级ID
+	ProgressDirectionItemTheme []*ProgressDirectionItemTheme `json:"progressDirectionItemTheme"` // 进步方向子项主题
+}
+
+type DevelopmentDirectionListResponse {
+	DevelopmentList []*DevelopmentDirectionList `json:"developmentList"`
+}
+
+type DevelopmentDirectionList {
+	Title    string  `json:"title"`    // 标题
+	Value    int64   `json:"value"`    // 值
+	FlagList []*Flag `json:"flagList"` // 标签列表
+}
+
+type Flag {
+	Name string `json:"name"` // 标题
+	Num  int    `json:"num"`  // 数字
+}
+
+type CampusTermItem {
+	Id        int64        `json:"id"`
+	TermName  string       `json:"termName"`  // 学期名称
+	TermStart int64        `json:"termStart"` // 学期开始时间戳
+	TermEnd   int64        `json:"termEnd"`   // 学期结束时间戳
+	Months    []*MonthInfo `json:"months"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`  //
+	Preview   string `json:"preview,optional"`   //
+	Thumbnail string `json:"thumbnail,optional"` //
+	Size      int    `json:"size,optional"`      //
+	Height    int    `json:"height,optional"`    //
+	Width     int    `json:"width,optional"`     //
+}
+
+type AudioRequest {
+	Id            string `json:"id"`                     //
+	Duration      int    `json:"duration,optional"`      //
+	FileExtension string `json:"fileExtension,optional"` //
+	Size          int    `json:"size,optional"`          //
+	Name          string `json:"name,optional"`          // 显示名称
+}
+
+type VideoRequest {
+	Title        string `json:"title,optional"`        //
+	Desc         string `json:"desc,optional"`         //
+	CoverUrl     string `json:"coverUrl,optional"`     //
+	PlayUrl      string `json:"playUrl"`               //
+	PlayTime     int    `json:"playTime,optional"`     //
+	MagicContext string `json:"magicContext,optional"` //
+	Type         string `json:"type,optional"`         //
+	Height       int    `json:"height,optional"`       //
+	Width        int    `json:"width,optional"`        //
+}
+
+type AttachmentRequest {
+	Id       string        `json:"id,optional"`       //
+	Name     string        `json:"name,optional"`     // 显示名称
+	MimeType string        `json:"mimeType,optional"` //
+	Attrs    *AttrsRequest `json:"attrs,optional"`    //
+}
+
+type AttrsRequest {
+	Size string `json:"size,optional"`
+}
+
+type ImageView {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type AudioView {
+	Id            string `json:"id"`                      //
+	Duration      int    `json:"duration,omitempty"`      //
+	FileExtension string `json:"fileExtension,omitempty"` //
+	Size          int    `json:"size,omitempty"`          //
+	Name          string `json:"name,omitempty"`          // 显示名称
+}
+
+type VideoView {
+	Title        string `json:"title,omitempty"`        //
+	Desc         string `json:"desc,omitempty"`         //
+	CoverUrl     string `json:"coverUrl,omitempty"`     //
+	PlayUrl      string `json:"playUrl,omitempty"`      //
+	PlayTime     int    `json:"playTime,omitempty"`     //
+	MagicContext string `json:"magicContext,omitempty"` //
+	Type         string `json:"type,omitempty"`         //
+	Height       int    `json:"height,omitempty"`       //
+	Width        int    `json:"width,omitempty"`        //
+}
+
+type AttachmentView {
+	Id       string     `json:"id,omitempty"`       //
+	Name     string     `json:"name,omitempty"`     // 显示名称
+	MimeType string     `json:"mimeType,omitempty"` //
+	Attrs    *AttrsView `json:"attrs,omitempty"`    //
+}
+
+type AttrsView {
+	Size string `json:"size,omitempty"`
+}
+
+type XjyReceiver {
+	XjyClassId  int64    `json:"xjyClassId,omitempty"`
+	Type        string   `json:"type,omitempty"` // 消息类型  整班 老师 学生 定向选择
+	ReceiverIds []string `json:"receiverIds,omitempty"`
+	Additions   []string `json:"additions,omitempty"`
+}
+
+type PunchStemRequest {
+	BlankType string   `json:"blankType,optional"` // timer 计时式 | counter 计数式
+	Stem      string   `json:"stem,optional"`      // 题干
+	Options   []string `json:"options,optional"`   // 选择题选项
+}
+
+type PunchStemView {
+	BlankType string   `json:"blankType,omitempty"` // timer 计时式 | counter 计数式
+	Stem      string   `json:"stem,omitempty"`      // 题干
+	Options   []string `json:"options,omitempty"`   // 选择题选项
+}
+
+type CreatePunchCardTemplateRequest {
+	TemplateId         string                 `json:"templateId,optional"`         // 传templateId时为编辑
+	StandardTemplateId string                 `json:"standardTemplateId,optional"` // 标准模版id(将标准模版直接保存为我的模版的时候传)
+	CampusId           int                    `path:"campusId"`
+	Category           string                 `json:"category,optional"`
+	QualityId          string                 `json:"qualityId,optional"`      // 素质标签id
+	Title              string                 `json:"title,optional"`          // 标题
+	Content            string                 `json:"content,optional"`        //
+	Images             []*ImageRequest        `json:"images,optional"`         //
+	Audio              *AudioRequest          `json:"audio,optional"`          //
+	Video              *VideoRequest          `json:"video,optional"`          //
+	Attachments        []*AttachmentRequest   `json:"attachements,optional"`   //
+	Extras             map[string]interface{} `json:"extras,optional"`         //
+	Open               bool                   `json:"open,optional"`           // 是否相互可见
+	Cover              string                 `json:"cover,optional"`          // 模版封面
+	Grade              string                 `json:"grade,optional"`          // 适用年级
+	PunchType          string                 `json:"punchType,optional"`      // 打卡类型
+	PunchStem          *PunchStemRequest      `json:"punchStem,optional"`      // 打卡题目
+	CardPunchCycle     int                    `json:"cardPunchCycle,optional"` // 打卡周期
+	CardPunchWeek      []string               `json:"cardPunchWeek,optional"`  // 打卡频次
+	RemindTime         string                 `json:"remindTime,optional"`     // 提醒时间
+	ReplenishDays      int                    `json:"replenishDays,optional"`  // 补打卡天数
+	FileUpload         bool                   `json:"fileUpload,optional"`     // 是否保存到班级文件
+}
+
+type CreatePunchCardTemplateResponse {
+}
+
+type CreateActivityTemplateRequest {
+	TemplateId         string                 `json:"templateId,optional"`         // 传templateId时为编辑
+	StandardTemplateId string                 `json:"standardTemplateId,optional"` // 标准模版id(将标准模版直接保存为我的模版的时候传)
+	CampusId           int                    `path:"campusId"`
+	Category           string                 `json:"category"`
+	QualityId          string                 `json:"qualityId,optional"`    // 素质标签id
+	Title              string                 `json:"title,optional"`        // 标题
+	Content            string                 `json:"content,optional"`      //
+	Images             []*ImageRequest        `json:"images,optional"`       //
+	Audio              *AudioRequest          `json:"audio,optional"`        //
+	Video              *VideoRequest          `json:"video,optional"`        //
+	Attachments        []*AttachmentRequest   `json:"attachements,optional"` //
+	Extras             map[string]interface{} `json:"extras,optional"`       //
+	Open               bool                   `json:"open,optional"`
+	Cover              string                 `json:"cover,optional"`
+	Grade              string                 `json:"grade"`
+	FileUpload         bool                   `json:"fileUpload,optional"`
+}
+
+type GetGradeRequest {
+	CampusId int `path:"campusId"`
+}
+
+type GetGradeResponse {
+	Grades []*Grade `json:"grades"`
+}
+
+type Grade {
+	GradeId   int    `json:"gradeId"`
+	GradeName string `json:"gradeName"`
+}
+
+type CreateActivityTemplateResponse {
+}
+
+type PublishPunchCardRequest {
+	PunchCardId    string                 `json:"punchCardId,optional"` // 打卡id,用于编辑后重发删除原打卡的，直接创建不用传
+	CampusId       int                    `path:"campusId"`
+	Receivers      []*XjyReceiver         `json:"receivers,optional"`
+	Category       string                 `json:"category,optional"`  // 主题分类
+	QualityId      string                 `json:"qualityId,optional"` // 素质标签id
+	Title          string                 `json:"title,optional"`     // 标题
+	Content        string                 `json:"content,optional"`
+	Images         []*ImageRequest        `json:"images,optional"`
+	Audio          *AudioRequest          `json:"audio,optional"`
+	Video          *VideoRequest          `json:"video,optional"`
+	Attachments    []*AttachmentRequest   `json:"attachements,optional"`
+	Extras         map[string]interface{} `json:"extras,optional"`
+	Open           bool                   `json:"open,optional"`           // 是否相互可见
+	Cover          string                 `json:"cover,optional"`          // 模版封面
+	Grade          string                 `json:"grade,optional"`          // 适用年级
+	PunchType      string                 `json:"punchType,optional"`      // 打卡类型
+	PunchStem      *PunchStemRequest      `json:"punchStem,optional"`      // 打卡题目
+	CardPunchCycle int                    `json:"cardPunchCycle,optional"` // 打卡周期
+	CardPunchWeek  []string               `json:"cardPunchWeek,optional"`  // 打卡频次
+	RemindTime     string                 `json:"remindTime,optional"`     // 提醒时间
+	ReplenishDays  int                    `json:"replenishDays,optional"`  // 补打卡天数
+	FileUpload     bool                   `json:"fileUpload,optional"`     // 是否保存到班级文件
+	DeliveryTime   int64                  `json:"deliveryTime,optional"`   // 定时发送时间
+	Flag           bool                   `json:"flag,optional"`           // 为true时为发布成功后同时保存为我的模版
+}
+
+type PublishPunchCardResponse {
+}
+
+type PublishActivityRequest {
+	ActivityId   string                 `json:"activityId,optional"` // 活动ID,用于编辑后重发删除原活动的，直接创建不用传
+	CampusId     int                    `path:"campusId"`
+	Receivers    []*XjyReceiver         `json:"receivers,optional"`    // 接收人信息
+	Category     string                 `json:"category"`              // 主题分类
+	QualityId    string                 `json:"qualityId,optional"`    // 素质标签id
+	Title        string                 `json:"title,optional"`        // 标题
+	Content      string                 `json:"content,optional"`      // 内容
+	Images       []*ImageRequest        `json:"images,optional"`       // 图片
+	Audio        *AudioRequest          `json:"audio,optional"`        // 音频
+	Video        *VideoRequest          `json:"video,optional"`        // 视频
+	Attachments  []*AttachmentRequest   `json:"attachements,optional"` // 附件
+	Extras       map[string]interface{} `json:"extras,optional"`       // 其他
+	Open         bool                   `json:"open,optional"`         // 互相可见
+	Cover        string                 `json:"cover,optional"`        // 模版封面
+	Grade        string                 `json:"grade"`                 // 年级
+	KeepDays     int64                  `json:"keepDays,optional"`     // 持续天数
+	DeliveryTime int64                  `json:"deliveryTime,optional"` // 定时发送时间
+	FileUpload   bool                   `json:"fileUpload,optional"`
+}
+
+type PublishActivityResponse {
+}
+
+type DetailPunchCardTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type DetailPunchCardTemplateResponse {
+	CampusId       int                    `json:"campusId,omitempty"`
+	Category       string                 `json:"category,omitempty"`    // 主题分类
+	QualityId      string                 `json:"qualityId,omitempty"`   // 素质标签id
+	QualityName    string                 `json:"qualityName,omitempty"` // 素质名称
+	Title          string                 `json:"title,omitempty"`       // 标题
+	Content        string                 `json:"content,omitempty"`
+	Images         []*ImageView           `json:"images,omitempty"`
+	Audio          *AudioView             `json:"audio,omitempty"`
+	Video          *VideoView             `json:"video,omitempty"`
+	Attachments    []*AttachmentView      `json:"attachements,omitempty"`
+	Extras         map[string]interface{} `json:"extras,omitempty"`         //
+	Open           bool                   `json:"open,omitempty"`           // 是否相互可见
+	Cover          string                 `json:"cover,omitempty"`          // 模版封面
+	Grade          string                 `json:"grade,omitempty"`          // 适用年级
+	PunchType      string                 `json:"punchType,omitempty"`      // 打卡类型
+	PunchStem      *PunchStemView         `json:"punchStem,omitempty"`      // 打卡题目
+	CardPunchCycle int                    `json:"cardPunchCycle,omitempty"` // 打卡周期
+	CardPunchWeek  []string               `json:"cardPunchWeek,omitempty"`  // 打卡频次
+	RemindTime     string                 `json:"remindTime,omitempty"`     // 提醒时间
+	CreateTime     int64                  `json:"createTime,omitempty"`     // 创建时间
+}
+
+type DeletePunchCardTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type DeletePunchCardTemplateResponse {
+}
+
+type DetailActivityTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type DetailActivityTemplateResponse {
+	CampusId    int                    `json:"campusId,omitempty"`
+	Category    string                 `json:"category,omitempty"`    // 主题分类
+	QualityId   string                 `json:"qualityId,omitempty"`   // 素质标签id
+	QualityName string                 `json:"qualityName,omitempty"` // 素质名称
+	Title       string                 `json:"title,omitempty"`       // 标题
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`     //
+	Open        bool                   `json:"open,omitempty"`       // 是否相互可见
+	Cover       string                 `json:"cover,omitempty"`      // 模版封面
+	Grade       string                 `json:"grade,omitempty"`      // 适用年级
+	CreateTime  int64                  `json:"createTime,omitempty"` // 创建时间
+}
+
+type DeleteActivityTemplateRequest {
+	TemplateId string `path:"templateId"`
+}
+
+type DeleteActivityTemplateResponse {
+}
+
+type PunchCardListRequest {
+	CampusId   int    `path:"campusId"`
+	Title      string `form:"title,optional"`      // 主题名称
+	XjyGradeId int    `form:"xjyGradeId,optional"` // 晓教云年级id
+	XjyClassId int    `form:"xjyClassId,optional"` // 晓教云班级id
+	StartTime  int64  `form:"startTime,optional"`  // 开始时间
+	EndTime    int64  `form:"endTime,optional"`    // 结束时间
+	Page       int    `form:"page,optional"`       // 当前第几页
+	PageSize   int    `form:"pageSize,optional"`   // 每页条数
+}
+
+type PunchCardListResponse {
+	Total     int              `json:"total"`
+	TotalPage int              `json:"totalPage"`
+	Page      int              `json:"page"`
+	List      []*PunchCardItem `json:"list,omitempty"`
+}
+
+type PunchCardItem {
+	PunchCardId    string `json:"punchCardId,omitempty"`
+	XjyClassId     int    `json:"xjyClassId"`               // 晓教云班级id
+	GradeClassName int    `json:"gradeClassName,omitempty"` // 晓教云年级班级名称
+	ClassroomId    string `json:"classroomId"`              // 班级id
+	Title          string `json:"title,omitempty"`          // 主题名称
+	Category       string `json:"category,omitempty"`       // 主题分类
+	QualityId      string `json:"qualityId,omitempty"`
+	QualityName    string `json:"qualiytyName,omitempty"`
+	SenderId       string `json:"senderId,omitempty"`
+	SenderName     string `json:"senderName,omitempty"`
+	StartTime      int64  `json:"startTime,omitempty"` // 开始时间
+	EndTime        int64  `json:"endTime,omitempty"`   // 结束时间
+}
+
+type PunchCardDetailRequest {
+	PunchCardId string `path:"punchCardId"`
+}
+
+type PunchCardDetailResponse {
+	CampusId       int64                  `json:"campusId,omitempty"`
+	PunchCardId    string                 `json:"punchCardId,omitempty"`
+	Title          string                 `json:"title,omitempty"` // 标题
+	Content        string                 `json:"content,omitempty"`
+	Images         []*ImageView           `json:"images,omitempty"`
+	Audio          *AudioView             `json:"audio,omitempty"`
+	Video          *VideoView             `json:"video,omitempty"`
+	Attachments    []*AttachmentView      `json:"attachements,omitempty"`
+	Extras         map[string]interface{} `json:"extras,omitempty"` //
+	Open           bool                   `json:"open,omitempty"`   // 是否相互可见
+	Type           string                 `json:"type,omitempty"`   // 消息类型   classroom/整班消息 optional/非整班消息
+	SenderId       string                 `json:"senderId,omitempty"`
+	XjyClassId     int64                  `json:"xjyClassId,omitempty"`
+	ClassroomId    string                 `json:"classroomId,omitempty"`
+	Category       string                 `json:"category,omitempty"`       // 分类
+	PunchType      string                 `json:"punchType,omitempty"`      // 打卡类型
+	PunchStem      *PunchStemView         `json:"punchStem,omitempty"`      // 打卡题目
+	CardPunchCycle int                    `json:"cardPunchCycle,omitempty"` // 打卡周期
+	CardPunchWeek  []string               `json:"cardPunchWeek,omitempty"`  // 打卡频次
+	RemindTime     string                 `json:"remindTime,omitempty"`     // 提醒时间
+	ReplenishDays  int                    `json:"replenishDays,optional"`   // 补打卡天数
+	DeliveryTime   int64                  `json:"deliveryTime,optional"`    // 定时时间
+	CreateTime     int64                  `json:"createTime,omitempty"`     // 创建时间
+}
+
+type PunchCardRecallRequest {
+	PunchCardId string `path:"punchCardId"`
+}
+
+type PunchCardRecallResponse {
+}
+
+type ActivityListRequest {
+	CampusId   int    `path:"campusId"`
+	Title      string `form:"title,optional"`      // 主题名称
+	XjyGradeId int    `form:"xjyGradeId,optional"` // 晓教云年级id
+	XjyClassId int    `form:"xjyClassId,optional"` // 晓教云班级id
+	StartTime  int64  `form:"startTime,optional"`  // 开始时间
+	EndTime    int64  `form:"endTime,optional"`    // 结束时间
+	Page       int    `form:"page,optional"`       // 当前第几页
+	PageSize   int    `form:"pageSize,optional"`   // 每页条数
+}
+
+type ActivityListResponse {
+	Total     int             `json:"total"`
+	TotalPage int             `json:"totalPage"`
+	Page      int             `json:"page"`
+	List      []*ActivityItem `json:"list,omitempty"`
+}
+
+type ActivityItem {
+	ActivityId     string `json:"activityId,omitempty"`
+	XjyClassId     int    `json:"xjyClassId"`               // 晓教云班级id
+	ClassroomId    string `json:"classroomId"`              // 班级id
+	GradeClassName string `json:"gradeClassName,omitempty"` // 晓教云年级班级名称
+	Title          string `json:"title,omitempty"`          // 主题名称
+	Category       string `json:"category,omitempty"`       // 主题分类
+	QualityId      string `json:"qualityId,omitempty"`
+	QualityName    string `json:"qualiytyName,omitempty"`
+	SenderId       string `json:"senderId,omitempty"`
+	SenderName     string `json:"senderName,omitempty"`
+	StartTime      int64  `json:"startTime,omitempty"` // 开始时间
+	EndTime        int64  `json:"endTime,omitempty"`   // 结束时间
+}
+
+type ActivityDetailRequest {
+	ActivityId string `path:"activityId"`
+}
+
+type ActivityDetailResponse {
+	CampusId    int64                  `json:"campusId,omitempty"`
+	ActivityId  string                 `json:"punchCardId,omitempty"`
+	Title       string                 `json:"title,omitempty"` // 标题
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"` //
+	Open        bool                   `json:"open,omitempty"`   // 是否相互可见
+	Type        string                 `json:"type,omitempty"`   // 消息类型   classroom/整班消息 optional/非整班消息
+	SenderId    string                 `json:"senderId,omitempty"`
+	XjyClassId  int64                  `json:"xjyClassId,omitempty"`
+	ClassroomId string                 `json:"classroomId,omitempty"`
+	Category    string                 `json:"category,omitempty"`   // 分类
+	EndTime     int64                  `json:"endTime,omitempty"`    // 结束时间
+	CreateTime  int64                  `json:"createTime,omitempty"` // 创建时间
+}
+
+type ActivityRecallRequest {
+	ActivityId string `path:"activityId"`
+}
+
+type ActivityRecallResponse {
+}
+
+type PunchCardTemplateListRequest {
+	CampusId    int64  `path:"campusId"`
+	Title       string `form:"title,optional"`       // 主题名称
+	Grade       string `form:"grade,optional"`       // 年级筛选
+	SubjectName string `form:"subjectName,optional"` // 德育&智育&体育&美育&劳育&我的模版(为空的时候即为我的模版)
+	Page        int    `form:"page,default=1"`
+	PageSize    int    `form:"pageSize,default=10"`
+}
+
+type PunchCardTemplateListResponse {
+	Templates []*PunchCardTemplate `json:"templates"`
+	Total     int                  `json:"total"`
+}
+
+type PunchCardStandardTemplateListResponse {
+	Templates []*PunchCardStandardTemplate `json:"templates"`
+	Total     int                          `json:"total"`
+}
+
+type PunchCardTemplate {
+	Id             string                 `json:"id,omitempty"` // 模版id
+	CampusId       int                    `json:"campusId,omitempty"`
+	Category       string                 `json:"category,omitempty"` // 主题分类
+	Title          string                 `json:"title,omitempty"`    // 标题
+	Content        string                 `json:"content,omitempty"`
+	Images         []*ImageView           `json:"images,omitempty"`
+	Audio          *AudioView             `json:"audio,omitempty"`
+	Video          *VideoView             `json:"video,omitempty"`
+	Attachments    []*AttachmentView      `json:"attachements,omitempty"`
+	Extras         map[string]interface{} `json:"extras,omitempty"`         //
+	Open           bool                   `json:"open,omitempty"`           // 是否相互可见
+	IsStandard     bool                   `json:"isStandard"`               // 是否是标准模板保存过来的
+	Cover          string                 `json:"cover,omitempty"`          // 模版封面
+	Grade          string                 `json:"grade,omitempty"`          // 适用年级
+	PunchType      string                 `json:"punchType,omitempty"`      // 打卡类型
+	PunchStem      *PunchStemView         `json:"punchStem,omitempty"`      // 打卡题目
+	CardPunchCycle int                    `json:"cardPunchCycle,omitempty"` // 打卡周期
+	CardPunchWeek  []string               `json:"cardPunchWeek,omitempty"`  // 打卡频次
+	RemindTime     string                 `json:"remindTime,omitempty"`     // 提醒时间
+	CreateTime     int64                  `json:"createTime,omitempty"`     // 创建时间
+}
+
+type PunchCardStandardTemplate {
+	Id             string                 `json:"id,omitempty"`       // 模版id
+	Category       string                 `json:"category,omitempty"` // 主题分类
+	Title          string                 `json:"title,omitempty"`    // 标题
+	Content        string                 `json:"content,omitempty"`
+	Images         []*ImageView           `json:"images,omitempty"`
+	Audio          *AudioView             `json:"audio,omitempty"`
+	Video          *VideoView             `json:"video,omitempty"`
+	Attachments    []*AttachmentView      `json:"attachements,omitempty"`
+	Extras         map[string]interface{} `json:"extras,omitempty"`         //
+	Open           bool                   `json:"open,omitempty"`           // 是否相互可见
+	IsMine         bool                   `json:"isStandard,omitempty"`     // 是否保存到我的模版
+	IsShow         bool                   `json:"isShow,omitempty"`         // 是否展示
+	Cover          string                 `json:"cover,omitempty"`          // 模版封面
+	Grade          string                 `json:"grade,omitempty"`          // 适用年级
+	UseCount       int64                  `json:"useCount,omitempty"`       // 使用次数
+	PunchType      string                 `json:"punchType,omitempty"`      // 打卡类型
+	PunchStem      *PunchStemView         `json:"punchStem,omitempty"`      // 打卡题目
+	CardPunchCycle int                    `json:"cardPunchCycle,omitempty"` // 打卡周期
+	CardPunchWeek  []string               `json:"cardPunchWeek,omitempty"`  // 打卡频次
+	RemindTime     string                 `json:"remindTime,omitempty"`     // 提醒时间
+	CreateTime     int64                  `json:"createTime,omitempty"`     // 创建时间
+}
+
+type ActivityTemplateListRequest {
+	CampusId    int64  `path:"campusId"`
+	Title       string `form:"title,optional"`       // 主题名称
+	Grade       string `form:"grade,optional"`       // 年级筛选
+	SubjectName string `form:"subjectName,optional"` // 德育&智育&体育&美育&劳育&我的模版(为空的时候即为我的模版)
+	Page        int    `form:"page,default=1"`
+	PageSize    int    `form:"pageSize,default=10"`
+}
+
+type ActivityTemplateListResponse {
+	Templates []*ActivityTemplate `json:"templates"`
+	Total     int                 `json:"total"`
+}
+
+type ActivityStandardTemplateListResponse {
+	Templates []*ActivityStandardTemplate `json:"templates"`
+	Total     int                         `json:"total"`
+}
+
+type ActivityTemplate {
+	Id          string                 `json:"id,omitempty"` // 模版id
+	CampusId    int                    `json:"campusId,omitempty"`
+	Category    string                 `json:"category,omitempty"` // 主题分类
+	Title       string                 `json:"title,omitempty"`    // 标题
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`     //
+	Open        bool                   `json:"open,omitempty"`       // 是否相互可见
+	IsStandard  bool                   `json:"isStandard"`           // 是否是标准模板保存过来的
+	Cover       string                 `json:"cover,omitempty"`      // 模版封面
+	Grade       string                 `json:"grade,omitempty"`      // 适用年级
+	CreateTime  int64                  `json:"createTime,omitempty"` // 创建时间
+}
+
+type ActivityStandardTemplate {
+	Id          string                 `json:"id,omitempty"`       // 模版id
+	Category    string                 `json:"category,omitempty"` // 主题分类
+	Title       string                 `json:"title,omitempty"`    // 标题
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`     //
+	Open        bool                   `json:"open,omitempty"`       // 是否相互可见
+	IsMine      bool                   `json:"isMine,omitempty"`     // 是否保存到我的模版
+	IsShow      bool                   `json:"isShow,omitempty"`     // 是否展示
+	Cover       string                 `json:"cover,omitempty"`      // 模版封面
+	UseCount    int64                  `json:"useCount,omitempty"`   // 使用次数
+	Grade       string                 `json:"grade,omitempty"`      // 适用年级
+	CreateTime  int64                  `json:"createTime,omitempty"` // 创建时间
+}
+
+type FindPushRequest {
+	CampusId int `path:"campusId"`
+}
+
+type FindPushResponse {
+	Master  []int64 `json:"master"`
+	Teacher []int64 `json:"teacher"`
+}
+
+type PushSettingRequest {
+	CampusId int      `path:"campusId"`
+	Master   []string `json:"master,optional"`  // 全校数据权限人
+	Teacher  []string `json:"teacher,optional"` // 班级权限数据人
+}
+
+type PushSettingResponse {
+	NoPermissionClasses []int64 `json:"noPermissionClasses,omitempty"` //没有德育权限的班级数组
+}
+
+type GetSelfDevelopmentQualityRequest {
+	Theme    string `form:"theme,optional"`
+	Keyword  string `form:"keyword,optional"`
+	Page     int    `form:"page,optional"`
+	PageSize int    `form:"pageSize,optional"`
+	IsSelf   bool   `form:"isSelf,optional"`
+}
+
+type GetAllSelfDevelopmentQualityRequest {
+	Theme string `form:"theme,optional"` // deyu
+}
+
+type AddSelfDevelopmentQualityRequest {
+	Theme   string `json:"theme"`
+	Quality string `json:"quality"`
+}
+
+type UpdateSelfDevelopmentQualityRequest {
+	Id      string `json:"id"`
+	Theme   string `json:"theme"`
+	Quality string `json:"quality"`
+}
+
+type GetSelfDevelopmentQualityResponse {
+	TotalSize int                   `json:"totalSize"`
+	Results   []*DevelopmentQuality `json:"results"`
+}
+
+type GetAllSelfDevelopmentQualityResponse {
+	Results []*DevelopmentQuality `json:"results"`
+}
+
+type AddSelfDevelopmentQualityResponse {
+}
+
+type UpdateSelfDevelopmentQualityResponse {
+}
+
+type DevelopmentQuality {
+	Id         string `json:"id"`
+	Theme      string `json:"theme"` // 德育
+	Quality    string `json:"quality"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type IsTemplateRepeatRequest {
+	Type  string `json:"type"` // 打卡=PUNCHCARD 活动=ACTIVITY
+	Title string `json:"title"`
+}
+
+type IsTemplateRepeatResponse {
+	IsRepeat bool `json:"isRepeat"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8080
+)
+service templatebook-api {
+	@doc(
+		summary: 获取年级列表
+	)
+	@server(
+		handler: GetGradeListHandler
+	)
+	post /templatebook/get/gradename/list/:campusId(GetGradeRequest) returns(GetGradeResponse)
+	
+	@doc(
+		summary: 月报获取数据
+	)
+	@server(
+		handler: TemplatebookHandler
+	)
+	post /templatebook/get-month-stat-by-campus/:campusId(GetDataRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 月报获取年级进步方向
+	)
+	@server(
+		handler: GradeListHandler
+	)
+	post /templatebook/getgradelist/:campusId(GetDataRequest) returns(ProgressDirectionResponse)
+	
+	@doc(
+		summary: 月报综合素质发展
+	)
+	@server(
+		handler: DevelopmentListHandler
+	)
+	post /templatebook/developmenlist/:campusId(GetDataRequest) returns(DevelopmentDirectionListResponse)
+	
+	@doc(
+		summary: 学期列表
+	)
+	@server(
+		handler: CampusTermHandler
+	)
+	get /templatebook/term/list(CampusTermRequest) returns(CampusTermResponse)
+	
+	@doc(
+		summary: 期末报告
+	)
+	@server(
+		handler: TermReportHandler
+	)
+	post /templatebook/gettermreport/:campusId(GetDataRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 班级报告
+	)
+	@server(
+		handler: ClassTermReportHandler
+	)
+	post /templatebook/getclasstermreport/:campusId(GetClassTermReportRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 家长(学生)报告详情
+	)
+	@server(
+		handler: StudentReportHandler
+	)
+	get /templatebook/student/report-detail(StudentReportDetailsRequest) returns(StudentReportDetailsResponse)
+	
+	@doc(
+		summary: 班级报告详情
+	)
+	@server(
+		handler: ClassReportHandler
+	)
+	get /templatebook/class/report-detail(ClassReportDetailsRequest) returns(ClassReportDetailsResponse)
+	
+	@doc(
+		summary: 整校报告详情
+	)
+	@server(
+		handler: SchoolReportHandler
+	)
+	get /templatebook/school/report-detail(SchoolReportDetailsRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 打卡成员列表
+	)
+	@server(
+		handler: PunchMemberHandler
+	)
+	get /templatebook/punch/member-list(PunchMemberRequest)returns(PunchMemberResponse)
+	
+	@doc(
+		summary: 弹屏
+	)
+	@server(
+		handler: PosterHandler
+	)
+	get /templatebook/poster(PosterRequest) returns(PosterResponse)
+	
+	@doc(
+		summary: 开通功能的班级列表
+	)
+	@server(
+		handler: ClassListHandler
+	)
+	get /templatebook/classes/list(ClassListRequest) returns([]*AllGradesAndClasses)
+	
+	@doc(
+		summary: 班级历史报告列表
+	)
+	@server(
+		handler: ClassReportHistoryListHandler
+	)
+	get /templatebook/class/history-list(ClassHistoryListRequest) returns(ClassHistoryListResponse)
+	
+	@doc(
+		summary: 德育包权限校验
+	)
+	@server(
+		handler: TemplatebookUserAuthHandler
+	)
+	get /templatebook/user-auth(TemplatebookUserAuthRequest) returns(TemplatebookUserAuthResponse)
+	
+	@doc(
+		summary: 学校历史报告列表
+	)
+	@server(
+		handler: SchoolReportHistoryListHandler
+	)
+	get /templatebook/school/history-list(SchoolHistoryListRequest) returns(SchoolHistoryListResponse)
+	
+	@doc(
+		summary: pdf 导出
+	)
+	@server(
+		handler: TemplateBookPdfHandler
+	)
+	get /templatebook/pdf/export(TemplateBookPdfRequest) returns(TemplateBookPdfResponse)
+	
+	@doc(
+		summary: 创建打卡模版
+	)
+	@server(
+		handler: CreatePunchCardTemplateHandler
+	)
+	post /templatebook/template/create-punchcard/:campusId(CreatePunchCardTemplateRequest) returns(CreatePunchCardTemplateResponse)
+	
+	@doc(
+		summary: 创建活动模版
+	)
+	@server(
+		handler: CreateActivityTemplateHandler
+	)
+	post /templatebook/template/create-activity/:campusId(CreateActivityTemplateRequest) returns(CreateActivityTemplateResponse)
+	
+	@doc(
+		summary: 创建打卡
+	)
+	@server(
+		handler: PublishPunchCardHandler
+	)
+	post /templatebook/publish/punchcard/:campusId(PublishPunchCardRequest) returns(PublishPunchCardResponse)
+	
+	@doc(
+		summary: 创建活动
+	)
+	@server(
+		handler: PublishActivityHandler
+	)
+	post /templatebook/publish/activity/:campusId(PublishActivityRequest) returns(PublishActivityResponse)
+	
+	@doc(
+		summary: 查看打卡模版
+	)
+	@server(
+		handler: DetailPunchCardTemplateHandler
+	)
+	get /templatebook/detail/punchcard/template/:templateId(DetailPunchCardTemplateRequest) returns(DetailPunchCardTemplateResponse)
+	
+	@doc(
+		summary: 删除打卡模版
+	)
+	@server(
+		handler: DeletePunchCardTemplateHandler
+	)
+	delete /templatebook/delete/punchcard/template/:templateId(DeletePunchCardTemplateRequest) returns(DeletePunchCardTemplateResponse)
+	
+	@doc(
+		summary: 查看活动模版
+	)
+	@server(
+		handler: DetailActivityTemplateHandler
+	)
+	get /templatebook/detail/activity/template/:templateId(DetailActivityTemplateRequest) returns(DetailActivityTemplateResponse)
+	
+	@doc(
+		summary: 删除活动模版
+	)
+	@server(
+		handler: DeleteActivityTemplateHandler
+	)
+	delete /templatebook/delete/activity/template/:templateId(DeleteActivityTemplateRequest) returns(DeleteActivityTemplateResponse)
+	
+	@doc(
+		summary: 打卡记录列表
+	)
+	@server(
+		handler: PunchCardListHandler
+	)
+	get /templatebook/punchcard/list/:campusId(PunchCardListRequest) returns(PunchCardListResponse)
+	
+	@doc(
+		summary: 打卡详情
+	)
+	@server(
+		handler: PunchCardDetailHandler
+	)
+	get /templatebook/punchcard/detail/:punchCardId(PunchCardDetailRequest) returns(PunchCardDetailResponse)
+	
+	@doc(
+		summary: 撤回打卡
+	)
+	@server(
+		handler: PunchCardRecallHandler
+	)
+	delete /templatebook/punchcard/recall/:punchCardId(PunchCardRecallRequest) returns(PunchCardRecallResponse)
+	
+	@doc(
+		summary: 活动记录列表
+	)
+	@server(
+		handler: ActivityListHandler
+	)
+	get /templatebook/activity/list/:campusId(ActivityListRequest) returns(ActivityListResponse)
+	
+	@doc(
+		summary: 活动详情
+	)
+	@server(
+		handler: ActivityDetailHandler
+	)
+	get /templatebook/activity/detail/:activityId(ActivityDetailRequest) returns(ActivityDetailResponse)
+	
+	@doc(
+		summary: 撤回活动
+	)
+	@server(
+		handler: ActivityRecallHandler
+	)
+	delete /templatebook/activity/recall/:activityId(ActivityRecallRequest) returns(ActivityRecallResponse)
+	
+	@doc(
+		summary: 我的打卡模版列表
+	)
+	@server(
+		handler: PunchCardTemplateListHandler
+	)
+	get /templatebook/template/punchcard/list/:campusId(PunchCardTemplateListRequest) returns(PunchCardTemplateListResponse)
+	
+	@doc(
+		summary: 五育各类别和我的打卡模版列表
+	)
+	@server(
+		handler: PunchCardTemplateAllListHandler
+	)
+	get /templatebook/template/punchcard/all/list/:campusId(PunchCardTemplateListRequest) returns(PunchCardStandardTemplateListResponse)
+	
+	@doc(
+		summary: 我的活动模版列表
+	)
+	@server(
+		handler: ActivityTemplateListHandler
+	)
+	get /templatebook/template/activity/list/:campusId(ActivityTemplateListRequest) returns(ActivityTemplateListResponse)
+	
+	@doc(
+		summary: 五育各类别和我的活动模版列表
+	)
+	@server(
+		handler: ActivityTemplateAllListHandler
+	)
+	get /templatebook/template/activity/all/list/:campusId(ActivityTemplateListRequest) returns(ActivityStandardTemplateListResponse)
+	
+	@doc(
+		summary: 获取推送报告权限
+	)
+	@server(
+		handler: FindPushHandler
+	)
+	get /templatebook/push/:campusId(FindPushRequest) returns(FindPushResponse)
+	
+	@doc(
+		summary: 设置推送报告权限
+	)
+	@server(
+		handler: PushSettingHandler
+	)
+	post /templatebook/push/:campusId(PushSettingRequest) returns(PushSettingResponse)
+	
+	@doc(
+		summary: 分页获取素质标签
+	)
+	@server(
+		handler: GetDevelopmentQualityByLimitHandler
+	)
+	get /templatebook/developmentquality/list(GetSelfDevelopmentQualityRequest) returns(GetSelfDevelopmentQualityResponse)
+	
+	@doc(
+		summary: 根据主题获取标准加素质标签
+	)
+	@server(
+		handler: GetAllDevelopmentQualityByThemeHandler
+	)
+	get /templatebook/developmentquality/theme/list(GetAllSelfDevelopmentQualityRequest) returns(GetAllSelfDevelopmentQualityResponse)
+	
+	@doc(
+		summary: 新增自定义标签
+	)
+	@server(
+		handler: AddSelfDevelopmentQualityHandler
+	)
+	post /templatebook/developmentquality/add(AddSelfDevelopmentQualityRequest) returns(AddSelfDevelopmentQualityResponse)
+	
+	@doc(
+		summary: 编辑自定义标签
+	)
+	@server(
+		handler: UpdateSelfDevelopmentQuality
+	)
+	post /templatebook/developmentquality/update(UpdateSelfDevelopmentQualityRequest) returns(UpdateSelfDevelopmentQualityResponse)
+	
+	@doc(
+		summary: 模板名称是否重复
+	)
+	@server(
+		handler: IsTemplateRepeatByTitleHandler
+	)
+	post /templatebook/template/isrepeat(IsTemplateRepeatRequest) returns(IsTemplateRepeatResponse)
+}

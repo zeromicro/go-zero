@@ -1,0 +1,17 @@
+type MarkReadRequest {
+	Token  string `path:"token"`
+	Cursor int64  `json:"cursor"`
+}
+
+type MarkReadResponse {
+}
+
+service readcursor-api {
+	@doc(
+		summary: 更新用户最新查看消息时间
+	)
+	@server(
+		handler: markReadHandler
+	)
+	post /message/mark/read/:token(MarkReadRequest) returns(MarkReadResponse)
+}

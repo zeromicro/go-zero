@@ -1,0 +1,92 @@
+info(
+	title: doc title
+	desc: "goctl api go -api contact.api -dir ./
+	这是联系人的API文档"
+	version: 1.0
+)
+
+type AddContactRequest {
+	ContactId int64  `json:"contactId,optional"`
+	CampusId  int64  `json:"campusId"`
+	Name      string `json:"name"`
+	Sex       int64  `json:"sex,optional"`
+	Telephone string `json:"telephone,optional"`
+	Phone     string `json:"phone,optional"`
+	Wechat    string `json:"wechat,optional"`
+	Job       string `json:"job"`
+	Remark    string `json:"remark,optional"`
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"`
+}
+
+type UpdateContactRequest {
+	ContactId int64 `path:"contactId"`
+}
+
+type ContactDetailRequest {
+	ContactId int64 `path:"contactId"`
+}
+
+type ContactDetailResponse {
+	ContactId  int64  `json:"contactId"`
+	CampusId   int64  `json:"campusId"`
+	Name       string `json:"name"`
+	Pinyin     string `json:"pinyin,omitempty"`
+	Sex        int64  `json:"sex,omitempty"`
+	Telephone  string `json:"telephone,omitempty"`
+	Phone      string `json:"phone,omitempty"`
+	Wechat     string `json:"wechat,omitempty"`
+	Job        string `json:"job,omitempty"`
+	Remark     string `json:"remark,omitempty"`
+	CampusName string `json:"campusName,omitempty"`
+}
+
+type ContactListRequest {
+	CampusId int64  `json:"campusId,optional"`
+	Name     string `json:"name,optional"`
+}
+
+type ContactListResponse {
+	List []*ContactDetailResponse `json:"list"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 2019
+	jwt: Auth
+)
+service contact {
+	@doc(
+		summary: 新增联系人
+	)
+	@server(
+		handler: addContactHandler
+	)
+	post /contact/add(AddContactRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 联系人详情
+	)
+	@server(
+		handler: contactDetailHandler
+	)
+	get /contact/detail/:contactId(ContactDetailRequest) returns(ContactDetailResponse)
+	
+	@doc(
+		summary: 删除联系人
+	)
+	@server(
+		handler: updateContactHandler
+	)
+	get /contact/update/:contactId(UpdateContactRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 联系人列表
+	)
+	@server(
+		handler: contactListHandler
+	)
+	post /contact/list(ContactListRequest) returns(ContactListResponse)
+}

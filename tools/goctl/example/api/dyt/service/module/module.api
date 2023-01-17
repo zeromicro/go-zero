@@ -1,0 +1,772 @@
+info(
+	title: 应用及权限管理
+	desc:
+	author: wangdi
+	email: wangdi@xiaoheiban.cn
+)
+
+type (
+	CampusModule {
+		Id    int64  `json:"id"`    // 模块id
+		AppId string `json:"appId"` // applicationId
+		Name  string `json:"name"`  // 应用名称
+		Icon  string `json:"icon"`  // 应用图标
+		Desc  string `json:"desc"`  // 应用描述
+	}
+
+	CampusModuleGroup {
+		Name string          `json:"name"`
+		List []*CampusModule `json:"list"`
+	}
+
+	GetCampusModuleRequest {
+		TeacherId int64 `json:"teacherId,optional"` // 已选中教师id,不填则获取学校所有
+	}
+	GetCampusModuleResponse {
+		Group []*CampusModuleGroup `json:"group"`
+	}
+
+	Module {
+		Id    int64  `json:"id"`    // 模块id
+		AppId string `json:"appId"` // applicationId
+		Name  string `json:"name"`  // 应用名称
+		Icon  string `json:"icon"`  // 应用图标
+		Desc  string `json:"desc"`  // 应用描述
+	}
+
+	ModuleResponse {
+		List []*Module `json:"list"`
+	}
+
+	// 菜单icon
+	MenuIcon {
+		Normal   string `json:"icon"`
+		Selected string `json:"iconChoose,optional"`
+	}
+
+	ChildMenu {
+		AppId string `json:"appId"` // 应用id
+		Name  string `json:"title"` // 应用名称
+		Route string `json:"url"`   // 路由
+	}
+	// 菜单项
+	CampusMenuItem {
+		Id   int64  `json:"id"` // 菜单id
+		Name string `json:"title"`
+		MenuIcon
+		Route        string       `json:"url"`          // 路由
+		HaveChildren bool         `json:"haveChildren"` // 是否有子页面
+		Children     []*ChildMenu `json:"children"`
+	}
+	GetCampusMenuResponse {
+		List []*CampusMenuItem `json:"list"`
+	}
+
+	AdminListRequest {
+		SearchType int    `json:"searchType"`          // 搜索类型：1-姓名模糊搜索；2-手机号精确搜索
+		KeyWord    string `json:"keyWord,optional"`    // 搜索内容
+		Page       int    `json:"page,default=1"`      // 当前页
+		PageSize   int    `json:"pageSize,default=12"` // 当前显示数量
+	}
+
+	AdminListResponse {
+		List  []*AdminView `json:"list"`
+		Count int          `json:"count"`
+	}
+
+	AdminView {
+		TeacherId int64  `json:"teacherId"`         // 教师id
+		Name      string `json:"name"`              // 教师姓名
+		Mobile    string `json:"mobile"`            // 手机号
+		Module    string `json:"module,omitempty"`  // 拥有权限
+		Creator   string `json:"creator,omitempty"` // 创建人
+		IsManager bool   `json:"isManager"`         // 用来判断是否拥有转让功能：true-是；false-否
+	}
+
+	TeacherId {
+		TeacherId int64 `json:"teacherId"`
+	}
+
+	PathTeacherId {
+		TeacherId int64 `path:"teacherId"`
+	}
+
+	AddAdminRequest {
+		TeacherIds []int64 `json:"teacherIds"`      // 教师ids
+		ModuleIds  []int64 `json:"moduleIds"`       // 功能ids
+		Policy     *Policy `json:"policy,optional"` // 组织架构权限
+	}
+
+	Policy {
+		Codes []string `json:"codes,omitempty,optional"` // 权限codes
+		Type  string   `json:"type,omitempty,optional"`  // 管辖范围：*-全校；OPTION_GRADE-指定年级；OPTION_CLASS-指定班级
+		Scope []int64  `json:"scope,optional,omitempty"` // 全校为空；指定年级存入campusGradeId；指定班级存入classId
+	}
+
+	AdminRequest {
+		TeacherId int64   `json:"teacherId"`                 // 教师id
+		ModuleIds []int64 `json:"moduleIds"`                 // 功能ids
+		Policy    *Policy `json:"policy,optional,omitempty"` // 组织架构权限
+	}
+
+	AllArchitecturePolicyRequest {
+		Type string `json:"type"` // 管辖范围：*-全校；OPTION_GRADE-指定年级；OPTION_CLASS-指定班级
+	}
+
+	AllArchitecturePolicyResponse {
+		List []*ArchitecturePolicyView `json:"list"`
+	}
+
+	ArchitecturePolicyView {
+		Name     string                    `json:"name"`               // 权限名
+		Code     string                    `json:"code,omitempty"`     // 权限code
+		Desc     []string                  `json:"desc,omitempty"`     // 描述
+		Children []*ArchitecturePolicyView `json:"children,omitempty"` // 子类
+	}
+
+	TeacherItem {
+		Id     int64  `json:"id"`
+		Name   string `json:"name"`
+		Mobile string `json:"mobile"`
+	}
+	SuperAdminTeacherRequest {
+		Keyword string `form:"keyword,optional"`
+		Type    int    `form:"type"` // 搜索类型，0：转让人，1：超级管理员
+	}
+	SuperAdminTeacherResponse {
+		List []*TeacherItem `json:"list"` // 教师列表
+	}
+
+	AdminTeacherItem {
+		Id   int64          `json:"id"`   // 部门id
+		Name string         `json:"name"` // 部门名称
+		List []*TeacherItem `json:"list"`
+	}
+
+	AdminTeacherResponse {
+		DepartmentArchList []*AdminTeacherItem `json:"departmentArchList"` // 部门架构中教师列表
+		OrderList          []*TeacherItem      `json:"orderList"`          // 教师花名册
+	}
+
+	AdminDetailRequest {
+		TeacherId int64       `json:"teacherId"`        // 教师id
+		Name      string      `json:"name"`             // 教师姓名
+		ModuleIds []int64     `json:"moduleIds"`        // 功能ids
+		Policy    *PolicyView `json:"policy,omitempty"` // 组织架构权限
+	}
+
+	PolicyView {
+		Codes []string `json:"codes,omitempty"` // 权限codes
+		Type  string   `json:"type,omitempty"`  // 管辖范围：*-全校；OPTION_GRADE-指定年级；OPTION_CLASS-指定班级
+		Scope []*Scope `json:"scope,omitempty"` // 全校为空；指定年级存入campusGradeId；指定班级存入classId
+	}
+
+	Scope {
+		Id   int64  `json:"id"`   // campusGradeId；classId
+		Name string `json:"name"` // campusGradeName；className
+	}
+	IsManagerRequest {
+		UserToken string `json:"userToken"`
+	}
+	IsManagerResponse {
+		IsManager bool `json:"isManager"`
+	}
+	UserRoleResponse {
+		Role string `json:"role"` // ADMIN-管理员｜SUPER-ADMIN超级管理员|MANAGER-创建人
+	}
+
+	InternalTransferRequest {
+		CampusId  int64 `json:"campusId"`
+		TeacherId int64 `json:"teacherId"`
+	}
+
+	ModuleSortRequest {
+		Ids []int64 `json:"ids"`
+	}
+	ModuleAdminRequest {
+		Type  string `json:"type"` // 管理员类型 super-admin:超级管理员,admin:普通管理员
+		AppId string `json:"appId"`
+		Page  int    `json:"page,optional"`
+		Size  int    `json:"size,optional"`
+	}
+	ModuleAdminResponse {
+		Count int                `json:"count"` // 总数
+		List  []*ModuleAdminItem `json:"list"`
+	}
+	ModuleAdminItem {
+		Id         int64  `json:"id"`
+		Name       string `json:"teacherName"`
+		Department string `json:"department"`
+		Scope      string `json:"scope"`
+		Authorizer string `json:"creator"`
+	}
+)
+
+type (
+	AddModuleRequest {
+		UserId        string         `json:"userId"`
+		AppId         string         `json:"appId,optional"`
+		CategoryId    int64          `json:"categoryId,optional"`
+		Icon          string         `json:"icon,optional"`
+		Name          string         `json:"title"`
+		Desc          string         `json:"desc,optional"`
+		Type          int            `json:"type"`          // 应用类型,0-系统应用（如：权限管理）| 1-免费应用｜2-付费应用
+		TerminalType  string         `json:"terminalTypes"` // 应用终端类型，mini-晓程序，web-h5页面，app-原生应用
+		MiniOption    *MiniOption    `json:"miniOption,optional"`
+		WebOption     *WebOption     `json:"webOption,optional"`
+		AppOption     *AppOption     `json:"appOption,optional"`
+		DesktopOption *DesktopOption `json:"desktopOption,optional"`
+	}
+	MiniOption {
+		AppId  string `json:"appId"` // 小程序appId
+		Url    string `json:"url,optional"`
+		Module int    `json:"module,optional"`
+		Event  string `json:"event,optional"`
+	}
+	WebOption {
+		Url string `json:"url,optional"`
+	}
+	AppOption {
+		Teacher *AppOptionItem `json:"teacher,optional"`
+		Parent  *AppOptionItem `json:"parent,optional"`
+	}
+	AppOptionItem {
+		Name string `json:"name"`
+		Url  string `json:"url"`
+		Icon string `json:"icon"`
+	}
+
+	DesktopOption {
+		Url string `json:"url,optional"`
+	}
+	EditModuleRequest {
+		Id            int64          `json:"id"`
+		UserId        string         `json:"userId"`
+		AppId         string         `json:"appId,optional"`
+		CategoryId    int64          `json:"categoryId,optional"`
+		Icon          string         `json:"icon,optional"`
+		Name          string         `json:"title"`
+		Desc          string         `json:"desc,optional"`
+		Type          int            `json:"type"`          // 应用类型,0-系统应用（如：权限管理）| 1-免费应用｜2-付费应用
+		TerminalType  string         `json:"terminalTypes"` // 应用终端类型，mini-晓程序，web-h5页面，app-原生应用
+		MiniOption    *MiniOption    `json:"miniOption,optional"`
+		WebOption     *WebOption     `json:"webOption,optional"`
+		AppOption     *AppOption     `json:"appOption,optional"`
+		DesktopOption *DesktopOption `json:"desktopOption,optional"`
+	}
+	DeleteModuleRequest {
+		Id int64 `json:"id"`
+	}
+
+	AddModuleCategoryItemRequest {
+		UserId string `json:"userId"`
+		Name   string `json:"title"`
+		ModuleCategoryIcon
+	}
+
+	ModuleCategoryIcon {
+		Normal   string `json:"icon,optional"`
+		Selected string `json:"iconChoose,optional"`
+	}
+
+	EditModuleCategoryItemRequest {
+		Id     int64  `json:"id"` // 分类id
+		UserId string `json:"userId"`
+		Name   string `json:"title"`
+		ModuleCategoryIcon
+	}
+
+	DeleteModuleCategoryItemRequest {
+		Id int64 `json:"id"`
+	}
+
+	ModuleCategoryItem {
+		Id   int64  `json:"id"` // 分类id
+		Name string `json:"title"`
+		ModuleCategoryIcon
+	}
+	ModuleCategoryResponse {
+		List []*ModuleCategoryItem `json:"list"`
+	}
+
+	UserModulePoliciesRequest {
+		ModuleCode string `path:"mcode"`
+	}
+
+	UserModulePoliciesResponse {
+		List []*SubModule `json:"list"`
+	}
+
+	SubModule {
+		Keys          []interface{}      `json:"-"` //TODO
+		Policies      []*SubModulePolicy `json:"policies"`
+		SubModuleName string             `json:"subModuleName"`
+	}
+
+	SubModulePolicy {
+		Keys       []interface{} `json:"-"`          //TODO
+		PolicyAuth bool          `json:"policyAuth"` // 是否拥有该项权限
+		PolicyCode string        `json:"policyCode"`
+		PolicyName string        `json:"policyName"`
+		PolicyDesc []string      `json:"policyDesc"`
+	}
+
+	UserPolicyCodeRequest {
+	}
+
+	UserPolicyCodeResponse {
+		PolicyCodes []string `json:"policyCodes"`
+	}
+
+	SchoolEntryResponse {
+		List []*SchoolEntryItem `json:"list"`
+	}
+	SchoolEntryItem {
+		CampusId    int64  `json:"campusId"`
+		SchoolName  string `json:"schoolName"`
+		TeacherName string `json:"teacherName"`
+		Avatar      string `json:"avatar"`
+		// 学校已开通功能数
+		OpenCount int `json:"openCount"`
+		// 待审批数量综合
+		UnApproveCount int                 `json:"unApproveCount"`
+		ApprovalUrl    string              `json:"approvalUrl"`
+		LastLoginTime  string              `json:"lastLoginTime"`
+		List           []*SchoolPortalItem `json:"list"`
+	}
+
+	SchoolPortalItem {
+		// 菜单名称
+		MenuName string `json:"menuName"`
+		Icon     string `json:"icon"`
+		// 未处理消息数
+		UnHandleCount int    `json:"unHandleCount"`
+		Url           string `json:"url"`
+		Sort          int    `json:"sort"`
+		ModuleCode    string `json:"moduleCode"`
+	}
+	TeacherModuleRequest {
+		CampusId int64 `json:"campusId"`
+	}
+	TeacherModuleResponse {
+		List []*TeacherModuleItem `json:"list"`
+	}
+	TeacherModuleItem {
+		Id         int64  `json:"id"`
+		Name       string `json:"name"`
+		ModuleCode string `json:"moduleCode"`
+	}
+
+	CampusModuleResponse {
+		List []*TeacherModuleItem `json:"list"`
+	}
+
+	ModuleItem {
+		Id         int64  `json:"id"`
+		Name       string `json:"name"`
+		ModuleCode string `json:"moduleCode"`
+	}
+)
+
+type (
+	UserAppRequest {
+		List     []*UserAppRequestItem `json:"list"`
+		Platform string                `json:"platform"` //平台 Desktop、XhbApp
+	}
+
+	UserAppRequestItem {
+		CampusId  int64  `json:"campusId"`
+		UserToken string `json:"userToken"`
+	}
+
+	UserCampusAppResponse {
+		List []*UserCampusAppItem `json:"list"`
+	}
+	UserCampusAppItem {
+		CampusId int64          `json:"campusId"`
+		List     []*UserAppItem `json:"list"`
+	}
+
+	UserAppItem {
+		Name        string `json:"name"`
+		Icon        string `json:"appIcon"`
+		Type        string `json:"type"` // mini-晓程序,web-h5页面，app-原生应用
+		Url         string `json:"url"`
+		Desc        string `json:"desc"`
+		AppId       string `json:"appId"`
+		UniqueId    string `json:"uniqueId"` // 唯一id，仅用于UI渲染，解决类似晓课堂这样的应用一个appId展示多个功能导致前端不能使用appId来作为唯一值问题
+		PageId      int64  `json:"pageId"`   // 埋点id，id值由数据组定义
+		ModuleSort  int    `json:"moduleSort"`
+		Sort        int    `json:"sort"`
+		Category    string `json:"category"`
+		ModuleType  string `json:"moduleType"`  // admin  or general
+		ClosePrompt bool   `json:"closePrompt"` //关闭应用是否提示
+	}
+	CampusInfoResponse {
+		CampusId int64  `json:"campusId"`
+		Name     string `json:"name"`
+	}
+
+	EnableCampusModuleRequest {
+		UserId      int64    `json:"userId"`
+		CampusId    int64    `json:"campusId"`
+		ModuleCodes []string `json:"moduleCodes"`
+		SpaceSize   float64  `json:"spaceSize"`
+	}
+
+	IdCampusRequest {
+		CampusId int64 `path:"campus_id"`
+	}
+
+	InterCampusInfo {
+		CampusId      int64    `json:"campusId"`
+		ManagerMobile string   `json:"managerMobile"`
+		ManagerName   string   `json:"managerName"`
+		CreateTime    []*int64 `json:"createTime"`
+	}
+
+	InterTermRequest {
+		CampusId int64 `json:"campusId"`
+		YearId   int64 `json:"yearId"`
+	}
+)
+
+type (
+	UjyAuthRequest {
+		XhbToken string `form:"xhbToken"`
+	}
+
+	UjyAuthResponse {
+		UjyEnabled bool `json:"ujyEnabled"`
+	}
+)
+
+@server(
+	jwt: DytAuth
+	folder: campus
+)
+service module-api {
+	@doc(
+		summary: 根据教师获取学校已购买的功能列表(权限管理页面)
+	)
+	@server(
+		handler: getCampusModule
+	)
+	get /module/campus/module/list(GetCampusModuleRequest) returns(GetCampusModuleResponse)
+	
+	@doc(
+		summary: 获取当前学校开通的所有功能列表
+	)
+	@server(
+		handler: getCampusModules
+	)
+	get /module/campus/modules() returns(CampusModuleResponse)
+	
+	@doc(
+		summary: 获取用户侧面菜单栏
+	)
+	@server(
+		handler: getCampusMenu
+	)
+	get /module/campus/menu/list() returns(GetCampusMenuResponse)
+	
+	@doc(
+		summary: 获取超级管理员｜转让人选择列表
+	)
+	@server(
+		handler: getSuperAdminUsers
+	)
+	get /module/super/admin/user/list(SuperAdminTeacherRequest) returns(SuperAdminTeacherResponse)
+	
+	@doc(
+		summary: 获取管理员选择列表
+	)
+	@server(
+		handler: getAdminUsers
+	)
+	get /module/admin/user/list() returns(AdminTeacherResponse)
+	
+	@doc(
+		summary: 获取超级管理员列表
+	)
+	@server(
+		handler: superAdminListHandler
+	)
+	post /module/campus/super-admin/list(AdminListRequest) returns(AdminListResponse)
+	
+	@doc(
+		summary: 转让超级管理员
+	)
+	@server(
+		handler: transferSuperAdminHandler
+	)
+	post /module/campus/super-admin/transfer(TeacherId) returns
+	
+	@doc(
+		summary: 新增超级管理员
+	)
+	@server(
+		handler: addSuperAdminHandler
+	)
+	post /module/campus/super-admin/add(TeacherId)
+	
+	@doc(
+		summary: 删除超级管理员/管理员
+	)
+	@server(
+		handler: deleteAdminHandler
+	)
+	post /module/campus/admin/delete(TeacherId)
+	
+	@doc(
+		summary: 获取管理员列表
+	)
+	@server(
+		handler: adminListHandler
+	)
+	post /module/campus/admin/list(AdminListRequest) returns(AdminListResponse)
+	
+	@doc(
+		summary: 新增管理员
+	)
+	@server(
+		handler: addAdminHandler
+	)
+	post /module/campus/admin/add(AddAdminRequest)
+	
+	@doc(
+		summary: 管理员详情
+	)
+	@server(
+		handler: adminDetailHandler
+	)
+	get /module/campus/admin/detail/:teacherId(PathTeacherId) returns(AdminDetailRequest)
+	
+	@doc(
+		summary: 修改管理员
+	)
+	@server(
+		handler: editAdminHandler
+	)
+	post /module/campus/admin/edit(AdminRequest)
+	
+	@doc(
+		summary: 获取所有组织结构权限
+	)
+	@server(
+		handler: allArchitecturePolicyHandler
+	)
+	post /module/campus/architecture-policy/all(AllArchitecturePolicyRequest) returns(AllArchitecturePolicyResponse)
+	
+	@doc(
+		summary: 获取当前用户身份
+	)
+	@server(
+		handler: userRoleHandler
+	)
+	get /module/user/role() returns(UserRoleResponse)
+	
+	@doc(
+		summary:"【暂时保留】获取当前用户在应用内的数据权限，说明：目前组织架构的 module 是 architecture"
+	)
+	@server(
+		handler: userModulePoliciesHandler
+	)
+	get /module/auth/:mcode/data/policy(UserModulePoliciesRequest) returns(UserModulePoliciesResponse)
+	
+	@doc(
+		summary: 获取当前用户所有权限码
+	)
+	@server(
+		handler: userPolicyCodesHandler
+	)
+	get /module/auth/user/policies(UserPolicyCodeRequest) returns(UserPolicyCodeResponse)
+	
+	@doc(
+		summary: 各个应用内获取超级管理员｜管理员列表
+	)
+	@server(
+		handler: moduleAdminList
+	)
+	post /module/admin/list(ModuleAdminRequest) returns(ModuleAdminResponse)
+	
+	@doc(
+		summary: 获取学校信息
+	)
+	@server(
+		handler: getCampusExtraInfo
+	)
+	get /module/campus/info() returns(CampusInfoResponse)
+}
+
+@server(
+	folder: modulecategory
+)
+service module-api {
+	@doc(
+		summary: 添加分类项(分类管理)
+	)
+	@server(
+		handler: addCategory
+	)
+	post /internal/module/category/add(AddModuleCategoryItemRequest)
+	
+	@doc(
+		summary: 编辑分类项(分类管理)
+	)
+	@server(
+		handler: editCategory
+	)
+	post /internal/module/category/edit(EditModuleCategoryItemRequest)
+	
+	@doc(
+		summary: 删除分类项(分类管理)
+	)
+	@server(
+		handler: deleteCategory
+	)
+	post /internal/module/category/delete(DeleteModuleCategoryItemRequest)
+	
+	@doc(
+		summary: 获取分类列表(分类管理)
+	)
+	@server(
+		handler: getCategory
+	)
+	post /internal/module/category/list() returns(ModuleCategoryResponse)
+	
+	@doc(
+		summary: 添加功能(功能管理)
+	)
+	@server(
+		handler: addModule
+	)
+	post /internal/module/module/add(AddModuleRequest)
+	
+	@doc(
+		summary: 编辑功能(功能管理)
+	)
+	@server(
+		handler: editModule
+	)
+	post /internal/module/module/edit(EditModuleRequest)
+	
+	@doc(
+		summary: 删除功能(功能管理)
+	)
+	@server(
+		handler: deleteModule
+	)
+	post /internal/module/module/delete(DeleteModuleRequest)
+	
+	@doc(
+		summary: 获取功能列表(功能管理)
+	)
+	@server(
+		handler: getModule
+	)
+	post /internal/module/module/list() returns(ModuleResponse)
+	
+	@doc(
+		summary: 应用排序
+	)
+	@server(
+		handler: sortModules
+	)
+	post /internal/module/sort(ModuleSortRequest) returns
+	
+}
+
+@server(
+	folder: campus
+)
+service module-api {
+	@doc(
+		summary: 获取晓黑板用户的所有应用
+	)
+	@server(
+		handler: GetCampusInfoHandler
+	)
+	get /internal/module/campus-info/:campus_id(IdCampusRequest) returns(InterCampusInfo)
+}
+
+@server(
+	folder: inter
+)
+service module-api {
+	@doc(
+		summary: 获取晓黑板用户的所有应用
+	)
+	@server(
+		handler: userApp
+	)
+	post /internal/module/user/app/list(UserAppRequest) returns(UserCampusAppResponse)
+	
+	@doc(
+		summary: 获取当前用户身份
+	)
+	@server(
+		handler: roleHandler
+	)
+	post /internal/module/user/is-manager(IsManagerRequest) returns(IsManagerResponse)
+	
+	@doc(
+		summary: 激活校区应用
+	)
+	@server(
+		handler: EnableCampusModuleHandler
+	)
+	post /internal/module/campus-module/enable(EnableCampusModuleRequest) returns
+	
+	@doc(
+		summary: 转让超级管理员
+	)
+	@server(
+		handler: InternalTransferSuperAdminHandler
+	)
+	post /internal/module/campus/super-admin/transfer(InternalTransferRequest)
+	
+	@doc(
+		summary: 更改学年
+	)
+	@server(
+		handler: InternalChangeTermIdHandler
+	)
+	post /internal/module/term/changeId(InterTermRequest)
+}
+
+@server(
+	folder: school
+	jwt: XhbAuth
+)
+service module-api {
+	@doc(
+		summary: 获取我的校园入口
+	)
+	@server(
+		handler: schoolEntryHandler
+	)
+	get /module/school/entry() returns(SchoolEntryResponse)
+	
+	@doc(
+		summary: 获取教师所拥有的功能列表
+	)
+	@server(
+		handler: teacherModuleHandler
+	)
+	post /module/teacher/module(TeacherModuleRequest) returns(TeacherModuleResponse)
+	
+}
+
+@server(
+	folder: ujy
+)
+service module-api {
+	@doc(
+		summary: 获取UJY权限（从campus迁移过来，保留xcloud域名）
+	)
+	@server(
+		handler: ujyAuthHandler
+	)
+	get /module/ujy/enabled(UjyAuthRequest) returns(UjyAuthResponse)
+}

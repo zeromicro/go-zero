@@ -1,0 +1,428 @@
+info(
+	title: "综合评价"
+	desc: "综合评价api"
+	author: "yangtao"
+	email: "yangtao2@xiaoheiban.cn"
+)
+
+type (
+	ImportView {
+		Line     int64  `json:"line"`
+		Content  string `json:"content"`
+		ErrorMsg string `json:"errorMsg"`
+		Status   string `json:"status"`
+	}
+
+	ImportRequest {
+		FileUrl string `json:"file"`
+	}
+
+	ImportResponse {
+		PositiveResult []*ImportView `json:"positiveResult"`
+		NegativeResult []*ImportView `json:"negativeResult"`
+	}
+
+	XhbClassroomIdRequest {
+		ClassroomId string `json:"classroomId"`
+	}
+
+	XhbBindIndicatorsRequest {
+		ClassroomId string `json:"classroomId"`
+		MessageType string `json:"messageType"`
+	}
+
+	XhbUserBindIndicatorsResponse {
+		Positive []*XhbIndicator `json:"positive"`
+		Negative []*XhbIndicator `json:"negative"`
+	}
+	XhbIndicator {
+		Id     int64  `json:"id"`
+		Icon   string `json:"icon"`
+		Type   string `json:"type"`   // POSITIVE-鼓励，NEGATIVE-待改进
+		Suffix string `json:"suffix"` // 最后一个标签名称
+		Name   string `json:"name"`   // 指标完整名称
+		Sort   int64  `json:"sort"`
+	}
+
+	XhbManageIndicatorResponse {
+		BindList   []*XhbIndicator `json:"bindList"`
+		UnBindList []*XhbIndicator `json:"unbindList"`
+	}
+
+	XhbGrade {
+		Name  string `json:"name"`
+		Score int    `json:"score"`
+	}
+
+	XhbEditTeacherBindIndicators {
+		ClassroomId string  `json:"classroomId"`
+		MessageType string  `json:"messageType"`
+		Indicators  []int64 `json:"indicators"`
+	}
+	XhbSettingRequest {
+		ClassroomId string `json:"classroomId"`
+	}
+	XhbGradeItem {
+		Name  string `json:"name"`
+		Score int    `json:"score"`
+	}
+	XhbGradeConfig {
+		Positive []*XhbGradeItem `json:"positive"`
+		Negative []*XhbGradeItem `json:"negative"`
+	}
+	XhbScoreRange {
+		// index[0]-最低分 index[1]-最高分
+		Positive []int `json:"positive"`
+		Negative []int `json:"negative"`
+	}
+	XhbSettingResponse {
+		Type                int             `json:"type"` // 评价类型，1-分数，2-等第
+		GradeConfigs        *XhbGradeConfig `json:"gradeConfigs"`
+		ScoreRange          *XhbScoreRange  `json:"scoreRange"`
+		IsXhbAppraiseEnable bool            `json:"isXhbAppraiseEnable"`
+	}
+)
+
+type (
+	IndicatorTeacher {
+		Id      int64    `json:"id"`
+		Name    string   `json:"name"`
+		Subject []string `json:"subject"`
+		Count   int      `json:"count"`
+	}
+	IndicatorTeacherResponse {
+		List []*IndicatorTeacher `json:"list"`
+	}
+
+	SubjectTagResponse {
+		List []*SubjectTagItem `json:"list"`
+	}
+	SubjectTagItem {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	TeacherIndicatorRequest {
+		TeacherId int64 `json:"teacherId"`
+		// -1-全部
+		TagIds   []int64 `json:"tagIds"`
+		Page     int     `json:"page"`
+		PageSize int     `json:"pageSize"`
+	}
+	TeacherIndicatorItem {
+		Id     int64  `json:"id"`
+		Name   string `json:"name"`
+		Select bool   `json:"select"`
+	}
+	TeacherIndicatorResponse {
+		IsAllSelect bool                    `json:"isAllSelect"` // 是否全部展示
+		Total       int                     `json:"total"`
+		List        []*TeacherIndicatorItem `json:"list"`
+	}
+	TeacherIndicatorShowRequest {
+		TeacherId   int64 `json:"teacherId"`
+		IndicatorId int64 `json:"indicatorId,optional"`
+		Show        bool  `json:"show,optional"`
+	}
+
+	TeacherIndicatorAllShowRequest {
+		TeacherId int64   `json:"teacherId"`
+		TagIds    []int64 `json:"tagIds,optional"`
+		ShowType  string  `json:"showType"` // on-全部开始 off-全部关闭
+	}
+	IndicatorBindTeachersRequest {
+		IndicatorId int64 `json:"indicatorId"`
+	}
+	IndicatorBindTeacher {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	IndicatorBindTeachersResponse {
+		List []*IndicatorBindTeacher `json:"list"`
+	}
+	IndicatorIconResponse {
+		Positive []string `json:"positive"`
+		Negative []string `json:"negative"`
+	}
+)
+
+type (
+	H5TeacherIndicator {
+		Id            int64  `json:"id"`
+		Icon          string `json:"icon"`
+		Name          string `json:"name"`
+		Sort          int    `json:"sort"`
+		IndicatorType int    `json:"indicatorType"`
+	}
+	H5TeacherIndicatorItem {
+		Name string                `json:"name"`
+		List []*H5TeacherIndicator `json:"list"`
+	}
+	H5TeacherIndicatorResponse {
+		Positive []*H5TeacherIndicatorItem `json:"positive"`
+		Negative []*H5TeacherIndicatorItem `json:"negative"`
+	}
+	H5TeacherAccessEnableResponse {
+		AccessEnable bool `json:"accessEnable"`
+	}
+)
+
+type (
+	GetReportSummaryResponse {
+	}
+
+	GetReportGradeImagesResponse {
+		Images []string `json:"images"`
+	}
+)
+
+type (
+	StudentReportRequest {
+		ReportId      int64  `json:"reportId"`      // 报告id
+		ClassId       int64  `json:"classId"`       // 班级id
+		DataStudentId string `json:"dataStudentId"` // 学生唯一id
+	}
+
+	StudentReportResponse {
+		ReportName   string      `json:"reportName"`            // 报告名称
+		ChartType    int         `json:"chartType"`             // 图表类型；1-雷达图，2-条形图
+		ScoreType    int         `json:"scoreType"`             // 得分显示：1-等第，2-分数
+		StudentInfo  *UserInfo   `json:"studentInfo,omitempty"` // 学生信息
+		GradeInfo    *GradeInfo  `json:"gradeInfo,omitempty"`   // 等第信息
+		Score        float64     `json:"score"`                 // 分数
+		StartTime    int64       `json:"startTime"`             // 开始时间
+		EndTime      int64       `json:"endTime"`               // 结束时间
+		PositiveNum  int         `json:"positiveNum"`           // 进步次数
+		NegativeNum  int         `json:"negativeNum"`           // 勉励次数
+		FullCategory []*Category `json:"fullCategory"`          // 全部分类
+		Subject      []*Tag      `json:"subject"`               // 学科
+		Categories   []*Category `json:"categories"`            // 除学科的分类
+		TeacherInfo  *UserInfo   `json:"teacherInfo,omitempty"` // 老师信息
+		Comment      string      `json:"comment"`               // 评语
+	}
+
+	GradeInfo {
+		GradeId    int64  `json:"gradeId"`    // 等第id；未发送的报告用户用来更改用
+		Grade      string `json:"grade"`      // 等第
+		GradeImage string `json:"gradeImage"` // 等第图标
+	}
+
+	Category {
+		Id          int64   `json:"id"`            // 分类id
+		Name        string  `json:"name"`          // 分类名称
+		Max         float64 `json:"max"`           // 班内最大值
+		Score       float64 `json:"score"`         // 分数-雷达图用
+		Average     float64 `json:"average"`       // 平均分-雷达图用
+		PositiveNum int     `json:"positiveNum"`   // 进步次数-条形图用
+		NegativeNum int     `json:"negativeNum"`   // 勉励次数-条形图用
+		Tag         []*Tag  `json:"tag,omitempty"` // 标签
+	}
+
+	Tag {
+		Id          int64      `json:"id"`                  // 标签Id
+		Name        string     `json:"name"`                // 标签名称
+		GradeInfo   *GradeInfo `json:"gradeInfo,omitempty"` // 等第信息
+		Max         float64    `json:"max"`                 // 班内最大值
+		Score       float64    `json:"score"`               // 分数-雷达图用
+		Average     float64    `json:"average"`             // 平均分-雷达图用
+		PositiveNum int        `json:"positiveNum"`         // 进步次数-条形图用
+		NegativeNum int        `json:"negativeNum"`         // 勉励次数-条形图用
+	}
+
+	UserInfo {
+		Name   string `json:"name"`   // 姓名
+		Avatar string `json:"avatar"` // 头像
+	}
+
+	H5StudentReportRequest {
+		ReportId      int64  `path:"reportId"`      // 报告id
+		ClassId       int64  `form:"classId"`       // 班级id
+		DataStudentId string `form:"dataStudentId"` // 学生唯一id
+	}
+)
+
+@server(
+	group: imports
+)
+
+service appraisal {
+	@doc(
+		summary: "下载导入指标模板"
+	)
+	@server(
+		handler: ImportDownloadTemplateHandler
+	)
+	get /appraisal/import/template ()
+	
+	@doc(
+		summary: "导入指标"
+	)
+	@server(
+		handler: ImportsHandler
+	)
+	post /appraisal/import (ImportRequest) returns (ImportResponse)
+}
+
+@server(
+	group: xhb
+	jwt: Auth
+)
+service appraisal {
+	@doc(
+		summary: "获取当前老默认指标列表"
+	)
+	@server(
+		handler: GetTeacherBindIndicatorsHandler
+	)
+	post /appraisal/xhb/user/bind/indicators (XhbBindIndicatorsRequest) returns (XhbUserBindIndicatorsResponse)
+	
+	@doc(
+		summary: "编辑当前老默认指标列表"
+	)
+	@server(
+		handler: EditTeacherBindIndicatorsHandler
+	)
+	post /appraisal/xhb/user/bind/indicators/edit (XhbEditTeacherBindIndicators)
+	
+	@doc(
+		summary: "获取指标管理列表"
+	)
+	@server(
+		handler: GetManageIndicatorsHandler
+	)
+	post /appraisal/xhb/manage/indicators (XhbBindIndicatorsRequest) returns (XhbManageIndicatorResponse)
+	
+	@doc(
+		summary: "获取学校评价设置"
+	)
+	@server(
+		handler: GetAppraiseSettingHandler
+	)
+	post /appraisal/xhb/appraise/setting (XhbSettingRequest) returns (XhbSettingResponse)
+}
+
+@server(
+	group: dyt
+	jwt: Auth
+)
+service appraisal {
+	@doc(
+		summary: "指标分配：获取教师列表"
+	)
+	@server(
+		handler: GetIndicatorTeacherListHandler
+	)
+	get /appraisal/indicator/teachers () returns (IndicatorTeacherResponse)
+	
+	@doc(
+		summary: "指标分配：获取教师指标列表"
+	)
+	@server(
+		handler: GetTeacherIndicatorListHandler
+	)
+	post /appraisal/teacher/indicators (TeacherIndicatorRequest) returns (TeacherIndicatorResponse)
+	
+	@doc(
+		summary: "指标分配：指定教师能否看见该指标"
+	)
+	@server(
+		handler: TeacherIndicatorShowHandler
+	)
+	post /appraisal/teacher/indicator/show (TeacherIndicatorShowRequest)
+	
+	@doc(
+		summary: "指标分配：指定教师全部看见/看不见"
+	)
+	@server(
+		handler: TeacherIndicatorAllShowHandler
+	)
+	post /appraisal/teacher/indicator/all/show (TeacherIndicatorAllShowRequest)
+	
+	@doc(
+		summary: "指标分配：获取学科下的标签列表"
+	)
+	@server(
+		handler: GetTagListHandler
+	)
+	get /appraisal/subject/tag/list () returns (SubjectTagResponse)
+	
+	@doc(
+		summary: "指标编辑：获取能查看该指标的教师"
+	)
+	@server(
+		handler: GetIndicatorBindTeachersHandler
+	)
+	post /appraisal/indicator/bind/teachers (IndicatorBindTeachersRequest) returns (IndicatorBindTeachersResponse)
+	
+	@doc(
+		summary: "指标编辑：获取勋章样式"
+	)
+	@server(
+		handler: GetIndicatorIconsHandler
+	)
+	get /appraisal/indicator/icon/list () returns (IndicatorIconResponse)
+}
+
+@server(
+	group: dyth5
+	jwt: Auth
+)
+service appraisal {
+	@doc(
+		summary: "快速评价：获取指标列表"
+	)
+	@server(
+		handler: GetH5IndicatorHandler
+	)
+	get /appraisal/h5/teacher/indicators () returns (H5TeacherIndicatorResponse)
+	
+	@doc(
+		summary: "获取用户是否拥有晓评价查看权限（web扫码进入使用）"
+	)
+	@server(
+		handler: IsUserAccessEnableHandler
+	)
+	get /appraisal/h5/teacher/access () returns (H5TeacherAccessEnableResponse)
+}
+
+@server(
+	group: report
+	jwt: Auth
+)
+service appraisal {
+	@doc(
+		summary: "校长报告全校概览"
+	)
+	@server(
+		handler: GetReportSummaryHandler
+	)
+	get /appraisal/report/summary () returns (GetReportSummaryResponse)
+	
+	@doc(
+		summary: "获取报告等级图标"
+	)
+	@server(
+		handler: GetReportGradeImagesHandler
+	)
+	get /appraisal/report/grade_images () returns (GetReportGradeImagesResponse)
+	
+	@doc(
+		summary: "学生报告v1.0"
+	)
+	@server(
+		handler: getStudentReportHandler
+	)
+	post /appraisal/report/student (StudentReportRequest) returns (StudentReportResponse)
+}
+
+@server(
+	group: h5
+)
+service appraisal {
+	@doc(
+		summary: "h5学生报告v1.0"
+	)
+	@server(
+		handler: H5StudentReportRequestHandler
+	)
+	get /appraisal/h5/report/student/:reportId (H5StudentReportRequest) returns (StudentReportResponse)
+}

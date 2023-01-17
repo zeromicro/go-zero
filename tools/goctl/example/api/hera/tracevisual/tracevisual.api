@@ -1,0 +1,294 @@
+info(
+	title: "trace visual"
+	desc: "埋点可视化"
+	author: "zhangsiyu"
+	email: "zhangsiyu12@tail.com"
+)
+
+type Position {
+	XStart uint32 `json:"xStart,range=[0:10000]"` // 取值范围0-10000 。 以左上为原点，元素百分比坐标，比如元素在x轴的92.5%，取值为9250
+	YStart uint32 `json:"yStart,range=[0:10000]"`
+	XEnd   uint32 `json:"xEnd,range=[0:10000]"`
+	YEnd   uint32 `json:"yEnd,range=[0:10000]"`
+}
+
+type AddElementRequest {
+	AppId string `json:"appId,options=xhb|dyt"`                   // 哪个应用
+	Platform string `json:"platform,options=android|iOS|flutter"` // 平台
+	Version string `json:"version"`                               // app 版本
+	ComponentName string `json:"componentName"`
+	Path string `json:"path,optional"`
+	Name string `json:"name,optional"`
+	Picture string `json:"picture"`                               // 截图的 base64 编码
+	Position Position `json:"position,optional"`
+	IsPage bool `json:"isPage"`
+	IsOverride bool `json:"isOverride,optional,default=false"`    //是否覆盖记录
+}
+
+type AppQueryListRequest {
+	AppId    string `json:"appId,options=xhb|dyt"`                // 哪个应用
+	Platform string `json:"platform,options=android|iOS|flutter"` // 平台
+	Version  string `json:"version"`                              // app 版本
+}
+
+type AppQueryResponseItem {
+	IsPage        bool      `json:"isPage"`
+	ComponentName string    `json:"componentName"`
+	Path          string    `json:"path,omitempty"`
+	Position      *Position `json:"position,omitempty"`
+	Name          string    `json:"name"` // 用户填写的埋点名称
+}
+
+type AppQueryListResponse {
+	Items []*AppQueryResponseItem `json:"items"`
+}
+
+type AddModuleRequest {
+	ModuleName string `json:"moduleName"`
+}
+
+type DeleteModuleRequest {
+	Id int64 `json:"id"`
+}
+
+type QueryModuleListRequest {
+	ModuleName string `json:"moduleName,optional"`
+}
+
+type QueryModuleListResponse {
+	ModuleList []*Module `json:"moduleList"`
+}
+
+type Module {
+	Id         int64  `json:"id"`
+	ModuleName string `json:"moduleName"`
+}
+
+type WebQueryPageRequest {
+	ModuleId    int    `json:"moduleId,optional"`
+	SearchStr   string `json:"searchStr,optional"`
+	CurrentPage int    `json:"currentPage"`
+	PageSize    int    `json:"pageSize,optional,default=15"`
+}
+
+type WebQueryPageItem {
+	Platform       string `json:"platform"`
+	PageUrl        string `json:"pageUrl"`
+	PageName       string `json:"pageName"`
+	PageModuleName string `json:"pageModuleName"`
+	PageId         string `json:"pageId"`
+	Id             int    `json:"id"`
+}
+
+type WebQueryPageResponse {
+	Pages []*WebQueryPageItem `json:"pages"`
+}
+
+type UpdateElementRequest {
+	Id int `json:"id"`
+	PageModuleId int `json:"pageModuleId,optional,range=[1:]"` // 0是全部 ，-1是未分类
+	TraceName *string `json:"traceName,optional"`
+}
+
+type UpdatePageNameRequest {
+	Id int `json:"id"`
+	PageName string `json:"pageName"`
+}
+
+type QueryPageDetailRequest {
+	Id int `json:"id"` //页面的主键 id
+}
+
+type QueryPageDetailResponse {
+	AndroidElements map[string]*ElementTree `json:"androidElements"` //map的key 是 version
+	AndroidId int `json:"androidId"`
+	AndroidPageInfo map[string]*PageTraceInfo `json:"androidPageInfo"`
+	IOSElements map[string]*ElementTree `json:"iosElements"`
+	IOSId int `json:"iosId"`
+	IOSPageInfo map[string]*PageTraceInfo `json:"iosPageInfo"`
+}
+
+type PageTraceInfo {
+	PageName string `json:"pageName"`
+	ComponentName string `json:"componentName"`
+	Id int64 `json:"id"`
+	HasData bool `json:"hasData"` //是否有数据
+}
+
+type ElementTree {
+	TraceName string `json:"traceName"`
+	TraceType string `json:"traceType"`
+	ComponentName string `json:"componentName"`
+	Path string `json:"path"`            // 和componentName 拼在一起就是埋点的全路经
+	SubPath string `json:"subPath"`
+	Id int `json:"id"`                   //埋点的主键 id
+	Picture string `json:"picture"`      //图片的 url
+	Position *Position `json:"position"` //位置信息
+	HasData bool `json:"hasData"`        //是否有数据
+	Children []*ElementTree `json:"children"`
+}
+
+type QueryRelatedPageRequest {
+	Id int `json:"id"`
+	CurrentPage int `json:"currentPage"`
+	PageSize int `json:"pageSize,optional,default=15"`
+}
+
+type QueryRelatedPageResponse {
+	Pages []*WebQueryPageItem `json:"pages"`
+}
+
+type RelatedPageItem {
+	Picture string `json:"picture"`
+	Id int `json:"id"`
+}
+
+type UpdateModuleRequest {
+	ModuleId int `json:"moduleId"`
+	ModuleName string `json:"moduleName"`
+}
+
+service tracevisual-api {
+	@doc "添加元素/页面的截图,通过 header：'X-User-Id' 来鉴权"
+	@server(
+		handler: AddElement
+	)
+	post /trace-visual/add-element (AddElementRequest)
+
+	@doc "修改元素的属性"
+	@server(
+		handler: UpdateElement
+	)
+	post /trace-visual/update-element (UpdateElementRequest)
+
+	@doc "数据录入端的查询接口"
+	@server(
+		handler: AppQueryElement
+	)
+	post /trace-visual/app-query-list (AppQueryListRequest) returns (AppQueryListResponse)
+
+	@doc "首页查询当前的页面"
+	@server(
+		handler: WebQueryPage
+	)
+	post /trace-visual/web-query-page (WebQueryPageRequest) returns (WebQueryPageResponse)
+
+	@doc "查询一个页面内所有元素的信息"
+	@server(
+		handler: QueryPageDetail
+	)
+	post /trace-visual/query-page-detail (QueryPageDetailRequest) returns (QueryPageDetailResponse)
+
+	@doc "修改页面名称"
+	@server(
+		handler: UpdatePageName
+	)
+	post /trace-visual/update-page-name (UpdatePageNameRequest)
+
+	@doc "增加模块"
+	@handler AddModule
+	post /trace-visual/module/add-module (AddModuleRequest)
+
+	@doc "修改模块"
+	@handler UpdateModule
+	post /trace-visual/module/update-module (UpdateModuleRequest)
+
+	@doc "删除模块"
+	@handler DeleteModule
+	post /trace-visual/module/delete-module (DeleteModuleRequest)
+
+	@doc "查询模块"
+	@handler QueryModuleList
+	post /trace-visual/module/query-module-list (QueryModuleListRequest) returns (QueryModuleListResponse)
+
+	@doc "查询关联页面"
+	@handler QueryRelatedPage
+	post /trace-visual/related-page/query-related-page (QueryRelatedPageRequest) returns (QueryRelatedPageResponse)
+}
+
+type QueryHasDataRequest {
+	Id int `json:"id"`
+}
+
+type QueryHasDataResponse {
+	Has bool `json:"has"`
+}
+
+type QuerySevenDataRequest {
+	Id int `json:"id"`
+}
+
+type QueryOneDataRequest {
+	Id int `json:"id"`
+}
+
+type QueryOneDataResponse {
+	Data map[string]interface{} `json:"data"`
+}
+
+type QuerySevenDataResponse {
+	Data map[int64]int64 `json:"data"`
+}
+
+@server(
+	group: tracedata
+)
+service tracevisual-api {
+	@doc "根据埋点的path 查询这个埋点有没有数据"
+	@handler QueryHasData
+	post /trace-visual/trace-data/query-has-data (QueryHasDataRequest) returns (QueryHasDataResponse)
+
+	@doc "根据埋点的path 查询这个埋点7日数据 ， key 是秒级的时间戳 value 是数量"
+	@handler QuerySevenDatas
+	post /trace-visual/trace-data/query-seven-data (QuerySevenDataRequest) returns (QuerySevenDataResponse)
+
+	@doc "根据 component,path 获取 trace 表中一条数据"
+	@handler QueryOneTraceData
+	post /trace-visual/trace-data/query-one (QueryOneDataRequest) returns (QueryOneDataResponse)
+}
+
+type ElementGroup {
+	ComponentName string `json:"componentName"`
+	Platform string `json:"platform,options=android|iOS|flutter"` // 平台
+	TraceType int64 `json:"traceType"`
+	CurrentElementPath string `json:"currentElementPath"`
+	CurrentAppVersion string `json:"currentAppVersion"`
+	OldElementPath string `json:"oldElementPath"`
+	OldAppVersion string `json:"oldAppVersion"`
+}
+
+type ElementItem {
+	ComponentName string `json:"componentName"`
+	Platform string `json:"platform,options=android|iOS|flutter"` // 平台
+	TraceType int64 `json:"traceType"`
+	CurrentAppVersion string `json:"currentAppVersion"`
+	ElementPath string `json:"elementPath"`
+}
+
+type TraceGroupInsertRequest {
+	ElementChange []ElementGroup `json:"elementChange,optional"`
+	ElementNew []ElementItem `json:"elementNew,optional"`
+	ElementUnchanged []ElementItem `json:"elementUnchanged"`
+}
+
+type QueryTraceGroupRequest {
+	Id int `json:"id"`
+}
+
+type QueryTraceGroupResoponse {
+	GroupId string `json:"groupId"`
+	Groups map[string]string `json:"groups"` //key是版本号，value是路径
+}
+
+@server(
+	group: tracegroup
+)
+service tracevisual-api {
+	@doc "根据埋点的path 查询这个埋点有没有数据"
+	@handler insert
+	post /trace-visual/trace-group/insert (TraceGroupInsertRequest)
+
+	@doc "查询聚类结果"
+	@handler QueryTraceGroup
+	post /trace-visual/trace-group/query-group (QueryTraceGroupRequest) returns (QueryTraceGroupResoponse)
+}

@@ -1,0 +1,59 @@
+type SearchSchoolResponse {
+	SchoolInfos []SchoolInfo `json:"schoolInfos"`
+}
+
+type SchoolInfo {
+	SchoolId      int64  `json:"schoolId"`
+	SchoolName    string `json:"schoolName"`
+	SchoolAddress string `json:"schoolAddress"`
+}
+
+type SearchSchoolByNameRequest {
+	Name     string `json:"name"`
+	Page     int64  `json:"page"`
+	PageSize int64  `json:"pageSize"`
+}
+
+type SearchSchoolByNameResponse {
+	SchoolInfos []SchoolInfo `json:"schoolInfos"`
+}
+
+type CreateSchoolRequest {
+	Token    string  `path:"token"`
+	Name     string  `json:"name"`
+	Long     float32 `json:"long"`
+	Lat      float32 `json:"lat"`
+	Province string  `json:"province"`
+	City     string  `json:"city"`
+	District string  `json:"district"`
+	Address  string  `json:"address"`
+}
+
+type CreateSchoolResponse {
+}
+
+service classtable-api {
+	@doc(
+		summary: 查询1公里内的学校
+	)
+	@server(
+		handler: SearchSchoolHandler
+	)
+	get /classroom/search/school/:long/:lat() returns(SearchSchoolResponse)
+	
+	@doc(
+		summary: 根据学校名称查询学校
+	)
+	@server(
+		handler: SearchSchoolByNameHandler
+	)
+	post /classroom/search/school/by/name(SearchSchoolByNameRequest) returns(SearchSchoolByNameResponse)
+	
+	@doc(
+		summary: 用户主动创建学校
+	)
+	@server(
+		handler: CreateSchoolHandler
+	)
+	post /classroom/create/school/:token(CreateSchoolRequest) returns(CreateSchoolResponse)
+}

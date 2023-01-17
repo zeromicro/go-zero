@@ -1,0 +1,539 @@
+info(
+	title: 用户管理
+	desc: 用户管理api
+	author: duzhongfa
+	email: duzhongfa@xiaoheiban.cn
+)
+
+type (
+	LoginRequest {
+		Username           string `json:"username"`
+		LoginMode          string `json:"loginMode,optional"` // 登录方式 VERIFICATION_CODE，PASSWORD
+		Password           string `json:"password,optional"`
+		PrintFinger        string `json:"printFinger,optional"`
+		VerificationCode   string `json:"verificationCode,optional"` // 验证码
+		CaptchaId          string `json:"captchaId"`
+		CaptchaVerifyValue string `json:"captchaVerifyValue"`
+	}
+
+	LoginAuthRequest {
+		Auth string `json:"auth"` // 一统免密登录
+	}
+
+	LoginResponse {
+		XhbToken    string        `json:"xhbToken"` // XHB 用户id
+		AutoLogin   bool          `json:"autoLogin"`
+		Tokens      Tokens        `json:"tokens"` // 用户登录token
+		CampusList  []*CampusInfo `json:"campusList"`
+		Mobile      string        `json:"mobile"`
+		CampusId    int64         `json:"campusId"`
+		Avatar      string        `json:"avatar"`
+		TeacherName string        `json:"teacherName"`
+	}
+
+	PortalInfo {
+		CampusId      int64         `json:"campus_id"`
+		CampusName    string        `json:"campus_name"`
+		Badge         string        `json:"badge"`
+		BannerImgList []string      `json:"banner_img_list"`
+		CampusList    []*CampusInfo `json:"campus_list"`
+		QRCode        string        `json:"qr_code"`
+		Type          int64         `json:"type"` // 1-标准，2-非标准
+	}
+
+	CampusInfo {
+		CampusId     int64  `json:"campus_id"`
+		CampusName   string `json:"campus_name"`
+		Type         int64  `json:"type"`                   // 1-标准，2-非标准
+		PeriodDetail string `json:"periodDetail,omitempty"` //小学5年制、初中三年制、高中三年制
+		Semester     string `json:"semester,omitempty"`     //学期
+		Badge        string `json:"badge,omitempty"`        //校徽
+	}
+
+	Tokens {
+		AccessToken   string `json:"access_token"`   // Access token to access the apis
+		AccessExpire  int64  `json:"access_expire"`  // Access token expire time, generated like: time.Now().Add(time.Day*14).Unix()
+		RefreshToken  string `json:"refresh_token"`  // Refresh token, use this to refresh the token
+		RefreshExpire int64  `json:"refresh_expire"` // Refresh token expire time, generated like: time.Now().Add(time.Month).Unix()
+		RefreshAfter  int64  `json:"refresh_after"`  // Recommended time to refresh the access token
+	}
+
+	ActivationRequest {
+		Username string `json:"username"`
+	}
+
+	TeacherIdRequest {
+		TeacherId int64 `path:"teacherId"` // 教师ID
+	}
+
+	TeacherInfo {
+		TeacherId        int64    `json:"teacherId"`        // 教师ID
+		TeacherName      string   `json:"teacherName"`      // 教师姓名
+		Mobile           string   `json:"mobile"`           // 手机号
+		ClassIds         []int64  `json:"classIds"`         // 班级ids
+		DepartmentIds    []int64  `json:"departmentIds"`    // 部门ids
+		InterestClassIds []string `json:"interestClassIds"` // 兴趣班
+		SubjectId        int64    `json:"subjectId"`        // 学科ID
+		Avatar           string   `json:"avatar"`           // 头像
+		FacePhotos       []string `json:"facePhotos"`       // 人脸录入
+		CampusId         int64    `json:"campusId"`         // 学校 Id
+		XhbToken         string   `json:"xhbToken"`         // 晓黑板 的用户 Id
+	}
+
+	TeacherCountResponse {
+		Count int64 `json:"count"`
+	}
+
+	TeacherListDytRequest {
+		CampusId   int64   `json:"campusId,optional"`   // 学校ID
+		DepartIds  []int64 `json:"departIds,optional"`  // 部门ID
+		SubjectIds []int64 `json:"subjectIds,optional"` // 学科ID
+		ClassIds   []int64 `json:"classIds,optional"`   // 班级ID
+		SearchType int64   `json:"searchType"`          // 1.姓名搜索 2：手机号搜索
+		Content    string  `json:"content,optional"`
+		NowPage    int     `json:"nowPage,optional,default=1"`   // 当前页
+		PageSize   int     `json:"pageSize,optional,default=10"` // 页面展示数
+	}
+	TeacherListDytResponse {
+		List      []*TeacherInfo `json:"list"`
+		TotalPage int            `json:"totalPage"`
+		Count     int            `json:"count"`
+		NowPage   int            `json:"nowPage"`
+	}
+
+	//编辑/新增教师
+	TeacherActRequest {
+		TeacherId     int64    `json:"teacherId,optional"`     // 教师id
+		TeacherName   string   `json:"teacherName"`            // 教师姓名
+		Gender        int      `json:"gender"`                 //性别 0->未知,1->男,2->女
+		SubjectId     int64    `json:"subjectId,optional"`     // 主学科id
+		Mobile        string   `json:"mobile,optional"`        // 手机号
+		FacePhotos    []string `json:"facePhotos,optional"`    // 闸机头像
+		DepartmentIds []int64  `json:"departmentIds,optional"` // 所属部门ids
+	}
+
+	ImportDownloadTemplateRequest {
+		Code string `path:"code"` // 验证码
+	}
+
+	ImportRequest {
+		File string `json:"file"`
+	}
+
+	ImportResponse {
+		TaskId int64 `json:"taskId"`
+	}
+
+	Credential {
+		// 访问凭证
+		Expiration      string `json:"expiration"`
+		AccessKeyId     string `json:"accessKeyId"`
+		AccessKeySecret string `json:"accessKeySecret"`
+		SecurityToken   string `json:"securityToken"`
+	}
+
+	AssumedRoleUser {
+		// 角色扮演临时身份
+		Arn           string `json:"arn"`
+		AssumedRoleId string `json:"assumedRoleId"`
+	}
+
+	AliCloudAssumeRoleRequest {
+		Expired int `json:"expired,optional"`
+	}
+
+	AliCloudAssumeRoleResponse {
+		FileDirectorie  string           `json:"fileDirectorie"` // 文件目录
+		Credentials     *Credential      `json:"credentials"`
+		AssumedRoleUser *AssumedRoleUser `json:"assumedRoleUser"`
+	}
+
+	CampusTeachersRequest {
+		TeacherName string `json:"teacher_name"`
+	}
+
+	CampusTeachersResponse {
+		List []*BaseTeacherInfo `json:"list"`
+	}
+
+	BaseTeacherInfo {
+		TeacherId    int64  `json:"teacher_id"`
+		TeacherName  string `json:"teacher_name"`
+		XhbUserToken string `json:"xhb_user_token"`
+		CampusId     int64  `json:"campus_id"`
+	}
+
+	UserStructureResponse {
+		Class      []*GradeStructure      `json:"grade"`
+		Department []*DepartmentStructure `json:"department"`
+	}
+
+	// 有一个特殊的部门【其他】，固定id为-1，即人员不在任何部门
+	DepartmentStructure {
+		Id   int64      `json:"id"`
+		Name string     `json:"name"`
+		List []*Teacher `json:"list"`
+	}
+	GradeStructure {
+		Id      int64             `json:"id"`
+		Name    string            `json:"name"`
+		GradeId int64             `json:"gradeId"`
+		List    []*ClassStructure `json:"list"`
+	}
+
+	ClassStructure {
+		Id       int64      `json:"id"`
+		Name     string     `json:"name"`
+		ClassNum int        `json:"classNum"`
+		List     []*Teacher `json:"list"`
+	}
+	Teacher {
+		Id           int64  `json:"id"`
+		Name         string `json:"name"`
+		XhbUserToken string `json:"xhbUserToken"`
+		Avatar       string `json:"avatar"`
+	}
+
+	DCStructureResponse {
+		Department []*CampusDepartment `json:"department"`
+		Grade      []*CampusGrade      `json:"grade"`
+	}
+
+	CampusDepartment {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+	CampusGrade {
+		Id   int64          `json:"id"`
+		Name string         `json:"name"`
+		List []*CampusClass `json:"list"`
+	}
+
+	CampusClass {
+		Id            int64  `json:"id"`
+		Name          string `json:"name"`
+		ClassNum      int    `json:"classNum"`
+		XhbClassToken string `json:"classToken"`
+	}
+
+	TeacherInfoResponse {
+		TeacherId            int64             `json:"teacherId"`            // 教师ID
+		TeacherName          string            `json:"teacherName"`          // 教师姓名
+		Gender               int               `json:"gender"`               //性别 0->未知,1->男,2->女
+		SubjectId            int64             `json:"subjectId"`            // 主学科ID
+		Mobile               string            `json:"mobile"`               // 手机号
+		DepartmentIds        []int64           `json:"departmentIds"`        // 部门ids
+		Departments          string            `json:"departments"`          // 部门
+		TeachClasses         []*TeachClassView `json:"teachClasses"`         // 行政班
+		TeachInterestClasses []*TeachClassView `json:"teachInterestClasses"` // 兴趣班
+		Avatar               string            `json:"avatar"`               // 头像
+		FacePhotos           []string          `json:"facePhotos"`           // 人脸录入
+		CampusId             int64             `json:"campusId"`             // 学校 Id
+		XhbToken             string            `json:"xhbToken"`             // 晓黑板的用户Id
+	}
+
+	TeachClassView {
+		CampusGradeId int64  `json:"-"`
+		GradeId       int64  `json:"-"`
+		GradeNum      int64  `json:"-"`
+		ClassId       int64  `json:"classId"`
+		ClassName     string `json:"className"`
+		ClassNum      int64  `json:"-"`
+		TeachSubjects string `json:"teachSubjects"`
+	}
+)
+
+type (
+	UserProfileResponse {
+		SchoolName string `json:"schoolName"`
+		// 用户信息
+		TeacherProfile *TeacherProfile `json:"teacherProfile,omitempty"`
+		// 绑定的孩子列表
+		Children []*UserChild `json:"children"`
+	}
+	AvatarStatus {
+		Avatar string `json:"avatar"`
+		Status int    `json:"status"`
+	}
+	TeacherProfile {
+		XhbUserToken string   `json:"xhbUserToken"`
+		Name         string   `json:"name"`
+		Avatars      []string `json:"avatars"`
+		//Avatars       []*AvatarStatus        `json:"avatars"`
+		Departments   []string               `json:"departments"`
+		ClassSubjects []*TeacherClassSubject `json:"classSubjects"`
+	}
+	TeacherClassSubject {
+		Sort      int64    `json:"-"`
+		GradeName string   `json:"gradeName"`
+		ClassName string   `json:"className"`
+		Subjects  []string `json:"subjects"`
+	}
+	UserFamily {
+		XhbUserToken string `json:"xhbUserToken"`
+		//Avatars      []*AvatarStatus `json:"avatars"`
+		Avatars []string `json:"avatars"`
+		Role    string   `json:"role"`
+		Mobile  string   `json:"mobile"`
+	}
+	UserClass {
+		Name    string   `json:"name"`
+		Avatars []string `json:"avatars"`
+		// 是否为班主任
+		IsManager bool     `json:"isManager"`
+		Subjects  []string `json:"subjects"`
+		Mobile    string   `json:"mobile"`
+	}
+	UserChild {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+		//Avatars   []*AvatarStatus `json:"avatars"`
+		Avatars   []string `json:"avatars"`
+		Gender    int      `json:"gender"`
+		GradeName string   `json:"gradeName"`
+		ClassName string   `json:"className"`
+		Code      string   `json:"code"`
+		ClassId   int64    `json:"classId"`
+		Sort      int64    `json:"-"`
+	}
+
+	FamilyRequest {
+		StudentId int64 `json:"studentId"`
+	}
+
+	ClassRequest {
+		ClassId int64 `json:"classId"`
+	}
+
+	AvatarUpdateRequest {
+		XhbUserToken string   `json:"xhbUserToken,optional"`
+		Avatars      []string `json:"avatars"`
+	}
+
+	UserSubject {
+		TeacherId  int64   `json:"teacherId"`
+		SubjectIds []int64 `json:"subjectIds"`
+	}
+	UserAvatar {
+		Url  string `json:"url"`
+		Pass bool   `json:"pass"`
+	}
+)
+
+type (
+	GetAuthRequest {
+		CampusId int64  `json:"-,optional,omitempty"`
+		Token    string `json:"-,optional,omitempty"`
+	}
+)
+
+@server(
+	folder: login
+)
+service user {
+	@doc(
+		summary: 大一统登录
+	)
+	@server(
+		handler: LoginHandler
+	)
+	post /user/dyt/login (LoginRequest) returns (LoginResponse)
+	
+	@doc(
+		summary: 从一统免密登录
+	)
+	@server(
+		handler: LoginWithAuthHandler
+	)
+	post /user/dyt/login-auth (LoginAuthRequest) returns (LoginResponse)
+	
+	@doc(
+		summary: 获取验证码
+	)
+	@server(
+		handler: SendActivationHandler
+	)
+	post /user/login/activation (ActivationRequest) returns ()
+}
+
+@server(
+	jwt: Auth
+	folder: teacher
+)
+service user {
+	@doc(
+		summary: 教师花名册列表
+	)
+	@server(
+		handler: TeacherListDytHandler
+	)
+	post /user/dyt/teacher/list (TeacherListDytRequest) returns (TeacherListDytResponse)
+	
+	@doc(
+		summary: 删除教师
+	)
+	@server(
+		handler: TeacherDeleteHandler
+	)
+	get /user/dyt/teacher/delete/:teacherId (TeacherIdRequest)
+	
+	@doc(
+		summary: 教师花名册详情
+	)
+	@server(
+		handler: TeacherInfoHandler
+	)
+	get /user/dyt/teacher/info/:teacherId (TeacherIdRequest) returns (TeacherInfoResponse)
+	
+	@doc(
+		summary: 新增/编辑教师
+	)
+	@server(
+		handler: TeacherActHandler
+	)
+	post /user/dyt/teacher/act (TeacherActRequest)
+	
+	@doc(
+		summary: 获取当前登录的老师信息
+	)
+	@server(
+		handler: TeacherNameHandler
+	)
+	get /user/dyt/teacher/detail () returns (TeacherInfo)
+	
+	@doc(
+		summary: 获取教师花名册中教师个数
+	)
+	@server(
+		handler: TeacherCountDytHandler
+	)
+	get /user/dyt/teacher/count () returns (TeacherCountResponse)
+	
+	@doc(
+		summary: 校区教师列表
+	)
+	@server(
+		handler: CampusTeachersHandler
+	)
+	post /user/campus-teachers (CampusTeachersRequest) returns (CampusTeachersResponse)
+}
+
+@server(
+	jwt: Auth
+	folder: architecture
+)
+service user {
+	@server(
+		handler: userStructure
+	)
+	get /user/structure () returns (UserStructureResponse)
+	
+	@server(
+		handler: dcStructure
+	)
+	get /user/department/class/structure () returns (DCStructureResponse)
+}
+
+@server(
+	jwt: Auth
+	folder: imports
+)
+service user {
+	@doc(
+		summary: send template sms code
+	)
+	@server(
+		handler: SendTemplateCode
+	)
+	get /user/import/send/sms ()
+	
+	@doc(
+		summary: 下载导入老师模板
+	)
+	@server(
+		handler: ImportDownloadTemplateHandler
+	)
+	get /user/import/template ()
+	
+	@doc(
+		summary: 下载导入更新老师模板
+	)
+	@server(
+		handler: ImportUpdateDownloadTemplateHandler
+	)
+	get /user/import/update/template/:code (ImportDownloadTemplateRequest)
+	
+	@doc(
+		summary: 导入老师
+	)
+	@server(
+		handler: ImportsHandler
+	)
+	post /user/dyt/import (ImportRequest) returns (ImportResponse)
+	
+	@doc(
+		summary: 导入更新老师
+	)
+	@server(
+		handler: ImportUpdateHandler
+	)
+	post /user/dyt/import/update (ImportRequest) returns (ImportResponse)
+}
+
+@server(
+	jwt: Auth
+	folder: portal
+)
+service user {
+	@doc(
+		summary: 获取教师学校信息
+	)
+	@server(
+		handler: UserExtraInfoHandler
+	)
+	get /user/dyt/campusExtraInfo () returns (PortalInfo)
+}
+
+@server(
+	folder: alicloud
+)
+service user {
+	@doc(
+		summary:  获取阿里云临时身份授权
+	)
+	@server(
+		handler: GetAssumeRoleHandler
+	)
+	post /user/sign/alicloud/assumerole (AliCloudAssumeRoleRequest) returns (AliCloudAssumeRoleResponse)
+}
+
+@server(
+	jwt: Auth
+	folder: teacherprofile
+)
+service user {
+	@server(
+		handler: profileTeacher
+	)
+	get /user/h5/profile/teacher () returns (UserProfileResponse)
+	
+	@server(
+		handler: profileFamily
+	)
+	post /user/h5/profile/family (FamilyRequest) returns ([]*UserFamily)
+	
+	@server(
+		handler: profileClass
+	)
+	post /user/h5/profile/class (ClassRequest) returns ([]*UserClass)
+	
+	@server(
+		handler: profileAvatar
+	)
+	post /user/h5/profile/avatar/update (AvatarUpdateRequest)
+	
+	@server(
+		handler: GetUserAuthHandler
+	)
+	get /user/h5/get-userAuth (GetAuthRequest)
+}

@@ -1,0 +1,460 @@
+type GetFavouriteMessageRequest {
+	Token    string `path:"token"`
+	Size     int    `form:"size"`
+	TimeSpan int64  `form:"timestamp"`
+}
+
+type ImageView {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type AudioView {
+	Id            string `json:"id,omitempty"`
+	Duration      int    `json:"duration,omitempty"`
+	FileExtension string `json:"fileExtension,omitempty"`
+	Size          int    `json:"size,omitempty"`
+	Name          string `json:"name,omitempty"`
+}
+
+type AttachmentView {
+	Id       string     `json:"id"`
+	Name     string     `json:"name,omitempty"`
+	MimeType string     `json:"mimeType,omitempty"`
+	Attrs    *AttrsView `json:"attrs,omitempty"`
+	Size     string     `json:"size,omitempty"` // 5.0.0 add
+}
+
+type AttrsView {
+	Size string `json:"size,omitempty"` // 5.0.0 after delete
+}
+
+type VideoView {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+type SimpleSenderView {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+type SchoolSenderView {
+	Id          string `json:"id,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+}
+
+type ClassroomView {
+	Id        string `json:"id,omitempty"`
+	Name      string `json:"name,omitempty"`
+	BadgeId   string `json:"badgeId,omitempty"`
+	BadgeType string `json:"badgeType,omitempty"`
+	BgImage   string `json:"bgImage,omitempty"`
+}
+
+type NoticeView {
+	Title       string                 `json:"title,omitempty"`
+	Content     string                 `json:"content,omitempty"`
+	Images      []*ImageView           `json:"images,omitempty"`
+	Audio       *AudioView             `json:"audio,omitempty"`
+	Video       *VideoView             `json:"video,omitempty"`
+	Attachments []*AttachmentView      `json:"attachements,omitempty"`
+	Extras      map[string]interface{} `json:"extras,omitempty"`
+	From        string                 `json:"from,omitempty"`
+}
+
+type UserView {
+	Id          string `json:"id"`
+	Realname    string `json:"realname,omitempty"`
+	Avatar      string `json:"avatar,omitempty"`
+	DisplayName string `json:"displayName"`
+}
+
+type TopicView {
+	Title               string                 `json:"title,omitempty"`
+	Content             string                 `json:"content,omitempty"`
+	Images              []*ImageView           `json:"images,omitempty"`
+	Audio               *AudioView             `json:"audio,omitempty"`
+	Video               *VideoView             `json:"video,omitempty"`
+	Attachments         []*AttachmentView      `json:"attachements,omitempty"`
+	Extras              map[string]interface{} `json:"extras,omitempty"`
+	From                string                 `json:"from,omitempty"`
+	Id                  string                 `json:"id,omitempty"`
+	Open                bool                   `json:"open,omitempty"`
+	ExpireTime          int64                  `json:"expireTime,omitempty"`
+	Manager             *SimpleSenderView      `json:"manager,omitempty"`
+	Members             []*UserView            `json:"members,omitempty"`
+	Receivers           []string               `json:"receivers,omitempty"`
+	Classrooms          []string               `json:"classrooms,omitempty"`
+	Unread              int                    `json:"unread,omitempty"`
+	NoticeMessageUnread int                    `json:"noticeMessageUnread,omitempty"`
+	Available           bool                   `json:"available"`
+	DoNotDisturb        bool                   `json:"doNotDisturb"`
+}
+
+type ActivityView {
+	Title               string                 `json:"title,omitempty"`
+	Content             string                 `json:"content,omitempty"`
+	Images              []*ImageView           `json:"images,omitempty"`
+	Audio               *AudioView             `json:"audio,omitempty"`
+	Video               *VideoView             `json:"video,omitempty"`
+	Attachments         []*AttachmentView      `json:"attachements,omitempty"`
+	Extras              map[string]interface{} `json:"extras,omitempty"`
+	From                string                 `json:"from,omitempty"`
+	Id                  string                 `json:"id,omitempty"`
+	Open                bool                   `json:"open,omitempty"`
+	ExpireTime          int64                  `json:"expireTime,omitempty"`
+	Manager             *SimpleSenderView      `json:"manager,omitempty"`
+	Members             []*UserView            `json:"members,omitempty"`
+	Receivers           []string               `json:"receivers,omitempty"`
+	Classrooms          []string               `json:"classrooms,omitempty"`
+	Unread              int                    `json:"unread,omitempty"`
+	NoticeMessageUnread int                    `json:"noticeMessageUnread,omitempty"`
+	Available           bool                   `json:"available"`
+	DoNotDisturb        bool                   `json:"doNotDisturb"`
+	Tag                 string                 `json:"tag,omitempty"`
+	Participate         bool                   `json:"participate,omitempty"`
+	Expired             bool                   `json:"expired,omitempty"`
+	ClassroomView       *ClassroomView         `json:"classroomView,omitempty"`
+}
+
+type Receipt {
+	Total         int               `json:"total"`
+	Receipted     int               `json:"receipted"`
+	Feedbacked    int               `json:"feedbacked,omitempty"`
+	Attitude      string            `json:"attitude,omitempty"`
+	Received      bool              `json:"received,omitempty"`
+	IsObserver    bool              `json:"isObserver,omitempty"`
+	PunchCardItem *PunchCardReceipt `json:"punchCardItem,omitempty"` // 打卡反馈情况
+	SurveyItem    *SurveyReceipt    `json:"surveyItem,omitempty"`
+}
+
+type SurveyReceipt {
+	JoinUsers  []string `json:"joinUsers"`
+	JoinNumber int      `json:"joinNumber"`
+}
+
+type PunchCardReceipt {
+	TotalFamilyCount   int64    `json:"totalFamilyCount"`             // 需打卡总家庭数 （分母）
+	PunchedFamilyCount int64    `json:"punchedFamilyCount"`           // 打卡总家庭数 （分子）
+	TotalDays          int64    `json:"totalDays"`                    // 总周期天数
+	PassDays           int64    `json:"passDays"`                     // 已进行天数
+	TodayJoinUsers     []string `json:"todayJoinUsers,omitempty"`     // 今天打卡的人，最新的5个人  5.0.0 add
+	TodayJoinCount     int      `json:"todayJoinCount,omitempty"`     // 今日参加打卡的总人数  5.0.0 add
+	TotalNeedJoinCount int      `json:"totalNeedJoinCount,omitempty"` // 今日打卡总人数  5.0.0 add
+	Status             string   `json:"status,omitempty"`             // 打卡状态 "NoNeedPunchCard" 无需打卡, "PunchCarded" 已打卡,"UnPunchCard" 未打卡  5.0.0 add
+	TotalNatureDay     int64    `json:"totalNatureDay,omitempty"`     // 打卡自然日总天数
+	PassNatureDay      int64    `json:"passNatureDay"`                // 打卡已过去的日然日
+	FirstTaskPunchTime int64    `json:"firstTaskPunchTime,omitempty"` // 第一个task的打卡时间
+}
+
+type ScoreNoticeView {
+	Id       string `json:"id,omitempty"`
+	Title    string `json:"title,omitempty"`    // 考试名称
+	Subjects string `json:"subjects,omitempty"` // 考试科目
+	SubType  string `json:"subType,omitempty"`  // 消息子类型：成绩或者分析
+	Url      string `json:"url,omitempty"`      // 成绩链接
+}
+
+type SurveyOption {
+	Value  string              `json:"value,omitempty"`
+	Image  *ImageView          `json:"image,omitempty"`
+	Ratio  int                 `json:"ratio,omitempty"`
+	Voters []*SimpleSenderView `json:"voters,omitempty"`
+}
+
+type SurveyView {
+	Title          string                   `json:"title,omitempty"`
+	Content        string                   `json:"content,omitempty"`
+	Images         []*ImageView             `json:"images,omitempty"`
+	Audio          *AudioView               `json:"audio,omitempty"`
+	Video          *VideoView               `json:"video,omitempty"`
+	Attachments    []*AttachmentView        `json:"attachements,omitempty"`
+	Extras         map[string]interface{}   `json:"extras,omitempty"`
+	From           string                   `json:"from,omitempty"`
+	Id             string                   `json:"id,omitempty"`
+	Subject        string                   `json:"subject,omitempty"`
+	MultiChoose    bool                     `json:"multiChoose,omitempty"`
+	Anonymous      bool                     `json:"anonymous,omitempty"`
+	Open           bool                     `json:"open,omitempty"`
+	MaxOptionalNum int                      `json:"maxOptionalNum,omitempty"`
+	ExpireTime     int64                    `json:"expireTime,omitempty"`
+	Available      bool                     `json:"available,omitempty"`
+	SurveyOptions  map[string]*SurveyOption `json:"surveyOptions,omitempty"`
+	VotersNumber   int                      `json:"votersNumber,omitempty"`
+	Voted          []*SimpleSenderView      `json:"voted,omitempty"`
+	Unvoted        []*SimpleSenderView      `json:"unvoted,omitempty"`
+}
+
+type PunchCardReceiptResult {
+	ResultNumber     int64 `json:"resultNumber,omitempty"`     // 老师/家长打卡成果数
+	TotalDays        int64 `json:"totalDays,omitempty"`        // 家长：总天数
+	JoinDays         int64 `json:"joinDays,omitempty"`         // 家长：参加天数
+	JoinPersons      int64 `json:"joinPersons,omitempty"`      // 老师：参与人数
+	TotalFamilyCount int64 `json:"totalFamilyCount,omitempty"` // 老师：所有家庭数
+}
+
+type PunchStemView {
+	Stem      string   `json:"stem"`      // 题干
+	BlankType string   `json:"blankType"` // 填空题类型 counter | timer
+	Options   []string `json:"options"`   // 选择题选项
+}
+
+type PunchCardView {
+	Title          string                  `json:"title,omitempty"`
+	Content        string                  `json:"content,omitempty"`
+	Images         []*ImageView            `json:"images,omitempty"`
+	Audio          *AudioView              `json:"audio,omitempty"`
+	Video          *VideoView              `json:"video,omitempty"`
+	Attachments    []*AttachmentView       `json:"attachements,omitempty"`
+	Extras         map[string]interface{}  `json:"extras,omitempty"`
+	From           string                  `json:"from,omitempty"`
+	Open           bool                    `json:"open,omitempty"`
+	Tag            string                  `json:"tag,omitempty"`
+	Endtime        int64                   `json:"endTime,omitempty"`
+	RemindTime     string                  `json:"remindTime,omitempty"`
+	LastDays       int                     `json:"lastDays,omitempty"`      // 打卡周期天数
+	PunchcardWeek  []string                `json:"punchcardWeek,omitempty"` // 打卡频次
+	PunchcardId    string                  `json:"id,omitempty"`
+	Result         *PunchCardReceiptResult `json:"result,omitempty"` // 5.0.0 add
+	IsForwardEnd   bool                    `json:"isForwardEnd"`
+	ForwardEndTime int64                   `json:"forwardEndTime"`
+	PunchType      string                  `json:"punchType"`           // 打卡类型
+	PunchStem      *PunchStemView          `json:"punchStem,omitempty"` // 题干相关
+	ReplenishDays  int                     `json:"replenishDays"`       // 设置可补卡天数
+}
+
+type SurveyV2View {
+	Id         string `json:"id,omitempty"`
+	Title      string `json:"title,omitempty"`
+	SubTitle   string `json:"subTitle,omitempty"`
+	Open       bool   `json:"open,omitempty"`
+	ExpireTime int64  `json:"expireTime,omitempty"`
+	Anonymous  bool   `json:"anonymous,omitempty"`
+	IsVoted    bool   `json:"isVoted,omitempty"`
+	Available  bool   `json:"available,omitempty"`
+	CreateTime int64  `json:"createTime,omitempty"`
+	From       string `json:"from,omitempty"`
+	VoteCount  int    `json:"voteCount,omitempty"`
+	ReplyCount int    `json:"replyCount,omitempty"`
+	IsDaily    bool   `json:"isDaily,omitempty"`
+}
+
+type WeeklyArticle {
+	Url   string `json:"url,omitempty"`
+	Title string `json:"title,omitempty"`
+}
+
+type WeeklyView {
+	Articles []*WeeklyArticle `json:"articles,omitempty"`
+	Version  int              `json:"version,omitempty"`
+	Title    string           `json:"title,omitempty"`
+	Image    string           `json:"image,omitempty"`
+	Url      string           `json:"url,omitempty"`
+	History  string           `json:"history,omitempty"`
+}
+
+type PostView {
+	Title   string `json:"title,omitempty"`
+	Content string `json:"content,omitempty"`
+	Image   string `json:"image,omitempty"`
+	Url     string `json:"url,omitempty"`
+}
+
+type AppletsView {
+	Type            string `json:"type,omitempty"`
+	Icon            string `json:"icon,omitempty"`
+	Title           string `json:"title,omitempty"`
+	Content         string `json:"content,omitempty"`
+	Url             string `json:"url,omitempty"`
+	ShowInClassroom bool   `json:"showInClassroom"`
+}
+
+type QuestionnaireView {
+	Title string `json:"title"`
+	Url   string `json:"url"`
+}
+
+type WhiteBoard {
+	Token string `json:"token,omitempty"`
+	UUID  string `json:"uuid,omitempty"`
+}
+
+type LiveView {
+	Title         string                 `json:"title,omitempty"`
+	Content       string                 `json:"content,omitempty"`
+	Images        []*ImageView           `json:"images,omitempty"`
+	Audio         *AudioView             `json:"audio,omitempty"`
+	Video         *VideoView             `json:"video,omitempty"`
+	Attachments   []*AttachmentView      `json:"attachements,omitempty"`
+	Extras        map[string]interface{} `json:"extras,omitempty"`
+	From          string                 `json:"from,omitempty"`
+	ClassroomList []string               `json:"classroomList"`
+	HasVideo      bool                   `json:"hasVideo"`
+	HasStat       bool                   `json:"hasStat"`
+	Subject       string                 `json:"subject"`
+	StartTime     int64                  `json:"startTime"`
+	EndTime       int64                  `json:"endTime"`
+	Status        int                    `json:"status"` // 0:未开始 1:进行中 2:已结束
+	WhiteBoard    WhiteBoard             `json:"whiteBoard"`
+}
+
+type TestPaperInfo {
+	Id    string `json:"id,optional"`
+	Title string `json:"title,optional"`
+}
+
+type HomeworkView {
+	Title           string                 `json:"title,omitempty"`
+	Content         string                 `json:"content,omitempty"`
+	Images          []*ImageView           `json:"images,omitempty"`
+	Audio           *AudioView             `json:"audio,omitempty"`
+	Video           *VideoView             `json:"video,omitempty"`
+	Attachments     []*AttachmentView      `json:"attachements,omitempty"`
+	Extras          map[string]interface{} `json:"extras,omitempty"`
+	From            string                 `json:"from,omitempty"`
+	JoinedUser      string                 `json:"joinUserId"`
+	Status          string                 `json:"status"`    // "Needless", 无需参加, "Joined" 已提交,"UnJoin" 未提交
+	SubStatus       string                 `json:"subStatus"` // "Review", 需订正, "Reviewed" 已订正,"Pass" 已通过
+	EndTime         int64                  `json:"endTime"`
+	Open            bool                   `json:"open"`                      // 成果是否互相可见
+	NeedJoin        bool                   `json:"needJoin"`                  // 是否需要家长参与上传作业
+	NeedSignature   bool                   `json:"needSignature"`             // 是否需要签名
+	SuggestDuration int64                  `json:"suggestDuration,omitempty"` // 建议时长
+	HomeworkType    string                 `json:"homeworkType"`
+	TestPaper       *TestPaperInfo         `json:"testPaper,optional"` // 第三方题库作业信息
+}
+
+type MessageView {
+	Id                string                 `json:"id,omitempty"`
+	Title             string                 `json:"title,omitempty"`
+	Content           string                 `json:"content,omitempty"`
+	Images            []*ImageView           `json:"images,omitempty"`
+	Audio             *AudioView             `json:"audio,omitempty"`
+	Video             *VideoView             `json:"video,omitempty"`
+	Attachments       []*AttachmentView      `json:"attachements,omitempty"`
+	Extras            map[string]interface{} `json:"extras,omitempty"`
+	From              string                 `json:"from,omitempty"`
+	Category          string                 `json:"category,omitempty"`
+	Identifier        string                 `json:"identifier,omitempty"`
+	CreateTime        int64                  `json:"createTime,omitempty"`
+	Sender            *SimpleSenderView      `json:"sender,omitempty"`
+	School            *SchoolSenderView      `json:"school,omitempty"`
+	DeliveryTime      int64                  `json:"deliveryTime,omitempty"`
+	Timestamp         int64                  `json:"timestamp,omitempty"`
+	ClassroomView     *ClassroomView         `json:"classroom,omitempty"`
+	NoticeView        *NoticeView            `json:"notice,omitempty"`
+	TopicView         *TopicView             `json:"topic,omitempty"`
+	ActivityView      *ActivityView          `json:"activity,omitempty"`
+	Receipt           *Receipt               `json:"receipt,omitempty"`
+	Observer          bool                   `json:"observer,omitempty"`
+	ReceiverId        string                 `json:"receiverId,omitempty"`
+	SenderId          string                 `json:"senderId,omitempty"`
+	ClassroomId       string                 `json:"classroomId,omitempty"`
+	ScoreNoticeView   *ScoreNoticeView       `json:"scoreNotice,omitempty"`
+	SurveyView        *SurveyView            `json:"survey,omitempty"`
+	PunchCardView     *PunchCardView         `json:"punchcard,omitempty"`
+	SurveyV2View      *SurveyV2View          `json:"surveyV2,omitempty"`
+	WeeklyView        *WeeklyView            `json:"weekly,omitempty"`        // 5.0.0 add
+	PostView          *PostView              `json:"post,omitempty"`          // 5.0.0 add
+	AppletsView       *AppletsView           `json:"applets,omitempty"`       // 5.0.0 add
+	QuestionnaireView *QuestionnaireView     `json:"questionnaire,omitempty"` // 5.0.05 add
+	LiveView          *LiveView              `json:"live,omitempty"`
+	HomeworkView      *HomeworkView          `json:"homeworkView,omitempty"`
+	UnreadCount       int64                  `json:"unreadCount,omitempty"`
+	IsTop             bool                   `json:"isTop"`
+	IsParticipate     bool                   `json:"isParticipate"`
+	CampusId          int64                  `json:"campusId,omitempty"`
+}
+
+type LinkView {
+	Image string `json:"image,omitempty"`
+	Url   string `json:"url,omitempty"`
+}
+
+type ExtrasView {
+	Link *LinkView `json:"link,omitempty"`
+}
+
+type WeeklyMsgView {
+	Id        string      `json:"id,omitempty"`
+	WTitle    string      `json:"title,omitempty"`
+	WUrl      string      `json:"url,omitempty"`
+	WImg      string      `json:"img,omitempty"`
+	Type      string      `json:"type,omitempty"`
+	Category  string      `json:"category,omitempty"`
+	Content   string      `json:"content,omitempty"`
+	Extras    *ExtrasView `json:"extras,omitempty"`
+	Timestamp int64       `json:"timestamp,omitempty"`
+}
+
+type GetFavouriteMessageResponse {
+	Id            string           `json:"id,omitempty"`
+	HasMore       bool             `json:"hasMore"`
+	TotalSize     int              `json:"totalSize"`
+	LastTimestamp int64            `json:"lastTimestamp"`
+	Messages      []*MessageView   `json:"messages,omitempty"`
+	WeeklyMsg     []*WeeklyMsgView `json:"weeklyMsg,omitempty"`
+}
+
+type FavouriteMessageRequest {
+	MessageId   string `path:"messageId"` // 消息id或者晓周刊id
+	Token       string `path:"token"`
+	Type        string `json:"type,optional"`
+	WeeklyUrl   string `json:"wUrl,optional"`
+	WeeklyImg   string `json:"wImg,optional"`
+	WeeklyTitle string `json:"wTitle,optional"`
+}
+
+type FavouriteMessageResponse {
+	Successful bool `json:"successful"`
+}
+
+type MessageCancelRequest {
+	MessageId string `path:"messageId"`
+	Token     string `path:"token"`
+	Type      string `json:"type,optional"`
+}
+
+type MessageCancelResponse {
+	Successful bool `json:"successful"`
+}
+
+service favorite-api {
+	@doc(
+		summary: 获取收藏的消息列表
+	)
+	@server(
+		handler: getFavouriteMessageHandler
+	)
+	get /favourite/message/:token(GetFavouriteMessageRequest) returns(GetFavouriteMessageResponse)
+	
+	@doc(
+		summary: 消息收藏
+	)
+	@server(
+		handler: favouriteMessageHandler
+	)
+	put /favourite/message/:messageId/:token(FavouriteMessageRequest) returns(FavouriteMessageResponse)
+	
+	@doc(
+		summary: 取消收藏消息
+	)
+	@server(
+		handler: MessageCancelHandler
+	)
+	put /favourite/message/cancel/:messageId/:token(MessageCancelRequest) returns(MessageCancelResponse)
+}

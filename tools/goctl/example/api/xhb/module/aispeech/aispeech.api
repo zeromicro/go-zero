@@ -1,0 +1,721 @@
+info(
+	title: aispeech
+	desc: aispeech api
+	author: xzg
+	email: xuezonggui@xiaoheiban.cn
+)
+
+type StoreCallBackMessageRequest {
+}
+
+type StoreCallBackMessageResponse {
+}
+
+type BatchGetAiSpeechResultRequest {
+	Ids []string `json:"ids"`
+}
+
+type BatchGetAiSpeechResultResponse {
+	Results []*AiSpeechResult `json:"results"`
+}
+
+type AiSpeechResult {
+	Id            string `json:"id"`
+	Status        int    `json:"status"` // 0: not open; 1: 测评中； 2： 测评成功； 3： 测评失败
+	ResultMessage string `json:"resultMessage"`
+}
+
+type WsSignRequest {
+	Timestamp int64  `json:"timestamp"` // 到秒级的时间戳
+	Type      string `json:"type"`      // en - 英语   zh - 语文
+}
+
+type WsSignResponse {
+	Url string `json:"url,omitempty"`
+}
+
+type SingsoundSignRequest {
+	Timestamp int64 `json:"timestamp"`
+	Expire    int   `json:"expire,optional"`
+}
+
+type SingsoundSignResponse {
+	WarrantId string `json:"warrantId"`
+	ExpireAt  int    `json:"expireAt"`
+	AppId     string `json:"appId"`
+	Secret    string `json:"secret"`
+}
+
+type AbTestCheckPlatformRequest {
+	ClassroomId string `json:"classroomId"`
+}
+
+type AbTestCheckPlatformResponse {
+	Platform string `json:"platform"` // tal-好未来  singsound-先声教育   chivox-驰声
+}
+
+type ResultDeleteRequest {
+	Id string `json:"id"`
+}
+
+type ResultDeleteResponse {
+}
+
+type ResultDetailRequest {
+	Id string `json:"id"`
+}
+
+type ResultDetailResponse {
+	OralId       string    `json:"oralId,omitempty"`
+	Subject      string    `json:"subject,omitempty"`
+	Platform     string    `json:"platform,omitempty"` // 来源 tal - 好未来 singsound - 先声
+	Audio        *Audio    `json:"audio,omitempty"`
+	Status       int       `json:"status,omitempty"`
+	ResultJson   string    `json:"resultJson,omitempty"`
+	Score        int       `json:"score,omitempty"`
+	Level        string    `json:"level,omitempty"`
+	User         *UserView `json:"user,omitempty"`
+	Comment      string    `json:"comment,omitempty"`     // 评语
+	ClassroomId  string    `json:"classroomId,omitempty"` // 班级ID
+	IsFamily     bool      `json:"isFamily"`              // 是否家庭关系  true-是  false-否
+	IsTeacher    bool      `json:"isTeacher"`             // 是否是老师  true-是 false-否
+	Type         string    `json:"type,omitempty"`        // myself-自主练  homework-口语作业
+	OralTitle    string    `json:"oralTitle,omitempty"`
+	OralContent  string    `json:"oralContent,omitempty"` // 课文内容
+	ResultId     string    `json:"resultId,omitempty"`
+	HomeworkId   string    `json:"homeworkId,omitempty"`
+	TextId       string    `json:"textId,omitempty"`
+	AiSpeechLike int       `json:"aiSpeechLike"`
+	FeedBack     int       `json:"feedBack"` // 0-没反馈  1-赞  -1-踩
+	SubType      string    `json:"subType,omitempty"`
+	AiResult     *AiResult `json:"aiResult,omitempty"`
+	ErrWordNum   int       `json:"errWordNum"`
+	CreateTime   int64     `json:"createTime,omitempty"`
+}
+
+type ResultListRequest {
+	Subject  string `json:"subject,optional"` // en 英文  zh 语文
+	LastTime int64  `json:"lastTime,optional"`
+	PageSize int    `json:"pageSize,optional"`
+}
+
+type ResultListResponse {
+	LastTimestamp int64             `json:"lastTimestamp,omitempty"`
+	HasMore       bool              `json:"hasMore"`
+	Total         int               `json:"total"`
+	List          []*ResultListItem `json:"list"`
+}
+
+//这个保持和老版本一致
+type ResultListItem {
+	Id            string             `json:"id"`
+	Level         string             `json:"level"`
+	Title         string             `json:"title"`
+	Status        int                `json:"status"`
+	SubTypeName   string             `json:"subTypeName"`
+	Audio         *Audio             `json:"audio"`
+	CreateTime    int64              `json:"createTime"`
+	HanlinAcademy *HanlinAcademyText `json:"hanlinAcademy,omitempty"`
+	Subject       string             `json:"subject,omitempty"`
+}
+
+type ResultSaveRequest {
+	OralId     string             `json:"oralId,optional"`  // 评测结果ID
+	Subject    string             `json:"subject,optional"` // 外语  语文
+	ResultId   string             `json:"resultId,optional"`
+	ResultJson string             `json:"resultJson,optional"`
+	Status     int                `json:"status,optional"`
+	Platform   string             `json:"platform,optional"`
+	RequestId  string             `json:"requestId,optional"`
+	Audio      *Audio             `json:"audio,optional"`
+	HanlinText *HanlinAcademyText `json:"hanlinText,optional"`
+	SubType    string             `json:"subType,optional"` //recite-背诵  readLoud-朗读
+}
+
+type ResultSaveResponse {
+	OralId       string `json:"oralId,omitempty"`
+	Status       int    `json:"status,omitempty"`       // 0: not open; 1: 测评中； 2： 测评成功； 3： 测评失败
+	Url          string `json:"url,omitempty"`          // 小程序
+	Score        int    `json:"score,omitempty"`        // 评测得分
+	AiScoreLevel string `json:"aiScoreLevel,omitempty"` // 评测等级 A+  A  B C D
+	OralResult   string `json:"oralResult,omitempty"`   // 评测结果
+}
+
+type ChivoxSignRequest {
+}
+
+type ChivoxSignResponse {
+	AppKey    string `json:"appKey,omitempty"`
+	SecretKey string `json:"secretKey,omitempty"`
+}
+
+type ExampleVideoRequest {
+}
+
+type ExampleVideoResponse {
+	PlayUrl string `json:"playUrl,omitempty"`
+}
+
+type ResultFeedbackRequest {
+	Operation int    `json:"operation"` //  1-赞 -1-踩
+	OralId    string `json:"oralId"`    //  成果ID
+}
+
+type ResultFeedbackResponse {
+}
+
+type ResultPraiseRequest {
+	Operation int    `json:"operation"` //  1-赞 -1-取消赞
+	OralId    string `json:"oralId"`    //  成果ID
+}
+
+type ResultPraiseResponse {
+}
+
+type ClassroomReportRequest {
+	HomeworkId string `json:"homeworkId"`
+}
+
+type ClassroomReportResponse {
+	List        []*AispeechItem `json:"list,omitempty"`
+	ClassroomId string          `json:"classroomId,omitempty"`
+	WrongWords  map[string]int  `json:"wrongWords,omitempty"`
+}
+
+type AispeechItem {
+	OralId       string    `json:"oralId,omitempty"`
+	UserView     *UserView `json:"userView,omitempty"`
+	Status       int       `json:"status,omitempty"`       // 1-评测中 2-评测成功 3-测试失败
+	Overall      int       `json:"overall,omitempty"`      // 综合分
+	Pron         int       `json:"pron,omitempty"`         // 发音得分
+	Integrity    int       `json:"integrity,omitempty"`    // 完整性得分
+	Fluency      int       `json:"fluency,omitempty"`      // 流利度得分
+	WrongWordNum int       `json:"wrongWordNum,omitempty"` // 错字数
+	Duration     int       `json:"duration,omitempty"`     // 音频时长
+}
+
+type ParseResultRequest {
+	Platform   string `json:"platform"` // singsound-先声   chivox-驰声
+	Subject    string `json:"subject"`  // 学科 en - 英语  zh - 语文  math - 数学
+	ResultJson string `json:"resultJson"`
+}
+
+type ParseResultResponse {
+	AiResult *AiResult `json:"aiResult,omitempty"`
+}
+
+type EmptyResponse {
+}
+
+type AddAccuracyRequest {
+	ResultAccuracy
+}
+
+type ModifyAccuracyRequest {
+	ResultAccuracy
+}
+
+type GetAccuracyRequest {
+	OralId string `path:"oralId"`
+	UserId string `path:"userId,optional"`
+}
+
+type GetResultAccuracyResponse {
+	Exist bool `json:"exist"`
+	ResultAccuracy
+}
+
+type ResultAccuracy {
+	Accuracy int    `json:"accuracy"` //98打分很低 99打分略低 100 准确 101打分略高 102打分很高
+	UserId   string `json:"userId,optional"`
+	OralId   string `json:"oralId"`
+	Comment  string `json:"comment,optional"` //反馈建议
+	Id       string `json:"id,optional"`
+}
+
+type AiScore {
+	Overall   int `json:"overall"`
+	Integrity int `json:"integrity"`
+	Pron      int `json:"pron"`
+	Fluency   int `json:"fluency"`
+}
+
+type AiWord {
+	W string `json:"w"`
+	S int    `json:"s"`
+	C string `json:"c"`
+}
+
+type UserView {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName"`
+	Avatar      string `json:"avatar"`
+}
+
+type Audio {
+	// 语音文件id
+	Id string `json:"id"`
+	// 持续时间
+	Duration int `json:"duration"`
+	// 文件后缀名
+	FileExtension string `json:"fileExtension,optional"`
+	// 文件大小
+	Size int `json:"size,optional"`
+	// 文件名字
+	Name string `json:"name,optional"`
+}
+
+type ParseResultV2Request {
+	Id         string             `json:"id,optional"`     //重新评测的时候带上该字段，初次评测不用上传，已经提交过的不可以重新评测
+	UserId     string             `json:"userId,optional"` //不用传，会从token中解析
+	Platform   string             `json:"platform"`        // singsound-先声   chivox-驰声
+	Subject    string             `json:"subject"`         // 学科 en - 英语  zh - 语文  math - 数学
+	ResultJson string             `json:"resultJson"`
+	HanlinText *HanlinAcademyText `json:"hanlinText"`
+	Audio      *Audio             `json:"audio"` //段落音频文件
+}
+
+type HanlinAcademyText {
+	TextId      string `json:"textId"`               // 翰林院文章ID
+	BookId      int    `json:"bookId"`               // 课文分类ID
+	Title       string `json:"title"`                // 翰林院标题
+	Grade       string `json:"grade,optional"`       // 年级
+	BookVersion string `json:"bookVersion,optional"` // 教材版本
+
+	ParagraphId string `json:"paragraphId"`         // 段落id
+	SentenceId  string `json:"sentenceId,optional"` // 句子id，最小单位可能为段落，所以可以不传该字段
+	SnapshotId  string `json:"snapshotId"`          // 文章快照id
+}
+
+type ParseResultV2Response {
+	ParagraphResult
+}
+
+type ParagraphResult {
+	Id         string            `json:"id"`
+	Words      []AiWord          `json:"words,omitempty"`
+	Score      AiScore           `json:"score,omitempty"`
+	Audio      Audio             `json:"audio,omitempty"`
+	HanlinText HanlinAcademyText `json:"hanlinText"`
+}
+
+type AiResult {
+	Id    string    `json:"Id"`
+	Words []*AiWord `json:"words,omitempty"`
+	Score *AiScore  `json:"score,omitempty"`
+	Audio *Audio    `json:"audio,omitempty"`
+}
+
+type ResultSaveV2Request {
+	UserId  string   `json:"userId,optional"` //不用传，会从token中解析
+	Subject string   `json:"subject"`         // 外语  语文
+	SubType string   `json:"subType"`         //recite-背诵  readLoud-朗读
+	Ids     []string `json:"ids,omitempty"`   //每个段落的保存结果id
+}
+
+type ResultSaveV2Response {
+	OralResultId string `json:"oralResultId"` // 口语成果id
+}
+
+type ResultListV2Request {
+	UserId   string `form:"userId,optional"`  // 用户id，不用传这个参数
+	Subject  string `form:"subject,optional"` // en 英文  zh 语文
+	Cursor   int64  `form:"cursor"`
+	Limit    int    `form:"limit"`
+	BookType string `form:"bookType"` // 课内 official; 课外 extra
+}
+
+type ResultListV2Response {
+	Cursor       int64            `json:"cursor"` // 游标,当前分页的最小updateTime
+	HaveNextPage bool             `json:"haveNextPage"`
+	Total        int              `json:"total"`
+	List         []OralResultResp `json:"list,omitempty"`
+}
+
+type OralResultResp {
+	OralResult
+	SubTypeName string `json:"subTypeName"`
+}
+
+type OralResult {
+	Id           string  `json:"id"`
+	Level        string  `json:"level"`
+	Title        string  `json:"title"`
+	Status       int     `json:"status"`
+	SubType      string  `json:"subType"`
+	AudioList    []Audio `json:"AudioList,omitempty"`
+	Subject      string  `json:"subject"`
+	CreateTime   int64   `json:"createTime"`
+	UpdateTime   int64   `json:"updateTime"`
+	Version      int     `json:"version"`
+	ExerciseType string  `json:"exerciseType"` // myself-自主练 homework-作业
+	AiTotalScore int32   `json:"aiTotalScore"`
+	SnapshotId   string  `json:"snapshotId"` // myself-自主练 homework-作业
+	MessageId    string  `json:"messageId"`
+	ResultId     string  `json:"resultId"`
+	UserId       string  `json:"userId"`
+}
+
+type ResultDetailV2Request {
+	Id string `form:"id"`
+}
+
+type ResultDetailV2Response {
+	Grade         string            `json:"grade"`
+	Subject       string            `json:"subject"`
+	Status        int               `json:"status"`
+	Score         int               `json:"score"`
+	Level         string            `json:"level"`
+	User          *UserView         `json:"user,omitempty"`
+	Comment       string            `json:"comment"`       // 评语
+	ClassroomId   string            `json:"classroomId"`   // 班级ID
+	ClassroomName string            `json:"classroomName"` // 班级名称 v5
+	IsFamily      bool              `json:"isFamily"`      // 是否家庭关系  true-是  false-否
+	IsTeacher     bool              `json:"isTeacher"`     // 是否是老师  true-是 false-否
+	Type          string            `json:"type"`          // myself-自主练  homework-口语作业
+	BookType      string            `json:"bookType"`      // official-课内 extra-课外
+	OralTitle     string            `json:"oralTitle"`
+	ResultId      string            `json:"resultId"`
+	HomeworkId    string            `json:"homeworkId"`
+	SubType       string            `json:"subType"`
+	CreateTime    int64             `json:"createTime"`
+	ErrWordNum    int               `json:"errWordNum"`           // 错字数
+	SnapshotId    string            `json:"snapshotId"`           //文章快照id
+	Paragraphs    []ParagraphResult `json:"paragraphs,omitempty"` //
+}
+
+type ClassroomReportV2Request {
+	HomeworkId string `form:"homeworkId"`
+}
+
+type ClassroomReportV2Response {
+	Title         string          `json:"title,omitempty"`
+	ClassroomId   string          `json:"classroomId"`
+	ClassroomName string          `json:"classroomName"` // 班级名称 v5
+	List          []*AispeechItem `json:"list,omitempty"`
+	WrongWords    map[string]int  `json:"wrongWords,omitempty"`
+}
+
+type GetThumbupListRequest {
+	OralId     string `form:"oralId"` //v6--点赞相关
+	HomeworkId string `form:"homeworkId"`
+	Cursor     int32  `form:"cursor"`
+	Limit      int32  `form:"limit"`
+}
+
+type ThumbUp {
+	Business   string `json:"business"` //业务名字，例如：homework#result v6--点赞相关
+	TargetId   string `json:"targetId"` //评论目标，点赞关联的行记录id
+	SenderId   string `json:"senderId"` //点赞的人
+	UpdateTime int32  `json:"updateTime"`
+}
+
+type GetThumbupListResponse {
+	List []ThumbUp `json:"list"` //v6--点赞相关
+}
+
+type AddReplyRequest {
+	ClassroomId   string `json:"classroomId"`
+	HomeworkId    string `json:"homeworkId"`           // 作业 id
+	OralId        string `json:"oralId"`               // oral id
+	Content       string `json:"content,optional"`     // 评论内容
+	Image         *Image `json:"image,optional"`       // 图片信息
+	Audio         *Audio `json:"audio,optional"`       // 语音信息
+	ReplyUserId   string `json:"userId,optional"`      // 评论人user id
+	BeReplyUserId string `json:"replyUserId,optional"` // 被评论人user id
+	ParentId      string `json:"parentId,optional"`    // 评论的父id
+}
+
+type Image {
+	Original  string `json:"original"`
+	Preview   string `json:"preview"`
+	Thumbnail string `json:"thumbnail"`
+	Size      int    `json:"size"`
+	Height    int    `json:"height"`
+	Width     int    `json:"width"`
+}
+
+type AddReplyResponse {
+	Id string `json:"id"` // 评论id
+}
+
+type ReplyListRequest {
+	OralId   string `json:"oralId"`
+	Time     int64  `json:"time,optional"`
+	PageSize int    `json:"pageSize,optional"`
+	UserId   string `json:"userId,optional"`
+}
+
+type Reply {
+	Id            string `json:"id"`
+	ReplyUserId   string `json:"replyId"`
+	BeReplyUserId string `json:"beReplyId"`
+	Content       string `json:"content"`
+	Image         *Image `json:"image"`
+	Audio         *Audio `json:"audio"`
+	CreateTime    int64  `json:"createTime"`
+}
+
+type Cursor {
+	IsEnd bool  `json:"isEnd"`
+	Time  int64 `json:"time"`
+}
+
+type ReplyListResponse {
+	Replies []*Reply `json:"replies"`
+	Cursor  *Cursor  `json:"cursor"`
+}
+
+@server(
+	port: 10086
+	pathPrefix: "/route/xhb"
+)
+service aispeech-api {
+	@doc(
+		summary:  存储好未来api的回调数据
+	)
+	@server(
+		handler:  StoreCallBackMessage
+	)
+	post /aispeech/tal/callback(StoreCallBackMessageRequest) returns(StoreCallBackMessageResponse)
+	
+	@doc(
+		summary:  批量获取数据以及作业提交状态
+	)
+	@server(
+		handler:  BatchGetAiSpeechResult
+	)
+	post /aispeech/tal/result(BatchGetAiSpeechResultRequest) returns(BatchGetAiSpeechResultResponse)
+	
+	@doc(
+		summary:  获取websocket 验签
+	)
+	@server(
+		handler:  SignGenerateHandler
+	)
+	post /aispeech/websocket/sign(WsSignRequest) returns(WsSignResponse)
+	
+	@doc(
+		summary:  获取先声验签
+	)
+	@server(
+		handler:  SignSingsoundHandler
+	)
+	post /aispeech/singsound/sign(SingsoundSignRequest) returns(SingsoundSignResponse)
+	
+	@doc(
+		summary:  选择平台
+	)
+	@server(
+		handler:  AbTestCheckPlatformHandler
+	)
+	post /aispeech/abtest/get-platform(AbTestCheckPlatformRequest) returns(AbTestCheckPlatformResponse)
+	
+	@doc(
+		summary:  驰声验签
+	)
+	@server(
+		handler:  SignChivoxHandler
+	)
+	post /aispeech/chivox/sign(ChivoxSignRequest) returns(ChivoxSignResponse)
+	
+	@doc(
+		summary: 评测结果保存（禁用）
+	)
+	@server(
+		handler:  ResultSaveHandler
+	)
+	post /aispeech/result/save(ResultSaveRequest) returns(ResultSaveResponse)
+	
+	@doc(
+		summary: 自主评测结果列表（禁用）
+	)
+	@server(
+		handler:  UserResultListHandler
+	)
+	post /aispeech/user/result/list(ResultListRequest) returns(ResultListResponse)
+	
+	@doc(
+		summary: 自主评测结果详情
+	)
+	@server(
+		handler:  UserResultDetailHandler
+	)
+	post /aispeech/user/result/detail(ResultDetailRequest) returns(ResultDetailResponse)
+	
+	@doc(
+		summary: 自主评测删除
+	)
+	@server(
+		handler:  UserResultDeleteHandler
+	)
+	delete /aispeech/user/result/delete(ResultDeleteRequest) returns(ResultDeleteResponse)
+	
+	@doc(
+		summary: 自主评测删除
+	)
+	@server(
+		handler:  ExampleVideoHandler
+	)
+	get /aispeech/example/video(ExampleVideoRequest) returns(ExampleVideoResponse)
+	
+	@doc(
+		summary: 自主评结果分享页面
+	)
+	@server(
+		handler:  AispeechShareDetailHandler
+	)
+	post /aispeech/result/detail/share(ResultDetailRequest) returns(ResultDetailResponse)
+	
+	@doc(
+		summary: 口语评测成果反馈
+	)
+	@server(
+		handler: ResultFeedbackHandler
+	)
+	post /aispeech/result/feedback(ResultFeedbackRequest) returns(ResultFeedbackResponse)
+	
+	@doc(
+		summary: 口语测试成果点赞
+	)
+	@server(
+		handler:  ResultPraiseHandler
+	)
+	post /aispeech/result/praise(ResultPraiseRequest) returns(ResultPraiseResponse)
+	
+	@doc(
+		summary: 口语测评班级报告
+	)
+	@server(
+		handler:  ClassroomReportHandler
+	)
+	post /aispeech/classroom/report(ClassroomReportRequest) returns(ClassroomReportResponse)
+	
+	@doc(
+		summary: 解析口语报告（禁用）
+	)
+	@server(
+		handler:  ParseResultHandler
+	)
+	post /aispeech/result/parse(ParseResultRequest) returns(ParseResultResponse)
+	
+	@doc(
+		summary: AI准确度反馈
+	)
+	@server(
+		handler:  AddAccuracyHandler
+	)
+	post /aispeech/result/accuracy/add(AddAccuracyRequest) returns(EmptyResponse)
+	
+	@doc(
+		summary: AI准确度修改
+	)
+	@server(
+		handler:  ModifyAccuracyHandler
+	)
+	post /aispeech/result/accuracy/modify(ModifyAccuracyRequest) returns(EmptyResponse)
+	
+	@doc(
+		summary: AI准确度查询
+	)
+	@server(
+		handler:  GetAccuracyHandler
+	)
+	get /aispeech/result/accuracy/detail/:oralId(GetAccuracyRequest) returns(GetResultAccuracyResponse)
+	
+	@doc(
+		summary: 班级报告分享页
+	)
+	@server(
+		handler:  ClassroomReportShareHandler
+	)
+	post /aispeech/classroom/report/share(ClassroomReportRequest) returns(ClassroomReportResponse)
+	
+	@doc(
+		summary:个人报告分享V2-- 自主评测结果详情
+	)
+	@server(
+		handler:  UserResultDetailShareV2Handler
+	)
+	get /aispeech/user/result/detail/share/v2(ResultDetailV2Request) returns(ResultDetailV2Response)
+	
+	@doc(
+		summary: 班级报告分享V2
+	)
+	@server(
+		handler:  ClassroomReportShareV2Handler
+	)
+	get /aispeech/classroom/report/share/v2(ClassroomReportV2Request) returns(ClassroomReportV2Response)
+	
+}
+
+@server(
+	jwt: Auth
+	signature: Auth
+)
+service aispeech-api {
+	
+	@doc(
+		summary: 解析口语报告--每个段落解析一次，不保存到作业
+	)
+	@server(
+		handler:  ParseResultV2Handler
+	)
+	post /aispeech/paragraph/result/parse(ParseResultV2Request) returns(ParseResultV2Response)
+	
+	@doc(
+		summary: 评测结果提交--多个段落批量保存
+	)
+	@server(
+		handler:  ResultSaveV2Handler
+	)
+	post /aispeech/paragraph/result/save(ResultSaveV2Request) returns(EmptyResponse)
+	
+	@doc(
+		summary: 我的作品--自主评测结果列表
+	)
+	@server(
+		handler:  UserResultListV2Handler
+	)
+	get /aispeech/user/works/list(ResultListV2Request) returns(ResultListV2Response)
+	
+	@doc(
+		summary:个人报告V2-- 自主评测结果详情
+	)
+	@server(
+		handler:  UserResultDetailV2Handler
+	)
+	get /aispeech/user/result/detail/v2(ResultDetailV2Request) returns(ResultDetailV2Response)
+	
+	@doc(
+		summary: 班级报告V2
+	)
+	@server(
+		handler:  ClassroomReportV2Handler
+	)
+	get /aispeech/classroom/report/v2(ClassroomReportV2Request) returns(ClassroomReportV2Response)
+	
+	@doc(
+		summary:查询点赞详细信息--作业成果列表(v6)
+	)
+	@server(
+		handler:  GetThumbupListHandler
+	)
+	get /aispeech/result/thumbup/list(GetThumbupListRequest) returns(GetThumbupListResponse)
+	
+	@doc(
+		summary: 成果添加评论(v6)
+	)
+	@server(
+		handler:  AddReplyHandler
+	)
+	post /aispeech/reply/add(AddReplyRequest) returns(AddReplyResponse)
+	
+	@doc(
+		summary: 分页获取成果评论列表(v6)
+	)
+	@server(
+		handler:  ReplyListHandler
+	)
+	get /aispeech/reply/list(ReplyListRequest) returns(ReplyListResponse)
+}

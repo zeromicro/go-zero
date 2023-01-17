@@ -1,0 +1,186 @@
+info(
+	title: 工资条
+	desc: 工资条相关api
+	author: liuguoqiang
+	email: liuguoqiang@xiaoheiban.cn
+)
+
+type SalaryImportRequest {
+	Title  string `form:"title"`           // 发送主题
+	Detail string `form:"detail,optional"` // 特殊说明
+}
+
+type SalaryImportResponse {
+	Detail string `json:"detail"` // 提示导入成功多少条
+}
+
+type ReceiverDetailRequest {
+	Id int64 `path:"id"` // 导入记录id
+}
+
+type ReceiverDetailResponse {
+	Username     string `json:"username"`     // 用户姓名
+	RecordId     int64  `json:"recordId"`     // 记录id
+	Realsalary   string `json:"realsalary"`   // 真实薪资
+	Detailsalary string `json:"detailsalary"` // 自定义薪资
+	Title        string `json:"title"`        // 标题
+	Detail       string `json:"detail"`       // 特殊说明
+	Invisible    int    `json:"invisible"`    // 是否隐藏0不隐藏1隐藏
+}
+
+type TimeRange {
+	Start int64 `json:"start"` // 开始时间戳，闭区间
+	End   int64 `json:"end"`   // 结束时间戳，闭区间
+}
+
+type RecordListRequest {
+	Page     int          `json:"page"`     // 第几分页,默认从0开始
+	PageSize int          `json:"pageSize"` // 每页条数默认为0
+	Times    []*TimeRange `json:"times"`    // 时间范围数组
+}
+
+type MySalaryListRequest {
+	LastId   int64        `json:"lastId"` // 最后一条记录的id,默认从0开始
+	Times    []*TimeRange `json:"times"`  // 时间范围数组
+	PageSize int          `json:"pageSize"`
+}
+
+type MySalaryListResponse {
+	List      []*MySalaryDetail `json:"list"`      // 薪资列表
+	Invisible int               `json:"invisible"` // 0不隐藏1隐藏
+	Total     int64             `json:"total"`     // 总条数
+}
+
+type MySalaryDetail {
+	Id         int64  `json:"id"`         // 记录id
+	Title      string `json:"title"`      // 标题
+	Realsalary string `json:"realsalary"` // 实发薪资
+}
+
+type RecordListResponse {
+	List  []*RecordListDetail `json:"list"`  // 工资条列表
+	Total int64               `json:"total"` // 总条数
+}
+
+type RecordListDetail {
+	Id          int64  `json:"id"`          // 记录id
+	Title       string `json:"title"`       // 标题
+	OperateName string `json:"operateName"` // 操作人
+	OperateTime string `json:"operateTime"` // 操作时间
+	Status      int64  `json:"status"`      // 状态0待发送1已发送2已删除
+	Detail      string `json:"detail"`      // 特殊说明
+}
+
+type RecordDeleteRequest {
+	RecordId int64 `path:"recordId"` // 导入记录id
+}
+
+type SendSalaryRequest {
+	RecordId int64 `path:"recordId"` // 导入记录id
+}
+
+type SalaryTeacherListRequest {
+	Page     int    `json:"page"`     // 第几页默认从0开始
+	PageSize int    `json:"pageSize"` // 每页条数默认为0
+	RecordId int64  `json:"recordId"` // 记录Id
+	Username string `json:"username"` // 用户名模糊搜索，没有传空字符串
+}
+
+type SalaryTeacherListResponse {
+	TitleList []string                   `json:"titleList"`
+	List      []*SalaryTeacherListDetail `json:"list"`
+	Total     int64                      `json:"total"`
+}
+
+type SalaryTeacherListDetail {
+	Id           int64  `json:"id"`           // 记录id
+	Username     string `json:"username"`     // 用户名
+	Realsalary   string `json:"realsalary"`   // 实发薪资
+	Detailsalary string `json:"detailsalary"` // 自定义薪资
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8081
+	jwt: Auth
+)
+service salary-api {
+	@doc(
+		summary: 导出教师excel
+	)
+	@server(
+		handler: TeacherExportHandler
+	)
+	get /salary/salary/teacher-export()
+	
+	@doc(
+		summary: 导入工资条excel
+	)
+	@server(
+		handler: SalaryImportHandler
+	)
+	post /salary/salary/salary-import(SalaryImportRequest) returns(SalaryImportResponse)
+	
+	@doc(
+		summary: 工资条列表
+	)
+	@server(
+		handler: RecordListHandler
+	)
+	post /salary/salary/record-list(RecordListRequest) returns(RecordListResponse)
+	
+	@doc(
+		summary: 删除工资条
+	)
+	@server(
+		handler: RecordDeleteHandler
+	)
+	get /salary/salary/record-delete/:recordId(RecordDeleteRequest)
+	
+	@doc(
+		summary: 发送工资条
+	)
+	@server(
+		handler: SendSalaryHandler
+	)
+	get /salary/salary/send-salary/:recordId(SendSalaryRequest)
+	
+	@doc(
+		summary: 查看工资条详情列表
+	)
+	@server(
+		handler: SalaryTeacherListHandler
+	)
+	post /salary/salary/salaryteacher-list(SalaryTeacherListRequest) returns(SalaryTeacherListResponse)
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8081
+	jwt:  XhbAuth
+)
+service salary-api {
+	@doc(
+		summary: 接收人点击查看详情
+	)
+	@server(
+		handler: ReceiverDetailHandler
+	)
+	get /salary/h5/receiver-detail/:id(ReceiverDetailRequest) returns(ReceiverDetailResponse)
+	
+	@doc(
+		summary: 我的工资列表页
+	)
+	@server(
+		handler: MysalaryListHandler
+	)
+	post /salary/h5/mysalary-list(MySalaryListRequest) returns(MySalaryListResponse)
+	
+	@doc(
+		summary: 设置是否隐藏,每请求一次，原来的隐藏变为不隐藏，或者不隐藏变为隐藏
+	)
+	@server(
+		handler: InvisibleHandler
+	)
+	get /salary/h5/invisible()
+}

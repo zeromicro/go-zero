@@ -112,7 +112,6 @@ func (t Token) Is(text ...string) bool {
 	return false
 }
 
-
 const (
 	token_bg Type = iota
 	error
@@ -124,6 +123,7 @@ const (
 	literal_beg
 	IDENT      // main
 	INT        // 123
+	DURATION   // 3s,3ms
 	STRING     // "abc"
 	RAW_STRING // `abc`
 	PATH       // `abc`
@@ -209,6 +209,7 @@ var tokens = [...]string{
 
 	IDENT:      "IDENT",
 	INT:        "INT",
+	DURATION:   "DURATION",
 	STRING:     "STRING",
 	RAW_STRING: "RAW_STRING",
 	PATH:       "PATH",

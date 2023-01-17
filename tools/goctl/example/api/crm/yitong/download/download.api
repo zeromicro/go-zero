@@ -1,0 +1,50 @@
+info(
+	title: doc title
+	desc: "goctl api go -api download.api -dir ./
+	goctl api format -dir .
+	这是下载管理的API文档"
+	version: 1.0
+)
+
+type DownloadListRequest {
+	Page     int64 `json:"page,default=0"`
+	PageSize int64 `json:"pageSize,default=12"`
+}
+
+type DownloadListResponse {
+	Id         int64  `json:"id"`         // 下载列表ID
+	Name       string `json:"name"`       // 下载文件名
+	Link       string `json:"link"`       // 下载链接名
+	Status     string `json:"status"`     // 下载状态 0:无；1：下载中；2：下载成功；3：下载失败
+	CreatorId  int64  `json:"creatorId"`  // 创建人ID
+	Module     string `json:"module"`     // 所属模块
+	CreateTime int64  `json:"createTime"` // 创建时间
+}
+
+type DownloadDeleteRequest {
+	Ids []int64 `json:"ids"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 2019
+	jwt: Auth
+)
+
+service download-api {
+	@doc(
+		summary: 获取下载列表
+	)
+	@server(
+		handler: downloadList
+	)
+	get /download/list(DownloadListRequest) returns([]*DownloadListResponse)
+	
+	@doc(
+		summary: 删除下载记录
+	)
+	@server(
+		handler: deleteItems
+	)
+	post /download/delete(DownloadDeleteRequest)
+}

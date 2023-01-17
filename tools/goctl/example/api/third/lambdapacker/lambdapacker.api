@@ -1,0 +1,38 @@
+info(
+	title: Lambda packer
+	desc: Package static files by aliyun function calculation
+	author: Jiaweichuan
+	email: jiaweichuan@xiaoheiban.cn
+)
+
+type Request {
+	Uuid     string                     `json:"-,optional"`
+	DestFile string                     `json:"destFile,optional"`
+	Data     []*LambdaPackerRequestData `json:"data"`
+}
+
+type LambdaPackerRequestData {
+	SourceFiles []DownloadFile `json:"sourceFiles"`
+}
+
+type DownloadFile {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type Response {
+	Url string `json:"url"`
+}
+
+@server(
+	port: 9000
+)
+service lambdapacker-api {
+	@doc(
+		summary: Package static files by aliyun function calculation.
+	)
+	@server(
+		handler: lambdapackerHandler
+	)
+	post /lambdapacker(Request) returns(Response)
+}

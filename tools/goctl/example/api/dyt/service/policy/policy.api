@@ -1,0 +1,187 @@
+info(
+	title: 权限组
+	desc:
+	author: huleiyu
+	email: huleiyu@xiaoheiban.cn
+)
+
+type (
+	PathAppIdRequest {
+		AppId string `path:"appId"` // 应用code
+	}
+
+	ModulePolicyResponse {
+		List []*PolicyView `json:"list"`
+	}
+
+	PolicyView {
+		Name     string        `json:"name"`
+		Policy   string        `json:"policy,omitempty,optional"`
+		Children []*PolicyView `json:"children,omitempty,optional"`
+	}
+
+	GroupResponse {
+		List []*Group `json:"list"`
+	}
+
+	Group {
+		GroupId int64    `json:"groupId"`
+		Name    string   `json:"name"`
+		Policy  []string `json:"policy"`
+	}
+
+	ActGroupRequest {
+		AppId   string   `json:"appId"`            // 应用code
+		GroupId int64    `json:"groupId,optional"` // 修改时传id
+		Name    string   `json:"name"`
+		Policy  []string `json:"policy"`
+	}
+
+	DeleteGroupRequest {
+		GroupId int64  `json:"groupId"`
+		AppId   string `json:"appId"`
+	}
+
+	TeacherGroupRequest {
+		GroupId  int64 `json:"groupId"`
+		Page     int   `json:"page"`
+		PageSize int   `json:"pageSize"`
+	}
+
+	TeacherGroupResponse {
+		Count int             `json:"count"`
+		List  []*TeacherGroup `json:"list"`
+	}
+
+	TeacherGroup {
+		Id          int64  `json:"id"`
+		TeacherName string `json:"teacherName"`
+		Department  string `json:"department"`
+		Scope       string `json:"scope"`
+		Creator     string `json:"creator"`
+	}
+
+	AddTeacherGroupRequest {
+		AppId      string  `json:"appId"`
+		GroupId    int64   `json:"groupId"`
+		TeacherIds []int64 `json:"teacherIds,optional"`
+	}
+
+	DeleteTeacherGroupRequest {
+		TeacherGroupId int64  `json:"teacherGroupId"`
+		AppId          string `json:"appId"`
+	}
+
+	UserAuth {
+		Policy []string `json:"policy"`
+	}
+
+	TeacherResponse {
+		ClassArchList      []*CampusGradeItem `json:"classArchList"`      // 班级架构教师列表
+		DepartmentArchList []*DepartmentItem  `json:"departmentArchList"` // 部门架构中教师列表
+	}
+
+	DepartmentItem {
+		Id   int64          `json:"id"`
+		Name string         `json:"name"`
+		Sort int64          `json:"-"`
+		List []*TeacherItem `json:"list"`
+	}
+
+	CampusGradeItem {
+		Id       int64        `json:"id"`
+		Name     string       `json:"name"`
+		GradeNum int64        `json:"-"`
+		List     []*ClassItem `json:"list"`
+	}
+
+	ClassItem {
+		Id       int64          `json:"id"`
+		Name     string         `json:"name"`
+		ClassNum int64          `json:"-"`
+		List     []*TeacherItem `json:"list"`
+	}
+
+	TeacherItem {
+		Id   int64  `json:"id"`
+		Name string `json:"name"`
+	}
+)
+
+@server(
+	jwt: DytAuth
+)
+
+service policy {
+	@doc(
+		summary: 权限组列表
+	)
+	@server(
+		handler: groupListHandler
+	)
+	get /policy/group/list/:appId(PathAppIdRequest) returns(GroupResponse)
+	
+	@doc(
+		summary: 新增/编辑权限组
+	)
+	@server(
+		handler: actGroupHandler
+	)
+	post /policy/group/act(ActGroupRequest)
+	
+	@doc(
+		summary: 删除权限组
+	)
+	@server(
+		handler: deleteGroupHandler
+	)
+	post /policy/group/delete(DeleteGroupRequest)
+	
+	@doc(
+		summary: 获取权限组成员列表
+	)
+	@server(
+		handler: teacherGroupListHandler
+	)
+	post /policy/group/teacher/list(TeacherGroupRequest) returns(TeacherGroupResponse)
+	
+	@doc(
+		summary: 新增成员
+	)
+	@server(
+		handler: addTeacherGroupHandler
+	)
+	post /policy/group/teacher/add(AddTeacherGroupRequest)
+	
+	@doc(
+		summary: 删除成员
+	)
+	@server(
+		handler: deleteTeacherGroupHandler
+	)
+	post /policy/group/teacher/delete(DeleteTeacherGroupRequest)
+	
+	@doc(
+		summary: 获取用户在该应用下的权限
+	)
+	@server(
+		handler: moduleUserAuthHandler
+	)
+	get /policy/module/user/auth/:appId(PathAppIdRequest) returns(UserAuth)
+	
+	@doc(
+		summary: 获取应用权限
+	)
+	@server(
+		handler: modulePolicyHandler
+	)
+	get /policy/module/policy/:appId(PathAppIdRequest) returns(ModulePolicyResponse)
+	
+	@doc(
+		summary: 获取班级、部门教师列表
+	)
+	@server(
+		handler: getUserListHandler
+	)
+	post /policy/user/list(DeleteGroupRequest) returns(TeacherResponse)
+}

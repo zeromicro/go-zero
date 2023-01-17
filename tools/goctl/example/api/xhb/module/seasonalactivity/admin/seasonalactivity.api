@@ -1,0 +1,227 @@
+info(
+	title: 寒假活动等
+	desc:  寒假活动等 admin
+	version: 1.0
+)
+
+type ActivityRequest {
+}
+type ActivityResponse {
+	ActivityList []*ActivityListView `json:"activityList"`
+}
+
+type ActivityDetailRequest {
+	Id int64 `path:"id"` // id
+}
+type ActivityDetailResponse {
+	Id         int64  `json:"id"`     // id
+	Name       string `json:"name"`   // 活动名
+	EName      string `json:"eName"`  // 约定别名(前端用这个name来获取信息）
+	Status     string `json:"status"` // 状态: OFFLINE / ONLINE
+	CreateTime int64  `json:"createTime,omitempty"`
+	UpdateTime int64  `json:"updateTime,omitempty"`
+}
+
+type ActivityListView {
+	Id         int64  `json:"id"`     // id
+	Name       string `json:"name"`   // 活动名
+	EName      string `json:"eName"`  // 约定别名(前端用这个name来获取信息）
+	Status     string `json:"status"` // 状态: OFFLINE / ONLINE
+	CreateTime int64  `json:"createTime,omitempty"`
+	UpdateTime int64  `json:"updateTime,omitempty"`
+}
+
+type StatusRequest {
+	EventId int64  `path:"eventId,range=[1:]"`            // 活动ID
+	Status  string `json:"status,options=OFFLINE|ONLINE"` // 状态: OFFLINE / ONLINE
+}
+type StatusResponse {
+}
+
+type ModuleListRequest {
+	EventId int64 `path:"eventId"` // 活动ID
+}
+
+type ModuleListResponse {
+	ModuleList []*ModuleView `json:"moduleList"`
+}
+type ModuleView {
+	Id              int64  `json:"id"`              // id
+	EventId         int64  `json:"eventId"`         // 活动ID
+	ModuleType      string `json:"moduleType"`      // 组件类型
+	Title           string `json:"title"`           // 标题
+	SubTitle        string `json:"subTitle"`        // 副标题
+	MoreLink        string `json:"moreLink"`        // 更多链接
+	BackgroundImage string `json:"backgroundImage"` // 氛围图（背景）
+	OrderBy         int    `json:"orderBy"`         // 排序
+	CreateTime      int64  `json:"createTime,omitempty"`
+	UpdateTime      int64  `json:"updateTime,omitempty"`
+}
+type ModuleEditRequest {
+	Id              int64         `json:"id"`              // id
+	EventId         int64         `json:"eventId"`         // 活动ID
+	ModuleType      string        `json:"moduleType"`      // 组件类型
+	Title           string        `json:"title"`           // 标题
+	SubTitle        string        `json:"subTitle"`        // 副标题
+	MoreLink        string        `json:"moreLink"`        // 更多链接
+	BackgroundImage string        `json:"backgroundImage"` // 氛围图（背景）
+	Contents        []*ContentReq `json:"contents"`
+}
+type ContentReq {
+	Id          int64     `json:"id"`          // id
+	Title       string    `json:"title"`       // 标题
+	CoverImage  *Image    `json:"coverImage"`  // 封面图片json
+	Link        string    `json:"link"`        // 链接地址
+	Tag         string    `json:"tag"`         // 标签
+	Period      int64     `json:"period"`      // 学段
+	PeriodName  string    `json:"periodName"`  // 学段-名
+	Grade       []int64   `json:"grade"`       // 年级
+	GradeName   string    `json:"gradeName"`   // 年级-名
+	Subject     int64     `json:"subject"`     // 学科
+	SubjectName string    `json:"subjectName"` // 学科-名
+	GradeList   []MapView `json:"gradeList"`   // 年级列表
+}
+
+type MapView {
+	Id   int64  `json:"id"`   // id
+	Name string `json:"name"` // 名次
+}
+
+type Image {
+	Original  string `json:"original,omitempty,optional"`  // 原始图id
+	Preview   string `json:"preview,omitempty,optional"`   // 预览图
+	Thumbnail string `json:"thumbnail,omitempty,optional"` // 缩略图id
+	Size      int    `json:"size,omitempty,optional"`      // 原图大小
+	Height    int    `json:"height,omitempty,optional"`    // 高
+	Width     int    `json:"width,omitempty,optional"`     // 宽
+}
+
+type ModuleEditResponse {
+}
+type ModuleMoveRequest {
+	EventId   int64   `path:"eventId"`   // 活动ID
+	ModuleIds []int64 `json:"moduleIds"` // 模块ID
+}
+
+type ModuleMoveResponse {
+}
+
+type ModuleDeleteRequest {
+	EventId  int64 `path:"eventId"`  // 活动ID
+	ModuleId int64 `path:"moduleId"` // 活动组件ID
+}
+type ModuleDeleteResponse {
+}
+type ModuleDetailRequest {
+	ModuleId int64 `path:"moduleId"` // 活动组件ID
+}
+type ModuleDetailResponse {
+	Id              int64         `json:"id"`              // id
+	EventId         int64         `json:"eventId"`         // 活动ID
+	ModuleType      string        `json:"moduleType"`      // 组件类型
+	Title           string        `json:"title"`           // 标题
+	SubTitle        string        `json:"subTitle"`        // 副标题
+	MoreLink        string        `json:"moreLink"`        // 更多链接
+	BackgroundImage string        `json:"backgroundImage"` // 氛围图（背景）
+	OrderBy         int           `json:"orderBy"`         // 排序
+	CreateTime      int64         `json:"createTime,omitempty"`
+	UpdateTime      int64         `json:"updateTime,omitempty"`
+	Contents        []*ContentReq `json:"contents"`
+}
+
+type GetPeriodGradeSubjectRequest {
+}
+type GetPeriodGradeSubjectResponse {
+	PeriodList []PeriodView `json:"periodList"` // 数据
+}
+type PeriodView {
+	LevelId   int64          `json:"levelId"`   // 学段ID 0开始
+	LevelName string         `json:"levelName"` // 学段名
+	Grades    []GradeView    `json:"grades"`    // 年级
+	Subjects  []SubjectsView `json:"subjects"`  //学科
+}
+type GradeView {
+	GradeId   int64  `json:"gradeId"`   // 年级ID
+	GradeName string `json:"gradeName"` // 年级名
+}
+type SubjectsView {
+	SubjectId   int64  `json:"subjectId"`   // 学科ID
+	SubjectName string `json:"subjectName"` // 学科名
+}
+
+@server(
+	pathPrefix: "/route/xhb"
+)
+service seasonalactivity-api {
+	@doc(
+		summary: 活动详情
+	)
+	@server(
+		handler: SeasonalActivityDetailHandler
+	)
+	get /seasonalactivity/detail/:id(ActivityDetailRequest) returns(ActivityDetailResponse)
+	@doc(
+		summary: 活动列表
+	)
+	@server(
+		handler: SeasonalActivityListHandler
+	)
+	get /seasonalactivity/list(ActivityRequest) returns(ActivityResponse)
+	
+	@doc(
+		summary: 活动上线/下线
+	)
+	@server(
+		handler: ActivityStatusHandler
+	)
+	post /seasonalactivity/status/:eventId(StatusRequest) returns(StatusResponse)
+	
+	@doc(
+		summary: 活动组件列表
+	)
+	@server(
+		handler: ModuleListHandler
+	)
+	get /seasonalactivity/module-list/:eventId(ModuleListRequest) returns(ModuleListResponse)
+	
+	@doc(
+		summary: 新增/编辑 组件
+	)
+	@server(
+		handler: ModuleEditHandler
+	)
+	post /seasonalactivity/module/edit(ModuleEditRequest) returns(ModuleEditResponse)
+	
+	@doc(
+		summary: 组件移动
+	)
+	@server(
+		handler: ModuleMoveHandler
+	)
+	post /seasonalactivity/module/move/:eventId(ModuleMoveRequest) returns(ModuleMoveResponse)
+	
+	@doc(
+		summary: 组件删除
+	)
+	@server(
+		handler: ModuleDeleteHandler
+	)
+	post /seasonalactivity/module/delete/:eventId/:moduleId(ModuleDeleteRequest) returns(ModuleDeleteResponse)
+	
+	@doc(
+		summary: 组件 详情
+	)
+	@server(
+		handler: ModuleDetailHandler
+	)
+	get /seasonalactivity/module/detail/:moduleId(ModuleDetailRequest) returns(ModuleDetailResponse)
+	
+	@doc(
+		summary: 学段/学科/年级关联关系
+	)
+	@server(
+		handler: PeriodGradeSubjectHandler
+	)
+	get /seasonalactivity/period-grade-subject(GetPeriodGradeSubjectRequest) returns(GetPeriodGradeSubjectResponse)
+	
+}

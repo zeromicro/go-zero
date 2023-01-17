@@ -1,0 +1,80 @@
+info(
+	title: 寒假活动等
+	desc:  寒假活动等 api
+	version: 1.0
+)
+type ActivityStatusCheckRequest {
+	EName string `path:"eName"` // 别名
+}
+type ActivityStatusCheckResponse {
+	Status string `json:"status"`
+}
+type ModuleListRequest {
+	EName   string `form:"eName"`   // 活动别名
+	Period  int64  `form:"period"`  // 学段 单选
+	Grade   int64  `form:"grade"`   // 年级 单选
+	Subject int64  `form:"subject"` // 学科 单选
+}
+
+type ModuleListResponse {
+	ModuleList []*ModuleView `json:"moduleList"`
+}
+type ModuleView {
+	Id              int64         `json:"id"`              // id
+	EventId         int64         `json:"eventId"`         // 活动ID
+	ModuleType      string        `json:"moduleType"`      // 组件类型
+	Title           string        `json:"title"`           // 标题
+	SubTitle        string        `json:"subTitle"`        // 副标题
+	MoreLink        string        `json:"moreLink"`        // 更多链接
+	BackgroundImage string        `json:"backgroundImage"` // 氛围图（背景）
+	Contents        []*ContentReq `json:"contents"`
+	OrderBy         int           `json:"orderBy"` // 排序
+	CreateTime      int64         `json:"createTime,omitempty"`
+	UpdateTime      int64         `json:"updateTime,omitempty"`
+}
+type ContentReq {
+	Id         int64   `json:"id"`         // id
+	EventId    int64   `json:"eventId"`    // 活动ID
+	ModuleId   int64   `json:"moduleId"`   // 活动组件ID
+	Title      string  `json:"title"`      // 标题
+	CoverImage *Image  `json:"coverImage"` // 封面图片json
+	Link       string  `json:"link"`       // 链接地址
+	Tag        string  `json:"tag"`        // 标签
+	Period     int64   `json:"period"`     // 学段
+	Grade      []int64 `json:"grade"`      // 年级
+	Subject    int64   `json:"subject"`    // 学科
+	OrderBy    int     `json:"orderBy"`    // 排序
+}
+type Image {
+	// 原始图id
+	Original string `json:"original,omitempty,optional"`
+	// 预览图
+	Preview string `json:"preview,omitempty,optional"`
+	// 缩略图id
+	Thumbnail string `json:"thumbnail,omitempty,optional"`
+	// 原图大小
+	Size int `json:"size,omitempty,optional"`
+	// 高
+	Height int `json:"height,omitempty,optional"`
+	// 宽
+	Width int `json:"width,omitempty,optional"`
+}
+
+service seasonalactivity-api {
+	@doc(
+		summary: 检查活动状态
+	)
+	@server(
+		handler: ActivityStatusCheckHandler
+	)
+	get /seasonalactivity/status-check/:eName(ActivityStatusCheckRequest) returns(ActivityStatusCheckResponse)
+	
+	@doc(
+		summary: 活动组件列表
+	)
+	@server(
+		handler: ModuleListHandler
+	)
+	get /seasonalactivity/module-list(ModuleListRequest) returns(ModuleListResponse)
+	
+}

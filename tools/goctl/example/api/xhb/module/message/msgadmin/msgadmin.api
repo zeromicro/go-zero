@@ -1,0 +1,56 @@
+info(
+	title: doc title
+	desc: "goctl api go -api msgadmin.api -dir ./
+	这是消息查询的API文档"
+	version: 1.0
+)
+
+type MessageSearchRequest {
+	Mobile      string `path:"mobile"`
+	Code        string `form:"code"`
+	MessageType string `form:"messageType"`
+	StartTime   int64  `form:"startTime"`
+	EndTime     int64  `form:"endTime"`
+}
+
+type UserList {
+	Teachers []*UserView `json:"teachers"`
+	Members  []*UserView `json:"members"`
+}
+
+type UserView {
+	Id          string `json:"id"`
+	DisplayName string `json:"displayName"`
+}
+
+type MessageView {
+	Id            string    `json:"id,omitempty"`
+	Category      string    `json:"category,omitempty"`
+	Title         string    `json:"title,omitempty"`
+	Content       string    `json:"content,omitempty"`
+	IsFullMember  bool      `json:"isFullMember,omitempty"` // 是否全部勾选普通成员
+	CheckedUser   *UserList `json:"checkedUser,omitempty"`
+	UnCheckedUser *UserList `json:"unCheckedUser,omitempty"`
+	Timestamp     int64     `json:"timestamp,omitempty"`
+}
+
+type MessageSearchResponse {
+	Messages []*MessageView `json:"messages"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 1058
+	pathPrefix: "/route/xhb"
+)
+
+service msgadmin {
+	@doc(
+		summary: // 用户中心
+	)
+	@server(
+		handler: searchHandler
+	)
+	get /msgadmin/search/:mobile(MessageSearchRequest) returns(MessageSearchResponse)
+	
+}

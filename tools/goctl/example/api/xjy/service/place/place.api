@@ -1,0 +1,318 @@
+info(
+	title: 地点管理
+	desc: 地点管理api
+	author: jiangdong
+	email: jiangdong@xiaoheiban.cn
+)
+
+type PlaceTypeListRequest {
+	PlaceTypeName string `json:"placeTypeName,optional"` // 地点类型名 模糊搜索
+	PageSize      int64  `json:"pageSize"`
+	PageNum       int64  `json:"pageNum"`
+}
+
+type PlaceTypeListResponse {
+	Count int64                `json:"count"`
+	List  []*PlaceTypeListItem `json:"list"`
+}
+
+type PlaceTypeListItem {
+	PlaceTypeId   int64  `json:"placeTypeId"`   // 地点类型id
+	PlaceTypeName string `json:"placeTypeName"` // 地点类型名
+}
+
+type PlaceTypeAddRequest {
+	PlaceTypeName string `json:"placeTypeName"` // 地点类型名
+}
+
+type PlaceTypeDelRequest {
+	PlaceTypeId int64 `json:"placeTypeId"` // 地点类型id
+}
+
+type PlaceTypeUpdateRequest {
+	PlaceTypeId   int64  `json:"placeTypeId"` // 地点类型id
+	PlaceTypeName string `json:"placeTypeName"`
+}
+
+type PlaceListRequest {
+	PlaceName   string `json:"placeName,optional"` // 地点名
+	PlaceTypeId int64  `json:"placeTypeId"`        // 地点类型id
+	PageSize    int64  `json:"pageSize"`
+	PageNum     int64  `json:"pageNum"`
+}
+
+type PlaceListResponse {
+	Count int64            `json:"count"`
+	List  []*PlaceListItem `json:"list"`
+}
+
+type PlaceListItem {
+	PlaceId       int64  `json:"placeId"`       // 地点id
+	PlaceName     string `json:"placeName"`     // 地点名
+	PlaceTypeId   int64  `json:"placeTypeId"`   // 地点类型id
+	PlaceTypeName string `json:"placeTypeName"` // 地点类型名
+	Sort          int64  `json:"sort"`          // 地点权重
+	PeopleCount   int64  `json:"peopleCount"`   // 地点人数
+}
+
+type PlaceAddRequest {
+	PlaceName     string `json:"placeName"`     // 地点名
+	PlaceTypeId   int64  `json:"placeTypeId"`   // 地点类型id
+	PlaceTypeName string `json:"placeTypeName"` // 地点类型名称
+}
+
+type PlaceUpdateRequest {
+	PlaceId     int64  `json:"placeId"`   // 地点id
+	PlaceName   string `json:"placeName"` // 地点名
+	PlaceTypeId int64  `json:"placeTypeId"`
+}
+
+type PlaceDelRequest {
+	PlaceId int64 `json:"placeId"`
+}
+
+type PlaceSortUpdateRequest {
+	UpdateSortList []*UpdateSortListItem `json:"updateSortList"`
+}
+
+type UpdateSortListItem {
+	PlaceId int64 `json:"placeId"` // 地点id
+	Sort    int64 `json:"sort"`    // 权重
+}
+
+type PlaceDetailResponse {
+	TypeList []*TypeListDetailItem `json:"typeList"` // 地点类型列表
+}
+
+type TypeListDetailItem {
+	TypeId        int64            `json:"typeId"`
+	PlaceTypeName string           `json:"placeTypeName"`
+	PlaceNameList []*PlaceListItem `json:"placeNameList"`
+}
+
+type PlaceImportResponse {
+	ErrList    []*ErrListItem `json:"errList"`
+	Successful bool           `json:"successful"`
+}
+
+type ErrListItem {
+	ErrMsg    string `json:"errMsg"`
+	ErrReason string `json:"errReason"`
+	Suggest   string `json:"suggest"`
+}
+
+type PlaceAllHandler {
+	CampusId int64 `json:"-,optional"` // 参数可以不传
+}
+
+type PlaceAllResponse {
+	PlaceAll []PlaceTypeInfo `json:"placeAll"`
+}
+
+type PlaceTypeInfo {
+	PlaceTypeId   int64       `json:"placeTypeId"`
+	PlaceTypeName string      `json:"placeTypeName"`
+	Places        []PlaceInfo `json:"places"`
+}
+
+type PlaceInfo {
+	PlaceId   int64  `json:"place"`
+	PlaceName string `json:"placeName"`
+}
+
+type UseDefaultPlaceStatusDytResponse {
+	Asked bool `json:"asked"`
+}
+
+type ImportDownloadTemplateRequest {
+	Code string `json:"code,optional"` // 验证码
+	Type int64  `json:"type,optional"` // 1为新增 2为更新
+}
+
+type ImportRequest {
+	FileUrl string `json:"file"`
+}
+
+type ImportResponse {
+	TaskId int64 `json:"taskId"`
+}
+
+@server(
+	jwt: Auth
+)
+service dytplace {
+	@doc(
+		summary: 地点类型列表
+	)
+	@server(
+		handler: DytPlaceTypeListH5Handler
+	)
+	post /place/dyt/h5/type/list(PlaceTypeListRequest) returns(PlaceTypeListResponse)
+	
+	@doc(
+		summary: 所有地点类型及地点
+	)
+	@server(
+		handler: DytPlaceAllH5Handler
+	)
+	post /place/dyt/h5/all() returns(PlaceAllResponse)
+	
+}
+
+@server(
+	jwt: Auth
+	folder : imports
+)
+service dytplace {
+	@doc(
+		summary: 下载地点导入表模板
+	)
+	@server(
+		handler: DytPlaceImportTemplateHandler
+	)
+	get /place/dyt/import/place/template()
+	@doc(
+		summary: 下载地点学生表模板
+	)
+	@server(
+		handler: DytPlaceStudentImportTemplateHandler
+	)
+	post /place/dyt/import/place-student/template(ImportDownloadTemplateRequest)
+	@doc(
+		summary: 发送验证码
+	)
+	@server(
+		handler: DytSendTemplateCodeHandler
+	)
+	get /place/dyt/send/sms()
+	@doc(
+		summary: 地点学生关系更新导入
+	)
+	@server(
+		handler: DytPlaceRelationUpdateHandler
+	)
+	post /place/dyt/place-relation/import/update(ImportRequest) returns(ImportResponse)
+	@doc(
+		summary: 地点导入
+	)
+	@server(
+		handler: DytPlaceImportHandler
+	)
+	post /place/dyt/import/place(ImportRequest) returns(ImportResponse)
+	@doc(
+		summary: 地点学生关系导入
+	)
+	@server(
+		handler: DytPlaceStudentImportHandler
+	)
+	post /place/dyt/import/place-student(ImportRequest) returns(ImportResponse)
+}
+
+@server(
+	jwt:Auth
+)
+service dytplace {
+	@doc(
+		summary: 地点类型列表
+	)
+	@server(
+		handler: DytPlaceTypeListHandler
+	)
+	post /place/dyt/type/list(PlaceTypeListRequest) returns(PlaceTypeListResponse)
+	
+	@doc(
+		summary: 地点类型增加
+	)
+	@server(
+		handler: DytPlaceTypeAddHandler
+	)
+	post /place/dyt/type/add(PlaceTypeAddRequest)
+	
+	@doc(
+		summary: 地点类型删除
+	)
+	@server(
+		handler: DytPlaceTypeDelHandler
+	)
+	post /place/dyt/type/del(PlaceTypeDelRequest)
+	
+	@doc(
+		summary: 地点类型修改
+	)
+	@server(
+		handler: DytPlaceTypeUpdateHandler
+	)
+	post /place/dyt/type/update(PlaceTypeUpdateRequest)
+	
+	@doc(
+		summary: 地点列表
+	)
+	@server(
+		handler: DytPlaceListHandler
+	)
+	post /place/dyt/list(PlaceListRequest) returns(PlaceListResponse)
+	
+	@doc(
+		summary: 地点增加
+	)
+	@server(
+		handler: DytPlaceAddHandler
+	)
+	post /place/dyt/add(PlaceAddRequest)
+	
+	@doc(
+		summary: 地点修改
+	)
+	@server(
+		handler: DytPlaceUpdateHandler
+	)
+	post /place/dyt/update(PlaceUpdateRequest)
+	
+	@doc(
+		summary: 地点删除
+	)
+	@server(
+		handler: DytPlaceDelHandler
+	)
+	post /place/dyt/del(PlaceDelRequest)
+	
+	@doc(
+		summary: 批量修改地点位置
+	)
+	@server(
+		handler: DytPlaceSortUpdateHandler
+	)
+	post /place/dyt/sort/update(PlaceSortUpdateRequest)
+	
+	@doc(
+		summary: 地点列表详情
+	)
+	@server(
+		handler: DytPlaceDetailHandler
+	)
+	post /place/dyt/detail() returns(PlaceDetailResponse)
+	
+	@doc(
+		summary: 所有地点类型及地点
+	)
+	@server(
+		handler: DytPlaceAllHandler
+	)
+	post /place/dyt/all() returns(PlaceAllResponse)
+	
+	@doc(
+		summary: 是否已询问过用户是否使用预置地点类型
+	)
+	@server(
+		handler: DytGetUseDefaultPlaceStatusHandler
+	)
+	get /place/dyt/get-ask() returns(UseDefaultPlaceStatusDytResponse)
+	
+	@doc(
+		summary: 设置是否已询问过用户是否使用预置地点类型
+	)
+	@server(
+		handler: DytSetUseDefaultPlaceStatusHandler
+	)
+	post /place/dyt/set-ask()
+}

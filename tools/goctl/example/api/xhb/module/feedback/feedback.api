@@ -1,0 +1,77 @@
+type FeedBackGetRequest {
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize,optional"`
+	Token    string `path:"token"`
+}
+
+type FeedBackGetResponse {
+	Page      int         `json:"page,omitempty"`
+	PageSize  int         `json:"pageSize,omitempty"`
+	Total     int         `json:"total,omitempty"`
+	TotalPage int         `json:"totalPage,omitempty"`
+	More      bool        `json:"more,omitempty"`
+	Model     interface{} `json:"dataList,omitempty"`
+}
+
+type FeedBackPostRequest {
+	Token        string        `path:"token,optional"`
+	Platform     string        `json:"platform,optional"`
+	Device       string        `json:"device,optional"`
+	Mobile       string        `json:"mobile,optional"`
+	Content      string        `json:"content"`
+	QuestionType string        `json:"questionType"`
+	Images       []*ImagesFrom `json:"images,optional"`
+}
+
+type ImagesFrom {
+	Size      int    `json:"size,optional"`
+	Width     int    `json:"width,optional"`
+	Height    int    `json:"height,optional"`
+	Original  string `json:"original,optional"`
+	Thumbnail string `json:"thumbnail,optional"`
+	Preview   string `json:"preview,optional"`
+}
+
+type FeedBackOptionalResponse {
+	Success bool `json:"success"`
+}
+
+type FeedBackGetReplyRequest {
+	Content    string `json:"content"`
+	CommentId  int64  `json:"commentId"`
+	ReplyToken string `json:"replyToken"`
+}
+
+type FeedBackReplyResponse {
+	Success bool `json:"success"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service feedback-api {
+	@doc(
+		summary: 列表
+	)
+	@server(
+		handler: GetListHandler
+	)
+	post /feedback/list/:token(FeedBackGetRequest) returns(FeedBackGetResponse)
+	
+	@doc(
+		summary: 添加
+	)
+	@server(
+		handler: FeedbackPostHandler
+	)
+	post /feedback/:token(FeedBackPostRequest) returns(FeedBackOptionalResponse)
+	
+	@doc(
+		summary: 后台回复反馈
+	)
+	@server(
+		handler: ReplyFeedBackHandler
+	)
+	post /feedback/reply(FeedBackGetReplyRequest) returns(FeedBackReplyResponse)
+}

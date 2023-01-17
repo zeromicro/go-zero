@@ -1,0 +1,1265 @@
+info(
+	title: "班级"
+	desc: "班级相关api，大一统版本"
+	author:
+	email:
+)
+
+type CampusClassResponse {
+	CampusId          int64         `json:"id"`
+	CampusName        string        `json:"name"`
+	CurrentTerm       string        `json:"currentTerm"`
+	CampusType        int           `json:"type"`
+	PeriodList        []*PeriodInfo `json:"children"`
+	InterestClassList []*PeriodInfo `json:"interestClassList"` // 兴趣班班级
+}
+
+type PeriodInfo {
+	PeriodId   string             `json:"id"`
+	PeriodName string             `json:"name"`
+	PeriodSort int                `json:"-"`
+	GradeList  []*CampusGradeInfo `json:"children"`
+}
+
+type CampusGradeInfo {
+	CampusGradeId     int64              `json:"id"`
+	CampusGradeName   string             `json:"name"`
+	StandardGradeName string             `json:"standardGradeName"`
+	GradeNum          int                `json:"-"`
+	ClassList         []*CampusClassInfo `json:"children"`
+}
+
+type CampusClassInfo {
+	ClassId    int64  `json:"id"`
+	ClassName  string `json:"name"`
+	ClassNum   int64  `json:"-"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type GraduatedClassResponse {
+	CampusId   int64                  `json:"id"`
+	CampusName string                 `json:"name"`
+	CampusType int                    `json:"type"`
+	PeriodList []*GraduatedPeriodInfo `json:"children"`
+}
+
+type YearInfo {
+	YearName  string                `json:"name"`
+	YearSort  int                   `json:"-"`
+	ClassList []*GraduatedClassInfo `json:"children"`
+}
+
+type GraduatedPeriodInfo {
+	PeriodId   int64       `json:"id"`
+	PeriodName string      `json:"name"`
+	PeriodSort int         `json:"-"`
+	YearList   []*YearInfo `json:"children"`
+}
+
+type GraduatedClassInfo {
+	CampusGradeId   int64  `json:"campusGradeId"`
+	CampusGradeName string `json:"campusGradeName"`
+	ClassId         int64  `json:"id"`
+	Year            int64  `json:"year"`
+	ClassName       string `json:"name"`
+	ClassNum        int64  `json:"-"`
+	CreateTime      int64  `json:"createTime"`
+}
+
+type SetCampusGradeRequest {
+	CampusGradeId   int64  `json:"campusGradeId,optional"`
+	CampusGradeName string `json:"campusGradeName,optional"`
+}
+
+type ActStudentRequest {
+	Id int64 `path:"id"`
+}
+type DeleteCampusGradeRequest {
+	CampusGradeId int64 `json:"campusGradeId"`
+}
+
+type SetClassRequest {
+	CampusGradeId int64  `json:"campusGradeId"`
+	ClassId       int64  `json:"classId,optional"`
+	ClassName     string `json:"className"`
+}
+
+type DisbandClassRequest {
+	ClassId int64  `json:"classId"`
+	Code    string `json:"code"` // 验证码
+}
+
+type ClassIdRequest {
+	ClassId int64 `path:"classId"`
+}
+
+type ClassStudentListRequest {
+	ClassId       int64  `json:"classId"`
+	Page          int64  `json:"page,optional,default=1"`
+	PageSize      int64  `json:"pageSize,optional,default=12"`
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type ClassTeacherListRequest {
+	ClassId       int64  `json:"classId"`
+	Page          int64  `json:"page,optional,default=1"`
+	PageSize      int64  `json:"pageSize,optional,default=12"`
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type ClassTeacherListResponse {
+	Total       int64              `json:"total"`
+	TeacherList []*TeacherListItem `json:"teacherList"`
+}
+
+type TeacherListItem {
+	TeacherId        int64   `json:"teacherId"` // 0-非教师花名册教师
+	XhbToken         string  `json:"xhbToken"`
+	TeacherName      string  `json:"teacherName"`
+	ClassDirector    bool    `json:"classDirector"` // 0-非班主任，1-班主任
+	TeachingSubjects string  `json:"teachingSubjects"`
+	TeacherMobile    string  `json:"teacherMobile"`
+	SubjectIds       []int64 `json:"subjectIds"`
+}
+
+type TeacherInfo {
+	TeacherId        int64   `json:"teacherId"`
+	XhbToken         string  `json:"xhbToken"`
+	TeacherName      string  `json:"teacherName"`
+	ClassDirector    int64   `json:"classDirector"` // 0-非班主任，1-班主任
+	TeachingSubjects string  `json:"teachingSubjects,omitempty"`
+	TeacherMobile    string  `json:"teacherMobile,omitempty"`
+	SubjectIds       []int64 `json:"subjectIds,omitempty"`
+	Pinyin           string  `json:"-"`
+}
+
+type TeacherListResponse {
+	InClassTeacherList  []*TeacherInfo `json:"inTeacherList,omitempty"`
+	OutClassTeacherList []*TeacherInfo `json:"outTeacherList"`
+}
+
+type ClassStudentListResponse {
+	Total       int64          `json:"total"`
+	StudentList []*StudentInfo `json:"studentList"`
+}
+
+type ClassBriefInfoResponse {
+	ClassId          int64             `json:"classId"`
+	GradeName        string            `json:"gradeName"`
+	NormGradeName    string            `json:"normGradeName"`
+	ClassName        string            `json:"className"`
+	XhbClassName     string            `json:"xhbClassName"`
+	XhbClassCode     string            `json:"xhbClassCode"`
+	XhbClassToken    string            `json:"xhbClassToken"`
+	TeacherCount     int64             `json:"teacherCount"`
+	StudentCount     int64             `json:"studentCount"`
+	ParentCount      int64             `json:"parentCount"`
+	NoBindingTeacher []*XhbTeacherInfo `json:"noBindingTeacher"`
+}
+
+type GraduatedClassBriefInfoResponse {
+	ClassId       int64  `json:"classId"`
+	GradeName     string `json:"gradeName"`
+	NormGradeName string `json:"normGradeName"`
+	ClassName     string `json:"className"`
+	Year          int64  `json:"year"`
+	TeacherCount  int64  `json:"teacherCount"`
+	StudentCount  int64  `json:"studentCount"`
+	ParentCount   int64  `json:"parentCount"`
+}
+
+type XhbTeacherInfo {
+	TeacherName   string `json:"teacherName"`
+	XhbUserToken  string `json:"xhbUserToken"`
+	ClassDirector int64  `json:"classDirector"` // 0 - 任课教师 1-班主任
+}
+
+type StudentInfo {
+	StudentProfileId int64  `json:"studentProfileId"`
+	StudentName      string `json:"studentName"`
+	StudentGender    int64  `json:"studentGender"`
+	ParentCount      int64  `json:"parentCount"`
+}
+
+type TeacherListRequest {
+	ClassId int64 `json:"classId"`
+}
+
+type GradeClassListResponse {
+	List []*GradeInfo `json:"list"`
+}
+
+type GradeClass {
+	Id       int64         `json:"id"`
+	Name     string        `json:"name"`
+	Children []*GradeClass `json:"children"`
+}
+
+type ClassListResponse {
+	List              []*GradeClass `json:"list"`
+	InterestClassList []*GradeClass `json:"interestClassList"` // 兴趣班班级
+}
+
+type GradeInfo {
+	CampusGradeId int64        `json:"campusGradeId"` //年级id
+	GradeId       int64        `json:"gradeId"`
+	CampusId      int64        `json:"campusId"`  //校区id
+	AliasName     string       `json:"aliasName"` //年级别名
+	Classes       []*ClassInfo `json:"classes"`   //班级列表
+}
+
+type ClassInfo {
+	ClassesId     int64  `json:"classesId"`
+	TermId        int64  `json:"termId"`
+	ClassName     string `json:"className"`
+	ClassNum      int64  `json:"classNum"`
+	CampusId      int64  `json:"campusId"`
+	GradeId       int64  `json:"gradeId"`
+	XhbClassToken string `json:"xhbClassToken"`
+	BindTime      int64  `json:"bindTime"`
+}
+
+type ClassTeacherAddRequest {
+	ClassId     int64               `json:"classId"`
+	TeacherList []*ClassTeacherInfo `json:"teacherList"`
+}
+
+type ClassTeacherInfo {
+	TeacherId  int64   `json:"teacherId"`
+	SubjectIds []int64 `json:"subjectIds,optional"`
+}
+
+type AdaptXhbTeacherRequest {
+	ClassedId     int64   `json:"classesId"`
+	XhbClassToken string  `json:"xhbClassToken"`
+	XhbUserToken  string  `json:"xhbUserToken"`
+	TeacherName   string  `json:"teacherName"`
+	ClassDirector int64   `json:"classDirector"`
+	SubjectId     []int64 `json:"subjectId,optional,default=0"`
+}
+
+type ActClassXhbTeacherRequest {
+	XhbClassToken string `json:"xhbClassToken"`
+	XhbUserToken  string `json:"xhbUserToken"`
+	TeacherName   string `json:"teacherName"`
+	ActType       int64  `json:"actType"` // 1-修改为普通成员 2-请出班级
+}
+
+type TeacherMobile {
+	TeacherId     int64  `json:"teacherId"`
+	XhbToken      string `json:"xhbToken"`
+	TeacherMobile string `json:"teacherMobile"`
+}
+
+type ClassTeacherInfoRequest {
+	ClassId   int64  `json:"classId"`
+	TeacherId int64  `json:"teacherId,optional"`
+	XhbToken  string `json:"xhbToken,optional"`
+}
+
+type CondRequest {
+	BindStatus int64 `form:"bindStatus,default=1"` // 0-all；1-bind；2-unbind
+}
+
+type ClassCountResponse {
+	Count        int64 `json:"count"`
+	ClassNameErr bool  `json:"classNameErr"` // 判断有没有班级名为空 false为有错
+}
+
+type GetStudentInfoResponse {
+	CampusId    int64         `json:"-"`
+	GradeId     int64         `json:"gradeId"`
+	ClassId     int64         `json:"classId"`
+	GradeClass  string        `json:"gradeClass"`
+	Name        string        `json:"name"`
+	Mobile      string        `json:"mobile"`
+	Avatar      []string      `json:"avatar"`
+	H5Url       string        `json:"h5Url"`
+	StudentCode string        `json:"studentCode"`
+	IdNumber    string        `json:"idNumber"`
+	Gender      int64         `json:"gender"`
+	Parents     []*ParentInfo `json:"parents"`
+	Places      []*PlacesInfo `json:"places"`
+}
+
+type ParentInfo {
+	RelationshipId int64    `json:"rId,optional"`
+	Relationship   string   `json:"relationship,optional"`
+	Mobile         string   `json:"mobile,optional"`
+	Avatar         []string `json:"avatar,optional"`
+}
+
+type PlacesInfo {
+	PlaceTypeId   int64  `json:"placeTypeId"`
+	PlaceId       int64  `json:"placeId"`
+	PlaceTypeName string `json:"placeTypeName"`
+	PlaceName     string `json:"placeName"`
+}
+
+type AddParent {
+	Relationship string   `json:"relationship,optional"`
+	Mobile       string   `json:"mobile,optional"`
+	Avatar       []string `json:"avatar,optional"`
+}
+
+type ClassAddStudentRequest {
+	CampusId    int64         `json:"-,optional"`
+	ClassId     int64         `json:"classId"`
+	Name        string        `json:"name"`
+	Avatar      []string      `json:"avatar,optional"` // 头像
+	Mobile      string        `json:"mobile,optional"`
+	StudentCode string        `json:"studentCode"` // 学号
+	IdNumber    string        `json:"idNumber,optional"`
+	Gender      int64         `json:"gender,default=0"` // 男0女1,其他2
+	Parents     []*AddParent  `json:"parents,optional,omitempty"`
+	Places      []*PlacesInfo `json:"places,optional,omitempty"`
+}
+
+type ClassUpdateStudentRequest {
+	Id          int64         `json:"id"`
+	CampusId    int64         `json:"-,optional"`
+	ClassId     int64         `json:"classId"`
+	Name        string        `json:"name"`
+	Avatar      []string      `json:"avatar,optional"`
+	Mobile      string        `json:"mobile,optional"`
+	StudentCode string        `json:"studentCode"`
+	IdNumber    string        `json:"idNumber,optional"`
+	Gender      int64         `json:"gender,default=0"` // 男0女1
+	Parents     []*ParentInfo `json:"parents,optional,omitempty"`
+	Places      []*PlacesInfo `json:"places,optional,omitempty"`
+}
+
+type ImportDownloadTemplateRequest {
+	Code string `path:"code"` // 验证码
+}
+
+type ImportRequest {
+	FileUrl string `json:"file"`
+}
+
+type ImportResponse {
+	TaskId int64 `json:"taskId"`
+}
+
+type PeriodListResponse {
+	PeriodId         int64             `json:"periodId"` // 当前学段ID
+	PeriodList       []*PeriodListInfo `json:"periodList"`
+	CanSet           bool              `json:"canSet"`
+	SelectedTermDate string            `json:"selectedTermDate"`
+	InitTermList     []*InitTermItem   `json:"initTermList"`
+}
+
+type InitTermItem {
+	Name      string `json:"name"`
+	TermYear  int    `json:"termYear"`
+	TermIndex int    `json:"termIndex"`
+}
+
+type PeriodListInfo {
+	PeriodId     int64  `json:"periodId"`
+	PeriodName   string `json:"periodName"`
+	PeriodDetail string `json:"periodDetail"`
+}
+
+type PeriodGradeListRequest {
+	PeriodId int64 `path:"periodId"` // 当前学段ID
+}
+
+type PeriodGradeListResponse {
+	GradeList []*PeriodGradeList `json:"gradeList"`
+}
+
+type PeriodGradeList {
+	PeriodName string             `json:"periodName"`
+	GradeList  []*PeriodGradeInfo `json:"gradeList"`
+}
+
+type PeriodGradeInfo {
+	GradeId   int64  `json:"gradeId"`
+	GradeName string `json:"gradeName"`
+}
+
+type InitialClassListRequest {
+	PeriodId  int64               `json:"periodId"`
+	GradeList []*InitialGradeInfo `json:"gradeList"`
+	TermYear  int                 `json:"termYear,optional"`
+	TermIndex int                 `json:"termIndex,,optional"`
+}
+
+type InitialGradeInfo {
+	GradeId         int64    `json:"gradeId,optional"`
+	GradeName       string   `json:"gradeName,optional"`
+	CampusGradeName string   `json:"campusGradeName"`
+	ClassList       []string `json:"classList"`
+}
+
+type GradeCLassListSplitResponse {
+	List              []*GradeClassSplit `json:"list"`
+	InterestClassList []*GradeClassSplit `json:"interestClassList"` // 兴趣班班级
+}
+
+type GradeClassSplit {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type (
+	UnBindClassRequest {
+		ClassType int64 `json:"classType"` // 1-行政班；2-兴趣班、非标准学校班级
+		Page      int64 `json:"page,optional,default=1"`
+		PageSize  int64 `json:"pageSize,optional,default=12"`
+	}
+
+	UnBindClassResponse {
+		List  []*UnBindClassData `json:"list"`
+		Count int64              `json:"count"`
+	}
+
+	UnBindClassData {
+		ClassId         int64  `json:"classId"`
+		ClassName       string `json:"className"`
+		CampusGradeId   int64  `json:"campusGradeId"`
+		CampusGradeName string `json:"campusGradeName"`
+		GradeNum        int64  `json:"-"`
+		ClassNum        int64  `json:"-"`
+	}
+
+	ConfirmXhbClassRequest {
+		ClassId int64  `json:"classId"`
+		Code    string `json:"code"`
+	}
+
+	ConfirmXhbClassResponse {
+		ClassId         int64  `json:"classId"`
+		CampusGradeName string `json:"campusGradeName"`
+		ClassName       string `json:"className"`
+		XhbClassToken   string `json:"xhbClassToken"`
+		XhbClassName    string `json:"xhbClassName"`
+		Code            string `json:"code"`
+		ClassDirector   string `json:"classDirector"`
+	}
+
+	BindXhbClassRequest {
+		ClassId       int64  `json:"classId"`
+		XhbClassToken string `json:"xhbClassToken"`
+	}
+
+	InsertXhbClassRequest {
+		List []*InsertXhbClassData `json:"list"`
+	}
+
+	InsertXhbClassResponse {
+		SuccessfulData string `json:"successfulData"`
+	}
+
+	InsertXhbClassData {
+		ClassId       int64               `json:"classId"`
+		ClassDirector *InsertMemberData   `json:"classDirector"` // 班主任
+		List          []*InsertMemberData `json:"list,optional"` // 任课老师
+	}
+
+	InsertMemberData {
+		TeacherId  int64   `json:"teacherId"`
+		SubjectIds []int64 `json:"subjectIds,optional"`
+	}
+
+	QuickListResponse {
+		List         []*UnBindTeacherData `json:"list"`         // 行政班
+		InterestList []*UnBindTeacherData `json:"interestList"` // 兴趣班；非标准学校班级
+	}
+
+	UnBindTeacherData {
+		CampusGradeId   int64  `json:"campusGradeId"`
+		CampusGradeName string `json:"campusGradeName"`
+		GradeId         int64  `json:"-"`
+		GradeNum        int64  `json:"-"`
+		ClassId         int64  `json:"classId"`
+		ClassName       string `json:"className"`
+		ClassNum        int64  `json:"-"`
+		XhbUserToken    string `json:"xhbUserToken"`
+		XhbUserName     string `json:"xhbUserName"`
+		JoinTime        int64  `json:"joinTime"`
+	}
+
+	QuickActTeacherRequest {
+		ClassId      int64  `json:"classId"`
+		Sync         bool   `json:"sync"` // true-同步；false-不同步
+		XhbUserToken string `json:"xhbUserToken"`
+		XhbUserName  string `json:"xhbUserName,optional"`
+	}
+)
+type (
+	TermListResponse {
+		AutoUpgrade        bool            `json:"autoUpgrade"`
+		CurrentTermDate    string          `json:"currentTermDate"`
+		NextTermDate       string          `json:"nextTermDate"`
+		NextTermFirstStart string          `json:"nextTermFirstStart"`
+		UpgradeDesc        string          `json:"upgradeDesc"`
+		ShowTips           bool            `json:"showTips"`
+		List               []*TermListItem `json:"list"`
+	}
+
+	TermListItem {
+		Id         int64  `json:"id"`
+		Name       string `json:"name"`
+		Current    bool   `json:"current"`
+		IsPrev     bool   `json:"isPrev"`
+		Start      int64  `json:"start"`
+		End        int64  `json:"end"`
+		LimitStart int64  `json:"limitStart"`
+		LimitEnd   int64  `json:"limitEnd"`
+	}
+	TermEditRequest {
+		Id     int64 `json:"id"`
+		IsPrev bool  `json:"isPrev"`
+		Start  int64 `json:"start"`
+		End    int64 `json:"end"`
+	}
+	TermUpgradeSettingRequest {
+		AutoUpgrade bool `json:"autoUpgrade"`
+	}
+
+	TermCurrentResponse {
+		Id           int64  `json:"id"`
+		Name         string `json:"name"`
+		Start        int64  `json:"start"`
+		End          int64  `json:"end"`
+		NextTermDate string `json:"nextTermDate"`
+	}
+
+	ListGradeRequest {
+		TermId int64 `form:"termId,optional"`
+	}
+	// list
+	ListGradeItem {
+		GradeId         int64  `json:"-"`
+		CampusGradeId   int64  `json:"campusGradeId"`
+		CampusGradeName string `json:"campusGradeName"`
+	}
+
+	ListClassListRequest {
+		CampusGradeId int64 `form:"campusGradeId,optional"`
+		WithXhb       bool  `form:"withXhb"`
+		OnlyBind      bool  `form:"onlyBind"`
+		TermId        int64 `form:"termId,optional"`
+	}
+
+	ListClassItem {
+		ListGradeItem
+		BindXhb       bool   `json:"bindXhb"`
+		ClassId       int64  `json:"classId"`
+		ClassName     string `json:"className"`
+		XhbClassToken string `json:"xhbClassToken,omitempty"`
+		XhbClassName  string `json:"xhbClassName,omitempty"`
+		XhbClassBadge string `json:"xhbClassBadge,omitempty"`
+		ClassNum      int64  `json:"-"`
+	}
+
+	ListGradeClassListRequest {
+		WithXhb  bool  `form:"withXhb"`
+		OnlyBind bool  `form:"onlyBind"`
+		TermId   int64 `form:"termId,optional"`
+	}
+
+	ListGradeClassItem {
+		ListGradeItem
+		Classes []*ListClassItem `json:"classes"`
+	}
+
+	ListTeacherRequest {
+		WithXhb     bool `form:"withXhb"`
+		OnlyBind    bool `form:"onlyBind"`
+		ContainSelf bool `form:"containSelf"`
+	}
+
+	ListMemberGrade {
+		Id      int64  `json:"id,omitempty"`
+		Name    string `json:"name,omitempty"`
+		GradeId int64  `json:"-"`
+	}
+
+	ListTeacherItem {
+		ListMemberGrade
+		Children []*ListTeacherClass `json:"children"`
+	}
+
+	ListTeacherClass {
+		Id            int64          `json:"id"`
+		Name          string         `json:"name"`
+		XhbClassToken string         `json:"xhbClassToken,omitempty"`
+		XhbClassName  string         `json:"xhbClassName,omitempty"`
+		XhbClassBadge string         `json:"xhbClassBadge,omitempty"`
+		Children      []*ListTeacher `json:"children"`
+	}
+
+	ListTeacher {
+		Id            int64  `json:"id"`
+		Name          string `json:"name"`
+		XhbUserToken  string `json:"xhbUserToken,omitempty"`
+		XhbUserName   string `json:"xhbUserName,omitempty"`
+		XhbUserAvatar string `json:"xhbUserAvatar,omitempty"`
+		BindXhb       bool   `json:"bindXhb"`
+	}
+
+	ListParentListRequest {
+		WithXhb     bool `form:"withXhb"`
+		ContainSelf bool `form:"containSelf"`
+	}
+
+	ListParentItem {
+		ListMemberGrade
+		Children []*ListParent `json:"children"`
+	}
+
+	ListParent {
+		Id            int64  `json:"id"`
+		Name          string `json:"name"`
+		XhbClassToken string `json:"xhbClassToken,omitempty"`
+		XhbClassName  string `json:"xhbClassName,omitempty"`
+		XhbClassBadge string `json:"xhbClassBadge,omitempty"`
+		MemberCount   int    `json:"memberCount"`
+	}
+	ClassInitResponse {
+		CanInit bool `json:"canInit"`
+	}
+)
+
+type (
+	DytAllSubjectResponse {
+		List []*DytSubjectBaseInfo `json:"list"`
+	}
+
+	DytSubjectBaseInfo {
+		CampusSubjectId int64  `json:"campusSubjectId"`
+		CampusId        int64  `json:"campusId"`
+		SubjectName     string `json:"subjectName"`
+	}
+
+	DytSubjectListRequest {
+		SubjectName string `json:"subjectName,optional"`
+		NowPage     int    `json:"nowPage,optional,default=1,,range=[1:]"`
+		PageSize    int    `json:"pageSize,optional,default=10,range=[1:50]"`
+	}
+
+	DytSubjectListResponse {
+		List    []*DytSubjectInfo `json:"list"`
+		Count   int               `json:"count"`
+		NowPage int               `json:"nowPage"`
+	}
+
+	DytSubjectInfo {
+		CampusSubjectId       int64    `json:"campusSubjectId"`
+		CampusId              int64    `json:"campusId"`
+		CharacteristicSubject bool     `json:"characteristicSubject"` // 是否为特色学科，true 为特色学科
+		SubjectName           string   `json:"subjectName"`
+		CreateTime            int64    `json:"createTime"`
+		UpdateTime            int64    `json:"updateTime"`
+		TeacherCount          int64    `json:"teacherCount"`
+		TeacherList           []string `json:"teacherList"`
+	}
+
+	AddCharacteristicSubjectRequest {
+		SubjectName string `json:"subjectName"`
+	}
+
+	DeleteCharacteristicSubjectRequest {
+		SubjectId int64 `form:"subjectId"`
+	}
+
+	UpdateCharacteristicSubjectRequest {
+		SubjectId   int64  `json:"subjectId"`
+		SubjectName string `json:"subjectName"`
+	}
+
+	GradeClassListRequest {
+		WithUnBind bool `form:"withUnBind,optional"`
+	}
+
+	IdClassListRequest {
+		CampusId int64 `path:"campusId"`
+	}
+
+	InterClassesResponse {
+		GradeList []*InterGradeInfo `json:"gradeList"`
+	}
+
+	InterGradeInfo {
+		CampusGradeId int64             `json:"campusGradeId"`
+		AliasName     string            `json:"aliasName"`
+		GradeName     string            `json:"gradeName"`
+		CampusId      int64             `json:"campusId"`
+		GradeId       int64             `json:"gradeId"`
+		GradeNum      int64             `json:"orderBy"`
+		ClassList     []*InterClassInfo `json:"classList"`
+	}
+
+	InterClassInfo {
+		ClassesId      int64  `json:"classId"`
+		ClassName      string `json:"className"`
+		ClassNum       int64  `json:"classNum"`
+		CampusGradeId  int64  `json:"campusGradeId"`
+		XhbClassToken  string `json:"xhbClassToken"`
+		BindTime       int64  `json:"bindTime"`
+		BindTimeString string `json:"bindTimeString"`
+		TeacherName    string `json:"teacherName"`
+	}
+
+	IdClassTeacherRequest {
+		ClassesId int64 `path:"classesId"`
+	}
+
+	InterTeacherInfoResponse {
+		TeacherId     int64  `json:"teacherId"`
+		TeacherName   string `json:"teacherName"`
+		XhbUserToken  string `json:"xhbUserToken"`
+		BindTime      int64  `json:"bindTime"`
+		Avatar        string `json:"avatar"`
+		SubjectName   string `json:"subjectName"`
+		ClassDirector string `json:"classDirector"`
+	}
+
+	DelXhbClassTokenInternalRequest {
+		Id string `json:"id"`
+	}
+
+	CampusIdRequest {
+		Id int64 `path:"id"`
+	}
+)
+
+@server(
+	jwt: Auth
+	group: class
+)
+service classes {
+	@doc(
+		summary: "大一统班级列表"
+	)
+	@server(
+		handler: GetCampusClassListHandler
+	)
+	get /classes/dyt/class-list () returns (CampusClassResponse)
+	
+	@doc(
+		summary: "添加修改年级"
+	)
+	@server(
+		handler: SetCampusGradeHandler
+	)
+	post /classes/dyt/set-campus-grade (SetCampusGradeRequest)
+	
+	@doc(
+		summary: "删除年级"
+	)
+	@server(
+		handler: DeleteCampusGradeHandler
+	)
+	post /classes/dyt/delete-campus-grade (DeleteCampusGradeRequest)
+	
+	@doc(
+		summary: "添加修改班级"
+	)
+	@server(
+		handler: SetClassHandler
+	)
+	post /classes/dyt/set-campus-class (SetClassRequest)
+	
+	@doc(
+		summary: "解散班级"
+	)
+	@server(
+		handler: DisbandClassHandler
+	)
+	post /classes/dyt/disband-campus-class (DisbandClassRequest)
+	
+	@doc(
+		summary: "班级简要信息"
+	)
+	@server(
+		handler: GetClassBriefInfoHandler
+	)
+	get /classes/dyt/class-brief-info/:classId (ClassIdRequest) returns (ClassBriefInfoResponse)
+	
+	@doc(
+		summary: "解绑班级"
+	)
+	@server(
+		handler: UnbindClassHandler
+	)
+	get /classes/dyt/unbind-class/:classId (ClassIdRequest)
+	
+	@doc(
+		summary: "获取班级架构中班级的个数"
+	)
+	@server(
+		handler: ClassCountHandler
+	)
+	get /classes/dyt/class/count (CondRequest) returns (ClassCountResponse)
+	
+	@doc(
+		summary: "年级班级列表"
+	)
+	@server(
+		handler: GetClassListHandler
+	)
+	get /classes/dyt/grade-classes (GradeClassListRequest) returns (ClassListResponse)
+	
+	@doc(
+		summary: "初始化班级"
+	)
+	@server(
+		handler: InitialClassHandler
+	)
+	post /classes/dyt/initial-class (InitialClassListRequest)
+	
+	@doc(
+		summary: "年级列表"
+	)
+	@server(
+		handler: GetGradeListSplitHandler
+	)
+	get /classes/dyt/grade-lists () returns (GradeCLassListSplitResponse)
+	
+	@doc(
+		summary: "确认晓黑板班级信息"
+	)
+	@server(
+		handler: ConfirmXhbClassHandler
+	)
+	post /classes/dyt/xhbclass/info/confirm (ConfirmXhbClassRequest) returns (ConfirmXhbClassResponse)
+	
+	@doc(
+		summary: "绑定晓黑板班级"
+	)
+	@server(
+		handler: BindXhbClassHandler
+	)
+	post /classes/dyt/xhbclass/bind (BindXhbClassRequest)
+	
+	@doc(
+		summary: "新建晓黑板班级"
+	)
+	@server(
+		handler: InsertXhbClassHandler
+	)
+	post /classes/dyt/xhbclass/add (InsertXhbClassRequest) returns (InsertXhbClassResponse)
+	
+	@doc(
+		summary: "未绑定班级列表"
+	)
+	@server(
+		handler: UnBindClassListHandler
+	)
+	post /classes/dyt/unbind/list (UnBindClassRequest) returns (UnBindClassResponse)
+	
+	@doc(
+		summary: "删除班级smsCode"
+	)
+	@server(
+		handler: SendDeleteClassCode
+	)
+	get /classes/delete/class/send/sms ()
+}
+
+@server(
+	jwt: Auth
+	group: teacher
+)
+service classes {
+	@doc(
+		summary: "班级教师列表"
+	)
+	@server(
+		handler: ClassTeachersListHandler
+	)
+	post /classes/dyt/class-teacher-list (ClassTeacherListRequest) returns (ClassTeacherListResponse)
+	
+	@doc(
+		summary: "校区教师列表"
+	)
+	@server(
+		handler: TeacherListHandler
+	)
+	post /classes/dyt/teacher-list (TeacherListRequest) returns (TeacherListResponse)
+	@doc(
+		summary: "添加多个任课教师"
+	)
+	@server(
+		handler: AddClassTeachersHandler
+	)
+	post /classes/dyt/class-add-teacher (ClassTeacherAddRequest)
+	
+	@doc(
+		summary: "添加班主任"
+	)
+	@server(
+		handler: AddClassDirectorHandler
+	)
+	post /classes/dyt/class-add-director (ClassTeacherAddRequest)
+	
+	@doc(
+		summary: "更换班主任"
+	)
+	@server(
+		handler: EditClassDirectorHandler
+	)
+	post /classes/dyt/class-edit-director (ClassTeacherAddRequest)
+	
+	@doc(
+		summary: "任课教师详情"
+	)
+	@server(
+		handler: TeacherInfoHandler
+	)
+	post /classes/dyt/class-teacher-info (ClassTeacherInfoRequest) returns (TeacherInfo)
+	
+	@doc(
+		summary: "编辑任课教师"
+	)
+	@server(
+		handler: EditClassTeacherHandler
+	)
+	post /classes/dyt/class-edit-teacher (ClassTeacherAddRequest)
+	
+	@doc(
+		summary: "删除任课教师"
+	)
+	@server(
+		handler: DeleteClassTeacherHandler
+	)
+	post /classes/dyt/class-delete-teacher (ClassTeacherInfoRequest)
+	
+	@doc(
+		summary: "调整为晓教云教师"
+	)
+	@server(
+		handler: AdaptTeacherHandler
+	)
+	post /classes/dyt/adapt-xhb-teacher (AdaptXhbTeacherRequest)
+	
+	@doc(
+		summary: "请出晓黑板班级或调整为晓黑板班级普通成员"
+	)
+	@server(
+		handler: ActXhbClassTeacherHandler
+	)
+	post /classes/dyt/act-class-xhb-teacher (ActClassXhbTeacherRequest)
+	
+	@doc(
+		summary: "快速处理关系异动列表"
+	)
+	@server(
+		handler: QuickListHandler
+	)
+	get /classes/dyt/quick/list () returns (QuickListResponse)
+	
+	@doc(
+		summary: "同步到教师花名册"
+	)
+	@server(
+		handler: QuickActTeacherHandler
+	)
+	post /classes/dyt/quick/teacher/act (QuickActTeacherRequest)
+}
+
+@server(
+	jwt: Auth
+	group: graduated
+)
+service classes {
+	@doc(
+		summary: "毕业班级列表"
+	)
+	@server(
+		handler: GraduatedClassListHandler
+	)
+	get /classes/dyt/graduated/class-list () returns (GraduatedClassResponse)
+	
+	@doc(
+		summary: "毕业班级简要信息"
+	)
+	@server(
+		handler: GraduatedClassBriefInfoHandler
+	)
+	get /classes/dyt/graduated/class-brief-info/:classId (ClassIdRequest) returns (GraduatedClassBriefInfoResponse)
+	
+	@doc(
+		summary: "毕业班教师列表"
+	)
+	@server(
+		handler: GraduatedTeachersListHandler
+	)
+	post /classes/dyt/graduated/class-teacher-list (ClassTeacherListRequest) returns (ClassTeacherListResponse)
+	
+	@doc(
+		summary: "毕业班任课教师详情"
+	)
+	@server(
+		handler: GraduatedTeacherInfoHandler
+	)
+	post /classes/dyt/graduated/class-teacher-info (ClassTeacherInfoRequest) returns (TeacherInfo)
+}
+
+@server(
+	jwt: Auth
+	group: imports
+)
+service classes {
+	@doc(
+		summary: "send template sms code"
+	)
+	@server(
+		handler: SendTemplateCode
+	)
+	get /classes/import/teacher/send/sms ()
+	
+	@doc(
+		summary: "下载导入班级老师模板"
+	)
+	@server(
+		handler: ImportDownloadTemplateHandler
+	)
+	get /classes/import/template ()
+	
+	@doc(
+		summary: "下载导入更新班级老师模板"
+	)
+	@server(
+		handler: ImportUpdateDownloadTemplateHandler
+	)
+	get /classes/import/update/template/:code (ImportDownloadTemplateRequest)
+	
+	@doc(
+		summary: "导入班级老师"
+	)
+	@server(
+		handler: ImportsHandler
+	)
+	post /classes/import/teacher (ImportRequest) returns (ImportResponse)
+	
+	@doc(
+		summary: "导入更新班级老师"
+	)
+	@server(
+		handler: ImportUpdateHandler
+	)
+	post /classes/import/teacher/update (ImportRequest) returns (ImportResponse)
+	
+	@doc(
+		summary: "下载导入兴趣班班级老师模板"
+	)
+	@server(
+		handler: InterestImportDownloadTemplateHandler
+	)
+	get /classes/interest/import/template ()
+	
+	@doc(
+		summary: "导入兴趣班班级老师"
+	)
+	@server(
+		handler: InterestImportsHandler
+	)
+	post /classes/interest/import/teacher (ImportRequest) returns (ImportResponse)
+}
+
+@server(
+	jwt: Auth
+	group: period
+)
+service classes {
+	@doc(
+		summary: "获取学段列表"
+	)
+	@server(
+		handler: PeriodLitHandler
+	)
+	get /classes/period/list () returns (PeriodListResponse)
+	
+	@doc(
+		summary: "获取学段下面所以标准年级"
+	)
+	@server(
+		handler: PeriodGradeListHandler
+	)
+	get /classes/period/grade/list/:periodId (PeriodGradeListRequest) returns (PeriodGradeListResponse)
+}
+
+@server(
+	jwt: Auth
+	group: term
+)
+service classes {
+	@doc(
+		summary: "获取学期列表"
+	)
+	@server(
+		handler: TermListHandler
+	)
+	get /classes/term/list () returns (TermListResponse)
+	
+	@doc(
+		summary: "编辑学期"
+	)
+	@server(
+		handler: TermEditHandler
+	)
+	post /classes/term/edit (TermEditRequest)
+	
+	@doc(
+		summary: "自动升级规则设置"
+	)
+	@server(
+		handler: TermUpgradeSettingHandler
+	)
+	post /classes/term/upgrade/setting (TermUpgradeSettingRequest)
+	
+	@doc(
+		summary: "获取当前学期信息"
+	)
+	@server(
+		handler: CurrentTermHandler
+	)
+	get /classes/term/current/info () returns (TermCurrentResponse)
+	
+	@doc(
+		summary: "能否进行班级架构初始化"
+	)
+	@server(
+		handler: ClassInitHandler
+	)
+	get /classes/init/status () returns (ClassInitResponse)
+}
+
+@server(
+	jwt: Auth
+	group: list
+)
+service classes {
+	@doc(
+		summary: "全部年级列表（全局）"
+	)
+	@server(
+		handler: listGrade
+	)
+	get /classes/grade/list (ListGradeRequest) returns ([]*ListGradeItem)
+	
+	@doc(
+		summary: "全部班级列表（全局）"
+	)
+	@server(
+		handler: listClass
+	)
+	get /classes/class/list (ListClassListRequest) returns ([]*ListClassItem)
+	
+	@doc(
+		summary: "全部年级班级列表（全局）"
+	)
+	@server(
+		handler: listGradeClass
+	)
+	get /classes/grade/class/list (ListGradeClassListRequest) returns ([]*ListGradeClassItem)
+	
+	@doc(
+		summary: "全部年级班级教师列表（全局）"
+	)
+	@server(
+		handler: listGradeClassTeacher
+	)
+	get /classes/grade/class/teacher/list (ListTeacherRequest) returns ([]*ListTeacherItem)
+	
+	@doc(
+		summary: "全部年级班级普通成员列表（全局）"
+	)
+	@server(
+		handler: listGradeClassParent
+	)
+	get /classes/grade/class/parent/list (ListParentListRequest) returns ([]*ListParentItem)
+}
+
+@server(
+	jwt: Auth
+	group: subject
+)
+service classes {
+	@doc(
+		summary: "所有学科"
+	)
+	@server(
+		handler: AllSubjectHandler
+	)
+	get /classes/subject/dyt/all-subject () returns (DytAllSubjectResponse)
+	
+	@doc(
+		summary: "学科列表(分页)"
+	)
+	@server(
+		handler: DytSubjectListHandler
+	)
+	post /classes/subject/dyt/subject-list (DytSubjectListRequest) returns (DytSubjectListResponse)
+	
+	@doc(
+		summary: "添加特色学科"
+	)
+	@server(
+		handler: AddCharacteristicSubject
+	)
+	post /classes/characteristic-subject (AddCharacteristicSubjectRequest)
+	
+	@doc(
+		summary: "删除特色学科"
+	)
+	@server(
+		handler: DeleteCharacteristicSubject
+	)
+	delete /classes/characteristic-subject (DeleteCharacteristicSubjectRequest)
+	
+	@doc(
+		summary: "更新特色学科"
+	)
+	@server(
+		handler: UpdateCharacteristicSubject
+	)
+	put /classes/characteristic-subject (UpdateCharacteristicSubjectRequest)
+}
+
+@server(
+	group: list
+)
+service classes {
+	@doc(
+		summary: "获取带班主任姓名的年级班级列表"
+	)
+	@server(
+		handler: ListGradeClassDirectorHandler
+	)
+	get /internal/classes/class-list/:campusId (IdClassListRequest) returns (InterClassesResponse)
+	
+	@doc(
+		summary: "获取班级老师列表"
+	)
+	@server(
+		handler: ListClassTeacherHandler
+	)
+	get /internal/classes/teacher-list/:classesId (IdClassTeacherRequest) returns (InterTeacherInfoResponse)
+}
+
+@server(
+	group: internalclasses
+)
+service classes {
+	@doc(
+		summary: "一统晓黑板班级解绑晓教云internal接口"
+	)
+	@server(
+		handler: InternalDelXhbClassTokenHandler
+	)
+	post /internal/classes/xhb-class-token/delete (DelXhbClassTokenInternalRequest)
+	
+	@doc(
+		summary: "一统晓黑板班级解绑晓教云internal接口"
+	)
+	@server(
+		handler: InternalCreateStandardGradeHandler
+	)
+	get /internal/classes/standard-grade/create/:id (CampusIdRequest)
+}

@@ -1,0 +1,33 @@
+info(
+	title: portal-api
+	desc: portal-api
+	author: anqiansong
+	email: anqiansong@xiaoheiban.cn
+)
+
+type (
+	CampusList {
+		CampusId   int64  `json:"campus_id"`
+		CampusName string `json:"campus_name"`
+	}
+
+	PortalInfo {
+		CampusId      int64         `json:"campus_id"`
+		CampusName    string        `json:"campus_name"`
+		Badge         string        `json:"badge"`
+		BannerImgList []string      `json:"banner_img_list"`
+		CampusList    []*CampusList `json:"campus_list"`
+		QRCode        string        `json:"qr_code"`
+	}
+)
+
+@server(
+	port: 8080
+	jwt: XjyAuth
+)
+service portal-api {
+	@server(
+		handler: extraInfoHandler
+	)
+	get /portal/dyt/campusExtraInfo() returns(PortalInfo)
+}

@@ -1,0 +1,663 @@
+info(
+	title: schoolvisit
+	desc: schoolvisit api
+	author: xzg
+	email: xuezonggui@xiaoheiban.cn
+)
+
+type TotalityRequest {
+	RoomId string `form:"roomId"`
+}
+
+type TotalityResponse {
+	Totality   []*TotalityData `json:"totality"`
+	NeedComeOn []*Data         `json:"needComeOn"`
+	Fine       []*Data         `json:"fine"`
+	Normal     []*Data         `json:"normal"`
+}
+
+type Data {
+	CategoryName string `json:"categoryName"`
+	CategoryId   int    `json:"categoryId"`
+}
+
+type TotalityData {
+	CategoryName string  `json:"categoryName"`
+	CategoryId   int     `json:"categoryId"`
+	Score        float64 `json:"score"`
+}
+
+type TypicalRequest {
+	RoomId string `form:"roomId"`
+}
+
+type TypicalResponse {
+	Qid          string        `json:"qid"`
+	Type         string        `json:"type"`
+	QuestionName string        `json:"questionName"`
+	CategoryId   string        `json:"categoryId"`
+	Options      []*OptionData `json:"options"`
+}
+
+type OptionData {
+	OpId     string `json:"opId"`
+	OpAnswer string `json:"opAnswer"`
+	Percent  int    `json:"percent"`
+}
+
+type BasicRequest {
+	RoomId string `form:"roomId"`
+}
+
+type BasicResponse {
+	Sex *SexType   `json:"sex"`
+	Age []*AgeInfo `json:"age"`
+}
+
+type SexType {
+	Male   int `json:"male"`
+	Female int `json:"female"`
+}
+
+type AgeInfo {
+	Age int `json:"age"`
+	Num int `json:"num"`
+}
+
+type NutrimentRequest {
+	RoomId string `form:"roomId"`
+}
+
+type NutrimentResponse {
+	Bmi    string `json:"bmi"`
+	Male   int    `json:"male"`
+	Female int    `json:"female"`
+}
+
+type SyntheticRequest {
+	RoomId string `form:"roomId"`
+}
+
+type SyntheticResponse {
+	All         [][]interface{} `json:"all"`
+	NeedConcern [][]interface{} `json:"needConcern"`
+}
+
+type SexDifferRequest {
+	RoomId string `form:"roomId"`
+}
+
+type SexDifferResponse {
+	CategoryId   string  `json:"categoryId"`
+	CategoryName string  `json:"categoryName"`
+	Male         float64 `json:"male"`
+	Female       float64 `json:"female"`
+}
+
+type SpecificRequest {
+	RoomId    string `form:"roomId"`
+	Role      int    `form:"role"`
+	UserToken string `form:"userToken"`
+}
+
+type SpecificResponse {
+	Username   string      `json:"username"`
+	Sex        string      `json:"ex"`
+	Bmi        string      `json:"bmi"`
+	Classname  string      `json:"classname"`
+	Students   []*student  `json:"students"`
+	Categories []*Category `json:"categories"`
+}
+
+type student {
+	Username  string `json:"username"`
+	UserToken string `json:"user_token"`
+}
+
+type Category {
+	CategoryId   string  `json:"categoryId"`
+	CategoryName string  `json:"categoryName"`
+	Score        float64 `json:"score"`
+}
+
+type TemplateCheckedStatusRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+}
+
+type TemplateCheckedStatusResponse {
+	IsChecked bool `json:"isChecked"`
+}
+
+type SendRequest {
+	RoomId    string `form:"roomId"`
+	UserToken string `form:"userToken"`
+}
+
+type SendResponse {
+	Successful bool `json:"successful"`
+}
+
+type PaperCountRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+}
+
+type PaperCountResponse {
+	List   []*Qid `json:"list"`
+	RCount int    `json:"rCount"`
+}
+
+type Qid {
+	Qid           int       `json:"qid"`
+	CateId        int       `json:"cateId"`
+	QuestionName  string    `json:"questionName"`
+	Options       []*Option `json:"options"`
+	Unchoose      []string  `json:"unChoose"`
+	Choose        []*Choose `json:"choose"`
+	ChooseOpts    []string  `json:"chooseOpts"`
+	ChooseCount   int       `json:"chooseCount"`
+	UnChooseCount int       `json:"unChooseCount"`
+	TotalCount    int       `json:"totalCount"`
+}
+type Option {
+	Opkey              int     `json:"opkey"`
+	OptionName         string  `json:"optionName"`
+	OptionNum          int     `json:"optionNum"`
+	OptionCountPercent float64 `json:"optionCountPercent"`
+}
+type Choose {
+	UserToken string   `json:"userToken"`
+	Ops       []string `json:"ops"`
+}
+
+type RemarkRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+}
+
+type RemarkResponse {
+	RemarkInfoList []*StuRemark `json:"list"`
+}
+type StuRemark {
+	DisplayName string `json:"displayName"`
+	Rid         int    `json:"rid"`
+}
+
+type EditRemarkRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+	Rid          int    `form:"rid"`
+}
+
+type EditRemarkResponse {
+	Remark string `json:"remark"`
+}
+
+type SaveRemarkRequest {
+	Rid    int    `json:"rid"`
+	Remark string `json:"remark"`
+}
+
+type SaveRemarkResponse {
+	Successful bool `json:"successful"`
+}
+
+type IndexRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+}
+
+type IndexResponse {
+	Qids    []int           `json:"qids"`
+	List    []*CategoryInfo `json:"list"`
+	PaperId int             `json:"paperid"`
+}
+
+type CategoryInfo {
+	CateId   int        `json:"cateId"`
+	CateName string     `json:"cateName"`
+	QidList  []*QidInfo `json:"qidList"`
+	Count    int        `json:"count"`
+}
+type QidInfo {
+	Qid     int           `json:"qid"`
+	Name    string        `json:"name"`
+	Options []*OptionInfo `json:"options"`
+}
+type OptionInfo {
+	Opkey      int    `json:"opkey"`
+	OptionName string `json:"optionName"`
+	Type       int    `json:"type"`
+	Selected   int    `json:"selected"`
+}
+
+type QuestionnaireRequest {
+	RoomId     string `form:"roomId"`
+	UserToken  string `form:"userToken"`
+	ViewSurvey int    `form:"viewSurvey"`
+}
+
+type QuestionnaireResponse {
+	IsRedirect bool   `json:"isRedirect"`
+	Url        string `json:"url"`
+}
+
+type SaveTemplateRequest {
+	RoomId       string `json:"roomId"`
+	TeacherToken string `json:"teacherToken"`
+	Data         string `json:"data"`
+	Remark       string `json:"remark"`
+	PaperId      int    `json:"paperid"`
+}
+
+type SaveTemplateResponse {
+	Successful bool `json:"successful"`
+}
+
+type SaveRequest {
+	Sex       int       `json:"sex"`
+	Age       int       `json:"age"`
+	Height    int       `json:"height"`
+	Weight    float64   `json:"weight"`
+	RoomId    string    `json:"roomId"`
+	UserToken string    `json:"userToken"`
+	Answers   []*Answer `json:"answers"`
+}
+
+type SaveResponse {
+	Successful bool `json:"successful"`
+}
+
+type Answer {
+	Type  int    `json:"type"`
+	Qid   string `json:"qid"`
+	OpIds string `json:"opIds"`
+}
+
+type PaperShowRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+	UserToken    string `form:"userToken"`
+}
+
+type PaperShowResponse {
+	Qids        []int           `json:"qids"`
+	List        []*CategoryInfo `json:"list"`
+	DisplayName string          `json:"displayname"`
+	Remark      string          `json:"remark"`
+	PaperId     int             `json:"paperid"`
+}
+
+type ParentSaveRequest {
+	RoomId       string      `json:"roomId"`
+	TeacherToken string      `json:"teacherToken"`
+	UserToken    string      `json:"userToken"`
+	Remark       string      `json:"remark"`
+	PaperId      int         `json:"paperid"`
+	Data         []*DataInfo `json:"data"`
+}
+
+type DataInfo {
+	Qid  int   `json:"qid"`
+	OpId []int `json:"opid"`
+}
+
+type ParentSaveResponse {
+	Successful bool `json:"successful"`
+}
+
+type GetDataRequest {
+}
+
+type GetDataResponse {
+	Data []*DataItem `json:"data"`
+}
+
+type DataItem {
+	Title   string            `json:"title"`
+	TitleId int               `json:"title_id"`
+	Type    int               `json:"type"`
+	Options []*DataItemOption `json:"options"`
+}
+
+type DataItemOption {
+	Key    int    `json:"key"`
+	Option string `json:"option"`
+}
+
+type ParentInfoExportRequest {
+	RoomId       string `form:"roomId"`
+	TeacherToken string `form:"teacherToken"`
+}
+
+type ParentInfoExportResponse {
+	Url   string `json:"url"`
+	Title string `json:"title"`
+}
+
+type VisitListRequest {
+	ClassroomId string `path:"classroomid"`
+	Token       string `path:"token"`
+}
+
+type VisitListVisitResponse {
+	ParentId string `json:"parentId"`
+	Count    int    `json:"count"`
+}
+
+type NoteListRequest {
+	ParentId    string `path:"parentid"`
+	ClassroomId string `path:"classroomid"`
+	Token       string `path:"token"`
+}
+
+type NoteListResponse {
+	Notes []*NoteListNoteResponse `json:"notes"`
+}
+
+type NoteListNoteResponse {
+	NoteDetailNoteResponse
+}
+
+type NoteDetailNoteResponse {
+	NoteId  int64                        `json:"noteId"`
+	Date    int64                        `json:"date"`
+	Content string                       `json:"content"`
+	Audio   *NoteDetailNoteAudioResponse `json:"audio"`
+}
+
+type NoteDetailRequest {
+	NoteId int64  `path:"noteid"`
+	Token  string `path:"token"`
+}
+
+type NoteDetailResponse {
+	Note *NoteDetailNoteResponse `json:"note"`
+}
+
+type NoteDetailNoteAudioResponse {
+	Id            string `json:"id"`
+	Duration      int    `json:"duration"`
+	FileExtension string `json:"fileExtension"`
+	Size          int    `json:"size"`
+}
+
+type NoteAddRequest {
+	Token       string               `path:"token"`
+	ParentId    string               `path:"parentid"`
+	ClassroomId string               `path:"classroomid"`
+	Date        int64                `json:"date"`
+	Content     string               `json:"content,optional"`
+	Audio       *NoteAddAudioRequest `json:"audio,optional"`
+}
+
+type NoteAddAudioRequest {
+	Id            string `json:"id"`
+	Duration      int    `json:"duration,optional"`
+	FileExtension string `json:"fileExtension,optional"`
+	Size          int    `json:"size,optional"`
+}
+
+type NoteAddResponse {
+	NoteId int64 `json:"noteId"`
+}
+
+type NoteAddAndDetailRequest {
+	Token       string               `path:"token"`
+	ParentId    string               `path:"parentid"`
+	ClassroomId string               `path:"classroomid"`
+	Date        int64                `json:"date"`
+	Content     string               `json:"content,optional"`
+	Audio       *NoteAddAudioRequest `json:"audio,optional"`
+}
+
+type NoteAddAndDetailResponse {
+	Note *NoteDetailNoteResponse `json:"note"`
+}
+
+type NoteRemoveRequest {
+	NoteId int64  `path:"noteid"`
+	Token  string `path:"token"`
+}
+
+type NoteRemoveResponse {
+}
+
+type NoteUpdateRequest {
+	Token   string               `path:"token"`
+	NoteId  int64                `path:"noteid"`
+	Date    int64                `json:"date"`
+	Content string               `json:"content,optional"`
+	Audio   *NoteAddAudioRequest `json:"audio,optional"`
+}
+
+type NoteUpdateResponse {
+}
+
+service schoolvisit-api {
+	@doc(
+		summary:  家访统计
+	)
+	@server(
+		handler:  TotalityHandler
+	)
+	get /visit/school/visit/totality(TotalityRequest) returns(TotalityResponse)
+	
+	@doc(
+		summary:  获取典型数据特征
+	)
+	@server(
+		handler:  TypicalHandler
+	)
+	get /visit/school/visit/typical(TypicalRequest) returns([]TypicalResponse)
+	
+	@doc(
+		summary:  获取基本信息
+	)
+	@server(
+		handler:  BasicHandler
+	)
+	get /visit/school/visit/basic(BasicRequest) returns(BasicResponse)
+	
+	@doc(
+		summary:  获取营养情况数据
+	)
+	@server(
+		handler:  NutrimentHandler
+	)
+	get /visit/school/visit/nutriment(NutrimentRequest) returns([]NutrimentResponse)
+	
+	@doc(
+		summary:  获取综合统计
+	)
+	@server(
+		handler:  SyntheticHandler
+	)
+	get /visit/school/visit/synthetic(SyntheticRequest) returns(SyntheticResponse)
+	
+	@doc(
+		summary:  获取男女差异
+	)
+	@server(
+		handler:  SexDifferHandler
+	)
+	get /visit/school/visit/sexDiffer(SexDifferRequest) returns([]SexDifferResponse)
+	
+	@doc(
+		summary:  获取具体学生情况
+	)
+	@server(
+		handler:  SpecificHandler
+	)
+	get /visit/school/visit/specific(SpecificRequest) returns(SpecificResponse)
+	
+	@doc(
+		summary:  家访单
+	)
+	@server(
+		handler:  TemplateCheckedStatusHandler
+	)
+	get /visit/parent/visit/template/checkedstatus(TemplateCheckedStatusRequest) returns(TemplateCheckedStatusResponse)
+	
+	@doc(
+		summary:  发送调查到班级
+	)
+	@server(
+		handler:  SendHandler
+	)
+	get /visit/school/visit/send(SendRequest) returns(SendResponse)
+	
+	@doc(
+		summary:  家访单统计
+	)
+	@server(
+		handler:  PaperCountHandler
+	)
+	get /visit/parent/visit/papercount(PaperCountRequest) returns(PaperCountResponse)
+	
+	@doc(
+		summary:  特别备注人员
+	)
+	@server(
+		handler:  RemarkHandler
+	)
+	get /visit/parent/visit/remark(RemarkRequest) returns(RemarkResponse)
+	
+	@doc(
+		summary:  特别备注人员编辑备注信息
+	)
+	@server(
+		handler:  EditRemarkHandler
+	)
+	get /visit/parent/visit/remark/edit(EditRemarkRequest) returns(EditRemarkResponse)
+	
+	@doc(
+		summary:  保存备注信息
+	)
+	@server(
+		handler:  SaveRemarkHandler
+	)
+	post /visit/parent/visit/remark/save(SaveRemarkRequest) returns(SaveRemarkResponse)
+	
+	@doc(
+		summary:  家访单数据
+	)
+	@server(
+		handler:  IndexHandler
+	)
+	get /visit/parent/visit/index(IndexRequest) returns(IndexResponse)
+	
+	@doc(
+		summary:  调查问卷
+	)
+	@server(
+		handler:  QuestionnaireHandler
+	)
+	get /visit/school/visit/questionnaire(QuestionnaireRequest) returns(QuestionnaireResponse)
+	
+	@doc(
+		summary:  获取问题及选项
+	)
+	@server(
+		handler:  GetDataHandler
+	)
+	get /visit/school/visit/getData(GetDataRequest) returns(GetDataResponse)
+	
+	@doc(
+		summary:  提交答案
+	)
+	@server(
+		handler:  SaveHandler
+	)
+	post /visit/school/visit/save(SaveRequest) returns(SaveResponse)
+	
+	@doc(
+		summary:  保存家访单
+	)
+	@server(
+		handler:  SaveTemplateHandler
+	)
+	post /visit/parent/visit/template/save(SaveTemplateRequest) returns(SaveTemplateResponse)
+	
+	@doc(
+		summary:  某同学的家访单详情
+	)
+	@server(
+		handler:  PaperShowHandler
+	)
+	get /visit/parent/visit/paper/show(PaperShowRequest) returns(PaperShowResponse)
+	
+	@doc(
+		summary:  保存某同学的家访单
+	)
+	@server(
+		handler:  ParentSaveHandler
+	)
+	post /visit/parent/visit/save(ParentSaveRequest) returns(ParentSaveResponse)
+	
+	@doc(
+		summary:  家访单导出
+	)
+	@server(
+		handler:  ParentInfoExportHandler
+	)
+	get /visit/parent/visit/export(ParentInfoExportRequest) returns(ParentInfoExportResponse)
+	
+	@doc(
+		summary:  家访列表
+	)
+	@server(
+		handler:  NewVisitListHandler
+	)
+	get /visit/list/:token/:classroomid(VisitListRequest) returns(VisitListVisitResponse)
+	
+	@doc(
+		summary:  信息列表
+	)
+	@server(
+		handler:  NewNoteListHandler
+	)
+	get /visit/note/list/:token/:classroomid/:parentid(NoteListRequest) returns(NoteListResponse)
+	
+	@doc(
+		summary:  信息
+	)
+	@server(
+		handler:  NewNoteDetailHandler
+	)
+	get /visit/note/detail/:token/:noteid(NoteDetailRequest) returns(NoteDetailResponse)
+	
+	@doc(
+		summary:  信息增加
+	)
+	@server(
+		handler:  NewNoteAddHandler
+	)
+	get /visit/note/add/:token/:classroomid/:parentid(NoteAddRequest) returns(NoteAddResponse)
+	
+	@doc(
+		summary:  相关信息
+	)
+	@server(
+		handler:  NewNoteAddAndDetailHandler
+	)
+	get /visit/note/add_and_detail/:token/:classroomid/:parentid(NoteAddAndDetailRequest) returns(NoteAddAndDetailResponse)
+	
+	@doc(
+		summary:  删除
+	)
+	@server(
+		handler:  NewNoteRemoveHandler
+	)
+	get /visit/note/remove/:token/:noteid(NoteRemoveRequest) returns(NoteRemoveResponse)
+	
+	@doc(
+		summary:  更新
+	)
+	@server(
+		handler:  NewNoteUpdateHandler
+	)
+	get /visit/note/update/:token/:noteid(NoteUpdateRequest) returns(NoteUpdateResponse)
+	
+}

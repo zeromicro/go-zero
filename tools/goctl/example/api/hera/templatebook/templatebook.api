@@ -1,0 +1,426 @@
+info(
+	title: 德育包
+	desc: 德育包相关api
+	author: Jancd
+	email: sergeychang@gmail.com
+)
+
+type GetMonthStatByCampusResponse {
+}
+
+type StudentReportDetailsRequest {
+	StudentId int64 `form:"studentId"`           // 学生ID
+	StartTime int64 `form:"startTime"`           // 开始时间
+	EndTime   int64 `form:"endTime"`             // 结束时间
+	PageSize  int64 `form:"pageSize,default=10"` // 页面大小
+	Page      int64 `form:"page,default=1"`      // 页码
+}
+
+type StudentReportDetailsResponse {
+	StudentReportSummary      *StudentReportSummary               `json:"studentReportSummary,optional"` // 概要信息
+	Total                     int64                               `json:"total"`                         // 总数量
+	ActivityOrPunchResultList []*StudentActivityOrPunchResultItem `json:"activityOrPunchResultList"`     // 活动/打卡列表子项
+}
+
+type StudentReportSummary {
+	Month               int64  `json:"month"`               // 月份
+	Name                string `json:"name"`                // 姓名
+	ActivityAndPunchNum int64  `json:"activityAndPunchNum"` // 活动和打卡数量
+	DayNum              int64  `json:"dayNum"`              // 参与天数
+	ResultNum           int64  `json:"resultNum"`           // 成果数
+}
+
+type ClassReportDetailsRequest {
+	ClassId   int64 `form:"classId"`             // 班级ID
+	StartTime int64 `form:"startTime"`           // 开始时间
+	EndTime   int64 `form:"endTime"`             // 结束时间
+	PageSize  int64 `form:"pageSize,default=10"` // 页面大小
+	Page      int64 `form:"page,default=1"`      // 页码
+}
+
+type ClassReportDetailsResponse {
+	ClassReportSummary         *ClassReportSummary                `json:"classReportSummary,optional"` // 概要信息
+	Total                      int64                              `json:"total"`                       // 总数量
+	ActivityOrPunchReleaseList []*ClassActivityOrPunchReleaseItem `json:"activityOrPunchReleaseList"`  // 活动/打卡列表子项
+}
+
+type ClassReportSummary {
+	Month               int64   `json:"month"`               // 月份
+	Name                string  `json:"name"`                // 班级名称
+	Section             string  `json:"section"`             // 学段判断
+	ActivityAndPunchNum int64   `json:"activityAndPunchNum"` // 发布的打开和活动数量
+	ParticipationRate   float64 `json:"participationRate"`   // 参与率
+	ResultNum           int64   `json:"resultNum"`           // 成果数
+}
+
+type ClassActivityOrPunchReleaseItem {
+	Type              int64   `json:"type"`                    // 类型（1 打卡/ 2 活动）
+	Title             string  `json:"title"`                   // 标题
+	StartTime         int64   `json:"startTime"`               // 开始时间
+	ParticipationRate float64 `json:"participationRate"`       // 参与率
+	ResultNum         int64   `json:"resultNum"`               // 成果数
+	InteractiveNum    int64   `json:"interactiveNum,optional"` // 互动次数
+	ActivityOrPunchId string  `json:"activityOrPunchId"`       // 活动或打卡ID
+}
+
+type SchoolReportDetailsRequest {
+	CampusId  int64 `form:"campusId"`  // 学校ID
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+}
+
+type SchoolReportDetailsResponse {
+	Title                           string                             `json:"title"`                           // 标题
+	CountData                       *CountData                         `json:"countData"`                       // 数量数据
+	ParticipationRateTrendList      []*ParticipationRateTrendNode      `json:"participationRateList"`           // 参与率趋势
+	ProgressDirectionList           []*ProgressDirectionItem           `json:"progressDirectionItem"`           // 进步方向
+	QualityDevelopmentDirectionList []*QualityDevelopmentDirectionItem `json:"qualityDevelopmentDirectionList"` // 综合素质发展
+	MostActiveClassesList           []*ClassItem                       `json:"mostActiveClassesList"`           // 最活跃班级
+	MostInactiveClassesList         []*ClassItem                       `json:"mostInactiveClassesList"`         // 最不活跃班级
+	StudentHonorWallList            []*StudentHonorWallItem            `json:"studentHonorWallList"`            // 学生荣誉墙
+	TeacherActiveList               []*TeacherActiveItem               `json:"teacherActiveList"`               // 教师活跃榜
+}
+
+type CountData {
+	PublishSubjectNum int64   `json:"publishSubjectNum"` // 发布主题
+	ResultNum         int64   `json:"resultNum"`         // 成果数
+	ParticipationNum  int64   `json:"participationNum"`  // 参与人数
+	ParticipationRate float64 `json:"participationRate"` // 参与率
+	FullAttendance    int64   `json:"fullAttendance"`    // 全勤人数
+}
+
+type ProgressDirectionItem {
+	GradeName                  string                        `json:"gradeName"`                  // 年级名称
+	ProgressDirectionItemTheme []*ProgressDirectionItemTheme `json:"progressDirectionItemTheme"` // 进步方向子项主题
+}
+
+type ProgressDirectionItemTheme {
+	Title      string  `json:"title"`      // 标题
+	Percentage float64 `json:"percentage"` // 百分比
+}
+
+type QualityDevelopmentDirectionItem {
+	Title    string   `json:"title"`    // 标题
+	Value    int64    `json:"value"`    // 值
+	FlagList []string `json:"flagList"` // 标签列表
+}
+
+type ClassItem {
+	GradeName  string  `json:"gradeName"`  // 年级名称
+	ClassName  string  `json:"className"`  // 班级名称
+	Percentage float64 `json:"percentage"` // 百分比
+}
+
+type StudentHonorWallItem {
+	Name              string `json:"name"`              // 姓名
+	GradeAndClassName string `json:"gradeAndClassName"` // 班级年级名称
+	ResultNum         int64  `json:"resultNum"`         // 参与成果数
+}
+
+type TeacherActiveItem {
+	Name              string `json:"name"`              // 姓名
+	Identity          string `json:"identity"`          // 身份
+	PublishSubjectNum int64  `json:"publishSubjectNum"` // 发布主题数
+}
+
+type ParticipationRateTrendNode {
+	Date                      int64   `json:"date"`                      // 日期
+	ActivityParticipationRate float64 `json:"activityParticipationRate"` // 活动参与率
+	PunchParticipationRate    float64 `json:"punchParticipationRate"`    // 打卡参与率
+}
+
+type StudentActivityOrPunchResultItem {
+	Type    int64    `json:"type"`                      // 类型（1 打卡/ 2 活动）
+	Title   string   `json:"title"`                     // 活动/打开标题
+	Content string   `json:"content"`                   // 内容
+	Time    int64    `json:"time"`                      // 时间戳
+	Audio   *Audio   `json:"audio,optional,omitempty"`  // 语音文件
+	Video   *Video   `json:"video,optional,omitempty"`  // 视频文件
+	Images  []*Image `json:"images,omitempty,optional"` // 图片
+}
+
+type Audio {
+	Url           string `json:"url,omitempty,optional"`           // 语音地址
+	Duration      int    `json:"duration,omitempty,optional"`      // 语音时长
+	FileExtension string `json:"fileExtension,omitempty,optional"` // 语音文件名后缀
+	Size          int    `json:"size,omitempty,optional"`          // 语音文件大小
+	Name          string `json:"name,omitempty,optional"`          // 语音名称
+}
+
+type Video {
+	Title        string `json:"title,omitempty,optional"`
+	Desc         string `json:"desc,omitempty,optional"`
+	CoverUrl     string `json:"coverUrl,omitempty,optional"`
+	PlayUrl      string `json:"playUrl,omitempty,optional"`
+	PlayTime     int    `json:"playTime,omitempty,optional"`
+	MagicContext string `json:"magicContext,omitempty,optional"`
+	Type         string `json:"type,omitempty,optional"`
+	Height       int    `json:"height,omitempty,optional"`
+	Width        int    `json:"width,omitempty,optional"`
+}
+
+type Image {
+	Original  string `json:"original,omitempty,optional"`  // 原始图片地址
+	Preview   string `json:"preview,omitempty,optional"`   // 预览图地址
+	Thumbnail string `json:"thumbnail,omitempty,optional"` // 缩略图地址
+	Size      int    `json:"size,omitempty,optional"`      // 图片文件大小
+	Height    int    `json:"height,omitempty,optional"`    // 图片高
+	Width     int    `json:"width,omitempty,optional"`     // 图片宽
+}
+
+type PunchMemberRequest {
+	PunchId   string `form:"punchId"`   // 打卡ID
+	ClassId   int64  `form:"classId"`   // 班级ID
+	StartTime int64  `form:"startTime"` // 开始时间
+	EndTime   int64  `form:"endTime"`   // 结束时间
+}
+
+type PunchMemberResponse {
+	PunchMemberList []*PunchMemberItem `json:"punchMemberList"` // 打卡成员列表
+}
+
+type PunchMemberItem {
+	StudentId        int64  `json:"studentId"`        // 学生ID
+	Name             string `json:"name"`             // 名称
+	Avatar           string `json:"avatar"`           // 头像
+	ParticipationNum int64  `json:"participationNum"` // 参与次数
+	Token            string `json:"token"`            // 用户 Token
+}
+
+type PosterRequest {
+	CampusId  int64  `form:"campusId,optional"` // 非必传字段
+	UserId    string `form:"userId,optional"`   // 非必传字段
+	Identity  int64  `form:"identity"`          // 1-校长 2-教师 3-家长
+	StudentId int64  `form:"studentId"`
+	ClassId   int64  `form:"classId"`
+}
+
+type PosterResponse {
+	UserId              string       `json:"userId"`
+	CampusId            int64        `json:"campusId"`
+	StudentId           int64        `json:"studentId"`
+	ClassId             int64        `json:"classId"`
+	ParticipationRate   int64        `json:"participationRate"` // 参与率
+	TimeInfo            int64        `json:"timeInfo"`
+	Avatar              string       `json:"avatar"`
+	ReceiverName        string       `json:"receiverName"`
+	Identity            int64        `json:"identity"`            // 1-校长 2-教师 3-家长
+	Achievement         *Achievement `json:"achievement"`         // 成果数据
+	InspireStudentCount int64        `json:"inspireStudentCount"` // 多少学生得到了进步
+	Activities          []string     `json:"activities"`          // 打卡或活动
+	GoodHabits          []string     `json:"goodHabits"`          // 养成习惯
+}
+
+type Achievement {
+	ClapCount        int64 `json:"clapTime"`         // 获赞次数
+	ActivityCount    int64 `json:"activityCount"`    // 活动或者打卡数
+	InsistDays       int64 `json:"insistDays"`       // 坚持天数
+	AchievementCount int64 `json:"achievementCount"` // 成果数
+}
+
+type AllGradesAndClasses {
+	CampusGradeId   int64        `json:"campusGradeId"`   // 年级campusGradeId
+	CampusGradeName string       `json:"campusGradeName"` // 年级别名
+	Classes         []*ClassInfo `json:"classes"`
+}
+
+type ClassInfo {
+	ClassId       int64  `json:"classId"`       // 晓教云班级id
+	ClassName     string `json:"className"`     // 班级名
+	XhbClassToken string `json:"xhbClassToken"` // 晓黑板班级token
+}
+
+type ClassListRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+}
+
+type CampusTermRequest {
+	CampusId int64 `form:"campusId,optional"`
+}
+
+type MonthInfo {
+	StartTime  int64 `json:"startTime"`  // 月份开始时间戳
+	EndTime    int64 `json:"endTime"`    // 月份结束时间戳
+	MonthCount int64 `json:"monthCount"` // 月份
+}
+
+type CampusTermResponse {
+	CurrentTerm *CampusTermItem   `json:"currentTerm"` // 当前学期信息
+	AllTerms    []*CampusTermItem `json:"allTerms"`    // 所有学期信息
+}
+
+type CampusTermItem {
+	Id        int64        `json:"id"`
+	TermName  string       `json:"termName"`  // 学期名称
+	TermStart int64        `json:"termStart"` // 学期开始时间戳
+	TermEnd   int64        `json:"termEnd"`   // 学期结束时间戳
+	Months    []*MonthInfo `json:"months"`
+}
+
+type ClassHistoryListRequest {
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+	ClassId   int64 `form:"classId"`   // 班级ID
+}
+
+type ClassHistoryListResponse {
+	ClassHistoryReportList []*ClassHistoryReportItem `json:"classHistoryReportList"` // 班级历史月报列表
+}
+
+type ClassHistoryReportItem {
+	StartTime          int64               `json:"startTime"` // 开始时间
+	EndTime            int64               `json:"endTime"`   // 结束时间
+	ClassId            int64               `json:"classId"`   // 班级ID
+	ClassReportSummary *ClassReportSummary `json:"classReportSummary"`
+}
+
+type SchoolHistoryListRequest {
+	StartTime int64 `form:"startTime"` // 开始时间
+	EndTime   int64 `form:"endTime"`   // 结束时间
+	CampusId  int64 `form:"campusId"`  // 学校ID
+}
+
+type SchoolHistoryListResponse {
+	SchoolHistoryReportList []*SchoolHistoryReportItem `json:"schoolHistoryReportList"` // 学校历史月报列表
+}
+
+type SchoolHistoryReportItem {
+	StartTime         int64   `json:"startTime"`         // 开始时间
+	EndTime           int64   `json:"endTime"`           // 结束时间
+	CampusId          int64   `json:"campusId"`          // 学校ID
+	SchoolName        string  `json:"schoolName"`        // 学校名称
+	PublishSubjectNum int64   `json:"publishSubjectNum"` // 发布主题数
+	ResultNum         int64   `json:"resultNum"`         // 成果数
+	ParticipationRate float64 `json:"participationRate"` // 参与率
+}
+
+type TemplatebookUserAuthRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+}
+
+type TemplatebookUserAuthResponse {
+	SchoolData int64 `json:"schoolData,optional"` // 查看全校数据:0-不允许，1-允许
+	ClassData  int64 `json:"classData,optional"`  // 查看班级数据:0-不允许，1-允许
+}
+
+type TemplateBookPdfRequest {
+	CampusId int64  `form:"campusId,optional"`
+	UserId   string `form:"userId,optional"`
+	Html     string `form:"html"`
+}
+
+type TemplateBookPdfResponse {
+	TaskId string `json:"taskId"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8080
+)
+service templatebook-api {
+	@doc(
+		summary: 全校月报
+	)
+	@server(
+		handler: TemplatebookHandler
+	)
+	get /hera/templatebook/get-month-stat-by-campus(SchoolReportDetailsRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 家长(学生)报告详情
+	)
+	@server(
+		handler: StudentReportHandler
+	)
+	get /hera/templatebook/student/report-detail(StudentReportDetailsRequest) returns(StudentReportDetailsResponse)
+	
+	@doc(
+		summary: 班级报告详情
+	)
+	@server(
+		handler: ClassReportHandler
+	)
+	get /hera/templatebook/class/report-detail(ClassReportDetailsRequest) returns(ClassReportDetailsResponse)
+	
+	@doc(
+		summary: 整校报告详情
+	)
+	@server(
+		handler: SchoolReportHandler
+	)
+	get /hera/templatebook/school/report-detail(SchoolReportDetailsRequest) returns(SchoolReportDetailsResponse)
+	
+	@doc(
+		summary: 打卡成员列表
+	)
+	@server(
+		handler: PunchMemberHandler
+	)
+	get /hera/templatebook/punch/member-list(PunchMemberRequest)returns(PunchMemberResponse)
+	
+	@doc(
+		summary: 弹屏
+	)
+	@server(
+		handler: PosterHandler
+	)
+	get /hera/templatebook/poster(PosterRequest) returns(PosterResponse)
+	
+	@doc(
+		summary: 弹屏数据
+	)
+	@server(
+		handler: PosterDataHandler
+	)
+	get /hera/templatebook/poster/data(PosterRequest) returns(PosterResponse)
+	
+	@doc(
+		summary: 开通功能的班级列表
+	)
+	@server(
+		handler: ClassListHandler
+	)
+	get /hera/templatebook/classes/list(ClassListRequest) returns([]*AllGradesAndClasses)
+	
+	@doc(
+		summary: 学期列表
+	)
+	@server(
+		handler: CampusTermHandler
+	)
+	get /hera/templatebook/term/list(CampusTermRequest) returns(CampusTermResponse)
+	
+	@doc(
+		summary: 班级历史报告列表
+	)
+	@server(
+		handler: ClassReportHistoryListHandler
+	)
+	get /hera/templatebook/class/history-list(ClassHistoryListRequest) returns(ClassHistoryListResponse)
+	
+	@doc(
+		summary: 德育包权限校验
+	)
+	@server(
+		handler: TemplatebookUserAuthHandler
+	)
+	get /hera/templatebook/user-auth(TemplatebookUserAuthRequest) returns(TemplatebookUserAuthResponse)
+	
+	@doc(
+		summary: 学校历史报告列表
+	)
+	@server(
+		handler: SchoolReportHistoryListHandler
+	)
+	get /hera/templatebook/school/history-list(SchoolHistoryListRequest) returns(SchoolHistoryListResponse)
+	
+	@doc(
+		summary: pdf 导出
+	)
+	@server(
+		handler: TemplateBookPdfHandler
+	)
+	get /hera/templatebook/pdf/export(TemplateBookPdfRequest) returns(TemplateBookPdfResponse)
+}

@@ -1,0 +1,84 @@
+info(
+	title: 学科管理
+	desc: 学科管理api
+	author: 徐辰超
+	email: xuchenchao@xiaoheiban.cn
+)
+
+type DytAllSubjectResponse {
+	List []*DytSubjectBaseInfo `json:"list"`
+}
+
+type DytSubjectBaseInfo {
+	CampusSubjectId int64  `json:"campusSubjectId"`
+	CampusId        int64  `json:"campusId"`
+	SubjectName     string `json:"subjectName"`
+}
+
+type DytSubjectListRequest {
+	SubjectName string `json:"subjectName,optional"`
+	NowPage     int    `json:"nowPage,optional,default=1"`
+	PageSize    int    `json:"pageSize,optional,default=10"`
+}
+
+type DytSubjectListResponse {
+	List    []*DytSubjectInfo `json:"list"`
+	Count   int               `json:"count"`
+	NowPage int               `json:"nowPage"`
+}
+
+type DytSubjectInfo {
+	CampusSubjectId int64  `json:"campusSubjectId"`
+	CampusId        int64  `json:"campusId"`
+	SubjectName     string `json:"subjectName"`
+	CreateTime      int64  `json:"createTime,omitempty"`
+	UpdateTime      int64  `json:"updateTime,omitempty"`
+	TeacherCount    int64  `json:"teacherCount,omitempty"`
+}
+
+type DytActSubjectRequest {
+	SubjectId   int64  `json:"subjectId,optional"`
+	SubjectName string `json:"subjectName"`
+}
+
+type DytDelSubjectRequest {
+	SubjectId int64 `path:"subject_id"` //科目id
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8081
+)
+service subject {
+	@doc(
+		summary: 所有学科
+	)
+	@server(
+		handler: AllSubjectHandler
+	)
+	get /subject/dyt/all-subject() returns(DytAllSubjectResponse)
+	
+	@doc(
+		summary: 学科列表
+	)
+	@server(
+		handler: DytSubjectListHandler
+	)
+	post /subject/dyt/subject-list(DytSubjectListRequest) returns(DytSubjectListResponse)
+	
+	@doc(
+		summary: 新增或编辑学科
+	)
+	@server(
+		handler: DytActSubjectHandler
+	)
+	post /subject/dyt/act-subject(DytActSubjectRequest)
+	
+	@doc(
+		summary: 删除学科
+	)
+	@server(
+		handler: DytDelSubjectHandler
+	)
+	delete /subject/dyt/del-subject/:subject_id(DytDelSubjectRequest)
+}

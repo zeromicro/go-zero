@@ -115,7 +115,7 @@ func (s *Scanner) NextToken() (token.Token, error) {
 			return s.scanIdent(), nil
 		}
 		if s.isDigit(s.ch) {
-			return s.scanInt(), nil
+			return s.scanIntOrDuration(), nil
 		}
 		tok := token.NewIllegalToken(s.ch, s.newPosition(s.position))
 		s.readRune()
@@ -227,18 +227,215 @@ func (s *Scanner) scanAt() (token.Token, error) {
 	}
 }
 
-func (s *Scanner) scanInt() token.Token {
+func (s *Scanner) scanIntOrDuration() token.Token {
 	position := s.position
 	for s.isDigit(s.ch) {
 		s.readRune()
 	}
-
-	integer := string(s.data[position:s.position])
-	return token.Token{
-		Type:     token.INT,
-		Text:     integer,
-		Position: s.newPosition(position),
+	switch s.ch {
+	case 'n', 'µ', 'm', 's', 'h':
+		return s.scanDuration(position)
+	default:
+		return token.Token{
+			Type:     token.INT,
+			Text:     string(s.data[position:s.position]),
+			Position: s.newPosition(position),
+		}
 	}
+}
+
+// scanDuration scans a duration literal, for example "1ns", "1µs", "1ms", "1s", "1m", "1h".
+func (s *Scanner) scanDuration(bgPos int) token.Token {
+	switch s.ch {
+	case 'n':
+		return s.scanNanosecond(bgPos)
+	case 'µ':
+		return s.scanMicrosecond(bgPos)
+	case 'm':
+		return s.scanMillisecondOrMinute(bgPos)
+	case 's':
+		return s.scanSecond(bgPos)
+	case 'h':
+		return s.scanHour(bgPos)
+	default:
+		return s.illegalToken()
+	}
+}
+
+func (s *Scanner) scanNanosecond(bgPos int) token.Token {
+	s.readRune()
+	if s.ch != 's' {
+		return s.illegalToken()
+	}
+	s.readRune()
+	return token.Token{
+		Type:     token.DURATION,
+		Text:     string(s.data[bgPos:s.position]),
+		Position: s.newPosition(bgPos),
+	}
+}
+
+func (s *Scanner) scanMicrosecond(bgPos int) token.Token {
+	s.readRune()
+	if s.ch != 's' {
+		return s.illegalToken()
+	}
+
+	s.readRune()
+	if !s.isDigit(s.ch) {
+		return token.Token{
+			Type:     token.DURATION,
+			Text:     string(s.data[bgPos:s.position]),
+			Position: s.newPosition(bgPos),
+		}
+	}
+
+	for s.isDigit(s.ch) {
+		s.readRune()
+	}
+
+	if s.ch != 'n' {
+		return s.illegalToken()
+	}
+
+	return s.scanNanosecond(bgPos)
+
+}
+
+func (s *Scanner) scanMillisecondOrMinute(bgPos int) token.Token {
+	s.readRune()
+	if s.ch != 's' { // minute
+		if s.ch == 0 || !s.isDigit(s.ch) {
+			return token.Token{
+				Type:     token.DURATION,
+				Text:     string(s.data[bgPos:s.position]),
+				Position: s.newPosition(bgPos),
+			}
+		}
+
+		return s.scanMinute(bgPos)
+	}
+
+	return s.scanMillisecond(bgPos)
+}
+
+func (s *Scanner) scanMillisecond(bgPos int) token.Token {
+	s.readRune()
+	if !s.isDigit(s.ch) {
+		return token.Token{
+			Type:     token.DURATION,
+			Text:     string(s.data[bgPos:s.position]),
+			Position: s.newPosition(bgPos),
+		}
+	}
+
+	for s.isDigit(s.ch) {
+		s.readRune()
+	}
+
+	switch s.ch {
+	case 'n':
+		return s.scanNanosecond(bgPos)
+	case 'µ':
+		return s.scanMicrosecond(bgPos)
+	default:
+		return s.illegalToken()
+	}
+}
+
+func (s *Scanner) scanSecond(bgPos int) token.Token {
+	s.readRune()
+	if !s.isDigit(s.ch) {
+		return token.Token{
+			Type:     token.DURATION,
+			Text:     string(s.data[bgPos:s.position]),
+			Position: s.newPosition(bgPos),
+		}
+	}
+
+	for s.isDigit(s.ch) {
+		s.readRune()
+	}
+
+	switch s.ch {
+	case 'n':
+		return s.scanNanosecond(bgPos)
+	case 'µ':
+		return s.scanMicrosecond(bgPos)
+	case 'm':
+		s.readRune()
+		if s.ch != 's' {
+			return s.illegalToken()
+		}
+		return s.scanMillisecond(bgPos)
+	default:
+		return s.illegalToken()
+	}
+}
+
+func (s *Scanner) scanMinute(bgPos int) token.Token {
+	if !s.isDigit(s.ch) {
+		return token.Token{
+			Type:     token.DURATION,
+			Text:     string(s.data[bgPos:s.position]),
+			Position: s.newPosition(bgPos),
+		}
+	}
+
+	for s.isDigit(s.ch) {
+		s.readRune()
+	}
+
+	switch s.ch {
+	case 'n':
+		return s.scanNanosecond(bgPos)
+	case 'µ':
+		return s.scanMicrosecond(bgPos)
+	case 'm':
+		s.readRune()
+		if s.ch != 's' {
+			return s.illegalToken()
+		}
+		return s.scanMillisecond(bgPos)
+	case 's':
+		return s.scanSecond(bgPos)
+	default:
+		return s.illegalToken()
+	}
+}
+
+func (s *Scanner) scanHour(bgPos int) token.Token {
+	s.readRune()
+	if !s.isDigit(s.ch) {
+		return token.Token{
+			Type:     token.DURATION,
+			Text:     string(s.data[bgPos:s.position]),
+			Position: s.newPosition(bgPos),
+		}
+	}
+
+	for s.isDigit(s.ch) {
+		s.readRune()
+	}
+
+	switch s.ch {
+	case 'n':
+		return s.scanNanosecond(bgPos)
+	case 'µ':
+		return s.scanMicrosecond(bgPos)
+	case 'm':
+		return s.scanMillisecondOrMinute(bgPos)
+	case 's':
+		return s.scanSecond(bgPos)
+	default:
+		return s.illegalToken()
+	}
+}
+
+func (s *Scanner) illegalToken() token.Token {
+	tok := token.NewIllegalToken(s.ch, s.newPosition(s.position))
+	s.readRune()
+	return tok
 }
 
 func (s *Scanner) scanIdent() token.Token {

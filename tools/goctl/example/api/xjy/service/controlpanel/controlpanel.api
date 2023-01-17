@@ -1,0 +1,196 @@
+info(
+	title: 晓教云中控
+	desc: 晓教云中控相关api
+	author: huleiyu
+	email: huleiyu@xiaoheiban.cn
+)
+
+type CampusId {
+	CampusId int64 `path:"campusId"` // 校区id
+}
+
+type GetTermResponse {
+	TermName  string    `json:"termName"`  // 当前学期名
+	StartTime int64     `json:"startTime"` // 当前学期开始时间
+	EndTime   int64     `json:"endTime"`   // 当前学期结束时间
+	PrevTerm  *TermInfo `json:"prevTerm"`  // 上学期学期信息
+	NextTerm  *TermInfo `json:"nextTerm"`  // 下学期学期信息
+}
+
+type TermInfo {
+	TermId   int64  `json:"termId"`   // 学期id
+	TermName string `json:"termName"` // 学期名
+}
+
+type AdjustTermInternalRequest {
+	CampusId   int64  `json:"campusId"`   // 校区id
+	TermId     int64  `json:"termId"`     // 升学取NextTerm的TermId；恢复学期取PrevTerm的TermId
+	AdjustType string `json:"adjustType"` // 升学期："upgrade"；恢复学期："degrade"
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"`
+}
+
+type GetAllGradesAndClassesRequest {
+	CampusId int64 `json:"campusId"`
+}
+
+type GetAllGradesAndClassesResponse {
+	Data []*AllGradesAndClasses `json:"data"`
+}
+
+type AllGradesAndClasses {
+	CampusGradeId   int64        `json:"campusGradeId"`   // 年级campusGradeId
+	CampusGradeName string       `json:"campusGradeName"` // 年级别名
+	Classes         []*ClassInfo `json:"classes"`
+}
+
+type ClassInfo {
+	ClassId       int64  `json:"classId"`       // 晓教云班级id
+	ClassName     string `json:"className"`     // 班级名
+	XhbClassToken string `json:"xhbClassToken"` // 晓黑板班级token
+}
+
+type ModuleListRequest {
+	CampusId int64 `json:"campusId"`
+	Page     int64 `json:"page"`
+	PageSize int64 `json:"pageSize"`
+}
+
+type ModuleListResponse {
+	Count     int                   `json:"count"`
+	List      []*CampusModuleDetail `json:"list,omitempty"`
+	IsBaoBei  int64                 `json:"isBaoBei"` // 是否开通宝贝别害怕，0是关闭，1是开通
+	IsOperate bool                  `json:"isOperate"`
+	IsMine    bool                  `json:"isMine"`
+}
+
+type CampusModuleDetail {
+	CampusModuleId   int64                  `json:"campusModuleId,omitempty"`
+	ModuleCode       string                 `json:"moduleCode,omitempty"`       // 功能代码
+	ModuleName       string                 `json:"moduleName,omitempty"`       // 功能名称
+	NickName         string                 `json:"nickName,omitempty"`         // 功能别称
+	Status           int                    `json:"status,omitempty"`           // 1是开通，2是隐藏
+	OwnWay           int64                  `json:"ownWay"`                     // 开通方式：1-整校，2-班级
+	GradesAndClasses []*AllGradesAndClasses `json:"gradesAndClasses,omitempty"` // 当开通方式为班级的时候该字段有效
+}
+
+type MoudleUpdateRequest {
+	CampusModuleId   int64                  `json:"campusModuleId"`
+	CampusId         int64                  `json:"campusId"`
+	Nickname         string                 `json:"nickname,optional"`
+	Status           int                    `json:"status,optional"`
+	GradesAndClasses []*AllGradesAndClasses `json:"gradesAndClasses,optional"` // 开通班级的
+}
+
+type JumpXjyV2Request {
+	CampusId int64 `json:"campusId"`
+}
+
+type JumpXjyV2Response {
+	Auth string `json:"auth,omitempty"`
+}
+
+type JumpDytRequest {
+	CampusId int64 `json:"campusId"`
+}
+
+type JumpDytResponse {
+	Auth string `json:"auth,omitempty"`
+}
+
+type ClassListForBindResponse {
+	BindGroup int                 `json:"status"` // 所属分组 1-可创建的班级：班主任未创建晓黑板班级 2-可创建的班级：班主任已创建晓黑板班级 3-不可创建的班级：无班主任班级 4-不可创建的班级：班主任无手机号班级 5-不可创建的班级：已绑定晓黑板班级
+	ClassList []*ClassInfoForBind `json:"classList"`
+}
+
+type ClassInfoForBind {
+	ClassId     int64  `json:"classId"`
+	ClassName   string `json:"className"`
+	TeacherName string `json:"teacherName"`
+}
+
+type CreateCampusRequest {
+	CampusId int64  `json:"campusId"`
+	Creator  string `json:"creator"`
+	Mobile   string `json:"mobile"`
+}
+
+@server(
+	host:0.0.0
+	port: 8080
+)
+service controlpanel-api {
+	@doc(
+		summary: 学期信息
+	)
+	@server(
+		handler: GetTermInfoHandler
+	)
+	get /xjycontrol/campus/class/term/info/:campusId(CampusId) returns(GetTermResponse)
+	
+	@doc(
+		summary: 学期变更
+	)
+	@server(
+		handler: AdjustTermHandler
+	)
+	post /xjycontrol/campus/class/term/adjust(AdjustTermInternalRequest)
+	
+	@doc(
+		summary: 获取学校所有年级班级
+	)
+	@server(
+		handler: GetAllGradesAndClassesHandler
+	)
+	get /xjycontrol/campus/grades-and-classes(GetAllGradesAndClassesRequest) returns(GetAllGradesAndClassesResponse)
+	
+	@doc(
+		summary: 开通功能列表
+	)
+	@server(
+		handler: ModuleListHandler
+	)
+	post /xjycontrol/campus/module/list(ModuleListRequest) returns(ModuleListResponse)
+	
+	@doc(
+		summary: 编辑学校开通功能
+	)
+	@server(
+		handler: MoudleUpdateHandler
+	)
+	post /xjycontrol/campus/module/update(MoudleUpdateRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 获取晓教云认证信息
+	)
+	@server(
+		handler: CampusTeacherHandler
+	)
+	post /xjycontrol/jump-xjy/v2(JumpXjyV2Request) returns(JumpXjyV2Response)
+	
+	@doc(
+		summary: 获取大一统认证信息
+	)
+	@server(
+		handler: DytTeacherHandler
+	)
+	post /xjycontrol/jump-dyt(JumpDytRequest) returns(JumpDytResponse)
+	
+	@doc(
+		summary: 开通大一统
+	)
+	@server(
+		handler: DytImportHandler
+	)
+	post /xjycontrol/create-dyt(CreateCampusRequest)
+	
+	@doc(
+		summary: 获取学校班级绑定晓黑板状态列表
+	)
+	@server(
+		handler: ClassListForBindHandler
+	)
+	get /xjycontrol/class-list-for-bind/:campusId(CampusId) returns(ClassListForBindResponse)
+}

@@ -1,0 +1,432 @@
+type SimpleUserView {
+	Id                string `json:"id"`
+	DisplayName       string `json:"displayName,omitempty"`
+	Avatar            string `json:"avatar,omitempty"`
+	Role              string `json:"role,omitempty"`
+	IsCustomerService bool   `json:"isCustomerService,omitempty"`
+}
+
+type Image {
+	Original  string `json:"original,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int    `json:"size,omitempty"`
+	Height    int    `json:"height,omitempty"`
+	Width     int    `json:"width,omitempty"`
+}
+
+type Audio {
+	Id            string `json:"id,omitempty"`
+	Duration      int    `json:"duration,omitempty"`
+	FileExtension string `json:"fileExtension,omitempty"`
+	Size          int    `json:"size,omitempty"`
+	Name          string `json:"name,omitempty"`
+}
+
+type Attachment {
+	Id       string `json:"id"`
+	Name     string `json:"name,omitempty"`
+	MimeType string `json:"mimeType,omitempty"`
+	Attrs    *Attrs `json:"attrs,omitempty"`
+	Size     string `json:"size,omitempty"` // 5.0.0 add
+}
+
+type Attrs {
+	Size string `json:"size,omitempty"`
+}
+
+type Video {
+	PlayUrl      string `json:"playUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	Desc         string `json:"desc,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	PlayTime     int    `json:"playTime,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+	Type         string `json:"type,omitempty"`
+	Height       int    `json:"height,omitempty"`
+	Width        int    `json:"width,omitempty"`
+}
+
+type MessageView {
+	Id           string                 `json:"id,omitempty"`
+	CreateTime   int64                  `json:"createTime"`
+	Title        string                 `json:"title,omitempty"`
+	Content      string                 `json:"content,omitempty"`
+	Status       string                 `json:"status,omitempty"` // AI OR HUMAN
+	Images       []*Image               `json:"images,omitempty"`
+	Audio        *Audio                 `json:"audio,omitempty"`
+	Video        *Video                 `json:"video,omitempty"`
+	Attachments  []*Attachment          `json:"attachements,omitempty"`
+	SenderId     string                 `json:"senderId,omitempty"`
+	ReceiverId   string                 `json:"receiverId,omitempty"`
+	Timestamp    int64                  `json:"timestamp,omitempty"`
+	Extras       map[string]interface{} `json:"extras,omitempty"`
+	Sender       *SimpleUserView        `json:"sender,omitempty"`
+	Direction    string                 `json:"direction,omitempty"`
+	Revoked      bool                   `json:"revoked,omitempty"`
+	RevokeTime   int64                  `json:"revokeTime,omitempty"`
+	NeedFeedback bool                   `json:"needFeedback,omitempty"` // 是否需要反馈
+	Useful       int64                  `json:"useful,omitempty"`       // 0 未定义 1 有用 2 没用
+}
+
+type SpamMessageRequest {
+	Token         string `path:"token"`
+	MessageId     string `json:"messageId"`
+	MsgCreateTime int64  `json:"msgCreateTime,optional"` // 消息创建时间 暂时optional
+	Version       string `json:"version,optional"`       // 客户端版本
+}
+
+type SpamMessageResponse {
+}
+
+type QueryTopChattingsRequest {
+	Token string `path:"token"`
+}
+
+type ChattingView {
+	Id                    string          `json:"id,omitempty"`
+	Unread                int             `json:"unread,omitempty"`
+	ReadCursor            int64           `json:"readCursor,omitempty"`
+	ParticipantReadCursor int64           `json:"participantReadCursor,omitempty"`
+	ParticipantId         string          `json:"participantId,omitempty"`
+	Participant           *SimpleUserView `json:"participant,omitempty"`
+	Message               *MessageView    `json:"message,omitempty"`
+	Topped                bool            `json:"topped,omitempty"`       // 是否置顶
+	TopTime               int64           `json:"topTime,omitempty"`      // 置顶时间
+	IsAssignedCs          bool            `json:"isAssignedCs,omitempty"` // 是否是身份指定的客服
+}
+
+type QueryTopChattingsResponse {
+	TotalSize int             `json:"totalSize,omitempty"`
+	Chattings []*ChattingView `json:"chattings,omitempty"`
+}
+
+type CancelTopChattingRequest {
+	Token      string `path:"token"`
+	ChattingId string `path:"chattingId"`
+}
+
+type CancelTopChattingResponse {
+}
+
+type AddTopChattingRequest {
+	Token      string `path:"token"`
+	ChattingId string `json:"chattingId"`
+}
+
+type AddTopChattingResponse {
+}
+
+type QueryChattingsRequest {
+	Token string `path:"token"`
+	From  string `form:"from,optional"`
+}
+
+type QueryChattingsResponse {
+	TotalSize     int             `json:"totalSize,omitempty"`
+	HasMore       bool            `json:"hasMore,omitempty"`
+	Chattings     []*ChattingView `json:"chattings,omitempty"`
+	LastTimestamp int64           `json:"lastTimestamp,omitempty"`
+}
+
+type QueryCustomerChattingRequest {
+	Token     string `path:"token"`
+	Size      int    `form:"size,optional"`
+	Timestamp int64  `form:"timestamp,optional"`
+	From      string `form:"from,optional"` // PC ANDROID IOS
+}
+
+type QueryCustomerChattingResponse {
+	TotalSize     int             `json:"totalSize,omitempty"`
+	HasMore       bool            `json:"hasMore,omitempty"`
+	Chattings     []*ChattingView `json:"chattings,omitempty"`
+	LastTimestamp int64           `json:"lastTimestamp,omitempty"`
+}
+
+type SetPaperSlipReadRequest {
+	Token         string `path:"token"`
+	ParticipantId string `path:"participantId"`
+}
+
+type FlagResponse {
+	Successful bool `json:"successful"`
+}
+
+type RemoveChattingRequest {
+	Token          string   `path:"token"`
+	PaperSlipIds   []string `json:"paperSlipIds,optional"`
+	ParticipantIds []string `json:"participantIds,optional"`
+}
+
+type ChangeChattingStatusRequest {
+	Token         string `path:"token"`
+	ParticipantId string `json:"participantId"`
+	Status        string `json:"status"` // AI HUMAN
+}
+
+type ChangeChattingStatusResponse {
+	ChattingStatus string `json:"chattingStatus"` // 当前状态
+}
+
+type MessagesWithTime {
+	MessageId  string `json:"messageId,optional"`
+	CreateTime int64  `json:"createTime,optional"`
+}
+
+type RemovePaperSlipRequest {
+	Token            string              `path:"token"`
+	ChattingId       string              `json:"chattingId"` // 注意，这个参数客户端传的是错的，也有不传的。待修复
+	Messages         []string            `json:"messages,optional"`
+	MessagesWithTime []*MessagesWithTime `json:"messagesWithTime,optional"`
+	Type             string              `json:"type,optional"`
+	Version          string              `json:"version,optional"`
+}
+
+type SendPaperSlipRequest {
+	Token            string                 `path:"token"`
+	MessageId        string                 `json:"messageId,optional"`
+	Receiver         string                 `json:"receiver,optional"`
+	Content          string                 `json:"content,optional"`
+	Images           []*ImageRequest        `json:"images,omitempty,optional"`
+	Audio            *AudioRequest          `json:"audio,omitempty,optional"`
+	Video            *VideoRequest          `json:"video,omitempty,optional"`
+	Attachments      []*AttachmentRequest   `json:"attachements,omitempty,optional"`
+	Extras           map[string]interface{} `json:"extras,omitempty,optional"`
+	NotUpdateHistory bool                   `json:"notUpdateHistory,omitempty,optional"`
+	Status           string                 `json:"status,optional"`
+}
+
+type SendPaperSlipResponse {
+	Message     string       `json:"message,omitempty"`
+	MessageView *MessageView `json:"messageView"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`  // 原始图id
+	Preview   string `json:"preview,optional"`   // 预览图
+	Thumbnail string `json:"thumbnail,optional"` // 缩略图id
+	Size      int    `json:"size,optional"`      // 原图大小
+	Height    int    `json:"height,optional"`    // 高
+	Width     int    `json:"width,optional"`     // 宽
+}
+
+type AudioRequest {
+	Id            string `json:"id"`                     // 语音文件id
+	Duration      int    `json:"duration,optional"`      // 持续时间
+	FileExtension string `json:"fileExtension,optional"` // 文件后缀名
+	Size          int    `json:"size,optional"`          // 文件大小
+	Name          string `json:"name,optional"`          // 显示名称
+}
+
+type AttachmentRequest {
+	Id       string        `json:"id,optional"`       // 网络文件id
+	Name     string        `json:"name,optional"`     // 显示名称
+	MimeType string        `json:"mimeType,optional"` // 附件mimeType
+	Attrs    *AttrsRequest `json:"attrs,optional"`    // 其他属性
+}
+
+type VideoRequest {
+	Title        string `json:"title,optional"`        // 视频标题
+	Desc         string `json:"desc,optional"`         // 视频描述
+	CoverUrl     string `json:"coverUrl,optional"`     // 视频封面url
+	PlayUrl      string `json:"playUrl"`               // 视频url
+	PlayTime     int    `json:"playTime,optional"`     // 视频的播放时长
+	MagicContext string `json:"magicContext,optional"` // 视频回调标识字段[回调透传字段]
+	Type         string `json:"type,optional"`         // 视频类型
+	Height       int    `json:"height,optional"`       // 视频高
+	Width        int    `json:"width,optional"`        // 视频宽
+}
+
+type AttrsRequest {
+	Size string `json:"size,optional"`
+}
+
+type QueryPaperSlipsRequest {
+	Token             string `path:"token"`
+	ParticipantId     string `path:"participantId"`
+	Size              int    `form:"size,optional"`
+	Timestamp         int64  `form:"timestamp,optional"`
+	ReserveRevocation int    `form:"reserveRevocation,optional"` //4.9.5是否保留撤回记录，大于0是，其余不是
+}
+
+type QueryPaperSlipsResponse {
+	TotalSize     int            `json:"totalSize"`
+	HasMore       bool           `json:"hasMore"`
+	Messages      []*MessageView `json:"messages"`
+	LastTimestamp int64          `json:"lastTimestamp"`
+}
+
+type QueryChattingsChangeRequest {
+	Token     string `path:"token"`
+	Size      int    `form:"size,optional"`
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type ChattingChangeEventView {
+	ChattingView
+	Type       string `json:"type"`
+	ChattingId string `json:"chattingId,omitempty"`
+}
+
+type ChattingChangeEventResponse {
+	TotalSize     int                        `json:"totalSize"`
+	HasMore       bool                       `json:"hasMore"`
+	LastTimestamp int64                      `json:"lastTimestamp"`
+	Events        []*ChattingChangeEventView `json:"events,omitempty"`
+}
+
+type QueryPaperSlipChangeRequest {
+	Token             string `path:"token"`
+	Size              int    `form:"size,optional"`
+	Timestamp         int64  `form:"timestamp,optional"`
+	SupportRevocation int64  `form:"supportRevocation,optional"` // 支持撤回 ，老版本不传
+}
+
+type QueryPaperSlipChangeResponse {
+	TotalSize     int                         `json:"totalSize"`
+	HasMore       bool                        `json:"hasMore"`
+	LastTimestamp int64                       `json:"lastTimestamp"`
+	Events        []*PaperSlipChangeEventView `json:"events,omitempty"`
+}
+
+type PaperSlipChangeEventView {
+	Type          string       `json:"type"`
+	ParticipantId string       `json:"participantId,omitempty"`
+	MessageView   *MessageView `json:"messageView,omitempty"`
+}
+
+type CreateChattingRequest {
+	ParticipantId string `json:"participantId,omitempty"`
+}
+
+type CreateChattingResponse {
+	Id            string `json:"id,omitempty"`
+	ParticipantId string `json:"participantId,omitempty"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service slip-api {
+	@doc(
+		summary: 添加一条垃圾消息
+	)
+	@server(
+		handler: spamMessageHandler
+	)
+	post /paperslip/spam/message/:token(SpamMessageRequest) returns(SpamMessageResponse)
+	
+	@doc(
+		summary: 获取置顶的会话列表
+	)
+	@server(
+		handler: QueryTopChattingsHandler
+	)
+	get /paperslip/top-chatting/:token(QueryTopChattingsRequest) returns(QueryTopChattingsResponse)
+	
+	@doc(
+		summary: 置顶会话
+	)
+	@server(
+		handler: AddTopChattingHandler
+	)
+	post /paperslip/top-chatting/:token(AddTopChattingRequest) returns(AddTopChattingResponse)
+	
+	@doc(
+		summary: 取消会话置顶
+	)
+	@server(
+		handler: CancelTopChattingHandler
+	)
+	delete /paperslip/top-chatting/:token/:chattingId(CancelTopChattingRequest) returns(CancelTopChattingResponse)
+	
+	@doc(
+		summary: 获取晓纸条会话列表(全量)
+	)
+	@server(
+		handler: QueryUserChattingHandler
+	)
+	get /v2/chatting/:token(QueryChattingsRequest) returns(QueryChattingsResponse)
+	
+	@doc(
+		summary: 小客服获取会话列表
+	)
+	@server(
+		handler: QueryCustomerChattingHandler
+	)
+	get /paperslip/:token(QueryCustomerChattingRequest) returns(QueryCustomerChattingResponse)
+	
+	@doc(
+		summary: 设置晓纸条消息为已读
+	)
+	@server(
+		handler: PaperSlipReadCursorHandler
+	)
+	get /v2/chatting/message/read/cursor/:token/:participantId(SetPaperSlipReadRequest) returns(FlagResponse)
+	
+	@doc(
+		summary: 批量删除晓纸条会话
+	)
+	@server(
+		handler: RemoveChattingHandler
+	)
+	post /paperslip/remove/:token(RemoveChattingRequest) returns(FlagResponse)
+	
+	@doc(
+		summary: 切换 AI/人工
+	)
+	@server(
+		handler: ChangeChattingStatusHandler
+	)
+	post /paperslip/change-chatting-status/:token(ChangeChattingStatusRequest) returns(ChangeChattingStatusResponse)
+	
+	@doc(
+		summary: 私聊会话详情消息（批量删除或撤回）
+	)
+	@server(
+		handler: RemovePaperSlipHandler
+	)
+	post /v2/paperslip/remove/:token(RemovePaperSlipRequest) returns(FlagResponse)
+	
+	@doc(
+		summary: 晓纸条发送接口
+	)
+	@server(
+		handler: SendPaperSlipHandler
+	)
+	post /v2/paperslip/send/pack/:token(SendPaperSlipRequest) returns(SendPaperSlipResponse)
+	
+	@doc(
+		summary: 获取晓纸条会话下的消息列表(全量)
+	)
+	@server(
+		handler: QueryPaperSlipsHandler
+	)
+	get /v2/paperslip/:token/:participantId(QueryPaperSlipsRequest) returns(QueryPaperSlipsResponse)
+	
+	@doc(
+		summary: 获取晓纸条会话列表(增量)
+	)
+	@server(
+		handler: QueryChattingChangeHandler
+	)
+	get /v2/chatting/change/:token(QueryChattingsChangeRequest) returns(ChattingChangeEventResponse)
+	
+	@doc(
+		summary: 获取晓纸条会话下的消息列表(增量)
+	)
+	@server(
+		handler: QueryUserPaperSlipsChangeHandler
+	)
+	get /v2/paperslip/change/:token(QueryPaperSlipChangeRequest) returns(QueryPaperSlipChangeResponse)
+	
+	@doc(
+		summary: 创建新的会话
+	)
+	@server(
+		handler: CreateChatting
+	)
+	post /paperslip/chatting/create(CreateChattingRequest) returns(CreateChattingResponse)
+	
+}

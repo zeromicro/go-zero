@@ -1,0 +1,222 @@
+info(
+	title: 考勤
+	desc: "考勤相关api"
+	author:
+	email:
+)
+
+type (
+	PunchStateResponse {
+		Positions      []*Position     `json:"positions"`      // 考勤地点信息
+		Duties         []*TaskResponse `json:"duties"`         // 考勤班次信息
+		Holidays       []*Holiday      `json:"holidays"`       // 请假信息
+		AheadPunchTime int64           `json:"aheadPunchTime"` // 提前打卡时间，单位分钟
+	}
+
+	TaskResponse {
+		Id              int64      `json:"id"`                     // 班次id
+		PlanId          int64      `json:"planId"`                 // 计划id
+		AttendanceId    int64      `json:"attendanceId"`           // 考勤规则/考勤组id
+		TeacherId       int64      `json:"teacherId"`              // 教师id
+		StartTime       int64      `json:"startTime"`              // 正常上班时间
+		EndTime         int64      `json:"endTime"`                // 正常下班时间
+		PunchOffDuty    int        `json:"punchOffDuty"`           // 下班是否打卡；0-不打卡，1-打卡
+		FluctuateMinute int64      `json:"fluctuateMinute"`        // 浮动时间 单位分钟
+		FirstPunchTime  int64      `json:"firstPunchTime"`         // 最早一次打卡时间
+		LastPunchTime   int64      `json:"lastPunchTime"`          // 最晚一次打卡时间
+		RestStartTime   int64      `json:"restStartTime"`          // 休息开始时间
+		RestEndTime     int64      `json:"restEndTime"`            // 休息结束时间
+		OnDutyState     int64      `json:"onDutyState"`            // 上班打卡状态；0-未打卡，1-正常，2-迟到，3-缺卡
+		OffDutyState    int64      `json:"offDutyState"`           // 下班打卡状态；0-未打卡，1-正常，2-早退，3-缺卡
+		OnDutyPosition  string     `json:"onDutyPosition"`         // 上班打卡地点
+		OffDutyPosition string     `json:"offDutyPosition"`        // 下班打卡地点
+		OnPunchNote     *PunchNote `json:"onPunchNote,omitempty"`  // 上班迟到打卡备注
+		OffPunchNote    *PunchNote `json:"offPunchNote,omitempty"` // 下班早退打卡备注
+		HaveApprove     int        `json:"haveApprove"`            // 是否申请补卡；0-未申请，1-已申请
+		ApproveType     int        `json:"approveType"`            // 申请状态；0-待审核，1-审核通过，2-审核失败
+		CreateTime      int64      `json:"createTime"`
+		UpdateTime      int64      `json:"updateTime"`
+	}
+
+	PunchNote {
+		Images         []*Image `json:"images,omitempty,optional"`         // 图片
+		DefaultComment string   `json:"defaultComment,omitempty,optional"` // 默认备注
+		Comment        string   `json:"comment,omitempty,optional"`        // 备注
+	}
+
+	Holiday {
+		VocationTypeName string `json:"vocationTypeName"`
+		StartTime        int64  `json:"startTime"` // 假期开始时间
+		EndTime          int64  `json:"endTime"`   // 假期开始时间
+		VocationDuration int64  `json:"vocationDuration"`
+	}
+
+	Position {
+		Id           int64   `json:"id"`
+		AttendanceId int64   `json:"attendanceId"` // 考勤组id
+		Longitude    float64 `json:"longitude"`    // 经度
+		Latitude     float64 `json:"latitude"`     // 纬度
+		Name         string  `json:"name"`         // 名称
+		Radius       int64   `json:"radius"`       // 范围
+		CreateTime   int64   `json:"createTime"`   // 创建时间
+	}
+
+	PunchTaskRequest {
+		DutyId    int64      `json:"dutyId"`             // 考勤班次id
+		Longitude float64    `json:"longitude"`          // 经度
+		Latitude  float64    `json:"latitude"`           // 纬度
+		Position  string     `json:"position"`           // 地点名称
+		DeviceId  string     `json:"deviceId"`           // 设备id
+		PunchNote *PunchNote `json:"punchNote,optional"` // 迟到早退打卡备注
+	}
+
+	PunchTaskResponse {
+		Duty *TaskResponse `json:"duty"`
+	}
+
+	AttendanceDetailRequest {
+		RecordId []int64 `json:"recordId"`
+	}
+
+	AttendanceDetailResponse {
+		List []*AttendanceDetail `json:"list"`
+	}
+
+	AttendanceDetail {
+		Id               int64         `json:"id"`                     // 班次id
+		Name             string        `json:"name"`                   // 姓名
+		Date             int64         `json:"date"`                   // 日期
+		StartTime        int64         `json:"startTime"`              // 正常上班时间
+		EndTime          int64         `json:"endTime"`                // 正常下班时间
+		OnDutyPunchTime  int64         `json:"onDutyPunchTime"`        // 上班打卡时间
+		OffDutyPunchTime int64         `json:"offDutyPunchTime"`       // 下班打卡时间
+		OnDutyState      int           `json:"onDutyState"`            // 上班打卡状态；0-未打卡，1-正常，2-迟到，3-缺卡
+		OffDutyState     int           `json:"offDutyState"`           // 下班打卡状态；0-未打卡，1-正常，2-早退，3-缺卡
+		OnDutyApply      int           `json:"onDutyApply"`            // 0-无，1-补卡，2-请假
+		OffDutyApply     int           `json:"offDutyApply"`           // 0-无，1-补卡，2-请假
+		OnDutyPosition   string        `json:"onDutyPosition"`         // 上班打卡地点
+		OffDutyPosition  string        `json:"offDutyPosition"`        // 下班打卡地点
+		OnPunchNote      *PunchNote    `json:"onPunchNote,omitempty"`  // 上班迟到打卡备注
+		OffPunchNote     *PunchNote    `json:"offPunchNote,omitempty"` // 下班早退打卡备注
+		Comment          string        `json:"comment"`                // 审批意见
+		Note             string        `json:"note"`                   // 补卡理由
+		Images           []*Image      `json:"images"`                 // 补卡申请图片
+		Attachments      []*Attachment `json:"attachments"`            // 补卡申请附件
+		AttendanceType   int           `json:"attendanceType"`         // 考勤类型；1-考勤日，2-非考勤日
+		LeaveId          int64         `json:"leaveId"`                // 请假申请id
+		LeaveStartTime   int64         `json:"leaveStartTime"`         // 请假开始时间
+		LeaveEndTime     int64         `json:"leaveEndTime"`           // 请假结束时间
+		LeaveName        string        `json:"leaveName"`              // 假期类型名称
+	}
+
+	AttendanceListResponse {
+		List  []*AttendanceSimple `json:"list"`
+		Count int                 `json:"count"`
+	}
+
+	AttendanceSimple {
+		AttendanceId int64   `json:"attendanceId"` // 考勤组id
+		Name         string  `json:"name"`         // 考勤组
+		TeacherNum   int64   `json:"teacherNum"`   // 考勤老师数量
+		PlanIds      []int64 `json:"planIds"`      // 班次ids
+		IsOn         int64   `json:"isOn"`         // 是否启用；0-禁用，1-启用
+	}
+
+	TodayAttendanceRequest {
+		AttendanceId int64   `json:"attendanceId"`          // 考勤组id
+		PlanId       int64   `json:"planId"`                // 班次
+		DepartmentId []int64 `json:"departmentId,optional"` // 部门ids；空数组-全部
+		DutyState    []int64 `json:"dutyState,optional"`    // 考勤状态；空数组-全部，1-上班迟到，2-上班未打卡，3-下班早退，4-下班未打卡
+	}
+
+	TodayAttendanceResponse {
+		StartTime int64                  `json:"startTime"` // 正常上班时间
+		EndTime   int64                  `json:"endTime"`   // 正常下班时间
+		List      []*TodayAttendanceView `json:"list"`
+	}
+
+	TodayAttendanceView {
+		TeacherId        int64  `json:"teacherId"`        // 老师id
+		TeacherName      string `json:"teacherName"`      // 姓名
+		Departments      string `json:"departments"`      // 部门
+		OnDutyPunchTime  int64  `json:"onDutyPunchTime"`  // 上班打卡时间
+		OffDutyPunchTime int64  `json:"offDutyPunchTime"` // 下班打卡时间
+		OnDutyState      int    `json:"onDutyState"`      // 上班打卡状态；0-未打卡，1-正常，2-迟到，3-缺卡
+		OffDutyState     int    `json:"offDutyState"`     // 下班打卡状态；0-未打卡，1-正常，2-早退，3-缺卡
+	}
+
+	Image {
+		// 原始图id
+		Original string `json:"original,omitempty,optional"`
+		// 预览图
+		Preview string `json:"preview,omitempty,optional"`
+		// 缩略图id
+		Thumbnail string `json:"thumbnail,omitempty,optional"`
+		// 原图大小
+		Size int `json:"size,omitempty,optional"`
+		// 高
+		Height int `json:"height,omitempty,optional"`
+		// 宽
+		Width int `json:"width,omitempty,optional"`
+	}
+
+	Attachment {
+		// 网络文件id
+		Id string `json:"id,omitempty"`
+		// 显示名称
+		Name string `json:"name,omitempty"`
+		// 附件mimeType
+		MimeType string `json:"mimeType,omitempty"`
+
+		Attrs *AttrsView `json:"attrs,optional,omitempty"`
+	}
+
+	AttrsView {
+		Size string `json:"size,optional,omitempty"`
+	}
+)
+
+@server(
+	jwt: Auth
+)
+service attendance {
+	@doc(
+		summary: 打卡信息
+	)
+	@server(
+		handler: GetPunchStateHandler
+	)
+	post /attendance/punch-card/get-state() returns(PunchStateResponse)
+	
+	@doc(
+		summary: 打卡
+	)
+	@server(
+		handler: PunchTaskHandler
+	)
+	post /attendance/punch-card/do(PunchTaskRequest) returns(PunchTaskResponse)
+	
+	@doc(
+		summary: 考勤详情
+	)
+	@server(
+		handler: AttendanceDetailHandler
+	)
+	post /attendance/stat/get-attendance-detail(AttendanceDetailRequest) returns(AttendanceDetailResponse)
+	
+	@doc(
+		summary: 获取所有考勤组
+	)
+	@server(
+		handler: AllAttendanceRuleHandler
+	)
+	post /attendance/rule/all() returns(AttendanceListResponse)
+	
+	@doc(
+		summary: 今日考勤
+	)
+	@server(
+		handler: TodayAttendanceHandler
+	)
+	post /attendance/today(TodayAttendanceRequest) returns(TodayAttendanceResponse)
+}

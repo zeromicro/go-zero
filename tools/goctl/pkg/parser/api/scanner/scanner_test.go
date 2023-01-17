@@ -570,10 +570,10 @@ func TestScanner_NextToken_ident(t *testing.T) {
 }
 
 func TestScanner_NextToken_Key(t *testing.T) {
-	var testData =[]token.Token{
+	var testData = []token.Token{
 		{
-			Type:     token.IDENT,
-			Text:     "foo",
+			Type: token.IDENT,
+			Text: "foo",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     1,
@@ -581,8 +581,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.KEY,
-			Text:     "foo:",
+			Type: token.KEY,
+			Text: "foo:",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     2,
@@ -590,8 +590,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.KEY,
-			Text:     "bar:",
+			Type: token.KEY,
+			Text: "bar:",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     3,
@@ -599,8 +599,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.COLON,
-			Text:     ":",
+			Type: token.COLON,
+			Text: ":",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     3,
@@ -608,8 +608,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.IDENT,
-			Text:     "interface",
+			Type: token.IDENT,
+			Text: "interface",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     4,
@@ -617,8 +617,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.ANY,
-			Text:     "interface{}",
+			Type: token.ANY,
+			Text: "interface{}",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     5,
@@ -626,8 +626,8 @@ func TestScanner_NextToken_Key(t *testing.T) {
 			},
 		},
 		{
-			Type:     token.LBRACE,
-			Text:     "{",
+			Type: token.LBRACE,
+			Text: "{",
 			Position: token.Position{
 				Filename: "foo.api",
 				Line:     5,
@@ -690,6 +690,211 @@ func TestScanner_NextToken_int(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	}
+}
+
+func TestScanner_NextToken_duration(t *testing.T) {
+	t.Run("ns", func(t *testing.T) {
+		var testData = []token.Token{
+			{
+				Type: token.DURATION,
+				Text: `1ns`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     1,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `10ns`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     2,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `100ns`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     3,
+					Column:   1,
+				},
+			},
+		}
+		s, err := NewScanner("foo.api", "1ns\n10ns\n100ns")
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
+	t.Run("µs", func(t *testing.T) {
+		var testData = []token.Token{
+			{
+				Type: token.DURATION,
+				Text: `1µs`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     1,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `10µs`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     2,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `100µs`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     3,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `1µs1ns`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     4,
+					Column:   1,
+				},
+			},
+			{
+				Type: token.DURATION,
+				Text: `1µs10ns`,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     5,
+					Column:   1,
+				},
+			},
+		}
+		s, err := NewScanner("foo.api", "1µs\n10µs\n100µs\n1µs1ns\n1µs10ns")
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
+	t.Run("ms", func(t *testing.T) {
+		var testData []token.Token
+		var source interface{} = "1ms\n10ms\n100ms\n1ms1µs\n1ms10µs\n1ms1ns\n1ms10ns\n1ms1µs1ns\n1ms1µs10ns\n1ms10µs1ns\n1ms10µs10ns"
+		for idx, seg := range strings.FieldsFunc(source.(string), func(r rune) bool {
+			return r == '\n'
+		}) {
+			testData = append(testData, token.Token{
+				Type: token.DURATION,
+				Text: seg,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     idx + 1,
+					Column:   1,
+				},
+			})
+		}
+		s, err := NewScanner("foo.api", source)
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
+	t.Run("s", func(t *testing.T) {
+		var testData []token.Token
+		var source interface{} = "1s\n10s\n100s\n1s1ms\n1s10ms\n1s100ms\n1s1ms1µs\n1s10ms10µs\n1s100ms100µs\n" +
+			"1s100ms100µs1ns\n1s100ms100µs10ns\n1s100ms100µs100ns\n1s1µs\n1s10µs\n1s100µs\n1s1µs1ns\n1s10µs10ns\n" +
+			"1s100µs100ns\n1s1ms1µs1ns\n1s10ms10µs10ns\n1s100ms100µs100ns\n1s1ns\n1s10ns\n1s100ns"
+		for idx, seg := range strings.FieldsFunc(source.(string), func(r rune) bool {
+			return r == '\n'
+		}) {
+			testData = append(testData, token.Token{
+				Type: token.DURATION,
+				Text: seg,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     idx + 1,
+					Column:   1,
+				},
+			})
+		}
+		s, err := NewScanner("foo.api", source)
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
+	t.Run("m", func(t *testing.T) {
+		var testData []token.Token
+		var source interface{} = "1m\n10m\n100m\n1m1s\n1m10s\n1m100s\n1m1s1ms\n1m10s10ms\n1m100s100ms\n" +
+			"1m1s1ms1µs\n1m10s10ms10µs\n1m100s100ms100µs\n1m1s1ms1µs1ns\n1m1s1ms1µs10ns\n1m1s1ms1µs100ns\n" +
+			"1m1s1µs\n1m1ns\n1m10ms10µs100ns"
+		list := strings.FieldsFunc(source.(string), func(r rune) bool {
+			return r == '\n'
+		})
+		for idx, seg := range list {
+			testData = append(testData, token.Token{
+				Type: token.DURATION,
+				Text: seg,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     idx + 1,
+					Column:   1,
+				},
+			})
+		}
+		s, err := NewScanner("foo.api", source)
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
+	t.Run("h", func(t *testing.T) {
+		var testData []token.Token
+		var source interface{} = "1h\n10h\n100h\n" +
+			"1h1m\n10h10m\n100h100m\n" +
+			"1h1m1s\n10h10m10s\n100h100m100s\n" +
+			"1h1m1s1ms\n10h10m10s10ms\n100h100m100s100ms\n" +
+			"1h1m1s1ms1µs\n10h10m10s10ms10µs\n100h100m100s100ms100µs\n" +
+			"1h1m1s1ms1µs1ns\n10h10m10s10ms10µs10ns\n100h100m100s100ms100µs100ns\n" +
+			"1h10ns\n1h100µs\n10h10s\n10h10ms\n10h10m10µs"
+		list := strings.FieldsFunc(source.(string), func(r rune) bool {
+			return r == '\n'
+		})
+		for idx, seg := range list {
+			testData = append(testData, token.Token{
+				Type: token.DURATION,
+				Text: seg,
+				Position: token.Position{
+					Filename: "foo.api",
+					Line:     idx + 1,
+					Column:   1,
+				},
+			})
+		}
+		s, err := NewScanner("foo.api", source)
+		assert.NoError(t, err)
+		for _, expected := range testData {
+			actual, err := s.NextToken()
+			assert.NoError(t, err)
+			assert.Equal(t, expected, actual)
+		}
+	})
 }
 
 func TestScanner_NextToken_string(t *testing.T) {

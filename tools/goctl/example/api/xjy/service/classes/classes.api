@@ -1,0 +1,497 @@
+info(
+	title: 班级管理
+	desc: 班级管理api
+	author: duzhongfa
+	email: duzhongfa@xiaoheiban.cn
+)
+
+type DytCampusClassResponse {
+	CampusId   int64            `json:"id"`
+	CampusName string           `json:"name"`
+	CampusType int              `json:"type"`
+	PeriodList []*DytPeriodInfo `json:"children"`
+}
+
+type DytPeriodInfo {
+	PeriodId   string                `json:"id"`
+	PeriodName string                `json:"name"`
+	PeriodSort int                   `json:"-"`
+	GradeList  []*DytCampusGradeInfo `json:"children"`
+}
+
+type DytCampusGradeInfo {
+	CampusGradeId     int64                 `json:"id"`
+	CampusGradeName   string                `json:"name"`
+	StandardGradeName string                `json:"standardGradeName"`
+	GradeNum          int                   `json:"-"`
+	ClassList         []*DytCampusClassInfo `json:"children"`
+}
+
+type DytCampusClassInfo {
+	ClassId    int64  `json:"id"`
+	ClassName  string `json:"name"`
+	ClassNum   int64  `json:"-"`
+	CreateTime string `json:"createTime"`
+}
+
+type DytSetCampusGradeRequest {
+	CampusGradeId   int64  `json:"campusGradeId,optional"`
+	CampusGradeName string `json:"campusGradeName"`
+}
+
+type DytActStudentRequest {
+	Id int64 `path:"id"`
+}
+type DytDeleteCampusGradeRequest {
+	CampusGradeId int64 `json:"campusGradeId"`
+}
+
+type DytSetClassRequest {
+	CampusGradeId int64  `json:"campusGradeId"`
+	ClassId       int64  `json:"classId,optional"`
+	ClassName     string `json:"className"`
+}
+
+type DytDisbandClassRequest {
+	ClassId int64 `json:"classId"`
+}
+
+type DytClassIdRequest {
+	ClassId int64 `path:"classId"`
+}
+
+type DytClassStudentListRequest {
+	ClassId       int64  `json:"classId"`
+	Page          int64  `json:"page,optional,default=1"`
+	PageSize      int64  `json:"pageSize,optional,default=12"`
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type DytClassTeacherListRequest {
+	ClassId       int64  `json:"classId"`
+	Page          int64  `json:"page,optional,default=1"`
+	PageSize      int64  `json:"pageSize,optional,default=12"`
+	SearchContent string `json:"searchContent,optional"`
+}
+
+type DytClassTeacherListResponse {
+	Total       int64                 `json:"total"`
+	TeacherList []*DytTeacherListItem `json:"teacherList"`
+}
+
+type DytTeacherListItem {
+	TeacherId        int64   `json:"teacherId"`
+	XhbToken         string  `json:"-"`
+	TeacherName      string  `json:"teacherName"`
+	ClassDirector    bool    `json:"classDirector"` // 0-非班主任，1-班主任
+	TeachingSubjects string  `json:"teachingSubjects"`
+	TeacherMobile    string  `json:"teacherMobile"`
+	SubjectIds       []int64 `json:"subjectIds"`
+}
+
+type DytTeacherInfo {
+	TeacherId        int64   `json:"teacherId"`
+	XhbToken         string  `json:"-"`
+	TeacherName      string  `json:"teacherName"`
+	ClassDirector    int64   `json:"classDirector"` // 0-非班主任，1-班主任
+	TeachingSubjects string  `json:"teachingSubjects,omitempty"`
+	TeacherMobile    string  `json:"teacherMobile,omitempty"`
+	SubjectIds       []int64 `json:"subjectIds,omitempty"`
+	Pinyin           string  `json:"-"`
+}
+
+type DytTeacherListResponse {
+	InClassTeacherList  []*DytTeacherInfo `json:"inTeacherList,omitempty"`
+	OutClassTeacherList []*DytTeacherInfo `json:"outTeacherList"`
+}
+
+type DytClassStudentListResponse {
+	Total       int64             `json:"total"`
+	StudentList []*DytStudentInfo `json:"studentList"`
+}
+
+type DytClassBriefInfoResponse {
+	ClassId          int64                `json:"classId"`
+	GradeName        string               `json:"gradeName"`
+	ClassName        string               `json:"className"`
+	XhbClassName     string               `json:"xhbClassName"`
+	XhbClassCode     string               `json:"xhbClassCode"`
+	XhbClassToken    string               `json:"xhbClassToken"`
+	TeacherCount     int64                `json:"teacherCount"`
+	StudentCount     int64                `json:"studentCount"`
+	ParentCount      int64                `json:"parentCount"`
+	NoBindingTeacher []*DytXhbTeacherInfo `json:"noBindingTeacher"`
+}
+
+type DytXhbTeacherInfo {
+	TeacherName   string `json:"teacherName"`
+	XhbUserToken  string `json:"xhbUserToken"`
+	ClassDirector int64  `json:"classDirector"` // 0 - 任课教师 1-班主任
+}
+
+type DytStudentInfo {
+	StudentProfileId int64  `json:"studentProfileId"`
+	StudentName      string `json:"studentName"`
+	StudentGender    int64  `json:"studentGender"`
+	ParentCount      int64  `json:"parentCount"`
+}
+
+type DytTeacherListRequest {
+	ClassId int64 `json:"classId"`
+}
+
+type GradeClassListDytResponse {
+	List []*DytGradeInfo `json:"list"`
+}
+
+type DytGradeClass {
+	Id       int64            `json:"id"`
+	Name     string           `json:"name"`
+	Children []*DytGradeClass `json:"children"`
+}
+
+type DytGradeClassSplit {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type ClassListDytResponse {
+	List []*DytGradeClass `json:"list"`
+}
+
+type DytGradeInfo {
+	CampusGradeId int64           `json:"campusGradeId"` //年级id
+	GradeId       int64           `json:"gradeId"`
+	CampusId      int64           `json:"campusId"`  //校区id
+	AliasName     string          `json:"aliasName"` //年级别名
+	Classes       []*DytClassInfo `json:"classes"`   //班级列表
+}
+
+type DytClassInfo {
+	ClassesId     int64  `json:"classesId"`
+	TermId        int64  `json:"termId"`
+	ClassName     string `json:"className"`
+	ClassNum      int64  `json:"classNum"`
+	CampusId      int64  `json:"campusId"`
+	GradeId       int64  `json:"gradeId"`
+	XhbClassToken string `json:"xhbClassToken"`
+	BindTime      int64  `json:"bindTime"`
+}
+
+type DytClassTeacherAddRequest {
+	ClassId     int64                  `json:"classId"`
+	TeacherList []*DytClassTeacherInfo `json:"teacherList"`
+}
+
+type DytClassTeacherInfo {
+	TeacherId  int64   `json:"teacherId"`
+	SubjectIds []int64 `json:"subjectIds,optional"`
+}
+
+type DytAdaptXhbTeacherRequest {
+	ClassedId     int64   `json:"classesId"`
+	XhbClassToken string  `json:"xhbClassToken"`
+	XhbUserToken  string  `json:"xhbUserToken"`
+	TeacherName   string  `json:"teacherName"`
+	ClassDirector int64   `json:"classDirector"`
+	SubjectId     []int64 `json:"subjectId,optional,default=0"`
+}
+
+type DytActClassXhbTeacherRequest {
+	XhbClassToken string `json:"xhbClassToken"`
+	XhbUserToken  string `json:"xhbUserToken"`
+	TeacherName   string `json:"teacherName"`
+	ActType       int64  `json:"actType"` // 1-修改为普通成员 2-请出班级
+}
+
+type TeacherMobile {
+	TeacherId     int64  `json:"teacherId"`
+	XhbToken      string `json:"xhbToken"`
+	TeacherMobile string `json:"teacherMobile"`
+}
+
+type DytClassTeacherInfoRequest {
+	ClassId   int64 `json:"classId"`
+	TeacherId int64 `json:"teacherId"`
+}
+
+type DytClassCountResponse {
+	Count        int64 `json:"count"`
+	ClassNameErr bool  `json:"classNameErr"` // 判断有没有班级名为空 false为有错
+}
+
+type DytClassListResponse {
+	List []*DytGradeClass `json:"list"`
+}
+
+type DytGradeCLassListSplitResponse {
+	List []*DytGradeClassSplit `json:"list"`
+}
+
+type DytGradeClassListResponse {
+	List []*DytGradeInfo `json:"list"`
+}
+
+type DytGetStudentInfoResponse {
+	CampusId    int64            `json:"-"`
+	GradeId     int64            `json:"gradeId"`
+	ClassId     int64            `json:"classId"`
+	GradeClass  string           `json:"gradeClass"`
+	Name        string           `json:"name"`
+	Mobile      string           `json:"mobile"`
+	Avatar      []string         `json:"avatar"`
+	H5Url       string           `json:"h5Url"`
+	StudentCode string           `json:"studentCode"`
+	IdNumber    string           `json:"idNumber"`
+	Gender      int64            `json:"gender"`
+	Parents     []*DytParentInfo `json:"parents"`
+	Places      []*DytPlacesInfo `json:"places"`
+}
+
+type DytParentInfo {
+	RelationshipId int64    `json:"rId,optional"`
+	Relationship   string   `json:"relationship,optional"`
+	Mobile         string   `json:"mobile,optional"`
+	Avatar         []string `json:"avatar,optional"`
+}
+
+type DytPlacesInfo {
+	PlaceTypeId   int64  `json:"placeTypeId"`
+	PlaceId       int64  `json:"placeId"`
+	PlaceTypeName string `json:"placeTypeName"`
+	PlaceName     string `json:"placeName"`
+}
+
+type DytAddParent {
+	Relationship string   `json:"relationship,optional"`
+	Mobile       string   `json:"mobile,optional"`
+	Avatar       []string `json:"avatar,optional"`
+}
+
+type DytClassAddStudentRequest {
+	CampusId    int64            `json:"-,optional"`
+	ClassId     int64            `json:"classId"`
+	Name        string           `json:"name"`
+	Avatar      []string         `json:"avatar,optional"` // 头像
+	Mobile      string           `json:"mobile,optional"`
+	StudentCode string           `json:"studentCode"` // 学号
+	IdNumber    string           `json:"idNumber,optional"`
+	Gender      int64            `json:"gender,default=0"` // 男0女1,其他2
+	Parents     []*DytAddParent  `json:"parents,optional,omitempty"`
+	Places      []*DytPlacesInfo `json:"places,optional,omitempty"`
+}
+
+type DytClassUpdateStudentRequest {
+	Id          int64            `json:"id"`
+	CampusId    int64            `json:"-,optional"`
+	ClassId     int64            `json:"classId"`
+	Name        string           `json:"name"`
+	Avatar      []string         `json:"avatar,optional"`
+	Mobile      string           `json:"mobile,optional"`
+	StudentCode string           `json:"studentCode"`
+	IdNumber    string           `json:"idNumber,optional"`
+	Gender      int64            `json:"gender,default=0"` // 男0女1
+	Parents     []*DytParentInfo `json:"parents,optional,omitempty"`
+	Places      []*DytPlacesInfo `json:"places,optional,omitempty"`
+}
+
+@server(
+	jwt: Auth
+	folder: dytclass
+)
+service classes {
+	@doc(
+		summary: 大一统班级列表
+	)
+	@server(
+		handler: DytGetCampusClassListHandler
+	)
+	get /classes/dyt/class-list() returns(DytCampusClassResponse)
+	
+	@doc(
+		summary: 添加修改年级
+	)
+	@server(
+		handler: DytSetCampusGradeHandler
+	)
+	post /classes/dyt/set-campus-grade(DytSetCampusGradeRequest)
+	
+	@doc(
+		summary: 删除年级
+	)
+	@server(
+		handler: DytDeleteCampusGradeHandler
+	)
+	post /classes/dyt/delete-campus-grade(DytDeleteCampusGradeRequest)
+	
+	@doc(
+		summary: 添加修改班级
+	)
+	@server(
+		handler: DytSetClassHandler
+	)
+	post /classes/dyt/set-campus-class(DytSetClassRequest)
+	
+	@doc(
+		summary: 解散班级
+	)
+	@server(
+		handler: DytDisbandClassHandler
+	)
+	post /classes/dyt/disband-campus-class(DytDisbandClassRequest)
+	
+	@doc(
+		summary: 班级教师列表
+	)
+	@server(
+		handler: DytClassTeachersListHandler
+	)
+	post /classes/dyt/class-teacher-list(DytClassTeacherListRequest) returns(DytClassTeacherListResponse)
+	
+	@doc(
+		summary: 班级学生列表
+	)
+	@server(
+		handler: DytClassStudentsListHandler
+	)
+	post /classes/dyt/class-student-list(DytClassStudentListRequest) returns(DytClassStudentListResponse)
+	
+	@doc(
+		summary: 班级简要信息
+	)
+	@server(
+		handler: DytGetClassBriefInfoHandler
+	)
+	get /classes/dyt/class-brief-info/:classId(DytClassIdRequest) returns(DytClassBriefInfoResponse)
+	
+	@doc(
+		summary: 解绑班级
+	)
+	@server(
+		handler: DytUnbindClassHandler
+	)
+	get /classes/dyt/unbind-class/:classId(DytClassIdRequest)
+	
+	@doc(
+		summary: 校区教师列表
+	)
+	@server(
+		handler: DytTeacherListHandler
+	)
+	post /classes/dyt/teacher-list(DytTeacherListRequest) returns(DytTeacherListResponse)
+	@doc(
+		summary: 添加多个任课教师
+	)
+	@server(
+		handler: DytAddClassTeachersHandler
+	)
+	post /classes/dyt/class-add-teacher(DytClassTeacherAddRequest)
+	
+	@doc(
+		summary: 添加班主任
+	)
+	@server(
+		handler: DytAddClassDirectorHandler
+	)
+	post /classes/dyt/class-add-director(DytClassTeacherAddRequest)
+	
+	@doc(
+		summary: 更换班主任
+	)
+	@server(
+		handler: DytEditClassDirectorHandler
+	)
+	post /classes/dyt/class-edit-director(DytClassTeacherAddRequest)
+	
+	@doc(
+		summary: 任课教师详情
+	)
+	@server(
+		handler: DytTeacherInfoHandler
+	)
+	post /classes/dyt/class-teacher-info(DytClassTeacherInfoRequest) returns(DytTeacherInfo)
+	
+	@doc(
+		summary: 编辑任课教师
+	)
+	@server(
+		handler: DytEditClassTeacherHandler
+	)
+	post /classes/dyt/class-edit-teacher(DytClassTeacherAddRequest)
+	
+	@doc(
+		summary: 删除任课教师
+	)
+	@server(
+		handler: DytDeleteClassTeacherHandler
+	)
+	post /classes/dyt/class-delete-teacher(DytClassTeacherInfoRequest)
+	
+	@doc(
+		summary: 调整为晓教云教师
+	)
+	@server(
+		handler: DytAdaptTeacherHandler
+	)
+	post /classes/dyt/adapt-xhb-teacher(DytAdaptXhbTeacherRequest)
+	
+	@doc(
+		summary: 请出晓黑板班级或调整为晓黑板班级普通成员
+	)
+	@server(
+		handler: DytActXhbClassTeacherHandler
+	)
+	post /classes/dyt/act-class-xhb-teacher(DytActClassXhbTeacherRequest)
+	
+	@doc(
+		summary: 获取班级架构中班级的个数
+	)
+	@server(
+		handler: DytClassCountHandler
+	)
+	get /classes/dyt/class/count() returns(DytClassCountResponse)
+	
+	@doc(
+		summary: 年级班级列表
+	)
+	@server(
+		handler: DytGetClassListHandler
+	)
+	get /classes/dyt/grade-classes() returns(DytClassListResponse)
+	
+	@doc(
+		summary: 年级列表
+	)
+	@server(
+		handler: DytGetGradeListSplitHandler
+	)
+	get /classes/dyt/grade-lists() returns(DytGradeCLassListSplitResponse)
+	@doc(
+		summary: 获取学生信息
+	)
+	@server(
+		handler: DytGetStudentInfoHandler
+	)
+	get /classes/dyt/student/:id(DytActStudentRequest)returns(DytGetStudentInfoResponse)
+	@doc(
+		summary: 删除学生
+	)
+	@server(
+		handler: DytDeleteStudentHandler
+	)
+	delete /classes/dyt/student/:id(DytActStudentRequest)
+	@doc(
+		summary: 班级内新增学生
+	)
+	@server(
+		handler: DytAddClassStudentHandler
+	)
+	post /classes/dyt/class-add-student(DytClassAddStudentRequest)
+	@doc(
+		summary: 班级内编辑学生
+	)
+	@server(
+		handler: DytUpdateClassStudentHandler
+	)
+	post /classes/dyt/class-update-student(DytClassUpdateStudentRequest)
+}

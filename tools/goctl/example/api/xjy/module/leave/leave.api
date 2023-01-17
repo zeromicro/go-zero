@@ -1,0 +1,140 @@
+info(
+	title: 请假
+	desc: 请假api
+	author: Jancd
+	email: sergeychang@gmail.com
+)
+
+type ClassesAndTeacher {
+}
+
+type AddApplyRequest {
+	CampusId          int64                `json:"-,optional"`
+	UserId            string               `json:"-,optional"`
+	ApplyTypeId       int64                `json:"applyTypeId,optional"`
+	ManualTimeLength  int64                `json:"manualTimeLength"`
+	ApplyTypeName     string               `json:"applyTypeName"`
+	StartTime         int64                `json:"startTime"`
+	EndTime           int64                `json:"endTime"`
+	LeaveReason       string               `json:"leaveReason,optional"`
+	IsSubstitute      int64                `json:"isSubstitute,optional"`    // 0-不需要代课，1-需要代课
+	ClassAdjustment   int64                `json:"classAdjustment,optional"` // 0-不需要调课，1-需要调课
+	SubstituteReason  string               `json:"substituteReason,optional"`
+	SubstituteClasses []*ClassesAndTeacher `json:"substituteClasses,optional,omitempty"`
+	Attachments       *Attachment          `json:"attachments,optional,omitempty"`
+	VocationTime      int64                `json:"vocationTime"` // 请假时长
+}
+
+type Attachment {
+	Images []*LeaveImage `json:"images,optional,omitempty"`
+	Files  []*LeaveFile  `json:"files,optional,omitempty"`
+}
+
+type LeaveImage {
+	Original  string `json:"original,optional,omitempty"`
+	Preview   string `json:"preview,optional,omitempty"`
+	Thumbnail string `json:"thumbnail,optional,omitempty"`
+	Size      int64  `json:"size,optional,omitempty"`
+	Width     int64  `json:"width,optional,omitempty"`
+	Height    int64  `json:"height,optional,omitempty"`
+}
+
+type LeaveFile {
+	Id       string `json:"id,optional,omitempty"`
+	Name     string `json:"name,optional,omitempty"`
+	MimeType string `json:"mimeType,optional,omitempty"`
+	Attrs    *Attr  `json:"attrs,optional,omitempty"`
+}
+
+type Attr {
+	Size string `json:"size,optional,omitempty"`
+}
+
+type AttendanceStatusResponse {
+	// 1-开通，其余不开通
+	IsOpened int64 `json:"isOpened"`
+}
+
+type AddVocationTypeRequest {
+	CampusId        int64  `json:"-,optional"`
+	TypeName        string `json:"typeName"`
+	MinUnit         int64  `json:"minUnit"`
+	BalanceType     int64  `json:"balanceType"`     // usedway
+	CouldSubstitute int64  `json:"couldSubstitute"` // replace
+	UsedStatus      int64  `json:"usedStatus"`      // 是否启用
+	//1-手动输入;2-根据考勤自动计算
+	CalculateWay int64 `json:"calculateWay,default=1"`
+}
+
+type UpdateVocationTypeRequest {
+	CampusId        int64  `json:"-,optional"`
+	TypeId          string `json:"typeId"`   // 需更新的类型
+	TypeName        string `json:"typeName"` // 更新后的名字
+	MinUnit         int64  `json:"minUnit"`
+	BalanceType     int64  `json:"balanceType"`     // usedway
+	CouldSubstitute int64  `json:"couldSubstitute"` // replace
+	UsedStatus      int64  `json:"usedStatus"`      // 是否启用
+	// 1-手动输入;2-根据考勤自动计算
+	CalculateWay int64 `json:"calculateWay,default=1"`
+}
+
+type TypeInfo {
+	TypeId          int64  `json:"typeId,omitempty"`
+	TypeName        string `json:"typeName"`
+	MinUint         int64  `json:"minUint"`
+	BalanceType     int64  `json:"balanceType"`
+	CouldSubstitute int64  `json:"isSubstitute"`    // 0-不代课，是否可以代课
+	UsedStatus      int64  `json:"usedStatus"`      // 是否启用
+	ClassAdjustment int64  `json:"classAdjustment"` // 0-不调课
+	CalculateWay    int64  `json:"calculateWay"`    // 1-手动输入;2-根据考勤自动计算
+}
+
+service templatebook-api {
+	@doc(
+		summary: 是否开通考勤功能，用于设置请假类型
+	)
+	@server(
+		handler: AttendanceStatusHandler
+	)
+	get /leave/attendance/status() returns(AttendanceStatusResponse)
+	
+	@doc(
+		summary: 发起请假申请
+	)
+	@server(
+		handler: AddApplyHandler
+	)
+	get /leave/apply/add(AddApplyRequest)
+	
+	@doc(
+		summary: 新增假期类型
+	)
+	@server(
+		handler: AddVocationTypeHandler
+	)
+	get /leave/vocation/type/add(AddVocationTypeRequest)
+	
+	@doc(
+		summary: 更新假期类型
+	)
+	@server(
+		handler: UpdateVocationTypeHandler
+	)
+	get /leave/vocation/type/update(UpdateVocationTypeRequest)
+	
+	@doc(
+		summary: 小程序发起请假申请
+	)
+	@server(
+		handler: AddApplyHandlerH5
+	)
+	get /leave/h5/apply/add(AddApplyRequest)
+	
+	@doc(
+		summary: 小程序获取假期类型列表
+	)
+	@server(
+		handler: AllVocationTypeHandler
+	)
+	get /leave/h5/vocation/type/all() returns([]*TypeInfo)
+}

@@ -1,0 +1,496 @@
+info(
+	title: 云盘pc相关
+	desc: 云盘pc相关api
+	author: songguangyang
+	email: songguangyang@xiaoheiban.cn
+)
+
+type ObjectListRequest {
+	ParentId int64  `json:"parentId"`         // 默认0，即根目录
+	Keyword  string `json:"keyword,optional"` // 搜索关键字
+	Category int    `json:"category"`
+}
+
+type ObjectListResponse {
+	Total           int            `json:"total"`
+	TotalSize       int64          `json:"totalSize"`
+	PrivateRootId   int64          `json:"privateRootId"` // 私人云盘的根目录 进入私人首页时需要
+	Use             int64          `json:"use"`
+	Id              int64          `json:"id"`               // 当前所在id
+	FilePath        []*FilePath    `json:"path,omitempty"`   // 目录
+	School          []*CampusFiles `json:"school,omitempty"` // 文件学校文件取school 私人文件取private
+	Private         []*CampusFiles `json:"private,omitempty"`
+	RootPermissions []int          `json:"rootPermissions,omitempty"` // 根目录权限  只有超级管理员有
+	IsSearch        bool           `json:"isSearch"`
+}
+
+type CampusFiles {
+	Id             int64       `json:"id"`
+	CampusId       int64       `json:"campusId"`
+	Name           string      `json:"name"`
+	Duration       int         `json:"duration,omitempty"`
+	FilePath       []*FilePath `json:"path,omitempty"`
+	IsFolder       bool        `json:"isFolder"`
+	ParentId       int64       `json:"parentId"`
+	FileSize       int64       `json:"fileSize"`
+	LimitSize      int64       `json:"limitSize"`
+	FileUrl        string      `json:"fileUrl,omitempty"`
+	DownloadUrl    string      `json:"downloadUrl,omitempty"`
+	IsPublic       bool        `json:"isPublic"`
+	Category       int         `json:"category"`
+	UploadUserId   string      `json:"userId"`
+	UploadUserName string      `json:"uploader"`
+	CreateTime     int64       `json:"createTime"`
+	UpdateTime     int64       `json:"updateTime"`
+	Permissions    []int       `json:"permissions"`         // 0:创建文件夹 1:重命名 2:上传 3:下载 4:发送 5:删除 6:移动到
+	Type           int         `json:"mediaType,omitempty"` // 媒体类型，1:文档，2:视频，3:音频，4:图片，5:其他
+}
+
+type FilePath {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type ObjectShareRequest {
+	ClassroomId []string `json:"classroomId,omitempty,optional"` // 晓黑板班级ids
+	Additions   []string `json:"additions,omitempty,optional"`   // 单独老师放到Additions
+	Ids         []int64  `json:"ids"`                            // 待分享文件（夹）id列表
+	Category    int      `json:"category"`
+}
+
+type XhbReceiver {
+	ClassroomId []string `json:"classroomId,omitempty,optional"` // 晓黑板班级id
+	Additions   []string `json:"additions,omitempty,optional"`   // 老师放到Additions
+}
+
+type AddObjectRequest {
+	ParentId int64      `json:"parentId,optional"`
+	IsFolder bool       `json:"isFolder,optional"`
+	Object   []*Payload `json:"object"`
+	Category int        `json:"category"`
+}
+
+type Payload {
+	Name         string `json:"name"`
+	Duration     int    `json:"duration,optional"`  // 视频时长
+	ObjectKey    string `json:"objectKey,optional"` // 视频时长
+	FileType     string `json:"fileType,optional"`  // 文件类型
+	RelativePath string `json:"relativePath"`       // 路径 必传 文件上传就是文件名 文件夹上传就是文件所在路径
+}
+
+type AddObjectResponse {
+}
+
+type CreateFolderRequest {
+	ParentId       int64    `json:"parentId"`
+	Name           string   `json:"name"`
+	Permissions    string   `json:"permissions,optional"` // 权限 PUBLIC=公开 PERMISSIONS=权限人
+	Peoples        []string `json:"peoples,optional"`     // 权限 用户token
+	AllPermissions []int    `json:"allPermissions"`       // 哪几种权限 0:创建文件夹 1:重命名 2:上传 3:下载 4:发送 5:删除
+	Category       int      `json:"category"`
+}
+
+type PermissionsPeople {
+	Name        string  `json:"name"`
+	XhbUserId   string  `json:"xhbUserId"`
+	Premissions []int64 `json:"premissions"`
+}
+
+type ObjectRenameRequest {
+	Id       int64  `json:"id"`
+	Name     string `json:"name"`
+	Category int    `json:"category"`
+}
+
+type ObjectRenameResponse {
+}
+
+type ObjectDeleteRequest {
+	Ids      []int64 `json:"ids"`
+	Category int     `json:"category"`
+}
+
+type ObjectMoveRequest {
+	ObjectIds []int64 `json:"ids"`
+	TargetId  int64   `json:"targetId"`
+	Category  int     `json:"category"`
+}
+
+type GetFolderTreeRequest {
+	ParentId int64 `json:"parentId"`
+	Category int   `json:"category"`
+}
+
+type GetFolderTreeResponse {
+	ParentId int64                `json:"parentId"`
+	Children []*GetFolderTreeBody `json:"children"`
+}
+
+type GetFolderTreeBody {
+	Id           int64  `json:"id"`
+	Name         string `json:"label"`
+	HaveChildren bool   `json:"haveChildren"`
+}
+
+type GetPermissionsPeoplesRequest {
+	FolderId int64  `json:"folderId"`
+	KeyWord  string `json:"keyWord,optional"`
+}
+
+type GetPermissionsPeoplesResponse {
+	Peoples []*PermissionsPeople `json:"peoples"`
+}
+
+type AddPermissions {
+	XhbUserId   string  `json:"xhbUserId"`
+	Permissions []int64 `json:"permissions"`
+}
+
+type SetPeoplePermissionsRequest {
+	FileId      int64   `json:"fileId"`
+	XhbUserId   string  `json:"xhbUserId"`
+	Permissions []int64 `json:"permissions"`
+}
+
+type DelPeoplePermissionsRequest {
+	FileId     int64    `json:"fileId"`
+	XhbUserIds []string `json:"xhbUserIds"`
+}
+
+type GetSpaceListRequest {
+	FileId  int64  `json:"fileId"`
+	KeyWord string `json:"keyWord,optional"`
+}
+
+type GetPrivateSpaceListResponse {
+	List []*PrivateSpace `json:"list,omitempty"`
+}
+
+type PrivateSpace {
+	XhbUserId string `json:"xhbUserId"`
+	Name      string `json:"name"`
+	TotalSize int64  `json:"totalSize"` // 单位 B -1 为不限制
+	UsedSize  int64  `json:"usedSize"`
+}
+
+type GetPublicSpaceListResponse {
+	List []*PublicSpace `json:"list,omitempty"`
+}
+
+type GetFolderTreeLastIdRequest {
+	FileId   int64 `json:"fileId"`
+	Category int   `json:"category,optional"` // 学校=1 私人=2
+}
+
+type GetFolderTreeLastIdResponse {
+	LastId int64 `json:"lastId"`
+}
+
+type PublicSpace {
+	FileId      int64  `json:"fileId"`
+	FileName    string `json:"fileName"`
+	TotalSize   int64  `json:"totalSize"` // 单位 B -1 为不限制
+	UsedSize    int64  `json:"usedSize"`
+	HasChildren bool   `json:"hasChildren"` // 是否有子文件夹
+	IsPublic    bool   `json:"isPublic"`    // 是否是公开文件夹
+	Permissions []int  `json:"permissions"` // 如果是公开文件夹 的统一权限
+}
+
+type AddAndSetPrivateSpaceRequest {
+	PrivateSpaces []*AddPrivateSpace `json:"privateSpaces"`
+}
+
+type AddPrivateSpace {
+	XhbUserId string `json:"xhbUserId"`
+	Size      int64  `json:"size"`
+}
+
+type DelPrivateSpaceRequest {
+	XhbUserId string `json:"xhbUserId"`
+}
+
+type BatchSetPublicSpaceRequest {
+	SetList []*SetPublicSpce `json:"setList"`
+}
+
+type SetPublicSpce {
+	FileId  int64 `json:"fileId"`
+	SetSize int64 `json:"setSize"` // 单位 B
+}
+
+type AddPermissionsPeopleRequest {
+	FileId      int64             `json:"fileId"`
+	Peoples     []*AddPermissions `json:"peoples,optional"`
+	Permissions []int             `json:"permissions,optional"` // 如果是公开文件夹设置的是文件夹的权限，不是公开的话设置针对人的权限
+	Type        int               `json:"type"`                 // 必传,类型 之前是公开文件夹现在设置也是公开文件夹=1 之前是非公开针对人现在也是非公开针对人=2 之前是公开现在要转为非公开=3 之前 是非公开现在要转为公开=4
+}
+
+type GetOperationLogRequest {
+	Type      int64  `json:"type,optional"` // 1=用户名 2=文件名
+	KeyWord   string `json:"keyWord,optional"`
+	StartTime int64  `json:"startTime,optional"`
+	EndTime   int64  `json:"endTime,optional"`
+	Page      int64  `json:"page"`
+	PageSize  int64  `json:"pageSize"`
+}
+
+type GetOperationLogResponse {
+	Total int             `json:"total"`
+	List  []*OperationLog `json:"list"`
+}
+
+type OperationLog {
+	Name       string `json:"name"`
+	Department string `json:"department"`
+	Operation  int64  `json:"operation"` // 1=创建目录 2=重命名 3=上传  4=下载 5=分享 6=删除 7=移动 8=添加权限 9=修改权限 10=删除权限 11:开通私人云盘 12:设置目录大小限制
+	Content    string `json:"content"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type HasPrivateRequest {
+}
+
+type HasPrivateResponse {
+	Has bool `json:"has"`
+}
+
+type FilterPeopleRequest {
+	FileId int64 `json:"fileId"`
+}
+
+type FilterPeopleResponse {
+	Peoples []string `json:"peoples"` // 用户token
+}
+
+type ExistFolderRequest {
+	ParentId    int64    `json:"parentId"`
+	Category    int      `json:"category"`
+	IsFolder    int      `json:"isFolder"`    // 是文件夹传1 文件传0
+	FolderNames []string `json:"folderNames"` // 名字
+}
+
+type ExistFolderResponse {
+	Exist bool `json:"exist"` // 是否有重名
+}
+
+type DownLoadRequest {
+	Ids string `form:"ids"`
+}
+
+type DownLoadResponse {
+}
+
+type GetFolderSizeRequest {
+	FolderId int64 `json:"folderId"` // 文件夹id
+}
+
+type GetFolderSizeResponse {
+	Has       bool  `json:"has"`       //  还有没有剩余空间
+	LimitSize int64 `json:"limitSize"` // 剩余空间还剩多少 如果还有剩余空间 且limitsize为0则为不限制
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8080
+)
+service clouddiskprogram-api {
+	@doc(
+		summary: 获取学校云盘列表
+	)
+	@server(
+		handler: GetCloudDiskListHandler
+	)
+	post /cloud-disk/object/public/list(ObjectListRequest) returns(ObjectListResponse)
+	
+	@doc(
+		summary: 发送公共云盘
+	)
+	@server(
+		handler: SendFilePublicHandler
+	)
+	post /cloud-disk/object/public/share(ObjectShareRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 新增文件记录公共云盘
+	)
+	@server(
+		handler: UploadFilePublicHandler
+	)
+	post /cloud-disk/object/public/add(AddObjectRequest)returns(AddObjectResponse)
+	
+	@doc(
+		summary: 新增文件夹公共云盘
+	)
+	@server(
+		handler: CreateFloderPublicHandler
+	)
+	post /cloud-disk/folder/public/create(CreateFolderRequest) returns(AddObjectResponse)
+	
+	@doc(
+		summary: 重命名文件(夹)公共云盘
+	)
+	@server(
+		handler: RenamePublicFloderHandler
+	)
+	post /cloud-disk/object/public/rename(ObjectRenameRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 删除文件(夹)公共云盘
+	)
+	@server(
+		handler: DelPublicFileHandler
+	)
+	post /cloud-disk/object/public/delete(ObjectDeleteRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 移动文件(夹)公共云盘
+	)
+	@server(
+		handler: MovePublicFileHandler
+	)
+	post /cloud-disk/object/public/move(ObjectMoveRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 获取文件目录公共云盘
+	)
+	@server(
+		handler: GetPublicfolderTreeHandler
+	)
+	post /cloud-disk/folder/public/tree(GetFolderTreeRequest) returns(GetFolderTreeResponse)
+	
+	@doc(
+		summary: 获取文件目录可以移动的最上级id
+	)
+	@server(
+		handler: GetPublicfolderTreeLastIdHandler
+	)
+	post /cloud-disk/folder/public/tree/lastid(GetFolderTreeLastIdRequest) returns(GetFolderTreeLastIdResponse)
+	
+	@doc(
+		summary: 当前文件夹权限人列表
+	)
+	@server(
+		handler: GetDirPermissionsListHandler
+	)
+	post /cloud-disk/currentdir/auth/get(GetPermissionsPeoplesRequest) returns(GetPermissionsPeoplesResponse)
+	
+	@doc(
+		summary: 给文件夹添加权限人,或者更改权限，或者公开和非公开切换
+	)
+	@server(
+		handler: AddDirPermissionsHandler
+	)
+	post /cloud-disk/currentdir/auth/add(AddPermissionsPeopleRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 删除权限人
+	)
+	@server(
+		handler: DelPeoplePermissionsHandler
+	)
+	post /cloud-disk/currentdir/auth/delete(DelPeoplePermissionsRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 获取私人空间限制列表
+	)
+	@server(
+		handler: GetPrivateSpaceLimitListHandler
+	)
+	post /cloud-disk/private/space/list/get(GetSpaceListRequest) returns(GetPrivateSpaceListResponse)
+	
+	@doc(
+		summary: 获取学校云盘限制列表
+	)
+	@server(
+		handler: GetPublicSpaceLimitListHandler
+	)
+	post /cloud-disk/public/space/list/get(GetSpaceListRequest) returns(GetPublicSpaceListResponse)
+	
+	@doc(
+		summary: 添加私人云盘权限人
+	)
+	@server(
+		handler: AddPrivateSpaceHandler
+	)
+	post /cloud-disk/private/space/add(AddAndSetPrivateSpaceRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 删除 私人云盘权限
+	)
+	@server(
+		handler: DelPrivateSpaceHandler
+	)
+	post /cloud-disk/private/space/delete(DelPrivateSpaceRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 限制私人空间
+	)
+	@server(
+		handler: LimitPrivateSpaceHandler
+	)
+	post /cloud-disk/private/space/limit(AddAndSetPrivateSpaceRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 限制文件夹
+	)
+	@server(
+		handler: LimitPublicSpaceSpaceHandler
+	)
+	post /cloud-disk/public/space/limit(BatchSetPublicSpaceRequest) returns(ObjectRenameResponse)
+	
+	@doc(
+		summary: 分页获取操作日志
+	)
+	@server(
+		handler: GetLogHandler
+	)
+	post /cloud-disk/operation/log/get(GetOperationLogRequest) returns(GetOperationLogResponse)
+	
+	@doc(
+		summary: 是否有私人云盘权限
+	)
+	@server(
+		handler: HasSpaceHandler
+	)
+	post /cloud-disk/private/has(HasPrivateRequest) returns(HasPrivateResponse)
+	
+	@doc(
+		summary: 是否是超级管理员
+	)
+	@server(
+		handler: IssupperHandler
+	)
+	post /cloud-disk/public/issupper(HasPrivateRequest) returns(HasPrivateResponse)
+	
+	@doc(
+		summary: 创建文件夹和 给文件夹添加权限人的时候 需要过滤掉的人
+	)
+	@server(
+		handler: FilterPeoples
+	)
+	post /cloud-disk/currentdir/people/filter(FilterPeopleRequest) returns(FilterPeopleResponse)
+	
+	@doc(
+		summary: 是否有重名
+	)
+	@server(
+		handler: ExistFolderHandler
+	)
+	post /cloud-disk/object/duplication/name(ExistFolderRequest) returns(ExistFolderResponse)
+	
+	@doc(
+		summary: 下载
+	)
+	@server(
+		handler: DownLoadHandler
+	)
+	get /cloud-disk/batch/download(DownLoadRequest) returns(DownLoadResponse)
+	
+	@doc(
+		summary: 获取文件夹剩余size
+	)
+	@server(
+		handler: GetFolderSize
+	)
+	post /cloud-disk/object/public/folder/size(GetFolderSizeRequest) returns(GetFolderSizeResponse)
+}

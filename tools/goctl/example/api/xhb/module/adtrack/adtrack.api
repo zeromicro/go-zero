@@ -1,0 +1,127 @@
+type ClickRequest {
+	Source    string `path:"source"`             // 广告计划id
+	AdId      string `form:"adId"`               // 广告计划id
+	Cid       string `form:"cid"`                // 广告创意 id
+	Idfa      string `form:"idfa,optional"`      // IOS 6+ 的设备号
+	Imei      string `form:"imei,optional"`      // 安卓的设备ID的 md5
+	Mac       string `form:"mac,optional"`       // 移动设备 mac 地址
+	Os        int64  `form:"os,optional"`        // 操作系统 安卓：0  IOS：1  其他：3
+	OaId      string `form:"oaId,optional"`      // Android Q 及更高版本的设备号
+	AndroidId string `form:"androidId,optional"` // 安卓 id 原值的 md5，32位
+	IsTeacher int64  `form:"isTeacher,optional"` // 是否老师注册
+	Timestamp string `form:"timestamp,optional"` // 时间
+	Callback  string `form:"callback,optional"`  // 回调内容
+}
+
+type ClickResponse {
+}
+
+type SourceViewRequest {
+	SourceId int64  `form:"sourceId"`
+	Uuid     string `form:"uuid"`
+}
+
+type SourceViewResponse {
+}
+
+type SourceReportRequest {
+	SourceId    int64  `json:"sourceId"`
+	MobilePhone string `json:"mobilePhone"`
+}
+
+type SourceReportResponse {
+}
+
+type SourceAddRequest {
+	Title string `json:"title"`
+}
+
+type SourceAddResponse {
+}
+
+type SourceEditRequest {
+	Id    int64  `json:"id"`
+	Title string `json:"title"`
+}
+
+type SourceEditResponse {
+}
+
+type SourceListRequest {
+	Title    string `form:"title,optional"`
+	Page     int    `form:"page,optional,default=1"`
+	PageSize int    `form:"pageSize,optional,default=10"`
+}
+
+type SourceListResponse {
+	List  []*SourceItem `json:"list"`
+	Total int64         `json:"total"`
+}
+
+type SourceItem {
+	Id          int64  `json:"id"`
+	Title       string `json:"title"`
+	Link        string `json:"link"`
+	ShortLink   string `json:"shortLink"`
+	Pv          int64  `json:"pv"`
+	Uv          int64  `json:"uv"`
+	IpNum       int64  `json:"ipNum"`
+	RegisterNum int64  `json:"registerNum"`
+	DownloadNum int64  `json:"downloadNum"`
+	CreateTime  int64  `json:"createTime"`
+	UpdateTime  int64  `json:"updateTime"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service adtrack-api {
+	@doc(
+		summary: 广告监控
+	)
+	@server(
+		handler: ClickHandler
+	)
+	get /adtrack/:source/click(ClickRequest) returns(ClickResponse)
+	
+	@doc(
+		summary: 来源页面h5 查看监控
+	)
+	@server(
+		handler: SourceViewHandler
+	)
+	get /adtrack/source/view(SourceViewRequest) returns(SourceViewResponse)
+	
+	@doc(
+		summary: 来源手机号上报
+	)
+	@server(
+		handler: SourceReportHandler
+	)
+	post /adtrack/source/report(SourceReportRequest) returns(SourceReportResponse)
+	
+	@doc(
+		summary: 来源添加
+	)
+	@server(
+		handler: SourceAddHandler
+	)
+	post /adtrack/source/add(SourceAddRequest) returns(SourceAddResponse)
+	
+	@doc(
+		summary: 来源编辑
+	)
+	@server(
+		handler: SourceEditHandler
+	)
+	post /adtrack/source/edit(SourceEditRequest) returns(SourceEditResponse)
+	
+	@doc(
+		summary: 来源列表
+	)
+	@server(
+		handler: SourceListHandler
+	)
+	get /adtrack/source/list(SourceListRequest) returns(SourceListResponse)
+}

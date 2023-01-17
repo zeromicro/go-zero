@@ -1,0 +1,210 @@
+info(
+	title: entry
+	desc: 晓黑板工作台入口
+	author: wangdi
+	email: wangdi@xiaoheiban.cn
+)
+
+type (
+	PcWorkbenchResponse {
+		ClientList []*WorkbenchGroup `json:"clientList"`
+		CampusList []*CampusInfo     `json:"campusList"`
+	}
+
+	CampusInfo {
+		CampusId   int64             `json:"campusId"`
+		SchoolName string            `json:"schoolName"`
+		Icon       string            `json:"icon"`
+		List       []*WorkbenchGroup `json:"list"`
+	}
+
+	WorkbenchGroup {
+		Category string           `json:"category"`
+		Children []*WorkbenchItem `json:"children"`
+	}
+
+	WorkbenchItem {
+		Name        string `json:"name"`
+		AppIcon     string `json:"appIcon"`
+		Type        string `json:"type"` // mini: 晓程序,web: h5页面，app: 原生应用, web-h5: h5 适配手机页面, entry: 成绩类似的页面
+		Url         string `json:"url"`
+		Desc        string `json:"desc"`
+		AppId       string `json:"appId"`
+		UniqueId    string `json:"uniqueId"` // 唯一id,仅用于UI渲染
+		PageId      int64  `json:"pageId"`   // 埋点id
+		Category    string `json:"category"`
+		ExtraMsg    string `json:"extraMsg"`    //红点文案信息
+		ModuleType  string `json:"moduleType"`  //应用类型  admin、general
+		ClosePrompt bool   `json:"closePrompt"` //应用关闭时是否提示
+	}
+
+	UpdateDesktopStatusReq {
+		UniqueId string `path:"uniqueId"`
+	}
+
+	IsManagerRequest {
+		UserToken string `json:"userToken"`
+	}
+	IsManagerResponse {
+		IsManager bool `json:"isManager"`
+	}
+
+	BoolResp {
+		Successful bool `json:"successful"`
+	}
+
+	AppEntry {
+		AppName  string `json:"appName"`
+		Icon     string `json:"icon"`
+		Url      string `json:"url"`
+		UniqueId string `json:"uniqueId"`          //埋点id
+		ExtraMsg string `json:"extraMsg,optional"` //附加信息，红点文案
+		Category string `json:"category"`          //分类
+	}
+	GetXhbHomeAppsResp {
+		Apps []*AppEntry `json:"apps"`
+	}
+
+	GetXhbAllAppsReq {
+		CampusId int64 `path:"campusId"` //学校id
+	}
+	School {
+		Name     string `json:"name"`
+		CampusId int64  `json:"campusId"` //学校id
+	}
+
+	XhbAllAppsItem {
+		Category string      `json:"category"` //分类
+		Apps     []*AppEntry `json:"apps"`
+	}
+
+	GetXhbAllAppsResp {
+		Schools     []*School         `json:"schools"`
+		CurrentName string            `json:"currentName"` //当前学校名称
+		CurrentId   int64             `json:"currentId"`   //当前学校id
+		List        []*XhbAllAppsItem `json:"list"`        //应用列表
+	}
+
+	UpdateXhbHomeAppsReq {
+		Apps []*AppEntry `json:"apps"`
+	}
+
+	UpdateXhbHomeAppsStatusReq {
+		UniqueId string `path:"uniqueId"`
+	}
+
+	UpdateExtraMsgReq {
+		Platform string `json:"platform"`
+		Key      string `json:"key"`
+		Value    string `json:"value,optional"`
+	}
+
+	GetPopupsResp {
+		PopupsShow bool `json:"popupsShow"` //是否展示弹框
+		RedDot     bool `json:"redDot"`     //晓应用是否展示红点
+	}
+
+	// 客户端新版本更新首页定制入口
+	// 每个新版本客户端只请求一次
+	// 返回内容为更新后的入口APP列表
+	UpdateUserHomeAppsReq {
+	}
+)
+
+@server(
+	jwt: Auth
+)
+service entry {
+	@doc(
+		summary: 获取晓黑板用户 PC 工作台
+	)
+	@server(
+		handler: pcWorkbench
+	)
+	get /entry/pc/workbench () returns (PcWorkbenchResponse)
+	
+	@doc(
+		summary: "去除PC工作台红点信息"
+	)
+	@server(
+		handler: UpdateDesktopAppsStatusHandler
+	)
+	put /entry/pc/workbench/:uniqueId (UpdateDesktopStatusReq) returns (BoolResp)
+	
+	@doc(
+		summary: "获取应用引导弹框"
+	)
+	@server(
+		handler: GetDesktopPopupsHandler
+	)
+	get /entry/pc/workbench/popups () returns (GetPopupsResp)
+	
+	@doc(
+		summary: "更新引导框状态"
+	)
+	@server(
+		handler: UpdateDesktopPopupsHandler
+	)
+	put /entry/pc/workbench/popups () returns (BoolResp)
+	
+	@doc(
+		summary: 判断用户是否为管理员
+	)
+	@server(
+		handler: managerHandler
+	)
+	post /entry/pc/role (IsManagerRequest) returns (IsManagerResponse)
+	
+	@doc(
+		summary: 获取首页应用
+	)
+	@server(
+		handler: GetXhbHomeAppsHandler
+	)
+	get /entry/app/home () returns (GetXhbHomeAppsResp)
+	
+	@doc(
+		summary: 获取全部应用
+	)
+	@server(
+		handler: GetXhbAllAppsHandler
+	)
+	get /entry/app/all/:campusId (GetXhbAllAppsReq) returns (GetXhbAllAppsResp)
+	
+	@doc(
+		summary: 更新首页应用
+	)
+	@server(
+		handler: UpdateXhbHomeAppsHandler
+	)
+	post /entry/app/home (UpdateXhbHomeAppsReq) returns (BoolResp)
+	
+	@doc(
+		summary: 去除应用红点
+	)
+	@server(
+		handler: UpdateXhbHomeAppsStatusHandler
+	)
+	put /entry/app/status/:uniqueId (UpdateXhbHomeAppsStatusReq) returns (BoolResp)
+	
+	@doc(
+		summary: "新版本整理首页入口"
+	)
+	@server(
+		handler: UpdateXhbUserHomeAppsHandler
+	)
+	put /entry/app/new-version-update (UpdateUserHomeAppsReq) returns (GetXhbHomeAppsResp)
+}
+
+@server(
+	group : inter
+)
+service entry {
+	@doc(
+		summary: 更新红点信息
+	)
+	@server(
+		handler: UpdateExtraMessageHandler
+	)
+	put /internal/entry/update/extra (UpdateExtraMsgReq)
+}

@@ -1,0 +1,115 @@
+type QueryHaveRemindTableRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+}
+
+type QueryHaveRemindTableResponse {
+	HaveRemind bool `json:"haveRemind"`
+}
+
+type SetClassTableRemindRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+}
+
+type SetClassTableRemindResponse {
+}
+
+type QueryClassTableStateRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+}
+
+type QueryClassTableStateResponse {
+	Id          int64           `json:"id"`
+	ClassroomId string          `json:"classroomId"`
+	State       string          `json:"state"` // state有三种状态，NONE为课程表不存在|EXIST为课程表存在|WAITING为等待审核
+	TableImages []*ImageRequest `json:"tableImages"`
+	Name        string          `json:"name"`
+	CreateTime  int64           `json:"createTime"`
+}
+
+type ReviewClassTableRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+	ReviewState bool   `json:"reviewState"`
+}
+
+type ReviewClassTableResponse {
+	Id          int64           `json:"id,omitempty"`
+	ClassroomId string          `json:"classroomId,omitempty"`
+	State       string          `json:"state,omitempty"`
+	TableImages []*ImageRequest `json:"tableImages,omitempty"`
+	UserId      string          `json:"userId,omitempty"`
+	CreateTime  int64           `json:"createTime,omitempty"`
+}
+
+type UploadClassTableRequest {
+	Token       string          `path:"token"`
+	ClassroomId string          `json:"classroomId"`
+	TableImages []*ImageRequest `json:"tableImages"`
+}
+
+type UploadClassTableResponse {
+	Id          int64           `json:"id,omitempty"`
+	ClassroomId string          `json:"classroomId,omitempty"`
+	State       string          `json:"state,omitempty"`
+	TableImages []*ImageRequest `json:"tableImages,omitempty"`
+	UserId      string          `json:"userId,omitempty"`
+	CreateTime  int64           `json:"createTime,omitempty"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional"`  // 原始图id
+	Preview   string `json:"preview,optional"`   // 预览图
+	Thumbnail string `json:"thumbnail,optional"` // 缩略图id
+	Size      int    `json:"size,optional"`      // 原图大小
+	Height    int    `json:"height,optional"`    // 高
+	Width     int    `json:"width,optional"`     // 宽
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service classtable-api {
+	@doc(
+		summary: 课程表是否有新提醒
+	)
+	@server(
+		handler: QueryHaveRemindTableHandler
+	)
+	get /classroom/have/remind/table/:token/:classroomId(QueryHaveRemindTableRequest) returns(QueryHaveRemindTableResponse)
+	
+	@doc(
+		summary: 课程表点击小红点消失行为
+	)
+	@server(
+		handler: SetClassTableRemindHandler
+	)
+	post /classroom/remind/table/:token(SetClassTableRemindRequest) returns(SetClassTableRemindResponse)
+	
+	@doc(
+		summary: 返回班级的课程表的state
+	)
+	@server(
+		handler: QueryClassTableStateHandler
+	)
+	get /classroom/table/state/:token/:classroomId(QueryClassTableStateRequest) returns(QueryClassTableStateResponse)
+	
+	@doc(
+		summary: 管理员审核课程表图片
+	)
+	@server(
+		handler: ReviewClassTableHandler
+	)
+	post /classroom/review/table/:token(ReviewClassTableRequest) returns(ReviewClassTableRequest)
+	
+	@doc(
+		summary: 上传课程表图片
+	)
+	@server(
+		handler: UploadClassTableHandler
+	)
+	post /classroom/upload/table/:token(UploadClassTableRequest) returns(UploadClassTableResponse)
+}

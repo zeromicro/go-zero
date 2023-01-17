@@ -1,0 +1,632 @@
+type GrowthRecordQueryRequest {
+	UserId      string `json:"userId,optional"`
+	ClassroomId string `json:"classroomId,optional"`
+	Limit       int    `json:"limit,default=10"`
+	CreateTime  int64  `json:"createTime,optional"`
+	CreateBy    string `json:"createBy,optional"`
+	Tag         string `json:"tag,optional"`
+	ActivityId  string `json:"activityId,optional"`
+	DeviceType  string `json:"deviceType,optional"`
+}
+type BannerResponse {
+	Image      string `json:"image" db:"image"`
+	Link       string `json:"link" db:"link"`
+	Height     int    `json:"height" db:"height"`
+	Width      int    `json:"width" db:"width"`
+	Type       string `json:"type" db:"type"`
+	ActivityId int    `json:"activityId" db:"activity_id"`
+}
+
+type RecordResponse {
+	GrowthRecord *GrowthRecordReponse `json:"growthRecord"`
+	Users        []*User              `json:"users,omitempty"`
+	Classrooms   []*Classroom         `json:"classrooms,omitempty"`
+	IsPraise     int                  `json:"isPraise,default=0"`
+	IsComment    int                  `json:"isComment,default=0"`
+	Tag          string               `json:"tag,omitempty"`
+	PraiseNum    int                  `json:"praiseNum,default=0"`
+	Multiple     int                  `json:"multiple,default=0"`
+	*GrowthMediaInfo
+	PraiseList  []*PraiseResponse  `json:"praiseList,omitempty"`
+	CommentList []*CommentResponse `json:"commentList,omitempty"`
+
+	IsFamily       bool              `json:"isFamily"` // 结果详情与当前用户之前的关系  true - 家庭成员关系   false - 非家庭成员关系
+	ClassroomId    string            `json:"classroomId,omitempty"`
+	IsAppraisal    bool              `json:"isAppraisal"`              // 是否已评价
+	AppraisalTotal int64             `json:"appraisalTotal,omitempty"` // 已评价的指标数
+	AppraisalScore int64             `json:"appraisalScore,omitempty"` // 已评价的指标分数
+	AppraisalList  []*AppraisalViews `json:"appraisalList,omitempty"`  // 评价列表
+}
+
+type AppraisalViews {
+	TeacherId  string           `json:"teacherId,omitempty"`
+	Appraisals []*AppraisalView `json:"appraisals,omitempty"` // 评价详情
+}
+
+type AppraisalView {
+	RecordId        int64  `json:"recordId,omitempty"`    // 评价记录id,删除评价的时候使用
+	Type            int32  `json:"type,omitempty"`        // 评价类型
+	IndicatorId     int64  `json:"indicatorId,omitempty"` // 教师评价指标
+	GradeName       string `json:"gradeName,omitempty"`   // 等第名称
+	Score           int64  `json:"score,omitempty"`       // 教师评价分数
+	ColorGrade      int32  `json:"colorGrade,omitempty"`  // 颜色等级，1-加分最多，2-中等，3-加分最少，4-待改进
+	IndicatorName   string `json:"indicatorName,omitempty"`
+	IndicatorSuffix string `json:"indicatorSuffix,omitempty"`
+	MessageId       string `json:"messageId,omitempty"`
+	ResultId        string `json:"resultId,omitempty"`
+	MessageType     string `json:"messageType,omitempty"`
+	Icon            string `json:"icon,omitempty"`
+}
+
+type GrowthRecordReponse {
+	*GrowthRecord
+	CreaterInfo *User `json:"createrInfo"`
+}
+
+type GrowthMediaInfo {
+	GrowthRecordImageList []*Image `json:"growthRecordImageList,omitempty"`
+	GrowthRecordAudio     *Audio   `json:"growthRecordAudio,omitempty"`
+	GrowthRecordVideo     *Video   `json:"growthRecordVideo,omitempty"`
+	GrowthRecordLink      *Link    `json:"growthRecordLink,omitempty"`
+}
+
+type Image {
+	Original  string `json:"original,omitempty"`
+	Thumbnail string `json:"thumbnail,omitempty"`
+	Size      int64  `json:"size,omitempty"`
+	Preview   string `json:"preview,omitempty"`
+}
+
+type Audio {
+	AudioUrl      string  `json:"audioUrl,omitempty"`
+	Duration      float64 `json:"duration,omitempty"`
+	Size          int64   `json:"size,omitempty"`
+	FileExtension string  `json:"fileExtension,omitempty"`
+}
+
+type Video {
+	PlayTime     int64  `json:"playTime,omitempty"`
+	CoverUrl     string `json:"coverUrl,omitempty"`
+	Title        string `json:"title,omitempty"`
+	PlayUrl      string `json:"playUrl,omitempty"`
+	MagicContext string `json:"magicContext,omitempty"`
+}
+
+type Link {
+	RecordId string `json:"recordId"`
+	Title    string `json:"title,optional"`
+	Image    string `json:"image,optional"`
+	Url      string `json:"url,optional"`
+	Type     string `json:"type,optional"`
+}
+
+type GrowthRecord {
+	RecordId     string `json:"recordId"`
+	Version      int64  `json:"version,omitempty"`
+	Content      string `json:"content,omitempty"`
+	UserIds      string `json:"userIds,omitempty"`
+	Userids      string `json:"userids,omitempty"` // 兼容老版本
+	ClassroomIds string `json:"classroomIds,omitempty"`
+	Permissions  string `json:"permissions"`
+	CreateBy     string `json:"createBy"`
+	CreateTime   int64  `json:"createTime"`
+	Tag          string `json:"tag,omitempty"`
+	ActivityId   string `json:"activityId,omitempty"`
+	PraiseNum    int    `json:"praiseNum"`
+	CommentNum   int    `json:"commentNum"`
+}
+
+type User {
+	Avatar   string `json:"avatar"`
+	UserId   string `json:"userId"`
+	RealName string `json:"realname,optional"`
+	Mobile   string `json:"mobile,optional"`
+}
+
+type Classroom {
+	Name        string `json:"name,optional"`
+	ClassroomId string `json:"id"` // 客户端之前老版本一直取的id字段，为了兼容，返回中改成id
+	ManagerId   string `json:"managerId"`
+}
+
+type QueryResponse {
+	Banners           []*BannerResponse `json:"banners,omitempty"`
+	Records           []*RecordResponse `json:"records"`
+	HasMore           int               `json:"hasMore"`
+	MsgNum            int64             `json:"msgNum,omitempty"`
+	ActivityMsgNum    int64             `json:"activityMsgNum"`
+	ActivityResultNum int               `json:"activityResultNum"`
+	UnreadCount       int64             `json:"unreadCount,omitempty"`
+}
+
+type PraiseResponse {
+	GrowthRecordPraise *GrowthRecordPraise `json:"growthRecordPraise"`
+	User               *User               `json:"user"`
+}
+
+type GrowthRecordPraise {
+	CreateBy   string `json:"createBy"`
+	CreateTime int64  `json:"createTime"`
+}
+
+type CommentResponse {
+	GrowthRecordComment *CommentMediaResponse `json:"growthRecordComment"`
+	Sender              *User                 `json:"sender"`
+	Receiver            *User                 `json:"receiver,omitempty"`
+}
+
+type CommentMediaResponse {
+	*Comment
+}
+
+type Comment {
+	CommentId        string          `json:"commentId"`
+	RecordId         string          `json:"recordId"`
+	Content          string          `json:"content,omitempty"`
+	CommentedId      string          `json:"commentedId,omitempty"`
+	Commentor        string          `json:"commentor,omitempty"`
+	CreateTime       string          `json:"createTime,omitempty"`
+	CreateBy         string          `json:"createBy,omitempty"`         // 评论人userId
+	SenderAvatar     string          `json:"senderAvatar,omitempty"`     // 评论人头像
+	SenderRealName   string          `json:"senderRealName,omitempty"`   // 评论人昵称
+	TargetId         string          `json:"targetId,omitempty"`         // 被评论人userId
+	ReceiverAvatar   string          `json:"receiverAvatar,omitempty"`   // 被评论人头像
+	ReceiverRealName string          `json:"receiverRealName,omitempty"` // 被评论人昵称
+	Audio            *CommentAudio   `json:"audio,omitempty"`
+	Images           []*CommentImage `json:"images,omitempty"`
+}
+
+type CommentAudio {
+	CommentId     string `json:"commentId"`
+	Id            string `json:"id,omitempty"`
+	Duration      int    `json:"duration,omitempty"`      // 持续时间
+	Size          int    `json:"size,omitempty"`          // 文件大小
+	FileExtension string `json:"fileExtension,omitempty"` // 文件后缀名
+}
+
+type CommentImage {
+	CommentId string `json:"commentId"`
+	Original  string `json:"original,omitempty"`  // 原始图id
+	Preview   string `json:"preview,omitempty"`   // 预览图
+	Thumbnail string `json:"thumbnail,omitempty"` // 缩略图id
+	Size      int    `json:"size,omitempty"`      // 原图大小
+	Height    int    `json:"height,omitempty"`    // 视频高
+	Width     int    `json:"width,omitempty"`     // 视频宽
+}
+
+type InsertPraiseRequest {
+	RecordId       string `json:"recordId"`
+	CreateBy       string `json:"createBy"`
+	ClassroomId    string `json:"classroomId,optional"`
+	RecordCreateBy string `json:"recordCreateBy,optional"`
+	PraiseType     string `json:"praiseType,default=app"`
+}
+
+type InsertAppraisalRequest {
+	ActivityId string       `json:"activityId"`
+	RecordId   string       `json:"recordId"`
+	Type       string       `json:"type"` // Appraisal 评价, Delete 删除
+	Appraisal  []*Appraisal `json:"appraisal"`
+}
+
+type AppraisalResponse {
+	IsAppraisal    bool              `json:"isAppraisal"`              // 是否已评价
+	AppraisalTotal int64             `json:"appraisalTotal,omitempty"` // 已评价的指标数
+	AppraisalScore int64             `json:"appraisalScore,omitempty"` // 已评价的指标分数
+	AppraisalList  []*AppraisalViews `json:"appraisalList,omitempty"`  // 评价列表
+}
+
+type Appraisal {
+	RecordId    int64  `json:"recordId,optional"`  // 评价记录id，删除评价的时候用，评价的时候不传
+	Type        int32  `json:"type"`               // 评价类型
+	IndicatorId int64  `json:"indicatorId"`        // 教师评价指标
+	GradeName   string `json:"gradeName,optional"` // 等第
+	Score       int64  `json:"score,optional"`     // 教师评价分数
+}
+
+type InsertCommentImage {
+	Original  string `json:"original"`
+	Preview   string `json:"preview"`
+	Thumbnail string `json:"thumbnail"`
+	Size      int    `json:"size"`
+	Height    int    `json:"height"`
+	Width     int    `json:"width"`
+}
+
+type InsertCommentRequest {
+	CreateBy       string                `json:"createBy"`
+	RecordId       string                `json:"recordId"`
+	Content        string                `json:"content,optional"`
+	TargetId       string                `json:"targetId,optional"`
+	RecordCreateBy string                `json:"recordCreateBy,optional"`
+	TemplateStatus bool                  `json:"templateStatus,optional"`
+	CommentedId    string                `json:"commentedId,optional"`
+	Commentor      string                `json:"commentor,optional"`
+	Audio          *Audio                `json:"audio,optional"`
+	Images         []*InsertCommentImage `json:"images,optional"`
+}
+
+type DeleteParentRecordRequest {
+	RecordId string `json:"recordId"`
+	Type     string `json:"type"`
+	Reason   string `json:"reason,optional"`
+	CreateBy string `json:"createBy"`
+	UserId   string `json:"userId"`
+}
+
+type DeleteParentRecordResponse {
+}
+
+type RemoveCommentRequest {
+	Token     string `path:"token"`
+	CommentId string `path:"commentId"`
+	RecordId  string `path:"recordId,optional"`
+}
+
+type RemoveCommentResponse {
+	CommentIds []string `json:"commentIds,omitempty"`
+}
+
+type BatchPraiseRequest {
+	Token      string `path:"token"`
+	ActivityId string `path:"activityId"`
+}
+
+type BatchPraiseResponse {
+}
+
+type TeacherDeleteRecordRequest {
+	ActivityId string `path:"activityId"`
+	RecordId   string `path:"recordId"`
+	UserId     string `path:"userId"`
+	OperatorId string `path:"operatorId"`
+}
+
+type TeacherDeleteRecordResponse {
+}
+
+type DeleteRecordRequest {
+	RecordId   string `path:"recordId"`
+	ExpireTime int64  `json:"expire_time,optional"`
+}
+
+type DeleteRecordResponse {
+}
+
+type DeleteCommentRequest {
+	CommentId string `path:"commentId"`
+	RecordId  string `form:"recordId,optional"`
+}
+
+type UserClassroomPair {
+	ClassroomId string `json:"classroomId,optional"`
+	UserId      string `json:"userId,optional"`
+}
+
+type ImageRequest {
+	Original  string `json:"original,optional" db:"original"`
+	Thumbnail string `json:"thumbnail,optional" db:"thumbnail"`
+	Preview   string `json:"preview,optional"`
+	Size      int64  `json:"size,optional"`
+}
+
+type AudioRequest {
+	AudioUrl      string  `json:"audioUrl,optional"`
+	Duration      float64 `json:"duration,optional"`
+	Size          int64   `json:"size,optional"`
+	FileExtension string  `json:"fileExtension,optional"`
+}
+
+type VideoRequest {
+	PlayUrl      string `json:"playUrl,optional"`
+	PlayTime     int64  `json:"playTime,optional"`
+	CoverUrl     string `json:"coverUrl,optional"`
+	Desc         string `json:"desc,optional"`
+	Title        string `json:"title,optional"`
+	MagicContext string `json:"magicContext,optional"`
+}
+
+type LinkRequest {
+	Title string `json:"title,optional" db:"title"`
+	Image string `json:"image,optional" db:"image"`
+	Url   string `json:"url,optional" db:"url"`
+	Type  string `json:"type,optional" db:"link_type"`
+}
+
+type GrowthRecordRequest {
+	Content      string               `json:"content,optional"`
+	UserIds      string               `json:"userIds,optional"`
+	ClassroomIds string               `json:"classroomIds,optional"`
+	Permissions  string               `json:"permissions,optional"`
+	CreateBy     string               `json:"createBy,optional"`
+	UserList     []*UserClassroomPair `json:"userList,optional"`
+}
+
+type GrowthRecordInsertRequest {
+	GrowthRecord          GrowthRecordRequest `json:"growthRecord"`
+	GrowthRecordImageList []*ImageRequest     `json:"growthRecordImageList,optional"`
+	GrowthRecordAudio     *AudioRequest       `json:"growthRecordAudio,optional"`
+	GrowthRecordVideo     *VideoRequest       `json:"growthRecordVideo,optional"`
+	GrowthRecordLink      *LinkRequest        `json:"growthRecordLink,optional"`
+	Tag                   string              `json:"tag,optional"`
+	ActivityId            string              `json:"activityId,optional"`
+}
+
+type UnreadMessageRequest {
+	Token      string `path:"token"`
+	ActivityId string `path:"activityId"`
+}
+
+type UnreadMessageResponse {
+	LastTimestamp int64          `json:"lastTimestamp"`
+	List          []*MessageView `json:"list,omitempty"`
+}
+
+type MessageView {
+	SenderId       string `json:"senderId,omitempty"`
+	ReceiverId     string `json:"receiverId,omitempty"`
+	Type           string `json:"type,omitempty"`           // comment评论 | praise点赞 | uncomment撤回评论
+	CommentContent string `json:"commentContent,omitempty"` //评论内容
+	ResultId       string `json:"resultId,omitempty"`       // 活动成果id
+	Content        string `json:"content,omitempty"`        //显示的内容
+	ClassroomId    string `json:"classroomId,omitempty"`
+	Timestamp      int64  `json:"timestamp,omitempty"`
+}
+
+type QueryActivityMemberRecordRequest {
+	UserId        string   `path:"token"`
+	ActivityId    string   `json:"activityId"`
+	LastTimestamp int64    `json:"lastTimestamp,default=0"`
+	Members       []string `json:"members"`
+	Size          int      `json:"size,default=20"`
+}
+
+type QueryActivityMemberRecordResponse {
+	HasMore       bool              `json:"hasMore"`
+	LastTimestamp int64             `json:"lastTimestamp"`
+	Records       []*RecordResponse `json:"records,omitempty"`
+}
+
+type PagingView {
+	// 是否还有更多消息
+	Id string `json:"id,omitempty"`
+	// 是否还有更多消息
+	HasMore bool `json:"hasMore"`
+	// 总记录数
+	TotalSize int `json:"totalSize"`
+	// 本次获取的最后一条timestamp
+	LastTimestamp int64 `json:"lastTimestamp"`
+}
+
+type ReadMessageRequest {
+	Token      string `path:"token"`
+	ActivityId string `path:"activityId"`
+	Timestamp  int64  `form:"timestamp,optional"`
+	Size       int    `form:"size,optional"`
+}
+
+type ReadMessageResponse {
+	PagingView
+	List []*MessageView `json:"list,omitempty"`
+}
+
+type QueryUnreadRepliesRequest {
+	UserId     string `json:"userId"`
+	ActivityId string `json:"activityId,optional"`
+}
+
+type ReplyMessageView {
+	RecordId      string `json:"recordId,omitempty"`
+	Content       string `json:"content,omitempty"`
+	CreateTime    int64  `json:"createTime,omitempty"`
+	IsRead        int    `json:"isRead"`
+	MessageId     string `json:"messageId,omitempty"`
+	OperationId   string `json:"operationId,omitempty"`
+	OperationType string `json:"operationType,omitempty"`
+	ReplyContent  string `json:"relpyContent,omitempty"`
+	UserId        string `json:"userId,omitempty"`
+	CommentId     string `json:"commentId,,omitempty"`
+}
+
+type ReplyMessageInfoView {
+	User     *User             `json:"user,omitempty"`
+	Receiver *User             `json:"receiver,omitempty"`
+	Message  *ReplyMessageView `json:"growthRecordReplyMessage,omitempty"`
+}
+
+type QueryUnreadReplyMessageResponse {
+	HasMore bool                    `json:"hasMore"`
+	List    []*ReplyMessageInfoView `json:"list,omitempty"`
+}
+
+type ClearReplyMessageRecordsRequest {
+	UserId     string `json:"userId"`              //
+	ActivityId string `json:"activityId,optional"` //
+}
+
+type ClearReplyMessageRecordsResponse {
+}
+
+type QueryOneRecordRequest {
+	UserId     string `json:"userId"`
+	RecordId   string `json:"recordId"`
+	ActivityId string `json:"activityId,optional"`
+}
+
+type MoreReplyMessageRecordsRequest {
+	UserId     string `json:"userId"`
+	ActivityId string `json:"activityId,optional"`
+	Limit      int    `json:"limit,default=10"`
+	CreateTime int64  `json:"createTime,optional"`
+}
+
+type MoreReplyMessageRecordsResponse {
+	Rows        []*ReplyMessageInfoView `json:"rows,omitempty"`
+	CurrentPage int                     `json:"currentPage,omitempty"`
+	PageCount   int                     `json:"pageCount,omitempty"`
+	Total       int                     `json:"total,omitempty"`
+	TotalPage   int                     `json:"totalPage,omitempty"`
+}
+
+type DeleteCommentResponse {
+	CommentIds []string `json:"commentIds"` //需删除的id
+}
+
+service growth-api {
+	@doc(
+		summary: 获取更多回复列表
+	)
+	@server(
+		handler: MoreReplyMessageRecords
+	)
+	post /growth/growthRecord/v1/moreReplyMessageRecords(MoreReplyMessageRecordsRequest) returns(MoreReplyMessageRecordsResponse)
+	@doc(
+		summary: 清空回复列表
+	)
+	@server(
+		handler: ClearReplyMessageRecords
+	)
+	post /growth/growthRecord/v1/clearReplyMessageRecords(ClearReplyMessageRecordsRequest) returns(ClearReplyMessageRecordsResponse)
+	@doc(
+		summary: 获取回复列表
+	)
+	@server(
+		handler: QueryUnreadReplyMessageHander
+	)
+	post /growth/growthRecord/v2/replyMessageRecords(QueryUnreadRepliesRequest) returns(QueryUnreadReplyMessageResponse)
+	@doc(
+		summary: 查询活动成果列表
+	)
+	@server(
+		handler: ActivityQueryRecordHandler
+	)
+	post /growth/growthRecord/v3/records/activity_query(GrowthRecordQueryRequest) returns(QueryResponse)
+	
+	@doc(
+		summary: 查询所有的成长记录列表
+	)
+	@server(
+		handler: ActivityQueryAllRecordHandler
+	)
+	post /growth/growthRecord/v3/records/growth_query(GrowthRecordQueryRequest) returns(QueryResponse)
+	
+	@doc(
+		summary: 仅看自己的成长记录
+	)
+	@server(
+		handler: ActivityQueryMyselfRecordHandler
+	)
+	post /growth/growthRecord/v3/records/growth_only_self(GrowthRecordQueryRequest) returns(QueryResponse)
+	
+	@doc(
+		summary: 点赞/取消点赞
+	)
+	@server(
+		handler: ActivityPraiseHandler
+	)
+	post /growth/growthRecord/v1/praise(InsertPraiseRequest) returns(PraiseResponse)
+	
+	@doc(
+		summary: 评价
+	)
+	@server(
+		handler: ActivityAppraisalHandler
+	)
+	post /growth/growthRecord/v1/appraisal(InsertAppraisalRequest) returns(AppraisalResponse)
+	
+	@doc(
+		summary: 评论
+	)
+	@server(
+		handler: InsertCommentHandler
+	)
+	post /growth/growthRecord/v1/comment(InsertCommentRequest) returns(CommentResponse)
+	
+	@doc(
+		summary: 教师删除家长的评论或者晓成长
+	)
+	@server(
+		handler: DeleteParentRecordHandler
+	)
+	post /growth/growthRecord/v1/deleteParentRecord(DeleteParentRecordRequest) returns(DeleteParentRecordResponse)
+	
+	@doc(
+		summary: 晓活动撤回评论
+	)
+	@server(
+		handler: RemoveCommentHandler
+	)
+	delete /growth/remove/comment/:token/:commentId(RemoveCommentRequest) returns(RemoveCommentResponse)
+	
+	@doc(
+		summary: 晓活动成果批量点赞
+	)
+	@server(
+		handler: BatchPraiseHandler
+	)
+	post /growth/batch/praise/:token/:activityId(BatchPraiseRequest) returns(BatchPraiseResponse)
+	
+	@doc(
+		summary: 教师删除晓活动下的晓成长
+	)
+	@server(
+		handler: TeacherDeleteRecordHandler
+	)
+	delete /growth/growthRecord/v1/teacherDeleteRecord/:activityId/:recordId/:userId/:operatorId(TeacherDeleteRecordRequest) returns(TeacherDeleteRecordResponse)
+	
+	@doc(
+		summary: 删除晓成长
+	)
+	@server(
+		handler: DeleteRecordHandler
+	)
+	delete /growth/growthRecord/v1/deleteRecord/:recordId(DeleteRecordRequest) returns(DeleteRecordResponse)
+	
+	@doc(
+		summary: 删除评论
+	)
+	@server(
+		handler: DeleteCommentHandler
+	)
+	delete /growth/growthRecord/v1/deleteComment/:commentId(DeleteCommentRequest) returns(DeleteCommentResponse)
+	
+	@doc(
+		summary: 插入晓成长
+	)
+	@server(
+		handler: InsertGrowthRecordHandler
+	)
+	post /growth/growthRecord/v1/insertGrowthRecord(GrowthRecordInsertRequest) returns(RecordResponse)
+	
+	@doc(
+		summary: 晓活动查看新消息
+	)
+	@server(
+		handler: ViewsUnreadMessageHandler
+	)
+	get /growth/views/unread/message/:token/:activityId(UnreadMessageRequest) returns(UnreadMessageResponse)
+	
+	@doc(
+		summary: 查询参与晓活动的记录
+	)
+	@server(
+		handler: QueryActivityRecordByMembersHandler
+	)
+	post /growth/growthRecord/activity/members/records/:token(QueryActivityMemberRecordRequest) returns(QueryActivityMemberRecordResponse)
+	
+	@doc(
+		summary: 晓活动查看已读消息
+	)
+	@server(
+		handler: ViewReadMessageHandler
+	)
+	get /growth/views/read/message/:token/:activityId(ReadMessageRequest) returns(ReadMessageResponse)
+	
+	@doc(
+		summary: 查询晓成长
+	)
+	@server(
+		handler: QueryOneRecord
+	)
+	post /growth/growthRecord/v1/oneRecord(QueryOneRecordRequest) returns(RecordResponse)
+}

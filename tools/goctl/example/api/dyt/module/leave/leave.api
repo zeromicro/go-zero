@@ -1,0 +1,607 @@
+info(
+	title: 教师请假
+	desc: 教师请假，代课，假期管理相关 api 文档
+	version: 1.0
+)
+
+type (
+	PageListRequest {
+		CampusId  int64  `json:"-,optional"`
+		UserId    string `json:"-,optional"`
+		NowPage   int64  `json:"nowPage,optional,default=1"`
+		PageSize  int64  `json:"pageSize,optional,default=12"`
+		StartTime int64  `json:"startTime,optional"`
+		EndTime   int64  `json:"endTime,optional"`
+	}
+
+	PageListResponse {
+		Count int64           `json:"count"`
+		List  []*PageListItem `json:"list"`
+	}
+
+	PageListItem {
+		ApplyName       string `json:"applyName"`       // 0.1.5 考勤物品优化新增
+		StartTime       int64  `json:"startTime"`       // 0.1.5 考勤物品优化新增  秒级时间戳
+		EndTime         int64  `json:"endTime"`         // 0.1.5 考勤物品优化新增  秒级时间戳
+		ApplyTimeLength int64  `json:"applyTimeLength"` // 0.1.5 考勤物品优化新增  单位:分钟
+		ApplyId         int64  `json:"applyId"`
+		ApplyType       string `json:"applyType"`
+		DurationAct     string `json:"durationAct"`
+		IsSubstitute    int64  `json:"isSubstitute"` // 0-不需要代课，1-需要代课
+		ClassAdjustment int64  `json:"classAdjustment"`
+		CreateTime      int64  `json:"createTime"`
+		ApplyStatus     int64  `json:"applyStatus"`
+	}
+
+	AllVocationResponse {
+		List []*TypeInfo `json:"list"`
+	}
+
+	TypeInfo {
+		TypeId          int64  `json:"typeId,omitempty"`
+		TypeName        string `json:"typeName"`
+		MinUint         int64  `json:"minUint"`
+		BalanceType     int64  `json:"balanceType"`
+		CouldSubstitute int64  `json:"isSubstitute"`    // 0-不代课，是否可以代课
+		UsedStatus      int64  `json:"usedStatus"`      // 是否启用
+		ClassAdjustment int64  `json:"classAdjustment"` // 0-不调课
+		CalculateWay    int64  `json:"calculateWay"`    // 1-手动输入;2-根据考勤自动计算
+		TimeHasLimit    bool   `json:"timeHasLimit"`    // 0.1.5 考勤物品优化新增 假期时间是否有限制
+		TimeRemained    int64  `json:"timeRemained"`    // 0.1.5 考勤物品优化新增 剩余假期时间
+	}
+
+	AddVocationTypeRequest {
+		CampusId        int64  `json:"-,optional"`
+		TypeName        string `json:"typeName"`
+		MinUnit         int64  `json:"minUnit"`
+		BalanceType     int64  `json:"balanceType"`              // used way
+		CouldSubstitute int64  `json:"couldSubstitute"`          // replace
+		UsedStatus      int64  `json:"usedStatus"`               // 是否启用
+		CalculateWay    int64  `json:"calculateWay,default=1"`   // 1-手动输入;2-根据考勤自动计算
+		IsUnlimitedTime bool   `json:"isUnlimitedTime,optional"` // 0.1.5 考勤物品优化新增 是否为不限时长假期
+	}
+
+	TypeInfoRequest {
+		TypeId int64 `json:"typeId"` // 原 api 使用 type name
+	}
+
+	WebTypeInfoResponse {
+		TypeId          int64  `json:"typeId,omitempty"`
+		TypeName        string `json:"typeName"`
+		MinUnit         int64  `json:"minUnit"`
+		BalanceType     int64  `json:"balanceType"`
+		CouldSubstitute int64  `json:"couldSubstitute"` // 0-不代课，是否可以代课
+		UsedStatus      int64  `json:"usedStatus"`      // 是否启用
+		ClassAdjustment int64  `json:"classAdjustment"` // 0-不调课
+		CalculateWay    int64  `json:"calculateWay"`    // 1-手动输入;2-根据考勤自动计算
+		IsUnlimitedTime bool   `json:"isUnlimitedTime"` // 0.1.5 考勤物品优化新增 是否为不限时长假期
+	}
+
+	UpdateVocationTypeRequest {
+		CampusId        int64  `json:"-,optional"`
+		TypeId          int64  `json:"typeId"`   // 需更新的类型
+		TypeName        string `json:"typeName"` // 更新后的名字
+		MinUnit         int64  `json:"minUnit"`
+		BalanceType     int64  `json:"balanceType"`            // used way
+		CouldSubstitute int64  `json:"couldSubstitute"`        // replace
+		UsedStatus      int64  `json:"usedStatus"`             // 是否启用
+		CalculateWay    int64  `json:"calculateWay,default=1"` // 1-手动输入;2-根据考勤自动计算
+		IsUnlimitedTime bool   `json:"isUnlimitedTime"`        // 0.1.5 考勤物品优化新增 是否为不限时长假期
+	}
+
+	VocationTypeUsedTeachersRequest {
+		VocationTypeId int64 `form:"vocationTypeId"`
+	}
+
+	VocationTypeUsedTeachersResponse {
+		TeacherNames []string `json:"teacherNames"`
+	}
+
+	VocationUsedDetailRequest {
+		CampusId int64  `json:"-,optional"`
+		UserId   string `json:"-,optional"`
+		NowPage  int64  `json:"nowPage,optional,default=1"`
+		PageSize int64  `json:"pageSize,optional,default=12"`
+	}
+
+	BalanceListResponse {
+		CommonVacationTime int64         `json:"commonVacationTime"` // 0.1.5 考勤物品优化新增 共用假期时长 单位 分钟
+		CommonVacationList []string      `json:"commonVacationList"` // 0.1.5 考勤物品优化新增 共用假期列表
+		Used               int64         `json:"used"`
+		Balance            int64         `json:"balance"`
+		Count              int64         `json:"count"`
+		AllUsed            []*UsedDetail `json:"allUsed"`
+	}
+
+	UsedDetail {
+		VocationTypeName string `json:"vocationTypeName"`
+		UsedWay          int64  `json:"usedWay"`
+		ApplyReason      string `json:"applyReason"`
+		CalculateRules   string `json:"calculateRules"`
+		SubBalance       int64  `json:"subBalance"`
+		ApplyTime        int64  `json:"applyTime,optional,omitempty"`
+		Duration         int64  `json:"duration,optional,omitempty"`
+	}
+
+	ReplaceListRequest {
+		UserId      string `json:"-,optional"`
+		CampusId    int64  `json:"-,optional"`
+		StartTime   int64  `json:"startTime,optional"`
+		EndTime     int64  `json:"endTime,optional"`
+		PageNum     int64  `json:"pageNum"`
+		PageSize    int64  `json:"pageSize"`
+		TeacherName string `json:"teacherName,optional"` //模糊搜索 申请人
+		Status      int64  `json:"status"`               //状态 （0 待核审 1 通过 2 没通过 3 失效）0.1.5 考勤物品优化新增 新增状态 4 未处理
+	}
+
+	ReplaceListResponse {
+		NowPage int64              `json:"nowPage"`
+		Count   int64              `json:"count"`
+		List    []*ReplaceListItem `json:"list"`
+	}
+
+	ReplaceListItem {
+		ReplaceId        int64  `json:"replaceId"`
+		ApplyId          int64  `json:"applyId"`
+		ApplyUserName    string `json:"applyUserName"`    // 申请人名
+		CourseNum        int64  `json:"courseNum"`        // 课时
+		ApplyTime        int64  `json:"applyTime"`        // 请假时间
+		ApplyHeadUrl     string `json:"applyHeadUrl"`     // 0.1.5 考勤物品优化新增  请求代课教师头像 url 兼容 h5 代课列表和 web 代课列表
+		VocationTypeName string `json:"vocationTypeName"` // 0.1.5 考勤物品优化新增  请假类型名称（大一统 0.1.5 中所有页面中的假期名称其实是假期类型名称，产品要求文案是假期名称）
+		StartTime        int64  `json:"startTime"`        // 0.1.5 考勤物品优化新增  秒级时间戳
+		EndTime          int64  `json:"endTime"`          // 0.1.5 考勤物品优化新增  秒级时间戳
+		ApplyStatus      int64  `json:"applyStatus"`      // 0.1.5 考勤物品优化新增  审批状态 (0 核审中/待审批，1 通过 2 不通过）
+		Status           int64  `json:"status"`           // (0 核审中，1 通过 2 没通过 3 失效）
+		TeacherName      string `json:"teacherName"`      //" :"王老师",  // 同意的人的名字
+		MsgState         int64  `json:"msgState"`         //":0// 0-已读，1-未读
+		CanReplace       bool   `json:"canReplace"`       // 能否审批  // 能否进行代课核审
+	}
+
+	ApplyInfoRequest {
+		CampusId  int64  `json:"-,optional"`
+		UserId    string `json:"-,optional"`
+		ReplaceId string `form:"replaceId,optional"`
+		Id        int64  `path:"id"`
+	}
+
+	ApplyInfoResponse {
+		ApplyId            int64             `json:"applyId"`
+		ApplyUserId        int64             `json:"applyUserId"`
+		ApplyUserName      string            `json:"applyUserName"`
+		CampusId           int64             `json:"campusId"`
+		VocationTypeName   string            `json:"vocationTypeName"`   // 请假类型名
+		VocationReason     string            `json:"vocationReason"`     // 请假原因
+		StartTime          int64             `json:"startTime"`          // 请假开始时间
+		EndTime            int64             `json:"endTime"`            // 请假结束时间
+		VocationTime       int64             `json:"vocationTime"`       // 请假时长
+		NeedTrim           int64             `json:"needTrim"`           // 是否需要调课
+		NeedReplace        int64             `json:"needReplace"`        // 是否需要代课
+		ReplaceReason      string            `json:"replaceReason"`      // 代课原因
+		ReplaceNum         int64             `json:"replaceNum"`         //代课申请数量
+		ApplyStatus        int64             `json:"applyStatus"`        // 申请状态
+		ApplyStep          int64             `json:"applyStep"`          // 申请流程步骤
+		Attachments        *Attachment       `json:"attachments"`        // 申请附件
+		CurrentUserId      int64             `json:"currentUserId"`      //	 0.1.5 当前用户id
+		CouldReplace       int64             `json:"couldReplace"`       //  0.1.5 是否有代课 0，否 1，是
+		ExtraMaterialCount int               `json:"extraMaterialCount"` //  0.1.5 考勤物品优化新增 补充材料数量
+		ExtraMaterial      []*ExtraMaterial  `json:"extraMaterial"`      //  0.1.5 考勤物品优化新增 补充材料
+		CreateTime         int64             `json:"createTime"`         // 创建时间
+		SubstituteClasses  []*CourseResponse `json:"substituteClasses"`
+	}
+
+	Attachment {
+		Images []*LeaveImage `json:"images,optional,omitempty"`
+		Files  []*LeaveFile  `json:"files,optional,omitempty"`
+	}
+
+	ExtraMaterial {
+		AddTime     int64         `json:"addTime"`
+		Description string        `json:"description"`
+		Images      []*LeaveImage `json:"images,optional,omitempty"`
+	}
+
+	LeaveImage {
+		Original  string `json:"original,optional,omitempty"`
+		Preview   string `json:"preview,optional,omitempty"`
+		Thumbnail string `json:"thumbnail,optional,omitempty"`
+		Size      int64  `json:"size,optional,omitempty"`
+		Width     int64  `json:"width,optional,omitempty"`
+		Height    int64  `json:"height,optional,omitempty"`
+	}
+
+	LeaveFile {
+		Id       string `json:"id,optional,omitempty"`
+		Name     string `json:"name,optional,omitempty"`
+		MimeType string `json:"mimeType,optional,omitempty"`
+		Attrs    *Attr  `json:"attrs,optional,omitempty"`
+	}
+
+	Attr {
+		Size string `json:"size,optional,omitempty"`
+	}
+
+	CourseResponse {
+		ReplaceId   int64   `json:"replaceId"`
+		ClassInfo   string  `json:"classInfo"`
+		Teachers    string  `json:"teachers"`
+		TeachersIds []int64 `json:"teachersIds"`
+	}
+
+	VerifyDetailRequest {
+		Id       int64  `path:"id"`
+		UserId   string `json:"-,optional"`
+		CampusId int64  `json:"-,optional"`
+	}
+
+	VerifyDetailResponse {
+		ApplyId           int64           `json:"applyId"`
+		Status            int64           `json:"status"` //核审状态 1：代课核审，2：假期核审，3：核审最终通过，4：核审失败
+		ApplyUserName     string          `json:"applyUserName"`
+		ApplyHeadUrl      string          `json:"applyHeadUrl"`
+		ApplyTime         int64           `json:"applyTime"`
+		CanReplace        bool            `json:"canReplace"`
+		CanApply          bool            `json:"canApply"`
+		ReplaceStatus     int64           `json:"replaceStatus"` //0:拒绝，1：通过；2：审批中；3：待审批
+		ReplaceName       string          `json:"replaceName"`
+		ReplaceFinishTime int64           `json:"replaceFinishTime"`
+		ReplaceList       []*ReplaceItem  `json:"replaceList"`
+		ApprovalList      []*ApprovalItem `json:"approvalList"`
+	}
+
+	ApprovalItem {
+		StepId          int64       `json:"stepId"`
+		IsPass          int64       `json:"isPass"`          //0:通过，1：拒绝；2：审批中；3：待审批 4:未审批
+		Type            int64       `json:"type"`            //0.1.5  核审规则 0- 或 1 - 合
+		ApplyFinishTime int64       `json:"applyFinishTime"` //0.1.5
+		UserList        []*UserItem `json:"userList"`
+	}
+
+	UserItem {
+		UserId     int64  `json:"userId"`
+		Name       string `json:"name"`
+		Avatar     string `json:"avatar"`
+		Status     int64  `json:"status"` //0.1.5 0 拒绝 1同意 2未审批
+		Option     string `json:"option"`
+		OptionTime int64  `json:"optionTime"`
+	}
+
+	ReplaceItem {
+		ReplaceId  int64                 `json:"replaceId"`
+		CourseName string                `json:"courseName"`
+		UserList   []*TeacherReplaceInfo `json:"userList"` //0.1.5 修改
+		Status     int64                 `json:"status"`   // 0:通过，1：拒绝；2：审批中；3：待审批 4:未审批
+		OptionTime int64                 `json:"optionTime"`
+	}
+
+	TeacherReplaceInfo {
+		Name   string `json:"name"`
+		Avatar string `json:"avatar"`
+		Status int64  `json:"status"` //0:拒绝，1：通过，2：待审核 3：未审核
+
+	}
+
+	ApprovalListRequest {
+		ApplyUserName   string `json:"applyUserName,optional"`   // 假期类型
+		TypeName        string `json:"typeName,optional"`        // 假期类型
+		IsReplace       int64  `json:"isReplace,optional"`       //(是否代课 0否 1是 2全部）
+		ClassAdjustment int64  `json:"classAdjustment,optional"` //（是否调课 0否 1是 2全部）
+		PageSize        int64  `json:"pageSize"`
+		PageNum         int64  `json:"pageNum"`
+		Status          int64  `json:"status,optional"` //状态（0 待核审 1 通过 2 未通过） 小程序：0.1.5 0:未处理，4 已处理
+		StartTime       int64  `json:"startTime,optional"`
+		EndTime         int64  `json:"endTime,optional"`
+		UserId          string `json:"-,optional"`
+		CampusId        int64  `json:"-,optional"`
+	}
+
+	ApprovalListResponse {
+		Count   int64               `json:"count"`
+		NowPage int64               `json:"nowPage"`
+		List    []*ApprovalListItem `json:"list"`
+	}
+
+	ApprovalListItem {
+		ApplyId         int64  `json:"applyId"`
+		ApplyUserName   string `json:"applyUserName"`
+		ApplyTimeLength int64  `json:"applyTimeLength"` // 0.1.5 考勤物品优化新增  单位:分钟
+		ApplyHeadUrl    string `json:"applyHeadUrl"`    //":"http://xasa.com/xs",
+		VacationName    string `json:"vacationName"`    //假期类型
+		IsReplace       int64  `json:"isReplace"`       //(是否代课 0否 1是）
+		ClassAdjustment int64  `json:"classAdjustment"` //（是否调课 0否 1是
+		ApplyTime       int64  `json:"applyTime"`
+		ApplyStep       int64  `json:"applyStep"`     //步骤
+		Status          int64  `json:"status"`        // (0 没通过，1 通过 2 待核审）
+		MyApplyStatus   int64  `json:"myApplyStatus"` //0.1.5 我的审核状态 (0 没通过，1 通过 2 待核审 3 未审核）
+		CanApply        bool   `json:"canApply"`      //能否核审
+		ApplyStartTime  int64  `json:"applyStartTime"`
+		ApplyEndTime    int64  `json:"applyEndTime"`
+	}
+	AddExtraMaterialRequest {
+		ApplyId     int64       `json:"applyId,optional"`
+		Description string      `json:"description,optional"`
+		Attachments *ImagesList `json:"attachments,optional,omitempty"`
+	}
+
+	ImagesList {
+		Images []*LeaveImage `json:"images,optional,omitempty"`
+	}
+
+	AddExtraMaterialResponse {
+		Successful bool `json:"successful"`
+	}
+
+	H5PageListRequest {
+		CampusId    int64  `json:"-,optional"`
+		UserId      string `json:"-,optional"`
+		NowPage     int64  `json:"nowPage,optional,default=1"`
+		PageSize    int64  `json:"pageSize,optional,default=12"`
+		ApplyStatus int64  `json:"applyStatus"` // 0-申请中，1-通过，2-不通过
+	}
+
+	H5PageListResponse {
+		Count int64             `json:"count"`
+		List  []*H5PageListItem `json:"list"`
+	}
+
+	H5PageListItem {
+		ApplyId         int64  `json:"applyId"`
+		ApplyType       string `json:"applyType"`
+		DurationAct     int64  `json:"durationAct"`
+		IsSubstitute    int64  `json:"isSubstitute"`
+		ClassAdjustment int64  `json:"classAdjustment"`
+		CreateTime      int64  `json:"createTime"`
+		ApplyStatus     int64  `json:"applyStatus"`
+		StartTime       int64  `json:"startTime"`
+		EndTime         int64  `json:"endTime"`
+		VocationLength  int64  `json:"vocationLength"`
+		MessageState    int    `json:"messageState"` // 0-已读，1-未读
+	}
+
+	H5ApplyInfo {
+		ApplyInfo
+		DepartmentInfo string `json:"departmentInfo"`
+	}
+
+	ApplyInfo {
+		ApplyId            int64             `json:"applyId"`
+		ApplyUserId        int64             `json:"applyUserId"`
+		ApplyUserName      string            `json:"applyUserName"`
+		CampusId           int64             `json:"campusId"`
+		VocationName       string            `json:"vocationType"`   // 请假类型名
+		VocationReason     string            `json:"vocationReason"` // 请假原因
+		StartTime          int64             `json:"startTime"`      // 请假开始时间
+		EndTime            int64             `json:"endTime"`        // 请假结束时间
+		VocationTime       int64             `json:"vocationTime"`   // 请假时长
+		NeedTrim           int64             `json:"needTrim"`       // 是否需要调课
+		NeedReplace        int64             `json:"needReplace"`    // 是否需要代课
+		ReplaceReason      string            `json:"replaceReason"`  // 代课原因
+		ReplaceNum         int64             `json:"replaceNum"`     //代课申请数量
+		ApplyStatus        int64             `json:"applyStatus"`    // 申请状态
+		ApplyStep          int64             `json:"applyStep"`      // 申请流程步骤
+		Attachments        Attachment        `json:"attachments"`    // 申请附件
+		CreateTime         int64             `json:"createTime"`     // 创建时间
+		SubstituteClasses  []*CourseResponse `json:"substituteClasses"`
+		CurrentUserId      int64             `json:"currentUserId"`      //	 0.1.5 当前用户id
+		ExtraMaterialCount int               `json:"extraMaterialCount"` //  0.1.5 考勤物品优化新增 补充材料数量
+		ExtraMaterial      []*ExtraMaterial  `json:"extraMaterial"`      //  0.1.5 考勤物品优化新增 补充材料
+
+	}
+
+	ApprovalListResponseH5 {
+		Count   int64                 `json:"count"`
+		NowPage int64                 `json:"nowPage"`
+		List    []*ApprovalListItemH5 `json:"list"`
+	}
+
+	ApprovalListItemH5 {
+		ApplyId         int64  `json:"applyId"`
+		ApplyUserName   string `json:"applyUserName"`
+		VacationTime    int64  `json:"vacationTime"`    //假期时长
+		ApplyDepartment string `json:"applyDepartment"` //":"sss",
+		ApplyHeadUrl    string `json:"applyHeadUrl"`    //":"http://xasa.com/xs",
+		VacationName    string `json:"vacationName"`    //假期类型
+		IsReplace       int64  `json:"isReplace"`       //(是否代课 0否 1是）
+		ClassAdjustment int64  `json:"classAdjustment"` //（是否调课 0否 1是
+		ApplyTime       int64  `json:"applyTime"`
+		ApplyStep       int64  `json:"applyStep"`     //步骤
+		Status          int64  `json:"status"`        // (0 没通过，1 通过 2 待核审）
+		MyApplyStatus   int64  `json:"myApplyStatus"` //0.1.5 我的审核状态 (0 没通过，1 通过 2 待核审 3 未审核）
+		CanApply        bool   `json:"canApply"`      //能否核审
+		ApplyStartTime  int64  `json:"applyStartTime"`
+		ApplyEndTime    int64  `json:"applyEndTime"`
+		MessageState    int    `json:"msgState"` // 0-已读，1-未读
+	}
+
+	HasApprovalTagResponse {
+		Successful bool `json:"successful"`
+	}
+)
+
+@server(
+	jwt: Auth
+	folder:leave
+)
+service leave-api {
+	@doc(
+		summary: 我的申请列表
+	)
+	@server(
+		handler: MyLeaveApplyList
+	)
+	post /leave/apply/list(PageListRequest) returns(PageListResponse)
+	
+	@doc(
+		summary: 所有假期类型
+	)
+	@server(
+		handler: AllVocationType
+	)
+	get /leave/vocation/type/all() returns(AllVocationResponse)
+	
+	@doc(
+		summary: 请假详情
+	)
+	@server(
+		handler: LeaveApplyInfo
+	)
+	get /leave/apply/info/:id(ApplyInfoRequest) returns(ApplyInfoResponse)
+	
+	@doc(
+		summary: 审核信息
+	)
+	@server(
+		handler: ApprovalDetail
+	)
+	get /leave/verify/:id(VerifyDetailRequest) returns(VerifyDetailResponse)
+	
+	@doc(
+		summary: 审核列表
+	)
+	@server(
+		handler: ApprovalList
+	)
+	post /leave/approval/list(ApprovalListRequest) returns(ApprovalListResponse)
+	
+	@doc(
+		summary: 是否有我的审批
+	)
+	@server(
+		handler: HasApprovalTag
+	)
+	post /leave/has/approval/tag() returns(HasApprovalTagResponse)
+	
+	@doc(
+		summary: 添加材料
+	)
+	@server(
+		handler: AddExtraMaterial
+	)
+	post /leave/add/material(AddExtraMaterialRequest) returns(AddExtraMaterialResponse)
+	
+}
+
+@server(
+	jwt: Auth
+	folder:h5leave
+)
+service leave-api {
+	@doc(
+		summary: 我的申请列表
+	)
+	@server(
+		handler: H5MyLeaveApplyList
+	)
+	post /leave/h5/apply/list(H5PageListRequest) returns(H5PageListResponse)
+	
+	@doc(
+		summary: 所有假期类型
+	)
+	@server(
+		handler: H5AllVocationType
+	)
+	get /leave/h5/vocation/type/all() returns(AllVocationResponse)
+	
+	@doc(
+		summary: 请假详情
+	)
+	@server(
+		handler: H5LeaveApplyInfo
+	)
+	get /leave/h5/apply/info/:id(ApplyInfoRequest) returns(H5ApplyInfo)
+	
+	@doc(
+		summary: 审核信息
+	)
+	@server(
+		handler: H5ApprovalDetail
+	)
+	get /leave/h5/verify/:id(VerifyDetailRequest) returns(VerifyDetailResponse)
+	
+	@doc(
+		summary: 审核信息v2
+	)
+	@server(
+		handler: H5ApprovalDetailV2
+	)
+	get /leave/h5/verifyv2/:id(VerifyDetailRequest) returns(VerifyDetailResponse)
+	
+	@doc(
+		summary: 审核列表
+	)
+	@server(
+		handler: H5ApprovalList
+	)
+	post /leave/h5/approval/list(ApprovalListRequest) returns(ApprovalListResponseH5)
+	
+	@doc(
+		summary: 添加材料
+	)
+	@server(
+		handler: H5AddExtraMaterial
+	)
+	post /leave/h5/add/material(AddExtraMaterialRequest) returns(AddExtraMaterialResponse)
+	
+}
+
+@server(
+	jwt: Auth
+	folder:vocation
+)
+service leave-api {
+	
+	@doc(
+		summary: 新增假期类型
+	)
+	@server(
+		handler: AddVocationType
+	)
+	post /leave/vocation/type/add(AddVocationTypeRequest)
+	
+	@doc(
+		summary: 查看假期类型信息
+	)
+	@server(
+		handler: WebVocationTypeInfo
+	)
+	post /leave/vocation/type/info(TypeInfoRequest) returns(WebTypeInfoResponse)
+	
+	@doc(
+		summary: 更新假期类型
+	)
+	@server(
+		handler: WebUpdateVocationType
+	)
+	post /leave/vocation/type/update(UpdateVocationTypeRequest)
+	
+	@doc(
+		summary: 假期类型存在的正在使用的教师列表
+	)
+	@server(
+		handler: VocationTypeUsedTeachers
+	)
+	get /leave/vocation/type/used/teachers(VocationTypeUsedTeachersRequest) returns(VocationTypeUsedTeachersResponse)
+	
+	@doc(
+		summary: 我的假期
+	)
+	@server(
+		handler: VocationBalanceList
+	)
+	post /leave/vocation/mybalance/list(VocationUsedDetailRequest) returns(BalanceListResponse)
+	
+}
+
+@server(
+	jwt: Auth
+	folder:replace
+)
+service leave-api {
+	
+	@doc(
+		summary: 我的代课列表
+	)
+	@server(
+		handler: ReplaceList
+	)
+	post /leave/replace/list(ReplaceListRequest) returns(ReplaceListResponse)
+}

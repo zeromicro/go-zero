@@ -1,0 +1,143 @@
+info(
+	title:  "通知管理"
+	desc:   "通知管理-admin"
+	version:  "1.0"
+)
+
+type TemplateListRequest {
+	Uid       int64  `form:"uid,optional"`
+	Title     string `form:"title,optional"`
+	ShowApp   int64  `form:"showApp,optional"`   // -1否 0默认  1 是
+	UseStatus int64  `form:"useStatus,optional"` // -1否 0默认  1 是
+	Page      int64  `form:"page,optional,default=1"`
+	PageSize  int64  `form:"pageSize,optional,default=10"`
+}
+
+type TemplateListResponse {
+	TemplateList []*TemplateView `json:"templateList,omitempty"`
+	Page         *Page           `json:"page,omitempty"`
+}
+
+type Page {
+	Pages int `json:"pages,omitempty"`
+	Nums  int `json:"nums,omitempty"`
+}
+type TemplateView {
+	TemplateId     string        `json:"templateId,omitempty"`
+	TemplateName   string        `json:"templateName,omitempty"`
+	Content        string        `json:"content,omitempty"`
+	Image          string        `json:"image,omitempty"`
+	XhbTag         string        `json:"xhbTag,omitempty"`
+	XhbTagId       string        `json:"xhbTagId,omitempty"`
+	XjyTag         string        `json:"xjyTag,omitempty"`
+	XjyTagId       string        `json:"xjyTagId,omitempty"`
+	Links          []*Link       `json:"links,omitempty"`
+	Pictures       []string      `json:"pictures,omitempty"`
+	ClickCount     int64         `json:"clickCount,omitempty"`
+	UseCount       int32         `json:"useCount,omitempty"`
+	Admin          string        `json:"admin,omitempty"`
+	Status         bool          `json:"status"`
+	CreateTime     int64         `json:"createTime,omitempty"`
+	UpdateTime     int64         `json:"updateTime,omitempty"`
+	TimeStamp      int64         `json:"timeStamp,omitempty"`
+	Video          *Video        `json:"video,optional,omitempty"`
+	DeliveryStatus string        `json:"deliveryStatus,omitempty"`
+	ResBagId       string        `json:"resBagId,optional"`
+	ShowApp        bool          `json:"showApp,optional"`
+	ExtraBag       *ExtraBagInfo `json:"extraBag,optional"`
+}
+
+type Link {
+	// 图片
+	Image string `bson:"image,omitempty" json:"image,omitempty"`
+	// 标题
+	Title string `bson:"title,omitempty" json:"title,omitempty"`
+	// 链接地址
+	Url string `bson:"url,omitempty" json:"url,omitempty"`
+}
+type Video {
+	// 标题
+	Title string `bson:"title,omitempty" json:"title,omitempty"`
+	// 描述
+	Desc string `bson:"desc,omitempty" json:"desc,omitempty"`
+	// 封面url
+	CoverUrl string `bson:"coverUrl,omitempty" json:"coverUrl,omitempty"`
+	// 地址url
+	PlayUrl string `bson:"playUrl,omitempty" json:"playUrl,omitempty"`
+	// 播放时长
+	PlayTime int `bson:"playTime,omitempty" json:"playTime,omitempty"`
+	// 回调标识字段[回调透传字段]
+	MagicContext string `bson:"magicContext,omitempty" json:"magicContext,omitempty"`
+	// 类型
+	Type string `bson:"type,omitempty" json:"type,omitempty"`
+	// 高
+	Height int `bson:"height,omitempty" json:"height,omitempty"`
+	// 宽
+	Width int `bson:"width,omitempty" json:"width,omitempty"`
+}
+
+type ExtraBagInfo {
+	//Audios      []*Audio      `bson:"audios,omitempty" json:"audios,omitempty"`
+	Attachments []*Attachment `bson:"attachments,omitempty" json:"attachments,omitempty"`
+}
+type Attachment {
+	// 网络文件id
+	Id string `bson:"_id" json:"id,omitempty"`
+	// 显示名称
+	Name string `bson:"name,omitempty" json:"name,omitempty"`
+	// 附件mimeType
+	MimeType string `bson:"mimeType,omitempty" json:"mimeType,omitempty"`
+	// 其他属性
+	Attrs *Attrs `bson:"attrs,omitempty" json:"attrs,omitempty"`
+}
+type Attrs {
+	// 大小
+	Size string `bson:"size,omitempty" json:"size,omitempty"`
+}
+
+type BatchUseRequest {
+	TemplateIds []string `json:"templateIds"`
+	UseStatus   bool     `json:"useStatus"`
+}
+type BatchUseResponse {
+	Desc string `json:"desc"`
+}
+
+type BatchShowRequest {
+	TemplateIds []string `json:"templateIds"`
+	ShowStatus  bool     `json:"showStatus"`
+}
+
+type BatchShowResponse {
+	Desc string `json:"desc"`
+}
+
+@server(
+	pathPrefix:  "/route/xhb"
+)
+service activity-api {
+	@doc(
+		summary:  "模版列表"
+	)
+	@server(
+		handler: TemplateListHandler
+	)
+	get /activity/template/list(TemplateListRequest) returns(TemplateListResponse)
+	
+	@doc(
+		summary:  "批量启用"
+	)
+	@server(
+		handler: BatchUseHandler
+	)
+	post /activity/batch/use(BatchUseRequest) returns(BatchUseResponse)
+	
+	@doc(
+		summary:  "批量展示"
+	)
+	@server(
+		handler: BatchShowHandler
+	)
+	post /activity/batch/show(BatchShowRequest) returns(BatchShowResponse)
+	
+}

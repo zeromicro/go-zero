@@ -1,0 +1,47 @@
+info(
+	title:  asynctask
+	desc:   async task
+	author: jiaweichuan
+	email:  jiaweichuan@xiaoheiban.cn
+)
+
+type SubmitTaskRequest {
+	CampusId  string `json:"campus_id"`
+	Task      string `json:"task"`
+	Submitter string `json:"submitter"`
+	TaskType  string `json:"task_type"`
+}
+
+type SubmitTaskResponse {
+	TaskId string `json:"task_id"`
+}
+
+type GetTaskStatusRequest {
+	TaskId string `json:"task_id"`
+}
+
+type GetTaskStatusResponse {
+	Status string `json:"status"`
+}
+
+@server(
+	port:8000
+)
+
+service asynctask-api {
+	@doc (
+		summary: 异步导入 excel
+	)
+	@server(
+		handler: SubmitTaskHandler
+	)
+	post /asynctask/excel/submit(SubmitTaskRequest) returns(SubmitTaskResponse)
+	
+	@doc (
+		summary: 获取异步任务状态
+	)
+	@server(
+		handler: GetTaskStatusHandler
+	)
+	post /asynctask/excel/get_task_status(GetTaskStatusRequest) returns(GetTaskStatusResponse)
+}

@@ -1,0 +1,478 @@
+info(
+	title: "上海督学"
+	desc: "上海责任督学管理平台api"
+	author: "duzhongfa"
+	email: "duzhongfa@tal.com"
+	version: "2020.2"
+)
+
+type (
+	LoginAuthRequest {
+		UserId int64 `path:"userId"`
+	}
+
+	LoginAuthResponse {
+		Tokens   Tokens `json:"tokens"`
+		UserId   int64  `json:"userId"`
+		UserName string `json:"userName"`
+	}
+
+	Tokens {
+		AccessToken   string `json:"access_token"`   // Access token to access the apis
+		AccessExpire  int64  `json:"access_expire"`  // Access token expire time, generated like: time.Now().Add(time.Day*14).Unix()
+		RefreshToken  string `json:"refresh_token"`  // Refresh token, use this to refresh the token
+		RefreshExpire int64  `json:"refresh_expire"` // Refresh token expire time, generated like: time.Now().Add(time.Month).Unix()
+		RefreshAfter  int64  `json:"refresh_after"`  // Recommended time to refresh the access token
+	}
+
+	ChangePasswordRequest {
+		OldPassword    string `json:"oldPassword"`
+		NewPassword    string `json:"newPassword"`
+		RepeatPassword string `json:"repeatPassword"`
+	}
+
+	BoolResponse {
+		Successful bool `json:"successful"`
+	}
+
+	MenuListResponse {
+		MenuList []*MenuInfo `json:"menuList"`
+	}
+
+	MenuInfo {
+		MenuId   int64  `json:"menuId"`
+		MenuName string `json:"menuName"`
+		MenuUrl  string `json:"menuUrl"`
+		MenuIcon string `json:"menuIcon"`
+		MenuSort int64  `json:"menuSort"`
+	}
+
+	DistrictListResponse {
+		DistrictList []*DistrictInfo `json:"districtList"`
+	}
+
+	DistrictInfo {
+		DistrictId   int64  `json:"districtId"`
+		DistrictName string `json:"districtName"`
+	}
+
+	SchoolListRequest {
+		DistrictId int64 `json:"districtId,optional"`
+	}
+
+	SchoolListResponse {
+		StageList []*StageSchoolList `json:"stageList"`
+	}
+
+	StageSchoolList {
+		StageId    int64         `json:"stageId"`
+		StageName  string        `json:"stageName"`
+		SchoolList []*SchoolInfo `json:"schoolList"`
+	}
+
+	SchoolInfo {
+		SchoolId   int64  `json:"schoolId"`
+		SchoolName string `json:"schoolName"`
+	}
+
+	LabelListRequest {
+		DistrictId int64 `json:"districtId,optional"`
+	}
+
+	LabelListResponse {
+		DistrictLabelList []*DistrictLabelInfo `json:"districtLabelList"`
+	}
+
+	DistrictLabelInfo {
+		DistrictId   int64        `json:"districtId"`
+		DistrictName string       `json:"districtName"`
+		LabelList    []*LabelInfo `json:"labelList"`
+	}
+
+	LabelInfo {
+		LabelId   int64  `json:"labelId"`
+		LabelName string `json:"labelName"`
+	}
+)
+
+type (
+	RecordListResponse {
+		RecordList []*RecordInfo `json:"recordList"`
+		Total      int64         `json:"total"`
+	}
+
+	RecordListRequest {
+		DistrictId    int64  `json:"district,optional"`
+		SchoolId      int64  `json:"schoolId,optional"`
+		Label         int64  `json:"label,optional"`
+		SearchContent string `json:"searchContent,optional"`
+		StartTime     int64  `json:"startTime,optional"`
+		EndTime       int64  `json:"endTime,optional"`
+		WorkType      int64  `json:"workType,optional"`
+		PageCount     int64  `json:"pageCount"`
+		PageSize      int64  `json:"pageSize"`
+	}
+
+	RecordInfo {
+		ID             int64    `json:"recordId"`
+		WorkType       int64    `json:"workType"`
+		Label          string   `json:"label"`
+		School         string   `json:"school"`
+		District       string   `json:"district"`
+		Content        string   `json:"content"`
+		SupervisorName string   `json:"supervisorName"`
+		Images         []string `json:"images"`
+		CreateTime     int64    `json:"createTime"`
+	}
+
+	RecordDetailRequest {
+		Id int64 `path:"recordId"`
+	}
+
+	RecordDetailResponse {
+		WorkType      int64          `json:"workType"`      // 督学记录类型 1-随访督导记录表 2-意见书 3-重大事件 4-专项督导记录表
+		FollowRecord  *FollowRecord  `json:"followRecord"`  // 随访督导记录表
+		OpinionRecord *OpinionRecord `json:"opinionRecord"` // 意见书
+		EventRecord   *EventRecord   `json:"eventRecord"`   // 重大事件
+		SpecialRecord *SpecialRecord `json:"specialRecord"` // 专项督导记录表
+	}
+
+	FollowRecord {
+		SchoolName          string     `json:"schoolName"` //学校名
+		District            string     `json:"district"`
+		LabelName           string     `json:"labelName"`           //标签名
+		ReceptionStaff      string     `json:"receptionStaff"`      //接待人员
+		InInspector         string     `json:"inInspector"`         //参与督学
+		Recorder            string     `json:"recorder"`            //记录人
+		InspectorTime       int64      `json:"inspectorTime"`       //督导时间
+		IsVisitSchool       bool       `json:"isVisitSchool"`       //是否巡视校园
+		IsCheckData         bool       `json:"isCheckData"`         //是否查阅资料
+		Lecture             int64      `json:"lecture"`             //听课节数
+		Interview           int64      `json:"interview"`           //访谈次数
+		Questionnaire       int64      `json:"questionnaire"`       //问卷份数
+		SituationRecord     string     `json:"situationRecord"`     //情况记录
+		ExperienceAndMethod string     `json:"experienceAndMethod"` //典型经验和做法
+		ProblemAndSuggest   string     `json:"problemAndSuggest"`   //问题和建议
+		Remark              string     `json:"remark"`              //备注
+		Images              [][]string `json:"images"`              //图片
+		Files               [][]*File  `json:"files"`               //附件
+		LastUpdateTime      int64      `json:"lastUpdateTime"`      //最后修改时间
+	}
+
+	File {
+		Url  string `json:"url"`
+		Name string `json:"name"`
+	}
+
+	OpinionRecord {
+		SchoolName     string     `json:"schoolName"` //学校名
+		District       string     `json:"district"`
+		LabelName      string     `json:"labelName"`      //标签名
+		ReceptionStaff string     `json:"receptionStaff"` //接待人员
+		Recorder       string     `json:"recorder"`       //记录人
+		InspectorTime  int64      `json:"inspectorTime"`  //督导时间
+		Suggestion     string     `json:"suggestion"`     //督导建议
+		Images         [][]string `json:"images"`         //图片
+		Files          [][]*File  `json:"files"`          //附件
+		LastUpdateTime int64      `json:"lastUpdateTime"` //最后修改时间
+	}
+	MasterRecordRequest {
+		SchoolId  int64 `json:"schoolId"`
+		WorkType  int64 `json:"workType"`
+		PageCount int64 `json:"pageCount"`
+		PageSize  int64 `json:"pageSize"`
+	}
+	EventRecord {
+		SchoolName     string     `json:"schoolName"` //学校名
+		District       string     `json:"district"`
+		LabelName      string     `json:"labelName"`      //标签名
+		Recorder       string     `json:"recorder"`       //记录人
+		InspectorTime  int64      `json:"inspectorTime"`  //督导时间
+		Reason         string     `json:"reason"`         //事由
+		Process        string     `json:"process"`        //处理过程
+		Images         [][]string `json:"images"`         //图片
+		Files          [][]*File  `json:"files"`          //附件
+		Remark         string     `json:"remark"`         //备注
+		LastUpdateTime int64      `json:"lastUpdateTime"` //最后修改时间
+	}
+
+	SpecialRecord {
+		Title                string                 `json:"title"`
+		LabelName            string                 `json:"labelName"` //标签名
+		District             string                 `json:"district"`
+		SchoolName           string                 `json:"schoolName"` //学校名
+		SubTitle             []*SpecialRecordOption `json:"subTitle"`   //副标题
+		Intro                []*SpecialRecordOption `json:"intro"`      //介绍
+		SpecialRecordOptions []*SpecialRecordOption `json:"specialRecordOptions"`
+	}
+
+	SpecialRecordOption {
+		OptionType string    `json:"optionType"`
+		Title      string    `json:"title"`
+		Options    []*Option `json:"options"`
+		Answer     string    `json:"answer"`
+	}
+	Option {
+		Id         int64  `json:"id"`
+		Title      string `json:"title"`
+		IsSelected bool   `json:"isSelected"`
+		Reason     string `json:"reason"`
+	}
+
+	SemesterListResponse {
+		SemesterList []*SemsterInfo `json:"semesterList"`
+	}
+
+	SemsterInfo {
+		SemesterName string `json:"semesterName"`
+		StartTime    int64  `json:"startTime"`
+		EndTime      int64  `json:"endTime"`
+	}
+)
+
+type (
+	GetConfigResponse {
+		RangeId       int64  `json:"rangeId"`       //范围id：0:关闭；1；区级；2：市级
+		AuthContentId string `json:"authContentId"` // 可查看内容：1，随访，2，意见，3，事件，4，专项，逗号分隔
+	}
+
+	SetConfigRequest {
+		RangeId       int64  `json:"rangeId"`
+		AuthContentId string `json:"authContentId"`
+	}
+)
+
+type (
+	MasterVerifycodeRequest {
+		Mobile string `json:"mobile"`
+	}
+
+	MasterVerifycodeResponse struct{}
+
+	MasterLoginRequest {
+		Mobile             string `json:"mobile"`
+		VerificationCode   string `json:"verificationCode,optional"` // 验证码
+		CaptchaId          string `json:"captchaId"`
+		CaptchaVerifyValue string `json:"captchaVerifyValue"`
+	}
+
+	MasterLoginResponse {
+		Username   string        `json:"username"`
+		SchoolList []*SchoolInfo `json:"schoolList"`
+		Tokens     Tokens        `json:"tokens"`
+	}
+
+	MasterPortalResponse {
+		PortalSchoolList []*PortalSchoolInfo `json:"portalSchoolList"`
+	}
+
+	PortalSchoolInfo {
+		SchoolId           int64    `json:"schoolId"`
+		SchoolName         string   `json:"schoolName"`
+		SemesterName       string   `json:"semesterName"`
+		SupervisorName     []string `json:"supervisorName"`
+		FollowRecordCount  int64    `json:"followRecordCount"`
+		OpinionRecordCount int64    `json:"opinionRecordCount"`
+		SpecialRecordCount int64    `json:"specialRecordCount"`
+	}
+
+	MasterSchoolListResponse {
+		SchoolList []*SchoolInfo `json:"schoolList"`
+	}
+)
+
+service supervisor {
+	@doc(
+		summary: "免密登录"
+	)
+	@server(
+		handler: LoginAuthHandler
+	)
+	get /supervisor/login-auth/:userId (LoginAuthRequest) returns (LoginAuthResponse)
+}
+
+@server(
+	jwt: SvAuth
+)
+service supervisor {
+	@doc(
+		summary: "修改密码"
+	)
+	@server(
+		handler: ChangePasswordHandler
+	)
+	post /supervisor/change-password (ChangePasswordRequest) returns (BoolResponse)
+	
+	@doc(
+		summary: "督学菜单"
+	)
+	@server(
+		handler: MenuHandler
+	)
+	get /supervisor/admin/menu-list () returns (MenuListResponse)
+	
+	@doc(
+		summary: "区域列表"
+	)
+	@server(
+		handler: DistrictListHandler
+	)
+	get /supervisor/admin/district-list () returns (DistrictListResponse)
+	
+	@doc(
+		summary: "学校列表"
+	)
+	@server(
+		handler: SchoolListHandler
+	)
+	post /supervisor/admin/school-list (SchoolListRequest) returns (SchoolListResponse)
+	
+	@doc(
+		summary: "标签列表"
+	)
+	@server(
+		handler: LabelListHandler
+	)
+	post /supervisor/admin/label-list (LabelListRequest) returns (LabelListResponse)
+}
+
+@server(
+	jwt: SvAuth
+	group: record
+)
+service supervisor {
+	@doc(
+		summary: "学期列表"
+	)
+	@server(
+		handler: SemesterListHandler
+	)
+	post /supervisor/admin/semester-list () returns (SemesterListResponse)
+	
+	@doc(
+		summary: "督学记录列表"
+	)
+	@server(
+		handler: RecordListHandler
+	)
+	post /supervisor/admin/record-list (RecordListRequest) returns (RecordListResponse)
+	
+	@doc(
+		summary: "督学h5记录列表"
+	)
+	@server(
+		handler: H5AdminRecordListHandler
+	)
+	post /supervisor/h5/admin/record-list (RecordListRequest) returns (RecordListResponse)
+	
+	@doc(
+		summary: "督学记录详情"
+	)
+	@server(
+		handler: RecordDetailHandler
+	)
+	get /supervisor/admin/record-detail/:recordId (RecordDetailRequest) returns (RecordDetailResponse)
+}
+
+@server(
+	jwt: XhbAuth
+	group: record
+)
+service supervisor {
+	@doc(
+		summary: "校长学校列表"
+	)
+	@server(
+		handler: H5SchoolListHandler
+	)
+	get /supervisor/h5/school-list () returns (MasterSchoolListResponse)
+	
+	@doc(
+		summary: "h5督学记录列表"
+	)
+	@server(
+		handler: H5RecordListHandler
+	)
+	post /supervisor/h5/record-list (MasterRecordRequest) returns (RecordListResponse)
+	
+	@doc(
+		summary: "h5督学记录详情"
+	)
+	@server(
+		handler: H5RecordDetailHandler
+	)
+	get /supervisor/h5/record-detail/:recordId (RecordDetailRequest) returns (RecordDetailResponse)
+}
+
+@server(
+	jwt: SvAuth
+	group: config
+)
+service supervisor {
+	@doc(
+		summary: "获取督学设置"
+	)
+	@server(
+		handler: GetConfigHandler
+	)
+	get /supervisor/admin/config () returns (GetConfigResponse)
+	
+	@doc(
+		summary: "更新督学设置"
+	)
+	@server(
+		handler: SetConfigHandler
+	)
+	post /supervisor/admin/config (SetConfigRequest) returns (BoolResponse)
+}
+
+@server(
+	group: master
+)
+service supervisor {
+	@doc(
+		summary: "校长手机号发送验证码"
+	)
+	@server(
+		handler: MasterVerifycodeHandler
+	)
+	post /supervisor/master/verifycode (MasterVerifycodeRequest) returns (MasterVerifycodeResponse)
+	
+	@doc(
+		summary: "校长登录"
+	)
+	@server(
+		handler: MasterLoginHandler
+	)
+	post /supervisor/master/login (MasterLoginRequest) returns (MasterLoginResponse)
+}
+
+@server(
+	jwt: MasterAuth
+	group: master
+)
+service supervisor {
+	@doc(
+		summary: "校长首页"
+	)
+	@server(
+		handler: MasterPortalHandler
+	)
+	get /supervisor/master/portal () returns (MasterPortalResponse)
+	
+	@doc(
+		summary: "校长督学记录列表"
+	)
+	@server(
+		handler: MasterRecordListHandler
+	)
+	post /supervisor/master/record-list (MasterRecordRequest) returns (RecordListResponse)
+	
+	@doc(
+		summary: "校长督学记录详情"
+	)
+	@server(
+		handler: MasterRecordDetailHandler
+	)
+	get /supervisor/master/record-detail/:recordId (RecordDetailRequest) returns (RecordDetailResponse)
+}

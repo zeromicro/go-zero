@@ -1,0 +1,982 @@
+type UserView {
+	Id                   string `json:"id"`
+	Username             string `json:"username,omitempty"`
+	Realname             string `json:"realname,omitempty"`
+	Email                string `json:"email,omitempty"`
+	Mobile               string `json:"mobile"`
+	Address              string `json:"address,omitempty"`
+	Role                 string `json:"role"`
+	Avatar               string `json:"avatar,omitempty"`
+	Pinyin               string `json:"pinyin,omitempty"`
+	School               string `json:"school,omitempty"`
+	DisplayName          string `json:"displayName"`
+	UserType             string `json:"userType,omitempty"`
+	SpeakableInClassroom bool   `json:"speakableInClassroom"`
+	ClassroomRole        string `json:"classroomRole"`
+	Subject              string `json:"subject,omitempty"`
+	CreateTime           int64  `json:"createTime,omitempty"`
+}
+
+type ClassroomUsersInfoRequest {
+	Token       string   `json:"token"`
+	ClassroomId string   `json:"classroomId,optional"`
+	UserIds     []string `json:"userIds"`
+}
+
+type ClassroomUsersInfoResponse {
+	UserView []*UserView `json:"users,omitempty"`
+}
+
+type QueryClassroomsAndMembersRequest {
+	Token     string `path:"token"`
+	Speakable string `path:"speakable"`
+	Cursor    int64  `form:"cursor,optional"`
+	Limit     int8   `form:"limit,optional"`
+}
+
+type ApplyMember {
+	Name      string `json:"name,omitempty"`
+	Timestamp int64  `json:"timestamp,omitempty"`
+}
+
+type UploadClassTableMember {
+	Name      string `json:"name"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+type ApplyLeaveMember {
+	UserId    string `json:"userId"`
+	Timestamp int64  `json:"timestamp"`
+}
+
+type QueryClassroomsAndMembersResponse {
+	Classrooms   []*ClassroomView `json:"classroomViews,omitempty"`
+	Cursor       int64            `json:"cursor,omitempty"`
+	HaveNextPage bool             `json:"haveNextPage"`
+}
+
+type CreateClassroomAddMembersRequest {
+	Token        string   `path:"token"`
+	Name         string   `json:"name,optional"`
+	BadgeId      string   `json:"badgeId,optional"`      // 班徽id
+	BadgeType    string   `json:"badgeType,optional"`    // 班徽类型
+	ClassType    string   `json:"classType,optional"`    // 班级类型
+	ManagerName  string   `json:"managerName,optional"`  // 创建者显示名
+	ClassroomIds []string `json:"classroomIds,optional"` // 班级列表
+	Users        []string `json:"users,optional"`        // 人员列表
+}
+
+type ClassroomView {
+	Id                      string                    `json:"id"`
+	Name                    string                    `json:"name"`                      // 班级名称
+	Code                    string                    `json:"code"`                      // 班级号,唯一
+	BadgeId                 string                    `json:"badgeId,omitempty"`         // 班徽id
+	BadgeType               string                    `json:"badgeType"`                 // 班徽类型
+	Members                 []*UserView               `json:"members,omitempty"`         // 班级成员列表
+	WantJoinMembers         []string                  `json:"wantJoinMembers,omitempty"` // 待加入的成员姓名
+	ApplyMembers            []*ApplyMember            `json:"applyMembers,omitempty"`    //新的申请的成员信息(申请加入和申请退出)
+	MembersCount            int                       `json:"membersCount"`              // 成员数量
+	TeacherName             string                    `json:"teacherName"`               // 老师姓名
+	JoinState               string                    `json:"joinState,omitempty"`       // 是否状态为申请中
+	SpeakableInClassroom    bool                      `json:"speakableInClassroom"`      // 是否可在班级发言
+	TouchTime               string                    `json:"touchTime"`                 // 根据触碰时间智能排序班级
+	ClassType               string                    `json:"classType"`                 // 班级类型
+	ManagerId               string                    `json:"managerId"`                 // 班级创建者id
+	Stage                   string                    `json:"stage,omitempty"`           // 学段(高中，初中)
+	Grade                   string                    `json:"grade,omitempty"`           // 年级
+	ClassNo                 string                    `json:"classNo,omitempty"`         // 班级号（1-20班）
+	Subject                 string                    `json:"subject,omitempty"`         // 学科
+	School                  string                    `json:"school,omitempty"`          // 学校
+	SchoolId                string                    `json:"schoolId,omitempty"`        // 学校
+	MutualDisclosure        bool                      `json:"mutualDisclosure"`          // 任课教师相互可见
+	Hide                    bool                      `json:"hide"`                      // 搜索隐藏
+	Role                    string                    `json:"role,omitempty"`            // 班级角色
+	Vip                     bool                      `json:"vip"`                       // 是否是整校班级
+	BgImage                 string                    `json:"bgImage,omitempty"`         // 班级背景图片
+	Locking                 bool                      `json:"locking"`                   // 班级是否锁定
+	BindCloud               bool                      `json:"bindCloud"`                 //是否绑定晓教云
+	IsFull                  bool                      `json:"isFull"`                    //是否达到班级人数限制
+	UploadClassTableMembers []*UploadClassTableMember `json:"uploadClassTableMembers"`   //申请课程表的人员
+	ApplyLeaveMembers       []*ApplyLeaveMember       `json:"applyLeaveMembers"`         // 提出请假申请的人员
+	LastUpdateTime          int64                     `json:"lastUpdateTime,omitempty"`  // 上次更新时间
+	CreateTime              int64                     `json:"createTime,omitempty"`
+	JoinTime                int64                     `json:"joinTime,omitempty"`
+}
+
+type QueryClassroomByCodeRequest {
+	Code string `path:"code"`
+}
+
+type SearchClassroomByCodeOrMobileRequest {
+	Token   string `path:"token"`
+	Keyword string `path:"keyword"`
+}
+
+type SearchClassroomByCodeOrMobileResponse {
+	Classrooms []*ClassroomView `json:"classrooms,omitempty"`
+}
+
+type UpdateClassroomInfoRequest {
+	Token            string `path:"token"`
+	Name             string `json:"name,optional"`             // 班级名称
+	BadgeId          string `json:"badgeId,optional"`          // 班徽id
+	BadgeType        string `json:"badgeType,optional"`        // 班徽类型
+	ClassType        string `json:"classType,optional"`        // 班级类型
+	ManagerName      string `json:"managerName,optional"`      // 创建者显示名
+	Stage            string `json:"stage,optional"`            // 学段(高中，初中)
+	Grade            string `json:"grade,optional"`            // 年级
+	ClassNo          string `json:"classNo,optional"`          // 班级号（1-20班)
+	Subject          string `json:"subject,optional"`          // 学科
+	School           string `json:"school,optional"`           // 学校
+	ClassroomId      string `json:"classroomId,optional"`      // 班级id
+	UserId           string `json:"userId,optional"`           // 用户id
+	BgImage          string `json:"bgImage,optional"`          // 班级背景图
+	MutualDisclosure bool   `json:"mutualDisclosure,optional"` // 任课教师相互可见
+	Hide             bool   `json:"hide,optional"`             // 是否可以根据手机号查询
+	Locking          bool   `json:"locking,optional"`          //是否锁定此班级
+	BindCloud        bool   `json:"bindCloud,optional"`        //是否绑定晓教云
+}
+
+type UpdateClassroomInfoResponse {
+	Successful bool `json:"successful"`
+}
+
+type ApplyJoinClassroomRequest {
+	Token        string `path:"token"`
+	Message      string `json:"message,optional"`      // 验证信息
+	DisplayName  string `json:"displayName,optional"`  // 用户在此班级的显示名称(以老师身份加入)
+	ClassroomId  string `json:"classroomId"`           // 需要加入的班级id
+	ChildName    string `json:"childName,optional"`    // 孩子姓名（以家长身份加入）
+	Relationship string `json:"relationship,optional"` // 关系
+	JToken       string `json:"token,optional"`
+}
+
+type BoolResponse {
+	Successful bool `json:"successful"` // 是否成功应答
+}
+
+type RemoveClassroomRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+	Code        string `json:"code,optional"`
+}
+
+type GetClassroomAuditMembersRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+type GetClassroomAuditMembersResponse {
+	ApplyJoin []ApplyUser `json:"applyJoin"` // 申请加入班级的成员
+	ApplyQuit []ApplyUser `json:"applyQuit"` // 申请退出班级的成员
+}
+type ApplyUser {
+	Id                   string `json:"id"`                   // 邮箱
+	Email                string `json:"email"`                // 手机号码
+	Mobile               string `json:"mobile"`               // 用户角色
+	Role                 string `json:"role"`                 // 头像图片id
+	Avatar               string `json:"avatar"`               // 拼音
+	Pinyin               string `json:"pinyin"`               // 当用户加入班级的验证信息
+	VerifyMessage        string `json:"verifyMessage"`        // 显示名
+	DisplayName          string `json:"displayName"`          // 用户类型
+	UserType             string `json:"userType"`             // 是否可在班级发言
+	SpeakableInClassroom bool   `json:"speakableInClassroom"` // 是否注册云信,默认是false
+	NetEaseRegister      string `json:"netEaseRegister"`      // 班级角色
+	ClassroomRole        string `json:"classroomRole"`        // 排序时间戳
+	Timestamp            int64  `json:"timestamp,omitempty"`
+}
+
+type BatchAuditJoinClassroomRequest {
+	Token       string   `path:"token"`
+	ClassroomId string   `json:"classroomId"`
+	Members     []string `json:"members"`
+	Agree       bool     `json:"agree,optional"`
+}
+
+type BatchQuitClassroomRequest {
+	Token       string   `path:"token"`
+	ClassroomId string   `json:"classroomId"`
+	Members     []string `json:"members"`
+	Agree       bool     `json:"agree,optional"`
+}
+
+type QueryClassroomMembersAndTeachersRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+}
+
+type QueryClassroomMembersAndTeachersResponse {
+	Members  []*UserView `json:"members"`  // 班级成员列表
+	Teachers []*UserView `json:"teachers"` // 班级教师列表
+}
+
+type RemoveClassroomMemberRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+	MemberId    string `json:"memberId"`         // 成员id
+	Message     string `json:"message,optional"` // 移除原因
+}
+
+type SetClassroomPermissionRequest {
+	Token       string `path:"token"`
+	UserId      string `json:"userId"`           // 对方用户id
+	ClassroomId string `json:"classroomId"`      // 所在班级id
+	Role        string `json:"role"`             // 将要改变的角色  COMMON SPEAKABLE ADMIN MANAGER
+	Subject     string `json:"subject,optional"` // 学科
+	Code        string `json:"code,optional"`    //转让班级验证码
+}
+
+type ApplyQuitClassroomRequest {
+	Token       string `path:"token"`
+	Message     string `json:"message"`     // 验证信息
+	ClassroomId string `json:"classroomId"` // 班级id
+}
+
+type TeacherQuitClassroomRequest {
+	Token         string `path:"token"`
+	ClassroomId   string `path:"classroomId"`            // 班级id
+	TargetTeacher string `form:"targetTeacher,optional"` // 转让的目的老师
+}
+
+type SetClassroomUserInfoRequest {
+	Token        string `path:"token"`
+	UserId       string `json:"userId"`
+	ClassroomId  string `json:"classroomId"`
+	Owner        bool   `json:"owner,optional"`
+	ChildName    string `json:"childName,optional"`
+	Relationship string `json:"relationship,optional"` // 关系
+	DisplayName  string `json:"displayName,optional"`  // 别名
+}
+
+type FindChildByUserIdRequest {
+	Token string `path:"token"`
+}
+
+type FindChildByUserIdResponse {
+	Classroom *ClassroomView   `json:"classroom,omitempty"` // 班级
+	Children  []string         `json:"children,omitempty"`  // 孩子列表
+	Childrens []ChildrenStruct `json:"childrens,omitempty"` // 孩子列表
+}
+
+type ChildrenStruct {
+	ChildName    string `json:"childName"`
+	Relationship string `json:"relationship"`
+}
+
+type DisplayNameExistInClassroomRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`       // 班级id
+	Realname    string `json:"realname,optional"` // 孩子姓名
+	UserId      string `json:"userId,optional"`   // 用户id
+}
+type DisplayNameExistInClassroomResponse {
+	Exist bool   `json:"exist"` // 是否重名
+	Desc  string `json:"desc"`  //4.7.3
+}
+
+type ChildNameExistInClassroomRequest {
+	Token       string `path:"token"`
+	ChildName   string `json:"childName"`   // 孩子姓名
+	ClassroomId string `json:"classroomId"` // 班级id
+}
+type ChildNameExistInClassroomResponse {
+	Exist        bool   `json:"exist"`        // 是否重名
+	Relationship string `json:"relationship"` // 关系
+	Mobile       string `json:"mobile"`       // 手机号码
+	UserId       string `json:"userId"`       // 用户id
+}
+type TransferRoomMemberRequest {
+	Token           string   `path:"token"`
+	ClassroomId     string   `json:"classroom"`     // 转让的目的老师
+	MembersIds      []string `json:"members"`       // 转移的用户
+	FromClassroomId string   `json:"fromClassroom"` // 原班级
+}
+
+type GenerateClassroomVerificationCodeRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+}
+
+type GenerateClassroomVerificationCodeResponse {
+}
+
+type UserClassroomsRequest {
+	Token string `path:"token"`
+}
+
+type UserClassroomsResponse {
+	LastTimestamp  int64            `json:"lastTimestamp"` // 最近拉取时间
+	ClassroomViews []*ClassroomView `json:"classrooms"`    // 班级列表
+}
+
+type SimpleUserClassroomResponse {
+	ClassroomViews []*ClassroomView `json:"classrooms"`
+}
+
+type ClassroomUserInfoRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"`
+	UserId      string `path:"userId"`
+}
+
+type ClassroomUnregisterUserRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"` // 班级名称
+}
+
+type RoomUnregisterUser {
+	Id          int64  `db:"id" json:"id,omitempty"`
+	ClassroomId string `db:"classroom_id" json:"classroomId,omitempty"` // 本班级的管理员, 创建人员
+	Name        string `db:"name" json:"name,omitempty"`                // 班级名称
+	Mobile      string `db:"mobile" json:"mobile,omitempty"`            //手机号码
+	Address     string `db:"address" json:"address,omitempty"`          // 班级号,唯一
+}
+
+type ClassroomUnregisterUserResponse {
+	Users []*RoomUnregisterUser `json:"result,omitempty"`
+}
+
+type RemoveClassroomUnregisterUserRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"`
+	Mobile      string `json:"mobile"`
+}
+
+type UnregisterDingRequest {
+	Token       string   `path:"token"`
+	ClassroomId string   `json:"classroomId"`
+	Mobiles     []string `json:"mobiles"`
+	Type        string   `json:"type"`
+}
+type UnregisterDingResponse {
+}
+
+type InvitedJoinClassroomRequest {
+	Mobile string `path:"mobile"` // 验证信息
+	Code   string `path:"code"`   // 用户在此班级的显示名称(以老师身份加入)
+}
+
+type CreateClassroomRequest {
+	Token       string `path:"token"`
+	Name        string `json:"name,optional"`        // 班级名称
+	BadgeId     string `json:"badgeId,optional"`     // 班徽id
+	BadgeType   string `json:"badgeType,optional"`   // 班徽类型
+	ClassType   string `json:"classType,optional"`   // 班级类型
+	ManagerName string `json:"managerName,optional"` // 创建者显示名
+	School      string `json:"school,optional"`      // 学校
+	Grade       string `json:"grade,optional"`       // 年级
+	Stage       string `json:"stage,optional"`       // 学段(高中，初中)
+	Subject     string `json:"subject,optional"`     // 学科
+	ClassNo     string `json:"classNo,optional"`     // 班级号（1-20班)
+	BindCloud   bool   `json:"bindCloud,optional"`   // 是否绑定晓教云
+}
+
+type AddClassroomMemberRequest {
+	Token        string   `path:"token"`
+	ClassroomId  string   `path:"classroomId"`
+	ClassroomIds []string `json:"classroomIds,optional"` // 班级列表
+	Users        []string `json:"users,optional"`        // 人员列表
+}
+
+type RemindTeacherApplyRequest {
+	Token       string `path:"token"`
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+
+type CancelApplyRequest {
+	ClassroomId string `path:"classroomId"`
+	Token       string `path:"token"`
+}
+
+type CancelApplyResponse {
+	Successful bool `json:"successful"`
+}
+
+type CancelQuitClassroomRequest {
+	Token       string `path:"token"`
+	ClassroomId string `json:"classroomId"` // 班级id
+}
+
+type UserClassroomsChangeRequest {
+	Token     string `path:"token"`
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type UserClassroomsChangeTimestamp {
+	HasMore       bool  `json:"hasMore"`       // 是否还有更多消息
+	LastTimestamp int64 `json:"lastTimestamp"` // 本次获取的最后一条timestamp
+}
+
+type Event {
+	ClassroomView *ClassroomView `json:"classroomView,omitempty"`
+	Members       []*UserView    `json:"members,omitempty"`
+	ClassroomId   string         `json:"classroomId,omitempty"`
+	Type          string         `json:"type"`
+}
+
+type UserClassroomsChangeResponse {
+	UserClassroomsChangeTimestamp
+	CheckMessageId       string   `json:"checkMessageId,omitempty"`
+	TotalSize            int      `json:"totalSize"` // 总记录数
+	ClassroomMemberWrong []string `json:"classroomMemberWrong,omitempty"`
+	Events               []*Event `json:"events,omitempty"` // 事件
+}
+
+type OutsideRegisterRequest {
+	Name          string `json:"name"`
+	Classroom     string `json:"classroom"`
+	Mobile        string `json:"mobile"`
+	Role          string `json:"role"`              // TEACHER PARENT STUDENT
+	Relation      string `json:"relation,optional"` // FATHER:爸爸 MOTHER:妈妈 GRANDFATHER:爷爷 GRANDMOTHER:奶奶 MATERNALGRANDFATHER:外公 MATERNALGRANDMOTHER:外婆 TEACHER:老师 STUDENT:学生 UNCLE:叔叔 MOTHER_SISTER:阿姨 UNCLE_BROTHER:大伯 AUNT:姑姑 MOTHER_BROTHER:舅舅 SISTER:姐姐 BROTHER:哥哥 OTHER:其它
+	JtToken       string `json:"jtToken,optional"`  //48小时免审核JtToken
+	StudentNumber string `json:"student_number"`    // 学号
+}
+
+type OutsideRegisterResponse {
+}
+
+type GetClassroomFreeAuditMembersRequest {
+	ClassroomId string `path:"classroomId"` // 班级id
+}
+type GetClassroomFreeAuditMembersResponse {
+	FreeAuditMembers []string `json:"freeAuditMembers"` // 班级免审核成员名字
+}
+
+type UpdateClassroomSubjectRequest {
+	Token       string `path:"token"`
+	UserId      string `json:"userId,optional"` // 对方用户id
+	ClassroomId string `json:"classroomId"`     // 所在班级id
+	Subject     string `json:"subject"`         // 科目
+}
+
+type UserClassroomRelationChangeRequest {
+	Token     string `path:"token"`
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type CommBooksRequest {
+	Uid string `form:"uid"`
+	Cid string `form:"cid"`
+}
+
+type CommBooksResponse {
+	Students *ClassMembers `json:"students"`
+	Teachers *ClassMembers `json:"teachers"`
+}
+
+type ClassMembers {
+	Count   int            `json:"count"`
+	Members []*ClassMember `json:"members"`
+}
+
+type ClassMember {
+	Id          string         `json:"id"`
+	Name        string         `json:"name"`
+	Alias       string         `json:"alias"`
+	Avatar      string         `json:"avatar"`
+	Role        string         `json:"role"`
+	ClassRole   string         `json:"classroomRole"`
+	Mobile      string         `json:"mobile"`
+	Relation    string         `json:"relation"`
+	Subject     string         `json:"subject"`
+	DisplayName string         `json:"displayName"` // disgusting name
+	ClassNumber string         `json:"class_number"`
+	Parents     []*ClassMember `json:"parents"`
+}
+
+type SearchStudentRequest {
+	Cid  string `form:"cid"`
+	Uid  string `form:"uid"`
+	Name string `form:"name"`
+}
+
+type SearchStudent {
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Alias       string `json:"alias"`
+	Avatar      string `json:"avatar"`
+	ClassCount  int    `json:"classCount"`
+	ClassNumber string `json:"classNumber"`
+	Mobile      string `json:"mobile"`
+	Relation    string `json:"relation"`
+}
+
+type SearchStudentResponse {
+	Students []*SearchStudent `json:"students"`
+}
+
+type JoinClassRequest {
+	Uid         string `json:"uid"`
+	Cid         string `json:"cid"`
+	Name        string `json:"name"`
+	ClassNumber string `json:"class_number,optional"`
+	Relation    string `json:"relation"`
+	Mobile      string `json:"mobile,optional"`
+	CheckMobile string `json:"check_mobile,optional"`
+	JToken      string `json:"token,optional"`
+	Message     string `json:"message,optional"`
+}
+
+type JoinClassResponse {
+	IsRepeat bool   `json:"isRepeat"`
+	Name     string `json:"name"`
+	Relation string `json:"relation"`
+	Mobile   string `json:"mobile"`
+}
+
+type UserStudentInfoRequest {
+	Uid string `form:"uid"`
+}
+
+type UpdateStudentRequest {
+	Uid         string `json:"uid"`
+	Cid         string `json:"cid"`
+	Sid         string `json:"sid"`
+	ClassNumber string `json:"classNumber,optional"`
+	Alias       string `json:"alias,optional"`
+}
+
+type UpdateStudentResponse {
+}
+
+type LeaveClassRequest {
+	UserId    string `json:"uid"`
+	ClassId   string `json:"cid"`
+	StudentId string `json:"sid,optional"`
+	MemberId  string `json:"mid,optional"`
+	Role      string `json:"role"`
+	Message   string `json:"msg,optional"`
+}
+
+type LeaveClassResponse {
+}
+
+type RelatedStudentsRequest {
+	Token string `path:"token"`
+}
+
+type RelatedStudentsChangeRequest {
+	Token     string `path:"token"`
+	Sid       string `form:"sid"`
+	Timestamp int64  `form:"timestamp,optional"`
+}
+
+type RelatedStudentsResponse {
+	LastTimestamp int64           `json:"lastTimestamp"`
+	ClassStudents []*ClassStudent `json:"classStudents"`
+}
+
+type ClassStudent {
+	ClassroomId string         `json:"classroomId"`
+	Students    []*StudentView `json:"students"`
+}
+
+type StudentView {
+	Id            string  `json:"id"`
+	Name          string  `json:"name"`
+	Alias         string  `json:"alias"`
+	StudentNumber string  `json:"studentNumber"`
+	Avatar        string  `json:"avatar"`
+	Pinyin        string  `json:"pinyin"`
+	Parents       []*User `json:"parents"`
+	Delete        bool    `json:"delete,omitempty"`
+}
+
+type User {
+	Id       string `json:"id"`
+	Role     string `json:"role"`
+	Relation string `json:"relation"`
+}
+
+type BatchUpdateStudentRequest {
+	Uid          string         `json:"uid"`
+	Cid          string         `json:"cid"`
+	StudentBases []*StudentBase `json:"studentBases,optional"`
+}
+
+type StudentBase {
+	Sid         string `json:"sid"`
+	ClassNumber string `json:"classNumber,optional"`
+	Alias       string `json:"alias,optional" filter:"badword"`
+}
+
+@server(
+	host: 0.0.0.0
+	port: 8888
+)
+service classroom-api {
+	@doc(
+		summary: 用户在班级信息
+	)
+	@server(
+		handler: ClassroomUsersInfoHandler
+	)
+	post /classroom/users/info(ClassroomUsersInfoRequest) returns(ClassroomUsersInfoResponse)
+	
+	@doc(
+		summary: 查找班级和班级里的成员列表
+	)
+	@server(
+		handler: QueryClassroomsAndMembersHandler
+	)
+	get /classroom/and/members/:token/:speakable(QueryClassroomsAndMembersRequest) returns(QueryClassroomsAndMembersResponse)
+	
+	@doc(
+		summary: 创建一个班级并且加入人员
+	)
+	@server(
+		handler: CreateClassroomAddMembersHandler
+	)
+	post /classroom/create/add/members/:token(CreateClassroomAddMembersRequest) returns(ClassroomView)
+	
+	@doc(
+		summary: 创建班级
+	)
+	@server(
+		handler: CreateClassroomHandler
+	)
+	post /classroom/create/:token(CreateClassroomRequest) returns(ClassroomView)
+	
+	@doc(
+		summary: 根据班级码查找班级
+	)
+	@server(
+		handler: QueryClassroomByCodeHandler
+	)
+	get /classroom/lookup/:code(QueryClassroomByCodeRequest) returns(ClassroomView)
+	
+	@doc(
+		summary: 查找班级，通过班级号或者老师手机号码
+	)
+	@server(
+		handler: SearchClassroomByCodeOrMobileHandler
+	)
+	get /classroom/search/by/v2/:token/:keyword(SearchClassroomByCodeOrMobileRequest) returns(SearchClassroomByCodeOrMobileResponse)
+	
+	@doc(
+		summary: 修改班级信息
+	)
+	@server(
+		handler: UpdateClassroomInfoHandler
+	)
+	post /classroom/info/update/:token(UpdateClassroomInfoRequest) returns(UpdateClassroomInfoResponse)
+	
+	@doc(
+		summary: 以小孩子的长辈身份申请加入班级
+	)
+	@server(
+		handler: ApplyJoinWithChildHandler
+	)
+	post /classroom/join/with/child/:token(ApplyJoinClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 解散班级
+	)
+	@server(
+		handler: RemoveClassroomHandler
+	)
+	post /classroom/remove/:token/:classroomId(RemoveClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 获取待审核的班级成员
+	)
+	@server(
+		handler: GetClassroomAuditMembersHandler
+	)
+	get /classroom/audit/members/:token/:classroomId(GetClassroomAuditMembersRequest) returns(GetClassroomAuditMembersResponse)
+	
+	@doc(
+		summary: 同意/拒绝批量用户加入班级
+	)
+	@server(
+		handler: BatchAuditJoinClassroomHandler
+	)
+	post /classroom/batch/audit/:token(BatchAuditJoinClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 同意/拒绝批量用户退出班级
+	)
+	@server(
+		handler: BatchQuitClassroomHandler
+	)
+	post /classroom/batch/quit/:token(BatchQuitClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 获取班级成员和教师
+	)
+	@server(
+		handler: QueryClassroomMemberAndTeacherHandler
+	)
+	get /classroom/members/and/teacher/:token/:classroomId(QueryClassroomMembersAndTeachersRequest) returns(QueryClassroomMembersAndTeachersResponse)
+	
+	@doc(
+		summary: 移除班级成员(班级创建者移除教师和普通成员)
+	)
+	@server(
+		handler: RemoveClassroomMemberHandler
+	)
+	post /classroom/member/remove/:token(RemoveClassroomMemberRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 班级内权限设置，普通成员，可发言成员，任课老师，转让班级相互设置
+	)
+	@server(
+		handler: SetClassroomPermissionHandler
+	)
+	post /classroom/teacher/setting/:token(SetClassroomPermissionRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 申请退出班级
+	)
+	@server(
+		handler: ApplyQuitClassroomHandler
+	)
+	post /classroom/quit/:token(ApplyQuitClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 任课教师退出班级/班级创建者转让班级
+	)
+	@server(
+		handler: TeacherQuitClassroomHandler
+	)
+	put /teacher/quit/classroom/:token/:classroomId(TeacherQuitClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 设置用户在班级显示名称
+	)
+	@server(
+		handler: SetDisplayNameHandler
+	)
+	post /classroom/member/displayname/:token(SetClassroomUserInfoRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 查找用户自己孩子信息
+	)
+	@server(
+		handler: FindChildByUserIdHandler
+	)
+	get /find/child/:token(FindChildByUserIdRequest) returns(FindChildByUserIdResponse)
+	
+	@doc(
+		summary: 验证班级中是否有重名的人
+	)
+	@server(
+		handler: DisplayNameExistInClassroomHandler
+	)
+	post /exist/displayname/in/classroom/:token/:classroomId(DisplayNameExistInClassroomRequest) returns(DisplayNameExistInClassroomResponse)
+	
+	@doc(
+		summary: 验证班级中是否有重名的孩子
+	)
+	@server(
+		handler: ChildNameExistInClassroomHandler
+	)
+	post /exist/childname/in/classroom/:token(ChildNameExistInClassroomRequest) returns(ChildNameExistInClassroomResponse)
+	
+	@doc(
+		summary: 班级成员转移
+	)
+	@server(
+		handler: TransferClassroomMemberHandler
+	)
+	post /classroom/transfer/:token(TransferRoomMemberRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 生成班级相关验证码
+	)
+	@server(
+		handler: GenerateClassroomVerificationCodeHandler
+	)
+	post /classroom/activation/:token(GenerateClassroomVerificationCodeRequest) returns(GenerateClassroomVerificationCodeResponse)
+	
+	@doc(
+		summary: 用户班级（全量接口）
+	)
+	@server(
+		handler: GetUserClassroomsHandler
+	)
+	get /user/classrooms/:token(UserClassroomsRequest) returns(UserClassroomsResponse)
+	
+	@doc(
+		summary: 用户在班级信息
+	)
+	@server(
+		handler: ClassroomUserInfoHandler
+	)
+	get /v2/classroom/user/info/:token/:classroomId/:userId(ClassroomUserInfoRequest) returns(UserView)
+	
+	@doc(
+		summary: 获取未注册用户
+	)
+	@server(
+		handler: GetClassroomUnregisterUserHandler
+	)
+	get /classroom/unregister/user/:token/:classroomId(ClassroomUnregisterUserRequest) returns(ClassroomUnregisterUserResponse)
+	
+	@doc(
+		summary: 删除未注册用户
+	)
+	@server(
+		handler: RemoveClassroomUnregisterUserHandler
+	)
+	delete /classroom/remove/unregister/user/:token(RemoveClassroomUnregisterUserRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 老师ding一下该班级未注册人员
+	)
+	@server(
+		handler: UnregisterDingHandler
+	)
+	post /classroom/remove/unregister/user/:token(UnregisterDingRequest) returns(UnregisterDingResponse)
+	
+	@doc(
+		summary: 邀请未注册用户
+	)
+	@server(
+		handler: InvitedJoinClassroomHandler
+	)
+	put /invite/user/join/classroom/:mobile/:code(InvitedJoinClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 班级添加成员
+	)
+	@server(
+		handler: AddClassroomMemberHandler
+	)
+	post /classroom/add/members/:token/:classroomId(AddClassroomMemberRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 班级催一下老师同意申请
+	)
+	@server(
+		handler: RemindTeacherApplyHandler
+	)
+	get /remind/teacher/for/apply/:token/:classroomId(RemindTeacherApplyRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 用户取消申请
+	)
+	@server(
+		handler: CancelAppliedHandler
+	)
+	delete /classroom/applied/:token/:classroomId(CancelApplyRequest) returns(CancelApplyResponse)
+	
+	@doc(
+		summary: 删除退出班级申请
+	)
+	@server(
+		handler: CancelQuitClassroomHandler
+	)
+	post /classroom/quit-apply/:token(CancelQuitClassroomRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 用户班级(增量接口)
+	)
+	@server(
+		handler: UserClassroomesChangeHandler
+	)
+	get /user/classrooms/change/:token(UserClassroomsChangeRequest) returns(UserClassroomsChangeResponse)
+	
+	@doc(
+		summary: 站外用户注册
+	)
+	@server(
+		handler: OutsideRegisterHandler
+	)
+	post /classroom/outside-register(OutsideRegisterRequest) returns(OutsideRegisterResponse)
+	
+	@doc(
+		summary: 班级管理员查看免审核入班成员
+	)
+	@server(
+		handler: GetClassroomFreeAuditMembersHandler
+	)
+	get /classroom/free/audit/members/:classroomId(GetClassroomFreeAuditMembersRequest) returns(GetClassroomFreeAuditMembersResponse)
+	
+	@doc(
+		summary: 修改任课老师任教学科
+	)
+	@server(
+		handler: UpdateClassroomSubjectHandler
+	)
+	post /user/subject/update/:token(UpdateClassroomSubjectRequest) returns(BoolResponse)
+	
+	@doc(
+		summary: 用户关联用户(增量接口)
+	)
+	@server(
+		handler: UserClassroomRelationChangeHandler
+	)
+	get /related/users/change/:token(UserClassroomRelationChangeRequest) returns(UserClassroomsChangeResponse)
+	
+	@doc(
+		summary: 班级通讯录
+	)
+	@server(
+		handler: CommunicationBooksHandler
+	)
+	get /classroom/communication/books(CommBooksRequest) returns(CommBooksResponse)
+	
+	@doc(
+		summary: 学生名称搜索
+	)
+	@server(
+		handler: SearchStudentHandler
+	)
+	get /classroom/student/search(SearchStudentRequest) returns(SearchStudentResponse)
+	
+	@doc(
+		summary: 入班
+	)
+	@server(
+		handler: JoinClassHandler
+	)
+	post /classroom/apply/join(JoinClassRequest) returns(JoinClassResponse)
+	
+	@doc(
+		summary: 用户身份学生信息
+	)
+	@server(
+		handler: UserStudentInfoHandler
+	)
+	get /classroom/user/student/info(UserStudentInfoRequest) returns(SearchStudent)
+	
+	@doc(
+		summary: 编辑学生信息
+	)
+	@server(
+		handler: UpdateStudentHandler
+	)
+	post /classroom/student/update(UpdateStudentRequest) returns(UpdateStudentResponse)
+	
+	@doc(
+		summary: 请出班级
+	)
+	@server(
+		handler: LeaveClassHandler
+	)
+	post /classroom/leave(LeaveClassRequest) returns(LeaveClassResponse)
+	
+	@doc(
+		summary: 用户关联学生(全量接口)
+	)
+	@server(
+		handler: RelatedStudentsHandler
+	)
+	get /classroom/related/students/:token(RelatedStudentsRequest) returns(RelatedStudentsResponse)
+	
+	@doc(
+		summary: 用户关联学生(增量接口)
+	)
+	@server(
+		handler: RelatedStudentsChangeHandler
+	)
+	get /classroom/related/students/change/:token(RelatedStudentsChangeRequest) returns(RelatedStudentsResponse)
+	
+	@doc(
+		summary: 批量更新学生信息
+	)
+	@server(
+		handler: BatchUpdateStudentHandler
+	)
+	post /classroom/student/batch/update(BatchUpdateStudentRequest) returns(UpdateStudentResponse)
+}
