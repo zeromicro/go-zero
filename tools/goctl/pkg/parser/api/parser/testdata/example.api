@@ -1,9 +1,11 @@
 syntax = "v1"
 
 import "example_base1.api"
+
 import(
 	"example_base2.api"
 )
+
 info (
 	title:   "type title here"
 	desc:    "type desc here"
@@ -79,16 +81,24 @@ type (
 	Nest {
 		Name string `json:"name"`
 	}
-	NestDemoReq {
+	NestDemoReq1 {
 		Nest *Nest `json:"nest"`
 	}
-	NestDemoResp {
+	NestDemoResp1 {
 		Nest []*Nest `json:"nest"`
+	}
+
+	NestDemoReq2 {
+		*Nest
+	}
+	NestDemoResp2 {
+		*Nest `json:"nest"`
 	}
 )
 
 @server (
 	group: form
+	timeout: 3s
 )
 service example {
 	@handler getForm
@@ -100,6 +110,7 @@ service example {
 @server (
 	group: json
 	jwt: Auth
+	timeout: 3m
 )
 service example {
 	@doc "json demo"
@@ -111,6 +122,7 @@ service example {
 	group: path
 	middleware: Path
 	prefix: /v1/v2
+	timeout: 100ms
 )
 service example {
 	@doc (
@@ -143,7 +155,10 @@ service example {
 }
 
 service example {
-	@handler nestDemo
-	post /example/nest (NestDemoReq) returns (NestDemoResp)
+	@handler nestDemo1
+	post /example/nest (NestDemoReq1) returns (NestDemoResp1)
+
+	@handler nestDemo2
+	post /example/nest2 (NestDemoReq2) returns (NestDemoResp2)
 }
 
