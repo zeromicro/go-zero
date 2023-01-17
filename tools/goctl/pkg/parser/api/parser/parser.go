@@ -1058,13 +1058,23 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			Position: slashTok.Position,
 		}
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+	} else if p.peekTokenIs(token.DURATION) {
+		if !p.nextToken() {
+			return nil
+		}
+		valueTok = p.curTok
+		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
+		node := ast.NewTokenNode(valueTok)
+		node.SetLeadingCommentGroup(leadingCommentGroup)
+		expr.Value = node
+		return expr
 	} else {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
-		if p.peekTokenIs(token.COMMA){
+		if p.peekTokenIs(token.COMMA) {
 			for {
 				if p.peekTokenIs(token.COMMA) {
 					if !p.nextToken() {

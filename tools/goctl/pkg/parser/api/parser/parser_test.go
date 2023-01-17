@@ -285,12 +285,19 @@ var atServerTestAPI string
 func TestParser_Parse_atServerStmt(t *testing.T) {
 	t.Run("valid", func(t *testing.T) {
 		var expectedData = map[string]string{
-			"foo:":  `bar`,
-			"bar:":  `baz`,
-			"baz:":  `foo`,
-			"qux:":  `/v1`,
-			"quux:": `/v1/v2`,
+			"foo:":        `bar`,
+			"bar:":        `baz`,
+			"baz:":        `foo`,
+			"qux:":        `/v1`,
+			"quux:":       `/v1/v2`,
 			"middleware:": `M1,M2`,
+			"timeout1:":    "1h",
+			"timeout2:":    "10m",
+			"timeout3:":    "10s",
+			"timeout4:":    "10ms",
+			"timeout5:":    "10µs",
+			"timeout6:":    "10ns",
+			"timeout7:":    "1h10m10s10ms10µs10ns",
 		}
 
 		p := New("foo.api", atServerTestAPI)
