@@ -17,7 +17,6 @@
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
   import { useI18n } from 'vue-i18n';
 
-  import { {{.modelName}}Info } from '/@/api/{{.folderName}}/model/{{.modelNameLowerCase}}Model';
   import { createOrUpdate{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
 
   export default defineComponent({
@@ -55,16 +54,8 @@
       async function handleSubmit() {
         const values = await validate();
         setDrawerProps({ confirmLoading: true });
-        let id: {{if .useUUID}}string{{else}}number{{end}};
-        if (unref(isUpdate)) {
-          id = {{if .useUUID}}values['id'];{{else}}Number(values['id']);{{end}}
-        } else {
-          id = {{if .useUUID}}''{{else}}0{{end}};
-        }
-        let params: {{.modelName}}Info = {
-          id: id,{{.infoData}}
-        };
-        let result = await createOrUpdate{{.modelName}}(params);
+        {{if .useUUID}}values['id'] = unref(isUpdate) ? values['id'] : '';{{else}}values['id'] = unref(isUpdate) ? Number(values['id']) : 0;{{end}}
+        let result = await createOrUpdate{{.modelName}}(values);
         if (result.code === 0) {
           closeDrawer();
           emit('success');

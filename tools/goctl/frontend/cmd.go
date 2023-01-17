@@ -23,13 +23,13 @@ var (
 func init() {
 	vbenCmd.Flags().StringVar(&vben.VarStringOutput, "o", "./", "The output directory, it should be the root "+
 		"directory of simple admin backend ui. ")
-	vbenCmd.Flags().StringVar(&vben.VarStringApiFile, "apiFile", "", "The absolute path of api file.")
-	vbenCmd.Flags().StringVar(&vben.VarStringFolderName, "folderName", "sys", "The folder name to generate file"+
+	vbenCmd.Flags().StringVar(&vben.VarStringApiFile, "api_file", "", "The absolute path of api file.")
+	vbenCmd.Flags().StringVar(&vben.VarStringFolderName, "folder_name", "sys", "The folder name to generate file"+
 		"in different directory. e.g. file folder in simple admin backend ui which is to store file manager service files. ")
-	vbenCmd.Flags().StringVar(&vben.VarStringSubFolder, "subFolder", "", "The sub folder name. e.g. src/views/sys sub folder"+
+	vbenCmd.Flags().StringVar(&vben.VarStringSubFolder, "sub_folder", "", "The sub folder name. e.g. src/views/sys sub folder"+
 		"user which path is src/views/sys/user")
 	vbenCmd.Flags().StringVar(&vben.VarStringApiPrefix, "prefix", "sys-api", "The request prefix for proxy. e.g. sys-api ")
-	vbenCmd.Flags().StringVar(&vben.VarStringModelName, "modelName", "", "The model name. e.g. Example ")
+	vbenCmd.Flags().StringVar(&vben.VarStringModelName, "model_name", "", "The model name. e.g. Example ")
 
 	Cmd.AddCommand(vbenCmd)
 }
