@@ -16,8 +16,8 @@ type EtcdConf struct {
 	User               string `json:",optional"`
 	Pass               string `json:",optional"`
 	CertFile           string `json:",optional"`
-	CertKeyFile        string `json:",optional=CertFile"`
-	CACertFile         string `json:",optional=CertFile"`
+	CertKeyFile        string `json:",optional"`
+	CACertFile         string `json:",optional"`
 	InsecureSkipVerify bool   `json:",optional"`
 }
 
