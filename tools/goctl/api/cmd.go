@@ -186,13 +186,15 @@ func init() {
 
 	protoCmd.Flags().StringVar(&gogen.VarStringProto, "proto", "", "The proto path")
 	protoCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
-	protoCmd.Flags().StringVar(&gogen.VarStringServiceName, "service_name", "", "The service name")
+	protoCmd.Flags().StringVar(&gogen.VarStringAPIServiceName, "api_service_name", "", "The API service name")
+	protoCmd.Flags().StringVar(&gogen.VarStringRPCServiceName, "rpc_service_name", "", "The RPC service name")
 	protoCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
 	protoCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
 		"if it is empty, generate codes for all models in schema directory")
 	protoCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
 	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpc_name", "", "The rpc name in service context. e.g. CoreRpc")
 	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package", "", "The rpc name in service context. e.g. CoreRpc")
+	protoCmd.Flags().BoolVar(&gogen.VarBoolMultiple, "multiple", false, "Whether the proto contains multiple services")
 
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)

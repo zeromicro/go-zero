@@ -40,15 +40,18 @@ type ApiLogicData struct {
 
 // GenLogicByProtoContext describe the data used for logic generation with proto file
 type GenLogicByProtoContext struct {
-	ProtoDir     string
-	OutputDir    string
-	ServiceName  string
-	Style        string
-	ModelName    string
-	SearchKeyNum int
-	RpcName      string
-	GrpcPackage  string
-	UseUUID      bool
+	ProtoDir         string
+	OutputDir        string
+	APIServiceName   string
+	RPCServiceName   string
+	RPCPbPackageName string
+	Style            string
+	ModelName        string
+	SearchKeyNum     int
+	RpcName          string
+	GrpcPackage      string
+	UseUUID          bool
+	Multiple         bool
 }
 
 func GenLogicByProto(p *GenLogicByProtoContext) error {
@@ -60,10 +63,12 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	logicDir := path.Join(outputDir, "internal/logic")
 
 	protoParser := parser.NewDefaultProtoParser()
-	protoData, err := protoParser.Parse(p.ProtoDir, false)
+	protoData, err := protoParser.Parse(p.ProtoDir, p.Multiple)
 	if err != nil {
 		return err
 	}
+
+	p.RPCPbPackageName = protoData.PbPackage
 
 	protoField = &protoFieldData{}
 
@@ -176,7 +181,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"projectPackage":     projectCtx.Path,
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
-					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
 				}))
 
@@ -195,7 +200,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"projectPackage":     projectCtx.Path,
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
-					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
 				}))
 
@@ -214,7 +219,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"projectPackage":     projectCtx.Path,
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
-					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
 				}))
 
@@ -244,7 +249,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"projectPackage":     projectCtx.Path,
 					"rpcPackage":         ctx.GrpcPackage,
 					"rpcName":            ctx.RpcName,
-					"rpcNameLowerCase":   strings.ToLower(ctx.RpcName),
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"searchKeys":         searchLogic.String(),
 					"useUUID":            ctx.UseUUID,
 				}))
@@ -297,7 +302,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"listData":           listData.String(),
-					"serviceName":        ctx.ServiceName,
+					"apiServiceName":     ctx.APIServiceName,
 					"useUUID":            ctx.UseUUID,
 				}))
 				data = apiTemplateData.String()

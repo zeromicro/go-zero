@@ -30,7 +30,7 @@ func NewGet{{.modelName}}ListLogic(r *http.Request, svcCtx *svc.ServiceContext) 
 
 func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelName}}ListReq) (resp *types.{{.modelName}}ListResp, err error) {
 	data, err := l.svcCtx.{{.rpcName}}Rpc.Get{{.modelName}}List(l.ctx,
-		&{{.rpcNameLowerCase}}.{{.modelName}}PageReq{
+		&{{.rpcPbPackageName}}.{{.modelName}}PageReq{
 			Page:        req.Page,
 			PageSize:    req.PageSize,{{.searchKeys}}
 		})

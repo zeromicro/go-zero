@@ -41,7 +41,7 @@ type (
     middleware: Authority
 )
 
-service {{.serviceName}} {
+service {{.apiServiceName}} {
     // Create or update {{.modelName}} information | 创建或更新{{.modelName}}
     @handler createOrUpdate{{.modelName}}
     post /{{.modelNameLowerCase}}/create_or_update (CreateOrUpdate{{.modelName}}Req) returns (BaseMsgResp)

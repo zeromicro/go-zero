@@ -50,8 +50,10 @@ var (
 	VarBoolUseI18n bool
 	// VarStringProto describe the proto file path
 	VarStringProto string
-	// VarStringServiceName describe the service name
-	VarStringServiceName string
+	// VarStringAPIServiceName describe the API service name
+	VarStringAPIServiceName string
+	// VarStringRPCServiceName describe the RPC service name
+	VarStringRPCServiceName string
 	// VarStringModelName describe which model for generating
 	VarStringModelName string
 	// VarIntSearchKeyNum describe the number of search keys
@@ -62,6 +64,8 @@ var (
 	VarStringRpcName string
 	// VarStringGrpcPbPackage describes the grpc package
 	VarStringGrpcPbPackage string
+	// VarBoolMultiple describes whether the proto contains multiple services
+	VarBoolMultiple bool
 )
 
 // GoCommand gen go project files from command line
@@ -126,7 +130,6 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	cfg, err := config.NewConfig(style)
-
 	if err != nil {
 		return err
 	}
@@ -252,15 +255,18 @@ func sweep() error {
 
 func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
 	params := &proto.GenLogicByProtoContext{
-		ProtoDir:     VarStringProto,
-		OutputDir:    VarStringOutput,
-		ServiceName:  VarStringServiceName,
-		Style:        VarStringStyle,
-		ModelName:    VarStringModelName,
-		SearchKeyNum: VarIntSearchKeyNum,
-		RpcName:      VarStringRpcName,
-		GrpcPackage:  VarStringGrpcPbPackage,
+		ProtoDir:       VarStringProto,
+		OutputDir:      VarStringOutput,
+		RPCServiceName: VarStringRPCServiceName,
+		APIServiceName: VarStringAPIServiceName,
+		Style:          VarStringStyle,
+		ModelName:      VarStringModelName,
+		SearchKeyNum:   VarIntSearchKeyNum,
+		RpcName:        VarStringRpcName,
+		GrpcPackage:    VarStringGrpcPbPackage,
+		Multiple:       VarBoolMultiple,
 	}
+
 	err := proto.GenLogicByProto(params)
 	if err != nil {
 		return err

@@ -29,7 +29,7 @@ func NewCreateOrUpdate{{.modelName}}Logic(r *http.Request, svcCtx *svc.ServiceCo
 
 func (l *CreateOrUpdate{{.modelName}}Logic) CreateOrUpdate{{.modelName}}(req *types.CreateOrUpdate{{.modelName}}Req) (resp *types.BaseMsgResp, err error) {
 	data, err := l.svcCtx.{{.rpcName}}Rpc.CreateOrUpdate{{.modelName}}(l.ctx,
-		&{{.rpcNameLowerCase}}.{{.modelName}}Info{
+		&{{.rpcPbPackageName}}.{{.modelName}}Info{
 			Id:          req.Id,{{.setLogic}}
 		})
 	if err != nil {
