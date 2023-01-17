@@ -1,6 +1,9 @@
 package lang
 
 import (
+	"encoding/json"
+	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -108,6 +111,28 @@ func TestRepr(t *testing.T) {
 			assert.Equal(t, test.expect, Repr(test.v))
 		})
 	}
+}
+
+func TestReprOfValue(t *testing.T) {
+	t.Run("error", func(t *testing.T) {
+		assert.Equal(t, "error", reprOfValue(reflect.ValueOf(errors.New("error"))))
+	})
+
+	t.Run("stringer", func(t *testing.T) {
+		assert.Equal(t, "1.23", reprOfValue(reflect.ValueOf(json.Number("1.23"))))
+	})
+
+	t.Run("int", func(t *testing.T) {
+		assert.Equal(t, "1", reprOfValue(reflect.ValueOf(1)))
+	})
+
+	t.Run("int", func(t *testing.T) {
+		assert.Equal(t, "1", reprOfValue(reflect.ValueOf("1")))
+	})
+
+	t.Run("int", func(t *testing.T) {
+		assert.Equal(t, "1", reprOfValue(reflect.ValueOf(uint(1))))
+	})
 }
 
 type mockStringable struct{}
