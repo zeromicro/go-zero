@@ -43,3 +43,9 @@ func TestSetSlowThreshold(t *testing.T) {
 	SetSlowThreshold(time.Second)
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
+
+func TestSetPrintError(t *testing.T) {
+	assert.Equal(t, defaultEnablePrintError, enablePrintError.True())
+	SetPrintError(false)
+	assert.Equal(t, false, enablePrintError.True())
+}

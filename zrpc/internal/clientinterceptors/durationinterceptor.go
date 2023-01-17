@@ -14,10 +14,12 @@ import (
 )
 
 const defaultSlowThreshold = time.Millisecond * 500
+const defaultEnablePrintError = true
 
 var (
 	notLoggingContentMethods sync.Map
 	slowThreshold            = syncx.ForAtomicDuration(defaultSlowThreshold)
+	enablePrintError         = syncx.ForAtomicBool(defaultEnablePrintError)
 )
 
 // DurationInterceptor is an interceptor that logs the processing time.
@@ -27,12 +29,14 @@ func DurationInterceptor(ctx context.Context, method string, req, reply interfac
 	start := timex.Now()
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	if err != nil {
-		logger := logx.WithContext(ctx).WithDuration(timex.Since(start))
-		_, ok := notLoggingContentMethods.Load(method)
-		if ok {
-			logger.Errorf("fail - %s - %s", serverName, err.Error())
-		} else {
-			logger.Errorf("fail - %s - %v - %s", serverName, req, err.Error())
+		if enablePrintError.True() {
+			logger := logx.WithContext(ctx).WithDuration(timex.Since(start))
+			_, ok := notLoggingContentMethods.Load(method)
+			if ok {
+				logger.Errorf("fail - %s - %s", serverName, err.Error())
+			} else {
+				logger.Errorf("fail - %s - %v - %s", serverName, req, err.Error())
+			}
 		}
 	} else {
 		elapsed := timex.Since(start)
@@ -58,4 +62,9 @@ func DontLogContentForMethod(method string) {
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
+}
+
+// SetPrintError sets whether to disable printing error.
+func SetPrintError(enabled bool) {
+	enablePrintError.Set(enabled)
 }
