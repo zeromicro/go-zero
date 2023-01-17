@@ -89,7 +89,9 @@ func TestRedis_Eval(t *testing.T) {
 func TestRedis_GeoHash(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := client.GeoHash("parent", "child1", "child2")
-		assert.NotNil(t, err)
+		assert.Error(t, err)
+		_, err = New(client.Addr, badType()).GeoHash("parent", "child1", "child2")
+		assert.Error(t, err)
 	})
 }
 
@@ -211,34 +213,43 @@ func TestRedis_Hmset(t *testing.T) {
 }
 
 func TestRedis_Hscan(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		key := "hash:test"
-		fieldsAndValues := make(map[string]string)
-		for i := 0; i < 1550; i++ {
-			fieldsAndValues["filed_"+strconv.Itoa(i)] = stringx.Randn(i)
-		}
-		err := client.Hmset(key, fieldsAndValues)
-		assert.Nil(t, err)
-
-		var cursor uint64 = 0
-		sum := 0
-		for {
-			_, _, err := New(client.Addr, badType()).Hscan(key, cursor, "*", 100)
-			assert.NotNil(t, err)
-			reMap, next, err := client.Hscan(key, cursor, "*", 100)
-			assert.Nil(t, err)
-			sum += len(reMap)
-			if next == 0 {
-				break
+	t.Run("scan", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			key := "hash:test"
+			fieldsAndValues := make(map[string]string)
+			for i := 0; i < 1550; i++ {
+				fieldsAndValues["filed_"+strconv.Itoa(i)] = stringx.Randn(i)
 			}
-			cursor = next
-		}
+			err := client.Hmset(key, fieldsAndValues)
+			assert.Nil(t, err)
 
-		assert.Equal(t, sum, 3100)
-		_, err = New(client.Addr, badType()).Del(key)
-		assert.NotNil(t, err)
-		_, err = client.Del(key)
-		assert.Nil(t, err)
+			var cursor uint64 = 0
+			sum := 0
+			for {
+				_, _, err := New(client.Addr, badType()).Hscan(key, cursor, "*", 100)
+				assert.NotNil(t, err)
+				reMap, next, err := client.Hscan(key, cursor, "*", 100)
+				assert.Nil(t, err)
+				sum += len(reMap)
+				if next == 0 {
+					break
+				}
+				cursor = next
+			}
+
+			assert.Equal(t, sum, 3100)
+			_, err = New(client.Addr, badType()).Del(key)
+			assert.Error(t, err)
+			_, err = client.Del(key)
+			assert.NoError(t, err)
+		})
+	})
+
+	t.Run("scan with error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Del("hash:test")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -283,128 +294,191 @@ func TestRedis_Keys(t *testing.T) {
 }
 
 func TestRedis_HyperLogLog(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		client.Ping()
-		r := New(client.Addr)
-		ok, err := r.Pfadd("key1", "val1")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		val, err := r.Pfcount("key1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), val)
-		ok, err = r.Pfadd("key2", "val2")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		val, err = r.Pfcount("key2")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), val)
-		err = r.Pfmerge("key1", "key2")
-		assert.Nil(t, err)
-		val, err = r.Pfcount("key1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), val)
+	t.Run("hyperloglog", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			r := New(client.Addr)
+			_, err := New(client.Addr, badType()).Pfadd("key1", "val1")
+			assert.Error(t, err)
+			ok, err := r.Pfadd("key1", "val1")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Pfcount("key1")
+			assert.Error(t, err)
+			val, err := r.Pfcount("key1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(1), val)
+			ok, err = r.Pfadd("key2", "val2")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			val, err = r.Pfcount("key2")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(1), val)
+			err = New(client.Addr, badType()).Pfmerge("key3", "key1", "key2")
+			assert.Error(t, err)
+			err = r.Pfmerge("key1", "key2")
+			assert.Nil(t, err)
+			val, err = r.Pfcount("key1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), val)
+		})
+	})
+
+	t.Run("hyperloglog with error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Pfadd("key1", "val1")
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_List(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := New(client.Addr, badType()).Lpush("key", "value1", "value2")
-		assert.NotNil(t, err)
-		val, err := client.Lpush("key", "value1", "value2")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, val)
-		_, err = New(client.Addr, badType()).Rpush("key", "value3", "value4")
-		assert.NotNil(t, err)
-		val, err = client.Rpush("key", "value3", "value4")
-		assert.Nil(t, err)
-		assert.Equal(t, 4, val)
-		_, err = New(client.Addr, badType()).Llen("key")
-		assert.NotNil(t, err)
-		val, err = client.Llen("key")
-		assert.Nil(t, err)
-		assert.Equal(t, 4, val)
-		_, err = New(client.Addr, badType()).Lindex("key", 1)
-		assert.NotNil(t, err)
-		value, err := client.Lindex("key", 0)
-		assert.Nil(t, err)
-		assert.Equal(t, "value2", value)
-		vals, err := client.Lrange("key", 0, 10)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)
-		_, err = New(client.Addr, badType()).Lpop("key")
-		assert.NotNil(t, err)
-		v, err := client.Lpop("key")
-		assert.Nil(t, err)
-		assert.Equal(t, "value2", v)
-		val, err = client.Lpush("key", "value1", "value2")
-		assert.Nil(t, err)
-		assert.Equal(t, 5, val)
-		_, err = New(client.Addr, badType()).Rpop("key")
-		assert.NotNil(t, err)
-		v, err = client.Rpop("key")
-		assert.Nil(t, err)
-		assert.Equal(t, "value4", v)
-		val, err = client.Rpush("key", "value4", "value3", "value3")
-		assert.Nil(t, err)
-		assert.Equal(t, 7, val)
-		_, err = New(client.Addr, badType()).Lrem("key", 2, "value1")
-		assert.NotNil(t, err)
-		n, err := client.Lrem("key", 2, "value1")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, n)
-		_, err = New(client.Addr, badType()).Lrange("key", 0, 10)
-		assert.NotNil(t, err)
-		vals, err = client.Lrange("key", 0, 10)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value2", "value3", "value4", "value3", "value3"}, vals)
-		n, err = client.Lrem("key", -2, "value3")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, n)
-		vals, err = client.Lrange("key", 0, 10)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
-		err = client.Ltrim("key", 0, 1)
-		assert.Nil(t, err)
-		vals, err = client.Lrange("key", 0, 10)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value2", "value3"}, vals)
+	t.Run("list", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := New(client.Addr, badType()).Lpush("key", "value1", "value2")
+			assert.NotNil(t, err)
+			val, err := client.Lpush("key", "value1", "value2")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, val)
+			_, err = New(client.Addr, badType()).Rpush("key", "value3", "value4")
+			assert.NotNil(t, err)
+			val, err = client.Rpush("key", "value3", "value4")
+			assert.Nil(t, err)
+			assert.Equal(t, 4, val)
+			_, err = New(client.Addr, badType()).Llen("key")
+			assert.NotNil(t, err)
+			val, err = client.Llen("key")
+			assert.Nil(t, err)
+			assert.Equal(t, 4, val)
+			_, err = New(client.Addr, badType()).Lindex("key", 1)
+			assert.NotNil(t, err)
+			value, err := client.Lindex("key", 0)
+			assert.Nil(t, err)
+			assert.Equal(t, "value2", value)
+			vals, err := client.Lrange("key", 0, 10)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value1", "value3", "value4"}, vals)
+			_, err = New(client.Addr, badType()).Lpop("key")
+			assert.NotNil(t, err)
+			v, err := client.Lpop("key")
+			assert.Nil(t, err)
+			assert.Equal(t, "value2", v)
+			val, err = client.Lpush("key", "value1", "value2")
+			assert.Nil(t, err)
+			assert.Equal(t, 5, val)
+			_, err = New(client.Addr, badType()).Rpop("key")
+			assert.NotNil(t, err)
+			v, err = client.Rpop("key")
+			assert.Nil(t, err)
+			assert.Equal(t, "value4", v)
+			val, err = client.Rpush("key", "value4", "value3", "value3")
+			assert.Nil(t, err)
+			assert.Equal(t, 7, val)
+			_, err = New(client.Addr, badType()).Lrem("key", 2, "value1")
+			assert.NotNil(t, err)
+			n, err := client.Lrem("key", 2, "value1")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, n)
+			_, err = New(client.Addr, badType()).Lrange("key", 0, 10)
+			assert.NotNil(t, err)
+			vals, err = client.Lrange("key", 0, 10)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3", "value4", "value3", "value3"}, vals)
+			n, err = client.Lrem("key", -2, "value3")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, n)
+			vals, err = client.Lrange("key", 0, 10)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3", "value4"}, vals)
+			err = New(client.Addr, badType()).Ltrim("key", 0, 1)
+			assert.Error(t, err)
+			err = client.Ltrim("key", 0, 1)
+			assert.Nil(t, err)
+			vals, err = client.Lrange("key", 0, 10)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+		})
+	})
+
+	t.Run("list error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Llen("key")
+			assert.Error(t, err)
+
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Error(t, err)
+
+			_, err = client.Lrem("key", 2, "value1")
+			assert.Error(t, err)
+
+			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_Mget(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		err := client.Set("key1", "value1")
-		assert.Nil(t, err)
-		err = client.Set("key2", "value2")
-		assert.Nil(t, err)
-		_, err = New(client.Addr, badType()).Mget("key1", "key0", "key2", "key3")
-		assert.NotNil(t, err)
-		vals, err := client.Mget("key1", "key0", "key2", "key3")
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value1", "", "value2", ""}, vals)
+	t.Run("mget", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			err := client.Set("key1", "value1")
+			assert.Nil(t, err)
+			err = client.Set("key2", "value2")
+			assert.Nil(t, err)
+			_, err = New(client.Addr, badType()).Mget("key1", "key0", "key2", "key3")
+			assert.NotNil(t, err)
+			vals, err := client.Mget("key1", "key0", "key2", "key3")
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "", "value2", ""}, vals)
+		})
+	})
+
+	t.Run("mget error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Mget("key1", "key0")
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_SetBit(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := New(client.Addr, badType()).SetBit("key", 1, 1)
-		assert.NotNil(t, err)
-		val, err := client.SetBit("key", 1, 1)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, val)
+	t.Run("setbit", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := New(client.Addr, badType()).SetBit("key", 1, 1)
+			assert.Error(t, err)
+			val, err := client.SetBit("key", 1, 1)
+			if assert.NoError(t, err) {
+				assert.Equal(t, 0, val)
+			}
+		})
+	})
+
+	t.Run("setbit error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.SetBit("key", 1, 1)
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_GetBit(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		val, err := client.SetBit("key", 2, 1)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, val)
-		_, err = New(client.Addr, badType()).GetBit("key", 2)
-		assert.NotNil(t, err)
-		v, err := client.GetBit("key", 2)
-		assert.Nil(t, err)
-		assert.Equal(t, 1, v)
+	t.Run("getbit", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			val, err := client.SetBit("key", 2, 1)
+			assert.Nil(t, err)
+			assert.Equal(t, 0, val)
+			_, err = New(client.Addr, badType()).GetBit("key", 2)
+			assert.NotNil(t, err)
+			v, err := client.GetBit("key", 2)
+			assert.Nil(t, err)
+			assert.Equal(t, 1, v)
+		})
+	})
+
+	t.Run("getbit error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.GetBit("key", 2)
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -621,86 +695,107 @@ func TestRedis_Sscan(t *testing.T) {
 }
 
 func TestRedis_Set(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		_, err := New(client.Addr, badType()).Sadd("key", 1, 2, 3, 4)
-		assert.NotNil(t, err)
-		num, err := client.Sadd("key", 1, 2, 3, 4)
-		assert.Nil(t, err)
-		assert.Equal(t, 4, num)
-		_, err = New(client.Addr, badType()).Scard("key")
-		assert.NotNil(t, err)
-		val, err := client.Scard("key")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(4), val)
-		_, err = New(client.Addr, badType()).Sismember("key", 2)
-		assert.NotNil(t, err)
-		ok, err := client.Sismember("key", 2)
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		_, err = New(client.Addr, badType()).Srem("key", 3, 4)
-		assert.NotNil(t, err)
-		num, err = client.Srem("key", 3, 4)
-		assert.Nil(t, err)
-		assert.Equal(t, 2, num)
-		_, err = New(client.Addr, badType()).Smembers("key")
-		assert.NotNil(t, err)
-		vals, err := client.Smembers("key")
-		assert.Nil(t, err)
-		assert.ElementsMatch(t, []string{"1", "2"}, vals)
-		_, err = New(client.Addr, badType()).Srandmember("key", 1)
-		assert.NotNil(t, err)
-		members, err := client.Srandmember("key", 1)
-		assert.Nil(t, err)
-		assert.Len(t, members, 1)
-		assert.Contains(t, []string{"1", "2"}, members[0])
-		_, err = New(client.Addr, badType()).Spop("key")
-		assert.NotNil(t, err)
-		member, err := client.Spop("key")
-		assert.Nil(t, err)
-		assert.Contains(t, []string{"1", "2"}, member)
-		_, err = New(client.Addr, badType()).Smembers("key")
-		assert.NotNil(t, err)
-		vals, err = client.Smembers("key")
-		assert.Nil(t, err)
-		assert.NotContains(t, vals, member)
-		_, err = New(client.Addr, badType()).Sadd("key1", 1, 2, 3, 4)
-		assert.NotNil(t, err)
-		num, err = client.Sadd("key1", 1, 2, 3, 4)
-		assert.Nil(t, err)
-		assert.Equal(t, 4, num)
-		num, err = client.Sadd("key2", 2, 3, 4, 5)
-		assert.Nil(t, err)
-		assert.Equal(t, 4, num)
-		_, err = New(client.Addr, badType()).Sunion("key1", "key2")
-		assert.NotNil(t, err)
-		vals, err = client.Sunion("key1", "key2")
-		assert.Nil(t, err)
-		assert.ElementsMatch(t, []string{"1", "2", "3", "4", "5"}, vals)
-		_, err = New(client.Addr, badType()).Sunionstore("key3", "key1", "key2")
-		assert.NotNil(t, err)
-		num, err = client.Sunionstore("key3", "key1", "key2")
-		assert.Nil(t, err)
-		assert.Equal(t, 5, num)
-		_, err = New(client.Addr, badType()).Sdiff("key1", "key2")
-		assert.NotNil(t, err)
-		vals, err = client.Sdiff("key1", "key2")
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"1"}, vals)
-		_, err = New(client.Addr, badType()).Sdiffstore("key4", "key1", "key2")
-		assert.NotNil(t, err)
-		num, err = client.Sdiffstore("key4", "key1", "key2")
-		assert.Nil(t, err)
-		assert.Equal(t, 1, num)
-		_, err = New(client.Addr, badType()).Sinter("key1", "key2")
-		assert.NotNil(t, err)
-		vals, err = client.Sinter("key1", "key2")
-		assert.Nil(t, err)
-		assert.ElementsMatch(t, []string{"2", "3", "4"}, vals)
-		_, err = New(client.Addr, badType()).Sinterstore("key4", "key1", "key2")
-		assert.NotNil(t, err)
-		num, err = client.Sinterstore("key4", "key1", "key2")
-		assert.Nil(t, err)
-		assert.Equal(t, 3, num)
+	t.Run("set", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			_, err := New(client.Addr, badType()).Sadd("key", 1, 2, 3, 4)
+			assert.NotNil(t, err)
+			num, err := client.Sadd("key", 1, 2, 3, 4)
+			assert.Nil(t, err)
+			assert.Equal(t, 4, num)
+			_, err = New(client.Addr, badType()).Scard("key")
+			assert.NotNil(t, err)
+			val, err := client.Scard("key")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(4), val)
+			_, err = New(client.Addr, badType()).Sismember("key", 2)
+			assert.NotNil(t, err)
+			ok, err := client.Sismember("key", 2)
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Srem("key", 3, 4)
+			assert.NotNil(t, err)
+			num, err = client.Srem("key", 3, 4)
+			assert.Nil(t, err)
+			assert.Equal(t, 2, num)
+			_, err = New(client.Addr, badType()).Smembers("key")
+			assert.NotNil(t, err)
+			vals, err := client.Smembers("key")
+			assert.Nil(t, err)
+			assert.ElementsMatch(t, []string{"1", "2"}, vals)
+			_, err = New(client.Addr, badType()).Srandmember("key", 1)
+			assert.NotNil(t, err)
+			members, err := client.Srandmember("key", 1)
+			assert.Nil(t, err)
+			assert.Len(t, members, 1)
+			assert.Contains(t, []string{"1", "2"}, members[0])
+			_, err = New(client.Addr, badType()).Spop("key")
+			assert.NotNil(t, err)
+			member, err := client.Spop("key")
+			assert.Nil(t, err)
+			assert.Contains(t, []string{"1", "2"}, member)
+			_, err = New(client.Addr, badType()).Smembers("key")
+			assert.NotNil(t, err)
+			vals, err = client.Smembers("key")
+			assert.Nil(t, err)
+			assert.NotContains(t, vals, member)
+			_, err = New(client.Addr, badType()).Sadd("key1", 1, 2, 3, 4)
+			assert.NotNil(t, err)
+			num, err = client.Sadd("key1", 1, 2, 3, 4)
+			assert.Nil(t, err)
+			assert.Equal(t, 4, num)
+			num, err = client.Sadd("key2", 2, 3, 4, 5)
+			assert.Nil(t, err)
+			assert.Equal(t, 4, num)
+			_, err = New(client.Addr, badType()).Sunion("key1", "key2")
+			assert.NotNil(t, err)
+			vals, err = client.Sunion("key1", "key2")
+			assert.Nil(t, err)
+			assert.ElementsMatch(t, []string{"1", "2", "3", "4", "5"}, vals)
+			_, err = New(client.Addr, badType()).Sunionstore("key3", "key1", "key2")
+			assert.NotNil(t, err)
+			num, err = client.Sunionstore("key3", "key1", "key2")
+			assert.Nil(t, err)
+			assert.Equal(t, 5, num)
+			_, err = New(client.Addr, badType()).Sdiff("key1", "key2")
+			assert.NotNil(t, err)
+			vals, err = client.Sdiff("key1", "key2")
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"1"}, vals)
+			_, err = New(client.Addr, badType()).Sdiffstore("key4", "key1", "key2")
+			assert.NotNil(t, err)
+			num, err = client.Sdiffstore("key4", "key1", "key2")
+			assert.Nil(t, err)
+			assert.Equal(t, 1, num)
+			_, err = New(client.Addr, badType()).Sinter("key1", "key2")
+			assert.NotNil(t, err)
+			vals, err = client.Sinter("key1", "key2")
+			assert.Nil(t, err)
+			assert.ElementsMatch(t, []string{"2", "3", "4"}, vals)
+			_, err = New(client.Addr, badType()).Sinterstore("key4", "key1", "key2")
+			assert.NotNil(t, err)
+			num, err = client.Sinterstore("key4", "key1", "key2")
+			assert.Nil(t, err)
+			assert.Equal(t, 3, num)
+		})
+	})
+
+	t.Run("set with error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Sadd("key", 1, 2, 3, 4)
+			assert.Error(t, err)
+
+			_, err = client.Srem("key", 3, 4)
+			assert.Error(t, err)
+
+			_, err = client.Sunionstore("key3", "key1", "key2")
+			assert.Error(t, err)
+
+			_, err = client.Sdiffstore("key4", "key1", "key2")
+			assert.Error(t, err)
+
+			_, err = client.Sinterstore("key4", "key1", "key2")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -784,227 +879,361 @@ func TestRedis_SetExNx(t *testing.T) {
 }
 
 func TestRedis_SetGetDelHashField(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		err := client.Hset("key", "field", "value")
-		assert.Nil(t, err)
-		_, err = New(client.Addr, badType()).Hget("key", "field")
-		assert.NotNil(t, err)
-		val, err := client.Hget("key", "field")
-		assert.Nil(t, err)
-		assert.Equal(t, "value", val)
-		_, err = New(client.Addr, badType()).Hexists("key", "field")
-		assert.NotNil(t, err)
-		ok, err := client.Hexists("key", "field")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		_, err = New(client.Addr, badType()).Hdel("key", "field")
-		assert.NotNil(t, err)
-		ret, err := client.Hdel("key", "field")
-		assert.Nil(t, err)
-		assert.True(t, ret)
-		ok, err = client.Hexists("key", "field")
-		assert.Nil(t, err)
-		assert.False(t, ok)
+	t.Run("hash", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			err := client.Hset("key", "field", "value")
+			assert.Nil(t, err)
+			_, err = New(client.Addr, badType()).Hget("key", "field")
+			assert.NotNil(t, err)
+			val, err := client.Hget("key", "field")
+			assert.Nil(t, err)
+			assert.Equal(t, "value", val)
+			_, err = New(client.Addr, badType()).Hexists("key", "field")
+			assert.NotNil(t, err)
+			ok, err := client.Hexists("key", "field")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Hdel("key", "field")
+			assert.NotNil(t, err)
+			ret, err := client.Hdel("key", "field")
+			assert.Nil(t, err)
+			assert.True(t, ret)
+			ok, err = client.Hexists("key", "field")
+			assert.Nil(t, err)
+			assert.False(t, ok)
+		})
+	})
+
+	t.Run("hash error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Hdel("key", "field")
+			assert.Error(t, err)
+
+			_, err = client.Hincrby("key", "field", 1)
+			assert.Error(t, err)
+
+			_, err = client.HincrbyFloat("key", "field", 1)
+			assert.Error(t, err)
+
+			_, err = client.Hlen("key")
+			assert.Error(t, err)
+
+			_, err = client.Hmget("key", "field")
+			assert.Error(t, err)
+		})
 	})
 }
 
 func TestRedis_SortedSet(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		ok, err := client.ZaddFloat("key", 1, "value1")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		ok, err = client.Zadd("key", 2, "value1")
-		assert.Nil(t, err)
-		assert.False(t, ok)
-		val, err := client.Zscore("key", "value1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).Zincrby("key", 3, "value1")
-		assert.NotNil(t, err)
-		val, err = client.Zincrby("key", 3, "value1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(5), val)
-		_, err = New(client.Addr, badType()).Zscore("key", "value1")
-		assert.NotNil(t, err)
-		val, err = client.Zscore("key", "value1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(5), val)
-		_, err = New(client.Addr, badType()).Zadds("key")
-		assert.NotNil(t, err)
-		val, err = client.Zadds("key", Pair{
-			Key:   "value2",
-			Score: 6,
-		}, Pair{
-			Key:   "value3",
-			Score: 7,
-		})
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).ZRevRangeWithScores("key", 1, 3)
-		assert.NotNil(t, err)
-		pairs, err := client.ZRevRangeWithScores("key", 1, 3)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
+	t.Run("sorted set", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			ok, err := client.ZaddFloat("key", 1, "value1")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			ok, err = client.Zadd("key", 2, "value1")
+			assert.Nil(t, err)
+			assert.False(t, ok)
+			val, err := client.Zscore("key", "value1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), val)
+			_, err = New(client.Addr, badType()).Zincrby("key", 3, "value1")
+			assert.NotNil(t, err)
+			val, err = client.Zincrby("key", 3, "value1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(5), val)
+			_, err = New(client.Addr, badType()).Zscore("key", "value1")
+			assert.NotNil(t, err)
+			val, err = client.Zscore("key", "value1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(5), val)
+			_, err = New(client.Addr, badType()).Zadds("key")
+			assert.NotNil(t, err)
+			val, err = client.Zadds("key", Pair{
 				Key:   "value2",
 				Score: 6,
-			},
-			{
-				Key:   "value1",
-				Score: 5,
-			},
-		}, pairs)
-		rank, err := client.Zrank("key", "value2")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), rank)
-		rank, err = client.Zrevrank("key", "value1")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), rank)
-		_, err = New(client.Addr, badType()).Zrank("key", "value4")
-		assert.NotNil(t, err)
-		_, err = client.Zrank("key", "value4")
-		assert.Equal(t, Nil, err)
-		_, err = New(client.Addr, badType()).Zrem("key", "value2", "value3")
-		assert.NotNil(t, err)
-		num, err := client.Zrem("key", "value2", "value3")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, num)
-		ok, err = client.Zadd("key", 6, "value2")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		ok, err = client.Zadd("key", 7, "value3")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		ok, err = client.Zadd("key", 8, "value4")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		_, err = New(client.Addr, badType()).Zremrangebyscore("key", 6, 7)
-		assert.NotNil(t, err)
-		num, err = client.Zremrangebyscore("key", 6, 7)
-		assert.Nil(t, err)
-		assert.Equal(t, 2, num)
-		ok, err = client.Zadd("key", 6, "value2")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		_, err = New(client.Addr, badType()).Zadd("key", 7, "value3")
-		assert.NotNil(t, err)
-		ok, err = client.Zadd("key", 7, "value3")
-		assert.Nil(t, err)
-		assert.True(t, ok)
-		_, err = New(client.Addr, badType()).Zcount("key", 6, 7)
-		assert.NotNil(t, err)
-		num, err = client.Zcount("key", 6, 7)
-		assert.Nil(t, err)
-		assert.Equal(t, 2, num)
-		_, err = New(client.Addr, badType()).Zremrangebyrank("key", 1, 2)
-		assert.NotNil(t, err)
-		num, err = client.Zremrangebyrank("key", 1, 2)
-		assert.Nil(t, err)
-		assert.Equal(t, 2, num)
-		_, err = New(client.Addr, badType()).Zcard("key")
-		assert.NotNil(t, err)
-		card, err := client.Zcard("key")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, card)
-		_, err = New(client.Addr, badType()).Zrange("key", 0, -1)
-		assert.NotNil(t, err)
-		vals, err := client.Zrange("key", 0, -1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value1", "value4"}, vals)
-		_, err = New(client.Addr, badType()).Zrevrange("key", 0, -1)
-		assert.NotNil(t, err)
-		vals, err = client.Zrevrange("key", 0, -1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"value4", "value1"}, vals)
-		_, err = New(client.Addr, badType()).ZrangeWithScores("key", 0, -1)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrangeWithScores("key", 0, -1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
-				Key:   "value1",
-				Score: 5,
-			},
-			{
-				Key:   "value4",
-				Score: 8,
-			},
-		}, pairs)
-		_, err = New(client.Addr, badType()).ZrangebyscoreWithScores("key", 5, 8)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrangebyscoreWithScores("key", 5, 8)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
-				Key:   "value1",
-				Score: 5,
-			},
-			{
-				Key:   "value4",
-				Score: 8,
-			},
-		}, pairs)
-		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresAndLimit(
-			"key", 5, 8, 1, 1)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
-				Key:   "value4",
-				Score: 8,
-			},
-		}, pairs)
-		pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, len(pairs))
-		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScores("key", 5, 8)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrevrangebyscoreWithScores("key", 5, 8)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
-				Key:   "value4",
-				Score: 8,
-			},
-			{
-				Key:   "value1",
-				Score: 5,
-			},
-		}, pairs)
-		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresAndLimit(
-			"key", 5, 8, 1, 1)
-		assert.NotNil(t, err)
-		pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []Pair{
-			{
-				Key:   "value1",
-				Score: 5,
-			},
-		}, pairs)
-		pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
-		assert.Nil(t, err)
-		assert.Equal(t, 0, len(pairs))
-		_, err = New(client.Addr, badType()).Zrevrank("key", "value")
-		assert.NotNil(t, err)
-		_, _ = client.Zadd("second", 2, "aa")
-		_, _ = client.Zadd("third", 3, "bbb")
-		val, err = client.Zunionstore("union", &ZStore{
-			Keys:      []string{"second", "third"},
-			Weights:   []float64{1, 2},
-			Aggregate: "SUM",
+			}, Pair{
+				Key:   "value3",
+				Score: 7,
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), val)
+			_, err = New(client.Addr, badType()).ZRevRangeWithScores("key", 1, 3)
+			assert.NotNil(t, err)
+			_, err = client.ZRevRangeWithScores("key", 1, 3)
+			assert.Nil(t, err)
+			_, err = client.ZRevRangeWithScoresCtx(context.Background(), "key", 1, 3)
+			assert.Nil(t, err)
+			pairs, err := client.ZrevrangeWithScores("key", 1, 3)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value2",
+					Score: 6,
+				},
+				{
+					Key:   "value1",
+					Score: 5,
+				},
+			}, pairs)
+			rank, err := client.Zrank("key", "value2")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(1), rank)
+			rank, err = client.Zrevrank("key", "value1")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), rank)
+			_, err = New(client.Addr, badType()).Zrank("key", "value4")
+			assert.NotNil(t, err)
+			_, err = client.Zrank("key", "value4")
+			assert.Equal(t, Nil, err)
+			_, err = New(client.Addr, badType()).Zrem("key", "value2", "value3")
+			assert.NotNil(t, err)
+			num, err := client.Zrem("key", "value2", "value3")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, num)
+			ok, err = client.Zadd("key", 6, "value2")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			ok, err = client.Zadd("key", 7, "value3")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			ok, err = client.Zadd("key", 8, "value4")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Zremrangebyscore("key", 6, 7)
+			assert.NotNil(t, err)
+			num, err = client.Zremrangebyscore("key", 6, 7)
+			assert.Nil(t, err)
+			assert.Equal(t, 2, num)
+			ok, err = client.Zadd("key", 6, "value2")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Zadd("key", 7, "value3")
+			assert.NotNil(t, err)
+			ok, err = client.Zadd("key", 7, "value3")
+			assert.Nil(t, err)
+			assert.True(t, ok)
+			_, err = New(client.Addr, badType()).Zcount("key", 6, 7)
+			assert.NotNil(t, err)
+			num, err = client.Zcount("key", 6, 7)
+			assert.Nil(t, err)
+			assert.Equal(t, 2, num)
+			_, err = New(client.Addr, badType()).Zremrangebyrank("key", 1, 2)
+			assert.NotNil(t, err)
+			num, err = client.Zremrangebyrank("key", 1, 2)
+			assert.Nil(t, err)
+			assert.Equal(t, 2, num)
+			_, err = New(client.Addr, badType()).Zcard("key")
+			assert.NotNil(t, err)
+			card, err := client.Zcard("key")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, card)
+			_, err = New(client.Addr, badType()).Zrange("key", 0, -1)
+			assert.NotNil(t, err)
+			vals, err := client.Zrange("key", 0, -1)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "value4"}, vals)
+			_, err = New(client.Addr, badType()).Zrevrange("key", 0, -1)
+			assert.NotNil(t, err)
+			vals, err = client.Zrevrange("key", 0, -1)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value4", "value1"}, vals)
+			_, err = New(client.Addr, badType()).ZrangeWithScores("key", 0, -1)
+			assert.NotNil(t, err)
+			pairs, err = client.ZrangeWithScores("key", 0, -1)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value1",
+					Score: 5,
+				},
+				{
+					Key:   "value4",
+					Score: 8,
+				},
+			}, pairs)
+			_, err = New(client.Addr, badType()).ZrangebyscoreWithScores("key", 5, 8)
+			assert.NotNil(t, err)
+			pairs, err = client.ZrangebyscoreWithScores("key", 5, 8)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value1",
+					Score: 5,
+				},
+				{
+					Key:   "value4",
+					Score: 8,
+				},
+			}, pairs)
+			_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresAndLimit(
+				"key", 5, 8, 1, 1)
+			assert.NotNil(t, err)
+			pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value4",
+					Score: 8,
+				},
+			}, pairs)
+			pairs, err = client.ZrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
+			assert.Nil(t, err)
+			assert.Equal(t, 0, len(pairs))
+			_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScores("key", 5, 8)
+			assert.NotNil(t, err)
+			pairs, err = client.ZrevrangebyscoreWithScores("key", 5, 8)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value4",
+					Score: 8,
+				},
+				{
+					Key:   "value1",
+					Score: 5,
+				},
+			}, pairs)
+			_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresAndLimit(
+				"key", 5, 8, 1, 1)
+			assert.NotNil(t, err)
+			pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 1)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []Pair{
+				{
+					Key:   "value1",
+					Score: 5,
+				},
+			}, pairs)
+			pairs, err = client.ZrevrangebyscoreWithScoresAndLimit("key", 5, 8, 1, 0)
+			assert.Nil(t, err)
+			assert.Equal(t, 0, len(pairs))
+			_, err = New(client.Addr, badType()).Zrevrank("key", "value")
+			assert.NotNil(t, err)
+			_, _ = client.Zadd("second", 2, "aa")
+			_, _ = client.Zadd("third", 3, "bbb")
+			val, err = client.Zunionstore("union", &ZStore{
+				Keys:      []string{"second", "third"},
+				Weights:   []float64{1, 2},
+				Aggregate: "SUM",
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), val)
+			_, err = New(client.Addr, badType()).Zunionstore("union", &ZStore{})
+			assert.NotNil(t, err)
+			vals, err = client.Zrange("union", 0, 10000)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"aa", "bbb"}, vals)
+			ival, err := client.Zcard("union")
+			assert.Nil(t, err)
+			assert.Equal(t, 2, ival)
 		})
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), val)
-		_, err = New(client.Addr, badType()).Zunionstore("union", &ZStore{})
-		assert.NotNil(t, err)
-		vals, err = client.Zrange("union", 0, 10000)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []string{"aa", "bbb"}, vals)
-		ival, err := client.Zcard("union")
-		assert.Nil(t, err)
-		assert.Equal(t, 2, ival)
+	})
+
+	t.Run("sorted set error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZaddFloat("key", 1, "value")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zadds("key")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zcard("key")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zcount("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zincrby("key", 1, "value")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zscore("key", "value")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zrem("key", "value")
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zremrangebyscore("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Zremrangebyrank("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangeWithScores("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangeWithScoresByFloat("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZRevRangeWithScores("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZRevRangeWithScoresByFloat("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScores("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresByFloat("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScores("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresByFloat("key", 1, 2)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresAndLimit("key", 1, 2, 1, 1)
+			assert.Error(t, err)
+		})
+
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 1, 2, 1, 1)
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1016,12 +1245,18 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 		val, err := client.ZscoreByFloat("key", "value1")
 		assert.Nil(t, err)
 		assert.Equal(t, 10.345, val)
+		_, err = New(client.Addr, badType()).ZscoreByFloat("key", "value1")
+		assert.Error(t, err)
 		_, _ = client.ZaddFloat("key", 10.346, "value2")
 		_, err = New(client.Addr, badType()).ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.NotNil(t, err)
-		pairs, err := client.ZRevRangeWithScoresByFloat("key", 0, -1)
+		_, err = client.ZRevRangeWithScoresByFloat("key", 0, -1)
 		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
+		_, err = client.ZRevRangeWithScoresByFloatCtx(context.Background(), "key", 0, -1)
+		assert.Nil(t, err)
+		pairs, err := client.ZrevrangeWithScoresByFloat("key", 0, -1)
+		assert.Nil(t, err)
+		assert.EqualValues(t, []FloatPair{
 			{
 				Key:   "value2",
 				Score: 10.346,
@@ -1032,23 +1267,28 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 			},
 		}, pairs)
 
+		_, err = New(client.Addr, badType()).ZrangeWithScoresByFloat("key", 0, -1)
+		assert.Error(t, err)
+
 		pairs, err = client.ZrangeWithScoresByFloat("key", 0, -1)
-		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
-			{
-				Key:   "value1",
-				Score: 10.345,
-			},
-			{
-				Key:   "value2",
-				Score: 10.346,
-			},
-		}, pairs)
+		if assert.NoError(t, err) {
+			assert.EqualValues(t, []FloatPair{
+				{
+					Key:   "value1",
+					Score: 10.345,
+				},
+				{
+					Key:   "value2",
+					Score: 10.346,
+				},
+			}, pairs)
+		}
+
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloat("key", 0, 20)
 		assert.NotNil(t, err)
 		pairs, err = client.ZrangebyscoreWithScoresByFloat("key", 0, 20)
 		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
+		assert.EqualValues(t, []FloatPair{
 			{
 				Key:   "value1",
 				Score: 10.345,
@@ -1058,12 +1298,14 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.346,
 			},
 		}, pairs)
+		_, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 10.1, 12.2, 1, 0)
+		assert.NoError(t, err)
 		_, err = New(client.Addr, badType()).ZrangebyscoreWithScoresByFloatAndLimit(
 			"key", 10.1, 12.2, 1, 1)
 		assert.NotNil(t, err)
 		pairs, err = client.ZrangebyscoreWithScoresByFloatAndLimit("key", 10.1, 12.2, 1, 1)
 		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
+		assert.EqualValues(t, []FloatPair{
 			{
 				Key:   "value2",
 				Score: 10.346,
@@ -1073,7 +1315,7 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 		assert.NotNil(t, err)
 		pairs, err = client.ZrevrangebyscoreWithScoresByFloat("key", 10, 12)
 		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
+		assert.EqualValues(t, []FloatPair{
 			{
 				Key:   "value2",
 				Score: 10.346,
@@ -1083,28 +1325,34 @@ func TestRedis_SortedSetByFloat64(t *testing.T) {
 				Score: 10.345,
 			},
 		}, pairs)
+		_, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 10, 12, 1, 0)
+		assert.NoError(t, err)
 		_, err = New(client.Addr, badType()).ZrevrangebyscoreWithScoresByFloatAndLimit(
 			"key", 10, 12, 1, 1)
 		assert.NotNil(t, err)
 		pairs, err = client.ZrevrangebyscoreWithScoresByFloatAndLimit("key", 10, 12, 1, 1)
 		assert.Nil(t, err)
-		assert.EqualValues(t, []PairFloat{
+		assert.EqualValues(t, []FloatPair{
 			{
 				Key:   "value1",
 				Score: 10.345,
 			},
 		}, pairs)
-
 	})
 }
+
 func TestRedis_IncrbyFloat(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		incrVal, err := client.IncrbyFloat("key", 0.002)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.002, incrVal)
+		_, err = New(client.Addr, badType()).IncrbyFloat("key", -0.001)
+		assert.Error(t, err)
 		incrVal2, err := client.IncrbyFloat("key", -0.001)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.001, incrVal2)
+		_, err = New(client.Addr, badType()).HincrbyFloat("hkey", "i", 0.002)
+		assert.Error(t, err)
 		hincrVal, err := client.HincrbyFloat("hkey", "i", 0.002)
 		assert.Nil(t, err)
 		assert.Equal(t, 0.002, hincrVal)
@@ -1113,6 +1361,7 @@ func TestRedis_IncrbyFloat(t *testing.T) {
 		assert.Equal(t, 0.001, hincrVal2)
 	})
 }
+
 func TestRedis_Pipelined(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		assert.NotNil(t, New(client.Addr, badType()).Pipelined(func(pipeliner Pipeliner) error {
@@ -1166,9 +1415,29 @@ func TestRedisEvalSha(t *testing.T) {
 		client.Ping()
 		scriptHash, err := client.ScriptLoad(`return redis.call("EXISTS", KEYS[1])`)
 		assert.Nil(t, err)
+		_, err = New(client.Addr, badType()).EvalSha(scriptHash, []string{"key1"})
+		assert.Error(t, err)
 		result, err := client.EvalSha(scriptHash, []string{"key1"})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(0), result)
+	})
+}
+
+func TestRedis_Ttl(t *testing.T) {
+	t.Run("TTL", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			if assert.NoError(t, client.Set("key", "value")) {
+				_, err := client.Ttl("key")
+				assert.NoError(t, err)
+			}
+		})
+	})
+
+	t.Run("TTL error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.Ttl("key")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1184,6 +1453,29 @@ func TestRedisToPairs(t *testing.T) {
 		},
 	})
 	assert.EqualValues(t, []Pair{
+		{
+			Key:   "1",
+			Score: 1,
+		},
+		{
+			Key:   "2",
+			Score: 2,
+		},
+	}, pairs)
+}
+
+func TestRedisToFloatPairs(t *testing.T) {
+	pairs := toFloatPairs([]red.Z{
+		{
+			Member: 1,
+			Score:  1,
+		},
+		{
+			Member: 2,
+			Score:  2,
+		},
+	})
+	assert.EqualValues(t, []FloatPair{
 		{
 			Key:   "1",
 			Score: 1,
@@ -1226,7 +1518,7 @@ func TestRedis_Zscan(t *testing.T) {
 }
 
 func TestRedisToStrings(t *testing.T) {
-	vals := toStrings([]any{1, 2})
+	vals := toStrings([]interface{}{1, 2})
 	assert.EqualValues(t, []string{"1", "2"}, vals)
 }
 
@@ -1242,13 +1534,15 @@ func TestRedisBlpop(t *testing.T) {
 }
 
 func TestRedisBlpopEx(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		client.Ping()
-		var node mockedNode
-		_, _, err := client.BlpopEx(nil, "foo")
-		assert.NotNil(t, err)
-		_, _, err = client.BlpopEx(node, "foo")
-		assert.NotNil(t, err)
+	t.Run("blpopex", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			var node mockedNode
+			_, _, err := client.BlpopEx(nil, "foo")
+			assert.Error(t, err)
+			_, _, err = client.BlpopEx(node, "foo")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1264,34 +1558,80 @@ func TestRedisBlpopWithTimeout(t *testing.T) {
 }
 
 func TestRedisGeo(t *testing.T) {
-	runOnRedis(t, func(client *Redis) {
-		client.Ping()
-		geoLocation := []*GeoLocation{{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"}, {Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"}}
-		v, err := client.GeoAdd("sicily", geoLocation...)
-		assert.Nil(t, err)
-		assert.Equal(t, int64(2), v)
-		v2, err := client.GeoDist("sicily", "Palermo", "Catania", "m")
-		assert.Nil(t, err)
-		assert.Equal(t, 166274, int(v2))
-		// GeoHash not support
-		v3, err := client.GeoPos("sicily", "Palermo", "Catania")
-		assert.Nil(t, err)
-		assert.Equal(t, int64(v3[0].Longitude), int64(13))
-		assert.Equal(t, int64(v3[0].Latitude), int64(38))
-		assert.Equal(t, int64(v3[1].Longitude), int64(15))
-		assert.Equal(t, int64(v3[1].Latitude), int64(37))
-		v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
-		assert.Nil(t, err)
-		assert.Equal(t, int64(v4[0].Dist), int64(190))
-		assert.Equal(t, int64(v4[1].Dist), int64(56))
-		geoLocation2 := []*GeoLocation{{Longitude: 13.583333, Latitude: 37.316667, Name: "Agrigento"}}
-		v5, err := client.GeoAdd("sicily", geoLocation2...)
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), v5)
-		v6, err := client.GeoRadiusByMember("sicily", "Agrigento", &red.GeoRadiusQuery{Unit: "km", Radius: 100})
-		assert.Nil(t, err)
-		assert.Equal(t, v6[0].Name, "Agrigento")
-		assert.Equal(t, v6[1].Name, "Palermo")
+	t.Run("geo", func(t *testing.T) {
+		runOnRedis(t, func(client *Redis) {
+			client.Ping()
+			geoLocation := []*GeoLocation{{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"},
+				{Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"}}
+			v, err := client.GeoAdd("sicily", geoLocation...)
+			assert.Nil(t, err)
+			assert.Equal(t, int64(2), v)
+			_, err = New(client.Addr, badType()).GeoDist("sicily", "Palermo", "Catania", "m")
+			assert.Error(t, err)
+			v2, err := client.GeoDist("sicily", "Palermo", "Catania", "m")
+			assert.Nil(t, err)
+			assert.Equal(t, 166274, int(v2))
+			// GeoHash not support
+			_, err = New(client.Addr, badType()).GeoPos("sicily", "Palermo", "Catania")
+			assert.Error(t, err)
+			v3, err := client.GeoPos("sicily", "Palermo", "Catania")
+			assert.Nil(t, err)
+			assert.Equal(t, int64(v3[0].Longitude), int64(13))
+			assert.Equal(t, int64(v3[0].Latitude), int64(38))
+			assert.Equal(t, int64(v3[1].Longitude), int64(15))
+			assert.Equal(t, int64(v3[1].Latitude), int64(37))
+			_, err = New(client.Addr, badType()).GeoRadius("sicily", 15, 37,
+				&red.GeoRadiusQuery{WithDist: true, Unit: "km", Radius: 200})
+			assert.Error(t, err)
+			v4, err := client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
+				WithDist: true,
+				Unit:     "km", Radius: 200,
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, int64(v4[0].Dist), int64(190))
+			assert.Equal(t, int64(v4[1].Dist), int64(56))
+			geoLocation2 := []*GeoLocation{{Longitude: 13.583333, Latitude: 37.316667, Name: "Agrigento"}}
+			_, err = New(client.Addr, badType()).GeoAdd("sicily", geoLocation2...)
+			assert.Error(t, err)
+			v5, err := client.GeoAdd("sicily", geoLocation2...)
+			assert.Nil(t, err)
+			assert.Equal(t, int64(1), v5)
+			_, err = New(client.Addr, badType()).GeoRadiusByMember("sicily", "Agrigento",
+				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
+			assert.Error(t, err)
+			v6, err := client.GeoRadiusByMember("sicily", "Agrigento",
+				&red.GeoRadiusQuery{Unit: "km", Radius: 100})
+			assert.Nil(t, err)
+			assert.Equal(t, v6[0].Name, "Agrigento")
+			assert.Equal(t, v6[1].Name, "Palermo")
+		})
+	})
+
+	t.Run("geo error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			_, err := client.GeoAdd("sicily", &GeoLocation{
+				Longitude: 13.3,
+				Latitude:  38.1,
+				Name:      "Palermo",
+			})
+			assert.Error(t, err)
+
+			_, err = client.GeoDist("sicily", "Palermo", "Catania", "m")
+			assert.Error(t, err)
+
+			_, err = client.GeoRadius("sicily", 15, 37, &red.GeoRadiusQuery{
+				WithDist: true,
+			})
+			assert.Error(t, err)
+
+			_, err = client.GeoRadiusByMember("sicily", "Agrigento", &red.GeoRadiusQuery{
+				Unit: "km",
+			})
+			assert.Error(t, err)
+
+			_, err = client.GeoPos("sicily", "Palermo", "Catania")
+			assert.Error(t, err)
+		})
 	})
 }
 
@@ -1325,6 +1665,29 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 			_ = client.Close()
 		}
 	}()
+
+	fn(New(s.Addr()))
+}
+
+func runOnRedisWithError(t *testing.T, fn func(client *Redis)) {
+	logx.Disable()
+
+	s, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer func() {
+		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+			return nil, errors.New("should already exist")
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if client != nil {
+			_ = client.Close()
+		}
+	}()
+
+	s.SetError("mock error")
 	fn(New(s.Addr()))
 }
 

@@ -38,7 +38,7 @@ var bins = []bin{
 		get:    protocgengogrpc.Install,
 	},
 	{
-		name:   "go-swagger",
+		name:   "swagger",
 		exists: goswagger.Exists(),
 		get:    goswagger.Install,
 	},
