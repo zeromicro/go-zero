@@ -253,7 +253,7 @@ func (n nopWriter) Stack(_ interface{}) {
 func (n nopWriter) Stat(_ interface{}, _ ...LogField) {
 }
 
-func buildFields(fields ...LogField) []string {
+func buildPlainFields(fields ...LogField) []string {
 	var items []string
 
 	for _, field := range fields {
@@ -291,7 +291,7 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, buildFields(fields...)...)
+		writePlainAny(writer, level, val, buildPlainFields(fields...)...)
 	default:
 		entry := make(logEntry)
 		for _, field := range fields {
