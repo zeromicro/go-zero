@@ -257,7 +257,7 @@ func buildPlainFields(fields ...LogField) []string {
 	var items []string
 
 	for _, field := range fields {
-		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
+		items = append(items, fmt.Sprintf("%s=%+v", field.Key, field.Value))
 	}
 
 	return items
