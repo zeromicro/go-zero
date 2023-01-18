@@ -80,3 +80,17 @@ func TestKeyBytes(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, len(key.Bytes()) > 0)
 }
+
+func TestDHOnErrors(t *testing.T) {
+	key, err := GenerateKey()
+	assert.Nil(t, err)
+	assert.NotEmpty(t, key.Bytes())
+	_, err = ComputeKey(key.PubKey, key.PriKey)
+	assert.NoError(t, err)
+	_, err = ComputeKey(nil, key.PriKey)
+	assert.Error(t, err)
+	_, err = ComputeKey(key.PubKey, nil)
+	assert.Error(t, err)
+
+	assert.NotNil(t, NewPublicKey([]byte("")))
+}
