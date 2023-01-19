@@ -46,6 +46,12 @@ type (
 		// query from DB and set cache using given expire, then return the result.
 		TakeWithExpireCtx(ctx context.Context, val interface{}, key string,
 			query func(val interface{}, expire time.Duration) error) error
+		// TakeWithSetExpire takes the result from cache first, if not found,
+		// query from DB and set cache using given expire, then return the result.
+		TakeWithSetExpire(val interface{}, key string, expire time.Duration, query func(val interface{}) error) error
+		// TakeWithSetExpireCtx takes the result from cache first, if not found,
+		// query from DB and set cache using given expire, then return the result.
+		TakeWithSetExpireCtx(ctx context.Context, val interface{}, key string, expire time.Duration, query func(val interface{}) error) error
 	}
 
 	cacheCluster struct {
@@ -199,4 +205,21 @@ func (cc cacheCluster) TakeWithExpireCtx(ctx context.Context, val interface{}, k
 	}
 
 	return c.(Cache).TakeWithExpireCtx(ctx, val, key, query)
+}
+
+// TakeWithSetExpire takes the result from cache first, if not found,
+// query from DB and set cache using given expire, then return the result.
+func (cc cacheCluster) TakeWithSetExpire(val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	return cc.TakeWithSetExpireCtx(context.Background(), val, key, expire, query)
+}
+
+// TakeWithSetExpireCtx takes the result from cache first, if not found,
+// query from DB and set cache using given expire, then return the result.
+func (cc cacheCluster) TakeWithSetExpireCtx(ctx context.Context, val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	c, ok := cc.dispatcher.Get(key)
+	if !ok {
+		return cc.errNotFound
+	}
+
+	return c.(Cache).TakeWithSetExpireCtx(ctx, val, key, expire, query)
 }

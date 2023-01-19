@@ -109,6 +109,21 @@ func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val interface{}, ke
 	})
 }
 
+func (mc mockedNode) TakeWithSetExpire(val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	return mc.TakeWithSetExpireCtx(context.Background(), val, key, expire, query)
+}
+
+func (mc mockedNode) TakeWithSetExpireCtx(ctx context.Context, val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	if _, ok := mc.vals[key]; ok {
+		return mc.GetCtx(ctx, key, val)
+	}
+
+	if err := query(val); err != nil {
+		return err
+	}
+	return mc.SetWithExpireCtx(ctx, key, val, expire)
+}
+
 func TestCache_SetDel(t *testing.T) {
 	t.Run("test set del", func(t *testing.T) {
 		const total = 1000
@@ -311,6 +326,9 @@ func TestCacheNoNode(t *testing.T) {
 		return nil
 	}))
 	assert.NotNil(t, c.TakeWithExpire(nil, "foo", func(val interface{}, duration time.Duration) error {
+		return nil
+	}))
+	assert.NotNil(t, c.TakeWithSetExpire(nil, "foo", time.Second, func(val interface{}) error {
 		return nil
 	}))
 }

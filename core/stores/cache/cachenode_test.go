@@ -236,6 +236,33 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 	assert.Equal(t, `"value"`, val)
 }
 
+func TestCacheNode_TakeWithSetExpire(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+	defer clean()
+
+	cn := cacheNode{
+		rds:            store,
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		barrier:        syncx.NewSingleFlight(),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewStat("any"),
+		errNotFound:    errors.New("any"),
+	}
+	var str string
+	err = cn.TakeWithSetExpire(&str, "any", time.Second*5, func(v interface{}) error {
+		*v.(*string) = "value"
+		return nil
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, "value", str)
+	assert.Nil(t, cn.Get("any", &str))
+	val, err := store.Get("any")
+	assert.Nil(t, err)
+	assert.Equal(t, `"value"`, val)
+}
+
 func TestCacheNode_String(t *testing.T) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)

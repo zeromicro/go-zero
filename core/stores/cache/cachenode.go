@@ -173,6 +173,22 @@ func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val interface{}, key s
 	})
 }
 
+// TakeWithSetExpire takes the result from cache first, if not found,
+// query from DB and set cache using given expire, then return the result.
+func (c cacheNode) TakeWithSetExpire(val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	return c.TakeWithSetExpireCtx(context.Background(), val, key, expire, query)
+}
+
+// TakeWithSetExpireCtx takes the result from cache first, if not found,
+// query from DB and set cache using given expire, then return the result.
+func (c cacheNode) TakeWithSetExpireCtx(ctx context.Context, val interface{}, key string, expire time.Duration, query func(val interface{}) error) error {
+	return c.doTake(ctx, val, key, func(v interface{}) error {
+		return query(v)
+	}, func(v interface{}) error {
+		return c.SetWithExpireCtx(ctx, key, v, expire)
+	})
+}
+
 func (c cacheNode) aroundDuration(duration time.Duration) time.Duration {
 	return c.unstableExpiry.AroundDuration(duration)
 }
