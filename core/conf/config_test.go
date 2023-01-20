@@ -97,6 +97,30 @@ d = "abcd!@#$112"
 	assert.Equal(t, "abcd!@#$112", val.D)
 }
 
+func TestConfigOptional(t *testing.T) {
+	text := `a = "foo"
+b = 1
+c = "FOO"
+d = "abcd"
+`
+	tmpfile, err := createTempFile(".toml", text)
+	assert.Nil(t, err)
+	defer os.Remove(tmpfile)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b,optional"`
+		C string `json:"c,optional=B"`
+		D string `json:"d,optional=b"`
+	}
+	if assert.NoError(t, Load(tmpfile, &val)) {
+		assert.Equal(t, "foo", val.A)
+		assert.Equal(t, 1, val.B)
+		assert.Equal(t, "FOO", val.C)
+		assert.Equal(t, "abcd", val.D)
+	}
+}
+
 func TestConfigJsonCanonical(t *testing.T) {
 	text := []byte(`{"a": "foo", "B": "bar"}`)
 

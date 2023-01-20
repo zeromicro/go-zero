@@ -372,6 +372,26 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 		return key, nil, nil
 	}
 
+	if u.opts.canonicalKey != nil {
+		key = u.opts.canonicalKey(key)
+
+		if len(options.OptionalDep) > 0 {
+			// need to create a new fieldOption, because the original one is shared through cache.
+			options = &fieldOptions{
+				fieldOptionsWithContext: fieldOptionsWithContext{
+					Inherit:    options.Inherit,
+					FromString: options.FromString,
+					Optional:   options.Optional,
+					Options:    options.Options,
+					Default:    options.Default,
+					EnvVar:     options.EnvVar,
+					Range:      options.Range,
+				},
+				OptionalDep: u.opts.canonicalKey(options.OptionalDep),
+			}
+		}
+	}
+
 	optsWithContext, err := options.toOptionsWithContext(key, m, fullName)
 	if err != nil {
 		return "", nil, err
