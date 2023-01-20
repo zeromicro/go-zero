@@ -77,6 +77,26 @@ func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
 	}
 }
 
+func TestUnmarshalWithoutTagNameWithCanonicalKeyOptionalDep(t *testing.T) {
+	type inner struct {
+		FirstName string `key:",optional"`
+		LastName  string `key:",optional=FirstName"`
+	}
+	m := map[string]interface{}{
+		"firstname": "go",
+		"lastname":  "zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		return strings.ToLower(s)
+	}))
+	if assert.NoError(t, unmarshaler.Unmarshal(m, &in)) {
+		assert.Equal(t, "go", in.FirstName)
+		assert.Equal(t, "zero", in.LastName)
+	}
+}
+
 func TestUnmarshalBool(t *testing.T) {
 	type inner struct {
 		True           bool `key:"yes"`
@@ -1099,6 +1119,66 @@ func TestUnmarshalStructOptionalDependsNotEnoughValue(t *testing.T) {
 	assert.Error(t, UnmarshalKey(m, &in))
 }
 
+func TestUnmarshalStructOptionalDependsMoreValues(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]interface{}{
+		"name":    "kevin",
+		"address": map[string]interface{}{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalStructMissing(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]interface{}{
+		"name": "kevin",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalNestedStructMissing(t *testing.T) {
+	type mostInner struct {
+		Name string `key:"name"`
+	}
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+		MostInner       mostInner
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]interface{}{
+		"name":    "kevin",
+		"address": map[string]interface{}{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
 func TestUnmarshalAnonymousStructOptionalDepends(t *testing.T) {
 	type AnonAddress struct {
 		City            string `key:"city"`
@@ -1416,6 +1496,18 @@ func TestUnmarshalOptionsOptionalWrongValue(t *testing.T) {
 	m := map[string]interface{}{
 		"value":       "first",
 		"wrong_value": "third",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalOptionsMissingValues(t *testing.T) {
+	type inner struct {
+		Value string `key:"value,options"`
+	}
+	m := map[string]interface{}{
+		"value": "first",
 	}
 
 	var in inner
