@@ -48,5 +48,6 @@ func ParseTarget(target resolver.Target) (Service, error) {
 	} else {
 		service.Name = endpoints
 	}
+
 	return service, nil
 }
