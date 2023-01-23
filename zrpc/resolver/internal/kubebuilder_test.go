@@ -18,6 +18,15 @@ func TestKubeBuilder_Build(t *testing.T) {
 	var b kubeBuilder
 	u, err := url.Parse(fmt.Sprintf("%s://%s", KubernetesScheme, "a,b"))
 	assert.NoError(t, err)
+
+	_, err = b.Build(resolver.Target{
+		URL: *u,
+	}, nil, resolver.BuildOptions{})
+	assert.Error(t, err)
+
+	u, err = url.Parse(fmt.Sprintf("%s://%s:9100/a:b:c", KubernetesScheme, "a,b,c,d"))
+	assert.NoError(t, err)
+
 	_, err = b.Build(resolver.Target{
 		URL: *u,
 	}, nil, resolver.BuildOptions{})
