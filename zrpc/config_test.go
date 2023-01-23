@@ -10,10 +10,35 @@ import (
 )
 
 func TestRpcClientConf(t *testing.T) {
-	conf := NewDirectClientConf([]string{"localhost:1234"}, "foo", "bar")
-	assert.True(t, conf.HasCredential())
-	conf = NewEtcdClientConf([]string{"localhost:1234", "localhost:5678"}, "key", "foo", "bar")
-	assert.True(t, conf.HasCredential())
+	t.Run("direct", func(t *testing.T) {
+		conf := NewDirectClientConf([]string{"localhost:1234"}, "foo", "bar")
+		assert.True(t, conf.HasCredential())
+	})
+
+	t.Run("etcd", func(t *testing.T) {
+		conf := NewEtcdClientConf([]string{"localhost:1234", "localhost:5678"},
+			"key", "foo", "bar")
+		assert.True(t, conf.HasCredential())
+	})
+
+	t.Run("etcd with account", func(t *testing.T) {
+		conf := NewEtcdClientConf([]string{"localhost:1234", "localhost:5678"},
+			"key", "foo", "bar")
+		conf.Etcd.User = "user"
+		conf.Etcd.Pass = "pass"
+		_, err := conf.BuildTarget()
+		assert.NoError(t, err)
+	})
+
+	t.Run("etcd with tls", func(t *testing.T) {
+		conf := NewEtcdClientConf([]string{"localhost:1234", "localhost:5678"},
+			"key", "foo", "bar")
+		conf.Etcd.CertFile = "cert"
+		conf.Etcd.CertKeyFile = "key"
+		conf.Etcd.CACertFile = "ca"
+		_, err := conf.BuildTarget()
+		assert.Error(t, err)
+	})
 }
 
 func TestRpcServerConf(t *testing.T) {
