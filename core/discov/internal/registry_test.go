@@ -167,7 +167,7 @@ func TestCluster_Watch(t *testing.T) {
 				assert.Equal(t, "world", kv.Val)
 				wg.Done()
 			}).MaxTimes(1)
-			listener.EXPECT().OnDelete(gomock.Any()).Do(func(_ interface{}) {
+			listener.EXPECT().OnDelete(gomock.Any()).Do(func(_ any) {
 				wg.Done()
 			}).MaxTimes(1)
 			go c.watch(cli, "any", 0)

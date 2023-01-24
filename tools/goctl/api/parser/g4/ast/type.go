@@ -12,7 +12,7 @@ type (
 	TypeExpr interface {
 		Doc() []Expr
 		Format() error
-		Equal(v interface{}) bool
+		Equal(v any) bool
 		NameExpr() Expr
 	}
 
@@ -98,7 +98,7 @@ type (
 )
 
 // VisitTypeSpec implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeSpec(ctx *api.TypeSpecContext) interface{} {
+func (v *ApiVisitor) VisitTypeSpec(ctx *api.TypeSpecContext) any {
 	if ctx.TypeLit() != nil {
 		return []TypeExpr{ctx.TypeLit().Accept(v).(TypeExpr)}
 	}
@@ -106,7 +106,7 @@ func (v *ApiVisitor) VisitTypeSpec(ctx *api.TypeSpecContext) interface{} {
 }
 
 // VisitTypeLit implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) interface{} {
+func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) any {
 	typeLit := ctx.TypeLitBody().Accept(v)
 	alias, ok := typeLit.(*TypeAlias)
 	if ok {
@@ -124,7 +124,7 @@ func (v *ApiVisitor) VisitTypeLit(ctx *api.TypeLitContext) interface{} {
 }
 
 // VisitTypeBlock implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) interface{} {
+func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) any {
 	list := ctx.AllTypeBlockBody()
 	var types []TypeExpr
 	for _, each := range list {
@@ -134,7 +134,7 @@ func (v *ApiVisitor) VisitTypeBlock(ctx *api.TypeBlockContext) interface{} {
 }
 
 // VisitTypeLitBody implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeLitBody(ctx *api.TypeLitBodyContext) interface{} {
+func (v *ApiVisitor) VisitTypeLitBody(ctx *api.TypeLitBodyContext) any {
 	if ctx.TypeAlias() != nil {
 		return ctx.TypeAlias().Accept(v)
 	}
@@ -142,7 +142,7 @@ func (v *ApiVisitor) VisitTypeLitBody(ctx *api.TypeLitBodyContext) interface{} {
 }
 
 // VisitTypeBlockBody implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeBlockBody(ctx *api.TypeBlockBodyContext) interface{} {
+func (v *ApiVisitor) VisitTypeBlockBody(ctx *api.TypeBlockBodyContext) any {
 	if ctx.TypeBlockAlias() != nil {
 		return ctx.TypeBlockAlias().Accept(v).(*TypeAlias)
 	}
@@ -150,7 +150,7 @@ func (v *ApiVisitor) VisitTypeBlockBody(ctx *api.TypeBlockBodyContext) interface
 }
 
 // VisitTypeStruct implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) interface{} {
+func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) any {
 	var st TypeStruct
 	st.Name = v.newExprWithToken(ctx.GetStructName())
 
@@ -182,7 +182,7 @@ func (v *ApiVisitor) VisitTypeStruct(ctx *api.TypeStructContext) interface{} {
 }
 
 // VisitTypeBlockStruct implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeBlockStruct(ctx *api.TypeBlockStructContext) interface{} {
+func (v *ApiVisitor) VisitTypeBlockStruct(ctx *api.TypeBlockStructContext) any {
 	var st TypeStruct
 	st.Name = v.newExprWithToken(ctx.GetStructName())
 
@@ -214,7 +214,7 @@ func (v *ApiVisitor) VisitTypeBlockStruct(ctx *api.TypeBlockStructContext) inter
 }
 
 // VisitTypeBlockAlias implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeBlockAlias(ctx *api.TypeBlockAliasContext) interface{} {
+func (v *ApiVisitor) VisitTypeBlockAlias(ctx *api.TypeBlockAliasContext) any {
 	var alias TypeAlias
 	alias.Name = v.newExprWithToken(ctx.GetAlias())
 	alias.Assign = v.newExprWithToken(ctx.GetAssign())
@@ -227,7 +227,7 @@ func (v *ApiVisitor) VisitTypeBlockAlias(ctx *api.TypeBlockAliasContext) interfa
 }
 
 // VisitTypeAlias implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitTypeAlias(ctx *api.TypeAliasContext) interface{} {
+func (v *ApiVisitor) VisitTypeAlias(ctx *api.TypeAliasContext) any {
 	var alias TypeAlias
 	alias.Name = v.newExprWithToken(ctx.GetAlias())
 	alias.Assign = v.newExprWithToken(ctx.GetAssign())
@@ -240,7 +240,7 @@ func (v *ApiVisitor) VisitTypeAlias(ctx *api.TypeAliasContext) interface{} {
 }
 
 // VisitField implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitField(ctx *api.FieldContext) interface{} {
+func (v *ApiVisitor) VisitField(ctx *api.FieldContext) any {
 	iAnonymousFiled := ctx.AnonymousFiled()
 	iNormalFieldContext := ctx.NormalField()
 	if iAnonymousFiled != nil {
@@ -253,7 +253,7 @@ func (v *ApiVisitor) VisitField(ctx *api.FieldContext) interface{} {
 }
 
 // VisitNormalField implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitNormalField(ctx *api.NormalFieldContext) interface{} {
+func (v *ApiVisitor) VisitNormalField(ctx *api.NormalFieldContext) any {
 	var field TypeField
 	field.Name = v.newExprWithToken(ctx.GetFieldName())
 
@@ -276,7 +276,7 @@ func (v *ApiVisitor) VisitNormalField(ctx *api.NormalFieldContext) interface{} {
 }
 
 // VisitAnonymousFiled implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitAnonymousFiled(ctx *api.AnonymousFiledContext) interface{} {
+func (v *ApiVisitor) VisitAnonymousFiled(ctx *api.AnonymousFiledContext) any {
 	start := ctx.GetStart()
 	stop := ctx.GetStop()
 	var field TypeField
@@ -298,7 +298,7 @@ func (v *ApiVisitor) VisitAnonymousFiled(ctx *api.AnonymousFiledContext) interfa
 }
 
 // VisitDataType implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitDataType(ctx *api.DataTypeContext) interface{} {
+func (v *ApiVisitor) VisitDataType(ctx *api.DataTypeContext) any {
 	if ctx.ID() != nil {
 		idExpr := v.newExprWithTerminalNode(ctx.ID())
 		return &Literal{Literal: idExpr}
@@ -326,7 +326,7 @@ func (v *ApiVisitor) VisitDataType(ctx *api.DataTypeContext) interface{} {
 }
 
 // VisitPointerType implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitPointerType(ctx *api.PointerTypeContext) interface{} {
+func (v *ApiVisitor) VisitPointerType(ctx *api.PointerTypeContext) any {
 	nameExpr := v.newExprWithTerminalNode(ctx.ID())
 	return &Pointer{
 		PointerExpr: v.newExprWithText(ctx.GetText(), ctx.GetStar().GetLine(), ctx.GetStar().GetColumn(), ctx.GetStar().GetStart(), ctx.ID().GetSymbol().GetStop()),
@@ -336,7 +336,7 @@ func (v *ApiVisitor) VisitPointerType(ctx *api.PointerTypeContext) interface{} {
 }
 
 // VisitMapType implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitMapType(ctx *api.MapTypeContext) interface{} {
+func (v *ApiVisitor) VisitMapType(ctx *api.MapTypeContext) any {
 	return &Map{
 		MapExpr: v.newExprWithText(ctx.GetText(), ctx.GetMapToken().GetLine(), ctx.GetMapToken().GetColumn(),
 			ctx.GetMapToken().GetStart(), ctx.GetValue().GetStop().GetStop()),
@@ -349,7 +349,7 @@ func (v *ApiVisitor) VisitMapType(ctx *api.MapTypeContext) interface{} {
 }
 
 // VisitArrayType implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitArrayType(ctx *api.ArrayTypeContext) interface{} {
+func (v *ApiVisitor) VisitArrayType(ctx *api.ArrayTypeContext) any {
 	return &Array{
 		ArrayExpr: v.newExprWithText(ctx.GetText(), ctx.GetLbrack().GetLine(), ctx.GetLbrack().GetColumn(), ctx.GetLbrack().GetStart(), ctx.DataType().GetStop().GetStop()),
 		LBrack:    v.newExprWithToken(ctx.GetLbrack()),
@@ -379,7 +379,7 @@ func (a *TypeAlias) Format() error {
 }
 
 // Equal compares whether the element literals in two TypeAlias are equal
-func (a *TypeAlias) Equal(v interface{}) bool {
+func (a *TypeAlias) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -609,7 +609,7 @@ func (s *TypeStruct) NameExpr() Expr {
 }
 
 // Equal compares whether the element literals in two TypeStruct are equal
-func (s *TypeStruct) Equal(dt interface{}) bool {
+func (s *TypeStruct) Equal(dt any) bool {
 	if dt == nil {
 		return false
 	}
@@ -681,7 +681,7 @@ func (s *TypeStruct) Format() error {
 }
 
 // Equal compares whether the element literals in two TypeField are equal
-func (t *TypeField) Equal(v interface{}) bool {
+func (t *TypeField) Equal(v any) bool {
 	if v == nil {
 		return false
 	}

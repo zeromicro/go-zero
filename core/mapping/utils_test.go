@@ -258,7 +258,7 @@ func TestSetValueFormatErrors(t *testing.T) {
 		IntValue   int
 		UintValue  uint
 		FloatValue float32
-		MapValue   map[string]interface{}
+		MapValue   map[string]any
 	}
 
 	var bar Bar

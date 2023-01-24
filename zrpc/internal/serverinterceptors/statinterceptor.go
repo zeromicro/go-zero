@@ -34,8 +34,8 @@ func SetSlowThreshold(threshold time.Duration) {
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.
 func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (resp interface{}, err error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := timex.Now()
 		defer func() {
 			duration := timex.Since(startTime)
@@ -49,7 +49,7 @@ func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
 	}
 }
 
-func logDuration(ctx context.Context, method string, req interface{}, duration time.Duration) {
+func logDuration(ctx context.Context, method string, req any, duration time.Duration) {
 	var addr string
 	client, ok := peer.FromContext(ctx)
 	if ok {

@@ -20,8 +20,8 @@ var (
 func UnarySheddingInterceptor(shedder load.Shedder, metrics *stat.Metrics) grpc.UnaryServerInterceptor {
 	ensureSheddingStat()
 
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (val interface{}, err error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (val any, err error) {
 		sheddingStat.IncrementTotal()
 		var promise load.Promise
 		promise, err = shedder.Allow()

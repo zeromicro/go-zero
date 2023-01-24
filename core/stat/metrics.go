@@ -104,7 +104,7 @@ type (
 	}
 )
 
-func (c *metricsContainer) AddTask(v interface{}) bool {
+func (c *metricsContainer) AddTask(v any) bool {
 	if task, ok := v.(Task); ok {
 		if task.Drop {
 			c.drops++
@@ -117,7 +117,7 @@ func (c *metricsContainer) AddTask(v interface{}) bool {
 	return false
 }
 
-func (c *metricsContainer) Execute(v interface{}) {
+func (c *metricsContainer) Execute(v any) {
 	pair := v.(tasksDurationPair)
 	tasks := pair.tasks
 	duration := pair.duration
@@ -180,7 +180,7 @@ func (c *metricsContainer) Execute(v interface{}) {
 	log(report)
 }
 
-func (c *metricsContainer) RemoveAll() interface{} {
+func (c *metricsContainer) RemoveAll() any {
 	tasks := c.tasks
 	duration := c.duration
 	drops := c.drops

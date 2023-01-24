@@ -110,7 +110,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			wg.Wait()
-			dist := make(map[interface{}]int)
+			dist := make(map[any]int)
 			conns := picker.(*p2cPicker).conns
 			for _, conn := range conns {
 				dist[conn.addr.Addr] = int(conn.requests)

@@ -16,7 +16,7 @@ func TestStmt_exec(t *testing.T) {
 	tests := []struct {
 		name         string
 		query        string
-		args         []interface{}
+		args         []any
 		delay        bool
 		hasError     bool
 		err          error
@@ -26,28 +26,28 @@ func TestStmt_exec(t *testing.T) {
 		{
 			name:         "normal",
 			query:        "select user from users where id=?",
-			args:         []interface{}{1},
+			args:         []any{1},
 			lastInsertId: 1,
 			rowsAffected: 2,
 		},
 		{
 			name:     "exec error",
 			query:    "select user from users where id=?",
-			args:     []interface{}{1},
+			args:     []any{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:     "exec more args error",
 			query:    "select user from users where id=? and name=?",
-			args:     []interface{}{1},
+			args:     []any{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:         "slowcall",
 			query:        "select user from users where id=?",
-			args:         []interface{}{1},
+			args:         []any{1},
 			delay:        true,
 			lastInsertId: 1,
 			rowsAffected: 2,
@@ -56,8 +56,8 @@ func TestStmt_exec(t *testing.T) {
 
 	for _, test := range tests {
 		test := test
-		fns := []func(args ...interface{}) (sql.Result, error){
-			func(args ...interface{}) (sql.Result, error) {
+		fns := []func(args ...any) (sql.Result, error){
+			func(args ...any) (sql.Result, error) {
 				return exec(context.Background(), &mockedSessionConn{
 					lastInsertId: test.lastInsertId,
 					rowsAffected: test.rowsAffected,
@@ -65,7 +65,7 @@ func TestStmt_exec(t *testing.T) {
 					delay:        test.delay,
 				}, test.query, args...)
 			},
-			func(args ...interface{}) (sql.Result, error) {
+			func(args ...any) (sql.Result, error) {
 				return execStmt(context.Background(), &mockedStmtConn{
 					lastInsertId: test.lastInsertId,
 					rowsAffected: test.rowsAffected,
@@ -102,7 +102,7 @@ func TestStmt_query(t *testing.T) {
 	tests := []struct {
 		name     string
 		query    string
-		args     []interface{}
+		args     []any
 		delay    bool
 		hasError bool
 		err      error
@@ -110,34 +110,34 @@ func TestStmt_query(t *testing.T) {
 		{
 			name:  "normal",
 			query: "select user from users where id=?",
-			args:  []interface{}{1},
+			args:  []any{1},
 		},
 		{
 			name:     "query error",
 			query:    "select user from users where id=?",
-			args:     []interface{}{1},
+			args:     []any{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:     "query more args error",
 			query:    "select user from users where id=? and name=?",
-			args:     []interface{}{1},
+			args:     []any{1},
 			hasError: true,
 			err:      errors.New("exec"),
 		},
 		{
 			name:  "slowcall",
 			query: "select user from users where id=?",
-			args:  []interface{}{1},
+			args:  []any{1},
 			delay: true,
 		},
 	}
 
 	for _, test := range tests {
 		test := test
-		fns := []func(args ...interface{}) error{
-			func(args ...interface{}) error {
+		fns := []func(args ...any) error{
+			func(args ...any) error {
 				return query(context.Background(), &mockedSessionConn{
 					err:   test.err,
 					delay: test.delay,
@@ -145,7 +145,7 @@ func TestStmt_query(t *testing.T) {
 					return nil
 				}, test.query, args...)
 			},
-			func(args ...interface{}) error {
+			func(args ...any) error {
 				return queryStmt(context.Background(), &mockedStmtConn{
 					err:   test.err,
 					delay: test.delay,
@@ -226,11 +226,11 @@ type mockedSessionConn struct {
 	delay        bool
 }
 
-func (m *mockedSessionConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (m *mockedSessionConn) Exec(query string, args ...any) (sql.Result, error) {
 	return m.ExecContext(context.Background(), query, args...)
 }
 
-func (m *mockedSessionConn) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (m *mockedSessionConn) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
@@ -240,11 +240,11 @@ func (m *mockedSessionConn) ExecContext(ctx context.Context, query string, args 
 	}, m.err
 }
 
-func (m *mockedSessionConn) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (m *mockedSessionConn) Query(query string, args ...any) (*sql.Rows, error) {
 	return m.QueryContext(context.Background(), query, args...)
 }
 
-func (m *mockedSessionConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (m *mockedSessionConn) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
@@ -263,11 +263,11 @@ type mockedStmtConn struct {
 	delay        bool
 }
 
-func (m *mockedStmtConn) Exec(args ...interface{}) (sql.Result, error) {
+func (m *mockedStmtConn) Exec(args ...any) (sql.Result, error) {
 	return m.ExecContext(context.Background(), args...)
 }
 
-func (m *mockedStmtConn) ExecContext(_ context.Context, _ ...interface{}) (sql.Result, error) {
+func (m *mockedStmtConn) ExecContext(_ context.Context, _ ...any) (sql.Result, error) {
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}
@@ -277,11 +277,11 @@ func (m *mockedStmtConn) ExecContext(_ context.Context, _ ...interface{}) (sql.R
 	}, m.err
 }
 
-func (m *mockedStmtConn) Query(args ...interface{}) (*sql.Rows, error) {
+func (m *mockedStmtConn) Query(args ...any) (*sql.Rows, error) {
 	return m.QueryContext(context.Background(), args...)
 }
 
-func (m *mockedStmtConn) QueryContext(_ context.Context, _ ...interface{}) (*sql.Rows, error) {
+func (m *mockedStmtConn) QueryContext(_ context.Context, _ ...any) (*sql.Rows, error) {
 	if m.delay {
 		time.Sleep(defaultSlowThreshold + time.Millisecond)
 	}

@@ -35,7 +35,7 @@ type (
 	}
 
 	node struct {
-		item     interface{}
+		item     any
 		children [2]map[string]*node
 	}
 
@@ -46,7 +46,7 @@ type (
 
 	// A Result is a search result from tree.
 	Result struct {
-		Item   interface{}
+		Item   any
 		Params map[string]string
 	}
 )
@@ -59,7 +59,7 @@ func NewTree() *Tree {
 }
 
 // Add adds item to associate with route.
-func (t *Tree) Add(route string, item interface{}) error {
+func (t *Tree) Add(route string, item any) error {
 	if len(route) == 0 || route[0] != slash {
 		return errNotFromRoot
 	}
@@ -149,7 +149,7 @@ func (nd *node) getChildren(route string) map[string]*node {
 	return nd.children[0]
 }
 
-func add(nd *node, route string, item interface{}) error {
+func add(nd *node, route string, item any) error {
 	if len(route) == 0 {
 		if nd.item != nil {
 			return errDupItem
@@ -228,7 +228,7 @@ func match(pat, token string) innerResult {
 	}
 }
 
-func newNode(item interface{}) *node {
+func newNode(item any) *node {
 	return &node{
 		item: item,
 		children: [2]map[string]*node{

@@ -1080,6 +1080,6 @@ func (m *mockedScanner) Next() bool {
 	return false
 }
 
-func (m *mockedScanner) Scan(v ...interface{}) error {
+func (m *mockedScanner) Scan(v ...any) error {
 	return m.scanErr
 }

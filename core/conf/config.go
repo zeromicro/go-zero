@@ -13,7 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-var loaders = map[string]func([]byte, interface{}) error{
+var loaders = map[string]func([]byte, any) error{
 	".json": LoadFromJsonBytes,
 	".toml": LoadFromTomlBytes,
 	".yaml": LoadFromYamlBytes,
@@ -26,7 +26,7 @@ type fieldInfo struct {
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
-func Load(file string, v interface{}, opts ...Option) error {
+func Load(file string, v any, opts ...Option) error {
 	content, err := os.ReadFile(file)
 	if err != nil {
 		return err
@@ -51,13 +51,13 @@ func Load(file string, v interface{}, opts ...Option) error {
 
 // LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
 // Deprecated: use Load instead.
-func LoadConfig(file string, v interface{}, opts ...Option) error {
+func LoadConfig(file string, v any, opts ...Option) error {
 	return Load(file, v, opts...)
 }
 
 // LoadFromJsonBytes loads config into v from content json bytes.
-func LoadFromJsonBytes(content []byte, v interface{}) error {
-	var m map[string]interface{}
+func LoadFromJsonBytes(content []byte, v any) error {
+	var m map[string]any
 	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
@@ -70,12 +70,12 @@ func LoadFromJsonBytes(content []byte, v interface{}) error {
 
 // LoadConfigFromJsonBytes loads config into v from content json bytes.
 // Deprecated: use LoadFromJsonBytes instead.
-func LoadConfigFromJsonBytes(content []byte, v interface{}) error {
+func LoadConfigFromJsonBytes(content []byte, v any) error {
 	return LoadFromJsonBytes(content, v)
 }
 
 // LoadFromTomlBytes loads config into v from content toml bytes.
-func LoadFromTomlBytes(content []byte, v interface{}) error {
+func LoadFromTomlBytes(content []byte, v any) error {
 	b, err := encoding.TomlToJson(content)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func LoadFromTomlBytes(content []byte, v interface{}) error {
 }
 
 // LoadFromYamlBytes loads config into v from content yaml bytes.
-func LoadFromYamlBytes(content []byte, v interface{}) error {
+func LoadFromYamlBytes(content []byte, v any) error {
 	b, err := encoding.YamlToJson(content)
 	if err != nil {
 		return err
@@ -96,12 +96,12 @@ func LoadFromYamlBytes(content []byte, v interface{}) error {
 
 // LoadConfigFromYamlBytes loads config into v from content yaml bytes.
 // Deprecated: use LoadFromYamlBytes instead.
-func LoadConfigFromYamlBytes(content []byte, v interface{}) error {
+func LoadConfigFromYamlBytes(content []byte, v any) error {
 	return LoadFromYamlBytes(content, v)
 }
 
 // MustLoad loads config into v from path, exits on error.
-func MustLoad(path string, v interface{}, opts ...Option) {
+func MustLoad(path string, v any, opts ...Option) {
 	if err := Load(path, v, opts...); err != nil {
 		log.Fatalf("error: config file %s, %s", path, err.Error())
 	}
@@ -174,12 +174,12 @@ func toLowerCase(s string) string {
 	return strings.ToLower(s)
 }
 
-func toLowerCaseInterface(v interface{}, info map[string]fieldInfo) interface{} {
+func toLowerCaseInterface(v any, info map[string]fieldInfo) any {
 	switch vv := v.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		return toLowerCaseKeyMap(vv, info)
-	case []interface{}:
-		var arr []interface{}
+	case []any:
+		var arr []any
 		for _, vvv := range vv {
 			arr = append(arr, toLowerCaseInterface(vvv, info))
 		}
@@ -189,8 +189,8 @@ func toLowerCaseInterface(v interface{}, info map[string]fieldInfo) interface{} 
 	}
 }
 
-func toLowerCaseKeyMap(m map[string]interface{}, info map[string]fieldInfo) map[string]interface{} {
-	res := make(map[string]interface{})
+func toLowerCaseKeyMap(m map[string]any, info map[string]fieldInfo) map[string]any {
+	res := make(map[string]any)
 
 	for k, v := range m {
 		ti, ok := info[k]

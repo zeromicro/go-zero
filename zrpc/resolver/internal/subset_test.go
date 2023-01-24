@@ -34,7 +34,7 @@ func TestSubset(t *testing.T) {
 				vals = append(vals, strconv.Itoa(i))
 			}
 
-			m := make(map[interface{}]int)
+			m := make(map[any]int)
 			for i := 0; i < 1000; i++ {
 				set := subset(append([]string(nil), vals...), test.sub)
 				if test.sub < test.set {

@@ -17,22 +17,22 @@ const threshold = 10
 type container struct {
 	interval time.Duration
 	tasks    []int
-	execute  func(tasks interface{})
+	execute  func(tasks any)
 }
 
-func newContainer(interval time.Duration, execute func(tasks interface{})) *container {
+func newContainer(interval time.Duration, execute func(tasks any)) *container {
 	return &container{
 		interval: interval,
 		execute:  execute,
 	}
 }
 
-func (c *container) AddTask(task interface{}) bool {
+func (c *container) AddTask(task any) bool {
 	c.tasks = append(c.tasks, task.(int))
 	return len(c.tasks) > threshold
 }
 
-func (c *container) Execute(tasks interface{}) {
+func (c *container) Execute(tasks any) {
 	if c.execute != nil {
 		c.execute(tasks)
 	} else {
@@ -40,7 +40,7 @@ func (c *container) Execute(tasks interface{}) {
 	}
 }
 
-func (c *container) RemoveAll() interface{} {
+func (c *container) RemoveAll() any {
 	tasks := c.tasks
 	c.tasks = nil
 	return tasks
@@ -76,7 +76,7 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 	var vals []int
 	// avoid data race
 	var lock sync.Mutex
-	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks interface{}) {
+	exec := NewPeriodicalExecutor(time.Millisecond, newContainer(time.Millisecond, func(tasks any) {
 		t := tasks.([]int)
 		for _, each := range t {
 			lock.Lock()
@@ -110,7 +110,7 @@ func TestPeriodicalExecutor_Bulk(t *testing.T) {
 
 func TestPeriodicalExecutor_Wait(t *testing.T) {
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []interface{}) {
+	executer := NewBulkExecutor(func(tasks []any) {
 		lock.Lock()
 		defer lock.Unlock()
 		time.Sleep(10 * time.Millisecond)
@@ -126,7 +126,7 @@ func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 	const total = 3
 	var cnt int
 	var lock sync.Mutex
-	executer := NewBulkExecutor(func(tasks []interface{}) {
+	executer := NewBulkExecutor(func(tasks []any) {
 		defer func() {
 			cnt++
 		}()
@@ -143,7 +143,7 @@ func TestPeriodicalExecutor_WaitFast(t *testing.T) {
 }
 
 func TestPeriodicalExecutor_Deadlock(t *testing.T) {
-	executor := NewBulkExecutor(func(tasks []interface{}) {
+	executor := NewBulkExecutor(func(tasks []any) {
 	}, WithBulkTasks(1), WithBulkInterval(time.Millisecond))
 	for i := 0; i < 1e5; i++ {
 		executor.Add(1)

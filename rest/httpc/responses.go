@@ -12,7 +12,7 @@ import (
 )
 
 // Parse parses the response.
-func Parse(resp *http.Response, val interface{}) error {
+func Parse(resp *http.Response, val any) error {
 	if err := ParseHeaders(resp, val); err != nil {
 		return err
 	}
@@ -21,12 +21,12 @@ func Parse(resp *http.Response, val interface{}) error {
 }
 
 // ParseHeaders parses the response headers.
-func ParseHeaders(resp *http.Response, val interface{}) error {
+func ParseHeaders(resp *http.Response, val any) error {
 	return encoding.ParseHeaders(resp.Header, val)
 }
 
 // ParseJsonBody parses the response body, which should be in json content type.
-func ParseJsonBody(resp *http.Response, val interface{}) error {
+func ParseJsonBody(resp *http.Response, val any) error {
 	defer resp.Body.Close()
 
 	if isContentTypeJson(resp) {

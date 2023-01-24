@@ -12,7 +12,7 @@ func Wrap(err error, message string) error {
 }
 
 // Wrapf returns an error that wraps err with given format and args.
-func Wrapf(err error, format string, args ...interface{}) error {
+func Wrapf(err error, format string, args ...any) error {
 	if err == nil {
 		return nil
 	}

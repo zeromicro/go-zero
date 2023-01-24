@@ -62,7 +62,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 	}
 
 	output, err := util.With("update").Parse(text).Execute(
-		map[string]interface{}{
+		map[string]any{
 			"withCache":             withCache,
 			"containsIndexCache":    table.ContainsUniqueCacheKey,
 			"upperStartCamelObject": camelTableName,
