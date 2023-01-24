@@ -43,6 +43,11 @@ func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
 
+// WrapUp wraps up the process, only for test purpose.
+func WrapUp() {
+	wrapUpListeners.notifyListeners()
+}
+
 func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 

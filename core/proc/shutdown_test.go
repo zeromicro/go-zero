@@ -18,7 +18,7 @@ func TestShutdown(t *testing.T) {
 	called := AddWrapUpListener(func() {
 		val++
 	})
-	wrapUpListeners.notifyListeners()
+	WrapUp()
 	called()
 	assert.Equal(t, 1, val)
 
