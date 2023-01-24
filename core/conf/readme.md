@@ -4,6 +4,7 @@
 
 ```go
 type RestfulConf struct {
+  ServiceName  string        `json:",env=SERVICE_NAME"`  // read from env automatically
 	Host         string        `json:",default=0.0.0.0"`
 	Port         int
 	LogMode      string        `json:",options=[file,console]"`
@@ -21,20 +22,20 @@ type RestfulConf struct {
 
 ```yaml
 # most fields are optional or have default values
-Port: 8080
-LogMode: console
+port: 8080
+logMode: console
 # you can use env settings
-MaxBytes: ${MAX_BYTES}
+maxBytes: ${MAX_BYTES}
 ```
 
 - toml example
 
 ```toml
 # most fields are optional or have default values
-Port = 8_080
-LogMode = "console"
+port = 8_080
+logMode = "console"
 # you can use env settings
-MaxBytes = "${MAX_BYTES}"
+maxBytes = "${MAX_BYTES}"
 ```
 
 3. Load the config from a file:
