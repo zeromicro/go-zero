@@ -53,10 +53,11 @@ func TestChunkExecutorFlushInterval(t *testing.T) {
 }
 
 func TestChunkExecutorEmpty(t *testing.T) {
-	NewChunkExecutor(func(items []interface{}) {
+	executor := NewChunkExecutor(func(items []interface{}) {
 		assert.Fail(t, "should not called")
 	}, WithChunkBytes(10), WithFlushInterval(time.Millisecond))
 	time.Sleep(time.Millisecond * 100)
+	executor.Wait()
 }
 
 func TestChunkExecutorFlush(t *testing.T) {

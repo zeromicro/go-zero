@@ -43,6 +43,16 @@ func SetTimeToForceQuit(duration time.Duration) {
 	delayTimeBeforeForceQuit = duration
 }
 
+// Shutdown calls the registered shutdown listeners, only for test purpose.
+func Shutdown() {
+	shutdownListeners.notifyListeners()
+}
+
+// WrapUp wraps up the process, only for test purpose.
+func WrapUp() {
+	wrapUpListeners.notifyListeners()
+}
+
 func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
