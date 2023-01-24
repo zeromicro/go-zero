@@ -197,7 +197,7 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 		return err
 	}
 
-	err = util.With("vars").Parse(text).SaveTo(map[string]interface{}{
+	err = util.With("vars").Parse(text).SaveTo(map[string]any{
 		"pkg": g.pkg,
 	}, filename, false)
 	if err != nil {

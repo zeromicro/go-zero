@@ -11,13 +11,13 @@ var Placeholder PlaceholderType
 
 type (
 	// AnyType can be used to hold any type.
-	AnyType = interface{}
+	AnyType = any
 	// PlaceholderType represents a placeholder type.
 	PlaceholderType = struct{}
 )
 
 // Repr returns the string representation of v.
-func Repr(v interface{}) string {
+func Repr(v any) string {
 	if v == nil {
 		return ""
 	}

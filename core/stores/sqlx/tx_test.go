@@ -23,11 +23,11 @@ func (mt *mockTx) Commit() error {
 	return nil
 }
 
-func (mt *mockTx) Exec(q string, args ...interface{}) (sql.Result, error) {
+func (mt *mockTx) Exec(q string, args ...any) (sql.Result, error) {
 	return nil, nil
 }
 
-func (mt *mockTx) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (mt *mockTx) ExecCtx(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	return nil, nil
 }
 
@@ -39,35 +39,35 @@ func (mt *mockTx) PrepareCtx(ctx context.Context, query string) (StmtSession, er
 	return nil, nil
 }
 
-func (mt *mockTx) QueryRow(v interface{}, q string, args ...interface{}) error {
+func (mt *mockTx) QueryRow(v any, q string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (mt *mockTx) QueryRowCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
+func (mt *mockTx) QueryRowPartial(v any, q string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (mt *mockTx) QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRows(v interface{}, q string, args ...interface{}) error {
+func (mt *mockTx) QueryRows(v any, q string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (mt *mockTx) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
+func (mt *mockTx) QueryRowsPartial(v any, q string, args ...any) error {
 	return nil
 }
 
-func (mt *mockTx) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (mt *mockTx) QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 

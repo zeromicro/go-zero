@@ -30,7 +30,7 @@ func (g *Generator) GenSvc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 		return err
 	}
 
-	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+	return util.With("svc").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"imports": fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
 	}, fileName, false)
 }

@@ -29,49 +29,49 @@ type mockWriter struct {
 	builder strings.Builder
 }
 
-func (mw *mockWriter) Alert(v interface{}) {
+func (mw *mockWriter) Alert(v any) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelAlert, v)
 }
 
-func (mw *mockWriter) Debug(v interface{}, fields ...LogField) {
+func (mw *mockWriter) Debug(v any, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelDebug, v, fields...)
 }
 
-func (mw *mockWriter) Error(v interface{}, fields ...LogField) {
+func (mw *mockWriter) Error(v any, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelError, v, fields...)
 }
 
-func (mw *mockWriter) Info(v interface{}, fields ...LogField) {
+func (mw *mockWriter) Info(v any, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelInfo, v, fields...)
 }
 
-func (mw *mockWriter) Severe(v interface{}) {
+func (mw *mockWriter) Severe(v any) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelSevere, v)
 }
 
-func (mw *mockWriter) Slow(v interface{}, fields ...LogField) {
+func (mw *mockWriter) Slow(v any, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelSlow, v, fields...)
 }
 
-func (mw *mockWriter) Stack(v interface{}) {
+func (mw *mockWriter) Stack(v any) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelError, v)
 }
 
-func (mw *mockWriter) Stat(v interface{}, fields ...LogField) {
+func (mw *mockWriter) Stat(v any, fields ...LogField) {
 	mw.lock.Lock()
 	defer mw.lock.Unlock()
 	output(&mw.builder, levelStat, v, fields...)
@@ -103,41 +103,41 @@ func TestField(t *testing.T) {
 	tests := []struct {
 		name string
 		f    LogField
-		want map[string]interface{}
+		want map[string]any
 	}{
 		{
 			name: "error",
 			f:    Field("foo", errors.New("bar")),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"foo": "bar",
 			},
 		},
 		{
 			name: "errors",
 			f:    Field("foo", []error{errors.New("bar"), errors.New("baz")}),
-			want: map[string]interface{}{
-				"foo": []interface{}{"bar", "baz"},
+			want: map[string]any{
+				"foo": []any{"bar", "baz"},
 			},
 		},
 		{
 			name: "strings",
 			f:    Field("foo", []string{"bar", "baz"}),
-			want: map[string]interface{}{
-				"foo": []interface{}{"bar", "baz"},
+			want: map[string]any{
+				"foo": []any{"bar", "baz"},
 			},
 		},
 		{
 			name: "duration",
 			f:    Field("foo", time.Second),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"foo": "1s",
 			},
 		},
 		{
 			name: "durations",
 			f:    Field("foo", []time.Duration{time.Second, 2 * time.Second}),
-			want: map[string]interface{}{
-				"foo": []interface{}{"1s", "2s"},
+			want: map[string]any{
+				"foo": []any{"1s", "2s"},
 			},
 		},
 		{
@@ -146,22 +146,22 @@ func TestField(t *testing.T) {
 				time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC),
 				time.Date(2020, time.January, 2, 0, 0, 0, 0, time.UTC),
 			}),
-			want: map[string]interface{}{
-				"foo": []interface{}{"2020-01-01 00:00:00 +0000 UTC", "2020-01-02 00:00:00 +0000 UTC"},
+			want: map[string]any{
+				"foo": []any{"2020-01-01 00:00:00 +0000 UTC", "2020-01-02 00:00:00 +0000 UTC"},
 			},
 		},
 		{
 			name: "stringer",
 			f:    Field("foo", ValStringer{val: "bar"}),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"foo": "bar",
 			},
 		},
 		{
 			name: "stringers",
 			f:    Field("foo", []fmt.Stringer{ValStringer{val: "bar"}, ValStringer{val: "baz"}}),
-			want: map[string]interface{}{
-				"foo": []interface{}{"bar", "baz"},
+			want: map[string]any{
+				"foo": []any{"bar", "baz"},
 			},
 		},
 	}
@@ -213,7 +213,7 @@ func TestStructedLogAlert(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelAlert, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelAlert, w, func(v ...any) {
 		Alert(fmt.Sprint(v...))
 	})
 }
@@ -223,7 +223,7 @@ func TestStructedLogDebug(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelDebug, w, func(v ...any) {
 		Debug(v...)
 	})
 }
@@ -233,7 +233,7 @@ func TestStructedLogDebugf(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelDebug, w, func(v ...any) {
 		Debugf(fmt.Sprint(v...))
 	})
 }
@@ -243,7 +243,7 @@ func TestStructedLogDebugv(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelDebug, w, func(v ...any) {
 		Debugv(fmt.Sprint(v...))
 	})
 }
@@ -253,7 +253,7 @@ func TestStructedLogDebugw(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelDebug, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelDebug, w, func(v ...any) {
 		Debugw(fmt.Sprint(v...), Field("foo", time.Second))
 	})
 }
@@ -263,7 +263,7 @@ func TestStructedLogError(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelError, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelError, w, func(v ...any) {
 		Error(v...)
 	})
 }
@@ -273,7 +273,7 @@ func TestStructedLogErrorf(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelError, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelError, w, func(v ...any) {
 		Errorf("%s", fmt.Sprint(v...))
 	})
 }
@@ -283,7 +283,7 @@ func TestStructedLogErrorv(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelError, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelError, w, func(v ...any) {
 		Errorv(fmt.Sprint(v...))
 	})
 }
@@ -293,7 +293,7 @@ func TestStructedLogErrorw(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelError, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelError, w, func(v ...any) {
 		Errorw(fmt.Sprint(v...), Field("foo", "bar"))
 	})
 }
@@ -303,7 +303,7 @@ func TestStructedLogInfo(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelInfo, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelInfo, w, func(v ...any) {
 		Info(v...)
 	})
 }
@@ -313,7 +313,7 @@ func TestStructedLogInfof(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelInfo, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelInfo, w, func(v ...any) {
 		Infof("%s", fmt.Sprint(v...))
 	})
 }
@@ -323,7 +323,7 @@ func TestStructedLogInfov(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelInfo, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelInfo, w, func(v ...any) {
 		Infov(fmt.Sprint(v...))
 	})
 }
@@ -333,7 +333,7 @@ func TestStructedLogInfow(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelInfo, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelInfo, w, func(v ...any) {
 		Infow(fmt.Sprint(v...), Field("foo", "bar"))
 	})
 }
@@ -343,7 +343,7 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLogConsole(t, w, func(v ...interface{}) {
+	doTestStructedLogConsole(t, w, func(v ...any) {
 		old := atomic.LoadUint32(&encoding)
 		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
@@ -359,7 +359,7 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLogConsole(t, w, func(v ...interface{}) {
+	doTestStructedLogConsole(t, w, func(v ...any) {
 		old := atomic.LoadUint32(&encoding)
 		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
@@ -375,7 +375,7 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLogConsole(t, w, func(v ...interface{}) {
+	doTestStructedLogConsole(t, w, func(v ...any) {
 		old := atomic.LoadUint32(&encoding)
 		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
@@ -391,7 +391,7 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLogConsole(t, w, func(v ...interface{}) {
+	doTestStructedLogConsole(t, w, func(v ...any) {
 		old := atomic.LoadUint32(&encoding)
 		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
@@ -409,7 +409,7 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLogConsole(t, w, func(v ...interface{}) {
+	doTestStructedLogConsole(t, w, func(v ...any) {
 		old := atomic.LoadUint32(&encoding)
 		atomic.StoreUint32(&encoding, plainEncodingType)
 		defer func() {
@@ -425,7 +425,7 @@ func TestStructedLogSlow(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSlow, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSlow, w, func(v ...any) {
 		Slow(v...)
 	})
 }
@@ -435,7 +435,7 @@ func TestStructedLogSlowf(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSlow, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSlow, w, func(v ...any) {
 		Slowf(fmt.Sprint(v...))
 	})
 }
@@ -445,7 +445,7 @@ func TestStructedLogSlowv(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSlow, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSlow, w, func(v ...any) {
 		Slowv(fmt.Sprint(v...))
 	})
 }
@@ -455,7 +455,7 @@ func TestStructedLogSloww(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSlow, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSlow, w, func(v ...any) {
 		Sloww(fmt.Sprint(v...), Field("foo", time.Second))
 	})
 }
@@ -465,7 +465,7 @@ func TestStructedLogStat(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelStat, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelStat, w, func(v ...any) {
 		Stat(v...)
 	})
 }
@@ -475,7 +475,7 @@ func TestStructedLogStatf(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelStat, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelStat, w, func(v ...any) {
 		Statf(fmt.Sprint(v...))
 	})
 }
@@ -485,7 +485,7 @@ func TestStructedLogSevere(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSevere, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSevere, w, func(v ...any) {
 		Severe(v...)
 	})
 }
@@ -495,7 +495,7 @@ func TestStructedLogSeveref(t *testing.T) {
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
-	doTestStructedLog(t, levelSevere, w, func(v ...interface{}) {
+	doTestStructedLog(t, levelSevere, w, func(v ...any) {
 		Severef(fmt.Sprint(v...))
 	})
 }
@@ -507,7 +507,7 @@ func TestStructedLogWithDuration(t *testing.T) {
 	defer writer.Store(old)
 
 	WithDuration(time.Second).Info(message)
-	var entry map[string]interface{}
+	var entry map[string]any
 	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
@@ -767,11 +767,11 @@ func put(b []byte) {
 	}
 }
 
-func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...interface{})) {
+func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...any)) {
 	const message = "hello there"
 	write(message)
 
-	var entry map[string]interface{}
+	var entry map[string]any
 	if err := json.Unmarshal([]byte(w.String()), &entry); err != nil {
 		t.Error(err)
 	}
@@ -782,7 +782,7 @@ func doTestStructedLog(t *testing.T, level string, w *mockWriter, write func(...
 	assert.True(t, strings.Contains(val.(string), message))
 }
 
-func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...interface{})) {
+func doTestStructedLogConsole(t *testing.T, w *mockWriter, write func(...any)) {
 	const message = "hello there"
 	write(message)
 	assert.True(t, strings.Contains(w.String(), message))
@@ -822,8 +822,8 @@ func (v ValStringer) String() string {
 	return v.val
 }
 
-func validateFields(t *testing.T, content string, fields map[string]interface{}) {
-	var m map[string]interface{}
+func validateFields(t *testing.T, content string, fields map[string]any) {
+	var m map[string]any
 	if err := json.Unmarshal([]byte(content), &m); err != nil {
 		t.Error(err)
 	}

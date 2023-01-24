@@ -138,7 +138,7 @@ func TestSafeMap_Range(t *testing.T) {
 	}
 
 	var count int32
-	m.Range(func(k, v interface{}) bool {
+	m.Range(func(k, v any) bool {
 		atomic.AddInt32(&count, 1)
 		newMap.Set(k, v)
 		return true

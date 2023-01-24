@@ -16,47 +16,47 @@ func init() {
 }
 
 // Error logs the given args into error log.
-func (l *Logger) Error(args ...interface{}) {
+func (l *Logger) Error(args ...any) {
 	logx.Error(args...)
 }
 
 // Errorf logs the given args with format into error log.
-func (l *Logger) Errorf(format string, args ...interface{}) {
+func (l *Logger) Errorf(format string, args ...any) {
 	logx.Errorf(format, args...)
 }
 
 // Errorln logs the given args into error log with newline.
-func (l *Logger) Errorln(args ...interface{}) {
+func (l *Logger) Errorln(args ...any) {
 	logx.Error(args...)
 }
 
 // Fatal logs the given args into error log.
-func (l *Logger) Fatal(args ...interface{}) {
+func (l *Logger) Fatal(args ...any) {
 	logx.Error(args...)
 }
 
 // Fatalf logs the given args with format into error log.
-func (l *Logger) Fatalf(format string, args ...interface{}) {
+func (l *Logger) Fatalf(format string, args ...any) {
 	logx.Errorf(format, args...)
 }
 
 // Fatalln logs args into error log with newline.
-func (l *Logger) Fatalln(args ...interface{}) {
+func (l *Logger) Fatalln(args ...any) {
 	logx.Error(args...)
 }
 
 // Info ignores the grpc info logs.
-func (l *Logger) Info(args ...interface{}) {
+func (l *Logger) Info(args ...any) {
 	// ignore builtin grpc info
 }
 
 // Infoln ignores the grpc info logs.
-func (l *Logger) Infoln(args ...interface{}) {
+func (l *Logger) Infoln(args ...any) {
 	// ignore builtin grpc info
 }
 
 // Infof ignores the grpc info logs.
-func (l *Logger) Infof(format string, args ...interface{}) {
+func (l *Logger) Infof(format string, args ...any) {
 	// ignore builtin grpc info
 }
 
@@ -66,16 +66,16 @@ func (l *Logger) V(v int) bool {
 }
 
 // Warning ignores the grpc warning logs.
-func (l *Logger) Warning(args ...interface{}) {
+func (l *Logger) Warning(args ...any) {
 	// ignore builtin grpc warning
 }
 
 // Warningf ignores the grpc warning logs.
-func (l *Logger) Warningf(format string, args ...interface{}) {
+func (l *Logger) Warningf(format string, args ...any) {
 	// ignore builtin grpc warning
 }
 
 // Warningln ignores the grpc warning logs.
-func (l *Logger) Warningln(args ...interface{}) {
+func (l *Logger) Warningln(args ...any) {
 	// ignore builtin grpc warning
 }

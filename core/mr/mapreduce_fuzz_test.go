@@ -29,23 +29,23 @@ func FuzzMapReduce(f *testing.F) {
 		reducerIdx := rand.Int63n(n)
 		squareSum := (n - 1) * n * (2*n - 1) / 6
 
-		fn := func() (interface{}, error) {
+		fn := func() (any, error) {
 			defer goleak.VerifyNone(t, goleak.IgnoreCurrent())
 
-			return MapReduce(func(source chan<- interface{}) {
+			return MapReduce(func(source chan<- any) {
 				for i := int64(0); i < n; i++ {
 					source <- i
 					if genPanic && i == genIdx {
 						panic("foo")
 					}
 				}
-			}, func(item interface{}, writer Writer, cancel func(error)) {
+			}, func(item any, writer Writer, cancel func(error)) {
 				v := item.(int64)
 				if mapperPanic && v == mapperIdx {
 					panic("bar")
 				}
 				writer.Write(v * v)
-			}, func(pipe <-chan interface{}, writer Writer, cancel func(error)) {
+			}, func(pipe <-chan any, writer Writer, cancel func(error)) {
 				var idx int64
 				var total int64
 				for v := range pipe {

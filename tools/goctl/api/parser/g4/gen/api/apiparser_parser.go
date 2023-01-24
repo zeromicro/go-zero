@@ -360,7 +360,7 @@ func (s *ApiContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) st
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ApiContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ApiContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitApi(s)
@@ -506,7 +506,7 @@ func (s *SpecContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) s
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *SpecContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *SpecContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitSpec(s)

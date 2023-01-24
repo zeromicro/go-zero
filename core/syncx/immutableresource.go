@@ -15,8 +15,8 @@ type (
 
 	// An ImmutableResource is used to manage an immutable resource.
 	ImmutableResource struct {
-		fetch           func() (interface{}, error)
-		resource        interface{}
+		fetch           func() (any, error)
+		resource        any
 		err             error
 		lock            sync.RWMutex
 		refreshInterval time.Duration
@@ -25,7 +25,7 @@ type (
 )
 
 // NewImmutableResource returns an ImmutableResource.
-func NewImmutableResource(fn func() (interface{}, error), opts ...ImmutableResourceOption) *ImmutableResource {
+func NewImmutableResource(fn func() (any, error), opts ...ImmutableResourceOption) *ImmutableResource {
 	// cannot use executors.LessExecutor because of cycle imports
 	ir := ImmutableResource{
 		fetch:           fn,
@@ -39,7 +39,7 @@ func NewImmutableResource(fn func() (interface{}, error), opts ...ImmutableResou
 }
 
 // Get gets the immutable resource, fetches automatically if not loaded.
-func (ir *ImmutableResource) Get() (interface{}, error) {
+func (ir *ImmutableResource) Get() (any, error) {
 	ir.lock.RLock()
 	resource := ir.resource
 	ir.lock.RUnlock()

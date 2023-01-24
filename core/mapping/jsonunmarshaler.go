@@ -11,17 +11,17 @@ const jsonTagKey = "json"
 var jsonUnmarshaler = NewUnmarshaler(jsonTagKey)
 
 // UnmarshalJsonBytes unmarshals content into v.
-func UnmarshalJsonBytes(content []byte, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalJsonBytes(content []byte, v any, opts ...UnmarshalOption) error {
 	return unmarshalJsonBytes(content, v, getJsonUnmarshaler(opts...))
 }
 
 // UnmarshalJsonMap unmarshals content from m into v.
-func UnmarshalJsonMap(m map[string]interface{}, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalJsonMap(m map[string]any, v any, opts ...UnmarshalOption) error {
 	return getJsonUnmarshaler(opts...).Unmarshal(m, v)
 }
 
 // UnmarshalJsonReader unmarshals content from reader into v.
-func UnmarshalJsonReader(reader io.Reader, v interface{}, opts ...UnmarshalOption) error {
+func UnmarshalJsonReader(reader io.Reader, v any, opts ...UnmarshalOption) error {
 	return unmarshalJsonReader(reader, v, getJsonUnmarshaler(opts...))
 }
 
@@ -33,8 +33,8 @@ func getJsonUnmarshaler(opts ...UnmarshalOption) *Unmarshaler {
 	return jsonUnmarshaler
 }
 
-func unmarshalJsonBytes(content []byte, v interface{}, unmarshaler *Unmarshaler) error {
-	var m interface{}
+func unmarshalJsonBytes(content []byte, v any, unmarshaler *Unmarshaler) error {
+	var m any
 	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
@@ -42,8 +42,8 @@ func unmarshalJsonBytes(content []byte, v interface{}, unmarshaler *Unmarshaler)
 	return unmarshaler.Unmarshal(m, v)
 }
 
-func unmarshalJsonReader(reader io.Reader, v interface{}, unmarshaler *Unmarshaler) error {
-	var m interface{}
+func unmarshalJsonReader(reader io.Reader, v any, unmarshaler *Unmarshaler) error {
+	var m any
 	if err := jsonx.UnmarshalFromReader(reader, &m); err != nil {
 		return err
 	}

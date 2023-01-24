@@ -5,7 +5,7 @@ import "math"
 const epsilon = 1e-6
 
 // CalcEntropy calculates the entropy of m.
-func CalcEntropy(m map[interface{}]int) float64 {
+func CalcEntropy(m map[any]int) float64 {
 	if len(m) == 0 || len(m) == 1 {
 		return 1
 	}

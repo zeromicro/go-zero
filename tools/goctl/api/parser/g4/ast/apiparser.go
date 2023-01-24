@@ -51,7 +51,7 @@ func NewParser(options ...ParserOption) *Parser {
 
 // Accept can parse any terminalNode of api tree by fn.
 // -- for debug
-func (p *Parser) Accept(fn func(p *api.ApiParserParser, visitor *ApiVisitor) interface{}, content string) (v interface{}, err error) {
+func (p *Parser) Accept(fn func(p *api.ApiParserParser, visitor *ApiVisitor) any, content string) (v any, err error) {
 	defer func() {
 		p := recover()
 		if p != nil {
@@ -507,7 +507,7 @@ func (p *Parser) readContent(filename string) (string, error) {
 }
 
 // SyntaxError accepts errors and panic it
-func (p *Parser) SyntaxError(_ antlr.Recognizer, _ interface{}, line, column int, msg string, _ antlr.RecognitionException) {
+func (p *Parser) SyntaxError(_ antlr.Recognizer, _ any, line, column int, msg string, _ antlr.RecognitionException) {
 	str := fmt.Sprintf(`%s line %d:%d  %s`, p.linePrefix, line, column, msg)
 	if p.debug {
 		p.log.Error(str)

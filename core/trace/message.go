@@ -21,7 +21,7 @@ type messageType attribute.KeyValue
 
 // Event adds an event of the messageType to the span associated with the
 // passed context with id and size (if message is a proto message).
-func (m messageType) Event(ctx context.Context, id int, message interface{}) {
+func (m messageType) Event(ctx context.Context, id int, message any) {
 	span := trace.SpanFromContext(ctx)
 	if p, ok := message.(proto.Message); ok {
 		span.AddEvent(messageEvent, trace.WithAttributes(
