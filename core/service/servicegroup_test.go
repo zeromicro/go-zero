@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 var (
@@ -55,6 +56,7 @@ func TestServiceGroup(t *testing.T) {
 	}
 
 	group.Stop()
+	proc.Shutdown()
 
 	mutex.Lock()
 	defer mutex.Unlock()
