@@ -18,7 +18,7 @@ func TestRpcServer(t *testing.T) {
 		Stat:       true,
 		Prometheus: true,
 		Breaker:    true,
-	}, WithMetrics(metrics))
+	}, WithMetrics(metrics), WithRpcHealth(true))
 	server.SetName("mock")
 	var wg sync.WaitGroup
 	var grpcServer *grpc.Server
@@ -48,7 +48,7 @@ func TestRpcServer_WithBadAddress(t *testing.T) {
 		Stat:       true,
 		Prometheus: true,
 		Breaker:    true,
-	})
+	}, WithRpcHealth(true))
 	server.SetName("mock")
 	err := server.Start(func(server *grpc.Server) {
 		mock.RegisterDepositServiceServer(server, new(mock.DepositServer))

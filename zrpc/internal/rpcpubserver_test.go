@@ -4,8 +4,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/netx"
 )
+
+func TestNewRpcPubServer(t *testing.T) {
+	s, err := NewRpcPubServer(discov.EtcdConf{
+		User: "user",
+		Pass: "pass",
+	}, "", ServerMiddlewaresConf{})
+	assert.NoError(t, err)
+	assert.NotPanics(t, func() {
+		s.Start(nil)
+	})
+}
 
 func TestFigureOutListenOn(t *testing.T) {
 	tests := []struct {
@@ -23,6 +35,10 @@ func TestFigureOutListenOn(t *testing.T) {
 		{
 			input:  ":8080",
 			expect: netx.InternalIp() + ":8080",
+		},
+		{
+			input:  "",
+			expect: netx.InternalIp(),
 		},
 	}
 
