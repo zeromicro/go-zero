@@ -18,14 +18,14 @@ func TestShutdown(t *testing.T) {
 	called := AddWrapUpListener(func() {
 		val++
 	})
-	wrapUpListeners.notifyListeners()
+	WrapUp()
 	called()
 	assert.Equal(t, 1, val)
 
 	called = AddShutdownListener(func() {
 		val += 2
 	})
-	shutdownListeners.notifyListeners()
+	Shutdown()
 	called()
 	assert.Equal(t, 3, val)
 }

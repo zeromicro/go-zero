@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
@@ -36,6 +37,8 @@ func TestRpcServer(t *testing.T) {
 	}()
 
 	wg.Wait()
+
+	proc.WrapUp()
 	lock.Lock()
 	grpcServer.GracefulStop()
 	lock.Unlock()

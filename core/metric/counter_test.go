@@ -5,6 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/prometheus"
 )
 
@@ -17,6 +18,9 @@ func TestNewCounterVec(t *testing.T) {
 	})
 	defer counterVec.close()
 	counterVecNil := NewCounterVec(nil)
+	counterVec.Inc("path", "code")
+	counterVec.Add(1, "path", "code")
+	proc.Shutdown()
 	assert.NotNil(t, counterVec)
 	assert.Nil(t, counterVecNil)
 }
