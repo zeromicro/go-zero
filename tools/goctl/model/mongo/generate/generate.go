@@ -55,7 +55,7 @@ func generateModel(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
 			"Cache":     ctx.Cache,
@@ -80,7 +80,7 @@ func generateCustomModel(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type":      stringx.From(t).Title(),
 			"lowerType": stringx.From(t).Untitle(),
 			"snakeType": stringx.From(t).ToSnake(),
@@ -108,7 +108,7 @@ func generateTypes(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type": stringx.From(t).Title(),
 		}, output, false); err != nil {
 			return err

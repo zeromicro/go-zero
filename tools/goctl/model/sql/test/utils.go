@@ -41,7 +41,7 @@ func escape(input string) string {
 	return b.String()
 }
 
-func format(query string, args ...interface{}) (string, error) {
+func format(query string, args ...any) (string, error) {
 	numArgs := len(args)
 	if numArgs == 0 {
 		return query, nil
