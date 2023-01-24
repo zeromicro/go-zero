@@ -420,6 +420,42 @@ func TestLoadFromYamlItemOverlay(t *testing.T) {
 	}
 }
 
+func TestLoadFromYamlItemOverlayWithMap(t *testing.T) {
+	type (
+		Redis struct {
+			Host string
+			Port int
+		}
+
+		RedisKey struct {
+			Redis
+			Key string
+		}
+
+		Server struct {
+			Redis RedisKey
+		}
+
+		TestConfig struct {
+			Server
+			Redis map[string]interface{}
+		}
+	)
+
+	input := []byte(`Redis:
+  Host: localhost
+  Port: 6379
+  Key: test
+`)
+
+	var c TestConfig
+	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
+		assert.Equal(t, "localhost", c.Server.Redis.Host)
+		assert.Equal(t, 6379, c.Server.Redis.Port)
+		assert.Equal(t, "test", c.Server.Redis.Key)
+	}
+}
+
 func TestUnmarshalJsonBytesMap(t *testing.T) {
 	input := []byte(`{"foo":{"/mtproto.RPCTos": "bff.bff","bar":"baz"}}`)
 
