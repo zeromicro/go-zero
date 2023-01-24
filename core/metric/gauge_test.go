@@ -19,6 +19,8 @@ func TestNewGaugeVec(t *testing.T) {
 	gaugeVecNil := NewGaugeVec(nil)
 	assert.NotNil(t, gaugeVec)
 	assert.Nil(t, gaugeVecNil)
+
+	proc.Shutdown()
 }
 
 func TestGaugeInc(t *testing.T) {
@@ -36,11 +38,6 @@ func TestGaugeInc(t *testing.T) {
 	gv.Inc("/users")
 	r := testutil.ToFloat64(gv.gauge)
 	assert.Equal(t, float64(2), r)
-
-	gaugeVec.Inc("/classroom")
-	gaugeVec.Add(30, "/classroom")
-	gaugeVec.Set(666, "/users")
-	proc.Shutdown()
 }
 
 func TestGaugeAdd(t *testing.T) {
