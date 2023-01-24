@@ -3,6 +3,8 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -34,7 +36,69 @@ func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
+func expandSliceOrArrayArgs(query string, args ...interface{}) (string, []interface{}) {
+	var n0, n1, j int
+	for _, arg := range args {
+		switch av := reflect.ValueOf(arg); av.Kind() {
+		case reflect.Slice, reflect.Array:
+			if j = av.Len(); j > 0 {
+				n0 += j
+				n1++
+			} else {
+				n0++
+			}
+		default:
+			n0++
+		}
+	}
+
+	if n1 == 0 || n0 == 0 {
+		return query, args
+	}
+
+	type argMap struct{ index, len int }
+	var (
+		resp    = make([]interface{}, 0, n0)
+		argMaps = make([]argMap, 0, n1)
+	)
+	n0 = 0
+	for i, arg := range args {
+		switch av := reflect.ValueOf(arg); av.Kind() {
+		case reflect.Slice, reflect.Array:
+			if n1 = av.Len() - 1; n1 >= 0 {
+				for j = 0; j <= n1; j++ {
+					resp = append(resp, av.Index(j).Interface())
+				}
+				argMaps = append(argMaps, argMap{index: i, len: n1})
+				n0 += n1
+			} else {
+				resp = append(resp, "NULL")
+			}
+		default:
+			resp = append(resp, arg)
+		}
+	}
+
+	var b strings.Builder
+	b.Grow(len(query) + 2*n0)
+	n0, n1 = 0, 0
+	for _, v := range query {
+		b.WriteRune(v)
+		if v == '?' && n0 < len(argMaps) {
+			if argMaps[n0].index == n1 {
+				for j = argMaps[n0].len; j > 0; j-- {
+					b.WriteString(",?")
+				}
+				n0++
+			}
+			n1++
+		}
+	}
+	return b.String(), resp
+}
+
 func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) (sql.Result, error) {
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("exec")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -47,6 +111,7 @@ func exec(ctx context.Context, conn sessionConn, q string, args ...interface{}) 
 }
 
 func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{}) (sql.Result, error) {
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("execStmt")
 	if err := guard.start(q, args...); err != nil {
 		return nil, err
@@ -60,6 +125,7 @@ func execStmt(ctx context.Context, conn stmtConn, q string, args ...interface{})
 
 func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) error {
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("query")
 	if err := guard.start(q, args...); err != nil {
 		return err
@@ -77,6 +143,7 @@ func query(ctx context.Context, conn sessionConn, scanner func(*sql.Rows) error,
 
 func queryStmt(ctx context.Context, conn stmtConn, scanner func(*sql.Rows) error,
 	q string, args ...interface{}) error {
+	q, args = expandSliceOrArrayArgs(q, args...)
 	guard := newGuard("queryStmt")
 	if err := guard.start(q, args...); err != nil {
 		return err
