@@ -352,13 +352,13 @@ func (s *Redis) DelCtx(ctx context.Context, keys ...string) (val int, err error)
 }
 
 // Eval is the implementation of redis eval command.
-func (s *Redis) Eval(script string, keys []string, args ...interface{}) (interface{}, error) {
+func (s *Redis) Eval(script string, keys []string, args ...any) (any, error) {
 	return s.EvalCtx(context.Background(), script, keys, args...)
 }
 
 // EvalCtx is the implementation of redis eval command.
 func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
-	args ...interface{}) (val interface{}, err error) {
+	args ...any) (val any, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -373,13 +373,13 @@ func (s *Redis) EvalCtx(ctx context.Context, script string, keys []string,
 }
 
 // EvalSha is the implementation of redis evalsha command.
-func (s *Redis) EvalSha(sha string, keys []string, args ...interface{}) (interface{}, error) {
+func (s *Redis) EvalSha(sha string, keys []string, args ...any) (any, error) {
 	return s.EvalShaCtx(context.Background(), sha, keys, args...)
 }
 
 // EvalShaCtx is the implementation of redis evalsha command.
 func (s *Redis) EvalShaCtx(ctx context.Context, sha string, keys []string,
-	args ...interface{}) (val interface{}, err error) {
+	args ...any) (val any, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -934,7 +934,7 @@ func (s *Redis) HmsetCtx(ctx context.Context, key string, fieldsAndValues map[st
 			return err
 		}
 
-		vals := make(map[string]interface{}, len(fieldsAndValues))
+		vals := make(map[string]any, len(fieldsAndValues))
 		for k, v := range fieldsAndValues {
 			vals[k] = v
 		}
@@ -1131,12 +1131,12 @@ func (s *Redis) LpopCtx(ctx context.Context, key string) (val string, err error)
 }
 
 // Lpush is the implementation of redis lpush command.
-func (s *Redis) Lpush(key string, values ...interface{}) (int, error) {
+func (s *Redis) Lpush(key string, values ...any) (int, error) {
 	return s.LpushCtx(context.Background(), key, values...)
 }
 
 // LpushCtx is the implementation of redis lpush command.
-func (s *Redis) LpushCtx(ctx context.Context, key string, values ...interface{}) (val int, err error) {
+func (s *Redis) LpushCtx(ctx context.Context, key string, values ...any) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1263,12 +1263,12 @@ func (s *Redis) PersistCtx(ctx context.Context, key string) (val bool, err error
 }
 
 // Pfadd is the implementation of redis pfadd command.
-func (s *Redis) Pfadd(key string, values ...interface{}) (bool, error) {
+func (s *Redis) Pfadd(key string, values ...any) (bool, error) {
 	return s.PfaddCtx(context.Background(), key, values...)
 }
 
 // PfaddCtx is the implementation of redis pfadd command.
-func (s *Redis) PfaddCtx(ctx context.Context, key string, values ...interface{}) (val bool, err error) {
+func (s *Redis) PfaddCtx(ctx context.Context, key string, values ...any) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1393,12 +1393,12 @@ func (s *Redis) RpopCtx(ctx context.Context, key string) (val string, err error)
 }
 
 // Rpush is the implementation of redis rpush command.
-func (s *Redis) Rpush(key string, values ...interface{}) (int, error) {
+func (s *Redis) Rpush(key string, values ...any) (int, error) {
 	return s.RpushCtx(context.Background(), key, values...)
 }
 
 // RpushCtx is the implementation of redis rpush command.
-func (s *Redis) RpushCtx(ctx context.Context, key string, values ...interface{}) (val int, err error) {
+func (s *Redis) RpushCtx(ctx context.Context, key string, values ...any) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1418,12 +1418,12 @@ func (s *Redis) RpushCtx(ctx context.Context, key string, values ...interface{})
 }
 
 // Sadd is the implementation of redis sadd command.
-func (s *Redis) Sadd(key string, values ...interface{}) (int, error) {
+func (s *Redis) Sadd(key string, values ...any) (int, error) {
 	return s.SaddCtx(context.Background(), key, values...)
 }
 
 // SaddCtx is the implementation of redis sadd command.
-func (s *Redis) SaddCtx(ctx context.Context, key string, values ...interface{}) (val int, err error) {
+func (s *Redis) SaddCtx(ctx context.Context, key string, values ...any) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1620,12 +1620,12 @@ func (s *Redis) SetnxExCtx(ctx context.Context, key, value string, seconds int) 
 }
 
 // Sismember is the implementation of redis sismember command.
-func (s *Redis) Sismember(key string, value interface{}) (bool, error) {
+func (s *Redis) Sismember(key string, value any) (bool, error) {
 	return s.SismemberCtx(context.Background(), key, value)
 }
 
 // SismemberCtx is the implementation of redis sismember command.
-func (s *Redis) SismemberCtx(ctx context.Context, key string, value interface{}) (val bool, err error) {
+func (s *Redis) SismemberCtx(ctx context.Context, key string, value any) (val bool, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -1700,12 +1700,12 @@ func (s *Redis) SrandmemberCtx(ctx context.Context, key string, count int) (val 
 }
 
 // Srem is the implementation of redis srem command.
-func (s *Redis) Srem(key string, values ...interface{}) (int, error) {
+func (s *Redis) Srem(key string, values ...any) (int, error) {
 	return s.SremCtx(context.Background(), key, values...)
 }
 
 // SremCtx is the implementation of redis srem command.
-func (s *Redis) SremCtx(ctx context.Context, key string, values ...interface{}) (val int, err error) {
+func (s *Redis) SremCtx(ctx context.Context, key string, values ...any) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -2127,12 +2127,12 @@ func (s *Redis) ZrankCtx(ctx context.Context, key, field string) (val int64, err
 }
 
 // Zrem is the implementation of redis zrem command.
-func (s *Redis) Zrem(key string, values ...interface{}) (int, error) {
+func (s *Redis) Zrem(key string, values ...any) (int, error) {
 	return s.ZremCtx(context.Background(), key, values...)
 }
 
 // ZremCtx is the implementation of redis zrem command.
-func (s *Redis) ZremCtx(ctx context.Context, key string, values ...interface{}) (val int, err error) {
+func (s *Redis) ZremCtx(ctx context.Context, key string, values ...any) (val int, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
 		if err != nil {
@@ -2770,7 +2770,7 @@ func toFloatPairs(vals []red.Z) []FloatPair {
 	return pairs
 }
 
-func toStrings(vals []interface{}) []string {
+func toStrings(vals []any) []string {
 	ret := make([]string, len(vals))
 
 	for i, val := range vals {

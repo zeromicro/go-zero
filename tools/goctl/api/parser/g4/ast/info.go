@@ -13,7 +13,7 @@ type InfoExpr struct {
 }
 
 // VisitInfoSpec implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitInfoSpec(ctx *api.InfoSpecContext) interface{} {
+func (v *ApiVisitor) VisitInfoSpec(ctx *api.InfoSpecContext) any {
 	var expr InfoExpr
 	expr.Info = v.newExprWithToken(ctx.GetInfoToken())
 	expr.Lp = v.newExprWithToken(ctx.GetLp())
@@ -38,7 +38,7 @@ func (i *InfoExpr) Format() error {
 }
 
 // Equal compares whether the element literals in two InfoExpr are equal
-func (i *InfoExpr) Equal(v interface{}) bool {
+func (i *InfoExpr) Equal(v any) bool {
 	if v == nil {
 		return false
 	}

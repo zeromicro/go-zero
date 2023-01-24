@@ -40,15 +40,15 @@ type richLogger struct {
 	fields     []LogField
 }
 
-func (l *richLogger) Debug(v ...interface{}) {
+func (l *richLogger) Debug(v ...any) {
 	l.debug(fmt.Sprint(v...))
 }
 
-func (l *richLogger) Debugf(format string, v ...interface{}) {
+func (l *richLogger) Debugf(format string, v ...any) {
 	l.debug(fmt.Sprintf(format, v...))
 }
 
-func (l *richLogger) Debugv(v interface{}) {
+func (l *richLogger) Debugv(v any) {
 	l.debug(v)
 }
 
@@ -56,15 +56,15 @@ func (l *richLogger) Debugw(msg string, fields ...LogField) {
 	l.debug(msg, fields...)
 }
 
-func (l *richLogger) Error(v ...interface{}) {
+func (l *richLogger) Error(v ...any) {
 	l.err(fmt.Sprint(v...))
 }
 
-func (l *richLogger) Errorf(format string, v ...interface{}) {
+func (l *richLogger) Errorf(format string, v ...any) {
 	l.err(fmt.Sprintf(format, v...))
 }
 
-func (l *richLogger) Errorv(v interface{}) {
+func (l *richLogger) Errorv(v any) {
 	l.err(fmt.Sprint(v))
 }
 
@@ -72,15 +72,15 @@ func (l *richLogger) Errorw(msg string, fields ...LogField) {
 	l.err(msg, fields...)
 }
 
-func (l *richLogger) Info(v ...interface{}) {
+func (l *richLogger) Info(v ...any) {
 	l.info(fmt.Sprint(v...))
 }
 
-func (l *richLogger) Infof(format string, v ...interface{}) {
+func (l *richLogger) Infof(format string, v ...any) {
 	l.info(fmt.Sprintf(format, v...))
 }
 
-func (l *richLogger) Infov(v interface{}) {
+func (l *richLogger) Infov(v any) {
 	l.info(v)
 }
 
@@ -88,15 +88,15 @@ func (l *richLogger) Infow(msg string, fields ...LogField) {
 	l.info(msg, fields...)
 }
 
-func (l *richLogger) Slow(v ...interface{}) {
+func (l *richLogger) Slow(v ...any) {
 	l.slow(fmt.Sprint(v...))
 }
 
-func (l *richLogger) Slowf(format string, v ...interface{}) {
+func (l *richLogger) Slowf(format string, v ...any) {
 	l.slow(fmt.Sprintf(format, v...))
 }
 
-func (l *richLogger) Slowv(v interface{}) {
+func (l *richLogger) Slowv(v any) {
 	l.slow(v)
 }
 
@@ -156,25 +156,25 @@ func (l *richLogger) buildFields(fields ...LogField) []LogField {
 	return fields
 }
 
-func (l *richLogger) debug(v interface{}, fields ...LogField) {
+func (l *richLogger) debug(v any, fields ...LogField) {
 	if shallLog(DebugLevel) {
 		getWriter().Debug(v, l.buildFields(fields...)...)
 	}
 }
 
-func (l *richLogger) err(v interface{}, fields ...LogField) {
+func (l *richLogger) err(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Error(v, l.buildFields(fields...)...)
 	}
 }
 
-func (l *richLogger) info(v interface{}, fields ...LogField) {
+func (l *richLogger) info(v any, fields ...LogField) {
 	if shallLog(InfoLevel) {
 		getWriter().Info(v, l.buildFields(fields...)...)
 	}
 }
 
-func (l *richLogger) slow(v interface{}, fields ...LogField) {
+func (l *richLogger) slow(v any, fields ...LogField) {
 	if shallLog(ErrorLevel) {
 		getWriter().Slow(v, l.buildFields(fields...)...)
 	}

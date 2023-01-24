@@ -51,7 +51,7 @@ func escape(input string) string {
 	return b.String()
 }
 
-func format(query string, args ...interface{}) (string, error) {
+func format(query string, args ...any) (string, error) {
 	numArgs := len(args)
 	if numArgs == 0 {
 		return query, nil
@@ -141,7 +141,7 @@ func logSqlError(ctx context.Context, stmt string, err error) {
 	}
 }
 
-func writeValue(buf *strings.Builder, arg interface{}) {
+func writeValue(buf *strings.Builder, arg any) {
 	switch v := arg.(type) {
 	case bool:
 		if v {

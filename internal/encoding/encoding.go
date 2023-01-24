@@ -10,7 +10,7 @@ import (
 )
 
 func TomlToJson(data []byte) ([]byte, error) {
-	var val interface{}
+	var val any
 	if err := toml.NewDecoder(bytes.NewReader(data)).Decode(&val); err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func TomlToJson(data []byte) ([]byte, error) {
 }
 
 func YamlToJson(data []byte) ([]byte, error) {
-	var val interface{}
+	var val any
 	if err := yaml.Unmarshal(data, &val); err != nil {
 		return nil, err
 	}
@@ -39,31 +39,31 @@ func YamlToJson(data []byte) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func convertKeyToString(in map[interface{}]interface{}) map[string]interface{} {
-	res := make(map[string]interface{})
+func convertKeyToString(in map[any]any) map[string]any {
+	res := make(map[string]any)
 	for k, v := range in {
 		res[lang.Repr(k)] = toStringKeyMap(v)
 	}
 	return res
 }
 
-func convertNumberToJsonNumber(in interface{}) json.Number {
+func convertNumberToJsonNumber(in any) json.Number {
 	return json.Number(lang.Repr(in))
 }
 
-func convertSlice(in []interface{}) []interface{} {
-	res := make([]interface{}, len(in))
+func convertSlice(in []any) []any {
+	res := make([]any, len(in))
 	for i, v := range in {
 		res[i] = toStringKeyMap(v)
 	}
 	return res
 }
 
-func toStringKeyMap(v interface{}) interface{} {
+func toStringKeyMap(v any) any {
 	switch v := v.(type) {
-	case []interface{}:
+	case []any:
 		return convertSlice(v)
-	case map[interface{}]interface{}:
+	case map[any]any:
 		return convertKeyToString(v)
 	case bool, string:
 		return v

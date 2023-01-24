@@ -61,7 +61,7 @@ func genTypes(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		category:        category,
 		templateFile:    typesTemplateFile,
 		builtinTemplate: typesTemplate,
-		data: map[string]interface{}{
+		data: map[string]any{
 			"types":        val,
 			"containsTime": false,
 		},

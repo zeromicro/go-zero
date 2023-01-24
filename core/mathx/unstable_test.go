@@ -61,7 +61,7 @@ func TestUnstable_Distribution(t *testing.T) {
 	_, ok := m[0]
 	assert.False(t, ok)
 
-	mi := make(map[interface{}]int, len(m))
+	mi := make(map[any]int, len(m))
 	for k, v := range m {
 		mi[k] = v
 	}

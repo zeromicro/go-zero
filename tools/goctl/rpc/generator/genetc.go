@@ -33,7 +33,7 @@ func (g *Generator) GenEtc(ctx DirContext, _ parser.Proto, cfg *conf.Config) err
 		return err
 	}
 
-	return util.With("etc").Parse(text).SaveTo(map[string]interface{}{
+	return util.With("etc").Parse(text).SaveTo(map[string]any{
 		"serviceName": strings.ToLower(stringx.From(ctx.GetServiceName().Source()).ToCamel()),
 	}, fileName, false)
 }

@@ -13,7 +13,7 @@ type ImportExpr struct {
 }
 
 // VisitImportSpec implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitImportSpec(ctx *api.ImportSpecContext) interface{} {
+func (v *ApiVisitor) VisitImportSpec(ctx *api.ImportSpecContext) any {
 	var list []*ImportExpr
 	if ctx.ImportLit() != nil {
 		lits := ctx.ImportLit().Accept(v).([]*ImportExpr)
@@ -28,7 +28,7 @@ func (v *ApiVisitor) VisitImportSpec(ctx *api.ImportSpecContext) interface{} {
 }
 
 // VisitImportLit implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitImportLit(ctx *api.ImportLitContext) interface{} {
+func (v *ApiVisitor) VisitImportLit(ctx *api.ImportLitContext) any {
 	importToken := v.newExprWithToken(ctx.GetImportToken())
 	valueExpr := ctx.ImportValue().Accept(v).(Expr)
 	return []*ImportExpr{
@@ -42,7 +42,7 @@ func (v *ApiVisitor) VisitImportLit(ctx *api.ImportLitContext) interface{} {
 }
 
 // VisitImportBlock implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitImportBlock(ctx *api.ImportBlockContext) interface{} {
+func (v *ApiVisitor) VisitImportBlock(ctx *api.ImportBlockContext) any {
 	importToken := v.newExprWithToken(ctx.GetImportToken())
 	values := ctx.AllImportBlockValue()
 	var list []*ImportExpr
@@ -57,7 +57,7 @@ func (v *ApiVisitor) VisitImportBlock(ctx *api.ImportBlockContext) interface{} {
 }
 
 // VisitImportBlockValue implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitImportBlockValue(ctx *api.ImportBlockValueContext) interface{} {
+func (v *ApiVisitor) VisitImportBlockValue(ctx *api.ImportBlockValueContext) any {
 	value := ctx.ImportValue().Accept(v).(Expr)
 	return &ImportExpr{
 		Value:       value,
@@ -67,7 +67,7 @@ func (v *ApiVisitor) VisitImportBlockValue(ctx *api.ImportBlockValueContext) int
 }
 
 // VisitImportValue implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitImportValue(ctx *api.ImportValueContext) interface{} {
+func (v *ApiVisitor) VisitImportValue(ctx *api.ImportValueContext) any {
 	return v.newExprWithTerminalNode(ctx.STRING())
 }
 
@@ -78,7 +78,7 @@ func (i *ImportExpr) Format() error {
 }
 
 // Equal compares whether the element literals in two ImportExpr are equal
-func (i *ImportExpr) Equal(v interface{}) bool {
+func (i *ImportExpr) Equal(v any) bool {
 	if v == nil {
 		return false
 	}

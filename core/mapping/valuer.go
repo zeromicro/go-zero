@@ -4,7 +4,7 @@ type (
 	// A Valuer interface defines the way to get values from the underlying object with keys.
 	Valuer interface {
 		// Value gets the value associated with the given key.
-		Value(key string) (interface{}, bool)
+		Value(key string) (any, bool)
 	}
 
 	// A valuerWithParent defines a node that has a parent node.
@@ -22,12 +22,12 @@ type (
 
 	// A valueWithParent is used to wrap the value with its parent.
 	valueWithParent struct {
-		value  interface{}
+		value  any
 		parent valuerWithParent
 	}
 
 	// mapValuer is a type for map to meet the Valuer interface.
-	mapValuer map[string]interface{}
+	mapValuer map[string]any
 	// simpleValuer is a type to get value from current node.
 	simpleValuer node
 	// recursiveValuer is a type to get the value recursively from current and parent nodes.
@@ -35,13 +35,13 @@ type (
 )
 
 // Value gets the value assciated with the given key from mv.
-func (mv mapValuer) Value(key string) (interface{}, bool) {
+func (mv mapValuer) Value(key string) (any, bool) {
 	v, ok := mv[key]
 	return v, ok
 }
 
 // Value gets the value associated with the given key from sv.
-func (sv simpleValuer) Value(key string) (interface{}, bool) {
+func (sv simpleValuer) Value(key string) (any, bool) {
 	v, ok := sv.current.Value(key)
 	return v, ok
 }
@@ -60,7 +60,7 @@ func (sv simpleValuer) Parent() valuerWithParent {
 
 // Value gets the value associated with the given key from rv,
 // and it will inherit the value from parent nodes.
-func (rv recursiveValuer) Value(key string) (interface{}, bool) {
+func (rv recursiveValuer) Value(key string) (any, bool) {
 	val, ok := rv.current.Value(key)
 	if !ok {
 		if parent := rv.Parent(); parent != nil {
@@ -70,7 +70,7 @@ func (rv recursiveValuer) Value(key string) (interface{}, bool) {
 		return nil, false
 	}
 
-	vm, ok := val.(map[string]interface{})
+	vm, ok := val.(map[string]any)
 	if !ok {
 		return val, true
 	}
@@ -85,7 +85,7 @@ func (rv recursiveValuer) Value(key string) (interface{}, bool) {
 		return val, true
 	}
 
-	pm, ok := pv.(map[string]interface{})
+	pm, ok := pv.(map[string]any)
 	if !ok {
 		return val, true
 	}

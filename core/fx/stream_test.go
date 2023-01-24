@@ -23,7 +23,7 @@ func TestBuffer(t *testing.T) {
 		var count int32
 		var wait sync.WaitGroup
 		wait.Add(1)
-		From(func(source chan<- interface{}) {
+		From(func(source chan<- any) {
 			ticker := time.NewTicker(10 * time.Millisecond)
 			defer ticker.Stop()
 
@@ -36,7 +36,7 @@ func TestBuffer(t *testing.T) {
 					return
 				}
 			}
-		}).Buffer(N).ForAll(func(pipe <-chan interface{}) {
+		}).Buffer(N).ForAll(func(pipe <-chan any) {
 			wait.Wait()
 			// why N+1, because take one more to wait for sending into the channel
 			assert.Equal(t, int32(N+1), atomic.LoadInt32(&count))
@@ -47,7 +47,7 @@ func TestBuffer(t *testing.T) {
 func TestBufferNegative(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Buffer(-1).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		Just(1, 2, 3, 4).Buffer(-1).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -61,22 +61,22 @@ func TestCount(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		tests := []struct {
 			name     string
-			elements []interface{}
+			elements []any
 		}{
 			{
 				name: "no elements with nil",
 			},
 			{
 				name:     "no elements",
-				elements: []interface{}{},
+				elements: []any{},
 			},
 			{
 				name:     "1 element",
-				elements: []interface{}{1},
+				elements: []any{1},
 			},
 			{
 				name:     "multiple elements",
-				elements: []interface{}{1, 2, 3},
+				elements: []any{1, 2, 3},
 			},
 		}
 
@@ -92,7 +92,7 @@ func TestCount(t *testing.T) {
 func TestDone(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var count int32
-		Just(1, 2, 3).Walk(func(item interface{}, pipe chan<- interface{}) {
+		Just(1, 2, 3).Walk(func(item any, pipe chan<- any) {
 			time.Sleep(time.Millisecond * 100)
 			atomic.AddInt32(&count, int32(item.(int)))
 		}).Done()
@@ -103,7 +103,7 @@ func TestDone(t *testing.T) {
 func TestJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		Just(1, 2, 3, 4).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -116,9 +116,9 @@ func TestJust(t *testing.T) {
 func TestDistinct(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(4, 1, 3, 2, 3, 4).Distinct(func(item interface{}) interface{} {
+		Just(4, 1, 3, 2, 3, 4).Distinct(func(item any) any {
 			return item
-		}).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		}).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -131,9 +131,9 @@ func TestDistinct(t *testing.T) {
 func TestFilter(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Filter(func(item interface{}) bool {
+		Just(1, 2, 3, 4).Filter(func(item any) bool {
 			return item.(int)%2 == 0
-		}).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		}).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -154,9 +154,9 @@ func TestFirst(t *testing.T) {
 func TestForAll(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Filter(func(item interface{}) bool {
+		Just(1, 2, 3, 4).Filter(func(item any) bool {
 			return item.(int)%2 == 0
-		}).ForAll(func(pipe <-chan interface{}) {
+		}).ForAll(func(pipe <-chan any) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -168,11 +168,11 @@ func TestForAll(t *testing.T) {
 func TestGroup(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var groups [][]int
-		Just(10, 11, 20, 21).Group(func(item interface{}) interface{} {
+		Just(10, 11, 20, 21).Group(func(item any) any {
 			v := item.(int)
 			return v / 10
-		}).ForEach(func(item interface{}) {
-			v := item.([]interface{})
+		}).ForEach(func(item any) {
+			v := item.([]any)
 			var group []int
 			for _, each := range v {
 				group = append(group, each.(int))
@@ -191,7 +191,7 @@ func TestGroup(t *testing.T) {
 func TestHead(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Head(2).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		Just(1, 2, 3, 4).Head(2).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -204,7 +204,7 @@ func TestHead(t *testing.T) {
 func TestHeadZero(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
-			Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan any) (any, error) {
 				return nil, nil
 			})
 		})
@@ -214,7 +214,7 @@ func TestHeadZero(t *testing.T) {
 func TestHeadMore(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Head(6).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		Just(1, 2, 3, 4).Head(6).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -245,14 +245,14 @@ func TestMap(t *testing.T) {
 			expect int
 		}{
 			{
-				mapper: func(item interface{}) interface{} {
+				mapper: func(item any) any {
 					v := item.(int)
 					return v * v
 				},
 				expect: 30,
 			},
 			{
-				mapper: func(item interface{}) interface{} {
+				mapper: func(item any) any {
 					v := item.(int)
 					if v%2 == 0 {
 						return 0
@@ -262,7 +262,7 @@ func TestMap(t *testing.T) {
 				expect: 10,
 			},
 			{
-				mapper: func(item interface{}) interface{} {
+				mapper: func(item any) any {
 					v := item.(int)
 					if v%2 == 0 {
 						panic(v)
@@ -283,12 +283,12 @@ func TestMap(t *testing.T) {
 				} else {
 					workers = runtime.NumCPU()
 				}
-				From(func(source chan<- interface{}) {
+				From(func(source chan<- any) {
 					for i := 1; i < 5; i++ {
 						source <- i
 					}
 				}).Map(test.mapper, WithWorkers(workers)).Reduce(
-					func(pipe <-chan interface{}) (interface{}, error) {
+					func(pipe <-chan any) (any, error) {
 						for item := range pipe {
 							result += item.(int)
 						}
@@ -303,8 +303,8 @@ func TestMap(t *testing.T) {
 
 func TestMerge(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		Just(1, 2, 3, 4).Merge().ForEach(func(item interface{}) {
-			assert.ElementsMatch(t, []interface{}{1, 2, 3, 4}, item.([]interface{}))
+		Just(1, 2, 3, 4).Merge().ForEach(func(item any) {
+			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item.([]any))
 		})
 	})
 }
@@ -312,7 +312,7 @@ func TestMerge(t *testing.T) {
 func TestParallelJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var count int32
-		Just(1, 2, 3).Parallel(func(item interface{}) {
+		Just(1, 2, 3).Parallel(func(item any) {
 			time.Sleep(time.Millisecond * 100)
 			atomic.AddInt32(&count, int32(item.(int)))
 		}, UnlimitedWorkers())
@@ -322,8 +322,8 @@ func TestParallelJust(t *testing.T) {
 
 func TestReverse(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item interface{}) {
-			assert.ElementsMatch(t, []interface{}{4, 3, 2, 1}, item.([]interface{}))
+		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item any) {
+			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item.([]any))
 		})
 	})
 }
@@ -331,9 +331,9 @@ func TestReverse(t *testing.T) {
 func TestSort(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var prev int
-		Just(5, 3, 7, 1, 9, 6, 4, 8, 2).Sort(func(a, b interface{}) bool {
+		Just(5, 3, 7, 1, 9, 6, 4, 8, 2).Sort(func(a, b any) bool {
 			return a.(int) < b.(int)
-		}).ForEach(func(item interface{}) {
+		}).ForEach(func(item any) {
 			next := item.(int)
 			assert.True(t, prev < next)
 			prev = next
@@ -346,12 +346,12 @@ func TestSplit(t *testing.T) {
 		assert.Panics(t, func() {
 			Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(0).Done()
 		})
-		var chunks [][]interface{}
-		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item interface{}) {
-			chunk := item.([]interface{})
+		var chunks [][]any
+		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item any) {
+			chunk := item.([]any)
 			chunks = append(chunks, chunk)
 		})
-		assert.EqualValues(t, [][]interface{}{
+		assert.EqualValues(t, [][]any{
 			{1, 2, 3, 4},
 			{5, 6, 7, 8},
 			{9, 10},
@@ -362,7 +362,7 @@ func TestSplit(t *testing.T) {
 func TestTail(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Tail(2).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+		Just(1, 2, 3, 4).Tail(2).Reduce(func(pipe <-chan any) (any, error) {
 			for item := range pipe {
 				result += item.(int)
 			}
@@ -375,7 +375,7 @@ func TestTail(t *testing.T) {
 func TestTailZero(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
-			Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan interface{}) (interface{}, error) {
+			Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan any) (any, error) {
 				return nil, nil
 			})
 		})
@@ -385,11 +385,11 @@ func TestTailZero(t *testing.T) {
 func TestWalk(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4, 5).Walk(func(item interface{}, pipe chan<- interface{}) {
+		Just(1, 2, 3, 4, 5).Walk(func(item any, pipe chan<- any) {
 			if item.(int)%2 != 0 {
 				pipe <- item
 			}
-		}, UnlimitedWorkers()).ForEach(func(item interface{}) {
+		}, UnlimitedWorkers()).ForEach(func(item any) {
 			result += item.(int)
 		})
 		assert.Equal(t, 9, result)
@@ -398,16 +398,16 @@ func TestWalk(t *testing.T) {
 
 func TestStream_AnyMach(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item any) bool {
 			return item.(int) == 4
 		}))
-		assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		assetEqual(t, false, Just(1, 2, 3).AnyMach(func(item any) bool {
 			return item.(int) == 0
 		}))
-		assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item any) bool {
 			return item.(int) == 2
 		}))
-		assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item interface{}) bool {
+		assetEqual(t, true, Just(1, 2, 3).AnyMach(func(item any) bool {
 			return item.(int) == 2
 		}))
 	})
@@ -416,17 +416,17 @@ func TestStream_AnyMach(t *testing.T) {
 func TestStream_AllMach(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assetEqual(
-			t, true, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			t, true, Just(1, 2, 3).AllMach(func(item any) bool {
 				return true
 			}),
 		)
 		assetEqual(
-			t, false, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			t, false, Just(1, 2, 3).AllMach(func(item any) bool {
 				return false
 			}),
 		)
 		assetEqual(
-			t, false, Just(1, 2, 3).AllMach(func(item interface{}) bool {
+			t, false, Just(1, 2, 3).AllMach(func(item any) bool {
 				return item.(int) == 1
 			}),
 		)
@@ -436,17 +436,17 @@ func TestStream_AllMach(t *testing.T) {
 func TestStream_NoneMatch(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assetEqual(
-			t, true, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			t, true, Just(1, 2, 3).NoneMatch(func(item any) bool {
 				return false
 			}),
 		)
 		assetEqual(
-			t, false, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			t, false, Just(1, 2, 3).NoneMatch(func(item any) bool {
 				return true
 			}),
 		)
 		assetEqual(
-			t, true, Just(1, 2, 3).NoneMatch(func(item interface{}) bool {
+			t, true, Just(1, 2, 3).NoneMatch(func(item any) bool {
 				return item.(int) == 4
 			}),
 		)
@@ -455,19 +455,19 @@ func TestStream_NoneMatch(t *testing.T) {
 
 func TestConcat(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		a1 := []interface{}{1, 2, 3}
-		a2 := []interface{}{4, 5, 6}
+		a1 := []any{1, 2, 3}
+		a2 := []any{4, 5, 6}
 		s1 := Just(a1...)
 		s2 := Just(a2...)
 		stream := Concat(s1, s2)
-		var items []interface{}
+		var items []any
 		for item := range stream.source {
 			items = append(items, item)
 		}
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].(int) < items[j].(int)
 		})
-		ints := make([]interface{}, 0)
+		ints := make([]any, 0)
 		ints = append(ints, a1...)
 		ints = append(ints, a2...)
 		assetEqual(t, ints, items)
@@ -479,7 +479,7 @@ func TestStream_Skip(t *testing.T) {
 		assetEqual(t, 3, Just(1, 2, 3, 4).Skip(1).Count())
 		assetEqual(t, 1, Just(1, 2, 3, 4).Skip(3).Count())
 		assetEqual(t, 4, Just(1, 2, 3, 4).Skip(0).Count())
-		equal(t, Just(1, 2, 3, 4).Skip(3), []interface{}{4})
+		equal(t, Just(1, 2, 3, 4).Skip(3), []any{4})
 		assert.Panics(t, func() {
 			Just(1, 2, 3, 4).Skip(-1)
 		})
@@ -489,27 +489,27 @@ func TestStream_Skip(t *testing.T) {
 func TestStream_Concat(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		stream := Just(1).Concat(Just(2), Just(3))
-		var items []interface{}
+		var items []any
 		for item := range stream.source {
 			items = append(items, item)
 		}
 		sort.Slice(items, func(i, j int) bool {
 			return items[i].(int) < items[j].(int)
 		})
-		assetEqual(t, []interface{}{1, 2, 3}, items)
+		assetEqual(t, []any{1, 2, 3}, items)
 
 		just := Just(1)
-		equal(t, just.Concat(just), []interface{}{1})
+		equal(t, just.Concat(just), []any{1})
 	})
 }
 
 func BenchmarkParallelMapReduce(b *testing.B) {
 	b.ReportAllocs()
 
-	mapper := func(v interface{}) interface{} {
+	mapper := func(v any) any {
 		return v.(int64) * v.(int64)
 	}
-	reducer := func(input <-chan interface{}) (interface{}, error) {
+	reducer := func(input <-chan any) (any, error) {
 		var result int64
 		for v := range input {
 			result += v.(int64)
@@ -517,7 +517,7 @@ func BenchmarkParallelMapReduce(b *testing.B) {
 		return result, nil
 	}
 	b.ResetTimer()
-	From(func(input chan<- interface{}) {
+	From(func(input chan<- any) {
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
 				input <- int64(rand.Int())
@@ -529,10 +529,10 @@ func BenchmarkParallelMapReduce(b *testing.B) {
 func BenchmarkMapReduce(b *testing.B) {
 	b.ReportAllocs()
 
-	mapper := func(v interface{}) interface{} {
+	mapper := func(v any) any {
 		return v.(int64) * v.(int64)
 	}
-	reducer := func(input <-chan interface{}) (interface{}, error) {
+	reducer := func(input <-chan any) (any, error) {
 		var result int64
 		for v := range input {
 			result += v.(int64)
@@ -540,21 +540,21 @@ func BenchmarkMapReduce(b *testing.B) {
 		return result, nil
 	}
 	b.ResetTimer()
-	From(func(input chan<- interface{}) {
+	From(func(input chan<- any) {
 		for i := 0; i < b.N; i++ {
 			input <- int64(rand.Int())
 		}
 	}).Map(mapper).Reduce(reducer)
 }
 
-func assetEqual(t *testing.T, except, data interface{}) {
+func assetEqual(t *testing.T, except, data any) {
 	if !reflect.DeepEqual(except, data) {
 		t.Errorf(" %v, want %v", data, except)
 	}
 }
 
-func equal(t *testing.T, stream Stream, data []interface{}) {
-	items := make([]interface{}, 0)
+func equal(t *testing.T, stream Stream, data []any) {
+	items := make([]any, 0)
 	for item := range stream.source {
 		items = append(items, item)
 	}

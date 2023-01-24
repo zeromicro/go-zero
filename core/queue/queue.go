@@ -31,7 +31,7 @@ type (
 		quit                 chan struct{}
 		listeners            []Listener
 		eventLock            sync.Mutex
-		eventChannels        []chan interface{}
+		eventChannels        []chan any
 	}
 
 	// A Listener interface represents a listener that can be notified with queue events.
@@ -77,7 +77,7 @@ func (q *Queue) AddListener(listener Listener) {
 }
 
 // Broadcast broadcasts message to all event channels.
-func (q *Queue) Broadcast(message interface{}) {
+func (q *Queue) Broadcast(message any) {
 	go func() {
 		q.eventLock.Lock()
 		defer q.eventLock.Unlock()
@@ -119,7 +119,7 @@ func (q *Queue) Stop() {
 	close(q.quit)
 }
 
-func (q *Queue) consume(eventChan chan interface{}) {
+func (q *Queue) consume(eventChan chan any) {
 	var consumer Consumer
 
 	for {
@@ -216,7 +216,7 @@ func (q *Queue) resume() {
 
 func (q *Queue) startConsumers(number int) {
 	for i := 0; i < number; i++ {
-		eventChan := make(chan interface{})
+		eventChan := make(chan any)
 		q.eventLock.Lock()
 		q.eventChannels = append(q.eventChannels, eventChan)
 		q.eventLock.Unlock()

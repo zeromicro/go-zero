@@ -75,7 +75,7 @@ func TestPoolPopTooMany(t *testing.T) {
 
 func TestPoolPopFirst(t *testing.T) {
 	var value int32
-	stack := NewPool(limit, func() interface{} {
+	stack := NewPool(limit, func() any {
 		return atomic.AddInt32(&value, 1)
 	}, destroy)
 
@@ -88,7 +88,7 @@ func TestPoolPopFirst(t *testing.T) {
 
 func TestPoolWithMaxAge(t *testing.T) {
 	var value int32
-	stack := NewPool(limit, func() interface{} {
+	stack := NewPool(limit, func() any {
 		return atomic.AddInt32(&value, 1)
 	}, destroy, WithMaxAge(time.Millisecond))
 
@@ -107,9 +107,9 @@ func TestNewPoolPanics(t *testing.T) {
 	})
 }
 
-func create() interface{} {
+func create() any {
 	return 1
 }
 
-func destroy(_ interface{}) {
+func destroy(_ any) {
 }

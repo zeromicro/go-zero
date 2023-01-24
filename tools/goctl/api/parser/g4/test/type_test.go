@@ -8,7 +8,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 )
 
-var fieldAccept = func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+var fieldAccept = func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 	return p.Field().Accept(visitor)
 }
 
@@ -93,7 +93,7 @@ func TestField(t *testing.T) {
 }
 
 func TestDataType_ID(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.DataType().Accept(visitor)
 	}
 	t.Run("Struct", func(t *testing.T) {
@@ -117,7 +117,7 @@ func TestDataType_ID(t *testing.T) {
 }
 
 func TestDataType_Map(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.MapType().Accept(visitor)
 	}
 	t.Run("basicKey", func(t *testing.T) {
@@ -147,7 +147,7 @@ func TestDataType_Map(t *testing.T) {
 }
 
 func TestDataType_Array(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.ArrayType().Accept(visitor)
 	}
 	t.Run("basic", func(t *testing.T) {
@@ -200,7 +200,7 @@ func TestDataType_Array(t *testing.T) {
 }
 
 func TestDataType_Interface(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.DataType().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -222,7 +222,7 @@ func TestDataType_Interface(t *testing.T) {
 }
 
 func TestDataType_Time(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.DataType().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -232,7 +232,7 @@ func TestDataType_Time(t *testing.T) {
 }
 
 func TestDataType_Pointer(t *testing.T) {
-	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	dt := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.PointerType().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -252,7 +252,7 @@ func TestDataType_Pointer(t *testing.T) {
 }
 
 func TestAlias(t *testing.T) {
-	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.TypeAlias().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -281,7 +281,7 @@ func TestAlias(t *testing.T) {
 }
 
 func TestTypeStruct(t *testing.T) {
-	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.TypeStruct().Accept(visitor)
 	}
 
@@ -330,7 +330,7 @@ func TestTypeStruct(t *testing.T) {
 }
 
 func TestTypeBlock(t *testing.T) {
-	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.TypeBlock().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -366,7 +366,7 @@ func TestTypeBlock(t *testing.T) {
 }
 
 func TestTypeLit(t *testing.T) {
-	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.TypeLit().Accept(visitor)
 	}
 	t.Run("normal", func(t *testing.T) {
@@ -435,7 +435,7 @@ func TestTypeLit(t *testing.T) {
 }
 
 func TestTypeUnExported(t *testing.T) {
-	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) interface{} {
+	fn := func(p *api.ApiParserParser, visitor *ast.ApiVisitor) any {
 		return p.TypeSpec().Accept(visitor)
 	}
 
