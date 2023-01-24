@@ -3,16 +3,20 @@ package search
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 const (
-	colon = ':'
-	slash = '/'
+	colon    = ':'
+	slash    = '/'
+	asterisk = '*'
 )
 
 var (
 	// errDupItem means adding duplicated item.
 	errDupItem = errors.New("duplicated item")
+	// errConflictItem means adding conflicted item.
+	errConflictItem = errors.New("conflicted item")
 	// errDupSlash means item is started with more than one slash.
 	errDupSlash = errors.New("duplicated slash")
 	// errEmptyItem means adding empty item.
@@ -21,6 +25,8 @@ var (
 	errInvalidState = errors.New("search tree is in an invalid state")
 	// errNotFromRoot means path is not starting with slash.
 	errNotFromRoot = errors.New("path should start with /")
+	// errSlashAfterAsterisk means path contains / after *.
+	errSlashAfterAsterisk = errors.New("path contains / after *")
 
 	// NotFound is used to hold the not found result.
 	NotFound Result
@@ -36,7 +42,7 @@ type (
 
 	node struct {
 		item     interface{}
-		children [2]map[string]*node
+		children [3]map[string]*node
 	}
 
 	// A Tree is a search tree.
@@ -66,6 +72,12 @@ func (t *Tree) Add(route string, item interface{}) error {
 
 	if item == nil {
 		return errEmptyItem
+	}
+
+	lastAsteriskIndex := strings.LastIndex(route, string(asterisk))
+	posLastSlashIndex := strings.LastIndex(route, string(slash))
+	if lastAsteriskIndex >= 0 && posLastSlashIndex >= 0 && lastAsteriskIndex < posLastSlashIndex {
+		return errSlashAfterAsterisk
 	}
 
 	err := add(t.root, route[1:], item)
@@ -103,10 +115,15 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 
 		token := route[:i]
 		return n.forEach(func(k string, v *node) bool {
-			r := match(k, token)
-			if !r.found || !t.next(v, route[i+1:], result) {
+			r := match(k, token, route)
+			pos := i + 1
+			if k[0] == asterisk {
+				pos = len(route)
+			}
+			if !r.found || !t.next(v, route[pos:], result) {
 				return false
 			}
+
 			if r.named {
 				addParam(result, r.key, r.value)
 			}
@@ -116,7 +133,7 @@ func (t *Tree) next(n *node, route string, result *Result) bool {
 	}
 
 	return n.forEach(func(k string, v *node) bool {
-		if r := match(k, route); r.found && v.item != nil {
+		if r := match(k, route, route); r.found && v.item != nil {
 			result.Item = v.item
 			if r.named {
 				addParam(result, r.key, r.value)
@@ -141,9 +158,28 @@ func (nd *node) forEach(fn func(string, *node) bool) bool {
 	return false
 }
 
+func (nd *node) existChildren() bool {
+
+	if len(nd.children[0]) > 0 || len(nd.children[1]) > 0 || len(nd.children[2]) > 0 {
+		return true
+	}
+
+	return false
+}
+
+func (nd *node) existCatchAll() bool {
+	return len(nd.children[2]) > 0
+}
+
 func (nd *node) getChildren(route string) map[string]*node {
-	if len(route) > 0 && route[0] == colon {
-		return nd.children[1]
+	if len(route) > 0 {
+
+		if route[0] == colon {
+			return nd.children[1]
+		}
+		if route[0] == asterisk {
+			return nd.children[2]
+		}
 	}
 
 	return nd.children[0]
@@ -167,6 +203,9 @@ func add(nd *node, route string, item interface{}) error {
 		if route[i] != slash {
 			continue
 		}
+		if nd.existCatchAll() {
+			return errConflictItem
+		}
 
 		token := route[:i]
 		children := nd.getChildren(token)
@@ -181,6 +220,13 @@ func add(nd *node, route string, item interface{}) error {
 		child := newNode(nil)
 		children[token] = child
 		return add(child, route[i+1:], item)
+	}
+
+	if route[0] == asterisk && nd.existChildren() {
+		return errConflictItem
+	}
+	if nd.existCatchAll() {
+		return errConflictItem
 	}
 
 	children := nd.getChildren(route)
@@ -213,11 +259,20 @@ func duplicatedSlash(item string) error {
 	return fmt.Errorf("duplicated slash for %s", item)
 }
 
-func match(pat, token string) innerResult {
+func match(pat, token, route string) innerResult {
 	if pat[0] == colon {
 		return innerResult{
 			key:   pat[1:],
 			value: token,
+			named: true,
+			found: true,
+		}
+	}
+
+	if pat[0] == asterisk {
+		return innerResult{
+			key:   pat[1:],
+			value: route,
 			named: true,
 			found: true,
 		}
@@ -231,7 +286,8 @@ func match(pat, token string) innerResult {
 func newNode(item interface{}) *node {
 	return &node{
 		item: item,
-		children: [2]map[string]*node{
+		children: [3]map[string]*node{
+			make(map[string]*node),
 			make(map[string]*node),
 			make(map[string]*node),
 		},

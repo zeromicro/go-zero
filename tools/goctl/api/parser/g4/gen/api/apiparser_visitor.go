@@ -1,7 +1,8 @@
-// Code generated from C:/Users/keson/GolandProjects/go-zero/tools/goctl/api/parser/g4\ApiParser.g4 by ANTLR 4.9. DO NOT EDIT.
+// Code generated from java-escape by ANTLR 4.11.1. DO NOT EDIT.
 
 package api // ApiParser
-import "github.com/zeromicro/antlr"
+
+import "github.com/antlr/antlr4/runtime/Go/antlr/v4"
 
 // A complete Visitor for a parse tree produced by ApiParserParser.
 type ApiParserVisitor interface {

@@ -1,5 +1,8 @@
+// Code generated from java-escape by ANTLR 4.11.1. DO NOT EDIT.
+
 package api // ApiParser
-import "github.com/zeromicro/antlr"
+
+import "github.com/antlr/antlr4/runtime/Go/antlr/v4"
 
 type BaseApiParserVisitor struct {
 	*antlr.BaseParseTreeVisitor
