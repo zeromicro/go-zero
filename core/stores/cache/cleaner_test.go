@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 func TestNextDelay(t *testing.T) {
@@ -51,6 +52,7 @@ func TestNextDelay(t *testing.T) {
 			next, ok := nextDelay(test.input)
 			assert.Equal(t, test.ok, ok)
 			assert.Equal(t, test.output, next)
+			proc.Shutdown()
 		})
 	}
 }
