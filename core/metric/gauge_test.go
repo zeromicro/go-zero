@@ -5,6 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 func TestNewGaugeVec(t *testing.T) {
@@ -35,6 +36,11 @@ func TestGaugeInc(t *testing.T) {
 	gv.Inc("/users")
 	r := testutil.ToFloat64(gv.gauge)
 	assert.Equal(t, float64(2), r)
+
+	gaugeVec.Inc("/classroom")
+	gaugeVec.Add(30, "/classroom")
+	gaugeVec.Set(666, "/users")
+	proc.Shutdown()
 }
 
 func TestGaugeAdd(t *testing.T) {

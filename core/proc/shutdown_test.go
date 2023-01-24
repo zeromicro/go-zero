@@ -25,7 +25,7 @@ func TestShutdown(t *testing.T) {
 	called = AddShutdownListener(func() {
 		val += 2
 	})
-	shutdownListeners.notifyListeners()
+	Shutdown()
 	called()
 	assert.Equal(t, 3, val)
 }
