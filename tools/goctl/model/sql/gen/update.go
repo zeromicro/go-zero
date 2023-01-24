@@ -95,7 +95,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 	}
 
 	updateMethodOutput, err := util.With("updateMethod").Parse(text).Execute(
-		map[string]interface{}{
+		map[string]any{
 			"upperStartCamelObject": camelTableName,
 			"data":                  table,
 		},

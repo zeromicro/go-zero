@@ -26,12 +26,12 @@ func NewMockConn(db *sql.DB) *MockConn {
 }
 
 // Exec executes sql and returns the result
-func (conn *MockConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (conn *MockConn) Exec(query string, args ...any) (sql.Result, error) {
 	return exec(conn.db, query, args...)
 }
 
 // ExecCtx executes sql and returns the result
-func (conn *MockConn) ExecCtx(_ context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (conn *MockConn) ExecCtx(_ context.Context, query string, args ...any) (sql.Result, error) {
 	return exec(conn.db, query, args...)
 }
 
@@ -47,38 +47,38 @@ func (conn *MockConn) PrepareCtx(_ context.Context, query string) (sqlx.StmtSess
 }
 
 // QueryRow executes sql and returns a query row
-func (conn *MockConn) QueryRow(v interface{}, q string, args ...interface{}) error {
+func (conn *MockConn) QueryRow(v any, q string, args ...any) error {
 	return query(conn.db, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, q, args...)
 }
 
 // QueryRowCtx executes sql and returns a query row
-func (conn *MockConn) QueryRowCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (conn *MockConn) QueryRowCtx(_ context.Context, v any, query string, args ...any) error {
 	return conn.QueryRow(v, query, args...)
 }
 
 // QueryRowPartial executes sql and returns a partial query row
-func (conn *MockConn) QueryRowPartial(v interface{}, q string, args ...interface{}) error {
+func (conn *MockConn) QueryRowPartial(v any, q string, args ...any) error {
 	return query(conn.db, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, q, args...)
 }
 
 // QueryRowPartialCtx executes sql and returns a partial query row
-func (conn *MockConn) QueryRowPartialCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (conn *MockConn) QueryRowPartialCtx(_ context.Context, v any, query string, args ...any) error {
 	return conn.QueryRowPartial(v, query, args...)
 }
 
 // QueryRows executes sql and returns  query rows
-func (conn *MockConn) QueryRows(v interface{}, q string, args ...interface{}) error {
+func (conn *MockConn) QueryRows(v any, q string, args ...any) error {
 	return query(conn.db, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, q, args...)
 }
 
 // QueryRowsCtx executes sql and returns  query rows
-func (conn *MockConn) QueryRowsCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (conn *MockConn) QueryRowsCtx(_ context.Context, v any, query string, args ...any) error {
 	return conn.QueryRows(v, query, args...)
 }
 

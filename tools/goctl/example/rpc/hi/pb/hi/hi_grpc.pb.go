@@ -85,7 +85,7 @@ func RegisterGreetServer(s grpc.ServiceRegistrar, srv GreetServer) {
 	s.RegisterService(&Greet_ServiceDesc, srv)
 }
 
-func _Greet_SayHi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Greet_SayHi_Handler(srv any, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HiReq)
 	if err := dec(in); err != nil {
 		return nil, err
