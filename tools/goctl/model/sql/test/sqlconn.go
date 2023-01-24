@@ -83,14 +83,14 @@ func (conn *MockConn) QueryRowsCtx(_ context.Context, v any, query string, args 
 }
 
 // QueryRowsPartial executes sql and returns partial query rows
-func (conn *MockConn) QueryRowsPartial(v interface{}, q string, args ...interface{}) error {
+func (conn *MockConn) QueryRowsPartial(v any, q string, args ...any) error {
 	return query(conn.db, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, q, args...)
 }
 
 // QueryRowsPartialCtx executes sql and returns partial query rows
-func (conn *MockConn) QueryRowsPartialCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (conn *MockConn) QueryRowsPartialCtx(_ context.Context, v any, query string, args ...any) error {
 	return conn.QueryRowsPartial(v, query, args...)
 }
 
@@ -113,50 +113,50 @@ func (s statement) Close() error {
 	return s.stmt.Close()
 }
 
-func (s statement) Exec(args ...interface{}) (sql.Result, error) {
+func (s statement) Exec(args ...any) (sql.Result, error) {
 	return execStmt(s.stmt, args...)
 }
 
-func (s statement) ExecCtx(_ context.Context, args ...interface{}) (sql.Result, error) {
+func (s statement) ExecCtx(_ context.Context, args ...any) (sql.Result, error) {
 	return s.Exec(args...)
 }
 
-func (s statement) QueryRow(v interface{}, args ...interface{}) error {
+func (s statement) QueryRow(v any, args ...any) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, true)
 	}, args...)
 }
 
-func (s statement) QueryRowCtx(_ context.Context, v interface{}, args ...interface{}) error {
+func (s statement) QueryRowCtx(_ context.Context, v any, args ...any) error {
 	return s.QueryRow(v, args...)
 }
 
-func (s statement) QueryRowPartial(v interface{}, args ...interface{}) error {
+func (s statement) QueryRowPartial(v any, args ...any) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRow(v, rows, false)
 	}, args...)
 }
 
-func (s statement) QueryRowPartialCtx(_ context.Context, v interface{}, args ...interface{}) error {
+func (s statement) QueryRowPartialCtx(_ context.Context, v any, args ...any) error {
 	return s.QueryRowPartial(v, args...)
 }
 
-func (s statement) QueryRows(v interface{}, args ...interface{}) error {
+func (s statement) QueryRows(v any, args ...any) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, true)
 	}, args...)
 }
 
-func (s statement) QueryRowsCtx(_ context.Context, v interface{}, args ...interface{}) error {
+func (s statement) QueryRowsCtx(_ context.Context, v any, args ...any) error {
 	return s.QueryRows(v, args...)
 }
 
-func (s statement) QueryRowsPartial(v interface{}, args ...interface{}) error {
+func (s statement) QueryRowsPartial(v any, args ...any) error {
 	return queryStmt(s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, args...)
 }
 
-func (s statement) QueryRowsPartialCtx(_ context.Context, v interface{}, args ...interface{}) error {
+func (s statement) QueryRowsPartialCtx(_ context.Context, v any, args ...any) error {
 	return s.QueryRowsPartial(v, args...)
 }

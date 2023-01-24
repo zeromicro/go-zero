@@ -108,7 +108,7 @@ func generateTypes(ctx *Context) error {
 		}
 
 		output := filepath.Join(ctx.Output, fn+".go")
-		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]interface{}{
+		if err = util.With("model").Parse(text).GoFmt(true).SaveTo(map[string]any{
 			"Type": stringx.From(t).Title(),
 		}, output, false); err != nil {
 			return err
