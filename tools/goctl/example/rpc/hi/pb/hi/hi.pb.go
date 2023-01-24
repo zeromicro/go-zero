@@ -322,7 +322,7 @@ func file_hi_proto_rawDescGZIP() []byte {
 }
 
 var file_hi_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_hi_proto_goTypes = []interface{}{
+var file_hi_proto_goTypes = []any{
 	(*HiReq)(nil),     // 0: hi.HiReq
 	(*HelloReq)(nil),  // 1: hi.HelloReq
 	(*HiResp)(nil),    // 2: hi.HiResp
@@ -350,7 +350,7 @@ func file_hi_proto_init() {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_hi_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[0].Exporter = func(v any, i int) any {
 			switch v := v.(*HiReq); i {
 			case 0:
 				return &v.state
@@ -362,7 +362,7 @@ func file_hi_proto_init() {
 				return nil
 			}
 		}
-		file_hi_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[1].Exporter = func(v any, i int) any {
 			switch v := v.(*HelloReq); i {
 			case 0:
 				return &v.state
@@ -374,7 +374,7 @@ func file_hi_proto_init() {
 				return nil
 			}
 		}
-		file_hi_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[2].Exporter = func(v any, i int) any {
 			switch v := v.(*HiResp); i {
 			case 0:
 				return &v.state
@@ -386,7 +386,7 @@ func file_hi_proto_init() {
 				return nil
 			}
 		}
-		file_hi_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[3].Exporter = func(v any, i int) any {
 			switch v := v.(*HelloResp); i {
 			case 0:
 				return &v.state
@@ -398,7 +398,7 @@ func file_hi_proto_init() {
 				return nil
 			}
 		}
-		file_hi_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[4].Exporter = func(v any, i int) any {
 			switch v := v.(*EventReq); i {
 			case 0:
 				return &v.state
@@ -410,7 +410,7 @@ func file_hi_proto_init() {
 				return nil
 			}
 		}
-		file_hi_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_hi_proto_msgTypes[5].Exporter = func(v any, i int) any {
 			switch v := v.(*EventResp); i {
 			case 0:
 				return &v.state
