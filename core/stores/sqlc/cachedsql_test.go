@@ -57,7 +57,7 @@ func TestStat(t *testing.T) {
 
 	for i := 0; i < 10; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			*v.(*string) = "zero"
 			return nil
 		})
@@ -87,24 +87,24 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	}, cache.WithExpiry(time.Second*10))
 
 	var str string
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err = c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		*v.(*string) = "zero"
 		return "primary", errors.New("foo")
-	}, func(conn sqlx.SqlConn, v, pri interface{}) error {
+	}, func(conn sqlx.SqlConn, v, pri any) error {
 		assert.Equal(t, "primary", pri)
 		*v.(*string) = "xin"
 		return nil
 	})
 	assert.NotNil(t, err)
 
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err = c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		*v.(*string) = "zero"
 		return "primary", nil
-	}, func(conn sqlx.SqlConn, v, pri interface{}) error {
+	}, func(conn sqlx.SqlConn, v, pri any) error {
 		assert.Equal(t, "primary", pri)
 		*v.(*string) = "xin"
 		return nil
@@ -130,12 +130,12 @@ func TestCachedConn_QueryRowIndex_HasCache(t *testing.T) {
 
 	var str string
 	r.Set("index", `"primary"`)
-	err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+	err = c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
-	}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		assert.Fail(t, "should not go here")
 		return "primary", nil
-	}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+	}, func(conn sqlx.SqlConn, v, primary any) error {
 		*v.(*string) = "xin"
 		assert.Equal(t, "primary", primary)
 		return nil
@@ -163,7 +163,7 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 	)
 	tests := []struct {
 		name         string
-		primary      interface{}
+		primary      any
 		primaryCache string
 	}{
 		{
@@ -220,12 +220,12 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 
 			var str string
 			r.Set("index", test.primaryCache)
-			err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+			err = c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%v/1234", s)
-			}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				assert.Fail(t, "should not go here")
 				return test.primary, nil
-			}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+			}, func(conn sqlx.SqlConn, v, primary any) error {
 				*v.(*string) = "xin"
 				assert.Equal(t, primary, primary)
 				return nil
@@ -260,12 +260,12 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 
 			var str string
 			r.Set(k, v)
-			err = c.QueryRowIndex(&str, "index", func(s interface{}) string {
+			err = c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%s/1234", s)
-			}, func(conn sqlx.SqlConn, v interface{}) (interface{}, error) {
+			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				*v.(*string) = "xin"
 				return "primary", nil
-			}, func(conn sqlx.SqlConn, v, primary interface{}) error {
+			}, func(conn sqlx.SqlConn, v, primary any) error {
 				*v.(*string) = "xin"
 				assert.Equal(t, "primary", primary)
 				return nil
@@ -292,7 +292,7 @@ func TestStatCacheFails(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -314,7 +314,7 @@ func TestStatDbFails(t *testing.T) {
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -339,7 +339,7 @@ func TestStatFromMemory(t *testing.T) {
 	wait.Add(4)
 	go func() {
 		var str string
-		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			*v.(*string) = "zero"
 			return nil
 		})
@@ -355,7 +355,7 @@ func TestStatFromMemory(t *testing.T) {
 		go func() {
 			var str string
 			wait.Done()
-			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 				*v.(*string) = "zero"
 				return nil
 			})
@@ -368,7 +368,7 @@ func TestStatFromMemory(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		go func() {
 			var str string
-			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v interface{}) error {
+			err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 				*v.(*string) = "zero"
 				return nil
 			})
@@ -397,7 +397,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 	var user string
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -426,7 +426,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	assert.Nil(t, c.SetCache(key, value))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -452,7 +452,7 @@ func TestQueryRowNotFound(t *testing.T) {
 	var ran int
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	for i := 0; i < 20; i++ {
-		err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v interface{}) error {
+		err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 			ran++
 			return sql.ErrNoRows
 		})
@@ -551,7 +551,7 @@ func TestQueryRowNoCache(t *testing.T) {
 	)
 	var user string
 	var ran bool
-	conn := dummySqlConn{queryRow: func(v interface{}, q string, args ...interface{}) error {
+	conn := dummySqlConn{queryRow: func(v any, q string, args ...any) error {
 		user = value
 		ran = true
 		return nil
@@ -583,10 +583,10 @@ func resetStats() {
 }
 
 type dummySqlConn struct {
-	queryRow func(interface{}, string, ...interface{}) error
+	queryRow func(any, string, ...any) error
 }
 
-func (d dummySqlConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (d dummySqlConn) ExecCtx(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	return nil, nil
 }
 
@@ -594,15 +594,15 @@ func (d dummySqlConn) PrepareCtx(ctx context.Context, query string) (sqlx.StmtSe
 	return nil, nil
 }
 
-func (d dummySqlConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	return nil
 }
 
@@ -610,7 +610,7 @@ func (d dummySqlConn) TransactCtx(ctx context.Context, fn func(context.Context, 
 	return nil
 }
 
-func (d dummySqlConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (d dummySqlConn) Exec(query string, args ...any) (sql.Result, error) {
 	return nil, nil
 }
 
@@ -618,26 +618,26 @@ func (d dummySqlConn) Prepare(query string) (sqlx.StmtSession, error) {
 	return nil, nil
 }
 
-func (d dummySqlConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRow(v any, query string, args ...any) error {
 	return d.QueryRowCtx(context.Background(), v, query, args...)
 }
 
-func (d dummySqlConn) QueryRowCtx(_ context.Context, v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowCtx(_ context.Context, v any, query string, args ...any) error {
 	if d.queryRow != nil {
 		return d.queryRow(v, query, args...)
 	}
 	return nil
 }
 
-func (d dummySqlConn) QueryRowPartial(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowPartial(v any, query string, args ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRows(v any, query string, args ...any) error {
 	return nil
 }
 
-func (d dummySqlConn) QueryRowsPartial(v interface{}, query string, args ...interface{}) error {
+func (d dummySqlConn) QueryRowsPartial(v any, query string, args ...any) error {
 	return nil
 }
 
@@ -656,20 +656,20 @@ type trackedConn struct {
 	transactValue  bool
 }
 
-func (c *trackedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (c *trackedConn) Exec(query string, args ...any) (sql.Result, error) {
 	return c.ExecCtx(context.Background(), query, args...)
 }
 
-func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (c *trackedConn) ExecCtx(ctx context.Context, query string, args ...any) (sql.Result, error) {
 	c.execValue = true
 	return c.dummySqlConn.ExecCtx(ctx, query, args...)
 }
 
-func (c *trackedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+func (c *trackedConn) QueryRows(v any, query string, args ...any) error {
 	return c.QueryRowsCtx(context.Background(), v, query, args...)
 }
 
-func (c *trackedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *trackedConn) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
 	c.queryRowsValue = true
 	return c.dummySqlConn.QueryRowsCtx(ctx, v, query, args...)
 }

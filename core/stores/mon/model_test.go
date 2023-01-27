@@ -20,7 +20,7 @@ func TestModel_StartSession(t *testing.T) {
 		assert.Nil(t, err)
 		defer sess.EndSession(context.Background())
 
-		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (interface{}, error) {
+		_, err = sess.WithTransaction(context.Background(), func(sessCtx mongo.SessionContext) (any, error) {
 			_ = sessCtx.StartTransaction()
 			sessCtx.Client().Database("1")
 			sessCtx.EndSession(context.Background())
@@ -57,7 +57,7 @@ func TestModel_Aggregate(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch)
 		mt.AddMockResponses(find, getMore, killCursors)
-		var result []interface{}
+		var result []any
 		err := m.Aggregate(context.Background(), &result, mongo.Pipeline{})
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(result))
@@ -128,7 +128,7 @@ func TestModel_Find(t *testing.T) {
 			"DBName.CollectionName",
 			mtest.NextBatch)
 		mt.AddMockResponses(find, getMore, killCursors)
-		var result []interface{}
+		var result []any
 		err := m.Find(context.Background(), &result, bson.D{})
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(result))

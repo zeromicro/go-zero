@@ -105,7 +105,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     func (m *defaultUserModel) FindOne(id int64) (*User, error) {
     	userIdKey := fmt.Sprintf("%s%v", cacheUserIdPrefix, id)
     	var resp User
-    	err := m.QueryRow(&resp, userIdKey, func(conn sqlx.SqlConn, v interface{}) error {
+    	err := m.QueryRow(&resp, userIdKey, func(conn sqlx.SqlConn, v any) error {
     		query := fmt.Sprintf("select %s from %s where id = ? limit 1", userRows, m.table)
     		return conn.QueryRow(v, query, id)
     	})
@@ -122,7 +122,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     func (m *defaultUserModel) FindOneByUser(user string) (*User, error) {
     	userKey := fmt.Sprintf("%s%v", cacheUserPrefix, user)
     	var resp User
-    	err := m.QueryRowIndex(&resp, userKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+    	err := m.QueryRowIndex(&resp, userKey, m.formatPrimary, func(conn sqlx.SqlConn, v any) (i any, e error) {
     		query := fmt.Sprintf("select %s from %s where user = ? limit 1", userRows, m.table)
     		if err := conn.QueryRow(&resp, query, user); err != nil {
     			return nil, err
@@ -142,7 +142,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     func (m *defaultUserModel) FindOneByName(name string) (*User, error) {
     	userNameKey := fmt.Sprintf("%s%v", cacheUserNamePrefix, name)
     	var resp User
-    	err := m.QueryRowIndex(&resp, userNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+    	err := m.QueryRowIndex(&resp, userNameKey, m.formatPrimary, func(conn sqlx.SqlConn, v any) (i any, e error) {
     		query := fmt.Sprintf("select %s from %s where name = ? limit 1", userRows, m.table)
     		if err := conn.QueryRow(&resp, query, name); err != nil {
     			return nil, err
@@ -162,7 +162,7 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     func (m *defaultUserModel) FindOneByMobile(mobile string) (*User, error) {
     	userMobileKey := fmt.Sprintf("%s%v", cacheUserMobilePrefix, mobile)
     	var resp User
-    	err := m.QueryRowIndex(&resp, userMobileKey, m.formatPrimary, func(conn sqlx.SqlConn, v interface{}) (i interface{}, e error) {
+    	err := m.QueryRowIndex(&resp, userMobileKey, m.formatPrimary, func(conn sqlx.SqlConn, v any) (i any, e error) {
     		query := fmt.Sprintf("select %s from %s where mobile = ? limit 1", userRows, m.table)
     		if err := conn.QueryRow(&resp, query, mobile); err != nil {
     			return nil, err
@@ -205,11 +205,11 @@ goctl model 为go-zero下的工具模块中的组件之一，目前支持识别m
     	return err
     }
     
-    func (m *defaultUserModel) formatPrimary(primary interface{}) string {
+    func (m *defaultUserModel) formatPrimary(primary any) string {
     	return fmt.Sprintf("%s%v", cacheUserIdPrefix, primary)
     }
     
-    func (m *defaultUserModel) queryPrimary(conn sqlx.SqlConn, v, primary interface{}) error {
+    func (m *defaultUserModel) queryPrimary(conn sqlx.SqlConn, v, primary any) error {
     	query := fmt.Sprintf("select %s from %s where id = ? limit 1", userRows, m.table)
     	return conn.QueryRow(v, query, primary)
     }

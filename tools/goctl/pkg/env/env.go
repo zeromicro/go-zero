@@ -122,7 +122,7 @@ func WriteEnv(kv []string) error {
 			return err
 		}
 	}
-	data.RangeIf(func(key, value interface{}) bool {
+	data.RangeIf(func(key, value any) bool {
 		switch key.(string) {
 		case GoctlHome, GoctlCache:
 			path := value.(string)

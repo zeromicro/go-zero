@@ -20,14 +20,14 @@ import (
 const maxUintBitsToTest = 62
 
 func TestUnmarshalWithFullNameNotStruct(t *testing.T) {
-	var s map[string]interface{}
+	var s map[string]any
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, &s)
 	assert.Equal(t, errTypeMismatch, err)
 }
 
 func TestUnmarshalValueNotSettable(t *testing.T) {
-	var s map[string]interface{}
+	var s map[string]any
 	content := []byte(`{"name":"xiaoming"}`)
 	err := UnmarshalJsonBytes(content, s)
 	assert.Equal(t, errValueNotSettable, err)
@@ -39,7 +39,7 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 		OptionalP  *bool  `key:",optional"`
 		OptionalPP **bool `key:",optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"Optional":   true,
 		"OptionalP":  true,
 		"OptionalPP": true,
@@ -57,7 +57,7 @@ func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
 	type inner struct {
 		Name string `key:"name"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"Name": "go-zero",
 	}
 
@@ -77,6 +77,26 @@ func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
 	}
 }
 
+func TestUnmarshalWithoutTagNameWithCanonicalKeyOptionalDep(t *testing.T) {
+	type inner struct {
+		FirstName string `key:",optional"`
+		LastName  string `key:",optional=FirstName"`
+	}
+	m := map[string]any{
+		"firstname": "go",
+		"lastname":  "zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		return strings.ToLower(s)
+	}))
+	if assert.NoError(t, unmarshaler.Unmarshal(m, &in)) {
+		assert.Equal(t, "go", in.FirstName)
+		assert.Equal(t, "zero", in.LastName)
+	}
+}
+
 func TestUnmarshalBool(t *testing.T) {
 	type inner struct {
 		True           bool `key:"yes"`
@@ -88,7 +108,7 @@ func TestUnmarshalBool(t *testing.T) {
 		DefaultTrue    bool `key:"defaulttrue,default=1"`
 		Optional       bool `key:"optional,optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"yes":     true,
 		"no":      false,
 		"yesone":  "1",
@@ -118,7 +138,7 @@ func TestUnmarshalDuration(t *testing.T) {
 		PtrDuration    *time.Duration  `key:"ptr"`
 		PtrPtrDuration **time.Duration `key:"ptrptr"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"duration": "5s",
 		"less":     "100ms",
 		"more":     "24h",
@@ -140,7 +160,7 @@ func TestUnmarshalDurationDefault(t *testing.T) {
 		Int      int           `key:"int"`
 		Duration time.Duration `key:"duration,default=5s"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 5,
 	}
 	var in inner
@@ -154,7 +174,7 @@ func TestUnmarshalDurationPtr(t *testing.T) {
 	type inner struct {
 		Duration *time.Duration `key:"duration"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"duration": "5s",
 	}
 	var in inner
@@ -169,7 +189,7 @@ func TestUnmarshalDurationPtrDefault(t *testing.T) {
 		Value    *int           `key:",default=5"`
 		Duration *time.Duration `key:"duration,default=5s"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 5,
 	}
 	var in inner
@@ -195,7 +215,7 @@ func TestUnmarshalInt(t *testing.T) {
 		DefaultInt   int64 `key:"defaultint,default=11"`
 		Optional     int   `key:"optional,optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int":      1,
 		"intstr":   "2",
 		"int8":     int8(3),
@@ -229,7 +249,7 @@ func TestUnmarshalIntPtr(t *testing.T) {
 	type inner struct {
 		Int *int `key:"int"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 1,
 	}
 
@@ -245,7 +265,7 @@ func TestUnmarshalIntSliceOfPtr(t *testing.T) {
 		Ints  []*int  `key:"ints"`
 		Intps []**int `key:"intps"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"ints":  []int{1, 2, 3},
 		"intps": []int{1, 2, 3, 4},
 	}
@@ -273,7 +293,7 @@ func TestUnmarshalIntWithDefault(t *testing.T) {
 		Intp  *int  `key:"intp,default=5"`
 		Intpp **int `key:"intpp,default=5"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int":   1,
 		"intp":  2,
 		"intpp": 3,
@@ -294,7 +314,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 			Intp  *int64  `key:"intp,string"`
 			Intpp **int64 `key:"intpp,string"`
 		}
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int":   json.Number("1"),
 			"intp":  json.Number("2"),
 			"intpp": json.Number("3"),
@@ -312,7 +332,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		type inner struct {
 			Int *int64 `key:"int"`
 		}
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int": json.Number("1"),
 		}
 
@@ -326,7 +346,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		type inner struct {
 			Int **int64 `key:"int"`
 		}
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int": json.Number("1"),
 		}
 
@@ -340,7 +360,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		type inner struct {
 			Int int64 `key:"int,string,options=[0,1]"`
 		}
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int": json.Number("1"),
 		}
 
@@ -354,7 +374,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		type inner struct {
 			Int int64 `key:"int,string,options=[0,1]"`
 		}
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int": nil,
 		}
 
@@ -370,7 +390,7 @@ func TestUnmarshalIntWithString(t *testing.T) {
 				Int int64 `key:"int,string,options=[0,1]"`
 			}
 		)
-		m := map[string]interface{}{
+		m := map[string]any{
 			"int": StrType("1"),
 		}
 
@@ -385,7 +405,7 @@ func TestUnmarshalBoolSliceRequired(t *testing.T) {
 	}
 
 	var in inner
-	assert.NotNil(t, UnmarshalKey(map[string]interface{}{}, &in))
+	assert.NotNil(t, UnmarshalKey(map[string]any{}, &in))
 }
 
 func TestUnmarshalBoolSliceNil(t *testing.T) {
@@ -394,7 +414,7 @@ func TestUnmarshalBoolSliceNil(t *testing.T) {
 	}
 
 	var in inner
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{}, &in)) {
+	if assert.NoError(t, UnmarshalKey(map[string]any{}, &in)) {
 		assert.Nil(t, in.Bools)
 	}
 }
@@ -405,7 +425,7 @@ func TestUnmarshalBoolSliceNilExplicit(t *testing.T) {
 	}
 
 	var in inner
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"bools": nil,
 	}, &in)) {
 		assert.Nil(t, in.Bools)
@@ -418,7 +438,7 @@ func TestUnmarshalBoolSliceEmpty(t *testing.T) {
 	}
 
 	var in inner
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"bools": []bool{},
 	}, &in)) {
 		assert.Empty(t, in.Bools)
@@ -534,7 +554,7 @@ func TestUnmarshalUint(t *testing.T) {
 		DefaultUint   uint   `key:"defaultuint,default=11"`
 		Optional      uint   `key:"optional,optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"uint":      uint(1),
 		"uintstr":   "2",
 		"uint8":     uint8(3),
@@ -573,7 +593,7 @@ func TestUnmarshalFloat(t *testing.T) {
 		DefaultFloat float32 `key:"defaultfloat,default=5.5"`
 		Optional     float32 `key:",optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"float32":    float32(1.5),
 		"float32str": "2.5",
 		"float64":    float64(3.5),
@@ -596,9 +616,9 @@ func TestUnmarshalInt64Slice(t *testing.T) {
 		Ages  []int64 `key:"ages"`
 		Slice []int64 `key:"slice"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"ages":  []int64{1, 2},
-		"slice": []interface{}{},
+		"slice": []any{},
 	}
 
 	ast := assert.New(t)
@@ -613,9 +633,9 @@ func TestUnmarshalIntSlice(t *testing.T) {
 		Ages  []int `key:"ages"`
 		Slice []int `key:"slice"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"ages":  []int{1, 2},
-		"slice": []interface{}{},
+		"slice": []any{},
 	}
 
 	ast := assert.New(t)
@@ -634,7 +654,7 @@ func TestUnmarshalString(t *testing.T) {
 		DefaultString     string `key:"defaultstring,default=hello"`
 		Optional          string `key:",optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name":    "kevin",
 		"namestr": "namewithstring",
 	}
@@ -654,7 +674,7 @@ func TestUnmarshalStringWithMissing(t *testing.T) {
 	type inner struct {
 		Name string `key:"name"`
 	}
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var in inner
 	assert.Error(t, UnmarshalKey(m, &in))
@@ -664,7 +684,7 @@ func TestUnmarshalStringSliceFromString(t *testing.T) {
 	var v struct {
 		Names []string `key:"names"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"names": `["first", "second"]`,
 	}
 
@@ -680,7 +700,7 @@ func TestUnmarshalIntSliceFromString(t *testing.T) {
 	var v struct {
 		Values []int `key:"values"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"values": `[1, 2]`,
 	}
 
@@ -696,7 +716,7 @@ func TestUnmarshalIntMapFromString(t *testing.T) {
 	var v struct {
 		Sort map[string]int `key:"sort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort": `{"value":12345,"zeroVal":0,"nullVal":null}`,
 	}
 
@@ -713,7 +733,7 @@ func TestUnmarshalBoolMapFromString(t *testing.T) {
 	var v struct {
 		Sort map[string]bool `key:"sort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort": `{"value":true,"zeroVal":false,"nullVal":null}`,
 	}
 
@@ -738,7 +758,7 @@ func TestUnmarshalStringMapFromStringer(t *testing.T) {
 	var v struct {
 		Sort map[string]string `key:"sort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort": CustomStringer(`"value":"ascend","emptyStr":""`),
 	}
 
@@ -754,7 +774,7 @@ func TestUnmarshalStringMapFromUnsupportedType(t *testing.T) {
 	var v struct {
 		Sort map[string]string `key:"sort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort": UnsupportedStringer(`{"value":"ascend","emptyStr":""}`),
 	}
 
@@ -767,7 +787,7 @@ func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 		sort  map[string]string  `key:"sort"`
 		psort *map[string]string `key:"psort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort":  `{"value":"ascend","emptyStr":""}`,
 		"psort": `{"value":"ascend","emptyStr":""}`,
 	}
@@ -780,7 +800,7 @@ func TestUnmarshalStringMapFromString(t *testing.T) {
 	var v struct {
 		Sort map[string]string `key:"sort"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"sort": `{"value":"ascend","emptyStr":""}`,
 	}
 
@@ -802,7 +822,7 @@ func TestUnmarshalStructMapFromString(t *testing.T) {
 			Field5 []string `json:"field5"`
 		} `key:"filter"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"filter": `{"obj":{"field1":true,"field2":"1573570455447539712","field3":"this is a string",
 			"field4":"this is a string pointer","field5":["str1","str2"]}}`,
 	}
@@ -823,7 +843,7 @@ func TestUnmarshalStringSliceMapFromString(t *testing.T) {
 	var v struct {
 		Filter map[string][]string `key:"filter"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"filter": `{"assignType":null,"status":["process","comment"],"rate":[]}`,
 	}
 
@@ -851,17 +871,17 @@ func TestUnmarshalStruct(t *testing.T) {
 		AddressP  *address  `key:"addressp"`
 		AddressPP **address `key:"addresspp"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name": "kevin",
-		"address": map[string]interface{}{
+		"address": map[string]any{
 			"city":    "shanghai",
 			"zipcode": "200000",
 		},
-		"addressp": map[string]interface{}{
+		"addressp": map[string]any{
 			"city":    "beijing",
 			"zipcode": "300000",
 		},
-		"addresspp": map[string]interface{}{
+		"addresspp": map[string]any{
 			"city":    "guangzhou",
 			"zipcode": "400000",
 		},
@@ -924,14 +944,14 @@ func TestUnmarshalStructOptionalDepends(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
-			m := map[string]interface{}{
+			m := map[string]any{
 				"name": "kevin",
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"city": "shanghai",
 				},
 			}
 			for k, v := range test.input {
-				m["address"].(map[string]interface{})[k] = v
+				m["address"].(map[string]any)[k] = v
 			}
 
 			var in inner
@@ -992,14 +1012,14 @@ func TestUnmarshalStructOptionalDependsNot(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
-			m := map[string]interface{}{
+			m := map[string]any{
 				"name": "kevin",
-				"address": map[string]interface{}{
+				"address": map[string]any{
 					"city": "shanghai",
 				},
 			}
 			for k, v := range test.input {
-				m["address"].(map[string]interface{})[k] = v
+				m["address"].(map[string]any)[k] = v
 			}
 
 			var in inner
@@ -1028,7 +1048,7 @@ func TestUnmarshalStructOptionalDependsNotErrorDetails(t *testing.T) {
 		Address address `key:"address"`
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name": "kevin",
 	}
 
@@ -1050,7 +1070,7 @@ func TestUnmarshalStructOptionalDependsNotNested(t *testing.T) {
 		Combo combo  `key:"combo"`
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name": "kevin",
 	}
 
@@ -1072,7 +1092,7 @@ func TestUnmarshalStructOptionalNestedDifferentKey(t *testing.T) {
 		Combo combo  `key:"combo"`
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name": "kevin",
 	}
 
@@ -1090,9 +1110,69 @@ func TestUnmarshalStructOptionalDependsNotEnoughValue(t *testing.T) {
 		Address address `key:"address"`
 	}
 
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name":    "kevin",
-		"address": map[string]interface{}{},
+		"address": map[string]any{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalStructOptionalDependsMoreValues(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name":    "kevin",
+		"address": map[string]any{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalStructMissing(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name": "kevin",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalNestedStructMissing(t *testing.T) {
+	type mostInner struct {
+		Name string `key:"name"`
+	}
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+		MostInner       mostInner
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name":    "kevin",
+		"address": map[string]any{},
 	}
 
 	var in inner
@@ -1140,7 +1220,7 @@ func TestUnmarshalAnonymousStructOptionalDepends(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
-			m := map[string]interface{}{
+			m := map[string]any{
 				"name": "kevin",
 				"city": "shanghai",
 			}
@@ -1175,9 +1255,9 @@ func TestUnmarshalStructPtr(t *testing.T) {
 		Name    string   `key:"name"`
 		Address *address `key:"address"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"name": "kevin",
-		"address": map[string]interface{}{
+		"address": map[string]any{
 			"city":    "shanghai",
 			"zipcode": "200000",
 		},
@@ -1210,7 +1290,7 @@ func TestUnmarshalWithStringIgnored(t *testing.T) {
 		Float32 float32 `key:"float32"`
 		Float64 float64 `key:"float64"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"yes":     "1",
 		"no":      "0",
 		"int":     "1",
@@ -1253,7 +1333,7 @@ func TestUnmarshalJsonNumberInt64(t *testing.T) {
 		var intValue int64 = 1 << uint(i)
 		strValue := strconv.FormatInt(intValue, 10)
 		number := json.Number(strValue)
-		m := map[string]interface{}{
+		m := map[string]any{
 			"ID": number,
 		}
 		var v struct {
@@ -1270,7 +1350,7 @@ func TestUnmarshalJsonNumberUint64(t *testing.T) {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
 		number := json.Number(strValue)
-		m := map[string]interface{}{
+		m := map[string]any{
 			"ID": number,
 		}
 		var v struct {
@@ -1287,7 +1367,7 @@ func TestUnmarshalJsonNumberUint64Ptr(t *testing.T) {
 		var intValue uint64 = 1 << uint(i)
 		strValue := strconv.FormatUint(intValue, 10)
 		number := json.Number(strValue)
-		m := map[string]interface{}{
+		m := map[string]any{
 			"ID": number,
 		}
 		var v struct {
@@ -1302,7 +1382,7 @@ func TestUnmarshalJsonNumberUint64Ptr(t *testing.T) {
 }
 
 func TestUnmarshalMapOfInt(t *testing.T) {
-	m := map[string]interface{}{
+	m := map[string]any{
 		"Ids": map[string]bool{"first": true},
 	}
 	var v struct {
@@ -1314,8 +1394,8 @@ func TestUnmarshalMapOfInt(t *testing.T) {
 }
 
 func TestUnmarshalMapOfStructError(t *testing.T) {
-	m := map[string]interface{}{
-		"Ids": map[string]interface{}{"first": "second"},
+	m := map[string]any{
+		"Ids": map[string]any{"first": "second"},
 	}
 	var v struct {
 		Ids map[string]struct {
@@ -1326,8 +1406,8 @@ func TestUnmarshalMapOfStructError(t *testing.T) {
 }
 
 func TestUnmarshalSlice(t *testing.T) {
-	m := map[string]interface{}{
-		"Ids": []interface{}{"first", "second"},
+	m := map[string]any{
+		"Ids": []any{"first", "second"},
 	}
 	var v struct {
 		Ids []string
@@ -1341,8 +1421,8 @@ func TestUnmarshalSlice(t *testing.T) {
 }
 
 func TestUnmarshalSliceOfStruct(t *testing.T) {
-	m := map[string]interface{}{
-		"Ids": []map[string]interface{}{
+	m := map[string]any{
+		"Ids": []map[string]any{
 			{
 				"First":  1,
 				"Second": 2,
@@ -1369,7 +1449,7 @@ func TestUnmarshalWithStringOptionsCorrect(t *testing.T) {
 		Foo     string `key:"foo,options=[bar,baz]"`
 		Correct string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "first",
 		"foo":     "bar",
 		"correct": "2",
@@ -1391,7 +1471,7 @@ func TestUnmarshalOptionsOptional(t *testing.T) {
 		Foo           string `key:"foo,options=[bar,baz]"`
 		Correct       string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "first",
 		"foo":     "bar",
 		"correct": "2",
@@ -1413,9 +1493,21 @@ func TestUnmarshalOptionsOptionalWrongValue(t *testing.T) {
 		OptionalValue string `key:"optional_value,options=first|second,optional"`
 		WrongValue    string `key:"wrong_value,options=first|second,optional"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":       "first",
 		"wrong_value": "third",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalOptionsMissingValues(t *testing.T) {
+	type inner struct {
+		Value string `key:"value,options"`
+	}
+	m := map[string]any{
+		"value": "first",
 	}
 
 	var in inner
@@ -1427,7 +1519,7 @@ func TestUnmarshalStringOptionsWithStringOptionsNotString(t *testing.T) {
 		Value   string `key:"value,options=first|second"`
 		Correct string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "first",
 		"correct": 2,
 	}
@@ -1442,7 +1534,7 @@ func TestUnmarshalStringOptionsWithStringOptions(t *testing.T) {
 		Value   string `key:"value,options=first|second"`
 		Correct string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "first",
 		"correct": "2",
 	}
@@ -1462,7 +1554,7 @@ func TestUnmarshalStringOptionsWithStringOptionsPtr(t *testing.T) {
 		ValueP  **string `key:"valuep,options=first|second"`
 		Correct *int     `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "first",
 		"valuep":  "second",
 		"correct": "2",
@@ -1483,7 +1575,7 @@ func TestUnmarshalStringOptionsWithStringOptionsIncorrect(t *testing.T) {
 		Value   string `key:"value,options=first|second"`
 		Correct string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "third",
 		"correct": "2",
 	}
@@ -1498,7 +1590,7 @@ func TestUnmarshalStringOptionsWithStringOptionsIncorrectGrouped(t *testing.T) {
 		Value   string `key:"value,options=[first,second]"`
 		Correct string `key:"correct,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":   "third",
 		"correct": "2",
 	}
@@ -1513,7 +1605,7 @@ func TestUnmarshalWithStringOptionsIncorrect(t *testing.T) {
 		Value     string `key:"value,options=first|second"`
 		Incorrect string `key:"incorrect,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":     "first",
 		"incorrect": "3",
 	}
@@ -1527,7 +1619,7 @@ func TestUnmarshalWithIntOptionsCorrect(t *testing.T) {
 		Value  string `key:"value,options=first|second"`
 		Number int    `key:"number,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":  "first",
 		"number": 2,
 	}
@@ -1545,7 +1637,7 @@ func TestUnmarshalWithIntOptionsCorrectPtr(t *testing.T) {
 		Value  *string `key:"value,options=first|second"`
 		Number *int    `key:"number,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":  "first",
 		"number": 2,
 	}
@@ -1563,7 +1655,7 @@ func TestUnmarshalWithIntOptionsIncorrect(t *testing.T) {
 		Value     string `key:"value,options=first|second"`
 		Incorrect int    `key:"incorrect,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":     "first",
 		"incorrect": 3,
 	}
@@ -1577,7 +1669,7 @@ func TestUnmarshalWithJsonNumberOptionsIncorrect(t *testing.T) {
 		Value     string `key:"value,options=first|second"`
 		Incorrect int    `key:"incorrect,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":     "first",
 		"incorrect": json.Number("3"),
 	}
@@ -1599,7 +1691,7 @@ func TestUnmarshalWithUintOptionsCorrect(t *testing.T) {
 		Value  string `key:"value,options=first|second"`
 		Number uint   `key:"number,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":  "first",
 		"number": uint(2),
 	}
@@ -1617,7 +1709,7 @@ func TestUnmarshalWithUintOptionsIncorrect(t *testing.T) {
 		Value     string `key:"value,options=first|second"`
 		Incorrect uint   `key:"incorrect,options=1|2"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value":     "first",
 		"incorrect": uint(3),
 	}
@@ -1630,7 +1722,7 @@ func TestUnmarshalWithOptionsAndDefault(t *testing.T) {
 	type inner struct {
 		Value string `key:"value,options=first|second|third,default=second"`
 	}
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var in inner
 	if assert.NoError(t, UnmarshalKey(m, &in)) {
@@ -1642,7 +1734,7 @@ func TestUnmarshalWithOptionsAndSet(t *testing.T) {
 	type inner struct {
 		Value string `key:"value,options=first|second|third,default=second"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value": "first",
 	}
 
@@ -1656,9 +1748,9 @@ func TestUnmarshalNestedKey(t *testing.T) {
 	var c struct {
 		ID int `json:"Persons.first.ID"`
 	}
-	m := map[string]interface{}{
-		"Persons": map[string]interface{}{
-			"first": map[string]interface{}{
+	m := map[string]any{
+		"Persons": map[string]any{
+			"first": map[string]any{
 				"ID": 1,
 			},
 		},
@@ -1675,9 +1767,9 @@ func TestUnmarhsalNestedKeyArray(t *testing.T) {
 			ID int
 		} `json:"Persons.first"`
 	}
-	m := map[string]interface{}{
-		"Persons": map[string]interface{}{
-			"first": []map[string]interface{}{
+	m := map[string]any{
+		"Persons": map[string]any{
+			"first": []map[string]any{
 				{"ID": 1},
 				{"ID": 2},
 			},
@@ -1700,7 +1792,7 @@ func TestUnmarshalAnonymousOptionalRequiredProvided(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -1720,7 +1812,7 @@ func TestUnmarshalAnonymousOptionalRequiredMissed(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -1738,7 +1830,7 @@ func TestUnmarshalAnonymousOptionalOptionalProvided(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -1758,7 +1850,7 @@ func TestUnmarshalAnonymousOptionalOptionalMissed(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -1777,7 +1869,7 @@ func TestUnmarshalAnonymousOptionalRequiredBothProvided(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -1800,7 +1892,7 @@ func TestUnmarshalAnonymousOptionalRequiredOneProvidedOneMissed(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -1819,7 +1911,7 @@ func TestUnmarshalAnonymousOptionalRequiredBothMissed(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -1839,7 +1931,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalBothProvided(t *testing
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -1862,7 +1954,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalBothMissed(t *testing.T
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -1882,7 +1974,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalRequiredProvidedOptiona
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -1904,7 +1996,7 @@ func TestUnmarshalAnonymousOptionalOneRequiredOneOptionalRequiredMissedOptionalP
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "anything",
 	}
 
@@ -1923,7 +2015,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalBothProvided(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -1946,7 +2038,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalOneProvidedOneMissed(t *testing.T
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -1968,7 +2060,7 @@ func TestUnmarshalAnonymousOptionalBothOptionalBothMissed(t *testing.T) {
 			Foo `json:",optional"`
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -1987,7 +2079,7 @@ func TestUnmarshalAnonymousRequiredProvided(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2007,7 +2099,7 @@ func TestUnmarshalAnonymousRequiredMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
@@ -2023,7 +2115,7 @@ func TestUnmarshalAnonymousOptionalProvided(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2043,7 +2135,7 @@ func TestUnmarshalAnonymousOptionalMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -2062,7 +2154,7 @@ func TestUnmarshalAnonymousRequiredBothProvided(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -2085,7 +2177,7 @@ func TestUnmarshalAnonymousRequiredOneProvidedOneMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2104,7 +2196,7 @@ func TestUnmarshalAnonymousRequiredBothMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2123,7 +2215,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalBothProvided(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -2146,7 +2238,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalBothMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	assert.Error(t, NewUnmarshaler("json").Unmarshal(m, &b))
@@ -2163,7 +2255,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalRequiredProvidedOptionalMissed(
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2185,7 +2277,7 @@ func TestUnmarshalAnonymousOneRequiredOneOptionalRequiredMissedOptionalProvided(
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "anything",
 	}
 
@@ -2204,7 +2296,7 @@ func TestUnmarshalAnonymousBothOptionalBothProvided(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"n": "kevin",
 		"v": "anything",
 	}
@@ -2227,7 +2319,7 @@ func TestUnmarshalAnonymousBothOptionalOneProvidedOneMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"v": "anything",
 	}
 
@@ -2249,7 +2341,7 @@ func TestUnmarshalAnonymousBothOptionalBothMissed(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{}
+	m := map[string]any{}
 
 	var b Bar
 	if assert.NoError(t, NewUnmarshaler("json").Unmarshal(m, &b)) {
@@ -2269,8 +2361,8 @@ func TestUnmarshalAnonymousWrappedToMuch(t *testing.T) {
 			Foo
 		}
 	)
-	m := map[string]interface{}{
-		"Foo": map[string]interface{}{
+	m := map[string]any{
+		"Foo": map[string]any{
 			"n": "name",
 			"v": "anything",
 		},
@@ -2290,8 +2382,8 @@ func TestUnmarshalWrappedObject(t *testing.T) {
 			Inner Foo
 		}
 	)
-	m := map[string]interface{}{
-		"Inner": map[string]interface{}{
+	m := map[string]any{
+		"Inner": map[string]any{
 			"v": "anything",
 		},
 	}
@@ -2314,7 +2406,7 @@ func TestUnmarshalWrappedObjectOptional(t *testing.T) {
 			Name  string
 		}
 	)
-	m := map[string]interface{}{
+	m := map[string]any{
 		"Name": "anything",
 	}
 
@@ -2337,8 +2429,8 @@ func TestUnmarshalWrappedObjectOptionalFilled(t *testing.T) {
 		}
 	)
 	hosts := []string{"1", "2"}
-	m := map[string]interface{}{
-		"Inner": map[string]interface{}{
+	m := map[string]any{
+		"Inner": map[string]any{
 			"Hosts": hosts,
 			"Key":   "key",
 		},
@@ -2365,8 +2457,8 @@ func TestUnmarshalWrappedNamedObjectOptional(t *testing.T) {
 			Name  string
 		}
 	)
-	m := map[string]interface{}{
-		"Inner": map[string]interface{}{
+	m := map[string]any{
+		"Inner": map[string]any{
 			"Host": "thehost",
 			"Key":  "thekey",
 		},
@@ -2391,8 +2483,8 @@ func TestUnmarshalWrappedObjectNamedPtr(t *testing.T) {
 			Inner *Foo `json:"foo,optional"`
 		}
 	)
-	m := map[string]interface{}{
-		"foo": map[string]interface{}{
+	m := map[string]any{
+		"foo": map[string]any{
 			"v": "anything",
 		},
 	}
@@ -2413,8 +2505,8 @@ func TestUnmarshalWrappedObjectPtr(t *testing.T) {
 			Inner *Foo
 		}
 	)
-	m := map[string]interface{}{
-		"Inner": map[string]interface{}{
+	m := map[string]any{
+		"Inner": map[string]any{
 			"v": "anything",
 		},
 	}
@@ -2429,7 +2521,7 @@ func TestUnmarshalInt2String(t *testing.T) {
 	type inner struct {
 		Int string `key:"int"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 123,
 	}
 
@@ -2443,7 +2535,7 @@ func TestUnmarshalZeroValues(t *testing.T) {
 		Int    int    `key:"int"`
 		String string `key:"string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"no":     false,
 		"int":    0,
 		"string": "",
@@ -2464,7 +2556,7 @@ func TestUnmarshalUsingDifferentKeys(t *testing.T) {
 		Int    int    `key:"int"`
 		String string `bson:"string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"no":     false,
 		"int":    9,
 		"string": "value",
@@ -2492,7 +2584,7 @@ func TestUnmarshalNumberRangeInt(t *testing.T) {
 		Value10 uint32 `key:"value10,range=[1:5],string"`
 		Value11 uint64 `key:"value11,range=[1:5],string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value1":  10,
 		"value2":  int8(1),
 		"value3":  int16(2),
@@ -2527,7 +2619,7 @@ func TestUnmarshalNumberRangeJsonNumber(t *testing.T) {
 		Value4 uint8  `key:"value4,range=(1:5]"`
 		Value5 uint16 `key:"value5,range=(1:5]"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value3": json.Number("2"),
 		"value4": json.Number("4"),
 		"value5": json.Number("5"),
@@ -2544,7 +2636,7 @@ func TestUnmarshalNumberRangeJsonNumber(t *testing.T) {
 	type inner1 struct {
 		Value int `key:"value,range=(1:5]"`
 	}
-	m = map[string]interface{}{
+	m = map[string]any{
 		"value": json.Number("a"),
 	}
 
@@ -2561,7 +2653,7 @@ func TestUnmarshalNumberRangeIntLeftExclude(t *testing.T) {
 		Value10 int    `key:"value10,range=(1:5],string"`
 		Value11 int    `key:"value11,range=(1:5],string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value3":  uint(2),
 		"value4":  uint32(4),
 		"value5":  uint64(5),
@@ -2591,7 +2683,7 @@ func TestUnmarshalNumberRangeIntRightExclude(t *testing.T) {
 		Value9  int    `key:"value9,range=[1:5),string"`
 		Value10 int    `key:"value10,range=[1:5),string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value2":  uint(1),
 		"value3":  uint8(2),
 		"value4":  uint16(4),
@@ -2619,7 +2711,7 @@ func TestUnmarshalNumberRangeIntExclude(t *testing.T) {
 		Value9  int `key:"value9,range=(1:5),string"`
 		Value10 int `key:"value10,range=(1:5),string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value3":  2,
 		"value4":  4,
 		"value9":  "2",
@@ -2642,16 +2734,16 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(1),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(5),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": json.Number("6"),
 	}, &in1))
 
@@ -2660,10 +2752,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in2))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(5),
 	}, &in2))
 
@@ -2672,10 +2764,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(1),
 	}, &in3))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(6),
 	}, &in3))
 
@@ -2684,10 +2776,10 @@ func TestUnmarshalNumberRangeIntOutOfRange(t *testing.T) {
 	}
 
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(0),
 	}, &in4))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": int64(6),
 	}, &in4))
 }
@@ -2703,7 +2795,7 @@ func TestUnmarshalNumberRangeFloat(t *testing.T) {
 		Value10 float64 `key:"value10,range=[1:5],string"`
 		Value11 float64 `key:"value11,range=[1:5],string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value2":  float32(1),
 		"value3":  float32(2),
 		"value4":  float64(4),
@@ -2737,7 +2829,7 @@ func TestUnmarshalNumberRangeFloatLeftExclude(t *testing.T) {
 		Value10 float64 `key:"value10,range=(1:5],string"`
 		Value11 float64 `key:"value11,range=(1:5],string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value3":  float64(2),
 		"value4":  float64(4),
 		"value5":  float64(5),
@@ -2767,7 +2859,7 @@ func TestUnmarshalNumberRangeFloatRightExclude(t *testing.T) {
 		Value9  float64 `key:"value9,range=[1:5),string"`
 		Value10 float64 `key:"value10,range=[1:5),string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value2":  float64(1),
 		"value3":  float64(2),
 		"value4":  float64(4),
@@ -2795,7 +2887,7 @@ func TestUnmarshalNumberRangeFloatExclude(t *testing.T) {
 		Value9  float64 `key:"value9,range=(1:5),string"`
 		Value10 float64 `key:"value10,range=(1:5),string"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value3":  float64(2),
 		"value4":  float64(4),
 		"value9":  "2",
@@ -2818,16 +2910,16 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(1),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(5),
 	}, &in1))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": json.Number("6"),
 	}, &in1))
 
@@ -2836,10 +2928,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in2))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(5),
 	}, &in2))
 
@@ -2848,10 +2940,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(1),
 	}, &in3))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(6),
 	}, &in3))
 
@@ -2860,10 +2952,10 @@ func TestUnmarshalNumberRangeFloatOutOfRange(t *testing.T) {
 	}
 
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(0),
 	}, &in4))
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"value": float64(6),
 	}, &in4))
 }
@@ -2873,7 +2965,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range="`
 	}
 	var in1 inner1
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in1))
 
@@ -2881,7 +2973,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=["`
 	}
 	var in2 inner2
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in2))
 
@@ -2889,7 +2981,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:"`
 	}
 	var in3 inner3
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in3))
 
@@ -2897,7 +2989,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:]"`
 	}
 	var in4 inner4
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in4))
 
@@ -2905,7 +2997,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range={:]"`
 	}
 	var in5 inner5
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in5))
 
@@ -2913,7 +3005,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:}"`
 	}
 	var in6 inner6
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in6))
 
@@ -2921,7 +3013,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[]"`
 	}
 	var in7 inner7
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in7))
 
@@ -2929,7 +3021,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[a:]"`
 	}
 	var in8 inner8
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in8))
 
@@ -2937,7 +3029,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[:a]"`
 	}
 	var in9 inner9
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in9))
 
@@ -2945,7 +3037,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range"`
 	}
 	var in10 inner10
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
 		"Value": 1,
 	}, &in10))
 
@@ -2953,7 +3045,7 @@ func TestUnmarshalRangeError(t *testing.T) {
 		Value int `key:",range=[1,2]"`
 	}
 	var in11 inner11
-	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]interface{}{
+	assert.Equal(t, errNumberRange, UnmarshalKey(map[string]any{
 		"Value": "a",
 	}, &in11))
 }
@@ -2962,8 +3054,8 @@ func TestUnmarshalNestedMap(t *testing.T) {
 	var c struct {
 		Anything map[string]map[string]string `json:"anything"`
 	}
-	m := map[string]interface{}{
-		"anything": map[string]map[string]interface{}{
+	m := map[string]any{
+		"anything": map[string]map[string]any{
 			"inner": {
 				"id":   "1",
 				"name": "any",
@@ -2980,8 +3072,8 @@ func TestUnmarshalNestedMapMismatch(t *testing.T) {
 	var c struct {
 		Anything map[string]map[string]map[string]string `json:"anything"`
 	}
-	m := map[string]interface{}{
-		"anything": map[string]map[string]interface{}{
+	m := map[string]any{
+		"anything": map[string]map[string]any{
 			"inner": {
 				"name": "any",
 			},
@@ -2995,8 +3087,8 @@ func TestUnmarshalNestedMapSimple(t *testing.T) {
 	var c struct {
 		Anything map[string]string `json:"anything"`
 	}
-	m := map[string]interface{}{
-		"anything": map[string]interface{}{
+	m := map[string]any{
+		"anything": map[string]any{
 			"id":   "1",
 			"name": "any",
 		},
@@ -3011,7 +3103,7 @@ func TestUnmarshalNestedMapSimpleTypeMatch(t *testing.T) {
 	var c struct {
 		Anything map[string]string `json:"anything"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"anything": map[string]string{
 			"id":   "1",
 			"name": "any",
@@ -3036,9 +3128,9 @@ func TestUnmarshalInheritPrimitiveUseParent(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"discovery": "localhost:8080",
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name": "test",
 		},
 	}, &s)) {
@@ -3060,9 +3152,9 @@ func TestUnmarshalInheritPrimitiveUseSelf(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"discovery": "localhost:8080",
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name":      "test",
 			"discovery": "localhost:8888",
 		},
@@ -3084,8 +3176,8 @@ func TestUnmarshalInheritPrimitiveNotExist(t *testing.T) {
 	)
 
 	var s server
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
-		"component": map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
+		"component": map[string]any{
 			"name": "test",
 		},
 	}, &s))
@@ -3108,12 +3200,12 @@ func TestUnmarshalInheritStructUseParent(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
-		"discovery": map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
+		"discovery": map[string]any{
 			"host": "localhost",
 			"port": 8080,
 		},
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name": "test",
 		},
 	}, &s)) {
@@ -3141,14 +3233,14 @@ func TestUnmarshalInheritStructUseSelf(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
-		"discovery": map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
+		"discovery": map[string]any{
 			"host": "localhost",
 			"port": 8080,
 		},
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name": "test",
-			"discovery": map[string]interface{}{
+			"discovery": map[string]any{
 				"host": "remotehost",
 				"port": 8888,
 			},
@@ -3177,8 +3269,8 @@ func TestUnmarshalInheritStructNotExist(t *testing.T) {
 	)
 
 	var s server
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
-		"component": map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
+		"component": map[string]any{
 			"name": "test",
 		},
 	}, &s))
@@ -3201,14 +3293,14 @@ func TestUnmarshalInheritStructUsePartial(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
-		"discovery": map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
+		"discovery": map[string]any{
 			"host": "localhost",
 			"port": 8080,
 		},
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name": "test",
-			"discovery": map[string]interface{}{
+			"discovery": map[string]any{
 				"port": 8888,
 			},
 		},
@@ -3237,11 +3329,11 @@ func TestUnmarshalInheritStructUseSelfIncorrectType(t *testing.T) {
 	)
 
 	var s server
-	assert.Error(t, UnmarshalKey(map[string]interface{}{
-		"discovery": map[string]interface{}{
+	assert.Error(t, UnmarshalKey(map[string]any{
+		"discovery": map[string]any{
 			"host": "localhost",
 		},
-		"component": map[string]interface{}{
+		"component": map[string]any{
 			"name": "test",
 			"discovery": map[string]string{
 				"host": "remotehost",
@@ -3266,10 +3358,10 @@ func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
 	)
 
 	var s server
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"discovery": "localhost:8080",
-		"middle": map[string]interface{}{
-			"value": map[string]interface{}{
+		"middle": map[string]any{
+			"value": map[string]any{
 				"name": "test",
 			},
 		},
@@ -3411,7 +3503,7 @@ func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
 	defer os.Unsetenv(envName)
 
 	var v Value
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"name": "local value",
 	}, &v)) {
 		assert.Equal(t, envVal, v.Name)
@@ -3449,7 +3541,7 @@ func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
 	defer os.Unsetenv(envName)
 
 	var v Value
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"age": 18,
 	}, &v)) {
 		assert.Equal(t, 123, v.Age)
@@ -3487,7 +3579,7 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 	defer os.Unsetenv(envName)
 
 	var v Value
-	if assert.NoError(t, UnmarshalKey(map[string]interface{}{
+	if assert.NoError(t, UnmarshalKey(map[string]any{
 		"age": 18.5,
 	}, &v)) {
 		assert.Equal(t, float32(123.45), v.Age)
@@ -3890,7 +3982,7 @@ func TestGoogleUUID(t *testing.T) {
 	})
 
 	t.Run("map", func(t *testing.T) {
-		if assert.NoError(t, UnmarshalJsonMap(map[string]interface{}{
+		if assert.NoError(t, UnmarshalJsonMap(map[string]any{
 			"uid":    []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c1"),
 			"uidp":   []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c2"),
 			"uidpp":  []byte("6ba7b810-9dad-11d1-80b4-00c04fd430c3"),
@@ -3962,8 +4054,8 @@ func TestUnmarshalJsonReaderWithMismatchTypeBoolMap(t *testing.T) {
 	var req struct {
 		Params map[string]string `json:"params"`
 	}
-	assert.Equal(t, errTypeMismatch, UnmarshalJsonMap(map[string]interface{}{
-		"params": map[string]interface{}{
+	assert.Equal(t, errTypeMismatch, UnmarshalJsonMap(map[string]any{
+		"params": map[string]any{
 			"a": true,
 		},
 	}, &req))
@@ -4148,7 +4240,7 @@ func TestUnmarshalNestedPtr(t *testing.T) {
 	type inner struct {
 		Int **int `key:"int"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 1,
 	}
 
@@ -4163,7 +4255,7 @@ func TestUnmarshalStructPtrOfPtr(t *testing.T) {
 	type inner struct {
 		Int int `key:"int"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"int": 1,
 	}
 
@@ -4190,7 +4282,7 @@ func BenchmarkUnmarshalString(b *testing.B) {
 	type inner struct {
 		Value string `key:"value"`
 	}
-	m := map[string]interface{}{
+	m := map[string]any{
 		"value": "first",
 	}
 
@@ -4205,8 +4297,8 @@ func BenchmarkUnmarshalString(b *testing.B) {
 func BenchmarkUnmarshalStruct(b *testing.B) {
 	b.ReportAllocs()
 
-	m := map[string]interface{}{
-		"Ids": []map[string]interface{}{
+	m := map[string]any{
+		"Ids": []map[string]any{
 			{
 				"First":  1,
 				"Second": 2,
@@ -4228,7 +4320,7 @@ func BenchmarkUnmarshalStruct(b *testing.B) {
 }
 
 func BenchmarkMapToStruct(b *testing.B) {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"valid": "1",
 		"age":   "5",
 		"name":  "liao",
@@ -4256,7 +4348,7 @@ func BenchmarkMapToStruct(b *testing.B) {
 }
 
 func BenchmarkUnmarshal(b *testing.B) {
-	data := map[string]interface{}{
+	data := map[string]any{
 		"valid": "1",
 		"age":   "5",
 		"name":  "liao",

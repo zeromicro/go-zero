@@ -88,7 +88,7 @@ func TestNewRequestParserWithBadForm(t *testing.T) {
 }
 
 func TestRequestParser_buildJsonRequestParser(t *testing.T) {
-	parser, err := buildJsonRequestParser(map[string]interface{}{"a": make(chan int)}, nil)
+	parser, err := buildJsonRequestParser(map[string]any{"a": make(chan int)}, nil)
 	assert.NotNil(t, err)
 	assert.Nil(t, parser)
 }

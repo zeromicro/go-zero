@@ -52,7 +52,7 @@ func TestCacheTake(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
-			cache.Take("first", func() (interface{}, error) {
+			cache.Take("first", func() (any, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "first element", nil
@@ -76,7 +76,7 @@ func TestCacheTakeExists(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			cache.Set("first", "first element")
-			cache.Take("first", func() (interface{}, error) {
+			cache.Take("first", func() (any, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "first element", nil
@@ -99,7 +99,7 @@ func TestCacheTakeError(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
-			_, err := cache.Take("first", func() (interface{}, error) {
+			_, err := cache.Take("first", func() (any, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "", errDummy

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/zrpc/internal/mock"
 	"google.golang.org/grpc"
@@ -18,7 +19,7 @@ func TestRpcServer(t *testing.T) {
 		Stat:       true,
 		Prometheus: true,
 		Breaker:    true,
-	}, WithMetrics(metrics))
+	}, WithMetrics(metrics), WithRpcHealth(true))
 	server.SetName("mock")
 	var wg sync.WaitGroup
 	var grpcServer *grpc.Server
@@ -36,6 +37,8 @@ func TestRpcServer(t *testing.T) {
 	}()
 
 	wg.Wait()
+
+	proc.WrapUp()
 	lock.Lock()
 	grpcServer.GracefulStop()
 	lock.Unlock()
@@ -48,7 +51,7 @@ func TestRpcServer_WithBadAddress(t *testing.T) {
 		Stat:       true,
 		Prometheus: true,
 		Breaker:    true,
-	})
+	}, WithRpcHealth(true))
 	server.SetName("mock")
 	err := server.Start(func(server *grpc.Server) {
 		mock.RegisterDepositServiceServer(server, new(mock.DepositServer))

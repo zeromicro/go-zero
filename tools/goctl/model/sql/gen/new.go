@@ -21,7 +21,7 @@ func genNew(table Table, withCache, postgreSql bool) (string, error) {
 
 	output, err := util.With("new").
 		Parse(text).
-		Execute(map[string]interface{}{
+		Execute(map[string]any{
 			"table":                 t,
 			"withCache":             withCache,
 			"upperStartCamelObject": table.Name.ToCamel(),

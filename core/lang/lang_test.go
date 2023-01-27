@@ -23,7 +23,7 @@ func TestRepr(t *testing.T) {
 		u64 uint64  = 8
 	)
 	tests := []struct {
-		v      interface{}
+		v      any
 		expect string
 	}{
 		{

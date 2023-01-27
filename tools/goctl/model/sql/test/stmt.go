@@ -13,7 +13,7 @@ import (
 
 const slowThreshold = time.Millisecond * 500
 
-func exec(db *sql.DB, q string, args ...interface{}) (sql.Result, error) {
+func exec(db *sql.DB, q string, args ...any) (sql.Result, error) {
 	tx, err := db.Begin()
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func exec(db *sql.DB, q string, args ...interface{}) (sql.Result, error) {
 	return result, err
 }
 
-func execStmt(conn *sql.Stmt, args ...interface{}) (sql.Result, error) {
+func execStmt(conn *sql.Stmt, args ...any) (sql.Result, error) {
 	stmt := fmt.Sprint(args...)
 	startTime := timex.Now()
 	result, err := conn.Exec(args...)
@@ -65,7 +65,7 @@ func execStmt(conn *sql.Stmt, args ...interface{}) (sql.Result, error) {
 	return result, err
 }
 
-func query(db *sql.DB, scanner func(*sql.Rows) error, q string, args ...interface{}) error {
+func query(db *sql.DB, scanner func(*sql.Rows) error, q string, args ...any) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func query(db *sql.DB, scanner func(*sql.Rows) error, q string, args ...interfac
 	return scanner(rows)
 }
 
-func queryStmt(conn *sql.Stmt, scanner func(*sql.Rows) error, args ...interface{}) error {
+func queryStmt(conn *sql.Stmt, scanner func(*sql.Rows) error, args ...any) error {
 	stmt := fmt.Sprint(args...)
 	startTime := timex.Now()
 	rows, err := conn.Query(args...)

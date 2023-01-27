@@ -227,7 +227,7 @@ func TestMarshal_Range(t *testing.T) {
 }
 
 func TestMarshal_RangeOut(t *testing.T) {
-	tests := []interface{}{
+	tests := []any{
 		struct {
 			Int int `json:"int,range=[1:3]"`
 		}{
@@ -262,7 +262,7 @@ func TestMarshal_RangeOut(t *testing.T) {
 }
 
 func TestMarshal_RangeIllegal(t *testing.T) {
-	tests := []interface{}{
+	tests := []any{
 		struct {
 			Int int `json:"int,range=[3:1]"`
 		}{
@@ -284,7 +284,7 @@ func TestMarshal_RangeIllegal(t *testing.T) {
 func TestMarshal_RangeLeftEqualsToRight(t *testing.T) {
 	tests := []struct {
 		name  string
-		value interface{}
+		value any
 		err   error
 	}{
 		{

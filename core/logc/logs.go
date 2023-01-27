@@ -28,18 +28,18 @@ func Close() error {
 }
 
 // Error writes v into error log.
-func Error(ctx context.Context, v ...interface{}) {
+func Error(ctx context.Context, v ...any) {
 	getLogger(ctx).Error(v...)
 }
 
 // Errorf writes v with format into error log.
-func Errorf(ctx context.Context, format string, v ...interface{}) {
+func Errorf(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Errorf(fmt.Errorf(format, v...).Error())
 }
 
 // Errorv writes v into error log with json content.
 // No call stack attached, because not elegant to pack the messages.
-func Errorv(ctx context.Context, v interface{}) {
+func Errorv(ctx context.Context, v any) {
 	getLogger(ctx).Errorv(v)
 }
 
@@ -49,22 +49,22 @@ func Errorw(ctx context.Context, msg string, fields ...LogField) {
 }
 
 // Field returns a LogField for the given key and value.
-func Field(key string, value interface{}) LogField {
+func Field(key string, value any) LogField {
 	return logx.Field(key, value)
 }
 
 // Info writes v into access log.
-func Info(ctx context.Context, v ...interface{}) {
+func Info(ctx context.Context, v ...any) {
 	getLogger(ctx).Info(v...)
 }
 
 // Infof writes v with format into access log.
-func Infof(ctx context.Context, format string, v ...interface{}) {
+func Infof(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Infof(format, v...)
 }
 
 // Infov writes v into access log with json content.
-func Infov(ctx context.Context, v interface{}) {
+func Infov(ctx context.Context, v any) {
 	getLogger(ctx).Infov(v)
 }
 
@@ -97,17 +97,17 @@ func SetUp(c LogConf) error {
 }
 
 // Slow writes v into slow log.
-func Slow(ctx context.Context, v ...interface{}) {
+func Slow(ctx context.Context, v ...any) {
 	getLogger(ctx).Slow(v...)
 }
 
 // Slowf writes v with format into slow log.
-func Slowf(ctx context.Context, format string, v ...interface{}) {
+func Slowf(ctx context.Context, format string, v ...any) {
 	getLogger(ctx).Slowf(format, v...)
 }
 
 // Slowv writes v into slow log with json content.
-func Slowv(ctx context.Context, v interface{}) {
+func Slowv(ctx context.Context, v any) {
 	getLogger(ctx).Slowv(v)
 }
 

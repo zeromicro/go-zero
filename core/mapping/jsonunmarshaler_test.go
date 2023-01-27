@@ -871,7 +871,7 @@ func TestUnmarshalReaderError(t *testing.T) {
 
 func TestUnmarshalMap(t *testing.T) {
 	t.Run("nil map and valid", func(t *testing.T) {
-		var m map[string]interface{}
+		var m map[string]any
 		var v struct {
 			Any string `json:",optional"`
 		}
@@ -882,7 +882,7 @@ func TestUnmarshalMap(t *testing.T) {
 	})
 
 	t.Run("empty map but not valid", func(t *testing.T) {
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		var v struct {
 			Any string
 		}
@@ -892,7 +892,7 @@ func TestUnmarshalMap(t *testing.T) {
 	})
 
 	t.Run("empty map and valid", func(t *testing.T) {
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		var v struct {
 			Any string `json:",optional"`
 		}
@@ -905,7 +905,7 @@ func TestUnmarshalMap(t *testing.T) {
 	})
 
 	t.Run("valid map", func(t *testing.T) {
-		m := map[string]interface{}{
+		m := map[string]any{
 			"Any": "foo",
 		}
 		var v struct {
@@ -929,4 +929,14 @@ func TestUnmarshalJsonArray(t *testing.T) {
 	assert.Equal(t, 1, len(v))
 	assert.Equal(t, "kevin", v[0].Name)
 	assert.Equal(t, 18, v[0].Age)
+}
+
+func TestUnmarshalJsonBytesError(t *testing.T) {
+	var v []struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	assert.Error(t, UnmarshalJsonBytes([]byte((``)), &v))
+	assert.Error(t, UnmarshalJsonReader(strings.NewReader(``), &v))
 }

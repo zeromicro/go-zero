@@ -5,6 +5,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 func TestNewGaugeVec(t *testing.T) {
@@ -18,6 +19,8 @@ func TestNewGaugeVec(t *testing.T) {
 	gaugeVecNil := NewGaugeVec(nil)
 	assert.NotNil(t, gaugeVec)
 	assert.Nil(t, gaugeVecNil)
+
+	proc.Shutdown()
 }
 
 func TestGaugeInc(t *testing.T) {

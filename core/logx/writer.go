@@ -16,15 +16,15 @@ import (
 
 type (
 	Writer interface {
-		Alert(v interface{})
+		Alert(v any)
 		Close() error
-		Debug(v interface{}, fields ...LogField)
-		Error(v interface{}, fields ...LogField)
-		Info(v interface{}, fields ...LogField)
-		Severe(v interface{})
-		Slow(v interface{}, fields ...LogField)
-		Stack(v interface{})
-		Stat(v interface{}, fields ...LogField)
+		Debug(v any, fields ...LogField)
+		Error(v any, fields ...LogField)
+		Info(v any, fields ...LogField)
+		Severe(v any)
+		Slow(v any, fields ...LogField)
+		Stack(v any)
+		Stat(v any, fields ...LogField)
 	}
 
 	atomicWriter struct {
@@ -171,7 +171,7 @@ func newFileWriter(c LogConf) (Writer, error) {
 	}, nil
 }
 
-func (w *concreteWriter) Alert(v interface{}) {
+func (w *concreteWriter) Alert(v any) {
 	output(w.errorLog, levelAlert, v)
 }
 
@@ -195,69 +195,69 @@ func (w *concreteWriter) Close() error {
 	return w.statLog.Close()
 }
 
-func (w *concreteWriter) Debug(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Debug(v any, fields ...LogField) {
 	output(w.infoLog, levelDebug, v, fields...)
 }
 
-func (w *concreteWriter) Error(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Error(v any, fields ...LogField) {
 	output(w.errorLog, levelError, v, fields...)
 }
 
-func (w *concreteWriter) Info(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Info(v any, fields ...LogField) {
 	output(w.infoLog, levelInfo, v, fields...)
 }
 
-func (w *concreteWriter) Severe(v interface{}) {
+func (w *concreteWriter) Severe(v any) {
 	output(w.severeLog, levelFatal, v)
 }
 
-func (w *concreteWriter) Slow(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Slow(v any, fields ...LogField) {
 	output(w.slowLog, levelSlow, v, fields...)
 }
 
-func (w *concreteWriter) Stack(v interface{}) {
+func (w *concreteWriter) Stack(v any) {
 	output(w.stackLog, levelError, v)
 }
 
-func (w *concreteWriter) Stat(v interface{}, fields ...LogField) {
+func (w *concreteWriter) Stat(v any, fields ...LogField) {
 	output(w.statLog, levelStat, v, fields...)
 }
 
 type nopWriter struct{}
 
-func (n nopWriter) Alert(_ interface{}) {
+func (n nopWriter) Alert(_ any) {
 }
 
 func (n nopWriter) Close() error {
 	return nil
 }
 
-func (n nopWriter) Debug(_ interface{}, _ ...LogField) {
+func (n nopWriter) Debug(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Error(_ interface{}, _ ...LogField) {
+func (n nopWriter) Error(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Info(_ interface{}, _ ...LogField) {
+func (n nopWriter) Info(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Severe(_ interface{}) {
+func (n nopWriter) Severe(_ any) {
 }
 
-func (n nopWriter) Slow(_ interface{}, _ ...LogField) {
+func (n nopWriter) Slow(_ any, _ ...LogField) {
 }
 
-func (n nopWriter) Stack(_ interface{}) {
+func (n nopWriter) Stack(_ any) {
 }
 
-func (n nopWriter) Stat(_ interface{}, _ ...LogField) {
+func (n nopWriter) Stat(_ any, _ ...LogField) {
 }
 
-func buildFields(fields ...LogField) []string {
+func buildPlainFields(fields ...LogField) []string {
 	var items []string
 
 	for _, field := range fields {
-		items = append(items, fmt.Sprintf("%s=%v", field.Key, field.Value))
+		items = append(items, fmt.Sprintf("%s=%+v", field.Key, field.Value))
 	}
 
 	return items
@@ -277,7 +277,7 @@ func combineGlobalFields(fields []LogField) []LogField {
 	return ret
 }
 
-func output(writer io.Writer, level string, val interface{}, fields ...LogField) {
+func output(writer io.Writer, level string, val any, fields ...LogField) {
 	// only truncate string content, don't know how to truncate the values of other types.
 	if v, ok := val.(string); ok {
 		maxLen := atomic.LoadUint32(&maxContentLength)
@@ -291,7 +291,7 @@ func output(writer io.Writer, level string, val interface{}, fields ...LogField)
 
 	switch atomic.LoadUint32(&encoding) {
 	case plainEncodingType:
-		writePlainAny(writer, level, val, buildFields(fields...)...)
+		writePlainAny(writer, level, val, buildPlainFields(fields...)...)
 	default:
 		entry := make(logEntry)
 		for _, field := range fields {
@@ -330,7 +330,7 @@ func wrapLevelWithColor(level string) string {
 	return color.WithColorPadding(level, colour)
 }
 
-func writeJson(writer io.Writer, info interface{}) {
+func writeJson(writer io.Writer, info any) {
 	if content, err := json.Marshal(info); err != nil {
 		log.Println(err.Error())
 	} else if writer == nil {
@@ -340,7 +340,7 @@ func writeJson(writer io.Writer, info interface{}) {
 	}
 }
 
-func writePlainAny(writer io.Writer, level string, val interface{}, fields ...string) {
+func writePlainAny(writer io.Writer, level string, val any, fields ...string) {
 	level = wrapLevelWithColor(level)
 
 	switch v := val.(type) {
@@ -377,7 +377,7 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	}
 }
 
-func writePlainValue(writer io.Writer, level string, val interface{}, fields ...string) {
+func writePlainValue(writer io.Writer, level string, val any, fields ...string) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)

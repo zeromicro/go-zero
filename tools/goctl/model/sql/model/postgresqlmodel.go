@@ -112,7 +112,7 @@ func (m *PostgreSqlModel) getColumns(schema, table string, in []*PostgreColumn) 
 
 	var list []*Column
 	for _, e := range in {
-		var dft interface{}
+		var dft any
 		if len(e.ColumnDefault.String) > 0 {
 			dft = e.ColumnDefault
 		}

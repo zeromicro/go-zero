@@ -54,7 +54,7 @@ func TestWithTransportCredentials(t *testing.T) {
 
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
-	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply any,
 		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		return nil
 	})

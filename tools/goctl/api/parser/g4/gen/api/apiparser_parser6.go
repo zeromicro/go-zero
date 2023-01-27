@@ -82,7 +82,7 @@ func (s *AtServerContext) ToStringTree(ruleNames []string, recog antlr.Recognize
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *AtServerContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *AtServerContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitAtServer(s)
@@ -266,7 +266,7 @@ func (s *ServiceApiContext) ToStringTree(ruleNames []string, recog antlr.Recogni
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ServiceApiContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ServiceApiContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitServiceApi(s)
@@ -428,7 +428,7 @@ func (s *ServiceRouteContext) ToStringTree(ruleNames []string, recog antlr.Recog
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ServiceRouteContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ServiceRouteContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitServiceRoute(s)
@@ -597,7 +597,7 @@ func (s *AtDocContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) 
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *AtDocContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *AtDocContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitAtDoc(s)

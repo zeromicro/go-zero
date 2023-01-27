@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 )
 
 func TestStartHttp(t *testing.T) {
@@ -19,6 +20,7 @@ func TestStartHttp(t *testing.T) {
 		svr.IdleTimeout = 0
 	})
 	assert.NotNil(t, err)
+	proc.WrapUp()
 }
 
 func TestStartHttps(t *testing.T) {
@@ -30,4 +32,5 @@ func TestStartHttps(t *testing.T) {
 		svr.IdleTimeout = 0
 	})
 	assert.NotNil(t, err)
+	proc.WrapUp()
 }

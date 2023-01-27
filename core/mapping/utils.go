@@ -64,7 +64,7 @@ func Deref(t reflect.Type) reflect.Type {
 }
 
 // Repr returns the string representation of v.
-func Repr(v interface{}) string {
+func Repr(v any) string {
 	return lang.Repr(v)
 }
 
@@ -89,7 +89,7 @@ func ValidatePtr(v *reflect.Value) error {
 	return nil
 }
 
-func convertTypeFromString(kind reflect.Kind, str string) (interface{}, error) {
+func convertTypeFromString(kind reflect.Kind, str string) (any, error) {
 	switch kind {
 	case reflect.Bool:
 		switch strings.ToLower(str) {
@@ -484,7 +484,7 @@ func parseSegments(val string) []string {
 	return segments
 }
 
-func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v interface{}) error {
+func setMatchedPrimitiveValue(kind reflect.Kind, value reflect.Value, v any) error {
 	switch kind {
 	case reflect.Bool:
 		value.SetBool(v.(bool))
@@ -536,7 +536,7 @@ func structValueRequired(tag string, tp reflect.Type) (bool, error) {
 	return required, err
 }
 
-func toFloat64(v interface{}) (float64, bool) {
+func toFloat64(v any) (float64, bool) {
 	switch val := v.(type) {
 	case int:
 		return float64(val), true
@@ -623,7 +623,7 @@ func validateNumberRange(fv float64, nr *numberRange) error {
 	return nil
 }
 
-func validateValueInOptions(val interface{}, options []string) error {
+func validateValueInOptions(val any, options []string) error {
 	if len(options) > 0 {
 		switch v := val.(type) {
 		case string:
@@ -640,7 +640,7 @@ func validateValueInOptions(val interface{}, options []string) error {
 	return nil
 }
 
-func validateValueRange(mapValue interface{}, opts *fieldOptionsWithContext) error {
+func validateValueRange(mapValue any, opts *fieldOptionsWithContext) error {
 	if opts == nil || opts.Range == nil {
 		return nil
 	}

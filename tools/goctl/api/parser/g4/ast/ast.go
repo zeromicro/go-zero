@@ -36,7 +36,7 @@ type (
 		Doc() []Expr
 		Comment() Expr
 		Format() error
-		Equal(v interface{}) bool
+		Equal(v any) bool
 	}
 
 	// Expr describes ast expression

@@ -97,6 +97,30 @@ d = "abcd!@#$112"
 	assert.Equal(t, "abcd!@#$112", val.D)
 }
 
+func TestConfigOptional(t *testing.T) {
+	text := `a = "foo"
+b = 1
+c = "FOO"
+d = "abcd"
+`
+	tmpfile, err := createTempFile(".toml", text)
+	assert.Nil(t, err)
+	defer os.Remove(tmpfile)
+
+	var val struct {
+		A string `json:"a"`
+		B int    `json:"b,optional"`
+		C string `json:"c,optional=B"`
+		D string `json:"d,optional=b"`
+	}
+	if assert.NoError(t, Load(tmpfile, &val)) {
+		assert.Equal(t, "foo", val.A)
+		assert.Equal(t, 1, val.B)
+		assert.Equal(t, "FOO", val.C)
+		assert.Equal(t, "abcd", val.D)
+	}
+}
+
 func TestConfigJsonCanonical(t *testing.T) {
 	text := []byte(`{"a": "foo", "B": "bar"}`)
 
@@ -358,6 +382,78 @@ func TestLoadFromYamlBytesLayers(t *testing.T) {
 
 	assert.NoError(t, LoadFromYamlBytes(input, &val))
 	assert.Equal(t, "foo", val.Value)
+}
+
+func TestLoadFromYamlItemOverlay(t *testing.T) {
+	type (
+		Redis struct {
+			Host string
+			Port int
+		}
+
+		RedisKey struct {
+			Redis
+			Key string
+		}
+
+		Server struct {
+			Redis RedisKey
+		}
+
+		TestConfig struct {
+			Server
+			Redis Redis
+		}
+	)
+
+	input := []byte(`Redis:
+  Host: localhost
+  Port: 6379
+  Key: test
+`)
+
+	var c TestConfig
+	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
+		assert.Equal(t, "localhost", c.Redis.Host)
+		assert.Equal(t, 6379, c.Redis.Port)
+		assert.Equal(t, "test", c.Server.Redis.Key)
+	}
+}
+
+func TestLoadFromYamlItemOverlayWithMap(t *testing.T) {
+	type (
+		Redis struct {
+			Host string
+			Port int
+		}
+
+		RedisKey struct {
+			Redis
+			Key string
+		}
+
+		Server struct {
+			Redis RedisKey
+		}
+
+		TestConfig struct {
+			Server
+			Redis map[string]interface{}
+		}
+	)
+
+	input := []byte(`Redis:
+  Host: localhost
+  Port: 6379
+  Key: test
+`)
+
+	var c TestConfig
+	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
+		assert.Equal(t, "localhost", c.Server.Redis.Host)
+		assert.Equal(t, 6379, c.Server.Redis.Port)
+		assert.Equal(t, "test", c.Server.Redis.Key)
+	}
 }
 
 func TestUnmarshalJsonBytesMap(t *testing.T) {

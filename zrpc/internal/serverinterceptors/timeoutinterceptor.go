@@ -15,17 +15,17 @@ import (
 
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
 func UnaryTimeoutInterceptor(timeout time.Duration) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-		handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (any, error) {
 		ctx, cancel := context.WithTimeout(ctx, timeout)
 		defer cancel()
 
-		var resp interface{}
+		var resp any
 		var err error
 		var lock sync.Mutex
 		done := make(chan struct{})
 		// create channel with buffer size 1 to avoid goroutine leak
-		panicChan := make(chan interface{}, 1)
+		panicChan := make(chan any, 1)
 		go func() {
 			defer func() {
 				if p := recover(); p != nil {
