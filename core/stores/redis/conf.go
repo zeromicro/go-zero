@@ -1,8 +1,6 @@
 package redis
 
-import (
-	"errors"
-)
+import "errors"
 
 var (
 	// ErrEmptyHost is an error that indicates no redis host is set.
