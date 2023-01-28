@@ -163,12 +163,10 @@ func TestCache_SetDel(t *testing.T) {
 		r1, err := miniredis.Run()
 		assert.NoError(t, err)
 		defer r1.Close()
-		r1.SetError("mock error")
 
 		r2, err := miniredis.Run()
 		assert.NoError(t, err)
 		defer r2.Close()
-		r2.SetError("mock error")
 
 		conf := ClusterConf{
 			{

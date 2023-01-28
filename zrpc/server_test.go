@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -16,12 +17,16 @@ import (
 )
 
 func TestServer_setupInterceptors(t *testing.T) {
+	rds, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer rds.Close()
+
 	server := new(mockedServer)
-	err := setupInterceptors(server, RpcServerConf{
+	err = setupInterceptors(server, RpcServerConf{
 		Auth: true,
 		Redis: redis.RedisKeyConf{
 			RedisConf: redis.RedisConf{
-				Host: "any",
+				Host: rds.Addr(),
 				Type: redis.NodeType,
 			},
 			Key: "foo",
