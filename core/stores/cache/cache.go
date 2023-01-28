@@ -62,12 +62,12 @@ func New(c ClusterConf, barrier syncx.SingleFlight, st *Stat, errNotFound error,
 	}
 
 	if len(c) == 1 {
-		return NewNode(c[0].NewRedis(), barrier, st, errNotFound, opts...)
+		return NewNode(c[0].NewMustRedis(), barrier, st, errNotFound, opts...)
 	}
 
 	dispatcher := hash.NewConsistentHash()
 	for _, node := range c {
-		cn := NewNode(node.NewRedis(), barrier, st, errNotFound, opts...)
+		cn := NewNode(node.NewMustRedis(), barrier, st, errNotFound, opts...)
 		dispatcher.AddWithWeight(cn, node.Weight)
 	}
 
