@@ -79,7 +79,9 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 	}
 
 	if len(ret.GoPackage) == 0 {
-		ret.GoPackage = ret.Package.Name
+		if ret.Package.Package != nil {
+			ret.GoPackage = ret.Package.Name
+		}
 	}
 
 	ret.PbPackage = GoSanitized(filepath.Base(ret.GoPackage))

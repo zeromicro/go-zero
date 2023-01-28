@@ -121,3 +121,15 @@ func isLink(name string) (bool, error) {
 
 	return fi.Mode()&os.ModeSymlink != 0, nil
 }
+
+// Exists returns true if the path or file exists
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		return false
+	}
+	return true
+}
