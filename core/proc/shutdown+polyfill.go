@@ -15,5 +15,14 @@ func AddWrapUpListener(fn func()) func() {
 	return fn
 }
 
+// SetTimeToForceQuit does nothing on windows.
 func SetTimeToForceQuit(duration time.Duration) {
+}
+
+// Shutdown does nothing on windows.
+func Shutdown() {
+}
+
+// WrapUp does nothing on windows.
+func WrapUp() {
 }
