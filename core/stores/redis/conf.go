@@ -2,7 +2,6 @@ package redis
 
 import (
 	"errors"
-	"log"
 )
 
 var (
@@ -32,27 +31,8 @@ type (
 	}
 )
 
-// MustNewRedis returns a Redis.
-func (rc RedisConf) MustNewRedis() *Redis {
-	if err := rc.Validate(); err != nil {
-		log.Fatal(err)
-	}
-
-	rds := rc.newRedis()
-	if !rds.Ping() {
-		log.Fatal(ErrPing)
-	}
-
-	return rds
-}
-
-// NewRedis returns a Redis.
+// Deprecated: use MustNewRedis or NewRedis instead.
 func (rc RedisConf) NewRedis() *Redis {
-	return rc.newRedis()
-}
-
-// newRedis returns a Redis.
-func (rc RedisConf) newRedis() *Redis {
 	var opts []Option
 	if rc.Type == ClusterType {
 		opts = append(opts, Cluster())

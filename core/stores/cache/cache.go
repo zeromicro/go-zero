@@ -9,6 +9,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/hash"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
@@ -62,12 +63,12 @@ func New(c ClusterConf, barrier syncx.SingleFlight, st *Stat, errNotFound error,
 	}
 
 	if len(c) == 1 {
-		return NewNode(c[0].MustNewRedis(), barrier, st, errNotFound, opts...)
+		return NewNode(redis.MustNewRedis(c[0].RedisConf), barrier, st, errNotFound, opts...)
 	}
 
 	dispatcher := hash.NewConsistentHash()
 	for _, node := range c {
-		cn := NewNode(node.MustNewRedis(), barrier, st, errNotFound, opts...)
+		cn := NewNode(redis.MustNewRedis(node.RedisConf), barrier, st, errNotFound, opts...)
 		dispatcher.AddWithWeight(cn, node.Weight)
 	}
 

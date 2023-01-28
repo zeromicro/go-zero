@@ -164,7 +164,7 @@ func NewStore(c KvConf) Store {
 	// because Store and redis.Redis has different methods.
 	dispatcher := hash.NewConsistentHash()
 	for _, node := range c {
-		cn := node.MustNewRedis()
+		cn := redis.MustNewRedis(node.RedisConf)
 		dispatcher.AddWithWeight(cn, node.Weight)
 	}
 
