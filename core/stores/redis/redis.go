@@ -86,6 +86,7 @@ type (
 	StringCmd = red.StringCmd
 )
 
+// New returns a Redis with given options.
 // Deprecated: use MustNewRedis or NewRedis instead.
 func New(addr string, opts ...Option) *Redis {
 	return newRedis(addr, opts...)
