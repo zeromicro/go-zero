@@ -127,7 +127,7 @@ const (
 	STRING     // "abc"
 	RAW_STRING // `abc`
 	PATH       // `abc`
-	KEY        // `abc`
+	KEY        // `abc:`
 	literal_end
 
 	operator_beg

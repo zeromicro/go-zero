@@ -14,6 +14,7 @@ import (
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
+
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	apiutil "github.com/zeromicro/go-zero/tools/goctl/api/util"
@@ -158,7 +159,7 @@ func sweep() error {
 
 			tm := time.Unix(seconds, 0)
 			if tm.Before(keepTime) {
-				if err := os.Remove(fpath); err != nil {
+				if err := os.RemoveAll(fpath); err != nil {
 					fmt.Println(aurora.Red(fmt.Sprintf("failed to remove file: %s", fpath)))
 					return err
 				}

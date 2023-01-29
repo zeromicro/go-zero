@@ -2,7 +2,7 @@ syntax = "v1"
 
 import "example_base1.api"
 
-import(
+import (
 	"example_base2.api"
 )
 
@@ -87,29 +87,29 @@ type (
 	NestDemoResp1 {
 		Nest []*Nest `json:"nest"`
 	}
-
 	NestDemoReq2 {
 		*Nest
 	}
 	NestDemoResp2 {
-		*Nest `json:"nest"`
+*Nest `json:"nest"`
 	}
 )
 
 @server (
-	group: form
+	group:   form
 	timeout: 3s
 )
 service example {
 	@handler getForm
 	get /example/form (GetFormReq) returns (GetFormREsp)
+
 	@handler postForm
 	post /example/form (PostFormReq) returns (PostFormResp)
 }
 
 @server (
-	group: json
-	jwt: Auth
+	group:   json
+	jwt:     Auth
 	timeout: 3m
 )
 service example {
@@ -119,10 +119,10 @@ service example {
 }
 
 @server (
-	group: path
+	group:      path
 	middleware: Path
-	prefix: /v1/v2
-	timeout: 100ms
+	prefix:     /v1/v2
+	timeout:    100ms
 )
 service example {
 	@doc (
@@ -133,8 +133,8 @@ service example {
 }
 
 @server (
-	group: array
-	prefix: /array
+	group:    array
+	prefix:   /array
 	maxBytes: 1024
 )
 service example {
@@ -143,11 +143,13 @@ service example {
 	)
 	@handler getArray
 	post /example/array (DemoOfArrayReq) returns ([]DemoOfArrayResp)
+
 	@doc (
 		desc: "array pointer response demo"
 	)
 	@handler getArrayPointer
 	post /example/array/pointer (DemoOfArrayReq) returns ([]*DemoOfArrayResp)
+
 	@doc (
 		desc: "array base response demo"
 	)
