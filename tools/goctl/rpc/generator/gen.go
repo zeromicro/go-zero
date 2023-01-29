@@ -8,6 +8,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
+	proto2 "github.com/zeromicro/go-zero/tools/goctl/rpc/generator/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
@@ -52,6 +53,10 @@ type ZRpcContext struct {
 	DockerFile bool
 	// Gitlab describes whether to use gitlab-ci
 	Gitlab bool
+	// DescDir describes whether to create desc folder for splitting proto files
+	UseDescDir bool
+	// RpcName describes the rpc name when create new project
+	RpcName string
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -66,6 +71,23 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	err = pathx.MkdirIfNotExist(abs)
 	if err != nil {
 		return err
+	}
+
+	// merge proto files
+	protoDir := filepath.Join(abs, "desc")
+
+	if pathx.Exists(protoDir) {
+		protoFileAbsPath, err := filepath.Abs(zctx.Src)
+		if err != nil {
+			return err
+		}
+
+		if err = proto2.MergeProto(&proto2.ProtoContext{
+			ProtoDir:   protoDir,
+			OutputPath: protoFileAbsPath,
+		}); err != nil {
+			return err
+		}
 	}
 
 	err = g.Prepare()
@@ -157,6 +179,13 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 
 	if zctx.Gitlab {
 		err = g.GenGitlab(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	if zctx.UseDescDir {
+		err = g.GenBaseDesc(dirCtx, proto, g.cfg, zctx)
 		if err != nil {
 			return err
 		}

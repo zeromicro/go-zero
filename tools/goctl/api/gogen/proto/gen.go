@@ -10,7 +10,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/emicklei/proto"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/iancoleman/strcase"
@@ -21,22 +20,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/protox"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const regularPerm = 0o666
-
-var protoField *protoFieldData
-
-type protoFieldData struct {
-	Name string
-	Type string
-}
-
-type ApiLogicData struct {
-	LogicName string
-	LogicCode string
-}
 
 // GenLogicByProtoContext describe the data used for logic generation with proto file
 type GenLogicByProtoContext struct {
@@ -52,6 +40,11 @@ type GenLogicByProtoContext struct {
 	GrpcPackage      string
 	UseUUID          bool
 	Multiple         bool
+}
+
+type ApiLogicData struct {
+	LogicName string
+	LogicCode string
 }
 
 func GenLogicByProto(p *GenLogicByProtoContext) error {
@@ -70,7 +63,7 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 
 	p.RPCPbPackageName = protoData.PbPackage
 
-	protoField = &protoFieldData{}
+	protox.ProtoField = &protox.ProtoFieldData{}
 
 	workDir, err := filepath.Abs("./")
 	if err != nil {
@@ -145,15 +138,6 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	return nil
 }
 
-type MessageVisitor struct {
-	proto.NoopVisitor
-}
-
-func (m MessageVisitor) VisitNormalField(i *proto.NormalField) {
-	protoField.Name = i.Field.Name
-	protoField.Type = i.Field.Type
-}
-
 func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.ProjectContext) []*ApiLogicData {
 	var data []*ApiLogicData
 	setLogic := strings.Builder{}
@@ -162,15 +146,15 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 		if strings.Contains(v.Name, ctx.ModelName) {
 			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
 				for _, field := range v.Elements {
-					field.Accept(MessageVisitor{})
-					if entx.IsBaseProperty(protoField.Name) {
-						if protoField.Name == "id" && protoField.Type == "string" {
+					field.Accept(protox.MessageVisitor{})
+					if entx.IsBaseProperty(protox.ProtoField.Name) {
+						if protox.ProtoField.Name == "id" && protox.ProtoField.Type == "string" {
 							ctx.UseUUID = true
 						}
 						continue
 					}
-					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protoField.Name),
-						parser.CamelCase(protoField.Name)))
+					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protox.ProtoField.Name),
+						parser.CamelCase(protox.ProtoField.Name)))
 				}
 				createLogic := bytes.NewBufferString("")
 				createLogicTmpl, _ := template.New("createOrUpdate").Parse(createOrUpdateTpl)
@@ -232,12 +216,12 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 			if fmt.Sprintf("%sPageReq", ctx.ModelName) == v.Name {
 				searchLogic := strings.Builder{}
 				for _, field := range v.Elements {
-					field.Accept(MessageVisitor{})
-					if protoField.Name == "page" || protoField.Name == "page_size" {
+					field.Accept(protox.MessageVisitor{})
+					if protox.ProtoField.Name == "page" || protox.ProtoField.Name == "page_size" {
 						continue
 					}
-					searchLogic.WriteString(fmt.Sprintf("\n\t\t\t%s: req.%s,", parser.CamelCase(protoField.Name),
-						parser.CamelCase(protoField.Name)))
+					searchLogic.WriteString(fmt.Sprintf("\n\t\t\t%s: req.%s,", parser.CamelCase(protox.ProtoField.Name),
+						parser.CamelCase(protox.ProtoField.Name)))
 				}
 
 				getListLogic := bytes.NewBufferString("")
@@ -276,21 +260,21 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 		if strings.Contains(v.Name, ctx.ModelName) {
 			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
 				for _, field := range v.Elements {
-					field.Accept(MessageVisitor{})
-					if entx.IsBaseProperty(protoField.Name) {
+					field.Accept(protox.MessageVisitor{})
+					if entx.IsBaseProperty(protox.ProtoField.Name) {
 						continue
 					}
 					var structData string
 
 					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s\"`",
-						parser.CamelCase(protoField.Name),
-						parser.CamelCase(protoField.Name),
-						entx.ConvertProtoTypeToGoType(protoField.Type),
-						strcase.ToLowerCamel(protoField.Name))
+						parser.CamelCase(protox.ProtoField.Name),
+						parser.CamelCase(protox.ProtoField.Name),
+						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
+						strcase.ToLowerCamel(protox.ProtoField.Name))
 
 					infoData.WriteString(structData)
 
-					if count < ctx.SearchKeyNum && protoField.Type == "string" {
+					if count < ctx.SearchKeyNum && protox.ProtoField.Type == "string" {
 						listData.WriteString(structData)
 					}
 				}

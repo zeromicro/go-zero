@@ -23,6 +23,6 @@ gen-ent:
 	@printf $(GREEN)"[SUCCESS] generate ent successfully"
 
 gen-rpc-ent-logic:
-	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name={{.serviceName}} --search_key_num=3 --o=./ --model=$(model) --group=$(group)
+	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name={{.serviceName}} --search_key_num=3 --o=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto
 	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"
 {{end}}
