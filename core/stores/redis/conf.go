@@ -29,6 +29,7 @@ type (
 	}
 )
 
+// NewRedis returns a Redis.
 // Deprecated: use MustNewRedis or NewRedis instead.
 func (rc RedisConf) NewRedis() *Redis {
 	var opts []Option
