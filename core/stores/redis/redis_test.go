@@ -69,6 +69,24 @@ func TestNewRedis(t *testing.T) {
 			ok: true,
 		},
 		{
+			name: "password",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: NodeType,
+				Pass: "pw",
+			},
+			ok: true,
+		},
+		{
+			name: "tls",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: NodeType,
+				Tls:  true,
+			},
+			ok: true,
+		},
+		{
 			name: "node error",
 			RedisConf: RedisConf{
 				Host: r2.Addr(),
@@ -102,7 +120,7 @@ func TestNewRedis(t *testing.T) {
 					assert.NotNil(t, rds)
 				}
 			} else {
-				assert.NotNil(t, err)
+				assert.Error(t, err)
 			}
 		})
 	}
