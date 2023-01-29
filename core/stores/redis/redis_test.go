@@ -1776,7 +1776,10 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 		}
 	}()
 
-	fn(New(s.Addr()))
+	fn(MustNewRedis(RedisConf{
+		Host: s.Addr(),
+		Type: NodeType,
+	}))
 }
 
 func runOnRedisWithError(t *testing.T, fn func(client *Redis)) {
