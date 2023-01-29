@@ -70,6 +70,10 @@ var (
 	VarBoolGitlab bool
 	// VarStringGroupName describes whether to use group
 	VarStringGroupName string
+	// VarStringProtoPath describes the output proto file path for ent code generation
+	VarStringProtoPath string
+	// VarBoolDesc describes whether to create desc folder for splitting proto files
+	VarBoolDesc bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -122,6 +126,8 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.MakeFile = true
 	ctx.DockerFile = true
 	ctx.Gitlab = VarBoolGitlab
+	ctx.UseDescDir = VarBoolDesc
+	ctx.RpcName = rpcname
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
@@ -176,6 +182,7 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		SearchKeyNum: VarIntSearchKeyNum,
 		ModuleName:   VarStringModuleName,
 		GroupName:    VarStringGroupName,
+		ProtoOut:     VarStringProtoPath,
 	}
 
 	if params.ProjectName == "" {

@@ -7,7 +7,7 @@ import (
 	"github.com/emicklei/proto"
 )
 
-func FindBeginEndOfService(service, serviceName string) (begin, end int) {
+func FindBeginEndOfService(service, serviceName string) (begin, mid, end int) {
 	beginIndex := strings.Index(service, serviceName)
 	begin, end = -1, -1
 	if beginIndex > 0 {
@@ -15,6 +15,8 @@ func FindBeginEndOfService(service, serviceName string) (begin, end int) {
 			if service[i] == '}' {
 				end = i
 				break
+			} else if service[i] == '{' {
+				mid = i
 			}
 		}
 
@@ -25,7 +27,7 @@ func FindBeginEndOfService(service, serviceName string) (begin, end int) {
 			}
 		}
 	}
-	return begin, end
+	return begin, mid, end
 }
 
 var ProtoField *ProtoFieldData

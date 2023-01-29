@@ -80,11 +80,12 @@ func init() {
 	newCmd.Flags().StringVar(&cli.VarStringModuleName, "module_name", "",
 		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
 	newCmd.Flags().StringVar(&cli.VarStringGoZeroVersion, "go_zero_version", "",
-		"The go zero version used for migration. e.g. v1.4.2")
+		"The go zero version used for replacement. e.g. v1.4.3")
 	newCmd.Flags().StringVar(&cli.VarStringToolVersion, "tool_version", "",
-		"The simple admin tool version version used for migration. e.g. v0.0.9")
+		"The simple admin tool version version used for migration. e.g. v0.1.7")
 	newCmd.Flags().IntVar(&cli.VarIntServicePort, "port", 9110, "The service port exposed")
 	newCmd.Flags().BoolVar(&cli.VarBoolGitlab, "gitlab", false, "Whether to use gitlab-ci")
+	newCmd.Flags().BoolVar(&cli.VarBoolDesc, "desc", false, "Whether to create desc folder for splitting proto files")
 
 	protocCmd.Flags().BoolVarP(&cli.VarBoolMultiple, "multiple", "m", false,
 		"Generated in multiple rpc service mode")
@@ -135,6 +136,7 @@ func init() {
 		"if it is empty, generate codes for all models in schema directory")
 	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
 	entCmd.Flags().StringVar(&cli.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
+	entCmd.Flags().StringVar(&cli.VarStringProtoPath, "proto_out", "", "The output proto file path")
 
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)

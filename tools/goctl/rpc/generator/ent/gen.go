@@ -43,6 +43,7 @@ type GenEntLogicContext struct {
 	ModuleName   string
 	GroupName    string
 	UseUUID      bool
+	ProtoOut     string
 }
 
 // GenEntLogic generates the ent CRUD logic files of the rpc service.
@@ -122,9 +123,24 @@ func genEntLogic(g *GenEntLogicContext) error {
 				return err
 			}
 
-			protoFileName := filepath.Join(outputDir, g.ProjectName+".proto")
-			if !pathx.FileExists(protoFileName) {
-				continue
+			var protoFileName string
+			if g.ProtoOut == "" {
+				protoFileName = filepath.Join(outputDir, g.ProjectName+".proto")
+				if !pathx.FileExists(protoFileName) {
+					continue
+				}
+			} else {
+				protoFileName, err = filepath.Abs(g.ProtoOut)
+				if err != nil {
+					return err
+				}
+				if !pathx.FileExists(protoFileName) {
+					err = os.WriteFile(protoFileName, []byte(fmt.Sprintf("syntax = \"proto3\";\n\nservice %s {\n}",
+						strcase.ToCamel(g.ServiceName))), os.ModePerm)
+					if err != nil {
+						return fmt.Errorf("fail to create proto file : %s", err.Error())
+					}
+				}
 			}
 
 			protoFileData, err := os.ReadFile(protoFileName)
@@ -140,7 +156,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 
 			// generate new proto file
 			newProtoData := strings.Builder{}
-			serviceBeginIndex, serviceEndIndex := protox.FindBeginEndOfService(protoDataString, strcase.ToCamel(g.ServiceName))
+			serviceBeginIndex, _, serviceEndIndex := protox.FindBeginEndOfService(protoDataString, strcase.ToCamel(g.ServiceName))
 			if serviceBeginIndex == -1 {
 				continue
 			}
