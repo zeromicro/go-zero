@@ -12,9 +12,120 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
+
+func TestNewRedis(t *testing.T) {
+	r1, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer r1.Close()
+
+	r2, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer r2.Close()
+	r2.SetError("mock")
+
+	tests := []struct {
+		name string
+		RedisConf
+		ok       bool
+		redisErr bool
+	}{
+		{
+			name: "missing host",
+			RedisConf: RedisConf{
+				Host: "",
+				Type: NodeType,
+				Pass: "",
+			},
+			ok: false,
+		},
+		{
+			name: "missing type",
+			RedisConf: RedisConf{
+				Host: "localhost:6379",
+				Type: "",
+				Pass: "",
+			},
+			ok: false,
+		},
+		{
+			name: "ok",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: NodeType,
+				Pass: "",
+			},
+			ok: true,
+		},
+		{
+			name: "ok",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: ClusterType,
+				Pass: "",
+			},
+			ok: true,
+		},
+		{
+			name: "password",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: NodeType,
+				Pass: "pw",
+			},
+			ok: true,
+		},
+		{
+			name: "tls",
+			RedisConf: RedisConf{
+				Host: r1.Addr(),
+				Type: NodeType,
+				Tls:  true,
+			},
+			ok: true,
+		},
+		{
+			name: "node error",
+			RedisConf: RedisConf{
+				Host: r2.Addr(),
+				Type: NodeType,
+				Pass: "",
+			},
+			ok:       true,
+			redisErr: true,
+		},
+		{
+			name: "cluster error",
+			RedisConf: RedisConf{
+				Host: r2.Addr(),
+				Type: ClusterType,
+				Pass: "",
+			},
+			ok:       true,
+			redisErr: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(stringx.RandId(), func(t *testing.T) {
+			rds, err := NewRedis(test.RedisConf)
+			if test.ok {
+				if test.redisErr {
+					assert.Error(t, err)
+					assert.Nil(t, rds)
+				} else {
+					assert.NoError(t, err)
+					assert.NotNil(t, rds)
+				}
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
 
 func TestRedis_Decr(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
@@ -1518,7 +1629,7 @@ func TestRedis_Zscan(t *testing.T) {
 }
 
 func TestRedisToStrings(t *testing.T) {
-	vals := toStrings([]interface{}{1, 2})
+	vals := toStrings([]any{1, 2})
 	assert.EqualValues(t, []string{"1", "2"}, vals)
 }
 
@@ -1561,8 +1672,10 @@ func TestRedisGeo(t *testing.T) {
 	t.Run("geo", func(t *testing.T) {
 		runOnRedis(t, func(client *Redis) {
 			client.Ping()
-			geoLocation := []*GeoLocation{{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"},
-				{Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"}}
+			geoLocation := []*GeoLocation{
+				{Longitude: 13.361389, Latitude: 38.115556, Name: "Palermo"},
+				{Longitude: 15.087269, Latitude: 37.502669, Name: "Catania"},
+			}
 			v, err := client.GeoAdd("sicily", geoLocation...)
 			assert.Nil(t, err)
 			assert.Equal(t, int64(2), v)

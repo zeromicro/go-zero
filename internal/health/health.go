@@ -9,7 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
-// defaultHealthManager is global comboHealthManager for byone self.
+// defaultHealthManager is global comboHealthManager.
 var defaultHealthManager = newComboHealthManager()
 
 type (

@@ -12,7 +12,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -75,6 +74,26 @@ func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
 	}))
 	if assert.NoError(t, unmarshaler.Unmarshal(m, &in)) {
 		assert.Equal(t, "go-zero", in.Name)
+	}
+}
+
+func TestUnmarshalWithoutTagNameWithCanonicalKeyOptionalDep(t *testing.T) {
+	type inner struct {
+		FirstName string `key:",optional"`
+		LastName  string `key:",optional=FirstName"`
+	}
+	m := map[string]any{
+		"firstname": "go",
+		"lastname":  "zero",
+	}
+
+	var in inner
+	unmarshaler := NewUnmarshaler(defaultKeyName, WithCanonicalKeyFunc(func(s string) string {
+		return strings.ToLower(s)
+	}))
+	if assert.NoError(t, unmarshaler.Unmarshal(m, &in)) {
+		assert.Equal(t, "go", in.FirstName)
+		assert.Equal(t, "zero", in.LastName)
 	}
 }
 
@@ -1100,6 +1119,66 @@ func TestUnmarshalStructOptionalDependsNotEnoughValue(t *testing.T) {
 	assert.Error(t, UnmarshalKey(m, &in))
 }
 
+func TestUnmarshalStructOptionalDependsMoreValues(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name":    "kevin",
+		"address": map[string]any{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalStructMissing(t *testing.T) {
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name": "kevin",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalNestedStructMissing(t *testing.T) {
+	type mostInner struct {
+		Name string `key:"name"`
+	}
+	type address struct {
+		Optional        string `key:",optional"`
+		OptionalDepends string `key:",optional=a=b"`
+		MostInner       mostInner
+	}
+	type inner struct {
+		Name    string  `key:"name"`
+		Address address `key:"address"`
+	}
+
+	m := map[string]any{
+		"name":    "kevin",
+		"address": map[string]any{},
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
 func TestUnmarshalAnonymousStructOptionalDepends(t *testing.T) {
 	type AnonAddress struct {
 		City            string `key:"city"`
@@ -1417,6 +1496,18 @@ func TestUnmarshalOptionsOptionalWrongValue(t *testing.T) {
 	m := map[string]any{
 		"value":       "first",
 		"wrong_value": "third",
+	}
+
+	var in inner
+	assert.Error(t, UnmarshalKey(m, &in))
+}
+
+func TestUnmarshalOptionsMissingValues(t *testing.T) {
+	type inner struct {
+		Value string `key:"value,options"`
+	}
+	m := map[string]any{
+		"value": "first",
 	}
 
 	var in inner
@@ -3281,7 +3372,7 @@ func TestUnmarshaler_InheritFromGrandparent(t *testing.T) {
 }
 
 func TestUnmarshaler_InheritSequence(t *testing.T) {
-	testConf := []byte(`
+	var testConf = []byte(`
 Nacos:
   NamespaceId: "123"
 RpcConf:
@@ -3325,7 +3416,7 @@ RpcConf:
 }
 
 func TestUnmarshaler_InheritNested(t *testing.T) {
-	testConf := []byte(`
+	var testConf = []byte(`
 Nacos:
   Value1: "123"
 Server:

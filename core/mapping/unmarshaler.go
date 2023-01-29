@@ -196,8 +196,7 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 }
 
 func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
-	mapValue any,
-) error {
+	mapValue any) error {
 	var slice []any
 	switch v := mapValue.(type) {
 	case fmt.Stringer:
@@ -227,8 +226,7 @@ func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.
 }
 
 func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
-	baseKind reflect.Kind, value any,
-) error {
+	baseKind reflect.Kind, value any) error {
 	ithVal := slice.Index(index)
 	switch v := value.(type) {
 	case fmt.Stringer:
@@ -262,8 +260,7 @@ func (u *Unmarshaler) fillSliceValue(slice reflect.Value, index int,
 }
 
 func (u *Unmarshaler) fillSliceWithDefault(derefedType reflect.Type, value reflect.Value,
-	defaultValue string,
-) error {
+	defaultValue string) error {
 	baseFieldType := Deref(derefedType.Elem())
 	baseFieldKind := baseFieldType.Kind()
 	defaultCacheLock.Lock()
@@ -367,13 +364,32 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 }
 
 func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Valuer, fullName string) (
-	string, *fieldOptionsWithContext, error,
-) {
+	string, *fieldOptionsWithContext, error) {
 	key, options, err := parseKeyAndOptions(u.key, field)
 	if err != nil {
 		return "", nil, err
 	} else if options == nil {
 		return key, nil, nil
+	}
+
+	if u.opts.canonicalKey != nil {
+		key = u.opts.canonicalKey(key)
+
+		if len(options.OptionalDep) > 0 {
+			// need to create a new fieldOption, because the original one is shared through cache.
+			options = &fieldOptions{
+				fieldOptionsWithContext: fieldOptionsWithContext{
+					Inherit:    options.Inherit,
+					FromString: options.FromString,
+					Optional:   options.Optional,
+					Options:    options.Options,
+					Default:    options.Default,
+					EnvVar:     options.EnvVar,
+					Range:      options.Range,
+				},
+				OptionalDep: u.opts.canonicalKey(options.OptionalDep),
+			}
+		}
 	}
 
 	optsWithContext, err := options.toOptionsWithContext(key, m, fullName)
@@ -385,8 +401,7 @@ func (u *Unmarshaler) parseOptionsWithContext(field reflect.StructField, m Value
 }
 
 func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value reflect.Value,
-	m valuerWithParent, fullName string,
-) error {
+	m valuerWithParent, fullName string) error {
 	key, options, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -400,8 +415,7 @@ func (u *Unmarshaler) processAnonymousField(field reflect.StructField, value ref
 }
 
 func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, value reflect.Value,
-	key string, m valuerWithParent, fullName string,
-) error {
+	key string, m valuerWithParent, fullName string) error {
 	derefedFieldType := Deref(field.Type)
 
 	switch derefedFieldType.Kind() {
@@ -413,8 +427,7 @@ func (u *Unmarshaler) processAnonymousFieldOptional(field reflect.StructField, v
 }
 
 func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, value reflect.Value,
-	m valuerWithParent, fullName string,
-) error {
+	m valuerWithParent, fullName string) error {
 	fieldType := field.Type
 	maybeNewValue(fieldType, value)
 	derefedFieldType := Deref(fieldType)
@@ -438,8 +451,7 @@ func (u *Unmarshaler) processAnonymousFieldRequired(field reflect.StructField, v
 }
 
 func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type,
-	value reflect.Value, key string, m valuerWithParent, fullName string,
-) error {
+	value reflect.Value, key string, m valuerWithParent, fullName string) error {
 	var filled bool
 	var required int
 	var requiredFilled int
@@ -480,8 +492,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 }
 
 func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Value,
-	m valuerWithParent, fullName string,
-) error {
+	m valuerWithParent, fullName string) error {
 	if usingDifferentKeys(u.key, field) {
 		return nil
 	}
@@ -494,8 +505,7 @@ func (u *Unmarshaler) processField(field reflect.StructField, value reflect.Valu
 }
 
 func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value reflect.Value,
-	vp valueWithParent, opts *fieldOptionsWithContext, fullName string,
-) error {
+	vp valueWithParent, opts *fieldOptionsWithContext, fullName string) error {
 	derefedFieldType := Deref(fieldType)
 	typeKind := derefedFieldType.Kind()
 	valueKind := reflect.TypeOf(vp.value).Kind()
@@ -526,8 +536,7 @@ func (u *Unmarshaler) processFieldNotFromString(fieldType reflect.Type, value re
 }
 
 func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflect.Value,
-	mapValue any, opts *fieldOptionsWithContext, fullName string,
-) error {
+	mapValue any, opts *fieldOptionsWithContext, fullName string) error {
 	typeKind := Deref(fieldType).Kind()
 	valueKind := reflect.TypeOf(mapValue).Kind()
 
@@ -555,8 +564,7 @@ func (u *Unmarshaler) processFieldPrimitive(fieldType reflect.Type, value reflec
 }
 
 func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type, value reflect.Value,
-	v json.Number, opts *fieldOptionsWithContext, fullName string,
-) error {
+	v json.Number, opts *fieldOptionsWithContext, fullName string) error {
 	baseType := Deref(fieldType)
 	typeKind := baseType.Kind()
 
@@ -606,8 +614,7 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 }
 
 func (u *Unmarshaler) processFieldStruct(fieldType reflect.Type, value reflect.Value,
-	m valuerWithParent, fullName string,
-) error {
+	m valuerWithParent, fullName string) error {
 	if fieldType.Kind() == reflect.Ptr {
 		baseType := Deref(fieldType)
 		target := reflect.New(baseType).Elem()
@@ -624,8 +631,7 @@ func (u *Unmarshaler) processFieldStruct(fieldType reflect.Type, value reflect.V
 }
 
 func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value reflect.Value,
-	mapValue any,
-) (bool, error) {
+	mapValue any) (bool, error) {
 	var tval encoding.TextUnmarshaler
 	var ok bool
 
@@ -653,8 +659,7 @@ func (u *Unmarshaler) processFieldTextUnmarshaler(fieldType reflect.Type, value 
 }
 
 func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value reflect.Value,
-	envVal string, opts *fieldOptionsWithContext, fullName string,
-) error {
+	envVal string, opts *fieldOptionsWithContext, fullName string) error {
 	if err := validateValueInOptions(envVal, opts.options()); err != nil {
 		return err
 	}
@@ -684,8 +689,7 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 }
 
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
-	m valuerWithParent, fullName string,
-) error {
+	m valuerWithParent, fullName string) error {
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -717,8 +721,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 }
 
 func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value reflect.Value,
-	vp valueWithParent, key string, opts *fieldOptionsWithContext, fullName string,
-) error {
+	vp valueWithParent, key string, opts *fieldOptionsWithContext, fullName string) error {
 	mapValue := vp.value
 	if mapValue == nil {
 		if opts.optional() {
@@ -753,8 +756,7 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 }
 
 func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Type, value reflect.Value,
-	mapValue any, key string, opts *fieldOptionsWithContext, fullName string,
-) error {
+	mapValue any, key string, opts *fieldOptionsWithContext, fullName string) error {
 	valueKind := reflect.TypeOf(mapValue).Kind()
 	if valueKind != reflect.String {
 		return fmt.Errorf("the value in map is not string, but %s", valueKind)
@@ -783,8 +785,7 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 }
 
 func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, value reflect.Value,
-	opts *fieldOptionsWithContext, fullName string,
-) error {
+	opts *fieldOptionsWithContext, fullName string) error {
 	derefedType := Deref(fieldType)
 	fieldKind := derefedType.Kind()
 	if defaultValue, ok := opts.getDefault(); ok {
@@ -900,8 +901,7 @@ func fillDurationValue(fieldType reflect.Type, value reflect.Value, dur string) 
 }
 
 func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue any,
-	opts *fieldOptionsWithContext, fullName string,
-) error {
+	opts *fieldOptionsWithContext, fullName string) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}
@@ -930,8 +930,7 @@ func fillPrimitive(fieldType reflect.Type, value reflect.Value, mapValue any,
 }
 
 func fillWithSameType(fieldType reflect.Type, value reflect.Value, mapValue any,
-	opts *fieldOptionsWithContext,
-) error {
+	opts *fieldOptionsWithContext) error {
 	if !value.CanSet() {
 		return errValueNotSettable
 	}

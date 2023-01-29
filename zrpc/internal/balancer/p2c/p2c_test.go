@@ -9,15 +9,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/mathx"
+	"github.com/zeromicro/go-zero/core/stringx"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/status"
-
-	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/core/mathx"
-	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 func init() {
@@ -129,10 +128,9 @@ type mockClientConn struct {
 	id string
 }
 
-func (m mockClientConn) GetOrBuildProducer(builder balancer.ProducerBuilder) (p balancer.Producer, close func()) {
-	//TODO implement me
-	//panic("implement me")
-	return nil, nil
+func (m mockClientConn) GetOrBuildProducer(builder balancer.ProducerBuilder) (
+	p balancer.Producer, close func()) {
+	return builder.Build(m)
 }
 
 func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {
