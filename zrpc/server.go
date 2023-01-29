@@ -121,7 +121,12 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 	}
 
 	if c.Auth {
-		authenticator, err := auth.NewAuthenticator(redis.MustNewRedis(c.Redis.RedisConf), c.Redis.Key, c.StrictControl)
+		rds, err := redis.NewRedis(c.Redis.RedisConf)
+		if err != nil {
+			return err
+		}
+
+		authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
 		if err != nil {
 			return err
 		}
