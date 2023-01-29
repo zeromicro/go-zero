@@ -1148,6 +1148,7 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	return expr
 }
 
+// syntax = "v1"
 func (p *Parser) parseSyntaxStmt() *ast.SyntaxStmt {
 	var stmt = &ast.SyntaxStmt{}
 	stmt.Syntax = p.curTokenNode()

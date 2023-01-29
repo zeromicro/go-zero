@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/assertx"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
@@ -291,13 +292,14 @@ func TestParser_Parse_atServerStmt(t *testing.T) {
 			"qux:":        `/v1`,
 			"quux:":       `/v1/v2`,
 			"middleware:": `M1,M2`,
-			"timeout1:":    "1h",
-			"timeout2:":    "10m",
-			"timeout3:":    "10s",
-			"timeout4:":    "10ms",
-			"timeout5:":    "10µs",
-			"timeout6:":    "10ns",
-			"timeout7:":    "1h10m10s10ms10µs10ns",
+			"timeout1:":   "1h",
+			"timeout2:":   "10m",
+			"timeout3:":   "10s",
+			"timeout4:":   "10ms",
+			"timeout5:":   "10µs",
+			"timeout6:":   "10ns",
+			"timeout7:":   "1h10m10s10ms10µs10ns",
+			"maxBytes:":   `1024`,
 		}
 
 		p := New("foo.api", atServerTestAPI)
@@ -965,169 +967,169 @@ func TestParser_Parse_parseTypeStmt(t *testing.T) {
 			input    string
 			expected ast.TypeStmt
 		}{
-			//{
-			//	input: "type Int int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
-			//			DataType: &ast.BaseDataType{
-			//				Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Int interface{}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
-			//			DataType: &ast.InterfaceDataType{
-			//				Interface: ast.NewTokenNode(token.Token{Type: token.ANY, Text: "interface{}"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Int any",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
-			//			DataType: &ast.AnyDataType{
-			//				Any: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "any"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Int = int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name:   ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
-			//			Assign: ast.NewTokenNode(token.Token{Type: token.ASSIGN, Text: "="}),
-			//			DataType: &ast.BaseDataType{
-			//				Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Array [2]int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
-			//			DataType: &ast.ArrayDataType{
-			//				LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
-			//				Length:   ast.NewTokenNode(token.Token{Type: token.INT, Text: "2"}),
-			//				RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
-			//				DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Array [...]int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
-			//			DataType: &ast.ArrayDataType{
-			//				LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
-			//				Length:   ast.NewTokenNode(token.Token{Type: token.ELLIPSIS, Text: "..."}),
-			//				RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
-			//				DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Map map[string]int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Map"}),
-			//			DataType: &ast.MapDataType{
-			//				Map:    ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "map"}),
-			//				LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
-			//				Key:    &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"})},
-			//				RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
-			//				Value:  &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Pointer *int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Pointer"}),
-			//			DataType: &ast.PointerDataType{
-			//				Star:     ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
-			//				DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Slice []int",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Slice"}),
-			//			DataType: &ast.SliceDataType{
-			//				LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
-			//				RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
-			//				DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Foo {}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
-			//{
-			//	input: "type Foo {Bar\n*Baz}",
-			//	expected: &ast.TypeLiteralStmt{
-			//		Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
-			//		Expr: &ast.TypeExpr{
-			//			Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
-			//			DataType: &ast.StructDataType{
-			//				LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
-			//				Elements: ast.ElemExprList{
-			//					{
-			//						DataType: &ast.BaseDataType{
-			//							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
-			//						},
-			//					},
-			//					{
-			//						DataType: &ast.PointerDataType{
-			//							Star:     ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
-			//							DataType: &ast.BaseDataType{
-			//								Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Baz"}),
-			//							},
-			//						},
-			//					},
-			//				},
-			//				RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
-			//			},
-			//		},
-			//	},
-			//},
+			{
+				input: "type Int int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
+						DataType: &ast.BaseDataType{
+							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Int interface{}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
+						DataType: &ast.InterfaceDataType{
+							Interface: ast.NewTokenNode(token.Token{Type: token.ANY, Text: "interface{}"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Int any",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
+						DataType: &ast.AnyDataType{
+							Any: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "any"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Int = int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name:   ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Int"}),
+						Assign: ast.NewTokenNode(token.Token{Type: token.ASSIGN, Text: "="}),
+						DataType: &ast.BaseDataType{
+							Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Array [2]int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
+						DataType: &ast.ArrayDataType{
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Length:   ast.NewTokenNode(token.Token{Type: token.INT, Text: "2"}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
+						},
+					},
+				},
+			},
+			{
+				input: "type Array [...]int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Array"}),
+						DataType: &ast.ArrayDataType{
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Length:   ast.NewTokenNode(token.Token{Type: token.ELLIPSIS, Text: "..."}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
+						},
+					},
+				},
+			},
+			{
+				input: "type Map map[string]int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Map"}),
+						DataType: &ast.MapDataType{
+							Map:    ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "map"}),
+							LBrack: ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							Key:    &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "string"})},
+							RBrack: ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							Value:  &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
+						},
+					},
+				},
+			},
+			{
+				input: "type Pointer *int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Pointer"}),
+						DataType: &ast.PointerDataType{
+							Star:     ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
+						},
+					},
+				},
+			},
+			{
+				input: "type Slice []int",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Slice"}),
+						DataType: &ast.SliceDataType{
+							LBrack:   ast.NewTokenNode(token.Token{Type: token.LBRACK, Text: "["}),
+							RBrack:   ast.NewTokenNode(token.Token{Type: token.RBRACK, Text: "]"}),
+							DataType: &ast.BaseDataType{Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "int"})},
+						},
+					},
+				},
+			},
+			{
+				input: "type Foo {}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
+			{
+				input: "type Foo {Bar\n*Baz}",
+				expected: &ast.TypeLiteralStmt{
+					Type: ast.NewTokenNode(token.Token{Type: token.TYPE, Text: "type"}),
+					Expr: &ast.TypeExpr{
+						Name: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Foo"}),
+						DataType: &ast.StructDataType{
+							LBrace: ast.NewTokenNode(token.Token{Type: token.LBRACE, Text: "{"}),
+							Elements: ast.ElemExprList{
+								{
+									DataType: &ast.BaseDataType{
+										Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Bar"}),
+									},
+								},
+								{
+									DataType: &ast.PointerDataType{
+										Star: ast.NewTokenNode(token.Token{Type: token.MUL, Text: "*"}),
+										DataType: &ast.BaseDataType{
+											Base: ast.NewTokenNode(token.Token{Type: token.IDENT, Text: "Baz"}),
+										},
+									},
+								},
+							},
+							RBrace: ast.NewTokenNode(token.Token{Type: token.RBRACE, Text: "}"}),
+						},
+					},
+				},
+			},
 			{
 				input: "type Foo {Bar `json:\"bar\"`\n*Baz `json:\"baz\"`}",
 				expected: &ast.TypeLiteralStmt{

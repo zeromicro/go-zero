@@ -135,6 +135,7 @@ service example {
 @server (
 	group: array
 	prefix: /array
+	maxBytes: 1024
 )
 service example {
 	@doc (
@@ -151,7 +152,7 @@ service example {
 		desc: "array base response demo"
 	)
 	@handler getArrayBase
-	post /example/array/pointer (DemoOfArrayReq) returns ([]string)
+	post /example/array/base (DemoOfArrayReq) returns ([]string)
 }
 
 service example {
