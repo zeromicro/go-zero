@@ -9,6 +9,8 @@ var (
 	ErrEmptyType = errors.New("empty redis type")
 	// ErrEmptyKey is an error that indicates no redis key is set.
 	ErrEmptyKey = errors.New("empty redis key")
+	// ErrPing is an error that indicates ping failed.
+	ErrPing = errors.New("ping redis failed")
 )
 
 type (
@@ -28,6 +30,7 @@ type (
 )
 
 // NewRedis returns a Redis.
+// Deprecated: use MustNewRedis or NewRedis instead.
 func (rc RedisConf) NewRedis() *Redis {
 	var opts []Option
 	if rc.Type == ClusterType {

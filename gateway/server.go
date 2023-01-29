@@ -64,12 +64,11 @@ func (s *Server) build() error {
 		return err
 	}
 
-	return mr.MapReduceVoid(func(source chan<- any) {
+	return mr.MapReduceVoid(func(source chan<- Upstream) {
 		for _, up := range s.upstreams {
 			source <- up
 		}
-	}, func(item any, writer mr.Writer, cancel func(error)) {
-		up := item.(Upstream)
+	}, func(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
 		cli := zrpc.MustNewClient(up.Grpc)
 		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {
@@ -110,16 +109,16 @@ func (s *Server) build() error {
 				Handler: s.buildHandler(source, resolver, cli, m.RpcPath),
 			})
 		}
-	}, func(pipe <-chan any, cancel func(error)) {
-		for item := range pipe {
-			route := item.(rest.Route)
+	}, func(pipe <-chan rest.Route, cancel func(error)) {
+		for route := range pipe {
 			s.Server.AddRoute(route)
 		}
 	})
 }
 
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
-	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
+	cli zrpc.Client, rpcPath string,
+) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {

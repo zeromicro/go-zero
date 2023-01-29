@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
@@ -67,6 +68,7 @@ func TestPeriodicalExecutor_QuitGoroutine(t *testing.T) {
 	ticker.Tick()
 	ticker.Wait(time.Millisecond * idleRound)
 	assert.Equal(t, routines, runtime.NumGoroutine())
+	proc.Shutdown()
 }
 
 func TestPeriodicalExecutor_Bulk(t *testing.T) {

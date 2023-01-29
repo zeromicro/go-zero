@@ -32,9 +32,11 @@ func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
 
+// BlockSize returns the mode's block size.
 func (x *ecbEncrypter) BlockSize() int { return x.blockSize }
 
-// why we don't return error is because cipher.BlockMode doesn't allow this
+// CryptBlocks encrypts a number of blocks. The length of src must be a multiple of
+// the block size. Dst and src must overlap entirely or not at all.
 func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		logx.Error("crypto/cipher: input not full blocks")
@@ -59,11 +61,13 @@ func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
 
+// BlockSize returns the mode's block size.
 func (x *ecbDecrypter) BlockSize() int {
 	return x.blockSize
 }
 
-// why we don't return error is because cipher.BlockMode doesn't allow this
+// CryptBlocks decrypts a number of blocks. The length of src must be a multiple of
+// the block size. Dst and src must overlap entirely or not at all.
 func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
 	if len(src)%x.blockSize != 0 {
 		logx.Error("crypto/cipher: input not full blocks")

@@ -4,7 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/service"
@@ -12,16 +15,19 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 func TestServer_setupInterceptors(t *testing.T) {
+	rds, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer rds.Close()
+
 	server := new(mockedServer)
-	err := setupInterceptors(server, RpcServerConf{
+	conf := RpcServerConf{
 		Auth: true,
 		Redis: redis.RedisKeyConf{
 			RedisConf: redis.RedisConf{
-				Host: "any",
+				Host: rds.Addr(),
 				Type: redis.NodeType,
 			},
 			Key: "foo",
@@ -35,10 +41,15 @@ func TestServer_setupInterceptors(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
-	}, new(stat.Metrics))
+	}
+	err = setupInterceptors(server, conf, new(stat.Metrics))
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(server.unaryInterceptors))
 	assert.Equal(t, 1, len(server.streamInterceptors))
+
+	rds.SetError("mock error")
+	err = setupInterceptors(server, conf, new(stat.Metrics))
+	assert.Error(t, err)
 }
 
 func TestServer(t *testing.T) {

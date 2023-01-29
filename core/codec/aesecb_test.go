@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"crypto/aes"
 	"encoding/base64"
 	"testing"
 
@@ -10,7 +11,8 @@ import (
 func TestAesEcb(t *testing.T) {
 	var (
 		key     = []byte("q4t7w!z%C*F-JaNdRgUjXn2r5u8x/A?D")
-		val     = []byte("hello")
+		val     = []byte("helloworld")
+		valLong = []byte("helloworldlong..")
 		badKey1 = []byte("aaaaaaaaa")
 		// more than 32 chars
 		badKey2 = []byte("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
@@ -31,6 +33,39 @@ func TestAesEcb(t *testing.T) {
 	src, err := EcbDecrypt(key, dst)
 	assert.Nil(t, err)
 	assert.Equal(t, val, src)
+	block, err := aes.NewCipher(key)
+	assert.NoError(t, err)
+	encrypter := NewECBEncrypter(block)
+	assert.Equal(t, 16, encrypter.BlockSize())
+	decrypter := NewECBDecrypter(block)
+	assert.Equal(t, 16, decrypter.BlockSize())
+
+	dst = make([]byte, 8)
+	encrypter.CryptBlocks(dst, val)
+	for _, b := range dst {
+		assert.Equal(t, byte(0), b)
+	}
+
+	dst = make([]byte, 8)
+	encrypter.CryptBlocks(dst, valLong)
+	for _, b := range dst {
+		assert.Equal(t, byte(0), b)
+	}
+
+	dst = make([]byte, 8)
+	decrypter.CryptBlocks(dst, val)
+	for _, b := range dst {
+		assert.Equal(t, byte(0), b)
+	}
+
+	dst = make([]byte, 8)
+	decrypter.CryptBlocks(dst, valLong)
+	for _, b := range dst {
+		assert.Equal(t, byte(0), b)
+	}
+
+	_, err = EcbEncryptBase64("cTR0N3dDKkYtSmFOZFJnVWpYbjJyNXU4eC9BP0QK", "aGVsbG93b3JsZGxvbmcuLgo=")
+	assert.Error(t, err)
 }
 
 func TestAesEcbBase64(t *testing.T) {

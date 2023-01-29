@@ -293,7 +293,7 @@ func TestErrorCtx(t *testing.T) {
 		})
 	}
 
-	//The current handler is a global event,Set default values to avoid impacting subsequent unit tests
+	// The current handler is a global event,Set default values to avoid impacting subsequent unit tests
 	SetErrorHandlerCtx(nil)
 }
 

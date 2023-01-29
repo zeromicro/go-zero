@@ -1,3 +1,6 @@
+//go:build !race
+
+// Disable data race detection is because of the timingWheel in cacheNode.
 package cache
 
 import (
@@ -59,7 +62,7 @@ func TestCacheNode_DelCache(t *testing.T) {
 		ticker := timex.NewFakeTicker()
 		var err error
 		timingWheel, err = collection.NewTimingWheelWithTicker(
-			time.Millisecond, timingWheelSlots, func(key, value interface{}) {
+			time.Millisecond, timingWheelSlots, func(key, value any) {
 				clean(key, value)
 			}, ticker)
 		assert.NoError(t, err)
@@ -164,7 +167,7 @@ func TestCacheNode_TakeBadRedis(t *testing.T) {
 	cn := NewNode(redis.New(r.Addr()), syncx.NewSingleFlight(), NewStat("any"),
 		errTestNotFound, WithExpiry(time.Second), WithNotFoundExpiry(time.Second))
 	var str string
-	assert.Error(t, cn.Take(&str, "any", func(v interface{}) error {
+	assert.Error(t, cn.Take(&str, "any", func(v any) error {
 		*v.(*string) = "value"
 		return nil
 	}))

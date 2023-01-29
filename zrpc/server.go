@@ -4,13 +4,15 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
 )
 
 // A RpcServer is a rpc server.
@@ -120,7 +122,12 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 	}
 
 	if c.Auth {
-		authenticator, err := auth.NewAuthenticator(c.Redis.NewRedis(), c.Redis.Key, c.StrictControl)
+		rds, err := redis.NewRedis(c.Redis.RedisConf)
+		if err != nil {
+			return err
+		}
+
+		authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
 		if err != nil {
 			return err
 		}
