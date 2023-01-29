@@ -1,26 +1,14 @@
-# Compatibility
-1. Support route AtServer statement?
-```api
-service foo{
-    @server(
-        foo: bar
-    )
-    @handler foo
-    get /foo
-}
-```
-
 # features
 The follows need more discussion.
 
-1. Support struct field <array> type?
+1. Support struct field \<array\> type?
 ```api
 type Foo {
     Bar [2]int `json:""`
 }
 ```
 
-2. Support struct field type <StructDataType> or not?
+2. Support struct field type \<StructDataType\> or not?
 ```api
 type Foo {
     Bar{
