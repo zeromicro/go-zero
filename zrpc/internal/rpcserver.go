@@ -59,12 +59,10 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		return err
 	}
 
-	unaryInterceptors := s.buildUnaryInterceptors()
-	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
-	streamInterceptors := s.buildStreamInterceptors()
-	streamInterceptors = append(streamInterceptors, s.streamInterceptors...)
-	options := append(s.options, grpc.ChainUnaryInterceptor(unaryInterceptors...),
-		grpc.ChainStreamInterceptor(streamInterceptors...))
+	unaryInterceptorOption := grpc.ChainUnaryInterceptor(s.buildUnaryInterceptors()...)
+	streamInterceptorOption := grpc.ChainStreamInterceptor(s.buildStreamInterceptors()...)
+
+	options := append(s.options, unaryInterceptorOption, streamInterceptorOption)
 	server := grpc.NewServer(options...)
 	register(server)
 
@@ -102,7 +100,7 @@ func (s *rpcServer) buildStreamInterceptors() []grpc.StreamServerInterceptor {
 		interceptors = append(interceptors, serverinterceptors.StreamBreakerInterceptor)
 	}
 
-	return interceptors
+	return append(interceptors, s.streamInterceptors...)
 }
 
 func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
@@ -124,7 +122,7 @@ func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
 		interceptors = append(interceptors, serverinterceptors.UnaryBreakerInterceptor)
 	}
 
-	return interceptors
+	return append(interceptors, s.unaryInterceptors...)
 }
 
 // WithMetrics returns a func that sets metrics to a Server.
