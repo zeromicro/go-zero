@@ -59,8 +59,10 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		return err
 	}
 
-	options := append(s.options, grpc.ChainUnaryInterceptor(s.buildUnaryInterceptors()...),
-		grpc.ChainStreamInterceptor(s.buildStreamInterceptors()...))
+	UnaryInterceptorOption := grpc.ChainUnaryInterceptor(s.buildUnaryInterceptors()...)
+	streamInterceptorOption := grpc.ChainStreamInterceptor(s.buildStreamInterceptors()...)
+
+	options := append(s.options, UnaryInterceptorOption, streamInterceptorOption)
 	server := grpc.NewServer(options...)
 	register(server)
 
