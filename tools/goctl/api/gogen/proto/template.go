@@ -17,6 +17,9 @@ var (
 	//go:embed batchDeleteLogic.tpl
 	batchDeleteLogicTpl string
 
+	//go:embed updateStatusLogic.tpl
+	updateStatusLogicTpl string
+
 	//go:embed api.tpl
 	apiTpl string
 )

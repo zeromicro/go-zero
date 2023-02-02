@@ -33,12 +33,12 @@ message PageInfoReq {
 
 message StatusCodeReq {
   uint64 id = 1;
-  uint64 status = 2;
+  uint32 status = 2;
 }
 
 message StatusCodeUUIDReq {
   string id = 1;
-  uint64 status = 2;
+  uint32 status = 2;
 }
 
 service {{.serviceName}} {

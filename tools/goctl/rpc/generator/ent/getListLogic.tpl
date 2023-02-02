@@ -27,7 +27,7 @@ func NewGet{{.modelName}}ListLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.projectName}}.{{.modelName}}PageReq) (*{{.projectName}}.{{.modelName}}ListResp, error) {
+func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.projectName}}.{{.modelName}}ListReq) (*{{.projectName}}.{{.modelName}}ListResp, error) {
 {{.predicateData}}
 
 	if err != nil {

@@ -180,8 +180,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 
 func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
 	var data []*RpcLogicData
-	hasTime := false
-	hasUUID := false
+	hasTime, hasUUID, hasStatus := false, false, false
 	// end string means whether to use \n
 	endString := ""
 	var packageName string
@@ -201,6 +200,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		} else if v.Name == "status" {
 			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uint8(in.%s)).\n", parser.CamelCase(v.Name),
 				parser.CamelCase(v.Name)))
+			hasStatus = true
 		} else {
 			if entx.IsTimeProperty(v.Name) {
 				hasTime = true
@@ -289,7 +289,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if v.Name == "status" {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint64(v.%s),%s", nameCamelCase,
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint32(v.%s),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsTimeProperty(v.Name) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
@@ -312,7 +312,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	}
 
 	getListLogic := bytes.NewBufferString("")
-	getListLogicTmpl, err := template.New("getList").Parse(getListLogicTpl)
+	getListLogicTmpl, _ := template.New("getList").Parse(getListLogicTpl)
 	getListLogicTmpl.Execute(getListLogic, map[string]any{
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
@@ -330,7 +330,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	})
 
 	deleteLogic := bytes.NewBufferString("")
-	deleteLogicTmpl, err := template.New("delete").Parse(deleteLogicTpl)
+	deleteLogicTmpl, _ := template.New("delete").Parse(deleteLogicTpl)
 	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":   schema.Name,
 		"projectName": g.ProjectName,
@@ -338,6 +338,10 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"packageName": packageName,
 		"useUUID":     g.UseUUID,
 	})
+	if err != nil {
+		logx.Error(err)
+		return nil
+	}
 
 	data = append(data, &RpcLogicData{
 		LogicName: fmt.Sprintf("Delete%sLogic", schema.Name),
@@ -345,7 +349,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	})
 
 	batchDeleteLogic := bytes.NewBufferString("")
-	batchDeleteLogicTmpl, err := template.New("batchDelete").Parse(batchDeleteLogicTpl)
+	batchDeleteLogicTmpl, _ := template.New("batchDelete").Parse(batchDeleteLogicTpl)
 	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
 		"modelName":          schema.Name,
 		"projectName":        g.ProjectName,
@@ -360,12 +364,31 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		LogicCode: batchDeleteLogic.String(),
 	})
 
+	if hasStatus {
+		updateStatusLogic := bytes.NewBufferString("")
+		updateStatusLogicTmpl, _ := template.New("update_status").Parse(updateStatusLogicTpl)
+		updateStatusLogicTmpl.Execute(updateStatusLogic, map[string]any{
+			"modelName":   schema.Name,
+			"projectName": g.ProjectName,
+			"projectPath": projectCtx.Path,
+			"packageName": packageName,
+			"useUUID":     g.UseUUID,
+		})
+
+		data = append(data, &RpcLogicData{
+			LogicName: fmt.Sprintf("Update%sStatusLogic", schema.Name),
+			LogicCode: updateStatusLogic.String(),
+		})
+	}
+
 	return data
 }
 
 func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, error) {
 	var protoMessage strings.Builder
 	schemaNameCamelCase := parser.CamelCase(schema.Name)
+	// hasStatus means it has status field
+	hasStatus := false
 	// end string means whether to use \n
 	endString := ""
 	// info message
@@ -376,7 +399,8 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 		if entx.IsBaseProperty(v.Name) {
 			continue
 		} else if v.Name == "status" {
-			protoMessage.WriteString(fmt.Sprintf("  uint64 %s = %d;\n", v.Name, index))
+			protoMessage.WriteString(fmt.Sprintf("  uint32 %s = %d;\n", v.Name, index))
+			hasStatus = true
 			index++
 		} else {
 			if i < (len(schema.Fields) - 1) {
@@ -405,7 +429,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 		schemaNameCamelCase, schemaNameCamelCase))
 
 	// List Request message
-	protoMessage.WriteString(fmt.Sprintf("message %sPageReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
+	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
 		schemaNameCamelCase))
 	count := 0
 	index = 3
@@ -439,6 +463,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 		"modelName": schema.Name,
 		"groupName": groupName,
 		"useUUID":   g.UseUUID,
+		"hasStatus": hasStatus,
 	})
 
 	if err != nil {

@@ -33,21 +33,21 @@ func genLocale(g *GenContext) error {
 			for _, val := range specData.Members {
 				if val.Name != "" {
 					localeEnData.WriteString(fmt.Sprintf("    %s: '%s',\n",
-						strings.ToLower(val.Name), strcase.ToCamel(val.Name)))
+						strcase.ToLowerCamel(val.Name), strcase.ToCamel(val.Name)))
 
 					localeZhData.WriteString(fmt.Sprintf("    %s: '%s',\n",
-						strings.ToLower(val.Name), strcase.ToCamel(val.Name)))
+						strcase.ToLowerCamel(val.Name), strcase.ToCamel(val.Name)))
 				}
 			}
 
 			localeEnData.WriteString(fmt.Sprintf("    add%s: 'Add %s',\n", g.ModelName, g.ModelName))
 			localeEnData.WriteString(fmt.Sprintf("    edit%s: 'Edit %s',\n", g.ModelName, g.ModelName))
-			localeEnData.WriteString(fmt.Sprintf("    %sList: '%s List',\n", strings.ToLower(g.ModelName), g.ModelName))
+			localeEnData.WriteString(fmt.Sprintf("    %sList: '%s List',\n", strcase.ToLowerCamel(g.ModelName), g.ModelName))
 			localeEnData.WriteString("  },\n")
 
 			localeZhData.WriteString(fmt.Sprintf("    add%s: '添加 %s',\n", g.ModelName, g.ModelName))
 			localeZhData.WriteString(fmt.Sprintf("    edit%s: '编辑 %s',\n", g.ModelName, g.ModelName))
-			localeZhData.WriteString(fmt.Sprintf("    %sList: '%s 列表',\n", strings.ToLower(g.ModelName), g.ModelName))
+			localeZhData.WriteString(fmt.Sprintf("    %sList: '%s 列表',\n", strcase.ToLowerCamel(g.ModelName), g.ModelName))
 			localeZhData.WriteString("  },\n")
 		}
 	}

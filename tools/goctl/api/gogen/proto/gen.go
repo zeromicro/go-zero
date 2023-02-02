@@ -10,6 +10,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/emicklei/proto"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/iancoleman/strcase"
@@ -40,6 +41,7 @@ type GenLogicByProtoContext struct {
 	GrpcPackage      string
 	UseUUID          bool
 	Multiple         bool
+	HasStatus        bool
 }
 
 type ApiLogicData struct {
@@ -140,26 +142,17 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 
 func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.ProjectContext) []*ApiLogicData {
 	var data []*ApiLogicData
-	setLogic := strings.Builder{}
+	var setLogic string
 
 	for _, v := range p.Message {
 		if strings.Contains(v.Name, ctx.ModelName) {
 			if fmt.Sprintf("%sInfo", ctx.ModelName) == v.Name {
-				for _, field := range v.Elements {
-					field.Accept(protox.MessageVisitor{})
-					if entx.IsBaseProperty(protox.ProtoField.Name) {
-						if protox.ProtoField.Name == "id" && protox.ProtoField.Type == "string" {
-							ctx.UseUUID = true
-						}
-						continue
-					}
-					setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protox.ProtoField.Name),
-						parser.CamelCase(protox.ProtoField.Name)))
-				}
+				setLogic = genSetLogic(v.Message, ctx)
+
 				createLogic := bytes.NewBufferString("")
 				createLogicTmpl, _ := template.New("createOrUpdate").Parse(createOrUpdateTpl)
 				logx.Must(createLogicTmpl.Execute(createLogic, map[string]any{
-					"setLogic":           setLogic.String(),
+					"setLogic":           setLogic,
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"projectPackage":     projectCtx.Path,
@@ -178,7 +171,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				deleteLogic := bytes.NewBufferString("")
 				deleteLogicTmpl, _ := template.New("delete").Parse(deleteLogicTpl)
 				logx.Must(deleteLogicTmpl.Execute(deleteLogic, map[string]any{
-					"setLogic":           setLogic.String(),
+					"setLogic":           setLogic,
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"projectPackage":     projectCtx.Path,
@@ -197,7 +190,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				batchDeleteLogic := bytes.NewBufferString("")
 				batchDeleteLogicTmpl, _ := template.New("batchDelete").Parse(batchDeleteLogicTpl)
 				logx.Must(batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
-					"setLogic":           setLogic.String(),
+					"setLogic":           setLogic,
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"projectPackage":     projectCtx.Path,
@@ -211,9 +204,30 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					LogicName: fmt.Sprintf("BatchDelete%sLogic", ctx.ModelName),
 					LogicCode: batchDeleteLogic.String(),
 				})
+
+				if ctx.HasStatus {
+					// update status logic
+					updateStatusLogic := bytes.NewBufferString("")
+					updateStatusLogicTmpl, _ := template.New("update_status").Parse(updateStatusLogicTpl)
+					logx.Must(updateStatusLogicTmpl.Execute(updateStatusLogic, map[string]any{
+						"setLogic":           setLogic,
+						"modelName":          ctx.ModelName,
+						"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+						"projectPackage":     projectCtx.Path,
+						"rpcPackage":         ctx.GrpcPackage,
+						"rpcName":            ctx.RpcName,
+						"rpcPbPackageName":   ctx.RPCPbPackageName,
+						"useUUID":            ctx.UseUUID,
+					}))
+
+					data = append(data, &ApiLogicData{
+						LogicName: fmt.Sprintf("Update%sStatusLogic", ctx.ModelName),
+						LogicCode: updateStatusLogic.String(),
+					})
+				}
 			}
 
-			if fmt.Sprintf("%sPageReq", ctx.ModelName) == v.Name {
+			if fmt.Sprintf("%sListReq", ctx.ModelName) == v.Name {
 				searchLogic := strings.Builder{}
 				for _, field := range v.Elements {
 					field.Accept(protox.MessageVisitor{})
@@ -224,10 +238,20 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 						parser.CamelCase(protox.ProtoField.Name)))
 				}
 
+				if setLogic == "" {
+					for _, m := range p.Message {
+						if strings.Contains(m.Name, ctx.ModelName) {
+							if fmt.Sprintf("%sInfo", ctx.ModelName) == m.Name {
+								setLogic = genSetLogic(m.Message, ctx)
+							}
+						}
+					}
+				}
+
 				getListLogic := bytes.NewBufferString("")
 				getListLogicTmpl, _ := template.New("getList").Parse(getListLogicTpl)
 				logx.Must(getListLogicTmpl.Execute(getListLogic, map[string]any{
-					"setLogic":           strings.Replace(setLogic.String(), "req.", "v.", -1),
+					"setLogic":           strings.Replace(setLogic, "req.", "v.", -1),
 					"modelName":          ctx.ModelName,
 					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 					"projectPackage":     projectCtx.Path,
@@ -253,7 +277,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	infoData := strings.Builder{}
 	listData := strings.Builder{}
-	count := 0
+	hasStatus := false
 	var data string
 
 	for _, v := range p.Message {
@@ -263,7 +287,10 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 					field.Accept(protox.MessageVisitor{})
 					if entx.IsBaseProperty(protox.ProtoField.Name) {
 						continue
+					} else if protox.ProtoField.Name == "status" {
+						hasStatus = true
 					}
+
 					var structData string
 
 					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s\"`",
@@ -273,25 +300,60 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 						strcase.ToLowerCamel(protox.ProtoField.Name))
 
 					infoData.WriteString(structData)
+				}
+			} else if strings.HasSuffix(v.Name, "ListReq") {
+				for _, field := range v.Elements {
+					field.Accept(protox.MessageVisitor{})
 
-					if count < ctx.SearchKeyNum && protox.ProtoField.Type == "string" {
+					var structData string
+
+					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
+						parser.CamelCase(protox.ProtoField.Name),
+						parser.CamelCase(protox.ProtoField.Name),
+						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
+						strcase.ToLowerCamel(protox.ProtoField.Name))
+
+					if protox.ProtoField.Type == "string" {
 						listData.WriteString(structData)
 					}
 				}
-
-				apiTemplateData := bytes.NewBufferString("")
-				apiTmpl, _ := template.New("apiTpl").Parse(apiTpl)
-				logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
-					"infoData":           infoData.String(),
-					"modelName":          ctx.ModelName,
-					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
-					"listData":           listData.String(),
-					"apiServiceName":     ctx.APIServiceName,
-					"useUUID":            ctx.UseUUID,
-				}))
-				data = apiTemplateData.String()
 			}
 		}
 	}
+
+	apiTemplateData := bytes.NewBufferString("")
+	apiTmpl, _ := template.New("apiTpl").Parse(apiTpl)
+	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
+		"infoData":           infoData.String(),
+		"modelName":          ctx.ModelName,
+		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+		"listData":           listData.String(),
+		"apiServiceName":     ctx.APIServiceName,
+		"useUUID":            ctx.UseUUID,
+		"hasStatus":          hasStatus,
+	}))
+	data = apiTemplateData.String()
+
 	return data, nil
+}
+
+func genSetLogic(v *proto.Message, ctx *GenLogicByProtoContext) string {
+	var setLogic strings.Builder
+	for _, field := range v.Elements {
+		field.Accept(protox.MessageVisitor{})
+		if entx.IsBaseProperty(protox.ProtoField.Name) {
+			if protox.ProtoField.Name == "id" && protox.ProtoField.Type == "string" {
+				ctx.UseUUID = true
+			}
+			continue
+		}
+
+		if protox.ProtoField.Name == "status" {
+			ctx.HasStatus = true
+		}
+
+		setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protox.ProtoField.Name),
+			parser.CamelCase(protox.ProtoField.Name)))
+	}
+	return setLogic.String()
 }

@@ -17,7 +17,7 @@ type (
     {{.modelName}}ListResp {
         BaseDataInfo
 
-        // {{.modelName}} list data | API 列表数据
+        // {{.modelName}} list data | {{.modelName}} 列表数据
         Data {{.modelName}}ListInfo `json:"data"`
     }
 
@@ -25,11 +25,11 @@ type (
     {{.modelName}}ListInfo {
         BaseListInfo
 
-        // The API list data | API列表数据
+        // The API list data | {{.modelName}} 列表数据
         Data  []{{.modelName}}Info  `json:"data"`
     }
 
-    // Get {{.modelName}} list request params | {{.modelName}}列表请求参数
+    // Get {{.modelNameLowerCase}} list request params | {{.modelName}}列表请求参数
     {{.modelName}}ListReq {
         PageInfo{{.listData}}
     }
@@ -57,4 +57,9 @@ service {{.apiServiceName}} {
     // Delete {{.modelName}} information | 删除{{.modelName}}信息
     @handler batchDelete{{.modelName}}
     post /{{.modelNameLowerCase}}/batch_delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
+{{if .hasStatus}}
+    // Set {{.modelNameLowerCase}}'s status | 更新{{.modelName}}状态
+    @handler update{{.modelName}}Status
+    post /{{.modelNameLowerCase}}/status (StatusCode{{if .useUUID}}UUID{{end}}Req) returns (BaseMsgResp)
+{{end}}
 }

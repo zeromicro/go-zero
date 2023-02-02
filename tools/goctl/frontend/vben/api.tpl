@@ -1,6 +1,6 @@
 import { defHttp } from '/@/utils/http/axios';
 import { ErrorMessageMode } from '/#/axios';
-import { BaseDataResp, BasePageReq, BaseResp, {{if .useUUID}}BaseUUIDReq, BaseUUIDsReq{{else}}BaseIdsReq, BaseIdReq{{end}} } from '/@/api/model/baseModel';
+import { BaseDataResp, BaseListReq, BaseResp, {{if .useUUID}}BaseUUIDReq, BaseUUIDsReq{{else}}BaseIdsReq, BaseIdReq{{end}} } from '/@/api/model/baseModel';
 import { {{.modelName}}Info, {{.modelName}}ListResp } from './model/{{.modelNameLowerCase}}Model';
 
 enum Api {
@@ -14,7 +14,7 @@ enum Api {
  * @description: Get {{.modelNameLowerCase}} list
  */
 
-export const get{{.modelName}}List = (params: BasePageReq) => {
+export const get{{.modelName}}List = (params: BaseListReq) => {
   return defHttp.post<BaseDataResp<{{.modelName}}ListResp>>({ url: Api.Get{{.modelName}}List, params });
 };
 

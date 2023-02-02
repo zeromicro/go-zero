@@ -31,9 +31,16 @@ func genData(g *GenContext) error {
 					}
 				} else {
 					basicData.WriteString(fmt.Sprintf("\n  {\n    title: t('%s'),\n    dataIndex: '%s',\n    width: 100,\n  },",
-						strcase.ToCamel(val.Name), strcase.ToLowerCamel(val.Name)))
-					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    component: 'Input',\n  },",
-						strcase.ToCamel(val.Name), strcase.ToLowerCamel(val.Name)))
+						fmt.Sprintf("%s.%s.%s", g.FolderName,
+							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "Info")),
+							strcase.ToLowerCamel(val.Name)), strcase.ToLowerCamel(val.Name)))
+					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    %s\n  },",
+						strcase.ToLowerCamel(val.Name),
+						fmt.Sprintf("%s.%s.%s", g.FolderName,
+							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "Info")),
+							strcase.ToLowerCamel(val.Name)),
+						getComponent(val.Type.Name()),
+					))
 				}
 			}
 
@@ -48,7 +55,11 @@ func genData(g *GenContext) error {
 			for _, val := range specData.Members {
 				if val.Name != "" {
 					searchFormData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    component: 'Input',\n    colProps: { span: 8 },\n  },",
-						strcase.ToCamel(val.Name), strcase.ToLowerCamel(val.Name)))
+						strcase.ToLowerCamel(val.Name),
+						fmt.Sprintf("%s.%s.%s", g.FolderName,
+							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "ListReq")),
+							strcase.ToLowerCamel(val.Name)),
+					))
 				}
 			}
 		}
@@ -66,4 +77,15 @@ func genData(g *GenContext) error {
 		return err
 	}
 	return nil
+}
+
+func getComponent(dataType string) string {
+	switch dataType {
+	case "string":
+		return "component: 'Input',"
+	case "int32", "int64", "uint32", "uint64":
+		return "component: 'InputNumber',"
+	default:
+		return "component: 'Input',"
+	}
 }
