@@ -40,6 +40,7 @@ type GenContext struct {
 	SubFolderName string
 	ApiSpec       *spec.ApiSpec
 	UseUUID       bool
+	HasStatus     bool
 }
 
 // GenCRUDLogic is used to generate CRUD file for simple admin backend UI

@@ -7,7 +7,8 @@ enum Api {
   CreateOrUpdate{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/create_or_update',
   Get{{.modelName}}List = '/{{.prefix}}/{{.modelNameLowerCase}}/list',
   Delete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/delete',
-  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/batch_delete',
+  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/batch_delete',{{if .hasStatus}}
+  Set{{.modelName}}Status = '/sys-api/{{.modelNameLowerCase}}/status',{{end}}
 }
 
 /**
@@ -53,3 +54,12 @@ export const batchDelete{{.modelName}} = (params: {{if .useUUID}}BaseUUIDsReq{{e
     },
   );
 };
+{{if .hasStatus}}
+
+/**
+ *  @description: set the {{.modelNameLowerCase}} status
+ */
+export const set{{.modelName}}Status = (id: string, status: number) =>
+  defHttp.post({ url: Api.Set{{.modelName}}Status, params: { id, status } });
+
+{{end}}

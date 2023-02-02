@@ -30,6 +30,8 @@ func genModel(g *GenContext) error {
 						infoData.WriteString("  id: string;\n  createdAt?: number;\n")
 						g.UseUUID = true
 					}
+				} else if val.Name == "Status" {
+					g.HasStatus = true
 				} else {
 					infoData.WriteString(fmt.Sprintf("  %s: %s;\n", strcase.ToLowerCamel(val.Name),
 						ConvertGoTypeToTsType(val.Type.Name())))

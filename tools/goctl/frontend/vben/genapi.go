@@ -14,6 +14,7 @@ func genApi(g *GenContext) error {
 		"modelNameLowerCase": strings.ToLower(g.ModelName),
 		"prefix":             g.Prefix,
 		"useUUID":            g.UseUUID,
+		"hasStatus":          g.HasStatus,
 	},
 		filepath.Join(g.ApiDir, fmt.Sprintf("%s.ts", strings.ToLower(g.ModelName))), false); err != nil {
 		return err

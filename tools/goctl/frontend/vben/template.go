@@ -22,4 +22,7 @@ var (
 
 	//go:embed locale.tpl
 	localeTpl string
+
+	//go:embed statusrender.tpl
+	statusRenderTpl string
 )
