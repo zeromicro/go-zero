@@ -10,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -81,13 +82,19 @@ func RPCNew(_ *cobra.Command, args []string) error {
 		return err
 	}
 
+	protocPath, err := env.LookUpProtoc()
+	if err != nil {
+		return err
+	}
+
 	var ctx generator.ZRpcContext
 	ctx.Src = src
 	ctx.GoOutput = filepath.Dir(src)
 	ctx.GrpcOutput = filepath.Dir(src)
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
-	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+	ctx.ProtocCmd = fmt.Sprintf("%s -I=%s %s --go_out=%s --go-grpc_out=%s",
+		protocPath, filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
