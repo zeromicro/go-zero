@@ -135,17 +135,6 @@ func begin(db *sql.DB) (trans, error) {
 	}, nil
 }
 
-func transact(ctx context.Context, db *commonSqlConn, b beginnable,
-	fn func(context.Context, Session) error) (err error) {
-	conn, err := db.connProv()
-	if err != nil {
-		db.onError(err)
-		return err
-	}
-
-	return transactOnConn(ctx, conn, b, fn)
-}
-
 func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
 	var tx trans

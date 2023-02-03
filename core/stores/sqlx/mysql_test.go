@@ -46,19 +46,18 @@ func TestMysqlAcceptable(t *testing.T) {
 
 func tryOnDuplicateEntryError(t *testing.T, accept func(error) bool) error {
 	logx.Disable()
-
+	brk := breaker.NewBreaker()
 	conn := commonSqlConn{
-		brk:    breaker.NewBreaker(),
 		accept: accept,
 	}
 	for i := 0; i < 1000; i++ {
-		assert.NotNil(t, conn.brk.DoWithAcceptable(func() error {
+		assert.NotNil(t, brk.DoWithAcceptable(func() error {
 			return &mysql.MySQLError{
 				Number: duplicateEntryCode,
 			}
 		}, conn.acceptable))
 	}
-	return conn.brk.DoWithAcceptable(func() error {
+	return brk.DoWithAcceptable(func() error {
 		return &mysql.MySQLError{
 			Number: duplicateEntryCode,
 		}

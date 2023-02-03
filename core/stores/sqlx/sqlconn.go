@@ -63,14 +63,22 @@ type (
 	// Because CORBA doesn't support PREPARE, so we need to combine the
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
-		connProv connProvider
-		onError  func(error)
-		beginTx  beginnable
-		brk      breaker.Breaker
-		accept   func(error) bool
+		connProv   connProvider
+		onError    func(error)
+		beginTx    beginnable
+		accept     func(error) bool
+		picker     picker
+		slaves     []slave
+		driverName string
 	}
 
-	connProvider func() (*sql.DB, error)
+	slave struct {
+		datasource string
+		driverName string
+		brk        breaker.Breaker
+	}
+
+	connProvider func(onlyRead bool) (brk breaker.Breaker, db *sql.DB, err error)
 
 	sessionConn interface {
 		Exec(query string, args ...any) (sql.Result, error)
@@ -95,34 +103,51 @@ type (
 // NewSqlConn returns a SqlConn with given driver name and datasource.
 func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
-			return getSqlConn(driverName, datasource)
-		},
 		onError: func(err error) {
 			logInstanceError(datasource, err)
 		},
-		beginTx: begin,
-		brk:     breaker.NewBreaker(),
+		beginTx:    begin,
+		driverName: driverName,
 	}
+
+	brk := breaker.NewBreaker()
+	conn.connProv = func(onlyRead bool) (breaker.Breaker, *sql.DB, error) {
+		if onlyRead && conn.picker != nil {
+			salve := conn.picker.pick()
+			db, err := salve.getDB()
+			if err != nil {
+				return nil, nil, err
+			}
+
+			return salve.getBreaker(), db, nil
+		}
+
+		db, err := getSqlConn(driverName, datasource)
+		if err != nil {
+			return brk, nil, err
+		}
+
+		return brk, db, nil
+	}
+
 	for _, opt := range opts {
 		opt(conn)
 	}
-
 	return conn
 }
 
 // NewSqlConnFromDB returns a SqlConn with the given sql.DB.
 // Use it with caution, it's provided for other ORM to interact with.
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
+	brk := breaker.NewBreaker()
 	conn := &commonSqlConn{
-		connProv: func() (*sql.DB, error) {
-			return db, nil
+		connProv: func(onlyRead bool) (breaker.Breaker, *sql.DB, error) {
+			return brk, db, nil
 		},
 		onError: func(err error) {
 			logx.Errorf("Error on getting sql instance: %v", err)
 		},
 		beginTx: begin,
-		brk:     breaker.NewBreaker(),
 	}
 	for _, opt := range opts {
 		opt(conn)
@@ -142,9 +167,8 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
-		var conn *sql.DB
-		conn, err = db.connProv()
+	brk, conn, err := db.connProv(false)
+	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
 			return err
@@ -153,6 +177,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		result, err = exec(ctx, conn, q, args...)
 		return err
 	}, db.acceptable)
+
 	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Exec", "breaker")
 	}
@@ -170,9 +195,8 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
-		var conn *sql.DB
-		conn, err = db.connProv()
+	brk, conn, err := db.connProv(false)
+	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
 			return err
@@ -261,7 +285,8 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v any,
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
-	return db.connProv()
+	_, conn, err := db.connProv(false)
+	return conn, err
 }
 
 func (db *commonSqlConn) Transact(fn func(Session) error) error {
@@ -276,8 +301,13 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	err = db.brk.DoWithAcceptable(func() error {
-		return transact(ctx, db, db.beginTx, fn)
+	brk, conn, err := db.connProv(false)
+	err = brk.DoWithAcceptable(func() error {
+		if err != nil {
+			db.onError(err)
+			return err
+		}
+		return transactOnConn(ctx, conn, db.beginTx, fn)
 	}, db.acceptable)
 	if err == breaker.ErrServiceUnavailable {
 		metricReqErr.Inc("Transact", "breaker")
@@ -298,8 +328,8 @@ func (db *commonSqlConn) acceptable(err error) bool {
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...any) (err error) {
 	var qerr error
-	err = db.brk.DoWithAcceptable(func() error {
-		conn, err := db.connProv()
+	brk, conn, err := db.connProv(true)
+	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
 			return err
@@ -394,4 +424,37 @@ func (s statement) QueryRowsPartialCtx(ctx context.Context, v any, args ...any) 
 	return queryStmt(ctx, s.stmt, func(rows *sql.Rows) error {
 		return unmarshalRows(v, rows, false)
 	}, s.query, args...)
+}
+
+func newSlaves(driverName string, datasourceGroup []string) []slave {
+	slaves := make([]slave, 0, len(datasourceGroup))
+	for _, datasource := range datasourceGroup {
+		slaves = append(slaves, slave{
+			datasource: datasource,
+			brk:        breaker.NewBreaker(breaker.WithName(datasource)),
+			driverName: driverName,
+		})
+	}
+
+	return slaves
+}
+
+func (s *slave) getBreaker() breaker.Breaker {
+	return s.brk
+}
+
+func (s *slave) getDB() (*sql.DB, error) {
+	return getSqlConn(s.driverName, s.datasource)
+}
+
+func WithSlaves(dataSourceGroup []string) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.slaves = newSlaves(conn.driverName, dataSourceGroup)
+	}
+}
+
+func WithRandom() SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.picker = newRandomPicker(conn.slaves)
+	}
 }
