@@ -130,9 +130,9 @@ func format(query string, args ...any) (string, error) {
 	return b.String(), nil
 }
 
-func logInstanceError(datasource string, err error) {
+func logInstanceError(ctx context.Context, datasource string, err error) {
 	datasource = desensitize(datasource)
-	logx.Errorf("Error on getting sql instance of %s: %v", datasource, err)
+	logx.WithContext(ctx).Errorf("Error on getting sql instance of %s: %v", datasource, err)
 }
 
 func logSqlError(ctx context.Context, stmt string, err error) {
