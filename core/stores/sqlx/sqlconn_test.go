@@ -63,3 +63,28 @@ func buildConn() (mock sqlmock.Sqlmock, err error) {
 
 	return
 }
+
+func TestWithSlaves(t *testing.T) {
+	slaves := WithSlaves([]string{"1", "2"})
+	assert.NotNil(t, slaves)
+}
+
+func TestWithRandomPicker(t *testing.T) {
+	slaves := WithRandomPicker()
+	assert.NotNil(t, slaves)
+}
+
+func TestWithRoundRobinPicker(t *testing.T) {
+	slaves := WithRoundRobinPicker()
+	assert.NotNil(t, slaves)
+}
+
+func TestWithWeightRandomPicker(t *testing.T) {
+	slaves := WithWeightRandomPicker([]int{1, 2})
+	assert.NotNil(t, slaves)
+}
+
+func TestWithWeightRoundRobinPicker(t *testing.T) {
+	slaves := WithWeightRoundRobinPicker([]int{1, 2})
+	assert.NotNil(t, slaves)
+}

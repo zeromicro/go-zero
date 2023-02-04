@@ -100,14 +100,15 @@ func (r *roundRobinPicker) pick() (slave, error) {
 	}
 
 	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if r.i >= len(slaves) {
-		r.i = 0
-	}
+	i := r.i
 	r.i++
+	r.mu.Unlock()
 
-	return slaves[r.i], nil
+	if i >= len(slaves) {
+		i = 0
+	}
+
+	return slaves[i], nil
 }
 
 type weightRoundRobinPicker struct {
