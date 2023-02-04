@@ -40,6 +40,7 @@ func (r *replacer) Replace(text string) string {
 			replaced := r.mapping[string(target[:used])]
 			target = append([]rune(replaced), target[used:]...)
 			cur = r.node
+			nextStart = 0
 		} else {
 			buf.WriteString(string(target[:used]))
 			target = target[used:]
