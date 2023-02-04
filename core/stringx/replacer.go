@@ -1,8 +1,6 @@
 package stringx
 
-import (
-	"bytes"
-)
+import "strings"
 
 type (
 	// Replacer interface wraps the Replace method.
@@ -32,7 +30,7 @@ func NewReplacer(mapping map[string]string) Replacer {
 
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
-	var buf bytes.Buffer
+	var buf strings.Builder
 	target := []rune(text)
 	cur := r.node
 	nextStart := 0
