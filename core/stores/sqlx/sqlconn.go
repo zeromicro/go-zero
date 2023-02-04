@@ -68,7 +68,7 @@ type (
 		beginTx    beginnable
 		accept     func(error) bool
 		picker     picker
-		slaves     []slave
+		fnSlaves   fnSlaves
 		driverName string
 	}
 
@@ -112,14 +112,14 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 
 	brk := breaker.NewBreaker()
 	conn.connProv = func(onlyRead bool) (breaker.Breaker, *sql.DB, error) {
-		if onlyRead && conn.picker != nil {
-			salve := conn.picker.pick()
-			db, err := salve.getDB()
-			if err != nil {
-				return nil, nil, err
-			}
+		if onlyRead && conn.picker != nil && conn.fnSlaves != nil {
+			salve, err := conn.picker.pick()
+			if err == nil {
+				var db *sql.DB
+				db, err = salve.getDB()
 
-			return salve.getBreaker(), db, nil
+				return salve.getBreaker(), db, err
+			}
 		}
 
 		db, err := getSqlConn(driverName, datasource)
@@ -449,12 +449,20 @@ func (s *slave) getDB() (*sql.DB, error) {
 
 func WithSlaves(dataSourceGroup []string) SqlOption {
 	return func(conn *commonSqlConn) {
-		conn.slaves = newSlaves(conn.driverName, dataSourceGroup)
+		conn.fnSlaves = func() []slave {
+			return newSlaves(conn.driverName, dataSourceGroup)
+		}
 	}
 }
 
-func WithRandom() SqlOption {
+func WithRandomPicker() SqlOption {
 	return func(conn *commonSqlConn) {
-		conn.picker = newRandomPicker(conn.slaves)
+		conn.picker = newRandomPicker(conn.fnSlaves)
+	}
+}
+
+func WithWeightRandomPicker(weights []int) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.picker = newWeightRandomPicker(weights, conn.fnSlaves)
 	}
 }
