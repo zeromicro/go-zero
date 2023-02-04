@@ -3,6 +3,7 @@ package sqlx
 import (
 	"errors"
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -74,4 +75,36 @@ func (w *weightRandomPicker) pick() (slave, error) {
 	}
 
 	return slaves[index], nil
+}
+
+type roundRobinPicker struct {
+	i        int
+	fnSlaves func() []slave
+	mu       sync.Mutex
+}
+
+func newRoundRobinPicker(fn fnSlaves) *roundRobinPicker {
+	return &roundRobinPicker{
+		fnSlaves: fn,
+	}
+}
+
+func (r *roundRobinPicker) pick() (slave, error) {
+	if r.fnSlaves == nil {
+		return emptySlave, errNoAvailableSlave
+	}
+
+	slaves := r.fnSlaves()
+	if len(slaves) == 0 {
+		return emptySlave, errNoAvailableSlave
+	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.i >= len(slaves) {
+		r.i = 0
+	}
+
+	return slaves[r.i], nil
 }

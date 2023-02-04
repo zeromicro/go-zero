@@ -466,3 +466,9 @@ func WithWeightRandomPicker(weights []int) SqlOption {
 		conn.picker = newWeightRandomPicker(weights, conn.fnSlaves)
 	}
 }
+
+func WithRoundRobinPicker() SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.picker = newRoundRobinPicker(conn.fnSlaves)
+	}
+}
