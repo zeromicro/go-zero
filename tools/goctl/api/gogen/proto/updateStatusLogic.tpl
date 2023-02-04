@@ -30,6 +30,7 @@ func NewUpdate{{.modelName}}StatusLogic(r *http.Request, svcCtx *svc.ServiceCont
 func (l *Update{{.modelName}}StatusLogic) Update{{.modelName}}Status(req *types.StatusCode{{if .useUUID}}UUID{{end}}Req) (resp *types.BaseMsgResp, err error) {
 	result, err := l.svcCtx.{{.rpcName}}Rpc.Update{{.modelName}}Status(l.ctx, &{{.rpcPbPackageName}}.StatusCode{{if .useUUID}}UUID{{end}}Req{
 		Id: req.Id,
+		Status: req.Status,
 	})
 	if err != nil {
 		return nil, err
