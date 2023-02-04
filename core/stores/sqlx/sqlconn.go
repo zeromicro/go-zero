@@ -78,7 +78,7 @@ type (
 		brk        breaker.Breaker
 	}
 
-	connProvider func(onlyRead bool) (brk breaker.Breaker, db *sql.DB, err error)
+	connProvider func(ctx context.Context, onlyRead bool) (brk breaker.Breaker, db *sql.DB, err error)
 
 	sessionConn interface {
 		Exec(query string, args ...any) (sql.Result, error)
@@ -111,7 +111,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	}
 
 	brk := breaker.NewBreaker()
-	conn.connProv = func(onlyRead bool) (breaker.Breaker, *sql.DB, error) {
+	conn.connProv = func(ctx context.Context, onlyRead bool) (breaker.Breaker, *sql.DB, error) {
 		if onlyRead && conn.picker != nil && conn.fnSlaves != nil {
 			salve, err := conn.picker.pick()
 			if err == nil {
@@ -120,6 +120,8 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 
 				return salve.getBreaker(), db, err
 			}
+
+			logx.WithContext(ctx).Error(err)
 		}
 
 		db, err := getSqlConn(driverName, datasource)
@@ -141,7 +143,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	brk := breaker.NewBreaker()
 	conn := &commonSqlConn{
-		connProv: func(onlyRead bool) (breaker.Breaker, *sql.DB, error) {
+		connProv: func(ctx context.Context, onlyRead bool) (breaker.Breaker, *sql.DB, error) {
 			return brk, db, nil
 		},
 		onError: func(err error) {
@@ -167,7 +169,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		endSpan(span, err)
 	}()
 
-	brk, conn, err := db.connProv(false)
+	brk, conn, err := db.connProv(ctx, false)
 	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
@@ -195,7 +197,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		endSpan(span, err)
 	}()
 
-	brk, conn, err := db.connProv(false)
+	brk, conn, err := db.connProv(ctx, false)
 	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
@@ -285,7 +287,7 @@ func (db *commonSqlConn) QueryRowsPartialCtx(ctx context.Context, v any,
 }
 
 func (db *commonSqlConn) RawDB() (*sql.DB, error) {
-	_, conn, err := db.connProv(false)
+	_, conn, err := db.connProv(context.Background(), false)
 	return conn, err
 }
 
@@ -301,7 +303,7 @@ func (db *commonSqlConn) TransactCtx(ctx context.Context, fn func(context.Contex
 		endSpan(span, err)
 	}()
 
-	brk, conn, err := db.connProv(false)
+	brk, conn, err := db.connProv(ctx, false)
 	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
@@ -328,7 +330,7 @@ func (db *commonSqlConn) acceptable(err error) bool {
 func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) error,
 	q string, args ...any) (err error) {
 	var qerr error
-	brk, conn, err := db.connProv(true)
+	brk, conn, err := db.connProv(ctx, true)
 	err = brk.DoWithAcceptable(func() error {
 		if err != nil {
 			db.onError(err)
