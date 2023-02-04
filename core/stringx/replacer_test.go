@@ -51,6 +51,15 @@ func TestReplacer_ReplaceMultiMatches(t *testing.T) {
 	assert.Equal(t, "零一23四五一23四五", NewReplacer(mapping).Replace("零一二三四五一二三四五"))
 }
 
+func TestReplacer_ReplaceLongestMatching(t *testing.T) {
+	keywords := map[string]string{
+		"日本":    "japan",
+		"日本的首都": "东京",
+	}
+	replacer := NewReplacer(keywords)
+	assert.Equal(t, "东京在japan", replacer.Replace("日本的首都在日本"))
+}
+
 func TestReplacer_ReplaceJumpToFail(t *testing.T) {
 	mapping := map[string]string{
 		"bcdf": "1235",
