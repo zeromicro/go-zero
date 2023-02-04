@@ -451,6 +451,7 @@ func (s *slave) getDB() (*sql.DB, error) {
 	return getSqlConn(s.driverName, s.datasource)
 }
 
+// WithSlaves returns a SqlOption that contains the slave database source.
 func WithSlaves(dataSourceGroup []string) SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.fnSlaves = func() []slave {
@@ -459,24 +460,28 @@ func WithSlaves(dataSourceGroup []string) SqlOption {
 	}
 }
 
+// WithRandomPicker returns a SqlOption that contains the randomPicker algorithm.
 func WithRandomPicker() SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.picker = newRandomPicker(conn.fnSlaves)
 	}
 }
 
+// WithWeightRandomPicker returns a SqlOption that contains the weightRandomPicker algorithm.
 func WithWeightRandomPicker(weights []int) SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.picker = newWeightRandomPicker(weights, conn.fnSlaves)
 	}
 }
 
+// WithRoundRobinPicker returns a SqlOption that contains the roundRobinPicker algorithm.
 func WithRoundRobinPicker() SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.picker = newRoundRobinPicker(conn.fnSlaves)
 	}
 }
 
+// WithWeightRoundRobinPicker returns a SqlOption that contains the weightRoundRobinPicker algorithm.
 func WithWeightRoundRobinPicker(weights []int) SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.picker = newWeightRoundRobinPicker(weights, conn.fnSlaves)
