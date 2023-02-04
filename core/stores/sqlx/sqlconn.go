@@ -135,6 +135,7 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 	for _, opt := range opts {
 		opt(conn)
 	}
+
 	return conn
 }
 
@@ -151,6 +152,7 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 		},
 		beginTx: begin,
 	}
+
 	for _, opt := range opts {
 		opt(conn)
 	}
@@ -472,5 +474,11 @@ func WithWeightRandomPicker(weights []int) SqlOption {
 func WithRoundRobinPicker() SqlOption {
 	return func(conn *commonSqlConn) {
 		conn.picker = newRoundRobinPicker(conn.fnSlaves)
+	}
+}
+
+func WithWeightRoundRobinPicker(weights []int) SqlOption {
+	return func(conn *commonSqlConn) {
+		conn.picker = newWeightRoundRobinPicker(weights, conn.fnSlaves)
 	}
 }

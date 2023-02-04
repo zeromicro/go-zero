@@ -45,7 +45,7 @@ func (r *randomPicker) pick() (slave, error) {
 type weightRandomPicker struct {
 	r        *rand.Rand
 	weights  []int
-	fnSlaves func() []slave
+	fnSlaves fnSlaves
 }
 
 func newWeightRandomPicker(weights []int, fn fnSlaves) *weightRandomPicker {
@@ -79,7 +79,7 @@ func (w *weightRandomPicker) pick() (slave, error) {
 
 type roundRobinPicker struct {
 	i        int
-	fnSlaves func() []slave
+	fnSlaves fnSlaves
 	mu       sync.Mutex
 }
 
@@ -105,6 +105,46 @@ func (r *roundRobinPicker) pick() (slave, error) {
 	if r.i >= len(slaves) {
 		r.i = 0
 	}
+	r.i++
 
 	return slaves[r.i], nil
+}
+
+type weightRoundRobinPicker struct {
+	i        int
+	fnSlaves fnSlaves
+	mu       sync.Mutex
+	weights  []int
+}
+
+func newWeightRoundRobinPicker(weights []int, fnSlaves fnSlaves) *weightRoundRobinPicker {
+	return &weightRoundRobinPicker{
+		fnSlaves: fnSlaves,
+		weights:  weights,
+	}
+}
+
+func (w *weightRoundRobinPicker) pick() (slave, error) {
+	var weightRands = make([]int, 0, len(w.weights))
+	for i := 0; i < len(w.weights); i++ {
+		for n := 0; n < w.weights[i]; n++ {
+			weightRands = append(weightRands, i)
+		}
+	}
+
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	slaves := w.fnSlaves()
+	if w.i >= len(weightRands) {
+		w.i = 0
+	}
+
+	idx := weightRands[w.i]
+	if idx >= len(slaves) {
+		idx = len(slaves) - 1
+	}
+	w.i++
+
+	return slaves[idx], nil
 }
