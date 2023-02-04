@@ -64,6 +64,31 @@ func buildConn() (mock sqlmock.Sqlmock, err error) {
 	return
 }
 
+func TestSalve(t *testing.T) {
+	salve1 := "salve1"
+	db, salve1Mock, err := sqlmock.New()
+	_, err = connManager.GetResource(salve1, func() (io.Closer, error) {
+		return &pingedDB{
+			DB: db,
+		}, err
+	})
+	assert.NoError(t, err)
+
+	salve1Mock.ExpectQuery("any").WillReturnRows(
+		sqlmock.NewRows([]string{"a"}).AddRow("foo"),
+	)
+
+	mysql := NewMysql("", WithSlaves([]string{salve1}), WithRandomPicker())
+
+	var result string
+	err = mysql.QueryRow(&result, "any")
+	assert.NoError(t, err)
+	assert.EqualValues(t, "foo", result)
+
+	_, err = mysql.Exec("any")
+	assert.Error(t, err)
+}
+
 func TestWithSlaves(t *testing.T) {
 	slaves := WithSlaves([]string{"1", "2"})
 	assert.NotNil(t, slaves)
