@@ -436,12 +436,12 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 
 	for i, v := range schema.Fields {
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < g.SearchKeyNum {
-			if i < (len(schema.Fields)-1) && count < g.SearchKeyNum {
+			if i < len(schema.Fields) && count < g.SearchKeyNum {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
 					v.Name, index))
+				index++
+				count++
 			}
-			index++
-			count++
 		}
 
 		if i == (len(schema.Fields) - 1) {
