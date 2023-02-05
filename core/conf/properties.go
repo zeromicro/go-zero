@@ -12,7 +12,6 @@ import (
 
 // PropertyError represents a configuration error message.
 type PropertyError struct {
-	error
 	message string
 }
 

@@ -107,6 +107,20 @@ func MustLoad(path string, v interface{}, opts ...Option) {
 	}
 }
 
+func addOrMergeFields(info map[string]fieldInfo, key, name string, fields map[string]fieldInfo) {
+	if prev, ok := info[key]; ok {
+		// merge fields
+		for k, v := range fields {
+			prev.children[k] = v
+		}
+	} else {
+		info[key] = fieldInfo{
+			name:     name,
+			children: fields,
+		}
+	}
+}
+
 func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 	tp = mapping.Deref(tp)
 
@@ -134,11 +148,12 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 			if ft.Kind() == reflect.Struct {
 				fields := buildFieldsInfo(ft)
 				for k, v := range fields {
-					info[k] = v
+					addOrMergeFields(info, k, v.name, v.children)
 				}
 			} else {
 				info[lowerCaseName] = fieldInfo{
-					name: name,
+					name:     name,
+					children: make(map[string]fieldInfo),
 				}
 			}
 			continue
@@ -154,17 +169,7 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 			fields = buildFieldsInfo(ft.Elem())
 		}
 
-		if prev, ok := info[lowerCaseName]; ok {
-			// merge fields
-			for k, v := range fields {
-				prev.children[k] = v
-			}
-		} else {
-			info[lowerCaseName] = fieldInfo{
-				name:     name,
-				children: fields,
-			}
-		}
+		addOrMergeFields(info, lowerCaseName, name, fields)
 	}
 
 	return info
