@@ -2,7 +2,7 @@ import { BasicColumn } from '/@/components/Table';
 import { FormSchema } from '/@/components/Table';
 import { useI18n } from '/@/hooks/web/useI18n';
 import { formatToDateTime } from '/@/utils/dateUtil';
-{{if .hasStatus}}import { set{{.modelName}}Status } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
+{{if .hasStatus}}import { set{{.modelName}}Status } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
 import { Switch } from 'ant-design-vue';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { h } from 'vue';{{end}}

@@ -1,14 +1,14 @@
 import { defHttp } from '/@/utils/http/axios';
 import { ErrorMessageMode } from '/#/axios';
 import { BaseDataResp, BaseListReq, BaseResp, {{if .useUUID}}BaseUUIDReq, BaseUUIDsReq{{else}}BaseIdsReq, BaseIdReq{{end}} } from '/@/api/model/baseModel';
-import { {{.modelName}}Info, {{.modelName}}ListResp } from './model/{{.modelNameLowerCase}}Model';
+import { {{.modelName}}Info, {{.modelName}}ListResp } from './model/{{.modelNameLowerCamel}}Model';
 
 enum Api {
-  CreateOrUpdate{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/create_or_update',
-  Get{{.modelName}}List = '/{{.prefix}}/{{.modelNameLowerCase}}/list',
-  Delete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/delete',
-  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameLowerCase}}/batch_delete',{{if .hasStatus}}
-  Set{{.modelName}}Status = '/sys-api/{{.modelNameLowerCase}}/status',{{end}}
+  CreateOrUpdate{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/create_or_update',
+  Get{{.modelName}}List = '/{{.prefix}}/{{.modelNameSnake}}/list',
+  Delete{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/delete',
+  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/batch_delete',{{if .hasStatus}}
+  Set{{.modelName}}Status = '/sys-api/{{.modelNameSnake}}/status',{{end}}
 }
 
 /**

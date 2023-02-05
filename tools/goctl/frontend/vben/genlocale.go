@@ -27,8 +27,8 @@ func genLocale(g *GenContext) error {
 				return errors.New("cannot get the field")
 			}
 
-			localeEnData.WriteString(fmt.Sprintf("  %s: {\n", strings.ToLower(g.ModelName)))
-			localeZhData.WriteString(fmt.Sprintf("  %s: {\n", strings.ToLower(g.ModelName)))
+			localeEnData.WriteString(fmt.Sprintf("  %s: {\n", strcase.ToLowerCamel(g.ModelName)))
+			localeZhData.WriteString(fmt.Sprintf("  %s: {\n", strcase.ToLowerCamel(g.ModelName)))
 
 			for _, val := range specData.Members {
 				if val.Name != "" {
@@ -67,7 +67,7 @@ func genLocale(g *GenContext) error {
 
 		data := string(file)
 
-		if !strings.Contains(data, g.ModelName) {
+		if !strings.Contains(data, g.ModelName+":") {
 			data = data[:len(data)-3] + localeEnData.String() + data[len(data)-3:]
 		}
 
@@ -92,7 +92,7 @@ func genLocale(g *GenContext) error {
 
 		data := string(file)
 
-		if !strings.Contains(data, g.ModelName) {
+		if !strings.Contains(data, g.ModelName+":") {
 			data = data[:len(data)-3] + localeZhData.String() + data[len(data)-3:]
 		}
 

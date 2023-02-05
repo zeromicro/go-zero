@@ -29,7 +29,7 @@ func genData(g *GenContext) error {
 			for _, val := range specData.Members {
 				if val.Name == "" {
 					tmpType, _ := val.Type.(spec.DefineStruct)
-					if tmpType.Name() == "BaseInfo" {
+					if tmpType.Name() == "BaseInfo" || tmpType.Name() == "BaseUUIDInfo" {
 						useBaseInfo = true
 					}
 				} else if val.Name == "Status" {
@@ -91,17 +91,17 @@ func genData(g *GenContext) error {
 	}
 
 	if err := util.With("dataTpl").Parse(dataTpl).SaveTo(map[string]any{
-		"modelName":          g.ModelName,
-		"modelNameLowerCase": strings.ToLower(g.ModelName),
-		"folderName":         g.FolderName,
-		"basicData":          basicData.String(),
-		"searchFormData":     searchFormData.String(),
-		"formData":           formData.String(),
-		"useBaseInfo":        useBaseInfo,
-		"useUUID":            g.UseUUID,
-		"hasStatus":          g.HasStatus,
+		"modelName":           g.ModelName,
+		"modelNameLowerCamel": strcase.ToLowerCamel(g.ModelName),
+		"folderName":          g.FolderName,
+		"basicData":           basicData.String(),
+		"searchFormData":      searchFormData.String(),
+		"formData":            formData.String(),
+		"useBaseInfo":         useBaseInfo,
+		"useUUID":             g.UseUUID,
+		"hasStatus":           g.HasStatus,
 	},
-		filepath.Join(g.ViewDir, fmt.Sprintf("%s.data.ts", strings.ToLower(g.ModelName))), false); err != nil {
+		filepath.Join(g.ViewDir, fmt.Sprintf("%s.data.ts", strcase.ToLowerCamel(g.ModelName))), false); err != nil {
 		return err
 	}
 	return nil

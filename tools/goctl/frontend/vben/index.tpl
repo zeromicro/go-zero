@@ -48,8 +48,8 @@
   import { useI18n } from 'vue-i18n';
   import { useMessage } from '/@/hooks/web/useMessage';
 
-  import { columns, searchFormSchema } from './{{.modelNameLowerCase}}.data';
-  import { get{{.modelName}}List, delete{{.modelName}}, batchDelete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
+  import { columns, searchFormSchema } from './{{.modelNameLowerCamel}}.data';
+  import { get{{.modelName}}List, delete{{.modelName}}, batchDelete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
 
   export default defineComponent({
     name: '{{.modelName}}Management',
@@ -62,7 +62,7 @@
       const [registerDrawer, { openDrawer }] = useDrawer();
       const { notification } = useMessage();
       const [registerTable, { reload }] = useTable({
-        title: t('{{.folderName}}.{{.modelNameLowerCase}}.{{.modelNameLowerCase}}List'),
+        title: t('{{.folderName}}.{{.modelNameLowerCamel}}.{{.modelNameLowerCamel}}List'),
         api: get{{.modelName}}List,
         columns,
         formConfig: {
@@ -140,7 +140,12 @@
         });
       }
 
-      async function handleSuccess() {
+      async function handleSuccess(msg) {
+        notification.success({
+          message: t('common.successful'),
+          description: t(msg),
+          duration: 3,
+        });
         await reload();
       }
 

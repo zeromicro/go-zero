@@ -107,7 +107,7 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 		return err
 	}
 
-	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strings.ToLower(p.ModelName)))
+	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName)))
 
 	err = os.WriteFile(apiFilePath, []byte(apiData), regularPerm)
 	if err != nil {
@@ -121,8 +121,8 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	}
 	allApiString := string(allApiData)
 
-	if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strings.ToLower(p.ModelName))) {
-		allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strings.ToLower(p.ModelName)))
+	if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName))) {
+		allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName)))
 	}
 
 	err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)
@@ -326,7 +326,8 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
 		"infoData":           infoData.String(),
 		"modelName":          ctx.ModelName,
-		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+		"modelNameLowerCase": strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
+		"modelNameSnake":     strcase.ToSnake(ctx.ModelName),
 		"listData":           listData.String(),
 		"apiServiceName":     ctx.APIServiceName,
 		"useUUID":            ctx.UseUUID,

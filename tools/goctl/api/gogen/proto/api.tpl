@@ -17,15 +17,15 @@ type (
     {{.modelName}}ListResp {
         BaseDataInfo
 
-        // {{.modelName}} list data | {{.modelName}} 列表数据
+        // {{.modelName}} list data | {{.modelName}}列表数据
         Data {{.modelName}}ListInfo `json:"data"`
     }
 
-    // {{.modelName}} list data | {{.modelName}} 列表数据
+    // {{.modelName}} list data | {{.modelName}}列表数据
     {{.modelName}}ListInfo {
         BaseListInfo
 
-        // The API list data | {{.modelName}} 列表数据
+        // The API list data | {{.modelName}}列表数据
         Data  []{{.modelName}}Info  `json:"data"`
     }
 
@@ -44,22 +44,22 @@ type (
 service {{.apiServiceName}} {
     // Create or update {{.modelNameLowerCase}} information | 创建或更新{{.modelName}}
     @handler createOrUpdate{{.modelName}}
-    post /{{.modelNameLowerCase}}/create_or_update (CreateOrUpdate{{.modelName}}Req) returns (BaseMsgResp)
+    post /{{.modelNameSnake}}/create_or_update (CreateOrUpdate{{.modelName}}Req) returns (BaseMsgResp)
 
     // Delete {{.modelNameLowerCase}} information | 删除{{.modelName}}信息
     @handler delete{{.modelName}}
-    post /{{.modelNameLowerCase}}/delete ({{if .useUUID}}UU{{end}}IDReq) returns (BaseMsgResp)
+    post /{{.modelNameSnake}}/delete ({{if .useUUID}}UU{{end}}IDReq) returns (BaseMsgResp)
 
     // Get {{.modelNameLowerCase}} list | 获取{{.modelName}}列表
     @handler get{{.modelName}}List
-    post /{{.modelNameLowerCase}}/list ({{.modelName}}ListReq) returns ({{.modelName}}ListResp)
+    post /{{.modelNameSnake}}/list ({{.modelName}}ListReq) returns ({{.modelName}}ListResp)
 
     // Delete {{.modelNameLowerCase}} information | 删除{{.modelName}}信息
     @handler batchDelete{{.modelName}}
-    post /{{.modelNameLowerCase}}/batch_delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
+    post /{{.modelNameSnake}}/batch_delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
 {{if .hasStatus}}
     // Set {{.modelNameLowerCase}}'s status | 更新{{.modelName}}状态
     @handler update{{.modelName}}Status
-    post /{{.modelNameLowerCase}}/status (StatusCode{{if .useUUID}}UUID{{end}}Req) returns (BaseMsgResp)
+    post /{{.modelNameSnake}}/status (StatusCode{{if .useUUID}}UUID{{end}}Req) returns (BaseMsgResp)
 {{end}}
 }

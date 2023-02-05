@@ -13,11 +13,11 @@
 <script lang="ts">
   import { defineComponent, ref, computed, unref } from 'vue';
   import { BasicForm, useForm } from '/@/components/Form/index';
-  import { formSchema } from './{{.modelNameLowerCase}}.data';
+  import { formSchema } from './{{.modelNameLowerCamel}}.data';
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
   import { useI18n } from 'vue-i18n';
 
-  import { createOrUpdate{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCase}}';
+  import { createOrUpdate{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
 
   export default defineComponent({
     name: '{{.modelName}}Drawer',
@@ -48,7 +48,7 @@
       });
 
       const getTitle = computed(() =>
-        !unref(isUpdate) ? t('{{.folderName}}.{{.modelNameLowerCase}}.add{{.modelName}}') : t('{{.folderName}}.{{.modelNameLowerCase}}.edit{{.modelName}}'),
+        !unref(isUpdate) ? t('{{.folderName}}.{{.modelNameLowerCamel}}.add{{.modelName}}') : t('{{.folderName}}.{{.modelNameLowerCamel}}.edit{{.modelName}}'),
       );
 
       async function handleSubmit() {
@@ -58,7 +58,7 @@
         let result = await createOrUpdate{{.modelName}}(values);
         if (result.code === 0) {
           closeDrawer();
-          emit('success');
+          emit('success', result.msg);
         }
         setDrawerProps({ confirmLoading: false });
       }

@@ -44,7 +44,7 @@ func genModel(g *GenContext) error {
 		"modelName": g.ModelName,
 		"infoData":  infoData.String(),
 	},
-		filepath.Join(g.ModelDir, fmt.Sprintf("%sModel.ts", strings.ToLower(g.ModelName))), false); err != nil {
+		filepath.Join(g.ModelDir, fmt.Sprintf("%sModel.ts", strcase.ToLowerCamel(g.ModelName))), false); err != nil {
 		return err
 	}
 	return nil

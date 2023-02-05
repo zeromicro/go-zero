@@ -2,7 +2,7 @@
   {
     title: t('common.statusName'),
     dataIndex: 'status',
-    width: 20,
+    width: 50,
     customRender: ({ record }) => {
       if (!Reflect.has(record, 'pendingStatus')) {
         record.pendingStatus = false;
