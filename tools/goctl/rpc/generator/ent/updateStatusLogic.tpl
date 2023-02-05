@@ -28,7 +28,7 @@ func NewUpdate{{.modelName}}StatusLogic(ctx context.Context, svcCtx *svc.Service
 	}
 }
 
-func (l *Update{{.modelName}}StatusLogic) Update{{.modelName}}Status(in *{{.projectName}}.StatusCodeReq) (*{{.projectName}}.BaseResp, error) {
+func (l *Update{{.modelName}}StatusLogic) Update{{.modelName}}Status(in *{{.projectName}}.StatusCode{{if .useUUID}}UUID{{end}}Req) (*{{.projectName}}.BaseResp, error) {
 	err := l.svcCtx.DB.{{.modelName}}.UpdateOneID({{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id){{if .useUUID}}){{end}}.SetStatus(uint8(in.Status)).Exec(l.ctx)
 
 	if err != nil {
