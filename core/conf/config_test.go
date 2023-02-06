@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/hash"
 )
@@ -417,6 +418,42 @@ func TestLoadFromYamlItemOverlay(t *testing.T) {
 		assert.Equal(t, "localhost", c.Redis.Host)
 		assert.Equal(t, 6379, c.Redis.Port)
 		assert.Equal(t, "test", c.Server.Redis.Key)
+	}
+}
+
+func TestLoadFromYamlItemOverlayReverse(t *testing.T) {
+	type (
+		Redis struct {
+			Host string
+			Port int
+		}
+
+		RedisKey struct {
+			Redis
+			Key string
+		}
+
+		Server struct {
+			Redis Redis
+		}
+
+		TestConfig struct {
+			Redis RedisKey
+			Server
+		}
+	)
+
+	input := []byte(`Redis:
+  Host: localhost
+  Port: 6379
+  Key: test
+`)
+
+	var c TestConfig
+	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
+		assert.Equal(t, "localhost", c.Redis.Host)
+		assert.Equal(t, 6379, c.Redis.Port)
+		assert.Equal(t, "test", c.Redis.Key)
 	}
 }
 
