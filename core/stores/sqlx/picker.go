@@ -126,6 +126,15 @@ func newWeightRoundRobinPicker(weights []int, fnSlaves fnSlaves) *weightRoundRob
 }
 
 func (w *weightRoundRobinPicker) pick() (slave, error) {
+	if w.fnSlaves == nil {
+		return emptySlave, errNoAvailableSlave
+	}
+
+	slaves := w.fnSlaves()
+	if len(slaves) == 0 {
+		return emptySlave, errNoAvailableSlave
+	}
+
 	var weightRands = make([]int, 0, len(w.weights))
 	for i := 0; i < len(w.weights); i++ {
 		for n := 0; n < w.weights[i]; n++ {
@@ -136,7 +145,6 @@ func (w *weightRoundRobinPicker) pick() (slave, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
-	slaves := w.fnSlaves()
 	if w.i >= len(weightRands) {
 		w.i = 0
 	}
