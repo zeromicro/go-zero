@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health/grpc_health_v1"
+
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/stat"
 	"github.com/zeromicro/go-zero/internal/health"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health/grpc_health_v1"
 )
 
 const probeNamePrefix = "zrpc"
@@ -59,12 +60,10 @@ func (s *rpcServer) Start(register RegisterFn) error {
 		return err
 	}
 
-	unaryInterceptors := s.buildUnaryInterceptors()
-	unaryInterceptors = append(unaryInterceptors, s.unaryInterceptors...)
-	streamInterceptors := s.buildStreamInterceptors()
-	streamInterceptors = append(streamInterceptors, s.streamInterceptors...)
-	options := append(s.options, grpc.ChainUnaryInterceptor(unaryInterceptors...),
-		grpc.ChainStreamInterceptor(streamInterceptors...))
+	unaryInterceptorOption := grpc.ChainUnaryInterceptor(s.buildUnaryInterceptors()...)
+	streamInterceptorOption := grpc.ChainStreamInterceptor(s.buildStreamInterceptors()...)
+
+	options := append(s.options, unaryInterceptorOption, streamInterceptorOption)
 	server := grpc.NewServer(options...)
 	register(server)
 
@@ -102,7 +101,7 @@ func (s *rpcServer) buildStreamInterceptors() []grpc.StreamServerInterceptor {
 		interceptors = append(interceptors, serverinterceptors.StreamBreakerInterceptor)
 	}
 
-	return interceptors
+	return append(interceptors, s.streamInterceptors...)
 }
 
 func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
@@ -124,7 +123,7 @@ func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
 		interceptors = append(interceptors, serverinterceptors.UnaryBreakerInterceptor)
 	}
 
-	return interceptors
+	return append(interceptors, s.unaryInterceptors...)
 }
 
 // WithMetrics returns a func that sets metrics to a Server.
