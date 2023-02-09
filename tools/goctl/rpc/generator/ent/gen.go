@@ -180,7 +180,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 
 func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
 	var data []*RpcLogicData
-	hasTime, hasUUID, hasStatus := false, false, false
+	hasTime, hasUUID := false, false
 	// end string means whether to use \n
 	endString := ""
 	var packageName string
@@ -200,7 +200,6 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		} else if v.Name == "status" {
 			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uint8(in.%s)).\n", parser.CamelCase(v.Name),
 				parser.CamelCase(v.Name)))
-			hasStatus = true
 		} else {
 			if entx.IsTimeProperty(v.Name) {
 				hasTime = true
@@ -234,8 +233,8 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	setLogic.WriteString("\t\t\tExec(l.ctx)")
 
 	createLogic := bytes.NewBufferString("")
-	createLogicTmpl, err := template.New("createOrUpdate").Parse(createOrUpdateTpl)
-	err = createLogicTmpl.Execute(createLogic, map[string]any{
+	createLogicTmpl, _ := template.New("create").Parse(createTpl)
+	createLogicTmpl.Execute(createLogic, map[string]any{
 		"hasTime":     hasTime,
 		"hasUUID":     hasUUID,
 		"setLogic":    setLogic.String(),
@@ -246,14 +245,27 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"useUUID":     g.UseUUID, // UUID primary key
 	})
 
-	if err != nil {
-		logx.Error(err)
-		return nil
-	}
+	data = append(data, &RpcLogicData{
+		LogicName: fmt.Sprintf("Create%sLogic", schema.Name),
+		LogicCode: createLogic.String(),
+	})
+
+	updateLogic := bytes.NewBufferString("")
+	updateLogicTmpl, _ := template.New("update").Parse(updateTpl)
+	updateLogicTmpl.Execute(updateLogic, map[string]any{
+		"hasTime":     hasTime,
+		"hasUUID":     hasUUID,
+		"setLogic":    strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
+		"modelName":   schema.Name,
+		"projectName": g.ProjectName,
+		"projectPath": projectCtx.Path,
+		"packageName": packageName,
+		"useUUID":     g.UseUUID, // UUID primary key
+	})
 
 	data = append(data, &RpcLogicData{
-		LogicName: fmt.Sprintf("CreateOrUpdate%sLogic", schema.Name),
-		LogicCode: createLogic.String(),
+		LogicName: fmt.Sprintf("Update%sLogic", schema.Name),
+		LogicCode: updateLogic.String(),
 	})
 
 	predicateData := strings.Builder{}
@@ -329,29 +341,11 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		LogicCode: getListLogic.String(),
 	})
 
-	deleteLogic := bytes.NewBufferString("")
-	deleteLogicTmpl, _ := template.New("delete").Parse(deleteLogicTpl)
-	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
-		"modelName":   schema.Name,
-		"projectName": g.ProjectName,
-		"projectPath": projectCtx.Path,
-		"packageName": packageName,
-		"useUUID":     g.UseUUID,
-	})
-	if err != nil {
-		logx.Error(err)
-		return nil
-	}
-
-	data = append(data, &RpcLogicData{
-		LogicName: fmt.Sprintf("Delete%sLogic", schema.Name),
-		LogicCode: deleteLogic.String(),
-	})
-
-	batchDeleteLogic := bytes.NewBufferString("")
-	batchDeleteLogicTmpl, _ := template.New("batchDelete").Parse(batchDeleteLogicTpl)
-	batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
+	getByIdLogic := bytes.NewBufferString("")
+	getByIdLogicTmpl, _ := template.New("getById").Parse(getByIdLogicTpl)
+	getByIdLogicTmpl.Execute(getByIdLogic, map[string]any{
 		"modelName":          schema.Name,
+		"listData":           strings.Replace(listData.String(), "v.", "result.", -1),
 		"projectName":        g.ProjectName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
@@ -360,26 +354,25 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	})
 
 	data = append(data, &RpcLogicData{
-		LogicName: fmt.Sprintf("BatchDelete%sLogic", schema.Name),
-		LogicCode: batchDeleteLogic.String(),
+		LogicName: fmt.Sprintf("Get%sByIdLogic", schema.Name),
+		LogicCode: getByIdLogic.String(),
 	})
 
-	if hasStatus {
-		updateStatusLogic := bytes.NewBufferString("")
-		updateStatusLogicTmpl, _ := template.New("update_status").Parse(updateStatusLogicTpl)
-		updateStatusLogicTmpl.Execute(updateStatusLogic, map[string]any{
-			"modelName":   schema.Name,
-			"projectName": g.ProjectName,
-			"projectPath": projectCtx.Path,
-			"packageName": packageName,
-			"useUUID":     g.UseUUID,
-		})
+	deleteLogic := bytes.NewBufferString("")
+	deleteLogicTmpl, _ := template.New("delete").Parse(deleteLogicTpl)
+	deleteLogicTmpl.Execute(deleteLogic, map[string]any{
+		"modelName":          schema.Name,
+		"modelNameLowerCase": strings.ToLower(schema.Name),
+		"projectName":        g.ProjectName,
+		"projectPath":        projectCtx.Path,
+		"packageName":        packageName,
+		"useUUID":            g.UseUUID,
+	})
 
-		data = append(data, &RpcLogicData{
-			LogicName: fmt.Sprintf("Update%sStatusLogic", schema.Name),
-			LogicCode: updateStatusLogic.String(),
-		})
-	}
+	data = append(data, &RpcLogicData{
+		LogicName: fmt.Sprintf("Delete%sLogic", schema.Name),
+		LogicCode: deleteLogic.String(),
+	})
 
 	return data
 }

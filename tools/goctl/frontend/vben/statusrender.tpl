@@ -1,6 +1,6 @@
 
   {
-    title: t('common.statusName'),
+    title: t('common.status'),
     dataIndex: 'status',
     width: 50,
     customRender: ({ record }) => {
@@ -15,8 +15,8 @@
         onChange(checked: boolean) {
           const { createMessage } = useMessage();
           record.pendingStatus = true;
-          const newStatus = checked ? 1 : 0;
-          set{{.modelName}}Status(record.id, newStatus)
+          const newStatus = checked ? 1 : 2;
+          update{{.modelName}}({ id: record.id, status: newStatus })
             .then((data) => {
               record.status = newStatus;
               if (data.code == 0) createMessage.success(t('common.changeStatusSuccess'));

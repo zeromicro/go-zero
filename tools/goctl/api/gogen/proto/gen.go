@@ -41,7 +41,6 @@ type GenLogicByProtoContext struct {
 	GrpcPackage      string
 	UseUUID          bool
 	Multiple         bool
-	HasStatus        bool
 }
 
 type ApiLogicData struct {
@@ -150,7 +149,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				setLogic = genSetLogic(v.Message, ctx)
 
 				createLogic := bytes.NewBufferString("")
-				createLogicTmpl, _ := template.New("createOrUpdate").Parse(createOrUpdateTpl)
+				createLogicTmpl, _ := template.New("create").Parse(createTpl)
 				logx.Must(createLogicTmpl.Execute(createLogic, map[string]any{
 					"setLogic":           setLogic,
 					"modelName":          ctx.ModelName,
@@ -163,8 +162,26 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 				}))
 
 				data = append(data, &ApiLogicData{
-					LogicName: fmt.Sprintf("CreateOrUpdate%sLogic", ctx.ModelName),
+					LogicName: fmt.Sprintf("Create%sLogic", ctx.ModelName),
 					LogicCode: createLogic.String(),
+				})
+
+				updateLogic := bytes.NewBufferString("")
+				updateLogicTmpl, _ := template.New("update").Parse(updateTpl)
+				logx.Must(updateLogicTmpl.Execute(updateLogic, map[string]any{
+					"setLogic":           setLogic,
+					"modelName":          ctx.ModelName,
+					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+					"projectPackage":     projectCtx.Path,
+					"rpcPackage":         ctx.GrpcPackage,
+					"rpcName":            ctx.RpcName,
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
+					"useUUID":            ctx.UseUUID,
+				}))
+
+				data = append(data, &ApiLogicData{
+					LogicName: fmt.Sprintf("Update%sLogic", ctx.ModelName),
+					LogicCode: updateLogic.String(),
 				})
 
 				// delete logic
@@ -185,46 +202,6 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					LogicName: fmt.Sprintf("Delete%sLogic", ctx.ModelName),
 					LogicCode: deleteLogic.String(),
 				})
-
-				// batch delete logic
-				batchDeleteLogic := bytes.NewBufferString("")
-				batchDeleteLogicTmpl, _ := template.New("batchDelete").Parse(batchDeleteLogicTpl)
-				logx.Must(batchDeleteLogicTmpl.Execute(batchDeleteLogic, map[string]any{
-					"setLogic":           setLogic,
-					"modelName":          ctx.ModelName,
-					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
-					"projectPackage":     projectCtx.Path,
-					"rpcPackage":         ctx.GrpcPackage,
-					"rpcName":            ctx.RpcName,
-					"rpcPbPackageName":   ctx.RPCPbPackageName,
-					"useUUID":            ctx.UseUUID,
-				}))
-
-				data = append(data, &ApiLogicData{
-					LogicName: fmt.Sprintf("BatchDelete%sLogic", ctx.ModelName),
-					LogicCode: batchDeleteLogic.String(),
-				})
-
-				if ctx.HasStatus {
-					// update status logic
-					updateStatusLogic := bytes.NewBufferString("")
-					updateStatusLogicTmpl, _ := template.New("update_status").Parse(updateStatusLogicTpl)
-					logx.Must(updateStatusLogicTmpl.Execute(updateStatusLogic, map[string]any{
-						"setLogic":           setLogic,
-						"modelName":          ctx.ModelName,
-						"modelNameLowerCase": strings.ToLower(ctx.ModelName),
-						"projectPackage":     projectCtx.Path,
-						"rpcPackage":         ctx.GrpcPackage,
-						"rpcName":            ctx.RpcName,
-						"rpcPbPackageName":   ctx.RPCPbPackageName,
-						"useUUID":            ctx.UseUUID,
-					}))
-
-					data = append(data, &ApiLogicData{
-						LogicName: fmt.Sprintf("Update%sStatusLogic", ctx.ModelName),
-						LogicCode: updateStatusLogic.String(),
-					})
-				}
 			}
 
 			if fmt.Sprintf("%sListReq", ctx.ModelName) == v.Name {
@@ -266,6 +243,24 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					LogicName: fmt.Sprintf("Get%sListLogic", ctx.ModelName),
 					LogicCode: getListLogic.String(),
 				})
+
+				getByIdLogic := bytes.NewBufferString("")
+				getByIdLogicTmpl, _ := template.New("getById").Parse(getByIdLogicTpl)
+				logx.Must(getByIdLogicTmpl.Execute(getByIdLogic, map[string]any{
+					"setLogic":           strings.Replace(setLogic, "req.", "data.", -1),
+					"modelName":          ctx.ModelName,
+					"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+					"projectPackage":     projectCtx.Path,
+					"rpcPackage":         ctx.GrpcPackage,
+					"rpcName":            ctx.RpcName,
+					"rpcPbPackageName":   ctx.RPCPbPackageName,
+					"useUUID":            ctx.UseUUID,
+				}))
+
+				data = append(data, &ApiLogicData{
+					LogicName: fmt.Sprintf("Get%sByIdLogic", ctx.ModelName),
+					LogicCode: getByIdLogic.String(),
+				})
 			}
 
 		}
@@ -277,7 +272,6 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	infoData := strings.Builder{}
 	listData := strings.Builder{}
-	hasStatus := false
 	var data string
 
 	for _, v := range p.Message {
@@ -287,13 +281,11 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 					field.Accept(protox.MessageVisitor{})
 					if entx.IsBaseProperty(protox.ProtoField.Name) {
 						continue
-					} else if protox.ProtoField.Name == "status" {
-						hasStatus = true
 					}
 
 					var structData string
 
-					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s\"`",
+					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
 						parser.CamelCase(protox.ProtoField.Name),
 						parser.CamelCase(protox.ProtoField.Name),
 						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
@@ -326,12 +318,12 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
 		"infoData":           infoData.String(),
 		"modelName":          ctx.ModelName,
-		"modelNameLowerCase": strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
+		"modelNameSpace":     strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
+		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 		"modelNameSnake":     strcase.ToSnake(ctx.ModelName),
 		"listData":           listData.String(),
 		"apiServiceName":     ctx.APIServiceName,
 		"useUUID":            ctx.UseUUID,
-		"hasStatus":          hasStatus,
 	}))
 	data = apiTemplateData.String()
 
@@ -347,10 +339,6 @@ func genSetLogic(v *proto.Message, ctx *GenLogicByProtoContext) string {
 				ctx.UseUUID = true
 			}
 			continue
-		}
-
-		if protox.ProtoField.Name == "status" {
-			ctx.HasStatus = true
 		}
 
 		setLogic.WriteString(fmt.Sprintf("\n        \t%s: req.%s,", parser.CamelCase(protox.ProtoField.Name),

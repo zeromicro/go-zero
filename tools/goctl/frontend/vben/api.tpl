@@ -1,30 +1,33 @@
 import { defHttp } from '/@/utils/http/axios';
 import { ErrorMessageMode } from '/#/axios';
-import { BaseDataResp, BaseListReq, BaseResp, {{if .useUUID}}BaseUUIDReq, BaseUUIDsReq{{else}}BaseIdsReq, BaseIdReq{{end}} } from '/@/api/model/baseModel';
+import { BaseDataResp, BaseListReq, BaseResp, Base{{if .useUUID}}UU{{end}}IDsReq, Base{{if .useUUID}}UU{{end}}IDReq } from '/@/api/model/baseModel';
 import { {{.modelName}}Info, {{.modelName}}ListResp } from './model/{{.modelNameLowerCamel}}Model';
 
 enum Api {
-  CreateOrUpdate{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/create_or_update',
+  Create{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/create',
+  Update{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/update',
   Get{{.modelName}}List = '/{{.prefix}}/{{.modelNameSnake}}/list',
   Delete{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/delete',
-  BatchDelete{{.modelName}} = '/{{.prefix}}/{{.modelNameSnake}}/batch_delete',{{if .hasStatus}}
-  Set{{.modelName}}Status = '/sys-api/{{.modelNameSnake}}/status',{{end}}
+  Get{{.modelName}}ById = '/{{.prefix}}/{{.modelNameSnake}}',
 }
 
 /**
- * @description: Get {{.modelNameLowerCase}} list
+ * @description: Get {{.modelNameSpace}} list
  */
 
-export const get{{.modelName}}List = (params: BaseListReq) => {
-  return defHttp.post<BaseDataResp<{{.modelName}}ListResp>>({ url: Api.Get{{.modelName}}List, params });
+export const get{{.modelName}}List = (params: BaseListReq, mode: ErrorMessageMode = 'message') => {
+  return defHttp.post<BaseDataResp<{{.modelName}}ListResp>>(
+    { url: Api.Get{{.modelName}}List, params },
+    { errorMessageMode: mode },
+  );
 };
 
 /**
- *  @description: create a new {{.modelNameLowerCase}}
+ *  @description: Create a new {{.modelNameSpace}}
  */
-export const createOrUpdate{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'modal') => {
+export const create{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'message') => {
   return defHttp.post<BaseResp>(
-    { url: Api.CreateOrUpdate{{.modelName}}, params: params },
+    { url: Api.Create{{.modelName}}, params: params },
     {
       errorMessageMode: mode,
     },
@@ -32,9 +35,21 @@ export const createOrUpdate{{.modelName}} = (params: {{.modelName}}Info, mode: E
 };
 
 /**
- *  @description: delete {{.modelNameLowerCase}}
+ *  @description: Update the {{.modelNameSpace}}
  */
-export const delete{{.modelName}} = (params: {{if .useUUID}}BaseUUIDReq{{else}}BaseIdReq{{end}}, mode: ErrorMessageMode = 'modal') => {
+export const update{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'message') => {
+  return defHttp.post<BaseResp>(
+    { url: Api.Update{{.modelName}}, params: params },
+    {
+      errorMessageMode: mode,
+    },
+  );
+};
+
+/**
+ *  @description: Delete {{.modelNameSpace}}s
+ */
+export const delete{{.modelName}} = (params: Base{{if .useUUID}}UU{{end}}IDsReq, mode: ErrorMessageMode = 'message') => {
   return defHttp.post<BaseResp>(
     { url: Api.Delete{{.modelName}}, params: params },
     {
@@ -44,22 +59,13 @@ export const delete{{.modelName}} = (params: {{if .useUUID}}BaseUUIDReq{{else}}B
 };
 
 /**
- *  @description: batch delete {{.modelNameLowerCase}}s
+ *  @description: Get {{.modelNameSpace}} By ID
  */
-export const batchDelete{{.modelName}} = (params: {{if .useUUID}}BaseUUIDsReq{{else}}BaseIdsReq{{end}}, mode: ErrorMessageMode = 'modal') => {
-  return defHttp.post<BaseResp>(
-    { url: Api.BatchDelete{{.modelName}}, params: params },
+export const get{{.modelName}}ById = (params: Base{{if .useUUID}}UU{{end}}IDReq, mode: ErrorMessageMode = 'message') => {
+  return defHttp.post<BaseDataResp<{{.modelName}}Info>>(
+    { url: Api.Get{{.modelName}}ById, params: params },
     {
       errorMessageMode: mode,
     },
   );
 };
-{{if .hasStatus}}
-
-/**
- *  @description: set the {{.modelNameLowerCase}} status
- */
-export const set{{.modelName}}Status = (id: string, status: number) =>
-  defHttp.post({ url: Api.Set{{.modelName}}Status, params: { id, status } });
-
-{{end}}

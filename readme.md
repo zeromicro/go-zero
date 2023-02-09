@@ -23,4 +23,6 @@
 - 对Simple Admin 的针对性优化
 - rpc logic group分组
 
+## 本项目遵循 Apache 2.0 协议， 使用请注明出处
+## This project uses the Apache 2.0 license, please indicate the source when using it
 ## Simple Admin Core [https://github.com/suyuan32/simple-admin-core](https://github.com/suyuan32/simple-admin-core)
