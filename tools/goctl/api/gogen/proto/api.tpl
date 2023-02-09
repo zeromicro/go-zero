@@ -1,19 +1,12 @@
 import "base.api"
 
 type (
-    // The response data of {{.modelNameLowerCase}} information | {{.modelName}}信息
+    // The response data of {{.modelNameSpace}} information | {{.modelName}}信息
     {{.modelName}}Info {
         Base{{if .useUUID}}UUID{{end}}Info{{.infoData}}
     }
 
-    // Create or update {{.modelNameLowerCase}} information request | 创建或更新{{.modelName}}信息
-    CreateOrUpdate{{.modelName}}Req {
-        // ID
-        // Required: true
-        Id    {{if .useUUID}}string{{else}}uint64{{end}}    `json:"id"`{{.infoData}}
-    }
-
-    // The response data of {{.modelNameLowerCase}} list | {{.modelName}}列表数据
+    // The response data of {{.modelNameSpace}} list | {{.modelName}}列表数据
     {{.modelName}}ListResp {
         BaseDataInfo
 
@@ -29,9 +22,17 @@ type (
         Data  []{{.modelName}}Info  `json:"data"`
     }
 
-    // Get {{.modelNameLowerCase}} list request params | {{.modelName}}列表请求参数
+    // Get {{.modelNameSpace}} list request params | {{.modelName}}列表请求参数
     {{.modelName}}ListReq {
         PageInfo{{.listData}}
+    }
+
+    // {{.modelName}} information response | {{.modelName}}信息返回体
+    {{.modelName}}InfoResp {
+        BaseDataInfo
+
+        // {{.modelName}} information | {{.modelName}}数据
+        Data {{.modelName}}Info `json:"data"`
     }
 )
 
@@ -42,24 +43,23 @@ type (
 )
 
 service {{.apiServiceName}} {
-    // Create or update {{.modelNameLowerCase}} information | 创建或更新{{.modelName}}
-    @handler createOrUpdate{{.modelName}}
-    post /{{.modelNameSnake}}/create_or_update (CreateOrUpdate{{.modelName}}Req) returns (BaseMsgResp)
+    // Create {{.modelNameSpace}} information | 创建{{.modelName}}
+    @handler create{{.modelName}}
+    post /{{.modelNameSnake}}/create ({{.modelName}}Info) returns (BaseMsgResp)
 
-    // Delete {{.modelNameLowerCase}} information | 删除{{.modelName}}信息
+    // Update {{.modelNameSpace}} information | 更新{{.modelName}}
+    @handler update{{.modelName}}
+    post /{{.modelNameSnake}}/update ({{.modelName}}Info) returns (BaseMsgResp)
+
+    // Delete {{.modelNameSpace}} information | 删除{{.modelName}}信息
     @handler delete{{.modelName}}
-    post /{{.modelNameSnake}}/delete ({{if .useUUID}}UU{{end}}IDReq) returns (BaseMsgResp)
+    post /{{.modelNameSnake}}/delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
 
-    // Get {{.modelNameLowerCase}} list | 获取{{.modelName}}列表
+    // Get {{.modelNameSpace}} list | 获取{{.modelName}}列表
     @handler get{{.modelName}}List
     post /{{.modelNameSnake}}/list ({{.modelName}}ListReq) returns ({{.modelName}}ListResp)
 
-    // Delete {{.modelNameLowerCase}} information | 删除{{.modelName}}信息
-    @handler batchDelete{{.modelName}}
-    post /{{.modelNameSnake}}/batch_delete ({{if .useUUID}}UU{{end}}IDsReq) returns (BaseMsgResp)
-{{if .hasStatus}}
-    // Set {{.modelNameLowerCase}}'s status | 更新{{.modelName}}状态
-    @handler update{{.modelName}}Status
-    post /{{.modelNameSnake}}/status (StatusCode{{if .useUUID}}UUID{{end}}Req) returns (BaseMsgResp)
-{{end}}
+    // Get {{.modelNameSpace}} by ID | 通过ID获取{{.modelName}}
+    @handler get{{.modelName}}ById
+    post /{{.modelNameSnake}} ({{if .useUUID}}UU{{end}}IDReq) returns ({{.modelName}}InfoResp)
 }

@@ -13,7 +13,7 @@ import (
 func genApi(g *GenContext) error {
 	if err := util.With("apiTpl").Parse(apiTpl).SaveTo(map[string]any{
 		"modelName":           g.ModelName,
-		"modelNameLowerCase":  strings.Replace(strcase.ToSnake(g.ModelName), "_", " ", -1),
+		"modelNameSpace":      strings.Replace(strcase.ToSnake(g.ModelName), "_", " ", -1),
 		"modelNameLowerCamel": strcase.ToLowerCamel(g.ModelName),
 		"modelNameSnake":      strcase.ToSnake(g.ModelName),
 		"prefix":              g.Prefix,

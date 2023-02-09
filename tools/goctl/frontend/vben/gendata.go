@@ -42,7 +42,7 @@ func genData(g *GenContext) error {
 
 					statusFormColumnData = fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    component: 'RadioButtonGroup',\n"+
 						"    defaultValue: 1,\n    componentProps: {\n      options: [\n        { label: t('common.on'), value: 1 },\n    "+
-						"    { label: t('common.off'), value: 0 },\n      ],\n    },\n  },",
+						"    { label: t('common.off'), value: 2 },\n      ],\n    },\n  },",
 						strcase.ToLowerCamel(val.Name),
 						fmt.Sprintf("%s.%s.%s", g.FolderName,
 							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "Info")),
@@ -111,7 +111,7 @@ func getComponent(dataType string) string {
 	switch dataType {
 	case "string":
 		return "component: 'Input',"
-	case "int32", "int64", "uint32", "uint64":
+	case "int32", "int64", "uint32", "uint64", "float32", "float64":
 		return "component: 'InputNumber',"
 	case "bool":
 		return "component: 'RadioButtonGroup',\n    defaultValue: false,\n    componentProps: {\n      options: [\n        { label: t('common.on'), value: false },\n        { label: t('common.off'), value: true },\n      ],\n    },"

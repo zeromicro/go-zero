@@ -17,7 +17,7 @@
   import { BasicDrawer, useDrawerInner } from '/@/components/Drawer';
   import { useI18n } from 'vue-i18n';
 
-  import { createOrUpdate{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
+  import { create{{.modelName}}, update{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
 
   export default defineComponent({
     name: '{{.modelName}}Drawer',
@@ -55,7 +55,7 @@
         const values = await validate();
         setDrawerProps({ confirmLoading: true });
         {{if .useUUID}}values['id'] = unref(isUpdate) ? values['id'] : '';{{else}}values['id'] = unref(isUpdate) ? Number(values['id']) : 0;{{end}}
-        let result = await createOrUpdate{{.modelName}}(values);
+        let result = unref(isUpdate) ? await update{{.modelName}}(values) : await create{{.modelName}}(values);
         if (result.code === 0) {
           closeDrawer();
           emit('success', result.msg);

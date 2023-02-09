@@ -25,15 +25,17 @@ func genModel(g *GenContext) error {
 				if val.Name == "" {
 					tmpType, _ := val.Type.(spec.DefineStruct)
 					if tmpType.Name() == "BaseInfo" {
-						infoData.WriteString("  id: number;\n  createdAt?: number;\n")
+						infoData.WriteString("  id: number;\n  createdAt?: number;\n  updatedAt?: number;\n")
 					} else if tmpType.Name() == "BaseUUIDInfo" {
-						infoData.WriteString("  id: string;\n  createdAt?: number;\n")
+						infoData.WriteString("  id: string;\n  createdAt?: number;\n  updatedAt?: number;\n")
 						g.UseUUID = true
 					}
-				} else if val.Name == "Status" {
-					g.HasStatus = true
 				} else {
-					infoData.WriteString(fmt.Sprintf("  %s: %s;\n", strcase.ToLowerCamel(val.Name),
+					if val.Name == "Status" {
+						g.HasStatus = true
+					}
+
+					infoData.WriteString(fmt.Sprintf("  %s?: %s;\n", strcase.ToLowerCamel(val.Name),
 						ConvertGoTypeToTsType(val.Type.Name())))
 				}
 			}

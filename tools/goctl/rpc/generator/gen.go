@@ -215,8 +215,14 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		}
 
 		paginationTplPath := filepath.Join(abs, "ent", "template", "pagination.tmpl")
+		notEmptyTplPath := filepath.Join(abs, "ent", "template", "not_empty_update.tmpl")
 		if !pathx.FileExists(paginationTplPath) {
 			err = os.WriteFile(paginationTplPath, []byte(ent.PaginationTpl), os.ModePerm)
+			if err != nil {
+				return err
+			}
+
+			err = os.WriteFile(notEmptyTplPath, []byte(ent.NotEmptyTpl), os.ModePerm)
 			if err != nil {
 				return err
 			}

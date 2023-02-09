@@ -31,16 +31,6 @@ message PageInfoReq {
   uint64 page_size = 2;
 }
 
-message StatusCodeReq {
-  uint64 id = 1;
-  uint32 status = 2;
-}
-
-message StatusCodeUUIDReq {
-  string id = 1;
-  uint32 status = 2;
-}
-
 service {{.serviceName}} {
   // group: base
   rpc initDatabase (Empty) returns (BaseResp);

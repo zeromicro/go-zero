@@ -83,7 +83,6 @@ type UUIDReq {
 type UUIDsReq {
     // Ids
     // Required: true
-    // Max length: 36
     Ids []string `json:"ids"`
 }
 
@@ -109,26 +108,4 @@ type BaseUUIDInfo {
 
     // Update date | 更新日期
     UpdatedAt int64     `json:"updatedAt,optional"`
-}
-
-// The request params of setting status code | 设置状态参数
-type StatusCodeReq {
-    // ID
-    // Required: true
-    Id     uint64  `json:"id" validate:"number"`
-
-    // Status code | 状态码
-    // Required: true
-    Status uint64  `json:"status" validate:"number"`
-}
-
-// The request params of setting status code by UUID | 根据UUID设置状态参数
-type StatusCodeUUIDReq {
-    // ID
-    // Required: true
-    Id  string  `json:"id"`
-
-    // Status code | 状态码
-    // Required: true
-    Status uint64  `json:"status" validate:"number"`
 }

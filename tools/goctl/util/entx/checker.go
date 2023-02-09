@@ -16,7 +16,7 @@ func IsTimeProperty(prop string) bool {
 // contains Ent upper string such as uuid, api and id
 func IsUpperProperty(prop string) bool {
 	if strings.Contains(prop, "uuid") || strings.Contains(prop, "api") ||
-		strings.Contains(prop, "id") {
+		strings.Contains(prop, "id") || strings.Contains(prop, "url") {
 		return true
 	}
 	return false

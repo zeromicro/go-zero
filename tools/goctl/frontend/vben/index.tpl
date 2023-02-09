@@ -49,7 +49,7 @@
   import { useMessage } from '/@/hooks/web/useMessage';
 
   import { columns, searchFormSchema } from './{{.modelNameLowerCamel}}.data';
-  import { get{{.modelName}}List, delete{{.modelName}}, batchDelete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
+  import { get{{.modelName}}List, delete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
 
   export default defineComponent({
     name: '{{.modelName}}Management',
@@ -104,7 +104,7 @@
       }
 
       async function handleDelete(record: Recordable) {
-        const result = await delete{{.modelName}}({ id: record.id }, 'modal');
+        const result = await delete{{.modelName}}({ ids: [record.id] }, 'modal');
         if (result.code === 0) {
           notification.success({
             message: t('common.successful'),
@@ -120,7 +120,7 @@
           title: t('common.deleteConfirm'),
           icon: createVNode(ExclamationCircleOutlined),
           async onOk() {
-            const result = await batchDelete{{.modelName}}(
+            const result = await delete{{.modelName}}(
               { ids: selectedIds.value as {{if .useUUID}}string[]{{else}}number[]{{end}} },
               'modal',
             );

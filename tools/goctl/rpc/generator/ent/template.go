@@ -5,24 +5,27 @@ import (
 )
 
 var (
-	//go:embed createOrUpdateLogic.tpl
-	createOrUpdateTpl string
+	//go:embed createLogic.tpl
+	createTpl string
+
+	//go:embed updateLogic.tpl
+	updateTpl string
 
 	//go:embed getListLogic.tpl
 	getListLogicTpl string
 
+	//go:embed getByIdLogic.tpl
+	getByIdLogicTpl string
+
 	//go:embed deleteLogic.tpl
 	deleteLogicTpl string
-
-	//go:embed batchDeleteLogic.tpl
-	batchDeleteLogicTpl string
-
-	//go:embed updateStatusLogic.tpl
-	updateStatusLogicTpl string
 
 	//go:embed proto.tpl
 	protoTpl string
 
 	//go:embed pagination.tmpl
 	PaginationTpl string
+
+	//go:embed notempty.tmpl
+	NotEmptyTpl string
 )

@@ -42,6 +42,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.projectName}}.
 		resp.Data = append(resp.Data, &{{.projectName}}.{{.modelName}}Info{
 			Id:          v.ID{{if .useUUID}}.String(){{end}},
 			CreatedAt:   v.CreatedAt.UnixMilli(),
+			UpdatedAt:   v.UpdatedAt.UnixMilli(),
 {{.listData}}
 		})
 	}
