@@ -97,7 +97,6 @@ func TestParseNonBlock(t *testing.T) {
 		{
 			name:     "block with error param",
 			input:    "k8s://ns1:8080?nonBlock=abcd",
-			expect:   false,
 			emptySvc: true,
 		},
 	}
