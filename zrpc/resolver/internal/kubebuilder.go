@@ -75,14 +75,8 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		inf.Start(proc.Done())
 	})
 	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
-	if err != nil {
-		if svc.NonBlock {
-			if !strings.Contains(err.Error(), notFoundEndpoints) { //  not found err.Error() : endpoints "{serviceName}" not found
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
+	if err = isNonBlockNotFoundErr(svc.NonBlock, err); err != nil {
+		return nil, err
 	}
 	handler.Update(endpoints)
 
@@ -91,4 +85,17 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 func (b *kubeBuilder) Scheme() string {
 	return KubernetesScheme
+}
+
+func isNonBlockNotFoundErr(nonBlock bool, err error) error {
+
+	if nonBlock {
+		if !strings.Contains(err.Error(), notFoundEndpoints) { //  not found err.Error() : endpoints "{serviceName}" not found
+			return err
+		}
+	} else {
+		return err
+	}
+
+	return nil
 }

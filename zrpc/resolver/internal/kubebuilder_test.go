@@ -32,3 +32,50 @@ func TestKubeBuilder_Build(t *testing.T) {
 	}, nil, resolver.BuildOptions{})
 	assert.Error(t, err)
 }
+
+func TestIsNonBlockNotFoundErr(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		nonBlock bool
+		err      error
+		hasErr   bool
+	}{
+		{
+			name:     "block true , endpoints not found error ",
+			nonBlock: true,
+			err:      fmt.Errorf("endpoints app-rpc-svc not found"),
+			hasErr:   false,
+		},
+		{
+			name:     "block true , other error ",
+			nonBlock: true,
+			err:      fmt.Errorf("other error"),
+			hasErr:   true,
+		},
+		{
+			name:     "block false , endpoints app-rpc-svc not found ",
+			nonBlock: false,
+			err:      fmt.Errorf("other error"),
+			hasErr:   true,
+		},
+		{
+			name:     "block false , endpoints app-rpc-svc not found ",
+			nonBlock: false,
+			err:      fmt.Errorf("other error"),
+			hasErr:   true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := isNonBlockNotFoundErr(test.nonBlock, test.err)
+			if test.hasErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+
+}
