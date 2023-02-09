@@ -69,7 +69,7 @@ func TestIsNonBlockNotFoundErr(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := isNonBlockNotFoundErr(test.nonBlock, test.err)
+			err := checkEndpointsErr(test.nonBlock, test.err)
 			if test.hasErr {
 				assert.NotNil(t, err)
 			} else {
