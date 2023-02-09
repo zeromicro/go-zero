@@ -3,7 +3,7 @@ package {{.packageName}}
 import (
 	"context"
 
-	"{{.projectPath}}/ent/{{.modelNameLowerCase}}"
+	"{{.projectPath}}/ent"
 	"{{.projectPath}}/internal/svc"
 	"{{.projectPath}}/{{.projectName}}"
 
@@ -28,7 +28,7 @@ func NewGet{{.modelName}}ByIdLogic(ctx context.Context, svcCtx *svc.ServiceConte
 	}
 }
 
-func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(in *core.{{if .useUUID}}UU{{end}}IDReq) (*core.{{.modelName}}Info, error) {
+func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(in *{{.projectName}}.{{if .useUUID}}UU{{end}}IDReq) (*{{.projectName}}.{{.modelName}}Info, error) {
 	result, err := l.svcCtx.DB.{{.modelName}}.Get(l.ctx, {{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id{{if .useUUID}}){{end}})
 	if err != nil {
 		switch {
