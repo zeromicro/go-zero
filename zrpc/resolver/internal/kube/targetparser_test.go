@@ -71,24 +71,34 @@ func TestParseTarget(t *testing.T) {
 func TestParseNonBlock(t *testing.T) {
 
 	tests := []struct {
-		name   string
-		input  string
-		expect bool
+		name     string
+		input    string
+		expect   bool
+		emptySvc bool
 	}{
 		{
-			name:   "no block",
-			input:  "k8s://ns1/my-svc:8080",
-			expect: false,
+			name:     "no block",
+			input:    "k8s://ns1/my-svc:8080",
+			expect:   false,
+			emptySvc: false,
 		},
 		{
-			name:   "block with true",
-			input:  "k8s://ns1:8080?nonBlock=true",
-			expect: true,
+			name:     "block with true",
+			input:    "k8s://ns1:8080?nonBlock=true",
+			expect:   true,
+			emptySvc: false,
 		},
 		{
-			name:   "block with false",
-			input:  "k8s://ns1:8080?nonBlock=false",
-			expect: false,
+			name:     "block with false",
+			input:    "k8s://ns1:8080?nonBlock=false",
+			expect:   false,
+			emptySvc: false,
+		},
+		{
+			name:     "block with error param",
+			input:    "k8s://ns1:8080?nonBlock=abcd",
+			expect:   false,
+			emptySvc: true,
 		},
 	}
 
@@ -100,8 +110,12 @@ func TestParseNonBlock(t *testing.T) {
 
 			target := resolver.Target{URL: *uri}
 			svc, err := ParseTarget(target)
-			assert.Nil(t, err)
-			assert.Equal(t, svc.NonBlock, test.expect)
+			if test.emptySvc {
+				assert.Equal(t, emptyService, svc)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, svc.NonBlock, test.expect)
+			}
 		})
 	}
 
