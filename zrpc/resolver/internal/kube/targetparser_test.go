@@ -99,6 +99,11 @@ func TestParseNonBlock(t *testing.T) {
 			input:    "k8s://ns1:8080?nonBlock=abcd",
 			emptySvc: true,
 		},
+		{
+			name:     "bad query param",
+			input:    "k8s://ns1:8080?%%$$$$$",
+			emptySvc: true,
+		},
 	}
 
 	for _, test := range tests {
