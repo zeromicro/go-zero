@@ -18,17 +18,11 @@ func NewServiceContext(c config.Config) *ServiceContext {
       ent.Driver(c.DatabaseConf.NewNoCacheDriver()),
       ent.Debug(), // debug mode
     )
-
-    rds := c.RedisConf.NewRedis()
-    if !rds.Ping() {
-        logx.Error("initialize redis failed")
-        return nil
-    }
     
     {{end}}
 	return &ServiceContext{
 		Config:c,
 		{{if .isEnt}}DB:     db,
-		Redis:  rds,{{end}}
+		Redis:  redis.MustNewRedis(c.RedisConf),{{end}}
 	}
 }

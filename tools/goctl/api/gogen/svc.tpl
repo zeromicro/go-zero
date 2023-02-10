@@ -6,6 +6,7 @@ import (
 	"github.com/suyuan32/simple-admin-core/pkg/i18n"{{end}}
     {{if .useCasbin}}
     "github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/redis"
     "github.com/zeromicro/go-zero/rest"
     "github.com/casbin/casbin/v2"{{end}}
 )
@@ -19,11 +20,7 @@ type ServiceContext struct {
 
 func NewServiceContext(c {{.config}}) *ServiceContext {
 {{if .useCasbin}}
-    rds := c.RedisConf.NewRedis()
-    if !rds.Ping() {
-        logx.Error("initialize redis failed")
-        return nil
-    }
+    rds := redis.MustNewRedis(c.RedisConf)
 
     cbn, err := c.CasbinConf.NewCasbin(c.DatabaseConf.Type, c.DatabaseConf.GetDSN())
     if err != nil {
