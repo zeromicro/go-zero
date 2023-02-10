@@ -22,11 +22,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 {{if .useCasbin}}
     rds := redis.MustNewRedis(c.RedisConf)
 
-    cbn, err := c.CasbinConf.NewCasbin(c.DatabaseConf.Type, c.DatabaseConf.GetDSN())
-    if err != nil {
-        logx.Errorw("initialize casbin failed", logx.Field("detail", err.Error()))
-        return nil
-    }
+    cbn, err := c.CasbinConf.MustNewCasbin(c.DatabaseConf.Type, c.DatabaseConf.GetDSN())
 {{end}}
 {{if .useI18n}}
     trans := &i18n.Translator{}
