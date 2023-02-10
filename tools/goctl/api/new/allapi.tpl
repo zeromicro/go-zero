@@ -1,1 +1,1 @@
-import "{{.name}}.api"
+import "base.api"

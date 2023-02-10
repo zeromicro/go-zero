@@ -109,3 +109,14 @@ type BaseUUIDInfo {
     // Update date | 更新日期
     UpdatedAt int64     `json:"updatedAt,optional"`
 }
+
+
+@server(
+	group: base
+)
+
+service {{.name}} {
+	// Initialize database | 初始化数据库
+	@handler initDatabase
+	get /init/database returns (BaseMsgResp)
+}

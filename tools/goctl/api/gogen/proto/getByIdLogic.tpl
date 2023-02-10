@@ -29,7 +29,7 @@ func NewGet{{.modelName}}ByIdLogic(r *http.Request, svcCtx *svc.ServiceContext) 
 }
 
 func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useUUID}}UU{{end}}IDReq) (resp *types.{{.modelName}}InfoResp, err error) {
-	data, err := l.svcCtx.CoreRpc.Get{{.modelName}}ById(l.ctx, &core.{{if .useUUID}}UU{{end}}IDReq{Id: req.Id})
+	data, err := l.svcCtx.{{.rpcName}}Rpc.Get{{.modelName}}ById(l.ctx, &{{.rpcPbPackageName}}.{{if .useUUID}}UU{{end}}IDReq{Id: req.Id})
 	if err != nil {
 		return nil, err
 	}

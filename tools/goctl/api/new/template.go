@@ -9,7 +9,7 @@ import (
 
 const (
 	category        = "newapi"
-	apiTemplateFile = "newtemplate.tpl"
+	apiTemplateFile = "base.tpl"
 	allApiTemplate  = "allapi.tpl"
 )
 
@@ -20,7 +20,7 @@ var allApiTmpl string
 var baseApiTmpl string
 
 var templates = map[string]string{
-	apiTemplateFile: apiTemplate,
+	apiTemplateFile: baseApiTmpl,
 }
 
 // Category returns the category of the api files.

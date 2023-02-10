@@ -14,9 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
-//go:embed api.tpl
-var apiTemplate string
-
 var (
 	// VarStringHome describes the goctl home.
 	VarStringHome string
@@ -64,21 +61,10 @@ func CreateServiceCommand(args []string) error {
 		return err
 	}
 
-	dirName = filepath.Base(filepath.Clean(abs))
-	filename := dirName + ".api"
-	apiFilePath := filepath.Join(abs, "desc", filename)
-
 	err = pathx.MkdirIfNotExist(filepath.Join(abs, "desc"))
 	if err != nil {
 		return err
 	}
-
-	fp, err := os.Create(apiFilePath)
-	if err != nil {
-		return err
-	}
-
-	defer fp.Close()
 
 	if len(VarStringRemote) > 0 {
 		repo, _ := util.CloneIntoGitHome(VarStringRemote, VarStringBranch)
@@ -91,20 +77,23 @@ func CreateServiceCommand(args []string) error {
 		pathx.RegisterGoctlHome(VarStringHome)
 	}
 
-	text, err := pathx.LoadTemplate(category, apiTemplateFile, apiTemplate)
+	apiFilePath := filepath.Join(abs, "desc", "all.api")
+
+	text, err := pathx.LoadTemplate(category, apiTemplateFile, baseApiTmpl)
 	if err != nil {
 		return err
 	}
+
+	baseApiFile, err := os.Create(filepath.Join(abs, "desc", "base.api"))
+	if err != nil {
+		return err
+	}
+	defer baseApiFile.Close()
 
 	t := template.Must(template.New("template").Parse(text))
-	if err := t.Execute(fp, map[string]string{
+	if err := t.Execute(baseApiFile, map[string]string{
 		"name": dirName,
 	}); err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filepath.Join(abs, "desc", "base.api"), []byte(baseApiTmpl), os.ModePerm)
-	if err != nil {
 		return err
 	}
 
@@ -114,7 +103,7 @@ func CreateServiceCommand(args []string) error {
 	}
 	defer allApiFile.Close()
 
-	allTpl := template.Must(template.New("allApuTemplate").Parse(allApiTmpl))
+	allTpl := template.Must(template.New("allApiTemplate").Parse(allApiTmpl))
 	if err := allTpl.Execute(allApiFile, map[string]string{
 		"name": dirName,
 	}); err != nil {
