@@ -4265,6 +4265,23 @@ func TestUnmarshalStructPtrOfPtr(t *testing.T) {
 	}
 }
 
+func TestUnmarshalOnlyPublicVariables(t *testing.T) {
+	type demo struct {
+		age  int    `key:"age"`
+		Name string `key:"name"`
+	}
+	m := map[string]any{
+		"age":  3,
+		"name": "go-zero",
+	}
+
+	var in demo
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.Equal(t, 0, in.age)
+		assert.Equal(t, "go-zero", in.Name)
+	}
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
