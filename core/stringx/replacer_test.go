@@ -60,6 +60,28 @@ func TestReplacer_ReplaceLongestMatching(t *testing.T) {
 	assert.Equal(t, "东京在japan", replacer.Replace("日本的首都在日本"))
 }
 
+func TestReplacer_ReplaceSuffixMatch(t *testing.T) {
+	// case1
+	{
+		keywords := map[string]string{
+			"abcde": "ABCDE",
+			"bcde":  "BCDE",
+			"bcd":   "BCD",
+		}
+		assert.Equal(t, "aBCDf", NewReplacer(keywords).Replace("abcdf"))
+	}
+	// case2
+	{
+		keywords := map[string]string{
+			"abcde": "ABCDE",
+			"bcde":  "BCDE",
+			"cde":   "CDE",
+			"c":     "C",
+		}
+		assert.Equal(t, "abCdf", NewReplacer(keywords).Replace("abcdf"))
+	}
+}
+
 func TestReplacer_ReplaceLongestOverlap(t *testing.T) {
 	keywords := map[string]string{
 		"456":  "def",
