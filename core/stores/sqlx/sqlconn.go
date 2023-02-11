@@ -64,7 +64,7 @@ type (
 	// query arguments into one string and do underlying query without arguments
 	commonSqlConn struct {
 		connProv connProvider
-		onError  func(error)
+		onError  func(context.Context, error)
 		beginTx  beginnable
 		brk      breaker.Breaker
 		accept   func(error) bool
@@ -98,8 +98,8 @@ func NewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
 		connProv: func() (*sql.DB, error) {
 			return getSqlConn(driverName, datasource)
 		},
-		onError: func(err error) {
-			logInstanceError(datasource, err)
+		onError: func(ctx context.Context, err error) {
+			logInstanceError(ctx, datasource, err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -118,8 +118,8 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 		connProv: func() (*sql.DB, error) {
 			return db, nil
 		},
-		onError: func(err error) {
-			logx.Errorf("Error on getting sql instance: %v", err)
+		onError: func(ctx context.Context, err error) {
+			logx.WithContext(ctx).Errorf("Error on getting sql instance: %v", err)
 		},
 		beginTx: begin,
 		brk:     breaker.NewBreaker(),
@@ -146,7 +146,7 @@ func (db *commonSqlConn) ExecCtx(ctx context.Context, q string, args ...any) (
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
@@ -174,7 +174,7 @@ func (db *commonSqlConn) PrepareCtx(ctx context.Context, query string) (stmt Stm
 		var conn *sql.DB
 		conn, err = db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
@@ -301,7 +301,7 @@ func (db *commonSqlConn) queryRows(ctx context.Context, scanner func(*sql.Rows) 
 	err = db.brk.DoWithAcceptable(func() error {
 		conn, err := db.connProv()
 		if err != nil {
-			db.onError(err)
+			db.onError(ctx, err)
 			return err
 		}
 
