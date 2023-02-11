@@ -1,6 +1,8 @@
 package stringx
 
-import "strings"
+import (
+	"strings"
+)
 
 type (
 	// Replacer interface wraps the Replace method.
@@ -31,9 +33,10 @@ func NewReplacer(mapping map[string]string) Replacer {
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
 	var buf strings.Builder
+	var nextStart int
 	target := []rune(text)
 	cur := r.node
-	nextStart := 0
+
 	for len(target) != 0 {
 		used, jump, matched := cur.longestMatch(target, nextStart)
 		if matched {
@@ -53,5 +56,6 @@ func (r *replacer) Replace(text string) string {
 			}
 		}
 	}
+
 	return buf.String()
 }
