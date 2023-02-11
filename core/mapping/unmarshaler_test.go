@@ -792,10 +792,8 @@ func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 		"psort": `{"value":"ascend","emptyStr":""}`,
 	}
 
-	if assert.NoError(t, UnmarshalKey(m, &v)) {
-		assert.Nil(t, v.sort)
-		assert.Nil(t, v.psort)
-	}
+	ast := assert.New(t)
+	ast.Error(UnmarshalKey(m, &v))
 }
 
 func TestUnmarshalStringMapFromString(t *testing.T) {
