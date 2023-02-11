@@ -102,6 +102,7 @@ func (n *node) find(chars []rune) []scope {
 func (n *node) longestMatch(chars []rune, start int) (used int, jump *node, matched bool) {
 	cur := n
 	var matchedNode *node
+
 	for i := start; i < len(chars); i++ {
 		child, ok := cur.children[chars[i]]
 		if ok {
@@ -113,9 +114,11 @@ func (n *node) longestMatch(chars []rune, start int) (used int, jump *node, matc
 			if matchedNode != nil {
 				return matchedNode.depth, nil, true
 			}
+
 			if n.end {
 				return start, nil, true
 			}
+
 			var jump *node
 			for cur.fail != nil {
 				jump, ok = cur.fail.children[chars[i]]
@@ -127,16 +130,20 @@ func (n *node) longestMatch(chars []rune, start int) (used int, jump *node, matc
 			if jump != nil {
 				return i + 1 - jump.depth, jump, false
 			}
+
 			return i + 1, nil, false
 		}
 	}
-	// this longest matched node
+
+	// longest matched node
 	if matchedNode != nil {
 		return matchedNode.depth, nil, true
 	}
-	// last mathed node
+
+	// last matched node
 	if n.end {
 		return start, nil, true
 	}
+
 	return len(chars), nil, false
 }
