@@ -22,10 +22,11 @@ func TestRpcServer(t *testing.T) {
 		Breaker:    true,
 	}, WithMetrics(metrics), WithRpcHealth(true))
 	server.SetName("mock")
-	var wg sync.WaitGroup
+	var wg, wgDone sync.WaitGroup
 	var grpcServer *grpc.Server
 	var lock sync.Mutex
 	wg.Add(1)
+	wgDone.Add(1)
 	go func() {
 		err := server.Start(func(server *grpc.Server) {
 			lock.Lock()
@@ -35,6 +36,7 @@ func TestRpcServer(t *testing.T) {
 			wg.Done()
 		})
 		assert.Nil(t, err)
+		wgDone.Done()
 	}()
 
 	wg.Wait()
@@ -45,6 +47,7 @@ func TestRpcServer(t *testing.T) {
 	lock.Unlock()
 
 	proc.WrapUp()
+	wgDone.Wait()
 }
 
 func TestRpcServer_WithBadAddress(t *testing.T) {
