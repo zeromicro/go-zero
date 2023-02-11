@@ -193,3 +193,113 @@ func BenchmarkNodeFind(b *testing.B) {
 		trie.find([]rune("日本AV演员兼电视、电影演员。无名氏AV女优是xx出道, 日本AV女优们最精彩的表演是AV演员色情表演"))
 	}
 }
+
+func TestNode_longestMatchCase0(t *testing.T) {
+	// match the longest word
+	keywords := []string{
+		"a",
+		"ab",
+		"abc",
+		"abcd",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+	var nodenil *node
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcef"), 0)
+	assert.Equal(t, 0, uselessLen)
+	assert.Equal(t, 3, matchLen)
+	assert.Equal(t, nodenil, jump)
+}
+
+func TestNode_longestMatchCase1(t *testing.T) {
+	keywords := []string{
+		"abcde",
+		"bcde",
+		"cde",
+		"de",
+
+		"b",
+		"bc",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+	var nodenil *node
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 2, matchLen)
+	assert.Equal(t, nodenil, jump)
+}
+
+func TestNode_longestMatchCase2(t *testing.T) {
+	keywords := []string{
+		"abcde",
+		"bcde",
+		"cde",
+		"de",
+
+		"c",
+		"cd",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+	var nodenil *node
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	assert.Equal(t, 2, uselessLen)
+	assert.Equal(t, 2, matchLen)
+	assert.Equal(t, nodenil, jump)
+}
+
+func TestNode_longestMatchCase3(t *testing.T) {
+	keywords := []string{
+		"abcde",
+		"bcde",
+		"cde",
+		"de",
+
+		"b",
+		"bc",
+		"c",
+		"cd",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+	var nodenil *node
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 2, matchLen)
+	assert.Equal(t, nodenil, jump)
+}
+
+func TestNode_jump(t *testing.T) {
+	keywords := []string{
+		"de",
+		"fe",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+	target := []rune("dfe")
+	var nodenil *node
+	uselessLen, matchLen, jump := trie.longestMatch(target, 0)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 0, matchLen)
+	assert.NotEqual(t, nodenil, jump)
+	uselessLen, matchLen, jump = jump.longestMatch(target[uselessLen+matchLen:], jump.depth)
+	assert.Equal(t, 0, uselessLen)
+	assert.Equal(t, 2, matchLen)
+	assert.Equal(t, nodenil, jump)
+}
