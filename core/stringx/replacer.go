@@ -1,6 +1,8 @@
 package stringx
 
-import "strings"
+import (
+	"strings"
+)
 
 type (
 	// Replacer interface wraps the Replace method.

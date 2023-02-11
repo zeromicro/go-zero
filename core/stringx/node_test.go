@@ -6,6 +6,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestLongestMatchGuardedCondition(t *testing.T) {
+	n := new(node)
+	n.end = true
+	uselessLen, matchLen, jump := n.longestMatch([]rune(""), 0)
+	assert.Equal(t, 0, uselessLen)
+	assert.Nil(t, jump)
+	assert.True(t, matchLen == 0)
+}
+
 func TestFuzzNodeCase1(t *testing.T) {
 	keywords := []string{
 		"cs8Zh",
