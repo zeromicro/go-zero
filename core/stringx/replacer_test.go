@@ -77,8 +77,9 @@ func TestReplacer_ReplaceSuffixMatch(t *testing.T) {
 			"bcde":  "BCDE",
 			"cde":   "CDE",
 			"c":     "C",
+			"cd":    "CD",
 		}
-		assert.Equal(t, "abCdf", NewReplacer(keywords).Replace("abcdf"))
+		assert.Equal(t, "abCDf", NewReplacer(keywords).Replace("abcdf"))
 	}
 }
 
