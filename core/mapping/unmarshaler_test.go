@@ -4270,6 +4270,7 @@ func TestUnmarshalOnlyPublicVariables(t *testing.T) {
 		age  int    `key:"age"`
 		Name string `key:"name"`
 	}
+
 	m := map[string]any{
 		"age":  3,
 		"name": "go-zero",
