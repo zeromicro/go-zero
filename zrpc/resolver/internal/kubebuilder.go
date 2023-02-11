@@ -88,10 +88,8 @@ func (b *kubeBuilder) Scheme() string {
 }
 
 func checkEndpointsErr(nonBlock bool, err error) error {
-	if nonBlock {
-		if !strings.Contains(err.Error(), notFoundEndpoints) { //  not found err.Error() : endpoints "{serviceName}" not found
-			return err
-		}
+	//  not found err.Error() : endpoints "{serviceName}" not found
+	if err != nil && nonBlock && strings.Contains(err.Error(), notFoundEndpoints) {
 		return nil
 	}
 	return err
