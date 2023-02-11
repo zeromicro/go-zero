@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -17,8 +18,9 @@ import (
 )
 
 const (
-	resyncInterval = 5 * time.Minute
-	nameSelector   = "metadata.name="
+	resyncInterval    = 5 * time.Minute
+	nameSelector      = "metadata.name="
+	notFoundEndpoints = "not found"
 )
 
 type kubeBuilder struct{}
@@ -73,7 +75,7 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 		inf.Start(proc.Done())
 	})
 	endpoints, err := cs.CoreV1().Endpoints(svc.Namespace).Get(context.Background(), svc.Name, v1.GetOptions{})
-	if err != nil {
+	if err = checkEndpointsErr(svc.NonBlock, err); err != nil {
 		return nil, err
 	}
 	handler.Update(endpoints)
@@ -83,4 +85,12 @@ func (b *kubeBuilder) Build(target resolver.Target, cc resolver.ClientConn,
 
 func (b *kubeBuilder) Scheme() string {
 	return KubernetesScheme
+}
+
+func checkEndpointsErr(nonBlock bool, err error) error {
+	//  not found err.Error() : endpoints "{serviceName}" not found
+	if err != nil && nonBlock && strings.Contains(err.Error(), notFoundEndpoints) {
+		return nil
+	}
+	return err
 }

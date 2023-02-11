@@ -2,6 +2,7 @@ package kube
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 const (
 	colon            = ":"
 	defaultNamespace = "default"
+	queryNonBlock    = "nonBlock"
 )
 
 var emptyService Service
@@ -21,6 +23,7 @@ type Service struct {
 	Namespace string
 	Name      string
 	Port      int
+	NonBlock  bool
 }
 
 // ParseTarget parses the resolver.Target.
@@ -47,6 +50,25 @@ func ParseTarget(target resolver.Target) (Service, error) {
 		service.Port = port
 	} else {
 		service.Name = endpoints
+	}
+
+	return parseNonBlock(target, service)
+}
+
+// parseNonBlock
+func parseNonBlock(target resolver.Target, service Service) (Service, error) {
+
+	values, err := url.ParseQuery(target.URL.RawQuery)
+	if err != nil {
+		return emptyService, err
+	}
+
+	if vales, ok := values[queryNonBlock]; ok {
+		nonBlock, err := strconv.ParseBool(vales[0])
+		if err != nil {
+			return emptyService, err
+		}
+		service.NonBlock = nonBlock
 	}
 
 	return service, nil
