@@ -56,7 +56,6 @@ func ParseTarget(target resolver.Target) (Service, error) {
 }
 
 // parseNonBlock
-// eg : k8s://namespace/svcName:port?nonBlock=true
 func parseNonBlock(target resolver.Target, service Service) (Service, error) {
 
 	values, err := url.ParseQuery(target.URL.RawQuery)
