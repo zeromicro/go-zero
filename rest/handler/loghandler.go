@@ -151,7 +151,7 @@ func dumpResponseBody(response *detailLoggedResponseWriter) string {
 	}
 
 	if (isBinaryContentType(contentType)) {
-		return fmt.Sprintf("[Binary Content] (%s, %d)", contentType, len(respBuf))
+		return fmt.Sprintf("[Binary Content] (Content-Type=%s, %d bytes)", contentType, len(respBuf))
 	}
 
 	if (len(respBuf) > 0) {
