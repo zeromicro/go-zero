@@ -240,7 +240,9 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileFailed(t *testing.T) 
 		os.Stdout = old
 	}()
 
-	logger, err := NewLogger(stringx.RandId(), new(SizeLimitRotateRule), true)
+	filename := stringx.RandId()
+	logger, err := NewLogger(filename, new(SizeLimitRotateRule), true)
+	defer os.Remove(filename)
 	if assert.NoError(t, err) {
 		assert.NotPanics(t, func() {
 			logger.maybeCompressFile(stringx.RandId())
