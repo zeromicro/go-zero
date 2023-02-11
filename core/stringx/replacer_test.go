@@ -15,6 +15,15 @@ func TestReplacer_Replace(t *testing.T) {
 	assert.Equal(t, "零1234五", NewReplacer(mapping).Replace("零一二三四五"))
 }
 
+func TestReplacer_ReplaceJumpMatch(t *testing.T) {
+	mapping := map[string]string{
+		"abcdeg": "ABCDEG",
+		"cdef":   "CDEF",
+		"cde":    "CDE",
+	}
+	assert.Equal(t, "abCDEF", NewReplacer(mapping).Replace("abcdef"))
+}
+
 func TestReplacer_ReplaceOverlap(t *testing.T) {
 	mapping := map[string]string{
 		"3d": "34",

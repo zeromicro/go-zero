@@ -5,12 +5,6 @@ type node struct {
 	fail     *node
 	depth    int
 	end      bool
-	preEnd   *preEnd // current node path, a end word node exist
-}
-
-type preEnd struct {
-	pre *node
-	gap int
 }
 
 func (n *node) add(word string) {
@@ -39,7 +33,7 @@ func (n *node) add(word string) {
 	nd.end = true
 }
 
-func (n *node) linkFail() {
+func (n *node) build() {
 	var nodes []*node
 	for _, child := range n.children {
 		child.fail = n
@@ -64,13 +58,6 @@ func (n *node) linkFail() {
 			}
 		}
 	}
-}
-
-func (n *node) build() {
-	// bfs
-	n.linkFail()
-	// dfs
-	n.linkPreEnd(nil)
 }
 
 func (n *node) find(chars []rune) []scope {
@@ -110,45 +97,43 @@ func (n *node) find(chars []rune) []scope {
 	return scopes
 }
 
-func (n *node) linkPreEnd(preGap *preEnd) {
-	var curGap preEnd
-	if preGap != nil {
-		curGap = *preGap
-		curGap.gap++
-		n.preEnd = &curGap
-	}
-
-	if n.end {
-		preGap = &preEnd{pre: n, gap: 0}
-	} else if preGap != nil {
-		newGap := *preGap
-		newGap.gap++
-		preGap = &newGap
-	}
-	n.preEnd = preGap
-
-	for _, node := range n.children {
-		node.linkPreEnd(preGap)
-	}
-}
-
-func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, jump *node) {
+func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen int, nextPaths []*node) {
 	cur := n
 	var longestMatched *node
-	findLongestMatch := func(n *node) *preEnd {
-		var match *preEnd
-		icur := n
-		for icur.fail != nil {
-			icur = icur.fail
-			if icur.preEnd != nil {
-				match = icur.preEnd
-				break
+	findMatch := func(path []*node) (*node, int) {
+		var (
+			result *node
+			start  int
+		)
+		for i := len(path) - 1; i >= 0; i-- {
+			icur := path[i]
+			var cur *node
+			for icur.fail != nil {
+				if icur.fail.end {
+					cur = icur.fail
+					break
+				}
+				icur = icur.fail
+			}
+			if cur != nil {
+				if result == nil {
+					result = cur
+					start = i - result.depth + 1
+				} else {
+					if curStart := i - cur.depth + 1; curStart < start {
+						result = cur
+						start = curStart
+					} else if curStart == start && cur.depth > result.depth {
+						result = cur
+						start = curStart
+					}
+				}
 			}
 		}
-		return match
+		return result, start
 	}
-	paths := []*node{}
-	for i := start; i < len(chars); i++ {
+
+	for i := len(paths); i < len(chars); i++ {
 		char := chars[i]
 		child, ok := cur.children[char]
 		if ok {
@@ -156,19 +141,16 @@ func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, 
 			if cur.end {
 				longestMatched = cur
 			}
-			paths = append(paths, child)
+			paths = append(paths, cur)
 		} else {
 			if longestMatched != nil {
 				return 0, longestMatched.depth, nil
 			}
 			if n.end {
-				return 0, start, nil
+				return 0, n.depth, nil
 			}
-			// old path pre longest match
-			longestMatch := findLongestMatch(cur)
-			if longestMatch != nil {
-				return i - longestMatch.gap - longestMatch.pre.depth, longestMatch.pre.depth, nil
-			}
+			// old path pre longest preMatch
+			preMatch, preStart := findMatch(paths)
 			// new path match
 			var jump *node
 			icur := cur
@@ -179,33 +161,35 @@ func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, 
 				}
 				icur = icur.fail
 			}
-			if jump != nil {
-				return i + 1 - jump.depth, 0, jump
+			switch {
+			case preMatch != nil && jump != nil:
+				if jumpStart := i - jump.depth + 1; jumpStart < preStart {
+					return jumpStart, 0, append(paths[jumpStart:], jump)
+				} else if jumpStart == preStart {
+					if jump.depth > preMatch.depth {
+						return jumpStart, 0, append(paths[jumpStart:], jump)
+					}
+					return preStart, preMatch.depth, nil
+				}
+			case preMatch != nil && jump == nil:
+				return preStart, preMatch.depth, nil
+			case preMatch == nil && jump != nil:
+				return i - jump.depth + 1, 0, append(paths[i-jump.depth+1:], jump)
+			case preMatch == nil && jump == nil:
+				return i + 1, 0, nil
 			}
-			return i + 1, 0, nil
 		}
 	}
 	// this longest matched node
 	if longestMatched != nil {
 		return 0, longestMatched.depth, nil
 	}
-	// jumped node matched node
 	if n.end {
-		return 0, start, nil
+		return 0, n.depth, nil
 	}
-	var (
-		longestMatch *preEnd
-		matchIdx     int
-	)
-	for i := len(paths) - 1; i >= 0; i-- {
-		longestMatch = findLongestMatch(paths[i])
-		if longestMatch != nil {
-			matchIdx = i
-			break
-		}
-	}
-	if longestMatch != nil {
-		return matchIdx + 1 - longestMatch.gap - longestMatch.pre.depth, longestMatch.pre.depth, nil
+	match, start := findMatch(paths)
+	if match != nil {
+		return start, match.depth, nil
 	}
 	return len(chars), 0, nil
 }

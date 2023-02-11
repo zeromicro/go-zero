@@ -35,9 +35,9 @@ func (r *replacer) Replace(text string) string {
 	var buf strings.Builder
 	target := []rune(text)
 	cur := r.node
-	nextStart := 0
+	var paths []*node
 	for len(target) != 0 {
-		uselessLen, matchLen, jump := cur.longestMatch(target, nextStart)
+		uselessLen, matchLen, nextPaths := cur.longestMatch(target, paths)
 		if uselessLen > 0 {
 			buf.WriteString(string(target[:uselessLen]))
 			target = target[uselessLen:]
@@ -46,12 +46,12 @@ func (r *replacer) Replace(text string) string {
 			replaced := r.mapping[string(target[:matchLen])]
 			target = append([]rune(replaced), target[matchLen:]...)
 		}
-		if jump != nil {
-			cur = jump
-			nextStart = jump.depth
+		if len(nextPaths) != 0 {
+			cur = nextPaths[len(nextPaths)-1]
+			paths = nextPaths
 		} else {
 			cur = r.node
-			nextStart = 0
+			paths = nil
 		}
 	}
 	return buf.String()

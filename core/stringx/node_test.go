@@ -9,7 +9,7 @@ import (
 func TestLongestMatchGuardedCondition(t *testing.T) {
 	n := new(node)
 	n.end = true
-	uselessLen, matchLen, jump := n.longestMatch([]rune(""), 0)
+	uselessLen, matchLen, jump := n.longestMatch([]rune(""), nil)
 	assert.Equal(t, 0, uselessLen)
 	assert.Nil(t, jump)
 	assert.Equal(t, 0, matchLen)
@@ -217,7 +217,7 @@ func TestNode_longestMatchCase0(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcef"), 0)
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcef"), nil)
 	assert.Equal(t, 0, uselessLen)
 	assert.Equal(t, 3, matchLen)
 	assert.Nil(t, jump)
@@ -239,7 +239,7 @@ func TestNode_longestMatchCase1(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), nil)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 2, matchLen)
 	assert.Nil(t, jump)
@@ -261,7 +261,7 @@ func TestNode_longestMatchCase2(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), nil)
 	assert.Equal(t, 2, uselessLen)
 	assert.Equal(t, 2, matchLen)
 	assert.Nil(t, jump)
@@ -285,7 +285,7 @@ func TestNode_longestMatchCase3(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), nil)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 2, matchLen)
 	assert.Nil(t, jump)
@@ -303,10 +303,10 @@ func TestNode_longestMatchCase4(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	uselessLen, matchLen, paths := trie.longestMatch([]rune("abcdf"), nil)
 	assert.Equal(t, 1, uselessLen)
-	assert.Equal(t, 3, matchLen)
-	assert.Nil(t, jump)
+	assert.Equal(t, 0, matchLen)
+	assert.Equal(t, 4, len(paths))
 }
 
 func TestNode_longestMatchCase5(t *testing.T) {
@@ -320,10 +320,70 @@ func TestNode_longestMatchCase5(t *testing.T) {
 	}
 	trie.build()
 
-	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcde"), 0)
+	uselessLen, matchLen, paths := trie.longestMatch([]rune("abcde"), nil)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 4, matchLen)
+	assert.Nil(t, paths)
+}
+
+func TestNode_longestMatchCase6(t *testing.T) {
+	keywords := []string{
+		"abcde",
+		"bc",
+		"d",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcd"), nil)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 2, matchLen)
 	assert.Nil(t, jump)
+}
+
+func TestNode_longestMatchCase7(t *testing.T) {
+	keywords := []string{
+		"abcdeg",
+		"cdef",
+		"bcde",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	word := []rune("abcdef")
+	uselessLen, matchLen, paths := trie.longestMatch(word, nil)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 4, matchLen)
+	assert.Nil(t, paths)
+	uselessLen, matchLen, paths = trie.longestMatch(word[uselessLen+matchLen:], paths)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 0, matchLen)
+	assert.Nil(t, paths)
+}
+
+func TestNode_longestMatchCase8(t *testing.T) {
+	keywords := []string{
+		"abcdeg",
+		"cdef",
+		"cde",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	word := []rune("abcdef")
+	uselessLen, matchLen, paths := trie.longestMatch(word, nil)
+	assert.Equal(t, 2, uselessLen)
+	assert.Equal(t, 0, matchLen)
+	assert.NotNil(t, paths)
 }
 
 func TestNode_jump(t *testing.T) {
@@ -338,12 +398,12 @@ func TestNode_jump(t *testing.T) {
 	trie.build()
 	target := []rune("dfe")
 
-	uselessLen, matchLen, jump := trie.longestMatch(target, 0)
+	uselessLen, matchLen, paths := trie.longestMatch(target, nil)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 0, matchLen)
-	assert.NotNil(t, jump)
-	uselessLen, matchLen, jump = jump.longestMatch(target[uselessLen+matchLen:], jump.depth)
+	assert.NotNil(t, paths)
+	uselessLen, matchLen, paths = paths[len(paths)-1].longestMatch(target[uselessLen+matchLen:], paths)
 	assert.Equal(t, 0, uselessLen)
 	assert.Equal(t, 2, matchLen)
-	assert.Nil(t, jump)
+	assert.Nil(t, paths)
 }
