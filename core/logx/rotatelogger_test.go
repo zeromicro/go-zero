@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/fs"
+	"github.com/zeromicro/go-zero/core/stringx"
 )
 
 func TestDailyRotateRuleMarkRotated(t *testing.T) {
@@ -230,6 +231,21 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
 	logger.maybeCompressFile(filename)
 	_, err = os.Stat(filename)
 	assert.NotNil(t, err)
+}
+
+func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileFailed(t *testing.T) {
+	old := os.Stdout
+	os.Stdout = os.NewFile(0, os.DevNull)
+	defer func() {
+		os.Stdout = old
+	}()
+
+	logger, err := NewLogger(stringx.RandId(), new(SizeLimitRotateRule), true)
+	if assert.NoError(t, err) {
+		assert.NotPanics(t, func() {
+			logger.maybeCompressFile(stringx.RandId())
+		})
+	}
 }
 
 func TestRotateLoggerWithSizeLimitRotateRuleRotate(t *testing.T) {
