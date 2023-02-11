@@ -139,7 +139,7 @@ func transact(ctx context.Context, db *commonSqlConn, b beginnable,
 	fn func(context.Context, Session) error) (err error) {
 	conn, err := db.connProv()
 	if err != nil {
-		db.onError(err)
+		db.onError(ctx, err)
 		return err
 	}
 

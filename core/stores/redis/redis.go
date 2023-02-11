@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -86,7 +87,46 @@ type (
 )
 
 // New returns a Redis with given options.
+// Deprecated: use MustNewRedis or NewRedis instead.
 func New(addr string, opts ...Option) *Redis {
+	return newRedis(addr, opts...)
+}
+
+// MustNewRedis returns a Redis with given options.
+func MustNewRedis(conf RedisConf, opts ...Option) *Redis {
+	rds, err := NewRedis(conf, opts...)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return rds
+}
+
+// NewRedis returns a Redis with given options.
+func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, err
+	}
+
+	if conf.Type == ClusterType {
+		opts = append([]Option{Cluster()}, opts...)
+	}
+	if len(conf.Pass) > 0 {
+		opts = append([]Option{WithPass(conf.Pass)}, opts...)
+	}
+	if conf.Tls {
+		opts = append([]Option{WithTLS()}, opts...)
+	}
+
+	rds := newRedis(conf.Host, opts...)
+	if !rds.Ping() {
+		return nil, ErrPing
+	}
+
+	return rds, nil
+}
+
+func newRedis(addr string, opts ...Option) *Redis {
 	r := &Redis{
 		Addr: addr,
 		Type: NodeType,

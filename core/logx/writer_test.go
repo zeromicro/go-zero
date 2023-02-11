@@ -108,7 +108,7 @@ func TestNopWriter(t *testing.T) {
 		w.Stack("foo")
 		w.Stat("foo")
 		w.Slow("foo")
-		w.Close()
+		_ = w.Close()
 	})
 }
 
