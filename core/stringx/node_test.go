@@ -12,7 +12,7 @@ func TestLongestMatchGuardedCondition(t *testing.T) {
 	uselessLen, matchLen, jump := n.longestMatch([]rune(""), 0)
 	assert.Equal(t, 0, uselessLen)
 	assert.Nil(t, jump)
-	assert.True(t, matchLen == 0)
+	assert.Equal(t, 0, matchLen)
 }
 
 func TestFuzzNodeCase1(t *testing.T) {
@@ -216,11 +216,11 @@ func TestNode_longestMatchCase0(t *testing.T) {
 		trie.add(keyword)
 	}
 	trie.build()
-	var nodenil *node
+
 	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcef"), 0)
 	assert.Equal(t, 0, uselessLen)
 	assert.Equal(t, 3, matchLen)
-	assert.Equal(t, nodenil, jump)
+	assert.Nil(t, jump)
 }
 
 func TestNode_longestMatchCase1(t *testing.T) {
@@ -238,11 +238,11 @@ func TestNode_longestMatchCase1(t *testing.T) {
 		trie.add(keyword)
 	}
 	trie.build()
-	var nodenil *node
+
 	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 2, matchLen)
-	assert.Equal(t, nodenil, jump)
+	assert.Nil(t, jump)
 }
 
 func TestNode_longestMatchCase2(t *testing.T) {
@@ -260,11 +260,11 @@ func TestNode_longestMatchCase2(t *testing.T) {
 		trie.add(keyword)
 	}
 	trie.build()
-	var nodenil *node
+
 	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
 	assert.Equal(t, 2, uselessLen)
 	assert.Equal(t, 2, matchLen)
-	assert.Equal(t, nodenil, jump)
+	assert.Nil(t, jump)
 }
 
 func TestNode_longestMatchCase3(t *testing.T) {
@@ -284,11 +284,46 @@ func TestNode_longestMatchCase3(t *testing.T) {
 		trie.add(keyword)
 	}
 	trie.build()
-	var nodenil *node
+
 	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 2, matchLen)
-	assert.Equal(t, nodenil, jump)
+	assert.Nil(t, jump)
+}
+
+func TestNode_longestMatchCase4(t *testing.T) {
+	keywords := []string{
+		"abcde",
+		"bcdf",
+		"bcd",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcdf"), 0)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 3, matchLen)
+	assert.Nil(t, jump)
+}
+
+func TestNode_longestMatchCase5(t *testing.T) {
+	keywords := []string{
+		"abcdef",
+		"bcde",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	uselessLen, matchLen, jump := trie.longestMatch([]rune("abcde"), 0)
+	assert.Equal(t, 1, uselessLen)
+	assert.Equal(t, 4, matchLen)
+	assert.Nil(t, jump)
 }
 
 func TestNode_jump(t *testing.T) {
@@ -302,13 +337,13 @@ func TestNode_jump(t *testing.T) {
 	}
 	trie.build()
 	target := []rune("dfe")
-	var nodenil *node
+
 	uselessLen, matchLen, jump := trie.longestMatch(target, 0)
 	assert.Equal(t, 1, uselessLen)
 	assert.Equal(t, 0, matchLen)
-	assert.NotEqual(t, nodenil, jump)
+	assert.NotNil(t, jump)
 	uselessLen, matchLen, jump = jump.longestMatch(target[uselessLen+matchLen:], jump.depth)
 	assert.Equal(t, 0, uselessLen)
 	assert.Equal(t, 2, matchLen)
-	assert.Equal(t, nodenil, jump)
+	assert.Nil(t, jump)
 }

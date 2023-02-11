@@ -44,6 +44,14 @@ func TestReplacer_ReplacePartialMatch(t *testing.T) {
 	assert.Equal(t, "零一二三四五", NewReplacer(mapping).Replace("零一二三四五"))
 }
 
+func TestReplacer_ReplacePartialMatchEnds(t *testing.T) {
+	mapping := map[string]string{
+		"二三四七": "2347",
+		"三四":   "34",
+	}
+	assert.Equal(t, "零一二34", NewReplacer(mapping).Replace("零一二三四"))
+}
+
 func TestReplacer_ReplaceMultiMatches(t *testing.T) {
 	mapping := map[string]string{
 		"二三": "23",

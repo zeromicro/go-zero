@@ -147,6 +147,7 @@ func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, 
 		}
 		return match
 	}
+	paths := []*node{}
 	for i := start; i < len(chars); i++ {
 		char := chars[i]
 		child, ok := cur.children[char]
@@ -155,6 +156,7 @@ func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, 
 			if cur.end {
 				longestMatched = cur
 			}
+			paths = append(paths, child)
 		} else {
 			if longestMatched != nil {
 				return 0, longestMatched.depth, nil
@@ -191,10 +193,19 @@ func (n *node) longestMatch(chars []rune, start int) (uselessLen, matchLen int, 
 	if n.end {
 		return 0, start, nil
 	}
-	// old path pre longest match
-	longestMatch := findLongestMatch(cur)
+	var (
+		longestMatch *preEnd
+		matchIdx     int
+	)
+	for i := len(paths) - 1; i >= 0; i-- {
+		longestMatch = findLongestMatch(paths[i])
+		if longestMatch != nil {
+			matchIdx = i
+			break
+		}
+	}
 	if longestMatch != nil {
-		return len(chars) - longestMatch.gap - longestMatch.pre.depth, longestMatch.pre.depth, nil
+		return matchIdx + 1 - longestMatch.gap - longestMatch.pre.depth, longestMatch.pre.depth, nil
 	}
 	return len(chars), 0, nil
 }
