@@ -43,6 +43,8 @@ func TestRpcServer(t *testing.T) {
 	lock.Lock()
 	grpcServer.GracefulStop()
 	lock.Unlock()
+
+	proc.WrapUp()
 }
 
 func TestRpcServer_WithBadAddress(t *testing.T) {
@@ -58,6 +60,8 @@ func TestRpcServer_WithBadAddress(t *testing.T) {
 		mock.RegisterDepositServiceServer(server, new(mock.DepositServer))
 	})
 	assert.NotNil(t, err)
+
+	proc.WrapUp()
 }
 
 func TestRpcServer_buildUnaryInterceptor(t *testing.T) {
