@@ -122,6 +122,45 @@ func dumpRequest(r *http.Request) string {
 	return string(reqContent)
 }
 
+// Check if content type is binary file or stream
+func isBinaryContentType(contentType string) bool {
+	switch contentType {
+	case "application/octet-stream", "application/pdf", "application/zip":
+		return true
+	}
+
+	if strings.HasPrefix(contentType, "image/") ||
+		strings.HasPrefix(contentType, "audio/") || 
+		strings.HasPrefix(contentType, "video/") ||
+		strings.HasPrefix(contentType, "font/") {
+		return true
+	}
+
+	return false
+}
+
+func dumpResponseBody(response *detailLoggedResponseWriter) string {
+	respBuf := response.buf.Bytes()
+
+	// Get content type
+	headers := response.writer.Header()
+	contentType := headers.Get("Content-Type")
+	contentEncoding := headers.Get("Content-Encoding")
+	if contentEncoding == "" && contentType == "" && len(respBuf) >= 0 {
+		contentType = http.DetectContentType(respBuf)
+	}
+
+	if (isBinaryContentType(contentType)) {
+		return fmt.Sprintf("[Binary Content] (%s, %d)", contentType, len(respBuf))
+	}
+
+	if (len(respBuf) > 0) {
+		return string(respBuf)
+	}
+
+	return "[Empty Response Body]"
+}
+
 func isOkResponse(code int) bool {
 	// not server error
 	return code < http.StatusInternalServerError
@@ -181,10 +220,7 @@ func logDetails(r *http.Request, response *detailLoggedResponseWriter, timer *ut
 		buf.WriteString(fmt.Sprintf("%s\n", body))
 	}
 
-	respBuf := response.buf.Bytes()
-	if len(respBuf) > 0 {
-		buf.WriteString(fmt.Sprintf("<= %s", respBuf))
-	}
+	buf.WriteString(fmt.Sprintf("<= %s", dumpResponseBody(response)))
 
 	if isOkResponse(code) {
 		logger.Info(buf.String())
