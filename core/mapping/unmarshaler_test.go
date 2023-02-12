@@ -793,7 +793,9 @@ func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 	}
 
 	ast := assert.New(t)
-	ast.Error(UnmarshalKey(m, &v))
+	ast.NoError(UnmarshalKey(m, &v))
+	assert.Empty(t, v.sort)
+	assert.Nil(t, v.psort)
 }
 
 func TestUnmarshalStringMapFromString(t *testing.T) {
