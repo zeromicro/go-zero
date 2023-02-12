@@ -119,14 +119,9 @@ func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen i
 				if result == nil {
 					result = cur
 					start = i - result.depth + 1
-				} else {
-					if curStart := i - cur.depth + 1; curStart < start {
-						result = cur
-						start = curStart
-					} else if curStart == start && cur.depth > result.depth {
-						result = cur
-						start = curStart
-					}
+				} else if curStart := i - cur.depth + 1; curStart < start {
+					result = cur
+					start = curStart
 				}
 			}
 		}
@@ -163,13 +158,10 @@ func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen i
 			}
 			switch {
 			case preMatch != nil && jump != nil:
-				if jumpStart := i - jump.depth + 1; jumpStart < preStart {
-					return jumpStart, 0, append(paths[jumpStart:], jump)
-				} else if jumpStart == preStart {
-					if jump.depth > preMatch.depth {
-						return jumpStart, 0, append(paths[jumpStart:], jump)
-					}
+				if jumpStart := i - jump.depth + 1; preStart < jumpStart {
 					return preStart, preMatch.depth, nil
+				} else {
+					return jumpStart, 0, append(paths[jumpStart:], jump)
 				}
 			case preMatch != nil && jump == nil:
 				return preStart, preMatch.depth, nil

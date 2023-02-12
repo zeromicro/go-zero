@@ -386,6 +386,26 @@ func TestNode_longestMatchCase8(t *testing.T) {
 	assert.NotNil(t, paths)
 }
 
+func TestNode_longestMatchCase9(t *testing.T) {
+	keywords := []string{
+		"abcdeg",
+		"cdef",
+		"cde",
+		"cd",
+	}
+	trie := new(node)
+	for _, keyword := range keywords {
+		trie.add(keyword)
+	}
+	trie.build()
+
+	word := []rune("abcde")
+	uselessLen, matchLen, paths := trie.longestMatch(word, nil)
+	assert.Equal(t, 2, uselessLen)
+	assert.Equal(t, 3, matchLen)
+	assert.Nil(t, paths)
+}
+
 func TestNode_jump(t *testing.T) {
 	keywords := []string{
 		"de",
