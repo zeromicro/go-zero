@@ -15,6 +15,15 @@ func TestReplacer_Replace(t *testing.T) {
 	assert.Equal(t, "零1234五", NewReplacer(mapping).Replace("零一二三四五"))
 }
 
+func TestReplacer_ReplaceJumpMatch(t *testing.T) {
+	mapping := map[string]string{
+		"abcdeg": "ABCDEG",
+		"cdef":   "CDEF",
+		"cde":    "CDE",
+	}
+	assert.Equal(t, "abCDEF", NewReplacer(mapping).Replace("abcdef"))
+}
+
 func TestReplacer_ReplaceOverlap(t *testing.T) {
 	mapping := map[string]string{
 		"3d": "34",
@@ -44,6 +53,14 @@ func TestReplacer_ReplacePartialMatch(t *testing.T) {
 	assert.Equal(t, "零一二三四五", NewReplacer(mapping).Replace("零一二三四五"))
 }
 
+func TestReplacer_ReplacePartialMatchEnds(t *testing.T) {
+	mapping := map[string]string{
+		"二三四七": "2347",
+		"三四":   "34",
+	}
+	assert.Equal(t, "零一二34", NewReplacer(mapping).Replace("零一二三四"))
+}
+
 func TestReplacer_ReplaceMultiMatches(t *testing.T) {
 	mapping := map[string]string{
 		"二三": "23",
@@ -58,6 +75,29 @@ func TestReplacer_ReplaceLongestMatching(t *testing.T) {
 	}
 	replacer := NewReplacer(keywords)
 	assert.Equal(t, "东京在japan", replacer.Replace("日本的首都在日本"))
+}
+
+func TestReplacer_ReplaceSuffixMatch(t *testing.T) {
+	// case1
+	{
+		keywords := map[string]string{
+			"abcde": "ABCDE",
+			"bcde":  "BCDE",
+			"bcd":   "BCD",
+		}
+		assert.Equal(t, "aBCDf", NewReplacer(keywords).Replace("abcdf"))
+	}
+	// case2
+	{
+		keywords := map[string]string{
+			"abcde": "ABCDE",
+			"bcde":  "BCDE",
+			"cde":   "CDE",
+			"c":     "C",
+			"cd":    "CD",
+		}
+		assert.Equal(t, "abCDf", NewReplacer(keywords).Replace("abcdf"))
+	}
 }
 
 func TestReplacer_ReplaceLongestOverlap(t *testing.T) {
