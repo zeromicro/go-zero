@@ -211,3 +211,11 @@ func TestFuzzReplacerCase2(t *testing.T) {
 		t.Errorf("result: %s, match: %v", val, keys)
 	}
 }
+
+func TestReplacer_ReplaceLongestMatch(t *testing.T) {
+	replacer := NewReplacer(map[string]string{
+		"日本的首都": "东京",
+		"日本":    "本日",
+	})
+	assert.Equal(t, "东京是东京", replacer.Replace("日本的首都是东京"))
+}
