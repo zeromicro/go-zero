@@ -33,9 +33,10 @@ func NewReplacer(mapping map[string]string) Replacer {
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
 	var buf strings.Builder
+	var paths []*node
 	target := []rune(text)
 	cur := r.node
-	var paths []*node
+
 	for len(target) != 0 {
 		uselessLen, matchLen, nextPaths := cur.longestMatch(target, paths)
 		if uselessLen > 0 {
@@ -54,5 +55,6 @@ func (r *replacer) Replace(text string) string {
 			paths = nil
 		}
 	}
+
 	return buf.String()
 }

@@ -100,33 +100,6 @@ func (n *node) find(chars []rune) []scope {
 func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen int, nextPaths []*node) {
 	cur := n
 	var longestMatched *node
-	findMatch := func(path []*node) (*node, int) {
-		var (
-			result *node
-			start  int
-		)
-		for i := len(path) - 1; i >= 0; i-- {
-			icur := path[i]
-			var cur *node
-			for icur.fail != nil {
-				if icur.fail.end {
-					cur = icur.fail
-					break
-				}
-				icur = icur.fail
-			}
-			if cur != nil {
-				if result == nil {
-					result = cur
-					start = i - result.depth + 1
-				} else if curStart := i - cur.depth + 1; curStart < start {
-					result = cur
-					start = curStart
-				}
-			}
-		}
-		return result, start
-	}
 
 	for i := len(paths); i < len(chars); i++ {
 		char := chars[i]
@@ -141,21 +114,25 @@ func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen i
 			if longestMatched != nil {
 				return 0, longestMatched.depth, nil
 			}
+
 			if n.end {
 				return 0, n.depth, nil
 			}
-			// old path pre longest preMatch
-			preMatch, preStart := findMatch(paths)
+
 			// new path match
 			var jump *node
+			// old path pre longest preMatch
+			preMatch, preStart := findMatch(paths)
 			icur := cur
 			for icur.fail != nil {
 				jump, ok = icur.fail.children[char]
 				if ok {
 					break
 				}
+
 				icur = icur.fail
 			}
+
 			switch {
 			case preMatch != nil && jump != nil:
 				if jumpStart := i - jump.depth + 1; preStart < jumpStart {
@@ -172,16 +149,48 @@ func (n *node) longestMatch(chars []rune, paths []*node) (uselessLen, matchLen i
 			}
 		}
 	}
+
 	// this longest matched node
 	if longestMatched != nil {
 		return 0, longestMatched.depth, nil
 	}
+
 	if n.end {
 		return 0, n.depth, nil
 	}
+
 	match, start := findMatch(paths)
 	if match != nil {
 		return start, match.depth, nil
 	}
+
 	return len(chars), 0, nil
+}
+
+func findMatch(path []*node) (*node, int) {
+	var result *node
+	var start int
+
+	for i := len(path) - 1; i >= 0; i-- {
+		icur := path[i]
+		var cur *node
+		for icur.fail != nil {
+			if icur.fail.end {
+				cur = icur.fail
+				break
+			}
+			icur = icur.fail
+		}
+		if cur != nil {
+			if result == nil {
+				result = cur
+				start = i - result.depth + 1
+			} else if curStart := i - cur.depth + 1; curStart < start {
+				result = cur
+				start = curStart
+			}
+		}
+	}
+
+	return result, start
 }
