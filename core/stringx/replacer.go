@@ -1,6 +1,7 @@
 package stringx
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -8,6 +9,7 @@ type (
 	// Replacer interface wraps the Replace method.
 	Replacer interface {
 		Replace(text string) string
+		Replace1(text string) string
 	}
 
 	replacer struct {
@@ -31,7 +33,7 @@ func NewReplacer(mapping map[string]string) Replacer {
 }
 
 // Replace replaces text with given substitutes.
-func (r *replacer) Replace(text string) string {
+func (r *replacer) Replace1(text string) string {
 	var buf strings.Builder
 	var paths []*node
 	target := []rune(text)
@@ -54,6 +56,42 @@ func (r *replacer) Replace(text string) string {
 			cur = r.node
 			paths = nil
 		}
+	}
+
+	return buf.String()
+}
+
+func (r *replacer) Replace(text string) string {
+	chars := []rune(text)
+	scopes := r.find(chars)
+	if len(scopes) == 0 {
+		return text
+	}
+
+	sort.Slice(scopes, func(i, j int) bool {
+		if scopes[i].start < scopes[j].start {
+			return true
+		}
+		if scopes[i].start == scopes[j].start {
+			return scopes[i].stop > scopes[j].stop
+		}
+		return false
+	})
+
+	var buf strings.Builder
+	var index int
+	for i := 0; i < len(scopes); i++ {
+		scp := &scopes[i]
+		if scp.start < index {
+			continue
+		}
+
+		buf.WriteString(string(chars[index:scp.start]))
+		buf.WriteString(r.mapping[string(chars[scp.start:scp.stop])])
+		index = scp.stop
+	}
+	if index < len(chars) {
+		buf.WriteString(string(chars[index:]))
 	}
 
 	return buf.String()
