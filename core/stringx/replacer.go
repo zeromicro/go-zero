@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// replace more than once to avoid overlapped keywords after replace.
+// only try 2 times to avoid too many or infinite loops.
+const replaceTimes = 2
+
 type (
 	// Replacer interface wraps the Replace method.
 	Replacer interface {
@@ -33,7 +37,7 @@ func NewReplacer(mapping map[string]string) Replacer {
 
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
-	for i := 0; i < 2; i++ {
+	for i := 0; i < replaceTimes; i++ {
 		var ok bool
 		if text, ok = r.doReplace(text); !ok {
 			return text
