@@ -9,7 +9,6 @@ type (
 	// Replacer interface wraps the Replace method.
 	Replacer interface {
 		Replace(text string) string
-		Replace1(text string) string
 	}
 
 	replacer struct {
@@ -33,34 +32,6 @@ func NewReplacer(mapping map[string]string) Replacer {
 }
 
 // Replace replaces text with given substitutes.
-func (r *replacer) Replace1(text string) string {
-	var buf strings.Builder
-	var paths []*node
-	target := []rune(text)
-	cur := r.node
-
-	for len(target) != 0 {
-		uselessLen, matchLen, nextPaths := cur.longestMatch(target, paths)
-		if uselessLen > 0 {
-			buf.WriteString(string(target[:uselessLen]))
-			target = target[uselessLen:]
-		}
-		if matchLen > 0 {
-			replaced := r.mapping[string(target[:matchLen])]
-			target = append([]rune(replaced), target[matchLen:]...)
-		}
-		if len(nextPaths) != 0 {
-			cur = nextPaths[len(nextPaths)-1]
-			paths = nextPaths
-		} else {
-			cur = r.node
-			paths = nil
-		}
-	}
-
-	return buf.String()
-}
-
 func (r *replacer) Replace(text string) string {
 	for i := 0; i < 2; i++ {
 		var ok bool
