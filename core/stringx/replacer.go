@@ -62,10 +62,21 @@ func (r *replacer) Replace1(text string) string {
 }
 
 func (r *replacer) Replace(text string) string {
+	for i := 0; i < 2; i++ {
+		var ok bool
+		if text, ok = r.doReplace(text); !ok {
+			return text
+		}
+	}
+
+	return text
+}
+
+func (r *replacer) doReplace(text string) (string, bool) {
 	chars := []rune(text)
 	scopes := r.find(chars)
 	if len(scopes) == 0 {
-		return text
+		return text, false
 	}
 
 	sort.Slice(scopes, func(i, j int) bool {
@@ -94,5 +105,5 @@ func (r *replacer) Replace(text string) string {
 		buf.WriteString(string(chars[index:]))
 	}
 
-	return buf.String()
+	return buf.String(), true
 }

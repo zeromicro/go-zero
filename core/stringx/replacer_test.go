@@ -247,10 +247,14 @@ func BenchmarkNewReplacer(b *testing.B) {
 	text := "yjF8fyqJiiqrczOCVyoYbLvrMpnkjVhk11rz8CObceCVhk11rz8CObceCVhk11rz8CObceCVhk11rz8CObceCVhk11rz8CObceC"
 	b.Run("mine", func(b *testing.B) {
 		b.ReportAllocs()
-		rep.Replace(text)
+		for i := 0; i < b.N; i++ {
+			rep.Replace(text)
+		}
 	})
-	b.Run("other", func(b *testing.B) {
+	b.Run("contributor", func(b *testing.B) {
 		b.ReportAllocs()
-		rep.Replace1(text)
+		for i := 0; i < b.N; i++ {
+			rep.Replace1(text)
+		}
 	})
 }
