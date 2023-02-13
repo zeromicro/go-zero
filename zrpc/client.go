@@ -4,10 +4,11 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"google.golang.org/grpc"
 )
 
 var (
@@ -39,6 +40,10 @@ type (
 
 // MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
+	if !c.Enable {
+		return nil
+	}
+
 	cli, err := NewClient(c, options...)
 	if err != nil {
 		log.Fatal(err)

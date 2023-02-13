@@ -39,6 +39,7 @@ type (
 		Token       string          `json:",optional"`
 		NonBlock    bool            `json:",optional"`
 		Timeout     int64           `json:",default=2000"`
+		Enable      bool            `json:",default=true"`
 		Middlewares ClientMiddlewaresConf
 	}
 )
