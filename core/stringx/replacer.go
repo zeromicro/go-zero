@@ -38,8 +38,8 @@ func NewReplacer(mapping map[string]string) Replacer {
 // Replace replaces text with given substitutes.
 func (r *replacer) Replace(text string) string {
 	for i := 0; i < replaceTimes; i++ {
-		var ok bool
-		if text, ok = r.doReplace(text); !ok {
+		var replaced bool
+		if text, replaced = r.doReplace(text); !replaced {
 			return text
 		}
 	}
