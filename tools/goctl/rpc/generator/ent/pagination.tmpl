@@ -71,7 +71,7 @@
         {{- $defaultOrder := print "Default" $node.Name "Order" }}
 
         // {{ $defaultOrder }} is the default ordering of {{ $node.Name }}.
-        var {{ $defaultOrder }} = Asc({{ lower $node.Name }}.FieldID)
+        var {{ $defaultOrder }} = Desc({{ lower $node.Name }}.FieldID)
 
         func {{ $newPager }}(opts []{{ $opt }}) (*{{ $pager }}, error) {
             pager := &{{ $pager }}{}
