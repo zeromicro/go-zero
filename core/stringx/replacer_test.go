@@ -219,3 +219,13 @@ func TestReplacer_ReplaceLongestMatch(t *testing.T) {
 	})
 	assert.Equal(t, "东京是东京", replacer.Replace("日本的首都是东京"))
 }
+
+func TestReplacer_ReplaceIndefinitely(t *testing.T) {
+	mapping := map[string]string{
+		"日本的首都": "东京",
+		"东京":    "日本的首都",
+	}
+	assert.NotPanics(t, func() {
+		NewReplacer(mapping).Replace("日本的首都是东京")
+	})
+}
