@@ -5,7 +5,6 @@ import (
 	{{if .useI18n}}
 	"github.com/suyuan32/simple-admin-core/pkg/i18n"{{end}}
     {{if .useCasbin}}
-    "github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
     "github.com/zeromicro/go-zero/rest"
     "github.com/casbin/casbin/v2"{{end}}
@@ -22,7 +21,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 {{if .useCasbin}}
     rds := redis.MustNewRedis(c.RedisConf)
 
-    cbn, err := c.CasbinConf.MustNewCasbin(c.DatabaseConf.Type, c.DatabaseConf.GetDSN())
+    cbn := c.CasbinConf.MustNewCasbin(c.DatabaseConf.Type, c.DatabaseConf.GetDSN())
 {{end}}
 {{if .useI18n}}
     trans := &i18n.Translator{}
