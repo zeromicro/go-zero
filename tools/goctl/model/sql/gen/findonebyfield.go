@@ -24,7 +24,7 @@ func genFindOneByField(table Table, withCache, postgreSql bool) (*findOneCode, e
 
 	t := util.With("findOneByField").Parse(text)
 	var list []string
-	camelTableName := table.Name.ToCamel()
+	camelTableName := table.Name.RemovePrefix(table.prefix).ToCamel()
 	for _, key := range table.UniqueCacheKey {
 		in, paramJoinString, originalFieldString := convertJoin(key, postgreSql)
 

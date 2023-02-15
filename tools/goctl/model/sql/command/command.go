@@ -53,6 +53,8 @@ var (
 	VarBoolStrict bool
 	// VarStringSliceIgnoreColumns represents the columns which are ignored.
 	VarStringSliceIgnoreColumns []string
+	// VarStringPrefix table prefix which are ignored.
+	VarStringPrefix string
 )
 
 var errNotMatched = errors.New("sql not matched")
@@ -69,6 +71,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	prefix := VarStringPrefix
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -92,6 +95,7 @@ func MysqlDDL(_ *cobra.Command, _ []string) error {
 		database:      database,
 		strict:        VarBoolStrict,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
+		prefix:        prefix,
 	}
 	return fromDDL(arg)
 }
@@ -107,6 +111,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	prefix := VarStringPrefix
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -133,6 +138,7 @@ func MySqlDataSource(_ *cobra.Command, _ []string) error {
 		idea:          idea,
 		strict:        VarBoolStrict,
 		ignoreColumns: mergeColumns(VarStringSliceIgnoreColumns),
+		prefix:        prefix,
 	}
 	return fromMysqlDataSource(arg)
 }
@@ -197,6 +203,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 	home := VarStringHome
 	remote := VarStringRemote
 	branch := VarStringBranch
+	prefix := VarStringPrefix
 	if len(remote) > 0 {
 		repo, _ := file.CloneIntoGitHome(remote, branch)
 		if len(repo) > 0 {
@@ -217,7 +224,7 @@ func PostgreSqlDataSource(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea, VarBoolStrict)
+	return fromPostgreSqlDataSource(url, pattern, dir, schema, cfg, cache, idea, VarBoolStrict, prefix)
 }
 
 type ddlArg struct {
@@ -227,6 +234,7 @@ type ddlArg struct {
 	database      string
 	strict        bool
 	ignoreColumns []string
+	prefix        string
 }
 
 func fromDDL(arg ddlArg) error {
@@ -246,7 +254,9 @@ func fromDDL(arg ddlArg) error {
 	}
 
 	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg,
-		gen.WithConsoleOption(log), gen.WithIgnoreColumns(arg.ignoreColumns))
+		gen.WithConsoleOption(log),
+		gen.WithIgnoreColumns(arg.ignoreColumns),
+		gen.WithIgnorePrefix(arg.prefix))
 	if err != nil {
 		return err
 	}
@@ -268,6 +278,7 @@ type dataSourceArg struct {
 	cache, idea   bool
 	strict        bool
 	ignoreColumns []string
+	prefix        string
 }
 
 func fromMysqlDataSource(arg dataSourceArg) error {
@@ -321,7 +332,9 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	}
 
 	generator, err := gen.NewDefaultGenerator(arg.dir, arg.cfg,
-		gen.WithConsoleOption(log), gen.WithIgnoreColumns(arg.ignoreColumns))
+		gen.WithConsoleOption(log),
+		gen.WithIgnoreColumns(arg.ignoreColumns),
+		gen.WithIgnorePrefix(arg.prefix))
 	if err != nil {
 		return err
 	}
@@ -329,7 +342,7 @@ func fromMysqlDataSource(arg dataSourceArg) error {
 	return generator.StartFromInformationSchema(matchTables, arg.cache, arg.strict)
 }
 
-func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool) error {
+func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Config, cache, idea, strict bool, prefix string) error {
 	log := console.NewConsole(idea)
 	if len(url) == 0 {
 		log.Error("%v", "expected data source of postgresql, but nothing found")
@@ -376,7 +389,10 @@ func fromPostgreSqlDataSource(url, pattern, dir, schema string, cfg *config.Conf
 		return errors.New("no tables matched")
 	}
 
-	generator, err := gen.NewDefaultGenerator(dir, cfg, gen.WithConsoleOption(log), gen.WithPostgreSql())
+	generator, err := gen.NewDefaultGenerator(dir, cfg,
+		gen.WithConsoleOption(log),
+		gen.WithPostgreSql(),
+		gen.WithIgnorePrefix(prefix))
 	if err != nil {
 		return err
 	}

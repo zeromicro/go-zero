@@ -2,6 +2,7 @@ package command
 
 import (
 	_ "embed"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -138,5 +139,54 @@ func Test_parseTableList(t *testing.T) {
 	for v, expected := range matchTestData {
 		actual := patterns.Match(v)
 		assert.Equal(t, expected, actual)
+	}
+}
+
+func TestRemovePrefixFromDDL(t *testing.T) {
+	err := fromDDL(ddlArg{
+		src:      "./user.sql",
+		dir:      "./",
+		cfg:      cfg,
+		cache:    true,
+		database: "go-zero",
+		strict:   false,
+		prefix:   "tb_",
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func TestRemovePrefixFromDatasource(t *testing.T) {
+	err := fromMysqlDataSource(dataSourceArg{
+		url:           "root:123456@tcp(127.0.0.1:3306)/demo",
+		dir:           "./",
+		tablePat:      parseTableList([]string{"tb_*"}),
+		cfg:           &config.Config{NamingFormat: "go_zero"},
+		cache:         false,
+		idea:          false,
+		strict:        false,
+		ignoreColumns: []string{},
+		prefix:        "tb_",
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func TestRemovePrefixFromPgDatasource(t *testing.T) {
+	err := fromPostgreSqlDataSource(
+		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			"127.0.0.1", 5432, "postgres", "123456", "demo"),
+		"tb_*",
+		"./",
+		"public",
+		&config.Config{NamingFormat: "go_zero"},
+		false,
+		false,
+		false,
+		"tb_")
+	if err != nil {
+		panic(err)
 	}
 }

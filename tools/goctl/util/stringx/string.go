@@ -140,3 +140,11 @@ func ContainsAny(s string, runes ...rune) bool {
 func ContainsWhiteSpace(s string) bool {
 	return ContainsAny(s, WhiteSpace...)
 }
+
+func (s String) RemovePrefix(prefix string) String {
+	source := s.source
+	if strings.HasPrefix(source, prefix) {
+		s.source = strings.Replace(source, prefix, "", 1)
+	}
+	return s
+}

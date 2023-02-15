@@ -60,6 +60,7 @@ func init() {
 	ddlCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	ddlCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
 	ddlCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	ddlCmd.Flags().StringVar(&command.VarStringPrefix, "prefix", "", "The prefix of the raw table, it does work with --prefix")
 
 	datasourceCmd.Flags().StringVar(&command.VarStringURL, "url", "", `The data source of database,like "root:password@tcp(127.0.0.1:3306)/database"`)
 	datasourceCmd.Flags().StringSliceVarP(&command.VarStringSliceTable, "table", "t", nil, "The table or table globbing patterns in the database")
@@ -70,6 +71,7 @@ func init() {
 	datasourceCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	datasourceCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
 	datasourceCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	datasourceCmd.Flags().StringVar(&command.VarStringPrefix, "prefix", "", "The prefix of the raw table, it does work with --prefix")
 
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringURL, "url", "", `The data source of database,like "postgres://root:password@127.0.0.1:5432/database?sslmode=disable"`)
 	pgDatasourceCmd.Flags().StringVarP(&command.VarStringTable, "table", "t", "", "The table or table globbing patterns in the database")
@@ -82,6 +84,7 @@ func init() {
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\n\tThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
 	pgDatasourceCmd.Flags().StringVar(&command.VarStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
+	pgDatasourceCmd.Flags().StringVar(&command.VarStringPrefix, "prefix", "", "The prefix of the raw table, it does work with --prefix")
 
 	mongoCmd.Flags().StringSliceVarP(&mongo.VarStringSliceType, "type", "t", nil, "Specified model type name")
 	mongoCmd.Flags().BoolVarP(&mongo.VarBoolCache, "cache", "c", false, "Generate code with cache [optional]")

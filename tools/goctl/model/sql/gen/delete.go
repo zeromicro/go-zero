@@ -25,7 +25,7 @@ func genDelete(table Table, withCache, postgreSql bool) (string, string, error) 
 	keyVars := keyVariableSet.KeysStr()
 	sort.Strings(keyVars)
 
-	camel := table.Name.ToCamel()
+	camel := table.Name.RemovePrefix(table.prefix).ToCamel()
 	text, err := pathx.LoadTemplate(category, deleteTemplateFile, template.Delete)
 	if err != nil {
 		return "", "", err
