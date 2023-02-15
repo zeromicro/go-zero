@@ -30,7 +30,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
 {{end}}
 	return &ServiceContext{
 		Config: c,
-		{{if .useCasbin}}Authority: middleware.NewAuthorityMiddleware(cbn, rds).Handle,{{end}}
+		{{if .useCasbin}}Authority: middleware.NewAuthorityMiddleware(cbn, rds, trans).Handle,{{end}}
 		{{if .useI18n}}Trans:     trans,{{end}}
 	}
 }
