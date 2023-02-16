@@ -55,7 +55,7 @@ func genUpdate(table Table, withCache, postgreSql bool) (
 			expressionValues, pkg+table.PrimaryKey.Name.ToCamel(),
 		)
 	}
-	camelTableName := table.Name.ToCamel()
+	camelTableName := table.Name.RemovePrefix(table.prefix).ToCamel()
 	text, err := pathx.LoadTemplate(category, updateTemplateFile, template.Update)
 	if err != nil {
 		return "", "", err

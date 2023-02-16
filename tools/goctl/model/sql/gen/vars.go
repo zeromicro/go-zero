@@ -19,7 +19,7 @@ func genVars(table Table, withCache, postgreSql bool) (string, error) {
 		keys = append(keys, v.VarExpression)
 	}
 
-	camel := table.Name.ToCamel()
+	camel := table.Name.RemovePrefix(table.prefix).ToCamel()
 	text, err := pathx.LoadTemplate(category, varTemplateFile, template.Vars)
 	if err != nil {
 		return "", err

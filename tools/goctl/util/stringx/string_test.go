@@ -192,3 +192,10 @@ func TestUntitle(t *testing.T) {
 		assert.Equal(t, c.want, ret)
 	}
 }
+
+func TestRemovePrefix(t *testing.T) {
+	s := String{
+		source: "tb_sys_user",
+	}
+	assert.Equal(t, "sys_user", s.RemovePrefix("tb_").source)
+}

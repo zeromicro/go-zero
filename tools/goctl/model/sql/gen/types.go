@@ -24,8 +24,8 @@ func genTypes(table Table, methods string, withCache bool) (string, error) {
 		Execute(map[string]any{
 			"withCache":             withCache,
 			"method":                methods,
-			"upperStartCamelObject": table.Name.ToCamel(),
-			"lowerStartCamelObject": stringx.From(table.Name.ToCamel()).Untitle(),
+			"upperStartCamelObject": table.Name.RemovePrefix(table.prefix).ToCamel(),
+			"lowerStartCamelObject": stringx.From(table.Name.RemovePrefix(table.prefix).ToCamel()).Untitle(),
 			"fields":                fieldsString,
 			"data":                  table,
 		})

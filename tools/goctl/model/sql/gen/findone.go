@@ -8,7 +8,7 @@ import (
 )
 
 func genFindOne(table Table, withCache, postgreSql bool) (string, string, error) {
-	camel := table.Name.ToCamel()
+	camel := table.Name.RemovePrefix(table.prefix).ToCamel()
 	text, err := pathx.LoadTemplate(category, findOneTemplateFile, template.FindOne)
 	if err != nil {
 		return "", "", err

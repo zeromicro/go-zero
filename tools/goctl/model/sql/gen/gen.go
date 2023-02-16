@@ -31,6 +31,7 @@ type (
 		cfg           *config.Config
 		isPostgreSql  bool
 		ignoreColumns []string
+		prefix        string
 	}
 
 	// Option defines a function with argument defaultGenerator
@@ -97,6 +98,13 @@ func WithIgnoreColumns(ignoreColumns []string) Option {
 	}
 }
 
+// WithIgnorePrefix ignores the table prefix
+func WithIgnorePrefix(prefix string) Option {
+	return func(generator *defaultGenerator) {
+		generator.prefix = prefix
+	}
+}
+
 // WithPostgreSql marks  defaultGenerator.isPostgreSql true.
 func WithPostgreSql() Option {
 	return func(generator *defaultGenerator) {
@@ -136,7 +144,7 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 			return err
 		}
 
-		m[table.Name.Source()] = &codeTuple{
+		m[table.Name.RemovePrefix(g.prefix).Source()] = &codeTuple{
 			modelCode:       code,
 			modelCustomCode: customCode,
 		}
@@ -228,7 +236,7 @@ func (g *defaultGenerator) genFromDDL(filename string, withCache, strict bool, d
 			return nil, err
 		}
 
-		m[e.Name.Source()] = &codeTuple{
+		m[e.Name.RemovePrefix(g.prefix).Source()] = &codeTuple{
 			modelCode:       code,
 			modelCustomCode: customCode,
 		}
@@ -244,6 +252,7 @@ type Table struct {
 	UniqueCacheKey         []Key
 	ContainsUniqueCacheKey bool
 	ignoreColumns          []string
+	prefix                 string
 }
 
 func (t Table) isIgnoreColumns(columnName string) bool {
@@ -268,6 +277,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 	table.UniqueCacheKey = uniqueKey
 	table.ContainsUniqueCacheKey = len(uniqueKey) > 0
 	table.ignoreColumns = g.ignoreColumns
+	table.prefix = g.prefix
 
 	importsCode, err := genImports(table, withCache, in.ContainsTime())
 	if err != nil {
@@ -357,8 +367,8 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 	output, err := t.Execute(map[string]any{
 		"pkg":                   g.pkg,
 		"withCache":             withCache,
-		"upperStartCamelObject": in.Name.ToCamel(),
-		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
+		"upperStartCamelObject": in.Name.RemovePrefix(g.prefix).ToCamel(),
+		"lowerStartCamelObject": stringx.From(in.Name.RemovePrefix(g.prefix).ToCamel()).Untitle(),
 	})
 	if err != nil {
 		return "", err
