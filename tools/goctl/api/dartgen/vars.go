@@ -3,13 +3,16 @@ package dartgen
 import "text/template"
 
 var funcMap = template.FuncMap{
-	"getBaseName":           getBaseName,
-	"getPropertyFromMember": getPropertyFromMember,
-	"isDirectType":          isDirectType,
-	"isClassListType":       isClassListType,
-	"getCoreType":           getCoreType,
-	"lowCamelCase":          lowCamelCase,
-	"normalizeHandlerName":  normalizeHandlerName,
+	"getBaseName":                     getBaseName,
+	"getPropertyFromMember":           getPropertyFromMember,
+	"isDirectType":                    isDirectType,
+	"isClassListType":                 isClassListType,
+	"getCoreType":                     getCoreType,
+	"lowCamelCase":                    lowCamelCase,
+	"normalizeHandlerName":            normalizeHandlerName,
+	"hasUrlPathParams":                hasUrlPathParams,
+	"extractPositionalParamsFromPath": extractPositionalParamsFromPath,
+	"makeDartRequestUrlPath":          makeDartRequestUrlPath,
 }
 
 const (

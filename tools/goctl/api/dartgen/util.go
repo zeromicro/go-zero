@@ -11,6 +11,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
+const (
+	formTagKey   = "form"
+	pathTagKey   = "path"
+	headerTagKey = "header"
+)
+
 func normalizeHandlerName(handlerName string) string {
 	handler := strings.Replace(handlerName, "Handler", "", 1)
 	handler = lowCamelCase(handler)
@@ -160,4 +166,41 @@ func primitiveType(tp string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func hasUrlPathParams(route spec.Route) bool {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return false
+	}
+
+	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(pathTagKey)) > 0
+}
+
+func extractPositionalParamsFromPath(route spec.Route) string {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return ""
+	}
+
+	var params []string
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		params = append(params, fmt.Sprintf("%s %s", member.Type.Name(), getPropertyFromMember(member)))
+	}
+
+	return strings.Join(params, ", ")
+}
+
+func makeDartRequestUrlPath(route spec.Route) string {
+	path := route.Path
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return path
+	}
+
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		path = strings.ReplaceAll(path, ":"+pathTagKey, "${"+getPropertyFromMember(member)+"}")
+	}
+
+	return `"` + path + `"`
 }
