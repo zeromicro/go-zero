@@ -11,6 +11,12 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
+func normalizeHandlerName(handlerName string) string {
+	handler := strings.Replace(handlerName, "Handler", "", 1)
+	handler = lowCamelCase(handler)
+	return handler
+}
+
 func lowCamelCase(s string) string {
 	if len(s) < 1 {
 		return ""
@@ -18,21 +24,6 @@ func lowCamelCase(s string) string {
 
 	s = util.ToCamelCase(util.ToSnakeCase(s))
 	return util.ToLower(s[:1]) + s[1:]
-}
-
-func pathToFuncName(path string) string {
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	if !strings.HasPrefix(path, "/api") {
-		path = "/api" + path
-	}
-
-	path = strings.Replace(path, "/", "_", -1)
-	path = strings.Replace(path, "-", "_", -1)
-
-	camel := util.ToCamelCase(path)
-	return util.ToLower(camel[:1]) + camel[1:]
 }
 
 func getBaseName(str string) string {

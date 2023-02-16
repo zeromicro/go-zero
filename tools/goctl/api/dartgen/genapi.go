@@ -38,7 +38,7 @@ import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 ///
 /// request: {{with .RequestType}}{{.Name}}{{end}}
 /// response: {{with .ResponseType}}{{.Name}}{{end}}
-Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
+Future {{normalizeHandlerName .Handler}}( {{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
     {Function({{with .ResponseType}}{{.Name}}{{end}})? ok,
     Function(String)? fail,
     Function? eventually}) async {

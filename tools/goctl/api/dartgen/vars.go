@@ -8,8 +8,8 @@ var funcMap = template.FuncMap{
 	"isDirectType":          isDirectType,
 	"isClassListType":       isClassListType,
 	"getCoreType":           getCoreType,
-	"pathToFuncName":        pathToFuncName,
 	"lowCamelCase":          lowCamelCase,
+	"normalizeHandlerName":  normalizeHandlerName,
 }
 
 const (
