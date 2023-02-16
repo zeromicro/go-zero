@@ -30,7 +30,7 @@ Future {{pathToFuncName .Path}}( {{if ne .Method "get"}}{{with .RequestType}}{{.
 {{end}}`
 
 const apiTemplateV2 = `import 'api.dart';
-import '../data/{{with .Info}}{{getBaseName .Title}}{{end}}.dart';
+import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 {{with .Service}}
 /// {{.Name}}
 {{range .Routes}}
