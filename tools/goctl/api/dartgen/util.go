@@ -185,7 +185,8 @@ func extractPositionalParamsFromPath(route spec.Route) string {
 
 	var params []string
 	for _, member := range ds.GetTagMembers(pathTagKey) {
-		params = append(params, fmt.Sprintf("%s %s", member.Type.Name(), getPropertyFromMember(member)))
+		dartType := member.Type.Name()
+		params = append(params, fmt.Sprintf("%s %s", dartType, getPropertyFromMember(member)))
 	}
 
 	return strings.Join(params, ", ")
@@ -199,7 +200,8 @@ func makeDartRequestUrlPath(route spec.Route) string {
 	}
 
 	for _, member := range ds.GetTagMembers(pathTagKey) {
-		path = strings.ReplaceAll(path, ":"+pathTagKey, "${"+getPropertyFromMember(member)+"}")
+		paramName := member.Tags()[0].Name
+		path = strings.ReplaceAll(path, ":"+paramName, "${"+getPropertyFromMember(member)+"}")
 	}
 
 	return `"` + path + `"`
