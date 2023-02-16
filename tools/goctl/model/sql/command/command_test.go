@@ -144,7 +144,7 @@ func Test_parseTableList(t *testing.T) {
 
 func TestRemovePrefixFromDDL(t *testing.T) {
 	err := fromDDL(ddlArg{
-		src:      "./user.sql",
+		src:      "./sys.sql",
 		dir:      "./",
 		cfg:      cfg,
 		cache:    true,
@@ -152,9 +152,7 @@ func TestRemovePrefixFromDDL(t *testing.T) {
 		strict:   false,
 		prefix:   "tb_",
 	})
-	if err != nil {
-		panic(err)
-	}
+	assert.Equal(t, nil, err)
 }
 
 func TestRemovePrefixFromDatasource(t *testing.T) {
@@ -169,9 +167,7 @@ func TestRemovePrefixFromDatasource(t *testing.T) {
 		ignoreColumns: []string{},
 		prefix:        "tb_",
 	})
-	if err != nil {
-		panic(err)
-	}
+	assert.Equal(t, nil, err)
 }
 
 func TestRemovePrefixFromPgDatasource(t *testing.T) {
@@ -186,7 +182,5 @@ func TestRemovePrefixFromPgDatasource(t *testing.T) {
 		false,
 		false,
 		"tb_")
-	if err != nil {
-		panic(err)
-	}
+	assert.Equal(t, nil, err)
 }

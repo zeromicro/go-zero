@@ -1,7 +1,6 @@
 package stringx
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -198,5 +197,5 @@ func TestRemovePrefix(t *testing.T) {
 	s := String{
 		source: "tb_sys_user",
 	}
-	fmt.Println(s.RemovePrefix("tb_").source)
+	assert.Equal(t, "sys_user", s.RemovePrefix("tb_").source)
 }
