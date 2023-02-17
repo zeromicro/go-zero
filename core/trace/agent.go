@@ -18,10 +18,11 @@ import (
 )
 
 const (
-	kindJaeger   = "jaeger"
-	kindZipkin   = "zipkin"
-	kindOtlpGrpc = "otlpgrpc"
-	kindOtlpHttp = "otlphttp"
+	kindJaeger    = "jaeger"
+	kindJaegerUdp = "jaegerudp"
+	kindZipkin    = "zipkin"
+	kindOtlpGrpc  = "otlpgrpc"
+	kindOtlpHttp  = "otlphttp"
 )
 
 var (
@@ -58,6 +59,8 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	switch c.Batcher {
 	case kindJaeger:
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
+	case kindJaegerUdp:
+		return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(c.getEndpointHost()), jaeger.WithAgentPort(c.getEndpointPort())))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindOtlpGrpc:
