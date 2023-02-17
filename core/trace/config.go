@@ -20,7 +20,7 @@ func (c *Config) parseEndpoint() (host string, port string) {
 	if len(EndpointSlice) > 0 {
 		host = strings.TrimSpace(EndpointSlice[0])
 	}
-	if len(EndpointSlice) > 0 {
+	if len(EndpointSlice) > 1 {
 		port = strings.TrimSpace(EndpointSlice[1])
 	}
 	return host, port
