@@ -1,5 +1,7 @@
+git pull
+
 go mod tidy
 
-go build -o goctls goctl.go
+go build -ldflags="-s -w" -o goctls goctl.go
 
 mv goctls "$GOPATH"/bin/goctls

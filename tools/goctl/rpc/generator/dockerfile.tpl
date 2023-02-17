@@ -8,7 +8,7 @@ RUN go env -w GO111MODULE=on \
     && go env -w CGO_ENABLED=0 \
     && go env \
     && go mod tidy \
-    && go build -o /home/{{.serviceName}}_rpc {{.serviceName}}.go
+    && go build -ldflags="-s -w" -o /home/{{.serviceName}}_rpc {{.serviceName}}.go
 
 FROM alpine:latest
 
