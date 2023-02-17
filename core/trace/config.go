@@ -15,19 +15,14 @@ type Config struct {
 	Batcher  string  `json:",default=jaeger,options=jaeger|jaegerudp|zipkin|otlpgrpc|otlphttp"`
 }
 
-func (c *Config) getEndpointHost() string {
+func (c *Config) parseEndpoint() (host string, port string) {
 	EndpointSlice := strings.Split(c.Endpoint, ":")
 	if len(EndpointSlice) > 0 {
-		return strings.TrimSpace(EndpointSlice[0])
+		host = strings.TrimSpace(EndpointSlice[0])
 	}
-	return ""
-}
-
-func (c *Config) getEndpointPort() string {
-	EndpointSlice := strings.Split(c.Endpoint, ":")
-	if len(EndpointSlice) > 1 {
-		return strings.TrimSpace(EndpointSlice[1])
+	if len(EndpointSlice) > 0 {
+		port = strings.TrimSpace(EndpointSlice[1])
 	}
 
-	return ""
+	return host, port
 }
