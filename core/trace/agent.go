@@ -18,10 +18,11 @@ import (
 )
 
 const (
-	kindJaeger   = "jaeger"
-	kindZipkin   = "zipkin"
-	kindOtlpGrpc = "otlpgrpc"
-	kindOtlpHttp = "otlphttp"
+	kindJaeger    = "jaeger"
+	kindJaegerUdp = "jaegerudp"
+	kindZipkin    = "zipkin"
+	kindOtlpGrpc  = "otlpgrpc"
+	kindOtlpHttp  = "otlphttp"
 )
 
 var (
@@ -35,7 +36,7 @@ func StartAgent(c Config) {
 	lock.Lock()
 	defer lock.Unlock()
 
-	_, ok := agents[c.getEndpoint()]
+	_, ok := agents[c.Endpoint]
 	if ok {
 		return
 	}
@@ -45,7 +46,7 @@ func StartAgent(c Config) {
 		return
 	}
 
-	agents[c.getEndpoint()] = lang.Placeholder
+	agents[c.Endpoint] = lang.Placeholder
 }
 
 // StopAgent shuts down the span processors in the order they were registered.
@@ -57,10 +58,9 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
 	case kindJaeger:
-		if c.isAgentEndPoint() {
-			return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(c.AgentHost), jaeger.WithAgentPort(c.AgentPort)))
-		}
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
+	case kindJaegerUdp:
+		return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(c.getEndpointHost()), jaeger.WithAgentPort(c.getEndpointPort())))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindOtlpGrpc:
