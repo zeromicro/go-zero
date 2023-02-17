@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestConfig_getEndpointHost(t *testing.T) {
+func TestConfig_parseEndpoint(t *testing.T) {
 	logx.Disable()
 
 	c1 := Config{
@@ -19,8 +19,10 @@ func TestConfig_getEndpointHost(t *testing.T) {
 		Endpoint: "localhost:6831",
 		Batcher:  kindJaegerUdp,
 	}
-	assert.NotEqual(t, "localhost", c1.getEndpointHost())
-	assert.NotEqual(t, "14268", c1.getEndpointPort())
-	assert.Equal(t, "localhost", c2.getEndpointHost())
-	assert.Equal(t, "6831", c2.getEndpointPort())
+	host1, port1 := c1.parseEndpoint()
+	assert.NotEqual(t, "localhost", host1)
+	assert.NotEqual(t, "14268", port1)
+	host2, port2 := c2.parseEndpoint()
+	assert.Equal(t, "localhost", host2)
+	assert.Equal(t, "6831", port2)
 }

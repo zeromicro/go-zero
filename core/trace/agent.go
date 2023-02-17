@@ -60,7 +60,8 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	case kindJaeger:
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
 	case kindJaegerUdp:
-		return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(c.getEndpointHost()), jaeger.WithAgentPort(c.getEndpointPort())))
+		host, port := c.parseEndpoint()
+		return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(host), jaeger.WithAgentPort(port)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindOtlpGrpc:
