@@ -25,7 +25,18 @@ type (
 		// LeaderDB returns a leader db.
 		LeaderDB() (conn SqlConn, err error)
 		// FollowerDB returns a follower db.
-		FollowerDB() (conn SqlConn, err error)
+		FollowerDB() (conn FollowerSqlConn, err error)
+	}
+
+	FollowerSqlConn interface {
+		QueryRow(v any, query string, args ...any) error
+		QueryRowCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRowPartial(v any, query string, args ...any) error
+		QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRows(v any, query string, args ...any) error
+		QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error
+		QueryRowsPartial(v any, query string, args ...any) error
+		QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error
 	}
 
 	multipleSqlConn struct {
@@ -178,7 +189,7 @@ func (m *multipleSqlConn) LeaderDB() (conn SqlConn, err error) {
 	return m.leader, nil
 }
 
-func (m *multipleSqlConn) FollowerDB() (SqlConn, error) {
+func (m *multipleSqlConn) FollowerDB() (FollowerSqlConn, error) {
 	result, err := m.p2cPicker.pick()
 	if err != nil {
 		return nil, err
