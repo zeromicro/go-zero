@@ -3,6 +3,7 @@ package trace
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -18,11 +19,10 @@ import (
 )
 
 const (
-	kindJaeger    = "jaeger"
-	kindJaegerUdp = "jaegerudp"
-	kindZipkin    = "zipkin"
-	kindOtlpGrpc  = "otlpgrpc"
-	kindOtlpHttp  = "otlphttp"
+	kindJaeger   = "jaeger"
+	kindZipkin   = "zipkin"
+	kindOtlpGrpc = "otlpgrpc"
+	kindOtlpHttp = "otlphttp"
 )
 
 var (
@@ -58,10 +58,14 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 	// Just support jaeger and zipkin now, more for later
 	switch c.Batcher {
 	case kindJaeger:
+		u, parseErr := url.Parse(c.Endpoint)
+		if parseErr != nil {
+			return nil, fmt.Errorf("invalid jaeger endpoint: %s", c.Endpoint)
+		}
+		if u.Scheme == "udp" {
+			return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(u.Hostname()), jaeger.WithAgentPort(u.Port())))
+		}
 		return jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(c.Endpoint)))
-	case kindJaegerUdp:
-		host, port := c.parseEndpoint()
-		return jaeger.New(jaeger.WithAgentEndpoint(jaeger.WithAgentHost(host), jaeger.WithAgentPort(port)))
 	case kindZipkin:
 		return zipkin.New(c.Endpoint)
 	case kindOtlpGrpc:
