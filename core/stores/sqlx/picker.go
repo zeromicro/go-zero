@@ -35,9 +35,6 @@ type (
 		conn SqlConn
 		done func(err error)
 	}
-	doneInfo struct {
-		err error
-	}
 	p2cPicker struct {
 		conns []*subConn
 		r     *rand.Rand
