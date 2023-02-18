@@ -15,9 +15,9 @@ var _ MultipleSqlConn = (*multipleSqlConn)(nil)
 type (
 	DBConf struct {
 		Leader    string
-		Followers []string
+		Followers []string `json:",optional"`
 		// BackSource back to source when all slave data is not available.
-		BackSource bool
+		BackSource bool `json:",optional"`
 	}
 
 	MultipleSqlConn interface {
