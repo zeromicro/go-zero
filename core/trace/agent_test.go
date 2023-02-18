@@ -15,7 +15,7 @@ func TestStartAgent(t *testing.T) {
 		endpoint2 = "remotehost:1234"
 		endpoint3 = "localhost:1235"
 		endpoint4 = "localhost:1236"
-		endpoint5 = "localhost:6831"
+		endpoint5 = "udp://localhost:6831"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -48,7 +48,7 @@ func TestStartAgent(t *testing.T) {
 	c7 := Config{
 		Name:     "UDP",
 		Endpoint: endpoint5,
-		Batcher:  kindJaegerUdp,
+		Batcher:  kindJaeger,
 	}
 
 	StartAgent(c1)
