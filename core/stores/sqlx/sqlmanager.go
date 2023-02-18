@@ -56,6 +56,7 @@ func newDBConnection(driverName, datasource string) (*sql.DB, error) {
 	conn.SetConnMaxLifetime(maxLifetime)
 
 	if err := conn.Ping(); err != nil {
+		_ = conn.Close()
 		return nil, err
 	}
 
