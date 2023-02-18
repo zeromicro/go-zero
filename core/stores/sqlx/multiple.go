@@ -156,6 +156,19 @@ func (m *multipleSqlConn) TransactCtx(ctx context.Context, fn func(context.Conte
 	return m.leader.TransactCtx(ctx, fn)
 }
 
+func (m *multipleSqlConn) LeaderDB() (conn SqlConn, err error) {
+	return m.leader, nil
+}
+
+func (m *multipleSqlConn) FollowerDB() (FollowerSqlConn, error) {
+	result, err := m.p2cPicker.pick()
+	if err != nil {
+		return nil, err
+	}
+
+	return result.conn, nil
+}
+
 func (m *multipleSqlConn) containSelect(query string) bool {
 	query = strings.TrimSpace(query)
 	if len(query) >= 6 {
@@ -176,26 +189,11 @@ func (m *multipleSqlConn) getQueryDb(query string) queryDb {
 		}
 
 		if !m.conf.BackLeader {
-			return queryDb{
-				error: err,
-			}
+			return queryDb{error: err}
 		}
 	}
 
 	return queryDb{conn: m.leader}
-}
-
-func (m *multipleSqlConn) LeaderDB() (conn SqlConn, err error) {
-	return m.leader, nil
-}
-
-func (m *multipleSqlConn) FollowerDB() (FollowerSqlConn, error) {
-	result, err := m.p2cPicker.pick()
-	if err != nil {
-		return nil, err
-	}
-
-	return result.conn, nil
 }
 
 // -------------
