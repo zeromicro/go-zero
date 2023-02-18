@@ -793,7 +793,9 @@ func TestUnmarshalStringMapFromNotSettableValue(t *testing.T) {
 	}
 
 	ast := assert.New(t)
-	ast.Error(UnmarshalKey(m, &v))
+	ast.NoError(UnmarshalKey(m, &v))
+	assert.Empty(t, v.sort)
+	assert.Nil(t, v.psort)
 }
 
 func TestUnmarshalStringMapFromString(t *testing.T) {
@@ -4262,6 +4264,24 @@ func TestUnmarshalStructPtrOfPtr(t *testing.T) {
 	in := new(inner)
 	if assert.NoError(t, UnmarshalKey(m, &in)) {
 		assert.Equal(t, 1, in.Int)
+	}
+}
+
+func TestUnmarshalOnlyPublicVariables(t *testing.T) {
+	type demo struct {
+		age  int    `key:"age"`
+		Name string `key:"name"`
+	}
+
+	m := map[string]any{
+		"age":  3,
+		"name": "go-zero",
+	}
+
+	var in demo
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.Equal(t, 0, in.age)
+		assert.Equal(t, "go-zero", in.Name)
 	}
 }
 
