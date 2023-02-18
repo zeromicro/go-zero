@@ -16,8 +16,8 @@ type (
 	DBConf struct {
 		Leader    string
 		Followers []string `json:",optional"`
-		// BackSource back to source when all slave data is not available.
-		BackSource bool `json:",optional"`
+		// BackLeader back to Leader when all Followers are not available.
+		BackLeader bool `json:",optional"`
 	}
 
 	MultipleSqlConn interface {
@@ -164,7 +164,7 @@ func (m *multipleSqlConn) getQueryDb(query string) queryDb {
 			}
 		}
 
-		if !m.conf.BackSource {
+		if !m.conf.BackLeader {
 			return queryDb{
 				error: err,
 			}
