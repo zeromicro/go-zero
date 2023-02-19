@@ -1761,21 +1761,7 @@ func TestRedis_WithPass(t *testing.T) {
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
-	s, err := miniredis.Run()
-	assert.Nil(t, err)
-	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
-			return nil, errors.New("should already exist")
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if client != nil {
-			_ = client.Close()
-		}
-	}()
-
+	s := miniredis.RunT(t)
 	fn(MustNewRedis(RedisConf{
 		Host: s.Addr(),
 		Type: NodeType,
@@ -1785,21 +1771,7 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 func runOnRedisWithError(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
-	s, err := miniredis.Run()
-	assert.NoError(t, err)
-	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
-			return nil, errors.New("should already exist")
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if client != nil {
-			_ = client.Close()
-		}
-	}()
-
+	s := miniredis.RunT(t)
 	s.SetError("mock error")
 	fn(New(s.Addr()))
 }
