@@ -267,7 +267,12 @@ func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
 		Multiple:       VarBoolMultiple,
 	}
 
-	err := proto.GenLogicByProto(params)
+	err := params.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = proto.GenLogicByProto(params)
 	if err != nil {
 		return err
 	}

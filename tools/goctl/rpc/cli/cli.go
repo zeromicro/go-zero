@@ -189,7 +189,12 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		params.ProjectName = params.ServiceName
 	}
 
-	err := ent.GenEntLogic(params)
+	err := params.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = ent.GenEntLogic(params)
 	if err != nil {
 		return err
 	}

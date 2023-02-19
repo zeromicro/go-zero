@@ -17,6 +17,7 @@ package ent
 import (
 	"bytes"
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -58,6 +59,21 @@ type GenEntLogicContext struct {
 	GroupName    string
 	UseUUID      bool
 	ProtoOut     string
+}
+
+func (g GenEntLogicContext) Validate() error {
+	if g.Schema == "" {
+		return errors.New("the schema dir cannot be empty ")
+	} else if !strings.HasSuffix(g.Schema, "schema") {
+		return errors.New("please input correct schema directory e.g. ./ent/schema ")
+	} else if g.ServiceName == "" {
+		return errors.New("please set the service name via --service_name")
+	} else if g.ModelName == "" {
+		return errors.New("please set the model name via --model ")
+	} else if g.ModuleName == g.ProjectName {
+		return errors.New("do not set the module name if it is the same as project name ")
+	}
+	return nil
 }
 
 // GenEntLogic generates the ent CRUD logic files of the rpc service.

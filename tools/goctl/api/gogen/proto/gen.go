@@ -16,6 +16,7 @@ package proto
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -55,6 +56,23 @@ type GenLogicByProtoContext struct {
 	GrpcPackage      string
 	UseUUID          bool
 	Multiple         bool
+}
+
+func (g GenLogicByProtoContext) Validate() error {
+	if g.APIServiceName == "" {
+		return errors.New("please set the API service name via --api_service_name ")
+	} else if g.RPCServiceName == "" {
+		return errors.New("please set the RPC service name via --rpc_service_name ")
+	} else if g.ProtoDir == "" {
+		return errors.New("please set the proto dir via --proto ")
+	} else if !strings.HasSuffix(g.ProtoDir, "proto") {
+		return errors.New("please set the correct proto file ")
+	} else if g.ModelName == "" {
+		return errors.New("please set the model name via --model ")
+	} else if g.RpcName == "" {
+		return errors.New("please set the RPC name via --rpc_name ")
+	}
+	return nil
 }
 
 type ApiLogicData struct {

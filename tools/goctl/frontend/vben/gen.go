@@ -15,6 +15,7 @@
 package vben
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -55,6 +56,15 @@ type GenContext struct {
 	ApiSpec       *spec.ApiSpec
 	UseUUID       bool
 	HasStatus     bool
+}
+
+func (g GenContext) Validate() error {
+	if g.ApiDir == "" {
+		return errors.New("please set the api file path via --api_file")
+	} else if !strings.HasSuffix(g.ApiDir, "api") {
+		return errors.New("please input correct api file path")
+	}
+	return nil
 }
 
 // GenCRUDLogic is used to generate CRUD file for simple admin backend UI
@@ -106,6 +116,8 @@ func GenCRUDLogic(_ *cobra.Command, _ []string) error {
 		LocaleDir:  localeDir,
 		FolderName: VarStringFolderName,
 	}
+
+	err = genCtx.Validate()
 
 	if err := genModel(genCtx); err != nil {
 		return err
