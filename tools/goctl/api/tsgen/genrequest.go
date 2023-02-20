@@ -21,5 +21,6 @@ func genRequest(dir string) error {
 	if pathx.FileExists(filename) {
 		return nil
 	}
+
 	return os.WriteFile(filename, []byte(requestTemplate), 0644)
 }

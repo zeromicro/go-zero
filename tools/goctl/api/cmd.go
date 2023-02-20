@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/spf13/cobra"
-
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"

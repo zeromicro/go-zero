@@ -16,7 +16,6 @@ export type Method =
 
 /**
  * Parse route parameters for responseType
- *
  */
 const reg = /:[a-z|A-Z]+/g;
 
@@ -75,6 +74,7 @@ export async function request({
         // @ts-ignore
         ...config
     });
+
     return response.json();
 }
 
