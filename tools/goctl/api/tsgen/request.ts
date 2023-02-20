@@ -15,10 +15,11 @@ export type Method =
     | 'PATCH';
 
 /**
- * 解析路由参数responseType
+ * Parse route parameters for responseType
  *
  */
 const reg = /:[a-z|A-Z]+/g;
+
 export function parseParams(url: string): Array<string> {
     const ps = url.match(reg);
     if (!ps) {
@@ -28,7 +29,7 @@ export function parseParams(url: string): Array<string> {
 }
 
 /**
- * 按照url和params生成相应的url
+ * Generate url and parameters
  * @param url
  * @param params
  */
@@ -54,11 +55,11 @@ export function genUrl(url: string, params: unknown) {
 }
 
 export async function request({
-                                  method,
-                                  url,
-                                  data,
-                                  config = {}
-                              }: {
+    method,
+    url,
+    data,
+    config = {}
+}: {
     method: Method;
     url: string;
     data?: unknown;
@@ -76,6 +77,7 @@ export async function request({
     });
     return response.json();
 }
+
 function api<T>(
     method: Method = 'get',
     url: string,
@@ -83,24 +85,23 @@ function api<T>(
     config?: unknown
 ): Promise<T> {
     if (url.match(/:/) || method.match(/get|delete/i)) {
-        // 如果路由是带挂参的，先看params再看forms
         url = genUrl(url, req.params || req.forms);
     }
     method = method.toLocaleLowerCase() as Method;
 
     switch (method) {
         case 'get':
-            return request({ method: 'get', url, data: req, config });
+            return request({method: 'get', url, data: req, config});
         case 'delete':
-            return request({ method: 'delete', url, data: req, config });
+            return request({method: 'delete', url, data: req, config});
         case 'put':
-            return request({ method: 'put', url, data: req, config });
+            return request({method: 'put', url, data: req, config});
         case 'post':
-            return request({ method: 'post', url, data: req, config });
+            return request({method: 'post', url, data: req, config});
         case 'patch':
-            return request({ method: 'patch', url, data: req, config });
+            return request({method: 'patch', url, data: req, config});
         default:
-            return request({ method: 'post', url, data: req, config });
+            return request({method: 'post', url, data: req, config});
     }
 }
 
