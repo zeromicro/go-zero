@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -157,7 +158,6 @@ func init() {
 
 	tsCmd.Flags().StringVar(&tsgen.VarStringDir, "dir", "", "The target dir")
 	tsCmd.Flags().StringVar(&tsgen.VarStringAPI, "api", "", "The api file")
-	tsCmd.Flags().StringVar(&tsgen.VarStringWebAPI, "webapi", "", "The web api file path")
 	tsCmd.Flags().StringVar(&tsgen.VarStringCaller, "caller", "", "The web api caller")
 	tsCmd.Flags().BoolVar(&tsgen.VarBoolUnWrap, "unwrap", false, "Unwrap the webapi caller for import")
 
