@@ -17,7 +17,7 @@ func genRequest(dir string) error {
 		return err
 	}
 
-	filename := filepath.Join(abs, "request.ts")
+	filename := filepath.Join(abs, "gocliRequest.ts")
 	if pathx.FileExists(filename) {
 		return nil
 	}
