@@ -118,6 +118,7 @@ var commonMysqlDataTypeMapString = map[string]string{
 	"nvarchar":        "string",
 	"nchar":           "string",
 	"char":            "string",
+	"bpchar":          "string",
 	"_char":           "pq.StringArray",
 	"character":       "string",
 	"varchar":         "string",
