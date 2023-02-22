@@ -6,8 +6,10 @@ import (
 	"strings"
 
 	ztrace "github.com/zeromicro/go-zero/internal/trace"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/peer"
 )
 
@@ -74,4 +76,15 @@ func PeerAttr(addr string) []attribute.KeyValue {
 		semconv.NetPeerIPKey.String(host),
 		semconv.NetPeerPortKey.String(port),
 	}
+}
+
+// TracerFromContext returns a tracer in ctx, otherwise returns a global tracer.
+func TracerFromContext(ctx context.Context) (tracer trace.Tracer) {
+	if span := trace.SpanFromContext(ctx); span.SpanContext().IsValid() {
+		tracer = span.TracerProvider().Tracer(TraceName)
+	} else {
+		tracer = otel.Tracer(TraceName)
+	}
+
+	return
 }
