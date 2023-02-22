@@ -11,6 +11,7 @@ import (
 )
 
 var _ MultipleSqlConn = (*multipleSqlConn)(nil)
+var _ FollowerSqlConn = (*followerSqlConn)(nil)
 
 type (
 	DBConf struct {
@@ -44,6 +45,9 @@ type (
 		enableFollower bool
 		p2cPicker      picker
 		conf           DBConf
+	}
+	followerSqlConn struct {
+		conn SqlConn
 	}
 )
 
@@ -166,7 +170,7 @@ func (m *multipleSqlConn) FollowerDB() (FollowerSqlConn, error) {
 		return nil, err
 	}
 
-	return result.conn, nil
+	return &followerSqlConn{conn: result.conn}, nil
 }
 
 func (m *multipleSqlConn) containSelect(query string) bool {
@@ -215,6 +219,40 @@ func (q *queryDb) query(query func(conn SqlConn) error) (err error) {
 	}()
 
 	return query(q.conn)
+}
+
+// -------------
+
+func (f *followerSqlConn) QueryRow(v any, query string, args ...any) error {
+	return f.conn.QueryRow(v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowCtx(ctx context.Context, v any, query string, args ...any) error {
+	return f.conn.QueryRowCtx(ctx, v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowPartial(v any, query string, args ...any) error {
+	return f.conn.QueryRowPartial(v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error {
+	return f.conn.QueryRowPartialCtx(ctx, v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRows(v any, query string, args ...any) error {
+	return f.conn.QueryRows(v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
+	return f.conn.QueryRowsCtx(ctx, v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowsPartial(v any, query string, args ...any) error {
+	return f.conn.QueryRowsPartial(v, query, args...)
+}
+
+func (f *followerSqlConn) QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error {
+	return f.conn.QueryRowsPartialCtx(ctx, v, query, args...)
 }
 
 // -------------
