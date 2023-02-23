@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/chain"
@@ -120,7 +121,7 @@ func TestWithMiddleware(t *testing.T) {
 			Zipcode  int64  `form:"zipcode"`
 		}
 
-		err := httpx.Parse(r, &v)
+		err := httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Nickname, v.Zipcode))
 		assert.Nil(t, err)
@@ -177,7 +178,7 @@ func TestMultiMiddlewares(t *testing.T) {
 			Zipcode  int64  `form:"zipcode"`
 		}
 
-		err := httpx.Parse(r, &v)
+		err := httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		_, err = io.WriteString(w, fmt.Sprintf("%s:%s", v.Nickname, m[v.Nickname]))
 		assert.Nil(t, err)
@@ -569,12 +570,11 @@ Port: 54321
 			Method: http.MethodGet,
 			Path:   "/user/:name",
 			Handler: func(writer http.ResponseWriter, request *http.Request) {
-
 				var userInfo struct {
 					Name string `path:"name"`
 				}
 
-				err := httpx.Parse(request, &userInfo)
+				err := httpx.Parse(request, &userInfo, false)
 				if err != nil {
 					_, _ = writer.Write([]byte("failed"))
 					writer.WriteHeader(http.StatusBadRequest)

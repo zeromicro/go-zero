@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
@@ -149,7 +150,7 @@ func TestParseSlice(t *testing.T) {
 			Names []string `form:"names"`
 		}{}
 
-		err = httpx.Parse(r, &v)
+		err = httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		assert.Equal(t, 2, len(v.Names))
 		assert.Equal(t, "first", v.Names[0])
@@ -169,7 +170,8 @@ func TestParseJsonPost(t *testing.T) {
 
 	router := NewRouter()
 	err = router.Handle(http.MethodPost, "/:name/:year", http.HandlerFunc(func(
-		w http.ResponseWriter, r *http.Request) {
+		w http.ResponseWriter, r *http.Request,
+	) {
 		v := struct {
 			Name     string `path:"name"`
 			Year     int    `path:"year"`
@@ -179,7 +181,7 @@ func TestParseJsonPost(t *testing.T) {
 			Time     int64  `json:"time"`
 		}{}
 
-		err = httpx.Parse(r, &v)
+		err = httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		_, err = io.WriteString(w, fmt.Sprintf("%s:%d:%s:%d:%s:%d", v.Name, v.Year,
 			v.Nickname, v.Zipcode, v.Location, v.Time))
@@ -201,7 +203,8 @@ func TestParseJsonPostWithIntSlice(t *testing.T) {
 
 	router := NewRouter()
 	err = router.Handle(http.MethodPost, "/:name/:year", http.HandlerFunc(func(
-		w http.ResponseWriter, r *http.Request) {
+		w http.ResponseWriter, r *http.Request,
+	) {
 		v := struct {
 			Name  string  `path:"name"`
 			Year  int     `path:"year"`
@@ -209,7 +212,7 @@ func TestParseJsonPostWithIntSlice(t *testing.T) {
 			Years []int64 `json:"years"`
 		}{}
 
-		err = httpx.Parse(r, &v)
+		err = httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		assert.ElementsMatch(t, []int{1, 2}, v.Ages)
 		assert.ElementsMatch(t, []int64{3, 4}, v.Years)
@@ -239,7 +242,7 @@ func TestParseJsonPostError(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -262,7 +265,7 @@ func TestParseJsonPostInvalidRequest(t *testing.T) {
 				Ages []int `json:"ages"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -287,7 +290,7 @@ func TestParseJsonPostRequired(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -308,7 +311,7 @@ func TestParsePath(t *testing.T) {
 				Year int    `path:"year"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s in %d", v.Name, v.Year))
 			assert.Nil(t, err)
@@ -333,7 +336,7 @@ func TestParsePathRequired(t *testing.T) {
 				Year int    `path:"year"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -354,7 +357,7 @@ func TestParseQuery(t *testing.T) {
 				Zipcode  int64  `form:"zipcode"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Nickname, v.Zipcode))
 			assert.Nil(t, err)
@@ -378,7 +381,7 @@ func TestParseQueryRequired(t *testing.T) {
 			Zipcode  int64  `form:"zipcode"`
 		}{}
 
-		err = httpx.Parse(r, &v)
+		err = httpx.Parse(r, &v, false)
 		assert.NotNil(t, err)
 	}))
 	assert.Nil(t, err)
@@ -399,7 +402,7 @@ func TestParseOptional(t *testing.T) {
 				Zipcode  int64  `form:"zipcode,optional"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Nickname, v.Zipcode))
 			assert.Nil(t, err)
@@ -436,7 +439,7 @@ func TestParseNestedInRequestEmpty(t *testing.T) {
 	err = router.Handle(http.MethodPost, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Name, v.Year))
 			assert.Nil(t, err)
@@ -475,7 +478,7 @@ func TestParsePtrInRequest(t *testing.T) {
 	err = router.Handle(http.MethodPost, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d:%d", v.Name, v.Year, v.Audio.Volume))
 			assert.Nil(t, err)
@@ -506,7 +509,7 @@ func TestParsePtrInRequestEmpty(t *testing.T) {
 	err = router.Handle(http.MethodPost, "/kevin", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -527,7 +530,7 @@ func TestParseQueryOptional(t *testing.T) {
 				Zipcode  int64  `form:"zipcode,optional"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Nickname, v.Zipcode))
 			assert.Nil(t, err)
@@ -554,7 +557,7 @@ func TestParse(t *testing.T) {
 				Zipcode  int64  `form:"zipcode"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d:%s:%d", v.Name, v.Year, v.Nickname, v.Zipcode))
 			assert.Nil(t, err)
@@ -586,7 +589,7 @@ func TestParseWrappedRequest(t *testing.T) {
 	err = router.Handle(http.MethodGet, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Name, v.Year))
 		}))
@@ -618,7 +621,7 @@ func TestParseWrappedGetRequestWithJsonHeader(t *testing.T) {
 	err = router.Handle(http.MethodGet, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Name, v.Year))
 			assert.Nil(t, err)
@@ -651,7 +654,7 @@ func TestParseWrappedHeadRequestWithJsonHeader(t *testing.T) {
 	err = router.Handle(http.MethodHead, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Name, v.Year))
 			assert.Nil(t, err)
@@ -683,7 +686,7 @@ func TestParseWrappedRequestPtr(t *testing.T) {
 	err = router.Handle(http.MethodGet, "/:name/:year", http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			var v WrappedRequest
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d", v.Name, v.Year))
 			assert.Nil(t, err)
@@ -713,7 +716,7 @@ func TestParseWithAll(t *testing.T) {
 			Time     int64  `json:"time"`
 		}{}
 
-		err = httpx.Parse(r, &v)
+		err = httpx.Parse(r, &v, false)
 		assert.Nil(t, err)
 		_, err = io.WriteString(w, fmt.Sprintf("%s:%d:%s:%d:%s:%d", v.Name, v.Year,
 			v.Nickname, v.Zipcode, v.Location, v.Time))
@@ -745,7 +748,7 @@ func TestParseWithAllUtf8(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.Nil(t, err)
 			_, err = io.WriteString(w, fmt.Sprintf("%s:%d:%s:%d:%s:%d", v.Name, v.Year,
 				v.Nickname, v.Zipcode, v.Location, v.Time))
@@ -776,7 +779,7 @@ func TestParseWithMissingForm(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 			assert.Equal(t, "field zipcode is not set", err.Error())
 		}))
@@ -803,7 +806,7 @@ func TestParseWithMissingAllForms(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -829,9 +832,9 @@ func TestParseWithMissingJson(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotEqual(t, io.EOF, err)
-			assert.NotNil(t, httpx.Parse(r, &v))
+			assert.NotNil(t, httpx.Parse(r, &v, false))
 		}))
 	assert.Nil(t, err)
 
@@ -855,7 +858,7 @@ func TestParseWithMissingAllJsons(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotEqual(t, io.EOF, err)
 			assert.NotNil(t, err)
 		}))
@@ -882,7 +885,7 @@ func TestParseWithMissingPath(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 			assert.Equal(t, "field name is not set", err.Error())
 		}))
@@ -909,7 +912,7 @@ func TestParseWithMissingAllPaths(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -936,7 +939,7 @@ func TestParseGetWithContentLengthHeader(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -962,7 +965,7 @@ func TestParseJsonPostWithTypeMismatch(t *testing.T) {
 				Time     int64  `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)
@@ -986,7 +989,7 @@ func TestParseJsonPostWithInt2String(t *testing.T) {
 				Time string `json:"time"`
 			}{}
 
-			err = httpx.Parse(r, &v)
+			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
 		}))
 	assert.Nil(t, err)

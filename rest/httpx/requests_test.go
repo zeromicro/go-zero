@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
 )
@@ -21,7 +22,7 @@ func TestParseForm(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
 	assert.Nil(t, err)
-	assert.Nil(t, Parse(r, &v))
+	assert.Nil(t, Parse(r, &v, false))
 	assert.Equal(t, "hello", v.Name)
 	assert.Equal(t, 18, v.Age)
 	assert.Equal(t, 3.4, v.Percent)
@@ -87,7 +88,7 @@ func TestParsePath(t *testing.T) {
 		"name": "foo",
 		"age":  "18",
 	})
-	err := Parse(r, &v)
+	err := Parse(r, &v, false)
 	assert.Nil(t, err)
 	assert.Equal(t, "foo", v.Name)
 	assert.Equal(t, 18, v.Age)
@@ -103,7 +104,7 @@ func TestParsePath_Error(t *testing.T) {
 	r = pathvar.WithVars(r, map[string]string{
 		"name": "foo",
 	})
-	assert.NotNil(t, Parse(r, &v))
+	assert.NotNil(t, Parse(r, &v, false))
 }
 
 func TestParseFormOutOfRange(t *testing.T) {
@@ -141,7 +142,7 @@ func TestParseFormOutOfRange(t *testing.T) {
 		r, err := http.NewRequest(http.MethodGet, test.url, http.NoBody)
 		assert.Nil(t, err)
 
-		err = Parse(r, &v)
+		err = Parse(r, &v, false)
 		if test.pass {
 			assert.Nil(t, err)
 		} else {
@@ -169,7 +170,7 @@ Content-Disposition: form-data; name="age"
 	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
 
-	assert.Nil(t, Parse(r, &v))
+	assert.Nil(t, Parse(r, &v, false))
 	assert.Equal(t, "kevin", v.Name)
 	assert.Equal(t, 18, v.Age)
 }
@@ -193,7 +194,7 @@ Content-Disposition: form-data; name="age"
 	r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	r.Header.Set(ContentType, "multipart/form-data; boundary=--------------------------220477612388154780019383")
 
-	assert.NotNil(t, Parse(r, &v))
+	assert.NotNil(t, Parse(r, &v, false))
 }
 
 func TestParseJsonBody(t *testing.T) {
@@ -207,7 +208,7 @@ func TestParseJsonBody(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 		r.Header.Set(ContentType, header.JsonContentType)
 
-		assert.Nil(t, Parse(r, &v))
+		assert.Nil(t, Parse(r, &v, false))
 		assert.Equal(t, "kevin", v.Name)
 		assert.Equal(t, 18, v.Age)
 	})
@@ -219,7 +220,7 @@ func TestParseJsonBody(t *testing.T) {
 		}
 
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
-		assert.Nil(t, Parse(r, &v))
+		assert.Nil(t, Parse(r, &v, false))
 		assert.Equal(t, "", v.Name)
 		assert.Equal(t, 0, v.Age)
 	})
@@ -249,7 +250,7 @@ func TestParseRequired(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "/a?name=hello", http.NoBody)
 	assert.Nil(t, err)
-	assert.NotNil(t, Parse(r, &v))
+	assert.NotNil(t, Parse(r, &v, false))
 }
 
 func TestParseOptions(t *testing.T) {
@@ -259,7 +260,7 @@ func TestParseOptions(t *testing.T) {
 
 	r, err := http.NewRequest(http.MethodGet, "/a?pos=4", http.NoBody)
 	assert.Nil(t, err)
-	assert.NotNil(t, Parse(r, &v))
+	assert.NotNil(t, Parse(r, &v, false))
 }
 
 func TestParseHeaders(t *testing.T) {
@@ -305,7 +306,7 @@ func TestParseHeaders_Error(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/", http.NoBody)
 	r.Header.Set("name", "foo")
-	assert.NotNil(t, Parse(r, &v))
+	assert.NotNil(t, Parse(r, &v, false))
 }
 
 func BenchmarkParseRaw(b *testing.B) {
@@ -346,7 +347,7 @@ func BenchmarkParseAuto(b *testing.B) {
 			Percent float64 `form:"percent,optional"`
 		}{}
 
-		if err = Parse(r, &v); err != nil {
+		if err = Parse(r, &v, false); err != nil {
 			b.Fatal(err)
 		}
 	}
