@@ -17,5 +17,5 @@ WORKDIR /home
 COPY --from=builder /home/{{.serviceName}}_api ./
 COPY --from=builder /home/etc/{{.serviceName}}.yaml ./
 
-EXPOSE 9100
+EXPOSE {{.port}}
 ENTRYPOINT ./{{.serviceName}}_api -f {{.serviceName}}.yaml

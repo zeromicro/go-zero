@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/iancoleman/strcase"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -119,7 +121,7 @@ func CreateServiceCommand(args []string) error {
 
 	allTpl := template.Must(template.New("allApiTemplate").Parse(allApiTmpl))
 	if err := allTpl.Execute(allApiFile, map[string]string{
-		"name": dirName,
+		"name": strcase.ToCamel(dirName),
 	}); err != nil {
 		return err
 	}

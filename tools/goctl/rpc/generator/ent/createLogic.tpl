@@ -30,8 +30,8 @@ func NewCreate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-func (l *Create{{.modelName}}Logic) Create{{.modelName}}(in *{{.projectName}}.{{.modelName}}Info) (*{{.projectName}}.BaseResp, error) {
-    err := l.svcCtx.DB.{{.modelName}}.Create().
+func (l *Create{{.modelName}}Logic) Create{{.modelName}}(in *{{.projectName}}.{{.modelName}}Info) (*{{.projectName}}.Base{{if .useUUID}}UU{{end}}IDResp, error) {
+    result, err := l.svcCtx.DB.{{.modelName}}.Create().
 {{.setLogic}}
 
     if err != nil {
@@ -45,5 +45,5 @@ func (l *Create{{.modelName}}Logic) Create{{.modelName}}(in *{{.projectName}}.{{
         }
     }
 
-    return &{{.projectName}}.BaseResp{Msg: i18n.CreateSuccess}, nil
+    return &{{.projectName}}.Base{{if .useUUID}}UU{{end}}IDResp{Id: result.ID{{if .useUUID}}.String(){{end}}, Msg: i18n.CreateSuccess}, nil
 }

@@ -267,7 +267,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	createLogicTmpl.Execute(createLogic, map[string]any{
 		"hasTime":     hasTime,
 		"hasUUID":     hasUUID,
-		"setLogic":    setLogic.String(),
+		"setLogic":    strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
 		"modelName":   schema.Name,
 		"projectName": g.ProjectName,
 		"projectPath": projectCtx.Path,
