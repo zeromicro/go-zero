@@ -13,5 +13,9 @@
 		"targetNotExist": "目标不存在",
 		"databaseError": "数据库错误",
 		"redisError": "Redis 错误"
+	},
+	"init": {
+		"initializeIsRunning": "正在初始化...",
+		"alreadyInit": "数据库已被初始化。"
 	}
 }

@@ -13,5 +13,9 @@
 		"targetNotExist": "Target does not exist",
 		"databaseError": "Database error",
 		"redisError": "Redis error"
+	},
+	"init": {
+		"alreadyInit": "The database had been initialized.",
+		"initializeIsRunning": "The initialization is running..."
 	}
 }
