@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -115,6 +117,41 @@ func TestRedisKeyConf(t *testing.T) {
 			} else {
 				assert.NotNil(t, test.RedisKeyConf.Validate())
 			}
+		})
+	}
+}
+
+func TestRedisCluterConf_Validate(t *testing.T) {
+	type fields struct {
+		Hosts []string
+		Pass  string
+		Tls   bool
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		wantErr assert.ErrorAssertionFunc
+	}{
+		{
+			name: "",
+			fields: fields{
+				Hosts: nil,
+				Pass:  "",
+				Tls:   false,
+			},
+			wantErr: func(t assert.TestingT, err error, i ...interface{}) bool {
+				return errors.Is(err, ErrEmptyHosts)
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &RedisCluterConf{
+				Hosts: tt.fields.Hosts,
+				Pass:  tt.fields.Pass,
+				Tls:   tt.fields.Tls,
+			}
+			tt.wantErr(t, r.Validate(), fmt.Sprintf("Validate()"))
 		})
 	}
 }

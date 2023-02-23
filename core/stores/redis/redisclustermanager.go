@@ -11,7 +11,7 @@ import (
 var clusterManager = syncx.NewResourceManager()
 
 func getCluster(r *Redis) (*red.ClusterClient, error) {
-	val, err := clusterManager.GetResource(r.Addr, func() (io.Closer, error) {
+	val, err := clusterManager.GetResource(r.key, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
@@ -19,8 +19,8 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        []string{r.Addr},
-			Password:     r.Pass,
+			Addrs:        r.addrs,
+			Password:     r.pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,

@@ -5,6 +5,8 @@ import "errors"
 var (
 	// ErrEmptyHost is an error that indicates no redis host is set.
 	ErrEmptyHost = errors.New("empty redis host")
+	// ErrEmptyHosts is an error that indicates no redis hosts is set.
+	ErrEmptyHosts = errors.New("empty redis hosts")
 	// ErrEmptyType is an error that indicates no redis type is set.
 	ErrEmptyType = errors.New("empty redis type")
 	// ErrEmptyKey is an error that indicates no redis key is set.
@@ -20,6 +22,12 @@ type (
 		Type string `json:",default=node,options=node|cluster"`
 		Pass string `json:",optional"`
 		Tls  bool   `json:",optional"`
+	}
+
+	RedisCluterConf struct {
+		Hosts []string
+		Pass  string `json:",optional"`
+		Tls   bool   `json:",optional"`
 	}
 
 	// A RedisKeyConf is a redis config with key.
@@ -67,6 +75,14 @@ func (rkc RedisKeyConf) Validate() error {
 
 	if len(rkc.Key) == 0 {
 		return ErrEmptyKey
+	}
+
+	return nil
+}
+
+func (r *RedisCluterConf) Validate() error {
+	if len(r.Hosts) == 0 {
+		return ErrEmptyHosts
 	}
 
 	return nil

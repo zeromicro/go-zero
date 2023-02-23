@@ -17,7 +17,7 @@ const (
 var clientManager = syncx.NewResourceManager()
 
 func getClient(r *Redis) (*red.Client, error) {
-	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
+	val, err := clientManager.GetResource(r.key, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
@@ -25,8 +25,8 @@ func getClient(r *Redis) (*red.Client, error) {
 			}
 		}
 		store := red.NewClient(&red.Options{
-			Addr:         r.Addr,
-			Password:     r.Pass,
+			Addr:         r.addrs[0],
+			Password:     r.pass,
 			DB:           defaultDatabase,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,

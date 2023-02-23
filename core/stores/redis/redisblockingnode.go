@@ -17,11 +17,11 @@ type ClosableNode interface {
 func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 	timeout := readWriteTimeout + blockingQueryTimeout
 
-	switch r.Type {
+	switch r.typ {
 	case NodeType:
 		client := red.NewClient(&red.Options{
-			Addr:         r.Addr,
-			Password:     r.Pass,
+			Addr:         r.addrs[0],
+			Password:     r.pass,
 			DB:           defaultDatabase,
 			MaxRetries:   maxRetries,
 			PoolSize:     1,
@@ -31,8 +31,8 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 		return &clientBridge{client}, nil
 	case ClusterType:
 		client := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        []string{r.Addr},
-			Password:     r.Pass,
+			Addrs:        r.addrs,
+			Password:     r.pass,
 			MaxRetries:   maxRetries,
 			PoolSize:     1,
 			MinIdleConns: 1,
@@ -40,7 +40,7 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 		})
 		return &clusterBridge{client}, nil
 	default:
-		return nil, fmt.Errorf("unknown redis type: %s", r.Type)
+		return nil, fmt.Errorf("unknown redis type: %s", r.typ)
 	}
 }
 

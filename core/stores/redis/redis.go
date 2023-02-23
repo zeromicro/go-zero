@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	red "github.com/go-redis/redis/v8"
@@ -51,11 +52,12 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		tls  bool
-		brk  breaker.Breaker
+		addrs []string
+		key   string
+		typ   string
+		pass  string
+		tls   bool
+		brk   breaker.Breaker
 	}
 
 	// RedisNode interface represents a redis node.
@@ -102,6 +104,37 @@ func MustNewRedis(conf RedisConf, opts ...Option) *Redis {
 	return rds
 }
 
+// MustNewClusterRedis returns a Cluster Redis.
+func MustNewClusterRedis(conf RedisCluterConf) *Redis {
+	r, err := NewClusterRedis(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return r
+}
+
+// NewClusterRedis returns a Cluster Redis.
+func NewClusterRedis(conf RedisCluterConf) (*Redis, error) {
+	if err := conf.Validate(); err != nil {
+		return nil, err
+	}
+
+	r := &Redis{
+		addrs: conf.Hosts,
+		key:   strings.Join(conf.Hosts, ","),
+		typ:   ClusterType,
+		pass:  conf.Pass,
+		tls:   conf.Tls,
+		brk:   breaker.NewBreaker(),
+	}
+	if !r.Ping() {
+		return nil, ErrPing
+	}
+
+	return r, nil
+}
+
 // NewRedis returns a Redis with given options.
 func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	if err := conf.Validate(); err != nil {
@@ -128,9 +161,10 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 
 func newRedis(addr string, opts ...Option) *Redis {
 	r := &Redis{
-		Addr: addr,
-		Type: NodeType,
-		brk:  breaker.NewBreaker(),
+		addrs: []string{addr},
+		typ:   NodeType,
+		key:   addr,
+		brk:   breaker.NewBreaker(),
 	}
 
 	for _, opt := range opts {
@@ -1766,7 +1800,7 @@ func (s *Redis) SremCtx(ctx context.Context, key string, values ...any) (val int
 
 // String returns the string representation of s.
 func (s *Redis) String() string {
-	return s.Addr
+	return strings.Join(s.addrs, ",")
 }
 
 // Sunion is the implementation of redis sunion command.
@@ -2732,7 +2766,7 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 // Cluster customizes the given Redis as a cluster.
 func Cluster() Option {
 	return func(r *Redis) {
-		r.Type = ClusterType
+		r.typ = ClusterType
 	}
 }
 
@@ -2744,7 +2778,7 @@ func SetSlowThreshold(threshold time.Duration) {
 // WithPass customizes the given Redis with given password.
 func WithPass(pass string) Option {
 	return func(r *Redis) {
-		r.Pass = pass
+		r.pass = pass
 	}
 }
 
@@ -2760,13 +2794,13 @@ func acceptable(err error) bool {
 }
 
 func getRedis(r *Redis) (RedisNode, error) {
-	switch r.Type {
+	switch r.typ {
 	case ClusterType:
 		return getCluster(r)
 	case NodeType:
 		return getClient(r)
 	default:
-		return nil, fmt.Errorf("redis type '%s' is not supported", r.Type)
+		return nil, fmt.Errorf("redis type '%s' is not supported", r.typ)
 	}
 }
 
