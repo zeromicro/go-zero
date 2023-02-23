@@ -13,7 +13,7 @@ import (
 func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		{{if .HasRequest}}var req types.{{.RequestType}}
-		if err := httpx.Parse(r, &req); err != nil {
+		if err := httpx.Parse(r, &req, true); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 			return
 		}
