@@ -260,6 +260,40 @@ func TestTimingWheel_SetTimer(t *testing.T) {
 	}
 }
 
+func TestTimingWheel_HasKey(t *testing.T) {
+	const (
+		k = "key"
+		v = "value"
+	)
+	var (
+		ticker  = timex.NewFakeTicker()
+		done    = make(chan lang.PlaceholderType)
+		tw, err = NewTimingWheelWithTicker(testStep, 5, func(key, value any) {
+			assert.Equal(t, k, key.(string))
+			assert.Equal(t, v, value.(string))
+			close(done)
+		}, ticker)
+	)
+	assert.Nil(t, err)
+	defer tw.Stop()
+
+	assert.False(t, tw.HasKey(k))
+
+	tw.SetTimer(k, v, testStep*10)
+	assert.True(t, tw.HasKey(k))
+
+	for {
+		select {
+		case <-done:
+			assert.False(t, tw.HasKey(k))
+			return
+		default:
+			ticker.Tick()
+			time.Sleep(time.Millisecond)
+		}
+	}
+}
+
 func TestTimingWheel_SetAndMoveThenStart(t *testing.T) {
 	tests := []struct {
 		slots  int

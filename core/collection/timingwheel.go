@@ -162,6 +162,11 @@ func (tw *TimingWheel) Stop() {
 	close(tw.stopChannel)
 }
 
+func (tw *TimingWheel) HasKey(key any) bool {
+	_, ok := tw.timers.Get(key)
+	return ok
+}
+
 func (tw *TimingWheel) drainAll(fn func(key, value any)) {
 	runner := threading.NewTaskRunner(drainWorkers)
 	for _, slot := range tw.slots {
