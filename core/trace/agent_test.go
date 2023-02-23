@@ -15,6 +15,7 @@ func TestStartAgent(t *testing.T) {
 		endpoint2 = "remotehost:1234"
 		endpoint3 = "localhost:1235"
 		endpoint4 = "localhost:1236"
+		endpoint5 = "udp://localhost:6831"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -44,6 +45,11 @@ func TestStartAgent(t *testing.T) {
 		Endpoint: endpoint4,
 		Batcher:  kindOtlpHttp,
 	}
+	c7 := Config{
+		Name:     "UDP",
+		Endpoint: endpoint5,
+		Batcher:  kindJaeger,
+	}
 
 	StartAgent(c1)
 	StartAgent(c1)
@@ -52,16 +58,19 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c4)
 	StartAgent(c5)
 	StartAgent(c6)
+	StartAgent(c7)
 
 	lock.Lock()
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 4, len(agents))
+	assert.Equal(t, 5, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
 	assert.True(t, ok)
 	_, ok = agents[endpoint2]
 	assert.False(t, ok)
+	_, ok = agents[endpoint5]
+	assert.True(t, ok)
 }
