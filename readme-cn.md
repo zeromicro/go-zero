@@ -20,9 +20,9 @@
 > ***注意：***
 >
 > 从 v1.3.0 之前版本升级请执行以下命令：
-> 
+>
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
-> 
+>
 > `goctl migrate —verbose —version v1.4.3`
 
 ## 0. go-zero 介绍
@@ -121,10 +121,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ```shell
     # Go 1.15 及之前版本
     GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # Go 1.16 及以后版本
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # For Mac
     brew install goctl
 
@@ -200,7 +200,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
   * [Examples](https://github.com/zeromicro/zero-examples)
-  
+
 * 精选 `goctl` 插件
 
   | 插件    | 用途  |
