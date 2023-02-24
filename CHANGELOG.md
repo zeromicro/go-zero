@@ -1,4 +1,42 @@
 
+<a name="v0.2.1"></a>
+## [v0.2.1](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.0...v0.2.1)
+
+> 2023-02-23
+
+### Chore
+
+* reformat code ([#2903](https://github.com/suyuan32/simple-admin-tools/issues/2903))
+
+### Docs
+
+* update change log
+
+### Feat
+
+* validate parameters
+* Add request.ts ([#2901](https://github.com/suyuan32/simple-admin-tools/issues/2901))
+* validate parameters
+* add ldflags to reduce the size of binary file
+
+### Fix
+
+* bugs in parse test
+* update locale
+* fixed the bug that old trace instances may be fetched
+* makefile bug
+* test failures ([#2892](https://github.com/suyuan32/simple-admin-tools/issues/2892))
+* authority middleware
+* redundant err in service context
+* change page default order to desc
+
+### Refactor
+
+* optimize create logic
+* simplify sqlx fail fast ping and  simplify miniredis setup in test ([#2897](https://github.com/suyuan32/simple-admin-tools/issues/2897))
+* simplify stringx.Replacer, and avoid potential infinite loops ([#2877](https://github.com/suyuan32/simple-admin-tools/issues/2877))
+
+
 <a name="v0.2.0"></a>
 ## [v0.2.0](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.0-beta...v0.2.0)
 
