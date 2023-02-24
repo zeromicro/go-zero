@@ -23,7 +23,16 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	xValidator      Validator
 )
+
+type Validator interface {
+	Validate(data interface{}, lang string) error
+}
+
+func SetValidator(validator Validator) {
+	xValidator = validator
+}
 
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
@@ -39,7 +48,14 @@ func Parse(r *http.Request, v any) error {
 		return err
 	}
 
-	return ParseJsonBody(r, v)
+	if err := ParseJsonBody(r, v); err != nil {
+		return err
+	}
+
+	if xValidator != nil {
+		return xValidator.Validate(v, r.Header.Get("Accept-Language"))
+	}
+	return nil
 }
 
 // ParseHeaders parses the headers request.
