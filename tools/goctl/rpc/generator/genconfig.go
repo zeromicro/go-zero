@@ -8,7 +8,6 @@ import (
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
-	ctx2 "github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -37,14 +36,14 @@ func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config, 
 		return err
 	}
 
-	projectCtx, err := ctx2.Prepare(ctx.GetMain().Base)
-	if err != nil {
-		return err
-	}
+	//projectCtx, err := ctx2.Prepare(ctx.GetMain().Base)
+	//if err != nil {
+	//	return err
+	//}
 
 	return util.With("config").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"imports":   fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
 		"isEnt":     c.Ent,
-		"goPackage": projectCtx.Path,
+		"goPackage": ctx.GetMain().Base,
 	}, fileName, false)
 }
