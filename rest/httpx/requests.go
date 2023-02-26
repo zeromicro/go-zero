@@ -32,13 +32,6 @@ type Validator interface {
 	Validate(r *http.Request, data any) error
 }
 
-// SetValidator sets the validator.
-// The validator is used to validate the request, only called in Parse,
-// not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
-func SetValidator(val Validator) {
-	validator.Store(val)
-}
-
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
 	if err := ParsePath(r, v); err != nil {
@@ -121,6 +114,13 @@ func ParsePath(r *http.Request, v any) error {
 	}
 
 	return pathUnmarshaler.Unmarshal(m, v)
+}
+
+// SetValidator sets the validator.
+// The validator is used to validate the request, only called in Parse,
+// not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
+func SetValidator(val Validator) {
+	validator.Store(val)
 }
 
 func withJsonBody(r *http.Request) bool {
