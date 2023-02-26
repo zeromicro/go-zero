@@ -25,8 +25,10 @@ const topCpuUsage = 1000
 var ErrSignatureConfig = errors.New("bad config for Signature")
 
 type engine struct {
-	conf                 RestConf
-	routes               []featuredRoutes
+	conf   RestConf
+	routes []featuredRoutes
+	// timeout is the max timeout of all routes
+	timeout              time.Duration
 	unauthorizedCallback handler.UnauthorizedCallback
 	unsignedCallback     handler.UnsignedCallback
 	chain                chain.Chain
@@ -38,8 +40,10 @@ type engine struct {
 
 func newEngine(c RestConf) *engine {
 	svr := &engine{
-		conf: c,
+		conf:    c,
+		timeout: time.Duration(c.Timeout) * time.Millisecond,
 	}
+
 	if c.CpuThreshold > 0 {
 		svr.shedder = load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
 		svr.priorityShedder = load.NewAdaptiveShedder(load.WithCpuThreshold(
@@ -51,6 +55,12 @@ func newEngine(c RestConf) *engine {
 
 func (ng *engine) addRoutes(r featuredRoutes) {
 	ng.routes = append(ng.routes, r)
+
+	// need to guarantee the timeout is the max of all routes
+	// otherwise impossible to set http.Server.ReadTimeout & WriteTimeout
+	if r.timeout > ng.timeout {
+		ng.timeout = r.timeout
+	}
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
@@ -314,15 +324,15 @@ func (ng *engine) use(middleware Middleware) {
 
 func (ng *engine) withTimeout() internal.StartOption {
 	return func(svr *http.Server) {
-		timeout := ng.conf.Timeout
+		timeout := ng.timeout
 		if timeout > 0 {
 			// factor 0.8, to avoid clients send longer content-length than the actual content,
 			// without this timeout setting, the server will time out and respond 503 Service Unavailable,
 			// which triggers the circuit breaker.
-			svr.ReadTimeout = 4 * time.Duration(timeout) * time.Millisecond / 5
+			svr.ReadTimeout = 4 * timeout / 5
 			// factor 1.1, to avoid servers don't have enough time to write responses.
 			// setting the factor less than 1.0 may lead clients not receiving the responses.
-			svr.WriteTimeout = 11 * time.Duration(timeout) * time.Millisecond / 10
+			svr.WriteTimeout = 11 * timeout / 10
 		}
 	}
 }
