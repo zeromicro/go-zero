@@ -29,6 +29,7 @@ var (
 
 // Validator defines the interface for validating the request.
 type Validator interface {
+	// Validate validates the request and parsed data.
 	Validate(r *http.Request, data any) error
 }
 
