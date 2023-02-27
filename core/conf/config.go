@@ -14,7 +14,7 @@ import (
 )
 
 // mapKey is a random string to avoid conflict with user defined keys.
-const mapKey = "0AF793AB6B8E"
+const mapKey = "map-0AF793AB6B8E"
 
 var loaders = map[string]func([]byte, any) error{
 	".json": LoadFromJsonBytes,
@@ -24,7 +24,6 @@ var loaders = map[string]func([]byte, any) error{
 }
 
 type fieldInfo struct {
-	name     string
 	children map[string]fieldInfo
 }
 
@@ -110,7 +109,7 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info map[string]fieldInfo, key, name string, fields map[string]fieldInfo) {
+func addOrMergeFields(info map[string]fieldInfo, key string, fields map[string]fieldInfo) {
 	if prev, ok := info[key]; ok {
 		// merge fields
 		for k, v := range fields {
@@ -118,7 +117,6 @@ func addOrMergeFields(info map[string]fieldInfo, key, name string, fields map[st
 		}
 	} else {
 		info[key] = fieldInfo{
-			name:     name,
 			children: fields,
 		}
 	}
@@ -151,11 +149,10 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 			if ft.Kind() == reflect.Struct {
 				fields := buildFieldsInfo(ft)
 				for k, v := range fields {
-					addOrMergeFields(info, k, v.name, v.children)
+					addOrMergeFields(info, k, v.children)
 				}
 			} else {
 				info[lowerCaseName] = fieldInfo{
-					name:     name,
 					children: make(map[string]fieldInfo),
 				}
 			}
@@ -171,13 +168,12 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 		case reflect.Map:
 			fields = map[string]fieldInfo{
 				mapKey: {
-					name:     mapKey,
 					children: buildFieldsInfo(mapping.Deref(ft.Elem())),
 				},
 			}
 		}
 
-		addOrMergeFields(info, lowerCaseName, name, fields)
+		addOrMergeFields(info, lowerCaseName, fields)
 	}
 
 	return info
