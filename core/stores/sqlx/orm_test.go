@@ -1105,8 +1105,36 @@ func TestAnonymousStructPr(t *testing.T) {
 			assert.Equal(t, each.ClassName, *value[i].Class.ClassName)
 			assert.Equal(t, each.Discipline, value[i].Score.Discipline)
 			assert.Equal(t, each.Score, value[i].Score.Score)
-			//assert.Equal(t, each.Grade, value[i].Grade)
+			assert.Equal(t, each.Grade, value[i].Class.Grade)
 		}
+	})
+}
+func TestAnonymousStructPrError(t *testing.T) {
+	type Score struct {
+		Discipline string `db:"discipline"`
+		score      uint   `db:"score"`
+	}
+	type ClassType struct {
+		Grade     sql.NullString `db:"grade"`
+		ClassName *string        `db:"class_name"`
+	}
+	type Class struct {
+		*ClassType
+		Score
+	}
+	var value []*struct {
+		Age int64 `db:"age"`
+		Class
+		Name string `db:"name"`
+	}
+
+	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"name", "age", "grade", "discipline", "class_name", "score"}).AddRow("first", 2, nil, "数学", "实验班", 100).
+			AddRow("second", 3, "大一", "语文", "三班二年", 99)
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select name, age,grade,discipline,class_name,score from users where user=?", "anyone"))
 	})
 }
 
