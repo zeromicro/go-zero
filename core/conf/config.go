@@ -13,6 +13,9 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
+// mapKey is a random string to avoid conflict with user defined keys.
+const mapKey = "0AF793AB6B8E"
+
 var loaders = map[string]func([]byte, any) error{
 	".json": LoadFromJsonBytes,
 	".toml": LoadFromTomlBytes,
@@ -166,7 +169,12 @@ func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 		case reflect.Array, reflect.Slice:
 			fields = buildFieldsInfo(ft.Elem())
 		case reflect.Map:
-			fields = buildFieldsInfo(ft.Elem())
+			fields = map[string]fieldInfo{
+				mapKey: {
+					name:     mapKey,
+					children: buildFieldsInfo(mapping.Deref(ft.Elem())),
+				},
+			}
 		}
 
 		addOrMergeFields(info, lowerCaseName, name, fields)
@@ -207,6 +215,8 @@ func toLowerCaseKeyMap(m map[string]any, info map[string]fieldInfo) map[string]a
 		lk := toLowerCase(k)
 		if ti, ok = info[lk]; ok {
 			res[lk] = toLowerCaseInterface(v, ti.children)
+		} else if mi, ok := info[mapKey]; ok {
+			res[k] = toLowerCaseInterface(v, mi.children)
 		} else {
 			res[k] = v
 		}
