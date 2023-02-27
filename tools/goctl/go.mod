@@ -12,7 +12,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
-	github.com/zeromicro/antlr v1.0.0
+	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/ddl-parser v1.0.4
 	github.com/zeromicro/go-zero v1.4.4
 	golang.org/x/text v0.4.0
