@@ -107,15 +107,15 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info map[string]fieldInfo, key string, field fieldInfo) {
-	if prev, ok := info[key]; ok {
+func addOrMergeFields(info fieldInfo, key string, child fieldInfo) {
+	if prev, ok := info.children[key]; ok {
 		// merge fields
-		for k, v := range field.children {
+		for k, v := range child.children {
 			prev.children[k] = v
 		}
-		prev.mapField = field.mapField
+		prev.mapField = child.mapField
 	} else {
-		info[key] = field
+		info.children[key] = child
 	}
 }
 
@@ -148,13 +148,13 @@ func buildStructFieldsInfo(tp reflect.Type) fieldInfo {
 			case reflect.Struct:
 				fields := buildFieldsInfo(ft)
 				for k, v := range fields.children {
-					addOrMergeFields(info.children, k, v)
+					addOrMergeFields(info, k, v)
 				}
 				info.mapField = fields.mapField
 			case reflect.Map:
-				mapField := buildFieldsInfo(mapping.Deref(ft.Elem()))
+				elemField := buildFieldsInfo(mapping.Deref(ft.Elem()))
 				info.children[lowerCaseName] = fieldInfo{
-					mapField: &mapField,
+					mapField: &elemField,
 				}
 			default:
 				info.children[lowerCaseName] = fieldInfo{
@@ -164,23 +164,18 @@ func buildStructFieldsInfo(tp reflect.Type) fieldInfo {
 			continue
 		}
 
-		var fields map[string]fieldInfo
-		var mapField *fieldInfo
+		var finfo fieldInfo
 		switch ft.Kind() {
 		case reflect.Struct:
-			fields = buildFieldsInfo(ft).children
+			finfo = buildFieldsInfo(ft)
 		case reflect.Array, reflect.Slice:
-			fields = buildFieldsInfo(ft.Elem()).children
+			finfo = buildFieldsInfo(ft.Elem())
 		case reflect.Map:
-			mapField = &fieldInfo{
-				children: buildFieldsInfo(mapping.Deref(ft.Elem())).children,
-			}
+			elemInfo := buildFieldsInfo(mapping.Deref(ft.Elem()))
+			finfo.mapField = &elemInfo
 		}
 
-		addOrMergeFields(info.children, lowerCaseName, fieldInfo{
-			children: fields,
-			mapField: mapField,
-		})
+		addOrMergeFields(info, lowerCaseName, finfo)
 	}
 
 	return info
