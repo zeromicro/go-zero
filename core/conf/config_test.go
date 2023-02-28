@@ -17,7 +17,7 @@ func TestLoadConfig_notRecogFile(t *testing.T) {
 	filename, err := fs.TempFilenameWithText("hello")
 	assert.Nil(t, err)
 	defer os.Remove(filename)
-	assert.NotNil(t, Load(filename, nil))
+	assert.NotNil(t, LoadConfig(filename, nil))
 }
 
 func TestConfigJson(t *testing.T) {
@@ -64,7 +64,7 @@ func TestLoadFromJsonBytesArray(t *testing.T) {
 		}
 	}
 
-	assert.NoError(t, LoadFromJsonBytes(input, &val))
+	assert.NoError(t, LoadConfigFromJsonBytes(input, &val))
 	var expect []string
 	for _, user := range val.Users {
 		expect = append(expect, user.Name)
@@ -172,7 +172,7 @@ B: bar`)
 		A string
 		B string
 	}
-	assert.NoError(t, LoadFromYamlBytes(text, &val1))
+	assert.NoError(t, LoadConfigFromYamlBytes(text, &val1))
 	assert.Equal(t, "foo", val1.A)
 	assert.Equal(t, "bar", val1.B)
 	assert.NoError(t, LoadFromYamlBytes(text, &val2))
@@ -556,6 +556,64 @@ func TestUnmarshalJsonBytesWithAnonymousField(t *testing.T) {
 	assert.NoError(t, LoadFromJsonBytes(input, &c))
 	assert.Equal(t, "hello", c.Name)
 	assert.Equal(t, Int(3), c.Int)
+}
+
+func TestUnmarshalJsonBytesWithMapValueOfStruct(t *testing.T) {
+	type (
+		Value struct {
+			Name string
+		}
+
+		Config struct {
+			Items map[string]Value
+		}
+	)
+
+	var inputs = [][]byte{
+		[]byte(`{"Items": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"Items": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"items": {"key":{"name": "foo"}}}`),
+		[]byte(`{"items": {"key":{"name": "foo"}}}`),
+	}
+	for _, input := range inputs {
+		var c Config
+		if assert.NoError(t, LoadFromJsonBytes(input, &c)) {
+			assert.Equal(t, 1, len(c.Items))
+			for _, v := range c.Items {
+				assert.Equal(t, "foo", v.Name)
+			}
+		}
+	}
+}
+
+func TestUnmarshalJsonBytesWithMapTypeValueOfStruct(t *testing.T) {
+	type (
+		Value struct {
+			Name string
+		}
+
+		Map map[string]Value
+
+		Config struct {
+			Map
+		}
+	)
+
+	var inputs = [][]byte{
+		[]byte(`{"Map": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"Map": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"map": {"key":{"name": "foo"}}}`),
+		[]byte(`{"map": {"key":{"name": "foo"}}}`),
+	}
+	for _, input := range inputs {
+		var c Config
+		if assert.NoError(t, LoadFromJsonBytes(input, &c)) {
+			assert.Equal(t, 1, len(c.Map))
+			for _, v := range c.Map {
+				assert.Equal(t, "foo", v.Name)
+			}
+		}
+	}
 }
 
 func createTempFile(ext, text string) (string, error) {
