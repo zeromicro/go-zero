@@ -1,4 +1,31 @@
 
+<a name="v0.2.2"></a>
+## [v0.2.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.1...v0.2.2)
+
+> 2023-02-28
+
+### Chore
+
+* update dependencies
+
+### Docs
+
+* update change log
+
+### Feat
+
+* ent error handling
+
+### Fix
+
+* use casbin watcher
+* optimize with tx function
+
+### Pull Requests
+
+* Merge pull request [#27](https://github.com/suyuan32/simple-admin-tools/issues/27) from vwenkk/master
+
+
 <a name="v0.2.1"></a>
 ## [v0.2.1](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.0...v0.2.1)
 
@@ -1625,7 +1652,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.3.4"></a>
-## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...v1.3.4)
+## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.4)
 
 > 2022-06-03
 
@@ -1676,14 +1703,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * add more tests ([#1856](https://github.com/suyuan32/simple-admin-tools/issues/1856))
 
 
-<a name="v1.3.3"></a>
-## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.3)
+<a name="tools/goctl/v1.3.5"></a>
+## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...tools/goctl/v1.3.5)
 
 > 2022-04-28
 
 
-<a name="tools/goctl/v1.3.5"></a>
-## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...tools/goctl/v1.3.5)
+<a name="v1.3.3"></a>
+## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...v1.3.3)
 
 > 2022-04-28
 
@@ -2354,9 +2381,15 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.4"></a>
-## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.4)
+## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.4)
 
 > 2021-01-16
+
+
+<a name="v1.1.3-beta"></a>
+## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.3-beta)
+
+> 2021-01-13
 
 
 <a name="v1.1.3"></a>
@@ -2366,13 +2399,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.3-pre"></a>
-## [v1.1.3-pre](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.3-pre)
-
-> 2021-01-13
-
-
-<a name="v1.1.3-beta"></a>
-## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.2...v1.1.3-beta)
+## [v1.1.3-pre](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.2...v1.1.3-pre)
 
 > 2021-01-13
 
