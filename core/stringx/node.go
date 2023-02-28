@@ -14,7 +14,6 @@ func (n *node) add(word string) {
 	}
 
 	nd := n
-	var depth int
 	for i, char := range chars {
 		if nd.children == nil {
 			child := new(node)
@@ -23,7 +22,6 @@ func (n *node) add(word string) {
 			nd = child
 		} else if child, ok := nd.children[char]; ok {
 			nd = child
-			depth++
 		} else {
 			child := new(node)
 			child.depth = i + 1

@@ -853,7 +853,12 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName 
 
 	numFields := baseType.NumField()
 	for i := 0; i < numFields; i++ {
-		if err := u.processField(baseType.Field(i), valElem.Field(i), m, fullName); err != nil {
+		field := baseType.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+
+		if err := u.processField(field, valElem.Field(i), m, fullName); err != nil {
 			return err
 		}
 	}

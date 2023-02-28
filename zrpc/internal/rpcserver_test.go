@@ -22,10 +22,11 @@ func TestRpcServer(t *testing.T) {
 		Breaker:    true,
 	}, WithMetrics(metrics), WithRpcHealth(true))
 	server.SetName("mock")
-	var wg sync.WaitGroup
+	var wg, wgDone sync.WaitGroup
 	var grpcServer *grpc.Server
 	var lock sync.Mutex
 	wg.Add(1)
+	wgDone.Add(1)
 	go func() {
 		err := server.Start(func(server *grpc.Server) {
 			lock.Lock()
@@ -35,14 +36,16 @@ func TestRpcServer(t *testing.T) {
 			wg.Done()
 		})
 		assert.Nil(t, err)
+		wgDone.Done()
 	}()
 
 	wg.Wait()
-
-	proc.WrapUp()
 	lock.Lock()
 	grpcServer.GracefulStop()
 	lock.Unlock()
+
+	proc.WrapUp()
+	wgDone.Wait()
 }
 
 func TestRpcServer_WithBadAddress(t *testing.T) {
@@ -58,6 +61,8 @@ func TestRpcServer_WithBadAddress(t *testing.T) {
 		mock.RegisterDepositServiceServer(server, new(mock.DepositServer))
 	})
 	assert.NotNil(t, err)
+
+	proc.WrapUp()
 }
 
 func TestRpcServer_buildUnaryInterceptor(t *testing.T) {
