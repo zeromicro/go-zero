@@ -586,6 +586,36 @@ func TestUnmarshalJsonBytesWithMapValueOfStruct(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJsonBytesWithMapTypeValueOfStruct(t *testing.T) {
+	type (
+		Value struct {
+			Name string
+		}
+
+		Map map[string]Value
+
+		Config struct {
+			Map
+		}
+	)
+
+	var inputs = [][]byte{
+		[]byte(`{"Map": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"Map": {"Key":{"Name": "foo"}}}`),
+		[]byte(`{"map": {"key":{"name": "foo"}}}`),
+		[]byte(`{"map": {"key":{"name": "foo"}}}`),
+	}
+	for _, input := range inputs {
+		var c Config
+		if assert.NoError(t, LoadFromJsonBytes(input, &c)) {
+			assert.Equal(t, 1, len(c.Map))
+			for _, v := range c.Map {
+				assert.Equal(t, "foo", v.Name)
+			}
+		}
+	}
+}
+
 func createTempFile(ext, text string) (string, error) {
 	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
