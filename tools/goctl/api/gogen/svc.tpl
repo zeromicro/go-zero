@@ -24,9 +24,7 @@ func NewServiceContext(c {{.config}}) *ServiceContext {
     cbn := c.CasbinConf.MustNewCasbinWithRedisWatcher(c.DatabaseConf.Type, c.DatabaseConf.GetDSN(), c.RedisConf)
 {{end}}
 {{if .useI18n}}
-    trans := &i18n.Translator{}
-    trans.NewBundle(i18n2.LocaleFS)
-    trans.NewTranslator()
+    trans := i18n.NewTranslator(i18n2.LocaleFS)
 {{end}}
 	return &ServiceContext{
 		Config: c,
