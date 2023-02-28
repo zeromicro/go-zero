@@ -12,7 +12,11 @@
 		"changeStatusFailed": "状态修改失败",
 		"targetNotExist": "目标不存在",
 		"databaseError": "数据库错误",
-		"redisError": "Redis 错误"
+		"redisError": "Redis 错误",
+		"permissionDeny": "用户无权限访问此接口",
+		"constraintError": "操作失败: 数据冲突",
+		"validationError": "操作失败: 校验失败",
+		"notSingularError": "操作失败: 数据不唯一"
 	},
 	"init": {
 		"initializeIsRunning": "正在初始化...",

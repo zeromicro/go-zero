@@ -228,6 +228,18 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 			}
 		}
 
+		// gen ent error handler
+		err = g.GenErrorHandler(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
+
+		// gen ent transaction util
+		err = g.GenEntTx(dirCtx, proto, g.cfg, zctx)
+		if err != nil {
+			return err
+		}
+
 		if runtime.GOOS == vars.OsLinux {
 			_, err = execx.Run("make gen-rpc", abs)
 			if err != nil {

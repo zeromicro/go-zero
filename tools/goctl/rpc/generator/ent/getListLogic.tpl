@@ -6,10 +6,9 @@ import (
 	"{{.projectPath}}/ent/{{.modelNameLowerCase}}"
 	"{{.projectPath}}/ent/predicate"
 	"{{.projectPath}}/internal/svc"
+	"{{.projectPath}}/internal/utils/dberrorhandler"
     "{{.projectPath}}/{{.projectName}}"
 
-    "github.com/suyuan32/simple-admin-core/pkg/i18n"
-    "github.com/suyuan32/simple-admin-core/pkg/statuserr"
     "github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -31,8 +30,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.projectName}}.
 {{.predicateData}}
 
 	if err != nil {
-		logx.Error(err.Error())
-		return nil, statuserr.NewInternalError(i18n.DatabaseError)
+		return nil, dberrorhandler.DefaultEntError(err, in)
 	}
 
 	resp := &{{.projectName}}.{{.modelName}}ListResp{}

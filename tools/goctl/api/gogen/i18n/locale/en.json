@@ -8,11 +8,13 @@
 		"createFailed": "Create failed",
 		"deleteSuccess": "Delete successfully",
 		"deleteFailed": "Delete failed",
-		"changeStatusSuccess": "Change status successfully",
-		"changeStatusFailed": "Change status failed",
 		"targetNotExist": "Target does not exist",
 		"databaseError": "Database error",
-		"redisError": "Redis error"
+		"redisError": "Redis error",
+		"permissionDeny": "User does not have permission to access this interface",
+		"constraintError": "Operation failed: Data conflict",
+		"validationError": "Operation failed: Validation failed",
+		"notSingularError": "Operation failed: Data not unique"
 	},
 	"init": {
 		"alreadyInit": "The database had been initialized.",
