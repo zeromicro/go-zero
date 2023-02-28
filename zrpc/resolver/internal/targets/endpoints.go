@@ -1,12 +1,10 @@
 package targets
 
 import (
-	"strings"
-
 	"google.golang.org/grpc/resolver"
 )
 
-const slashSeparator = "/"
+const slashSeparator = '/'
 
 // GetAuthority returns the authority of the target.
 func GetAuthority(target resolver.Target) string {
@@ -15,5 +13,9 @@ func GetAuthority(target resolver.Target) string {
 
 // GetEndpoints returns the endpoints from the given target.
 func GetEndpoints(target resolver.Target) string {
-	return strings.Trim(target.URL.Path, slashSeparator)
+	if target.URL.Path[0] == slashSeparator {
+		return target.URL.Path[1:]
+	}
+
+	return target.URL.Path
 }
