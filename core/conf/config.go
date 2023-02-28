@@ -21,8 +21,8 @@ var loaders = map[string]func([]byte, any) error{
 }
 
 type fieldInfo struct {
-	name     string
 	children map[string]fieldInfo
+	mapField *fieldInfo
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -107,21 +107,19 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info map[string]fieldInfo, key, name string, fields map[string]fieldInfo) {
-	if prev, ok := info[key]; ok {
+func addOrMergeFields(info fieldInfo, key string, child fieldInfo) {
+	if prev, ok := info.children[key]; ok {
 		// merge fields
-		for k, v := range fields {
+		for k, v := range child.children {
 			prev.children[k] = v
 		}
+		prev.mapField = child.mapField
 	} else {
-		info[key] = fieldInfo{
-			name:     name,
-			children: fields,
-		}
+		info.children[key] = child
 	}
 }
 
-func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+func buildFieldsInfo(tp reflect.Type) fieldInfo {
 	tp = mapping.Deref(tp)
 
 	switch tp.Kind() {
@@ -130,46 +128,54 @@ func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 	case reflect.Array, reflect.Slice:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()))
 	default:
-		return nil
+		return fieldInfo{}
 	}
 }
 
-func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
-	info := make(map[string]fieldInfo)
+func buildStructFieldsInfo(tp reflect.Type) fieldInfo {
+	info := fieldInfo{
+		children: make(map[string]fieldInfo),
+	}
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
 		name := field.Name
 		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
-
 		// flatten anonymous fields
 		if field.Anonymous {
-			if ft.Kind() == reflect.Struct {
+			switch ft.Kind() {
+			case reflect.Struct:
 				fields := buildFieldsInfo(ft)
-				for k, v := range fields {
-					addOrMergeFields(info, k, v.name, v.children)
+				for k, v := range fields.children {
+					addOrMergeFields(info, k, v)
 				}
-			} else {
-				info[lowerCaseName] = fieldInfo{
-					name:     name,
+				info.mapField = fields.mapField
+			case reflect.Map:
+				elemField := buildFieldsInfo(mapping.Deref(ft.Elem()))
+				info.children[lowerCaseName] = fieldInfo{
+					mapField: &elemField,
+				}
+			default:
+				info.children[lowerCaseName] = fieldInfo{
 					children: make(map[string]fieldInfo),
 				}
 			}
 			continue
 		}
 
-		var fields map[string]fieldInfo
+		var finfo fieldInfo
 		switch ft.Kind() {
 		case reflect.Struct:
-			fields = buildFieldsInfo(ft)
+			finfo = buildFieldsInfo(ft)
 		case reflect.Array, reflect.Slice:
-			fields = buildFieldsInfo(ft.Elem())
+			finfo = buildFieldsInfo(ft.Elem())
 		case reflect.Map:
-			fields = buildFieldsInfo(ft.Elem())
+			elemInfo := buildFieldsInfo(mapping.Deref(ft.Elem()))
+			finfo.mapField = &elemInfo
 		}
 
-		addOrMergeFields(info, lowerCaseName, name, fields)
+		addOrMergeFields(info, lowerCaseName, finfo)
 	}
 
 	return info
@@ -179,7 +185,7 @@ func toLowerCase(s string) string {
 	return strings.ToLower(s)
 }
 
-func toLowerCaseInterface(v any, info map[string]fieldInfo) any {
+func toLowerCaseInterface(v any, info fieldInfo) any {
 	switch vv := v.(type) {
 	case map[string]any:
 		return toLowerCaseKeyMap(vv, info)
@@ -194,19 +200,21 @@ func toLowerCaseInterface(v any, info map[string]fieldInfo) any {
 	}
 }
 
-func toLowerCaseKeyMap(m map[string]any, info map[string]fieldInfo) map[string]any {
+func toLowerCaseKeyMap(m map[string]any, info fieldInfo) map[string]any {
 	res := make(map[string]any)
 
 	for k, v := range m {
-		ti, ok := info[k]
+		ti, ok := info.children[k]
 		if ok {
-			res[k] = toLowerCaseInterface(v, ti.children)
+			res[k] = toLowerCaseInterface(v, ti)
 			continue
 		}
 
 		lk := toLowerCase(k)
-		if ti, ok = info[lk]; ok {
-			res[lk] = toLowerCaseInterface(v, ti.children)
+		if ti, ok = info.children[lk]; ok {
+			res[lk] = toLowerCaseInterface(v, ti)
+		} else if info.mapField != nil {
+			res[k] = toLowerCaseInterface(v, *info.mapField)
 		} else {
 			res[k] = v
 		}
