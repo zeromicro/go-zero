@@ -1135,6 +1135,9 @@ func TestAnonymousStructPrError(t *testing.T) {
 		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
 		}, "select name, age,grade,discipline,class_name,score from users where user=?", "anyone"))
+		if len(value) > 0 {
+			assert.Equal(t, value[0].score, 0)
+		}
 	})
 }
 
