@@ -68,7 +68,7 @@ func genData(g *GenContext) error {
 							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "Info")),
 							strcase.ToLowerCamel(val.Name)), strcase.ToLowerCamel(val.Name)))
 
-					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    %s\n  },",
+					formData.WriteString(fmt.Sprintf("\n  {\n    field: '%s',\n    label: t('%s'),\n    %s\n    required: true,\n  },",
 						strcase.ToLowerCamel(val.Name),
 						fmt.Sprintf("%s.%s.%s", g.FolderName,
 							strcase.ToLowerCamel(strings.TrimSuffix(specData.RawName, "Info")),
