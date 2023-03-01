@@ -479,11 +479,7 @@ func TestLoadFromYamlItemOverlayWithMap(t *testing.T) {
 `)
 
 	var c TestConfig
-	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
-		assert.Equal(t, "localhost", c.Server.Redis.Host)
-		assert.Equal(t, 6379, c.Server.Redis.Port)
-		assert.Equal(t, "test", c.Server.Redis.Key)
-	}
+	assert.ErrorAs(t, LoadFromYamlBytes(input, &c), &dupErr)
 }
 
 func TestUnmarshalJsonBytesMap(t *testing.T) {
@@ -610,7 +606,7 @@ func TestUnmarshalJsonBytesWithMapTypeValueOfStruct(t *testing.T) {
 	}
 }
 
-func Test_checkInheritOverwrite(t *testing.T) {
+func Test_FieldOverwrite(t *testing.T) {
 	t.Run("normal", func(t *testing.T) {
 		type Base struct {
 			Name string
@@ -727,6 +723,292 @@ func Test_checkInheritOverwrite(t *testing.T) {
 		validate(&St2{})
 		validate(&St3{})
 		validate(&St4{})
+	})
+}
+
+func TestFieldOverwriteComplicated(t *testing.T) {
+	t.Run("double maps", func(t *testing.T) {
+		type (
+			Base1 struct {
+				Values map[string]string
+			}
+			Base2 struct {
+				Values map[string]string
+			}
+			Config struct {
+				Base1
+				Base2
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Values": {"Key": "Value"}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("merge children", func(t *testing.T) {
+		type (
+			Inner1 struct {
+				Name string
+			}
+			Inner2 struct {
+				Age int
+			}
+			Base1 struct {
+				Inner Inner1
+			}
+			Base2 struct {
+				Inner Inner2
+			}
+			Config struct {
+				Base1
+				Base2
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Inner": {"Name": "foo", "Age": 10}}`)
+		if assert.NoError(t, LoadFromJsonBytes(input, &c)) {
+			assert.Equal(t, "foo", c.Base1.Inner.Name)
+			assert.Equal(t, 10, c.Base2.Inner.Age)
+		}
+	})
+
+	t.Run("overwritten maps", func(t *testing.T) {
+		type (
+			Inner struct {
+				Map map[string]string
+			}
+			Config struct {
+				Map map[string]string
+				Inner
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Inner": {"Map": {"Key": "Value"}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten nested maps", func(t *testing.T) {
+		type (
+			Inner struct {
+				Map map[string]string
+			}
+			Middle1 struct {
+				Map map[string]string
+				Inner
+			}
+			Middle2 struct {
+				Map map[string]string
+				Inner
+			}
+			Config struct {
+				Middle1
+				Middle2
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Middle1": {"Inner": {"Map": {"Key": "Value"}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten outer/inner maps", func(t *testing.T) {
+		type (
+			Inner struct {
+				Map map[string]string
+			}
+			Middle struct {
+				Inner
+				Map map[string]string
+			}
+			Config struct {
+				Middle
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Middle": {"Inner": {"Map": {"Key": "Value"}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten anonymous maps", func(t *testing.T) {
+		type (
+			Inner struct {
+				Map map[string]string
+			}
+			Middle struct {
+				Inner
+				Map map[string]string
+			}
+			Elem   map[string]Middle
+			Config struct {
+				Elem
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Elem": {"Key": {"Inner": {"Map": {"Key": "Value"}}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten primitive and map", func(t *testing.T) {
+		type (
+			Inner struct {
+				Value string
+			}
+			Elem  map[string]Inner
+			Named struct {
+				Elem string
+			}
+			Config struct {
+				Named
+				Elem
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Elem": {"Key": {"Value": "Value"}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten map and slice", func(t *testing.T) {
+		type (
+			Inner struct {
+				Value string
+			}
+			Elem  []Inner
+			Named struct {
+				Elem string
+			}
+			Config struct {
+				Named
+				Elem
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Elem": {"Key": {"Value": "Value"}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten map and string", func(t *testing.T) {
+		type (
+			Elem  string
+			Named struct {
+				Elem string
+			}
+			Config struct {
+				Named
+				Elem
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Elem": {"Key": {"Value": "Value"}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+}
+
+func TestLoadNamedFieldOverwritten(t *testing.T) {
+	t.Run("overwritten named struct", func(t *testing.T) {
+		type (
+			Elem  string
+			Named struct {
+				Elem string
+			}
+			Base struct {
+				Named
+				Elem
+			}
+			Config struct {
+				Val Base
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Val": {"Elem": {"Key": {"Value": "Value"}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten named []struct", func(t *testing.T) {
+		type (
+			Elem  string
+			Named struct {
+				Elem string
+			}
+			Base struct {
+				Named
+				Elem
+			}
+			Config struct {
+				Vals []Base
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Vals": [{"Elem": {"Key": {"Value": "Value"}}}]}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten named map[string]struct", func(t *testing.T) {
+		type (
+			Elem  string
+			Named struct {
+				Elem string
+			}
+			Base struct {
+				Named
+				Elem
+			}
+			Config struct {
+				Vals map[string]Base
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Vals": {"Key": {"Elem": {"Key": {"Value": "Value"}}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten named *struct", func(t *testing.T) {
+		type (
+			Elem  string
+			Named struct {
+				Elem string
+			}
+			Base struct {
+				Named
+				Elem
+			}
+			Config struct {
+				Vals *Base
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Vals": [{"Elem": {"Key": {"Value": "Value"}}}]}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten named struct", func(t *testing.T) {
+		type (
+			Named struct {
+				Elem string
+			}
+			Base struct {
+				Named
+				Elem Named
+			}
+			Config struct {
+				Val Base
+			}
+		)
+
+		var c Config
+		input := []byte(`{"Val": {"Elem": {"Key": {"Value": "Value"}}}}`)
+		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
 	})
 }
 

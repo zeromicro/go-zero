@@ -13,18 +13,17 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-var (
-	loaders = map[string]func([]byte, any) error{
-		".json": LoadFromJsonBytes,
-		".toml": LoadFromTomlBytes,
-		".yaml": LoadFromYamlBytes,
-		".yml":  LoadFromYamlBytes,
-	}
-	emptyFieldInfo fieldInfo
-)
+var loaders = map[string]func([]byte, any) error{
+	".json": LoadFromJsonBytes,
+	".toml": LoadFromTomlBytes,
+	".yaml": LoadFromYamlBytes,
+	".yml":  LoadFromYamlBytes,
+}
 
+// children and mapField should not be both filled.
+// named fields and map cannot be bound to the same field name.
 type fieldInfo struct {
-	children map[string]fieldInfo
+	children map[string]*fieldInfo
 	mapField *fieldInfo
 }
 
@@ -60,13 +59,13 @@ func LoadConfig(file string, v any, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
-	var m map[string]any
-	if err := jsonx.Unmarshal(content, &m); err != nil {
+	finfo, err := buildFieldsInfo(reflect.TypeOf(v))
+	if err != nil {
 		return err
 	}
 
-	finfo, err := buildFieldsInfo(reflect.TypeOf(v))
-	if err != nil {
+	var m map[string]any
+	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
 
@@ -114,21 +113,15 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info fieldInfo, key string, child fieldInfo) error {
+func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
 	if prev, ok := info.children[key]; ok {
-		if len(child.children) == 0 && child.mapField == nil {
+		if child.mapField != nil {
 			return newDupKeyError(key)
 		}
 
-		// merge fields
-		for k, v := range child.children {
-			if _, ok = prev.children[k]; ok {
-				return newDupKeyError(k)
-			}
-
-			prev.children[k] = v
+		if err := mergeFields(prev, key, child.children); err != nil {
+			return err
 		}
-		prev.mapField = child.mapField
 	} else {
 		info.children[key] = child
 	}
@@ -136,7 +129,47 @@ func addOrMergeFields(info fieldInfo, key string, child fieldInfo) error {
 	return nil
 }
 
-func buildFieldsInfo(tp reflect.Type) (fieldInfo, error) {
+func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+	switch ft.Kind() {
+	case reflect.Struct:
+		fields, err := buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range fields.children {
+			if err = addOrMergeFields(info, k, v); err != nil {
+				return err
+			}
+		}
+	case reflect.Map:
+		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		if err != nil {
+			return err
+		}
+
+		if _, ok := info.children[lowerCaseName]; ok {
+			return newDupKeyError(lowerCaseName)
+		}
+
+		info.children[lowerCaseName] = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+			mapField: elemField,
+		}
+	default:
+		if _, ok := info.children[lowerCaseName]; ok {
+			return newDupKeyError(lowerCaseName)
+		}
+
+		info.children[lowerCaseName] = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}
+	}
+
+	return nil
+}
+
+func buildFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
 
 	switch tp.Kind() {
@@ -145,13 +178,50 @@ func buildFieldsInfo(tp reflect.Type) (fieldInfo, error) {
 	case reflect.Array, reflect.Slice:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()))
 	default:
-		return emptyFieldInfo, nil
+		return &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}, nil
 	}
 }
 
-func buildStructFieldsInfo(tp reflect.Type) (fieldInfo, error) {
-	info := fieldInfo{
-		children: make(map[string]fieldInfo),
+func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+	var finfo *fieldInfo
+	var err error
+
+	switch ft.Kind() {
+	case reflect.Struct:
+		finfo, err = buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+	case reflect.Array, reflect.Slice:
+		finfo, err = buildFieldsInfo(ft.Elem())
+		if err != nil {
+			return err
+		}
+	case reflect.Map:
+		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		if err != nil {
+			return err
+		}
+
+		finfo = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+			mapField: elemInfo,
+		}
+	default:
+		finfo, err = buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+	}
+
+	return addOrMergeFields(info, lowerCaseName, finfo)
+}
+
+func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
+	info := &fieldInfo{
+		children: make(map[string]*fieldInfo),
 	}
 
 	for i := 0; i < tp.NumField(); i++ {
@@ -161,79 +231,39 @@ func buildStructFieldsInfo(tp reflect.Type) (fieldInfo, error) {
 		ft := mapping.Deref(field.Type)
 		// flatten anonymous fields
 		if field.Anonymous {
-			switch ft.Kind() {
-			case reflect.Struct:
-				fields, err := buildFieldsInfo(ft)
-				if err != nil {
-					return emptyFieldInfo, err
-				}
-				for k, v := range fields.children {
-					if err = addOrMergeFields(info, k, v); err != nil {
-						return emptyFieldInfo, err
-					}
-				}
-				info.mapField = fields.mapField
-			case reflect.Map:
-				elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
-				if err != nil {
-					return emptyFieldInfo, err
-				}
-				if _, ok := info.children[lowerCaseName]; ok {
-					return emptyFieldInfo, newDupKeyError(lowerCaseName)
-				}
-				info.children[lowerCaseName] = fieldInfo{
-					mapField: &elemField,
-				}
-			default:
-				if _, ok := info.children[lowerCaseName]; ok {
-					return emptyFieldInfo, newDupKeyError(lowerCaseName)
-				}
-				info.children[lowerCaseName] = fieldInfo{
-					children: make(map[string]fieldInfo),
-				}
+			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft); err != nil {
+				return nil, err
 			}
-			continue
-		}
-
-		var finfo fieldInfo
-		var err error
-		switch ft.Kind() {
-		case reflect.Struct:
-			finfo, err = buildFieldsInfo(ft)
-			if err != nil {
-				return emptyFieldInfo, err
-			}
-		case reflect.Array, reflect.Slice:
-			finfo, err = buildFieldsInfo(ft.Elem())
-			if err != nil {
-				return emptyFieldInfo, err
-			}
-		case reflect.Map:
-			elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
-			if err != nil {
-				return emptyFieldInfo, err
-			}
-			finfo.mapField = &elemInfo
-		default:
-			finfo, err = buildFieldsInfo(ft)
-			if err != nil {
-				return emptyFieldInfo, err
-			}
-		}
-
-		if err := addOrMergeFields(info, lowerCaseName, finfo); err != nil {
-			return emptyFieldInfo, err
+		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft); err != nil {
+			return nil, err
 		}
 	}
 
 	return info, nil
 }
 
+func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
+	if len(children) == 0 {
+		return newDupKeyError(key)
+	}
+
+	// merge fields
+	for k, v := range children {
+		if _, ok := prev.children[k]; ok {
+			return newDupKeyError(k)
+		}
+
+		prev.children[k] = v
+	}
+
+	return nil
+}
+
 func toLowerCase(s string) string {
 	return strings.ToLower(s)
 }
 
-func toLowerCaseInterface(v any, info fieldInfo) any {
+func toLowerCaseInterface(v any, info *fieldInfo) any {
 	switch vv := v.(type) {
 	case map[string]any:
 		return toLowerCaseKeyMap(vv, info)
@@ -248,7 +278,7 @@ func toLowerCaseInterface(v any, info fieldInfo) any {
 	}
 }
 
-func toLowerCaseKeyMap(m map[string]any, info fieldInfo) map[string]any {
+func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 	res := make(map[string]any)
 
 	for k, v := range m {
@@ -262,7 +292,7 @@ func toLowerCaseKeyMap(m map[string]any, info fieldInfo) map[string]any {
 		if ti, ok = info.children[lk]; ok {
 			res[lk] = toLowerCaseInterface(v, ti)
 		} else if info.mapField != nil {
-			res[k] = toLowerCaseInterface(v, *info.mapField)
+			res[k] = toLowerCaseInterface(v, info.mapField)
 		} else {
 			res[k] = v
 		}
