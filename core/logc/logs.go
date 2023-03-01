@@ -27,6 +27,26 @@ func Close() error {
 	return logx.Close()
 }
 
+// Debug writes v into access log.
+func Debug(ctx context.Context, v ...interface{}) {
+	getLogger(ctx).Debug(v...)
+}
+
+// Debugf writes v with format into access log.
+func Debugf(ctx context.Context, format string, v ...interface{}) {
+	getLogger(ctx).Debugf(format, v...)
+}
+
+// Debugv writes v into access log with json content.
+func Debugv(ctx context.Context, v interface{}) {
+	getLogger(ctx).Debugv(v)
+}
+
+// Debugw writes msg along with fields into access log.
+func Debugw(ctx context.Context, msg string, fields ...LogField) {
+	getLogger(ctx).Debugw(msg, fields...)
+}
+
 // Error writes v into error log.
 func Error(ctx context.Context, v ...interface{}) {
 	getLogger(ctx).Error(v...)
