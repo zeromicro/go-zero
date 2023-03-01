@@ -9,6 +9,8 @@ import (
 	"github.com/zeromicro/go-zero/core/hash"
 )
 
+var dupErr dupKeyError
+
 func TestLoadConfig_notExists(t *testing.T) {
 	assert.NotNil(t, Load("not_a_file", nil))
 }
@@ -413,11 +415,7 @@ func TestLoadFromYamlItemOverlay(t *testing.T) {
 `)
 
 	var c TestConfig
-	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
-		assert.Equal(t, "localhost", c.Redis.Host)
-		assert.Equal(t, 6379, c.Redis.Port)
-		assert.Equal(t, "test", c.Server.Redis.Key)
-	}
+	assert.ErrorAs(t, LoadFromYamlBytes(input, &c), &dupErr)
 }
 
 func TestLoadFromYamlItemOverlayReverse(t *testing.T) {
@@ -449,11 +447,7 @@ func TestLoadFromYamlItemOverlayReverse(t *testing.T) {
 `)
 
 	var c TestConfig
-	if assert.NoError(t, LoadFromYamlBytes(input, &c)) {
-		assert.Equal(t, "localhost", c.Redis.Host)
-		assert.Equal(t, 6379, c.Redis.Port)
-		assert.Equal(t, "test", c.Redis.Key)
-	}
+	assert.ErrorAs(t, LoadFromYamlBytes(input, &c), &dupErr)
 }
 
 func TestLoadFromYamlItemOverlayWithMap(t *testing.T) {
@@ -614,6 +608,126 @@ func TestUnmarshalJsonBytesWithMapTypeValueOfStruct(t *testing.T) {
 			}
 		}
 	}
+}
+
+func Test_checkInheritOverwrite(t *testing.T) {
+	t.Run("normal", func(t *testing.T) {
+		type Base struct {
+			Name string
+		}
+
+		type St1 struct {
+			Base
+			Name2 string
+		}
+
+		type St2 struct {
+			Base
+			Name2 string
+		}
+
+		type St3 struct {
+			*Base
+			Name2 string
+		}
+
+		type St4 struct {
+			*Base
+			Name2 *string
+		}
+
+		validate := func(val any) {
+			input := []byte(`{"Name": "hello", "Name2": "world"}`)
+			assert.NoError(t, LoadFromJsonBytes(input, val))
+		}
+
+		validate(&St1{})
+		validate(&St2{})
+		validate(&St3{})
+		validate(&St4{})
+	})
+
+	t.Run("Inherit Override", func(t *testing.T) {
+		type Base struct {
+			Name string
+		}
+
+		type St1 struct {
+			Base
+			Name string
+		}
+
+		type St2 struct {
+			Base
+			Name int
+		}
+
+		type St3 struct {
+			*Base
+			Name int
+		}
+
+		type St4 struct {
+			*Base
+			Name *string
+		}
+
+		validate := func(val any) {
+			input := []byte(`{"Name": "hello"}`)
+			err := LoadFromJsonBytes(input, val)
+			assert.ErrorAs(t, err, &dupErr)
+			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+		}
+
+		validate(&St1{})
+		validate(&St2{})
+		validate(&St3{})
+		validate(&St4{})
+	})
+
+	t.Run("Inherit more", func(t *testing.T) {
+		type Base1 struct {
+			Name string
+		}
+
+		type St0 struct {
+			Base1
+			Name string
+		}
+
+		type St1 struct {
+			St0
+			Name string
+		}
+
+		type St2 struct {
+			St0
+			Name int
+		}
+
+		type St3 struct {
+			*St0
+			Name int
+		}
+
+		type St4 struct {
+			*St0
+			Name *int
+		}
+
+		validate := func(val any) {
+			input := []byte(`{"Name": "hello"}`)
+			err := LoadFromJsonBytes(input, val)
+			assert.ErrorAs(t, err, &dupErr)
+			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+		}
+
+		validate(&St0{})
+		validate(&St1{})
+		validate(&St2{})
+		validate(&St3{})
+		validate(&St4{})
+	})
 }
 
 func createTempFile(ext, text string) (string, error) {
