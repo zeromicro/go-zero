@@ -15,6 +15,12 @@ const contentSecurity = "X-Content-Security"
 // UnsignedCallback defines the method of the unsigned callback.
 type UnsignedCallback func(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int)
 
+// ContentSecurityHandler returns a middleware to verify content security.
+func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
+	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
+	return LimitContentSecurityHandler(maxBytes, decrypters, tolerance, strict, callbacks)
+}
+
 // LimitContentSecurityHandler returns a middleware to verify content security.
 func LimitContentSecurityHandler(maxBytesSize int64, decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
 	strict bool, callbacks []UnsignedCallback) func(http.Handler) http.Handler {
@@ -45,12 +51,6 @@ func LimitContentSecurityHandler(maxBytesSize int64, decrypters map[string]codec
 			}
 		})
 	}
-}
-
-// ContentSecurityHandler returns a middleware to verify content security.
-func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance time.Duration,
-	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
-	return LimitContentSecurityHandler(maxBytes, decrypters, tolerance, strict, callbacks)
 }
 
 func executeCallbacks(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool,

@@ -17,6 +17,11 @@ const maxBytes = 1 << 20 // 1 MiB
 
 var errContentLengthExceeded = errors.New("content length exceeded")
 
+// CryptionHandler returns a middleware to handle cryption.
+func CryptionHandler(key []byte) func(http.Handler) http.Handler {
+	return LimitCryptionHandler(maxBytes, key)
+}
+
 // LimitCryptionHandler returns a middleware to handle cryption.
 func LimitCryptionHandler(maxBytesSize int64, key []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -37,11 +42,6 @@ func LimitCryptionHandler(maxBytesSize int64, key []byte) func(http.Handler) htt
 			next.ServeHTTP(cw, r)
 		})
 	}
-}
-
-// CryptionHandler returns a middleware to handle cryption.
-func CryptionHandler(key []byte) func(http.Handler) http.Handler {
-	return LimitCryptionHandler(maxBytes, key)
 }
 
 func decryptBody(maxBytesSize int64, key []byte, r *http.Request) error {
