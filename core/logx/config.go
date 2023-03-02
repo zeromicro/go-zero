@@ -2,17 +2,34 @@ package logx
 
 // A LogConf is a logging config.
 type LogConf struct {
-	ServiceName         string `json:",optional"`
-	Mode                string `json:",default=console,options=[console,file,volume]"`
-	Encoding            string `json:",default=json,options=[json,plain]"`
-	TimeFormat          string `json:",optional"`
-	Path                string `json:",default=logs"`
-	Level               string `json:",default=info,options=[debug,info,error,severe]"`
-	MaxContentLength    uint32 `json:",optional"`
-	Compress            bool   `json:",optional"`
-	Stat                bool   `json:",default=true"`
-	KeepDays            int    `json:",optional"`
-	StackCooldownMillis int    `json:",default=100"`
+	// ServiceName represents the service name.
+	ServiceName string `json:",optional"`
+	// Mode represents the logging mode, default is `console`.
+	// console: log to console.
+	// file: log to file.
+	// volume: used in k8s, prepend the hostname to the log file name.
+	Mode string `json:",default=console,options=[console,file,volume]"`
+	// Encoding represents the encoding type, default is `json`.
+	// json: json encoding.
+	// plain: plain text encoding, typically used in development.
+	Encoding string `json:",default=json,options=[json,plain]"`
+	// TimeFormat represents the time format, default is `2006-01-02T15:04:05.000Z07:00`.
+	TimeFormat string `json:",optional"`
+	// Path represents the log file path, default is `logs`.
+	Path string `json:",default=logs"`
+	// Level represents the log level, default is `info`.
+	Level string `json:",default=info,options=[debug,info,error,severe]"`
+	// MaxContentLength represents the max content bytes, default is no limit.
+	MaxContentLength uint32 `json:",optional"`
+	// Compress represents whether to compress the log file, default is `false`.
+	Compress bool `json:",optional"`
+	// Stdout represents whether to log statistics, default is `true`.
+	Stat bool `json:",default=true"`
+	// KeepDays represents how many days the log files will be kept. Default to keep all files.
+	// Only take effect when Mode is `file` or `volume`, both work when Rotation is `daily` or `size`.
+	KeepDays int `json:",optional"`
+	// StackCooldownMillis represents the cooldown time for stack logging, default is 100ms.
+	StackCooldownMillis int `json:",default=100"`
 	// MaxBackups represents how many backup log files will be kept. 0 means all files will be kept forever.
 	// Only take effect when RotationRuleType is `size`.
 	// Even thougth `MaxBackups` sets 0, log files will still be removed
