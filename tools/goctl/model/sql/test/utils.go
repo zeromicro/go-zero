@@ -53,7 +53,7 @@ func format(query string, args ...interface{}) (string, error) {
 	for _, ch := range query {
 		if ch == '?' {
 			if argIndex >= numArgs {
-				return "", fmt.Errorf("error: %d ? in sql, but less arguments provided", argIndex)
+				return "", fmt.Errorf("%d ? in sql, but less arguments provided", argIndex)
 			}
 
 			arg := args[argIndex]
@@ -79,7 +79,7 @@ func format(query string, args ...interface{}) (string, error) {
 	}
 
 	if argIndex < numArgs {
-		return "", fmt.Errorf("error: %d ? in sql, but more arguments provided", argIndex)
+		return "", fmt.Errorf("%d ? in sql, but more arguments provided", argIndex)
 	}
 
 	return b.String(), nil

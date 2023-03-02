@@ -1009,7 +1009,7 @@ func newInitError(name string) error {
 }
 
 func newTypeMismatchError(name string) error {
-	return fmt.Errorf("error: type mismatch for field %s", name)
+	return fmt.Errorf("type mismatch for field %s", name)
 }
 
 func readKeys(key string) []string {

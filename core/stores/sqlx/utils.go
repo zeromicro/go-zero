@@ -66,7 +66,7 @@ func format(query string, args ...interface{}) (string, error) {
 		switch ch {
 		case '?':
 			if argIndex >= numArgs {
-				return "", fmt.Errorf("error: %d ? in sql, but less arguments provided", argIndex)
+				return "", fmt.Errorf("%d ? in sql, but less arguments provided", argIndex)
 			}
 
 			writeValue(&b, args[argIndex])
@@ -93,7 +93,7 @@ func format(query string, args ...interface{}) (string, error) {
 
 				index--
 				if index < 0 || numArgs <= index {
-					return "", fmt.Errorf("error: wrong index %d in sql", index)
+					return "", fmt.Errorf("wrong index %d in sql", index)
 				}
 
 				writeValue(&b, args[index])
@@ -124,7 +124,7 @@ func format(query string, args ...interface{}) (string, error) {
 	}
 
 	if argIndex < numArgs {
-		return "", fmt.Errorf("error: %d arguments provided, not matching sql", argIndex)
+		return "", fmt.Errorf("%d arguments provided, not matching sql", argIndex)
 	}
 
 	return b.String(), nil
