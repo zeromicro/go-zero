@@ -32,7 +32,8 @@ type fieldInfo struct {
 	mapField *fieldInfo
 }
 
-// FillDefault fills the default values for the given v.
+// FillDefault fills the default values for the given v,
+// and the premise is that the value of v must be guaranteed to be empty
 func FillDefault(v any) error {
 	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
 }
