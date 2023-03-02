@@ -712,7 +712,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	valuer := createValuer(m, opts)
 	mapValue, hasValue := getValue(valuer, canonicalKey)
 
-	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault,
+	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
 		if !value.IsZero() {
 			return fmt.Errorf("set the default value, %s must be zero", fullName)
