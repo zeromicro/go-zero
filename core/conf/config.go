@@ -59,7 +59,7 @@ func LoadConfig(file string, v any, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
-	finfo, err := buildFieldsInfo(reflect.TypeOf(v))
+	info, err := buildFieldsInfo(reflect.TypeOf(v))
 	if err != nil {
 		return err
 	}
@@ -69,7 +69,7 @@ func LoadFromJsonBytes(content []byte, v any) error {
 		return err
 	}
 
-	lowerCaseKeyMap := toLowerCaseKeyMap(m, finfo)
+	lowerCaseKeyMap := toLowerCaseKeyMap(m, info)
 
 	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
 }
