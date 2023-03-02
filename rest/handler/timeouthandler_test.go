@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
 func init() {
@@ -132,6 +133,30 @@ func TestTimeoutClientClosed(t *testing.T) {
 	resp := httptest.NewRecorder()
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, statusClientClosedRequest, resp.Code)
+}
+
+func TestTimeoutHijack(t *testing.T) {
+	resp := httptest.NewRecorder()
+
+	writer := &timeoutWriter{
+		w: &response.WithCodeResponseWriter{
+			Writer: resp,
+		},
+	}
+
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
+
+	writer = &timeoutWriter{
+		w: &response.WithCodeResponseWriter{
+			Writer: mockedHijackable{resp},
+		},
+	}
+
+	assert.NotPanics(t, func() {
+		writer.Hijack()
+	})
 }
 
 func TestTimeoutPusher(t *testing.T) {
