@@ -1078,4 +1078,16 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.Equal(t, st.A, "a")
 		assert.Equal(t, st.C, "c")
 	})
+
+	t.Run("has vaue", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st = St{
+			A: "b",
+		}
+		err := FillDefault(&st)
+		assert.Error(t, err)
+	})
 }
