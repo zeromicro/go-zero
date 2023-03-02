@@ -52,6 +52,7 @@ func ContentSecurityHandler(decrypters map[string]codec.RsaDecrypter, tolerance 
 	strict bool, callbacks ...UnsignedCallback) func(http.Handler) http.Handler {
 	return LimitContentSecurityHandler(maxBytes, decrypters, tolerance, strict, callbacks)
 }
+
 func executeCallbacks(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool,
 	code int, callbacks []UnsignedCallback) {
 	for _, callback := range callbacks {
