@@ -1007,8 +1007,18 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 		)
 
 		var c Config
-		input := []byte(`{"Val": {"Elem": {"Key": {"Value": "Value"}}}}`)
+		input := []byte(`{"Val": {"Elem": "Value"}}`)
 		assert.ErrorAs(t, LoadFromJsonBytes(input, &c), &dupErr)
+	})
+
+	t.Run("overwritten named struct", func(t *testing.T) {
+		type Config struct {
+			Val chan int
+		}
+
+		var c Config
+		input := []byte(`{"Val": 1}`)
+		assert.Error(t, LoadFromJsonBytes(input, &c))
 	})
 }
 
