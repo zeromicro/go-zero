@@ -177,6 +177,8 @@ func buildFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 		return buildStructFieldsInfo(tp)
 	case reflect.Array, reflect.Slice:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()))
+	case reflect.Chan, reflect.Func:
+		return nil, fmt.Errorf("unsupported type: %s", tp.Kind())
 	default:
 		return &fieldInfo{
 			children: make(map[string]*fieldInfo),
@@ -243,7 +245,7 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 }
 
 func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
-	if len(children) == 0 {
+	if len(prev.children) == 0 || len(children) == 0 {
 		return newDupKeyError(key)
 	}
 
