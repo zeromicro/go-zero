@@ -200,18 +200,10 @@ Verbose: true
 		for _, route := range routes {
 			var cnf RestConf
 			assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
-			cnf.Signature = SignatureConf{
-				Strict: false,
-				Expiry: 0,
-				PrivateKeys: []PrivateKeyConf{
-					{
-						Fingerprint: "",
-						KeyFile:     "",
-					},
-				},
-			}
 			ng := newEngine(cnf)
 			ng.setUnauthorizedCallback(func(w http.ResponseWriter, r *http.Request, err error) {
+			})
+			ng.setUnsignedCallback(func(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int) {
 			})
 			ng.addRoutes(route)
 			ng.use(func(next http.HandlerFunc) http.HandlerFunc {
