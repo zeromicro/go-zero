@@ -13,7 +13,7 @@ func GetAuthority(target resolver.Target) string {
 
 // GetEndpoints returns the endpoints from the given target.
 func GetEndpoints(target resolver.Target) string {
-	if target.URL.Path[0] == slashSeparator {
+	if target.URL.Path != "" && target.URL.Path[0] == slashSeparator {
 		return target.URL.Path[1:]
 	}
 
