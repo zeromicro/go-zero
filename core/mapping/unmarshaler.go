@@ -47,6 +47,7 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
+		fillDefault  bool
 		fromString   bool
 		canonicalKey func(key string) string
 	}
@@ -710,7 +711,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 
 	valuer := createValuer(m, opts)
 	mapValue, hasValue := getValue(valuer, canonicalKey)
-	if !hasValue {
+	if !hasValue || u.opts.fillDefault {
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	}
 
@@ -801,6 +802,10 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	}
 
+	if u.opts.fillDefault {
+		return nil
+	}
+
 	switch fieldKind {
 	case reflect.Array, reflect.Map, reflect.Slice:
 		if !opts.optional() {
@@ -873,10 +878,17 @@ func WithStringValues() UnmarshalOption {
 	}
 }
 
-// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
+// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func.
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
+	}
+}
+
+// WithDefault customizes an Unmarshaler with fill default values.
+func WithDefault() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.fillDefault = true
 	}
 }
 

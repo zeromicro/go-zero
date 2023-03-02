@@ -1039,3 +1039,43 @@ func createTempFile(ext, text string) (string, error) {
 
 	return filename, nil
 }
+
+func TestFillDefaultUnmarshal(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		type St struct{}
+		err := FillDefault(St{})
+		assert.Error(t, err)
+	})
+
+	t.Run("not nil", func(t *testing.T) {
+		type St struct{}
+		err := FillDefault(&St{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("default", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st St
+		err := FillDefault(&st)
+		assert.NoError(t, err)
+		assert.Equal(t, st.A, "a")
+	})
+
+	t.Run("env", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+			C string `json:",env=TEST_C"`
+		}
+		t.Setenv("TEST_C", "c")
+
+		var st St
+		err := FillDefault(&st)
+		assert.NoError(t, err)
+		assert.Equal(t, st.A, "a")
+		assert.Equal(t, st.C, "c")
+	})
+}
