@@ -13,18 +13,28 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-var loaders = map[string]func([]byte, any) error{
-	".json": LoadFromJsonBytes,
-	".toml": LoadFromTomlBytes,
-	".yaml": LoadFromYamlBytes,
-	".yml":  LoadFromYamlBytes,
-}
+const jsonTagKey = "json"
+
+var (
+	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
+	loaders                = map[string]func([]byte, any) error{
+		".json": LoadFromJsonBytes,
+		".toml": LoadFromTomlBytes,
+		".yaml": LoadFromYamlBytes,
+		".yml":  LoadFromYamlBytes,
+	}
+)
 
 // children and mapField should not be both filled.
 // named fields and map cannot be bound to the same field name.
 type fieldInfo struct {
 	children map[string]*fieldInfo
 	mapField *fieldInfo
+}
+
+// FillDefault fills the default values for the given v.
+func FillDefault(v any) error {
+	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
