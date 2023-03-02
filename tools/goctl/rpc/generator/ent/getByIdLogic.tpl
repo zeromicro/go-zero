@@ -28,7 +28,7 @@ func NewGet{{.modelName}}ByIdLogic(ctx context.Context, svcCtx *svc.ServiceConte
 func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(in *{{.projectName}}.{{if .useUUID}}UU{{end}}IDReq) (*{{.projectName}}.{{.modelName}}Info, error) {
 	result, err := l.svcCtx.DB.{{.modelName}}.Get(l.ctx, {{if .useUUID}}uuidx.ParseUUIDString({{end}}in.Id{{if .useUUID}}){{end}})
 	if err != nil {
-		return nil, dberrorhandler.DefaultEntError(err, in)
+		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
 	return &{{.projectName}}.{{.modelName}}Info{

@@ -31,7 +31,7 @@ func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(in *{{.projectName}}.{{
 	_, err := l.svcCtx.DB.{{.modelName}}.Delete().Where({{.modelNameLowerCase}}.IDIn({{if .useUUID}}uuidx.ParseUUIDSlice({{end}}in.Ids{{if .useUUID}}){{end}}...)).Exec(l.ctx)
 
     if err != nil {
-		return nil, dberrorhandler.DefaultEntError(err, in)
+		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
     return &{{.projectName}}.BaseResp{Msg: i18n.DeleteSuccess}, nil

@@ -30,7 +30,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(in *{{.projectName}}.
 {{.predicateData}}
 
 	if err != nil {
-		return nil, dberrorhandler.DefaultEntError(err, in)
+		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
 	resp := &{{.projectName}}.{{.modelName}}ListResp{}

@@ -32,7 +32,7 @@ func (l *Update{{.modelName}}Logic) Update{{.modelName}}(in *{{.projectName}}.{{
 {{.setLogic}}
 
     if err != nil {
-		return nil, dberrorhandler.DefaultEntError(err, in)
+		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
     return &{{.projectName}}.BaseResp{Msg: i18n.UpdateSuccess}, nil
