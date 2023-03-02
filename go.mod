@@ -25,7 +25,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.5.7
 	go.mongodb.org/mongo-driver v1.11.2
 	go.opentelemetry.io/otel v1.14.0
-	go.opentelemetry.io/otel/exporters/jaeger v1.13.0
+	go.opentelemetry.io/otel/exporters/jaeger v1.14.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.11.2
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.14.0
 	go.opentelemetry.io/otel/exporters/zipkin v1.14.0
