@@ -9,6 +9,7 @@ import (
 
 	"github.com/emicklei/proto"
 	"github.com/zeromicro/go-zero/core/collection"
+
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
@@ -63,7 +64,24 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		isCallPkgSameToPbPkg := childDir == ctx.GetProtoGo().Filename
 		isCallPkgSameToGrpcPkg := childDir == ctx.GetProtoGo().Filename
 
-		functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
+		serviceName := stringx.From(service.Name).ToCamel()
+		alias := collection.NewSet()
+		var hasSameNameBetweenMessageAndService bool
+		for _, item := range proto.Message {
+			msgName := getMessageName(*item.Message)
+			if serviceName == msgName {
+				hasSameNameBetweenMessageAndService = true
+			}
+			if !isCallPkgSameToPbPkg {
+				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+			}
+		}
+		if hasSameNameBetweenMessageAndService {
+			serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+		}
+
+		functions, err := g.genFunction(proto.PbPackage, serviceName, service, isCallPkgSameToGrpcPkg)
 		if err != nil {
 			return err
 		}
@@ -76,15 +94,6 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		text, err := pathx.LoadTemplate(category, callTemplateFile, callTemplateText)
 		if err != nil {
 			return err
-		}
-
-		alias := collection.NewSet()
-		if !isCallPkgSameToPbPkg {
-			for _, item := range proto.Message {
-				msgName := getMessageName(*item.Message)
-				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
-					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
-			}
 		}
 
 		pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
@@ -103,7 +112,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			"filePackage":    dir.Base,
 			"pbPackage":      pbPackage,
 			"protoGoPackage": protoGoPackage,
-			"serviceName":    stringx.From(service.Name).ToCamel(),
+			"serviceName":    serviceName,
 			"functions":      strings.Join(functions, pathx.NL),
 			"interface":      strings.Join(iFunctions, pathx.NL),
 		}, filename, true); err != nil {
@@ -126,8 +135,26 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		return err
 	}
 
+	serviceName := stringx.From(service.Name).ToCamel()
+	alias := collection.NewSet()
+	var hasSameNameBetweenMessageAndService bool
+	for _, item := range proto.Message {
+		msgName := getMessageName(*item.Message)
+		if serviceName == msgName {
+			hasSameNameBetweenMessageAndService = true
+		}
+		if !isCallPkgSameToPbPkg {
+			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+				fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+		}
+	}
+
+	if hasSameNameBetweenMessageAndService {
+		serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+	}
+
 	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
-	functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
+	functions, err := g.genFunction(proto.PbPackage, serviceName, service, isCallPkgSameToGrpcPkg)
 	if err != nil {
 		return err
 	}
@@ -140,15 +167,6 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 	text, err := pathx.LoadTemplate(category, callTemplateFile, callTemplateText)
 	if err != nil {
 		return err
-	}
-
-	alias := collection.NewSet()
-	if !isCallPkgSameToPbPkg {
-		for _, item := range proto.Message {
-			msgName := getMessageName(*item.Message)
-			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
-				fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
-		}
 	}
 
 	pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
@@ -166,7 +184,7 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		"filePackage":    dir.Base,
 		"pbPackage":      pbPackage,
 		"protoGoPackage": protoGoPackage,
-		"serviceName":    stringx.From(service.Name).ToCamel(),
+		"serviceName":    serviceName,
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),
 	}, filename, true)
@@ -194,7 +212,7 @@ func getMessageName(msg proto.Message) string {
 	return strings.Join(list, "_")
 }
 
-func (g *Generator) genFunction(goPackage string, service parser.Service,
+func (g *Generator) genFunction(goPackage string, serviceName string, service parser.Service,
 	isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
@@ -212,7 +230,7 @@ func (g *Generator) genFunction(goPackage string, service parser.Service,
 				parser.CamelCase(rpc.Name), "Client")
 		}
 		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]any{
-			"serviceName":            stringx.From(service.Name).ToCamel(),
+			"serviceName":            serviceName,
 			"rpcServiceName":         parser.CamelCase(service.Name),
 			"method":                 parser.CamelCase(rpc.Name),
 			"package":                goPackage,
