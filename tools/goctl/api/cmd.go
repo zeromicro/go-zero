@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
@@ -127,7 +128,7 @@ func init() {
 		"https://github.com/zeromicro/go-zero-template directory structure")
 	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
-	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "gozero", "The file naming format,"+
+	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
@@ -146,7 +147,7 @@ func init() {
 		"https://github.com/zeromicro/go-zero-template directory structure")
 	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
-	newCmd.Flags().StringVar(&new.VarStringStyle, "style", "gozero", "The file naming format,"+
+	newCmd.Flags().StringVar(&new.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
