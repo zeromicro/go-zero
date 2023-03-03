@@ -176,8 +176,8 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
-// serVisitRoute implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
+// VisitRoute implements from api.BaseApiParserVisitor
+func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) any {
 	var route Route
 	path := ctx.Path()
 	methodExpr := v.newExprWithToken(ctx.GetHttpMethod())
