@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/cli"
 )
 
@@ -53,7 +54,7 @@ func init() {
 
 	newCmd.Flags().StringSliceVar(&cli.VarStringSliceGoOpt, "go_opt", nil, "")
 	newCmd.Flags().StringSliceVar(&cli.VarStringSliceGoGRPCOpt, "go-grpc_opt", nil, "")
-	newCmd.Flags().StringVar(&cli.VarStringStyle, "style", "gozero", "The file "+
+	newCmd.Flags().StringVar(&cli.VarStringStyle, "style", config.DefaultFormat, "The file "+
 		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
 	newCmd.Flags().BoolVar(&cli.VarBoolIdea, "idea", false, "Whether the command "+
 		"execution environment is from idea plugin.")
@@ -79,7 +80,7 @@ func init() {
 	protocCmd.Flags().StringSliceVar(&cli.VarStringSlicePlugin, "plugin", nil, "")
 	protocCmd.Flags().StringSliceVarP(&cli.VarStringSliceProtoPath, "proto_path", "I", nil, "")
 	protocCmd.Flags().StringVar(&cli.VarStringZRPCOut, "zrpc_out", "", "The zrpc output directory")
-	protocCmd.Flags().StringVar(&cli.VarStringStyle, "style", "gozero", "The file "+
+	protocCmd.Flags().StringVar(&cli.VarStringStyle, "style", config.DefaultFormat, "The file "+
 		"naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
 	protocCmd.Flags().StringVar(&cli.VarStringHome, "home", "", "The goctl home "+
 		"path of the template, --home and --remote cannot be set at the same time, if they are, "+
