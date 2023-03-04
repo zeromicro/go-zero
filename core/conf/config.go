@@ -17,7 +17,7 @@ const jsonTagKey = "json"
 
 var (
 	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
-	loaders                = map[string]func([]byte, any) error{
+	loaders                = map[string]func([]byte, interface{}) error{
 		".json": LoadFromJsonBytes,
 		".toml": LoadFromTomlBytes,
 		".yaml": LoadFromYamlBytes,
@@ -34,8 +34,8 @@ type fieldInfo struct {
 
 // FillDefault fills the default values for the given v,
 // and the premise is that the value of v must be guaranteed to be empty.
-func FillDefault(v any) error {
-	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
+func FillDefault(v interface{}) error {
+	return fillDefaultUnmarshaler.Unmarshal(map[string]interface{}{}, v)
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -69,13 +69,13 @@ func LoadConfig(file string, v interface{}, opts ...Option) error {
 }
 
 // LoadFromJsonBytes loads config into v from content json bytes.
-func LoadFromJsonBytes(content []byte, v any) error {
+func LoadFromJsonBytes(content []byte, v interface{}) error {
 	info, err := buildFieldsInfo(reflect.TypeOf(v))
 	if err != nil {
 		return err
 	}
 
-	var m map[string]any
+	var m map[string]interface{}
 	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
@@ -276,7 +276,7 @@ func toLowerCase(s string) string {
 	return strings.ToLower(s)
 }
 
-func toLowerCaseInterface(v any, info *fieldInfo) any {
+func toLowerCaseInterface(v interface{}, info *fieldInfo) interface{} {
 	switch vv := v.(type) {
 	case map[string]interface{}:
 		return toLowerCaseKeyMap(vv, info)
@@ -291,8 +291,8 @@ func toLowerCaseInterface(v any, info *fieldInfo) any {
 	}
 }
 
-func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
-	res := make(map[string]any)
+func toLowerCaseKeyMap(m map[string]interface{}, info *fieldInfo) map[string]interface{} {
+	res := make(map[string]interface{})
 
 	for k, v := range m {
 		ti, ok := info.children[k]

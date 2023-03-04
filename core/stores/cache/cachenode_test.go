@@ -225,7 +225,7 @@ func TestCacheNode_TakeNotFoundButChangedByOthers(t *testing.T) {
 	}
 
 	var str string
-	err = cn.Take(&str, "any", func(v any) error {
+	err = cn.Take(&str, "any", func(v interface{}) error {
 		store.Set("any", "foo")
 		return errTestNotFound
 	})

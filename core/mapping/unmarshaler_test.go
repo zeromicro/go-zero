@@ -4274,7 +4274,7 @@ func TestUnmarshalOnlyPublicVariables(t *testing.T) {
 		Name string `key:"name"`
 	}
 
-	m := map[string]any{
+	m := map[string]interface{}{
 		"age":  3,
 		"name": "go-zero",
 	}
@@ -4390,13 +4390,13 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 	fillDefaultUnmarshal := NewUnmarshaler(jsonTagKey, WithDefault())
 	t.Run("nil", func(t *testing.T) {
 		type St struct{}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, St{})
+		err := fillDefaultUnmarshal.Unmarshal(map[string]interface{}{}, St{})
 		assert.Error(t, err)
 	})
 
 	t.Run("not nil", func(t *testing.T) {
 		type St struct{}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &St{})
+		err := fillDefaultUnmarshal.Unmarshal(map[string]interface{}{}, &St{})
 		assert.NoError(t, err)
 	})
 
@@ -4406,7 +4406,7 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 			B string
 		}
 		var st St
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		err := fillDefaultUnmarshal.Unmarshal(map[string]interface{}{}, &st)
 		assert.NoError(t, err)
 		assert.Equal(t, st.A, "a")
 	})
@@ -4420,7 +4420,7 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		t.Setenv("TEST_C", "c")
 
 		var st St
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		err := fillDefaultUnmarshal.Unmarshal(map[string]interface{}{}, &st)
 		assert.NoError(t, err)
 		assert.Equal(t, st.A, "a")
 		assert.Equal(t, st.C, "c")
@@ -4434,7 +4434,7 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		var st = St{
 			A: "b",
 		}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		err := fillDefaultUnmarshal.Unmarshal(map[string]interface{}{}, &st)
 		assert.Error(t, err)
 	})
 }

@@ -228,7 +228,7 @@ func (g *Generator) genFunction(goPackage string, serviceName string, service pa
 			streamServer = fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name),
 				parser.CamelCase(rpc.Name), "Client")
 		}
-		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]any{
+		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
 			"serviceName":            serviceName,
 			"rpcServiceName":         parser.CamelCase(service.Name),
 			"method":                 parser.CamelCase(rpc.Name),

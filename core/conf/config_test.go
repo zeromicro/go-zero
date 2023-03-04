@@ -632,7 +632,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			Name2 *string
 		}
 
-		validate := func(val any) {
+		validate := func(val interface{}) {
 			input := []byte(`{"Name": "hello", "Name2": "world"}`)
 			assert.NoError(t, LoadFromJsonBytes(input, val))
 		}
@@ -668,7 +668,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			Name *string
 		}
 
-		validate := func(val any) {
+		validate := func(val interface{}) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
@@ -711,7 +711,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			Name *int
 		}
 
-		validate := func(val any) {
+		validate := func(val interface{}) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)

@@ -400,7 +400,7 @@ func BenchmarkParseAuto(b *testing.B) {
 
 type mockValidator struct{}
 
-func (m mockValidator) Validate(r *http.Request, data any) error {
+func (m mockValidator) Validate(r *http.Request, data interface{}) error {
 	if r.URL.Path == "/a" {
 		val := reflect.ValueOf(data).Elem().FieldByName("Name").String()
 		if val != "hello" {
