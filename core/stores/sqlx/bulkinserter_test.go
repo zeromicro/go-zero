@@ -14,11 +14,11 @@ import (
 
 type mockedConn struct {
 	query   string
-	args    []interface{}
+	args    []any
 	execErr error
 }
 
-func (c *mockedConn) ExecCtx(_ context.Context, query string, args ...interface{}) (sql.Result, error) {
+func (c *mockedConn) ExecCtx(_ context.Context, query string, args ...any) (sql.Result, error) {
 	c.query = query
 	c.args = args
 	return nil, c.execErr
@@ -28,19 +28,19 @@ func (c *mockedConn) PrepareCtx(ctx context.Context, query string) (StmtSession,
 	panic("implement me")
 }
 
-func (c *mockedConn) QueryRowCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowCtx(ctx context.Context, v any, query string, args ...any) error {
 	panic("implement me")
 }
 
-func (c *mockedConn) QueryRowPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	panic("implement me")
 }
 
-func (c *mockedConn) QueryRowsCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowsCtx(ctx context.Context, v any, query string, args ...any) error {
 	panic("implement me")
 }
 
-func (c *mockedConn) QueryRowsPartialCtx(ctx context.Context, v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowsPartialCtx(ctx context.Context, v any, query string, args ...any) error {
 	panic("implement me")
 }
 
@@ -48,7 +48,7 @@ func (c *mockedConn) TransactCtx(ctx context.Context, fn func(context.Context, S
 	panic("should not called")
 }
 
-func (c *mockedConn) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (c *mockedConn) Exec(query string, args ...any) (sql.Result, error) {
 	return c.ExecCtx(context.Background(), query, args...)
 }
 
@@ -56,19 +56,19 @@ func (c *mockedConn) Prepare(query string) (StmtSession, error) {
 	panic("should not called")
 }
 
-func (c *mockedConn) QueryRow(v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRow(v any, query string, args ...any) error {
 	panic("should not called")
 }
 
-func (c *mockedConn) QueryRowPartial(v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowPartial(v any, query string, args ...any) error {
 	panic("should not called")
 }
 
-func (c *mockedConn) QueryRows(v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRows(v any, query string, args ...any) error {
 	panic("should not called")
 }
 
-func (c *mockedConn) QueryRowsPartial(v interface{}, query string, args ...interface{}) error {
+func (c *mockedConn) QueryRowsPartial(v any, query string, args ...any) error {
 	panic("should not called")
 }
 

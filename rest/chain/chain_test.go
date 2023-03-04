@@ -23,7 +23,7 @@ func tagMiddleware(tag string) Middleware {
 
 // Not recommended (https://golang.org/pkg/reflect/#Value.Pointer),
 // but the best we can do.
-func funcsEqual(f1, f2 interface{}) bool {
+func funcsEqual(f1, f2 any) bool {
 	val1 := reflect.ValueOf(f1)
 	val2 := reflect.ValueOf(f2)
 	return val1.Pointer() == val2.Pointer()

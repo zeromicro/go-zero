@@ -42,7 +42,7 @@ func captureOutput(f func()) string {
 }
 
 func getContent(jsonStr string) string {
-	var entry map[string]interface{}
+	var entry map[string]any
 	json.Unmarshal([]byte(jsonStr), &entry)
 
 	val, ok := entry[contentKey]

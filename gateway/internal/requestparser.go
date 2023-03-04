@@ -33,7 +33,7 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 		return grpcurl.NewJSONRequestParser(body, resolver), nil
 	}
 
-	m := make(map[string]interface{})
+	m := make(map[string]any)
 	if err := json.NewDecoder(body).Decode(&m); err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func NewRequestParser(r *http.Request, resolver jsonpb.AnyResolver) (grpcurl.Req
 	return buildJsonRequestParser(m, resolver)
 }
 
-func buildJsonRequestParser(m map[string]interface{}, resolver jsonpb.AnyResolver) (
+func buildJsonRequestParser(m map[string]any, resolver jsonpb.AnyResolver) (
 	grpcurl.RequestParser, error) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(m); err != nil {

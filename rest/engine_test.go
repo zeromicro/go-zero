@@ -18,10 +18,14 @@ func TestNewEngine(t *testing.T) {
 	yamls := []string{
 		`Name: foo
 Port: 54321
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
 CpuThreshold: 500
+Middlewares:
+  Log: false
 `,
 		`Name: foo
 Port: 54321
@@ -39,6 +43,7 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
+			timeout: time.Minute,
 		},
 		{
 			priority:  true,
@@ -49,6 +54,7 @@ Verbose: true
 				Path:    "/",
 				Handler: func(w http.ResponseWriter, r *http.Request) {},
 			}},
+			timeout: time.Second,
 		},
 		{
 			priority: true,
@@ -155,6 +161,11 @@ Verbose: true
 				}
 			})
 			assert.NotNil(t, ng.start(mockedRouter{}))
+			timeout := time.Second * 3
+			if route.timeout > timeout {
+				timeout = route.timeout
+			}
+			assert.Equal(t, timeout, ng.timeout)
 		}
 	}
 }

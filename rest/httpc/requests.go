@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptrace"
 	nurl "net/url"
 	"strings"
 
@@ -29,7 +28,7 @@ var interceptors = []internal.Interceptor{
 
 // Do sends an HTTP request with the given arguments and returns an HTTP response.
 // data is automatically marshal into a *httpRequest, typically it's defined in an API file.
-func Do(ctx context.Context, method, url string, data interface{}) (*http.Response, error) {
+func Do(ctx context.Context, method, url string, data any) (*http.Response, error) {
 	req, err := buildRequest(ctx, method, url, data)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (c defaultClient) do(r *http.Request) (*http.Response, error) {
 	return http.DefaultClient.Do(r)
 }
 
-func buildFormQuery(u *nurl.URL, val map[string]interface{}) string {
+func buildFormQuery(u *nurl.URL, val map[string]any) string {
 	query := u.Query()
 	for k, v := range val {
 		query.Add(k, fmt.Sprint(v))
@@ -64,13 +63,13 @@ func buildFormQuery(u *nurl.URL, val map[string]interface{}) string {
 	return query.Encode()
 }
 
-func buildRequest(ctx context.Context, method, url string, data interface{}) (*http.Request, error) {
+func buildRequest(ctx context.Context, method, url string, data any) (*http.Request, error) {
 	u, err := nurl.Parse(url)
 	if err != nil {
 		return nil, err
 	}
 
-	var val map[string]map[string]interface{}
+	var val map[string]map[string]any
 	if data != nil {
 		val, err = mapping.Marshal(data)
 		if err != nil {
@@ -112,13 +111,13 @@ func buildRequest(ctx context.Context, method, url string, data interface{}) (*h
 	return req, nil
 }
 
-func fillHeader(r *http.Request, val map[string]interface{}) {
+func fillHeader(r *http.Request, val map[string]any) {
 	for k, v := range val {
 		r.Header.Add(k, fmt.Sprint(v))
 	}
 }
 
-func fillPath(u *nurl.URL, val map[string]interface{}) error {
+func fillPath(u *nurl.URL, val map[string]any) error {
 	used := make(map[string]lang.PlaceholderType)
 	fields := strings.Split(u.Path, slash)
 
@@ -157,12 +156,13 @@ func fillPath(u *nurl.URL, val map[string]interface{}) error {
 }
 
 func request(r *http.Request, cli client) (*http.Response, error) {
-	tracer := otel.GetTracerProvider().Tracer(trace.TraceName)
+	ctx := r.Context()
+	tracer := trace.TracerFromContext(ctx)
 	propagator := otel.GetTextMapPropagator()
 
 	spanName := r.URL.Path
 	ctx, span := tracer.Start(
-		r.Context(),
+		ctx,
 		spanName,
 		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
 		oteltrace.WithAttributes(semconv.HTTPClientAttributesFromHTTPRequest(r)...),
@@ -174,11 +174,6 @@ func request(r *http.Request, cli client) (*http.Response, error) {
 		var h internal.ResponseHandler
 		r, h = interceptor(r)
 		respHandlers[i] = h
-	}
-
-	clientTrace := httptrace.ContextClientTrace(ctx)
-	if clientTrace != nil {
-		ctx = httptrace.WithClientTrace(ctx, clientTrace)
 	}
 
 	r = r.WithContext(ctx)
@@ -196,7 +191,7 @@ func request(r *http.Request, cli client) (*http.Response, error) {
 	}
 
 	span.SetAttributes(semconv.HTTPAttributesFromHTTPStatusCode(resp.StatusCode)...)
-	span.SetStatus(semconv.SpanStatusFromHTTPStatusCode(resp.StatusCode))
+	span.SetStatus(semconv.SpanStatusFromHTTPStatusCodeAndSpanKind(resp.StatusCode, oteltrace.SpanKindClient))
 
 	return resp, err
 }

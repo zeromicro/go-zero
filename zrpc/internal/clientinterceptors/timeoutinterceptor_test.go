@@ -18,7 +18,7 @@ func TestTimeoutInterceptor(t *testing.T) {
 			interceptor := TimeoutInterceptor(timeout)
 			cc := new(grpc.ClientConn)
 			err := interceptor(context.Background(), "/foo", nil, nil, cc,
-				func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+				func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 					opts ...grpc.CallOption) error {
 					return nil
 				},
@@ -37,7 +37,7 @@ func TestTimeoutInterceptor_timeout(t *testing.T) {
 	wg.Add(1)
 	cc := new(grpc.ClientConn)
 	err := interceptor(ctx, "/foo", nil, nil, cc,
-		func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 			opts ...grpc.CallOption) error {
 			defer wg.Done()
 			tm, ok := ctx.Deadline()
@@ -57,7 +57,7 @@ func TestTimeoutInterceptor_panic(t *testing.T) {
 			cc := new(grpc.ClientConn)
 			assert.Panics(t, func() {
 				_ = interceptor(context.Background(), "/foo", nil, nil, cc,
-					func(ctx context.Context, method string, req, reply interface{}, cc *grpc.ClientConn,
+					func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
 						opts ...grpc.CallOption) error {
 						panic("any")
 					},

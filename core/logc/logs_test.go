@@ -26,7 +26,7 @@ func TestAddGlobalFields(t *testing.T) {
 	AddGlobalFields(Field("a", "1"), Field("b", "2"))
 	AddGlobalFields(Field("c", "3"))
 	Info(context.Background(), "world")
-	var m map[string]interface{}
+	var m map[string]any
 	assert.NoError(t, json.Unmarshal(buf.Bytes(), &m))
 	assert.Equal(t, "1", m["a"])
 	assert.Equal(t, "2", m["b"])
@@ -137,6 +137,54 @@ func TestInfow(t *testing.T) {
 
 	file, line := getFileLine()
 	Infow(context.Background(), "foo", Field("a", "b"))
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebug(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debug(context.Background(), "foo")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugf(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugf(context.Background(), "foo %s", "bar")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugv(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugv(context.Background(), "foo")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugw(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugw(context.Background(), "foo", Field("a", "b"))
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 

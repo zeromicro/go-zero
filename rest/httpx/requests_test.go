@@ -1,8 +1,10 @@
 package httpx
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -207,9 +209,23 @@ func TestParseJsonBody(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 		r.Header.Set(ContentType, header.JsonContentType)
 
-		assert.Nil(t, Parse(r, &v))
-		assert.Equal(t, "kevin", v.Name)
-		assert.Equal(t, 18, v.Age)
+		if assert.NoError(t, Parse(r, &v)) {
+			assert.Equal(t, "kevin", v.Name)
+			assert.Equal(t, 18, v.Age)
+		}
+	})
+
+	t.Run("bad body", func(t *testing.T) {
+		var v struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+
+		body := `{"name":"kevin", "ag": 18}`
+		r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+		r.Header.Set(ContentType, header.JsonContentType)
+
+		assert.Error(t, Parse(r, &v))
 	})
 
 	t.Run("hasn't body", func(t *testing.T) {
@@ -308,6 +324,36 @@ func TestParseHeaders_Error(t *testing.T) {
 	assert.NotNil(t, Parse(r, &v))
 }
 
+func TestParseWithValidator(t *testing.T) {
+	SetValidator(mockValidator{})
+	var v struct {
+		Name    string  `form:"name"`
+		Age     int     `form:"age"`
+		Percent float64 `form:"percent,optional"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=hello&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	if assert.NoError(t, Parse(r, &v)) {
+		assert.Equal(t, "hello", v.Name)
+		assert.Equal(t, 18, v.Age)
+		assert.Equal(t, 3.4, v.Percent)
+	}
+}
+
+func TestParseWithValidatorWithError(t *testing.T) {
+	SetValidator(mockValidator{})
+	var v struct {
+		Name    string  `form:"name"`
+		Age     int     `form:"age"`
+		Percent float64 `form:"percent,optional"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/a?name=world&age=18&percent=3.4", http.NoBody)
+	assert.Nil(t, err)
+	assert.Error(t, Parse(r, &v))
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
@@ -350,4 +396,17 @@ func BenchmarkParseAuto(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+type mockValidator struct{}
+
+func (m mockValidator) Validate(r *http.Request, data any) error {
+	if r.URL.Path == "/a" {
+		val := reflect.ValueOf(data).Elem().FieldByName("Name").String()
+		if val != "hello" {
+			return errors.New("name is not hello")
+		}
+	}
+
+	return nil
 }

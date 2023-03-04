@@ -11,7 +11,7 @@ import (
 // The apiparser_parser.go file was split into multiple files because it
 // was too large and caused a possible memory overflow during goctl installation.
 
-func (s *KvLitContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *KvLitContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitKvLit(s)
@@ -115,7 +115,7 @@ func (s *ServiceNameContext) ToStringTree(ruleNames []string, recog antlr.Recogn
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *ServiceNameContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *ServiceNameContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitServiceName(s)
@@ -245,7 +245,7 @@ func (s *PathContext) ToStringTree(ruleNames []string, recog antlr.Recognizer) s
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *PathContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *PathContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitPath(s)
@@ -428,7 +428,7 @@ func (s *PathItemContext) ToStringTree(ruleNames []string, recog antlr.Recognize
 	return antlr.TreesStringTree(s, ruleNames, recog)
 }
 
-func (s *PathItemContext) Accept(visitor antlr.ParseTreeVisitor) interface{} {
+func (s *PathItemContext) Accept(visitor antlr.ParseTreeVisitor) any {
 	switch t := visitor.(type) {
 	case ApiParserVisitor:
 		return t.VisitPathItem(s)

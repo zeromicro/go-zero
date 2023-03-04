@@ -21,7 +21,7 @@ func TestUnaryTimeoutInterceptor(t *testing.T) {
 	interceptor := UnaryTimeoutInterceptor(time.Millisecond * 10)
 	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		return nil, nil
 	})
 	assert.Nil(t, err)
@@ -32,7 +32,7 @@ func TestUnaryTimeoutInterceptor_panic(t *testing.T) {
 	assert.Panics(t, func() {
 		_, _ = interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 			FullMethod: "/",
-		}, func(ctx context.Context, req interface{}) (interface{}, error) {
+		}, func(ctx context.Context, req any) (any, error) {
 			panic("any")
 		})
 	})
@@ -47,7 +47,7 @@ func TestUnaryTimeoutInterceptor_timeout(t *testing.T) {
 	wg.Add(1)
 	_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		defer wg.Done()
 		tm, ok := ctx.Deadline()
 		assert.True(t, ok)
@@ -67,7 +67,7 @@ func TestUnaryTimeoutInterceptor_timeoutExpire(t *testing.T) {
 	wg.Add(1)
 	_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		defer wg.Done()
 		time.Sleep(time.Millisecond * 50)
 		return nil, nil
@@ -86,7 +86,7 @@ func TestUnaryTimeoutInterceptor_cancel(t *testing.T) {
 	wg.Add(1)
 	_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",
-	}, func(ctx context.Context, req interface{}) (interface{}, error) {
+	}, func(ctx context.Context, req any) (any, error) {
 		defer wg.Done()
 		time.Sleep(time.Millisecond * 50)
 		return nil, nil

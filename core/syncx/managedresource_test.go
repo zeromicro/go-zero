@@ -9,9 +9,9 @@ import (
 
 func TestManagedResource(t *testing.T) {
 	var count int32
-	resource := NewManagedResource(func() interface{} {
+	resource := NewManagedResource(func() any {
 		return atomic.AddInt32(&count, 1)
-	}, func(a, b interface{}) bool {
+	}, func(a, b any) bool {
 		return a == b
 	})
 

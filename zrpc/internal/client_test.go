@@ -2,6 +2,9 @@ package internal
 
 import (
 	"context"
+	"net"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -51,7 +54,7 @@ func TestWithTransportCredentials(t *testing.T) {
 
 func TestWithUnaryClientInterceptor(t *testing.T) {
 	var options ClientOptions
-	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply interface{},
+	opt := WithUnaryClientInterceptor(func(ctx context.Context, method string, req, reply any,
 		cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		return nil
 	})
@@ -60,8 +63,66 @@ func TestWithUnaryClientInterceptor(t *testing.T) {
 }
 
 func TestBuildDialOptions(t *testing.T) {
-	var c client
+	c := client{
+		middlewares: ClientMiddlewaresConf{
+			Trace:      true,
+			Duration:   true,
+			Prometheus: true,
+			Breaker:    true,
+			Timeout:    true,
+		},
+	}
 	agent := grpc.WithUserAgent("chrome")
 	opts := c.buildDialOptions(WithDialOption(agent))
 	assert.Contains(t, opts, agent)
+}
+
+func TestClientDial(t *testing.T) {
+	var addr string
+	var wg sync.WaitGroup
+	wg.Add(1)
+	server := grpc.NewServer()
+
+	go func() {
+		lis, err := net.Listen("tcp", "localhost:0")
+		assert.NoError(t, err)
+		defer lis.Close()
+		addr = lis.Addr().String()
+		wg.Done()
+		server.Serve(lis)
+	}()
+
+	wg.Wait()
+	c, err := NewClient(addr, ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, c.Conn())
+	server.Stop()
+}
+
+func TestClientDialFail(t *testing.T) {
+	_, err := NewClient("localhost:54321", ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "localhost:54321"))
+
+	_, err = NewClient("localhost:54321/fail", ClientMiddlewaresConf{
+		Trace:      true,
+		Duration:   true,
+		Prometheus: true,
+		Breaker:    true,
+		Timeout:    true,
+	})
+	assert.Error(t, err)
+	assert.True(t, strings.Contains(err.Error(), "localhost:54321/fail"))
 }

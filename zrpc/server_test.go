@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
@@ -17,22 +18,38 @@ import (
 )
 
 func TestServer_setupInterceptors(t *testing.T) {
+	rds, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer rds.Close()
+
 	server := new(mockedServer)
-	err := setupInterceptors(server, RpcServerConf{
+	conf := RpcServerConf{
 		Auth: true,
 		Redis: redis.RedisKeyConf{
 			RedisConf: redis.RedisConf{
-				Host: "any",
+				Host: rds.Addr(),
 				Type: redis.NodeType,
 			},
 			Key: "foo",
 		},
 		CpuThreshold: 10,
 		Timeout:      100,
-	}, new(stat.Metrics))
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
+	}
+	err = setupInterceptors(server, conf, new(stat.Metrics))
 	assert.Nil(t, err)
 	assert.Equal(t, 3, len(server.unaryInterceptors))
 	assert.Equal(t, 1, len(server.streamInterceptors))
+
+	rds.SetError("mock error")
+	err = setupInterceptors(server, conf, new(stat.Metrics))
+	assert.Error(t, err)
 }
 
 func TestServer(t *testing.T) {
@@ -53,11 +70,18 @@ func TestServer(t *testing.T) {
 		StrictControl: false,
 		Timeout:       0,
 		CpuThreshold:  0,
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }
@@ -76,6 +100,13 @@ func TestServerError(t *testing.T) {
 		},
 		Auth:  true,
 		Redis: redis.RedisKeyConf{},
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	assert.NotNil(t, err)
@@ -95,11 +126,18 @@ func TestServer_HasEtcd(t *testing.T) {
 			Key:   "any",
 		},
 		Redis: redis.RedisKeyConf{},
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))
-	svr.AddUnaryInterceptors(serverinterceptors.UnaryCrashInterceptor)
-	svr.AddStreamInterceptors(serverinterceptors.StreamCrashInterceptor)
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryRecoverInterceptor)
+	svr.AddStreamInterceptors(serverinterceptors.StreamRecoverInterceptor)
 	go svr.Start()
 	svr.Stop()
 }
@@ -113,6 +151,13 @@ func TestServer_StartFailed(t *testing.T) {
 			},
 		},
 		ListenOn: "localhost:aaa",
+		Middlewares: ServerMiddlewaresConf{
+			Trace:      true,
+			Recover:    true,
+			Stat:       true,
+			Prometheus: true,
+			Breaker:    true,
+		},
 	}, func(server *grpc.Server) {
 	})
 

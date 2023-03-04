@@ -27,7 +27,7 @@ func TestOtelHandler(t *testing.T) {
 
 	for _, test := range []string{"", "bar"} {
 		t.Run(test, func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", test)).Then(
+			h := chain.New(TraceHandler("foo", test)).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					assert.True(t, span.SpanContext().IsValid())
@@ -63,12 +63,9 @@ func TestDontTracingSpan(t *testing.T) {
 	})
 	defer ztrace.StopAgent()
 
-	DontTraceSpan("bar")
-	defer notTracingSpans.Delete("bar")
-
 	for _, test := range []string{"", "bar", "foo"} {
 		t.Run(test, func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", test)).Then(
+			h := chain.New(TraceHandler("foo", test, WithTraceIgnorePaths([]string{"bar"}))).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					spanCtx := span.SpanContext()
@@ -113,7 +110,7 @@ func TestTraceResponseWriter(t *testing.T) {
 
 	for _, test := range []int{0, 200, 300, 400, 401, 500, 503} {
 		t.Run(strconv.Itoa(test), func(t *testing.T) {
-			h := chain.New(TracingHandler("foo", "bar")).Then(
+			h := chain.New(TraceHandler("foo", "bar")).Then(
 				http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					span := trace.SpanFromContext(r.Context())
 					spanCtx := span.SpanContext()
@@ -147,47 +144,4 @@ func TestTraceResponseWriter(t *testing.T) {
 			assert.Nil(t, err)
 		})
 	}
-}
-
-func TestTraceHandler_traceResponseWriter(t *testing.T) {
-	writer := &traceResponseWriter{
-		w: httptest.NewRecorder(),
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = &traceResponseWriter{
-		w: mockedHijackable{httptest.NewRecorder()},
-	}
-	assert.NotPanics(t, func() {
-		writer.Hijack()
-	})
-
-	writer = &traceResponseWriter{
-		w: httptest.NewRecorder(),
-	}
-	writer.WriteHeader(http.StatusBadRequest)
-	assert.NotNil(t, writer.Header())
-
-	writer = &traceResponseWriter{
-		w: httptest.NewRecorder(),
-	}
-	assert.NotPanics(t, func() {
-		writer.Flush()
-	})
-
-	writer = &traceResponseWriter{
-		w: mockedFlusher{httptest.NewRecorder()},
-	}
-	assert.NotPanics(t, func() {
-		writer.Flush()
-	})
-}
-
-type mockedFlusher struct {
-	*httptest.ResponseRecorder
-}
-
-func (m mockedFlusher) Flush() {
 }

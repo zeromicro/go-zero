@@ -3,15 +3,19 @@ package internal
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
 )
 
 func TestNopResolver(t *testing.T) {
-	// make sure ResolveNow & Close don't panic
-	var r nopResolver
-	r.ResolveNow(resolver.ResolveNowOptions{})
-	r.Close()
+	assert.NotPanics(t, func() {
+		RegisterResolver()
+		// make sure ResolveNow & Close don't panic
+		var r nopResolver
+		r.ResolveNow(resolver.ResolveNowOptions{})
+		r.Close()
+	})
 }
 
 type mockedClientConn struct {

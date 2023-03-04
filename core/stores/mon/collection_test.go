@@ -422,7 +422,7 @@ func TestCollection_InsertMany(t *testing.T) {
 			brk:        breaker.NewBreaker(),
 		}
 		mt.AddMockResponses(mtest.CreateSuccessResponse(bson.D{{Key: "ok", Value: 1}}...))
-		res, err := c.InsertMany(context.Background(), []interface{}{
+		res, err := c.InsertMany(context.Background(), []any{
 			bson.D{{Key: "foo", Value: "bar"}},
 			bson.D{{Key: "foo", Value: "baz"}},
 		})
@@ -431,7 +431,7 @@ func TestCollection_InsertMany(t *testing.T) {
 		assert.Equal(t, 2, len(res.InsertedIDs))
 
 		c.brk = new(dropBreaker)
-		_, err = c.InsertMany(context.Background(), []interface{}{bson.D{{Key: "foo", Value: "bar"}}})
+		_, err = c.InsertMany(context.Background(), []any{bson.D{{Key: "foo", Value: "bar"}}})
 		assert.Equal(t, errDummy, err)
 	})
 }

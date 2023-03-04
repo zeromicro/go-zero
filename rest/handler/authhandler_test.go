@@ -34,7 +34,7 @@ func TestAuthHandlerFailed(t *testing.T) {
 func TestAuthHandler(t *testing.T) {
 	const key = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
-	token, err := buildToken(key, map[string]interface{}{
+	token, err := buildToken(key, map[string]any{
 		"key": "value",
 	}, 3600)
 	assert.Nil(t, err)
@@ -63,7 +63,7 @@ func TestAuthHandlerWithPrevSecret(t *testing.T) {
 		prevKey = "B63F477D-BBA3-4E52-96D3-C0034C27694A"
 	)
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
-	token, err := buildToken(key, map[string]interface{}{
+	token, err := buildToken(key, map[string]any{
 		"key": "value",
 	}, 3600)
 	assert.Nil(t, err)
@@ -90,7 +90,7 @@ func TestAuthHandler_NilError(t *testing.T) {
 	})
 }
 
-func buildToken(secretKey string, payloads map[string]interface{}, seconds int64) (string, error) {
+func buildToken(secretKey string, payloads map[string]any, seconds int64) (string, error) {
 	now := time.Now().Unix()
 	claims := make(jwt.MapClaims)
 	claims["exp"] = now + seconds

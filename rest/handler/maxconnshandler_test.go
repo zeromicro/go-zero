@@ -24,7 +24,7 @@ func TestMaxConnsHandler(t *testing.T) {
 	done := make(chan lang.PlaceholderType)
 	defer close(done)
 
-	maxConns := MaxConns(conns)
+	maxConns := MaxConnsHandler(conns)
 	handler := maxConns(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		waitGroup.Done()
 		<-done
@@ -54,7 +54,7 @@ func TestWithoutMaxConnsHandler(t *testing.T) {
 	done := make(chan lang.PlaceholderType)
 	defer close(done)
 
-	maxConns := MaxConns(0)
+	maxConns := MaxConnsHandler(0)
 	handler := maxConns(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		val := r.Header.Get(key)
 		if val == value {

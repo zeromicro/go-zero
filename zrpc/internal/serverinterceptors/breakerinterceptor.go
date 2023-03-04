@@ -9,7 +9,7 @@ import (
 )
 
 // StreamBreakerInterceptor is an interceptor that acts as a circuit breaker.
-func StreamBreakerInterceptor(svr interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo,
+func StreamBreakerInterceptor(svr any, stream grpc.ServerStream, info *grpc.StreamServerInfo,
 	handler grpc.StreamHandler) (err error) {
 	breakerName := info.FullMethod
 	return breaker.DoWithAcceptable(breakerName, func() error {
@@ -18,8 +18,8 @@ func StreamBreakerInterceptor(svr interface{}, stream grpc.ServerStream, info *g
 }
 
 // UnaryBreakerInterceptor is an interceptor that acts as a circuit breaker.
-func UnaryBreakerInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler) (resp interface{}, err error) {
+func UnaryBreakerInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (resp any, err error) {
 	breakerName := info.FullMethod
 	err = breaker.DoWithAcceptable(breakerName, func() error {
 		var err error

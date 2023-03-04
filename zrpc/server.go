@@ -9,6 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
@@ -45,12 +46,12 @@ func NewServer(c RpcServerConf, register internal.RegisterFn) (*RpcServer, error
 	}
 
 	if c.HasEtcd() {
-		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, serverOptions...)
+		server, err = internal.NewRpcPubServer(c.Etcd, c.ListenOn, c.Middlewares, serverOptions...)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		server = internal.NewRpcServer(c.ListenOn, serverOptions...)
+		server = internal.NewRpcServer(c.ListenOn, c.Middlewares, serverOptions...)
 	}
 
 	server.SetName(c.Name)
@@ -126,7 +127,12 @@ func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Me
 	}
 
 	if c.Auth {
-		authenticator, err := auth.NewAuthenticator(c.Redis.NewRedis(), c.Redis.Key, c.StrictControl)
+		rds, err := redis.NewRedis(c.Redis.RedisConf)
+		if err != nil {
+			return err
+		}
+
+		authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
 		if err != nil {
 			return err
 		}

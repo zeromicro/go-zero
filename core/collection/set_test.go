@@ -13,7 +13,7 @@ func init() {
 }
 
 func BenchmarkRawSet(b *testing.B) {
-	m := make(map[interface{}]struct{})
+	m := make(map[any]struct{})
 	for i := 0; i < b.N; i++ {
 		m[i] = struct{}{}
 		_ = m[i]
@@ -39,7 +39,7 @@ func BenchmarkSet(b *testing.B) {
 func TestAdd(t *testing.T) {
 	// given
 	set := NewUnmanagedSet()
-	values := []interface{}{1, 2, 3}
+	values := []any{1, 2, 3}
 
 	// when
 	set.Add(values...)
@@ -135,7 +135,7 @@ func TestContainsUnmanagedWithoutElements(t *testing.T) {
 func TestRemove(t *testing.T) {
 	// given
 	set := NewSet()
-	set.Add([]interface{}{1, 2, 3}...)
+	set.Add([]any{1, 2, 3}...)
 
 	// when
 	set.Remove(2)
@@ -147,7 +147,7 @@ func TestRemove(t *testing.T) {
 func TestCount(t *testing.T) {
 	// given
 	set := NewSet()
-	set.Add([]interface{}{1, 2, 3}...)
+	set.Add([]any{1, 2, 3}...)
 
 	// then
 	assert.Equal(t, set.Count(), 3)
@@ -198,5 +198,5 @@ func TestSetType(t *testing.T) {
 	set.add(1)
 	set.add("2")
 	vals := set.Keys()
-	assert.ElementsMatch(t, []interface{}{1, "2"}, vals)
+	assert.ElementsMatch(t, []any{1, "2"}, vals)
 }

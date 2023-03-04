@@ -78,7 +78,7 @@ type Body struct {
 }
 
 // VisitServiceSpec implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitServiceSpec(ctx *api.ServiceSpecContext) interface{} {
+func (v *ApiVisitor) VisitServiceSpec(ctx *api.ServiceSpecContext) any {
 	var serviceSpec Service
 	if ctx.AtServer() != nil {
 		serviceSpec.AtServer = ctx.AtServer().Accept(v).(*AtServer)
@@ -89,7 +89,7 @@ func (v *ApiVisitor) VisitServiceSpec(ctx *api.ServiceSpecContext) interface{} {
 }
 
 // VisitAtServer implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitAtServer(ctx *api.AtServerContext) interface{} {
+func (v *ApiVisitor) VisitAtServer(ctx *api.AtServerContext) any {
 	var atServer AtServer
 	atServer.AtServerToken = v.newExprWithTerminalNode(ctx.ATSERVER())
 	atServer.Lp = v.newExprWithToken(ctx.GetLp())
@@ -103,7 +103,7 @@ func (v *ApiVisitor) VisitAtServer(ctx *api.AtServerContext) interface{} {
 }
 
 // VisitServiceApi implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) interface{} {
+func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) any {
 	var serviceApi ServiceApi
 	serviceApi.ServiceToken = v.newExprWithToken(ctx.GetServiceToken())
 	serviceName := ctx.ServiceName()
@@ -119,7 +119,7 @@ func (v *ApiVisitor) VisitServiceApi(ctx *api.ServiceApiContext) interface{} {
 }
 
 // VisitServiceRoute implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) interface{} {
+func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) any {
 	var serviceRoute ServiceRoute
 	if ctx.AtDoc() != nil {
 		serviceRoute.AtDoc = ctx.AtDoc().Accept(v).(*AtDoc)
@@ -136,7 +136,7 @@ func (v *ApiVisitor) VisitServiceRoute(ctx *api.ServiceRouteContext) interface{}
 }
 
 // VisitAtDoc implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitAtDoc(ctx *api.AtDocContext) interface{} {
+func (v *ApiVisitor) VisitAtDoc(ctx *api.AtDocContext) any {
 	var atDoc AtDoc
 	atDoc.AtDocToken = v.newExprWithTerminalNode(ctx.ATDOC())
 
@@ -166,7 +166,7 @@ func (v *ApiVisitor) VisitAtDoc(ctx *api.AtDocContext) interface{} {
 }
 
 // VisitAtHandler implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
+func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) any {
 	var atHandler AtHandler
 	astHandlerExpr := v.newExprWithTerminalNode(ctx.ATHANDLER())
 	atHandler.AtHandlerToken = astHandlerExpr
@@ -176,8 +176,8 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) interface{} {
 	return &atHandler
 }
 
-// serVisitRoute implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
+// VisitRoute implements from api.BaseApiParserVisitor
+func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) any {
 	var route Route
 	path := ctx.Path()
 	methodExpr := v.newExprWithToken(ctx.GetHttpMethod())
@@ -207,7 +207,7 @@ func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) interface{} {
 }
 
 // VisitBody implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
+func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) any {
 	if ctx.ID() == nil {
 		if v.debug {
 			msg := fmt.Sprintf(
@@ -233,7 +233,7 @@ func (v *ApiVisitor) VisitBody(ctx *api.BodyContext) interface{} {
 }
 
 // VisitReplybody implements from api.BaseApiParserVisitor
-func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) interface{} {
+func (v *ApiVisitor) VisitReplybody(ctx *api.ReplybodyContext) any {
 	if ctx.DataType() == nil {
 		if v.debug {
 			msg := fmt.Sprintf(
@@ -294,7 +294,7 @@ func (b *Body) Format() error {
 }
 
 // Equal compares whether the element literals in two Body are equal
-func (b *Body) Equal(v interface{}) bool {
+func (b *Body) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -332,7 +332,7 @@ func (r *Route) Comment() Expr {
 }
 
 // Equal compares whether the element literals in two Route are equal
-func (r *Route) Equal(v interface{}) bool {
+func (r *Route) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -388,7 +388,7 @@ func (a *AtHandler) Format() error {
 }
 
 // Equal compares whether the element literals in two AtHandler are equal
-func (a *AtHandler) Equal(v interface{}) bool {
+func (a *AtHandler) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -416,7 +416,7 @@ func (a *AtDoc) Format() error {
 }
 
 // Equal compares whether the element literals in two AtDoc are equal
-func (a *AtDoc) Equal(v interface{}) bool {
+func (a *AtDoc) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -473,7 +473,7 @@ func (a *AtServer) Format() error {
 }
 
 // Equal compares whether the element literals in two AtServer are equal
-func (a *AtServer) Equal(v interface{}) bool {
+func (a *AtServer) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -521,7 +521,7 @@ func (a *AtServer) Equal(v interface{}) bool {
 }
 
 // Equal compares whether the element literals in two ServiceRoute are equal
-func (s *ServiceRoute) Equal(v interface{}) bool {
+func (s *ServiceRoute) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -572,7 +572,7 @@ func (a *ServiceApi) Format() error {
 }
 
 // Equal compares whether the element literals in two ServiceApi are equal
-func (a *ServiceApi) Equal(v interface{}) bool {
+func (a *ServiceApi) Equal(v any) bool {
 	if v == nil {
 		return false
 	}
@@ -630,7 +630,7 @@ func (s *Service) Format() error {
 }
 
 // Equal compares whether the element literals in two Service are equal
-func (s *Service) Equal(v interface{}) bool {
+func (s *Service) Equal(v any) bool {
 	if v == nil {
 		return false
 	}

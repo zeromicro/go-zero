@@ -3,7 +3,6 @@ package sqlx
 import (
 	"database/sql"
 	"io"
-	"sync"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -17,43 +16,29 @@ const (
 
 var connManager = syncx.NewResourceManager()
 
-type pingedDB struct {
-	*sql.DB
-	once sync.Once
-}
-
-func getCachedSqlConn(driverName, server string) (*pingedDB, error) {
+func getCachedSqlConn(driverName, server string) (*sql.DB, error) {
 	val, err := connManager.GetResource(server, func() (io.Closer, error) {
 		conn, err := newDBConnection(driverName, server)
 		if err != nil {
 			return nil, err
 		}
 
-		return &pingedDB{
-			DB: conn,
-		}, nil
+		return conn, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return val.(*pingedDB), nil
+	return val.(*sql.DB), nil
 }
 
 func getSqlConn(driverName, server string) (*sql.DB, error) {
-	pdb, err := getCachedSqlConn(driverName, server)
+	conn, err := getCachedSqlConn(driverName, server)
 	if err != nil {
 		return nil, err
 	}
 
-	pdb.once.Do(func() {
-		err = pdb.Ping()
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return pdb.DB, nil
+	return conn, nil
 }
 
 func newDBConnection(driverName, datasource string) (*sql.DB, error) {
@@ -69,6 +54,11 @@ func newDBConnection(driverName, datasource string) (*sql.DB, error) {
 	conn.SetMaxIdleConns(maxIdleConns)
 	conn.SetMaxOpenConns(maxOpenConns)
 	conn.SetConnMaxLifetime(maxLifetime)
+
+	if err := conn.Ping(); err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
 
 	return conn, nil
 }

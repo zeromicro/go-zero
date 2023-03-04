@@ -5,7 +5,7 @@ import "sync"
 // A Queue is a FIFO queue.
 type Queue struct {
 	lock     sync.Mutex
-	elements []interface{}
+	elements []any
 	size     int
 	head     int
 	tail     int
@@ -15,7 +15,7 @@ type Queue struct {
 // NewQueue returns a Queue object.
 func NewQueue(size int) *Queue {
 	return &Queue{
-		elements: make([]interface{}, size),
+		elements: make([]any, size),
 		size:     size,
 	}
 }
@@ -30,12 +30,12 @@ func (q *Queue) Empty() bool {
 }
 
 // Put puts element into q at the last position.
-func (q *Queue) Put(element interface{}) {
+func (q *Queue) Put(element any) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 
 	if q.head == q.tail && q.count > 0 {
-		nodes := make([]interface{}, len(q.elements)+q.size)
+		nodes := make([]any, len(q.elements)+q.size)
 		copy(nodes, q.elements[q.head:])
 		copy(nodes[len(q.elements)-q.head:], q.elements[:q.head])
 		q.head = 0
@@ -49,7 +49,7 @@ func (q *Queue) Put(element interface{}) {
 }
 
 // Take takes the first element out of q if not empty.
-func (q *Queue) Take() (interface{}, bool) {
+func (q *Queue) Take() (any, bool) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 

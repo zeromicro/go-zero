@@ -81,7 +81,7 @@ func (mr *MockEtcdClientMockRecorder) Ctx() *gomock.Call {
 // Get mocks base method
 func (m *MockEtcdClient) Get(ctx context.Context, key string, opts ...clientv3.OpOption) (*clientv3.GetResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
+	varargs := []any{ctx, key}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -92,9 +92,9 @@ func (m *MockEtcdClient) Get(ctx context.Context, key string, opts ...clientv3.O
 }
 
 // Get indicates an expected call of Get
-func (mr *MockEtcdClientMockRecorder) Get(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) Get(ctx, key any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
+	varargs := append([]any{ctx, key}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockEtcdClient)(nil).Get), varargs...)
 }
 
@@ -108,7 +108,7 @@ func (m *MockEtcdClient) Grant(ctx context.Context, ttl int64) (*clientv3.LeaseG
 }
 
 // Grant indicates an expected call of Grant
-func (mr *MockEtcdClientMockRecorder) Grant(ctx, ttl interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) Grant(ctx, ttl any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Grant", reflect.TypeOf((*MockEtcdClient)(nil).Grant), ctx, ttl)
 }
@@ -123,7 +123,7 @@ func (m *MockEtcdClient) KeepAlive(ctx context.Context, id clientv3.LeaseID) (<-
 }
 
 // KeepAlive indicates an expected call of KeepAlive
-func (mr *MockEtcdClientMockRecorder) KeepAlive(ctx, id interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) KeepAlive(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KeepAlive", reflect.TypeOf((*MockEtcdClient)(nil).KeepAlive), ctx, id)
 }
@@ -131,7 +131,7 @@ func (mr *MockEtcdClientMockRecorder) KeepAlive(ctx, id interface{}) *gomock.Cal
 // Put mocks base method
 func (m *MockEtcdClient) Put(ctx context.Context, key, val string, opts ...clientv3.OpOption) (*clientv3.PutResponse, error) {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key, val}
+	varargs := []any{ctx, key, val}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -142,9 +142,9 @@ func (m *MockEtcdClient) Put(ctx context.Context, key, val string, opts ...clien
 }
 
 // Put indicates an expected call of Put
-func (mr *MockEtcdClientMockRecorder) Put(ctx, key, val interface{}, opts ...interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) Put(ctx, key, val any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key, val}, opts...)
+	varargs := append([]any{ctx, key, val}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockEtcdClient)(nil).Put), varargs...)
 }
 
@@ -158,7 +158,7 @@ func (m *MockEtcdClient) Revoke(ctx context.Context, id clientv3.LeaseID) (*clie
 }
 
 // Revoke indicates an expected call of Revoke
-func (mr *MockEtcdClientMockRecorder) Revoke(ctx, id interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) Revoke(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Revoke", reflect.TypeOf((*MockEtcdClient)(nil).Revoke), ctx, id)
 }
@@ -166,7 +166,7 @@ func (mr *MockEtcdClientMockRecorder) Revoke(ctx, id interface{}) *gomock.Call {
 // Watch mocks base method
 func (m *MockEtcdClient) Watch(ctx context.Context, key string, opts ...clientv3.OpOption) clientv3.WatchChan {
 	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, key}
+	varargs := []any{ctx, key}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
@@ -176,8 +176,8 @@ func (m *MockEtcdClient) Watch(ctx context.Context, key string, opts ...clientv3
 }
 
 // Watch indicates an expected call of Watch
-func (mr *MockEtcdClientMockRecorder) Watch(ctx, key interface{}, opts ...interface{}) *gomock.Call {
+func (mr *MockEtcdClientMockRecorder) Watch(ctx, key any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, key}, opts...)
+	varargs := append([]any{ctx, key}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockEtcdClient)(nil).Watch), varargs...)
 }

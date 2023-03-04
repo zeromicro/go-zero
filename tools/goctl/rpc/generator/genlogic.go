@@ -60,7 +60,7 @@ func (g *Generator) genLogicInCompatibility(ctx DirContext, proto parser.Proto,
 		if err != nil {
 			return err
 		}
-		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+		err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]any{
 			"logicName":   fmt.Sprintf("%sLogic", stringx.From(rpc.Name).ToCamel()),
 			"functions":   functions,
 			"packageName": "logic",
@@ -114,7 +114,7 @@ func (g *Generator) genLogicGroup(ctx DirContext, proto parser.Proto, cfg *conf.
 				return err
 			}
 
-			if err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+			if err = util.With("logic").GoFmt(true).Parse(text).SaveTo(map[string]any{
 				"logicName":   logicName,
 				"functions":   functions,
 				"packageName": packageName,
@@ -139,7 +139,7 @@ func (g *Generator) genLogicFunction(serviceName, goPackage, logicName string,
 	comment := parser.GetComment(rpc.Doc())
 	streamServer := fmt.Sprintf("%s.%s_%s%s", goPackage, parser.CamelCase(serviceName),
 		parser.CamelCase(rpc.Name), "Server")
-	buffer, err := util.With("fun").Parse(text).Execute(map[string]interface{}{
+	buffer, err := util.With("fun").Parse(text).Execute(map[string]any{
 		"logicName":    logicName,
 		"method":       parser.CamelCase(rpc.Name),
 		"hasReq":       !rpc.StreamsRequest,

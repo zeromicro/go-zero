@@ -110,7 +110,7 @@ func TestP2cPicker_Pick(t *testing.T) {
 			}
 
 			wg.Wait()
-			dist := make(map[interface{}]int)
+			dist := make(map[any]int)
 			conns := picker.(*p2cPicker).conns
 			for _, conn := range conns {
 				dist[conn.addr.Addr] = int(conn.requests)
@@ -126,6 +126,11 @@ func TestP2cPicker_Pick(t *testing.T) {
 type mockClientConn struct {
 	// add random string member to avoid map key equality.
 	id string
+}
+
+func (m mockClientConn) GetOrBuildProducer(builder balancer.ProducerBuilder) (
+	p balancer.Producer, close func()) {
+	return builder.Build(m)
 }
 
 func (m mockClientConn) UpdateAddresses(addresses []resolver.Address) {

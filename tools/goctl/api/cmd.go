@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
@@ -51,7 +52,7 @@ var (
 		Use:     "new",
 		Short:   "Fast create api service",
 		Example: "goctl api new [options] service-name",
-		Args:    cobra.ExactValidArgs(1),
+		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return new.CreateServiceCommand(args)
 		},
@@ -127,7 +128,7 @@ func init() {
 		"https://github.com/zeromicro/go-zero-template directory structure")
 	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
-	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "gozero", "The file naming format,"+
+	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
@@ -146,7 +147,7 @@ func init() {
 		"https://github.com/zeromicro/go-zero-template directory structure")
 	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "", "The branch of "+
 		"the remote repo, it does work with --remote")
-	newCmd.Flags().StringVar(&new.VarStringStyle, "style", "gozero", "The file naming format,"+
+	newCmd.Flags().StringVar(&new.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
@@ -157,7 +158,6 @@ func init() {
 
 	tsCmd.Flags().StringVar(&tsgen.VarStringDir, "dir", "", "The target dir")
 	tsCmd.Flags().StringVar(&tsgen.VarStringAPI, "api", "", "The api file")
-	tsCmd.Flags().StringVar(&tsgen.VarStringWebAPI, "webapi", "", "The web api file path")
 	tsCmd.Flags().StringVar(&tsgen.VarStringCaller, "caller", "", "The web api caller")
 	tsCmd.Flags().BoolVar(&tsgen.VarBoolUnWrap, "unwrap", false, "Unwrap the webapi caller for import")
 

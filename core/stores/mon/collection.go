@@ -46,7 +46,7 @@ type (
 	// Collection defines a MongoDB collection.
 	Collection interface {
 		// Aggregate executes an aggregation pipeline.
-		Aggregate(ctx context.Context, pipeline interface{}, opts ...*mopt.AggregateOptions) (
+		Aggregate(ctx context.Context, pipeline any, opts ...*mopt.AggregateOptions) (
 			*mongo.Cursor, error)
 		// BulkWrite performs a bulk write operation.
 		BulkWrite(ctx context.Context, models []mongo.WriteModel, opts ...*mopt.BulkWriteOptions) (
@@ -54,64 +54,64 @@ type (
 		// Clone creates a copy of this collection with the same settings.
 		Clone(opts ...*mopt.CollectionOptions) (*mongo.Collection, error)
 		// CountDocuments returns the number of documents in the collection that match the filter.
-		CountDocuments(ctx context.Context, filter interface{}, opts ...*mopt.CountOptions) (int64, error)
+		CountDocuments(ctx context.Context, filter any, opts ...*mopt.CountOptions) (int64, error)
 		// Database returns the database that this collection is a part of.
 		Database() *mongo.Database
 		// DeleteMany deletes documents from the collection that match the filter.
-		DeleteMany(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (
+		DeleteMany(ctx context.Context, filter any, opts ...*mopt.DeleteOptions) (
 			*mongo.DeleteResult, error)
 		// DeleteOne deletes at most one document from the collection that matches the filter.
-		DeleteOne(ctx context.Context, filter interface{}, opts ...*mopt.DeleteOptions) (
+		DeleteOne(ctx context.Context, filter any, opts ...*mopt.DeleteOptions) (
 			*mongo.DeleteResult, error)
 		// Distinct returns a list of distinct values for the given key across the collection.
-		Distinct(ctx context.Context, fieldName string, filter interface{},
-			opts ...*mopt.DistinctOptions) ([]interface{}, error)
+		Distinct(ctx context.Context, fieldName string, filter any,
+			opts ...*mopt.DistinctOptions) ([]any, error)
 		// Drop drops this collection from database.
 		Drop(ctx context.Context) error
 		// EstimatedDocumentCount returns an estimate of the count of documents in a collection
 		// using collection metadata.
 		EstimatedDocumentCount(ctx context.Context, opts ...*mopt.EstimatedDocumentCountOptions) (int64, error)
 		// Find finds the documents matching the provided filter.
-		Find(ctx context.Context, filter interface{}, opts ...*mopt.FindOptions) (*mongo.Cursor, error)
+		Find(ctx context.Context, filter any, opts ...*mopt.FindOptions) (*mongo.Cursor, error)
 		// FindOne returns up to one document that matches the provided filter.
-		FindOne(ctx context.Context, filter interface{}, opts ...*mopt.FindOneOptions) (
+		FindOne(ctx context.Context, filter any, opts ...*mopt.FindOneOptions) (
 			*mongo.SingleResult, error)
 		// FindOneAndDelete returns at most one document that matches the filter. If the filter
 		// matches multiple documents, only the first document is deleted.
-		FindOneAndDelete(ctx context.Context, filter interface{}, opts ...*mopt.FindOneAndDeleteOptions) (
+		FindOneAndDelete(ctx context.Context, filter any, opts ...*mopt.FindOneAndDeleteOptions) (
 			*mongo.SingleResult, error)
 		// FindOneAndReplace returns at most one document that matches the filter. If the filter
 		// matches multiple documents, FindOneAndReplace returns the first document in the
 		// collection that matches the filter.
-		FindOneAndReplace(ctx context.Context, filter, replacement interface{},
+		FindOneAndReplace(ctx context.Context, filter, replacement any,
 			opts ...*mopt.FindOneAndReplaceOptions) (*mongo.SingleResult, error)
 		// FindOneAndUpdate returns at most one document that matches the filter. If the filter
 		// matches multiple documents, FindOneAndUpdate returns the first document in the
 		// collection that matches the filter.
-		FindOneAndUpdate(ctx context.Context, filter, update interface{},
+		FindOneAndUpdate(ctx context.Context, filter, update any,
 			opts ...*mopt.FindOneAndUpdateOptions) (*mongo.SingleResult, error)
 		// Indexes returns the index view for this collection.
 		Indexes() mongo.IndexView
 		// InsertMany inserts the provided documents.
-		InsertMany(ctx context.Context, documents []interface{}, opts ...*mopt.InsertManyOptions) (
+		InsertMany(ctx context.Context, documents []any, opts ...*mopt.InsertManyOptions) (
 			*mongo.InsertManyResult, error)
 		// InsertOne inserts the provided document.
-		InsertOne(ctx context.Context, document interface{}, opts ...*mopt.InsertOneOptions) (
+		InsertOne(ctx context.Context, document any, opts ...*mopt.InsertOneOptions) (
 			*mongo.InsertOneResult, error)
 		// ReplaceOne replaces at most one document that matches the filter.
-		ReplaceOne(ctx context.Context, filter, replacement interface{},
+		ReplaceOne(ctx context.Context, filter, replacement any,
 			opts ...*mopt.ReplaceOptions) (*mongo.UpdateResult, error)
 		// UpdateByID updates a single document matching the provided filter.
-		UpdateByID(ctx context.Context, id, update interface{},
+		UpdateByID(ctx context.Context, id, update any,
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
 		// UpdateMany updates the provided documents.
-		UpdateMany(ctx context.Context, filter, update interface{},
+		UpdateMany(ctx context.Context, filter, update any,
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
 		// UpdateOne updates a single document matching the provided filter.
-		UpdateOne(ctx context.Context, filter, update interface{},
+		UpdateOne(ctx context.Context, filter, update any,
 			opts ...*mopt.UpdateOptions) (*mongo.UpdateResult, error)
 		// Watch returns a change stream cursor used to receive notifications of changes to the collection.
-		Watch(ctx context.Context, pipeline interface{}, opts ...*mopt.ChangeStreamOptions) (
+		Watch(ctx context.Context, pipeline any, opts ...*mopt.ChangeStreamOptions) (
 			*mongo.ChangeStream, error)
 	}
 
@@ -135,7 +135,7 @@ func newCollection(collection *mongo.Collection, brk breaker.Breaker) Collection
 	}
 }
 
-func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline interface{},
+func (c *decoratedCollection) Aggregate(ctx context.Context, pipeline any,
 	opts ...*mopt.AggregateOptions) (cur *mongo.Cursor, err error) {
 	ctx, span := startSpan(ctx, aggregate)
 	defer func() {
@@ -175,7 +175,7 @@ func (c *decoratedCollection) BulkWrite(ctx context.Context, models []mongo.Writ
 	return
 }
 
-func (c *decoratedCollection) CountDocuments(ctx context.Context, filter interface{},
+func (c *decoratedCollection) CountDocuments(ctx context.Context, filter any,
 	opts ...*mopt.CountOptions) (count int64, err error) {
 	ctx, span := startSpan(ctx, countDocuments)
 	defer func() {
@@ -195,7 +195,7 @@ func (c *decoratedCollection) CountDocuments(ctx context.Context, filter interfa
 	return
 }
 
-func (c *decoratedCollection) DeleteMany(ctx context.Context, filter interface{},
+func (c *decoratedCollection) DeleteMany(ctx context.Context, filter any,
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
 	ctx, span := startSpan(ctx, deleteMany)
 	defer func() {
@@ -215,7 +215,7 @@ func (c *decoratedCollection) DeleteMany(ctx context.Context, filter interface{}
 	return
 }
 
-func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
+func (c *decoratedCollection) DeleteOne(ctx context.Context, filter any,
 	opts ...*mopt.DeleteOptions) (res *mongo.DeleteResult, err error) {
 	ctx, span := startSpan(ctx, deleteOne)
 	defer func() {
@@ -235,8 +235,8 @@ func (c *decoratedCollection) DeleteOne(ctx context.Context, filter interface{},
 	return
 }
 
-func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, filter interface{},
-	opts ...*mopt.DistinctOptions) (val []interface{}, err error) {
+func (c *decoratedCollection) Distinct(ctx context.Context, fieldName string, filter any,
+	opts ...*mopt.DistinctOptions) (val []any, err error) {
 	ctx, span := startSpan(ctx, distinct)
 	defer func() {
 		endSpan(span, err)
@@ -275,7 +275,7 @@ func (c *decoratedCollection) EstimatedDocumentCount(ctx context.Context,
 	return
 }
 
-func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
+func (c *decoratedCollection) Find(ctx context.Context, filter any,
 	opts ...*mopt.FindOptions) (cur *mongo.Cursor, err error) {
 	ctx, span := startSpan(ctx, find)
 	defer func() {
@@ -295,7 +295,7 @@ func (c *decoratedCollection) Find(ctx context.Context, filter interface{},
 	return
 }
 
-func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
+func (c *decoratedCollection) FindOne(ctx context.Context, filter any,
 	opts ...*mopt.FindOneOptions) (res *mongo.SingleResult, err error) {
 	ctx, span := startSpan(ctx, findOne)
 	defer func() {
@@ -316,7 +316,7 @@ func (c *decoratedCollection) FindOne(ctx context.Context, filter interface{},
 	return
 }
 
-func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter interface{},
+func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter any,
 	opts ...*mopt.FindOneAndDeleteOptions) (res *mongo.SingleResult, err error) {
 	ctx, span := startSpan(ctx, findOneAndDelete)
 	defer func() {
@@ -337,8 +337,8 @@ func (c *decoratedCollection) FindOneAndDelete(ctx context.Context, filter inter
 	return
 }
 
-func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter interface{},
-	replacement interface{}, opts ...*mopt.FindOneAndReplaceOptions) (
+func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter any,
+	replacement any, opts ...*mopt.FindOneAndReplaceOptions) (
 	res *mongo.SingleResult, err error) {
 	ctx, span := startSpan(ctx, findOneAndReplace)
 	defer func() {
@@ -359,7 +359,7 @@ func (c *decoratedCollection) FindOneAndReplace(ctx context.Context, filter inte
 	return
 }
 
-func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter, update interface{},
+func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter, update any,
 	opts ...*mopt.FindOneAndUpdateOptions) (res *mongo.SingleResult, err error) {
 	ctx, span := startSpan(ctx, findOneAndUpdate)
 	defer func() {
@@ -380,7 +380,7 @@ func (c *decoratedCollection) FindOneAndUpdate(ctx context.Context, filter, upda
 	return
 }
 
-func (c *decoratedCollection) InsertMany(ctx context.Context, documents []interface{},
+func (c *decoratedCollection) InsertMany(ctx context.Context, documents []any,
 	opts ...*mopt.InsertManyOptions) (res *mongo.InsertManyResult, err error) {
 	ctx, span := startSpan(ctx, insertMany)
 	defer func() {
@@ -400,7 +400,7 @@ func (c *decoratedCollection) InsertMany(ctx context.Context, documents []interf
 	return
 }
 
-func (c *decoratedCollection) InsertOne(ctx context.Context, document interface{},
+func (c *decoratedCollection) InsertOne(ctx context.Context, document any,
 	opts ...*mopt.InsertOneOptions) (res *mongo.InsertOneResult, err error) {
 	ctx, span := startSpan(ctx, insertOne)
 	defer func() {
@@ -420,7 +420,7 @@ func (c *decoratedCollection) InsertOne(ctx context.Context, document interface{
 	return
 }
 
-func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter, replacement interface{},
+func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter, replacement any,
 	opts ...*mopt.ReplaceOptions) (res *mongo.UpdateResult, err error) {
 	ctx, span := startSpan(ctx, replaceOne)
 	defer func() {
@@ -440,7 +440,7 @@ func (c *decoratedCollection) ReplaceOne(ctx context.Context, filter, replacemen
 	return
 }
 
-func (c *decoratedCollection) UpdateByID(ctx context.Context, id, update interface{},
+func (c *decoratedCollection) UpdateByID(ctx context.Context, id, update any,
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
 	ctx, span := startSpan(ctx, updateByID)
 	defer func() {
@@ -460,7 +460,7 @@ func (c *decoratedCollection) UpdateByID(ctx context.Context, id, update interfa
 	return
 }
 
-func (c *decoratedCollection) UpdateMany(ctx context.Context, filter, update interface{},
+func (c *decoratedCollection) UpdateMany(ctx context.Context, filter, update any,
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
 	ctx, span := startSpan(ctx, updateMany)
 	defer func() {
@@ -480,7 +480,7 @@ func (c *decoratedCollection) UpdateMany(ctx context.Context, filter, update int
 	return
 }
 
-func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update interface{},
+func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update any,
 	opts ...*mopt.UpdateOptions) (res *mongo.UpdateResult, err error) {
 	ctx, span := startSpan(ctx, updateOne)
 	defer func() {
@@ -501,7 +501,7 @@ func (c *decoratedCollection) UpdateOne(ctx context.Context, filter, update inte
 }
 
 func (c *decoratedCollection) logDuration(ctx context.Context, method string,
-	startTime time.Duration, err error, docs ...interface{}) {
+	startTime time.Duration, err error, docs ...any) {
 	duration := timex.Since(startTime)
 	logger := logx.WithContext(ctx).WithDuration(duration)
 

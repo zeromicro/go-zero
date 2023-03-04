@@ -85,7 +85,7 @@ func RegisterGreetServer(s grpc.ServiceRegistrar, srv GreetServer) {
 	s.RegisterService(&Greet_ServiceDesc, srv)
 }
 
-func _Greet_SayHi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Greet_SayHi_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(HiReq)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -97,13 +97,13 @@ func _Greet_SayHi_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		Server:     srv,
 		FullMethod: "/hi.Greet/SayHi",
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(GreetServer).SayHi(ctx, req.(*HiReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Greet_SayHello_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Greet_SayHello_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(HelloReq)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func _Greet_SayHello_Handler(srv interface{}, ctx context.Context, dec func(inte
 		Server:     srv,
 		FullMethod: "/hi.Greet/SayHello",
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(GreetServer).SayHello(ctx, req.(*HelloReq))
 	}
 	return interceptor(ctx, in, info, handler)
@@ -193,7 +193,7 @@ func RegisterEventServer(s grpc.ServiceRegistrar, srv EventServer) {
 	s.RegisterService(&Event_ServiceDesc, srv)
 }
 
-func _Event_AskQuestion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Event_AskQuestion_Handler(srv any, ctx context.Context, dec func(any) error, interceptor grpc.UnaryServerInterceptor) (any, error) {
 	in := new(EventReq)
 	if err := dec(in); err != nil {
 		return nil, err
@@ -205,7 +205,7 @@ func _Event_AskQuestion_Handler(srv interface{}, ctx context.Context, dec func(i
 		Server:     srv,
 		FullMethod: "/hi.Event/AskQuestion",
 	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(EventServer).AskQuestion(ctx, req.(*EventReq))
 	}
 	return interceptor(ctx, in, info, handler)

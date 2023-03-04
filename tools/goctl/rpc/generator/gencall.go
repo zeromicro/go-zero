@@ -63,7 +63,24 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 		isCallPkgSameToPbPkg := childDir == ctx.GetProtoGo().Filename
 		isCallPkgSameToGrpcPkg := childDir == ctx.GetProtoGo().Filename
 
-		functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
+		serviceName := stringx.From(service.Name).ToCamel()
+		alias := collection.NewSet()
+		var hasSameNameBetweenMessageAndService bool
+		for _, item := range proto.Message {
+			msgName := getMessageName(*item.Message)
+			if serviceName == msgName {
+				hasSameNameBetweenMessageAndService = true
+			}
+			if !isCallPkgSameToPbPkg {
+				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+			}
+		}
+		if hasSameNameBetweenMessageAndService {
+			serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+		}
+
+		functions, err := g.genFunction(proto.PbPackage, serviceName, service, isCallPkgSameToGrpcPkg)
 		if err != nil {
 			return err
 		}
@@ -78,15 +95,6 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			return err
 		}
 
-		alias := collection.NewSet()
-		if !isCallPkgSameToPbPkg {
-			for _, item := range proto.Message {
-				msgName := getMessageName(*item.Message)
-				alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
-					fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
-			}
-		}
-
 		pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
 		protoGoPackage := fmt.Sprintf(`"%s"`, ctx.GetProtoGo().Package)
 		if isCallPkgSameToGrpcPkg {
@@ -96,14 +104,14 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 
 		aliasKeys := alias.KeysStr()
 		sort.Strings(aliasKeys)
-		if err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+		if err = util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
 			"name":           callFilename,
 			"alias":          strings.Join(aliasKeys, pathx.NL),
 			"head":           head,
 			"filePackage":    dir.Base,
 			"pbPackage":      pbPackage,
 			"protoGoPackage": protoGoPackage,
-			"serviceName":    stringx.From(service.Name).ToCamel(),
+			"serviceName":    serviceName,
 			"functions":      strings.Join(functions, pathx.NL),
 			"interface":      strings.Join(iFunctions, pathx.NL),
 		}, filename, true); err != nil {
@@ -126,8 +134,26 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		return err
 	}
 
+	serviceName := stringx.From(service.Name).ToCamel()
+	alias := collection.NewSet()
+	var hasSameNameBetweenMessageAndService bool
+	for _, item := range proto.Message {
+		msgName := getMessageName(*item.Message)
+		if serviceName == msgName {
+			hasSameNameBetweenMessageAndService = true
+		}
+		if !isCallPkgSameToPbPkg {
+			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
+				fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
+		}
+	}
+
+	if hasSameNameBetweenMessageAndService {
+		serviceName = stringx.From(service.Name + "_zrpc_client").ToCamel()
+	}
+
 	filename := filepath.Join(dir.Filename, fmt.Sprintf("%s.go", callFilename))
-	functions, err := g.genFunction(proto.PbPackage, service, isCallPkgSameToGrpcPkg)
+	functions, err := g.genFunction(proto.PbPackage, serviceName, service, isCallPkgSameToGrpcPkg)
 	if err != nil {
 		return err
 	}
@@ -142,15 +168,6 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 		return err
 	}
 
-	alias := collection.NewSet()
-	if !isCallPkgSameToPbPkg {
-		for _, item := range proto.Message {
-			msgName := getMessageName(*item.Message)
-			alias.AddStr(fmt.Sprintf("%s = %s", parser.CamelCase(msgName),
-				fmt.Sprintf("%s.%s", proto.PbPackage, parser.CamelCase(msgName))))
-		}
-	}
-
 	pbPackage := fmt.Sprintf(`"%s"`, ctx.GetPb().Package)
 	protoGoPackage := fmt.Sprintf(`"%s"`, ctx.GetProtoGo().Package)
 	if isCallPkgSameToGrpcPkg {
@@ -159,14 +176,14 @@ func (g *Generator) genCallInCompatibility(ctx DirContext, proto parser.Proto,
 	}
 	aliasKeys := alias.KeysStr()
 	sort.Strings(aliasKeys)
-	return util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]interface{}{
+	return util.With("shared").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"name":           callFilename,
 		"alias":          strings.Join(aliasKeys, pathx.NL),
 		"head":           head,
 		"filePackage":    dir.Base,
 		"pbPackage":      pbPackage,
 		"protoGoPackage": protoGoPackage,
-		"serviceName":    stringx.From(service.Name).ToCamel(),
+		"serviceName":    serviceName,
 		"functions":      strings.Join(functions, pathx.NL),
 		"interface":      strings.Join(iFunctions, pathx.NL),
 	}, filename, true)
@@ -194,7 +211,7 @@ func getMessageName(msg proto.Message) string {
 	return strings.Join(list, "_")
 }
 
-func (g *Generator) genFunction(goPackage string, service parser.Service,
+func (g *Generator) genFunction(goPackage string, serviceName string, service parser.Service,
 	isCallPkgSameToGrpcPkg bool) ([]string, error) {
 	functions := make([]string, 0)
 
@@ -211,8 +228,8 @@ func (g *Generator) genFunction(goPackage string, service parser.Service,
 			streamServer = fmt.Sprintf("%s_%s%s", parser.CamelCase(service.Name),
 				parser.CamelCase(rpc.Name), "Client")
 		}
-		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]interface{}{
-			"serviceName":            stringx.From(service.Name).ToCamel(),
+		buffer, err := util.With("sharedFn").Parse(text).Execute(map[string]any{
+			"serviceName":            serviceName,
 			"rpcServiceName":         parser.CamelCase(service.Name),
 			"method":                 parser.CamelCase(rpc.Name),
 			"package":                goPackage,
@@ -254,7 +271,7 @@ func (g *Generator) getInterfaceFuncs(goPackage string, service parser.Service,
 				parser.CamelCase(rpc.Name), "Client")
 		}
 		buffer, err := util.With("interfaceFn").Parse(text).Execute(
-			map[string]interface{}{
+			map[string]any{
 				"hasComment": len(comment) > 0,
 				"comment":    comment,
 				"method":     parser.CamelCase(rpc.Name),
