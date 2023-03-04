@@ -31,7 +31,7 @@ Future<Tokens> getTokens() async {
   try {
     var sp = await SharedPreferences.getInstance();
     var str = sp.getString('tokens');
-    if (str.isEmpty) {
+    if (str == null || str.isEmpty) {
       return null;
     }
     return Tokens.fromJson(jsonDecode(str));
@@ -65,7 +65,7 @@ Future<Tokens?> getTokens() async {
   try {
     var sp = await SharedPreferences.getInstance();
     var str = sp.getString('tokens');
-    if (str.isEmpty) {
+    if (str == null || str.isEmpty) {
       return null;
     }
     return Tokens.fromJson(jsonDecode(str));
