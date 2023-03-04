@@ -209,6 +209,35 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 	assert.Equal(t, errDummy, err)
 }
 
+func TestCacheNode_TakeNotFoundButChangedByOthers(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.NoError(t, err)
+	defer clean()
+
+	cn := cacheNode{
+		rds:            store,
+		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		barrier:        syncx.NewSingleFlight(),
+		lock:           new(sync.Mutex),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+		stat:           NewStat("any"),
+		errNotFound:    errTestNotFound,
+	}
+
+	var str string
+	err = cn.Take(&str, "any", func(v any) error {
+		store.Set("any", "foo")
+		return errTestNotFound
+	})
+	assert.True(t, cn.IsNotFound(err))
+
+	val, err := store.Get("any")
+	if assert.NoError(t, err) {
+		assert.Equal(t, "foo", val)
+	}
+	assert.True(t, cn.IsNotFound(cn.Get("any", &str)))
+}
+
 func TestCacheNode_TakeWithExpire(t *testing.T) {
 	store, clean, err := redistest.CreateRedis()
 	assert.Nil(t, err)

@@ -277,5 +277,6 @@ func (c cacheNode) processCache(ctx context.Context, key, data string, v interfa
 
 func (c cacheNode) setCacheWithNotFound(ctx context.Context, key string) error {
 	seconds := int(math.Ceil(c.aroundDuration(c.notFoundExpiry).Seconds()))
-	return c.rds.SetexCtx(ctx, key, notFoundPlaceholder, seconds)
+	_, err := c.rds.SetnxExCtx(ctx, key, notFoundPlaceholder, seconds)
+	return err
 }
