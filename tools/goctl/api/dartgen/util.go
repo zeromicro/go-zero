@@ -194,6 +194,10 @@ func extractPositionalParamsFromPath(route spec.Route) string {
 
 func makeDartRequestUrlPath(route spec.Route) string {
 	path := route.Path
+	if route.RequestType == nil {
+		return `"` + path + `"`
+	}
+
 	ds, ok := route.RequestType.(spec.DefineStruct)
 	if !ok {
 		return path
