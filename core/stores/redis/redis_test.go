@@ -1090,6 +1090,36 @@ func TestRedisToPairs(t *testing.T) {
 	}, pairs)
 }
 
+func TestRedis_Zscan(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		key := "key"
+		for i := 0; i < 1550; i++ {
+			ok, err := client.Zadd(key, int64(i), "value_"+strconv.Itoa(i))
+			assert.Nil(t, err)
+			assert.True(t, ok)
+		}
+		var cursor uint64 = 0
+		sum := 0
+		for {
+			_, _, err := New(client.Addr, badType()).Zscan(key, cursor, "value_*", 100)
+			assert.NotNil(t, err)
+			keys, next, err := client.Zscan(key, cursor, "value_*", 100)
+			assert.Nil(t, err)
+			sum += len(keys)
+			if next == 0 {
+				break
+			}
+			cursor = next
+		}
+
+		assert.Equal(t, sum, 3100)
+		_, err := New(client.Addr, badType()).Del(key)
+		assert.NotNil(t, err)
+		_, err = client.Del(key)
+		assert.Nil(t, err)
+	})
+}
+
 func TestRedisToStrings(t *testing.T) {
 	vals := toStrings([]interface{}{1, 2})
 	assert.EqualValues(t, []string{"1", "2"}, vals)
