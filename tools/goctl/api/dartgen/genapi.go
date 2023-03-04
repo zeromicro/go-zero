@@ -38,7 +38,7 @@ import '../data/{{with .Service}}{{.Name}}{{end}}.dart';
 ///
 /// request: {{with .RequestType}}{{.Name}}{{end}}
 /// response: {{with .ResponseType}}{{.Name}}{{end}}
-Future {{normalizeHandlerName .Handler}}( 
+Future {{normalizeHandlerName .Handler}}(
 	{{if hasUrlPathParams $Route}}{{extractPositionalParamsFromPath $Route}},{{end}}
 	{{if ne .Method "get"}}{{with .RequestType}}{{.Name}} request,{{end}}{{end}}
     {Function({{with .ResponseType}}{{.Name}}{{end}})? ok,
