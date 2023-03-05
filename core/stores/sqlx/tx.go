@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -171,4 +172,26 @@ func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 	}()
 
 	return fn(ctx, tx)
+}
+
+// ----------------------------------------------------------------------------
+// make txSession support Sqlx.SqlConn
+
+func (t txSession) RawDB() (*sql.DB, error) {
+	return nil, errors.New("not supported")
+}
+
+func (t txSession) Transact(fn func(Session) error) error {
+	return fn(t)
+}
+
+func (t txSession) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) error {
+	return fn(ctx, t)
+}
+
+func WithSession(s Session) SqlConn {
+	if c, ok := s.(SqlConn); ok {
+		return c
+	}
+	panic("not a transact session")
 }
