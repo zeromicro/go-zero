@@ -1076,44 +1076,86 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 
 func TestConfigWithJsonTag(t *testing.T) {
 	t.Run("map with value", func(t *testing.T) {
-		var input = []byte(`[BannedNotificationTemplates]
-[BannedNotificationTemplates.pt-BR]
-EmailTemplate = "910707,2,3,4"
-[BannedNotificationTemplates.ch-MY]
-EmailTemplate = "910707,2,3,4"`)
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
 
-		type BannedNotificationTemplates struct {
-			EmailTemplate string
+		type Value struct {
+			Email string
 		}
 
 		type Config struct {
-			BannedNotificationTemplatesMap map[string]BannedNotificationTemplates `json:"BannedNotificationTemplates"` // 各个语言的封禁模板设置, map.key=语言
+			ValueMap map[string]Value `json:"Value"`
 		}
 
 		var c Config
 		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
-			assert.Len(t, c.BannedNotificationTemplatesMap, 2)
+			assert.Len(t, c.ValueMap, 2)
 		}
 	})
 
 	t.Run("map with ptr value", func(t *testing.T) {
-		var input = []byte(`[BannedNotificationTemplates]
-[BannedNotificationTemplates.pt-BR]
-EmailTemplate = "910707,2,3,4"
-[BannedNotificationTemplates.ch-MY]
-EmailTemplate = "910707,2,3,4"`)
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
 
-		type BannedNotificationTemplates struct {
-			EmailTemplate string
+		type Value struct {
+			Email string
 		}
 
 		type Config struct {
-			BannedNotificationTemplatesMap map[string]*BannedNotificationTemplates `json:"BannedNotificationTemplates"` // 各个语言的封禁模板设置, map.key=语言
+			ValueMap map[string]*Value `json:"Value"`
 		}
 
 		var c Config
 		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
-			assert.Len(t, c.BannedNotificationTemplatesMap, 2)
+			assert.Len(t, c.ValueMap, 2)
+		}
+	})
+
+	t.Run("map with optional", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			Value map[string]Value `json:",optional"`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.Value, 2)
+		}
+	})
+
+	t.Run("map with empty tag", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			Value map[string]Value `json:"  "`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.Value, 2)
 		}
 	})
 }
