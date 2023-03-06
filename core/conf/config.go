@@ -13,7 +13,10 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-const jsonTagKey = "json"
+const (
+	jsonTagKey = "json"
+	jsonTagSep = ','
+)
 
 var (
 	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
@@ -257,7 +260,14 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 
 func getTagName(field reflect.StructField) string {
 	if tag, ok := field.Tag.Lookup(jsonTagKey); ok {
-		return tag
+		if pos := strings.IndexByte(tag, jsonTagSep); pos >= 0 {
+			tag = tag[:pos]
+		}
+		tag = strings.TrimSpace(tag)
+
+		if len(tag) > 0 {
+			return tag
+		}
 	}
 
 	return field.Name
