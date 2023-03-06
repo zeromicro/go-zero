@@ -258,13 +258,15 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	return info, nil
 }
 
+// getTagName get the tag name of the given field, if no tag name, use file.Name.
+// field.Name is returned on tags like `json:""` and `json:",optional"`.
 func getTagName(field reflect.StructField) string {
 	if tag, ok := field.Tag.Lookup(jsonTagKey); ok {
 		if pos := strings.IndexByte(tag, jsonTagSep); pos >= 0 {
 			tag = tag[:pos]
 		}
-		tag = strings.TrimSpace(tag)
 
+		tag = strings.TrimSpace(tag)
 		if len(tag) > 0 {
 			return tag
 		}
