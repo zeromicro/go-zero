@@ -34,7 +34,7 @@ type (
 	recursiveValuer node
 )
 
-// Value gets the value assciated with the given key from mv.
+// Value gets the value associated with the given key from mv.
 func (mv mapValuer) Value(key string) (any, bool) {
 	v, ok := mv[key]
 	return v, ok
