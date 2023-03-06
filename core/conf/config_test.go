@@ -1022,24 +1022,6 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 	})
 }
 
-func createTempFile(ext, text string) (string, error) {
-	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
-	if err != nil {
-		return "", err
-	}
-
-	if err := os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
-		return "", err
-	}
-
-	filename := tmpFile.Name()
-	if err = tmpFile.Close(); err != nil {
-		return "", err
-	}
-
-	return filename, nil
-}
-
 func TestFillDefaultUnmarshal(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		type St struct{}
@@ -1079,7 +1061,7 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.Equal(t, st.C, "c")
 	})
 
-	t.Run("has vaue", func(t *testing.T) {
+	t.Run("has value", func(t *testing.T) {
 		type St struct {
 			A string `json:",default=a"`
 			B string
@@ -1090,4 +1072,66 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		err := FillDefault(&st)
 		assert.Error(t, err)
 	})
+}
+
+func TestConfigWithJsonTag(t *testing.T) {
+	t.Run("map with value", func(t *testing.T) {
+		var input = []byte(`[BannedNotificationTemplates]
+[BannedNotificationTemplates.pt-BR]
+EmailTemplate = "910707,2,3,4"
+[BannedNotificationTemplates.ch-MY]
+EmailTemplate = "910707,2,3,4"`)
+
+		type BannedNotificationTemplates struct {
+			EmailTemplate string
+		}
+
+		type Config struct {
+			BannedNotificationTemplatesMap map[string]BannedNotificationTemplates `json:"BannedNotificationTemplates"` // 各个语言的封禁模板设置, map.key=语言
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.BannedNotificationTemplatesMap, 2)
+		}
+	})
+
+	t.Run("map with ptr value", func(t *testing.T) {
+		var input = []byte(`[BannedNotificationTemplates]
+[BannedNotificationTemplates.pt-BR]
+EmailTemplate = "910707,2,3,4"
+[BannedNotificationTemplates.ch-MY]
+EmailTemplate = "910707,2,3,4"`)
+
+		type BannedNotificationTemplates struct {
+			EmailTemplate string
+		}
+
+		type Config struct {
+			BannedNotificationTemplatesMap map[string]*BannedNotificationTemplates `json:"BannedNotificationTemplates"` // 各个语言的封禁模板设置, map.key=语言
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.BannedNotificationTemplatesMap, 2)
+		}
+	})
+}
+
+func createTempFile(ext, text string) (string, error) {
+	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
+	if err != nil {
+		return "", err
+	}
+
+	if err := os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
+		return "", err
+	}
+
+	filename := tmpFile.Name()
+	if err = tmpFile.Close(); err != nil {
+		return "", err
+	}
+
+	return filename, nil
 }

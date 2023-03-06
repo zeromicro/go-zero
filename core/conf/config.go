@@ -76,7 +76,7 @@ func LoadFromJsonBytes(content []byte, v any) error {
 	}
 
 	var m map[string]any
-	if err := jsonx.Unmarshal(content, &m); err != nil {
+	if err = jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
 
@@ -239,7 +239,7 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
-		name := field.Name
+		name := getTagName(field)
 		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
 		// flatten anonymous fields
@@ -253,6 +253,14 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	}
 
 	return info, nil
+}
+
+func getTagName(field reflect.StructField) string {
+	if tag, ok := field.Tag.Lookup(jsonTagKey); ok {
+		return tag
+	}
+
+	return field.Name
 }
 
 func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
