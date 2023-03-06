@@ -19,6 +19,10 @@ type (
 	txSession struct {
 		*sql.Tx
 	}
+
+	fakeSession struct {
+		Session
+	}
 )
 
 // NewSessionFromTx returns a Session with the given sql.Tx.
@@ -193,5 +197,18 @@ func WithSession(s Session) SqlConn {
 	if c, ok := s.(SqlConn); ok {
 		return c
 	}
-	panic("not a transact session")
+	// panic or return a fakeSession? fakeSession not support transact
+	return &fakeSession{Session: s}
+}
+
+func (f fakeSession) RawDB() (*sql.DB, error) {
+	return nil, errors.New("not supported")
+}
+
+func (f fakeSession) Transact(fn func(Session) error) error {
+	return errors.New("transact not supported for fakeSession")
+}
+
+func (f fakeSession) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) error {
+	return errors.New("transact not supported for fakeSession")
 }
