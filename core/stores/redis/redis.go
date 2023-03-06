@@ -9,6 +9,7 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis/v8"
+
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
@@ -832,12 +833,12 @@ func (s *Redis) HincrbyCtx(ctx context.Context, key, field string, increment int
 	return
 }
 
-// HincrbyFloat is the implementation of redis hincrby command.
+// HincrbyFloat is the implementation of redis hincrbyfloat command.
 func (s *Redis) HincrbyFloat(key, field string, increment float64) (float64, error) {
 	return s.HincrbyFloatCtx(context.Background(), key, field, increment)
 }
 
-// HincrbyFloatCtx is the implementation of redis hincrby command.
+// HincrbyFloatCtx is the implementation of redis hincrbyfloat command.
 func (s *Redis) HincrbyFloatCtx(ctx context.Context, key, field string, increment float64) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
@@ -1065,12 +1066,12 @@ func (s *Redis) IncrbyCtx(ctx context.Context, key string, increment int64) (val
 	return
 }
 
-// IncrbyFloat is the implementation of redis incrby command.
+// IncrbyFloat is the implementation of redis hincrbyfloat command.
 func (s *Redis) IncrbyFloat(key string, increment float64) (float64, error) {
 	return s.IncrbyFloatCtx(context.Background(), key, increment)
 }
 
-// IncrbyFloatCtx is the implementation of redis incrby command.
+// IncrbyFloatCtx is the implementation of redis hincrbyfloat command.
 func (s *Redis) IncrbyFloatCtx(ctx context.Context, key string, increment float64) (val float64, err error) {
 	err = s.brk.DoWithAcceptable(func() error {
 		conn, err := getRedis(s)
