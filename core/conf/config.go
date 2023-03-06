@@ -127,7 +127,7 @@ func MustLoad(path string, v any, opts ...Option) {
 func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
 	if prev, ok := info.children[key]; ok {
 		if child.mapField != nil {
-			return newDupKeyError(key)
+			return newConflictKeyError(key)
 		}
 
 		if err := mergeFields(prev, key, child.children); err != nil {
@@ -160,7 +160,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 		}
 
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newDupKeyError(lowerCaseName)
+			return newConflictKeyError(lowerCaseName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -169,7 +169,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 		}
 	default:
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newDupKeyError(lowerCaseName)
+			return newConflictKeyError(lowerCaseName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -257,13 +257,13 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 
 func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
 	if len(prev.children) == 0 || len(children) == 0 {
-		return newDupKeyError(key)
+		return newConflictKeyError(key)
 	}
 
 	// merge fields
 	for k, v := range children {
 		if _, ok := prev.children[k]; ok {
-			return newDupKeyError(k)
+			return newConflictKeyError(k)
 		}
 
 		prev.children[k] = v
@@ -314,14 +314,14 @@ func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 	return res
 }
 
-type dupKeyError struct {
+type conflictKeyError struct {
 	key string
 }
 
-func newDupKeyError(key string) dupKeyError {
-	return dupKeyError{key: key}
+func newConflictKeyError(key string) conflictKeyError {
+	return conflictKeyError{key: key}
 }
 
-func (e dupKeyError) Error() string {
-	return fmt.Sprintf("duplicated key %s", e.key)
+func (e conflictKeyError) Error() string {
+	return fmt.Sprintf("conflict key %s, pay attention to anonymous fields", e.key)
 }
