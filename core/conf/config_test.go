@@ -9,7 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/hash"
 )
 
-var dupErr dupKeyError
+var dupErr conflictKeyError
 
 func TestLoadConfig_notExists(t *testing.T) {
 	assert.NotNil(t, Load("not_a_file", nil))
@@ -672,7 +672,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
 		}
 
 		validate(&St1{})
@@ -715,7 +715,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
 		}
 
 		validate(&St0{})
@@ -1023,17 +1023,17 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 }
 
 func createTempFile(ext, text string) (string, error) {
-	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
+	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
 		return "", err
 	}
 
-	if err := os.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err := os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return "", err
 	}
 
-	filename := tmpfile.Name()
-	if err = tmpfile.Close(); err != nil {
+	filename := tmpFile.Name()
+	if err = tmpFile.Close(); err != nil {
 		return "", err
 	}
 
