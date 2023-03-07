@@ -9,7 +9,6 @@ import (
 	"time"
 
 	red "github.com/go-redis/redis/v8"
-
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
