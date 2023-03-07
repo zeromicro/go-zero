@@ -2,7 +2,6 @@ package {{.modelNameLowerCase}}
 
 import (
     "context"
-    "net/http"
 
     "{{.projectPackage}}/internal/svc"
     "{{.projectPackage}}/internal/types"

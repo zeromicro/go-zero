@@ -54,7 +54,8 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 }
 
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
-	verifier func(chain.Chain) chain.Chain) chain.Chain {
+	verifier func(chain.Chain) chain.Chain,
+) chain.Chain {
 	if fr.jwt.enabled {
 		if len(fr.jwt.prevSecret) == 0 {
 			chn = chn.Append(handler.Authorize(fr.jwt.secret,
@@ -85,7 +86,8 @@ func (ng *engine) bindFeaturedRoutes(router httpx.Router, fr featuredRoutes, met
 }
 
 func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
-	route Route, verifier func(chain.Chain) chain.Chain) error {
+	route Route, verifier func(chain.Chain) chain.Chain,
+) error {
 	chn := ng.chain
 	if chn == nil {
 		chn = ng.buildChainWithNativeMiddlewares(fr, route, metrics)
@@ -114,7 +116,8 @@ func (ng *engine) bindRoutes(router httpx.Router) error {
 }
 
 func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route,
-	metrics *stat.Metrics) chain.Chain {
+	metrics *stat.Metrics,
+) chain.Chain {
 	chn := chain.New()
 
 	if ng.conf.Middlewares.Trace {
@@ -152,6 +155,8 @@ func (ng *engine) buildChainWithNativeMiddlewares(fr featuredRoutes, route Route
 	if ng.conf.Middlewares.Gunzip {
 		chn = chn.Append(handler.GunzipHandler)
 	}
+
+	chn = chn.Append(handler.I18nHandler)
 
 	return chn
 }

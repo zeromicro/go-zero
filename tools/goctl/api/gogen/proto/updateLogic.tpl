@@ -2,7 +2,6 @@ package {{.modelNameLowerCase}}
 
 import (
 	"context"
-	"net/http"
 
 	"{{.projectPackage}}/internal/svc"
 	"{{.projectPackage}}/internal/types"
@@ -33,5 +32,5 @@ func (l *Update{{.modelName}}Logic) Update{{.modelName}}(req *types.{{.modelName
 	if err != nil {
 		return nil, err
 	}
-	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.lang, data.Msg)}, nil
+	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.ctx, data.Msg)}, nil
 }

@@ -2,7 +2,6 @@ package {{.modelNameLowerCase}}
 
 import (
 	"context"
-	"net/http"
 
     "{{.projectPackage}}/internal/svc"
 	"{{.projectPackage}}/internal/types"
@@ -36,7 +35,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelNa
 		return nil, err
 	}
 	resp = &types.{{.modelName}}ListResp{}
-	resp.Msg = l.svcCtx.Trans.Trans(l.lang, i18n.Success)
+	resp.Msg = l.svcCtx.Trans.Trans(l.ctx, i18n.Success)
 	resp.Data.Total = data.GetTotal()
 
 	for _, v := range data.Data {

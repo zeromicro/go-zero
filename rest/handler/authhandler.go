@@ -79,9 +79,6 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 				}
 			}
 
-			// add lang to context
-			ctx = context.WithValue(ctx, "lang", r.Header.Get("Accept-Language"))
-
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
