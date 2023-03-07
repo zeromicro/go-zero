@@ -9,7 +9,7 @@ import (
     "{{.projectPath}}/{{.projectName}}"
 
     "github.com/suyuan32/simple-admin-common/i18n"
-{{if .useUUID}}    "github.com/suyuan32/simple-admin-core/pkg/uuidx"
+{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
