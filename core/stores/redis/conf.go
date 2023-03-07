@@ -25,7 +25,7 @@ type (
 	// A RedisKeyConf is a redis config with key.
 	RedisKeyConf struct {
 		RedisConf
-		Key string `json:",optional"`
+		Key string
 	}
 )
 
