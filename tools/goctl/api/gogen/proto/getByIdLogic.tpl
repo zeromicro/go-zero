@@ -16,15 +16,13 @@ type Get{{.modelName}}ByIdLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	lang   string
 }
 
-func NewGet{{.modelName}}ByIdLogic(r *http.Request, svcCtx *svc.ServiceContext) *Get{{.modelName}}ByIdLogic {
+func NewGet{{.modelName}}ByIdLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Get{{.modelName}}ByIdLogic {
 	return &Get{{.modelName}}ByIdLogic{
-		Logger: logx.WithContext(r.Context()),
-		ctx:    r.Context(),
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
 		svcCtx: svcCtx,
-		lang:   r.Header.Get("Accept-Language"),
 	}
 }
 
@@ -37,7 +35,7 @@ func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useU
 	return &types.{{.modelName}}InfoResp{
 		BaseDataInfo: types.BaseDataInfo{
 			Code: 0,
-			Msg:  l.svcCtx.Trans.Trans(l.lang, i18n.Success),
+			Msg:  l.svcCtx.Trans.Trans(l.ctx, i18n.Success),
 		},
 		Data: types.{{.modelName}}Info{
             Base{{if .useUUID}}UUID{{end}}Info: types.Base{{if .useUUID}}UUID{{end}}Info{

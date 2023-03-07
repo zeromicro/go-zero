@@ -15,15 +15,13 @@ type Delete{{.modelName}}Logic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	lang   string
 }
 
-func NewDelete{{.modelName}}Logic(r *http.Request, svcCtx *svc.ServiceContext) *Delete{{.modelName}}Logic {
+func NewDelete{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete{{.modelName}}Logic {
 	return &Delete{{.modelName}}Logic{
-		Logger: logx.WithContext(r.Context()),
-		ctx:    r.Context(),
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
 		svcCtx: svcCtx,
-		lang:   r.Header.Get("Accept-Language"),
 	}
 }
 
@@ -35,5 +33,5 @@ func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(req *types.{{if .useUUI
 		return nil, err
 	}
 
-	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.lang, result.Msg)}, nil
+	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.ctx, result.Msg)}, nil
 }

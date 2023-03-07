@@ -8,15 +8,13 @@ type {{.logic}} struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	lang   string
 }
 
-func New{{.logic}}(r *http.Request, svcCtx *svc.ServiceContext) *{{.logic}} {
+func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
 	return &{{.logic}}{
-		Logger: logx.WithContext(r.Context()),
-		ctx:    r.Context(),
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
 		svcCtx: svcCtx,
-		lang:   r.Header.Get("Accept-Language"),
 	}
 }
 
