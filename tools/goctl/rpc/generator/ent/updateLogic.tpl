@@ -8,7 +8,7 @@ import (
 	"{{.projectPath}}/internal/utils/dberrorhandler"
     "{{.projectPath}}/{{.projectName}}"
 
-    "github.com/suyuan32/simple-admin-core/pkg/i18n"
+    "github.com/suyuan32/simple-admin-common/i18n"
 {{if or .hasUUID .useUUID}}	"github.com/suyuan32/simple-admin-core/pkg/uuidx"{{end}}
 	"github.com/zeromicro/go-zero/core/logx"
 )

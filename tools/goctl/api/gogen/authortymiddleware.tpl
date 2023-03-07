@@ -11,7 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 
 	"github.com/suyuan32/simple-admin-core/pkg/enum"
-	"github.com/suyuan32/simple-admin-core/pkg/i18n"
+	"github.com/suyuan32/simple-admin-common/i18n"
 )
 
 type AuthorityMiddleware struct {

@@ -8,7 +8,7 @@ import (
 	"{{.projectPackage}}/internal/types"
 	"{{.rpcPackage}}"
 
-	"github.com/suyuan32/simple-admin-core/pkg/i18n"
+	"github.com/suyuan32/simple-admin-common/i18n"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
