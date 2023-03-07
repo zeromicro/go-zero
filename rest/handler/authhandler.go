@@ -7,6 +7,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 	"github.com/zeromicro/go-zero/rest/token"
@@ -29,7 +30,7 @@ var (
 )
 
 type (
-	// An AuthorizeOptions is authorize options.
+	// An AuthorizeOptions is authorized options.
 	AuthorizeOptions struct {
 		PrevSecret string
 		Callback   UnauthorizedCallback
@@ -77,6 +78,9 @@ func Authorize(secret string, opts ...AuthorizeOption) func(http.Handler) http.H
 					ctx = context.WithValue(ctx, k, v)
 				}
 			}
+
+			// add lang to context
+			ctx = context.WithValue(ctx, "lang", r.Header.Get("Accept-Language"))
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
