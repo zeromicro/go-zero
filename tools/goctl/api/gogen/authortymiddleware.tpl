@@ -60,7 +60,8 @@ func (m *AuthorityMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 		} else {
 			logx.Errorw("the role is not permitted to access the API", logx.Field("roleId", roleIds),
 				logx.Field("path", obj), logx.Field("method", act))
-			httpx.Error(w, errorx.NewCodeError(errorcode.PermissionDenied, m.Trans.Trans(r.Header.Get("Accept-Language"),
+			httpx.Error(w, errorx.NewCodeError(errorcode.PermissionDenied, m.Trans.Trans(
+				context.WithValue(context.Background(), "lang", r.Header.Get("Accept-Language")),
 				"common.permissionDeny")))
 			return
 		}
