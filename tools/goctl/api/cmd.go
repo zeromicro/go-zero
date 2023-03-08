@@ -106,6 +106,7 @@ func init() {
 	dartCmd.Flags().StringVar(&dartgen.VarStringAPI, "api", "", "The api file")
 	dartCmd.Flags().BoolVar(&dartgen.VarStringLegacy, "legacy", false, "Legacy generator for flutter v1")
 	dartCmd.Flags().StringVar(&dartgen.VarStringHostname, "hostname", "", "hostname of the server")
+	dartCmd.Flags().StringVar(&dartgen.VarStringScheme, "scheme", "", "scheme of the server")
 
 	docCmd.Flags().StringVar(&docgen.VarStringDir, "dir", "", "The target dir")
 	docCmd.Flags().StringVar(&docgen.VarStringOutput, "o", "", "The output markdown directory")
