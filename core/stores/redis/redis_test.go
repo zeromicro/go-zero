@@ -1811,3 +1811,29 @@ type mockedNode struct {
 func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
 	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
 }
+
+func TestRedisRpopCount(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		_, err := client.Lpush("test", "foo", "bar")
+		assert.Nil(t, err)
+		val, err := client.RpopCount("test", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, 2, len(val))
+		assert.Equal(t, "foo", val[0])
+		assert.Equal(t, "bar", val[1])
+	})
+}
+
+func TestRedisLpopCount(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		client.Ping()
+		_, err := client.Lpush("test", "foo", "bar")
+		assert.Nil(t, err)
+		val, err := client.LpopCount("test", 3)
+		assert.Nil(t, err)
+		assert.Equal(t, 2, len(val))
+		assert.Equal(t, "bar", val[0])
+		assert.Equal(t, "foo", val[1])
+	})
+}
