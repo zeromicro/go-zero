@@ -1,8 +1,6 @@
 package gateway
 
 import (
-	"time"
-
 	"github.com/zeromicro/go-zero/rest"
 	"github.com/zeromicro/go-zero/zrpc"
 )
@@ -12,7 +10,6 @@ type (
 	GatewayConf struct {
 		rest.RestConf
 		Upstreams []Upstream
-		Timeout   time.Duration `json:",default=5s"`
 	}
 
 	// RouteMapping is a mapping between a gateway route and an upstream rpc method.
