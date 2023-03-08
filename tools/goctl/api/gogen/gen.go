@@ -66,6 +66,8 @@ var (
 	VarStringGrpcPbPackage string
 	// VarBoolMultiple describes whether the proto contains multiple services
 	VarBoolMultiple bool
+	// VarStringJSONStyle describes the JSON tag format.
+	VarStringJSONStyle string
 )
 
 // GoCommand gen go project files from command line
@@ -265,6 +267,7 @@ func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
 		RpcName:        VarStringRpcName,
 		GrpcPackage:    VarStringGrpcPbPackage,
 		Multiple:       VarBoolMultiple,
+		JSONStyle:      VarStringJSONStyle,
 	}
 
 	err := params.Validate()

@@ -194,6 +194,7 @@ func init() {
 	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpc_name", "", "The rpc name in service context. e.g. CoreRpc")
 	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package", "", "The rpc name in service context. e.g. CoreRpc")
 	protoCmd.Flags().BoolVar(&gogen.VarBoolMultiple, "multiple", false, "Whether the proto contains multiple services")
+	protoCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
 
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)
