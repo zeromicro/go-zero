@@ -47,9 +47,9 @@ func TestBuffer(t *testing.T) {
 func TestBufferNegative(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Buffer(-1).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Buffer(-1).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -92,9 +92,9 @@ func TestCount(t *testing.T) {
 func TestDone(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var count int32
-		Just(1, 2, 3).Walk(func(item any, pipe chan<- any) {
+		Just(1, 2, 3).Walk(func(item int, pipe chan<- int) {
 			time.Sleep(time.Millisecond * 100)
-			atomic.AddInt32(&count, int32(item.(int)))
+			atomic.AddInt32(&count, int32(item))
 		}).Done()
 		assert.Equal(t, int32(6), count)
 	})
@@ -103,9 +103,9 @@ func TestDone(t *testing.T) {
 func TestJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -116,11 +116,11 @@ func TestJust(t *testing.T) {
 func TestDistinct(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(4, 1, 3, 2, 3, 4).Distinct(func(item any) any {
+		Just(4, 1, 3, 2, 3, 4).Distinct(func(item int) int {
 			return item
-		}).Reduce(func(pipe <-chan any) (any, error) {
+		}).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -131,11 +131,11 @@ func TestDistinct(t *testing.T) {
 func TestFilter(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Filter(func(item any) bool {
-			return item.(int)%2 == 0
-		}).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Filter(func(item int) bool {
+			return item%2 == 0
+		}).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -145,7 +145,7 @@ func TestFilter(t *testing.T) {
 
 func TestFirst(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		assert.Nil(t, Just().First())
+		assert.Nil(t, Just[int]().First())
 		assert.Equal(t, "foo", Just("foo").First())
 		assert.Equal(t, "foo", Just("foo", "bar").First())
 	})
@@ -154,11 +154,11 @@ func TestFirst(t *testing.T) {
 func TestForAll(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Filter(func(item any) bool {
-			return item.(int)%2 == 0
-		}).ForAll(func(pipe <-chan any) {
+		Just(1, 2, 3, 4).Filter(func(item int) bool {
+			return item%2 == 0
+		}).ForAll(func(pipe <-chan int) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 		})
 		assert.Equal(t, 6, result)
@@ -168,14 +168,14 @@ func TestForAll(t *testing.T) {
 func TestGroup(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var groups [][]int
-		Just(10, 11, 20, 21).Group(func(item any) any {
-			v := item.(int)
+		Just(10, 11, 20, 21).Group(func(item int) int {
+			v := item
 			return v / 10
-		}).ForEach(func(item any) {
-			v := item.([]any)
+		}).ForEach(func(item []int) {
+			v := item
 			var group []int
 			for _, each := range v {
-				group = append(group, each.(int))
+				group = append(group, each)
 			}
 			groups = append(groups, group)
 		})
@@ -191,9 +191,9 @@ func TestGroup(t *testing.T) {
 func TestHead(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Head(2).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Head(2).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -204,8 +204,8 @@ func TestHead(t *testing.T) {
 func TestHeadZero(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
-			Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan any) (any, error) {
-				return nil, nil
+			Just(1, 2, 3, 4).Head(0).Reduce(func(pipe <-chan int) (int, error) {
+				return 0, nil
 			})
 		})
 	})
@@ -214,9 +214,9 @@ func TestHeadZero(t *testing.T) {
 func TestHeadMore(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Head(6).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Head(6).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -227,7 +227,7 @@ func TestHeadMore(t *testing.T) {
 func TestLast(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		goroutines := runtime.NumGoroutine()
-		assert.Nil(t, Just().Last())
+		assert.Nil(t, Just[int]().Last())
 		assert.Equal(t, "foo", Just("foo").Last())
 		assert.Equal(t, "bar", Just("foo", "bar").Last())
 		// let scheduler schedule first
@@ -241,19 +241,19 @@ func TestMap(t *testing.T) {
 		log.SetOutput(io.Discard)
 
 		tests := []struct {
-			mapper MapFunc
+			mapper MapFunc[int]
 			expect int
 		}{
 			{
-				mapper: func(item any) any {
-					v := item.(int)
+				mapper: func(item int) int {
+					v := item
 					return v * v
 				},
 				expect: 30,
 			},
 			{
-				mapper: func(item any) any {
-					v := item.(int)
+				mapper: func(item int) int {
+					v := item
 					if v%2 == 0 {
 						return 0
 					}
@@ -262,8 +262,8 @@ func TestMap(t *testing.T) {
 				expect: 10,
 			},
 			{
-				mapper: func(item any) any {
-					v := item.(int)
+				mapper: func(item int) int {
+					v := item
 					if v%2 == 0 {
 						panic(v)
 					}
@@ -283,14 +283,14 @@ func TestMap(t *testing.T) {
 				} else {
 					workers = runtime.NumCPU()
 				}
-				From(func(source chan<- any) {
+				From[int](func(source chan<- int) {
 					for i := 1; i < 5; i++ {
 						source <- i
 					}
 				}).Map(test.mapper, WithWorkers(workers)).Reduce(
-					func(pipe <-chan any) (any, error) {
+					func(pipe <-chan int) (int, error) {
 						for item := range pipe {
-							result += item.(int)
+							result += item
 						}
 						return result, nil
 					})
@@ -303,8 +303,8 @@ func TestMap(t *testing.T) {
 
 func TestMerge(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		Just(1, 2, 3, 4).Merge().ForEach(func(item any) {
-			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item.([]any))
+		Just(1, 2, 3, 4).Merge().ForEach(func(item []int) {
+			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item)
 		})
 	})
 }
@@ -322,8 +322,8 @@ func TestParallelJust(t *testing.T) {
 
 func TestReverse(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
-		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item any) {
-			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item.([]any))
+		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item []int) {
+			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item)
 		})
 	})
 }
@@ -331,10 +331,10 @@ func TestReverse(t *testing.T) {
 func TestSort(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var prev int
-		Just(5, 3, 7, 1, 9, 6, 4, 8, 2).Sort(func(a, b any) bool {
-			return a.(int) < b.(int)
-		}).ForEach(func(item any) {
-			next := item.(int)
+		Just(5, 3, 7, 1, 9, 6, 4, 8, 2).Sort(func(a, b int) bool {
+			return a < b
+		}).ForEach(func(item int) {
+			next := item
 			assert.True(t, prev < next)
 			prev = next
 		})
@@ -346,9 +346,9 @@ func TestSplit(t *testing.T) {
 		assert.Panics(t, func() {
 			Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(0).Done()
 		})
-		var chunks [][]any
-		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item any) {
-			chunk := item.([]any)
+		var chunks [][]int
+		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item []int) {
+			chunk := item
 			chunks = append(chunks, chunk)
 		})
 		assert.EqualValues(t, [][]any{
@@ -362,9 +362,9 @@ func TestSplit(t *testing.T) {
 func TestTail(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4).Tail(2).Reduce(func(pipe <-chan any) (any, error) {
+		Just(1, 2, 3, 4).Tail(2).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
-				result += item.(int)
+				result += item
 			}
 			return result, nil
 		})
@@ -375,8 +375,8 @@ func TestTail(t *testing.T) {
 func TestTailZero(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		assert.Panics(t, func() {
-			Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan any) (any, error) {
-				return nil, nil
+			Just(1, 2, 3, 4).Tail(0).Reduce(func(pipe <-chan int) (int, error) {
+				return 0, nil
 			})
 		})
 	})
@@ -385,12 +385,12 @@ func TestTailZero(t *testing.T) {
 func TestWalk(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(1, 2, 3, 4, 5).Walk(func(item any, pipe chan<- any) {
-			if item.(int)%2 != 0 {
+		Just(1, 2, 3, 4, 5).Walk(func(item int, pipe chan<- int) {
+			if item%2 != 0 {
 				pipe <- item
 			}
-		}, UnlimitedWorkers()).ForEach(func(item any) {
-			result += item.(int)
+		}, UnlimitedWorkers()).ForEach(func(item int) {
+			result += item
 		})
 		assert.Equal(t, 9, result)
 	})
@@ -479,7 +479,7 @@ func TestStream_Skip(t *testing.T) {
 		assetEqual(t, 3, Just(1, 2, 3, 4).Skip(1).Count())
 		assetEqual(t, 1, Just(1, 2, 3, 4).Skip(3).Count())
 		assetEqual(t, 4, Just(1, 2, 3, 4).Skip(0).Count())
-		equal(t, Just(1, 2, 3, 4).Skip(3), []any{4})
+		equal(t, Just(1, 2, 3, 4).Skip(3), []int{4})
 		assert.Panics(t, func() {
 			Just(1, 2, 3, 4).Skip(-1)
 		})
@@ -499,7 +499,7 @@ func TestStream_Concat(t *testing.T) {
 		assetEqual(t, []any{1, 2, 3}, items)
 
 		just := Just(1)
-		equal(t, just.Concat(just), []any{1})
+		equal(t, just.Concat(just), []int{1})
 	})
 }
 
@@ -553,8 +553,8 @@ func assetEqual(t *testing.T, except, data any) {
 	}
 }
 
-func equal(t *testing.T, stream Stream, data []any) {
-	items := make([]any, 0)
+func equal[T any](t *testing.T, stream Stream[T], data []T) {
+	items := make([]T, 0)
 	for item := range stream.source {
 		items = append(items, item)
 	}
