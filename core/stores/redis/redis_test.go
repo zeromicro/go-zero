@@ -507,6 +507,14 @@ func TestRedis_List(t *testing.T) {
 			vals, err = client.Lrange("key", 0, 10)
 			assert.Nil(t, err)
 			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			vals, err = client.LpopCount("key", 2)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Nil(t, err)
+			vals, err = client.RpopCount("key", 4)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "value2"}, vals)
 		})
 	})
 
@@ -522,6 +530,12 @@ func TestRedis_List(t *testing.T) {
 			assert.Error(t, err)
 
 			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+
+			_, err = client.LpopCount("key", 2)
+			assert.Error(t, err)
+
+			_, err = client.RpopCount("key", 2)
 			assert.Error(t, err)
 		})
 	})

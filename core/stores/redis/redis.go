@@ -1170,6 +1170,26 @@ func (s *Redis) LpopCtx(ctx context.Context, key string) (val string, err error)
 	return
 }
 
+// LpopCount is the implementation of redis lpopCount command.
+func (s *Redis) LpopCount(key string, count int) ([]string, error) {
+	return s.LpopCountCtx(context.Background(), key, count)
+}
+
+// LpopCountCtx is the implementation of redis lpopCount command.
+func (s *Redis) LpopCountCtx(ctx context.Context, key string, count int) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.LPopCount(ctx, key, count).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
 // Lpush is the implementation of redis lpush command.
 func (s *Redis) Lpush(key string, values ...any) (int, error) {
 	return s.LpushCtx(context.Background(), key, values...)
@@ -1426,6 +1446,26 @@ func (s *Redis) RpopCtx(ctx context.Context, key string) (val string, err error)
 		}
 
 		val, err = conn.RPop(ctx, key).Result()
+		return err
+	}, acceptable)
+
+	return
+}
+
+// RpopCount is the implementation of redis rpopCount command.
+func (s *Redis) RpopCount(key string, count int) ([]string, error) {
+	return s.RpopCountCtx(context.Background(), key, count)
+}
+
+// RpopCountCtx is the implementation of redis rpopCount command.
+func (s *Redis) RpopCountCtx(ctx context.Context, key string, count int) (val []string, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = conn.RPopCount(ctx, key, count).Result()
 		return err
 	}, acceptable)
 
