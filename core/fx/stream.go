@@ -29,11 +29,11 @@ type (
 	// GenerateFunc defines the method to send elements into a Stream.
 	GenerateFunc[T any] func(source chan<- T)
 	// KeyFunc defines the method to generate keys for the elements in a Stream.
-	KeyFunc func(item any) any
+	KeyFunc[T any] func(item T) T
 	// LessFunc defines the method to compare the elements in a Stream.
-	LessFunc func(a, b any) bool
+	LessFunc[T any] func(a, b T) bool
 	// MapFunc defines the method to map each element to another object in a Stream.
-	MapFunc func(item any) any
+	MapFunc[T any] func(item T) T
 	// Option defines the method to customize a Stream.
 	Option func(opts *rxOptions)
 	// ParallelFunc defines the method to handle elements parallel.
@@ -169,7 +169,7 @@ func (s Stream[T]) Count() (count int) {
 }
 
 // Distinct removes the duplicated items base on the given KeyFunc.
-func (s Stream[T]) Distinct(fn KeyFunc) Stream[T] {
+func (s Stream[T]) Distinct(fn KeyFunc[T]) Stream[T] {
 	source := make(chan T)
 
 	threading.GoSafe(func() {
@@ -228,7 +228,7 @@ func (s Stream[T]) ForEach(fn ForEachFunc[T]) {
 }
 
 // Group groups the elements into different groups based on their keys.
-func (s Stream[T]) Group(fn KeyFunc) Stream[[]T] {
+func (s Stream[T]) Group(fn KeyFunc[T]) Stream[[]T] {
 	groups := make(map[any][]T)
 	for item := range s.source {
 		key := fn(item)
@@ -286,7 +286,7 @@ func (s Stream[T]) Last() (item any) {
 }
 
 // Map converts each item to another corresponding item, which means it's a 1:1 model.
-func (s Stream[T]) Map(fn MapFunc, opts ...Option) Stream[T] {
+func (s Stream[T]) Map(fn MapFunc[T], opts ...Option) Stream[T] {
 	return s.Walk(func(item T, pipe chan<- T) {
 		pipe <- fn(item)
 	}, opts...)
@@ -375,7 +375,7 @@ func (s Stream[T]) Skip(n int64) Stream[T] {
 }
 
 // Sort sorts the items from the underlying source.
-func (s Stream[T]) Sort(less LessFunc) Stream[T] {
+func (s Stream[T]) Sort(less LessFunc[T]) Stream[T] {
 	var items []T
 	for item := range s.source {
 		items = append(items, item)
@@ -427,7 +427,7 @@ func (s Stream[T]) Tail(n int64) Stream[T] {
 			ring.Add(item)
 		}
 		for _, item := range ring.Take() {
-			source <- item
+			source <- item.(T)
 		}
 		close(source)
 	}()
