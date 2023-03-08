@@ -145,6 +145,10 @@ func TestParseSegments(t *testing.T) {
 			expect: []string{},
 		},
 		{
+			input:  "   ",
+			expect: []string{},
+		},
+		{
 			input:  ",",
 			expect: []string{""},
 		},

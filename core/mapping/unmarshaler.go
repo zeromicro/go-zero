@@ -47,6 +47,7 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
+		fillDefault  bool
 		fromString   bool
 		canonicalKey func(key string) string
 	}
@@ -710,7 +711,14 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 
 	valuer := createValuer(m, opts)
 	mapValue, hasValue := getValue(valuer, canonicalKey)
-	if !hasValue {
+
+	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
+	if u.opts.fillDefault {
+		if !value.IsZero() {
+			return fmt.Errorf("set the default value, %s must be zero", fullName)
+		}
+		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
+	} else if !hasValue {
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	}
 
@@ -801,6 +809,10 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	}
 
+	if u.opts.fillDefault {
+		return nil
+	}
+
 	switch fieldKind {
 	case reflect.Array, reflect.Map, reflect.Slice:
 		if !opts.optional() {
@@ -873,10 +885,17 @@ func WithStringValues() UnmarshalOption {
 	}
 }
 
-// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
+// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func.
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
+	}
+}
+
+// WithDefault customizes an Unmarshaler with fill default values.
+func WithDefault() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.fillDefault = true
 	}
 }
 
@@ -1009,7 +1028,7 @@ func newInitError(name string) error {
 }
 
 func newTypeMismatchError(name string) error {
-	return fmt.Errorf("error: type mismatch for field %s", name)
+	return fmt.Errorf("type mismatch for field %s", name)
 }
 
 func readKeys(key string) []string {

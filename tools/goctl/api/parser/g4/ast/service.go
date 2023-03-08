@@ -176,7 +176,7 @@ func (v *ApiVisitor) VisitAtHandler(ctx *api.AtHandlerContext) any {
 	return &atHandler
 }
 
-// serVisitRoute implements from api.BaseApiParserVisitor
+// VisitRoute implements from api.BaseApiParserVisitor
 func (v *ApiVisitor) VisitRoute(ctx *api.RouteContext) any {
 	var route Route
 	path := ctx.Path()

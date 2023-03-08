@@ -140,6 +140,54 @@ func TestInfow(t *testing.T) {
 	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
 }
 
+func TestDebug(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debug(context.Background(), "foo")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugf(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugf(context.Background(), "foo %s", "bar")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugv(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugv(context.Background(), "foo")
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
+func TestDebugw(t *testing.T) {
+	var buf strings.Builder
+	writer := logx.NewWriter(&buf)
+	old := logx.Reset()
+	logx.SetWriter(writer)
+	defer logx.SetWriter(old)
+
+	file, line := getFileLine()
+	Debugw(context.Background(), "foo", Field("a", "b"))
+	assert.True(t, strings.Contains(buf.String(), fmt.Sprintf("%s:%d", file, line+1)))
+}
+
 func TestMust(t *testing.T) {
 	assert.NotPanics(t, func() {
 		Must(nil)

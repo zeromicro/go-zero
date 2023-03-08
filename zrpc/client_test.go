@@ -113,10 +113,11 @@ func TestDepositServer_Deposit(t *testing.T) {
 	)
 	tarConfClient := MustNewClient(
 		RpcClientConf{
-			Target:  "foo",
-			App:     "foo",
-			Token:   "bar",
-			Timeout: 1000,
+			Target:        "foo",
+			App:           "foo",
+			Token:         "bar",
+			Timeout:       1000,
+			KeepaliveTime: time.Second * 15,
 			Middlewares: ClientMiddlewaresConf{
 				Trace:      true,
 				Duration:   true,
