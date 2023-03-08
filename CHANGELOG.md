@@ -1,4 +1,416 @@
 
+<a name="v0.2.3"></a>
+## [v0.2.3](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.3-beta...v0.2.3)
+
+> 2023-03-08
+
+### Chore
+
+* remove optional in redis config ([#2979](https://github.com/suyuan32/simple-admin-tools/issues/2979))
+* add comments
+* clear errors on conf conflict keys ([#2972](https://github.com/suyuan32/simple-admin-tools/issues/2972))
+* add tests ([#2960](https://github.com/suyuan32/simple-admin-tools/issues/2960))
+* remove redundant prefix of "error: " in error creation
+* add tests for logc debug
+* add comments
+* add more tests
+* add more tests
+* go mod tidy and update deps
+* go mod tidy and update deps
+* refine rest validator ([#2928](https://github.com/suyuan32/simple-admin-tools/issues/2928))
+* reformat code ([#2925](https://github.com/suyuan32/simple-admin-tools/issues/2925))
+
+### Feat
+
+* json tag style command
+* add lang to context
+* conf add FillDefault func
+* support grpc client keepalive config ([#2950](https://github.com/suyuan32/simple-admin-tools/issues/2950))
+* add debug log for logc
+* check key overwritten
+* add configurable validator for httpx.Parse ([#2923](https://github.com/suyuan32/simple-admin-tools/issues/2923))
+
+### Fix
+
+* proto test
+* remove redundant imports
+* optimize lang in context
+* optimize lang in context
+* middleware trans bug
+* bugs in authorization middleware
+* test failure
+* config map with json tag
+* gateway conf doesn't work ([#2968](https://github.com/suyuan32/simple-admin-tools/issues/2968))
+* security [#9](https://github.com/suyuan32/simple-admin-tools/issues/9) ([#2949](https://github.com/suyuan32/simple-admin-tools/issues/2949))
+* config map cannot handle case-insensitive keys. ([#2932](https://github.com/suyuan32/simple-admin-tools/issues/2932))
+* [#2899](https://github.com/suyuan32/simple-admin-tools/issues/2899), using autoscaling/v2beta2 instead of v2beta1 ([#2900](https://github.com/suyuan32/simple-admin-tools/issues/2900))
+* timeout not working if greater than global rest timeout ([#2926](https://github.com/suyuan32/simple-admin-tools/issues/2926))
+
+### Refactor
+
+* uuidx use common package
+* replace simple admin core pkg to  simple admin common
+
+### Pull Requests
+
+* Merge pull request [#30](https://github.com/suyuan32/simple-admin-tools/issues/30) from suyuan32/mg
+* Merge pull request [#28](https://github.com/suyuan32/simple-admin-tools/issues/28) from suyuan32/refator-common
+
+
+<a name="v0.2.3-beta"></a>
+## [v0.2.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.5...v0.2.3-beta)
+
+> 2023-03-07
+
+### Chore
+
+* update dependencies
+* reformat code ([#2903](https://github.com/suyuan32/simple-admin-tools/issues/2903))
+* refactor ([#2875](https://github.com/suyuan32/simple-admin-tools/issues/2875))
+* add more tests ([#2873](https://github.com/suyuan32/simple-admin-tools/issues/2873))
+* remove clickhouse, added to zero-contrib ([#2848](https://github.com/suyuan32/simple-admin-tools/issues/2848))
+* add more tests ([#2866](https://github.com/suyuan32/simple-admin-tools/issues/2866))
+* improve codecov ([#2828](https://github.com/suyuan32/simple-admin-tools/issues/2828))
+* fix missing funcs on windows ([#2825](https://github.com/suyuan32/simple-admin-tools/issues/2825))
+* update goctl interface{} to any ([#2819](https://github.com/suyuan32/simple-admin-tools/issues/2819))
+* change interface{} to any ([#2818](https://github.com/suyuan32/simple-admin-tools/issues/2818))
+* add more tests ([#2815](https://github.com/suyuan32/simple-admin-tools/issues/2815))
+* add more tests ([#2814](https://github.com/suyuan32/simple-admin-tools/issues/2814))
+* add more tests ([#2812](https://github.com/suyuan32/simple-admin-tools/issues/2812))
+* update all dependencies
+
+### Docs
+
+* update change log
+* update change log
+* update change log
+* add license comment
+* update readme
+* update changelog
+* update CHANGELOG.md
+* update CHANGELOG.md
+
+### Feat
+
+* add status error to errorx and remove error msg
+* ent error handling
+* validate parameters
+* Add request.ts ([#2901](https://github.com/suyuan32/simple-admin-tools/issues/2901))
+* validate parameters
+* add ldflags to reduce the size of binary file
+* add enable for rpc client
+* add enable for rpc client
+* add enable for rpc client
+* use dependabot for goctl ([#2869](https://github.com/suyuan32/simple-admin-tools/issues/2869))
+* revert bytes.Buffer to strings.Builder
+* bool component support
+* status code gen in vben
+* converge grpc interceptor processing ([#2830](https://github.com/suyuan32/simple-admin-tools/issues/2830))
+* add MustNewRedis ([#2824](https://github.com/suyuan32/simple-admin-tools/issues/2824))
+* mapreduce generic version ([#2827](https://github.com/suyuan32/simple-admin-tools/issues/2827))
+* split proto files
+* upgrade go to v1.18 ([#2817](https://github.com/suyuan32/simple-admin-tools/issues/2817))
+* merge latest code
+* merge latest code
+* add ent multiple support
+* rpc ent multiple generation support
+* go swagger auto install
+* uuid code generating for vben
+* api uuid code generating
+* rpc uuid code generating
+* merge latest code
+* group for rpc logic
+* gitlab-ci.yml generating
+* vben code generation via api file
+* service port parameter
+* service port parameter
+* api crud generation by proto
+* auto migrate for rpc generation
+* generate docker file
+* proto file generation and logic code generation with ent
+* proto file generation and logic code generation with ent
+* error translation
+* gorm logger
+* rocket mq plugin
+* gen consul code
+* consul kv store configuration
+* consul support
+* merge new codes from origin fix: swagger doc gen
+* add go swagger support
+* casbin util
+* error message
+* gorm conf
+
+### Fix
+
+* add required tag by default in form data
+* update trans code in svc
+* use casbin watcher
+* optimize with tx function
+* bugs in parse test
+* update locale
+* fixed the bug that old trace instances may be fetched
+* makefile bug
+* test failures ([#2892](https://github.com/suyuan32/simple-admin-tools/issues/2892))
+* authority middleware
+* redundant err in service context
+* change page default order to desc
+* test failure ([#2874](https://github.com/suyuan32/simple-admin-tools/issues/2874))
+* loop reset nextStart
+* replace shoud replace the longest match
+* optimize casbin template
+* new function to init redis
+* getById bug in api generation
+* add url to upper check
+* remove unused status req
+* to lower camel case in vben gen
+* status template uuid bug
+* conf anonymous overlay problem ([#2847](https://github.com/suyuan32/simple-admin-tools/issues/2847))
+* notification template
+* api generation file model name lowercase
+* rpc proto generation list req bug
+* api status code gen template
+* improve ent generation
+* problem on name overlaping in config ([#2820](https://github.com/suyuan32/simple-admin-tools/issues/2820))
+* swagger env bug
+* command parameters and submit template
+* rpc generating space bug
+* extra command for linux
+* multiple group
+* remove sqlx and gorm
+* redis
+* redis
+* merge latest code
+* remove rpc uuid_pk parameter
+* remove default sql generating code
+* remove default sql generating code
+* update base.api
+* replace tab by space in api file
+* ent api proto generating bug in type
+* ent rpc generating type error
+* drawer generating drawer props bug
+* validator error type
+* gen handler
+* migrate version bug and search key num bug
+* only generate makefile and dockerfile when we create new api
+* etc template
+* makefile transErr and service context template
+* service context and ent format
+* pagination template bug
+* makefile template
+* optional gen makefile and dockerfile
+* cases with no lower
+* merge consul mod to go zero
+* all deprecated function
+* validate bugs
+* bugs in tests
+* optimize delete button
+* makefile push bug
+* update ErrorCtx logic
+* optimize api url
+* delete ent in tools
+* modify error code
+* optimize go gen types
+* rocketmq config add optional tag
+* change default file name into snake format
+* producer and consumer pointer error
+* bugs in accept language parsing
+* bugs in accept language parsing
+* delete log message reference from simple-admin-core
+* merge latest code
+* etc template
+* update deployment in k8s
+* StackCoolDownMillis name
+* yaml key name
+* JSON tag in config files
+* system info in swagger
+* Merge latest code
+* bugs when run goctls new
+* rest inline bug
+* inline bug
+* restore field for consul config
+* json field for consul conf
+* add yaml tag for all configuration
+* bug in load
+* change interface into pointer
+* load function circle implement
+* update change log
+* package access
+* merge latest code
+* add validator test
+* add validator
+* merge upstream
+* recover go gen type
+* gen system info
+* gen types swagger doc
+* bug in rest response
+* error msg
+* package name
+
+### Perf
+
+* optimize route swagger generation
+
+### Refactor
+
+* optimize ent error handling
+* optimize create logic
+* simplify sqlx fail fast ping and  simplify miniredis setup in test ([#2897](https://github.com/suyuan32/simple-admin-tools/issues/2897))
+* simplify stringx.Replacer, and avoid potential infinite loops ([#2877](https://github.com/suyuan32/simple-admin-tools/issues/2877))
+* optimize interface
+* change interface{} to any
+* change api error pkg
+
+### Revert
+
+* remove consul yaml config
+* cancel the consul and use k8s in generation
+
+### Wip
+
+* optimize status gen in api and rpc
+* vben code generation
+* api code generation
+* api code generation
+* ent logic generating
+
+### Pull Requests
+
+* Merge pull request [#27](https://github.com/suyuan32/simple-admin-tools/issues/27) from vwenkk/master
+* Merge pull request [#26](https://github.com/suyuan32/simple-admin-tools/issues/26) from suyuan32/mg
+* Merge pull request [#25](https://github.com/suyuan32/simple-admin-tools/issues/25) from suyuan32/refactor-interface
+* Merge pull request [#24](https://github.com/suyuan32/simple-admin-tools/issues/24) from suyuan32/mg
+* Merge pull request [#23](https://github.com/suyuan32/simple-admin-tools/issues/23) from suyuan32/mg
+* Merge pull request [#22](https://github.com/suyuan32/simple-admin-tools/issues/22) from suyuan32/feat-proto-split
+* Merge pull request [#21](https://github.com/suyuan32/simple-admin-tools/issues/21) from suyuan32/mg
+* Merge pull request [#20](https://github.com/suyuan32/simple-admin-tools/issues/20) from suyuan32/feat-multiple-ent
+* Merge pull request [#19](https://github.com/suyuan32/simple-admin-tools/issues/19) from suyuan32/rm-sql
+* Merge pull request [#18](https://github.com/suyuan32/simple-admin-tools/issues/18) from suyuan32/mg
+* Merge pull request [#17](https://github.com/suyuan32/simple-admin-tools/issues/17) from suyuan32/feat-uuid-gen
+* Merge pull request [#16](https://github.com/suyuan32/simple-admin-tools/issues/16) from suyuan32/mg
+* Merge pull request [#15](https://github.com/suyuan32/simple-admin-tools/issues/15) from suyuan32/mg
+* Merge pull request [#13](https://github.com/suyuan32/simple-admin-tools/issues/13) from suyuan32/mg
+* Merge pull request [#12](https://github.com/suyuan32/simple-admin-tools/issues/12) from suyuan32/feat-group-logic
+* Merge pull request [#11](https://github.com/suyuan32/simple-admin-tools/issues/11) from suyuan32/mg
+* Merge pull request [#10](https://github.com/suyuan32/simple-admin-tools/issues/10) from suyuan32/feat-upgrade-go
+* Merge pull request [#9](https://github.com/suyuan32/simple-admin-tools/issues/9) from suyuan32/feat-crud-gen
+* Merge pull request [#8](https://github.com/suyuan32/simple-admin-tools/issues/8) from suyuan32/feat-crud-gen
+* Merge pull request [#7](https://github.com/suyuan32/simple-admin-tools/issues/7) from suyuan32/feat-crud-gen
+* Merge pull request [#6](https://github.com/suyuan32/simple-admin-tools/issues/6) from suyuan32/feat-crud-gen
+* Merge pull request [#4](https://github.com/suyuan32/simple-admin-tools/issues/4) from zeromicro/master
+* Merge pull request [#3](https://github.com/suyuan32/simple-admin-tools/issues/3) from zeromicro/master
+* Merge pull request [#2](https://github.com/suyuan32/simple-admin-tools/issues/2) from zeromicro/master
+
+
+<a name="tools/goctl/v1.4.5"></a>
+## [tools/goctl/v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.5...tools/goctl/v1.4.5)
+
+> 2023-03-04
+
+
+<a name="v1.4.5"></a>
+## [v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.5.0...v1.4.5)
+
+> 2023-03-04
+
+### Chore
+
+* remove any keywords
+* add tests ([#2960](https://github.com/suyuan32/simple-admin-tools/issues/2960))
+* remove redundant prefix of "error: " in error creation
+* add tests for logc debug
+* add comments
+* add more tests
+* add more tests
+* refine rest validator ([#2928](https://github.com/suyuan32/simple-admin-tools/issues/2928))
+* reformat code ([#2925](https://github.com/suyuan32/simple-admin-tools/issues/2925))
+* reformat code ([#2903](https://github.com/suyuan32/simple-admin-tools/issues/2903))
+* refactor ([#2875](https://github.com/suyuan32/simple-admin-tools/issues/2875))
+* add more tests ([#2873](https://github.com/suyuan32/simple-admin-tools/issues/2873))
+* add more tests ([#2866](https://github.com/suyuan32/simple-admin-tools/issues/2866))
+* improve codecov ([#2828](https://github.com/suyuan32/simple-admin-tools/issues/2828))
+* fix missing funcs on windows ([#2825](https://github.com/suyuan32/simple-admin-tools/issues/2825))
+* add more tests ([#2815](https://github.com/suyuan32/simple-admin-tools/issues/2815))
+* add more tests ([#2814](https://github.com/suyuan32/simple-admin-tools/issues/2814))
+* add more tests ([#2812](https://github.com/suyuan32/simple-admin-tools/issues/2812))
+
+### Feat
+
+* conf add FillDefault func
+* support grpc client keepalive config ([#2950](https://github.com/suyuan32/simple-admin-tools/issues/2950))
+* add debug log for logc
+* check key overwritten
+* add configurable validator for httpx.Parse ([#2923](https://github.com/suyuan32/simple-admin-tools/issues/2923))
+* Add request.ts ([#2901](https://github.com/suyuan32/simple-admin-tools/issues/2901))
+* revert bytes.Buffer to strings.Builder
+* converge grpc interceptor processing ([#2830](https://github.com/suyuan32/simple-admin-tools/issues/2830))
+* add MustNewRedis ([#2824](https://github.com/suyuan32/simple-admin-tools/issues/2824))
+
+### Fix
+
+* config map cannot handle case-insensitive keys. ([#2932](https://github.com/suyuan32/simple-admin-tools/issues/2932))
+* [#2899](https://github.com/suyuan32/simple-admin-tools/issues/2899), using autoscaling/v2beta2 instead of v2beta1 ([#2900](https://github.com/suyuan32/simple-admin-tools/issues/2900))
+* timeout not working if greater than global rest timeout ([#2926](https://github.com/suyuan32/simple-admin-tools/issues/2926))
+* fixed the bug that old trace instances may be fetched
+* test failures ([#2892](https://github.com/suyuan32/simple-admin-tools/issues/2892))
+* test failure ([#2874](https://github.com/suyuan32/simple-admin-tools/issues/2874))
+* loop reset nextStart
+* replace shoud replace the longest match
+* conf anonymous overlay problem ([#2847](https://github.com/suyuan32/simple-admin-tools/issues/2847))
+* problem on name overlaping in config ([#2820](https://github.com/suyuan32/simple-admin-tools/issues/2820))
+
+### Refactor
+
+* simplify sqlx fail fast ping and  simplify miniredis setup in test ([#2897](https://github.com/suyuan32/simple-admin-tools/issues/2897))
+* simplify stringx.Replacer, and avoid potential infinite loops ([#2877](https://github.com/suyuan32/simple-admin-tools/issues/2877))
+
+
+<a name="tools/goctl/v1.5.0"></a>
+## [tools/goctl/v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/v1.5.0...tools/goctl/v1.5.0)
+
+> 2023-03-04
+
+
+<a name="v1.5.0"></a>
+## [v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2-beta...v1.5.0)
+
+> 2023-03-04
+
+### Chore
+
+* add tests ([#2960](https://github.com/suyuan32/simple-admin-tools/issues/2960))
+* remove redundant prefix of "error: " in error creation
+* add tests for logc debug
+* add comments
+* add more tests
+* add more tests
+* go mod tidy and update deps
+* go mod tidy and update deps
+* refine rest validator ([#2928](https://github.com/suyuan32/simple-admin-tools/issues/2928))
+* reformat code ([#2925](https://github.com/suyuan32/simple-admin-tools/issues/2925))
+
+### Feat
+
+* conf add FillDefault func
+* support grpc client keepalive config ([#2950](https://github.com/suyuan32/simple-admin-tools/issues/2950))
+* add debug log for logc
+* check key overwritten
+* add configurable validator for httpx.Parse ([#2923](https://github.com/suyuan32/simple-admin-tools/issues/2923))
+
+### Fix
+
+* security [#9](https://github.com/suyuan32/simple-admin-tools/issues/9) ([#2949](https://github.com/suyuan32/simple-admin-tools/issues/2949))
+* config map cannot handle case-insensitive keys. ([#2932](https://github.com/suyuan32/simple-admin-tools/issues/2932))
+* [#2899](https://github.com/suyuan32/simple-admin-tools/issues/2899), using autoscaling/v2beta2 instead of v2beta1 ([#2900](https://github.com/suyuan32/simple-admin-tools/issues/2900))
+* timeout not working if greater than global rest timeout ([#2926](https://github.com/suyuan32/simple-admin-tools/issues/2926))
+
+
+<a name="v0.2.2-beta"></a>
+## [v0.2.2-beta](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2...v0.2.2-beta)
+
+> 2023-02-28
+
+
 <a name="v0.2.2"></a>
 ## [v0.2.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.1...v0.2.2)
 
@@ -985,7 +1397,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v0.0.7.3-beta"></a>
-## [v0.0.7.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.2...v0.0.7.3-beta)
+## [v0.0.7.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.2...v0.0.7.3-beta)
 
 > 2022-10-26
 
@@ -1052,14 +1464,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * Merge pull request [#2](https://github.com/suyuan32/simple-admin-tools/issues/2) from zeromicro/master
 
 
-<a name="v1.4.2"></a>
-## [v1.4.2](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.2...v1.4.2)
+<a name="tools/goctl/v1.4.2"></a>
+## [tools/goctl/v1.4.2](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.2...tools/goctl/v1.4.2)
 
 > 2022-10-22
 
 
-<a name="tools/goctl/v1.4.2"></a>
-## [tools/goctl/v1.4.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.0.7.2-beta...tools/goctl/v1.4.2)
+<a name="v1.4.2"></a>
+## [v1.4.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.0.7.2-beta...v1.4.2)
 
 > 2022-10-22
 
@@ -1652,7 +2064,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.3.4"></a>
-## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.4)
+## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...v1.3.4)
 
 > 2022-06-03
 
@@ -1703,14 +2115,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * add more tests ([#1856](https://github.com/suyuan32/simple-admin-tools/issues/1856))
 
 
-<a name="tools/goctl/v1.3.5"></a>
-## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...tools/goctl/v1.3.5)
+<a name="v1.3.3"></a>
+## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.3)
 
 > 2022-04-28
 
 
-<a name="v1.3.3"></a>
-## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...v1.3.3)
+<a name="tools/goctl/v1.3.5"></a>
+## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...tools/goctl/v1.3.5)
 
 > 2022-04-28
 
@@ -2381,19 +2793,19 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.4"></a>
-## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.4)
+## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.4)
 
 > 2021-01-16
 
 
-<a name="v1.1.3-beta"></a>
-## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.3-beta)
+<a name="v1.1.3"></a>
+## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.3)
 
 > 2021-01-13
 
 
-<a name="v1.1.3"></a>
-## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.3)
+<a name="v1.1.3-beta"></a>
+## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.3-beta)
 
 > 2021-01-13
 
