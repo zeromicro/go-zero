@@ -3,7 +3,7 @@ package svc
 import (
 	{{.configImport}}
 	{{if .useI18n}}
-	"github.com/suyuan32/simple-admin-core/pkg/i18n"{{end}}
+	"github.com/suyuan32/simple-admin-common/i18n"{{end}}
     {{if .useCasbin}}
 	"github.com/zeromicro/go-zero/core/stores/redis"
     "github.com/zeromicro/go-zero/rest"

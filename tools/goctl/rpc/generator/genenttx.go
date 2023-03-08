@@ -22,8 +22,8 @@ func (g *Generator) GenEntTx(ctx DirContext, _ parser.Proto, cfg *conf.Config, c
 		return err
 	}
 
-	handlerFilename := filepath.Join(ctx.GetInternal().Filename, "utils", filename)
-	if err := pathx.MkdirIfNotExist(filepath.Join(ctx.GetInternal().Filename, "utils")); err != nil {
+	handlerFilename := filepath.Join(ctx.GetInternal().Filename, "utils/entx", filename)
+	if err := pathx.MkdirIfNotExist(filepath.Join(ctx.GetInternal().Filename, "utils/entx")); err != nil {
 		return err
 	}
 

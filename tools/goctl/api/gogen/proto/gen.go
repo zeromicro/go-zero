@@ -56,6 +56,7 @@ type GenLogicByProtoContext struct {
 	GrpcPackage      string
 	UseUUID          bool
 	Multiple         bool
+	JSONStyle        string
 }
 
 func (g GenLogicByProtoContext) Validate() error {
@@ -317,11 +318,16 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 
 					var structData string
 
+					jsonTag, err := format.FileNamingFormat(ctx.JSONStyle, protox.ProtoField.Name)
+					if err != nil {
+						return "", err
+					}
+
 					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
 						parser.CamelCase(protox.ProtoField.Name),
 						parser.CamelCase(protox.ProtoField.Name),
 						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
-						strcase.ToLowerCamel(protox.ProtoField.Name))
+						jsonTag)
 
 					infoData.WriteString(structData)
 				}
@@ -331,11 +337,16 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 
 					var structData string
 
+					jsonTag, err := format.FileNamingFormat(ctx.JSONStyle, protox.ProtoField.Name)
+					if err != nil {
+						return "", err
+					}
+
 					structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
 						parser.CamelCase(protox.ProtoField.Name),
 						parser.CamelCase(protox.ProtoField.Name),
 						entx.ConvertProtoTypeToGoType(protox.ProtoField.Type),
-						strcase.ToLowerCamel(protox.ProtoField.Name))
+						jsonTag)
 
 					if protox.ProtoField.Type == "string" {
 						listData.WriteString(structData)

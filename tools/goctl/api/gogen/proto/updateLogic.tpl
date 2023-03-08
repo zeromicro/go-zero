@@ -2,7 +2,6 @@ package {{.modelNameLowerCase}}
 
 import (
 	"context"
-	"net/http"
 
 	"{{.projectPackage}}/internal/svc"
 	"{{.projectPackage}}/internal/types"
@@ -15,15 +14,13 @@ type Update{{.modelName}}Logic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
-	lang   string
 }
 
-func NewUpdate{{.modelName}}Logic(r *http.Request, svcCtx *svc.ServiceContext) *Update{{.modelName}}Logic {
+func NewUpdate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContext) *Update{{.modelName}}Logic {
 	return &Update{{.modelName}}Logic{
-		Logger: logx.WithContext(r.Context()),
-		ctx:    r.Context(),
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
 		svcCtx: svcCtx,
-		lang:   r.Header.Get("Accept-Language"),
 	}
 }
 
@@ -35,5 +32,5 @@ func (l *Update{{.modelName}}Logic) Update{{.modelName}}(req *types.{{.modelName
 	if err != nil {
 		return nil, err
 	}
-	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.lang, data.Msg)}, nil
+	return &types.BaseMsgResp{Msg: l.svcCtx.Trans.Trans(l.ctx, data.Msg)}, nil
 }
