@@ -16,7 +16,7 @@ type LogConf struct {
 	Level               string              `json:",default=info,options=[info,error,severe]"`
 	Compress            bool                `json:",optional"`
 	KeepDays            int                 `json:",optional"`
-	StackCooldownMillis int                 `json:",default=100"`
+	StackCoolDownMillis int                 `json:",default=100"`
 	MaxBackups          int                 `json:",default=0"`
 	MaxSize             int                 `json:",default=0"`
 	Rotation            string              `json:",default=daily,options=[daily,size]"`
@@ -39,7 +39,7 @@ type LogConf struct {
   - `severe`, `info` and `error` logs are suppressed, only `severe` logs are written.
 - `Compress`: whether or not to compress log files, only works with `file` mode.
 - `KeepDays`: how many days that the log files are kept, after the given days, the outdated files will be deleted automatically. It has no effect on `console` mode.
-- `StackCooldownMillis`: how many milliseconds to rewrite stacktrace again. It’s used to avoid stacktrace flooding.
+- `StackCoolDownMillis`: how many milliseconds to rewrite stacktrace again. It’s used to avoid stacktrace flooding.
 - `MaxBackups`: represents how many backup log files will be kept. 0 means all files will be kept forever. Only take effect when `Rotation` is `size`. NOTE: the level of option `KeepDays` will be higher. Even thougth `MaxBackups` sets 0, log files will still be removed if the `KeepDays` limitation is reached.
 - `MaxSize`: represents how much space the writing log file takes up. 0 means no limit. The unit is `MB`. Only take effect when `Rotation` is `size`.
 - `Rotation`: represents the type of log rotation rule. Default is `daily`.
