@@ -154,9 +154,9 @@ Future _apiRequest(String method, String path, dynamic data,
 			var client = HttpClient();
 			HttpClientRequest r;
 			if (method == 'POST') {
-				r = await client.postUrl(Uri.parse('https://' + serverHost + path));
+				r = await client.postUrl(Uri.parse(serverHost + path));
 			} else {
-				r = await client.getUrl(Uri.parse('https://' + serverHost + path));
+				r = await client.getUrl(Uri.parse(serverHost + path));
 			}
 
       var strData = '';
