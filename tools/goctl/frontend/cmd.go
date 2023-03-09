@@ -30,6 +30,7 @@ func init() {
 		"user which path is src/views/sys/user")
 	vbenCmd.Flags().StringVar(&vben.VarStringApiPrefix, "prefix", "sys-api", "The request prefix for proxy. e.g. sys-api ")
 	vbenCmd.Flags().StringVar(&vben.VarStringModelName, "model_name", "", "The model name. e.g. Example ")
+	vbenCmd.Flags().BoolVar(&vben.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
 
 	Cmd.AddCommand(vbenCmd)
 }

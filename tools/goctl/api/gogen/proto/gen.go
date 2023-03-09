@@ -57,6 +57,7 @@ type GenLogicByProtoContext struct {
 	UseUUID          bool
 	Multiple         bool
 	JSONStyle        string
+	Overwrite        bool
 }
 
 func (g GenLogicByProtoContext) Validate() error {
@@ -123,7 +124,7 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 			return err
 		}
 
-		if pathx.FileExists(filename) {
+		if pathx.FileExists(filename) && !p.Overwrite {
 			continue
 		}
 
@@ -140,6 +141,10 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 	}
 
 	apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strcase.ToSnake(p.ModelName)))
+
+	if pathx.FileExists(apiFilePath) && !p.Overwrite {
+		return nil
+	}
 
 	err = os.WriteFile(apiFilePath, []byte(apiData), regularPerm)
 	if err != nil {

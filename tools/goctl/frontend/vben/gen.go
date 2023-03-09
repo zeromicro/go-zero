@@ -42,6 +42,8 @@ var (
 	VarStringModelName string
 	// VarStringSubFolder describes the sub folder name
 	VarStringSubFolder string
+	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
+	VarBoolOverwrite bool
 )
 
 type GenContext struct {
@@ -56,6 +58,7 @@ type GenContext struct {
 	ApiSpec       *spec.ApiSpec
 	UseUUID       bool
 	HasStatus     bool
+	Overwrite     bool
 }
 
 func (g GenContext) Validate() error {
@@ -115,6 +118,7 @@ func GenCRUDLogic(_ *cobra.Command, _ []string) error {
 		ApiSpec:    apiFile,
 		LocaleDir:  localeDir,
 		FolderName: VarStringFolderName,
+		Overwrite:  VarBoolOverwrite,
 	}
 
 	err = genCtx.Validate()

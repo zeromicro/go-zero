@@ -115,7 +115,7 @@ func genData(g *GenContext) error {
 		"useUUID":             g.UseUUID,
 		"hasStatus":           g.HasStatus,
 	},
-		filepath.Join(g.ViewDir, fmt.Sprintf("%s.data.ts", strcase.ToLowerCamel(g.ModelName))), false); err != nil {
+		filepath.Join(g.ViewDir, fmt.Sprintf("%s.data.ts", strcase.ToLowerCamel(g.ModelName))), g.Overwrite); err != nil {
 		return err
 	}
 	return nil

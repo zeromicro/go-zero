@@ -30,7 +30,7 @@ func genDrawer(g *GenContext) error {
 		"folderName":          g.FolderName,
 		"useUUID":             g.UseUUID,
 	},
-		filepath.Join(g.ViewDir, fmt.Sprintf("%sDrawer.vue", g.ModelName)), false); err != nil {
+		filepath.Join(g.ViewDir, fmt.Sprintf("%sDrawer.vue", g.ModelName)), g.Overwrite); err != nil {
 		return err
 	}
 	return nil

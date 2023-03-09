@@ -34,7 +34,7 @@ func genApi(g *GenContext) error {
 		"useUUID":             g.UseUUID,
 		"hasStatus":           g.HasStatus,
 	},
-		filepath.Join(g.ApiDir, fmt.Sprintf("%s.ts", strcase.ToLowerCamel(g.ModelName))), false); err != nil {
+		filepath.Join(g.ApiDir, fmt.Sprintf("%s.ts", strcase.ToLowerCamel(g.ModelName))), g.Overwrite); err != nil {
 		return err
 	}
 	return nil

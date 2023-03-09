@@ -32,7 +32,7 @@ func genIndex(g *GenContext) error {
 		"deleteButtonTitle":   "{{ t('common.delete') }}",
 		"useUUID":             g.UseUUID,
 	},
-		filepath.Join(g.ViewDir, "index.vue"), false); err != nil {
+		filepath.Join(g.ViewDir, "index.vue"), g.Overwrite); err != nil {
 		return err
 	}
 	return nil

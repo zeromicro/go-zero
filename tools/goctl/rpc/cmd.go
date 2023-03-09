@@ -137,6 +137,7 @@ func init() {
 	entCmd.Flags().IntVar(&cli.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
 	entCmd.Flags().StringVar(&cli.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
 	entCmd.Flags().StringVar(&cli.VarStringProtoPath, "proto_out", "", "The output proto file path")
+	entCmd.Flags().BoolVar(&cli.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
 
 	Cmd.AddCommand(newCmd)
 	Cmd.AddCommand(protocCmd)

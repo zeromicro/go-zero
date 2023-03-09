@@ -68,6 +68,8 @@ var (
 	VarBoolMultiple bool
 	// VarStringJSONStyle describes the JSON tag format.
 	VarStringJSONStyle string
+	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
+	VarBoolOverwrite bool
 )
 
 // GoCommand gen go project files from command line
@@ -268,6 +270,7 @@ func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
 		GrpcPackage:    VarStringGrpcPbPackage,
 		Multiple:       VarBoolMultiple,
 		JSONStyle:      VarStringJSONStyle,
+		Overwrite:      VarBoolOverwrite,
 	}
 
 	err := params.Validate()

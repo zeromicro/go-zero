@@ -91,11 +91,11 @@ func genLocale(g *GenContext) error {
 		}
 	}
 
-	if !pathx.FileExists(zhLocaleFileName) {
+	if !pathx.FileExists(zhLocaleFileName) || g.Overwrite {
 		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]any{
 			"localeData": localeZhData.String(),
 		},
-			zhLocaleFileName, false); err != nil {
+			zhLocaleFileName, g.Overwrite); err != nil {
 			return err
 		}
 	} else {

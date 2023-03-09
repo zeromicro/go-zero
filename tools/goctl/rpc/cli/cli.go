@@ -74,6 +74,8 @@ var (
 	VarStringProtoPath string
 	// VarBoolDesc describes whether to create desc folder for splitting proto files
 	VarBoolDesc bool
+	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
+	VarBoolOverwrite bool
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -183,6 +185,7 @@ func EntCRUDLogic(_ *cobra.Command, args []string) error {
 		ModuleName:   VarStringModuleName,
 		GroupName:    VarStringGroupName,
 		ProtoOut:     VarStringProtoPath,
+		Overwrite:    VarBoolOverwrite,
 	}
 
 	if params.ProjectName == "" {

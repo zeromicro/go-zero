@@ -59,6 +59,7 @@ type GenEntLogicContext struct {
 	GroupName    string
 	UseUUID      bool
 	ProtoOut     string
+	Overwrite    bool
 }
 
 func (g GenEntLogicContext) Validate() error {
@@ -137,7 +138,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 					filename = filepath.Join(logicDir, logicFilename+".go")
 				}
 
-				if pathx.FileExists(filename) {
+				if pathx.FileExists(filename) && !g.Overwrite {
 					continue
 				}
 
@@ -164,11 +165,11 @@ func genEntLogic(g *GenEntLogicContext) error {
 				if err != nil {
 					return err
 				}
-				if !pathx.FileExists(protoFileName) {
+				if !pathx.FileExists(protoFileName) || g.Overwrite {
 					err = os.WriteFile(protoFileName, []byte(fmt.Sprintf("syntax = \"proto3\";\n\nservice %s {\n}",
 						strcase.ToCamel(g.ServiceName))), os.ModePerm)
 					if err != nil {
-						return fmt.Errorf("fail to create proto file : %s", err.Error())
+						return fmt.Errorf("failed to create proto file : %s", err.Error())
 					}
 				}
 			}

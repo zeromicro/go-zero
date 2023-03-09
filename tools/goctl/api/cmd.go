@@ -195,6 +195,7 @@ func init() {
 	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package", "", "The rpc name in service context. e.g. CoreRpc")
 	protoCmd.Flags().BoolVar(&gogen.VarBoolMultiple, "multiple", false, "Whether the proto contains multiple services")
 	protoCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
+	protoCmd.Flags().BoolVar(&gogen.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
 
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)
