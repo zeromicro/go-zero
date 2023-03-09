@@ -19,6 +19,7 @@ import (
 
 const (
 	notFoundPlaceholder = "*"
+	updatingPlaceholder = "-"
 	// make the expiry unstable to avoid lots of cached items expire at the same time
 	// make the unstable expiry to be [0.95, 1.05] * seconds
 	expiryDeviation = 0.05
@@ -31,6 +32,7 @@ type cacheNode struct {
 	rds            *redis.Redis
 	expiry         time.Duration
 	notFoundExpiry time.Duration
+	updatingExpiry time.Duration
 	barrier        syncx.SingleFlight
 	r              *rand.Rand
 	lock           *sync.Mutex
@@ -52,6 +54,7 @@ func NewNode(rds *redis.Redis, barrier syncx.SingleFlight, st *Stat,
 		rds:            rds,
 		expiry:         o.Expiry,
 		notFoundExpiry: o.NotFoundExpiry,
+		updatingExpiry: defaultUpdatingExpiry,
 		barrier:        barrier,
 		r:              rand.New(rand.NewSource(time.Now().UnixNano())),
 		lock:           new(sync.Mutex),
@@ -150,7 +153,7 @@ func (c cacheNode) Take(val any, key string, query func(val any) error) error {
 func (c cacheNode) TakeCtx(ctx context.Context, val any, key string,
 	query func(val any) error) error {
 	return c.doTake(ctx, val, key, query, func(v any) error {
-		return c.SetCtx(ctx, key, v)
+		return c.setCache(ctx, key, v, 0)
 	})
 }
 
@@ -169,7 +172,7 @@ func (c cacheNode) TakeWithExpireCtx(ctx context.Context, val any, key string,
 	return c.doTake(ctx, val, key, func(v any) error {
 		return query(v, expire)
 	}, func(v any) error {
-		return c.SetWithExpireCtx(ctx, key, v, expire)
+		return c.setCache(ctx, key, v, expire)
 	})
 }
 
@@ -192,7 +195,7 @@ func (c cacheNode) doGetCache(ctx context.Context, key string, v any) error {
 		return err
 	}
 
-	if len(data) == 0 {
+	if len(data) == 0 || data == updatingPlaceholder {
 		c.stat.IncrementMiss()
 		return c.errNotFound
 	}
@@ -219,9 +222,12 @@ func (c cacheNode) doTake(ctx context.Context, v any, key string,
 				return nil, err
 			}
 
+			canUpdate, err := c.setCacheWithUpdating(ctx, key)
 			if err = query(v); err == c.errNotFound {
-				if err = c.setCacheWithNotFound(ctx, key); err != nil {
-					logger.Error(err)
+				if canUpdate {
+					if err = c.setCacheWithNotFound(ctx, key); err != nil {
+						logger.Error(err)
+					}
 				}
 
 				return nil, c.errNotFound
@@ -275,8 +281,23 @@ func (c cacheNode) processCache(ctx context.Context, key, data string, v any) er
 	return c.errNotFound
 }
 
+func (c cacheNode) setCache(ctx context.Context, key string, val any, expire time.Duration) error {
+	data, err := jsonx.Marshal(val)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.rds.SetxxExCtx(ctx, key, string(data), int(math.Ceil(expire.Seconds())))
+	return err
+}
+
 func (c cacheNode) setCacheWithNotFound(ctx context.Context, key string) error {
 	seconds := int(math.Ceil(c.aroundDuration(c.notFoundExpiry).Seconds()))
 	_, err := c.rds.SetnxExCtx(ctx, key, notFoundPlaceholder, seconds)
 	return err
+}
+
+func (c cacheNode) setCacheWithUpdating(ctx context.Context, key string) (bool, error) {
+	seconds := int(math.Ceil(c.aroundDuration(c.updatingExpiry).Seconds()))
+	return c.rds.SetnxExCtx(ctx, key, notFoundPlaceholder, seconds)
 }

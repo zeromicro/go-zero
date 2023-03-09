@@ -5,6 +5,7 @@ import "time"
 const (
 	defaultExpiry         = time.Hour * 24 * 7
 	defaultNotFoundExpiry = time.Minute
+	defaultUpdatingExpiry = time.Minute
 )
 
 type (
