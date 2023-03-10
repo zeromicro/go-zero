@@ -165,28 +165,28 @@ func TestForAll(t *testing.T) {
 	})
 }
 
-//func TestGroup(t *testing.T) {
-//	runCheckedTest(t, func(t *testing.T) {
-//		var groups [][]int
-//		Just(10, 11, 20, 21).Group(func(item int) any {
-//			v := item
-//			return v / 10
-//		}).ForEach(func(item []int) {
-//			v := item
-//			var group []int
-//			for _, each := range v {
-//				group = append(group, each)
-//			}
-//			groups = append(groups, group)
-//		})
-//
-//		assert.Equal(t, 2, len(groups))
-//		for _, group := range groups {
-//			assert.Equal(t, 2, len(group))
-//			assert.True(t, group[0]/10 == group[1]/10)
-//		}
-//	})
-//}
+func TestGroup(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var groups [][]int
+		Just(10, 11, 20, 21).Group(func(item int) any {
+			v := item
+			return v / 10
+		}).ForEach(func(item []int) {
+			v := item
+			var group []int
+			for _, each := range v {
+				group = append(group, each)
+			}
+			groups = append(groups, group)
+		})
+
+		assert.Equal(t, 2, len(groups))
+		for _, group := range groups {
+			assert.Equal(t, 2, len(group))
+			assert.True(t, group[0]/10 == group[1]/10)
+		}
+	})
+}
 
 func TestHead(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
