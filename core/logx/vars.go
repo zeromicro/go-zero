@@ -57,6 +57,7 @@ const (
 const (
 	callerKey    = "caller"
 	contentKey   = "content"
+	contextField = "context"
 	durationKey  = "duration"
 	levelKey     = "level"
 	spanKey      = "span"

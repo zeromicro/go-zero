@@ -96,14 +96,16 @@ func (e *atomicEncoding) Load() LogEncoding {
 
 func (j *JsonLogEncoding) Output(l *LogData) ([]byte, error) {
 	entry := make(logEntry)
-	if j.UseContextField {
-		_context := make(map[string]any, len(l.Fields))
+
+	fieldLen := len(l.Fields)
+	if j.UseContextField && fieldLen > 0 {
+		_context := make(map[string]any, fieldLen)
 
 		for _, field := range l.Fields {
 			_context[field.Key] = field.Value
 		}
 
-		entry["context"] = _context
+		entry[contextField] = _context
 	} else {
 		for _, field := range l.Fields {
 			entry[field.Key] = field.Value
