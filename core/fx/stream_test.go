@@ -301,13 +301,13 @@ func TestMap(t *testing.T) {
 	})
 }
 
-//func TestMerge(t *testing.T) {
-//	runCheckedTest(t, func(t *testing.T) {
-//		Just(1, 2, 3, 4).Merge().ForEach(func(item []int) {
-//			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item)
-//		})
-//	})
-//}
+func TestMerge(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		Just(1, 2, 3, 4).Merge().ForEach(func(item []int) {
+			assert.ElementsMatch(t, []any{1, 2, 3, 4}, item)
+		})
+	})
+}
 
 func TestParallelJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
@@ -341,23 +341,23 @@ func TestSort(t *testing.T) {
 	})
 }
 
-//func TestSplit(t *testing.T) {
-//	runCheckedTest(t, func(t *testing.T) {
-//		assert.Panics(t, func() {
-//			Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(0).Done()
-//		})
-//		var chunks [][]int
-//		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item []int) {
-//			chunk := item
-//			chunks = append(chunks, chunk)
-//		})
-//		assert.EqualValues(t, [][]any{
-//			{1, 2, 3, 4},
-//			{5, 6, 7, 8},
-//			{9, 10},
-//		}, chunks)
-//	})
-//}
+func TestSplit(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		assert.Panics(t, func() {
+			Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(0).Done()
+		})
+		var chunks [][]int
+		Just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).Split(4).ForEach(func(item []int) {
+			chunk := item
+			chunks = append(chunks, chunk)
+		})
+		assert.EqualValues(t, [][]any{
+			{1, 2, 3, 4},
+			{5, 6, 7, 8},
+			{9, 10},
+		}, chunks)
+	})
+}
 
 func TestTail(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
