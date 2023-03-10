@@ -255,7 +255,7 @@ func parseGroupedSegments(val string) []string {
 
 // don't modify returned fieldOptions, it's cached and shared among different calls.
 func parseKeyAndOptions(tagName string, field reflect.StructField) (string, *fieldOptions, error) {
-	value := field.Tag.Get(tagName)
+	value := strings.TrimSpace(field.Tag.Get(tagName))
 	if len(value) == 0 {
 		return field.Name, nil, nil
 	}

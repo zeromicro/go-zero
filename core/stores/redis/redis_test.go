@@ -507,6 +507,14 @@ func TestRedis_List(t *testing.T) {
 			vals, err = client.Lrange("key", 0, 10)
 			assert.Nil(t, err)
 			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			vals, err = client.LpopCount("key", 2)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Nil(t, err)
+			vals, err = client.RpopCount("key", 4)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "value2"}, vals)
 		})
 	})
 
@@ -522,6 +530,34 @@ func TestRedis_List(t *testing.T) {
 			assert.Error(t, err)
 
 			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+
+			_, err = client.LpopCount("key", 2)
+			assert.Error(t, err)
+
+			_, err = client.RpopCount("key", 2)
+			assert.Error(t, err)
+		})
+	})
+	t.Run("list redis type error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			client.Type = "nil"
+			_, err := client.Llen("key")
+			assert.Error(t, err)
+
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Error(t, err)
+
+			_, err = client.Lrem("key", 2, "value1")
+			assert.Error(t, err)
+
+			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+
+			_, err = client.LpopCount("key", 2)
+			assert.Error(t, err)
+
+			_, err = client.RpopCount("key", 2)
 			assert.Error(t, err)
 		})
 	})
@@ -1761,21 +1797,7 @@ func TestRedis_WithPass(t *testing.T) {
 func runOnRedis(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
-	s, err := miniredis.Run()
-	assert.Nil(t, err)
-	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
-			return nil, errors.New("should already exist")
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if client != nil {
-			_ = client.Close()
-		}
-	}()
-
+	s := miniredis.RunT(t)
 	fn(MustNewRedis(RedisConf{
 		Host: s.Addr(),
 		Type: NodeType,
@@ -1785,21 +1807,7 @@ func runOnRedis(t *testing.T, fn func(client *Redis)) {
 func runOnRedisWithError(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
-	s, err := miniredis.Run()
-	assert.NoError(t, err)
-	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
-			return nil, errors.New("should already exist")
-		})
-		if err != nil {
-			t.Error(err)
-		}
-
-		if client != nil {
-			_ = client.Close()
-		}
-	}()
-
+	s := miniredis.RunT(t)
 	s.SetError("mock error")
 	fn(New(s.Addr()))
 }

@@ -11,6 +11,18 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
 )
 
+const (
+	formTagKey   = "form"
+	pathTagKey   = "path"
+	headerTagKey = "header"
+)
+
+func normalizeHandlerName(handlerName string) string {
+	handler := strings.Replace(handlerName, "Handler", "", 1)
+	handler = lowCamelCase(handler)
+	return handler
+}
+
 func lowCamelCase(s string) string {
 	if len(s) < 1 {
 		return ""
@@ -18,21 +30,6 @@ func lowCamelCase(s string) string {
 
 	s = util.ToCamelCase(util.ToSnakeCase(s))
 	return util.ToLower(s[:1]) + s[1:]
-}
-
-func pathToFuncName(path string) string {
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	if !strings.HasPrefix(path, "/api") {
-		path = "/api" + path
-	}
-
-	path = strings.Replace(path, "/", "_", -1)
-	path = strings.Replace(path, "-", "_", -1)
-
-	camel := util.ToCamelCase(path)
-	return util.ToLower(camel[:1]) + camel[1:]
 }
 
 func getBaseName(str string) string {
@@ -169,4 +166,47 @@ func primitiveType(tp string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func hasUrlPathParams(route spec.Route) bool {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return false
+	}
+
+	return len(route.RequestTypeName()) > 0 && len(ds.GetTagMembers(pathTagKey)) > 0
+}
+
+func extractPositionalParamsFromPath(route spec.Route) string {
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return ""
+	}
+
+	var params []string
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		dartType := member.Type.Name()
+		params = append(params, fmt.Sprintf("%s %s", dartType, getPropertyFromMember(member)))
+	}
+
+	return strings.Join(params, ", ")
+}
+
+func makeDartRequestUrlPath(route spec.Route) string {
+	path := route.Path
+	if route.RequestType == nil {
+		return `"` + path + `"`
+	}
+
+	ds, ok := route.RequestType.(spec.DefineStruct)
+	if !ok {
+		return path
+	}
+
+	for _, member := range ds.GetTagMembers(pathTagKey) {
+		paramName := member.Tags()[0].Name
+		path = strings.ReplaceAll(path, ":"+paramName, "${"+getPropertyFromMember(member)+"}")
+	}
+
+	return `"` + path + `"`
 }

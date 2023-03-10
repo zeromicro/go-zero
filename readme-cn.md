@@ -20,9 +20,9 @@
 > ***注意：***
 >
 > 从 v1.3.0 之前版本升级请执行以下命令：
-> 
+>
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
-> 
+>
 > `goctl migrate —verbose —version v1.4.3`
 
 ## 0. go-zero 介绍
@@ -121,10 +121,10 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     ```shell
     # Go 1.15 及之前版本
     GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # Go 1.16 及以后版本
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-    
+
     # For Mac
     brew install goctl
 
@@ -200,7 +200,7 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
   * [快速构建高并发微服务 - 多 RPC 版](https://github.com/zeromicro/zero-doc/blob/main/docs/zero/bookstore.md)
   * [goctl 使用帮助](https://github.com/zeromicro/zero-doc/blob/main/doc/goctl.md)
   * [Examples](https://github.com/zeromicro/zero-examples)
-  
+
 * 精选 `goctl` 插件
 
   | 插件    | 用途  |
@@ -299,6 +299,8 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >84. 佛山市振联科技有限公司
 >85. 苏州智言信息科技有限公司
 >86. 中国移动上海产业研究院
+>87. 天枢数链（浙江）科技有限公司
+>88. 北京娱人共享智能科技有限公司
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

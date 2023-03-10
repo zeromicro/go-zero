@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"path"
 	"runtime"
@@ -124,6 +126,14 @@ type timeoutWriter struct {
 }
 
 var _ http.Pusher = (*timeoutWriter)(nil)
+
+func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacked, ok := tw.w.(http.Hijacker); ok {
+		return hijacked.Hijack()
+	}
+
+	return nil, nil, errors.New("server doesn't support hijacking")
+}
 
 // Header returns the underline temporary http.Header.
 func (tw *timeoutWriter) Header() http.Header { return tw.h }
