@@ -288,6 +288,7 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 	if mapType == valueType {
 		return reflect.ValueOf(mapValue), nil
 	}
+
 	if keyType != valueType.Key() {
 		return emptyValue, errTypeMismatch
 	}
