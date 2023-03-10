@@ -351,7 +351,7 @@ func TestSplit(t *testing.T) {
 			chunk := item
 			chunks = append(chunks, chunk)
 		})
-		assert.EqualValues(t, [][]any{
+		assert.EqualValues(t, [][]int{
 			{1, 2, 3, 4},
 			{5, 6, 7, 8},
 			{9, 10},
