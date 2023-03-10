@@ -23,7 +23,7 @@
 >
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 >
-> `goctl migrate —verbose —version v1.4.3`
+> `goctl migrate —verbose —version v1.5.0`
 
 ## 0. go-zero 介绍
 
@@ -119,28 +119,25 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
     ```shell
-    # Go 1.15 及之前版本
-    GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-
-    # Go 1.16 及以后版本
+    # Go
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-
+    
     # For Mac
     brew install goctl
-
+    
     # docker for amd64 architecture
     docker pull kevinwan/goctl
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
-
+    
     # docker for arm64 (M1) architecture
     docker pull kevinwan/goctl:latest-arm64
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
     ```
-
+    
     确保 goctl 可执行
-
+    
 2. 快速生成 api 服务
 
     ```shell
