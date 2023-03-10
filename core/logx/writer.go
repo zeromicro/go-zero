@@ -291,6 +291,7 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 		}
 	}
 
+	// encoder layer
 	ld := logDataPool.Get().(*LogData)
 	ld.Level = level
 	ld.Content = val
@@ -298,14 +299,15 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 
 	//logBytes, err := encoding.Load().Output(ld)
 	logBytes, err := encoding.Output(ld)
+	logDataPool.Put(ld)
 
 	if err != nil {
 		log.Println(err)
 	} else {
+
+		// writer layer
 		writeTo(writer, logBytes)
 	}
-
-	logDataPool.Put(ld)
 }
 
 func writeTo(writer io.Writer, content []byte) {
