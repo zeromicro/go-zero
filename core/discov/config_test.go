@@ -80,3 +80,36 @@ func TestEtcdConf_HasAccount(t *testing.T) {
 		assert.Equal(t, test.hasAccount, test.EtcdConf.HasAccount())
 	}
 }
+
+func TestEtcdConf_HasServerID(t *testing.T) {
+	tests := []struct {
+		EtcdConf
+		hasServerID bool
+	}{
+		{
+			EtcdConf: EtcdConf{
+				Hosts:    []string{"any"},
+				ServerID: -1,
+			},
+			hasServerID: false,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Hosts:    []string{"any"},
+				ServerID: 0,
+			},
+			hasServerID: false,
+		},
+		{
+			EtcdConf: EtcdConf{
+				Hosts:    []string{"any"},
+				ServerID: 10000,
+			},
+			hasServerID: true,
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.hasServerID, test.EtcdConf.HasServerID())
+	}
+}

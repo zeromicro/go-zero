@@ -27,7 +27,7 @@ func (c EtcdConf) HasAccount() bool {
 	return len(c.User) > 0 && len(c.Pass) > 0
 }
 
-// HasServerID returns if ServerID
+// HasServerID returns if ServerID provided.
 func (c EtcdConf) HasServerID() bool {
 	return c.ServerID > 0
 }
