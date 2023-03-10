@@ -228,23 +228,23 @@ func (s Stream[T]) ForEach(fn ForEachFunc[T]) {
 }
 
 // Group groups the elements into different groups based on their keys.
-func (s Stream[T]) Group(fn KeyFunc[T]) Stream[[]T] {
-	groups := make(map[any][]T)
-	for item := range s.source {
-		key := fn(item)
-		groups[key] = append(groups[key], item)
-	}
-
-	source := make(chan []T)
-	go func() {
-		for _, group := range groups {
-			source <- group
-		}
-		close(source)
-	}()
-
-	return Range(source)
-}
+//func (s Stream[T]) Group(fn KeyFunc[T]) Stream[[]T] {
+//	groups := make(map[any][]T)
+//	for item := range s.source {
+//		key := fn(item)
+//		groups[key] = append(groups[key], item)
+//	}
+//
+//	source := make(chan []T)
+//	go func() {
+//		for _, group := range groups {
+//			source <- group
+//		}
+//		close(source)
+//	}()
+//
+//	return Range[[]T](source)
+//}
 
 // Head returns the first n elements in p.
 func (s Stream[T]) Head(n int64) Stream[T] {
@@ -279,7 +279,7 @@ func (s Stream[T]) Head(n int64) Stream[T] {
 }
 
 // Last returns the last item, or nil if no items.
-func (s Stream[T]) Last() (item any) {
+func (s Stream[T]) Last() (item T) {
 	for item = range s.source {
 	}
 	return
@@ -293,18 +293,18 @@ func (s Stream[T]) Map(fn MapFunc[T], opts ...Option) Stream[T] {
 }
 
 // Merge merges all the items into a slice and generates a new stream.
-func (s Stream[T]) Merge() Stream[[]T] {
-	var items []T
-	for item := range s.source {
-		items = append(items, item)
-	}
-
-	source := make(chan []T, 1)
-	source <- items
-	close(source)
-
-	return Range(source)
-}
+//func (s Stream[T]) Merge() Stream[[]T] {
+//	var items []T
+//	for item := range s.source {
+//		items = append(items, item)
+//	}
+//
+//	source := make(chan []T, 1)
+//	source <- items
+//	close(source)
+//
+//	return Range(source)
+//}
 
 // NoneMatch returns whether all elements of this stream don't match the provided predicate.
 // May not evaluate the predicate on all elements if not necessary for determining the result.
@@ -389,29 +389,29 @@ func (s Stream[T]) Sort(less LessFunc[T]) Stream[T] {
 
 // Split splits the elements into chunk with size up to n,
 // might be less than n on tailing elements.
-func (s Stream[T]) Split(n int) Stream[[]T] {
-	if n < 1 {
-		panic("n should be greater than 0")
-	}
-
-	source := make(chan []T)
-	go func() {
-		var chunk []T
-		for item := range s.source {
-			chunk = append(chunk, item)
-			if len(chunk) == n {
-				source <- chunk
-				chunk = nil
-			}
-		}
-		if chunk != nil {
-			source <- chunk
-		}
-		close(source)
-	}()
-
-	return Range(source)
-}
+//func (s Stream[T]) Split(n int) Stream[[]T] {
+//	if n < 1 {
+//		panic("n should be greater than 0")
+//	}
+//
+//	source := make(chan []T)
+//	go func() {
+//		var chunk []T
+//		for item := range s.source {
+//			chunk = append(chunk, item)
+//			if len(chunk) == n {
+//				source <- chunk
+//				chunk = nil
+//			}
+//		}
+//		if chunk != nil {
+//			source <- chunk
+//		}
+//		close(source)
+//	}()
+//
+//	return Range(source)
+//}
 
 // Tail returns the last n elements in p.
 func (s Stream[T]) Tail(n int64) Stream[T] {
