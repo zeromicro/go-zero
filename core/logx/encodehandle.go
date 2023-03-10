@@ -13,19 +13,19 @@ const defaultEncoding = jsonEncodingName
 var ErrFormatFailed = errors.New("log format error")
 
 var (
-	encoderStore map[string]LogEncoder
-
 	_ LogEncoder = (*JsonLogEncoder)(nil)
 	_ LogEncoder = (*PlainTextLogEncoder)(nil)
 )
 
 type (
+	// atomic switch encoder, but not use
 	atomicEncoding struct {
 		encoding LogEncoder
 		lock     sync.RWMutex
 	}
 
 	LogEncoder interface {
+		Name() string
 		Output(l *LogData) ([]byte, error)
 	}
 
@@ -43,27 +43,16 @@ type (
 	PlainTextLogEncoder struct{}
 )
 
-func init() {
-	encoderStore = make(map[string]LogEncoder)
-
-	EncoderRegister(jsonEncodingName, &JsonLogEncoder{})
-	EncoderRegister(plainEncodingName, &JsonLogEncoder{})
-}
-
-func EncoderRegister(name string, format LogEncoder) {
-	if f, ok := encoderStore[name]; ok {
-		panic(fmt.Sprintf("logFormat number [%s] already exist [%T]", name, f))
-	}
-
-	encoderStore[name] = format
+func EncoderRegister(encoder LogEncoder) {
+	encoders[encoder.Name()] = encoder
 }
 
 func getEncodingHandle(name string) LogEncoder {
-	if f, ok := encoderStore[name]; ok {
+	if f, ok := encoders[name]; ok {
 		return f
 	}
 
-	return encoderStore[defaultEncoding]
+	return encoders[defaultEncoding]
 }
 
 // atomicEncoding start
@@ -93,6 +82,10 @@ func (e *atomicEncoding) Load() LogEncoder {
 }
 
 // JsonLogEncoder start
+
+func (j *JsonLogEncoder) Name() string {
+	return jsonEncodingName
+}
 
 func (j *JsonLogEncoder) Output(l *LogData) ([]byte, error) {
 	entry := make(logEntry)
@@ -125,6 +118,10 @@ func (j *JsonLogEncoder) Output(l *LogData) ([]byte, error) {
 }
 
 // PlainTextLogEncoder start
+
+func (p *PlainTextLogEncoder) Name() string {
+	return plainEncodingName
+}
 
 func (p *PlainTextLogEncoder) Output(l *LogData) ([]byte, error) {
 	level := wrapLevelWithColor(l.Level)

@@ -19,8 +19,11 @@ const callerDepth = 4
 var (
 	timeFormat = "2006-01-02T15:04:05.000Z07:00"
 	logLevel   uint32
+
+	encoders map[string]LogEncoder
 	//encoding   *atomicEncoding
 	encoding LogEncoder
+
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
@@ -54,8 +57,13 @@ type (
 )
 
 func init() {
-	//encoding = &atomicEncoding{encoding: getEncodingHandle(jsonEncodingName)}
-	encoding = getEncodingHandle(jsonEncodingName)
+	encoders = make(map[string]LogEncoder)
+
+	EncoderRegister(&JsonLogEncoder{})
+	EncoderRegister(&PlainTextLogEncoder{})
+
+	//encoding = &atomicEncoding{encoding: getEncodingHandle(defaultEncoding)}
+	encoding = getEncodingHandle(defaultEncoding)
 }
 
 // Alert alerts v in alert level, and the message is written to error log.
