@@ -1,7 +1,6 @@
 package logx
 
 import (
-	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,25 +8,29 @@ import (
 )
 
 func TestWithColor(t *testing.T) {
-	old := atomic.SwapUint32(&encoding, plainEncodingType)
-	defer atomic.StoreUint32(&encoding, old)
+	//old := encoding.Load()
+	old := encoding
+	SetEncoding(&PlainTextLogEncoding{})
+	defer SetEncoding(old)
 
 	output := WithColor("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 
-	atomic.StoreUint32(&encoding, jsonEncodingType)
+	SetEncoding(&JsonLogEncoding{})
 	output = WithColor("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 }
 
 func TestWithColorPadding(t *testing.T) {
-	old := atomic.SwapUint32(&encoding, plainEncodingType)
-	defer atomic.StoreUint32(&encoding, old)
+	//old := encoding.Load()
+	old := encoding
+	SetEncoding(&PlainTextLogEncoding{})
+	defer SetEncoding(old)
 
 	output := WithColorPadding("hello", color.BgBlue)
 	assert.Equal(t, " hello ", output)
 
-	atomic.StoreUint32(&encoding, jsonEncodingType)
+	SetEncoding(&JsonLogEncoding{})
 	output = WithColorPadding("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 }

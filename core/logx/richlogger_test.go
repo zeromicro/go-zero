@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -144,8 +143,10 @@ func TestTraceInfo(t *testing.T) {
 }
 
 func TestTraceInfoConsole(t *testing.T) {
-	old := atomic.SwapUint32(&encoding, jsonEncodingType)
-	defer atomic.StoreUint32(&encoding, old)
+	//old := encoding.Load()
+	old := encoding
+	SetEncoding(&JsonLogEncoding{})
+	defer SetEncoding(old)
 
 	w := new(mockWriter)
 	o := writer.Swap(w)

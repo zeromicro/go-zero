@@ -14,6 +14,10 @@ import (
 	"github.com/zeromicro/go-zero/core/color"
 )
 
+var logDataPool = sync.Pool{New: func() any {
+	return &LogData{}
+}}
+
 type (
 	Writer interface {
 		Alert(v any)
@@ -287,20 +291,30 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 		}
 	}
 
-	fields = combineGlobalFields(fields)
+	ld := logDataPool.Get().(*LogData)
+	ld.Level = level
+	ld.Content = val
+	ld.Fields = combineGlobalFields(fields)
 
-	switch atomic.LoadUint32(&encoding) {
-	case plainEncodingType:
-		writePlainAny(writer, level, val, buildPlainFields(fields...)...)
-	default:
-		entry := make(logEntry)
-		for _, field := range fields {
-			entry[field.Key] = field.Value
+	//logBytes, err := encoding.Load().Output(ld)
+	logBytes, err := encoding.Output(ld)
+
+	if err != nil {
+		log.Println(err)
+	} else {
+		writeTo(writer, logBytes)
+	}
+
+	logDataPool.Put(ld)
+}
+
+func writeTo(writer io.Writer, content []byte) {
+	if writer == nil {
+		log.Println(string(content))
+	} else {
+		if _, err := writer.Write(append(content, '\n')); err != nil {
+			log.Println(err.Error())
 		}
-		entry[timestampKey] = getTimestamp()
-		entry[levelKey] = level
-		entry[contentKey] = val
-		writeJson(writer, entry)
 	}
 }
 
@@ -330,6 +344,7 @@ func wrapLevelWithColor(level string) string {
 	return color.WithColorPadding(level, colour)
 }
 
+// deprecated
 func writeJson(writer io.Writer, info any) {
 	if content, err := json.Marshal(info); err != nil {
 		log.Println(err.Error())
@@ -340,6 +355,7 @@ func writeJson(writer io.Writer, info any) {
 	}
 }
 
+// deprecated
 func writePlainAny(writer io.Writer, level string, val any, fields ...string) {
 	level = wrapLevelWithColor(level)
 
@@ -355,6 +371,7 @@ func writePlainAny(writer io.Writer, level string, val any, fields ...string) {
 	}
 }
 
+// deprecated
 func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
@@ -377,6 +394,7 @@ func writePlainText(writer io.Writer, level, msg string, fields ...string) {
 	}
 }
 
+// deprecated
 func writePlainValue(writer io.Writer, level string, val any, fields ...string) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())

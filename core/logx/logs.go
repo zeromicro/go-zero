@@ -19,7 +19,8 @@ const callerDepth = 4
 var (
 	timeFormat = "2006-01-02T15:04:05.000Z07:00"
 	logLevel   uint32
-	encoding   uint32 = jsonEncodingType
+	//encoding   *atomicEncoding
+	encoding LogEncoding
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
@@ -51,6 +52,11 @@ type (
 		rotationRule          string
 	}
 )
+
+func init() {
+	//encoding = &atomicEncoding{encoding: getEncodingHandle(jsonEncodingName)}
+	encoding = getEncodingHandle(jsonEncodingName)
+}
 
 // Alert alerts v in alert level, and the message is written to error log.
 func Alert(v string) {
@@ -222,6 +228,13 @@ func SetWriter(w Writer) {
 	}
 }
 
+func SetEncoding(e LogEncoding) {
+	if e != nil {
+		//encoding.Store(e)
+		encoding = e
+	}
+}
+
 // SetUp sets up the logx. If already set up, just return nil.
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
@@ -242,12 +255,7 @@ func SetUp(c LogConf) (err error) {
 
 		atomic.StoreUint32(&maxContentLength, c.MaxContentLength)
 
-		switch c.Encoding {
-		case plainEncoding:
-			atomic.StoreUint32(&encoding, plainEncodingType)
-		default:
-			atomic.StoreUint32(&encoding, jsonEncodingType)
-		}
+		SetEncoding(getEncodingHandle(c.Encoding))
 
 		switch c.Mode {
 		case fileMode:

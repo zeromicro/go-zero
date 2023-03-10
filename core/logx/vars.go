@@ -14,12 +14,21 @@ const (
 )
 
 const (
+	// deprecated
 	jsonEncodingType = iota
+	// deprecated
 	plainEncodingType
 )
 
 const (
-	plainEncoding    = "plain"
+	jsonEncodingName  = "json"
+	plainEncodingName = "plain"
+)
+
+const (
+	// deprecated
+	plainEncoding = "plain"
+
 	plainEncodingSep = '\t'
 	sizeRotationRule = "size"
 

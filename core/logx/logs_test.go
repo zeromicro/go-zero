@@ -344,10 +344,11 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLogConsole(t, w, func(v ...any) {
-		old := atomic.LoadUint32(&encoding)
-		atomic.StoreUint32(&encoding, plainEncodingType)
+		//old := encoding.Load()
+		old := encoding
+		SetEncoding(&PlainTextLogEncoding{})
 		defer func() {
-			atomic.StoreUint32(&encoding, old)
+			SetEncoding(old)
 		}()
 
 		Infov(v)
@@ -360,10 +361,11 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLogConsole(t, w, func(v ...any) {
-		old := atomic.LoadUint32(&encoding)
-		atomic.StoreUint32(&encoding, plainEncodingType)
+		//old := encoding.Load()
+		old := encoding
+		SetEncoding(&PlainTextLogEncoding{})
 		defer func() {
-			atomic.StoreUint32(&encoding, old)
+			SetEncoding(old)
 		}()
 
 		Infov(fmt.Sprint(v...))
@@ -376,10 +378,11 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLogConsole(t, w, func(v ...any) {
-		old := atomic.LoadUint32(&encoding)
-		atomic.StoreUint32(&encoding, plainEncodingType)
+		//old := encoding.Load()
+		old := encoding
+		SetEncoding(&PlainTextLogEncoding{})
 		defer func() {
-			atomic.StoreUint32(&encoding, old)
+			SetEncoding(old)
 		}()
 
 		Infov(errors.New(fmt.Sprint(v...)))
@@ -392,10 +395,11 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLogConsole(t, w, func(v ...any) {
-		old := atomic.LoadUint32(&encoding)
-		atomic.StoreUint32(&encoding, plainEncodingType)
+		//old := encoding.Load()
+		old := encoding
+		SetEncoding(&PlainTextLogEncoding{})
 		defer func() {
-			atomic.StoreUint32(&encoding, old)
+			SetEncoding(old)
 		}()
 
 		Infov(ValStringer{
@@ -410,10 +414,11 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	defer writer.Store(old)
 
 	doTestStructedLogConsole(t, w, func(v ...any) {
-		old := atomic.LoadUint32(&encoding)
-		atomic.StoreUint32(&encoding, plainEncodingType)
+		//old := encoding.Load()
+		old := encoding
+		SetEncoding(&PlainTextLogEncoding{})
 		defer func() {
-			atomic.StoreUint32(&encoding, old)
+			SetEncoding(old)
 		}()
 
 		Info(fmt.Sprint(v...))
@@ -571,7 +576,7 @@ func TestMustNil(t *testing.T) {
 func TestSetup(t *testing.T) {
 	defer func() {
 		SetLevel(InfoLevel)
-		atomic.StoreUint32(&encoding, jsonEncodingType)
+		SetEncoding(&JsonLogEncoding{})
 	}()
 
 	MustSetup(LogConf{
@@ -597,7 +602,7 @@ func TestSetup(t *testing.T) {
 	MustSetup(LogConf{
 		ServiceName: "any",
 		Mode:        "console",
-		Encoding:    plainEncoding,
+		Encoding:    plainEncodingName,
 	})
 
 	defer os.RemoveAll("CD01CB7D-2705-4F3F-889E-86219BF56F10")
@@ -631,7 +636,7 @@ func TestSetup(t *testing.T) {
 	assert.NotNil(t, err)
 	Disable()
 	SetLevel(InfoLevel)
-	atomic.StoreUint32(&encoding, jsonEncodingType)
+	SetEncoding(&JsonLogEncoding{})
 }
 
 func TestDisable(t *testing.T) {
@@ -794,7 +799,7 @@ func testSetLevelTwiceWithMode(t *testing.T, mode string, w *mockWriter) {
 		Mode:       mode,
 		Level:      "debug",
 		Path:       "/dev/null",
-		Encoding:   plainEncoding,
+		Encoding:   plainEncodingName,
 		Stat:       false,
 		TimeFormat: time.RFC3339,
 	})
@@ -834,5 +839,36 @@ func validateFields(t *testing.T, content string, fields map[string]any) {
 		} else {
 			assert.Equal(t, v, m[k], content)
 		}
+	}
+}
+
+func TestSetEncoding(t *testing.T) {
+	type args struct {
+		e LogEncoding
+	}
+	tests := []struct {
+		name string
+		args args
+		want LogEncoding
+	}{
+		{
+			name: "Swap",
+			args: args{e: &PlainTextLogEncoding{}},
+			want: &PlainTextLogEncoding{},
+		},
+		{
+			name: "null",
+			args: args{e: nil},
+			want: getEncodingHandle(defaultEncoding),
+		},
+	}
+	for _, tt := range tests {
+		//encoding = &atomicEncoding{encoding: getEncodingHandle(defaultEncoding)}
+		encoding = getEncodingHandle(jsonEncodingName)
+
+		t.Run(tt.name, func(t *testing.T) {
+			SetEncoding(tt.args.e)
+			assert.Equal(t, encoding, tt.want)
+		})
 	}
 }
