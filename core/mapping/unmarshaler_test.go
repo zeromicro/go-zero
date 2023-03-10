@@ -4437,3 +4437,18 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		assert.Error(t, err)
 	})
 }
+
+func Test_UnmarshalMap(t *testing.T) {
+	type Customer struct {
+		Names map[int]string `key:"names"`
+	}
+
+	input := map[string]any{
+		"names": map[string]any{
+			"19": "Tom",
+		},
+	}
+
+	var customer Customer
+	assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+}
