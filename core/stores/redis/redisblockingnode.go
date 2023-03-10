@@ -2,7 +2,6 @@ package redis
 
 import (
 	"fmt"
-	"strings"
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -32,7 +31,7 @@ func CreateBlockingNode(r *Redis) (ClosableNode, error) {
 		return &clientBridge{client}, nil
 	case ClusterType:
 		client := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        strings.Split(r.Addr, ","),
+			Addrs:        splitClusterAddrs(r.Addr),
 			Password:     r.Pass,
 			MaxRetries:   maxRetries,
 			PoolSize:     1,

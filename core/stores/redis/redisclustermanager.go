@@ -9,6 +9,8 @@ import (
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
+const addrSep = ","
+
 var clusterManager = syncx.NewResourceManager()
 
 func getCluster(r *Redis) (*red.ClusterClient, error) {
@@ -20,7 +22,7 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			}
 		}
 		store := red.NewClusterClient(&red.ClusterOptions{
-			Addrs:        strings.Split(r.Addr, ","),
+			Addrs:        splitClusterAddrs(r.Addr),
 			Password:     r.Pass,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
@@ -35,4 +37,19 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 	}
 
 	return val.(*red.ClusterClient), nil
+}
+
+func splitClusterAddrs(addr string) []string {
+	addrs := strings.Split(addr, addrSep)
+	unique := make(map[string]struct{})
+	for _, each := range addrs {
+		unique[strings.TrimSpace(each)] = struct{}{}
+	}
+
+	addrs = addrs[:0]
+	for k := range unique {
+		addrs = append(addrs, k)
+	}
+
+	return addrs
 }
