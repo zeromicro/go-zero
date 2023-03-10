@@ -346,7 +346,7 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoding{})
+		SetEncoding(&PlainTextLogEncoder{})
 		defer func() {
 			SetEncoding(old)
 		}()
@@ -363,7 +363,7 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoding{})
+		SetEncoding(&PlainTextLogEncoder{})
 		defer func() {
 			SetEncoding(old)
 		}()
@@ -380,7 +380,7 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoding{})
+		SetEncoding(&PlainTextLogEncoder{})
 		defer func() {
 			SetEncoding(old)
 		}()
@@ -397,7 +397,7 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoding{})
+		SetEncoding(&PlainTextLogEncoder{})
 		defer func() {
 			SetEncoding(old)
 		}()
@@ -416,7 +416,7 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoding{})
+		SetEncoding(&PlainTextLogEncoder{})
 		defer func() {
 			SetEncoding(old)
 		}()
@@ -576,7 +576,7 @@ func TestMustNil(t *testing.T) {
 func TestSetup(t *testing.T) {
 	defer func() {
 		SetLevel(InfoLevel)
-		SetEncoding(&JsonLogEncoding{})
+		SetEncoding(&JsonLogEncoder{})
 	}()
 
 	MustSetup(LogConf{
@@ -636,7 +636,7 @@ func TestSetup(t *testing.T) {
 	assert.NotNil(t, err)
 	Disable()
 	SetLevel(InfoLevel)
-	SetEncoding(&JsonLogEncoding{})
+	SetEncoding(&JsonLogEncoder{})
 }
 
 func TestDisable(t *testing.T) {
@@ -844,17 +844,17 @@ func validateFields(t *testing.T, content string, fields map[string]any) {
 
 func TestSetEncoding(t *testing.T) {
 	type args struct {
-		e LogEncoding
+		e LogEncoder
 	}
 	tests := []struct {
 		name string
 		args args
-		want LogEncoding
+		want LogEncoder
 	}{
 		{
 			name: "Swap",
-			args: args{e: &PlainTextLogEncoding{}},
-			want: &PlainTextLogEncoding{},
+			args: args{e: &PlainTextLogEncoder{}},
+			want: &PlainTextLogEncoder{},
 		},
 		{
 			name: "null",

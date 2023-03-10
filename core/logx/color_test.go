@@ -10,13 +10,13 @@ import (
 func TestWithColor(t *testing.T) {
 	//old := encoding.Load()
 	old := encoding
-	SetEncoding(&PlainTextLogEncoding{})
+	SetEncoding(&PlainTextLogEncoder{})
 	defer SetEncoding(old)
 
 	output := WithColor("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 
-	SetEncoding(&JsonLogEncoding{})
+	SetEncoding(&JsonLogEncoder{})
 	output = WithColor("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 }
@@ -24,13 +24,13 @@ func TestWithColor(t *testing.T) {
 func TestWithColorPadding(t *testing.T) {
 	//old := encoding.Load()
 	old := encoding
-	SetEncoding(&PlainTextLogEncoding{})
+	SetEncoding(&PlainTextLogEncoder{})
 	defer SetEncoding(old)
 
 	output := WithColorPadding("hello", color.BgBlue)
 	assert.Equal(t, " hello ", output)
 
-	SetEncoding(&JsonLogEncoding{})
+	SetEncoding(&JsonLogEncoder{})
 	output = WithColorPadding("hello", color.BgBlue)
 	assert.Equal(t, "hello", output)
 }

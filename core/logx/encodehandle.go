@@ -13,19 +13,19 @@ const defaultEncoding = jsonEncodingName
 var ErrFormatFailed = errors.New("log format error")
 
 var (
-	encodingStore map[string]LogEncoding
+	encoderStore map[string]LogEncoder
 
-	_ LogEncoding = (*JsonLogEncoding)(nil)
-	_ LogEncoding = (*PlainTextLogEncoding)(nil)
+	_ LogEncoder = (*JsonLogEncoder)(nil)
+	_ LogEncoder = (*PlainTextLogEncoder)(nil)
 )
 
 type (
 	atomicEncoding struct {
-		encoding LogEncoding
+		encoding LogEncoder
 		lock     sync.RWMutex
 	}
 
-	LogEncoding interface {
+	LogEncoder interface {
 		Output(l *LogData) ([]byte, error)
 	}
 
@@ -35,47 +35,47 @@ type (
 		Fields  []LogField
 	}
 
-	JsonLogEncoding struct {
+	JsonLogEncoder struct {
 		// Use the `context` field to collect the log context
 		UseContextField bool
 	}
 
-	PlainTextLogEncoding struct{}
+	PlainTextLogEncoder struct{}
 )
 
 func init() {
-	encodingStore = make(map[string]LogEncoding)
+	encoderStore = make(map[string]LogEncoder)
 
-	EncodingRegister(jsonEncodingName, &JsonLogEncoding{})
-	EncodingRegister(plainEncodingName, &JsonLogEncoding{})
+	EncoderRegister(jsonEncodingName, &JsonLogEncoder{})
+	EncoderRegister(plainEncodingName, &JsonLogEncoder{})
 }
 
-func EncodingRegister(name string, format LogEncoding) {
-	if f, ok := encodingStore[name]; ok {
+func EncoderRegister(name string, format LogEncoder) {
+	if f, ok := encoderStore[name]; ok {
 		panic(fmt.Sprintf("logFormat number [%s] already exist [%T]", name, f))
 	}
 
-	encodingStore[name] = format
+	encoderStore[name] = format
 }
 
-func getEncodingHandle(name string) LogEncoding {
-	if f, ok := encodingStore[name]; ok {
+func getEncodingHandle(name string) LogEncoder {
+	if f, ok := encoderStore[name]; ok {
 		return f
 	}
 
-	return encodingStore[defaultEncoding]
+	return encoderStore[defaultEncoding]
 }
 
 // atomicEncoding start
 
-func (e *atomicEncoding) Store(encoder LogEncoding) {
+func (e *atomicEncoding) Store(encoder LogEncoder) {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 
 	e.encoding = encoder
 }
 
-func (e *atomicEncoding) Swap(encoder LogEncoding) LogEncoding {
+func (e *atomicEncoding) Swap(encoder LogEncoder) LogEncoder {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 
@@ -85,16 +85,16 @@ func (e *atomicEncoding) Swap(encoder LogEncoding) LogEncoding {
 	return old
 }
 
-func (e *atomicEncoding) Load() LogEncoding {
+func (e *atomicEncoding) Load() LogEncoder {
 	e.lock.RLock()
 	defer e.lock.RUnlock()
 
 	return e.encoding
 }
 
-// JsonLogEncoding start
+// JsonLogEncoder start
 
-func (j *JsonLogEncoding) Output(l *LogData) ([]byte, error) {
+func (j *JsonLogEncoder) Output(l *LogData) ([]byte, error) {
 	entry := make(logEntry)
 
 	fieldLen := len(l.Fields)
@@ -124,9 +124,9 @@ func (j *JsonLogEncoding) Output(l *LogData) ([]byte, error) {
 	return marshal, nil
 }
 
-// PlainTextLogEncoding start
+// PlainTextLogEncoder start
 
-func (p *PlainTextLogEncoding) Output(l *LogData) ([]byte, error) {
+func (p *PlainTextLogEncoder) Output(l *LogData) ([]byte, error) {
 	level := wrapLevelWithColor(l.Level)
 	fields := buildPlainFields(l.Fields...)
 
@@ -142,7 +142,7 @@ func (p *PlainTextLogEncoding) Output(l *LogData) ([]byte, error) {
 	}
 }
 
-func (p *PlainTextLogEncoding) plainText(level string, msg string, fields ...string) ([]byte, error) {
+func (p *PlainTextLogEncoder) plainText(level string, msg string, fields ...string) ([]byte, error) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)
@@ -157,7 +157,7 @@ func (p *PlainTextLogEncoding) plainText(level string, msg string, fields ...str
 	return buf.Bytes(), nil
 }
 
-func (p *PlainTextLogEncoding) plainValue(level string, val any, fields ...string) ([]byte, error) {
+func (p *PlainTextLogEncoder) plainValue(level string, val any, fields ...string) ([]byte, error) {
 	var buf bytes.Buffer
 	buf.WriteString(getTimestamp())
 	buf.WriteByte(plainEncodingSep)

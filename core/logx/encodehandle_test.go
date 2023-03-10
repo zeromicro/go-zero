@@ -15,7 +15,7 @@ func TestJsonLogEncoding_Output(t *testing.T) {
 	defer writer.Store(old)
 
 	oldE := encoding
-	SetEncoding(&JsonLogEncoding{UseContextField: true})
+	SetEncoding(&JsonLogEncoder{UseContextField: true})
 	defer func() {
 		SetEncoding(oldE)
 	}()
@@ -31,7 +31,7 @@ func TestJsonLogEncoding_Output_W(t *testing.T) {
 	defer writer.Store(old)
 
 	oldE := encoding
-	SetEncoding(&JsonLogEncoding{UseContextField: true})
+	SetEncoding(&JsonLogEncoder{UseContextField: true})
 	defer func() {
 		SetEncoding(oldE)
 	}()

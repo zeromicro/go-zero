@@ -20,7 +20,7 @@ var (
 	timeFormat = "2006-01-02T15:04:05.000Z07:00"
 	logLevel   uint32
 	//encoding   *atomicEncoding
-	encoding LogEncoding
+	encoding LogEncoder
 	// maxContentLength is used to truncate the log content, 0 for not truncating.
 	maxContentLength uint32
 	// use uint32 for atomic operations
@@ -228,7 +228,7 @@ func SetWriter(w Writer) {
 	}
 }
 
-func SetEncoding(e LogEncoding) {
+func SetEncoding(e LogEncoder) {
 	if e != nil {
 		//encoding.Store(e)
 		encoding = e
