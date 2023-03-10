@@ -29,7 +29,7 @@ type (
 	// GenerateFunc defines the method to send elements into a Stream.
 	GenerateFunc[T any] func(source chan<- T)
 	// KeyFunc defines the method to generate keys for the elements in a Stream.
-	KeyFunc[T any] func(item T) T
+	KeyFunc[T any] func(item T) any
 	// LessFunc defines the method to compare the elements in a Stream.
 	LessFunc[T any] func(a, b T) bool
 	// MapFunc defines the method to map each element to another object in a Stream.
@@ -46,6 +46,18 @@ type (
 	// A Stream is a stream that can be used to do stream processing.
 	Stream[T any] struct {
 		source <-chan T
+	}
+
+	// ForAllArrFunc defines the method to handle all elements in a ArrayStream.
+	ForAllArrFunc[T any] func(pipe <-chan []T)
+
+	// ForEachArrFunc defines the method to handle each element in a Stream.
+	ForEachArrFunc[T any] func(item []T)
+
+	// A ArrayStream is a stream that can be used to do stream processing.
+	// Group Merge Split will be used in AStream
+	ArrayStream[T any] struct {
+		source <-chan []T
 	}
 )
 
@@ -80,6 +92,13 @@ func Just[T any](items ...T) Stream[T] {
 // Range converts the given channel to a Stream.
 func Range[T any](source <-chan T) Stream[T] {
 	return Stream[T]{
+		source: source,
+	}
+}
+
+// ARange converts the given channel to a Stream.
+func ARange[T any](source <-chan []T) ArrayStream[T] {
+	return ArrayStream[T]{
 		source: source,
 	}
 }
@@ -228,23 +247,23 @@ func (s Stream[T]) ForEach(fn ForEachFunc[T]) {
 }
 
 // Group groups the elements into different groups based on their keys.
-//func (s Stream[T]) Group(fn KeyFunc[T]) Stream[[]T] {
-//	groups := make(map[any][]T)
-//	for item := range s.source {
-//		key := fn(item)
-//		groups[key] = append(groups[key], item)
-//	}
-//
-//	source := make(chan []T)
-//	go func() {
-//		for _, group := range groups {
-//			source <- group
-//		}
-//		close(source)
-//	}()
-//
-//	return Range[[]T](source)
-//}
+func (s Stream[T]) Group(fn KeyFunc[T]) ArrayStream[T] {
+	groups := make(map[any][]T)
+	for item := range s.source {
+		key := fn(item)
+		groups[key] = append(groups[key], item)
+	}
+
+	source := make(chan []T)
+	go func() {
+		for _, group := range groups {
+			source <- group
+		}
+		close(source)
+	}()
+
+	return ARange(source)
+}
 
 // Head returns the first n elements in p.
 func (s Stream[T]) Head(n int64) Stream[T] {
@@ -293,18 +312,18 @@ func (s Stream[T]) Map(fn MapFunc[T], opts ...Option) Stream[T] {
 }
 
 // Merge merges all the items into a slice and generates a new stream.
-//func (s Stream[T]) Merge() Stream[[]T] {
-//	var items []T
-//	for item := range s.source {
-//		items = append(items, item)
-//	}
-//
-//	source := make(chan []T, 1)
-//	source <- items
-//	close(source)
-//
-//	return Range(source)
-//}
+func (s Stream[T]) Merge() ArrayStream[T] {
+	var items []T
+	for item := range s.source {
+		items = append(items, item)
+	}
+
+	source := make(chan []T, 1)
+	source <- items
+	close(source)
+
+	return ARange(source)
+}
 
 // NoneMatch returns whether all elements of this stream don't match the provided predicate.
 // May not evaluate the predicate on all elements if not necessary for determining the result.
@@ -389,29 +408,29 @@ func (s Stream[T]) Sort(less LessFunc[T]) Stream[T] {
 
 // Split splits the elements into chunk with size up to n,
 // might be less than n on tailing elements.
-//func (s Stream[T]) Split(n int) Stream[[]T] {
-//	if n < 1 {
-//		panic("n should be greater than 0")
-//	}
-//
-//	source := make(chan []T)
-//	go func() {
-//		var chunk []T
-//		for item := range s.source {
-//			chunk = append(chunk, item)
-//			if len(chunk) == n {
-//				source <- chunk
-//				chunk = nil
-//			}
-//		}
-//		if chunk != nil {
-//			source <- chunk
-//		}
-//		close(source)
-//	}()
-//
-//	return Range(source)
-//}
+func (s Stream[T]) Split(n int) ArrayStream[T] {
+	if n < 1 {
+		panic("n should be greater than 0")
+	}
+
+	source := make(chan []T)
+	go func() {
+		var chunk []T
+		for item := range s.source {
+			chunk = append(chunk, item)
+			if len(chunk) == n {
+				source <- chunk
+				chunk = nil
+			}
+		}
+		if chunk != nil {
+			source <- chunk
+		}
+		close(source)
+	}()
+
+	return ARange(source)
+}
 
 // Tail returns the last n elements in p.
 func (s Stream[T]) Tail(n int64) Stream[T] {
@@ -498,6 +517,25 @@ func (s Stream[T]) walkUnlimited(fn WalkFunc[T], option *rxOptions) Stream[T] {
 	}()
 
 	return Range(pipe)
+}
+
+// ForAll handles the streaming elements from the source and no later streams.
+func (s ArrayStream[T]) ForAll(fn ForAllArrFunc[T]) {
+	fn(s.source)
+	// avoid goroutine leak on fn not consuming all items.
+	go drain(s.source)
+}
+
+// ForEach seals the ArrayStream with the ForEachArrFunc on each item, no successive operations.
+func (s ArrayStream[T]) ForEach(fn ForEachArrFunc[T]) {
+	for item := range s.source {
+		fn(item)
+	}
+}
+
+// Done waits all upstreaming operations to be done.
+func (s ArrayStream[T]) Done() {
+	drain(s.source)
 }
 
 // UnlimitedWorkers lets the caller use as many workers as the tasks.
