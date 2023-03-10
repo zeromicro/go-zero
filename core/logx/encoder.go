@@ -10,7 +10,7 @@ import (
 
 const defaultEncoding = jsonEncodingName
 
-var ErrFormatFailed = errors.New("log format error")
+var ErrLogEncodeFailed = errors.New("log encode error")
 
 var (
 	_ LogEncoder = (*JsonLogEncoder)(nil)
@@ -111,7 +111,7 @@ func (j *JsonLogEncoder) Output(l *LogData) ([]byte, error) {
 
 	marshal, err := json.Marshal(entry)
 	if err != nil {
-		return nil, ErrFormatFailed
+		return nil, ErrLogEncodeFailed
 	}
 
 	return marshal, nil
@@ -161,7 +161,7 @@ func (p *PlainTextLogEncoder) plainValue(level string, val any, fields ...string
 	buf.WriteString(level)
 	buf.WriteByte(plainEncodingSep)
 	if err := json.NewEncoder(&buf).Encode(val); err != nil {
-		return nil, ErrFormatFailed
+		return nil, ErrLogEncodeFailed
 	}
 
 	for _, item := range fields {
