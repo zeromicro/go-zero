@@ -116,7 +116,7 @@ func TestJust(t *testing.T) {
 func TestDistinct(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
-		Just(4, 1, 3, 2, 3, 4).Distinct(func(item int) int {
+		Just(4, 1, 3, 2, 3, 4).Distinct(func(item int) any {
 			return item
 		}).Reduce(func(pipe <-chan int) (int, error) {
 			for item := range pipe {
@@ -168,7 +168,7 @@ func TestForAll(t *testing.T) {
 //func TestGroup(t *testing.T) {
 //	runCheckedTest(t, func(t *testing.T) {
 //		var groups [][]int
-//		Just(10, 11, 20, 21).Group(func(item int) int {
+//		Just(10, 11, 20, 21).Group(func(item int) any {
 //			v := item
 //			return v / 10
 //		}).ForEach(func(item []int) {
