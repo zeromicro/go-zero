@@ -289,6 +289,10 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 		return reflect.ValueOf(mapValue), nil
 	}
 
+	if keyType != valueType.Key() {
+		return emptyValue, errTypeMismatch
+	}
+
 	refValue := reflect.ValueOf(mapValue)
 	targetValue := reflect.MakeMapWithSize(mapType, refValue.Len())
 	dereffedElemType := Deref(elemType)
