@@ -51,18 +51,24 @@ func TestParseTarget(t *testing.T) {
 			input:  "k8s://ns1/my-svc:800a",
 			hasErr: true,
 		},
+		{
+			name:   "bad endpoint",
+			input:  "k8s://ns1:800/:",
+			hasErr: true,
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			uri, err := url.Parse(test.input)
-			assert.Nil(t, err)
-			svc, err := ParseTarget(resolver.Target{URL: *uri})
-			if test.hasErr {
-				assert.NotNil(t, err)
-			} else {
-				assert.Nil(t, err)
-				assert.Equal(t, test.expect, svc)
+			if assert.NoError(t, err) {
+				svc, err := ParseTarget(resolver.Target{URL: *uri})
+				if test.hasErr {
+					assert.NotNil(t, err)
+				} else {
+					assert.Nil(t, err)
+					assert.Equal(t, test.expect, svc)
+				}
 			}
 		})
 	}
