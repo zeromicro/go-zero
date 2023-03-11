@@ -37,52 +37,51 @@ func GetMethods(source grpcurl.DescriptorSource) ([]Method, error) {
 			for _, method := range svcMethods {
 				rpcPath := fmt.Sprintf("%s/%s", svc, method.GetName())
 				ext := proto.GetExtension(method.GetMethodOptions(), annotations.E_Http)
-				if ext == nil {
-					methods = append(methods, Method{
-						RpcPath: rpcPath,
-					})
-					continue
-				}
+				switch rule := ext.(type) {
+				case *annotations.HttpRule:
+					if rule == nil {
+						methods = append(methods, Method{
+							RpcPath: rpcPath,
+						})
+						continue
+					}
 
-				httpExt, ok := ext.(*annotations.HttpRule)
-				if !ok {
-					methods = append(methods, Method{
-						RpcPath: rpcPath,
-					})
-					continue
-				}
-
-				switch rule := httpExt.GetPattern().(type) {
-				case *annotations.HttpRule_Get:
-					methods = append(methods, Method{
-						HttpMethod: http.MethodGet,
-						HttpPath:   adjustHttpPath(rule.Get),
-						RpcPath:    rpcPath,
-					})
-				case *annotations.HttpRule_Post:
-					methods = append(methods, Method{
-						HttpMethod: http.MethodPost,
-						HttpPath:   adjustHttpPath(rule.Post),
-						RpcPath:    rpcPath,
-					})
-				case *annotations.HttpRule_Put:
-					methods = append(methods, Method{
-						HttpMethod: http.MethodPut,
-						HttpPath:   adjustHttpPath(rule.Put),
-						RpcPath:    rpcPath,
-					})
-				case *annotations.HttpRule_Delete:
-					methods = append(methods, Method{
-						HttpMethod: http.MethodDelete,
-						HttpPath:   adjustHttpPath(rule.Delete),
-						RpcPath:    rpcPath,
-					})
-				case *annotations.HttpRule_Patch:
-					methods = append(methods, Method{
-						HttpMethod: http.MethodPatch,
-						HttpPath:   adjustHttpPath(rule.Patch),
-						RpcPath:    rpcPath,
-					})
+					switch httpRule := rule.GetPattern().(type) {
+					case *annotations.HttpRule_Get:
+						methods = append(methods, Method{
+							HttpMethod: http.MethodGet,
+							HttpPath:   adjustHttpPath(httpRule.Get),
+							RpcPath:    rpcPath,
+						})
+					case *annotations.HttpRule_Post:
+						methods = append(methods, Method{
+							HttpMethod: http.MethodPost,
+							HttpPath:   adjustHttpPath(httpRule.Post),
+							RpcPath:    rpcPath,
+						})
+					case *annotations.HttpRule_Put:
+						methods = append(methods, Method{
+							HttpMethod: http.MethodPut,
+							HttpPath:   adjustHttpPath(httpRule.Put),
+							RpcPath:    rpcPath,
+						})
+					case *annotations.HttpRule_Delete:
+						methods = append(methods, Method{
+							HttpMethod: http.MethodDelete,
+							HttpPath:   adjustHttpPath(httpRule.Delete),
+							RpcPath:    rpcPath,
+						})
+					case *annotations.HttpRule_Patch:
+						methods = append(methods, Method{
+							HttpMethod: http.MethodPatch,
+							HttpPath:   adjustHttpPath(httpRule.Patch),
+							RpcPath:    rpcPath,
+						})
+					default:
+						methods = append(methods, Method{
+							RpcPath: rpcPath,
+						})
+					}
 				default:
 					methods = append(methods, Method{
 						RpcPath: rpcPath,
