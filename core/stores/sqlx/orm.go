@@ -34,9 +34,20 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 	result := make(map[string]any, size)
 
 	for i := 0; i < size; i++ {
+		if (rt.Field(i).Type.Kind() == reflect.Struct || rt.Field(i).Type.Kind() == reflect.Ptr) && rt.Field(i).Anonymous {
+			r, e := getTaggedFieldValueMap(reflect.Indirect(v).Field(i))
+			if e != nil {
+				return nil, e
+			}
+			for i2, i3 := range r {
+				result[i2] = i3
+			}
+			continue
+		}
+
 		key := parseTagName(rt.Field(i))
 		if len(key) == 0 {
-			return nil, nil
+			continue
 		}
 
 		valueField := reflect.Indirect(v).Field(i)
