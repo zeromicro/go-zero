@@ -100,6 +100,17 @@ func TestDone(t *testing.T) {
 	})
 }
 
+func TestArrDone(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var count int32
+		Just(1, 2, 3).Walk(func(item int, pipe chan<- int) {
+			time.Sleep(time.Millisecond * 100)
+			atomic.AddInt32(&count, int32(item))
+		}).Merge().Done()
+		assert.Equal(t, int32(6), count)
+	})
+}
+
 func TestJust(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
 		var result int
@@ -159,6 +170,22 @@ func TestForAll(t *testing.T) {
 		}).ForAll(func(pipe <-chan int) {
 			for item := range pipe {
 				result += item
+			}
+		})
+		assert.Equal(t, 6, result)
+	})
+}
+
+func TestArrForAll(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		var result int
+		Just(1, 2, 3, 4).Filter(func(item int) bool {
+			return item%2 == 0
+		}).Merge().ForAll(func(pipe <-chan []int) {
+			for item := range pipe {
+				for _, v := range item {
+					result += v
+				}
 			}
 		})
 		assert.Equal(t, 6, result)
@@ -317,13 +344,13 @@ func TestParallelJust(t *testing.T) {
 	})
 }
 
-//func TestReverse(t *testing.T) {
-//	runCheckedTest(t, func(t *testing.T) {
-//		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item []int) {
-//			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item)
-//		})
-//	})
-//}
+func TestReverse(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		Just(1, 2, 3, 4).Reverse().Merge().ForEach(func(item []int) {
+			assert.ElementsMatch(t, []any{4, 3, 2, 1}, item)
+		})
+	})
+}
 
 func TestSort(t *testing.T) {
 	runCheckedTest(t, func(t *testing.T) {
