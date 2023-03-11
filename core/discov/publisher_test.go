@@ -323,7 +323,6 @@ func createMockConn(t *testing.T) *grpc.ClientConn {
 		t.Fatalf("Dial failed. Err: %v", err)
 	}
 
-	defer client.Close()
 	timeout := time.After(1 * time.Second)
 	select {
 	case <-timeout:
