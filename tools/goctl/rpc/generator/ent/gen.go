@@ -339,8 +339,13 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
 				if entx.IsUpperProperty(v.Name) {
-					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
-						entx.ConvertSpecificNounToUpper(v.Name), endString))
+					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+							entx.ConvertEntTypeToGotype(v.Info.Type.String()), entx.ConvertSpecificNounToUpper(v.Name), endString))
+					} else {
+						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+							entx.ConvertSpecificNounToUpper(v.Name), endString))
+					}
 				} else {
 					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
 						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
