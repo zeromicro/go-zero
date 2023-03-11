@@ -172,11 +172,8 @@ func TestGroup(t *testing.T) {
 			v := item
 			return v / 10
 		}).ForEach(func(item []int) {
-			v := item
 			var group []int
-			for _, each := range v {
-				group = append(group, each)
-			}
+			group = append(group, item...)
 			groups = append(groups, group)
 		})
 
