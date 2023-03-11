@@ -6,6 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/format"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gocligen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/javagen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/ktgen"
@@ -46,6 +47,12 @@ var (
 		Use:   "go",
 		Short: "Generate go files for provided api in api file",
 		RunE:  gogen.GoCommand,
+	}
+
+	goCliCmd = &cobra.Command{
+		Use:   "gocli",
+		Short: "Generate go files for provided client`s sdk",
+		RunE:  gocligen.GoCliCommand,
 	}
 
 	newCmd = &cobra.Command{
@@ -132,6 +139,20 @@ func init() {
 	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
 		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
 
+	goCliCmd.Flags().StringVar(&gocligen.VarStringDir, "dir", "", "The target dir")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringAPI, "api", "", "The api file")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringHome, "home", "", "The goctl home path of "+
+		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
+		"has higher priority")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringRemote, "remote", "", "The remote git repo "+
+		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
+		" has higher priority\n\tThe git repo directory must be consistent with the "+
+		"https://github.com/zeromicro/go-zero-template directory structure")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringBranch, "branch", "master", "The branch of "+
+		"the remote repo, it does work with --remote")
+	goCliCmd.Flags().StringVar(&gocligen.VarStringStyle, "style", "gozero", "The file naming format,"+
+		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
+
 	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
 	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
 
@@ -169,6 +190,7 @@ func init() {
 	Cmd.AddCommand(docCmd)
 	Cmd.AddCommand(formatCmd)
 	Cmd.AddCommand(goCmd)
+	Cmd.AddCommand(goCliCmd)
 	Cmd.AddCommand(javaCmd)
 	Cmd.AddCommand(ktCmd)
 	Cmd.AddCommand(newCmd)
