@@ -111,7 +111,7 @@ go install github.com/zeromicro/go-zero/tools/goctl@latest
 ```
 
 ```shell
-goctl migrate —verbose —version v1.4.3
+goctl migrate —verbose —version v1.5.0
 ```
 
 ##  Quick Start
@@ -127,28 +127,25 @@ goctl migrate —verbose —version v1.4.3
    `goctl`can be read as `go control`. `goctl` means not to be controlled by code, instead, we control it. The inside `go` is not `golang`. At the very beginning, I was expecting it to help us improve productivity, and make our lives easier.
 
    ```shell
-   # for Go 1.15 and earlier
-   GO111MODULE=on go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-
-   # for Go 1.16 and later
+   # for Go
    go install github.com/zeromicro/go-zero/tools/goctl@latest
-
+   
    # For Mac
    brew install goctl
-
+   
    # docker for amd64 architecture
    docker pull kevinwan/goctl
    # run goctl like
    docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
-
+   
    # docker for arm64 (M1) architecture
    docker pull kevinwan/goctl:latest-arm64
    # run goctl like
    docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
    ```
-
+   
    make sure goctl is executable.
-
+   
 3. create the API file, like greet.api, you can install the plugin of goctl in vs code, api syntax is supported.
 
    ```go
