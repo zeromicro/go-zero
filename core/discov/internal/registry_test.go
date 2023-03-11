@@ -270,3 +270,33 @@ func TestDialClient(t *testing.T) {
 	_, err = DialClient(endpoints)
 	assert.Error(t, err)
 }
+
+func TestRegistry_Monitor(t *testing.T) {
+	svr, err := mockserver.StartMockServers(1)
+	assert.NoError(t, err)
+	svr.StartAt(0)
+
+	endpoints := []string{svr.Servers[0].Address}
+	GetRegistry().lock.Lock()
+	GetRegistry().clusters = map[string]*cluster{
+		getClusterKey(endpoints): {
+			listeners: map[string][]UpdateListener{},
+			values: map[string]map[string]string{
+				"foo": {
+					"bar": "baz",
+				},
+			},
+		},
+	}
+	GetRegistry().lock.Unlock()
+	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener)))
+}
+
+type mockListener struct {
+}
+
+func (m *mockListener) OnAdd(_ KV) {
+}
+
+func (m *mockListener) OnDelete(_ KV) {
+}
