@@ -2,7 +2,6 @@ package clientinterceptors
 
 import (
 	"context"
-	"github.com/zeromicro/go-zero/core/lang"
 	"io"
 
 	ztrace "github.com/zeromicro/go-zero/core/trace"
@@ -95,7 +94,7 @@ type (
 		Finished          chan error
 		desc              *grpc.StreamDesc
 		events            chan streamEvent
-		eventsDone        chan lang.PlaceholderType
+		eventsDone        chan struct{}
 		receivedMessageID int
 		sentMessageID     int
 	}

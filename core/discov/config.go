@@ -13,7 +13,7 @@ var (
 type EtcdConf struct {
 	Hosts              []string
 	Key                string
-	ServerID           int64  `json:",optional"`
+	ID                 int64  `json:",optional"`
 	User               string `json:",optional"`
 	Pass               string `json:",optional"`
 	CertFile           string `json:",optional"`
@@ -27,9 +27,9 @@ func (c EtcdConf) HasAccount() bool {
 	return len(c.User) > 0 && len(c.Pass) > 0
 }
 
-// HasServerID returns if ServerID provided.
-func (c EtcdConf) HasServerID() bool {
-	return c.ServerID > 0
+// HasID returns if ID provided.
+func (c EtcdConf) HasID() bool {
+	return c.ID > 0
 }
 
 // HasTLS returns if TLS CertFile/CertKeyFile/CACertFile are provided.

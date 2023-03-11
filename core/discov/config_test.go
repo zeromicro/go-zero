@@ -81,35 +81,89 @@ func TestEtcdConf_HasAccount(t *testing.T) {
 	}
 }
 
-func TestEtcdConf_HasServerID(t *testing.T) {
+func TestEtcdConf_HasID(t *testing.T) {
 	tests := []struct {
 		EtcdConf
 		hasServerID bool
 	}{
 		{
 			EtcdConf: EtcdConf{
-				Hosts:    []string{"any"},
-				ServerID: -1,
+				Hosts: []string{"any"},
+				ID:    -1,
 			},
 			hasServerID: false,
 		},
 		{
 			EtcdConf: EtcdConf{
-				Hosts:    []string{"any"},
-				ServerID: 0,
+				Hosts: []string{"any"},
+				ID:    0,
 			},
 			hasServerID: false,
 		},
 		{
 			EtcdConf: EtcdConf{
-				Hosts:    []string{"any"},
-				ServerID: 10000,
+				Hosts: []string{"any"},
+				ID:    10000,
 			},
 			hasServerID: true,
 		},
 	}
 
 	for _, test := range tests {
-		assert.Equal(t, test.hasServerID, test.EtcdConf.HasServerID())
+		assert.Equal(t, test.hasServerID, test.EtcdConf.HasID())
+	}
+}
+
+func TestEtcdConf_HasTLS(t *testing.T) {
+	tests := []struct {
+		name string
+		conf EtcdConf
+		want bool
+	}{
+		{
+			name: "empty config",
+			conf: EtcdConf{},
+			want: false,
+		},
+		{
+			name: "missing CertFile",
+			conf: EtcdConf{
+				CertKeyFile: "key",
+				CACertFile:  "ca",
+			},
+			want: false,
+		},
+		{
+			name: "missing CertKeyFile",
+			conf: EtcdConf{
+				CertFile:   "cert",
+				CACertFile: "ca",
+			},
+			want: false,
+		},
+		{
+			name: "missing CACertFile",
+			conf: EtcdConf{
+				CertFile:    "cert",
+				CertKeyFile: "key",
+			},
+			want: false,
+		},
+		{
+			name: "valid config",
+			conf: EtcdConf{
+				CertFile:    "cert",
+				CertKeyFile: "key",
+				CACertFile:  "ca",
+			},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.conf.HasTLS()
+			assert.Equal(t, tt.want, got)
+		})
 	}
 }
