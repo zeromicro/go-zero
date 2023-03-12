@@ -278,10 +278,8 @@ func runningInUserNS() bool {
 		var a, b, c int64
 		fmt.Sscanf(line, "%d %d %d", &a, &b, &c)
 
-		/*
-		 * We assume we are in the initial user namespace if we have a full
-		 * range - 4294967295 uids starting at uid 0.
-		 */
+		// We assume we are in the initial user namespace if we have a full
+		// range - 4294967295 uids starting at uid 0.
 		if a == 0 && b == 0 && c == 4294967295 {
 			return
 		}

@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
 	"github.com/zeromicro/go-zero/rest/router"
 )
@@ -18,6 +19,9 @@ import (
 type (
 	// RunOption defines the method to customize a Server.
 	RunOption func(*Server)
+
+	// StartOption defines the method to customize http server.
+	StartOption func(svr *http.Server)
 
 	// A Server is a http server.
 	Server struct {
@@ -112,8 +116,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
-func (s *Server) Start() {
-	handleError(s.ngin.start(s.router))
+func (s *Server) Start(opts ...StartOption) {
+	var startOption []internal.StartOption
+	for _, opt := range opts {
+		startOption = append(startOption, internal.StartOption(opt))
+	}
+	handleError(s.ngin.start(s.router, startOption...))
 }
 
 // Stop stops the Server.

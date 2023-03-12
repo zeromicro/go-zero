@@ -2,6 +2,7 @@ package dartgen
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -75,14 +76,14 @@ Future<Tokens?> getTokens() async {
 }`
 )
 
-func genVars(dir string, isLegacy bool, hostname string) error {
+func genVars(dir string, isLegacy bool, scheme string, hostname string) error {
 	err := os.MkdirAll(dir, 0o755)
 	if err != nil {
 		return err
 	}
 
 	if !fileExists(dir + "vars.dart") {
-		err = os.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s';`, hostname)), 0o644)
+		err = ioutil.WriteFile(dir+"vars.dart", []byte(fmt.Sprintf(`const serverHost='%s://%s';`, scheme, hostname)), 0o644)
 		if err != nil {
 			return err
 		}
@@ -93,7 +94,7 @@ func genVars(dir string, isLegacy bool, hostname string) error {
 		if isLegacy {
 			tpl = varTemplate
 		}
-		err = os.WriteFile(dir+"kv.dart", []byte(tpl), 0o644)
+		err = ioutil.WriteFile(dir+"kv.dart", []byte(tpl), 0o644)
 		if err != nil {
 			return err
 		}

@@ -69,6 +69,23 @@ func TestUnaryTracingInterceptor_WithError(t *testing.T) {
 	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
 }
 
+func TestUnaryTracingInterceptor_WithStatusError(t *testing.T) {
+	var run int32
+	var wg sync.WaitGroup
+	wg.Add(1)
+	cc := new(grpc.ClientConn)
+	err := UnaryTracingInterceptor(context.Background(), "/foo", nil, nil, cc,
+		func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn,
+			opts ...grpc.CallOption) error {
+			defer wg.Done()
+			atomic.AddInt32(&run, 1)
+			return status.Error(codes.DataLoss, "dummy")
+		})
+	wg.Wait()
+	assert.NotNil(t, err)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+}
+
 func TestStreamTracingInterceptor(t *testing.T) {
 	var run int32
 	var wg sync.WaitGroup
