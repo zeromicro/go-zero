@@ -1069,19 +1069,19 @@ func TestAnonymousStructPr(t *testing.T) {
 				String: "",
 				Valid:  false,
 			},
-			ClassName:  "实验班",
-			Discipline: "数学",
+			ClassName:  "experimental class",
+			Discipline: "math",
 			Score:      100,
 		},
 		{
 			Name: "second",
 			Age:  3,
 			Grade: sql.NullString{
-				String: "大一",
+				String: "grade one",
 				Valid:  true,
 			},
-			ClassName:  "三班二年",
-			Discipline: "语文",
+			ClassName:  "class three grade two",
+			Discipline: "chinese",
 			Score:      99,
 		},
 	}
@@ -1092,12 +1092,22 @@ func TestAnonymousStructPr(t *testing.T) {
 	}
 
 	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-		rs := sqlmock.NewRows([]string{"name", "age", "grade", "discipline", "class_name", "score"}).AddRow("first", 2, nil, "数学", "实验班", 100).
-			AddRow("second", 3, "大一", "语文", "三班二年", 99)
-		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		rs := sqlmock.NewRows([]string{
+			"name",
+			"age",
+			"grade",
+			"discipline",
+			"class_name",
+			"score",
+		}).
+			AddRow("first", 2, nil, "math", "experimental class", 100).
+			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
+		mock.ExpectQuery("select (.+) from users where user=?").
+			WithArgs("anyone").WillReturnRows(rs)
 		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
-		}, "select name, age,grade,discipline,class_name,score from users where user=?", "anyone"))
+		}, "select name, age,grade,discipline,class_name,score from users where user=?",
+			"anyone"))
 
 		for i, each := range expect {
 			assert.Equal(t, each.Name, value[i].Name)
@@ -1109,6 +1119,7 @@ func TestAnonymousStructPr(t *testing.T) {
 		}
 	})
 }
+
 func TestAnonymousStructPrError(t *testing.T) {
 	type Score struct {
 		Discipline string `db:"discipline"`
@@ -1129,12 +1140,22 @@ func TestAnonymousStructPrError(t *testing.T) {
 	}
 
 	runOrmTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-		rs := sqlmock.NewRows([]string{"name", "age", "grade", "discipline", "class_name", "score"}).AddRow("first", 2, nil, "数学", "实验班", 100).
-			AddRow("second", 3, "大一", "语文", "三班二年", 99)
-		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		rs := sqlmock.NewRows([]string{
+			"name",
+			"age",
+			"grade",
+			"discipline",
+			"class_name",
+			"score",
+		}).
+			AddRow("first", 2, nil, "math", "experimental class", 100).
+			AddRow("second", 3, "grade one", "chinese", "class three grade two", 99)
+		mock.ExpectQuery("select (.+) from users where user=?").
+			WithArgs("anyone").WillReturnRows(rs)
 		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
 			return unmarshalRows(&value, rows, true)
-		}, "select name, age,grade,discipline,class_name,score from users where user=?", "anyone"))
+		}, "select name, age,grade,discipline,class_name,score from users where user=?",
+			"anyone"))
 		if len(value) > 0 {
 			assert.Equal(t, value[0].score, 0)
 		}

@@ -34,18 +34,21 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 	result := make(map[string]any, size)
 
 	for i := 0; i < size; i++ {
-		if (rt.Field(i).Type.Kind() == reflect.Struct || rt.Field(i).Type.Kind() == reflect.Ptr) && rt.Field(i).Anonymous {
-			r, e := getTaggedFieldValueMap(reflect.Indirect(v).Field(i))
-			if e != nil {
-				return nil, e
+		field := rt.Field(i)
+		if field.Anonymous && mapping.Deref(field.Type).Kind() == reflect.Struct {
+			inner, err := getTaggedFieldValueMap(reflect.Indirect(v).Field(i))
+			if err != nil {
+				return nil, err
 			}
-			for i2, i3 := range r {
-				result[i2] = i3
+
+			for key, val := range inner {
+				result[key] = val
 			}
+
 			continue
 		}
 
-		key := parseTagName(rt.Field(i))
+		key := parseTagName(field)
 		if len(key) == 0 {
 			continue
 		}
@@ -125,7 +128,7 @@ func parseTagName(field reflect.StructField) string {
 	}
 
 	options := strings.Split(key, ",")
-	return options[0]
+	return strings.TrimSpace(options[0])
 }
 
 func unmarshalRow(v any, scanner rowsScanner, strict bool) error {
