@@ -33,7 +33,10 @@ type (
 	// LessFunc defines the method to compare the elements in a Stream.
 	LessFunc[T any] func(a, b T) bool
 	// MapFunc defines the method to map each element to another object in a Stream.
-	MapFunc[T any] func(item T) T
+	MapFunc[T any] func(item T) any
+	// MapToFunc defines the method to map each element to another object in a Stream.
+	MapToFunc[T0 any, T1 any] func(item T0) T1
+
 	// Option defines the method to customize a Stream.
 	Option func(opts *rxOptions)
 	// ParallelFunc defines the method to handle elements parallel.
@@ -42,10 +45,20 @@ type (
 	ReduceFunc[T any] func(pipe <-chan T) (T, error)
 	// WalkFunc defines the method to walk through all the elements in a Stream.
 	WalkFunc[T any] func(item T, pipe chan<- T)
+	// WalkAnyFunc defines the method to walk through all the elements in a Stream.
+	WalkAnyFunc[T any] func(item T, pipe chan<- any)
+
+	// MapWalkFunc defines the method to walk through all the elements in a Stream.
+	MapWalkFunc[T any, J any] func(item T, pipe chan<- J)
 
 	// A Stream is a stream that can be used to do stream processing.
 	Stream[T any] struct {
 		source <-chan T
+	}
+
+	//todo: how to convert from Stream[T] to MappableStream[T,J] gracefully?
+	MappableStream[T, J any] struct {
+		Stream[T]
 	}
 
 	// ForAllArrFunc defines the method to handle all elements in a ArrayStream.
@@ -305,8 +318,18 @@ func (s Stream[T]) Last() (item T) {
 }
 
 // Map converts each item to another corresponding item, which means it's a 1:1 model.
-func (s Stream[T]) Map(fn MapFunc[T], opts ...Option) Stream[T] {
-	return s.Walk(func(item T, pipe chan<- T) {
+func Map[T, J any](s Stream[T], fn MapToFunc[T, J], opts ...Option) Stream[J] {
+	return mapWalk(s, func(item T, pipe chan<- J) {
+		pipe <- fn(item)
+	})
+}
+
+// Map converts each item to another corresponding item, which means it's a 1:1 model.
+// todo: for now golang can't tag method by generic,so it can only return Stream[any]
+// I provide a general func above (Map[T,J]) to replace this method.
+// If there is a better way to do this, please let me know.
+func (s Stream[T]) Map(fn MapFunc[T], opts ...Option) Stream[any] {
+	return s.WalkAny(func(item T, pipe chan<- any) {
 		pipe <- fn(item)
 	}, opts...)
 }
@@ -454,6 +477,16 @@ func (s Stream[T]) Tail(n int64) Stream[T] {
 	return Range(source)
 }
 
+// MapWalk lets the callers handle each item, the caller may write zero, one or more items base on the given item.
+func mapWalk[T, J any](s Stream[T], fn MapWalkFunc[T, J], opts ...Option) Stream[J] {
+	option := buildOptions(opts...)
+	if option.unlimitedWorkers {
+		return mapWalkUnlimited(s, fn, option)
+	}
+
+	return mapWalkLimited(s, fn, option)
+}
+
 // Walk lets the callers handle each item, the caller may write zero, one or more items base on the given item.
 func (s Stream[T]) Walk(fn WalkFunc[T], opts ...Option) Stream[T] {
 	option := buildOptions(opts...)
@@ -462,6 +495,16 @@ func (s Stream[T]) Walk(fn WalkFunc[T], opts ...Option) Stream[T] {
 	}
 
 	return s.walkLimited(fn, option)
+}
+
+// WalkAny lets the callers handle each item, the caller may write zero, one or more items base on the given item.
+func (s Stream[T]) WalkAny(fn WalkAnyFunc[T], opts ...Option) Stream[any] {
+	option := buildOptions(opts...)
+	if option.unlimitedWorkers {
+		return s.walkAnyUnlimited(fn, option)
+	}
+
+	return s.walkAnyLimited(fn, option)
 }
 
 func (s Stream[T]) walkLimited(fn WalkFunc[T], option *rxOptions) Stream[T] {
@@ -495,8 +538,118 @@ func (s Stream[T]) walkLimited(fn WalkFunc[T], option *rxOptions) Stream[T] {
 	return Range(pipe)
 }
 
+func (s Stream[T]) walkAnyLimited(fn WalkAnyFunc[T], option *rxOptions) Stream[any] {
+	pipe := make(chan any, option.workers)
+
+	go func() {
+		var wg sync.WaitGroup
+		pool := make(chan lang.PlaceholderType, option.workers)
+
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
+			pool <- lang.Placeholder
+			wg.Add(1)
+
+			// better to safely run caller defined method
+			threading.GoSafe(func() {
+				defer func() {
+					wg.Done()
+					<-pool
+				}()
+
+				fn(val, pipe)
+			})
+		}
+
+		wg.Wait()
+		close(pipe)
+	}()
+
+	return Range(pipe)
+}
+
+func mapWalkLimited[T, J any](s Stream[T], fn MapWalkFunc[T, J], option *rxOptions) Stream[J] {
+	pipe := make(chan J, option.workers)
+
+	go func() {
+		var wg sync.WaitGroup
+		pool := make(chan lang.PlaceholderType, option.workers)
+
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
+			pool <- lang.Placeholder
+			wg.Add(1)
+
+			// better to safely run caller defined method
+			threading.GoSafe(func() {
+				defer func() {
+					wg.Done()
+					<-pool
+				}()
+
+				fn(val, pipe)
+			})
+		}
+
+		wg.Wait()
+		close(pipe)
+	}()
+
+	return Range(pipe)
+}
+
 func (s Stream[T]) walkUnlimited(fn WalkFunc[T], option *rxOptions) Stream[T] {
 	pipe := make(chan T, option.workers)
+
+	go func() {
+		var wg sync.WaitGroup
+
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
+			wg.Add(1)
+			// better to safely run caller defined method
+			threading.GoSafe(func() {
+				defer wg.Done()
+				fn(val, pipe)
+			})
+		}
+
+		wg.Wait()
+		close(pipe)
+	}()
+
+	return Range(pipe)
+}
+
+func (s Stream[T]) walkAnyUnlimited(fn WalkAnyFunc[T], option *rxOptions) Stream[any] {
+	pipe := make(chan any, option.workers)
+
+	go func() {
+		var wg sync.WaitGroup
+
+		for item := range s.source {
+			// important, used in another goroutine
+			val := item
+			wg.Add(1)
+			// better to safely run caller defined method
+			threading.GoSafe(func() {
+				defer wg.Done()
+				fn(val, pipe)
+			})
+		}
+
+		wg.Wait()
+		close(pipe)
+	}()
+
+	return Range(pipe)
+}
+
+func mapWalkUnlimited[T, J any](s Stream[T], fn MapWalkFunc[T, J], option *rxOptions) Stream[J] {
+	pipe := make(chan J, option.workers)
 
 	go func() {
 		var wg sync.WaitGroup

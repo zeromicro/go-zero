@@ -269,6 +269,71 @@ func TestMap(t *testing.T) {
 			expect int
 		}{
 			{
+				mapper: func(item int) any {
+					v := item
+					return v * v
+				},
+				expect: 30,
+			},
+			{
+				mapper: func(item int) any {
+					v := item
+					if v%2 == 0 {
+						return 0
+					}
+					return v * v
+				},
+				expect: 10,
+			},
+			{
+				mapper: func(item int) any {
+					v := item
+					if v%2 == 0 {
+						panic(v)
+					}
+					return v * v
+				},
+				expect: 10,
+			},
+		}
+
+		// Map(...) works even WithWorkers(0)
+		for i, test := range tests {
+			t.Run(stringx.Rand(), func(t *testing.T) {
+				var result int
+				var workers int
+				if i%2 == 0 {
+					workers = 0
+				} else {
+					workers = runtime.NumCPU()
+				}
+				From[int](func(source chan<- int) {
+					for i := 1; i < 5; i++ {
+						source <- i
+					}
+				}).Map(test.mapper, WithWorkers(workers)).Reduce(
+					func(pipe <-chan any) (any, error) {
+						for item := range pipe {
+							result += item.(int)
+						}
+						return result, nil
+					})
+
+				assert.Equal(t, test.expect, result)
+			})
+		}
+	})
+}
+
+func TestMapNew(t *testing.T) {
+	runCheckedTest(t, func(t *testing.T) {
+		log.SetOutput(io.Discard)
+
+		tests := []struct {
+			mapper MapToFunc[int, int]
+			expect int
+		}{
+			{
 				mapper: func(item int) int {
 					v := item
 					return v * v
@@ -307,18 +372,18 @@ func TestMap(t *testing.T) {
 				} else {
 					workers = runtime.NumCPU()
 				}
-				From[int](func(source chan<- int) {
+				stream := From[int](func(source chan<- int) {
 					for i := 1; i < 5; i++ {
 						source <- i
 					}
-				}).Map(test.mapper, WithWorkers(workers)).Reduce(
-					func(pipe <-chan int) (int, error) {
-						for item := range pipe {
-							result += item
-						}
-						return result, nil
-					})
-
+				})
+				//for now can't directly use stream.Map
+				Map(stream, test.mapper, WithWorkers(workers)).Reduce(func(pipe <-chan int) (int, error) {
+					for item := range pipe {
+						result += item
+					}
+					return result, nil
+				})
 				assert.Equal(t, test.expect, result)
 			})
 		}
