@@ -2,8 +2,10 @@ package internal
 
 import (
 	"context"
+	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -14,6 +16,7 @@ import (
 	"go.etcd.io/etcd/api/v3/etcdserverpb"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"go.etcd.io/etcd/client/v3/mock/mockserver"
 )
 
 var mockLock sync.Mutex
@@ -241,4 +244,59 @@ func TestValueOnlyContext(t *testing.T) {
 	ctx := contextx.ValueOnlyFrom(context.Background())
 	ctx.Done()
 	assert.Nil(t, ctx.Err())
+}
+
+func TestDialClient(t *testing.T) {
+	svr, err := mockserver.StartMockServers(1)
+	assert.NoError(t, err)
+	svr.StartAt(0)
+
+	certFile := createTempFile(t, []byte(certContent))
+	defer os.Remove(certFile)
+	keyFile := createTempFile(t, []byte(keyContent))
+	defer os.Remove(keyFile)
+	caFile := createTempFile(t, []byte(caContent))
+	defer os.Remove(caFile)
+
+	endpoints := []string{svr.Servers[0].Address}
+	AddAccount(endpoints, "foo", "bar")
+	assert.NoError(t, AddTLS(endpoints, certFile, keyFile, caFile, false))
+
+	old := DialTimeout
+	DialTimeout = time.Millisecond
+	defer func() {
+		DialTimeout = old
+	}()
+	_, err = DialClient(endpoints)
+	assert.Error(t, err)
+}
+
+func TestRegistry_Monitor(t *testing.T) {
+	svr, err := mockserver.StartMockServers(1)
+	assert.NoError(t, err)
+	svr.StartAt(0)
+
+	endpoints := []string{svr.Servers[0].Address}
+	GetRegistry().lock.Lock()
+	GetRegistry().clusters = map[string]*cluster{
+		getClusterKey(endpoints): {
+			listeners: map[string][]UpdateListener{},
+			values: map[string]map[string]string{
+				"foo": {
+					"bar": "baz",
+				},
+			},
+		},
+	}
+	GetRegistry().lock.Unlock()
+	assert.Error(t, GetRegistry().Monitor(endpoints, "foo", new(mockListener)))
+}
+
+type mockListener struct {
+}
+
+func (m *mockListener) OnAdd(_ KV) {
+}
+
+func (m *mockListener) OnDelete(_ KV) {
 }
