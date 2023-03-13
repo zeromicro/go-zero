@@ -237,7 +237,7 @@ func NewLogger(filename string, rule RotateRule, compress bool) (*RotateLogger, 
 		rule:     rule,
 		compress: compress,
 	}
-	if err := l.init(); err != nil {
+	if err := l.initialize(); err != nil {
 		return nil, err
 	}
 
@@ -281,7 +281,7 @@ func (l *RotateLogger) getBackupFilename() string {
 	return l.backup
 }
 
-func (l *RotateLogger) init() error {
+func (l *RotateLogger) initialize() error {
 	l.backup = l.rule.BackupFileName()
 
 	if fileInfo, err := os.Stat(l.filename); err != nil {
