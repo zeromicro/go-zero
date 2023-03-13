@@ -145,8 +145,8 @@ func TestTraceInfo(t *testing.T) {
 func TestTraceInfoConsole(t *testing.T) {
 	//old := encoding.Load()
 	old := encoding
-	SetEncoding(&JsonLogEncoder{})
-	defer SetEncoding(old)
+	setEncoding(&JsonLogEncoder{})
+	defer setEncoding(old)
 
 	w := new(mockWriter)
 	o := writer.Swap(w)

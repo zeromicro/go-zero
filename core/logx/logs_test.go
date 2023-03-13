@@ -346,9 +346,9 @@ func TestStructedLogInfoConsoleAny(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoder{})
+		setEncoding(&PlainTextLogEncoder{})
 		defer func() {
-			SetEncoding(old)
+			setEncoding(old)
 		}()
 
 		Infov(v)
@@ -363,9 +363,9 @@ func TestStructedLogInfoConsoleAnyString(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoder{})
+		setEncoding(&PlainTextLogEncoder{})
 		defer func() {
-			SetEncoding(old)
+			setEncoding(old)
 		}()
 
 		Infov(fmt.Sprint(v...))
@@ -380,9 +380,9 @@ func TestStructedLogInfoConsoleAnyError(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoder{})
+		setEncoding(&PlainTextLogEncoder{})
 		defer func() {
-			SetEncoding(old)
+			setEncoding(old)
 		}()
 
 		Infov(errors.New(fmt.Sprint(v...)))
@@ -397,9 +397,9 @@ func TestStructedLogInfoConsoleAnyStringer(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoder{})
+		setEncoding(&PlainTextLogEncoder{})
 		defer func() {
-			SetEncoding(old)
+			setEncoding(old)
 		}()
 
 		Infov(ValStringer{
@@ -416,9 +416,9 @@ func TestStructedLogInfoConsoleText(t *testing.T) {
 	doTestStructedLogConsole(t, w, func(v ...any) {
 		//old := encoding.Load()
 		old := encoding
-		SetEncoding(&PlainTextLogEncoder{})
+		setEncoding(&PlainTextLogEncoder{})
 		defer func() {
-			SetEncoding(old)
+			setEncoding(old)
 		}()
 
 		Info(fmt.Sprint(v...))
@@ -576,7 +576,7 @@ func TestMustNil(t *testing.T) {
 func TestSetup(t *testing.T) {
 	defer func() {
 		SetLevel(InfoLevel)
-		SetEncoding(&JsonLogEncoder{})
+		setEncoding(&JsonLogEncoder{})
 	}()
 
 	MustSetup(LogConf{
@@ -636,7 +636,7 @@ func TestSetup(t *testing.T) {
 	assert.NotNil(t, err)
 	Disable()
 	SetLevel(InfoLevel)
-	SetEncoding(&JsonLogEncoder{})
+	setEncoding(&JsonLogEncoder{})
 }
 
 func TestDisable(t *testing.T) {
@@ -867,7 +867,7 @@ func TestSetEncoding(t *testing.T) {
 		encoding = getEncodingHandle(jsonEncodingName)
 
 		t.Run(tt.name, func(t *testing.T) {
-			SetEncoding(tt.args.e)
+			setEncoding(tt.args.e)
 			assert.Equal(t, encoding, tt.want)
 		})
 	}

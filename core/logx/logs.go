@@ -236,13 +236,6 @@ func SetWriter(w Writer) {
 	}
 }
 
-func SetEncoding(e LogEncoder) {
-	if e != nil {
-		//encoding.Store(e)
-		encoding = e
-	}
-}
-
 // SetUp sets up the logx. If already set up, just return nil.
 // we allow SetUp to be called multiple times, because for example
 // we need to allow different service frameworks to initialize logx respectively.
@@ -263,7 +256,7 @@ func SetUp(c LogConf) (err error) {
 
 		atomic.StoreUint32(&maxContentLength, c.MaxContentLength)
 
-		SetEncoding(getEncodingHandle(c.Encoding))
+		encoding = getEncodingHandle(c.Encoding)
 
 		switch c.Mode {
 		case fileMode:

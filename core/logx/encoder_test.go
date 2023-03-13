@@ -9,15 +9,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func setEncoding(e LogEncoder) {
+	if e != nil {
+		//encoding.Store(e)
+		encoding = e
+	}
+}
+
 func TestJsonLogEncoding_Output(t *testing.T) {
 	w := new(mockWriter)
 	old := writer.Swap(w)
 	defer writer.Store(old)
 
 	oldE := encoding
-	SetEncoding(&JsonLogEncoder{UseContextField: true})
+	setEncoding(&JsonLogEncoder{UseContextField: true})
 	defer func() {
-		SetEncoding(oldE)
+		setEncoding(oldE)
 	}()
 
 	doTestStructedLog(t, "info", w, func(v ...any) {
@@ -31,9 +38,9 @@ func TestJsonLogEncoding_Output_W(t *testing.T) {
 	defer writer.Store(old)
 
 	oldE := encoding
-	SetEncoding(&JsonLogEncoder{UseContextField: true})
+	setEncoding(&JsonLogEncoder{UseContextField: true})
 	defer func() {
-		SetEncoding(oldE)
+		setEncoding(oldE)
 	}()
 
 	doTestContextLog(t, "info", w, func(content string, v ...LogField) {
