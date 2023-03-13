@@ -14,10 +14,6 @@ import (
 	"github.com/zeromicro/go-zero/core/color"
 )
 
-var logDataPool = sync.Pool{New: func() any {
-	return &LogData{}
-}}
-
 type (
 	Writer interface {
 		Alert(v any)
@@ -292,14 +288,10 @@ func output(writer io.Writer, level string, val any, fields ...LogField) {
 	}
 
 	// encoder layer
-	ld := logDataPool.Get().(*LogData)
-	ld.Level = level
-	ld.Content = val
-	ld.Fields = combineGlobalFields(fields)
+	ld := &LogData{Level: level, Content: val, Fields: combineGlobalFields(fields)}
 
 	//logBytes, err := encoding.Load().Output(ld)
 	logBytes, err := encoding.Output(ld)
-	logDataPool.Put(ld)
 
 	if err != nil {
 		log.Println(err)
