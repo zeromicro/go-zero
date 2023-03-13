@@ -60,7 +60,7 @@ func init() {
 	encoders = make(map[string]LogEncoder)
 
 	EncoderRegister(&JsonLogEncoder{})
-	EncoderRegister(&PlainTextLogEncoder{})
+	EncoderRegister(&PlainTextLogEncoder{WithColor: true})
 
 	//encoding = &atomicEncoding{encoding: getEncodingHandle(defaultEncoding)}
 	encoding = getEncodingHandle(defaultEncoding)

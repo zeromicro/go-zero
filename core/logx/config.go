@@ -12,7 +12,7 @@ type LogConf struct {
 	// Encoding represents the encoding type, default is `json`.
 	// json: json encoding.
 	// plain: plain text encoding, typically used in development.
-	Encoding string `json:",default=json,options=[json,plain]"`
+	Encoding string `json:",default=json"`
 	// TimeFormat represents the time format, default is `2006-01-02T15:04:05.000Z07:00`.
 	TimeFormat string `json:",optional"`
 	// Path represents the log file path, default is `logs`.

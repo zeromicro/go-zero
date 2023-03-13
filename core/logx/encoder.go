@@ -40,7 +40,9 @@ type (
 		UseContextField bool
 	}
 
-	PlainTextLogEncoder struct{}
+	PlainTextLogEncoder struct {
+		WithColor bool
+	}
 )
 
 func EncoderRegister(encoder LogEncoder) {
@@ -121,6 +123,10 @@ func (j *JsonLogEncoder) Output(l *LogData) ([]byte, error) {
 
 func (p *PlainTextLogEncoder) Name() string {
 	return plainEncodingName
+}
+
+func (p *PlainTextLogEncoder) Color() bool {
+	return p.WithColor
 }
 
 func (p *PlainTextLogEncoder) Output(l *LogData) ([]byte, error) {
