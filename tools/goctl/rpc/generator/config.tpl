@@ -1,7 +1,7 @@
 package config
 
 import (
-{{if .isEnt}}   "github.com/suyuan32/simple-admin-core/pkg/config"
+{{if .isEnt}}   "github.com/suyuan32/simple-admin-common/config"
 {{end}}
     "github.com/zeromicro/go-zero/core/stores/redis"
     "github.com/zeromicro/go-zero/zrpc"
