@@ -42,7 +42,7 @@ func (r *Registry) GetConn(endpoints []string) (EtcdClient, error) {
 }
 
 // Monitor monitors the key on given etcd endpoints, notify with the given UpdateListener.
-func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) error {
+func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener, disablePrefix bool) error {
 	c, exists := r.getCluster(endpoints)
 	// if exists, the existing values should be updated to the listener.
 	if exists {
@@ -52,7 +52,7 @@ func (r *Registry) Monitor(endpoints []string, key string, l UpdateListener) err
 		}
 	}
 
-	return c.monitor(key, l)
+	return c.monitor(key, l, disablePrefix)
 }
 
 func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
@@ -69,13 +69,14 @@ func (r *Registry) getCluster(endpoints []string) (c *cluster, exists bool) {
 }
 
 type cluster struct {
-	endpoints  []string
-	key        string
-	values     map[string]map[string]string
-	listeners  map[string][]UpdateListener
-	watchGroup *threading.RoutineGroup
-	done       chan lang.PlaceholderType
-	lock       sync.Mutex
+	endpoints     []string
+	key           string
+	values        map[string]map[string]string
+	listeners     map[string][]UpdateListener
+	watchGroup    *threading.RoutineGroup
+	done          chan lang.PlaceholderType
+	lock          sync.Mutex
+	disablePrefix bool
 }
 
 func newCluster(endpoints []string) *cluster {
@@ -213,7 +214,12 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 	for {
 		var err error
 		ctx, cancel := context.WithTimeout(c.context(cli), RequestTimeout)
-		resp, err = cli.Get(ctx, makeKeyPrefix(key), clientv3.WithPrefix())
+		if c.disablePrefix {
+			resp, err = cli.Get(ctx, key)
+		} else {
+			resp, err = cli.Get(ctx, makeKeyPrefix(key), clientv3.WithPrefix())
+		}
+
 		cancel()
 		if err == nil {
 			break
@@ -236,9 +242,10 @@ func (c *cluster) load(cli EtcdClient, key string) int64 {
 	return resp.Header.Revision
 }
 
-func (c *cluster) monitor(key string, l UpdateListener) error {
+func (c *cluster) monitor(key string, l UpdateListener, disablePrefix bool) error {
 	c.lock.Lock()
 	c.listeners[key] = append(c.listeners[key], l)
+	c.disablePrefix = disablePrefix
 	c.lock.Unlock()
 
 	cli, err := c.getClient()
