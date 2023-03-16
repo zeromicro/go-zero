@@ -76,8 +76,8 @@ func (e *Executor[T, Y]) RunE(t *testing.T, do func(T) (Y, error)) {
 		t.Run(v.Name, func(t *testing.T) {
 			inner := do
 			got, err := inner(v.Input)
-			if err != nil {
-				assert.ErrorIs(t, err, v.E)
+			if v.E != nil {
+				assert.Equal(t, v.E, err)
 				return
 			}
 			e.equalFn(t, v.Want, got)

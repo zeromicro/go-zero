@@ -7,8 +7,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/spf13/viper"
+
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -32,13 +34,21 @@ func init() {
 	_ = os.WriteFile(flagConfigFile, defaultFlagConfig, 0666)
 }
 
+func setTestConfigFile(t *testing.T, f string) {
+	origin := flagConfigFile
+	t.Cleanup(func() {
+		flagConfigFile = origin
+	})
+	flagConfigFile = f
+}
+
 type Flags struct {
 	v *viper.Viper
 }
 
 func MustLoad() *Flags {
 	var configContent []byte
-	if !pathx.FileExists(flagConfigFile) {
+	if pathx.FileExists(flagConfigFile) {
 		configContent, _ = os.ReadFile(flagConfigFile)
 	}
 	if len(configContent) == 0 {
@@ -63,6 +73,7 @@ func (f *Flags) Get(key string) (string, error) {
 		if value == key {
 			return "", fmt.Errorf("the variable can not be self: %q", key)
 		}
+		return f.Get(value)
 	}
 	return value, nil
 }
