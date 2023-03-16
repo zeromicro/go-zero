@@ -4,6 +4,6 @@ package subscriber
 type Subscriber interface {
 	// AddListener adds a listener to the subscriber.
 	AddListener(listener func()) error
-	// Values returns the values of the subscriber.
-	Values() ([]string, error)
+	// Value returns the value of the subscriber.
+	Value() (string, error)
 }

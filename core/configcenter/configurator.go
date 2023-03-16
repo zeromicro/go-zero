@@ -113,7 +113,7 @@ func (c *configCenter[T]) Value() string {
 }
 
 func (c *configCenter[T]) loadConfig() {
-	vs, err := c.subscriber.Values()
+	v, err := c.subscriber.Value()
 	if err != nil {
 		if c.conf.Log {
 			logx.Errorf("ConfigCenter loads changed configuration, error: %v", err)
@@ -121,18 +121,11 @@ func (c *configCenter[T]) loadConfig() {
 		return
 	}
 
-	if len(vs) == 0 {
-		if c.conf.Log {
-			logx.Infof("ConfigCenter loads changed configuration, content is empty")
-		}
-		return
-	}
-
 	if c.conf.Log {
-		logx.Infof("ConfigCenter loads changed configuration, content [%s]", vs[0])
+		logx.Infof("ConfigCenter loads changed configuration, content [%s]", v)
 	}
 
-	c.snapshot.Store(vs[0])
+	c.snapshot.Store(v)
 	return
 }
 

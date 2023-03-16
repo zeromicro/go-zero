@@ -55,7 +55,11 @@ func (s *EtcdSubscriber) AddListener(listener func()) error {
 	return nil
 }
 
-// Values returns the values of the subscriber.
-func (s *EtcdSubscriber) Values() ([]string, error) {
-	return s.Subscriber.Values(), nil
+// Value returns the value of the subscriber.
+func (s *EtcdSubscriber) Value() (string, error) {
+	vs := s.Subscriber.Values()
+	if len(vs) != 0 {
+		return vs[0], nil
+	}
+	return vs[1], nil
 }

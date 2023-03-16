@@ -68,8 +68,8 @@ func (m *mockSubscriber) AddListener(listener func()) error {
 	return nil
 }
 
-func (m *mockSubscriber) Values() ([]string, error) {
-	return []string{m.v}, nil
+func (m *mockSubscriber) Value() (string, error) {
+	return m.v, nil
 }
 
 func (m *mockSubscriber) change() {

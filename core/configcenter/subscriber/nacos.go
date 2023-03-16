@@ -57,15 +57,15 @@ func (s *NacosSubscriber) AddListener(listener func()) error {
 	})
 }
 
-// Values returns the values of the subscriber.
-func (s *NacosSubscriber) Values() ([]string, error) {
+// Value returns the value of the subscriber.
+func (s *NacosSubscriber) Value() (string, error) {
 	content, err := s.client.GetConfig(vo.ConfigParam{
 		DataId: s.conf.DataID,
 		Group:  s.conf.Group,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return []string{content}, nil
+	return content, nil
 }
