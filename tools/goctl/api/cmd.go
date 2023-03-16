@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -13,6 +14,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
@@ -20,38 +22,38 @@ var (
 	// Cmd describes an api command.
 	Cmd = &cobra.Command{
 		Use:   "api",
-		Short: "Generate api related files",
+		Short: flags.Get("api.short"),
 		RunE:  apigen.CreateApiTemplate,
 	}
 
 	dartCmd = &cobra.Command{
 		Use:   "dart",
-		Short: "Generate dart files for provided api in api file",
+		Short: flags.Get("api.dart.short"),
 		RunE:  dartgen.DartCommand,
 	}
 
 	docCmd = &cobra.Command{
 		Use:   "doc",
-		Short: "Generate doc files",
+		Short: flags.Get("api.doc.short"),
 		RunE:  docgen.DocCommand,
 	}
 
 	formatCmd = &cobra.Command{
 		Use:   "format",
-		Short: "Format api files",
+		Short: flags.Get("api.format.short"),
 		RunE:  format.GoFormatApi,
 	}
 
 	goCmd = &cobra.Command{
 		Use:   "go",
-		Short: "Generate go files for provided api in api file",
+		Short: flags.Get("api.go.short"),
 		RunE:  gogen.GoCommand,
 	}
 
 	newCmd = &cobra.Command{
 		Use:     "new",
-		Short:   "Fast create api service",
-		Example: "goctl api new [options] service-name",
+		Short:   flags.Get("api.new.short"),
+		Example: flags.Get("api.new.example"),
 		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return new.CreateServiceCommand(args)
@@ -60,119 +62,101 @@ var (
 
 	validateCmd = &cobra.Command{
 		Use:   "validate",
-		Short: "Validate api file",
+		Short: flags.Get("api.validate.short"),
 		RunE:  validate.GoValidateApi,
 	}
 
 	javaCmd = &cobra.Command{
 		Use:    "java",
-		Short:  "Generate java files for provided api in api file",
+		Short:  flags.Get("api.java.short"),
 		Hidden: true,
 		RunE:   javagen.JavaCommand,
 	}
 
 	ktCmd = &cobra.Command{
 		Use:   "kt",
-		Short: "Generate kotlin code for provided api file",
+		Short: flags.Get("api.kt.short"),
 		RunE:  ktgen.KtCommand,
 	}
 
 	pluginCmd = &cobra.Command{
 		Use:   "plugin",
-		Short: "Custom file generator",
+		Short: flags.Get("api.plugin.short"),
 		RunE:  plugin.PluginCommand,
 	}
 
 	tsCmd = &cobra.Command{
 		Use:   "ts",
-		Short: "Generate ts files for provided api in api file",
+		Short: flags.Get("api.ts.short"),
 		RunE:  tsgen.TsCommand,
 	}
 )
 
 func init() {
-	Cmd.Flags().StringVar(&apigen.VarStringOutput, "o", "", "Output a sample api file")
-	Cmd.Flags().StringVar(&apigen.VarStringHome, "home", "", "The goctl home path of the"+
-		" template, --home and --remote cannot be set at the same time, if they are, --remote has "+
-		"higher priority")
-	Cmd.Flags().StringVar(&apigen.VarStringRemote, "remote", "", "The remote git repo of the"+
-		" template, --home and --remote cannot be set at the same time, if they are, --remote has higher"+
-		" priority\nThe git repo directory must be consistent with the"+
-		" https://github.com/zeromicro/go-zero-template directory structure")
-	Cmd.Flags().StringVar(&apigen.VarStringBranch, "branch", "", "The branch of the "+
-		"remote repo, it does work with --remote")
+	var (
+		apiCmdFlags      = Cmd.Flags()
+		dartCmdFlags     = dartCmd.Flags()
+		docCmdFlags      = docCmd.Flags()
+		formatCmdFlags   = formatCmd.Flags()
+		goCmdFlags       = goCmd.Flags()
+		javaCmdFlags     = javaCmd.Flags()
+		ktCmdFlags       = ktCmd.Flags()
+		newCmdFlags      = newCmd.Flags()
+		pluginCmdFlags   = pluginCmd.Flags()
+		tsCmdFlags       = tsCmd.Flags()
+		validateCmdFlags = validateCmd.Flags()
+	)
 
-	dartCmd.Flags().StringVar(&dartgen.VarStringDir, "dir", "", "The target dir")
-	dartCmd.Flags().StringVar(&dartgen.VarStringAPI, "api", "", "The api file")
-	dartCmd.Flags().BoolVar(&dartgen.VarStringLegacy, "legacy", false, "Legacy generator for flutter v1")
-	dartCmd.Flags().StringVar(&dartgen.VarStringHostname, "hostname", "", "hostname of the server")
-	dartCmd.Flags().StringVar(&dartgen.VarStringScheme, "scheme", "", "scheme of the server")
+	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o", "", flags.Get("api.o"))
+	apiCmdFlags.StringVar(&apigen.VarStringHome, "home", "", flags.Get("api.home"))
+	apiCmdFlags.StringVar(&apigen.VarStringRemote, "remote", "", flags.Get("api.remote"))
+	apiCmdFlags.StringVar(&apigen.VarStringBranch, "branch", "", flags.Get("api.branch"))
 
-	docCmd.Flags().StringVar(&docgen.VarStringDir, "dir", "", "The target dir")
-	docCmd.Flags().StringVar(&docgen.VarStringOutput, "o", "", "The output markdown directory")
+	dartCmdFlags.StringVar(&dartgen.VarStringDir, "dir", "", flags.Get("api.dart.dir"))
+	dartCmdFlags.StringVar(&dartgen.VarStringAPI, "api", "", flags.Get("api.dart.api"))
+	dartCmdFlags.BoolVar(&dartgen.VarStringLegacy, "legacy", false, flags.Get("api.dart.legacy"))
+	dartCmdFlags.StringVar(&dartgen.VarStringHostname, "hostname", "", flags.Get("api.dart.hostname"))
+	dartCmdFlags.StringVar(&dartgen.VarStringScheme, "scheme", "", flags.Get("api.dart.scheme"))
 
-	formatCmd.Flags().StringVar(&format.VarStringDir, "dir", "", "The format target dir")
-	formatCmd.Flags().BoolVar(&format.VarBoolIgnore, "iu", false, "Ignore update")
-	formatCmd.Flags().BoolVar(&format.VarBoolUseStdin, "stdin", false, "Use stdin to input api"+
-		" doc content, press \"ctrl + d\" to send EOF")
-	formatCmd.Flags().BoolVar(&format.VarBoolSkipCheckDeclare, "declare", false, "Use to skip check "+
-		"api types already declare")
+	docCmdFlags.StringVar(&docgen.VarStringDir, "dir", "", flags.Get("api.doc.dir"))
+	docCmdFlags.StringVar(&docgen.VarStringOutput, "o", "", flags.Get("api.doc.o"))
 
-	goCmd.Flags().StringVar(&gogen.VarStringDir, "dir", "", "The target dir")
-	goCmd.Flags().StringVar(&gogen.VarStringAPI, "api", "", "The api file")
-	goCmd.Flags().StringVar(&gogen.VarStringHome, "home", "", "The goctl home path of "+
-		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
-		"has higher priority")
-	goCmd.Flags().StringVar(&gogen.VarStringRemote, "remote", "", "The remote git repo "+
-		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\nThe git repo directory must be consistent with the "+
-		"https://github.com/zeromicro/go-zero-template directory structure")
-	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
-		"the remote repo, it does work with --remote")
-	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
-		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
+	formatCmdFlags.StringVar(&format.VarStringDir, "dir", "", flags.Get("api.format.dir"))
+	formatCmdFlags.BoolVar(&format.VarBoolIgnore, "iu", false, flags.Get("api.format.iu"))
+	formatCmdFlags.BoolVar(&format.VarBoolUseStdin, "stdin", false, flags.Get("api.format.stdin"))
+	formatCmdFlags.BoolVar(&format.VarBoolSkipCheckDeclare, "declare", false, flags.Get("api.format.declare"))
 
-	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
-	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
+	goCmdFlags.StringVar(&gogen.VarStringDir, "dir", "", flags.Get("api.go.dir"))
+	goCmdFlags.StringVar(&gogen.VarStringAPI, "api", "", flags.Get("api.go.api"))
+	goCmdFlags.StringVar(&gogen.VarStringHome, "home", "", flags.Get("api.go.home"))
+	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote", "", flags.Get("api.go.remote"))
+	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch", "", flags.Get("api.go.branch"))
+	goCmdFlags.StringVar(&gogen.VarStringStyle, "style", config.DefaultFormat, flags.Get("api.go.style"))
 
-	ktCmd.Flags().StringVar(&ktgen.VarStringDir, "dir", "", "The target dir")
-	ktCmd.Flags().StringVar(&ktgen.VarStringAPI, "api", "", "The api file")
-	ktCmd.Flags().StringVar(&ktgen.VarStringPKG, "pkg", "", "Define package name for kotlin file")
+	javaCmdFlags.StringVar(&javagen.VarStringDir, "dir", "", flags.Get("api.java.dir"))
+	javaCmdFlags.StringVar(&javagen.VarStringAPI, "api", "", flags.Get("api.java.api"))
 
-	newCmd.Flags().StringVar(&new.VarStringHome, "home", "", "The goctl home path of "+
-		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
-		"has higher priority")
-	newCmd.Flags().StringVar(&new.VarStringRemote, "remote", "", "The remote git repo "+
-		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\n\tThe git repo directory must be consistent with the "+
-		"https://github.com/zeromicro/go-zero-template directory structure")
-	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "", "The branch of "+
-		"the remote repo, it does work with --remote")
-	newCmd.Flags().StringVar(&new.VarStringStyle, "style", config.DefaultFormat, "The file naming format,"+
-		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
+	ktCmdFlags.StringVar(&ktgen.VarStringDir, "dir", "", flags.Get("api.kt.dir"))
+	ktCmdFlags.StringVar(&ktgen.VarStringAPI, "api", "", flags.Get("api.kt.api"))
+	ktCmdFlags.StringVar(&ktgen.VarStringPKG, "pkg", "", flags.Get("api.kt.pkg"))
 
-	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
-	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")
-	pluginCmd.Flags().StringVar(&plugin.VarStringAPI, "api", "", "The api file")
-	pluginCmd.Flags().StringVar(&plugin.VarStringStyle, "style", "",
-		"The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
+	newCmdFlags.StringVar(&new.VarStringHome, "home", "", flags.Get("api.new.home"))
+	newCmdFlags.StringVar(&new.VarStringRemote, "remote", "", flags.Get("api.new.remote"))
+	newCmdFlags.StringVar(&new.VarStringBranch, "branch", "", flags.Get("api.new.branch"))
+	newCmdFlags.StringVar(&new.VarStringStyle, "style", config.DefaultFormat, flags.Get("api.new.style"))
 
-	tsCmd.Flags().StringVar(&tsgen.VarStringDir, "dir", "", "The target dir")
-	tsCmd.Flags().StringVar(&tsgen.VarStringAPI, "api", "", "The api file")
-	tsCmd.Flags().StringVar(&tsgen.VarStringCaller, "caller", "", "The web api caller")
-	tsCmd.Flags().BoolVar(&tsgen.VarBoolUnWrap, "unwrap", false, "Unwrap the webapi caller for import")
+	pluginCmdFlags.StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", flags.Get("api.plugin.plugin"))
+	pluginCmdFlags.StringVar(&plugin.VarStringDir, "dir", "", flags.Get("api.plugin.dir"))
+	pluginCmdFlags.StringVar(&plugin.VarStringAPI, "api", "", flags.Get("api.plugin.api"))
+	pluginCmdFlags.StringVar(&plugin.VarStringStyle, "style", "", flags.Get("api.plugin.style"))
 
-	validateCmd.Flags().StringVar(&validate.VarStringAPI, "api", "", "Validate target api file")
+	tsCmdFlags.StringVar(&tsgen.VarStringDir, "dir", "", flags.Get("api.ts.dir"))
+	tsCmdFlags.StringVar(&tsgen.VarStringAPI, "api", "", flags.Get("api.ts.api"))
+	tsCmdFlags.StringVar(&tsgen.VarStringCaller, "caller", "", flags.Get("api.ts.caller"))
+	tsCmdFlags.BoolVar(&tsgen.VarBoolUnWrap, "unwrap", false, flags.Get("api.ts.unwrap"))
+
+	validateCmdFlags.StringVar(&validate.VarStringAPI, "api", "", flags.Get("api.validate.api"))
 
 	// Add sub-commands
-	Cmd.AddCommand(dartCmd)
-	Cmd.AddCommand(docCmd)
-	Cmd.AddCommand(formatCmd)
-	Cmd.AddCommand(goCmd)
-	Cmd.AddCommand(javaCmd)
-	Cmd.AddCommand(ktCmd)
-	Cmd.AddCommand(newCmd)
-	Cmd.AddCommand(pluginCmd)
-	Cmd.AddCommand(tsCmd)
-	Cmd.AddCommand(validateCmd)
+	Cmd.AddCommand(dartCmd, docCmd, formatCmd, goCmd, javaCmd, ktCmd, newCmd, pluginCmd, tsCmd, validateCmd)
 }

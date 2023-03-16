@@ -1,0 +1,78 @@
+{
+  "global": {
+    "home": "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority",
+    "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure",
+    "branch": "The branch of the remote repo, it does work with --remote",
+    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]"
+  },
+  "api": {
+    "short": "Generate api related files",
+    "o": "Output a sample api file",
+    "home": "{{.global.home}}",
+    "remote": "{{.global.remote}}",
+    "branch": "{{.global.branch}}",
+    "api": "The api file",
+    "dir": "The target dir",
+    "dart": {
+      "short": "Generate dart files for provided api in api file",
+      "dir": "{{.api.dir}}",
+      "api": "{{.api.api}}",
+      "legacy": "Legacy generator for flutter v1",
+      "hostname": "hostname of the server",
+      "scheme": "scheme of the server"
+    },
+    "doc": {
+      "short": "Generate doc files",
+      "dir": "{{.api.dir}}",
+      "o": "The output markdown directory"
+    },
+    "format": {
+      "short": "Format api files",
+      "dir": "{{.api.dir}}",
+      "iu": "Ignore update",
+      "stdin": "Use stdin to input api doc content, press \"ctrl + d\" to send EOF",
+      "declare": "Use to skip check api types already declare"
+    },
+    "go": {
+      "short": "Generate go files for provided api in api file",
+      "dir": "{{.api.dir}}",
+      "api": "{{.api.api}}",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "style": "{{.global.style}}"
+    },
+    "new": {
+      "short": "Fast create api service",
+      "Example": "goctl api new [options] service-name",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "style": "{{.global.style}}"
+    },
+    "validate": {
+      "short": "Validate api file",
+      "api": "{{.api.api}}"
+    },
+    "kt": {
+      "short": "Generate kotlin code for provided api file",
+      "dir": "{{.api.dir}}",
+      "api": "{{.api.api}}",
+      "pkg": "Define package name for kotlin file"
+    },
+    "plugin": {
+      "short": "Custom file generator",
+      "plugin": "The plugin file",
+      "dir": "{{.api.dir}}",
+      "api": "{{.api.api}}",
+      "style": "{{.global.style}}"
+    },
+    "ts": {
+      "short": "Generate ts files for provided api in api file",
+      "dir": "{{.api.dir}}",
+      "api": "{{.api.api}}",
+      "caller": "The web api caller",
+      "unwrap": "Unwrap the webapi caller for import"
+    }
+  }
+}
