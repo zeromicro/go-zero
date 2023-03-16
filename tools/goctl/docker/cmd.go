@@ -1,6 +1,9 @@
 package docker
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
+)
 
 var (
 	varExeName       string
@@ -22,13 +25,14 @@ var (
 )
 
 func init() {
-	Cmd.Flags().StringVar(&varExeName, "exe", "", "The executable name in the built image")
-	Cmd.Flags().StringVar(&varStringGo, "go", "", "The file that contains main function")
-	Cmd.Flags().StringVar(&varStringBase, "base", "scratch", "The base image to build the docker image, default scratch")
-	Cmd.Flags().IntVar(&varIntPort, "port", 0, "The port to expose, default none")
-	Cmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	Cmd.Flags().StringVar(&varStringRemote, "remote", "", "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	Cmd.Flags().StringVar(&varStringBranch, "branch", "", "The branch of the remote repo, it does work with --remote")
-	Cmd.Flags().StringVar(&varStringVersion, "version", "", "The goctl builder golang image version")
-	Cmd.Flags().StringVar(&varStringTZ, "tz", "Asia/Shanghai", "The timezone of the container")
+	dockerCmdFlags := Cmd.Flags()
+	dockerCmdFlags.StringVar(&varExeName, "exe", "", flags.Get("docker.exe"))
+	dockerCmdFlags.StringVar(&varStringGo, "go", "", flags.Get("docker.go"))
+	dockerCmdFlags.StringVar(&varStringBase, "base", "scratch", flags.Get("docker.base"))
+	dockerCmdFlags.IntVar(&varIntPort, "port", 0, flags.Get("docker.port"))
+	dockerCmdFlags.StringVar(&varStringHome, "home", "", flags.Get("docker.home"))
+	dockerCmdFlags.StringVar(&varStringRemote, "remote", "", flags.Get("docker.remote"))
+	dockerCmdFlags.StringVar(&varStringBranch, "branch", "", flags.Get("docker.branch"))
+	dockerCmdFlags.StringVar(&varStringVersion, "version", "", flags.Get("docker.version"))
+	dockerCmdFlags.StringVar(&varStringTZ, "tz", "Asia/Shanghai", flags.Get("docker.tz"))
 }

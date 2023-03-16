@@ -1,4 +1,8 @@
 {
+  "goctl": {
+    "short": "A cli tool to generate go-zero code",
+    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/zeromicro/go-zero\nSite:   https://go-zero.dev"
+  },
   "global": {
     "home": "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority",
     "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure",
@@ -74,5 +78,20 @@
       "caller": "The web api caller",
       "unwrap": "Unwrap the webapi caller for import"
     }
+  },
+  "bug": {
+    "short": "Report a bug"
+  },
+  "docker": {
+    "short": "Generate Dockerfile",
+    "exe": "The executable name in the built image",
+    "go": "The file that contains main function",
+    "base": "The base image to build the docker image, default scratch",
+    "port": "The port to expose, default none",
+    "home": "{{.global.home}}",
+    "remote": "{{.global.remote}}",
+    "branch": "{{.global.branch}}",
+    "version": "The goctl builder golang image version",
+    "tz": "The timezone of the container"
   }
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
@@ -38,10 +39,8 @@ var (
 
 	rootCmd = &cobra.Command{
 		Use:   "goctl",
-		Short: "A cli tool to generate go-zero code",
-		Long: "A cli tool to generate api, zrpc, model code\n\n" +
-			"GitHub: https://github.com/zeromicro/go-zero\n" +
-			"Site:   https://go-zero.dev",
+		Short: flags.Get("goctl.short"),
+		Long:  flags.Get("goctl.long"),
 	}
 )
 
