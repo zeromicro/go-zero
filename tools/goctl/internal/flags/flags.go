@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/spf13/viper"
-
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
