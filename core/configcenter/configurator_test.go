@@ -58,6 +58,29 @@ func TestConfigCenter_onChange(t *testing.T) {
 	assert.Equal(t, "go-zero2", data.Name)
 }
 
+func TestConfigCenter_AddListener(t *testing.T) {
+	mock := &mockSubscriber{}
+	mock.v = "1234"
+
+	c, err := NewConfigCenter[any](Config{Type: "json"}, mock)
+	assert.NoError(t, err)
+
+	cc := c.(*configCenter[any])
+
+	assert.Equal(t, cc.Value(), "1234")
+}
+
+func TestConfigCenter_Value(t *testing.T) {
+	c, err := NewConfigCenter[any](Config{Type: "json"}, &mockSubscriber{})
+	assert.NoError(t, err)
+
+	cc := c.(*configCenter[any])
+	cc.AddListener(func() {})
+	cc.AddListener(func() {})
+
+	assert.Equal(t, 2, len(cc.listeners))
+}
+
 type mockSubscriber struct {
 	v        string
 	listener func()
