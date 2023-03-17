@@ -1,7 +1,9 @@
 package configurator
 
 import (
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -34,6 +36,10 @@ func TestConfigCenter_GetConfig(t *testing.T) {
 
 	data, err = c2.GetConfig()
 	assert.Error(t, err)
+
+	mock.lisErr = errors.New("mock error")
+	_, err = NewConfigCenter[Data](Config{Type: "json"}, mock)
+	assert.Error(t, err)
 }
 
 func TestConfigCenter_onChange(t *testing.T) {
@@ -58,7 +64,7 @@ func TestConfigCenter_onChange(t *testing.T) {
 	assert.Equal(t, "go-zero2", data.Name)
 }
 
-func TestConfigCenter_AddListener(t *testing.T) {
+func TestConfigCenter_Value(t *testing.T) {
 	mock := &mockSubscriber{}
 	mock.v = "1234"
 
@@ -68,31 +74,55 @@ func TestConfigCenter_AddListener(t *testing.T) {
 	cc := c.(*configCenter[any])
 
 	assert.Equal(t, cc.Value(), "1234")
+
+	mock.valErr = errors.New("mock error")
+
+	c2, err := NewConfigCenter[any](Config{Type: "json"}, mock)
+	assert.NoError(t, err)
+
+	cc2 := c2.(*configCenter[any])
+
+	assert.Equal(t, cc2.Value(), "")
 }
 
-func TestConfigCenter_Value(t *testing.T) {
-	c, err := NewConfigCenter[any](Config{Type: "json"}, &mockSubscriber{})
+func TestConfigCenter_AddListener(t *testing.T) {
+	mock := &mockSubscriber{}
+
+	c, err := NewConfigCenter[any](Config{Type: "json"}, mock)
 	assert.NoError(t, err)
 
 	cc := c.(*configCenter[any])
-	cc.AddListener(func() {})
-	cc.AddListener(func() {})
+	var a, b int
+	cc.AddListener(func() {
+		a = 1
+	})
+	cc.AddListener(func() {
+		b = 2
+	})
 
 	assert.Equal(t, 2, len(cc.listeners))
+
+	mock.change()
+
+	time.Sleep(time.Millisecond * 100)
+
+	assert.Equal(t, 1, a)
+	assert.Equal(t, 2, b)
 }
 
 type mockSubscriber struct {
-	v        string
-	listener func()
+	v              string
+	lisErr, valErr error
+	listener       func()
 }
 
 func (m *mockSubscriber) AddListener(listener func()) error {
 	m.listener = listener
-	return nil
+	return m.lisErr
 }
 
 func (m *mockSubscriber) Value() (string, error) {
-	return m.v, nil
+	return m.v, m.valErr
 }
 
 func (m *mockSubscriber) change() {

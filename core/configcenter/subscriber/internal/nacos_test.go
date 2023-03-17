@@ -51,7 +51,7 @@ func TestNacosConf_clientParam(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := test.conf.clientParam()
+			_, err := test.conf.clientParam(constant.WithAppName("test"))
 			if test.wantErr {
 				assert.Error(t, err)
 			} else {
