@@ -13,7 +13,7 @@ const dataTemplate = `// --{{with .Info}}{{.Title}}{{end}}--
 class {{.Name}}{
 	{{range .Members}}
 	/// {{.Comment}}
-	final {{.Type.Name}} {{lowCamelCase .Name}};
+	final {{if isNumberType .Type.Name}}num{{else}}{{.Type.Name}}{{end}} {{lowCamelCase .Name}};
 	{{end}}
 	{{.Name}}({ {{range .Members}}
 		this.{{lowCamelCase .Name}},{{end}}
@@ -37,7 +37,7 @@ const dataTemplateV2 = `// --{{with .Info}}{{.Title}}{{end}}--
 class {{.Name}} {
 	{{range .Members}}
 	{{if .Comment}}{{.Comment}}{{end}}
-	final {{.Type.Name}} {{lowCamelCase .Name}};
+	final {{if isNumberType .Type.Name}}num{{else}}{{.Type.Name}}{{end}} {{lowCamelCase .Name}};
   {{end}}{{.Name}}({{if .Members}}{
 	{{range .Members}}  required this.{{lowCamelCase .Name}},
 	{{end}}}{{end}});

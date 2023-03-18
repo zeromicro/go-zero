@@ -57,6 +57,15 @@ func isAtomicType(s string) bool {
 	}
 }
 
+func isNumberType(s string) bool {
+	switch s {
+	case "int", "double":
+		return true
+	default:
+		return false
+	}
+}
+
 func isListType(s string) bool {
 	return strings.HasPrefix(s, "List<")
 }
