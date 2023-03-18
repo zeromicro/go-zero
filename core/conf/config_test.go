@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -122,24 +121,6 @@ d = "abcd"
 		assert.Equal(t, "FOO", val.C)
 		assert.Equal(t, "abcd", val.D)
 	}
-}
-
-func TestConfigInvalid(t *testing.T) {
-	text := `a = "foo"
-b = 1
-d = "abcd"
-`
-	tmpfile, err := createTempFile(".toml", text)
-	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
-
-	var val struct {
-		A string `json:"a"`
-		B int    `json:"b,optional"`
-		C string `json:"c,optional=B"`
-		D string `json:"d,optional=b"`
-	}
-	assert.Error(t, Load(tmpfile, &val))
 }
 
 func TestConfigJsonCanonical(t *testing.T) {
@@ -1177,161 +1158,6 @@ Email = "bar"`)
 			assert.Len(t, c.Value, 2)
 		}
 	})
-}
-
-type Person struct {
-	Name string
-	Age  int
-}
-
-func (p Person) Validate() error {
-	if p.Name == "" {
-		return fmt.Errorf("name cannot be empty")
-	}
-	if p.Age <= 0 {
-		return fmt.Errorf("age should be greater than 0")
-	}
-	return nil
-}
-
-type Address struct {
-	Street string
-	City   string
-}
-
-func (a Address) Validate() error {
-	if a.Street == "" {
-		return fmt.Errorf("street cannot be empty")
-	}
-	if a.City == "" {
-		return fmt.Errorf("city cannot be empty")
-	}
-	return nil
-}
-
-func TestValidate(t *testing.T) {
-	tests := []struct {
-		name string
-		v    interface{}
-		err  string
-	}{
-		{
-			name: "valid struct",
-			v:    Person{Name: "John", Age: 30},
-		},
-		{
-			name: "invalid struct",
-			v:    Person{Name: "", Age: 30},
-			err:  "name cannot be empty",
-		},
-		{
-			name: "valid map",
-			v: map[string]interface{}{
-				"person":  Person{Name: "John", Age: 30},
-				"address": Address{Street: "123 Main St", City: "New York"},
-			},
-		},
-		{
-			name: "invalid map",
-			v: map[string]interface{}{
-				"person":  Person{Name: "John", Age: 30},
-				"address": Address{Street: "", City: "New York"},
-			},
-			err: "key address: street cannot be empty",
-		},
-		{
-			name: "valid slice",
-			v: []interface{}{
-				Person{Name: "John", Age: 30},
-				Address{Street: "123 Main St", City: "New York"},
-			},
-		},
-		{
-			name: "invalid slice",
-			v: []interface{}{
-				Person{Name: "", Age: 30},
-				Address{Street: "123 Main St", City: "New York"},
-			},
-			err: "name cannot be empty",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			err := validate(tc.v)
-			if tc.err == "" {
-				assert.NoError(t, err)
-			} else {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tc.err)
-			}
-		})
-	}
-}
-
-type Employee struct {
-	Name string
-	Address
-}
-
-func (e Employee) Validate() error {
-	if e.Name == "" {
-		return fmt.Errorf("name cannot be empty")
-	}
-	return nil
-}
-
-func TestAnonymousFieldValidation(t *testing.T) {
-	tests := []struct {
-		name string
-		v    interface{}
-		err  string
-	}{
-		{
-			name: "valid struct",
-			v: Employee{
-				Name: "foo",
-				Address: Address{
-					Street: "123 Main St",
-					City:   "New York",
-				},
-			},
-		},
-		{
-			name: "invalid struct",
-			v: Employee{
-				Name: "",
-				Address: Address{
-					Street: "123 Main St",
-					City:   "New York",
-				},
-			},
-			err: "name cannot be empty",
-		},
-		{
-			name: "invalid street",
-			v: Employee{
-				Name: "foo",
-				Address: Address{
-					Street: "",
-					City:   "New York",
-				},
-			},
-			err: "street cannot be empty",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			err := validate(tc.v)
-			if tc.err == "" {
-				assert.NoError(t, err)
-			} else {
-				assert.Error(t, err)
-				assert.Contains(t, err.Error(), tc.err)
-			}
-		})
-	}
 }
 
 func createTempFile(ext, text string) (string, error) {

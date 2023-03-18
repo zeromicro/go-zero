@@ -10,7 +10,6 @@ import (
 
 	"github.com/zeromicro/go-zero/core/jsonx"
 	"github.com/zeromicro/go-zero/core/mapping"
-	"github.com/zeromicro/go-zero/core/validation"
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
@@ -63,11 +62,7 @@ func Load(file string, v any, opts ...Option) error {
 		return loader([]byte(os.ExpandEnv(string(content))), v)
 	}
 
-	if err = loader(content, v); err != nil {
-		return err
-	}
-
-	return validate(v)
+	return loader(content, v)
 }
 
 // LoadConfig loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -337,55 +332,6 @@ func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 	}
 
 	return res
-}
-
-func validate(v any) error {
-	if validator, ok := v.(validation.Validator); ok {
-		if err := validator.Validate(); err != nil {
-			return err
-		}
-	}
-
-	switch vv := v.(type) {
-	case map[string]any:
-		for key, val := range vv {
-			if err := validate(val); err != nil {
-				return fmt.Errorf("key %s: %w", key, err)
-			}
-		}
-	case []any:
-		for _, val := range vv {
-			if err := validate(val); err != nil {
-				return err
-			}
-		}
-	default:
-		return validateStructField(v)
-	}
-
-	return nil
-}
-
-func validateStructField(v any) error {
-	val := reflect.ValueOf(v)
-	for val.Kind() == reflect.Ptr {
-		val = val.Elem()
-	}
-
-	if val.Kind() != reflect.Struct {
-		return nil
-	}
-
-	for i := 0; i < val.NumField(); i++ {
-		field := val.Field(i)
-		if field.CanInterface() {
-			if err := validate(field.Interface()); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 type conflictKeyError struct {
