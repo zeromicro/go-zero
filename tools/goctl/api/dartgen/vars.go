@@ -6,6 +6,7 @@ var funcMap = template.FuncMap{
 	"getBaseName":                     getBaseName,
 	"getPropertyFromMember":           getPropertyFromMember,
 	"isDirectType":                    isDirectType,
+	"isNumberType":                    isNumberType,
 	"isClassListType":                 isClassListType,
 	"getCoreType":                     getCoreType,
 	"lowCamelCase":                    lowCamelCase,
