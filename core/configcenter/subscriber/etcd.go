@@ -61,5 +61,5 @@ func (s *EtcdSubscriber) Value() (string, error) {
 	if len(vs) != 0 {
 		return vs[0], nil
 	}
-	return vs[1], nil
+	return "", nil
 }
