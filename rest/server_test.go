@@ -29,7 +29,8 @@ func TestNewServer(t *testing.T) {
 
 	const configYaml = `
 Name: foo
-Port: 54321
+Host: localhost
+Port: 0
 `
 	var cnf RestConf
 	assert.Nil(t, conf.LoadFromYamlBytes([]byte(configYaml), &cnf))
@@ -100,6 +101,23 @@ Port: 54321
 			}()
 
 			svr.Start()
+			svr.Stop()
+		}()
+
+		func() {
+			defer func() {
+				p := recover()
+				switch v := p.(type) {
+				case error:
+					assert.Equal(t, "foo", v.Error())
+				default:
+					t.Fail()
+				}
+			}()
+
+			svr.StartWithOpts(func(svr *http.Server) {
+				svr.RegisterOnShutdown(func() {})
+			})
 			svr.Stop()
 		}()
 	}

@@ -2,7 +2,6 @@ package rest
 
 import (
 	"crypto/tls"
-	"log"
 	"net/http"
 	"path"
 	"time"
@@ -21,7 +20,7 @@ type (
 	RunOption func(*Server)
 
 	// StartOption defines the method to customize http server.
-	StartOption func(svr *http.Server)
+	StartOption = internal.StartOption
 
 	// A Server is a http server.
 	Server struct {
@@ -36,7 +35,7 @@ type (
 func MustNewServer(c RestConf, opts ...RunOption) *Server {
 	server, err := NewServer(c, opts...)
 	if err != nil {
-		log.Fatal(err)
+		logx.Must(err)
 	}
 
 	return server
@@ -116,12 +115,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Start starts the Server.
 // Graceful shutdown is enabled by default.
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
-func (s *Server) Start(opts ...StartOption) {
-	var startOption []internal.StartOption
-	for _, opt := range opts {
-		startOption = append(startOption, internal.StartOption(opt))
-	}
-	handleError(s.ngin.start(s.router, startOption...))
+func (s *Server) Start() {
+	handleError(s.ngin.start(s.router))
+}
+
+// StartWithOpts starts the Server.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (s *Server) StartWithOpts(opts ...StartOption) {
+	handleError(s.ngin.start(s.router, opts...))
 }
 
 // Stop stops the Server.
