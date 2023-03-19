@@ -228,8 +228,9 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				g.UseUUID = true
 			}
 			continue
-		} else if v.Name == "status" {
-			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uint8(in.%s)).\n", parser.CamelCase(v.Name),
+		} else if entx.IsOnlyEntType(v.Info.Type.String()) {
+			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+				v.Info.Type.String(),
 				parser.CamelCase(v.Name)))
 		} else {
 			if entx.IsTimeProperty(v.Name) {
@@ -331,8 +332,9 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			if entx.IsUUIDType(v.Info.Type.String()) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
-			} else if v.Name == "status" {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tuint32(v.%s),%s", nameCamelCase,
+			} else if entx.IsOnlyEntType(v.Info.Type.String()) {
+				listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
+					entx.ConvertOnlyEntTypeToGoType(v.Info.Type.String()),
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsTimeProperty(v.Name) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,

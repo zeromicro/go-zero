@@ -35,6 +35,10 @@ func ConvertEntTypeToProtoType(typeName string) string {
 		typeName = "uint64"
 	case "[16]byte":
 		typeName = "string"
+	case "uint8":
+		typeName = "uint32"
+	case "int8":
+		typeName = "int32"
 	}
 	return typeName
 }
@@ -67,6 +71,10 @@ func ConvertEntTypeToGotype(prop string) string {
 		return "int64"
 	case "uint":
 		return "uint64"
+	case "uint8":
+		return "uint32"
+	case "int8":
+		return "int32"
 	}
 	return prop
 }
@@ -77,4 +85,16 @@ func ConvertIDType(useUUID bool) string {
 		return "string"
 	}
 	return "uint64"
+}
+
+// ConvertOnlyEntTypeToGoType converts the type that only ent has to go type.
+func ConvertOnlyEntTypeToGoType(t string) string {
+	switch t {
+	case "int8":
+		return "int32"
+	case "uint8":
+		return "uint32"
+	default:
+		return "uint32"
+	}
 }
