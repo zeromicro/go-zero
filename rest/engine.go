@@ -306,22 +306,26 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chai
 	}, nil
 }
 
-func (ng *engine) start(router httpx.Router, opts ...internal.StartOption) error {
+func (ng *engine) start(router httpx.Router, opts ...StartOption) error {
 	if err := ng.bindRoutes(router); err != nil {
 		return err
 	}
 
-	opts = append(opts, ng.withTimeout())
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{ng.withTimeout()}, opts...)
 
 	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
 		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, opts...)
 	}
 
-	opts = append(opts, func(svr *http.Server) {
-		if ng.tlsConfig != nil {
-			svr.TLSConfig = ng.tlsConfig
-		}
-	})
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{
+		func(svr *http.Server) {
+			if ng.tlsConfig != nil {
+				svr.TLSConfig = ng.tlsConfig
+			}
+		},
+	}, opts...)
 
 	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
 		ng.conf.KeyFile, router, opts...)
