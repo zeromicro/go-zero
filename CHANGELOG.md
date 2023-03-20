@@ -1,4 +1,62 @@
 
+<a name="v0.2.8"></a>
+## [v0.2.8](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.7...v0.2.8)
+
+> 2023-03-19
+
+### Chore
+
+* update deps
+* add more tests ([#3018](https://github.com/suyuan32/simple-admin-tools/issues/3018))
+
+### Feat
+
+* windows build script
+
+### Fix
+
+* some ent gen bugs
+* bugs in config.go generating
+
+### Pull Requests
+
+* Merge pull request [#32](https://github.com/suyuan32/simple-admin-tools/issues/32) from suyuan32/feat-mg
+
+
+<a name="v0.2.7"></a>
+## [v0.2.7](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.3...v0.2.7)
+
+> 2023-03-12
+
+### Chore
+
+* add more tests ([#3016](https://github.com/suyuan32/simple-admin-tools/issues/3016))
+* refactor orm code ([#3015](https://github.com/suyuan32/simple-admin-tools/issues/3015))
+* add more tests ([#3014](https://github.com/suyuan32/simple-admin-tools/issues/3014))
+* update readme ([#3011](https://github.com/suyuan32/simple-admin-tools/issues/3011))
+* add more tests ([#3010](https://github.com/suyuan32/simple-admin-tools/issues/3010))
+* add more tests ([#3009](https://github.com/suyuan32/simple-admin-tools/issues/3009))
+* add more tests ([#3006](https://github.com/suyuan32/simple-admin-tools/issues/3006))
+
+### Docs
+
+* update change log
+
+### Feat
+
+* unique redis addrs and trim spaces ([#3004](https://github.com/suyuan32/simple-admin-tools/issues/3004))
+* add overwrite parameters for code gen
+
+### Fix
+
+* bug when field need to upper and convert type
+* avoid unmarshal panic with incorrect map keys [#3002](https://github.com/suyuan32/simple-admin-tools/issues/3002) ([#3013](https://github.com/suyuan32/simple-admin-tools/issues/3013))
+
+### Pull Requests
+
+* Merge pull request [#31](https://github.com/suyuan32/simple-admin-tools/issues/31) from suyuan32/mg
+
+
 <a name="v0.2.3"></a>
 ## [v0.2.3](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.3-beta...v0.2.3)
 
@@ -58,7 +116,7 @@
 
 
 <a name="v0.2.3-beta"></a>
-## [v0.2.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.5...v0.2.3-beta)
+## [v0.2.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.5...v0.2.3-beta)
 
 > 2023-03-07
 
@@ -302,14 +360,14 @@
 * Merge pull request [#2](https://github.com/suyuan32/simple-admin-tools/issues/2) from zeromicro/master
 
 
-<a name="tools/goctl/v1.4.5"></a>
-## [tools/goctl/v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.5...tools/goctl/v1.4.5)
+<a name="v1.4.5"></a>
+## [v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.5...v1.4.5)
 
 > 2023-03-04
 
 
-<a name="v1.4.5"></a>
-## [v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.5.0...v1.4.5)
+<a name="tools/goctl/v1.4.5"></a>
+## [tools/goctl/v1.4.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.5.0...tools/goctl/v1.4.5)
 
 > 2023-03-04
 
@@ -365,14 +423,14 @@
 * simplify stringx.Replacer, and avoid potential infinite loops ([#2877](https://github.com/suyuan32/simple-admin-tools/issues/2877))
 
 
-<a name="tools/goctl/v1.5.0"></a>
-## [tools/goctl/v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/v1.5.0...tools/goctl/v1.5.0)
+<a name="v1.5.0"></a>
+## [v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.5.0...v1.5.0)
 
 > 2023-03-04
 
 
-<a name="v1.5.0"></a>
-## [v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2-beta...v1.5.0)
+<a name="tools/goctl/v1.5.0"></a>
+## [tools/goctl/v1.5.0](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2...tools/goctl/v1.5.0)
 
 > 2023-03-04
 
@@ -405,14 +463,14 @@
 * timeout not working if greater than global rest timeout ([#2926](https://github.com/suyuan32/simple-admin-tools/issues/2926))
 
 
-<a name="v0.2.2-beta"></a>
-## [v0.2.2-beta](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2...v0.2.2-beta)
+<a name="v0.2.2"></a>
+## [v0.2.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.2-beta...v0.2.2)
 
 > 2023-02-28
 
 
-<a name="v0.2.2"></a>
-## [v0.2.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.1...v0.2.2)
+<a name="v0.2.2-beta"></a>
+## [v0.2.2-beta](https://github.com/suyuan32/simple-admin-tools/compare/v0.2.1...v0.2.2-beta)
 
 > 2023-02-28
 
@@ -583,7 +641,7 @@
 
 
 <a name="v0.1.8"></a>
-## [v0.1.8](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.4...v0.1.8)
+## [v0.1.8](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.4...v0.1.8)
 
 > 2023-01-29
 
@@ -754,14 +812,14 @@
 * Merge pull request [#2](https://github.com/suyuan32/simple-admin-tools/issues/2) from zeromicro/master
 
 
-<a name="v1.4.4"></a>
-## [v1.4.4](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.4.4...v1.4.4)
+<a name="tools/goctl/v1.4.4"></a>
+## [tools/goctl/v1.4.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.4.4...tools/goctl/v1.4.4)
 
 > 2023-01-21
 
 
-<a name="tools/goctl/v1.4.4"></a>
-## [tools/goctl/v1.4.4](https://github.com/suyuan32/simple-admin-tools/compare/v0.1.7...tools/goctl/v1.4.4)
+<a name="v1.4.4"></a>
+## [v1.4.4](https://github.com/suyuan32/simple-admin-tools/compare/v0.1.7...v1.4.4)
 
 > 2023-01-21
 
@@ -1123,6 +1181,10 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 * update all dependencies
 
+### Docs
+
+* update CHANGELOG.md
+
 ### Feat
 
 * vben code generation via api file
@@ -1147,6 +1209,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 ### Fix
 
+* cases with no lower
 * merge consul mod to go zero
 * all deprecated function
 * validate bugs
@@ -1914,7 +1977,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.4.0"></a>
-## [v1.4.0](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.5...v1.4.0)
+## [v1.4.0](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.9...v1.4.0)
 
 > 2022-08-07
 
@@ -1965,14 +2028,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * generated sql query fields do not match template ([#2004](https://github.com/suyuan32/simple-admin-tools/issues/2004))
 
 
-<a name="v1.3.5"></a>
-## [v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.9...v1.3.5)
+<a name="tools/goctl/v1.3.9"></a>
+## [tools/goctl/v1.3.9](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.5...tools/goctl/v1.3.9)
 
 > 2022-07-09
 
 
-<a name="tools/goctl/v1.3.9"></a>
-## [tools/goctl/v1.3.9](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.8...tools/goctl/v1.3.9)
+<a name="v1.3.5"></a>
+## [v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.8...v1.3.5)
 
 > 2022-07-09
 
@@ -2064,7 +2127,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.3.4"></a>
-## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...v1.3.4)
+## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.4)
 
 > 2022-06-03
 
@@ -2115,14 +2178,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * add more tests ([#1856](https://github.com/suyuan32/simple-admin-tools/issues/1856))
 
 
-<a name="v1.3.3"></a>
-## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.3)
+<a name="tools/goctl/v1.3.5"></a>
+## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...tools/goctl/v1.3.5)
 
 > 2022-04-28
 
 
-<a name="tools/goctl/v1.3.5"></a>
-## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...tools/goctl/v1.3.5)
+<a name="v1.3.3"></a>
+## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...v1.3.3)
 
 > 2022-04-28
 
@@ -2793,19 +2856,19 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.4"></a>
-## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.4)
+## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.4)
 
 > 2021-01-16
 
 
-<a name="v1.1.3"></a>
-## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.3)
+<a name="v1.1.3-beta"></a>
+## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3...v1.1.3-beta)
 
 > 2021-01-13
 
 
-<a name="v1.1.3-beta"></a>
-## [v1.1.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.3-beta)
+<a name="v1.1.3"></a>
+## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.3)
 
 > 2021-01-13
 
