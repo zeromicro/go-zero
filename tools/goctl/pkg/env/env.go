@@ -62,6 +62,7 @@ func init() {
 		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOff)
 		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
+
 	if !goctlEnv.HasKey(GoctlHome) {
 		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
 	}

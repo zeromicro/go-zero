@@ -11,21 +11,17 @@ import (
 
 	"github.com/spf13/viper"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
-	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
 const (
-	flagFileName = "cli-%s.json"
+	flagFileName = "cli.json"
 	configType   = "json"
 )
 
 //go:embed default_en.json
 var defaultEnFlagConfig []byte
-
-//go:embed default_zh.json
-var defaultZhFlagConfig []byte
 
 func Init() {
 	flagConfigFile := getFlagConfigFile()
@@ -34,15 +30,7 @@ func Init() {
 		return
 	}
 
-	locale := env.GetOr(env.GoctlLocale, env.DefaultLocale)
-	var configForLocale []byte
-	if locale == env.LocaleSimplifiedChinese {
-		configForLocale = append(configForLocale, defaultZhFlagConfig...)
-	} else {
-		configForLocale = append(configForLocale, defaultEnFlagConfig...)
-	}
-
-	_ = os.WriteFile(flagConfigFile, configForLocale, 0666)
+	_ = os.WriteFile(flagConfigFile, defaultEnFlagConfig, 0666)
 }
 
 func getFlagConfigFile() string {
@@ -52,13 +40,7 @@ func getFlagConfigFile() string {
 		return ""
 	}
 
-	var locale string
-	locale = env.Get(env.GoctlLocale)
-	if len(locale) == 0 {
-		locale = "en"
-	}
-
-	return filepath.Join(goctlHome, version.BuildVersion, fmt.Sprintf(flagFileName, locale))
+	return filepath.Join(goctlHome, version.BuildVersion, flagFileName)
 }
 
 var flagConfigFile string
