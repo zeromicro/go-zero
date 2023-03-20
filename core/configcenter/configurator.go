@@ -79,10 +79,11 @@ func NewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) (Configu
 		snapshot:    atomic.Value{},
 	}
 
-	cc.loadConfig()
+	if err := cc.loadConfig(); err != nil {
+		return nil, err
+	}
 
-	err := cc.subscriber.AddListener(cc.onChange)
-	if err != nil {
+	if err := cc.subscriber.AddListener(cc.onChange); err != nil {
 		return nil, err
 	}
 
@@ -112,13 +113,13 @@ func (c *configCenter[T]) Value() string {
 	return content.(string)
 }
 
-func (c *configCenter[T]) loadConfig() {
+func (c *configCenter[T]) loadConfig() error {
 	v, err := c.subscriber.Value()
 	if err != nil {
 		if c.conf.Log {
 			logx.Errorf("ConfigCenter loads changed configuration, error: %v", err)
 		}
-		return
+		return err
 	}
 
 	if c.conf.Log {
@@ -126,7 +127,7 @@ func (c *configCenter[T]) loadConfig() {
 	}
 
 	c.snapshot.Store(v)
-	return
+	return nil
 }
 
 func (c *configCenter[T]) onChange() {
