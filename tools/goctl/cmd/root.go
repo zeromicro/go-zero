@@ -15,7 +15,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/bug"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
@@ -36,11 +36,7 @@ const (
 var (
 	//go:embed usage.tpl
 	usageTpl string
-	rootCmd = &cobra.Command{
-		Use:   "goctl",
-		Short: flags.Get("goctl.short"),
-		Long:  flags.Get("goctl.long"),
-	}
+	rootCmd  = cobrax.NewCommand("goctl")
 )
 
 // Execute executes the given command
@@ -50,15 +46,6 @@ func Execute() {
 		fmt.Println(aurora.Red(err.Error()))
 		os.Exit(codeFailure)
 	}
-}
-
-func getCommandsRecursively(parent *cobra.Command) []*cobra.Command {
-	var commands []*cobra.Command
-	for _, cmd := range parent.Commands() {
-		commands = append(commands, cmd)
-		commands = append(commands, getCommandsRecursively(cmd)...)
-	}
-	return commands
 }
 
 func supportGoStdFlag(args []string) []string {
@@ -126,5 +113,6 @@ func init() {
 	rootCmd.SetUsageTemplate(usageTpl)
 	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, model.Cmd)
 	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
-	rootCmd.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.MustInit()
 }

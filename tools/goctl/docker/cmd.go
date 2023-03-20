@@ -1,8 +1,7 @@
 package docker
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 )
 
 var (
@@ -17,22 +16,18 @@ var (
 	varStringTZ      string
 
 	// Cmd describes a docker command.
-	Cmd = &cobra.Command{
-		Use:   "docker",
-		Short: "Generate Dockerfile",
-		RunE:  dockerCommand,
-	}
+	Cmd = cobrax.NewCommand("docker", cobrax.WithRunE(dockerCommand))
 )
 
 func init() {
 	dockerCmdFlags := Cmd.Flags()
-	dockerCmdFlags.StringVar(&varExeName, "exe", "", flags.Get("docker.exe"))
-	dockerCmdFlags.StringVar(&varStringGo, "go", "", flags.Get("docker.go"))
-	dockerCmdFlags.StringVar(&varStringBase, "base", "scratch", flags.Get("docker.base"))
-	dockerCmdFlags.IntVar(&varIntPort, "port", 0, flags.Get("docker.port"))
-	dockerCmdFlags.StringVar(&varStringHome, "home", "", flags.Get("docker.home"))
-	dockerCmdFlags.StringVar(&varStringRemote, "remote", "", flags.Get("docker.remote"))
-	dockerCmdFlags.StringVar(&varStringBranch, "branch", "", flags.Get("docker.branch"))
-	dockerCmdFlags.StringVar(&varStringVersion, "version", "", flags.Get("docker.version"))
-	dockerCmdFlags.StringVar(&varStringTZ, "tz", "Asia/Shanghai", flags.Get("docker.tz"))
+	dockerCmdFlags.StringVar(&varExeName, "exe")
+	dockerCmdFlags.StringVar(&varStringGo, "go")
+	dockerCmdFlags.StringVarWithDefaultValue(&varStringBase, "base", "scratch")
+	dockerCmdFlags.IntVar(&varIntPort, "port")
+	dockerCmdFlags.StringVar(&varStringHome, "home")
+	dockerCmdFlags.StringVar(&varStringRemote, "remote")
+	dockerCmdFlags.StringVar(&varStringBranch, "branch")
+	dockerCmdFlags.StringVar(&varStringVersion, "version")
+	dockerCmdFlags.StringVarWithDefaultValue(&varStringTZ, "tz", "Asia/Shanghai")
 }

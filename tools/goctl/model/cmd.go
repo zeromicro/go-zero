@@ -1,54 +1,20 @@
 package model
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
-
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/command"
 )
 
 var (
 	// Cmd describes a model command.
-	Cmd = &cobra.Command{
-		Use:   "model",
-		Short: flags.Get("model.short"),
-	}
-
-	mysqlCmd = &cobra.Command{
-		Use:   "mysql",
-		Short: flags.Get("mysql.short"),
-	}
-
-	ddlCmd = &cobra.Command{
-		Use:   "ddl",
-		Short: flags.Get("model.mysal.ddl.short"),
-		RunE:  command.MysqlDDL,
-	}
-
-	datasourceCmd = &cobra.Command{
-		Use:   "datasource",
-		Short: flags.Get("model.mysql.datasource.short"),
-		RunE:  command.MySqlDataSource,
-	}
-
-	pgCmd = &cobra.Command{
-		Use:   "pg",
-		Short: flags.Get("model.pg.short"),
-		RunE:  command.PostgreSqlDataSource,
-	}
-
-	pgDatasourceCmd = &cobra.Command{
-		Use:   "datasource",
-		Short: flags.Get("model.pg.datasource.short"),
-		RunE:  command.PostgreSqlDataSource,
-	}
-
-	mongoCmd = &cobra.Command{
-		Use:   "mongo",
-		Short: flags.Get("model.mongo.short"),
-		RunE:  mongo.Action,
-	}
+	Cmd             = cobrax.NewCommand("model")
+	mysqlCmd        = cobrax.NewCommand("mysql")
+	ddlCmd          = cobrax.NewCommand("ddl", cobrax.WithRunE(command.MysqlDDL))
+	datasourceCmd   = cobrax.NewCommand("datasource", cobrax.WithRunE(command.MySqlDataSource))
+	pgCmd           = cobrax.NewCommand("pg", cobrax.WithRunE(command.PostgreSqlDataSource))
+	pgDatasourceCmd = cobrax.NewCommand("datasource", cobrax.WithRunE(command.PostgreSqlDataSource))
+	mongoCmd        = cobrax.NewCommand("mongo", cobrax.WithRunE(mongo.Action))
 )
 
 func init() {
@@ -59,49 +25,49 @@ func init() {
 		mongoCmdFlags        = mongoCmd.Flags()
 	)
 
-	ddlCmdFlags.StringVarP(&command.VarStringSrc, "src", "s", "", flags.Get("model.mysql.ddl.src"))
-	ddlCmdFlags.StringVarP(&command.VarStringDir, "dir", "d", "", flags.Get("model.mysql.ddl.dir"))
-	ddlCmdFlags.StringVar(&command.VarStringStyle, "style", "", flags.Get("model.mysql.ddl.style"))
-	ddlCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c", false, flags.Get("model.mysql.ddl.cache"))
-	ddlCmdFlags.BoolVar(&command.VarBoolIdea, "idea", false, flags.Get("model.mysql.ddl.idea"))
-	ddlCmdFlags.StringVar(&command.VarStringDatabase, "database", "", flags.Get("model.mysql.ddl.database"))
-	ddlCmdFlags.StringVar(&command.VarStringHome, "home", "", flags.Get("model.mysql.ddl.home"))
-	ddlCmdFlags.StringVar(&command.VarStringRemote, "remote", "", flags.Get("model.mysql.ddl.remote"))
-	ddlCmdFlags.StringVar(&command.VarStringBranch, "branch", "", flags.Get("model.mysql.ddl.branch"))
+	ddlCmdFlags.StringVarP(&command.VarStringSrc, "src", "s")
+	ddlCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	ddlCmdFlags.StringVar(&command.VarStringStyle, "style")
+	ddlCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	ddlCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	ddlCmdFlags.StringVar(&command.VarStringDatabase, "database")
+	ddlCmdFlags.StringVar(&command.VarStringHome, "home")
+	ddlCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	ddlCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	datasourceCmdFlags.StringVar(&command.VarStringURL, "url", "", flags.Get("model.mysql.datasource.url"))
-	datasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t", nil, flags.Get("model.mysql.datasource.table"))
-	datasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c", false, flags.Get("model.mysql.datasource.cache"))
-	datasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d", "", flags.Get("model.mysql.datasource.dir"))
-	datasourceCmdFlags.StringVar(&command.VarStringStyle, "style", "", flags.Get("model.mysql.datasource.style"))
-	datasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea", false, flags.Get("model.mysql.datasource.idea"))
-	datasourceCmdFlags.StringVar(&command.VarStringHome, "home", "", flags.Get("model.mysql.datasource.home"))
-	datasourceCmdFlags.StringVar(&command.VarStringRemote, "remote", "", flags.Get("model.mysql.datasource.remote"))
-	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch", "", flags.Get("model.mysql.datasource.branch"))
+	datasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	datasourceCmdFlags.StringSliceVarP(&command.VarStringSliceTable, "table", "t")
+	datasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	datasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	datasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
+	datasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	datasourceCmdFlags.StringVar(&command.VarStringHome, "home")
+	datasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	datasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url", "", flags.Get("model.pg.datasource.url"))
-	pgDatasourceCmdFlags.StringVarP(&command.VarStringTable, "table", "t", "", flags.Get("model.pg.datasource.table"))
-	pgDatasourceCmdFlags.StringVarP(&command.VarStringSchema, "schema", "s", "public", flags.Get("model.pg.datasource.schema"))
-	pgDatasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c", false, flags.Get("model.pg.datasource.cache"))
-	pgDatasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d", "", flags.Get("model.pg.datasource.dir"))
-	pgDatasourceCmdFlags.StringVar(&command.VarStringStyle, "style", "", flags.Get("model.pg.datasource.style"))
-	pgDatasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea", false, flags.Get("model.pg.datasource.idea"))
-	pgDatasourceCmdFlags.BoolVar(&command.VarBoolStrict, "strict", false, flags.Get("model.pg.datasource.strict"))
-	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home", "", flags.Get("model.pg.datasource.home"))
-	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote", "", flags.Get("model.pg.datasource.remote"))
-	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch", "", flags.Get("model.pg.datasource.branch"))
+	pgDatasourceCmdFlags.StringVar(&command.VarStringURL, "url")
+	pgDatasourceCmdFlags.StringVarP(&command.VarStringTable, "table", "t")
+	pgDatasourceCmdFlags.StringVarPWithDefaultValue(&command.VarStringSchema, "schema", "s", "public")
+	pgDatasourceCmdFlags.BoolVarP(&command.VarBoolCache, "cache", "c")
+	pgDatasourceCmdFlags.StringVarP(&command.VarStringDir, "dir", "d")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringStyle, "style")
+	pgDatasourceCmdFlags.BoolVar(&command.VarBoolIdea, "idea")
+	pgDatasourceCmdFlags.BoolVar(&command.VarBoolStrict, "strict")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringHome, "home")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringRemote, "remote")
+	pgDatasourceCmdFlags.StringVar(&command.VarStringBranch, "branch")
 
-	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t", nil, flags.Get("model.mongo.type"))
-	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c", false, flags.Get("model.mongo.cache"))
-	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e", false, flags.Get("model.mongo.easy"))
-	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d", "", flags.Get("model.mongo.dir"))
-	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style", "", flags.Get("model.mongo.style"))
-	mongoCmdFlags.StringVar(&mongo.VarStringHome, "home", "", flags.Get("model.mongo.home"))
-	mongoCmdFlags.StringVar(&mongo.VarStringRemote, "remote", "", flags.Get("model.mongo.remote"))
-	mongoCmdFlags.StringVar(&mongo.VarStringBranch, "branch", "", flags.Get("model.mongo.branch"))
+	mongoCmdFlags.StringSliceVarP(&mongo.VarStringSliceType, "type", "t")
+	mongoCmdFlags.BoolVarP(&mongo.VarBoolCache, "cache", "c")
+	mongoCmdFlags.BoolVarP(&mongo.VarBoolEasy, "easy", "e")
+	mongoCmdFlags.StringVarP(&mongo.VarStringDir, "dir", "d")
+	mongoCmdFlags.StringVar(&mongo.VarStringStyle, "style")
+	mongoCmdFlags.StringVar(&mongo.VarStringHome, "home")
+	mongoCmdFlags.StringVar(&mongo.VarStringRemote, "remote")
+	mongoCmdFlags.StringVar(&mongo.VarStringBranch, "branch")
 
-	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict", false, flags.Get("model.mysql.strict"))
-	mysqlCmd.PersistentFlags().StringSliceVarP(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"}, flags.Get("model.mysql.ignore-columns"))
+	mysqlCmd.PersistentFlags().BoolVar(&command.VarBoolStrict, "strict")
+	mysqlCmd.PersistentFlags().StringSliceVarPWithDefaultValue(&command.VarStringSliceIgnoreColumns, "ignore-columns", "i", []string{"create_at", "created_at", "create_time", "update_at", "updated_at", "update_time"})
 
 	mysqlCmd.AddCommand(datasourceCmd, ddlCmd)
 	pgCmd.AddCommand(pgDatasourceCmd)

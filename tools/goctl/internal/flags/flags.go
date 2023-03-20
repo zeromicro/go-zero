@@ -21,8 +21,11 @@ const (
 	configType   = "json"
 )
 
-//go:embed default.json
-var defaultFlagConfig []byte
+//go:embed default_en.json
+var defaultEnFlagConfig []byte
+
+//go:embed default_zh.json
+var defaultZhFlagConfig []byte
 
 func Init() {
 	flagConfigFile := getFlagConfigFile()
@@ -30,7 +33,16 @@ func Init() {
 	if pathx.FileExists(flagConfigFile) {
 		return
 	}
-	_ = os.WriteFile(flagConfigFile, defaultFlagConfig, 0666)
+
+	locale := env.GetOr(env.GoctlLocale, env.DefaultLocale)
+	var configForLocale []byte
+	if locale == env.LocaleSimplifiedChinese {
+		configForLocale = append(configForLocale, defaultZhFlagConfig...)
+	} else {
+		configForLocale = append(configForLocale, defaultEnFlagConfig...)
+	}
+
+	_ = os.WriteFile(flagConfigFile, configForLocale, 0666)
 }
 
 func getFlagConfigFile() string {
@@ -74,7 +86,7 @@ func MustLoad() *Flags {
 	}
 
 	if len(configContent) == 0 {
-		configContent = append(configContent, defaultFlagConfig...)
+		configContent = append(configContent, defaultEnFlagConfig...)
 	}
 	v := viper.New()
 	v.SetConfigType(configType)

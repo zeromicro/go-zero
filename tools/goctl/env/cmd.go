@@ -1,8 +1,7 @@
 package env
 
 import (
-	"github.com/spf13/cobra"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 )
 
 var (
@@ -12,31 +11,19 @@ var (
 	boolVarInstall     bool
 
 	// Cmd describes an env command.
-	Cmd = &cobra.Command{
-		Use:   "env",
-		Short: flags.Get("env.short"),
-		RunE:  write,
-	}
-	installCmd = &cobra.Command{
-		Use:   "install",
-		Short: flags.Get("env.install.short"),
-		RunE:  install,
-	}
-	checkCmd = &cobra.Command{
-		Use:   "check",
-		Short: flags.Get("env.check.short"),
-		RunE:  check,
-	}
+	Cmd        = cobrax.NewCommand("env", cobrax.WithRunE(write))
+	installCmd = cobrax.NewCommand("install", cobrax.WithRunE(install))
+	checkCmd   = cobrax.NewCommand("check", cobrax.WithRunE(check))
 )
 
 func init() {
 	// The root command flags
-	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue, "write", "w", nil, flags.Get("env.write"))
-	Cmd.PersistentFlags().BoolVarP(&boolVarForce, "force", "f", false, flags.Get("env.force"))
-	Cmd.PersistentFlags().BoolVarP(&boolVarVerbose, "verbose", "v", false, flags.Get("env.verbose"))
+	Cmd.Flags().StringSliceVarP(&sliceVarWriteValue, "write", "w")
+	Cmd.PersistentFlags().BoolVarP(&boolVarForce, "force", "f")
+	Cmd.PersistentFlags().BoolVarP(&boolVarVerbose, "verbose", "v")
 
 	// The sub-command flags
-	checkCmd.Flags().BoolVarP(&boolVarInstall, "install", "i", false, flags.Get("env.check.install"))
+	checkCmd.Flags().BoolVarP(&boolVarInstall, "install", "i")
 
 	// Add sub-command
 	Cmd.AddCommand(checkCmd, installCmd)
