@@ -20,6 +20,8 @@ import (
 	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
+const defaultTimeout = time.Second * 5
+
 type (
 	// Server is a gateway server.
 	Server struct {
@@ -38,6 +40,7 @@ func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
 		Server:    rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
+		timeout:   defaultTimeout,
 	}
 	for _, opt := range opts {
 		opt(svr)
@@ -186,5 +189,12 @@ func (s *Server) prepareMetadata(header http.Header) []string {
 func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
 	return func(s *Server) {
 		s.processHeader = processHeader
+	}
+}
+
+// WithTimeout sets the timeout for the gateway server.
+func WithTimeout(timeout time.Duration) func(*Server) {
+	return func(s *Server) {
+		s.timeout = timeout
 	}
 }
