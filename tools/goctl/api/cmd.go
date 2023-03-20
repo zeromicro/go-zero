@@ -19,12 +19,13 @@ import (
 
 var (
 	// Cmd describes an api command.
-	Cmd         = cobrax.NewCommand("api", cobrax.WithRunE(apigen.CreateApiTemplate))
-	dartCmd     = cobrax.NewCommand("dart", cobrax.WithRunE(dartgen.DartCommand))
-	docCmd      = cobrax.NewCommand("doc", cobrax.WithRunE(docgen.DocCommand))
-	formatCmd   = cobrax.NewCommand("format", cobrax.WithRunE(format.GoFormatApi))
-	goCmd       = cobrax.NewCommand("go", cobrax.WithRunE(gogen.GoCommand))
-	newCmd      = cobrax.NewCommand("new", cobrax.WithRunE(new.CreateServiceCommand), cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
+	Cmd       = cobrax.NewCommand("api", cobrax.WithRunE(apigen.CreateApiTemplate))
+	dartCmd   = cobrax.NewCommand("dart", cobrax.WithRunE(dartgen.DartCommand))
+	docCmd    = cobrax.NewCommand("doc", cobrax.WithRunE(docgen.DocCommand))
+	formatCmd = cobrax.NewCommand("format", cobrax.WithRunE(format.GoFormatApi))
+	goCmd     = cobrax.NewCommand("go", cobrax.WithRunE(gogen.GoCommand))
+	newCmd    = cobrax.NewCommand("new", cobrax.WithRunE(new.CreateServiceCommand),
+		cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
 	validateCmd = cobrax.NewCommand("validate", cobrax.WithRunE(validate.GoValidateApi))
 	javaCmd     = cobrax.NewCommand("java", cobrax.WithRunE(javagen.JavaCommand), cobrax.WithHidden())
 	ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
