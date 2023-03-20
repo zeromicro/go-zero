@@ -1,6 +1,9 @@
 package kube
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
+)
 
 var (
 	varStringName            string
@@ -28,48 +31,44 @@ var (
 	// Cmd describes a kube command.
 	Cmd = &cobra.Command{
 		Use:   "kube",
-		Short: "Generate kubernetes files",
+		Short: flags.Get("kube.short"),
 	}
 
 	deployCmd = &cobra.Command{
 		Use:   "deploy",
-		Short: "Generate deployment yaml file",
+		Short: flags.Get("kube.deploy.short"),
 		RunE:  deploymentCommand,
 	}
 )
 
 func init() {
-	deployCmd.Flags().StringVar(&varStringName, "name", "", "The name of deployment (required)")
-	deployCmd.Flags().StringVar(&varStringNamespace, "namespace", "", "The namespace of deployment (required)")
-	deployCmd.Flags().StringVar(&varStringImage, "image", "", "The docker image of deployment (required)")
-	deployCmd.Flags().StringVar(&varStringSecret, "secret", "", "The secret to image pull from registry")
-	deployCmd.Flags().IntVar(&varIntRequestCpu, "requestCpu", 500, "The request cpu to deploy")
-	deployCmd.Flags().IntVar(&varIntRequestMem, "requestMem", 512, "The request memory to deploy")
-	deployCmd.Flags().IntVar(&varIntLimitCpu, "limitCpu", 1000, "The limit cpu to deploy")
-	deployCmd.Flags().IntVar(&varIntLimitMem, "limitMem", 1024, "The limit memory to deploy")
-	deployCmd.Flags().StringVar(&varStringO, "o", "", "The output yaml file (required)")
-	deployCmd.Flags().IntVar(&varIntReplicas, "replicas", 3, "The number of replicas to deploy")
-	deployCmd.Flags().IntVar(&varIntRevisions, "revisions", 5, "The number of revision history to limit")
-	deployCmd.Flags().IntVar(&varIntPort, "port", 0, "The port of the deployment to listen on pod (required)")
-	deployCmd.Flags().IntVar(&varIntNodePort, "nodePort", 0, "The nodePort of the deployment to expose")
-	deployCmd.Flags().IntVar(&varIntTargetPort, "targetPort", 0, "The targetPort of the deployment, default to port")
-	deployCmd.Flags().IntVar(&varIntMinReplicas, "minReplicas", 3, "The min replicas to deploy")
-	deployCmd.Flags().IntVar(&varIntMaxReplicas, "maxReplicas", 10, "The max replicas to deploy")
-	deployCmd.Flags().StringVar(&varStringImagePullPolicy, "imagePullPolicy", "", "Image pull policy. One of Always, Never, IfNotPresent")
+	deployCmdFlags := deployCmd.Flags()
+	deployCmdFlags.StringVar(&varStringName, "name", "", flags.Get("kube.deploy.name"))
+	deployCmdFlags.StringVar(&varStringNamespace, "namespace", "", flags.Get("kube.deploy.namespace"))
+	deployCmdFlags.StringVar(&varStringImage, "image", "", flags.Get("kube.deploy.image"))
+	deployCmdFlags.StringVar(&varStringSecret, "secret", "", flags.Get("kube.deploy.secret"))
+	deployCmdFlags.IntVar(&varIntRequestCpu, "requestCpu", 500, flags.Get("kube.deploy.requestCpu"))
+	deployCmdFlags.IntVar(&varIntRequestMem, "requestMem", 512, flags.Get("kube.deploy.requestMem"))
+	deployCmdFlags.IntVar(&varIntLimitCpu, "limitCpu", 1000, flags.Get("kube.deploy.limitCpu"))
+	deployCmdFlags.IntVar(&varIntLimitMem, "limitMem", 1024, flags.Get("kube.deploy.limitMem"))
+	deployCmdFlags.StringVar(&varStringO, "o", "", flags.Get("kube.deploy.o"))
+	deployCmdFlags.IntVar(&varIntReplicas, "replicas", 3, flags.Get("kube.deploy.replicas"))
+	deployCmdFlags.IntVar(&varIntRevisions, "revisions", 5, flags.Get("kube.deploy.revisions"))
+	deployCmdFlags.IntVar(&varIntPort, "port", 0, flags.Get("kube.deploy.port"))
+	deployCmdFlags.IntVar(&varIntNodePort, "nodePort", 0, flags.Get("kube.deploy.nodePort"))
+	deployCmdFlags.IntVar(&varIntTargetPort, "targetPort", 0, flags.Get("kube.deploy.targetPort"))
+	deployCmdFlags.IntVar(&varIntMinReplicas, "minReplicas", 3, flags.Get("kube.deploy.minReplicas"))
+	deployCmdFlags.IntVar(&varIntMaxReplicas, "maxReplicas", 10, flags.Get("kube.deploy.maxReplicas"))
+	deployCmdFlags.StringVar(&varStringImagePullPolicy, "imagePullPolicy", "", flags.Get("kube.deploy.imagePullPolicy"))
+	deployCmdFlags.StringVar(&varStringHome, "home", "", flags.Get("kube.deploy.home"))
+	deployCmdFlags.StringVar(&varStringRemote, "remote", "", flags.Get("kube.deploy.remote"))
+	deployCmdFlags.StringVar(&varStringBranch, "branch", "", flags.Get("kube.deploy.branch"))
+	deployCmdFlags.StringVar(&varStringServiceAccount, "serviceAccount", "", flags.Get("kube.deploy.serviceAccount"))
 
-	deployCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template, "+
-		"--home and --remote cannot be set at the same time, if they are, --remote has higher priority")
-	deployCmd.Flags().StringVar(&varStringRemote, "remote", "", "The remote git repo of the template, "+
-		"--home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo "+
-		"directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure")
-	deployCmd.Flags().StringVar(&varStringBranch, "branch", "", "The branch of the remote repo, it "+
-		"does work with --remote")
-	deployCmd.Flags().StringVar(&varStringServiceAccount, "serviceAccount", "", "The ServiceAccount "+
-		"for the deployment")
-	deployCmd.MarkFlagRequired("name")
-	deployCmd.MarkFlagRequired("namespace")
-	deployCmd.MarkFlagRequired("o")
-	deployCmd.MarkFlagRequired("port")
+	_ = deployCmd.MarkFlagRequired("name")
+	_ = deployCmd.MarkFlagRequired("namespace")
+	_ = deployCmd.MarkFlagRequired("o")
+	_ = deployCmd.MarkFlagRequired("port")
 
 	Cmd.AddCommand(deployCmd)
 }

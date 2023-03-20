@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/flags"
 )
 
 var (
@@ -11,45 +12,42 @@ var (
 	// Cmd describes a template command.
 	Cmd = &cobra.Command{
 		Use:   "template",
-		Short: "Template operation",
+		Short: flags.Get("template.short"),
 	}
 
 	initCmd = &cobra.Command{
 		Use:   "init",
-		Short: "Initialize the all templates(force update)",
+		Short: flags.Get("template.init.short"),
 		RunE:  genTemplates,
 	}
 
 	cleanCmd = &cobra.Command{
 		Use:   "clean",
-		Short: "Clean the all cache templates",
+		Short: flags.Get("template.clean.short"),
 		RunE:  cleanTemplates,
 	}
 
 	updateCmd = &cobra.Command{
 		Use:   "update",
-		Short: "Update template of the target category to the latest",
+		Short: flags.Get("template.update.short"),
 		RunE:  updateTemplates,
 	}
 
 	revertCmd = &cobra.Command{
 		Use:   "revert",
-		Short: "Revert the target template to the latest",
+		Short: flags.Get("template.revert.short"),
 		RunE:  revertTemplates,
 	}
 )
 
 func init() {
-	initCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	cleanCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	updateCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	updateCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", "The category of template, enum [api,rpc,model,docker,kube]")
-	revertCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	revertCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", "The category of template, enum [api,rpc,model,docker,kube]")
-	revertCmd.Flags().StringVarP(&varStringName, "name", "n", "", "The target file name of template")
+	initCmd.Flags().StringVar(&varStringHome, "home", "", flags.Get("template.init.home"))
+	cleanCmd.Flags().StringVar(&varStringHome, "home", "", flags.Get("template.clean.home"))
+	updateCmd.Flags().StringVar(&varStringHome, "home", "", flags.Get("template.update.home"))
+	updateCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", flags.Get("template.update.category"))
+	revertCmd.Flags().StringVar(&varStringHome, "home", "", flags.Get("template.revert.home"))
+	revertCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", flags.Get("template.revert.category"))
+	revertCmd.Flags().StringVarP(&varStringName, "name", "n", "", flags.Get("template.revert.name"))
 
-	Cmd.AddCommand(cleanCmd)
-	Cmd.AddCommand(initCmd)
-	Cmd.AddCommand(revertCmd)
-	Cmd.AddCommand(updateCmd)
+	Cmd.AddCommand(cleanCmd, initCmd, revertCmd, updateCmd)
 }

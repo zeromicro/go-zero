@@ -36,7 +36,6 @@ const (
 var (
 	//go:embed usage.tpl
 	usageTpl string
-
 	rootCmd = &cobra.Command{
 		Use:   "goctl",
 		Short: flags.Get("goctl.short"),
@@ -51,6 +50,15 @@ func Execute() {
 		fmt.Println(aurora.Red(err.Error()))
 		os.Exit(codeFailure)
 	}
+}
+
+func getCommandsRecursively(parent *cobra.Command) []*cobra.Command {
+	var commands []*cobra.Command
+	for _, cmd := range parent.Commands() {
+		commands = append(commands, cmd)
+		commands = append(commands, getCommandsRecursively(cmd)...)
+	}
+	return commands
 }
 
 func supportGoStdFlag(args []string) []string {
@@ -116,16 +124,7 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.AddCommand(api.Cmd)
-	rootCmd.AddCommand(bug.Cmd)
-	rootCmd.AddCommand(docker.Cmd)
-	rootCmd.AddCommand(kube.Cmd)
-	rootCmd.AddCommand(env.Cmd)
-	rootCmd.AddCommand(model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd)
-	rootCmd.AddCommand(quickstart.Cmd)
-	rootCmd.AddCommand(rpc.Cmd)
-	rootCmd.AddCommand(tpl.Cmd)
-	rootCmd.AddCommand(upgrade.Cmd)
+	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, model.Cmd)
+	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
 	rootCmd.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 }

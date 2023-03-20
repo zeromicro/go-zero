@@ -93,5 +93,170 @@
     "branch": "{{.global.branch}}",
     "version": "The goctl builder golang image version",
     "tz": "The timezone of the container"
+  },
+  "kube": {
+    "short": "Generate kubernetes files",
+    "deploy": {
+      "short": "Generate deployment yaml file",
+      "name": "The name of deployment (required)",
+      "namespace": "The namespace of deployment (required)",
+      "image": "The docker image of deployment (required)",
+      "secret": "The secret to image pull from registry",
+      "requestCpu": "The request cpu to deploy",
+      "requestMem": "The request memory to deploy",
+      "limitCpu": "The limit cpu to deploy",
+      "limitMem": "The limit memory to deploy",
+      "o": "The output yaml file (required)",
+      "replicas": "The number of replicas to deploy",
+      "revisions": "The number of revision history to limit",
+      "port": "The port of the deployment to listen on pod (required)",
+      "nodePort": "The nodePort of the deployment to expose",
+      "targetPort": "The targetPort of the deployment, default to port",
+      "minReplicas": "The min replicas to deploy",
+      "maxReplicas": "The max replicas to deploy",
+      "imagePullPolicy": "The image pull policy of the deployment, default to IfNotPresent",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "serviceAccount": "TheServiceAccount for the deployment"
+    }
+  },
+  "env": {
+    "short": "Check or edit goctl environment",
+    "write": "Edit goctl environment",
+    "force": "Silent installation of non-existent dependencies",
+    "verbose": "Enable log output",
+    "install": {
+      "short": "Goctl env installation"
+    },
+    "check": {
+      "short": "Detect goctl env and dependency tools",
+      "install": "Install dependencies if not found"
+    }
+  },
+  "model": {
+    "short": "Generate model code",
+    "dir": "The target dir",
+    "mysql": {
+      "strict": "Generate model in strict mode",
+      "ignore-columns": "Ignore columns while creating or updating rows",
+      "datasource": {
+        "url": "The data source of database,like \"root:password@tcp(127.0.0.1:3306)/database",
+        "table": "The table or table globbing patterns in the database",
+        "cache": "Generate code with cache [optional]",
+        "dir": "{{.model.dir}}",
+        "style": "{{.global.style}}",
+        "idea": "For idea plugin [optional]",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      },
+      "ddl": {
+        "src": "The path or path globbing patterns of the ddl",
+        "dir": "{{.model.dir}}",
+        "style": "{{.global.style}}",
+        "cache": "Generate code with cache [optional]",
+        "idea": "For idea plugin [optional]",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      }
+    },
+    "pg": {
+      "short": "Generate postgresql model",
+      "datasource": {
+        "url": "The data source of database,like \"root:password@tcp(127.0.0.1:3306)/database",
+        "table": "The table or table globbing patterns in the database",
+        "schema": "The schema or schema globbing patterns in the database",
+        "cache": "Generate code with cache [optional]",
+        "dir": "{{.model.dir}}",
+        "style": "{{.global.style}}",
+        "idea": "For idea plugin [optional]",
+        "strict": "Generate model in strict mode",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      }
+    },
+    "mongo": {
+      "type": "Specified model type name",
+      "cache": "Generate code with cache [optional]",
+      "easy": "Generate code with auto generated CollectionName for easy declare [optional]",
+      "dir": "{{.model.dir}}",
+      "style": "{{.global.style}}",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}"
+    }
+  },
+  "migrate": {
+    "short": "Migrate from tal-tech to zeromicro",
+    "long": "Migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
+    "verbose": "Verbose enables extra logging",
+    "version": "The target release version of github.com/zeromicro/go-zero to migrate"
+  },
+  "quickstart": {
+    "short": "quickly start a project",
+    "service-type": "specify the service type, supported values: [mono, micro]"
+  },
+  "rpc": {
+    "short": "Generate rpc code",
+    "o": "Output a sample proto file",
+    "home": "{{.global.home}}",
+    "remote": "{{.global.remote}}",
+    "branch": "{{.global.branch}}",
+    "new": {
+      "short": "Generate rpc demo service",
+      "style": "{{.global.style}}",
+      "idea": "For idea plugin [optional]",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "verbose": "Enable log output"
+    },
+    "template": {
+      "short": "Generate proto template",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}"
+    },
+    "protoc": {
+      "short": "Generate grpc code",
+      "example": "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
+      "multiple": "Generated in multiple rpc service mode",
+      "zrpc_out": "The zrpc output directory",
+      "style": "{{.global.style}}",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "verbose": "Enable log output"
+    }
+  },
+  "template": {
+    "short": "Template operation",
+    "home": "The goctl home path of the template",
+    "init": {
+      "short": "Initialize the all templates(force update)",
+      "home": "{{.template.home}}",
+      "category": "The category of template, enum [api,rpc,model,docker,kube]"
+    },
+    "clean": {
+      "short": "Clean the all cache templates",
+      "home": "{{.template.home}}"
+    },
+    "update": {
+      "short": "Update template of the target category to the latest",
+      "home": "{{.template.home}}",
+      "category": "{{.template.category}}"
+    },
+    "revert": {
+      "short": "Revert the target template to the latest",
+      "home": "{{.template.home}}",
+      "category": "{{.template.category}}",
+      "name": "The target file name of template"
+    }
+  },
+  "upgrade": {
+    "short": "Upgrade goctl to latest version"
   }
 }
