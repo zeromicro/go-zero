@@ -65,7 +65,7 @@ func IsUUIDType(prop string) bool {
 // IsOnlyEntType returns true when the type is only in ent schema. e.g. uint8
 func IsOnlyEntType(t string) bool {
 	switch t {
-	case "int8", "uint8":
+	case "int8", "uint8", "int16", "uint16":
 		return true
 	default:
 		return false
