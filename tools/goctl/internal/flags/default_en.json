@@ -127,6 +127,22 @@
         "install": "Install dependencies if not found"
       }
     },
+    "gateway": {
+      "short": "gateway is a tool to generate gateway code",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "dir": "The output dir",
+      "protoc": {
+        "short": "generate gateway code from proto file"
+      },
+      "protoset": {
+        "short": "generate gateway code from protoset file"
+      },
+      "server": {
+        "short": "generate gateway code from grpc server"
+      }
+    },
     "model": {
       "short": "Generate model code",
       "dir": "The target dir",
