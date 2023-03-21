@@ -77,12 +77,8 @@ func TestConfigCenter_Value(t *testing.T) {
 
 	mock.valErr = errors.New("mock error")
 
-	c2, err := NewConfigCenter[any](Config{Type: "json"}, mock)
-	assert.NoError(t, err)
-
-	cc2 := c2.(*configCenter[any])
-
-	assert.Equal(t, cc2.Value(), "")
+	_, err = NewConfigCenter[any](Config{Type: "json"}, mock)
+	assert.Error(t, err)
 }
 
 func TestConfigCenter_AddListener(t *testing.T) {
