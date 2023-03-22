@@ -3,86 +3,77 @@ package flags
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
-	"os"
-	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/spf13/viper"
-	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-)
-
-const (
-	flagFileName = "cli.json"
-	configType   = "json"
 )
 
 //go:embed default_en.json
 var defaultEnFlagConfig []byte
 
-func Init() {
-	flagConfigFile := getFlagConfigFile()
-	_ = pathx.MkdirIfNotExist(filepath.Dir(flagConfigFile))
-	if pathx.FileExists(flagConfigFile) {
-		return
-	}
-
-	_ = os.WriteFile(flagConfigFile, defaultEnFlagConfig, 0666)
+type ConfigLoader struct {
+	conf map[string]any
 }
 
-func getFlagConfigFile() string {
-	goctlHome, err := pathx.GetGoctlHome()
-	if err != nil {
-		log.Fatal(err)
-		return ""
-	}
-
-	return filepath.Join(goctlHome, version.BuildVersion, flagFileName)
+func (cl *ConfigLoader) ReadConfig(in io.Reader) error {
+	return json.NewDecoder(in).Decode(&cl.conf)
 }
 
-var flagConfigFile string
-
-func setTestConfigFile(t *testing.T, f string) {
-	origin := getFlagConfigFile()
-	t.Cleanup(func() {
-		flagConfigFile = origin
+func (cl *ConfigLoader) GetString(key string) string {
+	keyList := strings.FieldsFunc(key, func(r rune) bool {
+		return r == '.'
 	})
-	flagConfigFile = f
+	var conf = cl.conf
+	for idx, k := range keyList {
+		val, ok := conf[k]
+		if !ok {
+			return ""
+		}
+		if idx < len(keyList)-1 {
+			conf, ok = val.(map[string]any)
+			if !ok {
+				return ""
+			}
+			continue
+		}
+
+		return fmt.Sprint(val)
+	}
+	return ""
 }
 
 type Flags struct {
-	v *viper.Viper
+	loader *ConfigLoader
 }
 
 func MustLoad() *Flags {
-	if len(flagConfigFile) == 0 {
-		flagConfigFile = getFlagConfigFile()
+	loader := &ConfigLoader{
+		conf: map[string]any{},
 	}
-
-	var configContent []byte
-	if pathx.FileExists(flagConfigFile) {
-		configContent, _ = os.ReadFile(flagConfigFile)
-	}
-
-	if len(configContent) == 0 {
-		configContent = append(configContent, defaultEnFlagConfig...)
-	}
-	v := viper.New()
-	v.SetConfigType(configType)
-	if err := v.ReadConfig(bytes.NewBuffer(configContent)); err != nil {
+	if err := loader.ReadConfig(bytes.NewBuffer(defaultEnFlagConfig)); err != nil {
 		log.Fatal(err)
 	}
 
 	return &Flags{
-		v: v,
+		loader: loader,
 	}
 }
 
+func setTestData(t *testing.T, data []byte) {
+	origin := defaultEnFlagConfig
+	defaultEnFlagConfig = data
+	t.Cleanup(func() {
+		defaultEnFlagConfig = origin
+	})
+}
+
 func (f *Flags) Get(key string) (string, error) {
-	value := f.v.GetString(key)
+	value := f.loader.GetString(key)
 	for util.IsTemplateVariable(value) {
 		value = util.TemplateVariable(value)
 		if value == key {

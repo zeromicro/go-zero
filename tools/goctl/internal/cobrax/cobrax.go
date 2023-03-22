@@ -133,7 +133,6 @@ func (c *Command) PersistentFlags() *FlagSet {
 }
 
 func (c *Command) MustInit() {
-	flags.Init()
 	commands := append([]*cobra.Command{c.Command}, getCommandsRecursively(c.Command)...)
 	for _, command := range commands {
 		commandKey := getCommandName(command)
