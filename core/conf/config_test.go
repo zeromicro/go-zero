@@ -133,7 +133,7 @@ b = 1
 
 	var val struct {
 		A string `json:"a"`
-		b int    `json:"b,optional"`
+		b int
 	}
 	if assert.NoError(t, Load(tmpfile, &val)) {
 		assert.Equal(t, "foo", val.A)
