@@ -695,6 +695,10 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m valuerWithParent, fullName string) error {
+	if !field.IsExported() {
+		return nil
+	}
+
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -869,12 +873,9 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName 
 
 	numFields := baseType.NumField()
 	for i := 0; i < numFields; i++ {
-		field := baseType.Field(i)
-		if !field.IsExported() {
-			continue
-		}
-
-		if err := u.processField(field, valElem.Field(i), m, fullName); err != nil {
+		typeField := baseType.Field(i)
+		valueField := valElem.Field(i)
+		if err := u.processField(typeField, valueField, m, fullName); err != nil {
 			return err
 		}
 	}

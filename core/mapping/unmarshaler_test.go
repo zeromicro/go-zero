@@ -53,6 +53,52 @@ func TestUnmarshalWithoutTagName(t *testing.T) {
 	}
 }
 
+func TestUnmarshalWithLowerField(t *testing.T) {
+	type (
+		Lower struct {
+			value int `key:"lower"`
+		}
+
+		inner struct {
+			Lower
+			Optional bool `key:",optional"`
+		}
+	)
+	m := map[string]any{
+		"Optional": true,
+		"lower":    1,
+	}
+
+	var in inner
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.True(t, in.Optional)
+		assert.Equal(t, 0, in.value)
+	}
+}
+
+func TestUnmarshalWithLowerAnonymousStruct(t *testing.T) {
+	type (
+		lower struct {
+			Value int `key:"lower"`
+		}
+
+		inner struct {
+			lower
+			Optional bool `key:",optional"`
+		}
+	)
+	m := map[string]any{
+		"Optional": true,
+		"lower":    1,
+	}
+
+	var in inner
+	if assert.NoError(t, UnmarshalKey(m, &in)) {
+		assert.True(t, in.Optional)
+		assert.Equal(t, 1, in.Value)
+	}
+}
+
 func TestUnmarshalWithoutTagNameWithCanonicalKey(t *testing.T) {
 	type inner struct {
 		Name string `key:"name"`
