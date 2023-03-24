@@ -190,7 +190,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 
 	// generate ent
 	if zctx.Ent {
-		_, err := execx.Run(fmt.Sprintf("go run -mod=mod entgo.io/ent/cmd/ent init %s",
+		_, err := execx.Run(fmt.Sprintf("go run -mod=mod entgo.io/ent/cmd/ent new %s",
 			dirCtx.GetServiceName().ToCamel()), abs)
 		if err != nil {
 			return err

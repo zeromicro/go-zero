@@ -195,37 +195,23 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				g.UseUUID = true
 			}
 			continue
-		} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", parser.CamelCase(v.Name),
-				v.Info.Type.String(),
-				parser.CamelCase(v.Name)))
 		} else {
 			if entx.IsTimeProperty(v.Name) {
 				hasTime = true
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(req.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
-				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-					if v.Info.Type.String() == "[16]byte" {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
-							parser.CamelCase(v.Name)))
-						hasUUID = true
-					} else {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
-							v.Info.Type.String(), parser.CamelCase(v.Name)))
-					}
+				if entx.IsUUIDType(v.Info.Type.String()) {
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						parser.CamelCase(v.Name)))
+					hasUUID = true
 				} else {
 					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			} else {
-				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", parser.CamelCase(v.Name),
-						v.Info.Type.String(), parser.CamelCase(v.Name)))
-				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", parser.CamelCase(v.Name),
-						parser.CamelCase(v.Name)))
-				}
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", parser.CamelCase(v.Name),
+					parser.CamelCase(v.Name)))
 			}
 		}
 	}
@@ -297,30 +283,16 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			if entx.IsUUIDType(v.Info.Type.String()) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
-			} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-				listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
-					entx.ConvertOnlyEntTypeToGoType(v.Info.Type.String()),
-					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else if entx.IsTimeProperty(v.Name) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
 				if entx.IsUpperProperty(v.Name) {
-					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
-							entx.ConvertEntTypeToGotype(v.Info.Type.String()), entx.ConvertSpecificNounToUpper(v.Name), endString))
-					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
-							entx.ConvertSpecificNounToUpper(v.Name), endString))
-					}
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+						entx.ConvertSpecificNounToUpper(v.Name), endString))
 				} else {
-					if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
-							entx.ConvertEntTypeToGotype(v.Info.Type.String()), nameCamelCase, endString))
-					} else {
-						listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
-							nameCamelCase, endString))
-					}
+					listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s,%s", nameCamelCase,
+						nameCamelCase, endString))
 				}
 			}
 		}
@@ -398,7 +370,7 @@ func GenApiData(schema *load.Schema, ctx *GenEntLogicContext) (string, error) {
 		structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
 			parser.CamelCase(v.Name),
 			parser.CamelCase(v.Name),
-			entx.ConvertEntTypeToGotype(v.Info.Type.String()),
+			entx.ConvertEntTypeToGotypeInSingleApi(v.Info.Type.String()),
 			jsonTag)
 
 		infoData.WriteString(structData)

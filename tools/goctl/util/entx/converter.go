@@ -79,6 +79,18 @@ func ConvertEntTypeToGotype(prop string) string {
 	return prop
 }
 
+// ConvertEntTypeToGotypeInSingleApi returns go type from ent type in single API service
+func ConvertEntTypeToGotypeInSingleApi(prop string) string {
+	switch prop {
+	case "[16]byte":
+		return "string"
+	case "time.Time":
+		return "int64"
+	default:
+		return prop
+	}
+}
+
 // ConvertIDType returns uuid type by uuid flag
 func ConvertIDType(useUUID bool) string {
 	if useUUID {
