@@ -115,11 +115,11 @@ func RPCNew(_ *cobra.Command, args []string) error {
 
 	var ctx generator.ZRpcContext
 	ctx.Src = src
-	ctx.GoOutput = filepath.Dir(src)
-	ctx.GrpcOutput = filepath.Dir(src)
+	ctx.GoOutput = filepath.Join(filepath.Dir(src), "types")
+	ctx.GrpcOutput = filepath.Join(filepath.Dir(src), "types")
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
-	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), filepath.Dir(src), filepath.Dir(src))
+	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), ctx.GoOutput, ctx.GrpcOutput)
 	ctx.Ent = VarBoolEnt
 	ctx.ModuleName = VarStringModuleName
 	ctx.GoZeroVersion = VarStringGoZeroVersion
@@ -130,6 +130,10 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Gitlab = VarBoolGitlab
 	ctx.UseDescDir = VarBoolDesc
 	ctx.RpcName = rpcname
+
+	if err := pathx.MkdirIfNotExist(ctx.GoOutput); err != nil {
+		return err
+	}
 
 	grpcOptList := VarStringSliceGoGRPCOpt
 	if len(grpcOptList) > 0 {
@@ -172,7 +176,7 @@ func RPCTemplate(latest bool) error {
 }
 
 // EntCRUDLogic is used to generate CRUD code with Ent
-func EntCRUDLogic(_ *cobra.Command, args []string) error {
+func EntCRUDLogic(_ *cobra.Command, _ []string) error {
 	params := &ent.GenEntLogicContext{
 		Schema:       VarStringSchema,
 		Output:       VarStringOutput,
