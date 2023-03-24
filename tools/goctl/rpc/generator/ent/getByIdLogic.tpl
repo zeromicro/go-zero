@@ -5,7 +5,7 @@ import (
 
 	"{{.projectPath}}/internal/svc"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
-	"{{.projectPath}}/{{.projectName}}"
+	"{{.projectPath}}/types/{{.projectName}}"
 
 {{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}	"github.com/zeromicro/go-zero/core/logx"

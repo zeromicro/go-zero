@@ -7,7 +7,7 @@ import (
 	"{{.projectPath}}/ent/predicate"
 	"{{.projectPath}}/internal/svc"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
-    "{{.projectPath}}/{{.projectName}}"
+    "{{.projectPath}}/types/{{.projectName}}"
 
     "github.com/zeromicro/go-zero/core/logx"
 )

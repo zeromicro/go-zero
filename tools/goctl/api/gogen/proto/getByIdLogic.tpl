@@ -37,7 +37,7 @@ func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useU
 			Msg:  l.svcCtx.Trans.Trans(l.ctx, i18n.Success),
 		},
 		Data: types.{{.modelName}}Info{
-            Base{{if .useUUID}}UUID{{end}}Info: types.Base{{if .useUUID}}UUID{{end}}Info{
+            Base{{if .useUUID}}UU{{end}}IDInfo: types.Base{{if .useUUID}}UU{{end}}IDInfo{
                 Id:        data.Id,
                 CreatedAt: data.CreatedAt,
                 UpdatedAt: data.UpdatedAt,

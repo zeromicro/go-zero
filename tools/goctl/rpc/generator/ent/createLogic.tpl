@@ -6,7 +6,7 @@ import (
 
 	"{{.projectPath}}/internal/svc"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
-    "{{.projectPath}}/{{.projectName}}"
+    "{{.projectPath}}/types/{{.projectName}}"
 
     "github.com/suyuan32/simple-admin-common/i18n"
 {{if .hasUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"

@@ -41,7 +41,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelNa
 	for _, v := range data.Data {
 		resp.Data.Data = append(resp.Data.Data,
 			types.{{.modelName}}Info{
-				Base{{if .useUUID}}UUID{{end}}Info: types.Base{{if .useUUID}}UUID{{end}}Info{
+				Base{{if .useUUID}}UU{{end}}IDInfo: types.Base{{if .useUUID}}UU{{end}}IDInfo{
 					Id:        v.Id,
 					CreatedAt: v.CreatedAt,
 					UpdatedAt: v.UpdatedAt,
