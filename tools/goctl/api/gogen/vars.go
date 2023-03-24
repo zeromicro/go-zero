@@ -12,4 +12,5 @@ const (
 	i18nDir       = internal + "i18n"
 	localeDir     = i18nDir + "/locale"
 	groupProperty = "group"
+	utilsDir      = internal + "utils"
 )

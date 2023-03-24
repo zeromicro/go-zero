@@ -17,6 +17,7 @@ package proto
 import (
 	"errors"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -65,6 +66,8 @@ func MergeProto(p *ProtoContext) error {
 	if err != nil {
 		return err
 	}
+
+	console.NewColorConsole(true).Success("Merge proto files successfully")
 
 	return err
 }

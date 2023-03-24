@@ -38,7 +38,7 @@ func genModel(g *GenContext) error {
 			for _, val := range specData.Members {
 				if val.Name == "" {
 					tmpType, _ := val.Type.(spec.DefineStruct)
-					if tmpType.Name() == "BaseInfo" {
+					if tmpType.Name() == "BaseIDInfo" {
 						infoData.WriteString("  id: number;\n  createdAt?: number;\n  updatedAt?: number;\n")
 					} else if tmpType.Name() == "BaseUUIDInfo" {
 						infoData.WriteString("  id: string;\n  createdAt?: number;\n  updatedAt?: number;\n")

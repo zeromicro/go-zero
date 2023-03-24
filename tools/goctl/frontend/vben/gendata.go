@@ -43,13 +43,13 @@ func genData(g *GenContext) error {
 			for _, val := range specData.Members {
 				if val.Name == "" {
 					tmpType, _ := val.Type.(spec.DefineStruct)
-					if tmpType.Name() == "BaseInfo" || tmpType.Name() == "BaseUUIDInfo" {
+					if tmpType.Name() == "BaseIDInfo" || tmpType.Name() == "BaseUUIDInfo" {
 						useBaseInfo = true
 					}
 				} else if val.Name == "Status" {
 					statusRenderData := bytes.NewBufferString("")
 					protoTmpl, _ := template.New("proto").Parse(statusRenderTpl)
-					protoTmpl.Execute(statusRenderData, map[string]any{
+					_ = protoTmpl.Execute(statusRenderData, map[string]any{
 						"modelName": strings.TrimSuffix(specData.RawName, "Info"),
 					})
 					statusBasicColumnData = statusRenderData.String()

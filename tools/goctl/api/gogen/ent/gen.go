@@ -19,6 +19,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"os"
 	"path"
@@ -37,12 +38,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/protox"
 )
 
 const regularPerm = 0o666
 
-type RpcLogicData struct {
+type ApiLogicData struct {
 	LogicName string
 	LogicCode string
 }
@@ -51,15 +51,12 @@ type GenEntLogicContext struct {
 	Schema       string
 	Output       string
 	ServiceName  string
-	ProjectName  string
 	Style        string
 	ModelName    string
-	Multiple     bool
 	SearchKeyNum int
-	ModuleName   string
 	GroupName    string
 	UseUUID      bool
-	ProtoOut     string
+	JSONStyle    string
 	Overwrite    bool
 }
 
@@ -69,37 +66,27 @@ func (g GenEntLogicContext) Validate() error {
 	} else if !strings.HasSuffix(g.Schema, "schema") {
 		return errors.New("please input correct schema directory e.g. ./ent/schema ")
 	} else if g.ServiceName == "" {
-		return errors.New("please set the service name via --service_name")
+		return errors.New("please set the API service name via --api_service_name")
 	} else if g.ModelName == "" {
 		return errors.New("please set the model name via --model ")
-	} else if g.ModuleName == g.ProjectName {
-		return errors.New("do not set the module name if it is the same as project name ")
 	}
 	return nil
 }
 
-// GenEntLogic generates the ent CRUD logic files of the rpc service.
+// GenEntLogic generates the ent CRUD logic files of the api service.
 func GenEntLogic(g *GenEntLogicContext) error {
 	return genEntLogic(g)
 }
 
 func genEntLogic(g *GenEntLogicContext) error {
+	console.NewColorConsole(true).Info("Generating...")
+
 	outputDir, err := filepath.Abs(g.Output)
 	if err != nil {
 		return err
 	}
 
-	var logicDir string
-
-	if g.Multiple {
-		logicDir = path.Join(outputDir, "internal/logic", g.ServiceName)
-		err = pathx.MkdirIfNotExist(logicDir)
-		if err != nil {
-			return err
-		}
-	} else {
-		logicDir = path.Join(outputDir, "internal/logic")
-	}
+	logicDir := path.Join(outputDir, "internal/logic")
 
 	schemas, err := entc.LoadGraph(g.Schema, &gen.Config{})
 	if err != nil {
@@ -119,9 +106,9 @@ func genEntLogic(g *GenEntLogicContext) error {
 	for _, s := range schemas.Schemas {
 		if g.ModelName == s.Name || g.ModelName == "" {
 			// generate logic file
-			rpcLogicData := GenCRUDData(g, projectCtx, s)
+			apiLogicData := GenCRUDData(g, projectCtx, s)
 
-			for _, v := range rpcLogicData {
+			for _, v := range apiLogicData {
 				logicFilename, err := format.FileNamingFormat(g.Style, v.LogicName)
 				if err != nil {
 					return err
@@ -149,71 +136,48 @@ func genEntLogic(g *GenEntLogicContext) error {
 				}
 			}
 
-			// generate proto file
-			protoMessage, protoFunctions, err := GenProtoData(s, g)
+			// generate api file
+			apiData, err := GenApiData(s, g)
 			if err != nil {
 				return err
 			}
 
-			var protoFileName string
-			if g.ProtoOut == "" {
-				protoFileName = filepath.Join(outputDir, g.ProjectName+".proto")
-				if !pathx.FileExists(protoFileName) {
-					continue
-				}
-			} else {
-				protoFileName, err = filepath.Abs(g.ProtoOut)
-				if err != nil {
-					return err
-				}
-				if !pathx.FileExists(protoFileName) || g.Overwrite {
-					err = os.WriteFile(protoFileName, []byte(fmt.Sprintf("syntax = \"proto3\";\n\nservice %s {\n}",
-						strcase.ToCamel(g.ServiceName))), os.ModePerm)
-					if err != nil {
-						return fmt.Errorf("failed to create proto file : %s", err.Error())
-					}
-				}
+			apiFilePath := filepath.Join(workDir, "desc", fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName)))
+
+			if pathx.FileExists(apiFilePath) && !g.Overwrite {
+				return nil
 			}
 
-			protoFileData, err := os.ReadFile(protoFileName)
+			err = os.WriteFile(apiFilePath, []byte(apiData), regularPerm)
 			if err != nil {
 				return err
 			}
 
-			protoDataString := string(protoFileData)
-
-			if strings.Contains(protoDataString, protoMessage) || strings.Contains(protoDataString, protoFunctions) {
-				continue
-			}
-
-			// generate new proto file
-			newProtoData := strings.Builder{}
-			serviceBeginIndex, _, serviceEndIndex := protox.FindBeginEndOfService(protoDataString, strcase.ToCamel(g.ServiceName))
-			if serviceBeginIndex == -1 {
-				continue
-			}
-			newProtoData.WriteString(protoDataString[:serviceBeginIndex-1])
-			newProtoData.WriteString(fmt.Sprintf("\n// %s message\n\n", g.ModelName))
-			newProtoData.WriteString(fmt.Sprintf("%s\n", protoMessage))
-			newProtoData.WriteString(protoDataString[serviceBeginIndex-1 : serviceEndIndex-1])
-			newProtoData.WriteString(fmt.Sprintf("\n\n  // %s management\n", g.ModelName))
-			newProtoData.WriteString(fmt.Sprintf("%s\n", protoFunctions))
-			newProtoData.WriteString(protoDataString[serviceEndIndex-1:])
-
-			err = os.WriteFile(protoFileName, []byte(newProtoData.String()), regularPerm)
+			allApiFile := filepath.Join(workDir, "desc", "all.api")
+			allApiData, err := os.ReadFile(allApiFile)
 			if err != nil {
 				return err
 			}
+			allApiString := string(allApiData)
 
+			if !strings.Contains(allApiString, fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName))) {
+				allApiString += fmt.Sprintf("\nimport \"%s\"", fmt.Sprintf("%s.api", strcase.ToSnake(g.ModelName)))
+			}
+
+			err = os.WriteFile(allApiFile, []byte(allApiString), regularPerm)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	console.NewColorConsole(true).Success("Generate Ent Logic files for RPC successfully")
+	console.NewColorConsole().Success("Generate Ent Logic files for API successfully")
+
 	return nil
 }
 
-func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*RpcLogicData {
-	var data []*RpcLogicData
+func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *load.Schema) []*ApiLogicData {
+	var data []*ApiLogicData
 	hasTime, hasUUID := false, false
 	// end string means whether to use \n
 	endString := ""
@@ -232,34 +196,34 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 			continue
 		} else if entx.IsOnlyEntType(v.Info.Type.String()) {
-			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+			setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", parser.CamelCase(v.Name),
 				v.Info.Type.String(),
 				parser.CamelCase(v.Name)))
 		} else {
 			if entx.IsTimeProperty(v.Name) {
 				hasTime = true
-				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(in.%s, 0)).\n", parser.CamelCase(v.Name),
+				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(req.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
 			} else if entx.IsUpperProperty(v.Name) {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
 					if v.Info.Type.String() == "[16]byte" {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(uuidx.ParseUUIDString(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 							parser.CamelCase(v.Name)))
 						hasUUID = true
 					} else {
-						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
+						setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", entx.ConvertSpecificNounToUpper(v.Name),
 							v.Info.Type.String(), parser.CamelCase(v.Name)))
 					}
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", entx.ConvertSpecificNounToUpper(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			} else {
 				if entx.IsGoTypeNotPrototype(v.Info.Type.String()) {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(in.%s)).\n", parser.CamelCase(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(%s(req.%s)).\n", parser.CamelCase(v.Name),
 						v.Info.Type.String(), parser.CamelCase(v.Name)))
 				} else {
-					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(in.%s).\n", parser.CamelCase(v.Name),
+					setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(req.%s).\n", parser.CamelCase(v.Name),
 						parser.CamelCase(v.Name)))
 				}
 			}
@@ -274,13 +238,12 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"hasUUID":     hasUUID,
 		"setLogic":    strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
 		"modelName":   schema.Name,
-		"projectName": g.ProjectName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
 	})
 
-	data = append(data, &RpcLogicData{
+	data = append(data, &ApiLogicData{
 		LogicName: fmt.Sprintf("Create%sLogic", schema.Name),
 		LogicCode: createLogic.String(),
 	})
@@ -292,13 +255,12 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"hasUUID":     hasUUID,
 		"setLogic":    strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
 		"modelName":   schema.Name,
-		"projectName": g.ProjectName,
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
 	})
 
-	data = append(data, &RpcLogicData{
+	data = append(data, &ApiLogicData{
 		LogicName: fmt.Sprintf("Update%sLogic", schema.Name),
 		LogicCode: updateLogic.String(),
 	})
@@ -310,12 +272,12 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") &&
 			count < g.SearchKeyNum && !entx.IsBaseProperty(v.Name) {
 			camelName := parser.CamelCase(v.Name)
-			predicateData.WriteString(fmt.Sprintf("\tif in.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(in.%s))\n\t}\n",
+			predicateData.WriteString(fmt.Sprintf("\tif req.%s != \"\" {\n\t\tpredicates = append(predicates, %s.%sContains(req.%s))\n\t}\n",
 				camelName, strings.ToLower(schema.Name), entx.ConvertSpecificNounToUpper(v.Name), camelName))
 			count++
 		}
 	}
-	predicateData.WriteString(fmt.Sprintf("\tresult, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, in.Page, in.PageSize)",
+	predicateData.WriteString(fmt.Sprintf("\tdata, err := l.svcCtx.DB.%s.Query().Where(predicates...).Page(l.ctx, req.Page, req.PageSize)",
 		schema.Name))
 
 	listData := strings.Builder{}
@@ -370,14 +332,13 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
 		"listData":           listData.String(),
-		"projectName":        g.ProjectName,
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 	})
 
-	data = append(data, &RpcLogicData{
+	data = append(data, &ApiLogicData{
 		LogicName: fmt.Sprintf("Get%sListLogic", schema.Name),
 		LogicCode: getListLogic.String(),
 	})
@@ -386,15 +347,14 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	getByIdLogicTmpl, _ := template.New("getById").Parse(getByIdLogicTpl)
 	_ = getByIdLogicTmpl.Execute(getByIdLogic, map[string]any{
 		"modelName":          schema.Name,
-		"listData":           strings.Replace(listData.String(), "v.", "result.", -1),
-		"projectName":        g.ProjectName,
+		"listData":           strings.Replace(listData.String(), "v.", "data.", -1),
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 	})
 
-	data = append(data, &RpcLogicData{
+	data = append(data, &ApiLogicData{
 		LogicName: fmt.Sprintf("Get%sByIdLogic", schema.Name),
 		LogicCode: getByIdLogic.String(),
 	})
@@ -404,13 +364,12 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":          schema.Name,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
-		"projectName":        g.ProjectName,
 		"projectPath":        projectCtx.Path,
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 	})
 
-	data = append(data, &RpcLogicData{
+	data = append(data, &ApiLogicData{
 		LogicName: fmt.Sprintf("Delete%sLogic", schema.Name),
 		LogicCode: deleteLogic.String(),
 	})
@@ -418,92 +377,51 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	return data
 }
 
-func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, error) {
-	var protoMessage strings.Builder
-	schemaNameCamelCase := parser.CamelCase(schema.Name)
-	// hasStatus means it has status field
-	hasStatus := false
-	// end string means whether to use \n
-	endString := ""
-	// info message
-	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  %s id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
-		schemaNameCamelCase, entx.ConvertIDType(g.UseUUID)))
-	index := 4
-	for i, v := range schema.Fields {
+func GenApiData(schema *load.Schema, ctx *GenEntLogicContext) (string, error) {
+	infoData := strings.Builder{}
+	listData := strings.Builder{}
+	searchKeyNum := ctx.SearchKeyNum
+	var data string
+
+	for _, v := range schema.Fields {
 		if entx.IsBaseProperty(v.Name) {
 			continue
-		} else if v.Name == "status" {
-			protoMessage.WriteString(fmt.Sprintf("  uint32 %s = %d;\n", v.Name, index))
-			hasStatus = true
-			index++
-		} else {
-			if i < (len(schema.Fields) - 1) {
-				endString = "\n"
-			} else {
-				endString = ""
-			}
+		}
 
-			if entx.IsTimeProperty(v.Name) {
-				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", v.Name, index, endString))
-			} else {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
-					v.Name, index, endString))
-			}
+		var structData string
 
-			if i == (len(schema.Fields) - 1) {
-				protoMessage.WriteString("\n}\n\n")
-			}
+		jsonTag, err := format.FileNamingFormat(ctx.JSONStyle, v.Name)
+		if err != nil {
+			return "", err
+		}
 
-			index++
+		structData = fmt.Sprintf("\n\n        // %s\n        %s  %s `json:\"%s,optional\"`",
+			parser.CamelCase(v.Name),
+			parser.CamelCase(v.Name),
+			entx.ConvertEntTypeToGotype(v.Info.Type.String()),
+			jsonTag)
+
+		infoData.WriteString(structData)
+
+		if v.Info.Type.String() == "string" && searchKeyNum > 0 {
+			listData.WriteString(structData)
+			searchKeyNum--
 		}
 	}
 
-	// List message
-	protoMessage.WriteString(fmt.Sprintf("message %sListResp {\n  uint64 total = 1;\n  repeated %sInfo data = 2;\n}\n\n",
-		schemaNameCamelCase, schemaNameCamelCase))
+	apiTemplateData := bytes.NewBufferString("")
+	apiTmpl, _ := template.New("apiTpl").Parse(proto.ApiTpl)
+	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
+		"infoData":           infoData.String(),
+		"modelName":          ctx.ModelName,
+		"modelNameSpace":     strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
+		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
+		"modelNameSnake":     strcase.ToSnake(ctx.ModelName),
+		"listData":           listData.String(),
+		"apiServiceName":     ctx.ServiceName,
+		"useUUID":            ctx.UseUUID,
+	}))
+	data = apiTemplateData.String()
 
-	// List Request message
-	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
-		schemaNameCamelCase))
-	count := 0
-	index = 3
-
-	for i, v := range schema.Fields {
-		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < g.SearchKeyNum {
-			if i < len(schema.Fields) && count < g.SearchKeyNum {
-				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
-					v.Name, index))
-				index++
-				count++
-			}
-		}
-
-		if i == (len(schema.Fields) - 1) {
-			protoMessage.WriteString("}\n")
-		}
-	}
-
-	// group
-	var groupName string
-	if g.GroupName != "" {
-		groupName = fmt.Sprintf("  // group: %s\n", g.GroupName)
-	} else {
-		groupName = ""
-	}
-
-	protoRpcFunction := bytes.NewBufferString("")
-	protoTmpl, err := template.New("proto").Parse(protoTpl)
-	err = protoTmpl.Execute(protoRpcFunction, map[string]any{
-		"modelName": schema.Name,
-		"groupName": groupName,
-		"useUUID":   g.UseUUID,
-		"hasStatus": hasStatus,
-	})
-
-	if err != nil {
-		logx.Error(err)
-		return "", "", err
-	}
-
-	return protoMessage.String(), protoRpcFunction.String(), nil
+	return data, nil
 }

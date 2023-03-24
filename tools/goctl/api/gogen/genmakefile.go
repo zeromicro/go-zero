@@ -9,7 +9,7 @@ import (
 //go:embed makefile.tpl
 var makefileTemplate string
 
-func genMakefile(dir string, api *spec.ApiSpec) error {
+func genMakefile(dir string, api *spec.ApiSpec, g *GenContext) error {
 	service := api.Service
 
 	return genFile(fileGenConfig{
@@ -20,8 +20,9 @@ func genMakefile(dir string, api *spec.ApiSpec) error {
 		category:        category,
 		templateFile:    makefileTemplateFile,
 		builtinTemplate: makefileTemplate,
-		data: map[string]string{
+		data: map[string]any{
 			"serviceName": service.Name,
+			"useEnt":      g.UseEnt,
 		},
 	})
 }

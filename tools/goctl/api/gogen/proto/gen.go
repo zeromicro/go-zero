@@ -362,7 +362,7 @@ func GenApiData(ctx *GenLogicByProtoContext, p *parser.Proto) (string, error) {
 	}
 
 	apiTemplateData := bytes.NewBufferString("")
-	apiTmpl, _ := template.New("apiTpl").Parse(apiTpl)
+	apiTmpl, _ := template.New("apiTpl").Parse(ApiTpl)
 	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
 		"infoData":           infoData.String(),
 		"modelName":          ctx.ModelName,

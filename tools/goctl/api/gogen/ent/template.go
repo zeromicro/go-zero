@@ -19,7 +19,4 @@ var (
 
 	//go:embed deleteLogic.tpl
 	deleteLogicTpl string
-
-	//go:embed proto.tpl
-	protoTpl string
 )

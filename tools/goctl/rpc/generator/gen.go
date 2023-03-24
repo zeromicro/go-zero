@@ -2,18 +2,15 @@ package generator
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"runtime"
-
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
-	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
 	proto2 "github.com/zeromicro/go-zero/tools/goctl/rpc/generator/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
+	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"os"
+	"path/filepath"
 )
 
 type ZRpcContext struct {
@@ -217,12 +214,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		paginationTplPath := filepath.Join(abs, "ent", "template", "pagination.tmpl")
 		notEmptyTplPath := filepath.Join(abs, "ent", "template", "not_empty_update.tmpl")
 		if !pathx.FileExists(paginationTplPath) {
-			err = os.WriteFile(paginationTplPath, []byte(ent.PaginationTpl), os.ModePerm)
+			err = os.WriteFile(paginationTplPath, []byte(enttemplate.PaginationTpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(notEmptyTplPath, []byte(ent.NotEmptyTpl), os.ModePerm)
+			err = os.WriteFile(notEmptyTplPath, []byte(enttemplate.NotEmptyTpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
@@ -238,13 +235,6 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		err = g.GenEntTx(dirCtx, proto, g.cfg, zctx)
 		if err != nil {
 			return err
-		}
-
-		if runtime.GOOS == vars.OsLinux {
-			_, err = execx.Run("make gen-rpc", abs)
-			if err != nil {
-				return err
-			}
 		}
 	}
 

@@ -27,3 +27,13 @@ serve-swagger:
 	lsof -i:36666 | awk 'NR!=1 {print $2}' | xargs killall -9 || true
 	swagger serve -F=swagger --port 36666 {{.serviceName}}.yml
 	@printf $(GREEN)"[SUCCESS] serve swagger-ui successfully"
+
+{{if .useEnt}}
+gen-ent:
+	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema
+	@printf $(GREEN)"[SUCCESS] generate ent successfully"
+
+gen-api-ent-logic:
+	goctls api ent --schema=./ent/schema --api_service_name={{.serviceName}} --o=./ --model=$(model) --group=$(group)
+	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"
+{{end}}

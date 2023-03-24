@@ -86,8 +86,8 @@ type UUIDsReq {
     Ids []string `json:"ids"`
 }
 
-// The base response data | 基础信息
-type BaseInfo {
+// The base ID response data | 基础ID信息
+type BaseIDInfo {
     // ID
     Id        uint64    `json:"id"`
 
@@ -98,7 +98,7 @@ type BaseInfo {
     UpdatedAt int64     `json:"updatedAt,optional"`
 }
 
-// The base UUID response data | 基础信息
+// The base UUID response data | 基础UUID信息
 type BaseUUIDInfo {
     // ID
     Id        string    `json:"id"`

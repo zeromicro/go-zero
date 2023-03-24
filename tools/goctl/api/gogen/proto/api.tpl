@@ -3,7 +3,7 @@ import "base.api"
 type (
     // The response data of {{.modelNameSpace}} information | {{.modelName}}信息
     {{.modelName}}Info {
-        Base{{if .useUUID}}UUID{{end}}Info{{.infoData}}
+        Base{{if .useUUID}}UU{{end}}IDInfo{{.infoData}}
     }
 
     // The response data of {{.modelNameSpace}} list | {{.modelName}}列表数据

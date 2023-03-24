@@ -36,11 +36,6 @@ func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config, 
 		return err
 	}
 
-	//projectCtx, err := ctx2.Prepare(ctx.GetMain().Base)
-	//if err != nil {
-	//	return err
-	//}
-
 	return util.With("config").GoFmt(true).Parse(text).SaveTo(map[string]any{
 		"imports":   fmt.Sprintf(`"%v"`, ctx.GetConfig().Package),
 		"isEnt":     c.Ent,

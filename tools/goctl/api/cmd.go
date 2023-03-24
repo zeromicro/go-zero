@@ -2,7 +2,6 @@ package api
 
 import (
 	"github.com/spf13/cobra"
-
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -94,6 +93,12 @@ var (
 		Short: "Generate CRUD template from proto file",
 		RunE:  gogen.GenCRUDLogicByProto,
 	}
+
+	entCmd = &cobra.Command{
+		Use:   "ent",
+		Short: "Generate CRUD logic files from ent file",
+		RunE:  gogen.GenCRUDLogicByEnt,
+	}
 )
 
 func init() {
@@ -170,6 +175,7 @@ func init() {
 	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "trans_err", false, "Whether to translate the error")
 	newCmd.Flags().IntVar(&new.VarIntServicePort, "port", 9100, "The service port exposed")
 	newCmd.Flags().BoolVar(&new.VarBoolGitlab, "gitlab", false, "Whether to use gitlab CI/CD")
+	newCmd.Flags().BoolVar(&new.VarBoolEnt, "ent", false, "Whether to use Ent in API service")
 
 	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
 	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")
@@ -198,6 +204,17 @@ func init() {
 	protoCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
 	protoCmd.Flags().BoolVar(&gogen.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
 
+	entCmd.Flags().StringVar(&gogen.VarStringSchema, "schema", "", "The schema path of the Ent")
+	entCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
+	entCmd.Flags().StringVar(&gogen.VarStringAPIServiceName, "api_service_name", "", "The API service name")
+	entCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
+	entCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
+		"if it is empty, generate codes for all models in schema directory")
+	entCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
+	entCmd.Flags().StringVar(&gogen.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
+	entCmd.Flags().BoolVar(&gogen.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
+	entCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
+
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)
 	Cmd.AddCommand(docCmd)
@@ -210,4 +227,5 @@ func init() {
 	Cmd.AddCommand(tsCmd)
 	Cmd.AddCommand(validateCmd)
 	Cmd.AddCommand(protoCmd)
+	Cmd.AddCommand(entCmd)
 }

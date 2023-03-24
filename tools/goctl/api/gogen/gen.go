@@ -3,6 +3,10 @@ package gogen
 import (
 	"errors"
 	"fmt"
+	"github.com/iancoleman/strcase"
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 	"os"
 	"path"
 	"path/filepath"
@@ -29,7 +33,7 @@ import (
 const tmpFile = "%s-%d"
 
 var (
-	tmpDir = path.Join(os.TempDir(), "goctl")
+	tmpDir = path.Join(os.TempDir(), "goctls")
 	// VarStringDir describes the directory.
 	VarStringDir string
 	// VarStringAPI describes the API.
@@ -70,6 +74,10 @@ var (
 	VarStringJSONStyle string
 	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
 	VarBoolOverwrite bool
+	// VarStringSchema describes the ent schema path
+	VarStringSchema string
+	// VarStringGroupName describes whether to use group
+	VarStringGroupName string
 )
 
 // GoCommand gen go project files from command line
@@ -120,10 +128,13 @@ type GenContext struct {
 	UseGitlab     bool
 	UseMakefile   bool
 	UseDockerfile bool
+	UseEnt        bool
 }
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, g *GenContext) error {
+	console.NewColorConsole(true).Info("Generating...")
+
 	api, err := parser.Parse(apiFile)
 	if err != nil {
 		return err
@@ -166,7 +177,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	if g.UseMakefile {
-		logx.Must(genMakefile(dir, api))
+		logx.Must(genMakefile(dir, api, g))
 	}
 
 	if g.UseCasbin {
@@ -175,6 +186,55 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 
 	if g.UseI18n {
 		logx.Must(genI18n(dir))
+	}
+
+	if g.UseEnt {
+		_, err := execx.Run(fmt.Sprintf("go run -mod=mod entgo.io/ent/cmd/ent new %s",
+			strcase.ToCamel(api.Service.Name)), dir)
+		if err != nil {
+			return err
+		}
+
+		_, err = execx.Run("go mod tidy", dir)
+		if err != nil {
+			return err
+		}
+
+		_, err = execx.Run("go run -mod=mod entgo.io/ent/cmd/ent generate ./ent/schema", dir)
+		if err != nil {
+			return err
+		}
+
+		err = pathx.MkdirIfNotExist(filepath.Join(dir, "ent", "template"))
+		if err != nil {
+			return err
+		}
+
+		paginationTplPath := filepath.Join(dir, "ent", "template", "pagination.tmpl")
+		notEmptyTplPath := filepath.Join(dir, "ent", "template", "not_empty_update.tmpl")
+		if !pathx.FileExists(paginationTplPath) {
+			err = os.WriteFile(paginationTplPath, []byte(enttemplate.PaginationTpl), os.ModePerm)
+			if err != nil {
+				return err
+			}
+
+			err = os.WriteFile(notEmptyTplPath, []byte(enttemplate.NotEmptyTpl), os.ModePerm)
+			if err != nil {
+				return err
+			}
+		}
+
+		// gen ent error handler
+		err = GenErrorHandler(dir, style, rootPkg)
+		if err != nil {
+			return err
+		}
+
+		// gen ent transaction util
+		err = GenEntTx(dir, style, rootPkg)
+		if err != nil {
+			return err
+		}
 	}
 
 	if g.GoZeroVersion != "" && g.ToolVersion != "" {
@@ -257,7 +317,7 @@ func sweep() error {
 	})
 }
 
-func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
+func GenCRUDLogicByProto(_ *cobra.Command, _ []string) error {
 	params := &proto.GenLogicByProtoContext{
 		ProtoDir:       VarStringProto,
 		OutputDir:      VarStringOutput,
@@ -279,6 +339,32 @@ func GenCRUDLogicByProto(_ *cobra.Command, args []string) error {
 	}
 
 	err = proto.GenLogicByProto(params)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func GenCRUDLogicByEnt(_ *cobra.Command, _ []string) error {
+	params := &ent.GenEntLogicContext{
+		Schema:       VarStringSchema,
+		Output:       VarStringOutput,
+		ServiceName:  VarStringAPIServiceName,
+		Style:        VarStringStyle,
+		ModelName:    VarStringModelName,
+		SearchKeyNum: VarIntSearchKeyNum,
+		GroupName:    VarStringGroupName,
+		JSONStyle:    VarStringJSONStyle,
+		Overwrite:    VarBoolOverwrite,
+	}
+
+	err := params.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = ent.GenEntLogic(params)
 	if err != nil {
 		return err
 	}

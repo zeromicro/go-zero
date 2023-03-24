@@ -17,6 +17,7 @@ package new
 import (
 	_ "embed"
 	"errors"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"html/template"
 	"os"
 	"path/filepath"
@@ -55,10 +56,14 @@ var (
 	VarIntServicePort int
 	// VarBoolGitlab describes whether to use gitlab-ci
 	VarBoolGitlab bool
+	// VarBoolEnt describes whether to use ent in api
+	VarBoolEnt bool
 )
 
 // CreateServiceCommand fast create service
 func CreateServiceCommand(args []string) error {
+	console.NewColorConsole(true).Info("Generating...")
+
 	dirName := args[0]
 	if len(VarStringStyle) == 0 {
 		VarStringStyle = conf.DefaultFormat
@@ -106,7 +111,7 @@ func CreateServiceCommand(args []string) error {
 	}
 	defer baseApiFile.Close()
 
-	t := template.Must(template.New("template").Parse(text))
+	t := template.Must(template.New("baseApiTemplate").Parse(text))
 	if err := t.Execute(baseApiFile, map[string]string{
 		"name": dirName,
 	}); err != nil {
@@ -137,6 +142,7 @@ func CreateServiceCommand(args []string) error {
 		UseGitlab:     VarBoolGitlab,
 		UseMakefile:   true,
 		UseDockerfile: true,
+		UseEnt:        VarBoolEnt,
 	}
 
 	err = gogen.DoGenProject(apiFilePath, abs, VarStringStyle, genCtx)

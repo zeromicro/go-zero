@@ -21,5 +21,5 @@ var (
 	deleteLogicTpl string
 
 	//go:embed api.tpl
-	apiTpl string
+	ApiTpl string
 )
