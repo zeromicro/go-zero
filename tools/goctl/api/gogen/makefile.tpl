@@ -34,6 +34,6 @@ gen-ent:
 	@printf $(GREEN)"[SUCCESS] generate ent successfully"
 
 gen-api-ent-logic:
-	goctls api ent --schema=./ent/schema --api_service_name={{.serviceName}} --o=./ --model=$(model) --group=$(group)
+	goctls api ent --schema=./ent/schema --api_service_name={{.serviceName}} --o=./ --model=$(model) --group=$(group) --overwrite=true
 	@printf $(GREEN)"[SUCCESS] generate ent logic codes successfully"
 {{end}}
