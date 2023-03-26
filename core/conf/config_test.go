@@ -124,6 +124,24 @@ d = "abcd"
 	}
 }
 
+func TestConfigWithLower(t *testing.T) {
+	text := `a = "foo"
+b = 1
+`
+	tmpfile, err := createTempFile(".toml", text)
+	assert.Nil(t, err)
+	defer os.Remove(tmpfile)
+
+	var val struct {
+		A string `json:"a"`
+		b int
+	}
+	if assert.NoError(t, Load(tmpfile, &val)) {
+		assert.Equal(t, "foo", val.A)
+		assert.Equal(t, 0, val.b)
+	}
+}
+
 func TestConfigJsonCanonical(t *testing.T) {
 	text := []byte(`{"a": "foo", "B": "bar"}`)
 

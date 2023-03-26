@@ -81,7 +81,7 @@ func (pe *PeriodicalExecutor) Flush() bool {
 	}())
 }
 
-// Sync lets caller to run fn thread-safe with pe, especially for the underlying container.
+// Sync lets caller run fn thread-safe with pe, especially for the underlying container.
 func (pe *PeriodicalExecutor) Sync(fn func()) {
 	pe.lock.Lock()
 	defer pe.lock.Unlock()
