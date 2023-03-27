@@ -22,7 +22,7 @@ const (
 )
 
 var emptyLruCache = emptyLru{}
-var typeConvertError = errors.New("type convert error")
+var ErrTypeConvert = errors.New("type convert error")
 
 type (
 	// CacheOption defines the method to customize a Cache.
@@ -150,7 +150,7 @@ func (c *Cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	if err != nil {
 		return val, err
 	} else if val, typeConvertFlag = _val.(T); !typeConvertFlag {
-		return val, typeConvertError
+		return val, ErrTypeConvert
 	}
 
 	if fresh {
