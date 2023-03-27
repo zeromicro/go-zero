@@ -26,10 +26,11 @@ var ErrTypeConvert = errors.New("type convert error")
 
 type (
 	// CacheOption defines the method to customize a Cache.
-	CacheOption[T any] func(cache *Cache[T])
+	CacheOption = cacheOption[any]
 
-	// A Cache object is an in-memory cache.
-	Cache[T any] struct {
+	cacheOption[T any] func(cache *cache[T])
+	// A cache object is an in-memory cache which is limited by generic.
+	cache[T any] struct {
 		name           string
 		lock           sync.Mutex
 		data           map[string]T
@@ -40,11 +41,13 @@ type (
 		unstableExpiry mathx.Unstable
 		stats          *cacheStat
 	}
+
+	Cache = cache[any]
 )
 
-// NewCache returns a Cache with given expire.
-func NewCache[T any](expire time.Duration, opts ...CacheOption[T]) (*Cache[T], error) {
-	cache := &Cache[T]{
+// NewBaseCache returns a cache[T] with given expire.
+func NewBaseCache[T any](expire time.Duration, opts ...cacheOption[T]) (*cache[T], error) {
+	cache := &cache[T]{
 		data:           make(map[string]T),
 		expire:         expire,
 		lruCache:       emptyLruCache,
@@ -77,8 +80,42 @@ func NewCache[T any](expire time.Duration, opts ...CacheOption[T]) (*Cache[T], e
 	return cache, nil
 }
 
+func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
+	cache := &Cache{
+		data:           make(map[string]any),
+		expire:         expire,
+		lruCache:       emptyLruCache,
+		barrier:        syncx.NewSingleFlight(),
+		unstableExpiry: mathx.NewUnstable(expiryDeviation),
+	}
+
+	for _, opt := range opts {
+		opt(cache)
+	}
+
+	if len(cache.name) == 0 {
+		cache.name = defaultCacheName
+	}
+	cache.stats = newCacheStat(cache.name, cache.size)
+
+	timingWheel, err := NewTimingWheel(time.Second, slots, func(k, v any) {
+		key, ok := k.(string)
+		if !ok {
+			return
+		}
+
+		cache.Del(key)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	cache.timingWheel = timingWheel
+	return cache, nil
+}
+
 // Del deletes the item with the given key from c.
-func (c *Cache[T]) Del(key string) {
+func (c *cache[T]) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
 	c.lruCache.remove(key)
@@ -87,7 +124,7 @@ func (c *Cache[T]) Del(key string) {
 }
 
 // Get returns the item with the given key from c.
-func (c *Cache[T]) Get(key string) (any, bool) {
+func (c *cache[T]) Get(key string) (any, bool) {
 	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
@@ -99,12 +136,12 @@ func (c *Cache[T]) Get(key string) (any, bool) {
 }
 
 // Set sets value into c with key.
-func (c *Cache[T]) Set(key string, value T) {
+func (c *cache[T]) Set(key string, value T) {
 	c.SetWithExpire(key, value, c.expire)
 }
 
 // SetWithExpire sets value into c with key and expire with the given value.
-func (c *Cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
+func (c *cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
@@ -122,7 +159,7 @@ func (c *Cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
 // Take returns the item with the given key.
 // If the item is in c, return it directly.
 // If not, use fetch method to get the item, set into c and return it.
-func (c *Cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
+func (c *cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	if val, ok := c.doGet(key); ok {
 		c.stats.IncrementHit()
 		return val, nil
@@ -163,7 +200,7 @@ func (c *Cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	return val, nil
 }
 
-func (c *Cache[T]) doGet(key string) (T, bool) {
+func (c *cache[T]) doGet(key string) (T, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -175,32 +212,40 @@ func (c *Cache[T]) doGet(key string) (T, bool) {
 	return value, ok
 }
 
-func (c *Cache[T]) onEvict(key string) {
+func (c *cache[T]) onEvict(key string) {
 	// already locked
 	delete(c.data, key)
 	c.timingWheel.RemoveTimer(key)
 }
 
-func (c *Cache[T]) size() int {
+func (c *cache[T]) size() int {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	return len(c.data)
 }
 
-// WithLimit customizes a Cache with items up to limit.
-func WithLimit[T any](limit int) CacheOption[T] {
-	return func(cache *Cache[T]) {
+func WithBaseLimit[T any](limit int) cacheOption[T] {
+	return func(cache *cache[T]) {
 		if limit > 0 {
 			cache.lruCache = newKeyLru(limit, cache.onEvict)
 		}
 	}
 }
 
-// WithName customizes a Cache with the given name.
-func WithName[T any](name string) CacheOption[T] {
-	return func(cache *Cache[T]) {
+// WithLimit customizes a Cache with items up to limit.
+func WithLimit(limit int) CacheOption {
+	return WithBaseLimit[any](limit)
+}
+
+func WithBaseName[T any](name string) cacheOption[T] {
+	return func(cache *cache[T]) {
 		cache.name = name
 	}
+}
+
+// WithName customizes a Cache with the given name.
+func WithName(name string) CacheOption {
+	return WithBaseName[any](name)
 }
 
 type (
