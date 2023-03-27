@@ -3,7 +3,6 @@ package collection
 import (
 	"container/list"
 	"errors"
-	"go/types"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -25,15 +24,12 @@ const (
 var emptyLruCache = emptyLru{}
 var typeConvertError = errors.New("type convert error")
 
-type nullableAny interface {
-	any | types.Nil
-}
 type (
 	// CacheOption defines the method to customize a Cache.
-	CacheOption[T nullableAny] func(cache *Cache[T])
+	CacheOption[T any] func(cache *Cache[T])
 
 	// A Cache object is an in-memory cache.
-	Cache[T nullableAny] struct {
+	Cache[T any] struct {
 		name           string
 		lock           sync.Mutex
 		data           map[string]T
@@ -47,7 +43,7 @@ type (
 )
 
 // NewCache returns a Cache with given expire.
-func NewCache[T nullableAny](expire time.Duration, opts ...CacheOption[T]) (*Cache[T], error) {
+func NewCache[T any](expire time.Duration, opts ...CacheOption[T]) (*Cache[T], error) {
 	cache := &Cache[T]{
 		data:           make(map[string]T),
 		expire:         expire,
@@ -192,7 +188,7 @@ func (c *Cache[T]) size() int {
 }
 
 // WithLimit customizes a Cache with items up to limit.
-func WithLimit[T nullableAny](limit int) CacheOption[T] {
+func WithLimit[T any](limit int) CacheOption[T] {
 	return func(cache *Cache[T]) {
 		if limit > 0 {
 			cache.lruCache = newKeyLru(limit, cache.onEvict)
@@ -201,7 +197,7 @@ func WithLimit[T nullableAny](limit int) CacheOption[T] {
 }
 
 // WithName customizes a Cache with the given name.
-func WithName[T nullableAny](name string) CacheOption[T] {
+func WithName[T any](name string) CacheOption[T] {
 	return func(cache *Cache[T]) {
 		cache.name = name
 	}
