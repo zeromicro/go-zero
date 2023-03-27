@@ -1789,8 +1789,8 @@ func TestSetSlowThreshold(t *testing.T) {
 
 func TestRedis_WithPass(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		err := New(client.Addr, WithPass("any")).Ping()
-		assert.NotNil(t, err)
+		ok := New(client.Addr, WithPass("any")).Ping()
+		assert.True(t, ok)
 	})
 }
 
@@ -1821,7 +1821,7 @@ func runOnRedisTLS(t *testing.T, fn func(client *Redis)) {
 	})
 	assert.Nil(t, err)
 	defer func() {
-		client, err := clientManager.GetResource(s.Addr(), func() (io.Closer, error) {
+		client, err := defaultClientManager.ResourceManager.GetResource(s.Addr(), func() (io.Closer, error) {
 			return nil, errors.New("should already exist")
 		})
 		if err != nil {
@@ -1846,4 +1846,37 @@ type mockedNode struct {
 
 func (n mockedNode) BLPop(_ context.Context, _ time.Duration, _ ...string) *red.StringSliceCmd {
 	return red.NewStringSliceCmd(context.Background(), "foo", "bar")
+}
+
+func TestRedis_WithClientManager(t *testing.T) {
+	clientManager := NewClientManager(1)
+	runOnRedis(t, func(client *Redis) {
+		assert.Nil(t, client.Set("a", "b"))
+
+		rds, err := NewRedis(RedisConf{
+			Host: client.Addr,
+			Type: NodeType,
+		}, WithClientManager(clientManager))
+		assert.NoError(t, err)
+		assert.True(t, rds.Ping())
+		assert.Nil(t, rds.Set("a", "c"))
+
+		result1, err := client.Get("a")
+		assert.NoError(t, err)
+		assert.Equal(t, "b", result1)
+
+		result2, err := rds.Get("a")
+		assert.NoError(t, err)
+		assert.Equal(t, "c", result2)
+	})
+}
+
+func TestRedis_WithClientManagerEmpty(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		_, err := NewRedis(RedisConf{
+			Host: client.Addr,
+			Type: NodeType,
+		}, WithClientManager(nil))
+		assert.ErrorIs(t, err, ErrEmptyClientManager)
+	})
 }

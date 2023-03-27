@@ -14,10 +14,26 @@ const (
 	idleConns       = 8
 )
 
-var clientManager = syncx.NewResourceManager()
+type ClientManager interface {
+	GetClient(r *Redis) (*red.Client, error)
+}
 
-func getClient(r *Redis) (*red.Client, error) {
-	val, err := clientManager.GetResource(r.Addr, func() (io.Closer, error) {
+type clientManager struct {
+	*syncx.ResourceManager
+	Database int
+}
+
+var defaultClientManager = NewClientManager(defaultDatabase)
+
+func NewClientManager(database int) *clientManager {
+	return &clientManager{
+		ResourceManager: syncx.NewResourceManager(),
+		Database:        database,
+	}
+}
+
+func (c *clientManager) GetClient(r *Redis) (*red.Client, error) {
+	val, err := c.GetResource(r.Addr, func() (io.Closer, error) {
 		var tlsConfig *tls.Config
 		if r.tls {
 			tlsConfig = &tls.Config{
@@ -27,7 +43,7 @@ func getClient(r *Redis) (*red.Client, error) {
 		store := red.NewClient(&red.Options{
 			Addr:         r.Addr,
 			Password:     r.Pass,
-			DB:           defaultDatabase,
+			DB:           c.Database,
 			MaxRetries:   maxRetries,
 			MinIdleConns: idleConns,
 			TLSConfig:    tlsConfig,
