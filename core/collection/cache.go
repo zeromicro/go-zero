@@ -2,6 +2,8 @@ package collection
 
 import (
 	"container/list"
+	"errors"
+	"go/types"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -21,16 +23,20 @@ const (
 )
 
 var emptyLruCache = emptyLru{}
+var typeConvertError = errors.New("type convert error")
 
+type nullableAny interface {
+	any | types.Nil
+}
 type (
 	// CacheOption defines the method to customize a Cache.
-	CacheOption func(cache *Cache)
+	CacheOption[T nullableAny] func(cache *Cache[T])
 
 	// A Cache object is an in-memory cache.
-	Cache struct {
+	Cache[T nullableAny] struct {
 		name           string
 		lock           sync.Mutex
-		data           map[string]any
+		data           map[string]T
 		expire         time.Duration
 		timingWheel    *TimingWheel
 		lruCache       lru
@@ -41,9 +47,9 @@ type (
 )
 
 // NewCache returns a Cache with given expire.
-func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
-	cache := &Cache{
-		data:           make(map[string]any),
+func NewCache[T nullableAny](expire time.Duration, opts ...CacheOption[T]) (*Cache[T], error) {
+	cache := &Cache[T]{
+		data:           make(map[string]T),
 		expire:         expire,
 		lruCache:       emptyLruCache,
 		barrier:        syncx.NewSingleFlight(),
@@ -76,7 +82,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 }
 
 // Del deletes the item with the given key from c.
-func (c *Cache) Del(key string) {
+func (c *Cache[T]) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
 	c.lruCache.remove(key)
@@ -85,7 +91,7 @@ func (c *Cache) Del(key string) {
 }
 
 // Get returns the item with the given key from c.
-func (c *Cache) Get(key string) (any, bool) {
+func (c *Cache[T]) Get(key string) (any, bool) {
 	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
@@ -97,12 +103,12 @@ func (c *Cache) Get(key string) (any, bool) {
 }
 
 // Set sets value into c with key.
-func (c *Cache) Set(key string, value any) {
+func (c *Cache[T]) Set(key string, value T) {
 	c.SetWithExpire(key, value, c.expire)
 }
 
 // SetWithExpire sets value into c with key and expire with the given value.
-func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
+func (c *Cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
@@ -120,14 +126,16 @@ func (c *Cache) SetWithExpire(key string, value any, expire time.Duration) {
 // Take returns the item with the given key.
 // If the item is in c, return it directly.
 // If not, use fetch method to get the item, set into c and return it.
-func (c *Cache) Take(key string, fetch func() (any, error)) (any, error) {
+func (c *Cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	if val, ok := c.doGet(key); ok {
 		c.stats.IncrementHit()
 		return val, nil
 	}
 
 	var fresh bool
-	val, err := c.barrier.Do(key, func() (any, error) {
+	var val T
+	var typeConvertFlag bool
+	_val, err := c.barrier.Do(key, func() (any, error) {
 		// because O(1) on map search in memory, and fetch is an IO query
 		// so we do double check, cache might be taken by another call
 		if val, ok := c.doGet(key); ok {
@@ -144,7 +152,9 @@ func (c *Cache) Take(key string, fetch func() (any, error)) (any, error) {
 		return v, nil
 	})
 	if err != nil {
-		return nil, err
+		return val, err
+	} else if val, typeConvertFlag = _val.(T); !typeConvertFlag {
+		return val, typeConvertError
 	}
 
 	if fresh {
@@ -157,7 +167,7 @@ func (c *Cache) Take(key string, fetch func() (any, error)) (any, error) {
 	return val, nil
 }
 
-func (c *Cache) doGet(key string) (any, bool) {
+func (c *Cache[T]) doGet(key string) (T, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -169,21 +179,21 @@ func (c *Cache) doGet(key string) (any, bool) {
 	return value, ok
 }
 
-func (c *Cache) onEvict(key string) {
+func (c *Cache[T]) onEvict(key string) {
 	// already locked
 	delete(c.data, key)
 	c.timingWheel.RemoveTimer(key)
 }
 
-func (c *Cache) size() int {
+func (c *Cache[T]) size() int {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	return len(c.data)
 }
 
 // WithLimit customizes a Cache with items up to limit.
-func WithLimit(limit int) CacheOption {
-	return func(cache *Cache) {
+func WithLimit[T nullableAny](limit int) CacheOption[T] {
+	return func(cache *Cache[T]) {
 		if limit > 0 {
 			cache.lruCache = newKeyLru(limit, cache.onEvict)
 		}
@@ -191,8 +201,8 @@ func WithLimit(limit int) CacheOption {
 }
 
 // WithName customizes a Cache with the given name.
-func WithName(name string) CacheOption {
-	return func(cache *Cache) {
+func WithName[T nullableAny](name string) CacheOption[T] {
+	return func(cache *Cache[T]) {
 		cache.name = name
 	}
 }
