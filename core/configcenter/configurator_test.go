@@ -63,6 +63,10 @@ func TestConfigCenter_onChange(t *testing.T) {
 	data, err = c1.GetConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, "go-zero2", data.Name)
+
+	mock.valErr = errors.New("mock error")
+	_, err = NewConfigCenter[Data](Config{Type: "json", Log: false}, mock)
+	assert.Error(t, err)
 }
 
 func TestConfigCenter_Value(t *testing.T) {
