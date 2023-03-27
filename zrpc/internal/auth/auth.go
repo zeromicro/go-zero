@@ -17,7 +17,7 @@ const defaultExpiration = 5 * time.Minute
 type Authenticator struct {
 	store  *redis.Redis
 	key    string
-	cache  *collection.Cache[string]
+	cache  *collection.Cache
 	strict bool
 }
 
@@ -57,7 +57,7 @@ func (a *Authenticator) Authenticate(ctx context.Context) error {
 }
 
 func (a *Authenticator) validate(app, token string) error {
-	expect, err := a.cache.Take(app, func() (string, error) {
+	expect, err := a.cache.Take(app, func() (any, error) {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {
