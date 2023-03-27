@@ -26,11 +26,11 @@ var ErrTypeConvert = errors.New("type convert error")
 
 type (
 	// CacheOption defines the method to customize a Cache.
-	CacheOption = cacheOption[any]
+	CacheOption = GcacheOption[any]
 
-	cacheOption[T any] func(cache *cache[T])
-	// A cache object is an in-memory cache which is limited by generic.
-	cache[T any] struct {
+	GcacheOption[T any] func(cache *Gcache[T])
+	// A Gcache object is an in-memory cache which is limited by generic.
+	Gcache[T any] struct {
 		name           string
 		lock           sync.Mutex
 		data           map[string]T
@@ -42,12 +42,12 @@ type (
 		stats          *cacheStat
 	}
 
-	Cache = cache[any]
+	Cache = Gcache[any]
 )
 
 // NewBaseCache returns a cache[T] with given expire.
-func NewBaseCache[T any](expire time.Duration, opts ...cacheOption[T]) (*cache[T], error) {
-	cache := &cache[T]{
+func NewBaseCache[T any](expire time.Duration, opts ...GcacheOption[T]) (*Gcache[T], error) {
+	cache := &Gcache[T]{
 		data:           make(map[string]T),
 		expire:         expire,
 		lruCache:       emptyLruCache,
@@ -115,7 +115,7 @@ func NewCache(expire time.Duration, opts ...CacheOption) (*Cache, error) {
 }
 
 // Del deletes the item with the given key from c.
-func (c *cache[T]) Del(key string) {
+func (c *Gcache[T]) Del(key string) {
 	c.lock.Lock()
 	delete(c.data, key)
 	c.lruCache.remove(key)
@@ -124,7 +124,7 @@ func (c *cache[T]) Del(key string) {
 }
 
 // Get returns the item with the given key from c.
-func (c *cache[T]) Get(key string) (any, bool) {
+func (c *Gcache[T]) Get(key string) (T, bool) {
 	value, ok := c.doGet(key)
 	if ok {
 		c.stats.IncrementHit()
@@ -136,12 +136,12 @@ func (c *cache[T]) Get(key string) (any, bool) {
 }
 
 // Set sets value into c with key.
-func (c *cache[T]) Set(key string, value T) {
+func (c *Gcache[T]) Set(key string, value T) {
 	c.SetWithExpire(key, value, c.expire)
 }
 
 // SetWithExpire sets value into c with key and expire with the given value.
-func (c *cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
+func (c *Gcache[T]) SetWithExpire(key string, value T, expire time.Duration) {
 	c.lock.Lock()
 	_, ok := c.data[key]
 	c.data[key] = value
@@ -159,7 +159,7 @@ func (c *cache[T]) SetWithExpire(key string, value T, expire time.Duration) {
 // Take returns the item with the given key.
 // If the item is in c, return it directly.
 // If not, use fetch method to get the item, set into c and return it.
-func (c *cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
+func (c *Gcache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	if val, ok := c.doGet(key); ok {
 		c.stats.IncrementHit()
 		return val, nil
@@ -200,7 +200,7 @@ func (c *cache[T]) Take(key string, fetch func() (T, error)) (T, error) {
 	return val, nil
 }
 
-func (c *cache[T]) doGet(key string) (T, bool) {
+func (c *Gcache[T]) doGet(key string) (T, bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -212,20 +212,20 @@ func (c *cache[T]) doGet(key string) (T, bool) {
 	return value, ok
 }
 
-func (c *cache[T]) onEvict(key string) {
+func (c *Gcache[T]) onEvict(key string) {
 	// already locked
 	delete(c.data, key)
 	c.timingWheel.RemoveTimer(key)
 }
 
-func (c *cache[T]) size() int {
+func (c *Gcache[T]) size() int {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	return len(c.data)
 }
 
-func WithBaseLimit[T any](limit int) cacheOption[T] {
-	return func(cache *cache[T]) {
+func WithBaseLimit[T any](limit int) GcacheOption[T] {
+	return func(cache *Gcache[T]) {
 		if limit > 0 {
 			cache.lruCache = newKeyLru(limit, cache.onEvict)
 		}
@@ -237,8 +237,8 @@ func WithLimit(limit int) CacheOption {
 	return WithBaseLimit[any](limit)
 }
 
-func WithBaseName[T any](name string) cacheOption[T] {
-	return func(cache *cache[T]) {
+func WithBaseName[T any](name string) GcacheOption[T] {
+	return func(cache *Gcache[T]) {
 		cache.name = name
 	}
 }
