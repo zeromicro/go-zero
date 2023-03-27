@@ -17,13 +17,13 @@ const defaultExpiration = 5 * time.Minute
 type Authenticator struct {
 	store  *redis.Redis
 	key    string
-	cache  *collection.Cache
+	cache  *collection.Cache[string]
 	strict bool
 }
 
 // NewAuthenticator returns an Authenticator.
 func NewAuthenticator(store *redis.Redis, key string, strict bool) (*Authenticator, error) {
-	cache, err := collection.NewCache(defaultExpiration)
+	cache, err := collection.NewCache[string](defaultExpiration)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (a *Authenticator) Authenticate(ctx context.Context) error {
 }
 
 func (a *Authenticator) validate(app, token string) error {
-	expect, err := a.cache.Take(app, func() (any, error) {
+	expect, err := a.cache.Take(app, func() (string, error) {
 		return a.store.Hget(a.key, app)
 	})
 	if err != nil {
