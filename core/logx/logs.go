@@ -263,6 +263,8 @@ func SetUp(c LogConf) (err error) {
 			err = setupWithFiles(c)
 		case volumeMode:
 			err = setupWithVolume(c)
+		case customMode:
+			log.Println("logx uses custom mode and you need to pass in the logx.SetWriter() yourself")
 		default:
 			setupWithConsole()
 		}
