@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 
 	"github.com/zeromicro/go-zero/core/mapping"
+	"github.com/zeromicro/go-zero/core/validation"
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
 	"github.com/zeromicro/go-zero/rest/internal/header"
 	"github.com/zeromicro/go-zero/rest/pathvar"
@@ -51,7 +52,9 @@ func Parse(r *http.Request, v any) error {
 		return err
 	}
 
-	if val := validator.Load(); val != nil {
+	if valid, ok := v.(validation.Validator); ok {
+		return valid.Validate()
+	} else if val := validator.Load(); val != nil {
 		return val.(Validator).Validate(r, v)
 	}
 
