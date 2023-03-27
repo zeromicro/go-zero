@@ -2,6 +2,7 @@ package configurator
 
 import (
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -89,11 +90,16 @@ func TestConfigCenter_AddListener(t *testing.T) {
 
 	cc := c.(*configCenter[any])
 	var a, b int
+	var mutex sync.Mutex
 	cc.AddListener(func() {
+		mutex.Lock()
 		a = 1
+		mutex.Unlock()
 	})
 	cc.AddListener(func() {
+		mutex.Lock()
 		b = 2
+		mutex.Unlock()
 	})
 
 	assert.Equal(t, 2, len(cc.listeners))
@@ -102,8 +108,10 @@ func TestConfigCenter_AddListener(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 100)
 
+	mutex.Lock()
 	assert.Equal(t, 1, a)
 	assert.Equal(t, 2, b)
+	mutex.Unlock()
 }
 
 type mockSubscriber struct {
