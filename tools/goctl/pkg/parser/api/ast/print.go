@@ -63,9 +63,9 @@ type printer struct {
 	output       io.Writer
 	filter       FieldFilter
 	ptrmap       map[interface{}]int // *T -> line number
-	prefixIndent int         // current indentation level
-	last         byte        // the last byte processed by Write
-	line         int         // current line number
+	prefixIndent int                 // current indentation level
+	last         byte                // the last byte processed by Write
+	line         int                 // current line number
 }
 
 var prefixIndent = []byte(".  ")
