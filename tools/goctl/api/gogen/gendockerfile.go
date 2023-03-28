@@ -2,6 +2,7 @@ package gogen
 
 import (
 	_ "embed"
+	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 )
@@ -21,8 +22,9 @@ func genDockerfile(dir string, api *spec.ApiSpec, g *GenContext) error {
 		templateFile:    dockerfileTemplateFile,
 		builtinTemplate: dockerfileTemplate,
 		data: map[string]string{
-			"serviceName": service.Name,
+			"serviceName": strings.ToLower(service.Name),
 			"port":        string(g.Port),
+			"imageTag":    "golang:1.20.2-alpine3.17",
 		},
 	})
 }

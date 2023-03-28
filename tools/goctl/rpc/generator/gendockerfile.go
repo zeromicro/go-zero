@@ -26,5 +26,6 @@ func (g *Generator) GenDockerfile(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 	return util.With("dockerfile").Parse(text).SaveTo(map[string]any{
 		"serviceName": ctx.GetServiceName().Lower(),
 		"port":        c.Port,
+		"imageTag":    "golang:1.20.2-alpine3.17",
 	}, fileName, false)
 }
