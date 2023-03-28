@@ -121,6 +121,13 @@ type Foo {
 }
 
 -----
+// test case:  any
+syntax = "v1"
+type Foo {
+    Bar any  `json:"bar"`
+}
+
+-----
 // test case:  unresolved type
 syntax = "v1"
 service example {

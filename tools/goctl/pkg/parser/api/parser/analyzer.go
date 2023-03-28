@@ -35,7 +35,7 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 		}
 		return spec.DefineStruct{RawName: raw}, nil
 	case *ast.AnyDataType:
-		return spec.PrimitiveType{RawName: v.RawText()}, nil
+		return nil, ast.SyntaxError(v.Pos(), "unsupported any type")
 	case *ast.StructDataType:
 		// TODO(keson) feature: can be extended
 	case *ast.InterfaceDataType:

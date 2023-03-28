@@ -18,7 +18,6 @@ type GetFormReq {
 	Name    string   `form:"name"`
 	Age     int      `form:"age"`
 	Hobbits []string `form:"hobbits"`
-	Any     any      `form:"any"`
 }
 
 type GetFormREsp {
