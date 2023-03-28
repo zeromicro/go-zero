@@ -111,3 +111,13 @@ func isGolangKeyword(s string) bool {
 	_, ok := goKeyword[s]
 	return ok
 }
+
+func TrimWhiteSpace(s string) string {
+	r := strings.NewReplacer(" ", "", "\t", "", "\n", "", "\f", "", "\r", "")
+	return r.Replace(s)
+}
+
+func IsEmptyStringOrWhiteSpace(s string) bool {
+	v := TrimWhiteSpace(s)
+	return len(v) == 0
+}

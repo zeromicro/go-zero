@@ -8,6 +8,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser/g4/gen/api"
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	apiParser "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 type parser struct {
@@ -17,6 +19,10 @@ type parser struct {
 
 // Parse parses the api file
 func Parse(filename string) (*spec.ApiSpec, error) {
+	if env.UseExperimental() {
+		return apiParser.Parse(filename, "")
+	}
+
 	astParser := ast.NewParser(ast.WithParserPrefix(filepath.Base(filename)), ast.WithParserDebug())
 	parsedApi, err := astParser.Parse(filename)
 	if err != nil {

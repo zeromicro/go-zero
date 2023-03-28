@@ -13,8 +13,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/errorx"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/api/util"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/env"
+	apiF "github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -90,6 +93,10 @@ func apiFormatReader(reader io.Reader, filename string, skipCheckDeclare bool) e
 
 // ApiFormatByPath format api from file path
 func ApiFormatByPath(apiFilePath string, skipCheckDeclare bool) error {
+	if env.UseExperimental() {
+		return apiF.File(apiFilePath)
+	}
+
 	data, err := os.ReadFile(apiFilePath)
 	if err != nil {
 		return err
