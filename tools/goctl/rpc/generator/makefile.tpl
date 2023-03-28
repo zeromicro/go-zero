@@ -34,32 +34,32 @@ publish-docker: # Publish docker image | 发布 docker 镜像
 .PHONY: gen-rpc
 gen-rpc: # Generate RPC files from proto | 生成 RPC 的代码
 	goctls rpc protoc ./$(PROJECT).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
-	@echo "Generate rpc successfully"
+	@echo "Generate RPC codes successfully"
 
 .PHONY: gen-ent
 gen-ent: # Generate Ent codes | 生成 Ent 的代码
 	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema
-	@echo "Generate ent successfully"
+	@echo "Generate Ent codes successfully"
 
 .PHONY: gen-rpc-ent-logic
 gen-rpc-ent-logic: # Generate logic code from schema, need model and group params | 根据 schema 生成逻辑代码, 需要设置 model 和 group
 	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name=$(PROJECT) --search_key_num=3 --o=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto --overwrite=true
-	@echo "Generate ent logic codes successfully"
+	@echo "Generate logic codes from Ent successfully"
 
 .PHONY: build-win
 build-win: # Build project for Windows | 构建Windows下的可执行文件
 	env CGO_ENABLED=0 GOOS=windows go build -ldflags "$(LDFLAGS)" -o $(PROJECT).exe $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for Windows successfully"
 
 .PHONY: build-mac
 build-mac: # Build project for MacOS | 构建MacOS下的可执行文件
 	env CGO_ENABLED=0 GOOS=darwin go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for MacOS successfully"
 
 .PHONY: build-linux
 build-linux: # Build project for Linux | 构建Linux下的可执行文件
 	env CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for Linux successfully"
 
 .PHONY: help
 help: # Show help | 显示帮助

@@ -35,7 +35,7 @@ publish-docker: # Publish docker image | 发布 docker 镜像
 gen-api: # Generate API files | 生成 API 的代码
 	goctls api go --api ./desc/all.api --dir ./ --trans_err=true
 	swagger generate spec --output=./$(PROJECT).yml --scan-models
-	@echo "Generate API successfully"
+	@echo "Generate API codes successfully"
 {{if .useEnt}}
 .PHONY: gen-ent
 gen-ent: # Generate Ent codes | 生成 Ent 的代码
@@ -50,17 +50,17 @@ gen-api-ent-logic: # Generate CRUD logic from Ent, need to set model and group |
 .PHONY: build-win
 build-win: # Build project for Windows | 构建Windows下的可执行文件
 	env CGO_ENABLED=0 GOOS=windows go build -ldflags "$(LDFLAGS)" -o $(PROJECT).exe $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for Windows successfully"
 
 .PHONY: build-mac
 build-mac: # Build project for MacOS | 构建MacOS下的可执行文件
 	env CGO_ENABLED=0 GOOS=darwin go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for MacOS successfully"
 
 .PHONY: build-linux
 build-linux: # Build project for Linux | 构建Linux下的可执行文件
 	env CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
-	@echo "Build project successfully"
+	@echo "Build project for Linux successfully"
 
 .PHONY: gen-swagger
 gen-swagger: # Generate swagger file | 生成 swagger 文件
