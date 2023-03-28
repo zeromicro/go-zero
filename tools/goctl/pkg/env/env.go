@@ -59,8 +59,8 @@ func init() {
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
 			goctlEnv.SetKV(GoctlCache, value)
 		}
-		experimental:=existsEnv.GetOr(GoctlExperimental,ExperimentalOff)
-		goctlEnv.SetKV(GoctlExperimental,experimental)
+		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOff)
+		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
 	if !goctlEnv.HasKey(GoctlHome) {
 		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
@@ -74,7 +74,7 @@ func init() {
 		goctlEnv.SetKV(GoctlCache, cacheDir)
 	}
 
-	if !goctlEnv.HasKey(GoctlExperimental){
+	if !goctlEnv.HasKey(GoctlExperimental) {
 		goctlEnv.SetKV(GoctlExperimental, ExperimentalOff)
 	}
 
