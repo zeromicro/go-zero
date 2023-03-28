@@ -22,25 +22,6 @@ var (
 	TraceIDFromContext = ztrace.TraceIDFromContext
 )
 
-// PeerFromCtx returns the peer from ctx.
-func PeerFromCtx(ctx context.Context) string {
-	p, ok := peer.FromContext(ctx)
-	if !ok || p == nil {
-		return ""
-	}
-
-	return p.Addr.String()
-}
-
-// SpanInfo returns the span info.
-func SpanInfo(fullMethod, peerAddress string) (string, []attribute.KeyValue) {
-	attrs := []attribute.KeyValue{RPCSystemGRPC}
-	name, mAttrs := ParseFullMethod(fullMethod)
-	attrs = append(attrs, mAttrs...)
-	attrs = append(attrs, PeerAttr(peerAddress)...)
-	return name, attrs
-}
-
 // ParseFullMethod returns the method name and attributes.
 func ParseFullMethod(fullMethod string) (string, []attribute.KeyValue) {
 	name := strings.TrimLeft(fullMethod, "/")
@@ -76,6 +57,25 @@ func PeerAttr(addr string) []attribute.KeyValue {
 		semconv.NetPeerIPKey.String(host),
 		semconv.NetPeerPortKey.String(port),
 	}
+}
+
+// PeerFromCtx returns the peer from ctx.
+func PeerFromCtx(ctx context.Context) string {
+	p, ok := peer.FromContext(ctx)
+	if !ok || p == nil {
+		return ""
+	}
+
+	return p.Addr.String()
+}
+
+// SpanInfo returns the span info.
+func SpanInfo(fullMethod, peerAddress string) (string, []attribute.KeyValue) {
+	attrs := []attribute.KeyValue{RPCSystemGRPC}
+	name, mAttrs := ParseFullMethod(fullMethod)
+	attrs = append(attrs, mAttrs...)
+	attrs = append(attrs, PeerAttr(peerAddress)...)
+	return name, attrs
 }
 
 // TracerFromContext returns a tracer in ctx, otherwise returns a global tracer.

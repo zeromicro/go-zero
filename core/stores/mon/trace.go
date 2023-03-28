@@ -14,11 +14,7 @@ var mongoCmdAttributeKey = attribute.Key("mongo.cmd")
 
 func startSpan(ctx context.Context, cmd string) (context.Context, oteltrace.Span) {
 	tracer := trace.TracerFromContext(ctx)
-
-	ctx, span := tracer.Start(ctx,
-		spanName,
-		oteltrace.WithSpanKind(oteltrace.SpanKindClient),
-	)
+	ctx, span := tracer.Start(ctx, spanName, oteltrace.WithSpanKind(oteltrace.SpanKindClient))
 	span.SetAttributes(mongoCmdAttributeKey.String(cmd))
 
 	return ctx, span

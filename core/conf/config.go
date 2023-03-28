@@ -20,9 +20,11 @@ var loaders = map[string]func([]byte, any) error{
 	".yml":  LoadFromYamlBytes,
 }
 
+// children and mapField should not be both filled.
+// named fields and map cannot be bound to the same field name.
 type fieldInfo struct {
-	name     string
-	children map[string]fieldInfo
+	children map[string]*fieldInfo
+	mapField *fieldInfo
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -57,13 +59,17 @@ func LoadConfig(file string, v any, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
+	info, err := buildFieldsInfo(reflect.TypeOf(v))
+	if err != nil {
+		return err
+	}
+
 	var m map[string]any
 	if err := jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
 
-	finfo := buildFieldsInfo(reflect.TypeOf(v))
-	lowerCaseKeyMap := toLowerCaseKeyMap(m, finfo)
+	lowerCaseKeyMap := toLowerCaseKeyMap(m, info)
 
 	return mapping.UnmarshalJsonMap(lowerCaseKeyMap, v, mapping.WithCanonicalKeyFunc(toLowerCase))
 }
@@ -107,21 +113,63 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info map[string]fieldInfo, key, name string, fields map[string]fieldInfo) {
-	if prev, ok := info[key]; ok {
-		// merge fields
-		for k, v := range fields {
-			prev.children[k] = v
+func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
+	if prev, ok := info.children[key]; ok {
+		if child.mapField != nil {
+			return newDupKeyError(key)
+		}
+
+		if err := mergeFields(prev, key, child.children); err != nil {
+			return err
 		}
 	} else {
-		info[key] = fieldInfo{
-			name:     name,
-			children: fields,
-		}
+		info.children[key] = child
 	}
+
+	return nil
 }
 
-func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
+func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+	switch ft.Kind() {
+	case reflect.Struct:
+		fields, err := buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+
+		for k, v := range fields.children {
+			if err = addOrMergeFields(info, k, v); err != nil {
+				return err
+			}
+		}
+	case reflect.Map:
+		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		if err != nil {
+			return err
+		}
+
+		if _, ok := info.children[lowerCaseName]; ok {
+			return newDupKeyError(lowerCaseName)
+		}
+
+		info.children[lowerCaseName] = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+			mapField: elemField,
+		}
+	default:
+		if _, ok := info.children[lowerCaseName]; ok {
+			return newDupKeyError(lowerCaseName)
+		}
+
+		info.children[lowerCaseName] = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}
+	}
+
+	return nil
+}
+
+func buildFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
 
 	switch tp.Kind() {
@@ -129,57 +177,95 @@ func buildFieldsInfo(tp reflect.Type) map[string]fieldInfo {
 		return buildStructFieldsInfo(tp)
 	case reflect.Array, reflect.Slice:
 		return buildFieldsInfo(mapping.Deref(tp.Elem()))
+	case reflect.Chan, reflect.Func:
+		return nil, fmt.Errorf("unsupported type: %s", tp.Kind())
 	default:
-		return nil
+		return &fieldInfo{
+			children: make(map[string]*fieldInfo),
+		}, nil
 	}
 }
 
-func buildStructFieldsInfo(tp reflect.Type) map[string]fieldInfo {
-	info := make(map[string]fieldInfo)
+func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+	var finfo *fieldInfo
+	var err error
+
+	switch ft.Kind() {
+	case reflect.Struct:
+		finfo, err = buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+	case reflect.Array, reflect.Slice:
+		finfo, err = buildFieldsInfo(ft.Elem())
+		if err != nil {
+			return err
+		}
+	case reflect.Map:
+		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		if err != nil {
+			return err
+		}
+
+		finfo = &fieldInfo{
+			children: make(map[string]*fieldInfo),
+			mapField: elemInfo,
+		}
+	default:
+		finfo, err = buildFieldsInfo(ft)
+		if err != nil {
+			return err
+		}
+	}
+
+	return addOrMergeFields(info, lowerCaseName, finfo)
+}
+
+func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
+	info := &fieldInfo{
+		children: make(map[string]*fieldInfo),
+	}
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
 		name := field.Name
 		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
-
 		// flatten anonymous fields
 		if field.Anonymous {
-			if ft.Kind() == reflect.Struct {
-				fields := buildFieldsInfo(ft)
-				for k, v := range fields {
-					addOrMergeFields(info, k, v.name, v.children)
-				}
-			} else {
-				info[lowerCaseName] = fieldInfo{
-					name:     name,
-					children: make(map[string]fieldInfo),
-				}
+			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft); err != nil {
+				return nil, err
 			}
-			continue
+		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft); err != nil {
+			return nil, err
 		}
-
-		var fields map[string]fieldInfo
-		switch ft.Kind() {
-		case reflect.Struct:
-			fields = buildFieldsInfo(ft)
-		case reflect.Array, reflect.Slice:
-			fields = buildFieldsInfo(ft.Elem())
-		case reflect.Map:
-			fields = buildFieldsInfo(ft.Elem())
-		}
-
-		addOrMergeFields(info, lowerCaseName, name, fields)
 	}
 
-	return info
+	return info, nil
+}
+
+func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
+	if len(prev.children) == 0 || len(children) == 0 {
+		return newDupKeyError(key)
+	}
+
+	// merge fields
+	for k, v := range children {
+		if _, ok := prev.children[k]; ok {
+			return newDupKeyError(k)
+		}
+
+		prev.children[k] = v
+	}
+
+	return nil
 }
 
 func toLowerCase(s string) string {
 	return strings.ToLower(s)
 }
 
-func toLowerCaseInterface(v any, info map[string]fieldInfo) any {
+func toLowerCaseInterface(v any, info *fieldInfo) any {
 	switch vv := v.(type) {
 	case map[string]any:
 		return toLowerCaseKeyMap(vv, info)
@@ -194,23 +280,37 @@ func toLowerCaseInterface(v any, info map[string]fieldInfo) any {
 	}
 }
 
-func toLowerCaseKeyMap(m map[string]any, info map[string]fieldInfo) map[string]any {
+func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 	res := make(map[string]any)
 
 	for k, v := range m {
-		ti, ok := info[k]
+		ti, ok := info.children[k]
 		if ok {
-			res[k] = toLowerCaseInterface(v, ti.children)
+			res[k] = toLowerCaseInterface(v, ti)
 			continue
 		}
 
 		lk := toLowerCase(k)
-		if ti, ok = info[lk]; ok {
-			res[lk] = toLowerCaseInterface(v, ti.children)
+		if ti, ok = info.children[lk]; ok {
+			res[lk] = toLowerCaseInterface(v, ti)
+		} else if info.mapField != nil {
+			res[k] = toLowerCaseInterface(v, info.mapField)
 		} else {
 			res[k] = v
 		}
 	}
 
 	return res
+}
+
+type dupKeyError struct {
+	key string
+}
+
+func newDupKeyError(key string) dupKeyError {
+	return dupKeyError{key: key}
+}
+
+func (e dupKeyError) Error() string {
+	return fmt.Sprintf("duplicated key %s", e.key)
 }

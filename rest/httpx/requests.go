@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync/atomic"
 
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/rest/internal/encoding"
@@ -23,7 +24,14 @@ const (
 var (
 	formUnmarshaler = mapping.NewUnmarshaler(formKey, mapping.WithStringValues())
 	pathUnmarshaler = mapping.NewUnmarshaler(pathKey, mapping.WithStringValues())
+	validator       atomic.Value
 )
+
+// Validator defines the interface for validating the request.
+type Validator interface {
+	// Validate validates the request and parsed data.
+	Validate(r *http.Request, data any) error
+}
 
 // Parse parses the request.
 func Parse(r *http.Request, v any) error {
@@ -39,7 +47,15 @@ func Parse(r *http.Request, v any) error {
 		return err
 	}
 
-	return ParseJsonBody(r, v)
+	if err := ParseJsonBody(r, v); err != nil {
+		return err
+	}
+
+	if val := validator.Load(); val != nil {
+		return val.(Validator).Validate(r, v)
+	}
+
+	return nil
 }
 
 // ParseHeaders parses the headers request.
@@ -99,6 +115,13 @@ func ParsePath(r *http.Request, v any) error {
 	}
 
 	return pathUnmarshaler.Unmarshal(m, v)
+}
+
+// SetValidator sets the validator.
+// The validator is used to validate the request, only called in Parse,
+// not in ParseHeaders, ParseForm, ParseHeader, ParseJsonBody, ParsePath.
+func SetValidator(val Validator) {
+	validator.Store(val)
 }
 
 func withJsonBody(r *http.Request) bool {
