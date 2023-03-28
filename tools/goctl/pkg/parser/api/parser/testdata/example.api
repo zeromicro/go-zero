@@ -63,6 +63,7 @@ type (
 		Name    string            `json:"name"`
 		Age     int               `json:"age"`
 		Hobbits []string          `json:"hobbits"`
+		Hobbits2 [2]string          `json:"hobbits2"`
 		Extra   map[string]string `json:"extra"`
 		Data    interface{}       `json:"data"`
 	}

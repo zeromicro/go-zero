@@ -7,6 +7,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/ast"
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/placeholder"
+	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/token"
 )
 
 // Analyzer analyzes the ast and converts it to spec.
@@ -70,7 +71,17 @@ func (a *Analyzer) astTypeToSpec(in ast.DataType) (spec.Type, error) {
 			Type:    value,
 		}, nil
 	case *ast.ArrayDataType:
-		// TODO(keson) feature: can be extended
+		if v.Length.Token.Type == token.ELLIPSIS {
+			return nil, ast.SyntaxError(v.Pos(), "Array: unsupported dynamic length")
+		}
+		value, err := a.astTypeToSpec(v.DataType)
+		if err != nil {
+			return nil, err
+		}
+		return spec.ArrayType{
+			RawName: v.RawText(),
+			Value:   value,
+		}, nil
 	case *ast.SliceDataType:
 		value, err := a.astTypeToSpec(v.DataType)
 		if err != nil {

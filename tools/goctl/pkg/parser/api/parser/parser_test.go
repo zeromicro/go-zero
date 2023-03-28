@@ -920,6 +920,8 @@ func TestParser_Parse_pathItem(t *testing.T) {
 			{input: "foo @doc", expected: "foo"},
 			{input: "foo @handler", expected: "foo"},
 			{input: "foo }", expected: "foo"},
+			{input: "1", expected: "1"},
+			{input: "11", expected: "11"},
 		}
 		for _, v := range testData {
 			p := New("foo.api", v.input)
@@ -938,6 +940,8 @@ func TestParser_Parse_pathItem(t *testing.T) {
 		var testData = []string{
 			"-foo",
 			"foo-",
+			"foo-2",
+			"2-2",
 			"foo-bar-123",
 			"foo-bar-$",
 			"foo-bar-好",

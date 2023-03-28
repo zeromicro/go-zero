@@ -360,16 +360,16 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 			return nil
 		}
 		values = append(values, p.curTok)
-		if p.notExpectPeedTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON, token.IDENT) {
+		if p.notExpectPeekTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON, token.IDENT, token.INT) {
 			return nil
 		}
 
 		// token ':' or IDENT
-		if p.notExpectPeekToken(token.COLON, token.IDENT) {
+		if p.notExpectPeekToken(token.COLON, token.IDENT, token.INT) {
 			return nil
 		}
 
-		if p.notExpectPeedTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON) {
+		if p.notExpectPeekTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON) {
 			return nil
 		}
 
@@ -411,7 +411,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 
 func (p *Parser) parsePathItem() []token.Token {
 	var list []token.Token
-	if !p.advanceIfPeekTokenIs(token.IDENT) {
+	if !p.advanceIfPeekTokenIs(token.IDENT,token.INT) {
 		return nil
 	}
 	list = append(list, p.curTok)
@@ -1071,7 +1071,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		node.SetLeadingCommentGroup(leadingCommentGroup)
 		expr.Value = node
 		return expr
-	} else if p.peekTokenIs(token.INT){
+	} else if p.peekTokenIs(token.INT) {
 		if !p.nextToken() {
 			return nil
 		}
@@ -1081,7 +1081,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		node.SetLeadingCommentGroup(leadingCommentGroup)
 		expr.Value = node
 		return expr
-	}else {
+	} else {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
@@ -1296,7 +1296,7 @@ func (p *Parser) notExpectPeekToken(expected ...interface{}) bool {
 	return true
 }
 
-func (p *Parser) notExpectPeedTokenGotComment(actual *ast.CommentStmt, expected ...interface{}) bool {
+func (p *Parser) notExpectPeekTokenGotComment(actual *ast.CommentStmt, expected ...interface{}) bool {
 	if actual == nil {
 		return false
 	}

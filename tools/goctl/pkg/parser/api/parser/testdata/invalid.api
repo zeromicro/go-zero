@@ -117,7 +117,7 @@ type Foo {
 // test case:  array
 syntax = "v1"
 type Foo {
-    Bar [2]int  `json:"bar"`
+    Bar [...]int  `json:"bar"`
 }
 
 -----
