@@ -16,6 +16,25 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
+type myHook struct {
+	red.Hook
+	includePing bool
+}
+
+var _ red.Hook = myHook{}
+
+func (m myHook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
+	return ctx, nil
+}
+
+func (m myHook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
+	// skip ping cmd
+	if cmd.Name() == "ping" && !m.includePing {
+		return nil
+	}
+	return errors.New("hook error")
+}
+
 func TestNewRedis(t *testing.T) {
 	r1, err := miniredis.Run()
 	assert.NoError(t, err)
@@ -124,6 +143,31 @@ func TestNewRedis(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestRedis_NonBlock(t *testing.T) {
+	logx.Disable()
+
+	t.Run("nonBlock true", func(t *testing.T) {
+		s := miniredis.RunT(t)
+		// use hook to simulate redis ping error
+		_, err := NewRedis(RedisConf{
+			Host:     s.Addr(),
+			NonBlock: true,
+			Type:     NodeType,
+		}, withHook(myHook{includePing: true}))
+		assert.NoError(t, err)
+	})
+
+	t.Run("nonBlock false", func(t *testing.T) {
+		s := miniredis.RunT(t)
+		_, err := NewRedis(RedisConf{
+			Host:     s.Addr(),
+			NonBlock: false,
+			Type:     NodeType,
+		}, withHook(myHook{includePing: true}))
+		assert.ErrorContains(t, err, "redis connect error")
+	})
 }
 
 func TestRedis_Decr(t *testing.T) {
