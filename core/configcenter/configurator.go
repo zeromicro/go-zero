@@ -7,7 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/configcenter/subscriber"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/threading"
@@ -30,7 +29,7 @@ type (
 
 	configCenter[T any] struct {
 		conf        Config
-		unmarshaler loaderFn
+		unmarshaler LoaderFn
 
 		subscriber subscriber.Subscriber
 
@@ -38,15 +37,7 @@ type (
 		lock      sync.Mutex
 		snapshot  atomic.Value
 	}
-
-	loaderFn func([]byte, any) error
 )
-
-var unmarshalers = map[string]loaderFn{
-	"json": conf.LoadFromJsonBytes,
-	"toml": conf.LoadFromTomlBytes,
-	"yaml": conf.LoadFromYamlBytes,
-}
 
 // MustNewConfigCenter returns a Configurator, exits on errors.
 func MustNewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) Configurator[T] {
@@ -65,7 +56,7 @@ func MustNewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) Conf
 
 // NewConfigCenter returns a Configurator.
 func NewConfigCenter[T any](c Config, subscriber subscriber.Subscriber) (Configurator[T], error) {
-	unmarshaler, ok := unmarshalers[strings.ToLower(c.Type)]
+	unmarshaler, ok := Unmarshaler(strings.ToLower(c.Type))
 	if !ok {
 		return nil, fmt.Errorf("unknown format: %s", c.Type)
 	}
