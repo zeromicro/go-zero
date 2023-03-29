@@ -1,55 +1,27 @@
 package tpl
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 
 var (
 	varStringHome     string
 	varStringCategory string
 	varStringName     string
 	// Cmd describes a template command.
-	Cmd = &cobra.Command{
-		Use:   "template",
-		Short: "Template operation",
-	}
-
-	initCmd = &cobra.Command{
-		Use:   "init",
-		Short: "Initialize the all templates(force update)",
-		RunE:  genTemplates,
-	}
-
-	cleanCmd = &cobra.Command{
-		Use:   "clean",
-		Short: "Clean the all cache templates",
-		RunE:  cleanTemplates,
-	}
-
-	updateCmd = &cobra.Command{
-		Use:   "update",
-		Short: "Update template of the target category to the latest",
-		RunE:  updateTemplates,
-	}
-
-	revertCmd = &cobra.Command{
-		Use:   "revert",
-		Short: "Revert the target template to the latest",
-		RunE:  revertTemplates,
-	}
+	Cmd       = cobrax.NewCommand("template")
+	initCmd   = cobrax.NewCommand("init", cobrax.WithRunE(genTemplates))
+	cleanCmd  = cobrax.NewCommand("clean", cobrax.WithRunE(cleanTemplates))
+	updateCmd = cobrax.NewCommand("update", cobrax.WithRunE(updateTemplates))
+	revertCmd = cobrax.NewCommand("revert", cobrax.WithRunE(revertTemplates))
 )
 
 func init() {
-	initCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	cleanCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	updateCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	updateCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", "The category of template, enum [api,rpc,model,docker,kube]")
-	revertCmd.Flags().StringVar(&varStringHome, "home", "", "The goctl home path of the template")
-	revertCmd.Flags().StringVarP(&varStringCategory, "category", "c", "", "The category of template, enum [api,rpc,model,docker,kube]")
-	revertCmd.Flags().StringVarP(&varStringName, "name", "n", "", "The target file name of template")
+	initCmd.Flags().StringVar(&varStringHome, "home")
+	cleanCmd.Flags().StringVar(&varStringHome, "home")
+	updateCmd.Flags().StringVar(&varStringHome, "home")
+	updateCmd.Flags().StringVarP(&varStringCategory, "category", "c")
+	revertCmd.Flags().StringVar(&varStringHome, "home")
+	revertCmd.Flags().StringVarP(&varStringCategory, "category", "c")
+	revertCmd.Flags().StringVarP(&varStringName, "name", "n")
 
-	Cmd.AddCommand(cleanCmd)
-	Cmd.AddCommand(initCmd)
-	Cmd.AddCommand(revertCmd)
-	Cmd.AddCommand(updateCmd)
+	Cmd.AddCommand(cleanCmd, initCmd, revertCmd, updateCmd)
 }

@@ -62,6 +62,7 @@ func init() {
 		experimental := existsEnv.GetOr(GoctlExperimental, ExperimentalOff)
 		goctlEnv.SetKV(GoctlExperimental, experimental)
 	}
+
 	if !goctlEnv.HasKey(GoctlHome) {
 		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
 	}
@@ -90,8 +91,20 @@ func init() {
 	goctlEnv.SetKV(ProtocGenGoGRPCVersion, protocGenGoGrpcVer)
 }
 
-func Print() string {
-	return strings.Join(goctlEnv.Format(), "\n")
+func Print(args ...string) string {
+	if len(args) == 0 {
+		return strings.Join(goctlEnv.Format(), "\n")
+	}
+
+	var values []string
+	for _, key := range args {
+		value, ok := goctlEnv.GetString(key)
+		if !ok {
+			value = fmt.Sprintf("%s=%%not found%%", key)
+		}
+		values = append(values, fmt.Sprintf("%s=%s", key, value))
+	}
+	return strings.Join(values, "\n")
 }
 
 func Get(key string) string {
