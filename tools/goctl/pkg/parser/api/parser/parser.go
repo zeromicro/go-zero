@@ -114,12 +114,14 @@ func (p *Parser) parseService() *ast.ServiceStmt {
 	if nameExpr == nil {
 		return nil
 	}
+
 	stmt.Name = nameExpr
 
 	// token '{'
 	if !p.advanceIfPeekTokenIs(token.LBRACE) {
 		return nil
 	}
+
 	stmt.LBrace = p.curTokenNode()
 
 	// service item statements
@@ -127,12 +129,14 @@ func (p *Parser) parseService() *ast.ServiceStmt {
 	if routes == nil {
 		return nil
 	}
+
 	stmt.Routes = routes
 
 	// token '}'
 	if !p.advanceIfPeekTokenIs(token.RBRACE) {
 		return nil
 	}
+
 	stmt.RBrace = p.curTokenNode()
 
 	return stmt
@@ -150,6 +154,7 @@ func (p *Parser) parseServiceItemsStmt() []*ast.ServiceItemStmt {
 		if p.peekTokenIs(token.RBRACE) {
 			break
 		}
+
 		if p.notExpectPeekToken(token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
 			return nil
 		}
@@ -165,10 +170,12 @@ func (p *Parser) parseServiceItemStmt() *ast.ServiceItemStmt {
 		if !p.nextToken() {
 			return nil
 		}
+
 		atDocStmt := p.parseAtDocStmt()
 		if atDocStmt == nil {
 			return nil
 		}
+
 		stmt.AtDoc = atDocStmt
 	}
 
@@ -176,13 +183,16 @@ func (p *Parser) parseServiceItemStmt() *ast.ServiceItemStmt {
 	if !p.advanceIfPeekTokenIs(token.AT_HANDLER, token.RBRACE) {
 		return nil
 	}
+
 	if p.peekTokenIs(token.RBRACE) {
 		return stmt
 	}
+
 	atHandlerStmt := p.parseAtHandlerStmt()
 	if atHandlerStmt == nil {
 		return nil
 	}
+
 	stmt.AtHandler = atHandlerStmt
 
 	// statement route
@@ -190,6 +200,7 @@ func (p *Parser) parseServiceItemStmt() *ast.ServiceItemStmt {
 	if route == nil {
 		return nil
 	}
+
 	stmt.Route = route
 
 	return stmt
@@ -201,6 +212,7 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 	if !p.advanceIfPeekTokenIs(token.HttpMethods...) {
 		return nil
 	}
+
 	stmt.Method = p.curTokenNode()
 
 	// path expression
@@ -208,11 +220,13 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 	if pathExpr == nil {
 		return nil
 	}
+
 	stmt.Path = pathExpr
 
 	if p.peekTokenIs(token.AT_DOC, token.AT_HANDLER, token.RBRACE) {
 		return stmt
 	}
+
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 		return stmt
@@ -228,6 +242,7 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 		if requestBodyStmt == nil {
 			return nil
 		}
+
 		stmt.Request = requestBodyStmt
 	}
 
@@ -240,8 +255,8 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 		if !p.nextToken() {
 			return nil
 		}
-		stmt.Returns = p.curTokenNode()
 
+		stmt.Returns = p.curTokenNode()
 		responseBodyStmt := p.parseBodyStmt()
 		if responseBodyStmt == nil {
 			return nil
@@ -249,6 +264,7 @@ func (p *Parser) parseRouteStmt() *ast.RouteStmt {
 
 		stmt.Response = responseBodyStmt
 	}
+
 	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
@@ -262,12 +278,14 @@ func (p *Parser) parseBodyStmt() *ast.BodyStmt {
 	if !p.advanceIfPeekTokenIs(token.LPAREN) {
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 	// token ')'
 	if p.peekTokenIs(token.RPAREN) {
 		if !p.nextToken() {
 			return nil
 		}
+
 		stmt.RParen = p.curTokenNode()
 		return stmt
 	}
@@ -276,12 +294,14 @@ func (p *Parser) parseBodyStmt() *ast.BodyStmt {
 	if expr == nil {
 		return nil
 	}
+
 	stmt.Body = expr
 
 	// token ')'
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -294,12 +314,14 @@ func (p *Parser) parseBodyExpr() *ast.BodyExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		expr.LBrack = p.curTokenNode()
 
 		// token ']'
 		if !p.advanceIfPeekTokenIs(token.RBRACK) {
 			return nil
 		}
+
 		expr.RBrack = p.curTokenNode()
 
 		switch {
@@ -307,19 +329,20 @@ func (p *Parser) parseBodyExpr() *ast.BodyExpr {
 			if !p.nextToken() {
 				return nil
 			}
+
 			expr.Star = p.curTokenNode()
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
-			expr.Value = p.curTokenNode()
 
+			expr.Value = p.curTokenNode()
 			return expr
 		case p.peekTokenIs(token.IDENT):
 			if !p.nextToken() {
 				return nil
 			}
-			expr.Value = p.curTokenNode()
 
+			expr.Value = p.curTokenNode()
 			return expr
 		default:
 			p.expectPeekToken(token.MUL, token.IDENT)
@@ -329,19 +352,20 @@ func (p *Parser) parseBodyExpr() *ast.BodyExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		expr.Star = p.curTokenNode()
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
-		expr.Value = p.curTokenNode()
 
+		expr.Value = p.curTokenNode()
 		return expr
 	case p.peekTokenIs(token.IDENT):
 		if !p.nextToken() {
 			return nil
 		}
-		expr.Value = p.curTokenNode()
 
+		expr.Value = p.curTokenNode()
 		return expr
 	default:
 		p.expectPeekToken(token.LBRACK, token.MUL, token.IDENT)
@@ -359,6 +383,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 		if !p.advanceIfPeekTokenIs(token.QUO) {
 			return nil
 		}
+
 		values = append(values, p.curTok)
 		if p.notExpectPeekTokenGotComment(p.curTokenNode().PeekFirstLeadingComment(), token.COLON, token.IDENT, token.INT) {
 			return nil
@@ -387,6 +412,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 		if pathTokens == nil {
 			return nil
 		}
+
 		values = append(values, pathTokens...)
 		if p.notExpectPeekToken(token.QUO, token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 			return nil
@@ -411,7 +437,7 @@ func (p *Parser) parsePathExpr() *ast.PathExpr {
 
 func (p *Parser) parsePathItem() []token.Token {
 	var list []token.Token
-	if !p.advanceIfPeekTokenIs(token.IDENT,token.INT) {
+	if !p.advanceIfPeekTokenIs(token.IDENT, token.INT) {
 		return nil
 	}
 	list = append(list, p.curTok)
@@ -422,6 +448,7 @@ func (p *Parser) parsePathItem() []token.Token {
 			if !p.nextToken() {
 				return nil
 			}
+
 			list = append(list, p.curTok)
 
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
@@ -432,9 +459,11 @@ func (p *Parser) parsePathItem() []token.Token {
 			if p.peekTokenIs(token.LPAREN, token.Returns, token.AT_DOC, token.AT_HANDLER, token.SEMICOLON, token.RBRACE) {
 				return list
 			}
+
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+
 			list = append(list, p.curTok)
 		}
 	}
@@ -456,6 +485,7 @@ func (p *Parser) parseServiceNameExpr() *ast.ServiceNameExpr {
 		if !p.expectPeekToken(idAPI) {
 			return nil
 		}
+
 		if !p.nextToken() {
 			return nil
 		}
@@ -470,6 +500,7 @@ func (p *Parser) parseServiceNameExpr() *ast.ServiceNameExpr {
 	})
 	node.SetLeadingCommentGroup(p.curTokenNode().LeadingCommentGroup)
 	expr.Name = node
+
 	return expr
 }
 
@@ -477,9 +508,11 @@ func (p *Parser) parseAtDocStmt() ast.AtDocStmt {
 	if p.notExpectPeekToken(token.LPAREN, token.STRING) {
 		return nil
 	}
+
 	if p.peekTokenIs(token.LPAREN) {
 		return p.parseAtDocGroupStmt()
 	}
+
 	return p.parseAtDocLiteralStmt()
 }
 
@@ -491,6 +524,7 @@ func (p *Parser) parseAtDocGroupStmt() ast.AtDocStmt {
 	if !p.advanceIfPeekTokenIs(token.LPAREN) {
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN) {
@@ -509,6 +543,7 @@ func (p *Parser) parseAtDocGroupStmt() ast.AtDocStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -521,6 +556,7 @@ func (p *Parser) parseAtDocLiteralStmt() ast.AtDocStmt {
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
+
 	stmt.Value = p.curTokenNode()
 
 	return stmt
@@ -534,6 +570,7 @@ func (p *Parser) parseAtHandlerStmt() *ast.AtHandlerStmt {
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
+
 	stmt.Name = p.curTokenNode()
 
 	return stmt
@@ -547,6 +584,7 @@ func (p *Parser) parseAtServerStmt() *ast.AtServerStmt {
 	if !p.advanceIfPeekTokenIs(token.LPAREN) {
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN) {
@@ -565,6 +603,7 @@ func (p *Parser) parseAtServerStmt() *ast.AtServerStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -590,6 +629,7 @@ func (p *Parser) parseTypeLiteralStmt() ast.TypeStmt {
 	if expr == nil {
 		return nil
 	}
+
 	stmt.Expr = expr
 
 	return stmt
@@ -603,18 +643,21 @@ func (p *Parser) parseTypeGroupStmt() ast.TypeStmt {
 	if !p.nextToken() {
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 
 	exprList := p.parseTypeExprList()
 	if exprList == nil {
 		return nil
 	}
+
 	stmt.ExprList = exprList
 
 	// token ')'
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -624,17 +667,20 @@ func (p *Parser) parseTypeExprList() []*ast.TypeExpr {
 	if !p.expectPeekToken(token.IDENT, token.RPAREN) {
 		return nil
 	}
+
 	var exprList = make([]*ast.TypeExpr, 0)
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN, token.EOF) {
 		expr := p.parseTypeExpr()
 		if expr == nil {
 			return nil
 		}
+
 		exprList = append(exprList, expr)
 		if !p.expectPeekToken(token.IDENT, token.RPAREN) {
 			return nil
 		}
 	}
+
 	return exprList
 }
 
@@ -644,6 +690,7 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	if !p.advanceIfPeekTokenIs(token.IDENT) {
 		return nil
 	}
+
 	if p.curTokenIsKeyword() {
 		return nil
 	}
@@ -655,6 +702,7 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		expr.Assign = p.curTokenNode()
 	}
 
@@ -662,6 +710,7 @@ func (p *Parser) parseTypeExpr() *ast.TypeExpr {
 	if isNil(dt) {
 		return nil
 	}
+
 	expr.DataType = dt
 
 	return expr
@@ -680,9 +729,11 @@ func (p *Parser) parseDataType() ast.DataType {
 		if !p.nextToken() {
 			return nil
 		}
+
 		if p.curTokenIsKeyword() {
 			return nil
 		}
+
 		node := p.curTokenNode()
 		baseDT := &ast.BaseDataType{Base: node}
 
@@ -691,6 +742,7 @@ func (p *Parser) parseDataType() ast.DataType {
 		if !p.nextToken() {
 			return nil
 		}
+
 		switch {
 		case p.peekTokenIs(token.RBRACK):
 			return p.parseSliceDataType()
@@ -714,21 +766,25 @@ func (p *Parser) parseStructDataType() *ast.StructDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.LBrace = p.curTokenNode()
 
 	if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 		return nil
 	}
+
 	// ElemExprList
 	elems := p.parseElemExprList()
 	if elems == nil {
 		return nil
 	}
+
 	tp.Elements = elems
 
 	if !p.advanceIfPeekTokenIs(token.RBRACE) {
 		return nil
 	}
+
 	tp.RBrace = p.curTokenNode()
 
 	return tp
@@ -740,10 +796,12 @@ func (p *Parser) parseElemExprList() ast.ElemExprList {
 		if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 			return nil
 		}
+
 		expr := p.parseElemExpr()
 		if expr == nil {
 			return nil
 		}
+
 		list = append(list, expr)
 		if p.notExpectPeekToken(token.IDENT, token.MUL, token.RBRACE) {
 			return nil
@@ -758,15 +816,18 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 	if !p.advanceIfPeekTokenIs(token.IDENT, token.MUL) {
 		return nil
 	}
+
 	if p.curTokenIsKeyword() {
 		return nil
 	}
+
 	identNode := p.curTokenNode()
 	if p.curTokenIs(token.MUL) {
 		star := p.curTokenNode()
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
+
 		var dt ast.DataType
 		if p.curTokenIs(token.Any) {
 			dt = &ast.AnyDataType{Any: p.curTokenNode()}
@@ -793,12 +854,15 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 			if !p.nextToken() {
 				return nil
 			}
+
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+
 			if p.curTokenIsKeyword() {
 				return nil
 			}
+
 			expr.Name = append(expr.Name, p.curTokenNode())
 		}
 
@@ -806,6 +870,7 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 		if isNil(dt) {
 			return nil
 		}
+
 		expr.DataType = dt
 	}
 
@@ -817,6 +882,7 @@ func (p *Parser) parseElemExpr() *ast.ElemExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		expr.Tag = p.curTokenNode()
 	}
 
@@ -828,6 +894,7 @@ func (p *Parser) parseAnyDataType() *ast.AnyDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.Any = p.curTokenNode()
 
 	return tp
@@ -838,16 +905,19 @@ func (p *Parser) parsePointerDataType() *ast.PointerDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.Star = p.curTokenNode()
 
 	if p.notExpectPeekToken(token.IDENT, token.LBRACK, token.ANY, token.MUL) {
 		return nil
 	}
+
 	// DataType
 	dt := p.parseDataType()
 	if isNil(dt) {
 		return nil
 	}
+
 	tp.DataType = dt
 
 	return tp
@@ -858,6 +928,7 @@ func (p *Parser) parseInterfaceDataType() *ast.InterfaceDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.Interface = p.curTokenNode()
 
 	return tp
@@ -868,12 +939,14 @@ func (p *Parser) parseMapDataType() *ast.MapDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.Map = p.curTokenNode()
 
 	// token '['
 	if !p.advanceIfPeekTokenIs(token.LBRACK) {
 		return nil
 	}
+
 	tp.LBrack = p.curTokenNode()
 
 	// DataType
@@ -881,12 +954,14 @@ func (p *Parser) parseMapDataType() *ast.MapDataType {
 	if isNil(dt) {
 		return nil
 	}
+
 	tp.Key = dt
 
 	// token  ']'
 	if !p.advanceIfPeekTokenIs(token.RBRACK) {
 		return nil
 	}
+
 	tp.RBrack = p.curTokenNode()
 
 	// DataType
@@ -894,6 +969,7 @@ func (p *Parser) parseMapDataType() *ast.MapDataType {
 	if isNil(dt) {
 		return nil
 	}
+
 	tp.Value = dt
 
 	return tp
@@ -907,12 +983,14 @@ func (p *Parser) parseArrayDataType() *ast.ArrayDataType {
 	if !p.nextToken() {
 		return nil
 	}
+
 	tp.Length = p.curTokenNode()
 
 	// token ']'
 	if !p.advanceIfPeekTokenIs(token.RBRACK) {
 		return nil
 	}
+
 	tp.RBrack = p.curTokenNode()
 
 	// DataType
@@ -920,6 +998,7 @@ func (p *Parser) parseArrayDataType() *ast.ArrayDataType {
 	if isNil(dt) {
 		return nil
 	}
+
 	tp.DataType = dt
 
 	return tp
@@ -933,6 +1012,7 @@ func (p *Parser) parseSliceDataType() *ast.SliceDataType {
 	if !p.advanceIfPeekTokenIs(token.RBRACK) {
 		return nil
 	}
+
 	tp.RBrack = p.curTokenNode()
 
 	// DataType
@@ -940,6 +1020,7 @@ func (p *Parser) parseSliceDataType() *ast.SliceDataType {
 	if isNil(dt) {
 		return nil
 	}
+
 	tp.DataType = dt
 
 	return tp
@@ -965,6 +1046,7 @@ func (p *Parser) parseImportLiteralStmt() ast.ImportStmt {
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
+
 	stmt.Value = p.curTokenNode()
 
 	return stmt
@@ -978,6 +1060,7 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 	if !p.advanceIfPeekTokenIs(token.LPAREN) { // assert: dead code
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 
 	// token STRING
@@ -985,6 +1068,7 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 		if !p.advanceIfPeekTokenIs(token.STRING) {
 			return nil
 		}
+
 		stmt.Values = append(stmt.Values, p.curTokenNode())
 
 		if p.notExpectPeekToken(token.RPAREN, token.STRING) {
@@ -996,6 +1080,7 @@ func (p *Parser) parseImportGroupStmt() ast.ImportStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -1009,6 +1094,7 @@ func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 	if !p.advanceIfPeekTokenIs(token.LPAREN) {
 		return nil
 	}
+
 	stmt.LParen = p.curTokenNode()
 
 	for p.curTokenIsNotEof() && p.peekTokenIsNot(token.RPAREN) {
@@ -1027,6 +1113,7 @@ func (p *Parser) parseInfoStmt() *ast.InfoStmt {
 	if !p.advanceIfPeekTokenIs(token.RPAREN) {
 		return nil
 	}
+
 	stmt.RParen = p.curTokenNode()
 
 	return stmt
@@ -1047,14 +1134,17 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 	if p.notExpectPeekToken(token.QUO, token.DURATION, token.IDENT, token.INT) {
 		return nil
 	}
+
 	if p.peekTokenIs(token.QUO) {
 		if !p.nextToken() {
 			return nil
 		}
+
 		slashTok := p.curTok
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
+
 		idTok := p.curTok
 		valueTok = token.Token{
 			Text:     slashTok.Text + idTok.Text,
@@ -1065,6 +1155,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 		node := ast.NewTokenNode(valueTok)
@@ -1075,6 +1166,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		if !p.nextToken() {
 			return nil
 		}
+
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 		node := ast.NewTokenNode(valueTok)
@@ -1085,6 +1177,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 		if !p.advanceIfPeekTokenIs(token.IDENT) {
 			return nil
 		}
+
 		valueTok = p.curTok
 		leadingCommentGroup = p.curTokenNode().LeadingCommentGroup
 		if p.peekTokenIs(token.COMMA) {
@@ -1093,10 +1186,12 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 					if !p.nextToken() {
 						return nil
 					}
+
 					slashTok := p.curTok
 					if !p.advanceIfPeekTokenIs(token.IDENT) {
 						return nil
 					}
+
 					idTok := p.curTok
 					valueTok = token.Token{
 						Text:     valueTok.Text + slashTok.Text + idTok.Text,
@@ -1107,6 +1202,7 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 					break
 				}
 			}
+
 			valueTok.Type = token.PATH
 			node := ast.NewTokenNode(valueTok)
 			node.SetLeadingCommentGroup(leadingCommentGroup)
@@ -1120,10 +1216,12 @@ func (p *Parser) parseAtServerKVExpression() *ast.KVExpr {
 			if !p.nextToken() {
 				return nil
 			}
+
 			slashTok := p.curTok
 			if !p.advanceIfPeekTokenIs(token.IDENT) {
 				return nil
 			}
+
 			idTok := p.curTok
 			valueTok = token.Token{
 				Text:     valueTok.Text + slashTok.Text + idTok.Text,
@@ -1150,12 +1248,14 @@ func (p *Parser) parseKVExpression() *ast.KVExpr {
 	if !p.advanceIfPeekTokenIs(token.KEY) {
 		return nil
 	}
+
 	expr.Key = p.curTokenNode()
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
+
 	expr.Value = p.curTokenNode()
 
 	return expr
@@ -1170,12 +1270,14 @@ func (p *Parser) parseSyntaxStmt() *ast.SyntaxStmt {
 	if !p.advanceIfPeekTokenIs(token.ASSIGN) {
 		return nil
 	}
+
 	stmt.Assign = p.curTokenNode()
 
 	// token STRING
 	if !p.advanceIfPeekTokenIs(token.STRING) {
 		return nil
 	}
+
 	stmt.Value = p.curTokenNode()
 
 	return stmt
@@ -1196,6 +1298,7 @@ func (p *Parser) curTokenIsKeyword() bool {
 		p.expectIdentError(p.curTok.Fork(tp), token.IDENT)
 		return true
 	}
+
 	return false
 }
 
@@ -1212,6 +1315,7 @@ func (p *Parser) curTokenIs(expected ...interface{}) bool {
 			}
 		}
 	}
+
 	return false
 }
 
@@ -1220,6 +1324,7 @@ func (p *Parser) advanceIfPeekTokenIs(expected ...interface{}) bool {
 		if !p.nextToken() {
 			return false
 		}
+
 		return true
 	}
 
@@ -1239,6 +1344,7 @@ func (p *Parser) peekTokenIs(expected ...interface{}) bool {
 			}
 		}
 	}
+
 	return false
 }
 
@@ -1255,6 +1361,7 @@ func (p *Parser) peekTokenIsNot(expected ...interface{}) bool {
 			}
 		}
 	}
+
 	return true
 }
 
@@ -1300,6 +1407,7 @@ func (p *Parser) notExpectPeekTokenGotComment(actual *ast.CommentStmt, expected 
 	if actual == nil {
 		return false
 	}
+
 	var expectedString []string
 	for _, v := range expected {
 		switch val := v.(type) {
@@ -1375,6 +1483,7 @@ func (p *Parser) init() bool {
 	if !p.nextToken() {
 		return false
 	}
+
 	return p.nextToken()
 }
 
@@ -1387,17 +1496,21 @@ func (p *Parser) nextToken() bool {
 			for _, v := range p.headCommentGroup {
 				p.appendStmt(v)
 			}
+
 			p.headCommentGroup = ast.CommentGroup{}
 			return true
 		}
+
 		node := ast.NewTokenNode(p.curTok)
 		if p.headCommentGroup.Valid() {
 			node.HeadCommentGroup = append(node.HeadCommentGroup, p.headCommentGroup...)
 			p.headCommentGroup = ast.CommentGroup{}
 		}
+
 		p.node[p.curTok] = node
 		line = p.curTok.Line()
 	}
+
 	p.peekTok, err = p.s.NextToken()
 	if err != nil {
 		p.errors = append(p.errors, err)
@@ -1412,6 +1525,7 @@ func (p *Parser) nextToken() bool {
 		} else {
 			p.headCommentGroup = append(p.headCommentGroup, commentStmt)
 		}
+
 		p.peekTok, err = p.s.NextToken()
 		if err != nil {
 			p.errors = append(p.errors, err)
@@ -1443,6 +1557,7 @@ func isNil(v interface{}) bool {
 	if vo.Kind() == reflect.Ptr {
 		return vo.IsNil()
 	}
+
 	return false
 }
 
@@ -1451,10 +1566,12 @@ func (p *Parser) CheckErrors() error {
 	if len(p.errors) == 0 {
 		return nil
 	}
+
 	var errors []string
 	for _, e := range p.errors {
 		errors = append(errors, e.Error())
 	}
+
 	return fmt.Errorf(strings.Join(errors, "\n"))
 }
 
