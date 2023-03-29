@@ -7,8 +7,8 @@ import (
 )
 
 type (
-	// UnmarshalerRegistry is the registry for unmarshalers.
-	UnmarshalerRegistry struct {
+	// unmarshalerRegistry is the registry for unmarshalers.
+	unmarshalerRegistry struct {
 		unmarshalers map[string]LoaderFn
 
 		mu sync.RWMutex
@@ -18,10 +18,10 @@ type (
 	LoaderFn func([]byte, any) error
 )
 
-var defaultRegistry *UnmarshalerRegistry
+var defaultRegistry *unmarshalerRegistry
 
 func init() {
-	defaultRegistry = &UnmarshalerRegistry{
+	defaultRegistry = &unmarshalerRegistry{
 		unmarshalers: map[string]LoaderFn{
 			"json": conf.LoadFromJsonBytes,
 			"toml": conf.LoadFromTomlBytes,
