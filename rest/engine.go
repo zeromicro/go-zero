@@ -301,21 +301,29 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chai
 	}, nil
 }
 
-func (ng *engine) start(router httpx.Router) error {
+func (ng *engine) start(router httpx.Router, opts ...StartOption) error {
 	if err := ng.bindRoutes(router); err != nil {
 		return err
 	}
 
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{ng.withTimeout()}, opts...)
+
 	if len(ng.conf.CertFile) == 0 && len(ng.conf.KeyFile) == 0 {
-		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, ng.withTimeout())
+		return internal.StartHttp(ng.conf.Host, ng.conf.Port, router, opts...)
 	}
 
-	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
-		ng.conf.KeyFile, router, func(svr *http.Server) {
+	// make sure user defined options overwrite default options
+	opts = append([]StartOption{
+		func(svr *http.Server) {
 			if ng.tlsConfig != nil {
 				svr.TLSConfig = ng.tlsConfig
 			}
-		}, ng.withTimeout())
+		},
+	}, opts...)
+
+	return internal.StartHttps(ng.conf.Host, ng.conf.Port, ng.conf.CertFile,
+		ng.conf.KeyFile, router, opts...)
 }
 
 func (ng *engine) use(middleware Middleware) {

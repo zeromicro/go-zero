@@ -2,11 +2,13 @@ package internal
 
 import (
 	"encoding/base64"
+	"errors"
 	"net/http"
 	"os"
 	"testing"
 
 	"github.com/fullstorydev/grpcurl"
+	"github.com/jhump/protoreflect/desc"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/hash"
 )
@@ -74,4 +76,51 @@ func TestGetMethodsWithAnnotations(t *testing.T) {
 			RpcPath:    "hello.Hello/PingPatch",
 		},
 	}, methods)
+}
+
+func TestGetMethodsBadCases(t *testing.T) {
+	t.Run("no services", func(t *testing.T) {
+		source := &mockDescriptorSource{
+			servicesErr: errors.New("no services"),
+		}
+		_, err := GetMethods(source)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("no symbol in services", func(t *testing.T) {
+		source := &mockDescriptorSource{
+			services:  []string{"hello.Hello"},
+			symbolErr: errors.New("no symbol"),
+		}
+		_, err := GetMethods(source)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("no symbol in services", func(t *testing.T) {
+		source := &mockDescriptorSource{
+			services:  []string{"hello.Hello"},
+			symbolErr: errors.New("no symbol"),
+		}
+		_, err := GetMethods(source)
+		assert.NotNil(t, err)
+	})
+}
+
+type mockDescriptorSource struct {
+	symbolDesc  desc.Descriptor
+	symbolErr   error
+	services    []string
+	servicesErr error
+}
+
+func (m *mockDescriptorSource) AllExtensionsForType(_ string) ([]*desc.FieldDescriptor, error) {
+	return nil, nil
+}
+
+func (m *mockDescriptorSource) FindSymbol(_ string) (desc.Descriptor, error) {
+	return m.symbolDesc, m.symbolErr
+}
+
+func (m *mockDescriptorSource) ListServices() ([]string, error) {
+	return m.services, m.servicesErr
 }

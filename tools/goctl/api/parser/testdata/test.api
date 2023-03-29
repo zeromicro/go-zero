@@ -11,6 +11,11 @@
     }
 
     // service doc
+    @server(
+        group: test
+        middleware: m1,m2
+        prefix: v1
+    )
     service greet-api {
         // handler doc
         @handler GreetHandler // handler comment

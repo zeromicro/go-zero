@@ -81,7 +81,7 @@ func (pe *PeriodicalExecutor) Flush() bool {
 	}())
 }
 
-// Sync lets caller to run fn thread-safe with pe, especially for the underlying container.
+// Sync lets caller run fn thread-safe with pe, especially for the underlying container.
 func (pe *PeriodicalExecutor) Sync(fn func()) {
 	pe.lock.Lock()
 	defer pe.lock.Unlock()
@@ -116,7 +116,7 @@ func (pe *PeriodicalExecutor) addAndCheck(task any) (any, bool) {
 }
 
 func (pe *PeriodicalExecutor) backgroundFlush() {
-	threading.GoSafe(func() {
+	go func() {
 		// flush before quit goroutine to avoid missing tasks
 		defer pe.Flush()
 
@@ -144,7 +144,7 @@ func (pe *PeriodicalExecutor) backgroundFlush() {
 				}
 			}
 		}
-	})
+	}()
 }
 
 func (pe *PeriodicalExecutor) doneExecution() {
@@ -162,7 +162,9 @@ func (pe *PeriodicalExecutor) executeTasks(tasks any) bool {
 
 	ok := pe.hasTasks(tasks)
 	if ok {
-		pe.container.Execute(tasks)
+		threading.RunSafe(func() {
+			pe.container.Execute(tasks)
+		})
 	}
 
 	return ok

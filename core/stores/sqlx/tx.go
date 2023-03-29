@@ -159,7 +159,7 @@ func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 			if e := tx.Rollback(); e != nil {
 				err = fmt.Errorf("recover from %#v, rollback failed: %w", p, e)
 			} else {
-				err = fmt.Errorf("recoveer from %#v", p)
+				err = fmt.Errorf("recover from %#v", p)
 			}
 		} else if err != nil {
 			if e := tx.Rollback(); e != nil {
