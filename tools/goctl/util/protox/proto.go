@@ -50,6 +50,7 @@ type ProtoFieldData struct {
 	Name     string
 	Type     string
 	Repeated bool
+	Optional bool
 }
 
 type MessageVisitor struct {
@@ -60,6 +61,7 @@ func (m MessageVisitor) VisitNormalField(i *proto.NormalField) {
 	ProtoField.Name = i.Field.Name
 	ProtoField.Type = i.Field.Type
 	ProtoField.Repeated = i.Repeated
+	ProtoField.Optional = i.Optional
 }
 
 func GenCommentString(comments []string, space bool) string {
