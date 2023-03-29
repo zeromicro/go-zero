@@ -29,6 +29,9 @@ func getCluster(r *Redis) (*red.ClusterClient, error) {
 			TLSConfig:    tlsConfig,
 		})
 		store.AddHook(durationHook)
+		for _, hook := range r.hooks {
+			store.AddHook(hook)
+		}
 
 		return store, nil
 	})
