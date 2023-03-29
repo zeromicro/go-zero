@@ -25,11 +25,14 @@ const (
 	GoctlDebug             = "GOCTL_DEBUG"
 	GoctlCache             = "GOCTL_CACHE"
 	GoctlVersion           = "GOCTL_VERSION"
+	GoctlExperimental      = "GOCTL_EXPERIMENTAL"
 	ProtocVersion          = "PROTOC_VERSION"
 	ProtocGenGoVersion     = "PROTOC_GEN_GO_VERSION"
 	ProtocGenGoGRPCVersion = "PROTO_GEN_GO_GRPC_VERSION"
 
-	envFileDir = "env"
+	envFileDir      = "env"
+	ExperimentalOn  = "on"
+	ExperimentalOff = "off"
 )
 
 // init initializes the goctl environment variables, the environment variables of the function are set in order,
@@ -56,6 +59,8 @@ func init() {
 		if value := existsEnv.GetStringOr(GoctlCache, ""); value != "" {
 			goctlEnv.SetKV(GoctlCache, value)
 		}
+		experimental:=existsEnv.GetOr(GoctlExperimental,ExperimentalOff)
+		goctlEnv.SetKV(GoctlExperimental,experimental)
 	}
 	if !goctlEnv.HasKey(GoctlHome) {
 		goctlEnv.SetKV(GoctlHome, defaultGoctlHome)
@@ -69,7 +74,12 @@ func init() {
 		goctlEnv.SetKV(GoctlCache, cacheDir)
 	}
 
+	if !goctlEnv.HasKey(GoctlExperimental){
+		goctlEnv.SetKV(GoctlExperimental, ExperimentalOff)
+	}
+
 	goctlEnv.SetKV(GoctlVersion, version.BuildVersion)
+
 	protocVer, _ := protoc.Version()
 	goctlEnv.SetKV(ProtocVersion, protocVer)
 
@@ -90,6 +100,10 @@ func Get(key string) string {
 
 func GetOr(key, def string) string {
 	return goctlEnv.GetStringOr(key, def)
+}
+
+func UseExperimental() bool {
+	return GetOr(GoctlExperimental, ExperimentalOff) == ExperimentalOn
 }
 
 func readEnv(goctlHome string) *sortedmap.SortedMap {
