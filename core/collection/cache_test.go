@@ -14,7 +14,7 @@ import (
 var errDummy = errors.New("dummy")
 
 func TestCacheSet(t *testing.T) {
-	cache, err := NewCache(time.Second*2, WithName("any"))
+	cache, err := NewCache[string](time.Second*2, WithName[string]("any"))
 	assert.Nil(t, err)
 
 	cache.Set("first", "first element")
@@ -29,7 +29,7 @@ func TestCacheSet(t *testing.T) {
 }
 
 func TestCacheDel(t *testing.T) {
-	cache, err := NewCache(time.Second * 2)
+	cache, err := NewCache[string](time.Second * 2)
 	assert.Nil(t, err)
 
 	cache.Set("first", "first element")
@@ -44,7 +44,7 @@ func TestCacheDel(t *testing.T) {
 }
 
 func TestCacheTake(t *testing.T) {
-	cache, err := NewCache(time.Second * 2)
+	cache, err := NewCache[string](time.Second * 2)
 	assert.Nil(t, err)
 
 	var count int32
@@ -52,7 +52,7 @@ func TestCacheTake(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
-			cache.Take("first", func() (any, error) {
+			cache.Take("first", func() (string, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "first element", nil
@@ -67,7 +67,7 @@ func TestCacheTake(t *testing.T) {
 }
 
 func TestCacheTakeExists(t *testing.T) {
-	cache, err := NewCache(time.Second * 2)
+	cache, err := NewCache[string](time.Second * 2)
 	assert.Nil(t, err)
 
 	var count int32
@@ -76,7 +76,7 @@ func TestCacheTakeExists(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			cache.Set("first", "first element")
-			cache.Take("first", func() (any, error) {
+			cache.Take("first", func() (string, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "first element", nil
@@ -91,7 +91,7 @@ func TestCacheTakeExists(t *testing.T) {
 }
 
 func TestCacheTakeError(t *testing.T) {
-	cache, err := NewCache(time.Second * 2)
+	cache, err := NewCache[string](time.Second * 2)
 	assert.Nil(t, err)
 
 	var count int32
@@ -99,7 +99,7 @@ func TestCacheTakeError(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func() {
-			_, err := cache.Take("first", func() (any, error) {
+			_, err := cache.Take("first", func() (string, error) {
 				atomic.AddInt32(&count, 1)
 				time.Sleep(time.Millisecond * 100)
 				return "", errDummy
@@ -115,7 +115,7 @@ func TestCacheTakeError(t *testing.T) {
 }
 
 func TestCacheWithLruEvicts(t *testing.T) {
-	cache, err := NewCache(time.Minute, WithLimit(3))
+	cache, err := NewCache[string](time.Minute, WithLimit[string](3))
 	assert.Nil(t, err)
 
 	cache.Set("first", "first element")
@@ -137,7 +137,7 @@ func TestCacheWithLruEvicts(t *testing.T) {
 }
 
 func TestCacheWithLruEvicted(t *testing.T) {
-	cache, err := NewCache(time.Minute, WithLimit(3))
+	cache, err := NewCache[string](time.Minute, WithLimit[string](3))
 	assert.Nil(t, err)
 
 	cache.Set("first", "first element")
@@ -162,7 +162,7 @@ func TestCacheWithLruEvicted(t *testing.T) {
 }
 
 func BenchmarkCache(b *testing.B) {
-	cache, err := NewCache(time.Second*5, WithLimit(100000))
+	cache, err := NewCache[string](time.Second*5, WithLimit[string](100000))
 	if err != nil {
 		b.Fatal(err)
 	}
