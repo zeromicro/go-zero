@@ -13,13 +13,15 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
-type ServerSpecifiedTimeoutConf struct {
-	FullMethod string
-	Timeout    time.Duration
-}
+type (
+	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
+	ServerSpecifiedTimeoutConf struct {
+		FullMethod string
+		Timeout    time.Duration
+	}
 
-type specifiedTimeoutCache map[string]time.Duration
+	specifiedTimeoutCache map[string]time.Duration
+)
 
 // UnaryTimeoutInterceptor returns a func that sets timeout to incoming unary requests.
 func UnaryTimeoutInterceptor(timeout time.Duration, specifiedTimeouts ...ServerSpecifiedTimeoutConf) grpc.UnaryServerInterceptor {
