@@ -41,6 +41,12 @@ func TestServer_setupInterceptors(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		SpecifiedTimeouts: []ServerSpecifiedTimeoutConf{
+			{
+				FullMethod: "/foo",
+				Timeout:    5 * time.Second,
+			},
+		},
 	}
 	err = setupInterceptors(server, conf, new(stat.Metrics))
 	assert.Nil(t, err)
@@ -55,7 +61,6 @@ func TestServer_setupInterceptors(t *testing.T) {
 func TestServer(t *testing.T) {
 	DontLogContentForMethod("foo")
 	SetServerSlowThreshold(time.Second)
-	SetTimeoutForFullMethod("/foo", time.Second)
 	svr := MustNewServer(RpcServerConf{
 		ServiceConf: service.ServiceConf{
 			Log: logx.LogConf{
@@ -76,6 +81,12 @@ func TestServer(t *testing.T) {
 			Stat:       true,
 			Prometheus: true,
 			Breaker:    true,
+		},
+		SpecifiedTimeouts: []ServerSpecifiedTimeoutConf{
+			{
+				FullMethod: "/foo",
+				Timeout:    time.Second,
+			},
 		},
 	}, func(server *grpc.Server) {
 	})
@@ -107,6 +118,7 @@ func TestServerError(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		SpecifiedTimeouts: []ServerSpecifiedTimeoutConf{},
 	}, func(server *grpc.Server) {
 	})
 	assert.NotNil(t, err)
@@ -133,6 +145,7 @@ func TestServer_HasEtcd(t *testing.T) {
 			Prometheus: true,
 			Breaker:    true,
 		},
+		SpecifiedTimeouts: []ServerSpecifiedTimeoutConf{},
 	}, func(server *grpc.Server) {
 	})
 	svr.AddOptions(grpc.ConnectionTimeout(time.Hour))

@@ -110,11 +110,6 @@ func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
 }
 
-// SetTimeoutForFullMethod set the specified timeout for given method.
-func SetTimeoutForFullMethod(fullMethod string, timeout time.Duration) {
-	serverinterceptors.SetTimeoutForFullMethod(fullMethod, timeout)
-}
-
 func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
 	rds, err := redis.NewRedis(c.Redis.RedisConf)
 	if err != nil {
@@ -139,8 +134,12 @@ func setupInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metri
 	}
 
 	if c.Timeout > 0 {
-		svr.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
-			time.Duration(c.Timeout) * time.Millisecond))
+		svr.AddUnaryInterceptors(
+			serverinterceptors.UnaryTimeoutInterceptor(
+				time.Duration(c.Timeout)*time.Millisecond,
+				c.SpecifiedTimeouts...,
+			),
+		)
 	}
 
 	if c.Auth {

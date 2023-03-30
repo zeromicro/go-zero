@@ -1,5 +1,7 @@
 package internal
 
+import "github.com/zeromicro/go-zero/zrpc/internal/serverinterceptors"
+
 type (
 	// ClientMiddlewaresConf defines whether to use client middlewares.
 	ClientMiddlewaresConf struct {
@@ -18,4 +20,6 @@ type (
 		Prometheus bool `json:",default=true"`
 		Breaker    bool `json:",default=true"`
 	}
+
+	ServerSpecifiedTimeoutConf = serverinterceptors.ServerSpecifiedTimeoutConf
 )

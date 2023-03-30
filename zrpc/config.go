@@ -15,6 +15,8 @@ type (
 	ClientMiddlewaresConf = internal.ClientMiddlewaresConf
 	// ServerMiddlewaresConf defines whether to use server middlewares.
 	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
+	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
+	ServerSpecifiedTimeoutConf = internal.ServerSpecifiedTimeoutConf
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
@@ -43,6 +45,8 @@ type (
 		// grpc health check switch
 		Health      bool `json:",default=true"`
 		Middlewares ServerMiddlewaresConf
+		// setting specified timeout for gRPC method
+		SpecifiedTimeouts []ServerSpecifiedTimeoutConf `json:",optional"`
 	}
 )
 
