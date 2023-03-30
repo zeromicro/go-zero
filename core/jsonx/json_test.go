@@ -38,11 +38,10 @@ func TestMarshalToString(t *testing.T) {
 
 func TestUnmarshal(t *testing.T) {
 	const s = `{"name":"John","age":30}`
-	var v struct {
+	v, err := Unmarshal[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := Unmarshal([]byte(s), &v)
+	}]([]byte(s))
 	assert.Nil(t, err)
 	assert.Equal(t, "John", v.Name)
 	assert.Equal(t, 30, v.Age)
@@ -50,21 +49,19 @@ func TestUnmarshal(t *testing.T) {
 
 func TestUnmarshalError(t *testing.T) {
 	const s = `{"name":"John","age":30`
-	var v struct {
+	_, err := Unmarshal[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := Unmarshal([]byte(s), &v)
+	}]([]byte(s))
 	assert.NotNil(t, err)
 }
 
 func TestUnmarshalFromString(t *testing.T) {
 	const s = `{"name":"John","age":30}`
-	var v struct {
+	v, err := UnmarshalFromString[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := UnmarshalFromString(s, &v)
+	}](s)
 	assert.Nil(t, err)
 	assert.Equal(t, "John", v.Name)
 	assert.Equal(t, 30, v.Age)
@@ -72,21 +69,19 @@ func TestUnmarshalFromString(t *testing.T) {
 
 func TestUnmarshalFromStringError(t *testing.T) {
 	const s = `{"name":"John","age":30`
-	var v struct {
+	_, err := UnmarshalFromString[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := UnmarshalFromString(s, &v)
+	}](s)
 	assert.NotNil(t, err)
 }
 
 func TestUnmarshalFromRead(t *testing.T) {
 	const s = `{"name":"John","age":30}`
-	var v struct {
+	v, err := UnmarshalFromReader[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := UnmarshalFromReader(strings.NewReader(s), &v)
+	}](strings.NewReader(s))
 	assert.Nil(t, err)
 	assert.Equal(t, "John", v.Name)
 	assert.Equal(t, 30, v.Age)
@@ -94,10 +89,9 @@ func TestUnmarshalFromRead(t *testing.T) {
 
 func TestUnmarshalFromReaderError(t *testing.T) {
 	const s = `{"name":"John","age":30`
-	var v struct {
+	_, err := UnmarshalFromReader[struct {
 		Name string `json:"name"`
 		Age  int    `json:"age"`
-	}
-	err := UnmarshalFromReader(strings.NewReader(s), &v)
+	}](strings.NewReader(s))
 	assert.NotNil(t, err)
 }

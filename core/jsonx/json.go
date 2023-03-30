@@ -24,40 +24,41 @@ func MarshalToString(v any) (string, error) {
 }
 
 // Unmarshal unmarshals data bytes into v.
-func Unmarshal(data []byte, v any) error {
+func Unmarshal[T any](data []byte) (v T, err error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
-	if err := unmarshalUseNumber(decoder, v); err != nil {
-		return formatError(string(data), err)
+	v, err = unmarshalUseNumber[T](decoder)
+	if err != nil {
+		err = formatError(string(data), err)
 	}
-
-	return nil
+	return
 }
 
 // UnmarshalFromString unmarshals v from str.
-func UnmarshalFromString(str string, v any) error {
+func UnmarshalFromString[T any](str string) (v T, err error) {
 	decoder := json.NewDecoder(strings.NewReader(str))
-	if err := unmarshalUseNumber(decoder, v); err != nil {
-		return formatError(str, err)
+	v, err = unmarshalUseNumber[T](decoder)
+	if err != nil {
+		err = formatError(str, err)
 	}
-
-	return nil
+	return
 }
 
 // UnmarshalFromReader unmarshals v from reader.
-func UnmarshalFromReader(reader io.Reader, v any) error {
+func UnmarshalFromReader[T any](reader io.Reader) (v T, err error) {
 	var buf strings.Builder
 	teeReader := io.TeeReader(reader, &buf)
 	decoder := json.NewDecoder(teeReader)
-	if err := unmarshalUseNumber(decoder, v); err != nil {
-		return formatError(buf.String(), err)
+	v, err = unmarshalUseNumber[T](decoder)
+	if err != nil {
+		err = formatError(buf.String(), err)
 	}
-
-	return nil
+	return
 }
 
-func unmarshalUseNumber(decoder *json.Decoder, v any) error {
+func unmarshalUseNumber[T any](decoder *json.Decoder) (v T, err error) {
 	decoder.UseNumber()
-	return decoder.Decode(v)
+	err = decoder.Decode(&v)
+	return
 }
 
 func formatError(v string, err error) error {
