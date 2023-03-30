@@ -19,6 +19,10 @@ import (
 func TestSetSlowThreshold(t *testing.T) {
 	assert.Equal(t, defaultSlowThreshold, slowThreshold.Load())
 	SetSlowThreshold(time.Second)
+	// reset slowThreshold
+	t.Cleanup(func() {
+		slowThreshold = syncx.ForAtomicDuration(defaultSlowThreshold)
+	})
 	assert.Equal(t, time.Second, slowThreshold.Load())
 }
 
@@ -131,6 +135,10 @@ func TestLogDurationWithoutContent(t *testing.T) {
 	}
 
 	DontLogContentForMethod("foo")
+	// reset notLoggingContentMethods
+	t.Cleanup(func() {
+		notLoggingContentMethods = sync.Map{}
+	})
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
