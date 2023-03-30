@@ -17,10 +17,11 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
 	"github.com/zeromicro/go-zero/tools/goctl/env"
 	"github.com/zeromicro/go-zero/tools/goctl/frontend"
+	"github.com/zeromicro/go-zero/tools/goctl/gateway"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	"github.com/zeromicro/go-zero/tools/goctl/migrate"
-	"github.com/zeromicro/go-zero/tools/goctl/model"
 	"github.com/zeromicro/go-zero/tools/goctl/quickstart"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc"
 	"github.com/zeromicro/go-zero/tools/goctl/tpl"
@@ -37,14 +38,7 @@ const (
 var (
 	//go:embed usage.tpl
 	usageTpl string
-
-	rootCmd = &cobra.Command{
-		Use:   "goctl",
-		Short: "A cli tool to generate go-zero code",
-		Long: "A cli tool to generate api, zrpc, model code\n\n" +
-			"GitHub: https://github.com/zeromicro/go-zero\n" +
-			"Site:   https://go-zero.dev",
-	}
+	rootCmd  = cobrax.NewCommand("goctl")
 )
 
 // Execute executes the given command
@@ -119,17 +113,8 @@ func init() {
 		runtime.GOOS, runtime.GOARCH)
 
 	rootCmd.SetUsageTemplate(usageTpl)
-	rootCmd.AddCommand(api.Cmd)
-	rootCmd.AddCommand(bug.Cmd)
-	rootCmd.AddCommand(docker.Cmd)
-	rootCmd.AddCommand(kube.Cmd)
-	rootCmd.AddCommand(env.Cmd)
-	rootCmd.AddCommand(model.Cmd)
-	rootCmd.AddCommand(migrate.Cmd)
-	rootCmd.AddCommand(quickstart.Cmd)
-	rootCmd.AddCommand(rpc.Cmd)
-	rootCmd.AddCommand(tpl.Cmd)
-	rootCmd.AddCommand(upgrade.Cmd)
-	rootCmd.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
-	rootCmd.AddCommand(frontend.Cmd)
+	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd)
+	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd, frontend.Cmd)
+	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
+	rootCmd.MustInit()
 }

@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/spf13/cobra"
+
 	"github.com/zeromicro/go-zero/tools/goctl/api/apigen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/dartgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/docgen"
@@ -12,208 +13,132 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/api/tsgen"
 	"github.com/zeromicro/go-zero/tools/goctl/api/validate"
+	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/plugin"
 )
 
 var (
 	// Cmd describes an api command.
-	Cmd = &cobra.Command{
-		Use:   "api",
-		Short: "Generate api related files",
-		RunE:  apigen.CreateApiTemplate,
-	}
+	Cmd       = cobrax.NewCommand("api", cobrax.WithRunE(apigen.CreateApiTemplate))
+	dartCmd   = cobrax.NewCommand("dart", cobrax.WithRunE(dartgen.DartCommand))
+	docCmd    = cobrax.NewCommand("doc", cobrax.WithRunE(docgen.DocCommand))
+	formatCmd = cobrax.NewCommand("format", cobrax.WithRunE(format.GoFormatApi))
+	goCmd     = cobrax.NewCommand("go", cobrax.WithRunE(gogen.GoCommand))
+	newCmd    = cobrax.NewCommand("new", cobrax.WithRunE(new.CreateServiceCommand),
+		cobrax.WithArgs(cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs)))
+	validateCmd = cobrax.NewCommand("validate", cobrax.WithRunE(validate.GoValidateApi))
+	javaCmd     = cobrax.NewCommand("java", cobrax.WithRunE(javagen.JavaCommand), cobrax.WithHidden())
+	ktCmd       = cobrax.NewCommand("kt", cobrax.WithRunE(ktgen.KtCommand))
+	pluginCmd   = cobrax.NewCommand("plugin", cobrax.WithRunE(plugin.PluginCommand))
+	tsCmd       = cobrax.NewCommand("ts", cobrax.WithRunE(tsgen.TsCommand))
 
-	dartCmd = &cobra.Command{
-		Use:   "dart",
-		Short: "Generate dart files for provided api in api file",
-		RunE:  dartgen.DartCommand,
-	}
+	protoCmd = cobrax.NewCommand("proto", cobrax.WithRunE(gogen.GenCRUDLogicByProto))
 
-	docCmd = &cobra.Command{
-		Use:   "doc",
-		Short: "Generate doc files",
-		RunE:  docgen.DocCommand,
-	}
-
-	formatCmd = &cobra.Command{
-		Use:   "format",
-		Short: "Format api files",
-		RunE:  format.GoFormatApi,
-	}
-
-	goCmd = &cobra.Command{
-		Use:   "go",
-		Short: "Generate go files for provided api in api file",
-		RunE:  gogen.GoCommand,
-	}
-
-	newCmd = &cobra.Command{
-		Use:     "new",
-		Short:   "Fast create api service",
-		Example: "goctl api new [options] service-name",
-		Args:    cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return new.CreateServiceCommand(args)
-		},
-	}
-
-	validateCmd = &cobra.Command{
-		Use:   "validate",
-		Short: "Validate api file",
-		RunE:  validate.GoValidateApi,
-	}
-
-	javaCmd = &cobra.Command{
-		Use:    "java",
-		Short:  "Generate java files for provided api in api file",
-		Hidden: true,
-		RunE:   javagen.JavaCommand,
-	}
-
-	ktCmd = &cobra.Command{
-		Use:   "kt",
-		Short: "Generate kotlin code for provided api file",
-		RunE:  ktgen.KtCommand,
-	}
-
-	pluginCmd = &cobra.Command{
-		Use:   "plugin",
-		Short: "Custom file generator",
-		RunE:  plugin.PluginCommand,
-	}
-
-	tsCmd = &cobra.Command{
-		Use:   "ts",
-		Short: "Generate ts files for provided api in api file",
-		RunE:  tsgen.TsCommand,
-	}
-
-	protoCmd = &cobra.Command{
-		Use:   "proto",
-		Short: "Generate CRUD template from proto file",
-		RunE:  gogen.GenCRUDLogicByProto,
-	}
-
-	entCmd = &cobra.Command{
-		Use:   "ent",
-		Short: "Generate CRUD logic files from ent file",
-		RunE:  gogen.GenCRUDLogicByEnt,
-	}
+	entCmd = cobrax.NewCommand("ent", cobrax.WithRunE(gogen.GenCRUDLogicByEnt))
 )
 
 func init() {
-	Cmd.Flags().StringVar(&apigen.VarStringOutput, "o", "", "Output a sample api file")
-	Cmd.Flags().StringVar(&apigen.VarStringHome, "home", "", "The goctl home path of the"+
-		" template, --home and --remote cannot be set at the same time, if they are, --remote has "+
-		"higher priority")
-	Cmd.Flags().StringVar(&apigen.VarStringRemote, "remote", "", "The remote git repo of the"+
-		" template, --home and --remote cannot be set at the same time, if they are, --remote has higher"+
-		" priority\nThe git repo directory must be consistent with the"+
-		" https://github.com/zeromicro/go-zero-template directory structure")
-	Cmd.Flags().StringVar(&apigen.VarStringBranch, "branch", "", "The branch of the "+
-		"remote repo, it does work with --remote")
+	var (
+		apiCmdFlags      = Cmd.Flags()
+		dartCmdFlags     = dartCmd.Flags()
+		docCmdFlags      = docCmd.Flags()
+		formatCmdFlags   = formatCmd.Flags()
+		goCmdFlags       = goCmd.Flags()
+		javaCmdFlags     = javaCmd.Flags()
+		ktCmdFlags       = ktCmd.Flags()
+		newCmdFlags      = newCmd.Flags()
+		pluginCmdFlags   = pluginCmd.Flags()
+		tsCmdFlags       = tsCmd.Flags()
+		validateCmdFlags = validateCmd.Flags()
+		protoCmdFlags    = protoCmd.Flags()
+		entCmdFlags      = entCmd.Flags()
+	)
 
-	dartCmd.Flags().StringVar(&dartgen.VarStringDir, "dir", "", "The target dir")
-	dartCmd.Flags().StringVar(&dartgen.VarStringAPI, "api", "", "The api file")
-	dartCmd.Flags().BoolVar(&dartgen.VarStringLegacy, "legacy", false, "Legacy generator for flutter v1")
-	dartCmd.Flags().StringVar(&dartgen.VarStringHostname, "hostname", "", "hostname of the server")
-	dartCmd.Flags().StringVar(&dartgen.VarStringScheme, "scheme", "", "scheme of the server")
+	apiCmdFlags.StringVar(&apigen.VarStringOutput, "o")
+	apiCmdFlags.StringVar(&apigen.VarStringHome, "home")
+	apiCmdFlags.StringVar(&apigen.VarStringRemote, "remote")
+	apiCmdFlags.StringVar(&apigen.VarStringBranch, "branch")
 
-	docCmd.Flags().StringVar(&docgen.VarStringDir, "dir", "", "The target dir")
-	docCmd.Flags().StringVar(&docgen.VarStringOutput, "o", "", "The output markdown directory")
+	dartCmdFlags.StringVar(&dartgen.VarStringDir, "dir")
+	dartCmdFlags.StringVar(&dartgen.VarStringAPI, "api")
+	dartCmdFlags.BoolVar(&dartgen.VarStringLegacy, "legacy")
+	dartCmdFlags.StringVar(&dartgen.VarStringHostname, "hostname")
+	dartCmdFlags.StringVar(&dartgen.VarStringScheme, "scheme")
 
-	formatCmd.Flags().StringVar(&format.VarStringDir, "dir", "", "The format target dir")
-	formatCmd.Flags().BoolVar(&format.VarBoolIgnore, "iu", false, "Ignore update")
-	formatCmd.Flags().BoolVar(&format.VarBoolUseStdin, "stdin", false, "Use stdin to input api"+
-		" doc content, press \"ctrl + d\" to send EOF")
-	formatCmd.Flags().BoolVar(&format.VarBoolSkipCheckDeclare, "declare", false, "Use to skip check "+
-		"api types already declare")
+	docCmdFlags.StringVar(&docgen.VarStringDir, "dir")
+	docCmdFlags.StringVar(&docgen.VarStringOutput, "o")
 
-	goCmd.Flags().StringVar(&gogen.VarStringDir, "dir", "", "The target dir")
-	goCmd.Flags().StringVar(&gogen.VarStringAPI, "api", "", "The api file")
-	goCmd.Flags().StringVar(&gogen.VarStringHome, "home", "", "The goctl home path of "+
-		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
-		"has higher priority")
-	goCmd.Flags().StringVar(&gogen.VarStringRemote, "remote", "", "The remote git repo "+
-		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\nThe git repo directory must be consistent with the "+
-		"https://github.com/zeromicro/go-zero-template directory structure")
-	goCmd.Flags().StringVar(&gogen.VarStringBranch, "branch", "", "The branch of "+
-		"the remote repo, it does work with --remote")
-	goCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file naming format,"+
-		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
-	goCmd.Flags().BoolVar(&gogen.VarBoolErrorTranslate, "trans_err", false, "Whether to translate the error")
-	goCmd.Flags().BoolVar(&gogen.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
-	goCmd.Flags().BoolVar(&gogen.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
+	formatCmdFlags.StringVar(&format.VarStringDir, "dir")
+	formatCmdFlags.BoolVar(&format.VarBoolIgnore, "iu")
+	formatCmdFlags.BoolVar(&format.VarBoolUseStdin, "stdin")
+	formatCmdFlags.BoolVar(&format.VarBoolSkipCheckDeclare, "declare")
 
-	javaCmd.Flags().StringVar(&javagen.VarStringDir, "dir", "", "The target dir")
-	javaCmd.Flags().StringVar(&javagen.VarStringAPI, "api", "", "The api file")
+	goCmdFlags.StringVar(&gogen.VarStringDir, "dir")
+	goCmdFlags.StringVar(&gogen.VarStringAPI, "api")
+	goCmdFlags.StringVar(&gogen.VarStringHome, "home")
+	goCmdFlags.StringVar(&gogen.VarStringRemote, "remote")
+	goCmdFlags.StringVar(&gogen.VarStringBranch, "branch")
+	goCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
+	goCmdFlags.BoolVar(&gogen.VarBoolErrorTranslate, "trans_err")
+	goCmdFlags.BoolVar(&gogen.VarBoolUseCasbin, "casbin")
+	goCmdFlags.BoolVar(&gogen.VarBoolUseI18n, "i18n")
 
-	ktCmd.Flags().StringVar(&ktgen.VarStringDir, "dir", "", "The target dir")
-	ktCmd.Flags().StringVar(&ktgen.VarStringAPI, "api", "", "The api file")
-	ktCmd.Flags().StringVar(&ktgen.VarStringPKG, "pkg", "", "Define package name for kotlin file")
+	javaCmdFlags.StringVar(&javagen.VarStringDir, "dir")
+	javaCmdFlags.StringVar(&javagen.VarStringAPI, "api")
 
-	newCmd.Flags().StringVar(&new.VarStringHome, "home", "", "The goctl home path of "+
-		"the template, --home and --remote cannot be set at the same time, if they are, --remote "+
-		"has higher priority")
-	newCmd.Flags().StringVar(&new.VarStringRemote, "remote", "", "The remote git repo "+
-		"of the template, --home and --remote cannot be set at the same time, if they are, --remote"+
-		" has higher priority\n\tThe git repo directory must be consistent with the "+
-		"https://github.com/zeromicro/go-zero-template directory structure")
-	newCmd.Flags().StringVar(&new.VarStringBranch, "branch", "", "The branch of "+
-		"the remote repo, it does work with --remote")
-	newCmd.Flags().StringVar(&new.VarStringStyle, "style", "go_zero", "The file naming format,"+
-		" see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]")
-	newCmd.Flags().BoolVar(&new.VarBoolUseCasbin, "casbin", false, "Whether to use the Casbin")
-	newCmd.Flags().BoolVar(&new.VarBoolUseI18n, "i18n", false, "Whether to use i18n")
-	newCmd.Flags().StringVar(&new.VarStringGoZeroVersion, "go_zero_version", "",
-		"The go zero version used for migration. e.g. v1.4.2")
-	newCmd.Flags().StringVar(&new.VarStringToolVersion, "tool_version", "",
-		"The simple admin tool version version used for migration. e.g. v0.0.9")
-	newCmd.Flags().StringVar(&new.VarModuleName, "module_name", "",
-		"The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core")
-	newCmd.Flags().BoolVar(&new.VarBoolErrorTranslate, "trans_err", false, "Whether to translate the error")
-	newCmd.Flags().IntVar(&new.VarIntServicePort, "port", 9100, "The service port exposed")
-	newCmd.Flags().BoolVar(&new.VarBoolGitlab, "gitlab", false, "Whether to use gitlab CI/CD")
-	newCmd.Flags().BoolVar(&new.VarBoolEnt, "ent", false, "Whether to use Ent in API service")
+	ktCmdFlags.StringVar(&ktgen.VarStringDir, "dir")
+	ktCmdFlags.StringVar(&ktgen.VarStringAPI, "api")
+	ktCmdFlags.StringVar(&ktgen.VarStringPKG, "pkg")
 
-	pluginCmd.Flags().StringVarP(&plugin.VarStringPlugin, "plugin", "p", "", "The plugin file")
-	pluginCmd.Flags().StringVar(&plugin.VarStringDir, "dir", "", "The target dir")
-	pluginCmd.Flags().StringVar(&plugin.VarStringAPI, "api", "", "The api file")
-	pluginCmd.Flags().StringVar(&plugin.VarStringStyle, "style", "go_zero",
-		"The file naming format, see [https://github.com/zeromicro/go-zero/tree/master/tools/goctl/config/readme.md]")
+	newCmdFlags.StringVar(&new.VarStringHome, "home")
+	newCmdFlags.StringVar(&new.VarStringRemote, "remote")
+	newCmdFlags.StringVar(&new.VarStringBranch, "branch")
+	newCmdFlags.StringVarWithDefaultValue(&new.VarStringStyle, "style", config.DefaultFormat)
+	newCmdFlags.BoolVar(&new.VarBoolUseCasbin, "casbin")
+	newCmdFlags.BoolVar(&new.VarBoolUseI18n, "i18n")
+	newCmdFlags.StringVar(&new.VarStringGoZeroVersion, "go_zero_version")
+	newCmdFlags.StringVar(&new.VarStringToolVersion, "tool_version")
+	newCmdFlags.StringVar(&new.VarModuleName, "module_name")
+	newCmdFlags.BoolVar(&new.VarBoolErrorTranslate, "trans_err")
+	newCmdFlags.IntVarWithDefaultValue(&new.VarIntServicePort, "port", 9100)
+	newCmdFlags.BoolVar(&new.VarBoolGitlab, "gitlab")
+	newCmdFlags.BoolVar(&new.VarBoolEnt, "ent")
 
-	tsCmd.Flags().StringVar(&tsgen.VarStringDir, "dir", "", "The target dir")
-	tsCmd.Flags().StringVar(&tsgen.VarStringAPI, "api", "", "The api file")
-	tsCmd.Flags().StringVar(&tsgen.VarStringCaller, "caller", "", "The web api caller")
-	tsCmd.Flags().BoolVar(&tsgen.VarBoolUnWrap, "unwrap", false, "Unwrap the webapi caller for import")
+	pluginCmdFlags.StringVarP(&plugin.VarStringPlugin, "plugin", "p")
+	pluginCmdFlags.StringVar(&plugin.VarStringDir, "dir")
+	pluginCmdFlags.StringVar(&plugin.VarStringAPI, "api")
+	pluginCmdFlags.StringVar(&plugin.VarStringStyle, "style")
 
-	validateCmd.Flags().StringVar(&validate.VarStringAPI, "api", "", "Validate target api file")
+	tsCmdFlags.StringVar(&tsgen.VarStringDir, "dir")
+	tsCmdFlags.StringVar(&tsgen.VarStringAPI, "api")
+	tsCmdFlags.StringVar(&tsgen.VarStringCaller, "caller")
+	tsCmdFlags.BoolVar(&tsgen.VarBoolUnWrap, "unwrap")
 
-	protoCmd.Flags().StringVar(&gogen.VarStringProto, "proto", "", "The proto path")
-	protoCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
-	protoCmd.Flags().StringVar(&gogen.VarStringAPIServiceName, "api_service_name", "", "The API service name")
-	protoCmd.Flags().StringVar(&gogen.VarStringRPCServiceName, "rpc_service_name", "", "The RPC service name")
-	protoCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
-	protoCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
-		"if it is empty, generate codes for all models in schema directory")
-	protoCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
-	protoCmd.Flags().StringVar(&gogen.VarStringRpcName, "rpc_name", "", "The rpc name in service context. e.g. CoreRpc")
-	protoCmd.Flags().StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package", "", "The rpc name in service context. e.g. CoreRpc")
-	protoCmd.Flags().BoolVar(&gogen.VarBoolMultiple, "multiple", false, "Whether the proto contains multiple services")
-	protoCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
-	protoCmd.Flags().BoolVar(&gogen.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
+	validateCmdFlags.StringVar(&validate.VarStringAPI, "api")
 
-	entCmd.Flags().StringVar(&gogen.VarStringSchema, "schema", "", "The schema path of the Ent")
-	entCmd.Flags().StringVar(&gogen.VarStringOutput, "o", "", "The output path")
-	entCmd.Flags().StringVar(&gogen.VarStringAPIServiceName, "api_service_name", "", "The API service name")
-	entCmd.Flags().StringVar(&gogen.VarStringStyle, "style", "go_zero", "The file name format style")
-	entCmd.Flags().StringVar(&gogen.VarStringModelName, "model", "", "The model name for generating e.g. user, "+
-		"if it is empty, generate codes for all models in schema directory")
-	entCmd.Flags().IntVar(&gogen.VarIntSearchKeyNum, "search_key_num", 3, "The max number of search keys ")
-	entCmd.Flags().StringVar(&gogen.VarStringGroupName, "group", "", "The group name for logic. e.g. user")
-	entCmd.Flags().BoolVar(&gogen.VarBoolOverwrite, "overwrite", false, "Whether to overwrite the files, it will overwrite all generated files.")
-	entCmd.Flags().StringVar(&gogen.VarStringJSONStyle, "json_style", "goZero", "The JSON tag format, default is camelcase.")
+	protoCmdFlags.StringVar(&gogen.VarStringProto, "proto")
+	protoCmdFlags.StringVar(&gogen.VarStringOutput, "o")
+	protoCmdFlags.StringVar(&gogen.VarStringAPIServiceName, "api_service_name")
+	protoCmdFlags.StringVar(&gogen.VarStringRPCServiceName, "rpc_service_name")
+	protoCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
+	protoCmdFlags.StringVar(&gogen.VarStringModelName, "model")
+	protoCmdFlags.IntVarWithDefaultValue(&gogen.VarIntSearchKeyNum, "search_key_num", 3)
+	protoCmdFlags.StringVar(&gogen.VarStringRpcName, "rpc_name")
+	protoCmdFlags.StringVar(&gogen.VarStringGrpcPbPackage, "grpc_package")
+	protoCmdFlags.BoolVar(&gogen.VarBoolMultiple, "multiple")
+	protoCmdFlags.StringVarWithDefaultValue(&gogen.VarStringJSONStyle, "json_style", "goZero")
+	protoCmdFlags.BoolVar(&gogen.VarBoolOverwrite, "overwrite")
+
+	entCmdFlags.StringVar(&gogen.VarStringSchema, "schema")
+	entCmdFlags.StringVar(&gogen.VarStringOutput, "o")
+	entCmdFlags.StringVar(&gogen.VarStringAPIServiceName, "api_service_name")
+	entCmdFlags.StringVarWithDefaultValue(&gogen.VarStringStyle, "style", config.DefaultFormat)
+	entCmdFlags.StringVar(&gogen.VarStringModelName, "model")
+	entCmdFlags.IntVarWithDefaultValue(&gogen.VarIntSearchKeyNum, "search_key_num", 3)
+	entCmdFlags.StringVar(&gogen.VarStringGroupName, "group")
+	entCmdFlags.BoolVar(&gogen.VarBoolOverwrite, "overwrite")
+	entCmdFlags.StringVarWithDefaultValue(&gogen.VarStringJSONStyle, "json_style", "goZero")
 
 	// Add sub-commands
 	Cmd.AddCommand(dartCmd)

@@ -11,6 +11,7 @@ import (
 	red "github.com/go-redis/redis/v8"
 
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
@@ -26,6 +27,7 @@ const (
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
 	defaultSlowThreshold = time.Millisecond * 100
+	defaultPingTimeout   = time.Second
 )
 
 var (
@@ -52,11 +54,12 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		tls  bool
-		brk  breaker.Breaker
+		Addr  string
+		Type  string
+		Pass  string
+		tls   bool
+		brk   breaker.Breaker
+		hooks []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -120,8 +123,10 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 
 	rds := newRedis(conf.Host, opts...)
-	if !rds.Ping() {
-		return nil, ErrPing
+	if !conf.NonBlock {
+		if err := rds.checkConnection(conf.PingTimeout); err != nil {
+			return nil, errorx.Wrap(err, fmt.Sprintf("redis connect error, addr: %s", conf.Host))
+		}
 	}
 
 	return rds, nil
@@ -2817,6 +2822,23 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	return
 }
 
+func (s *Redis) checkConnection(pingTimeout time.Duration) error {
+	conn, err := getRedis(s)
+	if err != nil {
+		return err
+	}
+
+	timeout := defaultPingTimeout
+	if pingTimeout > 0 {
+		timeout = pingTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return conn.Ping(ctx).Err()
+}
+
 // Cluster customizes the given Redis as a cluster.
 func Cluster() Option {
 	return func(r *Redis) {
@@ -2840,6 +2862,14 @@ func WithPass(pass string) Option {
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// withHook customizes the given Redis with given hook, only for private use now,
+// maybe expose later.
+func withHook(hook red.Hook) Option {
+	return func(r *Redis) {
+		r.hooks = append(r.hooks, hook)
 	}
 }
 

@@ -140,3 +140,15 @@ func ContainsAny(s string, runes ...rune) bool {
 func ContainsWhiteSpace(s string) bool {
 	return ContainsAny(s, WhiteSpace...)
 }
+
+func IsWhiteSpace(text string) bool {
+	if len(text) == 0 {
+		return true
+	}
+	for _, r := range text {
+		if !unicode.IsSpace(r) {
+			return false
+		}
+	}
+	return true
+}

@@ -17,11 +17,14 @@ package new
 import (
 	_ "embed"
 	"errors"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"github.com/iancoleman/strcase"
 
@@ -61,7 +64,7 @@ var (
 )
 
 // CreateServiceCommand fast create service
-func CreateServiceCommand(args []string) error {
+func CreateServiceCommand(_ *cobra.Command, args []string) error {
 	console.NewColorConsole(true).Info("Generating...")
 
 	dirName := args[0]
