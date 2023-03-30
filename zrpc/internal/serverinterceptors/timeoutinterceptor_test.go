@@ -184,7 +184,7 @@ func TestUnaryTimeoutInterceptor_TimeoutStrategy(t *testing.T) {
 	}
 }
 
-func TestUnaryTimeoutInterceptor_SetTimeoutForFullMethod(t *testing.T) {
+func TestUnaryTimeoutInterceptor_SpecifiedTimeout(t *testing.T) {
 	type args struct {
 		interceptorTimeout time.Duration
 		contextTimeout     time.Duration
@@ -235,13 +235,19 @@ func TestUnaryTimeoutInterceptor_SetTimeoutForFullMethod(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			interceptor := UnaryTimeoutInterceptor(tt.args.interceptorTimeout)
+			var specifiedTimeouts []ServerSpecifiedTimeoutConf
+			if tt.args.methodTimeout > 0 {
+				specifiedTimeouts = []ServerSpecifiedTimeoutConf{
+					{
+						FullMethod: tt.args.method,
+						Timeout:    tt.args.methodTimeout,
+					},
+				}
+			}
+
+			interceptor := UnaryTimeoutInterceptor(tt.args.interceptorTimeout, specifiedTimeouts...)
 			ctx, cancel := context.WithTimeout(context.Background(), tt.args.contextTimeout)
 			defer cancel()
-
-			if tt.args.methodTimeout > 0 {
-				SetTimeoutForFullMethod(tt.args.method, tt.args.methodTimeout)
-			}
 
 			_, err := interceptor(ctx, nil, &grpc.UnaryServerInfo{
 				FullMethod: tt.args.method,
