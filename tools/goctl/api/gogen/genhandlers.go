@@ -50,7 +50,23 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	var handlerDoc *strings.Builder
 	handlerDoc = &strings.Builder{}
 
-	handlerDoc.WriteString(fmt.Sprintf("// swagger:route %s %s %s %s \n", route.Method, route.Path, group.GetAnnotation("group"), strings.TrimSuffix(handler, "Handler")))
+	var isParameterRequest bool
+	if route.RequestType != nil && strings.Contains(strings.Join(route.RequestType.Documents(), ""),
+		"swagger:parameters") {
+		isParameterRequest = true
+	} else {
+		isParameterRequest = false
+	}
+
+	var swaggerPath string
+	if strings.Contains(route.Path, ":") {
+		swaggerPath = ConvertRoutePathToSwagger(route.Path)
+	} else {
+		swaggerPath = route.Path
+	}
+
+	handlerDoc.WriteString(fmt.Sprintf("// swagger:route %s %s %s %s \n", route.Method, swaggerPath,
+		group.GetAnnotation("group"), strings.TrimSuffix(handler, "Handler")))
 	handlerDoc.WriteString("//\n")
 	handlerDoc.WriteString(fmt.Sprintf("%s\n", strings.Join(route.HandlerDoc, " ")))
 	handlerDoc.WriteString("//\n")
@@ -58,21 +74,14 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	handlerDoc.WriteString("//\n")
 
 	// HasRequest
-	if len(route.RequestTypeName()) > 0 {
-		var inVal string
-		if route.Method == "get" {
-			inVal = "query"
-		} else {
-			inVal = "body"
-		}
-
+	if len(route.RequestTypeName()) > 0 && !isParameterRequest {
 		handlerDoc.WriteString(fmt.Sprintf(`// Parameters:
 			//  + name: body
 			//    require: true
 			//    in: %s
 			//    type: %s
 			//
-			`, inVal, route.RequestTypeName()))
+			`, "body", route.RequestTypeName()))
 	}
 	// HasResp
 	if len(route.ResponseTypeName()) > 0 {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"text/template"
 
@@ -36,7 +37,9 @@ func genFile(c fileGenConfig) error {
 	if !created {
 		return nil
 	}
-	defer fp.Close()
+	defer func(fp *os.File) {
+		_ = fp.Close()
+	}(fp)
 
 	var text string
 	if len(c.category) == 0 || len(c.templateFile) == 0 {
@@ -63,7 +66,7 @@ func genFile(c fileGenConfig) error {
 func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, doc spec.Doc, indent int) error {
 	// write doc for swagger
 	for _, v := range doc {
-		fmt.Fprintf(writer, "\t%s\n", v)
+		_, _ = fmt.Fprintf(writer, "\t%s\n", v)
 	}
 
 	util.WriteIndent(writer, indent)
@@ -188,4 +191,15 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 	}
 
 	return ""
+}
+
+// ConvertRoutePathToSwagger converts route path to swagger format.
+func ConvertRoutePathToSwagger(data string) string {
+	splitData := strings.Split(data, "/")
+	for i, v := range splitData {
+		if strings.Contains(v, ":") {
+			splitData[i] = "{" + v[1:] + "}"
+		}
+	}
+	return strings.Join(splitData, "/")
 }
