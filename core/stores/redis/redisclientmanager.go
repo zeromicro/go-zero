@@ -33,6 +33,9 @@ func getClient(r *Redis) (*red.Client, error) {
 			TLSConfig:    tlsConfig,
 		})
 		store.AddHook(durationHook)
+		for _, hook := range r.hooks {
+			store.AddHook(hook)
+		}
 
 		return store, nil
 	})

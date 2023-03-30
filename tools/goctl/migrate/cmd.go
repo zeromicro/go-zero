@@ -1,26 +1,18 @@
 package migrate
 
-import "github.com/spf13/cobra"
+import "github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 
 var (
 	boolVarVerbose bool
 	zeroVersion    string
 	toolVersion    string
 	// Cmd describes a migrate command.
-	Cmd = &cobra.Command{
-		Use:   "migrate",
-		Short: "Migrate from zeromicro to simple admin tools",
-		Long: "Migrate is a transition command to help users migrate their " +
-			"projects from tal-tech to zeromicro version",
-		RunE: migrate,
-	}
+	Cmd = cobrax.NewCommand("migrate", cobrax.WithRunE(migrate))
 )
 
 func init() {
-	Cmd.Flags().BoolVarP(&boolVarVerbose, "verbose", "v",
-		false, "Verbose enables extra logging")
-	Cmd.Flags().StringVar(&zeroVersion, "zero-version", defaultMigrateVersion,
-		"The target release version of github.com/zeromicro/go-zero to migrate")
-	Cmd.Flags().StringVar(&toolVersion, "tool-version", "v0.0.6",
-		"The target release version of github.com/suyuan32/simple-admin-tools to migrate")
+	migrateCmdFlags := Cmd.Flags()
+	migrateCmdFlags.BoolVarP(&boolVarVerbose, "verbose", "v")
+	migrateCmdFlags.StringVar(&zeroVersion, "zero_version")
+	migrateCmdFlags.StringVar(&toolVersion, "tool_version")
 }

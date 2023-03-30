@@ -3,10 +3,6 @@ package gogen
 import (
 	"errors"
 	"fmt"
-	"github.com/iancoleman/strcase"
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 	"os"
 	"path"
 	"path/filepath"
@@ -14,6 +10,12 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/iancoleman/strcase"
+
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
@@ -238,7 +240,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	if g.GoZeroVersion != "" && g.ToolVersion != "" {
-		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero-version %s --tool-version %s", g.GoZeroVersion, g.ToolVersion),
+		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero_version %s --tool_version %s", g.GoZeroVersion, g.ToolVersion),
 			dir)
 		if err != nil {
 			return err
@@ -306,7 +308,7 @@ func sweep() error {
 
 			tm := time.Unix(seconds, 0)
 			if tm.Before(keepTime) {
-				if err := os.Remove(fpath); err != nil {
+				if err := os.RemoveAll(fpath); err != nil {
 					fmt.Println(aurora.Red(fmt.Sprintf("failed to remove file: %s", fpath)))
 					return err
 				}

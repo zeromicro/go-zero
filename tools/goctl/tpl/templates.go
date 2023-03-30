@@ -12,8 +12,8 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	apinew "github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
+	"github.com/zeromicro/go-zero/tools/goctl/gateway"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
-	mongogen "github.com/zeromicro/go-zero/tools/goctl/model/mongo/generate"
 	rpcgen "github.com/zeromicro/go-zero/tools/goctl/rpc/generator"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
@@ -41,13 +41,13 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 			return kube.GenTemplates()
 		},
 		func() error {
-			return mongogen.Templates()
-		},
-		func() error {
 			return apigen.GenTemplates()
 		},
 		func() error {
 			return apinew.GenTemplates()
+		},
+		func() error {
+			return gateway.GenTemplates()
 		},
 	); err != nil {
 		return err
@@ -90,13 +90,13 @@ func cleanTemplates(_ *cobra.Command, _ []string) error {
 			return kube.Clean()
 		},
 		func() error {
-			return mongogen.Clean()
-		},
-		func() error {
 			return apigen.Clean()
 		},
 		func() error {
 			return apinew.Clean()
+		},
+		func() error {
+			return gateway.Clean()
 		},
 	)
 	if err != nil {
@@ -130,12 +130,12 @@ func updateTemplates(_ *cobra.Command, _ []string) (err error) {
 		return kube.Update()
 	case rpcgen.Category():
 		return rpcgen.Update()
-	case mongogen.Category():
-		return mongogen.Update()
 	case apigen.Category():
 		return apigen.Update()
 	case apinew.Category():
 		return apinew.Update()
+	case gateway.Category():
+		return gateway.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -165,12 +165,12 @@ func revertTemplates(_ *cobra.Command, _ []string) (err error) {
 		return gogen.RevertTemplate(filename)
 	case rpcgen.Category():
 		return rpcgen.RevertTemplate(filename)
-	case mongogen.Category():
-		return mongogen.RevertTemplate(filename)
 	case apigen.Category():
 		return apigen.RevertTemplate(filename)
 	case apinew.Category():
 		return apinew.RevertTemplate(filename)
+	case gateway.Category():
+		return gateway.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

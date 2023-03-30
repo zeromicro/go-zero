@@ -2,6 +2,9 @@ package generator
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	proto2 "github.com/zeromicro/go-zero/tools/goctl/rpc/generator/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -9,8 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
-	"os"
-	"path/filepath"
 )
 
 type ZRpcContext struct {
@@ -102,7 +103,7 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	}
 
 	if zctx.GoZeroVersion != "" && zctx.ToolVersion != "" {
-		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero-version %s --tool-version %s", zctx.GoZeroVersion, zctx.ToolVersion),
+		_, err := execx.Run(fmt.Sprintf("goctls migrate --zero_version %s --tool_version %s", zctx.GoZeroVersion, zctx.ToolVersion),
 			abs)
 		if err != nil {
 			return err
