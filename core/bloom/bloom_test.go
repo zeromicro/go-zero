@@ -53,3 +53,51 @@ func TestRedisBitSet_Add(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, ok)
 }
+
+func TestFilter_Exists(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+
+	rbs := New(store, "test", 64)
+	_, err = rbs.Exists([]byte{0, 1, 2})
+	assert.NoError(t, err)
+
+	clean()
+	rbs = New(store, "test", 64)
+	_, err = rbs.Exists([]byte{0, 1, 2})
+	assert.Error(t, err)
+}
+
+func TestRedisBitSet_check(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+
+	rbs := newRedisBitSet(store, "test", 0)
+	assert.Error(t, rbs.set([]uint{0, 1, 2}))
+	_, err = rbs.check([]uint{0, 1, 2})
+	assert.Error(t, err)
+
+	rbs = newRedisBitSet(store, "test", 64)
+	_, err = rbs.check([]uint{0, 1, 2})
+	assert.NoError(t, err)
+
+	clean()
+	rbs = newRedisBitSet(store, "test", 64)
+	_, err = rbs.check([]uint{0, 1, 2})
+	assert.Error(t, err)
+}
+
+func TestRedisBitSet_set(t *testing.T) {
+	store, clean, err := redistest.CreateRedis()
+	assert.Nil(t, err)
+
+	rbs := newRedisBitSet(store, "test", 0)
+	assert.Error(t, rbs.set([]uint{0, 1, 2}))
+
+	rbs = newRedisBitSet(store, "test", 64)
+	assert.NoError(t, rbs.set([]uint{0, 1, 2}))
+
+	clean()
+	rbs = newRedisBitSet(store, "test", 64)
+	assert.Error(t, rbs.set([]uint{0, 1, 2}))
+}
