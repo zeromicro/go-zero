@@ -183,7 +183,9 @@ func (tw *timeoutWriter) writeHeaderLocked(code int) {
 func (tw *timeoutWriter) WriteHeader(code int) {
 	tw.mu.Lock()
 	defer tw.mu.Unlock()
-	tw.writeHeaderLocked(code)
+	if !tw.wroteHeader {
+		tw.writeHeaderLocked(code)
+	}
 }
 
 func checkWriteHeaderCode(code int) {
