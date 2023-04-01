@@ -1630,6 +1630,25 @@ func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error
 	return conn.ScriptLoad(ctx, script).Result()
 }
 
+// ScriptRun is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRun(script *red.Script, keys []string, args ...any) (any, error) {
+	return s.ScriptRunCtx(context.Background(), script, keys, args...)
+}
+
+// ScriptRunCtx is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRunCtx(ctx context.Context, script *red.Script, keys []string, args ...any) (val any, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = script.Run(ctx, conn, keys, args...).Result()
+		return err
+	}, acceptable)
+	return
+}
+
 // Set is the implementation of redis set command.
 func (s *Redis) Set(key, value string) error {
 	return s.SetCtx(context.Background(), key, value)
