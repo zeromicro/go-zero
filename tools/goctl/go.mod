@@ -12,7 +12,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.2
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
-	github.com/zeromicro/antlr v1.0.0
+	github.com/zeromicro/antlr v0.0.1
 	github.com/zeromicro/go-zero v1.5.0
 	golang.org/x/text v0.8.0
 	google.golang.org/grpc v1.54.0
