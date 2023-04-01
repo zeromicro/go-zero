@@ -4,13 +4,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
 )
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	bitSet := newRedisBitSet(store, "test_key", 1024)
 	isSetBefore, err := bitSet.check([]uint{0})
@@ -42,9 +41,7 @@ func TestRedisBitSet_New_Set_Test(t *testing.T) {
 }
 
 func TestRedisBitSet_Add(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	filter := New(store, "test_key", 64)
 	assert.Nil(t, filter.Add([]byte("hello")))
@@ -55,11 +52,10 @@ func TestRedisBitSet_Add(t *testing.T) {
 }
 
 func TestFilter_Exists(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
+	store, clean := redistest.CreateRedisWithClean(t)
 
 	rbs := New(store, "test", 64)
-	_, err = rbs.Exists([]byte{0, 1, 2})
+	_, err := rbs.Exists([]byte{0, 1, 2})
 	assert.NoError(t, err)
 
 	clean()
@@ -69,12 +65,11 @@ func TestFilter_Exists(t *testing.T) {
 }
 
 func TestRedisBitSet_check(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
+	store, clean := redistest.CreateRedisWithClean(t)
 
 	rbs := newRedisBitSet(store, "test", 0)
 	assert.Error(t, rbs.set([]uint{0, 1, 2}))
-	_, err = rbs.check([]uint{0, 1, 2})
+	_, err := rbs.check([]uint{0, 1, 2})
 	assert.Error(t, err)
 
 	rbs = newRedisBitSet(store, "test", 64)
@@ -88,8 +83,8 @@ func TestRedisBitSet_check(t *testing.T) {
 }
 
 func TestRedisBitSet_set(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
+	logx.Disable()
+	store, clean := redistest.CreateRedisWithClean(t)
 
 	rbs := newRedisBitSet(store, "test", 0)
 	assert.Error(t, rbs.set([]uint{0, 1, 2}))
