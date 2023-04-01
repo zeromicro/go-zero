@@ -1,3 +1,4 @@
+GOPATH?=$(shell go env GOPATH)
 build:
 	go build -ldflags="-s -w" goctl.go
 	mv goctl $(GOPATH)/bin/goctls
@@ -6,6 +7,7 @@ build:
 	$(if $(shell command -v upx), upx goctl)
 
 mac:
+	@echo ${GOPATH}
 	GOOS=darwin go build -ldflags="-s -w" -o goctls goctl.go
 	$(if $(shell command -v upx), upx goctl-darwin)
 	mv goctls $(GOPATH)/bin/goctls
