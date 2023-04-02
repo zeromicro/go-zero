@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stringx"
@@ -1579,7 +1579,7 @@ func TestRedis_Pipelined(t *testing.T) {
 			func(pipe Pipeliner) error {
 				pipe.Incr(context.Background(), "pipelined_counter")
 				pipe.Expire(context.Background(), "pipelined_counter", time.Hour)
-				pipe.ZAdd(context.Background(), "zadd", &Z{Score: 12, Member: "zadd"})
+				pipe.ZAdd(context.Background(), "zadd", Z{Score: 12, Member: "zadd"})
 				return nil
 			},
 		)

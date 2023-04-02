@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/logx"
@@ -32,6 +32,21 @@ type (
 	contextKey string
 	hook       struct{}
 )
+
+func (h hook) DialHook(next red.DialHook) red.DialHook {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (h hook) ProcessHook(next red.ProcessHook) red.ProcessHook {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (h hook) ProcessPipelineHook(next red.ProcessPipelineHook) red.ProcessPipelineHook {
+	// TODO implement me
+	panic("implement me")
+}
 
 func (h hook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
 	return h.startSpan(context.WithValue(ctx, startTimeKey, timex.Now()), cmd), nil

@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"io"
 
-	red "github.com/go-redis/redis/v8"
+	red "github.com/redis/go-redis/v9"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
 
