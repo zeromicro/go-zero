@@ -9,21 +9,6 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
-// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
-const periodScript = `local limit = tonumber(ARGV[1])
-local window = tonumber(ARGV[2])
-local current = redis.call("INCRBY", KEYS[1], 1)
-if current == 1 then
-    redis.call("expire", KEYS[1], window)
-end
-if current < limit then
-    return 1
-elseif current == limit then
-    return 2
-else
-    return 0
-end`
-
 const (
 	// Unknown means not initialized state.
 	Unknown = iota
@@ -39,8 +24,25 @@ const (
 	internalHitQuota  = 2
 )
 
-// ErrUnknownCode is an error that represents unknown status code.
-var ErrUnknownCode = errors.New("unknown status code")
+var (
+	// ErrUnknownCode is an error that represents unknown status code.
+	ErrUnknownCode = errors.New("unknown status code")
+
+	// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
+	periodScript = redis.NewScript(`local limit = tonumber(ARGV[1])
+local window = tonumber(ARGV[2])
+local current = redis.call("INCRBY", KEYS[1], 1)
+if current == 1 then
+    redis.call("expire", KEYS[1], window)
+end
+if current < limit then
+    return 1
+elseif current == limit then
+    return 2
+else
+    return 0
+end`)
+)
 
 type (
 	// PeriodOption defines the method to customize a PeriodLimit.
@@ -80,7 +82,7 @@ func (h *PeriodLimit) Take(key string) (int, error) {
 
 // TakeCtx requests a permit with context, it returns the permit state.
 func (h *PeriodLimit) TakeCtx(ctx context.Context, key string) (int, error) {
-	resp, err := h.limitStore.EvalCtx(ctx, periodScript, []string{h.keyPrefix + key}, []string{
+	resp, err := h.limitStore.ScriptRunCtx(ctx, periodScript, []string{h.keyPrefix + key}, []string{
 		strconv.Itoa(h.quota),
 		strconv.Itoa(h.calcExpireSeconds()),
 	})
