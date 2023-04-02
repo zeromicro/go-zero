@@ -1,6 +1,7 @@
 package bloom
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,20 +11,21 @@ import (
 
 func TestRedisBitSet_New_Set_Test(t *testing.T) {
 	store := redistest.CreateRedis(t)
+	ctx := context.Background()
 
 	bitSet := newRedisBitSet(store, "test_key", 1024)
-	isSetBefore, err := bitSet.check([]uint{0})
+	isSetBefore, err := bitSet.check(ctx, []uint{0})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if isSetBefore {
 		t.Fatal("Bit should not be set")
 	}
-	err = bitSet.set([]uint{512})
+	err = bitSet.set(ctx, []uint{512})
 	if err != nil {
 		t.Fatal(err)
 	}
-	isSetAfter, err := bitSet.check([]uint{512})
+	isSetAfter, err := bitSet.check(ctx, []uint{512})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,33 +68,35 @@ func TestFilter_Exists(t *testing.T) {
 
 func TestRedisBitSet_check(t *testing.T) {
 	store, clean := redistest.CreateRedisWithClean(t)
+	ctx := context.Background()
 
 	rbs := newRedisBitSet(store, "test", 0)
-	assert.Error(t, rbs.set([]uint{0, 1, 2}))
-	_, err := rbs.check([]uint{0, 1, 2})
+	assert.Error(t, rbs.set(ctx, []uint{0, 1, 2}))
+	_, err := rbs.check(ctx, []uint{0, 1, 2})
 	assert.Error(t, err)
 
 	rbs = newRedisBitSet(store, "test", 64)
-	_, err = rbs.check([]uint{0, 1, 2})
+	_, err = rbs.check(ctx, []uint{0, 1, 2})
 	assert.NoError(t, err)
 
 	clean()
 	rbs = newRedisBitSet(store, "test", 64)
-	_, err = rbs.check([]uint{0, 1, 2})
+	_, err = rbs.check(ctx, []uint{0, 1, 2})
 	assert.Error(t, err)
 }
 
 func TestRedisBitSet_set(t *testing.T) {
 	logx.Disable()
 	store, clean := redistest.CreateRedisWithClean(t)
+	ctx := context.Background()
 
 	rbs := newRedisBitSet(store, "test", 0)
-	assert.Error(t, rbs.set([]uint{0, 1, 2}))
+	assert.Error(t, rbs.set(ctx, []uint{0, 1, 2}))
 
 	rbs = newRedisBitSet(store, "test", 64)
-	assert.NoError(t, rbs.set([]uint{0, 1, 2}))
+	assert.NoError(t, rbs.set(ctx, []uint{0, 1, 2}))
 
 	clean()
 	rbs = newRedisBitSet(store, "test", 64)
-	assert.Error(t, rbs.set([]uint{0, 1, 2}))
+	assert.Error(t, rbs.set(ctx, []uint{0, 1, 2}))
 }
