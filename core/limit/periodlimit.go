@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 )
 
@@ -30,7 +29,7 @@ var (
 	ErrUnknownCode = errors.New("unknown status code")
 
 	// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
-	periodScript = red.NewScript(`local limit = tonumber(ARGV[1])
+	periodScript = redis.NewScript(`local limit = tonumber(ARGV[1])
 local window = tonumber(ARGV[2])
 local current = redis.call("INCRBY", KEYS[1], 1)
 if current == 1 then

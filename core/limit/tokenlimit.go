@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	xrate "golang.org/x/time/rate"
@@ -24,7 +23,7 @@ const (
 // to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
 // KEYS[1] as tokens_key
 // KEYS[2] as timestamp_key
-var script = red.NewScript(`local rate = tonumber(ARGV[1])
+var script = redis.NewScript(`local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])

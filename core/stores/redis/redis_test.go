@@ -242,8 +242,8 @@ func TestRedis_Eval(t *testing.T) {
 
 func TestRedis_ScriptRun(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
-		sc := red.NewScript(`redis.call("EXISTS", KEYS[1])`)
-		sc2 := red.NewScript(`return redis.call("EXISTS", KEYS[1])`)
+		sc := NewScript(`redis.call("EXISTS", KEYS[1])`)
+		sc2 := NewScript(`return redis.call("EXISTS", KEYS[1])`)
 		_, err := New(client.Addr, badType()).ScriptRun(sc, []string{"notexist"})
 		assert.NotNil(t, err)
 		_, err = client.ScriptRun(sc, []string{"notexist"})
