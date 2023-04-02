@@ -11,24 +11,26 @@ import (
 const (
 	// for detailed error rate table, see http://pages.cs.wisc.edu/~cao/papers/summary-cache/node8.html
 	// maps as k in the error rate table
-	maps      = 14
-	setScript = `
+	maps = 14
+)
+
+var (
+	// ErrTooLargeOffset indicates the offset is too large in bitset.
+	ErrTooLargeOffset = errors.New("too large offset")
+	setScript         = redis.NewScript(`
 for _, offset in ipairs(ARGV) do
 	redis.call("setbit", KEYS[1], offset, 1)
 end
-`
-	testScript = `
+`)
+	testScript = redis.NewScript(`
 for _, offset in ipairs(ARGV) do
 	if tonumber(redis.call("getbit", KEYS[1], offset)) == 0 then
 		return false
 	end
 end
 return true
-`
+`)
 )
-
-// ErrTooLargeOffset indicates the offset is too large in bitset.
-var ErrTooLargeOffset = errors.New("too large offset")
 
 type (
 	// A Filter is a bloom filter.
@@ -117,7 +119,7 @@ func (r *redisBitSet) check(offsets []uint) (bool, error) {
 		return false, err
 	}
 
-	resp, err := r.store.Eval(testScript, []string{r.key}, args)
+	resp, err := r.store.ScriptRun(testScript, []string{r.key}, args)
 	if err == redis.Nil {
 		return false, nil
 	} else if err != nil {
@@ -147,7 +149,7 @@ func (r *redisBitSet) set(offsets []uint) error {
 		return err
 	}
 
-	_, err = r.store.Eval(setScript, []string{r.key}, args)
+	_, err = r.store.ScriptRun(setScript, []string{r.key}, args)
 	if err == redis.Nil {
 		return nil
 	}
