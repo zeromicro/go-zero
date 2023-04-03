@@ -112,12 +112,8 @@ func (mc *mockedNode) TakeWithExpireCtx(ctx context.Context, val any, key string
 func TestCache_SetDel(t *testing.T) {
 	t.Run("test set del", func(t *testing.T) {
 		const total = 1000
-		r1, clean1, err := redistest.CreateRedis()
-		assert.Nil(t, err)
-		defer clean1()
-		r2, clean2, err := redistest.CreateRedis()
-		assert.Nil(t, err)
-		defer clean2()
+		r1 := redistest.CreateRedis(t)
+		r2 := redistest.CreateRedis(t)
 		conf := ClusterConf{
 			{
 				RedisConf: redis.RedisConf{
@@ -193,9 +189,7 @@ func TestCache_SetDel(t *testing.T) {
 
 func TestCache_OneNode(t *testing.T) {
 	const total = 1000
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 	conf := ClusterConf{
 		{
 			RedisConf: redis.RedisConf{

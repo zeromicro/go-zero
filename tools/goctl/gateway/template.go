@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	category                          = "gateway"
-	etcTemplateFileFile               = "etc.tpl"
-	mainTemplateFile                  = "main.tpl"
+	category            = "gateway"
+	etcTemplateFileFile = "etc.tpl"
+	mainTemplateFile    = "main.tpl"
 )
 
 //go:embed conf.yml
@@ -19,10 +19,9 @@ var etcTemplate string
 //go:embed gateway.tpl
 var mainTemplate string
 
-
 var templates = map[string]string{
-	etcTemplateFileFile:       etcTemplate,
-	mainTemplateFile:          mainTemplate,
+	etcTemplateFileFile: etcTemplate,
+	mainTemplateFile:    mainTemplate,
 }
 
 // GenTemplates is the entry for command goctl template,

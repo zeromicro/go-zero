@@ -28,11 +28,11 @@ func init() {
 }
 
 func generateGateway(*cobra.Command, []string) error {
-	if err:=pathx.MkdirIfNotExist(varStringDir);err!=nil{
+	if err := pathx.MkdirIfNotExist(varStringDir); err != nil {
 		return err
 	}
 
-	if _,err:=ctx.Prepare(varStringDir);err!=nil{
+	if _, err := ctx.Prepare(varStringDir); err != nil {
 		return err
 	}
 
