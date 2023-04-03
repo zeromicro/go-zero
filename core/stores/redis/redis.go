@@ -88,6 +88,8 @@ type (
 	FloatCmd = red.FloatCmd
 	// StringCmd is an alias of redis.StringCmd.
 	StringCmd = red.StringCmd
+	// Script is an alias of redis.Script.
+	Script = red.Script
 )
 
 // New returns a Redis with given options.
@@ -144,6 +146,11 @@ func newRedis(addr string, opts ...Option) *Redis {
 	}
 
 	return r
+}
+
+// NewScript returns a new Script instance.
+func NewScript(script string) *Script {
+	return red.NewScript(script)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -1644,6 +1651,25 @@ func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error
 	}
 
 	return conn.ScriptLoad(ctx, script).Result()
+}
+
+// ScriptRun is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRun(script *Script, keys []string, args ...any) (any, error) {
+	return s.ScriptRunCtx(context.Background(), script, keys, args...)
+}
+
+// ScriptRunCtx is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string, args ...any) (val any, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = script.Run(ctx, conn, keys, args...).Result()
+		return err
+	}, acceptable)
+	return
 }
 
 // Set is the implementation of redis set command.

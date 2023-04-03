@@ -45,9 +45,7 @@ func TestStreamAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -111,9 +109,7 @@ func TestUnaryAuthorizeInterceptor(t *testing.T) {
 		},
 	}
 
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
