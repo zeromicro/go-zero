@@ -29,8 +29,17 @@ jobs:
       - name: Lint
         run: |
           go vet -stdmethods=false $(go list ./...)
-          go install mvdan.cc/gofumpt@latest
-          test -z "$(gofumpt -l -extra .)" || echo "Please run 'gofumpt -l -w -extra .'"
+
+          if ! test -z "$(gofmt -l .)"; then
+            echo "Please run 'gofmt -l -w .'"
+            exit 1
+          fi
+
+          go mod tidy
+          if ! test -z "$(git status --porcelain)"; then
+            echo "Please run 'go mod tidy'"
+            exit 1
+          fi
 
       - name: Test
         run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
