@@ -72,6 +72,8 @@ var (
 	VarStringGroupName string
 	// VarStringProtoPath describes the output proto file path for ent code generation
 	VarStringProtoPath string
+	// VarStringProtoFieldStyle describes the proto fields naming style
+	VarStringProtoFieldStyle string
 	// VarBoolDesc describes whether to create desc folder for splitting proto files
 	VarBoolDesc bool
 	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
@@ -178,18 +180,19 @@ func RPCTemplate(latest bool) error {
 // EntCRUDLogic is used to generate CRUD code with Ent
 func EntCRUDLogic(_ *cobra.Command, _ []string) error {
 	params := &ent.GenEntLogicContext{
-		Schema:       VarStringSchema,
-		Output:       VarStringOutput,
-		ServiceName:  VarStringServiceName,
-		ProjectName:  VarStringProjectName,
-		Style:        VarStringStyle,
-		ModelName:    VarStringModelName,
-		Multiple:     VarBoolMultiple,
-		SearchKeyNum: VarIntSearchKeyNum,
-		ModuleName:   VarStringModuleName,
-		GroupName:    VarStringGroupName,
-		ProtoOut:     VarStringProtoPath,
-		Overwrite:    VarBoolOverwrite,
+		Schema:          VarStringSchema,
+		Output:          VarStringOutput,
+		ServiceName:     VarStringServiceName,
+		ProjectName:     VarStringProjectName,
+		Style:           VarStringStyle,
+		ModelName:       VarStringModelName,
+		Multiple:        VarBoolMultiple,
+		SearchKeyNum:    VarIntSearchKeyNum,
+		ModuleName:      VarStringModuleName,
+		GroupName:       VarStringGroupName,
+		ProtoOut:        VarStringProtoPath,
+		ProtoFieldStyle: VarStringProtoFieldStyle,
+		Overwrite:       VarBoolOverwrite,
 	}
 
 	if params.ProjectName == "" {
