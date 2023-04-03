@@ -28,25 +28,26 @@ func ConvertValidateTagToSwagger(tagData string) ([]string, error) {
 		return nil, nil
 	}
 
-	beginIndex := strings.Index(tagData, "validate")
-
-	validateString := tagData[beginIndex:]
-
-	extract := func(s string) string {
-		firstQuotationMark := 0
-		for i := beginIndex; i < len(tagData); i++ {
-			if tagData[i] == '"' && firstQuotationMark == 0 {
-				firstQuotationMark = i
-			} else if tagData[i] == '"' && firstQuotationMark != 0 {
-				return tagData[firstQuotationMark+1 : i]
-			}
-		}
-		return ""
-	}
-
-	validateData := extract(validateString)
+	validateData := ExtractValidateString(tagData)
 
 	return ConvertTagToComment(validateData)
+}
+
+// ExtractValidateString extracts the validator's string.
+func ExtractValidateString(data string) string {
+	beginIndex := strings.Index(data, "validate")
+	if beginIndex == -1 {
+		return ""
+	}
+	firstQuotationMark := 0
+	for i := beginIndex; i < len(data); i++ {
+		if data[i] == '"' && firstQuotationMark == 0 {
+			firstQuotationMark = i
+		} else if data[i] == '"' && firstQuotationMark != 0 {
+			return data[firstQuotationMark+1 : i]
+		}
+	}
+	return ""
 }
 
 // ConvertTagToComment converts validator tag to comments.
