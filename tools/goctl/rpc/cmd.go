@@ -89,6 +89,7 @@ func init() {
 	entCmdFlags.IntVarWithDefaultValue(&cli.VarIntSearchKeyNum, "search_key_num", 3)
 	entCmdFlags.StringVar(&cli.VarStringGroupName, "group")
 	entCmdFlags.StringVar(&cli.VarStringProtoPath, "proto_out")
+	entCmdFlags.StringVarWithDefaultValue(&cli.VarStringProtoFieldStyle, "proto_field_style", config.DefaultFormat)
 	entCmdFlags.BoolVar(&cli.VarBoolOverwrite, "overwrite")
 
 	Cmd.AddCommand(newCmd)

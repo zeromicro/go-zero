@@ -19,12 +19,13 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -48,19 +49,20 @@ type RpcLogicData struct {
 }
 
 type GenEntLogicContext struct {
-	Schema       string
-	Output       string
-	ServiceName  string
-	ProjectName  string
-	Style        string
-	ModelName    string
-	Multiple     bool
-	SearchKeyNum int
-	ModuleName   string
-	GroupName    string
-	UseUUID      bool
-	ProtoOut     string
-	Overwrite    bool
+	Schema          string
+	Output          string
+	ServiceName     string
+	ProjectName     string
+	Style           string
+	ProtoFieldStyle string
+	ModelName       string
+	Multiple        bool
+	SearchKeyNum    int
+	ModuleName      string
+	GroupName       string
+	UseUUID         bool
+	ProtoOut        string
+	Overwrite       bool
 }
 
 func (g GenEntLogicContext) Validate() error {
@@ -426,14 +428,18 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	// end string means whether to use \n
 	endString := ""
 	// info message
-	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  %s id = 1;\n  int64 created_at = 2;\n  int64 updated_at = 3;\n",
-		schemaNameCamelCase, entx.ConvertIDType(g.UseUUID)))
+	idString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "id")
+	createString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "created_at")
+	updateString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "updated_at")
+	protoMessage.WriteString(fmt.Sprintf("message %sInfo {\n  %s %s = 1;\n  int64 %s = 2;\n  int64 %s = 3;\n",
+		schemaNameCamelCase, entx.ConvertIDType(g.UseUUID), idString, createString, updateString))
 	index := 4
 	for i, v := range schema.Fields {
 		if entx.IsBaseProperty(v.Name) {
 			continue
 		} else if v.Name == "status" {
-			protoMessage.WriteString(fmt.Sprintf("  uint32 %s = %d;\n", v.Name, index))
+			statusString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
+			protoMessage.WriteString(fmt.Sprintf("  uint32 %s = %d;\n", statusString, index))
 			hasStatus = true
 			index++
 		} else {
@@ -443,11 +449,12 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 				endString = ""
 			}
 
+			formatedString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
 			if entx.IsTimeProperty(v.Name) {
-				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", v.Name, index, endString))
+				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", formatedString, index, endString))
 			} else {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
-					v.Name, index, endString))
+					formatedString, index, endString))
 			}
 
 			if i == (len(schema.Fields) - 1) {
@@ -459,20 +466,25 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 	}
 
 	// List message
-	protoMessage.WriteString(fmt.Sprintf("message %sListResp {\n  uint64 total = 1;\n  repeated %sInfo data = 2;\n}\n\n",
-		schemaNameCamelCase, schemaNameCamelCase))
+	totalString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "total")
+	dataString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "data")
+	protoMessage.WriteString(fmt.Sprintf("message %sListResp {\n  uint64 %s = 1;\n  repeated %sInfo %s = 2;\n}\n\n",
+		schemaNameCamelCase, totalString, schemaNameCamelCase, dataString))
 
 	// List Request message
-	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 page = 1;\n  uint64 page_size = 2;\n",
-		schemaNameCamelCase))
+	pageString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page")
+	pageSizeString, _ := format.FileNamingFormat(g.ProtoFieldStyle, "page_size")
+	protoMessage.WriteString(fmt.Sprintf("message %sListReq {\n  uint64 %s = 1;\n  uint64 %s = 2;\n",
+		schemaNameCamelCase, pageString, pageSizeString))
 	count := 0
 	index = 3
 
 	for i, v := range schema.Fields {
 		if v.Info.Type.String() == "string" && !strings.Contains(strings.ToLower(v.Name), "uuid") && count < g.SearchKeyNum {
 			if i < len(schema.Fields) && count < g.SearchKeyNum {
+				formatedString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;\n", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),
-					v.Name, index))
+					formatedString, index))
 				index++
 				count++
 			}
