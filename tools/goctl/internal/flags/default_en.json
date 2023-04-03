@@ -245,6 +245,7 @@
         "search_key_num": "The max number of search keys",
         "group": "The group name for logic. e.g. user",
         "proto_out": "The output proto file path",
+        "proto_field_style": "The proto field style",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
       }
     },
