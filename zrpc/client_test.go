@@ -257,7 +257,7 @@ func TestClientRetryPolicy(t *testing.T) {
 		},
 		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		WithDialOption(grpc.WithContextDialer(dialer())),
-		WithRetryConfig(true, ""),
+		WithRetryPolicy(true),
 	)
 
 	assert.Nil(t, err)
