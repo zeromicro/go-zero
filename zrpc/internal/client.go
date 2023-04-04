@@ -9,6 +9,7 @@ import (
 
 	"github.com/zeromicro/go-zero/zrpc/internal/balancer/p2c"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
+	"github.com/zeromicro/go-zero/zrpc/internal/retry"
 	"github.com/zeromicro/go-zero/zrpc/resolver"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -36,6 +37,10 @@ type (
 		Timeout     time.Duration
 		Secure      bool
 		DialOptions []grpc.DialOption
+
+		// Retry Config
+		Retry       bool
+		RetryConfig string
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -54,9 +59,6 @@ func NewClient(target string, middlewares ClientMiddlewaresConf,
 		middlewares: middlewares,
 	}
 
-	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, p2c.Name)
-	balancerOpt := WithDialOption(grpc.WithDefaultServiceConfig(svcCfg))
-	opts = append([]ClientOption{balancerOpt}, opts...)
 	if err := cli.dial(target, opts...); err != nil {
 		return nil, err
 	}
@@ -88,6 +90,8 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithChainUnaryInterceptor(c.buildUnaryInterceptors(cliOpts.Timeout)...),
 		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
+
+	options = append(options, c.buildDefaultServiceConfig(cliOpts.Retry, cliOpts.RetryConfig))
 
 	return append(options, cliOpts.DialOptions...)
 }
@@ -122,6 +126,16 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 	}
 
 	return interceptors
+}
+
+func (c *client) buildDefaultServiceConfig(needRetry bool, retryConfig string) grpc.DialOption {
+	retryCfg := "[]"
+	if needRetry {
+		retryCfg = retry.MergeRetryConfig(retryConfig)
+	}
+
+	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s", "methodConfig":%s}`, p2c.Name, retryCfg)
+	return grpc.WithDefaultServiceConfig(svcCfg)
 }
 
 func (c *client) dial(server string, opts ...ClientOption) error {
@@ -188,5 +202,18 @@ func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientO
 	return func(options *ClientOptions) {
 		options.DialOptions = append(options.DialOptions,
 			grpc.WithChainUnaryInterceptor(interceptor))
+	}
+}
+
+// WithRetryConfig configuration grpc.ServiceConfig.methodConfig
+func WithRetryConfig(retry bool, config ...string) ClientOption {
+	return func(options *ClientOptions) {
+		options.Retry = retry
+
+		if len(config) == 1 {
+			options.RetryConfig = config[0]
+		} else {
+			options.RetryConfig = ""
+		}
 	}
 }

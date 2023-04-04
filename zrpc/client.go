@@ -26,6 +26,8 @@ var (
 	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
+	// WithRetryConfig is config methodConfig retry
+	WithRetryConfig = internal.WithRetryConfig
 )
 
 type (
