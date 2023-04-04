@@ -40,7 +40,7 @@ type (
 
 		// Retry Config
 		Retry       bool
-		RetryConfig string
+		RetryPolicy string
 	}
 
 	// ClientOption defines the method to customize a ClientOptions.
@@ -91,7 +91,7 @@ func (c *client) buildDialOptions(opts ...ClientOption) []grpc.DialOption {
 		grpc.WithChainStreamInterceptor(c.buildStreamInterceptors()...),
 	)
 
-	options = append(options, c.buildDefaultServiceConfig(cliOpts.Retry, cliOpts.RetryConfig))
+	options = append(options, c.buildDefaultServiceConfig(cliOpts.Retry, cliOpts.RetryPolicy))
 
 	return append(options, cliOpts.DialOptions...)
 }
@@ -206,14 +206,14 @@ func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientO
 }
 
 // WithRetryConfig configuration grpc.ServiceConfig.methodConfig
-func WithRetryConfig(retry bool, config ...string) ClientOption {
+func WithRetryConfig(retry bool, policy ...string) ClientOption {
 	return func(options *ClientOptions) {
 		options.Retry = retry
 
-		if len(config) == 1 {
-			options.RetryConfig = config[0]
+		if len(policy) == 1 {
+			options.RetryPolicy = policy[0]
 		} else {
-			options.RetryConfig = ""
+			options.RetryPolicy = ""
 		}
 	}
 }
