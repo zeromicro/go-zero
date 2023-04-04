@@ -18,8 +18,8 @@ var (
 	}`
 )
 
-// MergeRetryConfig merge user config and defaultRetry config
-func MergeRetryConfig(config string) string {
+// MergeRetryPolicy merge user config and defaultRetry config
+func MergeRetryPolicy(config string) string {
 	c := strings.TrimSuffix(strings.TrimPrefix(config, "["), "]")
 	s := ""
 	if c != "" {

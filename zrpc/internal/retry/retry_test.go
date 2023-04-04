@@ -42,8 +42,8 @@ func TestMergeRetryConfig(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := MergeRetryConfig(tt.args.config); got != tt.want {
-				t.Errorf("MergeRetryConfig() = %v, want %v", got, tt.want)
+			if got := MergeRetryPolicy(tt.args.config); got != tt.want {
+				t.Errorf("MergeRetryPolicy() = %v, want %v", got, tt.want)
 			}
 		})
 	}

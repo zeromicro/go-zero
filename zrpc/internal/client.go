@@ -128,10 +128,10 @@ func (c *client) buildUnaryInterceptors(timeout time.Duration) []grpc.UnaryClien
 	return interceptors
 }
 
-func (c *client) buildDefaultServiceConfig(needRetry bool, retryConfig string) grpc.DialOption {
+func (c *client) buildDefaultServiceConfig(needRetry bool, retryPolicy string) grpc.DialOption {
 	retryCfg := "[]"
 	if needRetry {
-		retryCfg = retry.MergeRetryConfig(retryConfig)
+		retryCfg = retry.MergeRetryPolicy(retryPolicy)
 	}
 
 	svcCfg := fmt.Sprintf(`{"loadBalancingPolicy":"%s", "methodConfig":%s}`, p2c.Name, retryCfg)

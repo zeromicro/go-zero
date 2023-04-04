@@ -216,7 +216,7 @@ func TestNewClientWithError(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestClientRetryPolicy(t *testing.T) {
+func TestClientDefaultRetryPolicy(t *testing.T) {
 
 	tests := []struct {
 		name    string
@@ -258,6 +258,85 @@ func TestClientRetryPolicy(t *testing.T) {
 		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 		WithDialOption(grpc.WithContextDialer(dialer())),
 		WithRetryPolicy(true),
+	)
+
+	assert.Nil(t, err)
+
+	for _, tt := range tests {
+		tt := tt
+		mock.ResetRetry()
+
+		cli := mock.NewDepositServiceClient(client.Conn())
+		request := &mock.DepositRequest{Amount: tt.amount}
+		_, err := cli.Deposit(context.Background(), request)
+
+		if err != nil {
+			if e, ok := status.FromError(err); ok {
+				if e.Code() != tt.errCode {
+					t.Error(tt.name, "error code: ", tt.errCode, "received", e.Code())
+				}
+				if e.Message() != tt.errMsg {
+					t.Error(tt.name, "error message: ", tt.errMsg, "received", e.Message())
+				}
+			}
+		}
+	}
+
+}
+
+func TestClientRetryPolicy(t *testing.T) {
+
+	tests := []struct {
+		name    string
+		amount  float32
+		res     *mock.DepositResponse
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"retry error 14",
+			2.11,
+			nil,
+			codes.Unavailable,
+			"need retry",
+		},
+		{
+			"retry once and success",
+			2.12,
+			&mock.DepositResponse{Ok: true},
+			codes.OK,
+			"",
+		},
+		{
+			"not retry",
+			2.13,
+			nil,
+			codes.Unknown,
+			"not retry",
+		},
+	}
+
+	retryPolicy := `{
+	  "name": [{"service": "mock.DepositService"}],
+	  "retryPolicy": {
+		  "MaxAttempts": 4,
+		  "InitialBackoff": ".3s",
+		  "MaxBackoff": ".3s",
+		  "BackoffMultiplier": 1.0,
+		  "RetryableStatusCodes": ["UNAVAILABLE", "ABORTED"]
+	  }
+	}`
+
+	client, err := NewClient(
+		RpcClientConf{
+			Endpoints: []string{"foo"},
+			App:       "foo",
+			Token:     "bar",
+			Timeout:   1000,
+		},
+		WithDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
+		WithDialOption(grpc.WithContextDialer(dialer())),
+		WithRetryPolicy(true, retryPolicy),
 	)
 
 	assert.Nil(t, err)
