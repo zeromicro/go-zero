@@ -1054,6 +1054,8 @@ func TestLoadLowerMemberShouldNotConflict(t *testing.T) {
 
 	var c Config
 	assert.NoError(t, LoadFromJsonBytes([]byte(`{}`), &c))
+	assert.Zero(t, c.db)
+	assert.Zero(t, c.Redis.db)
 }
 
 func TestFillDefaultUnmarshal(t *testing.T) {
