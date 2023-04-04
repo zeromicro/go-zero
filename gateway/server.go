@@ -116,8 +116,7 @@ func (s *Server) build() error {
 }
 
 func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.AnyResolver,
-	cli zrpc.Client, rpcPath string,
-) func(http.ResponseWriter, *http.Request) {
+	cli zrpc.Client, rpcPath string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		parser, err := internal.NewRequestParser(r, resolver)
 		if err != nil {
