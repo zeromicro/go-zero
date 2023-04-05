@@ -210,8 +210,8 @@
         "verbose": "Enable log output",
         "ent": "Whether use Ent in project",
         "module_name": "The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core",
-        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.0",
-        "tool_version": "The simple admin tool version version used for migration. e.g. v0.3.0",
+        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.0, see [https://github.com/zeromicro/go-zero/releases]",
+        "tool_version": "The simple admin tool version version used for migration. e.g. v0.3.0, see [https://github.com/suyuan32/simple-admin-tools/releases]",
         "port" : "The service port exposed",
         "gitlab": "Whether to use gitlab-ci",
         "desc": "Whether to create desc folder for splitting proto files"
