@@ -51,6 +51,7 @@ type ProtoFieldData struct {
 	Type     string
 	Repeated bool
 	Optional bool
+	Sequence int
 }
 
 type MessageVisitor struct {
@@ -62,6 +63,15 @@ func (m MessageVisitor) VisitNormalField(i *proto.NormalField) {
 	ProtoField.Type = i.Field.Type
 	ProtoField.Repeated = i.Repeated
 	ProtoField.Optional = i.Optional
+	ProtoField.Sequence = i.Sequence
+}
+
+func (m MessageVisitor) VisitMapField(i *proto.MapField) {
+	ProtoField.Name = i.Field.Name
+	ProtoField.Type = fmt.Sprintf("map<%s,%s>", i.KeyType, i.Field.Type)
+	ProtoField.Sequence = i.Sequence
+	ProtoField.Repeated = false
+	ProtoField.Optional = false
 }
 
 func GenCommentString(comments []string, space bool) string {
