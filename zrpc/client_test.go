@@ -264,7 +264,6 @@ func TestClientDefaultRetryPolicy(t *testing.T) {
 
 	for _, tt := range tests {
 		tt := tt
-		mock.ResetRetry()
 
 		cli := mock.NewDepositServiceClient(client.Conn())
 		request := &mock.DepositRequest{Amount: tt.amount}
@@ -343,7 +342,6 @@ func TestClientRetryPolicy(t *testing.T) {
 
 	for _, tt := range tests {
 		tt := tt
-		mock.ResetRetry()
 
 		cli := mock.NewDepositServiceClient(client.Conn())
 		request := &mock.DepositRequest{Amount: tt.amount}

@@ -3,18 +3,27 @@ package mock
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
-var (
-	retry = 0
-)
+func getRetryNum(ctx context.Context) int {
+	md, b := metadata.FromIncomingContext(ctx)
+	if b {
+		n := md.Get("grpc-previous-rpc-attempts")
 
-func ResetRetry() {
-	retry = 0
+		if len(n) > 0 {
+			if i, err := strconv.Atoi(n[0]); err == nil {
+				return i
+			}
+		}
+	}
+
+	return 0
 }
 
 // DepositServer is used for mocking.
@@ -26,21 +35,20 @@ func (*DepositServer) Deposit(ctx context.Context, req *DepositRequest) (*Deposi
 		return nil, status.Errorf(codes.InvalidArgument, "cannot deposit %v", req.GetAmount())
 	}
 
+	retryNum := getRetryNum(ctx)
+
 	// retry and error
 	if req.GetAmount() == 2.11 {
-		retry++
 		return nil, status.Errorf(codes.Unavailable, "need retry")
 	}
 
 	// retry and success
-	if req.GetAmount() == 2.12 && retry < 1 {
-		retry++
+	if req.GetAmount() == 2.12 && retryNum < 1 {
 		return nil, status.Errorf(codes.Unavailable, "need retry")
 	}
 
 	// not retry
 	if req.GetAmount() == 2.13 {
-		retry++
 		return nil, errors.New("not retry")
 	}
 
