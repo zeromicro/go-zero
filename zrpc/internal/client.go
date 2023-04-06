@@ -206,6 +206,9 @@ func WithUnaryClientInterceptor(interceptor grpc.UnaryClientInterceptor) ClientO
 }
 
 // WithRetryPolicy configuration grpc.ServiceConfig.methodConfig
+// if retry = true, policy = empty // use defaultRetryPolicy
+// if retry = true, policy = "some_config" // use some_config and defaultRetryPolicy
+// if retry = false // don't use retryPolicy。
 func WithRetryPolicy(retry bool, policy ...string) ClientOption {
 	return func(options *ClientOptions) {
 		options.Retry = retry
