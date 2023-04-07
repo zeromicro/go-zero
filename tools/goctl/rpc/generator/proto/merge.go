@@ -153,7 +153,7 @@ func genProtoString(data parser.Proto) string {
 		} else {
 			protoString.WriteString(fmt.Sprintf("message %s {", m.Name))
 		}
-		for i, e := range m.Elements {
+		for _, e := range m.Elements {
 			e.Accept(protox.MessageVisitor{})
 			prefixStr := ""
 			if protox.ProtoField.Repeated {
@@ -163,7 +163,7 @@ func genProtoString(data parser.Proto) string {
 				prefixStr = "optional "
 			}
 
-			protoString.WriteString(fmt.Sprintf("  %s%s %s = %d;\n", prefixStr, protox.ProtoField.Type, protox.ProtoField.Name, i+1))
+			protoString.WriteString(fmt.Sprintf("  %s%s %s = %d;\n", prefixStr, protox.ProtoField.Type, protox.ProtoField.Name, protox.ProtoField.Sequence))
 		}
 		protoString.WriteString("}\n\n")
 	}
