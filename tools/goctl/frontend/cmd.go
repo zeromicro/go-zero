@@ -14,13 +14,13 @@ var (
 func init() {
 	vbenCmdFlags := VbenCmd.Flags()
 
-	vbenCmdFlags.StringVarWithDefaultValue(&vben.VarStringOutput, "o", "./")
-	vbenCmdFlags.StringVar(&vben.VarStringApiFile, "api_file")
-	vbenCmdFlags.StringVarWithDefaultValue(&vben.VarStringFolderName, "folder_name", "sys")
-	vbenCmdFlags.StringVar(&vben.VarStringSubFolder, "sub_folder")
-	vbenCmdFlags.StringVarWithDefaultValue(&vben.VarStringApiPrefix, "prefix", "sys-api")
-	vbenCmdFlags.StringVar(&vben.VarStringModelName, "model_name")
-	vbenCmdFlags.BoolVar(&vben.VarBoolOverwrite, "overwrite")
+	vbenCmdFlags.StringVarPWithDefaultValue(&vben.VarStringOutput, "output", "o", "./")
+	vbenCmdFlags.StringVarP(&vben.VarStringApiFile, "api_file", "a")
+	vbenCmdFlags.StringVarPWithDefaultValue(&vben.VarStringFolderName, "folder_name", "f", "sys")
+	vbenCmdFlags.StringVarP(&vben.VarStringSubFolder, "sub_folder", "s")
+	vbenCmdFlags.StringVarPWithDefaultValue(&vben.VarStringApiPrefix, "prefix", "p", "sys-api")
+	vbenCmdFlags.StringVarP(&vben.VarStringModelName, "model_name", "m")
+	vbenCmdFlags.BoolVarP(&vben.VarBoolOverwrite, "overwrite", "w")
 
 	Cmd.AddCommand(VbenCmd)
 }

@@ -83,6 +83,10 @@ func (f *FlagSet) IntVarWithDefaultValue(p *int, name string, value int) {
 	f.FlagSet.IntVar(p, name, value, "")
 }
 
+func (f *FlagSet) IntVarPWithDefaultValue(p *int, name string, shorthand string, value int) {
+	f.FlagSet.IntVarP(p, name, shorthand, value, "")
+}
+
 func (f *FlagSet) StringSliceVarP(p *[]string, name, shorthand string) {
 	f.FlagSet.StringSliceVarP(p, name, shorthand, []string{}, "")
 }

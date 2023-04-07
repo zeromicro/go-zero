@@ -20,14 +20,14 @@ func init() {
 		initCmdFlags = initCmd.Flags()
 	)
 
-	i18nCmdFlags.StringVar(&i18n.VarStringTarget, "target")
-	i18nCmdFlags.StringVar(&i18n.VarStringModelName, "model_name")
-	i18nCmdFlags.StringVar(&i18n.VarStringModelNameZh, "model_name_zh")
-	i18nCmdFlags.StringVar(&i18n.VarStringOutputDir, "output")
+	i18nCmdFlags.StringVarP(&i18n.VarStringTarget, "target", "t")
+	i18nCmdFlags.StringVarP(&i18n.VarStringModelName, "model_name", "m")
+	i18nCmdFlags.StringVarP(&i18n.VarStringModelNameZh, "model_name_zh", "z")
+	i18nCmdFlags.StringVarP(&i18n.VarStringOutputDir, "output", "o")
 
-	initCmdFlags.StringVar(&initlogic.VarStringTarget, "target")
-	initCmdFlags.StringVar(&initlogic.VarStringModelName, "model_name")
-	initCmdFlags.StringVar(&initlogic.VarStringOutputPath, "output")
+	initCmdFlags.StringVarP(&initlogic.VarStringTarget, "target", "t")
+	initCmdFlags.StringVarP(&initlogic.VarStringModelName, "model_name", "m")
+	initCmdFlags.StringVarP(&initlogic.VarStringOutputPath, "output", "o")
 
 	ExtraCmd.AddCommand(i18nCmd)
 	ExtraCmd.AddCommand(initCmd)
