@@ -83,8 +83,8 @@ func GenApiI18n(g *GenContext) error {
 			}
 		}
 	} else {
-		console.Info(zhString.String(), "\n")
-		console.Info(enString.String(), "\n")
+		console.Info(zhString.String() + "\n")
+		console.Info(enString.String() + "\n")
 	}
 	return nil
 }
