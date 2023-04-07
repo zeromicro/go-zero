@@ -1,0 +1,5 @@
+        "create{{.modelName}}": "Create a {{.modelNameEn}}",
+        "update{{.modelName}}": "Update the {{.modelNameEn}}",
+        "delete{{.modelName}}": "Delete {{.modelNameEn}}s",
+        "get{{.modelName}}List": "Get {{.modelNameEn}} list",
+        "get{{.modelName}}ById": "Get {{.modelNameEn}} by ID",
