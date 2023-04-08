@@ -100,11 +100,13 @@ func (rs *RpcServer) Stop() {
 }
 
 // DontLogContentForMethod disable logging content for given method.
+// Deprecated: use ServerMiddlewaresConf.NotLoggingContentMethods instead.
 func DontLogContentForMethod(method string) {
 	serverinterceptors.DontLogContentForMethod(method)
 }
 
 // SetServerSlowThreshold sets the slow threshold on server side.
+// Deprecated: use ServerMiddlewaresConf.SlowThreshold instead.
 func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
 }
