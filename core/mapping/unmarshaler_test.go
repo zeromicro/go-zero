@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
@@ -4453,7 +4454,7 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		var st St
 		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
 		assert.NoError(t, err)
-		assert.Equal(t, st.A, "a")
+		assert.Equal(t, "a", st.A)
 	})
 
 	t.Run("env", func(t *testing.T) {
@@ -4467,8 +4468,8 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		var st St
 		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
 		assert.NoError(t, err)
-		assert.Equal(t, st.A, "a")
-		assert.Equal(t, st.C, "c")
+		assert.Equal(t, "a", st.A)
+		assert.Equal(t, "c", st.C)
 	})
 
 	t.Run("has value", func(t *testing.T) {
@@ -4482,6 +4483,30 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
 		assert.Error(t, err)
 	})
+
+	t.Run("handling struct", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		type St2 struct {
+			St
+			St1   St
+			St3   *St
+			C     string `json:",default=c"`
+			D     string
+			Child *St2
+		}
+		var st2 St2
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st2)
+		assert.NoError(t, err)
+		assert.Equal(t, "a", st2.St.A)
+		assert.Equal(t, "a", st2.St1.A)
+		assert.Nil(t, st2.St3)
+		assert.Equal(t, "c", st2.C)
+		assert.Nil(t, st2.Child)
+	})
+
 }
 
 func Test_UnmarshalMap(t *testing.T) {

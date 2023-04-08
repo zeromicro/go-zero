@@ -818,6 +818,11 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 	}
 
 	if u.opts.fillDefault {
+		if fieldType.Kind() != reflect.Ptr && fieldKind == reflect.Struct {
+			return u.processFieldNotFromString(fieldType, value, valueWithParent{
+				value: emptyMap,
+			}, opts, fullName)
+		}
 		return nil
 	}
 
