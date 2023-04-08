@@ -113,7 +113,11 @@ func (s *rpcServer) buildUnaryInterceptors() []grpc.UnaryServerInterceptor {
 		interceptors = append(interceptors, serverinterceptors.UnaryRecoverInterceptor)
 	}
 	if s.middlewares.Stat {
-		interceptors = append(interceptors, serverinterceptors.UnaryStatInterceptor(s.metrics))
+		interceptors = append(interceptors, serverinterceptors.UnaryStatInterceptor(s.metrics,
+			serverinterceptors.StatConf{
+				SlowThreshold:            s.middlewares.StatSlowThreshold,
+				NotLoggingContentMethods: s.middlewares.NotLoggingContentMethods,
+			}))
 	}
 	if s.middlewares.Prometheus {
 		interceptors = append(interceptors, serverinterceptors.UnaryPrometheusInterceptor)
