@@ -100,7 +100,7 @@ func (rs *RpcServer) Stop() {
 }
 
 // DontLogContentForMethod disable logging content for given method.
-// Deprecated: use ServerMiddlewaresConf.NotLoggingContentMethods instead.
+// Deprecated: use ServerMiddlewaresConf.IgnoreContentMethods instead.
 func DontLogContentForMethod(method string) {
 	serverinterceptors.DontLogContentForMethod(method)
 }
