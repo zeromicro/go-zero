@@ -10,9 +10,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/core/trace/tracetest"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"go.opentelemetry.io/otel"
+	tcodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -52,6 +55,31 @@ func TestOtelHandler(t *testing.T) {
 			assert.Nil(t, err)
 		})
 	}
+}
+
+func TestTraceHandler(t *testing.T) {
+	me := tracetest.NewInMemoryExporter(t)
+	h := chain.New(TraceHandler("foo", "/")).Then(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	ts := httptest.NewServer(h)
+	defer ts.Close()
+
+	client := ts.Client()
+	err := func(ctx context.Context) error {
+		req, _ := http.NewRequest("GET", ts.URL, nil)
+
+		res, err := client.Do(req)
+		assert.Nil(t, err)
+		return res.Body.Close()
+	}(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(me.GetSpans()))
+	span := me.GetSpans()[0].Snapshot()
+	assert.Equal(t, sdktrace.Status{
+		Code: tcodes.Unset,
+	}, span.Status())
+	assert.Equal(t, 0, len(span.Events()))
+	assert.Equal(t, 9, len(span.Attributes()))
 }
 
 func TestDontTracingSpan(t *testing.T) {
