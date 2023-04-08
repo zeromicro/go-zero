@@ -9,7 +9,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/trace"
+	btrace "github.com/zeromicro/go-zero/core/trace"
+	"github.com/zeromicro/go-zero/core/trace/tracetest"
+	"go.opentelemetry.io/otel/attribute"
+	tcodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -26,13 +31,13 @@ func TestUnaryOpenTracingInterceptor_Disable(t *testing.T) {
 }
 
 func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
-	trace.StartAgent(trace.Config{
+	btrace.StartAgent(btrace.Config{
 		Name:     "go-zero-test",
 		Endpoint: "http://localhost:14268/api/traces",
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
-	defer trace.StopAgent()
+	defer btrace.StopAgent()
 
 	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/package.TestService.GetUser",
@@ -43,19 +48,73 @@ func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
 }
 
 func TestUnaryTracingInterceptor(t *testing.T) {
-	var run int32
-	var wg sync.WaitGroup
-	wg.Add(1)
-	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
-		FullMethod: "/",
-	}, func(ctx context.Context, req any) (any, error) {
-		defer wg.Done()
-		atomic.AddInt32(&run, 1)
-		return nil, nil
+	t.Run("normal", func(t *testing.T) {
+		var run int32
+		me := tracetest.NewInMemoryExporter(t)
+		_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+			FullMethod: "/proto.Hello/Echo",
+		}, func(ctx context.Context, req any) (any, error) {
+			atomic.AddInt32(&run, 1)
+			return nil, nil
+		})
+		assert.Nil(t, err)
+		assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, 2, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			btrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+			btrace.StatusCodeAttr(codes.OK),
+		}, span.Attributes())
 	})
-	wg.Wait()
-	assert.Nil(t, err)
-	assert.Equal(t, int32(1), atomic.LoadInt32(&run))
+
+	t.Run("grpc error status", func(t *testing.T) {
+		me := tracetest.NewInMemoryExporter(t)
+		_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+			FullMethod: "/proto.Hello/Echo",
+		}, func(ctx context.Context, req any) (any, error) {
+			return nil, status.Errorf(codes.Unknown, "test")
+		})
+		assert.Error(t, err)
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, trace.Status{
+			Code:        tcodes.Error,
+			Description: "test",
+		}, span.Status())
+		assert.Equal(t, 2, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			btrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+			btrace.StatusCodeAttr(codes.Unknown),
+		}, span.Attributes())
+	})
+
+	t.Run("non grpc status error", func(t *testing.T) {
+		me := tracetest.NewInMemoryExporter(t)
+		_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
+			FullMethod: "/proto.Hello/Echo",
+		}, func(ctx context.Context, req any) (any, error) {
+			return nil, errors.New("test")
+		})
+		assert.Error(t, err)
+		assert.Equal(t, 1, len(me.GetSpans()))
+		span := me.GetSpans()[0].Snapshot()
+		assert.Equal(t, trace.Status{
+			Code:        tcodes.Error,
+			Description: "test",
+		}, span.Status())
+		assert.Equal(t, 1, len(span.Events()))
+		assert.ElementsMatch(t, []attribute.KeyValue{
+			btrace.RPCSystemGRPC,
+			semconv.RPCServiceKey.String("proto.Hello"),
+			semconv.RPCMethodKey.String("Echo"),
+		}, span.Attributes())
+	})
 }
 
 func TestUnaryTracingInterceptor_WithError(t *testing.T) {
