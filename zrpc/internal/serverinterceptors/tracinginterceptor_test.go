@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	btrace "github.com/zeromicro/go-zero/core/trace"
+	ztrace "github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/core/trace/tracetest"
 	"go.opentelemetry.io/otel/attribute"
 	tcodes "go.opentelemetry.io/otel/codes"
@@ -31,13 +31,13 @@ func TestUnaryOpenTracingInterceptor_Disable(t *testing.T) {
 }
 
 func TestUnaryOpenTracingInterceptor_Enabled(t *testing.T) {
-	btrace.StartAgent(btrace.Config{
+	ztrace.StartAgent(ztrace.Config{
 		Name:     "go-zero-test",
 		Endpoint: "http://localhost:14268/api/traces",
 		Batcher:  "jaeger",
 		Sampler:  1.0,
 	})
-	defer btrace.StopAgent()
+	defer ztrace.StopAgent()
 
 	_, err := UnaryTracingInterceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/package.TestService.GetUser",
@@ -64,10 +64,10 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 		span := me.GetSpans()[0].Snapshot()
 		assert.Equal(t, 2, len(span.Events()))
 		assert.ElementsMatch(t, []attribute.KeyValue{
-			btrace.RPCSystemGRPC,
+			ztrace.RPCSystemGRPC,
 			semconv.RPCServiceKey.String("proto.Hello"),
 			semconv.RPCMethodKey.String("Echo"),
-			btrace.StatusCodeAttr(codes.OK),
+			ztrace.StatusCodeAttr(codes.OK),
 		}, span.Attributes())
 	})
 
@@ -87,10 +87,10 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 		}, span.Status())
 		assert.Equal(t, 2, len(span.Events()))
 		assert.ElementsMatch(t, []attribute.KeyValue{
-			btrace.RPCSystemGRPC,
+			ztrace.RPCSystemGRPC,
 			semconv.RPCServiceKey.String("proto.Hello"),
 			semconv.RPCMethodKey.String("Echo"),
-			btrace.StatusCodeAttr(codes.Unknown),
+			ztrace.StatusCodeAttr(codes.Unknown),
 		}, span.Attributes())
 	})
 
@@ -110,7 +110,7 @@ func TestUnaryTracingInterceptor(t *testing.T) {
 		}, span.Status())
 		assert.Equal(t, 1, len(span.Events()))
 		assert.ElementsMatch(t, []attribute.KeyValue{
-			btrace.RPCSystemGRPC,
+			ztrace.RPCSystemGRPC,
 			semconv.RPCServiceKey.String("proto.Hello"),
 			semconv.RPCMethodKey.String("Echo"),
 		}, span.Attributes())
