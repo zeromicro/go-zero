@@ -135,9 +135,9 @@ func TestLogDurationWithoutContent(t *testing.T) {
 	}
 
 	DontLogContentForMethod("foo")
-	// reset notLoggingContentMethods
+	// reset ignoreContentMethods
 	t.Cleanup(func() {
-		notLoggingContentMethods = sync.Map{}
+		ignoreContentMethods = sync.Map{}
 	})
 	for _, test := range tests {
 		test := test
@@ -198,9 +198,9 @@ func Test_shouldLogContent(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup()
 			}
-			// reset notLoggingContentMethods
+			// reset ignoreContentMethods
 			t.Cleanup(func() {
-				notLoggingContentMethods = sync.Map{}
+				ignoreContentMethods = sync.Map{}
 			})
 			set := collection.NewSet()
 			set.AddStr(tt.args.staticNotLoggingContentMethods...)
