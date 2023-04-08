@@ -62,6 +62,11 @@ func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServer
 	}
 }
 
+func isSlow(duration, durationThreshold time.Duration) bool {
+	return duration > slowThreshold.Load() ||
+		(durationThreshold > 0 && duration > durationThreshold)
+}
+
 func logDuration(ctx context.Context, method string, req any, duration time.Duration,
 	ignoreMethods *collection.Set, durationThreshold time.Duration) {
 	var addr string
@@ -90,9 +95,4 @@ func logDuration(ctx context.Context, method string, req any, duration time.Dura
 func shouldLogContent(method string, ignoreMethods *collection.Set) bool {
 	_, ok := ignoreContentMethods.Load(method)
 	return !ok && !ignoreMethods.Contains(method)
-}
-
-func isSlow(duration, durationThreshold time.Duration) bool {
-	return duration > slowThreshold.Load() ||
-		(durationThreshold > 0 && duration > durationThreshold)
 }
