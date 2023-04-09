@@ -45,7 +45,7 @@ gen-ent: # Generate Ent codes | 生成 Ent 的代码
 
 .PHONY: gen-api-ent-logic
 gen-api-ent-logic: # Generate CRUD logic from Ent, need to set model and group | 根据 Ent 生成 CRUD 代码，需要设置 model 和 group
-	goctls api ent --schema=./ent/schema --api_service_name=$(PROJECT) --o=./ --model=$(model) --group=$(group)
+	goctls api ent --schema=./ent/schema --api_service_name=$(PROJECT) --output=./ --model=$(model) --group=$(group)
 	@echo "Generate CRUD codes from Ent successfully"
 {{end}}
 .PHONY: build-win
