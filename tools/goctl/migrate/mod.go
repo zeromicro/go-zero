@@ -12,11 +12,8 @@ import (
 )
 
 const (
-	deprecatedGoZeroMod = "github.com/tal-tech/go-zero"
-	deprecatedBuilderx  = "github.com/tal-tech/go-zero/tools/goctl/model/sql/builderx"
-	replacementBuilderx = "github.com/zeromicro/go-zero/core/stores/builder"
-	goZeroMod           = "github.com/zeromicro/go-zero"
-	adminTool           = "github.com/suyuan32/simple-admin-tools"
+	goZeroMod = "github.com/zeromicro/go-zero"
+	adminTool = "github.com/suyuan32/simple-admin-tools"
 )
 
 var errInvalidGoMod = errors.New("it's only working for go module")
