@@ -31,3 +31,5 @@ go.work.sum
 .github
 
 coverage.txt
+
+*.log
