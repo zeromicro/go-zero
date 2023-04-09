@@ -1041,6 +1041,24 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 	})
 }
 
+func TestLoadLowerMemberShouldNotConflict(t *testing.T) {
+	type (
+		Redis struct {
+			db uint
+		}
+
+		Config struct {
+			db uint
+			Redis
+		}
+	)
+
+	var c Config
+	assert.NoError(t, LoadFromJsonBytes([]byte(`{}`), &c))
+	assert.Zero(t, c.db)
+	assert.Zero(t, c.Redis.db)
+}
+
 func TestFillDefaultUnmarshal(t *testing.T) {
 	t.Run("nil", func(t *testing.T) {
 		type St struct{}

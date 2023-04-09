@@ -15,6 +15,8 @@ type (
 	ClientMiddlewaresConf = internal.ClientMiddlewaresConf
 	// ServerMiddlewaresConf defines whether to use server middlewares.
 	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
+	// StatConf defines the stat config.
+	StatConf = internal.StatConf
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {

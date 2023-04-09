@@ -242,6 +242,10 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+
 		name := getTagName(field)
 		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
