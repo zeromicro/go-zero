@@ -3,6 +3,7 @@ GO ?= go
 GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
 LDFLAGS := -s -w
+VERSION=$(shell git describe --tags --always)
 
 .PHONY: test
 test: # Run test for the project | 运行项目测试
