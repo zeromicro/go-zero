@@ -86,7 +86,7 @@
       "proto": {
         "short": "Generate CRUD template from proto file",
         "proto": "The proto path",
-        "o": "The output path",
+        "output": "The output path",
         "api_service_name": "The API service name",
         "rpc_service_name": "The RPC service name",
         "style": "The file name format style",
@@ -101,7 +101,7 @@
       "ent": {
         "short": "Generate CRUD logic files from ent file",
         "schema": "The schema path of the Ent",
-        "o": "The output path",
+        "output": "The output path",
         "api_service_name": "The API service name",
         "style": "The file name format style",
         "model": "The model name for generating e.g. user, if it is empty, generate codes for all models in schema directory",
@@ -196,7 +196,7 @@
     },
     "rpc": {
       "short": "Generate rpc code",
-      "o": "Output a sample proto file",
+      "output": "Output a sample proto file",
       "home": "{{.global.home}}",
       "remote": "{{.global.remote}}",
       "branch": "{{.global.branch}}",
@@ -236,7 +236,7 @@
       "ent": {
         "short": "Generate CRUD template codes by Ent",
         "schema": "The schema path of the Ent",
-        "o": "The output path",
+        "output": "The output path",
         "service_name": "The service name",
         "project_name": "The project name",
         "multiple": "Generated in multiple rpc service mode",
@@ -296,7 +296,7 @@
       "short": "Generate frontend related files",
       "vben": {
         "short": "Generate frontend related files",
-        "o": "The output directory, it should be the root directory of simple admin backend ui",
+        "output": "The output directory, it should be the root directory of simple admin backend ui",
         "api_file": "The absolute path of api file",
         "folder_name": "The folder name to generate file in different directory. e.g. file folder in simple admin backend ui which is to store file manager service files",
         "sub_folder": "The sub folder name. e.g. src/views/sys sub folder user which path is src/views/sys/user",
