@@ -3,10 +3,12 @@ package version
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 )
 
 // BuildVersion is the version of goctl.
-const BuildVersion = "0.3.2"
+const BuildVersion = config.ToolVersion
 
 var tag = map[string]int{"pre-alpha": 0, "alpha": 1, "pre-bata": 2, "beta": 3, "released": 4, "": 5}
 
