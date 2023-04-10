@@ -3,7 +3,7 @@ module github.com/zeromicro/go-zero/tools/goctl
 go 1.20
 
 require (
-	entgo.io/ent v0.11.10
+	entgo.io/ent v0.12.0
 	github.com/emicklei/proto v1.11.1
 	github.com/fatih/structtag v1.2.0
 	github.com/iancoleman/strcase v0.2.0
