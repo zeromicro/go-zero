@@ -5,12 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	proto2 "github.com/zeromicro/go-zero/tools/goctl/rpc/generator/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -217,12 +217,12 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		paginationTplPath := filepath.Join(abs, "ent", "template", "pagination.tmpl")
 		notEmptyTplPath := filepath.Join(abs, "ent", "template", "not_empty_update.tmpl")
 		if !pathx.FileExists(paginationTplPath) {
-			err = os.WriteFile(paginationTplPath, []byte(enttemplate.PaginationTpl), os.ModePerm)
+			err = os.WriteFile(paginationTplPath, []byte(template.PaginationTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(notEmptyTplPath, []byte(enttemplate.NotEmptyTpl), os.ModePerm)
+			err = os.WriteFile(notEmptyTplPath, []byte(template.NotEmptyTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}

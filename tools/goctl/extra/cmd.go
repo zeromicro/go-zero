@@ -1,6 +1,7 @@
 package extra
 
 import (
+	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/i18n"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/initlogic"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
@@ -12,12 +13,17 @@ var (
 	i18nCmd = cobrax.NewCommand("i18n", cobrax.WithRunE(i18n.Gen))
 
 	initCmd = cobrax.NewCommand("init_code", cobrax.WithRunE(initlogic.Gen))
+
+	entCmd = cobrax.NewCommand("ent")
+
+	templateCmd = cobrax.NewCommand("template", cobrax.WithRunE(template.GenTemplate))
 )
 
 func init() {
 	var (
-		i18nCmdFlags = i18nCmd.Flags()
-		initCmdFlags = initCmd.Flags()
+		i18nCmdFlags     = i18nCmd.Flags()
+		initCmdFlags     = initCmd.Flags()
+		templateCmdFlags = templateCmd.Flags()
 	)
 
 	i18nCmdFlags.StringVarP(&i18n.VarStringTarget, "target", "t")
@@ -29,6 +35,13 @@ func init() {
 	initCmdFlags.StringVarP(&initlogic.VarStringModelName, "model_name", "m")
 	initCmdFlags.StringVarP(&initlogic.VarStringOutputPath, "output", "o")
 
+	templateCmdFlags.StringVarP(&template.VarStringDir, "dir", "d")
+	templateCmdFlags.StringVarP(&template.VarStringAdd, "add", "a")
+	templateCmdFlags.BoolVarP(&template.VarBoolList, "list", "l")
+	templateCmdFlags.BoolVarP(&template.VarBoolUpdate, "update", "u")
+
 	ExtraCmd.AddCommand(i18nCmd)
 	ExtraCmd.AddCommand(initCmd)
+	entCmd.AddCommand(templateCmd)
+	ExtraCmd.AddCommand(entCmd)
 }

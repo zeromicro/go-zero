@@ -1,0 +1,28 @@
+{{/* gotype: entgo.io/ent/entc/gen.Graph */}}
+
+
+{{ define "not_empty_update" }}
+
+	{{/* Add the base header for the generated file */}}
+	{{ $pkg := base $.Config.Package }}
+	{{ template "header" $ }}
+
+	{{/* Loop over all updaters and implement the "SetNotEmpty" method for all optional fields */}}
+	{{ range $n := $.Nodes }}
+		{{ range $f := $n.MutableFields }}
+			{{ $set := print "Set" $f.StructField }}
+
+			{{ range $updater := list $n.UpdateName $n.UpdateOneName }}
+				{{ if or (eq $f.Type.Type 7) (gt $f.Type.Type 8)}}
+					// set field if value is not empty. e.g. string does not equal to ""
+					func ({{ $n.Receiver }} *{{ $updater }}) SetNotEmpty{{ $f.StructField }}(value {{ if not $f.SupportsMutationAppend }}{{ end }}{{ $f.Type }}) *{{ $updater }} {
+						if value != {{if  $f.Type.Numeric  }} 0 {{ else if eq $f.Type.Type 7 }} "" {{ else if eq $f.Type.Type 7 }} {{end}}  {
+							return {{ $n.Receiver }}.{{ $set }}({{ if not $f.SupportsMutationAppend }}{{ end }}value)
+						}
+						return {{ $n.Receiver }}
+					}
+				{{ end }}
+			{{ end }}
+		{{ end }}
+	{{ end }}
+{{ end }}

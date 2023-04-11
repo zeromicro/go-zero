@@ -58,7 +58,7 @@
         {{ $query := print $node.Name "Query"}}
         {{ $orderField := print $node.Name "OrderField"}}
         type {{ $pager }} struct {
-            Order OrderFunc
+            Order {{ lower $node.Name }}.Order
             Filter func(*{{ $query }}) (*{{ $query }}, error)
         }
 

@@ -13,13 +13,13 @@ import (
 
 	"github.com/iancoleman/strcase"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-	"github.com/zeromicro/go-zero/tools/goctl/util/entx/enttemplate"
-
 	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
+
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
+	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
@@ -215,12 +215,12 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		paginationTplPath := filepath.Join(dir, "ent", "template", "pagination.tmpl")
 		notEmptyTplPath := filepath.Join(dir, "ent", "template", "not_empty_update.tmpl")
 		if !pathx.FileExists(paginationTplPath) {
-			err = os.WriteFile(paginationTplPath, []byte(enttemplate.PaginationTpl), os.ModePerm)
+			err = os.WriteFile(paginationTplPath, []byte(template.PaginationTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
 
-			err = os.WriteFile(notEmptyTplPath, []byte(enttemplate.NotEmptyTpl), os.ModePerm)
+			err = os.WriteFile(notEmptyTplPath, []byte(template.NotEmptyTmpl), os.ModePerm)
 			if err != nil {
 				return err
 			}
