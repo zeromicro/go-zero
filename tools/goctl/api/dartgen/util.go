@@ -57,6 +57,15 @@ func isAtomicType(s string) bool {
 	}
 }
 
+func isNumberType(s string) bool {
+	switch s {
+	case "int", "double":
+		return true
+	default:
+		return false
+	}
+}
+
 func isListType(s string) bool {
 	return strings.HasPrefix(s, "List<")
 }
@@ -194,6 +203,10 @@ func extractPositionalParamsFromPath(route spec.Route) string {
 
 func makeDartRequestUrlPath(route spec.Route) string {
 	path := route.Path
+	if route.RequestType == nil {
+		return `"` + path + `"`
+	}
+
 	ds, ok := route.RequestType.(spec.DefineStruct)
 	if !ok {
 		return path

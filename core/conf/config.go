@@ -13,18 +13,32 @@ import (
 	"github.com/zeromicro/go-zero/internal/encoding"
 )
 
-var loaders = map[string]func([]byte, any) error{
-	".json": LoadFromJsonBytes,
-	".toml": LoadFromTomlBytes,
-	".yaml": LoadFromYamlBytes,
-	".yml":  LoadFromYamlBytes,
-}
+const (
+	jsonTagKey = "json"
+	jsonTagSep = ','
+)
+
+var (
+	fillDefaultUnmarshaler = mapping.NewUnmarshaler(jsonTagKey, mapping.WithDefault())
+	loaders                = map[string]func([]byte, any) error{
+		".json": LoadFromJsonBytes,
+		".toml": LoadFromTomlBytes,
+		".yaml": LoadFromYamlBytes,
+		".yml":  LoadFromYamlBytes,
+	}
+)
 
 // children and mapField should not be both filled.
 // named fields and map cannot be bound to the same field name.
 type fieldInfo struct {
 	children map[string]*fieldInfo
 	mapField *fieldInfo
+}
+
+// FillDefault fills the default values for the given v,
+// and the premise is that the value of v must be guaranteed to be empty.
+func FillDefault(v any) error {
+	return fillDefaultUnmarshaler.Unmarshal(map[string]any{}, v)
 }
 
 // Load loads config into v from file, .json, .yaml and .yml are acceptable.
@@ -65,7 +79,7 @@ func LoadFromJsonBytes(content []byte, v any) error {
 	}
 
 	var m map[string]any
-	if err := jsonx.Unmarshal(content, &m); err != nil {
+	if err = jsonx.Unmarshal(content, &m); err != nil {
 		return err
 	}
 
@@ -116,7 +130,7 @@ func MustLoad(path string, v any, opts ...Option) {
 func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
 	if prev, ok := info.children[key]; ok {
 		if child.mapField != nil {
-			return newDupKeyError(key)
+			return newConflictKeyError(key)
 		}
 
 		if err := mergeFields(prev, key, child.children); err != nil {
@@ -149,7 +163,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 		}
 
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newDupKeyError(lowerCaseName)
+			return newConflictKeyError(lowerCaseName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -158,7 +172,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 		}
 	default:
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newDupKeyError(lowerCaseName)
+			return newConflictKeyError(lowerCaseName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -228,7 +242,11 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 
 	for i := 0; i < tp.NumField(); i++ {
 		field := tp.Field(i)
-		name := field.Name
+		if !field.IsExported() {
+			continue
+		}
+
+		name := getTagName(field)
 		lowerCaseName := toLowerCase(name)
 		ft := mapping.Deref(field.Type)
 		// flatten anonymous fields
@@ -244,15 +262,32 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	return info, nil
 }
 
+// getTagName get the tag name of the given field, if no tag name, use file.Name.
+// field.Name is returned on tags like `json:""` and `json:",optional"`.
+func getTagName(field reflect.StructField) string {
+	if tag, ok := field.Tag.Lookup(jsonTagKey); ok {
+		if pos := strings.IndexByte(tag, jsonTagSep); pos >= 0 {
+			tag = tag[:pos]
+		}
+
+		tag = strings.TrimSpace(tag)
+		if len(tag) > 0 {
+			return tag
+		}
+	}
+
+	return field.Name
+}
+
 func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
 	if len(prev.children) == 0 || len(children) == 0 {
-		return newDupKeyError(key)
+		return newConflictKeyError(key)
 	}
 
 	// merge fields
 	for k, v := range children {
 		if _, ok := prev.children[k]; ok {
-			return newDupKeyError(k)
+			return newConflictKeyError(k)
 		}
 
 		prev.children[k] = v
@@ -303,14 +338,14 @@ func toLowerCaseKeyMap(m map[string]any, info *fieldInfo) map[string]any {
 	return res
 }
 
-type dupKeyError struct {
+type conflictKeyError struct {
 	key string
 }
 
-func newDupKeyError(key string) dupKeyError {
-	return dupKeyError{key: key}
+func newConflictKeyError(key string) conflictKeyError {
+	return conflictKeyError{key: key}
 }
 
-func (e dupKeyError) Error() string {
-	return fmt.Sprintf("duplicated key %s", e.key)
+func (e conflictKeyError) Error() string {
+	return fmt.Sprintf("conflict key %s, pay attention to anonymous fields", e.key)
 }

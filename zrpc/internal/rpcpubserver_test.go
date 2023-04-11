@@ -12,6 +12,7 @@ func TestNewRpcPubServer(t *testing.T) {
 	s, err := NewRpcPubServer(discov.EtcdConf{
 		User: "user",
 		Pass: "pass",
+		ID:   10,
 	}, "", ServerMiddlewaresConf{})
 	assert.NoError(t, err)
 	assert.NotPanics(t, func() {

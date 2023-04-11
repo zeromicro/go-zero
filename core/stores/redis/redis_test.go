@@ -16,6 +16,25 @@ import (
 	"github.com/zeromicro/go-zero/core/stringx"
 )
 
+type myHook struct {
+	red.Hook
+	includePing bool
+}
+
+var _ red.Hook = myHook{}
+
+func (m myHook) BeforeProcess(ctx context.Context, cmd red.Cmder) (context.Context, error) {
+	return ctx, nil
+}
+
+func (m myHook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
+	// skip ping cmd
+	if cmd.Name() == "ping" && !m.includePing {
+		return nil
+	}
+	return errors.New("hook error")
+}
+
 func TestNewRedis(t *testing.T) {
 	r1, err := miniredis.Run()
 	assert.NoError(t, err)
@@ -126,6 +145,31 @@ func TestNewRedis(t *testing.T) {
 	}
 }
 
+func TestRedis_NonBlock(t *testing.T) {
+	logx.Disable()
+
+	t.Run("nonBlock true", func(t *testing.T) {
+		s := miniredis.RunT(t)
+		// use hook to simulate redis ping error
+		_, err := NewRedis(RedisConf{
+			Host:     s.Addr(),
+			NonBlock: true,
+			Type:     NodeType,
+		}, withHook(myHook{includePing: true}))
+		assert.NoError(t, err)
+	})
+
+	t.Run("nonBlock false", func(t *testing.T) {
+		s := miniredis.RunT(t)
+		_, err := NewRedis(RedisConf{
+			Host:     s.Addr(),
+			NonBlock: false,
+			Type:     NodeType,
+		}, withHook(myHook{includePing: true}))
+		assert.ErrorContains(t, err, "redis connect error")
+	})
+}
+
 func TestRedis_Decr(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := New(client.Addr, badType()).Decr("a")
@@ -191,6 +235,24 @@ func TestRedis_Eval(t *testing.T) {
 		_, err = client.Eval(`redis.call("EXISTS", KEYS[1])`, []string{"key1"})
 		assert.Equal(t, Nil, err)
 		val, err := client.Eval(`return redis.call("EXISTS", KEYS[1])`, []string{"key1"})
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+	})
+}
+
+func TestRedis_ScriptRun(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		sc := NewScript(`redis.call("EXISTS", KEYS[1])`)
+		sc2 := NewScript(`return redis.call("EXISTS", KEYS[1])`)
+		_, err := New(client.Addr, badType()).ScriptRun(sc, []string{"notexist"})
+		assert.NotNil(t, err)
+		_, err = client.ScriptRun(sc, []string{"notexist"})
+		assert.Equal(t, Nil, err)
+		err = client.Set("key1", "value1")
+		assert.Nil(t, err)
+		_, err = client.ScriptRun(sc, []string{"key1"})
+		assert.Equal(t, Nil, err)
+		val, err := client.ScriptRun(sc2, []string{"key1"})
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), val)
 	})
@@ -507,6 +569,14 @@ func TestRedis_List(t *testing.T) {
 			vals, err = client.Lrange("key", 0, 10)
 			assert.Nil(t, err)
 			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			vals, err = client.LpopCount("key", 2)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value2", "value3"}, vals)
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Nil(t, err)
+			vals, err = client.RpopCount("key", 4)
+			assert.Nil(t, err)
+			assert.EqualValues(t, []string{"value1", "value2"}, vals)
 		})
 	})
 
@@ -522,6 +592,34 @@ func TestRedis_List(t *testing.T) {
 			assert.Error(t, err)
 
 			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+
+			_, err = client.LpopCount("key", 2)
+			assert.Error(t, err)
+
+			_, err = client.RpopCount("key", 2)
+			assert.Error(t, err)
+		})
+	})
+	t.Run("list redis type error", func(t *testing.T) {
+		runOnRedisWithError(t, func(client *Redis) {
+			client.Type = "nil"
+			_, err := client.Llen("key")
+			assert.Error(t, err)
+
+			_, err = client.Lpush("key", "value1", "value2")
+			assert.Error(t, err)
+
+			_, err = client.Lrem("key", 2, "value1")
+			assert.Error(t, err)
+
+			_, err = client.Rpush("key", "value3", "value4")
+			assert.Error(t, err)
+
+			_, err = client.LpopCount("key", 2)
+			assert.Error(t, err)
+
+			_, err = client.RpopCount("key", 2)
 			assert.Error(t, err)
 		})
 	})

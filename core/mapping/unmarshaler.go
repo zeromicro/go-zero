@@ -47,6 +47,7 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
+		fillDefault  bool
 		fromString   bool
 		canonicalKey func(key string) string
 	}
@@ -286,6 +287,10 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 	valueType := reflect.TypeOf(mapValue)
 	if mapType == valueType {
 		return reflect.ValueOf(mapValue), nil
+	}
+
+	if keyType != valueType.Key() {
+		return emptyValue, errTypeMismatch
 	}
 
 	refValue := reflect.ValueOf(mapValue)
@@ -690,6 +695,10 @@ func (u *Unmarshaler) processFieldWithEnvValue(fieldType reflect.Type, value ref
 
 func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect.Value,
 	m valuerWithParent, fullName string) error {
+	if !field.IsExported() {
+		return nil
+	}
+
 	key, opts, err := u.parseOptionsWithContext(field, m, fullName)
 	if err != nil {
 		return err
@@ -710,7 +719,14 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 
 	valuer := createValuer(m, opts)
 	mapValue, hasValue := getValue(valuer, canonicalKey)
-	if !hasValue {
+
+	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
+	if u.opts.fillDefault {
+		if !value.IsZero() {
+			return fmt.Errorf("set the default value, %s must be zero", fullName)
+		}
+		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
+	} else if !hasValue {
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	}
 
@@ -801,6 +817,15 @@ func (u *Unmarshaler) processNamedFieldWithoutValue(fieldType reflect.Type, valu
 		}
 	}
 
+	if u.opts.fillDefault {
+		if fieldType.Kind() != reflect.Ptr && fieldKind == reflect.Struct {
+			return u.processFieldNotFromString(fieldType, value, valueWithParent{
+				value: emptyMap,
+			}, opts, fullName)
+		}
+		return nil
+	}
+
 	switch fieldKind {
 	case reflect.Array, reflect.Map, reflect.Slice:
 		if !opts.optional() {
@@ -853,12 +878,9 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName 
 
 	numFields := baseType.NumField()
 	for i := 0; i < numFields; i++ {
-		field := baseType.Field(i)
-		if !field.IsExported() {
-			continue
-		}
-
-		if err := u.processField(field, valElem.Field(i), m, fullName); err != nil {
+		typeField := baseType.Field(i)
+		valueField := valElem.Field(i)
+		if err := u.processField(typeField, valueField, m, fullName); err != nil {
 			return err
 		}
 	}
@@ -873,10 +895,17 @@ func WithStringValues() UnmarshalOption {
 	}
 }
 
-// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func
+// WithCanonicalKeyFunc customizes an Unmarshaler with Canonical Key func.
 func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.canonicalKey = f
+	}
+}
+
+// WithDefault customizes an Unmarshaler with fill default values.
+func WithDefault() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.fillDefault = true
 	}
 }
 
@@ -1009,7 +1038,7 @@ func newInitError(name string) error {
 }
 
 func newTypeMismatchError(name string) error {
-	return fmt.Errorf("error: type mismatch for field %s", name)
+	return fmt.Errorf("type mismatch for field %s", name)
 }
 
 func readKeys(key string) []string {

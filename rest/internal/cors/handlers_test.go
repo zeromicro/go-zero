@@ -53,6 +53,11 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 			origins:   []string{"http://local", "http://remote"},
 			reqOrigin: "http://another",
 		},
+		{
+			name:      "not safe origin",
+			origins:   []string{"safe.com"},
+			reqOrigin: "not-safe.com",
+		},
 	}
 
 	methods := []string{

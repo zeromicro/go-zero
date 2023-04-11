@@ -9,7 +9,7 @@ import (
 	"github.com/zeromicro/go-zero/core/hash"
 )
 
-var dupErr dupKeyError
+var dupErr conflictKeyError
 
 func TestLoadConfig_notExists(t *testing.T) {
 	assert.NotNil(t, Load("not_a_file", nil))
@@ -120,6 +120,24 @@ d = "abcd"
 		assert.Equal(t, 1, val.B)
 		assert.Equal(t, "FOO", val.C)
 		assert.Equal(t, "abcd", val.D)
+	}
+}
+
+func TestConfigWithLower(t *testing.T) {
+	text := `a = "foo"
+b = 1
+`
+	tmpfile, err := createTempFile(".toml", text)
+	assert.Nil(t, err)
+	defer os.Remove(tmpfile)
+
+	var val struct {
+		A string `json:"a"`
+		b int
+	}
+	if assert.NoError(t, Load(tmpfile, &val)) {
+		assert.Equal(t, "foo", val.A)
+		assert.Equal(t, 0, val.b)
 	}
 }
 
@@ -672,7 +690,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
 		}
 
 		validate(&St1{})
@@ -715,7 +733,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newDupKeyError("name").Error(), err.Error())
+			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
 		}
 
 		validate(&St0{})
@@ -1022,18 +1040,174 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 	})
 }
 
+func TestLoadLowerMemberShouldNotConflict(t *testing.T) {
+	type (
+		Redis struct {
+			db uint
+		}
+
+		Config struct {
+			db uint
+			Redis
+		}
+	)
+
+	var c Config
+	assert.NoError(t, LoadFromJsonBytes([]byte(`{}`), &c))
+	assert.Zero(t, c.db)
+	assert.Zero(t, c.Redis.db)
+}
+
+func TestFillDefaultUnmarshal(t *testing.T) {
+	t.Run("nil", func(t *testing.T) {
+		type St struct{}
+		err := FillDefault(St{})
+		assert.Error(t, err)
+	})
+
+	t.Run("not nil", func(t *testing.T) {
+		type St struct{}
+		err := FillDefault(&St{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("default", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st St
+		err := FillDefault(&st)
+		assert.NoError(t, err)
+		assert.Equal(t, st.A, "a")
+	})
+
+	t.Run("env", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+			C string `json:",env=TEST_C"`
+		}
+		t.Setenv("TEST_C", "c")
+
+		var st St
+		err := FillDefault(&st)
+		assert.NoError(t, err)
+		assert.Equal(t, st.A, "a")
+		assert.Equal(t, st.C, "c")
+	})
+
+	t.Run("has value", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st = St{
+			A: "b",
+		}
+		err := FillDefault(&st)
+		assert.Error(t, err)
+	})
+}
+
+func TestConfigWithJsonTag(t *testing.T) {
+	t.Run("map with value", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			ValueMap map[string]Value `json:"Value"`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.ValueMap, 2)
+		}
+	})
+
+	t.Run("map with ptr value", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			ValueMap map[string]*Value `json:"Value"`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.ValueMap, 2)
+		}
+	})
+
+	t.Run("map with optional", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			Value map[string]Value `json:",optional"`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.Value, 2)
+		}
+	})
+
+	t.Run("map with empty tag", func(t *testing.T) {
+		var input = []byte(`[Value]
+[Value.first]
+Email = "foo"
+[Value.second]
+Email = "bar"`)
+
+		type Value struct {
+			Email string
+		}
+
+		type Config struct {
+			Value map[string]Value `json:"  "`
+		}
+
+		var c Config
+		if assert.NoError(t, LoadFromTomlBytes(input, &c)) {
+			assert.Len(t, c.Value, 2)
+		}
+	})
+}
+
 func createTempFile(ext, text string) (string, error) {
-	tmpfile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
+	tmpFile, err := os.CreateTemp(os.TempDir(), hash.Md5Hex([]byte(text))+"*"+ext)
 	if err != nil {
 		return "", err
 	}
 
-	if err := os.WriteFile(tmpfile.Name(), []byte(text), os.ModeTemporary); err != nil {
+	if err := os.WriteFile(tmpFile.Name(), []byte(text), os.ModeTemporary); err != nil {
 		return "", err
 	}
 
-	filename := tmpfile.Name()
-	if err = tmpfile.Close(); err != nil {
+	filename := tmpFile.Name()
+	if err = tmpFile.Close(); err != nil {
 		return "", err
 	}
 

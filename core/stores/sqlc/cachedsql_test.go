@@ -33,13 +33,11 @@ func init() {
 
 func TestCachedConn_GetCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 	var value string
-	err = c.GetCache("any", &value)
+	err := c.GetCache("any", &value)
 	assert.Equal(t, ErrNotFound, err)
 	r.Set("any", `"value"`)
 	err = c.GetCache("any", &value)
@@ -49,15 +47,13 @@ func TestCachedConn_GetCache(t *testing.T) {
 
 func TestStat(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 10; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			*v.(*string) = "zero"
 			return nil
 		})
@@ -72,9 +68,7 @@ func TestStat(t *testing.T) {
 
 func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewConn(dummySqlConn{}, cache.CacheConf{
 		{
@@ -87,7 +81,7 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 	}, cache.WithExpiry(time.Second*10))
 
 	var str string
-	err = c.QueryRowIndex(&str, "index", func(s any) string {
+	err := c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
 	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		*v.(*string) = "zero"
@@ -121,16 +115,14 @@ func TestCachedConn_QueryRowIndex_NoCache(t *testing.T) {
 
 func TestCachedConn_QueryRowIndex_HasCache(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 		cache.WithNotFoundExpiry(time.Second))
 
 	var str string
 	r.Set("index", `"primary"`)
-	err = c.QueryRowIndex(&str, "index", func(s any) string {
+	err := c.QueryRowIndex(&str, "index", func(s any) string {
 		return fmt.Sprintf("%s/1234", s)
 	}, func(conn sqlx.SqlConn, v any) (any, error) {
 		assert.Fail(t, "should not go here")
@@ -211,16 +203,14 @@ func TestCachedConn_QueryRowIndex_HasCache_IntPrimary(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			resetStats()
-			r, clean, err := redistest.CreateRedis()
-			assert.Nil(t, err)
-			defer clean()
+			r := redistest.CreateRedis(t)
 
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 				cache.WithNotFoundExpiry(time.Second))
 
 			var str string
 			r.Set("index", test.primaryCache)
-			err = c.QueryRowIndex(&str, "index", func(s any) string {
+			err := c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%v/1234", s)
 			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				assert.Fail(t, "should not go here")
@@ -251,16 +241,14 @@ func TestCachedConn_QueryRowIndex_HasWrongCache(t *testing.T) {
 	for k, v := range caches {
 		t.Run(k+"/"+v, func(t *testing.T) {
 			resetStats()
-			r, clean, err := redistest.CreateRedis()
-			assert.Nil(t, err)
-			defer clean()
+			r := redistest.CreateRedis(t)
 
 			c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10),
 				cache.WithNotFoundExpiry(time.Second))
 
 			var str string
 			r.Set(k, v)
-			err = c.QueryRowIndex(&str, "index", func(s any) string {
+			err := c.QueryRowIndex(&str, "index", func(s any) string {
 				return fmt.Sprintf("%s/1234", s)
 			}, func(conn sqlx.SqlConn, v any) (any, error) {
 				*v.(*string) = "xin"
@@ -306,15 +294,13 @@ func TestStatCacheFails(t *testing.T) {
 
 func TestStatDbFails(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
 	for i := 0; i < 20; i++ {
 		var str string
-		err = c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
+		err := c.QueryRow(&str, "name", func(conn sqlx.SqlConn, v any) error {
 			return errors.New("db failed")
 		})
 		assert.NotNil(t, err)
@@ -327,9 +313,7 @@ func TestStatDbFails(t *testing.T) {
 
 func TestStatFromMemory(t *testing.T) {
 	resetStats()
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	c := NewNodeConn(dummySqlConn{}, r, cache.WithExpiry(time.Second*10))
 
@@ -385,9 +369,7 @@ func TestStatFromMemory(t *testing.T) {
 }
 
 func TestCachedConnQueryRow(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -397,7 +379,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 	var user string
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
+	err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -413,9 +395,7 @@ func TestCachedConnQueryRow(t *testing.T) {
 }
 
 func TestCachedConnQueryRowFromCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -426,7 +406,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 	var ran bool
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	assert.Nil(t, c.SetCache(key, value))
-	err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
+	err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 		ran = true
 		user = value
 		return nil
@@ -442,9 +422,7 @@ func TestCachedConnQueryRowFromCache(t *testing.T) {
 }
 
 func TestQueryRowNotFound(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const key = "user"
 	var conn trackedConn
@@ -452,7 +430,7 @@ func TestQueryRowNotFound(t *testing.T) {
 	var ran int
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
 	for i := 0; i < 20; i++ {
-		err = c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
+		err := c.QueryRow(&user, key, func(conn sqlx.SqlConn, v any) error {
 			ran++
 			return sql.ErrNoRows
 		})
@@ -462,13 +440,11 @@ func TestQueryRowNotFound(t *testing.T) {
 }
 
 func TestCachedConnExec(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
-	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	_, err := c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
 }
@@ -514,26 +490,22 @@ func TestCachedConnExecDropCacheFailed(t *testing.T) {
 }
 
 func TestCachedConnQueryRows(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
 	var users []string
-	err = c.QueryRowsNoCache(&users, "select user from user_table where id='kevin'")
+	err := c.QueryRowsNoCache(&users, "select user from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.queryRowsValue)
 }
 
 func TestCachedConnTransact(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*10))
-	err = c.Transact(func(session sqlx.Session) error {
+	err := c.Transact(func(session sqlx.Session) error {
 		return nil
 	})
 	assert.Nil(t, err)
@@ -541,9 +513,7 @@ func TestCachedConnTransact(t *testing.T) {
 }
 
 func TestQueryRowNoCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	const (
 		key   = "user"
@@ -557,20 +527,18 @@ func TestQueryRowNoCache(t *testing.T) {
 		return nil
 	}}
 	c := NewNodeConn(&conn, r, cache.WithExpiry(time.Second*30))
-	err = c.QueryRowNoCache(&user, key)
+	err := c.QueryRowNoCache(&user, key)
 	assert.Nil(t, err)
 	assert.Equal(t, value, user)
 	assert.True(t, ran)
 }
 
 func TestNewConnWithCache(t *testing.T) {
-	r, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	r := redistest.CreateRedis(t)
 
 	var conn trackedConn
 	c := NewConnWithCache(&conn, cache.NewNode(r, singleFlights, stats, sql.ErrNoRows))
-	_, err = c.ExecNoCache("delete from user_table where id='kevin'")
+	_, err := c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
 }

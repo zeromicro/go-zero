@@ -21,9 +21,11 @@ func NewGenerator(style string, verbose bool) *Generator {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	log := console.NewColorConsole(verbose)
+
+	colorLogger := console.NewColorConsole(verbose)
+
 	return &Generator{
-		log:     log,
+		log:     colorLogger,
 		cfg:     cfg,
 		verbose: verbose,
 	}
