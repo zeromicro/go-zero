@@ -157,7 +157,7 @@ func TestUnmarshalWithoutTagNameWithSingleToMultiple(t *testing.T) {
 		}
 
 		var in inner
-		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToSlice())
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToMultiple())
 		err := unmarshaler.Unmarshal(m, &in)
 		if assert.NoError(t, err) {
 			assert.Equal(t, []string{"go"}, in.FirstName)
@@ -179,7 +179,7 @@ func TestUnmarshalWithoutTagNameWithSingleToMultiple(t *testing.T) {
 		}
 
 		var in inner
-		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToSlice())
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToMultiple())
 		err := unmarshaler.Unmarshal(m, &in)
 		if assert.Error(t, err) {
 			assert.Equal(t, []string{"go"}, in.FirstName)

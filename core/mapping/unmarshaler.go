@@ -934,7 +934,7 @@ func WithDefault() UnmarshalOption {
 	}
 }
 
-func WithSingleToSlice() UnmarshalOption {
+func WithSingleToMultiple() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.singleToMultiple = true
 	}
