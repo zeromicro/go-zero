@@ -124,7 +124,7 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), ctx.GoOutput, ctx.GrpcOutput)
 	ctx.Ent = VarBoolEnt
 
-	if VarStringModelName != "" {
+	if VarStringModuleName != "" {
 		ctx.ModuleName = VarStringModuleName
 	} else {
 		ctx.ModuleName = rpcname
