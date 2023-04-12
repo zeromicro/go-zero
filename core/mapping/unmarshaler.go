@@ -202,7 +202,7 @@ func (u *Unmarshaler) trySliceFromString(v string) ([]any, error) {
 
 	if u.opts.singleToMultiple {
 		vv := strings.TrimSpace(v)
-		if len(vv) > 2 && vv[0] == '[' && vv[len(vv)-1] == ']' {
+		if len(vv) >= 2 && vv[0] == '[' && vv[len(vv)-1] == ']' {
 			if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
 				return nil, err
 			}
