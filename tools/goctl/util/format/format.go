@@ -100,7 +100,7 @@ func transferTo(in string, style style) string {
 	case lower:
 		return strings.ToLower(in)
 	case title:
-		return strings.Title(in)
+		return util.Title(in)
 	default:
 		return in
 	}
@@ -148,7 +148,7 @@ func getStyle(flag string) (style, error) {
 		return lower, nil
 	case strings.ToUpper(compare):
 		return upper, nil
-	case strings.Title(compare):
+	case util.Title(compare):
 		return title, nil
 	default:
 		return unknown, fmt.Errorf("unexpected format: %s", flag)

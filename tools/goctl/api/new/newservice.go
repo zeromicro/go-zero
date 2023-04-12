@@ -78,7 +78,7 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 	t := template.Must(template.New("template").Parse(text))
 	if err := t.Execute(fp, map[string]string{
 		"name":    dirName,
-		"handler": strings.Title(dirName),
+		"handler": util.Title(dirName),
 	}); err != nil {
 		return err
 	}

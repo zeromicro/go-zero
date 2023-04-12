@@ -37,7 +37,7 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 	pkgName := handlerPath[strings.LastIndex(handlerPath, "/")+1:]
 	logicName := defaultLogicPackage
 	if handlerPath != handlerDir {
-		handler = strings.Title(handler)
+		handler = util.Title(handler)
 		logicName = pkgName
 	}
 
@@ -47,8 +47,8 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		HandlerName:    handler,
 		RequestType:    util.Title(route.RequestTypeName()),
 		LogicName:      logicName,
-		LogicType:      strings.Title(getLogicName(route)),
-		Call:           strings.Title(strings.TrimSuffix(handler, "Handler")),
+		LogicType:      util.Title(getLogicName(route)),
+		Call:           util.Title(strings.TrimSuffix(handler, "Handler")),
 		HasResp:        len(route.ResponseTypeName()) > 0,
 		HasRequest:     len(route.RequestTypeName()) > 0,
 	})

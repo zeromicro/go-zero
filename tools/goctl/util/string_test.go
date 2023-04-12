@@ -1,7 +1,6 @@
 package util
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -69,6 +68,6 @@ func TestSafeString(t *testing.T) {
 func TestEscapeGoKeyword(t *testing.T) {
 	for k := range goKeyword {
 		assert.Equal(t, goKeyword[k], EscapeGolangKeyword(k))
-		assert.False(t, isGolangKeyword(strings.Title(k)))
+		assert.False(t, isGolangKeyword(Title(k)))
 	}
 }

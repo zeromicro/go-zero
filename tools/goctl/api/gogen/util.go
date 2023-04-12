@@ -63,9 +63,9 @@ func writeProperty(writer io.Writer, name, tag, comment string, tp spec.Type, in
 	if len(comment) > 0 {
 		comment = strings.TrimPrefix(comment, "//")
 		comment = "//" + comment
-		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", strings.Title(name), tp.Name(), tag, comment)
+		_, err = fmt.Fprintf(writer, "%s %s %s %s\n", util.Title(name), tp.Name(), tag, comment)
 	} else {
-		_, err = fmt.Fprintf(writer, "%s %s %s\n", strings.Title(name), tp.Name(), tag)
+		_, err = fmt.Fprintf(writer, "%s %s %s\n", util.Title(name), tp.Name(), tag)
 	}
 
 	return err
@@ -144,7 +144,7 @@ func golangExpr(ty spec.Type, pkg ...string) string {
 			return v.RawName
 		}
 
-		return fmt.Sprintf("%s.%s", pkg[0], strings.Title(v.RawName))
+		return fmt.Sprintf("%s.%s", pkg[0], util.Title(v.RawName))
 	case spec.ArrayType:
 		if len(pkg) > 1 {
 			panic("package cannot be more than 1")

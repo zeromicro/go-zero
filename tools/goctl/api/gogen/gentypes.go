@@ -77,7 +77,7 @@ func writeType(writer io.Writer, tp spec.Type) error {
 	fmt.Fprintf(writer, "type %s struct {\n", util.Title(tp.Name()))
 	for _, member := range structType.Members {
 		if member.IsInline {
-			if _, err := fmt.Fprintf(writer, "%s\n", strings.Title(member.Type.Name())); err != nil {
+			if _, err := fmt.Fprintf(writer, "%s\n", util.Title(member.Type.Name())); err != nil {
 				return err
 			}
 

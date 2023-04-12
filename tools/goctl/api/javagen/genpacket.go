@@ -29,7 +29,7 @@ func genPacket(dir, packetName string, api *spec.ApiSpec) error {
 func createWith(dir string, api *spec.ApiSpec, route spec.Route, packetName string) error {
 	packet := route.Handler
 	packet = strings.Replace(packet, "Handler", "Packet", 1)
-	packet = strings.Title(packet)
+	packet = util.Title(packet)
 	if !strings.HasSuffix(packet, "Packet") {
 		packet += "Packet"
 	}
@@ -206,9 +206,9 @@ func formString(route spec.Route) string {
 			if item.Type.Name() == "bool" {
 				name = strings.TrimPrefix(name, "Is")
 				name = strings.TrimPrefix(name, "is")
-				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.is%s()`, strcat, name, strings.Title(name)))
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.is%s()`, strcat, name, util.Title(name)))
 			} else {
-				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.get%s()`, strcat, name, strings.Title(name)))
+				keyValues = append(keyValues, fmt.Sprintf(`"%s%s=" + request.get%s()`, strcat, name, util.Title(name)))
 			}
 		}
 		if len(keyValues) > 0 {
