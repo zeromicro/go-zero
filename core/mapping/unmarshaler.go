@@ -47,9 +47,10 @@ type (
 	UnmarshalOption func(*unmarshalOptions)
 
 	unmarshalOptions struct {
-		fillDefault  bool
-		fromString   bool
-		canonicalKey func(key string) string
+		fillDefault      bool
+		fromString       bool
+		canonicalKey     func(key string) string
+		singleToMultiple bool
 	}
 )
 
@@ -196,16 +197,40 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 	return nil
 }
 
+func (u *Unmarshaler) trySliceFromString(v string) ([]any, error) {
+	var slice []any
+
+	if u.opts.singleToMultiple {
+		vv := strings.TrimSpace(v)
+		if len(vv) > 2 && vv[0] == '[' && vv[len(vv)-1] == ']' {
+			if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
+				return nil, err
+			}
+			return slice, nil
+		}
+
+		return []any{v}, nil
+	}
+
+	if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
+		return nil, err
+	}
+
+	return slice, nil
+
+}
+
 func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
-	mapValue any) error {
+	mapValue any) (err error) {
 	var slice []any
 	switch v := mapValue.(type) {
 	case fmt.Stringer:
-		if err := jsonx.UnmarshalFromString(v.String(), &slice); err != nil {
+		if slice, err = u.trySliceFromString(v.String()); err != nil {
 			return err
 		}
+
 	case string:
-		if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
+		if slice, err = u.trySliceFromString(v); err != nil {
 			return err
 		}
 	default:
@@ -906,6 +931,12 @@ func WithCanonicalKeyFunc(f func(string) string) UnmarshalOption {
 func WithDefault() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.fillDefault = true
+	}
+}
+
+func WithSingleToSlice() UnmarshalOption {
+	return func(opt *unmarshalOptions) {
+		opt.singleToMultiple = true
 	}
 }
 

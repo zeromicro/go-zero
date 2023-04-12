@@ -10,7 +10,7 @@ import (
 const headerKey = "header"
 
 var headerUnmarshaler = mapping.NewUnmarshaler(headerKey, mapping.WithStringValues(),
-	mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey))
+	mapping.WithCanonicalKeyFunc(textproto.CanonicalMIMEHeaderKey), mapping.WithSingleToSlice())
 
 // ParseHeaders parses the headers request.
 func ParseHeaders(header http.Header, v any) error {

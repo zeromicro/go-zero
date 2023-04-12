@@ -39,6 +39,36 @@ func TestParseForm_Error(t *testing.T) {
 	assert.NotNil(t, ParseForm(r, &v))
 }
 
+func TestParseFromSlice(t *testing.T) {
+	t.Run("multiple", func(t *testing.T) {
+		var v struct {
+			Name []string  `form:"name"`
+			F64  []float64 `form:"f64"`
+			F32  []float32 `form:"f32"`
+			Int  []int     `form:"int"`
+		}
+
+		r, err := http.NewRequest(http.MethodGet, `/a?name=a&name=b&f64=1.2&f64=1.4&f32=2.2&f32=2.4&int=1&int=2`, http.NoBody)
+		assert.Nil(t, err)
+		err = ParseForm(r, &v)
+		assert.NoError(t, err)
+	})
+
+	t.Run("single", func(t *testing.T) {
+		var v struct {
+			Name []string  `form:"name"`
+			F64  []float64 `form:"f64"`
+			F32  []float32 `form:"f32"`
+			Int  []int     `form:"int"`
+		}
+
+		r, err := http.NewRequest(http.MethodGet, `/a?name=a&f64=1.2&f32=2.2&int=1`, http.NoBody)
+		assert.Nil(t, err)
+		err = ParseForm(r, &v)
+		assert.NoError(t, err)
+	})
+}
+
 func TestParseHeader(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -284,10 +314,12 @@ func TestParseHeaders(t *testing.T) {
 		Accept  string `header:"Accept,optional"`
 	}
 	v := struct {
-		Name          string   `header:"name,optional"`
-		Percent       string   `header:"percent"`
-		Addrs         []string `header:"addrs"`
-		XForwardedFor string   `header:"X-Forwarded-For,optional"`
+		Name          string    `header:"name,optional"`
+		Percent       string    `header:"percent"`
+		Addrs         []string  `header:"addrs"`
+		Tag           []string  `header:"tag"`
+		F64           []float64 `header:"f64"`
+		XForwardedFor string    `header:"X-Forwarded-For,optional"`
 		AnonymousStruct
 	}{}
 	request, err := http.NewRequest("POST", "/", http.NoBody)
@@ -298,6 +330,8 @@ func TestParseHeaders(t *testing.T) {
 	request.Header.Set("percent", "1")
 	request.Header.Add("addrs", "addr1")
 	request.Header.Add("addrs", "addr2")
+	request.Header.Add("tag", "tag1")
+	request.Header.Add("f64", "1.2")
 	request.Header.Add("X-Forwarded-For", "10.0.10.11")
 	request.Header.Add("x-real-ip", "10.0.11.10")
 	request.Header.Add("Accept", header.JsonContentType)
@@ -308,6 +342,8 @@ func TestParseHeaders(t *testing.T) {
 	assert.Equal(t, "chenquan", v.Name)
 	assert.Equal(t, "1", v.Percent)
 	assert.Equal(t, []string{"addr1", "addr2"}, v.Addrs)
+	assert.Equal(t, []string{"tag1"}, v.Tag)
+	assert.Equal(t, []float64{1.2}, v.F64)
 	assert.Equal(t, "10.0.10.11", v.XForwardedFor)
 	assert.Equal(t, "10.0.11.10", v.XRealIP)
 	assert.Equal(t, header.JsonContentType, v.Accept)

@@ -3996,7 +3996,8 @@ func TestUnmarshalJsonReaderArrayInt(t *testing.T) {
 	}
 	payload := `{"id": 123}`
 	reader := strings.NewReader(payload)
-	assert.Error(t, UnmarshalJsonReader(reader, &res))
+	err := UnmarshalJsonReader(reader, &res)
+	assert.Error(t, err)
 }
 
 func TestUnmarshalJsonReaderArrayString(t *testing.T) {
