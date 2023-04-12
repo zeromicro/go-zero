@@ -23,3 +23,17 @@ func TestGetRemoteAddrNoHeader(t *testing.T) {
 
 	assert.True(t, len(GetRemoteAddr(r)) == 0)
 }
+
+func Test_filterFormValues(t *testing.T) {
+	values, valid := filterFormValues([]string{"1", "", "2"})
+	assert.Equal(t, []string{"1", "2"}, values)
+	assert.True(t, valid)
+
+	values, valid = filterFormValues([]string{"1", ""})
+	assert.Equal(t, "1", values)
+	assert.True(t, valid)
+
+	values, valid = filterFormValues([]string{""})
+	assert.Equal(t, nil, values)
+	assert.False(t, valid)
+}
