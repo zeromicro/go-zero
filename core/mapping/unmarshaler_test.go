@@ -144,25 +144,49 @@ func TestUnmarshalWithoutTagNameWithCanonicalKeyOptionalDep(t *testing.T) {
 }
 
 func TestUnmarshalWithoutTagNameWithSingleToMultiple(t *testing.T) {
-	type inner struct {
-		FirstName []string `key:"firstName"`
-		LastName  []string `key:"lastName"`
-		Tag       []string `key:"tag"`
-	}
-	m := map[string]any{
-		"firstName": []string{"go"},
-		"lastName":  "zero",
-		"tag":       `["a","b"]`,
-	}
+	t.Run("no error", func(t *testing.T) {
+		type inner struct {
+			FirstName []string `key:"firstName"`
+			LastName  []string `key:"lastName"`
+			Tag       []string `key:"tag"`
+		}
+		m := map[string]any{
+			"firstName": []string{"go"},
+			"lastName":  "zero",
+			"tag":       `["a","b"]`,
+		}
 
-	var in inner
-	unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToSlice())
-	err := unmarshaler.Unmarshal(m, &in)
-	if assert.NoError(t, err) {
-		assert.Equal(t, []string{"go"}, in.FirstName)
-		assert.Equal(t, []string{"zero"}, in.LastName)
-		assert.Equal(t, []string{"a", "b"}, in.Tag)
-	}
+		var in inner
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToSlice())
+		err := unmarshaler.Unmarshal(m, &in)
+		if assert.NoError(t, err) {
+			assert.Equal(t, []string{"go"}, in.FirstName)
+			assert.Equal(t, []string{"zero"}, in.LastName)
+			assert.Equal(t, []string{"a", "b"}, in.Tag)
+		}
+	})
+
+	t.Run("error", func(t *testing.T) {
+		type inner struct {
+			FirstName []string `key:"firstName"`
+			LastName  []string `key:"lastName"`
+			Tag       []string `key:"tag"`
+		}
+		m := map[string]any{
+			"firstName": []string{"go"},
+			"lastName":  "zero",
+			"tag":       `["a",]`,
+		}
+
+		var in inner
+		unmarshaler := NewUnmarshaler(defaultKeyName, WithSingleToSlice())
+		err := unmarshaler.Unmarshal(m, &in)
+		if assert.Error(t, err) {
+			assert.Equal(t, []string{"go"}, in.FirstName)
+			assert.Equal(t, []string{"zero"}, in.LastName)
+		}
+	})
+
 }
 
 func TestUnmarshalBool(t *testing.T) {
