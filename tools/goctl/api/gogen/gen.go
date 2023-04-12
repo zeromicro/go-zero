@@ -165,7 +165,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	logx.Must(genEtc(dir, cfg, api, g))
-	logx.Must(genConfig(dir, cfg, api, g.UseCasbin))
+	logx.Must(genConfig(dir, cfg, api, g))
 	logx.Must(genMain(dir, rootPkg, cfg, api, g))
 	logx.Must(genServiceContext(dir, rootPkg, cfg, api, g))
 	logx.Must(genTypes(dir, cfg, api))

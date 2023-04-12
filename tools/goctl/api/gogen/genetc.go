@@ -40,6 +40,7 @@ func genEtc(dir string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) er
 			"port":        port,
 			"useCasbin":   g.UseCasbin,
 			"useI18n":     g.UseI18n,
+			"useEnt":      g.UseEnt,
 		},
 	})
 }

@@ -28,7 +28,7 @@ const (
 //go:embed config.tpl
 var configTemplate string
 
-func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec, useCasbin bool) error {
+func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) error {
 	filename, err := format.FileNamingFormat(cfg.NamingFormat, configFile)
 	if err != nil {
 		return err
@@ -56,7 +56,8 @@ func genConfig(dir string, cfg *config.Config, api *spec.ApiSpec, useCasbin bool
 		builtinTemplate: configTemplate,
 		data: map[string]any{
 			"jwtTrans":  strings.Join(jwtTransList, "\n"),
-			"useCasbin": useCasbin,
+			"useCasbin": g.UseCasbin,
+			"useEnt":    g.UseEnt,
 		},
 	})
 }

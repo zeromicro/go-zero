@@ -134,13 +134,21 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 		return err
 	}
 
+	var moduleName string
+
+	if VarModuleName != "" {
+		moduleName = VarModuleName
+	} else {
+		moduleName = dirName
+	}
+
 	genCtx := &gogen.GenContext{
 		GoZeroVersion: VarStringGoZeroVersion,
 		ToolVersion:   VarStringToolVersion,
 		UseCasbin:     VarBoolUseCasbin,
 		UseI18n:       VarBoolUseI18n,
 		TransErr:      VarBoolErrorTranslate,
-		ModuleName:    VarModuleName,
+		ModuleName:    moduleName,
 		Port:          VarIntServicePort,
 		UseGitlab:     VarBoolGitlab,
 		UseMakefile:   true,

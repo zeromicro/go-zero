@@ -49,4 +49,18 @@ CasbinConf:
     e = some(where (p.eft == allow))
     [matchers]
     m = r.sub == p.sub && keyMatch2(r.obj,p.obj) && r.act == p.act
+
+{{else}}
+{{if .useEnt}}
+DatabaseConf:
+  Type: mysql
+  Host: 127.0.0.1
+  Port: 3306
+  DBName: simple_admin
+  Username: # set your username
+  Password: # set your password
+  MaxOpenConn: 100
+  SSLMode: disable
+  CacheTime: 5
+{{end}}
 {{end}}
