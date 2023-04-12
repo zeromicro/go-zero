@@ -198,8 +198,6 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 }
 
 func (u *Unmarshaler) trySliceFromString(v string) ([]any, error) {
-	var slice []any
-
 	if u.opts.singleToMultiple {
 		vv := strings.TrimSpace(v)
 		isArray := len(vv) >= 2 && vv[0] == '[' && vv[len(vv)-1] == ']'
@@ -208,12 +206,12 @@ func (u *Unmarshaler) trySliceFromString(v string) ([]any, error) {
 		}
 	}
 
+	var slice []any
 	if err := jsonx.UnmarshalFromString(v, &slice); err != nil {
 		return nil, err
 	}
 
 	return slice, nil
-
 }
 
 func (u *Unmarshaler) fillSliceFromString(fieldType reflect.Type, value reflect.Value,
