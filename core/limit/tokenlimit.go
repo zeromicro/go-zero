@@ -15,10 +15,15 @@ import (
 )
 
 const (
-	// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
-	// KEYS[1] as tokens_key
-	// KEYS[2] as timestamp_key
-	script = `local rate = tonumber(ARGV[1])
+	tokenFormat     = "{%s}.tokens"
+	timestampFormat = "{%s}.ts"
+	pingInterval    = time.Millisecond * 100
+)
+
+// to be compatible with aliyun redis, we cannot use `local key = KEYS[1]` to reuse the key
+// KEYS[1] as tokens_key
+// KEYS[2] as timestamp_key
+var script = redis.NewScript(`local rate = tonumber(ARGV[1])
 local capacity = tonumber(ARGV[2])
 local now = tonumber(ARGV[3])
 local requested = tonumber(ARGV[4])
@@ -45,11 +50,7 @@ end
 redis.call("setex", KEYS[1], ttl, new_tokens)
 redis.call("setex", KEYS[2], ttl, now)
 
-return allowed`
-	tokenFormat     = "{%s}.tokens"
-	timestampFormat = "{%s}.ts"
-	pingInterval    = time.Millisecond * 100
-)
+return allowed`)
 
 // A TokenLimiter controls how frequently events are allowed to happen with in one second.
 type TokenLimiter struct {
@@ -110,7 +111,7 @@ func (lim *TokenLimiter) reserveN(ctx context.Context, now time.Time, n int) boo
 		return lim.rescueLimiter.AllowN(now, n)
 	}
 
-	resp, err := lim.store.EvalCtx(ctx,
+	resp, err := lim.store.ScriptRunCtx(ctx,
 		script,
 		[]string{
 			lim.tokenKey,

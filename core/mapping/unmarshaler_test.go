@@ -4331,6 +4331,97 @@ func TestUnmarshalOnlyPublicVariables(t *testing.T) {
 	}
 }
 
+func TestFillDefaultUnmarshal(t *testing.T) {
+	fillDefaultUnmarshal := NewUnmarshaler(jsonTagKey, WithDefault())
+	t.Run("nil", func(t *testing.T) {
+		type St struct{}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, St{})
+		assert.Error(t, err)
+	})
+
+	t.Run("not nil", func(t *testing.T) {
+		type St struct{}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &St{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("default", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st St
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.NoError(t, err)
+		assert.Equal(t, "a", st.A)
+	})
+
+	t.Run("env", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+			C string `json:",env=TEST_C"`
+		}
+		t.Setenv("TEST_C", "c")
+
+		var st St
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.NoError(t, err)
+		assert.Equal(t, "a", st.A)
+		assert.Equal(t, "c", st.C)
+	})
+
+	t.Run("has value", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		var st = St{
+			A: "b",
+		}
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
+		assert.Error(t, err)
+	})
+
+	t.Run("handling struct", func(t *testing.T) {
+		type St struct {
+			A string `json:",default=a"`
+			B string
+		}
+		type St2 struct {
+			St
+			St1   St
+			St3   *St
+			C     string `json:",default=c"`
+			D     string
+			Child *St2
+		}
+		var st2 St2
+		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st2)
+		assert.NoError(t, err)
+		assert.Equal(t, "a", st2.St.A)
+		assert.Equal(t, "a", st2.St1.A)
+		assert.Nil(t, st2.St3)
+		assert.Equal(t, "c", st2.C)
+		assert.Nil(t, st2.Child)
+	})
+}
+
+func Test_UnmarshalMap(t *testing.T) {
+	type Customer struct {
+		Names map[int]string `key:"names"`
+	}
+
+	input := map[string]any{
+		"names": map[string]any{
+			"19": "Tom",
+		},
+	}
+
+	var customer Customer
+	assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
@@ -4429,72 +4520,4 @@ func BenchmarkUnmarshal(b *testing.B) {
 		var an anonymous
 		UnmarshalKey(data, &an)
 	}
-}
-
-func TestFillDefaultUnmarshal(t *testing.T) {
-	fillDefaultUnmarshal := NewUnmarshaler(jsonTagKey, WithDefault())
-	t.Run("nil", func(t *testing.T) {
-		type St struct{}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, St{})
-		assert.Error(t, err)
-	})
-
-	t.Run("not nil", func(t *testing.T) {
-		type St struct{}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &St{})
-		assert.NoError(t, err)
-	})
-
-	t.Run("default", func(t *testing.T) {
-		type St struct {
-			A string `json:",default=a"`
-			B string
-		}
-		var st St
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
-		assert.NoError(t, err)
-		assert.Equal(t, st.A, "a")
-	})
-
-	t.Run("env", func(t *testing.T) {
-		type St struct {
-			A string `json:",default=a"`
-			B string
-			C string `json:",env=TEST_C"`
-		}
-		t.Setenv("TEST_C", "c")
-
-		var st St
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
-		assert.NoError(t, err)
-		assert.Equal(t, st.A, "a")
-		assert.Equal(t, st.C, "c")
-	})
-
-	t.Run("has value", func(t *testing.T) {
-		type St struct {
-			A string `json:",default=a"`
-			B string
-		}
-		var st = St{
-			A: "b",
-		}
-		err := fillDefaultUnmarshal.Unmarshal(map[string]any{}, &st)
-		assert.Error(t, err)
-	})
-}
-
-func Test_UnmarshalMap(t *testing.T) {
-	type Customer struct {
-		Names map[int]string `key:"names"`
-	}
-
-	input := map[string]any{
-		"names": map[string]any{
-			"19": "Tom",
-		},
-	}
-
-	var customer Customer
-	assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
 }

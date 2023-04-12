@@ -34,10 +34,8 @@ func init() {
 
 func TestCacheNode_DelCache(t *testing.T) {
 	t.Run("del cache", func(t *testing.T) {
-		store, clean, err := redistest.CreateRedis()
-		assert.Nil(t, err)
+		store := redistest.CreateRedis(t)
 		store.Type = redis.ClusterType
-		defer clean()
 
 		cn := cacheNode{
 			rds:            store,
@@ -84,9 +82,7 @@ func TestCacheNode_DelCache(t *testing.T) {
 }
 
 func TestCacheNode_DelCacheWithErrors(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 	store.Type = redis.ClusterType
 
 	cn := cacheNode{
@@ -122,9 +118,7 @@ func TestCacheNode_InvalidCache(t *testing.T) {
 }
 
 func TestCacheNode_SetWithExpire(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
@@ -139,14 +133,12 @@ func TestCacheNode_SetWithExpire(t *testing.T) {
 }
 
 func TestCacheNode_Take(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := NewNode(store, syncx.NewSingleFlight(), NewStat("any"), errTestNotFound,
 		WithExpiry(time.Second), WithNotFoundExpiry(time.Second))
 	var str string
-	err = cn.Take(&str, "any", func(v any) error {
+	err := cn.Take(&str, "any", func(v any) error {
 		*v.(*string) = "value"
 		return nil
 	})
@@ -174,9 +166,7 @@ func TestCacheNode_TakeBadRedis(t *testing.T) {
 }
 
 func TestCacheNode_TakeNotFound(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
@@ -188,7 +178,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 		errNotFound:    errTestNotFound,
 	}
 	var str string
-	err = cn.Take(&str, "any", func(v any) error {
+	err := cn.Take(&str, "any", func(v any) error {
 		return errTestNotFound
 	})
 	assert.True(t, cn.IsNotFound(err))
@@ -213,9 +203,7 @@ func TestCacheNode_TakeNotFound(t *testing.T) {
 }
 
 func TestCacheNode_TakeNotFoundButChangedByOthers(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.NoError(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
@@ -228,7 +216,7 @@ func TestCacheNode_TakeNotFoundButChangedByOthers(t *testing.T) {
 	}
 
 	var str string
-	err = cn.Take(&str, "any", func(v any) error {
+	err := cn.Take(&str, "any", func(v any) error {
 		store.Set("any", "foo")
 		return errTestNotFound
 	})
@@ -242,9 +230,7 @@ func TestCacheNode_TakeNotFoundButChangedByOthers(t *testing.T) {
 }
 
 func TestCacheNode_TakeWithExpire(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
@@ -256,7 +242,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 		errNotFound:    errors.New("any"),
 	}
 	var str string
-	err = cn.TakeWithExpire(&str, "any", func(v any, expire time.Duration) error {
+	err := cn.TakeWithExpire(&str, "any", func(v any, expire time.Duration) error {
 		*v.(*string) = "value"
 		return nil
 	})
@@ -269,9 +255,7 @@ func TestCacheNode_TakeWithExpire(t *testing.T) {
 }
 
 func TestCacheNode_String(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
@@ -286,9 +270,7 @@ func TestCacheNode_String(t *testing.T) {
 }
 
 func TestCacheValueWithBigInt(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	cn := cacheNode{
 		rds:            store,
