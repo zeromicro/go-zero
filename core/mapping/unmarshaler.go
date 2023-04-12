@@ -934,6 +934,7 @@ func WithDefault() UnmarshalOption {
 	}
 }
 
+// WithSingleToMultiple customizes an Unmarshaler with turn a single data into multiple.
 func WithSingleToMultiple() UnmarshalOption {
 	return func(opt *unmarshalOptions) {
 		opt.singleToMultiple = true
