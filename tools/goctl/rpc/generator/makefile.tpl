@@ -34,7 +34,13 @@ publish-docker: # Publish docker image | 发布 docker 镜像
 .PHONY: gen-rpc
 gen-rpc: # Generate RPC files from proto | 生成 RPC 的代码 | 删除所有json tag omitempty标记
 	goctls rpc protoc ./$(PROJECT).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
-	sed -i "" 's/,omitempty//g' ./types/$(PROJECT)/*.pb.go # 删除 omitempty 标记
+ifeq ($(shell uname -s),Darwin)
+    # platform is macOS
+	sed -i "" 's/,omitempty//g' ./types/$(PROJECT)/*.pb.go
+else
+	# platform is Linux | windows
+	sed -i 's/,omitempty//g' /types/$(PROJECT)/*.pb.go
+endif
 	@echo "Generate RPC codes successfully"
 
 .PHONY: gen-ent
