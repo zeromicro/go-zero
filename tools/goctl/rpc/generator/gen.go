@@ -239,6 +239,11 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 		if err != nil {
 			return err
 		}
+
+		_, err = execx.Run("go mod tidy", abs)
+		if err != nil {
+			return err
+		}
 	}
 
 	console.NewColorConsole().MarkDone()

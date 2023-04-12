@@ -237,6 +237,11 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		if err != nil {
 			return err
 		}
+
+		_, err = execx.Run("go mod tidy", dir)
+		if err != nil {
+			return err
+		}
 	}
 
 	if g.GoZeroVersion != "" && g.ToolVersion != "" {
