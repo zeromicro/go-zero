@@ -12,6 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/generator/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -103,7 +104,8 @@ func RPCNew(_ *cobra.Command, args []string) error {
 		pathx.RegisterGoctlHome(home)
 	}
 
-	protoName := rpcname + ".proto"
+	protoName, err := format.FileNamingFormat(style, rpcname)
+	protoName += ".proto"
 	filename := filepath.Join(".", rpcname, protoName)
 	src, err := filepath.Abs(filename)
 	if err != nil {

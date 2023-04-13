@@ -17,11 +17,12 @@ package proto
 import (
 	"errors"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util/protox"
@@ -42,7 +43,7 @@ func MergeProto(p *ProtoContext) error {
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("fail to merge proto : %v", err)
+		return fmt.Errorf("failed to merge proto : %v", err)
 	}
 
 	if len(protoFiles) == 0 {

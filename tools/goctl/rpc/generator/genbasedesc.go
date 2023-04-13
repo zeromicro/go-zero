@@ -2,6 +2,7 @@ package generator
 
 import (
 	"path/filepath"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 
@@ -18,7 +19,7 @@ func (g *Generator) GenBaseDesc(ctx DirContext, _ parser.Proto, cfg *conf.Config
 	}
 
 	err := util.With("t").Parse(rpcTemplateText).SaveTo(map[string]string{
-		"package":     c.RpcName,
+		"package":     strings.ToLower(c.RpcName),
 		"serviceName": strcase.ToCamel(c.RpcName),
 	}, protoFilename, false)
 	return err

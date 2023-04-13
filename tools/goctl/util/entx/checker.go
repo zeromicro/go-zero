@@ -20,7 +20,8 @@ import (
 
 // IsTimeProperty returns true when the string contains time suffix
 func IsTimeProperty(prop string) bool {
-	if strings.HasSuffix(prop, "_at") || strings.HasSuffix(prop, "_time") {
+	if strings.HasSuffix(prop, "_at") || strings.HasSuffix(prop, "_time") ||
+		strings.HasSuffix(prop, "At") || strings.HasSuffix(prop, "Time") {
 		return true
 	}
 	return false
@@ -29,10 +30,13 @@ func IsTimeProperty(prop string) bool {
 // IsUpperProperty returns true when the string
 // contains Ent upper string such as uuid, api and id
 func IsUpperProperty(prop string) bool {
+	prop = strings.ToLower(prop)
+
 	if strings.Contains(prop, "uuid") || strings.Contains(prop, "api") ||
 		strings.Contains(prop, "id") || strings.Contains(prop, "url") {
 		return true
 	}
+
 	return false
 }
 

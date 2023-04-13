@@ -1,4 +1,15 @@
-PROJECT={{.serviceName}}
+# Custom configuration | 独立配置
+# Project name | 项目名称
+SERVICE={{.serviceName}}
+# Project name in specific style | 项目经过style格式化的名称
+SERVICE_STYLE={{.serviceNameStyle}}
+# Project name in lowercase | 项目名称全小写格式
+SERVICE_LOWER={{.serviceNameLower}}
+# Project name in snake format | 项目名称下划线格式
+SERVICE_SNAKE={{.serviceNameSnake}}
+# Project name in snake format | 项目名称短杠格式
+SERVICE_DASH={{.serviceNameDash}}
+
 GO ?= go
 GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
@@ -23,24 +34,24 @@ tools: # Install the necessary tools | 安装必要的工具
 
 .PHONY: docker
 docker: # Build the docker image | 构建 docker 镜像
-	docker build -f Dockerfile -t ${DOCKER_USERNAME}/$(PROJECT)-rpc:${VERSION} .
+	docker build -f Dockerfile -t ${DOCKER_USERNAME}/$(SERVICE_DASH)-rpc:${VERSION} .
 	@echo "Build docker successfully"
 
 .PHONY: publish-docker
 publish-docker: # Publish docker image | 发布 docker 镜像
 	echo "${DOCKER_PASSWORD}" | docker login --username ${DOCKER_USERNAME} --password-stdin https://${REPO}
-	docker push ${DOCKER_USERNAME}/$(PROJECT)-rpc:${VERSION}
+	docker push ${DOCKER_USERNAME}/$(SERVICE_DASH)-rpc:${VERSION}
 	@echo "Publish docker successfully"
 
 .PHONY: gen-rpc
 gen-rpc: # Generate RPC files from proto | 生成 RPC 的代码
-	goctls rpc protoc ./$(PROJECT).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
+	goctls rpc protoc ./$(SERVICE_SNAKE).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
 ifeq ($(shell uname -s), Darwin)
 	# platform is macOS
-	sed -i "" 's/,omitempty//g' ./types/$(PROJECT)/*.pb.go
+	sed -i "" 's/,omitempty//g' ./types/$(SERVICE_LOWER)/*.pb.go
 else
 	# platform is Linux | windows
-	sed -i 's/,omitempty//g' ./types/$(PROJECT)/*.pb.go
+	sed -i 's/,omitempty//g' ./types/$(SERVICE_LOWER)/*.pb.go
 endif
 	@echo "Generate RPC codes successfully"
 
@@ -51,22 +62,22 @@ gen-ent: # Generate Ent codes | 生成 Ent 的代码
 
 .PHONY: gen-rpc-ent-logic
 gen-rpc-ent-logic: # Generate logic code from Ent, need model and group params | 根据 Ent 生成逻辑代码, 需要设置 model 和 group
-	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name=$(PROJECT) --search_key_num=3 --output=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto --overwrite=true
+	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name=$(SERVICE) --search_key_num=3 --output=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto --overwrite=true
 	@echo "Generate logic codes from Ent successfully"
 
 .PHONY: build-win
 build-win: # Build project for Windows | 构建Windows下的可执行文件
-	env CGO_ENABLED=0 GOOS=windows go build -ldflags "$(LDFLAGS)" -o $(PROJECT).exe $(PROJECT).go
+	env CGO_ENABLED=0 GOOS=windows go build -ldflags "$(LDFLAGS)" -o $(SERVICE_STYLE).exe $(SERVICE_STYLE).go
 	@echo "Build project for Windows successfully"
 
 .PHONY: build-mac
 build-mac: # Build project for MacOS | 构建MacOS下的可执行文件
-	env CGO_ENABLED=0 GOOS=darwin go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
+	env CGO_ENABLED=0 GOOS=darwin go build -ldflags "$(LDFLAGS)" -o $(SERVICE_STYLE) $(SERVICE_STYLE).go
 	@echo "Build project for MacOS successfully"
 
 .PHONY: build-linux
 build-linux: # Build project for Linux | 构建Linux下的可执行文件
-	env CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -o $(PROJECT) $(PROJECT).go
+	env CGO_ENABLED=0 GOOS=linux go build -ldflags "$(LDFLAGS)" -o $(SERVICE_STYLE) $(SERVICE_STYLE).go
 	@echo "Build project for Linux successfully"
 
 .PHONY: help

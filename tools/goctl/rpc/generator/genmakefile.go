@@ -3,10 +3,14 @@ package generator
 import (
 	_ "embed"
 	"path/filepath"
+	"strings"
+
+	"github.com/iancoleman/strcase"
 
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -23,8 +27,19 @@ func (g *Generator) GenMakefile(ctx DirContext, _ parser.Proto, cfg *conf.Config
 		return err
 	}
 
+	serviceName := strcase.ToCamel(ctx.GetServiceName().Source())
+
+	styleName, err := format.FileNamingFormat(g.cfg.NamingFormat, ctx.GetServiceName().Source())
+	if err != nil {
+		return err
+	}
+
 	return util.With("makefile").Parse(text).SaveTo(map[string]any{
-		"serviceName": ctx.GetServiceName().Lower(),
-		"isEnt":       c.Ent,
+		"serviceName":      serviceName,
+		"serviceNameStyle": styleName,
+		"serviceNameLower": strings.ToLower(serviceName),
+		"serviceNameSnake": strcase.ToSnake(serviceName),
+		"serviceNameDash":  strings.ReplaceAll(ctx.GetServiceName().ToSnake(), "_", "-"),
+		"isEnt":            c.Ent,
 	}, fileName, false)
 }

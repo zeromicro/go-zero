@@ -8,11 +8,11 @@ import (
 // DefaultFormat defines a default naming style
 const DefaultFormat = "go_zero"
 
-// GoZeroVersion defines the default version of go zero for migrate
-const GoZeroVersion = "v1.5.1"
+// DefaultGoZeroVersion defines the default version of go zero for migrate
+const DefaultGoZeroVersion = "v1.5.1"
 
-// ToolVersion defines the default version of simple admin tools for migrate
-const ToolVersion = "v0.3.2"
+// DefaultToolVersion defines the default version of simple admin tools for migrate
+const DefaultToolVersion = "v0.3.2"
 
 // Config defines the file naming style
 type Config struct {
