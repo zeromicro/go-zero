@@ -19,13 +19,16 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/logrusorgru/aurora"
+
+	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
+	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
@@ -79,7 +82,7 @@ func GenEntLogic(g *GenEntLogicContext) error {
 }
 
 func genEntLogic(g *GenEntLogicContext) error {
-	console.NewColorConsole(true).Info("Generating...")
+	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
 
 	outputDir, err := filepath.Abs(g.Output)
 	if err != nil {

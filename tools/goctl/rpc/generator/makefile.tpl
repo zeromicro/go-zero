@@ -1,13 +1,13 @@
 # Custom configuration | 独立配置
-# Project name | 项目名称
+# Service name | 项目名称
 SERVICE={{.serviceName}}
-# Project name in specific style | 项目经过style格式化的名称
+# Service name in specific style | 项目经过style格式化的名称
 SERVICE_STYLE={{.serviceNameStyle}}
-# Project name in lowercase | 项目名称全小写格式
+# Service name in lowercase | 项目名称全小写格式
 SERVICE_LOWER={{.serviceNameLower}}
-# Project name in snake format | 项目名称下划线格式
+# Service name in snake format | 项目名称下划线格式
 SERVICE_SNAKE={{.serviceNameSnake}}
-# Project name in snake format | 项目名称短杠格式
+# Service name in snake format | 项目名称短杠格式
 SERVICE_DASH={{.serviceNameDash}}
 
 GO ?= go

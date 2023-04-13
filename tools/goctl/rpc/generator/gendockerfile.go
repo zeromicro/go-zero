@@ -7,6 +7,7 @@ import (
 	conf "github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -23,8 +24,13 @@ func (g *Generator) GenDockerfile(ctx DirContext, _ parser.Proto, cfg *conf.Conf
 		return err
 	}
 
+	serviceName, err := format.FileNamingFormat(cfg.NamingFormat, ctx.GetServiceName().Source())
+	if err != nil {
+		return err
+	}
+
 	return util.With("dockerfile").Parse(text).SaveTo(map[string]any{
-		"serviceName": ctx.GetServiceName().Lower(),
+		"serviceName": serviceName,
 		"port":        c.Port,
 		"imageTag":    "golang:1.20.2-alpine3.17",
 	}, fileName, false)

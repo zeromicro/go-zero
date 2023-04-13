@@ -27,7 +27,7 @@ func NewCreate{{.modelName}}Logic(ctx context.Context, svcCtx *svc.ServiceContex
 func (l *Create{{.modelName}}Logic) Create{{.modelName}}(req *types.{{.modelName}}Info) (resp *types.BaseMsgResp, err error) {
 	data, err := l.svcCtx.{{.rpcName}}Rpc.Create{{.modelName}}(l.ctx,
 		&{{.rpcPbPackageName}}.{{.modelName}}Info{
-			Id:          req.Id,{{.setLogic}}
+			{{.setLogic}}
 		})
 	if err != nil {
 		return nil, err

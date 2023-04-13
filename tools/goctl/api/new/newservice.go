@@ -24,8 +24,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-
 	"github.com/iancoleman/strcase"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
@@ -65,8 +63,6 @@ var (
 
 // CreateServiceCommand fast create service
 func CreateServiceCommand(_ *cobra.Command, args []string) error {
-	console.NewColorConsole(true).Info("Generating...")
-
 	dirName := args[0]
 	if len(VarStringStyle) == 0 {
 		VarStringStyle = conf.DefaultFormat
@@ -116,7 +112,7 @@ func CreateServiceCommand(_ *cobra.Command, args []string) error {
 
 	t := template.Must(template.New("baseApiTemplate").Parse(text))
 	if err := t.Execute(baseApiFile, map[string]string{
-		"name": dirName,
+		"name": strcase.ToCamel(dirName),
 	}); err != nil {
 		return err
 	}

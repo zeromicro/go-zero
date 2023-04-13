@@ -16,8 +16,7 @@ import (
 var mainTemplate string
 
 func genMain(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpec, g *GenContext) error {
-	name := strings.ToLower(api.Service.Name)
-	filename, err := format.FileNamingFormat(cfg.NamingFormat, name)
+	filename, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)
 	if err != nil {
 		return err
 	}

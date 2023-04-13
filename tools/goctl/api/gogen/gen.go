@@ -135,7 +135,7 @@ type GenContext struct {
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, g *GenContext) error {
-	console.NewColorConsole(true).Info("Generating...")
+	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
 
 	api, err := parser.Parse(apiFile)
 	if err != nil {
@@ -175,11 +175,11 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	logx.Must(genMiddleware(dir, cfg, api))
 
 	if g.UseDockerfile {
-		logx.Must(genDockerfile(dir, api, g))
+		logx.Must(genDockerfile(dir, cfg, api, g))
 	}
 
 	if g.UseMakefile {
-		logx.Must(genMakefile(dir, api, g))
+		logx.Must(genMakefile(dir, cfg, api, g))
 	}
 
 	if g.UseCasbin {

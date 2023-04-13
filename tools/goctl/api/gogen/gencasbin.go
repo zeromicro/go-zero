@@ -5,16 +5,22 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
 
 //go:embed authortymiddleware.tpl
 var authorityMiddlewareTemplate string
 
 func genCasbin(dir string, cfg *config.Config, api *spec.ApiSpec) error {
-	err := genFile(fileGenConfig{
+	fileName, err := format.FileNamingFormat(cfg.NamingFormat, "authority_middleware.go")
+	if err != nil {
+		return err
+	}
+
+	err = genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          middlewareDir,
-		filename:        "authority_middleware.go",
+		filename:        fileName,
 		templateName:    "authorityTemplate",
 		category:        category,
 		templateFile:    authorityTemplateFile,

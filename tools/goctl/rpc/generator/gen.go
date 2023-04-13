@@ -61,7 +61,7 @@ type ZRpcContext struct {
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
-	console.NewColorConsole(true).Info("Generating...")
+	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
 
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
