@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/logrusorgru/aurora"
+
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	proto2 "github.com/zeromicro/go-zero/tools/goctl/rpc/generator/proto"

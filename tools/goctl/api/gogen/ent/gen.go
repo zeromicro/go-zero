@@ -174,7 +174,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 		}
 	}
 
-	console.NewColorConsole().Success("Generate Ent Logic files for API successfully")
+	console.NewColorConsole().Success(aurora.Green("Generate Ent Logic files for API successfully").String())
 
 	return nil
 }

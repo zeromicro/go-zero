@@ -264,7 +264,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		return err
 	}
 
-	fmt.Println(aurora.Green("Done."))
+	console.NewColorConsole().MarkDone()
 	return nil
 }
 

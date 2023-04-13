@@ -22,6 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/logrusorgru/aurora"
+
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/parser"
@@ -68,7 +70,7 @@ func MergeProto(p *ProtoContext) error {
 		return err
 	}
 
-	console.NewColorConsole(true).Success("Merge proto files successfully")
+	console.NewColorConsole(true).Success(aurora.Green("Merge proto files successfully").String())
 
 	return err
 }
