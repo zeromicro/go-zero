@@ -276,7 +276,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"hasUUID":     hasUUID,
 		"setLogic":    strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
 		"modelName":   schema.Name,
-		"projectName": g.ProjectName,
+		"projectName": strings.ToLower(g.ProjectName),
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
@@ -294,7 +294,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"hasUUID":     hasUUID,
 		"setLogic":    strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
 		"modelName":   schema.Name,
-		"projectName": g.ProjectName,
+		"projectName": strings.ToLower(g.ProjectName),
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
@@ -372,7 +372,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"predicateData":      predicateData.String(),
 		"modelName":          schema.Name,
 		"listData":           listData.String(),
-		"projectName":        g.ProjectName,
+		"projectName":        strings.ToLower(g.ProjectName),
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
@@ -389,7 +389,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = getByIdLogicTmpl.Execute(getByIdLogic, map[string]any{
 		"modelName":          schema.Name,
 		"listData":           strings.Replace(listData.String(), "v.", "result.", -1),
-		"projectName":        g.ProjectName,
+		"projectName":        strings.ToLower(g.ProjectName),
 		"projectPath":        projectCtx.Path,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
@@ -406,7 +406,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	_ = deleteLogicTmpl.Execute(deleteLogic, map[string]any{
 		"modelName":          schema.Name,
 		"modelNameLowerCase": strings.ToLower(schema.Name),
-		"projectName":        g.ProjectName,
+		"projectName":        strings.ToLower(g.ProjectName),
 		"projectPath":        projectCtx.Path,
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
