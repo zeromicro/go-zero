@@ -20,8 +20,7 @@ import (
 
 // IsTimeProperty returns true when the string contains time suffix
 func IsTimeProperty(prop string) bool {
-	if strings.HasSuffix(prop, "_at") || strings.HasSuffix(prop, "_time") ||
-		strings.HasSuffix(prop, "At") || strings.HasSuffix(prop, "Time") {
+	if prop == "time.Time" {
 		return true
 	}
 	return false

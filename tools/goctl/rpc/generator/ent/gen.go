@@ -238,7 +238,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				v.Info.Type.String(),
 				parser.CamelCase(v.Name)))
 		} else {
-			if entx.IsTimeProperty(v.Name) {
+			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(in.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
@@ -341,7 +341,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\t%s(v.%s),%s", nameCamelCase,
 					entx.ConvertOnlyEntTypeToGoType(v.Info.Type.String()),
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
-			} else if entx.IsTimeProperty(v.Name) {
+			} else if entx.IsTimeProperty(v.Info.Type.String()) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
@@ -450,7 +450,7 @@ func GenProtoData(schema *load.Schema, g *GenEntLogicContext) (string, string, e
 			}
 
 			formatedString, _ := format.FileNamingFormat(g.ProtoFieldStyle, v.Name)
-			if entx.IsTimeProperty(v.Name) {
+			if entx.IsTimeProperty(v.Info.Type.String()) {
 				protoMessage.WriteString(fmt.Sprintf("  int64  %s = %d;%s", formatedString, index, endString))
 			} else {
 				protoMessage.WriteString(fmt.Sprintf("  %s %s = %d;%s", entx.ConvertEntTypeToProtoType(v.Info.Type.String()),

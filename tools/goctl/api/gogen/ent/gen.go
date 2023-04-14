@@ -199,7 +199,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			}
 			continue
 		} else {
-			if entx.IsTimeProperty(v.Name) {
+			if entx.IsTimeProperty(v.Info.Type.String()) {
 				hasTime = true
 				setLogic.WriteString(fmt.Sprintf("\t\t\tSet%s(time.Unix(req.%s, 0)).\n", parser.CamelCase(v.Name),
 					parser.CamelCase(v.Name)))
@@ -286,7 +286,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 			if entx.IsUUIDType(v.Info.Type.String()) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.String(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
-			} else if entx.IsTimeProperty(v.Name) {
+			} else if entx.IsTimeProperty(v.Info.Type.String()) {
 				listData.WriteString(fmt.Sprintf("\t\t\t%s:\tv.%s.UnixMilli(),%s", nameCamelCase,
 					entx.ConvertSpecificNounToUpper(nameCamelCase), endString))
 			} else {
