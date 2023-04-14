@@ -47,10 +47,8 @@ publish-docker: # Publish docker image | 发布 docker 镜像
 gen-rpc: # Generate RPC files from proto | 生成 RPC 的代码
 	goctls rpc protoc ./$(SERVICE_SNAKE).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
 ifeq ($(shell uname -s), Darwin)
-	# platform is macOS
 	sed -i "" 's/,omitempty//g' ./types/$(SERVICE_LOWER)/*.pb.go
 else
-	# platform is Linux | windows
 	sed -i 's/,omitempty//g' ./types/$(SERVICE_LOWER)/*.pb.go
 endif
 	@echo "Generate RPC codes successfully"
