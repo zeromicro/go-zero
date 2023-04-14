@@ -42,6 +42,10 @@ type (
 	ReduceFunc func(pipe <-chan any) (any, error)
 	// WalkFunc defines the method to walk through all the elements in a Stream.
 	WalkFunc func(item any, pipe chan<- any)
+	// CompareAscFunc defines the method to compare the elements in a Stream.
+	// Caution: the CompareAscFunc must be Ascending order.
+	// if a < b return true, else return false.
+	CompareAscFunc func(a, b any) bool
 
 	// A Stream is a stream that can be used to do stream processing.
 	Stream struct {
@@ -539,4 +543,26 @@ func newOptions() *rxOptions {
 	return &rxOptions{
 		workers: defaultWorkers,
 	}
+}
+
+// Max returns the maximum item from the underlying source.
+func (s Stream) Max(compare CompareAscFunc) any {
+	var maxItem any = nil
+	for item := range s.source {
+		if maxItem == nil || compare(maxItem, item) {
+			maxItem = item
+		}
+	}
+	return maxItem
+}
+
+// Min returns the minimum item from the underlying source.
+func (s Stream) Min(compare CompareAscFunc) any {
+	var minItem any = nil
+	for item := range s.source {
+		if minItem == nil || !compare(minItem, item) {
+			minItem = item
+		}
+	}
+	return minItem
 }
