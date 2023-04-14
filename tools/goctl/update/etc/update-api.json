@@ -1,6 +1,0 @@
-{
-    "Name": "update-api",
-    "ListenOn": "localhost:7777",
-    "FileDir": ".",
-    "FilePath": "/"
-}
