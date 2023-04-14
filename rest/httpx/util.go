@@ -142,3 +142,18 @@ func initSupportLanguages() {
 	supportLang["en"] = "en"
 	supportLang["en-US"] = "en"
 }
+
+// RegisterValidation registers the validation function to validator
+func RegisterValidation(tag string, fn validator.Func) {
+	if err := xValidator.Validator.RegisterValidation(tag, fn); err != nil {
+		logx.Must(errors.Join(err, errors.New("failed to register the validation function, tag is "+tag)))
+	}
+}
+
+// RegisterValidationTranslation regiters the validation translation for validator
+func RegisterValidationTranslation(tag string, trans ut.Translator, registerFn validator.RegisterTranslationsFunc,
+	translationFn validator.TranslationFunc) {
+	if err := xValidator.Validator.RegisterTranslation(tag, trans, registerFn, translationFn); err != nil {
+		logx.Must(errors.Join(err, errors.New("failed to register the validation translation, tag is "+tag)))
+	}
+}
