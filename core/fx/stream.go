@@ -43,8 +43,7 @@ type (
 	// WalkFunc defines the method to walk through all the elements in a Stream.
 	WalkFunc func(item any, pipe chan<- any)
 	// CompareFunc defines the method to compare the elements in a Stream.
-	// Caution: the CompareFunc must be Ascending order.
-	// if a < b return true, else return false.
+	// Caution: if a < b return true, else return false.
 	CompareFunc func(a, b any) bool
 
 	// A Stream is a stream that can be used to do stream processing.
