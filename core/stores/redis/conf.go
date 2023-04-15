@@ -21,6 +21,7 @@ type (
 		Type     string `json:",default=node,options=node|cluster"`
 		Pass     string `json:",optional"`
 		Tls      bool   `json:",optional"`
+		DB       int    `json:",default=0,range=[0:15]"`
 		NonBlock bool   `json:",default=true"`
 		// PingTimeout is the timeout for ping redis.
 		PingTimeout time.Duration `json:",default=1s"`
@@ -46,6 +47,8 @@ func (rc RedisConf) NewRedis() *Redis {
 	if rc.Tls {
 		opts = append(opts, WithTLS())
 	}
+
+	opts = append(opts, WithDB(rc.DB))
 
 	return New(rc.Host, opts...)
 }

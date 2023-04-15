@@ -56,6 +56,7 @@ type (
 		Addr  string
 		Type  string
 		Pass  string
+		DB    int
 		tls   bool
 		brk   breaker.Breaker
 		hooks []red.Hook
@@ -122,6 +123,8 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	if conf.Tls {
 		opts = append([]Option{WithTLS()}, opts...)
 	}
+
+	opts = append(opts, WithDB(conf.DB))
 
 	rds := newRedis(conf.Host, opts...)
 	if !conf.NonBlock {
@@ -2840,6 +2843,15 @@ func WithPass(pass string) Option {
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// WithDB customizes the given Redis with DB.
+func WithDB(db int) Option {
+	return func(r *Redis) {
+		if db >= 0 && db < 16 {
+			r.DB = db
+		}
 	}
 }
 
