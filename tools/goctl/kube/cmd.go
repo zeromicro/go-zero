@@ -32,10 +32,10 @@ var (
 
 func init() {
 	deployCmdFlags := deployCmd.Flags()
-	deployCmdFlags.StringVar(&varStringName, "name")
-	deployCmdFlags.StringVar(&varStringNamespace, "namespace")
-	deployCmdFlags.StringVar(&varStringImage, "image")
-	deployCmdFlags.StringVar(&varStringSecret, "secret")
+	deployCmdFlags.StringVarP(&varStringName, "name", "n")
+	deployCmdFlags.StringVarP(&varStringNamespace, "namespace", "a")
+	deployCmdFlags.StringVarP(&varStringImage, "image", "i")
+	deployCmdFlags.StringVarP(&varStringSecret, "secret", "s")
 	deployCmdFlags.IntVarWithDefaultValue(&varIntRequestCpu, "requestCpu", 500)
 	deployCmdFlags.IntVarWithDefaultValue(&varIntRequestMem, "requestMem", 512)
 	deployCmdFlags.IntVarWithDefaultValue(&varIntLimitCpu, "limitCpu", 1000)
@@ -43,7 +43,7 @@ func init() {
 	deployCmdFlags.StringVar(&varStringO, "o")
 	deployCmdFlags.IntVarWithDefaultValue(&varIntReplicas, "replicas", 3)
 	deployCmdFlags.IntVarWithDefaultValue(&varIntRevisions, "revisions", 5)
-	deployCmdFlags.IntVar(&varIntPort, "port")
+	deployCmdFlags.IntVarPWithDefaultValue(&varIntPort, "port", "p", 9100)
 	deployCmdFlags.IntVar(&varIntNodePort, "nodePort")
 	deployCmdFlags.IntVar(&varIntTargetPort, "targetPort")
 	deployCmdFlags.IntVarWithDefaultValue(&varIntMinReplicas, "minReplicas", 3)
