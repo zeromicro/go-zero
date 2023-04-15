@@ -16,13 +16,13 @@ func TestExecutor_Run(t *testing.T) {
 		},
 		{
 			Name:  "snake_case",
-			input: "A_B_C",
-			want:  "a_b_c",
+			Input: "A_B_C",
+			Want:  "a_b_c",
 		},
 		{
 			Name:  "camel_case",
-			input: "AaBbCc",
-			want:  "aabbcc",
+			Input: "AaBbCc",
+			Want:  "aabbcc",
 		},
 	}...)
 	executor.Run(t, func(s string) string {
@@ -39,17 +39,17 @@ func TestExecutor_RunE(t *testing.T) {
 		},
 		{
 			Name:  "snake_case",
-			input: "A_B_C",
-			want:  "a_b_c",
+			Input: "A_B_C",
+			Want:  "a_b_c",
 		},
 		{
 			Name:  "camel_case",
-			input: "AaBbCc",
-			want:  "aabbcc",
+			Input: "AaBbCc",
+			Want:  "aabbcc",
 		},
 		{
 			Name:  "invalid_input",
-			input: "😄",
+			Input: "😄",
 			E:     dummyError,
 		},
 	}...)
@@ -75,17 +75,17 @@ func TestWithComparison(t *testing.T) {
 		},
 		{
 			Name:  "snake_case",
-			input: "A_B_C",
-			want:  "a_b_c",
+			Input: "A_B_C",
+			Want:  "a_b_c",
 		},
 		{
 			Name:  "camel_case",
-			input: "AaBbCc",
-			want:  "aabbcc",
+			Input: "AaBbCc",
+			Want:  "aabbcc",
 		},
 		{
 			Name:  "invalid_input",
-			input: "😄",
+			Input: "😄",
 			E:     dummyError,
 		},
 	}...)
