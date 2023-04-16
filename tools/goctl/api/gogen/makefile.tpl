@@ -10,11 +10,18 @@ SERVICE_SNAKE={{.serviceNameSnake}}
 # Service name in snake format | 项目名称短杠格式
 SERVICE_DASH={{.serviceNameDash}}
 
+# Swagger type, support yml,json | Swagger 文件类型，支持yml,json
+SWAGGER_TYPE := yml
+
+# The project version, if you don't use git, you should set it manually | 项目版本，如果不使用git请手动设置
+VERSION=$(shell git describe --tags --always)
+
+# ---- You may not need to modify the codes below | 下面的代码大概率不需要更改 ----
+
 GO ?= go
 GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
 LDFLAGS := -s -w
-VERSION=$(shell git describe --tags --always)
 
 .PHONY: test
 test: # Run test for the project | 运行项目测试
@@ -30,7 +37,8 @@ lint: # Run go linter | 运行代码错误分析
 
 .PHONY: tools
 tools: # Install the necessary tools | 安装必要的工具
-	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest;
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	$(GO) install github.com/go-swagger/go-swagger/cmd/swagger@latest
 
 .PHONY: docker
 docker: # Build the docker image | 构建 docker 镜像
