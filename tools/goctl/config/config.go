@@ -12,7 +12,7 @@ const DefaultFormat = "go_zero"
 const DefaultGoZeroVersion = "v1.5.1"
 
 // DefaultToolVersion defines the default version of simple admin tools for migrate
-const DefaultToolVersion = "v2.0.0"
+const DefaultToolVersion = "v1.5.2"
 
 // Config defines the file naming style
 type Config struct {
