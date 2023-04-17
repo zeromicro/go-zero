@@ -609,6 +609,8 @@ func (u *Unmarshaler) processFieldPrimitiveWithJSONNumber(fieldType reflect.Type
 		}
 
 		target.SetFloat(fValue)
+	case reflect.String:
+		target.SetString(v.String())
 	default:
 		return newTypeMismatchError(fullName)
 	}
