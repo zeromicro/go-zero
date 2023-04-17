@@ -1,4 +1,466 @@
 
+<a name="v1.5.2"></a>
+## [v1.5.2](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.3-beta...v1.5.2)
+
+> 2023-04-16
+
+### Docs
+
+* add copyright comment
+
+### Feat
+
+* add validation register function
+
+### Fix
+
+* update version
+* home dir in dockerfile change to app
+* optimize makefile template
+* optimize the kube command
+* optimize the git lab template
+* remove quickstart
+* remove unused files
+* remove redundant comment in makefile
+* ent time type checker
+* api proto gen create template
+* lowercase for ent gen package
+
+
+<a name="v0.3.3-beta"></a>
+## [v0.3.3-beta](https://github.com/suyuan32/simple-admin-tools/compare/list...v0.3.3-beta)
+
+> 2023-04-13
+
+### Chore
+
+* update goctls version
+
+### Feat
+
+* new api support camelcase name
+* rpc new support camelcase
+* ent template command
+* default tool version for new command
+
+### Fix
+
+* optimize console log
+* wrong variables in rpc new gen
+* tidy the deps when init ent
+* empty module bug and single ent code generating bugs
+* makefile tab bugs
+* update the goctls version code
+* remove unused migrate codes
+* wrong params in makefile
+* update flag info
+* add version to makefile
+
+### Refactor
+
+* optimize gen rpc comment
+* optimize gen-rpc help message
+
+### Pull Requests
+
+* Merge pull request [#53](https://github.com/suyuan32/simple-admin-tools/issues/53) from CtraPlatform/master
+* Merge pull request [#52](https://github.com/suyuan32/simple-admin-tools/issues/52) from CtraPlatform/master
+* Merge pull request [#47](https://github.com/suyuan32/simple-admin-tools/issues/47) from suyuan32/dependabot/go_modules/golang.org/x/net-0.9.0
+* Merge pull request [#48](https://github.com/suyuan32/simple-admin-tools/issues/48) from suyuan32/dependabot/go_modules/go.mongodb.org/mongo-driver-1.11.4
+* Merge pull request [#49](https://github.com/suyuan32/simple-admin-tools/issues/49) from suyuan32/dependabot/go_modules/golang.org/x/text-0.9.0
+* Merge pull request [#50](https://github.com/suyuan32/simple-admin-tools/issues/50) from suyuan32/dependabot/go_modules/tools/goctl/github.com/zeromicro/go-zero-1.5.1
+* Merge pull request [#51](https://github.com/suyuan32/simple-admin-tools/issues/51) from suyuan32/dependabot/go_modules/tools/goctl/entgo.io/ent-0.12.0
+
+
+<a name="list"></a>
+## [list](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.2...list)
+
+> 2023-04-09
+
+
+<a name="v0.3.2"></a>
+## [v0.3.2](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.5.1...v0.3.2)
+
+> 2023-04-09
+
+### Chore
+
+* update go version and dependencies
+* update deps
+* update dependencies
+* update all dependencies
+
+### Docs
+
+* update CHANGELOG.md
+* update change log
+* update change log
+* update change log
+* update change log
+* add license comment
+* update readme
+* update changelog
+* update CHANGELOG.md
+* update CHANGELOG.md
+
+### Feat
+
+* shorthand for commands
+* extra command
+* supported proto map field, replace index+1 with original field sequence.
+* supported prefix. (swagger-doc)
+* proto field style params
+* validator generation
+* optimize swagger validator
+* add optional supported. (proto2/3)
+* API single service command
+* windows build script
+* add overwrite parameters for code gen
+* json tag style command
+* add lang to context
+* add status error to errorx and remove error msg
+* ent error handling
+* validate parameters
+* validate parameters
+* add ldflags to reduce the size of binary file
+* add enable for rpc client
+* add enable for rpc client
+* add enable for rpc client
+* bool component support
+* status code gen in vben
+* split proto files
+* merge latest code
+* merge latest code
+* add ent multiple support
+* rpc ent multiple generation support
+* go swagger auto install
+* uuid code generating for vben
+* api uuid code generating
+* rpc uuid code generating
+* merge latest code
+* group for rpc logic
+* gitlab-ci.yml generating
+* vben code generation via api file
+* service port parameter
+* service port parameter
+* api crud generation by proto
+* auto migrate for rpc generation
+* generate docker file
+* proto file generation and logic code generation with ent
+* proto file generation and logic code generation with ent
+* error translation
+* gorm logger
+* rocket mq plugin
+* gen consul code
+* consul kv store configuration
+* consul support
+* merge new codes from origin fix: swagger doc gen
+* add go swagger support
+* casbin util
+* error message
+* gorm conf
+
+### Fix
+
+* add gitignore
+* update goctls version
+* wrong usage in console function
+* optimize flag intro
+* remove unused compare function
+* add flag intro
+* antlr version
+* optimize swagger
+* test/test_test.go
+* update dockerfile golang version
+* optimize makefile
+* optimize rpc makefile
+* optimize enttx tpl
+* optimize makefile tpl
+* gotype in vben and makefile in api service
+* duplicate convert functions
+* add ent int16/uint16 support
+* some ent gen bugs
+* bugs in config.go generating
+* bug when field need to upper and convert type
+* proto test
+* remove redundant imports
+* optimize lang in context
+* optimize lang in context
+* middleware trans bug
+* bugs in authorization middleware
+* add required tag by default in form data
+* update trans code in svc
+* use casbin watcher
+* optimize with tx function
+* bugs in parse test
+* update locale
+* makefile bug
+* authority middleware
+* redundant err in service context
+* change page default order to desc
+* optimize casbin template
+* new function to init redis
+* getById bug in api generation
+* add url to upper check
+* remove unused status req
+* to lower camel case in vben gen
+* status template uuid bug
+* notification template
+* api generation file model name lowercase
+* rpc proto generation list req bug
+* api status code gen template
+* improve ent generation
+* swagger env bug
+* command parameters and submit template
+* rpc generating space bug
+* extra command for linux
+* multiple group
+* remove sqlx and gorm
+* redis
+* redis
+* merge latest code
+* remove rpc uuid_pk parameter
+* remove default sql generating code
+* remove default sql generating code
+* update base.api
+* replace tab by space in api file
+* ent api proto generating bug in type
+* ent rpc generating type error
+* drawer generating drawer props bug
+* validator error type
+* gen handler
+* migrate version bug and search key num bug
+* only generate makefile and dockerfile when we create new api
+* etc template
+* makefile transErr and service context template
+* service context and ent format
+* pagination template bug
+* makefile template
+* optional gen makefile and dockerfile
+* cases with no lower
+* merge consul mod to go zero
+* all deprecated function
+* validate bugs
+* bugs in tests
+* optimize delete button
+* makefile push bug
+* update ErrorCtx logic
+* optimize api url
+* delete ent in tools
+* modify error code
+* optimize go gen types
+* rocketmq config add optional tag
+* change default file name into snake format
+* producer and consumer pointer error
+* bugs in accept language parsing
+* bugs in accept language parsing
+* delete log message reference from simple-admin-core
+* merge latest code
+* etc template
+* update deployment in k8s
+* StackCoolDownMillis name
+* yaml key name
+* JSON tag in config files
+* system info in swagger
+* Merge latest code
+* bugs when run goctls new
+* rest inline bug
+* inline bug
+* restore field for consul config
+* json field for consul conf
+* add yaml tag for all configuration
+* bug in load
+* change interface into pointer
+* load function circle implement
+* update change log
+* package access
+* merge latest code
+* add validator test
+* add validator
+* merge upstream
+* recover go gen type
+* gen system info
+* gen types swagger doc
+* bug in rest response
+* error msg
+* package name
+
+### Perf
+
+* optimize route swagger generation
+
+### Refactor
+
+* optimize dockerfile.tpl
+* update makefile template
+* generate pb file to types directory
+* generate pb file to types directory
+* uuidx use common package
+* replace simple admin core pkg to  simple admin common
+* optimize ent error handling
+* optimize create logic
+* optimize interface
+* change interface{} to any
+* change api error pkg
+
+### Revert
+
+* remove consul yaml config
+* cancel the consul and use k8s in generation
+
+### Style
+
+* go fmt.
+
+### Wip
+
+* text gen
+* tag validate
+* optimize status gen in api and rpc
+* vben code generation
+* api code generation
+* api code generation
+* ent logic generating
+
+### Pull Requests
+
+* Merge pull request [#46](https://github.com/suyuan32/simple-admin-tools/issues/46) from zeromicro/master
+* Merge pull request [#44](https://github.com/suyuan32/simple-admin-tools/issues/44) from suyuan32/dependabot/go_modules/tools/goctl/github.com/spf13/cobra-1.7.0
+* Merge pull request [#45](https://github.com/suyuan32/simple-admin-tools/issues/45) from suyuan32/dependabot/go_modules/tools/goctl/golang.org/x/text-0.9.0
+* Merge pull request [#42](https://github.com/suyuan32/simple-admin-tools/issues/42) from crazy6995/feat-mapfield
+* Merge pull request [#43](https://github.com/suyuan32/simple-admin-tools/issues/43) from CtraPlatform/master
+* Merge pull request [#41](https://github.com/suyuan32/simple-admin-tools/issues/41) from crazy6995/feat-prefix
+* Merge pull request [#40](https://github.com/suyuan32/simple-admin-tools/issues/40) from suyuan32/mg
+* Merge pull request [#39](https://github.com/suyuan32/simple-admin-tools/issues/39) from suyuan32/feat-validator-gen
+* Merge pull request [#38](https://github.com/suyuan32/simple-admin-tools/issues/38) from Gowa2017/master
+* Merge pull request [#35](https://github.com/suyuan32/simple-admin-tools/issues/35) from suyuan32/mg
+* Merge pull request [#34](https://github.com/suyuan32/simple-admin-tools/issues/34) from crazy6995/master
+* Merge pull request [#33](https://github.com/suyuan32/simple-admin-tools/issues/33) from suyuan32/mg
+* Merge pull request [#32](https://github.com/suyuan32/simple-admin-tools/issues/32) from suyuan32/feat-mg
+* Merge pull request [#31](https://github.com/suyuan32/simple-admin-tools/issues/31) from suyuan32/mg
+* Merge pull request [#30](https://github.com/suyuan32/simple-admin-tools/issues/30) from suyuan32/mg
+* Merge pull request [#28](https://github.com/suyuan32/simple-admin-tools/issues/28) from suyuan32/refator-common
+* Merge pull request [#27](https://github.com/suyuan32/simple-admin-tools/issues/27) from vwenkk/master
+* Merge pull request [#26](https://github.com/suyuan32/simple-admin-tools/issues/26) from suyuan32/mg
+* Merge pull request [#25](https://github.com/suyuan32/simple-admin-tools/issues/25) from suyuan32/refactor-interface
+* Merge pull request [#24](https://github.com/suyuan32/simple-admin-tools/issues/24) from suyuan32/mg
+* Merge pull request [#23](https://github.com/suyuan32/simple-admin-tools/issues/23) from suyuan32/mg
+* Merge pull request [#22](https://github.com/suyuan32/simple-admin-tools/issues/22) from suyuan32/feat-proto-split
+* Merge pull request [#21](https://github.com/suyuan32/simple-admin-tools/issues/21) from suyuan32/mg
+* Merge pull request [#20](https://github.com/suyuan32/simple-admin-tools/issues/20) from suyuan32/feat-multiple-ent
+* Merge pull request [#19](https://github.com/suyuan32/simple-admin-tools/issues/19) from suyuan32/rm-sql
+* Merge pull request [#18](https://github.com/suyuan32/simple-admin-tools/issues/18) from suyuan32/mg
+* Merge pull request [#17](https://github.com/suyuan32/simple-admin-tools/issues/17) from suyuan32/feat-uuid-gen
+* Merge pull request [#16](https://github.com/suyuan32/simple-admin-tools/issues/16) from suyuan32/mg
+* Merge pull request [#15](https://github.com/suyuan32/simple-admin-tools/issues/15) from suyuan32/mg
+* Merge pull request [#13](https://github.com/suyuan32/simple-admin-tools/issues/13) from suyuan32/mg
+* Merge pull request [#12](https://github.com/suyuan32/simple-admin-tools/issues/12) from suyuan32/feat-group-logic
+* Merge pull request [#11](https://github.com/suyuan32/simple-admin-tools/issues/11) from suyuan32/mg
+* Merge pull request [#10](https://github.com/suyuan32/simple-admin-tools/issues/10) from suyuan32/feat-upgrade-go
+* Merge pull request [#9](https://github.com/suyuan32/simple-admin-tools/issues/9) from suyuan32/feat-crud-gen
+* Merge pull request [#8](https://github.com/suyuan32/simple-admin-tools/issues/8) from suyuan32/feat-crud-gen
+* Merge pull request [#7](https://github.com/suyuan32/simple-admin-tools/issues/7) from suyuan32/feat-crud-gen
+* Merge pull request [#6](https://github.com/suyuan32/simple-admin-tools/issues/6) from suyuan32/feat-crud-gen
+* Merge pull request [#4](https://github.com/suyuan32/simple-admin-tools/issues/4) from zeromicro/master
+* Merge pull request [#3](https://github.com/suyuan32/simple-admin-tools/issues/3) from zeromicro/master
+* Merge pull request [#2](https://github.com/suyuan32/simple-admin-tools/issues/2) from zeromicro/master
+
+
+<a name="tools/goctl/v1.5.1"></a>
+## [tools/goctl/v1.5.1](https://github.com/suyuan32/simple-admin-tools/compare/v1.5.1...tools/goctl/v1.5.1)
+
+> 2023-04-08
+
+### Chore
+
+* update go-zero version in goctl ([#3109](https://github.com/suyuan32/simple-admin-tools/issues/3109))
+
+
+<a name="v1.5.1"></a>
+## [v1.5.1](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.2-beta...v1.5.1)
+
+> 2023-04-08
+
+### Chore
+
+* coding style ([#3106](https://github.com/suyuan32/simple-admin-tools/issues/3106))
+
+### Fix
+
+* fillDefault,  handling of nested structs ([#3072](https://github.com/suyuan32/simple-admin-tools/issues/3072))
+* should not conflict on lower members ([#3095](https://github.com/suyuan32/simple-admin-tools/issues/3095))
+
+### Refactor
+
+* simplify zrpc stat config ([#3107](https://github.com/suyuan32/simple-admin-tools/issues/3107))
+
+
+<a name="v0.3.2-beta"></a>
+## [v0.3.2-beta](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.1...v0.3.2-beta)
+
+> 2023-04-07
+
+### Feat
+
+* extra command
+* supported proto map field, replace index+1 with original field sequence.
+* supported prefix. (swagger-doc)
+* proto field style params
+
+### Fix
+
+* optimize flag intro
+* remove unused compare function
+* add flag intro
+
+### Wip
+
+* text gen
+
+### Pull Requests
+
+* Merge pull request [#46](https://github.com/suyuan32/simple-admin-tools/issues/46) from zeromicro/master
+* Merge pull request [#44](https://github.com/suyuan32/simple-admin-tools/issues/44) from suyuan32/dependabot/go_modules/tools/goctl/github.com/spf13/cobra-1.7.0
+* Merge pull request [#45](https://github.com/suyuan32/simple-admin-tools/issues/45) from suyuan32/dependabot/go_modules/tools/goctl/golang.org/x/text-0.9.0
+* Merge pull request [#42](https://github.com/suyuan32/simple-admin-tools/issues/42) from crazy6995/feat-mapfield
+* Merge pull request [#43](https://github.com/suyuan32/simple-admin-tools/issues/43) from CtraPlatform/master
+* Merge pull request [#41](https://github.com/suyuan32/simple-admin-tools/issues/41) from crazy6995/feat-prefix
+
+
+<a name="v0.3.1"></a>
+## [v0.3.1](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.0...v0.3.1)
+
+> 2023-04-03
+
+### Chore
+
+* add more tests ([#3084](https://github.com/suyuan32/simple-admin-tools/issues/3084))
+* coding style ([#3080](https://github.com/suyuan32/simple-admin-tools/issues/3080))
+
+### Docs
+
+* update CHANGELOG.md
+
+### Feat
+
+* validator generation
+* optimize swagger validator
+
+### Fix
+
+* antlr version
+
+### Wip
+
+* tag validate
+
+### Pull Requests
+
+* Merge pull request [#40](https://github.com/suyuan32/simple-admin-tools/issues/40) from suyuan32/mg
+* Merge pull request [#39](https://github.com/suyuan32/simple-admin-tools/issues/39) from suyuan32/feat-validator-gen
+* Merge pull request [#38](https://github.com/suyuan32/simple-admin-tools/issues/38) from Gowa2017/master
+
+
 <a name="v0.3.0"></a>
 ## [v0.3.0](https://github.com/suyuan32/simple-admin-tools/compare/v0.3.0-beta...v0.3.0)
 
@@ -2222,7 +2684,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.3.4"></a>
-## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.4)
+## [v1.3.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...v1.3.4)
 
 > 2022-06-03
 
@@ -2273,14 +2735,14 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 * add more tests ([#1856](https://github.com/suyuan32/simple-admin-tools/issues/1856))
 
 
-<a name="tools/goctl/v1.3.5"></a>
-## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/v1.3.3...tools/goctl/v1.3.5)
+<a name="v1.3.3"></a>
+## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.5...v1.3.3)
 
 > 2022-04-28
 
 
-<a name="v1.3.3"></a>
-## [v1.3.3](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...v1.3.3)
+<a name="tools/goctl/v1.3.5"></a>
+## [tools/goctl/v1.3.5](https://github.com/suyuan32/simple-admin-tools/compare/tools/goctl/v1.3.4...tools/goctl/v1.3.5)
 
 > 2022-04-28
 
@@ -2951,9 +3413,15 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.4"></a>
-## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.4)
+## [v1.1.4](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.4)
 
 > 2021-01-16
+
+
+<a name="v1.1.3-pre"></a>
+## [v1.1.3-pre](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-beta...v1.1.3-pre)
+
+> 2021-01-13
 
 
 <a name="v1.1.3-beta"></a>
@@ -2963,13 +3431,7 @@ trace Config.Batcher should use otlpgrpc instead of grpc now.
 
 
 <a name="v1.1.3"></a>
-## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.3-pre...v1.1.3)
-
-> 2021-01-13
-
-
-<a name="v1.1.3-pre"></a>
-## [v1.1.3-pre](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.2...v1.1.3-pre)
+## [v1.1.3](https://github.com/suyuan32/simple-admin-tools/compare/v1.1.2...v1.1.3)
 
 > 2021-01-13
 
