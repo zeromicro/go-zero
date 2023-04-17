@@ -1,6 +1,7 @@
 package extra
 
 import (
+	"github.com/zeromicro/go-zero/tools/goctl/extra/drone"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/i18n"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/initlogic"
@@ -17,6 +18,8 @@ var (
 	entCmd = cobrax.NewCommand("ent")
 
 	templateCmd = cobrax.NewCommand("template", cobrax.WithRunE(template.GenTemplate))
+
+	droneCmd = cobrax.NewCommand("drone", cobrax.WithRunE(drone.GenDrone))
 )
 
 func init() {
@@ -24,6 +27,7 @@ func init() {
 		i18nCmdFlags     = i18nCmd.Flags()
 		initCmdFlags     = initCmd.Flags()
 		templateCmdFlags = templateCmd.Flags()
+		droneCmdFlags    = droneCmd.Flags()
 	)
 
 	i18nCmdFlags.StringVarP(&i18n.VarStringTarget, "target", "t")
@@ -40,8 +44,11 @@ func init() {
 	templateCmdFlags.BoolVarP(&template.VarBoolList, "list", "l")
 	templateCmdFlags.BoolVarP(&template.VarBoolUpdate, "update", "u")
 
+	droneCmdFlags.BoolVarP(&drone.VarBoolDockerfile, "dockerfile", "d")
+
 	ExtraCmd.AddCommand(i18nCmd)
 	ExtraCmd.AddCommand(initCmd)
 	entCmd.AddCommand(templateCmd)
 	ExtraCmd.AddCommand(entCmd)
+	ExtraCmd.AddCommand(droneCmd)
 }
