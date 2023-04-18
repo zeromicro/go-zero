@@ -3,7 +3,6 @@ package gogen
 import (
 	_ "embed"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
 	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 )
@@ -11,7 +10,7 @@ import (
 //go:embed authortymiddleware.tpl
 var authorityMiddlewareTemplate string
 
-func genCasbin(dir string, cfg *config.Config, api *spec.ApiSpec) error {
+func genCasbin(dir string, cfg *config.Config, g *GenContext) error {
 	fileName, err := format.FileNamingFormat(cfg.NamingFormat, "authority_middleware.go")
 	if err != nil {
 		return err
@@ -25,7 +24,9 @@ func genCasbin(dir string, cfg *config.Config, api *spec.ApiSpec) error {
 		category:        category,
 		templateFile:    authorityTemplateFile,
 		builtinTemplate: authorityMiddlewareTemplate,
-		data:            map[string]string{},
+		data: map[string]any{
+			"useTrans": g.TransErr,
+		},
 	})
 	if err != nil {
 		return err

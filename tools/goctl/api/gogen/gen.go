@@ -183,7 +183,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	if g.UseCasbin {
-		logx.Must(genCasbin(dir, cfg, api))
+		logx.Must(genCasbin(dir, cfg, g))
 	}
 
 	if g.UseI18n {

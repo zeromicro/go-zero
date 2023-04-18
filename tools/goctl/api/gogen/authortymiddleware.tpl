@@ -1,7 +1,7 @@
 package middleware
 
-import (
-    "context"
+import ({{if .useTrans}}
+    "context"{{end}}
 	"net/http"
 	"strings"
 
@@ -11,21 +11,21 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/rest/httpx"
 
-	"github.com/suyuan32/simple-admin-common/enum/errorcode"
-	"github.com/suyuan32/simple-admin-common/i18n"
+	"github.com/suyuan32/simple-admin-common/enum/errorcode"{{if .useTrans}}
+	"github.com/suyuan32/simple-admin-common/i18n"{{end}}
 )
 
 type AuthorityMiddleware struct {
 	Cbn   *casbin.Enforcer
-	Rds   *redis.Redis
-	Trans *i18n.Translator
+	Rds   *redis.Redis{{if .useTrans}}
+	Trans *i18n.Translator{{end}}
 }
 
-func NewAuthorityMiddleware(cbn *casbin.Enforcer, rds *redis.Redis, trans *i18n.Translator) *AuthorityMiddleware {
+func NewAuthorityMiddleware(cbn *casbin.Enforcer, rds *redis.Redis{{if .useTrans}}, trans *i18n.Translator{{end}}) *AuthorityMiddleware {
 	return &AuthorityMiddleware{
 		Cbn:   cbn,
-		Rds:   rds,
-		Trans: trans,
+		Rds:   rds,{{if .useTrans}}
+		Trans: trans,{{end}}
 	}
 }
 
@@ -60,10 +60,11 @@ func (m *AuthorityMiddleware) Handle(next http.HandlerFunc) http.HandlerFunc {
 			return
 		} else {
 			logx.Errorw("the role is not permitted to access the API", logx.Field("roleId", roleIds),
-				logx.Field("path", obj), logx.Field("method", act))
+				logx.Field("path", obj), logx.Field("method", act)){{if .useTrans}}
 			httpx.Error(w, errorx.NewCodeError(errorcode.PermissionDenied, m.Trans.Trans(
 				context.WithValue(context.Background(), "lang", r.Header.Get("Accept-Language")),
-				"common.permissionDeny")))
+				"common.permissionDeny"))){{else}}
+			httpx.Error(w, errorx.NewCodeError(errorcode.PermissionDenied, "Permission Denied")){{end}}
 			return
 		}
 	}
