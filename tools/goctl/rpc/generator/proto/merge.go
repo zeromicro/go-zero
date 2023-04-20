@@ -78,6 +78,7 @@ func MergeProto(p *ProtoContext) error {
 func parseProto(data []parser.Proto) parser.Proto {
 	var result parser.Proto
 	importSet := map[string]parser.Import{}
+	enumSet := map[string]parser.Enum{}
 	messageSet := map[string]parser.Message{}
 	serviceSet := map[string]parser.Service{}
 
@@ -104,6 +105,10 @@ func parseProto(data []parser.Proto) parser.Proto {
 			importSet[i.Filename] = i
 		}
 
+		for _, e := range v.Enum {
+			enumSet[e.Name] = e
+		}
+
 		for _, m := range v.Message {
 			messageSet[m.Name] = m
 		}
@@ -122,6 +127,10 @@ func parseProto(data []parser.Proto) parser.Proto {
 
 	for _, v := range importSet {
 		result.Import = append(result.Import, v)
+	}
+
+	for _, e := range enumSet {
+		result.Enum = append(result.Enum, e)
 	}
 
 	for _, m := range messageSet {
@@ -145,6 +154,22 @@ func genProtoString(data parser.Proto) string {
 
 	for _, i := range data.Import {
 		protoString.WriteString(fmt.Sprintf("import \"%s\";\n\n", i.Filename))
+	}
+
+	for _, e := range data.Enum {
+		if e.Comment != nil {
+			protoString.WriteString(protox.GenCommentString(e.Comment.Lines, false))
+		}
+		if len(e.Elements) != 0 {
+			protoString.WriteString(fmt.Sprintf("enum %s {\n", e.Name))
+		} else {
+			protoString.WriteString(fmt.Sprintf("enum %s {", e.Name))
+		}
+		for _, ele := range e.Elements {
+			ele.Accept(protox.MessageVisitor{})
+			protoString.WriteString(fmt.Sprintf("  %s = %d;\n", protox.ProtoField.Name, protox.ProtoField.Sequence))
+		}
+		protoString.WriteString("}\n\n")
 	}
 
 	for _, m := range data.Message {
