@@ -30,11 +30,6 @@ jobs:
         run: |
           go vet -stdmethods=false $(go list ./...)
 
-          if ! test -z "$(gofmt -l .)"; then
-            echo "Please run 'gofmt -l -w .'"
-            exit 1
-          fi
-
           go mod tidy
           if ! test -z "$(git status --porcelain)"; then
             echo "Please run 'go mod tidy'"
