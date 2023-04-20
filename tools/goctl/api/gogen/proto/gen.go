@@ -88,6 +88,10 @@ func GenLogicByProto(p *GenLogicByProtoContext) error {
 		return err
 	}
 
+	// convert api and  rpc service name style
+	p.APIServiceName = strcase.ToCamel(p.APIServiceName)
+	p.RPCServiceName = strcase.ToCamel(p.RPCServiceName)
+
 	logicDir := path.Join(outputDir, "internal/logic")
 
 	protoParser := parser.NewDefaultProtoParser()
