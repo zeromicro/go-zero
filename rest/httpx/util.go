@@ -58,10 +58,14 @@ type Validator struct {
 	Validator *validator.Validate
 	Uni       *ut.UniversalTranslator
 	Trans     map[string]ut.Translator
+	ErrorCode int
 }
 
 func NewValidator() *Validator {
 	v := Validator{}
+	// set default error code to 3
+	v.ErrorCode = 3
+
 	en := enLang.New()
 	zh := zhLang.New()
 	v.Uni = ut.New(zh, en, zh)
@@ -156,4 +160,9 @@ func RegisterValidationTranslation(tag string, trans ut.Translator, registerFn v
 	if err := xValidator.Validator.RegisterTranslation(tag, trans, registerFn, translationFn); err != nil {
 		logx.Must(errors.Join(err, errors.New("failed to register the validation translation, tag is "+tag)))
 	}
+}
+
+// SetValidatorErrorCode sets the error code for validator when errors occurs
+func SetValidatorErrorCode(code int) {
+	xValidator.ErrorCode = code
 }

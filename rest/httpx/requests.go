@@ -48,7 +48,7 @@ func Parse(r *http.Request, v any, isValidate bool) error {
 
 	if isValidate {
 		if errMsg := xValidator.Validate(v, r.Header.Get("Accept-Language")); errMsg != "" {
-			return errorx.NewCodeInvalidArgumentError(errMsg)
+			return errorx.NewCodeError(xValidator.ErrorCode, errMsg)
 		}
 	}
 	return nil
