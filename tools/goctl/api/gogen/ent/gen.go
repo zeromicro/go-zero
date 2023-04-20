@@ -393,7 +393,7 @@ func GenApiData(schema *load.Schema, ctx *GenEntLogicContext) (string, error) {
 		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
 		"modelNameSnake":     strcase.ToSnake(ctx.ModelName),
 		"listData":           listData.String(),
-		"apiServiceName":     ctx.ServiceName,
+		"apiServiceName":     strcase.ToCamel(ctx.ServiceName),
 		"useUUID":            ctx.UseUUID,
 	}))
 	data = apiTemplateData.String()
