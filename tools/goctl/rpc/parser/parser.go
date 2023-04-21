@@ -49,6 +49,9 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 		proto.WithImport(func(i *proto.Import) {
 			ret.Import = append(ret.Import, Import{Import: i})
 		}),
+		proto.WithEnum(func(enum *proto.Enum) {
+			ret.Enum = append(ret.Enum, Enum{Enum: enum})
+		}),
 		proto.WithMessage(func(message *proto.Message) {
 			ret.Message = append(ret.Message, Message{Message: message})
 		}),

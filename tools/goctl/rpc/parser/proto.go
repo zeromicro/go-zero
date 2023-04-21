@@ -8,6 +8,7 @@ type Proto struct {
 	PbPackage string
 	GoPackage string
 	Import    []Import
+	Enum      []Enum
 	Message   []Message
 	Service   Services
 }

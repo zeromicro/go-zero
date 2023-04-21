@@ -74,6 +74,14 @@ func (m MessageVisitor) VisitMapField(i *proto.MapField) {
 	ProtoField.Optional = false
 }
 
+func (m MessageVisitor) VisitEnumField(i *proto.EnumField) {
+	ProtoField.Name = i.Name
+	ProtoField.Type = ""
+	ProtoField.Sequence = i.Integer
+	ProtoField.Repeated = false
+	ProtoField.Optional = false
+}
+
 func GenCommentString(comments []string, space bool) string {
 	var commentsString strings.Builder
 	var spaceString string
