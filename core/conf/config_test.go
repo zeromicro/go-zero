@@ -123,6 +123,24 @@ d = "abcd"
 	}
 }
 
+func TestConfigWithLower(t *testing.T) {
+	text := `a = "foo"
+b = 1
+`
+	tmpfile, err := createTempFile(".toml", text)
+	assert.Nil(t, err)
+	defer os.Remove(tmpfile)
+
+	var val struct {
+		A string `json:"a"`
+		b int
+	}
+	if assert.NoError(t, Load(tmpfile, &val)) {
+		assert.Equal(t, "foo", val.A)
+		assert.Equal(t, 0, val.b)
+	}
+}
+
 func TestConfigJsonCanonical(t *testing.T) {
 	text := []byte(`{"a": "foo", "B": "bar"}`)
 
@@ -1020,6 +1038,24 @@ func TestLoadNamedFieldOverwritten(t *testing.T) {
 		input := []byte(`{"Val": 1}`)
 		assert.Error(t, LoadFromJsonBytes(input, &c))
 	})
+}
+
+func TestLoadLowerMemberShouldNotConflict(t *testing.T) {
+	type (
+		Redis struct {
+			db uint
+		}
+
+		Config struct {
+			db uint
+			Redis
+		}
+	)
+
+	var c Config
+	assert.NoError(t, LoadFromJsonBytes([]byte(`{}`), &c))
+	assert.Zero(t, c.db)
+	assert.Zero(t, c.Redis.db)
 }
 
 func TestFillDefaultUnmarshal(t *testing.T) {

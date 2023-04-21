@@ -100,39 +100,49 @@ func (rs *RpcServer) Stop() {
 }
 
 // DontLogContentForMethod disable logging content for given method.
+// Deprecated: use ServerMiddlewaresConf.IgnoreContentMethods instead.
 func DontLogContentForMethod(method string) {
 	serverinterceptors.DontLogContentForMethod(method)
 }
 
 // SetServerSlowThreshold sets the slow threshold on server side.
+// Deprecated: use ServerMiddlewaresConf.SlowThreshold instead.
 func SetServerSlowThreshold(threshold time.Duration) {
 	serverinterceptors.SetSlowThreshold(threshold)
 }
 
-func setupInterceptors(server internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
+func setupAuthInterceptors(svr internal.Server, c RpcServerConf) error {
+	rds, err := redis.NewRedis(c.Redis.RedisConf)
+	if err != nil {
+		return err
+	}
+
+	authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
+	if err != nil {
+		return err
+	}
+
+	svr.AddStreamInterceptors(serverinterceptors.StreamAuthorizeInterceptor(authenticator))
+	svr.AddUnaryInterceptors(serverinterceptors.UnaryAuthorizeInterceptor(authenticator))
+
+	return nil
+}
+
+func setupInterceptors(svr internal.Server, c RpcServerConf, metrics *stat.Metrics) error {
 	if c.CpuThreshold > 0 {
 		shedder := load.NewAdaptiveShedder(load.WithCpuThreshold(c.CpuThreshold))
-		server.AddUnaryInterceptors(serverinterceptors.UnarySheddingInterceptor(shedder, metrics))
+		svr.AddUnaryInterceptors(serverinterceptors.UnarySheddingInterceptor(shedder, metrics))
 	}
 
 	if c.Timeout > 0 {
-		server.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
+		svr.AddUnaryInterceptors(serverinterceptors.UnaryTimeoutInterceptor(
 			time.Duration(c.Timeout) * time.Millisecond))
 	}
 
 	if c.Auth {
-		rds, err := redis.NewRedis(c.Redis.RedisConf)
-		if err != nil {
+		if err := setupAuthInterceptors(svr, c); err != nil {
 			return err
 		}
-
-		authenticator, err := auth.NewAuthenticator(rds, c.Redis.Key, c.StrictControl)
-		if err != nil {
-			return err
-		}
-
-		server.AddStreamInterceptors(serverinterceptors.StreamAuthorizeInterceptor(authenticator))
-		server.AddUnaryInterceptors(serverinterceptors.UnaryAuthorizeInterceptor(authenticator))
 	}
 
 	return nil

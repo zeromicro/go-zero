@@ -10,6 +10,7 @@ import (
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/errorx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
@@ -25,6 +26,7 @@ const (
 	blockingQueryTimeout = 5 * time.Second
 	readWriteTimeout     = 2 * time.Second
 	defaultSlowThreshold = time.Millisecond * 100
+	defaultPingTimeout   = time.Second
 )
 
 var (
@@ -51,11 +53,12 @@ type (
 
 	// Redis defines a redis node/cluster. It is thread-safe.
 	Redis struct {
-		Addr string
-		Type string
-		Pass string
-		tls  bool
-		brk  breaker.Breaker
+		Addr  string
+		Type  string
+		Pass  string
+		tls   bool
+		brk   breaker.Breaker
+		hooks []red.Hook
 	}
 
 	// RedisNode interface represents a redis node.
@@ -84,6 +87,8 @@ type (
 	FloatCmd = red.FloatCmd
 	// StringCmd is an alias of redis.StringCmd.
 	StringCmd = red.StringCmd
+	// Script is an alias of redis.Script.
+	Script = red.Script
 )
 
 // New returns a Redis with given options.
@@ -119,8 +124,10 @@ func NewRedis(conf RedisConf, opts ...Option) (*Redis, error) {
 	}
 
 	rds := newRedis(conf.Host, opts...)
-	if !rds.Ping() {
-		return nil, ErrPing
+	if !conf.NonBlock {
+		if err := rds.checkConnection(conf.PingTimeout); err != nil {
+			return nil, errorx.Wrap(err, fmt.Sprintf("redis connect error, addr: %s", conf.Host))
+		}
 	}
 
 	return rds, nil
@@ -138,6 +145,11 @@ func newRedis(addr string, opts ...Option) *Redis {
 	}
 
 	return r
+}
+
+// NewScript returns a new Script instance.
+func NewScript(script string) *Script {
+	return red.NewScript(script)
 }
 
 // BitCount is redis bitcount command implementation.
@@ -1625,6 +1637,25 @@ func (s *Redis) ScriptLoadCtx(ctx context.Context, script string) (string, error
 	return conn.ScriptLoad(ctx, script).Result()
 }
 
+// ScriptRun is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRun(script *Script, keys []string, args ...any) (any, error) {
+	return s.ScriptRunCtx(context.Background(), script, keys, args...)
+}
+
+// ScriptRunCtx is the implementation of *redis.Script run command.
+func (s *Redis) ScriptRunCtx(ctx context.Context, script *Script, keys []string, args ...any) (val any, err error) {
+	err = s.brk.DoWithAcceptable(func() error {
+		conn, err := getRedis(s)
+		if err != nil {
+			return err
+		}
+
+		val, err = script.Run(ctx, conn, keys, args...).Result()
+		return err
+	}, acceptable)
+	return
+}
+
 // Set is the implementation of redis set command.
 func (s *Redis) Set(key, value string) error {
 	return s.SetCtx(context.Background(), key, value)
@@ -2769,6 +2800,23 @@ func (s *Redis) ZunionstoreCtx(ctx context.Context, dest string, store *ZStore) 
 	return
 }
 
+func (s *Redis) checkConnection(pingTimeout time.Duration) error {
+	conn, err := getRedis(s)
+	if err != nil {
+		return err
+	}
+
+	timeout := defaultPingTimeout
+	if pingTimeout > 0 {
+		timeout = pingTimeout
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	return conn.Ping(ctx).Err()
+}
+
 // Cluster customizes the given Redis as a cluster.
 func Cluster() Option {
 	return func(r *Redis) {
@@ -2792,6 +2840,14 @@ func WithPass(pass string) Option {
 func WithTLS() Option {
 	return func(r *Redis) {
 		r.tls = true
+	}
+}
+
+// withHook customizes the given Redis with given hook, only for private use now,
+// maybe expose later.
+func withHook(hook red.Hook) Option {
+	return func(r *Redis) {
+		r.hooks = append(r.hooks, hook)
 	}
 }
 
