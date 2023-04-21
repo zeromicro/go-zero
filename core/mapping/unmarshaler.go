@@ -881,6 +881,9 @@ func (u *Unmarshaler) unmarshalWithFullName(m valuerWithParent, v any, fullName 
 		typeField := baseType.Field(i)
 		valueField := valElem.Field(i)
 		if err := u.processField(typeField, valueField, m, fullName); err != nil {
+			if fullName != "" {
+				err = fmt.Errorf("%s, fullName :%s, typeField :%s, valueField :%s", err.Error(), fullName, typeField.Name, valueField.Type())
+			}
 			return err
 		}
 	}

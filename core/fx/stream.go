@@ -292,6 +292,18 @@ func (s Stream) Map(fn MapFunc, opts ...Option) Stream {
 	}, opts...)
 }
 
+// Max returns the maximum item from the underlying source.
+func (s Stream) Max(less LessFunc) any {
+	var max any
+	for item := range s.source {
+		if max == nil || less(max, item) {
+			max = item
+		}
+	}
+
+	return max
+}
+
 // Merge merges all the items into a slice and generates a new stream.
 func (s Stream) Merge() Stream {
 	var items []any
@@ -304,6 +316,18 @@ func (s Stream) Merge() Stream {
 	close(source)
 
 	return Range(source)
+}
+
+// Min returns the minimum item from the underlying source.
+func (s Stream) Min(less LessFunc) any {
+	var min any
+	for item := range s.source {
+		if min == nil || less(item, min) {
+			min = item
+		}
+	}
+
+	return min
 }
 
 // NoneMatch returns whether all elements of this stream don't match the provided predicate.
