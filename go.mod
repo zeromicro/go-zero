@@ -15,7 +15,7 @@ require (
 	github.com/jhump/protoreflect v1.15.1
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/pelletier/go-toml/v2 v2.0.7
-	github.com/prometheus/client_golang v1.14.0
+	github.com/prometheus/client_golang v1.15.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.8.2
 	go.etcd.io/etcd/api/v3 v3.5.8
