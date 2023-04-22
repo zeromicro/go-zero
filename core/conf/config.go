@@ -73,7 +73,7 @@ func LoadConfig(file string, v any, opts ...Option) error {
 
 // LoadFromJsonBytes loads config into v from content json bytes.
 func LoadFromJsonBytes(content []byte, v any) error {
-	info, err := buildFieldsInfo(reflect.TypeOf(v))
+	info, err := buildFieldsInfo(reflect.TypeOf(v), "")
 	if err != nil {
 		return err
 	}
@@ -127,13 +127,13 @@ func MustLoad(path string, v any, opts ...Option) {
 	}
 }
 
-func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
+func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo, fullName string) error {
 	if prev, ok := info.children[key]; ok {
 		if child.mapField != nil {
-			return newConflictKeyError(key)
+			return newConflictKeyError(fullName)
 		}
 
-		if err := mergeFields(prev, key, child.children); err != nil {
+		if err := mergeFields(prev, key, child.children, fullName); err != nil {
 			return err
 		}
 	} else {
@@ -143,27 +143,27 @@ func addOrMergeFields(info *fieldInfo, key string, child *fieldInfo) error {
 	return nil
 }
 
-func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
 	switch ft.Kind() {
 	case reflect.Struct:
-		fields, err := buildFieldsInfo(ft)
+		fields, err := buildFieldsInfo(ft, fullName)
 		if err != nil {
 			return err
 		}
 
 		for k, v := range fields.children {
-			if err = addOrMergeFields(info, k, v); err != nil {
+			if err = addOrMergeFields(info, k, v, fullName); err != nil {
 				return err
 			}
 		}
 	case reflect.Map:
-		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		elemField, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
 		if err != nil {
 			return err
 		}
 
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newConflictKeyError(lowerCaseName)
+			return newConflictKeyError(fullName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -172,7 +172,7 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 		}
 	default:
 		if _, ok := info.children[lowerCaseName]; ok {
-			return newConflictKeyError(lowerCaseName)
+			return newConflictKeyError(fullName)
 		}
 
 		info.children[lowerCaseName] = &fieldInfo{
@@ -183,14 +183,14 @@ func buildAnonymousFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.T
 	return nil
 }
 
-func buildFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
+func buildFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	tp = mapping.Deref(tp)
 
 	switch tp.Kind() {
 	case reflect.Struct:
-		return buildStructFieldsInfo(tp)
+		return buildStructFieldsInfo(tp, fullName)
 	case reflect.Array, reflect.Slice:
-		return buildFieldsInfo(mapping.Deref(tp.Elem()))
+		return buildFieldsInfo(mapping.Deref(tp.Elem()), fullName)
 	case reflect.Chan, reflect.Func:
 		return nil, fmt.Errorf("unsupported type: %s", tp.Kind())
 	default:
@@ -200,23 +200,23 @@ func buildFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 	}
 }
 
-func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type) error {
+func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type, fullName string) error {
 	var finfo *fieldInfo
 	var err error
 
 	switch ft.Kind() {
 	case reflect.Struct:
-		finfo, err = buildFieldsInfo(ft)
+		finfo, err = buildFieldsInfo(ft, fullName)
 		if err != nil {
 			return err
 		}
 	case reflect.Array, reflect.Slice:
-		finfo, err = buildFieldsInfo(ft.Elem())
+		finfo, err = buildFieldsInfo(ft.Elem(), fullName)
 		if err != nil {
 			return err
 		}
 	case reflect.Map:
-		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()))
+		elemInfo, err := buildFieldsInfo(mapping.Deref(ft.Elem()), fullName)
 		if err != nil {
 			return err
 		}
@@ -226,16 +226,16 @@ func buildNamedFieldInfo(info *fieldInfo, lowerCaseName string, ft reflect.Type)
 			mapField: elemInfo,
 		}
 	default:
-		finfo, err = buildFieldsInfo(ft)
+		finfo, err = buildFieldsInfo(ft, fullName)
 		if err != nil {
 			return err
 		}
 	}
 
-	return addOrMergeFields(info, lowerCaseName, finfo)
+	return addOrMergeFields(info, lowerCaseName, finfo, fullName)
 }
 
-func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
+func buildStructFieldsInfo(tp reflect.Type, fullName string) (*fieldInfo, error) {
 	info := &fieldInfo{
 		children: make(map[string]*fieldInfo),
 	}
@@ -251,10 +251,12 @@ func buildStructFieldsInfo(tp reflect.Type) (*fieldInfo, error) {
 		ft := mapping.Deref(field.Type)
 		// flatten anonymous fields
 		if field.Anonymous {
-			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft); err != nil {
+			if err := buildAnonymousFieldInfo(info, lowerCaseName, ft,
+				getFullName(fullName, lowerCaseName)); err != nil {
 				return nil, err
 			}
-		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft); err != nil {
+		} else if err := buildNamedFieldInfo(info, lowerCaseName, ft,
+			getFullName(fullName, lowerCaseName)); err != nil {
 			return nil, err
 		}
 	}
@@ -279,15 +281,15 @@ func getTagName(field reflect.StructField) string {
 	return field.Name
 }
 
-func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo) error {
+func mergeFields(prev *fieldInfo, key string, children map[string]*fieldInfo, fullName string) error {
 	if len(prev.children) == 0 || len(children) == 0 {
-		return newConflictKeyError(key)
+		return newConflictKeyError(fullName)
 	}
 
 	// merge fields
 	for k, v := range children {
 		if _, ok := prev.children[k]; ok {
-			return newConflictKeyError(k)
+			return newConflictKeyError(fullName)
 		}
 
 		prev.children[k] = v
@@ -348,4 +350,12 @@ func newConflictKeyError(key string) conflictKeyError {
 
 func (e conflictKeyError) Error() string {
 	return fmt.Sprintf("conflict key %s, pay attention to anonymous fields", e.key)
+}
+
+func getFullName(parent, child string) string {
+	if parent == "" {
+		return child
+	}
+
+	return strings.Join([]string{parent, child}, ".")
 }
