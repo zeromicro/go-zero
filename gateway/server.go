@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/fullstorydev/grpcurl"
 	"github.com/golang/protobuf/jsonpb"
@@ -17,7 +16,6 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
 )
 
 type (
@@ -26,7 +24,6 @@ type (
 		c GatewayConf
 		*rest.Server
 		upstreams     []*upstream
-		timeout       time.Duration
 		processHeader func(http.Header) []string
 	}
 
@@ -42,9 +39,8 @@ type (
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
-		c:       c,
-		Server:  rest.MustNewServer(c.RestConf),
-		timeout: time.Duration(c.Timeout) * time.Millisecond,
+		c:      c,
+		Server: rest.MustNewServer(c.RestConf),
 	}
 	for _, opt := range opts {
 		opt(svr)
@@ -68,6 +64,7 @@ func (s *Server) build() error {
 	if err := s.buildClient(); err != nil {
 		return err
 	}
+
 	return s.buildUpstream()
 }
 
@@ -84,7 +81,9 @@ func (s *Server) buildClient() error {
 		target, err := up.Grpc.BuildTarget()
 		if err != nil {
 			cancel(err)
+			return
 		}
+
 		up.Name = target
 		cli := zrpc.MustNewClient(up.Grpc)
 		writer.Write(&upstream{
@@ -160,13 +159,9 @@ func (s *Server) buildHandler(source grpcurl.DescriptorSource, resolver jsonpb.A
 			return
 		}
 
-		timeout := internal.GetTimeout(r.Header, s.timeout)
-		ctx, can := context.WithTimeout(r.Context(), timeout)
-		defer can()
-
 		w.Header().Set(httpx.ContentType, httpx.JsonContentType)
 		handler := internal.NewEventHandler(w, resolver)
-		if err := grpcurl.InvokeRPC(ctx, source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
+		if err := grpcurl.InvokeRPC(r.Context(), source, cli.Conn(), rpcPath, s.prepareMetadata(r.Header),
 			handler, parser.Next); err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		}
@@ -188,8 +183,7 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 			return nil, err
 		}
 	} else {
-		refCli := grpc_reflection_v1alpha.NewServerReflectionClient(cli.Conn())
-		client := grpcreflect.NewClient(context.Background(), refCli)
+		client := grpcreflect.NewClientAuto(context.Background(), cli.Conn())
 		source = grpcurl.DescriptorSourceFromServer(context.Background(), client)
 	}
 
