@@ -70,9 +70,7 @@ func TestTokenLimit_Rescue(t *testing.T) {
 }
 
 func TestTokenLimit_Take(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	const (
 		total = 100
@@ -92,9 +90,7 @@ func TestTokenLimit_Take(t *testing.T) {
 }
 
 func TestTokenLimit_TakeBurst(t *testing.T) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	const (
 		total = 100

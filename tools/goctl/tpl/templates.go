@@ -11,6 +11,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen"
 	apinew "github.com/zeromicro/go-zero/tools/goctl/api/new"
 	"github.com/zeromicro/go-zero/tools/goctl/docker"
+	"github.com/zeromicro/go-zero/tools/goctl/gateway"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
 	mongogen "github.com/zeromicro/go-zero/tools/goctl/model/mongo/generate"
 	modelgen "github.com/zeromicro/go-zero/tools/goctl/model/sql/gen"
@@ -51,6 +52,9 @@ func genTemplates(_ *cobra.Command, _ []string) error {
 		},
 		func() error {
 			return apinew.GenTemplates()
+		},
+		func() error {
+			return gateway.GenTemplates()
 		},
 	); err != nil {
 		return err
@@ -104,6 +108,9 @@ func cleanTemplates(_ *cobra.Command, _ []string) error {
 		func() error {
 			return apinew.Clean()
 		},
+		func() error {
+			return gateway.Clean()
+		},
 	)
 	if err != nil {
 		return err
@@ -144,6 +151,8 @@ func updateTemplates(_ *cobra.Command, _ []string) (err error) {
 		return apigen.Update()
 	case apinew.Category():
 		return apinew.Update()
+	case gateway.Category():
+		return gateway.Update()
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return
@@ -181,6 +190,8 @@ func revertTemplates(_ *cobra.Command, _ []string) (err error) {
 		return apigen.RevertTemplate(filename)
 	case apinew.Category():
 		return apinew.RevertTemplate(filename)
+	case gateway.Category():
+		return gateway.RevertTemplate(filename)
 	default:
 		err = fmt.Errorf("unexpected category: %s", category)
 		return

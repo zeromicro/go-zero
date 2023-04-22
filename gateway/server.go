@@ -38,6 +38,7 @@ func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
 		Server:    rest.MustNewServer(c.RestConf),
 		upstreams: c.Upstreams,
+		timeout:   time.Duration(c.Timeout) * time.Millisecond,
 	}
 	for _, opt := range opts {
 		opt(svr)
