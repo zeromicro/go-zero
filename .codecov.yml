@@ -4,3 +4,4 @@ comment:
   require_changes: true
 ignore:
   - "tools"
+  - "internal/mock"

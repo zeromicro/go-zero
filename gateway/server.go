@@ -23,22 +23,28 @@ import (
 type (
 	// Server is a gateway server.
 	Server struct {
+		c GatewayConf
 		*rest.Server
-		upstreams     []Upstream
+		upstreams     []*upstream
 		timeout       time.Duration
 		processHeader func(http.Header) []string
 	}
 
 	// Option defines the method to customize Server.
 	Option func(svr *Server)
+
+	upstream struct {
+		Upstream
+		client zrpc.Client
+	}
 )
 
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
-		Server:    rest.MustNewServer(c.RestConf),
-		upstreams: c.Upstreams,
-		timeout:   time.Duration(c.Timeout) * time.Millisecond,
+		c:       c,
+		Server:  rest.MustNewServer(c.RestConf),
+		timeout: time.Duration(c.Timeout) * time.Millisecond,
 	}
 	for _, opt := range opts {
 		opt(svr)
@@ -59,17 +65,47 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) build() error {
+	if err := s.buildClient(); err != nil {
+		return err
+	}
+	return s.buildUpstream()
+}
+
+func (s *Server) buildClient() error {
 	if err := s.ensureUpstreamNames(); err != nil {
 		return err
 	}
 
 	return mr.MapReduceVoid(func(source chan<- Upstream) {
+		for _, up := range s.c.Upstreams {
+			source <- up
+		}
+	}, func(up Upstream, writer mr.Writer[*upstream], cancel func(error)) {
+		target, err := up.Grpc.BuildTarget()
+		if err != nil {
+			cancel(err)
+		}
+		up.Name = target
+		cli := zrpc.MustNewClient(up.Grpc)
+		writer.Write(&upstream{
+			Upstream: up,
+			client:   cli,
+		})
+	}, func(pipe <-chan *upstream, cancel func(error)) {
+		for up := range pipe {
+			s.upstreams = append(s.upstreams, up)
+		}
+	})
+}
+
+func (s *Server) buildUpstream() error {
+	return mr.MapReduceVoid(func(source chan<- *upstream) {
 		for _, up := range s.upstreams {
 			source <- up
 		}
-	}, func(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
-		cli := zrpc.MustNewClient(up.Grpc)
-		source, err := s.createDescriptorSource(cli, up)
+	}, func(up *upstream, writer mr.Writer[rest.Route], cancel func(error)) {
+		cli := up.client
+		source, err := s.createDescriptorSource(cli, up.Upstream)
 		if err != nil {
 			cancel(fmt.Errorf("%s: %w", up.Name, err))
 			return
@@ -161,7 +197,7 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 }
 
 func (s *Server) ensureUpstreamNames() error {
-	for _, up := range s.upstreams {
+	for _, up := range s.c.Upstreams {
 		target, err := up.Grpc.BuildTarget()
 		if err != nil {
 			return err
