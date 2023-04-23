@@ -65,13 +65,6 @@ func (s *Server) build() error {
 			source <- up
 		}
 	}, func(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
-		target, err := up.Grpc.BuildTarget()
-		if err != nil {
-			cancel(err)
-			return
-		}
-
-		up.Name = target
 		var cli zrpc.Client
 		if s.dialer != nil {
 			cli = s.dialer(up.Grpc)
