@@ -29,11 +29,6 @@ type (
 
 	// Option defines the method to customize Server.
 	Option func(svr *Server)
-
-	upstream struct {
-		Upstream
-		client zrpc.Client
-	}
 )
 
 // MustNewServer creates a new gateway server.
