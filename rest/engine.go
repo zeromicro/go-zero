@@ -290,14 +290,13 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chai
 
 		decrypters[fingerprint] = decrypter
 	}
-
 	return func(chn chain.Chain) chain.Chain {
+		var unsignedCallbacks []handler.UnsignedCallback
 		if ng.unsignedCallback != nil {
-			return chn.Append(handler.ContentSecurityHandler(
-				decrypters, signature.Expiry, signature.Strict, ng.unsignedCallback))
+			unsignedCallbacks = append(unsignedCallbacks, ng.unsignedCallback)
 		}
 
-		return chn.Append(handler.ContentSecurityHandler(decrypters, signature.Expiry, signature.Strict))
+		return chn.Append(handler.LimitContentSecurityHandler(ng.conf.MaxBytes, decrypters, signature.Expiry, signature.Strict, unsignedCallbacks))
 	}, nil
 }
 
