@@ -197,7 +197,12 @@ func Must(err error) {
 	msg := err.Error()
 	log.Print(msg)
 	getWriter().Severe(msg)
-	os.Exit(1)
+
+	if ExitOnFatal.True() {
+		os.Exit(1)
+	} else {
+		panic(msg)
+	}
 }
 
 // MustSetup sets up logging with given config c. It exits on error.

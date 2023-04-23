@@ -23,7 +23,7 @@
 >
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 >
-> `goctl migrate —verbose —version v1.4.3`
+> `goctl migrate —verbose —version v1.5.0`
 
 ## 0. go-zero 介绍
 
@@ -119,28 +119,25 @@ GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro
     `goctl` 读作 `go control`，不要读成 `go C-T-L`。`goctl` 的意思是不要被代码控制，而是要去控制它。其中的 `go` 不是指 `golang`。在设计 `goctl` 之初，我就希望通过 `工具` 来解放我们的双手👈
 
     ```shell
-    # Go 1.15 及之前版本
-    GO111MODULE=on GOPROXY=https://goproxy.cn/,direct go get -u github.com/zeromicro/go-zero/tools/goctl@latest
-
-    # Go 1.16 及以后版本
+    # Go
     GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest
-
+    
     # For Mac
     brew install goctl
-
+    
     # docker for amd64 architecture
     docker pull kevinwan/goctl
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl goctl --help
-
+    
     # docker for arm64 (M1) architecture
     docker pull kevinwan/goctl:latest-arm64
     # run goctl like
     docker run --rm -it -v `pwd`:/app kevinwan/goctl:latest-arm64 goctl --help
     ```
-
+    
     确保 goctl 可执行
-
+    
 2. 快速生成 api 服务
 
     ```shell
@@ -301,6 +298,8 @@ go-zero 已被许多公司用于生产部署，接入场景如在线教育、电
 >86. 中国移动上海产业研究院
 >87. 天枢数链（浙江）科技有限公司
 >88. 北京娱人共享智能科技有限公司
+>89. 北京数智方科技有限公司
+>90. 元匠科技
 
 如果贵公司也已使用 go-zero，欢迎在 [登记地址](https://github.com/zeromicro/go-zero/issues/602) 登记，仅仅为了推广，不做其它用途。
 

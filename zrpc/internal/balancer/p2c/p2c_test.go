@@ -123,6 +123,15 @@ func TestP2cPicker_Pick(t *testing.T) {
 	}
 }
 
+func TestPickerWithEmptyConns(t *testing.T) {
+	var picker p2cPicker
+	_, err := picker.Pick(balancer.PickInfo{
+		FullMethodName: "/",
+		Ctx:            context.Background(),
+	})
+	assert.ErrorIs(t, err, balancer.ErrNoSubConnAvailable)
+}
+
 type mockClientConn struct {
 	// add random string member to avoid map key equality.
 	id string

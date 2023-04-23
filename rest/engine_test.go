@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -41,18 +42,21 @@ func TestNewEngine(t *testing.T) {
 
 	yamls := []string{
 		`Name: foo
-Port: 54321
+Host: localhost
+Port: 0
 Middlewares:
   Log: false
 `,
 		`Name: foo
-Port: 54321
+Host: localhost
+Port: 0
 CpuThreshold: 500
 Middlewares:
   Log: false
 `,
 		`Name: foo
-Port: 54321
+Host: localhost
+Port: 0
 CpuThreshold: 500
 Verbose: true
 `,
@@ -197,26 +201,29 @@ Verbose: true
 	}
 
 	for _, yaml := range yamls {
+		yaml := yaml
 		for _, route := range routes {
-			var cnf RestConf
-			assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
-			ng := newEngine(cnf)
-			ng.setUnauthorizedCallback(func(w http.ResponseWriter, r *http.Request, err error) {
-			})
-			ng.setUnsignedCallback(func(w http.ResponseWriter, r *http.Request, next http.Handler, strict bool, code int) {
-			})
-			ng.addRoutes(route)
-			ng.use(func(next http.HandlerFunc) http.HandlerFunc {
-				return func(w http.ResponseWriter, r *http.Request) {
-					next.ServeHTTP(w, r)
+			route := route
+			t.Run(fmt.Sprintf("%s-%v", yaml, route.routes), func(t *testing.T) {
+				var cnf RestConf
+				assert.Nil(t, conf.LoadFromYamlBytes([]byte(yaml), &cnf))
+				ng := newEngine(cnf)
+				ng.addRoutes(route)
+				ng.use(func(next http.HandlerFunc) http.HandlerFunc {
+					return func(w http.ResponseWriter, r *http.Request) {
+						next.ServeHTTP(w, r)
+					}
+				})
+
+				assert.NotNil(t, ng.start(mockedRouter{}, func(svr *http.Server) {
+				}))
+
+				timeout := time.Second * 3
+				if route.timeout > timeout {
+					timeout = route.timeout
 				}
+				assert.Equal(t, timeout, ng.timeout)
 			})
-			assert.NotNil(t, ng.start(mockedRouter{}))
-			timeout := time.Second * 3
-			if route.timeout > timeout {
-				timeout = route.timeout
-			}
-			assert.Equal(t, timeout, ng.timeout)
 		}
 	}
 }
@@ -391,7 +398,8 @@ func TestEngine_withTimeout(t *testing.T) {
 	}
 }
 
-type mockedRouter struct{}
+type mockedRouter struct {
+}
 
 func (m mockedRouter) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {
 }

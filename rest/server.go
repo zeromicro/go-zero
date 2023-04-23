@@ -2,7 +2,6 @@ package rest
 
 import (
 	"crypto/tls"
-	"log"
 	"net/http"
 	"path"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/handler"
 	"github.com/zeromicro/go-zero/rest/httpx"
+	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
 	"github.com/zeromicro/go-zero/rest/router"
 )
@@ -18,6 +18,9 @@ import (
 type (
 	// RunOption defines the method to customize a Server.
 	RunOption func(*Server)
+
+	// StartOption defines the method to customize http server.
+	StartOption = internal.StartOption
 
 	// A Server is a http server.
 	Server struct {
@@ -32,7 +35,7 @@ type (
 func MustNewServer(c RestConf, opts ...RunOption) *Server {
 	server, err := NewServer(c, opts...)
 	if err != nil {
-		log.Fatal(err)
+		logx.Must(err)
 	}
 
 	return server
@@ -114,6 +117,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
 func (s *Server) Start() {
 	handleError(s.ngin.start(s.router))
+}
+
+// StartWithOpts starts the Server.
+// Graceful shutdown is enabled by default.
+// Use proc.SetTimeToForceQuit to customize the graceful shutdown period.
+func (s *Server) StartWithOpts(opts ...StartOption) {
+	handleError(s.ngin.start(s.router, opts...))
 }
 
 // Stop stops the Server.

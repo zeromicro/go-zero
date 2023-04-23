@@ -354,6 +354,14 @@ func TestParseWithValidatorWithError(t *testing.T) {
 	assert.Error(t, Parse(r, &v))
 }
 
+func TestParseWithValidatorRequest(t *testing.T) {
+	SetValidator(mockValidator{})
+	var v mockRequest
+	r, err := http.NewRequest(http.MethodGet, "/a?&age=18", http.NoBody)
+	assert.Nil(t, err)
+	assert.Error(t, Parse(r, &v))
+}
+
 func BenchmarkParseRaw(b *testing.B) {
 	r, err := http.NewRequest(http.MethodGet, "http://hello.com/a?name=hello&age=18&percent=3.4", http.NoBody)
 	if err != nil {
@@ -406,6 +414,18 @@ func (m mockValidator) Validate(r *http.Request, data any) error {
 		if val != "hello" {
 			return errors.New("name is not hello")
 		}
+	}
+
+	return nil
+}
+
+type mockRequest struct {
+	Name string `json:"name,optional"`
+}
+
+func (m mockRequest) Validate() error {
+	if m.Name != "hello" {
+		return errors.New("name is not hello")
 	}
 
 	return nil

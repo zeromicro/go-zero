@@ -72,7 +72,7 @@ type p2cPicker struct {
 	lock  sync.Mutex
 }
 
-func (p *p2cPicker) Pick(info balancer.PickInfo) (balancer.PickResult, error) {
+func (p *p2cPicker) Pick(_ balancer.PickInfo) (balancer.PickResult, error) {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 

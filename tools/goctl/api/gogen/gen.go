@@ -158,7 +158,7 @@ func sweep() error {
 
 			tm := time.Unix(seconds, 0)
 			if tm.Before(keepTime) {
-				if err := os.Remove(fpath); err != nil {
+				if err := os.RemoveAll(fpath); err != nil {
 					fmt.Println(aurora.Red(fmt.Sprintf("failed to remove file: %s", fpath)))
 					return err
 				}

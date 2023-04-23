@@ -82,5 +82,9 @@ func genApi(dir, pkg string, api *spec.ApiSpec) error {
 	if e != nil {
 		return e
 	}
-	return t.Execute(file, api)
+	type data struct {
+		*spec.ApiSpec
+		Pkg string
+	}
+	return t.Execute(file, data{api, pkg})
 }

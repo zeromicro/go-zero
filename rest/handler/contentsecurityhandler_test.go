@@ -379,8 +379,7 @@ func createTempFile(body []byte) (string, error) {
 	}
 
 	tmpFile.Close()
-	err = os.WriteFile(tmpFile.Name(), body, os.ModePerm)
-	if err != nil {
+	if err = os.WriteFile(tmpFile.Name(), body, os.ModePerm); err != nil {
 		return "", err
 	}
 

@@ -77,12 +77,19 @@ func checkAndSetHeaders(w http.ResponseWriter, r *http.Request, origins []string
 }
 
 func isOriginAllowed(allows []string, origin string) bool {
-	for _, o := range allows {
-		if o == allOrigins {
+	origin = strings.ToLower(origin)
+
+	for _, allow := range allows {
+		if allow == allOrigins {
 			return true
 		}
 
-		if strings.HasSuffix(origin, o) {
+		allow = strings.ToLower(allow)
+		if origin == allow {
+			return true
+		}
+
+		if strings.HasSuffix(origin, "."+allow) {
 			return true
 		}
 	}
