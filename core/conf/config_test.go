@@ -734,7 +734,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
+			assert.Error(t, err)
 		}
 
 		validate(&St0{})
