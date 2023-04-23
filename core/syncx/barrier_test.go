@@ -24,7 +24,7 @@ func TestBarrier_Guard(t *testing.T) {
 }
 
 func TestBarrierPtr_Guard(t *testing.T) {
-	const total = 1000
+	const total = 10000
 	barrier := new(Barrier)
 	var count int
 	wg := new(sync.WaitGroup)
@@ -40,7 +40,7 @@ func TestBarrierPtr_Guard(t *testing.T) {
 }
 
 func TestGuard(t *testing.T) {
-	const total = 1000
+	const total = 10000
 	var count int
 	var lock sync.Mutex
 	wg := new(sync.WaitGroup)
