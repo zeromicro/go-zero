@@ -49,39 +49,36 @@ func TestMustNewServer(t *testing.T) {
 	c.Host = "localhost"
 	c.Port = 18881
 
-	s := MustNewServer(c)
-	s.upstreams = []*upstream{
+	s := MustNewServer(c, withDialer(func(conf zrpc.RpcClientConf) zrpc.Client {
+		return zrpc.MustNewClient(conf, zrpc.WithDialOption(grpc.WithContextDialer(dialer())))
+	}))
+	s.upstreams = []Upstream{
 		{
-			Upstream: Upstream{
-				Mappings: []RouteMapping{
-					{
-						Method:  "get",
-						Path:    "/deposit/:amount",
-						RpcPath: "mock.DepositService/Deposit",
-					},
+			Mappings: []RouteMapping{
+				{
+					Method:  "get",
+					Path:    "/deposit/:amount",
+					RpcPath: "mock.DepositService/Deposit",
 				},
 			},
-			client: zrpc.MustNewClient(
-				zrpc.RpcClientConf{
-					Endpoints: []string{"foo"},
-					Timeout:   1000,
-					Middlewares: zrpc.ClientMiddlewaresConf{
-						Trace:      true,
-						Duration:   true,
-						Prometheus: true,
-						Breaker:    true,
-						Timeout:    true,
-					},
+			Grpc: zrpc.RpcClientConf{
+				Endpoints: []string{"foo"},
+				Timeout:   1000,
+				Middlewares: zrpc.ClientMiddlewaresConf{
+					Trace:      true,
+					Duration:   true,
+					Prometheus: true,
+					Breaker:    true,
+					Timeout:    true,
 				},
-				zrpc.WithDialOption(grpc.WithContextDialer(dialer())),
-			),
+			},
 		},
 	}
 
-	assert.NoError(t, s.buildUpstream())
+	assert.NoError(t, s.build())
 	go s.Server.Start()
 
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 200)
 
 	resp, err := httpc.Do(context.Background(), http.MethodGet, "http://localhost:18881/deposit/100", nil)
 	assert.NoError(t, err)
@@ -90,4 +87,19 @@ func TestMustNewServer(t *testing.T) {
 	resp, err = httpc.Do(context.Background(), http.MethodGet, "http://localhost:18881/deposit_fail/100", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+}
+
+func TestServer_ensureUpstreamNames(t *testing.T) {
+	var s = Server{
+		upstreams: []Upstream{
+			{
+				Grpc: zrpc.RpcClientConf{
+					Target: "target",
+				},
+			},
+		},
+	}
+
+	assert.NoError(t, s.ensureUpstreamNames())
+	assert.Equal(t, "target", s.upstreams[0].Name)
 }
