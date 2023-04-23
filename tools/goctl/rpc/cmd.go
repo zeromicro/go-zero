@@ -51,6 +51,7 @@ func init() {
 	protocCmdFlags.StringSliceVar(&cli.VarStringSliceGoGRPCOpt, "go-grpc_opt")
 	protocCmdFlags.StringSliceVar(&cli.VarStringSlicePlugin, "plugin")
 	protocCmdFlags.StringSliceVarP(&cli.VarStringSliceProtoPath, "proto_path", "I")
+	protocCmdFlags.StringVar(&cli.VarStringStyle, "style")
 	protocCmdFlags.StringVar(&cli.VarStringZRPCOut, "zrpc_out")
 	protocCmdFlags.StringVar(&cli.VarStringHome, "home")
 	protocCmdFlags.StringVar(&cli.VarStringRemote, "remote")

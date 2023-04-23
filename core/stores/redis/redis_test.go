@@ -240,6 +240,24 @@ func TestRedis_Eval(t *testing.T) {
 	})
 }
 
+func TestRedis_ScriptRun(t *testing.T) {
+	runOnRedis(t, func(client *Redis) {
+		sc := NewScript(`redis.call("EXISTS", KEYS[1])`)
+		sc2 := NewScript(`return redis.call("EXISTS", KEYS[1])`)
+		_, err := New(client.Addr, badType()).ScriptRun(sc, []string{"notexist"})
+		assert.NotNil(t, err)
+		_, err = client.ScriptRun(sc, []string{"notexist"})
+		assert.Equal(t, Nil, err)
+		err = client.Set("key1", "value1")
+		assert.Nil(t, err)
+		_, err = client.ScriptRun(sc, []string{"key1"})
+		assert.Equal(t, Nil, err)
+		val, err := client.ScriptRun(sc2, []string{"key1"})
+		assert.Nil(t, err)
+		assert.Equal(t, int64(1), val)
+	})
+}
+
 func TestRedis_GeoHash(t *testing.T) {
 	runOnRedis(t, func(client *Redis) {
 		_, err := client.GeoHash("parent", "child1", "child2")

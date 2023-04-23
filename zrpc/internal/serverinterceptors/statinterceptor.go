@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/collection"
 	"github.com/zeromicro/go-zero/core/lang"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stat"
@@ -18,22 +19,33 @@ import (
 const defaultSlowThreshold = time.Millisecond * 500
 
 var (
-	notLoggingContentMethods sync.Map
-	slowThreshold            = syncx.ForAtomicDuration(defaultSlowThreshold)
+	ignoreContentMethods sync.Map
+	slowThreshold        = syncx.ForAtomicDuration(defaultSlowThreshold)
 )
 
+// StatConf defines the static configuration for stat interceptor.
+type StatConf struct {
+	SlowThreshold        time.Duration `json:",default=500ms"`
+	IgnoreContentMethods []string      `json:",optional"`
+}
+
 // DontLogContentForMethod disable logging content for given method.
+// Deprecated: use StatConf instead.
 func DontLogContentForMethod(method string) {
-	notLoggingContentMethods.Store(method, lang.Placeholder)
+	ignoreContentMethods.Store(method, lang.Placeholder)
 }
 
 // SetSlowThreshold sets the slow threshold.
+// Deprecated: use StatConf instead.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)
 }
 
 // UnaryStatInterceptor returns a func that uses given metrics to report stats.
-func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
+func UnaryStatInterceptor(metrics *stat.Metrics, conf StatConf) grpc.UnaryServerInterceptor {
+	staticNotLoggingContentMethods := collection.NewSet()
+	staticNotLoggingContentMethods.AddStr(conf.IgnoreContentMethods...)
+
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler) (resp any, err error) {
 		startTime := timex.Now()
@@ -42,14 +54,21 @@ func UnaryStatInterceptor(metrics *stat.Metrics) grpc.UnaryServerInterceptor {
 			metrics.Add(stat.Task{
 				Duration: duration,
 			})
-			logDuration(ctx, info.FullMethod, req, duration)
+			logDuration(ctx, info.FullMethod, req, duration,
+				staticNotLoggingContentMethods, conf.SlowThreshold)
 		}()
 
 		return handler(ctx, req)
 	}
 }
 
-func logDuration(ctx context.Context, method string, req any, duration time.Duration) {
+func isSlow(duration, durationThreshold time.Duration) bool {
+	return duration > slowThreshold.Load() ||
+		(durationThreshold > 0 && duration > durationThreshold)
+}
+
+func logDuration(ctx context.Context, method string, req any, duration time.Duration,
+	ignoreMethods *collection.Set, durationThreshold time.Duration) {
 	var addr string
 	client, ok := peer.FromContext(ctx)
 	if ok {
@@ -57,9 +76,8 @@ func logDuration(ctx context.Context, method string, req any, duration time.Dura
 	}
 
 	logger := logx.WithContext(ctx).WithDuration(duration)
-	_, ok = notLoggingContentMethods.Load(method)
-	if ok {
-		if duration > slowThreshold.Load() {
+	if !shouldLogContent(method, ignoreMethods) {
+		if isSlow(duration, durationThreshold) {
 			logger.Slowf("[RPC] slowcall - %s - %s", addr, method)
 		}
 	} else {
@@ -72,4 +90,9 @@ func logDuration(ctx context.Context, method string, req any, duration time.Dura
 			logger.Infof("%s - %s - %s", addr, method, string(content))
 		}
 	}
+}
+
+func shouldLogContent(method string, ignoreMethods *collection.Set) bool {
+	_, ok := ignoreContentMethods.Load(method)
+	return !ok && !ignoreMethods.Contains(method)
 }

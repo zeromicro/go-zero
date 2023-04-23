@@ -108,7 +108,7 @@ func (g *Generator) genCallGroup(ctx DirContext, proto parser.Proto, cfg *conf.C
 			"name":           callFilename,
 			"alias":          strings.Join(aliasKeys, pathx.NL),
 			"head":           head,
-			"filePackage":    dir.Base,
+			"filePackage":    childDir,
 			"pbPackage":      pbPackage,
 			"protoGoPackage": protoGoPackage,
 			"serviceName":    serviceName,

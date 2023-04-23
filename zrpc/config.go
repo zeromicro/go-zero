@@ -17,6 +17,8 @@ type (
 	ServerMiddlewaresConf = internal.ServerMiddlewaresConf
 	// ServerSpecifiedTimeoutConf defines specified timeout for gRPC method.
 	ServerSpecifiedTimeoutConf = internal.ServerSpecifiedTimeoutConf
+	// StatConf defines the stat config.
+	StatConf = internal.StatConf
 
 	// A RpcClientConf is a rpc client config.
 	RpcClientConf struct {
@@ -27,7 +29,7 @@ type (
 		Token         string          `json:",optional"`
 		NonBlock      bool            `json:",optional"`
 		Timeout       int64           `json:",default=2000"`
-		KeepaliveTime time.Duration   `json:",default=20s"`
+		KeepaliveTime time.Duration   `json:",optional"`
 		Middlewares   ClientMiddlewaresConf
 	}
 

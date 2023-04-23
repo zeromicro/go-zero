@@ -33,9 +33,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 }
 
 func testPeriodLimit(t *testing.T, opts ...PeriodOption) {
-	store, clean, err := redistest.CreateRedis()
-	assert.Nil(t, err)
-	defer clean()
+	store := redistest.CreateRedis(t)
 
 	const (
 		seconds = 1
