@@ -46,7 +46,6 @@
   import { useDrawer } from '/@/components/Drawer';
   import {{.modelName}}Drawer from './{{.modelName}}Drawer.vue';
   import { useI18n } from 'vue-i18n';
-  import { useMessage } from '/@/hooks/web/useMessage';
 
   import { columns, searchFormSchema } from './{{.modelNameLowerCamel}}.data';
   import { get{{.modelName}}List, delete{{.modelName}} } from '/@/api/{{.folderName}}/{{.modelNameLowerCamel}}';
@@ -60,7 +59,6 @@
       const showDeleteButton = ref<boolean>(false);
 
       const [registerDrawer, { openDrawer }] = useDrawer();
-      const { notification } = useMessage();
       const [registerTable, { reload }] = useTable({
         title: t('{{.folderName}}.{{.modelNameLowerCamel}}.{{.modelNameLowerCamel}}List'),
         api: get{{.modelName}}List,
@@ -104,13 +102,8 @@
       }
 
       async function handleDelete(record: Recordable) {
-        const result = await delete{{.modelName}}({ ids: [record.id] }, 'modal');
+        const result = await delete{{.modelName}}({ ids: [record.id] });
         if (result.code === 0) {
-          notification.success({
-            message: t('common.successful'),
-            description: t(result.msg),
-            duration: 3,
-          });
           await reload();
         }
       }
@@ -120,17 +113,9 @@
           title: t('common.deleteConfirm'),
           icon: createVNode(ExclamationCircleOutlined),
           async onOk() {
-            const result = await delete{{.modelName}}(
-              { ids: selectedIds.value as {{if .useUUID}}string[]{{else}}number[]{{end}} },
-              'modal',
-            );
+            const result = await delete{{.modelName}}({ ids: selectedIds.value as {{if .useUUID}}string[]{{else}}number[]{{end}} });
             if (result.code === 0) {
               showDeleteButton.value = false;
-              notification.success({
-                message: t('common.successful'),
-                description: t(result.msg),
-                duration: 3,
-              });
               await reload();
             }
           },
@@ -140,12 +125,7 @@
         });
       }
 
-      async function handleSuccess(msg) {
-        notification.success({
-          message: t('common.successful'),
-          description: t(msg),
-          duration: 3,
-        });
+      async function handleSuccess() {
         await reload();
       }
 

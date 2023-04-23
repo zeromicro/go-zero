@@ -15,7 +15,7 @@ enum Api {
  * @description: Get {{.modelNameSpace}} list
  */
 
-export const get{{.modelName}}List = (params: BaseListReq, mode: ErrorMessageMode = 'message') => {
+export const get{{.modelName}}List = (params: BaseListReq, mode: ErrorMessageMode = 'notice') => {
   return defHttp.post<BaseDataResp<{{.modelName}}ListResp>>(
     { url: Api.Get{{.modelName}}List, params },
     { errorMessageMode: mode },
@@ -25,11 +25,12 @@ export const get{{.modelName}}List = (params: BaseListReq, mode: ErrorMessageMod
 /**
  *  @description: Create a new {{.modelNameSpace}}
  */
-export const create{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'message') => {
+export const create{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'notice') => {
   return defHttp.post<BaseResp>(
     { url: Api.Create{{.modelName}}, params: params },
     {
       errorMessageMode: mode,
+      successMessageMode: mode,
     },
   );
 };
@@ -37,11 +38,12 @@ export const create{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMess
 /**
  *  @description: Update the {{.modelNameSpace}}
  */
-export const update{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'message') => {
+export const update{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMessageMode = 'notice') => {
   return defHttp.post<BaseResp>(
     { url: Api.Update{{.modelName}}, params: params },
     {
       errorMessageMode: mode,
+      successMessageMode: mode,
     },
   );
 };
@@ -49,11 +51,12 @@ export const update{{.modelName}} = (params: {{.modelName}}Info, mode: ErrorMess
 /**
  *  @description: Delete {{.modelNameSpace}}s
  */
-export const delete{{.modelName}} = (params: Base{{if .useUUID}}UU{{end}}IDsReq, mode: ErrorMessageMode = 'message') => {
+export const delete{{.modelName}} = (params: Base{{if .useUUID}}UU{{end}}IDsReq, mode: ErrorMessageMode = 'notice') => {
   return defHttp.post<BaseResp>(
     { url: Api.Delete{{.modelName}}, params: params },
     {
       errorMessageMode: mode,
+      successMessageMode: mode,
     },
   );
 };
@@ -61,7 +64,7 @@ export const delete{{.modelName}} = (params: Base{{if .useUUID}}UU{{end}}IDsReq,
 /**
  *  @description: Get {{.modelNameSpace}} By ID
  */
-export const get{{.modelName}}ById = (params: Base{{if .useUUID}}UU{{end}}IDReq, mode: ErrorMessageMode = 'message') => {
+export const get{{.modelName}}ById = (params: Base{{if .useUUID}}UU{{end}}IDReq, mode: ErrorMessageMode = 'notice') => {
   return defHttp.post<BaseDataResp<{{.modelName}}Info>>(
     { url: Api.Get{{.modelName}}ById, params: params },
     {

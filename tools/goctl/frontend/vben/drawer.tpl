@@ -58,7 +58,7 @@
         let result = unref(isUpdate) ? await update{{.modelName}}(values) : await create{{.modelName}}(values);
         if (result.code === 0) {
           closeDrawer();
-          emit('success', result.msg);
+          emit('success');
         }
         setDrawerProps({ confirmLoading: false });
       }

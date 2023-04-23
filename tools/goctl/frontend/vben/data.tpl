@@ -6,7 +6,6 @@ import { formatToDateTime } from '/@/utils/dateUtil';
 import { Switch } from 'ant-design-vue';
 import { useMessage } from '/@/hooks/web/useMessage';
 import { h } from 'vue';{{end}}
-
 const { t } = useI18n();
 
 export const columns: BasicColumn[] = [{{.basicData}}
