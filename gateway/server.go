@@ -21,10 +21,10 @@ import (
 type (
 	// Server is a gateway server.
 	Server struct {
-		c GatewayConf
 		*rest.Server
-		upstreams     []*upstream
+		upstreams     []Upstream
 		processHeader func(http.Header) []string
+		dialer        func(conf zrpc.RpcClientConf) zrpc.Client
 	}
 
 	// Option defines the method to customize Server.
@@ -39,8 +39,8 @@ type (
 // MustNewServer creates a new gateway server.
 func MustNewServer(c GatewayConf, opts ...Option) *Server {
 	svr := &Server{
-		c:      c,
-		Server: rest.MustNewServer(c.RestConf),
+		upstreams: c.Upstreams,
+		Server:    rest.MustNewServer(c.RestConf),
 	}
 	for _, opt := range opts {
 		opt(svr)
@@ -61,23 +61,15 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) build() error {
-	if err := s.buildClient(); err != nil {
-		return err
-	}
-
-	return s.buildUpstream()
-}
-
-func (s *Server) buildClient() error {
 	if err := s.ensureUpstreamNames(); err != nil {
 		return err
 	}
 
 	return mr.MapReduceVoid(func(source chan<- Upstream) {
-		for _, up := range s.c.Upstreams {
+		for _, up := range s.upstreams {
 			source <- up
 		}
-	}, func(up Upstream, writer mr.Writer[*upstream], cancel func(error)) {
+	}, func(up Upstream, writer mr.Writer[rest.Route], cancel func(error)) {
 		target, err := up.Grpc.BuildTarget()
 		if err != nil {
 			cancel(err)
@@ -85,26 +77,14 @@ func (s *Server) buildClient() error {
 		}
 
 		up.Name = target
-		cli := zrpc.MustNewClient(up.Grpc)
-		writer.Write(&upstream{
-			Upstream: up,
-			client:   cli,
-		})
-	}, func(pipe <-chan *upstream, cancel func(error)) {
-		for up := range pipe {
-			s.upstreams = append(s.upstreams, up)
+		var cli zrpc.Client
+		if s.dialer != nil {
+			cli = s.dialer(up.Grpc)
+		} else {
+			cli = zrpc.MustNewClient(up.Grpc)
 		}
-	})
-}
 
-func (s *Server) buildUpstream() error {
-	return mr.MapReduceVoid(func(source chan<- *upstream) {
-		for _, up := range s.upstreams {
-			source <- up
-		}
-	}, func(up *upstream, writer mr.Writer[rest.Route], cancel func(error)) {
-		cli := up.client
-		source, err := s.createDescriptorSource(cli, up.Upstream)
+		source, err := s.createDescriptorSource(cli, up)
 		if err != nil {
 			cancel(fmt.Errorf("%s: %w", up.Name, err))
 			return
@@ -191,13 +171,13 @@ func (s *Server) createDescriptorSource(cli zrpc.Client, up Upstream) (grpcurl.D
 }
 
 func (s *Server) ensureUpstreamNames() error {
-	for _, up := range s.c.Upstreams {
-		target, err := up.Grpc.BuildTarget()
+	for i := 0; i < len(s.upstreams); i++ {
+		target, err := s.upstreams[i].Grpc.BuildTarget()
 		if err != nil {
 			return err
 		}
 
-		up.Name = target
+		s.upstreams[i].Name = target
 	}
 
 	return nil
@@ -217,5 +197,12 @@ func (s *Server) prepareMetadata(header http.Header) []string {
 func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server) {
 	return func(s *Server) {
 		s.processHeader = processHeader
+	}
+}
+
+// withDialer sets a dialer to create a gRPC client.
+func withDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
+	return func(s *Server) {
+		s.dialer = dialer
 	}
 }
