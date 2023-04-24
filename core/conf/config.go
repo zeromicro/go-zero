@@ -353,7 +353,7 @@ func (e conflictKeyError) Error() string {
 }
 
 func getFullName(parent, child string) string {
-	if parent == "" {
+	if len(parent) == 0 {
 		return child
 	}
 
