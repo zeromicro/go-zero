@@ -19,6 +19,11 @@ var errContentLengthExceeded = errors.New("content length exceeded")
 
 // CryptionHandler returns a middleware to handle cryption.
 func CryptionHandler(key []byte) func(http.Handler) http.Handler {
+	return LimitCryptionHandler(maxBytes, key)
+}
+
+// LimitCryptionHandler returns a middleware to handle cryption.
+func LimitCryptionHandler(limitBytes int64, key []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			cw := newCryptionResponseWriter(w)
@@ -29,7 +34,7 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 				return
 			}
 
-			if err := decryptBody(key, r); err != nil {
+			if err := decryptBody(limitBytes, key, r); err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}
@@ -39,8 +44,8 @@ func CryptionHandler(key []byte) func(http.Handler) http.Handler {
 	}
 }
 
-func decryptBody(key []byte, r *http.Request) error {
-	if r.ContentLength > maxBytes {
+func decryptBody(limitBytes int64, key []byte, r *http.Request) error {
+	if limitBytes > 0 && r.ContentLength > limitBytes {
 		return errContentLengthExceeded
 	}
 

@@ -1,4 +1,4 @@
-package {{with .Info}}{{.Desc}}{{end}}
+package {{.Pkg}}
 
 import com.google.gson.Gson
 
