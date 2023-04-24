@@ -490,7 +490,7 @@ func (u *Unmarshaler) processAnonymousStructFieldOptional(fieldType reflect.Type
 	}
 
 	if filled && required != requiredFilled {
-		return fmt.Errorf("%s is not fully set", key)
+		return fmt.Errorf("%q is not fully set", key)
 	}
 
 	return nil
@@ -723,7 +723,7 @@ func (u *Unmarshaler) processNamedField(field reflect.StructField, value reflect
 	// When fillDefault is used, m is a null value, hasValue must be false, all priority judgments fillDefault.
 	if u.opts.fillDefault {
 		if !value.IsZero() {
-			return fmt.Errorf("set the default value, %s must be zero", fullName)
+			return fmt.Errorf("set the default value, %q must be zero", fullName)
 		}
 		return u.processNamedFieldWithoutValue(field.Type, value, opts, fullName)
 	} else if !hasValue {
@@ -744,11 +744,11 @@ func (u *Unmarshaler) processNamedFieldWithValue(fieldType reflect.Type, value r
 			return nil
 		}
 
-		return fmt.Errorf("field %s mustn't be nil", key)
+		return fmt.Errorf("field %q mustn't be nil", key)
 	}
 
 	if !value.CanSet() {
-		return fmt.Errorf("field %s is not settable", key)
+		return fmt.Errorf("field %q is not settable", key)
 	}
 
 	maybeNewValue(fieldType, value)
@@ -792,7 +792,7 @@ func (u *Unmarshaler) processNamedFieldWithValueFromString(fieldType reflect.Typ
 		}
 
 		if !stringx.Contains(options, checkValue) {
-			return fmt.Errorf(`value "%s" for field "%s" is not defined in options "%v"`,
+			return fmt.Errorf(`value "%s" for field %q is not defined in options "%v"`,
 				mapValue, key, options)
 		}
 	}
@@ -1039,11 +1039,11 @@ func join(elem ...string) string {
 }
 
 func newInitError(name string) error {
-	return fmt.Errorf("field %s is not set", name)
+	return fmt.Errorf("field %q is not set", name)
 }
 
 func newTypeMismatchError(name string) error {
-	return fmt.Errorf("type mismatch for field %s", name)
+	return fmt.Errorf("type mismatch for field %q", name)
 }
 
 func readKeys(key string) []string {
