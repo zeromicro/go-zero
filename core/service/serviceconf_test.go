@@ -29,3 +29,14 @@ func TestServiceConfWithMetricsUrl(t *testing.T) {
 	}
 	assert.NoError(t, c.SetUp())
 }
+
+func TestServiceConfWithSqlLog(t *testing.T) {
+	c := ServiceConf{
+		Name: "foo",
+		Log: logx.LogConf{
+			DisableStmtLog: true,
+			DisableSqlLog:  false,
+		},
+	}
+	assert.NoError(t, c.SetUp())
+}
