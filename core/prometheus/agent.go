@@ -21,6 +21,11 @@ func Enabled() bool {
 	return enabled.True()
 }
 
+// Enable enables prometheus.
+func Enable() {
+	enabled.Set(true)
+}
+
 // StartAgent starts a prometheus agent.
 func StartAgent(c Config) {
 	if len(c.Host) == 0 {
