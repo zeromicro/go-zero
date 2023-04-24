@@ -74,6 +74,52 @@ func isClassListType(s string) bool {
 	return strings.HasPrefix(s, "List<") && !isAtomicType(getCoreType(s))
 }
 
+func isMapType(s string) bool {
+	return strings.HasPrefix(s, "Map<")
+}
+
+// Only interface types are nullable
+func isNullableType(s string) bool {
+	return strings.HasSuffix(s, "?")
+}
+
+func appendNullCoalescing(member spec.Member) string {
+	if isNullableType(member.Type.Name()) {
+		return "m['" + getPropertyFromMember(member) + "'] == null ? null : "
+	}
+	return ""
+}
+
+// To be compatible with omitempty tags in Golang
+// Only set default value for non-nullable types
+func appendDefaultEmptyValue(s string) string {
+	if isNullableType(s) {
+		return ""
+	}
+
+	if isAtomicType(s) {
+		switch s {
+		case "String":
+			return `?? ""`
+		case "int":
+			return "?? 0"
+		case "double":
+			return "?? 0.0"
+		case "bool":
+			return "?? false"
+		default:
+			panic(errors.New("unknown atomic type"))
+		}
+	}
+	if isListType(s) {
+		return "?? []"
+	}
+	if isMapType(s) {
+		return "?? {}"
+	}
+	return ""
+}
+
 func getCoreType(s string) string {
 	if isAtomicType(s) {
 		return s
@@ -139,9 +185,13 @@ func specTypeToDart(tp spec.Type) (string, error) {
 		}
 		return fmt.Sprintf("List<%s>", valueType), nil
 	case spec.InterfaceType:
-		return "Object", nil
+		return "Object?", nil
 	case spec.PointerType:
-		return specTypeToDart(v.Type)
+		valueType, err := specTypeToDart(v.Type)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s?", valueType), nil
 	}
 
 	return "", errors.New("unsupported primitive type " + tp.Name())
