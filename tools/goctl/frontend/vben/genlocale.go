@@ -81,8 +81,13 @@ func genLocale(g *GenContext) error {
 
 		data := string(file)
 
-		if !strings.Contains(data, g.ModelName+":") {
+		if !strings.Contains(data, strings.ToLower(g.ModelName)+":") {
 			data = data[:len(data)-3] + localeEnData.String() + data[len(data)-3:]
+		} else if g.Overwrite {
+			begin, end := FindBeginEndOfLocaleField(data, strings.ToLower(g.ModelName))
+			data = data[:begin-2] + localeEnData.String() + data[end+1:]
+		} else {
+
 		}
 
 		err = os.WriteFile(enLocaleFileName, []byte(data), os.ModePerm)
@@ -91,11 +96,11 @@ func genLocale(g *GenContext) error {
 		}
 	}
 
-	if !pathx.FileExists(zhLocaleFileName) || g.Overwrite {
+	if !pathx.FileExists(zhLocaleFileName) {
 		if err := util.With("localeTpl").Parse(localeTpl).SaveTo(map[string]any{
 			"localeData": localeZhData.String(),
 		},
-			zhLocaleFileName, g.Overwrite); err != nil {
+			zhLocaleFileName, false); err != nil {
 			return err
 		}
 	} else {
@@ -106,8 +111,11 @@ func genLocale(g *GenContext) error {
 
 		data := string(file)
 
-		if !strings.Contains(data, g.ModelName+":") {
+		if !strings.Contains(data, strings.ToLower(g.ModelName)+":") {
 			data = data[:len(data)-3] + localeZhData.String() + data[len(data)-3:]
+		} else if g.Overwrite {
+			begin, end := FindBeginEndOfLocaleField(data, strings.ToLower(g.ModelName))
+			data = data[:begin-2] + localeZhData.String() + data[end+1:]
 		}
 
 		err = os.WriteFile(zhLocaleFileName, []byte(data), os.ModePerm)

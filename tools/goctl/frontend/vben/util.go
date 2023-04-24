@@ -14,6 +14,8 @@
 
 package vben
 
+import "strings"
+
 func ConvertGoTypeToTsType(goType string) string {
 	switch goType {
 	case "int", "uint", "int8", "uint8", "int16", "uint16", "int32", "uint32", "uint64", "int64", "float", "float32", "float64":
@@ -29,4 +31,24 @@ func ConvertGoTypeToTsType(goType string) string {
 
 	}
 	return goType
+}
+
+func FindBeginEndOfLocaleField(data, target string) (int, int) {
+
+	begin := strings.Index(data, target)
+
+	if begin == -1 {
+		return -1, -1
+	}
+
+	var end int
+
+	for i := begin; i < len(data); i++ {
+		if data[i] == '}' {
+			end = i + 2
+			break
+		}
+	}
+
+	return begin, end
 }
