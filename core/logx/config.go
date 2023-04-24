@@ -42,4 +42,8 @@ type LogConf struct {
 	// daily: daily rotation.
 	// size: size limited rotation.
 	Rotation string `json:",default=daily,options=[daily,size]"`
+	// Disable Stmt Log, default is `false`.
+	DisableStmtLog bool `json:",default=false"`
+	// Disable sql log, default is `false`.
+	DisableSqlLog bool `json:",default=false"`
 }

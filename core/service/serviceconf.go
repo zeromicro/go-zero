@@ -3,6 +3,8 @@ package service
 import (
 	"log"
 
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
@@ -53,6 +55,7 @@ func (sc ServiceConf) SetUp() error {
 		return err
 	}
 
+	sc.initSqlLog()
 	sc.initMode()
 	prometheus.StartAgent(sc.Prometheus)
 
@@ -77,5 +80,19 @@ func (sc ServiceConf) initMode() {
 	case DevMode, TestMode, RtMode, PreMode:
 		load.Disable()
 		stat.SetReporter(nil)
+	}
+}
+
+func (sc ServiceConf) initSqlLog() {
+	if sc.Log.DisableSqlLog {
+		sqlx.DisableLog()
+	} else {
+		sqlx.EnableLog()
+	}
+
+	if sc.Log.DisableStmtLog {
+		sqlx.DisableStmtLog()
+	} else {
+		sqlx.EnableStmtLog()
 	}
 }
