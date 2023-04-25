@@ -13,16 +13,11 @@
         unCheckedChildren: t('common.off'),
         loading: record.pendingStatus,
         onChange(checked: boolean) {
-          const { createMessage } = useMessage();
           record.pendingStatus = true;
           const newStatus = checked ? 1 : 2;
           update{{.modelName}}({ id: record.id, status: newStatus })
-            .then((data) => {
+            .then(() => {
               record.status = newStatus;
-              if (data.code == 0) createMessage.success(t('common.changeStatusSuccess'));
-            })
-            .catch(() => {
-              createMessage.error(t('common.changeStatusFailed'));
             })
             .finally(() => {
               record.pendingStatus = false;
