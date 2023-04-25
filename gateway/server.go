@@ -188,8 +188,8 @@ func WithHeaderProcessor(processHeader func(http.Header) []string) func(*Server)
 	}
 }
 
-// withDialer sets a dialer to create a gRPC client.
-func withDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
+// WithDialer sets a dialer to create a gRPC client.
+func WthDialer(dialer func(conf zrpc.RpcClientConf) zrpc.Client) func(*Server) {
 	return func(s *Server) {
 		s.dialer = dialer
 	}
