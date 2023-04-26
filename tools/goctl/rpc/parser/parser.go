@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"go/token"
 	"os"
 	"path/filepath"
@@ -15,6 +16,8 @@ type (
 	// DefaultProtoParser types an empty struct
 	DefaultProtoParser struct{}
 )
+
+var ErrGoPackage = errors.New(`option go_package = "" field is not filled in`)
 
 // NewDefaultProtoParser creates a new instance
 func NewDefaultProtoParser() *DefaultProtoParser {
@@ -79,6 +82,9 @@ func (p *DefaultProtoParser) Parse(src string, multiple ...bool) (Proto, error) 
 	}
 
 	if len(ret.GoPackage) == 0 {
+		if ret.Package.Package == nil {
+			return ret, ErrGoPackage
+		}
 		ret.GoPackage = ret.Package.Name
 	}
 
