@@ -6,3 +6,4 @@ ignore:
   - "tools"
   - "**/mock"
   - "**/*_mock.go"
+  - "**/*test"

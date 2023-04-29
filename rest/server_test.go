@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/conf"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/chain"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/cors"
@@ -22,9 +22,7 @@ import (
 )
 
 func TestNewServer(t *testing.T) {
-	writer := logx.Reset()
-	defer logx.SetWriter(writer)
-	logx.SetWriter(logx.NewWriter(io.Discard))
+	logtest.Discard(t)
 
 	const configYaml = `
 Name: foo

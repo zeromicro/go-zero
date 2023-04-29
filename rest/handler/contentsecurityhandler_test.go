@@ -62,10 +62,6 @@ type requestSettings struct {
 	signature   string
 }
 
-func init() {
-	log.SetOutput(io.Discard)
-}
-
 func TestContentSecurityHandler(t *testing.T) {
 	tests := []struct {
 		method      string
