@@ -343,7 +343,7 @@ func buildRequest(rs requestSettings) (*http.Request, error) {
 		"time=" + strconv.FormatInt(rs.timestamp, 10),
 	}, "; ")
 
-	encrypter, err := codec.NewRsaEncrypter([]byte(pubKey))
+	encrypter, err := codec.NewRsaEncrypter(pubKey)
 	if err != nil {
 		log.Fatal(err)
 	}
