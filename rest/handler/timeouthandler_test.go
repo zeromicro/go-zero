@@ -179,6 +179,16 @@ func TestTimeoutPusher(t *testing.T) {
 	assert.Equal(t, http.ErrNotSupported, handler.Push("any", nil))
 }
 
+func TestTimeoutWriter_Hijack(t *testing.T) {
+	writer := &timeoutWriter{
+		w:   httptest.NewRecorder(),
+		h:   make(http.Header),
+		req: httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody),
+	}
+	_, _, err := writer.Hijack()
+	assert.Error(t, err)
+}
+
 func TestTimeoutWroteTwice(t *testing.T) {
 	c := logtest.NewCollector(t)
 	writer := &timeoutWriter{
