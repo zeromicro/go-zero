@@ -76,3 +76,14 @@ func (b *Buffer) Reset() {
 func (b *Buffer) String() string {
 	return b.buf.String()
 }
+
+func PanicOnFatal(t *testing.T) {
+	ok := logx.ExitOnFatal.CompareAndSwap(true, false)
+	if !ok {
+		return
+	}
+
+	t.Cleanup(func() {
+		logx.ExitOnFatal.CompareAndSwap(false, true)
+	})
+}

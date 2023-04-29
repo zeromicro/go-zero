@@ -1,6 +1,7 @@
 package logtest
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,8 +16,13 @@ func TestCollector(t *testing.T) {
 	assert.Contains(t, c.String(), input)
 }
 
-func TestDiscard(t *testing.T) {
+func TestPanicOnFatal(t *testing.T) {
 	const input = "hello"
 	Discard(t)
 	logx.Info(input)
+
+	PanicOnFatal(t)
+	assert.Panics(t, func() {
+		logx.Must(errors.New("foo"))
+	})
 }

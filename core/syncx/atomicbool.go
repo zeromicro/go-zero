@@ -20,12 +20,14 @@ func ForAtomicBool(val bool) *AtomicBool {
 // CompareAndSwap compares current value with given old, if equals, set to given val.
 func (b *AtomicBool) CompareAndSwap(old, val bool) bool {
 	var ov, nv uint32
+
 	if old {
 		ov = 1
 	}
 	if val {
 		nv = 1
 	}
+
 	return atomic.CompareAndSwapUint32((*uint32)(b), ov, nv)
 }
 
