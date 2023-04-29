@@ -9,12 +9,10 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type (
-	Buffer struct {
-		buf *bytes.Buffer
-		t   *testing.T
-	}
-)
+type Buffer struct {
+	buf *bytes.Buffer
+	t   *testing.T
+}
 
 func Discard(t *testing.T) {
 	prev := logx.Reset()
