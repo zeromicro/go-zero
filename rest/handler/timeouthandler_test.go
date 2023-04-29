@@ -2,20 +2,15 @@ package handler
 
 import (
 	"context"
-	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
@@ -185,6 +180,7 @@ func TestTimeoutPusher(t *testing.T) {
 }
 
 func TestTimeoutWroteTwice(t *testing.T) {
+	c := logtest.NewCollector(t)
 	writer := &timeoutWriter{
 		w: &response.WithCodeResponseWriter{
 			Writer: httptest.NewRecorder(),
@@ -194,6 +190,7 @@ func TestTimeoutWroteTwice(t *testing.T) {
 	}
 	writer.writeHeaderLocked(http.StatusOK)
 	writer.writeHeaderLocked(http.StatusOK)
+	assert.Contains(t, c.String(), "superfluous response.WriteHeader call")
 }
 
 type mockedPusher struct{}
