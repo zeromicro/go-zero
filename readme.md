@@ -111,7 +111,7 @@ go install github.com/zeromicro/go-zero/tools/goctl@latest
 ```
 
 ```shell
-goctl migrate —verbose —version v1.5.0
+goctl migrate —verbose —version v1.5.2
 ```
 
 ##  Quick Start

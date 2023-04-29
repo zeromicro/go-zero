@@ -23,7 +23,7 @@
 >
 > `GOPROXY=https://goproxy.cn/,direct go install github.com/zeromicro/go-zero/tools/goctl@latest`
 >
-> `goctl migrate —verbose —version v1.5.0`
+> `goctl migrate —verbose —version v1.5.2`
 
 ## 0. go-zero 介绍
 
