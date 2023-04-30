@@ -1,8 +1,6 @@
 package service
 
 import (
-	"log"
-
 	"github.com/zeromicro/go-zero/core/load"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/proc"
@@ -39,9 +37,7 @@ type ServiceConf struct {
 
 // MustSetUp sets up the service, exits on error.
 func (sc ServiceConf) MustSetUp() {
-	if err := sc.SetUp(); err != nil {
-		log.Fatal(err)
-	}
+	logx.Must(sc.SetUp())
 }
 
 // SetUp sets up the service.

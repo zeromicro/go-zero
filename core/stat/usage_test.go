@@ -1,12 +1,11 @@
 package stat
 
 import (
-	"bytes"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestBToMb(t *testing.T) {
@@ -41,15 +40,11 @@ func TestBToMb(t *testing.T) {
 }
 
 func TestPrintUsage(t *testing.T) {
-	var buf bytes.Buffer
-	writer := logx.NewWriter(&buf)
-	old := logx.Reset()
-	logx.SetWriter(writer)
-	defer logx.SetWriter(old)
+	c := logtest.NewCollector(t)
 
 	printUsage()
 
-	output := buf.String()
+	output := c.String()
 	assert.Contains(t, output, "CPU:")
 	assert.Contains(t, output, "MEMORY:")
 	assert.Contains(t, output, "Alloc=")

@@ -2,20 +2,15 @@ package handler
 
 import (
 	"context"
-	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestTimeout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
@@ -45,7 +40,12 @@ func TestWithTimeoutTimedout(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Millisecond)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(time.Millisecond * 10)
-		w.Write([]byte(`foo`))
+		_, err := w.Write([]byte(`foo`))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -96,7 +96,12 @@ func TestTimeoutWebsocket(t *testing.T) {
 func TestTimeoutWroteHeaderTwice(t *testing.T) {
 	timeoutHandler := TimeoutHandler(time.Minute)
 	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`hello`))
+		_, err := w.Write([]byte(`hello`))
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("foo", "bar")
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -145,7 +150,7 @@ func TestTimeoutHijack(t *testing.T) {
 	}
 
 	assert.NotPanics(t, func() {
-		writer.Hijack()
+		_, _, _ = writer.Hijack()
 	})
 
 	writer = &timeoutWriter{
@@ -155,7 +160,7 @@ func TestTimeoutHijack(t *testing.T) {
 	}
 
 	assert.NotPanics(t, func() {
-		writer.Hijack()
+		_, _, _ = writer.Hijack()
 	})
 }
 
@@ -165,7 +170,7 @@ func TestTimeoutPusher(t *testing.T) {
 	}
 
 	assert.Panics(t, func() {
-		handler.Push("any", nil)
+		_ = handler.Push("any", nil)
 	})
 
 	handler = &timeoutWriter{
@@ -174,20 +179,44 @@ func TestTimeoutPusher(t *testing.T) {
 	assert.Equal(t, http.ErrNotSupported, handler.Push("any", nil))
 }
 
+func TestTimeoutWriter_Hijack(t *testing.T) {
+	writer := &timeoutWriter{
+		w:   httptest.NewRecorder(),
+		h:   make(http.Header),
+		req: httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody),
+	}
+	_, _, err := writer.Hijack()
+	assert.Error(t, err)
+}
+
+func TestTimeoutWroteTwice(t *testing.T) {
+	c := logtest.NewCollector(t)
+	writer := &timeoutWriter{
+		w: &response.WithCodeResponseWriter{
+			Writer: httptest.NewRecorder(),
+		},
+		h:   make(http.Header),
+		req: httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody),
+	}
+	writer.writeHeaderLocked(http.StatusOK)
+	writer.writeHeaderLocked(http.StatusOK)
+	assert.Contains(t, c.String(), "superfluous response.WriteHeader call")
+}
+
 type mockedPusher struct{}
 
 func (m mockedPusher) Header() http.Header {
 	panic("implement me")
 }
 
-func (m mockedPusher) Write(bytes []byte) (int, error) {
+func (m mockedPusher) Write(_ []byte) (int, error) {
 	panic("implement me")
 }
 
-func (m mockedPusher) WriteHeader(statusCode int) {
+func (m mockedPusher) WriteHeader(_ int) {
 	panic("implement me")
 }
 
-func (m mockedPusher) Push(target string, opts *http.PushOptions) error {
+func (m mockedPusher) Push(_ string, _ *http.PushOptions) error {
 	panic("implement me")
 }

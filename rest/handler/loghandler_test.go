@@ -3,7 +3,6 @@ package handler
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,10 +12,6 @@ import (
 	"github.com/zeromicro/go-zero/rest/internal"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestLogHandler(t *testing.T) {
 	handlers := []func(handler http.Handler) http.Handler{
