@@ -77,8 +77,8 @@ github.com/zclconf/go-cty v1.13.1 h1:0a6bRwuiSHtAmqCqNOE+c2oHgepv0ctoxU4FUe43kwc
 github.com/zclconf/go-cty v1.13.1/go.mod h1:YKQzy/7pZ7iq2jNFzy5go57xdxdWoLLpaEp4u238AE0=
 github.com/zeromicro/antlr v0.0.1 h1:CQpIn/dc0pUjgGQ81y98s/NGOm2Hfru2NNio2I9mQgk=
 github.com/zeromicro/antlr v0.0.1/go.mod h1:nfpjEwFR6Q4xGDJMcZnCL9tEfQRgszMwu3rDz2Z+p5M=
-github.com/zeromicro/go-zero v1.5.1 h1:UibsnkENBfeRSRczZ0qZiaLA03Isj1SmPRz3n7q4R3M=
-github.com/zeromicro/go-zero v1.5.1/go.mod h1:bGYm4XWsGN9GhDsO2O2BngpVoWjf3Eog2a5hUOMhlXs=
+github.com/zeromicro/go-zero v1.5.2 h1:vpMlZacCMtgdtYzKI3OMyhS6mZ9UQctiAh0J7gIq31I=
+github.com/zeromicro/go-zero v1.5.2/go.mod h1:ndCd1nMMAdEMZgPfdm1fpavHUdBW0ykB6ckCRaSG10w=
 go.opentelemetry.io/otel v1.14.0 h1:/79Huy8wbf5DnIPhemGB+zEPVwnN6fuQybr/SRXa6hM=
 go.opentelemetry.io/otel v1.14.0/go.mod h1:o4buv+dJzx8rohcUeRmWUZhqupFvzWis188WlggnNeU=
 go.opentelemetry.io/otel/sdk v1.14.0 h1:PDCppFRDq8A1jL9v6KMI6dYesaq+DFcDZvjsoGvxGzY=

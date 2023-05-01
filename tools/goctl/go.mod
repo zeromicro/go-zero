@@ -15,7 +15,7 @@ require (
 	github.com/suyuan32/knife v0.0.1-beta.1
 	github.com/withfig/autocomplete-tools/integrations/cobra v1.2.1
 	github.com/zeromicro/antlr v0.0.1
-	github.com/zeromicro/go-zero v1.5.1
+	github.com/zeromicro/go-zero v1.5.2
 	golang.org/x/text v0.9.0
 )
 
