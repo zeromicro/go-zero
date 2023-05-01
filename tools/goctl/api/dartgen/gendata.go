@@ -60,7 +60,7 @@ class {{.Name}} {
 				{{if isDirectType .Type.Name}}
 					{{lowCamelCase .Name}}
 				{{else if isClassListType .Type.Name}}
-					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.map((i) => i.toJson())
+					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.map((i) => i{{if isListItemsNullable .Type.Name}}?{{end}}.toJson())
 				{{else}}
 					{{lowCamelCase .Name}}{{if isNullableType .Type.Name}}?{{end}}.toJson()
 				{{end}}

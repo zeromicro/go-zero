@@ -74,6 +74,10 @@ func isClassListType(s string) bool {
 	return strings.HasPrefix(s, "List<") && !isAtomicType(getCoreType(s))
 }
 
+func isListItemsNullable(s string) bool {
+	return isListType(s) && isNullableType(getCoreType(s))
+}
+
 func isMapType(s string) bool {
 	return strings.HasPrefix(s, "Map<")
 }
