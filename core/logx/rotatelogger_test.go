@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/zeromicro/go-zero/core/fs"
 	"github.com/zeromicro/go-zero/core/stringx"
 )
@@ -117,6 +118,10 @@ func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
 	if len(filename) > 0 {
 		defer os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 	}
+
+	err = logger.Close()
+	assert.Nil(t, err)
+
 	logger.maybeCompressFile(filename)
 	_, err = os.Stat(filename)
 	assert.NotNil(t, err)
@@ -125,7 +130,7 @@ func TestRotateLoggerMayCompressFileTrue(t *testing.T) {
 func TestRotateLoggerRotate(t *testing.T) {
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
-	logger, err := NewLogger(filename, new(DailyRotateRule), true)
+	logger, err := NewLogger(filename, &DailyRotateRule{filename: filename}, true)
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {
@@ -223,13 +228,14 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileTrue(t *testing.T) {
 
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
-	logger, err := NewLogger(filename, new(SizeLimitRotateRule), true)
+	logger, err := NewLogger(filename, NewSizeLimitRotateRule(filename, "-", 1, 100, 100, true),
+		true)
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer os.Remove(filepath.Base(logger.getBackupFilename()) + ".gz")
 	}
 	logger.maybeCompressFile(filename)
-	_, err = os.Stat(filename)
+	_, err = os.Stat(logger.getBackupFilename())
 	assert.NotNil(t, err)
 }
 
@@ -253,7 +259,8 @@ func TestRotateLoggerWithSizeLimitRotateRuleMayCompressFileFailed(t *testing.T) 
 func TestRotateLoggerWithSizeLimitRotateRuleRotate(t *testing.T) {
 	filename, err := fs.TempFilenameWithText("foo")
 	assert.Nil(t, err)
-	logger, err := NewLogger(filename, new(SizeLimitRotateRule), true)
+	logger, err := NewLogger(filename, NewSizeLimitRotateRule(filename, "-", 1, 100, 100, true),
+		true)
 	assert.Nil(t, err)
 	if len(filename) > 0 {
 		defer func() {

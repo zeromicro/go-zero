@@ -154,7 +154,7 @@ func RegisterValidation(tag string, fn validator.Func) {
 	}
 }
 
-// RegisterValidationTranslation regiters the validation translation for validator
+// RegisterValidationTranslation registers the validation translation for validator
 func RegisterValidationTranslation(tag string, trans ut.Translator, registerFn validator.RegisterTranslationsFunc,
 	translationFn validator.TranslationFunc) {
 	if err := xValidator.Validator.RegisterTranslation(tag, trans, registerFn, translationFn); err != nil {

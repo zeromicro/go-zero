@@ -69,6 +69,8 @@ func TestImmutableResourceErrorRefreshAlways(t *testing.T) {
 	assert.Equal(t, "any", err.Error())
 	assert.Equal(t, 1, count)
 
+	time.Sleep(10 * time.Microsecond)
+
 	// again
 	res, err = r.Get()
 	assert.Nil(t, res)
