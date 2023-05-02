@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	entgo.io/ent v0.12.3
-	github.com/emicklei/proto v1.11.1
+	github.com/emicklei/proto v1.11.2
 	github.com/fatih/structtag v1.2.0
 	github.com/iancoleman/strcase v0.2.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
