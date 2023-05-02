@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -13,10 +11,6 @@ import (
 )
 
 const conns = 4
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestMaxConnsHandler(t *testing.T) {
 	var waitGroup sync.WaitGroup

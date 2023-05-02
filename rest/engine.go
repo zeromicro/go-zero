@@ -297,12 +297,13 @@ func (ng *engine) signatureVerifier(signature signatureSetting) (func(chain.Chai
 	}
 
 	return func(chn chain.Chain) chain.Chain {
-		if ng.unsignedCallback != nil {
-			return chn.Append(handler.ContentSecurityHandler(
-				decrypters, signature.Expiry, signature.Strict, ng.unsignedCallback))
+		if ng.unsignedCallback == nil {
+			return chn.Append(handler.LimitContentSecurityHandler(ng.conf.MaxBytes,
+				decrypters, signature.Expiry, signature.Strict))
 		}
 
-		return chn.Append(handler.ContentSecurityHandler(decrypters, signature.Expiry, signature.Strict))
+		return chn.Append(handler.LimitContentSecurityHandler(ng.conf.MaxBytes,
+			decrypters, signature.Expiry, signature.Strict, ng.unsignedCallback))
 	}, nil
 }
 

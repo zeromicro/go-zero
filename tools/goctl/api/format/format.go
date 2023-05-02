@@ -171,7 +171,9 @@ func apiFormat(data string, skipCheckDeclare bool, filename ...string) (string, 
 				tapCount++
 			}
 		}
-		util.WriteIndent(&builder, tapCount)
+		if line != "" {
+			util.WriteIndent(&builder, tapCount)
+		}
 		builder.WriteString(line + pathx.NL)
 		if strings.HasSuffix(noCommentLine, leftParenthesis) || strings.HasSuffix(noCommentLine, leftBrace) {
 			tapCount++

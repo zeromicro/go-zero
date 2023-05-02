@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/threading"
 	"github.com/zeromicro/go-zero/internal/health"
 )
@@ -43,6 +44,8 @@ func (s *Server) addRoutes() {
 
 	// metrics
 	if s.config.EnableMetrics {
+		// enable prometheus global switch
+		prometheus.Enable()
 		s.handleFunc(s.config.MetricsPath, promhttp.Handler().ServeHTTP)
 	}
 	// pprof

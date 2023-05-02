@@ -25,6 +25,11 @@ service A-api {
 handler: GreetHandler
   )
   get /greet/from/:name(Request) returns (Response)
+
+@server(
+handler: GreetHandler2
+  )
+  get /greet/from2/:name(Request) returns (Response)
 }
 `
 
@@ -40,6 +45,11 @@ service A-api {
 		handler: GreetHandler
 	)
 	get /greet/from/:name(Request) returns (Response)
+
+	@server(
+		handler: GreetHandler2
+	)
+	get /greet/from2/:name(Request) returns (Response)
 }`
 )
 

@@ -8,6 +8,7 @@ var funcMap = template.FuncMap{
 	"isDirectType":                    isDirectType,
 	"isNumberType":                    isNumberType,
 	"isClassListType":                 isClassListType,
+	"isListItemsNullable":             isListItemsNullable,
 	"isNullableType":                  isNullableType,
 	"appendNullCoalescing":            appendNullCoalescing,
 	"appendDefaultEmptyValue":         appendDefaultEmptyValue,

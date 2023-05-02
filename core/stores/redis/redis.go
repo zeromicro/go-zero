@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 
 	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/errorx"
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/mapping"
 	"github.com/zeromicro/go-zero/core/syncx"
 )
@@ -92,20 +92,17 @@ type (
 	Script = red.Script
 )
 
+// MustNewRedis returns a Redis with given options.
+func MustNewRedis(conf RedisConf, opts ...Option) *Redis {
+	rds, err := NewRedis(conf, opts...)
+	logx.Must(err)
+	return rds
+}
+
 // New returns a Redis with given options.
 // Deprecated: use MustNewRedis or NewRedis instead.
 func New(addr string, opts ...Option) *Redis {
 	return newRedis(addr, opts...)
-}
-
-// MustNewRedis returns a Redis with given options.
-func MustNewRedis(conf RedisConf, opts ...Option) *Redis {
-	rds, err := NewRedis(conf, opts...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return rds
 }
 
 // NewRedis returns a Redis with given options.

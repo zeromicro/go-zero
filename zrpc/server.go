@@ -1,7 +1,6 @@
 package zrpc
 
 import (
-	"log"
 	"time"
 
 	"google.golang.org/grpc"
@@ -24,10 +23,7 @@ type RpcServer struct {
 // MustNewServer returns a RpcSever, exits on any error.
 func MustNewServer(c RpcServerConf, register internal.RegisterFn) *RpcServer {
 	server, err := NewServer(c, register)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return server
 }
 

@@ -781,7 +781,7 @@ func TestParseWithMissingForm(t *testing.T) {
 
 			err = httpx.Parse(r, &v, false)
 			assert.NotNil(t, err)
-			assert.Equal(t, "field location is not set", err.Error())
+			assert.Equal(t, "field \"location\" is not set", err.Error())
 		}))
 	assert.Nil(t, err)
 

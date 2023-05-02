@@ -1,9 +1,9 @@
 package zrpc
 
 import (
-	"log"
 	"time"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
@@ -43,10 +43,7 @@ type (
 // MustNewClient returns a Client, exits on any error.
 func MustNewClient(c RpcClientConf, options ...ClientOption) Client {
 	cli, err := NewClient(c, options...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return cli
 }
 
