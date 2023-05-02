@@ -3,12 +3,13 @@ package zrpc
 import (
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/zrpc/internal"
 	"github.com/zeromicro/go-zero/zrpc/internal/auth"
 	"github.com/zeromicro/go-zero/zrpc/internal/clientinterceptors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 )
 
 const defaultClientKeepaliveTime = 20 * time.Second
@@ -18,12 +19,8 @@ var (
 	WithDialOption = internal.WithDialOption
 	// WithNonBlock sets the dialing to be nonblock.
 	WithNonBlock = internal.WithNonBlock
-	// WithStreamClientInterceptor is an alias of internal.WithStreamClientInterceptor.
-	WithStreamClientInterceptor = internal.WithStreamClientInterceptor
 	// WithTimeout is an alias of internal.WithTimeout.
 	WithTimeout = internal.WithTimeout
-	// WithTransportCredentials return a func to make the gRPC calls secured with given credentials.
-	WithTransportCredentials = internal.WithTransportCredentials
 	// WithUnaryClientInterceptor is an alias of internal.WithUnaryClientInterceptor.
 	WithUnaryClientInterceptor = internal.WithUnaryClientInterceptor
 )
@@ -55,7 +52,7 @@ func NewClientIfEnable(c RpcClientConf, options ...ClientOption) Client {
 
 	cli, err := NewClient(c, options...)
 	if err != nil {
-		log.Fatal(err)
+		logx.Must(err)
 	}
 
 	return cli
