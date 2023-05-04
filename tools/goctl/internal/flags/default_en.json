@@ -124,7 +124,8 @@
       "remote": "{{.global.remote}}",
       "branch": "{{.global.branch}}",
       "image": "The image for building project",
-      "tz": "The timezone of the container"
+      "tz": "The timezone of the container, such as Asia/Shanghai",
+      "china": "If your server in China, set true"
     },
     "kube": {
       "short": "Generate kubernetes files",

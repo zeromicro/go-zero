@@ -10,7 +10,6 @@ import (
 	"github.com/suyuan32/knife/core/io/filex"
 
 	"github.com/zeromicro/go-zero/tools/goctl/util"
-	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -45,6 +44,7 @@ type GenContext struct {
 	Port        int
 	ServiceName string
 	ServiceType string
+	China       bool
 }
 
 // dockerCommand provides the entry for goctl docker
@@ -78,6 +78,7 @@ func dockerCommand(_ *cobra.Command, _ []string) (err error) {
 		Port:        varIntPort,
 		ServiceType: varServiceType,
 		ServiceName: varServiceName,
+		China:       varBoolChina,
 	}
 
 	if err := generateDockerfile(g); err != nil {
@@ -114,7 +115,7 @@ func generateDockerfile(g *GenContext) error {
 
 	t := template.Must(template.New("dockerfile").Parse(text))
 	return t.Execute(out, Docker{
-		Chinese:     env.InChina(),
+		Chinese:     g.China,
 		GoRelPath:   projPath,
 		ServiceName: g.ServiceName,
 		ServiceType: g.ServiceType,
