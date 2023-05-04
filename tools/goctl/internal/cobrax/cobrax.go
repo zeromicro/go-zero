@@ -79,6 +79,10 @@ func (f *FlagSet) IntVar(p *int, name string) {
 	f.IntVarWithDefaultValue(p, name, 0)
 }
 
+func (f *FlagSet) IntVarP(p *int, name, shorthand string) {
+	f.FlagSet.IntVarP(p, name, shorthand, 0, "")
+}
+
 func (f *FlagSet) IntVarWithDefaultValue(p *int, name string, value int) {
 	f.FlagSet.IntVar(p, name, value, "")
 }

@@ -1,33 +1,43 @@
-FROM golang:{{.Version}}alpine AS builder
+FROM {{.Image}} as builder
 
-LABEL stage=gobuilder
+# Define the project name | 定义项目名称
+ARG PROJECT={{.ServiceName}}
 
-ENV CGO_ENABLED 0
-{{if .Chinese}}ENV GOPROXY https://goproxy.cn,direct
+WORKDIR /build
+COPY . .
+{{if .Chinese}}
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 {{end}}{{if .HasTimezone}}
 RUN apk update --no-cache && apk add --no-cache tzdata
 {{end}}
-WORKDIR /build
-
-ADD go.mod .
-ADD go.sum .
-RUN go mod download
-COPY . .
-{{if .Argument}}COPY {{.GoRelPath}}/etc /app/etc
-{{end}}RUN go build -ldflags="-s -w" -o /app/{{.ExeFile}} {{.GoMainFrom}}
-
+RUN go env -w GO111MODULE=on \
+{{if .Chinese}}    && go env -w GOPROXY=https://goproxy.cn,direct \
+{{end}}    && go env -w CGO_ENABLED=0 \
+    && go env \
+    && go mod tidy \
+    && go build -ldflags="-s -w" -o /build/${PROJECT}_{{.ServiceType}} ${PROJECT}.go
 
 FROM {{.BaseImage}}
 
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-{{if .HasTimezone}}COPY --from=builder /usr/share/zoneinfo/{{.Timezone}} /usr/share/zoneinfo/{{.Timezone}}
-ENV TZ {{.Timezone}}
-{{end}}
+# Define the project name | 定义项目名称
+ARG PROJECT={{.ServiceName}}
+# Define the config file name | 定义配置文件名
+ARG CONFIG_FILE={{.ServiceName}}.yaml
+# Define the author | 定义作者
+ARG AUTHOR=YourName
+
+LABEL MAINTAINER=${AUTHOR}
+
 WORKDIR /app
-COPY --from=builder /app/{{.ExeFile}} /app/{{.ExeFile}}{{if .Argument}}
-COPY --from=builder /app/etc /app/etc{{end}}
+ENV PROJECT=${PROJECT}
+ENV CONFIG_FILE=${CONFIG_FILE}
+{{if .HasTimezone}}
+COPY --from=builder /usr/share/zoneinfo/{{.Timezone}} /usr/share/zoneinfo/{{.Timezone}}
+ENV TZ={{.Timezone}}
+{{end}}
+COPY --from=builder /build/${PROJECT}_{{.ServiceType}} ./
+COPY --from=builder /build/etc/${CONFIG_FILE} ./etc/
 {{if .HasPort}}
 EXPOSE {{.Port}}
 {{end}}
-CMD ["./{{.ExeFile}}"{{.Argument}}]
+ENTRYPOINT ./${PROJECT}_{{.ServiceType}} -f etc/${CONFIG_FILE}

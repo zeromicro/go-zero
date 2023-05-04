@@ -18,7 +18,6 @@ const (
 	routesTemplateFile          = "routes.tpl"
 	routesAdditionTemplateFile  = "route-addition.tpl"
 	typesTemplateFile           = "types.tpl"
-	dockerfileTemplateFile      = "dockerfile.tpl"
 	makefileTemplateFile        = "makefile.tpl"
 	authorityTemplateFile       = "authoritymiddleware.tpl"
 	gitlabTemplateFile          = "gitlab.tpl"

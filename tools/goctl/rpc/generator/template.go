@@ -21,7 +21,6 @@ const (
 	svcTemplateFile                   = "svc.tpl"
 	rpcTemplateFile                   = "template.tpl"
 	makefileTemplateFile              = "makefile.tpl"
-	dockerfileTemplateFile            = "dockerfile.tpl"
 	gitlabTemplateFile                = "gitlab.tpl"
 )
 
