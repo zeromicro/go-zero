@@ -32,6 +32,7 @@ type Docker struct {
 	Image       string
 	HasTimezone bool
 	Timezone    string
+	Author      string
 }
 
 type GenContext struct {
@@ -45,6 +46,7 @@ type GenContext struct {
 	ServiceName string
 	ServiceType string
 	China       bool
+	Author      string
 }
 
 // dockerCommand provides the entry for goctl docker
@@ -79,6 +81,7 @@ func dockerCommand(_ *cobra.Command, _ []string) (err error) {
 		ServiceType: varServiceType,
 		ServiceName: varServiceName,
 		China:       varBoolChina,
+		Author:      varStringAuthor,
 	}
 
 	if err := generateDockerfile(g); err != nil {
@@ -125,5 +128,6 @@ func generateDockerfile(g *GenContext) error {
 		Image:       g.Image,
 		HasTimezone: len(g.TimeZone) > 0,
 		Timezone:    g.TimeZone,
+		Author:      g.Author,
 	})
 }
