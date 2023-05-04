@@ -1,7 +1,7 @@
 {
   "goctl": {
     "short": "A cli tool to generate go-zero code",
-    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/zeromicro/go-zero\nSite:   https://go-zero.dev",
+    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/suyuan32/simple-admin-tools\nSite:   https://doc.ryansu.pro/",
     "api": {
       "short": "Generate api related files",
       "o": "Output a sample api file",
@@ -116,14 +116,14 @@
     },
     "docker": {
       "short": "Generate Dockerfile",
-      "exe": "The executable name in the built image",
-      "go": "The file that contains main function",
-      "base": "The base image to build the docker image, default scratch",
+      "service_name": "The service name of the project",
+      "service_type": "The service type, such as rpc, api",
+      "base": "The base image to run the project",
       "port": "The port to expose, default none",
       "home": "{{.global.home}}",
       "remote": "{{.global.remote}}",
       "branch": "{{.global.branch}}",
-      "version": "The goctl builder golang image version",
+      "image": "The image for building project",
       "tz": "The timezone of the container"
     },
     "kube": {
