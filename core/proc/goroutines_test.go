@@ -5,19 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx/logtest"
 )
 
 func TestDumpGoroutines(t *testing.T) {
-	var buf strings.Builder
-	w := logx.NewWriter(&buf)
-	o := logx.Reset()
-	logx.SetWriter(w)
-	defer func() {
-		logx.Reset()
-		logx.SetWriter(o)
-	}()
-
+	buf := logtest.NewCollector(t)
 	dumpGoroutines()
 	assert.True(t, strings.Contains(buf.String(), ".dump"))
 }

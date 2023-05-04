@@ -16,5 +16,6 @@ func NewInMemoryExporter(t *testing.T) *tracetest.InMemoryExporter {
 		me.Reset()
 	})
 	otel.SetTracerProvider(trace.NewTracerProvider(trace.WithSyncer(me)))
+
 	return me
 }

@@ -2,6 +2,7 @@ package conf
 
 import (
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -733,7 +734,7 @@ func Test_FieldOverwrite(t *testing.T) {
 			input := []byte(`{"Name": "hello"}`)
 			err := LoadFromJsonBytes(input, val)
 			assert.ErrorAs(t, err, &dupErr)
-			assert.Equal(t, newConflictKeyError("name").Error(), err.Error())
+			assert.Error(t, err)
 		}
 
 		validate(&St0{})
@@ -1194,6 +1195,100 @@ Email = "bar"`)
 			assert.Len(t, c.Value, 2)
 		}
 	})
+}
+
+func Test_getFullName(t *testing.T) {
+	assert.Equal(t, "a.b", getFullName("a", "b"))
+	assert.Equal(t, "a", getFullName("", "a"))
+}
+
+func Test_buildFieldsInfo(t *testing.T) {
+	type ParentSt struct {
+		Name string
+		M    map[string]int
+	}
+	tests := []struct {
+		name        string
+		t           reflect.Type
+		ok          bool
+		containsKey string
+	}{
+		{
+			name: "normal",
+			t:    reflect.TypeOf(struct{ A string }{}),
+			ok:   true,
+		},
+		{
+			name: "struct anonymous",
+			t: reflect.TypeOf(struct {
+				ParentSt
+				Name string
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("name").Error(),
+		},
+		{
+			name: "struct ptr anonymous",
+			t: reflect.TypeOf(struct {
+				*ParentSt
+				Name string
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("name").Error(),
+		},
+		{
+			name: "more struct anonymous",
+			t: reflect.TypeOf(struct {
+				Value struct {
+					ParentSt
+					Name string
+				}
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("value.name").Error(),
+		},
+		{
+			name: "map anonymous",
+			t: reflect.TypeOf(struct {
+				ParentSt
+				M string
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("m").Error(),
+		},
+		{
+			name: "map more anonymous",
+			t: reflect.TypeOf(struct {
+				Value struct {
+					ParentSt
+					M string
+				}
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("value.m").Error(),
+		},
+		{
+			name: "struct slice anonymous",
+			t: reflect.TypeOf([]struct {
+				ParentSt
+				Name string
+			}{}),
+			ok:          false,
+			containsKey: newConflictKeyError("name").Error(),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := buildFieldsInfo(tt.t, "")
+			if tt.ok {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, err.Error(), tt.containsKey)
+			}
+		})
+	}
 }
 
 func createTempFile(ext, text string) (string, error) {

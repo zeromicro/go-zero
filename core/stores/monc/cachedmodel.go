@@ -2,8 +2,8 @@ package monc
 
 import (
 	"context"
-	"log"
 
+	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/mon"
 	"github.com/zeromicro/go-zero/core/stores/redis"
@@ -30,20 +30,14 @@ type Model struct {
 // MustNewModel returns a Model with a cache cluster, exists on errors.
 func MustNewModel(uri, db, collection string, c cache.CacheConf, opts ...cache.Option) *Model {
 	model, err := NewModel(uri, db, collection, c, opts...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return model
 }
 
 // MustNewNodeModel returns a Model with a cache node, exists on errors.
 func MustNewNodeModel(uri, db, collection string, rds *redis.Redis, opts ...cache.Option) *Model {
 	model, err := NewNodeModel(uri, db, collection, rds, opts...)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	logx.Must(err)
 	return model
 }
 

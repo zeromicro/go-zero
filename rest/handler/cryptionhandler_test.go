@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -20,10 +19,6 @@ const (
 )
 
 var aesKey = []byte(`PdSgVkYp3s6v9y$B&E)H+MbQeThWmZq4`)
-
-func init() {
-	log.SetOutput(io.Discard)
-}
 
 func TestCryptionHandlerGet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/any", http.NoBody)
