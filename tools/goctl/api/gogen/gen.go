@@ -20,6 +20,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
@@ -175,7 +176,12 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	logx.Must(genMiddleware(dir, cfg, api))
 
 	if g.UseDockerfile {
-		logx.Must(genDockerfile(dir, cfg, api, g))
+		service, err := format.FileNamingFormat(cfg.NamingFormat, api.Service.Name)
+		if err != nil {
+			return err
+		}
+
+		_, err = execx.Run(fmt.Sprintf("goctls docker -p %d -s %s -t api", g.Port, service), dir)
 	}
 
 	if g.UseMakefile {

@@ -20,12 +20,12 @@ var (
 func init() {
 	dockerCmdFlags := Cmd.Flags()
 	dockerCmdFlags.StringVarP(&varServiceName, "service_name", "s")
-	dockerCmdFlags.StringVarPWithDefaultValue(&varServiceType, "service_type", "y", "rpc")
+	dockerCmdFlags.StringVarPWithDefaultValue(&varServiceType, "service_type", "t", "rpc")
 	dockerCmdFlags.StringVarPWithDefaultValue(&varStringBase, "base", "a", "alpine:latest")
 	dockerCmdFlags.IntVarP(&varIntPort, "port", "p")
 	dockerCmdFlags.StringVarP(&varStringHome, "home", "m")
 	dockerCmdFlags.StringVarP(&varStringRemote, "remote", "r")
 	dockerCmdFlags.StringVarP(&varStringBranch, "branch", "b")
 	dockerCmdFlags.StringVarPWithDefaultValue(&varStringImage, "image", "i", "golang:1.20.3-alpine3.17")
-	dockerCmdFlags.StringVarPWithDefaultValue(&varStringTZ, "tz", "t", "Asia/Shanghai")
+	dockerCmdFlags.StringVarPWithDefaultValue(&varStringTZ, "tz", "z", "Asia/Shanghai")
 }
