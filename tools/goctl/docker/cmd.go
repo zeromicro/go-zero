@@ -13,6 +13,7 @@ var (
 	varStringImage  string
 	varStringTZ     string
 	varBoolChina    bool
+	varStringAuthor string
 
 	// Cmd describes a docker command.
 	Cmd = cobrax.NewCommand("docker", cobrax.WithRunE(dockerCommand))
@@ -30,4 +31,5 @@ func init() {
 	dockerCmdFlags.BoolVarP(&varBoolChina, "china", "c")
 	dockerCmdFlags.StringVarPWithDefaultValue(&varStringImage, "image", "i", "golang:1.20.3-alpine3.17")
 	dockerCmdFlags.StringVarP(&varStringTZ, "tz", "z")
+	dockerCmdFlags.StringVarPWithDefaultValue(&varStringAuthor, "author", "u", "example@example.com")
 }

@@ -24,9 +24,9 @@ ARG PROJECT={{.ServiceName}}
 # Define the config file name | 定义配置文件名
 ARG CONFIG_FILE={{.ServiceName}}.yaml
 # Define the author | 定义作者
-ARG AUTHOR=YourName
+ARG AUTHOR="{{.Author}}"
 
-LABEL MAINTAINER=${AUTHOR}
+LABEL org.opencontainers.image.authors=${AUTHOR}
 
 WORKDIR /app
 ENV PROJECT=${PROJECT}
