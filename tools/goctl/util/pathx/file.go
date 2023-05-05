@@ -5,7 +5,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"github.com/gookit/color"
 	"io"
 	"io/ioutil"
 	"log"
@@ -13,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 

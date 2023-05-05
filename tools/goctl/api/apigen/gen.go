@@ -4,11 +4,11 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/gookit/color"
 	"html/template"
 	"path/filepath"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"

@@ -2,7 +2,6 @@ package testdata
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 

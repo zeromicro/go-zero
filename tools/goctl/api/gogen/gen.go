@@ -3,7 +3,6 @@ package gogen
 import (
 	"errors"
 	"fmt"
-	"github.com/gookit/color"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"

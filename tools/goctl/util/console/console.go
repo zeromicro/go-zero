@@ -2,8 +2,9 @@ package console
 
 import (
 	"fmt"
-	"github.com/gookit/color"
 	"os"
+
+	"github.com/gookit/color"
 )
 
 type (

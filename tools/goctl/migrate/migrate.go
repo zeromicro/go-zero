@@ -3,7 +3,6 @@ package migrate
 import (
 	"bytes"
 	"fmt"
-	"github.com/gookit/color"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"

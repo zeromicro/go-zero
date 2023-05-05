@@ -3,13 +3,13 @@ package docker
 import (
 	"errors"
 	"fmt"
-	"github.com/gookit/color"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/env"

@@ -3,12 +3,12 @@ package cmd
 import (
 	_ "embed"
 	"fmt"
-	"github.com/gookit/color"
 	"os"
 	"runtime"
 	"strings"
 	"text/template"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/api"
