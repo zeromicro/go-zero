@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 )
 
@@ -34,7 +34,7 @@ func (f File) execute(goctl string) error {
 	}
 	printCommand := strings.ReplaceAll(fmt.Sprintf("cd %s && %s", printDir, f.Cmd), "goctl", filepath.Base(goctl))
 	command := strings.ReplaceAll(fmt.Sprintf("cd %s && %s", dir, f.Cmd), "goctl", goctl)
-	fmt.Println(aurora.BrightGreen(printCommand))
+	fmt.Println(color.LightGreen.Render(printCommand))
 	cmd := exec.Command("sh", "-c", command)
 	cmd.Env = os.Environ()
 	cmd.Stdout = os.Stdout
@@ -106,10 +106,10 @@ func MustRun(baseDir string) {
 	must(err)
 	goctlNew, err := exec.LookPath("goctl")
 	must(err)
-	fmt.Println(aurora.BrightBlue("========================goctl.old======================="))
+	fmt.Println(color.LightBlue.Render("========================goctl.old======================="))
 	must(oldFiles.execute(goctlOld))
 	fmt.Println()
-	fmt.Println(aurora.BrightBlue("========================goctl.new======================="))
+	fmt.Println(color.LightBlue.Render("========================goctl.new======================="))
 	must(newFiles.execute(goctlNew))
 }
 
