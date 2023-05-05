@@ -11,8 +11,6 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
-const defaultClientKeepaliveTime = 20 * time.Second
-
 var (
 	// WithDialOption is an alias of internal.WithDialOption.
 	WithDialOption = internal.WithDialOption
@@ -94,12 +92,6 @@ func NewClientWithTarget(target string, opts ...ClientOption) (Client, error) {
 		Breaker:    true,
 		Timeout:    true,
 	}
-
-	opts = append([]ClientOption{
-		WithDialOption(grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time: defaultClientKeepaliveTime,
-		})),
-	}, opts...)
 
 	return internal.NewClient(target, middlewares, opts...)
 }
