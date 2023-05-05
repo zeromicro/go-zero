@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/gookit/color"
 	"io"
 	"io/ioutil"
 	"log"
@@ -12,7 +13,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 )
 
@@ -58,7 +58,7 @@ func RemoveOrQuit(filename string) error {
 	}
 
 	fmt.Printf("%s exists, overwrite it?\nEnter to overwrite or Ctrl-C to cancel...",
-		aurora.BgRed(aurora.Bold(filename)))
+		color.New(color.BgRed, color.Bold).Render(filename))
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 
 	return os.Remove(filename)

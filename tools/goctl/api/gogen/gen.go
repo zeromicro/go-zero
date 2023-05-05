@@ -3,6 +3,7 @@ package gogen
 import (
 	"errors"
 	"fmt"
+	"github.com/gookit/color"
 	"os"
 	"path"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -109,7 +109,7 @@ func DoGenProject(apiFile, dir, style string) error {
 		return err
 	}
 
-	fmt.Println(aurora.Green("Done."))
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }
 
@@ -152,14 +152,14 @@ func sweep() error {
 			seconds, err := strconv.ParseInt(timestamp, 10, 64)
 			if err != nil {
 				// print error and ignore
-				fmt.Println(aurora.Red(fmt.Sprintf("sweep ignored file: %s", fpath)))
+				fmt.Println(color.Red.Sprintf("sweep ignored file: %s", fpath))
 				return nil
 			}
 
 			tm := time.Unix(seconds, 0)
 			if tm.Before(keepTime) {
 				if err := os.RemoveAll(fpath); err != nil {
-					fmt.Println(aurora.Red(fmt.Sprintf("failed to remove file: %s", fpath)))
+					fmt.Println(color.Red.Sprintf("failed to remove file: %s", fpath))
 					return err
 				}
 			}

@@ -3,6 +3,7 @@ package migrate
 import (
 	"bytes"
 	"fmt"
+	"github.com/gookit/color"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -11,15 +12,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/ctx"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
 const defaultMigrateVersion = "v1.3.0"
@@ -246,10 +244,7 @@ It's recommended to use the replacement package, do you want to replace?
 ['Y' for yes, 'N' for no, 'A' for all, 'I' for ignore]: `,
 		deprecated, replacement)
 
-	if runtime.GOOS != vars.OsWindows {
-		msg = aurora.Yellow(msg).String()
-	}
-	fmt.Print(msg)
+	fmt.Print(color.Yellow.Render(msg))
 
 	for {
 		var in string

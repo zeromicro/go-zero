@@ -4,11 +4,11 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/gookit/color"
 	"html/template"
 	"path/filepath"
 	"strings"
 
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
@@ -73,6 +73,6 @@ func CreateApiTemplate(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Println(aurora.Green("Done."))
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }
