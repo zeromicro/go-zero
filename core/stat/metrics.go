@@ -163,7 +163,7 @@ func (c *metricsContainer) Execute(v any) {
 					report.Top99p9th = mostDuration
 				}
 			} else {
-				mostDuration := getTopDuration(tasks)
+				mostDuration := getTopDuration(top50pTasks)
 				report.Top90th = mostDuration
 				report.Top99th = mostDuration
 				report.Top99p9th = mostDuration
