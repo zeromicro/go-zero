@@ -36,14 +36,16 @@ func TestStartAgent(t *testing.T) {
 		Batcher:  "otlp",
 	}
 	c5 := Config{
-		Name:     "grpc",
-		Endpoint: endpoint3,
-		Batcher:  kindOtlpGrpc,
+		Name:        "otlpgrpc",
+		Endpoint:    endpoint3,
+		Batcher:     kindOtlpGrpc,
+		OtlpHeaders: map[string]string{},
 	}
 	c6 := Config{
-		Name:     "otlphttp",
-		Endpoint: endpoint4,
-		Batcher:  kindOtlpHttp,
+		Name:        "otlphttp",
+		Endpoint:    endpoint4,
+		Batcher:     kindOtlpHttp,
+		OtlpHeaders: map[string]string{},
 	}
 	c7 := Config{
 		Name:     "UDP",
