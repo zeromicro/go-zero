@@ -2,7 +2,7 @@ package migrationnotes
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -24,7 +24,7 @@ func migrateBefore1_3_4(dir, style string) error {
 }
 
 func needShow1_3_4(dir, style string) (bool, error) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		return false, nil
 	}

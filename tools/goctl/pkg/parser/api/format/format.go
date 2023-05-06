@@ -3,14 +3,14 @@ package format
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
+	"os"
 
 	"github.com/zeromicro/go-zero/tools/goctl/pkg/parser/api/parser"
 )
 
 // File formats the api file.
 func File(filename string) error {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -18,7 +18,7 @@ func File(filename string) error {
 	if err := Source(data, buffer); err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filename, buffer.Bytes(), 0666)
+	return os.WriteFile(filename, buffer.Bytes(), 0666)
 }
 
 // Source formats the api source.

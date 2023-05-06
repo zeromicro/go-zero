@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +13,7 @@ import (
 func Test_findPbFile(t *testing.T) {
 	dir := t.TempDir()
 	protoFile := filepath.Join(dir, "greet.proto")
-	err := ioutil.WriteFile(protoFile, []byte(`
+	err := os.WriteFile(protoFile, []byte(`
 syntax = "proto3";
 
 package greet;

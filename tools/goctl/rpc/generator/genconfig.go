@@ -2,7 +2,6 @@ package generator
 
 import (
 	_ "embed"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -36,5 +35,5 @@ func (g *Generator) GenConfig(ctx DirContext, _ parser.Proto, cfg *conf.Config) 
 		return err
 	}
 
-	return ioutil.WriteFile(fileName, []byte(text), os.ModePerm)
+	return os.WriteFile(fileName, []byte(text), os.ModePerm)
 }

@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
@@ -145,9 +145,20 @@ func GetTemplateDir(category string) (string, error) {
 		// backward compatible, it will be removed in the feature
 		// backward compatible start.
 		beforeTemplateDir := filepath.Join(home, version.GetGoctlVersion(), category)
-		fs, _ := ioutil.ReadDir(beforeTemplateDir)
+		entries, err := os.ReadDir(beforeTemplateDir)
+		if err != nil {
+			return "", err
+		}
+		infos := make([]fs.FileInfo, 0, len(entries))
+		for _, entry := range entries {
+			info, err := entry.Info()
+			if err != nil {
+				return "", err
+			}
+			infos = append(infos, info)
+		}
 		var hasContent bool
-		for _, e := range fs {
+		for _, e := range infos {
 			if e.Size() > 0 {
 				hasContent = true
 			}
@@ -256,7 +267,7 @@ func createTemplate(file, content string, force bool) error {
 
 // MustTempDir creates a temporary directory.
 func MustTempDir() string {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	if err != nil {
 		log.Fatalln(err)
 	}
