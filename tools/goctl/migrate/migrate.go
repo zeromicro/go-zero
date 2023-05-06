@@ -8,7 +8,6 @@ import (
 	"go/parser"
 	"go/token"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -163,7 +162,7 @@ func writeFile(pkgs []*ast.Package, verbose bool) error {
 				return fmt.Errorf("[rewriteImport] format file %s error: %w", filename, err)
 			}
 
-			err = ioutil.WriteFile(filename, w.Bytes(), os.ModePerm)
+			err = os.WriteFile(filename, w.Bytes(), os.ModePerm)
 			if err != nil {
 				return fmt.Errorf("[rewriteImport] write file %s error: %w", filename, err)
 			}

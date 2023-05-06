@@ -1,7 +1,7 @@
 package util
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 )
 
@@ -13,7 +13,7 @@ func MatchFiles(in string) ([]string, error) {
 		return nil, err
 	}
 
-	files, err := ioutil.ReadDir(abs)
+	files, err := os.ReadDir(abs)
 	if err != nil {
 		return nil, err
 	}
