@@ -337,13 +337,11 @@ func (c *cluster) watchConnState(cli EtcdClient) {
 // DialClient dials an etcd cluster with given endpoints.
 func DialClient(endpoints []string) (EtcdClient, error) {
 	cfg := clientv3.Config{
-		Endpoints:            endpoints,
-		AutoSyncInterval:     autoSyncInterval,
-		DialTimeout:          DialTimeout,
-		DialKeepAliveTime:    dialKeepAliveTime,
-		DialKeepAliveTimeout: DialTimeout,
-		RejectOldCluster:     true,
-		PermitWithoutStream:  true,
+		Endpoints:           endpoints,
+		AutoSyncInterval:    autoSyncInterval,
+		DialTimeout:         DialTimeout,
+		RejectOldCluster:    true,
+		PermitWithoutStream: true,
 	}
 	if account, ok := GetAccount(endpoints); ok {
 		cfg.Username = account.User
