@@ -27,7 +27,6 @@ import (
 
 	"github.com/logrusorgru/aurora"
 
-	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/proto"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 
 	"entgo.io/ent/entc"
@@ -385,16 +384,16 @@ func GenApiData(schema *load.Schema, ctx *GenEntLogicContext) (string, error) {
 	}
 
 	apiTemplateData := bytes.NewBufferString("")
-	apiTmpl, _ := template.New("apiTpl").Parse(proto.ApiTpl)
+	apiTmpl, _ := template.New("entApiTpl").Parse(apiTpl)
 	logx.Must(apiTmpl.Execute(apiTemplateData, map[string]any{
-		"infoData":           infoData.String(),
-		"modelName":          ctx.ModelName,
-		"modelNameSpace":     strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
-		"modelNameLowerCase": strings.ToLower(ctx.ModelName),
-		"modelNameSnake":     strcase.ToSnake(ctx.ModelName),
-		"listData":           listData.String(),
-		"apiServiceName":     strcase.ToCamel(ctx.ServiceName),
-		"useUUID":            ctx.UseUUID,
+		"infoData":       infoData.String(),
+		"modelName":      ctx.ModelName,
+		"modelNameSpace": strings.Replace(strcase.ToSnake(ctx.ModelName), "_", " ", -1),
+		"groupName":      ctx.GroupName,
+		"modelNameSnake": strcase.ToSnake(ctx.ModelName),
+		"listData":       listData.String(),
+		"apiServiceName": strcase.ToCamel(ctx.ServiceName),
+		"useUUID":        ctx.UseUUID,
 	}))
 	data = apiTemplateData.String()
 
