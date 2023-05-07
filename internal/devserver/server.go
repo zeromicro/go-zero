@@ -7,7 +7,6 @@ import (
 	"net/http/pprof"
 	"sync"
 
-	"github.com/felixge/fgprof"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/prometheus"
@@ -49,7 +48,6 @@ func (s *Server) addRoutes() {
 	}
 	// pprof
 	if s.config.EnablePprof {
-		s.handleFunc("/debug/fgprof", fgprof.Handler().(http.HandlerFunc))
 		s.handleFunc("/debug/pprof/", pprof.Index)
 		s.handleFunc("/debug/pprof/cmdline", pprof.Cmdline)
 		s.handleFunc("/debug/pprof/profile", pprof.Profile)
