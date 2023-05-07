@@ -29,6 +29,15 @@ func DisableStmtLog() {
 	logSql.Set(false)
 }
 
+func EnableLog() {
+	logSql.Set(true)
+	logSlowSql.Set(true)
+}
+
+func EnableStmtLog() {
+	logSql.Set(true)
+}
+
 // SetSlowThreshold sets the slow threshold.
 func SetSlowThreshold(threshold time.Duration) {
 	slowThreshold.Set(threshold)

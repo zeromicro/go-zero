@@ -6,6 +6,7 @@ import (
 	"github.com/zeromicro/go-zero/core/proc"
 	"github.com/zeromicro/go-zero/core/prometheus"
 	"github.com/zeromicro/go-zero/core/stat"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 	"github.com/zeromicro/go-zero/core/trace"
 	"github.com/zeromicro/go-zero/internal/devserver"
 )
@@ -33,6 +34,7 @@ type ServiceConf struct {
 	Prometheus prometheus.Config `json:",optional"`
 	Telemetry  trace.Config      `json:",optional"`
 	DevServer  devserver.Config  `json:",optional"`
+	SqlLog     sqlx.LogConf
 }
 
 // MustSetUp sets up the service, exits on error.
@@ -46,6 +48,10 @@ func (sc ServiceConf) SetUp() error {
 		sc.Log.ServiceName = sc.Name
 	}
 	if err := logx.SetUp(sc.Log); err != nil {
+		return err
+	}
+
+	if err := sqlx.SetUp(sc.SqlLog); err != nil {
 		return err
 	}
 
