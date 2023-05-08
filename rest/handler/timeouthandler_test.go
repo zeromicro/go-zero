@@ -9,7 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
-	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
@@ -175,7 +174,6 @@ func TestTimeoutFlush(t *testing.T) {
 		}
 
 		flusher.Flush()
-		httpx.Ok(w)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
