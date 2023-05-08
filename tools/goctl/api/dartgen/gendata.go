@@ -45,8 +45,10 @@ class {{.Name}} {
 		return {{.Name}}(
 			{{range .Members}}
 				{{lowCamelCase .Name}}: {{appendNullCoalescing .}}
-					{{if isDirectType .Type.Name}}
+					{{if isAtomicType .Type.Name}}
 						m['{{getPropertyFromMember .}}'] {{appendDefaultEmptyValue .Type.Name}}
+					{{else if isAtomicListType .Type.Name}}
+						m['{{getPropertyFromMember .}}']?.cast<{{getCoreType .Type.Name}}>() {{appendDefaultEmptyValue .Type.Name}}
 					{{else if isClassListType .Type.Name}}
 						((m['{{getPropertyFromMember .}}'] {{appendDefaultEmptyValue .Type.Name}}) as List<dynamic>).map((i) => {{getCoreType .Type.Name}}.fromJson(i)).toList()
 					{{else}}
