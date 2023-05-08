@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
+	"github.com/zeromicro/go-zero/rest/httpx"
 	"github.com/zeromicro/go-zero/rest/internal/response"
 )
 
@@ -162,6 +163,25 @@ func TestTimeoutHijack(t *testing.T) {
 	assert.NotPanics(t, func() {
 		_, _, _ = writer.Hijack()
 	})
+}
+
+func TestTimeoutFlush(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Minute)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return
+		}
+
+		flusher.Flush()
+		httpx.Ok(w)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
 }
 
 func TestTimeoutPusher(t *testing.T) {

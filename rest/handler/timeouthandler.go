@@ -127,6 +127,12 @@ type timeoutWriter struct {
 
 var _ http.Pusher = (*timeoutWriter)(nil)
 
+func (tw *timeoutWriter) Flush() {
+	if flusher, ok := tw.w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
 func (tw *timeoutWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if hijacked, ok := tw.w.(http.Hijacker); ok {
 		return hijacked.Hijack()
