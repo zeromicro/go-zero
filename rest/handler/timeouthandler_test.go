@@ -164,6 +164,24 @@ func TestTimeoutHijack(t *testing.T) {
 	})
 }
 
+func TestTimeoutFlush(t *testing.T) {
+	timeoutHandler := TimeoutHandler(time.Minute)
+	handler := timeoutHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return
+		}
+
+		flusher.Flush()
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "http://localhost", http.NoBody)
+	resp := httptest.NewRecorder()
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
 func TestTimeoutPusher(t *testing.T) {
 	handler := &timeoutWriter{
 		w: mockedPusher{},
