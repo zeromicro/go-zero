@@ -22,12 +22,13 @@ func Recover(cleanups ...func()) {
 	}
 }
 
+// RecoverCtx is used with defer to do cleanup on panics.
 func RecoverCtx(ctx context.Context, cleanups ...func()) {
 	for _, cleanup := range cleanups {
 		cleanup()
 	}
 
 	if p := recover(); p != nil {
-		logc.Errorf(ctx, "%+v\n\n%s", p, debug.Stack())
+		logc.Errorf(ctx, "%+v\n%s", p, debug.Stack())
 	}
 }
