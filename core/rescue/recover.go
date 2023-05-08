@@ -4,7 +4,6 @@ import (
 	"context"
 	"runtime/debug"
 
-	"github.com/zeromicro/go-zero/core/logc"
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -29,6 +28,6 @@ func RecoverCtx(ctx context.Context, cleanups ...func()) {
 	}
 
 	if p := recover(); p != nil {
-		logc.Errorf(ctx, "%+v\n%s", p, debug.Stack())
+		logx.WithContext(ctx).Errorf("%+v\n%s", p, debug.Stack())
 	}
 }
