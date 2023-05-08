@@ -21,11 +21,10 @@ import (
 
 func TestOtelHandler(t *testing.T) {
 	ztrace.StartAgent(ztrace.Config{
-		Name:        "go-zero-test",
-		Endpoint:    "http://localhost:14268/api/traces",
-		Batcher:     "jaeger",
-		Sampler:     1.0,
-		OtlpHeaders: map[string]string{},
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
 	})
 	defer ztrace.StopAgent()
 
@@ -85,11 +84,10 @@ func TestTraceHandler(t *testing.T) {
 
 func TestDontTracingSpan(t *testing.T) {
 	ztrace.StartAgent(ztrace.Config{
-		Name:        "go-zero-test",
-		Endpoint:    "http://localhost:14268/api/traces",
-		Batcher:     "jaeger",
-		Sampler:     1.0,
-		OtlpHeaders: map[string]string{},
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
 	})
 	defer ztrace.StopAgent()
 
@@ -131,11 +129,10 @@ func TestDontTracingSpan(t *testing.T) {
 
 func TestTraceResponseWriter(t *testing.T) {
 	ztrace.StartAgent(ztrace.Config{
-		Name:        "go-zero-test",
-		Endpoint:    "http://localhost:14268/api/traces",
-		Batcher:     "jaeger",
-		Sampler:     1.0,
-		OtlpHeaders: map[string]string{},
+		Name:     "go-zero-test",
+		Endpoint: "http://localhost:14268/api/traces",
+		Batcher:  "jaeger",
+		Sampler:  1.0,
 	})
 	defer ztrace.StopAgent()
 
