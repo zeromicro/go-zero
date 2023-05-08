@@ -10,7 +10,7 @@ import (
 )
 
 func TestPromMetricHandler_Disabled(t *testing.T) {
-	promMetricHandler := PrometheusHandler("/user/login")
+	promMetricHandler := PrometheusHandler("/user/login", http.MethodGet)
 	handler := promMetricHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
@@ -26,7 +26,7 @@ func TestPromMetricHandler_Enabled(t *testing.T) {
 		Host: "localhost",
 		Path: "/",
 	})
-	promMetricHandler := PrometheusHandler("/user/login")
+	promMetricHandler := PrometheusHandler("/user/login", http.MethodGet)
 	handler := promMetricHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
