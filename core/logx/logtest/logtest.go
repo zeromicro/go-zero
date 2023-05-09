@@ -46,7 +46,6 @@ func (b *Buffer) Bytes() []byte {
 func (b *Buffer) Content() string {
 	var m map[string]interface{}
 	if err := json.Unmarshal(b.buf.Bytes(), &m); err != nil {
-		b.t.Error(err)
 		return ""
 	}
 
@@ -59,12 +58,8 @@ func (b *Buffer) Content() string {
 	case string:
 		return val
 	default:
-		bs, err := json.Marshal(content)
-		if err != nil {
-			b.t.Error(err)
-			return ""
-		}
-
+		// err is impossible to be not nil, unmarshaled from b.buf.Bytes()
+		bs, _ := json.Marshal(content)
 		return string(bs)
 	}
 }

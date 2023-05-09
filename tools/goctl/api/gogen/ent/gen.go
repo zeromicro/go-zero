@@ -25,13 +25,10 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
-
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
-
 	"entgo.io/ent/entc"
 	"entgo.io/ent/entc/gen"
 	"entgo.io/ent/entc/load"
+	"github.com/gookit/color"
 	"github.com/iancoleman/strcase"
 	"github.com/zeromicro/go-zero/core/logx"
 
@@ -81,7 +78,7 @@ func GenEntLogic(g *GenEntLogicContext) error {
 }
 
 func genEntLogic(g *GenEntLogicContext) error {
-	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
+	color.Green.Println("Generating")
 
 	outputDir, err := filepath.Abs(g.Output)
 	if err != nil {
@@ -173,7 +170,7 @@ func genEntLogic(g *GenEntLogicContext) error {
 		}
 	}
 
-	console.NewColorConsole().Success(aurora.Green("Generate Ent Logic files for API successfully").String())
+	color.Green.Println("Generate Ent Logic files for API successfully")
 
 	return nil
 }

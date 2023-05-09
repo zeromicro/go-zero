@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/alicebob/miniredis/v2 v2.30.2
 	github.com/fatih/color v1.15.0
-	github.com/felixge/fgprof v0.9.3
 	github.com/fullstorydev/grpcurl v1.8.7
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1

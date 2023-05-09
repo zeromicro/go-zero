@@ -3,10 +3,8 @@ package console
 import (
 	"fmt"
 	"os"
-	"runtime"
 
-	"github.com/logrusorgru/aurora"
-	"github.com/zeromicro/go-zero/tools/goctl/vars"
+	"github.com/gookit/color"
 )
 
 type (
@@ -63,32 +61,28 @@ func (c *colorConsole) Debug(format string, a ...any) {
 	if !c.enable {
 		return
 	}
-	msg := fmt.Sprintf(format, a...)
-	println(aurora.BrightCyan(msg))
+	println(color.LightCyan.Sprintf(format, a...))
 }
 
 func (c *colorConsole) Success(format string, a ...any) {
 	if !c.enable {
 		return
 	}
-	msg := fmt.Sprintf(format, a...)
-	println(aurora.BrightGreen(msg))
+	println(color.LightGreen.Sprintf(format, a...))
 }
 
 func (c *colorConsole) Warning(format string, a ...any) {
 	if !c.enable {
 		return
 	}
-	msg := fmt.Sprintf(format, a...)
-	println(aurora.BrightYellow(msg))
+	println(color.LightYellow.Sprintf(format, a...))
 }
 
 func (c *colorConsole) Error(format string, a ...any) {
 	if !c.enable {
 		return
 	}
-	msg := fmt.Sprintf(format, a...)
-	println(aurora.BrightRed(msg))
+	println(color.LightRed.Sprintf(format, a...))
 }
 
 func (c *colorConsole) Fatalln(format string, a ...any) {
@@ -126,8 +120,7 @@ func (i *ideaConsole) Info(format string, a ...any) {
 }
 
 func (i *ideaConsole) Debug(format string, a ...any) {
-	msg := fmt.Sprintf(format, a...)
-	fmt.Println(aurora.BrightCyan(msg))
+	fmt.Println(color.LightCyan.Sprintf(format, a...))
 }
 
 func (i *ideaConsole) Success(format string, a ...any) {
@@ -161,17 +154,6 @@ func (i *ideaConsole) Must(err error) {
 }
 
 func println(msg any) {
-	value, ok := msg.(aurora.Value)
-	if !ok {
-		fmt.Println(msg)
-	}
-
-	goos := runtime.GOOS
-	if goos == vars.OsWindows {
-		fmt.Println(value.Value())
-		return
-	}
-
 	fmt.Println(msg)
 }
 

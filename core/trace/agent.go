@@ -71,17 +71,29 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		// endpoint can not reach.
 		// If the connection not dial success, the global otel ErrorHandler will catch error
 		// when reporting data like other exporters.
-		return otlptracegrpc.New(
-			context.Background(),
+		opts := []otlptracegrpc.Option{
 			otlptracegrpc.WithInsecure(),
 			otlptracegrpc.WithEndpoint(c.Endpoint),
+		}
+		if len(c.OtlpHeaders) > 0 {
+			opts = append(opts, otlptracegrpc.WithHeaders(c.OtlpHeaders))
+		}
+		return otlptracegrpc.New(
+			context.Background(),
+			opts...,
 		)
 	case kindOtlpHttp:
 		// Not support flexible configuration now.
-		return otlptracehttp.New(
-			context.Background(),
+		opts := []otlptracehttp.Option{
 			otlptracehttp.WithInsecure(),
 			otlptracehttp.WithEndpoint(c.Endpoint),
+		}
+		if len(c.OtlpHeaders) > 0 {
+			opts = append(opts, otlptracehttp.WithHeaders(c.OtlpHeaders))
+		}
+		return otlptracehttp.New(
+			context.Background(),
+			opts...,
 		)
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)

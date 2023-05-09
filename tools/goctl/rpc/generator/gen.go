@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -63,7 +63,7 @@ type ZRpcContext struct {
 // code storage directory, and proto import parameters to control
 // the source file and target location of the rpc service that needs to be generated
 func (g *Generator) Generate(zctx *ZRpcContext) error {
-	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
+	color.Green.Println("Generating...")
 
 	abs, err := filepath.Abs(zctx.Output)
 	if err != nil {
