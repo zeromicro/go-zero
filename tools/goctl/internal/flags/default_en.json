@@ -116,6 +116,7 @@
     },
     "docker": {
       "short": "Generate Dockerfile",
+      "author": "The author information",
       "service_name": "The service name of the project",
       "service_type": "The service type, such as rpc, api",
       "base": "The base image to run the project",
