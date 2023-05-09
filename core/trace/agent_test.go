@@ -36,14 +36,20 @@ func TestStartAgent(t *testing.T) {
 		Batcher:  "otlp",
 	}
 	c5 := Config{
-		Name:     "grpc",
+		Name:     "otlpgrpc",
 		Endpoint: endpoint3,
 		Batcher:  kindOtlpGrpc,
+		OtlpHeaders: map[string]string{
+			"uptrace-dsn": "http://project2_secret_token@localhost:14317/2",
+		},
 	}
 	c6 := Config{
 		Name:     "otlphttp",
 		Endpoint: endpoint4,
 		Batcher:  kindOtlpHttp,
+		OtlpHeaders: map[string]string{
+			"uptrace-dsn": "http://project2_secret_token@localhost:14318/2",
+		},
 	}
 	c7 := Config{
 		Name:     "UDP",

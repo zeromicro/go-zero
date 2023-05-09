@@ -65,7 +65,7 @@ func (l *richLogger) Errorf(format string, v ...any) {
 }
 
 func (l *richLogger) Errorv(v any) {
-	l.err(fmt.Sprint(v))
+	l.err(v)
 }
 
 func (l *richLogger) Errorw(msg string, fields ...LogField) {

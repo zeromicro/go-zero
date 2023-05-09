@@ -18,7 +18,7 @@ import (
 	"errors"
 	"path/filepath"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
@@ -166,7 +166,7 @@ func ListAllTemplate() {
 
 	console.NewColorConsole(true).Success("The templates supported:\n")
 	for _, v := range data {
-		console.Info("%s : %s", aurora.Green(v.Name).String(), v.Intro)
+		console.Info("%s : %s", color.Green.Sprint(v.Name), v.Intro)
 	}
 	console.Success("\nUsage: goctls extra ent template -a not_empty_update -d ./ent")
 }
