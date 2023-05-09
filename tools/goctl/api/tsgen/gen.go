@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
@@ -45,7 +45,7 @@ func TsCommand(_ *cobra.Command, _ []string) error {
 
 	api, err := parser.Parse(apiFile)
 	if err != nil {
-		fmt.Println(aurora.Red("Failed"))
+		fmt.Println(color.Red.Render("Failed"))
 		return err
 	}
 
@@ -59,6 +59,6 @@ func TsCommand(_ *cobra.Command, _ []string) error {
 	logx.Must(genHandler(dir, webAPI, caller, api, unwrapAPI))
 	logx.Must(genComponents(dir, api))
 
-	fmt.Println(aurora.Green("Done."))
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }

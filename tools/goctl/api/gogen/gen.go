@@ -11,15 +11,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gookit/color"
 	"github.com/iancoleman/strcase"
-
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 	"github.com/zeromicro/go-zero/core/logx"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/gogen/ent"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
-	"github.com/zeromicro/go-zero/tools/goctl/util/console"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 
 	apiformat "github.com/zeromicro/go-zero/tools/goctl/api/format"
@@ -136,7 +134,7 @@ type GenContext struct {
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, g *GenContext) error {
-	console.NewColorConsole(true).Info(aurora.Green("Generating...").String())
+	color.Green.Println("Generating")
 
 	api, err := parser.Parse(apiFile)
 	if err != nil {
@@ -270,7 +268,7 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 		return err
 	}
 
-	console.NewColorConsole().MarkDone()
+	fmt.Println(color.Green.Render("Done."))
 	return nil
 }
 
@@ -313,14 +311,14 @@ func sweep() error {
 			seconds, err := strconv.ParseInt(timestamp, 10, 64)
 			if err != nil {
 				// print error and ignore
-				fmt.Println(aurora.Red(fmt.Sprintf("sweep ignored file: %s", fpath)))
+				fmt.Println(color.Red.Sprintf("sweep ignored file: %s", fpath))
 				return nil
 			}
 
 			tm := time.Unix(seconds, 0)
 			if tm.Before(keepTime) {
 				if err := os.RemoveAll(fpath); err != nil {
-					fmt.Println(aurora.Red(fmt.Sprintf("failed to remove file: %s", fpath)))
+					fmt.Println(color.Red.Sprintf("failed to remove file: %s", fpath))
 					return err
 				}
 			}

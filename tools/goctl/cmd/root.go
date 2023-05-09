@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/logrusorgru/aurora"
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 	"github.com/withfig/autocomplete-tools/integrations/cobra"
 
@@ -45,7 +45,7 @@ var (
 func Execute() {
 	os.Args = supportGoStdFlag(os.Args)
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(aurora.Red(err.Error()))
+		fmt.Println(color.Red.Render(err.Error()))
 		os.Exit(codeFailure)
 	}
 }

@@ -16,12 +16,11 @@ package vben
 
 import (
 	"errors"
-	"fmt"
 	"path/filepath"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/iancoleman/strcase"
-	"github.com/logrusorgru/aurora"
 	"github.com/spf13/cobra"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/parser"
@@ -147,6 +146,6 @@ func GenCRUDLogic(_ *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Println(aurora.Green("Done."))
+	color.Green.Println("Done.")
 	return nil
 }
