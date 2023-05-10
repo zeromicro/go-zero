@@ -10,6 +10,8 @@ type (
 
 	retryOptions struct {
 		times int
+		// errHandler determine if an error is returned
+		errHandler func(error) bool
 	}
 )
 
@@ -20,22 +22,33 @@ func DoWithRetry(fn func() error, opts ...RetryOption) error {
 		opt(options)
 	}
 
-	var berr errorx.BatchError
+	var batchErr errorx.BatchError
+	var err error
 	for i := 0; i < options.times; i++ {
-		if err := fn(); err != nil {
-			berr.Add(err)
-		} else {
+		if err = fn(); err == nil {
 			return nil
+		}
+		batchErr.Add(err)
+		// return if error handler return true
+		if options.errHandler != nil && options.errHandler(err) {
+			return batchErr.Err()
 		}
 	}
 
-	return berr.Err()
+	return batchErr.Err()
 }
 
 // WithRetry customize a DoWithRetry call with given retry times.
 func WithRetry(times int) RetryOption {
 	return func(options *retryOptions) {
 		options.times = times
+	}
+}
+
+// WithErrHandler customize a error handler
+func WithErrHandler(errHandler func(error) bool) RetryOption {
+	return func(options *retryOptions) {
+		options.errHandler = errHandler
 	}
 }
 
