@@ -66,6 +66,9 @@ func TestTraceDebug(t *testing.T) {
 	l.WithDuration(time.Second).Debugv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Debugv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Debugw(testlog, Field("foo", "bar"))
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "foo"), w.String())
@@ -103,6 +106,9 @@ func TestTraceError(t *testing.T) {
 	l.WithDuration(time.Second).Errorv(testlog)
 	validate(t, w.String(), true, true)
 	w.Reset()
+	l.WithDuration(time.Second).Errorv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
+	w.Reset()
 	l.WithDuration(time.Second).Errorw(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
 	assert.True(t, strings.Contains(w.String(), "basket"), w.String())
@@ -136,6 +142,9 @@ func TestTraceInfo(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Infov(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Infow(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
@@ -173,6 +182,9 @@ func TestTraceInfoConsole(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Infov(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Infov(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 }
 
 func TestTraceSlow(t *testing.T) {
@@ -203,6 +215,9 @@ func TestTraceSlow(t *testing.T) {
 	w.Reset()
 	l.WithDuration(time.Second).Slowv(testlog)
 	validate(t, w.String(), true, true)
+	w.Reset()
+	l.WithDuration(time.Second).Slowv(testobj)
+	validateContentType(t, w.String(), map[string]any{}, true, true)
 	w.Reset()
 	l.WithDuration(time.Second).Sloww(testlog, Field("basket", "ball"))
 	validate(t, w.String(), true, true)
@@ -311,8 +326,32 @@ func validate(t *testing.T, body string, expectedTrace, expectedSpan bool) {
 	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
 }
 
+func validateContentType(t *testing.T, body string, expectedType any, expectedTrace, expectedSpan bool) {
+	var val mockValue
+	dec := json.NewDecoder(strings.NewReader(body))
+
+	for {
+		var doc mockValue
+		err := dec.Decode(&doc)
+		if err == io.EOF {
+			// all done
+			break
+		}
+		if err != nil {
+			continue
+		}
+
+		val = doc
+	}
+
+	assert.IsType(t, expectedType, val.Content, body)
+	assert.Equal(t, expectedTrace, len(val.Trace) > 0, body)
+	assert.Equal(t, expectedSpan, len(val.Span) > 0, body)
+}
+
 type mockValue struct {
-	Trace string `json:"trace"`
-	Span  string `json:"span"`
-	Foo   string `json:"foo"`
+	Trace   string `json:"trace"`
+	Span    string `json:"span"`
+	Foo     string `json:"foo"`
+	Content any    `json:"content"`
 }
