@@ -28,4 +28,3 @@ go.work.sum
 *~
 !OWNERS
 coverage.txt
-core/service/foo/
