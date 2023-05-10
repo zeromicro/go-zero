@@ -11,13 +11,17 @@ func TestSetUp(t *testing.T) {
 		DisableSqlLog:  false,
 		DisableStmtLog: false,
 	})
-	assert.False(t, logSql.True())
-	assert.False(t, logSlowSql.True())
+	defer func() {
+		logSql.Set(true)
+		logSlowSql.Set(true)
+	}()
+	assert.True(t, logSql.True())
+	assert.True(t, logSlowSql.True())
 
 	SetUp(LogConf{
 		DisableSqlLog:  true,
 		DisableStmtLog: true,
 	})
-	assert.True(t, logSql.True())
-	assert.True(t, logSlowSql.True())
+	assert.False(t, logSql.True())
+	assert.False(t, logSlowSql.True())
 }
