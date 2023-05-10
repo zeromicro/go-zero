@@ -7,7 +7,7 @@ type LogConf struct {
 	DisableSqlLog bool `json:",default=false"`
 }
 
-func SetUp(c LogConf) (err error) {
+func SetUp(c LogConf) {
 	if c.DisableSqlLog {
 		DisableLog()
 	} else {

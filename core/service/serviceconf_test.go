@@ -46,11 +46,11 @@ func TestSqlSetup(t *testing.T) {
 		DisableSqlLog:  true,
 	}
 
-	assert.NoError(t, sqlx.SetUp(c))
+	sqlx.SetUp(c)
 	c = sqlx.LogConf{
 		DisableStmtLog: false,
 		DisableSqlLog:  false,
 	}
-	assert.NoError(t, sqlx.SetUp(c))
+	sqlx.SetUp(c)
 
 }

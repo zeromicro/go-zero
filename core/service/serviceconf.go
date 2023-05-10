@@ -51,9 +51,7 @@ func (sc ServiceConf) SetUp() error {
 		return err
 	}
 
-	if err := sqlx.SetUp(sc.SqlLog); err != nil {
-		return err
-	}
+	sqlx.SetUp(sc.SqlLog)
 
 	sc.initMode()
 	prometheus.StartAgent(sc.Prometheus)
