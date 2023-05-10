@@ -57,3 +57,46 @@ func BenchmarkRingAdd(b *testing.B) {
 		}
 	})
 }
+
+func TestRingGetByElemIdxLess(t *testing.T) {
+	ring := NewRing(5)
+	for i := 0; i < 3; i++ {
+		ring.Add(i)
+	}
+	_, err := ring.GetByElemIdx(-1)
+	assert.Error(t, err)
+
+	val0, err := ring.GetByElemIdx(0)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, val0)
+
+	val2, err := ring.GetByElemIdx(2)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, val2)
+
+	val3, err := ring.GetByElemIdx(3)
+	assert.NoError(t, err)
+	assert.Equal(t, nil, val3)
+}
+
+func TestRingGetByElemIdxMore(t *testing.T) {
+	ring := NewRing(3)
+	for i := 0; i < 5; i++ {
+		ring.Add(i)
+	}
+	_, err := ring.GetByElemIdx(-1)
+	assert.Error(t, err)
+
+	val0, err := ring.GetByElemIdx(0)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, val0)
+
+	_, err = ring.GetByElemIdx(3)
+	assert.Error(t, err)
+
+	_, err = ring.GetByElemIdx(4)
+	assert.Error(t, err)
+
+	_, err = ring.GetByElemIdx(5)
+	assert.Error(t, err)
+}

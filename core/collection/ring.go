@@ -1,6 +1,9 @@
 package collection
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // A Ring can be used as fixed size ring.
 type Ring struct {
@@ -49,4 +52,14 @@ func (r *Ring) Take() []any {
 	}
 
 	return elements
+}
+
+// GetByElemIdx get the item by elements index
+func (r *Ring) GetByElemIdx(elemIdx int) (any, error) {
+	r.lock.RLock()
+	defer r.lock.RUnlock()
+	if elemIdx >= len(r.elements) || elemIdx < 0 {
+		return nil, fmt.Errorf("out of elements's range")
+	}
+	return r.elements[elemIdx], nil
 }
