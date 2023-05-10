@@ -19,5 +19,4 @@ func SetUp(c LogConf) {
 	} else {
 		EnableStmtLog()
 	}
-	return
 }
