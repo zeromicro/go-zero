@@ -39,3 +39,20 @@ func TestServiceConfWithMetricsUrl(t *testing.T) {
 	}
 	assert.NoError(t, c.SetUp())
 }
+
+func TestSqlSetup(t *testing.T) {
+	c := ServiceConf{
+		Name: "foo",
+		Log: logx.LogConf{
+			Mode: "volume",
+		},
+		SqlLog: sqlx.LogConf{
+			DisableStmtLog: true,
+			DisableSqlLog:  true,
+		},
+		Mode:       "dev",
+		MetricsUrl: "http://localhost:8080",
+	}
+
+	assert.NoError(t, sqlx.SetUp(c.SqlLog))
+}
