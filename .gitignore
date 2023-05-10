@@ -27,3 +27,5 @@ go.work.sum
 # vim auto backup file
 *~
 !OWNERS
+coverage.txt
+core/service/foo/
