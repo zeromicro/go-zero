@@ -56,7 +56,7 @@ func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
 	logx.Info("Got signal SIGTERM, shutting down...")
-	go wrapUpListeners.notifyListeners()
+	wrapUpListeners.notifyListeners()
 
 	time.Sleep(wrapUpTime)
 	go shutdownListeners.notifyListeners()
