@@ -3,6 +3,7 @@
 package proc
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"sync"
@@ -14,7 +15,7 @@ import (
 )
 
 const (
-	wrapUpTime = time.Second
+	wrapUpTime = 3 * time.Second
 	// why we use 5500 milliseconds is because most of our queue are blocking mode with 5 seconds
 	waitTime = 5500 * time.Millisecond
 )
@@ -56,9 +57,10 @@ func gracefulStop(signals chan os.Signal) {
 	signal.Stop(signals)
 
 	logx.Info("Got signal SIGTERM, shutting down...")
-	wrapUpListeners.notifyListeners()
+	wt, cancel := context.WithTimeout(context.Background(), wrapUpTime)
+	go func() { wrapUpListeners.notifyListeners(); cancel() }()
+	<-wt.Done()
 
-	time.Sleep(wrapUpTime)
 	go shutdownListeners.notifyListeners()
 
 	time.Sleep(delayTimeBeforeForceQuit - wrapUpTime)
