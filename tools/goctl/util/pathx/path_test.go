@@ -9,9 +9,9 @@ import (
 )
 
 func TestReadLink(t *testing.T) {
-	dir, err := os.CreateTemp("", "go-zero")
+	dir, err := os.MkdirTemp("", "go-zero")
 	assert.Nil(t, err)
-	symLink := filepath.Join(dir.Name(), "test")
+	symLink := filepath.Join(dir, "test")
 	pwd, err := os.Getwd()
 	assertError(err, t)
 
