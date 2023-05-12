@@ -342,6 +342,7 @@ func DialClient(endpoints []string) (EtcdClient, error) {
 		DialTimeout:         DialTimeout,
 		RejectOldCluster:    true,
 		PermitWithoutStream: true,
+		Logger:              logx.DefaultZapLogger,
 	}
 	if account, ok := GetAccount(endpoints); ok {
 		cfg.Username = account.User
