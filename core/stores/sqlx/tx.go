@@ -3,6 +3,7 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -17,6 +18,10 @@ type (
 
 	txSession struct {
 		*sql.Tx
+	}
+
+	fakeSession struct {
+		Session
 	}
 )
 
@@ -171,4 +176,39 @@ func transactOnConn(ctx context.Context, conn *sql.DB, b beginnable,
 	}()
 
 	return fn(ctx, tx)
+}
+
+// ----------------------------------------------------------------------------
+// make txSession support Sqlx.SqlConn
+
+func (t txSession) RawDB() (*sql.DB, error) {
+	return nil, errors.New("not supported")
+}
+
+func (t txSession) Transact(fn func(Session) error) error {
+	return fn(t)
+}
+
+func (t txSession) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) error {
+	return fn(ctx, t)
+}
+
+func WithSession(s Session) SqlConn {
+	if c, ok := s.(SqlConn); ok {
+		return c
+	}
+	// panic or return a fakeSession? fakeSession not support transact
+	return &fakeSession{Session: s}
+}
+
+func (f fakeSession) RawDB() (*sql.DB, error) {
+	return nil, errors.New("not supported")
+}
+
+func (f fakeSession) Transact(fn func(Session) error) error {
+	return errors.New("transact not supported for fakeSession")
+}
+
+func (f fakeSession) TransactCtx(ctx context.Context, fn func(context.Context, Session) error) error {
+	return errors.New("transact not supported for fakeSession")
 }
