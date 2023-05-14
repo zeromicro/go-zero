@@ -341,6 +341,7 @@ func GenCRUDLogicByProto(_ *cobra.Command, _ []string) error {
 		GrpcPackage:    VarStringGrpcPbPackage,
 		Multiple:       VarBoolMultiple,
 		JSONStyle:      VarStringJSONStyle,
+		UseI18n:        VarBoolUseI18n,
 		Overwrite:      VarBoolOverwrite,
 	}
 
@@ -367,6 +368,7 @@ func GenCRUDLogicByEnt(_ *cobra.Command, _ []string) error {
 		SearchKeyNum: VarIntSearchKeyNum,
 		GroupName:    VarStringGroupName,
 		JSONStyle:    VarStringJSONStyle,
+		UseI18n:      VarBoolUseI18n,
 		Overwrite:    VarBoolOverwrite,
 	}
 

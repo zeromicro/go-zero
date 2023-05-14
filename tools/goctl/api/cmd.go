@@ -127,6 +127,7 @@ func init() {
 	protoCmdFlags.StringVarP(&gogen.VarStringRpcName, "rpc_name", "n")
 	protoCmdFlags.StringVarP(&gogen.VarStringGrpcPbPackage, "grpc_package", "g")
 	protoCmdFlags.BoolVar(&gogen.VarBoolMultiple, "multiple")
+	protoCmdFlags.BoolVarP(&gogen.VarBoolUseI18n, "i18n", "i")
 	protoCmdFlags.StringVarPWithDefaultValue(&gogen.VarStringJSONStyle, "json_style", "j", "goZero")
 	protoCmdFlags.BoolVarP(&gogen.VarBoolOverwrite, "overwrite", "w")
 
@@ -138,6 +139,7 @@ func init() {
 	entCmdFlags.IntVarPWithDefaultValue(&gogen.VarIntSearchKeyNum, "search_key_num", "k", 3)
 	entCmdFlags.StringVarP(&gogen.VarStringGroupName, "group", "g")
 	entCmdFlags.BoolVarP(&gogen.VarBoolOverwrite, "overwrite", "w")
+	entCmdFlags.BoolVarP(&gogen.VarBoolUseI18n, "i18n", "i")
 	entCmdFlags.StringVarPWithDefaultValue(&gogen.VarStringJSONStyle, "json_style", "j", "goZero")
 
 	// Add sub-commands

@@ -7,8 +7,8 @@ import (
 	"{{.projectPath}}/internal/types"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
 
-    "github.com/suyuan32/simple-admin-common/i18n"
-{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{end}}{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -35,7 +35,7 @@ func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useU
 	return &types.{{.modelName}}InfoResp{
 	    BaseDataInfo: types.BaseDataInfo{
             Code: 0,
-            Msg:  l.svcCtx.Trans.Trans(l.ctx, i18n.Success),
+            Msg:  {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.CreateSuccess){{else}}errormsg.Success{{end}},
         },
         Data: types.{{.modelName}}Info{
             Base{{if .useUUID}}UU{{end}}IDInfo:    types.Base{{if .useUUID}}UU{{end}}IDInfo{
