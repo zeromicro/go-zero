@@ -77,6 +77,8 @@ var (
 	VarStringProtoFieldStyle string
 	// VarBoolDesc describes whether to create desc folder for splitting proto files
 	VarBoolDesc bool
+	// VarBoolI18n describes whether to use i18n
+	VarBoolI18n bool
 	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
 	VarBoolOverwrite bool
 )
@@ -200,6 +202,7 @@ func EntCRUDLogic(_ *cobra.Command, _ []string) error {
 		GroupName:       VarStringGroupName,
 		ProtoOut:        VarStringProtoPath,
 		ProtoFieldStyle: VarStringProtoFieldStyle,
+		UseI18n:         VarBoolI18n,
 		Overwrite:       VarBoolOverwrite,
 	}
 

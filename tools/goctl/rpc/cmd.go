@@ -85,6 +85,7 @@ func init() {
 	entCmdFlags.StringVarP(&cli.VarStringServiceName, "service_name", "r")
 	entCmdFlags.StringVarP(&cli.VarStringProjectName, "project_name", "p")
 	entCmdFlags.BoolVar(&cli.VarBoolMultiple, "multiple")
+	entCmdFlags.BoolVarP(&cli.VarBoolI18n, "i18n", "i")
 	entCmdFlags.StringVarPWithDefaultValue(&cli.VarStringStyle, "style", "s", config.DefaultFormat)
 	entCmdFlags.StringVarP(&cli.VarStringModelName, "model", "m")
 	entCmdFlags.IntVarPWithDefaultValue(&cli.VarIntSearchKeyNum, "search_key_num", "k", 3)

@@ -9,7 +9,8 @@ import (
 	"{{.projectPath}}/internal/types"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
 
-{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
+{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
 {{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
