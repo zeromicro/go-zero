@@ -19,6 +19,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/extra"
 	"github.com/zeromicro/go-zero/tools/goctl/frontend"
 	"github.com/zeromicro/go-zero/tools/goctl/gateway"
+	"github.com/zeromicro/go-zero/tools/goctl/info"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/kube"
@@ -113,7 +114,7 @@ func init() {
 
 	rootCmd.SetUsageTemplate(usageTpl)
 	rootCmd.AddCommand(api.Cmd, bug.Cmd, docker.Cmd, kube.Cmd, env.Cmd, gateway.Cmd)
-	rootCmd.AddCommand(migrate.Cmd, rpc.Cmd, tpl.Cmd, frontend.Cmd, extra.ExtraCmd)
+	rootCmd.AddCommand(migrate.Cmd, rpc.Cmd, tpl.Cmd, frontend.Cmd, extra.ExtraCmd, info.Cmd)
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 	rootCmd.MustInit()
 }
