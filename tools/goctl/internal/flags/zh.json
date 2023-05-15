@@ -251,73 +251,90 @@
         "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
       }
     },
-  "extra": {
-    "short": "提供额外的命令，例如 i18n，初始化代码",
-    "drone": "提供 Drone CI 文件生成",
-    "i18n": {
-      "short": "提供 i18n json 文本生成",
-      "target": "目标类型，现在只支持 api",
-      "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
-      "model_name_zh": "模型名称的中文翻译，例如：StudentInfo",
-      "output": "输出目录，例如：./i18n/locale"
+    "extra": {
+      "short": "提供额外的命令，例如 i18n，初始化代码",
+      "drone": "提供 Drone CI 文件生成",
+      "i18n": {
+        "short": "提供 i18n json 文本生成",
+        "target": "目标类型，现在只支持 api",
+        "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
+        "model_name_zh": "模型名称的中文翻译，例如：StudentInfo",
+        "output": "输出目录，例如：./i18n/locale"
+      },
+      "init_code": {
+        "short": "生成初始化代码",
+        "target": "目标类型，现在只支持 core",
+        "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
+        "output": "输出路径，只支持 core 生成，例如：./rpc/internal/logic/base/init_database_api_data.go"
+      },
+      "ent": {
+        "short": "生成额外的 ent 代码",
+        "template": {
+          "add": "为 ent 添加模板",
+          "dir": "ent 目录。如果为空，goctls 将自动查找它",
+          "list": "列出所有支持的模板",
+          "update": "更新所有模板"
+        }
+      },
+      "makefile": {
+        "short": "生成 makefile 文件",
+        "service_name": "服务名称",
+        "style": "{{.global.style}}",
+        "dir": "Makefile 文件所在目录",
+        "service_type": "服务类型，api, single 或者 rpc",
+        "i18n": "{{.global.i18n}}",
+        "ent": "是否使用 Ent"
+      }
     },
-    "init_code": {
-      "short": "生成初始化代码",
-      "target": "目标类型，现在只支持 core",
-      "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
-      "output": "输出路径，只支持 core 生成，例如：./rpc/internal/logic/base/init_database_api_data.go"
+    "template": {
+      "short": "模板操作",
+      "home": "模板的 goctl 路径",
+      "init": {
+        "short": "初始化所有模板（强制更新）",
+        "home": "{{.goctl.template.home}}",
+        "category": "模板的类别，枚举值 [api,rpc,model,docker,kube]"
+      },
+      "clean": {
+        "short": "清除所有缓存模板",
+        "home": "{{.goctl.template.home}}"
+      },
+      "update": {
+        "short": "将目标类别的模板更新到最新版本",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}"
+      },
+      "revert": {
+        "short": "将目标模板回滚到最新版本",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}",
+        "name": "模板的目标文件名"
+      }
     },
-    "ent": {
-      "short": "生成额外的 ent 代码",
-      "template": {
-        "add": "为 ent 添加模板",
-        "dir": "ent 目录。如果为空，goctls 将自动查找它",
-        "list": "列出所有支持的模板",
-        "update": "更新所有模板"
+    "upgrade": {
+      "short": "升级 goctl 到最新版本"
+    },
+    "frontend": {
+      "short": "生成与前端相关的文件",
+      "vben": {
+        "short": "生成与前端相关的文件",
+        "output": "输出目录，应该是Simple Admin Backend UI 的根目录",
+        "api_file": "API 文件的绝对路径",
+        "folder_name": "在不同目录中生成文件的文件夹名称。例如，存储文件管理器服务文件的简单管理后台 UI 中的文件夹名称",
+        "sub_folder": "子目录名称。例如，src/views/sys 子目录用户，路径为 src/views/sys/user",
+        "prefix": "代理请求的前缀。例如，sys-api",
+        "model_name": "模型名称。例如，Example",
+        "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
+      }
+    },
+    "info": {
+      "short": "查看额外信息，如环境变量和项目端口使用情况",
+      "env": {
+        "short": "查看环境变量"
+      },
+      "port": {
+        "short": "查看端口使用情况"
       }
     }
-  },
-  "template": {
-    "short": "模板操作",
-    "home": "模板的 goctl 路径",
-    "init": {
-      "short": "初始化所有模板（强制更新）",
-      "home": "{{.goctl.template.home}}",
-      "category": "模板的类别，枚举值 [api,rpc,model,docker,kube]"
-    },
-    "clean": {
-      "short": "清除所有缓存模板",
-      "home": "{{.goctl.template.home}}"
-    },
-    "update": {
-      "short": "将目标类别的模板更新到最新版本",
-      "home": "{{.goctl.template.home}}",
-      "category": "{{.goctl.template.category}}"
-    },
-    "revert": {
-      "short": "将目标模板回滚到最新版本",
-      "home": "{{.goctl.template.home}}",
-      "category": "{{.goctl.template.category}}",
-      "name": "模板的目标文件名"
-    }
-  },
-  "upgrade": {
-    "short": "升级 goctl 到最新版本"
-  },
-  "frontend": {
-    "short": "生成与前端相关的文件",
-    "vben": {
-      "short": "生成与前端相关的文件",
-      "output": "输出目录，应该是Simple Admin Backend UI 的根目录",
-      "api_file": "API 文件的绝对路径",
-      "folder_name": "在不同目录中生成文件的文件夹名称。例如，存储文件管理器服务文件的简单管理后台 UI 中的文件夹名称",
-      "sub_folder": "子目录名称。例如，src/views/sys 子目录用户，路径为 src/views/sys/user",
-      "prefix": "代理请求的前缀。例如，sys-api",
-      "model_name": "模型名称。例如，Example",
-      "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
-    }
-  }
-
   },
   "global": {
     "home": "模板的 goctl 路径，--home 和 --remote 不能同时设置，如果设置了，--remote 优先级更高",

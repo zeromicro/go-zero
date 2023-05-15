@@ -275,6 +275,15 @@
           "list": "List all support templates",
           "update": "Update all templates"
         }
+      },
+      "makefile": {
+        "short": "Generate makefile file.",
+        "service_name": "Service name.",
+        "style": "{{.global.style}}",
+        "dir": "Directory where the makefile file is located.",
+        "service_type": "Service type: api, single, or rpc.",
+        "i18n": "{{.global.i18n}}",
+        "ent": "Whether to use Ent."
       }
     },
     "template": {
@@ -315,6 +324,15 @@
         "prefix": "The request prefix for proxy. e.g. sys-api",
         "model_name": "The model name. e.g. Example",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
+      }
+    },
+    "info": {
+      "short": "View additional information, such as environment variables and project port usage.",
+      "env": {
+        "short": "View environment variables."
+      },
+      "port": {
+        "short": "View port usage."
       }
     }
   },
