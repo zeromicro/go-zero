@@ -57,6 +57,8 @@ type ZRpcContext struct {
 	UseDescDir bool
 	// RpcName describes the rpc name when create new project
 	RpcName string
+	// I18n describes whether to use i18n
+	I18n bool
 }
 
 // Generate generates a rpc service, through the proto file,
@@ -166,7 +168,17 @@ func (g *Generator) Generate(zctx *ZRpcContext) error {
 	err = g.GenCall(dirCtx, proto, g.cfg, zctx)
 
 	if zctx.MakeFile {
-		err = g.GenMakefile(dirCtx, proto, g.cfg, zctx)
+		makefileCmd := fmt.Sprintf("goctls extra makefile -t %s -s %s -n %s", "rpc", g.cfg.NamingFormat, zctx.RpcName)
+		if zctx.I18n {
+			makefileCmd += " -i"
+		}
+
+		if zctx.Ent {
+			makefileCmd += " -e"
+		}
+
+		_, err = execx.Run(makefileCmd, abs)
+
 		if err != nil {
 			return err
 		}

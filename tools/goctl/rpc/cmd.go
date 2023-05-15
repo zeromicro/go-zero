@@ -48,6 +48,7 @@ func init() {
 	newCmdFlags.MarkHidden("go_opt")
 	newCmdFlags.MarkHidden("go-grpc_opt")
 	newCmdFlags.BoolVarP(&cli.VarBoolEnt, "ent", "e")
+	newCmdFlags.BoolVarP(&cli.VarBoolI18n, "i18n", "i")
 	newCmdFlags.StringVarP(&cli.VarStringModuleName, "module_name", "m")
 	newCmdFlags.StringVarPWithDefaultValue(&cli.VarStringGoZeroVersion, "go_zero_version", "z", config.DefaultGoZeroVersion)
 	newCmdFlags.StringVarPWithDefaultValue(&cli.VarStringToolVersion, "tool_version", "t", config.DefaultToolVersion)
