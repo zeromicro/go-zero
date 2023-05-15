@@ -20,7 +20,7 @@ require (
 	github.com/prometheus/client_golang v1.15.0
 	github.com/spaolacci/murmur3 v1.1.0
 	github.com/stretchr/testify v1.8.2
-	go.etcd.io/etcd/api/v3 v3.5.8
+	go.etcd.io/etcd/api/v3 v3.5.9
 	go.etcd.io/etcd/client/v3 v3.5.8
 	go.mongodb.org/mongo-driver v1.11.6
 	go.opentelemetry.io/otel v1.15.1
