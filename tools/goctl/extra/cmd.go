@@ -5,6 +5,7 @@ import (
 	"github.com/zeromicro/go-zero/tools/goctl/extra/ent/template"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/i18n"
 	"github.com/zeromicro/go-zero/tools/goctl/extra/initlogic"
+	"github.com/zeromicro/go-zero/tools/goctl/extra/makefile"
 	"github.com/zeromicro/go-zero/tools/goctl/internal/cobrax"
 )
 
@@ -20,6 +21,8 @@ var (
 	templateCmd = cobrax.NewCommand("template", cobrax.WithRunE(template.GenTemplate))
 
 	droneCmd = cobrax.NewCommand("drone", cobrax.WithRunE(drone.GenDrone))
+
+	makefileCmd = cobrax.NewCommand("makefile", cobrax.WithRunE(makefile.Gen))
 )
 
 func init() {
@@ -28,6 +31,7 @@ func init() {
 		initCmdFlags     = initCmd.Flags()
 		templateCmdFlags = templateCmd.Flags()
 		droneCmdFlags    = droneCmd.Flags()
+		makefileCmdFlags = makefileCmd.Flags()
 	)
 
 	i18nCmdFlags.StringVarP(&i18n.VarStringTarget, "target", "t")
@@ -46,9 +50,17 @@ func init() {
 
 	droneCmdFlags.BoolVarP(&drone.VarBoolDockerfile, "dockerfile", "d")
 
+	makefileCmdFlags.StringVarP(&makefile.VarStringServiceName, "service_name", "n")
+	makefileCmdFlags.StringVarP(&makefile.VarStringStyle, "style", "s")
+	makefileCmdFlags.StringVarP(&makefile.VarStringDir, "dir", "d")
+	makefileCmdFlags.StringVarP(&makefile.VarStringServiceType, "service_type", "t")
+	makefileCmdFlags.BoolVarP(&makefile.VarBoolI18n, "i18n", "i")
+	makefileCmdFlags.BoolVarP(&makefile.VarBoolEnt, "ent", "e")
+
 	ExtraCmd.AddCommand(i18nCmd)
 	ExtraCmd.AddCommand(initCmd)
 	entCmd.AddCommand(templateCmd)
 	ExtraCmd.AddCommand(entCmd)
-	ExtraCmd.AddCommand(droneCmd)
+	//ExtraCmd.AddCommand(droneCmd)
+	ExtraCmd.AddCommand(makefileCmd)
 }

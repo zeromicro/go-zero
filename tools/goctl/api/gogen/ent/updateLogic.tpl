@@ -8,8 +8,9 @@ import (
 	"{{.projectPath}}/internal/types"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
 
-    "github.com/suyuan32/simple-admin-common/i18n"
-{{if or .hasUUID .useUUID}}	"github.com/suyuan32/simple-admin-common/utils/uuidx"{{end}}
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
+{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{end}}{{if or .hasUUID .useUUID}}	"github.com/suyuan32/simple-admin-common/utils/uuidx"{{end}}
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -35,5 +36,5 @@ func (l *Update{{.modelName}}Logic) Update{{.modelName}}(req *types.{{.modelName
 		return nil, dberrorhandler.DefaultEntError(l.Logger, err, req)
 	}
 
-    return &types.BaseMsgResp{Msg: i18n.UpdateSuccess}, nil
+    return &types.BaseMsgResp{Msg: {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.UpdateSuccess){{else}}errormsg.UpdateSuccess{{end}}}, nil
 }

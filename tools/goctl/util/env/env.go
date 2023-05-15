@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/vars"
 )
 
@@ -25,6 +26,17 @@ const (
 func InChina() bool {
 	_, offset := time.Now().Zone()
 	return offset == cstOffset
+}
+
+// IsChinaEnv returns true when the tools lang env variables is zh
+func IsChinaEnv() bool {
+	if lang, ok := os.LookupEnv(config.LangEnvKey); ok {
+		if lang == "zh" {
+			return true
+		}
+		return false
+	}
+	return false
 }
 
 // LookUpGo searches an executable go in the directories

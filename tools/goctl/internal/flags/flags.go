@@ -7,14 +7,19 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/zeromicro/go-zero/tools/goctl/config"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 )
 
 //go:embed default_en.json
 var defaultEnFlagConfig []byte
+
+//go:embed zh.json
+var ZhFlagConfig []byte
 
 type ConfigLoader struct {
 	conf map[string]any
@@ -55,8 +60,21 @@ func MustLoad() *Flags {
 	loader := &ConfigLoader{
 		conf: map[string]any{},
 	}
-	if err := loader.ReadConfig(bytes.NewBuffer(defaultEnFlagConfig)); err != nil {
-		log.Fatal(err)
+
+	if lang, ok := os.LookupEnv(config.LangEnvKey); ok {
+		if lang == "zh" {
+			if err := loader.ReadConfig(bytes.NewBuffer(ZhFlagConfig)); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if err := loader.ReadConfig(bytes.NewBuffer(defaultEnFlagConfig)); err != nil {
+				log.Fatal(err)
+			}
+		}
+	} else {
+		if err := loader.ReadConfig(bytes.NewBuffer(defaultEnFlagConfig)); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return &Flags{

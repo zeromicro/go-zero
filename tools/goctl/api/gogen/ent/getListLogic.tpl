@@ -9,8 +9,9 @@ import (
 	"{{.projectPath}}/internal/types"
 	"{{.projectPath}}/internal/utils/dberrorhandler"
 
-    "github.com/suyuan32/simple-admin-common/i18n"
-    "github.com/zeromicro/go-zero/core/logx"
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
+{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
 type Get{{.modelName}}ListLogic struct {
@@ -35,7 +36,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelNa
 	}
 
 	resp := &types.{{.modelName}}ListResp{}
-	resp.Msg = l.svcCtx.Trans.Trans(l.ctx, i18n.Success)
+	resp.Msg = {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.CreateSuccess){{else}}errormsg.Success{{end}}
 	resp.Data.Total = data.PageDetails.Total
 
 	for _, v := range data.List {

@@ -1,0 +1,346 @@
+{
+  "goctl": {
+    "short": "一个基于 go zero 用于生成 Simple Admin 代码的 cli 工具",
+    "long": "\n      ___                       ___           ___           ___       ___     \n     /\\  \\          ___        /\\__\\         /\\  \\         /\\__\\     /\\  \\    \n    /::\\  \\        /\\  \\      /::|  |       /::\\  \\       /:/  /    /::\\  \\   \n   /:/\\ \\  \\       \\:\\  \\    /:|:|  |      /:/\\:\\  \\     /:/  /    /:/\\:\\  \\  \n  _\\:\\~\\ \\  \\      /::\\__\\  /:/|:|__|__   /::\\~\\:\\  \\   /:/  /    /::\\~\\:\\  \\ \n /\\ \\:\\ \\ \\__\\  __/:/\\/__/ /:/ |::::\\__\\ /:/\\:\\ \\:\\__\\ /:/__/    /:/\\:\\ \\:\\__\\\n \\:\\ \\:\\ \\/__/ /\\/:/  /    \\/__/~~/:/  / \\/__\\:\\/:/  / \\:\\  \\    \\:\\~\\:\\ \\/__/\n  \\:\\ \\:\\__\\   \\::/__/           /:/  /       \\::/  /   \\:\\  \\    \\:\\ \\:\\__\\  \n   \\:\\/:/  /    \\:\\__\\          /:/  /         \\/__/     \\:\\  \\    \\:\\ \\/__/  \n    \\::/  /      \\/__/         /:/  /                     \\:\\__\\    \\:\\__\\    \n     \\/__/                     \\/__/                       \\/__/     \\/__/    \n \n 一个用于生成 Simple Admin 的 api、zrpc、model 代码的 cli 工具\n\nGitHub: https://github.com/suyuan32/simple-admin-tools\nSite:   https://doc.ryansu.pro/",
+    "api": {
+      "short": "生成与 api 相关的文件",
+      "o": "输出 api 示例文件",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "api": "api 文件位置",
+      "dir": "目标目录",
+      "dart": {
+        "short": "为提供的 api 文件生成 dart 文件",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "legacy": "flutter v1 的传统生成器",
+        "hostname": "服务器的主机名",
+        "scheme": "服务器的协议"
+      },
+      "doc": {
+        "short": "生成文档文件",
+        "dir": "{{.goctl.api.dir}}",
+        "o": "输出 markdown 目录"
+      },
+      "format": {
+        "short": "格式化 api 文件",
+        "dir": "{{.goctl.api.dir}}",
+        "iu": "忽略更新",
+        "stdin": "使用 stdin 输入 api 文档内容，按 \"ctrl + d\" 发送 EOF",
+        "declare": "用于跳过已声明的 api 类型检查"
+      },
+      "go": {
+        "short": "为提供的 api 文件生成 go 文件",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "style": "{{.global.style}}",
+        "trans_err": "是否翻译错误",
+        "casbin": "是否使用 Casbin",
+        "i18n": "{{.global.i18n}}"
+      },
+      "new": {
+        "short": "快速创建 api 服务",
+        "Example": "goctl api new [options] service-name",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "style": "{{.global.style}}",
+        "casbin": "是否使用 Casbin",
+        "i18n": "{{.global.i18n}}",
+        "go_zero_version": "用于替换的 go-zero 版本，例如 v1.5.2，请参见 [https://github.com/zeromicro/go-zero/releases]",
+        "tool_version": "用于迁移的 simple admin tool 版本，例如 v1.5.5，请参见 [https://github.com/suyuan32/simple-admin-tools/releases]",
+        "module_name": "go.mod 中的模块名称，例如 github.com/suyuan32/simple-admin-core",
+        "trans_err": "是否翻译错误",
+        "port": "服务暴露的端口",
+        "gitlab": "是否使用 gitlab CI/CD",
+        "ent": "API 服务中是否使用 Ent"
+      },
+      "validate": {
+        "short": "验证 api 文件",
+        "api": "{{.goctl.api.api}}"
+      },
+      "kt": {
+        "short": "为提供的 api 文件生成 kotlin 代码",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "pkg": "定义 kotlin 文件的包名"
+      },
+      "plugin": {
+        "short": "自定义文件生成器",
+        "plugin": "插件文件",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "style": "{{.global.style}}"
+      },
+      "ts": {
+        "short": "为提供的 api 文件生成 ts 文件",
+        "dir": "{{.goctl.api.dir}}",
+        "api": "{{.goctl.api.api}}",
+        "caller": "web api 调用器",
+        "unwrap": "解包 webapi 调用器以进行导入"
+      },
+      "proto": {
+        "short": "从 proto 文件生成 CRUD 模板",
+        "proto": "proto 文件路径",
+        "output": "输出路径",
+        "api_service_name": "API 服务名称",
+        "rpc_service_name": "RPC 服务名称",
+        "style": "文件名格式样式",
+        "model": "用于生成的模型名称，例如 user，如果为空，则为 schema 目录中的所有模型生成代码",
+        "search_key_num": "搜索条件的最大数量，只支持 String 类型",
+        "rpc_name": "RPC 服务名称，用于调用，例如 CoreRpc",
+        "grpc_package": "存储 pb 文件的 rpc 包，例如 github.com/suyuan32/simple-admin-job/types/job",
+        "multiple": "proto 是否包含多个服务",
+        "json_style": "JSON 标记格式，默认为驼峰式",
+        "i18n": "{{.global.i18n}}",
+        "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
+      },
+      "ent": {
+        "short": "从 ent 文件生成 CRUD 业务逻辑文件",
+        "schema": "Ent 的 schema 文件夹路径",
+        "output": "输出路径",
+        "api_service_name": "API 服务名称",
+        "style": "文件名格式样式",
+        "model": "用于生成的模型名称，例如 user，如果为空，则为 schema 目录中的所有模型生成代码",
+        "search_key_num": "搜索条件的最大数量，只支持 String 类型",
+        "group": "业务逻辑代码的分组名称，例如 user",
+        "i18n": "{{.global.i18n}}",
+        "overwrite": "是否覆盖文件，它将覆盖所有生成的文件",
+        "json_style": "JSON 标记格式，默认为驼峰式"
+      }
+    },
+    "bug": {
+      "short": "报告 bug"
+    },
+    "docker": {
+      "short": "生成 Dockerfile",
+      "author": "作者信息",
+      "service_name": "项目的服务名称",
+      "service_type": "服务类型，例如 rpc、api",
+      "base": "运行项目的基础镜像",
+      "port": "暴露的端口，默认为无",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "image": "构建项目的镜像",
+      "tz": "容器的时区，例如 Asia/Shanghai",
+      "china": "如果您的服务器在中国，请设置为 true"
+    },
+    "kube": {
+      "short": "生成 kubernetes 文件",
+      "deploy": {
+        "short": "生成 deployment yaml 文件",
+        "name": "deployment 的名称（必需）",
+        "namespace": "deployment 的命名空间（必需）",
+        "image": "deployment 的 docker 镜像（必需）",
+        "secret": "从注册表中拉取镜像的密钥",
+        "requestCpu": "部署时的请求 CPU",
+        "requestMem": "部署时的请求内存",
+        "limitCpu": "部署时的限制 CPU",
+        "limitMem": "部署时的限制内存",
+        "o": "输出 yaml 文件（必需）",
+        "replicas": "要部署的副本数",
+        "revisions": "限制的版本历史记录数量",
+        "port": "deployment 监听的端口（必需）",
+        "nodePort": "要公开的 deployment 的 nodePort",
+        "targetPort": "deployment 的目标端口，默认为 port",
+        "minReplicas": "要部署的最小副本数",
+        "maxReplicas": "要部署的最大副本数",
+        "imagePullPolicy": "deployment 的镜像拉取策略，默认为 IfNotPresent",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "serviceAccount": "deployment 的 ServiceAccount"
+      }
+    },
+    "env": {
+      "short": "检查或编辑 goctls 环境",
+      "write": "编辑 goctls 环境",
+      "force": "安静地安装不存在的依赖项",
+      "verbose": "启用日志输出",
+      "install": {
+        "short": "安装 Goctls 环境"
+      },
+      "check": {
+        "short": "检测 goctls 环境和依赖工具",
+        "install": "如果未找到，则安装依赖项"
+      }
+    },
+    "gateway": {
+      "short": "gateway 是一个用于生成网关代码的工具",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "dir": "输出目录",
+      "protoc": {
+        "short": "从 proto 文件生成网关代码"
+      },
+      "protoset": {
+        "short": "从 protoset 文件生成网关代码"
+      },
+      "server": {
+        "short": "从 grpc 服务器生成网关代码"
+      }
+    },
+    "migrate": {
+      "short": "把 go zero 替换为 tools",
+      "long": "Migrate 目前是一个替换命令，替换 go zero 为 tools",
+      "verbose": "启用额外的日志记录",
+      "version": "要迁移的 github.com/zeromicro/go-zero 的目标版本",
+      "zero_version": "要迁移的 github.com/zeromicro/go-zero 的目标版本",
+      "tool_version": "要迁移的 github.com/suyuan32/simple-admin-tools 的目标版本"
+    },
+    "rpc": {
+      "short": "生成 rpc 代码",
+      "output": "输出样例 proto 文件",
+      "home": "{{.global.home}}",
+      "remote": "{{.global.remote}}",
+      "branch": "{{.global.branch}}",
+      "new": {
+        "short": "生成 rpc 演示服务",
+        "style": "{{.global.style}}",
+        "idea": "对于 idea 插件 [可选]",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "verbose": "启用日志输出",
+        "ent": "是否在项目中使用 Ent",
+        "module_name": "go.mod 中的模块名称，例如：github.com/suyuan32/simple-admin-core",
+        "go_zero_version": "用于替换的 go zero 版本，例如：v1.5.2，请参见 [https://github.com/zeromicro/go-zero/releases]",
+        "tool_version": "用于迁移的 simple admin 工具版本，例如：v1.5.5，请参见 [https://github.com/suyuan32/simple-admin-tools/releases]",
+        "port": "服务公开的端口",
+        "gitlab": "是否使用 gitlab-ci",
+        "desc": "是否为拆分 proto 文件创建 desc 文件夹",
+        "i18n": "{{.global.i18n}}"
+      },
+      "template": {
+        "short": "生成 proto 模板",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}"
+      },
+      "protoc": {
+        "short": "生成 grpc 代码",
+        "example": "goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.",
+        "multiple": "在多个 rpc 服务模式下生成",
+        "zrpc_out": "zrpc 输出目录",
+        "style": "{{.global.style}}",
+        "home": "{{.global.home}}",
+        "remote": "{{.global.remote}}",
+        "branch": "{{.global.branch}}",
+        "verbose": "启用日志输出"
+      },
+      "ent": {
+        "short": "通过 Ent 生成 CRUD 模板代码",
+        "schema": "Ent 的 schema 路径",
+        "output": "输出路径",
+        "service_name": "服务名称",
+        "project_name": "项目名称",
+        "multiple": "在多个 rpc 服务模式下生成",
+        "style": "文件名格式样式",
+        "model": "生成的模型名称，例如：user，如果为空，则为 schema 目录中所有模型生成代码",
+        "search_key_num": "搜索键的最大数量",
+        "group": "逻辑的组名称，例如：user",
+        "proto_out": "输出 proto 文件路径",
+        "proto_field_style": "proto 字段样式",
+        "i18n": "{{.global.i18n}}",
+        "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
+      }
+    },
+    "extra": {
+      "short": "提供额外的命令，例如 i18n，初始化代码",
+      "drone": "提供 Drone CI 文件生成",
+      "i18n": {
+        "short": "提供 i18n json 文本生成",
+        "target": "目标类型，现在只支持 api",
+        "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
+        "model_name_zh": "模型名称的中文翻译，例如：StudentInfo",
+        "output": "输出目录，例如：./i18n/locale"
+      },
+      "init_code": {
+        "short": "生成初始化代码",
+        "target": "目标类型，现在只支持 core",
+        "model_name": "模型名称，应该是驼峰式的，例如：StudentInfo",
+        "output": "输出路径，只支持 core 生成，例如：./rpc/internal/logic/base/init_database_api_data.go"
+      },
+      "ent": {
+        "short": "生成额外的 ent 代码",
+        "template": {
+          "add": "为 ent 添加模板",
+          "dir": "ent 目录。如果为空，goctls 将自动查找它",
+          "list": "列出所有支持的模板",
+          "update": "更新所有模板"
+        }
+      },
+      "makefile": {
+        "short": "生成 makefile 文件",
+        "service_name": "服务名称",
+        "style": "{{.global.style}}",
+        "dir": "Makefile 文件所在目录",
+        "service_type": "服务类型，api, single 或者 rpc",
+        "i18n": "{{.global.i18n}}",
+        "ent": "是否使用 Ent"
+      }
+    },
+    "template": {
+      "short": "模板操作",
+      "home": "模板的 goctl 路径",
+      "init": {
+        "short": "初始化所有模板（强制更新）",
+        "home": "{{.goctl.template.home}}",
+        "category": "模板的类别，枚举值 [api,rpc,model,docker,kube]"
+      },
+      "clean": {
+        "short": "清除所有缓存模板",
+        "home": "{{.goctl.template.home}}"
+      },
+      "update": {
+        "short": "将目标类别的模板更新到最新版本",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}"
+      },
+      "revert": {
+        "short": "将目标模板回滚到最新版本",
+        "home": "{{.goctl.template.home}}",
+        "category": "{{.goctl.template.category}}",
+        "name": "模板的目标文件名"
+      }
+    },
+    "upgrade": {
+      "short": "升级 goctl 到最新版本"
+    },
+    "frontend": {
+      "short": "生成与前端相关的文件",
+      "vben": {
+        "short": "生成与前端相关的文件",
+        "output": "输出目录，应该是Simple Admin Backend UI 的根目录",
+        "api_file": "API 文件的绝对路径",
+        "folder_name": "在不同目录中生成文件的文件夹名称。例如，存储文件管理器服务文件的简单管理后台 UI 中的文件夹名称",
+        "sub_folder": "子目录名称。例如，src/views/sys 子目录用户，路径为 src/views/sys/user",
+        "prefix": "代理请求的前缀。例如，sys-api",
+        "model_name": "模型名称。例如，Example",
+        "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
+      }
+    },
+    "info": {
+      "short": "查看额外信息，如环境变量和项目端口使用情况",
+      "env": {
+        "short": "查看环境变量"
+      },
+      "port": {
+        "short": "查看端口使用情况"
+      }
+    }
+  },
+  "global": {
+    "home": "模板的 goctl 路径，--home 和 --remote 不能同时设置，如果设置了，--remote 优先级更高",
+    "remote": "模板的远程 git repo，--home 和 --remote 不能同时设置，如果设置了，--remote 优先级更高\nGit repo 的目录结构必须与 https://github.com/zeromicro/go-zero-template 相一致",
+    "branch": "远程 repo 的分支，与 --remote 一起使用",
+    "style": "文件命名格式，参见 [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]",
+    "i18n": "是否启用 i18n 国际化"
+  }
+}

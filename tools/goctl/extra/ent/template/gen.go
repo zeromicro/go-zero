@@ -23,6 +23,7 @@ import (
 
 	"github.com/zeromicro/go-zero/tools/goctl/rpc/execx"
 	"github.com/zeromicro/go-zero/tools/goctl/util/console"
+	"github.com/zeromicro/go-zero/tools/goctl/util/env"
 	"github.com/zeromicro/go-zero/tools/goctl/util/pathx"
 
 	"github.com/suyuan32/knife/core/io/filex"
@@ -153,20 +154,41 @@ func ListAllTemplate() {
 		Intro string
 	}
 
-	data := []Info{
-		{
-			"not_empty_update",
-			"The template for updating the values when it is not empty",
-		},
-		{
-			"pagination",
-			"The template for paginating the data",
-		},
+	var data []Info
+
+	if env.IsChinaEnv() {
+		color.Green.Println("支持的模板:\n")
+		data = []Info{
+			{
+				"not_empty_update",
+				"Ent 非空模板，用于如果输入值为空则不更新",
+			},
+			{
+				"pagination",
+				"Ent 分页模板",
+			},
+		}
+	} else {
+		color.Green.Println("The templates supported:\n")
+		data = []Info{
+			{
+				"not_empty_update",
+				"The template for updating the values when it is not empty",
+			},
+			{
+				"pagination",
+				"The template for paginating the data",
+			},
+		}
 	}
 
-	console.NewColorConsole(true).Success("The templates supported:\n")
 	for _, v := range data {
-		console.Info("%s : %s", color.Green.Sprint(v.Name), v.Intro)
+		console.Info("%s : %s", color.Red.Sprint(v.Name), v.Intro)
 	}
-	console.Success("\nUsage: goctls extra ent template -a not_empty_update -d ./ent")
+
+	if env.IsChinaEnv() {
+		color.Green.Println("\n使用方法： goctls extra ent template -a not_empty_update -d ./ent ")
+	} else {
+		color.Green.Println("\nUsage: goctls extra ent template -a not_empty_update -d ./ent")
+	}
 }

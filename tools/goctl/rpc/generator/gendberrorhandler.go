@@ -31,9 +31,10 @@ func (g *Generator) GenErrorHandler(ctx DirContext, _ parser.Proto, cfg *conf.Co
 		return err
 	}
 
-	err = util.With("dbErrorHandler").Parse(dbErrorHandlerTemplateText).SaveTo(map[string]string{
+	err = util.With("dbErrorHandler").Parse(dbErrorHandlerTemplateText).SaveTo(map[string]any{
 		"package":     ctx.GetMain().Package,
 		"serviceName": strcase.ToCamel(c.RpcName),
+		"useI18n":     c.I18n,
 	}, handlerFilename, false)
 	return err
 }
