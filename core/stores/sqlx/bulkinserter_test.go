@@ -9,7 +9,6 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type mockedConn struct {
@@ -143,20 +142,4 @@ func TestBulkInserter_Update(t *testing.T) {
 	inserter.inserter.Execute([]string(nil))
 	assert.NotNil(t, inserter.UpdateStmt("foo"))
 	assert.NotNil(t, inserter.Insert("foo", "bar"))
-}
-
-func runSqlTest(t *testing.T, fn func(db *sql.DB, mock sqlmock.Sqlmock)) {
-	logx.Disable()
-
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	defer db.Close()
-
-	fn(db, mock)
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
 }
