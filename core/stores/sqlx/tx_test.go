@@ -243,6 +243,62 @@ func TestTxSession(t *testing.T) {
 	})
 }
 
+func TestTxRollback(t *testing.T) {
+	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+		mock.ExpectQuery("foo").WillReturnError(errors.New("foo"))
+		mock.ExpectRollback()
+		conn := NewSqlConnFromDB(db)
+		err := conn.Transact(func(session Session) error {
+			c := NewSqlConnFromSession(session)
+			_, err := c.Exec("any")
+			assert.NoError(t, err)
+
+			var val string
+			return c.QueryRow(&val, "foo")
+		})
+		assert.Error(t, err)
+	})
+
+	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectExec("any").WillReturnError(errors.New("foo"))
+		mock.ExpectRollback()
+		conn := NewSqlConnFromDB(db)
+		err := conn.Transact(func(session Session) error {
+			c := NewSqlConnFromSession(session)
+			if _, err := c.Exec("any"); err != nil {
+				return err
+			}
+
+			var val string
+			assert.NoError(t, c.QueryRow(&val, "foo"))
+			return nil
+		})
+		assert.Error(t, err)
+	})
+
+	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		mock.ExpectBegin()
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+		mock.ExpectQuery("foo").WillReturnRows(sqlmock.NewRows([]string{"col"}).AddRow("bar"))
+		mock.ExpectCommit()
+		conn := NewSqlConnFromDB(db)
+		err := conn.Transact(func(session Session) error {
+			c := NewSqlConnFromSession(session)
+			_, err := c.Exec("any")
+			assert.NoError(t, err)
+
+			var val string
+			assert.NoError(t, c.QueryRow(&val, "foo"))
+			assert.Equal(t, "bar", val)
+			return nil
+		})
+		assert.NoError(t, err)
+	})
+}
+
 func runTxTest(t *testing.T, f func(conn SqlConn, mock sqlmock.Sqlmock)) {
 	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
