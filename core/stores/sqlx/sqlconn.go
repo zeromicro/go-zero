@@ -131,6 +131,17 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	return conn
 }
 
+// MustNewSqlConn returns a SqlConn with given driver name and datasource.
+// NOTE: When the database is unavailable, print an error and exit.
+func MustNewSqlConn(driverName, datasource string, opts ...SqlOption) SqlConn {
+	conn := NewSqlConn(driverName, datasource, opts...)
+
+	// availability detection
+	logx.Must(pingDB(conn))
+
+	return conn
+}
+
 func (db *commonSqlConn) Exec(q string, args ...any) (result sql.Result, err error) {
 	return db.ExecCtx(context.Background(), q, args...)
 }
