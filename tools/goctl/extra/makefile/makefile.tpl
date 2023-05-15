@@ -95,12 +95,12 @@ gen-ent: # Generate Ent codes | 生成 Ent 的代码
 {{end}}{{if and .useEnt .isRpc}}
 .PHONY: gen-rpc-ent-logic
 gen-rpc-ent-logic: # Generate logic code from Ent, need model and group params | 根据 Ent 生成逻辑代码, 需要设置 model 和 group
-	goctls rpc ent --schema=./ent/schema  --style=go_zero --multiple=false --service_name=$(SERVICE) --search_key_num=3 --output=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto --i18n=$(PROJECT_I18N) --overwrite=true
+	goctls rpc ent --schema=./ent/schema  --style=$(PROJECT_STYLE) --multiple=false --service_name=$(SERVICE) --search_key_num=3 --output=./ --model=$(model) --group=$(group) --proto_out=./desc/$(shell echo $(model) | tr A-Z a-z).proto --i18n=$(PROJECT_I18N) --overwrite=true
 	@echo "Generate logic codes from Ent successfully"
 {{end}}{{if and .useEnt .isSingle}}
 .PHONY: gen-api-ent-logic
 gen-api-ent-logic: # Generate CRUD logic from Ent, need to set model and group | 根据 Ent 生成 CRUD 代码，需要设置 model 和 group
-	goctls api ent --schema=./ent/schema --api_service_name=$(SERVICE) --output=./ --model=$(model) --group=$(group) --i18n=$(PROJECT_I18N) --overwrite=true
+	goctls api ent --schema=./ent/schema --style=$(PROJECT_STYLE) --api_service_name=$(SERVICE) --output=./ --model=$(model) --group=$(group) --i18n=$(PROJECT_I18N) --overwrite=true
 	@echo "Generate CRUD codes from Ent successfully"
 {{end}}
 .PHONY: build-win
