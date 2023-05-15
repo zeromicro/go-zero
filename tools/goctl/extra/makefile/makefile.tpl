@@ -14,7 +14,7 @@ SERVICE_DASH={{.serviceNameDash}}
 VERSION=$(shell git describe --tags --always)
 
 # The project file name style | 项目文件命名风格
-PROJECT_STYLE=go_zero
+PROJECT_STYLE={{.style}}
 
 # Whether to use i18n | 是否启用 i18n
 PROJECT_I18N={{if .useI18n}}true{{else}}false{{end}}
@@ -74,13 +74,13 @@ serve-swagger: # Run the swagger server | 运行 swagger 服务
 
 .PHONY: gen-api
 gen-api: # Generate API files | 生成 API 的代码
-	goctls api go --api ./desc/all.api --dir ./ --trans_err=true
+	goctls api go --api ./desc/all.api --dir ./ --trans_err=true --style=$(PROJECT_STYLE)
 	swagger generate spec --output=./$(SERVICE_STYLE).yml --scan-models
 	@echo "Generate API codes successfully"
 {{end}}{{if .isRpc}}
 .PHONY: gen-rpc
 gen-rpc: # Generate RPC files from proto | 生成 RPC 的代码
-	goctls rpc protoc ./$(SERVICE_STYLE).proto --go_out=./types --go-grpc_out=./types --zrpc_out=.
+	goctls rpc protoc ./$(SERVICE_STYLE).proto --go_out=./types --go-grpc_out=./types --zrpc_out=. --style=$(PROJECT_STYLE)
 ifeq ($(shell uname -s), Darwin)
 	sed -i "" 's/,omitempty//g' ./types/$(SERVICE_LOWER)/*.pb.go
 else
@@ -99,8 +99,8 @@ gen-rpc-ent-logic: # Generate logic code from Ent, need model and group params |
 	@echo "Generate logic codes from Ent successfully"
 {{end}}{{if and .useEnt .isSingle}}
 .PHONY: gen-api-ent-logic
-	gen-api-ent-logic: # Generate CRUD logic from Ent, need to set model and group | 根据 Ent 生成 CRUD 代码，需要设置 model 和 group
-	goctls api ent --schema=./ent/schema --api_service_name=$(SERVICE) --output=./ --model=$(model) --group=$(group) --i18n=$(PROJECT_I18N)
+gen-api-ent-logic: # Generate CRUD logic from Ent, need to set model and group | 根据 Ent 生成 CRUD 代码，需要设置 model 和 group
+	goctls api ent --schema=./ent/schema --api_service_name=$(SERVICE) --output=./ --model=$(model) --group=$(group) --i18n=$(PROJECT_I18N) --overwrite=true
 	@echo "Generate CRUD codes from Ent successfully"
 {{end}}
 .PHONY: build-win

@@ -114,6 +114,7 @@ func DoGen(g *GenContext) error {
 	_ = makefileTmpl.Execute(makefileData, map[string]any{
 		"serviceName":      strcase.ToCamel(g.ServiceName),
 		"useEnt":           g.UseEnt,
+		"style":            g.Style,
 		"useI18n":          g.UseI18n,
 		"serviceNameStyle": serviceNameStyle,
 		"serviceNameLower": strings.ToLower(g.ServiceName),

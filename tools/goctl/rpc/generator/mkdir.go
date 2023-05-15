@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"github.com/zeromicro/go-zero/tools/goctl/util/format"
 	"path/filepath"
 	"strings"
 
@@ -91,11 +90,12 @@ func mkdir(ctx *ctx.ProjectContext, proto parser.Proto, conf *conf.Config, c *ZR
 		callDir := filepath.Join(ctx.WorkDir,
 			strings.ToLower(stringx.From(proto.Service[0].Name).ToCamel()))
 		if strings.EqualFold(proto.Service[0].Name, filepath.Base(proto.GoPackage)) {
-			var err error
-			clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
-			if err != nil {
-				return nil, err
-			}
+			//var err error
+			//clientDir, err = format.FileNamingFormat(conf.NamingFormat, proto.Service[0].Name+"_client")
+			//if err != nil {
+			//	return nil, err
+			//}
+			clientDir = strings.ToLower(proto.Service[0].Name + "client")
 			callDir = filepath.Join(ctx.WorkDir, clientDir)
 		}
 		inner[call] = Dir{
