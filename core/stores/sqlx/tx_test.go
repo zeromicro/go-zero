@@ -249,6 +249,7 @@ func TestTxRollback(t *testing.T) {
 		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
 		mock.ExpectQuery("foo").WillReturnError(errors.New("foo"))
 		mock.ExpectRollback()
+
 		conn := NewSqlConnFromDB(db)
 		err := conn.Transact(func(session Session) error {
 			c := NewSqlConnFromSession(session)
@@ -265,6 +266,7 @@ func TestTxRollback(t *testing.T) {
 		mock.ExpectBegin()
 		mock.ExpectExec("any").WillReturnError(errors.New("foo"))
 		mock.ExpectRollback()
+
 		conn := NewSqlConnFromDB(db)
 		err := conn.Transact(func(session Session) error {
 			c := NewSqlConnFromSession(session)
@@ -284,6 +286,7 @@ func TestTxRollback(t *testing.T) {
 		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
 		mock.ExpectQuery("foo").WillReturnRows(sqlmock.NewRows([]string{"col"}).AddRow("bar"))
 		mock.ExpectCommit()
+
 		conn := NewSqlConnFromDB(db)
 		err := conn.Transact(func(session Session) error {
 			c := NewSqlConnFromSession(session)
