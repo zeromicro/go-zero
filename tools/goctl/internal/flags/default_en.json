@@ -1,7 +1,7 @@
 {
   "goctl": {
     "short": "A cli tool to generate go-zero code",
-    "long": "A cli tool to generate api, zrpc, model code\n\nGitHub: https://github.com/suyuan32/simple-admin-tools\nSite:   https://doc.ryansu.pro/",
+    "long": "\n      ___                       ___           ___           ___       ___     \n     /\\  \\          ___        /\\__\\         /\\  \\         /\\__\\     /\\  \\    \n    /::\\  \\        /\\  \\      /::|  |       /::\\  \\       /:/  /    /::\\  \\   \n   /:/\\ \\  \\       \\:\\  \\    /:|:|  |      /:/\\:\\  \\     /:/  /    /:/\\:\\  \\  \n  _\\:\\~\\ \\  \\      /::\\__\\  /:/|:|__|__   /::\\~\\:\\  \\   /:/  /    /::\\~\\:\\  \\ \n /\\ \\:\\ \\ \\__\\  __/:/\\/__/ /:/ |::::\\__\\ /:/\\:\\ \\:\\__\\ /:/__/    /:/\\:\\ \\:\\__\\\n \\:\\ \\:\\ \\/__/ /\\/:/  /    \\/__/~~/:/  / \\/__\\:\\/:/  / \\:\\  \\    \\:\\~\\:\\ \\/__/\n  \\:\\ \\:\\__\\   \\::/__/           /:/  /       \\::/  /   \\:\\  \\    \\:\\ \\:\\__\\  \n   \\:\\/:/  /    \\:\\__\\          /:/  /         \\/__/     \\:\\  \\    \\:\\ \\/__/  \n    \\::/  /      \\/__/         /:/  /                     \\:\\__\\    \\:\\__\\    \n     \\/__/                     \\/__/                       \\/__/     \\/__/    \n \n A cli tool to generate Simple Admin's api, zrpc, model code\n\nGitHub: https://github.com/suyuan32/simple-admin-tools\nSite:   https://doc.ryansu.pro/",
     "api": {
       "short": "Generate api related files",
       "o": "Output a sample api file",
@@ -40,7 +40,7 @@
         "style": "{{.global.style}}",
         "trans_err": "Whether to translate the error",
         "casbin": "Whether to use the Casbin",
-        "i18n": "Whether to use i18n"
+        "i18n": "{{.global.i18n}}"
       },
       "new": {
         "short": "Fast create api service",
@@ -50,9 +50,9 @@
         "branch": "{{.global.branch}}",
         "style": "{{.global.style}}",
         "casbin": "Whether to use the Casbin",
-        "i18n": "Whether to use i18n",
-        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.0, see [https://github.com/zeromicro/go-zero/releases]",
-        "tool_version": "The simple admin tool version version used for migration. e.g. v0.3.0, see [https://github.com/suyuan32/simple-admin-tools/releases]",
+        "i18n": "{{.global.i18n}}",
+        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.2, see [https://github.com/zeromicro/go-zero/releases]",
+        "tool_version": "The simple admin tool version version used for migration. e.g. v1.5.5, see [https://github.com/suyuan32/simple-admin-tools/releases]",
         "module_name": "The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core",
         "trans_err": "Whether to translate the error",
         "port": "The service port exposed",
@@ -96,6 +96,7 @@
         "grpc_package": "The rpc package which stores pb file. e.g. github.com/suyuan32/simple-admin-job/types/job",
         "multiple": "Whether the proto contains multiple services",
         "json_style": "The JSON tag format, default is camelcase",
+        "i18n": "{{.global.i18n}}",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
       },
       "ent": {
@@ -107,6 +108,7 @@
         "model": "The model name for generating e.g. user, if it is empty, generate codes for all models in schema directory",
         "search_key_num": "The max number of search keys",
         "group": "The group name for logic. e.g. user",
+        "i18n": "{{.global.i18n}}",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files",
         "json_style": "The JSON tag format, default is camelcase"
       }
@@ -116,6 +118,7 @@
     },
     "docker": {
       "short": "Generate Dockerfile",
+      "author": "The author information",
       "service_name": "The service name of the project",
       "service_type": "The service type, such as rpc, api",
       "base": "The base image to run the project",
@@ -184,16 +187,12 @@
       }
     },
     "migrate": {
-      "short": "Migrate from tal-tech to zeromicro",
-      "long": "Migrate is a transition command to help users migrate their projects from tal-tech to zeromicro version",
+      "short": "Replace go zero with tools",
+      "long": "Migrate is a command to replace go zero to simple admin tools",
       "verbose": "Verbose enables extra logging",
       "version": "The target release version of github.com/zeromicro/go-zero to migrate",
       "zero_version": "The target release version of github.com/zeromicro/go-zero to migrate",
       "tool_version": "The target release version of github.com/suyuan32/simple-admin-tools to migrate"
-    },
-    "quickstart": {
-      "short": "quickly start a project",
-      "service-type": "specify the service type, supported values: [mono, micro]"
     },
     "rpc": {
       "short": "Generate rpc code",
@@ -211,10 +210,11 @@
         "verbose": "Enable log output",
         "ent": "Whether use Ent in project",
         "module_name": "The module name in go.mod. e.g. github.com/suyuan32/simple-admin-core",
-        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.0, see [https://github.com/zeromicro/go-zero/releases]",
-        "tool_version": "The simple admin tool version version used for migration. e.g. v0.3.0, see [https://github.com/suyuan32/simple-admin-tools/releases]",
+        "go_zero_version": "The go zero version used for replacement. e.g. v1.5.2, see [https://github.com/zeromicro/go-zero/releases]",
+        "tool_version": "The simple admin tool version version used for migration. e.g. v1.5.5, see [https://github.com/suyuan32/simple-admin-tools/releases]",
         "port" : "The service port exposed",
         "gitlab": "Whether to use gitlab-ci",
+        "i18n": "{{.global.i18n}}",
         "desc": "Whether to create desc folder for splitting proto files"
       },
       "template": {
@@ -247,11 +247,13 @@
         "group": "The group name for logic. e.g. user",
         "proto_out": "The output proto file path",
         "proto_field_style": "The proto field style",
+        "i18n": "{{.global.i18n}}",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
       }
     },
     "extra": {
       "short": "Provide extra command, such as i18n, init code",
+      "drone": "Provide Drone CI file generation",
       "i18n": {
         "short": "Provide i18 json text generation",
         "target": "The target type, now only support api",
@@ -320,6 +322,7 @@
     "home": "The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority",
     "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure",
     "branch": "The branch of the remote repo, it does work with --remote",
-    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]"
+    "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]",
+    "i18n": "Whether to use i18n"
   }
 }

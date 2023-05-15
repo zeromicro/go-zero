@@ -57,6 +57,7 @@ type GenLogicByProtoContext struct {
 	UseUUID          bool
 	Multiple         bool
 	JSONStyle        string
+	UseI18n          bool
 	Overwrite        bool
 }
 
@@ -201,6 +202,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
+					"useI18n":            ctx.UseI18n,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -219,6 +221,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
+					"useI18n":            ctx.UseI18n,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -238,6 +241,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
+					"useI18n":            ctx.UseI18n,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -279,6 +283,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"searchKeys":         searchLogic.String(),
 					"useUUID":            ctx.UseUUID,
+					"useI18n":            ctx.UseI18n,
 				}))
 
 				data = append(data, &ApiLogicData{
@@ -297,6 +302,7 @@ func GenCRUDData(ctx *GenLogicByProtoContext, p *parser.Proto, projectCtx *ctx.P
 					"rpcName":            ctx.RpcName,
 					"rpcPbPackageName":   ctx.RPCPbPackageName,
 					"useUUID":            ctx.UseUUID,
+					"useI18n":            ctx.UseI18n,
 				}))
 
 				data = append(data, &ApiLogicData{

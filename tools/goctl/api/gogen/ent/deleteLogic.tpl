@@ -8,8 +8,9 @@ import (
     "{{.projectPath}}/internal/types"
     "{{.projectPath}}/internal/utils/dberrorhandler"
 
-    "github.com/suyuan32/simple-admin-common/i18n"
-{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
+{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{end}}{{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}    "github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -34,5 +35,5 @@ func (l *Delete{{.modelName}}Logic) Delete{{.modelName}}(req *types.{{if .useUUI
 		return nil, dberrorhandler.DefaultEntError(l.Logger, err, req)
 	}
 
-    return &types.BaseMsgResp{Msg: i18n.DeleteSuccess}, nil
+    return &types.BaseMsgResp{Msg: {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.DeleteSuccess){{else}}errormsg.DeleteSuccess{{end}}}, nil
 }

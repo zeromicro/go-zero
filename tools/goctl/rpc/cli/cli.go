@@ -77,6 +77,8 @@ var (
 	VarStringProtoFieldStyle string
 	// VarBoolDesc describes whether to create desc folder for splitting proto files
 	VarBoolDesc bool
+	// VarBoolI18n describes whether to use i18n
+	VarBoolI18n bool
 	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
 	VarBoolOverwrite bool
 )
@@ -124,7 +126,6 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.IsGooglePlugin = true
 	ctx.Output = filepath.Dir(src)
 	ctx.ProtocCmd = fmt.Sprintf("protoc -I=%s %s --go_out=%s --go-grpc_out=%s", filepath.Dir(src), filepath.Base(src), ctx.GoOutput, ctx.GrpcOutput)
-	ctx.Ent = VarBoolEnt
 
 	if VarStringModuleName != "" {
 		ctx.ModuleName = VarStringModuleName
@@ -140,6 +141,8 @@ func RPCNew(_ *cobra.Command, args []string) error {
 	ctx.Gitlab = VarBoolGitlab
 	ctx.UseDescDir = VarBoolDesc
 	ctx.RpcName = rpcname
+	ctx.Ent = VarBoolEnt
+	ctx.I18n = VarBoolI18n
 
 	if err := pathx.MkdirIfNotExist(ctx.GoOutput); err != nil {
 		return err
@@ -200,6 +203,7 @@ func EntCRUDLogic(_ *cobra.Command, _ []string) error {
 		GroupName:       VarStringGroupName,
 		ProtoOut:        VarStringProtoPath,
 		ProtoFieldStyle: VarStringProtoFieldStyle,
+		UseI18n:         VarBoolI18n,
 		Overwrite:       VarBoolOverwrite,
 	}
 

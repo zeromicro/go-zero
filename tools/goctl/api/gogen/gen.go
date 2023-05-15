@@ -134,7 +134,7 @@ type GenContext struct {
 
 // DoGenProject gen go project files with api file
 func DoGenProject(apiFile, dir, style string, g *GenContext) error {
-	color.Green.Println("Generating")
+	color.Green.Println("Generating...")
 
 	api, err := parser.Parse(apiFile)
 	if err != nil {
@@ -183,7 +183,27 @@ func DoGenProject(apiFile, dir, style string, g *GenContext) error {
 	}
 
 	if g.UseMakefile {
-		logx.Must(genMakefile(dir, cfg, api, g))
+		var serviceType string
+		if g.UseEnt {
+			serviceType = "single"
+		} else {
+			serviceType = "api"
+		}
+
+		makefileCmd := fmt.Sprintf("goctls extra makefile -t %s -s %s -n %s", serviceType, style, api.Service.Name)
+		if g.UseI18n {
+			makefileCmd += " -i"
+		}
+
+		if g.UseEnt {
+			makefileCmd += " -e"
+		}
+
+		_, err = execx.Run(makefileCmd, dir)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	if g.UseCasbin {
@@ -341,6 +361,7 @@ func GenCRUDLogicByProto(_ *cobra.Command, _ []string) error {
 		GrpcPackage:    VarStringGrpcPbPackage,
 		Multiple:       VarBoolMultiple,
 		JSONStyle:      VarStringJSONStyle,
+		UseI18n:        VarBoolUseI18n,
 		Overwrite:      VarBoolOverwrite,
 	}
 
@@ -367,6 +388,7 @@ func GenCRUDLogicByEnt(_ *cobra.Command, _ []string) error {
 		SearchKeyNum: VarIntSearchKeyNum,
 		GroupName:    VarStringGroupName,
 		JSONStyle:    VarStringJSONStyle,
+		UseI18n:      VarBoolUseI18n,
 		Overwrite:    VarBoolOverwrite,
 	}
 

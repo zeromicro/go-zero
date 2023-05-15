@@ -3,22 +3,22 @@ package logx
 // A LogConf is a logging config.
 type LogConf struct {
 	// ServiceName represents the service name.
-	ServiceName string `json:",optional"`
+	ServiceName string `json:",optional,env=LOG_SERVICE_NAME"`
 	// Mode represents the logging mode, default is `console`.
 	// console: log to console.
 	// file: log to file.
 	// volume: used in k8s, prepend the hostname to the log file name.
-	Mode string `json:",default=console,options=[console,file,volume]"`
+	Mode string `json:",default=console,options=[console,file,volume],env=LOG_MODE"`
 	// Encoding represents the encoding type, default is `json`.
 	// json: json encoding.
 	// plain: plain text encoding, typically used in development.
-	Encoding string `json:",default=json,options=[json,plain]"`
+	Encoding string `json:",default=json,options=[json,plain],env=LOG_ENCODING"`
 	// TimeFormat represents the time format, default is `2006-01-02T15:04:05.000Z07:00`.
 	TimeFormat string `json:",optional"`
 	// Path represents the log file path, default is `logs`.
-	Path string `json:",default=logs"`
+	Path string `json:",default=logs,env=LOG_PATH"`
 	// Level represents the log level, default is `info`.
-	Level string `json:",default=info,options=[debug,info,error,severe]"`
+	Level string `json:",default=info,options=[debug,info,error,severe],env=LOG_LEVEL"`
 	// MaxContentLength represents the max content bytes, default is no limit.
 	MaxContentLength uint32 `json:",optional"`
 	// Compress represents whether to compress the log file, default is `false`.
@@ -27,7 +27,7 @@ type LogConf struct {
 	Stat bool `json:",default=true"`
 	// KeepDays represents how many days the log files will be kept. Default to keep all files.
 	// Only take effect when Mode is `file` or `volume`, both work when Rotation is `daily` or `size`.
-	KeepDays int `json:",optional"`
+	KeepDays int `json:",optional,env=LOG_KEEP_DAYS"`
 	// StackCoolDownMillis represents the cooldown time for stack logging, default is 100ms.
 	StackCoolDownMillis int `json:",default=100"`
 	// MaxBackups represents how many backup log files will be kept. 0 means all files will be kept forever.

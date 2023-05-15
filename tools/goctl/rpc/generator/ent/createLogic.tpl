@@ -8,8 +8,9 @@ import (
 	"{{.projectPath}}/internal/utils/dberrorhandler"
     "{{.projectPath}}/types/{{.projectName}}"
 
-    "github.com/suyuan32/simple-admin-common/i18n"
-{{if .hasUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
+{{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
+{{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"
+{{end}}{{if .hasUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -36,5 +37,5 @@ func (l *Create{{.modelName}}Logic) Create{{.modelName}}(in *{{.projectName}}.{{
 		return nil, dberrorhandler.DefaultEntError(l.Logger, err, in)
 	}
 
-    return &{{.projectName}}.Base{{if .useUUID}}UU{{end}}IDResp{Id: result.ID{{if .useUUID}}.String(){{end}}, Msg: i18n.CreateSuccess}, nil
+    return &{{.projectName}}.Base{{if .useUUID}}UU{{end}}IDResp{Id: result.ID{{if .useUUID}}.String(){{end}}, Msg: {{if .useI18n}}i18n.CreateSuccess{{else}}errormsg.CreateSuccess{{end}} }, nil
 }

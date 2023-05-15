@@ -35,13 +35,13 @@ type (
 	// A RpcServerConf is a rpc server config.
 	RpcServerConf struct {
 		service.ServiceConf
-		ListenOn      string
+		ListenOn      string             `json:",env=RPC_LISTEN_ON"`
 		Etcd          discov.EtcdConf    `json:",optional,inherit"`
 		Auth          bool               `json:",optional"`
 		Redis         redis.RedisKeyConf `json:",optional"`
 		StrictControl bool               `json:",optional"`
 		// setting 0 means no timeout
-		Timeout      int64 `json:",default=2000"`
+		Timeout      int64 `json:",default=2000,env=RPC_TIMEOUT"`
 		CpuThreshold int64 `json:",default=900,range=[0:1000]"`
 		// grpc health check switch
 		Health      bool `json:",default=true"`

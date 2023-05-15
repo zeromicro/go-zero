@@ -14,6 +14,9 @@ const DefaultGoZeroVersion = "v1.5.2"
 // DefaultToolVersion defines the default version of simple admin tools for migrate
 const DefaultToolVersion = "v1.5.5"
 
+// LangEnvKey is the environment variable name to control the tools help info language
+const LangEnvKey = "SIMPLE_ADMIN_TOOLS_LANG"
+
 // Config defines the file naming style
 type Config struct {
 	// NamingFormat is used to define the naming format of the generated file name.

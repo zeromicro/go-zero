@@ -56,6 +56,7 @@ type GenEntLogicContext struct {
 	GroupName    string
 	UseUUID      bool
 	JSONStyle    string
+	UseI18n      bool
 	Overwrite    bool
 }
 
@@ -226,6 +227,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
+		"useI18n":     g.UseI18n,
 	})
 
 	data = append(data, &ApiLogicData{
@@ -243,6 +245,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"projectPath": projectCtx.Path,
 		"packageName": packageName,
 		"useUUID":     g.UseUUID, // UUID primary key
+		"useI18n":     g.UseI18n,
 	})
 
 	data = append(data, &ApiLogicData{
@@ -307,6 +310,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
+		"useI18n":            g.UseI18n,
 	})
 
 	data = append(data, &ApiLogicData{
@@ -323,6 +327,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"modelNameLowerCase": strings.ToLower(schema.Name),
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
+		"useI18n":            g.UseI18n,
 	})
 
 	data = append(data, &ApiLogicData{
@@ -338,6 +343,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"projectPath":        projectCtx.Path,
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
+		"useI18n":            g.UseI18n,
 	})
 
 	data = append(data, &ApiLogicData{
