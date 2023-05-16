@@ -9,6 +9,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/stores/sqltest"
 )
 
 type mockedConn struct {
@@ -80,7 +81,7 @@ func (c *mockedConn) Transact(func(session Session) error) error {
 }
 
 func TestBulkInserter(t *testing.T) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		var conn mockedConn
 		inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES(?, ?, ?)`)
 		assert.Nil(t, err)
@@ -97,7 +98,7 @@ func TestBulkInserter(t *testing.T) {
 }
 
 func TestBulkInserterSuffix(t *testing.T) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		var conn mockedConn
 		inserter, err := NewBulkInserter(&conn, `INSERT INTO classroom_dau(classroom, user, count) VALUES`+
 			`(?, ?, ?) ON DUPLICATE KEY UPDATE is_overtime=VALUES(is_overtime)`)
@@ -118,7 +119,7 @@ func TestBulkInserterSuffix(t *testing.T) {
 }
 
 func TestBulkInserterBadStatement(t *testing.T) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		var conn mockedConn
 		_, err := NewBulkInserter(&conn, "foo")
 		assert.NotNil(t, err)

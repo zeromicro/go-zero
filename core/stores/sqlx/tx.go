@@ -7,6 +7,10 @@ import (
 )
 
 type (
+	Transaction interface {
+		InTx()
+	}
+
 	beginnable func(*sql.DB) (trans, error)
 
 	trans interface {
@@ -23,6 +27,9 @@ type (
 		*sql.Tx
 	}
 )
+
+func (s txConn) InTx() {
+}
 
 func (s txConn) RawDB() (*sql.DB, error) {
 	return nil, errNoRawDBFromTx

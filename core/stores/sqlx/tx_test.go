@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/breaker"
+	"github.com/zeromicro/go-zero/core/stores/sqltest"
 )
 
 const (
@@ -105,7 +106,7 @@ func TestTransactRollback(t *testing.T) {
 }
 
 func TestTxExceptions(t *testing.T) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectCommit()
 		conn := NewSqlConnFromDB(db)
@@ -114,7 +115,7 @@ func TestTxExceptions(t *testing.T) {
 		}))
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		conn := &commonSqlConn{
 			connProv: func() (*sql.DB, error) {
 				return nil, errors.New("foo")
@@ -135,7 +136,7 @@ func TestTxExceptions(t *testing.T) {
 		assert.Equal(t, errCantNestTx, conn.TransactCtx(context.Background(), nil))
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		conn := NewSqlConnFromDB(db)
 		assert.Error(t, conn.Transact(func(session Session) error {
@@ -143,7 +144,7 @@ func TestTxExceptions(t *testing.T) {
 		}))
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectRollback().WillReturnError(errors.New("foo"))
 		conn := NewSqlConnFromDB(db)
@@ -152,7 +153,7 @@ func TestTxExceptions(t *testing.T) {
 		}))
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectRollback()
 		conn := NewSqlConnFromDB(db)
@@ -244,7 +245,7 @@ func TestTxSession(t *testing.T) {
 }
 
 func TestTxRollback(t *testing.T) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
 		mock.ExpectQuery("foo").WillReturnError(errors.New("foo"))
@@ -262,7 +263,7 @@ func TestTxRollback(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectExec("any").WillReturnError(errors.New("foo"))
 		mock.ExpectRollback()
@@ -281,7 +282,7 @@ func TestTxRollback(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+	sqltest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
 		mock.ExpectQuery("foo").WillReturnRows(sqlmock.NewRows([]string{"col"}).AddRow("bar"))
@@ -303,10 +304,7 @@ func TestTxRollback(t *testing.T) {
 }
 
 func runTxTest(t *testing.T, f func(conn SqlConn, mock sqlmock.Sqlmock)) {
-	runSqlTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
-		mock.ExpectBegin()
-		tx, err := db.Begin()
-		assert.NoError(t, err)
+	sqltest.RunTxTest(t, func(tx *sql.Tx, mock sqlmock.Sqlmock) {
 		sess := NewSessionFromTx(tx)
 		conn := NewSqlConnFromSession(sess)
 		f(conn, mock)

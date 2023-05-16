@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/fx"
@@ -23,7 +24,9 @@ import (
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/redis/redistest"
+	"github.com/zeromicro/go-zero/core/stores/sqltest"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
+	"github.com/zeromicro/go-zero/core/syncx"
 )
 
 func init() {
@@ -541,6 +544,28 @@ func TestNewConnWithCache(t *testing.T) {
 	_, err := c.ExecNoCache("delete from user_table where id='kevin'")
 	assert.Nil(t, err)
 	assert.True(t, conn.execValue)
+}
+
+func TestCachedConn_WithSession(t *testing.T) {
+	sqltest.RunTxTest(t, func(tx *sql.Tx, mock sqlmock.Sqlmock) {
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+
+		r := redistest.CreateRedis(t)
+		conn := CachedConn{
+			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
+		}
+		conn = conn.WithSession(sqlx.NewSessionFromTx(tx))
+		res, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
+			return conn.Exec("any")
+		}, "foo")
+		assert.NoError(t, err)
+		last, err := res.LastInsertId()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(2), last)
+		affected, err := res.RowsAffected()
+		assert.NoError(t, err)
+		assert.Equal(t, int64(3), affected)
+	})
 }
 
 func resetStats() {

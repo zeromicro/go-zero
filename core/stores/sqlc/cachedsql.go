@@ -226,3 +226,11 @@ func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 func (cc CachedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	return cc.db.TransactCtx(ctx, fn)
 }
+
+// WithSession returns a new CachedConn with given session.
+func (cc CachedConn) WithSession(session sqlx.Session) CachedConn {
+	return CachedConn{
+		db:    sqlx.NewSqlConnFromSession(session),
+		cache: cc.cache,
+	}
+}
