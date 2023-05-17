@@ -3,11 +3,11 @@ package {{.packageName}}
 import (
 	"context"
 
-	"{{.projectPath}}/ent/{{.modelNameLowerCase}}"
-	"{{.projectPath}}/ent/predicate"
-	"{{.projectPath}}/internal/svc"
-	"{{.projectPath}}/internal/types"
-	"{{.projectPath}}/internal/utils/dberrorhandler"
+	"{{.projectPath}}{{.importPrefix}}/ent/{{.modelNameLowerCase}}"
+	"{{.projectPath}}{{.importPrefix}}/ent/predicate"
+	"{{.projectPath}}{{.importPrefix}}/internal/svc"
+	"{{.projectPath}}{{.importPrefix}}/internal/types"
+	"{{.projectPath}}{{.importPrefix}}/internal/utils/dberrorhandler"
 
 {{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
 {{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"

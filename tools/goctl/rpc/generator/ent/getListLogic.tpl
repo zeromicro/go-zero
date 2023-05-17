@@ -3,11 +3,11 @@ package {{.packageName}}
 import (
 	"context"
 
-	"{{.projectPath}}/ent/{{.modelNameLowerCase}}"
-	"{{.projectPath}}/ent/predicate"
-	"{{.projectPath}}/internal/svc"
-	"{{.projectPath}}/internal/utils/dberrorhandler"
-    "{{.projectPath}}/types/{{.projectName}}"
+	"{{.projectPath}}{{.importPrefix}}/ent/{{.modelNameLowerCase}}"
+	"{{.projectPath}}{{.importPrefix}}/ent/predicate"
+	"{{.projectPath}}{{.importPrefix}}/internal/svc"
+	"{{.projectPath}}{{.importPrefix}}/internal/utils/dberrorhandler"
+	"{{.projectPath}}{{.importPrefix}}/types/{{.projectName}}"
 
     "github.com/zeromicro/go-zero/core/logx"
 )

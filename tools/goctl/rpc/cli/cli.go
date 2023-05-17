@@ -81,6 +81,8 @@ var (
 	VarBoolI18n bool
 	// VarBoolOverwrite describes whether to overwrite the files, it will overwrite all generated files.
 	VarBoolOverwrite bool
+	// VarStringImportPrefix describes the prefix in import
+	VarStringImportPrefix string
 )
 
 // RPCNew is to generate rpc greet service, this greet service can speed
@@ -204,6 +206,7 @@ func EntCRUDLogic(_ *cobra.Command, _ []string) error {
 		ProtoOut:        VarStringProtoPath,
 		ProtoFieldStyle: VarStringProtoFieldStyle,
 		UseI18n:         VarBoolI18n,
+		ImportPrefix:    VarStringImportPrefix,
 		Overwrite:       VarBoolOverwrite,
 	}
 

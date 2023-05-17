@@ -4,9 +4,9 @@ import (
 	"context"
 {{if .hasTime}}     "time"{{end}}
 
-	"{{.projectPath}}/internal/svc"
-	"{{.projectPath}}/internal/utils/dberrorhandler"
-    "{{.projectPath}}/types/{{.projectName}}"
+	"{{.projectPath}}{{.importPrefix}}/internal/svc"
+	"{{.projectPath}}{{.importPrefix}}/internal/utils/dberrorhandler"
+	"{{.projectPath}}{{.importPrefix}}/types/{{.projectName}}"
 
 {{if .useI18n}}    "github.com/suyuan32/simple-admin-common/i18n"
 {{else}}    "github.com/suyuan32/simple-admin-common/msg/errormsg"

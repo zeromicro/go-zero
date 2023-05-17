@@ -96,6 +96,7 @@
         "grpc_package": "存储 pb 文件的 rpc 包，例如 github.com/suyuan32/simple-admin-job/types/job",
         "multiple": "proto 是否包含多个服务",
         "json_style": "JSON 标记格式，默认为驼峰式",
+        "import_prefix": "{{.global.import_prefix}}",
         "i18n": "{{.global.i18n}}",
         "overwrite": "是否覆盖文件，它将覆盖所有生成的文件"
       },
@@ -110,6 +111,7 @@
         "group": "业务逻辑代码的分组名称，例如 user",
         "i18n": "{{.global.i18n}}",
         "overwrite": "是否覆盖文件，它将覆盖所有生成的文件",
+        "import_prefix": "{{.global.import_prefix}}",
         "json_style": "JSON 标记格式，默认为驼峰式"
       }
     },
@@ -240,6 +242,7 @@
         "output": "输出路径",
         "service_name": "服务名称",
         "project_name": "项目名称",
+        "import_prefix": "{{.global.import_prefix}}",
         "multiple": "在多个 rpc 服务模式下生成",
         "style": "文件名格式样式",
         "model": "生成的模型名称，例如：user，如果为空，则为 schema 目录中所有模型生成代码",
@@ -341,6 +344,7 @@
     "remote": "模板的远程 git repo，--home 和 --remote 不能同时设置，如果设置了，--remote 优先级更高\nGit repo 的目录结构必须与 https://github.com/zeromicro/go-zero-template 相一致",
     "branch": "远程 repo 的分支，与 --remote 一起使用",
     "style": "文件命名格式，参见 [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]",
-    "i18n": "是否启用 i18n 国际化"
+    "i18n": "是否启用 i18n 国际化",
+    "import_prefix": "导入路径的前缀，仅用于项目位于子目录的情况，如 core 的 rpc 和 api"
   }
 }

@@ -79,6 +79,8 @@ var (
 	VarStringSchema string
 	// VarStringGroupName describes whether to use group
 	VarStringGroupName string
+	// VarStringImportPrefix describes the prefix in import
+	VarStringImportPrefix string
 )
 
 // GoCommand gen go project files from command line
@@ -129,6 +131,7 @@ type GenContext struct {
 	UseGitlab     bool
 	UseMakefile   bool
 	UseDockerfile bool
+	ImportPrefix  string
 	UseEnt        bool
 }
 
@@ -362,6 +365,7 @@ func GenCRUDLogicByProto(_ *cobra.Command, _ []string) error {
 		Multiple:       VarBoolMultiple,
 		JSONStyle:      VarStringJSONStyle,
 		UseI18n:        VarBoolUseI18n,
+		ImportPrefix:   VarStringImportPrefix,
 		Overwrite:      VarBoolOverwrite,
 	}
 
@@ -389,6 +393,7 @@ func GenCRUDLogicByEnt(_ *cobra.Command, _ []string) error {
 		GroupName:    VarStringGroupName,
 		JSONStyle:    VarStringJSONStyle,
 		UseI18n:      VarBoolUseI18n,
+		ImportPrefix: VarStringImportPrefix,
 		Overwrite:    VarBoolOverwrite,
 	}
 

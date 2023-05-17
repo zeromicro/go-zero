@@ -63,6 +63,7 @@ type GenEntLogicContext struct {
 	UseUUID         bool
 	UseI18n         bool
 	ProtoOut        string
+	ImportPrefix    string
 	Overwrite       bool
 }
 
@@ -273,15 +274,16 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	createLogic := bytes.NewBufferString("")
 	createLogicTmpl, _ := template.New("create").Parse(createTpl)
 	_ = createLogicTmpl.Execute(createLogic, map[string]any{
-		"hasTime":     hasTime,
-		"hasUUID":     hasUUID,
-		"setLogic":    strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
-		"modelName":   schema.Name,
-		"projectName": strings.ToLower(g.ProjectName),
-		"projectPath": projectCtx.Path,
-		"packageName": packageName,
-		"useUUID":     g.UseUUID, // UUID primary key
-		"useI18n":     g.UseI18n,
+		"hasTime":      hasTime,
+		"hasUUID":      hasUUID,
+		"setLogic":     strings.ReplaceAll(setLogic.String(), "Exec", "Save"),
+		"modelName":    schema.Name,
+		"projectName":  strings.ToLower(g.ProjectName),
+		"projectPath":  projectCtx.Path,
+		"packageName":  packageName,
+		"useUUID":      g.UseUUID, // UUID primary key
+		"useI18n":      g.UseI18n,
+		"importPrefix": g.ImportPrefix,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -292,15 +294,16 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 	updateLogic := bytes.NewBufferString("")
 	updateLogicTmpl, _ := template.New("update").Parse(updateTpl)
 	_ = updateLogicTmpl.Execute(updateLogic, map[string]any{
-		"hasTime":     hasTime,
-		"hasUUID":     hasUUID,
-		"setLogic":    strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
-		"modelName":   schema.Name,
-		"projectName": strings.ToLower(g.ProjectName),
-		"projectPath": projectCtx.Path,
-		"packageName": packageName,
-		"useUUID":     g.UseUUID, // UUID primary key
-		"useI18n":     g.UseI18n,
+		"hasTime":      hasTime,
+		"hasUUID":      hasUUID,
+		"setLogic":     strings.Replace(setLogic.String(), "Set", "SetNotEmpty", -1),
+		"modelName":    schema.Name,
+		"projectName":  strings.ToLower(g.ProjectName),
+		"projectPath":  projectCtx.Path,
+		"packageName":  packageName,
+		"useUUID":      g.UseUUID, // UUID primary key
+		"useI18n":      g.UseI18n,
+		"importPrefix": g.ImportPrefix,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -381,6 +384,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 		"useI18n":            g.UseI18n,
+		"importPrefix":       g.ImportPrefix,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -399,6 +403,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 		"useI18n":            g.UseI18n,
+		"importPrefix":       g.ImportPrefix,
 	})
 
 	data = append(data, &RpcLogicData{
@@ -416,6 +421,7 @@ func GenCRUDData(g *GenEntLogicContext, projectCtx *ctx.ProjectContext, schema *
 		"packageName":        packageName,
 		"useUUID":            g.UseUUID,
 		"useI18n":            g.UseI18n,
+		"importPrefix":       g.ImportPrefix,
 	})
 
 	data = append(data, &RpcLogicData{
