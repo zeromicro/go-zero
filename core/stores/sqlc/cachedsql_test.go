@@ -660,7 +660,6 @@ func TestCachedConn_WithSession(t *testing.T) {
 			return err
 		}))
 		val, err := r.Get("foo")
-		fmt.Println(val, err)
 		assert.NoError(t, err)
 		assert.Equal(t, `"2"`, val)
 	})

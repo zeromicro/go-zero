@@ -3,10 +3,8 @@ package sqlc
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/redis"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -226,19 +224,7 @@ func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 
 // TransactCtx runs given fn in transaction mode.
 func (cc CachedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
-	if err := cc.db.TransactCtx(ctx, fn); err != nil {
-		return err
-	}
-
-	if txc, ok := cc.cache.(sqlx.Transaction); ok {
-		fmt.Println("commit actions")
-		if err := txc.CommitActions(ctx); err != nil {
-			// not returning error, because the transaction has already been committed.
-			logx.Errorf("commit actions error: %v", err)
-		}
-	}
-
-	return nil
+	return cc.db.TransactCtx(ctx, fn)
 }
 
 // WithSession returns a new CachedConn with given session.

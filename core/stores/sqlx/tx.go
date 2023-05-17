@@ -8,11 +8,6 @@ import (
 )
 
 type (
-	Transaction interface {
-		AddAction(action func(context.Context) error)
-		CommitActions(ctx context.Context) error
-	}
-
 	beginnable func(*sql.DB) (trans, error)
 
 	trans interface {
@@ -31,26 +26,6 @@ type (
 		*sql.Tx
 	}
 )
-
-func (s *txConn) AddAction(action func(context.Context) error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	s.actions = append(s.actions, action)
-}
-
-func (s *txConn) CommitActions(ctx context.Context) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-
-	for _, action := range s.actions {
-		if err := action(ctx); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
 
 func (s *txConn) RawDB() (*sql.DB, error) {
 	return nil, errNoRawDBFromTx
