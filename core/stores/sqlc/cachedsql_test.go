@@ -371,6 +371,24 @@ func TestStatFromMemory(t *testing.T) {
 	assert.Equal(t, uint64(9), atomic.LoadUint64(&stats.Hit))
 }
 
+func TestCachedConn_DelCache(t *testing.T) {
+	r := redistest.CreateRedis(t)
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	assert.NoError(t, r.Set(key, value))
+
+	c := NewNodeConn(&trackedConn{}, r, cache.WithExpiry(time.Second*30))
+	err := c.DelCache(key)
+	assert.Nil(t, err)
+
+	val, err := r.Get(key)
+	assert.Nil(t, err)
+	assert.Empty(t, val)
+}
+
 func TestCachedConnQueryRow(t *testing.T) {
 	r := redistest.CreateRedis(t)
 
@@ -639,15 +657,15 @@ func TestCachedConn_WithSession(t *testing.T) {
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
 		mock.ExpectBegin()
 		mock.ExpectQuery("any").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(2))
-		mock.ExpectExec("any").WillReturnError(errors.New("foo"))
-		mock.ExpectRollback()
+		mock.ExpectExec("any").WillReturnResult(sqlmock.NewResult(2, 3))
+		mock.ExpectCommit()
 
 		r := redistest.CreateRedis(t)
 		conn := CachedConn{
 			db:    sqlx.NewSqlConnFromDB(db),
 			cache: cache.NewNode(r, syncx.NewSingleFlight(), stats, sql.ErrNoRows),
 		}
-		assert.Error(t, conn.Transact(func(session sqlx.Session) error {
+		assert.NoError(t, conn.Transact(func(session sqlx.Session) error {
 			var val string
 			conn = conn.WithSession(session)
 			assert.NoError(t, conn.QueryRow(&val, "foo", func(conn sqlx.SqlConn, v interface{}) error {
@@ -656,12 +674,12 @@ func TestCachedConn_WithSession(t *testing.T) {
 			assert.Equal(t, "2", val)
 			_, err := conn.Exec(func(conn sqlx.SqlConn) (sql.Result, error) {
 				return conn.Exec("any")
-			})
+			}, "foo")
 			return err
 		}))
 		val, err := r.Get("foo")
 		assert.NoError(t, err)
-		assert.Equal(t, `"2"`, val)
+		assert.Empty(t, val)
 	})
 }
 
