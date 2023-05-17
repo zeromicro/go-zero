@@ -27,7 +27,7 @@ func TestSetSlowThreshold(t *testing.T) {
 }
 
 func TestUnaryStatInterceptor(t *testing.T) {
-	metrics := stat.NewMetrics("grpcmock")
+	metrics := stat.NewMetrics("mock")
 	interceptor := UnaryStatInterceptor(metrics, StatConf{})
 	_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 		FullMethod: "/",

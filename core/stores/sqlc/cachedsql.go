@@ -243,21 +243,10 @@ func (cc CachedConn) TransactCtx(ctx context.Context, fn func(context.Context, s
 
 // WithSession returns a new CachedConn with given session.
 func (cc CachedConn) WithSession(session sqlx.Session) CachedConn {
-	var c cache.Cache
-	conn := sqlx.NewSqlConnFromSession(session)
-	txc, ok := conn.(sqlx.Transaction)
-	if !ok {
-		return CachedConn{
-			db:    conn,
-			cache: c,
-		}
-	}
-
+	// If query from session, the uncommitted data might be returned.
+	// Don't query for the uncommitted data, you should just use it.
 	return CachedConn{
-		db: conn,
-		cache: &txCache{
-			Cache:     cc.cache,
-			collector: txc,
-		},
+		db:    sqlx.NewSqlConnFromSession(session),
+		cache: cc.cache,
 	}
 }

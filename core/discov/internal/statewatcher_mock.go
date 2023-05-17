@@ -12,18 +12,18 @@ import (
 	connectivity "google.golang.org/grpc/connectivity"
 )
 
-// MocketcdConn is a grpcmock of etcdConn interface
+// MocketcdConn is a mock of etcdConn interface
 type MocketcdConn struct {
 	ctrl     *gomock.Controller
 	recorder *MocketcdConnMockRecorder
 }
 
-// MocketcdConnMockRecorder is the grpcmock recorder for MocketcdConn
+// MocketcdConnMockRecorder is the mock recorder for MocketcdConn
 type MocketcdConnMockRecorder struct {
 	mock *MocketcdConn
 }
 
-// NewMocketcdConn creates a new grpcmock instance
+// NewMocketcdConn creates a new mock instance
 func NewMocketcdConn(ctrl *gomock.Controller) *MocketcdConn {
 	mock := &MocketcdConn{ctrl: ctrl}
 	mock.recorder = &MocketcdConnMockRecorder{mock}

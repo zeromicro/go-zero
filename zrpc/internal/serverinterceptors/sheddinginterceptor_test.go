@@ -43,7 +43,7 @@ func TestUnarySheddingInterceptor(t *testing.T) {
 			t.Parallel()
 
 			shedder := mockedShedder{allow: test.allow}
-			metrics := stat.NewMetrics("grpcmock")
+			metrics := stat.NewMetrics("mock")
 			interceptor := UnarySheddingInterceptor(shedder, metrics)
 			_, err := interceptor(context.Background(), nil, &grpc.UnaryServerInfo{
 				FullMethod: "/",

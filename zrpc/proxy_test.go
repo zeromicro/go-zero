@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/zeromicro/go-zero/internal/grpcmock"
+	"github.com/zeromicro/go-zero/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -17,7 +17,7 @@ func TestProxy(t *testing.T) {
 	tests := []struct {
 		name    string
 		amount  float32
-		res     *grpcmock.DepositResponse
+		res     *mock.DepositResponse
 		errCode codes.Code
 		errMsg  string
 	}{
@@ -31,7 +31,7 @@ func TestProxy(t *testing.T) {
 		{
 			"valid request with non negative amount",
 			0.00,
-			&grpcmock.DepositResponse{Ok: true},
+			&mock.DepositResponse{Ok: true},
 			codes.OK,
 			"",
 		},
@@ -43,8 +43,8 @@ func TestProxy(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			conn, err := proxy.TakeConn(context.Background())
 			assert.Nil(t, err)
-			cli := grpcmock.NewDepositServiceClient(conn)
-			request := &grpcmock.DepositRequest{Amount: tt.amount}
+			cli := mock.NewDepositServiceClient(conn)
+			request := &mock.DepositRequest{Amount: tt.amount}
 			response, err := cli.Deposit(context.Background(), request)
 			if response != nil {
 				assert.True(t, len(response.String()) > 0)

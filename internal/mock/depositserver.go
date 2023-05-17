@@ -1,4 +1,4 @@
-package grpcmock
+package mock
 
 import (
 	"context"

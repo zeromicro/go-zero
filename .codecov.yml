@@ -4,6 +4,6 @@ comment:
   require_changes: true
 ignore:
   - "tools"
-  - "**/grpcmock"
+  - "**/mock"
   - "**/*_mock.go"
   - "**/*test"

@@ -10,18 +10,18 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockUpdateListener is a grpcmock of UpdateListener interface
+// MockUpdateListener is a mock of UpdateListener interface
 type MockUpdateListener struct {
 	ctrl     *gomock.Controller
 	recorder *MockUpdateListenerMockRecorder
 }
 
-// MockUpdateListenerMockRecorder is the grpcmock recorder for MockUpdateListener
+// MockUpdateListenerMockRecorder is the mock recorder for MockUpdateListener
 type MockUpdateListenerMockRecorder struct {
 	mock *MockUpdateListener
 }
 
-// NewMockUpdateListener creates a new grpcmock instance
+// NewMockUpdateListener creates a new mock instance
 func NewMockUpdateListener(ctrl *gomock.Controller) *MockUpdateListener {
 	mock := &MockUpdateListener{ctrl: ctrl}
 	mock.recorder = &MockUpdateListenerMockRecorder{mock}

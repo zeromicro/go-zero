@@ -24,7 +24,7 @@ func TestPromMetricInterceptor(t *testing.T) {
 		{
 			name:   "with error",
 			enable: true,
-			err:    errors.New("grpcmock"),
+			err:    errors.New("mock"),
 		},
 		{
 			name: "disabled",

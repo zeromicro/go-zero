@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package mock;
 
-option go_package = ".;grpcmock";
+option go_package = ".;mock";
 
 message DepositRequest {
   float amount = 1;

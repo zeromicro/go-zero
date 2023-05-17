@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
-	"github.com/zeromicro/go-zero/internal/grpcmock"
+	"github.com/zeromicro/go-zero/internal/mock"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -26,7 +26,7 @@ func init() {
 func dialer() func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1024 * 1024)
 	server := grpc.NewServer()
-	grpcmock.RegisterDepositServiceServer(server, &grpcmock.DepositServer{})
+	mock.RegisterDepositServiceServer(server, &mock.DepositServer{})
 
 	go func() {
 		if err := server.Serve(listener); err != nil {
@@ -43,7 +43,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 	tests := []struct {
 		name    string
 		amount  float32
-		res     *grpcmock.DepositResponse
+		res     *mock.DepositResponse
 		errCode codes.Code
 		errMsg  string
 	}{
@@ -57,7 +57,7 @@ func TestDepositServer_Deposit(t *testing.T) {
 		{
 			"valid request with non negative amount",
 			0.00,
-			&grpcmock.DepositResponse{Ok: true},
+			&mock.DepositResponse{Ok: true},
 			codes.OK,
 			"",
 		},
@@ -156,8 +156,8 @@ func TestDepositServer_Deposit(t *testing.T) {
 			client := client
 			t.Run(tt.name, func(t *testing.T) {
 				t.Parallel()
-				cli := grpcmock.NewDepositServiceClient(client.Conn())
-				request := &grpcmock.DepositRequest{Amount: tt.amount}
+				cli := mock.NewDepositServiceClient(client.Conn())
+				request := &mock.DepositRequest{Amount: tt.amount}
 				response, err := cli.Deposit(context.Background(), request)
 				if response != nil {
 					assert.True(t, len(response.String()) > 0)
@@ -200,7 +200,7 @@ func TestNewClientWithError(t *testing.T) {
 		RpcClientConf{
 			Etcd: discov.EtcdConf{
 				Hosts: []string{"localhost:2379"},
-				Key:   "grpcmock",
+				Key:   "mock",
 			},
 			App:     "foo",
 			Token:   "bar",

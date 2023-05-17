@@ -64,7 +64,7 @@ func TestBreakerInterceptor(t *testing.T) {
 		},
 		{
 			name: "with error",
-			err:  errors.New("grpcmock"),
+			err:  errors.New("mock"),
 		},
 	}
 	for _, test := range tests {

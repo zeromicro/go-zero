@@ -10,7 +10,7 @@ import (
 )
 
 type (
-	// MockConn defines a grpcmock connection instance for mysql
+	// MockConn defines a mock connection instance for mysql
 	MockConn struct {
 		db *sql.DB
 	}
