@@ -13,7 +13,7 @@ import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
-	"github.com/zeromicro/go-zero/internal/mock"
+	"github.com/zeromicro/go-zero/internal/grpcmock"
 	"github.com/zeromicro/go-zero/rest/httpc"
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
@@ -28,7 +28,7 @@ func init() {
 func dialer() func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1024 * 1024)
 	server := grpc.NewServer()
-	mock.RegisterDepositServiceServer(server, &mock.DepositServer{})
+	grpcmock.RegisterDepositServiceServer(server, &grpcmock.DepositServer{})
 
 	reflection.Register(server)
 
@@ -62,7 +62,7 @@ func TestMustNewServer(t *testing.T) {
 				{
 					Method:  "get",
 					Path:    "/deposit/:amount",
-					RpcPath: "mock.DepositService/Deposit",
+					RpcPath: "grpcmock.DepositService/Deposit",
 				},
 			},
 			Grpc: zrpc.RpcClientConf{

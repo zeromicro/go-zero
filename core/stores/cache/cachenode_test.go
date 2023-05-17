@@ -71,7 +71,7 @@ func TestCacheNode_DelCache(t *testing.T) {
 		r, err := miniredis.Run()
 		assert.NoError(t, err)
 		defer r.Close()
-		r.SetError("mock error")
+		r.SetError("grpcmock error")
 
 		node := NewNode(redis.New(r.Addr(), redis.Cluster()), syncx.NewSingleFlight(),
 			NewStat("any"), errTestNotFound)
@@ -154,7 +154,7 @@ func TestCacheNode_TakeBadRedis(t *testing.T) {
 	r, err := miniredis.Run()
 	assert.NoError(t, err)
 	defer r.Close()
-	r.SetError("mock error")
+	r.SetError("grpcmock error")
 
 	cn := NewNode(redis.New(r.Addr()), syncx.NewSingleFlight(), NewStat("any"),
 		errTestNotFound, WithExpiry(time.Second), WithNotFoundExpiry(time.Second))

@@ -43,7 +43,7 @@ func TestNewRedis(t *testing.T) {
 	r2, err := miniredis.Run()
 	assert.NoError(t, err)
 	defer r2.Close()
-	r2.SetError("mock")
+	r2.SetError("grpcmock")
 
 	tests := []struct {
 		name string
@@ -1870,7 +1870,7 @@ func runOnRedisWithError(t *testing.T, fn func(client *Redis)) {
 	logx.Disable()
 
 	s := miniredis.RunT(t)
-	s.SetError("mock error")
+	s.SetError("grpcmock error")
 	fn(New(s.Addr()))
 }
 

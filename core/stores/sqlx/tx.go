@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
 )
 
 type (
 	Transaction interface {
-		InTx()
+		AddAction(action func(context.Context) error)
+		CommitActions(ctx context.Context) error
 	}
 
 	beginnable func(*sql.DB) (trans, error)
@@ -21,6 +23,8 @@ type (
 
 	txConn struct {
 		Session
+		actions []func(context.Context) error
+		lock    sync.Mutex
 	}
 
 	txSession struct {
@@ -28,18 +32,35 @@ type (
 	}
 )
 
-func (s txConn) InTx() {
+func (s *txConn) AddAction(action func(context.Context) error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	s.actions = append(s.actions, action)
 }
 
-func (s txConn) RawDB() (*sql.DB, error) {
+func (s *txConn) CommitActions(ctx context.Context) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+
+	for _, action := range s.actions {
+		if err := action(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *txConn) RawDB() (*sql.DB, error) {
 	return nil, errNoRawDBFromTx
 }
 
-func (s txConn) Transact(_ func(Session) error) error {
+func (s *txConn) Transact(_ func(Session) error) error {
 	return errCantNestTx
 }
 
-func (s txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) error) error {
+func (s *txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) error) error {
 	return errCantNestTx
 }
 

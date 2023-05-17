@@ -4,7 +4,7 @@
 // 	protoc        v3.8.0
 // source: deposit.proto
 
-package mock
+package grpcmock
 
 import (
 	context "context"
@@ -151,14 +151,14 @@ func file_deposit_proto_rawDescGZIP() []byte {
 var (
 	file_deposit_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 	file_deposit_proto_goTypes  = []any{
-		(*DepositRequest)(nil),  // 0: mock.DepositRequest
-		(*DepositResponse)(nil), // 1: mock.DepositResponse
+		(*DepositRequest)(nil),  // 0: grpcmock.DepositRequest
+		(*DepositResponse)(nil), // 1: grpcmock.DepositResponse
 	}
 )
 
 var file_deposit_proto_depIdxs = []int32{
-	0, // 0: mock.DepositService.Deposit:input_type -> mock.DepositRequest
-	1, // 1: mock.DepositService.Deposit:output_type -> mock.DepositResponse
+	0, // 0: grpcmock.DepositService.Deposit:input_type -> grpcmock.DepositRequest
+	1, // 1: grpcmock.DepositService.Deposit:output_type -> grpcmock.DepositResponse
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -244,7 +244,7 @@ func NewDepositServiceClient(cc grpc.ClientConnInterface) DepositServiceClient {
 
 func (c *depositServiceClient) Deposit(ctx context.Context, in *DepositRequest, opts ...grpc.CallOption) (*DepositResponse, error) {
 	out := new(DepositResponse)
-	err := c.cc.Invoke(ctx, "/mock.DepositService/Deposit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/grpcmock.DepositService/Deposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +277,7 @@ func _DepositService_Deposit_Handler(srv any, ctx context.Context, dec func(any)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/mock.DepositService/Deposit",
+		FullMethod: "/grpcmock.DepositService/Deposit",
 	}
 	handler := func(ctx context.Context, req any) (any, error) {
 		return srv.(DepositServiceServer).Deposit(ctx, req.(*DepositRequest))
@@ -286,7 +286,7 @@ func _DepositService_Deposit_Handler(srv any, ctx context.Context, dec func(any)
 }
 
 var _DepositService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "mock.DepositService",
+	ServiceName: "grpcmock.DepositService",
 	HandlerType: (*DepositServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

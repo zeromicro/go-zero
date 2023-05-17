@@ -129,7 +129,7 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 }
 
 func NewSqlConnFromSession(session Session) SqlConn {
-	return txConn{
+	return &txConn{
 		Session: session,
 	}
 }

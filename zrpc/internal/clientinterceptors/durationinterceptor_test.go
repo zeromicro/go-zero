@@ -21,7 +21,7 @@ func TestDurationInterceptor(t *testing.T) {
 		},
 		{
 			name: "with error",
-			err:  errors.New("mock"),
+			err:  errors.New("grpcmock"),
 		},
 	}
 
@@ -71,7 +71,7 @@ func TestDurationInterceptorWithSlowThreshold(t *testing.T) {
 		},
 		{
 			name: "with error",
-			err:  errors.New("mock"),
+			err:  errors.New("grpcmock"),
 		},
 	}
 

@@ -13,18 +13,18 @@ import (
 	grpc "google.golang.org/grpc"
 )
 
-// MockEtcdClient is a mock of EtcdClient interface
+// MockEtcdClient is a grpcmock of EtcdClient interface
 type MockEtcdClient struct {
 	ctrl     *gomock.Controller
 	recorder *MockEtcdClientMockRecorder
 }
 
-// MockEtcdClientMockRecorder is the mock recorder for MockEtcdClient
+// MockEtcdClientMockRecorder is the grpcmock recorder for MockEtcdClient
 type MockEtcdClientMockRecorder struct {
 	mock *MockEtcdClient
 }
 
-// NewMockEtcdClient creates a new mock instance
+// NewMockEtcdClient creates a new grpcmock instance
 func NewMockEtcdClient(ctrl *gomock.Controller) *MockEtcdClient {
 	mock := &MockEtcdClient{ctrl: ctrl}
 	mock.recorder = &MockEtcdClientMockRecorder{mock}

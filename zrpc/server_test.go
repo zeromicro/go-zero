@@ -46,7 +46,7 @@ func TestServer_setupInterceptors(t *testing.T) {
 	assert.Equal(t, 3, len(server.unaryInterceptors))
 	assert.Equal(t, 1, len(server.streamInterceptors))
 
-	rds.SetError("mock error")
+	rds.SetError("grpcmock error")
 	err = setupInterceptors(server, conf, new(stat.Metrics))
 	assert.Error(t, err)
 }
