@@ -14,9 +14,10 @@
 **/.idea
 **/.DS_Store
 **/logs
+**/adhoc
+**/coverage.txt
 
 # for test purpose
-**/adhoc
 go.work
 go.work.sum
 
@@ -27,4 +28,3 @@ go.work.sum
 # vim auto backup file
 *~
 !OWNERS
-coverage.txt

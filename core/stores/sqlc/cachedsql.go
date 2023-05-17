@@ -226,3 +226,15 @@ func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 func (cc CachedConn) TransactCtx(ctx context.Context, fn func(context.Context, sqlx.Session) error) error {
 	return cc.db.TransactCtx(ctx, fn)
 }
+
+// WithSession returns a new CachedConn with given session.
+// If query from session, the uncommitted data might be returned.
+// Don't query for the uncommitted data, you should just use it,
+// and don't use the cache for the uncommitted data.
+// Not recommend to use cache within transactions due to consistency problem.
+func (cc CachedConn) WithSession(session sqlx.Session) CachedConn {
+	return CachedConn{
+		db:    sqlx.NewSqlConnFromSession(session),
+		cache: cc.cache,
+	}
+}

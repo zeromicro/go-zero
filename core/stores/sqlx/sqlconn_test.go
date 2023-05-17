@@ -55,7 +55,7 @@ func TestSqlConn(t *testing.T) {
 }
 
 func buildConn() (mock sqlmock.Sqlmock, err error) {
-	connManager.GetResource(mockedDatasource, func() (io.Closer, error) {
+	_, err = connManager.GetResource(mockedDatasource, func() (io.Closer, error) {
 		var db *sql.DB
 		var err error
 		db, mock, err = sqlmock.New()
