@@ -128,6 +128,7 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	return conn
 }
 
+// NewSqlConnFromSession returns a SqlConn with the given session.
 func NewSqlConnFromSession(session Session) SqlConn {
 	return txConn{
 		Session: session,
