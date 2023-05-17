@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync"
 )
 
 type (
@@ -18,8 +17,6 @@ type (
 
 	txConn struct {
 		Session
-		actions []func(context.Context) error
-		lock    sync.Mutex
 	}
 
 	txSession struct {
@@ -27,15 +24,15 @@ type (
 	}
 )
 
-func (s *txConn) RawDB() (*sql.DB, error) {
+func (s txConn) RawDB() (*sql.DB, error) {
 	return nil, errNoRawDBFromTx
 }
 
-func (s *txConn) Transact(_ func(Session) error) error {
+func (s txConn) Transact(_ func(Session) error) error {
 	return errCantNestTx
 }
 
-func (s *txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) error) error {
+func (s txConn) TransactCtx(_ context.Context, _ func(context.Context, Session) error) error {
 	return errCantNestTx
 }
 
