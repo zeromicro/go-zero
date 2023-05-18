@@ -22,7 +22,10 @@ import (
 	"github.com/zeromicro/go-zero/core/timex"
 )
 
-var errTestNotFound = errors.New("not found")
+var (
+	timingWheelLock sync.Mutex
+	errTestNotFound = errors.New("not found")
+)
 
 func init() {
 	logx.Disable()
@@ -55,6 +58,9 @@ func TestCacheNode_DelCache(t *testing.T) {
 	})
 
 	t.Run("del cache with errors", func(t *testing.T) {
+		timingWheelLock.Lock()
+		defer timingWheelLock.Unlock()
+
 		old := timingWheel
 		ticker := timex.NewFakeTicker()
 		var err error
