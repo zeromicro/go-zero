@@ -1,6 +1,3 @@
-//go:build !race
-
-// Disable data race detection is because of the timingWheel in cacheNode.
 package cache
 
 import (
