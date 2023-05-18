@@ -284,6 +284,7 @@ func runningInUserNS() bool {
 		if a == 0 && b == 0 && c == math.MaxUint32 {
 			return
 		}
+
 		inUserNS = true
 	})
 
