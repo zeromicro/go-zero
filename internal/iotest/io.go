@@ -20,6 +20,7 @@ func RunTest(t *testing.T, fn func(), validate func(string)) {
 	fn()
 	assert.NoError(t, w.Close())
 
-	out, _ := io.ReadAll(r)
+	out, err := io.ReadAll(r)
+	assert.NoError(t, err)
 	validate(string(out))
 }
