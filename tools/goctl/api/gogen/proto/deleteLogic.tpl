@@ -3,8 +3,8 @@ package {{.modelNameLowerCase}}
 import (
 	"context"
 
-    "{{.projectPackage}}/internal/svc"
-	"{{.projectPackage}}/internal/types"
+	"{{.projectPackage}}{{.importPrefix}}/internal/svc"
+	"{{.projectPackage}}{{.importPrefix}}/internal/types"
 	"{{.rpcPackage}}"
 
 	"github.com/zeromicro/go-zero/core/logx"

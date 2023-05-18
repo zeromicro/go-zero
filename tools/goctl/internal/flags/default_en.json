@@ -97,6 +97,7 @@
         "multiple": "Whether the proto contains multiple services",
         "json_style": "The JSON tag format, default is camelcase",
         "i18n": "{{.global.i18n}}",
+        "import_prefix": "{{.global.import_prefix}}",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
       },
       "ent": {
@@ -104,6 +105,7 @@
         "schema": "The schema path of the Ent",
         "output": "The output path",
         "api_service_name": "The API service name",
+        "import_prefix": "{{.global.import_prefix}}",
         "style": "The file name format style",
         "model": "The model name for generating e.g. user, if it is empty, generate codes for all models in schema directory",
         "search_key_num": "The max number of search keys",
@@ -248,6 +250,7 @@
         "proto_out": "The output proto file path",
         "proto_field_style": "The proto field style",
         "i18n": "{{.global.i18n}}",
+        "import_prefix": "{{.global.import_prefix}}",
         "overwrite": "Whether to overwrite the files, it will overwrite all generated files"
       }
     },
@@ -341,6 +344,7 @@
     "remote": "The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority\nThe git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure",
     "branch": "The branch of the remote repo, it does work with --remote",
     "style": "The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]",
-    "i18n": "Whether to use i18n"
+    "i18n": "Whether to use i18n",
+    "import_prefix": "Import paths' prefix is only used when the service in sub folder, such as core service's api and rpc"
   }
 }

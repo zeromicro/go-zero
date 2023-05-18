@@ -3,9 +3,9 @@ package {{.packageName}}
 import (
 	"context"
 
-	"{{.projectPath}}/internal/svc"
-	"{{.projectPath}}/internal/utils/dberrorhandler"
-	"{{.projectPath}}/types/{{.projectName}}"
+	"{{.projectPath}}{{.importPrefix}}/internal/svc"
+	"{{.projectPath}}{{.importPrefix}}/internal/utils/dberrorhandler"
+	"{{.projectPath}}{{.importPrefix}}/types/{{.projectName}}"
 
 {{if .useUUID}}    "github.com/suyuan32/simple-admin-common/utils/uuidx"
 {{end}}	"github.com/zeromicro/go-zero/core/logx"
