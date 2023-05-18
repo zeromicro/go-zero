@@ -61,16 +61,16 @@ func TestCacheNode_DelCache(t *testing.T) {
 		timingWheelLock.Lock()
 		defer timingWheelLock.Unlock()
 
-		old := timingWheel
+		old := timingWheel.Load()
 		ticker := timex.NewFakeTicker()
-		var err error
-		timingWheel, err = collection.NewTimingWheelWithTicker(
+		tw, err := collection.NewTimingWheelWithTicker(
 			time.Millisecond, timingWheelSlots, func(key, value any) {
 				clean(key, value)
 			}, ticker)
+		timingWheel.Store(tw)
 		assert.NoError(t, err)
 		t.Cleanup(func() {
-			timingWheel = old
+			timingWheel.Store(old)
 		})
 
 		r, err := miniredis.Run()
