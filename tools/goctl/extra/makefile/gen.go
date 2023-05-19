@@ -70,15 +70,8 @@ func Gen(_ *cobra.Command, _ []string) (err error) {
 	}
 
 	filePath := filepath.Join(absPath, "Makefile")
-	if err = filex.Exist(filePath); err != nil {
-		err := filex.WriteFileString(filePath, " ", filex.SuperReadWritePerm)
-		if err != nil {
-			return err
-		}
-		//return errors.Wrap(err, "makefile not found")
-	}
-	ctx.TargetPath = filePath
 
+	ctx.TargetPath = filePath
 	ctx.Style = VarStringStyle
 	ctx.ServiceName = VarStringServiceName
 	ctx.UseEnt = VarBoolEnt
@@ -93,9 +86,11 @@ func Gen(_ *cobra.Command, _ []string) (err error) {
 		ctx.IsRpc = true
 	}
 
-	err = extractInfo(&ctx)
-	if err != nil {
-		return errors.Wrap(err, "failed to extract makefile info")
+	if err := filex.Exist(ctx.TargetPath); err == nil {
+		err = extractInfo(&ctx)
+		if err != nil {
+			return errors.Wrap(err, "failed to extract makefile info")
+		}
 	}
 
 	err = DoGen(&ctx)
@@ -125,7 +120,11 @@ func DoGen(g *GenContext) error {
 		"isRpc":            g.IsRpc,
 	})
 
-	_ = filex.RemoveIfExist(g.TargetPath)
+	err = filex.RemoveIfExist(g.TargetPath)
+	if err != nil {
+		return err
+	}
+
 	err = filex.WriteFileString(g.TargetPath, makefileData.String(), filex.SuperReadWritePerm)
 	if err != nil {
 		return err
