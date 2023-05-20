@@ -13,9 +13,12 @@ import (
 )
 
 var (
-	errorHandler    func(error) (int, any)
-	errorHandlerCtx func(context.Context, error) (int, any)
-	lock            sync.RWMutex
+	errorHandler     func(error) (int, any)
+	errorHandlerCtx  func(context.Context, error) (int, any)
+	commonHandler    func(any) any
+	commonHandlerCtx func(context.Context, any) any
+	lock             sync.RWMutex
+	cLock            sync.RWMutex
 )
 
 // Error writes err into w.
@@ -53,11 +56,23 @@ func Ok(w http.ResponseWriter) {
 
 // OkJson writes v into w with 200 OK.
 func OkJson(w http.ResponseWriter, v any) {
+	cLock.RLock()
+	handler := commonHandler
+	cLock.RUnlock()
+	if handler != nil {
+		v = handler(v)
+	}
 	WriteJson(w, http.StatusOK, v)
 }
 
 // OkJsonCtx writes v into w with 200 OK.
 func OkJsonCtx(ctx context.Context, w http.ResponseWriter, v any) {
+	cLock.RLock()
+	handlerCtx := commonHandlerCtx
+	cLock.RUnlock()
+	if handlerCtx != nil {
+		v = handlerCtx(ctx, v)
+	}
 	WriteJsonCtx(ctx, w, http.StatusOK, v)
 }
 
@@ -73,6 +88,20 @@ func SetErrorHandlerCtx(handlerCtx func(context.Context, error) (int, any)) {
 	lock.Lock()
 	defer lock.Unlock()
 	errorHandlerCtx = handlerCtx
+}
+
+// SetCommonHandler sets the common handler, which is called on calling OkJson.
+func SetCommonHandler(handler func(any) any) {
+	cLock.Lock()
+	defer cLock.Unlock()
+	commonHandler = handler
+}
+
+// SetCommonHandlerCtx sets the common handler, which is called on calling OkJson.
+func SetCommonHandlerCtx(handlerCtx func(context.Context, any) any) {
+	cLock.Lock()
+	defer cLock.Unlock()
+	commonHandlerCtx = handlerCtx
 }
 
 // WriteJson writes v as json string into w with code.
