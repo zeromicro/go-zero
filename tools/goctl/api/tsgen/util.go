@@ -114,7 +114,7 @@ func primitiveType(tp string) (string, bool) {
 	switch tp {
 	case "string":
 		return "string", true
-	case "int", "int8", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64":
 		return "number", true
 	case "float", "float32", "float64":
 		return "number", true

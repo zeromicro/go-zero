@@ -3,6 +3,7 @@ package internal
 import (
 	"bufio"
 	"fmt"
+	"math"
 	"os"
 	"path"
 	"strconv"
@@ -280,9 +281,10 @@ func runningInUserNS() bool {
 
 		// We assume we are in the initial user namespace if we have a full
 		// range - 4294967295 uids starting at uid 0.
-		if a == 0 && b == 0 && c == 4294967295 {
+		if a == 0 && b == 0 && c == math.MaxUint32 {
 			return
 		}
+
 		inUserNS = true
 	})
 
