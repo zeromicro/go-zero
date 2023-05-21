@@ -87,6 +87,7 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		opts := []otlptracehttp.Option{
 			otlptracehttp.WithInsecure(),
 			otlptracehttp.WithEndpoint(c.Endpoint),
+			otlptracehttp.WithURLPath(c.OtlpHttpPath),
 		}
 		if len(c.OtlpHeaders) > 0 {
 			opts = append(opts, otlptracehttp.WithHeaders(c.OtlpHeaders))
