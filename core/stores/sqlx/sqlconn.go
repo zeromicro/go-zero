@@ -11,9 +11,6 @@ import (
 // spanName is used to identify the span name for the SQL execution.
 const spanName = "sql"
 
-// ErrNotFound is an alias of sql.ErrNoRows
-var ErrNotFound = sql.ErrNoRows
-
 type (
 	// Session stands for raw connections or transaction sessions
 	Session interface {
@@ -129,6 +126,13 @@ func NewSqlConnFromDB(db *sql.DB, opts ...SqlOption) SqlConn {
 	}
 
 	return conn
+}
+
+// NewSqlConnFromSession returns a SqlConn with the given session.
+func NewSqlConnFromSession(session Session) SqlConn {
+	return txConn{
+		Session: session,
+	}
 }
 
 func (db *commonSqlConn) Exec(q string, args ...any) (result sql.Result, err error) {
