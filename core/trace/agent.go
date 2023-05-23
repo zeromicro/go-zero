@@ -91,6 +91,9 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		if len(c.OtlpHeaders) > 0 {
 			opts = append(opts, otlptracehttp.WithHeaders(c.OtlpHeaders))
 		}
+		if len(c.OtlpHttpPath) > 0 {
+			opts = append(opts, otlptracehttp.WithURLPath(c.OtlpHttpPath))
+		}
 		return otlptracehttp.New(
 			context.Background(),
 			opts...,

@@ -13,4 +13,8 @@ type Config struct {
 	// For example:
 	//  uptrace-dsn: 'http://project2_secret_token@localhost:14317/2'
 	OtlpHeaders map[string]string `json:",optional"`
+	// OtlpHttpPath represents the path for OTLP HTTP transport.
+	// For example
+	// /v1/traces
+	OtlpHttpPath string            `json:",optional"`
 }
