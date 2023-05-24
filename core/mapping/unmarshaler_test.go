@@ -3,7 +3,6 @@ package mapping
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -1454,18 +1453,42 @@ func TestUnmarshalMapOfStructError(t *testing.T) {
 }
 
 func TestUnmarshalSlice(t *testing.T) {
-	m := map[string]any{
-		"Ids": []any{"first", "second"},
-	}
-	var v struct {
-		Ids []string
-	}
-	ast := assert.New(t)
-	if ast.NoError(UnmarshalKey(m, &v)) {
-		ast.Equal(2, len(v.Ids))
-		ast.Equal("first", v.Ids[0])
-		ast.Equal("second", v.Ids[1])
-	}
+	t.Run("slice of string", func(t *testing.T) {
+		m := map[string]any{
+			"Ids": []any{"first", "second"},
+		}
+		var v struct {
+			Ids []string
+		}
+		ast := assert.New(t)
+		if ast.NoError(UnmarshalKey(m, &v)) {
+			ast.Equal(2, len(v.Ids))
+			ast.Equal("first", v.Ids[0])
+			ast.Equal("second", v.Ids[1])
+		}
+	})
+
+	t.Run("slice with type mismatch", func(t *testing.T) {
+		var v struct {
+			Ids string
+		}
+		assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal([]any{1, 2}, &v))
+	})
+
+	t.Run("slice", func(t *testing.T) {
+		var v []int
+		ast := assert.New(t)
+		if ast.NoError(NewUnmarshaler(jsonTagKey).Unmarshal([]any{1, 2}, &v)) {
+			ast.Equal(2, len(v))
+			ast.Equal(1, v[0])
+			ast.Equal(2, v[1])
+		}
+	})
+
+	t.Run("slice with unsupported type", func(t *testing.T) {
+		var v int
+		assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(1, &v))
+	})
 }
 
 func TestUnmarshalSliceOfStruct(t *testing.T) {
@@ -3529,8 +3552,7 @@ func TestUnmarshal_EnvString(t *testing.T) {
 		envName = "TEST_NAME_STRING"
 		envVal  = "this is a name"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3547,8 +3569,7 @@ func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
 		envName = "TEST_NAME_STRING"
 		envVal  = "this is a name"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]any{
@@ -3567,8 +3588,7 @@ func TestUnmarshal_EnvInt(t *testing.T) {
 		envName = "TEST_NAME_INT"
 		envVal  = "123"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3585,8 +3605,7 @@ func TestUnmarshal_EnvIntOverwrite(t *testing.T) {
 		envName = "TEST_NAME_INT"
 		envVal  = "123"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]any{
@@ -3605,8 +3624,7 @@ func TestUnmarshal_EnvFloat(t *testing.T) {
 		envName = "TEST_NAME_FLOAT"
 		envVal  = "123.45"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3623,8 +3641,7 @@ func TestUnmarshal_EnvFloatOverwrite(t *testing.T) {
 		envName = "TEST_NAME_FLOAT"
 		envVal  = "123.45"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(map[string]any{
@@ -3643,8 +3660,7 @@ func TestUnmarshal_EnvBoolTrue(t *testing.T) {
 		envName = "TEST_NAME_BOOL_TRUE"
 		envVal  = "true"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3661,8 +3677,7 @@ func TestUnmarshal_EnvBoolFalse(t *testing.T) {
 		envName = "TEST_NAME_BOOL_FALSE"
 		envVal  = "false"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3679,8 +3694,7 @@ func TestUnmarshal_EnvBoolBad(t *testing.T) {
 		envName = "TEST_NAME_BOOL_BAD"
 		envVal  = "bad"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3695,8 +3709,7 @@ func TestUnmarshal_EnvDuration(t *testing.T) {
 		envName = "TEST_NAME_DURATION"
 		envVal  = "1s"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3713,8 +3726,7 @@ func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
 		envName = "TEST_NAME_BAD_DURATION"
 		envVal  = "bad"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3729,8 +3741,7 @@ func TestUnmarshal_EnvWithOptions(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_MATCH"
 		envVal  = "123"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
@@ -3747,8 +3758,7 @@ func TestUnmarshal_EnvWithOptionsWrongValueBool(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_BOOL"
 		envVal  = "false"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3763,8 +3773,7 @@ func TestUnmarshal_EnvWithOptionsWrongValueDuration(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_DURATION"
 		envVal  = "4s"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3779,8 +3788,7 @@ func TestUnmarshal_EnvWithOptionsWrongValueNumber(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_AGE"
 		envVal  = "30"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -3795,8 +3803,7 @@ func TestUnmarshal_EnvWithOptionsWrongValueString(t *testing.T) {
 		envName = "TEST_NAME_ENV_OPTIONS_STRING"
 		envVal  = "this is a name"
 	)
-	os.Setenv(envName, envVal)
-	defer os.Unsetenv(envName)
+	t.Setenv(envName, envVal)
 
 	var v Value
 	assert.Error(t, UnmarshalKey(emptyMap, &v))
@@ -4408,18 +4415,80 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 }
 
 func Test_UnmarshalMap(t *testing.T) {
-	type Customer struct {
-		Names map[int]string `key:"names"`
-	}
+	t.Run("type mismatch", func(t *testing.T) {
+		type Customer struct {
+			Names map[int]string `key:"names"`
+		}
 
-	input := map[string]any{
-		"names": map[string]any{
-			"19": "Tom",
-		},
-	}
+		input := map[string]any{
+			"names": map[string]any{
+				"19": "Tom",
+			},
+		}
 
-	var customer Customer
-	assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+		var customer Customer
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+	})
+
+	t.Run("map type mismatch", func(t *testing.T) {
+		type Customer struct {
+			Names struct {
+				Values map[string]string
+			} `key:"names"`
+		}
+
+		input := map[string]any{
+			"names": map[string]string{
+				"19": "Tom",
+			},
+		}
+
+		var customer Customer
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+	})
+}
+
+func TestGetValueWithChainedKeys(t *testing.T) {
+	t.Run("no key", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(nil, []string{})
+		assert.False(t, ok)
+	})
+
+	t.Run("one key", func(t *testing.T) {
+		v, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    true,
+		}, []string{"foo"})
+		assert.True(t, ok)
+		assert.Equal(t, "bar", v)
+	})
+
+	t.Run("two keys", func(t *testing.T) {
+		v, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: map[string]any{
+				"bar": "baz",
+			},
+			ok: true,
+		}, []string{"foo", "bar"})
+		assert.True(t, ok)
+		assert.Equal(t, "baz", v)
+	})
+
+	t.Run("two keys not found", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    false,
+		}, []string{"foo", "bar"})
+		assert.False(t, ok)
+	})
+
+	t.Run("two keys type mismatch", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    true,
+		}, []string{"foo", "bar"})
+		assert.False(t, ok)
+	})
 }
 
 func BenchmarkDefaultValue(b *testing.B) {
@@ -4520,4 +4589,18 @@ func BenchmarkUnmarshal(b *testing.B) {
 		var an anonymous
 		UnmarshalKey(data, &an)
 	}
+}
+
+type mockValuerWithParent struct {
+	parent valuerWithParent
+	value  any
+	ok     bool
+}
+
+func (m mockValuerWithParent) Value(key string) (any, bool) {
+	return m.value, m.ok
+}
+
+func (m mockValuerWithParent) Parent() valuerWithParent {
+	return m.parent
 }
