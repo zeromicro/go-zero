@@ -1454,18 +1454,42 @@ func TestUnmarshalMapOfStructError(t *testing.T) {
 }
 
 func TestUnmarshalSlice(t *testing.T) {
-	m := map[string]any{
-		"Ids": []any{"first", "second"},
-	}
-	var v struct {
-		Ids []string
-	}
-	ast := assert.New(t)
-	if ast.NoError(UnmarshalKey(m, &v)) {
-		ast.Equal(2, len(v.Ids))
-		ast.Equal("first", v.Ids[0])
-		ast.Equal("second", v.Ids[1])
-	}
+	t.Run("slice of string", func(t *testing.T) {
+		m := map[string]any{
+			"Ids": []any{"first", "second"},
+		}
+		var v struct {
+			Ids []string
+		}
+		ast := assert.New(t)
+		if ast.NoError(UnmarshalKey(m, &v)) {
+			ast.Equal(2, len(v.Ids))
+			ast.Equal("first", v.Ids[0])
+			ast.Equal("second", v.Ids[1])
+		}
+	})
+
+	t.Run("slice with type mismatch", func(t *testing.T) {
+		var v struct {
+			Ids string
+		}
+		assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal([]any{1, 2}, &v))
+	})
+
+	t.Run("slice", func(t *testing.T) {
+		var v []int
+		ast := assert.New(t)
+		if ast.NoError(NewUnmarshaler(jsonTagKey).Unmarshal([]any{1, 2}, &v)) {
+			ast.Equal(2, len(v))
+			ast.Equal(1, v[0])
+			ast.Equal(2, v[1])
+		}
+	})
+
+	t.Run("slice with unsupported type", func(t *testing.T) {
+		var v int
+		assert.Error(t, NewUnmarshaler(jsonTagKey).Unmarshal(1, &v))
+	})
 }
 
 func TestUnmarshalSliceOfStruct(t *testing.T) {
