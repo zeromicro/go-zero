@@ -50,6 +50,7 @@ func TestStartAgent(t *testing.T) {
 		OtlpHeaders: map[string]string{
 			"uptrace-dsn": "http://project2_secret_token@localhost:14318/2",
 		},
+		OtlpHttpPath: "/v1/traces",
 	}
 	c7 := Config{
 		Name:     "UDP",
