@@ -4415,18 +4415,37 @@ func TestFillDefaultUnmarshal(t *testing.T) {
 }
 
 func Test_UnmarshalMap(t *testing.T) {
-	type Customer struct {
-		Names map[int]string `key:"names"`
-	}
+	t.Run("type mismatch", func(t *testing.T) {
+		type Customer struct {
+			Names map[int]string `key:"names"`
+		}
 
-	input := map[string]any{
-		"names": map[string]any{
-			"19": "Tom",
-		},
-	}
+		input := map[string]any{
+			"names": map[string]any{
+				"19": "Tom",
+			},
+		}
 
-	var customer Customer
-	assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+		var customer Customer
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+	})
+
+	t.Run("map type mismatch", func(t *testing.T) {
+		type Customer struct {
+			Names struct {
+				Values map[string]string
+			} `key:"names"`
+		}
+
+		input := map[string]any{
+			"names": map[string]string{
+				"19": "Tom",
+			},
+		}
+
+		var customer Customer
+		assert.ErrorIs(t, UnmarshalKey(input, &customer), errTypeMismatch)
+	})
 }
 
 func BenchmarkDefaultValue(b *testing.B) {
