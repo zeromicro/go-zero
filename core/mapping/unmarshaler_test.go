@@ -4448,6 +4448,49 @@ func Test_UnmarshalMap(t *testing.T) {
 	})
 }
 
+func TestGetValueWithChainedKeys(t *testing.T) {
+	t.Run("no key", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(nil, []string{})
+		assert.False(t, ok)
+	})
+
+	t.Run("one key", func(t *testing.T) {
+		v, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    true,
+		}, []string{"foo"})
+		assert.True(t, ok)
+		assert.Equal(t, "bar", v)
+	})
+
+	t.Run("two keys", func(t *testing.T) {
+		v, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: map[string]any{
+				"bar": "baz",
+			},
+			ok: true,
+		}, []string{"foo", "bar"})
+		assert.True(t, ok)
+		assert.Equal(t, "baz", v)
+	})
+
+	t.Run("two keys not found", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    false,
+		}, []string{"foo", "bar"})
+		assert.False(t, ok)
+	})
+
+	t.Run("two keys type mismatch", func(t *testing.T) {
+		_, ok := getValueWithChainedKeys(mockValuerWithParent{
+			value: "bar",
+			ok:    true,
+		}, []string{"foo", "bar"})
+		assert.False(t, ok)
+	})
+}
+
 func BenchmarkDefaultValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var a struct {
@@ -4546,4 +4589,18 @@ func BenchmarkUnmarshal(b *testing.B) {
 		var an anonymous
 		UnmarshalKey(data, &an)
 	}
+}
+
+type mockValuerWithParent struct {
+	parent valuerWithParent
+	value  any
+	ok     bool
+}
+
+func (m mockValuerWithParent) Value(key string) (any, bool) {
+	return m.value, m.ok
+}
+
+func (m mockValuerWithParent) Parent() valuerWithParent {
+	return m.parent
 }
