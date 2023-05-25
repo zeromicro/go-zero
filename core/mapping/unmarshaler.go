@@ -148,14 +148,17 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 		return errValueNotSettable
 	}
 
-	baseType := fieldType.Elem()
-	dereffedBaseType := Deref(baseType)
-	dereffedBaseKind := dereffedBaseType.Kind()
 	refValue := reflect.ValueOf(mapValue)
+	if refValue.Kind() != reflect.Slice {
+		return errTypeMismatch
+	}
 	if refValue.IsNil() {
 		return nil
 	}
 
+	baseType := fieldType.Elem()
+	dereffedBaseType := Deref(baseType)
+	dereffedBaseKind := dereffedBaseType.Kind()
 	conv := reflect.MakeSlice(reflect.SliceOf(baseType), refValue.Len(), refValue.Cap())
 	if refValue.Len() == 0 {
 		value.Set(conv)
