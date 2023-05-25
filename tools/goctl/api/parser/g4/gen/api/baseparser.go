@@ -175,7 +175,7 @@ func isNormal(p *ApiParserParser) bool {
 	return len(list) > 1
 }
 
-// MatchTag returns a Boolean value, which returns true if it does matched, otherwise returns fase
+// MatchTag returns a Boolean value, which returns true if it does matched, otherwise returns false
 func MatchTag(v string) bool {
 	return matchRegex(v, tagRegex)
 }
