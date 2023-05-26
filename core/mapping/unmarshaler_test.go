@@ -4400,6 +4400,16 @@ func TestUnmarshalJsonReaderWithTypeString(t *testing.T) {
 		body := `{"params":{"a":{"a":123}}}`
 		assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
 	})
+
+	t.Run("customized string type", func(t *testing.T) {
+		type myString string
+
+		var req struct {
+			Params map[string]myString `json:"params"`
+		}
+		body := `{"params":{"a":"b"}}`
+		assert.Equal(t, errTypeMismatch, UnmarshalJsonReader(strings.NewReader(body), &req))
+	})
 }
 
 func TestUnmarshalJsonReaderWithMismatchType(t *testing.T) {
@@ -4861,19 +4871,6 @@ func Test_UnmarshalMap(t *testing.T) {
 		assert.Error(t, UnmarshalKey(input, &customer))
 	})
 }
-
-// func TestUnmarshalWithFillPrimitives(t *testing.T) {
-// 	t.Run("fill primitives", func(t *testing.T) {
-// 		type St struct {
-// 			A int `key:"a,string,range=[5,10]"`
-// 		}
-// 		var st St
-// 		err := UnmarshalKey(map[string]any{
-// 			"a": "1",
-// 		}, &st)
-// 		assert.ErrorIs(t, err, errNumberRange)
-// 	})
-// }
 
 func TestUnmarshaler_Unmarshal(t *testing.T) {
 	t.Run("not struct", func(t *testing.T) {
