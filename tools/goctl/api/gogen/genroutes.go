@@ -129,7 +129,7 @@ rest.WithPrefix("%s"),`, g.prefix)
 				return fmt.Errorf("timeout should not less than 1ms, now %v", duration)
 			}
 
-			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration/time.Millisecond)
+			timeout = fmt.Sprintf("\n rest.WithTimeout(%d * time.Millisecond),", duration.Milliseconds())
 			hasTimeout = true
 		}
 
