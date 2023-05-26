@@ -350,7 +350,12 @@ func (u *Unmarshaler) generateMap(keyType, elemType reflect.Type, mapValue any) 
 					return emptyValue, errTypeMismatch
 				}
 
-				targetValue.SetMapIndex(key, reflect.ValueOf(v))
+				val := reflect.ValueOf(v)
+				if !val.Type().AssignableTo(dereffedElemType) {
+					return emptyValue, errTypeMismatch
+				}
+
+				targetValue.SetMapIndex(key, val)
 			case json.Number:
 				target := reflect.New(dereffedElemType)
 				if err := setValueFromString(dereffedElemKind, target.Elem(), v.String()); err != nil {
