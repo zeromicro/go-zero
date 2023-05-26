@@ -59,6 +59,7 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 			if !valueField.CanInterface() {
 				return nil, ErrNotReadableValue
 			}
+
 			if valueField.IsNil() {
 				baseValueType := mapping.Deref(valueField.Type())
 				valueField.Set(reflect.New(baseValueType))
@@ -68,6 +69,7 @@ func getTaggedFieldValueMap(v reflect.Value) (map[string]any, error) {
 			if !valueField.CanAddr() || !valueField.Addr().CanInterface() {
 				return nil, ErrNotReadableValue
 			}
+
 			result[key] = valueField.Addr().Interface()
 		}
 	}
@@ -257,6 +259,10 @@ func unwrapFields(v reflect.Value) []reflect.Value {
 
 	for i := 0; i < indirect.NumField(); i++ {
 		child := indirect.Field(i)
+		if !child.CanSet() {
+			continue
+		}
+
 		if child.Kind() == reflect.Ptr && child.IsNil() {
 			baseValueType := mapping.Deref(child.Type())
 			child.Set(reflect.New(baseValueType))
