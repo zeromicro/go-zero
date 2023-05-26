@@ -56,7 +56,7 @@ func (h hook) AfterProcess(ctx context.Context, cmd red.Cmder) error {
 		logDuration(ctx, []red.Cmder{cmd}, duration)
 	}
 
-	metricReqDur.Observe(int64(duration/time.Millisecond), cmd.Name())
+	metricReqDur.Observe(duration.Milliseconds(), cmd.Name())
 	if msg := formatError(err); len(msg) > 0 {
 		metricReqErr.Inc(cmd.Name(), msg)
 	}
@@ -103,7 +103,7 @@ func (h hook) AfterProcessPipeline(ctx context.Context, cmds []red.Cmder) error 
 		logDuration(ctx, cmds, duration)
 	}
 
-	metricReqDur.Observe(int64(duration/time.Millisecond), "Pipeline")
+	metricReqDur.Observe(duration.Milliseconds(), "Pipeline")
 	if msg := formatError(batchError.Err()); len(msg) > 0 {
 		metricReqErr.Inc("Pipeline", msg)
 	}

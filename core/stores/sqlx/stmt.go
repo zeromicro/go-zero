@@ -136,7 +136,7 @@ func (e *realSqlGuard) finish(ctx context.Context, err error) {
 		logSqlError(ctx, e.stmt, err)
 	}
 
-	metricReqDur.Observe(int64(duration/time.Millisecond), e.command)
+	metricReqDur.Observe(duration.Milliseconds(), e.command)
 }
 
 func (e *realSqlGuard) start(q string, args ...any) error {
