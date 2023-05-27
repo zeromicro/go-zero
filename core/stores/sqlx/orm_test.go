@@ -22,6 +22,18 @@ func TestUnmarshalRowBool(t *testing.T) {
 		}, "select value from users where user=?", "anyone"))
 		assert.True(t, value)
 	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("1")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		var value struct {
+			Value bool `db:"value"`
+		}
+		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select value from users where user=?", "anyone"))
+	})
 }
 
 func TestUnmarshalRowBoolNotSettable(t *testing.T) {
@@ -207,12 +219,12 @@ func TestUnmarshalRowString(t *testing.T) {
 }
 
 func TestUnmarshalRowStruct(t *testing.T) {
-	value := new(struct {
-		Name string
-		Age  int
-	})
-
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Name string
+			Age  int
+		})
+
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
@@ -222,15 +234,58 @@ func TestUnmarshalRowStruct(t *testing.T) {
 		assert.Equal(t, "liao", value.Name)
 		assert.Equal(t, 5, value.Age)
 	})
-}
 
-func TestUnmarshalRowStructWithTags(t *testing.T) {
-	value := new(struct {
-		Age  int    `db:"age"`
-		Name string `db:"name"`
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Name string
+			Age  int
+		})
+
+		errAny := errors.New("any error")
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, &mockedScanner{
+				colErr: errAny,
+				next:   1,
+			}, true)
+		}, "select name, age from users where user=?", "anyone"), errAny)
 	})
 
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Name string
+			age  *int
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotMatchDestination)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("8")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		type myString chan int
+		var value myString
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(&value, rows, true)
+		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
+	})
+}
+
+func TestUnmarshalRowStructWithTags(t *testing.T) {
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Age  int    `db:"age"`
+			Name string `db:"name"`
+		})
+
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 
@@ -238,6 +293,51 @@ func TestUnmarshalRowStructWithTags(t *testing.T) {
 			return unmarshalRow(value, rows, true)
 		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, "liao", value.Name)
+		assert.Equal(t, 5, value.Age)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			age  *int   `db:"age"`
+			Name string `db:"name"`
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"), ErrNotReadableValue)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value struct {
+			Age  *int    `db:"age"`
+			Name *string `db:"name"`
+		}
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(&value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
+		assert.Equal(t, "liao", *value.Name)
+		assert.Equal(t, 5, *value.Age)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		value := new(struct {
+			Age  int `db:"age"`
+			Name string
+		})
+
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("liao,5")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRow(value, rows, true)
+		}, "select name, age from users where user=?", "anyone"))
 		assert.Equal(t, 5, value.Age)
 	})
 }
@@ -269,6 +369,42 @@ func TestUnmarshalRowsBool(t *testing.T) {
 			return unmarshalRows(&value, rows, true)
 		}, "select value from users where user=?", "anyone"))
 		assert.EqualValues(t, expect, value)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("1\n0")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		var value []bool
+		assert.Error(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(value, rows, true)
+		}, "select value from users where user=?", "anyone"))
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("1\n0")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		var value struct {
+			value []bool `db:"value"`
+		}
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, rows, true)
+		}, "select value from users where user=?", "anyone"), ErrUnsupportedValueType)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		rs := sqlmock.NewRows([]string{"value"}).FromCSVString("1\n0")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+
+		var value []bool
+		errAny := errors.New("any")
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, &mockedScanner{
+				scanErr: errAny,
+				next:    1,
+			}, true)
+		}, "select value from users where user=?", "anyone"), errAny)
 	})
 }
 
@@ -679,25 +815,25 @@ func TestUnmarshalRowsStringPtr(t *testing.T) {
 }
 
 func TestUnmarshalRowsStruct(t *testing.T) {
-	expect := []struct {
-		Name string
-		Age  int64
-	}{
-		{
-			Name: "first",
-			Age:  2,
-		},
-		{
-			Name: "second",
-			Age:  3,
-		},
-	}
-	var value []struct {
-		Name string
-		Age  int64
-	}
-
 	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		expect := []struct {
+			Name string
+			Age  int64
+		}{
+			{
+				Name: "first",
+				Age:  2,
+			},
+			{
+				Name: "second",
+				Age:  3,
+			},
+		}
+		var value []struct {
+			Name string
+			Age  int64
+		}
+
 		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
 		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
 		assert.Nil(t, query(context.Background(), db, func(rows *sql.Rows) error {
@@ -708,6 +844,56 @@ func TestUnmarshalRowsStruct(t *testing.T) {
 			assert.Equal(t, each.Name, value[i].Name)
 			assert.Equal(t, each.Age, value[i].Age)
 		}
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value []struct {
+			Name string
+			Age  int64
+		}
+
+		errAny := errors.New("any error")
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, &mockedScanner{
+				colErr: errAny,
+				next:   1,
+			}, true)
+		}, "select name, age from users where user=?", "anyone"), errAny)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value []struct {
+			Name string
+			Age  int64
+		}
+
+		errAny := errors.New("any error")
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, &mockedScanner{
+				cols:    []string{"name", "age"},
+				scanErr: errAny,
+				next:    1,
+			}, true)
+		}, "select name, age from users where user=?", "anyone"), errAny)
+	})
+
+	dbtest.RunTest(t, func(db *sql.DB, mock sqlmock.Sqlmock) {
+		var value []chan int
+
+		errAny := errors.New("any error")
+		rs := sqlmock.NewRows([]string{"name", "age"}).FromCSVString("first,2\nsecond,3")
+		mock.ExpectQuery("select (.+) from users where user=?").WithArgs("anyone").WillReturnRows(rs)
+		assert.ErrorIs(t, query(context.Background(), db, func(rows *sql.Rows) error {
+			return unmarshalRows(&value, &mockedScanner{
+				cols:    []string{"name", "age"},
+				scanErr: errAny,
+				next:    1,
+			}, true)
+		}, "select name, age from users where user=?", "anyone"), ErrUnsupportedValueType)
 	})
 }
 
@@ -1163,6 +1349,7 @@ func TestAnonymousStructPrError(t *testing.T) {
 }
 
 type mockedScanner struct {
+	cols    []string
 	colErr  error
 	scanErr error
 	err     error
@@ -1170,7 +1357,7 @@ type mockedScanner struct {
 }
 
 func (m *mockedScanner) Columns() ([]string, error) {
-	return nil, m.colErr
+	return m.cols, m.colErr
 }
 
 func (m *mockedScanner) Err() error {
