@@ -46,7 +46,7 @@ func TestRetry(t *testing.T) {
 func TestRetryWithTimeout(t *testing.T) {
 	assert.Nil(t, DoWithRetry(func() error {
 		return nil
-	}, WithTimeout(time.Second*10)))
+	}, WithTimeout(time.Millisecond*500)))
 
 	times1 := 0
 	assert.Nil(t, DoWithRetry(func() error {
@@ -54,9 +54,9 @@ func TestRetryWithTimeout(t *testing.T) {
 		if times1 == 1 {
 			return errors.New("any ")
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Millisecond * 150)
 		return nil
-	}, WithTimeout(time.Second*5)))
+	}, WithTimeout(time.Millisecond*250)))
 
 	total := defaultRetryTimes
 	times2 := 0
@@ -65,13 +65,13 @@ func TestRetryWithTimeout(t *testing.T) {
 		if times2 == total {
 			return nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Millisecond * 50)
 		return errors.New("any")
-	}, WithTimeout(time.Second*(time.Duration(total)+2))))
+	}, WithTimeout(time.Millisecond*50*(time.Duration(total)+2))))
 
 	assert.NotNil(t, DoWithRetry(func() error {
 		return errors.New("any")
-	}, WithTimeout(time.Second*5)))
+	}, WithTimeout(time.Millisecond*250)))
 }
 
 func TestRetryWithInterval(t *testing.T) {
@@ -81,9 +81,9 @@ func TestRetryWithInterval(t *testing.T) {
 		if times1 == 1 {
 			return errors.New("any")
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Millisecond * 150)
 		return nil
-	}, WithTimeout(time.Second*5), WithInterval(time.Second*3)))
+	}, WithTimeout(time.Millisecond*250), WithInterval(time.Millisecond*150)))
 
 	times2 := 0
 	assert.NotNil(t, DoWithRetry(func() error {
@@ -91,26 +91,26 @@ func TestRetryWithInterval(t *testing.T) {
 		if times2 == 2 {
 			return nil
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Millisecond * 150)
 		return errors.New("any ")
-	}, WithTimeout(time.Second*5), WithInterval(time.Second*3)))
+	}, WithTimeout(time.Millisecond*250), WithInterval(time.Millisecond*150)))
 
 }
 
 func TestRetryCtx(t *testing.T) {
-	assert.NotNil(t, DoWithRetryCtx(func(ctx context.Context, retryCount int) error {
+	assert.NotNil(t, DoWithRetryCtx(context.Background(), func(ctx context.Context, retryCount int) error {
 		if retryCount == 0 {
 			return errors.New("any")
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Millisecond * 150)
 		return nil
-	}, WithTimeout(time.Second*5), WithInterval(time.Second*3)))
+	}, WithTimeout(time.Millisecond*250), WithInterval(time.Millisecond*150)))
 
-	assert.NotNil(t, DoWithRetryCtx(func(ctx context.Context, retryCount int) error {
+	assert.NotNil(t, DoWithRetryCtx(context.Background(), func(ctx context.Context, retryCount int) error {
 		if retryCount == 1 {
 			return nil
 		}
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Millisecond * 150)
 		return errors.New("any ")
-	}, WithTimeout(time.Second*5), WithInterval(time.Second*3)))
+	}, WithTimeout(time.Millisecond*250), WithInterval(time.Millisecond*150)))
 }

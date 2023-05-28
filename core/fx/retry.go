@@ -24,27 +24,33 @@ type (
 )
 
 // DoWithRetry runs fn, and retries if failed. Default to retry 3 times.
-// Note that if the fn function accesses global variables outside the function and performs modification operations,
-// it is best to lock them, otherwise there may be data race issues
+// Note that if the fn function accesses global variables outside the function
+// and performs modification operations, it is best to lock them,
+// otherwise there may be data race issues
 func DoWithRetry(fn func() error, opts ...RetryOption) error {
-	return retry(fn, opts...)
+	return retry(func(errChan chan error, retryCount int) {
+		errChan <- fn()
+	}, opts...)
 }
 
 // DoWithRetryCtx runs fn, and retries if failed. Default to retry 3 times.
-// fn retryCount indicates the current number of retries,starting from 0
-// Note that if the fn function accesses global variables outside the function and performs modification operations,
-// it is best to lock them, otherwise there may be data race issues
-func DoWithRetryCtx(fn func(ctx context.Context, retryCount int) error, opts ...RetryOption) error {
-	return retry(fn, opts...)
+// fn retryCount indicates the current number of retries, starting from 0
+// Note that if the fn function accesses global variables outside the function
+// and performs modification operations, it is best to lock them,
+// otherwise there may be data race issues
+func DoWithRetryCtx(ctx context.Context, fn func(ctx context.Context, retryCount int) error,
+	opts ...RetryOption) error {
+	return retry(func(errChan chan error, retryCount int) {
+		errChan <- fn(ctx, retryCount)
+	}, opts...)
 }
 
-func retry(fn interface{}, opts ...RetryOption) error {
+func retry(fn func(errChan chan error, retryCount int), opts ...RetryOption) error {
 	options := newRetryOptions()
 	for _, opt := range opts {
 		opt(options)
 	}
 
-	sign := make(chan error, 1)
 	var berr errorx.BatchError
 	var cancelFunc context.CancelFunc
 	ctx := context.Background()
@@ -53,18 +59,12 @@ func retry(fn interface{}, opts ...RetryOption) error {
 		defer cancelFunc()
 	}
 
+	errChan := make(chan error, 1)
 	for i := 0; i < options.times; i++ {
-		go func(retryCount int) {
-			switch f := fn.(type) {
-			case func() error:
-				sign <- f()
-			case func(ctx context.Context, retryCount int) error:
-				sign <- f(ctx, retryCount)
-			}
-		}(i)
+		go fn(errChan, i)
 
 		select {
-		case err := <-sign:
+		case err := <-errChan:
 			if err != nil {
 				berr.Add(err)
 			} else {
@@ -109,8 +109,6 @@ func WithTimeout(timeout time.Duration) RetryOption {
 
 func newRetryOptions() *retryOptions {
 	return &retryOptions{
-		times:    defaultRetryTimes,
-		interval: 0,
-		timeout:  0,
+		times: defaultRetryTimes,
 	}
 }
