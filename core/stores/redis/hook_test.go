@@ -2,13 +2,17 @@ package redis
 
 import (
 	"context"
+	"errors"
+	"io"
 	"log"
+	"net"
 	"strings"
 	"testing"
 	"time"
 
 	red "github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeromicro/go-zero/core/breaker"
 	"github.com/zeromicro/go-zero/core/logx/logtest"
 	ztrace "github.com/zeromicro/go-zero/core/trace"
 	tracesdk "go.opentelemetry.io/otel/trace"
@@ -177,4 +181,41 @@ func TestLogDuration(t *testing.T) {
 		red.NewCmd(context.Background(), "set", "bar", 0),
 	}, 1*time.Second)
 	assert.True(t, strings.Contains(w.String(), `get foo\nset bar 0`))
+}
+
+func TestFormatError(t *testing.T) {
+	// Test case: err is OpError
+	err := &net.OpError{
+		Err: mockOpError{},
+	}
+	assert.Equal(t, "timeout", formatError(err))
+
+	// Test case: err is nil
+	assert.Equal(t, "", formatError(nil))
+
+	// Test case: err is red.Nil
+	assert.Equal(t, "", formatError(red.Nil))
+
+	// Test case: err is io.EOF
+	assert.Equal(t, "eof", formatError(io.EOF))
+
+	// Test case: err is context.DeadlineExceeded
+	assert.Equal(t, "context deadline", formatError(context.DeadlineExceeded))
+
+	// Test case: err is breaker.ErrServiceUnavailable
+	assert.Equal(t, "breaker", formatError(breaker.ErrServiceUnavailable))
+
+	// Test case: err is unknown
+	assert.Equal(t, "unexpected error", formatError(errors.New("some error")))
+}
+
+type mockOpError struct {
+}
+
+func (mockOpError) Error() string {
+	return "mock error"
+}
+
+func (mockOpError) Timeout() bool {
+	return true
 }
