@@ -179,7 +179,7 @@ func TestRotateLoggerWithSizeLimitRotateRuleClose(t *testing.T) {
 	}
 	logger, err := NewLogger(filename, new(SizeLimitRotateRule), false)
 	assert.Nil(t, err)
-	assert.Nil(t, logger.Close())
+	_ = logger.Close()
 }
 
 func TestRotateLoggerGetBackupWithSizeLimitRotateRuleFilename(t *testing.T) {

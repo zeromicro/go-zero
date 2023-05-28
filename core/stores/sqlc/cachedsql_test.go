@@ -498,6 +498,29 @@ func TestCachedConnExecDropCache(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestCachedConn_SetCacheWithExpire(t *testing.T) {
+	r, err := miniredis.Run()
+	assert.Nil(t, err)
+	defer fx.DoWithTimeout(func() error {
+		r.Close()
+		return nil
+	}, time.Second)
+
+	const (
+		key   = "user"
+		value = "any"
+	)
+	var conn trackedConn
+	c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
+	assert.Nil(t, c.SetCacheWithExpire(key, value, time.Minute))
+	val, err := r.Get(key)
+	if assert.NoError(t, err) {
+		ttl := r.TTL(key)
+		assert.True(t, ttl > 0 && ttl <= time.Minute)
+		assert.Equal(t, fmt.Sprintf("%q", value), val)
+	}
+}
+
 func TestCachedConnExecDropCacheFailed(t *testing.T) {
 	const key = "user"
 	var conn trackedConn
