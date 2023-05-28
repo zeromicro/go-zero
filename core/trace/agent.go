@@ -33,7 +33,6 @@ var (
 
 // StartAgent starts an opentelemetry agent.
 func StartAgent(c Config) {
-
 	if c.Disabled {
 		return
 	}
