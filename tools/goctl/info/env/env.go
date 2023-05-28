@@ -19,6 +19,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	ServiceName string
+)
+
 // ShowEnv is used to show the environment variable usages.
 func ShowEnv(_ *cobra.Command, _ []string) error {
 	if lang {
@@ -28,12 +32,19 @@ func ShowEnv(_ *cobra.Command, _ []string) error {
 		color.Green.Println("Simple Admin's environment variables")
 		color.Red.Println("Notice: Environment variables have priority over configuration files")
 	}
-	toolEnvInfo()
-	authEnvInfo()
-	apiEnvInfo()
-	rpcEnvInfo()
-	logEnvInfo()
-	databaseEnvInfo()
-	captchaEnvInfo()
+
+	switch ServiceName {
+	case "core":
+		toolEnvInfo()
+		authEnvInfo()
+		apiEnvInfo()
+		rpcEnvInfo()
+		logEnvInfo()
+		databaseEnvInfo()
+		captchaEnvInfo()
+	case "fms":
+		fmsEnvInfo()
+	}
+
 	return nil
 }

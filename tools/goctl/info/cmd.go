@@ -30,6 +30,13 @@ var (
 )
 
 func init() {
+
+	var (
+		envCmdFlags = EnvCmd.Flags()
+	)
+
+	envCmdFlags.StringVarPWithDefaultValue(&env.ServiceName, "service_name", "s", "core")
+
 	Cmd.AddCommand(EnvCmd)
 	Cmd.AddCommand(PortCmd)
 }
