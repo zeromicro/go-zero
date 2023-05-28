@@ -16,5 +16,8 @@ type Config struct {
 	// OtlpHttpPath represents the path for OTLP HTTP transport.
 	// For example
 	// /v1/traces
-	OtlpHttpPath string            `json:",optional"`
+	OtlpHttpPath string `json:",optional"`
+
+	// Disabled indicates whether StartAgent should be called when starting the server.
+	Disabled bool
 }

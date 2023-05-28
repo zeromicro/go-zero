@@ -16,6 +16,7 @@ func TestStartAgent(t *testing.T) {
 		endpoint3 = "localhost:1235"
 		endpoint4 = "localhost:1236"
 		endpoint5 = "udp://localhost:6831"
+		endpoint6 = "localhost:1237"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -57,6 +58,11 @@ func TestStartAgent(t *testing.T) {
 		Endpoint: endpoint5,
 		Batcher:  kindJaeger,
 	}
+	c8 := Config{
+		Disabled: true,
+		Endpoint: endpoint6,
+		Batcher:  kindJaeger,
+	}
 
 	StartAgent(c1)
 	StartAgent(c1)
@@ -66,6 +72,7 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c5)
 	StartAgent(c6)
 	StartAgent(c7)
+	StartAgent(c8)
 
 	lock.Lock()
 	defer lock.Unlock()
@@ -80,4 +87,6 @@ func TestStartAgent(t *testing.T) {
 	assert.False(t, ok)
 	_, ok = agents[endpoint5]
 	assert.True(t, ok)
+	_, ok = agents[endpoint6]
+	assert.False(t, ok)
 }
