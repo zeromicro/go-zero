@@ -214,6 +214,16 @@ func (cc CachedConn) SetCacheCtx(ctx context.Context, key string, val any) error
 	return cc.cache.SetCtx(ctx, key, val)
 }
 
+// SetCache sets v into cache with given key, using given expire.
+func (cc CachedConn) SetCacheWithExpire(key string, val any, expire time.Duration) error {
+	return cc.SetCacheWithExpireCtx(context.Background(), key, val, expire)
+}
+
+// SetCacheCtx sets v into cache with given key, using given expire.
+func (cc CachedConn) SetCacheWithExpireCtx(ctx context.Context, key string, val any, expire time.Duration) error {
+	return cc.cache.SetWithExpireCtx(ctx, key, val, expire)
+}
+
 // Transact runs given fn in transaction mode.
 func (cc CachedConn) Transact(fn func(sqlx.Session) error) error {
 	fnCtx := func(_ context.Context, session sqlx.Session) error {
