@@ -73,6 +73,7 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c6)
 	StartAgent(c7)
 	StartAgent(c8)
+	defer StopAgent()
 
 	lock.Lock()
 	defer lock.Unlock()

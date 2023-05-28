@@ -17,7 +17,6 @@ type Config struct {
 	// For example
 	// /v1/traces
 	OtlpHttpPath string `json:",optional"`
-
-	// Disabled indicates whether StartAgent should be called when starting the server.
-	Disabled bool
+	// Disabled indicates whether StartAgent starts the agent.
+	Disabled bool `json:",optional"`
 }
