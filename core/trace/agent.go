@@ -85,10 +85,7 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		if len(c.OtlpHeaders) > 0 {
 			opts = append(opts, otlptracegrpc.WithHeaders(c.OtlpHeaders))
 		}
-		return otlptracegrpc.New(
-			context.Background(),
-			opts...,
-		)
+		return otlptracegrpc.New(context.Background(), opts...)
 	case kindOtlpHttp:
 		// Not support flexible configuration now.
 		opts := []otlptracehttp.Option{
@@ -101,10 +98,7 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 		if len(c.OtlpHttpPath) > 0 {
 			opts = append(opts, otlptracehttp.WithURLPath(c.OtlpHttpPath))
 		}
-		return otlptracehttp.New(
-			context.Background(),
-			opts...,
-		)
+		return otlptracehttp.New(context.Background(), opts...)
 	case kindFile:
 		f, err := os.OpenFile(c.Endpoint, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 		if err != nil {
