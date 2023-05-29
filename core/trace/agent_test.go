@@ -17,6 +17,7 @@ func TestStartAgent(t *testing.T) {
 		endpoint4 = "localhost:1236"
 		endpoint5 = "udp://localhost:6831"
 		endpoint6 = "localhost:1237"
+		endpoint7 = "/tmp/trace.log"
 	)
 	c1 := Config{
 		Name: "foo",
@@ -63,6 +64,11 @@ func TestStartAgent(t *testing.T) {
 		Endpoint: endpoint6,
 		Batcher:  kindJaeger,
 	}
+	c9 := Config{
+		Name:     "file",
+		Endpoint: endpoint7,
+		Batcher:  kindFile,
+	}
 
 	StartAgent(c1)
 	StartAgent(c1)
@@ -73,13 +79,14 @@ func TestStartAgent(t *testing.T) {
 	StartAgent(c6)
 	StartAgent(c7)
 	StartAgent(c8)
+	StartAgent(c9)
 	defer StopAgent()
 
 	lock.Lock()
 	defer lock.Unlock()
 
 	// because remotehost cannot be resolved
-	assert.Equal(t, 5, len(agents))
+	assert.Equal(t, 6, len(agents))
 	_, ok := agents[""]
 	assert.True(t, ok)
 	_, ok = agents[endpoint1]
@@ -90,4 +97,6 @@ func TestStartAgent(t *testing.T) {
 	assert.True(t, ok)
 	_, ok = agents[endpoint6]
 	assert.False(t, ok)
+	_, ok = agents[endpoint7]
+	assert.True(t, ok)
 }

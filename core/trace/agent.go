@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"sync"
 
 	"github.com/zeromicro/go-zero/core/lang"
@@ -12,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/exporters/zipkin"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -23,6 +25,7 @@ const (
 	kindZipkin   = "zipkin"
 	kindOtlpGrpc = "otlpgrpc"
 	kindOtlpHttp = "otlphttp"
+	kindFile     = "file"
 )
 
 var (
@@ -102,6 +105,12 @@ func createExporter(c Config) (sdktrace.SpanExporter, error) {
 			context.Background(),
 			opts...,
 		)
+	case kindFile:
+		f, err := os.OpenFile(c.Endpoint, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			return nil, fmt.Errorf("file exporter endpoint error: %s", err.Error())
+		}
+		return stdouttrace.New(stdouttrace.WithWriter(f))
 	default:
 		return nil, fmt.Errorf("unknown exporter: %s", c.Batcher)
 	}
