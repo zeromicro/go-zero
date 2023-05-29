@@ -31,9 +31,12 @@ func IsTimeProperty(prop string) bool {
 func IsUpperProperty(prop string) bool {
 	prop = strings.ToLower(prop)
 
-	if strings.Contains(prop, "uuid") || strings.Contains(prop, "api") ||
-		strings.Contains(prop, "id") || strings.Contains(prop, "url") {
-		return true
+	data := []string{"uuid", "id", "api", "url", "uri", "ip"}
+
+	for _, v := range data {
+		if strings.Contains(prop, v) {
+			return true
+		}
 	}
 
 	return false

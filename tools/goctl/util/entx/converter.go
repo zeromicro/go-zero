@@ -57,9 +57,40 @@ func ConvertProtoTypeToGoType(typeName string) string {
 // ConvertSpecificNounToUpper is used to convert snack format to Ent format
 func ConvertSpecificNounToUpper(str string) string {
 	target := parser.CamelCase(str)
-	target = strings.Replace(target, "Uuid", "UUID", -1)
-	target = strings.Replace(target, "Api", "API", -1)
-	target = strings.Replace(target, "Id", "ID", -1)
+
+	data := []struct {
+		Origin string
+		Target string
+	}{
+		{
+			"Uuid",
+			"UUID",
+		},
+		{
+			"Api",
+			"API",
+		},
+		{
+			"Id",
+			"ID",
+		},
+		{
+			"Uri",
+			"URI",
+		},
+		{
+			"Url",
+			"URL",
+		},
+		{
+			"Ip",
+			"IP",
+		},
+	}
+
+	for _, v := range data {
+		target = strings.Replace(target, v.Origin, v.Target, -1)
+	}
 
 	return target
 }
