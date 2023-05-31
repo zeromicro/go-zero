@@ -204,3 +204,22 @@ func authEnvInfo() string {
 	}
 	return envInfo.Render()
 }
+
+// i18nEnvInfo show the i18n env variables usage by goctls
+func i18nEnvInfo() string {
+	color.Green.Println("I18n")
+	envInfo = table.NewWriter()
+	envInfo.SetOutputMirror(os.Stdout)
+	if lang {
+		envInfo.AppendHeader(table.Row{"环境变量名称", "环境变量介绍"})
+		envInfo.AppendRows([]table.Row{
+			{"I18N_DIR", "i18n 外部文件目录，即包含 locale 文件夹的目录"},
+		})
+	} else {
+		envInfo.AppendHeader(table.Row{"Key", "Introduction"})
+		envInfo.AppendRows([]table.Row{
+			{"I18N_DIR", "The i18n external file directory, that is the directory containing the locale folder"},
+		})
+	}
+	return envInfo.Render()
+}

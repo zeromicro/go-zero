@@ -40,11 +40,11 @@ b`,
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
-			tmpfile, err := fs.TempFilenameWithText(test.input)
+			tmpFile, err := fs.TempFilenameWithText(test.input)
 			assert.Nil(t, err)
-			defer os.Remove(tmpfile)
+			defer os.Remove(tmpFile)
 
-			content, err := ReadText(tmpfile)
+			content, err := ReadText(tmpFile)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expect, content)
 		})
@@ -59,9 +59,9 @@ func TestReadTextLines(t *testing.T) {
     #a
     3`
 
-	tmpfile, err := fs.TempFilenameWithText(text)
+	tmpFile, err := fs.TempFilenameWithText(text)
 	assert.Nil(t, err)
-	defer os.Remove(tmpfile)
+	defer os.Remove(tmpFile)
 
 	tests := []struct {
 		options     []TextReadOption
@@ -87,7 +87,7 @@ func TestReadTextLines(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(stringx.Rand(), func(t *testing.T) {
-			lines, err := ReadTextLines(tmpfile, test.options...)
+			lines, err := ReadTextLines(tmpFile, test.options...)
 			assert.Nil(t, err)
 			assert.Equal(t, test.expectLines, len(lines))
 		})

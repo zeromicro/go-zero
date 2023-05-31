@@ -237,4 +237,4 @@ const (
 	ApiParserLexerLetterOrDigit = 25
 )
 
-const COMEMNTS = 88
+const COMMENTS = 88
