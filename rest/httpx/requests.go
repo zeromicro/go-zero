@@ -31,19 +31,19 @@ var (
 // Parse parses the request.
 func Parse(r *http.Request, v any, isValidate bool) error {
 	if err := ParseJsonBody(r, v); err != nil {
-		return err
+		return errorx.NewCodeInvalidArgumentError(err.Error())
 	}
 
 	if err := ParsePath(r, v); err != nil {
-		return err
+		return errorx.NewCodeInvalidArgumentError(err.Error())
 	}
 
 	if err := ParseForm(r, v); err != nil {
-		return err
+		return errorx.NewCodeInvalidArgumentError(err.Error())
 	}
 
 	if err := ParseHeaders(r, v); err != nil {
-		return err
+		return errorx.NewCodeInvalidArgumentError(err.Error())
 	}
 
 	if isValidate {
