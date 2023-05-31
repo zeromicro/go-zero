@@ -41,6 +41,7 @@ func ShowEnv(_ *cobra.Command, _ []string) error {
 		rpcEnvInfo()
 		logEnvInfo()
 		databaseEnvInfo()
+		i18nEnvInfo()
 		captchaEnvInfo()
 	case "fms":
 		fmsEnvInfo()
