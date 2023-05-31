@@ -1,7 +1,6 @@
 package proc
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,13 +20,11 @@ func TestEnvInt(t *testing.T) {
 	val, ok := EnvInt("any")
 	assert.Equal(t, 0, val)
 	assert.False(t, ok)
-	err := os.Setenv("anyInt", "10")
-	assert.Nil(t, err)
+	t.Setenv("anyInt", "10")
 	val, ok = EnvInt("anyInt")
 	assert.Equal(t, 10, val)
 	assert.True(t, ok)
-	err = os.Setenv("anyString", "a")
-	assert.Nil(t, err)
+	t.Setenv("anyString", "a")
 	val, ok = EnvInt("anyString")
 	assert.Equal(t, 0, val)
 	assert.False(t, ok)

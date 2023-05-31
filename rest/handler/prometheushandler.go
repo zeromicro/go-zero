@@ -3,7 +3,6 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/zeromicro/go-zero/core/metric"
 	"github.com/zeromicro/go-zero/core/timex"
@@ -38,7 +37,7 @@ func PrometheusHandler(path, method string) func(http.Handler) http.Handler {
 			startTime := timex.Now()
 			cw := &response.WithCodeResponseWriter{Writer: w}
 			defer func() {
-				metricServerReqDur.Observe(int64(timex.Since(startTime)/time.Millisecond), path, method)
+				metricServerReqDur.Observe(timex.Since(startTime).Milliseconds(), path, method)
 				metricServerReqCodeTotal.Inc(path, strconv.Itoa(cw.Code), method)
 			}()
 
