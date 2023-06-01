@@ -23,7 +23,9 @@ PROJECT_I18N={{if .useI18n}}true{{else}}false{{end}}
 PROJECT_BUILD_SUFFIX={{if .isRpc}}rpc{{else}}api{{end}}
 {{if or .isApi .isSingle}}
 # Swagger type, support yml,json | Swagger 文件类型，支持yml,json
-SWAGGER_TYPE := json{{end}}
+SWAGGER_TYPE := json{{end}}{{if .useEnt}}
+# Ent enabled features | Ent 启用的官方特性
+ENT_FEATURE := sql/execquery{{end}}
 
 # ---- You may not need to modify the codes below | 下面的代码大概率不需要更改 ----
 
@@ -90,7 +92,7 @@ endif
 {{end}}{{if .useEnt}}
 .PHONY: gen-ent
 gen-ent: # Generate Ent codes | 生成 Ent 的代码
-	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema --feature sql/execquery
+	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema --feature $(ENT_FEATURE)
 	@echo "Generate Ent codes successfully"
 {{end}}{{if and .useEnt .isRpc}}
 .PHONY: gen-rpc-ent-logic
