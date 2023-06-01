@@ -36,7 +36,7 @@ func (l *Get{{.modelName}}ListLogic) Get{{.modelName}}List(req *types.{{.modelNa
 	}
 
 	resp := &types.{{.modelName}}ListResp{}
-	resp.Msg = {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.CreateSuccess){{else}}errormsg.Success{{end}}
+	resp.Msg = {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.Success){{else}}errormsg.Success{{end}}
 	resp.Data.Total = data.PageDetails.Total
 
 	for _, v := range data.List {
