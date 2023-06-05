@@ -41,12 +41,11 @@ type SimpleMsg {
 type PageInfo {
     // Page number | 第几页
     // Required: true
-    Page   uint64    `json:"page" validate:"number,min=1"`
+    Page   uint64    `json:"page" validate:"number,gte=1"`
 
     // Page size | 单页数据行数
     // Required: true
-    // Maximum: 100000
-    PageSize  uint64    `json:"pageSize" validate:"number,max=100000"`
+    PageSize  uint64    `json:"pageSize" validate:"number,lte=100000"`
 }
 
 // Basic ID request | 基础ID参数请求
