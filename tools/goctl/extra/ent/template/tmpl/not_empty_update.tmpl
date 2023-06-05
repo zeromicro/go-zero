@@ -13,10 +13,10 @@
 			{{ $set := print "Set" $f.StructField }}
 
 			{{ range $updater := list $n.UpdateName $n.UpdateOneName }}
-				{{ if or (eq $f.Type.Type 7) (gt $f.Type.Type 8)}}
+				{{ if or (eq $f.Type.Type 4) (eq $f.Type.Type 7) (gt $f.Type.Type 8)}}
 					// set field if value is not empty. e.g. string does not equal to ""
 					func ({{ $n.Receiver }} *{{ $updater }}) SetNotEmpty{{ $f.StructField }}(value {{ if not $f.SupportsMutationAppend }}{{ end }}{{ $f.Type }}) *{{ $updater }} {
-						if value != {{if  $f.Type.Numeric  }} 0 {{ else if eq $f.Type.Type 7 }} "" {{ else if eq $f.Type.Type 7 }} {{end}}  {
+						if value != {{if  $f.Type.Numeric  }} 0 {{ else if eq $f.Type.Type 4 }} [16]byte{} {{ else if eq $f.Type.Type 7 }} "" {{end}}  {
 							return {{ $n.Receiver }}.{{ $set }}({{ if not $f.SupportsMutationAppend }}{{ end }}value)
 						}
 						return {{ $n.Receiver }}
