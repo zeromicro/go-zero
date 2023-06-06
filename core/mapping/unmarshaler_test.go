@@ -557,6 +557,15 @@ func TestUnmarshalIntWithString(t *testing.T) {
 		var in inner
 		assert.Error(t, UnmarshalKey(m, &in))
 	})
+
+	t.Run("invalid options", func(t *testing.T) {
+		type Value struct {
+			Name string `key:"name,options="`
+		}
+
+		var v Value
+		assert.Error(t, UnmarshalKey(emptyMap, &v))
+	})
 }
 
 func TestUnmarshalBoolSliceRequired(t *testing.T) {
@@ -675,28 +684,54 @@ func TestUnmarshalFloatSliceWithDefault(t *testing.T) {
 }
 
 func TestUnmarshalStringSliceWithDefault(t *testing.T) {
-	type inner struct {
-		Strs   []string   `key:"strs,default=[foo,bar,woo]"`
-		Strps  []*string  `key:"strs,default=[foo,bar,woo]"`
-		Strpps []**string `key:"strs,default=[foo,bar,woo]"`
-	}
-
-	var in inner
-	if assert.NoError(t, UnmarshalKey(nil, &in)) {
-		assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, in.Strs)
-
-		var ss []string
-		for _, s := range in.Strps {
-			ss = append(ss, *s)
+	t.Run("slice with default", func(t *testing.T) {
+		type inner struct {
+			Strs   []string   `key:"strs,default=[foo,bar,woo]"`
+			Strps  []*string  `key:"strs,default=[foo,bar,woo]"`
+			Strpps []**string `key:"strs,default=[foo,bar,woo]"`
 		}
-		assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, ss)
 
-		var sss []string
-		for _, s := range in.Strpps {
-			sss = append(sss, **s)
+		var in inner
+		if assert.NoError(t, UnmarshalKey(nil, &in)) {
+			assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, in.Strs)
+
+			var ss []string
+			for _, s := range in.Strps {
+				ss = append(ss, *s)
+			}
+			assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, ss)
+
+			var sss []string
+			for _, s := range in.Strpps {
+				sss = append(sss, **s)
+			}
+			assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, sss)
 		}
-		assert.ElementsMatch(t, []string{"foo", "bar", "woo"}, sss)
-	}
+	})
+
+	t.Run("slice with default on errors", func(t *testing.T) {
+		type (
+			holder struct {
+				Chan []chan int
+			}
+
+			inner struct {
+				Strs []holder `key:"strs,default=[foo,bar,woo]"`
+			}
+		)
+
+		var in inner
+		assert.Error(t, UnmarshalKey(nil, &in))
+	})
+
+	t.Run("slice with default on errors", func(t *testing.T) {
+		type inner struct {
+			Strs []complex64 `key:"strs,default=[foo,bar,woo]"`
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(nil, &in))
+	})
 }
 
 func TestUnmarshalStringSliceWithDefaultHasSpaces(t *testing.T) {
@@ -1327,25 +1362,71 @@ func TestUnmarshalStructOptionalDependsNotErrorDetails(t *testing.T) {
 }
 
 func TestUnmarshalStructOptionalDependsNotNested(t *testing.T) {
-	type address struct {
-		Optional        string `key:",optional"`
-		OptionalDepends string `key:",optional=!Optional"`
-	}
-	type combo struct {
-		Name    string  `key:"name,optional"`
-		Address address `key:"address"`
-	}
-	type inner struct {
-		Name  string `key:"name"`
-		Combo combo  `key:"combo"`
-	}
+	t.Run("mutal optionals", func(t *testing.T) {
+		type address struct {
+			Optional        string `key:",optional"`
+			OptionalDepends string `key:",optional=!Optional"`
+		}
+		type combo struct {
+			Name    string  `key:"name,optional"`
+			Address address `key:"address"`
+		}
+		type inner struct {
+			Name  string `key:"name"`
+			Combo combo  `key:"combo"`
+		}
 
-	m := map[string]any{
-		"name": "kevin",
-	}
+		m := map[string]any{
+			"name": "kevin",
+		}
 
-	var in inner
-	assert.Error(t, UnmarshalKey(m, &in))
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("bad format", func(t *testing.T) {
+		type address struct {
+			Optional        string `key:",optional"`
+			OptionalDepends string `key:",optional=!Optional=abcd"`
+		}
+		type combo struct {
+			Name    string  `key:"name,optional"`
+			Address address `key:"address"`
+		}
+		type inner struct {
+			Name  string `key:"name"`
+			Combo combo  `key:"combo"`
+		}
+
+		m := map[string]any{
+			"name": "kevin",
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
+
+	t.Run("invalid option", func(t *testing.T) {
+		type address struct {
+			Optional        string `key:",optional"`
+			OptionalDepends string `key:",opt=abcd"`
+		}
+		type combo struct {
+			Name    string  `key:"name,optional"`
+			Address address `key:"address"`
+		}
+		type inner struct {
+			Name  string `key:"name"`
+			Combo combo  `key:"combo"`
+		}
+
+		m := map[string]any{
+			"name": "kevin",
+		}
+
+		var in inner
+		assert.Error(t, UnmarshalKey(m, &in))
+	})
 }
 
 func TestUnmarshalStructOptionalNestedDifferentKey(t *testing.T) {
@@ -3855,20 +3936,37 @@ func TestUnmarshalValuer(t *testing.T) {
 }
 
 func TestUnmarshal_EnvString(t *testing.T) {
-	type Value struct {
-		Name string `key:"name,env=TEST_NAME_STRING"`
-	}
+	t.Run("valid env", func(t *testing.T) {
+		type Value struct {
+			Name string `key:"name,env=TEST_NAME_STRING"`
+		}
 
-	const (
-		envName = "TEST_NAME_STRING"
-		envVal  = "this is a name"
-	)
-	t.Setenv(envName, envVal)
+		const (
+			envName = "TEST_NAME_STRING"
+			envVal  = "this is a name"
+		)
+		t.Setenv(envName, envVal)
 
-	var v Value
-	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
-		assert.Equal(t, envVal, v.Name)
-	}
+		var v Value
+		if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+			assert.Equal(t, envVal, v.Name)
+		}
+	})
+
+	t.Run("invalid env", func(t *testing.T) {
+		type Value struct {
+			Name string `key:"name,env=TEST_NAME_STRING=invalid"`
+		}
+
+		const (
+			envName = "TEST_NAME_STRING"
+			envVal  = "this is a name"
+		)
+		t.Setenv(envName, envVal)
+
+		var v Value
+		assert.Error(t, UnmarshalKey(emptyMap, &v))
+	})
 }
 
 func TestUnmarshal_EnvStringOverwrite(t *testing.T) {
@@ -4044,20 +4142,22 @@ func TestUnmarshal_EnvDurationBadValue(t *testing.T) {
 }
 
 func TestUnmarshal_EnvWithOptions(t *testing.T) {
-	type Value struct {
-		Name string `key:"name,env=TEST_NAME_ENV_OPTIONS_MATCH,options=[abc,123,xyz]"`
-	}
+	t.Run("valid options", func(t *testing.T) {
+		type Value struct {
+			Name string `key:"name,env=TEST_NAME_ENV_OPTIONS_MATCH,options=[abc,123,xyz]"`
+		}
 
-	const (
-		envName = "TEST_NAME_ENV_OPTIONS_MATCH"
-		envVal  = "123"
-	)
-	t.Setenv(envName, envVal)
+		const (
+			envName = "TEST_NAME_ENV_OPTIONS_MATCH"
+			envVal  = "123"
+		)
+		t.Setenv(envName, envVal)
 
-	var v Value
-	if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
-		assert.Equal(t, envVal, v.Name)
-	}
+		var v Value
+		if assert.NoError(t, UnmarshalKey(emptyMap, &v)) {
+			assert.Equal(t, envVal, v.Name)
+		}
+	})
 }
 
 func TestUnmarshal_EnvWithOptionsWrongValueBool(t *testing.T) {
