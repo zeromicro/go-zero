@@ -372,8 +372,6 @@ func parseOption(fieldOpts *fieldOptions, fieldName, option string) error {
 		default:
 			return fmt.Errorf("field %q has wrong optional", fieldName)
 		}
-	case option == optionalOption:
-		fieldOpts.Optional = true
 	case strings.HasPrefix(option, optionsOption):
 		val, err := parseProperty(fieldName, optionsOption, option)
 		if err != nil {

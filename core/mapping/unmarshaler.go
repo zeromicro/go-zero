@@ -176,7 +176,12 @@ func (u *Unmarshaler) fillSlice(fieldType reflect.Type, value reflect.Value, map
 		switch dereffedBaseKind {
 		case reflect.Struct:
 			target := reflect.New(dereffedBaseType)
-			if err := u.Unmarshal(ithValue.(map[string]any), target.Interface()); err != nil {
+			val, ok := ithValue.(map[string]any)
+			if !ok {
+				return errTypeMismatch
+			}
+
+			if err := u.Unmarshal(val, target.Interface()); err != nil {
 				return err
 			}
 
