@@ -421,26 +421,37 @@ func getNowDateInRFC3339Format() string {
 	return time.Now().Format(fileTimeFormat)
 }
 
-func gzipFile(file string) error {
+func gzipFile(file string) (err error) {
 	in, err := os.Open(file)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if e := in.Close(); e != nil {
+			Errorf("failed to close file: %s, error: %v", file, e)
+		}
+		if err == nil {
+			// only remove the original file when compression is successful
+			err = os.Remove(file)
+		}
+	}()
 
 	out, err := os.Create(fmt.Sprintf("%s%s", file, gzipExt))
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func() {
+		e := out.Close()
+		if err == nil {
+			err = e
+		}
+	}()
 
 	w := gzip.NewWriter(out)
 	if _, err = io.Copy(w, in); err != nil {
-		return err
-	} else if err = w.Close(); err != nil {
+		// failed to copy, no need to close w
 		return err
 	}
 
-	in.Close()
-
-	return os.Remove(file)
+	return w.Close()
 }
