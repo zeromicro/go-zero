@@ -426,7 +426,6 @@ func gzipFile(file string) error {
 	if err != nil {
 		return err
 	}
-	defer in.Close()
 
 	out, err := os.Create(fmt.Sprintf("%s%s", file, gzipExt))
 	if err != nil {
@@ -440,6 +439,8 @@ func gzipFile(file string) error {
 	} else if err = w.Close(); err != nil {
 		return err
 	}
+
+	in.Close()
 
 	return os.Remove(file)
 }
