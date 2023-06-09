@@ -488,6 +488,12 @@ func TestGzipFile(t *testing.T) {
 		assert.Error(t, err, gzipFile("any", fsys))
 		assert.True(t, fsys.Removed())
 	})
+
+	t.Run("gzip file everything ok", func(t *testing.T) {
+		fsys := &fakeFileSystem{}
+		assert.NoError(t, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
 }
 
 func BenchmarkRotateLogger(b *testing.B) {
