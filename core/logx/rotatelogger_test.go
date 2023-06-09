@@ -1,9 +1,12 @@
 package logx
 
 import (
+	"errors"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -429,6 +432,70 @@ func TestRotateLoggerWithSizeLimitRotateRuleWrite(t *testing.T) {
 	logger.write([]byte(`baz`))
 }
 
+func TestGzipFile(t *testing.T) {
+	err := errors.New("any error")
+
+	t.Run("gzip file open failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			openFn: func(name string) (*os.File, error) {
+				return nil, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file create failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			createFn: func(name string) (*os.File, error) {
+				return nil, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file copy failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			copyFn: func(writer io.Writer, reader io.Reader) (int64, error) {
+				return 0, err
+			},
+		}
+		assert.ErrorIs(t, err, gzipFile("any", fsys))
+		assert.False(t, fsys.Removed())
+	})
+
+	t.Run("gzip file last close failed", func(t *testing.T) {
+		var called int32
+		fsys := &fakeFileSystem{
+			closeFn: func(closer io.Closer) error {
+				if atomic.AddInt32(&called, 1) > 2 {
+					return err
+				}
+				return nil
+			},
+		}
+		assert.NoError(t, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+
+	t.Run("gzip file remove failed", func(t *testing.T) {
+		fsys := &fakeFileSystem{
+			removeFn: func(name string) error {
+				return err
+			},
+		}
+		assert.Error(t, err, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+
+	t.Run("gzip file everything ok", func(t *testing.T) {
+		fsys := &fakeFileSystem{}
+		assert.NoError(t, gzipFile("any", fsys))
+		assert.True(t, fsys.Removed())
+	})
+}
+
 func BenchmarkRotateLogger(b *testing.B) {
 	filename := "./test.log"
 	filename2 := "./test2.log"
@@ -479,4 +546,54 @@ func BenchmarkRotateLogger(b *testing.B) {
 			sizeLimitRotateRuleLogger.write([]byte("testing\ntesting\n"))
 		}
 	})
+}
+
+type fakeFileSystem struct {
+	removed  int32
+	closeFn  func(closer io.Closer) error
+	copyFn   func(writer io.Writer, reader io.Reader) (int64, error)
+	createFn func(name string) (*os.File, error)
+	openFn   func(name string) (*os.File, error)
+	removeFn func(name string) error
+}
+
+func (f *fakeFileSystem) Close(closer io.Closer) error {
+	if f.closeFn != nil {
+		return f.closeFn(closer)
+	}
+	return nil
+}
+
+func (f *fakeFileSystem) Copy(writer io.Writer, reader io.Reader) (int64, error) {
+	if f.copyFn != nil {
+		return f.copyFn(writer, reader)
+	}
+	return 0, nil
+}
+
+func (f *fakeFileSystem) Create(name string) (*os.File, error) {
+	if f.createFn != nil {
+		return f.createFn(name)
+	}
+	return nil, nil
+}
+
+func (f *fakeFileSystem) Open(name string) (*os.File, error) {
+	if f.openFn != nil {
+		return f.openFn(name)
+	}
+	return nil, nil
+}
+
+func (f *fakeFileSystem) Remove(name string) error {
+	atomic.AddInt32(&f.removed, 1)
+
+	if f.removeFn != nil {
+		return f.removeFn(name)
+	}
+	return nil
+}
+
+func (f *fakeFileSystem) Removed() bool {
+	return atomic.LoadInt32(&f.removed) > 0
 }
