@@ -74,6 +74,11 @@ func TestFirstLineShort(t *testing.T) {
 	assert.Equal(t, "first line", val)
 }
 
+func TestFirstLineError(t *testing.T) {
+	_, err := FirstLine("/tmp/does-not-exist")
+	assert.Error(t, err)
+}
+
 func TestLastLine(t *testing.T) {
 	filename, err := fs.TempFilenameWithText(text)
 	assert.Nil(t, err)
@@ -112,4 +117,9 @@ func TestLastLineWithLastNewlineShort(t *testing.T) {
 	val, err := LastLine(filename)
 	assert.Nil(t, err)
 	assert.Equal(t, "last line", val)
+}
+
+func TestLastLineError(t *testing.T) {
+	_, err := LastLine("/tmp/does-not-exist")
+	assert.Error(t, err)
 }

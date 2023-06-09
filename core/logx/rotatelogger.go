@@ -440,10 +440,7 @@ func gzipFile(file string) error {
 		return err
 	}
 
-	err = in.Close()
-	if err != nil {
-		return err
-	}
+	in.Close()
 
 	return os.Remove(file)
 }
