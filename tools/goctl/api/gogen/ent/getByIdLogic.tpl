@@ -36,7 +36,7 @@ func (l *Get{{.modelName}}ByIdLogic) Get{{.modelName}}ById(req *types.{{if .useU
 	return &types.{{.modelName}}InfoResp{
 	    BaseDataInfo: types.BaseDataInfo{
             Code: 0,
-            Msg:  {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.CreateSuccess){{else}}errormsg.Success{{end}},
+            Msg:  {{if .useI18n}}l.svcCtx.Trans.Trans(l.ctx, i18n.Success){{else}}errormsg.Success{{end}},
         },
         Data: types.{{.modelName}}Info{
             Base{{if .useUUID}}UU{{end}}IDInfo:    types.Base{{if .useUUID}}UU{{end}}IDInfo{

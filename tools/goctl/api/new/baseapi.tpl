@@ -40,13 +40,10 @@ type SimpleMsg {
 // The page request parameters | 列表请求参数
 type PageInfo {
     // Page number | 第几页
-    // Required: true
-    Page   uint64    `json:"page" validate:"number"`
+    Page   uint64    `json:"page" validate:"required,number,gt=0"`
 
     // Page size | 单页数据行数
-    // Required: true
-    // Maximum: 100000
-    PageSize  uint64    `json:"pageSize" validate:"number,max=100000"`
+    PageSize  uint64    `json:"pageSize" validate:"required,number,lt=100000"`
 }
 
 // Basic ID request | 基础ID参数请求
@@ -74,9 +71,7 @@ type IDPathReq {
 // Basic UUID request | 基础UUID参数请求
 type UUIDReq {
     // ID
-    // Required: true
-    // Max length: 36
-    Id string `json:"id" validate:"len=36"`
+    Id string `json:"id" validate:"required,len=36"`
 }
 
 // Basic UUID array request | 基础UUID数组参数请求

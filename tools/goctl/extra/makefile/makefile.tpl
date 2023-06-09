@@ -23,7 +23,9 @@ PROJECT_I18N={{if .useI18n}}true{{else}}false{{end}}
 PROJECT_BUILD_SUFFIX={{if .isRpc}}rpc{{else}}api{{end}}
 {{if or .isApi .isSingle}}
 # Swagger type, support yml,json | Swagger 文件类型，支持yml,json
-SWAGGER_TYPE := yml{{end}}
+SWAGGER_TYPE := json{{end}}{{if .useEnt}}
+# Ent enabled features | Ent 启用的官方特性
+ENT_FEATURE := sql/execquery{{end}}
 
 # ---- You may not need to modify the codes below | 下面的代码大概率不需要更改 ----
 
@@ -63,19 +65,19 @@ publish-docker: # Publish docker image | 发布 docker 镜像
 {{if or .isApi .isSingle}}
 .PHONY: gen-swagger
 gen-swagger: # Generate swagger file | 生成 swagger 文件
-	swagger generate spec --output=./$(SERVICE_STYLE).yml --scan-models
+	swagger generate spec --output=./$(SERVICE_STYLE).$(SWAGGER_TYPE) --scan-models
 	@echo "Generate swagger successfully"
 
 .PHONY: serve-swagger
 serve-swagger: # Run the swagger server | 运行 swagger 服务
 	lsof -i:36666 | awk 'NR!=1 {print $2}' | xargs killall -9 || true
-	swagger serve -F=swagger --port 36666 $(SERVICE_STYLE).yml
+	swagger serve -F=swagger --port 36666 $(SERVICE_STYLE).$(SWAGGER_TYPE)
 	@echo "Serve swagger-ui successfully"
 
 .PHONY: gen-api
 gen-api: # Generate API files | 生成 API 的代码
 	goctls api go --api ./desc/all.api --dir ./ --trans_err=true --style=$(PROJECT_STYLE)
-	swagger generate spec --output=./$(SERVICE_STYLE).yml --scan-models
+	swagger generate spec --output=./$(SERVICE_STYLE).$(SWAGGER_TYPE) --scan-models
 	@echo "Generate API codes successfully"
 {{end}}{{if .isRpc}}
 .PHONY: gen-rpc
@@ -90,7 +92,7 @@ endif
 {{end}}{{if .useEnt}}
 .PHONY: gen-ent
 gen-ent: # Generate Ent codes | 生成 Ent 的代码
-	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema
+	go run -mod=mod entgo.io/ent/cmd/ent generate --template glob="./ent/template/*.tmpl" ./ent/schema --feature $(ENT_FEATURE)
 	@echo "Generate Ent codes successfully"
 {{end}}{{if and .useEnt .isRpc}}
 .PHONY: gen-rpc-ent-logic
