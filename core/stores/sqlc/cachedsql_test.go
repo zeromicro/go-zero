@@ -471,31 +471,33 @@ func TestCachedConnExec(t *testing.T) {
 }
 
 func TestCachedConnExecDropCache(t *testing.T) {
-	r, err := miniredis.Run()
-	assert.Nil(t, err)
-	defer fx.DoWithTimeout(func() error {
-		r.Close()
-		return nil
-	}, time.Second)
+	t.Run("drop cache", func(t *testing.T) {
+		r, err := miniredis.Run()
+		assert.Nil(t, err)
+		defer fx.DoWithTimeout(func() error {
+			r.Close()
+			return nil
+		}, time.Second)
 
-	const (
-		key   = "user"
-		value = "any"
-	)
-	var conn trackedConn
-	c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
-	assert.Nil(t, c.SetCache(key, value))
-	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
-		return conn.Exec("delete from user_table where id='kevin'")
-	}, key)
-	assert.Nil(t, err)
-	assert.True(t, conn.execValue)
-	_, err = r.Get(key)
-	assert.Exactly(t, miniredis.ErrKeyNotFound, err)
-	_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
-		return nil, errors.New("foo")
-	}, key)
-	assert.NotNil(t, err)
+		const (
+			key   = "user"
+			value = "any"
+		)
+		var conn trackedConn
+		c := NewNodeConn(&conn, redis.New(r.Addr()), cache.WithExpiry(time.Second*30))
+		assert.Nil(t, c.SetCache(key, value))
+		_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
+			return conn.Exec("delete from user_table where id='kevin'")
+		}, key)
+		assert.Nil(t, err)
+		assert.True(t, conn.execValue)
+		_, err = r.Get(key)
+		assert.Exactly(t, miniredis.ErrKeyNotFound, err)
+		_, err = c.Exec(func(conn sqlx.SqlConn) (result sql.Result, e error) {
+			return nil, errors.New("foo")
+		}, key)
+		assert.NotNil(t, err)
+	})
 }
 
 func TestCachedConn_SetCacheWithExpire(t *testing.T) {
