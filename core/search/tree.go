@@ -171,11 +171,11 @@ func add(nd *node, route string, item any) error {
 		token := route[:i]
 		children := nd.getChildren(token)
 		if child, ok := children[token]; ok {
-			if child != nil {
-				return add(child, route[i+1:], item)
+			if child == nil {
+				return errInvalidState
 			}
 
-			return errInvalidState
+			return add(child, route[i+1:], item)
 		}
 
 		child := newNode(nil)
