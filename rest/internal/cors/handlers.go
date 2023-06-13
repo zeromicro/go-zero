@@ -65,14 +65,10 @@ func Middleware(fn func(w http.Header), origins ...string) func(http.HandlerFunc
 func checkAndSetHeaders(w http.ResponseWriter, r *http.Request, origins []string) {
 	setVaryHeaders(w, r)
 
-	if len(origins) == 0 {
-		setHeader(w, allOrigins)
-		return
-	}
-
 	origin := r.Header.Get(originHeader)
-	if isOriginAllowed(origins, origin) {
+	if len(origins) == 0 || isOriginAllowed(origins, origin) {
 		setHeader(w, origin)
+		return
 	}
 }
 

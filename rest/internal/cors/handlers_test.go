@@ -17,7 +17,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 	}{
 		{
 			name:   "allow all origins",
-			expect: allOrigins,
+			expect: "",
 		},
 		{
 			name:      "allow one origin",
@@ -40,7 +40,7 @@ func TestCorsHandlerWithOrigins(t *testing.T) {
 		{
 			name:      "allow all origins",
 			reqOrigin: "http://local",
-			expect:    "*",
+			expect:    "http://local",
 		},
 		{
 			name:      "allow many origins with all mark",
