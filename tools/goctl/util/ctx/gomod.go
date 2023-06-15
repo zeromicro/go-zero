@@ -81,7 +81,7 @@ func getRealModule(workDir string, execRun execx.RunFunc) (*Module, error) {
 		return nil, err
 	}
 	for _, m := range modules {
-		mRealDir, _ := pathx.ReadLink(m.Dir)
+		mRealDir, err := pathx.ReadLink(m.Dir)
 		if err != nil {
 			continue
 		}
